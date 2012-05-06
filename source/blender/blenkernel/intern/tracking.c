@@ -1523,6 +1523,7 @@ typedef struct MovieReconstructContext {
 #endif
 	char object_name[MAX_NAME];
 	int is_camera;
+	short motion_flag;
 
 	float focal_length;
 	float principal_point[2];
@@ -1752,7 +1753,11 @@ int BKE_tracking_can_reconstruct(MovieTracking *tracking, MovieTrackingObject *o
 #if WITH_LIBMV
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
 
-	if (count_tracks_on_both_keyframes(tracking, tracksbase)<8) {
+	if (tracking->settings.motion_flag & TRACKING_MOTION_MODAL) {
+		/* TODO: check for number of tracks? */
+		return TRUE;
+	}
+	else if (count_tracks_on_both_keyframes(tracking, tracksbase) < 8) {
 		BLI_strncpy(error_msg, "At least 8 common tracks on both of keyframes are needed for reconstruction", error_size);
 
 		return FALSE;
@@ -1781,7 +1786,8 @@ MovieReconstructContext* BKE_tracking_reconstruction_context_new(MovieTracking *
 	MovieTrackingTrack *track;
 
 	BLI_strncpy(context->object_name, object->name, sizeof(context->object_name));
-	context->is_camera = object->flag&TRACKING_OBJECT_CAMERA;
+	context->is_camera = object->flag & TRACKING_OBJECT_CAMERA;
+	context->motion_flag = tracking->settings.motion_flag;
 
 	context->tracks_map = tracks_map_new(context->object_name, context->is_camera, num_tracks, 0);
 
@@ -1894,13 +1900,22 @@ void BKE_tracking_solve_reconstruction(MovieReconstructContext *context, short *
 	progressdata.stats_message = stats_message;
 	progressdata.message_size = message_size;
 
-	context->reconstruction = libmv_solveReconstruction(context->tracks,
-		context->keyframe1, context->keyframe2,
-		context->refine_flags,
-		context->focal_length,
-		context->principal_point[0], context->principal_point[1],
-		context->k1, context->k2, context->k3,
-		solve_reconstruction_update_cb, &progressdata);
+	if (context->motion_flag & TRACKING_MOTION_MODAL) {
+		context->reconstruction = libmv_solveModal(context->tracks,
+			context->focal_length,
+			context->principal_point[0], context->principal_point[1],
+			context->k1, context->k2, context->k3,
+			solve_reconstruction_update_cb, &progressdata);
+	}
+	else {
+		context->reconstruction = libmv_solveReconstruction(context->tracks,
+			context->keyframe1, context->keyframe2,
+			context->refine_flags,
+			context->focal_length,
+			context->principal_point[0], context->principal_point[1],
+			context->k1, context->k2, context->k3,
+			solve_reconstruction_update_cb, &progressdata);
+	}
 
 	error = libmv_reprojectionError(context->reconstruction);
 

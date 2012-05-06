@@ -71,8 +71,7 @@ static void freeData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	
-	if (collmd) 
-	{
+	if (collmd)  {
 		if (collmd->bvhtree)
 			BLI_bvhtree_free(collmd->bvhtree);
 		if (collmd->x)
@@ -120,14 +119,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 	if (derivedData) dm = CDDM_copy(derivedData);
 	else if (ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
-	if (!ob->pd)
-	{
+	if (!ob->pd) {
 		printf("CollisionModifier deformVerts: Should not happen!\n");
 		return;
 	}
 	
-	if (dm)
-	{
+	if (dm) {
 		float current_time = 0;
 		unsigned int numverts = 0;
 
@@ -139,24 +136,21 @@ static void deformVerts(ModifierData *md, Object *ob,
 		if (G.rt > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
-		numverts = dm->getNumVerts ( dm );
+		numverts = dm->getNumVerts (dm);
 		
-		if ((current_time > collmd->time_xnew)|| (BKE_ptcache_get_continue_physics()))
-		{
+		if ((current_time > collmd->time_xnew)|| (BKE_ptcache_get_continue_physics())) {
 			unsigned int i;
 
 			// check if mesh has changed
 			if (collmd->x && (numverts != collmd->numverts))
 				freeData((ModifierData *)collmd);
 			
-			if (collmd->time_xnew == -1000) // first time
-			{
+			if (collmd->time_xnew == -1000) { /* first time */
 				collmd->x = dm->dupVertArray(dm); // frame start position
 				
-				for ( i = 0; i < numverts; i++ )
-				{
+				for ( i = 0; i < numverts; i++ ) {
 					// we save global positions
-					mul_m4_v3( ob->obmat, collmd->x[i].co );
+					mul_m4_v3(ob->obmat, collmd->x[i].co);
 				}
 				
 				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
@@ -187,7 +181,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				
 				for (i = 0; i < numverts; i++) {
 					// we save global positions
-					mul_m4_v3( ob->obmat, collmd->xnew[i].co );
+					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
 				}
 				
 				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));

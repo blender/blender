@@ -210,7 +210,7 @@ static int gp_data_add_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_data_add (wmOperatorType *ot)
+void GPENCIL_OT_data_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Grease Pencil Add New";
@@ -258,7 +258,7 @@ static int gp_data_unlink_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_data_unlink (wmOperatorType *ot)
+void GPENCIL_OT_data_unlink(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Grease Pencil Unlink";
@@ -295,7 +295,7 @@ static int gp_layer_add_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_layer_add (wmOperatorType *ot)
+void GPENCIL_OT_layer_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add New Layer";
@@ -346,7 +346,7 @@ static int gp_actframe_delete_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_active_frame_delete (wmOperatorType *ot)
+void GPENCIL_OT_active_frame_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Active Frame";
@@ -534,7 +534,7 @@ static void gp_stroke_to_bezier (bContext *C, bGPDlayer *gpl, bGPDstroke *gps, C
 	}
 
 	/* must calculate handles or else we crash */
-	calchandlesNurb(nu);
+	BKE_nurb_handles_calc(nu);
 
 	/* add nurb to curve */
 	BLI_addtail(&cu->nurb, nu);
@@ -629,7 +629,7 @@ static int gp_convert_layer_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void GPENCIL_OT_convert (wmOperatorType *ot)
+void GPENCIL_OT_convert(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Convert Grease Pencil";

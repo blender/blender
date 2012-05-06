@@ -397,8 +397,7 @@ static GPUNodeLink *lamp_get_visibility(GPUMaterial *mat, GPULamp *lamp, GPUNode
 		if (lamp->type==LA_AREA)
 			return visifac;
 
-		switch(lamp->falloff_type)
-		{
+		switch (lamp->falloff_type) {
 			case LA_FALLOFF_CONSTANT:
 				break;
 			case LA_FALLOFF_INVLINEAR:
@@ -535,7 +534,7 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 		}
 		else {
 			/* input */
-			switch(ma->rampin_col) {
+			switch (ma->rampin_col) {
 			case MA_RAMP_IN_ENERGY:
 				GPU_link(mat, "ramp_rgbtobw", rgb, &fac);
 				break;
@@ -588,7 +587,7 @@ static void do_specular_ramp(GPUShadeInput *shi, GPUNodeLink *is, GPUNodeLink *t
 	if (ma->ramp_spec && (ma->rampin_spec!=MA_RAMP_IN_RESULT)) {
 		
 		/* input */
-		switch(ma->rampin_spec) {
+		switch (ma->rampin_spec) {
 		case MA_RAMP_IN_ENERGY:
 			fac = t;
 			break;
@@ -807,7 +806,7 @@ static void material_lights(GPUShadeInput *shi, GPUShadeResult *shr)
 
 static void texture_rgb_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *out, GPUNodeLink *fact, GPUNodeLink *facg, int blendtype, GPUNodeLink **in)
 {
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		GPU_link(mat, "mtex_rgb_blend", out, tex, fact, facg, in);
 		break;
@@ -858,7 +857,7 @@ static void texture_rgb_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *o
 
 static void texture_value_blend(GPUMaterial *mat, GPUNodeLink *tex, GPUNodeLink *out, GPUNodeLink *fact, GPUNodeLink *facg, int blendtype, GPUNodeLink **in)
 {
-	switch(blendtype) {
+	switch (blendtype) {
 	case MTEX_BLEND:
 		GPU_link(mat, "mtex_value_blend", out, tex, fact, facg, in);
 		break;
@@ -1049,7 +1048,7 @@ static void do_material_tex(GPUShadeInput *shi)
 
 					if (tex->imaflag & TEX_NORMALMAP) {
 						/* normalmap image */
-						GPU_link(mat, "mtex_normal", texco, GPU_image(tex->ima, &tex->iuser), &tnor );
+						GPU_link(mat, "mtex_normal", texco, GPU_image(tex->ima, &tex->iuser), &tnor);
 						
 						if (mtex->norfac < 0.0f)
 							GPU_link(mat, "mtex_negate_texnormal", tnor, &tnor);
@@ -1152,70 +1151,70 @@ static void do_material_tex(GPUShadeInput *shi)
 						if ( iBumpSpacePrev != iBumpSpace ) {
 							
 							if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
-								GPU_link( mat, "mtex_bump_init_objspace",
-										  surf_pos, vNorg, 
-								          GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX),  GPU_builtin(GPU_INVERSE_OBJECT_MATRIX), 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_objspace",
+								         surf_pos, vNorg,
+								         GPU_builtin(GPU_VIEW_MATRIX), GPU_builtin(GPU_INVERSE_VIEW_MATRIX), GPU_builtin(GPU_OBJECT_MATRIX),  GPU_builtin(GPU_INVERSE_OBJECT_MATRIX),
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 								
 							else if ( mtex->texflag & MTEX_BUMP_TEXTURESPACE )
-								GPU_link( mat, "mtex_bump_init_texturespace",
-										  surf_pos, vNorg, 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_texturespace",
+								         surf_pos, vNorg,
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 								
 							else
-								GPU_link( mat, "mtex_bump_init_viewspace",
-										  surf_pos, vNorg, 
-								          fPrevMagnitude, vNacc,
-										  &fPrevMagnitude, &vNacc, 
-								          &vR1, &vR2, &fDet );
+								GPU_link(mat, "mtex_bump_init_viewspace",
+								         surf_pos, vNorg,
+								         fPrevMagnitude, vNacc,
+								         &fPrevMagnitude, &vNacc,
+								         &vR1, &vR2, &fDet);
 							
 							iBumpSpacePrev = iBumpSpace;
 						}
 						
 						
 						if (found_deriv_map) {
-							GPU_link( mat, "mtex_bump_deriv", 
-							          texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&ima_x), GPU_uniform(&ima_y), tnorfac,
-							          &dBs, &dBt );
+							GPU_link(mat, "mtex_bump_deriv",
+							         texco, GPU_image(tex->ima, &tex->iuser), GPU_uniform(&ima_x), GPU_uniform(&ima_y), tnorfac,
+							         &dBs, &dBt );
 						}
-						else if ( mtex->texflag & MTEX_3TAP_BUMP )
-							GPU_link( mat, "mtex_bump_tap3", 
-							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-							          &dBs, &dBt );
-						else if ( mtex->texflag & MTEX_5TAP_BUMP )
-							GPU_link( mat, "mtex_bump_tap5",
-							          texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-							          &dBs, &dBt );
+						else if ( mtex->texflag & MTEX_3TAP_BUMP)
+							GPU_link(mat, "mtex_bump_tap3",
+							         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+							         &dBs, &dBt );
+						else if ( mtex->texflag & MTEX_5TAP_BUMP)
+							GPU_link(mat, "mtex_bump_tap5",
+							         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+							         &dBs, &dBt );
 						else if ( mtex->texflag & MTEX_BICUBIC_BUMP ) {
 							if (GPU_bicubic_bump_support()) {
-								GPU_link( mat, "mtex_bump_bicubic",
-										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-										&dBs, &dBt );
+								GPU_link(mat, "mtex_bump_bicubic",
+								         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+								         &dBs, &dBt);
 							}
 							else {
-								GPU_link( mat, "mtex_bump_tap5",
-										texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
-										&dBs, &dBt );
+								GPU_link(mat, "mtex_bump_tap5",
+								         texco, GPU_image(tex->ima, &tex->iuser), tnorfac,
+								         &dBs, &dBt);
 							}
 						}
 						
 						
 						if ( mtex->texflag & MTEX_BUMP_TEXTURESPACE ) {
 							float imag_tspace_dimension_y = aspect*imag_tspace_dimension_x;
-							GPU_link( mat, "mtex_bump_apply_texspace",
-							          fDet, dBs, dBt, vR1, vR2, 
-							          GPU_image(tex->ima, &tex->iuser), texco,
-									  GPU_uniform(&imag_tspace_dimension_x), GPU_uniform(&imag_tspace_dimension_y), vNacc,
-							          &vNacc, &shi->vn );
+							GPU_link(mat, "mtex_bump_apply_texspace",
+							         fDet, dBs, dBt, vR1, vR2,
+							         GPU_image(tex->ima, &tex->iuser), texco,
+							         GPU_uniform(&imag_tspace_dimension_x), GPU_uniform(&imag_tspace_dimension_y), vNacc,
+							         &vNacc, &shi->vn );
 						}
 						else
-							GPU_link( mat, "mtex_bump_apply",
-							          fDet, dBs, dBt, vR1, vR2, vNacc,
-							          &vNacc, &shi->vn );
+							GPU_link(mat, "mtex_bump_apply",
+							         fDet, dBs, dBt, vR1, vR2, vNacc,
+							         &vNacc, &shi->vn );
 						
 					}
 				}
@@ -1568,7 +1567,7 @@ static void gpu_lamp_from_blender(Scene *scene, Object *ob, Object *par, Lamp *l
 	pixsize= (lamp->d)/temp;
 	wsize= pixsize*0.5f*lamp->size;
 		
-	perspective_m4( lamp->winmat,-wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
+	perspective_m4(lamp->winmat, -wsize, wsize, -wsize, wsize, lamp->d, lamp->clipend);
 }
 
 static void gpu_lamp_shadow_free(GPULamp *lamp)
@@ -1767,7 +1766,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 				uniform->datatype = GPU_DATA_1I;
 				BLI_strncpy(uniform->varname, input->shadername, sizeof(uniform->varname));
 
-				switch(input->textype) {
+				switch (input->textype) {
 				case GPU_SHADOW2D:
 					uniform->type = GPU_DYNAMIC_SAMPLER_2DSHADOW;
 					uniform->lamp = input->dynamicdata;
@@ -1788,7 +1787,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 			else {
 				uniform->type = input->dynamictype;
 				BLI_strncpy(uniform->varname, input->shadername, sizeof(uniform->varname));
-				switch(input->type) {
+				switch (input->type) {
 				case 1:
 					uniform->datatype = GPU_DATA_1F;
 					break;
@@ -1847,7 +1846,7 @@ GPUShaderExport *GPU_shader_export(struct Scene *scene, struct Material *ma)
 			attribute->number = mat->attribs.layer[i].glindex;
 			BLI_snprintf(attribute->varname, sizeof(attribute->varname), "att%d", mat->attribs.layer[i].attribid);
 
-			switch(attribute->type) {
+			switch (attribute->type) {
 			case CD_TANGENT:
 				attribute->datatype = GPU_DATA_4F;
 				break;

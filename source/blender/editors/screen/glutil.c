@@ -81,14 +81,14 @@ GLubyte stipple_halftone[128] = {
 
 
 GLubyte stipple_quarttone[128] = { 
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0};
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0,
+	136, 136, 136, 136, 0, 0, 0, 0, 34, 34, 34, 34, 0, 0, 0, 0};
 
 
 GLubyte stipple_diag_stripes_pos[128] = {
@@ -195,16 +195,15 @@ void fdrawcheckerboard(float x1, float y1, float x2, float y2)
 {
 	unsigned char col1[4]= {40, 40, 40}, col2[4]= {50, 50, 50};
 
-	GLubyte checker_stipple[32*32/8] = {
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
-		255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
-		0,255,0,255,0,255,0,255,0,255,0,255,0,255,0,255,
-	};
+	GLubyte checker_stipple[32 * 32 / 8] = {
+		255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
+		255,  0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
+		0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
+		255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
+		255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0,
+		0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255,
+		0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255, 0, 255};
 	
 	glColor3ubv(col1);
 	glRectf(x1, y1, x2, y2);
@@ -370,8 +369,8 @@ void fdrawXORellipse(float xofs, float yofs, float hw, float hh)
 	set_inverted_drawing(1);
 
 	glPushMatrix();
-	glTranslatef(xofs, yofs, 0.0);
-	glScalef(1,hh/hw,1);
+	glTranslatef(xofs, yofs, 0.0f);
+	glScalef(1.0f, hh / hw, 1.0f);
 	glutil_draw_lined_arc(0.0, M_PI*2.0, hw, 20);
 	glPopMatrix();
 
@@ -786,10 +785,10 @@ void glaEnd2DDraw(gla2DDrawInfo *di)
 
 static int curmode=0;
 static int pointhack=0;
-static GLubyte Squaredot[16] = { 0xff,0xff,0xff,0xff,
-								 0xff,0xff,0xff,0xff,
-								 0xff,0xff,0xff,0xff, 
-								 0xff,0xff,0xff,0xff};
+static GLubyte Squaredot[16] = {0xff, 0xff, 0xff, 0xff,
+                                0xff, 0xff, 0xff, 0xff,
+                                0xff, 0xff, 0xff, 0xff,
+                                0xff, 0xff, 0xff, 0xff};
 
 void bglBegin(int mode)
 {
@@ -825,7 +824,7 @@ int bglPointHack(void)
 
 void bglVertex3fv(const float vec[3])
 {
-	switch(curmode) {
+	switch (curmode) {
 	case GL_POINTS:
 		if (pointhack) {
 			glRasterPos3fv(vec);
@@ -838,7 +837,7 @@ void bglVertex3fv(const float vec[3])
 
 void bglVertex3f(float x, float y, float z)
 {
-	switch(curmode) {
+	switch (curmode) {
 	case GL_POINTS:
 		if (pointhack) {
 			glRasterPos3f(x, y, z);
@@ -851,7 +850,7 @@ void bglVertex3f(float x, float y, float z)
 
 void bglVertex2fv(const float vec[2])
 {
-	switch(curmode) {
+	switch (curmode) {
 	case GL_POINTS:
 		if (pointhack) {
 			glRasterPos2fv(vec);
@@ -882,11 +881,15 @@ void bgl_get_mats(bglMats *mats)
 	/* Very strange code here - it seems that certain bad values in the
 	 * modelview matrix can cause gluUnProject to give bad results. */
 	if (mats->modelview[0] < badvalue &&
-	   mats->modelview[0] > -badvalue)
-		mats->modelview[0]= 0;
+	    mats->modelview[0] > -badvalue)
+	{
+		mats->modelview[0] = 0;
+	}
 	if (mats->modelview[5] < badvalue &&
-	   mats->modelview[5] > -badvalue)
-		mats->modelview[5]= 0;
+	    mats->modelview[5] > -badvalue)
+	{
+		mats->modelview[5] = 0;
+	}
 	
 	/* Set up viewport so that gluUnProject will give correct values */
 	mats->viewport[0] = 0;

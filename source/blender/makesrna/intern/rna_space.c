@@ -2612,7 +2612,7 @@ static void rna_def_fileselect_params(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_hidden", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", FILE_HIDE_DOT);
 	RNA_def_property_ui_text(prop, "Show Hidden", "Show hidden dot files");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS , NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 
 	prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "sort");
@@ -3103,6 +3103,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_grayscale_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "postproc_flag", MOVIECLIP_PREVIEW_GRAYSCALE);
 	RNA_def_property_ui_text(prop, "Grayscale", "Display frame in grayscale mode");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* timeline */
+	prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_SECONDS);
+	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 }
 

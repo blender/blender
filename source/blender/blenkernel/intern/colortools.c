@@ -202,7 +202,7 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 	if (cuma->curve)
 		MEM_freeN(cuma->curve);
 
-	switch(preset) {
+	switch (preset) {
 		case CURVE_PRESET_LINE: cuma->totpoint= 2; break;
 		case CURVE_PRESET_SHARP: cuma->totpoint= 4; break;
 		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
@@ -214,7 +214,7 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 
 	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
 
-	switch(preset) {
+	switch (preset) {
 		case CURVE_PRESET_LINE:
 			cuma->curve[0].x= clipr->xmin;
 			cuma->curve[0].y= clipr->ymax;
@@ -252,10 +252,9 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 		case CURVE_PRESET_MID9:
 			{
 				int i;
-				for (i=0; i < cuma->totpoint; i++)
-				{
-					cuma->curve[i].x= i / ((float)cuma->totpoint-1);
-					cuma->curve[i].y= 0.5;
+				for (i = 0; i < cuma->totpoint; i++) {
+					cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
+					cuma->curve[i].y = 0.5;
 				}
 			}
 			break;
@@ -319,8 +318,8 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 /* reduced copy of garbled calchandleNurb() code in curve.c */
 static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *next, int UNUSED(mode))
 {
-	float *p1,*p2,*p3,pt[3];
-	float len,len_a, len_b;
+	float *p1, *p2, *p3, pt[3];
+	float len, len_a, len_b;
 	float dvec_a[2], dvec_b[2];
 
 	if (bezt->h1==0 && bezt->h2==0) {
@@ -500,8 +499,8 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	
 	for (a=0; a<cuma->totpoint-1; a++, fp += 2*CM_RESOL) {
 		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a+1].vec[0], bezt[a+1].vec[1]);
-		forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a+1].vec[0][0], bezt[a+1].vec[1][0], fp, CM_RESOL-1, 2*sizeof(float));	
-		forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2*sizeof(float));
+		BKE_curve_forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a+1].vec[0][0], bezt[a+1].vec[1][0], fp, CM_RESOL-1, 2*sizeof(float));	
+		BKE_curve_forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2*sizeof(float));
 	}
 	
 	/* store first and last handle for extrapolation, unit length */
@@ -1015,7 +1014,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 				}
 			}
 			else {
-				rgb_to_ycc(rgb[0],rgb[1],rgb[2],&ycc[0],&ycc[1],&ycc[2], ycc_mode);
+				rgb_to_ycc(rgb[0], rgb[1], rgb[2], &ycc[0], &ycc[1], &ycc[2], ycc_mode);
 				for (c=0; c<3; c++) {
 					ycc[c] *=INV_255;
 					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];

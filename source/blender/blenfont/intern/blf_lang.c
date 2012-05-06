@@ -106,6 +106,7 @@ static const char *locales[] = {
 	"serbian (latin)", "sr_RS@latin",
 	"kyrgyz", "ky_KG",
 	"turkish", "tr_TR",
+	"hungarian", "hu_HU",
 };
 
 void BLF_lang_init(void)
@@ -182,9 +183,9 @@ void BLF_lang_set(const char *str)
 		char *envStr;
 
 		if (U.language == 0)/* use system setting */
-			envStr = BLI_sprintfN( "LANG=%s", getenv("LANG") );
+			envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
 		else
-			envStr = BLI_sprintfN( "LANG=%s", short_locale );
+			envStr = BLI_sprintfN("LANG=%s", short_locale);
 
 		gettext_putenv(envStr);
 		MEM_freeN(envStr);

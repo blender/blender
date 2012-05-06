@@ -239,10 +239,10 @@ static void envmap_transmatrix(float mat[][4], int part)
 	}
 	
 	copy_m4_m4(tmat, mat);
-	eul_to_mat4( rotmat,eul);
+	eul_to_mat4(rotmat, eul);
 	mul_serie_m4(mat, tmat, rotmat,
-					 NULL, NULL, NULL,
-					 NULL, NULL, NULL);
+	             NULL, NULL, NULL,
+	             NULL, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------- */

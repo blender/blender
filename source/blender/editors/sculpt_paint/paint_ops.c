@@ -530,6 +530,9 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
 	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags);
 
+	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", WKEY, KM_PRESS, 0, 0);
+	set_brush_rc_props(kmi->ptr, paint, "weight", "use_unified_weight", flags);
+
 	if (flags & RC_ROTATION) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);
 		set_brush_rc_props(kmi->ptr, paint, "texture_slot.angle", NULL, flags);

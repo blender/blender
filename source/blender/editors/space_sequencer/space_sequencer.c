@@ -466,6 +466,7 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
+				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

@@ -176,8 +176,7 @@ TransformOrientation *createMeshSpace(bContext *C, ReportList *reports, char *na
 
 	type = getTransformOrientation(C, normal, plane, 0);
 	
-	switch (type)
-	{
+	switch (type) {
 		case ORIENTATION_VERT:
 			if (createSpaceNormal(mat, normal) == 0) {
 				BKE_reports_prepend(reports, "Cannot use vertex with zero-length normal");
@@ -493,7 +492,7 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *ob = CTX_data_active_object(C);
 	Object *obedit = CTX_data_active_object(C);
 
-	switch(t->current_orientation) {
+	switch (t->current_orientation) {
 	case V3D_MANIP_GLOBAL:
 		unit_m3(t->spacemtx);
 		strcpy(t->spacename, "global");
@@ -574,15 +573,14 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMEditSelection ese;
-			float vec[3]= {0,0,0};
+			float vec[3]= {0, 0, 0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
 			if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
 				BM_editselection_normal(&ese, normal);
 				BM_editselection_plane(&ese, plane);
 				
-				switch (ese.htype)
-				{
+				switch (ese.htype) {
 					case BM_VERT:
 						result = ORIENTATION_VERT;
 						break;
@@ -717,15 +715,14 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs= curve_editnurbs(cu);
+			ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 
 			for (nu = nurbs->first; nu; nu = nu->next) {
 				/* only bezier has a normal */
 				if (nu->type == CU_BEZIER) {
 					bezt= nu->bezt;
 					a= nu->pntsu;
-					while (a--)
-					{
+					while (a--) {
 						/* exception */
 						if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
 							sub_v3_v3v3(normal, bezt->vec[0], bezt->vec[2]);
@@ -772,7 +769,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				float mat[4][4];
 
 				/* Rotation of MetaElem is stored in quat */
-				quat_to_mat4( mat,ml_sel->quat);
+				quat_to_mat4(mat, ml_sel->quat);
 
 				copy_v3_v3(normal, mat[2]);
 
@@ -886,8 +883,7 @@ void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[]
 
 	type = getTransformOrientation(C, normal, plane, activeOnly);
 
-	switch (type)
-	{
+	switch (type) {
 		case ORIENTATION_NORMAL:
 			if (createSpaceNormalTangent(orientation_mat, normal, plane) == 0) {
 				type = ORIENTATION_NONE;

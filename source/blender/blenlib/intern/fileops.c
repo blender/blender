@@ -82,7 +82,7 @@ int BLI_file_gzip(const char *from, const char *to)
 	gzfile = BLI_gzopen(to, "wb1");
 	if (gzfile == NULL)
 		return -1;
-	file = BLI_open(from, O_BINARY|O_RDONLY,0);
+	file = BLI_open(from, O_BINARY|O_RDONLY, 0);
 	if (file < 0)
 		return -2;
 
@@ -223,17 +223,17 @@ void *BLI_gzopen(const char *filename, const char *mode)
 
 		/* xxx Creates file before transcribing the path */
 		if (mode[0] == 'w')
-			fclose(ufopen(filename,"a"));
+			fclose(ufopen(filename, "a"));
 
 		UTF16_ENCODE(filename);
 
-		GetShortPathNameW(filename_16,short_name_16, 256);
+		GetShortPathNameW(filename_16, short_name_16, 256);
 
 		for (i = 0; i < 256; i++) {
 			short_name[i] = (char)short_name_16[i];
 		}
 
-		gzfile = gzopen(short_name,mode);
+		gzfile = gzopen(short_name, mode);
 
 		UTF16_UN_ENCODE(filename);
 	}
@@ -367,7 +367,7 @@ void BLI_dir_create_recursive(const char *dirname)
 	
 	if (dirname[0]) /* patch, this recursive loop tries to create a nameless directory */
 		if (umkdir(dirname)==-1)
-			printf("Unable to create directory %s\n",dirname);
+			printf("Unable to create directory %s\n", dirname);
 }
 
 int BLI_rename(const char *from, const char *to)

@@ -240,7 +240,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 			edgering_find_order(lasteed, eed, lastv1, v);
 			lastv1 = v[0][0];
 
-			BLI_array_growitems(edges, previewlines);
+			BLI_array_grow_items(edges, previewlines);
 
 			for (i = 1; i <= previewlines; i++) {
 				co[0][0] = (v[0][1]->co[0] - v[0][0]->co[0]) * (i / ((float)previewlines + 1)) + v[0][0]->co[0];
@@ -265,7 +265,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 
 		edgering_find_order(lasteed, startedge, lastv1, v);
 		
-		BLI_array_growitems(edges, previewlines);
+		BLI_array_grow_items(edges, previewlines);
 
 		for (i = 1; i <= previewlines; i++) {
 			if (!v[0][0] || !v[0][1] || !v[1][0] || !v[1][1])

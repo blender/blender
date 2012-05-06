@@ -77,6 +77,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_fluidsim.h" // NT
+#include "DNA_object_types.h"
 #include "DNA_packedFile_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_property_types.h"
@@ -1061,8 +1062,7 @@ void blo_freefiledata(FileData *fd)
 			close(fd->filedes);
 		}
 
-		if (fd->gzfiledes != NULL)
-		{
+		if (fd->gzfiledes != NULL) {
 			gzclose(fd->gzfiledes);
 		}
 
@@ -1477,7 +1477,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		len= MEM_allocN_len(*mat)/fd->filesdna->pointerlen;
 
 		if (fd->filesdna->pointerlen==8 && fd->memsdna->pointerlen==4) {
-			ipoin=imat= MEM_mallocN( len*4, "newmatar");
+			ipoin=imat= MEM_mallocN(len*4, "newmatar");
 			lpoin= *mat;
 
 			while (len-- > 0) {
@@ -1492,7 +1492,7 @@ static void test_pointer_array(FileData *fd, void **mat)
 		}
 
 		if (fd->filesdna->pointerlen==4 && fd->memsdna->pointerlen==8) {
-			lpoin=lmat= MEM_mallocN( len*8, "newmatar");
+			lpoin=lmat= MEM_mallocN(len*8, "newmatar");
 			ipoin= *mat;
 
 			while (len-- > 0) {
@@ -2756,9 +2756,9 @@ static void switch_endian_keyblock(Key *key, KeyBlock *kb)
 		cp= key->elemstr;
 		poin= data;
 
-		while ( cp[0] ) {	/* cp[0]==amount */
+		while ( cp[0] ) {  /* cp[0] == amount */
 
-			switch(cp[1]) {		/* cp[1]= type */
+			switch (cp[1]) {  /* cp[1] = type */
 			case IPO_FLOAT:
 			case IPO_BPOINT:
 			case IPO_BEZTRIPLE:
@@ -3442,7 +3442,7 @@ static void lib_link_particlesettings(FileData *fd, Main *main)
 				for (; state; state=state->next) {
 					rule = state->rules.first;
 				for (; rule; rule=rule->next)
-					switch(rule->type) {
+					switch (rule->type) {
 						case eBoidRuleType_Goal:
 						case eBoidRuleType_Avoid:
 						{
@@ -3541,7 +3541,7 @@ static void lib_link_particlesystems(FileData *fd, Object *ob, ID *id, ListBase 
 		}
 		else {
 			/* particle modifier must be removed before particle system */
-			ParticleSystemModifierData *psmd= psys_get_modifier(ob,psys);
+			ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 			BLI_remlink(&ob->modifiers, psmd);
 			modifier_free((ModifierData *)psmd);
 
@@ -3557,15 +3557,15 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 	int a;
 
 	for (psys=particles->first; psys; psys=psys->next) {
-		psys->particles=newdataadr(fd,psys->particles);
+		psys->particles=newdataadr(fd, psys->particles);
 		
 		if (psys->particles && psys->particles->hair) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
-				pa->hair=newdataadr(fd,pa->hair);
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
+				pa->hair=newdataadr(fd, pa->hair);
 		}
 		
 		if (psys->particles && psys->particles->keys) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++) {
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++) {
 				pa->keys= NULL;
 				pa->totkey= 0;
 			}
@@ -3576,17 +3576,17 @@ static void direct_link_particlesystems(FileData *fd, ListBase *particles)
 		if (psys->particles && psys->particles->boid) {
 			pa = psys->particles;
 			pa->boid = newdataadr(fd, pa->boid);
-			for (a=1,pa++; a<psys->totpart; a++, pa++)
+			for (a=1, pa++; a<psys->totpart; a++, pa++)
 				pa->boid = (pa-1)->boid + 1;
 		}
 		else if (psys->particles) {
-			for (a=0,pa=psys->particles; a<psys->totpart; a++, pa++)
+			for (a=0, pa=psys->particles; a<psys->totpart; a++, pa++)
 				pa->boid = NULL;
 		}
 
 		psys->fluid_springs = newdataadr(fd, psys->fluid_springs);
 
-		psys->child = newdataadr(fd,psys->child);
+		psys->child = newdataadr(fd, psys->child);
 		psys->effectors = NULL;
 
 		link_list(fd, &psys->targets);
@@ -4235,8 +4235,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			{
 				SmokeModifierData *smd = (SmokeModifierData *)modifiers_findByType(ob, eModifierType_Smoke);
 				
-				if (smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain)
-				{
+				if (smd && smd->type == MOD_SMOKE_TYPE_DOMAIN && smd->domain) {
 					smd->domain->flags |= MOD_SMOKE_FILE_LOAD; /* flag for refreshing the simulation after loading */
 				}
 			}
@@ -4359,8 +4358,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 
-			if (smd->type==MOD_SMOKE_TYPE_DOMAIN)
-			{
+			if (smd->type==MOD_SMOKE_TYPE_DOMAIN) {
 				smd->flow = NULL;
 				smd->coll = NULL;
 				smd->domain = newdataadr(fd, smd->domain);
@@ -4405,8 +4403,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				smd->flow = NULL;
 				smd->domain = NULL;
 				smd->coll = newdataadr(fd, smd->coll);
-				if (smd->coll)
-				{
+				if (smd->coll) {
 					smd->coll->points = NULL;
 					smd->coll->numpoints = 0;
 				}
@@ -4418,8 +4415,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 
-			if (pmd->canvas)
-			{
+			if (pmd->canvas) {
 				pmd->canvas = newdataadr(fd, pmd->canvas);
 				pmd->canvas->pmd = pmd;
 				pmd->canvas->dm = NULL;
@@ -4439,8 +4435,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					}
 				}
 			}
-			if (pmd->brush)
-			{
+			if (pmd->brush) {
 				pmd->brush = newdataadr(fd, pmd->brush);
 				pmd->brush->pmd = pmd;
 				pmd->brush->psys = newdataadr(fd, pmd->brush->psys);
@@ -4459,9 +4454,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->xnew = newdataadr(fd, collmd->xnew);
 			collmd->mfaces = newdataadr(fd, collmd->mfaces);
 			
-			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_x");
-			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_xnew");
-			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts,"current_v");
+			collmd->current_x = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_x");
+			collmd->current_xnew = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_xnew");
+			collmd->current_v = MEM_callocN(sizeof(MVert)*collmd->numverts, "current_v");
 			*/
 			
 			collmd->x = NULL;
@@ -4687,7 +4682,7 @@ static void direct_link_object(FileData *fd, Object *ob)
 	ob->fluidsimSettings= newdataadr(fd, ob->fluidsimSettings); /* NT */
 
 	link_list(fd, &ob->particlesystem);
-	direct_link_particlesystems(fd,&ob->particlesystem);
+	direct_link_particlesystems(fd, &ob->particlesystem);
 	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
@@ -4847,7 +4842,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 				}
 			}
 
-			SEQ_BEGIN(sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq) {
 				if (seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 				seq->scene_sound = NULL;
 				if (seq->scene) {
@@ -4978,7 +4973,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 
-		SEQ_BEGIN(ed, seq) {
+		SEQ_BEGIN (ed, seq) {
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
@@ -6089,8 +6084,7 @@ static void direct_link_sound(FileData *fd, bSound *sound)
 	sound->waveform = NULL;
 
 	// versioning stuff, if there was a cache, then we enable caching:
-	if (sound->cache)
-	{
+	if (sound->cache) {
 		sound->flags |= SOUND_FLAGS_CACHING;
 		sound->cache = NULL;
 	}
@@ -6233,8 +6227,7 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 
 static const char *dataname(short id_code)
 {
-	
-	switch( id_code ) {
+	switch ( id_code ) {
 		case ID_OB: return "Data from OB";
 		case ID_ME: return "Data from ME";
 		case ID_IP: return "Data from IP";
@@ -6344,7 +6337,7 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	bhead= read_data_into_oldnewmap(fd, bhead, allocname);
 
 	/* init pointers direct data */
-	switch( GS(id->name) ) {
+	switch (GS(id->name)) {
 		case ID_WM:
 			direct_link_windowmanager(fd, (wmWindowManager *)id);
 			break;
@@ -6922,7 +6915,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 
 	if (sl) {
 		/* first channels for ipo action nla... */
-		switch(sl->spacetype) {
+		switch (sl->spacetype) {
 			case SPACE_IPO:
 				ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
 				BLI_addtail(lb, ar);
@@ -7044,7 +7037,7 @@ static void area_add_window_regions(ScrArea *sa, SpaceLink *sl, ListBase *lb)
 	if (sl) {
 		/* if active spacetype has view2d data, copy that over to main region */
 		/* and we split view3d */
-		switch(sl->spacetype) {
+		switch (sl->spacetype) {
 			case SPACE_VIEW3D:
 				view3d_split_250((View3D *)sl, lb);
 				break;		
@@ -7450,8 +7443,7 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 static void do_version_old_trackto_to_constraints(Object *ob)
 {
 	/* create new trackto constraint from the relationship */
-	if (ob->track)
-	{
+	if (ob->track) {
 		bConstraint *con= add_ob_constraint(ob, "AutoTrack", CONSTRAINT_TYPE_TRACKTO);
 		bTrackToConstraint *data = con->data;
 		
@@ -8336,8 +8328,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Mesh *me;
 
 		sound = main->sound.first;
-		while (sound)
-		{
+		while (sound) {
 			sound->max_gain = 1.0;
 			sound->min_gain = 0.0;
 			sound->distance = 1.0;
@@ -8399,7 +8390,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			/* in future, distinguish between different
 			 * object bounding shapes */
 			ob->formfactor = 0.4f;
-			/* patch form factor , note that inertia equiv radius
+			/* patch form factor, note that inertia equiv radius
 			 * of a rotation symmetrical obj */
 			if (ob->inertia != 1.0f) {
 				ob->formfactor /= ob->inertia * ob->inertia;
@@ -9004,7 +8995,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while (sce) {
 			ed= sce->ed;
 			if (ed) {
-				SEQ_BEGIN(sce->ed, seq) {
+				SEQ_BEGIN (sce->ed, seq) {
 					if (seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE)
 						seq->flag |= SEQ_MAKE_PREMUL;
 				}
@@ -9151,7 +9142,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		while (sce) {
 			if (sce->toolsettings == NULL) {
-				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");	
+				sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 				sce->toolsettings->cornertype=0;
 				sce->toolsettings->degr = 90; 
 				sce->toolsettings->step = 9;
@@ -9753,17 +9744,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (md->type==eModifierType_Mirror) {
 						MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-						switch(mmd->axis)
-						{
-						case 0:
-							mmd->flag |= MOD_MIR_AXIS_X;
-							break;
-						case 1:
-							mmd->flag |= MOD_MIR_AXIS_Y;
-							break;
-						case 2:
-							mmd->flag |= MOD_MIR_AXIS_Z;
-							break;
+						switch (mmd->axis) {
+							case 0:
+								mmd->flag |= MOD_MIR_AXIS_X;
+								break;
+							case 1:
+								mmd->flag |= MOD_MIR_AXIS_Y;
+								break;
+							case 2:
+								mmd->flag |= MOD_MIR_AXIS_Z;
+								break;
 						}
 
 						mmd->axis = 0;
@@ -10062,8 +10052,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	 * */
 	{
 		Scene *sce;
-		for (sce=main->scene.first; sce; sce = sce->id.next)
-		{
+		for (sce=main->scene.first; sce; sce = sce->id.next) {
 			if (sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[1] ||
 				sce->toolsettings->skgen_subdivisions[0] == sce->toolsettings->skgen_subdivisions[2] ||
 				sce->toolsettings->skgen_subdivisions[1] == sce->toolsettings->skgen_subdivisions[2])
@@ -10421,7 +10410,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Sequence *seq;
 		
 		for (sce=main->scene.first; sce; sce=sce->id.next) {
-			SEQ_BEGIN(sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq) {
 				if (seq->blend_mode == 0)
 					seq->blend_opacity = 100.0f;
 			}
@@ -10479,13 +10468,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	// convert fluids to modifier
-	if (main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1))
-	{
+	if (main->versionfile < 246 || (main->versionfile == 246 && main->subversionfile < 1)) {
 		Object *ob;
 		
 		for (ob = main->object.first; ob; ob= ob->id.next) {
-			if (ob->fluidsimSettings)
-			{
+			if (ob->fluidsimSettings) {
 				FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifier_new(eModifierType_Fluidsim);
 				BLI_addhead(&ob->modifiers, (ModifierData *)fluidmd);
 				
@@ -10776,7 +10763,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while (sce) {
 			ed= sce->ed;
 			if (ed) {
-				SEQP_BEGIN(ed, seq) {
+				SEQP_BEGIN (ed, seq) {
 					if (seq->strip && seq->strip->proxy) {
 						seq->strip->proxy->quality =90;
 					}
@@ -10809,10 +10796,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bActuator *act;
 		int a;
 
-		for (sound = main->sound.first; sound; sound = sound->id.next)
-		{
-			if (sound->newpackedfile)
-			{
+		for (sound = main->sound.first; sound; sound = sound->id.next) {
+			if (sound->newpackedfile) {
 				sound->packedfile = sound->newpackedfile;
 				sound->newpackedfile = NULL;
 			}
@@ -10822,8 +10807,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (act= ob->actuators.first; act; act= act->next) {
 				if (act->type == ACT_SOUND) {
 					bSoundActuator *sAct = (bSoundActuator*) act->data;
-					if (sAct->sound)
-					{
+					if (sAct->sound) {
 						sound = newlibadr(fd, lib, sAct->sound);
 						sAct->flag = sound->flags & SOUND_FLAGS_3D ? ACT_SND_3D_SOUND : 0;
 						sAct->pitch = sound->pitch;
@@ -10846,13 +10830,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-		for (scene = main->scene.first; scene; scene = scene->id.next)
-		{
-			if (scene->ed && scene->ed->seqbasep)
-			{
-				SEQ_BEGIN(scene->ed, seq) {
-					if (seq->type == SEQ_HD_SOUND)
-					{
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			if (scene->ed && scene->ed->seqbasep) {
+				SEQ_BEGIN (scene->ed, seq) {
+					if (seq->type == SEQ_HD_SOUND) {
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
 						BLI_path_abs(str, main->name);
@@ -11228,8 +11209,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (tex->vd->extend == 0)
 					tex->vd->extend = TEX_CLIP;
 		
-		for (sce= main->scene.first; sce; sce= sce->id.next)
-		{
+		for (sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->audio.main == 0.0f)
 				sce->audio.main = 1.0f;
 
@@ -11371,8 +11351,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 8))
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 8)) {
 		{
 			Scene *sce= main->scene.first;
 			while (sce) {
@@ -11494,8 +11473,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9))
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 9)) {
 		Scene *sce;
 		Mesh *me;
 		Object *ob;
@@ -11521,8 +11499,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 10))
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 10)) {
 		Object *ob;
 
 		/* properly initialize hair clothsim data on old files */
@@ -11539,8 +11516,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* fix bad area setup in subversion 10 */
-	if (main->versionfile == 250 && main->subversionfile == 10)
-	{
+	if (main->versionfile == 250 && main->subversionfile == 10) {
 		/* fix for new view type in sequencer */
 		bScreen *screen;
 		ScrArea *sa;
@@ -11579,8 +11555,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 11))
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 11)) {
 		{
 			/* fix for new view type in sequencer */
 			bScreen *screen;
@@ -11622,8 +11597,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12))
-	{
+	if (main->versionfile < 250 || (main->versionfile == 250 && main->subversionfile < 12)) {
 		Scene *sce;
 		Object *ob;
 		Brush *brush;
@@ -11828,7 +11802,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if ((sce->r.ffcodecdata.flags & FFMPEG_MULTIPLEX_AUDIO) == 0)
 				sce->r.ffcodecdata.audio_codec = 0x0; // CODEC_ID_NONE
 
-			SEQ_BEGIN(sce->ed, seq) {
+			SEQ_BEGIN (sce->ed, seq) {
 				seq->volume = 1.0f;
 			}
 			SEQ_END
@@ -11984,8 +11958,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 
-	if (main->versionfile < 253)
-	{
+	if (main->versionfile < 253) {
 		Object *ob;
 		Scene *scene;
 		bScreen *sc;
@@ -12098,7 +12071,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (scene= main->scene.first; scene; scene=scene->id.next) {
 			if (scene) {
 				Sequence *seq;
-				SEQ_BEGIN(scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq) {
 					if (seq->sat==0.0f) {
 						seq->sat= 1.0f;
 					}
@@ -12196,8 +12169,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 253 || (main->versionfile == 253 && main->subversionfile < 1))
-		{
+	if (main->versionfile < 253 || (main->versionfile == 253 && main->subversionfile < 1)) {
 			Object *ob;
 
 			for (ob = main->object.first; ob; ob = ob->id.next) {
@@ -12206,8 +12178,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (md->type == eModifierType_Smoke) {
 						SmokeModifierData *smd = (SmokeModifierData *)md;
 
-						if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain)
-						{
+						if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
 							smd->domain->vorticity = 2.0f;
 							smd->domain->time_scale = 1.0f;
 
@@ -12226,8 +12197,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 										if (md2->type == eModifierType_Smoke) {
 											SmokeModifierData *smd2 = (SmokeModifierData *)md2;
 
-											if ((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow)
-											{
+											if ((smd2->type & MOD_SMOKE_TYPE_FLOW) && smd2->flow) {
 												smd2->flow->flags |= MOD_SMOKE_FLOW_INITVELOCITY;
 											}
 										}
@@ -12313,8 +12283,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (act= ob->actuators.first; act; act= act->next) {
 				if (act->type==ACT_STEERING) {
 					bSteeringActuator* stact = act->data;
-					if (stact->facingaxis==0)
-					{
+					if (stact->facingaxis==0) {
 						stact->facingaxis=1;
 					}						
 				}
@@ -12574,11 +12543,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Scene *scene;
 			Sequence *seq;
 
-			for (scene=main->scene.first; scene; scene=scene->id.next)
-			{
+			for (scene=main->scene.first; scene; scene=scene->id.next) {
 				scene->r.ffcodecdata.audio_channels = 2;
 				scene->audio.volume = 1.0f;
-				SEQ_BEGIN(scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq) {
 					seq->pitch = 1.0f;
 				}
 				SEQ_END
@@ -12749,8 +12717,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		{
 			/* set defaults for obstacle avoidance, recast data */
 			Scene *sce;
-			for (sce = main->scene.first; sce; sce = sce->id.next)
-			{
+			for (sce = main->scene.first; sce; sce = sce->id.next) {
 				if (sce->gm.levelHeight == 0.f)
 					sce->gm.levelHeight = 2.f;
 
@@ -12930,8 +12897,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 6))
-	{
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 6)) {
 		Scene *sce;
 		MovieClip *clip;
 		bScreen *sc;
@@ -12995,8 +12961,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 8))
-	{
+	if (main->versionfile < 260 || (main->versionfile == 260 && main->subversionfile < 8)) {
 		Brush *brush;
 
 		for (brush= main->brush.first; brush; brush= brush->id.next) {
@@ -13005,8 +12970,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 1))
-	{
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 1)) {
 		{
 			/* update use flags for node sockets (was only temporary before) */
 			Scene *sce;
@@ -13107,8 +13071,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 2))
-	{
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 2)) {
 		{
 			/* convert Camera Actuator values to defines */
 			Object *ob;
@@ -13142,8 +13105,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 3))
-	{
+	if (main->versionfile < 261 || (main->versionfile == 261 && main->subversionfile < 3)) {
 		{
 			/* convert extended ascii to utf-8 for text editor */
 			Text *text;
@@ -13169,8 +13131,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				for (md= ob->modifiers.first; md; md= md->next) {
 					if (md->type == eModifierType_DynamicPaint) {
 						DynamicPaintModifierData *pmd = (DynamicPaintModifierData *)md;
-						if (pmd->canvas)
-						{
+						if (pmd->canvas) {
 							DynamicPaintSurface *surface = pmd->canvas->surfaces.first;
 							for (; surface; surface=surface->next) {
 								surface->color_dry_threshold = 1.0f;
@@ -13185,8 +13146,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	if (main->versionfile < 262)
-	{
+	if (main->versionfile < 262) {
 		Object *ob;
 		for (ob=main->object.first; ob; ob= ob->id.next) {
 			ModifierData *md;
@@ -13201,8 +13161,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 263)
-	{
+	if (main->versionfile < 263) {
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
 		 * try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
@@ -13219,8 +13178,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 1))
-	{
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 1)) {
 		/* update use flags for node sockets (was only temporary before) */
 		Scene *sce;
 		bNodeTree *ntree;
@@ -13235,8 +13193,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	/* only swap for pre-release bmesh merge which had MLoopCol red/blue swap */
-	if (main->versionfile == 262 && main->subversionfile == 1)
-	{
+	if (main->versionfile == 262 && main->subversionfile == 1) {
 		{
 			Mesh *me;
 			for (me = main->mesh.first; me; me = me->id.next) {
@@ -13246,8 +13203,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	}
 
-	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 2))
-	{
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 2)) {
 		{
 			/* Set new idname of keyingsets from their now "label-only" name. */
 			Scene *scene;
@@ -13261,8 +13217,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	
-	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 3))
-	{
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 3)) {
 		Object *ob;
 		ModifierData *md;
 	
@@ -13276,8 +13231,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 4))
-	{
+	if (main->versionfile < 262 || (main->versionfile == 262 && main->subversionfile < 4)) {
 		/* Read Viscosity presets from older files */
 		Object *ob;
 
@@ -13301,12 +13255,32 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 
 
-	if (main->versionfile < 263)
-	{
+	if (main->versionfile < 263) {
 		/* Default for old files is to save particle rotations to pointcache */
 		ParticleSettings *part;
 		for (part = main->particle.first; part; part = part->id.next)
 			part->flag |= PART_ROTATIONS;
+	}
+
+	if (main->versionfile <= 263 && main->subversionfile == 0) {
+		Scene *scene;
+		Brush *brush;
+
+		/* For weight paint, each brush now gets its own weight;
+		   unified paint settings also have weight. Update unified
+		   paint settings and brushes with a default weight value. */
+		
+		for (scene = main->scene.first; scene; scene = scene->id.next) {
+			ToolSettings *ts = scene->toolsettings;
+			if (ts) {
+				ts->unified_paint_settings.weight = ts->vgroup_weight;
+				ts->unified_paint_settings.flag |= UNIFIED_PAINT_WEIGHT;
+			}
+		}
+
+		for (brush = main->brush.first; brush; brush = brush->id.next) {
+			brush->weight = 0.5;
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
@@ -13440,7 +13414,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 	BLI_strncpy(bfd->main->name, filepath, sizeof(bfd->main->name));
 
 	while (bhead) {
-		switch(bhead->code) {
+		switch (bhead->code) {
 		case DATA:
 		case DNA1:
 		case TEST: /* used as preview since 2.5x */
@@ -14268,7 +14242,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 	if (sce->ed) {
 		Sequence *seq;
 
-		SEQ_BEGIN(sce->ed, seq) {
+		SEQ_BEGIN (sce->ed, seq) {
 			if (seq->scene) expand_doit(fd, mainvar, seq->scene);
 			if (seq->scene_camera) expand_doit(fd, mainvar, seq->scene_camera);
 			if (seq->sound) expand_doit(fd, mainvar, seq->sound);
@@ -14336,7 +14310,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 			while (id) {
 				if (id->flag & LIB_TEST) {
 
-					switch(GS(id->name)) {
+					switch (GS(id->name)) {
 
 					case ID_OB:
 						expand_object(fd, mainvar, (Object *)id);
@@ -14366,7 +14340,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_lattice(fd, mainvar, (Lattice *)id);
 						break;
 					case ID_LA:
-						expand_lamp(fd, mainvar,(Lamp *)id);
+						expand_lamp(fd, mainvar, (Lamp *)id);
 						break;
 					case ID_KE:
 						expand_key(fd, mainvar, (Key *)id);
@@ -14375,7 +14349,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						expand_camera(fd, mainvar, (Camera *)id);
 						break;
 					case ID_SPK:
-						expand_speaker(fd, mainvar,(Speaker *)id);
+						expand_speaker(fd, mainvar, (Speaker *)id);
 						break;
 					case ID_SO:
 						expand_sound(fd, mainvar, (bSound *)id);
@@ -14473,7 +14447,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 				}
 
 				if (do_it) {
-					base= MEM_callocN( sizeof(Base), "add_ext_base");
+					base= MEM_callocN(sizeof(Base), "add_ext_base");
 					BLI_addtail(&(sce->base), base);
 					base->lay= ob->lay;
 					base->object= ob;
@@ -14577,7 +14551,7 @@ static ID *append_named_part_ex(const bContext *C, Main *mainl, FileData *fd, co
 			Base *base;
 			Object *ob;
 
-			base= MEM_callocN( sizeof(Base), "app_nam_part");
+			base= MEM_callocN(sizeof(Base), "app_nam_part");
 			BLI_addtail(&scene->base, base);
 
 			ob= (Object *)id;
@@ -14722,7 +14696,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	
 	/* patch to prevent switch_endian happens twice */
 	if ((*fd)->flags & FD_FLAGS_SWITCH_ENDIAN) {
-		blo_freefiledata( *fd );
+		blo_freefiledata(*fd);
 		*fd = NULL;
 	}	
 }

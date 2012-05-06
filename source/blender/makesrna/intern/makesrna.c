@@ -281,7 +281,7 @@ static void rna_sortlist(ListBase *listbase, int(*cmp)(const void*, const void*)
 
 static void rna_print_c_string(FILE *f, const char *str)
 {
-	static const char *escape[] = {"\''", "\"\"", "\??", "\\\\","\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
+	static const char *escape[] = {"\''", "\"\"", "\??", "\\\\", "\aa", "\bb", "\ff", "\nn", "\rr", "\tt", "\vv", NULL};
 	int i, j;
 
 	if (!str) {
@@ -1359,8 +1359,10 @@ static void rna_def_property_funcs(FILE *f, StructRNA *srna, PropertyDefRNA *dp)
 			 * array get/next function, we can be sure it is an actual array */
 			if (cprop->next && cprop->get)
 				if (strcmp((const char*)cprop->next, "rna_iterator_array_next") == 0 &&
-				   strcmp((const char*)cprop->get, "rna_iterator_array_get") == 0)
+				    strcmp((const char*)cprop->get, "rna_iterator_array_get") == 0)
+				{
 					prop->flag |= PROP_RAW_ARRAY;
+				}
 
 			cprop->get = (void*)rna_def_property_get_func(f, srna, prop, dp, (const char*)cprop->get);
 			cprop->begin = (void*)rna_def_property_begin_func(f, srna, prop, dp, (const char*)cprop->begin);
@@ -3124,7 +3126,7 @@ int main(int argc, char **argv)
 
 	totblock = MEM_get_memory_blocks_in_use();
 	if (totblock != 0) {
-		fprintf(stderr, "Error Totblock: %d\n",totblock);
+		fprintf(stderr, "Error Totblock: %d\n", totblock);
 		MEM_set_error_callback(mem_error_cb);
 		MEM_printmemlist();
 	}

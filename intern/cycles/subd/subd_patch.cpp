@@ -93,7 +93,7 @@ void LinearQuadPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float
 
 BoundBox LinearQuadPatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 4; i++)
 		bbox.grow(hull[i]);
@@ -115,7 +115,7 @@ void LinearTrianglePatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, f
 
 BoundBox LinearTrianglePatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 3; i++)
 		bbox.grow(hull[i]);
@@ -132,7 +132,7 @@ void BicubicPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, float v)
 
 BoundBox BicubicPatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 16; i++)
 		bbox.grow(hull[i]);
@@ -152,7 +152,7 @@ void BicubicTangentPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, f
 
 BoundBox BicubicTangentPatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 16; i++)
 		bbox.grow(hull[i]);
@@ -205,7 +205,7 @@ void GregoryQuadPatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, floa
 
 BoundBox GregoryQuadPatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 20; i++)
 		bbox.grow(hull[i]);
@@ -276,7 +276,7 @@ void GregoryTrianglePatch::eval(float3 *P, float3 *dPdu, float3 *dPdv, float u, 
 
 BoundBox GregoryTrianglePatch::bound()
 {
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 
 	for(int i = 0; i < 20; i++)
 		bbox.grow(hull[i]);

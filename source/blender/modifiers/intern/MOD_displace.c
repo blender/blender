@@ -208,7 +208,7 @@ static void displaceModifier_do(
 		delta *= strength;
 		CLAMP(delta, -10000, 10000);
 
-		switch(dmd->direction) {
+		switch (dmd->direction) {
 			case MOD_DISP_DIR_X:
 				vertexCos[i][0] += delta;
 				break;

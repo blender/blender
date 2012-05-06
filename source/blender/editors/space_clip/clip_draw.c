@@ -1380,7 +1380,12 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	if (ibuf) {
 		draw_movieclip_buffer(sc, ar, ibuf, width, height, zoomx, zoomy);
 		IMB_freeImBuf(ibuf);
+	}
+	else {
+		ED_region_grid_draw(ar, zoomx, zoomy);
+	}
 
+	if (width && height) {
 		draw_tracking_tracks(sc, ar, clip, width, height, zoomx, zoomy);
 		draw_distortion(sc, ar, clip, width, height, zoomx, zoomy);
 	}

@@ -40,7 +40,7 @@ static bNodeSocketTemplate cmp_node_texture_in[]= {
 };
 static bNodeSocketTemplate cmp_node_texture_out[]= {
 	{	SOCK_FLOAT, 0, "Value"},
-	{	SOCK_RGBA , 0, "Color"},
+	{	SOCK_RGBA, 0, "Color"},
 	{	-1, 0, ""	}
 };
 

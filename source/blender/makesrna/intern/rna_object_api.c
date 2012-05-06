@@ -96,7 +96,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			object_free_modifiers(tmpobj);
 
 		/* copies the data */
-		copycu = tmpobj->data = copy_curve( (Curve *) ob->data );
+		copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data );
 
 		/* temporarily set edit so we get updates from edit mode, but
 		 * also because for text datablocks copying it while in edit
@@ -105,26 +105,26 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editnurb = tmpcu->editnurb;
 
 		/* get updated display list, and convert to a mesh */
-		makeDispListCurveTypes( sce, tmpobj, 0 );
+		makeDispListCurveTypes(sce, tmpobj, 0);
 
 		copycu->editfont = NULL;
 		copycu->editnurb = NULL;
 
-		nurbs_to_mesh( tmpobj );
+		nurbs_to_mesh(tmpobj);
 
 		/* nurbs_to_mesh changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us( &(G.main->object), tmpobj );
+			free_libblock_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
 		tmpmesh = tmpobj->data;
-		free_libblock_us( &G.main->object, tmpobj );
+		free_libblock_us(&G.main->object, tmpobj);
 		break;
 
 	case OB_MBALL: {
 		/* metaballs don't have modifiers, so just convert to mesh */
-		Object *basis_ob = find_basis_mball(sce, ob);
+		Object *basis_ob = BKE_metaball_basis_find(sce, ob);
 		/* todo, re-generatre for render-res */
 		/* metaball_polygonize(scene, ob) */
 
@@ -364,7 +364,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	if (assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD && assignmode != WEIGHT_SUBTRACT) {
-		BKE_report(reports, RPT_ERROR, "Bad assignment mode" );
+		BKE_report(reports, RPT_ERROR, "Bad assignment mode");
 		return;
 	}
 

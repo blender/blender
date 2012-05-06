@@ -598,8 +598,8 @@ void clear_text(Text *text) /* called directly from rna */
 	int oldstate;
 
 	oldstate = txt_get_undostate(  );
-	txt_set_undostate( 1 );
-	txt_sel_all( text );
+	txt_set_undostate(1);
+	txt_sel_all(text);
 	txt_delete_sel(text);
 	txt_set_undostate(oldstate);
 
@@ -666,7 +666,7 @@ static TextLine *txt_new_linen(const char *str, int n)
 	return tmp;
 }
 
-void txt_clean_text (Text *text) 
+void txt_clean_text(Text *text)
 {	
 	TextLine **top, **bot;
 	
@@ -697,7 +697,7 @@ void txt_clean_text (Text *text)
 	}
 }
 
-int txt_get_span (TextLine *from, TextLine *to)
+int txt_get_span(TextLine *from, TextLine *to)
 {
 	int ret=0;
 	TextLine *tmp= from;
@@ -1022,7 +1022,7 @@ void txt_jump_right(Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_bol (Text *text, short sel) 
+void txt_move_bol(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1039,7 +1039,7 @@ void txt_move_bol (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_eol (Text *text, short sel) 
+void txt_move_eol(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1056,7 +1056,7 @@ void txt_move_eol (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_bof (Text *text, short sel)
+void txt_move_bof(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1074,7 +1074,7 @@ void txt_move_bof (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
-void txt_move_eof (Text *text, short sel)
+void txt_move_eof(Text *text, short sel)
 {
 	TextLine **linep;
 	int *charp, old;
@@ -1092,13 +1092,13 @@ void txt_move_eof (Text *text, short sel)
 	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, *linep), old, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);	
 }
 
-void txt_move_toline (Text *text, unsigned int line, short sel)
+void txt_move_toline(Text *text, unsigned int line, short sel)
 {
 	txt_move_to(text, line, 0, sel);
 }
 
 /* Moves to a certain byte in a line, not a certain utf8-character! */
-void txt_move_to (Text *text, unsigned int line, unsigned int ch, short sel)
+void txt_move_to(Text *text, unsigned int line, unsigned int ch, short sel)
 {
 	TextLine **linep, *oldl;
 	int *charp, oldc;
@@ -1180,7 +1180,7 @@ static void txt_pop_last (Text *text)
 /* never used: CVS 1.19 */
 /*  static void txt_pop_selr (Text *text) */
 
-void txt_pop_sel (Text *text)
+void txt_pop_sel(Text *text)
 {
 	text->sell= text->curl;
 	text->selc= text->curc;	
@@ -1193,9 +1193,11 @@ void txt_order_cursors(Text *text)
 	if (!text->sell) return;
 	
 		/* Flip so text->curl is before text->sell */
-	if (txt_get_span(text->curl, text->sell)<0 ||
-			(text->curl==text->sell && text->curc>text->selc))
+	if ((txt_get_span(text->curl, text->sell) < 0) ||
+	    (text->curl == text->sell && text->curc > text->selc))
+	{
 		txt_curs_swap(text);
+	}
 }
 
 int txt_has_sel(Text *text)
@@ -1266,7 +1268,7 @@ static void txt_delete_sel (Text *text)
 	text->selc= text->curc;
 }
 
-void txt_sel_all (Text *text)
+void txt_sel_all(Text *text)
 {
 	if (!text) return;
 
@@ -1277,7 +1279,7 @@ void txt_sel_all (Text *text)
 	text->selc= text->sell->len;
 }
 
-void txt_sel_line (Text *text)
+void txt_sel_line(Text *text)
 {
 	if (!text) return;
 	if (!text->curl) return;
@@ -2018,7 +2020,7 @@ void txt_do_undo(Text *text)
 
 	undoing= 1;
 	
-	switch(op) {
+	switch (op) {
 		case UNDO_CLEFT:
 			txt_move_right(text, 0);
 			break;
@@ -2205,6 +2207,9 @@ void txt_do_undo(Text *text)
 
 			text->undo_pos--;
 			break;
+		case UNDO_DUPLICATE:
+			txt_delete_line(text, text->curl->next);
+			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -2245,7 +2250,7 @@ void txt_do_redo(Text *text)
 	
 	undoing= 1;
 
-	switch(op) {
+	switch (op) {
 		case UNDO_CLEFT:
 			txt_move_left(text, 0);
 			break;
@@ -2402,6 +2407,9 @@ void txt_do_redo(Text *text)
 				txt_uncomment(text);
 			}
 			break;
+		case UNDO_DUPLICATE:
+			txt_duplicate_line(text);
+			break;
 		default:
 			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
@@ -2416,7 +2424,7 @@ void txt_do_redo(Text *text)
 /* Line editing functions */ 
 /**************************/
 
-void txt_split_curline (Text *text) 
+void txt_split_curline(Text *text)
 {
 	TextLine *ins;
 	TextMarker *mrk;
@@ -2543,6 +2551,23 @@ static void txt_combine_lines (Text *text, TextLine *linea, TextLine *lineb)
 	txt_clean_text(text);
 }
 
+void txt_duplicate_line(Text *text)
+{
+	TextLine *textline;
+	
+	if (!text || !text->curl) return;
+	
+	if (text->curl == text->sell) {
+		textline = txt_new_line(text->curl->line);
+		BLI_insertlinkafter(&text->lines, text->curl, textline);
+		
+		txt_make_dirty(text);
+		txt_clean_text(text);
+		
+		if (!undoing) txt_undo_add_op(text, UNDO_DUPLICATE);
+	}
+}
+
 void txt_delete_char(Text *text) 
 {
 	unsigned int c='\n';
@@ -2600,13 +2625,13 @@ void txt_delete_char(Text *text)
 	if (!undoing) txt_undo_add_charop(text, UNDO_DEL_1, c);
 }
 
-void txt_delete_word (Text *text) 
+void txt_delete_word(Text *text)
 {
 	txt_jump_right(text, 1);
 	txt_delete_sel(text);
 }
 
-void txt_backspace_char (Text *text) 
+void txt_backspace_char(Text *text)
 {
 	unsigned int c='\n';
 	
@@ -2669,7 +2694,7 @@ void txt_backspace_char (Text *text)
 	if (!undoing) txt_undo_add_charop(text, UNDO_BS_1, c);
 }
 
-void txt_backspace_word (Text *text) 
+void txt_backspace_word(Text *text)
 {
 	txt_jump_left(text, 1);
 	txt_delete_sel(text);
@@ -2743,12 +2768,12 @@ static int txt_add_char_intern (Text *text, unsigned int add, int replace_tabs)
 	return 1;
 }
 
-int txt_add_char (Text *text, unsigned int add)
+int txt_add_char(Text *text, unsigned int add)
 {
 	return txt_add_char_intern(text, add, text->flags & TXT_TABSTOSPACES);
 }
 
-int txt_add_raw_char (Text *text, unsigned int add)
+int txt_add_raw_char(Text *text, unsigned int add)
 {
 	return txt_add_char_intern(text, add, 0);
 }
@@ -2759,7 +2784,7 @@ void txt_delete_selected(Text *text)
 	txt_make_dirty(text);
 }
 
-int txt_replace_char (Text *text, unsigned int add)
+int txt_replace_char(Text *text, unsigned int add)
 {
 	unsigned int del;
 	size_t del_size = 0, add_size;
@@ -2832,8 +2857,7 @@ void txt_indent(Text *text)
 	}
 
 	num = 0;
-	while (TRUE)
-	{
+	while (TRUE) {
 		tmp= MEM_mallocN(text->curl->len+indentlen+1, "textline_string");
 		
 		text->curc = 0; 
@@ -2851,8 +2875,7 @@ void txt_indent(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2862,14 +2885,12 @@ void txt_indent(Text *text)
 		}
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_INDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2893,12 +2914,10 @@ void txt_unindent(Text *text)
 		indent = spaceslen;
 	}
 
-	while (TRUE)
-	{
+	while (TRUE) {
 		int i = 0;
 		
-		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0)
-		{
+		if (BLI_strncasecmp(text->curl->line, remove, indent) == 0) {
 			while (i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+indent];
 				i++;
@@ -2909,8 +2928,7 @@ void txt_unindent(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2921,14 +2939,12 @@ void txt_unindent(Text *text)
 		
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_UNINDENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2944,8 +2960,7 @@ void txt_comment(Text *text)
 	if (!text->sell) return;// Need to change this need to check if only one line is selected to more then one
 
 	num = 0;
-	while (TRUE)
-	{
+	while (TRUE) {
 		tmp= MEM_mallocN(text->curl->len+2, "textline_string");
 		
 		text->curc = 0; 
@@ -2963,8 +2978,7 @@ void txt_comment(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -2974,14 +2988,12 @@ void txt_comment(Text *text)
 		}
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_COMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
@@ -2995,12 +3007,10 @@ void txt_uncomment(Text *text)
 	if (!text->curl) return;
 	if (!text->sell) return;
 
-	while (TRUE)
-	{
+	while (TRUE) {
 		int i = 0;
 		
-		if (text->curl->line[i] == remove)
-		{
+		if (text->curl->line[i] == remove) {
 			while (i< text->curl->len) {
 				text->curl->line[i]= text->curl->line[i+1];
 				i++;
@@ -3012,8 +3022,7 @@ void txt_uncomment(Text *text)
 		txt_make_dirty(text);
 		txt_clean_text(text);
 		
-		if (text->curl == text->sell) 
-		{
+		if (text->curl == text->sell) {
 			text->selc = text->sell->len;
 			break;
 		}
@@ -3024,19 +3033,17 @@ void txt_uncomment(Text *text)
 		
 	}
 	text->curc = 0;
-	while ( num > 0 )
-	{
+	while ( num > 0 ) {
 		text->curl = text->curl->prev;
 		num--;
 	}
 	
-	if (!undoing) 
-	{
+	if (!undoing) {
 		txt_undo_add_toop(text, UNDO_UNCOMMENT, txt_get_span(text->lines.first, text->curl), text->curc, txt_get_span(text->lines.first, text->sell), text->selc);
 	}
 }
 
-int setcurr_tab_spaces (Text *text, int space)
+int setcurr_tab_spaces(Text *text, int space)
 {
 	int i = 0;
 	int test = 0;
@@ -3047,27 +3054,23 @@ int setcurr_tab_spaces (Text *text, int space)
 	if (!text) return 0;
 	if (!text->curl) return 0;
 
-	while (text->curl->line[i] == indent)
-	{
+	while (text->curl->line[i] == indent) {
 		//we only count those tabs/spaces that are before any text or before the curs;
-		if (i == text->curc)
-		{
+		if (i == text->curc) {
 			return i;
 		}
 		else {
 			i++;
 		}
 	}
-	if (strstr(text->curl->line, word))
-	{
+	if (strstr(text->curl->line, word)) {
 		/* if we find a ':' on this line, then add a tab but not if it is:
 		 * 	1) in a comment
 		 * 	2) within an identifier
 		 *	3) after the cursor (text->curc), i.e. when creating space before a function def [#25414] 
 		 */
 		int a, is_indent = 0;
-		for (a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++)
-		{
+		for (a=0; (a < text->curc) && (text->curl->line[a] != '\0'); a++) {
 			char ch= text->curl->line[a];
 			if (ch=='#') {
 				break;
@@ -3084,13 +3087,10 @@ int setcurr_tab_spaces (Text *text, int space)
 		}
 	}
 
-	for (test=0; back_words[test]; test++)
-	{
+	for (test=0; back_words[test]; test++) {
 		/* if there are these key words then remove a tab because we are done with the block */
-		if (strstr(text->curl->line, back_words[test]) && i > 0)
-		{
-			if (strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm))
-			{
+		if (strstr(text->curl->line, back_words[test]) && i > 0) {
+			if (strcspn(text->curl->line, back_words[test]) < strcspn(text->curl->line, comm)) {
 				i -= space;
 			}
 		}
@@ -3139,14 +3139,16 @@ TextMarker *txt_find_marker_region(Text *text, TextLine *line, int start, int en
 	for (marker=text->markers.first; marker; marker=next) {
 		next= marker->next;
 
-		if (group && marker->group != group) continue;
+		if      (group && marker->group != group)  continue;
 		else if ((marker->flags & flags) != flags) continue;
-		else if (marker->lineno < lineno) continue;
+		else if (marker->lineno < lineno)          continue;
 		else if (marker->lineno > lineno) break;
 
 		if ((marker->start==marker->end && start<=marker->start && marker->start<=end) ||
-				(marker->start<end && marker->end>start))
+		    (marker->start<end && marker->end>start))
+		{
 			return marker;
+		}
 	}
 	return NULL;
 }

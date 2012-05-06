@@ -440,9 +440,9 @@ void GeometryExporter::create_normals(std::vector<Normal> &nor, std::vector<Face
 					*nn = nshar[*vv];
 				else {
 					Normal n = {
-						vert[*vv].no[0]/32767.0,
-						vert[*vv].no[1]/32767.0,
-						vert[*vv].no[2]/32767.0
+						(float)vert[*vv].no[0] / 32767.0f,
+						(float)vert[*vv].no[1] / 32767.0f,
+						(float)vert[*vv].no[2] / 32767.0f
 					};
 					nor.push_back(n);
 					*nn = (unsigned int)nor.size() - 1;

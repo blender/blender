@@ -176,7 +176,7 @@ char *get_valid_qtname(char *name)
 #endif /* _WIN32 */
 
 
-int anim_is_quicktime (const char *name)
+int anim_is_quicktime(const char *name)
 {
 	FSSpec	theFSSpec;
 	char	theFullPath[255];
@@ -195,16 +195,19 @@ int anim_is_quicktime (const char *name)
 			
 	// don't let quicktime movie import handle these
 	if ( BLI_testextensie(name, ".swf") ||
-		BLI_testextensie(name, ".txt") ||
-		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
-		BLI_testextensie(name, ".tga") ||
-		BLI_testextensie(name, ".png") ||
-		BLI_testextensie(name, ".bmp") ||
-		BLI_testextensie(name, ".jpg") ||
-		BLI_testextensie(name, ".wav") ||
-		BLI_testextensie(name, ".zip") ||
-		BLI_testextensie(name, ".mp3")) return 0;
+	     BLI_testextensie(name, ".txt") ||
+	     BLI_testextensie(name, ".mpg") ||
+	     BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
+	     BLI_testextensie(name, ".tga") ||
+	     BLI_testextensie(name, ".png") ||
+	     BLI_testextensie(name, ".bmp") ||
+	     BLI_testextensie(name, ".jpg") ||
+	     BLI_testextensie(name, ".wav") ||
+	     BLI_testextensie(name, ".zip") ||
+	     BLI_testextensie(name, ".mp3"))
+	{
+		return 0;
+	}
 
 	if (QTIME_DEBUG) printf("qt: checking as movie: %s\n", name);
 
@@ -252,7 +255,7 @@ int anim_is_quicktime (const char *name)
 }
 
 
-void free_anim_quicktime (struct anim *anim)
+void free_anim_quicktime(struct anim *anim)
 {
 	if (anim == NULL) return;
 	if (anim->qtime == NULL) return;
@@ -260,12 +263,12 @@ void free_anim_quicktime (struct anim *anim)
 	UnlockPixels(anim->qtime->offscreenPixMap);
 
 	if (anim->qtime->have_gw)
-		DisposeGWorld( anim->qtime->offscreenGWorld );
+		DisposeGWorld(anim->qtime->offscreenGWorld);
 	if (anim->qtime->ibuf)
 		IMB_freeImBuf(anim->qtime->ibuf);
 
-	DisposeMovie( anim->qtime->movie );
-	CloseMovieFile( anim->qtime->movieRefNum );
+	DisposeMovie(anim->qtime->movie);
+	CloseMovieFile(anim->qtime->movieRefNum);
 
 	if (anim->qtime->frameIndex) MEM_freeN (anim->qtime->frameIndex);
 	if (anim->qtime) MEM_freeN (anim->qtime);
@@ -414,7 +417,7 @@ static int GetFirstVideoMedia(struct anim *anim)
 			anim->qtime->theMedia = GetTrackMedia(anim->qtime->theTrack);
 
 		if (anim->qtime->theMedia)
-			GetMediaHandlerDescription(anim->qtime->theMedia,&mediaType, nil, nil);
+			GetMediaHandlerDescription(anim->qtime->theMedia, &mediaType, nil, nil);
 		if (mediaType == VideoMediaType) return 1;
 	}
 
@@ -437,7 +440,7 @@ static short GetFirstVideoTrackPixelDepth(struct anim *anim)
 }
 
 
-int startquicktime (struct anim *anim)
+int startquicktime(struct anim *anim)
 {
 	FSSpec		theFSSpec;
 
@@ -451,7 +454,7 @@ int startquicktime (struct anim *anim)
 #endif
 	short depth = 0;
 
-	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
+	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie), "animqt");
 	anim->qtime->have_gw = FALSE;
 
 	if (anim->qtime == NULL) {
@@ -582,13 +585,16 @@ int imb_is_a_quicktime (char *name)
 	if (QTIME_DEBUG) printf("qt: checking as image %s\n", name);
 
 	// don't let quicktime image import handle these
-	if ( BLI_testextensie(name, ".swf") ||
-		BLI_testextensie(name, ".txt") ||
-		BLI_testextensie(name, ".mpg") ||
-		BLI_testextensie(name, ".wav") ||
-		BLI_testextensie(name, ".mov") ||	// not as image, doesn't work
-		BLI_testextensie(name, ".avi") ||
-		BLI_testextensie(name, ".mp3")) return 0;
+	if (BLI_testextensie(name, ".swf") ||
+	    BLI_testextensie(name, ".txt") ||
+	    BLI_testextensie(name, ".mpg") ||
+	    BLI_testextensie(name, ".wav") ||
+	    BLI_testextensie(name, ".mov") ||	// not as image, doesn't work
+	    BLI_testextensie(name, ".avi") ||
+	    BLI_testextensie(name, ".mp3"))
+	{
+		return 0;
+	}
 
 	sprintf(theFullPath, "%s", name);
 #ifdef __APPLE__

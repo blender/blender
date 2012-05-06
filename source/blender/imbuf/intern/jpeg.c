@@ -230,7 +230,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  * If must suspend, take the specified action (typically "return FALSE").
  */
 #define INPUT_BYTE(cinfo,V,action)  \
-	MAKESTMT( MAKE_BYTE_AVAIL(cinfo,action); \
+	MAKESTMT(MAKE_BYTE_AVAIL(cinfo,action); \
 		  bytes_in_buffer--; \
 		  V = GETJOCTET(*next_input_byte++); )
 
@@ -238,7 +238,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
  * V should be declared unsigned int or perhaps INT32.
  */
 #define INPUT_2BYTES(cinfo,V,action)  \
-	MAKESTMT( MAKE_BYTE_AVAIL(cinfo,action); \
+	MAKESTMT(MAKE_BYTE_AVAIL(cinfo,action); \
 		  bytes_in_buffer--; \
 		  V = ((unsigned int) GETJOCTET(*next_input_byte++)) << 8; \
 		  MAKE_BYTE_AVAIL(cinfo,action); \
@@ -321,7 +321,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 				rect = (uchar *) (ibuf->rect + y * ibuf->x);
 				buffer = row_pointer[0];
 				
-				switch(depth) {
+				switch (depth) {
 					case 1:
 						for (x=ibuf->x; x >0; x--) {
 							rect[3] = 255;
@@ -524,7 +524,7 @@ next_stamp_info:
 		rect = (uchar *) (ibuf->rect + y * ibuf->x);
 		buffer = row_pointer[0];
 
-		switch(cinfo->in_color_space) {
+		switch (cinfo->in_color_space) {
 			case JCS_RGB:
 				for (x = 0; x < ibuf->x; x++) {
 					*buffer++ = rect[0];
@@ -577,7 +577,7 @@ static int init_jpeg(FILE * outfile, struct jpeg_compress_struct * cinfo, struct
 
 	if (ibuf->planes == 32) cinfo->in_color_space = JCS_UNKNOWN;
 #endif
-	switch(cinfo->in_color_space) {
+	switch (cinfo->in_color_space) {
 		case JCS_RGB:
 			cinfo->input_components = 3;
 			break;

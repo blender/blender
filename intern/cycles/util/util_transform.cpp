@@ -129,23 +129,26 @@ static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
 
 Transform transform_inverse(const Transform& tfm)
 {
-	union { Transform T; float M[4][4]; } R, M;
-	
-	R.T = transform_identity();
-	M.T = tfm;
+	Transform tfmR = transform_identity();
+	float M[4][4], R[4][4];
 
-	if(!transform_matrix4_gj_inverse(R.M, M.M)) {
+	memcpy(R, &tfmR, sizeof(R));
+	memcpy(M, &tfm, sizeof(M));
+
+	if(!transform_matrix4_gj_inverse(R, M)) {
 		/* matrix is degenerate (e.g. 0 scale on some axis), ideally we should
 		   never be in this situation, but try to invert it anyway with tweak */
-		M.M[0][0] += 1e-8f;
-		M.M[1][1] += 1e-8f;
-		M.M[2][2] += 1e-8f;
+		M[0][0] += 1e-8f;
+		M[1][1] += 1e-8f;
+		M[2][2] += 1e-8f;
 
-		if(!transform_matrix4_gj_inverse(R.M, M.M))
+		if(!transform_matrix4_gj_inverse(R, M))
 			return transform_identity();
 	}
 
-	return R.T;
+	memcpy(&tfmR, R, sizeof(R));
+
+	return tfmR;
 }
 
 CCL_NAMESPACE_END

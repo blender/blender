@@ -72,7 +72,7 @@ int seekPackedFile(PackedFile *pf, int offset, int whence)
 
 	if (pf) {
 		oldseek = pf->seek;
-		switch(whence) {
+		switch (whence) {
 		case SEEK_CUR:
 			seek = oldseek + offset;
 			break;
@@ -189,7 +189,7 @@ PackedFile *newPackedFile(ReportList *reports, const char *filename, const char 
 	// open the file
 	// and create a PackedFile structure
 
-	file= BLI_open(name, O_BINARY|O_RDONLY,0);
+	file= BLI_open(name, O_BINARY|O_RDONLY, 0);
 	if (file <= 0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to pack file, source path not found: \"%s\"", name);
 	}

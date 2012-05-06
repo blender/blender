@@ -39,10 +39,10 @@ class KX_FontObject : public KX_GameObject
 {
 public:
 	Py_Header
-	KX_FontObject(	void* sgReplicationInfo,
-					SG_Callbacks callbacks,
-					RAS_IRenderTools* rendertools,
-					Object *ob);
+	KX_FontObject(void* sgReplicationInfo,
+	              SG_Callbacks callbacks,
+	              RAS_IRenderTools* rendertools,
+	              Object *ob);
 
 	virtual ~KX_FontObject();
 

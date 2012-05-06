@@ -1444,7 +1444,7 @@ static void rna_def_modifier_array(BlenderRNA *brna)
 	/* Offset parameters */
 	prop = RNA_def_property(srna, "use_constant_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "offset_type", MOD_ARR_OFF_CONST);
-	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");;
+	RNA_def_property_ui_text(prop, "Constant Offset", "Add a constant offset");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 	
 	prop = RNA_def_property(srna, "constant_offset_displace", PROP_FLOAT, PROP_TRANSLATION);
@@ -3162,7 +3162,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	
 	/* data */
 	srna = RNA_def_struct(brna, "Modifier", NULL);
-	RNA_def_struct_ui_text(srna , "Modifier", "Modifier affecting the geometry data of an object");
+	RNA_def_struct_ui_text(srna, "Modifier", "Modifier affecting the geometry data of an object");
 	RNA_def_struct_refine_func(srna, "rna_Modifier_refine");
 	RNA_def_struct_path_func(srna, "rna_Modifier_path");
 	RNA_def_struct_sdna(srna, "ModifierData");

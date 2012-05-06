@@ -375,8 +375,8 @@ typedef struct NodeImageMultiFileSocket {
 } NodeImageMultiFileSocket;
 
 typedef struct NodeChroma {
-	float t1,t2,t3;
-	float fsize,fstrength,falpha;
+	float t1, t2, t3;
+	float fsize, fstrength, falpha;
 	float key[4];
 	short algorithm, channel;
 } NodeChroma;

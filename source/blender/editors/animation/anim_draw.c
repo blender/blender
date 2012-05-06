@@ -63,7 +63,7 @@
  *	- cfra: time in frames or seconds, consistent with the values shown by timecodes
  */
 // TODO: have this in kernel instead under scene?
-void ANIM_timecode_string_from_frame (char *str, Scene *scene, int power, short timecodes, float cfra)
+void ANIM_timecode_string_from_frame(char *str, Scene *scene, int power, short timecodes, float cfra)
 {
 	if (timecodes) {
 		int hours=0, minutes=0, seconds=0, frames=0;
@@ -212,7 +212,7 @@ static void draw_cfra_number (Scene *scene, View2D *v2d, float cfra, short time)
 }
 
 /* General call for drawing current frame indicator in animation editor */
-void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
+void ANIM_draw_cfra(const bContext *C, View2D *v2d, short flag)
 {
 	Scene *scene= CTX_data_scene(C);
 	float vec[2];
@@ -248,7 +248,7 @@ void ANIM_draw_cfra (const bContext *C, View2D *v2d, short flag)
 /* Note: 'Preview Range' tools are defined in anim_ops.c */
 
 /* Draw preview range 'curtains' for highlighting where the animation data is */
-void ANIM_draw_previewrange (const bContext *C, View2D *v2d)
+void ANIM_draw_previewrange(const bContext *C, View2D *v2d)
 {
 	Scene *scene= CTX_data_scene(C);
 	
@@ -335,7 +335,7 @@ static short bezt_nlamapping_apply(KeyframeEditData *ked, BezTriple *bezt)
  *	- restore = whether to map points back to non-mapped time 
  * 	- only_keys = whether to only adjust the location of the center point of beztriples
  */
-void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, short only_keys)
+void ANIM_nla_mapping_apply_fcurve(AnimData *adt, FCurve *fcu, short restore, short only_keys)
 {
 	KeyframeEditData ked= {{NULL}};
 	KeyframeEditFunc map_cb;
@@ -361,7 +361,7 @@ void ANIM_nla_mapping_apply_fcurve (AnimData *adt, FCurve *fcu, short restore, s
 /* UNITS CONVERSION MAPPING (required for drawing and editing keyframes) */
 
 /* Get unit conversion factor for given ID + F-Curve */
-float ANIM_unit_mapping_get_factor (Scene *scene, ID *id, FCurve *fcu, short restore)
+float ANIM_unit_mapping_get_factor(Scene *scene, ID *id, FCurve *fcu, short restore)
 {
 	/* sanity checks */
 	if (id && fcu && fcu->rna_path) {
@@ -415,7 +415,7 @@ static short bezt_unit_mapping_apply (KeyframeEditData *ked, BezTriple *bezt)
 }
 
 /* Apply/Unapply units conversions to keyframes */
-void ANIM_unit_mapping_apply_fcurve (Scene *scene, ID *id, FCurve *fcu, short flag)
+void ANIM_unit_mapping_apply_fcurve(Scene *scene, ID *id, FCurve *fcu, short flag)
 {
 	KeyframeEditData ked;
 	KeyframeEditFunc sel_cb;

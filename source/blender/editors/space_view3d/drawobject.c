@@ -47,6 +47,7 @@
 #include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_armature_types.h"
+#include "DNA_object_types.h"
 
 #include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
@@ -2213,7 +2214,7 @@ void nurbs_foreachScreenVert(
 	short s[2] = {IS_CLIPPED, 0};
 	Nurb *nu;
 	int i;
-	ListBase *nurbs = curve_editnurbs(cu);
+	ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
 	ED_view3d_clipping_local(vc->rv3d, vc->obedit->obmat); /* for local clipping lookups */
 
@@ -3963,7 +3964,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			break;
 		case OB_MBALL:
 
-			if (is_basis_mball(ob)) {
+			if (BKE_metaball_is_basis(ob)) {
 				lb = &ob->disp;
 				if (lb->first == NULL) makeDispListMBall(scene, ob);
 				if (lb->first == NULL) return 1;
@@ -5648,7 +5649,7 @@ static void curve_draw_speed(Scene *scene, Object *ob)
 	if (icu == NULL || icu->totvert < 2)
 		return;
 	
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 
 	for (a = 0, bezt = icu->bezt; a < icu->totvert; a++, bezt++) {
@@ -6140,7 +6141,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		bb = ob->bb ? ob->bb : ( (Curve *)ob->data)->bb;
 	}
 	else if (ob->type == OB_MBALL) {
-		if (is_basis_mball(ob)) {
+		if (BKE_metaball_is_basis(ob)) {
 			bb = ob->bb;
 			if (bb == NULL) {
 				makeDispListMBall(scene, ob);
@@ -6231,7 +6232,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (is_basis_mball(ob)) {
+		if (BKE_metaball_is_basis(ob)) {
 			if ((base->flag & OB_FROMDUPLI) == 0)
 				drawDispListwire(&ob->disp);
 		}
@@ -6291,7 +6292,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (is_basis_mball(ob)) {
+		if (BKE_metaball_is_basis(ob)) {
 			drawDispListwire(&ob->disp);
 		}
 	}
@@ -6670,7 +6671,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 			cu = ob->data;
 
 			if (cu->editnurb) {
-				ListBase *nurbs = curve_editnurbs(cu);
+				ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 				drawnurb(scene, v3d, rv3d, base, nurbs->first, dt);
 			}
 			else if (dt == OB_BOUNDBOX) {
@@ -7168,7 +7169,7 @@ static void bbs_obmode_mesh_verts(Object *ob, DerivedMesh *dm, int offset)
 	MVert *mvert = me->mvert;
 	data.mvert = mvert;
 	data.offset = (void *)(intptr_t) offset;
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_obmode_mesh_verts__mapFunc, &data);
 	bglEnd();
@@ -7191,7 +7192,7 @@ static void bbs_mesh_verts(BMEditMesh *em, DerivedMesh *dm, int offset)
 {
 	void *ptrs[2] = {(void *)(intptr_t) offset, em};
 
-	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE) );
+	glPointSize(UI_GetThemeValuef(TH_VERTEX_SIZE));
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, ptrs);
 	bglEnd();

@@ -387,7 +387,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 		return;
 	}
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_IM:
 		ima= (Image *)id;
 		if (ima->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
@@ -510,7 +510,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 			if (scene->ed) {
 				Sequence *seq;
 
-				SEQ_BEGIN(scene->ed, seq) {
+				SEQ_BEGIN (scene->ed, seq) {
 					if (SEQ_HAS_PATH(seq)) {
 						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
 							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name,

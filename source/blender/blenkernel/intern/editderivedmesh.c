@@ -162,7 +162,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 		/* no need to ensure the loop order, we know its ok */
 
 		else if (f->len == 3) {
-			BLI_array_growone(looptris);
+			BLI_array_grow_one(looptris);
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
 				looptris[i][j] = l;
@@ -171,7 +171,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 		}
 		else if (f->len == 4) {
 			BMLoop *ltmp[4];
-			BLI_array_growitems(looptris, 2);
+			BLI_array_grow_items(looptris, 2);
 
 			l = BM_iter_new(&liter, bm, BM_LOOPS_OF_FACE, f);
 			for (j=0; l; l=BM_iter_step(&liter), j++) {
@@ -219,7 +219,7 @@ static void BMEdit_RecalcTessellation_intern(BMEditMesh *tm)
 			BLI_addfilledge(&sf_ctx, firstv, v);
 
 			totfilltri = BLI_edgefill_ex(&sf_ctx, FALSE, f->no);
-			BLI_array_growitems(looptris, totfilltri);
+			BLI_array_grow_items(looptris, totfilltri);
 
 			for (efa = sf_ctx.fillfacebase.first; efa; efa=efa->next) {
 				BMLoop *l1= efa->v1->tmp.p;
@@ -387,14 +387,14 @@ static void emDM_foreachMappedEdge(
 		BM_mesh_elem_index_ensure(bmdm->tc->bm, BM_VERT);
 
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter))
+		for (i=0; eed; i++, eed=BM_iter_step(&iter))
 			func(userData, i,
 				 bmdm->vertexCos[BM_elem_index_get(eed->v1)],
 				 bmdm->vertexCos[BM_elem_index_get(eed->v2)]);
 	}
 	else {
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter))
+		for (i=0; eed; i++, eed=BM_iter_step(&iter))
 			func(userData, i, eed->v1->co, eed->v2->co);
 	}
 }
@@ -415,7 +415,7 @@ static void emDM_drawMappedEdges(
 
 		glBegin(GL_LINES);
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter)) {
+		for (i=0; eed; i++, eed=BM_iter_step(&iter)) {
 			if (!setDrawOptions || (setDrawOptions(userData, i) != DM_DRAW_OPTION_SKIP)) {
 				glVertex3fv(bmdm->vertexCos[BM_elem_index_get(eed->v1)]);
 				glVertex3fv(bmdm->vertexCos[BM_elem_index_get(eed->v2)]);
@@ -426,7 +426,7 @@ static void emDM_drawMappedEdges(
 	else {
 		glBegin(GL_LINES);
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter)) {
+		for (i=0; eed; i++, eed=BM_iter_step(&iter)) {
 			if (!setDrawOptions || (setDrawOptions(userData, i) != DM_DRAW_OPTION_SKIP)) {
 				glVertex3fv(eed->v1->co);
 				glVertex3fv(eed->v2->co);
@@ -460,7 +460,7 @@ static void emDM_drawMappedEdgesInterp(
 
 		glBegin(GL_LINES);
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter)) {
+		for (i=0; eed; i++, eed=BM_iter_step(&iter)) {
 			if (!setDrawOptions || (setDrawOptions(userData, i) != DM_DRAW_OPTION_SKIP)) {
 				setDrawInterpOptions(userData, i, 0.0);
 				glVertex3fv(bmdm->vertexCos[BM_elem_index_get(eed->v1)]);
@@ -473,7 +473,7 @@ static void emDM_drawMappedEdgesInterp(
 	else {
 		glBegin(GL_LINES);
 		eed = BM_iter_new(&iter, bmdm->tc->bm, BM_EDGES_OF_MESH, NULL);
-		for (i=0; eed; i++,eed=BM_iter_step(&iter)) {
+		for (i=0; eed; i++, eed=BM_iter_step(&iter)) {
 			if (!setDrawOptions || (setDrawOptions(userData, i) != DM_DRAW_OPTION_SKIP)) {
 				setDrawInterpOptions(userData, i, 0.0);
 				glVertex3fv(eed->v1->co);

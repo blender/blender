@@ -80,26 +80,26 @@ static void region_draw_emboss(ARegion *ar, rcti *scirct)
 	rect.ymax = scirct->ymax - ar->winrct.ymin;
 	
 	/* set transp line */
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	/* right  */
-	glColor4ub(0,0,0, 30);
+	glColor4ub(0, 0, 0, 30);
 	sdrawline(rect.xmax, rect.ymin, rect.xmax, rect.ymax);
 	
 	/* bottom  */
-	glColor4ub(0,0,0, 30);
+	glColor4ub(0, 0, 0, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmax, rect.ymin);
 	
 	/* top  */
-	glColor4ub(255,255,255, 30);
+	glColor4ub(255, 255, 255, 30);
 	sdrawline(rect.xmin, rect.ymax, rect.xmax, rect.ymax);
 
 	/* left  */
-	glColor4ub(255,255,255, 30);
+	glColor4ub(255, 255, 255, 30);
 	sdrawline(rect.xmin, rect.ymin, rect.xmin, rect.ymax);
 	
-	glDisable( GL_BLEND );
+	glDisable(GL_BLEND);
 }
 
 void ED_region_pixelspace(ARegion *ar)
@@ -115,7 +115,7 @@ void ED_region_pixelspace(ARegion *ar)
 void ED_region_do_listen(ARegion *ar, wmNotifier *note)
 {
 	/* generic notes first */
-	switch(note->category) {
+	switch (note->category) {
 		case NC_WM:
 			if (note->data==ND_FILEREAD)
 				ED_region_tag_redraw(ar);
@@ -213,12 +213,12 @@ static void region_draw_azone_icon(AZone *az)
 	glColor4f(1.f, 1.f, 1.f, 0.8f);
 
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
-	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+	gluDisk(qobj, 0.0,  4.25f, 16, 1);
 
 	glColor4f(0.2f, 0.2f, 0.2f, 0.9f);
 	
 	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
-	gluDisk( qobj, 0.0,  4.25f, 16, 1); 
+	gluDisk(qobj, 0.0,  4.25f, 16, 1);
 	
 	glDisable(GL_LINE_SMOOTH);
 	
@@ -247,7 +247,7 @@ static void region_draw_azone_tab_plus(AZone *az)
 	glEnable(GL_BLEND);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT);
 			break;
@@ -282,7 +282,7 @@ static void region_draw_azone_tab(AZone *az)
 	glColor4f(col[0], col[1], col[2], 0.5f);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			uiSetRoundBox(UI_CNR_TOP_LEFT | UI_CNR_TOP_RIGHT | UI_RB_ALPHA);
 			
@@ -325,7 +325,7 @@ static void region_draw_azone_tria(AZone *az)
 	glColor4f(0.0f, 0.0f, 0.0f, 0.35f);
 	
 	/* add code to draw region hidden as 'too small' */
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			ui_draw_anti_tria((float)az->x1, (float)az->y1, (float)az->x2, (float)az->y1, (float)(az->x1+az->x2)/2, (float)az->y2);
 			break;
@@ -357,8 +357,8 @@ void ED_area_overdraw(bContext *C)
 	/* Draw AZones, in screenspace */
 	wmSubWindowSet(win, screen->mainwin);
 
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	for (sa= screen->areabase.first; sa; sa= sa->next) {
 		AZone *az;
@@ -388,7 +388,7 @@ void ED_area_overdraw(bContext *C)
 			}
 		}
 	}	
-	glDisable( GL_BLEND );
+	glDisable(GL_BLEND);
 	
 }
 
@@ -623,7 +623,7 @@ static void area_azone_initialize(ScrArea *sa)
 #define AZONEPAD_ICON	9
 static void region_azone_edge(AZone *az, ARegion *ar)
 {
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			az->x1= ar->winrct.xmin;
 			az->y1= ar->winrct.ymax - AZONEPAD_EDGE;
@@ -665,7 +665,7 @@ static void region_azone_icon(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			az->x1= ar->winrct.xmax - tot*2*AZONEPAD_ICON;
 			az->y1= ar->winrct.ymax + AZONEPAD_ICON;
@@ -725,7 +725,7 @@ static void region_azone_tab_plus(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2.5*AZONEPAD_TAB_PLUSW;
@@ -770,7 +770,7 @@ static void region_azone_tab(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2*AZONEPAD_TABW;
@@ -815,7 +815,7 @@ static void region_azone_tria(ScrArea *sa, AZone *az, ARegion *ar)
 		if (azt->edge == az->edge) tot++;
 	}
 	
-	switch(az->edge) {
+	switch (az->edge) {
 		case AE_TOP_TO_BOTTOMRIGHT:
 			if (ar->winrct.ymax == sa->totrct.ymin) add= 1; else add= 0;
 			az->x1= ar->winrct.xmax - 2*AZONEPAD_TRIAW;
@@ -1530,17 +1530,17 @@ int ED_area_header_standardbuttons(const bContext *C, uiBlock *block, int yco)
 
 	if (sa->flag & HEADER_NO_PULLDOWN) {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
-						 ICON_DISCLOSURE_TRI_RIGHT,
-						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Show pulldown menus");
+		                       ICON_DISCLOSURE_TRI_RIGHT,
+		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       &(sa->flag), 0, 0, 0, 0,
+		                       "Show pulldown menus");
 	}
 	else {
 		but = uiDefIconButBitS(block, TOG, HEADER_NO_PULLDOWN, 0,
-						 ICON_DISCLOSURE_TRI_DOWN,
-						 xco,yco,UI_UNIT_X,UI_UNIT_Y-2,
-						 &(sa->flag), 0, 0, 0, 0, 
-						 "Hide pulldown menus");
+		                       ICON_DISCLOSURE_TRI_DOWN,
+		                       xco, yco, UI_UNIT_X, UI_UNIT_Y - 2,
+		                       &(sa->flag), 0, 0, 0, 0,
+		                       "Hide pulldown menus");
 	}
 
 	uiButClearFlag(but, UI_BUT_UNDO); /* skip undo on screen buttons */
@@ -1803,7 +1803,7 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	rect.ymax = ar->winrct.ymax - ar->winrct.ymin;
 
 	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(0.0f, 0.0f, 0.0f, alpha);
 	glRecti(rect.xmin, rect.ymin, rect.xmax+1, rect.ymax+1);
 	glDisable(GL_BLEND);
@@ -1812,4 +1812,64 @@ void ED_region_info_draw(ARegion *ar, const char *text, int block, float alpha)
 	UI_ThemeColor(TH_TEXT_HI);
 	BLF_position(fontid, 12, rect.ymin + 5, 0.0f);
 	BLF_draw(fontid, text, BLF_DRAW_STR_DUMMY_MAX);
+}
+
+void ED_region_grid_draw(ARegion *ar, float zoomx, float zoomy)
+{
+	float gridsize, gridstep = 1.0f / 32.0f;
+	float fac, blendfac;
+	int x1, y1, x2, y2;
+
+	/* the image is located inside (0, 0), (1, 1) as set by view2d */
+	UI_ThemeColorShade(TH_BACK, 20);
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x1, &y1);
+	UI_view2d_to_region_no_clip(&ar->v2d, 1.0f, 1.0f, &x2, &y2);
+	glRectf(x1, y1, x2, y2);
+
+	/* gridsize adapted to zoom level */
+	gridsize = 0.5f * (zoomx + zoomy);
+	if (gridsize <= 0.0f)
+		return;
+
+	if (gridsize < 1.0f) {
+		while (gridsize < 1.0f) {
+			gridsize *= 4.0f;
+			gridstep *= 4.0f;
+		}
+	}
+	else {
+		while (gridsize >= 4.0f) {
+			gridsize /= 4.0f;
+			gridstep /= 4.0f;
+		}
+	}
+
+	/* the fine resolution level */
+	blendfac = 0.25f * gridsize - floorf(0.25f * gridsize);
+	CLAMP(blendfac, 0.0f, 1.0f);
+	UI_ThemeColorShade(TH_BACK, (int)(20.0f * (1.0f - blendfac)));
+
+	fac = 0.0f;
+	glBegin(GL_LINES);
+	while (fac < 1.0f) {
+		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
+		fac += gridstep;
+	}
+
+	/* the large resolution level */
+	UI_ThemeColor(TH_BACK);
+
+	fac = 0.0f;
+	while (fac < 1.0f) {
+		glVertex2f(x1, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x2, y1 * (1.0f - fac) + y2 * fac);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y1);
+		glVertex2f(x1 * (1.0f - fac) + x2 * fac, y2);
+		fac += 4.0f * gridstep;
+	}
+	glEnd();
 }

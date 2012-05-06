@@ -63,6 +63,7 @@ void ARMATURE_OT_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_select_inverse(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
+void ARMATURE_OT_select_similar(struct wmOperatorType *ot);
 
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
 void ARMATURE_OT_duplicate(struct wmOperatorType *ot);

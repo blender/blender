@@ -38,6 +38,7 @@ struct MovieClip;
 struct MovieTrackingMarker;
 struct MovieTrackingTrack;
 struct Scene;
+struct ScrArea;
 struct SpaceClip;
 struct wmOperatorType;
 
@@ -81,6 +82,7 @@ void CLIP_OT_rebuild_proxy(struct wmOperatorType *ot);
 void CLIP_OT_mode_set(struct wmOperatorType *ot);
 
 /* clip_toolbar.c */
+struct ARegion *ED_clip_has_properties_region(struct ScrArea *sa);
 void CLIP_OT_tools(struct wmOperatorType *ot);
 void CLIP_OT_properties(struct wmOperatorType *ot);
 void ED_clip_tool_props_register(struct ARegionType *art);
@@ -103,6 +105,9 @@ void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBa
 void clip_delete_marker(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker);
 
 void clip_view_center_to_point(struct SpaceClip *sc, float x, float y);
+
+void clip_draw_cfra(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */
 void CLIP_OT_select(struct wmOperatorType *ot);

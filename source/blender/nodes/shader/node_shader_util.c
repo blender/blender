@@ -101,7 +101,7 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 			/* note; sockets always exist for the given type! */
 			for (a=0, sock= node->outputs.first; sock; sock= sock->next, a++) {
 				if (sock->flag & SOCK_IN_USE) {
-					switch(a) {
+					switch (a) {
 						case GEOM_OUT_GLOB: 
 							*texco |= TEXCO_GLOB|NEED_UV; break;
 						case GEOM_OUT_VIEW: 
@@ -137,7 +137,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 		for (a=0, sock= node->inputs.first; sock; sock= sock->next, a++) {
 			if (!nodeSocketIsHidden(sock)) {
 				if (copyto) {
-					switch(a) {
+					switch (a) {
 						case MAT_IN_COLOR:
 							copy_v3_v3(&ma->r, ((bNodeSocketValueRGBA*)sock->default_value)->value); break;
 						case MAT_IN_SPEC:
@@ -161,7 +161,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 					}
 				}
 				else {
-					switch(a) {
+					switch (a) {
 						case MAT_IN_COLOR:
 							copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, &ma->r); break;
 						case MAT_IN_SPEC:

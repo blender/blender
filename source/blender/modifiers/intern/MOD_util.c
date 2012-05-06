@@ -144,7 +144,7 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 	}
 
 	for (i = 0; i < numVerts; ++i, ++co, ++texco) {
-		switch(texmapping) {
+		switch (texmapping) {
 		case MOD_DISP_MAP_LOCAL:
 			copy_v3_v3(*texco, *co);
 			break;
@@ -209,7 +209,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 		if (orco)
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 	}
-	else if (ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)) {
+	else if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
 		dm= CDDM_from_curve(ob);
 	}
 

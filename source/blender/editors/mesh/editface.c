@@ -400,14 +400,14 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	}
 }
 
-int paintface_minmax(Object *ob, float *min, float *max)
+int paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 {
 	Mesh *me;
 	MPoly *mp;
 	MTexPoly *tf;
 	MLoop *ml;
 	MVert *mvert;
-	int a, b, ok = 0;
+	int a, b, ok = FALSE;
 	float vec[3], bmat[3][3];
 
 	me = get_mesh(ob);
@@ -427,10 +427,10 @@ int paintface_minmax(Object *ob, float *min, float *max)
 			copy_v3_v3(vec, (mvert[ml->v].co));
 			mul_m3_v3(bmat, vec);
 			add_v3_v3v3(vec, vec, ob->obmat[3]);
-			DO_MINMAX(vec, min, max);		
+			DO_MINMAX(vec, r_min, r_max);
 		}
 
-		ok = 1;
+		ok = TRUE;
 	}
 
 	return ok;

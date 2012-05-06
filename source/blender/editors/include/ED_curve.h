@@ -63,7 +63,7 @@ void	load_editNurb	(struct Object *obedit);
 void	make_editNurb	(struct Object *obedit);
 void	free_editNurb	(struct Object *obedit);
 
-void	free_curve_editNurb	(struct Curve *cu);
+void	BKE_curve_editNurb_free	(struct Curve *cu);
 
 int 	mouse_nurb		(struct bContext *C, const int mval[2], int extend);
 

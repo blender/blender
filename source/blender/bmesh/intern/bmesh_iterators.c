@@ -104,6 +104,50 @@ int BM_iter_as_array(BMesh *bm, const char itype, void *data, void **array, cons
 	return i;
 }
 
+/**
+ * \brief Elem Iter Flag Count
+ *
+ * Counts how many flagged / unflagged items are found in this element.
+ */
+int BM_iter_elem_count_flag(const char itype, void *data, const char hflag, const short value)
+{
+	BMIter iter;
+	BMElem *ele;
+	int count = 0;
+
+	BLI_assert(ELEM(value, TRUE, FALSE));
+
+	for (ele = BM_iter_new(&iter, NULL, itype, data); ele; ele = BM_iter_step(&iter)) {
+		if (BM_elem_flag_test_bool(ele, hflag) == value) {
+			count++;
+		}
+	}
+
+	return count;
+}
+
+/**
+ * \brief Mesh Iter Flag Count
+ *
+ * Counts how many flagged / unflagged items are found in this mesh.
+ */
+int BM_iter_mesh_count_flag(const char itype, BMesh *bm, const char hflag, const short value)
+{
+	BMIter iter;
+	BMElem *ele;
+	int count = 0;
+
+	BLI_assert(ELEM(value, TRUE, FALSE));
+
+	for (ele = BM_iter_new(&iter, bm, itype, NULL); ele; ele = BM_iter_step(&iter)) {
+		if (BM_elem_flag_test_bool(ele, hflag) == value) {
+			count++;
+		}
+	}
+
+	return count;
+}
+
 
 /**
  * \brief Init Iterator

@@ -190,13 +190,14 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
-/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
 int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *toolsettings = scene->toolsettings;
 
-	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
-	if (sima && !toolsettings->uvsculpt)
+	if (sima && !toolsettings->uvsculpt && !scene->obedit)
 		return 1;
 
 	return 0;

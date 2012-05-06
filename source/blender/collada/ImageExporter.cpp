@@ -48,11 +48,10 @@ bool ImagesExporter::hasImages(Scene *sce)
 {
 	Base *base = (Base *)sce->base.first;
 	
-	while(base) {
+	while (base) {
 		Object *ob= base->object;
 		int a;
-		for (a = 0; a < ob->totcol; a++)
-		{
+		for (a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a+1);
 
 			// no material, but check all of the slots

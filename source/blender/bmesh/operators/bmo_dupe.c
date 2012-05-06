@@ -277,8 +277,8 @@ static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 			BLI_array_empty(vtar);
 			BLI_array_empty(edar);
 
-			BLI_array_growitems(vtar, f->len);
-			BLI_array_growitems(edar, f->len);
+			BLI_array_grow_items(vtar, f->len);
+			BLI_array_grow_items(edar, f->len);
 
 			copy_face(op, source, f, target, vtar, edar, vhash, ehash);
 			BMO_elem_flag_enable(source, f, DUPE_DONE);

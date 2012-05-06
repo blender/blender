@@ -268,38 +268,38 @@ LIBEXPORT float turbulence1(float noisesize,
 	 * Otherwise they will not be imported from the archive
 	 * library on Unix. -zr
 	 */
-int pluginapi_force_ref(void); 
+int pluginapi_force_ref(void);
 
-int pluginapi_force_ref(void) 
+int pluginapi_force_ref(void)
 {
 	return 
-		GET_INT_FROM_POINTER( mallocN ) +
-		GET_INT_FROM_POINTER( callocN ) +
-		GET_INT_FROM_POINTER( freeN ) +
-		GET_INT_FROM_POINTER( mallocT ) +
-		GET_INT_FROM_POINTER( callocT ) +
-		GET_INT_FROM_POINTER( freeT ) +
-		GET_INT_FROM_POINTER( allocImBuf ) +
-		GET_INT_FROM_POINTER( dupImBuf ) +
-		GET_INT_FROM_POINTER( freeImBuf ) +
-		GET_INT_FROM_POINTER( saveiff ) +
-		GET_INT_FROM_POINTER( loadifffile ) +
-		GET_INT_FROM_POINTER( loadiffname ) +
-		GET_INT_FROM_POINTER( testiffname ) +
-		GET_INT_FROM_POINTER( onehalf ) +
-		GET_INT_FROM_POINTER( half_x ) +
-		GET_INT_FROM_POINTER( half_y ) +
-		GET_INT_FROM_POINTER( double_x ) +
-		GET_INT_FROM_POINTER( double_y ) +
-		GET_INT_FROM_POINTER( double_fast_x ) +
-		GET_INT_FROM_POINTER( double_fast_y ) +
-		GET_INT_FROM_POINTER( ispic ) +
-		GET_INT_FROM_POINTER( scaleImBuf ) +
-		GET_INT_FROM_POINTER( scalefastImBuf ) +
-		GET_INT_FROM_POINTER( hnoise ) +
-		GET_INT_FROM_POINTER( hnoisep ) +
-		GET_INT_FROM_POINTER( turbulence ) +
-		GET_INT_FROM_POINTER( turbulence1 ) +
-		GET_INT_FROM_POINTER( de_interlace ) +
-		GET_INT_FROM_POINTER( interlace );
+		GET_INT_FROM_POINTER(mallocN) +
+		GET_INT_FROM_POINTER(callocN) +
+		GET_INT_FROM_POINTER(freeN) +
+		GET_INT_FROM_POINTER(mallocT) +
+		GET_INT_FROM_POINTER(callocT) +
+		GET_INT_FROM_POINTER(freeT) +
+		GET_INT_FROM_POINTER(allocImBuf) +
+		GET_INT_FROM_POINTER(dupImBuf) +
+		GET_INT_FROM_POINTER(freeImBuf) +
+		GET_INT_FROM_POINTER(saveiff) +
+		GET_INT_FROM_POINTER(loadifffile) +
+		GET_INT_FROM_POINTER(loadiffname) +
+		GET_INT_FROM_POINTER(testiffname) +
+		GET_INT_FROM_POINTER(onehalf) +
+		GET_INT_FROM_POINTER(half_x) +
+		GET_INT_FROM_POINTER(half_y) +
+		GET_INT_FROM_POINTER(double_x) +
+		GET_INT_FROM_POINTER(double_y) +
+		GET_INT_FROM_POINTER(double_fast_x) +
+		GET_INT_FROM_POINTER(double_fast_y) +
+		GET_INT_FROM_POINTER(ispic) +
+		GET_INT_FROM_POINTER(scaleImBuf) +
+		GET_INT_FROM_POINTER(scalefastImBuf) +
+		GET_INT_FROM_POINTER(hnoise) +
+		GET_INT_FROM_POINTER(hnoisep) +
+		GET_INT_FROM_POINTER(turbulence) +
+		GET_INT_FROM_POINTER(turbulence1) +
+		GET_INT_FROM_POINTER(de_interlace) +
+		GET_INT_FROM_POINTER(interlace);
 }

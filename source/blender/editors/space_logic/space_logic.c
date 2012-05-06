@@ -195,12 +195,12 @@ static void logic_refresh(const bContext *UNUSED(C), ScrArea *UNUSED(sa))
 static void logic_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_LOGIC:
 			ED_region_tag_redraw(ar);
 			break;
 		case NC_SCENE:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_FRAME:
 					ED_region_tag_redraw(ar);
 					break;

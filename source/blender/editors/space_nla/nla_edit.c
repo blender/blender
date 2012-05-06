@@ -76,7 +76,7 @@
 /* Utilities exported to other places... */
 
 /* Perform validation for blending/extend settings */
-void ED_nla_postop_refresh (bAnimContext *ac)
+void ED_nla_postop_refresh(bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -155,7 +155,7 @@ static int nlaedit_enable_tweakmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLA_OT_tweakmode_enter (wmOperatorType *ot)
+void NLA_OT_tweakmode_enter(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Enter Tweak Mode";
@@ -220,7 +220,7 @@ static int nlaedit_disable_tweakmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLA_OT_tweakmode_exit (wmOperatorType *ot)
+void NLA_OT_tweakmode_exit(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Exit Tweak Mode";
@@ -335,7 +335,7 @@ static int nlaedit_viewsel_exec(bContext *C, wmOperator *UNUSED(op))
 	return nlaedit_viewall(C, TRUE);
 }
  
-void NLA_OT_view_all (wmOperatorType *ot)
+void NLA_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View All";
@@ -350,7 +350,7 @@ void NLA_OT_view_all (wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
-void NLA_OT_view_selected (wmOperatorType *ot)
+void NLA_OT_view_selected(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View Selected";
@@ -468,7 +468,7 @@ static int nlaedit_add_actionclip_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_actionclip_add (wmOperatorType *ot)
+void NLA_OT_actionclip_add(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -595,7 +595,7 @@ static int nlaedit_add_transition_exec (bContext *C, wmOperator *op)
 	}
 }
 
-void NLA_OT_transition_add (wmOperatorType *ot)
+void NLA_OT_transition_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Transition";
@@ -680,7 +680,7 @@ static int nlaedit_add_sound_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_soundclip_add (wmOperatorType *ot)
+void NLA_OT_soundclip_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Sound Clip";
@@ -742,7 +742,7 @@ static int nlaedit_add_meta_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_meta_add (wmOperatorType *ot)
+void NLA_OT_meta_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Meta-Strips";
@@ -794,7 +794,7 @@ static int nlaedit_remove_meta_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_meta_remove (wmOperatorType *ot)
+void NLA_OT_meta_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Meta-Strips";
@@ -897,7 +897,7 @@ static int nlaedit_duplicate_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_duplicate (wmOperatorType *ot)
+void NLA_OT_duplicate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Duplicate Strips";
@@ -972,7 +972,7 @@ static int nlaedit_delete_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_delete (wmOperatorType *ot)
+void NLA_OT_delete(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Delete Strips";
@@ -1117,7 +1117,7 @@ static int nlaedit_split_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_split (wmOperatorType *ot)
+void NLA_OT_split(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Split Strips";
@@ -1170,7 +1170,7 @@ static int nlaedit_bake_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_bake (wmOperatorType *ot)
+void NLA_OT_bake(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Bake Strips";
@@ -1232,7 +1232,7 @@ static int nlaedit_toggle_mute_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_mute_toggle (wmOperatorType *ot)
+void NLA_OT_mute_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Toggle Muting";
@@ -1389,7 +1389,7 @@ static int nlaedit_swap_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_swap (wmOperatorType *ot)
+void NLA_OT_swap(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Swap Strips";
@@ -1463,7 +1463,7 @@ static int nlaedit_move_up_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_move_up (wmOperatorType *ot)
+void NLA_OT_move_up(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Move Strips Up";
@@ -1537,7 +1537,7 @@ static int nlaedit_move_down_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_move_down (wmOperatorType *ot)
+void NLA_OT_move_down(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Move Strips Down";
@@ -1613,7 +1613,7 @@ static int nlaedit_sync_actlen_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_action_sync_length (wmOperatorType *ot)
+void NLA_OT_action_sync_length(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Sync Action Length";
@@ -1713,7 +1713,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_apply_scale (wmOperatorType *ot)
+void NLA_OT_apply_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Apply Scale";
@@ -1776,7 +1776,7 @@ static int nlaedit_clear_scale_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_clear_scale (wmOperatorType *ot)
+void NLA_OT_clear_scale(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Scale";
@@ -1917,7 +1917,7 @@ static int nlaedit_snap_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void NLA_OT_snap (wmOperatorType *ot)
+void NLA_OT_snap(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Snap Strips";
@@ -2036,7 +2036,7 @@ static int nla_fmodifier_add_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void NLA_OT_fmodifier_add (wmOperatorType *ot)
+void NLA_OT_fmodifier_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add F-Modifier";
@@ -2100,7 +2100,7 @@ static int nla_fmodifier_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 }
  
-void NLA_OT_fmodifier_copy (wmOperatorType *ot)
+void NLA_OT_fmodifier_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy F-Modifiers";
@@ -2162,7 +2162,7 @@ static int nla_fmodifier_paste_exec(bContext *C, wmOperator *op)
 	}
 }
  
-void NLA_OT_fmodifier_paste (wmOperatorType *ot)
+void NLA_OT_fmodifier_paste(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Paste F-Modifiers";

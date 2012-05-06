@@ -96,6 +96,7 @@ void	txt_unindent		(struct Text *text);
 void 	txt_comment			(struct Text *text);
 void 	txt_indent			(struct Text *text);
 void	txt_uncomment		(struct Text *text);
+void	txt_duplicate_line	(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
 void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, const unsigned char color[4], int group, int flags);
@@ -168,6 +169,8 @@ int text_check_whitespace(const char ch);
 #define UNDO_UNINDENT   033
 #define UNDO_COMMENT    034
 #define UNDO_UNCOMMENT  035
+
+#define UNDO_DUPLICATE  040
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */

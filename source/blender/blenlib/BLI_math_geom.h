@@ -244,14 +244,14 @@ void tangent_from_uv(float uv1[2], float uv2[2], float uv3[2],
 
 void vcloud_estimate_transform(int list_size, float (*pos)[3], float *weight,
 	float (*rpos)[3], float *rweight,
-	float lloc[3],float rloc[3],float lrot[3][3],float lscale[3][3]);
+	float lloc[3], float rloc[3], float lrot[3][3], float lscale[3][3]);
 
 /****************************** Spherical Harmonics *************************/
 
 /* Uses 2nd order SH => 9 coefficients, stored in this order:
- * 0 = (0,0),
- * 1 = (1,-1), 2 = (1,0), 3 = (1,1),
- * 4 = (2,-2), 5 = (2,-1), 6 = (2,0), 7 = (2,1), 8 = (2,2) */
+ * 0 = (0, 0),
+ * 1 = (1, -1), 2 = (1, 0), 3 = (1, 1),
+ * 4 = (2, -2), 5 = (2, -1), 6 = (2, 0), 7 = (2, 1), 8 = (2, 2) */
 
 MINLINE void zero_sh(float r[9]);
 MINLINE void copy_sh_sh(float r[9], const float a[9]);

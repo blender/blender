@@ -158,7 +158,7 @@ static int actkeys_deselectall_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_select_all_toggle (wmOperatorType *ot)
+void ACTION_OT_select_all_toggle(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select All";
@@ -524,7 +524,7 @@ static int actkeys_columnselect_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ACTION_OT_select_column (wmOperatorType *ot)
+void ACTION_OT_select_column(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select All";
@@ -582,7 +582,7 @@ static int actkeys_select_linked_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_select_linked (wmOperatorType *ot)
+void ACTION_OT_select_linked(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Linked";
@@ -659,7 +659,7 @@ static int actkeys_select_more_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_select_more (wmOperatorType *ot)
+void ACTION_OT_select_more(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select More";
@@ -693,7 +693,7 @@ static int actkeys_select_less_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ACTION_OT_select_less (wmOperatorType *ot)
+void ACTION_OT_select_less(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Less";
@@ -860,7 +860,7 @@ static int actkeys_select_leftright_invoke (bContext *C, wmOperator *op, wmEvent
 	return actkeys_select_leftright_exec(C, op);
 }
 
-void ACTION_OT_select_leftright (wmOperatorType *ot)
+void ACTION_OT_select_leftright(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Left/Right";
@@ -1174,7 +1174,7 @@ static int actkeys_clickselect_invoke(bContext *C, wmOperator *op, wmEvent *even
 	return OPERATOR_FINISHED|OPERATOR_PASS_THROUGH;
 }
  
-void ACTION_OT_clickselect (wmOperatorType *ot)
+void ACTION_OT_clickselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Mouse Select Keys";

@@ -342,7 +342,7 @@ ColorBand *add_colorband(int rangetype)
 {
 	ColorBand *coba;
 	
-	coba= MEM_callocN( sizeof(ColorBand), "colorband");
+	coba= MEM_callocN(sizeof(ColorBand), "colorband");
 	init_colorband(coba, rangetype);
 	
 	return coba;
@@ -663,7 +663,7 @@ void default_tex(Tex *tex)
 
 void tex_set_type(Tex *tex, int type)
 {
-	switch(type) {
+	switch (type) {
 			
 		case TEX_VOXELDATA:
 			if (tex->vd == NULL)
@@ -1056,8 +1056,8 @@ void make_local_texture(Tex *tex)
 void autotexname(Tex *tex)
 {
 	Main *bmain= G.main;
-	char texstr[20][15]= {"None"  , "Clouds" , "Wood", "Marble", "Magic"  , "Blend",
-		"Stucci", "Noise"  , "Image", "Plugin", "EnvMap" , "Musgrave",
+	char texstr[20][15]= {"None", "Clouds", "Wood", "Marble", "Magic", "Blend",
+		"Stucci", "Noise", "Image", "Plugin", "EnvMap", "Musgrave",
 		"Voronoi", "DistNoise", "Point Density", "Voxel Data", "Ocean", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
@@ -1180,7 +1180,7 @@ Tex *give_current_material_texture(Material *ma)
 
 int give_active_mtex(ID *id, MTex ***mtex_ar, short *act)
 {
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_MA:
 		*mtex_ar=		((Material *)id)->mtex;
 		if (act) *act=	(((Material *)id)->texact);
@@ -1211,7 +1211,7 @@ void set_active_mtex(ID *id, short act)
 	if (act<0)				act= 0;
 	else if (act>=MAX_MTEX)	act= MAX_MTEX-1;
 
-	switch(GS(id->name)) {
+	switch (GS(id->name)) {
 	case ID_MA:
 		((Material *)id)->texact= act;
 		break;

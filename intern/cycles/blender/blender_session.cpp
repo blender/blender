@@ -218,11 +218,12 @@ void BlenderSession::render()
 		scene->film->passes = passes;
 		scene->film->tag_update(scene);
 
-		/* update session */
-		session->reset(buffer_params, session_params.samples);
-
 		/* update scene */
 		sync->sync_data(b_v3d, b_iter->name().c_str());
+
+		/* update session */
+		int samples = sync->get_layer_samples();
+		session->reset(buffer_params, (samples == 0)? session_params.samples: samples);
 
 		/* render */
 		session->start();

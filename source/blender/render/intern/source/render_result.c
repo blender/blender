@@ -458,6 +458,7 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
 		rl->lay= srl->lay;
 		rl->lay_zmask= srl->lay_zmask;
+		rl->lay_exclude= srl->lay_exclude;
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag; // for debugging: srl->passflag|SCE_PASS_RAYHITS;
 		rl->pass_xor= srl->pass_xor;

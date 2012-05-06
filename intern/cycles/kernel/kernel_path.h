@@ -223,6 +223,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
+	float min_ray_pdf = FLT_MAX;
 	float ray_pdf = 0.0f;
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
@@ -239,13 +240,17 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			/* eval background shader if nothing hit */
 			if(kernel_data.background.transparent && (state.flag & PATH_RAY_CAMERA)) {
 				L_transparent += average(throughput);
+
+#ifdef __PASSES__
+				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
+#endif
+					break;
 			}
+
 #ifdef __BACKGROUND__
-			else {
-				/* sample background shader */
-				float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
-				path_radiance_accum_background(&L, throughput, L_background, state.bounce);
-			}
+			/* sample background shader */
+			float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
+			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -259,6 +264,18 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);
 
+		/* blurring of bsdf after bounces, for rays that have a small likelihood
+		   of following this particular path (diffuse, rough glossy) */
+		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
+			float blur_pdf = kernel_data.integrator.filter_glossy*min_ray_pdf;
+
+			if(blur_pdf < 1.0f) {
+				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
+				shader_bsdf_blur(kg, &sd, blur_roughness);
+			}
+		}
+
+		/* holdout */
 #ifdef __HOLDOUT__
 		if((sd.flag & SD_HOLDOUT) && (state.flag & PATH_RAY_CAMERA)) {
 			float3 holdout_weight = shader_holdout_eval(kg, &sd);
@@ -378,8 +395,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		path_radiance_bsdf_bounce(&L, &throughput, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 		/* set labels */
-		if(!(label & LABEL_TRANSPARENT))
+		if(!(label & LABEL_TRANSPARENT)) {
 			ray_pdf = bsdf_pdf;
+			min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
+		}
 
 		/* update path state */
 		path_state_next(kg, &state, label);
@@ -394,7 +413,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 	}
 
-	float3 L_sum = path_radiance_sum(&L);
+	float3 L_sum = path_radiance_sum(kg, &L);
 
 #ifdef __CLAMP_SAMPLE__
 	path_radiance_clamp(&L, &L_sum, kernel_data.integrator.sample_clamp);

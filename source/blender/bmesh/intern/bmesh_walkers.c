@@ -226,8 +226,7 @@ void *BMW_state_add(BMWalker *walker)
 	BMwGenericWalker *newstate;
 	newstate = BLI_mempool_alloc(walker->worklist);
 	newstate->depth = walker->depth;
-	switch (walker->order)
-	{
+	switch (walker->order) {
 		case BMW_DEPTH_FIRST:
 			BLI_addhead(&walker->states, newstate);
 			break;

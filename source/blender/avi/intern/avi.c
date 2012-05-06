@@ -58,8 +58,8 @@ static char DEBUG_FCC[4];
 #define DEBUG_PRINT(x) if (AVI_DEBUG) { printf("AVI DEBUG: " x); } (void)0
 
 /* local functions */
-char *fcc_to_char (unsigned int fcc);
-char *tcc_to_char (unsigned int tcc);
+char *fcc_to_char(unsigned int fcc);
+char *tcc_to_char(unsigned int tcc);
 
 
 
@@ -89,7 +89,7 @@ unsigned int GET_TCC (FILE *fp)
 	return FCC (tmp);
 }
 
-char *fcc_to_char (unsigned int fcc)
+char *fcc_to_char(unsigned int fcc)
 {
 	DEBUG_FCC[0]= (fcc)&127;
 	DEBUG_FCC[1]= (fcc>>8)&127;
@@ -99,7 +99,7 @@ char *fcc_to_char (unsigned int fcc)
 	return DEBUG_FCC;	
 }
 
-char *tcc_to_char (unsigned int tcc)
+char *tcc_to_char(unsigned int tcc)
 {
 	DEBUG_FCC[0]= (tcc)&127;
 	DEBUG_FCC[1]= (tcc>>8)&127;
@@ -109,7 +109,7 @@ char *tcc_to_char (unsigned int tcc)
 	return DEBUG_FCC;	
 }
 
-int AVI_get_stream (AviMovie *movie, int avist_type, int stream_num)
+int AVI_get_stream(AviMovie *movie, int avist_type, int stream_num)
 {
 	int cur_stream;
 
@@ -157,7 +157,7 @@ static int fcc_is_data (int fcc)
 	return 1;
 }
 
-AviError AVI_print_error (AviError in_error)
+AviError AVI_print_error(AviError in_error)
 {
 	int error;
 
@@ -200,12 +200,12 @@ AviError AVI_print_error (AviError in_error)
 	return in_error;
 }
 #if 0
-void AVI_set_debug (int mode)
+void AVI_set_debug(int mode)
 {
 	AVI_DEBUG= mode;
 }
 
-int AVI_is_avi (char *name)
+int AVI_is_avi(char *name)
 {
 	FILE *fp;
 	int ret;
@@ -228,7 +228,7 @@ int AVI_is_avi (char *name)
 }
 #endif
 
-int AVI_is_avi (const char *name)
+int AVI_is_avi(const char *name)
 {
 	int temp, fcca, j;
 	AviMovie movie= {NULL};
@@ -425,7 +425,7 @@ int AVI_is_avi (const char *name)
 
 }
 
-AviError AVI_open_movie (const char *name, AviMovie *movie)
+AviError AVI_open_movie(const char *name, AviMovie *movie)
 {
 	int temp, fcca, size, j;
 	
@@ -442,7 +442,9 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 
 	if (GET_FCC (movie->fp) != FCC("RIFF") ||
 		!(movie->size = GET_FCC (movie->fp)))
+	{
 		return AVI_ERROR_FORMAT;
+	}
 
 	movie->header = (AviMainHeader *) MEM_mallocN (sizeof (AviMainHeader), "movieheader");
 
@@ -636,7 +638,7 @@ AviError AVI_open_movie (const char *name, AviMovie *movie)
 			return AVI_ERROR_FORMAT;
 		}
 
-		movie->entries = (AviIndexEntry *) MEM_mallocN (movie->index_entries * sizeof(AviIndexEntry),"movieentries");
+		movie->entries = (AviIndexEntry *) MEM_mallocN (movie->index_entries * sizeof(AviIndexEntry), "movieentries");
 
 		for (temp=0; temp < movie->index_entries; temp++) {
 			movie->entries[temp].ChunkId = GET_FCC (movie->fp);
@@ -699,7 +701,7 @@ void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream)
 	fseek (movie->fp, movie->read_offset + movie->entries[i-1].Offset, SEEK_SET);
 
 	temp = GET_FCC(movie->fp);
-	buffer = MEM_mallocN (temp,"readbuffer");
+	buffer = MEM_mallocN (temp, "readbuffer");
 
 	if (fread (buffer, 1, temp, movie->fp) != temp) {
 		MEM_freeN(buffer);
@@ -712,7 +714,7 @@ void *AVI_read_frame (AviMovie *movie, AviFormat format, int frame, int stream)
 	return buffer;
 }
 
-AviError AVI_close (AviMovie *movie)
+AviError AVI_close(AviMovie *movie)
 {
 	int i;
 
@@ -735,7 +737,7 @@ AviError AVI_close (AviMovie *movie)
 	return AVI_ERROR_NONE;
 }
 
-AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
+AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 {
 	va_list ap;
 	AviList list;
@@ -753,14 +755,14 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 	if (movie->fp == NULL)
 		return AVI_ERROR_OPEN;
 
-	movie->offset_table = (int64_t *) MEM_mallocN ((1+streams*2) * sizeof (int64_t),"offsettable");
+	movie->offset_table = (int64_t *) MEM_mallocN ((1+streams*2) * sizeof (int64_t), "offsettable");
 	
 	for (i=0; i < 1 + streams*2; i++)
 		movie->offset_table[i] = -1L;
 
 	movie->entries = NULL;
 
-	movie->header = (AviMainHeader *) MEM_mallocN (sizeof(AviMainHeader),"movieheader");
+	movie->header = (AviMainHeader *) MEM_mallocN (sizeof(AviMainHeader), "movieheader");
 
 	movie->header->fcc = FCC("avih");
 	movie->header->size = 56;
@@ -779,7 +781,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 	movie->header->Reserved[2] = 0;
 	movie->header->Reserved[3] = 0;
 
-	movie->streams = (AviStreamRec *) MEM_mallocN (sizeof(AviStreamRec) * movie->header->Streams,"moviestreams");
+	movie->streams = (AviStreamRec *) MEM_mallocN (sizeof(AviStreamRec) * movie->header->Streams, "moviestreams");
 
 	va_start (ap, streams);
 
@@ -816,7 +818,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 #if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
 				movie->streams[i].sf = MEM_mallocN (sizeof(AviBitmapInfoHeader) 
-										+ sizeof(AviMJPEGUnknown),"moviestreamformatL");
+										+ sizeof(AviMJPEGUnknown), "moviestreamformatL");
 				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
 			}
 			else {
@@ -931,7 +933,7 @@ AviError AVI_open_compress (char *name, AviMovie *movie, int streams, ...)
 	return AVI_ERROR_NONE;
 }
 
-AviError AVI_write_frame (AviMovie *movie, int frame_num, ...)
+AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 {
 	AviList list;
 	AviChunk chunk;
@@ -950,7 +952,7 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...)
 
 	if (frame_num+1 > movie->index_entries) {
 		temp = (AviIndexEntry *) MEM_mallocN ((frame_num+1) * 
-			(movie->header->Streams+1) * sizeof(AviIndexEntry),"newidxentry");
+			(movie->header->Streams+1) * sizeof(AviIndexEntry), "newidxentry");
 		if (movie->entries != NULL) {
 			memcpy (temp, movie->entries, movie->index_entries * (movie->header->Streams+1)
 				* sizeof(AviIndexEntry));
@@ -1039,7 +1041,7 @@ AviError AVI_write_frame (AviMovie *movie, int frame_num, ...)
 	return AVI_ERROR_NONE;
 }
 
-AviError AVI_close_compress (AviMovie *movie)
+AviError AVI_close_compress(AviMovie *movie)
 {
 	int temp, movi_size, i;
 
@@ -1060,7 +1062,7 @@ AviError AVI_close_compress (AviMovie *movie)
 
 	fseek (movie->fp, movie->movi_offset, SEEK_SET);
 
-	PUT_FCCN((movi_size-(movie->movi_offset+4L)),movie->fp);
+	PUT_FCCN((movi_size-(movie->movi_offset+4L)), movie->fp);
 
 	fclose (movie->fp);
 

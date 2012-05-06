@@ -40,6 +40,15 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 				data = sd->P;
 			break;
 		}
+		case NODE_TEXCO_NORMAL: {
+			if(sd->object != ~0) {
+				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+				data = transform_direction(&tfm, sd->N);
+			}
+			else
+				data = sd->N;
+			break;
+		}
 		case NODE_TEXCO_CAMERA: {
 			Transform tfm = kernel_data.cam.worldtocamera;
 
@@ -83,6 +92,15 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 			}
 			else
 				data = sd->P + sd->dP.dx;
+			break;
+		}
+		case NODE_TEXCO_NORMAL: {
+			if(sd->object != ~0) {
+				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+				data = transform_direction(&tfm, sd->N);
+			}
+			else
+				data = sd->N;
 			break;
 		}
 		case NODE_TEXCO_CAMERA: {
@@ -131,6 +149,15 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 			}
 			else
 				data = sd->P + sd->dP.dy;
+			break;
+		}
+		case NODE_TEXCO_NORMAL: {
+			if(sd->object != ~0) {
+				Transform tfm = object_fetch_transform(kg, sd->object, OBJECT_INVERSE_TRANSFORM);
+				data = normalize(transform_direction(&tfm, sd->N));
+			}
+			else
+				data = sd->N;
 			break;
 		}
 		case NODE_TEXCO_CAMERA: {

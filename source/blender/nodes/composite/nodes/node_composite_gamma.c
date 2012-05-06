@@ -50,7 +50,7 @@ static void do_gamma(bNode *UNUSED(node), float *out, float *in, float *fac)
 	int i=0;
 	for (i=0; i<3; i++) {
 		/* check for negative to avoid nan's */
-		out[i] = (in[i] > 0.0f)? powf(in[i],fac[0]): in[i];
+		out[i] = (in[i] > 0.0f)? powf(in[i], fac[0]): in[i];
 	}
 	out[3] = in[3];
 }

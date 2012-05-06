@@ -216,8 +216,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* set up path data for bones being calculated */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		/* verify makes sure that the selected bone has a bone with the appropriate settings */
 		animviz_verify_motionpaths(op->reports, scene, ob, pchan);
 	}
@@ -233,7 +232,7 @@ static int pose_calculate_paths_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED; 
 }
 
-void POSE_OT_paths_calculate (wmOperatorType *ot)
+void POSE_OT_paths_calculate(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Calculate Bone Paths";
@@ -301,7 +300,7 @@ static int pose_clear_paths_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED; 
 }
 
-void POSE_OT_paths_clear (wmOperatorType *ot)
+void POSE_OT_paths_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Bone Paths";
@@ -324,8 +323,7 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 	bConstraint *con;
 	int found= 0;
 	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 		if (pchan->bone->flag & BONE_SELECTED) {
 			for (con= pchan->constraints.first; con; con= con->next) {
 				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
@@ -387,8 +385,7 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 	int add_to_sel = RNA_boolean_get(op->ptr, "extend");
 	int found= 0;
 	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 		curbone= pchan->bone;
 		
 		if ((curbone->flag & BONE_UNSELECTABLE)==0) {
@@ -505,8 +502,7 @@ static short pose_select_same_group (bContext *C, Object *ob, short extend)
 	 */
 	group_flags= MEM_callocN(numGroups+1, "pose_select_same_group");
 	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* keep track of group as group to use later? */
 		if (pchan->bone->flag & BONE_SELECTED) {
 			group_flags[pchan->agrp_index] = 1;
@@ -522,8 +518,7 @@ static short pose_select_same_group (bContext *C, Object *ob, short extend)
 	/* small optimization: only loop through bones a second time if there are any groups tagged */
 	if (tagged) {
 		/* only if group matches (and is not selected or current bone) */
-		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-		{
+		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
 				/* check if the group used by this bone is counted */
 				if (group_flags[pchan->agrp_index]) {
@@ -552,8 +547,7 @@ static short pose_select_same_layer (bContext *C, Object *ob, short extend)
 		return 0;
 	
 	/* figure out what bones are selected */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* keep track of layers to use later? */
 		if (pchan->bone->flag & BONE_SELECTED)
 			layers |= pchan->bone->layer;
@@ -567,8 +561,7 @@ static short pose_select_same_layer (bContext *C, Object *ob, short extend)
 		return 0;
 		
 	/* select bones that are on same layers as layers flag */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 		/* if bone is on a suitable layer, and the bone can have its selection changed, select it */
 		if ((layers & pchan->bone->layer) && (pchan->bone->flag & BONE_UNSELECTABLE)==0) {
 			pchan->bone->flag |= BONE_SELECTED;
@@ -598,8 +591,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 		
 	/* if not extending selection, deselect all selected first */
 	if (extend == 0) {
-		CTX_DATA_BEGIN(C, bPoseChannel *, pchan, visible_pose_bones) 
-		{
+		CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
 			if ((pchan->bone->flag & BONE_UNSELECTABLE)==0)
 				pchan->bone->flag &= ~BONE_SELECTED;
 		}
@@ -673,7 +665,7 @@ static int pose_select_grouped_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_select_grouped (wmOperatorType *ot)
+void POSE_OT_select_grouped(wmOperatorType *ot)
 {
 	static EnumPropertyItem prop_select_grouped_types[] = {
 		{0, "LAYER", 0, "Layer", "Shared layers"},
@@ -800,7 +792,7 @@ static void pose_copy_menu(Scene *scene)
 	
 	if (nr != 5) {
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ( (arm->layer & pchan->bone->layer) &&
+			if ((arm->layer & pchan->bone->layer) &&
 				 (pchan->bone->flag & BONE_SELECTED) &&
 				 (pchan != pchanact) ) 
 			{
@@ -869,13 +861,13 @@ static void pose_copy_menu(Scene *scene)
 							float tmp_quat[4];
 							
 							/* need to convert to quat first (in temp var)... */
-							mat4_to_quat( tmp_quat,delta_mat);
-							quat_to_axis_angle( pchan->rotAxis, &pchan->rotAngle,tmp_quat);
+							mat4_to_quat(tmp_quat, delta_mat);
+							quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, tmp_quat);
 						}
 						else if (pchan->rotmode == ROT_MODE_QUAT)
-							mat4_to_quat( pchan->quat,delta_mat);
+							mat4_to_quat(pchan->quat, delta_mat);
 						else
-							mat4_to_eulO( pchan->eul, pchan->rotmode,delta_mat);
+							mat4_to_eulO(pchan->eul, pchan->rotmode, delta_mat);
 					}
 						break;
 					case 11: /* Visual Size */
@@ -883,7 +875,7 @@ static void pose_copy_menu(Scene *scene)
 						float delta_mat[4][4], size[4];
 						
 						armature_mat_pose_to_bone(pchan, pchanact->pose_mat, delta_mat);
-						mat4_to_size( size,delta_mat);
+						mat4_to_size(size, delta_mat);
 						copy_v3_v3(pchan->size, size);
 					}
 				}
@@ -922,7 +914,7 @@ static void pose_copy_menu(Scene *scene)
 		
 		/* Copy the temo listbase to the selected posebones */
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if ( (arm->layer & pchan->bone->layer) &&
+			if ((arm->layer & pchan->bone->layer) &&
 				 (pchan->bone->flag & BONE_SELECTED) &&
 				 (pchan!=pchanact) ) 
 			{
@@ -1058,9 +1050,9 @@ static bPoseChannel *pose_bone_do_paste (Object *ob, bPoseChannel *chan, short s
 		else if (pchan->rotmode > 0) {
 			/* quat/axis-angle to euler */
 			if (chan->rotmode == ROT_MODE_AXISANGLE)
-				axis_angle_to_eulO( pchan->eul, pchan->rotmode,chan->rotAxis, chan->rotAngle);
+				axis_angle_to_eulO(pchan->eul, pchan->rotmode, chan->rotAxis, chan->rotAngle);
 			else
-				quat_to_eulO( pchan->eul, pchan->rotmode,chan->quat);
+				quat_to_eulO(pchan->eul, pchan->rotmode, chan->quat);
 		}
 		else if (pchan->rotmode == ROT_MODE_AXISANGLE) {
 			/* quat/euler to axis angle */
@@ -1148,7 +1140,7 @@ static int pose_copy_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_copy (wmOperatorType *ot) 
+void POSE_OT_copy(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Copy Pose";
@@ -1215,7 +1207,7 @@ static int pose_paste_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_paste (wmOperatorType *ot)
+void POSE_OT_paste(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
@@ -1265,7 +1257,7 @@ static int pose_group_add_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_add (wmOperatorType *ot)
+void POSE_OT_group_add(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Bone Group";
@@ -1305,7 +1297,7 @@ static int pose_group_remove_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_remove (wmOperatorType *ot)
+void POSE_OT_group_remove(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Bone Group";
@@ -1403,8 +1395,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 		pose_add_group(ob);
 	
 	/* add selected bones to group then */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		pchan->agrp_index= pose->active_group;
 		done= 1;
 	}
@@ -1420,7 +1411,7 @@ static int pose_group_assign_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_group_assign (wmOperatorType *ot)
+void POSE_OT_group_assign(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Selected to Bone Group";
@@ -1457,8 +1448,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	
 	/* find selected bones to remove from all bone groups */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		if (pchan->agrp_index) {
 			pchan->agrp_index= 0;
 			done= 1;
@@ -1476,7 +1466,7 @@ static int pose_group_unassign_exec (bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 }
 
-void POSE_OT_group_unassign (wmOperatorType *ot)
+void POSE_OT_group_unassign(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Selected from Bone Groups";
@@ -1660,8 +1650,7 @@ static void pose_group_select(bContext *C, Object *ob, int select)
 {
 	bPose *pose= ob->pose;
 	
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, visible_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, visible_pose_bones) {
 		if ((pchan->bone->flag & BONE_UNSELECTABLE)==0) {
 			if (select) {
 				if (pchan->agrp_index == pose->active_group) 
@@ -1699,7 +1688,7 @@ static int pose_group_select_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_select (wmOperatorType *ot)
+void POSE_OT_group_select(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Select Bones of Bone Group";
@@ -1737,7 +1726,7 @@ static int pose_group_deselect_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_group_deselect (wmOperatorType *ot)
+void POSE_OT_group_deselect(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Deselect Bone Group";
@@ -1765,8 +1754,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		char newname[MAXBONENAME];
 		flip_side_name(newname, pchan->name, TRUE);
 		ED_armature_bone_rename(arm, pchan->name, newname);
@@ -1782,7 +1770,7 @@ static int pose_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_flip_names (wmOperatorType *ot)
+void POSE_OT_flip_names(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Names";
@@ -1812,8 +1800,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		BLI_strncpy(newname, pchan->name, sizeof(newname));
 		if (bone_autoside_name(newname, 1, axis, pchan->bone->head[axis], pchan->bone->tail[axis]))
 			ED_armature_bone_rename(arm, pchan->name, newname);
@@ -1829,7 +1816,7 @@ static int pose_autoside_names_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_autoside_names (wmOperatorType *ot)
+void POSE_OT_autoside_names(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_items[]= {
 		{0, "XAXIS", 0, "X-Axis", "Left/Right"},
@@ -1862,8 +1849,7 @@ static int pose_bone_rotmode_exec (bContext *C, wmOperator *op)
 	int mode = RNA_enum_get(op->ptr, "type");
 	
 	/* set rotation mode of selected bones  */	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
 		pchan->rotmode = mode;
 	}
 	CTX_DATA_END;
@@ -1875,7 +1861,7 @@ static int pose_bone_rotmode_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_rotation_mode_set (wmOperatorType *ot)
+void POSE_OT_rotation_mode_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Rotation Mode";
@@ -1934,7 +1920,7 @@ static int pose_armature_layers_showall_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_layers_show_all (wmOperatorType *ot)
+void ARMATURE_OT_layers_show_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Show All Layers";
@@ -2000,7 +1986,7 @@ static int pose_armature_layers_exec (bContext *C, wmOperator *op)
 }
 
 
-void POSE_OT_armature_layers (wmOperatorType *ot)
+void POSE_OT_armature_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Armature Layers";
@@ -2019,7 +2005,7 @@ void POSE_OT_armature_layers (wmOperatorType *ot)
 	RNA_def_boolean_layer_member(ot->srna, "layers", 32, NULL, "Layer", "Armature layers to make visible");
 }
 
-void ARMATURE_OT_armature_layers (wmOperatorType *ot)
+void ARMATURE_OT_armature_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Armature Layers";
@@ -2046,8 +2032,7 @@ static int pose_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *evt)
 	int layers[32]= {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */	
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones) 
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
@@ -2080,8 +2065,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN(C, bPoseChannel *, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)ob->data, &RNA_Bone, pchan->bone, &ptr);
 		RNA_boolean_set_array(&ptr, "layers", layers);
@@ -2094,7 +2078,7 @@ static int pose_bone_layers_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_bone_layers (wmOperatorType *ot)
+void POSE_OT_bone_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Bone Layers";
@@ -2121,8 +2105,7 @@ static int armature_bone_layers_invoke (bContext *C, wmOperator *op, wmEvent *ev
 	int layers[32]= {0}; /* hardcoded for now - we can only have 32 armature layers, so this should be fine... */
 	
 	/* get layers that are active already */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) 
-	{
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
 		short bit;
 		
 		/* loop over the bits for this pchan's layers, adding layers where they're needed */
@@ -2152,8 +2135,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	RNA_boolean_get_array(op->ptr, "layers", layers);
 	
 	/* set layers of pchans based on the values set in the operator props */
-	CTX_DATA_BEGIN(C, EditBone *, ebone, selected_editable_bones) 
-	{
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
 		/* get pointer for pchan, and write flags this way */
 		RNA_pointer_create((ID *)arm, &RNA_EditBone, ebone, &ptr);
 		RNA_boolean_set_array(&ptr, "layers", layers);
@@ -2166,7 +2148,7 @@ static int armature_bone_layers_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_bone_layers (wmOperatorType *ot)
+void ARMATURE_OT_bone_layers(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Change Bone Layers";
@@ -2195,8 +2177,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 	KeyingSet *ks = ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOC_ROT_SCALE_ID);
 	
 	/* loop through all selected pchans, flipping and keying (as needed) */
-	CTX_DATA_BEGIN(C, bPoseChannel*, pchan, selected_pose_bones)
-	{
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
 		/* only if bone is using quaternion rotation */
 		if (pchan->rotmode == ROT_MODE_QUAT) {
 			/* quaternions have 720 degree range */
@@ -2214,7 +2195,7 @@ static int pose_flip_quats_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_quaternions_flip (wmOperatorType *ot)
+void POSE_OT_quaternions_flip(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Flip Quats";
@@ -2290,7 +2271,7 @@ static int pose_clear_user_transforms_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void POSE_OT_user_transforms_clear (wmOperatorType *ot)
+void POSE_OT_user_transforms_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear User Transforms";

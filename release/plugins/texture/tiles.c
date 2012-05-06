@@ -124,7 +124,7 @@ float sample_wave(float freq, float coord, float pixsize)
 	float fac, frac,  retval;
 	int part1, part2;
 	
-	if(pixsize > freq) return 0.5;
+	if (pixsize > freq) return 0.5;
 	
 	pixsize/= freq;
 	
@@ -132,19 +132,19 @@ float sample_wave(float freq, float coord, float pixsize)
 	part1= ffloor(fac);
 	frac= fac - part1;
 
-	if(part1 & 1) retval= 0.0;
-	else retval= 1.0;
+	if (part1 & 1) retval= 0.0;
+	else retval = 1.0;
 	
-	if(pixsize != 0.0) {
+	if (pixsize != 0.0) {
 		
 		/* is coord+pixsize another value? */
 		
 		part2= ffloor(fac + pixsize);
-		if(part1==part2) return retval;
+		if (part1==part2) return retval;
 		
 		/* antialias */	
-		if(retval==1.0) retval= (1.0-frac)/pixsize;
-		else retval= 1.0-(1.0-frac)/pixsize;
+		if (retval == 1.0) retval= (1.0 - frac) / pixsize;
+		else retval= 1.0 - (1.0 - frac) / pixsize;
 	}
 	return retval;
 }
@@ -153,23 +153,23 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 {
 	float xwave, ywave;
 	
-	if(stype==1) {
+	if (stype==1) {
 		texvec[0]+= hnoise(cast->noise, texvec[0], texvec[1], texvec[2]);
 		texvec[1]+= hnoise(cast->noise, texvec[1], texvec[2], texvec[0]);
 	}
 	
-	if(dxt && dyt) {
+	if (dxt && dyt) {
 		xwave= sample_wave(cast->size, texvec[0], fabs(dxt[0]) + fabs(dyt[0]) );
 		ywave= sample_wave(cast->size, texvec[1], fabs(dxt[1]) + fabs(dyt[1]) );
 
-		if(xwave > ywave) result[0]= xwave-ywave;
+		if (xwave > ywave) result[0]= xwave-ywave;
 		else result[0]= ywave-xwave;
 	} 
 	else {
 		xwave= sample_wave(cast->size, texvec[0], 0.0 );
 		ywave= sample_wave(cast->size, texvec[1], 0.0 );
 		
-		if(xwave > ywave) result[0]= xwave-ywave;
+		if (xwave > ywave) result[0]= xwave-ywave;
 		else result[0]= ywave-xwave;
 	}
 

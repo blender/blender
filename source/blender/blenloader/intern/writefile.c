@@ -239,7 +239,7 @@ static void writedata_free(WriteData *wd)
  
 #define MYWRITE_FLUSH		NULL
 
-static void mywrite( WriteData *wd, const void *adr, int len)
+static void mywrite(WriteData *wd, const void *adr, int len)
 {
 	if (wd->error) return;
 
@@ -837,7 +837,7 @@ static void write_boid_state(WriteData *wd, BoidState *state)
 	writestruct(wd, DATA, "BoidState", 1, state);
 
 	for (; rule; rule=rule->next) {
-		switch(rule->type) {
+		switch (rule->type) {
 			case eBoidRuleType_Goal:
 			case eBoidRuleType_Avoid:
 				writestruct(wd, DATA, "BoidRuleGoalAvoid", 1, rule);
@@ -974,7 +974,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		writestruct(wd, DATA, "ParticleSystem", 1, psys);
 
 		if (psys->particles) {
-			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+			writestruct(wd, DATA, "ParticleData", psys->totpart, psys->particles);
 
 			if (psys->particles->hair) {
 				ParticleData *pa = psys->particles;
@@ -993,7 +993,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 		for (; pt; pt=pt->next)
 			writestruct(wd, DATA, "ParticleTarget", 1, pt);
 
-		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		if (psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild, psys->child);
 
 		if (psys->clmd) {
 			writestruct(wd, DATA, "ClothModifierData", 1, psys->clmd);
@@ -1030,7 +1030,7 @@ static void write_sensors(WriteData *wd, ListBase *lb)
 
 		writedata(wd, DATA, sizeof(void *)*sens->totlinks, sens->links);
 
-		switch(sens->type) {
+		switch (sens->type) {
 		case SENS_NEAR:
 			writestruct(wd, DATA, "bNearSensor", 1, sens->data);
 			break;
@@ -1091,7 +1091,7 @@ static void write_controllers(WriteData *wd, ListBase *lb)
 
 		writedata(wd, DATA, sizeof(void *)*cont->totlinks, cont->links);
 
-		switch(cont->type) {
+		switch (cont->type) {
 		case CONT_EXPRESSION:
 			writestruct(wd, DATA, "bExpressionCont", 1, cont->data);
 			break;
@@ -1114,7 +1114,7 @@ static void write_actuators(WriteData *wd, ListBase *lb)
 	while (act) {
 		writestruct(wd, DATA, "bActuator", 1, act);
 
-		switch(act->type) {
+		switch (act->type) {
 		case ACT_ACTION:
 		case ACT_SHAPEACTION:
 			writestruct(wd, DATA, "bActionActuator", 1, act->data);
@@ -1316,10 +1316,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if (md->type==eModifierType_Smoke) {
 			SmokeModifierData *smd = (SmokeModifierData*) md;
 			
-			if (smd->type & MOD_SMOKE_TYPE_DOMAIN)
-			{
-				if (smd->domain)
-				{
+			if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+				if (smd->domain) {
 					write_pointcaches(wd, &(smd->domain->ptcaches[0]));
 
 					/* create fake pointcache so that old blender versions can read it */
@@ -1353,8 +1351,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		else if (md->type==eModifierType_DynamicPaint) {
 			DynamicPaintModifierData *pmd = (DynamicPaintModifierData*) md;
 			
-			if (pmd->canvas)
-			{
+			if (pmd->canvas) {
 				DynamicPaintSurface *surface;
 				writestruct(wd, DATA, "DynamicPaintCanvasSettings", 1, pmd->canvas);
 				
@@ -1368,8 +1365,7 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 					writestruct(wd, DATA, "EffectorWeights", 1, surface->effector_weights);
 				}
 			}
-			if (pmd->brush)
-			{
+			if (pmd->brush) {
 				writestruct(wd, DATA, "DynamicPaintBrushSettings", 1, pmd->brush);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->paint_ramp);
 				writestruct(wd, DATA, "ColorBand", 1, pmd->brush->vel_ramp);
@@ -2112,19 +2108,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			/* reset write flags too */
 			
-			SEQ_BEGIN(ed, seq) {
+			SEQ_BEGIN (ed, seq) {
 				if (seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
 			
-			SEQ_BEGIN(ed, seq) {
+			SEQ_BEGIN (ed, seq) {
 				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
 					if (seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					if (seq->effectdata) {
-						switch(seq->type) {
+						switch (seq->type) {
 						case SEQ_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
@@ -2258,7 +2254,7 @@ static void write_region(WriteData *wd, ARegion *ar, int spacetype)
 	writestruct(wd, DATA, "ARegion", 1, ar);
 	
 	if (ar->regiondata) {
-		switch(spacetype) {
+		switch (spacetype) {
 			case SPACE_VIEW3D:
 				if (ar->regiontype==RGN_TYPE_WINDOW) {
 					RegionView3D *rv3d= ar->regiondata;
@@ -2895,7 +2891,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	/* open temporary file, so we preserve the original in case we crash */
 	BLI_snprintf(tempname, sizeof(tempname), "%s@", filepath);
 
-	file = BLI_open(tempname,O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
+	file = BLI_open(tempname, O_BINARY+O_WRONLY+O_CREAT+O_TRUNC, 0666);
 	if (file == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Can't open file %s for writing: %s.", tempname, strerror(errno));
 		return 0;
@@ -2933,7 +2929,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
-	err= write_file_handle(mainvar, file, NULL,NULL, write_user_block, write_flags, thumb);
+	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);
 	close(file);
 
 	if (err) {

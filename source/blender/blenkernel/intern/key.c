@@ -1594,7 +1594,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	int a, tot;
 
 	/* count */
-	tot = count_curveverts(nurb);
+	tot = BKE_nurbList_verts_count(nurb);
 	if (tot == 0) return;
 
 	if (kb->data) MEM_freeN(kb->data);
@@ -1647,7 +1647,7 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 	nu = nurb->first;
 	fp = kb->data;
 
-	tot = count_curveverts(nurb);
+	tot = BKE_nurbList_verts_count(nurb);
 
 	tot = MIN2(kb->totelem, tot);
 
@@ -1742,7 +1742,7 @@ float (*key_to_vertcos(Object * ob, KeyBlock * kb))[3]
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
-		tot = count_curveverts(&cu->nurb);
+		tot = BKE_nurbList_verts_count(&cu->nurb);
 	}
 
 	if (tot == 0) return NULL;
@@ -1822,7 +1822,7 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
 		elemsize = cu->key->elemsize;
-		tot = count_curveverts(&cu->nurb);
+		tot = BKE_nurbList_verts_count(&cu->nurb);
 	}
 
 	if (tot == 0) {

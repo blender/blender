@@ -118,6 +118,7 @@ void TEXT_OT_refresh_pyconstraints(struct wmOperatorType *ot);
 void TEXT_OT_paste(struct wmOperatorType *ot);
 void TEXT_OT_copy(struct wmOperatorType *ot);
 void TEXT_OT_cut(struct wmOperatorType *ot);
+void TEXT_OT_duplicate_line(struct wmOperatorType *ot);
 
 void TEXT_OT_convert_whitespace(struct wmOperatorType *ot);
 void TEXT_OT_uncomment(struct wmOperatorType *ot);

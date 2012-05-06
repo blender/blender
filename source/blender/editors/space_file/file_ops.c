@@ -73,7 +73,7 @@
 static FileSelection find_file_mouse_rect(SpaceFile *sfile, struct ARegion* ar, const rcti* rect)
 {
 	FileSelection sel;
-	float fxmin,fymin,fxmax, fymax;
+	float fxmin, fymin, fxmax, fymax;
 	
 	View2D* v2d = &ar->v2d;
 	rcti rect_view;
@@ -911,8 +911,7 @@ static int file_smoothscroll_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent
 	numfiles = filelist_numfiles(sfile->files);
 
 	/* check if we are editing a name */
-	for (i=0; i < numfiles; ++i)
-	{
+	for (i=0; i < numfiles; ++i) {
 		if (filelist_is_selected(sfile->files, i, CHECK_ALL) ) {
 			edit_idx=i;
 			break;
@@ -1036,7 +1035,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if (!sfile->params) {
-		BKE_report(op->reports,RPT_WARNING, "No parent directory given");
+		BKE_report(op->reports, RPT_WARNING, "No parent directory given");
 		return OPERATOR_CANCELLED;
 	}
 	
@@ -1050,7 +1049,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	if (generate_name) {
 		/* create a new, non-existing folder name */
 		if (!new_folder_path(sfile->params->dir, path, name)) {
-			BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder name");
+			BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder name");
 			return OPERATOR_CANCELLED;
 		}
 	}
@@ -1059,7 +1058,7 @@ int file_directory_new_exec(bContext *C, wmOperator *op)
 	BLI_dir_create_recursive(path);
 
 	if (!BLI_exists(path)) {
-		BKE_report(op->reports,RPT_ERROR, "Couldn't create new folder");
+		BKE_report(op->reports, RPT_ERROR, "Couldn't create new folder");
 		return OPERATOR_CANCELLED;
 	} 
 
@@ -1331,7 +1330,7 @@ void FILE_OT_filenum(struct wmOperatorType *ot)
 	ot->poll = ED_operator_file_active; /* <- important, handler is on window level */
 
 	/* props */
-	RNA_def_int(ot->srna, "increment", 1, -100, 100, "Increment", "", -100,100);
+	RNA_def_int(ot->srna, "increment", 1, -100, 100, "Increment", "", -100, 100);
 }
 
 static int file_rename_exec(bContext *C, wmOperator *UNUSED(op))

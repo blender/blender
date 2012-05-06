@@ -35,20 +35,20 @@
 
 /* ******************* Channel Matte Node ********************************* */
 static bNodeSocketTemplate cmp_node_channel_matte_in[]={
-	{SOCK_RGBA,1,"Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{-1,0,""}
+	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
+	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_channel_matte_out[]={
-	{SOCK_RGBA,0,"Image"},
-	{SOCK_FLOAT,0,"Matte"},
-	{-1,0,""}
+	{SOCK_RGBA, 0, "Image"},
+	{SOCK_FLOAT, 0, "Matte"},
+	{-1, 0, ""}
 };
 
 static void do_normalized_rgba_to_ycca2(bNode *UNUSED(node), float *out, float *in)
 {
 	/*normalize to the range 0.0 to 1.0) */
-	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	rgb_to_ycc(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[0]=(out[0])/255.0f;
 	out[1]=(out[1])/255.0f;
 	out[2]=(out[2])/255.0f;
@@ -61,7 +61,7 @@ static void do_normalized_ycca_to_rgba2(bNode *UNUSED(node), float *out, float *
 	in[0]=in[0]*255.0f;
 	in[1]=in[1]*255.0f;
 	in[2]=in[2]*255.0f;
-	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	ycc_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
 
@@ -71,7 +71,7 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 	NodeChroma *c=(NodeChroma *)node->storage;
 	float alpha=0.0;	
 
-	switch(c->algorithm) {
+	switch (c->algorithm) {
 	case 0: { /* Alpha=key_channel-limit channel */
 		int key_channel=node->custom2-1;
 		int limit_channel=c->channel-1;
@@ -79,17 +79,17 @@ static void do_channel_matte(bNode *node, float *out, float *in)
 		break;
 	}
 	case 1: { /* Alpha=G-MAX(R, B) */
-		switch(node->custom2) {
+		switch (node->custom2) {
 			case 1: {
-				alpha=in[0]-MAX2(in[1],in[2]);
+				alpha=in[0]-MAX2(in[1], in[2]);
 				break;
 			}
 			case 2: {
-				alpha=in[1]-MAX2(in[0],in[2]);
+				alpha=in[1]-MAX2(in[0], in[2]);
 				break;
 			}
 			case 3: {
-				alpha=in[2]-MAX2(in[0],in[1]);
+				alpha=in[2]-MAX2(in[0], in[1]);
 				break;
 			}
 			default:
@@ -139,7 +139,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	outbuf=dupalloc_compbuf(cbuf);
 	
 	/*convert to colorspace*/
-	switch(node->custom1) {
+	switch (node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
 		break;
 	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
@@ -159,7 +159,7 @@ static void node_composit_exec_channel_matte(void *data, bNode *node, bNodeStack
 	composit1_pixel_processor(node, outbuf, outbuf, in[1]->vec, do_channel_matte, CB_RGBA);
 
 	/*convert back to RGB colorspace in place*/
-	switch(node->custom1) {
+	switch (node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB: /*RGB*/
 		break;
 	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/

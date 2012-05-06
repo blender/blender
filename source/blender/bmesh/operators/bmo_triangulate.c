@@ -59,8 +59,8 @@ void bmo_triangulate_exec(BMesh *bm, BMOperator *op)
 		BLI_array_empty(projectverts);
 		BLI_array_empty(newfaces);
 
-		BLI_array_growitems(projectverts, face->len * 3);
-		BLI_array_growitems(newfaces, face->len);
+		BLI_array_grow_items(projectverts, face->len * 3);
+		BLI_array_grow_items(newfaces, face->len);
 
 		BM_face_triangulate(bm, face, projectverts, EDGE_NEW, FACE_NEW, newfaces, use_beauty);
 

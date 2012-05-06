@@ -179,7 +179,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	if (!totvert)
 		return CDDM_from_template(dm, 0, 0, 0, 0, 0);
 
-	switch(ltmd->axis) {
+	switch (ltmd->axis) {
 	case 0:
 		other_axis_1=1;
 		other_axis_2=2;

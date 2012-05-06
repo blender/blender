@@ -59,7 +59,7 @@ Paint *paint_get_active(Scene *sce)
 		ToolSettings *ts = sce->toolsettings;
 		
 		if (sce->basact && sce->basact->object) {
-			switch(sce->basact->object->mode) {
+			switch (sce->basact->object->mode) {
 			case OB_MODE_SCULPT:
 				return &ts->sculpt->paint;
 			case OB_MODE_VERTEX_PAINT:

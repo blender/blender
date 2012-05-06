@@ -68,7 +68,7 @@ public:
 	void operator ()(Object *ob)
 	{
 		int a;
-		for(a = 0; a < ob->totcol; a++) {
+		for (a = 0; a < ob->totcol; a++) {
 
 			Material *ma = give_current_material(ob, a+1);
 

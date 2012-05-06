@@ -700,11 +700,12 @@ static void viewrotate_apply(ViewOpsData *vod, int x, int y)
 			fac = fac * fac;
 			interp_v3_v3v3(xaxis, xaxis, m_inv[0], fac);
 		}
-		else
-#endif
-		{
+		else {
 			copy_v3_v3(xaxis, m_inv[0]);
 		}
+#else
+		copy_v3_v3(xaxis, m_inv[0]);
+#endif
 
 		/* Determine the direction of the x vector (for rotating up and down) */
 		/* This can likely be computed directly from the quaternion. */
@@ -1554,7 +1555,9 @@ static void viewzoom_apply(ViewOpsData *vod, int x, int y, const short viewzoom,
 	if (!use_cam_zoom) {
 		if (zfac != 1.0f && zfac * vod->rv3d->dist > 0.001f * vod->grid &&
 		    zfac * vod->rv3d->dist < 10.0f * vod->far)
+		{
 			view_zoom_mouseloc(vod->ar, zfac, vod->oldx, vod->oldy);
+		}
 	}
 
 	/* these limits were in old code too */

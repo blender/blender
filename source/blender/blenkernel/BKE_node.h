@@ -123,7 +123,7 @@ typedef struct bNodeTemplate {
  * implementing the node behavior.
  */
 typedef struct bNodeType {
-	void *next,*prev;
+	void *next, *prev;
 	short needs_free;		/* set for allocated types that need to be freed */
 	
 	int type;

@@ -208,7 +208,7 @@ typedef struct Editing {
 
 /* ************* Effect Variable Structs ********* */
 typedef struct WipeVars {
-	float edgeWidth,angle;
+	float edgeWidth, angle;
 	short forward, wipetype;
 } WipeVars;
 

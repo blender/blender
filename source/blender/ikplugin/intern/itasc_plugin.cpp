@@ -424,16 +424,16 @@ static IK_Data* get_ikdata(bPose *pose)
 }
 static double EulerAngleFromMatrix(const KDL::Rotation& R, int axis)
 {
-	double t = KDL::sqrt(R(0,0)*R(0,0) + R(0,1)*R(0,1));
+	double t = KDL::sqrt(R(0, 0)*R(0, 0) + R(0, 1)*R(0, 1));
 
 	if (t > 16.0*KDL::epsilon) {
-		if (axis == 0) return -KDL::atan2(R(1,2), R(2,2));
-		else if (axis == 1) return KDL::atan2(-R(0,2), t);
-		else return -KDL::atan2(R(0,1), R(0,0));
+		if (axis == 0) return -KDL::atan2(R(1, 2), R(2, 2));
+		else if (axis == 1) return KDL::atan2(-R(0, 2), t);
+		else return -KDL::atan2(R(0, 1), R(0, 0));
 	}
 	else {
-		if (axis == 0) return -KDL::atan2(-R(2,1), R(1,1));
-		else if (axis == 1) return KDL::atan2(-R(0,2), t);
+		if (axis == 0) return -KDL::atan2(-R(2, 1), R(1, 1));
+		else if (axis == 1) return KDL::atan2(-R(0, 2), t);
 		else return 0.0f;
 	}
 }
@@ -441,8 +441,8 @@ static double EulerAngleFromMatrix(const KDL::Rotation& R, int axis)
 static double ComputeTwist(const KDL::Rotation& R)
 {
 	// qy and qw are the y and w components of the quaternion from R
-	double qy = R(0,2) - R(2,0);
-	double qw = R(0,0) + R(1,1) + R(2,2) + 1;
+	double qy = R(0, 2) - R(2, 0);
+	double qw = R(0, 0) + R(1, 1) + R(2, 2) + 1;
 
 	double tau = 2*KDL::atan2(qy, qw);
 
@@ -471,39 +471,38 @@ static void RemoveEulerAngleFromMatrix(KDL::Rotation& R, double angle, int axis)
 }
 
 #if 0
-static void GetEulerXZY(const KDL::Rotation& R, double& X,double& Z,double& Y)
+static void GetEulerXZY(const KDL::Rotation& R, double& X, double& Z, double& Y)
 {
-	if (fabs(R(0,1)) > 1.0 - KDL::epsilon ) {
-		X = -KDL::sign(R(0,1)) * KDL::atan2(R(1,2), R(1,0));
-		Z = -KDL::sign(R(0,1)) * KDL::PI / 2;
+	if (fabs(R(0, 1)) > 1.0 - KDL::epsilon ) {
+		X = -KDL::sign(R(0, 1)) * KDL::atan2(R(1, 2), R(1, 0));
+		Z = -KDL::sign(R(0, 1)) * KDL::PI / 2;
 		Y = 0.0;
 	}
 	else {
-		X = KDL::atan2(R(2,1), R(1,1));
-		Z = KDL::atan2(-R(0,1), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,2))));
-		Y = KDL::atan2(R(0,2), R(0,0));
+		X = KDL::atan2(R(2, 1), R(1, 1));
+		Z = KDL::atan2(-R(0, 1), KDL::sqrt( KDL::sqr(R(0, 0)) + KDL::sqr(R(0, 2))));
+		Y = KDL::atan2(R(0, 2), R(0, 0));
 	}
 }
 
-static void GetEulerXYZ(const KDL::Rotation& R, double& X,double& Y,double& Z)
+static void GetEulerXYZ(const KDL::Rotation& R, double& X, double& Y, double& Z)
 {
-	if (fabs(R(0,2)) > 1.0 - KDL::epsilon ) {
-		X = KDL::sign(R(0,2)) * KDL::atan2(-R(1,0), R(1,1));
-		Y = KDL::sign(R(0,2)) * KDL::PI / 2;
+	if (fabs(R(0, 2)) > 1.0 - KDL::epsilon ) {
+		X = KDL::sign(R(0, 2)) * KDL::atan2(-R(1, 0), R(1, 1));
+		Y = KDL::sign(R(0, 2)) * KDL::PI / 2;
 		Z = 0.0;
 	}
 	else {
-		X = KDL::atan2(-R(1,2), R(2,2));
-		Y = KDL::atan2(R(0,2), KDL::sqrt( KDL::sqr(R(0,0)) + KDL::sqr(R(0,1))));
-		Z = KDL::atan2(-R(0,1), R(0,0));
+		X = KDL::atan2(-R(1, 2), R(2, 2));
+		Y = KDL::atan2(R(0, 2), KDL::sqrt( KDL::sqr(R(0, 0)) + KDL::sqr(R(0, 1))));
+		Z = KDL::atan2(-R(0, 1), R(0, 0));
 	}
 }
 #endif
 
 static void GetJointRotation(KDL::Rotation& boneRot, int type, double* rot)
 {
-	switch (type & ~IK_TRANSY)
-	{
+	switch (type & ~IK_TRANSY) {
 	default:
 		// fixed bone, no joint
 		break;
@@ -805,16 +804,16 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 
 		if (chan->rotmode > 0) {
 			/* euler rotations (will cause gimble lock, but this can be alleviated a bit with rotation orders) */
-			eulO_to_mat3( rmat,chan->eul, chan->rotmode);
+			eulO_to_mat3( rmat, chan->eul, chan->rotmode);
 		}
 		else if (chan->rotmode == ROT_MODE_AXISANGLE) {
 			/* axis-angle - stored in quaternion data, but not really that great for 3D-changing orientations */
-			axis_angle_to_mat3( rmat,&chan->quat[1], chan->quat[0]);
+			axis_angle_to_mat3( rmat, &chan->quat[1], chan->quat[0]);
 		}
 		else {
 			/* quats are normalised before use to eliminate scaling issues */
 			normalize_qt(chan->quat);
-			quat_to_mat3( rmat,chan->quat);
+			quat_to_mat3(rmat, chan->quat);
 		}
 		KDL::Rotation jointRot(
 			rmat[0][0], rmat[1][0], rmat[2][0],
@@ -825,8 +824,7 @@ static bool joint_callback(const iTaSC::Timestamp& timestamp, iTaSC::ConstraintV
 	}
 	// determine which part of jointValue is used for this joint
 	// closely related to the way the joints are defined
-	switch (ikchan->jointType & ~IK_TRANSY)
-	{
+	switch (ikchan->jointType & ~IK_TRANSY) {
 	case IK_XDOF:
 	case IK_YDOF:
 	case IK_ZDOF:
@@ -881,15 +879,21 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 		
 		/* set DoF flag */
 		flag = 0;
-		if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) && 
-			(!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0]<0.f || pchan->limitmax[0]>0.f))
+		if (!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP) &&
+		    (!(pchan->ikflag & BONE_IK_XLIMIT) || pchan->limitmin[0]<0.f || pchan->limitmax[0]>0.f))
+		{
 			flag |= IK_XDOF;
+		}
 		if (!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP) &&
-			(!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1]<0.f || pchan->limitmax[1]>0.f))
+		    (!(pchan->ikflag & BONE_IK_YLIMIT) || pchan->limitmin[1]<0.f || pchan->limitmax[1]>0.f))
+		{
 			flag |= IK_YDOF;
+		}
 		if (!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP) &&
-			(!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2]<0.f || pchan->limitmax[2]>0.f))
+		    (!(pchan->ikflag & BONE_IK_ZLIMIT) || pchan->limitmin[2]<0.f || pchan->limitmax[2]>0.f))
+		{
 			flag |= IK_ZDOF;
+		}
 		
 		if (tree->stretch && (pchan->ikstretch > 0.0)) {
 			flag |= IK_TRANSY;
@@ -921,8 +925,7 @@ static int convert_channels(IK_Scene *ikscene, PoseTree *tree)
 		 * bone length is computed from bone->length multiplied by the scaling factor of
 		 * the armature. Non-uniform scaling will give bad result!
 		 */
-		switch (flag & (IK_XDOF|IK_YDOF|IK_ZDOF))
-		{
+		switch (flag & (IK_XDOF|IK_YDOF|IK_ZDOF)) {
 		default:
 			ikchan->jointType = 0;
 			ikchan->ndof = 0;
@@ -1165,8 +1168,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		weight[0] = (1.0-pchan->stiffness[0]);
 		weight[1] = (1.0-pchan->stiffness[1]);
 		weight[2] = (1.0-pchan->stiffness[2]);
-		switch (ikchan->jointType & ~IK_TRANSY)
-		{
+		switch (ikchan->jointType & ~IK_TRANSY) {
 		case 0:
 			// fixed bone
 			if (!(ikchan->jointType & IK_TRANSY)) {
@@ -1386,7 +1388,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	e_matrix& Wq = arm->getWq();
 	assert(Wq.cols() == (int)weights.size());
 	for (int q=0; q<Wq.cols(); q++)
-		Wq(q,q)=weights[q];
+		Wq(q, q)=weights[q];
 	// get the inverse rest pose frame of the base to compute relative rest pose of end effectors
 	// this is needed to handle the enforce parameter
 	// ikscene->pchan[0] is the root channel of the tree
@@ -1512,7 +1514,7 @@ static void create_scene(Scene *scene, Object *ob)
 				ikdata->first = ikscene;
 			}
 			// delete the trees once we are done
-			while(tree) {
+			while (tree) {
 				BLI_remlink(&pchan->iktree, tree);
 				BLI_freelistN(&tree->targets);
 				if (tree->pchan) MEM_freeN(tree->pchan);
@@ -1610,10 +1612,12 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 	ikscene->scene->update(timestamp, timestep, numstep, false, !reiterate, simulation);
 	if (reiterate) {
 		// how many times do we reiterate?
-		for (i=0; i<ikparam->numiter; i++) {
+		for (i = 0; i<ikparam->numiter; i++) {
 			if (ikscene->armature->getMaxJointChange() < ikparam->precision ||
-				ikscene->armature->getMaxEndEffectorChange() < ikparam->precision)
+			    ikscene->armature->getMaxEndEffectorChange() < ikparam->precision)
+			{
 				break;
+			}
 			ikscene->scene->update(timestamp, timestep, numstep, true, false, simulation);
 		}
 		if (simulation) {

@@ -99,6 +99,7 @@ float brush_unprojected_radius(const struct Scene *scene, struct Brush *brush);
 void  brush_set_unprojected_radius(struct Scene *scene, struct Brush *brush, float value);
 
 float brush_alpha(const struct Scene *scene, struct Brush *brush);
+float brush_weight(const Scene *scene, struct Brush *brush);
 
 int  brush_use_locked_size(const struct Scene *scene, struct Brush *brush);
 int  brush_use_alpha_pressure(const struct Scene *scene, struct Brush *brush);

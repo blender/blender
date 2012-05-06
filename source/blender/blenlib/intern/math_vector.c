@@ -217,6 +217,25 @@ float angle_normalized_v2v2(const float v1[2], const float v2[2])
 		return 2.0f * (float)saasin(len_v2v2(v2, v1) / 2.0f);
 }
 
+/**
+ * angle between 2 vectors defined by 3 coords, about an axis. */
+float angle_on_axis_v3v3v3_v3(const float v1[3], const float v2[3], const float v3[3], const float axis[3])
+{
+	float v1_proj[3], v2_proj[3], tproj[3];
+
+	sub_v3_v3v3(v1_proj, v1, v2);
+	sub_v3_v3v3(v2_proj, v3, v2);
+
+	/* project the vectors onto the axis */
+	project_v3_v3v3(tproj, v1_proj, axis);
+	sub_v3_v3(v1_proj, tproj);
+
+	project_v3_v3v3(tproj, v2_proj, axis);
+	sub_v3_v3(v2_proj, tproj);
+
+	return angle_v3v3(v1_proj, v2_proj);
+}
+
 void angle_tri_v3(float angles[3], const float v1[3], const float v2[3], const float v3[3])
 {
 	float ed1[3], ed2[3], ed3[3];

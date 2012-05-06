@@ -297,7 +297,7 @@ int calc_manipulator_stats(const bContext *C)
 		if (obedit->type==OB_MESH) {
 			BMEditMesh *em = BMEdit_FromObject(obedit);
 			BMEditSelection ese;
-			float vec[3]= {0,0,0};
+			float vec[3]= {0, 0, 0};
 
 			/* USE LAST SELECTE WITH ACTIVE */
 			if ((v3d->around == V3D_ACTIVE) && BM_select_history_active_get(em->bm, &ese)) {
@@ -389,7 +389,7 @@ int calc_manipulator_stats(const bContext *C)
 				Nurb *nu;
 				BezTriple *bezt;
 				BPoint *bp;
-				ListBase *nurbs= curve_editnurbs(cu);
+				ListBase *nurbs= BKE_curve_editNurbs_get(cu);
 
 				nu= nurbs->first;
 				while (nu) {
@@ -508,7 +508,7 @@ int calc_manipulator_stats(const bContext *C)
 
 		if (edit) {
 			point = edit->points;
-			for (a=0; a<edit->totpoint; a++,point++) {
+			for (a=0; a<edit->totpoint; a++, point++) {
 				if (point->flag & PEP_HIDE) continue;
 
 				for (k=0, ek=point->keys; k<point->totkey; k++, ek++) {
@@ -549,7 +549,7 @@ int calc_manipulator_stats(const bContext *C)
 	/* global, local or normal orientation? */
 	if (ob && totsel) {
 
-		switch(v3d->twmode) {
+		switch (v3d->twmode) {
 		
 		case V3D_MANIP_GLOBAL:
 			break; /* nothing to do */
@@ -643,7 +643,7 @@ static float screen_aligned(RegionView3D *rv3d, float mat[][4])
 	glTranslatef(mat[3][0], mat[3][1], mat[3][2]);
 
 	/* sets view screen aligned */
-	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
+	glRotatef(-360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
 	return len_v3(mat[0]); /* draw scale */
 }
@@ -761,7 +761,7 @@ static void manipulator_setcolor(View3D *v3d, char axis, int colcode, unsigned c
 		UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 	}
 	else {
-		switch(axis) {
+		switch (axis) {
 		case 'C':
 			UI_GetThemeColor3ubv(TH_TRANSFORM, col);
 			if (v3d->twmode == V3D_MANIP_LOCAL) {
@@ -884,7 +884,7 @@ static void draw_manipulator_rotate(View3D *v3d, RegionView3D *rv3d, int moving,
 		glClipPlane(GL_CLIP_PLANE0, plane);
 	}
 	/* sets view screen aligned */
-	glRotatef( -360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
+	glRotatef(-360.0f*saacos(rv3d->viewquat[0])/(float)M_PI, rv3d->viewquat[1], rv3d->viewquat[2], rv3d->viewquat[3]);
 
 	/* Screen aligned help circle */
 	if (arcs) {
@@ -1483,7 +1483,7 @@ void BIF_draw_manipulator(const bContext *C)
 		v3d->twflag |= V3D_DRAW_MANIPULATOR;
 
 		/* now we can define center */
-		switch(v3d->around) {
+		switch (v3d->around) {
 		case V3D_CENTER:
 		case V3D_ACTIVE:
 			rv3d->twmat[3][0]= (scene->twmin[0] + scene->twmax[0])/2.0f;
@@ -1512,7 +1512,7 @@ void BIF_draw_manipulator(const bContext *C)
 
 	if (v3d->twflag & V3D_DRAW_MANIPULATOR) {
 
-		glBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glEnable(GL_BLEND);
 		if (v3d->twtype & V3D_MANIP_ROTATE) {
 
@@ -1553,7 +1553,7 @@ static int manipulator_selectbuf(ScrArea *sa, ARegion *ar, const int mval[2], fl
 	setwinmatrixview3d(ar, v3d, &rect);
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 
-	glSelectBuffer( 64, buffer);
+	glSelectBuffer(64, buffer);
 	glRenderMode(GL_SELECT);
 	glInitNames();	/* these two calls whatfor? It doesnt work otherwise */
 	glPushName(-2);
@@ -1639,7 +1639,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 		if (drawflags==0) drawflags= val;
 
 		if (drawflags & MAN_TRANS_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_TRANS_C:
 				break;
 			case MAN_TRANS_X:
@@ -1672,7 +1672,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_translate", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags & MAN_SCALE_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_SCALE_X:
 				if (shift) {
 					constraint_axis[1] = 1;
@@ -1707,7 +1707,7 @@ int BIF_do_manipulator(bContext *C, struct wmEvent *event, wmOperator *op)
 			//wm_operator_invoke(C, WM_operatortype_find("TRANSFORM_OT_trackball", 0), event, op->ptr, NULL, FALSE);
 		}
 		else if (drawflags & MAN_ROT_C) {
-			switch(drawflags) {
+			switch (drawflags) {
 			case MAN_ROT_X:
 				constraint_axis[0] = 1;
 				break;

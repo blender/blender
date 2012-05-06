@@ -589,7 +589,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 {
-	RNA_STRUCT_BEGIN(ptr, prop) {
+	RNA_STRUCT_BEGIN (ptr, prop) {
 		switch (RNA_property_type(prop)) {
 			case PROP_ENUM:
 				if (no_context)
@@ -622,7 +622,7 @@ void WM_operator_properties_reset(wmOperator *op)
 		PropertyRNA *iterprop;
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop) {
 			PropertyRNA *prop = itemptr.data;
 
 			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
@@ -1796,7 +1796,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
-		RNA_BEGIN(op->ptr, itemptr, "files") {
+		RNA_BEGIN (op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", name);
 			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 		}
@@ -2326,10 +2326,10 @@ static int border_apply_rect(wmOperator *op)
 
 	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax) );
-	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax) );
-	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax) );
-	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax) );
+	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax));
+	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax));
+	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax));
+	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax));
 
 	return 1;
 }
@@ -2774,8 +2774,7 @@ int WM_gesture_lines_cancel(bContext *C, wmOperator *op)
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-	RNA_BEGIN(op->ptr, itemptr, "path")
-	{
+	RNA_BEGIN (op->ptr, itemptr, "path") {
 		float loc[2];
 		
 		RNA_float_get_array(&itemptr, "loc", loc);
@@ -3200,9 +3199,12 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	else {
 		if (use_secondary_prop &&
 		    RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop))
+		{
 			data_path = "data_path_secondary";
-		else
+		}
+		else {
 			data_path = "data_path_primary";
+		}
 	}
 
 	if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0))
@@ -3225,7 +3227,9 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	if (!radial_control_get_path(&ctx_ptr, op, "zoom_path",
 	                             &rc->zoom_ptr, &rc->zoom_prop, 2,
 	                             RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
+	{
 		return 0;
+	}
 	
 	if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0))
 		return 0;

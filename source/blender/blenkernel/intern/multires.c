@@ -747,7 +747,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 		copy_v3_v3(origco[i], me->mvert[i].co);
 
 	for (i = 0; i < me->totvert; ++i) {
-		float avg_no[3] = {0,0,0}, center[3] = {0,0,0}, push[3];
+		float avg_no[3] = {0, 0, 0}, center[3] = {0, 0, 0}, push[3];
 		float dist;
 		int tot = 0;
 
@@ -835,7 +835,7 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 	MDisps *mdisps;
 	int lvl= mmd->totlvl;
 
-	if (totlvl > multires_max_levels)
+	if ((totlvl > multires_max_levels) || (me->totpoly == 0))
 		return;
 
 	multires_force_update(ob);
@@ -942,7 +942,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	MPoly *mpoly = me->mpoly;
 	MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 	int *gridOffset;
-	int i, k, /*numGrids,*/ gridSize, dGridSize, dSkip;
+	int i, k, /*numGrids, */ gridSize, dGridSize, dSkip;
 	int totloop, totpoly;
 	
 	/* this happens in the dm made by bmesh_mdisps_space_set */
@@ -1017,7 +1017,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 					column_vectors_to_mat3(mat, tx, ty, no);
 
-					switch(op) {
+					switch (op) {
 					case APPLY_DISPLACEMENTS:
 						/* Convert displacement to object space
 						 * and add to grid points */
@@ -1545,9 +1545,9 @@ void multires_free(Multires *mr)
 }
 
 static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const MultiresFace *mface,
-					 const int totvert, const int totface)
+                                     const int totvert, const int totface)
 {
-	int i,j;
+	int i, j;
 	IndexNode *node = NULL;
 	
 	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert face map");
@@ -1566,7 +1566,7 @@ static void create_old_vert_face_map(ListBase **map, IndexNode **mem, const Mult
 static void create_old_vert_edge_map(ListBase **map, IndexNode **mem, const MultiresEdge *medge,
 					 const int totvert, const int totedge)
 {
-	int i,j;
+	int i, j;
 	IndexNode *node = NULL;
 	
 	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert edge map");
@@ -2043,7 +2043,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	/* MLoop *mloop = me->mloop; */ /* UNUSED */
 	MDisps *mdisps;
 	int *gridOffset;
-	int i, /*numGrids,*/ gridSize, dGridSize, dSkip, totvert;
+	int i, /*numGrids, */ gridSize, dGridSize, dSkip, totvert;
 	float (*vertCos)[3] = NULL;
 	MultiresModifierData *mmd= get_multires_modifier(scene, ob, 1);
 	MultiresModifierData high_mmd;

@@ -85,10 +85,10 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Leave out caustics, resulting in a darker image with less noise",
                 default=False,
                 )
-        cls.blur_caustics = FloatProperty(
-                name="Blur Caustics",
-                description="Blur caustics to reduce noise",
-                min=0.0, max=1.0,
+        cls.blur_glossy = FloatProperty(
+                name="Filter Glossy",
+                description="Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy",
+                min=0.0, max=10.0,
                 default=0.0,
                 )
 

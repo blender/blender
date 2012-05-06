@@ -1767,6 +1767,7 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.inset")
         layout.operator("mesh.bevel")
         layout.operator("mesh.solidify")
+        layout.operator("mesh.wireframe")
         layout.operator("mesh.sort_faces")
 
         layout.separator()

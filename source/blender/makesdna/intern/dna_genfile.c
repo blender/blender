@@ -338,7 +338,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			else sdna->nr_names= *data;
 			
 			data++;
-			sdna->names= MEM_callocN( sizeof(void *)*sdna->nr_names, "sdnanames");
+			sdna->names= MEM_callocN(sizeof(void *)*sdna->nr_names, "sdnanames");
 		}
 		else {
 			printf("NAME error in SDNA file\n");
@@ -378,7 +378,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			else sdna->nr_types= *data;
 			
 			data++;
-			sdna->types= MEM_callocN( sizeof(void *)*sdna->nr_types, "sdnatypes");
+			sdna->types= MEM_callocN(sizeof(void *)*sdna->nr_types, "sdnatypes");
 		}
 		else {
 			printf("TYPE error in SDNA file\n");
@@ -442,7 +442,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 			else sdna->nr_structs= *data;
 			
 			data++;
-			sdna->structs= MEM_callocN( sizeof(void *)*sdna->nr_structs, "sdnastrcs");
+			sdna->structs= MEM_callocN(sizeof(void *)*sdna->nr_structs, "sdnastrcs");
 		}
 		else {
 			printf("STRC error in SDNA file\n");
@@ -692,7 +692,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 	curlen= DNA_elem_type_size(ctypenr);
 
 	while (arrlen>0) {
-		switch(otypenr) {
+		switch (otypenr) {
 		case SDNA_TYPE_CHAR:
 			val= *olddata; break;
 		case SDNA_TYPE_UCHAR:
@@ -717,7 +717,7 @@ static void cast_elem(const char *ctype, const char *otype, const char *name, ch
 			val= *( (uint64_t *)olddata); break;
 		}
 		
-		switch(ctypenr) {
+		switch (ctypenr) {
 		case SDNA_TYPE_CHAR:
 			*curdata= val; break;
 		case SDNA_TYPE_UCHAR:
@@ -933,7 +933,7 @@ static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna,
 	
 		spo= oldsdna->structs[oldSDNAnr];
 		elen= oldsdna->typelens[ spo[0] ];
-		memcpy( cur, data, elen);
+		memcpy(cur, data, elen);
 		
 		return;
 	}
@@ -1140,7 +1140,7 @@ void *DNA_struct_reconstruct(SDNA *newsdna, SDNA *oldsdna, char *compflags, int 
 		return NULL;
 	}
 
-	cur= MEM_callocN( blocks*curlen, "reconstruct");
+	cur= MEM_callocN(blocks*curlen, "reconstruct");
 	cpc= cur;
 	cpo= data;
 	for (a=0; a<blocks; a++) {

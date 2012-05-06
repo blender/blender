@@ -106,20 +106,20 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 	x4= ibuf->x/4;
 	
 	/* This doesn't seem to work... paprmh */
-	if(cast->gamma != 1.0) gamwarp(tbuf, cast->gamma);
+	if (cast->gamma != 1.0) gamwarp(tbuf, cast->gamma);
 
 	/* reduce */
-	for(i=0; i<nr; i++) {
+	for (i=0; i<nr; i++) {
 		ttbuf = onehalf(tbuf);
 		if (ttbuf) {
 			freeImBuf(tbuf);
 			tbuf = ttbuf;
 		}
-		if(tbuf->x<4 || tbuf->y<4) break;
+		if (tbuf->x<4 || tbuf->y<4) break;
 	}
 
 	/* enlarge */
-	for(i=0; i<nr; i++) {
+	for (i=0; i<nr; i++) {
 		ttbuf = double_x(tbuf);
 		if (ttbuf) {
 			freeImBuf(tbuf);
@@ -130,18 +130,18 @@ void blurbuf(struct ImBuf *ibuf, int nr, Cast *cast)
 			freeImBuf(tbuf);
 			tbuf = ttbuf;
 		}
-		if(tbuf->x > x4) {
+		if (tbuf->x > x4) {
 			scaleImBuf(tbuf, ibuf->x, ibuf->y);
 			break;
 		}
 	}
 	
 	/* this doesn't seem to work...paprmh*/
-	if(cast->gamma != 1.0) gamwarp(tbuf, 1.0 / cast->gamma);
+	if (cast->gamma != 1.0) gamwarp(tbuf, 1.0 / cast->gamma);
 
-	if(ibuf->rect)memcpy(ibuf->rect, tbuf->rect, 4*ibuf->x*ibuf->y);
+	if (ibuf->rect)memcpy(ibuf->rect, tbuf->rect, 4*ibuf->x*ibuf->y);
 
-	if(ibuf->rect_float) 
+	if (ibuf->rect_float)
 		memcpy(ibuf->rect_float, tbuf->rect_float, 4*ibuf->x*ibuf->y*sizeof(float));
 
 	freeImBuf(tbuf);
@@ -161,13 +161,13 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	
 	/* which buffers ? */
 				
-	if(fac>7.0) fac= 7.0;
-	if(fac<=1.0) return;
+	if (fac>7.0) fac= 7.0;
+	if (fac<=1.0) return;
 	
 	pfac= 2.0;
 	pbuf= dupImBuf(mbuf);
 	n= 1;
-	while(pfac < fac) {
+	while (pfac < fac) {
 		blurbuf(pbuf, n, cast);
 		blurbuf(pbuf, n, cast);
 		
@@ -185,10 +185,10 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	fac= (fac-pfac)/(ifac-pfac);
 	n= mbuf->x*mbuf->y;
 	
-	if(cast->show) fac=cast->show-1;
+	if (cast->show) fac=cast->show-1;
 	
-	if(mbuf->rect_float){
-		if(fac>=1) {
+	if (mbuf->rect_float){
+		if (fac>=1) {
 			memcpy(mbuf->rect_float, ibuf->rect_float, 4*n*sizeof(float));
 		}
 		else if(fac<=0) {
@@ -200,7 +200,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 			irectf= (float *)ibuf->rect_float;
 			prectf= (float *)pbuf->rect_float;
 			mrectf= (float *)mbuf->rect_float;
-			while(n--) {
+			while (n--) {
 				mrectf[0]= irectf[0]*fac+ prectf[0]*infac;
 				mrectf[1]= irectf[1]*fac+ prectf[1]*infac;
 				mrectf[2]= irectf[2]*fac+ prectf[2]*infac;
@@ -213,10 +213,10 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 	}	
 	else if(mbuf->rect){
 		b1= (int)fac*255.0;
-		if(b1>255) b1= 255;
+		if (b1>255) b1= 255;
 		b2= 255-b1;
 	
-		if(b1==255) {
+		if (b1==255) {
 			memcpy(mbuf->rect, ibuf->rect, 4*n);
 		}
 		else if(b1==0) {
@@ -226,7 +226,7 @@ void doblur(struct ImBuf *mbuf, float fac, Cast *cast)
 			irect= (char *)ibuf->rect;
 			prect= (char *)pbuf->rect;
 			mrect= (char *)mbuf->rect;
-			while(n--) {
+			while (n--) {
 				mrect[0]= (irect[0]*b1+ prect[0]*b2)>>8;
 				mrect[1]= (irect[1]*b1+ prect[1]*b2)>>8;
 				mrect[2]= (irect[2]*b1+ prect[2]*b2)>>8;
@@ -247,7 +247,7 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 {
 	float  bfacf0, bfacf1;
 	
-	if(cast->use_ipo==0) {
+	if (cast->use_ipo==0) {
 		bfacf0= bfacf1= cast->blur+1.0;
 	}
 	else {
@@ -255,8 +255,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 		bfacf1 = (facf1 * 6.0) + 1.0;
 	}
 
-	if(out->rect) memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
-	if(out->rect_float) memcpy(out->rect_float, ibuf1->rect_float, 4*out->x*out->y*sizeof(float));
+	if (out->rect) memcpy(out->rect, ibuf1->rect, 4*out->x*out->y);
+	if (out->rect_float) memcpy(out->rect_float, ibuf1->rect_float, 4*out->x*out->y*sizeof(float));
 	
 /****************I can't get this field code to work... works ok without...paprmh****************/
 
@@ -269,13 +269,13 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int x, int y, ImBuf *
 	
 	doblur(out, bfacf0, cast); /*fieldA*/
 
-/*	if(out->rect)out->rect += out->x * out->y;
-	if(out->rect_float)out->rect_float += out->x * out->y;
+/*	if (out->rect)out->rect += out->x * out->y;
+	if (out->rect_float)out->rect_float += out->x * out->y;
 		
 	doblur(out, bfacf1, cast);*/ /*fieldB*/
 
-/*	if(out->rect)out->rect -= out->x * out->y;
-	if(out->rect_float)out->rect_float -= out->x * out->y;
+/*	if (out->rect)out->rect -= out->x * out->y;
+	if (out->rect_float)out->rect_float -= out->x * out->y;
 	out->flags |= IB_fields;
 
 	interlace(out);*/

@@ -318,8 +318,7 @@ static void fcm_fn_generator_evaluate (FCurve *UNUSED(fcu), FModifier *fcm, floa
 	/* get function pointer to the func to use:
 	 * WARNING: must perform special argument validation hereto guard against crashes  
 	 */
-	switch (data->type)
-	{
+	switch (data->type) {
 		/* simple ones */			
 		case FCM_GENERATOR_FN_SIN: /* sine wave */
 			fn= sin;
@@ -1059,7 +1058,7 @@ FModifier *copy_fmodifier (FModifier *src)
 }
 
 /* Duplicate all of the F-Modifiers in the Modifier stacks */
-void copy_fmodifiers (ListBase *dst, ListBase *src)
+void copy_fmodifiers(ListBase *dst, ListBase *src)
 {
 	FModifier *fcm, *srcfcm;
 	
@@ -1082,7 +1081,7 @@ void copy_fmodifiers (ListBase *dst, ListBase *src)
 }
 
 /* Remove and free the given F-Modifier from the given stack  */
-int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
+int remove_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
 	FModifierTypeInfo *fmi= fmodifier_get_typeinfo(fcm);
 	
@@ -1113,7 +1112,7 @@ int remove_fmodifier (ListBase *modifiers, FModifier *fcm)
 }
 
 /* Remove all of a given F-Curve's modifiers */
-void free_fmodifiers (ListBase *modifiers)
+void free_fmodifiers(ListBase *modifiers)
 {
 	FModifier *fcm, *fmn;
 	
@@ -1148,7 +1147,7 @@ FModifier *find_active_fmodifier (ListBase *modifiers)
 }
 
 /* Set the active F-Modifier */
-void set_active_fmodifier (ListBase *modifiers, FModifier *fcm)
+void set_active_fmodifier(ListBase *modifiers, FModifier *fcm)
 {
 	FModifier *fm;
 	
@@ -1169,7 +1168,7 @@ void set_active_fmodifier (ListBase *modifiers, FModifier *fcm)
  *	- mtype - type of modifier (if 0, doesn't matter)
  *	- acttype - type of action to perform (if -1, doesn't matter)
  */
-short list_has_suitable_fmodifier (ListBase *modifiers, int mtype, short acttype)
+short list_has_suitable_fmodifier(ListBase *modifiers, int mtype, short acttype)
 {
 	FModifier *fcm;
 	
@@ -1253,7 +1252,7 @@ static float eval_fmodifier_influence (FModifier *fcm, float evaltime)
  *	  so nevaltime gets set to whatever the last time-modifying modifier likes...
  *	- we start from the end of the stack, as only the last one matters for now
  */
-float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, float evaltime)
+float evaluate_time_fmodifiers(ListBase *modifiers, FCurve *fcu, float cvalue, float evaltime)
 {
 	FModifier *fcm;
 	
@@ -1302,7 +1301,7 @@ float evaluate_time_fmodifiers (ListBase *modifiers, FCurve *fcu, float cvalue, 
 /* Evalautes the given set of F-Curve Modifiers using the given data
  * Should only be called after evaluate_time_fmodifiers() has been called...
  */
-void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue, float evaltime)
+void evaluate_value_fmodifiers(ListBase *modifiers, FCurve *fcu, float *cvalue, float evaltime)
 {
 	FModifier *fcm;
 	
@@ -1339,7 +1338,7 @@ void evaluate_value_fmodifiers (ListBase *modifiers, FCurve *fcu, float *cvalue,
 /* Bake modifiers for given F-Curve to curve sample data, in the frame range defined
  * by start and end (inclusive).
  */
-void fcurve_bake_modifiers (FCurve *fcu, int start, int end)
+void fcurve_bake_modifiers(FCurve *fcu, int start, int end)
 {
 	ChannelDriver *driver;
 	

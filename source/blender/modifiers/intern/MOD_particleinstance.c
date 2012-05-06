@@ -117,7 +117,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	ParticleData *pa= NULL, *pars= NULL;
 	MFace *mface, *orig_mface;
 	MVert *mvert, *orig_mvert;
-	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
+	int i, totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
 	short track=ob->trackflag%3, trackneg, axis = pimd->axis;
 	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
 	float *size=NULL;
@@ -132,7 +132,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (pimd->ob) {
-		psys = BLI_findlink(&pimd->ob->particlesystem,pimd->psys-1);
+		psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys-1);
 		if (psys==NULL || psys->totpart==0)
 			return derivedData;
 	}
@@ -192,7 +192,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		max_co=max_r[track];
 	}
 
-	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface, 0, 0);
+	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm)*totpart, maxface, 0, 0);
 
 	mvert=result->getVertArray(result);
 	orig_mvert=dm->getVertArray(dm);
@@ -231,7 +231,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 				mv->co[axis] = 0.0;
 			}
 
-			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state,1);
+			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state, 1);
 
 			normalize_v3(state.vel);
 
@@ -241,22 +241,22 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 				state.rot[1] = state.rot[2] = state.rot[3] = 0.0f;
 			}
 			else {
-				float temp[3] = {0.0f,0.0f,0.0f};
+				float temp[3] = {0.0f, 0.0f, 0.0f};
 				temp[axis] = 1.0f;
 
 				cross_v3_v3v3(cross, temp, state.vel);
 
 				/* state.vel[axis] is the only component surviving from a dot product with the axis */
-				axis_angle_to_quat(state.rot,cross,saacos(state.vel[axis]));
+				axis_angle_to_quat(state.rot, cross, saacos(state.vel[axis]));
 			}
 
 		}
 		else {
 			state.time=-1.0;
-			psys_get_particle_state(&sim, first_particle + i/totvert, &state,1);
+			psys_get_particle_state(&sim, first_particle + i/totvert, &state, 1);
 		}
 
-		mul_qt_v3(state.rot,mv->co);
+		mul_qt_v3(state.rot, mv->co);
 		if (pimd->flag & eParticleInstanceFlag_UseSize)
 			mul_v3_fl(mv->co, size[i/totvert]);
 		add_v3_v3(mv->co, state.co);

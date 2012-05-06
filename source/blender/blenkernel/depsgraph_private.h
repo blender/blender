@@ -117,10 +117,10 @@ DagNode * get_top_node_queue(DagNodeQueue *queue);
 DagForest *getMainDag(void);
 void setMainDag(DagForest *dag);
 DagForest * dag_init(void);
-DagNode * dag_find_node (DagForest *forest,void * fob);
-DagNode * dag_add_node (DagForest *forest,void * fob);
-DagNode * dag_get_node (DagForest *forest,void * fob);
-DagNode * dag_get_sub_node (DagForest *forest,void * fob);
+DagNode * dag_find_node (DagForest *forest, void * fob);
+DagNode * dag_add_node (DagForest *forest, void * fob);
+DagNode * dag_get_node (DagForest *forest, void * fob);
+DagNode * dag_get_sub_node (DagForest *forest, void * fob);
 void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
 
 void graph_bfs(void);

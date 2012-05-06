@@ -1674,8 +1674,8 @@ void svd_m4(float U[4][4], float s[4], float V[4][4], float A_[4][4])
 				// Calculate the shift.
 
 				float scale = maxf(maxf(maxf(maxf(
-				                   fabsf(s[p - 1]),fabsf(s[p - 2])),fabsf(e[p - 2])),
-				                   fabsf(s[k])),fabsf(e[k]));
+				                   fabsf(s[p - 1]), fabsf(s[p - 2])), fabsf(e[p - 2])),
+				                   fabsf(s[k])), fabsf(e[k]));
 				float invscale = 1.0f / scale;
 				float sp = s[p - 1] * invscale;
 				float spm1 = s[p - 2] * invscale;

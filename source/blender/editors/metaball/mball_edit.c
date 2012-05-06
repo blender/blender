@@ -111,7 +111,7 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 		ml= ml->next;
 	}
 	
-	ml= add_metaball_element(mball, type);
+	ml= BKE_metaball_element_add(mball, type);
 	copy_v3_v3(&ml->x, mat[3]);
 
 	ml->flag |= SELECT;
@@ -195,7 +195,7 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	ml= mb->editelems->first;
-	BLI_srand( BLI_rand() );	/* Random seed */
+	BLI_srand(BLI_rand());	/* Random seed */
 	
 	/* Stupid version of random selection. Should be improved. */
 	while (ml) {

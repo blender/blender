@@ -74,7 +74,7 @@ typedef struct {
 #define GINTLUM (156)
 #define BINTLUM (21)
 
-#define ILUM(r,g,b)	((int)(RINTLUM*(r)+GINTLUM*(g)+BINTLUM*(b))>>8)
+#define ILUM(r, g, b)	((int)(RINTLUM * (r) + GINTLUM * (g) + BINTLUM * (b)) >> 8)
 
 #define OFFSET_R	0	/* this is byte order dependent */
 #define OFFSET_G	1
@@ -149,7 +149,7 @@ static void putshort(FILE *outf, unsigned short val)
 
 	buf[0] = (val>>8);
 	buf[1] = (val>>0);
-	fwrite(buf,2,1,outf);
+	fwrite(buf, 2, 1, outf);
 }
 
 static int putlong(FILE *outf, unsigned int val)
@@ -160,7 +160,7 @@ static int putlong(FILE *outf, unsigned int val)
 	buf[1] = (val>>16);
 	buf[2] = (val>>8);
 	buf[3] = (val>>0);
-	return fwrite(buf,4,1,outf);
+	return fwrite(buf, 4, 1, outf);
 }
 
 static void readheader(FILE *inf, IMAGE *image)
@@ -178,18 +178,18 @@ static int writeheader(FILE *outf, IMAGE *image)
 {
 	IMAGE t= {0};
 
-	fwrite(&t,sizeof(IMAGE),1,outf);
-	fseek(outf,0,SEEK_SET);
-	putshort(outf,image->imagic);
-	putshort(outf,image->type);
-	putshort(outf,image->dim);
-	putshort(outf,image->xsize);
-	putshort(outf,image->ysize);
-	putshort(outf,image->zsize);
-	putlong(outf,image->min);
-	putlong(outf,image->max);
-	putlong(outf,0);
-	return fwrite("no name",8,1,outf);
+	fwrite(&t, sizeof(IMAGE), 1, outf);
+	fseek(outf, 0, SEEK_SET);
+	putshort(outf, image->imagic);
+	putshort(outf, image->type);
+	putshort(outf, image->dim);
+	putshort(outf, image->xsize);
+	putshort(outf, image->ysize);
+	putshort(outf, image->zsize);
+	putlong(outf, image->min);
+	putlong(outf, image->max);
+	putlong(outf, 0);
+	return fwrite("no name", 8, 1, outf);
 }
 
 static int writetab(FILE *outf, unsigned int *tab, int len)
@@ -197,7 +197,7 @@ static int writetab(FILE *outf, unsigned int *tab, int len)
 	int r = 0;
 
 	while (len) {
-		r = putlong(outf,*tab++);
+		r = putlong(outf, *tab++);
 		len -= 4;
 	}
 	return r;
@@ -271,14 +271,14 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 	
 	readheader(inf, &image);
 	if (image.imagic != IMAGIC) {
-		fprintf(stderr,"longimagedata: bad magic number in image file\n");
+		fprintf(stderr, "longimagedata: bad magic number in image file\n");
 		return(NULL);
 	}
 	
 	rle = ISRLE(image.type);
 	bpp = BPP(image.type);
 	if (bpp != 1 && bpp != 2) {
-		fprintf(stderr,"longimagedata: image must have 1 or 2 byte per pix chan\n");
+		fprintf(stderr, "longimagedata: image must have 1 or 2 byte per pix chan\n");
 		return(NULL);
 	}
 	
@@ -299,8 +299,8 @@ struct ImBuf *imb_loadiris(unsigned char *mem, size_t size, int flags)
 		lengthtab = (unsigned int *)MEM_mallocN(tablen, "iris endtab");
 		file_offset = 512;
 		
-		readtab(inf,starttab,tablen);
-		readtab(inf,lengthtab,tablen);
+		readtab(inf, starttab, tablen);
+		readtab(inf, lengthtab, tablen);
 	
 		/* check data order */
 		cur = 0;
@@ -710,27 +710,27 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	image->zsize = zsize;
 	image->min = 0;
 	image->max = 255;
-	goodwrite *= writeheader(outf,image);
-	fseek(outf,512+2*tablen,SEEK_SET);
+	goodwrite *= writeheader(outf, image);
+	fseek(outf, 512+2*tablen, SEEK_SET);
 	pos = 512+2*tablen;
 	
 	for (y = 0; y < ysize; y++) {
 		for (z = 0; z < zsize; z++) {
 			
 			if (zsize == 1) {
-				lumrow((uchar *)lptr,(uchar *)lumbuf,xsize);
-				len = compressrow((uchar *)lumbuf,rlebuf,CHANOFFSET(z),xsize);
+				lumrow((uchar *)lptr, (uchar *)lumbuf, xsize);
+				len = compressrow((uchar *)lumbuf, rlebuf, CHANOFFSET(z), xsize);
 			}
 			else {
 				if (z<4) {
-					len = compressrow((uchar *)lptr, rlebuf,CHANOFFSET(z),xsize);
+					len = compressrow((uchar *)lptr, rlebuf, CHANOFFSET(z), xsize);
 				}
 				else if (z<8 && zptr) {
-					len = compressrow((uchar *)zptr, rlebuf,CHANOFFSET(z-4),xsize);
+					len = compressrow((uchar *)zptr, rlebuf, CHANOFFSET(z-4), xsize);
 				}
 			}
 			if (len>rlebuflen) {
-				fprintf(stderr,"output_iris: rlebuf is too small - bad poop\n");
+				fprintf(stderr, "output_iris: rlebuf is too small - bad poop\n");
 				exit(1);
 			}
 			goodwrite *= fwrite(rlebuf, len, 1, outf);
@@ -742,9 +742,9 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 		if (zptr) zptr += xsize;
 	}
 
-	fseek(outf,512,SEEK_SET);
-	goodwrite *= writetab(outf,starttab,tablen);
-	goodwrite *= writetab(outf,lengthtab,tablen);
+	fseek(outf, 512, SEEK_SET);
+	goodwrite *= writetab(outf, starttab, tablen);
+	goodwrite *= writetab(outf, lengthtab, tablen);
 	MEM_freeN(image);
 	MEM_freeN(starttab);
 	MEM_freeN(lengthtab);
@@ -754,7 +754,7 @@ static int output_iris(unsigned int *lptr, int xsize, int ysize, int zsize, cons
 	if (goodwrite)
 		return 1;
 	else {
-		fprintf(stderr,"output_iris: not enough space for image!!\n");
+		fprintf(stderr, "output_iris: not enough space for image!!\n");
 		return 0;
 	}
 }
@@ -765,7 +765,7 @@ static void lumrow(unsigned char *rgbptr, unsigned char *lumptr, int n)
 {
 	lumptr += CHANOFFSET(0);
 	while (n--) {
-		*lumptr = ILUM(rgbptr[OFFSET_R],rgbptr[OFFSET_G],rgbptr[OFFSET_B]);
+		*lumptr = ILUM(rgbptr[OFFSET_R], rgbptr[OFFSET_G], rgbptr[OFFSET_B]);
 		lumptr += 4;
 		rgbptr += 4;
 	}

@@ -14,7 +14,7 @@ class ModalTimerOperator(bpy.types.Operator):
 
         if event.type == 'TIMER':
             # change theme color, silly!
-            color = context.user_preferences.themes[0].view_3d.back
+            color = context.user_preferences.themes[0].view_3d.space.back
             color.s = 1.0
             color.h += 0.01
 

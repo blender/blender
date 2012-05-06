@@ -362,7 +362,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		deselect_all_seq(scene);
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 
-		SEQP_BEGIN(ed, seq)
+		SEQP_BEGIN (ed, seq)
 		{
 			if (x < CFRA) {
 				if (seq->enddisp < CFRA) {
@@ -940,7 +940,7 @@ static short select_grouped_type(Editing *ed, Sequence *actseq)
 	Sequence *seq;
 	short changed = FALSE;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (seq->type == actseq->type) {
 			seq->flag |= SELECT;
 			changed = TRUE;
@@ -957,7 +957,7 @@ static short select_grouped_type_basic(Editing *ed, Sequence *actseq)
 	short changed = FALSE;
 	short is_sound = SEQ_IS_SOUND(actseq);
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (is_sound ? SEQ_IS_SOUND(seq) : !SEQ_IS_SOUND(seq)) {
 			seq->flag |= SELECT;
 			changed = TRUE;
@@ -974,7 +974,7 @@ static short select_grouped_type_effect(Editing *ed, Sequence *actseq)
 	short changed = FALSE;
 	short is_effect = SEQ_IS_EFFECT(actseq);
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (is_effect ? SEQ_IS_EFFECT(seq) : !SEQ_IS_EFFECT(seq)) {
 			seq->flag |= SELECT;
 			changed = TRUE;
@@ -995,7 +995,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		return changed;
 
 	if (SEQ_HAS_PATH(actseq) && dir) {
-		SEQP_BEGIN(ed, seq) {
+		SEQP_BEGIN (ed, seq) {
 			if (SEQ_HAS_PATH(seq) && seq->strip && strcmp(seq->strip->dir, dir) == 0) {
 				seq->flag |= SELECT;
 				changed = TRUE;
@@ -1005,7 +1005,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 	}
 	else if (actseq->type == SEQ_SCENE) {
 		Scene *sce = actseq->scene;
-		SEQP_BEGIN(ed, seq) {
+		SEQP_BEGIN (ed, seq) {
 			if (seq->type == SEQ_SCENE && seq->scene == sce) {
 				seq->flag |= SELECT;
 				changed = TRUE;
@@ -1015,7 +1015,7 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 	}
 	else if (actseq->type == SEQ_MOVIECLIP) {
 		MovieClip *clip = actseq->clip;
-		SEQP_BEGIN(ed, seq) {
+		SEQP_BEGIN (ed, seq) {
 			if (seq->type == SEQ_MOVIECLIP && seq->clip == clip) {
 				seq->flag |= SELECT;
 				changed = TRUE;
@@ -1037,14 +1037,14 @@ static short select_grouped_effect(Editing *ed, Sequence *actseq)
 	for (i = 0; i <= SEQ_EFFECT_MAX; i++)
 		effects[i] = FALSE;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (ELEM3(actseq, seq->seq1, seq->seq2, seq->seq3)) {
 			effects[seq->type] = TRUE;
 		}
 	}
 	SEQ_END;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (effects[seq->type]) {
 			if (seq->seq1) seq->seq1->flag |= SELECT;
 			if (seq->seq2) seq->seq2->flag |= SELECT;
@@ -1062,7 +1062,7 @@ static short select_grouped_time_overlap(Editing *ed, Sequence *actseq)
 	Sequence *seq;
 	short changed = FALSE;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		if (!((seq->startdisp >= actseq->enddisp) || (seq->enddisp < actseq->startdisp))) {
 			seq->flag |= SELECT;
 			changed = TRUE;
@@ -1083,7 +1083,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 	int machine   = actseq->machine;
 	SeqIterator iter;
 
-	SEQP_BEGIN(ed, seq) {
+	SEQP_BEGIN (ed, seq) {
 		seq->tmp= NULL;
 	}
 	SEQ_END;
@@ -1153,7 +1153,7 @@ static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 	}
 
 	if (extend == 0) {
-		SEQP_BEGIN(ed, seq) {
+		SEQP_BEGIN (ed, seq) {
 			seq->flag &= ~SELECT;
 			changed = TRUE;
 		}

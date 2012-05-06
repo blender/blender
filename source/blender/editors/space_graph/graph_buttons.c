@@ -85,7 +85,7 @@ static void do_graph_region_buttons(bContext *UNUSED(C), void *UNUSED(arg), int 
 {
 	//Scene *scene= CTX_data_scene(C);
 	
-	switch(event) {
+	switch (event) {
 
 	}
 	

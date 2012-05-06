@@ -313,8 +313,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	}
 #endif
 
-	switch(mode)
-	{
+	switch (mode) {
 	case INPUT_VECTOR:
 		mi->apply = InputVector;
 		t->helpline = HLP_NONE;
@@ -391,8 +390,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 {
 	int redraw = TREDRAW_NOTHING;
 
-	switch (event->type)
-	{
+	switch (event->type) {
 	case LEFTSHIFTKEY:
 	case RIGHTSHIFTKEY:
 		if (event->val == KM_PRESS) {

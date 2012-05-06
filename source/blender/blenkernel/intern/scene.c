@@ -234,7 +234,7 @@ Scene *copy_scene(Scene *sce, int type)
 		}
 
 		if (sce->ed) {
-			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed= MEM_callocN(sizeof(Editing), "addseq");
 			scen->ed->seqbasep= &scen->ed->seqbase;
 			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}
@@ -408,7 +408,7 @@ Scene *add_scene(const char *name)
 	sce->r.border.xmax = 1.0f;
 	sce->r.border.ymax = 1.0f;
 	
-	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
 	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;

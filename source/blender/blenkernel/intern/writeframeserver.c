@@ -70,7 +70,7 @@ static int render_height;
 static int startup_socket_system(void)
 {
 	WSADATA wsa;
-	return (WSAStartup(MAKEWORD(2,0),&wsa) == 0);
+	return (WSAStartup(MAKEWORD(2, 0), &wsa) == 0);
 }
 
 static void shutdown_socket_system(void)

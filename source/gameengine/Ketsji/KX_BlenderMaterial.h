@@ -113,12 +113,12 @@ public:
 	static PyObject* pyattr_get_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef);
 	static int       pyattr_set_blending(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef, PyObject *value);
 
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, getShader );
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, getMaterialIndex );
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, getTexture );
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, setTexture );
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, getShader);
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, getMaterialIndex);
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, getTexture);
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, setTexture);
 
-	KX_PYMETHOD_DOC( KX_BlenderMaterial, setBlending );
+	KX_PYMETHOD_DOC(KX_BlenderMaterial, setBlending);
 #endif // WITH_PYTHON
 
 	// --------------------------------

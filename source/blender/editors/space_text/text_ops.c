@@ -826,6 +826,36 @@ void TEXT_OT_paste(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "selection", 0, "Selection", "Paste text selected elsewhere rather than copied (X11 only)");
 }
 
+/**************** duplicate operator *******************/
+
+static int text_duplicate_line_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Text *text= CTX_data_edit_text(C);
+	
+	txt_duplicate_line(text);
+	
+	WM_event_add_notifier(C, NC_TEXT | NA_EDITED, text);
+
+	/* run the script while editing, evil but useful */
+	if (CTX_wm_space_text(C)->live_edit) {
+		text_run_script(C, NULL);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+void TEXT_OT_duplicate_line(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Duplicate Line";
+	ot->idname = "TEXT_OT_duplicate_line";
+	ot->description = "Duplicate the current line";
+	
+	/* api callbacks */
+	ot->exec = text_duplicate_line_exec;
+	ot->poll = text_edit_poll;
+}
+
 /******************* copy operator *********************/
 
 static void txt_copy_clipboard(Text *text)

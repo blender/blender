@@ -871,8 +871,8 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 		BLI_array_empty(loops);
 		BLI_array_empty(edges);
-		BLI_array_growitems(loops, f->len);
-		BLI_array_growitems(edges, f->len);
+		BLI_array_grow_items(loops, f->len);
+		BLI_array_grow_items(edges, f->len);
 
 		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {

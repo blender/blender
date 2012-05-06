@@ -781,9 +781,8 @@ static void ui_add_smart_controller(bContext *C, uiBut *from, uiBut *to)
 	act_to = (bActuator *)(to->poin);
 
 	/* (1) get the object */
-	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects) {
-		for (sens_iter = ob_iter->sensors.first; sens_iter; sens_iter = sens_iter->next)
-		{
+	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects) {
+		for (sens_iter = ob_iter->sensors.first; sens_iter; sens_iter = sens_iter->next) {
 			if (&(sens_iter->links) == sens_from_links) {
 				ob = ob_iter;
 				break;
@@ -1207,7 +1206,7 @@ static void ui_but_copy_paste(bContext *C, uiBut *but, uiHandleButtonData *data,
 				but->poin = MEM_callocN(sizeof(ColorBand), "colorband");
 
 			button_activate_state(C, but, BUTTON_STATE_NUM_EDITING);
-			memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand) );
+			memcpy(data->coba, &but_copypaste_coba, sizeof(ColorBand));
 			button_activate_state(C, but, BUTTON_STATE_EXIT);
 		}
 	}
@@ -1564,8 +1563,7 @@ static int ui_textedit_copypaste(uiBut *but, uiHandleButtonData *data, int paste
 				len = strlen(str);
 			}
 			
-			for (y = 0; y < strlen(buf); y++)
-			{
+			for (y = 0; y < strlen(buf); y++) {
 				/* add contents of buffer */
 				if (len + 1 < data->maxlen) {
 					for (x = data->maxlen; x > but->pos; x--)

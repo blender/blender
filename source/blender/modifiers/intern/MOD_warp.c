@@ -29,6 +29,9 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
+#include "DNA_meshdata_types.h"
+
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 #include "BLI_string.h"
@@ -38,9 +41,6 @@
 #include "BKE_deform.h"
 #include "BKE_texture.h"
 #include "BKE_colortools.h"
-
-#include "DNA_object_types.h"
-#include "DNA_meshdata_types.h"
 
 #include "depsgraph_private.h"
 
@@ -245,7 +245,7 @@ static void warpModifier_do(WarpModifierData *wmd, Object *ob,
 
 
 			/* closely match PROP_SMOOTH and similar */
-			switch(wmd->falloff_type) {
+			switch (wmd->falloff_type) {
 			case eWarp_Falloff_None:
 				fac = 1.0f;
 				break;

@@ -187,7 +187,7 @@ static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), P
 		for (pid = pidlist.first; pid; pid = pid->next) {
 			if (pid->cache == cache)
 				pid2 = pid;
-			else if (cache->name[0] != '\0' && strcmp(cache->name,pid->cache->name) == 0) {
+			else if (cache->name[0] != '\0' && strcmp(cache->name, pid->cache->name) == 0) {
 				/*TODO: report "name exists" to user */
 				BLI_strncpy(cache->name, cache->prev_name, sizeof(cache->name));
 				new_name = 0;
@@ -513,7 +513,7 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 
 		/* add/remove modifier as needed */
 		if (!md) {
-			if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield,PFIELD_GUIDE,PFIELD_TEXTURE) == 0)
+			if (pd && (pd->shape == PFIELD_SHAPE_SURFACE) && ELEM(pd->forcefield, PFIELD_GUIDE, PFIELD_TEXTURE) == 0)
 				if (ELEM4(ob->type, OB_MESH, OB_SURF, OB_FONT, OB_CURVE))
 					ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Surface);
 		}

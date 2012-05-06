@@ -482,7 +482,7 @@ void calc_curvepath(Object *ob)
 	if (ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
 
-	nurbs= BKE_curve_nurbs(cu);
+	nurbs= BKE_curve_nurbs_get(cu);
 	nu= nurbs->first;
 
 	if (cu->path) free_path(cu->path);
@@ -863,9 +863,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
 			vec[0]= -no_s[0]; vec[1]= -no_s[1]; vec[2]= -no_s[2];
 		}
 		
-		vec_to_quat( q2,vec, vdd->ob->trackflag, vdd->ob->upflag);
+		vec_to_quat(q2, vec, vdd->ob->trackflag, vdd->ob->upflag);
 		
-		quat_to_mat3( mat,q2);
+		quat_to_mat3(mat, q2);
 		copy_m4_m4(tmat, obmat);
 		mul_m4_m4m3(obmat, tmat, mat);
 	}
@@ -1142,8 +1142,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						copy_v3_v3(obmat[3], cent);
 						
 						/* rotation */
-						tri_to_quat( quat,v1, v2, v3);
-						quat_to_mat3( mat,quat);
+						tri_to_quat(quat, v1, v2, v3);
+						quat_to_mat3(mat, quat);
 						
 						/* scale */
 						if (par->transflag & OB_DUPLIFACES_SCALE) {
@@ -1329,7 +1329,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 		else
 			a = totpart;
 
-		for (pa=psys->particles,counter=0; a<totpart+totchild; a++,pa++,counter++) {
+		for (pa=psys->particles, counter=0; a<totpart+totchild; a++, pa++, counter++) {
 			if (a<totpart) {
 				/* handle parent particle */
 				if (pa->flag & no_draw_flag)
@@ -1350,9 +1350,11 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Scene *scene, Object *p
 
 			/* some hair paths might be non-existent so they can't be used for duplication */
 			if (hair &&
-				((a < totpart && psys->pathcache[a]->steps < 0) ||
-				(a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			    ((a < totpart && psys->pathcache[a]->steps < 0) ||
+			     (a >= totpart && psys->childcache[a-totpart]->steps < 0)))
+			{
 				continue;
+			}
 
 			if (part->ren_as==PART_DRAW_GR) {
 				/* prevent divide by zero below [#28336] */
@@ -1503,7 +1505,7 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 	
 	ob= G.main->object.first;
 	while (ob) {
-		if ( ob->id.name[flen+2]==ch ) {
+		if (ob->id.name[flen + 2] == ch) {
 			if ( strncmp(ob->id.name+2, family, flen)==0 ) break;
 		}
 		ob= ob->id.next;

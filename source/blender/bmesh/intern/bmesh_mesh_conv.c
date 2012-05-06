@@ -282,8 +282,8 @@ void BM_mesh_bm_from_me(BMesh *bm, Mesh *me, int set_key, int act_key_nr)
 		BLI_array_empty(fedges);
 		BLI_array_empty(verts);
 
-		BLI_array_growitems(fedges, mpoly->totloop);
-		BLI_array_growitems(verts, mpoly->totloop);
+		BLI_array_grow_items(fedges, mpoly->totloop);
+		BLI_array_grow_items(verts, mpoly->totloop);
 
 		for (j = 0; j < mpoly->totloop; j++) {
 			ml = &me->mloop[mpoly->loopstart + j];

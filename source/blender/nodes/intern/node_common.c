@@ -130,7 +130,7 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 			/* no groups in groups */
 			if (node->type==NODE_GROUP)
 				return NULL;
-			DO_MINMAX2( (&node->locx), min, max);
+			DO_MINMAX2((&node->locx), min, max);
 			totnode++;
 		}
 		node->done= 0;

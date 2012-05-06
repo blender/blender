@@ -56,7 +56,8 @@
 #include "mesh_intern.h"
 
 /* helper to find edge for edge_rip */
-static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4], float *co1, float *co2, const float mvalf[2])
+static float edbm_rip_rip_edgedist(ARegion *ar, float mat[][4],
+                                   const float co1[3], const float co2[2], const float mvalf[2])
 {
 	float vec1[3], vec2[3];
 
@@ -111,9 +112,9 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
 	score = len_v2v2(e_v1_co, e_v2_co);
 
 	if (dist_to_line_segment_v2(fmval_tweak, e_v1_co, e_v2_co) >
-		dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
+	    dist_to_line_segment_v2(fmval,       e_v1_co, e_v2_co))
 	{
-		return  score;
+		return score;
 	}
 	else {
 		return -score;
@@ -262,7 +263,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 		uid_start = uid;
 		uid = uid_end + bm->totedge;
 
-		BLI_array_growone(eloop_pairs);
+		BLI_array_grow_one(eloop_pairs);
 		lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 		BM_edge_loop_pair(e_last, &lp->l_a, &lp->l_b); /* no need to check, we know this will be true */
 
@@ -276,7 +277,7 @@ static EdgeLoopPair *edbm_ripsel_looptag_helper(BMesh *bm)
 	}
 
 	/* null terminate */
-	BLI_array_growone(eloop_pairs);
+	BLI_array_grow_one(eloop_pairs);
 	lp = &eloop_pairs[BLI_array_count(eloop_pairs) - 1];
 	lp->l_a = lp->l_b = NULL;
 
@@ -347,7 +348,7 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 	BMOperator bmop;
 
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
-					  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
 		return FALSE;
 	}
 	BMO_op_exec(em->bm, &bmop);

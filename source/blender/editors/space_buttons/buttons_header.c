@@ -56,7 +56,7 @@
 
 static void set_texture_context(bContext *C, SpaceButs *sbuts)
 {
-	switch(sbuts->mainb) {
+	switch (sbuts->mainb) {
 		case BCONTEXT_MATERIAL:
 			sbuts->texture_context = SB_TEXC_MAT_OR_LAMP;
 			break;
@@ -83,7 +83,7 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 	if (!sbuts) /* editor type switch */
 		return;
 
-	switch(event) {
+	switch (event) {
 		case B_CONTEXT_SWITCH:
 		case B_BUTSPREVIEW:
 			ED_area_tag_redraw(CTX_wm_area(C));

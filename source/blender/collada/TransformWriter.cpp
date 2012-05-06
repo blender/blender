@@ -48,11 +48,11 @@ void TransformWriter::add_node_transform(COLLADASW::Node& node, float mat[][4], 
 
 	double dmat[4][4];
 	UnitConverter* converter = new UnitConverter();
-	converter->mat4_to_dae_double(dmat,local);
+	converter->mat4_to_dae_double(dmat, local);
 
 	TransformBase::decompose(local, loc, rot, NULL, scale);
 	if ( node.getType() == COLLADASW::Node::JOINT)
-		node.addMatrix("transform",dmat);
+		node.addMatrix("transform", dmat);
 	else
 		add_transform(node, loc, rot, scale);
 }
@@ -95,19 +95,16 @@ void TransformWriter::add_node_transform_ob(COLLADASW::Node& node, Object *ob)
 	*/
 
 	/* Using parentinv should allow use of existing curves */
-	if (ob->parent)
-	{
+	if (ob->parent) {
 		// If parentinv is identity don't add it.
 		bool add_parinv = false;
 
-		for (int i = 0; i < 16; ++i)
-		{
+		for (int i = 0; i < 16; ++i) {
 			float f = (i % 4 == i / 4) ? 1.0f : 0.0f;
 			add_parinv |= (ob->parentinv[i % 4][i / 4] != f);
 		}
 
-		if (add_parinv)
-		{
+		if (add_parinv) {
 			double dmat[4][4];
 			UnitConverter converter;
 			converter.mat4_to_dae_double(dmat, ob->parentinv);

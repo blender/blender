@@ -49,7 +49,7 @@ struct Main;
 struct chartrans {
 	float xof, yof;
 	float rot;
-	short linenr,charnr;
+	short linenr, charnr;
 	char dobreak;
 };
 

@@ -77,7 +77,7 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	TreeElement *te= lb->first;
 	while (te) {
 		TreeStoreElem *tselem= TREESTORE(te);
-		if (TSELEM_OPEN(tselem,soops))
+		if (TSELEM_OPEN(tselem, soops))
 			outliner_height(soops, &te->subtree, h);
 		(*h) += UI_UNIT_Y;
 		te= te->next;
@@ -92,7 +92,7 @@ static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
 //		TreeStoreElem *tselem= TREESTORE(te);
 		
 		// XXX fixme... te->xend is not set yet
-		if (!TSELEM_OPEN(tselem,soops)) {
+		if (!TSELEM_OPEN(tselem, soops)) {
 			if (te->xend > *w)
 				*w = te->xend;
 		}
@@ -117,7 +117,7 @@ static void outliner_rna_width(SpaceOops *soops, ListBase *lb, int *w, int start
 		if (startx+100 > *w)
 			*w = startx+100;
 
-		if (TSELEM_OPEN(tselem,soops))
+		if (TSELEM_OPEN(tselem, soops))
 			outliner_rna_width(soops, &te->subtree, w, startx+UI_UNIT_X);
 		te= te->next;
 	}
@@ -278,7 +278,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 		if (tselem->type==0) {
 			test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
 			
-			switch(GS(tselem->id->name)) {
+			switch (GS(tselem->id->name)) {
 				case ID_MA:
 					WM_event_add_notifier(C, NC_MATERIAL, NULL); break;
 				case ID_TE:
@@ -305,7 +305,7 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 			}
 		}
 		else {
-			switch(tselem->type) {
+			switch (tselem->type) {
 			case TSE_DEFGROUP:
 				defgroup_unique_name(te->directdata, (Object *)tselem->id); //	id = object
 				break;
@@ -505,7 +505,7 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 			}
 		}
 		
-		if (TSELEM_OPEN(tselem,soops)) outliner_draw_restrictbuts(block, scene, ar, soops, &te->subtree);
+		if (TSELEM_OPEN(tselem, soops)) outliner_draw_restrictbuts(block, scene, ar, soops, &te->subtree);
 	}
 }
 
@@ -546,7 +546,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 				ptr= &te->rnaptr;
 				prop= te->directdata;
 				
-				if (!(RNA_property_type(prop) == PROP_POINTER && (TSELEM_OPEN(tselem,soops))) )
+				if (!(RNA_property_type(prop) == PROP_POINTER && (TSELEM_OPEN(tselem, soops))) )
 					uiDefAutoButR(block, ptr, prop, -1, "", ICON_NONE, sizex, (int)te->ys, OL_RNA_COL_SIZEX, UI_UNIT_Y-1);
 			}
 			else if (tselem->type == TSE_RNA_ARRAY_ELEM) {
@@ -557,7 +557,7 @@ static void outliner_draw_rnabuts(uiBlock *block, Scene *scene, ARegion *ar, Spa
 			}
 		}
 		
-		if (TSELEM_OPEN(tselem,soops)) outliner_draw_rnabuts(block, scene, ar, soops, sizex, &te->subtree);
+		if (TSELEM_OPEN(tselem, soops)) outliner_draw_rnabuts(block, scene, ar, soops, sizex, &te->subtree);
 	}
 }
 
@@ -719,7 +719,7 @@ static void keymap_type_cb(bContext *C, void *kmi_v, void *UNUSED(arg_v))
 	short maptype= keymap_menu_type(kmi->type);
 	
 	if (maptype!=kmi->maptype) {
-		switch(kmi->maptype) {
+		switch (kmi->maptype) {
 			case OL_KM_KEYBOARD:
 				kmi->type= AKEY;
 				kmi->val= KM_PRESS;
@@ -776,14 +776,14 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 				xstart+= butw2+5;
 				
 				/* edit actual event */
-				switch(kmi->maptype) {
+				switch (kmi->maptype) {
 					case OL_KM_KEYBOARD:
 						uiDefKeyevtButS(block, 0, "", xstart, (int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->type, "Key code");
 						xstart+= butw2+5;
 						break;
 					case OL_KM_MOUSE:
 						str= keymap_mouse_menu();
-						uiDefButS(block, MENU, 0, str, xstart,(int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->type, 0, 0, 0, 0,  "Mouse button");	
+						uiDefButS(block, MENU, 0, str, xstart, (int)te->ys+1, butw2, UI_UNIT_Y-1, &kmi->type, 0, 0, 0, 0,  "Mouse button");
 						xstart+= butw2+5;
 						break;
 					case OL_KM_TWEAK:
@@ -814,7 +814,7 @@ static void outliner_draw_keymapbuts(uiBlock *block, ARegion *ar, SpaceOops *soo
 			}
 		}
 		
-		if (TSELEM_OPEN(tselem,soops)) outliner_draw_keymapbuts(block, ar, soops, &te->subtree);
+		if (TSELEM_OPEN(tselem, soops)) outliner_draw_keymapbuts(block, ar, soops, &te->subtree);
 	}
 }
 
@@ -857,7 +857,7 @@ static void outliner_buttons(const bContext *C, uiBlock *block, ARegion *ar, Spa
 			}
 		}
 		
-		if (TSELEM_OPEN(tselem,soops)) outliner_buttons(C, block, ar, soops, &te->subtree);
+		if (TSELEM_OPEN(tselem, soops)) outliner_buttons(C, block, ar, soops, &te->subtree);
 	}
 }
 
@@ -904,7 +904,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 	arg.alpha= alpha;
 	
 	if (tselem->type) {
-		switch( tselem->type) {
+		switch ( tselem->type) {
 			case TSE_ANIM_DATA:
 				UI_icon_draw(x, y, ICON_ANIM_DATA); break; // xxx
 			case TSE_NLA:
@@ -932,7 +932,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			{
 				Object *ob= (Object *)tselem->id;
 				ModifierData *md= BLI_findlink(&ob->modifiers, tselem->nr);
-				switch(md->type) {
+				switch (md->type) {
 					case eModifierType_Subsurf: 
 						UI_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
@@ -1093,7 +1093,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 		}
 	}
 	else {
-		switch( GS(tselem->id->name)) {
+		switch ( GS(tselem->id->name)) {
 			case ID_SCE:
 				tselem_draw_icon_uibut(&arg, ICON_SCENE_DATA); break;
 			case ID_ME:
@@ -1108,7 +1108,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			{
 				Lamp *la= (Lamp *)tselem->id;
 				
-				switch(la->type) {
+				switch (la->type) {
 					case LA_LOCAL:
 						tselem_draw_icon_uibut(&arg, ICON_LAMP_POINT); break;
 					case LA_SUN:
@@ -1185,7 +1185,7 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 
 				uiSetRoundBox(UI_CNR_ALL);
 				glColor4ub(255, 255, 255, 100);
-				uiRoundBox( (float)*offsx-0.5f*ufac, (float)ys-1.0f*ufac, (float)*offsx+UI_UNIT_Y-3.0f*ufac, (float)ys+UI_UNIT_Y-3.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
+				uiRoundBox((float) * offsx-0.5f*ufac, (float)ys-1.0f*ufac, (float)*offsx+UI_UNIT_Y-3.0f*ufac, (float)ys+UI_UNIT_Y-3.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1317,7 +1317,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox( (float)startx+UI_UNIT_Y-1.5f*ufac, (float)*starty+2.0f*ufac, (float)startx+2.0f*UI_UNIT_Y-4.0f*ufac, (float)*starty+UI_UNIT_Y-1.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
+			uiRoundBox((float)startx+UI_UNIT_Y-1.5f*ufac, (float)*starty+2.0f*ufac, (float)startx+2.0f*UI_UNIT_Y-4.0f*ufac, (float)*starty+UI_UNIT_Y-1.0f*ufac, UI_UNIT_Y/2.0f-2.0f*ufac);
 			glEnable(GL_BLEND);	/* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
@@ -1332,7 +1332,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				icon_x = startx+5*ufac;
 			
 				// icons a bit higher
-			if (TSELEM_OPEN(tselem,soops))
+			if (TSELEM_OPEN(tselem, soops))
 				UI_icon_draw((float)icon_x, (float)*starty+2*ufac, ICON_DISCLOSURE_TRI_DOWN);
 			else
 				UI_icon_draw((float)icon_x, (float)*starty+2*ufac, ICON_DISCLOSURE_TRI_RIGHT);
@@ -1371,7 +1371,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		offsx+= (int)(UI_UNIT_X + UI_GetStringWidth(te->name));
 		
 		/* closed item, we draw the icons, not when it's a scene, or master-server list though */
-		if (!TSELEM_OPEN(tselem,soops)) {
+		if (!TSELEM_OPEN(tselem, soops)) {
 			if (te->subtree.first) {
 				if (tselem->type==0 && te->idcode==ID_SCE);
 				else if (tselem->type!=TSE_R_LAYER) { /* this tree element always has same amount of branches, so don't draw */
@@ -1397,7 +1397,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 	te->ys= (float)*starty;
 	te->xend= startx+offsx;
 		
-	if (TSELEM_OPEN(tselem,soops)) {
+	if (TSELEM_OPEN(tselem, soops)) {
 		*starty-= UI_UNIT_Y;
 		
 		for (ten= te->subtree.first; ten; ten= ten->next)
@@ -1430,7 +1430,7 @@ static void outliner_draw_hierarchy(SpaceOops *soops, ListBase *lb, int startx, 
 			
 		*starty-= UI_UNIT_Y;
 		
-		if (TSELEM_OPEN(tselem,soops))
+		if (TSELEM_OPEN(tselem, soops))
 			outliner_draw_hierarchy(soops, &te->subtree, startx+UI_UNIT_X, starty);
 	}
 	
@@ -1454,12 +1454,12 @@ static void outliner_draw_struct_marks(ARegion *ar, SpaceOops *soops, ListBase *
 		tselem= TREESTORE(te);
 		
 		/* selection status */
-		if (TSELEM_OPEN(tselem,soops))
+		if (TSELEM_OPEN(tselem, soops))
 			if (tselem->type == TSE_RNA_STRUCT)
 				glRecti(0, *starty+1, (int)ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, *starty+UI_UNIT_Y-1);
 
 		*starty-= UI_UNIT_Y;
-		if (TSELEM_OPEN(tselem,soops)) {
+		if (TSELEM_OPEN(tselem, soops)) {
 			outliner_draw_struct_marks(ar, soops, &te->subtree, starty);
 			if (tselem->type == TSE_RNA_STRUCT)
 				fdrawline(0, (float)*starty+UI_UNIT_Y, ar->v2d.cur.xmax+V2D_SCROLL_WIDTH, (float)*starty+UI_UNIT_Y);
@@ -1480,7 +1480,7 @@ static void outliner_draw_selection(ARegion *ar, SpaceOops *soops, ListBase *lb,
 			glRecti(0, *starty+1, (int)ar->v2d.cur.xmax, *starty+UI_UNIT_Y-1);
 		}
 		*starty-= UI_UNIT_Y;
-		if (TSELEM_OPEN(tselem,soops)) outliner_draw_selection(ar, soops, &te->subtree, starty);
+		if (TSELEM_OPEN(tselem, soops)) outliner_draw_selection(ar, soops, &te->subtree, starty);
 	}
 }
 

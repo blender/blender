@@ -155,7 +155,7 @@ static void rna_userdef_gl_use_16bit_textures(Main *bmain, Scene *scene, Pointer
 	rna_userdef_update(bmain, scene, ptr);
 }
 
-static void rna_userdef_select_mouse_set(PointerRNA *ptr,int value)
+static void rna_userdef_select_mouse_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
 
@@ -178,7 +178,7 @@ static int rna_userdef_autokeymode_get(PointerRNA *ptr)
 	return retval;
 }
 
-static void rna_userdef_autokeymode_set(PointerRNA *ptr,int value)
+static void rna_userdef_autokeymode_set(PointerRNA *ptr, int value)
 {
 	UserDef *userdef = (UserDef*)ptr->data;
 
@@ -1769,12 +1769,6 @@ static void rna_def_userdef_theme_space_seq(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Effect Strip", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
-	prop = RNA_def_property(srna, "plugin_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "plugin");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Plugin Strip", "");
-	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
 	prop = RNA_def_property(srna, "transition_strip", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "transition");
 	RNA_def_property_array(prop, 3);
@@ -2860,7 +2854,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 	/* locale according to http://www.roseindia.net/tutorials/I18N/locales-list.shtml */
 	/* if you edit here, please also edit the source/blender/blenfont/intern/blf_lang.c 's locales */
 	/* Note: As this list is in alphabetical order, and not defined order,
-	 *       here is the highest define currently in use: 30 (turkish). */
+	 *       here is the highest define currently in use: 31 (Hungarian). */
 	static EnumPropertyItem language_items[] = {
 		{ 0, "", 0, N_("Nearly done"), ""},
 		{ 0, "DEFAULT", 0, "Default (Default)", ""},
@@ -2878,20 +2872,21 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-/*		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},*/ /* XXX No po's yet. */
+/*		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"}, */ /* XXX No po's yet. */
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
+		{31, "HUNGARIAN", 0, "Hungarian (magyar)", "hu_HU"},
 		{27, "INDONESIAN", 0, "Indonesian (Bahasa indonesia)", "id_ID"},
 		{ 2, "JAPANESE", 0, "Japanese (日本語)", "ja_JP"},
 		{29, "KYRGYZ", 0, "Kyrgyz (Кыргыз тили)", "ky_KG"},
-/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"},*/ /* XXX No po's yet. */
+/*		{24, "KOREAN", 0, "Korean (한국 언어)", "ko_KR"}, */ /* XXX No po's yet. */
 		{25, "NEPALI", 0, "Nepali (नेपाली)", "ne_NP"},
 		/* using the utf8 flipped form of Persian (فارسی) */
 		{26, "PERSIAN", 0, "Persian (ﯽﺳﺭﺎﻓ)", "fa_IR"},
 		{19, "POLISH", 0, "Polish (Polski)", "pl_PL"},
 		{12, "BRAZILIAN_PORTUGUESE", 0, "Portuguese (Português)", "pt"},
-/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"},*/ /* XXX No po's yet. */
+/*		{20, "ROMANIAN", 0, "Romanian (Român)", "ro_RO"}, */ /* XXX No po's yet. */
 		{17, "SERBIAN", 0, "Serbian (Српски)", "sr_RS"},
 		{28, "SERBIAN_LATIN", 0, "Serbian latin (Srpski latinica)", "sr_RS@latin"},
 		{ 7, "SWEDISH", 0, "Swedish (Svenska)", "sv_SE"},
@@ -3372,15 +3367,6 @@ static void rna_def_userdef_filepaths(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "texture_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "textudir");
 	RNA_def_property_ui_text(prop, "Textures Directory", "The default directory to search for textures");
-
-	prop = RNA_def_property(srna, "texture_plugin_directory", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "plugtexdir");
-	RNA_def_property_ui_text(prop, "Texture Plugin Directory", "The default directory to search for texture plugins");
-
-	prop = RNA_def_property(srna, "sequence_plugin_directory", PROP_STRING, PROP_DIRPATH);
-	RNA_def_property_string_sdna(prop, NULL, "plugseqdir");
-	RNA_def_property_ui_text(prop, "Sequence Plugin Directory",
-	                         "The default directory to search for sequence plugins");
 
 	prop = RNA_def_property(srna, "render_output_directory", PROP_STRING, PROP_DIRPATH);
 	RNA_def_property_string_sdna(prop, NULL, "renderdir");

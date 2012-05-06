@@ -59,7 +59,7 @@ public:
 	
 private:
 	/** Disable default copy constructor. */
-	ExtraTags( const ExtraTags& pre );
+	ExtraTags(const ExtraTags& pre);
 	/** Disable default assignment operator. */
 	const ExtraTags& operator= ( const ExtraTags& pre );
 	

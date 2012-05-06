@@ -106,7 +106,7 @@ DocumentImporter::~DocumentImporter()
 {
 	TagsMap::iterator etit;
 	etit = uid_tags_map.begin();
-	while(etit!=uid_tags_map.end()) {
+	while (etit!=uid_tags_map.end()) {
 		delete etit->second;
 		etit++;
 	}
@@ -178,7 +178,7 @@ void DocumentImporter::finish()
 		system = RNA_struct_find_property(&unit_settings, "system");
 		scale = RNA_struct_find_property(&unit_settings, "scale_length");
 		
-		switch(unit_converter.isMetricSystem()) {
+		switch (unit_converter.isMetricSystem()) {
 			case UnitConverter::Metric:
 				RNA_property_enum_set(&unit_settings, system, USER_UNIT_METRIC);
 				break;
@@ -208,7 +208,7 @@ void DocumentImporter::finish()
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
 		for (unsigned int i = 0; i < roots.getCount(); i++)
-			translate_anim_recursive(roots[i],NULL,NULL);
+			translate_anim_recursive(roots[i], NULL, NULL);
 	}
 
 	if (libnode_ob.size()) {
@@ -396,7 +396,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		if ( par ) {
 		Object * empty = par;
 		par = add_object(sce, OB_ARMATURE);
-		bc_set_parent(par,empty->parent, mContext);
+		bc_set_parent(par, empty->parent, mContext);
 		//remove empty : todo
 		object_map[parent_node->getUniqueId()] = par;
 		}
@@ -744,8 +744,7 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	
 	Material *ma = uid_effect_map[uid];
 	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
-	for (iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ )
-	{
+	for (iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ ) {
 		if ( iter->second == ma ) {
 			this->FW_object_map[iter->first] = effect;
 			break;
@@ -789,7 +788,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	cam->clipend = camera->getFarClippingPlane().getValue();
 	
 	COLLADAFW::Camera::CameraType type = camera->getCameraType();
-	switch(type) {
+	switch (type) {
 	case COLLADAFW::Camera::ORTHOGRAPHIC:
 		{
 			cam->type = CAM_ORTHO;
@@ -808,10 +807,10 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 		break;
 	}
 	
-	switch(camera->getDescriptionType()) {
+	switch (camera->getDescriptionType()) {
 	case COLLADAFW::Camera::ASPECTRATIO_AND_Y:
 		{
-			switch(cam->type) {
+			switch (cam->type) {
 				case CAM_ORTHO:
 					{
 						double ymag = camera->getYMag().getValue();
@@ -839,7 +838,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	case COLLADAFW::Camera::SINGLE_X:
 	case COLLADAFW::Camera::X_AND_Y:
 		{
-			switch(cam->type) {
+			switch (cam->type) {
 				case CAM_ORTHO:
 					cam->ortho_scale = (float)camera->getXMag().getValue();
 					break;
@@ -856,7 +855,7 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 		break;
 	case COLLADAFW::Camera::SINGLE_Y:
 		{
-			switch(cam->type) {
+			switch (cam->type) {
 				case CAM_ORTHO:
 					cam->ortho_scale = (float)camera->getYMag().getValue();
 					break;
@@ -1030,7 +1029,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 		lamp->dist = d;
 
 		COLLADAFW::Light::LightType type = light->getLightType();
-		switch(type) {
+		switch (type) {
 			case COLLADAFW::Light::AMBIENT_LIGHT:
 				{
 					lamp->type = LA_HEMI;

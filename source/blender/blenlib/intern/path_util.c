@@ -135,7 +135,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	if (found) {
 		if (tail) strcpy(tail, &string[nume+1]);
 		if (head) {
-			strcpy(head,string);
+			strcpy(head, string);
 			head[nums]=0;
 		}
 		if (numlen) *numlen = nume-nums+1;
@@ -364,12 +364,12 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		}
 	}
 
-	while ( (start = strstr(dir,"\\.\\")) ) {
+	while ( (start = strstr(dir, "\\.\\")) ) {
 		eind = start + strlen("\\.\\") - 1;
 		memmove(start, eind, strlen(eind) + 1);
 	}
 
-	while ( (start = strstr(dir,"\\\\" )) ) {
+	while ( (start = strstr(dir, "\\\\" )) ) {
 		eind = start + strlen("\\\\") - 1;
 		memmove(start, eind, strlen(eind) + 1);
 	}
@@ -402,12 +402,12 @@ void BLI_cleanup_path(const char *relabase, char *dir)
 		}
 	}
 
-	while ( (start = strstr(dir,"/./")) ) {
+	while ( (start = strstr(dir, "/./")) ) {
 		eind = start + (3 - 1) /* strlen("/./") - 1 */;
 		memmove(start, eind, strlen(eind) + 1);
 	}
 
-	while ( (start = strstr(dir,"//" )) ) {
+	while ( (start = strstr(dir, "//" )) ) {
 		eind = start + (2 - 1) /* strlen("//") - 1 */;
 		memmove(start, eind, strlen(eind) + 1);
 	}
@@ -758,7 +758,7 @@ int BLI_path_cwd(char *path)
 		BLI_current_working_dir(cwd, sizeof(cwd)); /* in case the full path to the blend isn't used */
 		
 		if (cwd[0] == '\0') {
-			printf( "Could not get the current working directory - $PWD for an unknown reason.");
+			printf("Could not get the current working directory - $PWD for an unknown reason.\n");
 		}
 		else {
 			/* uses the blend path relative to cwd important for loading relative linked files.
@@ -835,7 +835,7 @@ const char *BLI_getDefaultDocumentFolder(void)
 		HRESULT hResult;
 
 		/* Check for %HOME% env var */
-		if (uput_getenv("HOME",documentfolder,MAXPATHLEN)) {
+		if (uput_getenv("HOME", documentfolder, MAXPATHLEN)) {
 			if (BLI_is_dir(documentfolder)) return documentfolder;
 		}
 				
@@ -1156,7 +1156,7 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check)
 {
 	static char path[FILE_MAX] = "";
 	int ok;
-	switch(id) {
+	switch (id) {
 	case BLENDER_RESOURCE_PATH_USER:
 		ok= get_path_user(path, NULL, NULL, NULL, ver);
 		break;
@@ -1265,7 +1265,7 @@ void BLI_make_exist(char *dir)
 #ifdef WIN32
 			get_default_root(dir);
 #else
-			strcpy(dir,"/");
+			strcpy(dir, "/");
 #endif
 			break;
 		}
@@ -1787,7 +1787,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 	
 #ifdef WITH_BINRELOC
 	/* linux uses binreloc since argv[0] is not reliable, call br_init( NULL ) first */
-	path = br_find_exe( NULL );
+	path = br_find_exe(NULL);
 	if (path) {
 		BLI_strncpy(fullname, path, maxlen);
 		free((void *)path);
@@ -1798,7 +1798,7 @@ static void bli_where_am_i(char *fullname, const size_t maxlen, const char *name
 #ifdef _WIN32
 	wchar_t * fullname_16 = MEM_mallocN(maxlen*sizeof(wchar_t), "ProgramPath");
 	if (GetModuleFileNameW(0, fullname_16, maxlen)) {
-		conv_utf_16_to_8(fullname_16,fullname, maxlen);
+		conv_utf_16_to_8(fullname_16, fullname, maxlen);
 		if (!BLI_exists(fullname)) {
 			printf("path can't be found: \"%.*s\"\n", maxlen, fullname);
 			MessageBox(NULL, "path contains invalid characters or is too long (see console)", "Error", MB_OK);

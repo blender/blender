@@ -777,7 +777,7 @@ int CTX_data_mode_enum(const bContext *C)
 	Object *obedit= CTX_data_edit_object(C);
 
 	if (obedit) {
-		switch(obedit->type) {
+		switch (obedit->type) {
 			case OB_MESH:
 				return CTX_MODE_EDIT_MESH;
 			case OB_CURVE:
