@@ -4318,17 +4318,31 @@ bConstraintTypeInfo *constraint_get_typeinfo (bConstraint *con)
  
 /* ---------- Data Management ------- */
 
+/* helper function for free_constraint_data() - unlinks references */
+static void con_unlink_refs_cb(bConstraint *UNUSED(con), ID **idpoin, short isReference, void *UNUSED(userData))
+{
+	if (*idpoin && isReference)
+		id_us_min(*idpoin);
+}
+
 /* Free data of a specific constraint if it has any info.
  * be sure to run BIK_clear_data() when freeing an IK constraint,
- * unless DAG_scene_sort is called. */
+ * unless DAG_scene_sort is called. 
+ */
 void free_constraint_data(bConstraint *con)
 {
 	if (con->data) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 		
-		/* perform any special freeing constraint may have */
-		if (cti && cti->free_data)
-			cti->free_data(con);
+		if (cti) {
+			/* perform any special freeing constraint may have */
+			if (cti->free_data)
+				cti->free_data(con);
+				
+			/* unlink the referenced resources it uses */
+			if (cti->id_looper)
+				cti->id_looper(con, con_unlink_refs_cb, NULL);
+		}
 		
 		/* free constraint data now */
 		MEM_freeN(con->data);
