@@ -197,6 +197,7 @@ void ED_pose_recalculate_paths(Scene *scene, Object *ob)
 	BLI_freelistN(&targets);
 }
 
+
 /* show popup to determine settings */
 static int pose_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {	
@@ -287,6 +288,41 @@ void POSE_OT_paths_calculate(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "bake_location", motionpath_bake_location_items, 0, 
 	             "Bake Location", 
 				 "Which point on the bones is used when calculating paths");
+}
+
+/* --------- */
+
+static int pose_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Scene *scene = CTX_data_scene(C);
+	
+	if (ELEM(NULL, ob, scene))
+		return OPERATOR_CANCELLED;
+		
+	/* calculate the bones that now have motionpaths... */
+	// TODO: only make for the selected bones?
+	ED_pose_recalculate_paths(scene, ob);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void POSE_OT_paths_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Update Bone Paths";
+	ot->idname = "POSE_OT_paths_update";
+	ot->description = "Recalculate paths for bones that already have them";
+	
+	/* api callbakcs */
+	ot->exec = pose_update_paths_exec;
+	ot->poll = ED_operator_posemode; /* TODO: this should probably check for active bone and/or existing paths */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------- */

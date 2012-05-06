@@ -1125,6 +1125,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	BLI_freelistN(&targets);
 }
 
+
 /* show popup to determine settings */
 static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
@@ -1196,6 +1197,39 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 	            "First frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
 	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End", 
 	            "Last frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
+}
+
+/* --------- */
+
+static int object_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	
+	if (scene == NULL)
+		return OPERATOR_CANCELLED;
+		
+	/* calculate the paths for objects that have them (and are tagged to get refreshed) */
+	ED_objects_recalculate_paths(C, scene);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_paths_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Update Object Paths";
+	ot->idname = "OBJECT_OT_paths_update";
+	ot->description = "Recalculate paths for selected objects";
+	
+	/* api callbakcs */
+	ot->exec = object_update_paths_exec;
+	ot->poll = ED_operator_object_active_editable; /* TODO: this should probably check for existing paths */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 /* --------- */
