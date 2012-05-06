@@ -1475,51 +1475,83 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 	return items;
 }
 
+
+static size_t animdata_filter_ds_material (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Material *ma, int filter_mode)
+{
+	ListBase tmp_data = {NULL, NULL};
+	size_t tmp_items = 0;
+	size_t items = 0;
+	
+	/* add material's animation data to temp collection */
+	BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_MAT_OBJD(ma))
+	{
+		/* material's animation data */
+		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
+			
+		/* textures */
+		if (!(ads->filterflag & ADS_FILTER_NOTEX))
+			tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
+			
+		/* nodes */
+		if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
+			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
+	}
+	END_ANIMFILTER_SUBCHANNELS;
+	
+	/* did we find anything? */
+	if (tmp_items) {
+		/* include material-expand widget first */
+		// hmm... do we need to store the index of this material in the array anywhere?
+		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+			/* check if filtering by active status */
+			if (ANIMCHANNEL_ACTIVEOK(ma)) {
+				ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
+			}
+		}
+		
+		/* now add the list of collected channels */
+		BLI_movelisttolist(anim_data, &tmp_data);
+		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+		items += tmp_items;
+	}
+	
+	return items;
+}
+
 static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
-	size_t items=0;
-	int a=0;
+	short has_nested = 0;
+	size_t items = 0;
+	int a = 0;
 	
-	/* firstly check that we actuallly have some materials, by gathering all materials in a temp list */
-	for (a=1; a <= ob->totcol; a++) {
-		Material *ma= give_current_material(ob, a);
-		ListBase tmp_data = {NULL, NULL};
-		size_t tmp_items = 0;
+	/* first pass: take the materials referenced via the Material slots of the object */
+	for (a = 1; a <= ob->totcol; a++) {
+		Material *ma = give_current_material(ob, a);
 		
-		/* if no material returned, skip - so that we don't get weird blank entries... */
-		if (ma == NULL) continue;
-		
-		/* add material's animation data to temp collection */
-		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_MAT_OBJD(ma))
-		{
-			/* material's animation data */
-			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
-				
-			/* textures */
-			if (!(ads->filterflag & ADS_FILTER_NOTEX))
-				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
-				
-			/* nodes */
-			if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
-				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
-		}
-		END_ANIMFILTER_SUBCHANNELS;
-		
-		/* did we find anything? */
-		if (tmp_items) {
-			/* include material-expand widget first */
-			// hmm... do we need to store the index of this material in the array anywhere?
-			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-				/* check if filtering by active status */
-				if (ANIMCHANNEL_ACTIVEOK(ma)) {
-					ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
-				}
-			}
+		/* if material is valid, try to add relevant contents from here */
+		if (ma) {
+			/* add channels */
+			items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
 			
-			/* now add the list of collected channels */
-			BLI_movelisttolist(anim_data, &tmp_data);
-			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
-			items += tmp_items;
+			/* for optimising second pass - check if there's a nested material here to come back for */
+			if (has_nested == 0)
+				has_nested = give_node_material(ma) != NULL;
+		}
+	}
+	
+	/* second pass: go through a second time looking for "nested" materials (material.material references)
+	 *
+	 * NOTE: here we ignore the expanded status of the parent, as it could be too confusing as to why these are
+	 *       disappearing/not available, since the relationships between these is not that clear
+	 */
+	if (has_nested) {
+		for (a = 1; a <= ob->totcol; a++) {
+			Material *base = give_current_material(ob, a);
+			Material *ma   = give_node_material(base);
+			
+			/* add channels from the nested material if it exists */
+			if (ma)
+				items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
 		}
 	}
 	
