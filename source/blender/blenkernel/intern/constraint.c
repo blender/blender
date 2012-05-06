@@ -648,7 +648,6 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 	"ConstrName", /* name */
 	"bConstrNameConstraint", /* struct name */
 	constrname_free, /* free data */
-	constrname_relink, /* relink data */
 	constrname_id_looper, /* id looper */
 	constrname_copy, /* copy data */
 	constrname_new_data, /* new data */
@@ -874,7 +873,7 @@ static void childof_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 			 */
 			copy_m4_m4(tempmat, cob->matrix);
 			mult_m4_m4m4(cob->matrix, parmat, tempmat);
-
+			
 			/* without this, changes to scale and rotation can change location
 			 * of a parentless bone or a disconnected bone. Even though its set
 			 * to zero above. */
@@ -892,7 +891,6 @@ static bConstraintTypeInfo CTI_CHILDOF = {
 	"ChildOf", /* name */
 	"bChildOfConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	childof_id_looper, /* id looper */
 	NULL, /* copy data */
 	childof_new_data, /* new data */
@@ -1070,7 +1068,6 @@ static bConstraintTypeInfo CTI_TRACKTO = {
 	"TrackTo", /* name */
 	"bTrackToConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	trackto_id_looper, /* id looper */
 	NULL, /* copy data */
 	trackto_new_data, /* new data */
@@ -1164,7 +1161,6 @@ static bConstraintTypeInfo CTI_KINEMATIC = {
 	"IK", /* name */
 	"bKinematicConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	kinematic_id_looper, /* id looper */
 	NULL, /* copy data */
 	kinematic_new_data, /* new data */
@@ -1350,7 +1346,6 @@ static bConstraintTypeInfo CTI_FOLLOWPATH = {
 	"Follow Path", /* name */
 	"bFollowPathConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	followpath_id_looper, /* id looper */
 	NULL, /* copy data */
 	followpath_new_data, /* new data */
@@ -1399,7 +1394,6 @@ static bConstraintTypeInfo CTI_LOCLIMIT = {
 	"Limit Location", /* name */
 	"bLocLimitConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -1457,7 +1451,6 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 	"Limit Rotation", /* name */
 	"bRotLimitConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -1517,7 +1510,6 @@ static bConstraintTypeInfo CTI_SIZELIMIT = {
 	"Limit Scaling", /* name */
 	"bSizeLimitConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	NULL, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -1608,7 +1600,6 @@ static bConstraintTypeInfo CTI_LOCLIKE = {
 	"Copy Location", /* name */
 	"bLocateLikeConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	loclike_id_looper, /* id looper */
 	NULL, /* copy data */
 	loclike_new_data, /* new data */
@@ -1721,7 +1712,6 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 	"Copy Rotation", /* name */
 	"bRotateLikeConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	rotlike_id_looper, /* id looper */
 	NULL, /* copy data */
 	rotlike_new_data, /* new data */
@@ -1818,7 +1808,6 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 	"Copy Scale", /* name */
 	"bSizeLikeConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	sizelike_id_looper, /* id looper */
 	NULL, /* copy data */
 	sizelike_new_data, /* new data */
@@ -1880,7 +1869,6 @@ static bConstraintTypeInfo CTI_TRANSLIKE = {
 	"Copy Transforms", /* name */
 	"bTransLikeConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	translike_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -1937,7 +1925,6 @@ static bConstraintTypeInfo CTI_SAMEVOL = {
 	"Maintain Volume", /* name */
 	"bSameVolumeConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	NULL, /* id looper */
 	NULL, /* copy data */
 	samevolume_new_data, /* new data */
@@ -1960,13 +1947,6 @@ static void pycon_free (bConstraint *con)
 	/* multiple targets */
 	BLI_freelistN(&data->targets);
 }	
-
-static void pycon_relink (bConstraint *con)
-{
-	bPythonConstraint *data= con->data;
-	
-	ID_NEW(data->text);
-}
 
 static void pycon_copy (bConstraint *con, bConstraint *srccon)
 {
@@ -2076,7 +2056,6 @@ static bConstraintTypeInfo CTI_PYTHON = {
 	"Script", /* name */
 	"bPythonConstraint", /* struct name */
 	pycon_free, /* free data */
-	pycon_relink, /* relink data */
 	pycon_id_looper, /* id looper */
 	pycon_copy, /* copy data */
 	pycon_new_data, /* new data */
@@ -2087,12 +2066,6 @@ static bConstraintTypeInfo CTI_PYTHON = {
 };
 
 /* -------- Action Constraint ----------- */
-
-static void actcon_relink (bConstraint *con)
-{
-	bActionConstraint *data= con->data;
-	ID_NEW(data->act);
-}
 
 static void actcon_new_data (void *cdata)
 {
@@ -2248,7 +2221,6 @@ static bConstraintTypeInfo CTI_ACTION = {
 	"Action", /* name */
 	"bActionConstraint", /* struct name */
 	NULL, /* free data */
-	actcon_relink, /* relink data */
 	actcon_id_looper, /* id looper */
 	NULL, /* copy data */
 	actcon_new_data, /* new data */
@@ -2560,7 +2532,6 @@ static bConstraintTypeInfo CTI_LOCKTRACK = {
 	"Locked Track", /* name */
 	"bLockTrackConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	locktrack_id_looper, /* id looper */
 	NULL, /* copy data */
 	locktrack_new_data, /* new data */
@@ -2685,7 +2656,6 @@ static bConstraintTypeInfo CTI_DISTLIMIT = {
 	"Limit Distance", /* name */
 	"bDistLimitConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	distlimit_id_looper, /* id looper */
 	NULL, /* copy data */
 	distlimit_new_data, /* new data */
@@ -2860,7 +2830,6 @@ static bConstraintTypeInfo CTI_STRETCHTO = {
 	"Stretch To", /* name */
 	"bStretchToConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	stretchto_id_looper, /* id looper */
 	NULL, /* copy data */
 	stretchto_new_data, /* new data */
@@ -3005,7 +2974,6 @@ static bConstraintTypeInfo CTI_MINMAX = {
 	"Floor", /* name */
 	"bMinMaxConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	minmax_id_looper, /* id looper */
 	NULL, /* copy data */
 	minmax_new_data, /* new data */
@@ -3066,7 +3034,6 @@ static bConstraintTypeInfo CTI_RIGIDBODYJOINT = {
 	"Rigid Body Joint", /* name */
 	"bRigidBodyJointConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	rbj_id_looper, /* id looper */
 	NULL, /* copy data */
 	rbj_new_data, /* new data */
@@ -3242,7 +3209,6 @@ static bConstraintTypeInfo CTI_CLAMPTO = {
 	"Clamp To", /* name */
 	"bClampToConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	clampto_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -3389,7 +3355,6 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
 	"Transform", /* name */
 	"bTransformConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	transform_id_looper, /* id looper */
 	NULL, /* copy data */
 	transform_new_data, /* new data */
@@ -3547,7 +3512,6 @@ static bConstraintTypeInfo CTI_SHRINKWRAP = {
 	"Shrinkwrap", /* name */
 	"bShrinkwrapConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	shrinkwrap_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */
@@ -3675,7 +3639,6 @@ static bConstraintTypeInfo CTI_DAMPTRACK = {
 	"Damped Track", /* name */
 	"bDampTrackConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	damptrack_id_looper, /* id looper */
 	NULL, /* copy data */
 	damptrack_new_data, /* new data */
@@ -3773,7 +3736,6 @@ static bConstraintTypeInfo CTI_SPLINEIK = {
 	"Spline IK", /* name */
 	"bSplineIKConstraint", /* struct name */
 	splineik_free, /* free data */
-	NULL, /* relink data */
 	splineik_id_looper, /* id looper */
 	splineik_copy, /* copy data */
 	splineik_new_data, /* new data */
@@ -3898,7 +3860,6 @@ static bConstraintTypeInfo CTI_PIVOT = {
 	"Pivot", /* name */
 	"bPivotConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	pivotcon_id_looper, /* id looper */
 	NULL, /* copy data */
 	NULL, /* new data */ // XXX: might be needed to get 'normal' pivot behavior...
@@ -4092,7 +4053,6 @@ static bConstraintTypeInfo CTI_FOLLOWTRACK = {
 	"Follow Track", /* name */
 	"bFollowTrackConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	followtrack_id_looper, /* id looper */
 	NULL, /* copy data */
 	followtrack_new_data, /* new data */
@@ -4147,7 +4107,6 @@ static bConstraintTypeInfo CTI_CAMERASOLVER = {
 	"Camera Solver", /* name */
 	"bCameraSolverConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	camerasolver_id_looper, /* id looper */
 	NULL, /* copy data */
 	camerasolver_new_data, /* new data */
@@ -4221,7 +4180,6 @@ static bConstraintTypeInfo CTI_OBJECTSOLVER = {
 	"Object Solver", /* name */
 	"bObjectSolverConstraint", /* struct name */
 	NULL, /* free data */
-	NULL, /* relink data */
 	objectsolver_id_looper, /* id looper */
 	NULL, /* copy data */
 	objectsolver_new_data, /* new data */
@@ -4501,35 +4459,26 @@ bConstraint *add_ob_constraint(Object *ob, const char *name, short type)
 
 /* ......... */
 
+/* helper for relink_constraints() - call ID_NEW() on every ID reference the constraint has */
+static void con_relink_id_cb(bConstraint *UNUSED(con), ID **idpoin, short UNUSED(isReference), void *UNUSED(userdata))
+{
+	/* ID_NEW() expects a struct with inline "id" member as first
+	 * since we've got the actual ID block, let's just inline this
+	 * code. 
+	 *
+	 * See ID_NEW(a) in BKE_utildefines.h
+	 */
+	if ((*idpoin) && (*idpoin)->newid)
+		(*idpoin) = (void *)(*idpoin)->newid;
+}
+
 /* Reassign links that constraints have to other data (called during file loading?) */
 void relink_constraints(ListBase *conlist)
 {
-	bConstraint *con;
-	bConstraintTarget *ct;
-	
-	for (con= conlist->first; con; con= con->next) {
-		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-		
-		if (cti) {
-			/* relink any targets */
-			if (cti->get_constraint_targets) {
-				ListBase targets = {NULL, NULL};
-				
-				cti->get_constraint_targets(con, &targets);
-				for (ct= targets.first; ct; ct= ct->next) {
-					ID_NEW(ct->tar);
-				}
-				
-				if (cti->flush_constraint_targets)
-					cti->flush_constraint_targets(con, &targets, 0);
-			}
-			
-			/* relink any other special data */
-			if (cti->relink_data)
-				cti->relink_data(con);
-		}
-	}
+	/* just a wrapper around ID-loop for just calling ID_NEW() on all ID refs */
+	id_loop_constraints(conlist, con_relink_id_cb, NULL);
 }
+
 
 /* Run the given callback on all ID-blocks in list of constraints */
 void id_loop_constraints(ListBase *conlist, ConstraintIDFunc func, void *userdata)
