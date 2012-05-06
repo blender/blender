@@ -135,7 +135,9 @@ class ShowHideMenu():
         layout.operator("%s.hide" % self._operator_name, text="Hide Unselected").unselected = True
 
 
-class VIEW3D_MT_transform(Menu):
+# Standard transforms which apply to all cases
+# NOTE: this doesn't seem to be able to be used directly
+class VIEW3D_MT_transform_base(Menu):
     bl_label = "Transform"
 
     # TODO: get rid of the custom text strings?
@@ -156,22 +158,38 @@ class VIEW3D_MT_transform(Menu):
         layout.operator("transform.warp", text="Warp")
         layout.operator("transform.push_pull", text="Push/Pull")
 
+
+# Generic transform menu - geometry types
+class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # generic...
+        layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
         layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
 
+
+# Object-specific extensions to Transform menu
+class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # object-specific option follow...
+        layout = self.layout
         layout.separator()
 
-        obj = context.object
-        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and obj.data.draw_type in {'BBONE', 'ENVELOPE'}:
-            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
-
-        if context.edit_object and context.edit_object.type == 'ARMATURE':
-            layout.operator("armature.align")
-        else:
-            layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
+        layout.operator("transform.translate", text="Move Texture Space").texture_space = True
+        layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
+        
+        layout.separator()
+        
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
@@ -189,6 +207,25 @@ class VIEW3D_MT_transform(Menu):
         layout.separator()
 
         layout.operator("object.anim_transforms_to_deltas")
+
+
+# Armature EditMode extensions to Transform menu
+class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # armature specific extensions follow...
+        layout = self.layout
+        layout.separator()
+
+        obj = context.object
+        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and 
+            obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
+            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
+
+        if context.edit_object and context.edit_object.type == 'ARMATURE':
+            layout.operator("armature.align")
 
 
 class VIEW3D_MT_mirror(Menu):
@@ -704,7 +741,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_object")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
@@ -1322,7 +1359,7 @@ class VIEW3D_MT_pose(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_armature")
 
         layout.menu("VIEW3D_MT_pose_transform")
         layout.menu("VIEW3D_MT_pose_apply")
@@ -2077,7 +2114,7 @@ class VIEW3D_MT_edit_armature(Menu):
         edit_object = context.edit_object
         arm = edit_object.data
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_armature")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_edit_armature_roll")
