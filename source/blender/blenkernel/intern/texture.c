@@ -1492,7 +1492,7 @@ void BKE_free_pointdensity(PointDensity *pd)
 
 /* ------------------------------------------------------------------------- */
 
-void BKE_free_voxeldatadata(struct VoxelData *vd)
+void BKE_free_voxeldatadata(VoxelData *vd)
 {
 	if (vd->dataset) {
 		MEM_freeN(vd->dataset);
@@ -1501,17 +1501,17 @@ void BKE_free_voxeldatadata(struct VoxelData *vd)
 
 }
  
-void BKE_free_voxeldata(struct VoxelData *vd)
+void BKE_free_voxeldata(VoxelData *vd)
 {
 	BKE_free_voxeldatadata(vd);
 	MEM_freeN(vd);
 }
  
-struct VoxelData *BKE_add_voxeldata(void)
+VoxelData *BKE_add_voxeldata(void)
 {
 	VoxelData *vd;
 
-	vd = MEM_callocN(sizeof(struct VoxelData), "voxeldata");
+	vd = MEM_callocN(sizeof(VoxelData), "voxeldata");
 	vd->dataset = NULL;
 	vd->resol[0] = vd->resol[1] = vd->resol[2] = 1;
 	vd->interp_type = TEX_VD_LINEAR;
@@ -1525,7 +1525,7 @@ struct VoxelData *BKE_add_voxeldata(void)
 	return vd;
 }
  
-struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
+VoxelData *BKE_copy_voxeldata(VoxelData *vd)
 {
 	VoxelData *vdn;
 
@@ -1537,7 +1537,7 @@ struct VoxelData *BKE_copy_voxeldata(struct VoxelData *vd)
 
 /* ------------------------------------------------------------------------- */
 
-struct OceanTex *BKE_add_oceantex(void)
+OceanTex *BKE_add_oceantex(void)
 {
 	OceanTex *ot;
 	
@@ -1548,7 +1548,7 @@ struct OceanTex *BKE_add_oceantex(void)
 	return ot;
 }
 
-struct OceanTex *BKE_copy_oceantex(struct OceanTex *ot)
+OceanTex *BKE_copy_oceantex(struct OceanTex *ot)
 {
 	OceanTex *otn = MEM_dupallocN(ot);
 	

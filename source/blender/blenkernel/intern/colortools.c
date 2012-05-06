@@ -62,9 +62,9 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	int a;
 	float clipminx, clipminy, clipmaxx, clipmaxy;
 	
-	cumap= MEM_callocN(sizeof(CurveMapping), "new curvemap");
-	cumap->flag= CUMA_DO_CLIP;
-	if (tot==4) cumap->cur= 3;		/* rhms, hack for 'col' curve? */
+	cumap = MEM_callocN(sizeof(CurveMapping), "new curvemap");
+	cumap->flag = CUMA_DO_CLIP;
+	if (tot == 4) cumap->cur = 3;   /* rhms, hack for 'col' curve? */
 	
 	clipminx = MIN2(minx, maxx);
 	clipminy = MIN2(miny, maxy);
@@ -72,20 +72,20 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 	clipmaxy = MAX2(miny, maxy);
 	
 	BLI_init_rctf(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
-	cumap->clipr= cumap->curr;
+	cumap->clipr = cumap->curr;
 	
-	cumap->white[0]= cumap->white[1]= cumap->white[2]= 1.0f;
-	cumap->bwmul[0]= cumap->bwmul[1]= cumap->bwmul[2]= 1.0f;
+	cumap->white[0] = cumap->white[1] = cumap->white[2] = 1.0f;
+	cumap->bwmul[0] = cumap->bwmul[1] = cumap->bwmul[2] = 1.0f;
 	
-	for (a=0; a<tot; a++) {
-		cumap->cm[a].flag= CUMA_EXTEND_EXTRAPOLATE;
-		cumap->cm[a].totpoint= 2;
-		cumap->cm[a].curve= MEM_callocN(2*sizeof(CurveMapPoint), "curve points");
-		
-		cumap->cm[a].curve[0].x= minx;
-		cumap->cm[a].curve[0].y= miny;
-		cumap->cm[a].curve[1].x= maxx;
-		cumap->cm[a].curve[1].y= maxy;
+	for (a = 0; a < tot; a++) {
+		cumap->cm[a].flag = CUMA_EXTEND_EXTRAPOLATE;
+		cumap->cm[a].totpoint = 2;
+		cumap->cm[a].curve = MEM_callocN(2 * sizeof(CurveMapPoint), "curve points");
+
+		cumap->cm[a].curve[0].x = minx;
+		cumap->cm[a].curve[0].y = miny;
+		cumap->cm[a].curve[1].x = maxx;
+		cumap->cm[a].curve[1].y = maxy;
 	}	
 
 	cumap->changed_timestamp = 0;
@@ -98,7 +98,7 @@ void curvemapping_free(CurveMapping *cumap)
 	int a;
 	
 	if (cumap) {
-		for (a=0; a<CM_TOT; a++) {
+		for (a = 0; a < CM_TOT; a++) {
 			if (cumap->cm[a].curve) MEM_freeN(cumap->cm[a].curve);
 			if (cumap->cm[a].table) MEM_freeN(cumap->cm[a].table);
 			if (cumap->cm[a].premultable) MEM_freeN(cumap->cm[a].premultable);
@@ -112,14 +112,14 @@ CurveMapping *curvemapping_copy(CurveMapping *cumap)
 	int a;
 	
 	if (cumap) {
-		CurveMapping *cumapn= MEM_dupallocN(cumap);
-		for (a=0; a<CM_TOT; a++) {
+		CurveMapping *cumapn = MEM_dupallocN(cumap);
+		for (a = 0; a < CM_TOT; a++) {
 			if (cumap->cm[a].curve) 
-				cumapn->cm[a].curve= MEM_dupallocN(cumap->cm[a].curve);
+				cumapn->cm[a].curve = MEM_dupallocN(cumap->cm[a].curve);
 			if (cumap->cm[a].table) 
-				cumapn->cm[a].table= MEM_dupallocN(cumap->cm[a].table);
+				cumapn->cm[a].table = MEM_dupallocN(cumap->cm[a].table);
 			if (cumap->cm[a].premultable) 
-				cumapn->cm[a].premultable= MEM_dupallocN(cumap->cm[a].premultable);
+				cumapn->cm[a].premultable = MEM_dupallocN(cumap->cm[a].premultable);
 		}
 		return cumapn;
 	}
@@ -135,11 +135,11 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 	if (black)
 		copy_v3_v3(cumap->black, black);
 	
-	for (a=0; a<3; a++) {
-		if (cumap->white[a]==cumap->black[a])
-			cumap->bwmul[a]= 0.0f;
+	for (a = 0; a < 3; a++) {
+		if (cumap->white[a] == cumap->black[a])
+			cumap->bwmul[a] = 0.0f;
 		else
-			cumap->bwmul[a]= 1.0f/(cumap->white[a] - cumap->black[a]);
+			cumap->bwmul[a] = 1.0f / (cumap->white[a] - cumap->black[a]);
 	}	
 }
 
@@ -149,52 +149,52 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 /* removes with flag set */
 void curvemap_remove(CurveMap *cuma, int flag)
 {
-	CurveMapPoint *cmp= MEM_mallocN((cuma->totpoint)*sizeof(CurveMapPoint), "curve points");
-	int a, b, removed=0;
+	CurveMapPoint *cmp = MEM_mallocN((cuma->totpoint) * sizeof(CurveMapPoint), "curve points");
+	int a, b, removed = 0;
 	
 	/* well, lets keep the two outer points! */
-	cmp[0]= cuma->curve[0];
-	for (a=1, b=1; a<cuma->totpoint-1; a++) {
+	cmp[0] = cuma->curve[0];
+	for (a = 1, b = 1; a < cuma->totpoint - 1; a++) {
 		if (!(cuma->curve[a].flag & flag)) {
-			cmp[b]= cuma->curve[a];
+			cmp[b] = cuma->curve[a];
 			b++;
 		}
 		else removed++;
 	}
-	cmp[b]= cuma->curve[a];
+	cmp[b] = cuma->curve[a];
 	
 	MEM_freeN(cuma->curve);
-	cuma->curve= cmp;
+	cuma->curve = cmp;
 	cuma->totpoint -= removed;
 }
 
 void curvemap_insert(CurveMap *cuma, float x, float y)
 {
-	CurveMapPoint *cmp= MEM_callocN((cuma->totpoint+1)*sizeof(CurveMapPoint), "curve points");
-	int a, b, foundloc= 0;
+	CurveMapPoint *cmp = MEM_callocN((cuma->totpoint + 1) * sizeof(CurveMapPoint), "curve points");
+	int a, b, foundloc = 0;
 		
 	/* insert fragments of the old one and the new point to the new curve */
 	cuma->totpoint++;
-	for (a=0, b=0; a<cuma->totpoint; a++) {
+	for (a = 0, b = 0; a < cuma->totpoint; a++) {
 		if ((x < cuma->curve[a].x) && !foundloc) {
-			cmp[a].x= x;
-			cmp[a].y= y;
-			cmp[a].flag= CUMA_SELECT;
-			foundloc= 1;
+			cmp[a].x = x;
+			cmp[a].y = y;
+			cmp[a].flag = CUMA_SELECT;
+			foundloc = 1;
 		}
 		else {
-			cmp[a].x= cuma->curve[b].x;
-			cmp[a].y= cuma->curve[b].y;
-			cmp[a].flag= cuma->curve[b].flag;
+			cmp[a].x = cuma->curve[b].x;
+			cmp[a].y = cuma->curve[b].y;
+			cmp[a].flag = cuma->curve[b].flag;
 			cmp[a].flag &= ~CUMA_SELECT; /* make sure old points don't remain selected */
-			cmp[a].shorty= cuma->curve[b].shorty;
+			cmp[a].shorty = cuma->curve[b].shorty;
 			b++;
 		}
 	}
 
 	/* free old curve and replace it with new one */
 	MEM_freeN(cuma->curve);
-	cuma->curve= cmp;
+	cuma->curve = cmp;
 }
 
 void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
@@ -203,91 +203,91 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 		MEM_freeN(cuma->curve);
 
 	switch (preset) {
-		case CURVE_PRESET_LINE: cuma->totpoint= 2; break;
-		case CURVE_PRESET_SHARP: cuma->totpoint= 4; break;
-		case CURVE_PRESET_SMOOTH: cuma->totpoint= 4; break;
-		case CURVE_PRESET_MAX: cuma->totpoint= 2; break;
-		case CURVE_PRESET_MID9: cuma->totpoint= 9; break;
-		case CURVE_PRESET_ROUND: cuma->totpoint= 4; break;
-		case CURVE_PRESET_ROOT: cuma->totpoint= 4; break;
+		case CURVE_PRESET_LINE: cuma->totpoint = 2; break;
+		case CURVE_PRESET_SHARP: cuma->totpoint = 4; break;
+		case CURVE_PRESET_SMOOTH: cuma->totpoint = 4; break;
+		case CURVE_PRESET_MAX: cuma->totpoint = 2; break;
+		case CURVE_PRESET_MID9: cuma->totpoint = 9; break;
+		case CURVE_PRESET_ROUND: cuma->totpoint = 4; break;
+		case CURVE_PRESET_ROOT: cuma->totpoint = 4; break;
 	}
 
-	cuma->curve= MEM_callocN(cuma->totpoint*sizeof(CurveMapPoint), "curve points");
+	cuma->curve = MEM_callocN(cuma->totpoint * sizeof(CurveMapPoint), "curve points");
 
 	switch (preset) {
 		case CURVE_PRESET_LINE:
-			cuma->curve[0].x= clipr->xmin;
-			cuma->curve[0].y= clipr->ymax;
-			cuma->curve[0].flag= 0;
-			cuma->curve[1].x= clipr->xmax;
-			cuma->curve[1].y= clipr->ymin;
-			cuma->curve[1].flag= 0;
+			cuma->curve[0].x = clipr->xmin;
+			cuma->curve[0].y = clipr->ymax;
+			cuma->curve[0].flag = 0;
+			cuma->curve[1].x = clipr->xmax;
+			cuma->curve[1].y = clipr->ymin;
+			cuma->curve[1].flag = 0;
 			break;
 		case CURVE_PRESET_SHARP:
-			cuma->curve[0].x= 0;
-			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.25;
-			cuma->curve[1].y= 0.50;
-			cuma->curve[2].x= 0.75;
-			cuma->curve[2].y= 0.04;
-			cuma->curve[3].x= 1;
-			cuma->curve[3].y= 0;
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 1;
+			cuma->curve[1].x = 0.25;
+			cuma->curve[1].y = 0.50;
+			cuma->curve[2].x = 0.75;
+			cuma->curve[2].y = 0.04;
+			cuma->curve[3].x = 1;
+			cuma->curve[3].y = 0;
 			break;
 		case CURVE_PRESET_SMOOTH:
-			cuma->curve[0].x= 0;
-			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.25;
-			cuma->curve[1].y= 0.94;
-			cuma->curve[2].x= 0.75;
-			cuma->curve[2].y= 0.06;
-			cuma->curve[3].x= 1;
-			cuma->curve[3].y= 0;
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 1;
+			cuma->curve[1].x = 0.25;
+			cuma->curve[1].y = 0.94;
+			cuma->curve[2].x = 0.75;
+			cuma->curve[2].y = 0.06;
+			cuma->curve[3].x = 1;
+			cuma->curve[3].y = 0;
 			break;
 		case CURVE_PRESET_MAX:
-			cuma->curve[0].x= 0;
-			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 1;
-			cuma->curve[1].y= 1;
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 1;
+			cuma->curve[1].x = 1;
+			cuma->curve[1].y = 1;
 			break;
 		case CURVE_PRESET_MID9:
-			{
-				int i;
-				for (i = 0; i < cuma->totpoint; i++) {
-					cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
-					cuma->curve[i].y = 0.5;
-				}
+		{
+			int i;
+			for (i = 0; i < cuma->totpoint; i++) {
+				cuma->curve[i].x = i / ((float)cuma->totpoint - 1);
+				cuma->curve[i].y = 0.5;
 			}
-			break;
+		}
+		break;
 		case CURVE_PRESET_ROUND:
-			cuma->curve[0].x= 0;
-			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.5;
-			cuma->curve[1].y= 0.90;
-			cuma->curve[2].x= 0.86;
-			cuma->curve[2].y= 0.5;
-			cuma->curve[3].x= 1;
-			cuma->curve[3].y= 0;
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 1;
+			cuma->curve[1].x = 0.5;
+			cuma->curve[1].y = 0.90;
+			cuma->curve[2].x = 0.86;
+			cuma->curve[2].y = 0.5;
+			cuma->curve[3].x = 1;
+			cuma->curve[3].y = 0;
 			break;
 		case CURVE_PRESET_ROOT:
-			cuma->curve[0].x= 0;
-			cuma->curve[0].y= 1;
-			cuma->curve[1].x= 0.25;
-			cuma->curve[1].y= 0.95;
-			cuma->curve[2].x= 0.75;
-			cuma->curve[2].y= 0.44;
-			cuma->curve[3].x= 1;
-			cuma->curve[3].y= 0;
+			cuma->curve[0].x = 0;
+			cuma->curve[0].y = 1;
+			cuma->curve[1].x = 0.25;
+			cuma->curve[1].y = 0.95;
+			cuma->curve[2].x = 0.75;
+			cuma->curve[2].y = 0.44;
+			cuma->curve[3].x = 1;
+			cuma->curve[3].y = 0;
 			break;
 	}
 
 	/* mirror curve in x direction to have positive slope
 	 * rather than default negative slope */
 	if (slope == CURVEMAP_SLOPE_POSITIVE) {
-		int i, last=cuma->totpoint-1;
-		CurveMapPoint *newpoints= MEM_dupallocN(cuma->curve);
+		int i, last = cuma->totpoint - 1;
+		CurveMapPoint *newpoints = MEM_dupallocN(cuma->curve);
 		
-		for (i=0; i<cuma->totpoint; i++) {
-			newpoints[i].y = cuma->curve[last-i].y;
+		for (i = 0; i < cuma->totpoint; i++) {
+			newpoints[i].y = cuma->curve[last - i].y;
 		}
 		
 		MEM_freeN(cuma->curve);
@@ -296,7 +296,7 @@ void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
 	
 	if (cuma->table) {
 		MEM_freeN(cuma->table);
-		cuma->table= NULL;
+		cuma->table = NULL;
 	}
 }
 
@@ -305,7 +305,7 @@ void curvemap_sethandle(CurveMap *cuma, int type)
 {
 	int a;
 	
-	for (a=0; a<cuma->totpoint; a++) {
+	for (a = 0; a < cuma->totpoint; a++) {
 		if (cuma->curve[a].flag & CUMA_SELECT) {
 			if (type) cuma->curve[a].flag |= CUMA_VECTOR;
 			else cuma->curve[a].flag &= ~CUMA_VECTOR;
@@ -322,65 +322,65 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 	float len, len_a, len_b;
 	float dvec_a[2], dvec_b[2];
 
-	if (bezt->h1==0 && bezt->h2==0) {
+	if (bezt->h1 == 0 && bezt->h2 == 0) {
 		return;
 	}
 	
-	p2= bezt->vec[1];
+	p2 = bezt->vec[1];
 	
-	if (prev==NULL) {
-		p3= next->vec[1];
-		pt[0]= 2.0f*p2[0] - p3[0];
-		pt[1]= 2.0f*p2[1] - p3[1];
-		p1= pt;
+	if (prev == NULL) {
+		p3 = next->vec[1];
+		pt[0] = 2.0f * p2[0] - p3[0];
+		pt[1] = 2.0f * p2[1] - p3[1];
+		p1 = pt;
 	}
 	else {
-		p1= prev->vec[1];
+		p1 = prev->vec[1];
 	}
 	
-	if (next==NULL) {
-		p1= prev->vec[1];
-		pt[0]= 2.0f*p2[0] - p1[0];
-		pt[1]= 2.0f*p2[1] - p1[1];
-		p3= pt;
+	if (next == NULL) {
+		p1 = prev->vec[1];
+		pt[0] = 2.0f * p2[0] - p1[0];
+		pt[1] = 2.0f * p2[1] - p1[1];
+		p3 = pt;
 	}
 	else {
-		p3= next->vec[1];
+		p3 = next->vec[1];
 	}
 
 	sub_v2_v2v2(dvec_a, p2, p1);
 	sub_v2_v2v2(dvec_b, p3, p2);
 
-	len_a= len_v2(dvec_a);
-	len_b= len_v2(dvec_b);
+	len_a = len_v2(dvec_a);
+	len_b = len_v2(dvec_b);
 
-	if (len_a==0.0f) len_a=1.0f;
-	if (len_b==0.0f) len_b=1.0f;
+	if (len_a == 0.0f) len_a = 1.0f;
+	if (len_b == 0.0f) len_b = 1.0f;
 
-	if (bezt->h1==HD_AUTO || bezt->h2==HD_AUTO) { /* auto */
+	if (bezt->h1 == HD_AUTO || bezt->h2 == HD_AUTO) { /* auto */
 		float tvec[2];
-		tvec[0]= dvec_b[0]/len_b + dvec_a[0]/len_a;
-		tvec[1]= dvec_b[1]/len_b + dvec_a[1]/len_a;
+		tvec[0] = dvec_b[0] / len_b + dvec_a[0] / len_a;
+		tvec[1] = dvec_b[1] / len_b + dvec_a[1] / len_a;
 
-		len= len_v2(tvec) * 2.5614f;
-		if (len!=0.0f) {
+		len = len_v2(tvec) * 2.5614f;
+		if (len != 0.0f) {
 			
-			if (bezt->h1==HD_AUTO) {
-				len_a/=len;
-				madd_v2_v2v2fl(p2-3, p2, tvec, -len_a);
+			if (bezt->h1 == HD_AUTO) {
+				len_a /= len;
+				madd_v2_v2v2fl(p2 - 3, p2, tvec, -len_a);
 			}
-			if (bezt->h2==HD_AUTO) {
-				len_b/=len;
-				madd_v2_v2v2fl(p2+3, p2, tvec,  len_b);
+			if (bezt->h2 == HD_AUTO) {
+				len_b /= len;
+				madd_v2_v2v2fl(p2 + 3, p2, tvec,  len_b);
 			}
 		}
 	}
 
-	if (bezt->h1==HD_VECT) {	/* vector */
-		madd_v2_v2v2fl(p2-3, p2, dvec_a, -1.0f/3.0f);
+	if (bezt->h1 == HD_VECT) {    /* vector */
+		madd_v2_v2v2fl(p2 - 3, p2, dvec_a, -1.0f / 3.0f);
 	}
-	if (bezt->h2==HD_VECT) {
-		madd_v2_v2v2fl(p2+3, p2, dvec_b,  1.0f/3.0f);
+	if (bezt->h2 == HD_VECT) {
+		madd_v2_v2v2fl(p2 + 3, p2, dvec_b,  1.0f / 3.0f);
 	}
 }
 
@@ -389,27 +389,27 @@ static void calchandle_curvemap(BezTriple *bezt, BezTriple *prev, BezTriple *nex
 static float curvemap_calc_extend(CurveMap *cuma, float x, const float first[2], const float last[2])
 {
 	if (x <= first[0]) {
-		if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0) {
+		if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 			/* no extrapolate */
 			return first[1];
 		}
 		else {
-			if (cuma->ext_in[0]==0.0f)
-				return first[1] + cuma->ext_in[1]*10000.0f;
+			if (cuma->ext_in[0] == 0.0f)
+				return first[1] + cuma->ext_in[1] * 10000.0f;
 			else
-				return first[1] + cuma->ext_in[1]*(x - first[0])/cuma->ext_in[0];
+				return first[1] + cuma->ext_in[1] * (x - first[0]) / cuma->ext_in[0];
 		}
 	}
 	else if (x >= last[0]) {
-		if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE)==0) {
+		if ((cuma->flag & CUMA_EXTEND_EXTRAPOLATE) == 0) {
 			/* no extrapolate */
 			return last[1];
 		}
 		else {
-			if (cuma->ext_out[0]==0.0f)
-				return last[1] - cuma->ext_out[1]*10000.0f;
+			if (cuma->ext_out[0] == 0.0f)
+				return last[1] - cuma->ext_out[1] * 10000.0f;
 			else
-				return last[1] + cuma->ext_out[1]*(x - last[0])/cuma->ext_out[0];
+				return last[1] + cuma->ext_out[1] * (x - last[0]) / cuma->ext_out[0];
 		}
 	}
 	return 0.0f;
@@ -418,74 +418,74 @@ static float curvemap_calc_extend(CurveMap *cuma, float x, const float first[2],
 /* only creates a table for a single channel in CurveMapping */
 static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 {
-	CurveMapPoint *cmp= cuma->curve;
+	CurveMapPoint *cmp = cuma->curve;
 	BezTriple *bezt;
 	float *fp, *allpoints, *lastpoint, curf, range;
 	int a, totpoint;
 	
-	if (cuma->curve==NULL) return;
+	if (cuma->curve == NULL) return;
 	
 	/* default rect also is table range */
-	cuma->mintable= clipr->xmin;
-	cuma->maxtable= clipr->xmax;
+	cuma->mintable = clipr->xmin;
+	cuma->maxtable = clipr->xmax;
 	
 	/* hrmf... we now rely on blender ipo beziers, these are more advanced */
-	bezt= MEM_callocN(cuma->totpoint*sizeof(BezTriple), "beztarr");
+	bezt = MEM_callocN(cuma->totpoint * sizeof(BezTriple), "beztarr");
 	
-	for (a=0; a<cuma->totpoint; a++) {
-		cuma->mintable= MIN2(cuma->mintable, cmp[a].x);
-		cuma->maxtable= MAX2(cuma->maxtable, cmp[a].x);
-		bezt[a].vec[1][0]= cmp[a].x;
-		bezt[a].vec[1][1]= cmp[a].y;
+	for (a = 0; a < cuma->totpoint; a++) {
+		cuma->mintable = MIN2(cuma->mintable, cmp[a].x);
+		cuma->maxtable = MAX2(cuma->maxtable, cmp[a].x);
+		bezt[a].vec[1][0] = cmp[a].x;
+		bezt[a].vec[1][1] = cmp[a].y;
 		if (cmp[a].flag & CUMA_VECTOR)
-			bezt[a].h1= bezt[a].h2= HD_VECT;
+			bezt[a].h1 = bezt[a].h2 = HD_VECT;
 		else
-			bezt[a].h1= bezt[a].h2= HD_AUTO;
+			bezt[a].h1 = bezt[a].h2 = HD_AUTO;
 	}
 	
-	for (a=0; a<cuma->totpoint; a++) {
-		if (a==0)
-			calchandle_curvemap(bezt, NULL, bezt+1, 0);
-		else if (a==cuma->totpoint-1)
-			calchandle_curvemap(bezt+a, bezt+a-1, NULL, 0);
+	for (a = 0; a < cuma->totpoint; a++) {
+		if (a == 0)
+			calchandle_curvemap(bezt, NULL, bezt + 1, 0);
+		else if (a == cuma->totpoint - 1)
+			calchandle_curvemap(bezt + a, bezt + a - 1, NULL, 0);
 		else
-			calchandle_curvemap(bezt+a, bezt+a-1, bezt+a+1, 0);
+			calchandle_curvemap(bezt + a, bezt + a - 1, bezt + a + 1, 0);
 	}
 	
 	/* first and last handle need correction, instead of pointing to center of next/prev, 
 	 * we let it point to the closest handle */
-	if (cuma->totpoint>2) {
+	if (cuma->totpoint > 2) {
 		float hlen, nlen, vec[3];
 		
-		if (bezt[0].h2==HD_AUTO) {
+		if (bezt[0].h2 == HD_AUTO) {
 			
-			hlen= len_v3v3(bezt[0].vec[1], bezt[0].vec[2]);	/* original handle length */
+			hlen = len_v3v3(bezt[0].vec[1], bezt[0].vec[2]); /* original handle length */
 			/* clip handle point */
 			copy_v3_v3(vec, bezt[1].vec[0]);
 			if (vec[0] < bezt[0].vec[1][0])
-				vec[0]= bezt[0].vec[1][0];
+				vec[0] = bezt[0].vec[1][0];
 			
 			sub_v3_v3(vec, bezt[0].vec[1]);
-			nlen= len_v3(vec);
-			if (nlen>FLT_EPSILON) {
-				mul_v3_fl(vec, hlen/nlen);
+			nlen = len_v3(vec);
+			if (nlen > FLT_EPSILON) {
+				mul_v3_fl(vec, hlen / nlen);
 				add_v3_v3v3(bezt[0].vec[2], vec, bezt[0].vec[1]);
 				sub_v3_v3v3(bezt[0].vec[0], bezt[0].vec[1], vec);
 			}
 		}
-		a= cuma->totpoint-1;
-		if (bezt[a].h2==HD_AUTO) {
+		a = cuma->totpoint - 1;
+		if (bezt[a].h2 == HD_AUTO) {
 			
-			hlen= len_v3v3(bezt[a].vec[1], bezt[a].vec[0]);	/* original handle length */
+			hlen = len_v3v3(bezt[a].vec[1], bezt[a].vec[0]); /* original handle length */
 			/* clip handle point */
-			copy_v3_v3(vec, bezt[a-1].vec[2]);
+			copy_v3_v3(vec, bezt[a - 1].vec[2]);
 			if (vec[0] > bezt[a].vec[1][0])
-				vec[0]= bezt[a].vec[1][0];
+				vec[0] = bezt[a].vec[1][0];
 			
 			sub_v3_v3(vec, bezt[a].vec[1]);
-			nlen= len_v3(vec);
-			if (nlen>FLT_EPSILON) {
-				mul_v3_fl(vec, hlen/nlen);
+			nlen = len_v3(vec);
+			if (nlen > FLT_EPSILON) {
+				mul_v3_fl(vec, hlen / nlen);
 				add_v3_v3v3(bezt[a].vec[0], vec, bezt[a].vec[1]);
 				sub_v3_v3v3(bezt[a].vec[2], bezt[a].vec[1], vec);
 			}
@@ -494,63 +494,63 @@ static void curvemap_make_table(CurveMap *cuma, rctf *clipr)
 	/* make the bezier curve */
 	if (cuma->table)
 		MEM_freeN(cuma->table);
-	totpoint= (cuma->totpoint-1)*CM_RESOL;
-	fp= allpoints= MEM_callocN(totpoint*2*sizeof(float), "table");
+	totpoint = (cuma->totpoint - 1) * CM_RESOL;
+	fp = allpoints = MEM_callocN(totpoint * 2 * sizeof(float), "table");
 	
-	for (a=0; a<cuma->totpoint-1; a++, fp += 2*CM_RESOL) {
-		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a+1].vec[0], bezt[a+1].vec[1]);
-		BKE_curve_forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a+1].vec[0][0], bezt[a+1].vec[1][0], fp, CM_RESOL-1, 2*sizeof(float));	
-		BKE_curve_forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a+1].vec[0][1], bezt[a+1].vec[1][1], fp+1, CM_RESOL-1, 2*sizeof(float));
+	for (a = 0; a < cuma->totpoint - 1; a++, fp += 2 * CM_RESOL) {
+		correct_bezpart(bezt[a].vec[1], bezt[a].vec[2], bezt[a + 1].vec[0], bezt[a + 1].vec[1]);
+		BKE_curve_forward_diff_bezier(bezt[a].vec[1][0], bezt[a].vec[2][0], bezt[a + 1].vec[0][0], bezt[a + 1].vec[1][0], fp, CM_RESOL - 1, 2 * sizeof(float));
+		BKE_curve_forward_diff_bezier(bezt[a].vec[1][1], bezt[a].vec[2][1], bezt[a + 1].vec[0][1], bezt[a + 1].vec[1][1], fp + 1, CM_RESOL - 1, 2 * sizeof(float));
 	}
 	
 	/* store first and last handle for extrapolation, unit length */
-	cuma->ext_in[0]= bezt[0].vec[0][0] - bezt[0].vec[1][0];
-	cuma->ext_in[1]= bezt[0].vec[0][1] - bezt[0].vec[1][1];
-	range= sqrt(cuma->ext_in[0]*cuma->ext_in[0] + cuma->ext_in[1]*cuma->ext_in[1]);
-	cuma->ext_in[0]/= range;
-	cuma->ext_in[1]/= range;
-	
-	a= cuma->totpoint-1;
-	cuma->ext_out[0]= bezt[a].vec[1][0] - bezt[a].vec[2][0];
-	cuma->ext_out[1]= bezt[a].vec[1][1] - bezt[a].vec[2][1];
-	range= sqrt(cuma->ext_out[0]*cuma->ext_out[0] + cuma->ext_out[1]*cuma->ext_out[1]);
-	cuma->ext_out[0]/= range;
-	cuma->ext_out[1]/= range;
+	cuma->ext_in[0] = bezt[0].vec[0][0] - bezt[0].vec[1][0];
+	cuma->ext_in[1] = bezt[0].vec[0][1] - bezt[0].vec[1][1];
+	range = sqrt(cuma->ext_in[0] * cuma->ext_in[0] + cuma->ext_in[1] * cuma->ext_in[1]);
+	cuma->ext_in[0] /= range;
+	cuma->ext_in[1] /= range;
+
+	a = cuma->totpoint - 1;
+	cuma->ext_out[0] = bezt[a].vec[1][0] - bezt[a].vec[2][0];
+	cuma->ext_out[1] = bezt[a].vec[1][1] - bezt[a].vec[2][1];
+	range = sqrt(cuma->ext_out[0] * cuma->ext_out[0] + cuma->ext_out[1] * cuma->ext_out[1]);
+	cuma->ext_out[0] /= range;
+	cuma->ext_out[1] /= range;
 	
 	/* cleanup */
 	MEM_freeN(bezt);
 
-	range= CM_TABLEDIV*(cuma->maxtable - cuma->mintable);
-	cuma->range= 1.0f/range;
+	range = CM_TABLEDIV * (cuma->maxtable - cuma->mintable);
+	cuma->range = 1.0f / range;
 	
 	/* now make a table with CM_TABLE equal x distances */
-	fp= allpoints;
-	lastpoint= allpoints + 2*(totpoint-1);
-	cmp= MEM_callocN((CM_TABLE+1)*sizeof(CurveMapPoint), "dist table");
-	
-	for (a=0; a<=CM_TABLE; a++) {
-		curf= cuma->mintable + range*(float)a;
-		cmp[a].x= curf;
+	fp = allpoints;
+	lastpoint = allpoints + 2 * (totpoint - 1);
+	cmp = MEM_callocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "dist table");
+
+	for (a = 0; a <= CM_TABLE; a++) {
+		curf = cuma->mintable + range * (float)a;
+		cmp[a].x = curf;
 		
 		/* get the first x coordinate larger than curf */
-		while (curf >= fp[0] && fp!=lastpoint) {
-			fp+=2;
+		while (curf >= fp[0] && fp != lastpoint) {
+			fp += 2;
 		}
-		if (fp==allpoints || (curf >= fp[0] && fp==lastpoint))
-			cmp[a].y= curvemap_calc_extend(cuma, curf, allpoints, lastpoint);
+		if (fp == allpoints || (curf >= fp[0] && fp == lastpoint))
+			cmp[a].y = curvemap_calc_extend(cuma, curf, allpoints, lastpoint);
 		else {
-			float fac1= fp[0] - fp[-2];
-			float fac2= fp[0] - curf;
+			float fac1 = fp[0] - fp[-2];
+			float fac2 = fp[0] - curf;
 			if (fac1 > FLT_EPSILON)
-				fac1= fac2/fac1;
+				fac1 = fac2 / fac1;
 			else
-				fac1= 0.0f;
-			cmp[a].y= fac1*fp[-1] + (1.0f-fac1)*fp[1];
+				fac1 = 0.0f;
+			cmp[a].y = fac1 * fp[-1] + (1.0f - fac1) * fp[1];
 		}
 	}
 	
 	MEM_freeN(allpoints);
-	cuma->table= cmp;
+	cuma->table = cmp;
 }
 
 /* call when you do images etc, needs restore too. also verifies tables */
@@ -561,34 +561,34 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
 	
 	if (restore) {
 		if (cumap->flag & CUMA_PREMULLED) {
-			for (a=0; a<3; a++) {
+			for (a = 0; a < 3; a++) {
 				MEM_freeN(cumap->cm[a].table);
-				cumap->cm[a].table= cumap->cm[a].premultable;
-				cumap->cm[a].premultable= NULL;
+				cumap->cm[a].table = cumap->cm[a].premultable;
+				cumap->cm[a].premultable = NULL;
 			}
 			
 			cumap->flag &= ~CUMA_PREMULLED;
 		}
 	}
 	else {
-		if ((cumap->flag & CUMA_PREMULLED)==0) {
+		if ((cumap->flag & CUMA_PREMULLED) == 0) {
 			/* verify and copy */
-			for (a=0; a<3; a++) {
-				if (cumap->cm[a].table==NULL)
-					curvemap_make_table(cumap->cm+a, &cumap->clipr);
-				cumap->cm[a].premultable= cumap->cm[a].table;
-				cumap->cm[a].table= MEM_mallocN((CM_TABLE+1)*sizeof(CurveMapPoint), "premul table");
-				memcpy(cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE+1)*sizeof(CurveMapPoint));
+			for (a = 0; a < 3; a++) {
+				if (cumap->cm[a].table == NULL)
+					curvemap_make_table(cumap->cm + a, &cumap->clipr);
+				cumap->cm[a].premultable = cumap->cm[a].table;
+				cumap->cm[a].table = MEM_mallocN((CM_TABLE + 1) * sizeof(CurveMapPoint), "premul table");
+				memcpy(cumap->cm[a].table, cumap->cm[a].premultable, (CM_TABLE + 1) * sizeof(CurveMapPoint));
 			}
 			
-			if (cumap->cm[3].table==NULL)
-				curvemap_make_table(cumap->cm+3, &cumap->clipr);
+			if (cumap->cm[3].table == NULL)
+				curvemap_make_table(cumap->cm + 3, &cumap->clipr);
 		
 			/* premul */
-			for (a=0; a<3; a++) {
+			for (a = 0; a < 3; a++) {
 				int b;
-				for (b=0; b<=CM_TABLE; b++) {
-					cumap->cm[a].table[b].y= curvemap_evaluateF(cumap->cm+3, cumap->cm[a].table[b].y);
+				for (b = 0; b <= CM_TABLE; b++) {
+					cumap->cm[a].table[b].y = curvemap_evaluateF(cumap->cm + 3, cumap->cm[a].table[b].y);
 				}
 			}
 			
@@ -599,10 +599,10 @@ void curvemapping_premultiply(CurveMapping *cumap, int restore)
 
 static int sort_curvepoints(const void *a1, const void *a2)
 {
-	const struct CurveMapPoint *x1=a1, *x2=a2;
+	const struct CurveMapPoint *x1 = a1, *x2 = a2;
 	
-	if ( x1->x > x2->x ) return 1;
-	else if ( x1->x < x2->x) return -1;
+	if (x1->x > x2->x) return 1;
+	else if (x1->x < x2->x) return -1;
 	return 0;
 }
 
@@ -611,30 +611,30 @@ static int sort_curvepoints(const void *a1, const void *a2)
 /* note; only does current curvemap! */
 void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 {
-	CurveMap *cuma= cumap->cm+cumap->cur;
-	CurveMapPoint *cmp= cuma->curve;
-	rctf *clipr= &cumap->clipr;
-	float thresh= 0.01f*(clipr->xmax - clipr->xmin);
-	float dx= 0.0f, dy= 0.0f;
+	CurveMap *cuma = cumap->cm + cumap->cur;
+	CurveMapPoint *cmp = cuma->curve;
+	rctf *clipr = &cumap->clipr;
+	float thresh = 0.01f * (clipr->xmax - clipr->xmin);
+	float dx = 0.0f, dy = 0.0f;
 	int a;
 
 	cumap->changed_timestamp++;
 
 	/* clamp with clip */
 	if (cumap->flag & CUMA_DO_CLIP) {
-		for (a=0; a<cuma->totpoint; a++) {
+		for (a = 0; a < cuma->totpoint; a++) {
 			if (cmp[a].flag & CUMA_SELECT) {
 				if (cmp[a].x < clipr->xmin)
-					dx= MIN2(dx, cmp[a].x - clipr->xmin);
+					dx = MIN2(dx, cmp[a].x - clipr->xmin);
 				else if (cmp[a].x > clipr->xmax)
-					dx= MAX2(dx, cmp[a].x - clipr->xmax);
+					dx = MAX2(dx, cmp[a].x - clipr->xmax);
 				if (cmp[a].y < clipr->ymin)
-					dy= MIN2(dy, cmp[a].y - clipr->ymin);
+					dy = MIN2(dy, cmp[a].y - clipr->ymin);
 				else if (cmp[a].y > clipr->ymax)
-					dy= MAX2(dy, cmp[a].y - clipr->ymax);
+					dy = MAX2(dy, cmp[a].y - clipr->ymax);
 			}
 		}
-		for (a=0; a<cuma->totpoint; a++) {
+		for (a = 0; a < cuma->totpoint; a++) {
 			if (cmp[a].flag & CUMA_SELECT) {
 				cmp[a].x -= dx;
 				cmp[a].y -= dy;
@@ -646,25 +646,25 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 	qsort(cmp, cuma->totpoint, sizeof(CurveMapPoint), sort_curvepoints);
 	
 	/* remove doubles, threshold set on 1% of default range */
-	if (rem_doubles && cuma->totpoint>2) {
-		for (a=0; a<cuma->totpoint-1; a++) {
-			dx= cmp[a].x - cmp[a+1].x;
-			dy= cmp[a].y - cmp[a+1].y;
-			if ( sqrtf(dx*dx + dy*dy) < thresh ) {
-				if (a==0) {
-					cmp[a+1].flag|= 2;
-					if (cmp[a+1].flag & CUMA_SELECT)
+	if (rem_doubles && cuma->totpoint > 2) {
+		for (a = 0; a < cuma->totpoint - 1; a++) {
+			dx = cmp[a].x - cmp[a + 1].x;
+			dy = cmp[a].y - cmp[a + 1].y;
+			if (sqrtf(dx * dx + dy * dy) < thresh) {
+				if (a == 0) {
+					cmp[a + 1].flag |= 2;
+					if (cmp[a + 1].flag & CUMA_SELECT)
 						cmp[a].flag |= CUMA_SELECT;
 				}
 				else {
-					cmp[a].flag|= 2;
+					cmp[a].flag |= 2;
 					if (cmp[a].flag & CUMA_SELECT)
-						cmp[a+1].flag |= CUMA_SELECT;
+						cmp[a + 1].flag |= CUMA_SELECT;
 				}
-				break;	/* we assume 1 deletion per edit is ok */
+				break;  /* we assume 1 deletion per edit is ok */
 			}
 		}
-		if (a != cuma->totpoint-1)
+		if (a != cuma->totpoint - 1)
 			curvemap_remove(cuma, 2);
 	}	
 	curvemap_make_table(cuma, clipr);
@@ -677,31 +677,31 @@ float curvemap_evaluateF(CurveMap *cuma, float value)
 	int i;
 
 	/* index in table */
-	fi= (value-cuma->mintable)*cuma->range;
-	i= (int)fi;
+	fi = (value - cuma->mintable) * cuma->range;
+	i = (int)fi;
 	
 	/* fi is table float index and should check against table range i.e. [0.0 CM_TABLE] */
-	if (fi<0.0f || fi>CM_TABLE)
+	if (fi < 0.0f || fi > CM_TABLE)
 		return curvemap_calc_extend(cuma, value, &cuma->table[0].x, &cuma->table[CM_TABLE].x);
 	else {
-		if (i<0) return cuma->table[0].y;
-		if (i>=CM_TABLE) return cuma->table[CM_TABLE].y;
+		if (i < 0) return cuma->table[0].y;
+		if (i >= CM_TABLE) return cuma->table[CM_TABLE].y;
 		
-		fi= fi-(float)i;
-		return (1.0f-fi)*cuma->table[i].y + (fi)*cuma->table[i+1].y; 
+		fi = fi - (float)i;
+		return (1.0f - fi) * cuma->table[i].y + (fi) * cuma->table[i + 1].y;
 	}
 }
 
 /* works with curve 'cur' */
 float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 {
-	CurveMap *cuma= cumap->cm+cur;
+	CurveMap *cuma = cumap->cm + cur;
 	
 	/* allocate or bail out */
-	if (cuma->table==NULL) {
+	if (cuma->table == NULL) {
 		curvemap_make_table(cuma, &cumap->clipr);
-		if (cuma->table==NULL)
-			return 1.0f-value;
+		if (cuma->table == NULL)
+			return 1.0f - value;
 	}
 	return curvemap_evaluateF(cuma, value);
 }
@@ -709,17 +709,17 @@ float curvemapping_evaluateF(CurveMapping *cumap, int cur, float value)
 /* vector case */
 void curvemapping_evaluate3F(CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-	vecout[0]= curvemapping_evaluateF(cumap, 0, vecin[0]);
-	vecout[1]= curvemapping_evaluateF(cumap, 1, vecin[1]);
-	vecout[2]= curvemapping_evaluateF(cumap, 2, vecin[2]);
+	vecout[0] = curvemapping_evaluateF(cumap, 0, vecin[0]);
+	vecout[1] = curvemapping_evaluateF(cumap, 1, vecin[1]);
+	vecout[2] = curvemapping_evaluateF(cumap, 2, vecin[2]);
 }
 
 /* RGB case, no black/white points, no premult */
 void curvemapping_evaluateRGBF(CurveMapping *cumap, float vecout[3], const float vecin[3])
 {
-	vecout[0]= curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, vecin[0]));
-	vecout[1]= curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, vecin[1]));
-	vecout[2]= curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, vecin[2]));
+	vecout[0] = curvemapping_evaluateF(cumap, 0, curvemapping_evaluateF(cumap, 3, vecin[0]));
+	vecout[1] = curvemapping_evaluateF(cumap, 1, curvemapping_evaluateF(cumap, 3, vecin[1]));
+	vecout[2] = curvemapping_evaluateF(cumap, 2, curvemapping_evaluateF(cumap, 3, vecin[2]));
 }
 
 
@@ -728,14 +728,14 @@ void curvemapping_evaluate_premulRGBF(CurveMapping *cumap, float vecout[3], cons
 {
 	float fac;
 	
-	fac= (vecin[0] - cumap->black[0])*cumap->bwmul[0];
-	vecout[0]= curvemap_evaluateF(cumap->cm, fac);
+	fac = (vecin[0] - cumap->black[0]) * cumap->bwmul[0];
+	vecout[0] = curvemap_evaluateF(cumap->cm, fac);
 	
-	fac= (vecin[1] - cumap->black[1])*cumap->bwmul[1];
-	vecout[1]= curvemap_evaluateF(cumap->cm+1, fac);
+	fac = (vecin[1] - cumap->black[1]) * cumap->bwmul[1];
+	vecout[1] = curvemap_evaluateF(cumap->cm + 1, fac);
 	
-	fac= (vecin[2] - cumap->black[2])*cumap->bwmul[2];
-	vecout[2]= curvemap_evaluateF(cumap->cm+2, fac);
+	fac = (vecin[2] - cumap->black[2]) * cumap->bwmul[2];
+	vecout[2] = curvemap_evaluateF(cumap->cm + 2, fac);
 }
 
 
@@ -746,14 +746,14 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	int pixel;
 	float *pix_in;
 	float col[3];
-	int stride= 4;
+	int stride = 4;
 	float *pix_out;
 	
-	if (ibuf==NULL)
+	if (ibuf == NULL)
 		return;
-	if (ibuf->rect_float==NULL)
+	if (ibuf->rect_float == NULL)
 		IMB_float_from_rect(ibuf);
-	else if (ibuf->rect==NULL)
+	else if (ibuf->rect == NULL)
 		imb_addrectImBuf(ibuf);
 	
 	if (!ibuf->rect || !ibuf->rect_float)
@@ -765,27 +765,27 @@ void curvemapping_do_ibuf(CurveMapping *cumap, ImBuf *ibuf)
 	
 	curvemapping_premultiply(cumap, 0);
 	
-	pix_in= ibuf->rect_float;
-	pix_out= tmpbuf->rect_float;
+	pix_in = ibuf->rect_float;
+	pix_out = tmpbuf->rect_float;
 
 	if (ibuf->channels)
-		stride= ibuf->channels;
+		stride = ibuf->channels;
 	
-	for (pixel= ibuf->x*ibuf->y; pixel>0; pixel--, pix_in+=stride, pix_out+=stride) {
-		if (stride<3) {
-			col[0]= curvemap_evaluateF(cumap->cm, *pix_in);
+	for (pixel = ibuf->x * ibuf->y; pixel > 0; pixel--, pix_in += stride, pix_out += stride) {
+		if (stride < 3) {
+			col[0] = curvemap_evaluateF(cumap->cm, *pix_in);
 			
-			pix_out[1]= pix_out[2]= pix_out[3]= pix_out[0]= col[0];
+			pix_out[1] = pix_out[2] = pix_out[3] = pix_out[0] = col[0];
 		}
 		else {
 			curvemapping_evaluate_premulRGBF(cumap, col, pix_in);
-			pix_out[0]= col[0];
-			pix_out[1]= col[1];
-			pix_out[2]= col[2];
-			if (stride>3)
-				pix_out[3]= pix_in[3];
+			pix_out[0] = col[0];
+			pix_out[1] = col[1];
+			pix_out[2] = col[2];
+			if (stride > 3)
+				pix_out[3] = pix_in[3];
 			else
-				pix_out[3]= 1.f;
+				pix_out[3] = 1.f;
 		}
 	}
 	
@@ -800,16 +800,16 @@ int curvemapping_RGBA_does_something(CurveMapping *cumap)
 {
 	int a;
 	
-	if (cumap->black[0]!=0.0f) return 1;
-	if (cumap->black[1]!=0.0f) return 1;
-	if (cumap->black[2]!=0.0f) return 1;
-	if (cumap->white[0]!=1.0f) return 1;
-	if (cumap->white[1]!=1.0f) return 1;
-	if (cumap->white[2]!=1.0f) return 1;
+	if (cumap->black[0] != 0.0f) return 1;
+	if (cumap->black[1] != 0.0f) return 1;
+	if (cumap->black[2] != 0.0f) return 1;
+	if (cumap->white[0] != 1.0f) return 1;
+	if (cumap->white[1] != 1.0f) return 1;
+	if (cumap->white[2] != 1.0f) return 1;
 	
-	for (a=0; a<CM_TOT; a++) {
+	for (a = 0; a < CM_TOT; a++) {
 		if (cumap->cm[a].curve) {
-			if (cumap->cm[a].totpoint!=2)  return 1;
+			if (cumap->cm[a].totpoint != 2) return 1;
 			
 			if (cumap->cm[a].curve[0].x != 0.0f) return 1;
 			if (cumap->cm[a].curve[0].y != 0.0f) return 1;
@@ -824,11 +824,11 @@ void curvemapping_initialize(CurveMapping *cumap)
 {
 	int a;
 	
-	if (cumap==NULL) return;
+	if (cumap == NULL) return;
 	
-	for (a=0; a<CM_TOT; a++) {
-		if (cumap->cm[a].table==NULL)
-			curvemap_make_table(cumap->cm+a, &cumap->clipr);
+	for (a = 0; a < CM_TOT; a++) {
+		if (cumap->cm[a].table == NULL)
+			curvemap_make_table(cumap->cm + a, &cumap->clipr);
 	}
 }
 
@@ -836,29 +836,29 @@ void curvemapping_table_RGBA(CurveMapping *cumap, float **array, int *size)
 {
 	int a;
 	
-	*size = CM_TABLE+1;
-	*array = MEM_callocN(sizeof(float)*(*size)*4, "CurveMapping");
+	*size = CM_TABLE + 1;
+	*array = MEM_callocN(sizeof(float) * (*size) * 4, "CurveMapping");
 	curvemapping_initialize(cumap);
 
-	for (a=0; a<*size; a++) {
+	for (a = 0; a < *size; a++) {
 		if (cumap->cm[0].table)
-			(*array)[a*4+0]= cumap->cm[0].table[a].y;
+			(*array)[a * 4 + 0] = cumap->cm[0].table[a].y;
 		if (cumap->cm[1].table)
-			(*array)[a*4+1]= cumap->cm[1].table[a].y;
+			(*array)[a * 4 + 1] = cumap->cm[1].table[a].y;
 		if (cumap->cm[2].table)
-			(*array)[a*4+2]= cumap->cm[2].table[a].y;
+			(*array)[a * 4 + 2] = cumap->cm[2].table[a].y;
 		if (cumap->cm[3].table)
-			(*array)[a*4+3]= cumap->cm[3].table[a].y;
+			(*array)[a * 4 + 3] = cumap->cm[3].table[a].y;
 	}
 }
 
 /* ***************** Histogram **************** */
 
-#define INV_255		(1.f/255.f)
+#define INV_255     (1.f / 255.f)
 
 DO_INLINE int get_bin_float(float f)
 {
-	int bin= (int)((f*255.0f) + 0.5f);	/* 0.5 to prevent quantisation differences */
+	int bin = (int)((f * 255.0f) + 0.5f);  /* 0.5 to prevent quantisation differences */
 
 	/* note: clamp integer instead of float to avoid problems with NaN */
 	CLAMP(bin, 0, 255);
@@ -907,17 +907,17 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	int x, y, c;
 	unsigned int n, nl;
 	double div, divl;
-	float *rf=NULL;
-	unsigned char *rc=NULL;
+	float *rf = NULL;
+	unsigned char *rc = NULL;
 	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
 	int savedlines, saveline;
 	float rgb[3], ycc[3], luma;
-	int ycc_mode=-1;
+	int ycc_mode = -1;
 	const short is_float = (ibuf->rect_float != NULL);
 
-	if (ibuf->rect==NULL && ibuf->rect_float==NULL) return;
+	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return;
 
-	if (scopes->ok == 1 ) return;
+	if (scopes->ok == 1) return;
 
 	if (scopes->hist.ymax == 0.f) scopes->hist.ymax = 1.f;
 
@@ -950,19 +950,19 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	bin_lum = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 
 	/* convert to number of lines with logarithmic scale */
-	scopes->sample_lines = (scopes->accuracy*0.01f) * (scopes->accuracy*0.01f) * ibuf->y;
+	scopes->sample_lines = (scopes->accuracy * 0.01f) * (scopes->accuracy * 0.01f) * ibuf->y;
 	
 	if (scopes->sample_full)
 		scopes->sample_lines = ibuf->y;
 
 	/* scan the image */
-	savedlines=0;
-	for (c=0; c<3; c++) {
-		scopes->minmax[c][0]=25500.0f;
-		scopes->minmax[c][1]=-25500.0f;
+	savedlines = 0;
+	for (c = 0; c < 3; c++) {
+		scopes->minmax[c][0] = 25500.0f;
+		scopes->minmax[c][1] = -25500.0f;
 	}
 	
-	scopes->waveform_tot = ibuf->x*scopes->sample_lines;
+	scopes->waveform_tot = ibuf->x * scopes->sample_lines;
 	
 	if (scopes->waveform_1)
 		MEM_freeN(scopes->waveform_1);
@@ -973,10 +973,10 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	if (scopes->vecscope)
 		MEM_freeN(scopes->vecscope);
 	
-	scopes->waveform_1= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 1");
-	scopes->waveform_2= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 2");
-	scopes->waveform_3= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
-	scopes->vecscope= MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
+	scopes->waveform_1 = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 1");
+	scopes->waveform_2 = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 2");
+	scopes->waveform_3 = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "waveform point channel 3");
+	scopes->vecscope = MEM_callocN(scopes->waveform_tot * 2 * sizeof(float), "vectorscope point channel");
 	
 	if (is_float)
 		rf = ibuf->rect_float;
@@ -984,7 +984,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		rc = (unsigned char *)ibuf->rect;
 
 	for (y = 0; y < ibuf->y; y++) {
-		if (savedlines<scopes->sample_lines && y>=((savedlines)*ibuf->y)/(scopes->sample_lines+1)) {
+		if (savedlines < scopes->sample_lines && y >= ((savedlines) * ibuf->y) / (scopes->sample_lines + 1)) {
 			saveline = 1;
 		}
 		else {
@@ -999,7 +999,7 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 					copy_v3_v3(rgb, rf);
 			}
 			else {
-				for (c=0; c<3; c++)
+				for (c = 0; c < 3; c++)
 					rgb[c] = rc[c] * INV_255;
 			}
 
@@ -1007,44 +1007,44 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 			luma = rgb_to_luma(rgb);
 
 			/* check for min max */
-			if (ycc_mode == -1 ) {
-				for (c=0; c<3; c++) {
+			if (ycc_mode == -1) {
+				for (c = 0; c < 3; c++) {
 					if (rgb[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = rgb[c];
 					if (rgb[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = rgb[c];
 				}
 			}
 			else {
 				rgb_to_ycc(rgb[0], rgb[1], rgb[2], &ycc[0], &ycc[1], &ycc[2], ycc_mode);
-				for (c=0; c<3; c++) {
-					ycc[c] *=INV_255;
+				for (c = 0; c < 3; c++) {
+					ycc[c] *= INV_255;
 					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];
 					if (ycc[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = ycc[c];
 				}
 			}
 			/* increment count for histo*/
-			bin_r[ get_bin_float(rgb[0]) ] += 1;
-			bin_g[ get_bin_float(rgb[1]) ] += 1;
-			bin_b[ get_bin_float(rgb[2]) ] += 1;
-			bin_lum[ get_bin_float(luma) ] += 1;
+			bin_r[get_bin_float(rgb[0])] += 1;
+			bin_g[get_bin_float(rgb[1])] += 1;
+			bin_b[get_bin_float(rgb[2])] += 1;
+			bin_lum[get_bin_float(luma)] += 1;
 
 			/* save sample if needed */
 			if (saveline) {
 				const float fx = (float)x / (float)ibuf->x;
-				const int idx = 2*(ibuf->x*savedlines+x);
+				const int idx = 2 * (ibuf->x * savedlines + x);
 				save_sample_line(scopes, idx, fx, rgb, ycc);
 			}
 
-			rf+= ibuf->channels;
-			rc+= ibuf->channels;
+			rf += ibuf->channels;
+			rc += ibuf->channels;
 		}
 		if (saveline)
-			savedlines +=1;
+			savedlines += 1;
 	}
 
 	/* convert hist data to float (proportional to max count) */
-	n=0;
-	nl=0;
-	for (x=0; x<256; x++) {
+	n = 0;
+	nl = 0;
+	for (x = 0; x < 256; x++) {
 		if (bin_r[x] > n)
 			n = bin_r[x];
 		if (bin_g[x] > n)
@@ -1054,9 +1054,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 		if (bin_lum[x] > nl)
 			nl = bin_lum[x];
 	}
-	div = 1.0/(double)n;
-	divl = 1.0/(double)nl;
-	for (x=0; x<256; x++) {
+	div = 1.0 / (double)n;
+	divl = 1.0 / (double)nl;
+	for (x = 0; x < 256; x++) {
 		scopes->hist.data_r[x] = bin_r[x] * div;
 		scopes->hist.data_g[x] = bin_g[x] * div;
 		scopes->hist.data_b[x] = bin_b[x] * div;
@@ -1092,14 +1092,14 @@ void scopes_free(Scopes *scopes)
 
 void scopes_new(Scopes *scopes)
 {
-	scopes->accuracy=30.0;
-	scopes->hist.mode=HISTO_MODE_RGB;
-	scopes->wavefrm_alpha=0.3;
-	scopes->vecscope_alpha=0.3;
-	scopes->wavefrm_height= 100;
-	scopes->vecscope_height= 100;
-	scopes->hist.height= 100;
-	scopes->ok= 0;
+	scopes->accuracy = 30.0;
+	scopes->hist.mode = HISTO_MODE_RGB;
+	scopes->wavefrm_alpha = 0.3;
+	scopes->vecscope_alpha = 0.3;
+	scopes->wavefrm_height = 100;
+	scopes->vecscope_height = 100;
+	scopes->hist.height = 100;
+	scopes->ok = 0;
 	scopes->waveform_1 = NULL;
 	scopes->waveform_2 = NULL;
 	scopes->waveform_3 = NULL;
