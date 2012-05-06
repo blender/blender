@@ -127,7 +127,7 @@ MALWAYS_INLINE int vlr_check_intersect_solid(Isect *UNUSED(is), ObjectInstanceRe
 
 MALWAYS_INLINE int vlr_check_bake(Isect *is, ObjectInstanceRen* obi, VlakRen *UNUSED(vlr))
 {
-	return (obi->obr->ob != is->userdata);
+	return (obi->obr->ob != is->userdata) && (obi->obr->ob->flag & SELECT);
 }
 
 /* Ray Triangle/Quad Intersection */

@@ -63,9 +63,11 @@
 
 /* Panels */
 
-static int clip_grease_pencil_panel_poll(const bContext *UNUSED(C), PanelType *UNUSED(pt))
+static int clip_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
 {
-	return TRUE;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	return sc->view == SC_VIEW_CLIP;
 }
 
 void ED_clip_buttons_register(ARegionType *art)

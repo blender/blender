@@ -147,6 +147,7 @@ static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 static int open_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
+	bScreen *screen = CTX_wm_screen(C);
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	MovieClip *clip = NULL;
@@ -184,7 +185,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 	else if (sc) {
-		ED_space_clip_set(C, sc, clip);
+		ED_space_clip_set(C, screen, sc, clip);
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP|NA_ADDED, clip);

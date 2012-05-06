@@ -40,9 +40,16 @@ typedef struct BPy_BMGenericMeshData {
 	void *data;
 } BPy_BMGenericMeshData;
 
+struct MTexPoly;
 struct MLoopUV;
 struct MLoopCol;
 struct MDeformVert;
+
+int       BPy_BMTexPoly_AssignPyObject(struct MTexPoly *mloopuv, PyObject *value);
+PyObject *BPy_BMTexPoly_CreatePyObject(struct MTexPoly *mloopuv);
+
+int       BPy_BMLoopUV_AssignPyObject(struct MLoopUV *data, PyObject *value);
+PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *data);
 
 int       BPy_BMLoopUV_AssignPyObject(struct MLoopUV *data, PyObject *value);
 PyObject *BPy_BMLoopUV_CreatePyObject(struct MLoopUV *data);

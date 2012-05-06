@@ -202,6 +202,7 @@ void CTX_store_free_list(ListBase *contexts)
 }
 
 /* is python initialied? */
+
 int CTX_py_init_get(bContext *C)
 {
 	return C->data.py_init;
@@ -220,237 +221,6 @@ void CTX_py_dict_set(bContext *C, void *value)
 	C->data.py_context= value;
 }
 
-/* window manager context */
-
-wmWindowManager *CTX_wm_manager(const bContext *C)
-{
-	return C->wm.manager;
-}
-
-wmWindow *CTX_wm_window(const bContext *C)
-{
-	return C->wm.window;
-}
-
-bScreen *CTX_wm_screen(const bContext *C)
-{
-	return C->wm.screen;
-}
-
-ScrArea *CTX_wm_area(const bContext *C)
-{
-	return C->wm.area;
-}
-
-SpaceLink *CTX_wm_space_data(const bContext *C)
-{
-	return (C->wm.area)? C->wm.area->spacedata.first: NULL;
-}
-
-ARegion *CTX_wm_region(const bContext *C)
-{
-	return C->wm.region;
-}
-
-void *CTX_wm_region_data(const bContext *C)
-{
-	return (C->wm.region)? C->wm.region->regiondata: NULL;
-}
-
-struct ARegion *CTX_wm_menu(const bContext *C)
-{
-	return C->wm.menu;
-}
-
-struct ReportList *CTX_wm_reports(const bContext *C)
-{
-	if (C->wm.manager)
-		return &(C->wm.manager->reports);
-
-	return NULL;
-}
-
-View3D *CTX_wm_view3d(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-RegionView3D *CTX_wm_region_view3d(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_VIEW3D)
-		if (C->wm.region)
-			return C->wm.region->regiondata;
-	return NULL;
-}
-
-struct SpaceText *CTX_wm_space_text(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_TEXT)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceConsole *CTX_wm_space_console(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_CONSOLE)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceImage *CTX_wm_space_image(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_IMAGE)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceButs *CTX_wm_space_buts(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_BUTS)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceFile *CTX_wm_space_file(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_FILE)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_SEQ)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceOops *CTX_wm_space_outliner(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_OUTLINER)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceNla *CTX_wm_space_nla(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_NLA)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceTime *CTX_wm_space_time(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_TIME)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceNode *CTX_wm_space_node(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_NODE)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceLogic *CTX_wm_space_logic(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_LOGIC)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceIpo *CTX_wm_space_graph(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_IPO)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceAction *CTX_wm_space_action(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_ACTION)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceInfo *CTX_wm_space_info(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_INFO)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_USERPREF)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-struct SpaceClip *CTX_wm_space_clip(const bContext *C)
-{
-	if (C->wm.area && C->wm.area->spacetype==SPACE_CLIP)
-		return C->wm.area->spacedata.first;
-	return NULL;
-}
-
-void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
-{
-	C->wm.manager= wm;
-	C->wm.window= NULL;
-	C->wm.screen= NULL;
-	C->wm.area= NULL;
-	C->wm.region= NULL;
-}
-
-void CTX_wm_window_set(bContext *C, wmWindow *win)
-{
-	C->wm.window= win;
-	C->wm.screen= (win)? win->screen: NULL;
-	if (C->wm.screen)
-		C->data.scene= C->wm.screen->scene;
-	C->wm.area= NULL;
-	C->wm.region= NULL;
-}
-
-void CTX_wm_screen_set(bContext *C, bScreen *screen)
-{
-	C->wm.screen= screen;
-	if (C->wm.screen)
-		C->data.scene= C->wm.screen->scene;
-	C->wm.area= NULL;
-	C->wm.region= NULL;
-}
-
-void CTX_wm_area_set(bContext *C, ScrArea *area)
-{
-	C->wm.area= area;
-	C->wm.region= NULL;
-}
-
-void CTX_wm_region_set(bContext *C, ARegion *region)
-{
-	C->wm.region= region;
-}
-
-void CTX_wm_menu_set(bContext *C, ARegion *menu)
-{
-	C->wm.menu= menu;
-}
-
-void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
-{
-	C->wm.operator_poll_msg= msg;
-}
-
-const char *CTX_wm_operator_poll_msg_get(bContext *C)
-{
-	return C->wm.operator_poll_msg;
-}
-
 /* data context utility functions */
 
 struct bContextDataResult {
@@ -460,8 +230,27 @@ struct bContextDataResult {
 	short type; /* 0: normal, 1: seq */
 };
 
+static void *ctx_wm_python_context_get(const bContext *C, const char *member, void *fall_through)
+{
+#ifdef WITH_PYTHON
+	bContextDataResult result;
+
+	if (C && CTX_py_dict_get(C)) {
+		memset(&result, 0, sizeof(bContextDataResult));
+		BPY_context_member_get((bContext*)C, member, &result);
+		if(result.ptr.data)
+			return result.ptr.data;
+	}
+#endif
+
+	return fall_through;
+}
+
 static int ctx_data_get(bContext *C, const char *member, bContextDataResult *result)
 {
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
 	int done= 0, recursion= C->data.recursion;
 	int ret= 0;
 
@@ -493,23 +282,23 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 			done= 1;
 		}
 	}
-	if (done!=1 && recursion < 2 && C->wm.region) {
+	if (done!=1 && recursion < 2 && (ar=CTX_wm_region(C))) {
 		C->data.recursion= 2;
-		if (C->wm.region->type && C->wm.region->type->context) {
-			ret = C->wm.region->type->context(C, member, result);
+		if (ar->type && ar->type->context) {
+			ret = ar->type->context(C, member, result);
 			if (ret) done= -(-ret | -done);
 
 		}
 	}
-	if (done!=1 && recursion < 3 && C->wm.area) {
+	if (done!=1 && recursion < 3 && (sa=CTX_wm_area(C))) {
 		C->data.recursion= 3;
-		if (C->wm.area->type && C->wm.area->type->context) {
-			ret = C->wm.area->type->context(C, member, result);
+		if (sa->type && sa->type->context) {
+			ret = sa->type->context(C, member, result);
 			if (ret) done= -(-ret | -done);
 		}
 	}
-	if (done!=1 && recursion < 4 && C->wm.screen) {
-		bContextDataCallback cb= C->wm.screen->context;
+	if (done!=1 && recursion < 4 && (sc=CTX_wm_screen(C))) {
+		bContextDataCallback cb= sc->context;
 		C->data.recursion= 4;
 		if (cb) {
 			ret = cb(C, member, result);
@@ -638,6 +427,9 @@ ListBase CTX_data_dir_get(const bContext *C)
 {
 	bContextDataResult result;
 	ListBase lb;
+	bScreen *sc;
+	ScrArea *sa;
+	ARegion *ar;
 	int a;
 
 	memset(&lb, 0, sizeof(lb));
@@ -648,24 +440,24 @@ ListBase CTX_data_dir_get(const bContext *C)
 		for (entry=C->wm.store->entries.first; entry; entry=entry->next)
 			data_dir_add(&lb, entry->name);
 	}
-	if (C->wm.region && C->wm.region->type && C->wm.region->type->context) {
+	if ((ar=CTX_wm_region(C)) && ar->type && ar->type->context) {
 		memset(&result, 0, sizeof(result));
-		C->wm.region->type->context(C, "", &result);
+		ar->type->context(C, "", &result);
 
 		if (result.dir)
 			for (a=0; result.dir[a]; a++)
 				data_dir_add(&lb, result.dir[a]);
 	}
-	if (C->wm.area && C->wm.area->type && C->wm.area->type->context) {
+	if ((sa=CTX_wm_area(C)) && sa->type && sa->type->context) {
 		memset(&result, 0, sizeof(result));
-		C->wm.area->type->context(C, "", &result);
+		sa->type->context(C, "", &result);
 
 		if (result.dir)
 			for (a=0; result.dir[a]; a++)
 				data_dir_add(&lb, result.dir[a]);
 	}
-	if (C->wm.screen && C->wm.screen->context) {
-		bContextDataCallback cb= C->wm.screen->context;
+	if ((sc=CTX_wm_screen(C)) && sc->context) {
+		bContextDataCallback cb= sc->context;
 		memset(&result, 0, sizeof(result));
 		cb(C, "", &result);
 
@@ -743,6 +535,261 @@ void CTX_data_type_set(bContextDataResult *result, short type)
 short CTX_data_type_get(bContextDataResult *result)
 {
 	return result->type;
+}
+
+
+
+/* window manager context */
+
+wmWindowManager *CTX_wm_manager(const bContext *C)
+{
+	return C->wm.manager;
+}
+
+wmWindow *CTX_wm_window(const bContext *C)
+{
+	return ctx_wm_python_context_get(C, "window", C->wm.window);
+}
+
+bScreen *CTX_wm_screen(const bContext *C)
+{
+	return ctx_wm_python_context_get(C, "screen", C->wm.screen);
+}
+
+ScrArea *CTX_wm_area(const bContext *C)
+{
+	return ctx_wm_python_context_get(C, "area", C->wm.area);
+}
+
+SpaceLink *CTX_wm_space_data(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	return (sa)? sa->spacedata.first: NULL;
+}
+
+ARegion *CTX_wm_region(const bContext *C)
+{
+	return ctx_wm_python_context_get(C, "region", C->wm.region);
+}
+
+void *CTX_wm_region_data(const bContext *C)
+{
+	ARegion *ar = CTX_wm_region(C);
+	return (ar)? ar->regiondata: NULL;
+}
+
+struct ARegion *CTX_wm_menu(const bContext *C)
+{
+	return C->wm.menu;
+}
+
+struct ReportList *CTX_wm_reports(const bContext *C)
+{
+	if (C->wm.manager)
+		return &(C->wm.manager->reports);
+
+	return NULL;
+}
+
+View3D *CTX_wm_view3d(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_VIEW3D)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+RegionView3D *CTX_wm_region_view3d(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	if (sa && sa->spacetype==SPACE_VIEW3D)
+		if (ar)
+			return ar->regiondata;
+	return NULL;
+}
+
+struct SpaceText *CTX_wm_space_text(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_TEXT)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceConsole *CTX_wm_space_console(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_CONSOLE)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceImage *CTX_wm_space_image(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_IMAGE)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceButs *CTX_wm_space_buts(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_BUTS)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceFile *CTX_wm_space_file(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_FILE)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceSeq *CTX_wm_space_seq(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_SEQ)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceOops *CTX_wm_space_outliner(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_OUTLINER)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNla *CTX_wm_space_nla(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_NLA)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceTime *CTX_wm_space_time(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_TIME)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceNode *CTX_wm_space_node(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_NODE)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceLogic *CTX_wm_space_logic(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_LOGIC)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceIpo *CTX_wm_space_graph(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_IPO)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceAction *CTX_wm_space_action(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_ACTION)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceInfo *CTX_wm_space_info(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_INFO)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceUserPref *CTX_wm_space_userpref(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_USERPREF)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+struct SpaceClip *CTX_wm_space_clip(const bContext *C)
+{
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacetype==SPACE_CLIP)
+		return sa->spacedata.first;
+	return NULL;
+}
+
+void CTX_wm_manager_set(bContext *C, wmWindowManager *wm)
+{
+	C->wm.manager= wm;
+	C->wm.window= NULL;
+	C->wm.screen= NULL;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
+}
+
+void CTX_wm_window_set(bContext *C, wmWindow *win)
+{
+	C->wm.window= win;
+	C->wm.screen= (win)? win->screen: NULL;
+	if (C->wm.screen)
+		C->data.scene= C->wm.screen->scene;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
+}
+
+void CTX_wm_screen_set(bContext *C, bScreen *screen)
+{
+	C->wm.screen= screen;
+	if (C->wm.screen)
+		C->data.scene= C->wm.screen->scene;
+	C->wm.area= NULL;
+	C->wm.region= NULL;
+}
+
+void CTX_wm_area_set(bContext *C, ScrArea *area)
+{
+	C->wm.area= area;
+	C->wm.region= NULL;
+}
+
+void CTX_wm_region_set(bContext *C, ARegion *region)
+{
+	C->wm.region= region;
+}
+
+void CTX_wm_menu_set(bContext *C, ARegion *menu)
+{
+	C->wm.menu= menu;
+}
+
+void CTX_wm_operator_poll_msg_set(bContext *C, const char *msg)
+{
+	C->wm.operator_poll_msg= msg;
+}
+
+const char *CTX_wm_operator_poll_msg_get(bContext *C)
+{
+	return C->wm.operator_poll_msg;
 }
 
 /* data context */

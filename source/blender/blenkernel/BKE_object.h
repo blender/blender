@@ -152,6 +152,7 @@ int object_insert_ptcache(struct Object *ob);
 struct KeyBlock *object_insert_shape_key(struct Scene *scene, struct Object *ob, const char *name, int from_mix);
 
 int object_is_modified(struct Scene *scene, struct Object *ob);
+int object_is_deform_modified(struct Scene *scene, struct Object *ob);
 
 void object_relink(struct Object *ob);
 

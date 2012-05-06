@@ -1353,7 +1353,8 @@ static int delete_key_v3d_exec (bContext *C, wmOperator *op)
 	float cfra= (float)CFRA; // XXX for now, don't bother about all the yucky offset crap
 	
 	// XXX more comprehensive tests will be needed
-	CTX_DATA_BEGIN (C, Object*, ob, selected_objects) {
+	CTX_DATA_BEGIN (C, Object*, ob, selected_objects)
+	{
 		ID *id= (ID *)ob;
 		FCurve *fcu, *fcn;
 		short success= 0;

@@ -430,7 +430,8 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 	LinkNode *obs = NULL;
 	Base *navmeshBase = NULL;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	{
 		if (base->object->type == OB_MESH) {
 			if (base->object->body_type == OB_BODY_TYPE_NAVMESH) {
 				if (!navmeshBase || base == scene->basact) {

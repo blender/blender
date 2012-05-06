@@ -1858,9 +1858,52 @@ void test_shadowbuf(vec3 rco, sampler2DShadow shadowmap, mat4 shadowpersmat, flo
 
 		//float bias = (1.5 - inp*inp)*shadowbias;
 		co.z -= shadowbias*co.w;
-
-		result = shadow2DProj(shadowmap, co).x;
+		
+		if (co.w > 0.0 && co.x > 0.0 && co.x/co.w < 1.0 && co.y > 0.0 && co.y/co.w < 1.0)
+			result = shadow2DProj(shadowmap, co).x;
+		else
+			result = 1.0;
 	}
+}
+
+void test_shadowbuf_vsm(vec3 rco, sampler2D shadowmap, mat4 shadowpersmat, float shadowbias, float bleedbias, float inp, out float result)
+{
+	if(inp <= 0.0) {
+		result = 0.0;
+	}
+	else {
+		vec4 co = shadowpersmat*vec4(rco, 1.0);
+		if (co.w > 0.0 && co.x > 0.0 && co.x/co.w < 1.0 && co.y > 0.0 && co.y/co.w < 1.0) {
+			vec2 moments = texture2DProj(shadowmap, co).rg;
+			float dist = co.z/co.w;
+			float p = 0.0;
+			
+			if(dist <= moments.x)
+				p = 1.0;
+
+			float variance = moments.y - (moments.x*moments.x);
+			variance = max(variance, shadowbias/10.0);
+
+			float d = moments.x - dist;
+			float p_max = variance / (variance + d*d);
+
+			// Now reduce light-bleeding by removing the [0, x] tail and linearly rescaling (x, 1]
+			p_max = clamp((p_max-bleedbias)/(1.0-bleedbias), 0.0, 1.0);
+
+			result = max(p, p_max);
+		}
+		else {
+			result = 1.0;
+		}			
+	}
+}
+
+void shade_light_texture(vec3 rco, sampler2D cookie, mat4 shadowpersmat, out vec4 result)
+{
+
+	vec4 co = shadowpersmat*vec4(rco, 1.0);
+
+	result = texture2DProj(cookie, co);
 }
 
 void shade_exposure_correct(vec3 col, float linfac, float logfac, out vec3 outcol)
@@ -2087,7 +2130,7 @@ void node_tex_environment(vec3 co, sampler2D ima, out vec4 color)
 void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture2D(ima, co.xy);
-	alpha = color.a;
+    alpha = color.a;
 }
 
 void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)

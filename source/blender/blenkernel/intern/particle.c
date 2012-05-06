@@ -1362,8 +1362,8 @@ static void do_particle_interpolation(ParticleSystem *psys, int p, ParticleData 
 
 	/* now we should have in chronologiacl order k1<=k2<=t<=k3<=k4 with keytime between [0, 1]->[k2, k3] (k1 & k4 used for cardinal & bspline interpolation)*/
 	psys_interpolate_particle((pind->keyed || pind->cache || point_vel) ? -1 /* signal for cubic interpolation */
-		: (pind->bspline ? KEY_BSPLINE : KEY_CARDINAL)
-		, keys, keytime, result, 1);
+		: (pind->bspline ? KEY_BSPLINE : KEY_CARDINAL),
+		keys, keytime, result, 1);
 
 	/* the velocity needs to be converted back from cubic interpolation */
 	if (pind->keyed || pind->cache || point_vel)

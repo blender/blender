@@ -161,7 +161,7 @@ static void do_apply_spillmap_green(bNode *node, float* out, float *in, float *m
 		out[0]=in[0]+(ncs->uspillr*map[0]);
 		out[1]=in[1]-(ncs->uspillg*map[0]);
 		out[2]=in[2]+(ncs->uspillb*map[0]);
-   }
+	}
 	else {
 		out[0]=in[0];
 		out[1]=in[1];
@@ -177,7 +177,7 @@ static void do_apply_spillmap_blue(bNode *node, float* out, float *in, float *ma
 		out[0]=in[0]+(ncs->uspillr*map[0]);
 		out[1]=in[1]+(ncs->uspillg*map[0]);
 		out[2]=in[2]-(ncs->uspillb*map[0]);
-   }
+	}
 	else {
 		out[0]=in[0];
 		out[1]=in[1];

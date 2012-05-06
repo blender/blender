@@ -69,7 +69,7 @@ class VIEW3D_HT_header(Header):
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if view.viewport_shade in {'SOLID', 'SHADED', 'TEXTURED'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
@@ -2379,9 +2379,10 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         col.separator()
         col.label(text="Normals:")
-        row = col.row(align=True)
-        row.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
-        row.prop(mesh, "show_normal_face", text="", icon='FACESEL')
+        row = col.row()
+        sub = row.row(align=True)
+        sub.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
+        sub.prop(mesh, "show_normal_face", text="", icon='FACESEL')
         row.prop(context.scene.tool_settings, "normal_size", text="Size")
 
         col.separator()

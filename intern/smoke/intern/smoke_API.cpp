@@ -276,7 +276,7 @@ extern "C" unsigned char *smoke_get_obstacle(FLUID_3D *fluid)
 	return fluid->_obstacles;
 }
 
-extern "C" void smoke_get_ob_velocity(struct FLUID_3D *fluid, float **x, float **y, float **z)
+extern "C" void smoke_get_ob_velocity(FLUID_3D *fluid, float **x, float **y, float **z)
 {
 	*x = fluid->_xVelocityOb;
 	*y = fluid->_yVelocityOb;

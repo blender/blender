@@ -48,12 +48,13 @@
 bNodeSocket *ntreeCompositOutputFileAddSocket(bNodeTree *ntree, bNode *node, const char *name, ImageFormatData *im_format)
 {
 	NodeImageMultiFile *nimf = node->storage;
-	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, name, SOCK_RGBA);
+	bNodeSocket *sock = nodeAddSocket(ntree, node, SOCK_IN, "", SOCK_RGBA);
 	
 	/* create format data for the input socket */
 	NodeImageMultiFileSocket *sockdata = MEM_callocN(sizeof(NodeImageMultiFileSocket), "socket image format");
 	sock->storage = sockdata;
-	sock->struct_type = SOCK_STRUCT_OUTPUT_FILE;
+	
+	BLI_strncpy(sockdata->path, name, sizeof(sockdata->path));
 	
 	if (im_format) {
 		sockdata->format= *im_format;
@@ -188,7 +189,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
 			
 			/* get full path */
-			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sock->name);
+			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sockdata->path);
 			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
 			if (0 == BKE_write_ibuf(ibuf, filename, format))
@@ -229,6 +230,7 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 	
 	for (sock=node->inputs.first, i=0; sock; sock=sock->next, ++i) {
 		if (in[i]->data) {
+			NodeImageMultiFileSocket *sockdata = sock->storage;
 			CompBuf *cbuf = in[i]->data;
 			char layname[EXR_LAY_MAXNAME];
 			char channelname[EXR_PASS_MAXNAME];
@@ -247,8 +249,8 @@ static void exec_output_file_multilayer(RenderData *rd, bNode *node, bNodeStack 
 				continue;
 			}
 			
-			BLI_strncpy(layname, sock->name, sizeof(layname));
-			BLI_strncpy(channelname, sock->name, sizeof(channelname)-2);
+			BLI_strncpy(layname, sockdata->path, sizeof(layname));
+			BLI_strncpy(channelname, sockdata->path, sizeof(channelname)-2);
 			channelname_ext = channelname + strlen(channelname);
 			
 			/* create channels */

@@ -41,8 +41,99 @@
 #include "BLI_math_vector.h"
 
 #include "BKE_deform.h"
+#include "BKE_library.h"
 
 #include "bmesh_py_types_meshdata.h"
+
+
+/* Mesh BMTexPoly
+ * ************** */
+
+#define BPy_BMTexPoly_Check(v)  (Py_TYPE(v) == &BPy_BMTexPoly_Type)
+
+typedef struct BPy_BMTexPoly {
+	PyObject_VAR_HEAD
+	MTexPoly *data;
+} BPy_BMTexPoly;
+
+extern PyObject *pyrna_id_CreatePyObject(ID *id);
+extern int       pyrna_id_FromPyObject(PyObject *obj, ID **id);
+
+PyDoc_STRVAR(bpy_bmtexpoly_image_doc,
+"Image or None.\n\n:type: :class:`bpy.types.Image`"
+);
+static PyObject *bpy_bmtexpoly_image_get(BPy_BMTexPoly *self, void *UNUSED(closure))
+{
+	return pyrna_id_CreatePyObject((ID *)self->data->tpage);
+}
+
+static int bpy_bmtexpoly_image_set(BPy_BMTexPoly *self, PyObject *value, void *UNUSED(closure))
+{
+	ID *id;
+
+	if (value == Py_None) {
+		id = NULL;
+	}
+	else if (pyrna_id_FromPyObject(value, &id) && id && GS(id->name) == ID_IM) {
+		/* pass */
+	}
+	else {
+		PyErr_Format(PyExc_KeyError, "BMTexPoly.image = x"
+		             "expected an image or None, not '%.200s'",
+		             Py_TYPE(value)->tp_name);
+		return -1;
+	}
+
+	id_lib_extern(id);
+	self->data->tpage = (struct Image *)id;
+
+	return 0;
+}
+
+static PyGetSetDef bpy_bmtexpoly_getseters[] = {
+    /* attributes match rna_def_mtpoly  */
+    {(char *)"image", (getter)bpy_bmtexpoly_image_get, (setter)bpy_bmtexpoly_image_set, (char *)bpy_bmtexpoly_image_doc, NULL},
+
+    {NULL, NULL, NULL, NULL, NULL} /* Sentinel */
+};
+
+PyTypeObject BPy_BMTexPoly_Type = {{{0}}}; /* bm.loops.layers.uv.active */
+
+static void bm_init_types_bmtexpoly(void)
+{
+	BPy_BMTexPoly_Type.tp_basicsize = sizeof(BPy_BMTexPoly);
+
+	BPy_BMTexPoly_Type.tp_name = "BMTexPoly";
+
+	BPy_BMTexPoly_Type.tp_doc = NULL; // todo
+
+	BPy_BMTexPoly_Type.tp_getset = bpy_bmtexpoly_getseters;
+
+	BPy_BMTexPoly_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+
+	PyType_Ready(&BPy_BMTexPoly_Type);
+}
+
+int BPy_BMTexPoly_AssignPyObject(struct MTexPoly *mtpoly, PyObject *value)
+{
+	if (UNLIKELY(!BPy_BMTexPoly_Check(value))) {
+		PyErr_Format(PyExc_TypeError, "expected BMTexPoly, not a %.200s", Py_TYPE(value)->tp_name);
+		return -1;
+	}
+	else {
+		*((MTexPoly *)mtpoly) = *(((BPy_BMTexPoly *)value)->data);
+		return 0;
+	}
+}
+
+PyObject *BPy_BMTexPoly_CreatePyObject(struct MTexPoly *mtpoly)
+{
+	BPy_BMTexPoly *self = PyObject_New(BPy_BMTexPoly, &BPy_BMTexPoly_Type);
+	self->data = mtpoly;
+	return (PyObject *)self;
+}
+
+/* --- End Mesh BMTexPoly --- */
 
 /* Mesh Loop UV
  * ************ */
@@ -597,6 +688,7 @@ PyObject *BPy_BMDeformVert_CreatePyObject(struct MDeformVert *dvert)
 /* call to init all types */
 void BPy_BM_init_types_meshdata(void)
 {
+	bm_init_types_bmtexpoly();
 	bm_init_types_bmloopuv();
 	bm_init_types_bmloopcol();
 	bm_init_types_bmdvert();

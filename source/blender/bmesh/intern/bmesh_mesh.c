@@ -672,8 +672,8 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 			BMEdge *new_edp = edges_pool[*new_idx];
 			*new_edp = *ed;
 			BLI_ghash_insert(eptr_map, (void *)*edp, (void *)new_edp);
+/*			printf("mapping edge from %d to %d (%p/%p to %p)\n", i, *new_idx, *edp, edges_pool[i], new_edp);*/
 		}
-
 		bm->elem_index_dirty |= BM_EDGE;
 
 		MEM_freeN(edges_pool);
@@ -722,13 +722,30 @@ void BM_mesh_remap(BMesh *bm, int *vert_idx, int *edge_idx, int *face_idx)
 		}
 	}
 
-	/* Edges' pointers, only vert pointers (as we don't mess with loops!)... */
-	if (vptr_map) {
+	/* Edges' pointers, only vert pointers (as we don't mess with loops!), and - ack! - edge pointers,
+	 * as we have to handle disklinks... */
+	if (vptr_map || eptr_map) {
 		BM_ITER_MESH (ed, &iter, bm, BM_EDGES_OF_MESH) {
-/*			printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
-/*			printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
-			ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
-			ed->v2 = BLI_ghash_lookup(vptr_map, (const void *)ed->v2);
+			if (vptr_map) {
+/*				printf("Edge v1: %p -> %p\n", ed->v1, BLI_ghash_lookup(vptr_map, (const void*)ed->v1));*/
+/*				printf("Edge v2: %p -> %p\n", ed->v2, BLI_ghash_lookup(vptr_map, (const void*)ed->v2));*/
+				ed->v1 = BLI_ghash_lookup(vptr_map, (const void *)ed->v1);
+				ed->v2 = BLI_ghash_lookup(vptr_map, (const void *)ed->v2);
+			}
+			if (eptr_map) {
+/*				printf("Edge v1_disk_link prev: %p -> %p\n", ed->v1_disk_link.prev,*/
+/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v1_disk_link.prev));*/
+/*				printf("Edge v1_disk_link next: %p -> %p\n", ed->v1_disk_link.next,*/
+/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v1_disk_link.next));*/
+/*				printf("Edge v2_disk_link prev: %p -> %p\n", ed->v2_disk_link.prev,*/
+/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v2_disk_link.prev));*/
+/*				printf("Edge v2_disk_link next: %p -> %p\n", ed->v2_disk_link.next,*/
+/*				       BLI_ghash_lookup(eptr_map, (const void*)ed->v2_disk_link.next));*/
+				ed->v1_disk_link.prev = BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.prev);
+				ed->v1_disk_link.next = BLI_ghash_lookup(eptr_map, (const void *)ed->v1_disk_link.next);
+				ed->v2_disk_link.prev = BLI_ghash_lookup(eptr_map, (const void *)ed->v2_disk_link.prev);
+				ed->v2_disk_link.next = BLI_ghash_lookup(eptr_map, (const void *)ed->v2_disk_link.next);
+			}
 		}
 	}
 

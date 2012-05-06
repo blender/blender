@@ -303,6 +303,7 @@ static void node_update_basis(const bContext *C, bNodeTree *ntree, bNode *node)
 		
 		layout= uiBlockLayout(node->block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL,
 							  locx+NODE_DYS, dy, node->butr.xmax, NODE_DY, UI_GetStyle());
+		uiLayoutSetContextPointer(layout, "node", &ptr);
 		
 		node->typeinfo->uifunc(layout, (bContext *)C, &ptr);
 		
@@ -711,41 +712,24 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	
 	/* socket inputs, buttons */
 	for (sock= node->inputs.first; sock; sock= sock->next) {
-		bNodeSocketType *stype= ntreeGetSocketType(sock->type);
-		
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		if (stype->buttonfunc)
-			stype->buttonfunc(C, node->block, ntree, node, sock, IFACE_(sock->name), sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
+		node->typeinfo->drawinputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
+		                              sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
 	}
 	
 	/* socket outputs */
 	for (sock= node->outputs.first; sock; sock= sock->next) {
-		PointerRNA sockptr;
-		
-		RNA_pointer_create((ID*)ntree, &RNA_NodeSocket, sock, &sockptr);
-		
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
 		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
 		
-		{
-			const char *name = IFACE_(sock->name);
-			float slen;
-			int ofs = 0;
-			UI_ThemeColor(TH_TEXT);
-			slen= snode->aspect*UI_GetStringWidth(name);
-			while (slen > node->width) {
-				ofs++;
-				slen= snode->aspect*UI_GetStringWidth(name+ofs);
-			}
-			uiDefBut(node->block, LABEL, 0, name+ofs, (short)(sock->locx-15.0f-slen), (short)(sock->locy-9.0f), 
-					 (short)(node->width-NODE_DY), NODE_DY,  NULL, 0, 0, 0, 0, "");
-		}
+		node->typeinfo->drawoutputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
+		                               sock->locx-node->width+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
 	}
 	
 	/* preview */

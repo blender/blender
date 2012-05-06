@@ -2108,13 +2108,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			/* reset write flags too */
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				if (seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
 			
-			SEQ_BEGIN (ed, seq) {
+			SEQ_BEGIN (ed, seq)
+			{
 				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
@@ -2677,6 +2679,18 @@ static void write_movieTracks(WriteData *wd, ListBase *tracks)
 	}
 }
 
+static void write_movieDopesheet(WriteData *wd, MovieTrackingDopesheet *dopesheet)
+{
+	MovieTrackingDopesheetChannel *channel;
+
+	channel = dopesheet->channels.first;
+	while (channel) {
+		writestruct(wd, DATA, "MovieTrackingDopesheetChannel", 1, channel);
+
+		channel = channel->next;
+	}
+}
+
 static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction *reconstruction)
 {
 	if (reconstruction->camnr)
@@ -2709,6 +2723,8 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 
 				object= object->next;
 			}
+
+			write_movieDopesheet(wd, &tracking->dopesheet);
 		}
 
 		clip= clip->id.next;

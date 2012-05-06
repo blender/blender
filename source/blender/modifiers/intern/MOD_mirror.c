@@ -113,7 +113,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4];
 	int i, j;
 	int a, totshape;
-	int *vtargetmap, *vtmap_a = NULL, *vtmap_b = NULL;
+	int *vtargetmap = NULL, *vtmap_a = NULL, *vtmap_b = NULL;
 
 	/* mtx is the mirror transformation */
 	unit_m4(mtx);
@@ -223,10 +223,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MLoop *ml2;
 		int e;
 
-		/* reverse the loop */
-		for (j = 0; j < mp->totloop; j++) {
-			DM_copy_loop_data(result, result, mp->loopstart + j, mp->loopstart + maxLoops + mp->totloop - j - 1, 1);
-		}
+		/* reverse the loop, but we keep the first vertex in the face the same,
+		 * to ensure that quads are split the same way as on the other side */
+		DM_copy_loop_data(result, result, mp->loopstart, mp->loopstart + maxLoops, 1);
+		for (j = 1; j < mp->totloop; j++)
+			DM_copy_loop_data(result, result, mp->loopstart + j, mp->loopstart + maxLoops + mp->totloop - j, 1);
 
 		ml2 = ml + mp->loopstart + maxLoops;
 		e = ml2[0].e;

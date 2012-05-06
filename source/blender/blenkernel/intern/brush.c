@@ -718,6 +718,16 @@ float brush_weight(const Scene *scene, Brush *brush)
 	return (ups->flag & UNIFIED_PAINT_WEIGHT) ? ups->weight : brush->weight;
 }
 
+void brush_set_weight(const Scene *scene, Brush *brush, float value)
+{
+	UnifiedPaintSettings *ups = &scene->toolsettings->unified_paint_settings;
+
+	if(ups->flag & UNIFIED_PAINT_WEIGHT)
+		ups->weight = value;
+	else
+		brush->weight = value;
+}
+
 /* scale unprojected radius to reflect a change in the brush's 2D size */
 void brush_scale_unprojected_radius(float *unprojected_radius,
 									int new_brush_size,

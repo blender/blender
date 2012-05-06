@@ -1,7 +1,4 @@
 /*
- * rendercore_ext.h
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,13 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __RENDERCORE_H__
+#define __RENDERCORE_H__ 
+
 /** \file blender/render/intern/include/rendercore.h
  *  \ingroup render
  */
-
-
-#ifndef __RENDERCORE_H__
-#define __RENDERCORE_H__ 
 
 #include "render_types.h"
 

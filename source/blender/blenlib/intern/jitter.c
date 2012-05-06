@@ -1,7 +1,4 @@
 /*
- * Jitter offset table
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,8 +27,8 @@
 
 /** \file blender/blenlib/intern/jitter.c
  *  \ingroup bli
+ *  \brief Jitter offset table
  */
-
 
 #include <math.h>
 #include <string.h>

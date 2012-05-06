@@ -605,36 +605,40 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		out[0]->data= new;
 	}
 	else if (nbd->filtertype == R_FILTER_FAST_GAUSS) {
-		CompBuf *new, *img = in[0]->data;
-		// TODO: can this be mapped with reference, too?
-		const float sx = ((float)nbd->sizex*in[1]->vec[0])/2.0f, sy = ((float)nbd->sizey*in[1]->vec[0])/2.0f;
-		int c;
-
-		if ((img==NULL) || (out[0]->hasoutput==0)) return;
-
-		if (img->type == CB_VEC2)
-			new = typecheck_compbuf(img, CB_VAL);
-		else if (img->type == CB_VEC3)
-			new = typecheck_compbuf(img, CB_RGBA);
-		else
-			new = dupalloc_compbuf(img);
-
-		if ((sx == sy) && (sx > 0.f)) {
-			for (c=0; c<new->type; ++c)
-				IIR_gauss(new, sx, c, 3);
+		if (in[1]->vec[0] < 0.001f) { /* time node inputs can be a tiny value */
+			new = pass_on_compbuf(img);
 		}
 		else {
-			if (sx > 0.f) {
+			CompBuf *new, *img = in[0]->data;
+			// TODO: can this be mapped with reference, too?
+			const float sx = ((float)nbd->sizex*in[1]->vec[0])/2.0f, sy = ((float)nbd->sizey*in[1]->vec[0])/2.0f;
+			int c;
+
+			if ((img==NULL) || (out[0]->hasoutput==0)) return;
+
+			if (img->type == CB_VEC2)
+				new = typecheck_compbuf(img, CB_VAL);
+			else if (img->type == CB_VEC3)
+				new = typecheck_compbuf(img, CB_RGBA);
+			else
+				new = dupalloc_compbuf(img);
+
+			if ((sx == sy) && (sx > 0.f)) {
 				for (c=0; c<new->type; ++c)
-					IIR_gauss(new, sx, c, 1);
+					IIR_gauss(new, sx, c, 3);
 			}
-			if (sy > 0.f) {
-				for (c=0; c<new->type; ++c)
-					IIR_gauss(new, sy, c, 2);
+			else {
+				if (sx > 0.f) {
+					for (c=0; c<new->type; ++c)
+						IIR_gauss(new, sx, c, 1);
+				}
+				if (sy > 0.f) {
+					for (c=0; c<new->type; ++c)
+						IIR_gauss(new, sy, c, 2);
+				}
 			}
 		}
 		out[0]->data = new;
-		
 	}
 	else {
 		/* All non fast gauss blur methods */

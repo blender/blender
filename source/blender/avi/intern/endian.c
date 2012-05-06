@@ -1,8 +1,4 @@
 /*
- *
- * This is external code. Streams bytes to output depending on the
- * endianness of the system.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -32,6 +28,9 @@
 
 /** \file blender/avi/intern/endian.c
  *  \ingroup avi
+ *
+ * This is external code. Streams bytes to output depending on the
+ * endianness of the system.
  */
 
 

@@ -36,6 +36,8 @@ void  BM_data_layer_add(BMesh *em, CustomData *data, int type);
 void  BM_data_layer_add_named(BMesh *bm, CustomData *data, int type, const char *name);
 void  BM_data_layer_free(BMesh *em, CustomData *data, int type);
 void  BM_data_layer_free_n(BMesh *bm, CustomData *data, int type, int n);
+void  BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int dst_n);
+
 float BM_elem_float_data_get(CustomData *cd, void *element, int type);
 void  BM_elem_float_data_set(CustomData *cd, void *element, int type, const float val);
 

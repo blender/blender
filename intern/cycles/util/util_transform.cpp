@@ -53,6 +53,8 @@
 
 CCL_NAMESPACE_BEGIN
 
+/* Transform Inverse */
+
 static bool transform_matrix4_gj_inverse(float R[][4], float M[][4])
 {
 	/* forward elimination */
@@ -149,6 +151,105 @@ Transform transform_inverse(const Transform& tfm)
 	memcpy(&tfmR, R, sizeof(R));
 
 	return tfmR;
+}
+
+/* Motion Transform */
+
+static float4 transform_to_quat(const Transform& tfm)
+{
+	double trace = tfm[0][0] + tfm[1][1] + tfm[2][2];
+	float4 qt;
+
+	if(trace > 0.0f) {
+		double s = sqrt(trace + 1.0);
+
+		qt.w = (float)(s/2.0);
+		s = 0.5/s;
+
+		qt.x = (float)((tfm[2][1] - tfm[1][2]) * s);
+		qt.y = (float)((tfm[0][2] - tfm[2][0]) * s);
+		qt.z = (float)((tfm[1][0] - tfm[0][1]) * s);
+	}
+	else {
+		int i = 0;
+
+		if(tfm[1][1] > tfm[i][i])
+			i = 1;
+		if(tfm[2][2] > tfm[i][i])
+			i = 2;
+
+		int j = (i + 1)%3;
+		int k = (j + 1)%3;
+
+		double s = sqrt((tfm[i][i] - (tfm[j][j] + tfm[k][k])) + 1.0);
+
+		double q[3];
+		q[i] = s * 0.5;
+		if(s != 0.0)
+			s = 0.5/s;
+
+		double w = (tfm[k][j] - tfm[j][k]) * s;
+		q[j] = (tfm[j][i] + tfm[i][j]) * s;
+		q[k] = (tfm[k][i] + tfm[i][k]) * s;
+
+		qt.x = (float)q[0];
+		qt.y = (float)q[1];
+		qt.z = (float)q[2];
+		qt.w = (float)w;
+	}
+
+	return qt;
+}
+
+static void transform_decompose(Transform *decomp, const Transform *tfm)
+{
+	/* extract translation */
+	decomp->y = make_float4(tfm->x.w, tfm->y.w, tfm->z.w, 0.0f);
+
+	/* extract rotation */
+	Transform M = *tfm;
+	M.x.w = 0.0f; M.y.w = 0.0f; M.z.w = 0.0f; M.w.w = 1.0f;
+
+	Transform R = M;
+	float norm;
+	int iteration = 0;
+
+	do {
+		Transform Rnext;
+		Transform Rit = transform_inverse(transform_transpose(R));
+
+		for(int i = 0; i < 4; i++)
+			for(int j = 0; j < 4; j++)
+				Rnext[i][j] = 0.5f * (R[i][j] + Rit[i][j]);
+		
+		norm = 0.0f;
+		for(int i = 0; i < 3; i++) {
+			norm = max(norm,
+				fabsf(R[i][0] - Rnext[i][0]) +
+				fabsf(R[i][1] - Rnext[i][1]) +
+				fabsf(R[i][2] - Rnext[i][2]));
+		}
+
+		R = Rnext;
+		iteration++;
+	} while(iteration < 100 && norm > 1e-4f);
+
+	if(transform_negative_scale(R))
+		R = R * transform_scale(-1.0f, -1.0f, -1.0f); /* todo: test scale */
+
+	decomp->x = transform_to_quat(R);
+
+	/* extract scale and pack it */
+	Transform scale = transform_inverse(R) * M;
+	decomp->y.w = scale.x.x;
+	decomp->z = make_float4(scale.x.y, scale.x.z, scale.y.x, scale.y.y);
+	decomp->w = make_float4(scale.y.z, scale.z.x, scale.z.y, scale.z.z);
+}
+
+void transform_motion_decompose(MotionTransform *decomp, const MotionTransform *motion)
+{
+	transform_decompose(&decomp->pre, &motion->pre);
+	transform_decompose(&decomp->post, &motion->post);
 }
 
 CCL_NAMESPACE_END

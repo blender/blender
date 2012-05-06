@@ -103,7 +103,7 @@ public:
 
 	/* get globally unique id for a type of attribute */
 	uint get_attribute_id(ustring name);
-	uint get_attribute_id(Attribute::Standard std);
+	uint get_attribute_id(AttributeStandard std);
 
 	/* get shader id for mesh faces */
 	int get_shader_id(uint shader, Mesh *mesh = NULL, bool smooth = false);

@@ -45,6 +45,7 @@ Integrator::Integrator()
 	seed = 0;
 	layer_flag = ~0;
 	sample_clamp = 0.0f;
+	motion_blur = false;
 
 	need_update = true;
 }
@@ -125,7 +126,8 @@ bool Integrator::modified(const Integrator& integrator)
 		filter_glossy == integrator.filter_glossy &&
 		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed &&
-		sample_clamp == integrator.sample_clamp);
+		sample_clamp == integrator.sample_clamp &&
+		motion_blur == integrator.motion_blur);
 }
 
 void Integrator::tag_update(Scene *scene)

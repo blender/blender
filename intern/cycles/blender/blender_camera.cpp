@@ -35,6 +35,7 @@ struct BlenderCamera {
 	float ortho_scale;
 
 	float lens;
+	float shuttertime;
 
 	float aperturesize;
 	uint apertureblades;
@@ -64,6 +65,7 @@ static void blender_camera_init(BlenderCamera *bcam)
 	bcam->sensor_width = 32.0f;
 	bcam->sensor_height = 18.0f;
 	bcam->sensor_fit = BlenderCamera::AUTO;
+	bcam->shuttertime = 1.0f;
 }
 
 static float blender_camera_focal_distance(BL::Object b_ob, BL::Camera b_camera)
@@ -130,6 +132,28 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 	else {
 		/* from lamp not implemented yet */
 	}
+}
+
+static Transform blender_camera_matrix(const Transform& tfm, CameraType type)
+{
+	Transform result;
+
+	if(type == CAMERA_ENVIRONMENT) {
+		/* make it so environment camera needs to be pointed in the direction
+		   of the positive x-axis to match an environment texture, this way
+		   it is looking at the center of the texture */
+		result = tfm *
+			make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
+			                0.0f,  0.0f, 1.0f, 0.0f,
+			               -1.0f,  0.0f, 0.0f, 0.0f,
+			                0.0f,  0.0f, 0.0f, 1.0f);
+	}
+	else {
+		/* note the blender camera points along the negative z-axis */
+		result = tfm * transform_scale(1.0f, 1.0f, -1.0f);
+	}
+
+	return transform_clear_scale(result);
 }
 
 static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int height)
@@ -224,24 +248,11 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->bladesrotation = bcam->aperturerotation;
 
 	/* transform */
-	cam->matrix = bcam->matrix;
-
-	if(bcam->type == CAMERA_ENVIRONMENT) {
-		/* make it so environment camera needs to be pointed in the direction
-		   of the positive x-axis to match an environment texture, this way
-		   it is looking at the center of the texture */
-		cam->matrix = cam->matrix *
-			make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
-			                0.0f,  0.0f, 1.0f, 0.0f,
-			               -1.0f,  0.0f, 0.0f, 0.0f,
-			                0.0f,  0.0f, 0.0f, 1.0f);
-	}
-	else {
-		/* note the blender camera points along the negative z-axis */
-		cam->matrix = cam->matrix * transform_scale(1.0f, 1.0f, -1.0f);
-	}
-
-	cam->matrix = transform_clear_scale(cam->matrix);
+	cam->matrix = blender_camera_matrix(bcam->matrix, bcam->type);
+	cam->motion.pre = cam->matrix;
+	cam->motion.post = cam->matrix;
+	cam->use_motion = false;
+	cam->shuttertime = bcam->shuttertime;
 
 	/* set update flag */
 	if(cam->modified(prevcam))
@@ -260,6 +271,7 @@ void BlenderSync::sync_camera(BL::Object b_override, int width, int height)
 
 	bcam.pixelaspect.x = r.pixel_aspect_x();
 	bcam.pixelaspect.y = r.pixel_aspect_y();
+	bcam.shuttertime = r.motion_blur_shutter();
 
 	/* camera object */
 	BL::Object b_ob = b_scene.camera();
@@ -277,6 +289,23 @@ void BlenderSync::sync_camera(BL::Object b_override, int width, int height)
 	blender_camera_sync(cam, &bcam, width, height);
 }
 
+void BlenderSync::sync_camera_motion(BL::Object b_ob, int motion)
+{
+	Camera *cam = scene->camera;
+
+	Transform tfm = get_transform(b_ob.matrix_world());
+	tfm = blender_camera_matrix(tfm, cam->type);
+
+	if(tfm != cam->matrix) {
+		if(motion == -1)
+			cam->motion.pre = tfm;
+		else
+			cam->motion.post = tfm;
+
+		cam->use_motion = true;
+	}
+}
+
 /* Sync 3D View Camera */
 
 void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height)
@@ -288,6 +317,7 @@ void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int 
 	bcam.nearclip = b_v3d.clip_start();
 	bcam.farclip = b_v3d.clip_end();
 	bcam.lens = b_v3d.lens();
+	bcam.shuttertime = b_scene.render().motion_blur_shutter();
 
 	if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_CAMERA) {
 		/* camera view */

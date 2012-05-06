@@ -756,7 +756,8 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 	 *
 	 * TODO, loop over children before parents if multiple bones
 	 * at once are to be predictable*/
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
+	{
 		float delta_mat[4][4];
 		
 		/* chan_mat already contains the delta transform from rest pose to pose-mode pose
@@ -922,7 +923,8 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 	pose= ob->pose;
 	ob->mode &= ~OB_MODE_POSE;
 
-	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases) {
+	CTX_DATA_BEGIN (C, Base*, base, selected_editable_bases)
+	{
 		if ((base->object->type==OB_ARMATURE) && (base->object!=ob)) {
 			bArmature *curarm= base->object->data;
 			
@@ -1193,7 +1195,8 @@ static int separate_armature_exec (bContext *C, wmOperator *UNUSED(op))
 	
 	/* 1) only edit-base selected */
 	// TODO: use context iterators for this?
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases) {
+	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	{
 		if (base->object==obedit) base->flag |= 1;
 		else base->flag &= ~1;
 	}
@@ -2816,7 +2819,8 @@ static int armature_fill_bones_exec (bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	/* loop over all bones, and only consider if visible */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones)
+	{
 		if (!(ebone->flag & BONE_CONNECTED) && (ebone->flag & BONE_ROOTSEL))
 			fill_add_joint(ebone, 0, &points);
 		if (ebone->flag & BONE_TIPSEL) 
@@ -3529,7 +3533,8 @@ static int armature_subdivide_exec(bContext *C, wmOperator *op)
 	
 	/* loop over all editable bones */
 	// XXX the old code did this in reverse order though!
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	{
 		for (i=numcuts+1; i>1; i--) {
 			/* compute cut ratio first */
 			float cutratio= 1.0f / (float)i;
@@ -3817,7 +3822,8 @@ static int armature_parent_set_exec(bContext *C, wmOperator *op)
 		 */
 		
 		/* parent selected bones to the active one */
-		CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+		CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+		{
 			if (ELEM(ebone, actbone, actmirb) == 0) {
 				if (ebone->flag & BONE_SELECTED) 
 					bone_connect_to_new_parent(arm->edbo, ebone, actbone, val);
@@ -3842,7 +3848,8 @@ static int armature_parent_set_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	uiLayout *layout= uiPupMenuLayout(pup);
 	int allchildbones = 0;
 	
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	{
 		if (ebone != actbone) {
 			if (ebone->parent != actbone) allchildbones= 1; 
 		}	
@@ -3901,7 +3908,8 @@ static int armature_parent_clear_exec(bContext *C, wmOperator *op)
 	bArmature *arm= (bArmature *)ob->data;
 	int val = RNA_enum_get(op->ptr, "type");
 		
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	{
 		editbone_clear_parent(ebone, val);
 	}
 	CTX_DATA_END;
@@ -3937,7 +3945,8 @@ void ARMATURE_OT_parent_clear(wmOperatorType *ot)
 static int armature_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	/*	Set the flags */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones)
+	{
 		/* ignore bone if selection can't change */
 		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 			/* select bone */
@@ -3979,7 +3988,8 @@ static int armature_de_select_all_exec(bContext *C, wmOperator *op)
 	}
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, visible_bones)
+	{
 		/* ignore bone if selection can't change */
 		if ((ebone->flag & BONE_UNSELECTABLE) == 0) {
 			switch (action) {
@@ -4398,7 +4408,8 @@ static int armature_align_bones_exec(bContext *C, wmOperator *op)
 		 */
 		
 		/* align selected bones to the active one */
-		CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+		CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+		{
 			if (ELEM(ebone, actbone, actmirb) == 0) {
 				if (ebone->flag & BONE_SELECTED)
 					bone_align_to_bone(arm->edbo, ebone, actbone);
@@ -5087,7 +5098,8 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 	}
 	
 	/* only clear relevant transforms for selected bones */
-	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel*, pchan, selected_pose_bones)
+	{
 		/* run provided clearing function */
 		clear_func(pchan);
 		
@@ -5228,7 +5240,8 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	}
 	
 	/*	Set the flags */
-	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones) {
+	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, visible_pose_bones)
+	{
 		/* select pchan only if selectable, but deselect works always */
 		switch (action) {
 		case SEL_SELECT:
@@ -5617,7 +5630,8 @@ static int armature_flip_names_exec (bContext *C, wmOperator *UNUSED(op))
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	{
 		flip_side_name(newname, ebone->name, TRUE); // 1 = do strip off number extensions
 		ED_armature_bone_rename(arm, ebone->name, newname);
 	}
@@ -5661,7 +5675,8 @@ static int armature_autoside_names_exec (bContext *C, wmOperator *op)
 	arm= ob->data;
 	
 	/* loop through selected bones, auto-naming them */
-	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones) {
+	CTX_DATA_BEGIN (C, EditBone *, ebone, selected_editable_bones)
+	{
 		BLI_strncpy(newname, ebone->name, sizeof(newname));
 		if (bone_autoside_name(newname, 1, axis, ebone->head[axis], ebone->tail[axis]))
 			ED_armature_bone_rename(arm, ebone->name, newname);

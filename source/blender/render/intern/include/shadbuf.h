@@ -1,7 +1,4 @@
 /*
- * shadbuf_ext.h
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,13 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef __SHADBUF_H__
+#define __SHADBUF_H__
+
 /** \file blender/render/intern/include/shadbuf.h
  *  \ingroup render
  */
-
-
-#ifndef __SHADBUF_H__
-#define __SHADBUF_H__
 
 #include "render_types.h"
 

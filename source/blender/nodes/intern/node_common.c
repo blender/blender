@@ -551,7 +551,8 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, ListBase *lb, int in_o
 		sock->groupsock = gsock;
 		
 		BLI_strncpy(sock->name, gsock->name, sizeof(sock->name));
-		sock->type= gsock->type;
+		if(gsock->type != sock->type)
+			nodeSocketSetType(sock, gsock->type);
 		
 		/* XXX hack: group socket input/output roles are inverted internally,
 		 * need to change the limit value when making actual node sockets from them.

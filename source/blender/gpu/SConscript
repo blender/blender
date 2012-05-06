@@ -2,6 +2,7 @@
 Import ('env')
 
 sources = env.Glob('intern/*.c')
+sources += env.Glob('shaders/*.c')
 
 defs = [ 'GLEW_STATIC' ]
 

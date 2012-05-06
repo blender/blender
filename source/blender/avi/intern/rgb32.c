@@ -1,7 +1,4 @@
 /*
- *
- * This is external code. Converts between rgb32 and avi.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,6 +28,8 @@
 
 /** \file blender/avi/intern/rgb32.c
  *  \ingroup avi
+ *
+ * This is external code. Converts between rgb32 and avi.
  */
 
 

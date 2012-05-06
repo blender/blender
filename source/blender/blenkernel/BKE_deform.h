@@ -69,13 +69,13 @@ void defvert_flip_merged(struct MDeformVert *dvert, const int *flip_map, const i
 void defvert_normalize(struct MDeformVert *dvert);
 void defvert_normalize_lock(struct MDeformVert *dvert, const int def_nr_lock);
 
-/* utility function, note that 32 chars is the maximum string length since its only
+/* utility function, note that MAX_VGROUP_NAME chars is the maximum string length since its only
  * used with defgroups currently */
 
 void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char base[MAX_VGROUP_NAME], char ext[MAX_VGROUP_NAME]);
 void BKE_deform_split_prefix(const char string[MAX_VGROUP_NAME], char base[MAX_VGROUP_NAME], char ext[MAX_VGROUP_NAME]);
 
-void flip_side_name(char name[64], const char from_name[64], int strip_number);
+void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_NAME], int strip_number);
 
 #endif
 

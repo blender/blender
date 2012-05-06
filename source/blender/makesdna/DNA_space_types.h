@@ -520,9 +520,9 @@ typedef struct SpaceClip {
 	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
-	int postproc_flag;
+	int postproc_flag, pad2;
 
-	int runtime_flag;			/* different runtime flags */
+	void *draw_context;
 } SpaceClip;
 
 /* view3d  Now in DNA_view3d_types.h */
@@ -914,6 +914,7 @@ enum {
 /* SpaceClip->view */
 #define SC_VIEW_CLIP		0
 #define SC_VIEW_GRAPH		1
+#define SC_VIEW_DOPESHEET	2
 
 /* SpaceClip->runtime_flag */
 #define SC_GRAPH_BOTTOM		(1<<0)

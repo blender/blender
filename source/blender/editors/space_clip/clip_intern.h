@@ -42,10 +42,31 @@ struct ScrArea;
 struct SpaceClip;
 struct wmOperatorType;
 
+/* channel heights */
+#define CHANNEL_FIRST			-UI_UNIT_Y
+#define CHANNEL_HEIGHT			UI_UNIT_Y
+#define CHANNEL_HEIGHT_HALF		(UI_UNIT_Y / 2.0f)
+#define CHANNEL_SKIP			2
+#define CHANNEL_STEP			(CHANNEL_HEIGHT + CHANNEL_SKIP)
+
+#define CHANNEL_PAD				4
+
+/* extra padding for lengths (to go under scrollers) */
+#define EXTRA_SCROLL_PAD		100.0f
+
+#define STRIP_HEIGHT_HALF		5
+
 /* internal exports only */
 
 /* clip_buttons.c */
 void ED_clip_buttons_register(struct ARegionType *art);
+
+/* clip_dopesheet_draw.c */
+void clip_draw_dopesheet_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);
+void clip_draw_dopesheet_channels(const struct bContext *C, struct ARegion *ar);
+
+/* clip_dopesheet_ops.c */
+void CLIP_OT_dopesheet_select_channel(struct wmOperatorType *ot);
 
 /* clip_draw.c */
 void clip_draw_main(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scene);

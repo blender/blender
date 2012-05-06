@@ -957,9 +957,8 @@ void txt_move_right(Text *text, short sel)
 void txt_jump_left(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, oldflags, i;
+	int *charp, oldc, oldflags;
 	unsigned char oldu;
-	int pos;
 
 	if (!text) return;
 	if (sel) txt_curs_sel(text, &linep, &charp);
@@ -974,13 +973,9 @@ void txt_jump_left(Text *text, short sel)
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	pos = *charp;
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
-	                         &pos, STRCUR_DIR_PREV,
+                             charp, STRCUR_DIR_PREV,
 	                         STRCUR_JUMP_DELIM);
-	for (i = *charp; i > pos; i--) {
-		txt_move_left(text, sel);
-	}
 
 	text->flags = oldflags;
 
@@ -991,9 +986,8 @@ void txt_jump_left(Text *text, short sel)
 void txt_jump_right(Text *text, short sel)
 {
 	TextLine **linep, *oldl;
-	int *charp, oldc, oldflags, i;
+	int *charp, oldc, oldflags;
 	unsigned char oldu;
-	int pos;
 
 	if (!text) return;
 	if (sel) txt_curs_sel(text, &linep, &charp);
@@ -1008,13 +1002,9 @@ void txt_jump_right(Text *text, short sel)
 	oldu= undoing;
 	undoing= 1; /* Don't push individual moves to undo stack */
 
-	pos = *charp;
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
-	                         &pos, STRCUR_DIR_NEXT,
+                             charp, STRCUR_DIR_NEXT,
 	                         STRCUR_JUMP_DELIM);
-	for (i = *charp; i < pos; i++) {
-		txt_move_right(text, sel);
-	}
 
 	text->flags = oldflags;
 

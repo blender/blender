@@ -138,8 +138,8 @@ void BPy_BM_init_types(void);
 PyObject *BPyInit_bmesh_types(void);
 
 enum {
-    BPY_BMFLAG_NOP = 0,       /* do nothing */
-    BPY_BMFLAG_IS_WRAPPED = 1 /* the mesh is owned by editmode */
+	BPY_BMFLAG_NOP = 0,       /* do nothing */
+	BPY_BMFLAG_IS_WRAPPED = 1 /* the mesh is owned by editmode */
 };
 
 PyObject *BPy_BMesh_CreatePyObject(BMesh *bm, int flag);

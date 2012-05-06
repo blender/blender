@@ -1,7 +1,4 @@
 /*
- * fluidsim.c
- * 
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -31,9 +28,6 @@
 /** \file blender/editors/physics/physics_fluid.c
  *  \ingroup edphys
  */
-
-
-
 
 #include <math.h>
 #include <stdlib.h>

@@ -1,6 +1,3 @@
-/** \file blender/blenpluginapi/iff.h
- *  \ingroup blpluginapi
- */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
  * 
  * All rights reserved.
@@ -32,6 +29,10 @@
 
 #ifndef __IFF_H__
 #define __IFF_H__
+
+/** \file blender/blenpluginapi/iff.h
+ *  \ingroup blpluginapi
+ */
 
 #include <sys/types.h>
 #include "util.h"

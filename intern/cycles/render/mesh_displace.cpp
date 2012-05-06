@@ -140,11 +140,11 @@ bool MeshManager::displace(Device *device, Scene *scene, Mesh *mesh, Progress& p
 	 * normals, as bump mapping in the shader will already alter the
 	 * vertex normal, so we start from the non-displaced vertex normals
 	 * to avoid applying the perturbation twice. */
-	mesh->attributes.remove(Attribute::STD_FACE_NORMAL);
+	mesh->attributes.remove(ATTR_STD_FACE_NORMAL);
 	mesh->add_face_normals();
 
 	if(mesh->displacement_method == Mesh::DISPLACE_TRUE) {
-		mesh->attributes.remove(Attribute::STD_VERTEX_NORMAL);
+		mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
 		mesh->add_vertex_normals();
 	}
 

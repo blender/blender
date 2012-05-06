@@ -1,6 +1,4 @@
 /*
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -33,12 +31,9 @@
  *  \ingroup imbuf
  */
 
-
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-
-
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"

@@ -1,7 +1,4 @@
 /*
- *
- * This is external code. Identify and convert different avi-files.
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -30,6 +27,8 @@
 
 /** \file blender/avi/intern/codecs.c
  *  \ingroup avi
+ *
+ * This is external code. Identify and convert different avi-files.
  */
 
 

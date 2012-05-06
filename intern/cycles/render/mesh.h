@@ -98,6 +98,9 @@ public:
 	void pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset);
 	void compute_bvh(SceneParams *params, Progress& progress);
 
+	bool need_attribute(Scene *scene, AttributeStandard std);
+	bool need_attribute(Scene *scene, ustring name);
+
 	void tag_update(Scene *scene, bool rebuild);
 };
 

@@ -64,9 +64,13 @@
 static int ED_space_clip_graph_poll(bContext *C)
 {
 	if (ED_space_clip_tracking_poll(C)) {
-		ARegion *ar = CTX_wm_region(C);
+		SpaceClip *sc = CTX_wm_space_clip(C);
 
-		return ar->regiontype == RGN_TYPE_PREVIEW;
+		if (sc->view == SC_VIEW_GRAPH) {
+			ARegion *ar = CTX_wm_region(C);
+
+			return ar->regiontype == RGN_TYPE_PREVIEW;
+		}
 	}
 
 	return FALSE;
@@ -225,15 +229,9 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 			}
 		}
 		else if (act_track != userdata.track) {
-			MovieTrackingMarker *marker;
 			SelectUserData selectdata = {SEL_DESELECT};
 
 			tracking->act_track = userdata.track;
-
-			/* make active track be centered to screen */
-			marker = BKE_tracking_get_marker(userdata.track, sc->user.framenr);
-
-			clip_view_center_to_point(sc, marker->pos[0], marker->pos[1]);
 
 			/* deselect all knots on newly selected curve */
 			clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);

@@ -1,7 +1,4 @@
 /*
- * blenlib/DNA_group_types.h (mar-2001 nzc)
- *	
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +20,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): mar-2001 nzc
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -61,6 +58,4 @@ typedef struct Group {
 	float dupli_ofs[3];
 } Group;
 
-
 #endif
-

@@ -33,6 +33,7 @@
 
 struct ARegion;
 struct bContext;
+struct bScreen;
 struct ImBuf;
 struct Main;
 struct MovieClip;
@@ -45,7 +46,7 @@ int ED_space_clip_tracking_poll(struct bContext *C);
 int ED_space_clip_tracking_size_poll(struct bContext *C);
 int ED_space_clip_tracking_frame_poll(struct bContext *C);
 
-void ED_space_clip_set(struct bContext *C, struct SpaceClip *sc, struct MovieClip *clip);
+void ED_space_clip_set(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
 void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy);
@@ -61,7 +62,14 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
 void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
+int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
+int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf);
+void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
+void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
+
 int ED_space_clip_show_trackedit(struct SpaceClip *sc);
+
+void ED_space_clip_update_dopesheet(struct SpaceClip *sc);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

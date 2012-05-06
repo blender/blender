@@ -441,11 +441,11 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
 
         split = layout.split()
-        
+
         col = split.column()
         col.prop(md, "time")
         col.prop(md, "resolution")
-        
+
         col = split.column()
         col.prop(md, "spatial_size")
         col.prop(md, "depth")
