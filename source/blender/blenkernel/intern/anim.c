@@ -931,8 +931,8 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 		dm= mesh_get_derived_deform(scene, par, CD_MASK_BAREMESH);
 	
 	if (G.rendering) {
-		vdd.orco= (float(*)[3])get_mesh_orco_verts(par);
-		transform_mesh_orco_verts(me, vdd.orco, me->totvert, 0);
+		vdd.orco= (float(*)[3])BKE_mesh_orco_verts_get(par);
+		BKE_mesh_orco_verts_transform(me, vdd.orco, me->totvert, 0);
 	}
 	else
 		vdd.orco= NULL;
@@ -1063,8 +1063,8 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 
 	if (G.rendering) {
 
-		orco= (float(*)[3])get_mesh_orco_verts(par);
-		transform_mesh_orco_verts(me, orco, me->totvert, 0);
+		orco= (float(*)[3])BKE_mesh_orco_verts_get(par);
+		BKE_mesh_orco_verts_transform(me, orco, me->totvert, 0);
 		mloopuv= me->mloopuv;
 	}
 	else {
@@ -1143,7 +1143,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						}
 
 						/* translation */
-						mesh_calc_poly_center(mp, loopstart, mvert, cent);
+						BKE_mesh_calc_poly_center(mp, loopstart, mvert, cent);
 
 						mul_m4_v3(pmat, cent);
 						
@@ -1160,7 +1160,7 @@ static void face_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, floa
 						
 						/* scale */
 						if (par->transflag & OB_DUPLIFACES_SCALE) {
-							float size= mesh_calc_poly_area(mp, loopstart, mvert, NULL);
+							float size= BKE_mesh_calc_poly_area(mp, loopstart, mvert, NULL);
 							size= sqrtf(size) * par->dupfacesca;
 							mul_m3_fl(mat, size);
 						}

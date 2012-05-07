@@ -103,12 +103,12 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 										 cddm->getVertArray(cddm),
 										 mdisps);
 
-				mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
-											 cddm->getLoopArray(cddm),
-											 cddm->getEdgeArray(cddm),
-											 cddm->getNumEdges(cddm),
-											 cddm->getPolyArray(cddm),
-											 cddm->getNumPolys(cddm));
+				BKE_mesh_flush_hidden_from_verts(cddm->getVertArray(cddm),
+				                                 cddm->getLoopArray(cddm),
+				                                 cddm->getEdgeArray(cddm),
+				                                 cddm->getNumEdges(cddm),
+				                                 cddm->getPolyArray(cddm),
+				                                 cddm->getNumPolys(cddm));
 			}
 		}
 

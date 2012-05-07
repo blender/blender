@@ -205,7 +205,7 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Curve *cu = (Curve*)ptr->data;
 	
 	if (cu->texflag & CU_AUTOSPACE)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 }
 
 static int rna_Curve_texspace_editable(PointerRNA *ptr)
@@ -219,7 +219,7 @@ static void rna_Curve_texspace_loc_get(PointerRNA *ptr, float *values)
 	Curve *cu = (Curve *)ptr->data;
 	
 	if (!cu->bb)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 	
 	copy_v3_v3(values, cu->loc);
 }
@@ -236,7 +236,7 @@ static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
 	Curve *cu = (Curve *)ptr->data;
 	
 	if (!cu->bb)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 	
 	copy_v3_v3(values, cu->size);
 }

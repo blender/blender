@@ -491,7 +491,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 			}
 			
 			/* update normals */
-			mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+			BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 		}
 		else if (ob->type == OB_ARMATURE) {
 			ED_armature_apply_transform(ob, mat);
@@ -772,11 +772,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				Mesh *me = ob->data;
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
-				else if (around == V3D_CENTROID) { mesh_center_median(me, cent); }
-				else { mesh_center_bounds(me, cent); }
+				else if (around == V3D_CENTROID) { BKE_mesh_center_median(me, cent); }
+				else { BKE_mesh_center_bounds(me, cent); }
 
 				negate_v3_v3(cent_neg, cent);
-				mesh_translate(me, cent_neg, 1);
+				BKE_mesh_translate(me, cent_neg, 1);
 
 				tot_change++;
 				me->id.flag |= LIB_DOIT;

@@ -346,7 +346,7 @@ MetaElem *BKE_metaball_element_add(MetaBall *mb, const int type)
  * basic MetaBall (usually with name Meta). All other MetaBalls (with
  * names Meta.001, Meta.002, etc) are included in this Bounding Box.
  */
-void BKE_metaball_tex_space_calc(Object *ob)
+void BKE_metaball_texspace_calc(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;

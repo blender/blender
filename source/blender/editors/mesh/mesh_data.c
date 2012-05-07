@@ -808,16 +808,16 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                             mesh->mloop, mesh->mpoly,
-	                             mesh->totloop, mesh->totpoly,
-	                             NULL /* polyNors_r */,
-	                             mesh->mface, mesh->totface,
-	                             polyindex, face_nors, FALSE);
+	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                                 mesh->mloop, mesh->mpoly,
+	                                 mesh->totloop, mesh->totpoly,
+	                                 NULL /* polyNors_r */,
+	                                 mesh->mface, mesh->totface,
+	                                 polyindex, face_nors, FALSE);
 #else
-	mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                  NULL);
+	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                      NULL);
 	(void)polyindex;
 	(void)face_nors;
 #endif
@@ -1138,13 +1138,13 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef USE_BMESH_MPOLY_NORMALS
-	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                             mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                             NULL, NULL, 0, NULL, NULL, FALSE);
+	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                                 mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                                 NULL, NULL, 0, NULL, NULL, FALSE);
 #else
-	mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                  NULL);
+	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                      NULL);
 #endif
 }
 

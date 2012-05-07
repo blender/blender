@@ -401,7 +401,7 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 	
 	if (obr->totvert==0) return;
 	
-	mesh_get_texspace(me, loc, NULL, size);
+	BKE_mesh_texspace_get(me, loc, NULL, size);
 	
 	accum= MEM_callocN(2*sizeof(float)*obr->totvert, "temp accum for stress");
 	

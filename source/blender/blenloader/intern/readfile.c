@@ -3794,7 +3794,7 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 				 * overwritten with the correct value in
 				 * bm_corners_to_loops() */
 				float gridsize = sqrtf(mdisps[i].totdisp);
-				mdisps[i].level = (int)(logf(gridsize - 1.0f) / M_LN2) + 1;
+				mdisps[i].level = (int)(logf(gridsize - 1.0f) / (float)M_LN2) + 1;
 			}
 
 			if ( (fd->flags & FD_FLAGS_SWITCH_ENDIAN) && (mdisps[i].disps) ) {
@@ -3893,7 +3893,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	if (mesh->mpoly) {
 		/* be clever and load polygons as mfaces */
 
-		mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &mesh->ldata, &mesh->pdata,
+		mesh->totface= BKE_mesh_mpoly_to_mface(&mesh->fdata, &mesh->ldata, &mesh->pdata,
 		                                   mesh->totface, mesh->totloop, mesh->totpoly);
 
 		CustomData_free(&mesh->pdata, mesh->totpoly);
@@ -13386,7 +13386,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	{
 		Lamp *la;
 		for (la= main->lamp.first; la; la= la->id.next) {
-			if (la->shadow_frustum_size == 0.0)
+			if (la->shadow_frustum_size == 0.0f)
 				la->shadow_frustum_size= 10.0f;
 		}
 	}

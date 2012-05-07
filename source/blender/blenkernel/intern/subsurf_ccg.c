@@ -244,7 +244,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct ML
 	int j, nverts = mpoly[fi].totloop;
 
 	for (j = 0; j < nverts; j++) {
-		for (nv = v = get_uv_map_vert(vmap, ml[j].v); v; v = v->next) {
+		for (nv = v = BKE_mesh_uv_vert_map_get_vert(vmap, ml[j].v); v; v = v->next) {
 			if (v->separate)
 				nv = v;
 			if (v->f == fi)
@@ -273,7 +273,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
-	vmap = make_uv_vert_map(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
+	vmap = BKE_mesh_uv_vert_map_make(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
 	
@@ -281,16 +281,16 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	/* create vertices */
 	for (i = 0; i < totvert; i++) {
-		if (!get_uv_map_vert(vmap, i))
+		if (!BKE_mesh_uv_vert_map_get_vert(vmap, i))
 			continue;
 
-		for (v = get_uv_map_vert(vmap, i)->next; v; v = v->next)
+		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i)->next; v; v = v->next)
 			if (v->separate)
 				break;
 
 		seam = (v != NULL) || ((mvert + i)->flag & ME_VERT_MERGED);
 
-		for (v = get_uv_map_vert(vmap, i); v; v = v->next) {
+		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
 				int loopid = mpoly[v->f].loopstart + v->tfindex;
@@ -358,7 +358,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	BLI_array_free(fverts);
 
-	free_uv_vert_map(vmap);
+	BKE_mesh_uv_vert_map_free(vmap);
 	ccgSubSurf_processSync(ss);
 
 	return 1;

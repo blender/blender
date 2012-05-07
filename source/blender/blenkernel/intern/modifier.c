@@ -416,6 +416,7 @@ ModifierData *modifiers_getLastPreview(struct Scene *scene, ModifierData *md, in
 	return tmp_md;
 }
 
+/* NOTE: these aren't used anymore */
 ModifierData *modifiers_getVirtualModifierList(Object *ob)
 {
 	/* Kinda hacky, but should be fine since we are never

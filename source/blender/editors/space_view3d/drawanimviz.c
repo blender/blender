@@ -88,38 +88,50 @@ void draw_motion_path_instance(Scene *scene,
 	//RegionView3D *rv3d= ar->regiondata;
 	bMotionPathVert *mpv, *mpv_start;
 	int i, stepsize = avs->path_step;
-	int sfra, efra, len;
-	
+	int sfra, efra, sind, len;
 	
 	/* get frame ranges */
 	if (avs->path_type == MOTIONPATH_TYPE_ACFRA) {
-		int sind;
-		
 		/* With "Around Current", we only choose frames from around 
-		 * the current frame to draw. However, this range is still 
-		 * restricted by the limits of the original path.
+		 * the current frame to draw.
 		 */
 		sfra = CFRA - avs->path_bc;
 		efra = CFRA + avs->path_ac;
-		if (sfra < mpath->start_frame) sfra = mpath->start_frame;
-		if (efra > mpath->end_frame) efra = mpath->end_frame;
-		
-		len = efra - sfra;
-		
-		sind = sfra - mpath->start_frame;
-		mpv_start = (mpath->points + sind);
 	}
 	else {
-		sfra = mpath->start_frame;
-		efra = sfra + mpath->length;
-		len = mpath->length;
-		mpv_start = mpath->points;
+		/* Use the current display range */
+		sfra = avs->path_sf;
+		efra = avs->path_ef;
 	}
-
+	
+	/* no matter what, we can only show what is in the cache and no more 
+	 * - abort if whole range is past ends of path
+	 * - otherwise clamp endpoints to extents of path
+	 */
+	if ((sfra > mpath->end_frame) || (efra < mpath->start_frame)) {
+		/* whole path is out of bounds */
+		return;
+	}
+	
+	if (sfra < mpath->start_frame) {
+		/* start clamp */
+		sfra = mpath->start_frame;
+	}
+	if (efra > mpath->end_frame) {
+		/* end clamp */
+		efra = mpath->end_frame;
+	}
+	
+	len = efra - sfra;
+	
 	if (len <= 0) {
 		return;
 	}
-
+	
+	/* get pointers to parts of path */
+	sind = sfra - mpath->start_frame;
+	mpv_start = (mpath->points + sind);
+	
 	/* draw curve-line of path */
 	glShadeModel(GL_SMOOTH);
 	

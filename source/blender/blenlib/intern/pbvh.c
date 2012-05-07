@@ -35,8 +35,8 @@
 #include "BLI_pbvh.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h" /* for mesh_calc_normals */
-#include "BKE_global.h" /* for mesh_calc_normals */
+#include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
+#include "BKE_global.h" /* for BKE_mesh_calc_normals */
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
 
@@ -1743,7 +1743,7 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 		}
 
 		/* coordinates are new -- normals should also be updated */
-		mesh_calc_normals_tessface(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+		BKE_mesh_calc_normals_tessface(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
 
 		for (a= 0; a < pbvh->totnode; ++a)
 			BLI_pbvh_node_mark_update(&pbvh->nodes[a]);

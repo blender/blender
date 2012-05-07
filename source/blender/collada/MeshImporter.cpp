@@ -732,7 +732,13 @@ void MeshImporter::bmeshConversion()
 	for (std::map<COLLADAFW::UniqueId, Mesh*>::iterator m = uid_mesh_map.begin();
 			m != uid_mesh_map.end(); ++m)
 	{
-		if ((*m).second) BKE_mesh_convert_mfaces_to_mpolys((*m).second);
+		if ((*m).second) {
+			Mesh *me = (*m).second;
+			BKE_mesh_convert_mfaces_to_mpolys(me);
+			BKE_mesh_tessface_clear(me);
+
+			BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		}
 	}
 }
 
@@ -970,7 +976,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	
 	read_faces(mesh, me, new_tris);
 
-	make_edges(me, 0);
+	BKE_mesh_make_edges(me, 0);
 
 	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
 

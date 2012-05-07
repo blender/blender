@@ -222,7 +222,7 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 	Mesh *me = (Mesh*)ptr->id.data;
 	MPoly *mp = (MPoly*)ptr->data;
 
-	return mesh_calc_poly_area(mp, me->mloop+mp->loopstart, me->mvert, NULL);
+	return BKE_mesh_calc_poly_area(mp, me->mloop+mp->loopstart, me->mvert, NULL);
 }
 
 static void rna_MeshTessFace_normal_get(PointerRNA *ptr, float *values)
