@@ -134,19 +134,6 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 /* Panorama Camera */
 
-__device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
-{
-	switch(kernel_data.cam.panorama_type) {
-		case PANORAMA_EQUIRECTANGULAR:
-			return equirectangular_to_direction(u, v);
-		case PANORAMA_FISHEYE_EQUIDISTANT:
-			return fisheye_to_direction(u, v, kernel_data.cam.fisheye_fov);
-		case PANORAMA_FISHEYE_EQUISOLID:
-		default:
-			return fisheye_equisolid_to_direction(u, v, kernel_data.cam.fisheye_lens, kernel_data.cam.fisheye_fov, kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
-	}
-}
-
 __device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;

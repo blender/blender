@@ -18,6 +18,7 @@
 
 #include "kernel_differential.h"
 #include "kernel_montecarlo.h"
+#include "kernel_projection.h"
 #include "kernel_object.h"
 #include "kernel_triangle.h"
 #ifdef __QBVH__

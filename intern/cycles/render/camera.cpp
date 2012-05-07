@@ -158,13 +158,25 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->have_motion = 0;
 
 	if(need_motion == Scene::MOTION_PASS) {
-		if(use_motion) {
-			kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
-			kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+		if(type == CAMERA_PANORAMA) {
+			if(use_motion) {
+				kcam->motion.pre = transform_inverse(motion.pre);
+				kcam->motion.post = transform_inverse(motion.post);
+			}
+			else {
+				kcam->motion.pre = kcam->worldtocamera;
+				kcam->motion.post = kcam->worldtocamera;
+			}
 		}
 		else {
-			kcam->motion.pre = worldtoraster;
-			kcam->motion.post = worldtoraster;
+			if(use_motion) {
+				kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
+				kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+			}
+			else {
+				kcam->motion.pre = worldtoraster;
+				kcam->motion.post = worldtoraster;
+			}
 		}
 	}
 	else if(need_motion == Scene::MOTION_BLUR) {
@@ -195,6 +207,10 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	/* sensor size */
 	kcam->sensorwidth = sensorwidth;
 	kcam->sensorheight = sensorheight;
+
+	/* render size */
+	kcam->width = width;
+	kcam->height = height;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);

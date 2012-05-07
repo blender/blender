@@ -491,7 +491,9 @@ typedef struct KernelCamera {
 	/* sensor size */
 	float sensorwidth;
 	float sensorheight;
-	int pad1, pad2;
+
+	/* render size */
+	float width, height;
 
 	/* more matrices */
 	Transform screentoworld;

@@ -26,8 +26,6 @@
 #include "util_foreach.h"
 #include "util_progress.h"
 
-#include "kernel_montecarlo.h"
-
 CCL_NAMESPACE_BEGIN
 
 static void dump_background_pixels(Device *device, DeviceScene *dscene, int res, vector<float3>& pixels)
