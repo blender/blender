@@ -484,7 +484,8 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 			dl = dl->next;
 		}
 
-		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, FALSE))) { // XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) {
+		/* XXX (obedit && obedit->actcol)?(obedit->actcol-1):0)) { */
+		if (totvert && (tot = BLI_scanfill_calc(&sf_ctx, FALSE))) {
 			if (tot) {
 				dlnew = MEM_callocN(sizeof(DispList), "filldisplist");
 				dlnew->type = DL_INDEX3;
@@ -743,7 +744,8 @@ static ModifierData *curve_get_tessellate_point(Scene *scene, Object *ob, int fo
 	return pretessellatePoint;
 }
 
-static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, float (**originalVerts_r)[3], float (**deformedVerts_r)[3], int *numVerts_r)
+static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, float (**originalVerts_r)[3],
+                                     float (**deformedVerts_r)[3], int *numVerts_r)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	ModifierData *pretessellatePoint;
@@ -1412,7 +1414,8 @@ static void do_makeDispListCurveTypes(Scene *scene, Object *ob, ListBase *dispba
 							/* CU_2D conflicts with R_NOPUNOFLIP */
 							dl->rt = nu->flag & ~CU_2D;
 
-							dl->bevelSplitFlag = MEM_callocN(sizeof(*dl->col2) * ((steps + 0x1F) >> 5), "bevelSplitFlag");
+							dl->bevelSplitFlag = MEM_callocN(sizeof(*dl->col2) * ((steps + 0x1F) >> 5),
+							                                 "bevelSplitFlag");
 
 							/* for each point of poly make a bevel piece */
 							bevp = (BevPoint *)(bl + 1) + start;

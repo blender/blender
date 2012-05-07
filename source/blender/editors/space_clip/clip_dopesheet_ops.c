@@ -100,7 +100,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 		current_channel_index++;
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -129,7 +129,7 @@ void CLIP_OT_dopesheet_select_channel(wmOperatorType *ot)
 	ot->poll = dopesheet_select_channel_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,

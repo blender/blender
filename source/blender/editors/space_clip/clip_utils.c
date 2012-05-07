@@ -190,20 +190,21 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 	BKE_tracking_free_track(track);
 	BLI_freelinkN(tracksbase, track);
 
-	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 
 	if (update_stab) {
 		tracking->stabilization.ok = FALSE;
-		WM_event_add_notifier(C, NC_MOVIECLIP|ND_DISPLAY, clip);
+		WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
 	}
 
 	DAG_id_tag_update(&clip->id, 0);
 
 	if (has_bundle)
-		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
-void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase,
+                        MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
 	if (track->markersnr == 1) {
 		clip_delete_track(C, clip, tracksbase, track);
@@ -211,7 +212,7 @@ void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase, Movi
 	else {
 		BKE_tracking_delete_marker(track, marker->framenr);
 
-		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}
 }
 
@@ -253,7 +254,7 @@ void clip_draw_cfra(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 	/* because the frame number text is subject to the same scaling as the contents of the view */
 	UI_view2d_getscale(v2d, &xscale, &yscale);
-	glScalef(1.0f/xscale, 1.0f, 1.0f);
+	glScalef(1.0f / xscale, 1.0f, 1.0f);
 
 	clip_draw_curfra_label(sc, (float)sc->user.framenr * xscale, 18);
 

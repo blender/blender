@@ -122,13 +122,13 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 
 	/* adjust view transform before starting */
 	glTranslatef(x, y, 0.0f);
-	glScalef(1.0f/xscale*hsize, 1.0f/yscale*hsize, 1.0f);
+	glScalef(1.0f / xscale * hsize, 1.0f / yscale * hsize, 1.0f);
 
 	/* anti-aliased lines for more consistent appearance */
 	glEnable(GL_LINE_SMOOTH);
 
 	if (sel)
-		UI_ThemeColorShadeAlpha(TH_STRIP_SELECT, 50, -255*(1.0f-alpha));
+		UI_ThemeColorShadeAlpha(TH_STRIP_SELECT, 50, -255 * (1.0f - alpha));
 	else
 		glColor4f(0.91f, 0.91f, 0.91f, alpha);
 
