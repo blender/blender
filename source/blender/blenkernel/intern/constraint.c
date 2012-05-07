@@ -516,7 +516,7 @@ static void contarget_get_lattice_mat(Object *ob, const char *substring, float m
 {
 	Lattice *lt = (Lattice *)ob->data;
 	
-	DispList *dl = find_displist(&ob->disp, DL_VERTS);
+	DispList *dl = BKE_displist_find(&ob->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	BPoint *bp = lt->def;
 	
@@ -1234,7 +1234,7 @@ static void followpath_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstra
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (cu->path == NULL || cu->path->data == NULL)
-			makeDispListCurveTypes(cob->scene, ct->tar, 0);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 		
 		if (cu->path && cu->path->data) {
 			float quat[4];
@@ -2007,7 +2007,7 @@ static void pycon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintTa
 			
 			/* this check is to make sure curve objects get updated on file load correctly.*/
 			if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-				makeDispListCurveTypes(cob->scene, ct->tar, 0);				
+				BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);				
 		}
 		
 		/* firstly calculate the matrix the normal way, then let the py-function override
@@ -3090,7 +3090,7 @@ static void clampto_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bCo
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (cu->path == NULL || cu->path->data == NULL)
-			makeDispListCurveTypes(cob->scene, ct->tar, 0);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	
 	/* technically, this isn't really needed for evaluation, but we don't know what else
@@ -3720,7 +3720,7 @@ static void splineik_get_tarmat(bConstraint *UNUSED(con), bConstraintOb *cob, bC
 		
 		/* only happens on reload file, but violates depsgraph still... fix! */
 		if (cu->path == NULL || cu->path->data == NULL)
-			makeDispListCurveTypes(cob->scene, ct->tar, 0);
+			BKE_displist_make_curveTypes(cob->scene, ct->tar, 0);
 	}
 	
 	/* technically, this isn't really needed for evaluation, but we don't know what else

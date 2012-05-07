@@ -196,7 +196,7 @@ void BKE_mball_free(MetaBall *mb)
 	if (mb->mat) MEM_freeN(mb->mat);
 	if (mb->bb) MEM_freeN(mb->bb);
 	BLI_freelistN(&mb->elems);
-	if (mb->disp.first) freedisplist(&mb->disp);
+	if (mb->disp.first) BKE_displist_free(&mb->disp);
 }
 
 MetaBall *BKE_mball_add(const char *name)

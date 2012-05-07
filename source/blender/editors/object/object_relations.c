@@ -533,7 +533,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			
 			if ((cu->flag & CU_PATH) == 0) {
 				cu->flag |= CU_PATH | CU_FOLLOW;
-				makeDispListCurveTypes(scene, par, 0);  /* force creation of path data */
+				BKE_displist_make_curveTypes(scene, par, 0);  /* force creation of path data */
 			}
 			else cu->flag |= CU_FOLLOW;
 			

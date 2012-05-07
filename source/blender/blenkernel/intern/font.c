@@ -846,7 +846,7 @@ makebreak:
 		
 		cucu->flag |= (CU_PATH + CU_FOLLOW);
 		
-		if (cucu->path == NULL) makeDispListCurveTypes(scene, cu->textoncurve, 0);
+		if (cucu->path == NULL) BKE_displist_make_curveTypes(scene, cu->textoncurve, 0);
 		if (cucu->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;

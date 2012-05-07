@@ -1239,7 +1239,7 @@ static EnumPropertyItem convert_target_items[] = {
 static void curvetomesh(Scene *scene, Object *ob) 
 {
 	if (ob->disp.first == NULL)
-		makeDispListCurveTypes(scene, ob, 0);  /* force creation */
+		BKE_displist_make_curveTypes(scene, ob, 0);  /* force creation */
 
 	BKE_mesh_from_nurbs(ob); /* also does users */
 
@@ -1405,7 +1405,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			cu = newob->data;
 
 			if (!newob->disp.first)
-				makeDispListCurveTypes(scene, newob, 0);
+				BKE_displist_make_curveTypes(scene, newob, 0);
 
 			newob->type = OB_CURVE;
 			cu->type = OB_CURVE;
@@ -1446,7 +1446,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 				curvetomesh(scene, newob);
 
 				/* meshes doesn't use displist */
-				freedisplist(&newob->disp);
+				BKE_displist_free(&newob->disp);
 			}
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -1467,7 +1467,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 					newob = ob;
 
 					/* meshes doesn't use displist */
-					freedisplist(&newob->disp);
+					BKE_displist_free(&newob->disp);
 				}
 
 				curvetomesh(scene, newob);
@@ -1487,7 +1487,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			}
 
 			if (!baseob->disp.first) {
-				makeDispListMBall(scene, baseob);
+				BKE_displist_make_mball(scene, baseob);
 			}
 
 			if (!(baseob->flag & OB_DONE)) {

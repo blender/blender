@@ -2188,7 +2188,7 @@ int do_guides(ListBase *effectors, ParticleKey *state, int index, float time)
 
 			/* curve taper */
 			if (cu->taperobj)
-				mul_v3_fl(vec_to_point, calc_taper(eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
+				mul_v3_fl(vec_to_point, BKE_displist_calc_taper(eff->scene, cu->taperobj, (int)(data->strength * guidetime * 100.0f), 100));
 
 			else { /* curve size*/
 				if (cu->flag & CU_PATH_RADIUS) {

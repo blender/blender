@@ -107,7 +107,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 			stats->totcurve += totob;
 
 			if (ob->disp.first)
-				count_displist(&ob->disp, &tot, &totf);
+				BKE_displist_count(&ob->disp, &tot, &totf);
 
 			tot *= totob;
 			totf *= totob;
@@ -124,7 +124,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		case OB_MBALL: {
 			int tot = 0, totf = 0;
 
-			count_displist(&ob->disp, &tot, &totf);
+			BKE_displist_count(&ob->disp, &tot, &totf);
 
 			tot *= totob;
 			totf *= totob;

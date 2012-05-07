@@ -1924,7 +1924,7 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	Object *obedit = vc->obedit;
 	Lattice *lt = obedit->data;
 	BPoint *bp = lt->editlatt->latt->def;
-	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
+	DispList *dl = BKE_displist_find(&obedit->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
@@ -1972,7 +1972,7 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 	/* now we default make displist, this will modifiers work for non animated case */
 	if (ob->disp.first == NULL)
 		BKE_lattice_modifiers_calc(scene, ob);
-	dl = find_displist(&ob->disp, DL_VERTS);
+	dl = BKE_displist_find(&ob->disp, DL_VERTS);
 	
 	if (is_edit) {
 		lt = lt->editlatt->latt;
@@ -3917,10 +3917,10 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				dl = lb->first;
 				if (dl == NULL) return 1;
 
-				if (dl->nors == NULL) addnormalsDispList(lb);
+				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 				index3_nors_incr = 0;
 
-				if (displist_has_faces(lb) == 0) {
+				if (BKE_displist_has_faces(lb) == 0) {
 					if (!render_only) {
 						draw_index_wire = 0;
 						drawDispListwire(lb);
@@ -3948,7 +3948,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				index3_nors_incr = 1;
 			}
 			else {
-				if (!render_only || (render_only && displist_has_faces(lb))) {
+				if (!render_only || (render_only && BKE_displist_has_faces(lb))) {
 					draw_index_wire = 0;
 					retval = drawDispListwire(lb);
 					draw_index_wire = 1;
@@ -3963,7 +3963,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				dl = lb->first;
 				if (dl == NULL) return 1;
 
-				if (dl->nors == NULL) addnormalsDispList(lb);
+				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 
 				if (draw_glsl_material(scene, ob, v3d, dt)) {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
@@ -3984,7 +3984,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 
 			if (BKE_mball_is_basis(ob)) {
 				lb = &ob->disp;
-				if (lb->first == NULL) makeDispListMBall(scene, ob);
+				if (lb->first == NULL) BKE_displist_make_mball(scene, ob);
 				if (lb->first == NULL) return 1;
 
 				if (solid) {
@@ -6162,7 +6162,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		if (BKE_mball_is_basis(ob)) {
 			bb = ob->bb;
 			if (bb == NULL) {
-				makeDispListMBall(scene, ob);
+				BKE_displist_make_mball(scene, ob);
 				bb = ob->bb;
 			}
 		}
@@ -6235,7 +6235,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			hasfaces = dm->getNumTessFaces(dm);
 		}
 		else {
-			hasfaces = displist_has_faces(&ob->disp);
+			hasfaces = BKE_displist_has_faces(&ob->disp);
 		}
 
 		if (hasfaces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
@@ -6574,7 +6574,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* bad exception, solve this! otherwise outline shows too late */
 	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (ob->disp.first == NULL) makeDispListCurveTypes(scene, ob, 0);
+		if (ob->disp.first == NULL) BKE_displist_make_curveTypes(scene, ob, 0);
 	}
 	
 	/* draw outline for selected objects, mesh does itself */

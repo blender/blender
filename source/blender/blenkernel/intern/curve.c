@@ -136,7 +136,7 @@ void BKE_curve_free(Curve *cu)
 {
 	BKE_nurbList_free(&cu->nurb);
 	BLI_freelistN(&cu->bev);
-	freedisplist(&cu->disp);
+	BKE_displist_free(&cu->disp);
 	BKE_curve_editfont_free(cu);
 
 	BKE_curve_editNurb_free(cu);
@@ -1234,7 +1234,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob)
 	float *fp, *coord_array;
 	ListBase disp = {NULL, NULL};
 
-	makeDispListCurveTypes_forOrco(scene, ob, &disp);
+	BKE_displist_make_curveTypes_forOrco(scene, ob, &disp);
 
 	numVerts = 0;
 	for (dl = disp.first; dl; dl = dl->next) {
@@ -1306,7 +1306,7 @@ float *BKE_curve_make_orco(Scene *scene, Object *ob)
 		}
 	}
 
-	freedisplist(&disp);
+	BKE_displist_free(&disp);
 
 	return coord_array;
 }
@@ -1337,13 +1337,13 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 			facy = cu->bevobj->size[1];
 
 			if (forRender) {
-				makeDispListCurveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
+				BKE_displist_make_curveTypes_forRender(scene, cu->bevobj, &bevdisp, NULL, 0);
 				dl = bevdisp.first;
 			}
 			else {
 				dl = cu->bevobj->disp.first;
 				if (dl == NULL) {
-					makeDispListCurveTypes(scene, cu->bevobj, 0);
+					BKE_displist_make_curveTypes(scene, cu->bevobj, 0);
 					dl = cu->bevobj->disp.first;
 				}
 			}
@@ -1370,7 +1370,7 @@ void BKE_curve_bevel_make(Scene *scene, Object *ob, ListBase *disp, int forRende
 				dl = dl->next;
 			}
 
-			freedisplist(&bevdisp);
+			BKE_displist_free(&bevdisp);
 		}
 	}
 	else if (cu->ext1 == 0.0f && cu->ext2 == 0.0f) {

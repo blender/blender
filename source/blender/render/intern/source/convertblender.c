@@ -2452,7 +2452,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		need_orco= 1;
 	}
 
-	makeDispListMBall_forRender(re->scene, ob, &dispbase);
+	BKE_displist_make_mball_forRender(re->scene, ob, &dispbase);
 	dl= dispbase.first;
 	if (dl==0) return;
 
@@ -2526,7 +2526,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	}
 
 	/* enforce display lists remade */
-	freedisplist(&dispbase);
+	BKE_displist_free(&dispbase);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2828,11 +2828,11 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	makeDispListSurf(re->scene, ob, &displist, &dm, 1, 0);
+	BKE_displist_make_surf(re->scene, ob, &displist, &dm, 1, 0);
 
 	if (dm) {
 		if (need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
@@ -2854,7 +2854,7 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	freedisplist(&displist);
+	BKE_displist_free(&displist);
 
 	MEM_freeN(matar);
 }
@@ -2878,7 +2878,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if (ob->type==OB_FONT && cu->str==NULL) return;
 	else if (ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	makeDispListCurveTypes_forRender(re->scene, ob, &disp, &dm, 0);
+	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, 0);
 	dl= disp.first;
 	if (dl==NULL) return;
 	
@@ -2898,7 +2898,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (dm) {
 		if (need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
@@ -3005,7 +3005,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						for (a=0; a<dl->parts; a++) {
 
-							if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+							if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4)==0)
 								break;
 
 							p1+= startvert;
@@ -3062,7 +3062,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	freedisplist(&disp);
+	BKE_displist_free(&disp);
 
 	MEM_freeN(matar);
 }

@@ -105,7 +105,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editnurb = tmpcu->editnurb;
 
 		/* get updated display list, and convert to a mesh */
-		makeDispListCurveTypes(sce, tmpobj, 0);
+		BKE_displist_make_curveTypes(sce, tmpobj, 0);
 
 		copycu->editfont = NULL;
 		copycu->editnurb = NULL;
@@ -135,9 +135,9 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			
 		if (render) {
 			ListBase disp = {NULL, NULL};
-			makeDispListMBall_forRender(sce, ob, &disp);
+			BKE_displist_make_mball_forRender(sce, ob, &disp);
 			BKE_mesh_from_metaball(&disp, tmpmesh);
-			freedisplist(&disp);
+			BKE_displist_free(&disp);
 		}
 		else
 			BKE_mesh_from_metaball(&ob->disp, tmpmesh);
