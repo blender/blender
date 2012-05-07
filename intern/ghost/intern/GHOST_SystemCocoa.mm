@@ -1450,8 +1450,6 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		return GHOST_kFailure;
 	}
 
-	bool is_tablet = false;
-	
 	switch ([event type])
     {
 		case NSLeftMouseDown:
@@ -1459,7 +1457,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSOtherMouseDown:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
-			is_tablet = handleTabletEvent(event);
+			handleTabletEvent(event);
 			break;
 						
 		case NSLeftMouseUp:
@@ -1467,21 +1465,25 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSOtherMouseUp:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
-			is_tablet = handleTabletEvent(event);
+			handleTabletEvent(event);
 			break;
 			
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:				
 			//Handle tablet events combined with mouse events
-			is_tablet = handleTabletEvent(event);
+			handleTabletEvent(event);
 			
 		case NSMouseMoved: 
 			{
 				GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
 
-				if (is_tablet && window->getCursorGrabModeIsWarp())
+				/* TODO: CHECK IF THIS IS A TABLET EVENT */
+				bool is_tablet = false;
+
+				if (is_tablet && window->getCursorGrabModeIsWarp()) {
 					grab_mode = GHOST_kGrabDisable;
+				}
 
 				switch (grab_mode) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
