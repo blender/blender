@@ -112,7 +112,7 @@ __device float3 fisheye_to_direction(float u, float v, float fov)
 __device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
 {
 	float theta = acosf(dir.x);
-	float r = 2.0f * lens * sinf(theta * 0.25f);
+	float r = 2.0f * lens * sinf(theta * 0.5f);
 	float phi = atan2f(dir.z, dir.y);
 
 	float u = r * cosf(phi) / width + 0.5f;
