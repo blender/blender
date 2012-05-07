@@ -540,7 +540,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		break;
 		case OB_MBALL: 
 		{
-			Object *mom = BKE_metaball_basis_find(scene, ob);
+			Object *mom = BKE_mball_basis_find(scene, ob);
 			
 			if (mom != ob) {
 				node2 = dag_get_node(dag, mom);

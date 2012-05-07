@@ -329,7 +329,7 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 
 MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
 {
-	MetaBall *mb = BKE_metaball_add(name);
+	MetaBall *mb = BKE_mball_add(name);
 	id_us_min(&mb->id);
 	return mb;
 }

@@ -867,11 +867,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				MetaBall *mb = ob->data;
 
 				if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
-				else if (around == V3D_CENTROID) { BKE_metaball_center_median(mb, cent); }
-				else { BKE_metaball_center_bounds(mb, cent);    }
+				else if (around == V3D_CENTROID) { BKE_mball_center_median(mb, cent); }
+				else { BKE_mball_center_bounds(mb, cent);    }
 
 				negate_v3_v3(cent_neg, cent);
-				BKE_metaball_translate(mb, cent_neg);
+				BKE_mball_translate(mb, cent_neg);
 
 				tot_change++;
 				mb->id.flag |= LIB_DOIT;

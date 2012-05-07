@@ -1479,7 +1479,7 @@ static int convert_exec(bContext *C, wmOperator *op)
 			base->flag &= ~SELECT;
 			ob->flag &= ~SELECT;
 
-			baseob = BKE_metaball_basis_find(scene, ob);
+			baseob = BKE_mball_basis_find(scene, ob);
 
 			if (ob != baseob) {
 				/* if motherball is converting it would be marked as done later */
@@ -1736,7 +1736,7 @@ static Base *object_add_duplicate_internal(Main *bmain, Scene *scene, Base *base
 				if (dupflag & USER_DUP_MBALL) {
 					ID_NEW_US2(obn->data)
 					else {
-						obn->data = BKE_metaball_copy(obn->data);
+						obn->data = BKE_mball_copy(obn->data);
 						didit = 1;
 					}
 					id->us--;

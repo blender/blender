@@ -173,7 +173,7 @@ static MetaElem **mainb;
 static octal_tree *metaball_tree = NULL;
 /* Functions */
 
-void BKE_metaball_unlink(MetaBall *mb)
+void BKE_mball_unlink(MetaBall *mb)
 {
 	int a;
 	
@@ -185,9 +185,9 @@ void BKE_metaball_unlink(MetaBall *mb)
 
 
 /* do not free mball itself */
-void BKE_metaball_free(MetaBall *mb)
+void BKE_mball_free(MetaBall *mb)
 {
-	BKE_metaball_unlink(mb);	
+	BKE_mball_unlink(mb);	
 	
 	if (mb->adt) {
 		BKE_free_animdata((ID *)mb);
@@ -199,7 +199,7 @@ void BKE_metaball_free(MetaBall *mb)
 	if (mb->disp.first) freedisplist(&mb->disp);
 }
 
-MetaBall *BKE_metaball_add(const char *name)
+MetaBall *BKE_mball_add(const char *name)
 {
 	MetaBall *mb;
 	
@@ -215,7 +215,7 @@ MetaBall *BKE_metaball_add(const char *name)
 	return mb;
 }
 
-MetaBall *BKE_metaball_copy(MetaBall *mb)
+MetaBall *BKE_mball_copy(MetaBall *mb)
 {
 	MetaBall *mbn;
 	int a;
@@ -243,7 +243,7 @@ static void extern_local_mball(MetaBall *mb)
 	}
 }
 
-void BKE_metaball_make_local(MetaBall *mb)
+void BKE_mball_make_local(MetaBall *mb)
 {
 	Main *bmain = G.main;
 	Object *ob;
@@ -274,7 +274,7 @@ void BKE_metaball_make_local(MetaBall *mb)
 		extern_local_mball(mb);
 	}
 	else if (is_local && is_lib) {
-		MetaBall *mb_new = BKE_metaball_copy(mb);
+		MetaBall *mb_new = BKE_mball_copy(mb);
 		mb_new->id.us = 0;
 
 		/* Remap paths of new ID using old library as base. */
@@ -294,7 +294,7 @@ void BKE_metaball_make_local(MetaBall *mb)
 
 /* most simple meta-element adding function
  * don't do context manipulation here (rna uses) */
-MetaElem *BKE_metaball_element_add(MetaBall *mb, const int type)
+MetaElem *BKE_mball_element_add(MetaBall *mb, const int type)
 {
 	MetaElem *ml = MEM_callocN(sizeof(MetaElem), "metaelem");
 
@@ -346,7 +346,7 @@ MetaElem *BKE_metaball_element_add(MetaBall *mb, const int type)
  * basic MetaBall (usually with name Meta). All other MetaBalls (with
  * names Meta.001, Meta.002, etc) are included in this Bounding Box.
  */
-void BKE_metaball_texspace_calc(Object *ob)
+void BKE_mball_texspace_calc(Object *ob)
 {
 	DispList *dl;
 	BoundBox *bb;
@@ -390,7 +390,7 @@ void BKE_metaball_texspace_calc(Object *ob)
 	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
-float *BKE_metaball_make_orco(Object *ob, ListBase *dispbase)
+float *BKE_mball_make_orco(Object *ob, ListBase *dispbase)
 {
 	BoundBox *bb;
 	DispList *dl;
@@ -442,7 +442,7 @@ float *BKE_metaball_make_orco(Object *ob, ListBase *dispbase)
  * It test last character of Object ID name. If last character
  * is digit it return 0, else it return 1.
  */
-int BKE_metaball_is_basis(Object *ob)
+int BKE_mball_is_basis(Object *ob)
 {
 	int len;
 	
@@ -453,7 +453,7 @@ int BKE_metaball_is_basis(Object *ob)
 }
 
 /* return nonzero if ob1 is a basis mball for ob */
-int BKE_metaball_is_basis_for(Object *ob1, Object *ob2)
+int BKE_mball_is_basis_for(Object *ob1, Object *ob2)
 {
 	int basis1nr, basis2nr;
 	char basis1name[MAX_ID_NAME], basis2name[MAX_ID_NAME];
@@ -461,7 +461,7 @@ int BKE_metaball_is_basis_for(Object *ob1, Object *ob2)
 	BLI_split_name_num(basis1name, &basis1nr, ob1->id.name + 2, '.');
 	BLI_split_name_num(basis2name, &basis2nr, ob2->id.name + 2, '.');
 
-	if (!strcmp(basis1name, basis2name)) return BKE_metaball_is_basis(ob1);
+	if (!strcmp(basis1name, basis2name)) return BKE_mball_is_basis(ob1);
 	else return 0;
 }
 
@@ -471,7 +471,7 @@ int BKE_metaball_is_basis_for(Object *ob1, Object *ob2)
  * are copied to all metaballs in same "group" (metaballs with same base name: MBall,
  * MBall.001, MBall.002, etc). The most important is to copy properties to the base metaball,
  * because this metaball influence polygonisation of metaballs. */
-void BKE_metaball_properties_copy(Scene *scene, Object *active_object)
+void BKE_mball_properties_copy(Scene *scene, Object *active_object)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -516,7 +516,7 @@ void BKE_metaball_properties_copy(Scene *scene, Object *active_object)
  *
  * warning!, is_basis_mball() can fail on returned object, see long note above.
  */
-Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
+Object *BKE_mball_basis_find(Scene *scene, Object *basis)
 {
 	Scene *sce_iter = scene;
 	Base *base;
@@ -1174,7 +1174,7 @@ static void makecubetable(void)
 	}
 }
 
-void BKE_metaball_cubeTable_free(void)
+void BKE_mball_cubeTable_free(void)
 {
 	int i;
 	INTLISTS *lists, *nlists;
@@ -2277,7 +2277,7 @@ static void init_metaball_octal_tree(int depth)
 	subdivide_metaball_octal_node(node, size[0], size[1], size[2], metaball_tree->depth);
 }
 
-void BKE_metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
+void BKE_mball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 {
 	PROCESS mbproc;
 	MetaBall *mb;
@@ -2390,7 +2390,7 @@ void BKE_metaball_polygonize(Scene *scene, Object *ob, ListBase *dispbase)
 }
 
 /* basic vertex data functions */
-int BKE_metaball_minmax(MetaBall *mb, float min[3], float max[3])
+int BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
 {
 	MetaElem *ml;
 
@@ -2403,7 +2403,7 @@ int BKE_metaball_minmax(MetaBall *mb, float min[3], float max[3])
 	return (mb->elems.first != NULL);
 }
 
-int BKE_metaball_center_median(MetaBall *mb, float cent[3])
+int BKE_mball_center_median(MetaBall *mb, float cent[3])
 {
 	MetaElem *ml;
 	int total = 0;
@@ -2420,11 +2420,11 @@ int BKE_metaball_center_median(MetaBall *mb, float cent[3])
 	return (total != 0);
 }
 
-int BKE_metaball_center_bounds(MetaBall *mb, float cent[3])
+int BKE_mball_center_bounds(MetaBall *mb, float cent[3])
 {
 	float min[3], max[3];
 
-	if (BKE_metaball_minmax(mb, min, max)) {
+	if (BKE_mball_minmax(mb, min, max)) {
 		mid_v3_v3v3(cent, min, max);
 		return 1;
 	}
@@ -2432,7 +2432,7 @@ int BKE_metaball_center_bounds(MetaBall *mb, float cent[3])
 	return 0;
 }
 
-void BKE_metaball_translate(MetaBall *mb, float offset[3])
+void BKE_mball_translate(MetaBall *mb, float offset[3])
 {
 	MetaElem *ml;
 

@@ -3982,7 +3982,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			break;
 		case OB_MBALL:
 
-			if (BKE_metaball_is_basis(ob)) {
+			if (BKE_mball_is_basis(ob)) {
 				lb = &ob->disp;
 				if (lb->first == NULL) makeDispListMBall(scene, ob);
 				if (lb->first == NULL) return 1;
@@ -6159,7 +6159,7 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 		bb = ob->bb ? ob->bb : ( (Curve *)ob->data)->bb;
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			bb = ob->bb;
 			if (bb == NULL) {
 				makeDispListMBall(scene, ob);
@@ -6250,7 +6250,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			if ((base->flag & OB_FROMDUPLI) == 0)
 				drawDispListwire(&ob->disp);
 		}
@@ -6310,7 +6310,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			drawDispListwire(&ob->disp);
 		}
 	}

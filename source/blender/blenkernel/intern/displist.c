@@ -672,9 +672,9 @@ void makeDispListMBall(Scene *scene, Object *ob)
 	freedisplist(&(ob->disp));
 
 	if (ob->type == OB_MBALL) {
-		if (ob == BKE_metaball_basis_find(scene, ob)) {
-			BKE_metaball_polygonize(scene, ob, &ob->disp);
-			BKE_metaball_texspace_calc(ob);
+		if (ob == BKE_mball_basis_find(scene, ob)) {
+			BKE_mball_polygonize(scene, ob, &ob->disp);
+			BKE_mball_texspace_calc(ob);
 
 			object_deform_mball(ob, &ob->disp);
 		}
@@ -685,8 +685,8 @@ void makeDispListMBall(Scene *scene, Object *ob)
 
 void makeDispListMBall_forRender(Scene *scene, Object *ob, ListBase *dispbase)
 {
-	BKE_metaball_polygonize(scene, ob, dispbase);
-	BKE_metaball_texspace_calc(ob);
+	BKE_mball_polygonize(scene, ob, dispbase);
+	BKE_mball_texspace_calc(ob);
 	
 	object_deform_mball(ob, dispbase);
 }

@@ -1495,7 +1495,7 @@ static void single_obdata_users(Main *bmain, Scene *scene, int flag)
 						//	ipo_idnew(me->key->ipo);	/* drivers */
 						break;
 					case OB_MBALL:
-						ob->data = BKE_metaball_copy(ob->data);
+						ob->data = BKE_mball_copy(ob->data);
 						break;
 					case OB_CURVE:
 					case OB_SURF:

@@ -301,7 +301,7 @@ void BKE_object_free(Object *ob)
 		if (id->us == 0) {
 			if (ob->type == OB_MESH) BKE_mesh_unlink(ob->data);
 			else if (ob->type == OB_CURVE) BKE_curve_unlink(ob->data);
-			else if (ob->type == OB_MBALL) BKE_metaball_unlink(ob->data);
+			else if (ob->type == OB_MBALL) BKE_mball_unlink(ob->data);
 		}
 		ob->data = NULL;
 	}
@@ -440,7 +440,7 @@ void BKE_object_unlink(Object *ob)
 			}
 		} 
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
-			if (BKE_metaball_is_basis_for(obt, ob))
+			if (BKE_mball_is_basis_for(obt, ob))
 				obt->recalc |= OB_RECALC_DATA;
 		}
 		
@@ -734,7 +734,7 @@ void *BKE_object_obdata_add_from_type(int type)
 		case OB_CURVE:     return BKE_curve_add("Curve", OB_CURVE);
 		case OB_SURF:      return BKE_curve_add("Surf", OB_SURF);
 		case OB_FONT:      return BKE_curve_add("Text", OB_FONT);
-		case OB_MBALL:     return BKE_metaball_add("Meta");
+		case OB_MBALL:     return BKE_mball_add("Meta");
 		case OB_CAMERA:    return BKE_camera_add("Camera");
 		case OB_LAMP:      return BKE_lamp_add("Lamp");
 		case OB_LATTICE:   return BKE_lattice_add("Lattice");

@@ -2437,7 +2437,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=BKE_metaball_basis_find(re->scene, ob))
+	if (ob!=BKE_mball_basis_find(re->scene, ob))
 		return;
 
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -2463,7 +2463,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		if (!orco) {
 			/* orco hasn't been found in cache - create new one and add to cache */
-			orco= BKE_metaball_make_orco(ob, &dispbase);
+			orco= BKE_mball_make_orco(ob, &dispbase);
 			set_object_orco(re, ob, orco);
 		}
 	}
@@ -4725,7 +4725,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=BKE_metaball_basis_find(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))

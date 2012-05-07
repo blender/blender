@@ -124,7 +124,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 	case OB_MBALL: {
 		/* metaballs don't have modifiers, so just convert to mesh */
-		Object *basis_ob = BKE_metaball_basis_find(sce, ob);
+		Object *basis_ob = BKE_mball_basis_find(sce, ob);
 		/* todo, re-generatre for render-res */
 		/* metaball_polygonize(scene, ob) */
 
