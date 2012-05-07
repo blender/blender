@@ -74,7 +74,7 @@ __device float3 equirectangular_to_direction(float u, float v)
 		cos(theta));
 }
 
-/* Fisheye <- Cartesian direction */
+/* Fisheye <-> Cartesian direction */
 
 __device float2 direction_to_fisheye(float3 dir, float fov)
 {
@@ -109,11 +109,14 @@ __device float3 fisheye_to_direction(float u, float v, float fov)
 	);
 }
 
-__device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float fov, float width, float height)
+__device float2 direction_to_fisheye_equisolid(float3 dir, float lens, float width, float height)
 {
-	/* XXX not implemented yet */
-	float u = -atan2f(dir.y, dir.x)/(2.0f*M_PI_F) + 0.5f;
-	float v = atan2f(dir.z, hypotf(dir.x, dir.y))/M_PI_F + 0.5f;
+	float theta = acosf(dir.x);
+	float r = 2.0f * lens * sinf(theta * 0.25f);
+	float phi = atan2f(dir.z, dir.y);
+
+	float u = r * cosf(phi) / width + 0.5f;
+	float v = r * sinf(phi) / height + 0.5f;
 
 	return make_float2(u, v);
 }
@@ -197,7 +200,7 @@ __device float2 direction_to_panorama(KernelGlobals *kg, float3 dir)
 		case PANORAMA_FISHEYE_EQUISOLID:
 		default:
 			return direction_to_fisheye_equisolid(dir, kernel_data.cam.fisheye_lens,
-				kernel_data.cam.fisheye_fov, kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+				kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
 	}
 }
 
