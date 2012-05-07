@@ -50,14 +50,14 @@
 
 static void initData(ModifierData *md) 
 {
-	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	psmd->psys= NULL;
-	psmd->dm= NULL;
-	psmd->totdmvert= psmd->totdmedge= psmd->totdmface= 0;
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
+	psmd->psys = NULL;
+	psmd->dm = NULL;
+	psmd->totdmvert = psmd->totdmedge = psmd->totdmface = 0;
 }
 static void freeData(ModifierData *md)
 {
-	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 
 	if (psmd->dm) {
 		psmd->dm->needsFree = 1;
@@ -72,8 +72,8 @@ static void freeData(ModifierData *md)
 }
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	ParticleSystemModifierData *tpsmd= (ParticleSystemModifierData*) target;
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
+	ParticleSystemModifierData *tpsmd = (ParticleSystemModifierData *) target;
 
 	tpsmd->dm = NULL;
 	tpsmd->totdmvert = tpsmd->totdmedge = tpsmd->totdmface = 0;
@@ -85,7 +85,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
-	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
 	CustomDataMask dataMask = 0;
 	MTex *mtex;
 	int i;
@@ -93,7 +93,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	if (!psmd->psys->part)
 		return 0;
 
-	for (i=0; i<MAX_MTEX; i++) {
+	for (i = 0; i < MAX_MTEX; i++) {
 		mtex = psmd->psys->part->mtex[i];
 		if (mtex && mtex->mapto && (mtex->texco & TEXCO_UV))
 			dataMask |= CD_MASK_MTFACE;
@@ -103,7 +103,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 		dataMask |= CD_MASK_MTFACE;
 
 	/* ask for vertexgroups if we need them */
-	for (i=0; i<PSYS_TOT_VG; i++) {
+	for (i = 0; i < PSYS_TOT_VG; i++) {
 		if (psmd->psys->vgroup[i]) {
 			dataMask |= CD_MASK_MDEFORMVERT;
 			break;
@@ -112,7 +112,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	
 	/* particles only need this if they are after a non deform modifier, and
 	 * the modifier stack will only create them in that case. */
-	dataMask |= CD_MASK_ORIGSPACE_MLOOP|CD_MASK_ORIGINDEX;
+	dataMask |= CD_MASK_ORIGSPACE_MLOOP | CD_MASK_ORIGINDEX;
 
 	dataMask |= CD_MASK_ORCO;
 	
@@ -121,32 +121,32 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 /* saves the current emitter state for a particle system and calculates particles */
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int UNUSED(numVerts),
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int UNUSED(numVerts),
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
-	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
-	ParticleSystem * psys= NULL;
-	int needsFree=0;
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData *) md;
+	ParticleSystem *psys = NULL;
+	int needsFree = 0;
 
 	if (ob->particlesystem.first)
-		psys=psmd->psys;
+		psys = psmd->psys;
 	else
 		return;
 	
 	if (!psys_check_enabled(ob, psys))
 		return;
 
-	if (dm==NULL) {
-		dm= get_dm(ob, NULL, NULL, vertexCos, 1);
+	if (dm == NULL) {
+		dm = get_dm(ob, NULL, NULL, vertexCos, 1);
 
 		if (!dm)
 			return;
 
-		needsFree= 1;
+		needsFree = 1;
 	}
 
 	/* clear old dm */
@@ -164,7 +164,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 	}
 
 	/* make new dm */
-	psmd->dm=CDDM_copy(dm);
+	psmd->dm = CDDM_copy(dm);
 	CDDM_apply_vert_coords(psmd->dm, vertexCos);
 	CDDM_calc_normals(psmd->dm);
 
@@ -177,15 +177,15 @@ static void deformVerts(ModifierData *md, Object *ob,
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
-	if (psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
-		  psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
-		  psmd->dm->getNumTessFaces(psmd->dm)!=psmd->totdmface) {
-
+	if (psmd->dm->getNumVerts(psmd->dm) != psmd->totdmvert ||
+	    psmd->dm->getNumEdges(psmd->dm) != psmd->totdmedge ||
+	    psmd->dm->getNumTessFaces(psmd->dm) != psmd->totdmface)
+	{
 		psys->recalc |= PSYS_RECALC_RESET;
 
-		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
-		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
-		psmd->totdmface= psmd->dm->getNumTessFaces(psmd->dm);
+		psmd->totdmvert = psmd->dm->getNumVerts(psmd->dm);
+		psmd->totdmedge = psmd->dm->getNumEdges(psmd->dm);
+		psmd->totdmface = psmd->dm->getNumTessFaces(psmd->dm);
 	}
 
 	if (psys) {
@@ -199,8 +199,8 @@ static void deformVerts(ModifierData *md, Object *ob,
  * updates is coded */
 #if 0
 static void deformVertsEM(
-				ModifierData *md, Object *ob, EditMesh *editData,
-				DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+    ModifierData *md, Object *ob, EditMesh *editData,
+    DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
@@ -218,11 +218,11 @@ ModifierTypeInfo modifierType_ParticleSystem = {
 	/* structName */        "ParticleSystemModifierData",
 	/* structSize */        sizeof(ParticleSystemModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_UsesPointCache /*
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode */,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_UsesPointCache /* |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode */,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

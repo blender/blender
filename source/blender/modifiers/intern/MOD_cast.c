@@ -52,13 +52,12 @@
 
 static void initData(ModifierData *md)
 {
-	CastModifierData *cmd = (CastModifierData*) md;
+	CastModifierData *cmd = (CastModifierData *) md;
 
 	cmd->fac = 0.5f;
 	cmd->radius = 0.0f;
 	cmd->size = 0.0f;
-	cmd->flag = MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z
-			| MOD_CAST_SIZE_FROM_RADIUS;
+	cmd->flag = MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z | MOD_CAST_SIZE_FROM_RADIUS;
 	cmd->type = MOD_CAST_TYPE_SPHERE;
 	cmd->defgrp_name[0] = '\0';
 	cmd->object = NULL;
@@ -67,8 +66,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	CastModifierData *cmd = (CastModifierData*) md;
-	CastModifierData *tcmd = (CastModifierData*) target;
+	CastModifierData *cmd = (CastModifierData *) md;
+	CastModifierData *tcmd = (CastModifierData *) target;
 
 	tcmd->fac = cmd->fac;
 	tcmd->radius = cmd->radius;
@@ -81,10 +80,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
-	CastModifierData *cmd = (CastModifierData*) md;
+	CastModifierData *cmd = (CastModifierData *) md;
 	short flag;
 	
-	flag = cmd->flag & (MOD_CAST_X|MOD_CAST_Y|MOD_CAST_Z);
+	flag = cmd->flag & (MOD_CAST_X | MOD_CAST_Y | MOD_CAST_Z);
 
 	if ((cmd->fac == 0.0f) || flag == 0) return 1;
 
@@ -103,33 +102,33 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 static void foreachObjectLink(
-					   ModifierData *md, Object *ob,
-	void (*walk)(void *userData, Object *ob, Object **obpoin),
-		   void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
-	CastModifierData *cmd = (CastModifierData*) md;
+	CastModifierData *cmd = (CastModifierData *) md;
 
-	walk (userData, ob, &cmd->object);
+	walk(userData, ob, &cmd->object);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-						struct Scene *UNUSED(scene),
-						Object *UNUSED(ob),
-						DagNode *obNode)
+                           struct Scene *UNUSED(scene),
+                           Object *UNUSED(ob),
+                           DagNode *obNode)
 {
-	CastModifierData *cmd = (CastModifierData*) md;
+	CastModifierData *cmd = (CastModifierData *) md;
 
 	if (cmd->object) {
 		DagNode *curNode = dag_get_node(forest, cmd->object);
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA,
-			"Cast Modifier");
+		                 "Cast Modifier");
 	}
 }
 
 static void sphere_do(
-				   CastModifierData *cmd, Object *ob, DerivedMesh *dm,
-	   float (*vertexCos)[3], int numVerts)
+    CastModifierData *cmd, Object *ob, DerivedMesh *dm,
+    float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
 
@@ -200,7 +199,7 @@ static void sphere_do(
 	 * with or w/o a vgroup. With lots of if's in the code below,
 	 * further optimization's are possible, if needed */
 	if (dvert) { /* with a vgroup */
-		MDeformVert *dv= dvert;
+		MDeformVert *dv = dvert;
 		float fac_orig = fac;
 		for (i = 0; i < numVerts; i++, dv++) {
 			float tmp_co[3];
@@ -225,7 +224,7 @@ static void sphere_do(
 				if (len_v3(vec) > cmd->radius) continue;
 			}
 
-			weight= defvert_find_weight(dv, defgrp_index);
+			weight = defvert_find_weight(dv, defgrp_index);
 			if (weight <= 0.0f) continue;
 
 			fac = fac_orig * weight;
@@ -234,11 +233,11 @@ static void sphere_do(
 			normalize_v3(vec);
 
 			if (flag & MOD_CAST_X)
-				tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
+				tmp_co[0] = fac * vec[0] * len + facm * tmp_co[0];
 			if (flag & MOD_CAST_Y)
-				tmp_co[1] = fac*vec[1]*len + facm*tmp_co[1];
+				tmp_co[1] = fac * vec[1] * len + facm * tmp_co[1];
 			if (flag & MOD_CAST_Z)
-				tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
+				tmp_co[2] = fac * vec[2] * len + facm * tmp_co[2];
 
 			if (ctrl_ob) {
 				if (flag & MOD_CAST_USE_OB_TRANSFORM) {
@@ -280,11 +279,11 @@ static void sphere_do(
 		normalize_v3(vec);
 
 		if (flag & MOD_CAST_X)
-			tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
+			tmp_co[0] = fac * vec[0] * len + facm * tmp_co[0];
 		if (flag & MOD_CAST_Y)
-			tmp_co[1] = fac*vec[1]*len + facm*tmp_co[1];
+			tmp_co[1] = fac * vec[1] * len + facm * tmp_co[1];
 		if (flag & MOD_CAST_Z)
-			tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
+			tmp_co[2] = fac * vec[2] * len + facm * tmp_co[2];
 
 		if (ctrl_ob) {
 			if (flag & MOD_CAST_USE_OB_TRANSFORM) {
@@ -300,8 +299,8 @@ static void sphere_do(
 }
 
 static void cuboid_do(
-				   CastModifierData *cmd, Object *ob, DerivedMesh *dm,
-	   float (*vertexCos)[3], int numVerts)
+    CastModifierData *cmd, Object *ob, DerivedMesh *dm,
+    float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
 	Object *ctrl_ob = NULL;
@@ -579,11 +578,11 @@ static void cuboid_do(
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = NULL;
 	CastModifierData *cmd = (CastModifierData *)md;
@@ -602,8 +601,8 @@ static void deformVerts(ModifierData *md, Object *ob,
 }
 
 static void deformVertsEM(
-					   ModifierData *md, Object *ob, struct BMEditMesh *editData,
-	   DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+    ModifierData *md, Object *ob, struct BMEditMesh *editData,
+    DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
 	CastModifierData *cmd = (CastModifierData *)md;
@@ -625,8 +624,8 @@ ModifierTypeInfo modifierType_Cast = {
 	/* structName */        "CastModifierData",
 	/* structSize */        sizeof(CastModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

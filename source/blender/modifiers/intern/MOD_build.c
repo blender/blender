@@ -53,7 +53,7 @@
 
 static void initData(ModifierData *md)
 {
-	BuildModifierData *bmd = (BuildModifierData*) md;
+	BuildModifierData *bmd = (BuildModifierData *) md;
 
 	bmd->start = 1.0;
 	bmd->length = 100.0;
@@ -61,8 +61,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	BuildModifierData *bmd = (BuildModifierData*) md;
-	BuildModifierData *tbmd = (BuildModifierData*) target;
+	BuildModifierData *bmd = (BuildModifierData *) md;
+	BuildModifierData *tbmd = (BuildModifierData *) target;
 
 	tbmd->start = bmd->start;
 	tbmd->length = bmd->length;
@@ -82,7 +82,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 {
 	DerivedMesh *dm = derivedData;
 	DerivedMesh *result;
-	BuildModifierData *bmd = (BuildModifierData*) md;
+	BuildModifierData *bmd = (BuildModifierData *) md;
 	int i, j, k;
 	int numFaces_dst, numEdges_dst, numLoops_dst = 0;
 	int *vertMap, *edgeMap, *faceMap;
@@ -141,7 +141,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 			mp = mpoly + faceMap[i];
 			ml = mloop + mp->loopstart;
 
-			for (j=0; j<mp->totloop; j++, ml++) {
+			for (j = 0; j < mp->totloop; j++, ml++) {
 				if (!BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(ml->v)))
 					BLI_ghash_insert(vertHash, SET_INT_IN_POINTER(ml->v),
 					                 SET_INT_IN_POINTER(BLI_ghash_size(vertHash)));
@@ -157,8 +157,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		for (i = 0; i < numEdge_src; i++) {
 			MEdge *me = medge + i;
 
-			if ( BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
-			     BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
+			if (BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v1)) &&
+			    BLI_ghash_haskey(vertHash, SET_INT_IN_POINTER(me->v2)))
 			{
 				j = BLI_ghash_size(edgeHash);
 				
@@ -225,17 +225,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	                            BLI_ghash_size(edgeHash), 0, numLoops_dst, numFaces_dst);
 
 	/* copy the vertices across */
-	for ( hashIter = BLI_ghashIterator_new(vertHash);
-	      !BLI_ghashIterator_isDone(hashIter);
-	      BLI_ghashIterator_step(hashIter)
-	      )
+	for (hashIter = BLI_ghashIterator_new(vertHash);
+	     !BLI_ghashIterator_isDone(hashIter);
+	     BLI_ghashIterator_step(hashIter)
+	     )
 	{
 		MVert source;
 		MVert *dest;
 		int oldIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getKey(hashIter));
 		int newIndex = GET_INT_FROM_POINTER(BLI_ghashIterator_getValue(hashIter));
 
-		source = mvert_src [oldIndex];
+		source = mvert_src[oldIndex];
 		dest = CDDM_get_vert(result, newIndex);
 
 		DM_copy_vert_data(dm, result, oldIndex, newIndex, 1);
@@ -278,7 +278,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 		DM_copy_loop_data(dm, result, source->loopstart, dest->loopstart, dest->totloop);
 
 		ml_src = mloop_src + source->loopstart;
-		for (j=0; j<source->totloop; j++, k++, ml_src++, ml_dst++) {
+		for (j = 0; j < source->totloop; j++, k++, ml_src++, ml_dst++) {
 			ml_dst->v = GET_INT_FROM_POINTER(BLI_ghash_lookup(vertHash, SET_INT_IN_POINTER(ml_src->v)));
 			ml_dst->e = GET_INT_FROM_POINTER(BLI_ghash_lookup(edgeHash2, SET_INT_IN_POINTER(ml_src->e)));
 		}
@@ -297,27 +297,27 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 
 
 ModifierTypeInfo modifierType_Build = {
-	/* name */              "Build",
-	/* structName */        "BuildModifierData",
-	/* structSize */        sizeof(BuildModifierData),
-	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_AcceptsCVs,
-	/* copyData */          copyData,
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   NULL,
-	/* initData */          initData,
-	/* requiredDataMask */  NULL,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepgraph */    NULL,
-	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	NULL,
+	/* name */ "Build",
+	/* structName */ "BuildModifierData",
+	/* structSize */ sizeof(BuildModifierData),
+	/* type */ eModifierTypeType_Nonconstructive,
+	/* flags */ eModifierTypeFlag_AcceptsMesh |
+	eModifierTypeFlag_AcceptsCVs,
+	/* copyData */ copyData,
+	/* deformVerts */ NULL,
+	/* deformMatrices */ NULL,
+	/* deformVertsEM */ NULL,
+	/* deformMatricesEM */ NULL,
+	/* applyModifier */ applyModifier,
+	/* applyModifierEM */ NULL,
+	/* initData */ initData,
+	/* requiredDataMask */ NULL,
+	/* freeData */ NULL,
+	/* isDisabled */ NULL,
+	/* updateDepgraph */ NULL,
+	/* dependsOnTime */ dependsOnTime,
+	/* dependsOnNormals */ NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
+	/* foreachIDLink */ NULL,
+	/* foreachTexLink */ NULL,
 };

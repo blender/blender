@@ -51,7 +51,7 @@
 
 static void initData(ModifierData *md)
 {
-	SmoothModifierData *smd = (SmoothModifierData*) md;
+	SmoothModifierData *smd = (SmoothModifierData *) md;
 
 	smd->fac = 0.5f;
 	smd->repeat = 1;
@@ -61,8 +61,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	SmoothModifierData *smd = (SmoothModifierData*) md;
-	SmoothModifierData *tsmd = (SmoothModifierData*) target;
+	SmoothModifierData *smd = (SmoothModifierData *) md;
+	SmoothModifierData *tsmd = (SmoothModifierData *) target;
 
 	tsmd->fac = smd->fac;
 	tsmd->repeat = smd->repeat;
@@ -72,10 +72,10 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 {
-	SmoothModifierData *smd = (SmoothModifierData*) md;
+	SmoothModifierData *smd = (SmoothModifierData *) md;
 	short flag;
 
-	flag = smd->flag & (MOD_SMOOTH_X|MOD_SMOOTH_Y|MOD_SMOOTH_Z);
+	flag = smd->flag & (MOD_SMOOTH_X | MOD_SMOOTH_Y | MOD_SMOOTH_Z);
 
 	/* disable if modifier is off for X, Y and Z or if factor is 0 */
 	if ((smd->fac == 0.0f) || flag == 0) return 1;
@@ -95,8 +95,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 }
 
 static void smoothModifier_do(
-				  SmoothModifierData *smd, Object *ob, DerivedMesh *dm,
-	 float (*vertexCos)[3], int numVerts)
+        SmoothModifierData *smd, Object *ob, DerivedMesh *dm,
+        float (*vertexCos)[3], int numVerts)
 {
 	MDeformVert *dvert = NULL;
 	MEdge *medges = NULL;
@@ -105,11 +105,11 @@ static void smoothModifier_do(
 	unsigned char *uctmp;
 	float *ftmp, fac, facm;
 
-	ftmp = (float*)MEM_callocN(3*sizeof(float)*numVerts,
-		"smoothmodifier_f");
+	ftmp = (float *)MEM_callocN(3 * sizeof(float) * numVerts,
+	                            "smoothmodifier_f");
 	if (!ftmp) return;
-	uctmp = (unsigned char*)MEM_callocN(sizeof(unsigned char)*numVerts,
-		 "smoothmodifier_uc");
+	uctmp = (unsigned char *)MEM_callocN(sizeof(unsigned char) * numVerts,
+	                                     "smoothmodifier_uc");
 	if (!uctmp) {
 		if (ftmp) MEM_freeN(ftmp);
 		return;
@@ -139,8 +139,8 @@ static void smoothModifier_do(
 
 			mid_v3_v3v3(fvec, v1, v2);
 
-			v1 = &ftmp[idx1*3];
-			v2 = &ftmp[idx2*3];
+			v1 = &ftmp[idx1 * 3];
+			v2 = &ftmp[idx2 * 3];
 
 			if (uctmp[idx1] < 255) {
 				uctmp[idx1]++;
@@ -153,16 +153,16 @@ static void smoothModifier_do(
 		}
 
 		if (dvert) {
-			MDeformVert *dv= dvert;
+			MDeformVert *dv = dvert;
 			for (i = 0; i < numVerts; i++, dv++) {
 				float f, fm, facw, *fp, *v;
 				short flag = smd->flag;
 
 				v = vertexCos[i];
-				fp = &ftmp[i*3];
+				fp = &ftmp[i * 3];
 
 
-				f= defvert_find_weight(dv, defgrp_index);
+				f = defvert_find_weight(dv, defgrp_index);
 				if (f <= 0.0f) continue;
 
 				f *= fac;
@@ -187,7 +187,7 @@ static void smoothModifier_do(
 				short flag = smd->flag;
 
 				v = vertexCos[i];
-				fp = &ftmp[i*3];
+				fp = &ftmp[i * 3];
 
 				/* fp is the sum of uctmp[i] verts, so must be averaged */
 				facw = 0.0f;
@@ -204,8 +204,8 @@ static void smoothModifier_do(
 
 		}
 
-		memset(ftmp, 0, 3*sizeof(float)*numVerts);
-		memset(uctmp, 0, sizeof(unsigned char)*numVerts);
+		memset(ftmp, 0, 3 * sizeof(float) * numVerts);
+		memset(uctmp, 0, sizeof(unsigned char) * numVerts);
 	}
 
 	MEM_freeN(ftmp);
@@ -213,10 +213,10 @@ static void smoothModifier_do(
 }
 
 static void deformVerts(
-					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	   float (*vertexCos)[3], int numVerts, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+        ModifierData *md, Object *ob, DerivedMesh *derivedData,
+        float (*vertexCos)[3], int numVerts, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
-	DerivedMesh *dm= get_dm(ob, NULL, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, NULL, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 	                  vertexCos, numVerts);
@@ -226,10 +226,10 @@ static void deformVerts(
 }
 
 static void deformVertsEM(
-					 ModifierData *md, Object *ob, struct BMEditMesh *editData,
-	  DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, struct BMEditMesh *editData,
+        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	DerivedMesh *dm= get_dm(ob, editData, derivedData, NULL, 0);
+	DerivedMesh *dm = get_dm(ob, editData, derivedData, NULL, 0);
 
 	smoothModifier_do((SmoothModifierData *)md, ob, dm,
 	                  vertexCos, numVerts);
@@ -244,8 +244,8 @@ ModifierTypeInfo modifierType_Smooth = {
 	/* structName */        "SmoothModifierData",
 	/* structSize */        sizeof(SmoothModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

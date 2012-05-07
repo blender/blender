@@ -82,7 +82,7 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	 */
 	if (result_type & TEX_RGB)
 		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
-				+ 0.2f * texres->tb);
+		               + 0.2f * texres->tb);
 	else
 		texres->tr = texres->tg = texres->tb = texres->tin;
 }
@@ -120,11 +120,11 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 
 			/* verts are given the UV from the first face that uses them */
 			for (i = 0, mp = mpoly; i < numPolys; ++i, ++mp) {
-				unsigned int fidx= mp->totloop - 1;
+				unsigned int fidx = mp->totloop - 1;
 
 				do {
-					unsigned int lidx= mp->loopstart + fidx;
-					unsigned int vidx= mloop[lidx].v;
+					unsigned int lidx = mp->loopstart + fidx;
+					unsigned int vidx = mloop[lidx].v;
 
 					if (done[vidx] == 0) {
 						/* remap UVs from [0, 1] to [-1, 1] */
@@ -145,26 +145,26 @@ void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,
 
 	for (i = 0; i < numVerts; ++i, ++co, ++texco) {
 		switch (texmapping) {
-		case MOD_DISP_MAP_LOCAL:
-			copy_v3_v3(*texco, *co);
-			break;
-		case MOD_DISP_MAP_GLOBAL:
-			mul_v3_m4v3(*texco, ob->obmat, *co);
-			break;
-		case MOD_DISP_MAP_OBJECT:
-			mul_v3_m4v3(*texco, ob->obmat, *co);
-			mul_m4_v3(mapob_imat, *texco);
-			break;
+			case MOD_DISP_MAP_LOCAL:
+				copy_v3_v3(*texco, *co);
+				break;
+			case MOD_DISP_MAP_GLOBAL:
+				mul_v3_m4v3(*texco, ob->obmat, *co);
+				break;
+			case MOD_DISP_MAP_OBJECT:
+				mul_v3_m4v3(*texco, ob->obmat, *co);
+				mul_m4_v3(mapob_imat, *texco);
+				break;
 		}
 	}
 }
 
 void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
 {
-	while ((md=md->next) && md->type==eModifierType_Armature) {
-		ArmatureModifierData *amd = (ArmatureModifierData*) md;
-		if (amd->multi && amd->prevCos==NULL)
-			amd->prevCos= MEM_dupallocN(vertexCos);
+	while ((md = md->next) && md->type == eModifierType_Armature) {
+		ArmatureModifierData *amd = (ArmatureModifierData *) md;
+		if (amd->multi && amd->prevCos == NULL)
+			amd->prevCos = MEM_dupallocN(vertexCos);
 		else
 			break;
 	}
@@ -178,10 +178,10 @@ DerivedMesh *get_cddm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float 
 		return dm;
 
 	if (!dm) {
-		dm= get_dm(ob, em, dm, vertexCos, 0);
+		dm = get_dm(ob, em, dm, vertexCos, 0);
 	}
 	else {
-		dm= CDDM_copy(dm);
+		dm = CDDM_copy(dm);
 		CDDM_apply_vert_coords(dm, vertexCos);
 	}
 
@@ -197,8 +197,8 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 	if (dm)
 		return dm;
 
-	if (ob->type==OB_MESH) {
-		if (em) dm= CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
+	if (ob->type == OB_MESH) {
+		if (em) dm = CDDM_from_BMEditMesh(em, ob->data, FALSE, FALSE);
 		else dm = CDDM_from_mesh((struct Mesh *)(ob->data), ob);
 
 		if (vertexCos) {
@@ -210,7 +210,7 @@ DerivedMesh *get_dm(Object *ob, struct BMEditMesh *em, DerivedMesh *dm, float (*
 			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, BKE_mesh_orco_verts_get(ob));
 	}
 	else if (ELEM3(ob->type, OB_FONT, OB_CURVE, OB_SURF)) {
-		dm= CDDM_from_curve(ob);
+		dm = CDDM_from_curve(ob);
 	}
 
 	return dm;

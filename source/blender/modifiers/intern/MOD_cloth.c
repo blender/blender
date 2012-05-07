@@ -54,7 +54,7 @@
 
 static void initData(ModifierData *md) 
 {
-	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *clmd = (ClothModifierData *) md;
 	
 	clmd->sim_parms = MEM_callocN(sizeof(ClothSimSettings), "cloth sim parms");
 	clmd->coll_parms = MEM_callocN(sizeof(ClothCollSettings), "cloth coll parms");
@@ -64,15 +64,15 @@ static void initData(ModifierData *md)
 	if (!clmd->sim_parms || !clmd->coll_parms || !clmd->point_cache)
 		return;
 	
-	cloth_init (clmd);
+	cloth_init(clmd);
 }
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
-			int UNUSED(numVerts), int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+                        int UNUSED(numVerts), int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm;
-	ClothModifierData *clmd = (ClothModifierData*) md;
-	DerivedMesh *result=NULL;
+	ClothModifierData *clmd = (ClothModifierData *) md;
+	DerivedMesh *result = NULL;
 	
 	/* check for alloc failing */
 	if (!clmd->sim_parms || !clmd->coll_parms) {
@@ -102,13 +102,13 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 
 static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
 {
-	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *clmd = (ClothModifierData *) md;
 	
 	Base *base;
 	
 	if (clmd) {
-		for (base = scene->base.first; base; base= base->next) {
-			Object *ob1= base->object;
+		for (base = scene->base.first; base; base = base->next) {
+			Object *ob1 = base->object;
 			if (ob1 != ob) {
 				CollisionModifierData *coll_clmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
 				if (coll_clmd) {
@@ -123,7 +123,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Ob
 static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 {
 	CustomDataMask dataMask = 0;
-	ClothModifierData *clmd = (ClothModifierData*)md;
+	ClothModifierData *clmd = (ClothModifierData *)md;
 
 	if (cloth_uses_vgroup(clmd))
 		dataMask |= CD_MASK_MDEFORMVERT;
@@ -136,8 +136,8 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	ClothModifierData *clmd = (ClothModifierData*) md;
-	ClothModifierData *tclmd = (ClothModifierData*) target;
+	ClothModifierData *clmd = (ClothModifierData *) md;
+	ClothModifierData *tclmd = (ClothModifierData *) target;
 
 	if (tclmd->sim_parms) {
 		if (tclmd->sim_parms->effector_weights)
@@ -166,13 +166,13 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 
 static void freeData(ModifierData *md)
 {
-	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *clmd = (ClothModifierData *) md;
 	
 	if (clmd) {
 		if (G.rt > 0)
 			printf("clothModifier_freeData\n");
 		
-		cloth_free_modifier_extern (clmd);
+		cloth_free_modifier_extern(clmd);
 		
 		if (clmd->sim_parms) {
 			if (clmd->sim_parms->effector_weights)
@@ -188,9 +188,9 @@ static void freeData(ModifierData *md)
 }
 
 static void foreachIDLink(ModifierData *md, Object *ob,
-					   IDWalkFunc walk, void *userData)
+                          IDWalkFunc walk, void *userData)
 {
-	ClothModifierData *clmd = (ClothModifierData*) md;
+	ClothModifierData *clmd = (ClothModifierData *) md;
 
 	if (clmd->coll_parms) {
 		walk(userData, ob, (ID **)&clmd->coll_parms->group);

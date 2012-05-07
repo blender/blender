@@ -52,15 +52,15 @@
 
 static void initData(ModifierData *md)
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	cmd->defaxis = MOD_CURVE_POSX;
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
-	CurveModifierData *tcmd = (CurveModifierData*) target;
+	CurveModifierData *cmd = (CurveModifierData *) md;
+	CurveModifierData *tcmd = (CurveModifierData *) target;
 
 	tcmd->defaxis = cmd->defaxis;
 	tcmd->object = cmd->object;
@@ -80,27 +80,27 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 static int isDisabled(ModifierData *md, int UNUSED(userRenderParams))
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	return !cmd->object;
 }
 
 static void foreachObjectLink(
-						ModifierData *md, Object *ob,
-	 void (*walk)(void *userData, Object *ob, Object **obpoin),
-		void *userData)
+        ModifierData *md, Object *ob,
+        void (*walk)(void *userData, Object *ob, Object **obpoin),
+        void *userData)
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	walk(userData, ob, &cmd->object);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-						Scene *UNUSED(scene),
-						Object *UNUSED(ob),
-						DagNode *obNode)
+                           Scene *UNUSED(scene),
+                           Object *UNUSED(ob),
+                           DagNode *obNode)
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	if (cmd->object) {
 		DagNode *curNode = dag_get_node(forest, cmd->object);
@@ -111,23 +111,23 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
-	CurveModifierData *cmd = (CurveModifierData*) md;
+	CurveModifierData *cmd = (CurveModifierData *) md;
 
 	/* silly that defaxis and curve_deform_verts are off by 1
 	 * but leave for now to save having to call do_versions */
 	curve_deform_verts(md->scene, cmd->object, ob, derivedData, vertexCos, numVerts,
-	                   cmd->name, cmd->defaxis-1);
+	                   cmd->name, cmd->defaxis - 1);
 }
 
 static void deformVertsEM(
-					ModifierData *md, Object *ob, struct BMEditMesh *editData,
-	 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+        ModifierData *md, Object *ob, struct BMEditMesh *editData,
+        DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 
@@ -140,28 +140,28 @@ static void deformVertsEM(
 
 
 ModifierTypeInfo modifierType_Curve = {
-	/* name */              "Curve",
-	/* structName */        "CurveModifierData",
-	/* structSize */        sizeof(CurveModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsEditmode,
+	/* name */ "Curve",
+	/* structName */ "CurveModifierData",
+	/* structSize */ sizeof(CurveModifierData),
+	/* type */ eModifierTypeType_OnlyDeform,
+	/* flags */ eModifierTypeFlag_AcceptsCVs
+	| eModifierTypeFlag_SupportsEditmode,
 
-	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     deformVertsEM,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
-	/* applyModifierEM */   NULL,
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        isDisabled,
-	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* copyData */ copyData,
+	/* deformVerts */ deformVerts,
+	/* deformMatrices */ NULL,
+	/* deformVertsEM */ deformVertsEM,
+	/* deformMatricesEM */ NULL,
+	/* applyModifier */ NULL,
+	/* applyModifierEM */ NULL,
+	/* initData */ initData,
+	/* requiredDataMask */ requiredDataMask,
+	/* freeData */ NULL,
+	/* isDisabled */ isDisabled,
+	/* updateDepgraph */ updateDepgraph,
+	/* dependsOnTime */ NULL,
+	/* dependsOnNormals */ NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
+	/* foreachIDLink */ NULL,
+	/* foreachTexLink */ NULL,
 };

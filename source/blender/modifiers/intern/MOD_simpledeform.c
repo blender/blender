@@ -68,10 +68,10 @@ static void axis_limit(int axis, const float limits[2], float co[3], float dcut[
 static void simpleDeform_taper(const float factor, const float dcut[3], float *co)
 {
 	float x = co[0], y = co[1], z = co[2];
-	float scale = z*factor;
+	float scale = z * factor;
 
-	co[0] = x + x*scale;
-	co[1] = y + y*scale;
+	co[0] = x + x * scale;
+	co[1] = y + y * scale;
 	co[2] = z;
 
 	if (dcut) {
@@ -86,11 +86,11 @@ static void simpleDeform_stretch(const float factor, const float dcut[3], float 
 	float x = co[0], y = co[1], z = co[2];
 	float scale;
 
-	scale = (z*z*factor-factor + 1.0f);
+	scale = (z * z * factor - factor + 1.0f);
 
-	co[0] = x*scale;
-	co[1] = y*scale;
-	co[2] = z*(1.0f+factor);
+	co[0] = x * scale;
+	co[1] = y * scale;
+	co[2] = z * (1.0f + factor);
 
 	if (dcut) {
 		co[0] += dcut[0];
@@ -104,12 +104,12 @@ static void simpleDeform_twist(const float factor, const float *dcut, float *co)
 	float x = co[0], y = co[1], z = co[2];
 	float theta, sint, cost;
 
-	theta = z*factor;
+	theta = z * factor;
 	sint  = sin(theta);
 	cost  = cos(theta);
 
-	co[0] = x*cost - y*sint;
-	co[1] = x*sint + y*cost;
+	co[0] = x * cost - y * sint;
+	co[1] = x * sint + y * cost;
 	co[2] = z;
 
 	if (dcut) {
@@ -124,19 +124,19 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 	float x = co[0], y = co[1], z = co[2];
 	float theta, sint, cost;
 
-	theta = x*factor;
+	theta = x * factor;
 	sint = sin(theta);
 	cost = cos(theta);
 
 	if (fabsf(factor) > 1e-7f) {
-		co[0] = -(y-1.0f/factor)*sint;
-		co[1] =  (y-1.0f/factor)*cost + 1.0f/factor;
+		co[0] = -(y - 1.0f / factor) * sint;
+		co[1] =  (y - 1.0f / factor) * cost + 1.0f / factor;
 		co[2] = z;
 	}
 
 	if (dcut) {
-		co[0] += cost*dcut[0];
-		co[1] += sint*dcut[0];
+		co[0] += cost * dcut[0];
+		co[1] += sint * dcut[0];
 		co[2] += dcut[2];
 	}
 
@@ -144,7 +144,8 @@ static void simpleDeform_bend(const float factor, const float dcut[3], float *co
 
 
 /* simple deform modifier */
-static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm, float (*vertexCos)[3], int numVerts)
+static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object *ob, struct DerivedMesh *dm,
+                                    float (*vertexCos)[3], int numVerts)
 {
 	static const float lock_axis[2] = {0.0f, 0.0f};
 
@@ -152,17 +153,17 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	int limit_axis = 0;
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
-	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;	//Mode callback
+	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;  /* Mode callback */
 	int vgroup;
 	MDeformVert *dvert;
 
-	//Safe-check
-	if (smd->origin == ob) smd->origin = NULL;					//No self references
+	/* Safe-check */
+	if (smd->origin == ob) smd->origin = NULL;  /* No self references */
 
 	if (smd->limit[0] < 0.0f) smd->limit[0] = 0.0f;
 	if (smd->limit[0] > 1.0f) smd->limit[0] = 1.0f;
 
-	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);			//Upper limit >= than lower limit
+	smd->limit[0] = MIN2(smd->limit[0], smd->limit[1]);  /* Upper limit >= than lower limit */
 
 	//Calculate matrixs do convert between coordinate spaces
 	if (smd->origin) {
@@ -185,7 +186,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		float lower =  FLT_MAX;
 		float upper = -FLT_MAX;
 
-		for (i=0; i<numVerts; i++) {
+		for (i = 0; i < numVerts; i++) {
 			float tmp[3];
 			copy_v3_v3(tmp, vertexCos[i]);
 
@@ -196,25 +197,25 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 		}
 
 
-		//SMD values are normalized to the BV, calculate the absolut values
-		smd_limit[1] = lower + (upper-lower)*smd->limit[1];
-		smd_limit[0] = lower + (upper-lower)*smd->limit[0];
+		/* SMD values are normalized to the BV, calculate the absolut values */
+		smd_limit[1] = lower + (upper - lower) * smd->limit[1];
+		smd_limit[0] = lower + (upper - lower) * smd->limit[0];
 
-		smd_factor   = smd->factor / MAX2(FLT_EPSILON, smd_limit[1]-smd_limit[0]);
+		smd_factor   = smd->factor / MAX2(FLT_EPSILON, smd_limit[1] - smd_limit[0]);
 	}
 
 	modifier_get_vgroup(ob, dm, smd->vgroup_name, &dvert, &vgroup);
 
 	switch (smd->mode) {
-		case MOD_SIMPLEDEFORM_MODE_TWIST: 	simpleDeform_callback = simpleDeform_twist;		break;
-		case MOD_SIMPLEDEFORM_MODE_BEND:	simpleDeform_callback = simpleDeform_bend;		break;
-		case MOD_SIMPLEDEFORM_MODE_TAPER:	simpleDeform_callback = simpleDeform_taper;		break;
-		case MOD_SIMPLEDEFORM_MODE_STRETCH:	simpleDeform_callback = simpleDeform_stretch;	break;
+		case MOD_SIMPLEDEFORM_MODE_TWIST:   simpleDeform_callback = simpleDeform_twist;     break;
+		case MOD_SIMPLEDEFORM_MODE_BEND:    simpleDeform_callback = simpleDeform_bend;      break;
+		case MOD_SIMPLEDEFORM_MODE_TAPER:   simpleDeform_callback = simpleDeform_taper;     break;
+		case MOD_SIMPLEDEFORM_MODE_STRETCH: simpleDeform_callback = simpleDeform_stretch;   break;
 		default:
-			return;	//No simpledeform mode?
+			return; /* No simpledeform mode? */
 	}
 
-	for (i=0; i<numVerts; i++) {
+	for (i = 0; i < numVerts; i++) {
 		float weight = defvert_array_find_weight_safe(dvert, i, vgroup);
 
 		if (weight != 0.0f) {
@@ -233,8 +234,8 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 			}
 			axis_limit(limit_axis, smd_limit, co, dcut);
 
-			simpleDeform_callback(smd_factor, dcut, co);		//Apply deform
-			interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);	//Use vertex weight has coef of linear interpolation
+			simpleDeform_callback(smd_factor, dcut, co);  /* apply deform */
+			interp_v3_v3v3(vertexCos[i], vertexCos[i], co, weight);  /* Use vertex weight has coef of linear interpolation */
 
 			if (transf) space_transform_invert(transf, vertexCos[i]);
 		}
@@ -247,7 +248,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 /* SimpleDeform */
 static void initData(ModifierData *md)
 {
-	SimpleDeformModifierData *smd = (SimpleDeformModifierData*) md;
+	SimpleDeformModifierData *smd = (SimpleDeformModifierData *) md;
 
 	smd->mode = MOD_SIMPLEDEFORM_MODE_TWIST;
 	smd->axis = 0;
@@ -260,14 +261,14 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
-	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData*)target;
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
+	SimpleDeformModifierData *tsmd = (SimpleDeformModifierData *)target;
 
-	tsmd->mode	= smd->mode;
+	tsmd->mode  = smd->mode;
 	tsmd->axis  = smd->axis;
-	tsmd->origin= smd->origin;
-	tsmd->originOpts= smd->originOpts;
-	tsmd->factor= smd->factor;
+	tsmd->origin = smd->origin;
+	tsmd->originOpts = smd->originOpts;
+	tsmd->factor = smd->factor;
 	memcpy(tsmd->limit, smd->limit, sizeof(tsmd->limit));
 	BLI_strncpy(tsmd->vgroup_name, smd->vgroup_name, sizeof(tsmd->vgroup_name));
 }
@@ -284,29 +285,30 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-static void foreachObjectLink(ModifierData *md, Object *ob, void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
+static void foreachObjectLink(ModifierData *md, Object *ob,
+                              void (*walk)(void *userData, Object *ob, Object **obpoin), void *userData)
 {
-	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
 	walk(userData, ob, &smd->origin);
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-						struct Scene *UNUSED(scene),
-						Object *UNUSED(ob),
-						DagNode *obNode)
+                           struct Scene *UNUSED(scene),
+                           Object *UNUSED(ob),
+                           DagNode *obNode)
 {
-	SimpleDeformModifierData *smd  = (SimpleDeformModifierData*)md;
+	SimpleDeformModifierData *smd  = (SimpleDeformModifierData *)md;
 
 	if (smd->origin)
 		dag_add_relation(forest, dag_get_node(forest, smd->origin), obNode, DAG_RL_OB_DATA, "SimpleDeform Modifier");
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = requiredDataMask(ob, md);
@@ -314,19 +316,19 @@ static void deformVerts(ModifierData *md, Object *ob,
 	/* we implement requiredDataMask but thats not really useful since
 	 * mesh_calc_modifiers pass a NULL derivedData */
 	if (dataMask)
-		dm= get_dm(ob, NULL, dm, NULL, 0);
+		dm = get_dm(ob, NULL, dm, NULL, 0);
 
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob,
-						struct BMEditMesh *editData,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int numVerts)
+                          struct BMEditMesh *editData,
+                          DerivedMesh *derivedData,
+                          float (*vertexCos)[3],
+                          int numVerts)
 {
 	DerivedMesh *dm = derivedData;
 	CustomDataMask dataMask = requiredDataMask(ob, md);
@@ -334,9 +336,9 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 	/* we implement requiredDataMask but thats not really useful since
 	 * mesh_calc_modifiers pass a NULL derivedData */
 	if (dataMask)
-		dm= get_dm(ob, editData, dm, NULL, 0);
+		dm = get_dm(ob, editData, dm, NULL, 0);
 
-	SimpleDeformModifier_do((SimpleDeformModifierData*)md, ob, dm, vertexCos, numVerts);
+	SimpleDeformModifier_do((SimpleDeformModifierData *)md, ob, dm, vertexCos, numVerts);
 
 	if (dm != derivedData)
 		dm->release(dm);
@@ -349,10 +351,10 @@ ModifierTypeInfo modifierType_SimpleDeform = {
 	/* structSize */        sizeof(SimpleDeformModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+							eModifierTypeFlag_AcceptsCVs |
+							eModifierTypeFlag_SupportsEditmode |
+							eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,

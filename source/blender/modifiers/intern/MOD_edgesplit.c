@@ -55,7 +55,7 @@
  * note: this code is very close to MOD_bevel.c
  */
 
-#define EDGE_MARK	1
+#define EDGE_MARK  1
 
 static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Object *UNUSED(ob))
 {
@@ -76,8 +76,8 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			/* check for 1 edge having 2 face users */
 			BMLoop *l1, *l2;
-			if ( (l1= e->l) &&
-			     (l2= e->l->radial_next) != l1)
+			if ((l1 = e->l) &&
+			    (l2 = e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
 					BMO_elem_flag_enable(bm, e, EDGE_MARK);
@@ -115,7 +115,7 @@ static DerivedMesh *doEdgeSplit(DerivedMesh *dm, EdgeSplitModifierData *emd, Obj
 
 static void initData(ModifierData *md)
 {
-	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
+	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
 
 	/* default to 30-degree split angle, sharpness from both angle & flag */
 	emd->split_angle = 30;
@@ -124,15 +124,15 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
-	EdgeSplitModifierData *temd = (EdgeSplitModifierData*) target;
+	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
+	EdgeSplitModifierData *temd = (EdgeSplitModifierData *) target;
 
 	temd->split_angle = emd->split_angle;
 	temd->flags = emd->flags;
 }
 
 static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
-					 Object *ob, DerivedMesh *dm)
+                                         Object *ob, DerivedMesh *dm)
 {
 	if (!(emd->flags & (MOD_EDGESPLIT_FROMANGLE | MOD_EDGESPLIT_FROMFLAG)))
 		return dm;
@@ -141,11 +141,11 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 }
 
 static DerivedMesh *applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-		int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+        ModifierData *md, Object *ob, DerivedMesh *derivedData,
+        int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
-	EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
+	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
 
 	result = edgesplitModifier_do(emd, ob, derivedData);
 
@@ -156,8 +156,8 @@ static DerivedMesh *applyModifier(
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *derivedData)
+                                    struct BMEditMesh *UNUSED(editData),
+                                    DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
@@ -168,11 +168,11 @@ ModifierTypeInfo modifierType_EdgeSplit = {
 	/* structName */        "EdgeSplitModifierData",
 	/* structSize */        sizeof(EdgeSplitModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

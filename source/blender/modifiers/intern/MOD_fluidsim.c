@@ -52,21 +52,21 @@
 /* Fluidsim */
 static void initData(ModifierData *md)
 {
-	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	
 	fluidsim_init(fluidmd);
 }
 static void freeData(ModifierData *md)
 {
-	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	
 	fluidsim_free(fluidmd);
 }
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
-	FluidsimModifierData *tfluidmd= (FluidsimModifierData*) target;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
+	FluidsimModifierData *tfluidmd = (FluidsimModifierData *) target;
 	
 	if (tfluidmd->fss)
 		MEM_freeN(tfluidmd->fss);
@@ -77,11 +77,11 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-						DerivedMesh *dm,
-						int useRenderParams,
-						int isFinalCalc)
+                                  DerivedMesh *dm,
+                                  int useRenderParams,
+                                  int isFinalCalc)
 {
-	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	DerivedMesh *result = NULL;
 	
 	/* check for alloc failing */
@@ -93,29 +93,30 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 
-	result= fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
+	result = fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
 
 	return result ? result : dm;
 }
 
 static void updateDepgraph(
-		ModifierData *md, DagForest *forest, Scene *scene,
-	  Object *ob, DagNode *obNode)
+    ModifierData *md, DagForest *forest, Scene *scene,
+    Object *ob, DagNode *obNode)
 {
-	FluidsimModifierData *fluidmd= (FluidsimModifierData*) md;
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	Base *base;
 
 	if (fluidmd && fluidmd->fss) {
 		if (fluidmd->fss->type == OB_FLUIDSIM_DOMAIN) {
-			for (base = scene->base.first; base; base= base->next) {
-				Object *ob1= base->object;
+			for (base = scene->base.first; base; base = base->next) {
+				Object *ob1 = base->object;
 				if (ob1 != ob) {
-					FluidsimModifierData *fluidmdtmp = (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
+					FluidsimModifierData *fluidmdtmp =
+					        (FluidsimModifierData *)modifiers_findByType(ob1, eModifierType_Fluidsim);
 					
 					/* only put dependencies from NON-DOMAIN fluids in here */
-					if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type!=OB_FLUIDSIM_DOMAIN)) {
+					if (fluidmdtmp && fluidmdtmp->fss && (fluidmdtmp->fss->type != OB_FLUIDSIM_DOMAIN)) {
 						DagNode *curNode = dag_get_node(forest, ob1);
-						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA, "Fluidsim Object");
+						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Fluidsim Object");
 					}
 				}
 			}
@@ -135,9 +136,9 @@ ModifierTypeInfo modifierType_Fluidsim = {
 	/* structSize */        sizeof(FluidsimModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
 
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_RequiresOriginalData
-							| eModifierTypeFlag_Single,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_RequiresOriginalData |
+	                        eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

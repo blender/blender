@@ -55,10 +55,10 @@
 
 static void initData(ModifierData *md)
 {
-	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 
-	pimd->flag = eParticleInstanceFlag_Parents|eParticleInstanceFlag_Unborn|
-			eParticleInstanceFlag_Alive|eParticleInstanceFlag_Dead;
+	pimd->flag = eParticleInstanceFlag_Parents | eParticleInstanceFlag_Unborn |
+	             eParticleInstanceFlag_Alive | eParticleInstanceFlag_Dead;
 	pimd->psys = 1;
 	pimd->position = 1.0f;
 	pimd->axis = 2;
@@ -66,8 +66,8 @@ static void initData(ModifierData *md)
 }
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
-	ParticleInstanceModifierData *tpimd= (ParticleInstanceModifierData*) target;
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
+	ParticleInstanceModifierData *tpimd = (ParticleInstanceModifierData *) target;
 
 	tpimd->ob = pimd->ob;
 	tpimd->psys = pimd->psys;
@@ -82,71 +82,71 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 	return 0;
 }
 static void updateDepgraph(ModifierData *md, DagForest *forest,
-						struct Scene *UNUSED(scene),
-						Object *UNUSED(ob),
-						DagNode *obNode)
+                           struct Scene *UNUSED(scene),
+                           Object *UNUSED(ob),
+                           DagNode *obNode)
 {
-	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 
 	if (pimd->ob) {
 		DagNode *curNode = dag_get_node(forest, pimd->ob);
 
 		dag_add_relation(forest, curNode, obNode,
-				 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
-				 "Particle Instance Modifier");
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA,
+		                 "Particle Instance Modifier");
 	}
 }
 
 static void foreachObjectLink(ModifierData *md, Object *ob,
-		ObjectWalkFunc walk, void *userData)
+                              ObjectWalkFunc walk, void *userData)
 {
-	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 
 	walk(userData, ob, &pimd->ob);
 }
 
-static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+                                  DerivedMesh *derivedData,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	DerivedMesh *dm = derivedData, *result;
-	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData *) md;
 	ParticleSimulationData sim;
-	ParticleSystem *psys= NULL;
-	ParticleData *pa= NULL, *pars= NULL;
+	ParticleSystem *psys = NULL;
+	ParticleData *pa = NULL, *pars = NULL;
 	MFace *mface, *orig_mface;
 	MVert *mvert, *orig_mvert;
-	int i, totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
-	short track=ob->trackflag%3, trackneg, axis = pimd->axis;
-	float max_co=0.0, min_co=0.0, temp_co[3], cross[3];
-	float *size=NULL;
+	int i, totvert, totpart = 0, totface, maxvert, maxface, first_particle = 0;
+	short track = ob->trackflag % 3, trackneg, axis = pimd->axis;
+	float max_co = 0.0, min_co = 0.0, temp_co[3], cross[3];
+	float *size = NULL;
 
 	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
-	trackneg=((ob->trackflag>2)?1:0);
+	trackneg = ((ob->trackflag > 2) ? 1 : 0);
 
-	if (pimd->ob==ob) {
-		pimd->ob= NULL;
+	if (pimd->ob == ob) {
+		pimd->ob = NULL;
 		return derivedData;
 	}
 
 	if (pimd->ob) {
-		psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys-1);
-		if (psys==NULL || psys->totpart==0)
+		psys = BLI_findlink(&pimd->ob->particlesystem, pimd->psys - 1);
+		if (psys == NULL || psys->totpart == 0)
 			return derivedData;
 	}
 	else return derivedData;
 
 	if (pimd->flag & eParticleInstanceFlag_Parents)
-		totpart+=psys->totpart;
+		totpart += psys->totpart;
 	if (pimd->flag & eParticleInstanceFlag_Children) {
-		if (totpart==0)
-			first_particle=psys->totpart;
-		totpart+=psys->totchild;
+		if (totpart == 0)
+			first_particle = psys->totpart;
+		totpart += psys->totchild;
 	}
 
-	if (totpart==0)
+	if (totpart == 0)
 		return derivedData;
 
 	sim.scene = md->scene;
@@ -160,62 +160,64 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 		si = size = MEM_callocN(totpart * sizeof(float), "particle size array");
 
 		if (pimd->flag & eParticleInstanceFlag_Parents) {
-			for (p=0, pa= psys->particles; p<psys->totpart; p++, pa++, si++)
+			for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++, si++)
 				*si = pa->size;
 		}
 
 		if (pimd->flag & eParticleInstanceFlag_Children) {
 			ChildParticle *cpa = psys->child;
 
-			for (p=0; p<psys->totchild; p++, cpa++, si++) {
+			for (p = 0; p < psys->totchild; p++, cpa++, si++) {
 				*si = psys_get_child_size(psys, cpa, 0.0f, NULL);
 			}
 		}
 	}
 
-	pars=psys->particles;
+	pars = psys->particles;
 
-	totvert=dm->getNumVerts(dm);
-	totface=dm->getNumTessFaces(dm);
+	totvert = dm->getNumVerts(dm);
+	totface = dm->getNumTessFaces(dm);
 
-	maxvert=totvert*totpart;
-	maxface=totface*totpart;
+	maxvert = totvert * totpart;
+	maxface = totface * totpart;
 
-	psys->lattice=psys_get_lattice(&sim);
+	psys->lattice = psys_get_lattice(&sim);
 
-	if (psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
+	if (psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) {
 
 		float min_r[3], max_r[3];
 		INIT_MINMAX(min_r, max_r);
 		dm->getMinMax(dm, min_r, max_r);
-		min_co=min_r[track];
-		max_co=max_r[track];
+		min_co = min_r[track];
+		max_co = max_r[track];
 	}
 
-	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm)*totpart, maxface, 0, 0);
+	result = CDDM_from_template(dm, maxvert, dm->getNumEdges(dm) * totpart, maxface, 0, 0);
 
-	mvert=result->getVertArray(result);
-	orig_mvert=dm->getVertArray(dm);
+	mvert = result->getVertArray(result);
+	orig_mvert = dm->getVertArray(dm);
 
-	for (i=0; i<maxvert; i++) {
+	for (i = 0; i < maxvert; i++) {
 		MVert *inMV;
 		MVert *mv = mvert + i;
 		ParticleKey state;
 
-		inMV = orig_mvert + i%totvert;
-		DM_copy_vert_data(dm, result, i%totvert, i, 1);
+		inMV = orig_mvert + i % totvert;
+		DM_copy_vert_data(dm, result, i % totvert, i, 1);
 		*mv = *inMV;
 
 		/*change orientation based on object trackflag*/
 		copy_v3_v3(temp_co, mv->co);
-		mv->co[axis]=temp_co[track];
-		mv->co[(axis+1)%3]=temp_co[(track+1)%3];
-		mv->co[(axis+2)%3]=temp_co[(track+2)%3];
+		mv->co[axis] = temp_co[track];
+		mv->co[(axis + 1) % 3] = temp_co[(track + 1) % 3];
+		mv->co[(axis + 2) % 3] = temp_co[(track + 2) % 3];
 
-		if ((psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) && pimd->flag & eParticleInstanceFlag_Path) {
+		if ((psys->flag & (PSYS_HAIR_DONE | PSYS_KEYED) || psys->pointcache->flag & PTCACHE_BAKED) &&
+		    (pimd->flag & eParticleInstanceFlag_Path))
+		{
 			float ran = 0.0f;
 			if (pimd->random_position != 0.0f) {
-				BLI_srandom(psys->seed + (i/totvert)%totpart);
+				BLI_srandom(psys->seed + (i / totvert) % totpart);
 				ran = pimd->random_position * BLI_frand();
 			}
 
@@ -223,15 +225,15 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 				state.time = pimd->position * (1.0f - ran);
 			}
 			else {
-				state.time=(mv->co[axis]-min_co)/(max_co-min_co) * pimd->position * (1.0f - ran);
+				state.time = (mv->co[axis] - min_co) / (max_co - min_co) * pimd->position * (1.0f - ran);
 
 				if (trackneg)
-					state.time=1.0f-state.time;
+					state.time = 1.0f - state.time;
 
 				mv->co[axis] = 0.0;
 			}
 
-			psys_get_particle_on_path(&sim, first_particle + i/totvert, &state, 1);
+			psys_get_particle_on_path(&sim, first_particle + i / totvert, &state, 1);
 
 			normalize_v3(state.vel);
 
@@ -252,60 +254,60 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 
 		}
 		else {
-			state.time=-1.0;
-			psys_get_particle_state(&sim, first_particle + i/totvert, &state, 1);
+			state.time = -1.0;
+			psys_get_particle_state(&sim, first_particle + i / totvert, &state, 1);
 		}
 
 		mul_qt_v3(state.rot, mv->co);
 		if (pimd->flag & eParticleInstanceFlag_UseSize)
-			mul_v3_fl(mv->co, size[i/totvert]);
+			mul_v3_fl(mv->co, size[i / totvert]);
 		add_v3_v3(mv->co, state.co);
 	}
 
-	mface=result->getTessFaceArray(result);
-	orig_mface=dm->getTessFaceArray(dm);
+	mface = result->getTessFaceArray(result);
+	orig_mface = dm->getTessFaceArray(dm);
 
-	for (i=0; i<maxface; i++) {
+	for (i = 0; i < maxface; i++) {
 		MFace *inMF;
 		MFace *mf = mface + i;
 
 		if (pimd->flag & eParticleInstanceFlag_Parents) {
-			if (i/totface>=psys->totpart) {
-				if (psys->part->childtype==PART_CHILD_PARTICLES) {
-					pa=psys->particles+(psys->child+i/totface-psys->totpart)->parent;
+			if (i / totface >= psys->totpart) {
+				if (psys->part->childtype == PART_CHILD_PARTICLES) {
+					pa = psys->particles + (psys->child + i / totface - psys->totpart)->parent;
 				}
 				else {
-					pa= NULL;
+					pa = NULL;
 				}
 			}
 			else {
-				pa=pars+i/totface;
+				pa = pars + i / totface;
 			}
 		}
 		else {
-			if (psys->part->childtype==PART_CHILD_PARTICLES) {
-				pa=psys->particles+(psys->child+i/totface)->parent;
+			if (psys->part->childtype == PART_CHILD_PARTICLES) {
+				pa = psys->particles + (psys->child + i / totface)->parent;
 			}
 			else {
-				pa= NULL;
+				pa = NULL;
 			}
 		}
 
 		if (pa) {
-			if (pa->alive==PARS_UNBORN && (pimd->flag&eParticleInstanceFlag_Unborn)==0) continue;
-			if (pa->alive==PARS_ALIVE && (pimd->flag&eParticleInstanceFlag_Alive)==0) continue;
-			if (pa->alive==PARS_DEAD && (pimd->flag&eParticleInstanceFlag_Dead)==0) continue;
+			if (pa->alive == PARS_UNBORN && (pimd->flag & eParticleInstanceFlag_Unborn) == 0) continue;
+			if (pa->alive == PARS_ALIVE && (pimd->flag & eParticleInstanceFlag_Alive) == 0) continue;
+			if (pa->alive == PARS_DEAD && (pimd->flag & eParticleInstanceFlag_Dead) == 0) continue;
 		}
 
-		inMF = orig_mface + i%totface;
-		DM_copy_poly_data(dm, result, i%totface, i, 1);
+		inMF = orig_mface + i % totface;
+		DM_copy_poly_data(dm, result, i % totface, i, 1);
 		*mf = *inMF;
 
-		mf->v1+=(i/totface)*totvert;
-		mf->v2+=(i/totface)*totvert;
-		mf->v3+=(i/totface)*totvert;
+		mf->v1 += (i / totface) * totvert;
+		mf->v2 += (i / totface) * totvert;
+		mf->v3 += (i / totface) * totvert;
 		if (mf->v4) {
-			mf->v4+=(i/totface)*totvert;
+			mf->v4 += (i / totface) * totvert;
 		}
 	}
 
@@ -313,7 +315,7 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 
 	if (psys->lattice) {
 		end_latt_deform(psys->lattice);
-		psys->lattice= NULL;
+		psys->lattice = NULL;
 	}
 
 	if (size)
@@ -325,38 +327,38 @@ static DerivedMesh * applyModifier(ModifierData *md, Object *ob,
 	return result;
 }
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *derivedData)
+                                    struct BMEditMesh *UNUSED(editData),
+                                    DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
 
 
 ModifierTypeInfo modifierType_ParticleInstance = {
-	/* name */              "ParticleInstance",
-	/* structName */        "ParticleInstanceModifierData",
-	/* structSize */        sizeof(ParticleInstanceModifierData),
-	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode,
+	/* name */ "ParticleInstance",
+	/* structName */ "ParticleInstanceModifierData",
+	/* structSize */ sizeof(ParticleInstanceModifierData),
+	/* type */ eModifierTypeType_Constructive,
+	/* flags */ eModifierTypeFlag_AcceptsMesh |
+	eModifierTypeFlag_SupportsMapping |
+	eModifierTypeFlag_SupportsEditmode |
+	eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
-	/* initData */          initData,
-	/* requiredDataMask */  NULL,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepgraph */    updateDepgraph,
-	/* dependsOnTime */     dependsOnTime,
-	/* dependsOnNormals */	NULL,
+	/* copyData */ copyData,
+	/* deformVerts */ NULL,
+	/* deformMatrices */ NULL,
+	/* deformVertsEM */ NULL,
+	/* deformMatricesEM */ NULL,
+	/* applyModifier */ applyModifier,
+	/* applyModifierEM */ applyModifierEM,
+	/* initData */ initData,
+	/* requiredDataMask */ NULL,
+	/* freeData */ NULL,
+	/* isDisabled */ NULL,
+	/* updateDepgraph */ updateDepgraph,
+	/* dependsOnTime */ dependsOnTime,
+	/* dependsOnNormals */ NULL,
 	/* foreachObjectLink */ foreachObjectLink,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
+	/* foreachIDLink */ NULL,
+	/* foreachTexLink */ NULL,
 };

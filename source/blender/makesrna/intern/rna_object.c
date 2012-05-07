@@ -384,8 +384,11 @@ static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value)
 	Object *ob = (Object*)ptr->data;
 	Object *par = (Object*)value.data;
 	
+#ifdef FREE_WINDOWS
 	/* NOTE: this dummy check here prevents this method causing weird runtime errors on mingw 4.6.2 */
-	if (ob) {
+	if (ob)
+#endif
+	{
 		ED_object_parent(ob, par, ob->partype, ob->parsubstr);
 	}
 }
