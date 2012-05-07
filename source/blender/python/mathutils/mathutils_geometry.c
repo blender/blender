@@ -1150,11 +1150,11 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 }
 
 
-static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
+static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
 {
 	Py_ssize_t len, i;
 	PyObject *list_item, *item_1, *item_2;
-	boxPack *box;
+	BoxPack *box;
 
 
 	/* Error checking must already be done */
@@ -1166,7 +1166,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 	len = PyList_GET_SIZE(value);
 
-	*boxarray = MEM_mallocN(len * sizeof(boxPack), "boxPack box");
+	*boxarray = MEM_mallocN(len * sizeof(BoxPack), "BoxPack box");
 
 
 	for (i = 0; i < len; i++) {
@@ -1201,11 +1201,11 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	return 0;
 }
 
-static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
+static void boxPack_ToPyObject(PyObject *value, BoxPack **boxarray)
 {
 	Py_ssize_t len, i;
 	PyObject *list_item;
-	boxPack *box;
+	BoxPack *box;
 
 	len = PyList_GET_SIZE(value);
 
@@ -1243,13 +1243,13 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 
 	len = PyList_GET_SIZE(boxlist);
 	if (len) {
-		boxPack *boxarray = NULL;
+		BoxPack *boxarray = NULL;
 		if (boxPack_FromPyObject(boxlist, &boxarray) == -1) {
 			return NULL; /* exception set */
 		}
 
 		/* Non Python function */
-		boxPack2D(boxarray, len, &tot_width, &tot_height);
+		BLI_box_pack_2D(boxarray, len, &tot_width, &tot_height);
 
 		boxPack_ToPyObject(boxlist, &boxarray);
 	}

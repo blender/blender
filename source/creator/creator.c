@@ -795,7 +795,7 @@ static int set_scene(int argc, const char **argv, void *data)
 {
 	if (argc > 1) {
 		bContext *C = data;
-		Scene *scene = set_scene_name(CTX_data_main(C), argv[1]);
+		Scene *scene = BKE_scene_set_name(CTX_data_main(C), argv[1]);
 		if (scene) {
 			CTX_data_scene_set(C, scene);
 		}
@@ -1248,7 +1248,7 @@ int main(int argc, const char **argv)
 
 	IMB_init();
 
-	BLI_cb_init();
+	BLI_callback_global_init();
 
 #ifdef WITH_GAMEENGINE
 	syshandle = SYS_GetSystem();
@@ -1270,7 +1270,7 @@ int main(int argc, const char **argv)
 #endif
 
 	/* background render uses this font too */
-	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
+	BKE_vfont_builtin_register(datatoc_Bfont, datatoc_Bfont_size);
 
 	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */

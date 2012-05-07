@@ -139,7 +139,7 @@ static float *give_jitter_tab(int samp)
 
 	if (ctab[samp]==0) {
 		ctab[samp]= 1;
-		BLI_initjit(jit[offset], samp*samp);
+		BLI_jitter_init(jit[offset], samp*samp);
 	}
 		
 	return jit[offset];

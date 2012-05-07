@@ -88,7 +88,7 @@ private:
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
-	bool object_is_modified(BL::Object b_ob);
+	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
 
@@ -113,6 +113,7 @@ private:
 		: scene_layer(0), layer(0), holdout_layer(0),
 		  material_override(PointerRNA_NULL),
 		  use_background(true),
+		  use_viewport_visibility(false),
 		  samples(0)
 		{}
 
@@ -122,6 +123,7 @@ private:
 		uint holdout_layer;
 		BL::Material material_override;
 		bool use_background;
+		bool use_viewport_visibility;
 		int samples;
 	} render_layer;
 };

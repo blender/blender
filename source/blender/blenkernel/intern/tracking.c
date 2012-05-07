@@ -2108,11 +2108,11 @@ void BKE_get_tracking_mat(Scene *scene, Object *ob, float mat[4][4])
 		if (scene->camera)
 			ob = scene->camera;
 		else
-			ob = scene_find_camera(scene);
+			ob = BKE_scene_camera_find(scene);
 	}
 
 	if (ob)
-		where_is_object_mat(scene, ob, mat);
+		BKE_object_where_is_calc_mat4(scene, ob, mat);
 	else
 		unit_m4(mat);
 }

@@ -1853,7 +1853,7 @@ void reset_particle(ParticleSimulationData *sim, ParticleData *pa, float dtime, 
 			ob = ob->parent;
 		}
 		ob = sim->ob;
-		where_is_object_time(sim->scene, ob, pa->time);
+		BKE_object_where_is_calc_time(sim->scene, ob, pa->time);
 
 		psys->flag |= PSYS_OB_ANIM_RESTORE;
 	}
@@ -4464,7 +4464,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 	if (!psys_check_enabled(ob, psys))
 		return;
 
-	cfra= BKE_curframe(scene);
+	cfra= BKE_scene_frame_get(scene);
 
 	sim.scene= scene;
 	sim.ob= ob;
@@ -4611,7 +4611,7 @@ void particle_system_update(Scene *scene, Object *ob, ParticleSystem *psys)
 			ob = ob->parent;
 		}
 		ob = sim.ob;
-		where_is_object_time(scene, ob, cfra);
+		BKE_object_where_is_calc_time(scene, ob, cfra);
 
 		psys->flag &= ~PSYS_OB_ANIM_RESTORE;
 	}

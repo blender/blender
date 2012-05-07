@@ -3047,7 +3047,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	/* has to become static, the init-jit calls a random-seed, screwing up texture noise node */
 	if (firsttime) {
 		firsttime= 0;
-		BLI_initjit(jit[0], 256);
+		BLI_jitter_init(jit[0], 256);
 	}
 	
 	memset(newrect, 0, sizeof(float)*xsize*ysize*4);

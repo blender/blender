@@ -160,7 +160,7 @@ static void init_undo_text(Text *text)
 	text->undo_buf= MEM_mallocN(text->undo_len, "undo buf");
 }
 
-void free_text(Text *text)
+void BKE_text_free(Text *text)
 {
 	TextLine *tmp;
 
@@ -180,13 +180,13 @@ void free_text(Text *text)
 #endif
 }
 
-Text *add_empty_text(const char *name) 
+Text *BKE_text_add(const char *name) 
 {
 	Main *bmain= G.main;
 	Text *ta;
 	TextLine *tmp;
 	
-	ta= alloc_libblock(&bmain->text, ID_TXT, name);
+	ta= BKE_libblock_alloc(&bmain->text, ID_TXT, name);
 	ta->id.us= 1;
 	
 	ta->name= NULL;
@@ -278,7 +278,7 @@ static void cleanup_textline(TextLine * tl)
 	tl->len+= txt_extended_ascii_as_utf8(&tl->line);
 }
 
-int reopen_text(Text *text)
+int BKE_text_reload(Text *text)
 {
 	FILE *fp;
 	int i, llen, len;
@@ -373,7 +373,7 @@ int reopen_text(Text *text)
 	return 1;
 }
 
-Text *add_text(const char *file, const char *relpath) 
+Text *BKE_text_load(const char *file, const char *relpath)
 {
 	Main *bmain= G.main;
 	FILE *fp;
@@ -391,7 +391,7 @@ Text *add_text(const char *file, const char *relpath)
 	fp= BLI_fopen(str, "r");
 	if (fp==NULL) return NULL;
 	
-	ta= alloc_libblock(&bmain->text, ID_TXT, BLI_path_basename(str));
+	ta= BKE_libblock_alloc(&bmain->text, ID_TXT, BLI_path_basename(str));
 	ta->id.us= 1;
 
 	ta->lines.first= ta->lines.last= NULL;
@@ -473,12 +473,12 @@ Text *add_text(const char *file, const char *relpath)
 	return ta;
 }
 
-Text *copy_text(Text *ta)
+Text *BKE_text_copy(Text *ta)
 {
 	Text *tan;
 	TextLine *line, *tmp;
 	
-	tan= copy_libblock(&ta->id);
+	tan= BKE_libblock_copy(&ta->id);
 	
 	/* file name can be NULL */
 	if (ta->name) {
@@ -521,7 +521,7 @@ Text *copy_text(Text *ta)
 	return tan;
 }
 
-void unlink_text(Main *bmain, Text *text)
+void BKE_text_unlink(Main *bmain, Text *text)
 {
 	bScreen *scr;
 	ScrArea *area;
@@ -593,7 +593,7 @@ void unlink_text(Main *bmain, Text *text)
 	text->id.us= 0;
 }
 
-void clear_text(Text *text) /* called directly from rna */
+void BKE_text_clear(Text *text) /* called directly from rna */
 {
 	int oldstate;
 
@@ -606,7 +606,7 @@ void clear_text(Text *text) /* called directly from rna */
 	txt_make_dirty(text);
 }
 
-void write_text(Text *text, const char *str) /* called directly from rna */
+void BKE_text_write(Text *text, const char *str) /* called directly from rna */
 {
 	int oldstate;
 

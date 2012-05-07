@@ -146,7 +146,7 @@ static float hook_falloff(const float co_1[3], const float co_2[3], const float 
 static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
                            float (*vertexCos)[3], int numVerts)
 {
-	bPoseChannel *pchan= get_pose_channel(hmd->object->pose, hmd->subtarget);
+	bPoseChannel *pchan= BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
 	float vec[3], mat[4][4], dmat[4][4];
 	int i, *index_pt;
 	const float falloff_squared= hmd->falloff * hmd->falloff; /* for faster comparisons */

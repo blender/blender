@@ -842,7 +842,7 @@ static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_
 			
 			/* get bone-name, and check if this bone is selected */
 			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
-			pchan= get_pose_channel(ob->pose, bone_name);
+			pchan= BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
 			/* check whether to continue or skip */

@@ -419,7 +419,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	bScreen *sc;
 	ScrVert *sv1, *sv2, *sv3, *sv4;
 	
-	sc= alloc_libblock(&G.main->screen, ID_SCR, name);
+	sc= BKE_libblock_alloc(&G.main->screen, ID_SCR, name);
 	sc->scene= scene;
 	sc->do_refresh= 1;
 	sc->redraws_flag= TIME_ALL_3D_WIN|TIME_ALL_ANIM_WIN;
@@ -448,7 +448,7 @@ static void screen_copy(bScreen *to, bScreen *from)
 	ScrArea *sa, *saf;
 	
 	/* free contents of 'to', is from blenkernel screen.c */
-	free_screen(to);
+	BKE_screen_free(to);
 	
 	BLI_duplicatelist(&to->vertbase, &from->vertbase);
 	BLI_duplicatelist(&to->edgebase, &from->edgebase);
@@ -1426,7 +1426,7 @@ void ED_screen_delete(bContext *C, bScreen *sc)
 	ED_screen_set(C, newsc);
 
 	if (delete && win->screen != sc)
-		free_libblock(&bmain->screen, sc);
+		BKE_libblock_free(&bmain->screen, sc);
 }
 
 /* only call outside of area/region loops */
@@ -1471,8 +1471,8 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 
 						BKE_screen_view3d_sync(v3d, scene);
 
-						if (!v3d->camera || !object_in_scene(v3d->camera, scene)) {
-							v3d->camera= scene_find_camera(sc->scene);
+						if (!v3d->camera || !BKE_scene_base_find(scene, v3d->camera)) {
+							v3d->camera= BKE_scene_camera_find(sc->scene);
 							// XXX if (sc==curscreen) handle_view3d_lock();
 							if (!v3d->camera) {
 								ARegion *ar;
@@ -1495,7 +1495,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	}
 	
 	CTX_data_scene_set(C, scene);
-	set_scene_bg(bmain, scene);
+	BKE_scene_set_background(bmain, scene);
 	
 	ED_render_engine_changed(bmain);
 	ED_update_for_newframe(bmain, scene, screen, 1);
@@ -1520,7 +1520,7 @@ void ED_screen_delete_scene(bContext *C, Scene *scene)
 
 	ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
-	unlink_scene(bmain, scene, newscene);
+	BKE_scene_unlink(bmain, scene, newscene);
 }
 
 ScrArea *ED_screen_full_newspace(bContext *C, ScrArea *sa, int type)
@@ -1654,8 +1654,8 @@ ScrArea *ED_screen_full_toggle(bContext *C, wmWindow *win, ScrArea *sa)
 
 		ED_screen_set(C, sc);
 
-		free_screen(oldscreen);
-		free_libblock(&CTX_data_main(C)->screen, oldscreen);
+		BKE_screen_free(oldscreen);
+		BKE_libblock_free(&CTX_data_main(C)->screen, oldscreen);
 
 	}
 	else {
@@ -1816,7 +1816,7 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUSED(mute))
 {	
 #ifdef DURIAN_CAMERA_SWITCH
-	void *camera= scene_camera_switch_find(scene);
+	void *camera= BKE_scene_camera_switch_find(scene);
 	if (camera && scene->camera != camera) {
 		bScreen *sc;
 		scene->camera= camera;
@@ -1830,14 +1830,14 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 	//extern void audiostream_scrub(unsigned int frame);	/* seqaudio.c */
 	
 	/* update animated image textures for gpu, etc,
-	 * call before scene_update_for_newframe so modifiers with textures don't lag 1 frame */
+	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
 
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
 	/* this function applies the changes too */
 	/* XXX future: do all windows */
-	scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
+	BKE_scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

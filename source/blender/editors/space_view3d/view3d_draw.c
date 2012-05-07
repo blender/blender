@@ -847,7 +847,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 	short offset = 30;
 	
 	/* get name of marker on current frame (if available) */
-	markern = scene_find_marker_name(scene, CFRA);
+	markern = BKE_scene_find_marker_name(scene, CFRA);
 	
 	/* check if there is an object */
 	if (ob) {
@@ -910,7 +910,7 @@ static void draw_selected_name(Scene *scene, Object *ob)
 		}
 		
 		/* color depends on whether there is a keyframe */
-		if (id_frame_has_keyframe((ID *)ob, /*BKE_curframe(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
+		if (id_frame_has_keyframe((ID *)ob, /*BKE_scene_frame_get(scene)*/ (float)(CFRA), ANIMFILTER_KEYS_LOCAL))
 			UI_ThemeColor(TH_VERTEX_SELECT);
 		else
 			UI_ThemeColor(TH_TEXT_HI);
@@ -939,21 +939,21 @@ static void view3d_camera_border(Scene *scene, ARegion *ar, View3D *v3d, RegionV
 	rctf rect_view, rect_camera;
 
 	/* get viewport viewplane */
-	camera_params_init(&params);
-	camera_params_from_view3d(&params, v3d, rv3d);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_view3d(&params, v3d, rv3d);
 	if (no_zoom)
 		params.zoom = 1.0f;
-	camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
+	BKE_camera_params_compute_viewplane(&params, ar->winx, ar->winy, 1.0f, 1.0f);
 	rect_view = params.viewplane;
 
 	/* get camera viewplane */
-	camera_params_init(&params);
-	camera_params_from_object(&params, v3d->camera);
+	BKE_camera_params_init(&params);
+	BKE_camera_params_from_object(&params, v3d->camera);
 	if (no_shift) {
 		params.shiftx = 0.0f;
 		params.shifty = 0.0f;
 	}
-	camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
+	BKE_camera_params_compute_viewplane(&params, scene->r.xsch, scene->r.ysch, scene->r.xasp, scene->r.yasp);
 	rect_camera = params.viewplane;
 
 	/* get camera border within viewport */
@@ -1226,7 +1226,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 			 * assume and square sensor and only use sensor_x */
 			float sizex = scene->r.xsch * scene->r.xasp;
 			float sizey = scene->r.ysch * scene->r.yasp;
-			int sensor_fit = camera_sensor_fit(ca->sensor_fit, sizex, sizey);
+			int sensor_fit = BKE_camera_sensor_fit(ca->sensor_fit, sizex, sizey);
 			float sensor_x = ca->sensor_x;
 			float sensor_y = (ca->sensor_fit == CAMERA_SENSOR_FIT_AUTO) ? ca->sensor_x : ca->sensor_y;
 
@@ -1544,7 +1544,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 				ima = bgpic->ima;
 				if (ima == NULL)
 					continue;
-				BKE_image_user_calc_frame(&bgpic->iuser, CFRA, 0);
+				BKE_image_user_frame_calc(&bgpic->iuser, CFRA, 0);
 				ibuf = BKE_image_get_ibuf(ima, &bgpic->iuser);
 			}
 			else {
@@ -1552,7 +1552,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
 					if (scene->camera)
-						clip = object_get_movieclip(scene, scene->camera, 1);
+						clip = BKE_object_movieclip_get(scene, scene->camera, 1);
 				}
 				else clip = bgpic->clip;
 
@@ -1866,7 +1866,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			    /* lamp drawing messes with matrices, could be handled smarter... but this works */
 			    (dob->ob->type == OB_LAMP) ||
 			    (dob->type == OB_DUPLIGROUP && dob->animated) ||
-			    !(bb_tmp = object_get_boundbox(dob->ob)))
+			    !(bb_tmp = BKE_object_boundbox_get(dob->ob)))
 			{
 				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name+2);
 				use_displist = 0;
@@ -1876,7 +1876,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				bb = *bb_tmp; /* must make a copy  */
 
 				/* disable boundbox check for list creation */
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
+				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 1);
 				/* need this for next part of code */
 				unit_m4(dob->ob->obmat);    /* obmat gets restored */
 
@@ -1886,7 +1886,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				glEndList();
 
 				use_displist = 1;
-				object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
+				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
 			}
 		}
 		if (use_displist) {
@@ -2043,7 +2043,7 @@ void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d)
 	RegionView3D *rv3d = ar->regiondata;
 
 	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2078,7 +2078,7 @@ void draw_depth(Scene *scene, ARegion *ar, View3D *v3d, int (*func)(void *))
 	U.obcenter_dia = 0;
 	
 	setwinmatrixview3d(ar, v3d, NULL);  /* 0= no pick rect */
-	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+	setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 	
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
 	invert_m4_m4(rv3d->persinv, rv3d->persmat);
@@ -2297,7 +2297,7 @@ CustomDataMask ED_view3d_datamask(Scene *scene, View3D *v3d)
 	{
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 
-		if (scene_use_new_shading_nodes(scene)) {
+		if (BKE_scene_use_new_shading_nodes(scene)) {
 			if (v3d->drawtype == OB_MATERIAL)
 				mask |= CD_MASK_ORCO;
 		}
@@ -2367,7 +2367,7 @@ void ED_view3d_update_viewmat(Scene *scene, View3D *v3d, ARegion *ar, float view
 	if (viewmat)
 		copy_m4_m4(rv3d->viewmat, viewmat);
 	else
-		setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls where_is_object for camera... */
+		setviewmatrixview3d(scene, v3d, rv3d);  /* note: calls BKE_object_where_is_calc for camera... */
 
 	/* update utilitity matrices */
 	mult_m4_m4m4(rv3d->persmat, rv3d->winmat, rv3d->viewmat);
@@ -2612,10 +2612,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf(Scene *scene, View3D *v3d, ARegion *ar,
 	if (rv3d->persp == RV3D_CAMOB && v3d->camera) {
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, v3d->camera);
-		camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
-		camera_params_compute_matrix(&params);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, v3d->camera);
+		BKE_camera_params_compute_viewplane(&params, sizex, sizey, scene->r.xasp, scene->r.yasp);
+		BKE_camera_params_compute_matrix(&params);
 
 		ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, params.winmat, draw_background);
 	}
@@ -2673,10 +2673,10 @@ ImBuf *ED_view3d_draw_offscreen_imbuf_simple(Scene *scene, Object *camera, int w
 	{
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, v3d.camera);
-		camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
-		camera_params_compute_matrix(&params);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, v3d.camera);
+		BKE_camera_params_compute_viewplane(&params, width, height, scene->r.xasp, scene->r.yasp);
+		BKE_camera_params_compute_matrix(&params);
 
 		copy_m4_m4(rv3d.winmat, params.winmat);
 		v3d.near = params.clipsta;

@@ -271,12 +271,12 @@ static int make_regular_exec(bContext *C, wmOperator *UNUSED(op))
 	
 	if (ob) {
 		lt = ob->data;
-		resizelattice(lt->editlatt->latt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+		BKE_lattice_resize(lt->editlatt->latt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	else {
 		ob = CTX_data_active_object(C);
 		lt = ob->data;
-		resizelattice(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
+		BKE_lattice_resize(lt, lt->pntsu, lt->pntsv, lt->pntsw, NULL);
 	}
 	
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

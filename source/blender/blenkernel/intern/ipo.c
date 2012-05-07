@@ -81,7 +81,7 @@
 
 /* Free data from old IPO-Blocks (those which haven't been converted), but not IPO block itself */
 // XXX this shouldn't be necessary anymore, but may occur while not all data is converted yet
-void free_ipo(Ipo *ipo)
+void BKE_ipo_free(Ipo *ipo)
 {
 	IpoCurve *icu, *icn;
 	int n= 0;
@@ -1104,7 +1104,7 @@ static void fcurve_add_to_list (ListBase *groups, ListBase *list, FCurve *fcu, c
 		/* ... xxx, the other vars don't need to be filled in */
 		
 		/* get the group to use */
-		agrp= action_groups_find_named(&tmp_act, grpname);
+		agrp= BKE_action_group_find_name(&tmp_act, grpname);
 		/* no matching group, so add one */
 		if (agrp == NULL) {
 			/* Add a new group, and make it active */

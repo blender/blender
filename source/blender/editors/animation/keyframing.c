@@ -183,7 +183,7 @@ FCurve *verify_fcurve (bAction *act, const char group[], const char rna_path[], 
 		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
 		if (group) {
 			/* try to find group */
-			grp= action_groups_find_named(act, group);
+			grp= BKE_action_group_find_name(act, group);
 			
 			/* no matching groups, so add one */
 			if (grp == NULL)
@@ -1479,6 +1479,7 @@ void ANIM_OT_keyframe_insert_button(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Insert Keyframe (Buttons)";
 	ot->idname = "ANIM_OT_keyframe_insert_button";
+	ot->description = "Insert a keyframe for current UI-active property";
 	
 	/* callbacks */
 	ot->exec = insert_key_button_exec; 

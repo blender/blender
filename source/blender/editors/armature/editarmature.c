@@ -340,7 +340,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 	
 	for (curBone=bonelist->first; curBone; curBone=curBone->next) {
 		/* sets local matrix and arm_mat (restpos) */
-		where_is_armature_bone(curBone, curBone->parent);
+		BKE_armature_where_is_bone(curBone, curBone->parent);
 		
 		/* Find the associated editbone */
 		for (ebone = editbonelist->first; ebone; ebone=ebone->next)
@@ -367,7 +367,7 @@ static void fix_bonelist_roll (ListBase *bonelist, ListBase *editbonelist)
 			curBone->roll = (float)-atan2(difmat[2][0], difmat[2][2]);
 			
 			/* and set restposition again */
-			where_is_armature_bone(curBone, curBone->parent);
+			BKE_armature_where_is_bone(curBone, curBone->parent);
 		}
 		fix_bonelist_roll(&curBone->childbase, editbonelist);
 	}
@@ -382,7 +382,7 @@ void ED_armature_from_edit(Object *obedit)
 	Object *obt;
 	
 	/* armature bones */
-	free_bonelist(&arm->bonebase);
+	BKE_armature_bonelist_free(&arm->bonebase);
 	
 	/* remove zero sized bones, this gives instable restposes */
 	for (eBone=arm->edbo->first; eBone; eBone= neBone) {
@@ -476,13 +476,13 @@ void ED_armature_from_edit(Object *obedit)
 	}
 	
 	/* Make a pass through the new armature to fix rolling */
-	/* also builds restposition again (like where_is_armature) */
+	/* also builds restposition again (like BKE_armature_where_is) */
 	fix_bonelist_roll(&arm->bonebase, arm->edbo);
 	
 	/* so all users of this armature should get rebuilt */
 	for (obt= G.main->object.first; obt; obt= obt->id.next) {
 		if (obt->data==arm)
-			armature_rebuild_pose(obt, arm);
+			BKE_pose_rebuild(obt, arm);
 	}
 	
 	DAG_id_tag_update(&obedit->id, OB_RECALC_DATA);
@@ -632,9 +632,9 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 			/* apply current transform from parent (not yet destroyed), 
 			 * then calculate new parent inverse matrix
 			 */
-			object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+			BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 			
-			what_does_parent(scene, ob, &workob);
+			BKE_object_workob_calc_parent(scene, ob, &workob);
 			invert_m4_m4(ob->parentinv, workob.obmat);
 		}
 	}
@@ -644,8 +644,8 @@ static void applyarmature_fix_boneparents (Scene *scene, Object *armob)
 static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
-	bArmature *arm= get_armature(ob);
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
+	bArmature *arm= BKE_armature_from_object(ob);
 	bPose *pose;
 	bPoseChannel *pchan;
 	EditBone *curbone;
@@ -653,7 +653,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type!=OB_ARMATURE)
 		return OPERATOR_CANCELLED;
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Cannot apply pose to lib-linked armature"); //error_libdata();
 		return OPERATOR_CANCELLED;
 	}
@@ -716,7 +716,7 @@ static int apply_armature_pose2bones_exec (bContext *C, wmOperator *op)
 	ED_armature_edit_free(ob);
 	
 	/* flush positions of posebones */
-	where_is_pose(scene, ob);
+	BKE_pose_where_is(scene, ob);
 	
 	/* fix parenting of objects which are bone-parented */
 	applyarmature_fix_boneparents(scene, ob);
@@ -746,7 +746,7 @@ void POSE_OT_armature_apply(wmOperatorType *ot)
 /* set the current pose as the restpose */
 static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C)); // must be active object, not edit-object
 
 	/* don't check if editmode (should be done by caller) */
 	if (ob->type!=OB_ARMATURE)
@@ -766,7 +766,7 @@ static int pose_visual_transform_apply_exec (bContext *C, wmOperator *UNUSED(op)
 		 * change, thus changing the result we may be trying to record.
 		 */
 		copy_m4_m4(delta_mat, pchan->chan_mat);
-		pchan_apply_mat4(pchan, delta_mat, TRUE);
+		BKE_pchan_apply_mat4(pchan, delta_mat, TRUE);
 	}
 	CTX_DATA_END;
 	
@@ -991,8 +991,8 @@ int join_armature_exec(bContext *C, wmOperator *UNUSED(op))
 				
 				BLI_remlink(&opose->chanbase, pchan);
 				BLI_addtail(&pose->chanbase, pchan);
-				free_pose_channels_hash(opose);
-				free_pose_channels_hash(pose);
+				BKE_pose_channels_hash_free(opose);
+				BKE_pose_channels_hash_free(pose);
 			}
 			
 			ED_base_object_free_and_unlink(bmain, scene, base);
@@ -1155,8 +1155,8 @@ static void separate_armature_bones(Object *ob, short sel)
 			}
 			
 			/* free any of the extra-data this pchan might have */
-			free_pose_channel(pchan);
-			free_pose_channels_hash(ob->pose);
+			BKE_pose_channel_free(pchan);
+			BKE_pose_channels_hash_free(ob->pose);
 			
 			/* get rid of unneeded bone */
 			bone_free(arm, curbone);
@@ -1694,8 +1694,8 @@ static int armature_delete_selected_exec(bContext *C, wmOperator *UNUSED(op))
 			curBone = editbone_name_exists(arm->edbo, pchan->name);
 			
 			if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-				free_pose_channel(pchan);
-				free_pose_channels_hash(obedit->pose);
+				BKE_pose_channel_free(pchan);
+				BKE_pose_channels_hash_free(obedit->pose);
 				BLI_freelinkN (&obedit->pose->chanbase, pchan);
 			}
 			else {
@@ -2481,7 +2481,7 @@ void updateDuplicateSubtargetObjects(EditBone *dupBone, ListBase *editbones, Obj
 	bConstraint  *curcon;
 	ListBase     *conlist;
 	
-	if ( (pchan = verify_pose_channel(dst_ob->pose, dupBone->name)) ) {
+	if ( (pchan = BKE_pose_channel_verify(dst_ob->pose, dupBone->name)) ) {
 		if ( (conlist = &pchan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
@@ -2552,15 +2552,15 @@ EditBone *duplicateEditBoneObjects(EditBone *curBone, const char *name, ListBase
 	if (src_ob->pose) {
 		bPoseChannel *chanold, *channew;
 		
-		chanold = verify_pose_channel(src_ob->pose, curBone->name);
+		chanold = BKE_pose_channel_verify(src_ob->pose, curBone->name);
 		if (chanold) {
 			/* WARNING: this creates a new posechannel, but there will not be an attached bone
 			 *		yet as the new bones created here are still 'EditBones' not 'Bones'.
 			 */
-			channew= verify_pose_channel(dst_ob->pose, eBone->name);
+			channew= BKE_pose_channel_verify(dst_ob->pose, eBone->name);
 
 			if (channew) {
-				duplicate_pose_channel_data(channew, chanold);
+				BKE_pose_channel_copy_data(channew, chanold);
 			}
 		}
 	}
@@ -4611,7 +4611,7 @@ static int bone_skinnable_cb(Object *ob, Bone *bone, void *datap)
 
 	if (!(ob->mode & OB_MODE_WEIGHT_PAINT) || !(bone->flag & BONE_HIDDEN_P)) {
 		if (!(bone->flag & BONE_NO_DEFORM)) {
-			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+			if (data->heat && data->armob->pose && BKE_pose_channel_find_name(data->armob->pose, bone->name))
 				segments = bone->segments;
 			else
 				segments = 1;
@@ -4678,7 +4678,7 @@ static int dgroup_skinnable_cb(Object *ob, Bone *bone, void *datap)
 
 	if (!wpmode || !(bone->flag & BONE_HIDDEN_P)) {
 	   if (!(bone->flag & BONE_NO_DEFORM)) {
-			if (data->heat && data->armob->pose && get_pose_channel(data->armob->pose, bone->name))
+			if (data->heat && data->armob->pose && BKE_pose_channel_find_name(data->armob->pose, bone->name))
 				segments = bone->segments;
 			else
 				segments = 1;
@@ -4821,7 +4821,7 @@ static void add_verts_to_dgroups(ReportList *reports, Scene *scene, Object *ob, 
 				segments = 1;
 				bbone = NULL;
 				
-				if ((par->pose) && (pchan=get_pose_channel(par->pose, bone->name))) {
+				if ((par->pose) && (pchan=BKE_pose_channel_find_name(par->pose, bone->name))) {
 					if (bone->segments > 1) {
 						segments = bone->segments;
 						bbone = b_bone_spline_setup(pchan, 1);
@@ -5088,7 +5088,7 @@ static int pose_clear_transform_generic_exec(bContext *C, wmOperator *op,
 		void (*clear_func)(bPoseChannel*), const char default_ksName[])
 {
 	Scene *scene= CTX_data_scene(C);
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	short autokey = 0;
 	
 	/* sanity checks */
@@ -5292,7 +5292,7 @@ void POSE_OT_select_all(wmOperatorType *ot)
 
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bPoseChannel *pchan, *parent;
 
 	/*	Determine if there is an active bone */
@@ -5368,7 +5368,7 @@ static int hide_unselected_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr
 /* active object is armature in posemode, poll checked */
 static int pose_hide_exec(bContext *C, wmOperator *op) 
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 
 	if (RNA_boolean_get(op->ptr, "unselected"))
@@ -5417,7 +5417,7 @@ static int show_pose_bone_cb(Object *ob, Bone *bone, void *UNUSED(ptr))
 /* active object is armature in posemode, poll checked */
 static int pose_reveal_exec(bContext *C, wmOperator *UNUSED(op)) 
 {
-	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
 	bArmature *arm= ob->data;
 	
 	bone_looper(ob, arm->bonebase.first, NULL, show_pose_bone_cb);
@@ -5447,7 +5447,7 @@ void POSE_OT_reveal(wmOperatorType *ot)
 
 static int bone_unique_check(void *arg, const char *name)
 {
-	return get_named_bone((bArmature *)arg, name) != NULL;
+	return BKE_armature_find_bone_name((bArmature *)arg, name) != NULL;
 }
 
 static void unique_bone_name(bArmature *arm, char *name)
@@ -5509,7 +5509,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 			else return;
 		}
 		else {
-			Bone *bone= get_named_bone(arm, oldname);
+			Bone *bone= BKE_armature_find_bone_name(arm, oldname);
 			
 			if (bone) {
 				unique_bone_name(arm, newname);
@@ -5528,7 +5528,7 @@ void ED_armature_bone_rename(bArmature *arm, const char *oldnamep, const char *n
 				
 				/* Rename the pose channel, if it exists */
 				if (ob->pose) {
-					bPoseChannel *pchan = get_pose_channel(ob->pose, oldname);
+					bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, oldname);
 					if (pchan) {
 						BLI_strncpy(pchan->name, newname, MAXBONENAME);
 						
@@ -5932,7 +5932,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 		ED_armature_edit_free(obedit);
 	}
 	
-	dst = add_object(scene, OB_ARMATURE);
+	dst = BKE_object_add(scene, OB_ARMATURE);
 	ED_object_base_init_transform(NULL, scene->basact, NULL, NULL); 	// XXX NULL is C, loc, rot
 	obedit= scene->basact->object;
 	
@@ -5941,7 +5941,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	mat4_to_eul(dst->rot, src->obmat);
 	mat4_to_size(dst->size, src->obmat);
 	
-	where_is_object(scene, obedit);
+	BKE_object_where_is_calc(scene, obedit);
 	
 	ED_armature_to_edit(obedit);
 

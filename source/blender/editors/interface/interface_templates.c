@@ -835,7 +835,7 @@ static uiLayout *draw_modifier(uiLayout *layout, Scene *scene, Object *ob,
 		
 		if (!ELEM(md->type, eModifierType_Collision, eModifierType_Surface)) {
 			/* only here obdata, the rest of modifiers is ob level */
-			uiBlockSetButLock(block, object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+			uiBlockSetButLock(block, BKE_object_obdata_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
 			if (md->type == eModifierType_ParticleSystem) {
 				ParticleSystem *psys = ((ParticleSystemModifierData *)md)->psys;
@@ -953,7 +953,7 @@ static void do_constraint_panels(bContext *C, void *ob_pt, int event)
 	// if there are problems because of this, then rna needs changed update functions.
 	// 
 	// object_test_constraints(ob);
-	// if (ob->pose) update_pose_constraint_flags(ob->pose);
+	// if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 	
 	if (ob->type == OB_ARMATURE) DAG_id_tag_update(&ob->id, OB_RECALC_DATA | OB_RECALC_OB);
 	else DAG_id_tag_update(&ob->id, OB_RECALC_OB);
@@ -969,7 +969,7 @@ static void constraint_active_func(bContext *UNUSED(C), void *ob_v, void *con_v)
 /* draw panel showing settings for a constraint */
 static uiLayout *draw_constraint(uiLayout *layout, Object *ob, bConstraint *con)
 {
-	bPoseChannel *pchan = get_active_posechannel(ob);
+	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 	bConstraintTypeInfo *cti;
 	uiBlock *block;
 	uiLayout *result = NULL, *col, *box, *row;
@@ -2150,7 +2150,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiItemL(sub, name, icon);
 		
 		ma = give_current_material(ob, index + 1);
-		if (ma && !scene_use_new_shading_nodes(scene)) {
+		if (ma && !BKE_scene_use_new_shading_nodes(scene)) {
 			manode = give_node_material(ma);
 			if (manode) {
 				char str[MAX_ID_NAME + 12];

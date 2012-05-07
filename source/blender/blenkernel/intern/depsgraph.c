@@ -1895,7 +1895,7 @@ static void flush_update_node(DagNode *node, unsigned int layer, int curtime)
 		if ((all_layer & layer)==0) { // XXX && (ob != obedit)) {
 			/* but existing displaylists or derivedmesh should be freed */
 			if (ob->recalc & OB_RECALC_DATA)
-				object_free_display(ob);
+				BKE_object_free_display(ob);
 			
 			ob->recalc &= ~OB_RECALC_ALL;
 		}
@@ -2608,7 +2608,7 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 		 * so it should happen tracking-related constraints recalculation
 		 * when camera is changing (sergey) */
 		if (sce->camera && &sce->camera->id == id) {
-			MovieClip *clip = object_get_movieclip(sce, sce->camera, 1);
+			MovieClip *clip = BKE_object_movieclip_get(sce, sce->camera, 1);
 
 			if (clip)
 				dag_id_flush_update(sce, &clip->id);
@@ -2835,7 +2835,7 @@ void DAG_pose_sort(Object *ob)
 				
 				for (ct= targets.first; ct; ct= ct->next) {
 					if (ct->tar==ob && ct->subtarget[0]) {
-						bPoseChannel *target= get_pose_channel(ob->pose, ct->subtarget);
+						bPoseChannel *target= BKE_pose_channel_find_name(ob->pose, ct->subtarget);
 						if (target) {
 							node2= dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0, "Pose Constraint");

@@ -164,7 +164,7 @@ static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	/* don't use compat so we get predictable rotation */
-	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
+	BKE_object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -199,19 +199,19 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	}
 
 	/* don't use compat so we get predictable rotation */
-	object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 }
 
 static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
-	object_to_mat4(ob, (float(*)[4])values);
+	BKE_object_to_mat4(ob, (float(*)[4])values);
 }
 
 static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 {
 	Object *ob = ptr->id.data;
-	object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
 }
 
 void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -263,7 +263,7 @@ static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerR
 	if (scene) {
 		Object *ob = (Object*)ptr->id.data;
 		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-		ED_base_object_select(object_in_scene(ob, scene), mode);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), mode);
 	}
 }
 
@@ -298,7 +298,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob = (Object*)ptr->id.data;
 	Base *base;
 
-	base = scene ? object_in_scene(ob, scene) : NULL;
+	base = scene ? BKE_scene_base_find(scene, ob) : NULL;
 	if (!base)
 		return;
 	
@@ -355,7 +355,7 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		if (GS(id->name) == ID_CU)
 			BKE_curve_type_test(ob);
 		else if (ob->type == OB_ARMATURE)
-			armature_rebuild_pose(ob, ob->data);
+			BKE_pose_rebuild(ob, ob->data);
 	}
 }
 
@@ -708,13 +708,13 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
 	Object *ob = ptr->data;
-	object_get_dimensions(ob, value);
+	BKE_object_dimensions_get(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 {
 	Object *ob = ptr->data;
-	object_set_dimensions(ob, value);
+	BKE_object_dimensions_set(ob, value);
 }
 
 static int rna_Object_location_editable(PointerRNA *ptr, int index)
@@ -1202,7 +1202,7 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
 	Object *ob = (Object*)ptr->id.data;
-	BoundBox *bb = object_get_boundbox(ob);
+	BoundBox *bb = BKE_object_boundbox_get(ob);
 	if (bb) {
 		memcpy(values, bb->vec, sizeof(bb->vec));
 	}

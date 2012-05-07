@@ -562,7 +562,7 @@ static void rna_def_constraint_python(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "text", PROP_POINTER, PROP_NONE);
 	RNA_def_property_ui_text(prop, "Script", "The text object that contains the Python script");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_REFCOUNT);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "use_targets", PROP_BOOLEAN, PROP_NONE);
@@ -1097,7 +1097,7 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act");
 	RNA_def_property_ui_text(prop, "Action", "The constraining action");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_REFCOUNT);
 	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
 
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);

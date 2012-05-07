@@ -483,7 +483,7 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		 * automatically building this data if invalid. Or something.
 		 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		object_handle_update(scene, obedit);
+		BKE_object_handle_update(scene, obedit);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
@@ -1249,6 +1249,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
+	ot->description = "Split selected edges so that each neighbor face gets its own copy";
 	
 	/* api callbacks */
 	ot->exec = edbm_edge_split_exec;
@@ -3058,6 +3059,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Beautify Fill";
 	ot->idname = "MESH_OT_beautify_fill";
+	ot->description = "Rearrange some faces to try to get less degenerated geometry";
 
 	/* api callbacks */
 	ot->exec = edbm_beautify_fill_exec;

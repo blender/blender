@@ -282,7 +282,7 @@ void wm_window_close(bContext *C, wmWindowManager *wm, wmWindow *win)
 	/* if temp screen, delete it after window free (it stops jobs that can access it) */
 	if (screen->temp) {
 		Main *bmain = CTX_data_main(C);
-		free_libblock(&bmain->screen, screen);
+		BKE_libblock_free(&bmain->screen, screen);
 	}
 	
 	/* check remaining windows */

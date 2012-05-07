@@ -158,7 +158,7 @@ static int new_particle_settings_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* add or copy particle setting */
 	if (psys->part)
-		part= psys_copy_settings(psys->part);
+		part= BKE_particlesettings_copy(psys->part);
 	else
 		part= psys_new_settings("ParticleSettings", bmain);
 

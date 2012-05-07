@@ -44,7 +44,6 @@ public:
 	KernelGlobals *kg;
 	
 	CPUDevice(int threads_num)
-	: task_pool(function_bind(&CPUDevice::thread_run, this, _1, _2))
 	{
 		kg = kernel_globals_create();
 
@@ -113,10 +112,8 @@ public:
 #endif
 	}
 
-	void thread_run(Task *task_, int thread_id)
+	void thread_run(DeviceTask *task)
 	{
-		DeviceTask *task = (DeviceTask*)task_;
-
 		if(task->type == DeviceTask::PATH_TRACE)
 			thread_path_trace(*task);
 		else if(task->type == DeviceTask::TONEMAP)
@@ -124,6 +121,15 @@ public:
 		else if(task->type == DeviceTask::SHADER)
 			thread_shader(*task);
 	}
+
+	class CPUDeviceTask : public DeviceTask {
+	public:
+		CPUDeviceTask(CPUDevice *device, DeviceTask& task)
+		: DeviceTask(task)
+		{
+			run = function_bind(&CPUDevice::thread_run, device, this);
+		}
+	};
 
 	void thread_path_trace(DeviceTask& task)
 	{
@@ -226,12 +232,12 @@ public:
 		task.split(tasks, TaskScheduler::num_threads()*10);
 
 		foreach(DeviceTask& task, tasks)
-			task_pool.push(new DeviceTask(task));
+			task_pool.push(new CPUDeviceTask(this, task));
 	}
 
 	void task_wait()
 	{
-		task_pool.wait();
+		task_pool.wait_work();
 	}
 
 	void task_cancel()

@@ -284,7 +284,7 @@ static void createTransTexspace(TransInfo *t)
 	normalize_m3(td->axismtx);
 	invert_m3_m3(td->smtx, td->mtx);
 
-	if (give_obdata_texspace(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
+	if (BKE_object_obdata_texspace_get(ob, &texflag, &td->loc, &td->ext->size, &td->ext->rot)) {
 		ob->dtx |= OB_TEXSPACE;
 		*texflag &= ~ME_AUTOSPACE;
 	}
@@ -424,7 +424,7 @@ static short apply_targetless_ik(Object *ob)
 				bone= parchan->bone;
 				bone->flag |= BONE_TRANSFORM;	/* ensures it gets an auto key inserted */
 
-				armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
+				BKE_armature_mat_pose_to_bone(parchan, parchan->pose_mat, rmat);
 
 				/* apply and decompose, doesn't work for constraints or non-uniform scale well */
 				{
@@ -535,11 +535,11 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* proper way to get parent transform + own transform + constraints transform */
 	copy_m3_m4(omat, ob->obmat);
 
-	/* New code, using "generic" pchan_to_pose_mat(). */
+	/* New code, using "generic" BKE_pchan_to_pose_mat(). */
 	{
 		float rotscale_mat[4][4], loc_mat[4][4];
 
-		pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
+		BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 		if (t->mode == TFM_TRANSLATION)
 			copy_m3_m4(pmat, loc_mat);
 		else
@@ -884,7 +884,7 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 		}
 	}
 	if (wentdeeper==0) {
-		bPoseChannel *pchan= get_pose_channel(pose, bone->name);
+		bPoseChannel *pchan= BKE_pose_channel_find_name(pose, bone->name);
 		if (pchan)
 			added+= pose_grab_with_ik_add(pchan);
 	}
@@ -953,7 +953,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	t->total= 0;
 
 	/* check validity of state */
-	arm= get_armature(ob);
+	arm= BKE_armature_from_object(ob);
 	if ((arm==NULL) || (ob->pose==NULL)) return;
 
 	if (arm->flag & ARM_RESTPOS) {
@@ -4258,15 +4258,15 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 
 	if (skip_invert == 0 && constinv == 0) {
 		if (constinv == 0)
-			ob->transflag |= OB_NO_CONSTRAINTS; /* where_is_object_time checks this */
+			ob->transflag |= OB_NO_CONSTRAINTS; /* BKE_object_where_is_calc_time checks this */
 		
-		where_is_object(t->scene, ob);
+		BKE_object_where_is_calc(t->scene, ob);
 		
 		if (constinv == 0)
 			ob->transflag &= ~OB_NO_CONSTRAINTS;
 	}
 	else
-		where_is_object(t->scene, ob);
+		BKE_object_where_is_calc(t->scene, ob);
 
 	td->ob = ob;
 
@@ -4320,7 +4320,7 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 		 * NOTE: some Constraints, and also Tracking should never get this
 		 *		done, as it doesn't work well.
 		 */
-		object_to_mat3(ob, obmtx);
+		BKE_object_to_mat3(ob, obmtx);
 		copy_m3_m4(totmat, ob->obmat);
 		invert_m3_m3(obinv, totmat);
 		mul_m3_m3m3(td->smtx, obmtx, obinv);
@@ -4357,12 +4357,12 @@ static void set_trans_object_base_flags(TransInfo *t)
 		return;
 
 	/* makes sure base flags and object flags are identical */
-	copy_baseflags(t->scene);
+	BKE_scene_base_flag_to_objects(t->scene);
 
 	/* handle pending update events, otherwise they got copied below */
 	for (base= scene->base.first; base; base= base->next) {
 		if (base->object->recalc)
-			object_handle_update(t->scene, base->object);
+			BKE_object_handle_update(t->scene, base->object);
 	}
 
 	for (base= scene->base.first; base; base= base->next) {
@@ -4375,7 +4375,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 			/* if parent selected, deselect */
 			while (parsel) {
 				if (parsel->flag & SELECT) {
-					Base *parbase = object_in_scene(parsel, scene);
+					Base *parbase = BKE_scene_base_find(scene, parsel);
 					if (parbase) { /* in rare cases this can fail */
 						if (TESTBASELIB_BGMODE(v3d, scene, parbase)) {
 							break;
@@ -5046,7 +5046,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			 * we need to update the pose otherwise no updates get called during
 			 * transform and the auto-ik is not applied. see [#26164] */
 			struct Object *pose_ob=t->poseobj;
-			where_is_pose(t->scene, pose_ob);
+			BKE_pose_where_is(t->scene, pose_ob);
 		}
 
 		/* set BONE_TRANSFORM flags for autokey, manipulator draw might have changed them */
@@ -5141,7 +5141,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			/* recalculating the frame positions means we loose our original transform if its not auto-keyed [#24451]
 			 * this hack re-applies it, which is annoying, only alternatives are...
 			 * - don't recalc paths.
-			 * - have an object_handle_update() which gives is the new transform without touching the objects.
+			 * - have an BKE_object_handle_update() which gives is the new transform without touching the objects.
 			 * - only recalc paths on auto-keying.
 			 * - ED_objects_recalculate_paths could backup/restore transforms.
 			 * - re-apply the transform which is simplest in this case. (2 lines below)
@@ -5878,7 +5878,7 @@ void createTransData(bContext *C, TransInfo *t)
 		 * lines below just check is also visible */
 		Object *ob_armature= modifiers_isDeformedByArmature(ob);
 		if (ob_armature && ob_armature->mode & OB_MODE_POSE) {
-			Base *base_arm= object_in_scene(ob_armature, t->scene);
+			Base *base_arm= BKE_scene_base_find(t->scene, ob_armature);
 			if (base_arm) {
 				View3D *v3d = t->view;
 				if (BASE_VISIBLE(v3d, base_arm)) {

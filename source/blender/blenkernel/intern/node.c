@@ -643,7 +643,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
 		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
 	}
 	else
-		ntree= alloc_libblock(&G.main->nodetree, ID_NT, name);
+		ntree= BKE_libblock_alloc(&G.main->nodetree, ID_NT, name);
 	
 	ntree->type= type;
 	ntree->nodetype = nodetype;
@@ -675,11 +675,11 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for (newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 		if (newtree==ntree) break;
 	if (newtree) {
-		newtree= copy_libblock(&ntree->id);
+		newtree= BKE_libblock_copy(&ntree->id);
 	}
 	else {
 		newtree= MEM_dupallocN(ntree);
-		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
+		BKE_libblock_copy_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
 
 	id_us_plus((ID *)newtree->gpd);
@@ -931,7 +931,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	ntree->update |= NTREE_UPDATE_NODES;
 }
 
-/* do not free ntree itself here, free_libblock calls this function too */
+/* do not free ntree itself here, BKE_libblock_free calls this function too */
 void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNode *node, *next;
@@ -2093,7 +2093,7 @@ void free_nodesystem(void)
 	free_typeinfos(&ntreeGetType(NTREE_TEXTURE)->node_types);
 }
 
-/* called from unlink_scene, when deleting a scene goes over all scenes
+/* called from BKE_scene_unlink, when deleting a scene goes over all scenes
  * other than the input, checks if they have render layer nodes referencing
  * the to-be-deleted scene, and resets them to NULL. */
 

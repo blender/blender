@@ -284,7 +284,7 @@ void applyProject(TransInfo *t)
 			}
 			else if (t->flag & T_OBJECT) {
 				td->ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
-				object_handle_update(t->scene, td->ob);
+				BKE_object_handle_update(t->scene, td->ob);
 				copy_v3_v3(iloc, td->ob->obmat[3]);
 			}
 			
@@ -966,7 +966,7 @@ static void TargetSnapClosest(TransInfo *t)
 		if (t->flag & T_OBJECT) {
 			int i;
 			for (td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++) {
-				struct BoundBox *bb = object_get_boundbox(td->ob);
+				struct BoundBox *bb = BKE_object_boundbox_get(td->ob);
 				
 				/* use boundbox if possible */
 				if (bb) {
@@ -1303,8 +1303,8 @@ static int snapDerivedMesh(short snap_mode, ARegion *ar, Object *ob, DerivedMesh
 		 * test against boundbox first
 		 * */
 		if (totface > 16) {
-			struct BoundBox *bb = object_get_boundbox(ob);
-			test = ray_hit_boundbox(bb, ray_start_local, ray_normal_local);
+			struct BoundBox *bb = BKE_object_boundbox_get(ob);
+			test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local);
 		}
 		
 		if (test == 1) {
@@ -1709,8 +1709,8 @@ static int peelDerivedMesh(Object *ob, DerivedMesh *dm, float obmat[][4],
 		 * test against boundbox first
 		 * */
 		if (totface > 16) {
-			struct BoundBox *bb = object_get_boundbox(ob);
-			test = ray_hit_boundbox(bb, ray_start_local, ray_normal_local);
+			struct BoundBox *bb = BKE_object_boundbox_get(ob);
+			test = BKE_boundbox_ray_hit_check(bb, ray_start_local, ray_normal_local);
 		}
 		
 		if (test == 1) {

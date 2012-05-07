@@ -168,30 +168,30 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 
 	BLI_smallhash_init(&hash);
 	
-	BLI_begin_edgefill(&sf_ctx);
+	BLI_scanfill_begin(&sf_ctx);
 	
 	BMO_ITER (e, &siter, bm, op, "edges", BM_EDGE) {
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
-			eve = BLI_addfillvert(&sf_ctx, e->v1->co);
+			eve = BLI_scanfill_vert_add(&sf_ctx, e->v1->co);
 			eve->tmp.p = e->v1;
 			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, eve);
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v2)) {
-			eve = BLI_addfillvert(&sf_ctx, e->v2->co);
+			eve = BLI_scanfill_vert_add(&sf_ctx, e->v2->co);
 			eve->tmp.p = e->v2;
 			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, eve);
 		}
 		
 		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
 		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
-		/* eed = */ BLI_addfilledge(&sf_ctx, v1, v2);
+		/* eed = */ BLI_scanfill_edge_add(&sf_ctx, v1, v2);
 		/* eed->tmp.p = e; */ /* UNUSED */
 	}
 	
-	BLI_edgefill(&sf_ctx, FALSE);
+	BLI_scanfill_calc(&sf_ctx, FALSE);
 	
 	for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
@@ -208,7 +208,7 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		}
 	}
 	
-	BLI_end_edgefill(&sf_ctx);
+	BLI_scanfill_end(&sf_ctx);
 	BLI_smallhash_release(&hash);
 	
 	/* clean up fill */

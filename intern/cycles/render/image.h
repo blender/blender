@@ -65,7 +65,7 @@ private:
 	bool file_load_image(Image *img, device_vector<uchar4>& tex_img);
 	bool file_load_float_image(Image *img, device_vector<float4>& tex_img);
 
-	void device_load_image(Device *device, DeviceScene *dscene, int slot);
+	void device_load_image(Device *device, DeviceScene *dscene, int slot, Progress *progess);
 	void device_free_image(Device *device, DeviceScene *dscene, int slot);
 };
 

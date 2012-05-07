@@ -134,7 +134,20 @@ __device void camera_sample_orthographic(KernelGlobals *kg, float raster_x, floa
 
 /* Environment Camera */
 
-__device void camera_sample_environment(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
+__device float3 panorama_to_direction(KernelGlobals *kg, float u, float v)
+{
+	switch(kernel_data.cam.panorama_type) {
+		case PANORAMA_EQUIRECTANGULAR:
+			return equirectangular_to_direction(u, v);
+		case PANORAMA_FISHEYE_EQUIDISTANT:
+			return fisheye_to_direction(u, v, kernel_data.cam.fisheye_fov);
+		case PANORAMA_FISHEYE_EQUISOLID:
+		default:
+			return fisheye_equisolid_to_direction(u, v, kernel_data.cam.fisheye_lens, kernel_data.cam.fisheye_fov, kernel_data.cam.sensorwidth, kernel_data.cam.sensorheight);
+	}
+}
+
+__device void camera_sample_panorama(KernelGlobals *kg, float raster_x, float raster_y, Ray *ray)
 {
 	Transform rastertocamera = kernel_data.cam.rastertocamera;
 	float3 Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y, 0.0f));
@@ -142,6 +155,21 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	/* create ray form raster position */
 	ray->P = make_float3(0.0f, 0.0f, 0.0f);
 	ray->D = equirectangular_to_direction(Pcamera.x, Pcamera.y);
+
+#ifdef __CAMERA_CLIPPING__
+	/* clipping */
+	ray->t = kernel_data.cam.cliplength;
+#else
+	ray->t = FLT_MAX;
+#endif
+
+	ray->D = panorama_to_direction(kg, Pcamera.x, Pcamera.y);
+
+	/* indicates ray should not receive any light, outside of the lens */
+	if(len_squared(ray->D) == 0.0f) {
+		ray->t = 0.0f;
+		return;
+	}
 
 	/* transform ray from camera to world */
 	Transform cameratoworld = kernel_data.cam.cameratoworld;
@@ -161,11 +189,10 @@ __device void camera_sample_environment(KernelGlobals *kg, float raster_x, float
 	ray->dP.dy = make_float3(0.0f, 0.0f, 0.0f);
 
 	Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x + 1.0f, raster_y, 0.0f));
-	ray->dD.dx = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
+	ray->dD.dx = normalize(transform_direction(&cameratoworld, panorama_to_direction(kg, Pcamera.x, Pcamera.y))) - ray->D;
 
 	Pcamera = transform_perspective(&rastertocamera, make_float3(raster_x, raster_y + 1.0f, 0.0f));
-	ray->dD.dy = normalize(transform_direction(&cameratoworld, equirectangular_to_direction(Pcamera.x, Pcamera.y))) - ray->D;
-#endif
+	ray->dD.dy = normalize(transform_direction(&cameratoworld, panorama_to_direction(kg, Pcamera.x, Pcamera.y))) - ray->D;
 
 #ifdef __CAMERA_CLIPPING__
 	/* clipping */

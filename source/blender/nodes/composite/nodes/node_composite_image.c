@@ -420,7 +420,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 		ImageUser *iuser= (ImageUser *)node->storage;
 		
 		/* first set the right frame number in iuser */
-		BKE_image_user_calc_frame(iuser, rd->cfra, 0);
+		BKE_image_user_frame_calc(iuser, rd->cfra, 0);
 		
 		/* force a load, we assume iuser index will be set OK anyway */
 		if (ima->type==IMA_TYPE_MULTILAYER)

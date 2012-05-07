@@ -370,10 +370,10 @@ PyObject* BL_ActionActuator::PyGetChannel(PyObject* value)
 		obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 	}
 	
-	// get_pose_channel accounts for NULL pose, run on both in case one exists but
+	// BKE_pose_channel_find_name accounts for NULL pose, run on both in case one exists but
 	// the channel doesnt
-	if (		!(pchan=get_pose_channel(m_userpose, string)) &&
-			!(pchan=get_pose_channel(m_pose, string))  )
+	if (		!(pchan=BKE_pose_channel_find_name(m_userpose, string)) &&
+			!(pchan=BKE_pose_channel_find_name(m_pose, string))  )
 	{
 		PyErr_SetString(PyExc_ValueError, "channel doesnt exist");
 		return NULL;
@@ -457,8 +457,8 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 			game_copy_pose(&m_userpose, m_pose, 0);
 		}
-		// pchan= verify_pose_channel(m_userpose, string); // adds the channel if its not there.
-		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
+		// pchan= BKE_pose_channel_verify(m_userpose, string); // adds the channel if its not there.
+		pchan= BKE_pose_channel_find_name(m_userpose, string); // adds the channel if its not there.
 		
 		if (pchan) {
 			copy_v3_v3(pchan->loc, matrix[3]);
@@ -480,8 +480,8 @@ KX_PYMETHODDEF_DOC(BL_ActionActuator, setChannel,
 				obj->GetPose(&m_pose); /* Get the underlying pose from the armature */
 			game_copy_pose(&m_userpose, m_pose, 0);
 		}
-		// pchan= verify_pose_channel(m_userpose, string);
-		pchan= get_pose_channel(m_userpose, string); // adds the channel if its not there.
+		// pchan= BKE_pose_channel_verify(m_userpose, string);
+		pchan= BKE_pose_channel_find_name(m_userpose, string); // adds the channel if its not there.
 		
 		// for some reason loc.setValue(pchan->loc) fails
 		if (pchan) {

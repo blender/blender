@@ -202,7 +202,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 {
 	/* test if we can instance or if the object is modified */
 	BL::ID b_ob_data = b_ob.data();
-	BL::ID key = (object_is_modified(b_ob))? b_ob: b_ob_data;
+	BL::ID key = (BKE_object_is_modified(b_ob))? b_ob: b_ob_data;
 	BL::Material material_override = render_layer.material_override;
 
 	/* find shader indices */
@@ -309,7 +309,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 
 	/* skip objects without deforming modifiers. this is not a totally reliable,
 	 * would need a more extensive check to see which objects are animated */
-	if(!size || !ccl::object_is_deform_modified(b_ob, b_scene, preview))
+	if(!size || !ccl::BKE_object_is_deform_modified(b_ob, b_scene, preview))
 		return;
 
 	/* get derived mesh */

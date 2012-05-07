@@ -330,15 +330,15 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	Scene *scene_act = CTX_data_scene(C);
 	Base *base;
 
-	if (object_in_scene(ob, scene)) {
+	if (BKE_scene_base_find(scene, ob)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name+2, scene->id.name+2);
 		return NULL;
 	}
 
-	base = scene_add_base(scene, ob);
+	base = BKE_scene_base_add(scene, ob);
 	id_us_plus(&ob->id);
 
-	/* this is similar to what object_add_type and add_object do */
+	/* this is similar to what object_add_type and BKE_object_add do */
 	base->lay = scene->lay;
 
 	/* when linking to an inactive scene don't touch the layer */
@@ -357,7 +357,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *ob)
 {
-	Base *base = object_in_scene(ob, scene);
+	Base *base = BKE_scene_base_find(scene, ob);
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'", ob->id.name+2, scene->id.name+2);
 		return;
@@ -401,7 +401,7 @@ static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene*)ptr->data;
 	if (value.data)
-		scene->basact = object_in_scene((Object*)value.data, scene);
+		scene->basact = BKE_scene_base_find(scene, (Object *)value.data);
 	else
 		scene->basact = NULL;
 }
@@ -993,7 +993,7 @@ static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA valu
 static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), const char *name)
 {
 	Scene *scene = (Scene *)id;
-	SceneRenderLayer *srl = scene_add_render_layer(scene, name);
+	SceneRenderLayer *srl = BKE_scene_add_render_layer(scene, name);
 
 	WM_main_add_notifier(NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
@@ -1005,7 +1005,7 @@ static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, 
 {
 	Scene *scene = (Scene *)id;
 
-	if (!scene_remove_render_layer(bmain, scene, srl)) {
+	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
 		BKE_reportf(reports, RPT_ERROR, "RenderLayer '%s' could not be removed from scene '%s'",
 		            srl->name, scene->id.name+2);
 	}
@@ -1125,7 +1125,7 @@ static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
 static int rna_RenderSettings_use_shading_nodes_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene*)ptr->id.data;
-	return scene_use_new_shading_nodes(scene);
+	return BKE_scene_use_new_shading_nodes(scene);
 }
 
 static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
@@ -1184,7 +1184,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 		ts->selectmode = flag;
 
 		if (scene->basact) {
-			Mesh *me = get_mesh(scene->basact->object);
+			Mesh *me = BKE_mesh_from_object(scene->basact->object);
 			if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
 				me->edit_btmesh->selectmode = flag;
 				EDBM_selectmode_set(me->edit_btmesh);
@@ -1198,7 +1198,7 @@ static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *sc
 	Mesh *me = NULL;
 
 	if (scene->basact) {
-		me = get_mesh(scene->basact->object);
+		me = BKE_mesh_from_object(scene->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -1370,7 +1370,7 @@ static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale unprojected radius so it stays consistent with brush size */
-	brush_scale_unprojected_radius(&ups->unprojected_radius,
+	BKE_brush_scale_unprojected_radius(&ups->unprojected_radius,
 								   value, ups->size);
 	ups->size = value;
 }
@@ -1380,7 +1380,7 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale brush size so it stays consistent with unprojected_radius */
-	brush_scale_size(&ups->size, value, ups->unprojected_radius);
+	BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
 	ups->unprojected_radius = value;
 }
 

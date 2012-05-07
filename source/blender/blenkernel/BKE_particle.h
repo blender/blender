@@ -246,7 +246,7 @@ void psys_check_group_weights(struct ParticleSettings *part);
 int psys_uses_gravity(struct ParticleSimulationData *sim);
 
 /* free */
-void psys_free_settings(struct ParticleSettings *part);
+void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 
@@ -266,8 +266,8 @@ struct ParticleSystemModifierData *psys_get_modifier(struct Object *ob, struct P
 struct ModifierData *object_add_particle_system(struct Scene *scene, struct Object *ob, const char *name);
 void object_remove_particle_system(struct Scene *scene, struct Object *ob);
 struct ParticleSettings *psys_new_settings(const char *name, struct Main *main);
-struct ParticleSettings *psys_copy_settings(struct ParticleSettings *part);
-void make_local_particlesettings(struct ParticleSettings *part);
+struct ParticleSettings *BKE_particlesettings_copy(struct ParticleSettings *part);
+void BKE_particlesettings_make_local(struct ParticleSettings *part);
 
 void psys_reset(struct ParticleSystem *psys, int mode);
 

@@ -582,7 +582,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 								mul_m4_v3(ob->imat, vec);
 								
 								/* Get location of grid point in pose space. */
-								armature_loc_pose_to_bone(pchan, vec, vec);
+								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
 								
 								/* adjust location */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
@@ -613,7 +613,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + gridf *floorf(0.5f + ob->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
-					where_is_object(scene, ob);
+					BKE_object_where_is_calc(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -707,7 +707,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 						if (pchan->bone->layer & arm->layer) {
 							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
 								/* Get position in pchan (pose) space. */
-								armature_loc_pose_to_bone(pchan, vec, vec);
+								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
 
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
@@ -738,7 +738,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + curs[2];
 				
 				if (ob->parent) {
-					where_is_object(scene, ob);
+					BKE_object_where_is_calc(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -818,7 +818,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
-	MovieClip *clip = object_get_movieclip(scene, ob, 0);
+	MovieClip *clip = BKE_object_movieclip_get(scene, ob, 0);
 	MovieTracking *tracking;
 	MovieTrackingObject *object;
 	int ok = 0;

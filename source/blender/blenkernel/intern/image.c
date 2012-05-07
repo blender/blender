@@ -157,7 +157,7 @@ static void de_interlace_st(struct ImBuf *ibuf)	/* standard fields */
 	ibuf->y /= 2;
 }
 
-void image_de_interlace(Image *ima, int odd)
+void BKE_image_de_interlace(Image *ima, int odd)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 	if (ibuf) {
@@ -198,7 +198,7 @@ static void image_free_buffers(Image *ima)
 }
 
 /* called by library too, do not free ima itself */
-void free_image(Image *ima)
+void BKE_image_free(Image *ima)
 {
 	int a;
 
@@ -225,7 +225,7 @@ static Image *image_alloc(const char *name, short source, short type)
 {
 	Image *ima;
 	
-	ima= alloc_libblock(&G.main->image, ID_IM, name);
+	ima= BKE_libblock_alloc(&G.main->image, ID_IM, name);
 	if (ima) {
 		ima->ok= IMA_OK;
 		
@@ -300,7 +300,7 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 }
 
 /* empty image block, of similar type and filename */
-Image *copy_image(Image *ima)
+Image *BKE_image_copy(Image *ima)
 {
 	Image *nima= image_alloc(ima->id.name+2, ima->source, ima->type);
 
@@ -327,7 +327,7 @@ static void extern_local_image(Image *UNUSED(ima))
 	 * match id_make_local pattern. */
 }
 
-void make_local_image(struct Image *ima)
+void BKE_image_make_local(struct Image *ima)
 {
 	Main *bmain= G.main;
 	Tex *tex;
@@ -408,7 +408,7 @@ void make_local_image(struct Image *ima)
 		extern_local_image(ima);
 	}
 	else if (is_local && is_lib) {
-		Image *ima_new= copy_image(ima);
+		Image *ima_new= BKE_image_copy(ima);
 
 		ima_new->id.us= 0;
 
@@ -501,30 +501,52 @@ void BKE_image_merge(Image *dest, Image *source)
 			image_assign_ibuf(dest, ibuf, IMA_INDEX_PASS(ibuf->index), IMA_INDEX_FRAME(ibuf->index));
 		}
 		
-		free_libblock(&G.main->image, source);
+		BKE_libblock_free(&G.main->image, source);
 	}
 }
 
+Image *BKE_image_load(const char *filepath)
+{
+	Image *ima;
+	int file, len;
+	const char *libname;
+	char str[FILE_MAX];
+
+	BLI_strncpy(str, filepath, sizeof(str));
+	BLI_path_abs(str, G.main->name);
+
+	/* exists? */
+	file= BLI_open(str, O_BINARY|O_RDONLY, 0);
+	if (file== -1) return NULL;
+	close(file);
+
+	/* create a short library name */
+	len= strlen(filepath);
+
+	while (len > 0 && filepath[len - 1] != '/' && filepath[len - 1] != '\\') len--;
+	libname= filepath+len;
+
+	ima= image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
+	BLI_strncpy(ima->name, filepath, sizeof(ima->name));
+
+	if (BLI_testextensie_array(filepath, imb_ext_movie))
+		ima->source= IMA_SRC_MOVIE;
+
+	return ima;
+}
 
 /* checks if image was already loaded, then returns same image */
 /* otherwise creates new. */
 /* does not load ibuf itself */
 /* pass on optional frame for #name images */
-Image *BKE_add_image_file(const char *name)
+Image *BKE_image_load_exists(const char *filepath)
 {
 	Image *ima;
-	int file, len;
-	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 	
-	BLI_strncpy(str, name, sizeof(str));
+	BLI_strncpy(str, filepath, sizeof(str));
 	BLI_path_abs(str, G.main->name);
-	
-	/* exists? */
-	file= BLI_open(str, O_BINARY|O_RDONLY, 0);
-	if (file== -1) return NULL;
-	close(file);
-	
+
 	/* first search an identical image */
 	for (ima= G.main->image.first; ima; ima= ima->id.next) {
 		if (ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
@@ -533,7 +555,7 @@ Image *BKE_add_image_file(const char *name)
 			
 			if (BLI_path_cmp(strtest, str)==0) {
 				if (ima->anim==NULL || ima->id.us==0) {
-					BLI_strncpy(ima->name, name, sizeof(ima->name));	/* for stringcode */
+					BLI_strncpy(ima->name, filepath, sizeof(ima->name));	/* for stringcode */
 					ima->id.us++;										/* officially should not, it doesn't link here! */
 					if (ima->ok==0)
 						ima->ok= IMA_OK;
@@ -543,21 +565,8 @@ Image *BKE_add_image_file(const char *name)
 			}
 		}
 	}
-	/* add new image */
-	
-	/* create a short library name */
-	len= strlen(name);
-	
-	while (len > 0 && name[len - 1] != '/' && name[len - 1] != '\\') len--;
-	libname= name+len;
-	
-	ima= image_alloc(libname, IMA_SRC_FILE, IMA_TYPE_IMAGE);
-	BLI_strncpy(ima->name, name, sizeof(ima->name));
-	
-	if (BLI_testextensie_array(name, imb_ext_movie))
-		ima->source= IMA_SRC_MOVIE;
-	
-	return ima;
+
+	return BKE_image_load(filepath);
 }
 
 static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
@@ -593,7 +602,7 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
+Image *BKE_image_add_generated(unsigned int width, unsigned int height, const char *name, int depth, int floatbuf, short uvtestgrid, float color[4])
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima= image_alloc(name, IMA_SRC_GENERATED, IMA_TYPE_UV_TEST);
@@ -617,7 +626,7 @@ Image *BKE_add_image_size(unsigned int width, unsigned int height, const char *n
 }
 
 /* creates an image image owns the imbuf passed */
-Image *BKE_add_image_imbuf(ImBuf *ibuf)
+Image *BKE_image_add_from_imbuf(ImBuf *ibuf)
 {
 	/* on save, type is changed to FILE in editsima.c */
 	Image *ima;
@@ -669,7 +678,7 @@ void BKE_image_memorypack(Image *ima)
 	}
 }
 
-void tag_image_time(Image *ima)
+void BKE_image_tag_time(Image *ima)
 {
 	if (ima)
 		ima->lastused = (int)PIL_check_seconds_timer();
@@ -1222,7 +1231,7 @@ static void stampdata(Scene *scene, Object *camera, StampData *stamp_data, int d
 	}
 	
 	if (scene->r.stamp & R_STAMP_MARKER) {
-		char *name = scene_find_last_marker_name(scene, CFRA);
+		char *name = BKE_scene_find_last_marker_name(scene, CFRA);
 
 		if (name)	BLI_strncpy(text, name, sizeof(text));
 		else 		BLI_strncpy(text, "<none>", sizeof(text));
@@ -1522,7 +1531,7 @@ void BKE_stamp_buf(Scene *scene, Object *camera, unsigned char *rect, float *rec
 #undef BUFF_MARGIN_Y
 }
 
-void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
+void BKE_imbuf_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
 {
 	struct StampData stamp_data;
 
@@ -1544,7 +1553,7 @@ void BKE_stamp_info(Scene *scene, Object *camera, struct ImBuf *ibuf)
 	if (stamp_data.rendertime[0]) IMB_metadata_change_field (ibuf, "RenderTime", stamp_data.rendertime);
 }
 
-int BKE_alphatest_ibuf(ImBuf *ibuf)
+int BKE_imbuf_alpha_test(ImBuf *ibuf)
 {
 	int tot;
 	if (ibuf->rect_float) {
@@ -1569,7 +1578,7 @@ int BKE_alphatest_ibuf(ImBuf *ibuf)
 
 /* note: imf->planes is ignored here, its assumed the image channels
  * are already set */
-int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
+int BKE_imbuf_write(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 {
 	char imtype= imf->imtype;
 	char compress= imf->compress;
@@ -1673,9 +1682,9 @@ int BKE_write_ibuf(ImBuf *ibuf, const char *name, ImageFormatData *imf)
 	return(ok);
 }
 
-/* same as BKE_write_ibuf() but crappy workaround not to perminantly modify
+/* same as BKE_imbuf_write() but crappy workaround not to perminantly modify
  * _some_, values in the imbuf */
-int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
+int BKE_imbuf_write_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
                       const short save_copy)
 {
 	ImBuf ibuf_back= *ibuf;
@@ -1685,7 +1694,7 @@ int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
 	 * this just controls how to save for some formats */
 	ibuf->planes= imf->planes;
 
-	ok= BKE_write_ibuf(ibuf, name, imf);
+	ok= BKE_imbuf_write(ibuf, name, imf);
 
 	if (save_copy) {
 		/* note that we are not restoring _all_ settings */
@@ -1696,12 +1705,12 @@ int BKE_write_ibuf_as(ImBuf *ibuf, const char *name, ImageFormatData *imf,
 	return ok;
 }
 
-int BKE_write_ibuf_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
+int BKE_imbuf_write_stamp(Scene *scene, struct Object *camera, ImBuf *ibuf, const char *name, struct ImageFormatData *imf)
 {
 	if (scene && scene->r.stamp & R_STAMP_ALL)
-		BKE_stamp_info(scene, camera, ibuf);
+		BKE_imbuf_stamp_info(scene, camera, ibuf);
 
-	return BKE_write_ibuf(ibuf, name, imf);
+	return BKE_imbuf_write(ibuf, name, imf);
 }
 
 
@@ -2566,7 +2575,7 @@ ImBuf *BKE_image_acquire_ibuf(Image *ima, ImageUser *iuser, void **lock_r)
 		BLI_unlock_thread(LOCK_IMAGE);
 	}
 
-	tag_image_time(ima);
+	BKE_image_tag_time(ima);
 
 	return ibuf;
 }
@@ -2590,7 +2599,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 	return BKE_image_acquire_ibuf(ima, iuser, NULL);
 }
 
-int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
+int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 {
 	const int len= (iuser->fie_ima*iuser->frames)/2;
 
@@ -2630,9 +2639,9 @@ int BKE_image_user_get_frame(const ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
-void BKE_image_user_calc_frame(ImageUser *iuser, int cfra, int fieldnr)
+void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
-	const int framenr= BKE_image_user_get_frame(iuser, cfra, fieldnr);
+	const int framenr= BKE_image_user_frame_get(iuser, cfra, fieldnr);
 
 	/* allows image users to handle redraws */
 	if (iuser->flag & IMA_ANIM_ALWAYS)

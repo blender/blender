@@ -1119,7 +1119,7 @@ typedef struct Scene {
 	/* Movie Tracking */
 	struct MovieClip *clip;			/* active movie clip */
 
-	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
+	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 } Scene;
 
@@ -1398,7 +1398,7 @@ typedef struct Scene {
 #define SCE_FRAME_DROP			(1<<3)
 
 
-	/* return flag next_object function */
+	/* return flag BKE_scene_base_iter_next function */
 #define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1

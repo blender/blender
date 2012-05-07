@@ -55,7 +55,7 @@ static void node_composit_exec_viewer(void *data, bNode *node, bNodeStack **in, 
 		int rectx, recty;
 		void *lock;
 		
-		BKE_image_user_calc_frame(node->storage, rd->cfra, 0);
+		BKE_image_user_frame_calc(node->storage, rd->cfra, 0);
 
 		/* always returns for viewer image, but we check nevertheless */
 		ibuf= BKE_image_acquire_ibuf(ima, node->storage, &lock);

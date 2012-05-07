@@ -377,6 +377,11 @@ class VIEW3D_MT_view_align(Menu):
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
 
+        layout.separator()
+
+        layout.operator("view3d.view_lock_to_active")
+        layout.operator("view3d.view_lock_clear")
+
 
 class VIEW3D_MT_view_align_selected(Menu):
     bl_label = "Align View to Selected"
@@ -1152,7 +1157,7 @@ class VIEW3D_MT_vertex_group(Menu):
         if ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex):
             if ob.vertex_groups.active:
                 layout.separator()
-                layout.operator("object.vertex_group_assign", text="Assign to Active Group")
+                layout.operator("object.vertex_group_assign", text="Assign to Active Group").new = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").all = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
                 layout.separator()

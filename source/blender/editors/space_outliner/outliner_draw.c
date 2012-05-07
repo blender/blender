@@ -136,7 +136,7 @@ static void restrictbutton_view_cb(bContext *C, void *poin, void *poin2)
 	if (ob->restrictflag & OB_RESTRICT_VIEW) {
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -153,7 +153,7 @@ static void restrictbutton_sel_cb(bContext *C, void *poin, void *poin2)
 	if (ob->restrictflag & OB_RESTRICT_SELECT) {
 		/* Ouch! There is no backwards pointer from Object to Base, 
 		 * so have to do loop to find it. */
-		ED_base_object_select(object_in_scene(ob, scene), BA_DESELECT);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_DESELECT);
 	}
 	WM_event_add_notifier(C, NC_SCENE|ND_OB_SELECT, scene);
 
@@ -230,7 +230,7 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 			
 			if (flag==OB_RESTRICT_VIEW)
 				if (gob->ob->flag & SELECT)
-					ED_base_object_select(object_in_scene(gob->ob, scene), BA_DESELECT);
+					ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_DESELECT);
 		}
 	}
 	else {
@@ -241,7 +241,7 @@ void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 				
 				if (flag==OB_RESTRICT_VIEW)
 					if ((gob->ob->flag & SELECT) == 0)
-						ED_base_object_select(object_in_scene(gob->ob, scene), BA_SELECT);
+						ED_base_object_select(BKE_scene_base_find(scene, gob->ob), BA_SELECT);
 			}
 		}
 	}

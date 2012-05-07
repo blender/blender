@@ -69,7 +69,7 @@
  * - Pose is the local (object level) component of armature. The current
  *   object pose is saved in files, and (will be) is presorted for dependency
  * - Actions have fewer (or other) channels, and write data to a Pose
- * - Currently ob->pose data is controlled in where_is_pose only. The (recalc)
+ * - Currently ob->pose data is controlled in BKE_pose_where_is only. The (recalc)
  *   event system takes care of calling that
  * - The NLA system (here too) uses Poses as interpolation format for Actions
  * - Therefore we assume poses to be static, and duplicates of poses have channels in
@@ -83,14 +83,14 @@ bAction *add_empty_action(const char name[])
 {
 	bAction *act;
 	
-	act= alloc_libblock(&G.main->action, ID_AC, name);
+	act= BKE_libblock_alloc(&G.main->action, ID_AC, name);
 	
 	return act;
 }	
 
 /* .................................. */
 
-/* temp data for make_local_action */
+/* temp data for BKE_action_make_local */
 typedef struct tMakeLocalActionContext {
 	bAction *act;       /* original action */
 	bAction *act_new;   /* new action */
@@ -99,7 +99,7 @@ typedef struct tMakeLocalActionContext {
 	int is_local;       /* some action users were not libraries */
 } tMakeLocalActionContext;
 
-/* helper function for make_local_action() - local/lib init step */
+/* helper function for BKE_action_make_local() - local/lib init step */
 static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 {
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
@@ -110,7 +110,7 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	}
 }
 
-/* helper function for make_local_action() - change references */
+/* helper function for BKE_action_make_local() - change references */
 static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 {
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
@@ -126,7 +126,7 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 }
 
 // does copy_fcurve...
-void make_local_action(bAction *act)
+void BKE_action_make_local(bAction *act)
 {
 	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
 	Main *bmain= G.main;
@@ -146,7 +146,7 @@ void make_local_action(bAction *act)
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		mlac.act_new= copy_action(act);
+		mlac.act_new= BKE_action_copy(act);
 		mlac.act_new->id.us= 0;
 
 		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
@@ -157,7 +157,7 @@ void make_local_action(bAction *act)
 
 /* .................................. */
 
-void free_action(bAction *act)
+void BKE_action_free(bAction *act)
 {
 	/* sanity check */
 	if (act == NULL)
@@ -177,7 +177,7 @@ void free_action(bAction *act)
 
 /* .................................. */
 
-bAction *copy_action (bAction *src)
+bAction *BKE_action_copy (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionGroup *dgrp, *sgrp;
@@ -185,7 +185,7 @@ bAction *copy_action (bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst= copy_libblock(&src->id);
+	dst= BKE_libblock_copy(&src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);
@@ -383,7 +383,7 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 }
 
 /* Find a group with the given name */
-bActionGroup *action_groups_find_named (bAction *act, const char name[])
+bActionGroup *BKE_action_group_find_name (bAction *act, const char name[])
 {
 	/* sanity checks */
 	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
@@ -410,7 +410,7 @@ void action_groups_clear_tempflags(bAction *act)
 /* *************** Pose channels *************** */
 
 /* usually used within a loop, so we got a N^2 slowdown */
-bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
+bPoseChannel *BKE_pose_channel_find_name(const bPose *pose, const char *name)
 {
 	if (ELEM(NULL, pose, name) || (name[0] == 0))
 		return NULL;
@@ -423,7 +423,7 @@ bPoseChannel *get_pose_channel(const bPose *pose, const char *name)
 
 /* Use with care, not on Armature poses but for temporal ones */
 /* (currently used for action constraints and in rebuild_pose) */
-bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
+bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 {
 	bPoseChannel *chan;
 	
@@ -454,13 +454,13 @@ bPoseChannel *verify_pose_channel(bPose *pose, const char *name)
 	chan->protectflag = OB_LOCK_ROT4D;	/* lock by components by default */
 	
 	BLI_addtail(&pose->chanbase, chan);
-	free_pose_channels_hash(pose);
+	BKE_pose_channels_hash_free(pose);
 	
 	return chan;
 }
 
 /* Find the active posechannel for an object (we can't just use pose, as layer info is in armature) */
-bPoseChannel *get_active_posechannel (Object *ob)
+bPoseChannel *BKE_pose_channel_active (Object *ob)
 {
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPoseChannel *pchan;
@@ -478,7 +478,7 @@ bPoseChannel *get_active_posechannel (Object *ob)
 	return NULL;
 }
 
-const char *get_ikparam_name(bPose *pose)
+const char *BKE_pose_ikparam_get_name(bPose *pose)
 {
 	if (pose) {
 		switch (pose->iksolver) {
@@ -491,7 +491,7 @@ const char *get_ikparam_name(bPose *pose)
 	return NULL;
 }
 /* dst should be freed already, makes entire duplicate */
-void copy_pose(bPose **dst, bPose *src, int copycon)
+void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 {
 	bPose *outPose;
 	bPoseChannel *pchan;
@@ -503,7 +503,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 	}
 	
 	if (*dst==src) {
-		printf("copy_pose source and target are the same\n");
+		printf("BKE_pose_copy_data source and target are the same\n");
 		*dst=NULL;
 		return;
 	}
@@ -536,7 +536,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 	*dst=outPose;
 }
 
-void init_pose_itasc(bItasc *itasc)
+void BKE_pose_itasc_init(bItasc *itasc)
 {
 	if (itasc) {
 		itasc->iksolver = IKSOLVER_ITASC;
@@ -553,13 +553,13 @@ void init_pose_itasc(bItasc *itasc)
 		itasc->dampeps = 0.15;
 	}
 }
-void init_pose_ikparam(bPose *pose)
+void BKE_pose_ikparam_init(bPose *pose)
 {
 	bItasc *itasc;
 	switch (pose->iksolver) {
 	case IKSOLVER_ITASC:
 		itasc = MEM_callocN(sizeof(bItasc), "itasc");
-		init_pose_itasc(itasc);
+		BKE_pose_itasc_init(itasc);
 		pose->ikparam = itasc;
 		break;
 	case IKSOLVER_LEGACY:
@@ -569,7 +569,7 @@ void init_pose_ikparam(bPose *pose)
 	}
 }
 
-void make_pose_channels_hash(bPose *pose) 
+void BKE_pose_channels_hash_make(bPose *pose) 
 {
 	if (!pose->chanhash) {
 		bPoseChannel *pchan;
@@ -580,7 +580,7 @@ void make_pose_channels_hash(bPose *pose)
 	}
 }
 
-void free_pose_channels_hash(bPose *pose) 
+void BKE_pose_channels_hash_free(bPose *pose) 
 {
 	if (pose->chanhash) {
 		BLI_ghash_free(pose->chanhash, NULL, NULL);
@@ -589,7 +589,7 @@ void free_pose_channels_hash(bPose *pose)
 }
 
 
-void free_pose_channel(bPoseChannel *pchan)
+void BKE_pose_channel_free(bPoseChannel *pchan)
 {
 
 	if (pchan->mpath) {
@@ -605,25 +605,25 @@ void free_pose_channel(bPoseChannel *pchan)
 	}
 }
 
-void free_pose_channels(bPose *pose) 
+void BKE_pose_channels_free(bPose *pose) 
 {
 	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first) {
 		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
-			free_pose_channel(pchan);
+			BKE_pose_channel_free(pchan);
 		
 		BLI_freelistN(&pose->chanbase);
 	}
 
-	free_pose_channels_hash(pose);
+	BKE_pose_channels_hash_free(pose);
 }
 
-void free_pose(bPose *pose)
+void BKE_pose_free(bPose *pose)
 {
 	if (pose) {
 		/* free pose-channels */
-		free_pose_channels(pose);
+		BKE_pose_channels_free(pose);
 		
 		/* free pose-groups */
 		if (pose->agroups.first)
@@ -665,8 +665,8 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 
 /* makes copies of internal data, unlike copy_pose_channel_data which only
  * copies the pose state.
- * hint: use when copying bones in editmode (on returned value from verify_pose_channel) */
-void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
+ * hint: use when copying bones in editmode (on returned value from BKE_pose_channel_verify) */
+void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_from)
 {
 	/* copy transform locks */
 	pchan->protectflag = pchan_from->protectflag;
@@ -709,7 +709,7 @@ void duplicate_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *pchan_
  * can do more constraints flags later 
  */
 /* pose should be entirely OK */
-void update_pose_constraint_flags(bPose *pose)
+void BKE_pose_update_constraint_flags(bPose *pose)
 {
 	bPoseChannel *pchan, *parchan;
 	bConstraint *con;
@@ -792,7 +792,7 @@ void framechange_poses_clear_unkeyed(void)
 /* ************************** Bone Groups ************************** */
 
 /* Adds a new bone-group */
-void pose_add_group(Object *ob)
+void BKE_pose_add_group(Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bActionGroup *grp;
@@ -809,7 +809,7 @@ void pose_add_group(Object *ob)
 }
 
 /* Remove the active bone-group */
-void pose_remove_group(Object *ob)
+void BKE_pose_remove_group(Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bActionGroup *grp = NULL;
@@ -1072,7 +1072,7 @@ void extract_pose_from_pose(bPose *pose, const bPose *src)
 }
 
 /* for do_all_pose_actions, clears the pose. Now also exported for proxy and tools */
-void rest_pose(bPose *pose)
+void BKE_pose_rest(bPose *pose)
 {
 	bPoseChannel *pchan;
 	
@@ -1094,7 +1094,7 @@ void rest_pose(bPose *pose)
 }
 
 /* both poses should be in sync */
-void copy_pose_result(bPose *to, bPose *from)
+void BKE_pose_copy_result(bPose *to, bPose *from)
 {
 	bPoseChannel *pchanto, *pchanfrom;
 	
@@ -1104,13 +1104,13 @@ void copy_pose_result(bPose *to, bPose *from)
 	}
 
 	if (to==from) {
-		printf("copy_pose_result source and target are the same\n");
+		printf("BKE_pose_copy_result source and target are the same\n");
 		return;
 	}
 
 
 	for (pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
-		pchanto= get_pose_channel(to, pchanfrom->name);
+		pchanto= BKE_pose_channel_find_name(to, pchanfrom->name);
 		if (pchanto) {
 			copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
 			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
@@ -1136,10 +1136,10 @@ void copy_pose_result(bPose *to, bPose *from)
  */
 void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
-	bActionGroup *agrp= action_groups_find_named(act, groupname);
+	bActionGroup *agrp= BKE_action_group_find_name(act, groupname);
 	
 	/* clear workob */
-	clear_workob(workob);
+	BKE_object_workob_clear(workob);
 	
 	/* init workob */
 	copy_m4_m4(workob->obmat, ob->obmat);
@@ -1243,9 +1243,9 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	
 	/* are we also blending with matching bones? */
 	if (strip->prev && strip->start>=strip->prev->start) {
-		bPoseChannel *dpchan= get_pose_channel(dst, strip->offs_bone);
+		bPoseChannel *dpchan= BKE_pose_channel_find_name(dst, strip->offs_bone);
 		if (dpchan) {
-			bPoseChannel *spchan= get_pose_channel(src, strip->offs_bone);
+			bPoseChannel *spchan= BKE_pose_channel_find_name(src, strip->offs_bone);
 			if (spchan) {
 				float vec[3];
 				
@@ -1397,11 +1397,11 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 			if (foundvert) {
 				/* bring it into armature space */
 				sub_v3_v3v3(min, max, min);
-				bone= get_named_bone(ob->data, strip->offs_bone);	/* weak */
+				bone= BKE_armature_find_bone_name(ob->data, strip->offs_bone);	/* weak */
 				if (bone) {
 					mul_mat3_m4_v3(bone->arm_mat, min);
 					
-					/* dominant motion, cyclic_offset was cleared in rest_pose */
+					/* dominant motion, cyclic_offset was cleared in BKE_pose_rest */
 					if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
 						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0]= time*min[0];
 						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1]= time*min[1];
@@ -1453,12 +1453,12 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= BKE_curframe(scene);
+	float scene_cfra= BKE_scene_frame_get(scene);
 	int	doit, dostride;
 	
 	if (blocktype==ID_AR) {
-		copy_pose(&tpose, ob->pose, 1);
-		rest_pose(ob->pose);		// potentially destroying current not-keyed pose
+		BKE_pose_copy_data(&tpose, ob->pose, 1);
+		BKE_pose_rest(ob->pose);		// potentially destroying current not-keyed pose
 	}
 	else {
 		key= ob_get_key(ob);
@@ -1504,7 +1504,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 			if (striptime>=0.0) {
 				
 				if (blocktype==ID_AR) 
-					rest_pose(tpose);
+					BKE_pose_rest(tpose);
 				
 				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
 				if (striptime < 1.0f + 0.1f/length) {
@@ -1656,7 +1656,7 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 	
 	/* free */
 	if (tpose)
-		free_pose(tpose);
+		BKE_pose_free(tpose);
 	if (chanbase.first)
 		BLI_freelistN(&chanbase);
 }

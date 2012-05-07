@@ -98,7 +98,7 @@ static int act_new_exec(bContext *C, wmOperator *UNUSED(op))
 		
 		if (oldact && GS(oldact->id.name)==ID_AC) {
 			/* make a copy of the existing action */
-			action= copy_action(oldact);
+			action= BKE_action_copy(oldact);
 		}
 		else {
 			/* just make a new (empty) action */

@@ -909,7 +909,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 
 	set_mesh(ob, uid_mesh_map[*geom_uid]);
 	
-	if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
+	if (old_mesh->id.us == 0) BKE_libblock_free(&G.main->mesh, old_mesh);
 	
 	char layername[100];
 	layername[0] = '\0';
@@ -957,7 +957,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	}
 	
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
-	Mesh *me = add_mesh((char*)str_geom_id.c_str());
+	Mesh *me = BKE_mesh_add((char*)str_geom_id.c_str());
 
 	// store the Mesh pointer to link it later with an Object
 	this->uid_mesh_map[mesh->getUniqueId()] = me;

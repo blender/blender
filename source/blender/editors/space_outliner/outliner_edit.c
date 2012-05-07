@@ -348,7 +348,7 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 	/* add check for edit mode */
 	if (!common_restrict_check(C, ob)) return;
 	
-	if (base || (base= object_in_scene(ob, scene))) {
+	if (base || (base= BKE_scene_base_find(scene, ob))) {
 		if ((base->object->restrictflag ^= OB_RESTRICT_VIEW)) {
 			ED_base_object_select(base, BA_DESELECT);
 		}
@@ -395,7 +395,7 @@ void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_SELECT;
 	}
@@ -441,7 +441,7 @@ void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 {
 	Base *base= (Base *)te->directdata;
 	
-	if (base==NULL) base= object_in_scene((Object *)tselem->id, scene);
+	if (base==NULL) base= BKE_scene_base_find(scene, (Object *)tselem->id);
 	if (base) {
 		base->object->restrictflag^=OB_RESTRICT_RENDER;
 	}
@@ -674,7 +674,7 @@ static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
 }
 
 /* find next element that has this name */
-static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
+static TreeElement *outliner_find_name(SpaceOops *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
 {
 	TreeElement *te, *tes;
 	
@@ -694,7 +694,7 @@ static TreeElement *outliner_find_named(SpaceOops *soops, ListBase *lb, char *na
 				return te;
 		}
 		
-		tes= outliner_find_named(soops, &te->subtree, name, flags, prev, prevFound);
+		tes= outliner_find_name(soops, &te->subtree, name, flags, prev, prevFound);
 		if (tes) return tes;
 	}
 
@@ -721,18 +721,18 @@ static void outliner_find_panel(Scene *UNUSED(scene), ARegion *ar, SpaceOops *so
 		flags= soops->search_flags;
 		
 		/* try to find matching element */
-		te= outliner_find_named(soops, &soops->tree, name, flags, last_find, &prevFound);
+		te= outliner_find_name(soops, &soops->tree, name, flags, last_find, &prevFound);
 		if (te==NULL) {
 			/* no more matches after previous, start from beginning again */
 			prevFound= 1;
-			te= outliner_find_named(soops, &soops->tree, name, flags, last_find, &prevFound);
+			te= outliner_find_name(soops, &soops->tree, name, flags, last_find, &prevFound);
 		}
 	}
 	else {
 		/* pop up panel - no previous, or user didn't want search after previous */
 		name[0]= '\0';
 // XXX		if (sbutton(name, 0, sizeof(name)-1, "Find: ") && name[0]) {
-//			te= outliner_find_named(soops, &soops->tree, name, flags, NULL, &prevFound);
+//			te= outliner_find_name(soops, &soops->tree, name, flags, NULL, &prevFound);
 //		}
 //		else return; /* XXX RETURN! XXX */
 	}
@@ -1402,9 +1402,9 @@ static int parent_drop_exec(bContext *C, wmOperator *op)
 
 	partype= RNA_enum_get(op->ptr, "type");
 	RNA_string_get(op->ptr, "parent", parname);
-	par= (Object *)find_id("OB", parname);
+	par= (Object *)BKE_libblock_find_name(ID_OB, parname);
 	RNA_string_get(op->ptr, "child", childname);
-	ob= (Object *)find_id("OB", childname);
+	ob= (Object *)BKE_libblock_find_name(ID_OB, childname);
 
 	ED_object_parent_set(op->reports, bmain, scene, ob, par, partype);
 
@@ -1473,9 +1473,9 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		RNA_string_set(op->ptr, "parent", te_found->name);
 		/* Identify parent and child */
 		RNA_string_get(op->ptr, "child", childname);
-		ob= (Object *)find_id("OB", childname);
+		ob= (Object *)BKE_libblock_find_name(ID_OB, childname);
 		RNA_string_get(op->ptr, "parent", parname);
-		par= (Object *)find_id("OB", parname);
+		par= (Object *)BKE_libblock_find_name(ID_OB, parname);
 		
 		if (ELEM(NULL, ob, par)) {
 			if (par == NULL) printf("par==NULL\n");
@@ -1487,7 +1487,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		/* check dragged object (child) is active */
 		if (ob != CTX_data_active_object(C))
-			ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+			ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
 		
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
 			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
@@ -1659,11 +1659,11 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
-	ob= (Object *)find_id("OB", obname);
+	ob= (Object *)BKE_libblock_find_name(ID_OB, obname);
 
 	/* check dragged object (child) is active */
 	if (ob != CTX_data_active_object(C))
-		ED_base_object_select(object_in_scene(ob, scene), BA_SELECT);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
 
 	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
 

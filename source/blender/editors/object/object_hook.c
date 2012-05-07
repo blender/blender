@@ -414,13 +414,13 @@ static Object *add_hook_object_new(Scene *scene, Object *obedit)
 	Base *base, *basedit;
 	Object *ob;
 
-	ob = add_object(scene, OB_EMPTY);
+	ob = BKE_object_add(scene, OB_EMPTY);
 	
-	basedit = object_in_scene(obedit, scene);
-	base = object_in_scene(ob, scene);
+	basedit = BKE_scene_base_find(scene, obedit);
+	base = BKE_scene_base_find(scene, ob);
 	base->lay = ob->lay = obedit->lay;
 	
-	/* icky, add_object sets new base as active.
+	/* icky, BKE_object_add sets new base as active.
 	 * so set it back to the original edit object */
 	scene->basact = basedit;
 
@@ -466,7 +466,7 @@ static void add_hook_object(Main *bmain, Scene *scene, Object *obedit, Object *o
 	/* matrix calculus */
 	/* vert x (obmat x hook->imat) x hook->obmat x ob->imat */
 	/*        (parentinv         )                          */
-	where_is_object(scene, ob);
+	BKE_object_where_is_calc(scene, ob);
 	
 	invert_m4_m4(ob->imat, ob->obmat);
 	/* apparently this call goes from right to left... */
@@ -645,7 +645,7 @@ static int object_hook_reset_exec(bContext *C, wmOperator *op)
 	
 	/* reset functionality */
 	if (hmd->object) {
-		bPoseChannel *pchan = get_pose_channel(hmd->object->pose, hmd->subtarget);
+		bPoseChannel *pchan = BKE_pose_channel_find_name(hmd->object->pose, hmd->subtarget);
 		
 		if (hmd->subtarget[0] && pchan) {
 			float imat[4][4], mat[4][4];

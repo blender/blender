@@ -188,7 +188,7 @@ void		WM_operatortype_append_ptr	(void (*opfunc)(struct wmOperatorType*, void *)
 void		WM_operatortype_append_macro_ptr	(void (*opfunc)(struct wmOperatorType*, void *), void *userdata);
 int			WM_operatortype_remove(const char *idname);
 
-struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag);
+struct wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag);
 struct wmOperatorTypeMacro *WM_operatortype_macro_define(struct wmOperatorType *ot, const char *idname);
 
 

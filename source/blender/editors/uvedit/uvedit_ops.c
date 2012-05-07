@@ -186,7 +186,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		return;
 	}
 
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		/* new shading system, assign image in material */
 		int sloppy = 1;
 		BMFace *efa = BM_active_face_get(em->bm, sloppy);

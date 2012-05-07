@@ -815,7 +815,7 @@ static DerivedMesh * explodeMesh(ExplodeModifierData *emd,
 
 	/* timestep= psys_get_timestep(&sim); */
 
-	cfra= BKE_curframe(scene);
+	cfra= BKE_scene_frame_get(scene);
 
 	/* hash table for vertice <-> particle relations */
 	vertpahash= BLI_edgehash_new();

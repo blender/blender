@@ -1682,7 +1682,7 @@ static int nlaedit_apply_scale_exec (bContext *C, wmOperator *UNUSED(op))
 					continue;
 				if (strip->act->id.us > 1) {
 					/* make a copy of the Action to work on */
-					bAction *act= copy_action(strip->act);
+					bAction *act= BKE_action_copy(strip->act);
 					
 					/* set this as the new referenced action, decrementing the users of the old one */
 					strip->act->id.us--;

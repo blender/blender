@@ -110,7 +110,7 @@ void free_blender(void)
 	
 	IMB_exit();
 
-	BLI_cb_finalize();
+	BLI_callback_global_finalize();
 
 	seq_stripelem_cache_destruct();
 	IMB_moviecache_destruct();
@@ -173,7 +173,7 @@ static void clean_paths(Main *main)
 {
 	Scene *scene;
 
-	bpath_traverse_main(main, clean_paths_visit_cb, BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
+	BLI_bpath_traverse_main(main, clean_paths_visit_cb, BLI_BPATH_TRAVERSE_SKIP_MULTIFILE, NULL);
 
 	for (scene= main->scene.first; scene; scene= scene->id.next) {
 		BLI_clean(scene->r.pic);
@@ -314,7 +314,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 		BLI_strncpy(G.main->name, filepath, FILE_MAX);
 
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(G.main, CTX_data_scene(C));
+	BKE_scene_set_background(G.main, CTX_data_scene(C));
 	
 	MEM_freeN(bfd);
 

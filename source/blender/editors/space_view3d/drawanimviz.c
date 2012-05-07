@@ -258,7 +258,7 @@ void draw_motion_path_instance(Scene *scene,
 			 * unless an option is set to always use the whole action
 			 */
 			if ((pchan) && (avs->path_viewflag & MOTIONPATH_VIEW_KFACT) == 0) {
-				bActionGroup *agrp = action_groups_find_named(adt->action, pchan->name);
+				bActionGroup *agrp = BKE_action_group_find_name(adt->action, pchan->name);
 				
 				if (agrp) {
 					agroup_to_keylist(adt, agrp, &keys, NULL);

@@ -56,6 +56,8 @@
 #include "BKE_report.h"
 #include "BKE_scene.h"
 #include "BKE_screen.h"
+#include "BKE_action.h"
+#include "BKE_armature.h"
 #include "BKE_depsgraph.h" /* for ED_view3d_camera_lock_sync */
 
 
@@ -68,6 +70,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
+#include "ED_armature.h"
 #include "ED_particle.h"
 #include "ED_screen.h"
 #include "ED_transform.h"
@@ -120,9 +123,9 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 
 			mult_m4_m4m4(parent_mat, diff_mat, root_parent->obmat);
 
-			object_tfm_protected_backup(root_parent, &obtfm);
-			object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
-			object_tfm_protected_restore(root_parent, &obtfm, root_parent->protectflag);
+			BKE_object_tfm_protected_backup(root_parent, &obtfm);
+			BKE_object_apply_mat4(root_parent, parent_mat, TRUE, FALSE);
+			BKE_object_tfm_protected_restore(root_parent, &obtfm, root_parent->protectflag);
 
 			ob_update = v3d->camera;
 			while (ob_update) {
@@ -132,9 +135,9 @@ int ED_view3d_camera_lock_sync(View3D *v3d, RegionView3D *rv3d)
 			}
 		}
 		else {
-			object_tfm_protected_backup(v3d->camera, &obtfm);
+			BKE_object_tfm_protected_backup(v3d->camera, &obtfm);
 			ED_view3d_to_object(v3d->camera, rv3d->ofs, rv3d->viewquat, rv3d->dist);
-			object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
+			BKE_object_tfm_protected_restore(v3d->camera, &obtfm, v3d->camera->protectflag);
 
 			DAG_id_tag_update(&v3d->camera->id, OB_RECALC_OB);
 			WM_main_add_notifier(NC_OBJECT | ND_TRANSFORM, v3d->camera);
@@ -2067,7 +2070,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 				continue;
 			}
 
-			minmax_object(base->object, min, max);
+			BKE_object_minmax(base->object, min, max);
 		}
 	}
 	if (!onedone) {
@@ -2209,8 +2212,8 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 				}
 
 				/* account for duplis */
-				if (minmax_object_duplis(scene, base->object, min, max) == 0)
-					minmax_object(base->object, min, max);  /* use if duplis not found */
+				if (BKE_object_minmax_dupli(scene, base->object, min, max) == 0)
+					BKE_object_minmax(base->object, min, max);  /* use if duplis not found */
 
 				ok = 1;
 			}
@@ -2274,6 +2277,89 @@ void VIEW3D_OT_view_selected(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = viewselected_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+static int view_lock_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+
+	if (v3d) {
+		ED_view3D_lock_clear(v3d);
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_view_lock_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "View Lock Clear";
+	ot->description = "Clears all view locking";
+	ot->idname = "VIEW3D_OT_view_lock_clear";
+
+	/* api callbacks */
+	ot->exec = view_lock_clear_exec;
+	ot->poll = ED_operator_region_view3d_active;
+
+	/* flags */
+	ot->flag = 0;
+}
+
+static int view_lock_to_active_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	View3D *v3d = CTX_wm_view3d(C);
+	Object *obact = CTX_data_active_object(C);
+
+	if (v3d) {
+
+		ED_view3D_lock_clear(v3d);
+
+		v3d->ob_centre = obact; /* can be NULL */
+
+		if (obact && obact->type == OB_ARMATURE) {
+			if (obact->mode & OB_MODE_POSE) {
+				bPoseChannel *pcham_act = BKE_pose_channel_active(obact);
+				if (pcham_act) {
+					BLI_strncpy(v3d->ob_centre_bone, pcham_act->name, sizeof(v3d->ob_centre_bone));
+				}
+			}
+			else {
+				EditBone *ebone_act = ((bArmature *)obact->data)->act_edbone;
+				if (ebone_act) {
+					BLI_strncpy(v3d->ob_centre_bone, ebone_act->name, sizeof(v3d->ob_centre_bone));
+				}
+			}
+		}
+
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, v3d);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void VIEW3D_OT_view_lock_to_active(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "View Lock to Active";
+	ot->description = "Lock the view to the active object/bone";
+	ot->idname = "VIEW3D_OT_view_lock_to_active";
+
+	/* api callbacks */
+	ot->exec = view_lock_to_active_exec;
 	ot->poll = ED_operator_region_view3d_active;
 
 	/* flags */
@@ -2840,7 +2926,7 @@ static int viewnumpad_exec(bContext *C, wmOperator *op)
 						v3d->camera = ob;
 					
 					if (v3d->camera == NULL)
-						v3d->camera = scene_find_camera(scene);
+						v3d->camera = BKE_scene_camera_find(scene);
 
 					/* couldnt find any useful camera, bail out */
 					if (v3d->camera == NULL)
@@ -3083,11 +3169,11 @@ static int background_image_add_invoke(bContext *C, wmOperator *op, wmEvent *UNU
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_add_image_file(path);
+		ima = BKE_image_load_exists(path);
 	}
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)find_id("IM", name);
+		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 	}
 	
 	bgpic = background_image_add(C);
@@ -3649,8 +3735,8 @@ void ED_view3d_from_object(Object *ob, float ofs[3], float quat[4], float *dist,
 	if (lens) {
 		CameraParams params;
 
-		camera_params_init(&params);
-		camera_params_from_object(&params, ob);
+		BKE_camera_params_init(&params);
+		BKE_camera_params_from_object(&params, ob);
 		*lens = params.lens;
 	}
 }
@@ -3660,7 +3746,7 @@ void ED_view3d_to_object(Object *ob, const float ofs[3], const float quat[4], co
 {
 	float mat[4][4];
 	ED_view3d_to_m4(mat, ofs, quat, dist);
-	object_apply_mat4(ob, mat, TRUE, TRUE);
+	BKE_object_apply_mat4(ob, mat, TRUE, TRUE);
 }
 
 BGpic *ED_view3D_background_image_new(View3D *v3d)
@@ -3697,4 +3783,12 @@ void ED_view3D_background_image_clear(View3D *v3d)
 
 		bgpic = next_bgpic;
 	}
+}
+
+void ED_view3D_lock_clear(View3D *v3d)
+{
+	v3d->ob_centre = NULL;
+	v3d->ob_centre_bone[0] = '\0';
+	v3d->ob_centre_cursor = FALSE;
+	v3d->flag2 &= ~V3D_LOCK_CAMERA;
 }

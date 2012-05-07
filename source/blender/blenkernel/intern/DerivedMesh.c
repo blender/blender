@@ -2111,7 +2111,7 @@ static void clear_mesh_caches(Object *ob)
 	}
 
 	if (ob->sculpt) {
-		object_sculpt_modifiers_changed(ob);
+		BKE_object_sculpt_modifiers_changed(ob);
 	}
 }
 
@@ -2884,7 +2884,7 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 	if (!ob->bb)
 		ob->bb= MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
 
-	boundbox_set_from_min_max(ob->bb, min, max);
+	BKE_boundbox_init_from_minmax(ob->bb, min, max);
 }
 
 /* --- NAVMESH (begin) --- */

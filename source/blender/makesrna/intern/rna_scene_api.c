@@ -56,11 +56,11 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	scene->r.subframe = subframe;
 	
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
-	scene_update_for_newframe(G.main, scene, (1<<20) - 1);
-	scene_camera_switch_update(scene);
+	BKE_scene_update_for_newframe(G.main, scene, (1<<20) - 1);
+	BKE_scene_camera_switch_update(scene);
 
 	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call
-	 * scene_update_for_newframe which will loose any un-keyed changes [#24690] */
+	 * BKE_scene_update_for_newframe which will loose any un-keyed changes [#24690] */
 	/* WM_main_add_notifier(NC_SCENE|ND_FRAME, scene); */
 	
 	/* instead just redraw the views */
@@ -69,7 +69,7 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 static void rna_Scene_update_tagged(Scene *scene)
 {
-	scene_update_tagged(G.main, scene);
+	BKE_scene_update_tagged(G.main, scene);
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)

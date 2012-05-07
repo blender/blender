@@ -345,7 +345,7 @@ static int wm_macro_cancel(bContext *C, wmOperator *op)
 }
 
 /* Names have to be static for now */
-wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag)
+wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag)
 {
 	wmOperatorType *ot;
 	
@@ -359,6 +359,7 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	ot->idname = idname;
 	ot->name = name;
+	ot->description = description;
 	ot->flag = OPTYPE_MACRO | flag;
 	
 	ot->exec = wm_macro_exec;
@@ -1773,7 +1774,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* now we have or selected, or an indicated file */
 	if (RNA_boolean_get(op->ptr, "autoselect"))
-		scene_deselect_all(scene);
+		BKE_scene_base_deselect_all(scene);
 
 	
 	flag = wm_link_append_flag(op);
@@ -2977,7 +2978,7 @@ static void radial_control_set_tex(RadialControl *rc)
 
 	switch (RNA_type_to_ID_code(rc->image_id_ptr.type)) {
 		case ID_BR:
-			if ((ibuf = brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
+			if ((ibuf = BKE_brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
 				glGenTextures(1, &rc->gltex);
 				glBindTexture(GL_TEXTURE_2D, rc->gltex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ibuf->x, ibuf->y, 0,
@@ -3523,7 +3524,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			
 			if (a & 1) scene->r.cfra--;
 			else scene->r.cfra++;
-			scene_update_for_newframe(bmain, scene, scene->lay);
+			BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 		}
 		else if (type == 5) {
 
@@ -3538,7 +3539,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				if (scene->r.cfra > scene->r.efra)
 					scene->r.cfra = scene->r.sfra;
 
-				scene_update_for_newframe(bmain, scene, scene->lay);
+				BKE_scene_update_for_newframe(bmain, scene, scene->lay);
 				redraw_timer_window_swap(C);
 			}
 		}

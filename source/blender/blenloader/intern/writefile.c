@@ -1271,7 +1271,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* write IK param */
 	if (pose->ikparam) {
-		char *structname = (char *)get_ikparam_name(pose);
+		char *structname = (char *)BKE_pose_ikparam_get_name(pose);
 		if (structname)
 			writestruct(wd, DATA, structname, 1, pose->ikparam);
 	}
@@ -2933,7 +2933,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				makeFilesAbsolute(mainvar, G.main->name, NULL);
+				BLI_bpath_absolute_convert(mainvar, G.main->name, NULL);
 			}
 		}
 	}
@@ -2942,7 +2942,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
 	if (write_flags & G_FILE_RELATIVE_REMAP)
-		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
+		BLI_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);

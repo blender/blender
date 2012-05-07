@@ -243,8 +243,37 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-void snode_dag_update(bContext *UNUSED(C), SpaceNode *snode)
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
 {
+	bNode *node;
+	
+	if (ntree == lookup)
+		return 1;
+	
+	for (node=ntree->nodes.first; node; node=node->next)
+		if (node->type == NODE_GROUP && node->id)
+			if (has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
+}
+
+static void snode_dag_update_group(void *calldata, ID *owner_id, bNodeTree *ntree)
+{
+	if (has_nodetree(ntree, calldata))
+		DAG_id_tag_update(owner_id, 0);
+}
+
+void snode_dag_update(bContext *C, SpaceNode *snode)
+{
+	Main *bmain = CTX_data_main(C);
+
+	/* for groups, update all ID's using this */
+	if (snode->edittree!=snode->nodetree) {
+		bNodeTreeType *tti= ntreeGetType(snode->edittree->type);
+		tti->foreach_nodetree(bmain, snode->edittree, snode_dag_update_group);
+	}
+
 	DAG_id_tag_update(snode->id, 0);
 }
 
@@ -289,7 +318,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
 
-			if (scene_use_new_shading_nodes(scene)) {
+			if (BKE_scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_DIFFUSE;
 			}
@@ -347,7 +376,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	nodeAddLink(ntree, in, fromsock, out, tosock);
 
 	/* default values */
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		sock= in->inputs.first;
 		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
 
@@ -583,21 +612,6 @@ static void snode_update(SpaceNode *snode, bNode *node)
 	gnode= node_tree_get_editgroup(snode->nodetree);
 	if (gnode)
 		nodeUpdateID(snode->nodetree, gnode->id);
-}
-
-static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
-{
-	bNode *node;
-	
-	if (ntree == lookup)
-		return 1;
-	
-	for (node=ntree->nodes.first; node; node=node->next)
-		if (node->type == NODE_GROUP && node->id)
-			if (has_nodetree((bNodeTree*)node->id, lookup))
-				return 1;
-	
-	return 0;
 }
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
@@ -1316,6 +1330,7 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Background Image Zoom";
 	ot->idname = "NODE_OT_backimage_zoom";
+	ot->description = "Zoom in/out the brackground image";
 	
 	/* api callbacks */
 	ot->exec = backimage_zoom;
@@ -1482,6 +1497,7 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Backimage Sample";
 	ot->idname = "NODE_OT_backimage_sample";
+	ot->description = "Use mouse to sample background image";
 	
 	/* api callbacks */
 	ot->invoke = sample_invoke;
@@ -1593,6 +1609,7 @@ void NODE_OT_resize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Resize Node";
 	ot->idname = "NODE_OT_resize";
+	ot->description = "Resize a node";
 	
 	/* api callbacks */
 	ot->invoke = node_resize_invoke;
@@ -2575,6 +2592,7 @@ void NODE_OT_link(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Link Nodes";
 	ot->idname = "NODE_OT_link";
+	ot->description = "Use the mouse to create a link between two nodes";
 	
 	/* api callbacks */
 	ot->invoke = node_link_invoke;
@@ -2694,6 +2712,7 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	
 	ot->name = "Cut links";
 	ot->idname = "NODE_OT_links_cut";
+	ot->description = "Use the mouse to cut (remove) some links";
 	
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;
@@ -2739,6 +2758,7 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 {
 	ot->name = "Detach Links";
 	ot->idname = "NODE_OT_links_detach";
+	ot->description = "Remove all links to selected nodes, and try to connect neighbor nodes together";
 	
 	ot->exec = detach_links_exec;
 	ot->poll = ED_operator_node_active;
@@ -2933,6 +2953,7 @@ void NODE_OT_read_renderlayers(wmOperatorType *ot)
 	
 	ot->name = "Read Render Layers";
 	ot->idname = "NODE_OT_read_renderlayers";
+	ot->description = "Read all render layers of all used scenes";
 	
 	ot->exec = node_read_renderlayers_exec;
 	
@@ -2966,6 +2987,7 @@ void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 	
 	ot->name = "Read Full Sample Layers";
 	ot->idname = "NODE_OT_read_fullsamplelayers";
+	ot->description = "Read all render layers of current scene, in full sample";
 	
 	ot->exec = node_read_fullsamplelayers_exec;
 	
@@ -3014,6 +3036,7 @@ void NODE_OT_render_changed(wmOperatorType *ot)
 	
 	ot->name = "Render Changed Layer";
 	ot->idname = "NODE_OT_render_changed";
+	ot->description = "Render current scene, when input node's layer has been changed";
 	
 	ot->exec = node_render_changed_exec;
 	
@@ -3436,7 +3459,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 		errno= 0;
 
-		ima= BKE_add_image_file(path);
+		ima= BKE_image_load_exists(path);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported image format");
@@ -3446,7 +3469,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
-		ima= (Image *)find_id("IM", name);
+		ima= (Image *)BKE_libblock_find_name(ID_IM, name);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);
@@ -3572,8 +3595,9 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 void NODE_OT_new_node_tree(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "New node tree";
+	ot->name = "New Node Tree";
 	ot->idname = "NODE_OT_new_node_tree";
+	ot->description = "Create a new node tree";
 	
 	/* api callbacks */
 	ot->exec = new_node_tree_exec;

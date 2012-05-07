@@ -92,9 +92,9 @@ static int checkMissingFiles_visit_cb(void *userdata, char *UNUSED(path_dst), co
 }
 
 /* high level function */
-void checkMissingFiles(Main *bmain, ReportList *reports)
+void BLI_bpath_missing_files_check(Main *bmain, ReportList *reports)
 {
-	bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BPATH_TRAVERSE_ABS, reports);
+	BLI_bpath_traverse_main(bmain, checkMissingFiles_visit_cb, BLI_BPATH_TRAVERSE_ABS, reports);
 }
 
 typedef struct BPathRemap_Data {
@@ -129,7 +129,7 @@ static int makeFilesRelative_visit_cb(void *userdata, char *path_dst, const char
 	}
 }
 
-void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
+void BLI_bpath_relative_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
 
@@ -141,7 +141,7 @@ void makeFilesRelative(Main *bmain, const char *basedir, ReportList *reports)
 	data.basedir = basedir;
 	data.reports = reports;
 
-	bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
+	BLI_bpath_traverse_main(bmain, makeFilesRelative_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d|Changed %d|Failed %d",
@@ -171,8 +171,8 @@ static int makeFilesAbsolute_visit_cb(void *userdata, char *path_dst, const char
 	}
 }
 
-/* similar to makeFilesRelative - keep in sync! */
-void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
+/* similar to BLI_bpath_relative_convert - keep in sync! */
+void BLI_bpath_absolute_convert(Main *bmain, const char *basedir, ReportList *reports)
 {
 	BPathRemap_Data data = {NULL};
 
@@ -184,7 +184,7 @@ void makeFilesAbsolute(Main *bmain, const char *basedir, ReportList *reports)
 	data.basedir = basedir;
 	data.reports = reports;
 
-	bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
+	BLI_bpath_traverse_main(bmain, makeFilesAbsolute_visit_cb, 0, (void *)&data);
 
 	BKE_reportf(reports, data.count_failed ? RPT_WARNING : RPT_INFO,
 	            "Total files %d|Changed %d|Failed %d",
@@ -293,14 +293,14 @@ static int findMissingFiles_visit_cb(void *userdata, char *path_dst, const char 
 	}
 }
 
-void findMissingFiles(Main *bmain, const char *searchpath, ReportList *reports)
+void BLI_bpath_missing_files_find(Main *bmain, const char *searchpath, ReportList *reports)
 {
 	struct BPathFind_Data data = {NULL};
 
 	data.reports = reports;
 	BLI_split_dir_part(searchpath, data.searchdir, sizeof(data.searchdir));
 
-	bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
+	BLI_bpath_traverse_main(bmain, findMissingFiles_visit_cb, 0, (void *)&data);
 }
 
 /* Run a visitor on a string, replacing the contents of the string as needed. */
@@ -378,19 +378,19 @@ static int rewrite_path_alloc(char **path, BPathVisitor visit_cb, const char *ab
 }
 
 /* Run visitor function 'visit' on all paths contained in 'id'. */
-void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	Image *ima;
-	const char *absbase = (flag & BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
+	const char *absbase = (flag & BLI_BPATH_TRAVERSE_ABS) ? ID_BLEND_PATH(bmain, id) : NULL;
 
-	if ((flag & BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
+	if ((flag & BLI_BPATH_TRAVERSE_SKIP_LIBRARY) && id->lib) {
 		return;
 	}
 
 	switch (GS(id->name)) {
 	case ID_IM:
 		ima= (Image *)id;
-		if (ima->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+		if (ima->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 			if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
 			}
@@ -470,7 +470,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	case ID_SO:
 		{
 			bSound *sound= (bSound *)id;
-			if (sound->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (sound->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
 			}
 		}
@@ -483,7 +483,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	case ID_VF:
 		{
 			VFont *vf= (VFont *)id;
-			if (vf->packedfile == NULL || (flag & BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+			if (vf->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
 				}
@@ -523,7 +523,7 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 							int len= MEM_allocN_len(se) / sizeof(*se);
 							int i;
 
-							if (flag & BPATH_TRAVERSE_SKIP_MULTIFILE) {
+							if (flag & BLI_BPATH_TRAVERSE_SKIP_MULTIFILE) {
 								/* only operate on one path */
 								len= MIN2(1, len);
 							}
@@ -575,26 +575,26 @@ void bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int fla
 	}
 }
 
-void bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BLI_bpath_traverse_id_list(Main *bmain, ListBase *lb, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ID *id;
 	for (id = lb->first; id; id = id->next) {
-		bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
+		BLI_bpath_traverse_id(bmain, id, visit_cb, flag, bpath_user_data);
 	}
 }
 
-void bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
+void BLI_bpath_traverse_main(Main *bmain, BPathVisitor visit_cb, const int flag, void *bpath_user_data)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	int a = set_listbasepointers(bmain, lbarray);
 	while (a--) {
-		bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
+		BLI_bpath_traverse_id_list(bmain, lbarray[a], visit_cb, flag, bpath_user_data);
 	}
 }
 
 /* Rewrites a relative path to be relative to the main file - unless the path is
  * absolute, in which case it is not altered. */
-int bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
+int BLI_bpath_relocate_visitor(void *pathbase_v, char *path_dst, const char *path_src)
 {
 	/* be sure there is low chance of the path being too short */
 	char filepath[(FILE_MAXDIR * 2) + FILE_MAXFILE];

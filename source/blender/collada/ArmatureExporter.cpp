@@ -251,13 +251,13 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 }*/
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 
 	float mat[4][4];
 
 	if (bone->parent) {
 		// get bone-space matrix from armature-space
-		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, bone->parent->name);
+		bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
 
 		float invpar[4][4];
 		invert_m4_m4(invpar, parchan->pose_mat);
@@ -481,12 +481,12 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	// put armature in rest position
 	if (!(arm->flag & ARM_RESTPOS)) {
 		arm->flag |= ARM_RESTPOS;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 
 	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def)) {
-			bPoseChannel *pchan = get_pose_channel(pose, def->name);
+			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, def->name);
 
 			float mat[4][4];
 			float world[4][4];
@@ -515,7 +515,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	// back from rest positon
 	if (!(flag & ARM_RESTPOS)) {
 		arm->flag = flag;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 
 	source.finish();
@@ -525,7 +525,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 
 Bone *ArmatureExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup* def)
 {
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, def->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, def->name);
 	return pchan ? pchan->bone : NULL;
 }
 

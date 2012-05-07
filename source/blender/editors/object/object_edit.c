@@ -427,7 +427,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 	ob = base->object;
 	
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		error_libdata();
 		return;
 	}
@@ -465,11 +465,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		bArmature *arm = base->object->data;
 		if (!arm) return;
 		/*
-		 * The function object_data_is_libdata make a problem here, the
+		 * The function BKE_object_obdata_is_libdata make a problem here, the
 		 * check for ob->proxy return 0 and let blender enter to edit mode
 		 * this causes a crash when you try leave the edit mode.
 		 * The problem is that i can't remove the ob->proxy check from
-		 * object_data_is_libdata that prevent the bugfix #6614, so
+		 * BKE_object_obdata_is_libdata that prevent the bugfix #6614, so
 		 * i add this little hack here.
 		 */
 		if (arm->id.lib) {
@@ -783,7 +783,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		return;
 	}
 	else if (event == 24) {
-		/* moved to object_link_modifiers */
+		/* moved to BKE_object_link_modifiers */
 		/* copymenu_modifiers(bmain, scene, v3d, ob); */
 		return;
 	}
@@ -885,7 +885,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi = cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						BKE_text_to_curve(bmain, scene, base->object, 0); /* needed? */
+						BKE_vfont_to_curve(bmain, scene, base->object, 0); /* needed? */
 
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
@@ -1703,6 +1703,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Game Property";
 	ot->idname = "OBJECT_OT_game_property_copy";
+	ot->description = "Copy/merge/replace a game property from active object to all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_copy_exec;
@@ -1733,6 +1734,7 @@ void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Game Property";
 	ot->idname = "OBJECT_OT_game_property_clear";
+	ot->description = "Remove all game properties from all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_clear_exec;

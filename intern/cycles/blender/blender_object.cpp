@@ -34,10 +34,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::object_is_modified(BL::Object b_ob)
+bool BlenderSync::BKE_object_is_modified(BL::Object b_ob)
 {
 	/* test if we can instance or if the object is modified */
-	if(ccl::object_is_modified(b_ob, b_scene, preview)) {
+	if(ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {
 		/* modifiers */
 		return true;
 	}
@@ -286,7 +286,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	BL::Scene::objects_iterator b_ob;
 
 	for(b_scene.objects.begin(b_ob); b_ob != b_scene.objects.end(); ++b_ob) {
-		bool hide = (b_v3d)? b_ob->hide(): b_ob->hide_render();
+		bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
 		uint ob_layer = get_layer(b_ob->layers());
 
 		if(!hide && (ob_layer & scene_layer)) {

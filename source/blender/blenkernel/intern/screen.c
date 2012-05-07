@@ -297,7 +297,7 @@ void BKE_screen_area_free(ScrArea *sa)
 }
 
 /* don't free screen itself */
-void free_screen(bScreen *sc)
+void BKE_screen_free(bScreen *sc)
 {
 	ScrArea *sa, *san;
 	ARegion *ar;

@@ -99,7 +99,7 @@ typedef struct ScanFillVertLink {
 #define SF_VERT_ZERO_LEN 255
 
 /* Optionally set ScanFillEdge f to this to mark original boundary edges.
- * Only needed if there are internal diagonal edges passed to BLI_edgefill. */
+ * Only needed if there are internal diagonal edges passed to BLI_scanfill_calc. */
 #define SF_EDGE_BOUNDARY 1
 #define SF_EDGE_UNKNOWN  2    /* TODO, what is this for exactly? - need to document it! */
 
@@ -191,7 +191,7 @@ static void mem_element_reset(ScanFillContext *sf_ctx, int keep_first)
 	sf_ctx->melem__offs = 0;
 }
 
-void BLI_end_edgefill(ScanFillContext *sf_ctx)
+void BLI_scanfill_end(ScanFillContext *sf_ctx)
 {
 	 mem_element_reset(sf_ctx, FALSE);
 	
@@ -202,7 +202,7 @@ void BLI_end_edgefill(ScanFillContext *sf_ctx)
 
 /* ****  FILL ROUTINES *************************** */
 
-ScanFillVert *BLI_addfillvert(ScanFillContext *sf_ctx, const float vec[3])
+ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3])
 {
 	ScanFillVert *eve;
 	
@@ -214,7 +214,7 @@ ScanFillVert *BLI_addfillvert(ScanFillContext *sf_ctx, const float vec[3])
 	return eve;	
 }
 
-ScanFillEdge *BLI_addfilledge(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2)
+ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2)
 {
 	ScanFillEdge *newed;
 
@@ -453,7 +453,7 @@ static void testvertexnearedge(ScanFillContext *sf_ctx)
 							const float dist = dist_to_line_v2(eed->v1->xy, eed->v2->xy, eve->xy);
 							if (dist < SF_EPSILON) {
 								/* new edge */
-								ed1 = BLI_addfilledge(sf_ctx, eed->v1, eve);
+								ed1 = BLI_scanfill_edge_add(sf_ctx, eed->v1, eve);
 								
 								/* printf("fill: vertex near edge %x\n",eve); */
 								ed1->f = 0;
@@ -681,7 +681,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					/* make new edge, and start over */
 					/* printf("add new edge %x %x and start again\n",v2,sc1->v1); */
 
-					ed3 = BLI_addfilledge(sf_ctx, v2, sc1->v1);
+					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, sc1->v1);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
 					BLI_insertlinkbefore((ListBase *)&(sc->first), ed2, ed3);
 					ed3->v2->f = SF_VERT_UNKNOWN;
@@ -709,7 +709,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					}
 
 					/* new edge */
-					ed3 = BLI_addfilledge(sf_ctx, v1, v3);
+					ed3 = BLI_scanfill_edge_add(sf_ctx, v1, v3);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
 					ed3->f = SF_EDGE_UNKNOWN;
 					ed3->v1->h++; 
@@ -764,19 +764,19 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 }
 
 
-int BLI_begin_edgefill(ScanFillContext *sf_ctx)
+int BLI_scanfill_begin(ScanFillContext *sf_ctx)
 {
 	memset(sf_ctx, 0, sizeof(*sf_ctx));
 
 	return 1;
 }
 
-int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup)
+int BLI_scanfill_calc(ScanFillContext *sf_ctx, const short do_quad_tri_speedup)
 {
-	return BLI_edgefill_ex(sf_ctx, do_quad_tri_speedup, NULL);
+	return BLI_scanfill_calc_ex(sf_ctx, do_quad_tri_speedup, NULL);
 }
 
-int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, const float nor_proj[3])
+int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup, const float nor_proj[3])
 {
 	/*
 	 * - fill works with its own lists, so create that first (no faces!)

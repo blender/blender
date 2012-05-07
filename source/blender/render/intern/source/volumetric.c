@@ -234,9 +234,9 @@ static void vol_get_precached_scattering(Render *re, ShadeInput *shi, float scat
 	sample_co[1] = (world_co[1] - bbmin[1]) / dim[1];
 	sample_co[2] = (world_co[2] - bbmin[2]) / dim[2];
 
-	scatter_col[0] = voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
-	scatter_col[1] = voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
-	scatter_col[2] = voxel_sample_triquadratic(vp->data_b, vp->res, sample_co);
+	scatter_col[0] = BLI_voxel_sample_triquadratic(vp->data_r, vp->res, sample_co);
+	scatter_col[1] = BLI_voxel_sample_triquadratic(vp->data_g, vp->res, sample_co);
+	scatter_col[2] = BLI_voxel_sample_triquadratic(vp->data_b, vp->res, sample_co);
 }
 
 /* Meta object density, brute force for now 

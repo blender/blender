@@ -1407,7 +1407,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 							/* index of bundle is 1<<16-based. if there's no "bone" index
 							 * in hight word, this buffer value belongs to camera,. not to bundle */
 							if (buffer[4 * i + 3] & 0xFFFF0000) {
-								MovieClip *clip = object_get_movieclip(scene, basact->object, 0);
+								MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, 0);
 								MovieTracking *tracking = &clip->tracking;
 								ListBase *tracksbase;
 								MovieTrackingTrack *track;

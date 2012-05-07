@@ -144,7 +144,7 @@ static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
 		if (ob->pose) {
-			bPoseChannel *pchan= get_pose_channel(ob->pose, agrp->name);
+			bPoseChannel *pchan= BKE_pose_channel_find_name(ob->pose, agrp->name);
 			
 			/* if one matches, sync the selection status */
 			if (pchan) {
@@ -179,7 +179,7 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			
 			/* get bone-name, and check if this bone is selected */
 			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
-			pchan= get_pose_channel(ob->pose, bone_name);
+			pchan= BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
 			/* F-Curve selection depends on whether the bone is selected */

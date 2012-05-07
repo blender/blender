@@ -556,11 +556,11 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_add_image_file(path);
+		ima = BKE_image_load_exists(path);
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)find_id("IM", name);
+		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 	}
 	
 	if (!ima) {

@@ -203,7 +203,7 @@ MetaBall *BKE_metaball_add(const char *name)
 {
 	MetaBall *mb;
 	
-	mb= alloc_libblock(&G.main->mball, ID_MB, name);
+	mb= BKE_libblock_alloc(&G.main->mball, ID_MB, name);
 	
 	mb->size[0]= mb->size[1]= mb->size[2]= 1.0;
 	mb->texflag= MB_AUTOSPACE;
@@ -220,7 +220,7 @@ MetaBall *BKE_metaball_copy(MetaBall *mb)
 	MetaBall *mbn;
 	int a;
 	
-	mbn= copy_libblock(&mb->id);
+	mbn= BKE_libblock_copy(&mb->id);
 
 	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
@@ -387,7 +387,7 @@ void BKE_metaball_tex_space_calc(Object *ob)
 	size[1]= (max[1]-min[1])/2.0f;
 	size[2]= (max[2]-min[2])/2.0f;
 #endif
-	boundbox_set_from_min_max(bb, min, max);
+	BKE_boundbox_init_from_minmax(bb, min, max);
 }
 
 float *BKE_metaball_make_orco(Object *ob, ListBase *dispbase)
@@ -482,11 +482,11 @@ void BKE_metaball_properties_copy(Scene *scene, Object *active_object)
 	
 	BLI_split_name_num(basisname, &basisnr, active_object->id.name+2, '.');
 
-	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if (F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
+	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
+	if (F_ERROR==BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
 		return;
 	
-	while (next_object(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
 		if (ob->type==OB_MBALL) {
 			if (ob != active_object) {
 				BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
@@ -528,11 +528,11 @@ Object *BKE_metaball_basis_find(Scene *scene, Object *basis)
 	BLI_split_name_num(basisname, &basisnr, basis->id.name+2, '.');
 	totelem= 0;
 
-	/* XXX recursion check, see scene.c, just too simple code this next_object() */
-	if (F_ERROR==next_object(&sce_iter, 0, NULL, NULL))
+	/* XXX recursion check, see scene.c, just too simple code this BKE_scene_base_iter_next() */
+	if (F_ERROR==BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL))
 		return NULL;
 	
-	while (next_object(&sce_iter, 1, &base, &ob)) {
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &ob)) {
 		
 		if (ob->type==OB_MBALL) {
 			if (ob==bob) {
@@ -1701,15 +1701,15 @@ static float init_meta(Scene *scene, Object *ob)	/* return totsize */
 	int a, obnr, zero_size=0;
 	char obname[MAX_ID_NAME];
 	
-	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from next_object */
+	copy_m4_m4(obmat, ob->obmat);	/* to cope with duplicators from BKE_scene_base_iter_next */
 	invert_m4_m4(obinv, ob->obmat);
 	a= 0;
 	
 	BLI_split_name_num(obname, &obnr, ob->id.name+2, '.');
 	
 	/* make main array */
-	next_object(&sce_iter, 0, NULL, NULL);
-	while (next_object(&sce_iter, 1, &base, &bob)) {
+	BKE_scene_base_iter_next(&sce_iter, 0, NULL, NULL);
+	while (BKE_scene_base_iter_next(&sce_iter, 1, &base, &bob)) {
 
 		if (bob->type==OB_MBALL) {
 			zero_size= 0;
