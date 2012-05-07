@@ -2154,7 +2154,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life;
+	int selected, second_life, apply_modifiers;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2162,13 +2162,16 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	}
 
 	RNA_string_get(op->ptr, "filepath", filename);
-	selected = RNA_boolean_get(op->ptr, "selected");
-	second_life = RNA_boolean_get(op->ptr, "second_life");
+
+	/* Options panel */
+	selected        = RNA_boolean_get(op->ptr, "selected");
+	second_life     = RNA_boolean_get(op->ptr, "second_life");
+	apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	if (collada_export(CTX_data_scene(C), filename, selected, second_life)) {
+	if (collada_export(CTX_data_scene(C), filename, selected, apply_modifiers, second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2187,8 +2190,10 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
+	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");
+	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
+	                "Apply modifiers (Preview Resolution)");
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
 }

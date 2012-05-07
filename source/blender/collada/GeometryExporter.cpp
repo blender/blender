@@ -36,10 +36,18 @@
 #include "GeometryExporter.h"
 
 #include "DNA_meshdata_types.h"
+
+extern "C" {
+    #include "BKE_DerivedMesh.h"
+	#include "BKE_main.h"
+	#include "BKE_global.h"
+	#include "BKE_library.h"
+}
+
+
 #include "BKE_customdata.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
-
 #include "collada_internal.h"
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
@@ -57,6 +65,25 @@ void GeometryExporter::exportGeom(Scene *sce)
 	closeLibrary();
 }
 
+Mesh * GeometryExporter::get_mesh(Object *ob, int apply_modifiers)
+{
+	Mesh *tmpmesh;
+	if (!apply_modifiers)
+	{
+		tmpmesh = (Mesh*)ob->data;
+	}
+	else
+	{
+		CustomDataMask mask = CD_MASK_MESH;
+		DerivedMesh *dm     = mesh_create_derived_view(mScene, ob, mask);
+		tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
+		DM_to_mesh(dm, tmpmesh, ob);
+		dm->release(dm);
+		BKE_mesh_tessface_ensure(tmpmesh);
+	}
+	return tmpmesh;
+}
+
 void GeometryExporter::operator()(Object *ob)
 {
 	// XXX don't use DerivedMesh, Mesh instead?
@@ -64,8 +91,8 @@ void GeometryExporter::operator()(Object *ob)
 #if 0		
 	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 #endif
-	Mesh *me = (Mesh*)ob->data;
-	BKE_mesh_tessface_ensure(me);
+
+	Mesh *me = get_mesh(ob, this->export_settings->apply_modifiers);
 
 	std::string geom_id = get_geometry_id(ob);
 	std::string geom_name = id_name(ob->data);
@@ -110,11 +137,11 @@ void GeometryExporter::operator()(Object *ob)
 	// XXX slow		
 	if (ob->totcol) {
 		for (int a = 0; a < ob->totcol; a++)	{
-			createPolylist(a, has_uvs, has_color, ob, geom_id, norind);
+			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
 	else {
-		createPolylist(0, has_uvs, has_color, ob, geom_id, norind);
+		createPolylist(0, has_uvs, has_color, ob, me, geom_id, norind);
 	}
 	
 	closeMesh();
@@ -124,7 +151,12 @@ void GeometryExporter::operator()(Object *ob)
 	}
 	
 	closeGeometry();
-	
+
+	if (this->export_settings->apply_modifiers)
+	{
+		BKE_libblock_free_us(&(G.main->mesh), me);
+	}
+
 #if 0
 	dm->release(dm);
 #endif
@@ -135,10 +167,10 @@ void GeometryExporter::createPolylist(short material_index,
 					bool has_uvs,
 					bool has_color,
 					Object *ob,
+					Mesh *me,
 					std::string& geom_id,
 					std::vector<Face>& norind)
 {
-	Mesh *me = (Mesh*)ob->data;
 	MFace *mfaces = me->mface;
 	int totfaces = me->totface;
 
