@@ -1280,7 +1280,7 @@ GHOST_TUns8 GHOST_SystemCocoa::handleQuitRequest()
 	GHOST_Window* window = (GHOST_Window*)m_windowManager->getActiveWindow();
 	
 	//Discard quit event if we are in cursor grab sequence
-	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+	if (window && window->getCursorGrabModeIsWarp())
 		return GHOST_kExitCancel;
 	
 	//Check open windows if some changes are not saved
@@ -1329,7 +1329,7 @@ bool GHOST_SystemCocoa::handleOpenDocumentRequest(void *filepathStr)
 	}	
 	
 	//Discard event if we are in cursor grab sequence, it'll lead to "stuck cursor" situation if the alert panel is raised
-	if (window && (window->getCursorGrabMode() != GHOST_kGrabDisable) && (window->getCursorGrabMode() != GHOST_kGrabNormal))
+	if (window && window->getCursorGrabModeIsWarp())
 		return GHOST_kExitCancel;
 
 	//Check open windows if some changes are not saved
@@ -1488,7 +1488,16 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 			}
 			
 		case NSMouseMoved:
-				switch (window->getCursorGrabMode()) {
+				GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
+
+				/* TODO: CHECK IF THIS IS A TABLET EVENT */
+				bool is_tablet = false;
+
+				if (is_tablet && window->getCursorGrabModeIsWarp()) {
+					grab_mode = GHOST_kGrabDisable;
+				}
+
+				switch (grab_mode) {
 					case GHOST_kGrabHide: //Cursor hidden grab operation : no cursor move
 					{
 						GHOST_TInt32 x_warp, y_warp, x_accum, y_accum, x, y;

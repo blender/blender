@@ -60,7 +60,7 @@
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 
-static ListBase ttfdata= {NULL, NULL};
+static ListBase ttfdata = {NULL, NULL};
 
 /* The vfont code */
 void BKE_vfont_free(struct VFont *vf)
@@ -90,13 +90,13 @@ void BKE_vfont_free(struct VFont *vf)
 	}
 }
 
-static void *builtin_font_data= NULL;
-static int builtin_font_size= 0;
+static void *builtin_font_data = NULL;
+static int builtin_font_size = 0;
 
 void BKE_vfont_builtin_register(void *mem, int size)
 {
-	builtin_font_data= mem;
-	builtin_font_size= size;
+	builtin_font_data = mem;
+	builtin_font_size = size;
 }
 
 static PackedFile *get_builtin_packedfile(void)
@@ -107,7 +107,7 @@ static PackedFile *get_builtin_packedfile(void)
 		return NULL;
 	}
 	else {
-		void *mem= MEM_mallocN(builtin_font_size, "vfd_builtin");
+		void *mem = MEM_mallocN(builtin_font_size, "vfd_builtin");
 
 		memcpy(mem, builtin_font_data, builtin_font_size);
 	
@@ -119,10 +119,10 @@ void BKE_vfont_free_global_ttf(void)
 {
 	struct TmpFont *tf;
 
-	for (tf= ttfdata.first; tf; tf= tf->next) {
-		if (tf->pf) freePackedFile(tf->pf); /* NULL when the font file can't be found on disk */
-		tf->pf= NULL;
-		tf->vfont= NULL;
+	for (tf = ttfdata.first; tf; tf = tf->next) {
+		if (tf->pf) freePackedFile(tf->pf);  /* NULL when the font file can't be found on disk */
+		tf->pf = NULL;
+		tf->vfont = NULL;
 	}
 	BLI_freelistN(&ttfdata);
 }
@@ -131,7 +131,7 @@ struct TmpFont *BKE_vfont_find_tmpfont(VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
 	
-	if (vfont==NULL) return NULL;
+	if (vfont == NULL) return NULL;
 	
 	// Try finding the font from font list
 	tmpfnt = ttfdata.first;
@@ -148,7 +148,7 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	struct TmpFont *tmpfnt = NULL;
 	PackedFile *tpf;
 	
-	if (vfont==NULL) return NULL;
+	if (vfont == NULL) return NULL;
 	
 	// Try finding the font from font list
 	tmpfnt = BKE_vfont_find_tmpfont(vfont);
@@ -157,37 +157,37 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 	if (!vfont->data) {
 		PackedFile *pf;
 		
-		if (strcmp(vfont->name, FO_BUILTIN_NAME)==0) {
-			pf= get_builtin_packedfile();
+		if (strcmp(vfont->name, FO_BUILTIN_NAME) == 0) {
+			pf = get_builtin_packedfile();
 		}
 		else {
 			if (vfont->packedfile) {
-				pf= vfont->packedfile;
+				pf = vfont->packedfile;
 				
 				// We need to copy a tmp font to memory unless it is already there
 				if (!tmpfnt) {
-					tpf= MEM_callocN(sizeof(*tpf), "PackedFile");
-					tpf->data= MEM_mallocN(pf->size, "packFile");
-					tpf->size= pf->size;
+					tpf = MEM_callocN(sizeof(*tpf), "PackedFile");
+					tpf->data = MEM_mallocN(pf->size, "packFile");
+					tpf->size = pf->size;
 					memcpy(tpf->data, pf->data, pf->size);
 					
 					// Add temporary packed file to globals
-					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
-					tmpfnt->pf= tpf;
-					tmpfnt->vfont= vfont;
+					tmpfnt = (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
+					tmpfnt->pf = tpf;
+					tmpfnt->vfont = vfont;
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			}
 			else {
-				pf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
+				pf = newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 
 				if (!tmpfnt) {
-					tpf= newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
+					tpf = newPackedFile(NULL, vfont->name, ID_BLEND_PATH(bmain, &vfont->id));
 					
 					// Add temporary packed file to globals
-					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
-					tmpfnt->pf= tpf;
-					tmpfnt->vfont= vfont;
+					tmpfnt = (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
+					tmpfnt->pf = tpf;
+					tmpfnt->vfont = vfont;
 					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			}
@@ -195,12 +195,12 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 				printf("Font file doesn't exist: %s\n", vfont->name);
 
 				strcpy(vfont->name, FO_BUILTIN_NAME);
-				pf= get_builtin_packedfile();
+				pf = get_builtin_packedfile();
 			}
 		}
 		
 		if (pf) {
-			vfont->data= BLI_vfontdata_from_freetypefont(pf);
+			vfont->data = BLI_vfontdata_from_freetypefont(pf);
 			if (pf != vfont->packedfile) {
 				freePackedFile(pf);
 			}
@@ -213,17 +213,17 @@ static VFontData *vfont_get_data(Main *bmain, VFont *vfont)
 VFont *BKE_vfont_load(Main *bmain, const char *name)
 {
 	char filename[FILE_MAXFILE];
-	VFont *vfont= NULL;
+	VFont *vfont = NULL;
 	PackedFile *pf;
 	PackedFile *tpf = NULL;	
 	int is_builtin;
 	struct TmpFont *tmpfnt;
 	
-	if (strcmp(name, FO_BUILTIN_NAME)==0) {
+	if (strcmp(name, FO_BUILTIN_NAME) == 0) {
 		BLI_strncpy(filename, name, sizeof(filename));
 		
-		pf= get_builtin_packedfile();
-		is_builtin= 1;
+		pf = get_builtin_packedfile();
+		is_builtin = 1;
 	}
 	else {
 		char dir[FILE_MAXDIR];
@@ -231,23 +231,23 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 		BLI_strncpy(dir, name, sizeof(dir));
 		BLI_splitdirstring(dir, filename);
 
-		pf= newPackedFile(NULL, name, bmain->name);
-		tpf= newPackedFile(NULL, name, bmain->name);
+		pf = newPackedFile(NULL, name, bmain->name);
+		tpf = newPackedFile(NULL, name, bmain->name);
 		
-		is_builtin= 0;
+		is_builtin = 0;
 	}
 
 	if (pf) {
 		VFontData *vfd;
 
-		vfd= BLI_vfontdata_from_freetypefont(pf);
+		vfd = BLI_vfontdata_from_freetypefont(pf);
 		if (vfd) {
 			vfont = BKE_libblock_alloc(&bmain->vfont, ID_VF, filename);
 			vfont->data = vfd;
 
 			/* if there's a font name, use it for the ID name */
 			if (vfd->name[0] != '\0') {
-				BLI_strncpy(vfont->id.name+2, vfd->name, sizeof(vfont->id.name)-2);
+				BLI_strncpy(vfont->id.name + 2, vfd->name, sizeof(vfont->id.name) - 2);
 			}
 			BLI_strncpy(vfont->name, name, sizeof(vfont->name));
 
@@ -258,9 +258,9 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 			
 			// Do not add FO_BUILTIN_NAME to temporary listbase
 			if (strcmp(filename, FO_BUILTIN_NAME)) {
-				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
-				tmpfnt->pf= tpf;
-				tmpfnt->vfont= vfont;
+				tmpfnt = (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
+				tmpfnt->pf = tpf;
+				tmpfnt->vfont = vfont;
 				BLI_addtail(&ttfdata, tmpfnt);
 			}			
 		}
@@ -278,12 +278,12 @@ VFont *BKE_vfont_load(Main *bmain, const char *name)
 
 static VFont *which_vfont(Curve *cu, CharInfo *info)
 {
-	switch (info->flag & (CU_CHINFO_BOLD|CU_CHINFO_ITALIC)) {
+	switch (info->flag & (CU_CHINFO_BOLD | CU_CHINFO_ITALIC)) {
 		case CU_CHINFO_BOLD:
 			if (cu->vfontb) return(cu->vfontb); else return(cu->vfont);
 		case CU_CHINFO_ITALIC:
 			if (cu->vfonti) return(cu->vfonti); else return(cu->vfont);
-		case (CU_CHINFO_BOLD|CU_CHINFO_ITALIC):
+		case (CU_CHINFO_BOLD | CU_CHINFO_ITALIC):
 			if (cu->vfontbi) return(cu->vfontbi); else return(cu->vfont);
 		default:
 			return(cu->vfont);
@@ -294,8 +294,8 @@ VFont *BKE_vfont_builtin_get(void)
 {
 	VFont *vf;
 	
-	for (vf= G.main->vfont.first; vf; vf= vf->id.next)
-		if (strcmp(vf->name, FO_BUILTIN_NAME)==0)
+	for (vf = G.main->vfont.first; vf; vf = vf->id.next)
+		if (strcmp(vf->name, FO_BUILTIN_NAME) == 0)
 			return vf;
 	
 	return BKE_vfont_load(G.main, FO_BUILTIN_NAME);
@@ -303,7 +303,7 @@ VFont *BKE_vfont_builtin_get(void)
 
 static VChar *find_vfont_char(VFontData *vfd, intptr_t character)
 {
-	VChar *che= NULL;
+	VChar *che = NULL;
 
 	for (che = vfd->characters.first; che; che = che->next) {
 		if (che->index == character)
@@ -317,21 +317,21 @@ static void build_underline(Curve *cu, float x1, float y1, float x2, float y2, i
 	Nurb *nu2;
 	BPoint *bp;
 	
-	nu2 =(Nurb*) MEM_callocN(sizeof(Nurb), "underline_nurb");
+	nu2 = (Nurb *) MEM_callocN(sizeof(Nurb), "underline_nurb");
 	if (nu2 == NULL) return;
-	nu2->resolu= cu->resolu;
+	nu2->resolu = cu->resolu;
 	nu2->bezt = NULL;
 	nu2->knotsu = nu2->knotsv = NULL;
-	nu2->flag= CU_2D;
-	nu2->charidx = charidx+1000;
-	if (mat_nr > 0) nu2->mat_nr= mat_nr-1;
+	nu2->flag = CU_2D;
+	nu2->charidx = charidx + 1000;
+	if (mat_nr > 0) nu2->mat_nr = mat_nr - 1;
 	nu2->pntsu = 4;
 	nu2->pntsv = 1;
 	nu2->orderu = 4;
 	nu2->orderv = 1;
 	nu2->flagu = CU_NURB_CYCLIC;
 
-	bp = (BPoint*)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
+	bp = (BPoint *)MEM_callocN(4 * sizeof(BPoint), "underline_bp");
 	if (bp == NULL) {
 		MEM_freeN(nu2);
 		return;
@@ -368,27 +368,27 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	VChar *che = NULL;
 	int i;
 
-	vfd= vfont_get_data(bmain, which_vfont(cu, info));
+	vfd = vfont_get_data(bmain, which_vfont(cu, info));
 	if (!vfd) return;
 
 #if 0
 	if (cu->selend < cu->selstart) {
-		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart-2)))
-			sel= 1;
+		if ((charidx >= (cu->selend)) && (charidx <= (cu->selstart - 2)))
+			sel = 1;
 	}
 	else {
-		if ((charidx >= (cu->selstart-1)) && (charidx <= (cu->selend-1)))
-			sel= 1;
+		if ((charidx >= (cu->selstart - 1)) && (charidx <= (cu->selend - 1)))
+			sel = 1;
 	}
 #endif
 
 	/* make a copy at distance ofsx, ofsy with shear*/
-	fsize= cu->fsize;
-	shear= cu->shear;
-	si= (float)sin(rot);
-	co= (float)cos(rot);
+	fsize = cu->fsize;
+	shear = cu->shear;
+	si = (float)sin(rot);
+	co = (float)cos(rot);
 
-	che= find_vfont_char(vfd, character);
+	che = find_vfont_char(vfd, character);
 	
 	// Select the glyph data
 	if (che)
@@ -398,25 +398,25 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 	while (nu1) {
 		bezt1 = nu1->bezt;
 		if (bezt1) {
-			nu2 =(Nurb*) MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
+			nu2 = (Nurb *) MEM_mallocN(sizeof(Nurb), "duplichar_nurb");
 			if (nu2 == NULL) break;
 			memcpy(nu2, nu1, sizeof(struct Nurb));
-			nu2->resolu= cu->resolu;
+			nu2->resolu = cu->resolu;
 			nu2->bp = NULL;
 			nu2->knotsu = nu2->knotsv = NULL;
-			nu2->flag= CU_SMOOTH;
+			nu2->flag = CU_SMOOTH;
 			nu2->charidx = charidx;
 			if (info->mat_nr > 0) {
-				nu2->mat_nr= info->mat_nr-1;
+				nu2->mat_nr = info->mat_nr - 1;
 			}
 			else {
-				nu2->mat_nr= 0;
+				nu2->mat_nr = 0;
 			}
 			/* nu2->trim.first = 0; */
 			/* nu2->trim.last = 0; */
 			i = nu2->pntsu;
 
-			bezt2 = (BezTriple*)MEM_mallocN(i * sizeof(BezTriple), "duplichar_bezt2");
+			bezt2 = (BezTriple *)MEM_mallocN(i * sizeof(BezTriple), "duplichar_bezt2");
 			if (bezt2 == NULL) {
 				MEM_freeN(nu2);
 				break;
@@ -427,7 +427,7 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			if (shear != 0.0f) {
 				bezt2 = nu2->bezt;
 				
-				for (i= nu2->pntsu; i > 0; i--) {
+				for (i = nu2->pntsu; i > 0; i--) {
 					bezt2->vec[0][0] += shear * bezt2->vec[0][1];
 					bezt2->vec[1][0] += shear * bezt2->vec[1][1];
 					bezt2->vec[2][0] += shear * bezt2->vec[2][1];
@@ -435,19 +435,19 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 				}
 			}
 			if (rot != 0.0f) {
-				bezt2= nu2->bezt;
-				for (i=nu2->pntsu; i > 0; i--) {
-					fp= bezt2->vec[0];
-					
-					x= fp[0];
-					fp[0]= co*x + si*fp[1];
-					fp[1]= -si*x + co*fp[1];
-					x= fp[3];
-					fp[3]= co*x + si*fp[4];
-					fp[4]= -si*x + co*fp[4];
-					x= fp[6];
-					fp[6]= co*x + si*fp[7];
-					fp[7]= -si*x + co*fp[7];
+				bezt2 = nu2->bezt;
+				for (i = nu2->pntsu; i > 0; i--) {
+					fp = bezt2->vec[0];
+
+					x = fp[0];
+					fp[0] = co * x + si * fp[1];
+					fp[1] = -si * x + co * fp[1];
+					x = fp[3];
+					fp[3] = co * x + si * fp[4];
+					fp[4] = -si * x + co * fp[4];
+					x = fp[6];
+					fp[6] = co * x + si * fp[7];
+					fp[7] = -si * x + co * fp[7];
 
 					bezt2++;
 				}
@@ -455,9 +455,9 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			bezt2 = nu2->bezt;
 
 			if (info->flag & CU_CHINFO_SMALLCAPS_CHECK) {
-				const float sca= cu->smallcaps_scale;
-				for (i= nu2->pntsu; i > 0; i--) {
-					fp= bezt2->vec[0];
+				const float sca = cu->smallcaps_scale;
+				for (i = nu2->pntsu; i > 0; i--) {
+					fp = bezt2->vec[0];
 					fp[0] *= sca;
 					fp[1] *= sca;
 					fp[3] *= sca;
@@ -469,14 +469,14 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 			}
 			bezt2 = nu2->bezt;
 
-			for (i= nu2->pntsu; i > 0; i--) {
-				fp= bezt2->vec[0];
-				fp[0]= (fp[0]+ofsx)*fsize;
-				fp[1]= (fp[1]+ofsy)*fsize;
-				fp[3]= (fp[3]+ofsx)*fsize;
-				fp[4]= (fp[4]+ofsy)*fsize;
-				fp[6]= (fp[6]+ofsx)*fsize;
-				fp[7]= (fp[7]+ofsy)*fsize;
+			for (i = nu2->pntsu; i > 0; i--) {
+				fp = bezt2->vec[0];
+				fp[0] = (fp[0] + ofsx) * fsize;
+				fp[1] = (fp[1] + ofsy) * fsize;
+				fp[3] = (fp[3] + ofsx) * fsize;
+				fp[4] = (fp[4] + ofsy) * fsize;
+				fp[6] = (fp[6] + ofsx) * fsize;
+				fp[7] = (fp[7] + ofsy) * fsize;
 				bezt2++;
 			}
 			
@@ -489,19 +489,19 @@ static void buildchar(Main *bmain, Curve *cu, unsigned long character, CharInfo 
 
 int BKE_vfont_select_get(Object *ob, int *start, int *end)
 {
-	Curve *cu= ob->data;
+	Curve *cu = ob->data;
 	
-	if (cu->editfont==NULL || ob->type != OB_FONT) return 0;
+	if (cu->editfont == NULL || ob->type != OB_FONT) return 0;
 
 	if (cu->selstart == 0) return 0;
 	if (cu->selstart <= cu->selend) {
-		*start = cu->selstart-1;
-		*end = cu->selend-1;
+		*start = cu->selstart - 1;
+		*end = cu->selend - 1;
 		return 1;
 	}
 	else {
 		*start = cu->selend;
-		*end = cu->selstart-2;
+		*end = cu->selstart - 2;
 		return -1;
 	}
 }
@@ -520,32 +520,31 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
-{
+struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode){
 	VFont *vfont, *oldvfont;
-	VFontData *vfd= NULL;
+	VFontData *vfd = NULL;
 	Curve *cu;
 	CharInfo *info = NULL, *custrinfo;
 	TextBox *tb;
 	VChar *che;
-	struct chartrans *chartransdata=NULL, *ct;
+	struct chartrans *chartransdata = NULL, *ct;
 	float *f, xof, yof, xtrax, linedist, *linedata, *linedata2, *linedata3, *linedata4;
-	float twidth, maxlen= 0;
+	float twidth, maxlen = 0;
 	int i, slen, j;
 	int curbox;
 	int selstart, selend;
 	int utf8len;
-	short cnr=0, lnr=0, wsnr= 0;
+	short cnr = 0, lnr = 0, wsnr = 0;
 	wchar_t *mem, *tmp, ascii;
 
 	/* renark: do calculations including the trailing '\0' of a string
 	 * because the cursor can be at that location */
 
-	if (ob->type!=OB_FONT) return NULL;
+	if (ob->type != OB_FONT) return NULL;
 
 	// Set font data
-	cu= (Curve *) ob->data;
-	vfont= cu->vfont;
+	cu = (Curve *) ob->data;
+	vfont = cu->vfont;
 	
 	if (cu->str == NULL) return NULL;
 	if (vfont == NULL) return NULL;
@@ -562,17 +561,17 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	if (cu->ulheight == 0.0f)
 		cu->ulheight = 0.05f;
 	
-	if (cu->strinfo==NULL)	/* old file */
-		cu->strinfo = MEM_callocN((slen+4) * sizeof(CharInfo), "strinfo compat");
+	if (cu->strinfo == NULL) /* old file */
+		cu->strinfo = MEM_callocN((slen + 4) * sizeof(CharInfo), "strinfo compat");
 	
-	custrinfo= cu->strinfo;
+	custrinfo = cu->strinfo;
 	if (cu->editfont)
-		custrinfo= cu->editfont->textbufinfo;
+		custrinfo = cu->editfont->textbufinfo;
 	
-	if (cu->tb==NULL)
-		cu->tb= MEM_callocN(MAXTEXTBOX*sizeof(TextBox), "TextBox compat");
+	if (cu->tb == NULL)
+		cu->tb = MEM_callocN(MAXTEXTBOX * sizeof(TextBox), "TextBox compat");
 
-	vfd= vfont_get_data(bmain, vfont);
+	vfd = vfont_get_data(bmain, vfont);
 
 	/* The VFont Data can not be found */
 	if (!vfd) {
@@ -583,7 +582,7 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 
 	/* calc offset and rotation of each char */
 	ct = chartransdata =
-		(struct chartrans*)MEM_callocN((slen+1)* sizeof(struct chartrans), "buildtext");
+	         (struct chartrans *)MEM_callocN((slen + 1) * sizeof(struct chartrans), "buildtext");
 
 	/* We assume the worst case: 1 character per line (is freed at end anyway) */
 
@@ -592,57 +591,57 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	linedata3 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext4");
 	linedata4 = MEM_callocN(sizeof(float) * (slen * 2 + 1), "buildtext5");
 	
-	linedist= cu->linedist;
+	linedist = cu->linedist;
 	
-	xof= cu->xof + (cu->tb[0].x/cu->fsize);
-	yof= cu->yof + (cu->tb[0].y/cu->fsize);
+	xof = cu->xof + (cu->tb[0].x / cu->fsize);
+	yof = cu->yof + (cu->tb[0].y / cu->fsize);
 
-	xtrax= 0.5f*cu->spacing-0.5f;
+	xtrax = 0.5f * cu->spacing - 0.5f;
 
 	oldvfont = NULL;
 
-	for (i=0; i<slen; i++) custrinfo[i].flag &= ~(CU_CHINFO_WRAP|CU_CHINFO_SMALLCAPS_CHECK);
+	for (i = 0; i < slen; i++) custrinfo[i].flag &= ~(CU_CHINFO_WRAP | CU_CHINFO_SMALLCAPS_CHECK);
 
 	if (cu->selboxes) MEM_freeN(cu->selboxes);
 	cu->selboxes = NULL;
 	if (BKE_vfont_select_get(ob, &selstart, &selend))
-		cu->selboxes = MEM_callocN((selend-selstart+1)*sizeof(SelBox), "font selboxes");
+		cu->selboxes = MEM_callocN((selend - selstart + 1) * sizeof(SelBox), "font selboxes");
 
 	tb = &(cu->tb[0]);
-	curbox= 0;
-	for (i = 0 ; i<=slen ; i++) {
-	makebreak:
+	curbox = 0;
+	for (i = 0; i <= slen; i++) {
+makebreak:
 		// Characters in the list
 		info = &(custrinfo[i]);
 		ascii = mem[i];
 		if (info->flag & CU_CHINFO_SMALLCAPS) {
 			ascii = towupper(ascii);
 			if (mem[i] != ascii) {
-				mem[i]= ascii;
+				mem[i] = ascii;
 				info->flag |= CU_CHINFO_SMALLCAPS_CHECK;
 			}
 		}
 
 		vfont = which_vfont(cu, info);
 		
-		if (vfont==NULL) break;
+		if (vfont == NULL) break;
 
-		che= find_vfont_char(vfd, ascii);
+		che = find_vfont_char(vfd, ascii);
 
 		/*
 		 * The character wasn't in the current curve base so load it
 		 * But if the font is FO_BUILTIN_NAME then do not try loading since
 		 * whole font is in the memory already
 		 */
-		if (che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME))	{
+		if (che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME))    {
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 
 		/* Try getting the character again from the list */
-		che= find_vfont_char(vfd, ascii);
+		che = find_vfont_char(vfd, ascii);
 
 		/* No VFont found */
-		if (vfont==NULL) {
+		if (vfont == NULL) {
 			if (mem)
 				MEM_freeN(mem);
 			MEM_freeN(chartransdata);
@@ -650,7 +649,7 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 		}
 
 		if (vfont != oldvfont) {
-			vfd= vfont_get_data(bmain, vfont);
+			vfd = vfont_get_data(bmain, vfont);
 			oldvfont = vfont;
 		}
 
@@ -665,24 +664,24 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 		twidth = char_width(cu, che, info);
 
 		// Calculate positions
-		if ((tb->w != 0.0f) && (ct->dobreak==0) && ((xof-(tb->x/cu->fsize)+twidth)*cu->fsize) > tb->w + cu->xof*cu->fsize) {
-	//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
-			for (j=i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak==0); j--) {
-				if (mem[j]==' ' || mem[j]=='-') {
-					ct -= (i-(j-1));
-					cnr -= (i-(j-1));
+		if ((tb->w != 0.0f) && (ct->dobreak == 0) && ((xof - (tb->x / cu->fsize) + twidth) * cu->fsize) > tb->w + cu->xof * cu->fsize) {
+			//		fprintf(stderr, "linewidth exceeded: %c%c%c...\n", mem[i], mem[i+1], mem[i+2]);
+			for (j = i; j && (mem[j] != '\n') && (mem[j] != '\r') && (chartransdata[j].dobreak == 0); j--) {
+				if (mem[j] == ' ' || mem[j] == '-') {
+					ct -= (i - (j - 1));
+					cnr -= (i - (j - 1));
 					if (mem[j] == ' ') wsnr--;
 					if (mem[j] == '-') wsnr++;
-					i = j-1;
+					i = j - 1;
 					xof = ct->xof;
 					ct[1].dobreak = 1;
-					custrinfo[i+1].flag |= CU_CHINFO_WRAP;
+					custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
 					goto makebreak;
 				}
 				if (chartransdata[j].dobreak) {
-	//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
-					ct->dobreak= 1;
-					custrinfo[i+1].flag |= CU_CHINFO_WRAP;
+					//				fprintf(stderr, "word too long: %c%c%c...\n", mem[j], mem[j+1], mem[j+2]);
+					ct->dobreak = 1;
+					custrinfo[i + 1].flag |= CU_CHINFO_WRAP;
 					ct -= 1;
 					cnr -= 1;
 					i--;
@@ -691,27 +690,27 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 				}
 			}
 		}
-		if (ascii== '\n' || ascii== '\r' || ascii==0 || ct->dobreak) {
-			ct->xof= xof;
-			ct->yof= yof;
-			ct->linenr= lnr;
-			ct->charnr= cnr;
-			
-			yof-= linedist;
-			
-			maxlen= MAX2(maxlen, (xof-tb->x/cu->fsize));
-			linedata[lnr]= xof-tb->x/cu->fsize;
-			linedata2[lnr]= cnr;
-			linedata3[lnr]= tb->w/cu->fsize;
-			linedata4[lnr]= wsnr;
+		if (ascii == '\n' || ascii == '\r' || ascii == 0 || ct->dobreak) {
+			ct->xof = xof;
+			ct->yof = yof;
+			ct->linenr = lnr;
+			ct->charnr = cnr;
+
+			yof -= linedist;
+
+			maxlen = MAX2(maxlen, (xof - tb->x / cu->fsize));
+			linedata[lnr] = xof - tb->x / cu->fsize;
+			linedata2[lnr] = cnr;
+			linedata3[lnr] = tb->w / cu->fsize;
+			linedata4[lnr] = wsnr;
 			
 			if ( (tb->h != 0.0f) &&
-				 ((-(yof-(tb->y/cu->fsize))) > ((tb->h/cu->fsize)-(linedist*cu->fsize)) - cu->yof) &&
-				 (cu->totbox > (curbox+1)) ) {
-				maxlen= 0;
+			     ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
+			     (cu->totbox > (curbox + 1)) ) {
+				maxlen = 0;
 				tb++;
 				curbox++;
-				yof= cu->yof + tb->y/cu->fsize;
+				yof = cu->yof + tb->y / cu->fsize;
 			}
 
 			/* XXX, has been unused for years, need to check if this is useful, r4613 r5282 - campbell */
@@ -719,43 +718,43 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 			if (ascii == '\n' || ascii == '\r')
 				xof = cu->xof;
 			else
-				xof= cu->xof + (tb->x/cu->fsize);
+				xof = cu->xof + (tb->x / cu->fsize);
 #else
-			xof= cu->xof + (tb->x/cu->fsize);
+			xof = cu->xof + (tb->x / cu->fsize);
 #endif
 			lnr++;
-			cnr= 0;
-			wsnr= 0;
+			cnr = 0;
+			wsnr = 0;
 		}
-		else if (ascii==9) {	/* TAB */
+		else if (ascii == 9) {    /* TAB */
 			float tabfac;
 			
-			ct->xof= xof;
-			ct->yof= yof;
-			ct->linenr= lnr;
-			ct->charnr= cnr++;
+			ct->xof = xof;
+			ct->yof = yof;
+			ct->linenr = lnr;
+			ct->charnr = cnr++;
 
-			tabfac= (xof-cu->xof+0.01f);
-			tabfac= 2.0f*ceilf(tabfac/2.0f);
-			xof= cu->xof+tabfac;
+			tabfac = (xof - cu->xof + 0.01f);
+			tabfac = 2.0f * ceilf(tabfac / 2.0f);
+			xof = cu->xof + tabfac;
 		}
 		else {
-			SelBox *sb= NULL;
+			SelBox *sb = NULL;
 			float wsfac;
 
-			ct->xof= xof;
-			ct->yof= yof;
-			ct->linenr= lnr;
-			ct->charnr= cnr++;
+			ct->xof = xof;
+			ct->yof = yof;
+			ct->linenr = lnr;
+			ct->charnr = cnr++;
 
-			if (cu->selboxes && (i>=selstart) && (i<=selend)) {
-				sb = &(cu->selboxes[i-selstart]);
-				sb->y = yof*cu->fsize-linedist*cu->fsize*0.1f;
-				sb->h = linedist*cu->fsize;
-				sb->w = xof*cu->fsize;
+			if (cu->selboxes && (i >= selstart) && (i <= selend)) {
+				sb = &(cu->selboxes[i - selstart]);
+				sb->y = yof * cu->fsize - linedist * cu->fsize * 0.1f;
+				sb->h = linedist * cu->fsize;
+				sb->w = xof * cu->fsize;
 			}
 	
-			if (ascii==32) {
+			if (ascii == 32) {
 				wsfac = cu->wordspace; 
 				wsnr++;
 			} 
@@ -764,20 +763,20 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 			// Set the width of the character
 			twidth = char_width(cu, che, info);
 
-			xof += (twidth*wsfac*(1.0f+(info->kern/40.0f)) ) + xtrax;
+			xof += (twidth * wsfac * (1.0f + (info->kern / 40.0f)) ) + xtrax;
 			
 			if (sb) 
-				sb->w = (xof*cu->fsize) - sb->w;
+				sb->w = (xof * cu->fsize) - sb->w;
 		}
 		ct++;
 	}
 	
-	cu->lines= 1;
-	ct= chartransdata;
+	cu->lines = 1;
+	ct = chartransdata;
 	tmp = mem;
-	for (i= 0; i<=slen; i++, tmp++, ct++) {
+	for (i = 0; i <= slen; i++, tmp++, ct++) {
 		ascii = *tmp;
-		if (ascii== '\n' || ascii== '\r' || ct->dobreak) cu->lines++;
+		if (ascii == '\n' || ascii == '\r' || ct->dobreak) cu->lines++;
 	}	
 
 	// linedata is now: width of line
@@ -785,55 +784,55 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	// linedata3 is now: maxlen of that line
 	// linedata4 is now: number of whitespaces of line
 
-	if (cu->spacemode!=CU_LEFT) {
-		ct= chartransdata;
+	if (cu->spacemode != CU_LEFT) {
+		ct = chartransdata;
 
-		if (cu->spacemode==CU_RIGHT) {
-			for (i=0;i<lnr;i++) linedata[i]= linedata3[i]-linedata[i];
-			for (i=0; i<=slen; i++) {
-				ct->xof+= linedata[ct->linenr];
+		if (cu->spacemode == CU_RIGHT) {
+			for (i = 0; i < lnr; i++) linedata[i] = linedata3[i] - linedata[i];
+			for (i = 0; i <= slen; i++) {
+				ct->xof += linedata[ct->linenr];
 				ct++;
 			}
 		}
-		else if (cu->spacemode==CU_MIDDLE) {
-			for (i=0;i<lnr;i++) linedata[i]= (linedata3[i]-linedata[i])/2;
-			for (i=0; i<=slen; i++) {
-				ct->xof+= linedata[ct->linenr];
+		else if (cu->spacemode == CU_MIDDLE) {
+			for (i = 0; i < lnr; i++) linedata[i] = (linedata3[i] - linedata[i]) / 2;
+			for (i = 0; i <= slen; i++) {
+				ct->xof += linedata[ct->linenr];
 				ct++;
 			}
 		}
-		else if ((cu->spacemode==CU_FLUSH) &&
-				  (cu->tb[0].w != 0.0f)) {
-			for (i=0;i<lnr;i++)
-				if (linedata2[i]>1)
-					linedata[i]= (linedata3[i]-linedata[i])/(linedata2[i]-1);
-			for (i=0; i<=slen; i++) {
-				for (j=i; (!ELEM3(mem[j], '\0', '\n', '\r')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
+		else if ((cu->spacemode == CU_FLUSH) &&
+		         (cu->tb[0].w != 0.0f)) {
+			for (i = 0; i < lnr; i++)
+				if (linedata2[i] > 1)
+					linedata[i] = (linedata3[i] - linedata[i]) / (linedata2[i] - 1);
+			for (i = 0; i <= slen; i++) {
+				for (j = i; (!ELEM3(mem[j], '\0', '\n', '\r')) && (chartransdata[j].dobreak == 0) && (j < slen); j++) {
 					/* do nothing */
 				}
 
 //				if ((mem[j]!='\r') && (mem[j]!='\n') && (mem[j])) {
-					ct->xof+= ct->charnr*linedata[ct->linenr];
+				ct->xof += ct->charnr * linedata[ct->linenr];
 //				}
 				ct++;
 			}
 		} 
-		else if ((cu->spacemode==CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
+		else if ((cu->spacemode == CU_JUSTIFY) && (cu->tb[0].w != 0.0f)) {
 			float curofs = 0.0f;
 			for (i = 0; i <= slen; i++) {
-				for (j=i; (mem[j]) && (mem[j]!='\n') &&
-				          (mem[j] != '\r') && (chartransdata[j].dobreak == 0) && (j < slen);
+				for (j = i; (mem[j]) && (mem[j] != '\n') &&
+				     (mem[j] != '\r') && (chartransdata[j].dobreak == 0) && (j < slen);
 				     j++)
 				{
 					/* pass */
 				}
 
-				if ((mem[j]!='\r') && (mem[j]!='\n') &&
-					((chartransdata[j].dobreak!=0))) {
-					if (mem[i]==' ') curofs += (linedata3[ct->linenr]-linedata[ct->linenr])/linedata4[ct->linenr];
-					ct->xof+= curofs;
+				if ((mem[j] != '\r') && (mem[j] != '\n') &&
+				    ((chartransdata[j].dobreak != 0))) {
+					if (mem[i] == ' ') curofs += (linedata3[ct->linenr] - linedata[ct->linenr]) / linedata4[ct->linenr];
+					ct->xof += curofs;
 				}
-				if (mem[i]=='\n' || mem[i]=='\r' || chartransdata[i].dobreak) curofs= 0;
+				if (mem[i] == '\n' || mem[i] == '\r' || chartransdata[i].dobreak) curofs = 0;
 				ct++;
 			}
 		}
@@ -841,13 +840,13 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	
 	/* TEXT ON CURVE */
 	/* Note: Only OB_CURVE objects could have a path  */
-	if (cu->textoncurve && cu->textoncurve->type==OB_CURVE) {
-		Curve *cucu= cu->textoncurve->data;
-		int oldflag= cucu->flag;
+	if (cu->textoncurve && cu->textoncurve->type == OB_CURVE) {
+		Curve *cucu = cu->textoncurve->data;
+		int oldflag = cucu->flag;
 		
-		cucu->flag |= (CU_PATH+CU_FOLLOW);
+		cucu->flag |= (CU_PATH + CU_FOLLOW);
 		
-		if (cucu->path==NULL) makeDispListCurveTypes(scene, cu->textoncurve, 0);
+		if (cucu->path == NULL) makeDispListCurveTypes(scene, cu->textoncurve, 0);
 		if (cucu->path) {
 			float distfac, imat[4][4], imat3[3][3], cmat[3][3];
 			float minx, maxx, miny, maxy;
@@ -858,116 +857,116 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 
 			copy_m3_m4(cmat, cu->textoncurve->obmat);
 			mul_m3_m3m3(cmat, cmat, imat3);
-			sizefac= normalize_v3(cmat[0])/cu->fsize;
+			sizefac = normalize_v3(cmat[0]) / cu->fsize;
 			
-			minx=miny= 1.0e20f;
-			maxx=maxy= -1.0e20f;
-			ct= chartransdata;
-			for (i=0; i<=slen; i++, ct++) {
-				if (minx>ct->xof) minx= ct->xof;
-				if (maxx<ct->xof) maxx= ct->xof;
-				if (miny>ct->yof) miny= ct->yof;
-				if (maxy<ct->yof) maxy= ct->yof;
+			minx = miny = 1.0e20f;
+			maxx = maxy = -1.0e20f;
+			ct = chartransdata;
+			for (i = 0; i <= slen; i++, ct++) {
+				if (minx > ct->xof) minx = ct->xof;
+				if (maxx < ct->xof) maxx = ct->xof;
+				if (miny > ct->yof) miny = ct->yof;
+				if (maxy < ct->yof) maxy = ct->yof;
 			}
 			
 			/* we put the x-coordinaat exact at the curve, the y is rotated */
 			
 			/* length correction */
-			distfac= sizefac*cucu->path->totdist/(maxx-minx);
-			timeofs= 0.0f;
+			distfac = sizefac * cucu->path->totdist / (maxx - minx);
+			timeofs = 0.0f;
 			
 			if (distfac > 1.0f) {
 				/* path longer than text: spacemode involves */
-				distfac= 1.0f/distfac;
+				distfac = 1.0f / distfac;
 				
-				if (cu->spacemode==CU_RIGHT) {
-					timeofs= 1.0f-distfac;
+				if (cu->spacemode == CU_RIGHT) {
+					timeofs = 1.0f - distfac;
 				}
-				else if (cu->spacemode==CU_MIDDLE) {
-					timeofs= (1.0f-distfac)/2.0f;
+				else if (cu->spacemode == CU_MIDDLE) {
+					timeofs = (1.0f - distfac) / 2.0f;
 				}
-				else if (cu->spacemode==CU_FLUSH) distfac= 1.0f;
+				else if (cu->spacemode == CU_FLUSH) distfac = 1.0f;
 				
 			}
-			else distfac= 1.0;
+			else distfac = 1.0;
 			
-			distfac/= (maxx-minx);
+			distfac /= (maxx - minx);
 			
-			timeofs+= distfac*cu->xof;	/* not cyclic */
+			timeofs += distfac * cu->xof;  /* not cyclic */
 			
-			ct= chartransdata;
-			for (i=0; i<=slen; i++, ct++) {
+			ct = chartransdata;
+			for (i = 0; i <= slen; i++, ct++) {
 				float ctime, dtime, vec[4], tvec[4], rotvec[3];
 				float si, co;
 				
 				/* rotate around center character */
 				ascii = mem[i];
 
-				che= find_vfont_char(vfd, ascii);
+				che = find_vfont_char(vfd, ascii);
 	
 				twidth = char_width(cu, che, info);
 
-				dtime= distfac*0.5f*twidth;
+				dtime = distfac * 0.5f * twidth;
 
-				ctime= timeofs + distfac*( ct->xof - minx);
+				ctime = timeofs + distfac * (ct->xof - minx);
 				CLAMP(ctime, 0.0f, 1.0f);
 
 				/* calc the right loc AND the right rot separately */
 				/* vec, tvec need 4 items */
 				where_on_path(cu->textoncurve, ctime, vec, tvec, NULL, NULL, NULL);
-				where_on_path(cu->textoncurve, ctime+dtime, tvec, rotvec, NULL, NULL, NULL);
+				where_on_path(cu->textoncurve, ctime + dtime, tvec, rotvec, NULL, NULL, NULL);
 				
 				mul_v3_fl(vec, sizefac);
 				
-				ct->rot= (float)(M_PI-atan2(rotvec[1], rotvec[0]));
+				ct->rot = (float)(M_PI - atan2(rotvec[1], rotvec[0]));
 
-				si= (float)sin(ct->rot);
-				co= (float)cos(ct->rot);
+				si = (float)sin(ct->rot);
+				co = (float)cos(ct->rot);
 
-				yof= ct->yof;
+				yof = ct->yof;
 				
-				ct->xof= vec[0] + si*yof;
-				ct->yof= vec[1] + co*yof;
+				ct->xof = vec[0] + si * yof;
+				ct->yof = vec[1] + co * yof;
 				
 			}
-			cucu->flag= oldflag;
+			cucu->flag = oldflag;
 		}
 	}
 
 	if (cu->selboxes) {
-		ct= chartransdata;
-		for (i=0; i<=selend; i++, ct++) {
-			if (i>=selstart) {
-				cu->selboxes[i-selstart].x = ct->xof*cu->fsize;
-				cu->selboxes[i-selstart].y = ct->yof*cu->fsize;				
+		ct = chartransdata;
+		for (i = 0; i <= selend; i++, ct++) {
+			if (i >= selstart) {
+				cu->selboxes[i - selstart].x = ct->xof * cu->fsize;
+				cu->selboxes[i - selstart].y = ct->yof * cu->fsize;
 			}
 		}
 	}
 
-	if (mode==FO_CURSUP || mode==FO_CURSDOWN || mode==FO_PAGEUP || mode==FO_PAGEDOWN) {
+	if (mode == FO_CURSUP || mode == FO_CURSDOWN || mode == FO_PAGEUP || mode == FO_PAGEDOWN) {
 		/* 2: curs up
 		 * 3: curs down */
-		ct= chartransdata+cu->pos;
+		ct = chartransdata + cu->pos;
 		
-		if ((mode==FO_CURSUP || mode==FO_PAGEUP) && ct->linenr==0);
-		else if ((mode==FO_CURSDOWN || mode==FO_PAGEDOWN) && ct->linenr==lnr);
+		if ((mode == FO_CURSUP || mode == FO_PAGEUP) && ct->linenr == 0) ;
+		else if ((mode == FO_CURSDOWN || mode == FO_PAGEDOWN) && ct->linenr == lnr) ;
 		else {
 			switch (mode) {
-				case FO_CURSUP:		lnr= ct->linenr-1; break;
-				case FO_CURSDOWN:	lnr= ct->linenr+1; break;
-				case FO_PAGEUP:		lnr= ct->linenr-10; break;
-				case FO_PAGEDOWN:	lnr= ct->linenr+10; break;
+				case FO_CURSUP:     lnr = ct->linenr - 1; break;
+				case FO_CURSDOWN:   lnr = ct->linenr + 1; break;
+				case FO_PAGEUP:     lnr = ct->linenr - 10; break;
+				case FO_PAGEDOWN:   lnr = ct->linenr + 10; break;
 			}
-			cnr= ct->charnr;
+			cnr = ct->charnr;
 			/* seek for char with lnr en cnr */
-			cu->pos= 0;
-			ct= chartransdata;
-			for (i= 0; i<slen; i++) {
-				if (ct->linenr==lnr) {
-					if (ct->charnr==cnr) break;
-					if ( (ct+1)->charnr==0) break;
+			cu->pos = 0;
+			ct = chartransdata;
+			for (i = 0; i < slen; i++) {
+				if (ct->linenr == lnr) {
+					if (ct->charnr == cnr) break;
+					if ( (ct + 1)->charnr == 0) break;
 				}
-				else if (ct->linenr>lnr) break;
+				else if (ct->linenr > lnr) break;
 				cu->pos++;
 				ct++;
 			}
@@ -978,23 +977,23 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 	if (cu->editfont) {
 		float si, co;
 		
-		ct= chartransdata+cu->pos;
-		si= (float)sin(ct->rot);
-		co= (float)cos(ct->rot);
+		ct = chartransdata + cu->pos;
+		si = (float)sin(ct->rot);
+		co = (float)cos(ct->rot);
 				
-		f= cu->editfont->textcurs[0];
+		f = cu->editfont->textcurs[0];
 		
-		f[0]= cu->fsize*(-0.1f*co + ct->xof);
-		f[1]= cu->fsize*(0.1f*si + ct->yof);
+		f[0] = cu->fsize * (-0.1f * co + ct->xof);
+		f[1] = cu->fsize * (0.1f * si + ct->yof);
 		
-		f[2]= cu->fsize*(0.1f*co + ct->xof);
-		f[3]= cu->fsize*(-0.1f*si + ct->yof);
+		f[2] = cu->fsize * (0.1f * co + ct->xof);
+		f[3] = cu->fsize * (-0.1f * si + ct->yof);
 		
-		f[4]= cu->fsize*( 0.1f*co + 0.8f*si + ct->xof);
-		f[5]= cu->fsize*(-0.1f*si + 0.8f*co + ct->yof);
+		f[4] = cu->fsize * (0.1f * co + 0.8f * si + ct->xof);
+		f[5] = cu->fsize * (-0.1f * si + 0.8f * co + ct->yof);
 		
-		f[6]= cu->fsize*(-0.1f*co + 0.8f*si + ct->xof);
-		f[7]= cu->fsize*( 0.1f*si + 0.8f*co + ct->yof);
+		f[6] = cu->fsize * (-0.1f * co + 0.8f * si + ct->xof);
+		f[7] = cu->fsize * (0.1f * si + 0.8f * co + ct->yof);
 		
 	}
 
@@ -1013,9 +1012,9 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 		/* make nurbdata */
 		BKE_nurbList_free(&cu->nurb);
 		
-		ct= chartransdata;
-		if (cu->sepchar==0) {
-			for (i= 0; i<slen; i++) {
+		ct = chartransdata;
+		if (cu->sepchar == 0) {
+			for (i = 0; i < slen; i++) {
 				unsigned long cha = (uintptr_t) mem[i];
 				info = &(custrinfo[i]);
 				if (info->mat_nr > (ob->totcol)) {
@@ -1027,42 +1026,42 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 					buildchar(bmain, cu, cha, info, ct->xof, ct->yof, ct->rot, i);
 				
 				if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
-					float ulwidth, uloverlap= 0.0f;
+					float ulwidth, uloverlap = 0.0f;
 					
-					if ( (i<(slen-1)) && (mem[i+1] != '\n') && (mem[i+1] != '\r') &&
-						 ((mem[i+1] != ' ') || (custrinfo[i+1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i+1].flag & CU_CHINFO_WRAP)==0)
-						 ) {
+					if ( (i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
+					     ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0)
+					     ) {
 						uloverlap = xtrax + 0.1f;
 					}
 					// Find the character, the characters has to be in the memory already 
 					// since character checking has been done earlier already.
-					che= find_vfont_char(vfd, cha);
+					che = find_vfont_char(vfd, cha);
 
 					twidth = char_width(cu, che, info);
-					ulwidth = cu->fsize * ((twidth* (1.0f+(info->kern/40.0f)))+uloverlap);
-					build_underline(cu, ct->xof*cu->fsize, ct->yof*cu->fsize + (cu->ulpos-0.05f)*cu->fsize,
-									ct->xof*cu->fsize + ulwidth, 
-									ct->yof*cu->fsize + (cu->ulpos-0.05f)*cu->fsize - cu->ulheight*cu->fsize,
-									i, info->mat_nr);
+					ulwidth = cu->fsize * ((twidth * (1.0f + (info->kern / 40.0f))) + uloverlap);
+					build_underline(cu, ct->xof * cu->fsize, ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize,
+					                ct->xof * cu->fsize + ulwidth,
+					                ct->yof * cu->fsize + (cu->ulpos - 0.05f) * cu->fsize - cu->ulheight * cu->fsize,
+					                i, info->mat_nr);
 				}
 				ct++;
 			}
 		}
 		else {
 			int outta = 0;
-			for (i= 0; (i<slen) && (outta==0); i++) {
+			for (i = 0; (i < slen) && (outta == 0); i++) {
 				ascii = mem[i];
 				info = &(custrinfo[i]);
-				if (cu->sepchar == (i+1)) {
+				if (cu->sepchar == (i + 1)) {
 					float vecyo[3];
 
-					vecyo[0]= ct->xof;
-					vecyo[1]= ct->yof;
-					vecyo[2]= 0.0f;
+					vecyo[0] = ct->xof;
+					vecyo[1] = ct->yof;
+					vecyo[2] = 0.0f;
 
 					mem[0] = ascii;
 					mem[1] = 0;
-					custrinfo[0]= *info;
+					custrinfo[0] = *info;
 					cu->pos = 1;
 					cu->len = 1;
 					mul_v3_m4v3(ob->loc, ob->obmat, vecyo);
@@ -1074,7 +1073,7 @@ struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int 
 		}
 	}
 
-	if (mode==FO_DUPLI) {
+	if (mode == FO_DUPLI) {
 		MEM_freeN(mem);
 		return chartransdata;
 	}

@@ -87,8 +87,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
-	WM_operatortype_append(MESH_OT_vertices_sort);
-	WM_operatortype_append(MESH_OT_vertices_randomize);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 
@@ -118,7 +116,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_dissolve_limited);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
-	WM_operatortype_append(MESH_OT_sort_faces);
+	WM_operatortype_append(MESH_OT_sort_elements);
 
 	WM_operatortype_append(MESH_OT_delete);
 	WM_operatortype_append(MESH_OT_edge_collapse);

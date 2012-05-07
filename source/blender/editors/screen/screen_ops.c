@@ -1834,6 +1834,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
 	ot->name = "Frame Offset";
 	ot->idname = "SCREEN_OT_frame_offset";
+	ot->description = "Move current frame forward/backward by a given number";
 	
 	ot->exec = frame_offset_exec;
 	
@@ -2703,6 +2704,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Region";
 	ot->idname = "SCREEN_OT_region_flip";
+	ot->description = "Toggle the region's alignment (left/right or top/bottom)";
 	
 	/* api callbacks */
 	ot->exec = region_flip_exec;
@@ -2752,6 +2754,7 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Header Region";
 	ot->idname = "SCREEN_OT_header_flip";
+	ot->description = "Toggle the header over/below the main window area";
 	
 	/* api callbacks */
 	ot->exec = header_flip_exec;

@@ -83,7 +83,7 @@ bAction *add_empty_action(const char name[])
 {
 	bAction *act;
 	
-	act= BKE_libblock_alloc(&G.main->action, ID_AC, name);
+	act = BKE_libblock_alloc(&G.main->action, ID_AC, name);
 	
 	return act;
 }	
@@ -105,8 +105,8 @@ static void make_localact_init_cb(ID *id, AnimData *adt, void *mlac_ptr)
 	tMakeLocalActionContext *mlac = (tMakeLocalActionContext *)mlac_ptr;
 	
 	if (adt->action == mlac->act) {
-		if (id->lib) mlac->is_lib= TRUE;
-		else mlac->is_local= TRUE;
+		if (id->lib) mlac->is_lib = TRUE;
+		else mlac->is_local = TRUE;
 	}
 }
 
@@ -129,25 +129,25 @@ static void make_localact_apply_cb(ID *id, AnimData *adt, void *mlac_ptr)
 void BKE_action_make_local(bAction *act)
 {
 	tMakeLocalActionContext mlac = {act, NULL, FALSE, FALSE};
-	Main *bmain= G.main;
+	Main *bmain = G.main;
 	
-	if (act->id.lib==NULL) 
+	if (act->id.lib == NULL)
 		return;
 	
 	// XXX: double-check this; it used to be just single-user check, but that was when fake-users were still default
-	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us<=1)) {
+	if ((act->id.flag & LIB_FAKEUSER) && (act->id.us <= 1)) {
 		id_clear_lib_data(bmain, &act->id);
 		return;
 	}
 	
 	BKE_animdata_main_cb(bmain, make_localact_init_cb, &mlac);
 	
-	if (mlac.is_local && mlac.is_lib==FALSE) {
+	if (mlac.is_local && mlac.is_lib == FALSE) {
 		id_clear_lib_data(bmain, &act->id);
 	}
 	else if (mlac.is_local && mlac.is_lib) {
-		mlac.act_new= BKE_action_copy(act);
-		mlac.act_new->id.us= 0;
+		mlac.act_new = BKE_action_copy(act);
+		mlac.act_new->id.us = 0;
 
 		BKE_id_lib_local_paths(bmain, act->id.lib, &mlac.act_new->id);
 
@@ -177,7 +177,7 @@ void BKE_action_free(bAction *act)
 
 /* .................................. */
 
-bAction *BKE_action_copy (bAction *src)
+bAction *BKE_action_copy(bAction *src)
 {
 	bAction *dst = NULL;
 	bActionGroup *dgrp, *sgrp;
@@ -185,29 +185,29 @@ bAction *BKE_action_copy (bAction *src)
 	
 	if (src == NULL) 
 		return NULL;
-	dst= BKE_libblock_copy(&src->id);
+	dst = BKE_libblock_copy(&src->id);
 	
 	/* duplicate the lists of groups and markers */
 	BLI_duplicatelist(&dst->groups, &src->groups);
 	BLI_duplicatelist(&dst->markers, &src->markers);
 	
 	/* copy F-Curves, fixing up the links as we go */
-	dst->curves.first= dst->curves.last= NULL;
+	dst->curves.first = dst->curves.last = NULL;
 	
-	for (sfcu= src->curves.first; sfcu; sfcu= sfcu->next) {
+	for (sfcu = src->curves.first; sfcu; sfcu = sfcu->next) {
 		/* duplicate F-Curve */
-		dfcu= copy_fcurve(sfcu);
+		dfcu = copy_fcurve(sfcu);
 		BLI_addtail(&dst->curves, dfcu);
 		
 		/* fix group links (kindof bad list-in-list search, but this is the most reliable way) */
-		for (dgrp=dst->groups.first, sgrp=src->groups.first; dgrp && sgrp; dgrp=dgrp->next, sgrp=sgrp->next) {
+		for (dgrp = dst->groups.first, sgrp = src->groups.first; dgrp && sgrp; dgrp = dgrp->next, sgrp = sgrp->next) {
 			if (sfcu->grp == sgrp) {
-				dfcu->grp= dgrp;
+				dfcu->grp = dgrp;
 				
 				if (dgrp->channels.first == sfcu)
-					dgrp->channels.first= dfcu;
+					dgrp->channels.first = dfcu;
 				if (dgrp->channels.last == sfcu)
-					dgrp->channels.last= dfcu;
+					dgrp->channels.last = dfcu;
 					
 				break;
 			}
@@ -220,12 +220,12 @@ bAction *BKE_action_copy (bAction *src)
 /* *************** Action Groups *************** */
 
 /* Get the active action-group for an Action */
-bActionGroup *get_active_actiongroup (bAction *act)
+bActionGroup *get_active_actiongroup(bAction *act)
 {
-	bActionGroup *agrp= NULL;
+	bActionGroup *agrp = NULL;
 	
 	if (act && act->groups.first) {	
-		for (agrp= act->groups.first; agrp; agrp= agrp->next) {
+		for (agrp = act->groups.first; agrp; agrp = agrp->next) {
 			if (agrp->flag & AGRP_ACTIVE)
 				break;
 		}
@@ -244,8 +244,8 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 		return;
 	
 	/* Deactive all others */
-	for (grp= act->groups.first; grp; grp= grp->next) {
-		if ((grp==agrp) && (select))
+	for (grp = act->groups.first; grp; grp = grp->next) {
+		if ((grp == agrp) && (select))
 			grp->flag |= AGRP_ACTIVE;
 		else	
 			grp->flag &= ~AGRP_ACTIVE;
@@ -253,7 +253,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 }
 
 /* Add a new action group with the given name to the action */
-bActionGroup *action_groups_add_new (bAction *act, const char name[])
+bActionGroup *action_groups_add_new(bAction *act, const char name[])
 {
 	bActionGroup *agrp;
 	
@@ -303,7 +303,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 		 * the lists will be in sync after linking
 		 */
 		if (agrp->channels.last == act->curves.last)
-			act->curves.last= fcurve;
+			act->curves.last = fcurve;
 			
 		/* link in the given F-Curve after the last F-Curve in the group,
 		 * which means that it should be able to fit in with the rest of the
@@ -320,7 +320,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 		agrp->channels.first = agrp->channels.last = fcurve;
 		
 		/* step through the groups preceding this one, finding the F-Curve there to attach this one after */
-		for (grp= agrp->prev; grp; grp= grp->prev) {
+		for (grp = agrp->prev; grp; grp = grp->prev) {
 			/* if this group has F-Curves, we want weave the given one in right after the last channel there,
 			 * but via the Action's list not this group's list
 			 *	- this is so that the F-Curve is in the right place in the Action,
@@ -342,7 +342,7 @@ void action_groups_add_channel(bAction *act, bActionGroup *agrp, FCurve *fcurve)
 	}
 	
 	/* set the F-Curve's new group */
-	fcurve->grp= agrp;
+	fcurve->grp = agrp;
 }	
 
 /* Remove the given channel from all groups */
@@ -354,28 +354,28 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 	
 	/* check if any group used this directly */
 	if (fcu->grp) {
-		bActionGroup *agrp= fcu->grp;
+		bActionGroup *agrp = fcu->grp;
 		
 		if (agrp->channels.first == agrp->channels.last) {
 			if (agrp->channels.first == fcu) {
-				agrp->channels.first= NULL;
-				agrp->channels.last= NULL;
+				agrp->channels.first = NULL;
+				agrp->channels.last = NULL;
 			}
 		}
 		else if (agrp->channels.first == fcu) {
-			if ((fcu->next) && (fcu->next->grp==agrp))
-				agrp->channels.first= fcu->next;
+			if ((fcu->next) && (fcu->next->grp == agrp))
+				agrp->channels.first = fcu->next;
 			else
-				agrp->channels.first= NULL;
+				agrp->channels.first = NULL;
 		}
 		else if (agrp->channels.last == fcu) {
-			if ((fcu->prev) && (fcu->prev->grp==agrp))
-				agrp->channels.last= fcu->prev;
+			if ((fcu->prev) && (fcu->prev->grp == agrp))
+				agrp->channels.last = fcu->prev;
 			else
-				agrp->channels.last= NULL;
+				agrp->channels.last = NULL;
 		}
 		
-		fcu->grp= NULL;
+		fcu->grp = NULL;
 	}
 	
 	/* now just remove from list */
@@ -383,7 +383,7 @@ void action_groups_remove_channel(bAction *act, FCurve *fcu)
 }
 
 /* Find a group with the given name */
-bActionGroup *BKE_action_group_find_name (bAction *act, const char name[])
+bActionGroup *BKE_action_group_find_name(bAction *act, const char name[])
 {
 	/* sanity checks */
 	if (ELEM3(NULL, act, act->groups.first, name) || (name[0] == 0))
@@ -431,7 +431,7 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 		return NULL;
 	
 	/* See if this channel exists */
-	chan= BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
+	chan = BLI_findstring(&pose->chanbase, name, offsetof(bPoseChannel, name));
 	if (chan) {
 		return chan;
 	}
@@ -445,13 +445,13 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 	unit_axis_angle(chan->rotAxis, &chan->rotAngle);
 	chan->size[0] = chan->size[1] = chan->size[2] = 1.0f;
 	
-	chan->limitmin[0]= chan->limitmin[1]= chan->limitmin[2]= -180.0f;
-	chan->limitmax[0]= chan->limitmax[1]= chan->limitmax[2]= 180.0f;
-	chan->stiffness[0]= chan->stiffness[1]= chan->stiffness[2]= 0.0f;
+	chan->limitmin[0] = chan->limitmin[1] = chan->limitmin[2] = -180.0f;
+	chan->limitmax[0] = chan->limitmax[1] = chan->limitmax[2] = 180.0f;
+	chan->stiffness[0] = chan->stiffness[1] = chan->stiffness[2] = 0.0f;
 	chan->ikrotweight = chan->iklinweight = 0.0f;
 	unit_m4(chan->constinv);
 	
-	chan->protectflag = OB_LOCK_ROT4D;	/* lock by components by default */
+	chan->protectflag = OB_LOCK_ROT4D;  /* lock by components by default */
 	
 	BLI_addtail(&pose->chanbase, chan);
 	BKE_pose_channels_hash_free(pose);
@@ -460,9 +460,9 @@ bPoseChannel *BKE_pose_channel_verify(bPose *pose, const char *name)
 }
 
 /* Find the active posechannel for an object (we can't just use pose, as layer info is in armature) */
-bPoseChannel *BKE_pose_channel_active (Object *ob)
+bPoseChannel *BKE_pose_channel_active(Object *ob)
 {
-	bArmature *arm= (ob) ? ob->data : NULL;
+	bArmature *arm = (ob) ? ob->data : NULL;
 	bPoseChannel *pchan;
 
 	if (ELEM3(NULL, ob, ob->pose, arm)) {
@@ -470,7 +470,7 @@ bPoseChannel *BKE_pose_channel_active (Object *ob)
 	}
 
 	/* find active */
-	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if ((pchan->bone) && (pchan->bone == arm->act_bone) && (pchan->bone->layer & arm->layer))
 			return pchan;
 	}
@@ -482,10 +482,10 @@ const char *BKE_pose_ikparam_get_name(bPose *pose)
 {
 	if (pose) {
 		switch (pose->iksolver) {
-		case IKSOLVER_LEGACY:
-			return NULL;
-		case IKSOLVER_ITASC:
-			return "bItasc";
+			case IKSOLVER_LEGACY:
+				return NULL;
+			case IKSOLVER_ITASC:
+				return "bItasc";
 		}
 	}
 	return NULL;
@@ -498,17 +498,17 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	ListBase listb;
 	
 	if (!src) {
-		*dst=NULL;
+		*dst = NULL;
 		return;
 	}
 	
-	if (*dst==src) {
+	if (*dst == src) {
 		printf("BKE_pose_copy_data source and target are the same\n");
-		*dst=NULL;
+		*dst = NULL;
 		return;
 	}
 	
-	outPose= MEM_callocN(sizeof(bPose), "pose");
+	outPose = MEM_callocN(sizeof(bPose), "pose");
 	
 	BLI_duplicatelist(&outPose->chanbase, &src->chanbase);
 	
@@ -516,16 +516,16 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	outPose->ikdata = NULL;
 	outPose->ikparam = MEM_dupallocN(src->ikparam);
 	
-	for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {
+	for (pchan = outPose->chanbase.first; pchan; pchan = pchan->next) {
 		// TODO: rename this argument...
 		if (copycon) {
 			copy_constraints(&listb, &pchan->constraints, TRUE);  // copy_constraints NULLs listb
-			pchan->constraints= listb;
-			pchan->mpath= NULL; /* motion paths should not get copied yet... */
+			pchan->constraints = listb;
+			pchan->mpath = NULL; /* motion paths should not get copied yet... */
 		}
 		
 		if (pchan->prop) {
-			pchan->prop= IDP_CopyProperty(pchan->prop);
+			pchan->prop = IDP_CopyProperty(pchan->prop);
 		}
 	}
 
@@ -533,7 +533,7 @@ void BKE_pose_copy_data(bPose **dst, bPose *src, int copycon)
 	if (copycon)
 		BLI_duplicatelist(&outPose->agroups, &src->agroups);
 	
-	*dst=outPose;
+	*dst = outPose;
 }
 
 void BKE_pose_itasc_init(bItasc *itasc)
@@ -545,7 +545,7 @@ void BKE_pose_itasc_init(bItasc *itasc)
 		itasc->numiter = 100;
 		itasc->numstep = 4;
 		itasc->precision = 0.005f;
-		itasc->flag = ITASC_AUTO_STEP|ITASC_INITIAL_REITERATION;
+		itasc->flag = ITASC_AUTO_STEP | ITASC_INITIAL_REITERATION;
 		itasc->feedback = 20.0f;
 		itasc->maxvel = 50.0f;
 		itasc->solver = ITASC_SOLVER_SDLS;
@@ -557,15 +557,15 @@ void BKE_pose_ikparam_init(bPose *pose)
 {
 	bItasc *itasc;
 	switch (pose->iksolver) {
-	case IKSOLVER_ITASC:
-		itasc = MEM_callocN(sizeof(bItasc), "itasc");
-		BKE_pose_itasc_init(itasc);
-		pose->ikparam = itasc;
-		break;
-	case IKSOLVER_LEGACY:
-	default:
-		pose->ikparam = NULL;
-		break;
+		case IKSOLVER_ITASC:
+			itasc = MEM_callocN(sizeof(bItasc), "itasc");
+			BKE_pose_itasc_init(itasc);
+			pose->ikparam = itasc;
+			break;
+		case IKSOLVER_LEGACY:
+		default:
+			pose->ikparam = NULL;
+			break;
 	}
 }
 
@@ -574,8 +574,8 @@ void BKE_pose_channels_hash_make(bPose *pose)
 	if (!pose->chanhash) {
 		bPoseChannel *pchan;
 
-		pose->chanhash= BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "make_pose_chan gh");
-		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next)
+		pose->chanhash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "make_pose_chan gh");
+		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
 			BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
 	}
 }
@@ -584,7 +584,7 @@ void BKE_pose_channels_hash_free(bPose *pose)
 {
 	if (pose->chanhash) {
 		BLI_ghash_free(pose->chanhash, NULL, NULL);
-		pose->chanhash= NULL;
+		pose->chanhash = NULL;
 	}
 }
 
@@ -594,7 +594,7 @@ void BKE_pose_channel_free(bPoseChannel *pchan)
 
 	if (pchan->mpath) {
 		animviz_free_motionpath(pchan->mpath);
-		pchan->mpath= NULL;
+		pchan->mpath = NULL;
 	}
 
 	free_constraints(&pchan->constraints);
@@ -610,7 +610,7 @@ void BKE_pose_channels_free(bPose *pose)
 	bPoseChannel *pchan;
 	
 	if (pose->chanbase.first) {
-		for (pchan = pose->chanbase.first; pchan; pchan=pchan->next)
+		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
 			BKE_pose_channel_free(pchan);
 		
 		BLI_freelistN(&pose->chanbase);
@@ -649,17 +649,17 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	copy_v3_v3(pchan->size, chan->size);
 	copy_v3_v3(pchan->eul, chan->eul);
 	copy_v3_v3(pchan->rotAxis, chan->rotAxis);
-	pchan->rotAngle= chan->rotAngle;
+	pchan->rotAngle = chan->rotAngle;
 	copy_qt_qt(pchan->quat, chan->quat);
-	pchan->rotmode= chan->rotmode;
+	pchan->rotmode = chan->rotmode;
 	copy_m4_m4(pchan->chan_mat, (float(*)[4])chan->chan_mat);
 	copy_m4_m4(pchan->pose_mat, (float(*)[4])chan->pose_mat);
-	pchan->flag= chan->flag;
+	pchan->flag = chan->flag;
 	
-	con= chan->constraints.first;
-	for (pcon= pchan->constraints.first; pcon && con; pcon= pcon->next, con= con->next) {
-		pcon->enforce= con->enforce;
-		pcon->headtail= con->headtail;
+	con = chan->constraints.first;
+	for (pcon = pchan->constraints.first; pcon && con; pcon = pcon->next, con = con->next) {
+		pcon->enforce = con->enforce;
+		pcon->headtail = con->headtail;
 	}
 }
 
@@ -675,16 +675,16 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 	pchan->rotmode = pchan_from->rotmode;
 
 	/* copy bone group */
-	pchan->agrp_index= pchan_from->agrp_index;
+	pchan->agrp_index = pchan_from->agrp_index;
 
 	/* ik (dof) settings */
 	pchan->ikflag = pchan_from->ikflag;
 	copy_v3_v3(pchan->limitmin, pchan_from->limitmin);
 	copy_v3_v3(pchan->limitmax, pchan_from->limitmax);
 	copy_v3_v3(pchan->stiffness, pchan_from->stiffness);
-	pchan->ikstretch= pchan_from->ikstretch;
-	pchan->ikrotweight= pchan_from->ikrotweight;
-	pchan->iklinweight= pchan_from->iklinweight;
+	pchan->ikstretch = pchan_from->ikstretch;
+	pchan->ikrotweight = pchan_from->ikrotweight;
+	pchan->iklinweight = pchan_from->iklinweight;
 
 	/* constraints */
 	copy_constraints(&pchan->constraints, &pchan_from->constraints, TRUE);
@@ -694,14 +694,14 @@ void BKE_pose_channel_copy_data(bPoseChannel *pchan, const bPoseChannel *pchan_f
 		/* unlikely but possible it exists */
 		IDP_FreeProperty(pchan->prop);
 		MEM_freeN(pchan->prop);
-		pchan->prop= NULL;
+		pchan->prop = NULL;
 	}
 	if (pchan_from->prop) {
-		pchan->prop= IDP_CopyProperty(pchan_from->prop);
+		pchan->prop = IDP_CopyProperty(pchan_from->prop);
 	}
 
 	/* custom shape */
-	pchan->custom= pchan_from->custom;
+	pchan->custom = pchan_from->custom;
 }
 
 
@@ -715,39 +715,39 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 	bConstraint *con;
 	
 	/* clear */
-	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
-		pchan->constflag= 0;
+	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		pchan->constflag = 0;
 	}
 	pose->flag &= ~POSE_CONSTRAINTS_TIMEDEPEND;
 	
 	/* detect */
-	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
-		for (con= pchan->constraints.first; con; con= con->next) {
-			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
-				bKinematicConstraint *data = (bKinematicConstraint*)con->data;
+	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
+		for (con = pchan->constraints.first; con; con = con->next) {
+			if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+				bKinematicConstraint *data = (bKinematicConstraint *)con->data;
 				
 				pchan->constflag |= PCHAN_HAS_IK;
 				
-				if (data->tar==NULL || (data->tar->type==OB_ARMATURE && data->subtarget[0]==0))
+				if (data->tar == NULL || (data->tar->type == OB_ARMATURE && data->subtarget[0] == 0))
 					pchan->constflag |= PCHAN_HAS_TARGET;
 				
 				/* negative rootbone = recalc rootbone index. used in do_versions */
-				if (data->rootbone<0) {
-					data->rootbone= 0;
+				if (data->rootbone < 0) {
+					data->rootbone = 0;
 					
-					if (data->flag & CONSTRAINT_IK_TIP) parchan= pchan;
-					else parchan= pchan->parent;
+					if (data->flag & CONSTRAINT_IK_TIP) parchan = pchan;
+					else parchan = pchan->parent;
 					
 					while (parchan) {
 						data->rootbone++;
-						if ((parchan->bone->flag & BONE_CONNECTED)==0)
+						if ((parchan->bone->flag & BONE_CONNECTED) == 0)
 							break;
-						parchan= parchan->parent;
+						parchan = parchan->parent;
 					}
 				}
 			}
 			else if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
-				bFollowPathConstraint *data= (bFollowPathConstraint *)con->data;
+				bFollowPathConstraint *data = (bFollowPathConstraint *)con->data;
 				
 				/* for drawing constraint colors when color set allows this */
 				pchan->constflag |= PCHAN_HAS_CONST;
@@ -755,7 +755,7 @@ void BKE_pose_update_constraint_flags(bPose *pose)
 				/* if we have a valid target, make sure that this will get updated on frame-change
 				 * (needed for when there is no anim-data for this pose)
 				 */
-				if ((data->tar) && (data->tar->type==OB_CURVE))
+				if ((data->tar) && (data->tar->type == OB_CURVE))
 					pose->flag |= POSE_CONSTRAINTS_TIMEDEPEND;
 			}
 			else if (con->type == CONSTRAINT_TYPE_SPLINEIK)
@@ -778,10 +778,10 @@ void framechange_poses_clear_unkeyed(void)
 	
 	/* This needs to be done for each object that has a pose */
 	// TODO: proxies may/may not be correctly handled here... (this needs checking) 
-	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+	for (ob = G.main->object.first; ob; ob = ob->id.next) {
 		/* we only need to do this on objects with a pose */
-		if ( (pose= ob->pose) ) {
-			for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ( (pose = ob->pose) ) {
+			for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (pchan->bone) 
 					pchan->bone->flag &= ~BONE_UNKEYED;
 			}
@@ -794,24 +794,24 @@ void framechange_poses_clear_unkeyed(void)
 /* Adds a new bone-group */
 void BKE_pose_add_group(Object *ob)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
+	bPose *pose = (ob) ? ob->pose : NULL;
 	bActionGroup *grp;
 	
 	if (ELEM(NULL, ob, ob->pose))
 		return;
 	
-	grp= MEM_callocN(sizeof(bActionGroup), "PoseGroup");
+	grp = MEM_callocN(sizeof(bActionGroup), "PoseGroup");
 	BLI_strncpy(grp->name, "Group", sizeof(grp->name));
 	BLI_addtail(&pose->agroups, grp);
 	BLI_uniquename(&pose->agroups, grp, "Group", '.', offsetof(bActionGroup, name), sizeof(grp->name));
 	
-	pose->active_group= BLI_countlist(&pose->agroups);
+	pose->active_group = BLI_countlist(&pose->agroups);
 }
 
 /* Remove the active bone-group */
 void BKE_pose_remove_group(Object *ob)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
+	bPose *pose = (ob) ? ob->pose : NULL;
 	bActionGroup *grp = NULL;
 	bPoseChannel *pchan;
 	
@@ -822,15 +822,15 @@ void BKE_pose_remove_group(Object *ob)
 		return;
 	
 	/* get group to remove */
-	grp= BLI_findlink(&pose->agroups, pose->active_group-1);
+	grp = BLI_findlink(&pose->agroups, pose->active_group - 1);
 	if (grp) {
 		/* adjust group references (the trouble of using indices!):
 		 *	- firstly, make sure nothing references it 
 		 *	- also, make sure that those after this item get corrected
 		 */
-		for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 			if (pchan->agrp_index == pose->active_group)
-				pchan->agrp_index= 0;
+				pchan->agrp_index = 0;
 			else if (pchan->agrp_index > pose->active_group)
 				pchan->agrp_index--;
 		}
@@ -839,7 +839,7 @@ void BKE_pose_remove_group(Object *ob)
 		BLI_freelinkN(&pose->agroups, grp);
 		pose->active_group--;
 		if (pose->active_group < 0 || pose->agroups.first == NULL) {
-			pose->active_group= 0;
+			pose->active_group = 0;
 		}
 	}
 }
@@ -853,7 +853,7 @@ short action_has_motion(const bAction *act)
 	
 	/* return on the first F-Curve that has some keyframes/samples defined */
 	if (act) {
-		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		for (fcu = act->curves.first; fcu; fcu = fcu->next) {
 			if (fcu->totvert)
 				return 1;
 		}
@@ -867,11 +867,11 @@ short action_has_motion(const bAction *act)
 void calc_action_range(const bAction *act, float *start, float *end, short incl_modifiers)
 {
 	FCurve *fcu;
-	float min=999999999.0f, max=-999999999.0f;
-	short foundvert=0, foundmod=0;
+	float min = 999999999.0f, max = -999999999.0f;
+	short foundvert = 0, foundmod = 0;
 
 	if (act) {
-		for (fcu= act->curves.first; fcu; fcu= fcu->next) {
+		for (fcu = act->curves.first; fcu; fcu = fcu->next) {
 			/* if curve has keyframes, consider them first */
 			if (fcu->totvert) {
 				float nmin, nmax;
@@ -881,65 +881,65 @@ void calc_action_range(const bAction *act, float *start, float *end, short incl_
 				calc_fcurve_range(fcu, &nmin, &nmax, FALSE, TRUE);
 				
 				/* compare to the running tally */
-				min= MIN2(min, nmin);
-				max= MAX2(max, nmax);
+				min = MIN2(min, nmin);
+				max = MAX2(max, nmax);
 				
-				foundvert= 1;
+				foundvert = 1;
 			}
 			
 			/* if incl_modifiers is enabled, need to consider modifiers too
 			 *	- only really care about the last modifier
 			 */
 			if ((incl_modifiers) && (fcu->modifiers.last)) {
-				FModifier *fcm= fcu->modifiers.last;
+				FModifier *fcm = fcu->modifiers.last;
 				
 				/* only use the maximum sensible limits of the modifiers if they are more extreme */
 				switch (fcm->type) {
 					case FMODIFIER_TYPE_LIMITS: /* Limits F-Modifier */
 					{
-						FMod_Limits *fmd= (FMod_Limits *)fcm->data;
+						FMod_Limits *fmd = (FMod_Limits *)fcm->data;
 						
 						if (fmd->flag & FCM_LIMIT_XMIN) {
-							min= MIN2(min, fmd->rect.xmin);
+							min = MIN2(min, fmd->rect.xmin);
 						}
 						if (fmd->flag & FCM_LIMIT_XMAX) {
-							max= MAX2(max, fmd->rect.xmax);
+							max = MAX2(max, fmd->rect.xmax);
 						}
 					}
-						break;
+					break;
 						
 					case FMODIFIER_TYPE_CYCLES: /* Cycles F-Modifier */
 					{
-						FMod_Cycles *fmd= (FMod_Cycles *)fcm->data;
+						FMod_Cycles *fmd = (FMod_Cycles *)fcm->data;
 						
 						if (fmd->before_mode != FCM_EXTRAPOLATE_NONE)
-							min= MINAFRAMEF;
+							min = MINAFRAMEF;
 						if (fmd->after_mode != FCM_EXTRAPOLATE_NONE)
-							max= MAXFRAMEF;
+							max = MAXFRAMEF;
 					}
-						break;
+					break;
 						
 					// TODO: function modifier may need some special limits
 						
 					default: /* all other standard modifiers are on the infinite range... */
-						min= MINAFRAMEF;
-						max= MAXFRAMEF;
+						min = MINAFRAMEF;
+						max = MAXFRAMEF;
 						break;
 				}
 				
-				foundmod= 1;
+				foundmod = 1;
 			}
 		}
 	}	
 	
 	if (foundvert || foundmod) {
-		if (min==max) max+= 1.0f;
-		*start= min;
-		*end= max;
+		if (min == max) max += 1.0f;
+		*start = min;
+		*end = max;
 	}
 	else {
-		*start= 0.0f;
-		*end= 1.0f;
+		*start = 0.0f;
+		*end = 1.0f;
 	}
 }
 
@@ -950,8 +950,8 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 {
 	PointerRNA ptr;
 	FCurve *fcu;
-	char *basePath=NULL;
-	short flags=0;
+	char *basePath = NULL;
+	short flags = 0;
 	
 	/* build PointerRNA from provided data to obtain the paths to use */
 	if (pchan)
@@ -962,15 +962,15 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 		return 0;
 		
 	/* get the basic path to the properties of interest */
-	basePath= RNA_path_from_ID_to_struct(&ptr);
+	basePath = RNA_path_from_ID_to_struct(&ptr);
 	if (basePath == NULL)
 		return 0;
 		
 	/* search F-Curves for the given properties 
 	 *	- we cannot use the groups, since they may not be grouped in that way...
 	 */
-	for (fcu= act->curves.first; fcu; fcu= fcu->next) {
-		char *bPtr=NULL, *pPtr=NULL;
+	for (fcu = act->curves.first; fcu; fcu = fcu->next) {
+		char *bPtr = NULL, *pPtr = NULL;
 		
 		/* if enough flags have been found, we can stop checking unless we're also getting the curves */
 		if ((flags == ACT_TRANS_ALL) && (curves == NULL))
@@ -981,7 +981,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 			continue;
 		
 		/* step 1: check for matching base path */
-		bPtr= strstr(fcu->rna_path, basePath);
+		bPtr = strstr(fcu->rna_path, basePath);
 		
 		if (bPtr) {
 			/* we must add len(basePath) bytes to the match so that we are at the end of the 
@@ -991,13 +991,13 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 			
 			/* step 2: check for some property with transforms 
 			 *	- to speed things up, only check for the ones not yet found 
-			 * 	  unless we're getting the curves too
+			 *    unless we're getting the curves too
 			 *	- if we're getting the curves, the BLI_genericNodeN() creates a LinkData
 			 *	  node wrapping the F-Curve, which then gets added to the list
 			 *	- once a match has been found, the curve cannot possibly be any other one
 			 */
 			if ((curves) || (flags & ACT_TRANS_LOC) == 0) {
-				pPtr= strstr(bPtr, "location");
+				pPtr = strstr(bPtr, "location");
 				if (pPtr) {
 					flags |= ACT_TRANS_LOC;
 					
@@ -1008,7 +1008,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 			}
 			
 			if ((curves) || (flags & ACT_TRANS_SCALE) == 0) {
-				pPtr= strstr(bPtr, "scale");
+				pPtr = strstr(bPtr, "scale");
 				if (pPtr) {
 					flags |= ACT_TRANS_SCALE;
 					
@@ -1019,7 +1019,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 			}
 			
 			if ((curves) || (flags & ACT_TRANS_ROT) == 0) {
-				pPtr= strstr(bPtr, "rotation");
+				pPtr = strstr(bPtr, "rotation");
 				if (pPtr) {
 					flags |= ACT_TRANS_ROT;
 					
@@ -1031,7 +1031,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 			
 			if ((curves) || (flags & ACT_TRANS_PROP) == 0) {
 				/* custom properties only */
-				pPtr= strstr(bPtr, "[\""); /* extra '"' comment here to keep my texteditor functionlist working :) */  
+				pPtr = strstr(bPtr, "[\""); /* extra '"' comment here to keep my texteditor functionlist working :) */
 				if (pPtr) {
 					flags |= ACT_TRANS_PROP;
 					
@@ -1059,14 +1059,14 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 void extract_pose_from_pose(bPose *pose, const bPose *src)
 {
 	const bPoseChannel *schan;
-	bPoseChannel *pchan= pose->chanbase.first;
+	bPoseChannel *pchan = pose->chanbase.first;
 
-	if (pose==src) {
+	if (pose == src) {
 		printf("extract_pose_from_pose source and target are the same\n");
 		return;
 	}
 
-	for (schan=src->chanbase.first; (schan && pchan); schan=schan->next, pchan= pchan->next) {
+	for (schan = src->chanbase.first; (schan && pchan); schan = schan->next, pchan = pchan->next) {
 		copy_pose_channel_data(pchan, schan);
 	}
 }
@@ -1082,14 +1082,14 @@ void BKE_pose_rest(bPose *pose)
 	memset(pose->stride_offset, 0, sizeof(pose->stride_offset));
 	memset(pose->cyclic_offset, 0, sizeof(pose->cyclic_offset));
 	
-	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next) {
+	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 		zero_v3(pchan->loc);
 		zero_v3(pchan->eul);
 		unit_qt(pchan->quat);
 		unit_axis_angle(pchan->rotAxis, &pchan->rotAngle);
-		pchan->size[0]= pchan->size[1]= pchan->size[2]= 1.0f;
+		pchan->size[0] = pchan->size[1] = pchan->size[2] = 1.0f;
 
-		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
+		pchan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
 	}
 }
 
@@ -1098,19 +1098,19 @@ void BKE_pose_copy_result(bPose *to, bPose *from)
 {
 	bPoseChannel *pchanto, *pchanfrom;
 	
-	if (to==NULL || from==NULL) {
+	if (to == NULL || from == NULL) {
 		printf("pose result copy error to:%p from:%p\n", (void *)to, (void *)from); // debug temp
 		return;
 	}
 
-	if (to==from) {
+	if (to == from) {
 		printf("BKE_pose_copy_result source and target are the same\n");
 		return;
 	}
 
 
-	for (pchanfrom= from->chanbase.first; pchanfrom; pchanfrom= pchanfrom->next) {
-		pchanto= BKE_pose_channel_find_name(to, pchanfrom->name);
+	for (pchanfrom = from->chanbase.first; pchanfrom; pchanfrom = pchanfrom->next) {
+		pchanto = BKE_pose_channel_find_name(to, pchanfrom->name);
 		if (pchanto) {
 			copy_m4_m4(pchanto->pose_mat, pchanfrom->pose_mat);
 			copy_m4_m4(pchanto->chan_mat, pchanfrom->chan_mat);
@@ -1124,9 +1124,9 @@ void BKE_pose_copy_result(bPose *to, bPose *from)
 			copy_v3_v3(pchanto->pose_head, pchanfrom->pose_head);
 			copy_v3_v3(pchanto->pose_tail, pchanfrom->pose_tail);
 			
-			pchanto->rotmode= pchanfrom->rotmode;
-			pchanto->flag= pchanfrom->flag;
-			pchanto->protectflag= pchanfrom->protectflag;
+			pchanto->rotmode = pchanfrom->rotmode;
+			pchanto->flag = pchanfrom->flag;
+			pchanto->protectflag = pchanfrom->protectflag;
 		}
 	}
 }
@@ -1136,7 +1136,7 @@ void BKE_pose_copy_result(bPose *to, bPose *from)
  */
 void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, char groupname[], float cframe)
 {
-	bActionGroup *agrp= BKE_action_group_find_name(act, groupname);
+	bActionGroup *agrp = BKE_action_group_find_name(act, groupname);
 	
 	/* clear workob */
 	BKE_object_workob_clear(workob);
@@ -1145,22 +1145,22 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 	copy_m4_m4(workob->obmat, ob->obmat);
 	copy_m4_m4(workob->parentinv, ob->parentinv);
 	copy_m4_m4(workob->constinv, ob->constinv);
-	workob->parent= ob->parent;
+	workob->parent = ob->parent;
 	
-	workob->rotmode= ob->rotmode;
+	workob->rotmode = ob->rotmode;
 	
-	workob->trackflag= ob->trackflag;
-	workob->upflag= ob->upflag;
+	workob->trackflag = ob->trackflag;
+	workob->upflag = ob->upflag;
 	
-	workob->partype= ob->partype;
-	workob->par1= ob->par1;
-	workob->par2= ob->par2;
-	workob->par3= ob->par3;
+	workob->partype = ob->partype;
+	workob->par1 = ob->par1;
+	workob->par2 = ob->par2;
+	workob->par3 = ob->par3;
 
 	workob->constraints.first = ob->constraints.first;
 	workob->constraints.last = ob->constraints.last;
 	
-	workob->pose= pose;	/* need to set pose too, since this is used for both types of Action Constraint */
+	workob->pose = pose; /* need to set pose too, since this is used for both types of Action Constraint */
 
 	BLI_strncpy(workob->parsubstr, ob->parsubstr, sizeof(workob->parsubstr));
 	BLI_strncpy(workob->id.name, "OB<ConstrWorkOb>", sizeof(workob->id.name)); /* we don't use real object name, otherwise RNA screws with the real thing */
@@ -1177,13 +1177,13 @@ void what_does_obaction(Object *ob, Object *workob, bPose *pose, bAction *act, c
 		animsys_evaluate_action_group(&id_ptr, act, agrp, NULL, cframe);
 	}
 	else {
-		AnimData adt= {NULL};
+		AnimData adt = {NULL};
 		
 		/* init animdata, and attach to workob */
-		workob->adt= &adt;
+		workob->adt = &adt;
 		
-		adt.recalc= ADT_RECALC_ANIM;
-		adt.action= act;
+		adt.recalc = ADT_RECALC_ANIM;
+		adt.action = act;
 		
 		/* execute effects of Action on to workob (or it's PoseChannels) */
 		BKE_animsys_evaluate_animdata(NULL, &workob->id, &adt, cframe, ADT_RECALC_ANIM);
@@ -1207,7 +1207,7 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 		case ACTSTRIPMODE_ADD:
 			dstweight = 1.0F;
 			break;
-		default :
+		default:
 			dstweight = 1.0F;
 	}
 	
@@ -1238,30 +1238,30 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
 	/* matching offset bones */
 	/* take dst offset, and put src on on that location */
 	
-	if (strip->offs_bone[0]==0)
+	if (strip->offs_bone[0] == 0)
 		return;
 	
 	/* are we also blending with matching bones? */
-	if (strip->prev && strip->start>=strip->prev->start) {
-		bPoseChannel *dpchan= BKE_pose_channel_find_name(dst, strip->offs_bone);
+	if (strip->prev && strip->start >= strip->prev->start) {
+		bPoseChannel *dpchan = BKE_pose_channel_find_name(dst, strip->offs_bone);
 		if (dpchan) {
-			bPoseChannel *spchan= BKE_pose_channel_find_name(src, strip->offs_bone);
+			bPoseChannel *spchan = BKE_pose_channel_find_name(src, strip->offs_bone);
 			if (spchan) {
 				float vec[3];
 				
 				/* dst->ctime has the internal strip->prev action time */
 				/* map this time to nla time */
 				
-				float ctime= get_actionstrip_frame(strip, src->ctime, 1);
+				float ctime = get_actionstrip_frame(strip, src->ctime, 1);
 				
-				if ( ctime > strip->prev->end) {
+				if (ctime > strip->prev->end) {
 					bActionChannel *achan;
 					
 					/* add src to dest, minus the position of src on strip->prev->end */
 					
-					ctime= get_actionstrip_frame(strip, strip->prev->end, 0);
+					ctime = get_actionstrip_frame(strip, strip->prev->end, 0);
 					
-					achan= get_action_channel(strip->act, strip->offs_bone);
+					achan = get_action_channel(strip->act, strip->offs_bone);
 					if (achan && achan->ipo) {
 						bPoseChannel pchan;
 						/* Evaluates and sets the internal ipo value */
@@ -1298,63 +1298,63 @@ static void blend_pose_offset_bone(bActionStrip *strip, bPose *dst, bPose *src, 
  */
 static float stridechannel_frame(Object *ob, float sizecorr, bActionStrip *strip, Path *path, float pathdist, float *stride_offset)
 {
-	bAction *act= strip->act;
-	const char *name= strip->stridechannel;
-	bActionChannel *achan= get_action_channel(act, name);
-	int stride_axis= strip->stride_axis;
+	bAction *act = strip->act;
+	const char *name = strip->stridechannel;
+	bActionChannel *achan = get_action_channel(act, name);
+	int stride_axis = strip->stride_axis;
 
 	if (achan && achan->ipo) {
-		IpoCurve *icu= NULL;
-		float minx=0.0f, maxx=0.0f, miny=0.0f, maxy=0.0f;
-		int foundvert= 0;
-		
-		if (stride_axis==0) stride_axis= AC_LOC_X;
-		else if (stride_axis==1) stride_axis= AC_LOC_Y;
-		else stride_axis= AC_LOC_Z;
+		IpoCurve *icu = NULL;
+		float minx = 0.0f, maxx = 0.0f, miny = 0.0f, maxy = 0.0f;
+		int foundvert = 0;
+
+		if (stride_axis == 0) stride_axis = AC_LOC_X;
+		else if (stride_axis == 1) stride_axis = AC_LOC_Y;
+		else stride_axis = AC_LOC_Z;
 		
 		/* calculate the min/max */
-		for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-			if (icu->adrcode==stride_axis) {
-				if (icu->totvert>1) {
-					foundvert= 1;
-					minx= icu->bezt[0].vec[1][0];
-					maxx= icu->bezt[icu->totvert-1].vec[1][0];
+		for (icu = achan->ipo->curve.first; icu; icu = icu->next) {
+			if (icu->adrcode == stride_axis) {
+				if (icu->totvert > 1) {
+					foundvert = 1;
+					minx = icu->bezt[0].vec[1][0];
+					maxx = icu->bezt[icu->totvert - 1].vec[1][0];
 					
-					miny= icu->bezt[0].vec[1][1];
-					maxy= icu->bezt[icu->totvert-1].vec[1][1];
+					miny = icu->bezt[0].vec[1][1];
+					maxy = icu->bezt[icu->totvert - 1].vec[1][1];
 				}
 				break;
 			}
 		}
 		
-		if (foundvert && miny!=maxy) {
-			float stridelen= sizecorr*fabs(maxy-miny), striptime;
+		if (foundvert && miny != maxy) {
+			float stridelen = sizecorr * fabs(maxy - miny), striptime;
 			float actiondist, pdist, pdistNewNormalized, offs;
 			float vec1[4], vec2[4], dir[3];
 			
 			/* internal cycling, actoffs is in frames */
-			offs= stridelen*strip->actoffs/(maxx-minx);
+			offs = stridelen * strip->actoffs / (maxx - minx);
 			
 			/* amount path moves object */
-			pdist = (float)fmod (pathdist+offs, stridelen);
-			striptime= pdist/stridelen;
+			pdist = (float)fmod(pathdist + offs, stridelen);
+			striptime = pdist / stridelen;
 			
 			/* amount stride bone moves */
-			actiondist= sizecorr*eval_icu(icu, minx + striptime*(maxx-minx)) - miny;
+			actiondist = sizecorr * eval_icu(icu, minx + striptime * (maxx - minx)) - miny;
 			
 			pdist = fabs(actiondist) - pdist;
-			pdistNewNormalized = (pathdist+pdist)/path->totdist;
+			pdistNewNormalized = (pathdist + pdist) / path->totdist;
 			
 			/* now we need to go pdist further (or less) on cu path */
-			where_on_path(ob, (pathdist)/path->totdist, vec1, dir);	/* vec needs size 4 */
+			where_on_path(ob, (pathdist) / path->totdist, vec1, dir); /* vec needs size 4 */
 			if (pdistNewNormalized <= 1) {
 				// search for correction in positive path-direction
-				where_on_path(ob, pdistNewNormalized, vec2, dir);	/* vec needs size 4 */
+				where_on_path(ob, pdistNewNormalized, vec2, dir);   /* vec needs size 4 */
 				sub_v3_v3v3(stride_offset, vec2, vec1);
 			}
 			else {
 				// we reached the end of the path, search backwards instead
-				where_on_path(ob, (pathdist-pdist)/path->totdist, vec2, dir);	/* vec needs size 4 */
+				where_on_path(ob, (pathdist - pdist) / path->totdist, vec2, dir);   /* vec needs size 4 */
 				sub_v3_v3v3(stride_offset, vec1, vec2);
 			}
 			mul_mat3_m4_v3(ob->obmat, stride_offset);
@@ -1368,52 +1368,52 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 {
 	/* only called when strip has cyclic, so >= 1.0f works... */
 	if (time >= 1.0f) {
-		bActionChannel *achan= get_action_channel(strip->act, strip->offs_bone);
+		bActionChannel *achan = get_action_channel(strip->act, strip->offs_bone);
 
 		if (achan && achan->ipo) {
-			IpoCurve *icu= NULL;
+			IpoCurve *icu = NULL;
 			Bone *bone;
-			float min[3]={0.0f, 0.0f, 0.0f}, max[3]={0.0f, 0.0f, 0.0f};
-			int index=0, foundvert= 0;
+			float min[3] = {0.0f, 0.0f, 0.0f}, max[3] = {0.0f, 0.0f, 0.0f};
+			int index = 0, foundvert = 0;
 			
 			/* calculate the min/max */
-			for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-				if (icu->totvert>1) {
+			for (icu = achan->ipo->curve.first; icu; icu = icu->next) {
+				if (icu->totvert > 1) {
 					
-					if (icu->adrcode==AC_LOC_X)
-						index= 0;
-					else if (icu->adrcode==AC_LOC_Y)
-						index= 1;
-					else if (icu->adrcode==AC_LOC_Z)
-						index= 2;
+					if (icu->adrcode == AC_LOC_X)
+						index = 0;
+					else if (icu->adrcode == AC_LOC_Y)
+						index = 1;
+					else if (icu->adrcode == AC_LOC_Z)
+						index = 2;
 					else
 						continue;
 				
-					foundvert= 1;
-					min[index]= icu->bezt[0].vec[1][1];
-					max[index]= icu->bezt[icu->totvert-1].vec[1][1];
+					foundvert = 1;
+					min[index] = icu->bezt[0].vec[1][1];
+					max[index] = icu->bezt[icu->totvert - 1].vec[1][1];
 				}
 			}
 			if (foundvert) {
 				/* bring it into armature space */
 				sub_v3_v3v3(min, max, min);
-				bone= BKE_armature_find_bone_name(ob->data, strip->offs_bone);	/* weak */
+				bone = BKE_armature_find_bone_name(ob->data, strip->offs_bone);  /* weak */
 				if (bone) {
 					mul_mat3_m4_v3(bone->arm_mat, min);
 					
 					/* dominant motion, cyclic_offset was cleared in BKE_pose_rest */
 					if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
-						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0]= time*min[0];
-						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1]= time*min[1];
-						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2]= time*min[2];
+						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0] = time * min[0];
+						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1] = time * min[1];
+						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2] = time * min[2];
 					}
 					else {
-						if ( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
-							pose->cyclic_offset[0]= time*min[0];
-						else if ( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
-							pose->cyclic_offset[1]= time*min[1];
+						if (fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
+							pose->cyclic_offset[0] = time * min[0];
+						else if (fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
+							pose->cyclic_offset[1] = time * min[1];
 						else
-							pose->cyclic_offset[2]= time*min[2];
+							pose->cyclic_offset[2] = time * min[2];
 					}
 				}
 			}
@@ -1427,13 +1427,13 @@ static Object *get_parent_path(Object *ob)
 {
 	bConstraint *con;
 	
-	if (ob->parent && ob->parent->type==OB_CURVE)
+	if (ob->parent && ob->parent->type == OB_CURVE)
 		return ob->parent;
 	
-	for (con = ob->constraints.first; con; con=con->next) {
-		if (con->type==CONSTRAINT_TYPE_FOLLOWPATH) {
-			if (con->enforce>0.5f) {
-				bFollowPathConstraint *data= con->data;
+	for (con = ob->constraints.first; con; con = con->next) {
+		if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) {
+			if (con->enforce > 0.5f) {
+				bFollowPathConstraint *data = con->data;
 				return data->tar;
 			}
 		}
@@ -1447,71 +1447,71 @@ static Object *get_parent_path(Object *ob)
 
 static void do_nla(Scene *scene, Object *ob, int blocktype)
 {
-	bPose *tpose= NULL;
-	Key *key= NULL;
-	ListBase tchanbase={NULL, NULL}, chanbase={NULL, NULL};
-	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
+	bPose *tpose = NULL;
+	Key *key = NULL;
+	ListBase tchanbase = {NULL, NULL}, chanbase = {NULL, NULL};
+	bActionStrip *strip, *striplast = NULL, *stripfirst = NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= BKE_scene_frame_get(scene);
-	int	doit, dostride;
+	float scene_cfra = BKE_scene_frame_get(scene);
+	int doit, dostride;
 	
-	if (blocktype==ID_AR) {
+	if (blocktype == ID_AR) {
 		BKE_pose_copy_data(&tpose, ob->pose, 1);
-		BKE_pose_rest(ob->pose);		// potentially destroying current not-keyed pose
+		BKE_pose_rest(ob->pose);        // potentially destroying current not-keyed pose
 	}
 	else {
-		key= ob_get_key(ob);
+		key = ob_get_key(ob);
 	}
 	
 	/* check on extend to left or right, when no strip is hit by 'cfra' */
-	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
+	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
 		/* escape loop on a hit */
-		if ( scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)	/* note 0.1 comes back below */
+		if (scene_cfra >= strip->start && scene_cfra <= strip->end + 0.1f)  /* note 0.1 comes back below */
 			break;
 		if (scene_cfra < strip->start) {
-			if (stripfirst==NULL)
-				stripfirst= strip;
+			if (stripfirst == NULL)
+				stripfirst = strip;
 			else if (stripfirst->start > strip->start)
-				stripfirst= strip;
+				stripfirst = strip;
 		}
 		else if (scene_cfra > strip->end) {
-			if (striplast==NULL)
-				striplast= strip;
+			if (striplast == NULL)
+				striplast = strip;
 			else if (striplast->end < strip->end)
-				striplast= strip;
+				striplast = strip;
 		}
 	}
-	if (strip==NULL) {	/* extend */
+	if (strip == NULL) {  /* extend */
 		if (striplast)
-			scene_cfra= striplast->end;
+			scene_cfra = striplast->end;
 		else if (stripfirst)
-			scene_cfra= stripfirst->start;
+			scene_cfra = stripfirst->start;
 	}
 	
 	/* and now go over all strips */
-	for (strip=ob->nlastrips.first; strip; strip=strip->next) {
-		doit=dostride= 0;
+	for (strip = ob->nlastrips.first; strip; strip = strip->next) {
+		doit = dostride = 0;
 		
-		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) {	/* so theres an action */
+		if (strip->act && !(strip->flag & ACTSTRIP_MUTE)) { /* so theres an action */
 			
 			/* Determine if the current frame is within the strip's range */
-			length = strip->end-strip->start;
-			actlength = strip->actend-strip->actstart;
+			length = strip->end - strip->start;
+			actlength = strip->actend - strip->actstart;
 			striptime = (scene_cfra - strip->start) / length;
 			stripframe = (scene_cfra - strip->start);
 
-			if (striptime>=0.0) {
+			if (striptime >= 0.0) {
 				
-				if (blocktype==ID_AR) 
+				if (blocktype == ID_AR)
 					BKE_pose_rest(tpose);
 				
 				/* To handle repeat, we add 0.1 frame extra to make sure the last frame is included */
-				if (striptime < 1.0f + 0.1f/length) {
+				if (striptime < 1.0f + 0.1f / length) {
 					
 					/* Handle path */
-					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype==ID_AR) && (ob->ipoflag & OB_DISABLE_PATH)==0) {
-						Object *parent= get_parent_path(ob);
+					if ((strip->flag & ACTSTRIP_USESTRIDE) && (blocktype == ID_AR) && (ob->ipoflag & OB_DISABLE_PATH) == 0) {
+						Object *parent = get_parent_path(ob);
 						
 						if (parent) {
 							Curve *cu = parent->data;
@@ -1519,43 +1519,43 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 							
 							if (cu->flag & CU_PATH) {
 								/* Ensure we have a valid path */
-								if (cu->path==NULL || cu->path->data==NULL) makeDispListCurveTypes(scene, parent, 0);
+								if (cu->path == NULL || cu->path->data == NULL) makeDispListCurveTypes(scene, parent, 0);
 								if (cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(scene, ob, scene_cfra, 0.0);
+									ctime = bsystem_time(scene, ob, scene_cfra, 0.0);
 									
-									if (calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
+									if (calc_ipo_spec(cu->ipo, CU_SPEED, &ctime) == 0) {
 										/* correct for actions not starting on zero */
-										ctime= (ctime - strip->actstart)/cu->pathlen;
+										ctime = (ctime - strip->actstart) / cu->pathlen;
 										CLAMP(ctime, 0.0, 1.0);
 									}
-									pdist = ctime*cu->path->totdist;
+									pdist = ctime * cu->path->totdist;
 									
 									if (tpose && strip->stridechannel[0]) {
-										striptime= stridechannel_frame(parent, ob->size[0], strip, cu->path, pdist, tpose->stride_offset);
+										striptime = stridechannel_frame(parent, ob->size[0], strip, cu->path, pdist, tpose->stride_offset);
 									}									
 									else {
 										if (strip->stridelen) {
 											striptime = pdist / strip->stridelen;
-											striptime = (float)fmod (striptime+strip->actoffs, 1.0);
+											striptime = (float)fmod(striptime + strip->actoffs, 1.0);
 										}
 										else
 											striptime = 0;
 									}
 									
 									frametime = (striptime * actlength) + strip->actstart;
-									frametime= bsystem_time(scene, ob, frametime, 0.0);
+									frametime = bsystem_time(scene, ob, frametime, 0.0);
 									
-									if (blocktype==ID_AR) {
-										extract_pose_from_action (tpose, strip->act, frametime);
+									if (blocktype == ID_AR) {
+										extract_pose_from_action(tpose, strip->act, frametime);
 									}
-									else if (blocktype==ID_OB) {
+									else if (blocktype == ID_OB) {
 										extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
 										if (key)
 											extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 									}
-									doit=dostride= 1;
+									doit = dostride = 1;
 								}
 							}
 						}
@@ -1564,29 +1564,29 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 					else {
 						
 						/* Mod to repeat */
-						if (strip->repeat!=1.0f) {
-							float cycle= striptime*strip->repeat;
+						if (strip->repeat != 1.0f) {
+							float cycle = striptime * strip->repeat;
 							
-							striptime = (float)fmod (cycle, 1.0f + 0.1f/length);
-							cycle-= striptime;
+							striptime = (float)fmod(cycle, 1.0f + 0.1f / length);
+							cycle -= striptime;
 							
-							if (blocktype==ID_AR)
+							if (blocktype == ID_AR)
 								cyclic_offs_bone(ob, tpose, strip, cycle);
 						}
 
 						frametime = (striptime * actlength) + strip->actstart;
-						frametime= nla_time(scene, frametime, (float)strip->repeat);
+						frametime = nla_time(scene, frametime, (float)strip->repeat);
 							
-						if (blocktype==ID_AR) {
-							extract_pose_from_action (tpose, strip->act, frametime);
+						if (blocktype == ID_AR) {
+							extract_pose_from_action(tpose, strip->act, frametime);
 						}
-						else if (blocktype==ID_OB) {
+						else if (blocktype == ID_OB) {
 							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
 							if (key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 						}
 						
-						doit=1;
+						doit = 1;
 					}
 				}
 				/* Handle extend */
@@ -1594,25 +1594,25 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 					if (strip->flag & ACTSTRIP_HOLDLASTFRAME) {
 						/* we want the strip to hold on the exact fraction of the repeat value */
 						
-						frametime = actlength * (strip->repeat-(int)strip->repeat);
-						if (frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
-						frametime= bsystem_time(scene, ob, frametime+strip->actstart, 0.0);
-						
-						if (blocktype==ID_AR)
-							extract_pose_from_action (tpose, strip->act, frametime);
-						else if (blocktype==ID_OB) {
+						frametime = actlength * (strip->repeat - (int)strip->repeat);
+						if (frametime <= 0.000001f) frametime = actlength;  /* rounding errors... */
+						frametime = bsystem_time(scene, ob, frametime + strip->actstart, 0.0);
+
+						if (blocktype == ID_AR)
+							extract_pose_from_action(tpose, strip->act, frametime);
+						else if (blocktype == ID_OB) {
 							extract_ipochannels_from_action(&tchanbase, &ob->id, strip->act, "Object", frametime);
 							if (key)
 								extract_ipochannels_from_action(&tchanbase, &key->id, strip->act, "Shape", frametime);
 						}
 						
 						/* handle cycle hold */
-						if (strip->repeat!=1.0f) {
-							if (blocktype==ID_AR)
-								cyclic_offs_bone(ob, tpose, strip, strip->repeat-1.0f);
+						if (strip->repeat != 1.0f) {
+							if (blocktype == ID_AR)
+								cyclic_offs_bone(ob, tpose, strip, strip->repeat - 1.0f);
 						}
 						
-						doit=1;
+						doit = 1;
 					}
 				}
 				
@@ -1620,22 +1620,22 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 				if (doit) {
 					/* Handle blendin */
 					
-					if (strip->blendin>0.0 && stripframe<=strip->blendin && scene_cfra>=strip->start) {
-						blendfac = stripframe/strip->blendin;
+					if (strip->blendin > 0.0 && stripframe <= strip->blendin && scene_cfra >= strip->start) {
+						blendfac = stripframe / strip->blendin;
 					}
-					else if (strip->blendout>0.0 && stripframe>=(length-strip->blendout) && scene_cfra<=strip->end) {
-						blendfac = (length-stripframe)/(strip->blendout);
+					else if (strip->blendout > 0.0 && stripframe >= (length - strip->blendout) && scene_cfra <= strip->end) {
+						blendfac = (length - stripframe) / (strip->blendout);
 					}
 					else
 						blendfac = 1;
 					
-					if (blocktype==ID_AR) {/* Blend this pose with the accumulated pose */
+					if (blocktype == ID_AR) { /* Blend this pose with the accumulated pose */
 						/* offset bone, for matching cycles */
-						blend_pose_offset_bone (strip, ob->pose, tpose, blendfac, strip->mode);
+						blend_pose_offset_bone(strip, ob->pose, tpose, blendfac, strip->mode);
 						
-						blend_poses (ob->pose, tpose, blendfac, strip->mode);
+						blend_poses(ob->pose, tpose, blendfac, strip->mode);
 						if (dostride)
-							blend_pose_strides (ob->pose, tpose, blendfac, strip->mode);
+							blend_pose_strides(ob->pose, tpose, blendfac, strip->mode);
 					}
 					else {
 						blend_ipochannels(&chanbase, &tchanbase, blendfac, strip->mode);
@@ -1646,10 +1646,10 @@ static void do_nla(Scene *scene, Object *ob, int blocktype)
 		}
 	}
 	
-	if (blocktype==ID_OB) {
+	if (blocktype == ID_OB) {
 		execute_ipochannels(&chanbase);
 	}
-	else if (blocktype==ID_AR) {
+	else if (blocktype == ID_AR) {
 		/* apply stride offset to object */
 		add_v3_v3(ob->obmat[3], ob->pose->stride_offset);
 	}

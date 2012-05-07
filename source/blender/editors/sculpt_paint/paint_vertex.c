@@ -3047,6 +3047,8 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight from Bones";
 	ot->idname = "PAINT_OT_weight_from_bones";
+	ot->description = "Set the weights of the groups matching the attached armature's selected bones, "
+	                  "using the distance between the vertices and the bones";
 	
 	/* api callbacks */
 	ot->exec = weight_from_bones_exec;

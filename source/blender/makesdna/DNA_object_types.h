@@ -153,6 +153,9 @@ typedef struct Object {
 	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
 	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
 	float imat[4][4];	/* inverse matrix of 'obmat' for any other use than rendering! */
+	                    /* note: this isn't assured to be valid as with 'obmat',
+	                     *       before using this value you should do...
+	                     *       invert_m4_m4(ob->imat, ob->obmat); */
 	
 	/* Previously 'imat' was used at render time, but as other places use it too
 	 * the interactive ui of 2.5 creates problems. So now only 'imat_ren' should

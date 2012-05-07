@@ -3580,8 +3580,9 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Sculpt Mode";
+	ot->name = "Sculpt";
 	ot->idname = "SCULPT_OT_brush_stroke";
+	ot->description = "Sculpt a stroke into the geometry";
 	
 	/* api callbacks */
 	ot->invoke = sculpt_brush_stroke_invoke;
@@ -3627,6 +3628,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Persistent Base";
 	ot->idname = "SCULPT_OT_set_persistent_base";
+	ot->description = "Reset the copy of the mesh that is being sculpted on";
 	
 	/* api callbacks */
 	ot->exec = sculpt_set_persistent_base;
@@ -3705,6 +3707,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sculpt Mode";
 	ot->idname = "SCULPT_OT_sculptmode_toggle";
+	ot->description = "Toggle sculpt mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = sculpt_toggle_mode;
