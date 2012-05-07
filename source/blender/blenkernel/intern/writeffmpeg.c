@@ -678,7 +678,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	do_init_ffmpeg();
 
 	/* Determine the correct filename */
-	filepath_ffmpeg(name, rd);
+	BKE_ffmpeg_filepath_get(name, rd);
 	fprintf(stderr, "Starting output to %s(ffmpeg)...\n"
 		"  Using type=%d, codec=%d, audio_codec=%d,\n"
 		"  video_bitrate=%d, audio_bitrate=%d,\n"
@@ -884,7 +884,7 @@ void flush_ffmpeg(void)
  * ********************************************************************** */
 
 /* Get the output filename-- similar to the other output formats */
-void filepath_ffmpeg(char* string, RenderData* rd)
+void BKE_ffmpeg_filepath_get(char* string, RenderData* rd)
 {
 	char autosplit[20];
 
@@ -925,7 +925,7 @@ void filepath_ffmpeg(char* string, RenderData* rd)
 	}
 }
 
-int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports)
+int BKE_ffmpeg_start(struct Scene *scene, RenderData *rd, int rectx, int recty, ReportList *reports)
 {
 	int success;
 
@@ -949,7 +949,7 @@ int start_ffmpeg(struct Scene *scene, RenderData *rd, int rectx, int recty, Repo
 	return success;
 }
 
-void end_ffmpeg(void);
+void BKE_ffmpeg_end(void);
 
 #ifdef WITH_AUDASPACE
 static void write_audio_frames(double to_pts)
@@ -965,7 +965,7 @@ static void write_audio_frames(double to_pts)
 }
 #endif
 
-int append_ffmpeg(RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, ReportList *reports)
+int BKE_ffmpeg_append(RenderData *rd, int start_frame, int frame, int *pixels, int rectx, int recty, ReportList *reports)
 {
 	AVFrame* avframe;
 	int success = 1;
@@ -983,7 +983,7 @@ int append_ffmpeg(RenderData *rd, int start_frame, int frame, int *pixels, int r
 
 		if (ffmpeg_autosplit) {
 			if (avio_tell(outfile->pb) > FFMPEG_AUTOSPLIT_SIZE) {
-				end_ffmpeg();
+				BKE_ffmpeg_end();
 				ffmpeg_autosplit_count++;
 				success &= start_ffmpeg_impl(rd, rectx, recty, reports);
 			}
@@ -996,7 +996,7 @@ int append_ffmpeg(RenderData *rd, int start_frame, int frame, int *pixels, int r
 	return success;
 }
 
-void end_ffmpeg(void)
+void BKE_ffmpeg_end(void)
 {
 	unsigned int i;
 	
@@ -1074,7 +1074,7 @@ void end_ffmpeg(void)
 
 /* properties */
 
-void ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
+void BKE_ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 {
 	struct IDProperty *prop = (struct IDProperty *) prop_;
 	IDProperty * group;
@@ -1091,7 +1091,7 @@ void ffmpeg_property_del(RenderData *rd, void *type, void *prop_)
 	}
 }
 
-IDProperty *ffmpeg_property_add(RenderData *rd, const char *type, int opt_index, int parent_index)
+IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_index, int parent_index)
 {
 	AVCodecContext c;
 	const AVOption * o;
@@ -1184,7 +1184,7 @@ static const AVOption *my_av_find_opt(void *v, const char *name,
 	return NULL;
 }
 
-int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * str)
+int BKE_ffmpeg_property_add_string(RenderData *rd, const char * type, const char * str)
 {
 	AVCodecContext c;
 	const AVOption * o = 0;
@@ -1220,12 +1220,12 @@ int ffmpeg_property_add_string(RenderData *rd, const char * type, const char * s
 	}
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
 		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
-		prop = ffmpeg_property_add(rd,
+		prop = BKE_ffmpeg_property_add(rd,
 			(char*) type, p - c.av_class->option, 
 			o - c.av_class->option);
 	}
 	else {
-		prop = ffmpeg_property_add(rd,
+		prop = BKE_ffmpeg_property_add(rd,
 			(char*) type, o - c.av_class->option, 0);
 	}
 		
@@ -1268,37 +1268,37 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 		 * Use CABAC coder. Using "coder:1", which should be equivalent,
 		 * crashes Blender for some reason. Either way - this is no big deal.
 		 */
-		ffmpeg_property_add_string(rd, "video", "coder:vlc");
+		BKE_ffmpeg_property_add_string(rd, "video", "coder:vlc");
 
 		/*
 		 * The other options were taken from the libx264-default.preset
 		 * included in the ffmpeg distribution.
 		 */
 //		ffmpeg_property_add_string(rd, "video", "flags:loop"); // this breaks compatibility for QT
-		ffmpeg_property_add_string(rd, "video", "cmp:chroma");
-		ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
-		ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
-		ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
-		ffmpeg_property_add_string(rd, "video", "me:hex");
-		ffmpeg_property_add_string(rd, "video", "subq:6");
-		ffmpeg_property_add_string(rd, "video", "me_range:16");
-		ffmpeg_property_add_string(rd, "video", "qdiff:4");
-		ffmpeg_property_add_string(rd, "video", "keyint_min:25");
-		ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
-		ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
-		ffmpeg_property_add_string(rd, "video", "b_strategy:1");
-		ffmpeg_property_add_string(rd, "video", "bf:3");
-		ffmpeg_property_add_string(rd, "video", "refs:2");
-		ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
-		ffmpeg_property_add_string(rd, "video", "directpred:3");
-		ffmpeg_property_add_string(rd, "video", "trellis:0");
-		ffmpeg_property_add_string(rd, "video", "flags2:wpred");
-		ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
-		ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
-		ffmpeg_property_add_string(rd, "video", "wpredp:2");
+		BKE_ffmpeg_property_add_string(rd, "video", "cmp:chroma");
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:parti4x4");
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partp8x8");
+		BKE_ffmpeg_property_add_string(rd, "video", "partitions:partb8x8");
+		BKE_ffmpeg_property_add_string(rd, "video", "me:hex");
+		BKE_ffmpeg_property_add_string(rd, "video", "subq:6");
+		BKE_ffmpeg_property_add_string(rd, "video", "me_range:16");
+		BKE_ffmpeg_property_add_string(rd, "video", "qdiff:4");
+		BKE_ffmpeg_property_add_string(rd, "video", "keyint_min:25");
+		BKE_ffmpeg_property_add_string(rd, "video", "sc_threshold:40");
+		BKE_ffmpeg_property_add_string(rd, "video", "i_qfactor:0.71");
+		BKE_ffmpeg_property_add_string(rd, "video", "b_strategy:1");
+		BKE_ffmpeg_property_add_string(rd, "video", "bf:3");
+		BKE_ffmpeg_property_add_string(rd, "video", "refs:2");
+		BKE_ffmpeg_property_add_string(rd, "video", "qcomp:0.6");
+		BKE_ffmpeg_property_add_string(rd, "video", "directpred:3");
+		BKE_ffmpeg_property_add_string(rd, "video", "trellis:0");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:wpred");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:dct8x8");
+		BKE_ffmpeg_property_add_string(rd, "video", "flags2:fastpskip");
+		BKE_ffmpeg_property_add_string(rd, "video", "wpredp:2");
 
 		if (rd->ffcodecdata.flags & FFMPEG_LOSSLESS_OUTPUT)
-			ffmpeg_property_add_string(rd, "video", "cqp:0");
+			BKE_ffmpeg_property_add_string(rd, "video", "cqp:0");
 	}
 #if 0	/* disabled for after release */
 	else if (codec_id == CODEC_ID_DNXHD) {
@@ -1308,7 +1308,7 @@ static void ffmpeg_set_expert_options(RenderData *rd)
 #endif
 }
 
-void ffmpeg_set_preset(RenderData *rd, int preset)
+void BKE_ffmpeg_preset_set(RenderData *rd, int preset)
 {
 	int isntsc = (rd->frs_sec != 25);
 
@@ -1402,7 +1402,7 @@ void ffmpeg_set_preset(RenderData *rd, int preset)
 	ffmpeg_set_expert_options(rd);
 }
 
-void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
+void BKE_ffmpeg_image_type_verify(RenderData *rd, ImageFormatData *imf)
 {
 	int audio= 0;
 
@@ -1414,7 +1414,7 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
 
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_DVD);
+			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_DVD);
 		}
 		if (rd->ffcodecdata.type == FFMPEG_OGG) {
 			rd->ffcodecdata.type = FFMPEG_MPEG2;
@@ -1424,19 +1424,19 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 	}
 	else if (imf->imtype == R_IMF_IMTYPE_H264) {
 		if (rd->ffcodecdata.codec != CODEC_ID_H264) {
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_H264);
+			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_H264);
 			audio= 1;
 		}
 	}
 	else if (imf->imtype == R_IMF_IMTYPE_XVID) {
 		if (rd->ffcodecdata.codec != CODEC_ID_MPEG4) {
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_XVID);
+			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_XVID);
 			audio= 1;
 		}
 	}
 	else if (imf->imtype == R_IMF_IMTYPE_THEORA) {
 		if (rd->ffcodecdata.codec != CODEC_ID_THEORA) {
-			ffmpeg_set_preset(rd, FFMPEG_PRESET_THEORA);
+			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_THEORA);
 			audio= 1;
 		}
 	}
@@ -1447,12 +1447,12 @@ void ffmpeg_verify_image_type(RenderData *rd, ImageFormatData *imf)
 	}
 }
 
-void ffmpeg_verify_codec_settings(RenderData *rd)
+void BKE_ffmpeg_codec_settings_verify(RenderData *rd)
 {
 	ffmpeg_set_expert_options(rd);
 }
 
-int ffmpeg_alpha_channel_supported(RenderData *rd)
+int BKE_ffmpeg_alpha_channel_is_supported(RenderData *rd)
 {
 	int codec = rd->ffcodecdata.codec;
 
