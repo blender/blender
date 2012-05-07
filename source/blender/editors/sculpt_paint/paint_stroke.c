@@ -188,7 +188,11 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	output[1] = event->y;
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
-	    !ELEM4(stroke->brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK) &&
+	    !ELEM4(stroke->brush->sculpt_tool,
+			   SCULPT_TOOL_GRAB,
+			   SCULPT_TOOL_THUMB,
+			   SCULPT_TOOL_ROTATE,
+			   SCULPT_TOOL_SNAKE_HOOK) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
@@ -278,7 +282,8 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 void paint_stroke_free(PaintStroke *stroke)
 {
-	MEM_freeN(stroke);
+	MEM_freeN(op->customdata);
+	op->customdata = NULL;
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
@@ -287,6 +292,35 @@ int paint_space_stroke_enabled(Brush *br)
 	return (br->flag & BRUSH_SPACE) &&
 	       !(br->flag & BRUSH_ANCHORED) &&
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
+}
+
+#define PAINT_STROKE_MODAL_CANCEL 1
+
+/* called in paint_ops.c, on each regeneration of keymaps  */
+struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
+{
+	static struct EnumPropertyItem modal_items[] = {
+		{PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0,
+		"Cancel",
+		"Cancel and undo a stroke in progress"},
+
+		{ 0 }
+	};
+
+	static const char *name = "Paint Stroke Modal";
+
+	struct wmKeyMap *keymap = WM_modalkeymap_get(keyconf, name);
+
+	/* this function is called for each spacetype, only needs to add map once */
+	if (!keymap) {
+		keymap = WM_modalkeymap_add(keyconf, name, modal_items);
+
+		/* items for modal map */
+		WM_modalkeymap_add_item(
+			keymap, ESCKEY, KM_PRESS, KM_ANY, 0, PAINT_STROKE_MODAL_CANCEL);
+	}
+
+	return keymap;
 }
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)

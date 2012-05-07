@@ -1487,7 +1487,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					break;
 			}
 			
-		case NSMouseMoved:
+		case NSMouseMoved: 
+			{
 				GHOST_TGrabCursorMode grab_mode = window->getCursorGrabMode();
 
 				/* TODO: CHECK IF THIS IS A TABLET EVENT */
@@ -1572,7 +1573,8 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 					}
 						break;
 				}
-				break;
+			}
+			break;
 			
 		case NSScrollWheel:
 			{

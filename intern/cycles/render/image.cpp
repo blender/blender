@@ -344,7 +344,7 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 	}
 
 	if(is_float) {
-		string filename = path_filename(float_images[slot]->filename);
+		string filename = path_filename(float_images[slot - TEX_IMAGE_FLOAT_START]->filename);
 		progress->set_status("Updating Images", "Loading " + filename);
 
 		device_vector<float4>& tex_img = dscene->tex_float_image[slot - TEX_IMAGE_FLOAT_START];
