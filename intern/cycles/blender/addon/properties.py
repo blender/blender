@@ -293,7 +293,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 )
         cls.fisheye_lens = FloatProperty(
                 name="Fisheye Lens",
-                description="Lens focal length (mm))",
+                description="Lens focal length (mm)",
                 min=0.01, soft_max=15.0, max=100.0,
                 default=10.5,
                 )

@@ -531,7 +531,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom";
 	ot->idname = "CLIP_OT_view_zoom";
-	ot->description = "Zoom on/out the view";
+	ot->description = "Zoom in/out the view";
 
 	/* api callbacks */
 	ot->exec = view_zoom_exec;

@@ -2173,7 +2173,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Curves Point";
 	ot->idname = "IMAGE_OT_curves_point_set";
-	ot->description = "Set black or white point for curves";
+	ot->description = "Set black point or white point for curves";
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

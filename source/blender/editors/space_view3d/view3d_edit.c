@@ -2315,7 +2315,7 @@ void VIEW3D_OT_view_lock_clear(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "View Lock Clear";
-	ot->description = "Clears all view locking";
+	ot->description = "Clear all view locking";
 	ot->idname = "VIEW3D_OT_view_lock_clear";
 
 	/* api callbacks */
