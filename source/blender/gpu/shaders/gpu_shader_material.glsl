@@ -2188,6 +2188,13 @@ void node_light_path(
 	is_transmission_ray = 0.0;
 }
 
+void node_light_falloff(float strength, float smooth, out float quadratic, out float linear, out float constant)
+{
+	quadratic = strength;
+	linear = strength;
+	constant = strength;
+}
+
 /* output */
 
 void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)

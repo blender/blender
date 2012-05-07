@@ -41,6 +41,9 @@ public:
 	float3 rotation;
 	float3 scale;
 
+	float3 min, max;
+	bool use_minmax;
+
 	enum Mapping { NONE=0, X=1, Y=2, Z=3 };
 	Mapping x_mapping, y_mapping, z_mapping;
 
@@ -275,6 +278,11 @@ public:
 class LightPathNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(LightPathNode)
+};
+
+class LightFalloffNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(LightFalloffNode)
 };
 
 class ValueNode : public ShaderNode {
