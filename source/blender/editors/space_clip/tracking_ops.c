@@ -3516,7 +3516,7 @@ void CLIP_OT_clean_tracks(wmOperatorType *ot)
 	static EnumPropertyItem actions_items[] = {
 			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
 			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
-			{TRACKING_CLEAN DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
+			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
 			{0, NULL, 0, NULL, NULL}
 	};
 
