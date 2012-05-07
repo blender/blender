@@ -79,8 +79,8 @@ Mesh * GeometryExporter::get_mesh(Object *ob, int apply_modifiers)
 		tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
 		DM_to_mesh(dm, tmpmesh, ob);
 		dm->release(dm);
-		BKE_mesh_tessface_ensure(tmpmesh);
 	}
+	BKE_mesh_tessface_ensure(tmpmesh);
 	return tmpmesh;
 }
 
