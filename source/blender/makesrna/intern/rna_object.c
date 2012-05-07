@@ -383,8 +383,11 @@ static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object*)ptr->data;
 	Object *par = (Object*)value.data;
-
-	ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+	
+	/* NOTE: this dummy check here prevents this method causing weird runtime errors on mingw 4.6.2 */
+	if (ob) {
+		ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+	}
 }
 
 static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
