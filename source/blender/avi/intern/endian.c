@@ -46,125 +46,125 @@
 #endif
 
 #ifdef __BIG_ENDIAN__
-static void invert (int *num)
+static void invert(int *num)
 {
-	int new=0, i, j;
+	int new = 0, i, j;
 
-	for (j=0; j < 4; j++) {
-		for (i=0; i<8; i++) {
-			new |= ((*num>>(j*8+i))&1)<<((3-j)*8+i);
+	for (j = 0; j < 4; j++) {
+		for (i = 0; i < 8; i++) {
+			new |= ((*num >> (j * 8 + i)) & 1) << ((3 - j) * 8 + i);
 		}
 	}
 	
 	*num = new;
 }
 
-static void sinvert (short int *num)
+static void sinvert(short int *num)
 {
-	short int new=0;
+	short int new = 0;
 	int i, j;
 
-	for (j=0; j < 2; j++) {
-		for (i=0; i<8; i++) {
-			new |= ((*num>>(j*8+i))&1)<<((1-j)*8+i);
+	for (j = 0; j < 2; j++) {
+		for (i = 0; i < 8; i++) {
+			new |= ((*num >> (j * 8 + i)) & 1) << ((1 - j) * 8 + i);
 		}
 	}
 
 	*num = new;
 }
 
-static void Ichunk (AviChunk *chunk)
+static void Ichunk(AviChunk *chunk)
 {
-	invert (&chunk->fcc);
-	invert (&chunk->size);
+	invert(&chunk->fcc);
+	invert(&chunk->size);
 }
 #endif
 
 #ifdef __BIG_ENDIAN__
-static void Ilist (AviList *list)
+static void Ilist(AviList *list)
 {
-	invert (&list->fcc);
-	invert (&list->size);
-	invert (&list->ids);
+	invert(&list->fcc);
+	invert(&list->size);
+	invert(&list->ids);
 }
 
-static void Imainh (AviMainHeader *mainh)
+static void Imainh(AviMainHeader *mainh)
 {
-	invert (&mainh->fcc);
-	invert (&mainh->size);
-	invert (&mainh->MicroSecPerFrame);
-	invert (&mainh->MaxBytesPerSec);
-	invert (&mainh->PaddingGranularity);
-	invert (&mainh->Flags);
-	invert (&mainh->TotalFrames);
-	invert (&mainh->InitialFrames);
-	invert (&mainh->Streams);
-	invert (&mainh->SuggestedBufferSize);
-	invert (&mainh->Width);
-	invert (&mainh->Height);
-	invert (&mainh->Reserved[0]);
-	invert (&mainh->Reserved[1]);
-	invert (&mainh->Reserved[2]);
-	invert (&mainh->Reserved[3]);
+	invert(&mainh->fcc);
+	invert(&mainh->size);
+	invert(&mainh->MicroSecPerFrame);
+	invert(&mainh->MaxBytesPerSec);
+	invert(&mainh->PaddingGranularity);
+	invert(&mainh->Flags);
+	invert(&mainh->TotalFrames);
+	invert(&mainh->InitialFrames);
+	invert(&mainh->Streams);
+	invert(&mainh->SuggestedBufferSize);
+	invert(&mainh->Width);
+	invert(&mainh->Height);
+	invert(&mainh->Reserved[0]);
+	invert(&mainh->Reserved[1]);
+	invert(&mainh->Reserved[2]);
+	invert(&mainh->Reserved[3]);
 }
 
-static void Istreamh (AviStreamHeader *streamh)
+static void Istreamh(AviStreamHeader *streamh)
 {
-	invert (&streamh->fcc);
-	invert (&streamh->size);
-	invert (&streamh->Type);
-	invert (&streamh->Handler);
-	invert (&streamh->Flags);
-	sinvert (&streamh->Priority);
-	sinvert (&streamh->Language);
-	invert (&streamh->InitialFrames);
-	invert (&streamh->Scale);
-	invert (&streamh->Rate);
-	invert (&streamh->Start);
-	invert (&streamh->Length);
-	invert (&streamh->SuggestedBufferSize);
-	invert (&streamh->Quality);
-	invert (&streamh->SampleSize);
-	sinvert (&streamh->left);
-	sinvert (&streamh->right);
-	sinvert (&streamh->top);
-	sinvert (&streamh->bottom);
+	invert(&streamh->fcc);
+	invert(&streamh->size);
+	invert(&streamh->Type);
+	invert(&streamh->Handler);
+	invert(&streamh->Flags);
+	sinvert(&streamh->Priority);
+	sinvert(&streamh->Language);
+	invert(&streamh->InitialFrames);
+	invert(&streamh->Scale);
+	invert(&streamh->Rate);
+	invert(&streamh->Start);
+	invert(&streamh->Length);
+	invert(&streamh->SuggestedBufferSize);
+	invert(&streamh->Quality);
+	invert(&streamh->SampleSize);
+	sinvert(&streamh->left);
+	sinvert(&streamh->right);
+	sinvert(&streamh->top);
+	sinvert(&streamh->bottom);
 }
 
-static void Ibitmaph (AviBitmapInfoHeader *bitmaph)
+static void Ibitmaph(AviBitmapInfoHeader *bitmaph)
 {
-	invert (&bitmaph->fcc);
-	invert (&bitmaph->size);
-	invert (&bitmaph->Size);
-	invert (&bitmaph->Width);
-	invert (&bitmaph->Height);
-	sinvert (&bitmaph->Planes);
-	sinvert (&bitmaph->BitCount);
-	invert (&bitmaph->Compression);
-	invert (&bitmaph->SizeImage);
-	invert (&bitmaph->XPelsPerMeter);
-	invert (&bitmaph->YPelsPerMeter);
-	invert (&bitmaph->ClrUsed);
-	invert (&bitmaph->ClrImportant);
+	invert(&bitmaph->fcc);
+	invert(&bitmaph->size);
+	invert(&bitmaph->Size);
+	invert(&bitmaph->Width);
+	invert(&bitmaph->Height);
+	sinvert(&bitmaph->Planes);
+	sinvert(&bitmaph->BitCount);
+	invert(&bitmaph->Compression);
+	invert(&bitmaph->SizeImage);
+	invert(&bitmaph->XPelsPerMeter);
+	invert(&bitmaph->YPelsPerMeter);
+	invert(&bitmaph->ClrUsed);
+	invert(&bitmaph->ClrImportant);
 }
 
-static void Imjpegu (AviMJPEGUnknown *mjpgu)
+static void Imjpegu(AviMJPEGUnknown *mjpgu)
 {
-	invert (&mjpgu->a);
-	invert (&mjpgu->b);
-	invert (&mjpgu->c);
-	invert (&mjpgu->d);
-	invert (&mjpgu->e);
-	invert (&mjpgu->f);
-	invert (&mjpgu->g);
+	invert(&mjpgu->a);
+	invert(&mjpgu->b);
+	invert(&mjpgu->c);
+	invert(&mjpgu->d);
+	invert(&mjpgu->e);
+	invert(&mjpgu->f);
+	invert(&mjpgu->g);
 }
 
-static void Iindexe (AviIndexEntry *indexe)
+static void Iindexe(AviIndexEntry *indexe)
 {
-	invert (&indexe->ChunkId);
-	invert (&indexe->Flags);
-	invert (&indexe->Offset);
-	invert (&indexe->Size);
+	invert(&indexe->ChunkId);
+	invert(&indexe->Flags);
+	invert(&indexe->Offset);
+	invert(&indexe->Size);
 }
 #endif /* __BIG_ENDIAN__ */
 
@@ -173,53 +173,53 @@ void awrite(AviMovie *movie, void *datain, int block, int size, FILE *fp, int ty
 #ifdef __BIG_ENDIAN__
 	void *data;
 
-	data = MEM_mallocN (size, "avi endian");
+	data = MEM_mallocN(size, "avi endian");
 
-	memcpy (data, datain, size);
+	memcpy(data, datain, size);
 
 	switch (type) {
-	case AVI_RAW:
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_CHUNK:
-		Ichunk ((AviChunk *) data);
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_LIST:
-		Ilist ((AviList *) data);
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_MAINH:
-		Imainh ((AviMainHeader *) data);
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_STREAMH:
-		Istreamh ((AviStreamHeader *) data);
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_BITMAPH:
-		Ibitmaph ((AviBitmapInfoHeader *) data);
-		if (size==sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown)) {
-			Imjpegu((AviMJPEGUnknown*)((char*)data+sizeof(AviBitmapInfoHeader)));
-		}
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_MJPEGU:
-		Imjpegu ((AviMJPEGUnknown *) data);
-		fwrite (data, block, size, fp);
-		break;
-	case AVI_INDEXE:
-		Iindexe ((AviIndexEntry *) data);
-		fwrite (data, block, size, fp);
-		break;
-	default:
-		break;
+		case AVI_RAW:
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_CHUNK:
+			Ichunk((AviChunk *) data);
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_LIST:
+			Ilist((AviList *) data);
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_MAINH:
+			Imainh((AviMainHeader *) data);
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_STREAMH:
+			Istreamh((AviStreamHeader *) data);
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_BITMAPH:
+			Ibitmaph((AviBitmapInfoHeader *) data);
+			if (size == sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown)) {
+				Imjpegu((AviMJPEGUnknown *)((char *)data + sizeof(AviBitmapInfoHeader)));
+			}
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_MJPEGU:
+			Imjpegu((AviMJPEGUnknown *) data);
+			fwrite(data, block, size, fp);
+			break;
+		case AVI_INDEXE:
+			Iindexe((AviIndexEntry *) data);
+			fwrite(data, block, size, fp);
+			break;
+		default:
+			break;
 	}
 
-	MEM_freeN (data);
+	MEM_freeN(data);
 #else /* __BIG_ENDIAN__ */
 	(void)movie; /* unused */
 	(void)type; /* unused */
-	fwrite (datain, block, size, fp);
+	fwrite(datain, block, size, fp);
 #endif /* __BIG_ENDIAN__ */
 }

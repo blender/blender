@@ -69,6 +69,7 @@ public:
 						bool has_uvs,
 						bool has_color,
 						Object *ob,
+						Mesh   *me,
 						std::string& geom_id,
 						std::vector<Face>& norind);
 	
@@ -98,6 +99,8 @@ private:
 	std::set<std::string> exportedGeometry;
 	
 	const ExportSettings *export_settings;
+
+	Mesh * get_mesh(Object *ob, int apply_modifiers);
 };
 
 struct GeometryFunctor {

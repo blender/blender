@@ -451,8 +451,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* same as EM_solidify() in editmesh_lib.c */
 		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum = vert_angles + numVerts;
-		float *face_angles = NULL;
-		BLI_array_staticdeclare(face_angles, 16); /* BM_NGON_STACK_SIZE */
 		int j, vidx;
 
 		face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
@@ -473,28 +471,28 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				mesh_calc_poly_normal(mp, &mloop[mp->loopstart], mvert, face_nors[i]);
 			
 			/* just added, calc the normal */
-			BLI_array_empty(face_angles);
-			BLI_array_reserve(face_angles, mp->totloop);
 			for (j = 0, ml = mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
 				MLoop *ml_prev = ME_POLY_LOOP_PREV(mloop, mp, j);
 				MLoop *ml_next = ME_POLY_LOOP_NEXT(mloop, mp, j);
 
 				float e1[3], e2[3];
+				float angle;
 
+				/* TODO - we could speed this up by _not_ normalizing both verts each time
+				 * and always re-usingthe last vector. */
 				sub_v3_v3v3(e1, mvert[ml_next->v].co, mvert[ml->v].co);
 				sub_v3_v3v3(e2, mvert[ml_prev->v].co, mvert[ml->v].co);
-				face_angles[j] = (float)M_PI - angle_v3v3(e1, e2);
-			}
-			
-			for (j = 0, ml = mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
+
+				angle = (float)M_PI - angle_v3v3(e1, e2);
+				if (angle < FLT_EPSILON) {
+					angle = FLT_EPSILON;
+				}
+
 				vidx = ml->v;
-				vert_accum[vidx] += face_angles[j];
-				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) *
-				                     face_angles[j];
+				vert_accum[vidx] += angle;
+				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
 			}
 		}
-	
-		BLI_array_free(face_angles);
 
 		/* vertex group support */
 		if (dvert) {

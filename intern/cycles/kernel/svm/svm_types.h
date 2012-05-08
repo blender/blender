@@ -90,7 +90,9 @@ typedef enum NodeType {
 	NODE_TEX_CHECKER = 5700,
 	NODE_BRIGHTCONTRAST = 5800,
 	NODE_RGB_RAMP = 5900,
-	NODE_RGB_CURVES = 6000
+	NODE_RGB_CURVES = 6000,
+	NODE_MIN_MAX = 6100,
+	NODE_LIGHT_FALLOFF = 6200
 } NodeType;
 
 typedef enum NodeAttributeType {
@@ -118,6 +120,12 @@ typedef enum NodeLightPath {
 	NODE_LP_backfacing,
 	NODE_LP_ray_length
 } NodeLightPath;
+
+typedef enum NodeLightFalloff {
+	NODE_LIGHT_FALLOFF_QUADRATIC,
+	NODE_LIGHT_FALLOFF_LINEAR,
+	NODE_LIGHT_FALLOFF_CONSTANT
+} NodeLightFalloff;
 
 typedef enum NodeTexCoord {
 	NODE_TEXCO_NORMAL,

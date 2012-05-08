@@ -42,14 +42,14 @@
 
 #include "mjpeg.h"
 
-#define PADUP(num, amt)	((num+(amt-1))&~(amt-1))
+#define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
 
-static void jpegmemdestmgr_build (j_compress_ptr cinfo, unsigned char *buffer, int bufsize);
-static void jpegmemsrcmgr_build (j_decompress_ptr dinfo, unsigned char *buffer, int bufsize);
+static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, int bufsize);
+static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, int bufsize);
 
 static int numbytes;
 
-static void add_huff_table (j_decompress_ptr dinfo, JHUFF_TBL **htblptr, const UINT8 *bits, const UINT8 *val)
+static void add_huff_table(j_decompress_ptr dinfo, JHUFF_TBL **htblptr, const UINT8 *bits, const UINT8 *val)
 {
 	if (*htblptr == NULL)
 		*htblptr = jpeg_alloc_huff_table((j_common_ptr) dinfo);
@@ -64,25 +64,30 @@ static void add_huff_table (j_decompress_ptr dinfo, JHUFF_TBL **htblptr, const U
 /* Set up the standard Huffman tables (cf. JPEG standard section K.3) */
 /* IMPORTANT: these are only valid for 8-bit data precision! */
 
-static void std_huff_tables (j_decompress_ptr dinfo)
+static void std_huff_tables(j_decompress_ptr dinfo)
 {
 	static const UINT8 bits_dc_luminance[17] =
 	{ /* 0-base */
-		0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 	};
+		0, 0, 1, 5, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0
+	};
 	static const UINT8 val_dc_luminance[] =
 	{ 
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 	};
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+	};
 
 	static const UINT8 bits_dc_chrominance[17] =
 	{ /* 0-base */
-		0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0 	};
+		0, 0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0
+	};
 	static const UINT8 val_dc_chrominance[] =
 	{ 
-		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 	};
+		0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11
+	};
 
 	static const UINT8 bits_ac_luminance[17] =
 	{ /* 0-base */
-		0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d 	};
+		0, 0, 2, 1, 3, 3, 2, 4, 3, 5, 5, 4, 4, 0, 0, 1, 0x7d
+	};
 	static const UINT8 val_ac_luminance[] =
 	{ 
 		0x01, 0x02, 0x03, 0x00, 0x04, 0x11, 0x05, 0x12,
@@ -105,10 +110,12 @@ static void std_huff_tables (j_decompress_ptr dinfo)
 		0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda, 0xe1, 0xe2,
 		0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9, 0xea,
 		0xf1, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
-		0xf9, 0xfa 	};
+		0xf9, 0xfa
+	};
 	static const UINT8 bits_ac_chrominance[17] =
 	{ /* 0-base */
-		0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77 	};
+		0, 0, 2, 1, 2, 4, 4, 3, 4, 7, 5, 4, 4, 0, 1, 2, 0x77
+	};
 	static const UINT8 val_ac_chrominance[] =
 	{ 
 		0x00, 0x01, 0x02, 0x03, 0x11, 0x04, 0x05, 0x21,
@@ -131,16 +138,17 @@ static void std_huff_tables (j_decompress_ptr dinfo)
 		0xd3, 0xd4, 0xd5, 0xd6, 0xd7, 0xd8, 0xd9, 0xda,
 		0xe2, 0xe3, 0xe4, 0xe5, 0xe6, 0xe7, 0xe8, 0xe9,
 		0xea, 0xf2, 0xf3, 0xf4, 0xf5, 0xf6, 0xf7, 0xf8,
-		0xf9, 0xfa 	};
+		0xf9, 0xfa
+	};
 
 	add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[0],
-		bits_dc_luminance, val_dc_luminance);
+	               bits_dc_luminance, val_dc_luminance);
 	add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[0],
-		bits_ac_luminance, val_ac_luminance);
+	               bits_ac_luminance, val_ac_luminance);
 	add_huff_table(dinfo, &dinfo->dc_huff_tbl_ptrs[1],
-		bits_dc_chrominance, val_dc_chrominance);
+	               bits_dc_chrominance, val_dc_chrominance);
 	add_huff_table(dinfo, &dinfo->ac_huff_tbl_ptrs[1],
-		bits_ac_chrominance, val_ac_chrominance);
+	               bits_ac_chrominance, val_ac_chrominance);
 }
 
 static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsigned int width, unsigned int height, int bufsize)
@@ -152,7 +160,7 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 	
 	(void)width; /* unused */
 
-	numbytes= 0;
+	numbytes = 0;
 
 	dinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_decompress(&dinfo);
@@ -166,8 +174,8 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 
 	jpeg_start_decompress(&dinfo);
 
-	rowstride= dinfo.output_width*dinfo.output_components;
-	for (y= 0; y<dinfo.output_height; y++) {
+	rowstride = dinfo.output_width * dinfo.output_components;
+	for (y = 0; y < dinfo.output_height; y++) {
 		jpeg_read_scanlines(&dinfo, (JSAMPARRAY) &outBuffer, 1);
 		outBuffer += rowstride;
 	}
@@ -175,18 +183,18 @@ static int Decode_JPEG(unsigned char *inBuffer, unsigned char *outBuffer, unsign
 
 	if (dinfo.output_height >= height) return 0;
 	
-	inBuffer+= numbytes;
-	jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize-numbytes);
+	inBuffer += numbytes;
+	jpegmemsrcmgr_build(&dinfo, inBuffer, bufsize - numbytes);
 
-	numbytes= 0;
+	numbytes = 0;
 	jpeg_read_header(&dinfo, TRUE);
 	if (dinfo.dc_huff_tbl_ptrs[0] == NULL) {
 		std_huff_tables(&dinfo);
 	}
 
 	jpeg_start_decompress(&dinfo);
-	rowstride= dinfo.output_width*dinfo.output_components;
-	for (y= 0; y<dinfo.output_height; y++) {
+	rowstride = dinfo.output_width * dinfo.output_components;
+	for (y = 0; y < dinfo.output_height; y++) {
 		jpeg_read_scanlines(&dinfo, (JSAMPARRAY) &outBuffer, 1);
 		outBuffer += rowstride;
 	}
@@ -214,9 +222,9 @@ static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *
 	cinfo.in_color_space = JCS_RGB;
 
 	jpeg_set_defaults(&cinfo);
-	jpeg_set_colorspace (&cinfo, JCS_YCbCr);
+	jpeg_set_colorspace(&cinfo, JCS_YCbCr);
 		
-	jpeg_set_quality (&cinfo, quality, TRUE);
+	jpeg_set_quality(&cinfo, quality, TRUE);
 
 	cinfo.dc_huff_tbl_ptrs[0]->sent_table = TRUE;
 	cinfo.dc_huff_tbl_ptrs[1]->sent_table = TRUE;
@@ -232,24 +240,24 @@ static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *
 
 	jpeg_start_compress(&cinfo, FALSE);
 
-	i=0;
+	i = 0;
 	marker[i++] = 'A';
 	marker[i++] = 'V';
 	marker[i++] = 'I';
 	marker[i++] = '1';
 	marker[i++] = 0;
-	while (i<60)
+	while (i < 60)
 		marker[i++] = 32;
 
-	jpeg_write_marker (&cinfo, JPEG_APP0, marker, 60);
+	jpeg_write_marker(&cinfo, JPEG_APP0, marker, 60);
 
-	i=0;
-	while (i<60)
+	i = 0;
+	while (i < 60)
 		marker[i++] = 0;
 
-	jpeg_write_marker (&cinfo, JPEG_COM, marker, 60);
+	jpeg_write_marker(&cinfo, JPEG_COM, marker, 60);
 
-	rowstride= cinfo.image_width*cinfo.input_components;
+	rowstride = cinfo.image_width * cinfo.input_components;
 	for (y = 0; y < cinfo.image_height; y++) {
 		jpeg_write_scanlines(&cinfo, (JSAMPARRAY) &inBuffer, 1);
 		inBuffer += rowstride;
@@ -260,43 +268,43 @@ static void Compress_JPEG(int quality, unsigned char *outbuffer, unsigned char *
 
 static void interlace(unsigned char *to, unsigned char *from, int width, int height)
 {
-	int i, rowstride= width*3;
+	int i, rowstride = width * 3;
 	
-	for (i=0; i<height; i++) {
-		if (i&1)
-			memcpy (&to[i*rowstride], &from[(i/2 + height/2)*rowstride], rowstride);
+	for (i = 0; i < height; i++) {
+		if (i & 1)
+			memcpy(&to[i * rowstride], &from[(i / 2 + height / 2) * rowstride], rowstride);
 		else 
-			memcpy (&to[i*rowstride], &from[(i/2)*rowstride], rowstride);
+			memcpy(&to[i * rowstride], &from[(i / 2) * rowstride], rowstride);
 	}
 }
 
 static void deinterlace(int odd, unsigned char *to, unsigned char *from, int width, int height)
 {
-	int i, rowstride= width*3;
+	int i, rowstride = width * 3;
 	
-	for (i=0; i<height; i++) {
-		if ((i&1)==odd)
-			memcpy (&to[(i/2 + height/2)*rowstride], &from[i*rowstride], rowstride);
+	for (i = 0; i < height; i++) {
+		if ((i & 1) == odd)
+			memcpy(&to[(i / 2 + height / 2) * rowstride], &from[i * rowstride], rowstride);
 		else 
-			memcpy (&to[(i/2)*rowstride], &from[i*rowstride], rowstride);
+			memcpy(&to[(i / 2) * rowstride], &from[i * rowstride], rowstride);
 	}
 }
 
 static int check_and_decode_jpeg(unsigned char *inbuf, unsigned char *outbuf, int width, int height, int bufsize)
 {
-		/* JPEG's are always multiples of 16, extra is cropped out AVI's */	
-	if ((width&0xF) || (height&0xF)) {
+	/* JPEG's are always multiples of 16, extra is cropped out AVI's */
+	if ((width & 0xF) || (height & 0xF)) {
 		int i, rrowstride, jrowstride;
-		int jwidth= PADUP(width, 16);
-		int jheight= PADUP(height, 16);
-		unsigned char *tmpbuf= MEM_mallocN(jwidth*jheight*3, "avi.check_and_decode_jpeg");
-		int ret= Decode_JPEG(inbuf, tmpbuf, jwidth, jheight, bufsize);
-		
-			/* crop the tmpbuf into the real buffer */
-		rrowstride= width*3;
-		jrowstride= jwidth*3;
-		for (i=0; i<height; i++)
-			memcpy(&outbuf[i*rrowstride], &tmpbuf[i*jrowstride], rrowstride);
+		int jwidth = PADUP(width, 16);
+		int jheight = PADUP(height, 16);
+		unsigned char *tmpbuf = MEM_mallocN(jwidth * jheight * 3, "avi.check_and_decode_jpeg");
+		int ret = Decode_JPEG(inbuf, tmpbuf, jwidth, jheight, bufsize);
+
+		/* crop the tmpbuf into the real buffer */
+		rrowstride = width * 3;
+		jrowstride = jwidth * 3;
+		for (i = 0; i < height; i++)
+			memcpy(&outbuf[i * rrowstride], &tmpbuf[i * jrowstride], rrowstride);
 		MEM_freeN(tmpbuf);
 		
 		return ret;
@@ -308,22 +316,22 @@ static int check_and_decode_jpeg(unsigned char *inbuf, unsigned char *outbuf, in
 
 static void check_and_compress_jpeg(int quality, unsigned char *outbuf, unsigned char *inbuf, int width, int height, int bufsize)
 {
-		/* JPEG's are always multiples of 16, extra is ignored in AVI's */	
-	if ((width&0xF) || (height&0xF)) {
+	/* JPEG's are always multiples of 16, extra is ignored in AVI's */
+	if ((width & 0xF) || (height & 0xF)) {
 		int i, rrowstride, jrowstride;
-		int jwidth= PADUP(width, 16);
-		int jheight= PADUP(height, 16);
-		unsigned char *tmpbuf= MEM_mallocN(jwidth*jheight*3, "avi.check_and_compress_jpeg");
-		
-			/* resize the realbuf into the tmpbuf */
-		rrowstride= width*3;
-		jrowstride= jwidth*3;
-		for (i=0; i<jheight; i++) {
-			if (i<height)
-				memcpy(&tmpbuf[i*jrowstride], &inbuf[i*rrowstride], rrowstride);
+		int jwidth = PADUP(width, 16);
+		int jheight = PADUP(height, 16);
+		unsigned char *tmpbuf = MEM_mallocN(jwidth * jheight * 3, "avi.check_and_compress_jpeg");
+
+		/* resize the realbuf into the tmpbuf */
+		rrowstride = width * 3;
+		jrowstride = jwidth * 3;
+		for (i = 0; i < jheight; i++) {
+			if (i < height)
+				memcpy(&tmpbuf[i * jrowstride], &inbuf[i * rrowstride], rrowstride);
 			else
-				memset(&tmpbuf[i*jrowstride], 0, rrowstride);
-			memset(&tmpbuf[i*jrowstride+rrowstride], 0, jrowstride-rrowstride);
+				memset(&tmpbuf[i * jrowstride], 0, rrowstride);
+			memset(&tmpbuf[i * jrowstride + rrowstride], 0, jrowstride - rrowstride);
 		}
 
 		Compress_JPEG(quality, outbuf, tmpbuf, jwidth, jheight, bufsize);
@@ -335,57 +343,57 @@ static void check_and_compress_jpeg(int quality, unsigned char *outbuf, unsigned
 	}
 }
 
-void *avi_converter_from_mjpeg (AviMovie *movie, int stream, unsigned char *buffer, int *size)
+void *avi_converter_from_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, int *size)
 {
 	int deint;
 	unsigned char *buf;
 
 	(void)stream; /* unused */
 
-	buf= MEM_mallocN (movie->header->Height * movie->header->Width * 3, "avi.avi_converter_from_mjpeg 1");
+	buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_from_mjpeg 1");
 
-	deint= check_and_decode_jpeg(buffer, buf, movie->header->Width, movie->header->Height, *size);
+	deint = check_and_decode_jpeg(buffer, buf, movie->header->Width, movie->header->Height, *size);
 	
 	MEM_freeN(buffer);
 	
 	if (deint) {
-		buffer = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "avi.avi_converter_from_mjpeg 2");
-		interlace (buffer, buf, movie->header->Width, movie->header->Height);
-		MEM_freeN (buf);
+		buffer = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_from_mjpeg 2");
+		interlace(buffer, buf, movie->header->Width, movie->header->Height);
+		MEM_freeN(buf);
 	
-		buf= buffer;
+		buf = buffer;
 	}
 		
 	return buf;
 }
 
-void *avi_converter_to_mjpeg (AviMovie *movie, int stream, unsigned char *buffer, int *size)
+void *avi_converter_to_mjpeg(AviMovie *movie, int stream, unsigned char *buffer, int *size)
 {
 	unsigned char *buf;
-	int bufsize= *size;
+	int bufsize = *size;
 	
 	numbytes = 0;
-	*size= 0;
+	*size = 0;
 
-	buf = MEM_mallocN (movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 1");	
+	buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 1");
 	if (!movie->interlace) {
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality/100, buf, buffer,  movie->header->Width, movie->header->Height, bufsize);
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf, buffer,  movie->header->Width, movie->header->Height, bufsize);
 	}
 	else {
-		deinterlace (movie->odd_fields, buf, buffer, movie->header->Width, movie->header->Height);
-		MEM_freeN (buffer);
+		deinterlace(movie->odd_fields, buf, buffer, movie->header->Width, movie->header->Height);
+		MEM_freeN(buffer);
 	
-		buffer= buf;
-		buf= MEM_mallocN (movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 2");
+		buffer = buf;
+		buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "avi.avi_converter_to_mjpeg 2");
 	
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality/100, buf, buffer,  movie->header->Width, movie->header->Height/2, bufsize/2);
-		*size+= numbytes;
-		numbytes=0;
-		check_and_compress_jpeg(movie->streams[stream].sh.Quality/100, buf+*size, buffer+(movie->header->Height/2)*movie->header->Width*3,  movie->header->Width, movie->header->Height/2, bufsize/2);
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf, buffer,  movie->header->Width, movie->header->Height / 2, bufsize / 2);
+		*size += numbytes;
+		numbytes = 0;
+		check_and_compress_jpeg(movie->streams[stream].sh.Quality / 100, buf + *size, buffer + (movie->header->Height / 2) * movie->header->Width * 3,  movie->header->Width, movie->header->Height / 2, bufsize / 2);
 	}
 	*size += numbytes;	
 
-	MEM_freeN (buffer);
+	MEM_freeN(buffer);
 	return buf;
 }
 
@@ -405,23 +413,23 @@ static boolean jpegmemdestmgr_empty_output_buffer(j_compress_ptr cinfo)
 
 static void jpegmemdestmgr_term_destination(j_compress_ptr cinfo)
 {
-	numbytes-= cinfo->dest->free_in_buffer;
+	numbytes -= cinfo->dest->free_in_buffer;
 
 	MEM_freeN(cinfo->dest);
 }
 
 static void jpegmemdestmgr_build(j_compress_ptr cinfo, unsigned char *buffer, int bufsize)
 {
-	cinfo->dest= MEM_mallocN(sizeof(*(cinfo->dest)), "avi.jpegmemdestmgr_build");
+	cinfo->dest = MEM_mallocN(sizeof(*(cinfo->dest)), "avi.jpegmemdestmgr_build");
 	
-	cinfo->dest->init_destination= jpegmemdestmgr_init_destination;
-	cinfo->dest->empty_output_buffer= jpegmemdestmgr_empty_output_buffer;
-	cinfo->dest->term_destination= jpegmemdestmgr_term_destination;
+	cinfo->dest->init_destination = jpegmemdestmgr_init_destination;
+	cinfo->dest->empty_output_buffer = jpegmemdestmgr_empty_output_buffer;
+	cinfo->dest->term_destination = jpegmemdestmgr_term_destination;
 
-	cinfo->dest->next_output_byte= buffer;
-	cinfo->dest->free_in_buffer= bufsize;
+	cinfo->dest->next_output_byte = buffer;
+	cinfo->dest->free_in_buffer = bufsize;
 	
-	numbytes= bufsize;
+	numbytes = bufsize;
 }
 
 /* Decompression from memory */
@@ -433,48 +441,48 @@ static void jpegmemsrcmgr_init_source(j_decompress_ptr dinfo)
 
 static boolean jpegmemsrcmgr_fill_input_buffer(j_decompress_ptr dinfo)
 {
-	unsigned char *buf= (unsigned char*) dinfo->src->next_input_byte-2;
+	unsigned char *buf = (unsigned char *) dinfo->src->next_input_byte - 2;
 	
-		/* if we get called, must have run out of data */
+	/* if we get called, must have run out of data */
 	WARNMS(dinfo, JWRN_JPEG_EOF);
 	
-	buf[0]= (JOCTET) 0xFF;
-	buf[1]= (JOCTET) JPEG_EOI;
+	buf[0] = (JOCTET) 0xFF;
+	buf[1] = (JOCTET) JPEG_EOI;
 	
-	dinfo->src->next_input_byte= buf;
-	dinfo->src->bytes_in_buffer= 2;
+	dinfo->src->next_input_byte = buf;
+	dinfo->src->bytes_in_buffer = 2;
 	
 	return TRUE;
 }
 
 static void jpegmemsrcmgr_skip_input_data(j_decompress_ptr dinfo, long skipcnt)
 {
-	if (dinfo->src->bytes_in_buffer<skipcnt)
-		skipcnt= dinfo->src->bytes_in_buffer;
+	if (dinfo->src->bytes_in_buffer < skipcnt)
+		skipcnt = dinfo->src->bytes_in_buffer;
 
-	dinfo->src->next_input_byte+= skipcnt;
-	dinfo->src->bytes_in_buffer-= skipcnt;
+	dinfo->src->next_input_byte += skipcnt;
+	dinfo->src->bytes_in_buffer -= skipcnt;
 }
 
 static void jpegmemsrcmgr_term_source(j_decompress_ptr dinfo)
 {
-	numbytes-= dinfo->src->bytes_in_buffer;
+	numbytes -= dinfo->src->bytes_in_buffer;
 	
 	MEM_freeN(dinfo->src);
 }
 
 static void jpegmemsrcmgr_build(j_decompress_ptr dinfo, unsigned char *buffer, int bufsize)
 {
-	dinfo->src= MEM_mallocN(sizeof(*(dinfo->src)), "avi.jpegmemsrcmgr_build");
+	dinfo->src = MEM_mallocN(sizeof(*(dinfo->src)), "avi.jpegmemsrcmgr_build");
 	
-	dinfo->src->init_source= jpegmemsrcmgr_init_source;
-	dinfo->src->fill_input_buffer= jpegmemsrcmgr_fill_input_buffer;
-	dinfo->src->skip_input_data= jpegmemsrcmgr_skip_input_data;
-	dinfo->src->resync_to_restart= jpeg_resync_to_restart;
-	dinfo->src->term_source= jpegmemsrcmgr_term_source;
+	dinfo->src->init_source = jpegmemsrcmgr_init_source;
+	dinfo->src->fill_input_buffer = jpegmemsrcmgr_fill_input_buffer;
+	dinfo->src->skip_input_data = jpegmemsrcmgr_skip_input_data;
+	dinfo->src->resync_to_restart = jpeg_resync_to_restart;
+	dinfo->src->term_source = jpegmemsrcmgr_term_source;
 	
-	dinfo->src->bytes_in_buffer= bufsize;
-	dinfo->src->next_input_byte= buffer;
+	dinfo->src->bytes_in_buffer = bufsize;
+	dinfo->src->next_input_byte = buffer;
 
-	numbytes= bufsize;
+	numbytes = bufsize;
 }
