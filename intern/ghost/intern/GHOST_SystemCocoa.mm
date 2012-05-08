@@ -1421,6 +1421,23 @@ GHOST_TSuccess GHOST_SystemCocoa::handleTabletEvent(void *eventPtr, short eventT
 	return GHOST_kSuccess;
 }
 
+bool GHOST_SystemCocoa::handleTabletEvent(void *eventPtr)
+{
+	NSEvent *event = (NSEvent *)eventPtr;
+
+	switch ([event subtype]) {
+		case NX_SUBTYPE_TABLET_POINT:
+			handleTabletEvent(eventPtr, NSTabletPoint);
+			return true;
+		case NX_SUBTYPE_TABLET_PROXIMITY:
+			handleTabletEvent(eventPtr, NSTabletProximity);
+			return true;
+		default:
+			//No tablet event included : do nothing
+			return false;
+	}
+
+}
 
 GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 {
@@ -1432,7 +1449,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		//printf("\nW failure for event 0x%x",[event type]);
 		return GHOST_kFailure;
 	}
-	
+
 	switch ([event type])
     {
 		case NSLeftMouseDown:
@@ -1440,17 +1457,7 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSOtherMouseDown:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonDown, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
+			handleTabletEvent(event);
 			break;
 						
 		case NSLeftMouseUp:
@@ -1458,34 +1465,14 @@ GHOST_TSuccess GHOST_SystemCocoa::handleMouseEvent(void *eventPtr)
 		case NSOtherMouseUp:
 			pushEvent(new GHOST_EventButton([event timestamp]*1000, GHOST_kEventButtonUp, window, convertButton([event buttonNumber])));
 			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
+			handleTabletEvent(event);
 			break;
 			
 		case NSLeftMouseDragged:
 		case NSRightMouseDragged:
 		case NSOtherMouseDragged:				
 			//Handle tablet events combined with mouse events
-			switch ([event subtype]) {
-				case NX_SUBTYPE_TABLET_POINT:
-					handleTabletEvent(eventPtr, NSTabletPoint);
-					break;
-				case NX_SUBTYPE_TABLET_PROXIMITY:
-					handleTabletEvent(eventPtr, NSTabletProximity);
-					break;
-				default:
-					//No tablet event included : do nothing
-					break;
-			}
+			handleTabletEvent(event);
 			
 		case NSMouseMoved: 
 			{

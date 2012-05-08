@@ -315,7 +315,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 {
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;
-	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.im_format.imtype);
+	bMovieHandle *mh= BKE_movie_handle_get(sj->scene->r.im_format.imtype);
 	
 	/* we need this as local variables for renderdata */
 	rd.frs_sec= U.scrcastfps;

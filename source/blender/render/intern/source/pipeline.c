@@ -2131,7 +2131,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 /* saves images to disk */
 void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra)
 {
-	bMovieHandle *mh= BKE_get_movie_handle(scene->r.im_format.imtype);
+	bMovieHandle *mh= BKE_movie_handle_get(scene->r.im_format.imtype);
 	int cfrao= scene->r.cfra;
 	int nfra, totrendered= 0, totskipped= 0;
 	

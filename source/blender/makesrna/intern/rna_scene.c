@@ -707,7 +707,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 		Scene *scene = ptr->id.data;
 		RenderData *rd = &scene->r;
 #ifdef WITH_FFMPEG
-		ffmpeg_verify_image_type(rd, imf);
+		BKE_ffmpeg_image_type_verify(rd, imf);
 #endif
 #ifdef WITH_QUICKTIME
 		quicktime_verify_image_type(rd, imf);
@@ -750,7 +750,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 		Scene *scene = ptr->id.data;
 		RenderData *rd = &scene->r;
 
-		if (ffmpeg_alpha_channel_supported(rd))
+		if (BKE_ffmpeg_alpha_channel_is_supported(rd))
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 #endif
@@ -941,7 +941,7 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 	else
 		rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
 
-	ffmpeg_verify_codec_settings(rd);
+	BKE_ffmpeg_codec_settings_verify(rd);
 }
 
 static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene *UNUSED(scene_unused), PointerRNA *ptr)
@@ -949,7 +949,7 @@ static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene 
 	Scene *scene = (Scene *) ptr->id.data;
 	RenderData *rd = &scene->r;
 
-	ffmpeg_verify_codec_settings(rd);
+	BKE_ffmpeg_codec_settings_verify(rd);
 }
 #endif
 

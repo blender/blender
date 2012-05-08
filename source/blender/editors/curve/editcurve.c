@@ -5219,6 +5219,7 @@ void CURVE_OT_select_more(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select More";
 	ot->idname = "CURVE_OT_select_more";
+	ot->description = "Select control points directly linked to already selected ones";
 	
 	/* api callbacks */
 	ot->exec = select_more_exec;

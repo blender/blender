@@ -476,6 +476,13 @@ typedef struct KernelCamera {
 	float nearclip;
 	float cliplength;
 
+	/* sensor size */
+	float sensorwidth;
+	float sensorheight;
+
+	/* render size */
+	float width, height;
+
 	/* more matrices */
 	Transform screentoworld;
 	Transform rastertoworld;
