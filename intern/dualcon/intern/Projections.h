@@ -783,19 +783,17 @@ float getIntersectionPrimary(int edgeInd)
 	LONG proj0 = cubeProj[i][0];
 	LONG proj1 = cubeProj[i][0] + cubeProj[i][edgeInd + 1];
 	LONG proj2 = inherit->trigProj[i][1];
+	LONG d = proj1 - proj0;
+	double alpha;
 
-	// double alpha = (double)( ( proj2 - proj0 ) * cubeProj[edgeInd][edgeInd + 1] ) / (double)( proj1 - proj0 ) ;
-	double alpha = (double)( (proj2 - proj0) ) / (double)(proj1 - proj0);
-
-	if (alpha < 0)
-	{
+	if (d == 0)
 		alpha = 0.5;
-	}
-	else if (alpha > 1)
-	{
-		alpha = 0.5;
-	}
+	else {
+		alpha = (double)((proj2 - proj0)) / (double)d;
 
+		if (alpha < 0 || alpha > 1)
+			alpha = 0.5;
+	}
 
 	return (float)alpha;
 };
