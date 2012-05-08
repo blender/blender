@@ -53,9 +53,9 @@ struct wmWindowManager;
 #define BL_NEAR_CLIP 0.001
 
 /* drawing flags: */
-#define DRAW_PICKING	1
-#define DRAW_CONSTCOLOR	2
-#define DRAW_SCENESET	4
+#define DRAW_PICKING    1
+#define DRAW_CONSTCOLOR 2
+#define DRAW_SCENESET   4
 
 /* draw_mesh_fancy/draw_mesh_textured draw_flags */
 #define DRAW_MODIFIERS_PREVIEW 1
@@ -95,8 +95,8 @@ void VIEW3D_OT_render_border(struct wmOperatorType *ot);
 void VIEW3D_OT_zoom_border(struct wmOperatorType *ot);
 
 void view3d_boxview_copy(ScrArea *sa, ARegion *ar);
-void ndof_to_quat(struct wmNDOFMotionData* ndof, float q[4]);
-float ndof_to_axis_angle(struct wmNDOFMotionData* ndof, float axis[3]);
+void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4]);
+float ndof_to_axis_angle(struct wmNDOFMotionData *ndof, float axis[3]);
 
 /* view3d_fly.c */
 void view3d_keymap(struct wmKeyConfig *keyconf);
@@ -105,8 +105,8 @@ void VIEW3D_OT_fly(struct wmOperatorType *ot);
 /* drawanim.c */
 void draw_motion_paths_init(View3D *v3d, struct ARegion *ar);
 void draw_motion_path_instance(Scene *scene,
-			struct Object *ob, struct bPoseChannel *pchan, 
-			struct bAnimVizSettings *avs, struct bMotionPath *mpath);
+                               struct Object *ob, struct bPoseChannel *pchan,
+                               struct bAnimVizSettings *avs, struct bMotionPath *mpath);
 void draw_motion_paths_cleanup(View3D *v3d);
 
 
@@ -120,12 +120,12 @@ void drawaxes(float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4]);
-void view3d_cached_text_draw_end(View3D *v3d, ARegion *ar, int depth_write, float mat[][4]);
-#define V3D_CACHE_TEXT_ZBUF			(1<<0)
-#define V3D_CACHE_TEXT_WORLDSPACE	(1<<1)
-#define V3D_CACHE_TEXT_ASCII		(1<<2)
-#define V3D_CACHE_TEXT_GLOBALSPACE	(1<<3)
-#define V3D_CACHE_TEXT_LOCALCLIP	(1<<4)
+void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, float mat[][4]);
+#define V3D_CACHE_TEXT_ZBUF         (1 << 0)
+#define V3D_CACHE_TEXT_WORLDSPACE   (1 << 1)
+#define V3D_CACHE_TEXT_ASCII        (1 << 2)
+#define V3D_CACHE_TEXT_GLOBALSPACE  (1 << 3)
+#define V3D_CACHE_TEXT_LOCALCLIP    (1 << 4)
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline);
@@ -136,7 +136,7 @@ void draw_mesh_paint(RegionView3D *rv3d, struct Object *ob, struct DerivedMesh *
 
 /* view3d_draw.c */
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
-void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (* func)(void *));
+void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (*func)(void *));
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
 void add_view3d_after(ListBase *lb, Base *base, int flag);
 
@@ -160,12 +160,12 @@ void VIEW3D_OT_localview(struct wmOperatorType *ot);
 void VIEW3D_OT_game_start(struct wmOperatorType *ot);
 
 
-int ED_view3d_boundbox_clip(RegionView3D *rv3d, float obmat[][4], struct BoundBox *bb);
+int ED_view3d_boundbox_clip(RegionView3D * rv3d, float obmat[][4], struct BoundBox *bb);
 
 void smooth_view(struct bContext *C, struct View3D *v3d, struct ARegion *ar, struct Object *, struct Object *,
                  float *ofs, float *quat, float *dist, float *lens);
 
-void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);	/* rect: for picking */
+void setwinmatrixview3d(ARegion *ar, View3D *v3d, rctf *rect);  /* rect: for picking */
 void setviewmatrixview3d(Scene *scene, View3D *v3d, RegionView3D *rv3d);
 
 void fly_modal_keymap(struct wmKeyConfig *keyconf);

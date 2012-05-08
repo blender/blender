@@ -83,8 +83,8 @@
 
 
 /* ******************* view3d space & buttons ************** */
-#define B_NOP       		1
-#define B_REDR      		2
+#define B_NOP               1
+#define B_REDR              2
 #define B_OBJECTPANELMEDIAN 1008
 
 /* temporary struct for storing transform properties */
@@ -595,7 +595,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						}
 						else {
 							bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
-							                              1.0f + ((1.0f - bp->weight) * scale_w);
+							             1.0f + ((1.0f - bp->weight) * scale_w);
 							CLAMP(bp->weight, 0.0f, 1.0f);
 						}
 					}

@@ -1763,7 +1763,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	scale[2] = 1.0f / len_v3(ob->obmat[2]);
 
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
-	                     asp, shift, &drawsize, vec);
+	                         asp, shift, &drawsize, vec);
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
@@ -2209,9 +2209,9 @@ void mesh_foreachScreenFace(
 }
 
 void nurbs_foreachScreenVert(
-        ViewContext *vc,
-        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
-        void *userData)
+    ViewContext *vc,
+    void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
+    void *userData)
 {
 	Curve *cu = vc->obedit->data;
 	short s[2] = {IS_CLIPPED, 0};
@@ -2905,7 +2905,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		mul_v3_fl(vmid, 1.0f / (float)n);                                     \
 		if (unit->system)                                                     \
 			bUnit_AsString(numstr, sizeof(numstr),                            \
-		                   (double)(area * unit->scale_length),               \
+			               (double)(area * unit->scale_length),               \
 			               3, unit->system, B_UNIT_LENGTH, do_split, FALSE);  \
 		else                                                                  \
 			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \

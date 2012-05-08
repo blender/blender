@@ -1027,7 +1027,7 @@ void draw_mesh_paint(RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_f
 		glEnable(GL_COLOR_MATERIAL);
 
 		dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
-							DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+		                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
 
 		glDisable(GL_COLOR_MATERIAL);
 		glDisable(GL_LIGHTING);
@@ -1035,13 +1035,14 @@ void draw_mesh_paint(RegionView3D *rv3d, Object *ob, DerivedMesh *dm, int draw_f
 		GPU_disable_material();
 	}
 	else if (ob->mode & OB_MODE_VERTEX_PAINT) {
-		if (me->mloopcol)
+		if (me->mloopcol) {
 			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
-								DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+			                    DM_DRAW_USE_COLORS | DM_DRAW_ALWAYS_SMOOTH);
+		}
 		else {
 			glColor3f(1.0f, 1.0f, 1.0f);
 			dm->drawMappedFaces(dm, facemask, GPU_enable_material, NULL, me,
-								DM_DRAW_ALWAYS_SMOOTH);
+			                    DM_DRAW_ALWAYS_SMOOTH);
 		}
 	}
 
