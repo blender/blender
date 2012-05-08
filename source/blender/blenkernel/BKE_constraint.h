@@ -62,7 +62,7 @@ typedef struct bConstraintOb {
 /* ---------------------------------------------------------------------------- */
 
 /* Callback format for performing operations on ID-pointers for Constraints */
-typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, void *userdata);
+typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, short isReference, void *userdata);
 
 /* ....... */
 

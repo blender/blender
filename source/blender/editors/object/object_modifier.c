@@ -1343,6 +1343,7 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 		mmd->bindcagecos= NULL;
 		mmd->dyngrid= NULL;
 		mmd->dyninfluences= NULL;
+		mmd->bindinfluences= NULL;
 		mmd->bindoffsets= NULL;
 		mmd->dynverts= NULL;
 		mmd->bindweights= NULL; /* deprecated */

@@ -78,6 +78,7 @@ variables on the UI for now
 #include "BKE_DerivedMesh.h"
 #include "BKE_pointcache.h"
 #include "BKE_deform.h"
+#include "BKE_mesh.h" 
 //XXX #include  "BIF_editdeform.h"
 //XXX #include  "BIF_graphics.h"
 #include  "PIL_time.h"
@@ -3267,6 +3268,7 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 	BodyPoint *bp;
 	BodySpring *bs;
 	int a, totedge;
+  BKE_mesh_tessface_ensure(me); 
 	if (ob->softflag & OB_SB_EDGES) totedge= me->totedge;
 	else totedge= 0;
 

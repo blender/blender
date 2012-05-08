@@ -323,13 +323,18 @@ struct StrandShadeCache {
 	MemArena *memarena;
 };
 
+typedef struct StrandCacheEntry {
+	GHashPair pair;
+	ShadeResult shr;
+} StrandCacheEntry;
+
 StrandShadeCache *strand_shade_cache_create(void)
 {
 	StrandShadeCache *cache;
 
 	cache= MEM_callocN(sizeof(StrandShadeCache), "StrandShadeCache");
-	cache->resulthash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "strand_shade_cache_create1 gh");
-	cache->refcounthash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "strand_shade_cache_create2 gh");
+	cache->resulthash= BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, "strand_shade_cache_create1 gh");
+	cache->refcounthash= BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, "strand_shade_cache_create2 gh");
 	cache->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "strand shade cache arena");
 	
 	return cache;
@@ -338,39 +343,47 @@ StrandShadeCache *strand_shade_cache_create(void)
 void strand_shade_cache_free(StrandShadeCache *cache)
 {
 	BLI_ghash_free(cache->refcounthash, NULL, NULL);
-	BLI_ghash_free(cache->resulthash, NULL, (GHashValFreeFP)MEM_freeN);
+	BLI_ghash_free(cache->resulthash, (GHashKeyFreeFP)MEM_freeN, NULL);
 	BLI_memarena_free(cache->memarena);
 	MEM_freeN(cache);
 }
 
+static GHashPair strand_shade_hash_pair(ObjectInstanceRen *obi, StrandVert *svert)
+{
+	GHashPair pair = {obi, svert};
+	return pair;
+}
+
 static void strand_shade_get(Render *re, StrandShadeCache *cache, ShadeSample *ssamp, StrandSegment *sseg, StrandVert *svert)
 {
-	ShadeResult *hashshr;
+	StrandCacheEntry *entry;
 	StrandPoint p;
 	int *refcount;
+	GHashPair pair = strand_shade_hash_pair(sseg->obi, svert);
 
-	hashshr= BLI_ghash_lookup(cache->resulthash, svert);
-	refcount= BLI_ghash_lookup(cache->refcounthash, svert);
+	entry= BLI_ghash_lookup(cache->resulthash, &pair);
+	refcount= BLI_ghash_lookup(cache->refcounthash, &pair);
 
-	if (!hashshr) {
+	if (!entry) {
 		/* not shaded yet, shade and insert into hash */
 		p.t= (sseg->v[1] == svert)? 0.0f: 1.0f;
 		strand_eval_point(sseg, &p);
 		strand_shade_point(re, ssamp, sseg, svert, &p);
 
-		hashshr= MEM_callocN(sizeof(ShadeResult), "HashShadeResult");
-		*hashshr= ssamp->shr[0];
-		BLI_ghash_insert(cache->resulthash, svert, hashshr);
+		entry= MEM_callocN(sizeof(StrandCacheEntry), "StrandCacheEntry");
+		entry->pair = pair;
+		entry->shr = ssamp->shr[0];
+		BLI_ghash_insert(cache->resulthash, entry, entry);
 	}
 	else
 		/* already shaded, just copy previous result from hash */
-		ssamp->shr[0]= *hashshr;
+		ssamp->shr[0]= entry->shr;
 	
 	/* lower reference count and remove if not needed anymore by any samples */
 	(*refcount)--;
 	if (*refcount == 0) {
-		BLI_ghash_remove(cache->resulthash, svert, NULL, (GHashValFreeFP)MEM_freeN);
-		BLI_ghash_remove(cache->refcounthash, svert, NULL, NULL);
+		BLI_ghash_remove(cache->resulthash, &pair, (GHashKeyFreeFP)MEM_freeN, NULL);
+		BLI_ghash_remove(cache->refcounthash, &pair, NULL, NULL);
 	}
 }
 
@@ -388,34 +401,39 @@ void strand_shade_segment(Render *re, StrandShadeCache *cache, StrandSegment *ss
 
 	/* apply alpha along width */
 	if (sseg->buffer->widthfade != 0.0f) {
-		s = 1.0f - pow(fabs(s), sseg->buffer->widthfade);
+		s = 1.0f - powf(fabsf(s), sseg->buffer->widthfade);
 
 		strand_apply_shaderesult_alpha(ssamp->shr, s);
 	}
 }
 
-void strand_shade_unref(StrandShadeCache *cache, StrandVert *svert)
+void strand_shade_unref(StrandShadeCache *cache, ObjectInstanceRen *obi, StrandVert *svert)
 {
+	GHashPair pair = strand_shade_hash_pair(obi, svert);
 	int *refcount;
 
 	/* lower reference count and remove if not needed anymore by any samples */
-	refcount= BLI_ghash_lookup(cache->refcounthash, svert);
+	refcount= BLI_ghash_lookup(cache->refcounthash, &pair);
 
 	(*refcount)--;
 	if (*refcount == 0) {
-		BLI_ghash_remove(cache->resulthash, svert, NULL, (GHashValFreeFP)MEM_freeN);
-		BLI_ghash_remove(cache->refcounthash, svert, NULL, NULL);
+		BLI_ghash_remove(cache->resulthash, &pair, (GHashKeyFreeFP)MEM_freeN, NULL);
+		BLI_ghash_remove(cache->refcounthash, &pair, NULL, NULL);
 	}
 }
 
-static void strand_shade_refcount(StrandShadeCache *cache, StrandVert *svert)
+static void strand_shade_refcount(StrandShadeCache *cache, StrandSegment *sseg, StrandVert *svert)
 {
-	int *refcount= BLI_ghash_lookup(cache->refcounthash, svert);
+	GHashPair pair = strand_shade_hash_pair(sseg->obi, svert);
+	GHashPair *key;
+	int *refcount= BLI_ghash_lookup(cache->refcounthash, &pair);
 
 	if (!refcount) {
+		key= BLI_memarena_alloc(cache->memarena, sizeof(GHashPair));
+		*key = pair;
 		refcount= BLI_memarena_alloc(cache->memarena, sizeof(int));
 		*refcount= 1;
-		BLI_ghash_insert(cache->refcounthash, svert, refcount);
+		BLI_ghash_insert(cache->refcounthash, key, refcount);
 	}
 	else
 		(*refcount)++;
@@ -580,8 +598,8 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 			}
 
 			if (cache) {
-				strand_shade_refcount(cache, sseg->v[1]);
-				strand_shade_refcount(cache, sseg->v[2]);
+				strand_shade_refcount(cache, sseg, sseg->v[1]);
+				strand_shade_refcount(cache, sseg, sseg->v[2]);
 			}
 			spart->totapixbuf[offset]++;
 		}

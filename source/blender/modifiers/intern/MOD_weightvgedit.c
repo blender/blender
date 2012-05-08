@@ -211,7 +211,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 
 	dvert = CustomData_duplicate_referenced_layer(&dm->vertData, CD_MDEFORMVERT, numVerts);
 	/* If no vertices were ever added to an object's vgroup, dvert might be NULL. */
-	if (!dvert)
+	if (!dvert) {
 		/* If this modifier is not allowed to add vertices, just return. */
 		if (!do_add)
 			return dm;
@@ -221,6 +221,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *der
 		/* Ultimate security check. */
 		if (!dvert)
 			return dm;
+	}
 
 	/* Get org weights, assuming 0.0 for vertices not in given vgroup. */
 	org_w = MEM_mallocN(sizeof(float) * numVerts, "WeightVGEdit Modifier, org_w");

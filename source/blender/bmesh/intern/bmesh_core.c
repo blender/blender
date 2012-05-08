@@ -184,34 +184,32 @@ static BMLoop *bm_face_boundary_add(BMesh *bm, BMFace *f, BMVert *startv, BMEdge
 
 BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short copyedges)
 {
-	BMEdge **edges = NULL;
 	BMVert **verts = NULL;
-	BLI_array_staticdeclare(edges, BM_NGON_STACK_SIZE);
-	BLI_array_staticdeclare(verts, BM_NGON_STACK_SIZE);
+	BMEdge **edges = NULL;
+	BLI_array_fixedstack_declare(verts, BM_NGON_STACK_SIZE, f->len, __func__);
+	BLI_array_fixedstack_declare(edges, BM_NGON_STACK_SIZE, f->len, __func__);
 	BMLoop *l_iter;
 	BMLoop *l_first;
 	BMLoop *l_copy;
 	BMFace *f_copy;
 	int i;
 
-	/* BMESH_TODO - grow verts array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+	i = 0;
 	do {
 		if (copyverts) {
-			BMVert *v = BM_vert_create(bm, l_iter->v->co, l_iter->v);
-			BLI_array_append(verts, v);
+			verts[i] = BM_vert_create(bm, l_iter->v->co, l_iter->v);
 		}
 		else {
-			BLI_array_append(verts, l_iter->v);
+			verts[i] = l_iter->v;
 		}
+		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 
-	/* BMESH_TODO - grow edges array in one go! (right here) */
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	i = 0;
 	do {
 		if (copyedges) {
-			BMEdge *e;
 			BMVert *v1, *v2;
 			
 			if (l_iter->e->v1 == verts[i]) {
@@ -223,13 +221,11 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 				v1 = verts[(i + 1) % f->len];
 			}
 			
-			e = BM_edge_create(bm,  v1, v2, l_iter->e, FALSE);
-			BLI_array_append(edges, e);
+			edges[i] = BM_edge_create(bm,  v1, v2, l_iter->e, FALSE);
 		}
 		else {
-			BLI_array_append(edges, l_iter->e);
+			edges[i] = l_iter->e;
 		}
-		
 		i++;
 	} while ((l_iter = l_iter->next) != l_first);
 	
@@ -243,7 +239,10 @@ BMFace *BM_face_copy(BMesh *bm, BMFace *f, const short copyverts, const short co
 		BM_elem_attrs_copy(bm, bm, l_iter, l_copy);
 		l_copy = l_copy->next;
 	} while ((l_iter = l_iter->next) != l_first);
-	
+
+	BLI_array_fixedstack_free(verts);
+	BLI_array_fixedstack_free(edges);
+
 	return f_copy;
 }
 
@@ -583,6 +582,9 @@ void BM_face_verts_kill(BMesh *bm, BMFace *f)
 	BLI_array_free(verts);
 }
 
+/**
+ * Kills \a f and its loops.
+ */
 void BM_face_kill(BMesh *bm, BMFace *f)
 {
 #ifdef USE_BMESH_HOLES
@@ -672,7 +674,10 @@ void BM_vert_kill(BMesh *bm, BMVert *v)
 
 /********** private disk and radial cycle functions ********** */
 
-static int bm_loop_length(BMLoop *l)
+/**
+ * return the length of the face, should always equal \a l->f->len
+ */
+static int UNUSED_FUNCTION(bm_loop_length)(BMLoop *l)
 {
 	BMLoop *l_first = l;
 	int i = 0;
@@ -708,18 +713,15 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 	BMLoop *l_first = f->l_first;
 #endif
 
+	const int len = f->len;
+	const int do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
 	BMLoop *l_iter, *oldprev, *oldnext;
 	BMEdge **edar = NULL;
-	MDisps *md;
-	BLI_array_staticdeclare(edar, BM_NGON_STACK_SIZE);
-	int i, j, edok, len = 0, do_disps = CustomData_has_layer(&bm->ldata, CD_MDISPS);
-
-	len = bm_loop_length(l_first);
+	BLI_array_fixedstack_declare(edar, BM_NGON_STACK_SIZE, len, __func__);
+	int i, j, edok;
 
 	for (i = 0, l_iter = l_first; i < len; i++, l_iter = l_iter->next) {
-		BMEdge *curedge = l_iter->e;
-		bmesh_radial_loop_remove(l_iter, curedge);
-		BLI_array_append(edar, curedge);
+		bmesh_radial_loop_remove(l_iter, (edar[i] = l_iter->e));
 	}
 
 	/* actually reverse the loop */
@@ -733,6 +735,7 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 		if (do_disps) {
 			float (*co)[3];
 			int x, y, sides;
+			MDisps *md;
 			
 			md = CustomData_bmesh_get(&bm->ldata, l_iter->head.data, CD_MDISPS);
 			if (!md->totdisp || !md->disps)
@@ -778,7 +781,7 @@ static int bm_loop_reverse_loop(BMesh *bm, BMFace *f
 		BM_CHECK_ELEMENT(l_iter->f);
 	}
 
-	BLI_array_free(edar);
+	BLI_array_fixedstack_free(edar);
 
 	BM_CHECK_ELEMENT(f);
 

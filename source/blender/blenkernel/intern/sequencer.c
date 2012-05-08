@@ -515,8 +515,17 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 	*seqar = tseqar;
 }
 
+static int metaseq_start(Sequence *metaseq)
+{
+	return metaseq->start + metaseq->startofs;
+}
 
-static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+static int metaseq_end(Sequence *metaseq)
+{
+	return metaseq->start + metaseq->len - metaseq->endofs;
+}
+
+static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metaseq, int start, int end)
 {
 	Sequence *seq;
 
@@ -524,21 +533,26 @@ static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
 		if (seq->type == SEQ_META) {
-			seq_update_sound_bounds_recursive(scene, seq);
+			seq_update_sound_bounds_recursive_rec(scene, seq, MAX2(start, metaseq_start(seq)), MIN2(end, metaseq_end(seq)));
 		}
 		else if (ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
 			if (seq->scene_sound) {
 				int startofs = seq->startofs;
 				int endofs = seq->endofs;
-				if (seq->startofs + seq->start < metaseq->start + metaseq->startofs)
-					startofs = metaseq->start + metaseq->startofs - seq->start;
+				if (seq->startofs + seq->start < start)
+					startofs = start - seq->start;
 
-				if (seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
-					endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
+				if (seq->start + seq->len - seq->endofs > end)
+					endofs = seq->start + seq->len - end;
 				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start + seq->len - endofs, startofs);
 			}
 		}
 	}
+}
+
+static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+{
+	seq_update_sound_bounds_recursive_rec(scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
 void calc_sequence_disp(Scene *scene, Sequence *seq)

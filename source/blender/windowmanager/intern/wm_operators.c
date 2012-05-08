@@ -84,6 +84,7 @@
 
 #include "ED_screen.h"
 #include "ED_util.h"
+#include "ED_object.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -2129,7 +2130,12 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 {	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		char filepath[FILE_MAX];
-		BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+
+		if (G.main->name[0] == 0)
+			BLI_strncpy(filepath, "untitled", sizeof(filepath));
+		else
+			BLI_strncpy(filepath, G.main->name, sizeof(filepath));
+
 		BLI_replace_extension(filepath, sizeof(filepath), ".dae");
 		RNA_string_set(op->ptr, "filepath", filepath);
 	}
@@ -2153,6 +2159,10 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 	selected = RNA_boolean_get(op->ptr, "selected");
 	second_life = RNA_boolean_get(op->ptr, "second_life");
+
+	/* get editmode results */
+	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
+
 	if (collada_export(CTX_data_scene(C), filename, selected, second_life)) {
 		return OPERATOR_FINISHED;
 	}

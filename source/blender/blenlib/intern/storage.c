@@ -493,6 +493,23 @@ int BLI_exists(const char *name)
 	return(st.st_mode);
 }
 
+
+#ifdef WIN32
+int BLI_stat(const char *path, struct stat *buffer)
+{
+	int r;
+	UTF16_ENCODE(path);
+	r=_wstat(path_16,buffer);
+	UTF16_UN_ENCODE(path);
+	return r;
+}
+#else
+int BLI_stat(const char *path, struct stat *buffer)
+{
+	return stat(path, buffer);
+}
+#endif
+
 /* would be better in fileops.c except that it needs stat.h so add here */
 int BLI_is_dir(const char *file)
 {

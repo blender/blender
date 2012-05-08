@@ -87,6 +87,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
@@ -95,7 +96,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, fractal,
+	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
 	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
@@ -143,6 +144,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal_along_normal", 0.0f, 0.0f, 1.0f, "Along Normal", "Apply fractal displacement along normal only", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
@@ -612,7 +614,7 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_face_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -896,7 +898,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{3,  "EDGE_FACE", 0, "Only Edges & Faces", ""},
 	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -3196,11 +3198,45 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMesh *bm = em->bm;
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	char dissolve_flag;
+
+	if (em->selectmode == SCE_SELECT_FACE) {
+		/* flush selection to tags and untag edges/verts with partially selected faces */
+		BMIter iter;
+		BMIter liter;
+
+		BMElem *ele;
+		BMFace *f;
+		BMLoop *l;
+
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+				}
+			}
+		}
+
+		dissolve_flag = BM_ELEM_TAG;
+	}
+	else {
+		dissolve_flag = BM_ELEM_SELECT;
+	}
 
 	if (!EDBM_op_callf(em, op,
 	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	                   dissolve_flag, dissolve_flag, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3692,8 +3728,11 @@ static void xsortvert_flag(bContext *C, int flag)
 		}
 	}
 /*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
-	if (sorted == 0)
+	if (sorted == 0) {
+		MEM_freeN(sortblock);
+		MEM_freeN(unchangedblock);
 		return;
+	}
 
 	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
 	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
@@ -3951,8 +3990,11 @@ static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
 	}
 /*	protected = totvert - randomized;*/
 /*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
-	if (randomized == 0)
+	if (randomized == 0) {
+		MEM_freeN(block);
+		MEM_freeN(randblock);
 		return;
+	}
 
 	
 	/* Randomize non-protected vertices indices, and create an array mapping old idx to new

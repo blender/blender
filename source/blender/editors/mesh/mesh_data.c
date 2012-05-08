@@ -189,42 +189,6 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
-/* copies from active to 'index' */
-static void editmesh_face_copy_customdata(BMEditMesh *em, int type, int index)
-{
-	BMesh *bm = em->bm;
-	CustomData *pdata = &bm->pdata;
-	BMIter iter;
-	BMFace *efa;
-	const int n = CustomData_get_active_layer(pdata, type);
-
-	/* ensure all current elements follow new customdata layout */
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		void *data = CustomData_bmesh_get_n(pdata, efa->head.data, type, n);
-		CustomData_bmesh_set_n(pdata, efa->head.data, type, index, data);
-	}
-}
-
-/* copies from active to 'index' */
-static void editmesh_loop_copy_customdata(BMEditMesh *em, int type, int index)
-{
-	BMesh *bm = em->bm;
-	CustomData *ldata = &bm->ldata;
-	BMIter iter;
-	BMIter liter;
-	BMFace *efa;
-	BMLoop *loop;
-	const int n = CustomData_get_active_layer(ldata, type);
-
-	/* ensure all current elements follow new customdata layout */
-	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
-			void *data = CustomData_bmesh_get_n(ldata, loop->head.data, type, n);
-			CustomData_bmesh_set_n(ldata, loop->head.data, type, index, data);
-		}
-	}
-}
-
 int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
@@ -360,7 +324,8 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		BM_data_layer_add_named(em->bm, &em->bm->pdata, CD_MTEXPOLY, name);
 		/* copy data from active UV */
 		if (layernum) {
-			editmesh_face_copy_customdata(em, CD_MTEXPOLY, layernum);
+			const int layernum_dst = CustomData_get_active_layer(&em->bm->pdata, CD_MTEXPOLY);
+			BM_data_layer_copy(em->bm, &em->bm->pdata, CD_MTEXPOLY, layernum, layernum_dst);
 		}
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
@@ -370,7 +335,9 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPUV, name);
 		/* copy data from active UV */
 		if (layernum) {
-			editmesh_loop_copy_customdata(em, CD_MLOOPUV, layernum);
+			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV);
+			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum, layernum_dst);
+
 			is_init = TRUE;
 		}
 		if (active_set || layernum == 0) {
@@ -457,7 +424,8 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPCOL, name);
 		/* copy data from active vertex color layer */
 		if (layernum) {
-			editmesh_loop_copy_customdata(em, CD_MLOOPCOL, layernum);
+			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPCOL);
+			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum, layernum_dst);
 		}
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);

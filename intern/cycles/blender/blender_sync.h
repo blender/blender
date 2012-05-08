@@ -108,7 +108,8 @@ private:
 		RenderLayerInfo()
 		: scene_layer(0), layer(0), holdout_layer(0),
 		  material_override(PointerRNA_NULL),
-		  use_background(true)
+		  use_background(true),
+		  use_viewport_visibility(false)
 		{}
 
 		string name;
@@ -117,6 +118,7 @@ private:
 		uint holdout_layer;
 		BL::Material material_override;
 		bool use_background;
+		bool use_viewport_visibility;
 	} render_layer;
 };
 

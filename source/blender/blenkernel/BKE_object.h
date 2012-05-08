@@ -80,6 +80,7 @@ int exist_object(struct Object *obtest);
 	
 struct Object *add_only_object(int type, const char *name);
 struct Object *add_object(struct Scene *scene, int type);
+void *add_obdata_from_type(int type);
 
 struct Object *copy_object(struct Object *ob);
 void make_local_object(struct Object *ob);

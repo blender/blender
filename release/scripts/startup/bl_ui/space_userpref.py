@@ -637,10 +637,6 @@ class USERPREF_PT_theme(Panel):
             col.label(text="Tooltip:")
             ui_items_general(col, ui)
 
-            ui = theme.user_interface.wcol_tooltip
-            col.label(text="Tooltip:")
-            ui_items_general(col, ui)
-
             ui = theme.user_interface.wcol_menu_item
             col.label(text="Menu Item:")
             ui_items_general(col, ui)

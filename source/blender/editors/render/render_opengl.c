@@ -146,6 +146,13 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
 
 			if (ibuf->rect_float == NULL) {
+				/* internally sequencer working in sRGB space and stores both bytes and float
+				 * buffers in sRGB space, but if byte->float onversion doesn't happen in sequencer
+				 * (e.g. when adding image sequence/movie into sequencer) there'll be only
+				 * byte buffer and profile will still indicate sRGB->linear space conversion is needed
+				 * here we're ensure there'll be no conversion happen and float buffer would store
+				 * linear frame (sergey) */
+				ibuf->profile = IB_PROFILE_NONE;
 				IMB_float_from_rect(ibuf);
 			}
 

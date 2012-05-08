@@ -757,7 +757,7 @@ static int nearest_uv_between(BMEditMesh *em, BMFace *efa, int UNUSED(nverts), i
 	BMLoop *l;
 	MLoopUV *luv;
 	BMIter iter;
-	float m[3], v1[3], v2[3], c1, c2, *uv1, /* *uv2, */ /* UNUSED */ *uv3;
+	float m[3], v1[3], v2[3], c1, c2, *uv1 = NULL, /* *uv2, */ /* UNUSED */ *uv3 = NULL;
 	int id1, id2, i;
 
 	id1 = (id + efa->len - 1) % efa->len;
@@ -2282,6 +2282,25 @@ static void UV_OT_unlink_selected(wmOperatorType *ot)
 	ot->poll = ED_operator_uvedit;
 }
 
+static void uv_select_sync_flush(ToolSettings *ts, BMEditMesh *em, const short select)
+{
+	/* bmesh API handles flushing but not on de-select */
+	if (ts->uv_flag & UV_SYNC_SELECTION) {
+		if (ts->selectmode != SCE_SELECT_FACE) {
+			if (select == FALSE) {
+				EDBM_deselect_flush(em);
+			}
+			else {
+				EDBM_select_flush(em);
+			}
+		}
+
+		if (select == FALSE) {
+			BM_select_history_validate(em->bm);
+		}
+	}
+}
+
 /* ******************** border select operator **************** */
 
 /* This function sets the selection on tagged faces, need because settings the
@@ -2512,20 +2531,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	}
 
 	if (change) {
-		/* bmesh API habdles flushing but not on de-select */
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			if (ts->selectmode != SCE_SELECT_FACE) {
-				if (select == FALSE) {
-					EDBM_deselect_flush(em);
-				}
-			}
-		}
-
-		if (ts->uv_flag & UV_SYNC_SELECTION) {
-			if (select == FALSE) {
-				BM_select_history_validate(em->bm);
-			}
-		}
+		uv_select_sync_flush(ts, em, select);
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		
@@ -2560,13 +2566,12 @@ static void UV_OT_select_border(wmOperatorType *ot)
 
 /* ******************** circle select operator **************** */
 
-static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *UNUSED(sima), Scene *scene, int select,
-                                     float *offset, float *ell, BMLoop *l, MLoopUV *luv)
+static int select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *UNUSED(sima), Scene *scene, int select,
+                                    float *offset, float *ell, BMLoop *l, MLoopUV *luv)
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y, r2, *uv;
-	
-	
+
 	uv = luv->uv;
 
 	x = (uv[0] - offset[0]) * ell[0];
@@ -2575,7 +2580,11 @@ static void select_uv_inside_ellipse(BMEditMesh *em, SpaceImage *UNUSED(sima), S
 	r2 = x * x + y * y;
 	if (r2 < 1.0f) {
 		if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
-		else uvedit_uv_select_disable(em, scene, l);
+		else        uvedit_uv_select_disable(em, scene, l);
+		return TRUE;
+	}
+	else {
+		return FALSE;
 	}
 }
 
@@ -2593,6 +2602,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	int x, y, radius, width, height, select;
 	float zoomx, zoomy, offset[2], ellipse[2];
 	int gesture_mode = RNA_int_get(op->ptr, "gesture_mode");
+	int change = FALSE;
 
 	/* get operator properties */
 	select = (gesture_mode == GESTURE_MODAL_SELECT);
@@ -2614,15 +2624,15 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-			select_uv_inside_ellipse(em, sima, scene, select, offset, ellipse, l, luv);
+			change |= select_uv_inside_ellipse(em, sima, scene, select, offset, ellipse, l, luv);
 		}
 	}
 
-#if 0 //I think the BM_elem_select_set api stuff handles all this as necessary?
-	if (select) EM_select_flush(em);
-	else EM_deselect_flush(em);
-#endif
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	if (change) {
+		uv_select_sync_flush(scene->toolsettings, em, select);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
+	}
 
 	return OPERATOR_FINISHED;
 }

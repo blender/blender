@@ -815,7 +815,6 @@ static void emDM_drawFacesTex_common(
 	if (vertexCos) {
 		BM_mesh_elem_index_ensure(bm, BM_VERT);
 
-		glBegin(GL_TRIANGLES);
 		for (i=0; i<em->tottri; i++) {
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp= has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
@@ -839,6 +838,7 @@ static void emDM_drawFacesTex_common(
 
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
 
+				glBegin(GL_TRIANGLES);
 				if (!drawSmooth) {
 					glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
 
@@ -880,9 +880,9 @@ static void emDM_drawFacesTex_common(
 					glNormal3fv(vertexNos[BM_elem_index_get(ls[2]->v)]);
 					glVertex3fv(vertexCos[BM_elem_index_get(ls[2]->v)]);
 				}
+				glEnd();
 			}
 		}
-		glEnd();
 	}
 	else {
 		BM_mesh_elem_index_ensure(bm, BM_VERT);

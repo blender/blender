@@ -1,33 +1,33 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * The Original Code is Copyright (C) 2006 Blender Foundation.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): Bob Holcomb
- *
- * ***** END GPL LICENSE BLOCK *****
- */
+* ***** BEGIN GPL LICENSE BLOCK *****
+*
+* This program is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version. 
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software Foundation,
+* Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+*
+* The Original Code is Copyright (C) 2006 Blender Foundation.
+* All rights reserved.
+*
+* The Original Code is: all of this file.
+*
+* Contributor(s): Bob Holcomb
+*
+* ***** END GPL LICENSE BLOCK *****
+*/
 
 /** \file blender/nodes/composite/nodes/node_composite_diffMatte.c
- *  \ingroup cmpnodes
- */
+*  \ingroup cmpnodes
+*/
 
 
 #include "node_composite_util.h"
@@ -49,38 +49,41 @@ static void do_diff_matte(bNode *node, float *outColor, float *inColor1, float *
 {
 	NodeChroma *c= (NodeChroma *)node->storage;
 	float tolerence=c->t1;
-	float falloff=c->t2;
+	float fper=c->t2;
+	/* get falloff amount over tolerence size */
+	float falloff=(1.0f-fper) * tolerence;
 	float difference;
 	float alpha;
+	float maxInputAlpha;
 
+	/* average together the distances */
 	difference= fabs(inColor2[0]-inColor1[0]) +
-	        fabs(inColor2[1]-inColor1[1]) +
-	        fabs(inColor2[2]-inColor1[2]);
-
-	/*average together the distances*/
+		fabs(inColor2[1]-inColor1[1]) +
+		fabs(inColor2[2]-inColor1[2]);
 	difference=difference/3.0f;
 
 	copy_v3_v3(outColor, inColor1);
 
-	/*make 100% transparent*/
-	if (difference < tolerence) {
-		outColor[3]=0.0;
-	}
-	/*in the falloff region, make partially transparent */
-	else if (difference < falloff+tolerence) {
-		difference=difference-tolerence;
-		alpha=difference/falloff;
-		/*only change if more transparent than before */
-		if (alpha < inColor1[3]) {
+	if (difference <= tolerence) {
+		if(difference<=falloff) {
+			alpha=0.0f;
+		}
+		else{
+			/* alpha as percent (distance / tolerance), each modified by falloff amount (in pixels)*/
+			alpha=(difference-falloff)/(tolerence-falloff);
+		}
+
+		/*only change if more transparent than either image */
+		maxInputAlpha=maxf(inColor1[3], inColor2[3]);
+		if (alpha < maxInputAlpha) {
+			/*clamp*/
+			if(alpha<0.0f) alpha=0.0f;
+			if(alpha>1.0f) alpha=1.0f;
 			outColor[3]=alpha;
 		}
 		else { /* leave as before */
-			outColor[3]=inColor1[3];
+			outColor[3]=maxInputAlpha;
 		}
-	}
-	else {
-		/*foreground object*/
-		outColor[3]= inColor1[3];
 	}
 }
 

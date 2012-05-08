@@ -260,6 +260,7 @@ void bmo_create_grid_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* extrude and translate */
+	phid = 2.0f / ((float)seg - 1);
 	vec[0] = vec[2] = 0.0f;
 	vec[1] = dia * phid;
 	mul_mat3_m4_v3(mat, vec);

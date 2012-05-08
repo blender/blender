@@ -956,70 +956,46 @@ void txt_move_right(Text *text, short sel)
 
 void txt_jump_left(Text *text, short sel)
 {
-	TextLine **linep, *oldl;
-	int *charp, oldc, oldflags, i;
-	unsigned char oldu;
-	int pos;
-
+	TextLine **linep;
+	int *charp, oldc;
+	
 	if (!text) return;
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
+	oldc = *charp;
 
-	oldflags = text->flags;
-	text->flags &= ~TXT_TABSTOSPACES;
-
-	oldl= *linep;
-	oldc= *charp;
-	oldu= undoing;
-	undoing= 1; /* Don't push individual moves to undo stack */
-
-	pos = *charp;
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
-	                         &pos, STRCUR_DIR_PREV,
+                             charp, STRCUR_DIR_PREV,
 	                         STRCUR_JUMP_DELIM);
-	for (i = *charp; i > pos; i--) {
-		txt_move_left(text, sel);
+	
+	if (!sel) txt_pop_sel(text);
+	if (!undoing) {
+		int span = txt_get_span(text->lines.first, *linep);
+		txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, span, oldc, span, (unsigned short)*charp);
 	}
-
-	text->flags = oldflags;
-
-	undoing= oldu;
-	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 void txt_jump_right(Text *text, short sel)
 {
-	TextLine **linep, *oldl;
-	int *charp, oldc, oldflags, i;
-	unsigned char oldu;
-	int pos;
-
+	TextLine **linep;
+	int *charp, oldc;
+	
 	if (!text) return;
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
-
-	oldflags = text->flags;
-	text->flags &= ~TXT_TABSTOSPACES;
-
-	oldl= *linep;
-	oldc= *charp;
-	oldu= undoing;
-	undoing= 1; /* Don't push individual moves to undo stack */
-
-	pos = *charp;
+	oldc = *charp;
+	
 	BLI_str_cursor_step_utf8((*linep)->line, (*linep)->len,
-	                         &pos, STRCUR_DIR_NEXT,
+                             charp, STRCUR_DIR_NEXT,
 	                         STRCUR_JUMP_DELIM);
-	for (i = *charp; i < pos; i++) {
-		txt_move_right(text, sel);
+	
+	if (!sel) txt_pop_sel(text);
+	if (!undoing) {
+		int span = txt_get_span(text->lines.first, *linep);
+		txt_undo_add_toop(text, sel ? UNDO_STO : UNDO_CTO, span, oldc, span, (unsigned short)*charp);
 	}
-
-	text->flags = oldflags;
-
-	undoing= oldu;
-	if (!undoing) txt_undo_add_toop(text, sel?UNDO_STO:UNDO_CTO, txt_get_span(text->lines.first, oldl), oldc, txt_get_span(text->lines.first, *linep), (unsigned short)*charp);
 }
 
 void txt_move_bol (Text *text, short sel) 

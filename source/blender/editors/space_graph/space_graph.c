@@ -516,6 +516,7 @@ static void graph_refresh(const bContext *C, ScrArea *sa)
 	if (sipo->flag & SIPO_TEMP_NEEDCHANSYNC) {
 		ANIM_sync_animchannels_to_data(C);
 		sipo->flag &= ~SIPO_TEMP_NEEDCHANSYNC;
+		ED_area_tag_redraw(sa);
 	}
 	
 	/* init/adjust F-Curve colors */

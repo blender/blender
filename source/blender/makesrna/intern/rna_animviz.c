@@ -39,6 +39,14 @@
 
 #include "WM_types.h"
 
+/* Which part of bone(s) get baked */
+// TODO: icons?
+EnumPropertyItem motionpath_bake_location_items[] = {
+	{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
+	{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
+	//{MOTIONPATH_BAKE_CENTERS, "CENTROID", 0, "Centers", "Calculate bone paths from center of mass"},
+	{0, NULL, 0, NULL, NULL}};
+
 #ifdef RNA_RUNTIME
 
 static PointerRNA rna_AnimViz_onion_skinning_get(PointerRNA *ptr)
@@ -241,10 +249,6 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 		                        "Display Paths of poses within a fixed number of frames around the current frame"},
 		{MOTIONPATH_TYPE_RANGE, "RANGE", 0, "In Range", "Display Paths of poses within specified range"},
 		{0, NULL, 0, NULL, NULL}};
-	static const EnumPropertyItem prop_location_items[] = {
-		{MOTIONPATH_BAKE_HEADS, "HEADS", 0, "Heads", "Calculate bone paths from heads"},
-		{0, "TAILS", 0, "Tails", "Calculate bone paths from tails"},
-		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "AnimVizMotionPaths", NULL);
 	RNA_def_struct_sdna(srna, "bAnimVizSettings");
@@ -260,7 +264,7 @@ static void rna_def_animviz_paths(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "bake_location", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "path_bakeflag");
-	RNA_def_property_enum_items(prop, prop_location_items);
+	RNA_def_property_enum_items(prop, motionpath_bake_location_items);
 	RNA_def_property_ui_text(prop, "Bake Location", "When calculating Bone Paths, use Head or Tips");
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_VIEW3D, NULL); /* XXX since this is only for 3d-view drawing */
 	

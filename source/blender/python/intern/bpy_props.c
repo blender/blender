@@ -1071,8 +1071,8 @@ static EnumPropertyItem *enum_items_from_py(PyObject *seq_fast, PyObject *def, i
 		else {
 			MEM_freeN(items);
 			PyErr_SetString(PyExc_TypeError,
-			                "EnumProperty(...): expected an tuple containing "
-			                "(identifier, name description) and optionally a "
+			                "EnumProperty(...): expected a tuple containing "
+			                "(identifier, name, description) and optionally a "
 			                "unique number");
 			return NULL;
 		}

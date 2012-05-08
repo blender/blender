@@ -499,6 +499,8 @@ float BPY_driver_exec(struct ChannelDriver *driver, const float evaltime) {retur
 void BPY_DECREF(void *pyob_ptr) {}
 void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets) {}
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {}
+int pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id){ return 0; }
+struct PyObject *pyrna_id_CreatePyObject(struct ID *id) {return NULL; }
 
 /* intern/dualcon */
 struct DualConMesh;

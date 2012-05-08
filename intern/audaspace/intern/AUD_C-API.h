@@ -710,6 +710,21 @@ extern void* AUD_getSet(void* set);
 extern const char* AUD_mixdown(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
 
 /**
+ * Mixes a sound down into multiple files.
+ * \param sound The sound scene to mix down.
+ * \param start The start frame.
+ * \param length The count of frames to write.
+ * \param buffersize How many samples should be written at once.
+ * \param filename The file to write to, the channel number and an underscore are added at the beginning.
+ * \param specs The file's audio specification.
+ * \param format The file's container format.
+ * \param codec The codec used for encoding the audio data.
+ * \param bitrate The bitrate for encoding.
+ * \return An error message or NULL in case of success.
+ */
+extern const char* AUD_mixdown_per_channel(AUD_Sound* sound, unsigned int start, unsigned int length, unsigned int buffersize, const char* filename, AUD_DeviceSpecs specs, AUD_Container format, AUD_Codec codec, unsigned int bitrate);
+
+/**
  * Opens a read device and prepares it for mixdown of the sound scene.
  * \param specs Output audio specifications.
  * \param sequencer The sound scene to mix down.

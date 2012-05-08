@@ -198,8 +198,8 @@ static void do_shared_vertex_tesscol(Mesh *me)
 {
 	/* if no mcol: do not do */
 	/* if tface: only the involved faces, otherwise all */
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
 	MFace *mface;
-	MTFace *tface;
 	int a;
 	short *scolmain, *scol;
 	char *mcol;
@@ -208,11 +208,10 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	
 	scolmain = MEM_callocN(4 * sizeof(short) * me->totvert, "colmain");
 	
-	tface = me->mtface;
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK) == 0) {
+		if ((use_face_sel == FALSE) || (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			scol[0]++; scol[1] += mcol[1]; scol[2] += mcol[2]; scol[3] += mcol[3];
 			scol = scolmain + 4 * mface->v2;
@@ -224,7 +223,6 @@ static void do_shared_vertex_tesscol(Mesh *me)
 				scol[0]++; scol[1] += mcol[13]; scol[2] += mcol[14]; scol[3] += mcol[15];
 			}
 		}
-		if (tface) tface++;
 	}
 	
 	a = me->totvert;
@@ -237,12 +235,11 @@ static void do_shared_vertex_tesscol(Mesh *me)
 		}
 		scol += 4;
 	}
-	
-	tface = me->mtface;
+
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((tface && tface->mode & TF_SHAREDCOL) || (me->editflag & ME_EDIT_PAINT_MASK) == 0) {
+		if ((use_face_sel == FALSE)|| (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
 			scol = scolmain + 4 * mface->v2;
@@ -254,7 +251,6 @@ static void do_shared_vertex_tesscol(Mesh *me)
 				mcol[13] = scol[1]; mcol[14] = scol[2]; mcol[15] = scol[3];
 			}
 		}
-		if (tface) tface++;
 	}
 
 	MEM_freeN(scolmain);
@@ -262,12 +258,12 @@ static void do_shared_vertex_tesscol(Mesh *me)
 
 void do_shared_vertexcol(Mesh *me, int do_tessface)
 {
+	const int use_face_sel = (me->editflag & ME_EDIT_PAINT_MASK);
 	MLoop *ml = me->mloop;
 	MLoopCol *lcol = me->mloopcol;
-	MTexPoly *mtp = me->mtpoly;
-	MPoly *mp = me->mpoly;
-	float (*scol)[5];
-	int i, has_shared = 0;
+	MPoly *mp;
+	float (*scol)[4];
+	int i, j, has_shared = 0;
 
 	/* if no mloopcol: do not do */
 	/* if mtexpoly: only the involved faces, otherwise all */
@@ -276,42 +272,37 @@ void do_shared_vertexcol(Mesh *me, int do_tessface)
 
 	scol = MEM_callocN(sizeof(float) * me->totvert * 5, "scol");
 
-	for (i = 0; i < me->totloop; i++, ml++, lcol++) {
-		if (i >= mp->loopstart + mp->totloop) {
-			mp++;
-			if (mtp) mtp++;
+	for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
+		if ((use_face_sel == FALSE) || (mp->flag & ME_FACE_SEL)) {
+			ml = me->mloop + mp->loopstart;
+			lcol = me->mloopcol + mp->loopstart;
+			for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+				scol[ml->v][0] += lcol->r;
+				scol[ml->v][1] += lcol->g;
+				scol[ml->v][2] += lcol->b;
+				scol[ml->v][3] += 1.0f;
+				has_shared = 1;
+			}
 		}
-
-		if (!(mtp && (mtp->mode & TF_SHAREDCOL)) && (me->editflag & ME_EDIT_PAINT_MASK) != 0)
-			continue;
-
-		scol[ml->v][0] += lcol->r;
-		scol[ml->v][1] += lcol->g;
-		scol[ml->v][2] += lcol->b;
-		scol[ml->v][3] += lcol->a;
-		scol[ml->v][4] += 1.0;
-		has_shared = 1;
 	}
-	
+
 	if (has_shared) {
 		for (i = 0; i < me->totvert; i++) {
-			if (!scol[i][4]) continue;
-
-			scol[i][0] /= scol[i][4];
-			scol[i][1] /= scol[i][4];
-			scol[i][2] /= scol[i][4];
-			scol[i][3] /= scol[i][4];
+			if (scol[i][3] != 0.0f) {
+				mul_v3_fl(scol[i], 1.0f / scol[i][3]);
+			}
 		}
-	
-		ml = me->mloop;
-		lcol = me->mloopcol;
-		for (i = 0; i < me->totloop; i++, ml++, lcol++) {
-			if (!scol[ml->v][4]) continue;
 
-			lcol->r = scol[ml->v][0];
-			lcol->g = scol[ml->v][1];
-			lcol->b = scol[ml->v][2];
-			lcol->a = scol[ml->v][3];
+		for (i = 0, mp = me->mpoly; i < me->totpoly; i++, mp++) {
+			if ((use_face_sel == FALSE) || (mp->flag & ME_FACE_SEL)) {
+				ml = me->mloop + mp->loopstart;
+				lcol = me->mloopcol + mp->loopstart;
+				for (j = 0; j < mp->totloop; j++, ml++, lcol++) {
+					lcol->r = scol[ml->v][0];
+					lcol->g = scol[ml->v][1];
+					lcol->b = scol[ml->v][2];
+				}
+			}
 		}
 	}
 

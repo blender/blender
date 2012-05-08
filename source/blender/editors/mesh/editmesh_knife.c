@@ -2684,6 +2684,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 	knife_make_cuts(kcd);
 #endif
 
+	EDBM_mesh_normals_update(kcd->em);
 	EDBM_update_generic(C, kcd->em, TRUE);
 }
 
