@@ -77,7 +77,7 @@ void sound_delete_cache(struct bSound* sound);
 
 void sound_load(struct Main *main, struct bSound* sound);
 
-void sound_free(struct bSound* sound);
+void BKE_sound_free(struct bSound* sound);
 
 #ifdef __AUD_C_API_H__
 AUD_Device* sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start, float volume);

@@ -427,7 +427,7 @@ void ED_object_enter_editmode(bContext *C, int flag)
 
 	ob = base->object;
 	
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		error_libdata();
 		return;
 	}
@@ -465,11 +465,11 @@ void ED_object_enter_editmode(bContext *C, int flag)
 		bArmature *arm = base->object->data;
 		if (!arm) return;
 		/*
-		 * The function object_data_is_libdata make a problem here, the
+		 * The function BKE_object_obdata_is_libdata make a problem here, the
 		 * check for ob->proxy return 0 and let blender enter to edit mode
 		 * this causes a crash when you try leave the edit mode.
 		 * The problem is that i can't remove the ob->proxy check from
-		 * object_data_is_libdata that prevent the bugfix #6614, so
+		 * BKE_object_obdata_is_libdata that prevent the bugfix #6614, so
 		 * i add this little hack here.
 		 */
 		if (arm->id.lib) {
@@ -749,10 +749,10 @@ static void copy_texture_space(Object *to, Object *ob)
 		/* pass */
 	}
 	else if (to->type == OB_MBALL) {
-		BKE_metaball_tex_space_calc(to);
+		BKE_mball_texspace_calc(to);
 	}
 	else {
-		BKE_curve_tex_space_calc(to->data);
+		BKE_curve_texspace_calc(to->data);
 	}
 	
 }
@@ -783,7 +783,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 		return;
 	}
 	else if (event == 24) {
-		/* moved to object_link_modifiers */
+		/* moved to BKE_object_link_modifiers */
 		/* copymenu_modifiers(bmain, scene, v3d, ob); */
 		return;
 	}
@@ -885,7 +885,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 						cu1->vfontbi = cu->vfontbi;
 						id_us_plus((ID *)cu1->vfontbi);						
 
-						BKE_text_to_curve(bmain, scene, base->object, 0); /* needed? */
+						BKE_vfont_to_curve(bmain, scene, base->object, 0); /* needed? */
 
 						
 						BLI_strncpy(cu1->family, cu->family, sizeof(cu1->family));
@@ -1125,6 +1125,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	BLI_freelistN(&targets);
 }
 
+
 /* show popup to determine settings */
 static int object_calculate_paths_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
@@ -1200,6 +1201,39 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 
 /* --------- */
 
+static int object_update_paths_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	
+	if (scene == NULL)
+		return OPERATOR_CANCELLED;
+		
+	/* calculate the paths for objects that have them (and are tagged to get refreshed) */
+	ED_objects_recalculate_paths(C, scene);
+	
+	/* notifiers for updates */
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_paths_update(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Update Object Paths";
+	ot->idname = "OBJECT_OT_paths_update";
+	ot->description = "Recalculate paths for selected objects";
+	
+	/* api callbakcs */
+	ot->exec = object_update_paths_exec;
+	ot->poll = ED_operator_object_active_editable; /* TODO: this should probably check for existing paths */
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* --------- */
+
 /* Clear motion paths for selected objects only */
 void ED_objects_clear_paths(bContext *C)
 {
@@ -1256,7 +1290,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	{
 
 		if (ob->type == OB_MESH) {
-			mesh_set_smooth_flag(ob, !clear);
+			BKE_mesh_smooth_flag_set(ob, !clear);
 
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
@@ -1350,7 +1384,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
 								space = 1.0;
 								if (ob->type == OB_MESH) {
 									float size[3];
-									mesh_get_texspace(ob->data, NULL, NULL, size);
+									BKE_mesh_texspace_get(ob->data, NULL, NULL, size);
 									space = size[0] / size[1];
 								}
 								else if (ELEM3(ob->type, OB_CURVE, OB_FONT, OB_SURF)) {
@@ -1703,6 +1737,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Copy Game Property";
 	ot->idname = "OBJECT_OT_game_property_copy";
+	ot->description = "Copy/merge/replace a game property from active object to all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_copy_exec;
@@ -1733,6 +1768,7 @@ void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Clear Game Property";
 	ot->idname = "OBJECT_OT_game_property_clear";
+	ot->description = "Remove all game properties from all selected objects";
 
 	/* api callbacks */
 	ot->exec = game_property_clear_exec;

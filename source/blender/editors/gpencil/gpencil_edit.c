@@ -568,7 +568,7 @@ static void gp_layer_to_curve (bContext *C, bGPdata *gpd, bGPDlayer *gpl, short 
 	/* init the curve object (remove rotation and get curve data from it)
 	 *	- must clear transforms set on object, as those skew our results
 	 */
-	ob= add_object(scene, OB_CURVE);
+	ob= BKE_object_add(scene, OB_CURVE);
 	zero_v3(ob->loc);
 	zero_v3(ob->rot);
 	cu= ob->data;

@@ -203,7 +203,7 @@ int gimbal_axis(Object *ob, float gmat[][3])
 {
 	if (ob) {
 		if (ob->mode & OB_MODE_POSE) {
-			bPoseChannel *pchan= get_active_posechannel(ob);
+			bPoseChannel *pchan= BKE_pose_channel_active(ob);
 
 			if (pchan) {
 				float mat[3][3], tmat[3][3], obmat[3][3];

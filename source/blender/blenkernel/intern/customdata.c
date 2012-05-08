@@ -586,7 +586,7 @@ static int layerEqual_mloopcol(void *data1, void *data2)
 	b = m1->b - m2->b;
 	a = m1->a - m2->a;
 
-	return r*r + g*g + b*b + a*a < 0.001;
+	return r * r + g * g + b * b + a * a < 0.001f;
 }
 
 static void layerMultiply_mloopcol(void *data, float fac)
@@ -2610,7 +2610,7 @@ const char *CustomData_layertype_name(int type)
 int CustomData_layertype_is_singleton(int type)
 {
 	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-	return typeInfo->defaultname != NULL;
+	return typeInfo->defaultname == NULL;
 }
 
 static int  CustomData_is_property_layer(int type)

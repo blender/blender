@@ -136,7 +136,7 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 			if (node->id) {
 				if (node->flag & NODE_DO_OUTPUT)
-					node->new_node->id= (ID *)copy_image((Image *)node->id);
+					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
 				else
 					node->new_node->id= NULL;
 			}

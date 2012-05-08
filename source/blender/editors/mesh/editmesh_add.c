@@ -475,7 +475,7 @@ static int add_primitive_monkey_exec(bContext *C, wmOperator *op)
 	
 	ED_object_add_generic_get_opts(C, op, loc, rot, &enter_editmode, &layer, &view_aligned);
 	if (!view_aligned)
-		rot[0] += M_PI / 2.0f;
+		rot[0] += (float)M_PI / 2.0f;
 	
 	make_prim_init(C, "Monkey", &dia, mat, &state, loc, rot, layer);
 

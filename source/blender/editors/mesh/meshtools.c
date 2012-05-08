@@ -182,7 +182,7 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 	 */
 	if (key) {
 		/* make a duplicate copy that will only be used here... (must remember to free it!) */
-		nkey = copy_key(key);
+		nkey = BKE_key_copy(key);
 		
 		/* for all keys in old block, clear data-arrays */
 		for (kb = key->block.first; kb; kb = kb->next) {
@@ -524,13 +524,13 @@ int join_mesh_exec(bContext *C, wmOperator *op)
 #if 0
 		/* free it's ipo too - both are not actually freed from memory yet as ID-blocks */
 		if (nkey->ipo) {
-			free_ipo(nkey->ipo);
+			BKE_ipo_free(nkey->ipo);
 			BLI_remlink(&bmain->ipo, nkey->ipo);
 			MEM_freeN(nkey->ipo);
 		}
 #endif
 		
-		free_key(nkey);
+		BKE_key_free(nkey);
 		BLI_remlink(&bmain->key, nkey);
 		MEM_freeN(nkey);
 	}

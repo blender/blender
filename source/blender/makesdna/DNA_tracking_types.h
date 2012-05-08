@@ -195,13 +195,23 @@ typedef struct MovieTrackingStats {
 
 typedef struct MovieTrackingDopesheetChannel {
 	struct MovieTrackingDopesheetChannel *next, *prev;
-	MovieTrackingTrack *track;
-	int flag, pad;
+
+	MovieTrackingTrack *track;	/* motion track for which channel is created */
+	int pad;
+
+	int tot_segment;		/* total number of segments */
+	int *segments;			/* tracked segments */
+	int max_segment, total_frames;	/* longest segment length and total number of tracked frames */
 } MovieTrackingDopesheetChannel;
 
 typedef struct MovieTrackingDopesheet {
+	int ok, pad;				/* flag if dopesheet information is still relevant */
+
 	ListBase channels;
-	int tot_channel, pad;
+	int tot_channel;
+
+	short sort_method;			/* method to be used to sort tracks */
+	short sort_inverse;			/* order of tracks is inverted */
 } MovieTrackingDopesheet;
 
 typedef struct MovieTracking {

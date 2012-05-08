@@ -37,6 +37,8 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 	setDeadZone(0.1f); /* how to calibrate on Linux? throw away slight motion! */
 
 	if (spnav_open() != -1) {
+		m_available = true;
+
 		/* determine exactly which device (if any) is plugged in */
 
 #define MAX_LINE_LENGTH 100
@@ -49,7 +51,6 @@ GHOST_NDOFManagerX11::GHOST_NDOFManagerX11(GHOST_System& sys)
 				unsigned short vendor_id = 0, product_id = 0;
 				if (sscanf(line, "Bus %*d Device %*d: ID %hx:%hx", &vendor_id, &product_id) == 2)
 					if (setDevice(vendor_id, product_id)) {
-						m_available = true;
 						break; /* stop looking once the first 3D mouse is found */
 					}
 			}

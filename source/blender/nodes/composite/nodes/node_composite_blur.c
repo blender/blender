@@ -609,7 +609,6 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			new = pass_on_compbuf(img);
 		}
 		else {
-			CompBuf *new, *img = in[0]->data;
 			// TODO: can this be mapped with reference, too?
 			const float sx = ((float)nbd->sizex*in[1]->vec[0])/2.0f, sy = ((float)nbd->sizey*in[1]->vec[0])/2.0f;
 			int c;

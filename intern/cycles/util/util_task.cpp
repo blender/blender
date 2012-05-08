@@ -25,14 +25,12 @@ CCL_NAMESPACE_BEGIN
 
 /* Task Pool */
 
-TaskPool::TaskPool(const TaskRunFunction& run_)
+TaskPool::TaskPool()
 {
 	num = 0;
 	num_done = 0;
 
 	do_cancel = false;
-
-	run = run_;
 }
 
 TaskPool::~TaskPool()
@@ -50,12 +48,55 @@ void TaskPool::push(Task *task, bool front)
 	TaskScheduler::push(entry, front);
 }
 
-void TaskPool::wait()
+void TaskPool::push(const TaskRunFunction& run, bool front)
 {
-	thread_scoped_lock lock(done_mutex);
+	push(new Task(run), front);
+}
 
-	while(num_done != num)
-		done_cond.wait(lock);
+void TaskPool::wait_work()
+{
+	thread_scoped_lock done_lock(done_mutex);
+
+	while(num_done != num) {
+		thread_scoped_lock queue_lock(TaskScheduler::queue_mutex);
+
+		/* find task from this pool. if we get a task from another pool,
+		 * we can get into deadlock */
+		TaskScheduler::Entry work_entry;
+		bool found_entry = false;
+		list<TaskScheduler::Entry>::iterator it;
+
+		for(it = TaskScheduler::queue.begin(); it != TaskScheduler::queue.end(); it++) {
+			TaskScheduler::Entry& entry = *it;
+
+			if(entry.pool == this) {
+				work_entry = entry;
+				found_entry = true;
+				TaskScheduler::queue.erase(it);
+				break;
+			}
+		}
+
+		queue_lock.unlock();
+
+		/* if found task, do it, otherwise wait until other tasks are done */
+		if(found_entry) {
+			done_lock.unlock();
+
+			/* run task */
+			work_entry.task->run();
+
+			/* delete task */
+			delete work_entry.task;
+
+			/* notify pool task was done */
+			done_increase(1);
+
+			done_lock.lock();
+		}
+		else
+			done_cond.wait(done_lock);
+	}
 }
 
 void TaskPool::cancel()
@@ -63,7 +104,12 @@ void TaskPool::cancel()
 	TaskScheduler::clear(this);
 
 	do_cancel = true;
-	wait();
+	{
+		thread_scoped_lock lock(done_mutex);
+
+		while(num_done != num)
+			done_cond.wait(lock);
+	}
 	do_cancel = false;
 }
 
@@ -94,6 +140,7 @@ void TaskPool::done_increase(int done)
 thread_mutex TaskScheduler::mutex;
 int TaskScheduler::users = 0;
 vector<thread*> TaskScheduler::threads;
+vector<int> TaskScheduler::thread_level;
 volatile bool TaskScheduler::do_exit = false;
 
 list<TaskScheduler::Entry> TaskScheduler::queue;
@@ -114,9 +161,12 @@ void TaskScheduler::init(int num_threads)
 			num_threads = system_cpu_thread_count();
 
 		threads.resize(num_threads);
+		thread_level.resize(num_threads);
 
-		for(size_t i = 0; i < threads.size(); i++)
+		for(size_t i = 0; i < threads.size(); i++) {
 			threads[i] = new thread(function_bind(&TaskScheduler::thread_run, i));
+			thread_level[i] = 0;
+		}
 	}
 	
 	users++;
@@ -140,6 +190,7 @@ void TaskScheduler::exit()
 		}
 
 		threads.clear();
+		thread_level.clear();
 	}
 }
 
@@ -170,7 +221,7 @@ void TaskScheduler::thread_run(int thread_id)
 	/* keep popping off tasks */
 	while(thread_wait_pop(entry)) {
 		/* run task */
-		entry.pool->run(entry.task, thread_id);
+		entry.task->run();
 
 		/* delete task */
 		delete entry.task;
@@ -196,20 +247,20 @@ void TaskScheduler::push(Entry& entry, bool front)
 
 void TaskScheduler::clear(TaskPool *pool)
 {
-	thread_scoped_lock lock(TaskScheduler::queue_mutex);
+	thread_scoped_lock lock(queue_mutex);
 
 	/* erase all tasks from this pool from the queue */
-	list<TaskScheduler::Entry>::iterator it = TaskScheduler::queue.begin();
+	list<Entry>::iterator it = queue.begin();
 	int done = 0;
 
-	while(it != TaskScheduler::queue.end()) {
-		TaskScheduler::Entry& entry = *it;
+	while(it != queue.end()) {
+		Entry& entry = *it;
 
 		if(entry.pool == pool) {
 			done++;
 			delete entry.task;
 
-			it = TaskScheduler::queue.erase(it);
+			it = queue.erase(it);
 		}
 		else
 			it++;

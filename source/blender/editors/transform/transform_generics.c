@@ -205,16 +205,16 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 						}
 						
 						if (axis & 2) {
-							if (fabs(iloc[1])<=tolerance[1] ||
-							   loc[1]*iloc[1]<0.0f)
+							if (fabsf(iloc[1]) <= tolerance[1] ||
+							   loc[1] * iloc[1]<0.0f)
 							{
 								loc[1]= 0.0f;
 								clip = 1;
 							}
 						}
 						if (axis & 4) {
-							if (fabs(iloc[2])<=tolerance[2] ||
-							   loc[2]*iloc[2]<0.0f)
+							if (fabsf(iloc[2]) <= tolerance[2] ||
+							   loc[2] * iloc[2] < 0.0f)
 							{
 								loc[2]= 0.0f;
 								clip = 1;
@@ -542,12 +542,12 @@ static void recalcData_nla(TransInfo *t)
 		switch (snla->autosnap) {
 			case SACTSNAP_FRAME: /* snap to nearest frame/time  */
 				if (snla->flag & SNLA_DRAWTIME) {
-					tdn->h1[0]= (float)( floor((tdn->h1[0]/secf) + 0.5f) * secf );
-					tdn->h2[0]= (float)( floor((tdn->h2[0]/secf) + 0.5f) * secf );
+					tdn->h1[0] = (float)(floor(((double)tdn->h1[0] / secf) + 0.5) * secf);
+					tdn->h2[0] = (float)(floor(((double)tdn->h2[0] / secf) + 0.5) * secf);
 				}
 				else {
-					tdn->h1[0]= (float)( floor(tdn->h1[0]+0.5f) );
-					tdn->h2[0]= (float)( floor(tdn->h2[0]+0.5f) );
+					tdn->h1[0] = floorf(tdn->h1[0] + 0.5f);
+					tdn->h2[0] = floorf(tdn->h2[0] + 0.5f);
 				}
 				break;
 			
@@ -843,7 +843,7 @@ static void recalcData_view3d(TransInfo *t)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 		else
-			where_is_pose(t->scene, ob);
+			BKE_pose_where_is(t->scene, ob);
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
 		if (t->state != TRANS_CANCEL) {

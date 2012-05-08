@@ -229,7 +229,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 }
 
 
-/* called from within the core where_is_pose loop, all animsystems and constraints
+/* called from within the core BKE_pose_where_is loop, all animsystems and constraints
  * were executed & assigned. Now as last we do an IK pass */
 static void execute_posetree(struct Scene *scene, Object *ob, PoseTree *tree)
 {
@@ -535,8 +535,8 @@ void iksolver_execute_tree(struct Scene *scene, struct Object *ob,  struct bPose
 		/* 4. walk over the tree for regular solving */
 		for (a=0; a<tree->totchannel; a++) {
 			if (!(tree->pchan[a]->flag & POSE_DONE))	// successive trees can set the flag
-				where_is_pose_bone(scene, ob, tree->pchan[a], ctime, 1);
-			// tell blender that this channel was controlled by IK, it's cleared on each where_is_pose()
+				BKE_pose_where_is_bone(scene, ob, tree->pchan[a], ctime, 1);
+			// tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is()
 			tree->pchan[a]->flag |= POSE_CHAIN;
 		}
 		/* 5. execute the IK solver */

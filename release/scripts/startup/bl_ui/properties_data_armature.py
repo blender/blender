@@ -65,14 +65,10 @@ class DATA_PT_skeleton(ArmatureButtonsPanel, Panel):
         col.label(text="Protected Layers:")
         col.prop(arm, "layers_protected", text="")
 
-        layout.label(text="Deform:")
-        flow = layout.column_flow()
-        flow.prop(arm, "use_deform_vertex_groups", text="Vertex Groups")
-        flow.prop(arm, "use_deform_envelopes", text="Envelopes")
-        flow.prop(arm, "use_deform_preserve_volume", text="Quaternion")
-
         if context.scene.render.engine == 'BLENDER_GAME':
-            layout.row().prop(arm, "deform_method", expand=True)
+            col = layout.column()
+            col.label(text="Deform:")
+            col.prop(arm, "deform_method", expand=True)
 
 
 class DATA_PT_display(ArmatureButtonsPanel, Panel):

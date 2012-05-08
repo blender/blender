@@ -172,8 +172,8 @@ static void area_draw_azone(short x1, short y1, short x2, short y2)
 	int dx = x2 - x1;
 	int dy = y2 - y1;
 
-	dx= copysign(ceil(0.3f*fabs(dx)), dx);
-	dy= copysign(ceil(0.3f*fabs(dy)), dy);
+	dx = copysign(ceilf(0.3f * fabsf(dx)), dx);
+	dy = copysign(ceilf(0.3f * fabsf(dy)), dy);
 
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);

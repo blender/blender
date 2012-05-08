@@ -87,10 +87,16 @@ class DATA_PT_lens(CameraButtonsPanel, Panel):
         elif cam.type == 'ORTHO':
             col.prop(cam, "ortho_scale")
 
-        col = layout.column()
-        col.enabled = cam.type == 'PERSP'
-
-        col.prop(cam, "use_panorama")
+        elif cam.type == 'PANO':
+            if context.scene.render.engine == 'CYCLES':
+                ccam = cam.cycles
+                col.prop(ccam, "panorama_type", text="Type")
+                if ccam.panorama_type == 'FISHEYE_EQUIDISTANT':
+                    col.prop(ccam, "fisheye_fov")
+                elif ccam.panorama_type == 'FISHEYE_EQUISOLID':
+                    row = layout.row()
+                    row.prop(ccam, "fisheye_lens", text="Lens")
+                    row.prop(ccam, "fisheye_fov")
 
         split = layout.split()
 

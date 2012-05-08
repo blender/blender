@@ -111,30 +111,31 @@ void ED_operatormacros_node(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *mot;
 	
-	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Duplicate selected nodes and move them";
+	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", "Duplicate selected nodes and move them",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
 	/* modified operator call for duplicating with input links */
-	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Duplicate selected nodes keeping input links and move them";
+	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate",
+	                                  "Duplicate selected nodes keeping input links and move them",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	RNA_boolean_set(mot->ptr, "keep_inputs", TRUE);
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer", OPTYPE_UNDO);
-	ot->description = "Select node and link it to a viewer node";
+	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer",
+	                                  "Select node and link it to a viewer node", OPTYPE_UNDO);
 	WM_operatortype_macro_define(ot, "NODE_OT_select");
 	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
 
-	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Move a node to detach links";
+	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", "Move a node to detach links",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 
-	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Move a node to detach links";
+	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", "Move a node to detach links",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
 	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);

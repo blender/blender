@@ -189,7 +189,7 @@ void poseAnim_mapping_refresh(bContext *C, Scene *scene, Object *ob)
 	if ((arm->flag & ARM_DELAYDEFORM)==0)
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 	else
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 	
 	/* note, notifier might evolve */
 	WM_event_add_notifier(C, NC_OBJECT|ND_POSE, ob);

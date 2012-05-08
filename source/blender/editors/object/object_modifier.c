@@ -368,7 +368,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = add_object(scene, OB_MESH);
+	obn = BKE_object_add(scene, OB_MESH);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -661,7 +661,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if (mti->flags & eModifierTypeFlag_NoUserAdd)
 				continue;
 
-			if (!object_support_modifier_type(ob, md_item->value))
+			if (!BKE_object_support_modifier_type_check(ob, md_item->value))
 				continue;
 		}
 		else {
@@ -1369,13 +1369,13 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 			dm->release(dm);
 		}
 		else if (ob->type == OB_LATTICE) {
-			lattice_calc_modifiers(scene, ob);
+			BKE_lattice_modifiers_calc(scene, ob);
 		}
 		else if (ob->type == OB_MBALL) {
-			makeDispListMBall(scene, ob);
+			BKE_displist_make_mball(scene, ob);
 		}
 		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			makeDispListCurveTypes(scene, ob, 0);
+			BKE_displist_make_curveTypes(scene, ob, 0);
 		}
 
 		mmd->bindfunc = NULL;

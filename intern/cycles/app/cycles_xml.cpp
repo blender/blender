@@ -290,8 +290,22 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 		cam->type = CAMERA_ORTHOGRAPHIC;
 	else if(xml_equal_string(node, "type", "perspective"))
 		cam->type = CAMERA_PERSPECTIVE;
-	else if(xml_equal_string(node, "type", "environment"))
-		cam->type = CAMERA_ENVIRONMENT;
+	else if(xml_equal_string(node, "type", "panorama"))
+		cam->type = CAMERA_PANORAMA;
+
+	if(xml_equal_string(node, "panorama_type", "equirectangular"))
+		cam->panorama_type = PANORAMA_EQUIRECTANGULAR;
+	else if(xml_equal_string(node, "panorama_type", "fisheye_equidistant"))
+		cam->panorama_type = PANORAMA_FISHEYE_EQUIDISTANT;
+	else if(xml_equal_string(node, "panorama_type", "fisheye_equisolid"))
+		cam->panorama_type = PANORAMA_FISHEYE_EQUISOLID;
+
+	xml_read_float(&cam->fisheye_fov, node, "fisheye_fov");
+	xml_read_float(&cam->fisheye_lens, node, "fisheye_lens");
+
+	xml_read_float(&cam->sensorwidth, node, "sensorwidth");
+	xml_read_float(&cam->sensorheight, node, "sensorheight");
+
 
 	cam->matrix = state.tfm;
 

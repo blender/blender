@@ -1247,7 +1247,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 		Scene *scene= CTX_data_scene(C);
 		ImageUser *iuser= node->storage;
 		char numstr[32];
-		const int framenr= BKE_image_user_get_frame(iuser, CFRA, 0);
+		const int framenr= BKE_image_user_frame_get(iuser, CFRA, 0);
 		BLI_snprintf(numstr, sizeof(numstr), "Frame: %d", framenr);
 		uiItemL(layout, numstr, ICON_NONE);
 	}

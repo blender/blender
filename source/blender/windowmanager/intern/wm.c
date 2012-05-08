@@ -291,7 +291,7 @@ void wm_clear_default_size(bContext *C)
 /* on startup, it adds all data, for matching */
 void wm_add_default(bContext *C)
 {
-	wmWindowManager *wm = alloc_libblock(&CTX_data_main(C)->wm, ID_WM, "WinMan");
+	wmWindowManager *wm = BKE_libblock_alloc(&CTX_data_main(C)->wm, ID_WM, "WinMan");
 	wmWindow *win;
 	bScreen *screen = CTX_wm_screen(C); /* XXX from file read hrmf */
 	

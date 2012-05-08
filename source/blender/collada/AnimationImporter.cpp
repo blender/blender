@@ -206,7 +206,7 @@ void AnimationImporter::add_fcurves_to_object(Object *ob, std::vector<FCurve*>& 
 			
 			if (bone_name) {
 				/* try to find group */
-				grp = action_groups_find_named(act, bone_name);
+				grp = BKE_action_group_find_name(act, bone_name);
 				
 				/* no matching groups, so add one */
 				if (grp == NULL) {
@@ -324,7 +324,7 @@ void AnimationImporter::read_node_transform(COLLADAFW::Node *node, Object *ob)
 	TransformReader::get_node_mat(mat, node, &uid_animated_map, ob);
 	if (ob) {
 		copy_m4_m4(ob->obmat, mat);
-		object_apply_mat4(ob, ob->obmat, 0, 0);
+		BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 	}
 }
 
@@ -361,7 +361,7 @@ virtual void AnimationImporter::change_eul_to_quat(Object *ob, bAction *act)
 			create_fcurve(3, rna_path)
 		};
 
-		bPoseChannel *chan = get_pose_channel(ob->pose, grp->name);
+		bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, grp->name);
 
 		float m4[4][4], irest[3][3];
 		invert_m4_m4(m4, chan->bone->arm_mat);
@@ -438,6 +438,16 @@ void AnimationImporter::modify_fcurve(std::vector<FCurve*>* curves, const char* 
 	}
 }
 
+void AnimationImporter::unused_fcurve(std::vector<FCurve*>* curves)
+{
+	// when an error happens and we can't actually use curve remove it from unused_curves
+	std::vector<FCurve*>::iterator it;
+	for (it = curves->begin(); it != curves->end(); it++) {
+		FCurve *fcu = *it;
+		unused_curves.erase(std::remove(unused_curves.begin(), unused_curves.end(), fcu), unused_curves.end());
+	}
+}
+
 void AnimationImporter::find_frames( std::vector<float>* frames, std::vector<FCurve*>* curves)
 {
 	std::vector<FCurve*>::iterator iter;
@@ -499,6 +509,7 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 			modify_fcurve(curves, rna_path, -1 );
 			break;
 		default:
+			unused_fcurve(curves);
 			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
 				binding->animationClass, loc ? "TRANSLATE" : "SCALE");
 				}
@@ -534,10 +545,13 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 			else if (COLLADABU::Math::Vector3::UNIT_Z == axis) {
 				modify_fcurve(curves, rna_path, 2 );
 			}
+			else
+				unused_fcurve(curves);
 			break;
 		case COLLADAFW::AnimationList::AXISANGLE:
 			// TODO convert axis-angle to quat? or XYZ?
 		default:
+			unused_fcurve(curves);
 			fprintf(stderr, "AnimationClass %d is not supported for ROTATE transformation.\n",
 				binding->animationClass);
 				}
@@ -553,9 +567,11 @@ void AnimationImporter:: Assign_transform_animations(COLLADAFW::Transformation *
 
 			}
 			}*/
+			unused_fcurve(curves);
 			break;
 		case COLLADAFW::Transformation::SKEW:
 		case COLLADAFW::Transformation::LOOKAT:
+			unused_fcurve(curves);
 			fprintf(stderr, "Animation of SKEW and LOOKAT transformations is not supported yet.\n");
 			break;
 	}
@@ -591,6 +607,7 @@ void AnimationImporter:: Assign_color_animations(const COLLADAFW::UniqueId& list
 			break;
 
 		default:
+			unused_fcurve(&animcurves);
 			fprintf(stderr, "AnimationClass %d is not supported for %s.\n",
 				bindings[j].animationClass, "COLOR" );
 		}
@@ -653,7 +670,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 		get_joint_rest_mat(irest_dae, root, node);
 		invert_m4(irest_dae);
 
-		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 		if (!bone) {
 			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 			return;
@@ -767,7 +784,7 @@ void AnimationImporter::apply_matrix_curves( Object * ob, std::vector<FCurve*>& 
 	}
 
 	if (is_joint) {
-		bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+		bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 		chan->rotmode = ROT_MODE_QUAT;
 	}
 	else {
@@ -1008,7 +1025,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 	get_joint_rest_mat(irest_dae, root, node);
 	invert_m4(irest_dae);
 
-	Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+	Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 	if (!bone) {
 		fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 		return;
@@ -1106,7 +1123,7 @@ void AnimationImporter::add_bone_animation_sampled(Object * ob, std::vector<FCur
 		add_bone_fcurve(ob, node, newcu[i]);
 	}
 
-	bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+	bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 	chan->rotmode = ROT_MODE_QUAT;
 
 }
@@ -1290,7 +1307,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 		get_joint_rest_mat(irest_dae, root, node);
 		invert_m4(irest_dae);
 
-		Bone *bone = get_named_bone((bArmature*)ob->data, bone_name);
+		Bone *bone = BKE_armature_find_bone_name((bArmature*)ob->data, bone_name);
 		if (!bone) {
 			fprintf(stderr, "cannot find bone \"%s\"\n", bone_name);
 			return NULL;
@@ -1498,7 +1515,7 @@ Object *AnimationImporter::translate_animation_OLD(COLLADAFW::Node *node,
 
 	if (is_rotation || is_matrix) {
 		if (is_joint) {
-			bPoseChannel *chan = get_pose_channel(ob->pose, bone_name);
+			bPoseChannel *chan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			chan->rotmode = ROT_MODE_QUAT;
 		}
 		else {
@@ -1753,11 +1770,9 @@ bool AnimationImporter::calc_joint_parent_mat_rest(float mat[4][4], float par[4]
 Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::Node *node, Object *par_job)
 {
 	if (joint_objects.find(node->getUniqueId()) == joint_objects.end()) {
-		Object *job = add_object(scene, OB_EMPTY);
+		Object *job = bc_add_object(scene, OB_EMPTY, (char*)get_joint_name(node));
 
-		rename_id((ID*)&job->id, (char*)get_joint_name(node));
-
-		job->lay = object_in_scene(job, scene)->lay = 2;
+		job->lay = BKE_scene_base_find(scene, job)->lay = 2;
 
 		mul_v3_fl(job->size, 0.5f);
 		job->recalc |= OB_RECALC_OB;
@@ -1785,7 +1800,7 @@ Object *AnimationImporter::get_joint_object(COLLADAFW::Node *root, COLLADAFW::No
 			job->parsubstr[0] = 0;
 		}
 
-		where_is_object(scene, job);
+		BKE_object_where_is_calc(scene, job);
 
 		// after parenting and layer change
 		DAG_scene_sort(CTX_data_main(C), scene);
@@ -1834,7 +1849,7 @@ void AnimationImporter::add_bone_fcurve(Object *ob, COLLADAFW::Node *node, FCurv
 	bAction *act = ob->adt->action;
 			
 	/* try to find group */
-	bActionGroup *grp = action_groups_find_named(act, bone_name);
+	bActionGroup *grp = BKE_action_group_find_name(act, bone_name);
 
 	/* no matching groups, so add one */
 	if (grp == NULL) {

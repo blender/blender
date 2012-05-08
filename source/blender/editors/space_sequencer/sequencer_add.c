@@ -412,7 +412,10 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
 		deselect_all_seq(scene);
 
-	tot_files = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+	if (RNA_struct_property_is_set(op->ptr, "files"))
+		tot_files = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
+	else
+		tot_files = 0;
 
 	if (tot_files) {
 		/* multiple files */

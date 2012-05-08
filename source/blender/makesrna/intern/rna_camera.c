@@ -46,14 +46,14 @@
 static float rna_Camera_angle_get(PointerRNA *ptr)
 {
 	Camera *cam = ptr->id.data;
-	float sensor = camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+	float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	return focallength_to_fov(cam->lens, sensor);
 }
 
 static void rna_Camera_angle_set(PointerRNA *ptr, float value)
 {
 	Camera *cam = ptr->id.data;
-	float sensor = camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
+	float sensor = BKE_camera_sensor_size(cam->sensor_fit, cam->sensor_x, cam->sensor_y);
 	cam->lens = fov_to_focallength(value, sensor);
 }
 
@@ -97,6 +97,7 @@ void RNA_def_camera(BlenderRNA *brna)
 	static EnumPropertyItem prop_type_items[] = {
 		{CAM_PERSP, "PERSP", 0, "Perspective", ""},
 		{CAM_ORTHO, "ORTHO", 0, "Orthographic", ""},
+		{CAM_PANO, "PANO", 0, "Panoramic", ""},
 		{0, NULL, 0, NULL, NULL}};
 	static EnumPropertyItem prop_draw_type_extra_items[] = {
 		{CAM_DTX_CENTER, "CENTER", 0, "Center", ""},
@@ -270,12 +271,6 @@ void RNA_def_camera(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
 	RNA_def_property_enum_items(prop, prop_lens_unit_items);
 	RNA_def_property_ui_text(prop, "Lens Unit", "Unit to edit lens in for the user interface");
-
-	prop = RNA_def_property(srna, "use_panorama", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", CAM_PANORAMA);
-	RNA_def_property_ui_text(prop, "Panorama",
-	                         "Render the scene with a cylindrical camera for pseudo-fisheye lens effects");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, NULL);
 
 	/* pointers */
 	rna_def_animdata_common(srna);

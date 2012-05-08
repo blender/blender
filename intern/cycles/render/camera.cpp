@@ -39,7 +39,13 @@ Camera::Camera()
 	use_motion = false;
 
 	type = CAMERA_PERSPECTIVE;
+	panorama_type = PANORAMA_EQUIRECTANGULAR;
+	fisheye_fov = M_PI_F;
+	fisheye_lens = 10.5f;
 	fov = M_PI_F/4.0f;
+
+	sensorwidth = 0.036;
+	sensorheight = 0.024;
 
 	nearclip = 1e-5f;
 	farclip = 1e5f;
@@ -152,13 +158,25 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->have_motion = 0;
 
 	if(need_motion == Scene::MOTION_PASS) {
-		if(use_motion) {
-			kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
-			kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+		if(type == CAMERA_PANORAMA) {
+			if(use_motion) {
+				kcam->motion.pre = transform_inverse(motion.pre);
+				kcam->motion.post = transform_inverse(motion.post);
+			}
+			else {
+				kcam->motion.pre = kcam->worldtocamera;
+				kcam->motion.post = kcam->worldtocamera;
+			}
 		}
 		else {
-			kcam->motion.pre = worldtoraster;
-			kcam->motion.post = worldtoraster;
+			if(use_motion) {
+				kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
+				kcam->motion.post = transform_inverse(motion.post * rastertocamera);
+			}
+			else {
+				kcam->motion.pre = worldtoraster;
+				kcam->motion.post = worldtoraster;
+			}
 		}
 	}
 	else if(need_motion == Scene::MOTION_BLUR) {
@@ -180,6 +198,19 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 
 	/* type */
 	kcam->type = type;
+
+	/* panorama */
+	kcam->panorama_type = panorama_type;
+	kcam->fisheye_fov = fisheye_fov;
+	kcam->fisheye_lens = fisheye_lens;
+
+	/* sensor size */
+	kcam->sensorwidth = sensorwidth;
+	kcam->sensorheight = sensorheight;
+
+	/* render size */
+	kcam->width = width;
+	kcam->height = height;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);
@@ -208,6 +239,8 @@ bool Camera::modified(const Camera& cam)
 		(fov == cam.fov) &&
 		(nearclip == cam.nearclip) &&
 		(farclip == cam.farclip) &&
+		(sensorwidth == cam.sensorwidth) &&
+		(sensorheight == cam.sensorheight) &&
 		// modified for progressive render
 		// (width == cam.width) &&
 		// (height == cam.height) &&
@@ -217,7 +250,10 @@ bool Camera::modified(const Camera& cam)
 		(top == cam.top) &&
 		(matrix == cam.matrix) &&
 		(motion == cam.motion) &&
-		(use_motion == cam.use_motion));
+		(use_motion == cam.use_motion) &&
+		(panorama_type == cam.panorama_type) &&
+		(fisheye_fov == cam.fisheye_fov) &&
+		(fisheye_lens == cam.fisheye_lens));
 }
 
 void Camera::tag_update()

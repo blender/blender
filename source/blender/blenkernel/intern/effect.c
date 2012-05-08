@@ -181,7 +181,7 @@ static void precalculate_effector(EffectorCache *eff)
 		Curve *cu= eff->ob->data;
 		if (cu->flag & CU_PATH) {
 			if (cu->path==NULL || cu->path->data==NULL)
-				makeDispListCurveTypes(eff->scene, eff->ob, 0);
+				BKE_displist_make_curveTypes(eff->scene, eff->ob, 0);
 
 			if (cu->path && cu->path->data) {
 				where_on_path(eff->ob, 0.0, eff->guide_loc, eff->guide_dir, NULL, &eff->guide_radius, NULL);
@@ -202,9 +202,9 @@ static void precalculate_effector(EffectorCache *eff)
 	if (eff->ob) {
 		float old_vel[3];
 
-		where_is_object_time(eff->scene, eff->ob, cfra - 1.0f);
+		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra - 1.0f);
 		copy_v3_v3(old_vel, eff->ob->obmat[3]);	
-		where_is_object_time(eff->scene, eff->ob, cfra);
+		BKE_object_where_is_calc_time(eff->scene, eff->ob, cfra);
 		sub_v3_v3v3(eff->velocity, eff->ob->obmat[3], old_vel);
 	}
 }

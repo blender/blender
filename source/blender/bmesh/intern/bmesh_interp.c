@@ -78,7 +78,7 @@ void BM_data_interp_from_verts(BMesh *bm, BMVert *v1, BMVert *v2, BMVert *v, con
 
 			src[0] = v1->head.data;
 			src[1] = v2->head.data;
-			w[0] = 1.0f-fac;
+			w[0] = 1.0f - fac;
 			w[1] = fac;
 			CustomData_bmesh_interp(&bm->vdata, src, w, NULL, 2, v->head.data);
 		}
@@ -198,20 +198,11 @@ void BM_face_interp_from_face(BMesh *bm, BMFace *target, BMFace *source)
 static int compute_mdisp_quad(BMLoop *l, float v1[3], float v2[3], float v3[3], float v4[3],
                               float e1[3], float e2[3])
 {
-	float cent[3] = {0.0f, 0.0f, 0.0f}, n[3], p[3];
-	BMLoop *l_first;
-	BMLoop *l_iter;
-	
+	float cent[3], n[3], p[3];
+
 	/* computer center */
-	l_iter = l_first = BM_FACE_FIRST_LOOP(l->f);
-	do {
-		cent[0] += (float)l_iter->v->co[0];
-		cent[1] += (float)l_iter->v->co[1];
-		cent[2] += (float)l_iter->v->co[2];
-	} while ((l_iter = l_iter->next) != l_first);
-	
-	mul_v3_fl(cent, (1.0 / (float)l->f->len));
-	
+	BM_face_calc_center_mean(l->f, cent);
+
 	add_v3_v3v3(p, l->prev->v->co, l->v->co);
 	mul_v3_fl(p, 0.5);
 	add_v3_v3v3(n, l->next->v->co, l->v->co);
@@ -240,8 +231,8 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 	if (fabsf(2.0f * (x - y + z)) > FLT_EPSILON * 10.0f) {
 		float f2;
 
-		f1 = (sqrt(y * y - 4.0 * x * z) - y + 2.0 * z) / (2.0 * (x - y + z));
-		f2 = (-sqrt(y * y - 4.0 * x * z) - y + 2.0 * z) / (2.0 * (x - y + z));
+		f1 = ( sqrtf(y * y - 4.0f * x * z) - y + 2.0f * z) / (2.0f * (x - y + z));
+		f2 = (-sqrtf(y * y - 4.0f * x * z) - y + 2.0f * z) / (2.0f * (x - y + z));
 
 		f1 = fabsf(f1);
 		f2 = fabsf(f2);
@@ -252,7 +243,7 @@ static float quad_coord(float aa[3], float bb[3], float cc[3], float dd[3], int 
 		f1 = -z / (y - 2 * z);
 		CLAMP(f1, 0.0f, 1.0f + FLT_EPSILON);
 		
-		if (isnan(f1) || f1 > 1.0 || f1 < 0.0f) {
+		if (isnan(f1) || f1 > 1.0f || f1 < 0.0f) {
 			int i;
 			
 			for (i = 0; i < 2; i++) {
@@ -345,8 +336,8 @@ static int mdisp_in_mdispquad(BMLoop *l, BMLoop *tl, float p[3], float *x, float
 	
 	sub_v3_v3(v1, c); sub_v3_v3(v2, c);
 	sub_v3_v3(v3, c); sub_v3_v3(v4, c);
-	mul_v3_fl(v1, 1.0 + eps); mul_v3_fl(v2, 1.0 + eps);
-	mul_v3_fl(v3, 1.0 + eps); mul_v3_fl(v4, 1.0 + eps);
+	mul_v3_fl(v1, 1.0f + eps); mul_v3_fl(v2, 1.0f + eps);
+	mul_v3_fl(v3, 1.0f + eps); mul_v3_fl(v4, 1.0f + eps);
 	add_v3_v3(v1, c); add_v3_v3(v2, c);
 	add_v3_v3(v3, c); add_v3_v3(v4, c);
 	
@@ -392,9 +383,9 @@ static void bm_loop_flip_disp(float source_axis_x[3], float source_axis_y[3],
 
 	d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 1);
 
-	if (fabsf(d) < 1e-4) {
+	if (fabsf(d) < 1e-4f) {
 		d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 0, 2);
-		if (fabsf(d) < 1e-4)
+		if (fabsf(d) < 1e-4f)
 			d = bm_loop_flip_equotion(mat, b, target_axis_x, target_axis_y, coord, 1, 2);
 	}
 
@@ -439,7 +430,7 @@ static void bm_loop_interp_mdisps(BMesh *bm, BMLoop *target, BMFace *source)
 	mdisp_axis_from_quad(v1, v2, v3, v4, axis_x, axis_y);
 
 	res = (int)sqrt(mdisps->totdisp);
-	d = 1.0 / (float)(res - 1);
+	d = 1.0f / (float)(res - 1);
 	for (x = 0.0f, ix = 0; ix < res; x += d, ix++) {
 		for (y = 0.0f, iy = 0; iy < res; y += d, iy++) {
 			float co1[3], co2[3], co[3];

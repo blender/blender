@@ -152,7 +152,7 @@ static void logic_free(SpaceLink *UNUSED(sl))
 //	Spacelogic *slogic= (SpaceLogic*) sl;
 	
 //	if (slogic->gpd)
-// XXX		free_gpencil_data(slogic->gpd);
+// XXX		BKE_gpencil_free(slogic->gpd);
 	
 }
 

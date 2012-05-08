@@ -132,7 +132,7 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 		madd_v3_v3fl(tvec, nor2, fac);
 
 		/* falloff for multi subdivide */
-		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f-perc)));
+		smooth *= sqrtf(fabsf(1.0f - 2.0f * fabsf(0.5f - perc)));
 
 		mul_v3_fl(tvec, smooth * len);
 
@@ -141,23 +141,24 @@ static void alter_co(BMesh *bm, BMVert *v, BMEdge *UNUSED(origed), const SubDPar
 
 	if (params->use_fractal) {
 		float len = len_v3v3(vsta->co, vend->co);
-		float vec2[3] = {0.0f, 0.0f, 0.0f}, co2[3];
+		float normal[3] = {0.0f, 0.0f, 0.0f}, co2[3], base1[3], base2[3];
 
 		fac = params->fractal * len;
 
-		add_v3_v3(vec2, vsta->no);
-		add_v3_v3(vec2, vend->no);
-		mul_v3_fl(vec2, 0.5f);
+		mid_v3_v3v3(normal, vsta->no, vend->no);
+		ortho_basis_v3v3_v3(base1, base2, normal);
 
 		add_v3_v3v3(co2, v->co, params->off);
-		tvec[0] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1) - 0.5f);
-		tvec[1] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1) - 0.5f);
-		tvec[2] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 1) - 0.5f);
+		mul_v3_fl(co2, 10.0f);
 
-		mul_v3_v3(vec2, tvec);
+		tvec[0] = fac * (BLI_gTurbulence(1.0, co2[0], co2[1], co2[2], 15, 0, 2) - 0.5f);
+		tvec[1] = fac * (BLI_gTurbulence(1.0, co2[1], co2[0], co2[2], 15, 0, 2) - 0.5f);
+		tvec[2] = fac * (BLI_gTurbulence(1.0, co2[1], co2[2], co2[0], 15, 0, 2) - 0.5f);
 
 		/* add displacement */
-		add_v3_v3v3(co, co, vec2);
+		madd_v3_v3fl(co, normal, tvec[0]);
+		madd_v3_v3fl(co, base1, tvec[1] * (1.0f - params->along_normal));
+		madd_v3_v3fl(co, base2, tvec[2] * (1.0f - params->along_normal));
 	}
 
 	/* apply the new difference to the rest of the shape keys,
@@ -224,7 +225,7 @@ static BMVert *subdivideedgenum(BMesh *bm, BMEdge *edge, BMEdge *oedge,
 	if (BMO_elem_flag_test(bm, edge, EDGE_PERCENT) && totpoint == 1)
 		percent = BMO_slot_map_float_get(bm, params->op, "edgepercents", edge);
 	else {
-		percent = 1.0f / (float)(totpoint + 1-curpoint);
+		percent = 1.0f / (float)(totpoint + 1 - curpoint);
 		percent2 = (float)(curpoint + 1) / (float)(totpoint + 1);
 
 	}
@@ -687,7 +688,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	BLI_array_declare(facedata);
 	BLI_array_declare(edges);
 	BLI_array_declare(verts);
-	float smooth, fractal;
+	float smooth, fractal, along_normal;
 	int use_sphere, cornertype, use_singleedge, use_gridfill;
 	int skey, seed, i, j, matched, a, b, numcuts, totesel;
 	
@@ -697,6 +698,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	seed = BMO_slot_int_get(op, "seed");
 	smooth = BMO_slot_float_get(op, "smooth");
 	fractal = BMO_slot_float_get(op, "fractal");
+	along_normal = BMO_slot_float_get(op, "along_normal");
 	cornertype = BMO_slot_int_get(op, "quadcornertype");
 
 	use_singleedge = BMO_slot_bool_get(op, "use_singleedge");
@@ -754,6 +756,7 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	params.smooth = smooth;
 	params.seed = seed;
 	params.fractal = fractal;
+	params.along_normal = along_normal;
 	params.use_smooth  = (smooth  != 0.0f);
 	params.use_fractal = (fractal != 0.0f);
 	params.use_sphere  = use_sphere;
@@ -1020,12 +1023,12 @@ void bmo_esubd_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outinner", BM_ALL, ELE_INNER);
 	BMO_slot_buffer_from_enabled_flag(bm, op, "outsplit", BM_ALL, ELE_SPLIT);
 	
-	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, ELE_INNER|ELE_SPLIT|SUBD_SPLIT);
+	BMO_slot_buffer_from_enabled_flag(bm, op, "geomout", BM_ALL, ELE_INNER | ELE_SPLIT | SUBD_SPLIT);
 }
 
 /* editmesh-emulating function */
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        float smooth, float fractal,
+                        float smooth, float fractal, float along_normal,
                         int numcuts,
                         int seltype, int cornertype,
                         const short use_singleedge, const short use_gridfill,
@@ -1036,13 +1039,13 @@ void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
 	/* use_sphere isnt exposed here since its only used for new primitives */
 	BMO_op_initf(bm, &op,
 	             "esubd edges=%he "
-	             "smooth=%f fractal=%f "
+	             "smooth=%f fractal=%f along_normal=%f "
 	             "numcuts=%i "
 	             "quadcornertype=%i "
 	             "use_singleedge=%b use_gridfill=%b "
 	             "seed=%i",
 	             edge_hflag,
-	             smooth, fractal,
+	             smooth, fractal, along_normal,
 	             numcuts,
 	             cornertype,
 	             use_singleedge, use_gridfill,

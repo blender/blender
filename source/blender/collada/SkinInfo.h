@@ -105,7 +105,7 @@ public:
 
 	bool get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Node *node);
 
-	Object *get_armature();
+	Object *BKE_armature_from_object();
 
 	const COLLADAFW::UniqueId& get_controller_uid();
 

@@ -314,7 +314,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 		
 		if (lcd->do_cut) {
 			BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-			                   0.0f, 0.0f,
+			                   0.0f, 0.0f, 0.0f,
 			                   cuts,
 			                   SUBDIV_SELECT_LOOPCUT, SUBD_PATH, 0, FALSE, 0);
 

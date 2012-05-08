@@ -373,6 +373,7 @@ void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Add to Keying Set";
 	ot->idname = "ANIM_OT_keyingset_button_add";
+	ot->description = "Add current UI-active property to current keying set";
 	
 	/* callbacks */
 	ot->exec = add_keyingset_button_exec; 
@@ -452,6 +453,7 @@ void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove from Keying Set";
 	ot->idname = "ANIM_OT_keyingset_button_remove";
+	ot->description = "Remove current UI-active property from current keying set";
 	
 	/* callbacks */
 	ot->exec = remove_keyingset_button_exec; 
@@ -501,6 +503,7 @@ void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Active Keying Set";
 	ot->idname = "ANIM_OT_keying_set_active_set";
+	ot->description = "Select a new keying set as the active one";
 	
 	/* callbacks */
 	ot->invoke = keyingset_active_menu_invoke;
@@ -528,7 +531,7 @@ ListBase builtin_keyingsets = {NULL, NULL};
 /* --------------- */
 
 /* Find KeyingSet type info given a name */
-KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
+KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[])
 {
 	/* sanity checks */
 	if ((name == NULL) || (name[0] == 0))
@@ -783,7 +786,7 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
 {
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 		
 		/* get the associated 'type info' for this KeyingSet */
 		if (ksi == NULL)
@@ -865,7 +868,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 	
 	/* if relative Keying Sets, poll and build up the paths */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 		
 		/* clear all existing paths 
 		 * NOTE: BKE_keyingset_free() frees all of the paths for the KeyingSet, but not the set itself

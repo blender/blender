@@ -186,7 +186,7 @@ void ED_uvedit_assign_image(Main *bmain, Scene *scene, Object *obedit, Image *im
 		return;
 	}
 
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		/* new shading system, assign image in material */
 		int sloppy = 1;
 		BMFace *efa = BM_active_face_get(em->bm, sloppy);
@@ -799,9 +799,9 @@ void uv_find_nearest_vert(Scene *scene, Image *ima, BMEditMesh *em,
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 
 			if (penalty && uvedit_uv_select_test(em, scene, l))
-				dist = fabs(co[0] - luv->uv[0]) + penalty[0] + fabs(co[1] - luv->uv[1]) + penalty[1];
+				dist = fabsf(co[0] - luv->uv[0]) + penalty[0] + fabsf(co[1] - luv->uv[1]) + penalty[1];
 			else
-				dist = fabs(co[0] - luv->uv[0]) + fabs(co[1] - luv->uv[1]);
+				dist = fabsf(co[0] - luv->uv[0]) + fabsf(co[1] - luv->uv[1]);
 
 			if (dist <= mindist) {
 				if (dist == mindist)

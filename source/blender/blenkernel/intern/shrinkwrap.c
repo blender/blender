@@ -492,7 +492,7 @@ void shrinkwrapModifier_deform(ShrinkwrapModifierData *smd, Object *ob, DerivedM
 		calc.dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
 	else if (calc.ob->type == OB_LATTICE) {
-		calc.dvert = lattice_get_deform_verts(calc.ob);
+		calc.dvert = BKE_lattice_deform_verts_get(calc.ob);
 	}
 
 

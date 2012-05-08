@@ -42,17 +42,17 @@ struct Text;
 struct TextLine;
 struct SpaceText;
 
-void			free_text		(struct Text *text);
+void			BKE_text_free		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
-struct Text*	add_empty_text	(const char *name);
+struct Text*	BKE_text_add	(const char *name);
 int				txt_extended_ascii_as_utf8(char **str);
-int				reopen_text		(struct Text *text);
-struct Text*	add_text		(const char *file, const char *relpath); 
-struct Text*	copy_text		(struct Text *ta);
-void			unlink_text		(struct Main *bmain, struct Text *text);
-void			clear_text(struct Text *text);
-void			write_text(struct Text *text, const char *str);
+int				BKE_text_reload		(struct Text *text);
+struct Text*	BKE_text_load		(const char *file, const char *relpath);
+struct Text*	BKE_text_copy		(struct Text *ta);
+void			BKE_text_unlink		(struct Main *bmain, struct Text *text);
+void			BKE_text_clear      (struct Text *text);
+void			BKE_text_write      (struct Text *text, const char *str);
 
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
@@ -96,6 +96,7 @@ void	txt_unindent		(struct Text *text);
 void 	txt_comment			(struct Text *text);
 void 	txt_indent			(struct Text *text);
 void	txt_uncomment		(struct Text *text);
+void	txt_move_lines		(struct Text *text, const int direction);
 void	txt_duplicate_line	(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
@@ -113,6 +114,11 @@ int text_check_delim(const char ch);
 int text_check_digit(const char ch);
 int text_check_identifier(const char ch);
 int text_check_whitespace(const char ch);
+
+enum {
+	TXT_MOVE_LINE_UP   = -1,
+	TXT_MOVE_LINE_DOWN =  1
+};
 
 
 /* Undo opcodes */
@@ -169,6 +175,9 @@ int text_check_whitespace(const char ch);
 #define UNDO_UNINDENT   033
 #define UNDO_COMMENT    034
 #define UNDO_UNCOMMENT  035
+
+#define UNDO_MOVE_LINES_UP      036
+#define UNDO_MOVE_LINES_DOWN    037
 
 #define UNDO_DUPLICATE  040
 

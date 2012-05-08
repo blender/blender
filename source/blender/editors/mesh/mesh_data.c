@@ -275,11 +275,11 @@ int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int laye
 		else if (len > 2) {
 			float fac = 0.0f, dfac = 1.0f / (float)len;
 
-			dfac *= M_PI * 2;
+			dfac *= (float)M_PI * 2.0f;
 
 			for (i = 0; i < len; i++) {
-				fuvs[i][0] = 0.5f * sin(fac) + 0.5f;
-				fuvs[i][1] = 0.5f * cos(fac) + 0.5f;
+				fuvs[i][0] = 0.5f * sinf(fac) + 0.5f;
+				fuvs[i][1] = 0.5f * cosf(fac) + 0.5f;
 
 				fac += dfac;
 			}
@@ -556,11 +556,11 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_add_image_file(path);
+		ima = BKE_image_load_exists(path);
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)find_id("IM", name);
+		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
 	}
 	
 	if (!ima) {
@@ -808,16 +808,16 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                             mesh->mloop, mesh->mpoly,
-	                             mesh->totloop, mesh->totpoly,
-	                             NULL /* polyNors_r */,
-	                             mesh->mface, mesh->totface,
-	                             polyindex, face_nors, FALSE);
+	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                                 mesh->mloop, mesh->mpoly,
+	                                 mesh->totloop, mesh->totpoly,
+	                                 NULL /* polyNors_r */,
+	                                 mesh->mface, mesh->totface,
+	                                 polyindex, face_nors, FALSE);
 #else
-	mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                  NULL);
+	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                      NULL);
 	(void)polyindex;
 	(void)face_nors;
 #endif
@@ -1138,13 +1138,13 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef USE_BMESH_MPOLY_NORMALS
-	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                             mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                             NULL, NULL, 0, NULL, NULL, FALSE);
+	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                                 mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                                 NULL, NULL, 0, NULL, NULL, FALSE);
 #else
-	mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                  NULL);
+	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                      NULL);
 #endif
 }
 

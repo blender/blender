@@ -50,7 +50,7 @@
 
 static void initData(ModifierData *md)
 {
-	BevelModifierData *bmd = (BevelModifierData*) md;
+	BevelModifierData *bmd = (BevelModifierData *) md;
 
 	bmd->value = 0.1f;
 	bmd->res = 1;
@@ -64,8 +64,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	BevelModifierData *bmd = (BevelModifierData*) md;
-	BevelModifierData *tbmd = (BevelModifierData*) target;
+	BevelModifierData *bmd = (BevelModifierData *) md;
+	BevelModifierData *tbmd = (BevelModifierData *) target;
 
 	tbmd->value = bmd->value;
 	tbmd->res = bmd->res;
@@ -88,7 +88,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
-#define EDGE_MARK	1
+#define EDGE_MARK   1
 
 #ifdef USE_BM_BEVEL_OP_AS_MOD
 
@@ -115,7 +115,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 	BMEditMesh *em;
 	BMIter iter;
 	BMEdge *e;
-	BevelModifierData *bmd = (BevelModifierData*) md;
+	BevelModifierData *bmd = (BevelModifierData *) md;
 	float threshold = cos((bmd->bevel_angle + 0.00001) * M_PI / 180.0);
 
 	em = DM_to_editbmesh(dm, NULL, FALSE);
@@ -128,8 +128,8 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 		BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
 			/* check for 1 edge having 2 face users */
 			BMLoop *l1, *l2;
-			if ( (l1= e->l) &&
-			     (l2= e->l->radial_next) != l1)
+			if ((l1 = e->l) &&
+			    (l2 = e->l->radial_next) != l1)
 			{
 				if (dot_v3v3(l1->f->no, l2->f->no) < threshold) {
 					BMO_elem_flag_enable(bm, e, EDGE_MARK);
@@ -160,16 +160,16 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 #else /* from trunk, see note above */
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
-						DerivedMesh *derivedData,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                                  DerivedMesh *derivedData,
+                                  int UNUSED(useRenderParams),
+                                  int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
 	BMEditMesh *em;
 
 	/*bDeformGroup *def;*/
 	int /*i,*/ options, defgrp_index = -1;
-	BevelModifierData *bmd = (BevelModifierData*) md;
+	BevelModifierData *bmd = (BevelModifierData *) md;
 
 	options = bmd->flags | bmd->val_flags | bmd->lim_flags | bmd->e_flags;
 
@@ -199,37 +199,37 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 #endif
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *derivedData)
+                                    struct BMEditMesh *UNUSED(editData),
+                                    DerivedMesh *derivedData)
 {
 	return applyModifier(md, ob, derivedData, 0, 1);
 }
 
 
 ModifierTypeInfo modifierType_Bevel = {
-	/* name */              "Bevel",
-	/* structName */        "BevelModifierData",
-	/* structSize */        sizeof(BevelModifierData),
-	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode,
+	/* name */ "Bevel",
+	/* structName */ "BevelModifierData",
+	/* structSize */ sizeof(BevelModifierData),
+	/* type */ eModifierTypeType_Constructive,
+	/* flags */ eModifierTypeFlag_AcceptsMesh |
+	eModifierTypeFlag_SupportsEditmode |
+	eModifierTypeFlag_EnableInEditmode,
 
-	/* copyData */          copyData,
-	/* deformVerts */       NULL,
-	/* deformMatrices */    NULL,
-	/* deformVertsEM */     NULL,
-	/* deformMatricesEM */  NULL,
-	/* applyModifier */     applyModifier,
-	/* applyModifierEM */   applyModifierEM,
-	/* initData */          initData,
-	/* requiredDataMask */  requiredDataMask,
-	/* freeData */          NULL,
-	/* isDisabled */        NULL,
-	/* updateDepgraph */    NULL,
-	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* copyData */ copyData,
+	/* deformVerts */ NULL,
+	/* deformMatrices */ NULL,
+	/* deformVertsEM */ NULL,
+	/* deformMatricesEM */ NULL,
+	/* applyModifier */ applyModifier,
+	/* applyModifierEM */ applyModifierEM,
+	/* initData */ initData,
+	/* requiredDataMask */ requiredDataMask,
+	/* freeData */ NULL,
+	/* isDisabled */ NULL,
+	/* updateDepgraph */ NULL,
+	/* dependsOnTime */ NULL,
+	/* dependsOnNormals */ NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
+	/* foreachIDLink */ NULL,
+	/* foreachTexLink */ NULL,
 };

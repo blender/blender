@@ -230,7 +230,7 @@ void BL_SkinDeformer::BGEDeformVerts()
 			dg;
 			++i, dg=(bDeformGroup*)dg->next)
 		{
-			m_dfnrToPC[i] = get_pose_channel(par_arma->pose, dg->name);
+			m_dfnrToPC[i] = BKE_pose_channel_find_name(par_arma->pose, dg->name);
 
 			if (m_dfnrToPC[i] && m_dfnrToPC[i]->bone->flag & BONE_NO_DEFORM)
 				m_dfnrToPC[i] = NULL;

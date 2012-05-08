@@ -125,13 +125,13 @@ static PyObject *bpy_blend_paths(PyObject *UNUSED(self), PyObject *args, PyObjec
 		return NULL;
 	}
 
-	if (absolute) flag |= BPATH_TRAVERSE_ABS;
-	if (!packed)  flag |= BPATH_TRAVERSE_SKIP_PACKED;
-	if (local)    flag |= BPATH_TRAVERSE_SKIP_LIBRARY;
+	if (absolute) flag |= BLI_BPATH_TRAVERSE_ABS;
+	if (!packed)  flag |= BLI_BPATH_TRAVERSE_SKIP_PACKED;
+	if (local)    flag |= BLI_BPATH_TRAVERSE_SKIP_LIBRARY;
 
 	list = PyList_New(0);
 
-	bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
+	BLI_bpath_traverse_main(G.main, bpy_blend_paths_visit_cb, flag, (void *)list);
 
 	return list;
 }

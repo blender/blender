@@ -190,7 +190,7 @@ static int check_object_draw_texture(Scene *scene, View3D *v3d, int drawtype)
 		return TRUE;
 
 	/* textured solid */
-	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !scene_use_new_shading_nodes(scene))
+	if (v3d->drawtype == OB_SOLID && (v3d->flag2 & V3D_SOLID_TEX) && !BKE_scene_use_new_shading_nodes(scene))
 		return TRUE;
 	
 	return FALSE;
@@ -332,7 +332,7 @@ int draw_glsl_material(Scene *scene, Object *ob, View3D *v3d, int dt)
 		return 0;
 	if (ob == OBACT && (ob && ob->mode & OB_MODE_WEIGHT_PAINT))
 		return 0;
-	if (scene_use_new_shading_nodes(scene))
+	if (BKE_scene_use_new_shading_nodes(scene))
 		return 0;
 	
 	return (scene->gm.matmode == GAME_MAT_GLSL) && (dt > OB_SOLID);
@@ -1740,7 +1740,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	int i;
 	float drawsize;
 	const short is_view = (rv3d->persp == RV3D_CAMOB && ob == v3d->camera);
-	MovieClip *clip = object_get_movieclip(scene, base->object, 0);
+	MovieClip *clip = BKE_object_movieclip_get(scene, base->object, 0);
 
 	/* draw data for movie clip set as active for scene */
 	if (clip) {
@@ -1762,7 +1762,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	scale[1] = 1.0f / len_v3(ob->obmat[1]);
 	scale[2] = 1.0f / len_v3(ob->obmat[2]);
 
-	camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
+	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
 	                     asp, shift, &drawsize, vec);
 
 	glDisable(GL_LIGHTING);
@@ -1834,7 +1834,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 			if (cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composite node */
-				draw_focus_cross(object_camera_dof_distance(ob), cam->drawsize);
+				draw_focus_cross(BKE_camera_object_dof_distance(ob), cam->drawsize);
 			}
 
 			wrld = scene->world;
@@ -1924,7 +1924,7 @@ void lattice_foreachScreenVert(ViewContext *vc, void (*func)(void *userData, BPo
 	Object *obedit = vc->obedit;
 	Lattice *lt = obedit->data;
 	BPoint *bp = lt->editlatt->latt->def;
-	DispList *dl = find_displist(&obedit->disp, DL_VERTS);
+	DispList *dl = BKE_displist_find(&obedit->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	int i, N = lt->editlatt->latt->pntsu * lt->editlatt->latt->pntsv * lt->editlatt->latt->pntsw;
 	short s[2] = {IS_CLIPPED, 0};
@@ -1971,8 +1971,8 @@ static void drawlattice(Scene *scene, View3D *v3d, Object *ob)
 
 	/* now we default make displist, this will modifiers work for non animated case */
 	if (ob->disp.first == NULL)
-		lattice_calc_modifiers(scene, ob);
-	dl = find_displist(&ob->disp, DL_VERTS);
+		BKE_lattice_modifiers_calc(scene, ob);
+	dl = BKE_displist_find(&ob->disp, DL_VERTS);
 	
 	if (is_edit) {
 		lt = lt->editlatt->latt;
@@ -2902,9 +2902,10 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 #define DRAW_EM_MEASURE_STATS_FACEAREA()                                      \
 	if (BM_elem_flag_test(f, BM_ELEM_SELECT)) {                               \
-		mul_v3_fl(vmid, 1.0 / n);                                             \
+		mul_v3_fl(vmid, 1.0f / (float)n);                                     \
 		if (unit->system)                                                     \
-			bUnit_AsString(numstr, sizeof(numstr), area * unit->scale_length, \
+			bUnit_AsString(numstr, sizeof(numstr),                            \
+		                   (double)(area * unit->scale_length),               \
 			               3, unit->system, B_UNIT_LENGTH, do_split, FALSE);  \
 		else                                                                  \
 			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \
@@ -3598,7 +3599,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM->release(finalDM);
 	}
 	else {
-		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
+		/* don't create boundbox here with BKE_mesh_boundbox_get(), the derived system will make it, puts deformed bb's OK */
 		if (me->totpoly <= 4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb) ? ob->bb : me->bb)) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_alpha_pass(base);
@@ -3916,10 +3917,10 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				dl = lb->first;
 				if (dl == NULL) return 1;
 
-				if (dl->nors == NULL) addnormalsDispList(lb);
+				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 				index3_nors_incr = 0;
 
-				if (displist_has_faces(lb) == 0) {
+				if (BKE_displist_has_faces(lb) == 0) {
 					if (!render_only) {
 						draw_index_wire = 0;
 						drawDispListwire(lb);
@@ -3947,7 +3948,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				index3_nors_incr = 1;
 			}
 			else {
-				if (!render_only || (render_only && displist_has_faces(lb))) {
+				if (!render_only || (render_only && BKE_displist_has_faces(lb))) {
 					draw_index_wire = 0;
 					retval = drawDispListwire(lb);
 					draw_index_wire = 1;
@@ -3962,7 +3963,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 				dl = lb->first;
 				if (dl == NULL) return 1;
 
-				if (dl->nors == NULL) addnormalsDispList(lb);
+				if (dl->nors == NULL) BKE_displist_normals_add(lb);
 
 				if (draw_glsl_material(scene, ob, v3d, dt)) {
 					GPU_begin_object_materials(v3d, rv3d, scene, ob, 1, NULL);
@@ -3981,9 +3982,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			break;
 		case OB_MBALL:
 
-			if (BKE_metaball_is_basis(ob)) {
+			if (BKE_mball_is_basis(ob)) {
 				lb = &ob->disp;
-				if (lb->first == NULL) makeDispListMBall(scene, ob);
+				if (lb->first == NULL) BKE_displist_make_mball(scene, ob);
 				if (lb->first == NULL) return 1;
 
 				if (solid) {
@@ -4284,7 +4285,7 @@ static void draw_new_particle_system(Scene *scene, View3D *v3d, RegionView3D *rv
 
 	totpart = psys->totpart;
 
-	cfra = BKE_curframe(scene);
+	cfra = BKE_scene_frame_get(scene);
 
 	if (draw_as == PART_DRAW_PATH && psys->pathcache == NULL && psys->childcache == NULL)
 		draw_as = PART_DRAW_DOT;
@@ -6091,7 +6092,7 @@ static void draw_box(float vec[8][3])
 #if 0
 static void get_local_bounds(Object *ob, float center[3], float size[3])
 {
-	BoundBox *bb = object_get_boundbox(ob);
+	BoundBox *bb = BKE_object_boundbox_get(ob);
 	
 	if (bb == NULL) {
 		zero_v3(center);
@@ -6152,22 +6153,22 @@ static void draw_bounding_volume(Scene *scene, Object *ob, char type)
 	BoundBox *bb = NULL;
 	
 	if (ob->type == OB_MESH) {
-		bb = mesh_get_bb(ob);
+		bb = BKE_mesh_boundbox_get(ob);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		bb = ob->bb ? ob->bb : ( (Curve *)ob->data)->bb;
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			bb = ob->bb;
 			if (bb == NULL) {
-				makeDispListMBall(scene, ob);
+				BKE_displist_make_mball(scene, ob);
 				bb = ob->bb;
 			}
 		}
 	}
 	else if (ob->type == OB_ARMATURE) {
-		bb = BKE_armature_get_bb(ob);
+		bb = BKE_armature_boundbox_get(ob);
 	}
 	else {
 		drawcube();
@@ -6186,7 +6187,7 @@ static void drawtexspace(Object *ob)
 	float vec[8][3], loc[3], size[3];
 	
 	if (ob->type == OB_MESH) {
-		mesh_get_texspace(ob->data, loc, NULL, size);
+		BKE_mesh_texspace_get(ob->data, loc, NULL, size);
 	}
 	else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		Curve *cu = ob->data;
@@ -6234,7 +6235,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			hasfaces = dm->getNumTessFaces(dm);
 		}
 		else {
-			hasfaces = displist_has_faces(&ob->disp);
+			hasfaces = BKE_displist_has_faces(&ob->disp);
 		}
 
 		if (hasfaces && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb ? ob->bb : cu->bb)) {
@@ -6249,7 +6250,7 @@ static void drawObjectSelect(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			if ((base->flag & OB_FROMDUPLI) == 0)
 				drawDispListwire(&ob->disp);
 		}
@@ -6309,7 +6310,7 @@ static void drawWireExtra(Scene *scene, RegionView3D *rv3d, Object *ob)
 		}
 	}
 	else if (ob->type == OB_MBALL) {
-		if (BKE_metaball_is_basis(ob)) {
+		if (BKE_mball_is_basis(ob)) {
 			drawDispListwire(&ob->disp);
 		}
 	}
@@ -6434,7 +6435,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	view3d_cached_text_draw_begin();
 	
 	/* patch? children objects with a timeoffs change the parents. How to solve! */
-	/* if ( ((int)ob->ctime) != F_(scene->r.cfra)) where_is_object(scene, ob); */
+	/* if ( ((int)ob->ctime) != F_(scene->r.cfra)) BKE_object_where_is_calc(scene, ob); */
 	
 	/* draw motion paths (in view space) */
 	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
@@ -6573,7 +6574,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* bad exception, solve this! otherwise outline shows too late */
 	if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
 		/* still needed for curves hidden in other layers. depgraph doesnt handle that yet */
-		if (ob->disp.first == NULL) makeDispListCurveTypes(scene, ob, 0);
+		if (ob->disp.first == NULL) BKE_displist_make_curveTypes(scene, ob, 0);
 	}
 	
 	/* draw outline for selected objects, mesh does itself */
@@ -6646,7 +6647,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				setlinestyle(0);
 
 
-				if (BKE_font_getselection(ob, &selstart, &selend) && cu->selboxes) {
+				if (BKE_vfont_select_get(ob, &selstart, &selend) && cu->selboxes) {
 					float selboxw;
 
 					cpack(0xffffff);
@@ -6990,7 +6991,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				drawtexspace(ob);
 			}
 			if (dtx & OB_DRAWNAME) {
-				/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+				/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 				/* but, we also don't draw names for sets or duplicators */
 				if (flag == 0) {
 					float zero[3] = {0, 0, 0};
@@ -7140,7 +7141,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					for (ct = targets.first; ct; ct = ct->next) {
 						/* calculate target's matrix */
 						if (cti->get_target_matrix)
-							cti->get_target_matrix(curcon, cob, ct, BKE_curframe(scene));
+							cti->get_target_matrix(curcon, cob, ct, BKE_scene_frame_get(scene));
 						else
 							unit_m4(ct->matrix);
 						

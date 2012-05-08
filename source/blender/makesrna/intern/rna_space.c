@@ -495,7 +495,7 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
 
-	if (scene_use_new_shading_nodes(scene))
+	if (BKE_scene_use_new_shading_nodes(scene))
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
 	
 	if (type->view_draw)
@@ -2943,6 +2943,12 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_VIEW_DOPESHEET, "DOPESHEET", ICON_ACTION, "Dopesheet", "Dopesheet view for tracking data"},
 		{0, NULL, 0, NULL, NULL}};
 
+	static EnumPropertyItem dope_sort_items[] = {
+		{SC_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
+		{SC_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
+		{SC_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
+		{0, NULL, 0, NULL, NULL}};
+
 	srna = RNA_def_struct(brna, "SpaceClipEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceClip");
 	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
@@ -3128,6 +3134,21 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_SECONDS);
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* ** dopesheet ** */
+
+	/* dopesheet sort */
+	prop = RNA_def_property(srna, "dopesheet_sort_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "dope_sort");
+	RNA_def_property_enum_items(prop, dope_sort_items);
+	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Method to be used to sort channels in dopesheet view");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* invert_dopesheet_sort */
+	prop = RNA_def_property(srna, "invert_dopesheet_sort", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "dope_flag", SC_DOPE_SORT_INVERSE);
+	RNA_def_property_ui_text(prop, "Invert Dopesheet Sort", "Invert sort order of dopesheet channels");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
 }
 
 

@@ -192,7 +192,7 @@ static void exec_output_file_singlelayer(RenderData *rd, bNode *node, bNodeStack
 			BLI_join_dirfile(path, FILE_MAX, nimf->base_path, sockdata->path);
 			BKE_makepicstring(filename, path, bmain->name, rd->cfra, format->imtype, (rd->scemode & R_EXTENSION), TRUE);
 			
-			if (0 == BKE_write_ibuf(ibuf, filename, format))
+			if (0 == BKE_imbuf_write(ibuf, filename, format))
 				printf("Cannot save Node File Output to %s\n", filename);
 			else
 				printf("Saved: %s\n", filename);

@@ -313,7 +313,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 							/* scale by edge angle */
 							if (use_even_offset) {
-								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no, e_info_b->no) / 2.0f));
+								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no,
+								                                                          e_info_b->no) / 2.0f));
 							}
 
 							/* scale relative to edge lengths */

@@ -78,7 +78,8 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	int *tris;
 
 	dm = mesh_create_derived_index_render(scene, ob, CD_MASK_BAREMESH, modifierIndex);
-	//dm = mesh_create_derived_no_deform(ob,NULL);
+
+	DM_ensure_tessface(dm);
 
 	mvert = dm->getVertArray(dm);
 	mface = dm->getTessFaceArray(dm);
@@ -122,3 +123,4 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 
 	dm->release(dm);
 }
+

@@ -900,7 +900,7 @@ float BM_vert_calc_edge_angle(BMVert *v)
 		BMVert *v1 = BM_edge_other_vert(e1, v);
 		BMVert *v2 = BM_edge_other_vert(e2, v);
 
-		return M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
+		return (float)M_PI - angle_v3v3v3(v1->co, v->co, v2->co);
 	}
 	else {
 		return DEG2RADF(90.0f);

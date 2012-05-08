@@ -81,8 +81,6 @@ int ED_space_clip_show_trackedit(struct SpaceClip *sc);
 int ED_space_clip_show_maskedit(struct SpaceClip *sc);
 void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
 
-void ED_space_clip_update_dopesheet(struct SpaceClip *sc);
-
 /* clip_ops.c */
 void ED_operatormacros_clip(void);
 

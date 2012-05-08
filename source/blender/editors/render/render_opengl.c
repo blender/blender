@@ -146,6 +146,13 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			BLI_assert((oglrender->sizex == ibuf->x) && (oglrender->sizey == ibuf->y));
 
 			if (ibuf->rect_float == NULL) {
+				/* internally sequencer working in sRGB space and stores both bytes and float
+				 * buffers in sRGB space, but if byte->float onversion doesn't happen in sequencer
+				 * (e.g. when adding image sequence/movie into sequencer) there'll be only
+				 * byte buffer and profile will still indicate sRGB->linear space conversion is needed
+				 * here we're ensure there'll be no conversion happen and float buffer would store
+				 * linear frame (sergey) */
+				ibuf->profile = IB_PROFILE_NONE;
 				IMB_float_from_rect(ibuf);
 			}
 
@@ -185,7 +192,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			float *accum_tmp = MEM_mallocN(sizex * sizey * sizeof(float) * 4, "accum2");
 			int j;
 
-			BLI_initjit(jit_ofs[0], scene->r.osa);
+			BLI_jitter_init(jit_ofs[0], scene->r.osa);
 
 			/* first sample buffer, also initializes 'rv3d->persmat' */
 			ED_view3d_draw_offscreen(scene, v3d, ar, sizex, sizey, NULL, winmat, TRUE);
@@ -264,7 +271,7 @@ static void screen_opengl_render_apply(OGLRender *oglrender)
 			}
 
 			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, FALSE);
-			ok = BKE_write_ibuf_as(ibuf, name, &scene->r.im_format, TRUE); /* no need to stamp here */
+			ok = BKE_imbuf_write_as(ibuf, name, &scene->r.im_format, TRUE); /* no need to stamp here */
 			if (ok) printf("OpenGL Render written to '%s'\n", name);
 			else printf("OpenGL Render failed to write '%s'\n", name);
 		}
@@ -406,7 +413,7 @@ static void screen_opengl_render_end(bContext *C, OGLRender *oglrender)
 
 	if (oglrender->timer) { /* exec will not have a timer */
 		scene->r.cfra = oglrender->cfrao;
-		scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
+		BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
 		WM_event_remove_timer(CTX_wm_manager(C), CTX_wm_window(C), oglrender->timer);
 	}
@@ -444,7 +451,7 @@ static int screen_opengl_render_anim_initialize(bContext *C, wmOperator *op)
 	scene = oglrender->scene;
 
 	oglrender->reports = op->reports;
-	oglrender->mh = BKE_get_movie_handle(scene->r.im_format.imtype);
+	oglrender->mh = BKE_movie_handle_get(scene->r.im_format.imtype);
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
 		if (!oglrender->mh->start_movie(scene, &scene->r, oglrender->sizex, oglrender->sizey, oglrender->reports)) {
 			screen_opengl_render_end(C, oglrender);
@@ -471,7 +478,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 	Object *camera = NULL;
 
 	/* update animated image textures for gpu, etc,
-	 * call before scene_update_for_newframe so modifiers with textures don't lag 1 frame */
+	 * call before BKE_scene_update_for_newframe so modifiers with textures don't lag 1 frame */
 	ED_image_update_frame(bmain, scene->r.cfra);
 
 	/* go to next frame */
@@ -481,17 +488,17 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		if (lay & 0xFF000000)
 			lay &= 0xFF000000;
 
-		scene_update_for_newframe(bmain, scene, lay);
+		BKE_scene_update_for_newframe(bmain, scene, lay);
 		CFRA++;
 	}
 
-	scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
+	BKE_scene_update_for_newframe(bmain, scene, screen_opengl_layers(oglrender));
 
 	if (view_context) {
 		if (oglrender->rv3d->persp == RV3D_CAMOB && oglrender->v3d->camera && oglrender->v3d->scenelock) {
-			/* since scene_update_for_newframe() is used rather
+			/* since BKE_scene_update_for_newframe() is used rather
 			 * then ED_update_for_newframe() the camera needs to be set */
-			if (scene_camera_switch_update(scene)) {
+			if (BKE_scene_camera_switch_update(scene)) {
 				oglrender->v3d->camera = scene->camera;
 			}
 
@@ -499,7 +506,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 	}
 	else {
-		scene_camera_switch_update(scene);
+		BKE_scene_camera_switch_update(scene);
 
 		camera = scene->camera;
 	}
@@ -539,7 +546,7 @@ static int screen_opengl_render_anim_step(bContext *C, wmOperator *op)
 		}
 		else {
 			BKE_makepicstring(name, scene->r.pic, oglrender->bmain->name, scene->r.cfra, scene->r.im_format.imtype, scene->r.scemode & R_EXTENSION, TRUE);
-			ok = BKE_write_ibuf_stamp(scene, camera, ibuf, name, &scene->r.im_format);
+			ok = BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 
 			if (ok == 0) {
 				printf("Write error: cannot save %s\n", name);

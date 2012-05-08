@@ -327,6 +327,7 @@ void OBJECT_OT_group_remove(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Group";
 	ot->idname = "OBJECT_OT_group_remove";
+	ot->description = "Remove the active object from this group";
 	
 	/* api callbacks */
 	ot->exec = group_remove_exec;

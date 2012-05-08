@@ -205,7 +205,7 @@ static void rna_Curve_texspace_set(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	Curve *cu = (Curve*)ptr->data;
 	
 	if (cu->texflag & CU_AUTOSPACE)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 }
 
 static int rna_Curve_texspace_editable(PointerRNA *ptr)
@@ -219,7 +219,7 @@ static void rna_Curve_texspace_loc_get(PointerRNA *ptr, float *values)
 	Curve *cu = (Curve *)ptr->data;
 	
 	if (!cu->bb)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 	
 	copy_v3_v3(values, cu->loc);
 }
@@ -236,7 +236,7 @@ static void rna_Curve_texspace_size_get(PointerRNA *ptr, float *values)
 	Curve *cu = (Curve *)ptr->data;
 	
 	if (!cu->bb)
-		BKE_curve_tex_space_calc(cu);
+		BKE_curve_texspace_calc(cu);
 	
 	copy_v3_v3(values, cu->size);
 }
@@ -1470,6 +1470,18 @@ static void rna_def_curve(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Materials", "");
 	RNA_def_property_srna(prop, "IDMaterials"); /* see rna_ID.c */
 	RNA_def_property_collection_funcs(prop, 0, NULL, NULL, NULL, NULL, NULL, NULL, "rna_IDMaterials_assign_int");
+
+	prop = RNA_def_property(srna, "bevel_factor_start", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bevfac1");
+	RNA_def_property_range(prop, 0, 1.0);
+	RNA_def_property_ui_text(prop, "Start Bevel Factor", "Factor that defines from where beveling of spline happens (0=from the very beginning, 1=from the very end)");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
+
+	prop = RNA_def_property(srna, "bevel_factor_end", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "bevfac2");
+	RNA_def_property_range(prop, 0, 1.0);
+	RNA_def_property_ui_text(prop, "End Bevel Factor", "Factor that defines to where beveling of spline happens (0=to the very beginning, 1=to the very end)");
+	RNA_def_property_update(prop, 0, "rna_Curve_update_data");
 }
 
 static void rna_def_curve_nurb(BlenderRNA *brna)

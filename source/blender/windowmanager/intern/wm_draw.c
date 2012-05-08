@@ -475,7 +475,7 @@ static int wm_triple_gen_textures(wmWindow *win, wmDrawTriple *triple)
 			glTexImage2D(triple->target, 0, GL_RGB8, triple->x[x], triple->y[y], 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 			glTexParameteri(triple->target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexParameteri(triple->target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-			// glColor still used with this enabled?
+			// The current color is ignored if the GL_REPLACE texture environment is used.
 			// glTexEnvi(triple->target, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			glBindTexture(triple->target, 0);
 

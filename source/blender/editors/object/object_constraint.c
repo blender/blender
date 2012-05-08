@@ -89,7 +89,7 @@ ListBase *get_active_constraints(Object *ob)
 	if (ob->mode & OB_MODE_POSE) {
 		bPoseChannel *pchan;
 		
-		pchan = get_active_posechannel(ob);
+		pchan = BKE_pose_channel_active(ob);
 		if (pchan)
 			return &pchan->constraints;
 	}
@@ -309,23 +309,23 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				 *		the constraint is deemed invalid
 				 */
 				/* default IK check ... */
-				if (exist_object(data->tar) == 0) {
+				if (BKE_object_exists_check(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
 				}
 				else if (data->tar == owner) {
-					if (!get_named_bone(get_armature(owner), data->subtarget)) {
+					if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
 				}
 				
 				if (data->poletar) {
-					if (exist_object(data->poletar) == 0) {
+					if (BKE_object_exists_check(data->poletar) == 0) {
 						data->poletar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
 					else if (data->poletar == owner) {
-						if (!get_named_bone(get_armature(owner), data->polesubtarget)) {
+						if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->polesubtarget)) {
 							curcon->flag |= CONSTRAINT_DISABLE;
 						}
 					}
@@ -339,12 +339,12 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				bPivotConstraint *data = curcon->data;
 				
 				/* target doesn't have to exist, but if it is non-null, it must exist! */
-				if (data->tar && exist_object(data->tar) == 0) {
+				if (data->tar && BKE_object_exists_check(data->tar) == 0) {
 					data->tar = NULL;
 					curcon->flag |= CONSTRAINT_DISABLE;
 				}
 				else if (data->tar == owner) {
-					if (!get_named_bone(get_armature(owner), data->subtarget)) {
+					if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), data->subtarget)) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
 				}
@@ -446,14 +446,14 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				/* disable and clear constraints targets that are incorrect */
 				for (ct = targets.first; ct; ct = ct->next) {
 					/* general validity checks (for those constraints that need this) */
-					if (exist_object(ct->tar) == 0) {
+					if (BKE_object_exists_check(ct->tar) == 0) {
 						/* object doesn't exist, but constraint requires target */
 						ct->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 					}
 					else if (ct->tar == owner) {
 						if (type == CONSTRAINT_OBTYPE_BONE) {
-							if (!get_named_bone(get_armature(owner), ct->subtarget)) {
+							if (!BKE_armature_find_bone_name(BKE_armature_from_object(owner), ct->subtarget)) {
 								/* bone must exist in armature... */
 								// TODO: clear subtarget?
 								curcon->flag |= CONSTRAINT_DISABLE;
@@ -585,7 +585,7 @@ static bConstraint *edit_constraint_property_get(wmOperator *op, Object *ob, int
 		list = &ob->constraints;
 	} 
 	else if (owner == EDIT_CONSTRAINT_OWNER_BONE) {
-		bPoseChannel *pchan = get_active_posechannel(ob);
+		bPoseChannel *pchan = BKE_pose_channel_active(ob);
 		if (pchan)
 			list = &pchan->constraints;
 		else {
@@ -713,7 +713,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 	/* try to find a pose channel - assume that this is the constraint owner */
 	// TODO: get from context instead?
 	if (ob && ob->pose)
-		pchan = get_active_posechannel(ob);
+		pchan = BKE_pose_channel_active(ob);
 	
 	/* calculate/set inverse matrix:
 	 *  We just calculate all transform-stack eval up to but not including this constraint.
@@ -729,7 +729,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 		 * to use as baseline ("pmat") to derive delta from. This extra calc saves users 
 		 * from having pressing "Clear Inverse" first
 		 */
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 		copy_m4_m4(pmat, pchan->pose_mat);
 		
 		/* 2. knock out constraints starting from this one */
@@ -746,7 +746,7 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 		}
 		
 		/* 3. solve pose without disabled constraints */
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 		
 		/* 4. determine effect of constraint by removing the newly calculated 
 		 * pchan->pose_mat from the original pchan->pose_mat, thus determining 
@@ -769,13 +769,13 @@ static void child_get_inverse_matrix(Scene *scene, Object *ob, bConstraint *con,
 		}
 		
 		/* 6. recalculate pose with new inv-mat applied */
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 	}
 	else if (ob) {
 		Object workob;
 		
-		/* use what_does_parent to find inverse - just like for normal parenting */
-		what_does_parent(scene, ob, &workob);
+		/* use BKE_object_workob_calc_parent to find inverse - just like for normal parenting */
+		BKE_object_workob_calc_parent(scene, ob, &workob);
 		invert_m4_m4(invmat, workob.obmat);
 	}
 }
@@ -977,7 +977,7 @@ void ED_object_constraint_set_active(Object *ob, bConstraint *con)
 void ED_object_constraint_update(Object *ob)
 {
 
-	if (ob->pose) update_pose_constraint_flags(ob->pose);
+	if (ob->pose) BKE_pose_update_constraint_flags(ob->pose);
 
 	object_test_constraints(ob);
 
@@ -1147,7 +1147,7 @@ static int pose_constraints_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* free constraints for all selected bones */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
@@ -1312,7 +1312,7 @@ void OBJECT_OT_constraints_copy(wmOperatorType *ot)
 static short get_new_constraint_target(bContext *C, int con_type, Object **tar_ob, bPoseChannel **tar_pchan, short add)
 {
 	Object *obact = ED_object_active_context(C);
-	bPoseChannel *pchanact = get_active_posechannel(obact);
+	bPoseChannel *pchanact = BKE_pose_channel_active(obact);
 	short only_curve = 0, only_mesh = 0, only_ob = 0;
 	short found = 0;
 	
@@ -1413,7 +1413,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 		Object *obt;
 		
 		/* add new target object */
-		obt = add_object(scene, OB_EMPTY);
+		obt = BKE_object_add(scene, OB_EMPTY);
 		
 		/* set layers OK */
 		newbase = BASACT;
@@ -1434,7 +1434,7 @@ static short get_new_constraint_target(bContext *C, int con_type, Object **tar_o
 			copy_v3_v3(obt->loc, obact->obmat[3]);
 		}
 
-		/* restore, add_object sets active */
+		/* restore, BKE_object_add sets active */
 		BASACT = base;
 		base->flag |= SELECT;
 		
@@ -1459,7 +1459,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 		pchan = NULL;
 	}
 	else {
-		pchan = get_active_posechannel(ob);
+		pchan = BKE_pose_channel_active(ob);
 		
 		/* ensure not to confuse object/pose adding */
 		if (pchan == NULL) {
@@ -1541,7 +1541,7 @@ static int constraint_add_exec(bContext *C, wmOperator *op, Object *ob, ListBase
 	object_test_constraints(ob);
 
 	if (pchan)
-		update_pose_constraint_flags(ob->pose);
+		BKE_pose_update_constraint_flags(ob->pose);
 
 
 	/* force depsgraph to get recalculated since new relationships added */
@@ -1586,7 +1586,7 @@ static int object_constraint_add_exec(bContext *C, wmOperator *op)
 /* dummy operator callback */
 static int pose_constraint_add_exec(bContext *C, wmOperator *op)
 {
-	Object *ob = object_pose_armature_get(ED_object_active_context(C));
+	Object *ob = BKE_object_pose_armature_get(ED_object_active_context(C));
 	int type = RNA_enum_get(op->ptr, "type");
 	short with_targets = 0;
 	
@@ -1689,8 +1689,8 @@ void POSE_OT_constraint_add_with_targets(wmOperatorType *ot)
 /* present menu with options + validation for targets to use */
 static int pose_ik_add_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(evt))
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
-	bPoseChannel *pchan = get_active_posechannel(ob);
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bPoseChannel *pchan = BKE_pose_channel_active(ob);
 	bConstraint *con = NULL;
 	
 	uiPopupMenu *pup;
@@ -1773,7 +1773,7 @@ void POSE_OT_ik_add(wmOperatorType *ot)
 /* remove IK constraints from selected bones */
 static int pose_ik_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob = object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
 	
 	/* only remove IK Constraints */
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)

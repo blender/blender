@@ -1048,7 +1048,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		int sel= 0;
 		
 		if (!extend)
-			scene_deselect_all(scene);
+			BKE_scene_base_deselect_all(scene);
 		
 		for (marker= markers->first; marker; marker= marker->next) {
 			if (marker->frame==cfra) {
@@ -1060,7 +1060,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		for (marker= markers->first; marker; marker= marker->next) {
 			if (marker->camera) {
 				if (marker->frame==cfra) {
-					base= object_in_scene(marker->camera, scene);
+					base= BKE_scene_base_find(scene, marker->camera);
 					if (base) {
 						ED_base_object_select(base, sel);
 						if (sel)
@@ -1437,7 +1437,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 	marker->camera= ob;
 
 	/* camera may have changes */
-	scene_camera_switch_update(scene);
+	BKE_scene_camera_switch_update(scene);
 	BKE_screen_view3d_scene_sync(sc);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);

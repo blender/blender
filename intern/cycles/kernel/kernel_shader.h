@@ -180,7 +180,8 @@ __device void shader_setup_from_sample(KernelGlobals *kg, ShaderData *sd,
 	}
 
 	sd->flag = kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2);
-	sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
+	if(sd->object != -1)
+		sd->flag |= kernel_tex_fetch(__object_flag, sd->object);
 
 #ifdef __DPDU__
 	/* dPdu/dPdv */

@@ -83,7 +83,7 @@ static void foreach_nodeclass(Scene *scene, void *calldata, bNodeClassCallback f
 	func(calldata, NODE_CLASS_INPUT, IFACE_("Input"));
 	func(calldata, NODE_CLASS_OUTPUT, IFACE_("Output"));
 
-	if (scene_use_new_shading_nodes(scene)) {
+	if (BKE_scene_use_new_shading_nodes(scene)) {
 		func(calldata, NODE_CLASS_SHADER, IFACE_("Shader"));
 		func(calldata, NODE_CLASS_TEXTURE, IFACE_("Texture"));
 	}

@@ -100,13 +100,13 @@ static void init_render_texture(Render *re, Tex *tex)
 	
 	/* imap test */
 	if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-		BKE_image_user_calc_frame(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
+		BKE_image_user_frame_calc(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
 	if (tex->type==TEX_PLUGIN) {
 		if (tex->plugin && tex->plugin->doit) {
 			if (tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //BKE_curframe(re->scene); // XXX old animsys - timing stuff to be fixed 
+				*(tex->plugin->cfra)= (float)cfra; //BKE_scene_frame_get(re->scene); // XXX old animsys - timing stuff to be fixed 
 			}
 		}
 	}
@@ -1214,7 +1214,7 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 	case TEX_IMAGE:
 		if (osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres);
 		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
-		tag_image_time(tex->ima); /* tag image as having being used */
+		BKE_image_tag_time(tex->ima); /* tag image as having being used */
 		break;
 	case TEX_PLUGIN:
 		retval= plugintex(tex, texvec, dxt, dyt, osatex, texres);
@@ -3558,7 +3558,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 	mat = localize_material(orig_mat);
 
 	/* update material anims */
-	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+	BKE_animsys_evaluate_animdata(scene, &mat->id, mat->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 
 	/* strip material copy from unsupported flags */
 	for (tex_nr=0; tex_nr<MAX_MTEX; tex_nr++) {
@@ -3605,7 +3605,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			tex= mtex->tex = localize_texture(mtex->tex);
 
 			/* update texture anims */
-			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_curframe(scene), ADT_RECALC_ANIM);
+			BKE_animsys_evaluate_animdata(scene, &tex->id, tex->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);
 
 			/* update texture cache if required */
 			if (tex->type==TEX_VOXELDATA) {
@@ -3625,7 +3625,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 			/* update image sequences and movies */
 			if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&tex->iuser, (int)scene->r.cfra, 0);
+					BKE_image_user_frame_calc(&tex->iuser, (int)scene->r.cfra, 0);
 			}
 		}
 	}
@@ -3644,14 +3644,14 @@ void RE_free_sample_material(Material *mat)
 			MTex *mtex= mat->mtex[tex_nr];
 	
 			if (mtex->tex) {
-				free_texture(mtex->tex);
+				BKE_texture_free(mtex->tex);
 				MEM_freeN(mtex->tex);
 				mtex->tex = NULL;
 			}
 		}
 	}
 
-	free_material(mat);
+	BKE_material_free(mat);
 	MEM_freeN(mat);
 }
 

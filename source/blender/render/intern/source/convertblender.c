@@ -401,7 +401,7 @@ static void calc_edge_stress(Render *UNUSED(re), ObjectRen *obr, Mesh *me)
 	
 	if (obr->totvert==0) return;
 	
-	mesh_get_texspace(me, loc, NULL, size);
+	BKE_mesh_texspace_get(me, loc, NULL, size);
 	
 	accum= MEM_callocN(2*sizeof(float)*obr->totvert, "temp accum for stress");
 	
@@ -1574,7 +1574,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float hasize, pa_size, r_tilt, r_length;
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
-	const float cfra= BKE_curframe(re->scene);
+	const float cfra= BKE_scene_frame_get(re->scene);
 	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0, use_duplimat = 0;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
@@ -2437,7 +2437,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	int a, need_orco, vlakindex, *index, negative_scale;
 	ListBase dispbase= {NULL, NULL};
 
-	if (ob!=BKE_metaball_basis_find(re->scene, ob))
+	if (ob!=BKE_mball_basis_find(re->scene, ob))
 		return;
 
 	mult_m4_m4m4(mat, re->viewmat, ob->obmat);
@@ -2452,7 +2452,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 		need_orco= 1;
 	}
 
-	makeDispListMBall_forRender(re->scene, ob, &dispbase);
+	BKE_displist_make_mball_forRender(re->scene, ob, &dispbase);
 	dl= dispbase.first;
 	if (dl==0) return;
 
@@ -2463,7 +2463,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 
 		if (!orco) {
 			/* orco hasn't been found in cache - create new one and add to cache */
-			orco= BKE_metaball_make_orco(ob, &dispbase);
+			orco= BKE_mball_make_orco(ob, &dispbase);
 			set_object_orco(re, ob, orco);
 		}
 	}
@@ -2526,7 +2526,7 @@ static void init_render_mball(Render *re, ObjectRen *obr)
 	}
 
 	/* enforce display lists remade */
-	freedisplist(&dispbase);
+	BKE_displist_free(&dispbase);
 }
 
 /* ------------------------------------------------------------------------- */
@@ -2828,11 +2828,11 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
 
-	makeDispListSurf(re->scene, ob, &displist, &dm, 1, 0);
+	BKE_displist_make_surf(re->scene, ob, &displist, &dm, 1, 0);
 
 	if (dm) {
 		if (need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
@@ -2854,7 +2854,7 @@ static void init_render_surf(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	freedisplist(&displist);
+	BKE_displist_free(&displist);
 
 	MEM_freeN(matar);
 }
@@ -2878,7 +2878,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 	if (ob->type==OB_FONT && cu->str==NULL) return;
 	else if (ob->type==OB_CURVE && cu->nurb.first==NULL) return;
 
-	makeDispListCurveTypes_forRender(re->scene, ob, &disp, &dm, 0);
+	BKE_displist_make_curveTypes_forRender(re->scene, ob, &disp, &dm, 0);
 	dl= disp.first;
 	if (dl==NULL) return;
 	
@@ -2898,7 +2898,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 	if (dm) {
 		if (need_orco) {
-			orco= makeOrcoDispList(re->scene, ob, dm, 1);
+			orco= BKE_displist_make_orco(re->scene, ob, dm, 1);
 			if (orco) {
 				set_object_orco(re, ob, orco);
 			}
@@ -3005,7 +3005,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 
 						for (a=0; a<dl->parts; a++) {
 
-							if (surfindex_displist(dl, a, &b, &p1, &p2, &p3, &p4)==0)
+							if (BKE_displist_surfindex_get(dl, a, &b, &p1, &p2, &p3, &p4)==0)
 								break;
 
 							p1+= startvert;
@@ -3062,7 +3062,7 @@ static void init_render_curve(Render *re, ObjectRen *obr, int timeoffset)
 		}
 	}
 
-	freedisplist(&disp);
+	BKE_displist_free(&disp);
 
 	MEM_freeN(matar);
 }
@@ -4725,7 +4725,7 @@ static int allow_render_object(Render *re, Object *ob, int nolamps, int onlysele
 		return 0;
 	
 	/* don't add non-basic meta objects, ends up having renderobjects with no geometry */
-	if (ob->type == OB_MBALL && ob!=BKE_metaball_basis_find(re->scene, ob))
+	if (ob->type == OB_MBALL && ob!=BKE_mball_basis_find(re->scene, ob))
 		return 0;
 	
 	if (nolamps && (ob->type==OB_LAMP))
@@ -5051,12 +5051,12 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	
 	/* applies changes fully */
 	if ((re->r.scemode & (R_NO_FRAME_UPDATE|R_PREVIEWBUTS))==0)
-		scene_update_for_newframe(re->main, re->scene, lay);
+		BKE_scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if (use_camera_view && camera) {
 		/* called before but need to call again in case of lens animation from the
-		 * above call to scene_update_for_newframe, fixes bug. [#22702].
+		 * above call to BKE_scene_update_for_newframe, fixes bug. [#22702].
 		 * following calls don't depend on 'RE_SetCamera' */
 		RE_SetCamera(re, camera);
 
@@ -5206,7 +5206,7 @@ static void database_fromscene_vectors(Render *re, Scene *scene, unsigned int la
 	
 	/* applies changes fully */
 	scene->r.cfra += timeoffset;
-	scene_update_for_newframe(re->main, re->scene, lay);
+	BKE_scene_update_for_newframe(re->main, re->scene, lay);
 	
 	/* if no camera, viewmat should have been set! */
 	if (camera) {
@@ -5868,7 +5868,7 @@ void RE_make_sticky(Scene *scene, View3D *v3d)
 				me->msticky= CustomData_add_layer(&me->vdata, CD_MSTICKY,
 					CD_CALLOC, NULL, me->totvert);
 				
-				where_is_object(scene, ob);
+				BKE_object_where_is_calc(scene, ob);
 				mult_m4_m4m4(mat, re->viewmat, ob->obmat);
 				
 				ms= me->msticky;

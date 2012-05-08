@@ -348,7 +348,7 @@ int ED_operator_posemode(bContext *C)
 
 	if (obact && !(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
-		if ((obpose= object_pose_armature_get(obact))) {
+		if ((obpose= BKE_object_pose_armature_get(obact))) {
 			if ((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}
@@ -1842,6 +1842,7 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
 	ot->name = "Frame Offset";
 	ot->idname = "SCREEN_OT_frame_offset";
+	ot->description = "Move current frame forward/backward by a given number";
 	
 	ot->exec = frame_offset_exec;
 	
@@ -2711,6 +2712,7 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Region";
 	ot->idname = "SCREEN_OT_region_flip";
+	ot->description = "Toggle the region's alignment (left/right or top/bottom)";
 	
 	/* api callbacks */
 	ot->exec = region_flip_exec;
@@ -2760,6 +2762,7 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Header Region";
 	ot->idname = "SCREEN_OT_header_flip";
+	ot->description = "Toggle the header over/below the main window area";
 	
 	/* api callbacks */
 	ot->exec = header_flip_exec;
@@ -3327,10 +3330,10 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if (type == SCE_COPY_NEW) {
-		newscene= add_scene("Scene");
+		newscene= BKE_scene_add("Scene");
 	}
 	else { /* different kinds of copying */
-		newscene= copy_scene(scene, type);
+		newscene= BKE_scene_copy(scene, type);
 
 		/* these can't be handled in blenkernel curently, so do them here */
 		if (type == SCE_COPY_LINK_DATA) {

@@ -46,7 +46,7 @@ void rna_camera_view_frame(struct Camera *camera, struct Scene *scene,
 {
 	float vec[4][3];
 
-	camera_view_frame(scene, camera, vec);
+	BKE_camera_view_frame(scene, camera, vec);
 
 	copy_v3_v3(vec1_r, vec[0]);
 	copy_v3_v3(vec2_r, vec[1]);

@@ -91,12 +91,12 @@ static inline void object_free_duplilist(BL::Object self)
 	rna_Object_free_duplilist(self.ptr.data, NULL);
 }
 
-static inline bool object_is_modified(BL::Object self, BL::Scene scene, bool preview)
+static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return rna_Object_is_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
 }
 
-static inline bool object_is_deform_modified(BL::Object self, BL::Scene scene, bool preview)
+static inline bool BKE_object_is_deform_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return rna_Object_is_deform_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
 }

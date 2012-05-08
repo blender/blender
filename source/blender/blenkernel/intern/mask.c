@@ -633,7 +633,7 @@ static Mask *mask_alloc(const char *name)
 {
 	Mask *mask;
 
-	mask = alloc_libblock(&G.main->mask, ID_MSK, name);
+	mask = BKE_libblock_alloc(&G.main->mask, ID_MSK, name);
 
 	return mask;
 }

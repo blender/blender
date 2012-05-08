@@ -1407,7 +1407,7 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short obce
 							/* index of bundle is 1<<16-based. if there's no "bone" index
 							 * in hight word, this buffer value belongs to camera,. not to bundle */
 							if (buffer[4 * i + 3] & 0xFFFF0000) {
-								MovieClip *clip = object_get_movieclip(scene, basact->object, 0);
+								MovieClip *clip = BKE_object_movieclip_get(scene, basact->object, 0);
 								MovieTracking *tracking = &clip->tracking;
 								ListBase *tracksbase;
 								MovieTrackingTrack *track;
@@ -2199,7 +2199,7 @@ static void mesh_circle_select(ViewContext *vc, int select, const int mval[2], f
 	int bbsel;
 	CircleSelectUserData data;
 	
-	bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0));
+	bbsel = EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 	ED_view3d_init_mats_rv3d(vc->obedit, vc->rv3d); /* for foreach's screen/vert projection */
 
 	vc->em = BMEdit_FromObject(vc->obedit);
@@ -2250,7 +2250,7 @@ static void paint_facesel_circle_select(ViewContext *vc, int select, const int m
 	if (me) {
 		bm_vertoffs = me->totpoly + 1; /* max index array */
 
-		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0));
+		/* bbsel= */ /* UNUSED */ EDBM_backbuf_circle_init(vc, mval[0], mval[1], (short)(rad + 1.0f));
 		edbm_backbuf_check_and_select_tfaces(me, select == LEFTMOUSE);
 		EDBM_backbuf_free();
 	}

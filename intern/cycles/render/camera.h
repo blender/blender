@@ -50,6 +50,15 @@ public:
 	CameraType type;
 	float fov;
 
+	/* panorama */
+	PanoramaType panorama_type;
+	float fisheye_fov;
+	float fisheye_lens;
+
+	/* sensor */
+	float sensorwidth;
+	float sensorheight;
+
 	/* clipping */
 	float nearclip;
 	float farclip;

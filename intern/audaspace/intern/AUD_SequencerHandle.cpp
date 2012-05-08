@@ -154,6 +154,7 @@ void AUD_SequencerHandle::seek(float position)
 		if(seekpos < 0)
 			seekpos = 0;
 		seekpos += m_entry->m_skip;
+		m_handle->setPitch(1.0f);
 		m_handle->seek(seekpos);
 		if(position < m_entry->m_begin)
 			m_handle->pause();

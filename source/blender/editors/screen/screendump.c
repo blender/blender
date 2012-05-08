@@ -190,7 +190,7 @@ static int screenshot_exec(bContext *C, wmOperator *op)
 				/* bw screenshot? - users will notice if it fails! */
 				IMB_color_to_bw(ibuf);
 			}
-			BKE_write_ibuf(ibuf, path, &scd->im_format);
+			BKE_imbuf_write(ibuf, path, &scd->im_format);
 
 			IMB_freeImBuf(ibuf);
 		}
@@ -255,6 +255,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 {
 	ot->name = "Save Screenshot"; /* weak: opname starting with 'save' makes filewindow give save-over */
 	ot->idname = "SCREEN_OT_screenshot";
+	ot->description = "Capture a picture of the active area or whole Blender window";
 	
 	ot->invoke = screenshot_invoke;
 	ot->check = screenshot_check;
@@ -266,7 +267,7 @@ void SCREEN_OT_screenshot(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screenshot the whole Blender window");
 }
 
 /* *************** screenshot movie job ************************* */
@@ -314,7 +315,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 {
 	ScreenshotJob *sj= sjv;
 	RenderData rd= sj->scene->r;
-	bMovieHandle *mh= BKE_get_movie_handle(sj->scene->r.im_format.imtype);
+	bMovieHandle *mh= BKE_movie_handle_get(sj->scene->r.im_format.imtype);
 	
 	/* we need this as local variables for renderdata */
 	rd.frs_sec= U.scrcastfps;
@@ -357,7 +358,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 				BKE_makepicstring(name, rd.pic, sj->bmain->name, rd.cfra, rd.im_format.imtype, rd.scemode & R_EXTENSION, TRUE);
 				
 				ibuf->rect= sj->dumprect;
-				ok= BKE_write_ibuf(ibuf, name, &rd.im_format);
+				ok= BKE_imbuf_write(ibuf, name, &rd.im_format);
 				
 				if (ok==0) {
 					printf("Write error: cannot save %s\n", name);
@@ -433,6 +434,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 {
 	ot->name = "Make Screencast";
 	ot->idname = "SCREEN_OT_screencast";
+	ot->description = "Capture a video of the active area or whole Blender window";
 	
 	ot->invoke = WM_operator_confirm;
 	ot->exec = screencast_exec;
@@ -441,7 +443,7 @@ void SCREEN_OT_screencast(wmOperatorType *ot)
 	ot->flag = 0;
 	
 	RNA_def_property(ot->srna, "filepath", PROP_STRING, PROP_FILEPATH);
-	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "");
+	RNA_def_boolean(ot->srna, "full", 1, "Full Screen", "Screencast the whole Blender window");
 }
 
 

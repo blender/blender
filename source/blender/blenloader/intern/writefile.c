@@ -1272,7 +1272,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* write IK param */
 	if (pose->ikparam) {
-		char *structname = (char *)get_ikparam_name(pose);
+		char *structname = (char *)BKE_pose_ikparam_get_name(pose);
 		if (structname)
 			writestruct(wd, DATA, structname, 1, pose->ikparam);
 	}
@@ -1785,8 +1785,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 
 				/* now fill in polys to mfaces*/
-				mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
-				                                   mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
+				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
+				                                        mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
 
 				mesh_update_customdata_pointers(mesh, FALSE);
 
@@ -2680,18 +2680,6 @@ static void write_movieTracks(WriteData *wd, ListBase *tracks)
 	}
 }
 
-static void write_movieDopesheet(WriteData *wd, MovieTrackingDopesheet *dopesheet)
-{
-	MovieTrackingDopesheetChannel *channel;
-
-	channel = dopesheet->channels.first;
-	while (channel) {
-		writestruct(wd, DATA, "MovieTrackingDopesheetChannel", 1, channel);
-
-		channel = channel->next;
-	}
-}
-
 static void write_movieReconstruction(WriteData *wd, MovieTrackingReconstruction *reconstruction)
 {
 	if (reconstruction->camnr)
@@ -2709,6 +2697,9 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			MovieTrackingObject *object;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
 
+			if (clip->id.properties)
+				IDP_WriteProperty(clip->id.properties, wd);
+
 			if (clip->adt)
 				write_animdata(wd, clip->adt);
 
@@ -2724,8 +2715,6 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 
 				object= object->next;
 			}
-
-			write_movieDopesheet(wd, &tracking->dopesheet);
 		}
 
 		clip= clip->id.next;
@@ -2983,7 +2972,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 				 * we should not have any relative paths, but if there
 				 * is somehow, an invalid or empty G.main->name it will
 				 * print an error, don't try make the absolute in this case. */
-				makeFilesAbsolute(mainvar, G.main->name, NULL);
+				BLI_bpath_absolute_convert(mainvar, G.main->name, NULL);
 			}
 		}
 	}
@@ -2992,7 +2981,7 @@ int BLO_write_file(Main *mainvar, const char *filepath, int write_flags, ReportL
 	write_user_block= (BLI_path_cmp(filepath, userfilename) == 0);
 
 	if (write_flags & G_FILE_RELATIVE_REMAP)
-		makeFilesRelative(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
+		BLI_bpath_relative_convert(mainvar, filepath, NULL); /* note, making relative to something OTHER then G.main->name */
 
 	/* actual file writing */
 	err= write_file_handle(mainvar, file, NULL, NULL, write_user_block, write_flags, thumb);

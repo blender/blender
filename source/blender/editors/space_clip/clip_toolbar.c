@@ -151,7 +151,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 
 		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
 		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
-		arprops->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+		arprops->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 	}
 
 	return artool;

@@ -279,7 +279,7 @@ static void vtx_slide_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 		/* Get 3d view */
 		View3D *view3d = CTX_wm_view3d(C);
 		const float outline_w = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.8f;
-		const float pt_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5;
+		const float pt_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5f;
 
 		int i = 0;
 
