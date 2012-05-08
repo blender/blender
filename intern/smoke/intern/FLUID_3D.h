@@ -39,6 +39,9 @@
 // #include "WTURBULENCE.h"
 #include "VEC3.h"
 
+// timestep default value for nice appearance
+#define DT_DEFAULT 0.1f;
+
 using namespace std;
 using namespace BasicVector;
 class WTURBULENCE;
@@ -46,7 +49,7 @@ class WTURBULENCE;
 class FLUID_3D  
 {
 	public:
-		FLUID_3D(int *res, /* int amplify, */ float *p0, float dtdef);
+		FLUID_3D(int *res, /* int amplify, */ float *p0);
 		FLUID_3D() {};
 		virtual ~FLUID_3D();
 
@@ -69,7 +72,7 @@ class FLUID_3D
 		int yRes() const { return _yRes; };
 		int zRes() const { return _zRes; };
 
-	public:
+	public:  
 		// dimensions
 		int _xRes, _yRes, _zRes, _maxRes;
 		Vec3Int _res;
@@ -86,8 +89,6 @@ class FLUID_3D
 		void artificialDampingSL(int zBegin, int zEnd);
 		void artificialDampingExactSL(int pos);
 
-		void setBorderObstacles();
-
 		// fields
 		float* _density;
 		float* _densityOld;
@@ -96,17 +97,13 @@ class FLUID_3D
 		float* _xVelocity;
 		float* _yVelocity;
 		float* _zVelocity;
-		float* _xVelocityOb;
-		float* _yVelocityOb;
-		float* _zVelocityOb;
 		float* _xVelocityOld;
 		float* _yVelocityOld;
 		float* _zVelocityOld;
 		float* _xForce;
 		float* _yForce;
 		float* _zForce;
-		unsigned char*  _obstacles; /* only used (usefull) for static obstacles like domain boundaries */
-		unsigned char*  _obstaclesAnim;
+		unsigned char*  _obstacles;
 
 		// Required for proper threading:
 		float* _xVelocityTemp;
@@ -139,8 +136,6 @@ class FLUID_3D
 		int _colloPrev;		// To track whether value has been changed (to not
 							// have to recalibrate borders if nothing has changed
 		void setBorderCollisions();
-
-		void setObstacleVelocity(int zBegin, int zEnd);
 
 		// WTURBULENCE object, if active
 		// WTURBULENCE* _wTurbulence;

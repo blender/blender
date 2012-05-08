@@ -151,7 +151,7 @@ EnumPropertyItem snap_element_items[] = {
 #ifdef WITH_CINEON
 #  define R_IMF_ENUM_CINEON {R_IMF_IMTYPE_CINEON, "CINEON", ICON_FILE_IMAGE, "Cineon", \
                                                   "Output image in Cineon format"},
-#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX", ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
+#  define R_IMF_ENUM_DPX    {R_IMF_IMTYPE_DPX, "DPX",ICON_FILE_IMAGE, "DPX", "Output image in DPX format"},
 #else
 #  define R_IMF_ENUM_CINEON
 #  define R_IMF_ENUM_DPX
@@ -330,15 +330,15 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 	Scene *scene_act = CTX_data_scene(C);
 	Base *base;
 
-	if (BKE_scene_base_find(scene, ob)) {
+	if (object_in_scene(ob, scene)) {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name+2, scene->id.name+2);
 		return NULL;
 	}
 
-	base = BKE_scene_base_add(scene, ob);
+	base = scene_add_base(scene, ob);
 	id_us_plus(&ob->id);
 
-	/* this is similar to what object_add_type and BKE_object_add do */
+	/* this is similar to what object_add_type and add_object do */
 	base->lay = scene->lay;
 
 	/* when linking to an inactive scene don't touch the layer */
@@ -357,7 +357,7 @@ static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *report
 
 static void rna_Scene_object_unlink(Scene *scene, ReportList *reports, Object *ob)
 {
-	Base *base = BKE_scene_base_find(scene, ob);
+	Base *base = object_in_scene(ob, scene);
 	if (!base) {
 		BKE_reportf(reports, RPT_ERROR, "Object '%s' is not in this scene '%s'", ob->id.name+2, scene->id.name+2);
 		return;
@@ -401,7 +401,7 @@ static void rna_Scene_active_object_set(PointerRNA *ptr, PointerRNA value)
 {
 	Scene *scene = (Scene*)ptr->data;
 	if (value.data)
-		scene->basact = BKE_scene_base_find(scene, (Object *)value.data);
+		scene->basact = object_in_scene((Object*)value.data, scene);
 	else
 		scene->basact = NULL;
 }
@@ -707,7 +707,7 @@ static void rna_ImageFormatSettings_file_format_set(PointerRNA *ptr, int value)
 		Scene *scene = ptr->id.data;
 		RenderData *rd = &scene->r;
 #ifdef WITH_FFMPEG
-		BKE_ffmpeg_image_type_verify(rd, imf);
+		ffmpeg_verify_image_type(rd, imf);
 #endif
 #ifdef WITH_QUICKTIME
 		quicktime_verify_image_type(rd, imf);
@@ -750,7 +750,7 @@ static EnumPropertyItem *rna_ImageFormatSettings_color_mode_itemf(bContext *C, P
 		Scene *scene = ptr->id.data;
 		RenderData *rd = &scene->r;
 
-		if (BKE_ffmpeg_alpha_channel_is_supported(rd))
+		if (ffmpeg_alpha_channel_supported(rd))
 			chan_flag |= IMA_CHAN_FLAG_ALPHA;
 	}
 #endif
@@ -941,7 +941,7 @@ static void rna_FFmpegSettings_lossless_output_set(PointerRNA *ptr, int value)
 	else
 		rd->ffcodecdata.flags &= ~FFMPEG_LOSSLESS_OUTPUT;
 
-	BKE_ffmpeg_codec_settings_verify(rd);
+	ffmpeg_verify_codec_settings(rd);
 }
 
 static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene *UNUSED(scene_unused), PointerRNA *ptr)
@@ -949,7 +949,7 @@ static void rna_FFmpegSettings_codec_settings_update(Main *UNUSED(bmain), Scene 
 	Scene *scene = (Scene *) ptr->id.data;
 	RenderData *rd = &scene->r;
 
-	BKE_ffmpeg_codec_settings_verify(rd);
+	ffmpeg_verify_codec_settings(rd);
 }
 #endif
 
@@ -993,7 +993,7 @@ static void rna_RenderSettings_active_layer_set(PointerRNA *ptr, PointerRNA valu
 static SceneRenderLayer *rna_RenderLayer_new(ID *id, RenderData *UNUSED(rd), const char *name)
 {
 	Scene *scene = (Scene *)id;
-	SceneRenderLayer *srl = BKE_scene_add_render_layer(scene, name);
+	SceneRenderLayer *srl = scene_add_render_layer(scene, name);
 
 	WM_main_add_notifier(NC_SCENE|ND_RENDER_OPTIONS, NULL);
 
@@ -1005,7 +1005,7 @@ static void rna_RenderLayer_remove(ID *id, RenderData *UNUSED(rd), Main *bmain, 
 {
 	Scene *scene = (Scene *)id;
 
-	if (!BKE_scene_remove_render_layer(bmain, scene, srl)) {
+	if (!scene_remove_render_layer(bmain, scene, srl)) {
 		BKE_reportf(reports, RPT_ERROR, "RenderLayer '%s' could not be removed from scene '%s'",
 		            srl->name, scene->id.name+2);
 	}
@@ -1077,11 +1077,8 @@ static void rna_RenderSettings_color_management_update(Main *bmain, Scene *UNUSE
 	bNode *node;
 	
 	if (ntree && scene->use_nodes) {
-		/* images are freed here, stop render and preview threads, until
-		 * Image is threadsafe. when we are changing this propery from a
-		 * python script in the render thread, don't stop own thread */
-		if(BLI_thread_is_main())
-			WM_jobs_stop_all(bmain->wm.first);
+		/* XXX images are freed here, stop render and preview threads, until Image is threadsafe */
+		WM_jobs_stop_all(bmain->wm.first);
 		
 		for (node = ntree->nodes.first; node; node = node->next) {
 			if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_IMAGE)) {
@@ -1125,7 +1122,7 @@ static int rna_RenderSettings_multiple_engines_get(PointerRNA *UNUSED(ptr))
 static int rna_RenderSettings_use_shading_nodes_get(PointerRNA *ptr)
 {
 	Scene *scene = (Scene*)ptr->id.data;
-	return BKE_scene_use_new_shading_nodes(scene);
+	return scene_use_new_shading_nodes(scene);
 }
 
 static int rna_RenderSettings_use_game_engine_get(PointerRNA *ptr)
@@ -1184,7 +1181,7 @@ static void rna_Scene_editmesh_select_mode_set(PointerRNA *ptr, const int *value
 		ts->selectmode = flag;
 
 		if (scene->basact) {
-			Mesh *me = BKE_mesh_from_object(scene->basact->object);
+			Mesh *me = get_mesh(scene->basact->object);
 			if (me && me->edit_btmesh && me->edit_btmesh->selectmode != flag) {
 				me->edit_btmesh->selectmode = flag;
 				EDBM_selectmode_set(me->edit_btmesh);
@@ -1198,7 +1195,7 @@ static void rna_Scene_editmesh_select_mode_update(Main *UNUSED(bmain), Scene *sc
 	Mesh *me = NULL;
 
 	if (scene->basact) {
-		me = BKE_mesh_from_object(scene->basact->object);
+		me = get_mesh(scene->basact->object);
 		if (me && me->edit_btmesh == NULL)
 			me = NULL;
 	}
@@ -1370,7 +1367,7 @@ static void rna_UnifiedPaintSettings_size_set(PointerRNA *ptr, int value)
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale unprojected radius so it stays consistent with brush size */
-	BKE_brush_scale_unprojected_radius(&ups->unprojected_radius,
+	brush_scale_unprojected_radius(&ups->unprojected_radius,
 								   value, ups->size);
 	ups->size = value;
 }
@@ -1380,7 +1377,7 @@ static void rna_UnifiedPaintSettings_unprojected_radius_set(PointerRNA *ptr, flo
 	UnifiedPaintSettings* ups = ptr->data;
 
 	/* scale brush size so it stays consistent with unprojected_radius */
-	BKE_brush_scale_size(&ups->size, value, ups->unprojected_radius);
+	brush_scale_size(&ups->size, value, ups->unprojected_radius);
 	ups->unprojected_radius = value;
 }
 
@@ -1782,11 +1779,6 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Unified Strength",
 	                         "Instead of per-brush strength, the strength is shared across brushes");
 
-	prop = RNA_def_property(srna, "use_unified_weight", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_WEIGHT);
-	RNA_def_property_ui_text(prop, "Use Unified Weight",
-	                         "Instead of per-brush weight, the weight is shared across brushes");
-
 	/* unified paint settings that override the equivalent settings
 	 * from the active brush */
 	prop = RNA_def_property(srna, "size", PROP_INT, PROP_DISTANCE);
@@ -1807,13 +1799,6 @@ static void rna_def_unified_paint_settings(BlenderRNA  *brna)
 	RNA_def_property_range(prop, 0.0f, 10.0f);
 	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
 	RNA_def_property_ui_text(prop, "Strength", "How powerful the effect of the brush is when applied");
-
-	prop = RNA_def_property(srna, "weight", PROP_FLOAT, PROP_FACTOR);
-	RNA_def_property_float_sdna(prop, NULL, "weight");
-	RNA_def_property_float_default(prop, 0.5f);
-	RNA_def_property_range(prop, 0.0f, 1.0f);
-	RNA_def_property_ui_range(prop, 0.0f, 1.0f, 0.001, 3);
-	RNA_def_property_ui_text(prop, "Weight", "Weight to assign in vertex groups");
 
 	prop = RNA_def_property(srna, "use_pressure_size", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", UNIFIED_PAINT_BRUSH_SIZE_PRESSURE);
@@ -1919,19 +1904,6 @@ void rna_def_render_layer_common(StructRNA *srna, int scene)
 	RNA_def_property_ui_text(prop, "Zmask Layers", "Zmask scene layers for solid faces");
 	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
 	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	prop = RNA_def_property(srna, "layers_exclude", PROP_BOOLEAN, PROP_LAYER);
-	RNA_def_property_boolean_sdna(prop, NULL, "lay_exclude", 1);
-	RNA_def_property_array(prop, 20);
-	RNA_def_property_ui_text(prop, "Exclude Layers", "Exclude scene layers from having any influence");
-	if (scene) RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, "rna_Scene_glsl_update");
-	else RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-
-	if (scene) {
-		prop = RNA_def_property(srna, "samples", PROP_INT, PROP_UNSIGNED);
-		RNA_def_property_ui_text(prop, "Samples", "Override number of render samples for this render layer, 0 will use the scene setting");
-		RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
-	}
 
 	/* layer options */
 	prop = RNA_def_property(srna, "use", PROP_BOOLEAN, PROP_NONE);
@@ -2916,7 +2888,7 @@ static void rna_def_scene_ffmpeg_settings(BlenderRNA *brna)
 		{CODEC_ID_FLV1, "FLASH", 0, "Flash Video", ""},
 		{CODEC_ID_FFV1, "FFV1", 0, "FFmpeg video codec #1", ""},
 		{CODEC_ID_QTRLE, "QTRLE", 0, "QTRLE", ""},
-		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""}, */ /* disabled for after release */
+		/* {CODEC_ID_DNXHD, "DNXHD", 0, "DNxHD", ""},*/ /* disabled for after release */
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem ffmpeg_audio_codec_items[] = {
@@ -3819,14 +3791,14 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "stamp_foreground", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "fg_stamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_range(prop,0.0,1.0);
 	RNA_def_property_ui_text(prop, "Text Color", "Color to use for stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 	
 	prop = RNA_def_property(srna, "stamp_background", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "bg_stamp");
 	RNA_def_property_array(prop, 4);
-	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_range(prop,0.0,1.0);
 	RNA_def_property_ui_text(prop, "Background", "Color to use behind stamp text");
 	RNA_def_property_update(prop, NC_SCENE|ND_RENDER_OPTIONS, NULL);
 

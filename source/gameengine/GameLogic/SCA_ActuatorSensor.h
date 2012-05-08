@@ -1,4 +1,7 @@
 /*
+ * Actuator sensor
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +28,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __SCA_ACTUATORSENSOR_H__
-#define __SCA_ACTUATORSENSOR_H__
-
 /** \file SCA_ActuatorSensor.h
  *  \ingroup gamelogic
  */
+
+#ifndef __SCA_ACTUATORSENSOR_H__
+#define __SCA_ACTUATORSENSOR_H__
 
 #include "SCA_ISensor.h"
 #include "SCA_IActuator.h"
@@ -68,3 +71,4 @@ public:
 };
 
 #endif
+

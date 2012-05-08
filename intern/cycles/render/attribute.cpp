@@ -31,7 +31,7 @@ void Attribute::set(ustring name_, TypeDesc type_, Element element_)
 	name = name_;
 	type = type_;
 	element = element_;
-	std = ATTR_STD_NONE;
+	std = STD_NONE;
 
 	/* string and matrix not supported! */
 	assert(type == TypeDesc::TypeFloat || type == TypeDesc::TypeColor ||
@@ -81,24 +81,20 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 	return false;
 }
 
-ustring Attribute::standard_name(AttributeStandard std)
+ustring Attribute::standard_name(Attribute::Standard std)
 {
-	if(std == ATTR_STD_VERTEX_NORMAL)
+	if(std == Attribute::STD_VERTEX_NORMAL)
 		return ustring("N");
-	else if(std == ATTR_STD_FACE_NORMAL)
+	else if(std == Attribute::STD_FACE_NORMAL)
 		return ustring("Ng");
-	else if(std == ATTR_STD_UV)
+	else if(std == Attribute::STD_UV)
 		return ustring("uv");
-	else if(std == ATTR_STD_GENERATED)
+	else if(std == Attribute::STD_GENERATED)
 		return ustring("generated");
-	else if(std == ATTR_STD_POSITION_UNDEFORMED)
+	else if(std == Attribute::STD_POSITION_UNDEFORMED)
 		return ustring("undeformed");
-	else if(std == ATTR_STD_POSITION_UNDISPLACED)
+	else if(std == Attribute::STD_POSITION_UNDISPLACED)
 		return ustring("undisplaced");
-	else if(std == ATTR_STD_MOTION_PRE)
-		return ustring("motion_pre");
-	else if(std == ATTR_STD_MOTION_POST)
-		return ustring("motion_post");
 
 	return ustring();
 }
@@ -168,28 +164,24 @@ void AttributeSet::remove(ustring name)
 	}
 }
 
-Attribute *AttributeSet::add(AttributeStandard std, ustring name)
+Attribute *AttributeSet::add(Attribute::Standard std, ustring name)
 {
 	Attribute *attr = NULL;
 
 	if(name == ustring())
 		name = Attribute::standard_name(std);
 
-	if(std == ATTR_STD_VERTEX_NORMAL)
+	if(std == Attribute::STD_VERTEX_NORMAL)
 		attr = add(name, TypeDesc::TypeNormal, Attribute::VERTEX);
-	else if(std == ATTR_STD_FACE_NORMAL)
+	else if(std == Attribute::STD_FACE_NORMAL)
 		attr = add(name, TypeDesc::TypeNormal, Attribute::FACE);
-	else if(std == ATTR_STD_UV)
+	else if(std == Attribute::STD_UV)
 		attr = add(name, TypeDesc::TypePoint, Attribute::CORNER);
-	else if(std == ATTR_STD_GENERATED)
+	else if(std == Attribute::STD_GENERATED)
 		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_POSITION_UNDEFORMED)
+	else if(std == Attribute::STD_POSITION_UNDEFORMED)
 		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_POSITION_UNDISPLACED)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_MOTION_PRE)
-		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
-	else if(std == ATTR_STD_MOTION_POST)
+	else if(std == Attribute::STD_POSITION_UNDISPLACED)
 		attr = add(name, TypeDesc::TypePoint, Attribute::VERTEX);
 	else
 		assert(0);
@@ -199,7 +191,7 @@ Attribute *AttributeSet::add(AttributeStandard std, ustring name)
 	return attr;
 }
 
-Attribute *AttributeSet::find(AttributeStandard std)
+Attribute *AttributeSet::find(Attribute::Standard std)
 {
 	foreach(Attribute& attr, attributes)
 		if(attr.std == std)
@@ -208,7 +200,7 @@ Attribute *AttributeSet::find(AttributeStandard std)
 	return NULL;
 }
 
-void AttributeSet::remove(AttributeStandard std)
+void AttributeSet::remove(Attribute::Standard std)
 {
 	Attribute *attr = find(std);
 
@@ -226,7 +218,7 @@ void AttributeSet::remove(AttributeStandard std)
 
 Attribute *AttributeSet::find(AttributeRequest& req)
 {
-	if(req.std == ATTR_STD_NONE)
+	if(req.std == Attribute::STD_NONE)
 		return find(req.name);
 	else
 		return find(req.std);
@@ -248,14 +240,14 @@ void AttributeSet::clear()
 AttributeRequest::AttributeRequest(ustring name_)
 {
 	name = name_;
-	std = ATTR_STD_NONE;
+	std = Attribute::STD_NONE;
 
 	type = TypeDesc::TypeFloat;
 	element = ATTR_ELEMENT_NONE;
 	offset = 0;
 }
 
-AttributeRequest::AttributeRequest(AttributeStandard std_)
+AttributeRequest::AttributeRequest(Attribute::Standard std_)
 {
 	name = ustring();
 	std = std_;
@@ -304,7 +296,7 @@ void AttributeRequestSet::add(ustring name)
 	requests.push_back(AttributeRequest(name));
 }
 
-void AttributeRequestSet::add(AttributeStandard std)
+void AttributeRequestSet::add(Attribute::Standard std)
 {
 	foreach(AttributeRequest& req, requests)
 		if(req.std == std)
@@ -316,7 +308,7 @@ void AttributeRequestSet::add(AttributeStandard std)
 void AttributeRequestSet::add(AttributeRequestSet& reqs)
 {
 	foreach(AttributeRequest& req, reqs.requests) {
-		if(req.std == ATTR_STD_NONE)
+		if(req.std == Attribute::STD_NONE)
 			add(req.name);
 		else
 			add(req.std);
@@ -332,7 +324,7 @@ bool AttributeRequestSet::find(ustring name)
 	return false;
 }
 
-bool AttributeRequestSet::find(AttributeStandard std)
+bool AttributeRequestSet::find(Attribute::Standard std)
 {
 	foreach(AttributeRequest& req, requests)
 		if(req.std == std)

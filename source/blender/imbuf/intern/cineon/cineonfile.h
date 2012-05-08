@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/cineonfile.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Cineon image file format library definitions.
  *	 Cineon file format structures.
@@ -25,10 +28,6 @@
 
 #ifndef __CINEONFILE_H__
 #define __CINEONFILE_H__
-
-/** \file blender/imbuf/intern/cineon/cineonfile.h
- *  \ingroup imbcineon
- */
 
 #include "logImageCore.h"
 

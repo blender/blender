@@ -1,3 +1,6 @@
+/** \file blender/blenpluginapi/plugin.h
+ *  \ingroup blpluginapi
+ */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
  * 
  * All rights reserved.
@@ -29,10 +32,6 @@
 
 #ifndef __PLUGIN_H__
 #define __PLUGIN_H__
-
-/** \file blender/blenpluginapi/plugin.h
- *  \ingroup blpluginapi
- */
 
 #include "externdef.h"
 #include "iff.h"

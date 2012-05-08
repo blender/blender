@@ -110,7 +110,7 @@ void free_qtcodecdata(QuicktimeCodecData *qcd)
 	}
 }
 
-Scene *BKE_scene_copy(Scene *sce, int type)
+Scene *copy_scene(Scene *sce, int type)
 {
 	Scene *scen;
 	ToolSettings *ts;
@@ -118,20 +118,20 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	
 	if (type == SCE_COPY_EMPTY) {
 		ListBase lb;
-		scen = BKE_scene_add(sce->id.name + 2);
+		scen= add_scene(sce->id.name+2);
 		
-		lb = scen->r.layers;
-		scen->r = sce->r;
-		scen->r.layers = lb;
-		scen->unit = sce->unit;
-		scen->physics_settings = sce->physics_settings;
-		scen->gm = sce->gm;
-		scen->audio = sce->audio;
+		lb= scen->r.layers;
+		scen->r= sce->r;
+		scen->r.layers= lb;
+		scen->unit= sce->unit;
+		scen->physics_settings= sce->physics_settings;
+		scen->gm= sce->gm;
+		scen->audio= sce->audio;
 
 		MEM_freeN(scen->toolsettings);
 	}
 	else {
-		scen = BKE_libblock_copy(&sce->id);
+		scen= copy_libblock(&sce->id);
 		BLI_duplicatelist(&(scen->base), &(sce->base));
 		
 		clear_id_newpoins();
@@ -140,11 +140,11 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		id_us_plus((ID *)scen->set);
 		id_us_plus((ID *)scen->gm.dome.warptext);
 
-		scen->ed = NULL;
-		scen->theDag = NULL;
-		scen->obedit = NULL;
-		scen->stats = NULL;
-		scen->fps_info = NULL;
+		scen->ed= NULL;
+		scen->theDag= NULL;
+		scen->obedit= NULL;
+		scen->stats= NULL;
+		scen->fps_info= NULL;
 
 		BLI_duplicatelist(&(scen->markers), &(sce->markers));
 		BLI_duplicatelist(&(scen->transform_spaces), &(sce->transform_spaces));
@@ -152,48 +152,48 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BKE_keyingsets_copy(&(scen->keyingsets), &(sce->keyingsets));
 
 		if (sce->nodetree) {
-			scen->nodetree = ntreeCopyTree(sce->nodetree); /* copies actions */
+			scen->nodetree= ntreeCopyTree(sce->nodetree); /* copies actions */
 			ntreeSwitchID(scen->nodetree, &sce->id, &scen->id);
 		}
 
-		obase = sce->base.first;
-		base = scen->base.first;
+		obase= sce->base.first;
+		base= scen->base.first;
 		while (base) {
 			id_us_plus(&base->object->id);
-			if (obase == sce->basact) scen->basact = base;
+			if (obase==sce->basact) scen->basact= base;
 	
-			obase = obase->next;
-			base = base->next;
+			obase= obase->next;
+			base= base->next;
 		}
 	}
 
 	/* tool settings */
-	scen->toolsettings = MEM_dupallocN(sce->toolsettings);
+	scen->toolsettings= MEM_dupallocN(sce->toolsettings);
 
-	ts = scen->toolsettings;
+	ts= scen->toolsettings;
 	if (ts) {
 		if (ts->vpaint) {
-			ts->vpaint = MEM_dupallocN(ts->vpaint);
-			ts->vpaint->paintcursor = NULL;
-			ts->vpaint->vpaint_prev = NULL;
-			ts->vpaint->wpaint_prev = NULL;
+			ts->vpaint= MEM_dupallocN(ts->vpaint);
+			ts->vpaint->paintcursor= NULL;
+			ts->vpaint->vpaint_prev= NULL;
+			ts->vpaint->wpaint_prev= NULL;
 			copy_paint(&ts->vpaint->paint, &ts->vpaint->paint);
 		}
 		if (ts->wpaint) {
-			ts->wpaint = MEM_dupallocN(ts->wpaint);
-			ts->wpaint->paintcursor = NULL;
-			ts->wpaint->vpaint_prev = NULL;
-			ts->wpaint->wpaint_prev = NULL;
+			ts->wpaint= MEM_dupallocN(ts->wpaint);
+			ts->wpaint->paintcursor= NULL;
+			ts->wpaint->vpaint_prev= NULL;
+			ts->wpaint->wpaint_prev= NULL;
 			copy_paint(&ts->wpaint->paint, &ts->wpaint->paint);
 		}
 		if (ts->sculpt) {
-			ts->sculpt = MEM_dupallocN(ts->sculpt);
+			ts->sculpt= MEM_dupallocN(ts->sculpt);
 			copy_paint(&ts->sculpt->paint, &ts->sculpt->paint);
 		}
 
 		copy_paint(&ts->imapaint.paint, &ts->imapaint.paint);
-		ts->imapaint.paintcursor = NULL;
-		ts->particle.paintcursor = NULL;
+		ts->imapaint.paintcursor= NULL;
+		ts->particle.paintcursor= NULL;
 	}
 	
 	/* make a private copy of the avicodecdata */
@@ -210,7 +210,7 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 	}
 	
 	if (sce->r.ffcodecdata.properties) { /* intentionally check scen not sce. */
-		scen->r.ffcodecdata.properties = IDP_CopyProperty(sce->r.ffcodecdata.properties);
+		scen->r.ffcodecdata.properties= IDP_CopyProperty(sce->r.ffcodecdata.properties);
 	}
 
 	/* NOTE: part of SCE_COPY_LINK_DATA and SCE_COPY_FULL operations
@@ -229,13 +229,13 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 		BKE_copy_animdata_id_action((ID *)scen);
 		if (scen->world) {
 			id_us_plus((ID *)scen->world);
-			scen->world = BKE_world_copy(scen->world);
+			scen->world= copy_world(scen->world);
 			BKE_copy_animdata_id_action((ID *)scen->world);
 		}
 
 		if (sce->ed) {
-			scen->ed = MEM_callocN(sizeof(Editing), "addseq");
-			scen->ed->seqbasep = &scen->ed->seqbase;
+			scen->ed= MEM_callocN( sizeof(Editing), "addseq");
+			scen->ed->seqbasep= &scen->ed->seqbase;
 			seqbase_dupli_recursive(sce, scen, &scen->ed->seqbase, &sce->ed->seqbase, SEQ_DUPE_ALL);
 		}
 	}
@@ -244,14 +244,14 @@ Scene *BKE_scene_copy(Scene *sce, int type)
 }
 
 /* do not free scene itself */
-void BKE_scene_free(Scene *sce)
+void free_scene(Scene *sce)
 {
 	Base *base;
 
-	base = sce->base.first;
+	base= sce->base.first;
 	while (base) {
 		base->object->id.us--;
-		base = base->next;
+		base= base->next;
 	}
 	/* do not free objects! */
 	
@@ -262,7 +262,7 @@ void BKE_scene_free(Scene *sce)
 		// its probably safe not to do this, some save and reload will free this.
 		sce->gpd->id.us--;
 #endif
-		sce->gpd = NULL;
+		sce->gpd= NULL;
 	}
 
 	BLI_freelistN(&sce->base);
@@ -332,84 +332,84 @@ void BKE_scene_free(Scene *sce)
 	sound_destroy_scene(sce);
 }
 
-Scene *BKE_scene_add(const char *name)
+Scene *add_scene(const char *name)
 {
-	Main *bmain = G.main;
+	Main *bmain= G.main;
 	Scene *sce;
 	ParticleEditSettings *pset;
 	int a;
 
-	sce = BKE_libblock_alloc(&bmain->scene, ID_SCE, name);
-	sce->lay = sce->layact = 1;
+	sce= alloc_libblock(&bmain->scene, ID_SCE, name);
+	sce->lay= sce->layact= 1;
 	
-	sce->r.mode = R_GAMMA | R_OSA | R_SHADOW | R_SSS | R_ENVMAP | R_RAYTRACE;
-	sce->r.cfra = 1;
-	sce->r.sfra = 1;
-	sce->r.efra = 250;
-	sce->r.frame_step = 1;
-	sce->r.xsch = 1920;
-	sce->r.ysch = 1080;
-	sce->r.xasp = 1;
-	sce->r.yasp = 1;
-	sce->r.xparts = 8;
-	sce->r.yparts = 8;
-	sce->r.mblur_samples = 1;
-	sce->r.filtertype = R_FILTER_MITCH;
-	sce->r.size = 50;
+	sce->r.mode= R_GAMMA|R_OSA|R_SHADOW|R_SSS|R_ENVMAP|R_RAYTRACE;
+	sce->r.cfra= 1;
+	sce->r.sfra= 1;
+	sce->r.efra= 250;
+	sce->r.frame_step= 1;
+	sce->r.xsch= 1920;
+	sce->r.ysch= 1080;
+	sce->r.xasp= 1;
+	sce->r.yasp= 1;
+	sce->r.xparts= 8;
+	sce->r.yparts= 8;
+	sce->r.mblur_samples= 1;
+	sce->r.filtertype= R_FILTER_MITCH;
+	sce->r.size= 50;
 
-	sce->r.im_format.planes = R_IMF_PLANES_RGB;
-	sce->r.im_format.imtype = R_IMF_IMTYPE_PNG;
-	sce->r.im_format.quality = 90;
+	sce->r.im_format.planes= R_IMF_PLANES_RGB;
+	sce->r.im_format.imtype= R_IMF_IMTYPE_PNG;
+	sce->r.im_format.quality= 90;
 
-	sce->r.displaymode = R_OUTPUT_AREA;
-	sce->r.framapto = 100;
-	sce->r.images = 100;
-	sce->r.framelen = 1.0;
-	sce->r.blurfac = 0.5;
-	sce->r.frs_sec = 24;
-	sce->r.frs_sec_base = 1;
-	sce->r.edgeint = 10;
+	sce->r.displaymode= R_OUTPUT_AREA;
+	sce->r.framapto= 100;
+	sce->r.images= 100;
+	sce->r.framelen= 1.0;
+	sce->r.blurfac= 0.5;
+	sce->r.frs_sec= 24;
+	sce->r.frs_sec_base= 1;
+	sce->r.edgeint= 10;
 	sce->r.ocres = 128;
 	sce->r.color_mgt_flag |= R_COLOR_MANAGEMENT;
-	sce->r.gauss = 1.0;
+	sce->r.gauss= 1.0;
 	
 	/* deprecated but keep for upwards compat */
-	sce->r.postgamma = 1.0;
-	sce->r.posthue = 0.0;
-	sce->r.postsat = 1.0;
-
-	sce->r.bake_mode = 1;    /* prevent to include render stuff here */
-	sce->r.bake_filter = 2;
-	sce->r.bake_osa = 5;
-	sce->r.bake_flag = R_BAKE_CLEAR;
-	sce->r.bake_normal_space = R_BAKE_SPACE_TANGENT;
-	sce->r.scemode = R_DOCOMP | R_DOSEQ | R_EXTENSION;
-	sce->r.stamp = R_STAMP_TIME | R_STAMP_FRAME | R_STAMP_DATE | R_STAMP_CAMERA | R_STAMP_SCENE | R_STAMP_FILENAME | R_STAMP_RENDERTIME;
-	sce->r.stamp_font_id = 12;
-	sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8f;
-	sce->r.fg_stamp[3] = 1.0f;
-	sce->r.bg_stamp[0] = sce->r.bg_stamp[1] = sce->r.bg_stamp[2] = 0.0f;
-	sce->r.bg_stamp[3] = 0.25f;
+	sce->r.postgamma= 1.0;
+	sce->r.posthue= 0.0;
+	sce->r.postsat= 1.0;
+	
+	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
+	sce->r.bake_filter= 2;
+	sce->r.bake_osa= 5;
+	sce->r.bake_flag= R_BAKE_CLEAR;
+	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
+	sce->r.scemode= R_DOCOMP|R_DOSEQ|R_EXTENSION;
+	sce->r.stamp= R_STAMP_TIME|R_STAMP_FRAME|R_STAMP_DATE|R_STAMP_CAMERA|R_STAMP_SCENE|R_STAMP_FILENAME|R_STAMP_RENDERTIME;
+	sce->r.stamp_font_id= 12;
+	sce->r.fg_stamp[0]= sce->r.fg_stamp[1]= sce->r.fg_stamp[2]= 0.8f;
+	sce->r.fg_stamp[3]= 1.0f;
+	sce->r.bg_stamp[0]= sce->r.bg_stamp[1]= sce->r.bg_stamp[2]= 0.0f;
+	sce->r.bg_stamp[3]= 0.25f;
 	sce->r.raytrace_options = R_RAYTRACE_USE_INSTANCES;
 
-	sce->r.seq_prev_type = OB_SOLID;
-	sce->r.seq_rend_type = OB_SOLID;
-	sce->r.seq_flag = R_SEQ_GL_PREV;
+	sce->r.seq_prev_type= OB_SOLID;
+	sce->r.seq_rend_type= OB_SOLID;
+	sce->r.seq_flag= R_SEQ_GL_PREV;
 
-	sce->r.threads = 1;
+	sce->r.threads= 1;
 
-	sce->r.simplify_subsurf = 6;
-	sce->r.simplify_particles = 1.0f;
-	sce->r.simplify_shadowsamples = 16;
-	sce->r.simplify_aosss = 1.0f;
+	sce->r.simplify_subsurf= 6;
+	sce->r.simplify_particles= 1.0f;
+	sce->r.simplify_shadowsamples= 16;
+	sce->r.simplify_aosss= 1.0f;
 
 	sce->r.border.xmin = 0.0f;
 	sce->r.border.ymin = 0.0f;
 	sce->r.border.xmax = 1.0f;
 	sce->r.border.ymax = 1.0f;
 	
-	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings), "Tool Settings Struct");
-	sce->toolsettings->cornertype = 1;
+	sce->toolsettings = MEM_callocN(sizeof(struct ToolSettings),"Tool Settings Struct");
+	sce->toolsettings->cornertype=1;
 	sce->toolsettings->degr = 90; 
 	sce->toolsettings->step = 9;
 	sce->toolsettings->turn = 1; 				
@@ -423,25 +423,25 @@ Scene *BKE_scene_add(const char *name)
 	sce->toolsettings->uvcalc_mapdir = 1;
 	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->unwrapper = 1;
-	sce->toolsettings->select_thresh = 0.01f;
+	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
 
-	sce->toolsettings->selectmode = SCE_SELECT_VERTEX;
-	sce->toolsettings->uv_selectmode = UV_SELECT_VERTEX;
-	sce->toolsettings->normalsize = 0.1;
-	sce->toolsettings->autokey_mode = U.autokey_mode;
+	sce->toolsettings->selectmode= SCE_SELECT_VERTEX;
+	sce->toolsettings->uv_selectmode= UV_SELECT_VERTEX;
+	sce->toolsettings->normalsize= 0.1;
+	sce->toolsettings->autokey_mode= U.autokey_mode;
 
 	sce->toolsettings->skgen_resolution = 100;
-	sce->toolsettings->skgen_threshold_internal     = 0.01f;
-	sce->toolsettings->skgen_threshold_external     = 0.01f;
-	sce->toolsettings->skgen_angle_limit            = 45.0f;
-	sce->toolsettings->skgen_length_ratio           = 1.3f;
-	sce->toolsettings->skgen_length_limit           = 1.5f;
-	sce->toolsettings->skgen_correlation_limit      = 0.98f;
-	sce->toolsettings->skgen_symmetry_limit         = 0.1f;
+	sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+	sce->toolsettings->skgen_threshold_external 	= 0.01f;
+	sce->toolsettings->skgen_angle_limit			= 45.0f;
+	sce->toolsettings->skgen_length_ratio			= 1.3f;
+	sce->toolsettings->skgen_length_limit			= 1.5f;
+	sce->toolsettings->skgen_correlation_limit		= 0.98f;
+	sce->toolsettings->skgen_symmetry_limit			= 0.1f;
 	sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
 	sce->toolsettings->skgen_postpro_passes = 1;
-	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL | SKGEN_FILTER_EXTERNAL | SKGEN_FILTER_SMART | SKGEN_HARMONIC | SKGEN_SUB_CORRELATION | SKGEN_STICK_TO_EMBEDDING;
+	sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_FILTER_SMART|SKGEN_HARMONIC|SKGEN_SUB_CORRELATION|SKGEN_STICK_TO_EMBEDDING;
 	sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
 	sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
 	sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
@@ -455,22 +455,22 @@ Scene *BKE_scene_add(const char *name)
 
 	sce->unit.scale_length = 1.0f;
 
-	pset = &sce->toolsettings->particle;
-	pset->flag = PE_KEEP_LENGTHS | PE_LOCK_FIRST | PE_DEFLECT_EMITTER | PE_AUTO_VELOCITY;
-	pset->emitterdist = 0.25f;
-	pset->totrekey = 5;
-	pset->totaddkey = 5;
-	pset->brushtype = PE_BRUSH_NONE;
-	pset->draw_step = 2;
-	pset->fade_frames = 2;
-	pset->selectmode = SCE_SELECT_PATH;
-	for (a = 0; a < PE_TOT_BRUSH; a++) {
-		pset->brush[a].strength = 0.5;
-		pset->brush[a].size = 50;
-		pset->brush[a].step = 10;
-		pset->brush[a].count = 10;
+	pset= &sce->toolsettings->particle;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER|PE_AUTO_VELOCITY;
+	pset->emitterdist= 0.25f;
+	pset->totrekey= 5;
+	pset->totaddkey= 5;
+	pset->brushtype= PE_BRUSH_NONE;
+	pset->draw_step= 2;
+	pset->fade_frames= 2;
+	pset->selectmode= SCE_SELECT_PATH;
+	for (a=0; a<PE_TOT_BRUSH; a++) {
+		pset->brush[a].strength= 0.5;
+		pset->brush[a].size= 50;
+		pset->brush[a].step= 10;
+		pset->brush[a].count= 10;
 	}
-	pset->brush[PE_BRUSH_CUT].strength = 100;
+	pset->brush[PE_BRUSH_CUT].strength= 100;
 
 	sce->r.ffcodecdata.audio_mixrate = 44100;
 	sce->r.ffcodecdata.audio_volume = 1.0f;
@@ -487,10 +487,10 @@ Scene *BKE_scene_add(const char *name)
 	BLI_strncpy(sce->r.pic, U.renderdir, sizeof(sce->r.pic));
 
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
-	sce->r.osa = 8;
+	sce->r.osa= 8;
 
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
-	BKE_scene_add_render_layer(sce, NULL);
+	scene_add_render_layer(sce, NULL);
 	
 	/* game data */
 	sce->gm.stereoflag = STEREO_NOSTEREO;
@@ -503,13 +503,13 @@ Scene *BKE_scene_add(const char *name)
 	sce->gm.dome.resbuf = 1.0f;
 	sce->gm.dome.tilt = 0;
 
-	sce->gm.xplay = 640;
-	sce->gm.yplay = 480;
-	sce->gm.freqplay = 60;
-	sce->gm.depth = 32;
+	sce->gm.xplay= 640;
+	sce->gm.yplay= 480;
+	sce->gm.freqplay= 60;
+	sce->gm.depth= 32;
 
-	sce->gm.gravity = 9.8f;
-	sce->gm.physicsEngine = WOPHY_BULLET;
+	sce->gm.gravity= 9.8f;
+	sce->gm.physicsEngine= WOPHY_BULLET;
 	sce->gm.mode = 32; //XXX ugly harcoding, still not sure we should drop mode. 32 == 1 << 5 == use_occlusion_culling 
 	sce->gm.occlusionRes = 128;
 	sce->gm.ticrate = 60;
@@ -520,12 +520,12 @@ Scene *BKE_scene_add(const char *name)
 	sce->gm.flag = GAME_DISPLAY_LISTS;
 	sce->gm.matmode = GAME_MAT_MULTITEX;
 
-	sce->gm.obstacleSimulation = OBSTSIMULATION_NONE;
+	sce->gm.obstacleSimulation= OBSTSIMULATION_NONE;
 	sce->gm.levelHeight = 2.f;
 
 	sce->gm.recastData.cellsize = 0.3f;
 	sce->gm.recastData.cellheight = 0.2f;
-	sce->gm.recastData.agentmaxslope = M_PI / 2;
+	sce->gm.recastData.agentmaxslope = M_PI/2;
 	sce->gm.recastData.agentmaxclimb = 0.9f;
 	sce->gm.recastData.agentheight = 2.0f;
 	sce->gm.recastData.agentradius = 0.6f;
@@ -544,19 +544,19 @@ Scene *BKE_scene_add(const char *name)
 	return sce;
 }
 
-Base *BKE_scene_base_find(Scene *scene, Object *ob)
+Base *object_in_scene(Object *ob, Scene *sce)
 {
 	Base *base;
 	
-	base = scene->base.first;
+	base= sce->base.first;
 	while (base) {
 		if (base->object == ob) return base;
-		base = base->next;
+		base= base->next;
 	}
 	return NULL;
 }
 
-void BKE_scene_set_background(Main *bmain, Scene *scene)
+void set_scene_bg(Main *bmain, Scene *scene)
 {
 	Scene *sce;
 	Base *base;
@@ -566,22 +566,22 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	int flag;
 	
 	/* check for cyclic sets, for reading old files but also for definite security (py?) */
-	BKE_scene_validate_setscene(bmain, scene);
+	scene_check_setscene(bmain, scene);
 	
 	/* can happen when switching modes in other scenes */
 	if (scene->obedit && !(scene->obedit->mode & OB_MODE_EDIT))
-		scene->obedit = NULL;
+		scene->obedit= NULL;
 
 	/* deselect objects (for dataselect) */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
-		ob->flag &= ~(SELECT | OB_FROMGROUP);
+	for (ob= bmain->object.first; ob; ob= ob->id.next)
+		ob->flag &= ~(SELECT|OB_FROMGROUP);
 
 	/* group flags again */
-	for (group = bmain->group.first; group; group = group->id.next) {
-		go = group->gobject.first;
+	for (group= bmain->group.first; group; group= group->id.next) {
+		go= group->gobject.first;
 		while (go) {
 			if (go->ob) go->ob->flag |= OB_FROMGROUP;
-			go = go->next;
+			go= go->next;
 		}
 	}
 
@@ -589,35 +589,35 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 	DAG_scene_sort(bmain, scene);
 	
 	/* ensure dags are built for sets */
-	for (sce = scene->set; sce; sce = sce->set)
-		if (sce->theDag == NULL)
+	for (sce= scene->set; sce; sce= sce->set)
+		if (sce->theDag==NULL)
 			DAG_scene_sort(bmain, sce);
 
 	/* copy layers and flags from bases to objects */
-	for (base = scene->base.first; base; base = base->next) {
-		ob = base->object;
-		ob->lay = base->lay;
+	for (base= scene->base.first; base; base= base->next) {
+		ob= base->object;
+		ob->lay= base->lay;
 		
 		/* group patch... */
 		base->flag &= ~(OB_FROMGROUP);
-		flag = ob->flag & (OB_FROMGROUP);
+		flag= ob->flag & (OB_FROMGROUP);
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
 		//if (ob->pose==NULL) base->flag &= ~OB_POSEMODE;
-		ob->flag = base->flag;
+		ob->flag= base->flag;
 		
-		ob->ctime = -1234567.0;  /* force ipo to be calculated later */
+		ob->ctime= -1234567.0;	/* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 }
 
 /* called from creator.c */
-Scene *BKE_scene_set_name(Main *bmain, const char *name)
+Scene *set_scene_name(Main *bmain, const char *name)
 {
-	Scene *sce = (Scene *)BKE_libblock_find_name(ID_SCE, name);
+	Scene *sce= (Scene *)find_id("SC", name);
 	if (sce) {
-		BKE_scene_set_background(bmain, sce);
+		set_scene_bg(bmain, sce);
 		printf("Scene switch: '%s' in file: '%s'\n", name, G.main->name);
 		return sce;
 	}
@@ -626,15 +626,15 @@ Scene *BKE_scene_set_name(Main *bmain, const char *name)
 	return NULL;
 }
 
-void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
+void unlink_scene(Main *bmain, Scene *sce, Scene *newsce)
 {
 	Scene *sce1;
 	bScreen *sc;
 
 	/* check all sets */
-	for (sce1 = bmain->scene.first; sce1; sce1 = sce1->id.next)
+	for (sce1= bmain->scene.first; sce1; sce1= sce1->id.next)
 		if (sce1->set == sce)
-			sce1->set = NULL;
+			sce1->set= NULL;
 	
 	/* check all sequences */
 	clear_scene_in_allseqs(bmain, sce);
@@ -643,27 +643,27 @@ void BKE_scene_unlink(Main *bmain, Scene *sce, Scene *newsce)
 	clear_scene_in_nodes(bmain, sce);
 	
 	/* al screens */
-	for (sc = bmain->screen.first; sc; sc = sc->id.next)
+	for (sc= bmain->screen.first; sc; sc= sc->id.next)
 		if (sc->scene == sce)
-			sc->scene = newsce;
+			sc->scene= newsce;
 
-	BKE_libblock_free(&bmain->scene, sce);
+	free_libblock(&bmain->scene, sce);
 }
 
 /* used by metaballs
  * doesnt return the original duplicated object, only dupli's
  */
-int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
+int next_object(Scene **scene, int val, Base **base, Object **ob)
 {
-	static ListBase *duplilist = NULL;
+	static ListBase *duplilist= NULL;
 	static DupliObject *dupob;
-	static int fase = F_START, in_next_object = 0;
-	int run_again = 1;
+	static int fase= F_START, in_next_object= 0;
+	int run_again=1;
 	
 	/* init */
-	if (val == 0) {
-		fase = F_START;
-		dupob = NULL;
+	if (val==0) {
+		fase= F_START;
+		dupob= NULL;
 		
 		/* XXX particle systems with metas+dupligroups call this recursively */
 		/* see bug #18725 */
@@ -674,44 +674,44 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 		}
 	}
 	else {
-		in_next_object = 1;
+		in_next_object= 1;
 		
 		/* run_again is set when a duplilist has been ended */
 		while (run_again) {
-			run_again = 0;
+			run_again= 0;
 
 			/* the first base */
-			if (fase == F_START) {
-				*base = (*scene)->base.first;
+			if (fase==F_START) {
+				*base= (*scene)->base.first;
 				if (*base) {
-					*ob = (*base)->object;
-					fase = F_SCENE;
+					*ob= (*base)->object;
+					fase= F_SCENE;
 				}
 				else {
 					/* exception: empty scene */
 					while ((*scene)->set) {
-						(*scene) = (*scene)->set;
+						(*scene)= (*scene)->set;
 						if ((*scene)->base.first) {
-							*base = (*scene)->base.first;
-							*ob = (*base)->object;
-							fase = F_SCENE;
+							*base= (*scene)->base.first;
+							*ob= (*base)->object;
+							fase= F_SCENE;
 							break;
 						}
 					}
 				}
 			}
 			else {
-				if (*base && fase != F_DUPLI) {
-					*base = (*base)->next;
-					if (*base) *ob = (*base)->object;
+				if (*base && fase!=F_DUPLI) {
+					*base= (*base)->next;
+					if (*base) *ob= (*base)->object;
 					else {
-						if (fase == F_SCENE) {
+						if (fase==F_SCENE) {
 							/* (*scene) is finished, now do the set */
 							while ((*scene)->set) {
-								(*scene) = (*scene)->set;
+								(*scene)= (*scene)->set;
 								if ((*scene)->base.first) {
-									*base = (*scene)->base.first;
-									*ob = (*base)->object;
+									*base= (*scene)->base.first;
+									*ob= (*base)->object;
 									break;
 								}
 							}
@@ -720,17 +720,17 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 				}
 			}
 			
-			if (*base == NULL) fase = F_START;
+			if (*base == NULL) fase= F_START;
 			else {
-				if (fase != F_DUPLI) {
+				if (fase!=F_DUPLI) {
 					if ( (*base)->object->transflag & OB_DUPLI) {
 						/* groups cannot be duplicated for mballs yet, 
 						 * this enters eternal loop because of 
 						 * makeDispListMBall getting called inside of group_duplilist */
 						if ((*base)->object->dup_group == NULL) {
-							duplilist = object_duplilist((*scene), (*base)->object);
+							duplilist= object_duplilist((*scene), (*base)->object);
 							
-							dupob = duplilist->first;
+							dupob= duplilist->first;
 
 							if (!dupob)
 								free_object_duplilist(duplilist);
@@ -743,22 +743,22 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 					copy_m4_m4(dupob->ob->obmat, dupob->mat);
 					
 					(*base)->flag |= OB_FROMDUPLI;
-					*ob = dupob->ob;
-					fase = F_DUPLI;
+					*ob= dupob->ob;
+					fase= F_DUPLI;
 					
-					dupob = dupob->next;
+					dupob= dupob->next;
 				}
-				else if (fase == F_DUPLI) {
-					fase = F_SCENE;
+				else if (fase==F_DUPLI) {
+					fase= F_SCENE;
 					(*base)->flag &= ~OB_FROMDUPLI;
 					
-					for (dupob = duplilist->first; dupob; dupob = dupob->next) {
+					for (dupob= duplilist->first; dupob; dupob= dupob->next) {
 						copy_m4_m4(dupob->ob->obmat, dupob->omat);
 					}
 					
 					free_object_duplilist(duplilist);
-					duplilist = NULL;
-					run_again = 1;
+					duplilist= NULL;
+					run_again= 1;
 				}
 			}
 		}
@@ -766,39 +766,39 @@ int BKE_scene_base_iter_next(Scene **scene, int val, Base **base, Object **ob)
 
 #if 0
 	if (ob && *ob) {
-		printf("Scene: '%s', '%s'\n", (*scene)->id.name + 2, (*ob)->id.name + 2);
+		printf("Scene: '%s', '%s'\n", (*scene)->id.name+2, (*ob)->id.name+2);
 	}
 #endif
 
 	/* reset recursion test */
-	in_next_object = 0;
+	in_next_object= 0;
 	
 	return fase;
 }
 
-Object *BKE_scene_camera_find(Scene *sc)
+Object *scene_find_camera(Scene *sc)
 {
 	Base *base;
 	
-	for (base = sc->base.first; base; base = base->next)
-		if (base->object->type == OB_CAMERA)
+	for (base= sc->base.first; base; base= base->next)
+		if (base->object->type==OB_CAMERA)
 			return base->object;
 
 	return NULL;
 }
 
 #ifdef DURIAN_CAMERA_SWITCH
-Object *BKE_scene_camera_switch_find(Scene *scene)
+Object *scene_camera_switch_find(Scene *scene)
 {
 	TimeMarker *m;
 	int cfra = scene->r.cfra;
 	int frame = -(MAXFRAME + 1);
-	Object *camera = NULL;
+	Object *camera= NULL;
 
-	for (m = scene->markers.first; m; m = m->next) {
-		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER) == 0 && (m->frame <= cfra) && (m->frame > frame)) {
-			camera = m->camera;
-			frame = m->frame;
+	for (m= scene->markers.first; m; m= m->next) {
+		if (m->camera && (m->camera->restrictflag & OB_RESTRICT_RENDER)==0 && (m->frame <= cfra) && (m->frame > frame)) {
+			camera= m->camera;
+			frame= m->frame;
 
 			if (frame == cfra)
 				break;
@@ -809,12 +809,12 @@ Object *BKE_scene_camera_switch_find(Scene *scene)
 }
 #endif
 
-int BKE_scene_camera_switch_update(Scene *scene)
+int scene_camera_switch_update(Scene *scene)
 {
 #ifdef DURIAN_CAMERA_SWITCH
-	Object *camera = BKE_scene_camera_switch_find(scene);
+	Object *camera= scene_camera_switch_find(scene);
 	if (camera) {
-		scene->camera = camera;
+		scene->camera= camera;
 		return 1;
 	}
 #else
@@ -823,20 +823,20 @@ int BKE_scene_camera_switch_update(Scene *scene)
 	return 0;
 }
 
-char *BKE_scene_find_marker_name(Scene *scene, int frame)
+char *scene_find_marker_name(Scene *scene, int frame)
 {
-	ListBase *markers = &scene->markers;
+	ListBase *markers= &scene->markers;
 	TimeMarker *m1, *m2;
 
 	/* search through markers for match */
-	for (m1 = markers->first, m2 = markers->last; m1 && m2; m1 = m1->next, m2 = m2->prev) {
-		if (m1->frame == frame)
+	for (m1=markers->first, m2=markers->last; m1 && m2; m1=m1->next, m2=m2->prev) {
+		if (m1->frame==frame)
 			return m1->name;
 
 		if (m1 == m2)
 			break;
 
-		if (m2->frame == frame)
+		if (m2->frame==frame)
 			return m2->name;
 	}
 
@@ -845,16 +845,16 @@ char *BKE_scene_find_marker_name(Scene *scene, int frame)
 
 /* return the current marker for this frame,
  * we can have more then 1 marker per frame, this just returns the first :/ */
-char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
+char *scene_find_last_marker_name(Scene *scene, int frame)
 {
 	TimeMarker *marker, *best_marker = NULL;
-	int best_frame = -MAXFRAME * 2;
-	for (marker = scene->markers.first; marker; marker = marker->next) {
-		if (marker->frame == frame) {
+	int best_frame = -MAXFRAME*2;
+	for (marker= scene->markers.first; marker; marker= marker->next) {
+		if (marker->frame==frame) {
 			return marker->name;
 		}
 
-		if (marker->frame > best_frame && marker->frame < frame) {
+		if ( marker->frame > best_frame && marker->frame < frame) {
 			best_marker = marker;
 			best_frame = marker->frame;
 		}
@@ -864,55 +864,55 @@ char *BKE_scene_find_last_marker_name(Scene *scene, int frame)
 }
 
 
-Base *BKE_scene_base_add(Scene *sce, Object *ob)
+Base *scene_add_base(Scene *sce, Object *ob)
 {
-	Base *b = MEM_callocN(sizeof(*b), "BKE_scene_base_add");
+	Base *b= MEM_callocN(sizeof(*b), "scene_add_base");
 	BLI_addhead(&sce->base, b);
 
-	b->object = ob;
-	b->flag = ob->flag;
-	b->lay = ob->lay;
+	b->object= ob;
+	b->flag= ob->flag;
+	b->lay= ob->lay;
 
 	return b;
 }
 
-void BKE_scene_base_deselect_all(Scene *sce)
+void scene_deselect_all(Scene *sce)
 {
 	Base *b;
 
-	for (b = sce->base.first; b; b = b->next) {
-		b->flag &= ~SELECT;
-		b->object->flag = b->flag;
+	for (b= sce->base.first; b; b= b->next) {
+		b->flag&= ~SELECT;
+		b->object->flag= b->flag;
 	}
 }
 
-void BKE_scene_base_select(Scene *sce, Base *selbase)
+void scene_select_base(Scene *sce, Base *selbase)
 {
 	scene_deselect_all(sce);
 
 	selbase->flag |= SELECT;
-	selbase->object->flag = selbase->flag;
+	selbase->object->flag= selbase->flag;
 
-	sce->basact = selbase;
+	sce->basact= selbase;
 }
 
 /* checks for cycle, returns 1 if it's all OK */
-int BKE_scene_validate_setscene(Main *bmain, Scene *sce)
+int scene_check_setscene(Main *bmain, Scene *sce)
 {
 	Scene *scene;
 	int a, totscene;
 	
-	if (sce->set == NULL) return 1;
+	if (sce->set==NULL) return 1;
 	
-	totscene = 0;
-	for (scene = bmain->scene.first; scene; scene = scene->id.next)
+	totscene= 0;
+	for (scene= bmain->scene.first; scene; scene= scene->id.next)
 		totscene++;
 	
-	for (a = 0, scene = sce; scene->set; scene = scene->set, a++) {
+	for (a=0, scene=sce; scene->set; scene=scene->set, a++) {
 		/* more iterations than scenes means we have a cycle */
 		if (a > totscene) {
 			/* the tested scene gets zero'ed, that's typically current scene */
-			sce->set = NULL;
+			sce->set= NULL;
 			return 0;
 		}
 	}
@@ -923,13 +923,13 @@ int BKE_scene_validate_setscene(Main *bmain, Scene *sce)
 /* This function is needed to cope with fractional frames - including two Blender rendering features
  * mblur (motion blur that renders 'subframes' and blurs them together), and fields rendering. 
  */
-float BKE_scene_frame_get(Scene *scene)
+float BKE_curframe(Scene *scene)
 {
-	return BKE_scene_frame_get_from_ctime(scene, scene->r.cfra);
+	return BKE_frame_to_ctime(scene, scene->r.cfra);
 }
 
 /* This function is used to obtain arbitrary fractional frames */
-float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
+float BKE_frame_to_ctime(Scene *scene, const float frame)
 {
 	float ctime = frame;
 	ctime += scene->r.subframe;
@@ -939,14 +939,14 @@ float BKE_scene_frame_get_from_ctime(Scene *scene, const float frame)
 }
 
 /* drivers support/hacks 
- *  - this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
+ * 	- this method is called from scene_update_tagged_recursive(), so gets included in viewport + render
  *	- these are always run since the depsgraph can't handle non-object data
  *	- these happen after objects are all done so that we can read in their final transform values,
  *	  though this means that objects can't refer to scene info for guidance...
  */
 static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 {
-	float ctime = BKE_scene_frame_get(scene);
+	float ctime = BKE_curframe(scene);
 	
 	/* scene itself */
 	if (scene->adt && scene->adt->drivers.first) {
@@ -957,7 +957,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	// TODO: what about world textures? but then those have nodes too...
 	if (scene->world) {
 		ID *wid = (ID *)scene->world;
-		AnimData *adt = BKE_animdata_from_id(wid);
+		AnimData *adt= BKE_animdata_from_id(wid);
 		
 		if (adt && adt->drivers.first)
 			BKE_animsys_evaluate_animdata(scene, wid, adt, ctime, ADT_RECALC_DRIVERS);
@@ -966,7 +966,7 @@ static void scene_update_drivers(Main *UNUSED(bmain), Scene *scene)
 	/* nodes */
 	if (scene->nodetree) {
 		ID *nid = (ID *)scene->nodetree;
-		AnimData *adt = BKE_animdata_from_id(nid);
+		AnimData *adt= BKE_animdata_from_id(nid);
 		
 		if (adt && adt->drivers.first)
 			BKE_animsys_evaluate_animdata(scene, nid, adt, ctime, ADT_RECALC_DRIVERS);
@@ -978,7 +978,7 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 	Base *base;
 	
 	
-	scene->customdata_mask = scene_parent->customdata_mask;
+	scene->customdata_mask= scene_parent->customdata_mask;
 
 	/* sets first, we allow per definition current scene to have
 	 * dependencies on sets, but not the other way around. */
@@ -986,16 +986,16 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 		scene_update_tagged_recursive(bmain, scene->set, scene_parent);
 	
 	/* scene objects */
-	for (base = scene->base.first; base; base = base->next) {
-		Object *ob = base->object;
+	for (base= scene->base.first; base; base= base->next) {
+		Object *ob= base->object;
 		
-		BKE_object_handle_update(scene_parent, ob);
+		object_handle_update(scene_parent, ob);
 		
 		if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
 			group_handle_recalc_and_update(scene_parent, ob, ob->dup_group);
 			
 		/* always update layer, so that animating layers works */
-		base->lay = ob->lay;
+		base->lay= ob->lay;
 	}
 	
 	/* scene drivers... */
@@ -1006,15 +1006,15 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
-void BKE_scene_update_tagged(Main *bmain, Scene *scene)
+void scene_update_tagged(Main *bmain, Scene *scene)
 {
 	/* keep this first */
-	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	/* flush recalc flags to dependencies */
 	DAG_ids_flush_tagged(bmain);
 
-	scene->physics_settings.quick_cache_step = 0;
+	scene->physics_settings.quick_cache_step= 0;
 
 	/* update all objects: drivers, matrices, displists, etc. flags set
 	 * by depgraph or manual, no layer check here, gets correct flushed
@@ -1025,8 +1025,8 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 
 	/* extra call here to recalc scene animation (for sequencer) */
 	{
-		AnimData *adt = BKE_animdata_from_id(&scene->id);
-		float ctime = BKE_scene_frame_get(scene);
+		AnimData *adt= BKE_animdata_from_id(&scene->id);
+		float ctime = BKE_curframe(scene);
 		
 		if (adt && (adt->recalc & ADT_RECALC_ANIM))
 			BKE_animsys_evaluate_animdata(scene, &scene->id, adt, ctime, 0);
@@ -1037,7 +1037,7 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 		BKE_ptcache_quick_cache_all(bmain, scene);
 
 	/* notify editors and python about recalc */
-	BLI_callback_exec(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_exec_cb(bmain, &scene->id, BLI_CB_EVT_SCENE_UPDATE_POST);
 	DAG_ids_check_recalc(bmain, scene, FALSE);
 
 	/* clear recalc flags */
@@ -1045,28 +1045,28 @@ void BKE_scene_update_tagged(Main *bmain, Scene *scene)
 }
 
 /* applies changes right away, does all sets too */
-void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
+void scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 {
-	float ctime = BKE_scene_frame_get(sce);
+	float ctime = BKE_curframe(sce);
 	Scene *sce_iter;
 
 	/* keep this first */
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_PRE);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_PRE);
 
 	sound_set_cfra(sce->r.cfra);
 	
 	/* clear animation overrides */
 	// XXX TODO...
 
-	for (sce_iter = sce; sce_iter; sce_iter = sce_iter->set) {
-		if (sce_iter->theDag == NULL)
+	for (sce_iter= sce; sce_iter; sce_iter= sce_iter->set) {
+		if (sce_iter->theDag==NULL)
 			DAG_scene_sort(bmain, sce_iter);
 	}
 
 	/* flush recalc flags to dependencies, if we were only changing a frame
 	 * this would not be necessary, but if a user or a script has modified
-	 * some datablock before BKE_scene_update_tagged was called, we need the flush */
+	 * some datablock before scene_update_tagged was called, we need the flush */
 	DAG_ids_flush_tagged(bmain);
 
 	/* Following 2 functions are recursive
@@ -1082,12 +1082,12 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	BKE_animsys_evaluate_all_animation(bmain, sce, ctime);
 	/*...done with recusrive funcs */
 
-	/* BKE_object_handle_update() on all objects, groups and sets */
+	/* object_handle_update() on all objects, groups and sets */
 	scene_update_tagged_recursive(bmain, sce, sce);
 
 	/* notify editors and python about recalc */
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
-	BLI_callback_exec(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_SCENE_UPDATE_POST);
+	BLI_exec_cb(bmain, &sce->id, BLI_CB_EVT_FRAME_CHANGE_POST);
 
 	DAG_ids_check_recalc(bmain, sce, TRUE);
 
@@ -1096,29 +1096,29 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 }
 
 /* return default layer, also used to patch old files */
-SceneRenderLayer *BKE_scene_add_render_layer(Scene *sce, const char *name)
+SceneRenderLayer *scene_add_render_layer(Scene *sce, const char *name)
 {
 	SceneRenderLayer *srl;
 
 	if (!name)
-		name = "RenderLayer";
+		name= "RenderLayer";
 
-	srl = MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
+	srl= MEM_callocN(sizeof(SceneRenderLayer), "new render layer");
 	BLI_strncpy(srl->name, name, sizeof(srl->name));
 	BLI_uniquename(&sce->r.layers, srl, "RenderLayer", '.', offsetof(SceneRenderLayer, name), sizeof(srl->name));
 	BLI_addtail(&sce->r.layers, srl);
 
 	/* note, this is also in render, pipeline.c, to make layer when scenedata doesnt have it */
-	srl->lay = (1 << 20) - 1;
-	srl->layflag = 0x7FFF;   /* solid ztra halo edge strand */
-	srl->passflag = SCE_PASS_COMBINED | SCE_PASS_Z;
+	srl->lay= (1<<20) -1;
+	srl->layflag= 0x7FFF;	/* solid ztra halo edge strand */
+	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
 
 	return srl;
 }
 
-int BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
+int scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *srl)
 {
-	const int act = BLI_findindex(&scene->r.layers, srl);
+	const int act= BLI_findindex(&scene->r.layers, srl);
 	Scene *sce;
 
 	if (act == -1) {
@@ -1134,16 +1134,16 @@ int BKE_scene_remove_render_layer(Main *bmain, Scene *scene, SceneRenderLayer *s
 	BLI_remlink(&scene->r.layers, srl);
 	MEM_freeN(srl);
 
-	scene->r.actlay = 0;
+	scene->r.actlay= 0;
 
 	for (sce = bmain->scene.first; sce; sce = sce->id.next) {
 		if (sce->nodetree) {
 			bNode *node;
 			for (node = sce->nodetree->nodes.first; node; node = node->next) {
-				if (node->type == CMP_NODE_R_LAYERS && (Scene *)node->id == scene) {
-					if (node->custom1 == act)
-						node->custom1 = 0;
-					else if (node->custom1 > act)
+				if (node->type==CMP_NODE_R_LAYERS && (Scene*)node->id==scene) {
+					if (node->custom1==act)
+						node->custom1= 0;
+					else if (node->custom1>act)
 						node->custom1--;
 				}
 			}
@@ -1166,7 +1166,7 @@ int get_render_subsurf_level(RenderData *r, int lvl)
 int get_render_child_particle_number(RenderData *r, int num)
 {
 	if (r->mode & R_SIMPLIFY)
-		return (int)(r->simplify_particles * num);
+		return (int)(r->simplify_particles*num);
 	else
 		return num;
 }
@@ -1182,7 +1182,7 @@ int get_render_shadow_samples(RenderData *r, int samples)
 float get_render_aosss_error(RenderData *r, float error)
 {
 	if (r->mode & R_SIMPLIFY)
-		return ((1.0f - r->simplify_aosss) * 10.0f + 1.0f) * error;
+		return ((1.0f-r->simplify_aosss)*10.0f + 1.0f)*error;
 	else
 		return error;
 }
@@ -1194,14 +1194,14 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 		/* common case, step to the next */
 		return base->next;
 	}
-	else if (base == NULL && (*sce_iter)->base.first) {
+	else if (base==NULL && (*sce_iter)->base.first) {
 		/* first time looping, return the scenes first base */
 		return (Base *)(*sce_iter)->base.first;
 	}
 	else {
 		/* reached the end, get the next base in the set */
-		while ((*sce_iter = (*sce_iter)->set)) {
-			base = (Base *)(*sce_iter)->base.first;
+		while ((*sce_iter= (*sce_iter)->set)) {
+			base= (Base *)(*sce_iter)->base.first;
 			if (base) {
 				return base;
 			}
@@ -1211,28 +1211,9 @@ Base *_setlooper_base_step(Scene **sce_iter, Base *base)
 	return NULL;
 }
 
-int BKE_scene_use_new_shading_nodes(Scene *scene)
+int scene_use_new_shading_nodes(Scene *scene)
 {
-	RenderEngineType *type = RE_engines_find(scene->r.engine);
+	RenderEngineType *type= RE_engines_find(scene->r.engine);
 	return (type && type->flag & RE_USE_SHADING_NODES);
 }
 
-void BKE_scene_base_flag_to_objects(struct Scene *scene)
-{
-	Base *base = scene->base.first;
-
-	while (base) {
-		base->object->flag = base->flag;
-		base = base->next;
-	}
-}
-
-void BKE_scene_base_flag_from_objects(struct Scene *scene)
-{
-	Base *base = scene->base.first;
-
-	while (base) {
-		base->flag = base->object->flag;
-		base = base->next;
-	}
-}

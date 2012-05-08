@@ -78,7 +78,7 @@
 int slurph_opt = 1;
 
 
-void BKE_key_free(Key *key)
+void free_key(Key *key)
 {
 	KeyBlock *kb;
 	
@@ -126,7 +126,7 @@ Key *add_key(ID *id)    /* common function */
 	Key *key;
 	char *el;
 	
-	key = BKE_libblock_alloc(&G.main->key, ID_KE, "Key");
+	key = alloc_libblock(&G.main->key, ID_KE, "Key");
 	
 	key->type = KEY_NORMAL;
 	key->from = id;
@@ -170,14 +170,14 @@ Key *add_key(ID *id)    /* common function */
 	return key;
 }
 
-Key *BKE_key_copy(Key *key)
+Key *copy_key(Key *key)
 {
 	Key *keyn;
 	KeyBlock *kbn, *kb;
 	
 	if (key == NULL) return NULL;
 	
-	keyn = BKE_libblock_copy(&key->id);
+	keyn = copy_libblock(&key->id);
 	
 	BLI_duplicatelist(&keyn->block, &key->block);
 	
@@ -223,7 +223,7 @@ Key *copy_key_nolib(Key *key)
 	return keyn;
 }
 
-void BKE_key_make_local(Key *key)
+void make_local_key(Key *key)
 {
 
 	/* - only lib users: do nothing
@@ -1594,7 +1594,7 @@ void curve_to_key(Curve *cu, KeyBlock *kb, ListBase *nurb)
 	int a, tot;
 
 	/* count */
-	tot = BKE_nurbList_verts_count(nurb);
+	tot = count_curveverts(nurb);
 	if (tot == 0) return;
 
 	if (kb->data) MEM_freeN(kb->data);
@@ -1647,7 +1647,7 @@ void key_to_curve(KeyBlock *kb, Curve *UNUSED(cu), ListBase *nurb)
 	nu = nurb->first;
 	fp = kb->data;
 
-	tot = BKE_nurbList_verts_count(nurb);
+	tot = count_curveverts(nurb);
 
 	tot = MIN2(kb->totelem, tot);
 
@@ -1742,7 +1742,7 @@ float (*key_to_vertcos(Object * ob, KeyBlock * kb))[3]
 	}
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
-		tot = BKE_nurbList_verts_count(&cu->nurb);
+		tot = count_curveverts(&cu->nurb);
 	}
 
 	if (tot == 0) return NULL;
@@ -1822,7 +1822,7 @@ void vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 	else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = (Curve *)ob->data;
 		elemsize = cu->key->elemsize;
-		tot = BKE_nurbList_verts_count(&cu->nurb);
+		tot = count_curveverts(&cu->nurb);
 	}
 
 	if (tot == 0) {

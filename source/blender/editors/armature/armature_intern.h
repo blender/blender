@@ -63,7 +63,6 @@ void ARMATURE_OT_select_all(struct wmOperatorType *ot);
 void ARMATURE_OT_select_inverse(struct wmOperatorType *ot);
 void ARMATURE_OT_select_hierarchy(struct wmOperatorType *ot);
 void ARMATURE_OT_select_linked(struct wmOperatorType *ot);
-void ARMATURE_OT_select_similar(struct wmOperatorType *ot);
 
 void ARMATURE_OT_delete(struct wmOperatorType *ot);
 void ARMATURE_OT_duplicate(struct wmOperatorType *ot);
@@ -117,7 +116,6 @@ void POSE_OT_group_select(struct wmOperatorType *ot);
 void POSE_OT_group_deselect(struct wmOperatorType *ot);
 
 void POSE_OT_paths_calculate(struct wmOperatorType *ot);
-void POSE_OT_paths_update(struct wmOperatorType *ot);
 void POSE_OT_paths_clear(struct wmOperatorType *ot);
 
 void POSE_OT_autoside_names(struct wmOperatorType *ot);

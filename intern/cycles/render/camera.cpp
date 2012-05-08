@@ -25,7 +25,8 @@ CCL_NAMESPACE_BEGIN
 
 Camera::Camera()
 {
-	shuttertime = 1.0f;
+	shutteropen = 0.0f;
+	shutterclose = 1.0f;
 
 	aperturesize = 0.0f;
 	focaldistance = 10.0f;
@@ -33,10 +34,6 @@ Camera::Camera()
 	bladesrotation = 0.0f;
 
 	matrix = transform_identity();
-
-	motion.pre = transform_identity();
-	motion.post = transform_identity();
-	use_motion = false;
 
 	type = CAMERA_PERSPECTIVE;
 	fov = M_PI_F/4.0f;
@@ -127,7 +124,7 @@ void Camera::update()
 	need_device_update = true;
 }
 
-void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
+void Camera::device_update(Device *device, DeviceScene *dscene)
 {
 	update();
 
@@ -143,43 +140,9 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->rastertocamera = rastertocamera;
 	kcam->cameratoworld = cameratoworld;
 	kcam->worldtoscreen = transform_inverse(screentoworld);
-	kcam->worldtoraster = worldtoraster;
+	kcam->worldtoraster = transform_inverse(rastertoworld);
 	kcam->worldtondc = transform_inverse(ndctoworld);
 	kcam->worldtocamera = transform_inverse(cameratoworld);
-
-	/* camera motion */
-	Scene::MotionType need_motion = scene->need_motion();
-	kcam->have_motion = 0;
-
-	if(need_motion == Scene::MOTION_PASS) {
-		if(type == CAMERA_PANORAMA) {
-			if(use_motion) {
-				kcam->motion.pre = transform_inverse(motion.pre);
-				kcam->motion.post = transform_inverse(motion.post);
-			}
-			else {
-				kcam->motion.pre = kcam->worldtocamera;
-				kcam->motion.post = kcam->worldtocamera;
-			}
-		}
-		else {
-			if(use_motion) {
-				kcam->motion.pre = transform_inverse(motion.pre * rastertocamera);
-				kcam->motion.post = transform_inverse(motion.post * rastertocamera);
-			}
-			else {
-				kcam->motion.pre = worldtoraster;
-				kcam->motion.post = worldtoraster;
-			}
-		}
-	}
-	else if(need_motion == Scene::MOTION_BLUR) {
-		/* todo: exact camera position will not be hit this way */
-		if(use_motion) {
-			transform_motion_decompose(&kcam->motion, &motion);
-			kcam->have_motion = 1;
-		}
-	}
 
 	/* depth of field */
 	kcam->aperturesize = aperturesize;
@@ -188,14 +151,11 @@ void Camera::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 	kcam->bladesrotation = bladesrotation;
 
 	/* motion blur */
-	kcam->shuttertime= (need_motion == Scene::MOTION_BLUR)? shuttertime: 0.0f;
+	kcam->shutteropen = shutteropen;
+	kcam->shutterclose = shutterclose;
 
 	/* type */
 	kcam->type = type;
-
-	/* render size */
-	kcam->width = width;
-	kcam->height = height;
 
 	/* store differentials */
 	kcam->dx = float3_to_float4(dx);
@@ -215,7 +175,8 @@ void Camera::device_free(Device *device, DeviceScene *dscene)
 
 bool Camera::modified(const Camera& cam)
 {
-	return !((shuttertime== cam.shuttertime) &&
+	return !((shutteropen == cam.shutteropen) &&
+		(shutterclose == cam.shutterclose) &&
 		(aperturesize == cam.aperturesize) &&
 		(blades == cam.blades) &&
 		(bladesrotation == cam.bladesrotation) &&
@@ -231,9 +192,7 @@ bool Camera::modified(const Camera& cam)
 		(right == cam.right) &&
 		(bottom == cam.bottom) &&
 		(top == cam.top) &&
-		(matrix == cam.matrix) &&
-		(motion == cam.motion) &&
-		(use_motion == cam.use_motion));
+		(matrix == cam.matrix));
 }
 
 void Camera::tag_update()

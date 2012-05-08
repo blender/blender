@@ -1,5 +1,8 @@
+/** \file blender/blenpluginapi/floatpatch.h
+ *  \ingroup blpluginapi
+ */
 /* Copyright (c) 1999, Not a Number / NeoGeo b.v. 
- *
+ * 
  * All rights reserved.
  * 
  * Contact:      info@blender.org   
@@ -29,10 +32,6 @@
 
 #ifndef __FLOATPATCH_H__
 #define __FLOATPATCH_H__
-
-/** \file blender/blenpluginapi/floatpatch.h
- *  \ingroup blpluginapi
- */
 
 /* floating point libs differ at systems... with these defines it comilies at all! */
 

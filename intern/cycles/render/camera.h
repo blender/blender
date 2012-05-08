@@ -28,7 +28,6 @@ CCL_NAMESPACE_BEGIN
 
 class Device;
 class DeviceScene;
-class Scene;
 
 /* Camera
  *
@@ -38,7 +37,8 @@ class Scene;
 class Camera {
 public:
 	/* motion blur */
-	float shuttertime;
+	float shutteropen;
+	float shutterclose;
 
 	/* depth of field */
 	float focaldistance;
@@ -61,10 +61,6 @@ public:
 	/* transformation */
 	Transform matrix;
 
-	/* motion */
-	MotionTransform motion;
-	bool use_motion;
-
 	/* computed camera parameters */
     Transform screentoworld;
 	Transform rastertoworld;
@@ -86,7 +82,7 @@ public:
 
 	void update();
 
-	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
+	void device_update(Device *device, DeviceScene *dscene);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	bool modified(const Camera& cam);

@@ -137,7 +137,7 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 				if (ac->obact && ac->obact->adt)
 					saction->action = ac->obact->adt->action;
 				else
-					saction->action = NULL;
+					saction->action= NULL;
 			}
 			
 			ac->datatype= ANIMCONT_ACTION;
@@ -149,16 +149,6 @@ static short actedit_get_context (bAnimContext *ac, SpaceAction *saction)
 		case SACTCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			ac->datatype= ANIMCONT_SHAPEKEY;
 			ac->data= actedit_get_shapekeys(ac);
-			
-			/* if not pinned, sync with active object */
-			if (/*saction->pin == 0*/1) {
-				Key *key = (Key *)ac->data;
-				
-				if (key && key->adt)
-					saction->action = key->adt->action;
-				else
-					saction->action = NULL;
-			}
 			
 			ac->mode= saction->mode;
 			return 1;
@@ -270,7 +260,7 @@ static short nlaedit_get_context (bAnimContext *ac, SpaceNla *snla)
  *	- AnimContext to write to is provided as pointer to var on stack so that we don't have
  *	  allocation/freeing costs (which are not that avoidable with channels).
  */
-short ANIM_animdata_context_getdata(bAnimContext *ac)
+short ANIM_animdata_context_getdata (bAnimContext *ac)
 {
 	SpaceLink *sl = ac->sl;
 	short ok= 0;
@@ -313,7 +303,7 @@ short ANIM_animdata_context_getdata(bAnimContext *ac)
  *	  allocation/freeing costs (which are not that avoidable with channels).
  *	- Clears data and sets the information from Blender Context which is useful
  */
-short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
+short ANIM_animdata_get_context (const bContext *C, bAnimContext *ac)
 {
 	ScrArea *sa= CTX_wm_area(C);
 	ARegion *ar= CTX_wm_region(C);
@@ -834,14 +824,11 @@ static bAnimListElem *make_new_animlistelem (void *data, short datatype, ID *own
  
 /* ----------------------------------------- */
 
-/* 'Only Selected' selected data and/or 'Include Hidden' filtering
+/* 'Only Selected' selected data filtering
  * NOTE: when this function returns true, the F-Curve is to be skipped 
  */
-static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
+static size_t skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_id, int filter_mode)
 {
-	/* hidden items should be skipped if we only care about visible data, but we aren't interested in hidden stuff */
-	short skip_hidden = (filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN);
-	
 	if (GS(owner_id->name) == ID_OB) {
 		Object *ob= (Object *)owner_id;
 		
@@ -852,28 +839,23 @@ static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_
 			
 			/* get bone-name, and check if this bone is selected */
 			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
-			pchan= BKE_pose_channel_find_name(ob->pose, bone_name);
+			pchan= get_pose_channel(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
 			/* check whether to continue or skip */
 			if ((pchan) && (pchan->bone)) {
 				/* if only visible channels, skip if bone not visible unless user wants channels from hidden data too */
-				if (skip_hidden) {
+				if ((filter_mode & ANIMFILTER_DATA_VISIBLE) && !(ads->filterflag & ADS_FILTER_INCL_HIDDEN)) {
 					bArmature *arm= (bArmature *)ob->data;
 					
-					/* skipping - not visible on currently visible layers */
 					if ((arm->layer & pchan->bone->layer) == 0)
 						return 1;
-					/* skipping - is currently hidden */
-					if (pchan->bone->flag & BONE_HIDDEN_P)
-						return 1;
+					// TODO: manually hidden using flags
 				}
 				
 				/* can only add this F-Curve if it is selected */
-				if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-					if ((pchan->bone->flag & BONE_SELECTED) == 0)
-						return 1;
-				}
+				if ((pchan->bone->flag & BONE_SELECTED) == 0)
+					return 1;
 			}
 		}
 	}
@@ -892,16 +874,14 @@ static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_
 			if (seq_name) MEM_freeN(seq_name);
 			
 			/* can only add this F-Curve if it is selected */
-			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-				if ((seq == NULL) || (seq->flag & SELECT)==0)
-					return 1;
-			}
+			if (seq==NULL || (seq->flag & SELECT)==0)
+				return 1;
 		}
 	}
 	else if (GS(owner_id->name) == ID_NT) {
 		bNodeTree *ntree = (bNodeTree *)owner_id;
 		
-		/* check for selected nodes */
+		/* check for selected  nodes */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "nodes")) {
 			bNode *node;
 			char *node_name;
@@ -912,10 +892,8 @@ static short skip_fcurve_selected_data (bDopeSheet *ads, FCurve *fcu, ID *owner_
 			if (node_name) MEM_freeN(node_name);
 			
 			/* can only add this F-Curve if it is selected */
-			if (ads->filterflag & ADS_FILTER_ONLYSEL) {
-				if ((node) && (node->flag & NODE_SELECT)==0)
-					return 1;
-			}
+			if ((node) && (node->flag & NODE_SELECT)==0)
+				return 1;
 		}
 	}
 	return 0;
@@ -962,19 +940,17 @@ static FCurve *animfilter_fcurve_next (bDopeSheet *ads, FCurve *first, bActionGr
 	 */
 	for (fcu= first; ((fcu) && (fcu->grp==grp)); fcu= fcu->next) {
 		/* special exception for Pose-Channel/Sequence-Strip/Node Based F-Curves:
-		 *	- the 'Only Selected' and 'Include Hidden' data filters should be applied to sub-ID data which
-		 *	  can be independently selected/hidden, such as Pose-Channels, Sequence Strips, and Nodes.
-		 *	  Since these checks were traditionally done as first check for objects, we do the same here
+		 *	- the 'Only Selected' data filter should be applied to Pose-Channel data too, but those are
+		 *	  represented as F-Curves. The way the filter for objects worked was to be the first check
+		 *	  after 'normal' visibility, so this is done first here too...
 		 *	- we currently use an 'approximate' method for getting these F-Curves that doesn't require
 		 *	  carefully checking the entire path
 		 *	- this will also affect things like Drivers, and also works for Bone Constraints
 		 */
-		if (ads && owner_id) {
-			if ((ads->filterflag & ADS_FILTER_ONLYSEL) || (ads->filterflag & ADS_FILTER_INCL_HIDDEN)==0) {
-				if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
-					continue;
-			}
-		}	
+		if ( ((ads) && (ads->filterflag & ADS_FILTER_ONLYSEL)) && (owner_id) ) {
+			if (skip_fcurve_selected_data(ads, fcu, owner_id, filter_mode))
+				continue;
+		}
 		
 		/* only include if visible (Graph Editor check, not channels check) */
 		if (!(filter_mode & ANIMFILTER_CURVE_VISIBLE) || (fcu->flag & FCURVE_VISIBLE)) {
@@ -1016,7 +992,8 @@ static size_t animfilter_fcurves (ListBase *anim_data, bDopeSheet *ads, FCurve *
 	 *		4) the fcu pointer is set to the F-Curve after the one we just added, so that we can keep going through 
 	 *		   the rest of the F-Curve list without an eternal loop. Back to step 2 :)
 	 */
-	for (fcu = first; ( (fcu = animfilter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu = fcu->next) {
+	for (fcu=first; ( (fcu = animfilter_fcurve_next(ads, fcu, grp, filter_mode, owner_id)) ); fcu=fcu->next)
+	{
 		ANIMCHANNEL_NEW_CHANNEL(fcu, ANIMTYPE_FCURVE, owner_id);
 	}
 	
@@ -1475,83 +1452,51 @@ static size_t animdata_filter_ds_textures (bAnimContext *ac, ListBase *anim_data
 	return items;
 }
 
-
-static size_t animdata_filter_ds_material (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Material *ma, int filter_mode)
-{
-	ListBase tmp_data = {NULL, NULL};
-	size_t tmp_items = 0;
-	size_t items = 0;
-	
-	/* add material's animation data to temp collection */
-	BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_MAT_OBJD(ma))
-	{
-		/* material's animation data */
-		tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
-			
-		/* textures */
-		if (!(ads->filterflag & ADS_FILTER_NOTEX))
-			tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
-			
-		/* nodes */
-		if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
-			tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
-	}
-	END_ANIMFILTER_SUBCHANNELS;
-	
-	/* did we find anything? */
-	if (tmp_items) {
-		/* include material-expand widget first */
-		// hmm... do we need to store the index of this material in the array anywhere?
-		if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
-			/* check if filtering by active status */
-			if (ANIMCHANNEL_ACTIVEOK(ma)) {
-				ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
-			}
-		}
-		
-		/* now add the list of collected channels */
-		BLI_movelisttolist(anim_data, &tmp_data);
-		BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
-		items += tmp_items;
-	}
-	
-	return items;
-}
-
 static size_t animdata_filter_ds_materials (bAnimContext *ac, ListBase *anim_data, bDopeSheet *ads, Object *ob, int filter_mode)
 {
-	short has_nested = 0;
-	size_t items = 0;
-	int a = 0;
+	size_t items=0;
+	int a=0;
 	
-	/* first pass: take the materials referenced via the Material slots of the object */
-	for (a = 1; a <= ob->totcol; a++) {
-		Material *ma = give_current_material(ob, a);
+	/* firstly check that we actuallly have some materials, by gathering all materials in a temp list */
+	for (a=1; a <= ob->totcol; a++) {
+		Material *ma= give_current_material(ob, a);
+		ListBase tmp_data = {NULL, NULL};
+		size_t tmp_items = 0;
 		
-		/* if material is valid, try to add relevant contents from here */
-		if (ma) {
-			/* add channels */
-			items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
-			
-			/* for optimising second pass - check if there's a nested material here to come back for */
-			if (has_nested == 0)
-				has_nested = give_node_material(ma) != NULL;
+		/* if no material returned, skip - so that we don't get weird blank entries... */
+		if (ma == NULL) continue;
+		
+		/* add material's animation data to temp collection */
+		BEGIN_ANIMFILTER_SUBCHANNELS(FILTER_MAT_OBJD(ma))
+		{
+			/* material's animation data */
+			tmp_items += animfilter_block_data(ac, &tmp_data, ads, (ID *)ma, filter_mode);
+				
+			/* textures */
+			if (!(ads->filterflag & ADS_FILTER_NOTEX))
+				tmp_items += animdata_filter_ds_textures(ac, &tmp_data, ads, (ID *)ma, filter_mode);
+				
+			/* nodes */
+			if ((ma->nodetree) && !(ads->filterflag & ADS_FILTER_NONTREE)) 
+				tmp_items += animdata_filter_ds_nodetree(ac, &tmp_data, ads, (ID *)ma, ma->nodetree, filter_mode);
 		}
-	}
-	
-	/* second pass: go through a second time looking for "nested" materials (material.material references)
-	 *
-	 * NOTE: here we ignore the expanded status of the parent, as it could be too confusing as to why these are
-	 *       disappearing/not available, since the relationships between these is not that clear
-	 */
-	if (has_nested) {
-		for (a = 1; a <= ob->totcol; a++) {
-			Material *base = give_current_material(ob, a);
-			Material *ma   = give_node_material(base);
+		END_ANIMFILTER_SUBCHANNELS;
+		
+		/* did we find anything? */
+		if (tmp_items) {
+			/* include material-expand widget first */
+			// hmm... do we need to store the index of this material in the array anywhere?
+			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+				/* check if filtering by active status */
+				if (ANIMCHANNEL_ACTIVEOK(ma)) {
+					ANIMCHANNEL_NEW_CHANNEL(ma, ANIMTYPE_DSMAT, ma);
+				}
+			}
 			
-			/* add channels from the nested material if it exists */
-			if (ma)
-				items += animdata_filter_ds_material(ac, anim_data, ads, ma, filter_mode);
+			/* now add the list of collected channels */
+			BLI_movelisttolist(anim_data, &tmp_data);
+			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			items += tmp_items;
 		}
 	}
 	
@@ -2260,7 +2205,7 @@ static size_t animdata_filter_remove_duplis (ListBase *anim_data)
  *		will be placed for use.
  *	filter_mode: how should the data be filtered - bitmapping accessed flags
  */
-size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
+size_t ANIM_animdata_filter (bAnimContext *ac, ListBase *anim_data, int filter_mode, void *data, short datatype)
 {
 	size_t items = 0;
 	

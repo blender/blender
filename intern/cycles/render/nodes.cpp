@@ -33,11 +33,6 @@ TextureMapping::TextureMapping()
 	rotation = make_float3(0.0f, 0.0f, 0.0f);
 	scale = make_float3(1.0f, 1.0f, 1.0f);
 
-	min = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	max = make_float3(FLT_MAX, FLT_MAX, FLT_MAX);
-
-	use_minmax = false;
-
 	x_mapping = X;
 	y_mapping = Y;
 	z_mapping = Z;
@@ -74,8 +69,6 @@ bool TextureMapping::skip()
 	
 	if(x_mapping != X || y_mapping != Y || z_mapping != Z)
 		return false;
-	if(use_minmax)
-		return false;
 	
 	return true;
 }
@@ -92,12 +85,6 @@ void TextureMapping::compile(SVMCompiler& compiler, int offset_in, int offset_ou
 	compiler.add_node(tfm.y);
 	compiler.add_node(tfm.z);
 	compiler.add_node(tfm.w);
-
-	if(use_minmax) {
-		compiler.add_node(NODE_MIN_MAX, offset_out, offset_out);
-		compiler.add_node(float3_to_float4(min));
-		compiler.add_node(float3_to_float4(max));
-	}
 }
 
 /* Image Texture */
@@ -1516,7 +1503,6 @@ TextureCoordinateNode::TextureCoordinateNode()
 {
 	add_input("Normal", SHADER_SOCKET_NORMAL, ShaderInput::NORMAL, true);
 	add_output("Generated", SHADER_SOCKET_POINT);
-	add_output("Normal", SHADER_SOCKET_NORMAL);
 	add_output("UV", SHADER_SOCKET_POINT);
 	add_output("Object", SHADER_SOCKET_POINT);
 	add_output("Camera", SHADER_SOCKET_POINT);
@@ -1527,9 +1513,9 @@ TextureCoordinateNode::TextureCoordinateNode()
 void TextureCoordinateNode::attributes(AttributeRequestSet *attributes)
 {
 	if(!output("Generated")->links.empty())
-		attributes->add(ATTR_STD_GENERATED);
+		attributes->add(Attribute::STD_GENERATED);
 	if(!output("UV")->links.empty())
-		attributes->add(ATTR_STD_UV);
+		attributes->add(Attribute::STD_UV);
 
 	ShaderNode::attributes(attributes);
 }
@@ -1559,21 +1545,15 @@ void TextureCoordinateNode::compile(SVMCompiler& compiler)
 			compiler.add_node(geom_node, NODE_GEOM_P, out->stack_offset);
 		}
 		else {
-			int attr = compiler.attribute(ATTR_STD_GENERATED);
+			int attr = compiler.attribute(Attribute::STD_GENERATED);
 			compiler.stack_assign(out);
 			compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
 		}
 	}
 
-	out = output("Normal");
-	if(!out->links.empty()) {
-		compiler.stack_assign(out);
-		compiler.add_node(texco_node, NODE_TEXCO_NORMAL, out->stack_offset);
-	}
-
 	out = output("UV");
 	if(!out->links.empty()) {
-		int attr = compiler.attribute(ATTR_STD_UV);
+		int attr = compiler.attribute(Attribute::STD_UV);
 		compiler.stack_assign(out);
 		compiler.add_node(attr_node, attr, out->stack_offset, NODE_ATTR_FLOAT3);
 	}
@@ -1636,7 +1616,6 @@ LightPathNode::LightPathNode()
 	add_output("Is Singular Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Reflection Ray", SHADER_SOCKET_FLOAT);
 	add_output("Is Transmission Ray", SHADER_SOCKET_FLOAT);
-	add_output("Ray Length", SHADER_SOCKET_FLOAT);
 }
 
 void LightPathNode::compile(SVMCompiler& compiler)
@@ -1685,66 +1664,11 @@ void LightPathNode::compile(SVMCompiler& compiler)
 		compiler.stack_assign(out);
 		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_transmission, out->stack_offset);
 	}
-	
-	out = output("Ray Length");
-	if(!out->links.empty()) {
-		compiler.stack_assign(out);
-		compiler.add_node(NODE_LIGHT_PATH, NODE_LP_ray_length, out->stack_offset);
-	}
-
 }
 
 void LightPathNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_light_path");
-}
-
-/* Light Path */
-
-LightFalloffNode::LightFalloffNode()
-: ShaderNode("light_path")
-{
-	add_input("Strength", SHADER_SOCKET_FLOAT, 100.0f);
-	add_input("Smooth", SHADER_SOCKET_FLOAT, 0.0f);
-	add_output("Quadratic", SHADER_SOCKET_FLOAT);
-	add_output("Linear", SHADER_SOCKET_FLOAT);
-	add_output("Constant", SHADER_SOCKET_FLOAT);
-}
-
-void LightFalloffNode::compile(SVMCompiler& compiler)
-{
-	ShaderInput *strength_in = input("Strength");
-	ShaderInput *smooth_in = input("Smooth");
-
-	compiler.stack_assign(strength_in);
-	compiler.stack_assign(smooth_in);
-
-	ShaderOutput *out = output("Quadratic");
-	if(!out->links.empty()) {
-		compiler.stack_assign(out);
-		compiler.add_node(NODE_LIGHT_FALLOFF, NODE_LIGHT_FALLOFF_QUADRATIC,
-			compiler.encode_uchar4(strength_in->stack_offset, smooth_in->stack_offset, out->stack_offset));
-	}
-
-	out = output("Linear");
-	if(!out->links.empty()) {
-		compiler.stack_assign(out);
-		compiler.add_node(NODE_LIGHT_FALLOFF, NODE_LIGHT_FALLOFF_LINEAR,
-			compiler.encode_uchar4(strength_in->stack_offset, smooth_in->stack_offset, out->stack_offset));
-		compiler.add_node(NODE_LIGHT_FALLOFF, NODE_LIGHT_FALLOFF_LINEAR, out->stack_offset);
-	}
-
-	out = output("Constant");
-	if(!out->links.empty()) {
-		compiler.stack_assign(out);
-		compiler.add_node(NODE_LIGHT_FALLOFF, NODE_LIGHT_FALLOFF_CONSTANT,
-			compiler.encode_uchar4(strength_in->stack_offset, smooth_in->stack_offset, out->stack_offset));
-	}
-}
-
-void LightFalloffNode::compile(OSLCompiler& compiler)
-{
-	compiler.add(this, "node_light_falloff");
 }
 
 /* Value */

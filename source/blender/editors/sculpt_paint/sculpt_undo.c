@@ -76,10 +76,7 @@ static void update_cb(PBVHNode *node, void *rebuild)
 	BLI_pbvh_node_fully_hidden_set(node, 0);
 }
 
-static void sculpt_undo_restore_deformed(const SculptSession *ss,
-										 SculptUndoNode *unode,
-										 int uindex, int oindex,
-										 float coord[3])
+static void sculpt_undo_restore_deformed(SculptSession *ss, SculptUndoNode *unode, int uindex, int oindex, float coord[3])
 {
 	if (unode->orig_co) {
 		swap_v3_v3(coord, unode->orig_co[uindex]);
@@ -240,9 +237,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		else if (unode->maxgrid && dm->getGridData) {
 			if ((dm->getNumGrids(dm) != unode->maxgrid) ||
 			    (dm->getGridSize(dm) != unode->gridsize))
-			{
 				continue;
-			}
 		}
 		else {
 			continue;
@@ -279,8 +274,8 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 
 		if (ss->modifiers_active) {
 			Mesh *mesh = ob->data;
-			BKE_mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
-			                               mesh->mface, mesh->totface, NULL);
+			mesh_calc_normals_tessface(mesh->mvert, mesh->totvert,
+									   mesh->mface, mesh->totface, NULL);
 
 			free_sculptsession_deformMats(ss);
 			tag_update |= 1;
@@ -388,10 +383,7 @@ static SculptUndoNode *sculpt_undo_alloc_node(Object *ob, PBVHNode *node,
 		case SCULPT_UNDO_COORDS:
 			unode->co = MEM_mapallocN(sizeof(float) * 3 * allvert, "SculptUndoNode.co");
 			unode->no = MEM_mapallocN(sizeof(short) * 3 * allvert, "SculptUndoNode.no");
-			undo_paint_push_count_alloc(UNDO_PAINT_MESH,
-										(sizeof(float) * 3 +
-										 sizeof(short) * 3 +
-										 sizeof(int)) * allvert);
+			undo_paint_push_count_alloc(UNDO_PAINT_MESH, (sizeof(float) * 3 + sizeof(short) * 3 + sizeof(int)) * allvert);
 			break;
 		case SCULPT_UNDO_HIDDEN:
 			if (maxgrid)

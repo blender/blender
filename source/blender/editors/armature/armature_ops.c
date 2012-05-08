@@ -69,7 +69,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(ARMATURE_OT_select_inverse);
 	WM_operatortype_append(ARMATURE_OT_select_hierarchy);
 	WM_operatortype_append(ARMATURE_OT_select_linked);
-	WM_operatortype_append(ARMATURE_OT_select_similar);
 
 	WM_operatortype_append(ARMATURE_OT_delete);
 	WM_operatortype_append(ARMATURE_OT_duplicate);
@@ -133,7 +132,6 @@ void ED_operatortypes_armature(void)
 	WM_operatortype_append(POSE_OT_group_deselect);
 	
 	WM_operatortype_append(POSE_OT_paths_calculate);
-	WM_operatortype_append(POSE_OT_paths_update);
 	WM_operatortype_append(POSE_OT_paths_clear);
 	
 	WM_operatortype_append(POSE_OT_autoside_names);
@@ -172,19 +170,17 @@ void ED_operatormacros_armature(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot = WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate",
-	                                  "Make copies of the selected bones within the same armature and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_duplicate_move", "Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
+		ot->description = "Make copies of the selected bones within the same armature and move them";
 		WM_operatortype_macro_define(ot, "ARMATURE_OT_duplicate");
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 		RNA_enum_set(otmacro->ptr, "proportional", 0);
 	}
 
-	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude",
-	                                  "Create new bones from the selected joints and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_move", "Extrude", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
+		ot->description = "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 		RNA_boolean_set(otmacro->ptr, "forked", FALSE);
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -193,10 +189,9 @@ void ED_operatormacros_armature(void)
 	
 	// XXX would it be nicer to just be able to have standard extrude_move, but set the forked property separate?
 	// that would require fixing a properties bug 19733
-	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked",
-	                                  "Create new bones from the selected joints and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("ARMATURE_OT_extrude_forked", "Extrude Forked", OPTYPE_UNDO|OPTYPE_REGISTER);
 	if (ot) {
+		ot->description = "Create new bones from the selected joints and move them";
 		otmacro=WM_operatortype_macro_define(ot, "ARMATURE_OT_extrude");
 		RNA_boolean_set(otmacro->ptr, "forked", TRUE);
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
@@ -265,8 +260,6 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "ARMATURE_OT_select_hierarchy", RIGHTBRACKETKEY, KM_PRESS, KM_SHIFT, 0);
 		RNA_enum_set(kmi->ptr, "direction", BONE_SELECT_CHILD);
 		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-
-	WM_keymap_add_item(keymap, "ARMATURE_OT_select_similar", GKEY, KM_PRESS, KM_SHIFT, 0);
 
 	WM_keymap_add_item(keymap, "ARMATURE_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	
@@ -402,8 +395,5 @@ void ED_keymap_armature(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "POSE_OT_push", EKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_relax", EKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "POSE_OT_breakdown", EKEY, KM_PRESS, KM_SHIFT, 0);
-
-	/* menus */
-	WM_keymap_add_menu(keymap, "VIEW3D_MT_pose_specials", WKEY, KM_PRESS, 0, 0);
 }
 

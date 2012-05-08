@@ -20,11 +20,8 @@
 #define __KERNEL_TYPES_H__
 
 #include "kernel_math.h"
-#include "svm/svm_types.h"
 
-#ifndef __KERNEL_GPU__
-#define __KERNEL_CPU__
-#endif
+#include "svm/svm_types.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -33,7 +30,6 @@ CCL_NAMESPACE_BEGIN
 #define LIGHT_SIZE			4
 #define FILTER_TABLE_SIZE	256
 #define RAMP_TABLE_SIZE		256
-#define TIME_INVALID		FLT_MAX
 
 /* device capabilities */
 #ifdef __KERNEL_CPU__
@@ -79,7 +75,6 @@ CCL_NAMESPACE_BEGIN
 #define __PASSES__
 #define __BACKGROUND_MIS__
 #define __AO__
-//#define __MOTION__
 #endif
 
 //#define __MULTI_LIGHT__
@@ -95,21 +90,14 @@ enum ShaderEvalType {
 	SHADER_EVAL_BACKGROUND
 };
 
-/* Path Tracing
- * note we need to keep the u/v pairs at even values */
+/* Path Tracing */
 
 enum PathTraceDimension {
 	PRNG_FILTER_U = 0,
 	PRNG_FILTER_V = 1,
 	PRNG_LENS_U = 2,
 	PRNG_LENS_V = 3,
-#ifdef __MOTION__
-	PRNG_TIME = 4,
-	PRNG_UNUSED = 5,
-	PRNG_BASE_NUM = 6,
-#else
 	PRNG_BASE_NUM = 4,
-#endif
 
 	PRNG_BSDF_U = 0,
 	PRNG_BSDF_V = 1,
@@ -173,25 +161,23 @@ typedef enum PassType {
 	PASS_NONE = 0,
 	PASS_COMBINED = 1,
 	PASS_DEPTH = 2,
-	PASS_NORMAL = 4,
-	PASS_UV = 8,
-	PASS_OBJECT_ID = 16,
-	PASS_MATERIAL_ID = 32,
-	PASS_DIFFUSE_COLOR = 64,
-	PASS_GLOSSY_COLOR = 128,
-	PASS_TRANSMISSION_COLOR = 256,
-	PASS_DIFFUSE_INDIRECT = 512,
-	PASS_GLOSSY_INDIRECT = 1024,
-	PASS_TRANSMISSION_INDIRECT = 2048,
-	PASS_DIFFUSE_DIRECT = 4096,
-	PASS_GLOSSY_DIRECT = 8192,
-	PASS_TRANSMISSION_DIRECT = 16384,
-	PASS_EMISSION = 32768,
-	PASS_BACKGROUND = 65536,
-	PASS_AO = 131072,
-	PASS_SHADOW = 262144,
-	PASS_MOTION = 524288,
-	PASS_MOTION_WEIGHT = 1048576
+	PASS_NORMAL = 8,
+	PASS_UV = 16,
+	PASS_OBJECT_ID = 32,
+	PASS_MATERIAL_ID = 64,
+	PASS_DIFFUSE_COLOR = 128,
+	PASS_GLOSSY_COLOR = 256,
+	PASS_TRANSMISSION_COLOR = 512,
+	PASS_DIFFUSE_INDIRECT = 1024,
+	PASS_GLOSSY_INDIRECT = 2048,
+	PASS_TRANSMISSION_INDIRECT = 4096,
+	PASS_DIFFUSE_DIRECT = 8192,
+	PASS_GLOSSY_DIRECT = 16384,
+	PASS_TRANSMISSION_DIRECT = 32768,
+	PASS_EMISSION = 65536,
+	PASS_BACKGROUND = 131072,
+	PASS_AO = 262144,
+	PASS_SHADOW = 524288
 } PassType;
 
 #define PASS_ALL (~0)
@@ -289,7 +275,6 @@ typedef struct Ray {
 	float3 P;
 	float3 D;
 	float t;
-	float time;
 
 #ifdef __RAY_DIFFERENTIALS__
 	differential3 dP;
@@ -314,21 +299,6 @@ typedef enum AttributeElement {
 	ATTR_ELEMENT_VALUE,
 	ATTR_ELEMENT_NONE
 } AttributeElement;
-
-typedef enum AttributeStandard {
-	ATTR_STD_NONE = 0,
-	ATTR_STD_VERTEX_NORMAL,
-	ATTR_STD_FACE_NORMAL,
-	ATTR_STD_UV,
-	ATTR_STD_GENERATED,
-	ATTR_STD_POSITION_UNDEFORMED,
-	ATTR_STD_POSITION_UNDISPLACED,
-	ATTR_STD_MOTION_PRE,
-	ATTR_STD_MOTION_POST,
-	ATTR_STD_NUM,
-
-	ATTR_STD_NOT_FOUND = ~0
-} AttributeStandard;
 
 /* Closure data */
 
@@ -370,11 +340,7 @@ enum ShaderDataFlag {
 	SD_SAMPLE_AS_LIGHT = 128,			/* direct light sample */
 	SD_HAS_SURFACE_TRANSPARENT = 256,	/* has surface transparency */
 	SD_HAS_VOLUME = 512,				/* has volume shader */
-	SD_HOMOGENEOUS_VOLUME = 1024,		/* has homogeneous volume */
-
-	/* object flags */
-	SD_HOLDOUT_MASK = 2048,				/* holdout for camera rays */
-	SD_OBJECT_MOTION = 4096				/* has object motion blur */
+	SD_HOMOGENEOUS_VOLUME = 1024		/* has homogeneous volume */
 };
 
 typedef struct ShaderData {
@@ -398,19 +364,6 @@ typedef struct ShaderData {
 	float u, v;
 	/* object id if there is one, ~0 otherwise */
 	int object;
-
-	/* motion blur sample time */
-	float time;
-	
-	/* length of the ray being shaded */
-	float ray_length;
-
-#ifdef __MOTION__
-	/* object <-> world space transformations, cached to avoid
-	 * re-interpolating them constantly for shading */
-	Transform ob_tfm;
-	Transform ob_itfm;
-#endif
 
 #ifdef __RAY_DIFFERENTIALS__
 	/* differential of P. these are orthogonal to Ng, not N */
@@ -469,19 +422,12 @@ typedef struct KernelCamera {
 	float focaldistance;
 
 	/* motion blur */
-	float shuttertime;
-	int have_motion;
+	float shutteropen;
+	float shutterclose;
 
 	/* clipping */
 	float nearclip;
 	float cliplength;
-
-	/* sensor size */
-	float sensorwidth;
-	float sensorheight;
-
-	/* render size */
-	float width, height;
 
 	/* more matrices */
 	Transform screentoworld;
@@ -491,8 +437,6 @@ typedef struct KernelCamera {
 	Transform worldtoraster;
 	Transform worldtondc;
 	Transform worldtocamera;
-
-	MotionTransform motion;
 } KernelCamera;
 
 typedef struct KernelFilm {
@@ -504,32 +448,27 @@ typedef struct KernelFilm {
 	int pass_combined;
 	int pass_depth;
 	int pass_normal;
-	int pass_motion;
+	int pass_pad;
 
-	int pass_motion_weight;
 	int pass_uv;
 	int pass_object_id;
 	int pass_material_id;
-
 	int pass_diffuse_color;
+
 	int pass_glossy_color;
 	int pass_transmission_color;
 	int pass_diffuse_indirect;
-
 	int pass_glossy_indirect;
+
 	int pass_transmission_indirect;
 	int pass_diffuse_direct;
 	int pass_glossy_direct;
-
 	int pass_transmission_direct;
+
 	int pass_emission;
 	int pass_background;
 	int pass_ao;
-
 	int pass_shadow;
-	int pass_pad1;
-	int pass_pad2;
-	int pass_pad3;
 } KernelFilm;
 
 typedef struct KernelBackground {
@@ -577,7 +516,6 @@ typedef struct KernelIntegrator {
 
 	/* caustics */
 	int no_caustics;
-	float filter_glossy;
 
 	/* seed */
 	int seed;
@@ -587,6 +525,9 @@ typedef struct KernelIntegrator {
 
 	/* clamp */
 	float sample_clamp;
+
+	/* padding */
+	int pad;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

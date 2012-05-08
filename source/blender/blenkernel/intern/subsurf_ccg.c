@@ -244,7 +244,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct ML
 	int j, nverts = mpoly[fi].totloop;
 
 	for (j = 0; j < nverts; j++) {
-		for (nv = v = BKE_mesh_uv_vert_map_get_vert(vmap, ml[j].v); v; v = v->next) {
+		for (nv = v = get_uv_map_vert(vmap, ml[j].v); v; v = v->next) {
 			if (v->separate)
 				nv = v;
 			if (v->f == fi)
@@ -273,7 +273,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
-	vmap = BKE_mesh_uv_vert_map_make(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
+	vmap = make_uv_vert_map(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
 	
@@ -281,16 +281,16 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	/* create vertices */
 	for (i = 0; i < totvert; i++) {
-		if (!BKE_mesh_uv_vert_map_get_vert(vmap, i))
+		if (!get_uv_map_vert(vmap, i))
 			continue;
 
-		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i)->next; v; v = v->next)
+		for (v = get_uv_map_vert(vmap, i)->next; v; v = v->next)
 			if (v->separate)
 				break;
 
 		seam = (v != NULL) || ((mvert + i)->flag & ME_VERT_MERGED);
 
-		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
+		for (v = get_uv_map_vert(vmap, i); v; v = v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
 				int loopid = mpoly[v->f].loopstart + v->tfindex;
@@ -314,7 +314,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		MLoop *ml = mloop + mp->loopstart;
 
 		BLI_array_empty(fverts);
-		BLI_array_grow_items(fverts, nverts);
+		BLI_array_growitems(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
@@ -350,7 +350,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		CCGFace *f;
 
 		BLI_array_empty(fverts);
-		BLI_array_grow_items(fverts, nverts);
+		BLI_array_growitems(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
@@ -358,7 +358,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	BLI_array_free(fverts);
 
-	BKE_mesh_uv_vert_map_free(vmap);
+	free_uv_vert_map(vmap);
 	ccgSubSurf_processSync(ss);
 
 	return 1;
@@ -583,7 +583,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		CCGFace *f;
 
 		BLI_array_empty(fVerts);
-		BLI_array_grow_items(fVerts, mp->totloop);
+		BLI_array_growitems(fVerts, mp->totloop);
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -2102,7 +2102,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 			}
 			else {
-				glShadeModel((cp)? GL_SMOOTH: GL_FLAT);
+				glShadeModel(GL_FLAT);
 				glBegin(GL_QUADS);
 				for (y = 0; y < gridFaces; y++) {
 					for (x = 0; x < gridFaces; x++) {
@@ -2423,9 +2423,7 @@ static void ccgDM_release(DerivedMesh *dm)
 			/* Check that mmd still exists */
 			if (!ccgdm->multires.local_mmd &&
 			    BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
-			{
 				ccgdm->multires.mmd = NULL;
-			}
 			
 			if (ccgdm->multires.mmd) {
 				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
@@ -3134,6 +3132,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		float *w2;
 		int s, x, y;
 		
+		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
+		
 		w = get_ss_weights(&wtable, gridCuts, numVerts);
 
 		ccgdm->faceMap[index].startVert = vertNum;
@@ -3144,19 +3144,17 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		faceFlags->mat_nr = mpoly ? mpoly[origIndex].mat_nr : 0;
 		faceFlags++;
 
-		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
-
 		/* set the face base vert */
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
 		BLI_array_empty(loopidx);
-		BLI_array_grow_items(loopidx, numVerts);
+		BLI_array_growitems(loopidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			loopidx[s] = loopindex++;
 		}
 		
 		BLI_array_empty(vertidx);
-		BLI_array_grow_items(vertidx, numVerts);
+		BLI_array_growitems(vertidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			CCGVert *v = ccgSubSurf_getFaceVert(f, s);
 			vertidx[s] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));

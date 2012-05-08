@@ -181,7 +181,7 @@ static BMFace *copy_face(BMOperator *op, BMesh *source_mesh,
  * Internal Copy function.
  */
 
-static void BKE_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
+static void copy_mesh(BMOperator *op, BMesh *source, BMesh *target)
 {
 
 	BMVert *v = NULL, *v2;
@@ -277,8 +277,8 @@ static void BKE_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
 			BLI_array_empty(vtar);
 			BLI_array_empty(edar);
 
-			BLI_array_grow_items(vtar, f->len);
-			BLI_array_grow_items(edar, f->len);
+			BLI_array_growitems(vtar, f->len);
+			BLI_array_growitems(edar, f->len);
 
 			copy_face(op, source, f, target, vtar, edar, vhash, ehash);
 			BMO_elem_flag_enable(source, f, DUPE_DONE);
@@ -326,7 +326,7 @@ void bmo_dupe_exec(BMesh *bm, BMOperator *op)
 	BMO_slot_buffer_flag_enable(bm, dupeop, "geom", BM_ALL, DUPE_INPUT);
 
 	/* use the internal copy function */
-	BKE_mesh_copy(dupeop, bm, bm2);
+	copy_mesh(dupeop, bm, bm2);
 	
 	/* Output */
 	/* First copy the input buffers to output buffers - original data */

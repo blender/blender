@@ -25,7 +25,6 @@
 
 #include "util_list.h"
 #include "util_string.h"
-#include "util_task.h"
 #include "util_thread.h"
 #include "util_types.h"
 #include "util_vector.h"
@@ -67,7 +66,7 @@ public:
 
 /* Device Task */
 
-class DeviceTask : public Task {
+class DeviceTask {
 public:
 	typedef enum { PATH_TRACE, TONEMAP, SHADER } Type;
 	Type type;
@@ -88,6 +87,7 @@ public:
 	DeviceTask(Type type = PATH_TRACE);
 
 	void split(list<DeviceTask>& tasks, int num);
+	void split(ThreadQueue<DeviceTask>& tasks, int num);
 	void split_max_size(list<DeviceTask>& tasks, int max_size);
 };
 

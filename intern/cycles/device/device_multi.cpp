@@ -257,14 +257,13 @@ public:
 
 	void task_add(DeviceTask& task)
 	{
-		list<DeviceTask> tasks;
+		ThreadQueue<DeviceTask> tasks;
 		task.split(tasks, devices.size());
 
 		foreach(SubDevice& sub, devices) {
-			if(!tasks.empty()) {
-				DeviceTask subtask = tasks.front();
-				tasks.pop_front();
+			DeviceTask subtask;
 
+			if(tasks.worker_wait_pop(subtask)) {
 				if(task.buffer) subtask.buffer = sub.ptr_map[task.buffer];
 				if(task.rng_state) subtask.rng_state = sub.ptr_map[task.rng_state];
 				if(task.rgba) subtask.rgba = sub.ptr_map[task.rgba];

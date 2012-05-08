@@ -1,4 +1,6 @@
 /*
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,6 +29,7 @@
 /** \file blender/makesrna/intern/rna_material_api.c
  *  \ingroup RNA
  */
+
 
 #include <stdlib.h>
 #include <stdio.h>

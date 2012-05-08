@@ -50,7 +50,7 @@
 
 static void initData(ModifierData *md)
 {
-	RemeshModifierData *rmd = (RemeshModifierData *) md;
+	RemeshModifierData *rmd = (RemeshModifierData*) md;
 
 	rmd->scale = 0.9;
 	rmd->depth = 4;
@@ -62,8 +62,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	RemeshModifierData *rmd = (RemeshModifierData *) md;
-	RemeshModifierData *trmd = (RemeshModifierData *) target;
+	RemeshModifierData *rmd = (RemeshModifierData*) md;
+	RemeshModifierData *trmd = (RemeshModifierData*) target;
 
 	trmd->threshold = rmd->threshold;
 	trmd->scale = rmd->scale;
@@ -79,11 +79,11 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 {
 	memset(mesh, 0, sizeof(DualConInput));
 
-	mesh->co = (void *)dm->getVertArray(dm);
+	mesh->co = (void*)dm->getVertArray(dm);
 	mesh->co_stride = sizeof(MVert);
 	mesh->totco = dm->getNumVerts(dm);
 
-	mesh->faces = (void *)dm->getTessFaceArray(dm);
+	mesh->faces = (void*)dm->getTessFaceArray(dm);
 	mesh->face_stride = sizeof(MFace);
 	mesh->totface = dm->getNumTessFaces(dm);
 
@@ -103,12 +103,10 @@ static void *dualcon_alloc_output(int totvert, int totquad)
 	DualConOutput *output;
 
 	if (!(output = MEM_callocN(sizeof(DualConOutput),
-	                           "DualConOutput")))
-	{
+							  "DualConOutput")))
 		return NULL;
-	}
 	
-	output->dm = CDDM_new(totvert, 0, 0, 4 * totquad, totquad);
+	output->dm = CDDM_new(totvert, 0, 0, 4*totquad, totquad);
 	return output;
 }
 
@@ -145,10 +143,10 @@ static void dualcon_add_quad(void *output_v, const int vert_indices[4])
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
-                                  Object *UNUSED(ob),
-                                  DerivedMesh *dm,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+								  Object *UNUSED(ob),
+								  DerivedMesh *dm,
+								  int UNUSED(useRenderParams),
+								  int UNUSED(isFinalCalc))
 {
 	RemeshModifierData *rmd;
 	DualConOutput *output;
@@ -159,35 +157,35 @@ static DerivedMesh *applyModifier(ModifierData *md,
 
 	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
-	rmd = (RemeshModifierData *)md;
+	rmd = (RemeshModifierData*)md;
 
 	init_dualcon_mesh(&input, dm);
 
 	if (rmd->flag & MOD_REMESH_FLOOD_FILL)
 		flags |= DUALCON_FLOOD_FILL;
 
-	switch (rmd->mode) {
-		case MOD_REMESH_CENTROID:
-			mode = DUALCON_CENTROID;
-			break;
-		case MOD_REMESH_MASS_POINT:
-			mode = DUALCON_MASS_POINT;
-			break;
-		case MOD_REMESH_SHARP_FEATURES:
-			mode = DUALCON_SHARP_FEATURES;
-			break;
+	switch(rmd->mode) {
+	case MOD_REMESH_CENTROID:
+		mode = DUALCON_CENTROID;
+		break;
+	case MOD_REMESH_MASS_POINT:
+		mode = DUALCON_MASS_POINT;
+		break;
+	case MOD_REMESH_SHARP_FEATURES:
+		mode = DUALCON_SHARP_FEATURES;
+		break;
 	}
 	
 	output = dualcon(&input,
-	                 dualcon_alloc_output,
-	                 dualcon_add_vert,
-	                 dualcon_add_quad,
-	                 flags,
-	                 mode,
-	                 rmd->threshold,
-	                 rmd->hermite_num,
-	                 rmd->scale,
-	                 rmd->depth);
+					 dualcon_alloc_output,
+					 dualcon_add_vert,
+					 dualcon_add_quad,
+					 flags,
+					 mode,
+					 rmd->threshold,
+					 rmd->hermite_num,
+					 rmd->scale,
+					 rmd->depth);
 	result = output->dm;
 	MEM_freeN(output);
 
@@ -199,9 +197,9 @@ static DerivedMesh *applyModifier(ModifierData *md,
 #else /* !WITH_MOD_REMESH */
 
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
-                                  DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+						DerivedMesh *derivedData,
+						int UNUSED(useRenderParams),
+						int UNUSED(isFinalCalc))
 {
 	return derivedData;
 }
@@ -213,8 +211,7 @@ ModifierTypeInfo modifierType_Remesh = {
 	/* structName */        "RemeshModifierData",
 	/* structSize */        sizeof(RemeshModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh |
-	                        eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |	eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,

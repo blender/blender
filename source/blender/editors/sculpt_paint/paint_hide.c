@@ -1,4 +1,6 @@
 /*
+ * $Id$
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -328,9 +330,9 @@ static int hide_show_exec(bContext *C, wmOperator *op)
 	/* ensure that edges and faces get hidden as well (not used by
 	 * sculpt but it looks wrong when entering editmode otherwise) */
 	if (pbvh_type == PBVH_FACES) {
-		BKE_mesh_flush_hidden_from_verts(me->mvert, me->mloop,
-		                                 me->medge, me->totedge,
-		                                 me->mpoly, me->totpoly);
+		mesh_flush_hidden_from_verts(me->mvert, me->mloop,
+		                             me->medge, me->totedge,
+		                             me->mpoly, me->totpoly);
 	}
 
 	ED_region_tag_redraw(ar);
@@ -364,7 +366,6 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Hide/Show";
 	ot->idname = "PAINT_OT_hide_show";
-	ot->description = "Hide/show some vertices";
 
 	/* api callbacks */
 	ot->invoke = hide_show_invoke;

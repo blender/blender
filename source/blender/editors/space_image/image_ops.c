@@ -190,14 +190,13 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
-/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
 int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	Scene *scene = CTX_data_scene(C);
-	ToolSettings *toolsettings = scene->toolsettings;
 
-	if (sima && !toolsettings->uvsculpt && !scene->obedit)
+	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
+	if (sima && !toolsettings->uvsculpt)
 		return 1;
 
 	return 0;
@@ -825,7 +824,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	ima = BKE_image_load_exists(str);
+	ima = BKE_add_image_file(str);
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -1141,7 +1140,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
 			if (ibuf->userflags & IB_BITMAPDIRTY) { /* it has been painted onto */
 				/* checks each pixel, not ideal */
-				ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? 32 : 24;
+				ibuf->planes = BKE_alphatest_ibuf(ibuf) ? 32 : 24;
 			}
 		}
 		
@@ -1158,7 +1157,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_imbuf_write_as(ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
+			if (BKE_write_ibuf_as(ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
 				ok = TRUE;
 			}
 		}
@@ -1515,7 +1514,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	if (!alpha)
 		color[3] = 1.0f;
 
-	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
+	ima = BKE_add_image_size(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
 
 	if (!ima)
 		return OPERATOR_CANCELLED;
@@ -2157,7 +2156,6 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Curves Point";
 	ot->idname = "IMAGE_OT_curves_point_set";
-	ot->description = "Set black point or white point for curves";
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2391,7 +2389,7 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 		if (tex->type == TEX_IMAGE && tex->ima) {
 			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_frame_calc(&tex->iuser, cfra, 0);
+					BKE_image_user_calc_frame(&tex->iuser, cfra, 0);
 			}
 		}
 	}
@@ -2406,12 +2404,12 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 					BGpic *bgpic;
 					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
 						if (bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_frame_calc(&bgpic->iuser, cfra, 0);
+							BKE_image_user_calc_frame(&bgpic->iuser, cfra, 0);
 				}
 				else if (sa->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = sa->spacedata.first;
 					if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_frame_calc(&sima->iuser, cfra, 0);
+						BKE_image_user_calc_frame(&sima->iuser, cfra, 0);
 				}
 				else if (sa->spacetype == SPACE_NODE) {
 					SpaceNode *snode = sa->spacedata.first;
@@ -2423,7 +2421,7 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 								ImageUser *iuser = node->storage;
 								if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 									if (iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_frame_calc(iuser, cfra, 0);
+										BKE_image_user_calc_frame(iuser, cfra, 0);
 							}
 						}
 					}

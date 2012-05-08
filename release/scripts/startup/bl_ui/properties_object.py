@@ -299,10 +299,14 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
         layout = self.layout
 
         ob = context.object
-        avs = ob.animation_visualisation
-        mpath = ob.motion_path
-        
-        self.draw_settings(context, avs, mpath)
+
+        self.draw_settings(context, ob.animation_visualisation)
+
+        layout.separator()
+
+        row = layout.row()
+        row.operator("object.paths_calculate", text="Calculate Paths")
+        row.operator("object.paths_clear", text="Clear Paths")
 
 
 class OBJECT_PT_onion_skinning(OnionSkinButtonsPanel):  # , Panel): # inherit from panel when ready

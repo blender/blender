@@ -1,4 +1,5 @@
-/*
+/*  
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -457,7 +458,6 @@ RenderResult *render_result_new(Render *re, rcti *partrct, int crop, int savebuf
 		BLI_strncpy(rl->name, srl->name, sizeof(rl->name));
 		rl->lay= srl->lay;
 		rl->lay_zmask= srl->lay_zmask;
-		rl->lay_exclude= srl->lay_exclude;
 		rl->layflag= srl->layflag;
 		rl->passflag= srl->passflag; // for debugging: srl->passflag|SCE_PASS_RAYHITS;
 		rl->pass_xor= srl->pass_xor;
@@ -1020,7 +1020,7 @@ ImBuf *render_result_rect_to_ibuf(RenderResult *rr, RenderData *rd)
 	int flags = (rd->color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE)? IB_cm_predivide: 0;
 	ImBuf *ibuf= IMB_allocImBuf(rr->rectx, rr->recty, rd->im_format.planes, flags);
 	
-	/* if not exists, BKE_imbuf_write makes one */
+	/* if not exists, BKE_write_ibuf makes one */
 	ibuf->rect= (unsigned int *)rr->rect32;    
 	ibuf->rect_float= rr->rectf;
 	ibuf->zbuf_float= rr->rectz;

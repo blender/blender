@@ -93,7 +93,6 @@ static strCursorDelimType test_special_char(const char *ch_utf8)
 			return STRCUR_DELIM_QUOTE;
 
 		case ' ':
-		case '\t':
 			return STRCUR_DELIM_WHITESPACE;
 
 		case '\\':

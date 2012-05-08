@@ -69,7 +69,6 @@ void BMO_error_clear(BMesh *bm);
 #define BMERR_NONMANIFOLD				8
 #define BMERR_INVALID_SELECTION			9
 #define BMERR_MESH_ERROR				10
-#define BMERR_CONVEX_HULL_FAILED		11
 
 /* BMESH_ASSERT */
 #ifdef WITH_ASSERT_ABORT

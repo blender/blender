@@ -189,6 +189,42 @@ static void delete_customdata_layer(bContext *C, Object *ob, CustomDataLayer *la
 	}
 }
 
+/* copies from active to 'index' */
+static void editmesh_face_copy_customdata(BMEditMesh *em, int type, int index)
+{
+	BMesh *bm = em->bm;
+	CustomData *pdata = &bm->pdata;
+	BMIter iter;
+	BMFace *efa;
+	const int n = CustomData_get_active_layer(pdata, type);
+
+	/* ensure all current elements follow new customdata layout */
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		void *data = CustomData_bmesh_get_n(pdata, efa->head.data, type, n);
+		CustomData_bmesh_set_n(pdata, efa->head.data, type, index, data);
+	}
+}
+
+/* copies from active to 'index' */
+static void editmesh_loop_copy_customdata(BMEditMesh *em, int type, int index)
+{
+	BMesh *bm = em->bm;
+	CustomData *ldata = &bm->ldata;
+	BMIter iter;
+	BMIter liter;
+	BMFace *efa;
+	BMLoop *loop;
+	const int n = CustomData_get_active_layer(ldata, type);
+
+	/* ensure all current elements follow new customdata layout */
+	BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
+		BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
+			void *data = CustomData_bmesh_get_n(ldata, loop->head.data, type, n);
+			CustomData_bmesh_set_n(ldata, loop->head.data, type, index, data);
+		}
+	}
+}
+
 int ED_mesh_uv_loop_reset_ex(struct bContext *C, struct Mesh *me, const int layernum)
 {
 	BMEditMesh *em = me->edit_btmesh;
@@ -324,8 +360,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		BM_data_layer_add_named(em->bm, &em->bm->pdata, CD_MTEXPOLY, name);
 		/* copy data from active UV */
 		if (layernum) {
-			const int layernum_dst = CustomData_get_active_layer(&em->bm->pdata, CD_MTEXPOLY);
-			BM_data_layer_copy(em->bm, &em->bm->pdata, CD_MTEXPOLY, layernum, layernum_dst);
+			editmesh_face_copy_customdata(em, CD_MTEXPOLY, layernum);
 		}
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->pdata, CD_MTEXPOLY, layernum);
@@ -335,9 +370,7 @@ int ED_mesh_uv_texture_add(bContext *C, Mesh *me, const char *name, int active_s
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPUV, name);
 		/* copy data from active UV */
 		if (layernum) {
-			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPUV);
-			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum, layernum_dst);
-
+			editmesh_loop_copy_customdata(em, CD_MLOOPUV, layernum);
 			is_init = TRUE;
 		}
 		if (active_set || layernum == 0) {
@@ -424,8 +457,7 @@ int ED_mesh_color_add(bContext *C, Scene *UNUSED(scene), Object *UNUSED(ob), Mes
 		BM_data_layer_add_named(em->bm, &em->bm->ldata, CD_MLOOPCOL, name);
 		/* copy data from active vertex color layer */
 		if (layernum) {
-			const int layernum_dst = CustomData_get_active_layer(&em->bm->ldata, CD_MLOOPCOL);
-			BM_data_layer_copy(em->bm, &em->bm->ldata, CD_MLOOPUV, layernum, layernum_dst);
+			editmesh_loop_copy_customdata(em, CD_MLOOPCOL, layernum);
 		}
 		if (active_set || layernum == 0) {
 			CustomData_set_layer_active(&em->bm->ldata, CD_MLOOPCOL, layernum);
@@ -556,11 +588,11 @@ static int drop_named_image_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		char path[FILE_MAX];
 		
 		RNA_string_get(op->ptr, "filepath", path);
-		ima = BKE_image_load_exists(path);
+		ima = BKE_add_image_file(path);
 	}
 	else {
 		RNA_string_get(op->ptr, "name", name);
-		ima = (Image *)BKE_libblock_find_name(ID_IM, name);
+		ima = (Image *)find_id("IM", name);
 	}
 	
 	if (!ima) {
@@ -808,16 +840,16 @@ void ED_mesh_update(Mesh *mesh, bContext *C, int calc_edges, int calc_tessface)
 	 * contain the normal of the poly the face was tessellated from. */
 	face_nors = CustomData_add_layer(&mesh->fdata, CD_NORMAL, CD_CALLOC, NULL, mesh->totface);
 
-	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                                 mesh->mloop, mesh->mpoly,
-	                                 mesh->totloop, mesh->totpoly,
-	                                 NULL /* polyNors_r */,
-	                                 mesh->mface, mesh->totface,
-	                                 polyindex, face_nors, FALSE);
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly,
+	                             mesh->totloop, mesh->totpoly,
+	                             NULL /* polyNors_r */,
+	                             mesh->mface, mesh->totface,
+	                             polyindex, face_nors, FALSE);
 #else
-	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                      NULL);
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
 	(void)polyindex;
 	(void)face_nors;
 #endif
@@ -1138,13 +1170,13 @@ void ED_mesh_polys_add(Mesh *mesh, ReportList *reports, int count)
 void ED_mesh_calc_normals(Mesh *mesh)
 {
 #ifdef USE_BMESH_MPOLY_NORMALS
-	BKE_mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
-	                                 mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                                 NULL, NULL, 0, NULL, NULL, FALSE);
+	mesh_calc_normals_mapping_ex(mesh->mvert, mesh->totvert,
+	                             mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                             NULL, NULL, 0, NULL, NULL, FALSE);
 #else
-	BKE_mesh_calc_normals(mesh->mvert, mesh->totvert,
-	                      mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
-	                      NULL);
+	mesh_calc_normals(mesh->mvert, mesh->totvert,
+	                  mesh->mloop, mesh->mpoly, mesh->totloop, mesh->totpoly,
+	                  NULL);
 #endif
 }
 

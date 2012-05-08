@@ -1,5 +1,7 @@
 #if 0
+
 /*
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -78,7 +80,7 @@ MakeCSGMeshFromBlenderBase(
 	Mesh *me;
 	if (output == NULL || base == NULL) return 0;
 
-	me = BKE_mesh_from_object(base->object);
+	me = get_mesh(base->object);
 		
 	output->m_descriptor.user_face_vertex_data_size = 0;
 	output->m_descriptor.user_data_size = sizeof(FaceData);
@@ -105,7 +107,7 @@ CSG_LoadBlenderMesh(
 	Mesh *me;
 	if (output == NULL || obj == NULL) return 0;
 
-	me = BKE_mesh_from_object(obj);
+	me = get_mesh(obj);
 		
 	output->m_descriptor.user_face_vertex_data_size = 0;
 	output->m_descriptor.user_data_size = sizeof(FaceData);

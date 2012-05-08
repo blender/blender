@@ -137,7 +137,7 @@ static int add_default_keyingset_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keying_set_add(wmOperatorType *ot)
+void ANIM_OT_keying_set_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Empty Keying Set";
@@ -184,7 +184,7 @@ static int remove_active_keyingset_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keying_set_remove(wmOperatorType *ot)
+void ANIM_OT_keying_set_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Active Keying Set";
@@ -227,7 +227,7 @@ static int add_empty_ks_path_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keying_set_path_add(wmOperatorType *ot)
+void ANIM_OT_keying_set_path_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add Empty Keying Set Path";
@@ -270,7 +270,7 @@ static int remove_active_ks_path_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ANIM_OT_keying_set_path_remove(wmOperatorType *ot)
+void ANIM_OT_keying_set_path_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove Active Keying Set Path";
@@ -368,7 +368,7 @@ static int add_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_keyingset_button_add(wmOperatorType *ot)
+void ANIM_OT_keyingset_button_add (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Add to Keying Set";
@@ -447,7 +447,7 @@ static int remove_keyingset_button_exec (bContext *C, wmOperator *op)
 	return (success)? OPERATOR_FINISHED: OPERATOR_CANCELLED;
 }
 
-void ANIM_OT_keyingset_button_remove(wmOperatorType *ot)
+void ANIM_OT_keyingset_button_remove (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Remove from Keying Set";
@@ -494,7 +494,7 @@ static int keyingset_active_menu_exec (bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
  
-void ANIM_OT_keying_set_active_set(wmOperatorType *ot)
+void ANIM_OT_keying_set_active_set (wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 	
@@ -528,7 +528,7 @@ ListBase builtin_keyingsets = {NULL, NULL};
 /* --------------- */
 
 /* Find KeyingSet type info given a name */
-KeyingSetInfo *ANIM_keyingset_info_find_name (const char name[])
+KeyingSetInfo *ANIM_keyingset_info_find_named (const char name[])
 {
 	/* sanity checks */
 	if ((name == NULL) || (name[0] == 0))
@@ -571,7 +571,7 @@ KeyingSet *ANIM_builtin_keyingset_get_named (KeyingSet *prevKS, const char name[
 /* --------------- */
 
 /* Add the given KeyingSetInfo to the list of type infos, and create an appropriate builtin set too */
-void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
+void ANIM_keyingset_info_register (KeyingSetInfo *ksi)
 {
 	KeyingSet *ks;
 	
@@ -591,7 +591,7 @@ void ANIM_keyingset_info_register(KeyingSetInfo *ksi)
 }
 
 /* Remove the given KeyingSetInfo from the list of type infos, and also remove the builtin set if appropriate */
-void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
+void ANIM_keyingset_info_unregister (Main *bmain, KeyingSetInfo *ksi)
 {
 	KeyingSet *ks, *ksn;
 	
@@ -620,7 +620,7 @@ void ANIM_keyingset_info_unregister(Main *bmain, KeyingSetInfo *ksi)
 
 /* --------------- */
 
-void ANIM_keyingset_infos_exit(void)
+void ANIM_keyingset_infos_exit (void)
 {
 	KeyingSetInfo *ksi, *next;
 	
@@ -662,7 +662,7 @@ KeyingSet *ANIM_scene_get_active_keyingset (Scene *scene)
 }
 
 /* Get the index of the Keying Set provided, for the given Scene */
-int ANIM_scene_get_keyingset_index(Scene *scene, KeyingSet *ks)
+int ANIM_scene_get_keyingset_index (Scene *scene, KeyingSet *ks)
 {
 	int index;
 	
@@ -780,10 +780,10 @@ EnumPropertyItem *ANIM_keying_sets_enum_itemf (bContext *C, PointerRNA *UNUSED(p
 /* Polling API ----------------------------------------------- */
 
 /* Check if KeyingSet can be used in the current context */
-short ANIM_keyingset_context_ok_poll(bContext *C, KeyingSet *ks)
+short ANIM_keyingset_context_ok_poll (bContext *C, KeyingSet *ks)
 {
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
 		
 		/* get the associated 'type info' for this KeyingSet */
 		if (ksi == NULL)
@@ -824,7 +824,7 @@ static void RKS_ITER_overrides_list (KeyingSetInfo *ksi, bContext *C, KeyingSet 
 }
 
 /* Add new data source for relative Keying Sets */
-void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *srna, void *data)
+void ANIM_relative_keyingset_add_source (ListBase *dsources, ID *id, StructRNA *srna, void *data)
 {
 	tRKS_DSource *ds;
 	
@@ -857,7 +857,7 @@ void ANIM_relative_keyingset_add_source(ListBase *dsources, ID *id, StructRNA *s
  *
  * Returns 0 if succeeded, otherwise an error code: eModifyKey_Returns
  */
-short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
+short ANIM_validate_keyingset (bContext *C, ListBase *dsources, KeyingSet *ks)
 {
 	/* sanity check */
 	if (ks == NULL)
@@ -865,7 +865,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
 	
 	/* if relative Keying Sets, poll and build up the paths */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0) {
-		KeyingSetInfo *ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
+		KeyingSetInfo *ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
 		
 		/* clear all existing paths 
 		 * NOTE: BKE_keyingset_free() frees all of the paths for the KeyingSet, but not the set itself
@@ -905,7 +905,7 @@ short ANIM_validate_keyingset(bContext *C, ListBase *dsources, KeyingSet *ks)
  * by the KeyingSet. This takes into account many of the different combinations of using KeyingSets.
  * Returns the number of channels that keyframes were added to
  */
-int ANIM_apply_keyingset(bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
+int ANIM_apply_keyingset (bContext *C, ListBase *dsources, bAction *act, KeyingSet *ks, short mode, float cfra)
 {
 	Scene *scene= CTX_data_scene(C);
 	ReportList *reports = CTX_wm_reports(C);

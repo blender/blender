@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/dpxlib.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 DPX image file format library definitions.
  *
@@ -21,10 +24,6 @@
 
 #ifndef __DPXLIB_H__
 #define __DPXLIB_H__
-
-/** \file blender/imbuf/intern/cineon/dpxlib.h
- *  \ingroup imbcineon
- */
 
 #ifdef __cplusplus
 extern "C" {

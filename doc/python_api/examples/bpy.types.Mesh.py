@@ -38,3 +38,4 @@ for poly in me.polygons:
     for loop_index in range(poly.loop_start, poly.loop_start + poly.loop_total):
         print("    Vertex: %d" % me.loops[loop_index].vertex_index)
         print("    UV: %r" % uv_layer[loop_index].uv)
+    

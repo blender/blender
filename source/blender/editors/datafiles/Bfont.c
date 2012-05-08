@@ -1,4 +1,6 @@
+/* DataToC output of file <Bfont> */
 /*
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +29,9 @@
 
 /** \file blender/editors/datafiles/Bfont.c
  *  \ingroup eddatafiles
- *  \brief DataToC output of file <Bfont>
  */
+
+
 
 int datatoc_Bfont_size= 25181;
 char datatoc_Bfont[25181]= {

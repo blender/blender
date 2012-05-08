@@ -38,14 +38,14 @@ typedef struct boxVert {
 	float y;
 	short free;
 
-	struct BoxPack *trb; /* top right box */
-	struct BoxPack *blb; /* bottom left box */
-	struct BoxPack *brb; /* bottom right box */
-	struct BoxPack *tlb; /* top left box */
+	struct boxPack *trb; /* top right box */
+	struct boxPack *blb; /* bottom left box */
+	struct boxPack *brb; /* bottom right box */
+	struct boxPack *tlb; /* top left box */
 
 	/* Store last intersecting boxes here
 	 * speedup intersection testing */
-	struct BoxPack *isect_cache[4];
+	struct boxPack *isect_cache[4];
 
 	int index;
 } boxVert;
@@ -105,7 +105,7 @@ typedef struct boxVert {
 /* qsort function - sort largest to smallest */
 static int box_areasort(const void *p1, const void *p2)
 {
-	const BoxPack *b1 = p1, *b2 = p2;
+	const boxPack *b1 = p1, *b2 = p2;
 	const float a1 = BOXAREA(b1);
 	const float a2 = BOXAREA(b2);
 
@@ -152,12 +152,12 @@ static int vertex_sort(const void *p1, const void *p2)
  * 	len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
-void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height)
+void boxPack2D(boxPack *boxarray, const int len, float *tot_width, float *tot_height)
 {
 	boxVert *vert; /* the current vert */
 	int box_index, verts_pack_len, i, j, k, isect;
 	int quad_flags[4] = {BLF, TRF, TLF, BRF}; /* use for looping */
-	BoxPack *box, *box_test; /*current box and another for intersection tests*/
+	boxPack *box, *box_test; /*current box and another for intersection tests*/
 	int *vertex_pack_indices; /*an array of indices used for sorting verts*/
 
 	if (!len) {
@@ -167,11 +167,11 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 	}
 
 	/* Sort boxes, biggest first */
-	qsort(boxarray, len, sizeof(BoxPack), box_areasort);
+	qsort(boxarray, len, sizeof(boxPack), box_areasort);
 
 	/* add verts to the boxes, these are only used internally  */
-	vert = vertarray = MEM_mallocN(len * 4 * sizeof(boxVert), "BoxPack Verts");
-	vertex_pack_indices = MEM_mallocN(len * 3 * sizeof(int), "BoxPack Indices");
+	vert = vertarray = MEM_mallocN(len * 4 * sizeof(boxVert), "boxPack Verts");
+	vertex_pack_indices = MEM_mallocN(len * 3 * sizeof(int), "boxPack Indices");
 
 	for (box = boxarray, box_index = 0, i = 0; box_index < len; box_index++, box++) {
 

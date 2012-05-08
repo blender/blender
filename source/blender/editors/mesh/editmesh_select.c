@@ -150,7 +150,7 @@ static void draw_triangulated(int mcords[][2], short tot)
 	}
 	
 	/* do the fill */
-	BKE_displist_fill(&lb, &lb, 0);
+	filldisplist(&lb, &lb, 0);
 
 	/* do the draw */
 	dl = lb.first;  /* filldisplist adds in head of list */
@@ -170,7 +170,7 @@ static void draw_triangulated(int mcords[][2], short tot)
 		glEnd();
 	}
 	
-	BKE_displist_free(&lb);
+	freedisplist(&lb);
 }
 
 
@@ -1049,10 +1049,10 @@ static void mouse_mesh_loop(bContext *C, int mval[2], short extend, short ring)
 				/* TODO: would be nice if the edge vertex chosen here
 				 * was the one closer to the selection pointer, instead
 				 * of arbitrarily selecting the first one */
-				BM_select_history_store(em->bm, eed->v1);
+				EDBM_editselection_store(em, &eed->v1->head);
 			}
 			else if (em->selectmode & SCE_SELECT_EDGE) {
-				BM_select_history_store(em->bm, eed);
+				EDBM_editselection_store(em, &eed->head);
 			}
 			/* TODO: would be nice if the nearest face that
 			 * belongs to the selected edge could be set to
@@ -1364,7 +1364,7 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 				e_act = (BMEdge *)ese->ele;
 				if (e_act != e) {
 					if (edgetag_shortest_path(vc.scene, em, e_act, e)) {
-						BM_select_history_remove(em->bm, e_act);
+						EDBM_editselection_remove(em, &e_act->head);
 						path = 1;
 					}
 				}
@@ -1379,9 +1379,9 @@ static int mouse_mesh_shortest_path(bContext *C, int mval[2])
 
 		/* even if this is selected it may not be in the selection list */
 		if (edgetag_context_check(vc.scene, em, e) == 0)
-			BM_select_history_remove(em->bm, e);
+			EDBM_editselection_remove(em, &e->head);
 		else
-			BM_select_history_store(em->bm, e);
+			EDBM_editselection_store(em, &e->head);
 	
 		/* force drawmode for mesh */
 		switch (CTX_data_tool_settings(C)->edge_mode) {
@@ -1476,31 +1476,31 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 			BM_active_face_set(vc.em->bm, efa);
 			
 			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
-				BM_select_history_store(vc.em->bm, efa);
+				EDBM_editselection_store(vc.em, &efa->head);
 				BM_face_select_set(vc.em->bm, efa, TRUE);
 			}
 			else if (extend) {
-				BM_select_history_remove(vc.em->bm, efa);
+				EDBM_editselection_remove(vc.em, &efa->head);
 				BM_face_select_set(vc.em->bm, efa, FALSE);
 			}
 		}
 		else if (eed) {
 			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
-				BM_select_history_store(vc.em->bm, eed);
+				EDBM_editselection_store(vc.em, &eed->head);
 				BM_edge_select_set(vc.em->bm, eed, TRUE);
 			}
 			else if (extend) {
-				BM_select_history_remove(vc.em->bm, eed);
+				EDBM_editselection_remove(vc.em, &eed->head);
 				BM_edge_select_set(vc.em->bm, eed, FALSE);
 			}
 		}
 		else if (eve) {
 			if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
-				BM_select_history_store(vc.em->bm, eve);
+				EDBM_editselection_store(vc.em, &eve->head);
 				BM_vert_select_set(vc.em->bm, eve, TRUE);
 			}
 			else if (extend) {
-				BM_select_history_remove(vc.em->bm, eve);
+				EDBM_editselection_remove(vc.em, &eve->head);
 				BM_vert_select_set(vc.em->bm, eve, FALSE);
 			}
 		}
@@ -1512,7 +1512,7 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 			vc.obedit->actcol = efa->mat_nr + 1;
 			vc.em->mat_nr = efa->mat_nr;
 
-			WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, NULL);
+			WM_event_add_notifier(C, NC_MATERIAL|ND_SHADING, NULL);
 
 		}
 
@@ -2307,7 +2307,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 		BLI_array_empty(stack);
 		i = 1;
 
-		BLI_array_grow_one(stack);
+		BLI_array_growone(stack);
 		stack[i - 1] = f;
 
 		while (i) {
@@ -2330,7 +2330,7 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 					/* invalidate: edge too sharp */
 					if (angle < sharp) {
-						BLI_array_grow_one(stack);
+						BLI_array_growone(stack);
 						stack[i] = l2->f;
 						i++;
 					}

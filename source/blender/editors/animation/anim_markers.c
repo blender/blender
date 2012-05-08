@@ -121,7 +121,7 @@ ListBase *ED_animcontext_get_markers(const bAnimContext *ac)
  * < value: from the transform code, this is t->vec[0] (which is delta transform for grab/extend, and scale factor for scale)
  * < side: (B/L/R) for 'extend' functionality, which side of current frame to use
  */
-int ED_markers_post_apply_transform(ListBase *markers, Scene *scene, int mode, float value, char side)
+int ED_markers_post_apply_transform (ListBase *markers, Scene *scene, int mode, float value, char side)
 {
 	TimeMarker *marker;
 	float cfra = (float)CFRA;
@@ -187,14 +187,14 @@ TimeMarker *ED_markers_find_nearest_marker (ListBase *markers, float x)
 }
 
 /* Return the time of the marker that occurs on a frame closest to the given time */
-int ED_markers_find_nearest_marker_time(ListBase *markers, float x)
+int ED_markers_find_nearest_marker_time (ListBase *markers, float x)
 {
 	TimeMarker *nearest= ED_markers_find_nearest_marker(markers, x);
 	return (nearest) ? (nearest->frame) : (int)floor(x + 0.5f);
 }
 
 
-void ED_markers_get_minmax(ListBase *markers, short sel, float *first, float *last)
+void ED_markers_get_minmax (ListBase *markers, short sel, float *first, float *last)
 {
 	TimeMarker *marker;
 	float min, max;
@@ -509,7 +509,7 @@ static int ed_markers_poll_markers_exist(bContext *C)
  *			exec() callback will be called instead in the appropriate places.
  */
 static int ed_markers_opwrap_invoke_custom(bContext *C, wmOperator *op, wmEvent *evt, 
-                                           int (*invoke_func)(bContext *, wmOperator *, wmEvent *))
+		int (*invoke_func)(bContext*,wmOperator*,wmEvent*))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	int retval = OPERATOR_PASS_THROUGH;
@@ -745,7 +745,7 @@ static int ed_marker_move_modal(bContext *C, wmOperator *op, wmEvent *evt)
 	float dx, fac;
 	char str[256];
 		
-	switch (evt->type) {
+	switch(evt->type) {
 		case ESCKEY:
 			ed_marker_move_cancel(C, op);
 			return OPERATOR_CANCELLED;
@@ -1048,7 +1048,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		int sel= 0;
 		
 		if (!extend)
-			BKE_scene_base_deselect_all(scene);
+			scene_deselect_all(scene);
 		
 		for (marker= markers->first; marker; marker= marker->next) {
 			if (marker->frame==cfra) {
@@ -1060,7 +1060,7 @@ static int ed_marker_select(bContext *C, wmEvent *evt, int extend, int camera)
 		for (marker= markers->first; marker; marker= marker->next) {
 			if (marker->camera) {
 				if (marker->frame==cfra) {
-					base= BKE_scene_base_find(scene, marker->camera);
+					base= object_in_scene(marker->camera, scene);
 					if (base) {
 						ED_base_object_select(base, sel);
 						if (sel)
@@ -1437,7 +1437,7 @@ static int ed_marker_camera_bind_exec(bContext *C, wmOperator *UNUSED(op))
 	marker->camera= ob;
 
 	/* camera may have changes */
-	BKE_scene_camera_switch_update(scene);
+	scene_camera_switch_update(scene);
 	BKE_screen_view3d_scene_sync(sc);
 
 	WM_event_add_notifier(C, NC_SCENE|ND_MARKERS, NULL);

@@ -52,7 +52,8 @@
 
 void setBoneRollFromNormal(EditBone *bone, float *no, float UNUSED(invmat[][4]), float tmat[][3])
 {
-	if (no != NULL && !is_zero_v3(no)) {
+	if (no != NULL && !is_zero_v3(no))
+	{
 		float normal[3];
 
 		copy_v3_v3(normal, no);	
@@ -66,14 +67,16 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 {
 	int len = 2 + abs(end - start);
 	
-	if (len > 2) {
+	if (len > 2)
+	{
 		float avg_t = 0.0f;
 		float s_t = 0.0f;
 		float s_xyz = 0.0f;
 		int i;
 		
 		/* First pass, calculate average */
-		for (i = start; i <= end; i++) {
+		for (i = start; i <= end; i++)
+		{
 			float v[3];
 			
 			IT_peek(iter, i);
@@ -86,7 +89,8 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 		avg_t /= len;
 		
 		/* Second pass, calculate s_xyz and s_t */
-		for (i = start; i <= end; i++) {
+		for (i = start; i <= end; i++)
+		{
 			float v[3], d[3];
 			float dt;
 			
@@ -106,7 +110,8 @@ float calcArcCorrelation(BArcIterator *iter, int start, int end, float v0[3], fl
 		
 		return 1.0f - s_xyz / s_t; 
 	}
-	else {
+	else
+	{
 		return 1.0f;
 	}
 }
@@ -120,13 +125,15 @@ int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int sta
 	float length_threshold;
 	int i;
 	
-	if (stroke_length == 0) {
+	if (stroke_length == 0)
+	{
 		current_length = 0;
 
 		IT_peek(iter, start);
 		v1 = iter->p;
 		
-		for (i = start + 1; i <= end; i++) {
+		for (i = start + 1; i <= end; i++)
+		{
 			IT_peek(iter, i);
 			v2 = iter->p;
 
@@ -147,7 +154,8 @@ int nextFixedSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int sta
 	v1 = iter->p;
 
 	/* < and not <= because we don't care about end, it is P_EXACT anyway */
-	for (i = start + 1; i < end; i++) {
+	for (i = start + 1; i < end; i++)
+	{
 		IT_peek(iter, i);
 		v2 = iter->p;
 
@@ -175,7 +183,8 @@ int nextAdaptativeSubdivision(ToolSettings *toolsettings, BArcIterator *iter, in
 	IT_peek(iter, start);
 	start_p = iter->p;
 
-	for (i = start + 2; i <= end; i++) {
+	for (i = start + 2; i <= end; i++)
+	{
 		/* Calculate normal */
 		IT_peek(iter, i);
 		sub_v3_v3v3(n, iter->p, head);
@@ -197,7 +206,8 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 	int i;
 	
 	i = start + 1;
-	while (i <= end) {
+	while (i <= end)
+	{
 		float *vec0;
 		float *vec1;
 		
@@ -208,8 +218,10 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 		vec1 = iter->p;
 		
 		/* If lengthLimit hits the current segment */
-		if (len_v3v3(vec1, head) > lengthLimit) {
-			if (same == 0) {
+		if (len_v3v3(vec1, head) > lengthLimit)
+		{
+			if (same == 0)
+			{
 				float dv[3], off[3];
 				float a, b, c, f;
 				
@@ -248,7 +260,8 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 			
 			return i - 1; /* restart at lower bound */
 		}
-		else {
+		else
+		{
 			i++;
 			same = 0; // Reset same
 		}
@@ -273,14 +286,16 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 	parent = ED_armature_edit_bone_add(arm, "Bone");
 	copy_v3_v3(parent->head, iter->p);
 	
-	if (iter->size > 0) {
+	if (iter->size > 0)
+	{
 		parent->rad_head = iter->size * size_buffer;
 	}
 	
 	normal = iter->no;
 	
 	index = next_subdividion(toolsettings, iter, bone_start, end, parent->head, parent->tail);
-	while (index != -1) {
+	while (index != -1)
+	{
 		IT_peek(iter, index);
 
 		child = ED_armature_edit_bone_add(arm, "Bone");
@@ -288,7 +303,8 @@ EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *
 		child->parent = parent;
 		child->flag |= BONE_CONNECTED;
 		
-		if (iter->size > 0) {
+		if (iter->size > 0)
+		{
 			child->rad_head = iter->size * size_buffer;
 			parent->rad_tail = iter->size * size_buffer;
 		}

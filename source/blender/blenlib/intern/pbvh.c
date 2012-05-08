@@ -35,8 +35,8 @@
 #include "BLI_pbvh.h"
 
 #include "BKE_DerivedMesh.h"
-#include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
-#include "BKE_global.h" /* for BKE_mesh_calc_normals */
+#include "BKE_mesh.h" /* for mesh_calc_normals */
+#include "BKE_global.h" /* for mesh_calc_normals */
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
 
@@ -1012,15 +1012,15 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 	 * we have to store for each vertex which node it is in */
 	vnor= MEM_callocN(sizeof(float)*3*bvh->totvert, "bvh temp vnors");
 
-	/* subtle assumptions:
-	 * - We know that for all edited vertices, the nodes with faces
-	 *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
-	 *   This is true because if the vertex is inside the brush radius, the
-	 *   bounding box of it's adjacent faces will be as well.
-	 * - However this is only true for the vertices that have actually been
-	 *   edited, not for all vertices in the nodes marked for update, so we
-	 *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
-	 */
+    /* subtle assumptions:
+     * - We know that for all edited vertices, the nodes with faces
+     *   adjacent to these vertices have been marked with PBVH_UpdateNormals.
+     *   This is true because if the vertex is inside the brush radius, the
+     *   bounding box of it's adjacent faces will be as well.
+     * - However this is only true for the vertices that have actually been
+     *   edited, not for all vertices in the nodes marked for update, so we
+     *   can only update vertices marked with ME_VERT_PBVH_UPDATE.
+     */
 
 	#pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < totnode; n++) {
@@ -1151,7 +1151,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 		}
 
 		if (node->flag & PBVH_UpdateDrawBuffers) {
-			switch (bvh->type) {
+			switch(bvh->type) {
 			case PBVH_GRIDS:
 				GPU_update_grid_buffers(node->draw_buffers,
 						   bvh->grids,
@@ -1290,9 +1290,7 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	for (hiter = BLI_ghashIterator_new(map), i = 0;
 		!BLI_ghashIterator_isDone(hiter);
 		BLI_ghashIterator_step(hiter), ++i)
-	{
 		faces[i]= BLI_ghashIterator_getKey(hiter);
-	}
 
 	BLI_ghashIterator_free(hiter);
 
@@ -1347,7 +1345,7 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 {
 	int tot;
 	
-	switch (bvh->type) {
+	switch(bvh->type) {
 	case PBVH_GRIDS:
 		tot= node->totprim*bvh->gridsize*bvh->gridsize;
 		if (totvert) *totvert= tot;
@@ -1362,7 +1360,7 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, DMGridData ***griddata, DMGridAdjacency **gridadj)
 {
-	switch (bvh->type) {
+	switch(bvh->type) {
 	case PBVH_GRIDS:
 		if (grid_indices) *grid_indices= node->prim_indices;
 		if (totgrid) *totgrid= node->totprim;
@@ -1506,7 +1504,7 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
 
-	switch (bvh->type) {
+	switch(bvh->type) {
 	case PBVH_FACES:
 		vert = bvh->verts;
 		faces= node->prim_indices;
@@ -1743,7 +1741,7 @@ void BLI_pbvh_apply_vertCos(PBVH *pbvh, float (*vertCos)[3])
 		}
 
 		/* coordinates are new -- normals should also be updated */
-		BKE_mesh_calc_normals_tessface(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
+		mesh_calc_normals_tessface(pbvh->verts, pbvh->totvert, pbvh->faces, pbvh->totprim, NULL);
 
 		for (a= 0; a < pbvh->totnode; ++a)
 			BLI_pbvh_node_mark_update(&pbvh->nodes[a]);

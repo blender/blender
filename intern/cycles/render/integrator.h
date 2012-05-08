@@ -41,13 +41,11 @@ public:
 	bool transparent_shadows;
 
 	bool no_caustics;
-	float filter_glossy;
 
 	int seed;
 	int layer_flag;
 
 	float sample_clamp;
-	bool motion_blur;
 
 	bool need_update;
 

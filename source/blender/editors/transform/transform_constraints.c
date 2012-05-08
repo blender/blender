@@ -76,7 +76,8 @@ static void drawObjectConstraint(TransInfo *t);
 static void constraintAutoValues(TransInfo *t, float vec[3])
 {
 	int mode = t->con.mode;
-	if (mode & CON_APPLY) {
+	if (mode & CON_APPLY)
+	{
 		float nval = (t->flag & T_NULL_ONE)?1.0f:0.0f;
 
 		if ((mode & CON_AXIS0) == 0) {
@@ -477,7 +478,7 @@ static void applyAxisConstraintRot(TransInfo *t, TransData *td, float vec[3], fl
 	if (!td && t->con.mode & CON_APPLY) {
 		int mode = t->con.mode & (CON_AXIS0|CON_AXIS1|CON_AXIS2);
 
-		switch (mode) {
+		switch(mode) {
 		case CON_AXIS0:
 		case (CON_AXIS1|CON_AXIS2):
 			copy_v3_v3(vec, t->con.mtx[0]);
@@ -524,7 +525,7 @@ static void applyObjectConstraintRot(TransInfo *t, TransData *td, float vec[3], 
 			td= t->data;
 		}
 
-		switch (mode) {
+		switch(mode) {
 		case CON_AXIS0:
 		case (CON_AXIS1|CON_AXIS2):
 			copy_v3_v3(vec, td->axismtx[0]);
@@ -603,7 +604,7 @@ void setUserConstraint(TransInfo *t, short orientation, int mode, const char fte
 {
 	char text[40];
 
-	switch (orientation) {
+	switch(orientation) {
 	case V3D_MANIP_GLOBAL:
 		{
 			float mtx[3][3]= MAT3_UNITY;
@@ -664,7 +665,7 @@ void drawConstraint(TransInfo *t)
 	else {
 		if (tc->mode & CON_SELECT) {
 			float vec[3];
-			char col2[3] = {255, 255, 255};
+			char col2[3] = {255,255,255};
 			int depth_test_enabled;
 
 			convertViewVec(t, vec, (t->mval[0] - t->con.imval[0]), (t->mval[1] - t->con.imval[1]));
@@ -767,7 +768,7 @@ static void drawObjectConstraint(TransInfo *t)
 
 	td++;
 
-	for (i=1; i < t->total; i++, td++) {
+	for (i=1;i<t->total;i++,td++) {
 		if (t->con.mode & CON_AXIS0) {
 			drawLine(t, td->ob->obmat[3], td->axismtx[0], 'X', 0);
 		}

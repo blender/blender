@@ -60,9 +60,8 @@ typedef struct SceneStats {
 	int totedge, totedgesel;
 	int totface, totfacesel;
 	int totbone, totbonesel;
-	int totobj,  totobjsel;
-	int totlamp, totlampsel; 
-	int tottri, totmesh, totcurve;
+	int totobj, totobjsel;
+	int totmesh, totlamp, totcurve;
 
 	char infostr[512];
 } SceneStats;
@@ -95,9 +94,6 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		}
 		case OB_LAMP:
 			stats->totlamp += totob;
-			if (sel) {
-				stats->totlampsel += totob;
-			}
 			break;
 		case OB_SURF:
 		case OB_CURVE:
@@ -107,7 +103,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 			stats->totcurve += totob;
 
 			if (ob->disp.first)
-				BKE_displist_count(&ob->disp, &tot, &totf);
+				count_displist(&ob->disp, &tot, &totf);
 
 			tot *= totob;
 			totf *= totob;
@@ -124,7 +120,7 @@ static void stats_object(Object *ob, int sel, int totob, SceneStats *stats)
 		case OB_MBALL: {
 			int tot = 0, totf = 0;
 
-			BKE_displist_count(&ob->disp, &tot, &totf);
+			count_displist(&ob->disp, &tot, &totf);
 
 			tot *= totob;
 			totf *= totob;
@@ -154,8 +150,6 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		
 		stats->totface = em->bm->totface;
 		stats->totfacesel = em->bm->totfacesel;
-
-		stats->tottri = em->tottri;
 	}
 	else if (obedit->type == OB_ARMATURE) {
 		/* Armature Edit */
@@ -189,7 +183,7 @@ static void stats_object_edit(Object *obedit, SceneStats *stats)
 		BezTriple *bezt;
 		BPoint *bp;
 		int a;
-		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
+		ListBase *nurbs = curve_editnurbs(cu);
 
 		for (nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER) {
@@ -369,25 +363,31 @@ static void stats_string(Scene *scene)
 			s += sprintf(s, "(Key) ");
 
 		if (scene->obedit->type == OB_MESH) {
-			s += sprintf(s, "Verts:%d/%d | Edges:%d/%d | Faces:%d/%d | Tris:%d",
-		             stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface, stats->tottri);
+			if (scene->toolsettings->selectmode & SCE_SELECT_VERTEX)
+				s += sprintf(s, "Ve:%d-%d | Ed:%d-%d | Fa:%d-%d",
+				             stats->totvertsel, stats->totvert, stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
+			else if (scene->toolsettings->selectmode & SCE_SELECT_EDGE)
+				s += sprintf(s, "Ed:%d-%d | Fa:%d-%d",
+				             stats->totedgesel, stats->totedge, stats->totfacesel, stats->totface);
+			else
+				s += sprintf(s, "Fa:%d-%d", stats->totfacesel, stats->totface);
 		}
 		else if (scene->obedit->type == OB_ARMATURE) {
-			s += sprintf(s, "Verts:%d/%d | Bones:%d/%d", stats->totvertsel, stats->totvert, stats->totbonesel, stats->totbone);
+			s += sprintf(s, "Ve:%d-%d | Bo:%d-%d", stats->totvertsel, stats->totvert, stats->totbonesel, stats->totbone);
 		}
 		else {
-			s += sprintf(s, "Verts:%d/%d", stats->totvertsel, stats->totvert);
+			s += sprintf(s, "Ve:%d-%d", stats->totvertsel, stats->totvert);
 		}
 
 		strcat(s, memstr);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		s += sprintf(s, "Bones:%d/%d %s",
+		s += sprintf(s, "Bo:%d-%d %s",
 		             stats->totbonesel, stats->totbone, memstr);
 	}
 	else {
-		s += sprintf(s, "Verts:%d | Faces:%d | Objects:%d/%d | Lamps:%d/%d%s",
-		             stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlampsel, stats->totlamp, memstr);
+		s += sprintf(s, "Ve:%d | Fa:%d | Ob:%d-%d | La:%d%s",
+		             stats->totvert, stats->totface, stats->totobjsel, stats->totobj, stats->totlamp, memstr);
 	}
 
 	if (ob)

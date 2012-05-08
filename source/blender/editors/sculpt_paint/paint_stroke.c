@@ -146,10 +146,10 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 	if (stroke->vc.obact->sculpt) {
 		float delta[2];
 
-		BKE_brush_jitter_pos(scene, brush, mouse_in, mouse);
+		brush_jitter_pos(scene, brush, mouse_in, mouse);
 
 		/* XXX: meh, this is round about because
-		 * BKE_brush_jitter_pos isn't written in the best way to
+		 * brush_jitter_pos isn't written in the best way to
 		 * be reused here */
 		if (brush->flag & BRUSH_JITTER_PRESSURE) {
 			sub_v2_v2v2(delta, mouse, mouse_in);
@@ -188,11 +188,7 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	output[1] = event->y;
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
-	    !ELEM4(stroke->brush->sculpt_tool,
-			   SCULPT_TOOL_GRAB,
-			   SCULPT_TOOL_THUMB,
-			   SCULPT_TOOL_ROTATE,
-			   SCULPT_TOOL_SNAKE_HOOK) &&
+	    !ELEM4(stroke->brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
@@ -235,11 +231,11 @@ static int paint_space_stroke(bContext *C, wmOperator *op, wmEvent *event, const
 			float pressure = 1.0f;
 
 			/* XXX mysterious :) what has 'use size' do with this here... if you don't check for it, pressure fails */
-			if (BKE_brush_use_size_pressure(scene, stroke->brush))
+			if (brush_use_size_pressure(scene, stroke->brush))
 				pressure = event_tablet_data(event, NULL);
 			
 			if (pressure > FLT_EPSILON) {
-				scale = (BKE_brush_size_get(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
+				scale = (brush_size(scene, stroke->brush) * pressure * stroke->brush->spacing / 50.0f) / length;
 				if (scale > FLT_EPSILON) {
 					mul_v2_fl(vec, scale);
 
@@ -282,8 +278,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 
 void paint_stroke_free(PaintStroke *stroke)
 {
-	MEM_freeN(op->customdata);
-	op->customdata = NULL;
+	MEM_freeN(stroke);
 }
 
 /* Returns zero if the stroke dots should not be spaced, non-zero otherwise */
@@ -292,35 +287,6 @@ int paint_space_stroke_enabled(Brush *br)
 	return (br->flag & BRUSH_SPACE) &&
 	       !(br->flag & BRUSH_ANCHORED) &&
 	       !ELEM4(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK);
-}
-
-#define PAINT_STROKE_MODAL_CANCEL 1
-
-/* called in paint_ops.c, on each regeneration of keymaps  */
-struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
-{
-	static struct EnumPropertyItem modal_items[] = {
-		{PAINT_STROKE_MODAL_CANCEL, "CANCEL", 0,
-		"Cancel",
-		"Cancel and undo a stroke in progress"},
-
-		{ 0 }
-	};
-
-	static const char *name = "Paint Stroke Modal";
-
-	struct wmKeyMap *keymap = WM_modalkeymap_get(keyconf, name);
-
-	/* this function is called for each spacetype, only needs to add map once */
-	if (!keymap) {
-		keymap = WM_modalkeymap_add(keyconf, name, modal_items);
-
-		/* items for modal map */
-		WM_modalkeymap_add_item(
-			keymap, ESCKEY, KM_PRESS, KM_ANY, 0, PAINT_STROKE_MODAL_CANCEL);
-	}
-
-	return keymap;
 }
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
@@ -411,8 +377,7 @@ int paint_stroke_exec(bContext *C, wmOperator *op)
 		stroke->stroke_started = 1;
 	}
 
-	RNA_BEGIN (op->ptr, itemptr, "stroke")
-	{
+	RNA_BEGIN(op->ptr, itemptr, "stroke") {
 		stroke->update_step(C, stroke, &itemptr);
 	}
 	RNA_END;

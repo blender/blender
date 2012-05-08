@@ -21,9 +21,10 @@
 bl_info = {
     "name": "Cycles Render Engine",
     "author": "",
-    "blender": (2, 6, 3),
+    "version": (0, 0),
+    "blender": (2, 6, 2),
     "location": "Info header, render engine menu",
-    "description": "Cycles Render Engine integration",
+    "description": "Cycles Render Engine integration.",
     "warning": "",
     "wiki_url": "http://wiki.blender.org/index.php/Dev:2.6/Source/Render/Cycles",
     "tracker_url": "",

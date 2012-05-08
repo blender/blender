@@ -870,7 +870,7 @@ int main(int argc, char** argv)
 							if (domeWarp)
 							{
 								//XXX to do: convert relative to absolute path
-								domeText= BKE_text_load(domeWarp, "");
+								domeText= add_text(domeWarp, "");
 								if (!domeText)
 									printf("error: invalid warpdata text file - %s\n", domeWarp);
 								else

@@ -176,16 +176,14 @@ typedef struct SceneRenderLayer {
 	struct Material *mat_override;
 	struct Group *light_override;
 	
-	unsigned int lay;		  /* scene->lay itself has priority over this */
-	unsigned int lay_zmask;	  /* has to be after lay, this is for Z-masking */
-	unsigned int lay_exclude; /* not used by internal, exclude */
+	unsigned int lay;		/* scene->lay itself has priority over this */
+	unsigned int lay_zmask;	/* has to be after lay, this is for Z-masking */
 	int layflag;
+	
+	int pad;
 	
 	int passflag;			/* pass_xor has to be after passflag */
 	int pass_xor;
-
-	int samples;
-	int pad;
 } SceneRenderLayer;
 
 /* srl->layflag */
@@ -851,18 +849,13 @@ typedef struct UnifiedPaintSettings {
 	/* unified strength of brush */
 	float alpha;
 
-	/* unified brush weight, [0, 1] */
-	float weight;
-
 	/* user preferences for sculpt and paint */
 	int flag;
-	int pad;
 } UnifiedPaintSettings;
 
 typedef enum {
 	UNIFIED_PAINT_SIZE  = (1<<0),
 	UNIFIED_PAINT_ALPHA = (1<<1),
-	UNIFIED_PAINT_WEIGHT = (1<<5),
 
 	/* only used if unified size is enabled, mirros the brush flags
 	 * BRUSH_LOCK_SIZE and BRUSH_SIZE_PRESSURE */
@@ -883,8 +876,7 @@ typedef struct ToolSettings {
 	Sculpt *sculpt;
 	UvSculpt *uvsculpt;	/* uv smooth */
 	
-	/* Vertex group weight - used only for editmode, not weight
-	   paint */
+	/* Vertex groups */
 	float vgroup_weight;
 
 	/* Subdivide Settings */
@@ -1119,7 +1111,7 @@ typedef struct Scene {
 	/* Movie Tracking */
 	struct MovieClip *clip;			/* active movie clip */
 
-	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by BKE_object_handle_update() */
+	uint64_t customdata_mask;	/* XXX. runtime flag for drawing, actually belongs in the window, only used by object_handle_update() */
 	uint64_t customdata_mask_modal; /* XXX. same as above but for temp operator use (gl renders) */
 } Scene;
 
@@ -1398,7 +1390,7 @@ typedef struct Scene {
 #define SCE_FRAME_DROP			(1<<3)
 
 
-	/* return flag BKE_scene_base_iter_next function */
+	/* return flag next_object function */
 #define F_ERROR			-1
 #define F_START			0
 #define F_SCENE			1

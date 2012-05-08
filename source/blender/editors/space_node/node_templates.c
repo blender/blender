@@ -220,10 +220,8 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 
 		/* also preserve mapping for texture nodes */
 		if (node_from->typeinfo->nclass == NODE_CLASS_TEXTURE &&
-		    node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE)
-		{
+		   node_prev->typeinfo->nclass == NODE_CLASS_TEXTURE)
 			memcpy(node_from->storage, node_prev->storage, sizeof(NodeTexBase));
-		}
 
 		/* remove node */
 		node_remove_linked(ntree, node_prev);
@@ -297,14 +295,11 @@ static void ui_node_sock_name(bNodeSocket *sock, char name[UI_MAX_NAME_STR])
 			BLI_strncpy(node_name, node->typeinfo->name, UI_MAX_NAME_STR);
 
 		if (node->inputs.first == NULL &&
-		    node->outputs.first != node->outputs.last &&
-		    !(node->typeinfo->flag & NODE_OPTIONS))
-		{
+		   node->outputs.first != node->outputs.last &&
+		   !(node->typeinfo->flag & NODE_OPTIONS))
 			BLI_snprintf(name, UI_MAX_NAME_STR, "%s | %s", node_name, sock->link->fromsock->name);
-		}
-		else {
+		else
 			BLI_strncpy(name, node_name, UI_MAX_NAME_STR);
-		}
 	}
 	else if (sock->type == SOCK_SHADER)
 		BLI_strncpy(name, "None", UI_MAX_NAME_STR);
@@ -333,7 +328,7 @@ static void ui_node_menu_column(NodeLinkArg *arg, int nclass, const char *cname)
 	int compatibility= 0;
 
 	if (ntree->type == NTREE_SHADER) {
-		if (BKE_scene_use_new_shading_nodes(arg->scene))
+		if (scene_use_new_shading_nodes(arg->scene))
 			compatibility= NODE_NEW_SHADING;
 		else
 			compatibility= NODE_OLD_SHADING;

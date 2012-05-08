@@ -324,10 +324,8 @@ bool ImageManager::file_load_float_image(Image *img, device_vector<float4>& tex_
 	return true;
 }
 
-void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int slot, Progress *progress)
+void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int slot)
 {
-	if(progress->get_cancel())
-		return;
 	if(osl_texture_system)
 		return;
 
@@ -344,9 +342,6 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 	}
 
 	if(is_float) {
-		string filename = path_filename(float_images[slot - TEX_IMAGE_FLOAT_START]->filename);
-		progress->set_status("Updating Images", "Loading " + filename);
-
 		device_vector<float4>& tex_img = dscene->tex_float_image[slot - TEX_IMAGE_FLOAT_START];
 
 		if(tex_img.device_pointer)
@@ -370,9 +365,6 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		device->tex_alloc(name.c_str(), tex_img, true, true);
 	}
 	else {
-		string filename = path_filename(images[slot]->filename);
-		progress->set_status("Updating Images", "Loading " + filename);
-
 		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
 
 		if(tex_img.device_pointer)
@@ -395,8 +387,6 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 
 		device->tex_alloc(name.c_str(), tex_img, true, true);
 	}
-
-	img->need_load = false;
 }
 
 void ImageManager::device_free_image(Device *device, DeviceScene *dscene, int slot)
@@ -441,36 +431,38 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 {
 	if(!need_update)
 		return;
-	
-	TaskPool pool;
 
 	for(size_t slot = 0; slot < images.size(); slot++) {
-		if(!images[slot])
-			continue;
+		if(images[slot]) {
+			if(images[slot]->users == 0) {
+				device_free_image(device, dscene, slot);
+			}
+			else if(images[slot]->need_load) {
+				string name = path_filename(images[slot]->filename);
+				progress.set_status("Updating Images", "Loading " + name);
+				device_load_image(device, dscene, slot);
+				images[slot]->need_load = false;
+			}
 
-		if(images[slot]->users == 0) {
-			device_free_image(device, dscene, slot);
-		}
-		else if(images[slot]->need_load) {
-			if(!osl_texture_system) 
-				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot, &progress));
+			if(progress.get_cancel()) return;
 		}
 	}
 
 	for(size_t slot = 0; slot < float_images.size(); slot++) {
-		if(!float_images[slot])
-			continue;
+		if(float_images[slot]) {
+			if(float_images[slot]->users == 0) {
+				device_free_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
+			}
+			else if(float_images[slot]->need_load) {
+				string name = path_filename(float_images[slot]->filename);
+				progress.set_status("Updating Images", "Loading " + name);
+				device_load_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
+				float_images[slot]->need_load = false;
+			}
 
-		if(float_images[slot]->users == 0) {
-			device_free_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
-		}
-		else if(float_images[slot]->need_load) {
-			if(!osl_texture_system) 
-				pool.push(function_bind(&ImageManager::device_load_image, this, device, dscene, slot + TEX_IMAGE_FLOAT_START, &progress));
+			if(progress.get_cancel()) return;
 		}
 	}
-
-	pool.wait_work();
 
 	need_update = false;
 }

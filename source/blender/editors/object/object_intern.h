@@ -84,7 +84,6 @@ void OBJECT_OT_proxy_make(struct wmOperatorType *ot);
 void OBJECT_OT_shade_smooth(struct wmOperatorType *ot);
 void OBJECT_OT_shade_flat(struct wmOperatorType *ot);
 void OBJECT_OT_paths_calculate(struct wmOperatorType *ot);
-void OBJECT_OT_paths_update(struct wmOperatorType *ot);
 void OBJECT_OT_paths_clear(struct wmOperatorType *ot);
 void OBJECT_OT_forcefield_toggle(struct wmOperatorType *ot);
 
@@ -186,7 +185,7 @@ void CONSTRAINT_OT_limitdistance_reset(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_set_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_childof_clear_inverse(struct wmOperatorType *ot);
 void CONSTRAINT_OT_objectsolver_set_inverse(struct wmOperatorType *ot);
-void CONSTRAINT_OT_objectsolver_clear_inverse(struct wmOperatorType *ot);
+void CONSTRAINT_OT_objectsolver_clear_inverse (struct wmOperatorType *ot);
 
 /* object_vgroup.c */
 void OBJECT_OT_vertex_group_add(struct wmOperatorType *ot);

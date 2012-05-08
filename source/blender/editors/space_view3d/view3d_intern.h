@@ -78,8 +78,6 @@ void VIEW3D_OT_ndof_pan(struct wmOperatorType *ot);
 void VIEW3D_OT_view_all(struct wmOperatorType *ot);
 void VIEW3D_OT_viewnumpad(struct wmOperatorType *ot);
 void VIEW3D_OT_view_selected(struct wmOperatorType *ot);
-void VIEW3D_OT_view_lock_clear(struct wmOperatorType *ot);
-void VIEW3D_OT_view_lock_to_active(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_cursor(struct wmOperatorType *ot);
 void VIEW3D_OT_view_center_camera(struct wmOperatorType *ot);
 void VIEW3D_OT_view_pan(struct wmOperatorType *ot);
@@ -132,7 +130,6 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, in
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, struct DerivedMesh *dm, int faceselect);
-void draw_mesh_paint(RegionView3D *rv3d, struct Object *ob, struct DerivedMesh *dm, int faceselect);
 
 /* view3d_draw.c */
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);

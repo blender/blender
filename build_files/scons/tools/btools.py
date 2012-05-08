@@ -622,13 +622,7 @@ def buildslave(target=None, source=None, env=None):
     else:
         extension = '.tar.bz2'
 
-    if env['OURPLATFORM'] == 'win32-mingw':
-        platform = 'mingw32'
-    elif env['OURPLATFORM'] == 'win64-mingw':
-        platform = 'mingw64'
-    else:
-        platform = env['OURPLATFORM'].split('-')[0]
-
+    platform = env['OURPLATFORM'].split('-')[0]
     if platform == 'linux':
         import platform
 
@@ -671,10 +665,12 @@ def NSIS_Installer(target=None, source=None, env=None):
     if env['OURPLATFORM'] not in ('win32-vc', 'win32-mingw', 'win64-vc', 'win64-mingw'):
         print "NSIS installer is only available on Windows."
         Exit()
-    if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
+    if env['OURPLATFORM'] == 'win32-vc':
         bitness = '32'
-    elif env['OURPLATFORM'] in ('win64-vc', 'win64-mingw'):
+    elif env['OURPLATFORM'] == 'win64-vc':
         bitness = '64'
+    else:
+        bitness = '-mingw'
 
     start_dir = os.getcwd()
     rel_dir = os.path.join(start_dir,'release','windows','installer')
@@ -766,7 +762,7 @@ def NSIS_Installer(target=None, source=None, env=None):
     cmdline = "makensis " + "\""+tmpnsi+"\""
 
     startupinfo = subprocess.STARTUPINFO()
-    #startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
     proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
         stderr=subprocess.PIPE, startupinfo=startupinfo, shell = True)
     data, err = proc.communicate()

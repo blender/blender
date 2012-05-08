@@ -99,7 +99,7 @@ static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory ca
 {
 	FSMenuEntry *fsms = NULL;
 
-	switch (category) {
+	switch(category) {
 		case FS_CATEGORY_SYSTEM:
 			fsms = fsmenu->fsmenu_system;
 			break;
@@ -115,7 +115,7 @@ static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory ca
 
 static void fsmenu_set_category(struct FSMenu* fsmenu, FSMenuCategory category, FSMenuEntry *fsms)
 {
-	switch (category) {
+	switch(category) {
 		case FS_CATEGORY_SYSTEM:
 			fsmenu->fsmenu_system = fsms;
 			break;
@@ -268,7 +268,8 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 	fp = BLI_fopen(filename, "r");
 	if (!fp) return;
 
-	while ( fgets ( line, 256, fp ) != NULL ) {  /* read a line */
+	while ( fgets ( line, 256, fp ) != NULL ) /* read a line */
+	{
 		if (strncmp(line, "[Bookmarks]", 11)==0) {
 			category = FS_CATEGORY_BOOKMARKS;
 		}
@@ -315,7 +316,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 
 		/* Adding Desktop and My Documents */
 		SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+		fsmenu_insert_entry(fsmenu,FS_CATEGORY_BOOKMARKS, line, 1, 0);
 		SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
 		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 	}
@@ -328,7 +329,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		const char *home;
 		
 		/* loop through all the OS X Volumes, and add them to the SYSTEM section */
-		for (i = 1; err != nsvErr; i++) {
+		for (i=1; err!=nsvErr; i++)
+		{
 			FSRef dir;
 			unsigned char path[FILE_MAX];
 			
@@ -387,7 +389,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
 		
-		for (i=0; i<pathesCount; i++) {
+		for (i=0; i<pathesCount; i++)
+		{
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
@@ -399,7 +402,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			
 			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
 				continue;
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 			
@@ -412,7 +415,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		
 		/* Then get network volumes */
 		err = noErr;
-		for (i=1; err!=nsvErr; i++) {
+		for (i=1; err!=nsvErr; i++)
+		{
 			FSRef dir;
 			FSVolumeRefNum volRefNum;
 			struct GetVolParmsInfoBuffer volParmsBuffer;
@@ -436,7 +440,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
 		
-		for (i=0; i<pathesCount; i++) {
+		for (i=0; i<pathesCount; i++)
+		{
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
@@ -448,7 +453,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			
 			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
 			
-			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+			if (!CFStringGetCString(pathString,line,256,kCFStringEncodingASCII))
 				continue;
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			

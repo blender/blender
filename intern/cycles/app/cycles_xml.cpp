@@ -284,7 +284,8 @@ static void xml_read_camera(const XMLReadState& state, pugi::xml_node node)
 	xml_read_float(&cam->farclip, node, "farclip");
 	xml_read_float(&cam->aperturesize, node, "aperturesize"); // 0.5*focallength/fstop
 	xml_read_float(&cam->focaldistance, node, "focaldistance");
-	xml_read_float(&cam->shuttertime, node, "shuttertime");
+	xml_read_float(&cam->shutteropen, node, "shutteropen");
+	xml_read_float(&cam->shutterclose, node, "shutterclose");
 
 	if(xml_equal_string(node, "type", "orthographic"))
 		cam->type = CAMERA_ORTHOGRAPHIC;
@@ -704,7 +705,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 	}
 
 	/* temporary for test compatibility */
-	mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
+	mesh->attributes.remove(Attribute::STD_VERTEX_NORMAL);
 }
 
 /* Patch */
@@ -765,7 +766,7 @@ static void xml_read_patch(const XMLReadState& state, pugi::xml_node node)
 		delete patch;
 
 		/* temporary for test compatibility */
-		mesh->attributes.remove(ATTR_STD_VERTEX_NORMAL);
+		mesh->attributes.remove(Attribute::STD_VERTEX_NORMAL);
 	}
 }
 

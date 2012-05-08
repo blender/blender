@@ -32,7 +32,7 @@
 #include "BLI_math.h"
 #include "BLI_uvproject.h"
 
-typedef struct ProjCameraInfo {
+typedef struct UvCameraInfo {
 	float camangle;
 	float camsize;
 	float xasp, yasp;
@@ -40,9 +40,9 @@ typedef struct ProjCameraInfo {
 	float rotmat[4][4];
 	float caminv[4][4];
 	short do_persp, do_pano, do_rotmat;
-} ProjCameraInfo;
+} UvCameraInfo;
 
-void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo *uci)
+void project_from_camera(float target[2], float source[3], UvCameraInfo *uci)
 {
 	float pv4[4];
 
@@ -93,7 +93,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 }
 
 /* could rv3d->persmat */
-void BLI_uvproject_from_view(float target[2], float source[3], float persmat[4][4], float rotmat[4][4], float winx, float winy)
+void project_from_view(float target[2], float source[3], float persmat[4][4], float rotmat[4][4], float winx, float winy)
 {
 	float pv[3], pv4[4], x = 0.0, y = 0.0;
 
@@ -133,9 +133,9 @@ void BLI_uvproject_from_view(float target[2], float source[3], float persmat[4][
 
 /* 'rotmat' can be obedit->obmat when uv project is used.
  * 'winx' and 'winy' can be from scene->r.xsch/ysch */
-ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float(*rotmat)[4], float winx, float winy)
+UvCameraInfo *project_camera_info(Object *ob, float(*rotmat)[4], float winx, float winy)
 {
-	ProjCameraInfo uci;
+	UvCameraInfo uci;
 	Camera *camera = ob->data;
 
 	uci.do_pano = (camera->flag & CAM_PANORAMA);
@@ -149,7 +149,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float(*rotmat)[4], float w
 	normalize_m4(uci.caminv);
 
 	if (invert_m4(uci.caminv)) {
-		ProjCameraInfo *uci_pt;
+		UvCameraInfo *uci_pt;
 
 		/* normal projection */
 		if (rotmat) {
@@ -174,7 +174,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float(*rotmat)[4], float w
 		uci.shiftx = 0.5f - (camera->shiftx * uci.xasp);
 		uci.shifty = 0.5f - (camera->shifty * uci.yasp);
 
-		uci_pt = MEM_mallocN(sizeof(ProjCameraInfo), "ProjCameraInfo");
+		uci_pt = MEM_mallocN(sizeof(UvCameraInfo), "UvCameraInfo");
 		*uci_pt = uci;
 		return uci_pt;
 	}
@@ -182,7 +182,7 @@ ProjCameraInfo *BLI_uvproject_camera_info(Object *ob, float(*rotmat)[4], float w
 	return NULL;
 }
 
-void BLI_uvproject_from_view_ortho(float target[2], float source[3], float rotmat[4][4])
+void project_from_view_ortho(float target[2], float source[3], float rotmat[4][4])
 {
 	float pv[3];
 
@@ -193,7 +193,7 @@ void BLI_uvproject_from_view_ortho(float target[2], float source[3], float rotma
 	target[1] = pv[2];
 }
 
-void BLI_uvproject_camera_info_scale(ProjCameraInfo *uci, float scale_x, float scale_y)
+void project_camera_info_scale(UvCameraInfo *uci, float scale_x, float scale_y)
 {
 	uci->xasp *= scale_x;
 	uci->yasp *= scale_y;

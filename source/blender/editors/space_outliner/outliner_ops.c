@@ -28,6 +28,9 @@
  *  \ingroup spoutliner
  */
 
+
+#include <stdlib.h>
+
 #include "DNA_space_types.h"
 
 #include "WM_api.h"
@@ -39,8 +42,9 @@
 
 #include "outliner_intern.h"
 
-
 /* ************************** registration **********************************/
+
+
 
 void outliner_operatortypes(void)
 {

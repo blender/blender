@@ -47,8 +47,19 @@ public:
 		CORNER
 	};
 
+	enum Standard {
+		STD_NONE = 0,
+		STD_VERTEX_NORMAL,
+		STD_FACE_NORMAL,
+		STD_UV,
+		STD_GENERATED,
+		STD_POSITION_UNDEFORMED,
+		STD_POSITION_UNDISPLACED,
+		STD_NUM
+	};
+
 	ustring name;
-	AttributeStandard std;
+	Standard std;
 
 	TypeDesc type;
 	vector<char> buffer;
@@ -71,7 +82,7 @@ public:
 	const float *data_float() const { return (float*)data(); }
 
 	static bool same_storage(TypeDesc a, TypeDesc b);
-	static ustring standard_name(AttributeStandard std);
+	static ustring standard_name(Attribute::Standard std);
 };
 
 /* Attribute Set
@@ -90,9 +101,9 @@ public:
 	Attribute *find(ustring name);
 	void remove(ustring name);
 
-	Attribute *add(AttributeStandard std, ustring name = ustring());
-	Attribute *find(AttributeStandard std);
-	void remove(AttributeStandard std);
+	Attribute *add(Attribute::Standard std, ustring name = ustring());
+	Attribute *find(Attribute::Standard std);
+	void remove(Attribute::Standard std);
 
 	Attribute *find(AttributeRequest& req);
 
@@ -109,7 +120,7 @@ public:
 class AttributeRequest {
 public:
 	ustring name;
-	AttributeStandard std;
+	Attribute::Standard std;
 
 	/* temporary variables used by MeshManager */
 	TypeDesc type;
@@ -117,7 +128,7 @@ public:
 	int offset;
 
 	AttributeRequest(ustring name_);
-	AttributeRequest(AttributeStandard std);
+	AttributeRequest(Attribute::Standard std);
 };
 
 /* AttributeRequestSet
@@ -132,11 +143,11 @@ public:
 	~AttributeRequestSet();
 
 	void add(ustring name);
-	void add(AttributeStandard std);
+	void add(Attribute::Standard std);
 	void add(AttributeRequestSet& reqs);
 
 	bool find(ustring name);
-	bool find(AttributeStandard std);
+	bool find(Attribute::Standard std);
 
 	size_t size();
 	void clear();

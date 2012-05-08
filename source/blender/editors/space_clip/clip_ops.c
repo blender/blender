@@ -93,8 +93,8 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
 		ED_space_clip_size(sc, &width, &height);
 
-		sc->xof += ((location[0] - 0.5f) * width - sc->xof) * (sc->zoom - oldzoom) / sc->zoom;
-		sc->yof += ((location[1] - 0.5f) * height - sc->yof) * (sc->zoom - oldzoom) / sc->zoom;
+		sc->xof += ((location[0] - 0.5f) * width-sc->xof) * (sc->zoom-oldzoom) / sc->zoom;
+		sc->yof += ((location[1] - 0.5f) * height-sc->yof) * (sc->zoom-oldzoom) / sc->zoom;
 	}
 }
 
@@ -147,7 +147,6 @@ static int open_cancel(bContext *UNUSED(C), wmOperator *op)
 static int open_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	bScreen *screen = CTX_wm_screen(C);
 	PropertyPointerRNA *pprop;
 	PointerRNA idptr;
 	MovieClip *clip = NULL;
@@ -158,14 +157,13 @@ static int open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	clip = BKE_movieclip_file_add(str);
+	clip = BKE_add_movieclip_file(str);
 
 	if (!clip) {
 		if (op->customdata)
 			MEM_freeN(op->customdata);
 
-		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str,
-		            errno ? strerror(errno) : "Unsupported movie clip format");
+		BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s.", str, errno ? strerror(errno) : "Unsupported movie clip format");
 
 		return OPERATOR_CANCELLED;
 	}
@@ -186,10 +184,10 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 	else if (sc) {
-		ED_space_clip_set(C, screen, sc, clip);
+		ED_space_clip_set(C, sc, clip);
 	}
 
-	WM_event_add_notifier(C, NC_MOVIECLIP | NA_ADDED, clip);
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_ADDED, clip);
 
 	MEM_freeN(op->customdata);
 
@@ -234,11 +232,10 @@ void CLIP_OT_open(wmOperatorType *ot)
 	ot->cancel = open_cancel;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE|IMAGEFILE|MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH|WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 }
 
 /******************* reload clip operator *********************/
@@ -252,7 +249,7 @@ static int reload_exec(bContext *C, wmOperator *UNUSED(op))
 
 	BKE_movieclip_reload(clip);
 
-	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
 
 	return OPERATOR_FINISHED;
 }
@@ -364,7 +361,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ViewPanData *vpd = op->customdata;
 	float offset[2];
 
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			copy_v2_v2(vpd->vec, &vpd->xorig);
 			offset[0] = (vpd->x - event->x) / sc->zoom;
@@ -499,9 +496,9 @@ static int view_zoom_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ViewZoomData *vpd = op->customdata;
 	float factor;
 
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
-			factor = 1.0f + (vpd->x - event->x + vpd->y - event->y) / 300.0f;
+			factor = 1.0f + (vpd->x-event->x + vpd->y - event->y) / 300.0f;
 			RNA_float_set(op->ptr, "factor", factor);
 			sclip_zoom_set(sc, ar, vpd->zoom * factor, vpd->location);
 			ED_region_tag_redraw(CTX_wm_region(C));
@@ -530,7 +527,6 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom";
 	ot->idname = "CLIP_OT_view_zoom";
-	ot->description = "Zoom in/out the view";
 
 	/* api callbacks */
 	ot->exec = view_zoom_exec;
@@ -540,7 +536,7 @@ void CLIP_OT_view_zoom(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_GRAB_POINTER;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_GRAB_POINTER;
 
 	/* properties */
 	RNA_def_float(ot->srna, "factor", 0.0f, 0.0f, FLT_MAX,
@@ -586,8 +582,7 @@ void CLIP_OT_view_zoom_in(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
-	                     "Cursor location in screen coordinates", -10.0f, 10.0f);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in screen coordinates", -10.0f, 10.0f);
 }
 
 static int view_zoom_out_exec(bContext *C, wmOperator *op)
@@ -627,8 +622,7 @@ void CLIP_OT_view_zoom_out(wmOperatorType *ot)
 	ot->poll = ED_space_clip_poll;
 
 	/* properties */
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location",
-	                     "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
+	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX, "Location", "Cursor location in normalised (0.0-1.0) coordinates", -10.0f, 10.0f);
 }
 
 /********************** view zoom ratio operator *********************/
@@ -779,7 +773,7 @@ static void change_frame_apply(bContext *C, wmOperator *op)
 
 	/* do updates */
 	sound_seek_scene(CTX_data_main(C), CTX_data_scene(C));
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
 }
 
 static int change_frame_exec(bContext *C, wmOperator *op)
@@ -865,7 +859,7 @@ void CLIP_OT_change_frame(wmOperatorType *ot)
 	ot->poll = change_frame_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_BLOCKING | OPTYPE_UNDO;
+	ot->flag = OPTYPE_BLOCKING|OPTYPE_UNDO;
 
 	/* rna */
 	RNA_def_int(ot->srna, "frame", 0, MINAFRAME, MAXFRAME, "Frame", "", MINAFRAME, MAXFRAME);
@@ -902,16 +896,16 @@ static int proxy_bitflag_to_array(int size_flag, int build_sizes[4], int undisto
 	int size_nr = undistort ? 1 : 0;
 
 	if (size_flag & size_flags[size_nr][0])
-		build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_25;
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_25;
 
 	if (size_flag & size_flags[size_nr][1])
-		build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_50;
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_50;
 
 	if (size_flag & size_flags[size_nr][2])
-		build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_75;
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_75;
 
 	if (size_flag & size_flags[size_nr][3])
-		build_sizes[build_count++] = MCLIP_PROXY_RENDER_SIZE_100;
+		build_sizes[build_count++]= MCLIP_PROXY_RENDER_SIZE_100;
 
 	return build_count;
 }
@@ -956,8 +950,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 		if (clip->source != MCLIP_SRC_MOVIE)
 			BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, NULL, cfra, build_sizes, build_count, 0);
 
-		BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, distortion, cfra,
-		                                build_undistort_sizes, build_undistort_count, 1);
+		BKE_movieclip_build_proxy_frame(clip, pj->clip_flag, distortion, cfra, build_undistort_sizes, build_undistort_count, 1);
 
 		if (*stop || G.afbreek)
 			break;
@@ -985,7 +978,7 @@ static void proxy_endjob(void *pjv)
 
 	BKE_movieclip_reload(pj->clip);
 
-	WM_main_add_notifier(NC_MOVIECLIP | ND_DISPLAY, pj->clip);
+	WM_main_add_notifier(NC_MOVIECLIP|ND_DISPLAY, pj->clip);
 }
 
 static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
@@ -1014,7 +1007,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	WM_jobs_customdata(steve, pj, proxy_freejob);
-	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP | ND_DISPLAY, 0);
+	WM_jobs_timer(steve, 0.2, NC_MOVIECLIP|ND_DISPLAY, 0);
 	WM_jobs_callbacks(steve, proxy_startjob, NULL, NULL, proxy_endjob);
 
 	G.afbreek = 0;
@@ -1056,7 +1049,7 @@ static int mode_set_exec(bContext *C, wmOperator *op)
 		sc->mode = mode;
 	}
 
-	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_CLIP, NULL);
+	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_CLIP, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -1092,15 +1085,14 @@ void ED_operatormacros_clip(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 
-	ot = WM_operatortype_append_macro("CLIP_OT_add_marker_move", "Add Marker and Move",
-	                                  "Add new marker and move it on movie", OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("CLIP_OT_add_marker_move", "Add Marker and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Add new marker and move it on movie";
 	WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
 
-	ot = WM_operatortype_append_macro("CLIP_OT_add_marker_slide", "Add Marker and Slide",
-	                                  "Add new marker and slide it with mouse until mouse button release",
-	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
+	ot = WM_operatortype_append_macro("CLIP_OT_add_marker_slide", "Add Marker and Slide", OPTYPE_UNDO|OPTYPE_REGISTER);
+	ot->description = "Add new marker and slide it with mouse until mouse button release";
 	WM_operatortype_macro_define(ot, "CLIP_OT_add_marker");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_boolean_set(otmacro->ptr, "release_confirm", TRUE);

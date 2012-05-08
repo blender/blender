@@ -212,13 +212,10 @@ def check(module_name):
 
         loaded_state = False
 
-    if mod and getattr(mod, "__addon_persistent__", False):
-        loaded_default = True
-
     return loaded_default, loaded_state
 
 
-def enable(module_name, default_set=True, persistent=False):
+def enable(module_name, default_set=True):
     """
     Enables an addon by name.
 
@@ -286,7 +283,6 @@ def enable(module_name, default_set=True, persistent=False):
             ext.module = module_name
 
     mod.__addon_enabled__ = True
-    mod.__addon_persistent__ = persistent
 
     if _bpy.app.debug_python:
         print("\taddon_utils.enable", mod.__name__)
@@ -309,7 +305,6 @@ def disable(module_name, default_set=True):
     # the addon in the user prefs.
     if mod:
         mod.__addon_enabled__ = False
-        mod.__addon_persistent = False
 
         try:
             mod.unregister()

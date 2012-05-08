@@ -98,10 +98,10 @@
 /* Draw Backdrop ---------------------------------- */
 
 /* get backdrop color for top-level widgets (Scene and Object only) */
-static void acf_generic_root_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_generic_root_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
 	/* darker blue for top-level widgets */
-	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, r_color);
+	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELOB, color);
 }
 
 /* backdrop for top-level widgets (Scene and Object only) */
@@ -124,10 +124,10 @@ static void acf_generic_root_backdrop(bAnimContext *ac, bAnimListElem *ale, floa
 
 
 /* get backdrop color for data expanders under top-level Scene/Object */
-static void acf_generic_dataexpand_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_generic_dataexpand_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
 	/* lighter color than top-level widget */
-	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, r_color);
+	UI_GetThemeColor3fv(TH_DOPESHEET_CHANNELSUBOB, color);
 }
 
 /* backdrop for data expanders under top-level Scene/Object */
@@ -147,7 +147,7 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale
 }
 
 /* get backdrop color for generic channels */
-static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
+static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float *color)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	SpaceAction *saction = NULL;
@@ -183,12 +183,12 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 		}
 		
 		/* copy the colors over, transforming from bytes to floats */
-		rgb_uchar_to_float(r_color, cp);
+		rgb_uchar_to_float(color, cp);
 	}
 	else {
 		// FIXME: what happens when the indention is 1 greater than what it should be (due to grouping)?
 		int colOfs= 20 - 20*indent;
-		UI_GetThemeColorShade3fv(TH_HEADER, colOfs, r_color);
+		UI_GetThemeColorShade3fv(TH_HEADER, colOfs, color);
 	}
 }
 
@@ -291,7 +291,7 @@ static short acf_generic_group_offset(bAnimContext *ac, bAnimListElem *ale)
 			offset += 21;
 		}
 		/* materials and particles animdata */
-		else if (ELEM(GS(ale->id->name), ID_MA, ID_PA))
+		else if (ELEM(GS(ale->id->name),ID_MA,ID_PA)) 
 			offset += 14;
 			
 		/* if not in Action Editor mode, action-groups (and their children) must carry some offset too... */
@@ -374,13 +374,13 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 /* Animation Summary ----------------------------------- */
 
 /* get backdrop color for summary widget */
-static void acf_summary_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_summary_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
 	// FIXME: hardcoded color - same as the 'action' line in NLA
 		// reddish color 
-	r_color[0] = 0.8f;
-	r_color[1] = 0.2f;
-	r_color[2] = 0.0f;
+	color[0] = 0.8f;
+	color[1] = 0.2f;
+	color[2] = 0.0f;
 }
 
 /* backdrop for summary widget */
@@ -730,13 +730,13 @@ static bAnimChannelType ACF_OBJECT =
 /* Group ------------------------------------------- */
 
 /* get backdrop color for group widget */
-static void acf_group_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+static void acf_group_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float *color)
 {
 	/* highlight only for action group channels */
 	if (ale->flag & AGRP_ACTIVE)
-		UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, r_color);
+		UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, color);
 	else
-		UI_GetThemeColorShade3fv(TH_GROUP, 20, r_color);
+		UI_GetThemeColorShade3fv(TH_GROUP, 20, color);
 }
 
 /* backdrop for group widget */
@@ -1427,7 +1427,7 @@ static bAnimChannelType ACF_DSCAM=
 static int acf_dscur_icon(bAnimListElem *ale)
 {
 	Curve *cu= (Curve *)ale->data;
-	short obtype= BKE_curve_type_get(cu);
+	short obtype= curve_type(cu);
 	
 	switch (obtype) {
 		case OB_FONT:
@@ -2322,10 +2322,10 @@ static bAnimChannelType ACF_SHAPEKEY=
 /* GPencil Datablock ------------------------------------------- */
 
 /* get backdrop color for gpencil datablock widget */
-static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+static void acf_gpd_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float *color)
 {
 	/* these are ID-blocks, but not exactly standalone... */
-	UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+	UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, color);
 }
 
 // TODO: just get this from RNA?
@@ -2560,7 +2560,7 @@ bAnimChannelType *ANIM_channel_get_typeinfo (bAnimListElem *ale)
 /* --------------------------- */
 
 /* Print debug info string for the given channel */
-void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
+void ANIM_channel_debug_print_info (bAnimListElem *ale, short indent_level)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2592,7 +2592,7 @@ void ANIM_channel_debug_print_info(bAnimListElem *ale, short indent_level)
 /* Check if some setting for a channel is enabled 
  * Returns: 1 = On, 0 = Off, -1 = Invalid
  */
-short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting)
+short ANIM_channel_setting_get (bAnimContext *ac, bAnimListElem *ale, int setting)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2669,7 +2669,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
  *	- setting: eAnimChannel_Settings
  *	- mode: eAnimChannels_SetFlag
  */
-void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting, short mode)
+void ANIM_channel_setting_set (bAnimContext *ac, bAnimListElem *ale, int setting, short mode)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	
@@ -2722,7 +2722,7 @@ void ANIM_channel_setting_set(bAnimContext *ac, bAnimListElem *ale, int setting,
 
 /* Draw the given channel */
 // TODO: make this use UI controls for the buttons
-void ANIM_channel_draw(bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
+void ANIM_channel_draw (bAnimContext *ac, bAnimListElem *ale, float yminc, float ymaxc)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
@@ -3043,8 +3043,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 }
 
 /* Draw a widget for some setting */
-static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf,
-                                uiBlock *block, int xpos, int ypos, int setting)
+static void draw_setting_widget (bAnimContext *ac, bAnimListElem *ale, bAnimChannelType *acf, uiBlock *block, int xpos, int ypos, int setting)
 {
 	short negflag, ptrsize /* , enabled */ /* UNUSED */, butType;
 	int flag, icon;
@@ -3151,7 +3150,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 }
 
 /* Draw UI widgets the given channel */
-void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
+void ANIM_channel_draw_widgets (bContext *C, bAnimContext *ac, bAnimListElem *ale, uiBlock *block, float yminc, float ymaxc, size_t channel_index)
 {
 	bAnimChannelType *acf= ANIM_channel_get_typeinfo(ale);
 	View2D *v2d= &ac->ar->v2d;
@@ -3223,8 +3222,7 @@ void ANIM_channel_draw_widgets(bContext *C, bAnimContext *ac, bAnimListElem *ale
 				
 				uiBlockSetEmboss(block, UI_EMBOSS);
 				
-				but = uiDefButR(block, TEX, 1, "", offset+3, yminc, RENAME_TEXT_WIDTH, channel_height,
-				                &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
+				but = uiDefButR(block, TEX, 1, "", offset+3, yminc, RENAME_TEXT_WIDTH, channel_height, &ptr, RNA_property_identifier(prop), -1, 0, 0, -1, -1, NULL);
 				uiButSetFunc(but, achannel_setting_rename_done_cb, ac->ads, NULL);
 				uiButActiveOnly(C, block, but);
 				

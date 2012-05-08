@@ -1,4 +1,5 @@
 /*
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,6 +29,7 @@
 /** \file blender/render/intern/source/sss.c
  *  \ingroup render
  */
+
 
 /* Possible Improvements:
  * - add fresnel terms
@@ -174,7 +176,7 @@ static float compute_reduced_albedo(ScatterSettings *ss)
 {
 	const float tolerance= 1e-8;
 	const int max_iteration_count= 20;
-	float d, fsub, xn_1= 0.0f, xn= 1.0f, fxn, fxn_1;
+	float d, fsub, xn_1= 0.0f , xn= 1.0f, fxn, fxn_1;
 	int i;
 
 	/* use secant method to compute reduced albedo using Rd function inverse

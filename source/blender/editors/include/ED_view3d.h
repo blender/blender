@@ -269,6 +269,8 @@ void view3d_get_transformation(const struct ARegion *ar, struct RegionView3D *rv
 
 /* XXX should move to BLI_math */
 int edge_inside_circle(short centx, short centy, short rad, short x1, short y1, short x2, short y2);
+int lasso_inside(int mcords[][2], short moves, int sx, int sy);
+int lasso_inside_edge(int mcords[][2], short moves, int x0, int y0, int x1, int y1);
 
 /* get 3d region from context, also if mouse is in header or toolbar */
 struct RegionView3D *ED_view3d_context_rv3d(struct bContext *C);
@@ -303,8 +305,6 @@ int ED_view3d_camera_lock_check(struct View3D *v3d, struct RegionView3D *rv3d);
 void ED_view3d_camera_lock_init(struct View3D *v3d, struct RegionView3D *rv3d);
 /* copy the view to the camera, return TRUE if */
 int ED_view3d_camera_lock_sync(struct View3D *v3d, struct RegionView3D *rv3d);
-
-void ED_view3D_lock_clear(struct View3D *v3d);
 
 struct BGpic *ED_view3D_background_image_new(struct View3D *v3d);
 void ED_view3D_background_image_remove(struct View3D *v3d, struct BGpic *bgpic);

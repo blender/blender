@@ -130,7 +130,7 @@ static int pose_slide_init (bContext *C, wmOperator *op, short mode)
 	
 	/* get info from context */
 	pso->scene= CTX_data_scene(C);
-	pso->ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
+	pso->ob= object_pose_armature_get(CTX_data_active_object(C));
 	pso->arm= (pso->ob)? pso->ob->data : NULL;
 	pso->sa= CTX_wm_area(C); /* only really needed when doing modal() */
 	pso->ar= CTX_wm_region(C); /* only really needed when doing modal() */
@@ -433,7 +433,7 @@ static void pose_slide_apply_quat (tPoseSlideOp *pso, tPChanFCurveLink *pfl)
 			/* perform this blending several times until a satisfactory result is reached */
 			while (iters-- > 0) {
 				/* calculate the interpolation between the endpoints */
-				interp_qt_qtqt(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame));
+				interp_qt_qtqt(quat_interp, quat_prev, quat_next, (cframe-pso->prevFrame) / (pso->nextFrame-pso->prevFrame) );
 				
 				/* make a copy of the original rotation */
 				copy_qt_qt(quat_orig, pchan->quat);
@@ -759,7 +759,7 @@ static int pose_slide_push_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_push(wmOperatorType *ot)
+void POSE_OT_push (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Push Pose";
@@ -816,7 +816,7 @@ static int pose_slide_relax_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_relax(wmOperatorType *ot)
+void POSE_OT_relax (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Relax Pose";
@@ -873,7 +873,7 @@ static int pose_slide_breakdown_exec (bContext *C, wmOperator *op)
 	return pose_slide_exec_common(C, op, pso);
 }
 
-void POSE_OT_breakdown(wmOperatorType *ot)
+void POSE_OT_breakdown (wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Pose Breakdowner";
@@ -1165,7 +1165,7 @@ static void pose_propagate_fcurve (wmOperator *op, Object *ob, FCurve *fcu,
 static int pose_propagate_exec (bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob= BKE_object_pose_armature_get(CTX_data_active_object(C));
+	Object *ob= object_pose_armature_get(CTX_data_active_object(C));
 	bAction *act= (ob && ob->adt)? ob->adt->action : NULL;
 	
 	ListBase pflinks = {NULL, NULL};
@@ -1228,7 +1228,7 @@ static int pose_propagate_exec (bContext *C, wmOperator *op)
 
 /* --------------------------------- */
 
-void POSE_OT_propagate(wmOperatorType *ot)
+void POSE_OT_propagate (wmOperatorType *ot)
 {
 	static EnumPropertyItem terminate_items[]= {
 		{POSE_PROPAGATE_SMART_HOLDS, "WHILE_HELD", 0, "While Held", "Propagate pose to all keyframes after current frame that don't change (Default behavior)"},

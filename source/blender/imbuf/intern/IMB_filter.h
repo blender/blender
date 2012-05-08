@@ -1,4 +1,7 @@
 /*
+ * filter.h
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -24,7 +27,6 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
 /**
  * \file IMB_filter.h
  * \ingroup imbuf

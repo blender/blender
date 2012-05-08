@@ -16,7 +16,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "camera.h"
 #include "graph.h"
 #include "light.h"
 #include "mesh.h"
@@ -34,10 +33,10 @@ CCL_NAMESPACE_BEGIN
 
 /* Utilities */
 
-bool BlenderSync::BKE_object_is_modified(BL::Object b_ob)
+bool BlenderSync::object_is_modified(BL::Object b_ob)
 {
 	/* test if we can instance or if the object is modified */
-	if(ccl::BKE_object_is_modified(b_ob, b_scene, preview)) {
+	if(ccl::object_is_modified(b_ob, b_scene, preview)) {
 		/* modifiers */
 		return true;
 	}
@@ -189,12 +188,11 @@ void BlenderSync::sync_background_light()
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag, int motion)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag)
 {
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
-		if(!motion)
-			sync_light(b_parent, b_index, b_ob, tfm);
+		sync_light(b_parent, b_index, b_ob, tfm);
 		return;
 	}
 
@@ -202,54 +200,25 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	if(!object_is_mesh(b_ob))
 		return;
 
-	/* key to lookup object */
+	/* test if we need to sync */
 	ObjectKey key(b_parent, b_index, b_ob);
 	Object *object;
-
-	/* motion vector case */
-	if(motion) {
-		object = object_map.find(key);
-
-		if(object) {
-			if(tfm != object->tfm) {
-				if(motion == -1)
-					object->motion.pre = tfm;
-				else
-					object->motion.post = tfm;
-
-				object->use_motion = true;
-			}
-
-			sync_mesh_motion(b_ob, object->mesh, motion);
-		}
-
-		return;
-	}
-
-	/* test if we need to sync */
 	bool object_updated = false;
 
 	if(object_map.sync(&object, b_ob, b_parent, key))
 		object_updated = true;
 	
-	bool use_holdout = (layer_flag & render_layer.holdout_layer) != 0;
-	
-	/* mesh sync */
-	object->mesh = sync_mesh(b_ob, object_updated);
+	/* holdout? */
+	bool holdout = (layer_flag & render_layer.holdout_layer) != 0;
 
-	if(use_holdout != object->use_holdout) {
-		object->use_holdout = use_holdout;
-		scene->object_manager->tag_update(scene);
-	}
+	/* mesh sync */
+	object->mesh = sync_mesh(b_ob, holdout, object_updated);
 
 	/* object sync */
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
-		object->motion.pre = tfm;
-		object->motion.post = tfm;
-		object->use_motion = false;
 
 		/* visibility flags for both parent */
 		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;
@@ -269,24 +238,22 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 
 /* Object Loop */
 
-void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
+void BlenderSync::sync_objects(BL::SpaceView3D b_v3d)
 {
 	/* layer data */
 	uint scene_layer = render_layer.scene_layer;
 	
-	if(!motion) {
-		/* prepare for sync */
-		light_map.pre_sync();
-		mesh_map.pre_sync();
-		object_map.pre_sync();
-		mesh_synced.clear();
-	}
+	/* prepare for sync */
+	light_map.pre_sync();
+	mesh_map.pre_sync();
+	object_map.pre_sync();
+	mesh_synced.clear();
 
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
 
 	for(b_scene.objects.begin(b_ob); b_ob != b_scene.objects.end(); ++b_ob) {
-		bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
+		bool hide = (b_v3d)? b_ob->hide(): b_ob->hide_render();
 		uint ob_layer = get_layer(b_ob->layers());
 
 		if(!hide && (ob_layer & scene_layer)) {
@@ -303,7 +270,7 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 					bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
 
 					if(!(b_dup->hide() || dup_hide))
-						sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion);
+						sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer);
 
 					b_index++;
 				}
@@ -329,50 +296,21 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 			if(!hide) {
 				/* object itself */
 				Transform tfm = get_transform(b_ob->matrix_world());
-				sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion);
+				sync_object(*b_ob, 0, *b_ob, tfm, ob_layer);
 			}
 		}
 	}
 
-	if(!motion) {
-		sync_background_light();
+	sync_background_light();
 
-		/* handle removed data and modified pointers */
-		if(light_map.post_sync())
-			scene->light_manager->tag_update(scene);
-		if(mesh_map.post_sync())
-			scene->mesh_manager->tag_update(scene);
-		if(object_map.post_sync())
-			scene->object_manager->tag_update(scene);
-		mesh_synced.clear();
-	}
-}
-
-void BlenderSync::sync_motion(BL::SpaceView3D b_v3d, BL::Object b_override)
-{
-	if(scene->need_motion() == Scene::MOTION_NONE)
-		return;
-
-	/* get camera object here to deal with camera switch */
-	BL::Object b_cam = b_scene.camera();
-	if(b_override)
-		b_cam = b_override;
-
-	/* go back and forth one frame */
-	int frame = b_scene.frame_current();
-
-	for(int motion = -1; motion <= 1; motion += 2) {
-		scene_frame_set(b_scene, frame + motion);
-
-		/* camera object */
-		if(b_cam)
-			sync_camera_motion(b_cam, motion);
-
-		/* mesh objects */
-		sync_objects(b_v3d, motion);
-	}
-
-	scene_frame_set(b_scene, frame);
+	/* handle removed data and modified pointers */
+	if(light_map.post_sync())
+		scene->light_manager->tag_update(scene);
+	if(mesh_map.post_sync())
+		scene->mesh_manager->tag_update(scene);
+	if(object_map.post_sync())
+		scene->object_manager->tag_update(scene);
+	mesh_synced.clear();
 }
 
 CCL_NAMESPACE_END

@@ -441,11 +441,9 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* if same image & tile, we're done */
 	if (compare && ima == GTS.curima && GTS.curtile == GTS.tile &&
-	    GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
-	    GTS.curtileYRep == GTS.tileYRep)
-	{
+	   GTS.tilemode == GTS.curtilemode && GTS.curtileXRep == GTS.tileXRep &&
+	   GTS.curtileYRep == GTS.tileYRep)
 		return (ima != NULL);
-	}
 
 	/* if tiling mode or repeat changed, change texture matrix to fit */
 	if (GTS.tilemode!=GTS.curtilemode || GTS.curtileXRep!=GTS.tileXRep ||
@@ -620,7 +618,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* create image */
 	glGenTextures(1, (GLuint *)bind);
-	glBindTexture(GL_TEXTURE_2D, *bind);
+	glBindTexture( GL_TEXTURE_2D, *bind);
 
 	if (!(gpu_get_mipmap() && mipmap)) {
 		if (use_high_bit_depth)
@@ -714,7 +712,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	gpu_verify_repeat(ima);
 	
 	/* Did this get lost in the image recode? */
-	/* BKE_image_tag_time(ima);*/
+	/* tag_image_time(ima);*/
 
 	return 1;
 }
@@ -1076,7 +1074,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
+	int new_shading_nodes = scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -1410,7 +1408,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glPushMatrix();
 		glLoadMatrixf((float *)viewmat);
 		
-		BKE_object_where_is_calc_simul(scene, base->object);
+		where_is_object_simul(scene, base->object);
 		
 		if (la->type==LA_SUN) {
 			/* sun lamp */

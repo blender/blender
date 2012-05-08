@@ -63,13 +63,6 @@
 
 /* Panels */
 
-static int clip_grease_pencil_panel_poll(const bContext *C, PanelType *UNUSED(pt))
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-
-	return sc->view == SC_VIEW_CLIP;
-}
-
 void ED_clip_buttons_register(ARegionType *art)
 {
 	PanelType *pt;
@@ -79,7 +72,6 @@ void ED_clip_buttons_register(ARegionType *art)
 	strcpy(pt->label, "Grease Pencil");
 	pt->draw = gpencil_panel_standard;
 	pt->flag |= PNL_DEFAULT_CLOSED;
-	pt->poll = clip_grease_pencil_panel_poll;
 	BLI_addtail(&art->paneltypes, pt);
 }
 
@@ -165,10 +157,9 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	block = uiLayoutAbsoluteBlock(layout);
 
-	scopes->track_preview_height = (scopes->track_preview_height <= UI_UNIT_Y)?UI_UNIT_Y : scopes->track_preview_height;
+	scopes->track_preview_height = (scopes->track_preview_height<=UI_UNIT_Y)?UI_UNIT_Y:scopes->track_preview_height;
 
-	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin,
-             scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
+	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax-rect.xmin, scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
 }
 
 /********************* Marker Template ************************/
@@ -214,7 +205,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 
 	marker->flag = cb->marker_flag;
 
-	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
+	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, NULL);
 }
 
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
@@ -228,12 +219,12 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 	marker = BKE_tracking_ensure_marker(cb->track, cb->framenr);
 
 	if (event == B_MARKER_POS) {
-		marker->pos[0] = cb->marker_pos[0] / width;
-		marker->pos[1] = cb->marker_pos[1] / height;
+		marker->pos[0] = cb->marker_pos[0]/width;
+		marker->pos[1] = cb->marker_pos[1]/height;
 
 		/* to update position of "parented" objects */
 		DAG_id_tag_update(&cb->clip->id, 0);
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 		ok = TRUE;
 	}
@@ -279,17 +270,17 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		sub_v2_v2v2(search_dim, cb->track->search_max, cb->track->search_min);
 
-		dim[0] = cb->track_search[0] / width;
-		dim[1] = cb->track_search[1] / height;
+		dim[0] = cb->track_search[0]/width;
+		dim[1] = cb->track_search[1]/height;
 
 		sub_v2_v2(dim, search_dim);
 		mul_v2_fl(dim, 0.5f);
 
-		cb->track->search_min[0] -= dim[0];
-		cb->track->search_min[1] -= dim[1];
+		cb->track->search_min[0]-= dim[0];
+		cb->track->search_min[1]-= dim[1];
 
-		cb->track->search_max[0] += dim[0];
-		cb->track->search_max[1] += dim[1];
+		cb->track->search_max[0]+= dim[0];
+		cb->track->search_max[1]+= dim[1];
 
 		BKE_tracking_clamp_track(cb->track, CLAMP_SEARCH_DIM);
 
@@ -315,17 +306,16 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 		/* to update position of "parented" objects */
 		DAG_id_tag_update(&cb->clip->id, 0);
-		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_VIEW3D, NULL);
 
 		ok = TRUE;
 	}
 
 	if (ok)
-		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, cb->clip);
+		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, cb->clip);
 }
 
-void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr,
-                      PointerRNA *trackptr, int compact)
+void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, PointerRNA *userptr, PointerRNA *trackptr, int compact)
 {
 	PropertyRNA *prop;
 	uiBlock *block;
@@ -377,8 +367,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		else
 			tip= "Marker is enabled at current frame";
 
-		bt = uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20,
-		                      &cb->marker_flag, 0, 0, 1, 0, tip);
+		bt = uiDefIconButBitI(block, TOGN, MARKER_DISABLED, 0, ICON_RESTRICT_VIEW_OFF, 0, 0, 20, 20, &cb->marker_flag, 0, 0, 1, 0, tip);
 		uiButSetNFunc(bt, marker_update_cb, cb, NULL);
 	}
 	else {

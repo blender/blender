@@ -431,11 +431,8 @@ void WTURBULENCE::decomposeEnergy(float *_energy, float *_highFreqEnergy)
 // compute velocity from energies and march into obstacles
 // for wavelet decomposition
 ////////////////////////////////////////////////////////////////////// 
-void WTURBULENCE::computeEnergy(float *_energy, float* xvel, float* yvel, float* zvel, unsigned char *origObstacles) 
+void WTURBULENCE::computeEnergy(float *_energy, float* xvel, float* yvel, float* zvel, unsigned char *obstacles) 
 {
-  unsigned char *obstacles = new unsigned char[_totalCellsSm];
-  memcpy(obstacles, origObstacles, sizeof(unsigned char) * _totalCellsSm);
-
   // compute everywhere
   for (int x = 0; x < _totalCellsSm; x++) 
     _energy[x] = 0.5f * (xvel[x] * xvel[x] + yvel[x] * yvel[x] + zvel[x] * zvel[x]);
@@ -509,9 +506,7 @@ void WTURBULENCE::computeEnergy(float *_energy, float* xvel, float* yvel, float*
     for (int y = 1; y < _yResSm - 1; y++, index += 2)
       for (int x = 1; x < _xResSm - 1; x++, index++)
         if (obstacles[index])
-          obstacles[index] = 1; // DG TODO ? animated obstacle flag?
-
-  free(obstacles);
+          obstacles[index] = 1;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

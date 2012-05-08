@@ -23,7 +23,6 @@
 #include <float.h>
 
 #include "util_math.h"
-#include "util_string.h"
 #include "util_transform.h"
 #include "util_types.h"
 
@@ -36,81 +35,45 @@ class BoundBox
 public:
 	float3 min, max;
 
-	__forceinline BoundBox()
+	BoundBox(void)
 	{
+		min = make_float3(FLT_MAX, FLT_MAX, FLT_MAX);
+		max = make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX);
 	}
 
-	__forceinline BoundBox(const float3& pt)
-	: min(pt), max(pt)
-	{
-	}
-
-	__forceinline BoundBox(const float3& min_, const float3& max_)
+	BoundBox(const float3& min_, const float3& max_)
 	: min(min_), max(max_)
 	{
 	}
 
-	enum empty_t { empty = 0};
-
-	__forceinline BoundBox(empty_t)
-	: min(make_float3(FLT_MAX, FLT_MAX, FLT_MAX)), max(make_float3(-FLT_MAX, -FLT_MAX, -FLT_MAX))
-	{
-	}
-
-	__forceinline void grow(const float3& pt)  
+	void grow(const float3& pt)  
 	{
 		min = ccl::min(min, pt);
 		max = ccl::max(max, pt);
 	}
 
-	__forceinline void grow(const BoundBox& bbox)
+	void grow(const BoundBox& bbox)
 	{
 		grow(bbox.min);
 		grow(bbox.max);
 	}
 
-	__forceinline void intersect(const BoundBox& bbox) 
+	void intersect(const BoundBox& bbox) 
 	{
 		min = ccl::max(min, bbox.min);
 		max = ccl::min(max, bbox.max);
 	}
 
-	/* todo: avoid using this */
-	__forceinline float safe_area() const
+	float area(void) const
 	{
-		if(!((min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z)))
+		if(!valid())
 			return 0.0f;
 
-		return area();
-	}
-
-	__forceinline float area() const
-	{
-		return half_area()*2.0f;
-	}
-
-	__forceinline float half_area() const
-	{
 		float3 d = max - min;
-		return (d.x*d.z + d.y*d.z + d.x*d.y);
+		return dot(d, d)*2.0f;
 	}
 
-	__forceinline float3 center() const
-	{
-		return 0.5f*(min + max);
-	}
-
-	__forceinline float3 center2() const
-	{
-		return min + max;
-	}
-
-	__forceinline float3 size() const
-	{
-		return max - min;
-	}
-	
-	__forceinline bool valid() const
+	bool valid(void) const
 	{
 		return (min.x <= max.x) && (min.y <= max.y) && (min.z <= max.z) &&
 		       (isfinite(min.x) && isfinite(min.y) && isfinite(min.z)) &&
@@ -119,7 +82,7 @@ public:
 
 	BoundBox transformed(const Transform *tfm)
 	{
-		BoundBox result = BoundBox::empty;
+		BoundBox result;
 
 		for(int i = 0; i < 8; i++) {
 			float3 p;
@@ -134,31 +97,6 @@ public:
 		return result;
 	}
 };
-
-__forceinline BoundBox merge(const BoundBox& bbox, const float3& pt)
-{
-	return BoundBox(min(bbox.min, pt), max(bbox.max, pt));
-}
-
-__forceinline BoundBox merge(const BoundBox& a, const BoundBox& b)
-{
-	return BoundBox(min(a.min, b.min), max(a.max, b.max));
-}
-
-__forceinline BoundBox merge(const BoundBox& a, const BoundBox& b, const BoundBox& c, const BoundBox& d)
-{
-	return merge(merge(a, b), merge(c, d));
-}
-
-__forceinline BoundBox intersect(const BoundBox& a, const BoundBox& b)
-{
-	return BoundBox(max(a.min, b.min), min(a.max, b.max));
-}
-
-__forceinline BoundBox intersect(const BoundBox& a, const BoundBox& b, const BoundBox& c)
-{
-	return intersect(a, intersect(b, c));
-}
 
 CCL_NAMESPACE_END
 

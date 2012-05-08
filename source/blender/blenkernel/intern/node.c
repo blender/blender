@@ -141,8 +141,8 @@ void ntreeInitTypes(bNodeTree *ntree)
 			/* needed info if the pynode script fails now: */
 			node->storage= ntree;
 			if (node->id!=NULL) { /* not an empty script node */
-				node->custom1 = 0;
-				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ADDEXIST);
+				node->custom1= 0;
+				node->custom1= BSET(node->custom1,NODE_DYNAMIC_ADDEXIST);
 			}
 //			if (node->typeinfo)
 //				node->typeinfo->initfunc(node);
@@ -643,7 +643,7 @@ bNodeTree *ntreeAddTree(const char *name, int type, int nodetype)
 		BLI_strncpy(ntree->id.name+2, name, sizeof(ntree->id.name));
 	}
 	else
-		ntree= BKE_libblock_alloc(&G.main->nodetree, ID_NT, name);
+		ntree= alloc_libblock(&G.main->nodetree, ID_NT, name);
 	
 	ntree->type= type;
 	ntree->nodetype = nodetype;
@@ -675,11 +675,11 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree)
 	for (newtree=G.main->nodetree.first; newtree; newtree= newtree->id.next)
 		if (newtree==ntree) break;
 	if (newtree) {
-		newtree= BKE_libblock_copy(&ntree->id);
+		newtree= copy_libblock(&ntree->id);
 	}
 	else {
 		newtree= MEM_dupallocN(ntree);
-		BKE_libblock_copy_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
+		copy_libblock_data(&newtree->id, &ntree->id, TRUE); /* copy animdata and ID props */
 	}
 
 	id_us_plus((ID *)newtree->gpd);
@@ -931,7 +931,7 @@ void nodeFreeNode(bNodeTree *ntree, bNode *node)
 	ntree->update |= NTREE_UPDATE_NODES;
 }
 
-/* do not free ntree itself here, BKE_libblock_free calls this function too */
+/* do not free ntree itself here, free_libblock calls this function too */
 void ntreeFreeTree(bNodeTree *ntree)
 {
 	bNode *node, *next;
@@ -1969,7 +1969,6 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_attribute(ttype);
 	register_node_type_sh_geometry(ttype);
 	register_node_type_sh_light_path(ttype);
-	register_node_type_sh_light_falloff(ttype);
 	register_node_type_sh_fresnel(ttype);
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);
@@ -2094,7 +2093,7 @@ void free_nodesystem(void)
 	free_typeinfos(&ntreeGetType(NTREE_TEXTURE)->node_types);
 }
 
-/* called from BKE_scene_unlink, when deleting a scene goes over all scenes
+/* called from unlink_scene, when deleting a scene goes over all scenes
  * other than the input, checks if they have render layer nodes referencing
  * the to-be-deleted scene, and resets them to NULL. */
 

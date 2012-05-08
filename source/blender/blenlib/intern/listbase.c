@@ -1,4 +1,9 @@
-/*
+/* util.c
+ *
+ * various string, file, list operations.
+ *
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -126,7 +131,7 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 	if (link == NULL) return;
 	if (listbase == NULL) return;
 
-	BLI_remlink(listbase, link);
+	BLI_remlink(listbase,link);
 	MEM_freeN(link);
 }
 
@@ -184,7 +189,8 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 			
 			BLI_remlink(listbase, current);
 			
-			while (previous && cmp(previous, current) == 1) {
+			while (previous && cmp(previous, current) == 1)
+			{
 				previous = previous->prev;
 			}
 			

@@ -62,7 +62,7 @@ typedef struct bConstraintOb {
 /* ---------------------------------------------------------------------------- */
 
 /* Callback format for performing operations on ID-pointers for Constraints */
-typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, short isReference, void *userdata);
+typedef void (*ConstraintIDFunc)(struct bConstraint *con, struct ID **idpoin, void *userdata);
 
 /* ....... */
 
@@ -87,6 +87,8 @@ typedef struct bConstraintTypeInfo {
 	/* data management function pointers - special handling */
 		/* free any data that is allocated separately (optional) */
 	void (*free_data)(struct bConstraint *con);
+		/* adjust pointer to other ID-data using ID_NEW(), but not to targets (optional) */
+	void (*relink_data)(struct bConstraint *con);
 		/* run the provided callback function on all the ID-blocks linked to the constraint */
 	void (*id_looper)(struct bConstraint *con, ConstraintIDFunc func, void *userdata);
 		/* copy any special data that is allocated separately (optional) */

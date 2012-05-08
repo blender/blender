@@ -1,4 +1,6 @@
 /*
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -325,7 +327,7 @@ typedef struct SoftBody {
 		maxloops,
 		choke,
 		solver_ID,
-		plastic, springpreload
+		plastic,springpreload
 		;
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */

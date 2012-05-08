@@ -337,7 +337,7 @@ uint SVMCompiler::attribute(ustring name)
 	return shader_manager->get_attribute_id(name);
 }
 
-uint SVMCompiler::attribute(AttributeStandard std)
+uint SVMCompiler::attribute(Attribute::Standard std)
 {
 	return shader_manager->get_attribute_id(std);
 }

@@ -50,13 +50,8 @@ set(SRC
 	intern/gpu_draw.c
 	intern/gpu_extensions.c
 	intern/gpu_material.c
-	
-	shaders/gpu_shader_material.glsl.c
-	shaders/gpu_shader_vertex.glsl.c
-	shaders/gpu_shader_sep_gaussian_blur_frag.glsl.c
-	shaders/gpu_shader_sep_gaussian_blur_vert.glsl.c
-	shaders/gpu_shader_vsm_store_frag.glsl.c
-	shaders/gpu_shader_vsm_store_vert.glsl.c
+	intern/gpu_shader_material.glsl.c
+	intern/gpu_shader_vertex.glsl.c
 
 	GPU_buffers.h
 	GPU_draw.h

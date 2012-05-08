@@ -101,14 +101,6 @@ class PHYSICS_PT_smoke(PhysicButtonsPanel, Panel):
             sub.prop(flow, "density")
             sub.prop(flow, "temperature")
 
-        elif md.smoke_type == 'COLLISION':
-            coll = md.coll_settings
-
-            split = layout.split()
-
-            col = split.column()
-            col.prop(coll, "collision_type")
-
 
 class PHYSICS_PT_smoke_groups(PhysicButtonsPanel, Panel):
     bl_label = "Smoke Groups"

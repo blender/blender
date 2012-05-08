@@ -66,7 +66,7 @@ typedef struct Lamp {
 	short pad2;
 	
 	float clipsta, clipend, shadspotsize;
-	float bias, soft, compressthresh, bleedbias, pad5[2];
+	float bias, soft, compressthresh, pad5[3];
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
 	
@@ -76,7 +76,7 @@ typedef struct Lamp {
 	float area_size, area_sizey, area_sizez;
 	float adapt_thresh;
 	short ray_samp_method;
-	short shadowmap_type;
+	short pad1;
 	
 	/* texact is for buttons */
 	short texact, shadhalostep;
@@ -96,9 +96,8 @@ typedef struct Lamp {
 	float atm_distance_factor;
 	float skyblendfac;
 	float sky_exposure;
-	float shadow_frustum_size;		/* BGE Only */
 	short sky_colorspace;
-	char pad4[2];
+	char pad4[6];
 
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct MTex *mtex[18];			/* MAX_MTEX */
@@ -206,9 +205,6 @@ typedef struct Lamp {
 #define LAMAP_COL		1
 #define LAMAP_SHAD		2
 
-/* shadowmap_type */
-#define LA_SHADMAP_SIMPLE	0
-#define LA_SHADMAP_VARIANCE	1
 
 #endif /* __DNA_LAMP_TYPES_H__ */
 

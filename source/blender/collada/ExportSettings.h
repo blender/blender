@@ -31,7 +31,6 @@ struct ExportSettings
 {
  public:
  bool selected;
- bool apply_modifiers;
  bool second_life;
  char *filepath;
 };

@@ -214,9 +214,6 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BLI_array_append(verts, v);
 		BLI_array_append(edges2, e);
 
-		/* we only flag the verts to check if they are in the face more then once */
-		BM_ELEM_API_FLAG_ENABLE(v, _FLAG_MV);
-
 		do {
 			e2 = bmesh_disk_edge_next(e2, v);
 			if (e2 != e && BM_ELEM_API_FLAG_TEST(e2, _FLAG_MF)) {
@@ -272,12 +269,6 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		if (!edges2[i]) {
 			goto err;
 		}
-
-		/* check if vert is in face more then once. if the flag is disabled. we've already visited */
-		if (!BM_ELEM_API_FLAG_TEST(verts[i], _FLAG_MV)) {
-			goto err;
-		}
-		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 	}
 
 	f = BM_face_create(bm, verts, edges2, len, nodouble);
@@ -295,10 +286,6 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 err:
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
-		/* vert count may != len */
-		if (i < BLI_array_count(verts)) {
-			BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
-		}
 	}
 
 	BLI_array_free(verts);
@@ -816,7 +803,6 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 	BMesh *bm_new;
 	BMVert *v, *v2, **vtable = NULL;
 	BMEdge *e, *e2, **edges = NULL, **etable = NULL;
-	BMElem **eletable;
 	BLI_array_declare(edges);
 	BMLoop *l, /* *l2, */ **loops = NULL;
 	BLI_array_declare(loops);
@@ -884,8 +870,8 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 		BLI_array_empty(loops);
 		BLI_array_empty(edges);
-		BLI_array_grow_items(loops, f->len);
-		BLI_array_grow_items(edges, f->len);
+		BLI_array_growitems(loops, f->len);
+		BLI_array_growitems(edges, f->len);
 
 		l = BM_iter_new(&liter, bm_old, BM_LOOPS_OF_FACE, f);
 		for (j = 0; j < f->len; j++, l = BM_iter_step(&liter)) {
@@ -927,29 +913,21 @@ BMesh *BM_mesh_copy(BMesh *bm_old)
 
 	/* copy over edit selection history */
 	for (ese = bm_old->selected.first; ese; ese = ese->next) {
-		BMElem *ele = NULL;
+		void *ele = NULL;
 
-		switch (ese->htype) {
-			case BM_VERT:
-				eletable = (BMElem **)vtable;
-				break;
-			case BM_EDGE:
-				eletable = (BMElem **)etable;
-				break;
-			case BM_FACE:
-				eletable = (BMElem **)ftable;
-				break;
-			default:
-				eletable = NULL;
-				break;
+		if (ese->htype == BM_VERT)
+			ele = vtable[BM_elem_index_get(ese->ele)];
+		else if (ese->htype == BM_EDGE)
+			ele = etable[BM_elem_index_get(ese->ele)];
+		else if (ese->htype == BM_FACE) {
+			ele = ftable[BM_elem_index_get(ese->ele)];
 		}
-
-		if (eletable) {
-			ele = eletable[BM_elem_index_get(ese->ele)];
-			if (ele) {
-				BM_select_history_store(bm_new, ele);
-			}
+		else {
+			BLI_assert(0);
 		}
+		
+		if (ele)
+			BM_select_history_store(bm_new, ele);
 	}
 
 	MEM_freeN(etable);

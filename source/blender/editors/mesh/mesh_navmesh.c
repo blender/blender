@@ -316,8 +316,7 @@ static Object *createRepresentation(bContext *C, struct recast_polyMesh *pmesh, 
 	}
 	else {
 		obedit = base->object;
-		BKE_scene_base_deselect_all(scene);
-		BKE_scene_base_select(scene, base);
+		scene_select_base(scene, base);
 		copy_v3_v3(obedit->loc, co);
 		copy_v3_v3(obedit->rot, rot);
 	}
@@ -431,8 +430,7 @@ static int navmesh_create_exec(bContext *C, wmOperator *op)
 	LinkNode *obs = NULL;
 	Base *navmeshBase = NULL;
 
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
-	{
+	CTX_DATA_BEGIN(C, Base*, base, selected_editable_bases) {
 		if (base->object->type == OB_MESH) {
 			if (base->object->body_type == OB_BODY_TYPE_NAVMESH) {
 				if (!navmeshBase || base == scene->basact) {

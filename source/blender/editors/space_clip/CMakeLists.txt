@@ -31,7 +31,6 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../gpu
 	../../../../intern/guardedalloc
 	${GLEW_INCLUDE_PATH}
 )
@@ -40,17 +39,15 @@ set(INC_SYS
 )
 
 set(SRC
-	clip_buttons.c
-	clip_dopesheet_draw.c
-	clip_dopesheet_ops.c
-	clip_draw.c
-	clip_editor.c
-	clip_graph_draw.c
-	clip_graph_ops.c
-	clip_ops.c
-	clip_toolbar.c
-	clip_utils.c
 	space_clip.c
+	clip_draw.c
+	clip_toolbar.c
+	clip_ops.c
+	clip_graph_ops.c
+	clip_graph_draw.c
+	clip_editor.c
+	clip_buttons.c
+	clip_utils.c
 	tracking_ops.c
 
 	clip_intern.h

@@ -457,7 +457,7 @@ static void add_filt_passes(RenderLayer *rl, int curmask, int rectx, int offset,
 		float *fp, *col= NULL;
 		int pixsize= 3;
 		
-		switch (rpass->passtype) {
+		switch(rpass->passtype) {
 			case SCE_PASS_Z:
 				fp= rpass->rect + offset;
 				*fp= shr->z;
@@ -569,7 +569,7 @@ static void add_passes(RenderLayer *rl, int offset, ShadeInput *shi, ShadeResult
 		float *col= NULL, uvcol[3];
 		int a, pixsize= 3;
 		
-		switch (rpass->passtype) {
+		switch(rpass->passtype) {
 			case SCE_PASS_Z:
 				fp= rpass->rect + offset;
 				*fp= shr->z;
@@ -889,10 +889,10 @@ static PixStrMain *addpsmain(ListBase *lb)
 {
 	PixStrMain *psm;
 	
-	psm= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain), "pixstrMain");
+	psm= (PixStrMain *)MEM_mallocN(sizeof(PixStrMain),"pixstrMain");
 	BLI_addtail(lb, psm);
 	
-	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr), "pixstr");
+	psm->ps= (PixStr *)MEM_mallocN(4096*sizeof(PixStr),"pixstr");
 	psm->counter= 0;
 	
 	return psm;
@@ -2567,7 +2567,7 @@ static void *do_bake_thread(void *bs_v)
 void RE_bake_ibuf_filter(ImBuf *ibuf, char *mask, const int filter)
 {
 	/* must check before filtering */
-	const short is_new_alpha= (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_imbuf_alpha_test(ibuf);
+	const short is_new_alpha= (ibuf->planes != R_IMF_PLANES_RGBA) && BKE_alphatest_ibuf(ibuf);
 
 	/* Margin */
 	if (filter) {

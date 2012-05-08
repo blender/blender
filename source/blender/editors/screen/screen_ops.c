@@ -347,7 +347,7 @@ int ED_operator_posemode(bContext *C)
 
 	if (obact && !(obact->mode & OB_MODE_EDIT)) {
 		Object *obpose;
-		if ((obpose= BKE_object_pose_armature_get(obact))) {
+		if ((obpose= object_pose_armature_get(obact))) {
 			if ((obact == obpose) || (obact->mode & OB_MODE_WEIGHT_PAINT)) {
 				return 1;
 			}
@@ -597,7 +597,7 @@ static int actionzone_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int deltax, deltay;
 	int mindelta= sad->az->type==AZONE_REGION?1:12;
 	
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			/* calculate gesture direction */
 			deltax= (event->x - sad->x);
@@ -735,7 +735,7 @@ static int area_swap_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	sActionzoneData *sad= op->customdata;
 	
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			/* second area, for join */
 			sad->sa2= screen_areahascursor(CTX_wm_screen(C), event->x, event->y);
@@ -1045,7 +1045,7 @@ static int area_move_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int delta, x, y;
 	
 	/* execute the events */
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			
 			x= RNA_int_get(op->ptr, "x");
@@ -1438,7 +1438,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int dir;
 	
 	/* execute the events */
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			dir= RNA_enum_get(op->ptr, "direction");
 			
@@ -1505,13 +1505,13 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 							RNA_enum_set(op->ptr, "direction", 'h');
 							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_H;
 							
-							WM_cursor_set(CTX_wm_window(C), CURSOR_X_MOVE);
+							WM_cursor_set(CTX_wm_window(C),CURSOR_X_MOVE);
 						}
 						else {
 							RNA_enum_set(op->ptr, "direction", 'v');
 							sd->sarea->flag |= AREA_FLAG_DRAWSPLIT_V;
 							
-							WM_cursor_set(CTX_wm_window(C), CURSOR_Y_MOVE);
+							WM_cursor_set(CTX_wm_window(C),CURSOR_Y_MOVE);
 						}
 					}
 				}
@@ -1711,7 +1711,7 @@ static int region_scale_modal(bContext *C, wmOperator *op, wmEvent *event)
 	int delta;
 	
 	/* execute the events */
-	switch (event->type) {
+	switch(event->type) {
 		case MOUSEMOVE:
 			
 			if (rmd->edge==AE_LEFT_TO_TOPRIGHT || rmd->edge==AE_RIGHT_TO_TOPLEFT) {
@@ -1834,7 +1834,6 @@ static void SCREEN_OT_frame_offset(wmOperatorType *ot)
 {
 	ot->name = "Frame Offset";
 	ot->idname = "SCREEN_OT_frame_offset";
-	ot->description = "Move current frame forward/backward by a given number";
 	
 	ot->exec = frame_offset_exec;
 	
@@ -2263,7 +2262,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 	sAreaJoinData *jd = (sAreaJoinData *)op->customdata;
 	
 	/* execute the events */
-	switch (event->type) {
+	switch(event->type) {
 			
 		case MOUSEMOVE: 
 		{
@@ -2704,7 +2703,6 @@ static void SCREEN_OT_region_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Region";
 	ot->idname = "SCREEN_OT_region_flip";
-	ot->description = "Toggle the region's alignment (left/right or top/bottom)";
 	
 	/* api callbacks */
 	ot->exec = region_flip_exec;
@@ -2754,7 +2752,6 @@ static void SCREEN_OT_header_flip(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Flip Header Region";
 	ot->idname = "SCREEN_OT_header_flip";
-	ot->description = "Toggle the header over/below the main window area";
 	
 	/* api callbacks */
 	ot->exec = header_flip_exec;
@@ -3322,10 +3319,10 @@ static int scene_new_exec(bContext *C, wmOperator *op)
 	int type= RNA_enum_get(op->ptr, "type");
 
 	if (type == SCE_COPY_NEW) {
-		newscene= BKE_scene_add("Scene");
+		newscene= add_scene("Scene");
 	}
 	else { /* different kinds of copying */
-		newscene= BKE_scene_copy(scene, type);
+		newscene= copy_scene(scene, type);
 
 		/* these can't be handled in blenkernel curently, so do them here */
 		if (type == SCE_COPY_LINK_DATA) {

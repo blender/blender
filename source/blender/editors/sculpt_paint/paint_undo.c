@@ -1,4 +1,7 @@
 /*
+ *
+ * Undo system for painting and sculpting.
+ * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +23,6 @@
 
 /** \file blender/editors/sculpt_paint/paint_undo.c
  *  \ingroup edsculpt
- *  \brief Undo system for painting and sculpting.
  */
 
 

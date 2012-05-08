@@ -45,7 +45,6 @@
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_lamp_types.h"
 #include "GPU_material.h"
  
 KX_LightObject::KX_LightObject(void* sgReplicationInfo,SG_Callbacks callbacks,
@@ -266,22 +265,6 @@ void KX_LightObject::UnbindShadowBuffer(RAS_IRasterizer *ras)
 {
 	GPULamp *lamp = GetGPULamp();
 	GPU_lamp_shadow_buffer_unbind(lamp);
-}
-
-struct Image *KX_LightObject::GetTextureImage(short texslot)
-{
-	Lamp *la = (Lamp*)GetBlenderObject()->data;
-
-	if (texslot >= MAX_MTEX || texslot < 0)
-	{
-		printf("KX_LightObject::GetTextureImage(): texslot exceeds slot bounds (0-%d)\n", MAX_MTEX-1);
-		return NULL;
-	}
-	
-	if (la->mtex[texslot])
-		return la->mtex[texslot]->tex->ima;
-
-	return NULL;
 }
 
 #ifdef WITH_PYTHON

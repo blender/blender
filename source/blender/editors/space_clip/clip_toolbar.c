@@ -56,7 +56,7 @@
 
 /************************** properties ******************************/
 
-ARegion *ED_clip_has_properties_region(ScrArea *sa)
+static ARegion *clip_has_properties_region(ScrArea *sa)
 {
 	ARegion *ar, *arnew;
 
@@ -90,9 +90,9 @@ static int properties_poll(bContext *C)
 static int properties_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
-	ARegion *ar = ED_clip_has_properties_region(sa);
+	ARegion *ar = clip_has_properties_region(sa);
 
-	if (ar && ar->alignment != RGN_ALIGN_NONE)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;
@@ -151,7 +151,7 @@ static ARegion *clip_has_tools_region(ScrArea *sa)
 
 		BLI_insertlinkafter(&sa->regionbase, artool, arprops);
 		arprops->regiontype = RGN_TYPE_TOOL_PROPS;
-		arprops->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
+		arprops->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
 	}
 
 	return artool;
@@ -167,7 +167,7 @@ static int tools_exec(bContext *C, wmOperator *UNUSED(op))
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = clip_has_tools_region(sa);
 
-	if (ar && ar->alignment != RGN_ALIGN_NONE)
+	if (ar)
 		ED_region_toggle_hidden(C, ar);
 
 	return OPERATOR_FINISHED;

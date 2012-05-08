@@ -69,7 +69,7 @@ typedef struct Snapshot {
 	float size[3];
 	float ofs[3];
 	float rot;
-	int BKE_brush_size_get;
+	int brush_size;
 	int winx;
 	int winy;
 	int brush_map_mode;
@@ -87,8 +87,8 @@ static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 
 	        /* make brush smaller shouldn't cause a resample */
 	        ((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED &&
-	          (BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) ||
-	         (BKE_brush_size_get(vc->scene, brush) == snap->BKE_brush_size_get)) &&
+	          (brush_size(vc->scene, brush) <= snap->brush_size)) ||
+	         (brush_size(vc->scene, brush) == snap->brush_size)) &&
 
 	        (mtex->brush_map_mode == snap->brush_map_mode) &&
 	        (vc->ar->winx == snap->winx) &&
@@ -110,7 +110,7 @@ static void make_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 		snap->rot = -1;
 	}
 
-	snap->BKE_brush_size_get = BKE_brush_size_get(vc->scene, brush);
+	snap->brush_size = brush_size(vc->scene, brush);
 	snap->winx = vc->ar->winx;
 	snap->winy = vc->ar->winy;
 }
@@ -155,7 +155,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 		make_snap(&snap, br, vc);
 
 		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
-			int s = BKE_brush_size_get(vc->scene, br);
+			int s = brush_size(vc->scene, br);
 			int r = 1;
 
 			for (s >>= 1; s > 0; s >>= 1)
@@ -196,7 +196,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 				// largely duplicated from tex_strength
 
 				const float rotation = -br->mtex.rot;
-				float radius = BKE_brush_size_get(vc->scene, br);
+				float radius = brush_size(vc->scene, br);
 				int index = j * size + i;
 				float x;
 				float avg;
@@ -240,7 +240,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 					avg += br->texture_sample_bias;
 
 					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED)
-						avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
+						avg *= brush_curve_strength(br, len, 1);  /* Falloff curve */
 
 					buffer[index] = 255 - (GLubyte)(255 * avg);
 				}
@@ -345,11 +345,11 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 	    sculpt_stroke_get_location(C, location, window)) {
 		*pixel_radius =
 		    project_brush_radius(vc,
-		                         BKE_brush_unprojected_radius_get(scene, brush),
+		                         brush_unprojected_radius(scene, brush),
 		                         location);
 
 		if (*pixel_radius == 0)
-			*pixel_radius = BKE_brush_size_get(scene, brush);
+			*pixel_radius = brush_size(scene, brush);
 
 		mul_m4_v3(vc->obact->obmat, location);
 
@@ -359,7 +359,7 @@ static int sculpt_get_brush_geometry(bContext *C, ViewContext *vc,
 		Sculpt *sd    = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		*pixel_radius = BKE_brush_size_get(scene, brush);
+		*pixel_radius = brush_size(scene, brush);
 		hit = 0;
 	}
 
@@ -377,9 +377,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 	/* check for overlay mode */
 	if (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
 	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
-	{
 		return;
-	}
 
 	/* save lots of GL state
 	 * TODO: check on whether all of these are needed? */
@@ -414,7 +412,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 			glTranslatef(-0.5f, -0.5f, 0);
 
 			/* scale based on tablet pressure */
-			if (sd->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush)) {
+			if (sd->draw_pressure && brush_use_size_pressure(vc->scene, brush)) {
 				glTranslatef(0.5f, 0.5f, 0);
 				glScalef(1.0f / sd->pressure_value, 1.0f / sd->pressure_value, 1);
 				glTranslatef(-0.5f, -0.5f, 0);
@@ -429,7 +427,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 				quad.ymax = aim[1] + sd->anchored_size - win->ymin;
 			}
 			else {
-				const int radius = BKE_brush_size_get(vc->scene, brush);
+				const int radius = brush_size(vc->scene, brush);
 				quad.xmin = x - radius;
 				quad.ymin = y - radius;
 				quad.xmax = x + radius;
@@ -475,7 +473,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 	float unprojected_radius, projected_radius;
 
 	/* update the brush's cached 3D radius */
-	if (!BKE_brush_use_locked_size(vc->scene, brush)) {
+	if (!brush_use_locked_size(vc->scene, brush)) {
 		/* get 2D brush radius */
 		if (sd->draw_anchored)
 			projected_radius = sd->anchored_size;
@@ -483,7 +481,7 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 			if (brush->flag & BRUSH_ANCHORED)
 				projected_radius = 8;
 			else
-				projected_radius = BKE_brush_size_get(vc->scene, brush);
+				projected_radius = brush_size(vc->scene, brush);
 		}
 	
 		/* convert brush radius from 2D to 3D */
@@ -491,11 +489,11 @@ static void paint_cursor_on_hit(Sculpt *sd, Brush *brush, ViewContext *vc,
 		                                                    projected_radius);
 
 		/* scale 3D brush radius by pressure */
-		if (sd->draw_pressure && BKE_brush_use_size_pressure(vc->scene, brush))
+		if (sd->draw_pressure && brush_use_size_pressure(vc->scene, brush))
 			unprojected_radius *= sd->pressure_value;
 
 		/* set cached value in either Brush or UnifiedPaintSettings */
-		BKE_brush_unprojected_radius_set(vc->scene, brush, unprojected_radius);
+		brush_set_unprojected_radius(vc->scene, brush, unprojected_radius);
 	}
 }
 
@@ -514,7 +512,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 	translation[1] = y;
 	outline_alpha = 0.5;
 	outline_col = brush->add_col;
-	final_radius = BKE_brush_size_get(scene, brush);
+	final_radius = brush_size(scene, brush);
 
 	/* check that brush drawing is enabled */
 	if (!(paint->flags & PAINT_SHOW_BRUSH))
@@ -557,8 +555,8 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		/* draw overlay */
 		paint_draw_alpha_overlay(sd, brush, &vc, x, y);
 
-		if (BKE_brush_use_locked_size(scene, brush))
-			BKE_brush_size_set(scene, brush, pixel_radius);
+		if (brush_use_locked_size(scene, brush))
+			brush_set_size(scene, brush, pixel_radius);
 
 		/* check if brush is subtracting, use different color then */
 		/* TODO: no way currently to know state of pen flip or
@@ -568,9 +566,7 @@ static void paint_draw_cursor(bContext *C, int x, int y, void *UNUSED(unused))
 		    ELEM5(brush->sculpt_tool, SCULPT_TOOL_DRAW,
 		          SCULPT_TOOL_INFLATE, SCULPT_TOOL_CLAY,
 		          SCULPT_TOOL_PINCH, SCULPT_TOOL_CREASE))
-		{
 			outline_col = brush->sub_col;
-		}
 
 		/* only do if brush is over the mesh */
 		if (hit)

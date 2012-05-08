@@ -1,33 +1,25 @@
 /*
- * ***** BEGIN GPL LICENSE BLOCK *****
  *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version.
+ * Frameserver
+ * Makes Blender accessible from TMPGenc directly using VFAPI (you can
+ * use firefox too ;-)
+ *
+ * Copyright (c) 2006 Peter Schlaile
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
- *
- * Copyright (c) 2006 Peter Schlaile
- *
- * Contributor(s):
- *
- * ***** END GPL LICENSE BLOCK *****
  */
 
 /** \file blender/blenkernel/intern/writeframeserver.c
  *  \ingroup bke
- *
- * Frameserver
- * Makes Blender accessible from TMPGenc directly using VFAPI (you can
- * use firefox too ;-)
  */
 
 #ifdef WITH_FRAMESERVER
@@ -78,7 +70,7 @@ static int render_height;
 static int startup_socket_system(void)
 {
 	WSADATA wsa;
-	return (WSAStartup(MAKEWORD(2, 0), &wsa) == 0);
+	return (WSAStartup(MAKEWORD(2,0),&wsa) == 0);
 }
 
 static void shutdown_socket_system(void)
@@ -110,7 +102,7 @@ static int closesocket(int fd)
 }
 #endif
 
-int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports)
+int start_frameserver(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports)
 {
 	struct sockaddr_in addr;
 	int arg = 1;
@@ -258,7 +250,7 @@ static int handle_request(RenderData *rd, char * req)
 	return -1;
 }
 
-int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
+int frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 {
 	fd_set readfds;
 	struct timeval tv;
@@ -371,7 +363,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	connsock = -1;
 }
 
-int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
+int append_frameserver(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
                        int rectx, int recty, ReportList *UNUSED(reports))
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
@@ -386,7 +378,7 @@ int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int 
 	return 0;
 }
 
-void BKE_frameserver_end(void)
+void end_frameserver(void)
 {
 	if (connsock != -1) {
 		closesocket(connsock);

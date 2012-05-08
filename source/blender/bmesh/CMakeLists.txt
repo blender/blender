@@ -41,7 +41,6 @@ set(SRC
 	operators/bmo_dupe.c
 	operators/bmo_edgesplit.c
 	operators/bmo_extrude.c
-	operators/bmo_hull.c
 	operators/bmo_inset.c
 	operators/bmo_join_triangles.c
 	operators/bmo_mesh_conv.c
@@ -52,7 +51,6 @@ set(SRC
 	operators/bmo_subdivide.h
 	operators/bmo_triangulate.c
 	operators/bmo_utils.c
-	operators/bmo_wireframe.c
 
 	intern/bmesh_construct.c
 	intern/bmesh_construct.h

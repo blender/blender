@@ -251,7 +251,7 @@ __device float regular_light_pdf(KernelGlobals *kg,
 /* Triangle Light */
 
 __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
-	float randu, float randv, float time, LightSample *ls)
+	float randu, float randv, LightSample *ls)
 {
 	/* triangle, so get position, normal, shader */
 	ls->P = triangle_sample_MT(kg, prim, randu, randv);
@@ -264,11 +264,8 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 #ifdef __INSTANCING__
 	/* instance transform */
 	if(ls->object >= 0) {
-		Transform tfm = object_fetch_transform(kg, ls->object, time, OBJECT_TRANSFORM);
-		Transform itfm = object_fetch_transform(kg, ls->object, time, OBJECT_INVERSE_TRANSFORM);
-
-		ls->P = transform_point(&tfm, ls->P);
-		ls->Ng = transform_direction_transposed(&itfm, ls->Ng);
+		object_position_transform(kg, ls->object, &ls->P);
+		object_normal_transform(kg, ls->object, &ls->Ng);
 	}
 #endif
 }
@@ -316,7 +313,7 @@ __device int light_distribution_sample(KernelGlobals *kg, float randt)
 
 /* Generic Light */
 
-__device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float time, float3 P, LightSample *ls, float *pdf)
+__device void light_sample(KernelGlobals *kg, float randt, float randu, float randv, float3 P, LightSample *ls, float *pdf)
 {
 	/* sample index */
 	int index = light_distribution_sample(kg, randt);
@@ -327,7 +324,7 @@ __device void light_sample(KernelGlobals *kg, float randt, float randu, float ra
 
 	if(prim >= 0) {
 		int object = __float_as_int(l.w);
-		triangle_light_sample(kg, prim, object, randu, randv, time, ls);
+		triangle_light_sample(kg, prim, object, randu, randv, ls);
 	}
 	else {
 		int point = -prim-1;

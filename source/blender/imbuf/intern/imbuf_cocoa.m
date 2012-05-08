@@ -1,4 +1,6 @@
 /*
+ * imbuf_coca.m
+ * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,10 +22,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/imbuf/intern/imbuf_coca.m
- *  \ingroup imbuf
- *
+/**
  * Provides image file loading and saving for Blender, via Cocoa.
+ *
  */
 
 #include <stdint.h>

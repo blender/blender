@@ -345,7 +345,7 @@ static int wm_macro_cancel(bContext *C, wmOperator *op)
 }
 
 /* Names have to be static for now */
-wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, const char *description, int flag)
+wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *name, int flag)
 {
 	wmOperatorType *ot;
 	
@@ -359,7 +359,6 @@ wmOperatorType *WM_operatortype_append_macro(const char *idname, const char *nam
 	
 	ot->idname = idname;
 	ot->name = name;
-	ot->description = description;
 	ot->flag = OPTYPE_MACRO | flag;
 	
 	ot->exec = wm_macro_exec;
@@ -590,8 +589,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 {
-	RNA_STRUCT_BEGIN (ptr, prop)
-	{
+	RNA_STRUCT_BEGIN(ptr, prop) {
 		switch (RNA_property_type(prop)) {
 			case PROP_ENUM:
 				if (no_context)
@@ -624,8 +622,7 @@ void WM_operator_properties_reset(wmOperator *op)
 		PropertyRNA *iterprop;
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
-		{
+		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
 			PropertyRNA *prop = itemptr.data;
 
 			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
@@ -1453,7 +1450,7 @@ static uiBlock *wm_block_search_menu(bContext *C, ARegion *ar, void *UNUSED(arg_
 
 static int wm_search_menu_exec(bContext *UNUSED(C), wmOperator *UNUSED(op))
 {
-	return OPERATOR_FINISHED;
+	return OPERATOR_FINISHED;	
 }
 
 static int wm_search_menu_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
@@ -1487,7 +1484,6 @@ static void WM_OT_search_menu(wmOperatorType *ot)
 {
 	ot->name = "Search Menu";
 	ot->idname = "WM_OT_search_menu";
-	ot->description = "Pop-up a search menu over all available operators in current context";
 	
 	ot->invoke = wm_search_menu_invoke;
 	ot->exec = wm_search_menu_exec;
@@ -1775,7 +1771,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 
 	/* now we have or selected, or an indicated file */
 	if (RNA_boolean_get(op->ptr, "autoselect"))
-		BKE_scene_base_deselect_all(scene);
+		scene_deselect_all(scene);
 
 	
 	flag = wm_link_append_flag(op);
@@ -1800,8 +1796,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
-		RNA_BEGIN (op->ptr, itemptr, "files")
-		{
+		RNA_BEGIN(op->ptr, itemptr, "files") {
 			RNA_string_get(&itemptr, "name", name);
 			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 		}
@@ -2148,7 +2143,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life, apply_modifiers;
+	int selected, second_life;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2156,16 +2151,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	}
 
 	RNA_string_get(op->ptr, "filepath", filename);
-
-	/* Options panel */
-	selected        = RNA_boolean_get(op->ptr, "selected");
-	second_life     = RNA_boolean_get(op->ptr, "second_life");
-	apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
-
-	/* get editmode results */
-	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
-
-	if (collada_export(CTX_data_scene(C), filename, selected, apply_modifiers, second_life)) {
+	selected = RNA_boolean_get(op->ptr, "selected");
+	second_life = RNA_boolean_get(op->ptr, "second_life");
+	if (collada_export(CTX_data_scene(C), filename, selected, second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2184,10 +2172,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
-	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
+	RNA_def_boolean(ot->srna, "selected", 0, "Export only selected",
 	                "Export only selected elements");
-	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers (Preview Resolution)");
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
 }
@@ -2340,10 +2326,10 @@ static int border_apply_rect(wmOperator *op)
 
 	
 	/* operator arguments and storage. */
-	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax));
-	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax));
-	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax));
-	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax));
+	RNA_int_set(op->ptr, "xmin", MIN2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymin", MIN2(rect->ymin, rect->ymax) );
+	RNA_int_set(op->ptr, "xmax", MAX2(rect->xmin, rect->xmax) );
+	RNA_int_set(op->ptr, "ymax", MAX2(rect->ymin, rect->ymax) );
 
 	return 1;
 }
@@ -2788,7 +2774,7 @@ int WM_gesture_lines_cancel(bContext *C, wmOperator *op)
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-	RNA_BEGIN (op->ptr, itemptr, "path")
+	RNA_BEGIN(op->ptr, itemptr, "path")
 	{
 		float loc[2];
 		
@@ -2988,7 +2974,7 @@ static void radial_control_set_tex(RadialControl *rc)
 
 	switch (RNA_type_to_ID_code(rc->image_id_ptr.type)) {
 		case ID_BR:
-			if ((ibuf = BKE_brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
+			if ((ibuf = brush_gen_radial_control_imbuf(rc->image_id_ptr.data))) {
 				glGenTextures(1, &rc->gltex);
 				glBindTexture(GL_TEXTURE_2D, rc->gltex);
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_ALPHA, ibuf->x, ibuf->y, 0,
@@ -3214,12 +3200,9 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	else {
 		if (use_secondary_prop &&
 		    RNA_property_boolean_get(&use_secondary_ptr, use_secondary_prop))
-		{
 			data_path = "data_path_secondary";
-		}
-		else {
+		else
 			data_path = "data_path_primary";
-		}
 	}
 
 	if (!radial_control_get_path(&ctx_ptr, op, data_path, &rc->ptr, &rc->prop, 0, 0))
@@ -3242,9 +3225,7 @@ static int radial_control_get_properties(bContext *C, wmOperator *op)
 	if (!radial_control_get_path(&ctx_ptr, op, "zoom_path",
 	                             &rc->zoom_ptr, &rc->zoom_prop, 2,
 	                             RC_PROP_REQUIRE_FLOAT | RC_PROP_ALLOW_MISSING))
-	{
 		return 0;
-	}
 	
 	if (!radial_control_get_path(&ctx_ptr, op, "image_id", &rc->image_id_ptr, NULL, 0, 0))
 		return 0;
@@ -3431,7 +3412,6 @@ static void WM_OT_radial_control(wmOperatorType *ot)
 {
 	ot->name = "Radial Control";
 	ot->idname = "WM_OT_radial_control";
-	ot->description = "Set some size property (like e.g. brush size) with mouse wheel";
 
 	ot->invoke = radial_control_invoke;
 	ot->modal = radial_control_modal;
@@ -3535,7 +3515,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 			
 			if (a & 1) scene->r.cfra--;
 			else scene->r.cfra++;
-			BKE_scene_update_for_newframe(bmain, scene, scene->lay);
+			scene_update_for_newframe(bmain, scene, scene->lay);
 		}
 		else if (type == 5) {
 
@@ -3550,7 +3530,7 @@ static int redraw_timer_exec(bContext *C, wmOperator *op)
 				if (scene->r.cfra > scene->r.efra)
 					scene->r.cfra = scene->r.sfra;
 
-				BKE_scene_update_for_newframe(bmain, scene, scene->lay);
+				scene_update_for_newframe(bmain, scene, scene->lay);
 				redraw_timer_window_swap(C);
 			}
 		}

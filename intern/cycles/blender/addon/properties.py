@@ -85,10 +85,10 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 description="Leave out caustics, resulting in a darker image with less noise",
                 default=False,
                 )
-        cls.blur_glossy = FloatProperty(
-                name="Filter Glossy",
-                description="Adaptively blur glossy shaders after blurry bounces, to reduce noise at the cost of accuracy",
-                min=0.0, max=10.0,
+        cls.blur_caustics = FloatProperty(
+                name="Blur Caustics",
+                description="Blur caustics to reduce noise",
+                min=0.0, max=1.0,
                 default=0.0,
                 )
 
@@ -277,25 +277,6 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
                 soft_min=-math.pi, soft_max=math.pi,
                 subtype='ANGLE',
                 default=0,
-                )
-        cls.panorama_type = EnumProperty(
-                name="Panorama Type",
-                description="Distortion to use for the calculation",
-                items=enums.panorama_types,
-                default='FISHEYE_EQUISOLID',
-                )
-        cls.fisheye_fov = FloatProperty(
-                name="Field of View",
-                description="Field of view for the fisheye lens",
-                min=0.1745, soft_max=2*math.pi, max=10.0*math.pi,
-                subtype='ANGLE',
-                default=math.pi,
-                )
-        cls.fisheye_lens = FloatProperty(
-                name="Fisheye Lens",
-                description="Lens focal length (mm)",
-                min=0.01, soft_max=15.0, max=100.0,
-                default=10.5,
                 )
 
     @classmethod

@@ -59,7 +59,7 @@ Paint *paint_get_active(Scene *sce)
 		ToolSettings *ts = sce->toolsettings;
 		
 		if (sce->basact && sce->basact->object) {
-			switch (sce->basact->object->mode) {
+			switch(sce->basact->object->mode) {
 			case OB_MODE_SCULPT:
 				return &ts->sculpt->paint;
 			case OB_MODE_VERTEX_PAINT:
@@ -126,7 +126,7 @@ void paint_init(Paint *p, const char col[3])
 	/* If there's no brush, create one */
 	brush = paint_brush(p);
 	if (brush == NULL)
-		brush= BKE_brush_add("Brush");
+		brush= add_brush("Brush");
 	paint_brush_set(p, brush);
 
 	memcpy(p->paint_cursor_col, col, 3);

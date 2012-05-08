@@ -1,4 +1,7 @@
 /*
+ * tiff.c
+ *
+ * 
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -239,7 +242,7 @@ static int imb_tiff_CloseProc(thandle_t handle)
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
 	if (!mfile || !mfile->mem) {
-		fprintf(stderr, "imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
+		fprintf(stderr,"imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
 	
@@ -265,7 +268,7 @@ static toff_t imb_tiff_SizeProc(thandle_t handle)
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
 	if (!mfile || !mfile->mem) {
-		fprintf(stderr, "imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
+		fprintf(stderr,"imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
 		return (0);
 	}
 

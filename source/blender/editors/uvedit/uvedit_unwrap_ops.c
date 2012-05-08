@@ -139,7 +139,7 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	
 	/* select new UV's */
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		uvedit_face_select_enable(scene, em, efa, FALSE);
+		uvedit_face_select(scene, em, efa);
 	}
 
 	return 1;
@@ -169,7 +169,7 @@ static int uvedit_have_selection(Scene *scene, BMEditMesh *em, short implicit)
 			if (!luv)
 				return 1;
 			
-			if (uvedit_uv_select_test(em, scene, l))
+			if (uvedit_uv_selected(em, scene, l))
 				break;
 		}
 		
@@ -231,7 +231,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		lsel = 0;
 
 		BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-			if (uvedit_uv_select_test(em, scene, l)) {
+			if (uvedit_uv_selected(em, scene, l)) {
 				lsel = 1;
 				break;
 			}
@@ -253,7 +253,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				co[i] = l->v->co;
 				uv[i] = luv->uv;
 				pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-				select[i] = uvedit_uv_select_test(em, scene, l) != 0;
+				select[i] = uvedit_uv_selected(em, scene, l) != 0;
 
 				i++;
 			}
@@ -262,13 +262,13 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 		}
 		else {
 			/* ngon - scanfill time! */
-			BLI_scanfill_begin(&sf_ctx);
+			BLI_begin_edgefill(&sf_ctx);
 			
 			firstv = lastv = NULL;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				int i;
 				
-				v = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
+				v = BLI_addfillvert(&sf_ctx, l->v->co);
 				
 				/* add small random offset */
 				for (i = 0; i < 3; i++) {
@@ -278,7 +278,7 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 				v->tmp.p = l;
 
 				if (lastv) {
-					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
+					BLI_addfilledge(&sf_ctx, lastv, v);
 				}
 
 				lastv = v;
@@ -286,9 +286,9 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 					firstv = v;
 			}
 
-			BLI_scanfill_edge_add(&sf_ctx, firstv, v);
+			BLI_addfilledge(&sf_ctx, firstv, v);
 
-			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
+			BLI_edgefill_ex(&sf_ctx, TRUE, efa->no);
 			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
 				ls[0] = sefa->v1->tmp.p;
 				ls[1] = sefa->v2->tmp.p;
@@ -300,13 +300,13 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 					co[i] = ls[i]->v->co;
 					uv[i] = luv->uv;
 					pin[i] = (luv->flag & MLOOPUV_PINNED) != 0;
-					select[i] = uvedit_uv_select_test(em, scene, ls[i]) != 0;
+					select[i] = uvedit_uv_selected(em, scene, ls[i]) != 0;
 				}
 
 				param_face_add(handle, key, 3, vkeys, co, uv, pin, select);
 			}
 
-			BLI_scanfill_end(&sf_ctx);
+			BLI_end_edgefill(&sf_ctx);
 		}
 	}
 
@@ -345,7 +345,7 @@ static void texface_from_original_index(BMFace *efa, int index, float **uv, Para
 			luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
 			*uv = luv->uv;
 			*pin = (luv->flag & MLOOPUV_PINNED) ? 1 : 0;
-			*select = (uvedit_uv_select_test(em, scene, l) != 0);
+			*select = (uvedit_uv_selected(em, scene, l) != 0);
 		}
 	}
 }
@@ -744,8 +744,6 @@ void UV_OT_pack_islands(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Pack Islands";
 	ot->idname = "UV_OT_pack_islands";
-	ot->description = "Transform all islands so that they fill up the UV space as much as possible";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -786,8 +784,6 @@ void UV_OT_average_islands_scale(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Average Islands Scale";
 	ot->idname = "UV_OT_average_islands_scale";
-	ot->description = "Average the size of separate UV islands, based on their area in 3D space";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -841,11 +837,10 @@ void ED_uvedit_live_unwrap(Scene *scene, Object *obedit)
 {
 	BMEditMesh *em = BMEdit_FromObject(obedit);
 
-	if (scene->toolsettings->edge_mode_live_unwrap &&
-	    CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV))
-	{
-		ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
-	}
+    if (scene->toolsettings->edge_mode_live_unwrap &&
+        CustomData_has_layer(&em->bm->ldata, CD_MLOOPUV)) {
+        ED_unwrap_lscm(scene, obedit, FALSE); /* unwrap all not just sel */
+    }
 }
 
 /*************** UV Map Common Transforms *****************/
@@ -1147,7 +1142,6 @@ void ED_unwrap_lscm(Scene *scene, Object *obedit, const short sel)
 	param_lscm_solve(handle);
 	param_lscm_end(handle);
 
-	param_average(handle);
 	param_pack(handle, scene->toolsettings->uvcalc_margin);
 
 	param_flush(handle);
@@ -1182,8 +1176,7 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 		BKE_report(op->reports, RPT_INFO, "Object scale is not 1.0. Unwrap will operate on a non-scaled version of the mesh.");
 
 	/* remember last method for live unwrap */
-	if(RNA_struct_property_is_set(op->ptr, "method"))
-		scene->toolsettings->unwrapper = method;
+	scene->toolsettings->unwrapper = method;
 	
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
@@ -1270,12 +1263,12 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				BLI_uvproject_from_view_ortho(luv->uv, l->v->co, rotmat);
+				project_from_view_ortho(luv->uv, l->v->co, rotmat);
 			}
 		}
 	}
 	else if (camera) {
-		struct ProjCameraInfo *uci = BLI_uvproject_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
+		struct UvCameraInfo *uci = project_camera_info(v3d->camera, obedit->obmat, scene->r.xsch, scene->r.ysch);
 		
 		if (uci) {
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
@@ -1284,7 +1277,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 				BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 					luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-					BLI_uvproject_from_camera(luv->uv, l->v->co, uci);
+					project_from_camera(luv->uv, l->v->co, uci);
 				}
 			}
 			
@@ -1300,7 +1293,7 @@ static int uv_from_view_exec(bContext *C, wmOperator *op)
 
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				luv = CustomData_bmesh_get(&em->bm->ldata, l->head.data, CD_MLOOPUV);
-				BLI_uvproject_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
+				project_from_view(luv->uv, l->v->co, rv3d->persmat, rotmat, ar->winx, ar->winy);
 			}
 		}
 	}
@@ -1328,8 +1321,6 @@ void UV_OT_from_view(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Project From View";
 	ot->idname = "UV_OT_project_from_view";
-	ot->description = "Project the UV vertices of the mesh as seen in current 3D view";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1369,8 +1360,6 @@ void UV_OT_reset(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reset";
 	ot->idname = "UV_OT_reset";
-	ot->description = "Reset UV projection";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1472,8 +1461,6 @@ void UV_OT_sphere_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sphere Projection";
 	ot->idname = "UV_OT_sphere_project";
-	ot->description = "Project the UV vertices of the mesh over the curved surface of a sphere";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1547,8 +1534,6 @@ void UV_OT_cylinder_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cylinder Projection";
 	ot->idname = "UV_OT_cylinder_project";
-	ot->description = "Project the UV vertices of the mesh over the curved wall of a cylinder";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */
@@ -1627,8 +1612,6 @@ void UV_OT_cube_project(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cube Projection";
 	ot->idname = "UV_OT_cube_project";
-	ot->description = "Project the UV vertices of the mesh over the six faces of a cube";
-
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* api callbacks */

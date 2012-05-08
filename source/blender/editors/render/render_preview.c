@@ -1,4 +1,5 @@
-/*
+/* 
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -754,13 +755,13 @@ static void shader_preview_free(void *customdata)
 		/* get rid of copied material */
 		BLI_remlink(&pr_main->mat, sp->matcopy);
 		
-		/* BKE_material_free decrements texture, prevent this. hack alert! */
+		/* free_material decrements texture, prevent this. hack alert! */
 		for (a = 0; a < MAX_MTEX; a++) {
 			MTex *mtex = sp->matcopy->mtex[a];
 			if (mtex && mtex->tex) mtex->tex = NULL;
 		}
 		
-		BKE_material_free(sp->matcopy);
+		free_material(sp->matcopy);
 
 		properties = IDP_GetProperties((ID *)sp->matcopy, FALSE);
 		if (properties) {
@@ -776,7 +777,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied texture */
 		BLI_remlink(&pr_main->tex, sp->texcopy);
-		BKE_texture_free(sp->texcopy);
+		free_texture(sp->texcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->texcopy, FALSE);
 		if (properties) {
@@ -792,7 +793,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied world */
 		BLI_remlink(&pr_main->world, sp->worldcopy);
-		BKE_world_free(sp->worldcopy);
+		free_world(sp->worldcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->worldcopy, FALSE);
 		if (properties) {
@@ -808,7 +809,7 @@ static void shader_preview_free(void *customdata)
 		
 		/* get rid of copied lamp */
 		BLI_remlink(&pr_main->lamp, sp->lampcopy);
-		BKE_lamp_free(sp->lampcopy);
+		free_lamp(sp->lampcopy);
 		
 		properties = IDP_GetProperties((ID *)sp->lampcopy, FALSE);
 		if (properties) {

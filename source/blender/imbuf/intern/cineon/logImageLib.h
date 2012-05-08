@@ -1,3 +1,6 @@
+/** \file blender/imbuf/intern/cineon/logImageLib.h
+ *  \ingroup imbcineon
+ */
 /*
  *	 Common library definitions for Cineon and DPX image files.
  *
@@ -21,10 +24,6 @@
 
 #ifndef __LOGIMAGELIB_H__
 #define __LOGIMAGELIB_H__
-
-/** \file blender/imbuf/intern/cineon/logImageLib.h
- *  \ingroup imbcineon
- */
 
 #ifdef __cplusplus
 extern "C" {

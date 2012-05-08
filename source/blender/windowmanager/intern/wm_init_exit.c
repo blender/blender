@@ -360,11 +360,11 @@ void WM_exit_ext(bContext *C, const short do_python)
 //	BIF_freeRetarget();
 	BIF_freeTemplates(C);
 	
-	BKE_vfont_free_global_ttf(); /* bke_font.h */
+	free_ttfont(); /* bke_font.h */
 
 	free_openrecent();
 	
-	BKE_mball_cubeTable_free();
+	BKE_freecubetable();
 	
 	ED_preview_free_dbase();  /* frees a Main dbase, before free_blender! */
 

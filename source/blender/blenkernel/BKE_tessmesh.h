@@ -23,7 +23,6 @@
 #ifndef __BKE_TESSMESH_H__
 #define __BKE_TESSMESH_H__
 
-#include "BKE_customdata.h"
 #include "bmesh.h"
 
 struct BMesh;
@@ -59,7 +58,7 @@ typedef struct BMEditMesh {
 
 	/*derivedmesh stuff*/
 	struct DerivedMesh *derivedFinal, *derivedCage;
-	CustomDataMask lastDataMask;
+	int lastDataMask;
 
 	/* index tables, to map indices to elements via
 	 * EDBM_index_arrays_init and associated functions.  don't

@@ -71,11 +71,7 @@ typedef struct LayerTypeInfo {
 	int size;          /* the memory size of one element of this layer's data */
 	const char *structname;  /* name of the struct used, for file writing */
 	int structnum;     /* number of structs per element, for file writing */
-
-	/* default layer name.
-	 * note! when NULL this is a way to ensure there is only ever one item
-	 * see: CustomData_layertype_is_singleton() */
-	const char *defaultname;
+	const char *defaultname; /* default layer name */
 
 	/* a function to copy count elements of this layer's data
 	 * (deep copy if appropriate)
@@ -171,7 +167,7 @@ static void layerCopy_bmesh_elem_py_ptr(const void *UNUSED(source), void *dest,
 	int i, size = sizeof(void *);
 
 	for (i = 0; i < count; ++i) {
-		void **ptr = (void **)((char *)dest + i * size);
+		void **ptr = (void  **)((char *)dest + i * size);
 		*ptr = NULL;
 	}
 }
@@ -642,7 +638,7 @@ static void layerInitMinMax_mloopcol(void *vmin, void *vmax)
 
 static void layerDefault_mloopcol(void *data, int count)
 {
-	MLoopCol default_mloopcol = {255, 255, 255, 255};
+	MLoopCol default_mloopcol = {255,255,255,255};
 	MLoopCol *mlcol = (MLoopCol*)data;
 	int i;
 	for (i = 0; i < count; i++)
@@ -990,11 +986,11 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 9: CD_POLYINDEX */
 	{sizeof(int), "MIntProperty", 1, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 10: CD_PROP_FLT */
-	{sizeof(MFloatProperty), "MFloatProperty", 1, "Float", layerCopy_propFloat, NULL, NULL, NULL},
+	{sizeof(MFloatProperty), "MFloatProperty",1,"Float", layerCopy_propFloat,NULL,NULL,NULL},
 	/* 11: CD_PROP_INT */
-	{sizeof(MIntProperty), "MIntProperty", 1, "Int", layerCopy_propInt, NULL, NULL, NULL},
+	{sizeof(MIntProperty), "MIntProperty",1,"Int",layerCopy_propInt,NULL,NULL,NULL},
 	/* 12: CD_PROP_STR */
-	{sizeof(MStringProperty), "MStringProperty", 1, "String", layerCopy_propString, NULL, NULL, NULL},
+	{sizeof(MStringProperty), "MStringProperty",1,"String",layerCopy_propString,NULL,NULL,NULL},
 	/* 13: CD_ORIGSPACE */
 	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVMap", layerCopy_origspace_face, NULL,
 	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
@@ -1030,9 +1026,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 23: CD_CLOTH_ORCO */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 24: CD_RECAST */
-	{sizeof(MRecast), "MRecast", 1, "Recast", NULL, NULL, NULL, NULL},
+	{sizeof(MRecast), "MRecast", 1,"Recast",NULL,NULL,NULL,NULL}
 
 /* BMESH ONLY */
+	,
 	/* 25: CD_MPOLY */
 	{sizeof(MPoly), "MPoly", 1, "NGon Face", NULL, NULL, NULL, NULL, NULL},
 	/* 26: CD_MLOOP */
@@ -1045,7 +1042,7 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float), "", 0, "BevelWeight", NULL, NULL, layerInterp_bweight},
 	/* 30: CD_CREASE */
 	{sizeof(float), "", 0, "SubSurfCrease", NULL, NULL, layerInterp_bweight},
-	/* 31: CD_ORIGSPACE_MLOOP */
+    /* 31: CD_ORIGSPACE_MLOOP */
 	{sizeof(OrigSpaceLoop), "OrigSpaceLoop", 1, "OS Loop", NULL, NULL, layerInterp_mloop_origspace, NULL, NULL,
 	 layerEqual_mloop_origspace, layerMultiply_mloop_origspace, layerInitMinMax_mloop_origspace,
 	 layerAdd_mloop_origspace, layerDoMinMax_mloop_origspace, layerCopyValue_mloop_origspace},
@@ -1067,11 +1064,12 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	/*   0-4 */ "CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace",
 	/*   5-9 */ "CDMTFace", "CDMCol", "CDOrigIndex", "CDNormal", "CDFlags",
-	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty", "CDMStringProperty", "CDOrigSpace", "CDOrco",
+	/* 10-14 */ "CDMFloatProperty", "CDMIntProperty","CDMStringProperty", "CDOrigSpace", "CDOrco",
 	/* 15-19 */ "CDMTexPoly", "CDMLoopUV", "CDMloopCol", "CDTangent", "CDMDisps",
-	/* 20-24 */"CDPreviewMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast",
+	/* 20-24 */"CDPreviewMCol", "CDIDMCol", "CDTextureMCol", "CDClothOrco", "CDMRecast"
 
 /* BMESH ONLY */
+	,
 	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
 	/* 30-32 */ "CDSubSurfCrease", "CDOrigSpaceLoop", "CDPreviewLoopCol"
 /* END BMESH ONLY */
@@ -2339,10 +2337,7 @@ int CustomData_layer_has_math(struct CustomData *data, int layer_n)
 	const LayerTypeInfo *typeInfo = layerType_getInfo(data->layers[layer_n].type);
 	
 	if (typeInfo->equal && typeInfo->add && typeInfo->multiply && 
-	    typeInfo->initminmax && typeInfo->dominmax)
-	{
-		return 1;
-	}
+	    typeInfo->initminmax && typeInfo->dominmax) return 1;
 	
 	return 0;
 }
@@ -2603,16 +2598,6 @@ const char *CustomData_layertype_name(int type)
 	return layerType_getName(type);
 }
 
-
-/**
- * Can only ever be one of these.
- */
-int CustomData_layertype_is_singleton(int type)
-{
-	const LayerTypeInfo *typeInfo = layerType_getInfo(type);
-	return typeInfo->defaultname != NULL;
-}
-
 static int  CustomData_is_property_layer(int type)
 {
 	if ((type == CD_PROP_FLT) || (type == CD_PROP_INT) || (type == CD_PROP_STR))
@@ -2699,9 +2684,7 @@ int CustomData_verify_versions(struct CustomData *data, int index)
 
 		if (!typeInfo->defaultname && (index > 0) &&
 			data->layers[index-1].type == layer->type)
-		{
 			keeplayer = 0; /* multiple layers of which we only support one */
-		}
 	}
 
 	if (!keeplayer) {

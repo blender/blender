@@ -71,7 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
-#include "BKE_image.h"  /* openanim */
+#include "BKE_image.h"	/* openanim */
 #include "BKE_tracking.h"
 
 #include "IMB_imbuf_types.h"
@@ -205,7 +205,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 	else
 		get_sequence_fname(clip, framenr, name);
 
-	loadflag = IB_rect | IB_multilayer;
+	loadflag = IB_rect|IB_multilayer;
 
 	/* read ibuf */
 	ibuf = IMB_loadiffname(name, loadflag);
@@ -250,7 +250,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		dur = IMB_anim_get_duration(clip->anim, tc);
 		fra = framenr - 1;
 
-		if (fra < 0)
+		if (fra<0)
 			fra = 0;
 
 		if (fra > (dur - 1))
@@ -283,7 +283,7 @@ static void movieclip_calc_length(MovieClip *clip)
 			clip->len = framenr + 1;
 		}
 		else {
-			for (;; ) {
+			for (;;) {
 				get_sequence_fname(clip, framenr, name);
 
 				if (!BLI_exists(name)) {
@@ -338,7 +338,7 @@ typedef struct MovieClipImBufCacheKey {
 
 static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *render_flags)
 {
-	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)userkey;
+	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey*)userkey;
 
 	*framenr = key->framenr;
 	*proxy = key->proxy;
@@ -347,7 +347,7 @@ static void moviecache_keydata(void *userkey, int *framenr, int *proxy, int *ren
 
 static unsigned int moviecache_hashhash(const void *keyv)
 {
-	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey *)keyv;
+	MovieClipImBufCacheKey *key = (MovieClipImBufCacheKey*)keyv;
 	int rval = key->framenr;
 
 	return rval;
@@ -355,8 +355,8 @@ static unsigned int moviecache_hashhash(const void *keyv)
 
 static int moviecache_hashcmp(const void *av, const void *bv)
 {
-	const MovieClipImBufCacheKey *a = (MovieClipImBufCacheKey *)av;
-	const MovieClipImBufCacheKey *b = (MovieClipImBufCacheKey *)bv;
+	const MovieClipImBufCacheKey *a = (MovieClipImBufCacheKey*)av;
+	const MovieClipImBufCacheKey *b = (MovieClipImBufCacheKey*)bv;
 
 	if (a->framenr < b->framenr)
 		return -1;
@@ -406,7 +406,7 @@ static void put_imbuf_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, i
 		clip->cache = MEM_callocN(sizeof(MovieClipCache), "movieClipCache");
 
 		clip->cache->moviecache = IMB_moviecache_create(sizeof(MovieClipImBufCacheKey), moviecache_hashhash,
-		                                                moviecache_hashcmp, moviecache_keydata);
+				moviecache_hashcmp, moviecache_keydata);
 	}
 
 	key.framenr = user->framenr;
@@ -430,7 +430,7 @@ static MovieClip *movieclip_alloc(const char *name)
 {
 	MovieClip *clip;
 
-	clip = BKE_libblock_alloc(&G.main->movieclip, ID_MC, name);
+	clip = alloc_libblock(&G.main->movieclip, ID_MC, name);
 
 	clip->aspx = clip->aspy= 1.0f;
 
@@ -450,10 +450,10 @@ static MovieClip *movieclip_alloc(const char *name)
  * otherwise creates new.
  * does not load ibuf itself
  * pass on optional frame for #name images */
-MovieClip *BKE_movieclip_file_add(const char *name)
+MovieClip *BKE_add_movieclip_file(const char *name)
 {
 	MovieClip *clip;
-	MovieClipUser user = {0};
+	MovieClipUser user;
 	int file, len, width, height;
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
@@ -462,7 +462,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	BLI_path_abs(str, G.main->name);
 
 	/* exists? */
-	file = BLI_open(str, O_BINARY | O_RDONLY, 0);
+	file = BLI_open(str, O_BINARY|O_RDONLY,0);
 	if (file == -1)
 		return NULL;
 	close(file);
@@ -517,7 +517,7 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 	*height = ibuf->y;
 
 	if (clip->flag & MCLIP_USE_PROXY) {
-		switch (user->render_size) {
+		switch(user->render_size) {
 			case MCLIP_PROXY_RENDER_SIZE_25:
 				(*width) *= 4;
 				(*height) *= 4;
@@ -529,8 +529,8 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 				break;
 
 			case MCLIP_PROXY_RENDER_SIZE_75:
-				*width = ((float)*width) * 4.0f / 3.0f;
-				*height = ((float)*height) * 4.0f / 3.0f;
+				*width = ((float)*width)*4.0f/3.0f;
+				*height = ((float)*height)*4.0f/3.0f;
 				break;
 		}
 	}
@@ -635,8 +635,7 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 	return cache->postprocessed.ibuf;
 }
 
-static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf,
-                                               int flag, int postprocess_flag)
+static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, int flag, int postprocess_flag)
 {
 	MovieClipCache *cache = clip->cache;
 	MovieTrackingCamera *camera = &clip->tracking.camera;
@@ -670,8 +669,8 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	if (postprocess_flag) {
 		int disable_red   = postprocess_flag & MOVIECLIP_DISABLE_RED,
 		    disable_green = postprocess_flag & MOVIECLIP_DISABLE_GREEN,
-		    disable_blue  = postprocess_flag & MOVIECLIP_DISABLE_BLUE,
-		    grayscale     = postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE;
+			disable_blue  = postprocess_flag & MOVIECLIP_DISABLE_BLUE,
+			grayscale     = postprocess_flag & MOVIECLIP_PREVIEW_GRAYSCALE;
 
 		if (!postproc_ibuf)
 			postproc_ibuf = IMB_dupImBuf(ibuf);
@@ -802,8 +801,8 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 
 	/* check for stabilization parameters */
 	if (tscale != cache->stabilized.scale ||
-	    tangle != cache->stabilized.angle ||
-	    !equals_v2v2(tloc, cache->stabilized.loc))
+	   tangle != cache->stabilized.angle ||
+	   !equals_v2v2(tloc, cache->stabilized.loc))
 	{
 		return NULL;
 	}
@@ -852,8 +851,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	return stableibuf;
 }
 
-ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle,
-                                     int postprocess_flag)
+ImBuf *BKE_movieclip_get_stable_ibuf(MovieClip *clip, MovieClipUser *user, float loc[2], float *scale, float *angle, int postprocess_flag)
 {
 	ImBuf *ibuf, *stableibuf = NULL;
 	int framenr = user->framenr;
@@ -927,8 +925,8 @@ void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, in
 			real_ibuf_size(clip, user, ibuf, width, height);
 		}
 		else {
-			*width = clip->lastsize[0];
-			*height = clip->lastsize[1];
+			*width = 0;
+			*height = 0;
 		}
 
 		if (ibuf)
@@ -1051,17 +1049,17 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						BKE_movieclip_get_size(clip, user, &width, &height);
 
 						undist_marker.pos[0] *= width;
-						undist_marker.pos[1] *= height * aspy;
+						undist_marker.pos[1] *= height*aspy;
 
 						BKE_tracking_invert_intrinsics(&clip->tracking, undist_marker.pos, undist_marker.pos);
 
 						undist_marker.pos[0] /= width;
-						undist_marker.pos[1] /= height * aspy;
+						undist_marker.pos[1] /= height*aspy;
 					}
 
 					/* NOTE: margin should be kept in sync with value from ui_draw_but_TRACKPREVIEW */
 					tmpibuf= BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 3 /* margin */,
-					                                         1 /* anchor */, scopes->track_pos, NULL);
+							1 /* anchor */, scopes->track_pos, NULL);
 
 					if (tmpibuf->rect_float)
 						IMB_rect_from_float(tmpibuf);
@@ -1075,11 +1073,11 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				IMB_freeImBuf(ibuf);
 			}
 
-			if ((track->flag & TRACK_LOCKED) == 0) {
+			if ((track->flag & TRACK_LOCKED)==0) {
 				scopes->marker = marker;
 				scopes->track = track;
-				scopes->slide_scale[0] = track->pat_max[0] - track->pat_min[0];
-				scopes->slide_scale[1] = track->pat_max[1] - track->pat_min[1];
+				scopes->slide_scale[0] = track->pat_max[0]-track->pat_min[0];
+				scopes->slide_scale[1] = track->pat_max[1]-track->pat_min[1];
 			}
 		}
 	}
@@ -1151,14 +1149,14 @@ void BKE_movieclip_build_proxy_frame(MovieClip *clip, int clip_flag, struct Movi
 	}
 }
 
-void BKE_movieclip_free(MovieClip *clip)
+void free_movieclip(MovieClip *clip)
 {
 	free_buffers(clip);
 
 	BKE_tracking_free(&clip->tracking);
 }
 
-void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
+void unlink_movieclip(Main *bmain, MovieClip *clip)
 {
 	bScreen *scr;
 	ScrArea *area;

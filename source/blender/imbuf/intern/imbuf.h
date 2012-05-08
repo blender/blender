@@ -1,4 +1,9 @@
 /*
+ * imbuf.h (mar-2001 nzc)
+ *
+ * This header might have to become external...
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -20,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): mar-2001 nzc.
+ * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -28,6 +33,7 @@
 /** \file blender/imbuf/intern/imbuf.h
  *  \ingroup imbuf
  */
+
 
 #ifndef __IMBUF_H__
 #define __IMBUF_H__

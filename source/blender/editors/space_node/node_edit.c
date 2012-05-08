@@ -243,37 +243,8 @@ static bNode *editnode_get_active(bNodeTree *ntree)
 		return nodeGetActive(ntree);
 }
 
-static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
+void snode_dag_update(bContext *UNUSED(C), SpaceNode *snode)
 {
-	bNode *node;
-	
-	if (ntree == lookup)
-		return 1;
-	
-	for (node=ntree->nodes.first; node; node=node->next)
-		if (node->type == NODE_GROUP && node->id)
-			if (has_nodetree((bNodeTree*)node->id, lookup))
-				return 1;
-	
-	return 0;
-}
-
-static void snode_dag_update_group(void *calldata, ID *owner_id, bNodeTree *ntree)
-{
-	if (has_nodetree(ntree, calldata))
-		DAG_id_tag_update(owner_id, 0);
-}
-
-void snode_dag_update(bContext *C, SpaceNode *snode)
-{
-	Main *bmain = CTX_data_main(C);
-
-	/* for groups, update all ID's using this */
-	if (snode->edittree!=snode->nodetree) {
-		bNodeTreeType *tti= ntreeGetType(snode->edittree->type);
-		tti->foreach_nodetree(bmain, snode->edittree, snode_dag_update_group);
-	}
-
 	DAG_id_tag_update(snode->id, 0);
 }
 
@@ -313,12 +284,12 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	
 	ntree= ntreeAddTree("Shader Nodetree", NTREE_SHADER, 0);
 
-	switch (GS(id->name)) {
+	switch(GS(id->name)) {
 		case ID_MA: {
 			Material *ma= (Material*)id;
 			ma->nodetree = ntree;
 
-			if (BKE_scene_use_new_shading_nodes(scene)) {
+			if (scene_use_new_shading_nodes(scene)) {
 				output_type = SH_NODE_OUTPUT_MATERIAL;
 				shader_type = SH_NODE_BSDF_DIFFUSE;
 			}
@@ -376,7 +347,7 @@ void ED_node_shader_default(Scene *scene, ID *id)
 	nodeAddLink(ntree, in, fromsock, out, tosock);
 
 	/* default values */
-	if (BKE_scene_use_new_shading_nodes(scene)) {
+	if (scene_use_new_shading_nodes(scene)) {
 		sock= in->inputs.first;
 		copy_v3_v3(((bNodeSocketValueRGBA*)sock->default_value)->value, color);
 
@@ -612,6 +583,21 @@ static void snode_update(SpaceNode *snode, bNode *node)
 	gnode= node_tree_get_editgroup(snode->nodetree);
 	if (gnode)
 		nodeUpdateID(snode->nodetree, gnode->id);
+}
+
+static int has_nodetree(bNodeTree *ntree, bNodeTree *lookup)
+{
+	bNode *node;
+	
+	if (ntree == lookup)
+		return 1;
+	
+	for (node=ntree->nodes.first; node; node=node->next)
+		if (node->type == NODE_GROUP && node->id)
+			if (has_nodetree((bNodeTree*)node->id, lookup))
+				return 1;
+	
+	return 0;
 }
 
 void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
@@ -1330,7 +1316,6 @@ void NODE_OT_backimage_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Background Image Zoom";
 	ot->idname = "NODE_OT_backimage_zoom";
-	ot->description = "Zoom in/out the brackground image";
 	
 	/* api callbacks */
 	ot->exec = backimage_zoom;
@@ -1473,7 +1458,7 @@ static int sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static int sample_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	switch (event->type) {
+	switch(event->type) {
 		case LEFTMOUSE:
 		case RIGHTMOUSE: // XXX hardcoded
 			sample_exit(C, op);
@@ -1497,7 +1482,6 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Backimage Sample";
 	ot->idname = "NODE_OT_backimage_sample";
-	ot->description = "Use mouse to sample background image";
 	
 	/* api callbacks */
 	ot->invoke = sample_invoke;
@@ -1609,7 +1593,6 @@ void NODE_OT_resize(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Resize Node";
 	ot->idname = "NODE_OT_resize";
-	ot->description = "Resize a node";
 	
 	/* api callbacks */
 	ot->invoke = node_resize_invoke;
@@ -2429,8 +2412,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				/* when linking to group outputs, update the socket type */
 				/* XXX this should all be part of a generic update system */
 				if (!link->tonode) {
-					if(link->tosock->type != link->fromsock->type)
-						nodeSocketSetType(link->tosock, link->fromsock->type);
+					link->tosock->type = link->fromsock->type;
 				}
 			}
 			else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
@@ -2592,7 +2574,6 @@ void NODE_OT_link(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Link Nodes";
 	ot->idname = "NODE_OT_link";
-	ot->description = "Use the mouse to create a link between two nodes";
 	
 	/* api callbacks */
 	ot->invoke = node_link_invoke;
@@ -2670,8 +2651,7 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 	float mcoords[256][2];
 	int i= 0;
 	
-	RNA_BEGIN (op->ptr, itemptr, "path")
-	{
+	RNA_BEGIN(op->ptr, itemptr, "path") {
 		float loc[2];
 		
 		RNA_float_get_array(&itemptr, "loc", loc);
@@ -2712,7 +2692,6 @@ void NODE_OT_links_cut(wmOperatorType *ot)
 	
 	ot->name = "Cut links";
 	ot->idname = "NODE_OT_links_cut";
-	ot->description = "Use the mouse to cut (remove) some links";
 	
 	ot->invoke = WM_gesture_lines_invoke;
 	ot->modal = WM_gesture_lines_modal;
@@ -2758,7 +2737,6 @@ void NODE_OT_links_detach(wmOperatorType *ot)
 {
 	ot->name = "Detach Links";
 	ot->idname = "NODE_OT_links_detach";
-	ot->description = "Remove all links to selected nodes, and try to connect neighbor nodes together";
 	
 	ot->exec = detach_links_exec;
 	ot->poll = ED_operator_node_active;
@@ -2953,7 +2931,6 @@ void NODE_OT_read_renderlayers(wmOperatorType *ot)
 	
 	ot->name = "Read Render Layers";
 	ot->idname = "NODE_OT_read_renderlayers";
-	ot->description = "Read all render layers of all used scenes";
 	
 	ot->exec = node_read_renderlayers_exec;
 	
@@ -2987,7 +2964,6 @@ void NODE_OT_read_fullsamplelayers(wmOperatorType *ot)
 	
 	ot->name = "Read Full Sample Layers";
 	ot->idname = "NODE_OT_read_fullsamplelayers";
-	ot->description = "Read all render layers of current scene, in full sample";
 	
 	ot->exec = node_read_fullsamplelayers_exec;
 	
@@ -3036,7 +3012,6 @@ void NODE_OT_render_changed(wmOperatorType *ot)
 	
 	ot->name = "Render Changed Layer";
 	ot->idname = "NODE_OT_render_changed";
-	ot->description = "Render current scene, when input node's layer has been changed";
 	
 	ot->exec = node_render_changed_exec;
 	
@@ -3459,7 +3434,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 
 		errno= 0;
 
-		ima= BKE_image_load_exists(path);
+		ima= BKE_add_image_file(path);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Can't read: \"%s\", %s", path, errno ? strerror(errno) : "Unsupported image format");
@@ -3469,7 +3444,7 @@ static int node_add_file_exec(bContext *C, wmOperator *op)
 	else if (RNA_struct_property_is_set(op->ptr, "name")) {
 		char name[MAX_ID_NAME-2];
 		RNA_string_get(op->ptr, "name", name);
-		ima= (Image *)BKE_libblock_find_name(ID_IM, name);
+		ima= (Image *)find_id("IM", name);
 
 		if (!ima) {
 			BKE_reportf(op->reports, RPT_ERROR, "Image named \"%s\", not found", name);
@@ -3595,9 +3570,8 @@ static int new_node_tree_exec(bContext *C, wmOperator *op)
 void NODE_OT_new_node_tree(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "New Node Tree";
+	ot->name = "New node tree";
 	ot->idname = "NODE_OT_new_node_tree";
-	ot->description = "Create a new node tree";
 	
 	/* api callbacks */
 	ot->exec = new_node_tree_exec;
@@ -3616,16 +3590,12 @@ static int node_output_file_add_socket_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene= CTX_data_scene(C);
 	SpaceNode *snode= CTX_wm_space_node(C);
-	PointerRNA ptr;
-	bNodeTree *ntree;
-	bNode *node;
+	bNodeTree *ntree = snode->edittree;
+	bNode *node = nodeGetActive(ntree);
 	char file_path[MAX_NAME];
 	
-	ptr = CTX_data_pointer_get(C, "node");
-	if (!ptr.data)
+	if (!node)
 		return OPERATOR_CANCELLED;
-	node = ptr.data;
-	ntree = ptr.id.data;
 	
 	RNA_string_get(op->ptr, "file_path", file_path);
 	ntreeCompositOutputFileAddSocket(ntree, node, file_path, &scene->r.im_format);
@@ -3657,14 +3627,11 @@ void NODE_OT_output_file_add_socket(wmOperatorType *ot)
 static int node_output_file_remove_active_socket_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
-	PointerRNA ptr = CTX_data_pointer_get(C, "node");
-	bNodeTree *ntree;
-	bNode *node;
+	bNodeTree *ntree = snode->edittree;
+	bNode *node = nodeGetActive(ntree);
 	
-	if (!ptr.data)
+	if (!node)
 		return OPERATOR_CANCELLED;
-	node = ptr.data;
-	ntree = ptr.id.data;
 	
 	if (!ntreeCompositOutputFileRemoveActiveSocket(ntree, node))
 		return OPERATOR_CANCELLED;
@@ -3687,69 +3654,4 @@ void NODE_OT_output_file_remove_active_socket(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-}
-
-/* ****************** Multi File Output Move Socket  ******************* */
-
-static int node_output_file_move_active_socket_exec(bContext *C, wmOperator *op)
-{
-	SpaceNode *snode= CTX_wm_space_node(C);
-	PointerRNA ptr = CTX_data_pointer_get(C, "node");
-	bNode *node;
-	NodeImageMultiFile *nimf;
-	bNodeSocket *sock;
-	int direction;
-	
-	if (!ptr.data)
-		return OPERATOR_CANCELLED;
-	node = ptr.data;
-	nimf = node->storage;
-	
-	sock = BLI_findlink(&node->inputs, nimf->active_input);
-	if (!sock)
-		return OPERATOR_CANCELLED;
-	
-	direction = RNA_enum_get(op->ptr, "direction");
-	
-	if (direction==1) {
-		bNodeSocket *before = sock->prev;
-		if (!before)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&node->inputs, sock);
-		BLI_insertlinkbefore(&node->inputs, before, sock);
-		--nimf->active_input;
-	}
-	else {
-		bNodeSocket *after = sock->next;
-		if (!after)
-			return OPERATOR_CANCELLED;
-		BLI_remlink(&node->inputs, sock);
-		BLI_insertlinkafter(&node->inputs, after, sock);
-		++nimf->active_input;
-	}
-	
-	snode_notify(C, snode);
-	
-	return OPERATOR_FINISHED;
-}
-
-void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
-{
-	static EnumPropertyItem direction_items[] = {
-		{1, "UP", 0, "Up", ""},
-		{2, "DOWN", 0, "Down", ""}};
-	
-	/* identifiers */
-	ot->name = "Move File Node Socket";
-	ot->description = "Move the active input of a file output node up or down the list";
-	ot->idname = "NODE_OT_output_file_move_active_socket";
-	
-	/* callbacks */
-	ot->exec = node_output_file_move_active_socket_exec;
-	ot->poll = composite_node_active;
-	
-	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
-	
-	RNA_def_enum(ot->srna, "direction", direction_items, 2, "Direction", "");
 }

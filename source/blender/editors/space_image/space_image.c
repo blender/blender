@@ -88,7 +88,7 @@ void ED_space_image_set(SpaceImage *sima, Scene *scene, Object *obedit, Image *i
 	/* context may be NULL, so use global */
 	ED_uvedit_assign_image(G.main, scene, obedit, ima, sima->image);
 	
-	/* change the space ima after because uvedit_face_visible_test uses the space ima
+	/* change the space ima after because uvedit_face_visible uses the space ima
 	 * to check if the face is displayed in UV-localview */
 	sima->image = ima;
 	
@@ -205,9 +205,7 @@ void ED_image_aspect(Image *ima, float *aspx, float *aspy)
 	
 	if ((ima == NULL) || (ima->type == IMA_TYPE_R_RESULT) || (ima->type == IMA_TYPE_COMPOSITE) ||
 	    (ima->aspx == 0.0f || ima->aspy == 0.0f))
-	{
 		return;
-	}
 	
 	/* x is always 1 */
 	*aspy = ima->aspy / ima->aspx;
@@ -590,7 +588,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	ima = ED_space_image(sima);
 
 	if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-		BKE_image_user_frame_calc(&sima->iuser, scene->r.cfra, 0);
+		BKE_image_user_calc_frame(&sima->iuser, scene->r.cfra, 0);
 	
 	/* check if we have to set the image from the editmesh */
 	if (ima && (ima->source == IMA_SRC_VIEWER || sima->pin)) ;
@@ -599,7 +597,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		struct BMEditMesh *em = me->edit_btmesh;
 		int sloppy = 1; /* partially selected face is ok */
 
-		if (BKE_scene_use_new_shading_nodes(scene)) {
+		if (scene_use_new_shading_nodes(scene)) {
 			/* new shading system, get image from material */
 			BMFace *efa = BM_active_face_get(em->bm, sloppy);
 

@@ -294,7 +294,7 @@ static int buttons_context_path_pose_bone(ButsContextPath *path)
 		}
 		else {
 			if (arm->act_bone) {
-				bPoseChannel *pchan= BKE_pose_channel_find_name(ob->pose, arm->act_bone->name);
+				bPoseChannel *pchan= get_pose_channel(ob->pose, arm->act_bone->name);
 				if (pchan) {
 					RNA_pointer_create(&ob->id, &RNA_PoseBone, pchan, &path->ptr[path->len]);
 					path->len++;
@@ -535,7 +535,7 @@ static int buttons_context_path(const bContext *C, ButsContextPath *path, int ma
 
 	/* now for each buttons context type, we try to construct a path,
 	 * tracing back recursively */
-	switch (mainb) {
+	switch(mainb) {
 		case BCONTEXT_SCENE:
 		case BCONTEXT_RENDER:
 			found= buttons_context_path_scene(path);

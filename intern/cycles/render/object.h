@@ -44,16 +44,13 @@ public:
 	int pass_id;
 	vector<ParamValue> attributes;
 	uint visibility;
-	MotionTransform motion;
-	bool use_motion;
-	bool use_holdout;
 
 	Object();
 	~Object();
 
 	void tag_update(Scene *scene);
 
-	void compute_bounds(bool motion_blur);
+	void compute_bounds();
 	void apply_transform();
 };
 

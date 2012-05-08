@@ -1,4 +1,5 @@
-/*
+/* 
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -25,12 +26,14 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#ifndef __MATHUTILS_GEOMETRY_H__
-#define __MATHUTILS_GEOMETRY_H__
-
 /** \file blender/python/mathutils/mathutils_geometry.h
  *  \ingroup pymathutils
  */
+
+/*Include this file for access to vector, quat, matrix, euler, etc...*/
+
+#ifndef __MATHUTILS_GEOMETRY_H__
+#define __MATHUTILS_GEOMETRY_H__
 
 #include "mathutils.h"
 

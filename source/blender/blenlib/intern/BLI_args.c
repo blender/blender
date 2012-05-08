@@ -1,4 +1,7 @@
 /*
+ * A general argument parsing module
+ *
+ *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,8 +30,8 @@
 
 /** \file blender/blenlib/intern/BLI_args.c
  *  \ingroup bli
- *  \brief A general argument parsing module
  */
+
 
 #include <ctype.h> /* for tolower */
 #include <string.h>

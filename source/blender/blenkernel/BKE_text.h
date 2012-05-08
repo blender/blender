@@ -42,17 +42,17 @@ struct Text;
 struct TextLine;
 struct SpaceText;
 
-void			BKE_text_free		(struct Text *text);
+void			free_text		(struct Text *text);
 void 			txt_set_undostate	(int u);
 int 			txt_get_undostate	(void);
-struct Text*	BKE_text_add	(const char *name);
+struct Text*	add_empty_text	(const char *name);
 int				txt_extended_ascii_as_utf8(char **str);
-int				BKE_text_reload		(struct Text *text);
-struct Text*	BKE_text_load		(const char *file, const char *relpath);
-struct Text*	BKE_text_copy		(struct Text *ta);
-void			BKE_text_unlink		(struct Main *bmain, struct Text *text);
-void			BKE_text_clear      (struct Text *text);
-void			BKE_text_write      (struct Text *text, const char *str);
+int				reopen_text		(struct Text *text);
+struct Text*	add_text		(const char *file, const char *relpath); 
+struct Text*	copy_text		(struct Text *ta);
+void			unlink_text		(struct Main *bmain, struct Text *text);
+void			clear_text(struct Text *text);
+void			write_text(struct Text *text, const char *str);
 
 char*	txt_to_buf			(struct Text *text);
 void	txt_clean_text		(struct Text *text);
@@ -96,7 +96,6 @@ void	txt_unindent		(struct Text *text);
 void 	txt_comment			(struct Text *text);
 void 	txt_indent			(struct Text *text);
 void	txt_uncomment		(struct Text *text);
-void	txt_duplicate_line	(struct Text *text);
 int	setcurr_tab_spaces	(struct Text *text, int space);
 
 void	txt_add_marker						(struct Text *text, struct TextLine *line, int start, int end, const unsigned char color[4], int group, int flags);
@@ -169,8 +168,6 @@ int text_check_whitespace(const char ch);
 #define UNDO_UNINDENT   033
 #define UNDO_COMMENT    034
 #define UNDO_UNCOMMENT  035
-
-#define UNDO_DUPLICATE  040
 
 /* Marker flags */
 #define TMARK_TEMP		0x01	/* Remove on non-editing events, don't save */

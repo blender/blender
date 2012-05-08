@@ -774,7 +774,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
         dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb.dll')	
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
 
-    if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
+    if env['WITH_BF_OIIO']:
         dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
 
     dllsources.append('#source/icons/blender.exe.manifest')
@@ -805,7 +805,6 @@ if env['OURPLATFORM'] == 'win64-mingw':
         dllsources.append('${LCGDIR}/sdl/lib/SDL.dll')
 	
     dllsources.append('${LCGDIR}/thumbhandler/lib/BlendThumb64.dll')
-    dllsources.append('${LCGDIR}/binaries/pthreadGC2-w64.dll')
     dllsources.append('#source/icons/blender.exe.manifest')
 
     windlls = env.Install(dir=env['BF_INSTALLDIR'], source = dllsources)

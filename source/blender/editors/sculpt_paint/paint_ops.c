@@ -63,9 +63,9 @@ static int brush_add_exec(bContext *C, wmOperator *UNUSED(op))
 	struct Brush *br = paint_brush(paint);
 
 	if (br)
-		br = BKE_brush_copy(br);
+		br = copy_brush(br);
 	else
-		br = BKE_brush_add("Brush");
+		br = add_brush("Brush");
 
 	paint_brush_set(paint_get_active(CTX_data_scene(C)), br);
 
@@ -98,7 +98,7 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 	if (brush) {
 		// pixel radius
 		{
-			const int old_size = BKE_brush_size_get(scene, brush);
+			const int old_size = brush_size(scene, brush);
 			int size = (int)(scalar * old_size);
 
 			if (old_size == size) {
@@ -111,17 +111,17 @@ static int brush_scale_size_exec(bContext *C, wmOperator *op)
 			}
 			CLAMP(size, 1, 2000); // XXX magic number
 
-			BKE_brush_size_set(scene, brush, size);
+			brush_set_size(scene, brush, size);
 		}
 
 		// unprojected radius
 		{
-			float unprojected_radius = scalar * BKE_brush_unprojected_radius_get(scene, brush);
+			float unprojected_radius = scalar * brush_unprojected_radius(scene, brush);
 
 			if (unprojected_radius < 0.001f) // XXX magic number
 				unprojected_radius = 0.001f;
 
-			BKE_brush_unprojected_radius_set(scene, brush, unprojected_radius);
+			brush_set_unprojected_radius(scene, brush, unprojected_radius);
 		}
 	}
 
@@ -160,7 +160,6 @@ static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Vertex Colors";
 	ot->idname = "PAINT_OT_vertex_color_set";
-	ot->description = "Fill the active vertex color layer with the current paint color";
 	
 	/* api callbacks */
 	ot->exec = vertex_color_set_exec;
@@ -179,7 +178,7 @@ static int brush_reset_exec(bContext *C, wmOperator *UNUSED(op))
 	if (!ob) return OPERATOR_CANCELLED;
 
 	if (ob->mode & OB_MODE_SCULPT)
-		BKE_brush_sculpt_reset(brush);
+		brush_reset_sculpt(brush);
 	/* TODO: other modes */
 
 	return OPERATOR_FINISHED;
@@ -530,9 +529,6 @@ static void ed_keymap_paint_brush_radial_control(wmKeyMap *keymap, const char *p
 
 	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_SHIFT, 0);
 	set_brush_rc_props(kmi->ptr, paint, "strength", "use_unified_strength", flags);
-
-	kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", WKEY, KM_PRESS, 0, 0);
-	set_brush_rc_props(kmi->ptr, paint, "weight", "use_unified_weight", flags);
 
 	if (flags & RC_ROTATION) {
 		kmi = WM_keymap_add_item(keymap, "WM_OT_radial_control", FKEY, KM_PRESS, KM_CTRL, 0);

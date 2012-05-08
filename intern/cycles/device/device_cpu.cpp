@@ -40,7 +40,8 @@ CCL_NAMESPACE_BEGIN
 class CPUDevice : public Device
 {
 public:
-	TaskPool task_pool;
+	vector<thread*> threads;
+	ThreadQueue<DeviceTask> tasks;
 	KernelGlobals *kg;
 	
 	CPUDevice(int threads_num)
@@ -49,11 +50,25 @@ public:
 
 		/* do now to avoid thread issues */
 		system_cpu_support_optimized();
+
+		if(threads_num == 0)
+			threads_num = system_cpu_thread_count();
+
+		threads.resize(threads_num);
+
+		for(size_t i = 0; i < threads.size(); i++)
+			threads[i] = new thread(function_bind(&CPUDevice::thread_run, this, i));
 	}
 
 	~CPUDevice()
 	{
-		task_pool.stop();
+		tasks.stop();
+
+		foreach(thread *t, threads) {
+			t->join();
+			delete t;
+		}
+
 		kernel_globals_free(kg);
 	}
 
@@ -112,28 +127,25 @@ public:
 #endif
 	}
 
-	void thread_run(DeviceTask *task)
+	void thread_run(int t)
 	{
-		if(task->type == DeviceTask::PATH_TRACE)
-			thread_path_trace(*task);
-		else if(task->type == DeviceTask::TONEMAP)
-			thread_tonemap(*task);
-		else if(task->type == DeviceTask::SHADER)
-			thread_shader(*task);
-	}
+		DeviceTask task;
 
-	class CPUDeviceTask : public DeviceTask {
-	public:
-		CPUDeviceTask(CPUDevice *device, DeviceTask& task)
-		: DeviceTask(task)
-		{
-			run = function_bind(&CPUDevice::thread_run, device, this);
+		while(tasks.worker_wait_pop(task)) {
+			if(task.type == DeviceTask::PATH_TRACE)
+				thread_path_trace(task);
+			else if(task.type == DeviceTask::TONEMAP)
+				thread_tonemap(task);
+			else if(task.type == DeviceTask::SHADER)
+				thread_shader(task);
+
+			tasks.worker_done();
 		}
-	};
+	}
 
 	void thread_path_trace(DeviceTask& task)
 	{
-		if(task_pool.cancelled())
+		if(tasks.worker_cancel())
 			return;
 
 #ifdef WITH_OSL
@@ -148,7 +160,7 @@ public:
 					kernel_cpu_optimized_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
-				if(task_pool.cancelled())
+				if(tasks.worker_cancel())
 					break;
 			}
 		}
@@ -160,7 +172,7 @@ public:
 					kernel_cpu_path_trace(kg, (float*)task.buffer, (unsigned int*)task.rng_state,
 						task.sample, x, y, task.offset, task.stride);
 
-				if(task_pool.cancelled())
+				if(tasks.worker_cancel())
 					break;
 			}
 		}
@@ -202,7 +214,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_optimized_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.cancelled())
+				if(tasks.worker_cancel())
 					break;
 			}
 		}
@@ -212,7 +224,7 @@ public:
 			for(int x = task.shader_x; x < task.shader_x + task.shader_w; x++) {
 				kernel_cpu_shader(kg, (uint4*)task.shader_input, (float4*)task.shader_output, task.shader_eval_type, x);
 
-				if(task_pool.cancelled())
+				if(tasks.worker_cancel())
 					break;
 			}
 		}
@@ -227,22 +239,17 @@ public:
 	{
 		/* split task into smaller ones, more than number of threads for uneven
 		   workloads where some parts of the image render slower than others */
-		list<DeviceTask> tasks;
-
-		task.split(tasks, TaskScheduler::num_threads()*10);
-
-		foreach(DeviceTask& task, tasks)
-			task_pool.push(new CPUDeviceTask(this, task));
+		task.split(tasks, threads.size()*10);
 	}
 
 	void task_wait()
 	{
-		task_pool.wait_work();
+		tasks.wait_done();
 	}
 
 	void task_cancel()
 	{
-		task_pool.cancel();
+		tasks.cancel();
 	}
 };
 
