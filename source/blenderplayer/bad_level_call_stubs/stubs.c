@@ -501,6 +501,7 @@ void BPY_pyconstraint_exec(struct bPythonConstraint *con, struct bConstraintOb *
 void macro_wrapper(struct wmOperatorType *ot, void *userdata) {}
 int pyrna_id_FromPyObject(struct PyObject *obj, struct ID **id){ return 0; }
 struct PyObject *pyrna_id_CreatePyObject(struct ID *id) {return NULL; }
+void BPY_context_update(struct bContext *C){};
 
 /* intern/dualcon */
 struct DualConMesh;
