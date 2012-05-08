@@ -57,7 +57,7 @@
 #include "BPY_extern.h"
 #endif
 
-#include "script_intern.h"	// own include
+#include "script_intern.h"  // own include
 
 
 //static script_run_python(char *funcname, )
@@ -70,22 +70,22 @@ static SpaceLink *script_new(const bContext *UNUSED(C))
 	ARegion *ar;
 	SpaceScript *sscript;
 	
-	sscript= MEM_callocN(sizeof(SpaceScript), "initscript");
-	sscript->spacetype= SPACE_SCRIPT;
+	sscript = MEM_callocN(sizeof(SpaceScript), "initscript");
+	sscript->spacetype = SPACE_SCRIPT;
 	
 	
 	/* header */
-	ar= MEM_callocN(sizeof(ARegion), "header for script");
+	ar = MEM_callocN(sizeof(ARegion), "header for script");
 	
 	BLI_addtail(&sscript->regionbase, ar);
-	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_BOTTOM;
+	ar->regiontype = RGN_TYPE_HEADER;
+	ar->alignment = RGN_ALIGN_BOTTOM;
 	
 	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for script");
+	ar = MEM_callocN(sizeof(ARegion), "main area for script");
 	
 	BLI_addtail(&sscript->regionbase, ar);
-	ar->regiontype= RGN_TYPE_WINDOW;
+	ar->regiontype = RGN_TYPE_WINDOW;
 	
 	/* channel list region XXX */
 
@@ -96,7 +96,7 @@ static SpaceLink *script_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void script_free(SpaceLink *sl)
 {	
-	SpaceScript *sscript= (SpaceScript*) sl;
+	SpaceScript *sscript = (SpaceScript *) sl;
 
 #ifdef WITH_PYTHON
 	/*free buttons references*/
@@ -118,7 +118,7 @@ static void script_init(struct wmWindowManager *UNUSED(wm), ScrArea *UNUSED(sa))
 
 static SpaceLink *script_duplicate(SpaceLink *sl)
 {
-	SpaceScript *sscriptn= MEM_dupallocN(sl);
+	SpaceScript *sscriptn = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	
@@ -142,8 +142,8 @@ static void script_main_area_init(wmWindowManager *wm, ARegion *ar)
 static void script_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceScript *sscript= (SpaceScript*)CTX_wm_space_data(C);
-	View2D *v2d= &ar->v2d;
+	SpaceScript *sscript = (SpaceScript *)CTX_wm_space_data(C);
+	View2D *v2d = &ar->v2d;
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
@@ -189,37 +189,37 @@ static void script_main_area_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wm
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_script(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype script");
+	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype script");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_SCRIPT;
+	st->spaceid = SPACE_SCRIPT;
 	strncpy(st->name, "Script", BKE_ST_MAXNAME);
 	
-	st->new= script_new;
-	st->free= script_free;
-	st->init= script_init;
-	st->duplicate= script_duplicate;
-	st->operatortypes= script_operatortypes;
-	st->keymap= script_keymap;
+	st->new = script_new;
+	st->free = script_free;
+	st->init = script_init;
+	st->duplicate = script_duplicate;
+	st->operatortypes = script_operatortypes;
+	st->keymap = script_keymap;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype script region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init= script_main_area_init;
-	art->draw= script_main_area_draw;
-	art->listener= script_main_area_listener;
-	art->keymapflag= ED_KEYMAP_VIEW2D|   ED_KEYMAP_UI|ED_KEYMAP_FRAMES; // XXX need to further test this ED_KEYMAP_UI is needed for button interaction
+	art->init = script_main_area_init;
+	art->draw = script_main_area_draw;
+	art->listener = script_main_area_listener;
+	art->keymapflag = ED_KEYMAP_VIEW2D |   ED_KEYMAP_UI | ED_KEYMAP_FRAMES; // XXX need to further test this ED_KEYMAP_UI is needed for button interaction
 
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype script region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype script region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->prefsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
+	art->prefsizey = HEADERY;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 	
-	art->init= script_header_area_init;
-	art->draw= script_header_area_draw;
+	art->init = script_header_area_init;
+	art->draw = script_header_area_draw;
 	
 	BLI_addhead(&st->regiontypes, art);
 	
