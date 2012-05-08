@@ -24,7 +24,7 @@
 #define __DUALCON_H__
 
 #ifdef __cplusplus
-extern "C" { 
+extern "C" {
 #endif
 
 typedef float (*DualConCo)[3];
@@ -35,11 +35,11 @@ typedef struct DualConInput {
 	DualConCo co;
 	int co_stride;
 	int totco;
-	
+
 	DualConFaces faces;
 	int face_stride;
 	int totface;
-	
+
 	float min[3], max[3];
 } DualConInput;
 
@@ -64,32 +64,32 @@ typedef enum {
 } DualConMode;
 
 /* Usage:
-   
-   The three callback arguments are used for creating the output
-   mesh. The alloc_output callback takes the total number of vertices
-   and faces (quads) that will be in the output. It should allocate
-   and return a structure to hold the output mesh. The add_vert and
-   add_quad callbacks will then be called for each new vertex and
-   quad, and the callback should add the new mesh elements to the
-   structure.
-*/
+ *
+ * The three callback arguments are used for creating the output
+ * mesh. The alloc_output callback takes the total number of vertices
+ * and faces (quads) that will be in the output. It should allocate
+ * and return a structure to hold the output mesh. The add_vert and
+ * add_quad callbacks will then be called for each new vertex and
+ * quad, and the callback should add the new mesh elements to the
+ * structure.
+ */
 void *dualcon(const DualConInput *input_mesh,
-			  /* callbacks for output */
-			  DualConAllocOutput alloc_output,
-			  DualConAddVert add_vert,
-			  DualConAddQuad add_quad,
+              /* callbacks for output */
+              DualConAllocOutput alloc_output,
+              DualConAddVert add_vert,
+              DualConAddQuad add_quad,
 
-			  /* flags and settings to control the remeshing
-				 algorithm */
-			  DualConFlags flags,
-			  DualConMode mode,
-			  float threshold,
-			  float hermite_num,
-			  float scale,
-			  int depth);
+              /* flags and settings to control the remeshing
+               * algorithm */
+              DualConFlags flags,
+              DualConMode mode,
+              float threshold,
+              float hermite_num,
+              float scale,
+              int depth);
 
 #ifdef __cplusplus
-} 
+}
 #endif
 
 #endif /* __DUALCON_H__ */
