@@ -153,8 +153,10 @@ public:
 
 	void set_update()
 	{
-		if(update_cb)
+		if(update_cb) {
+			thread_scoped_lock lock(update_mutex);
 			update_cb();
+		}
 	}
 
 	void set_update_callback(boost::function<void(void)> function)
@@ -164,6 +166,7 @@ public:
 
 protected:
 	thread_mutex progress_mutex;
+	thread_mutex update_mutex;
 	boost::function<void(void)> update_cb;
 	boost::function<void(void)> cancel_cb;
 
