@@ -304,6 +304,9 @@ void BKE_mesh_loops_to_mface_corners(struct CustomData *fdata, struct CustomData
                                      const int polyindex, const int mf_len,
                                      const int numTex, const int numCol, const int hasPCol, const int hasOrigSpace);
 
+void BKE_mesh_poly_calc_angles(struct MVert *mvert, struct MLoop *mloop,
+                               struct MPoly *mp, float angles[]);
+
 #ifdef __cplusplus
 }
 #endif
