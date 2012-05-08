@@ -360,7 +360,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 				
 			if (!cu->path) {
 				cu->flag |= CU_PATH; // needed for path & bevlist
-				makeDispListCurveTypes(scene, amd->curve_ob, 0);
+				BKE_displist_make_curveTypes(scene, amd->curve_ob, 0);
 			}
 			if (cu->path)
 				length = scale * cu->path->totdist;

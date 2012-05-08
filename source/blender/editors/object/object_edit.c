@@ -749,7 +749,7 @@ static void copy_texture_space(Object *to, Object *ob)
 		/* pass */
 	}
 	else if (to->type == OB_MBALL) {
-		BKE_metaball_texspace_calc(to);
+		BKE_mball_texspace_calc(to);
 	}
 	else {
 		BKE_curve_texspace_calc(to->data);

@@ -149,7 +149,7 @@ void BKE_lattice_resize(Lattice *lt, int uNew, int vNew, int wNew, Object *ltOb)
 		lt->typeu = lt->typev = lt->typew = KEY_LINEAR;
 
 		/* prevent using deformed locations */
-		freedisplist(&ltOb->disp);
+		BKE_displist_free(&ltOb->disp);
 
 		copy_m4_m4(mat, ltOb->obmat);
 		unit_m4(ltOb->obmat);
@@ -294,7 +294,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	/* we make an array with all differences */
 	Lattice *lt = oblatt->data;
 	BPoint *bp;
-	DispList *dl = find_displist(&oblatt->disp, DL_VERTS);
+	DispList *dl = BKE_displist_find(&oblatt->disp, DL_VERTS);
 	float *co = dl ? dl->verts : NULL;
 	float *fp, imat[4][4];
 	float fu, fv, fw;
@@ -541,7 +541,7 @@ static int calc_curve_deform(Scene *scene, Object *par, float co[3],
 
 	/* to be sure, mostly after file load */
 	if (cu->path == NULL) {
-		makeDispListCurveTypes(scene, par, 0);
+		BKE_displist_make_curveTypes(scene, par, 0);
 		if (cu->path == NULL) return 0;  // happens on append...
 	}
 	
@@ -963,7 +963,7 @@ void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 	float (*vertexCos)[3] = NULL;
 	int numVerts, editmode = (lt->editlatt != NULL);
 
-	freedisplist(&ob->disp);
+	BKE_displist_free(&ob->disp);
 
 	for (; md; md = md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);

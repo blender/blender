@@ -203,7 +203,7 @@ int id_make_local(ID *id, int test)
 			}
 			return 1;
 		case ID_MB:
-			if (!test) BKE_metaball_make_local((MetaBall *)id);
+			if (!test) BKE_mball_make_local((MetaBall *)id);
 			return 1;
 		case ID_MA:
 			if (!test) BKE_material_make_local((Material *)id);
@@ -294,7 +294,7 @@ int id_copy(ID *id, ID **newid, int test)
 			if (!test) *newid = (ID *)BKE_curve_copy((Curve *)id);
 			return 1;
 		case ID_MB:
-			if (!test) *newid = (ID *)BKE_metaball_copy((MetaBall *)id);
+			if (!test) *newid = (ID *)BKE_mball_copy((MetaBall *)id);
 			return 1;
 		case ID_MA:
 			if (!test) *newid = (ID *)BKE_material_copy((Material *)id);
@@ -813,7 +813,7 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			BKE_curve_free((Curve *)id);
 			break;
 		case ID_MB:
-			BKE_metaball_free((MetaBall *)id);
+			BKE_mball_free((MetaBall *)id);
 			break;
 		case ID_MA:
 			BKE_material_free((Material *)id);

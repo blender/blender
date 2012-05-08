@@ -346,7 +346,7 @@ int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *ve
 		vert += 3;
 	}
 	
-	filldisplist(&dispbase, &dispbase, 0);
+	BKE_displist_fill(&dispbase, &dispbase, 0);
 
 	int tottri = 0;
 	dl= (DispList*)dispbase.first;
@@ -368,7 +368,7 @@ int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *ve
 		}
 	}
 
-	freedisplist(&dispbase);
+	BKE_displist_free(&dispbase);
 
 	return tottri;
 }

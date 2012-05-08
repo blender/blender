@@ -111,7 +111,7 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 		ml= ml->next;
 	}
 	
-	ml= BKE_metaball_element_add(mball, type);
+	ml= BKE_mball_element_add(mball, type);
 	copy_v3_v3(&ml->x, mat[3]);
 
 	ml->flag |= SELECT;

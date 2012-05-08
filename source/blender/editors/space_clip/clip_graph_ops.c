@@ -148,7 +148,7 @@ static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *tr
 	float d = dx * dx + dy * dy;
 
 	if (data->marker == NULL || d < data->min_dist) {
-		float co[2]= {marker->framenr, val};
+		float co[2] = {marker->framenr, val};
 
 		data->track = track;
 		data->marker = marker;
@@ -256,7 +256,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	}
 
 	if (sel)
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -362,7 +362,7 @@ static int border_select_graph_exec(bContext *C, wmOperator *op)
 	clip_graph_tracking_values_iterate_track(sc, act_track, &userdata, border_select_cb, NULL, NULL);
 
 	if (userdata.change) {
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
 		return OPERATOR_FINISHED;
 	}
@@ -434,7 +434,7 @@ static int graph_select_all_markers_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, NULL);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
 
 	return OPERATOR_FINISHED;
 }
@@ -451,7 +451,7 @@ void CLIP_OT_graph_select_all_markers(wmOperatorType *ot)
 	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -485,7 +485,7 @@ void CLIP_OT_graph_delete_curve(wmOperatorType *ot)
 	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************** delete knot operator ********************/
@@ -526,7 +526,7 @@ void CLIP_OT_graph_delete_knot(wmOperatorType *ot)
 	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************** view all operator ********************/
@@ -666,7 +666,7 @@ static int graph_disable_markers_exec(bContext *C, wmOperator *op)
 
 	DAG_id_tag_update(&clip->id, 0);
 
-	WM_event_add_notifier(C, NC_MOVIECLIP|NA_EVALUATED, clip);
+	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EVALUATED, clip);
 
 	return OPERATOR_FINISHED;
 }
@@ -690,7 +690,7 @@ void CLIP_OT_graph_disable_markers(wmOperatorType *ot)
 	ot->poll = ED_space_clip_graph_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_enum(ot->srna, "action", actions_items, 0, "Action", "Disable action to execute");

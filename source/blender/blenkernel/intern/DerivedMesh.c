@@ -2097,7 +2097,7 @@ static void clear_mesh_caches(Object *ob)
 		me->bb = NULL;
 	}
 
-	freedisplist(&ob->disp);
+	BKE_displist_free(&ob->disp);
 
 	if (ob->derivedFinal) {
 		ob->derivedFinal->needsFree = 1;

@@ -242,7 +242,7 @@ void BKE_object_free_display(Object *ob)
 		ob->derivedFinal = NULL;
 	}
 	
-	freedisplist(&ob->disp);
+	BKE_displist_free(&ob->disp);
 }
 
 void free_sculptsession_deformMats(SculptSession *ss)
@@ -301,7 +301,7 @@ void BKE_object_free(Object *ob)
 		if (id->us == 0) {
 			if (ob->type == OB_MESH) BKE_mesh_unlink(ob->data);
 			else if (ob->type == OB_CURVE) BKE_curve_unlink(ob->data);
-			else if (ob->type == OB_MBALL) BKE_metaball_unlink(ob->data);
+			else if (ob->type == OB_MBALL) BKE_mball_unlink(ob->data);
 		}
 		ob->data = NULL;
 	}
@@ -440,7 +440,7 @@ void BKE_object_unlink(Object *ob)
 			}
 		} 
 		else if (ELEM(OB_MBALL, ob->type, obt->type)) {
-			if (BKE_metaball_is_basis_for(obt, ob))
+			if (BKE_mball_is_basis_for(obt, ob))
 				obt->recalc |= OB_RECALC_DATA;
 		}
 		
@@ -734,7 +734,7 @@ void *BKE_object_obdata_add_from_type(int type)
 		case OB_CURVE:     return BKE_curve_add("Curve", OB_CURVE);
 		case OB_SURF:      return BKE_curve_add("Surf", OB_SURF);
 		case OB_FONT:      return BKE_curve_add("Text", OB_FONT);
-		case OB_MBALL:     return BKE_metaball_add("Meta");
+		case OB_MBALL:     return BKE_mball_add("Meta");
 		case OB_CAMERA:    return BKE_camera_add("Camera");
 		case OB_LAMP:      return BKE_lamp_add("Lamp");
 		case OB_LATTICE:   return BKE_lattice_add("Lattice");
@@ -1638,7 +1638,7 @@ static void ob_parcurve(Scene *scene, Object *ob, Object *par, float mat[][4])
 	
 	cu = par->data;
 	if (cu->path == NULL || cu->path->data == NULL) /* only happens on reload file, but violates depsgraph still... fix! */
-		makeDispListCurveTypes(scene, par, 0);
+		BKE_displist_make_curveTypes(scene, par, 0);
 	if (cu->path == NULL) return;
 	
 	/* catch exceptions: feature for nla stride editing */
@@ -1846,7 +1846,7 @@ static void give_parvert(Object *par, int nr, float vec[3])
 	else if (par->type == OB_LATTICE) {
 		Lattice *latt = par->data;
 		BPoint *bp;
-		DispList *dl = find_displist(&par->disp, DL_VERTS);
+		DispList *dl = BKE_displist_find(&par->disp, DL_VERTS);
 		float *co = dl ? dl->verts : NULL;
 		
 		if (latt->editlatt) latt = latt->editlatt->latt;
@@ -2593,13 +2593,13 @@ void BKE_object_handle_update(Scene *scene, Object *ob)
 					break;
 
 				case OB_MBALL:
-					makeDispListMBall(scene, ob);
+					BKE_displist_make_mball(scene, ob);
 					break;
 
 				case OB_CURVE:
 				case OB_SURF:
 				case OB_FONT:
-					makeDispListCurveTypes(scene, ob, 0);
+					BKE_displist_make_curveTypes(scene, ob, 0);
 					break;
 				
 				case OB_LATTICE:

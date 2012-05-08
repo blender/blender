@@ -150,7 +150,7 @@ static void draw_triangulated(int mcords[][2], short tot)
 	}
 	
 	/* do the fill */
-	filldisplist(&lb, &lb, 0);
+	BKE_displist_fill(&lb, &lb, 0);
 
 	/* do the draw */
 	dl = lb.first;  /* filldisplist adds in head of list */
@@ -170,7 +170,7 @@ static void draw_triangulated(int mcords[][2], short tot)
 		glEnd();
 	}
 	
-	freedisplist(&lb);
+	BKE_displist_free(&lb);
 }
 
 

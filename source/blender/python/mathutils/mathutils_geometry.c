@@ -1055,7 +1055,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	for (i = 0; i < len_polylines; i++) {
 		polyLine = PySequence_GetItem(polyLineSeq, i);
 		if (!PySequence_Check(polyLine)) {
-			freedisplist(&dispbase);
+			BKE_displist_free(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
 			PyErr_SetString(PyExc_TypeError,
 			                "One or more of the polylines is not a sequence of mathutils.Vector's");
@@ -1109,7 +1109,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	}
 
 	if (ls_error) {
-		freedisplist(&dispbase); /* possible some dl was allocated */
+		BKE_displist_free(&dispbase); /* possible some dl was allocated */
 		PyErr_SetString(PyExc_TypeError,
 		                "A point in one of the polylines "
 		                "is not a mathutils.Vector type");
@@ -1117,7 +1117,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	}
 	else if (totpoints) {
 		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase, 0);
+		BKE_displist_fill(&dispbase, &dispbase, 0);
 
 		/* The faces are stored in a new DisplayList
 		 * thats added to the head of the listbase */
@@ -1125,7 +1125,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 
 		tri_list = PyList_New(dl->parts);
 		if (!tri_list) {
-			freedisplist(&dispbase);
+			BKE_displist_free(&dispbase);
 			PyErr_SetString(PyExc_RuntimeError,
 			                "failed to make a new list");
 			return NULL;
@@ -1138,11 +1138,11 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 			dl_face += 3;
 			index++;
 		}
-		freedisplist(&dispbase);
+		BKE_displist_free(&dispbase);
 	}
 	else {
 		/* no points, do this so scripts don't barf */
-		freedisplist(&dispbase); /* possible some dl was allocated */
+		BKE_displist_free(&dispbase); /* possible some dl was allocated */
 		tri_list = PyList_New(0);
 	}
 
