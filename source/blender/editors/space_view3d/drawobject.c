@@ -3599,8 +3599,8 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM->release(finalDM);
 	}
 	else {
-		/* don't create boundbox here with BKE_mesh_boundbox_get(), the derived system will make it, puts deformed bb's OK */
-		if (me->totpoly <= 4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb) ? ob->bb : me->bb)) {
+		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
+		if (me->totpoly <= 4 || (ob->bb && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb))) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_alpha_pass(base);
 

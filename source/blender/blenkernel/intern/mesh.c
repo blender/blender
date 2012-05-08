@@ -494,7 +494,6 @@ Mesh *BKE_mesh_add(const char *name)
 	me->smoothresh = 30;
 	me->texflag = ME_AUTOSPACE;
 	me->flag = ME_TWOSIDED;
-	me->bb = BKE_boundbox_alloc_unit();
 	me->drawflag = ME_DRAWEDGES | ME_DRAWFACES | ME_DRAWCREASES;
 	
 	return me;
