@@ -75,9 +75,9 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MBALL_OT_duplicate_metaelems", DKEY, KM_PRESS, KM_SHIFT, 0);
 	
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", AKEY, KM_PRESS, 0, 0);
-		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
-		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	ED_object_generic_keymap(keyconf, keymap, 3);
 }

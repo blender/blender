@@ -47,35 +47,35 @@
 #include "time_intern.h"
 
 /* ****************** Start/End Frame Operators *******************************/
-static int time_set_sfra_exec (bContext *C, wmOperator *UNUSED(op))
+static int time_set_sfra_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	int frame;
 
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
 
-	frame= CFRA;
+	frame = CFRA;
 
 	/* if Preview Range is defined, set the 'start' frame for that */
 	if (PRVRANGEON)
-		scene->r.psfra= frame;
+		scene->r.psfra = frame;
 	else
-		scene->r.sfra= frame;
+		scene->r.sfra = frame;
 	
 	if (PEFRA < frame) {
 		if (PRVRANGEON)
-			scene->r.pefra= frame;
+			scene->r.pefra = frame;
 		else
-			scene->r.efra= frame;
+			scene->r.efra = frame;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	
 	return OPERATOR_FINISHED;
 }
 
-static void TIME_OT_start_frame_set (wmOperatorType *ot)
+static void TIME_OT_start_frame_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Start Frame";
@@ -87,39 +87,39 @@ static void TIME_OT_start_frame_set (wmOperatorType *ot)
 	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }	
 
 
-static int time_set_efra_exec (bContext *C, wmOperator *UNUSED(op))
+static int time_set_efra_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
+	Scene *scene = CTX_data_scene(C);
 	int frame;
 
 	if (scene == NULL)
 		return OPERATOR_CANCELLED;
 
-	frame= CFRA;
+	frame = CFRA;
 
 	/* if Preview Range is defined, set the 'end' frame for that */
 	if (PRVRANGEON)
-		scene->r.pefra= frame;
+		scene->r.pefra = frame;
 	else
-		scene->r.efra= frame;
+		scene->r.efra = frame;
 
 	if (PSFRA > frame) {
 		if (PRVRANGEON)
-			scene->r.psfra= frame;
+			scene->r.psfra = frame;
 		else
-			scene->r.sfra= frame;
+			scene->r.sfra = frame;
 	}
 	
-	WM_event_add_notifier(C, NC_SCENE|ND_FRAME, scene);
+	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
 	
 	return OPERATOR_FINISHED;
 }
 
-static void TIME_OT_end_frame_set (wmOperatorType *ot)
+static void TIME_OT_end_frame_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set End Frame";
@@ -131,16 +131,16 @@ static void TIME_OT_end_frame_set (wmOperatorType *ot)
 	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************************ View All Operator *******************************/
 
-static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
+static int time_view_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Scene *scene= CTX_data_scene(C);
-	ARegion *ar= CTX_wm_region(C);
-	View2D *v2d= (ar) ? &ar->v2d : NULL;
+	Scene *scene = CTX_data_scene(C);
+	ARegion *ar = CTX_wm_region(C);
+	View2D *v2d = (ar) ? &ar->v2d : NULL;
 	float extra;
 	
 	if (ELEM(NULL, scene, ar))
@@ -151,7 +151,7 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 	v2d->cur.xmax = (float)PEFRA;
 	
 	/* we need an extra "buffer" factor on either side so that the endpoints are visible */
-	extra= 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
+	extra = 0.01f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
 	v2d->cur.xmax += extra;
 	
@@ -161,7 +161,7 @@ static int time_view_all_exec (bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-static void TIME_OT_view_all (wmOperatorType *ot)
+static void TIME_OT_view_all(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "View All";
@@ -173,7 +173,7 @@ static void TIME_OT_view_all (wmOperatorType *ot)
 	ot->poll = ED_operator_timeline_active;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* ************************** registration **********************************/

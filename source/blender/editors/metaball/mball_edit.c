@@ -67,24 +67,24 @@
 /* This function is used to free all MetaElems from MetaBall */
 void free_editMball(Object *obedit)
 {
-	MetaBall *mb = (MetaBall*)obedit->data;
+	MetaBall *mb = (MetaBall *)obedit->data;
 
-	mb->editelems= NULL;
-	mb->lastelem= NULL;
+	mb->editelems = NULL;
+	mb->lastelem = NULL;
 }
 
 /* This function is called, when MetaBall Object is
  * switched from object mode to edit mode */
 void make_editMball(Object *obedit)
 {
-	MetaBall *mb = (MetaBall*)obedit->data;
-	MetaElem *ml;/*, *newml;*/
+	MetaBall *mb = (MetaBall *)obedit->data;
+	MetaElem *ml; /*, *newml;*/
 
-	ml= mb->elems.first;
+	ml = mb->elems.first;
 	
 	while (ml) {
 		if (ml->flag & SELECT) mb->lastelem = ml;
-		ml= ml->next;
+		ml = ml->next;
 	}
 
 	mb->editelems = &mb->elems;
@@ -100,22 +100,22 @@ void load_editMball(Object *UNUSED(obedit))
 /* Add metaelem primitive to metaball object (which is in edit mode) */
 MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNUSED(newname))
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mball = (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mball = (MetaBall *)obedit->data;
 	MetaElem *ml;
 
 	/* Deselect all existing metaelems */
-	ml= mball->editelems->first;
+	ml = mball->editelems->first;
 	while (ml) {
 		ml->flag &= ~SELECT;
-		ml= ml->next;
+		ml = ml->next;
 	}
 	
-	ml= BKE_mball_element_add(mball, type);
+	ml = BKE_mball_element_add(mball, type);
 	copy_v3_v3(&ml->x, mat[3]);
 
 	ml->flag |= SELECT;
-	mball->lastelem= ml;
+	mball->lastelem = ml;
 	return ml;
 }
 
@@ -125,12 +125,12 @@ MetaElem *add_metaball_primitive(bContext *C, float mat[4][4], int type, int UNU
 static int mball_select_all_exec(bContext *C, wmOperator *op)
 {
 	//Scene *scene= CTX_data_scene(C);
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
 	int action = RNA_enum_get(op->ptr, "action");
 
-	ml= mb->editelems->first;
+	ml = mb->editelems->first;
 	if (ml) {
 		if (action == SEL_TOGGLE) {
 			action = SEL_SELECT;
@@ -139,26 +139,26 @@ static int mball_select_all_exec(bContext *C, wmOperator *op)
 					action = SEL_DESELECT;
 					break;
 				}
-				ml= ml->next;
+				ml = ml->next;
 			}
 		}
 
-		ml= mb->editelems->first;
+		ml = mb->editelems->first;
 		while (ml) {
 			switch (action) {
-			case SEL_SELECT:
-				ml->flag |= SELECT;
-				break;
-			case SEL_DESELECT:
-				ml->flag &= ~SELECT;
-				break;
-			case SEL_INVERT:
-				ml->flag ^= SELECT;
-				break;
+				case SEL_SELECT:
+					ml->flag |= SELECT;
+					break;
+				case SEL_DESELECT:
+					ml->flag &= ~SELECT;
+					break;
+				case SEL_INVERT:
+					ml->flag ^= SELECT;
+					break;
 			}
-			ml= ml->next;
+			ml = ml->next;
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	}
 
 	return OPERATOR_FINISHED;
@@ -176,7 +176,7 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	WM_operator_properties_select_all(ot);
 }
@@ -186,16 +186,16 @@ void MBALL_OT_select_all(wmOperatorType *ot)
 /* Random metaball selection */
 static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
-	float percent= RNA_float_get(op->ptr, "percent");
+	float percent = RNA_float_get(op->ptr, "percent");
 	
 	if (percent == 0.0f)
 		return OPERATOR_CANCELLED;
 	
-	ml= mb->editelems->first;
-	BLI_srand(BLI_rand());	/* Random seed */
+	ml = mb->editelems->first;
+	BLI_srand(BLI_rand());  /* Random seed */
 	
 	/* Stupid version of random selection. Should be improved. */
 	while (ml) {
@@ -203,10 +203,10 @@ static int select_random_metaelems_exec(bContext *C, wmOperator *op)
 			ml->flag |= SELECT;
 		else
 			ml->flag &= ~SELECT;
-		ml= ml->next;
+		ml = ml->next;
 	}
 	
-	WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
+	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 	
 	return OPERATOR_FINISHED;
 }
@@ -225,7 +225,7 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
 	RNA_def_float_percentage(ot->srna, "percent", 0.5f, 0.0f, 1.0f, "Percent", "Percentage of metaelems to select randomly", 0.0001f, 1.0f);
@@ -236,22 +236,22 @@ void MBALL_OT_select_random_metaelems(struct wmOperatorType *ot)
 /* Duplicate selected MetaElements */
 static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb = (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml, *newml;
 	
-	ml= mb->editelems->last;
+	ml = mb->editelems->last;
 	if (ml) {
 		while (ml) {
 			if (ml->flag & SELECT) {
-				newml= MEM_dupallocN(ml);
+				newml = MEM_dupallocN(ml);
 				BLI_addtail(mb->editelems, newml);
-				mb->lastelem= newml;
+				mb->lastelem = newml;
 				ml->flag &= ~SELECT;
 			}
-			ml= ml->prev;
+			ml = ml->prev;
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
 		DAG_id_tag_update(obedit->data, 0);
 	}
 
@@ -260,7 +260,7 @@ static int duplicate_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 
 static int duplicate_metaelems_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	int retv= duplicate_metaelems_exec(C, op);
+	int retv = duplicate_metaelems_exec(C, op);
 	
 	if (retv == OPERATOR_FINISHED) {
 		RNA_enum_set(op->ptr, "mode", TFM_TRANSLATION);
@@ -284,7 +284,7 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* to give to transform */
 	RNA_def_enum(ot->srna, "mode", transform_mode_types, TFM_TRANSLATION, "Mode", "");
@@ -295,22 +295,22 @@ void MBALL_OT_duplicate_metaelems(wmOperatorType *ot)
 /* Delete all selected MetaElems (not MetaBall) */
 static int delete_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb= (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml, *next;
 	
-	ml= mb->editelems->first;
+	ml = mb->editelems->first;
 	if (ml) {
 		while (ml) {
-			next= ml->next;
+			next = ml->next;
 			if (ml->flag & SELECT) {
-				if (mb->lastelem==ml) mb->lastelem= NULL;
+				if (mb->lastelem == ml) mb->lastelem = NULL;
 				BLI_remlink(mb->editelems, ml);
 				MEM_freeN(ml);
 			}
-			ml= next;
+			ml = next;
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
 		DAG_id_tag_update(obedit->data, 0);
 	}
 
@@ -329,7 +329,7 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /***************************** Hide operator *****************************/
@@ -337,20 +337,20 @@ void MBALL_OT_delete_metaelems(wmOperatorType *ot)
 /* Hide selected MetaElems */
 static int hide_metaelems_exec(bContext *C, wmOperator *op)
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb= (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
-	const int invert= RNA_boolean_get(op->ptr, "unselected") ? SELECT : 0;
+	const int invert = RNA_boolean_get(op->ptr, "unselected") ? SELECT : 0;
 
-	ml= mb->editelems->first;
+	ml = mb->editelems->first;
 
 	if (ml) {
 		while (ml) {
 			if ((ml->flag & SELECT) != invert)
 				ml->flag |= MB_HIDE;
-			ml= ml->next;
+			ml = ml->next;
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
 		DAG_id_tag_update(obedit->data, 0);
 	}
 
@@ -369,7 +369,7 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected");
@@ -380,18 +380,18 @@ void MBALL_OT_hide_metaelems(wmOperatorType *ot)
 /* Unhide all edited MetaElems */
 static int reveal_metaelems_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *obedit= CTX_data_edit_object(C);
-	MetaBall *mb= (MetaBall*)obedit->data;
+	Object *obedit = CTX_data_edit_object(C);
+	MetaBall *mb = (MetaBall *)obedit->data;
 	MetaElem *ml;
 
-	ml= mb->editelems->first;
+	ml = mb->editelems->first;
 
 	if (ml) {
 		while (ml) {
 			ml->flag &= ~MB_HIDE;
-			ml= ml->next;
+			ml = ml->next;
 		}
-		WM_event_add_notifier(C, NC_GEOM|ND_DATA, mb);
+		WM_event_add_notifier(C, NC_GEOM | ND_DATA, mb);
 		DAG_id_tag_update(obedit->data, 0);
 	}
 	
@@ -410,69 +410,69 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 	ot->poll = ED_operator_editmball;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;	
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
 int mouse_mball(bContext *C, const int mval[2], int extend)
 {
-	static MetaElem *startelem=NULL;
-	Object *obedit= CTX_data_edit_object(C);
+	static MetaElem *startelem = NULL;
+	Object *obedit = CTX_data_edit_object(C);
 	ViewContext vc;
-	MetaBall *mb = (MetaBall*)obedit->data;
-	MetaElem *ml, *act=NULL;
+	MetaBall *mb = (MetaBall *)obedit->data;
+	MetaElem *ml, *act = NULL;
 	int a, hits;
-	unsigned int buffer[4*MAXPICKBUF];
+	unsigned int buffer[4 * MAXPICKBUF];
 	rcti rect;
 
 	view3d_set_viewcontext(C, &vc);
 
-	rect.xmin = mval[0]-12;
-	rect.xmax = mval[0]+12;
-	rect.ymin = mval[1]-12;
-	rect.ymax = mval[1]+12;
+	rect.xmin = mval[0] - 12;
+	rect.xmax = mval[0] + 12;
+	rect.ymin = mval[1] - 12;
+	rect.ymax = mval[1] + 12;
 
-	hits= view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
+	hits = view3d_opengl_select(&vc, buffer, MAXPICKBUF, &rect);
 
 	/* does startelem exist? */
-	ml= mb->editelems->first;
+	ml = mb->editelems->first;
 	while (ml) {
-		if (ml==startelem) break;
-		ml= ml->next;
+		if (ml == startelem) break;
+		ml = ml->next;
 	}
 
-	if (ml==NULL) startelem= mb->editelems->first;
+	if (ml == NULL) startelem = mb->editelems->first;
 	
-	if (hits>0) {
-		ml= startelem;
+	if (hits > 0) {
+		ml = startelem;
 		while (ml) {
-			for (a=0; a<hits; a++) {
+			for (a = 0; a < hits; a++) {
 				/* index converted for gl stuff */
-				if (ml->selcol1==buffer[ 4 * a + 3 ]) {
+				if (ml->selcol1 == buffer[4 * a + 3]) {
 					ml->flag |= MB_SCALE_RAD;
-					act= ml;
+					act = ml;
 				}
-				if (ml->selcol2==buffer[ 4 * a + 3 ]) {
+				if (ml->selcol2 == buffer[4 * a + 3]) {
 					ml->flag &= ~MB_SCALE_RAD;
-					act= ml;
+					act = ml;
 				}
 			}
 			if (act) break;
-			ml= ml->next;
-			if (ml==NULL) ml= mb->editelems->first;
-			if (ml==startelem) break;
+			ml = ml->next;
+			if (ml == NULL) ml = mb->editelems->first;
+			if (ml == startelem) break;
 		}
 		
 		/* When some metaelem was found, then it is necessary to select or
 		 * deselect it. */
 		if (act) {
-			if (extend==0) {
+			if (extend == 0) {
 				/* Deselect all existing metaelems */
-				ml= mb->editelems->first;
+				ml = mb->editelems->first;
 				while (ml) {
 					ml->flag &= ~SELECT;
-					ml= ml->next;
+					ml = ml->next;
 				}
 				/* Select only metaelem clicked on */
 				act->flag |= SELECT;
@@ -483,9 +483,9 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 				else
 					act->flag |= SELECT;
 			}
-			mb->lastelem= act;
+			mb->lastelem = act;
 			
-			WM_event_add_notifier(C, NC_GEOM|ND_SELECT, mb);
+			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);
 
 			return 1;
 		}
@@ -502,54 +502,54 @@ static void freeMetaElemlist(ListBase *lb)
 {
 	MetaElem *ml, *next;
 
-	if (lb==NULL) return;
+	if (lb == NULL) return;
 
-	ml= lb->first;
+	ml = lb->first;
 	while (ml) {
-		next= ml->next;
+		next = ml->next;
 		BLI_remlink(lb, ml);
 		MEM_freeN(ml);
-		ml= next;
+		ml = next;
 	}
 
-	lb->first= lb->last= NULL;
+	lb->first = lb->last = NULL;
 }
 
 
 static void undoMball_to_editMball(void *lbu, void *lbe, void *UNUSED(obe))
 {
-	ListBase *lb= lbu;
-	ListBase *editelems= lbe;
+	ListBase *lb = lbu;
+	ListBase *editelems = lbe;
 	MetaElem *ml, *newml;
 	
 	freeMetaElemlist(editelems);
 
 	/* copy 'undo' MetaElems to 'edit' MetaElems */
-	ml= lb->first;
+	ml = lb->first;
 	while (ml) {
-		newml= MEM_dupallocN(ml);
+		newml = MEM_dupallocN(ml);
 		BLI_addtail(editelems, newml);
-		ml= ml->next;
+		ml = ml->next;
 	}
 	
 }
 
 static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
 {
-	ListBase *editelems= lbe;
+	ListBase *editelems = lbe;
 	ListBase *lb;
 	MetaElem *ml, *newml;
 
 	/* allocate memory for undo ListBase */
-	lb= MEM_callocN(sizeof(ListBase), "listbase undo");
-	lb->first= lb->last= NULL;
+	lb = MEM_callocN(sizeof(ListBase), "listbase undo");
+	lb->first = lb->last = NULL;
 	
 	/* copy contents of current ListBase to the undo ListBase */
-	ml= editelems->first;
+	ml = editelems->first;
 	while (ml) {
-		newml= MEM_dupallocN(ml);
+		newml = MEM_dupallocN(ml);
 		BLI_addtail(lb, newml);
-		ml= ml->next;
+		ml = ml->next;
 	}
 	
 	return lb;
@@ -558,7 +558,7 @@ static void *editMball_to_undoMball(void *lbe, void *UNUSED(obe))
 /* free undo ListBase of MetaElems */
 static void free_undoMball(void *lbv)
 {
-	ListBase *lb= lbv;
+	ListBase *lb = lbv;
 	
 	freeMetaElemlist(lb);
 	MEM_freeN(lb);
@@ -566,8 +566,8 @@ static void free_undoMball(void *lbv)
 
 static ListBase *metaball_get_editelems(Object *ob)
 {
-	if (ob && ob->type==OB_MBALL) {
-		struct MetaBall *mb= (struct MetaBall*)ob->data;
+	if (ob && ob->type == OB_MBALL) {
+		struct MetaBall *mb = (struct MetaBall *)ob->data;
 		return mb->editelems;
 	}
 	return NULL;
@@ -576,7 +576,7 @@ static ListBase *metaball_get_editelems(Object *ob)
 
 static void *get_data(bContext *C)
 {
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	return metaball_get_editelems(obedit);
 }
 
