@@ -1040,7 +1040,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 				scopes->track_disabled = FALSE;
 
-				if (ibuf && ibuf->rect) {
+				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 					ImBuf *tmpibuf;
 					MovieTrackingMarker undist_marker = *marker;
 
