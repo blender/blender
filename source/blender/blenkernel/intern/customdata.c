@@ -1915,8 +1915,7 @@ void CustomData_interp(const CustomData *source, CustomData *dest,
 			void *src_data = source->layers[src_i].data;
 
 			for (j = 0; j < count; ++j)
-				sources[j] = (char *)src_data
-							 + typeInfo->size * src_indices[j];
+				sources[j] = (char *)src_data + typeInfo->size * src_indices[j];
 
 			dest_offset = dest_index * typeInfo->size;
 

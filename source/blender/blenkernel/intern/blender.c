@@ -91,6 +91,10 @@
 
 #include "WM_api.h" // XXXXX BAD, very BAD dependency (bad level call) - remove asap, elubie
 
+#ifdef WITH_PYTHON
+#include "BPY_extern.h"
+#endif
+
 Global G;
 UserDef U;
 /* ListBase = {NULL, NULL}; */
@@ -287,6 +291,11 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, const char *filepath
 
 
 	G.f = bfd->globalf;
+
+#ifdef WITH_PYTHON
+	/* let python know about new main */
+	BPY_context_update(C);
+#endif
 
 	if (!G.background) {
 		//setscreen(G.curscreen);

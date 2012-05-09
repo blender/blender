@@ -55,7 +55,7 @@
 void action_operatortypes(void)
 {
 	/* keyframes */
-		/* selection */
+	/* selection */
 	WM_operatortype_append(ACTION_OT_clickselect);
 	WM_operatortype_append(ACTION_OT_select_all_toggle);
 	WM_operatortype_append(ACTION_OT_select_border);
@@ -65,7 +65,7 @@ void action_operatortypes(void)
 	WM_operatortype_append(ACTION_OT_select_less);
 	WM_operatortype_append(ACTION_OT_select_leftright);
 	
-		/* editing */
+	/* editing */
 	WM_operatortype_append(ACTION_OT_snap);
 	WM_operatortype_append(ACTION_OT_mirror);
 	WM_operatortype_append(ACTION_OT_frame_jump);
@@ -96,7 +96,7 @@ void ED_operatormacros_action(void)
 	
 	ot = WM_operatortype_append_macro("ACTION_OT_duplicate_move", "Duplicate",
 	                                  "Make a copy of all selected keyframes and move them",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	if (ot) {
 		WM_operatortype_macro_define(ot, "ACTION_OT_duplicate");
 		otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_transform");
@@ -107,82 +107,82 @@ void ED_operatormacros_action(void)
 
 /* ************************** registration - keymaps **********************************/
 
-static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
+static void action_keymap_keyframes(wmKeyConfig *keyconf, wmKeyMap *keymap)
 {
 	wmKeyMapItem *kmi;
 	
 	/* action_select.c - selection tools */
-		/* click-select */
+	/* click-select */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-		RNA_boolean_set(kmi->ptr, "column", FALSE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "column", FALSE);
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-		RNA_boolean_set(kmi->ptr, "column", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "column", TRUE);
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-		RNA_boolean_set(kmi->ptr, "column", FALSE);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT|KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-		RNA_boolean_set(kmi->ptr, "column", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "column", FALSE);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_clickselect", SELECTMOUSE, KM_PRESS, KM_ALT | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "column", TRUE);
 		
-		/* select left/right */
+	/* select left/right */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
-	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
+	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", SELECTMOUSE, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_TEST);
 	
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", LEFTBRACKETKEY, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_LEFT);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_LEFT);
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_leftright", RIGHTBRACKETKEY, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-		RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_enum_set(kmi->ptr, "mode", ACTKEYS_LRSEL_RIGHT);
 	
-		/* deselect all */
+	/* deselect all */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", AKEY, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "invert", FALSE);
+	RNA_boolean_set(kmi->ptr, "invert", FALSE);
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_all_toggle", IKEY, KM_PRESS, KM_CTRL, 0);
-		RNA_boolean_set(kmi->ptr, "invert", TRUE);
+	RNA_boolean_set(kmi->ptr, "invert", TRUE);
 	
-		/* borderselect */
+	/* borderselect */
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_border", BKEY, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "axis_range", FALSE);
+	RNA_boolean_set(kmi->ptr, "axis_range", FALSE);
 	kmi = WM_keymap_add_item(keymap, "ACTION_OT_select_border", BKEY, KM_PRESS, KM_ALT, 0);
-		RNA_boolean_set(kmi->ptr, "axis_range", TRUE);
+	RNA_boolean_set(kmi->ptr, "axis_range", TRUE);
 	
-		/* column select */
+	/* column select */
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, 0, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_KEYS);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_CTRL, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_CFRA);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_COLUMN);
 	RNA_enum_set(WM_keymap_add_item(keymap, "ACTION_OT_select_column", KKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", ACTKEYS_COLUMNSEL_MARKERS_BETWEEN);
 	
-		/* select more/less */
+	/* select more/less */
 	WM_keymap_add_item(keymap, "ACTION_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_select_less", PADMINUS, KM_PRESS, KM_CTRL, 0);
 	
-		/* select linekd */
+	/* select linekd */
 	WM_keymap_add_item(keymap, "ACTION_OT_select_linked", LKEY, KM_PRESS, 0, 0);
 	
 	
 	/* action_edit.c */
-		/* snap - current frame to selected keys */
-		// TODO: maybe since this is called jump, we're better to have it on <something>-J?
-	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	/* snap - current frame to selected keys */
+	// TODO: maybe since this is called jump, we're better to have it on <something>-J?
+	WM_keymap_add_item(keymap, "ACTION_OT_frame_jump", SKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 		
-		/* menu + single-step transform */
+	/* menu + single-step transform */
 	WM_keymap_add_item(keymap, "ACTION_OT_snap", SKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_mirror", MKEY, KM_PRESS, KM_SHIFT, 0);
 	
-		/* menu + set setting */
+	/* menu + set setting */
 	WM_keymap_add_item(keymap, "ACTION_OT_handle_type", VKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_interpolation_type", TKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_extrapolation_type", EKEY, KM_PRESS, KM_SHIFT, 0); 
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_type", RKEY, KM_PRESS, 0, 0); 
 	
-		/* destructive */
+	/* destructive */
 	WM_keymap_add_item(keymap, "ACTION_OT_clean", OKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_sample", OKEY, KM_PRESS, KM_SHIFT, 0);
 	
@@ -192,19 +192,19 @@ static void action_keymap_keyframes (wmKeyConfig *keyconf, wmKeyMap *keymap)
 	WM_keymap_add_item(keymap, "ACTION_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_keyframe_insert", IKEY, KM_PRESS, 0, 0);
 	
-		/* copy/paste */
+	/* copy/paste */
 	WM_keymap_add_item(keymap, "ACTION_OT_copy", CKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_paste", VKEY, KM_PRESS, KM_CTRL, 0);
 	
-		/* auto-set range */
-	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL|KM_ALT, 0);
+	/* auto-set range */
+	WM_keymap_add_item(keymap, "ACTION_OT_previewrange_set", PKEY, KM_PRESS, KM_CTRL | KM_ALT, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_all", HOMEKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "ACTION_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 	
 	/* animation module */
-		/* channels list 
-		 * NOTE: these operators were originally for the channels list, but are added here too for convenience...
-		 */
+	/* channels list
+	 * NOTE: these operators were originally for the channels list, but are added here too for convenience...
+	 */
 	WM_keymap_add_item(keymap, "ANIM_OT_channels_editable_toggle", TABKEY, KM_PRESS, 0, 0);
 	
 	/* transform system */

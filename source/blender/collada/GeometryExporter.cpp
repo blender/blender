@@ -209,7 +209,7 @@ void GeometryExporter::createPolylist(short material_index,
 	// sets material name
 	if (ma) {
 		std::ostringstream ostr;
-		ostr << translate_id(id_name(ma)) << material_index+1;
+		ostr << translate_id(id_name(ma));
 		polylist.setMaterial(ostr.str());
 	}
 			

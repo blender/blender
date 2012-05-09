@@ -339,14 +339,14 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	
 	node_add_sockets_from_type(ntree, node, ntype);
 	
-	if (ntype->initfunc!=NULL)
-		ntype->initfunc(ntree, node, ntemp);
-	
 	/* initialize the node name with the node label */
 	BLI_strncpy(node->name, nodeLabel(node), NODE_MAXSTR);
 	nodeUniqueName(ntree, node);
 	
 	BLI_addtail(&ntree->nodes, node);
+	
+	if (ntype->initfunc!=NULL)
+		ntype->initfunc(ntree, node, ntemp);
 	
 	ntree->update |= NTREE_UPDATE_NODES;
 	

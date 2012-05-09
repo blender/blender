@@ -99,48 +99,48 @@ typedef enum {
 } uiWidgetTypeEnum;
 
 /* panel limits */
-#define UI_PANEL_MINX	100
-#define UI_PANEL_MINY	70
+#define UI_PANEL_MINX   100
+#define UI_PANEL_MINY   70
 
 /* uiBut->flag */
-#define UI_SELECT		1	/* use when the button is pressed */
-#define UI_SCROLLED		2	/* temp hidden, scrolled away */
-#define UI_ACTIVE		4
-#define UI_HAS_ICON		8
-#define UI_TEXTINPUT	16
-#define UI_HIDDEN		32
+#define UI_SELECT       1   /* use when the button is pressed */
+#define UI_SCROLLED     2   /* temp hidden, scrolled away */
+#define UI_ACTIVE       4
+#define UI_HAS_ICON     8
+#define UI_TEXTINPUT    16
+#define UI_HIDDEN       32
 /* warn: rest of uiBut->flag in UI_interface.h */
 
 /* internal panel drawing defines */
-#define PNL_GRID	(UI_UNIT_Y / 5)	/* 4 default */
-#define PNL_HEADER  (UI_UNIT_Y + 4)	/* 24 default */
+#define PNL_GRID    (UI_UNIT_Y / 5) /* 4 default */
+#define PNL_HEADER  (UI_UNIT_Y + 4) /* 24 default */
 
 /* panel->flag */
-#define PNL_SELECT	1
-#define PNL_CLOSEDX	2
-#define PNL_CLOSEDY	4
-#define PNL_CLOSED	6
+#define PNL_SELECT  1
+#define PNL_CLOSEDX 2
+#define PNL_CLOSEDY 4
+#define PNL_CLOSED  6
 /*#define PNL_TABBED	8*/ /*UNUSED*/
-#define PNL_OVERLAP	16
+#define PNL_OVERLAP 16
 
 /* Button text selection:
  * extension direction, selextend, inside ui_do_but_TEX */
-#define EXTEND_LEFT		1
-#define EXTEND_RIGHT	2
+#define EXTEND_LEFT     1
+#define EXTEND_RIGHT    2
 
 /* for scope resize zone */
-#define SCOPE_RESIZE_PAD	9
+#define SCOPE_RESIZE_PAD    9
 
-typedef struct uiLinkLine {				/* only for draw/edit */
+typedef struct uiLinkLine {  /* only for draw/edit */
 	struct uiLinkLine *next, *prev;
 	struct uiBut *from, *to;
 	short flag, pad;
 } uiLinkLine;
 
 typedef struct {
-	void **poin;		/* pointer to original pointer */
-	void ***ppoin;		/* pointer to original pointer-array */
-	short *totlink;		/* if pointer-array, here is the total */
+	void **poin;        /* pointer to original pointer */
+	void ***ppoin;      /* pointer to original pointer-array */
+	short *totlink;     /* if pointer-array, here is the total */
 	
 	short maxlink, pad;
 	short fromcode, tocode;
@@ -178,8 +178,8 @@ struct uiBut {
 
 	/* not ysed yet, was used in 2.4x for ui_draw_pulldown_round & friends */
 #if 0
-	void (*embossfunc)(int , int , float, float, float, float, float, int);
-	void (*sliderfunc)(int , float, float, float, float, float, float, int);
+	void (*embossfunc)(int, int, float, float, float, float, float, int);
+	void (*sliderfunc)(int, float, float, float, float, float, float, int);
 #endif
 
 	uiButCompleteFunc autocomplete_func;
@@ -245,7 +245,7 @@ struct uiBut {
 	void *editcoba;
 	void *editcumap;
 	
-		/* pointer back */
+	/* pointer back */
 	uiBlock *block;
 };
 
@@ -268,7 +268,7 @@ struct uiBlock {
 	float minx, miny, maxx, maxy;
 	float aspect;
 
-	int puphash;				// popup menu hash for memory
+	int puphash;  /* popup menu hash for memory */
 
 	uiButHandleFunc func;
 	void *func_arg1;
@@ -303,27 +303,27 @@ struct uiBlock {
 	const char *lockstr;
 
 	char lock;
-	char active;					// to keep blocks while drawing and free them afterwards
-	char tooltipdisabled;			// to avoid tooltip after click
-	char endblock;					// uiEndBlock done?
+	char active;                // to keep blocks while drawing and free them afterwards
+	char tooltipdisabled;       // to avoid tooltip after click
+	char endblock;              // uiEndBlock done?
 	
-	float xofs, yofs;				// offset to parent button
-	int dobounds, mx, my;			// for doing delayed
-	int bounds, minbounds;			// for doing delayed
+	float xofs, yofs;           // offset to parent button
+	int dobounds, mx, my;       // for doing delayed
+	int bounds, minbounds;      // for doing delayed
 
-	rctf safety;				// pulldowns, to detect outside, can differ per case how it is created
-	ListBase saferct;			// uiSafetyRct list
+	rctf safety;                // pulldowns, to detect outside, can differ per case how it is created
+	ListBase saferct;           // uiSafetyRct list
 
-	uiPopupBlockHandle *handle;	// handle
+	uiPopupBlockHandle *handle; // handle
 
-	struct wmOperator *ui_operator;// use so presets can find the operator,
-								// across menus and from nested popups which fail for operator context.
+	struct wmOperator *ui_operator; // use so presets can find the operator,
+	                               // across menus and from nested popups which fail for operator context.
 
-	void *evil_C;				// XXX hack for dynamic operator enums
+	void *evil_C;               // XXX hack for dynamic operator enums
 
-	struct UnitSettings *unit;	// unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
-	float _hsv[3];				// XXX, only access via ui_block_hsv_get()
-	char color_profile;			// color profile for correcting linear colors for display
+	struct UnitSettings *unit;  // unit system, used a lot for numeric buttons so include here rather then fetching through the scene every time.
+	float _hsv[3];              // XXX, only access via ui_block_hsv_get()
+	char color_profile;         // color profile for correcting linear colors for display
 };
 
 typedef struct uiSafetyRct {
@@ -425,12 +425,12 @@ void ui_searchbox_apply(uiBut *but, struct ARegion *ar);
 void ui_searchbox_free(struct bContext *C, struct ARegion *ar);
 void ui_but_search_test(uiBut *but);
 
-typedef uiBlock* (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
+typedef uiBlock * (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
 uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-	uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg);
+                                          uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg);
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-	uiMenuCreateFunc create_func, void *arg, char *str);
+                                         uiMenuCreateFunc create_func, void *arg, char *str);
 
 void ui_popup_block_free(struct bContext *C, uiPopupBlockHandle *handle);
 
@@ -466,14 +466,14 @@ extern int ui_button_is_active(struct ARegion *ar);
 void ui_draw_anti_tria(float x1, float y1, float x2, float y2, float x3, float y3);
 void ui_draw_anti_roundbox(int mode, float minx, float miny, float maxx, float maxy, float rad);
 void ui_draw_menu_back(struct uiStyle *style, uiBlock *block, rcti *rect);
-uiWidgetColors* ui_tooltip_get_theme(void);
-void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock *block, rcti *rect);
+uiWidgetColors *ui_tooltip_get_theme(void);
+void ui_draw_tooltip_background(uiStyle *UNUSED(style), uiBlock * block, rcti * rect);
 void ui_draw_search_back(struct uiStyle *style, uiBlock *block, rcti *rect);
-int ui_link_bezier_points(rcti *rect, float coord_array[][2], int resol);
+int ui_link_bezier_points(rcti * rect, float coord_array[][2], int resol);
 void ui_draw_link_bezier(rcti *rect);
 
 extern void ui_draw_but(const struct bContext *C, ARegion *ar, struct uiStyle *style, uiBut *but, rcti *rect);
-		/* theme color init */
+/* theme color init */
 struct ThemeUI;
 void ui_widget_color_init(struct ThemeUI *tui);
 

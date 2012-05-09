@@ -512,9 +512,9 @@ static void distribute_grid(DerivedMesh *dm, ParticleSystem *psys)
 			vec[0]/=delta[0];
 			vec[1]/=delta[1];
 			vec[2]/=delta[2];
-			(pa	+((int)(vec[0]*(size[0]-1))*res
-				+(int)(vec[1]*(size[1]-1)))*res
-				+(int)(vec[2]*(size[2]-1)))->flag &= ~PARS_UNEXIST;
+			(pa	+ ((int)(vec[0] * (size[0] - 1)) * res +
+			       (int)(vec[1] * (size[1] - 1))) * res +
+			        (int)(vec[2] * (size[2] - 1)))->flag &= ~PARS_UNEXIST;
 		}
 	}
 	else if (ELEM(from, PART_FROM_FACE, PART_FROM_VOLUME)) {

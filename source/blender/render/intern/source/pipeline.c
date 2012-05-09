@@ -1805,6 +1805,28 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 	return 1;
 }
 
+static int node_tree_has_composite_output(bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_COMPOSITE) {
+			return TRUE;
+		}
+		else if (node->type == NODE_GROUP) {
+			if (node_tree_has_composite_output((bNodeTree *)node->id))
+				return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+static int check_composite_output(Scene *scene)
+{
+	return node_tree_has_composite_output(scene->nodetree);
+}
+
 int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
 {
 	SceneRenderLayer *srl;
@@ -1839,19 +1861,12 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
-			bNodeTree *ntree= scene->nodetree;
-			bNode *node;
-		
-			if (ntree==NULL) {
+			if (!scene->nodetree) {
 				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
 				return 0;
 			}
 			
-			for (node= ntree->nodes.first; node; node= node->next)
-				if (node->type==CMP_NODE_COMPOSITE)
-					break;
-			
-			if (node==NULL) {
+			if (!check_composite_output(scene)) {
 				BKE_report(reports, RPT_ERROR, "No Render Output Node in Scene");
 				return 0;
 			}

@@ -68,9 +68,8 @@ static int tc_types[] = { IMB_TC_RECORD_RUN,
 anim_index_builder * IMB_index_builder_create(const char * name)
 {
 
-	anim_index_builder * rv
-	        = MEM_callocN(sizeof(struct anim_index_builder),
-	                       "index builder");
+	anim_index_builder * rv = MEM_callocN(sizeof(struct anim_index_builder),
+	                                      "index builder");
 
 	fprintf(stderr, "Starting work on index: %s\n", name);
 
@@ -182,17 +181,17 @@ struct anim_index * IMB_indexer_open(const char * name)
 	
 	fseek(fp, 0, SEEK_END);
 
-	idx->num_entries = (ftell(fp) - 12)
-		/ (sizeof(int) // framepos
-		   + sizeof(unsigned long long) // seek_pos
-		   + sizeof(unsigned long long) // seek_pos_dts
-		   + sizeof(unsigned long long) // pts
-			);
+	idx->num_entries = (ftell(fp) - 12) /
+	        (sizeof(int) + // framepos
+	         sizeof(unsigned long long) + // seek_pos
+	         sizeof(unsigned long long) + // seek_pos_dts
+	         sizeof(unsigned long long) // pts
+	         );
 	
 	fseek(fp, 12, SEEK_SET);
 
-	idx->entries = MEM_callocN(sizeof(struct anim_index_entry) 
-				    * idx->num_entries, "anim_index_entries");
+	idx->entries = MEM_callocN(sizeof(struct anim_index_entry) *
+	                           idx->num_entries, "anim_index_entries");
 
 	for (i = 0; i < idx->num_entries; i++) {
 		fread(&idx->entries[i].frameno,
@@ -260,7 +259,7 @@ int IMB_indexer_get_frame_index(struct anim_index * idx, int frameno)
 
 		if (idx->entries[middle].frameno < frameno) {
 			first = middle;
-			++first;
+			first++;
 			len = len - half - 1;
 		}
 		else {
@@ -301,9 +300,8 @@ int IMB_indexer_can_scan(struct anim_index * idx,
 {
 	/* makes only sense, if it is the same I-Frame and we are not
 	 * trying to run backwards in time... */
-	return (IMB_indexer_get_seek_pos(idx, old_frame_index)
-		== IMB_indexer_get_seek_pos(idx, new_frame_index) && 
-		old_frame_index < new_frame_index);
+	return (IMB_indexer_get_seek_pos(idx, old_frame_index) == IMB_indexer_get_seek_pos(idx, new_frame_index) &&
+	        old_frame_index < new_frame_index);
 }
 
 void IMB_indexer_close(struct anim_index * idx)
@@ -515,9 +513,9 @@ static struct proxy_output_ctx * alloc_proxy_output_ffmpeg(
 		rv->c->pix_fmt = PIX_FMT_YUVJ420P;
 	}
 
-	rv->c->sample_aspect_ratio 
-		= rv->st->sample_aspect_ratio 
-		= st->codec->sample_aspect_ratio;
+	rv->c->sample_aspect_ratio =
+	        rv->st->sample_aspect_ratio =
+	        st->codec->sample_aspect_ratio;
 
 	rv->c->time_base.den = 25;
 	rv->c->time_base.num = 1;
@@ -755,8 +753,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	/* Find the video stream */
 	context->videoStream = -1;
 	for (i = 0; i < context->iFormatCtx->nb_streams; i++)
-		if (context->iFormatCtx->streams[i]->codec->codec_type
-		   == AVMEDIA_TYPE_VIDEO) {
+		if (context->iFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
 			if (streamcount > 0) {
 				streamcount--;
 				continue;
@@ -895,8 +892,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 		if (frame_finished) {
 			unsigned long long s_pos = seek_pos;
 			unsigned long long s_dts = seek_pos_dts;
-			unsigned long long pts 
-				= av_get_pts_from_frame(context->iFormatCtx, in_frame);
+			unsigned long long pts = av_get_pts_from_frame(context->iFormatCtx, in_frame);
 
 			for (i = 0; i < context->num_proxy_sizes; i++) {
 				add_to_proxy_output_ffmpeg(
@@ -908,8 +904,8 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 				start_pts_set = TRUE;
 			}
 
-			frameno = floor((pts - start_pts)
-				* pts_time_base * frame_rate + 0.5f);
+			frameno = floor((pts - start_pts) *
+			                pts_time_base * frame_rate + 0.5f);
 
 			/* decoding starts *always* on I-Frames,
 			   so: P-Frames won't work, even if all the

@@ -103,7 +103,7 @@ extern PyTypeObject BGL_bufferType;
 #define buffer_def(number)  Buffer *bgl_buffer##number
 
 /* GL Pointer fields, handled by buffer type */
-/* GLdoubleP, GLfloatP, GLintP, GLuintP, GLshortP */
+/* GLdoubleP, GLfloatP, GLintP, GLuintP, GLshortP, GLsizeiP, GLcharP */
 
 #define GLbooleanP_str      "O!"
 #define GLbooleanP_var(number)  (bgl_buffer##number)->buf.asvoid
@@ -159,6 +159,16 @@ extern PyTypeObject BGL_bufferType;
 #define GLvoidP_var(number) (bgl_buffer##number)->buf.asvoid
 #define GLvoidP_ref(number) &BGL_bufferType, &bgl_buffer##number
 #define GLvoidP_def(number) Buffer *bgl_buffer##number
+
+#define GLsizeiP_str     "O!"
+#define GLsizeiP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLsizeiP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLsizeiP_def(number) Buffer *bgl_buffer##number
+
+#define GLcharP_str     "O!"
+#define GLcharP_var(number) (bgl_buffer##number)->buf.asvoid
+#define GLcharP_ref(number) &BGL_bufferType, &bgl_buffer##number
+#define GLcharP_def(number) Buffer *bgl_buffer##number
 
 #define buffer_str      "O!"
 #define buffer_var(number)  (bgl_buffer##number)->buf.asvoid
@@ -238,6 +248,12 @@ extern PyTypeObject BGL_bufferType;
 #define GLfloat_var(num)    bgl_var##num
 #define GLfloat_ref(num)    &bgl_var##num
 #define GLfloat_def(num)    float GLfloat_var(num)
+
+/* typedef char *GLstring; */
+#define GLstring_str     "s"
+#define GLstring_var(number) bgl_var##number
+#define GLstring_ref(number) &bgl_var##number
+#define GLstring_def(number) char *GLstring_var(number)
 
 /* typedef float GLclampf; */
 #define GLclampf_str      "f"

@@ -67,17 +67,17 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	FCurve *fcu;
 	AnimData *adt;
 
-	id= ale->id;
+	id = ale->id;
 	if (!id)
 		return;
 	
 	/* tag AnimData for refresh so that other views will update in realtime with these changes */
-	adt= BKE_animdata_from_id(id);
+	adt = BKE_animdata_from_id(id);
 	if (adt)
 		adt->recalc |= ADT_RECALC_ANIM;
 
 	/* update data */
-	fcu= (ale->datatype == ALE_FCURVE)? ale->key_data: NULL;
+	fcu = (ale->datatype == ALE_FCURVE) ? ale->key_data : NULL;
 		
 	if (fcu && fcu->rna_path) {
 		/* if we have an fcurve, call the update for the property we
@@ -94,7 +94,7 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 	else {
 		/* in other case we do standard depsgaph update, ideally
 		 * we'd be calling property update functions here too ... */
-		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -103,14 +103,14 @@ void ANIM_list_elem_update(Scene *scene, bAnimListElem *ale)
 void ANIM_id_update(Scene *UNUSED(scene), ID *id)
 {
 	if (id) {
-		AnimData *adt= BKE_animdata_from_id(id);
+		AnimData *adt = BKE_animdata_from_id(id);
 		
 		/* tag AnimData for refresh so that other views will update in realtime with these changes */
 		if (adt)
 			adt->recalc |= ADT_RECALC_ANIM;
 			
 		/* set recalc flags */
-		DAG_id_tag_update(id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME); // XXX or do we want something more restrictive?
+		DAG_id_tag_update(id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME); // XXX or do we want something more restrictive?
 	}
 }
 
@@ -125,10 +125,10 @@ void ANIM_id_update(Scene *UNUSED(scene), ID *id)
  */
 
 /* perform syncing updates for Action Groups */
-static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static void animchan_sync_group(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
-	bActionGroup *agrp= (bActionGroup *)ale->data;
-	ID *owner_id= ale->id;
+	bActionGroup *agrp = (bActionGroup *)ale->data;
+	ID *owner_id = ale->id;
 	
 	/* major priority is selection status
 	 * so we need both a group and an owner
@@ -138,13 +138,13 @@ static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		
 	/* for standard Objects, check if group is the name of some bone */
 	if (GS(owner_id->name) == ID_OB) {
-		Object *ob= (Object *)owner_id;
+		Object *ob = (Object *)owner_id;
 		
 		/* check if there are bones, and whether the name matches any 
 		 * NOTE: this feature will only really work if groups by default contain the F-Curves for a single bone
 		 */
 		if (ob->pose) {
-			bPoseChannel *pchan= BKE_pose_channel_find_name(ob->pose, agrp->name);
+			bPoseChannel *pchan = BKE_pose_channel_find_name(ob->pose, agrp->name);
 			
 			/* if one matches, sync the selection status */
 			if (pchan) {
@@ -158,10 +158,10 @@ static void animchan_sync_group (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 }
  
 /* perform syncing updates for F-Curves */
-static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
+static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 {
-	FCurve *fcu= (FCurve *)ale->data;
-	ID *owner_id= ale->id;
+	FCurve *fcu = (FCurve *)ale->data;
+	ID *owner_id = ale->id;
 	
 	/* major priority is selection status, so refer to the checks done in anim_filter.c 
 	 * skip_fcurve_selected_data() for reference about what's going on here...
@@ -170,7 +170,7 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		return;
 		
 	if (GS(owner_id->name) == ID_OB) {
-		Object *ob= (Object *)owner_id;
+		Object *ob = (Object *)owner_id;
 		
 		/* only affect if F-Curve involves pose.bones */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "pose.bones")) {
@@ -178,8 +178,8 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			char *bone_name;
 			
 			/* get bone-name, and check if this bone is selected */
-			bone_name= BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
-			pchan= BKE_pose_channel_find_name(ob->pose, bone_name);
+			bone_name = BLI_getQuotedStr(fcu->rna_path, "pose.bones[");
+			pchan = BKE_pose_channel_find_name(ob->pose, bone_name);
 			if (bone_name) MEM_freeN(bone_name);
 			
 			/* F-Curve selection depends on whether the bone is selected */
@@ -196,12 +196,12 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		
 		/* only affect if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-			Editing *ed= seq_give_editing(scene, FALSE);
+			Editing *ed = seq_give_editing(scene, FALSE);
 			Sequence *seq;
 			char *seq_name;
 			
 			/* get strip name, and check if this strip is selected */
-			seq_name= BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
+			seq_name = BLI_getQuotedStr(fcu->rna_path, "sequences_all[");
 			seq = get_seq_by_name(ed->seqbasep, seq_name, FALSE);
 			if (seq_name) MEM_freeN(seq_name);
 			
@@ -223,7 +223,7 @@ static void animchan_sync_fcurve (bAnimContext *UNUSED(ac), bAnimListElem *ale)
 			char *node_name;
 			
 			/* get strip name, and check if this strip is selected */
-			node_name= BLI_getQuotedStr(fcu->rna_path, "nodes[");
+			node_name = BLI_getQuotedStr(fcu->rna_path, "nodes[");
 			node = nodeFindNodebyName(ntree, node_name);
 			if (node_name) MEM_freeN(node_name);
 			
@@ -254,12 +254,12 @@ void ANIM_sync_animchannels_to_data(const bContext *C)
 		return;
 	
 	/* filter data */
-		/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed */
-	filter= ANIMFILTER_DATA_VISIBLE|ANIMFILTER_LIST_CHANNELS;
+	/* NOTE: we want all channels, since we want to be able to set selection status on some of them even when collapsed */
+	filter = ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_CHANNELS;
 	ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	
 	/* flush settings as appropriate depending on the types of the channels */
-	for (ale= anim_data.first; ale; ale= ale->next) {
+	for (ale = anim_data.first; ale; ale = ale->next) {
 		switch (ale->type) {
 			case ANIMTYPE_GROUP:
 				animchan_sync_group(&ac, ale);

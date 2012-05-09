@@ -367,10 +367,8 @@ static void enlarge_picture_byte(
 	unsigned char* src, unsigned char* dst, int src_width, 
 	int src_height, int dst_width, int dst_height)
 {
-	double ratiox = (double) (dst_width - 1.0) 
-		/ (double) (src_width - 1.001);
-	double ratioy = (double) (dst_height - 1.0) 
-		/ (double) (src_height - 1.001);
+	double ratiox = (double) (dst_width - 1.0)  / (double) (src_width - 1.001);
+	double ratioy = (double) (dst_height - 1.0) / (double) (src_height - 1.001);
 	uintptr_t x_src, dx_src, x_dst;
 	uintptr_t y_src, dy_src, y_dst;
 
@@ -395,41 +393,25 @@ static void enlarge_picture_byte(
 
 			unsigned long x = (x_src >> 16) * 4;
 
-			*dst++ = ((((line1[x] * weight1y) >> 16) 
-				   * weight1x) >> 16)
-				+ ((((line2[x] * weight2y) >> 16) 
-					* weight1x) >> 16)
-				+ ((((line1[4 + x] * weight1y) >> 16) 
-				   * weight2x) >> 16)
-				+ ((((line2[4 + x] * weight2y) >> 16) 
-					* weight2x) >> 16);
+			*dst++ = ((((line1[x]     * weight1y) >> 16) * weight1x) >> 16) +
+			         ((((line2[x]     * weight2y) >> 16) * weight1x) >> 16) +
+			         ((((line1[4 + x] * weight1y) >> 16) * weight2x) >> 16) +
+			         ((((line2[4 + x] * weight2y) >> 16) * weight2x) >> 16);
 
-			*dst++ = ((((line1[x + 1] * weight1y) >> 16) 
-				   * weight1x) >> 16)
-				+ ((((line2[x + 1] * weight2y) >> 16) 
-					* weight1x) >> 16)
-				+ ((((line1[4 + x + 1] * weight1y) >> 16) 
-				   * weight2x) >> 16)
-				+ ((((line2[4 + x + 1] * weight2y) >> 16) 
-					* weight2x) >> 16);
+			*dst++ = ((((line1[x + 1]     * weight1y) >> 16) * weight1x) >> 16) +
+			         ((((line2[x + 1]     * weight2y) >> 16) * weight1x) >> 16) +
+			         ((((line1[4 + x + 1] * weight1y) >> 16) * weight2x) >> 16) +
+			         ((((line2[4 + x + 1] * weight2y) >> 16) * weight2x) >> 16);
 
-			*dst++ = ((((line1[x + 2] * weight1y) >> 16) 
-				   * weight1x) >> 16)
-				+ ((((line2[x + 2] * weight2y) >> 16) 
-					* weight1x) >> 16)
-				+ ((((line1[4 + x + 2] * weight1y) >> 16) 
-				   * weight2x) >> 16)
-				+ ((((line2[4 + x + 2] * weight2y) >> 16) 
-					* weight2x) >> 16);
+			*dst++ = ((((line1[x + 2]     * weight1y) >> 16) * weight1x) >> 16) +
+			         ((((line2[x + 2]     * weight2y) >> 16) * weight1x) >> 16) +
+			         ((((line1[4 + x + 2] * weight1y) >> 16) * weight2x) >> 16) +
+			         ((((line2[4 + x + 2] * weight2y) >> 16) * weight2x) >> 16);
 
-			*dst++ = ((((line1[x + 3] * weight1y) >> 16) 
-				   * weight1x) >> 16)
-				+ ((((line2[x + 3] * weight2y) >> 16) 
-					* weight1x) >> 16)
-				+ ((((line1[4 + x + 3] * weight1y) >> 16) 
-				   * weight2x) >> 16)
-				+ ((((line2[4 + x + 3] * weight2y) >> 16) 
-					* weight2x) >> 16);
+			*dst++ = ((((line1[x + 3]     * weight1y) >> 16) * weight1x) >> 16) +
+			         ((((line2[x + 3]     * weight2y) >> 16) * weight1x) >> 16) +
+			         ((((line1[4 + x + 3] * weight1y) >> 16) * weight2x) >> 16) +
+			         ((((line2[4 + x + 3] * weight2y) >> 16) * weight2x) >> 16);
 
 			x_src += dx_src;
 		}
@@ -578,10 +560,8 @@ static void enlarge_picture_float(
 	float* src, float* dst, int src_width, 
 	int src_height, int dst_width, int dst_height)
 {
-	double ratiox = (double) (dst_width - 1.0) 
-		/ (double) (src_width - 1.001);
-	double ratioy = (double) (dst_height - 1.0) 
-		/ (double) (src_height - 1.001);
+	double ratiox = (double) (dst_width - 1.0) / (double) (src_width - 1.001);
+	double ratioy = (double) (dst_height - 1.0) / (double) (src_height - 1.001);
 	uintptr_t x_dst;
 	uintptr_t y_dst;
 	double x_src, dx_src;
@@ -613,25 +593,25 @@ static void enlarge_picture_float(
 
 			uintptr_t x = ((int) x_src) * 4;
 
-			*dst++ =  line1[x]     * w11	
-				+ line2[x]     * w21
-				+ line1[4 + x] * w12 
-				+ line2[4 + x] * w22;
+			*dst++ = line1[x]     * w11	+
+			         line2[x]     * w21 +
+			         line1[4 + x] * w12 +
+			         line2[4 + x] * w22;
 
-			*dst++ =  line1[x + 1] * w11 
-				+ line2[x + 1] * w21
-				+ line1[4 + x + 1] * w12
-				+ line2[4 + x + 1] * w22;
+			*dst++ = line1[x + 1]     * w11 +
+			         line2[x + 1]     * w21 +
+			         line1[4 + x + 1] * w12 +
+			         line2[4 + x + 1] * w22;
 
-			*dst++ =  line1[x + 2] * w11 
-				+ line2[x + 2] * w21
-				+ line1[4 + x + 2] * w12  
-				+ line2[4 + x + 2] * w22;
+			*dst++ = line1[x + 2]     * w11 +
+			         line2[x + 2]     * w21 +
+			         line1[4 + x + 2] * w12 +
+			         line2[4 + x + 2] * w22;
 
-			*dst++ =  line1[x + 3] * w11 
-				+ line2[x + 3] * w21
-				+ line1[4 + x + 3] * w12  
-				+ line2[4 + x + 3] * w22;
+			*dst++ = line1[x + 3]     * w11 +
+			         line2[x + 3]     * w21 +
+			         line1[4 + x + 3] * w12 +
+			         line2[4 + x + 3] * w22;
 
 			x_src += dx_src;
 		}

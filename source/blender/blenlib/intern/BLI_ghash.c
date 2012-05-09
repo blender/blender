@@ -145,7 +145,7 @@ int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFre
 			else
 				gh->buckets[hash] = n;
 
-			--gh->nentries;
+			gh->nentries--;
 			return 1;
 		}
 		p = e;

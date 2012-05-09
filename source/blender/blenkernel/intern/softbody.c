@@ -3514,11 +3514,11 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 
 	if (ob->softflag & OB_SB_EDGES) {
-		totspring = ((lt->pntsu -1) * lt->pntsv
-				  + (lt->pntsv -1) * lt->pntsu) * lt->pntsw
-				  +lt->pntsu*lt->pntsv*(lt->pntsw -1);
+		totspring = ((lt->pntsu - 1) * lt->pntsv +
+		             (lt->pntsv - 1) * lt->pntsu) * lt->pntsw +
+		            lt->pntsu*lt->pntsv * (lt->pntsw - 1);
 		if (ob->softflag & OB_SB_QUADS) {
-			totspring += 4*(lt->pntsu -1) *  (lt->pntsv -1)  * (lt->pntsw-1);
+			totspring += 4 * (lt->pntsu - 1) *  (lt->pntsv -1)  * (lt->pntsw - 1);
 		}
 	}
 

@@ -1094,7 +1094,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	SEQP_BEGIN (ed, seq)
 	{
-		seq->tmp= NULL;
+		seq->tmp = NULL;
 	}
 	SEQ_END;
 

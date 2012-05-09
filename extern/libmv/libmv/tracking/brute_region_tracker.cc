@@ -310,7 +310,7 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
   FloatArrayToByteArrayWithPadding(image_and_gradient2, &search_area, &search_area_stride);
 
   // Try all possible locations inside the search area. Yes, everywhere.
-  int best_i, best_j, best_sad = INT_MAX;
+  int best_i = -1, best_j = -1, best_sad = INT_MAX;
   for (int i = 0; i < image2.Height() - pattern_width; ++i) {
     for (int j = 0; j < image2.Width() - pattern_width; ++j) {
       int sad = SumOfAbsoluteDifferencesContiguousImage(pattern,
@@ -327,38 +327,51 @@ bool BruteRegionTracker::Track(const FloatImage &image1,
     }
   }
 
+  CHECK_NE(best_i, -1);
+  CHECK_NE(best_j, -1);
+
   aligned_free(pattern);
   aligned_free(search_area);
 
-  if (best_sad != INT_MAX) {
-    *x2 = best_j + half_window_size;
-    *y2 = best_i + half_window_size;
+  if (best_sad == INT_MAX) {
+    LG << "Hit INT_MAX in SAD; failing.";
+    return false;
+  }
 
-    if (minimum_correlation > 0) {
-      Array3Df image_and_gradient1_sampled, image_and_gradient2_sampled;
+  *x2 = best_j + half_window_size;
+  *y2 = best_i + half_window_size;
 
-      SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
-                    &image_and_gradient1_sampled);
-      SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,
-                    &image_and_gradient2_sampled);
+  // Calculate the shift done by the fine tracker.
+  double dx2 = *x2 - x1;
+  double dy2 = *y2 - y1;
+  double fine_shift = sqrt(dx2 * dx2 + dy2 * dy2);
+  LG << "Brute shift: dx=" << dx2 << " dy=" << dy2 << ", d=" << fine_shift;
 
-      // Compute the Pearson product-moment correlation coefficient to check
-      // for sanity.
-      double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
-                                                           image_and_gradient2_sampled,
-                                                           pattern_width);
-      LG << "Final correlation: " << correlation;
-
-      if (correlation < minimum_correlation) {
-        LG << "Correlation " << correlation << " greater than "
-           << minimum_correlation << "; bailing.";
-        return false;
-      }
-    }
-
+  if (minimum_correlation <= 0) {
+    // No correlation checking requested; nothing else to do.
+    LG << "No correlation checking; returning success. best_sad: " << best_sad;
     return true;
   }
-  return false;
+
+  Array3Df image_and_gradient1_sampled, image_and_gradient2_sampled;
+  SamplePattern(image_and_gradient1, x1, y1, half_window_size, 3,
+                &image_and_gradient1_sampled);
+  SamplePattern(image_and_gradient2, *x2, *y2, half_window_size, 3,
+                &image_and_gradient2_sampled);
+
+  // Compute the Pearson product-moment correlation coefficient to check
+  // for sanity.
+  double correlation = PearsonProductMomentCorrelation(image_and_gradient1_sampled,
+                                                       image_and_gradient2_sampled,
+                                                       pattern_width);
+  LG << "Final correlation: " << correlation;
+
+  if (correlation < minimum_correlation) {
+    LG << "Correlation " << correlation << " greater than "
+       << minimum_correlation << "; bailing.";
+    return false;
+  }
+  return true;
 }
 
 }  // namespace libmv

@@ -61,14 +61,14 @@ void ACTION_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	ACTKEYS_LRSEL_TEST	= 0,
+	ACTKEYS_LRSEL_TEST = 0,
 	ACTKEYS_LRSEL_LEFT,
 	ACTKEYS_LRSEL_RIGHT
 } eActKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */
 enum {
-	ACTKEYS_COLUMNSEL_KEYS	= 0,
+	ACTKEYS_COLUMNSEL_KEYS = 0,
 	ACTKEYS_COLUMNSEL_CFRA,
 	ACTKEYS_COLUMNSEL_MARKERS_COLUMN,
 	ACTKEYS_COLUMNSEL_MARKERS_BETWEEN,

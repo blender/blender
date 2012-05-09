@@ -2055,7 +2055,7 @@ static int vertsel_vert_pick(struct bContext *C, Mesh *me, const int mval[2], un
 /* gets called via generic mouse select operator */
 static int mouse_weight_paint_vertex_select(bContext *C, const int mval[2], short extend, Object *obact)
 {
-	Mesh*me = obact->data; /* already checked for NULL */
+	Mesh *me = obact->data; /* already checked for NULL */
 	unsigned int index = 0;
 	MVert *mv;
 

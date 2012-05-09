@@ -1156,7 +1156,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				new_line[j] = text_check_line[a];
-				++j;
+				j++;
 			}
 		}
 		new_line[j] = '\0';
@@ -1208,12 +1208,12 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 					if (!number) { //found all number of space to equal a tab
 						new_line[extra] = '\t';
 						a = a + (st->tabnumber - 1);
-						++extra;
+						extra++;
 						
 					}
 					else { //not adding a tab
 						new_line[extra] = text_check_line[a];
-						++extra;
+						extra++;
 					}
 				}
 				new_line[extra] = '\0';

@@ -1436,7 +1436,7 @@ static EnumPropertyItem *object_mode_set_itemsf(bContext *C, PointerRNA *UNUSED(
 		{
 			RNA_enum_item_add(&item, &totitem, input);
 		}
-		++input;
+		input++;
 	}
 
 	RNA_enum_item_end(&item, &totitem);

@@ -3934,8 +3934,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 	}
 
 	if (seq->strip->color_balance) {
-		seqn->strip->color_balance
-		    = MEM_dupallocN(seq->strip->color_balance);
+		seqn->strip->color_balance = MEM_dupallocN(seq->strip->color_balance);
 	}
 
 	if (seq->type == SEQ_META) {

@@ -451,7 +451,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		/* same as EM_solidify() in editmesh_lib.c */
 		float *vert_angles = MEM_callocN(sizeof(float) * numVerts * 2, "mod_solid_pair"); /* 2 in 1 */
 		float *vert_accum = vert_angles + numVerts;
-		int j, vidx;
+		int vidx;
 
 		face_nors = CustomData_get_layer(&dm->polyData, CD_NORMAL);
 		if (!face_nors) {
@@ -467,30 +467,44 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		for (i = 0, mp = mpoly; i < numFaces; i++, mp++) {
+			/* #BKE_mesh_poly_calc_angles logic is inlined here */
+			float nor_prev[3];
+			float nor_next[3];
+
+			int i_this = mp->totloop - 1;
+			int i_next = 0;
+
+			ml = &mloop[mp->loopstart];
+
+			/* --- not related to angle calc --- */
 			if (face_nors_calc)
-				mesh_calc_poly_normal(mp, &mloop[mp->loopstart], mvert, face_nors[i]);
-			
-			/* just added, calc the normal */
-			for (j = 0, ml = mloop + mp->loopstart; j < mp->totloop; j++, ml++) {
-				MLoop *ml_prev = ME_POLY_LOOP_PREV(mloop, mp, j);
-				MLoop *ml_next = ME_POLY_LOOP_NEXT(mloop, mp, j);
+				mesh_calc_poly_normal(mp, ml, mvert, face_nors[i]);
+			/* --- end non-angle-calc section --- */
 
-				float e1[3], e2[3];
+			sub_v3_v3v3(nor_prev, mvert[ml[i_this - 1].v].co, mvert[ml[i_this].v].co);
+			normalize_v3(nor_prev);
+
+			while (i_next < mp->totloop) {
 				float angle;
+				sub_v3_v3v3(nor_next, mvert[ml[i_this].v].co, mvert[ml[i_next].v].co);
+				normalize_v3(nor_next);
+				angle = angle_normalized_v3v3(nor_prev, nor_next);
 
-				/* TODO - we could speed this up by _not_ normalizing both verts each time
-				 * and always re-usingthe last vector. */
-				sub_v3_v3v3(e1, mvert[ml_next->v].co, mvert[ml->v].co);
-				sub_v3_v3v3(e2, mvert[ml_prev->v].co, mvert[ml->v].co);
 
-				angle = (float)M_PI - angle_v3v3(e1, e2);
+				/* --- not related to angle calc --- */
 				if (angle < FLT_EPSILON) {
 					angle = FLT_EPSILON;
 				}
-
-				vidx = ml->v;
+				vidx = ml[i_this].v;
 				vert_accum[vidx] += angle;
 				vert_angles[vidx] += shell_angle_to_dist(angle_normalized_v3v3(vert_nors[vidx], face_nors[i])) * angle;
+				/* --- end non-angle-calc section --- */
+
+
+				/* step */
+				copy_v3_v3(nor_prev, nor_next);
+				i_this = i_next;
+				i_next++;
 			}
 		}
 

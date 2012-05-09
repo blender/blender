@@ -46,7 +46,7 @@
 #include "ED_screen.h"
 
 
-#include "script_intern.h"	// own include
+#include "script_intern.h"  // own include
 
 #ifdef WITH_PYTHON
 #include "BPY_extern.h" /* BPY_script_exec */
@@ -58,7 +58,7 @@ static int run_pyfile_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", path);
 #ifdef WITH_PYTHON
 	if (BPY_filepath_exec(C, path, op->reports)) {
-		ARegion *ar= CTX_wm_region(C);
+		ARegion *ar = CTX_wm_region(C);
 		ED_region_tag_redraw(ar);
 		return OPERATOR_FINISHED;
 	}

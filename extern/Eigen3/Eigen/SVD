@@ -13,9 +13,9 @@ namespace Eigen {
   *
   *
   *
-  * This module provides SVD decomposition for (currently) real matrices.
+  * This module provides SVD decomposition for matrices (both real and complex).
   * This decomposition is accessible via the following MatrixBase method:
-  *  - MatrixBase::svd()
+  *  - MatrixBase::jacobiSvd()
   *
   * \code
   * #include <Eigen/SVD>

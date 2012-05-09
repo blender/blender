@@ -250,7 +250,8 @@ template<typename Derived> class MatrixBase
     
     // huuuge hack. make Eigen2's matrix.part<Diagonal>() work in eigen3. Problem: Diagonal is now a class template instead
     // of an integer constant. Solution: overload the part() method template wrt template parameters list.
-    template<template<typename T, int n> class U>
+    // Note: replacing next line by "template<template<typename T, int n> class U>" produces a mysterious error C2082 in MSVC.
+    template<template<typename, int> class U>
     const DiagonalWrapper<ConstDiagonalReturnType> part() const
     { return diagonal().asDiagonal(); }
     #endif // EIGEN2_SUPPORT

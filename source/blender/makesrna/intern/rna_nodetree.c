@@ -736,7 +736,8 @@ static bNodeLink *rna_NodeTree_link_new(bNodeTree *ntree, ReportList *reports,
 	ret = nodeAddLink(ntree, fromnode, fromsock, tonode, tosock);
 	
 	if (ret) {
-		nodeUpdate(ntree, tonode);
+		if (tonode)
+			nodeUpdate(ntree, tonode);
 
 		ntreeUpdateTree(ntree);
 

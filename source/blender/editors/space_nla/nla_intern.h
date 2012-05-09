@@ -55,7 +55,7 @@ void draw_nla_channel_list(bContext *C, bAnimContext *ac, ARegion *ar);
 
 /* defines for left-right select tool */
 enum {
-	NLAEDIT_LRSEL_TEST	= -1,
+	NLAEDIT_LRSEL_TEST  = -1,
 	NLAEDIT_LRSEL_NONE,
 	NLAEDIT_LRSEL_LEFT,
 	NLAEDIT_LRSEL_RIGHT
@@ -131,7 +131,7 @@ void NLA_OT_delete_tracks(wmOperatorType *ot);
 /* nla_ops.c */
 
 int nlaop_poll_tweakmode_off(bContext *C);
-int nlaop_poll_tweakmode_on (bContext *C);
+int nlaop_poll_tweakmode_on(bContext *C);
 
 short nlaedit_is_tweakmode_on(bAnimContext *ac);
 

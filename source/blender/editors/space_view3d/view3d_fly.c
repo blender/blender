@@ -174,7 +174,7 @@ typedef struct FlyInfo {
 	unsigned char use_freelook;
 
 	int mval[2]; /* latest 2D mouse values */
-	wmNDOFMotionData*ndof;  /* latest 3D mouse values */
+	wmNDOFMotionData *ndof;  /* latest 3D mouse values */
 
 	/* fly state state */
 	float speed; /* the speed the view is moving per redraw */
@@ -690,7 +690,7 @@ static void move_camera(bContext *C, RegionView3D *rv3d, FlyInfo *fly, int orien
 {
 	/* we are in camera view so apply the view ofs and quat to the view matrix and set the camera to the view */
 
-	View3D*v3d = fly->v3d;
+	View3D *v3d = fly->v3d;
 	Scene *scene = fly->scene;
 	ID *id_key;
 
@@ -1031,7 +1031,7 @@ static int flyApply_ndof(bContext *C, FlyInfo *fly)
 	/* shorthand for oft-used variables */
 	wmNDOFMotionData *ndof = fly->ndof;
 	const float dt = ndof->dt;
-	RegionView3D*rv3d = fly->rv3d;
+	RegionView3D *rv3d = fly->rv3d;
 	const int flag = U.ndof_flag;
 
 #if 0

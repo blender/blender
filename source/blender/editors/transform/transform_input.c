@@ -229,8 +229,9 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	double *angle = mi->data;
 
 	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2.0 * ((A*B)?(A*B):1.0));
+	double deler = (((dx1 * dx1 + dy1 * dy1) +
+	                 (dx2 * dx2 + dy2 * dy2) -
+	                 (dx3 * dx3 + dy3 * dy3)) / (2.0 * ((A * B) ? (A * B) : 1.0)));
 	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
@@ -290,15 +291,12 @@ void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, int center[2], int mva
 
 static void calcSpringFactor(MouseInput *mi)
 {
-	mi->factor = (float)sqrt(
-		(
-			((float)(mi->center[1] - mi->imval[1]))*((float)(mi->center[1] - mi->imval[1]))
-		+
-			((float)(mi->center[0] - mi->imval[0]))*((float)(mi->center[0] - mi->imval[0]))
-		) );
+	mi->factor = sqrtf(((float)(mi->center[1] - mi->imval[1])) * ((float)(mi->center[1] - mi->imval[1])) +
+	                   ((float)(mi->center[0] - mi->imval[0])) * ((float)(mi->center[0] - mi->imval[0])));
 
-	if (mi->factor==0.0f)
+	if (mi->factor == 0.0f) {
 		mi->factor= 1.0f; /* prevent Inf */
+	}
 }
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)

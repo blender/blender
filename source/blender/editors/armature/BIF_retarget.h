@@ -22,7 +22,6 @@
  *  \ingroup edarmature
  */
 
-
 #ifndef __BIF_RETARGET_H__
 #define __BIF_RETARGET_H__
 
@@ -49,21 +48,21 @@ struct RigEdge;
 #define USE_THREADS
 
 typedef struct RigGraph {
-	ListBase	arcs;
-	ListBase	nodes;
+	ListBase arcs;
+	ListBase nodes;
 
 	float length;
 	
-	FreeArc			free_arc;
-	FreeNode		free_node;
-	RadialSymmetry	radial_symmetry;
-	AxialSymmetry	axial_symmetry;
+	FreeArc         free_arc;
+	FreeNode        free_node;
+	RadialSymmetry  radial_symmetry;
+	AxialSymmetry   axial_symmetry;
 	/*********************************/
 	
-	int			flag;
+	int flag;
 
-	ListBase	controls;
-	ListBase*	editbones;
+	ListBase   controls;
+	ListBase  *editbones;
 	
 	struct RigNode *head;
 	ReebGraph *link_mesh;
@@ -71,8 +70,8 @@ typedef struct RigGraph {
 	
 	struct ThreadedWorker *worker;
 	
-	GHash *bones_map;	/* map of editbones by name */
-	GHash *controls_map;	/* map of rigcontrols by bone pointer */
+	GHash *bones_map;     /* map of editbones by name */
+	GHash *controls_map;  /* map of rigcontrols by bone pointer */
 	
 	struct Object *ob;
 } RigGraph;
@@ -123,16 +122,16 @@ typedef struct RigEdge {
 } RigEdge;
 
 /* Graph flags */
-#define	RIG_FREE_BONELIST		1
+#define RIG_FREE_BONELIST       1
 
 /* Control flags */
-#define RIG_CTRL_HEAD_DONE		1
-#define RIG_CTRL_TAIL_DONE		2
-#define RIG_CTRL_PARENT_DEFORM	4
-#define RIG_CTRL_FIT_ROOT		8
-#define RIG_CTRL_FIT_BONE		16
+#define RIG_CTRL_HEAD_DONE      1
+#define RIG_CTRL_TAIL_DONE      2
+#define RIG_CTRL_PARENT_DEFORM  4
+#define RIG_CTRL_FIT_ROOT       8
+#define RIG_CTRL_FIT_BONE       16
 
-#define RIG_CTRL_DONE	(RIG_CTRL_HEAD_DONE|RIG_CTRL_TAIL_DONE)
+#define RIG_CTRL_DONE   (RIG_CTRL_HEAD_DONE | RIG_CTRL_TAIL_DONE)
 
 /* Control tail flags */
 typedef enum {
@@ -147,10 +146,10 @@ typedef struct RigControl {
 	struct EditBone *bone;
 	struct EditBone *link;
 	struct EditBone *link_tail;
-	float	up_axis[3];
-	float	offset[3];
-	float	qrot[4]; /* for dual linked bones, store the rotation of the linked bone for the finalization */
-	int		flag;
+	float  up_axis[3];
+	float  offset[3];
+	float  qrot[4];   /* for dual linked bones, store the rotation of the linked bone for the finalization */
+	int    flag;
 	LinkTailMode tail_mode;
 } RigControl;
 

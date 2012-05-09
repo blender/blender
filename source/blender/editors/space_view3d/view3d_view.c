@@ -567,9 +567,9 @@ void ED_view3d_calc_clipping(BoundBox *bb, float planes[4][4], bglMats *mats, co
 		if (flip_sign)
 			negate_v3(planes[val]);
 
-		planes[val][3] = -planes[val][0] * bb->vec[val][0]
-		                 - planes[val][1] * bb->vec[val][1]
-		                 - planes[val][2] * bb->vec[val][2];
+		planes[val][3] = -planes[val][0] * bb->vec[val][0] -
+		                  planes[val][1] * bb->vec[val][1] -
+		                  planes[val][2] * bb->vec[val][2];
 	}
 }
 

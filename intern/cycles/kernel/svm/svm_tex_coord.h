@@ -57,7 +57,7 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
 				data = sd->P;
-				object_position_transform(kg, sd, &data);
+				object_inverse_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P;
@@ -106,7 +106,7 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
 				data = sd->P + sd->dP.dx;
-				object_position_transform(kg, sd, &data);
+				object_inverse_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P + sd->dP.dx;
@@ -158,7 +158,7 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 		case NODE_TEXCO_OBJECT: {
 			if(sd->object != ~0) {
 				data = sd->P + sd->dP.dy;
-				object_position_transform(kg, sd, &data);
+				object_inverse_position_transform(kg, sd, &data);
 			}
 			else
 				data = sd->P + sd->dP.dy;

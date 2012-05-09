@@ -509,9 +509,9 @@ static void ui_draw_linkline(uiLinkLine *line, int hilightActiveLines)
 	rect.xmax = (line->to->x1 + line->to->x2) / 2.0f;
 	rect.ymax = (line->to->y1 + line->to->y2) / 2.0f;
 	
-	if(line->flag & UI_SELECT)
-		glColor3ub(100,100,100);
-	else if(hilightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE))) 
+	if (line->flag & UI_SELECT)
+		glColor3ub(100, 100, 100);
+	else if (hilightActiveLines && ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE)))
 		UI_ThemeColor(TH_TEXT_HI);
 	else 
 		glColor3ub(0, 0, 0);
@@ -528,9 +528,9 @@ static void ui_draw_links(uiBlock *block)
 	// As we go, remember if we see any active or selected lines.
 	int foundselectline = 0;
 	int foundactiveline = 0;
-	for (but=block->buttons.first; but; but=but->next) {
-		if(but->type==LINK && but->link) {
-			for (line=but->link->lines.first; line; line=line->next) {
+	for (but = block->buttons.first; but; but = but->next) {
+		if (but->type == LINK && but->link) {
+			for (line = but->link->lines.first; line; line = line->next) {
 				if (!(line->from->flag & UI_ACTIVE) && !(line->to->flag & UI_ACTIVE))
 					ui_draw_linkline(line, 0);
 				else
@@ -545,9 +545,9 @@ static void ui_draw_links(uiBlock *block)
 	// Draw any active lines (lines with either button being hovered over).
 	// Do this last so they appear on top of inactive lines.
 	if (foundactiveline) {
-		for (but=block->buttons.first; but; but=but->next) {
-			if(but->type==LINK && but->link) {
-				for (line=but->link->lines.first; line; line=line->next) {
+		for (but = block->buttons.first; but; but = but->next) {
+			if (but->type == LINK && but->link) {
+				for (line = but->link->lines.first; line; line = line->next) {
 					if ((line->from->flag & UI_ACTIVE) || (line->to->flag & UI_ACTIVE))
 						ui_draw_linkline(line, !foundselectline);
 				}

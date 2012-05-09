@@ -1253,7 +1253,7 @@ static int pose_constraint_copy_exec(bContext *C, wmOperator *op)
 void POSE_OT_constraints_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Copy Constraints to Selected";
+	ot->name = "Copy Constraints to Selected Bones";
 	ot->idname = "POSE_OT_constraints_copy";
 	ot->description = "Copy constraints to other selected bones";
 	
@@ -1294,7 +1294,7 @@ static int object_constraint_copy_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_constraints_copy(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Copy Constraints to Selected";
+	ot->name = "Copy Constraints to Selected Objects";
 	ot->idname = "OBJECT_OT_constraints_copy";
 	ot->description = "Copy constraints to other selected objects";
 	

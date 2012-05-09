@@ -77,6 +77,16 @@ __device_inline void object_position_transform(KernelGlobals *kg, ShaderData *sd
 #endif
 }
 
+__device_inline void object_inverse_position_transform(KernelGlobals *kg, ShaderData *sd, float3 *P)
+{
+#ifdef __MOTION__
+	*P = transform_point(&sd->ob_itfm, *P);
+#else
+	Transform tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_INVERSE_TRANSFORM);
+	*P = transform_point(&tfm, *P);
+#endif
+}
+
 __device_inline void object_inverse_normal_transform(KernelGlobals *kg, ShaderData *sd, float3 *N)
 {
 #ifdef __MOTION__

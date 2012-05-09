@@ -301,20 +301,20 @@ void AnimationExporter::dae_animation(Object* ob, FCurve *fcu, char* transformNa
 	std::string target;
 
 	if ( !is_param )
-		target = translate_id(ob_name)
-		+ "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+		target = translate_id(ob_name) +
+		         "/" + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 	else {
 		if ( ob->type == OB_LAMP )
-			target = get_light_id(ob)
-			+ "/" + get_light_param_sid(fcu->rna_path, -1, axis_name, true);
+			target = get_light_id(ob) +
+			         "/" + get_light_param_sid(fcu->rna_path, -1, axis_name, true);
 
 		if ( ob->type == OB_CAMERA )
-			target = get_camera_id(ob)
-			+ "/" + get_camera_param_sid(fcu->rna_path, -1, axis_name, true);
+			target = get_camera_id(ob) +
+			         "/" + get_camera_param_sid(fcu->rna_path, -1, axis_name, true);
 
 		if ( ma ) 
-			target = translate_id(id_name(ma)) + "-effect"
-			+"/common/" /*profile common is only supported */ + get_transform_sid(fcu->rna_path, -1, axis_name, true);
+			target = translate_id(id_name(ma)) + "-effect" +
+			"/common/" /*profile common is only supported */ + get_transform_sid(fcu->rna_path, -1, axis_name, true);
 	}
 	addChannel(COLLADABU::URI(empty, sampler_id), target);
 

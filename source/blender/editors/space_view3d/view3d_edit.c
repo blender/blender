@@ -986,12 +986,12 @@ void VIEW3D_OT_rotate(wmOperatorType *ot)
 /* NDOF utility functions
  * (should these functions live in this file?)
  */
-float ndof_to_axis_angle(struct wmNDOFMotionData*ndof, float axis[3])
+float ndof_to_axis_angle(struct wmNDOFMotionData *ndof, float axis[3])
 {
 	return ndof->dt * normalize_v3_v3(axis, ndof->rvec);
 }
 
-void ndof_to_quat(struct wmNDOFMotionData*ndof, float q[4])
+void ndof_to_quat(struct wmNDOFMotionData *ndof, float q[4])
 {
 	float axis[3];
 	float angle;
@@ -1010,8 +1010,8 @@ static int ndof_orbit_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event
 		return OPERATOR_CANCELLED;
 	else {
 		View3D *v3d = CTX_wm_view3d(C);
-		RegionView3D*rv3d = CTX_wm_region_view3d(C);
-		wmNDOFMotionData*ndof = (wmNDOFMotionData *) event->customdata;
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
@@ -1162,8 +1162,8 @@ static int ndof_pan_invoke(bContext *C, wmOperator *UNUSED(op), wmEvent *event)
 		return OPERATOR_CANCELLED;
 	else {
 		View3D *v3d = CTX_wm_view3d(C);
-		RegionView3D*rv3d = CTX_wm_region_view3d(C);
-		wmNDOFMotionData*ndof = (wmNDOFMotionData *) event->customdata;
+		RegionView3D *rv3d = CTX_wm_region_view3d(C);
+		wmNDOFMotionData *ndof = (wmNDOFMotionData *) event->customdata;
 
 		ED_view3d_camera_lock_init(v3d, rv3d);
 
@@ -2239,7 +2239,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 				size = v3d->near * 1.5f;
 			}
 		}
-		else /* ortho */ {
+		else { /* ortho */
 			if (size < 0.0001f) {
 				/* bounding box was a single point so do not zoom */
 				ok_dist = 0;

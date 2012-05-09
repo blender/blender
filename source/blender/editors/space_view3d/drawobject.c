@@ -1763,7 +1763,7 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 	scale[2] = 1.0f / len_v3(ob->obmat[2]);
 
 	BKE_camera_view_frame_ex(scene, cam, cam->drawsize, is_view, scale,
-	                     asp, shift, &drawsize, vec);
+	                         asp, shift, &drawsize, vec);
 
 	glDisable(GL_LIGHTING);
 	glDisable(GL_CULL_FACE);
@@ -2209,9 +2209,9 @@ void mesh_foreachScreenFace(
 }
 
 void nurbs_foreachScreenVert(
-        ViewContext *vc,
-        void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
-        void *userData)
+    ViewContext *vc,
+    void (*func)(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y),
+    void *userData)
 {
 	Curve *cu = vc->obedit->data;
 	short s[2] = {IS_CLIPPED, 0};
@@ -2905,7 +2905,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		mul_v3_fl(vmid, 1.0f / (float)n);                                     \
 		if (unit->system)                                                     \
 			bUnit_AsString(numstr, sizeof(numstr),                            \
-		                   (double)(area * unit->scale_length),               \
+			               (double)(area * unit->scale_length),               \
 			               3, unit->system, B_UNIT_LENGTH, do_split, FALSE);  \
 		else                                                                  \
 			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \
@@ -3599,8 +3599,8 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			finalDM->release(finalDM);
 	}
 	else {
-		/* don't create boundbox here with BKE_mesh_boundbox_get(), the derived system will make it, puts deformed bb's OK */
-		if (me->totpoly <= 4 || ED_view3d_boundbox_clip(rv3d, ob->obmat, (ob->bb) ? ob->bb : me->bb)) {
+		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
+		if (me->totpoly <= 4 || (ob->bb && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb))) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_alpha_pass(base);
 
@@ -5500,7 +5500,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 			}
 		}
 
-		++index;
+		index++;
 		nu = nu->next;
 	}
 }
@@ -5529,7 +5529,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				tekenhandlesN_active(nu);
 			tekenhandlesN(nu, 0, hide_handles);
 		}
-		++index;
+		index++;
 	}
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);
@@ -6545,8 +6545,10 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 					zbufoff = 1;
 					dt = OB_SOLID;
 				}
-				else if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))
+
+				if (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT)) {
 					dt = OB_PAINT;
+				}
 
 				glEnable(GL_DEPTH_TEST);
 			}

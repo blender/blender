@@ -102,7 +102,7 @@ static void star_stuff_init_func(void)
 	glPointSize(1.0);
 	glBegin(GL_POINTS);
 }
-static void star_stuff_vertex_func(float*i)
+static void star_stuff_vertex_func(float *i)
 {
 	glVertex3fv(i);
 }
@@ -716,7 +716,7 @@ static void draw_rotation_guide(RegionView3D *rv3d)
 			glColor4fv(color);
 			glBegin(GL_LINE_LOOP);
 			for (i = 0, angle = 0.f; i < ROT_AXIS_DETAIL; ++i, angle += step) {
-				float p[3] = {s * cosf(angle), s * sinf(angle), 0.0f};
+				float p[3] = {s *cosf(angle), s * sinf(angle), 0.0f};
 
 				if (!upright) {
 					mul_qt_v3(q, p);
@@ -1699,7 +1699,7 @@ static void draw_bgpics(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 		}
 	}
 	else {
-			draw_bgpic(scene, ar, v3d, foreground);
+		draw_bgpic(scene, ar, v3d, foreground);
 	}
 }
 
@@ -1861,7 +1861,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
 			 * so for now it should be ok to - campbell */
 
-			if (/* if this is the last no need  to make a displist */
+			if ( /* if this is the last no need  to make a displist */
 			    (dob_next == NULL || dob_next->ob != dob->ob) ||
 			    /* lamp drawing messes with matrices, could be handled smarter... but this works */
 			    (dob->ob->type == OB_LAMP) ||
@@ -2556,7 +2556,7 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 	/* transp and X-ray afterdraw stuff */
 	if (v3d->afterdraw_transp.first)     view3d_draw_transp(scene, ar, v3d);
-	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, 1);         // clears zbuffer if it is used!
+	if (v3d->afterdraw_xray.first)       view3d_draw_xray(scene, ar, v3d, 1);       /* clears zbuffer if it is used! */
 	if (v3d->afterdraw_xraytransp.first) view3d_draw_xraytransp(scene, ar, v3d, 1);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
