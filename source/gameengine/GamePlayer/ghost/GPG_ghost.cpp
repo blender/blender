@@ -848,7 +848,7 @@ int main(int argc, char** argv)
 						{
 							if (scene->gm.stereoflag == STEREO_ENABLED) {
 								stereomode = (RAS_IRasterizer::StereoMode) scene->gm.stereomode;
-								if (stereomode != RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
+								if (stereomode == RAS_IRasterizer::RAS_STEREO_QUADBUFFERED)
 									stereoWindow = true;
 							}
 						}
