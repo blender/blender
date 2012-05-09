@@ -52,8 +52,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,
-                        int UNUSED(useRenderParams),
-                        int UNUSED(isFinalCalc))
+                        ModifierApplyFlag UNUSED(flag))
 {
 	KeyBlock *kb = ob_get_keyblock(ob);
 	float (*deformedVerts)[3];
@@ -86,7 +85,7 @@ static void deformMatrices(ModifierData *md, Object *ob, DerivedMesh *derivedDat
 			copy_m3_m3(defMats[a], scale);
 	}
 
-	deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
+	deformVerts(md, ob, derivedData, vertexCos, numVerts, 0);
 }
 
 static void deformVertsEM(ModifierData *md, Object *ob,
@@ -98,7 +97,7 @@ static void deformVertsEM(ModifierData *md, Object *ob,
 	Key *key = ob_get_key(ob);
 
 	if (key && key->type == KEY_RELATIVE)
-		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0, 0);
+		deformVerts(md, ob, derivedData, vertexCos, numVerts, 0);
 }
 
 static void deformMatricesEM(ModifierData *UNUSED(md), Object *ob,

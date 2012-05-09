@@ -976,7 +976,7 @@ void BKE_lattice_modifiers_calc(Scene *scene, Object *ob)
 		if (mti->type != eModifierTypeType_OnlyDeform) continue;
 
 		if (!vertexCos) vertexCos = BKE_lattice_vertexcos_get(ob, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0);
 	}
 
 	/* always displist to make this work like derivedmesh */

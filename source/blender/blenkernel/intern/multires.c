@@ -279,7 +279,7 @@ DerivedMesh *get_multires_dm(Scene *scene, MultiresModifierData *mmd, Object *ob
 	DerivedMesh *tdm = mesh_get_derived_deform(scene, ob, CD_MASK_BAREMESH);
 	DerivedMesh *dm;
 
-	dm = mti->applyModifier(md, ob, tdm, 0, 1);
+	dm = mti->applyModifier(md, ob, tdm, MOD_APPLY_USECACHE);
 	if (dm == tdm) {
 		dm = CDDM_copy(tdm);
 	}
@@ -438,7 +438,7 @@ int multiresModifier_reshapeFromDeformMod(Scene *scene, MultiresModifierData *mm
 	deformedVerts = MEM_callocN(sizeof(float) * numVerts * 3, "multiresReshape_deformVerts");
 
 	dm->getVertCos(dm, deformedVerts);
-	mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
+	mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0);
 
 	ndm = CDDM_copy(dm);
 	CDDM_apply_vert_coords(ndm, deformedVerts);

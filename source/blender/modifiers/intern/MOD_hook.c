@@ -246,7 +246,7 @@ static void deformVerts_do(HookModifierData *hmd, Object *ob, DerivedMesh *dm,
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
                         float (*vertexCos)[3], int numVerts,
-                        int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+                        ModifierApplyFlag UNUSED(flag))
 {
 	HookModifierData *hmd = (HookModifierData *) md;
 	DerivedMesh *dm = derivedData;

@@ -545,7 +545,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
 		vertexCos = BKE_curve_vertexCos_get(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0);
 		BK_curve_vertexCos_apply(cu, &cu->nurb, vertexCos);
 
 		MEM_freeN(vertexCos);

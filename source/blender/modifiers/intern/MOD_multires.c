@@ -71,11 +71,12 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
-                                  int useRenderParams, int isFinalCalc)
+                                  ModifierApplyFlag flag)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	DerivedMesh *result;
 	Mesh *me = (Mesh *)ob->data;
+	const int useRenderParams = flag & MOD_APPLY_RENDER;
 
 	if (mmd->totlvl) {
 		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
@@ -89,7 +90,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	if (result == dm)
 		return dm;
 
-	if (useRenderParams || !isFinalCalc) {
+	if(useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
 		DerivedMesh *cddm;
 		
 		cddm = CDDM_copy(result);

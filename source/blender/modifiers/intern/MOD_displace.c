@@ -238,8 +238,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
-                        int UNUSED(useRenderParams),
-                        int UNUSED(isFinalCalc))
+                        ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = get_cddm(ob, NULL, derivedData, vertexCos);
 

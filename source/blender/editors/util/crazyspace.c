@@ -388,7 +388,7 @@ void crazyspace_build_sculpt(Scene *scene, Object *ob, float (**deformmats)[3][3
 				if (mti->deformMatrices && !deformed)
 					continue;
 
-				mti->deformVerts(md, ob, NULL, deformedVerts, me->totvert, 0, 0);
+				mti->deformVerts(md, ob, NULL, deformedVerts, me->totvert, 0);
 				deformed = 1;
 			}
 		}

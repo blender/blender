@@ -114,8 +114,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *derivedData,
                         float (*vertexCos)[3],
                         int numVerts,
-                        int UNUSED(useRenderParams),
-                        int UNUSED(isFinalCalc))
+                        ModifierApplyFlag UNUSED(flag))
 {
 	CurveModifierData *cmd = (CurveModifierData *) md;
 
@@ -133,7 +132,7 @@ static void deformVertsEM(
 
 	if (!derivedData) dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
+	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
 
 	if (!derivedData) dm->release(dm);
 }

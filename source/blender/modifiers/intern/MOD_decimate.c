@@ -72,8 +72,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 #ifdef WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DecimateModifierData *dmd = (DecimateModifierData *) md;
 	DerivedMesh *dm = derivedData, *result = NULL;
@@ -196,8 +195,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 #else // WITH_MOD_DECIMATE
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	return derivedData;
 }

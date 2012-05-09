@@ -250,8 +250,9 @@ static void console_operatortypes(void)
 	/* for use by python only */
 	WM_operatortype_append(CONSOLE_OT_history_append); 
 	WM_operatortype_append(CONSOLE_OT_scrollback_append);
-	
-	WM_operatortype_append(CONSOLE_OT_clear); 
+
+	WM_operatortype_append(CONSOLE_OT_clear);
+	WM_operatortype_append(CONSOLE_OT_clear_line);
 	WM_operatortype_append(CONSOLE_OT_history_cycle);
 	WM_operatortype_append(CONSOLE_OT_copy);
 	WM_operatortype_append(CONSOLE_OT_paste);
@@ -311,6 +312,8 @@ static void console_keymap(struct wmKeyConfig *keyconf)
 
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_delete", DELKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "CONSOLE_OT_delete", BACKSPACEKEY, KM_PRESS, KM_CTRL, 0)->ptr, "type", DEL_PREV_WORD);
+
+	WM_keymap_add_item(keymap, "CONSOLE_OT_clear_line", RETKEY, KM_PRESS, KM_SHIFT, 0);
 
 #ifdef WITH_PYTHON
 	WM_keymap_add_item(keymap, "CONSOLE_OT_execute", RETKEY, KM_PRESS, 0, 0); /* python operator - space_text.py */
