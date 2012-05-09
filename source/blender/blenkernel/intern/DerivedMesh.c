@@ -814,7 +814,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		int numVerts;
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
 
-		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0, 0);
+		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
 		dm = mesh_create_derived(me, ob, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -828,7 +828,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
 		
-		dm = mti->applyModifier(md, ob, tdm, 0, 0);
+		dm = mti->applyModifier(md, ob, tdm, 0);
 
 		if (tdm != dm) tdm->release(tdm);
 	}
@@ -1383,6 +1383,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const int do_mod_wmcol = do_init_wmcol;
 
+	ModifierApplyFlag app_flags = useRenderParams ? MOD_APPLY_RENDER : 0;
+	ModifierApplyFlag deform_app_flags = app_flags;
+    if (useCache)
+		app_flags |= MOD_APPLY_USECACHE;
+    if (useDeform)
+		deform_app_flags |= MOD_APPLY_USECACHE;
+
 	if (mmd && !mmd->sculptlvl)
 		has_multires = 0;
 
@@ -1434,7 +1441,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if (!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
-				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, useRenderParams, useDeform);
+				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, deform_app_flags);
 			}
 			else {
 				break;
@@ -1547,7 +1554,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, useRenderParams, useDeform);
+			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, deform_app_flags);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1622,7 +1629,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams, useCache);
+			ndm = mti->applyModifier(md, ob, dm, app_flags);
 
 			if (ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -1645,7 +1652,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, nextmask | CD_MASK_ORIGINDEX);
-				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
+				ndm = mti->applyModifier(md, ob, orcodm, app_flags & ~MOD_APPLY_USECACHE);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1661,7 +1668,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
-				ndm = mti->applyModifier(md, ob, clothorcodm, useRenderParams, 0);
+				ndm = mti->applyModifier(md, ob, clothorcodm, app_flags & ~MOD_APPLY_USECACHE);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1928,7 +1935,8 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 			if (mti->deformVertsEM)
 				mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
-			else mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
+			else
+				mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1971,7 +1979,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				if (mti->applyModifierEM)
 					ndm = mti->applyModifierEM(md, ob, em, orcodm);
 				else
-					ndm = mti->applyModifier(md, ob, orcodm, 0, 0);
+					ndm = mti->applyModifier(md, ob, orcodm, 0);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1995,7 +2003,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			if (mti->applyModifierEM)
 				ndm = mti->applyModifierEM(md, ob, em, dm);
 			else
-				ndm = mti->applyModifier(md, ob, dm, 0, 0);
+				ndm = mti->applyModifier(md, ob, dm, 0);
 
 			if (ndm) {
 				if (dm && dm != ndm)

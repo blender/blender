@@ -91,14 +91,15 @@ static int isDisabled(ModifierData *md, int useRenderParams)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
-                                  int useRenderParams,
-                                  int isFinalCalc)
+                                  ModifierApplyFlag flag)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	DerivedMesh *result;
+	const int useRenderParams = flag & MOD_APPLY_RENDER;
+	const int isFinalCalc = flag & MOD_APPLY_USECACHE;
 
-	result = subsurf_make_derived_from_derived(derivedData, smd,
-	                                           useRenderParams, NULL, isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
+	result = subsurf_make_derived_from_derived(derivedData, smd, useRenderParams, NULL,
+	                                           isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
 	
 	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm = CDDM_copy(result);

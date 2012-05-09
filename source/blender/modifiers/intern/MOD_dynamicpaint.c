@@ -103,8 +103,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
                                   DerivedMesh *dm,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DynamicPaintModifierData *pmd = (DynamicPaintModifierData *) md;
 

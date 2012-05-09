@@ -542,8 +542,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
 	ArrayModifierData *amd = (ArrayModifierData *) md;
@@ -560,7 +559,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
                                     struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *dm)
 {
-	return applyModifier(md, ob, dm, 0, 1);
+	return applyModifier(md, ob, dm, MOD_APPLY_USECACHE);
 }
 
 
