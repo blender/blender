@@ -519,6 +519,39 @@ void CONSOLE_OT_delete(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "type", console_delete_type_items, DEL_NEXT_CHAR, "Type", "Which part of the text to delete");
 }
 
+static int console_clear_line_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceConsole *sc = CTX_wm_space_console(C);
+	ARegion *ar = CTX_wm_region(C);
+	ConsoleLine *ci = console_history_verify(C);
+
+	if (ci->len == 0) {
+		return OPERATOR_CANCELLED;
+	}
+
+	console_history_add(C, ci);
+	console_history_add(C, NULL);
+
+	console_textview_update_rect(sc, ar);
+
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	console_scroll_bottom(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_clear_line(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Line";
+	ot->description = "Clear the line and store in history";
+	ot->idname = "CONSOLE_OT_clear_line";
+
+	/* api callbacks */
+	ot->exec = console_clear_line_exec;
+	ot->poll = ED_operator_console_active;
+}
 
 /* the python exec operator uses this */
 static int console_clear_exec(bContext *C, wmOperator *op)
@@ -571,7 +604,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
 
-	ConsoleLine *ci = console_history_verify(C); /* TODO - stupid, just prevernts crashes when no command line */
+	ConsoleLine *ci = console_history_verify(C); /* TODO - stupid, just prevents crashes when no command line */
 	short reverse = RNA_boolean_get(op->ptr, "reverse"); /* assumes down, reverse is up */
 	int prev_len = ci->len;
 
@@ -584,7 +617,7 @@ static int console_history_cycle_exec(bContext *C, wmOperator *op)
 			console_history_free(sc, ci_prev);
 	}
 
-	if (reverse) { /* last item in mistory */
+	if (reverse) { /* last item in history */
 		ci = sc->history.last;
 		BLI_remlink(&sc->history, ci);
 		BLI_addhead(&sc->history, ci);
