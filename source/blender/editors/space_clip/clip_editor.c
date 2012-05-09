@@ -456,15 +456,10 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
-		float *frect = NULL, *fscalerect = NULL;
-		unsigned int *rect = NULL, *scalerect = NULL;
 		int need_recreate = 0;
 
 		if (width > GL_MAX_TEXTURE_SIZE || height > GL_MAX_TEXTURE_SIZE)
 			return 0;
-
-		rect = ibuf->rect;
-		frect = ibuf->rect_float;
 
 		/* if image resolution changed (e.g. switched to proxy display) texture need to be recreated */
 		need_recreate = context->image_width != ibuf->x || context->image_height != ibuf->y;
@@ -498,10 +493,13 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 			glBindTexture(GL_TEXTURE_2D, context->texture);
 		}
 
-		if (frect)
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  width, height, 0, GL_RGBA, GL_FLOAT, frect);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		if (ibuf->rect_float) {
+			if (ibuf->rect == NULL)
+				IMB_rect_from_float(ibuf);
+		}
+
+		if (ibuf->rect)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
 		/* store settings */
 		context->texture_allocated = 1;
@@ -509,11 +507,6 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
-
-		if (fscalerect)
-			MEM_freeN(fscalerect);
-		if (scalerect)
-			MEM_freeN(scalerect);
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,
