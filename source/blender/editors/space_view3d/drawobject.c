@@ -2981,7 +2981,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				if ( (BM_elem_flag_test(efa, BM_ELEM_SELECT)) ||
 				     (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT)))
 				{
-					BLI_snprintf(numstr, sizeof(numstr), "%.3g", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
+					BLI_snprintf(numstr, sizeof(numstr), "%.3f", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
 					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
 					view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
 				}
