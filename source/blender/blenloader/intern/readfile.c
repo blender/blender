@@ -6714,10 +6714,15 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			bNodeSocket *old_image = BLI_findlink(&node->inputs, 0);
 			bNodeSocket *old_z = BLI_findlink(&node->inputs, 1);
 			bNodeSocket *sock;
+			char basepath[FILE_MAXDIR];
+			char filename[FILE_MAXFILE];
 			
 			node->storage= nimf;
 			
-			BLI_strncpy(nimf->base_path, old_data->name, sizeof(nimf->base_path));
+			/* split off filename from the old path, to be used as socket sub-path */
+			BLI_split_dirfile(old_data->name, basepath, filename, sizeof(basepath), sizeof(filename));
+			
+			BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
 			nimf->format = old_data->im_format;
 			
 			/* if z buffer is saved, change the image type to multilayer exr.
@@ -6725,21 +6730,32 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			 * i'm just assuming here that IRIZ means IRIS with z buffer ...
 			 */
 			if (ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
+				char sockpath[FILE_MAX];
+				
 				nimf->format.imtype = R_IMF_IMTYPE_MULTILAYER;
-				sock = ntreeCompositOutputFileAddSocket(ntree, node, old_image->name, &nimf->format);
+				
+				BLI_snprintf(sockpath, sizeof(sockpath), "%s_Image", filename);
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
+				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
 				if (old_image->link) {
 					old_image->link->tosock = sock;
 					sock->link = old_image->link;
 				}
-				sock = ntreeCompositOutputFileAddSocket(ntree, node, old_z->name, &nimf->format);
+				
+				BLI_snprintf(sockpath, sizeof(sockpath), "%s_Z", filename);
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, sockpath, &nimf->format);
+				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				BLI_strncpy(sock->name, sockpath, sizeof(sock->name));
 				if (old_z->link) {
 					old_z->link->tosock = sock;
 					sock->link = old_z->link;
 				}
 			}
 			else {
-				/* saves directly to base path, which is the old image output path */
-				sock = ntreeCompositOutputFileAddSocket(ntree, node, "", &nimf->format);
+				sock = ntreeCompositOutputFileAddSocket(ntree, node, filename, &nimf->format);
+				/* XXX later do_versions copies path from socket name, need to set this explicitely */
+				BLI_strncpy(sock->name, filename, sizeof(sock->name));
 				if (old_image->link) {
 					old_image->link->tosock = sock;
 					sock->link = old_image->link;
