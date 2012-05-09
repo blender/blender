@@ -52,7 +52,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 			std::string matid(get_material_id(ma));
 			matid = translate_id(matid);
 			std::ostringstream ostr;
-			ostr << translate_id(id_name(ma)) << a+1;
+			ostr << translate_id(id_name(ma));
 			COLLADASW::InstanceMaterial im(ostr.str(), COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 			
 			// create <bind_vertex_input> for each uv map
