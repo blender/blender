@@ -983,6 +983,8 @@ class VIEW3D_PT_tools_weightpaint(View3DPanel, Panel):
 
         col = layout.column()
         col.active = ob.vertex_groups.active is not None
+        col.operator("object.vertex_group_copy_to_selected", text="Transfer weight All")
+        col.operator("object.vertex_group_copy_to_selected_single", text="Transfer weight")
         col.operator("object.vertex_group_normalize_all", text="Normalize All")
         col.operator("object.vertex_group_normalize", text="Normalize")
         col.operator("object.vertex_group_mirror", text="Mirror")
