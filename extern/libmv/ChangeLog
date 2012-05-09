@@ -1,3 +1,54 @@
+commit b813dbe3f46bbbc7e73ac791d4665622e4fc7ba5
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 9 19:01:10 2012 +0600
+
+    Modal solver: Detect rigid transformation between initial frame and current
+    instead of detecting it between two neighbour frames.
+    
+    This prevents accumulation of error and seems to be working better in footages i've tested.
+
+commit 9254621c76daaf239ec1f535e197ca792eea97b6
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Wed May 9 18:57:00 2012 +0600
+
+    Backport changes made by Keir in Blender:
+    
+    - Enhance logging in libmv's trackers.
+    - Cleanups in brute_region_tracker.cc.
+
+commit d9c56b9d3c63f886d83129ca0ebed1e76d9c93d7
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 27 16:20:41 2012 +0600
+
+    Fixes for MinGW64 support by Caleb Joseph with slight modifications by Antony Riakiotakis
+    
+    - Functions snprintf and sincos shouldn't be redefined for MinGW64
+    - Type  pid_t shouldn't be re-defined for MinGW64
+
+commit e1902b6938676011607ac99986b8b140bdbf090e
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Fri Apr 27 16:04:19 2012 +0600
+
+    Fixes for Qt calibration tool
+    
+    - Passing directory with images via command line argument now isn't
+      required -- it there's no such directory specified  standard open
+      dialog might be used for this (before application used to abort
+      due to accessing to non-existing list element).
+    - Conversion of source images to grayscale now happens correct.
+      It was needed to build grayscale palette for 8bit indexed buffer.
+
+commit 05f1a0a78ad8ff6646d1e8da97e6f7575b891536
+Author: Sergey Sharybin <sergey.vfx@gmail.com>
+Date:   Sat Apr 14 17:21:29 2012 +0600
+
+    Make QtTracker compilable again porting it to recent API change and code cleanup:
+    
+    - It was using SAD tracker with own API, now it's using standard RegionTracker API
+      which should make it easier to switch between different trackers.
+    - Restored LaplaceFilter from old SAD module which convolves images with the
+      discrete laplacian operator.
+
 commit a44312a7beb2963b8e3bf8015c516d2eff40cc3d
 Author: Sergey Sharybin <sergey.vfx@gmail.com>
 Date:   Thu Apr 12 13:56:02 2012 +0600
@@ -503,33 +554,3 @@ Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
 Date:   Fri Aug 19 18:37:48 2011 +0200
 
     Fix CMake build.
-
-commit 2ac7281ff6b9545b425dd84fb03bf9c5c98b4de2
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 17:34:45 2011 +0200
-
-    Avoid symbol shadowing.
-
-commit 2a7c3de4acc60e0433b4952f69e30528dbafe0d2
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 17:22:47 2011 +0200
-
-    Better dragging behavior when hitting borders.
-
-commit a14eb3953c9521b2e08ff9ddd45b33ff1f8aeafb
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 17:12:12 2011 +0200
-
-    Update marker preview to new affine tracking.
-
-commit 5299ea67043459eda147950e589c2d327a8fbced
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 16:05:54 2011 +0200
-
-    sqrt takes double precision.
-
-commit 9f9221ce151d788c49b48f6f293ab2e2f8813978
-Author: Matthias Fauconneau <matthias.fauconneau@gmail.com>
-Date:   Fri Aug 19 16:04:37 2011 +0200
-
-    MSVC compatibility: heap allocate pattern, explicit float cast.

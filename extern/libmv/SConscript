@@ -30,7 +30,7 @@ src += env.Glob('third_party/ldl/Source/*.c')
 src += env.Glob('third_party/ssba/Geometry/*.cpp')
 src += env.Glob('third_party/ssba/Math/*.cpp')
 
-incs = '. ../Eigen3'
+incs = '. ../Eigen3 third_party/ceres/include'
 incs += ' ' + env['BF_PNG_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
@@ -65,3 +65,5 @@ else:
 incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137], compileflags=cflags_libmv, cc_compileflags=ccflags_libmv, cxx_compileflags=cxxflags_libmv )
+
+SConscript(['third_party/SConscript'])

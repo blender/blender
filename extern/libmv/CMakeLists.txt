@@ -32,6 +32,7 @@ set(INC
 	third_party/ssba
 	third_party/ldl/Include
 	../colamd/Include
+	third_party/ceres/include
 )
 
 set(INC_SYS
@@ -250,3 +251,5 @@ add_definitions(
 )
 
 blender_add_lib(extern_libmv "${SRC}" "${INC}" "${INC_SYS}")
+
+add_subdirectory(third_party)
