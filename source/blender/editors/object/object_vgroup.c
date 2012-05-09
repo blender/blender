@@ -376,6 +376,210 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	return 1;
 }
 
+/*Copy a single vertex group from source to destination with weights*/
+int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
+{
+	MDeformVert **dv_array_src;
+	MDeformVert **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	int dv_tot_src, dv_tot_dst;
+	int i, index_src, index_dst;
+	bDeformGroup *dg_src, *dg_dst;
+
+	/*get source deform group*/
+	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*Create new and overwrite vertex group on destination without data*/
+	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+	ED_vgroup_add_name(ob_dst, dg_src->name);
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*Check if indices are matching, delete and return if not*/
+	if (ob_dst == ob_src || dv_tot_dst == 0 || (dv_tot_dst != dv_tot_src) || dv_array_src == NULL || dv_array_dst == NULL) {
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+		return 0;
+	}
+
+	/* Loop through the vertices and copy weight*/
+	for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
+		dw_src= defvert_verify_index(*dv_array_src, index_src);
+		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+		dw_dst->weight= dw_src->weight;
+	}
+
+	return 1;
+}
+
+/*Copy a single vertex group from source to destination with weights by nearest weight*/
+int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
+{
+	bDeformGroup *dg_src, *dg_dst;
+	MDeformVert **dv_array_src, **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	MVert *mv_dst;
+	Mesh *me_dst;
+	BVHTreeFromMesh tree_mesh_src;
+	BVHTreeNearest nearest;
+	DerivedMesh *dmesh_src;
+	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+	float tmp_co[3], tmp_mat[4][4];
+
+	/*get source deform group*/
+	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*Create new and overwrite vertex group on destination without data*/
+	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+	ED_vgroup_add_name(ob_dst, dg_src->name);
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get meshes*/
+	me_dst= ob_dst->data;
+	dmesh_src= ob_src->derivedDeform;
+
+	/*make node tree*/
+	bvhtree_from_mesh_verts(&tree_mesh_src, dmesh_src, 0.0, 2, 6);
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*get vertices*/
+	mv_dst= me_dst->mvert;
+
+	/*Prepearing transformation matrix*/
+	/*This can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
+	invert_m4_m4(ob_src->imat, ob_src->obmat);
+	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
+
+	/* Loop through the vertices and copy weight from nearest weight*/
+	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+
+		/*Reset nearest*/
+		nearest.index= -1;
+		nearest.dist= FLT_MAX;
+
+		/*Transforming into target space*/
+		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
+		/*Node tree accelerated search for closest vetex*/
+		BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+
+		/*copy weight*/
+		dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
+		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+		dw_dst->weight= dw_src->weight;
+	}
+
+	/*free memory and return*/
+	free_bvhtree_from_mesh(&tree_mesh_src);
+	return 1;
+}
+
+/*Copy a single vertex group from source to destination with weights by nearest weight*/
+/*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
+int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
+{
+	bDeformGroup *dg_src, *dg_dst;
+	MDeformVert **dv_array_src, **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	MVert *mv_dst;
+	MFace *mface_src;
+	Mesh *me_dst, *me_src;
+	BVHTreeFromMesh tree_mesh_faces_src;
+	BVHTreeNearest nearest;
+	DerivedMesh *dmesh_src;
+	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+	float weight/*, tot_dist*/;
+
+	/*get source deform group*/
+	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*Create new and overwrite vertex group on destination without data*/
+	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+	ED_vgroup_add_name(ob_dst, dg_src->name);
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get meshes*/
+	me_dst= ob_dst->data;
+	me_src= ob_src->data;
+	dmesh_src= ob_src->derivedDeform; /*sergey- : this might easily be null?? (using ob_src.deriveddeform*/
+
+	/*make node tree*/
+	DM_ensure_tessface(dmesh_src);
+	bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
+
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*get vertices*/
+	mv_dst= me_dst->mvert;
+
+	/* Loop through the vertices and copy weight from nearest weight*/
+	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+
+		/*Reset nearest*/
+		nearest.index= -1;
+		nearest.dist= FLT_MAX;
+
+		/*Node tree accelerated search for closest face*/
+		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+
+		/*get weight*/
+		mface_src= me_src->mface + nearest.index;
+		/*tot_dist= ()+()+(); use a comparable distance
+		if(mface_src->v4){
+			tot_dist+= ();
+		}*/
+		dw_src= defvert_verify_index(dv_array_src[mface_src->v1], index_src);
+		weight= dw_src->weight;
+		dw_src= defvert_verify_index(dv_array_src[mface_src->v2], index_src);
+		weight+= dw_src->weight;
+		dw_src= defvert_verify_index(dv_array_src[mface_src->v3], index_src);
+		weight+= dw_src->weight;
+		if(mface_src->v4){
+			dw_src= defvert_verify_index(dv_array_src[mface_src->v4], index_src);
+			weight+= dw_src->weight;
+			weight/=4;
+		}
+		else{
+			weight/=3;
+		}
+
+
+		/*copy weight*/
+		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+		dw_dst->weight= weight;
+	}
+
+	/*free memory and return*/
+	free_bvhtree_from_mesh(&tree_mesh_faces_src);
+	return 1;
+}
+
 
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
@@ -2758,6 +2962,58 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op)
+{
+	Object *obact= CTX_data_active_object(C);
+	int change= 0;
+	int fail= 0;
+
+	/*Macro to loop through selected objects and perform operation*/
+	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
+	{
+		if(obact != obslc) {
+			/*Try function for matching number of vertices*/
+			if(ED_vgroup_copy_single(obslc, obact)) change++;
+			/*Try function for get weight from closest vertex*/
+			/*TODO: try this function*/
+			/*Try function for get weight from closest face*/
+			else if(ED_vgroup_copy_by_nearest_face_single(obslc, obact)) change++;
+			/*Trigger error message*/
+			else fail++;
+			/*Event notifiers for correct display of data*/
+			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obslc);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obslc->data);
+		}
+	}
+	CTX_DATA_END;
+
+	/*Report error when task can not be completed with available functions.*/
+	if((change == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy to VGroups to Selected warning done %d, failed %d, All functions failed!",
+		            change, fail);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+/*Transfer vertex group with weight to selected*/
+void OBJECT_OT_vertex_group_copy_to_selected_single(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Copy a Vertex Group to Selected";
+	ot->idname= "OBJECT_OT_vertex_group_copy_to_selected_single";
+	ot->description= "Copy a vertex group to other selected objects with matching indices";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_copy_to_selected_single_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static EnumPropertyItem vgroup_items[] = {
