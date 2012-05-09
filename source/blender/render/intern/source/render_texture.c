@@ -476,14 +476,14 @@ static int magic(Tex *tex, float *texvec, TexResult *texres)
 		y/= turb; 
 		z/= turb;
 	}
-	texres->tr= 0.5f-x;
-	texres->tg= 0.5f-y;
-	texres->tb= 0.5f-z;
+	texres->tr = 0.5f - x;
+	texres->tg = 0.5f - y;
+	texres->tb = 0.5f - z;
 
-	texres->tin= 0.3333f*(texres->tr+texres->tg+texres->tb);
+	texres->tin= (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
 	
 	BRICONTRGB;
-	texres->ta= 1.0;
+	texres->ta = 1.0f;
 	
 	return TEX_RGB;
 }
@@ -798,16 +798,10 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 		
 		if (rgbnor & TEX_RGB) {
 			if (pit->version < 6) {
-				texres->tr = pit->result[1];
-				texres->tg = pit->result[2];
-				texres->tb = pit->result[3];
-				texres->ta = pit->result[4];
+				copy_v4_v4(&texres->tr, pit->result + 1);
 			}
 			else {
-				texres->tr = result[1];
-				texres->tg = result[2];
-				texres->tb = result[3];
-				texres->ta = result[4];
+				copy_v4_v4(&texres->tr, result + 1);
 			}
 
 			BRICONTRGB;
@@ -2012,14 +2006,14 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		// use texres for the center sample, set rgbnor
 		rgbnor = multitex_mtex(shi, mtex, STll, dxt, dyt, texres);
-		Hll = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin;
+		Hll = (fromrgb) ? rgb_to_grayscale(&texres->tr) : texres->tin;
 
 		// use ttexr for the other 2 taps
 		multitex_mtex(shi, mtex, STlr, dxt, dyt, &ttexr);
-		Hlr = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hlr = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 
 		multitex_mtex(shi, mtex, STul, dxt, dyt, &ttexr);
-		Hul = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hul = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 
 		dHdx = Hscale*(Hlr - Hll);
 		dHdy = Hscale*(Hul - Hll);
@@ -2050,17 +2044,17 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 
 		// use texres for the center sample, set rgbnor
 		rgbnor = multitex_mtex(shi, mtex, STc, dxt, dyt, texres);
-		/* Hc = (fromrgb)? RGBTOBW(texres->tr, texres->tg, texres->tb) : texres->tin; */ /* UNUSED */
+		/* Hc = (fromrgb) ? rgb_to_grayscale(&texres->tr) : texres->tin; */ /* UNUSED */
 
 		// use ttexr for the other taps
 		multitex_mtex(shi, mtex, STl, dxt, dyt, &ttexr);
-		Hl = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hl = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STr, dxt, dyt, &ttexr);
-		Hr = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hr = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STd, dxt, dyt, &ttexr);
-		Hd = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hd = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 		multitex_mtex(shi, mtex, STu, dxt, dyt, &ttexr);
-		Hu = (fromrgb)? RGBTOBW(ttexr.tr, ttexr.tg, ttexr.tb) : ttexr.tin;
+		Hu = (fromrgb) ? rgb_to_grayscale(&ttexr.tr) : ttexr.tin;
 
 		dHdx = Hscale*(Hr - Hl);
 		dHdy = Hscale*(Hu - Hd);
@@ -2356,8 +2350,8 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			/* texture output */
 
 			if ( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
-				rgbnor-= TEX_RGB;
+				texres.tin = rgb_to_grayscale(&texres.tr);
+				rgbnor -= TEX_RGB;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
 				if (rgbnor & TEX_RGB) {
@@ -2387,9 +2381,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				if ((rgbnor & TEX_NOR)==0) {
 					/* make our own normal */
 					if (rgbnor & TEX_RGB) {
-						texres.nor[0]= texres.tr;
-						texres.nor[1]= texres.tg;
-						texres.nor[2]= texres.tb;
+						copy_v3_v3(texres.nor, &texres.tr);
 					}
 					else {
 						float co_nor= 0.5*cos(texres.tin-0.5f);
@@ -2437,22 +2429,21 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			}
 
 			/* mapping */
-			if (mtex->mapto & (MAP_COL+MAP_COLSPEC+MAP_COLMIR)) {
+			if (mtex->mapto & (MAP_COL | MAP_COLSPEC | MAP_COLMIR)) {
 				float tcol[3];
 				
 				/* stencil maps on the texture control slider, not texture intensity value */
-				
-				tcol[0]=texres.tr; tcol[1]=texres.tg; tcol[2]=texres.tb;
-				
-				if ((rgbnor & TEX_RGB)==0) {
-					tcol[0]= mtex->r;
-					tcol[1]= mtex->g;
-					tcol[2]= mtex->b;
+				copy_v3_v3(tcol, &texres.tr);
+
+				if ((rgbnor & TEX_RGB) == 0) {
+					copy_v3_v3(tcol, &mtex->r);
 				}
 				else if (mtex->mapto & MAP_ALPHA) {
-					texres.tin= stencilTin;
+					texres.tin = stencilTin;
 				}
-				else texres.tin= texres.ta;
+				else {
+					texres.tin = texres.ta;
+				}
 				
 				/* inverse gamma correction */
 				if (tex->type==TEX_IMAGE) {
@@ -2595,7 +2586,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				}
 				
 				if (rgbnor & TEX_RGB) {
-					texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+					texres.tin = rgb_to_grayscale(&texres.tr);
 				}
 
 				factt= (0.5f-texres.tin)*mtex->dispfac*stencilTin; facmm= 1.0f-factt;
@@ -2622,8 +2613,8 @@ void do_material_tex(ShadeInput *shi, Render *re)
 				/* stencil maps on the texture control slider, not texture intensity value */
 				
 				if (rgbnor & TEX_RGB) {
-					if (texres.talpha) texres.tin= texres.ta;
-					else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+					if (texres.talpha) texres.tin = texres.ta;
+					else               texres.tin = rgb_to_grayscale(&texres.tr);
 				}
 
 				if (mtex->mapto & MAP_REF) {
@@ -2777,8 +2768,8 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 			/* texture output */
 
 			if ( (rgbnor & TEX_RGB) && (mtex->texflag & MTEX_RGBTOINT)) {
-				texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
-				rgbnor-= TEX_RGB;
+				texres.tin = rgb_to_grayscale(&texres.tr);
+				rgbnor -= TEX_RGB;
 			}
 			if (mtex->texflag & MTEX_NEGATIVE) {
 				if (rgbnor & TEX_RGB) {
@@ -2807,17 +2798,14 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 				
 				/* stencil maps on the texture control slider, not texture intensity value */
 				
-				if ((rgbnor & TEX_RGB)==0) {
-					tcol[0]= mtex->r;
-					tcol[1]= mtex->g;
-					tcol[2]= mtex->b;
+				if ((rgbnor & TEX_RGB) == 0) {
+					copy_v3_v3(tcol, &mtex->r);
 				}
 				else {
-					tcol[0]=texres.tr;
-					tcol[1]=texres.tg;
-					tcol[2]=texres.tb;
-					if (texres.talpha)
+					copy_v3_v3(tcol, &texres.tr);
+					if (texres.talpha) {
 						texres.tin= texres.ta;
+					}
 				}
 				
 				/* used for emit */
@@ -2843,8 +2831,8 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 				/* convert RGB to intensity if intensity info isn't provided */
 				if (!(rgbnor & TEX_INT)) {
 					if (rgbnor & TEX_RGB) {
-						if (texres.talpha) texres.tin= texres.ta;
-						else texres.tin= (0.35f*texres.tr+0.45f*texres.tg+0.2f*texres.tb);
+						if (texres.talpha)  texres.tin = texres.ta;
+						else                texres.tin = rgb_to_grayscale(&texres.tr);
 					}
 				}
 				

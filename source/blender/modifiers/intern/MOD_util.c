@@ -77,14 +77,15 @@ void get_texture_value(Tex *texture, float *tex_co, TexResult *texres)
 	result_type = multitex_ext_safe(texture, tex_co, texres);
 
 	/* if the texture gave an RGB value, we assume it didn't give a valid
-	 * intensity, so calculate one (formula from do_material_tex).
+	 * intensity, since this is in the context of modifiers don't use perceptual color conversion.
 	 * if the texture didn't give an RGB value, copy the intensity across
 	 */
-	if (result_type & TEX_RGB)
-		texres->tin = (0.35f * texres->tr + 0.45f * texres->tg
-		               + 0.2f * texres->tb);
-	else
-		texres->tr = texres->tg = texres->tb = texres->tin;
+	if (result_type & TEX_RGB) {
+		texres->tin= (1.0f / 3.0f) * (texres->tr + texres->tg + texres->tb);
+	}
+	else {
+		copy_v3_fl(&texres->tr, texres->tin);
+	}
 }
 
 void get_texture_coords(MappingInfoModifierData *dmd, Object *ob,

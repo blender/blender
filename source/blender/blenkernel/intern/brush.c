@@ -1301,14 +1301,12 @@ unsigned int *BKE_brush_gen_texture_cache(Brush *br, int half_side)
 				 * if the texture didn't give an RGB value, copy the intensity across
 				 */
 				if (hasrgb & TEX_RGB)
-					texres.tin = (0.35f * texres.tr + 0.45f *
-					              texres.tg + 0.2f * texres.tb);
+					texres.tin = rgb_to_grayscale(&texres.tr);
 
-				texres.tin = texres.tin * 255.0f;
-				((char *)texcache)[(iy * side + ix) * 4] = (char)texres.tin;
-				((char *)texcache)[(iy * side + ix) * 4 + 1] = (char)texres.tin;
-				((char *)texcache)[(iy * side + ix) * 4 + 2] = (char)texres.tin;
-				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)texres.tin;
+				((char *)texcache)[(iy * side + ix) * 4] =
+				((char *)texcache)[(iy * side + ix) * 4 + 1] =
+				((char *)texcache)[(iy * side + ix) * 4 + 2] =
+				((char *)texcache)[(iy * side + ix) * 4 + 3] = (char)(texres.tin * 255.0f);
 			}
 		}
 	}
