@@ -27,8 +27,8 @@
 
 namespace internal {
 
-static uint32x4_t p4ui_CONJ_XOR = { 0x00000000, 0x80000000, 0x00000000, 0x80000000 };
-static uint32x2_t p2ui_CONJ_XOR = { 0x00000000, 0x80000000 };
+static uint32x4_t p4ui_CONJ_XOR = EIGEN_INIT_NEON_PACKET4(0x00000000, 0x80000000, 0x00000000, 0x80000000);
+static uint32x2_t p2ui_CONJ_XOR = EIGEN_INIT_NEON_PACKET2(0x00000000, 0x80000000);
 
 //---------- float ----------
 struct Packet2cf

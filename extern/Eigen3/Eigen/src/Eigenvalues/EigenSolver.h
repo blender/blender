@@ -291,7 +291,7 @@ template<typename _MatrixType> class EigenSolver
 
     ComputationInfo info() const
     {
-      eigen_assert(m_isInitialized && "ComplexEigenSolver is not initialized.");
+      eigen_assert(m_isInitialized && "EigenSolver is not initialized.");
       return m_realSchur.info();
     }
 
@@ -339,7 +339,7 @@ typename EigenSolver<MatrixType>::EigenvectorsType EigenSolver<MatrixType>::eige
   EigenvectorsType matV(n,n);
   for (Index j=0; j<n; ++j)
   {
-    if (internal::isMuchSmallerThan(internal::imag(m_eivalues.coeff(j)), internal::real(m_eivalues.coeff(j))))
+    if (internal::isMuchSmallerThan(internal::imag(m_eivalues.coeff(j)), internal::real(m_eivalues.coeff(j))) || j+1==n)
     {
       // we have a real eigen value
       matV.col(j) = m_eivec.col(j).template cast<ComplexScalar>();
@@ -570,10 +570,13 @@ void EigenSolver<MatrixType>::doComputeEigenvectors()
 
         }
       }
+      
+      // We handled a pair of complex conjugate eigenvalues, so need to skip them both
+      n--;
     }
     else
     {
-      eigen_assert("Internal bug in EigenSolver"); // this should not happen
+      eigen_assert(0 && "Internal bug in EigenSolver"); // this should not happen
     }
   }
 

@@ -89,7 +89,7 @@ public:
 
   /** Concatenates two rotations */
   inline Rotation2D& operator*=(const Rotation2D& other)
-  { return m_angle += other.m_angle; return *this; }
+  { m_angle += other.m_angle; return *this; }
 
   /** Applies the rotation to a 2D vector */
   Vector2 operator* (const Vector2& vec) const

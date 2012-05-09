@@ -1,3 +1,4 @@
+
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
@@ -28,7 +29,7 @@
 
 #define EIGEN_WORLD_VERSION 3
 #define EIGEN_MAJOR_VERSION 0
-#define EIGEN_MINOR_VERSION 2
+#define EIGEN_MINOR_VERSION 5
 
 #define EIGEN_VERSION_AT_LEAST(x,y,z) (EIGEN_WORLD_VERSION>x || (EIGEN_WORLD_VERSION>=x && \
                                       (EIGEN_MAJOR_VERSION>y || (EIGEN_MAJOR_VERSION>=y && \
@@ -45,7 +46,7 @@
   #define EIGEN_GNUC_AT_MOST(x,y) 0
 #endif
 
-#if EIGEN_GNUC_AT_MOST(4,3)
+#if EIGEN_GNUC_AT_MOST(4,3) && !defined(__clang__)
   // see bug 89
   #define EIGEN_SAFE_TO_USE_STANDARD_ASSERT_MACRO 0
 #else
@@ -130,29 +131,32 @@
 #define EIGEN_MAKESTRING2(a) #a
 #define EIGEN_MAKESTRING(a) EIGEN_MAKESTRING2(a)
 
-// EIGEN_ALWAYS_INLINE_ATTRIB should be use in the declaration of function
-// which should be inlined even in debug mode.
-// FIXME with the always_inline attribute,
-// gcc 3.4.x reports the following compilation error:
-//   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
-//    : function body not available
-#if EIGEN_GNUC_AT_LEAST(4,0)
-#define EIGEN_ALWAYS_INLINE_ATTRIB __attribute__((always_inline))
-#else
-#define EIGEN_ALWAYS_INLINE_ATTRIB
-#endif
-
 #if EIGEN_GNUC_AT_LEAST(4,1) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #define EIGEN_FLATTEN_ATTRIB __attribute__((flatten))
 #else
 #define EIGEN_FLATTEN_ATTRIB
 #endif
 
-// EIGEN_FORCE_INLINE means "inline as much as possible"
+// EIGEN_STRONG_INLINE is a stronger version of the inline, using __forceinline on MSVC,
+// but it still doesn't use GCC's always_inline. This is useful in (common) situations where MSVC needs forceinline
+// but GCC is still doing fine with just inline.
 #if (defined _MSC_VER) || (defined __INTEL_COMPILER)
 #define EIGEN_STRONG_INLINE __forceinline
 #else
 #define EIGEN_STRONG_INLINE inline
+#endif
+
+// EIGEN_ALWAYS_INLINE is the stronget, it has the effect of making the function inline and adding every possible
+// attribute to maximize inlining. This should only be used when really necessary: in particular,
+// it uses __attribute__((always_inline)) on GCC, which most of the time is useless and can severely harm compile times.
+// FIXME with the always_inline attribute,
+// gcc 3.4.x reports the following compilation error:
+//   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
+//    : function body not available
+#if EIGEN_GNUC_AT_LEAST(4,0)
+#define EIGEN_ALWAYS_INLINE __attribute__((always_inline)) inline
+#else
+#define EIGEN_ALWAYS_INLINE EIGEN_STRONG_INLINE
 #endif
 
 #if (defined __GNUC__)
@@ -249,7 +253,7 @@
 #define EIGEN_UNUSED_VARIABLE(var) (void)var;
 
 #if (defined __GNUC__)
-#define EIGEN_ASM_COMMENT(X)  asm("#"X)
+#define EIGEN_ASM_COMMENT(X)  asm("#" X)
 #else
 #define EIGEN_ASM_COMMENT(X)
 #endif
