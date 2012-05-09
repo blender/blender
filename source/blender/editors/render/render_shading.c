@@ -208,7 +208,7 @@ void OBJECT_OT_material_slot_assign(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Assign Material Slot";
 	ot->idname = "OBJECT_OT_material_slot_assign";
-	ot->description = "Assign the material in the selected material slot to the selected vertices";
+	ot->description = "Assign active material to selected faces";
 	
 	/* api callbacks */
 	ot->exec = material_slot_assign_exec;
@@ -292,7 +292,7 @@ void OBJECT_OT_material_slot_select(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Select Material Slot";
 	ot->idname = "OBJECT_OT_material_slot_select";
-	ot->description = "Select vertices assigned to the selected material slot";
+	ot->description = "Select all faces with active material";
 	
 	/* api callbacks */
 	ot->exec = material_slot_select_exec;
@@ -311,7 +311,7 @@ void OBJECT_OT_material_slot_deselect(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Deselect Material Slot";
 	ot->idname = "OBJECT_OT_material_slot_deselect";
-	ot->description = "Deselect vertices assigned to the selected material slot";
+	ot->description = "Deselect all faces with active material";
 	
 	/* api callbacks */
 	ot->exec = material_slot_deselect_exec;
