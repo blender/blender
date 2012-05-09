@@ -312,8 +312,7 @@ static struct ImBuf *do_plugin_effect(
 		if (cp) strncpy(cp, seq->name + 2, sizeof(seq->name) - 2);
 
 		if (seq->plugin->current_private_data) {
-			*seq->plugin->current_private_data 
-			    = seq->plugin->instance_private_data;
+			*seq->plugin->current_private_data = seq->plugin->instance_private_data;
 		}
 
 		float_rendering = (out->rect_float != NULL);
@@ -1094,8 +1093,7 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1),
 		while (x--) {
 
 			*rt = gammaCorrect(
-			    fac1 * invGammaCorrect(*rt1)
-			    + fac2 * invGammaCorrect(*rt2));
+			    fac1 * invGammaCorrect(*rt1) + fac2 * invGammaCorrect(*rt2));
 			rt1++; rt2++; rt++;
 		}
 
@@ -1106,8 +1104,7 @@ static void do_gammacross_effect_float(float facf0, float UNUSED(facf1),
 		while (x--) {
 
 			*rt = gammaCorrect(
-			    fac1 * invGammaCorrect(*rt1)
-			    + fac2 * invGammaCorrect(*rt2));
+			    fac1 * invGammaCorrect(*rt1) + fac2 * invGammaCorrect(*rt2));
 
 			rt1++; rt2++; rt++;
 		}

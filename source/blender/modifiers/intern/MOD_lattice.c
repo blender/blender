@@ -141,8 +141,8 @@ ModifierTypeInfo modifierType_Lattice = {
 	/* structName */        "LatticeModifierData",
 	/* structSize */        sizeof(LatticeModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_SupportsEditmode,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       deformVerts,
 	/* deformMatrices */    NULL,

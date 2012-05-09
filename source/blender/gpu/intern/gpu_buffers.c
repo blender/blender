@@ -1373,7 +1373,7 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 				for (j = 0; j < (f->v4 ? 2 : 1); ++j) {
 					for (k = 0; k < 3; ++k) {
 						*tri_data = face_vert_indices[i][v[k]];
-						++tri_data;
+						tri_data++;
 					}
 					v[0] = 3;
 					v[1] = 0;

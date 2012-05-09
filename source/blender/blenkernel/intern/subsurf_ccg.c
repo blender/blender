@@ -730,8 +730,9 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		int gridInternalEnd;
 
 		i = 0;
-		while (i < lastface && vertNum >= ccgdm->faceMap[i + 1].startVert)
-			++i;
+		while (i < lastface && vertNum >= ccgdm->faceMap[i + 1].startVert) {
+			i++;
+		}
 
 		f = ccgdm->faceMap[i].face;
 		numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -774,8 +775,9 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		int x;
 
 		i = 0;
-		while (i < lastedge && vertNum >= ccgdm->edgeMap[i + 1].startVert)
-			++i;
+		while (i < lastedge && vertNum >= ccgdm->edgeMap[i + 1].startVert) {
+			i++;
+		}
 
 		e = ccgdm->edgeMap[i].edge;
 
@@ -869,8 +871,9 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 #endif
 
 		i = 0;
-		while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge)
-			++i;
+		while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge) {
+			i++;
+		}
 
 		f = ccgdm->faceMap[i].face;
 		/* numVerts = ccgSubSurf_getFaceNumVerts(f); */ /*UNUSED*/
@@ -1144,8 +1147,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 
 		if (edgeFlags) {
 			if (edgeIdx != -1) {
-				flags |= (edgeFlags[index] & (ME_SEAM | ME_SHARP))
-				         | ME_EDGEDRAW | ME_EDGERENDER;
+				flags |= ((edgeFlags[index] & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW | ME_EDGERENDER);
 			}
 		}
 		else {
@@ -3169,10 +3171,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		                    numVerts, vertNum);
 		if (vertOrigIndex) {
 			*vertOrigIndex = ORIGINDEX_NONE;
-			++vertOrigIndex;
+			vertOrigIndex++;
 		}
 
-		++vertNum;
+		vertNum++;
 
 		/*interpolate per-vert data*/
 		for (s = 0; s < numVerts; s++) {
@@ -3183,10 +3185,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 				if (vertOrigIndex) {
 					*vertOrigIndex = ORIGINDEX_NONE;
-					++vertOrigIndex;
+					vertOrigIndex++;
 				}
 
-				++vertNum;
+				vertNum++;
 			}
 		}
 
@@ -3200,10 +3202,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 					if (vertOrigIndex) {
 						*vertOrigIndex = ORIGINDEX_NONE;
-						++vertOrigIndex;
+						vertOrigIndex++;
 					}
 
-					++vertNum;
+					vertNum++;
 				}
 			}
 		}
@@ -3299,9 +3301,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			DM_interp_vert_data(dm, &ccgdm->dm, vertIdx, w, 2, vertNum);
 			if (vertOrigIndex) {
 				*vertOrigIndex = ORIGINDEX_NONE;
-				++vertOrigIndex;
+				vertOrigIndex++;
 			}
-			++vertNum;
+			vertNum++;
 		}
 
 		for (i = 0; i < numFinalEdges; ++i) {
@@ -3339,9 +3341,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 		if (vertOrigIndex) {
 			*vertOrigIndex = mapIndex;
-			++vertOrigIndex;
+			vertOrigIndex++;
 		}
-		++vertNum;
+		vertNum++;
 	}
 
 	ccgdm->dm.numVertData = vertNum;

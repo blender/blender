@@ -485,7 +485,9 @@ void BLI_path_rel(char *file, const char *relfile)
 		while (*p == *q)
 #endif
 		{
-			++p; ++q;
+			p++;
+			q++;
+
 			/* don't search beyond the end of the string
 			 * in the rare case they match */
 			if ((*p=='\0') || (*q=='\0')) {
@@ -513,7 +515,7 @@ void BLI_path_rel(char *file, const char *relfile)
 		while (p && p < lslash)	{
 			if (*p == '/') 
 				strcat(res,	"../");
-			++p;
+			p++;
 		}
 
 		strcat(res, q+1); /* don't copy the slash at the beginning */

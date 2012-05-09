@@ -476,9 +476,9 @@ static int get_levels_from_disps(Object *ob)
 				if (md->totdisp == lvl_totdisp)
 					break;
 				else if (md->totdisp < lvl_totdisp)
-					--totlvl;
+					totlvl--;
 				else
-					++totlvl;
+					totlvl++;
 	
 			}
 			
@@ -764,7 +764,7 @@ void multiresModifier_base_apply(MultiresModifierData *mmd, Object *ob)
 				int vndx = me->mloop[p->loopstart + k].v;
 				if (vndx != i) {
 					add_v3_v3(center, origco[vndx]);
-					++tot;
+					tot++;
 				}
 			}
 		}
@@ -1755,7 +1755,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 	/* Load base verts */
 	for (i = 0; i < lvl1->totvert; ++i) {
 		vvmap[totvert - lvl1->totvert + i] = src;
-		++src;
+		src++;
 	}
 
 	/* Original edges */
@@ -1801,7 +1801,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 			int sides = lvl1->faces[i].v[3] ? 4 : 3;
 
 			lvl = lvl1->next->next;
-			++dst;
+			dst++;
 
 			for (j = 3; j <= mr->level_count; ++j) {
 				int base = multires_side_tot[totlvl - j + 1] - 2;
@@ -1819,7 +1819,7 @@ static void multires_load_old_dm(DerivedMesh *dm, Mesh *me, int totlvl)
 				for (s = 0; s < sides; ++s) {
 					for (x = 0; x < st2; ++x) {
 						vvmap[dst + crossedgelen * (s + 1) - base - x * skip - 1] = lsrc;
-						++lsrc;
+						lsrc++;
 					}
 				}
 

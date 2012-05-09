@@ -317,8 +317,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	if (ENDIAN_ORDER == L_ENDIAN) {
 		int y;
 		for (y = 0; y < height; y++) {
-			uint8_t* target = rgb_frame->data[0]
-				+ width * 4 * (height - y - 1);
+			uint8_t* target = rgb_frame->data[0] + width * 4 * (height - y - 1);
 			uint8_t* src = rendered_frame + width * 4 * y;
 			uint8_t* end = src + width * 4;
 			while (src != end) {
@@ -335,8 +334,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels, ReportList *reports)
 	else {
 		int y;
 		for (y = 0; y < height; y++) {
-			uint8_t* target = rgb_frame->data[0]
-				+ width * 4 * (height - y - 1);
+			uint8_t* target = rgb_frame->data[0] + width * 4 * (height - y - 1);
 			uint8_t* src = rendered_frame + width * 4 * y;
 			uint8_t* end = src + width * 4;
 			while (src != end) {
@@ -488,8 +486,7 @@ static AVStream* alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	c->rc_max_rate = rd->ffcodecdata.rc_max_rate*1000;
 	c->rc_min_rate = rd->ffcodecdata.rc_min_rate*1000;
 	c->rc_buffer_size = rd->ffcodecdata.rc_buffer_size * 1024;
-	c->rc_initial_buffer_occupancy 
-		= rd->ffcodecdata.rc_buffer_size*3/4;
+	c->rc_initial_buffer_occupancy = rd->ffcodecdata.rc_buffer_size * 3 / 4;
 	c->rc_buffer_aggressivity = 1.0;
 	c->me_method = ME_EPZS;
 	
@@ -1110,8 +1107,7 @@ IDProperty *BKE_ffmpeg_property_add(RenderData *rd, const char *type, int opt_in
 	parent = c.av_class->option + parent_index;
 
 	if (!rd->ffcodecdata.properties) {
-		rd->ffcodecdata.properties 
-			= IDP_New(IDP_GROUP, &val, "ffmpeg"); 
+		rd->ffcodecdata.properties = IDP_New(IDP_GROUP, &val, "ffmpeg"); 
 	}
 
 	group = IDP_GetPropertyFromGroup(rd->ffcodecdata.properties, type);

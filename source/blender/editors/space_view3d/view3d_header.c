@@ -431,9 +431,10 @@ static int object_mode_icon(int mode)
 	EnumPropertyItem *item = object_mode_items;
 	
 	while (item->name != NULL) {
-		if (item->value == mode)
+		if (item->value == mode) {
 			return item->icon;
-		++item;
+		}
+		item++;
 	}
 
 	return ICON_OBJECT_DATAMODE;

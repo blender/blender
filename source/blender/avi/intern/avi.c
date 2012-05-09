@@ -966,8 +966,7 @@ AviError AVI_write_frame(AviMovie *movie, int frame_num, ...)
 		temp = (AviIndexEntry *) MEM_mallocN((frame_num + 1) *
 		                                     (movie->header->Streams + 1) * sizeof(AviIndexEntry), "newidxentry");
 		if (movie->entries != NULL) {
-			memcpy(temp, movie->entries, movie->index_entries * (movie->header->Streams + 1)
-			       * sizeof(AviIndexEntry));
+			memcpy(temp, movie->entries, movie->index_entries * (movie->header->Streams + 1) * sizeof(AviIndexEntry));
 			MEM_freeN(movie->entries);
 		}
 

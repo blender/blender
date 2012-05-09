@@ -5500,7 +5500,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 			}
 		}
 
-		++index;
+		index++;
 		nu = nu->next;
 	}
 }
@@ -5529,7 +5529,7 @@ static void drawnurb(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base, 
 				tekenhandlesN_active(nu);
 			tekenhandlesN(nu, 0, hide_handles);
 		}
-		++index;
+		index++;
 	}
 	draw_editnurb(ob, nurb, 0);
 	draw_editnurb(ob, nurb, 1);

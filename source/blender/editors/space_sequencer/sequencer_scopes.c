@@ -275,8 +275,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_byte(ImBuf *ibuf)
 			unsigned char *rgb = src + 4 * (ibuf->x * y + x);
 			for (c = 0; c < 3; c++) {
 				unsigned char *p = tgt;
-				p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1)
-				          + c * sw + x / 3 + 1);
+				p += 4 * (w * ((rgb[c] * (h - 3)) / 255 + 1) +
+				          c * sw + x / 3 + 1);
 
 				scope_put_pixel_single(wtable, p, c);
 				p += 4 * w;
@@ -327,8 +327,8 @@ static ImBuf *make_sep_waveform_view_from_ibuf_float(ImBuf *ibuf)
 
 				CLAMP(v, 0.0f, 1.0f);
 
-				p += 4 * (w * ((int) (v * (h - 3)) + 1)
-				          + c * sw + x / 3 + 1);
+				p += 4 * (w * ((int) (v * (h - 3)) + 1) +
+				          c * sw + x / 3 + 1);
 
 				scope_put_pixel_single(wtable, p, c);
 				p += 4 * w;
@@ -581,8 +581,8 @@ static void vectorscope_put_cross(unsigned char r, unsigned char g,
 	rgb[2] = (float)b / 255.0f;
 	rgb_to_yuv_normalized(rgb, yuv);
 			
-	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-	               + (int) ((yuv[1] * (w - 3) + 1)));
+	p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) +
+	                   (int) ((yuv[1] * (w - 3) + 1)));
 
 	if (r == 0 && g == 0 && b == 0) {
 		r = 255;
@@ -632,8 +632,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_byte(ImBuf *ibuf)
 			rgb[2] = (float)src1[2] / 255.0f;
 			rgb_to_yuv_normalized(rgb, yuv);
 			
-			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-			               + (int) ((yuv[1] * (w - 3) + 1)));
+			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) +
+			                   (int) ((yuv[1] * (w - 3) + 1)));
 			scope_put_pixel(wtable, (unsigned char *)p);
 		}
 	}
@@ -682,8 +682,8 @@ static ImBuf *make_vectorscope_view_from_ibuf_float(ImBuf *ibuf)
 
 			rgb_to_yuv_normalized(rgb, yuv);
 			
-			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) 
-			               + (int) ((yuv[1] * (w - 3) + 1)));
+			p = tgt + 4 * (w * (int) ((yuv[2] * (h - 3) + 1)) +
+			                   (int) ((yuv[1] * (w - 3) + 1)));
 			scope_put_pixel(wtable, (unsigned char *)p);
 		}
 	}

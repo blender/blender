@@ -153,7 +153,7 @@ static float vertarray_size(MVert *mvert, int numVerts, int axis)
 
 	/* find the minimum and maximum coordinates on the desired axis */
 	min_co = max_co = mvert->co[axis];
-	++mvert;
+	mvert++;
 	for (i = 1; i < numVerts; ++i, ++mvert) {
 		if (mvert->co[axis] < min_co) min_co = mvert->co[axis];
 		if (mvert->co[axis] > max_co) max_co = mvert->co[axis];

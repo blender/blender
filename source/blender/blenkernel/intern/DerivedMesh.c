@@ -2666,7 +2666,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 
 							if (is_degenerate == 0) {
 								copy_v2_v2(prev_edge, cur_edge);
-								++i;
+								i++;
 							}
 						}
 					}
@@ -2725,7 +2725,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 								f2x_surf_area = len_v3(norm);
 								fsurf_ratio = f2x_surf_area/f2x_area_uv;	// tri area divided by texture area
 
-								++nr_accumulated;
+								nr_accumulated++;
 								dsum += (double)(fsurf_ratio);
 							}
 						}

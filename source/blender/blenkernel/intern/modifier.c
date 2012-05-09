@@ -96,8 +96,7 @@ ModifierData *modifier_new(int type)
 	BLI_strncpy(md->name, mti->name, sizeof(md->name));
 
 	md->type = type;
-	md->mode = eModifierMode_Realtime
-	           | eModifierMode_Render | eModifierMode_Expanded;
+	md->mode = eModifierMode_Realtime | eModifierMode_Render | eModifierMode_Expanded;
 
 	if (mti->flags & eModifierTypeFlag_EnableInEditmode)
 		md->mode |= eModifierMode_Editmode;
