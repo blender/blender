@@ -2955,35 +2955,45 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
 
-		for (efa = BM_iter_new(&iter, em->bm, BM_FACES_OF_MESH, NULL);
-		     efa; efa = BM_iter_step(&iter))
-		{
-			BMIter liter;
-			BMLoop *loop;
+		BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
+			const int is_face_sel = BM_elem_flag_test(efa, BM_ELEM_SELECT);
 
-			BM_face_calc_center_bounds(efa, vmid);
+			if (is_face_sel || do_moving) {
+				BMIter liter;
+				BMLoop *loop;
+				int cent_ok = FALSE;
 
-			for (loop = BM_iter_new(&liter, em->bm, BM_LOOPS_OF_FACE, efa);
-			     loop; loop = BM_iter_step(&liter))
-			{
-				float v1[3], v2[3], v3[3];
+				BM_ITER_ELEM(loop, &liter, efa, BM_LOOPS_OF_FACE) {
+					if (is_face_sel || (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT))) {
+						/* yes, we should avoid triple matrix multiply every vertex for 'global' */
+						float angle;
 
-				copy_v3_v3(v1, loop->prev->v->co);
-				copy_v3_v3(v2, loop->v->co);
-				copy_v3_v3(v3, loop->next->v->co);
+						/* lazy init center calc */
+						if (cent_ok == FALSE) {
+							BM_face_calc_center_bounds(efa, vmid);
+							cent_ok = TRUE;
+						}
 
-				if (do_global) {
-					mul_mat3_m4_v3(ob->obmat, v1);
-					mul_mat3_m4_v3(ob->obmat, v2);
-					mul_mat3_m4_v3(ob->obmat, v3);
-				}
+						if (do_global) {
+							copy_v3_v3(v1, loop->prev->v->co);
+							copy_v3_v3(v2, loop->v->co);
+							copy_v3_v3(v3, loop->next->v->co);
 
-				if ( (BM_elem_flag_test(efa, BM_ELEM_SELECT)) ||
-				     (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT)))
-				{
-					BLI_snprintf(numstr, sizeof(numstr), "%.3f", RAD2DEGF(angle_v3v3v3(v1, v2, v3)));
-					interp_v3_v3v3(fvec, vmid, v2, 0.8f);
-					view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
+							mul_mat3_m4_v3(ob->obmat, v1);
+							mul_mat3_m4_v3(ob->obmat, v2);
+							mul_mat3_m4_v3(ob->obmat, v3);
+
+							angle = angle_v3v3v3(v1, v2, v3);
+							interp_v3_v3v3(fvec, vmid, v2, 0.8f);
+						}
+						else {
+							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->v->co);
+							interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
+						}
+
+						BLI_snprintf(numstr, sizeof(numstr), "%.3f", RAD2DEGF(angle));
+						view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
+					}
 				}
 			}
 		}
