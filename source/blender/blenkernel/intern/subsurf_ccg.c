@@ -244,7 +244,7 @@ static void get_face_uv_map_vert(UvVertMap *vmap, struct MPoly *mpoly, struct ML
 	int j, nverts = mpoly[fi].totloop;
 
 	for (j = 0; j < nverts; j++) {
-		for (nv = v = get_uv_map_vert(vmap, ml[j].v); v; v = v->next) {
+		for (nv = v = BKE_mesh_uv_vert_map_get_vert(vmap, ml[j].v); v; v = v->next) {
 			if (v->separate)
 				nv = v;
 			if (v->f == fi)
@@ -273,7 +273,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 	float uv[3] = {0.0f, 0.0f, 0.0f}; /* only first 2 values are written into */
 
 	limit[0] = limit[1] = STD_UV_CONNECT_LIMIT;
-	vmap = make_uv_vert_map(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
+	vmap = BKE_mesh_uv_vert_map_make(mpoly, mloop, mloopuv, totface, totvert, 0, limit);
 	if (!vmap)
 		return 0;
 	
@@ -281,16 +281,16 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	/* create vertices */
 	for (i = 0; i < totvert; i++) {
-		if (!get_uv_map_vert(vmap, i))
+		if (!BKE_mesh_uv_vert_map_get_vert(vmap, i))
 			continue;
 
-		for (v = get_uv_map_vert(vmap, i)->next; v; v = v->next)
+		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i)->next; v; v = v->next)
 			if (v->separate)
 				break;
 
 		seam = (v != NULL) || ((mvert + i)->flag & ME_VERT_MERGED);
 
-		for (v = get_uv_map_vert(vmap, i); v; v = v->next) {
+		for (v = BKE_mesh_uv_vert_map_get_vert(vmap, i); v; v = v->next) {
 			if (v->separate) {
 				CCGVert *ssv;
 				int loopid = mpoly[v->f].loopstart + v->tfindex;
@@ -314,7 +314,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		MLoop *ml = mloop + mp->loopstart;
 
 		BLI_array_empty(fverts);
-		BLI_array_growitems(fverts, nverts);
+		BLI_array_grow_items(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 
@@ -350,7 +350,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 		CCGFace *f;
 
 		BLI_array_empty(fverts);
-		BLI_array_growitems(fverts, nverts);
+		BLI_array_grow_items(fverts, nverts);
 
 		get_face_uv_map_vert(vmap, mpoly, ml, i, fverts);
 		ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), nverts, fverts, &f);
@@ -358,7 +358,7 @@ static int ss_sync_from_uv(CCGSubSurf *ss, CCGSubSurf *origss, DerivedMesh *dm, 
 
 	BLI_array_free(fverts);
 
-	free_uv_vert_map(vmap);
+	BKE_mesh_uv_vert_map_free(vmap);
 	ccgSubSurf_processSync(ss);
 
 	return 1;
@@ -583,7 +583,7 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		CCGFace *f;
 
 		BLI_array_empty(fVerts);
-		BLI_array_growitems(fVerts, mp->totloop);
+		BLI_array_grow_items(fVerts, mp->totloop);
 
 		ml = mloop + mp->loopstart;
 		for (j = 0; j < mp->totloop; j++, ml++) {
@@ -730,8 +730,9 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		int gridInternalEnd;
 
 		i = 0;
-		while (i < lastface && vertNum >= ccgdm->faceMap[i + 1].startVert)
-			++i;
+		while (i < lastface && vertNum >= ccgdm->faceMap[i + 1].startVert) {
+			i++;
+		}
 
 		f = ccgdm->faceMap[i].face;
 		numVerts = ccgSubSurf_getFaceNumVerts(f);
@@ -774,8 +775,9 @@ static void ccgDM_getFinalVert(DerivedMesh *dm, int vertNum, MVert *mv)
 		int x;
 
 		i = 0;
-		while (i < lastedge && vertNum >= ccgdm->edgeMap[i + 1].startVert)
-			++i;
+		while (i < lastedge && vertNum >= ccgdm->edgeMap[i + 1].startVert) {
+			i++;
+		}
 
 		e = ccgdm->edgeMap[i].edge;
 
@@ -869,8 +871,9 @@ static void ccgDM_getFinalEdge(DerivedMesh *dm, int edgeNum, MEdge *med)
 #endif
 
 		i = 0;
-		while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge)
-			++i;
+		while (i < lastface && edgeNum >= ccgdm->faceMap[i + 1].startEdge) {
+			i++;
+		}
 
 		f = ccgdm->faceMap[i].face;
 		/* numVerts = ccgSubSurf_getFaceNumVerts(f); */ /*UNUSED*/
@@ -1144,8 +1147,7 @@ static void ccgDM_copyFinalEdgeArray(DerivedMesh *dm, MEdge *medge)
 
 		if (edgeFlags) {
 			if (edgeIdx != -1) {
-				flags |= (edgeFlags[index] & (ME_SEAM | ME_SHARP))
-				         | ME_EDGEDRAW | ME_EDGERENDER;
+				flags |= ((edgeFlags[index] & (ME_SEAM | ME_SHARP)) | ME_EDGEDRAW | ME_EDGERENDER);
 			}
 		}
 		else {
@@ -1718,21 +1720,21 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 #define PASSATTRIB(dx, dy, vert) {                                              \
 	if (attribs.totorco) {                                                      \
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);     \
-		glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);  \
+		glVertexAttrib3fvARB(attribs.orco.gl_index, attribs.orco.array[index]);  \
 	}                                                                           \
 	for (b = 0; b < attribs.tottface; b++) {                                    \
 		MTFace *tf = &attribs.tface[b].array[a];                                \
-		glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);           \
+		glVertexAttrib2fvARB(attribs.tface[b].gl_index, tf->uv[vert]);           \
 	}                                                                           \
 	for (b = 0; b < attribs.totmcol; b++) {                                     \
 		MCol *cp = &attribs.mcol[b].array[a * 4 + vert];                        \
 		GLubyte col[4];                                                         \
 		col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;         \
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);                    \
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, col);                    \
 	}                                                                           \
 	if (attribs.tottang) {                                                      \
 		float *tang = attribs.tang.array[a * 4 + vert];                         \
-		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);                       \
+		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                       \
 	}                                                                           \
 }
 
@@ -1863,27 +1865,27 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm, void (*setMaterial)(void *
 #define PASSATTRIB(dx, dy, vert) {                                              \
 	if (attribs.totorco) {                                                      \
 		index = getFaceIndex(ss, f, S, x + dx, y + dy, edgeSize, gridSize);     \
-		if (attribs.orco.glTexco)                                               \
+		if (attribs.orco.gl_texco)                                               \
 			glTexCoord3fv(attribs.orco.array[index]);                           \
 		else                                                                    \
-			glVertexAttrib3fvARB(attribs.orco.glIndex, attribs.orco.array[index]);  \
+			glVertexAttrib3fvARB(attribs.orco.gl_index, attribs.orco.array[index]);  \
 	}                                                                           \
 	for (b = 0; b < attribs.tottface; b++) {                                    \
 		MTFace *tf = &attribs.tface[b].array[a];                                \
-		if (attribs.tface[b].glTexco)                                           \
+		if (attribs.tface[b].gl_texco)                                           \
 			glTexCoord2fv(tf->uv[vert]);                                        \
 		else                                                                    \
-			glVertexAttrib2fvARB(attribs.tface[b].glIndex, tf->uv[vert]);       \
+			glVertexAttrib2fvARB(attribs.tface[b].gl_index, tf->uv[vert]);       \
 	}                                                                           \
 	for (b = 0; b < attribs.totmcol; b++) {                                     \
 		MCol *cp = &attribs.mcol[b].array[a * 4 + vert];                        \
 		GLubyte col[4];                                                         \
 		col[0] = cp->b; col[1] = cp->g; col[2] = cp->r; col[3] = cp->a;         \
-		glVertexAttrib4ubvARB(attribs.mcol[b].glIndex, col);                    \
+		glVertexAttrib4ubvARB(attribs.mcol[b].gl_index, col);                    \
 	}                                                                           \
 	if (attribs.tottang) {                                                      \
 		float *tang = attribs.tang.array[a * 4 + vert];                         \
-		glVertexAttrib4fvARB(attribs.tang.glIndex, tang);                       \
+		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                       \
 	}                                                                           \
 }
 
@@ -2102,7 +2104,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 				}
 			}
 			else {
-				glShadeModel(GL_FLAT);
+				glShadeModel((cp)? GL_SMOOTH: GL_FLAT);
 				glBegin(GL_QUADS);
 				for (y = 0; y < gridFaces; y++) {
 					for (x = 0; x < gridFaces; x++) {
@@ -2423,7 +2425,9 @@ static void ccgDM_release(DerivedMesh *dm)
 			/* Check that mmd still exists */
 			if (!ccgdm->multires.local_mmd &&
 			    BLI_findindex(&ccgdm->multires.ob->modifiers, ccgdm->multires.mmd) < 0)
+			{
 				ccgdm->multires.mmd = NULL;
+			}
 			
 			if (ccgdm->multires.mmd) {
 				if (ccgdm->multires.modified_flags & MULTIRES_COORDS_MODIFIED)
@@ -3132,8 +3136,6 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		float *w2;
 		int s, x, y;
 		
-		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
-		
 		w = get_ss_weights(&wtable, gridCuts, numVerts);
 
 		ccgdm->faceMap[index].startVert = vertNum;
@@ -3144,17 +3146,19 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		faceFlags->mat_nr = mpoly ? mpoly[origIndex].mat_nr : 0;
 		faceFlags++;
 
+		origIndex = base_polyOrigIndex ? base_polyOrigIndex[origIndex] : origIndex;
+
 		/* set the face base vert */
 		*((int *)ccgSubSurf_getFaceUserData(ss, f)) = vertNum;
 
 		BLI_array_empty(loopidx);
-		BLI_array_growitems(loopidx, numVerts);
+		BLI_array_grow_items(loopidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			loopidx[s] = loopindex++;
 		}
 		
 		BLI_array_empty(vertidx);
-		BLI_array_growitems(vertidx, numVerts);
+		BLI_array_grow_items(vertidx, numVerts);
 		for (s = 0; s < numVerts; s++) {
 			CCGVert *v = ccgSubSurf_getFaceVert(f, s);
 			vertidx[s] = GET_INT_FROM_POINTER(ccgSubSurf_getVertVertHandle(v));
@@ -3167,10 +3171,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 		                    numVerts, vertNum);
 		if (vertOrigIndex) {
 			*vertOrigIndex = ORIGINDEX_NONE;
-			++vertOrigIndex;
+			vertOrigIndex++;
 		}
 
-		++vertNum;
+		vertNum++;
 
 		/*interpolate per-vert data*/
 		for (s = 0; s < numVerts; s++) {
@@ -3181,10 +3185,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 				if (vertOrigIndex) {
 					*vertOrigIndex = ORIGINDEX_NONE;
-					++vertOrigIndex;
+					vertOrigIndex++;
 				}
 
-				++vertNum;
+				vertNum++;
 			}
 		}
 
@@ -3198,10 +3202,10 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 					if (vertOrigIndex) {
 						*vertOrigIndex = ORIGINDEX_NONE;
-						++vertOrigIndex;
+						vertOrigIndex++;
 					}
 
-					++vertNum;
+					vertNum++;
 				}
 			}
 		}
@@ -3297,9 +3301,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 			DM_interp_vert_data(dm, &ccgdm->dm, vertIdx, w, 2, vertNum);
 			if (vertOrigIndex) {
 				*vertOrigIndex = ORIGINDEX_NONE;
-				++vertOrigIndex;
+				vertOrigIndex++;
 			}
-			++vertNum;
+			vertNum++;
 		}
 
 		for (i = 0; i < numFinalEdges; ++i) {
@@ -3337,9 +3341,9 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 
 		if (vertOrigIndex) {
 			*vertOrigIndex = mapIndex;
-			++vertOrigIndex;
+			vertOrigIndex++;
 		}
-		++vertNum;
+		vertNum++;
 	}
 
 	ccgdm->dm.numVertData = vertNum;

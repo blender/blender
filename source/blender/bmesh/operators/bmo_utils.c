@@ -348,7 +348,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 	 * stack (if we use simple function recursion, we'd end up overloading
 	 * the stack on large meshes). */
 
-	BLI_array_growone(fstack);
+	BLI_array_grow_one(fstack);
 	fstack[0] = startf;
 	BMO_elem_flag_enable(bm, startf, FACE_VIS);
 
@@ -382,7 +382,7 @@ void bmo_righthandfaces_exec(BMesh *bm, BMOperator *op)
 					}
 					
 					if (i == maxi) {
-						BLI_array_growone(fstack);
+						BLI_array_grow_one(fstack);
 						maxi++;
 					}
 
@@ -420,7 +420,7 @@ void bmo_vertexsmooth_exec(BMesh *bm, BMOperator *op)
 
 	i = 0;
 	BMO_ITER (v, &siter, bm, op, "verts", BM_VERT) {
-		BLI_array_growone(cos);
+		BLI_array_grow_one(cos);
 		co = cos[i];
 		
 		j  = 0;
@@ -1035,7 +1035,7 @@ void bmo_face_reverseuvs_exec(BMesh *bm, BMOperator *op)
 			int i;
 
 			BLI_array_empty(uvs);
-			BLI_array_growitems(uvs, fs->len);
+			BLI_array_grow_items(uvs, fs->len);
 
 			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				MLoopUV *luv = CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPUV);
@@ -1141,7 +1141,7 @@ void bmo_face_reversecolors_exec(BMesh *bm, BMOperator *op)
 			int i;
 
 			BLI_array_empty(cols);
-			BLI_array_growitems(cols, fs->len);
+			BLI_array_grow_items(cols, fs->len);
 
 			BM_ITER_ELEM_INDEX (lf, &l_iter, fs, BM_LOOPS_OF_FACE, i) {
 				cols[i] = *((MLoopCol *)CustomData_bmesh_get(&bm->ldata, lf->head.data, CD_MLOOPCOL));

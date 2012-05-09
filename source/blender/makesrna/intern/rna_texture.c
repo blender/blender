@@ -92,7 +92,7 @@ EnumPropertyItem blend_type_items[] = {
 	{MTEX_BLEND_VAL, "VALUE", 0, "Value", ""},
 	{MTEX_BLEND_COLOR, "COLOR", 0, "Color", ""},
 	{MTEX_SOFT_LIGHT, "SOFT_LIGHT", 0, "Soft Light", ""},
-	{MTEX_LIN_LIGHT    , "LINEAR_LIGHT", 0, "Linear Light", ""},
+	{MTEX_LIN_LIGHT, "LINEAR_LIGHT", 0, "Linear Light", ""},
 	{0, NULL, 0, NULL, NULL}};
 
 #ifdef RNA_RUNTIME
@@ -134,8 +134,6 @@ static StructRNA *rna_Texture_refine(struct PointerRNA *ptr)
 			return &RNA_MusgraveTexture;
 		case TEX_NOISE:
 			return &RNA_NoiseTexture;
-		case TEX_PLUGIN:
-			return &RNA_PluginTexture;
 		case TEX_POINTDENSITY:
 			return &RNA_PointDensityTexture;
 		case TEX_STUCCI:
@@ -1302,17 +1300,6 @@ static void rna_def_texture_image(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Texture_update");
 }
 
-static void rna_def_texture_plugin(BlenderRNA *brna)
-{
-	StructRNA *srna;
-
-	srna = RNA_def_struct(brna, "PluginTexture", "Texture");
-	RNA_def_struct_ui_text(srna, "Plugin", "External plugin texture");
-	RNA_def_struct_sdna(srna, "Tex");
-
-	/* XXX: todo */
-}
-
 static void rna_def_texture_environment_map(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1571,19 +1558,19 @@ static void rna_def_texture_pointdensity(BlenderRNA *brna)
 	static EnumPropertyItem point_source_items[] = {
 		{TEX_PD_PSYS, "PARTICLE_SYSTEM", 0, "Particle System", "Generate point density from a particle system"},
 		{TEX_PD_OBJECT, "OBJECT", 0, "Object Vertices", "Generate point density from an object's vertices"},
-		/*{TEX_PD_FILE, "FILE", 0 , "File", ""}, */
+		/*{TEX_PD_FILE, "FILE", 0, "File", ""}, */
 		{0, NULL, 0, NULL, NULL}};
 	
 	static EnumPropertyItem particle_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Emit Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Emit Object Space", ""},
-		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0 , "Global Space", ""},
+		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}};
 		
 	static EnumPropertyItem vertice_cache_items[] = {
 		{TEX_PD_OBJECTLOC, "OBJECT_LOCATION", 0, "Object Location", ""},
 		{TEX_PD_OBJECTSPACE, "OBJECT_SPACE", 0, "Object Space", ""},
-		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0 , "Global Space", ""},
+		{TEX_PD_WORLDSPACE, "WORLD_SPACE", 0, "Global Space", ""},
 		{0, NULL, 0, NULL, NULL}};
 
 	static EnumPropertyItem falloff_items[] = {
@@ -2013,7 +2000,6 @@ static void rna_def_texture(BlenderRNA *brna)
 	rna_def_texture_stucci(brna);
 	rna_def_texture_noise(brna);
 	rna_def_texture_image(brna);
-	rna_def_texture_plugin(brna);
 	rna_def_texture_environment_map(brna);
 	rna_def_texture_musgrave(brna);
 	rna_def_texture_voronoi(brna);

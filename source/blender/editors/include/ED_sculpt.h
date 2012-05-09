@@ -42,6 +42,8 @@ void ED_operatortypes_sculpt(void);
 void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
                               struct RegionView3D *rv3d, struct Object *ob);
 void ED_sculpt_force_update(struct bContext *C);
+float *ED_sculpt_get_last_stroke(struct Object *ob);
+int ED_sculpt_minmax(struct bContext *C, float *min, float *max);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);

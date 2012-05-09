@@ -637,10 +637,6 @@ class USERPREF_PT_theme(Panel):
             col.label(text="Tooltip:")
             ui_items_general(col, ui)
 
-            ui = theme.user_interface.wcol_tooltip
-            col.label(text="Tooltip:")
-            ui_items_general(col, ui)
-
             ui = theme.user_interface.wcol_menu_item
             col.label(text="Menu Item:")
             ui_items_general(col, ui)
@@ -785,8 +781,6 @@ class USERPREF_PT_file(Panel):
         sub = col1.column()
         sub.label(text="Fonts:")
         sub.label(text="Textures:")
-        sub.label(text="Texture Plugins:")
-        sub.label(text="Sequence Plugins:")
         sub.label(text="Render Output:")
         sub.label(text="Scripts:")
         sub.label(text="Sounds:")
@@ -797,8 +791,6 @@ class USERPREF_PT_file(Panel):
         sub = col1.column()
         sub.prop(paths, "font_directory", text="")
         sub.prop(paths, "texture_directory", text="")
-        sub.prop(paths, "texture_plugin_directory", text="")
-        sub.prop(paths, "sequence_plugin_directory", text="")
         sub.prop(paths, "render_output_directory", text="")
         sub.prop(paths, "script_directory", text="")
         sub.prop(paths, "sound_directory", text="")

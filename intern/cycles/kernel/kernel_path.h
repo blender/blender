@@ -18,8 +18,9 @@
 
 #include "kernel_differential.h"
 #include "kernel_montecarlo.h"
-#include "kernel_triangle.h"
+#include "kernel_projection.h"
 #include "kernel_object.h"
+#include "kernel_triangle.h"
 #ifdef __QBVH__
 #include "kernel_qbvh.h"
 #else
@@ -223,6 +224,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 	path_radiance_init(&L, kernel_data.film.use_light_pass);
 
+	float min_ray_pdf = FLT_MAX;
 	float ray_pdf = 0.0f;
 	PathState state;
 	int rng_offset = PRNG_BASE_NUM;
@@ -239,13 +241,17 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 			/* eval background shader if nothing hit */
 			if(kernel_data.background.transparent && (state.flag & PATH_RAY_CAMERA)) {
 				L_transparent += average(throughput);
+
+#ifdef __PASSES__
+				if(!(kernel_data.film.pass_flag & PASS_BACKGROUND))
+#endif
+					break;
 			}
+
 #ifdef __BACKGROUND__
-			else {
-				/* sample background shader */
-				float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
-				path_radiance_accum_background(&L, throughput, L_background, state.bounce);
-			}
+			/* sample background shader */
+			float3 L_background = indirect_background(kg, &ray, state.flag, ray_pdf);
+			path_radiance_accum_background(&L, throughput, L_background, state.bounce);
 #endif
 
 			break;
@@ -259,13 +265,34 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);
 
-#ifdef __HOLDOUT__
-		if((sd.flag & SD_HOLDOUT) && (state.flag & PATH_RAY_CAMERA)) {
-			float3 holdout_weight = shader_holdout_eval(kg, &sd);
+		/* blurring of bsdf after bounces, for rays that have a small likelihood
+		   of following this particular path (diffuse, rough glossy) */
+		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
+			float blur_pdf = kernel_data.integrator.filter_glossy*min_ray_pdf;
 
-			if(kernel_data.background.transparent)
+			if(blur_pdf < 1.0f) {
+				float blur_roughness = sqrtf(1.0f - blur_pdf)*0.5f;
+				shader_bsdf_blur(kg, &sd, blur_roughness);
+			}
+		}
+
+		/* holdout */
+#ifdef __HOLDOUT__
+		if((sd.flag & (SD_HOLDOUT|SD_HOLDOUT_MASK)) && (state.flag & PATH_RAY_CAMERA)) {
+			if(kernel_data.background.transparent) {
+				float3 holdout_weight;
+				
+				if(sd.flag & SD_HOLDOUT_MASK)
+					holdout_weight = make_float3(1.0f, 1.0f, 1.0f);
+				else
+					shader_holdout_eval(kg, &sd);
+
 				/* any throughput is ok, should all be identical here */
 				L_transparent += average(holdout_weight*throughput);
+			}
+
+			if(sd.flag & SD_HOLDOUT_MASK)
+				break;
 		}
 #endif
 
@@ -307,6 +334,9 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 				light_ray.P = ray_offset(sd.P, sd.Ng);
 				light_ray.D = ao_D;
 				light_ray.t = kernel_data.background.ao_distance;
+#ifdef __MOTION__
+				light_ray.time = sd.time;
+#endif
 
 				if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
 					float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*kernel_data.background.ao_factor;
@@ -328,6 +358,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 				Ray light_ray;
 				BsdfEval L_light;
 				bool is_lamp;
+
+#ifdef __MOTION__
+				light_ray.time = sd.time;
+#endif
 
 #ifdef __MULTI_LIGHT__
 				/* index -1 means randomly sample from distribution */
@@ -378,8 +412,10 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		path_radiance_bsdf_bounce(&L, &throughput, &bsdf_eval, bsdf_pdf, state.bounce, label);
 
 		/* set labels */
-		if(!(label & LABEL_TRANSPARENT))
+		if(!(label & LABEL_TRANSPARENT)) {
 			ray_pdf = bsdf_pdf;
+			min_ray_pdf = fminf(bsdf_pdf, min_ray_pdf);
+		}
 
 		/* update path state */
 		path_state_next(kg, &state, label);
@@ -394,7 +430,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 	}
 
-	float3 L_sum = path_radiance_sum(&L);
+	float3 L_sum = path_radiance_sum(kg, &L);
 
 #ifdef __CLAMP_SAMPLE__
 	path_radiance_clamp(&L, &L_sum, kernel_data.integrator.sample_clamp);
@@ -430,10 +466,21 @@ __device void kernel_path_trace(KernelGlobals *kg,
 	float lens_u = path_rng(kg, &rng, sample, PRNG_LENS_U);
 	float lens_v = path_rng(kg, &rng, sample, PRNG_LENS_V);
 
-	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, &ray);
+#ifdef __MOTION__
+	float time = path_rng(kg, &rng, sample, PRNG_TIME);
+#else
+	float time = 0.0f;
+#endif
+
+	camera_sample(kg, x, y, filter_u, filter_v, lens_u, lens_v, time, &ray);
 
 	/* integrate */
-	float4 L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	float4 L;
+
+	if (ray.t != 0.f)
+		L = kernel_path_integrate(kg, &rng, sample, ray, buffer);
+	else
+		L = make_float4(0.f, 0.f, 0.f, 0.f);
 
 	/* accumulate result in output buffer */
 	kernel_write_pass_float4(buffer, sample, L);

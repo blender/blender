@@ -386,7 +386,7 @@ public:
 	 */
 	virtual void	SetPolygonOffset(float mult, float add) = 0;
 	
-	virtual	void	DrawDebugLine(const MT_Vector3& from,const MT_Vector3& to,const MT_Vector3& color)=0;
+	virtual	void	DrawDebugLine(const MT_Vector3& from, const MT_Vector3& to, const MT_Vector3& color)=0;
 	virtual	void	DrawDebugCircle(const MT_Vector3& center, const MT_Scalar radius, const MT_Vector3& color,
 									const MT_Vector3& normal, int nsector)=0;
 	virtual	void	FlushDebugShapes()=0;

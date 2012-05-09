@@ -32,7 +32,7 @@ set(INC
 )
 
 set(INC_SYS
-
+	${PTHREADS_INCLUDE_DIRS}
 )
 
 set(SRC

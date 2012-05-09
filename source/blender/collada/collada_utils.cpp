@@ -34,6 +34,7 @@
 
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_math.h"
 
@@ -41,6 +42,7 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_scene.h"
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
@@ -86,7 +88,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	if (is_parent_space) {
 		float mat[4][4];
 		// calc par->obmat
-		where_is_object(sce, par);
+		BKE_object_where_is_calc(sce, par);
 
 		// move child obmat into world space
 		mult_m4_m4m4(mat, par->obmat, ob->obmat);
@@ -94,10 +96,10 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	}
 	
 	// apply child obmat (i.e. decompose it into rot/loc/size)
-	object_apply_mat4(ob, ob->obmat, 0, 0);
+	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 
 	// compute parentinv
-	what_does_parent(sce, ob, &workob);
+	BKE_object_workob_calc_parent(sce, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
 
 	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
@@ -108,5 +110,18 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 
 	return true;
+}
+
+Object *bc_add_object(Scene *scene, int type, const char *name)
+{
+	Object *ob = BKE_object_add_only_object(type, name);
+
+	ob->data= BKE_object_obdata_add_from_type(type);
+	ob->lay= scene->lay;
+	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+
+	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
+
+	return ob;
 }
 

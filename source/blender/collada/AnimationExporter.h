@@ -96,7 +96,7 @@ public:
 protected:
 	const ExportSettings *export_settings;
 
-	void dae_animation(Object* ob, FCurve *fcu, char* transformName , bool is_param, Material *ma = NULL);
+	void dae_animation(Object* ob, FCurve *fcu, char* transformName, bool is_param, Material *ma = NULL);
 
 	void write_bone_animation_matrix(Object *ob_arm, Bone *bone);
 
@@ -116,7 +116,7 @@ protected:
 	// (blend this into dae_bone_animation)
 	void dae_bone_animation(std::vector<float> &fra, float *v, int tm_type, int axis, std::string ob_name, std::string bone_name);
 	
-	void dae_baked_animation(std::vector<float> &fra, Object *ob_arm , Bone *bone);
+	void dae_baked_animation(std::vector<float> &fra, Object *ob_arm, Bone *bone);
 
 	float convert_time(float frame);
 
@@ -125,7 +125,7 @@ protected:
 	std::string get_semantic_suffix(COLLADASW::InputSemantic::Semantics semantic);	
 
 	void add_source_parameters(COLLADASW::SourceBase::ParameterNameList& param,
-							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis , bool transform);
+							   COLLADASW::InputSemantic::Semantics semantic, bool is_rot, const char *axis, bool transform);
 	
 	void get_source_values(BezTriple *bezt, COLLADASW::InputSemantic::Semantics semantic, bool rotation, float *values, int *length);
 	
@@ -139,7 +139,7 @@ protected:
 
 	std::string create_xyz_source(float *v, int tot, const std::string& anim_id);
 
-	std::string create_4x4_source(std::vector<float> &frames , Object * ob_arm, Bone *bone , const std::string& anim_id);
+	std::string create_4x4_source(std::vector<float> &frames, Object * ob_arm, Bone *bone, const std::string& anim_id);
 
 	std::string create_interpolation_source(FCurve *fcu, const std::string& anim_id, const char *axis_name, bool *has_tangents);
 
@@ -161,5 +161,5 @@ protected:
 	
 	char* extract_transform_name(char *rna_path);
 
-	std::string getObjectBoneName ( Object *ob,const FCurve * fcu);
+	std::string getObjectBoneName(Object *ob, const FCurve * fcu);
 };

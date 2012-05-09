@@ -199,17 +199,17 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
 			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
-			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
+			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length: 0.0;
 		}
 		else {
 			int mdx, mdy;
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
-			distance = (length != 0.0f)? (mdx*dx + mdy*dy) / length: 0.0f;
+			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length: 0.0;
 		}
 
-		output[0] = (float)((length != 0.0f)? distance / length: 0.0f);
+		output[0] = (length != 0.0) ? (double)(distance / length) : 0.0f;
 	}
 }
 
@@ -229,8 +229,9 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	double *angle = mi->data;
 
 	/* use doubles here, to make sure a "1.0" (no rotation) doesnt become 9.999999e-01, which gives 0.02 for acos */
-	double deler = ((dx1*dx1+dy1*dy1)+(dx2*dx2+dy2*dy2)-(dx3*dx3+dy3*dy3))
-		/ (2.0 * ((A*B)?(A*B):1.0));
+	double deler = (((dx1 * dx1 + dy1 * dy1) +
+	                 (dx2 * dx2 + dy2 * dy2) -
+	                 (dx3 * dx3 + dy3 * dy3)) / (2.0 * ((A * B) ? (A * B) : 1.0)));
 	/* ((A*B)?(A*B):1.0) this takes care of potential divide by zero errors */
 
 	float dphi;
@@ -290,15 +291,12 @@ void initMouseInput(TransInfo *UNUSED(t), MouseInput *mi, int center[2], int mva
 
 static void calcSpringFactor(MouseInput *mi)
 {
-	mi->factor = (float)sqrt(
-		(
-			((float)(mi->center[1] - mi->imval[1]))*((float)(mi->center[1] - mi->imval[1]))
-		+
-			((float)(mi->center[0] - mi->imval[0]))*((float)(mi->center[0] - mi->imval[0]))
-		) );
+	mi->factor = sqrtf(((float)(mi->center[1] - mi->imval[1])) * ((float)(mi->center[1] - mi->imval[1])) +
+	                   ((float)(mi->center[0] - mi->imval[0])) * ((float)(mi->center[0] - mi->imval[0])));
 
-	if (mi->factor==0.0f)
+	if (mi->factor == 0.0f) {
 		mi->factor= 1.0f; /* prevent Inf */
+	}
 }
 
 void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
@@ -313,8 +311,7 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 	}
 #endif
 
-	switch(mode)
-	{
+	switch (mode) {
 	case INPUT_VECTOR:
 		mi->apply = InputVector;
 		t->helpline = HLP_NONE;
@@ -391,8 +388,7 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 {
 	int redraw = TREDRAW_NOTHING;
 
-	switch (event->type)
-	{
+	switch (event->type) {
 	case LEFTSHIFTKEY:
 	case RIGHTSHIFTKEY:
 		if (event->val == KM_PRESS) {

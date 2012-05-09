@@ -91,14 +91,14 @@ typedef struct ScanFillFace
 } ScanFillFace;
 
 /* scanfill.c: used in displist only... */
-struct ScanFillVert *BLI_addfillvert(ScanFillContext *sf_ctx, const float vec[3]);
-struct ScanFillEdge *BLI_addfilledge(ScanFillContext *sf_ctx, struct ScanFillVert *v1, struct ScanFillVert *v2);
+struct ScanFillVert *BLI_scanfill_vert_add(ScanFillContext *sf_ctx, const float vec[3]);
+struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, struct ScanFillVert *v1, struct ScanFillVert *v2);
 
-int BLI_begin_edgefill(ScanFillContext *sf_ctx);
-int BLI_edgefill(ScanFillContext *sf_ctx, const short do_quad_tri_speedup);
-int BLI_edgefill_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup,
+int BLI_scanfill_begin(ScanFillContext *sf_ctx);
+int BLI_scanfill_calc(ScanFillContext *sf_ctx, const short do_quad_tri_speedup);
+int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup,
                     const float nor_proj[3]);
-void BLI_end_edgefill(ScanFillContext *sf_ctx);
+void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 /* These callbacks are needed to make the lib finction properly */
 

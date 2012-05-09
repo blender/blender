@@ -643,37 +643,37 @@ void generate_preview(void *data, bNode *node, CompBuf *stackbuf)
 
 void do_rgba_to_yuva(bNode *UNUSED(node), float *out, float *in)
 {
-	rgb_to_yuv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	rgb_to_yuv(in[0], in[1], in[2], &out[0], &out[1], &out[2]);
 	out[3]=in[3];
 }
 
 void do_rgba_to_hsva(bNode *UNUSED(node), float *out, float *in)
 {
-	rgb_to_hsv(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	rgb_to_hsv(in[0], in[1], in[2], &out[0], &out[1], &out[2]);
 	out[3]=in[3];
 }
 
 void do_rgba_to_ycca(bNode *UNUSED(node), float *out, float *in)
 {
-	rgb_to_ycc(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	rgb_to_ycc(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
 
 void do_yuva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-	yuv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	yuv_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2]);
 	out[3]=in[3];
 }
 
 void do_hsva_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-	hsv_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2]);
+	hsv_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2]);
 	out[3]=in[3];
 }
 
 void do_ycca_to_rgba(bNode *UNUSED(node), float *out, float *in)
 {
-	ycc_to_rgb(in[0],in[1],in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
+	ycc_to_rgb(in[0], in[1], in[2], &out[0], &out[1], &out[2], BLI_YCC_ITU_BT601);
 	out[3]=in[3];
 }
 
@@ -884,8 +884,9 @@ static void FHT2D(fREAL *data, unsigned int Mx, unsigned int My,
 			#define PRED(k) (((k & Nym) << Mx) + (k >> My))
 			for (j=PRED(i); j>i; j=PRED(j));
 			if (j < i) continue;
-			for (k=i, j=PRED(i); j!=i; k=j, j=PRED(j), stm--)
-				{ t=data[j], data[j]=data[k], data[k]=t; }
+			for (k=i, j=PRED(i); j!=i; k=j, j=PRED(j), stm--) {
+				t=data[j], data[j]=data[k], data[k]=t;
+			}
 			#undef PRED
 			stm--;
 		}
@@ -1108,7 +1109,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 		float bc[4];
 		src->rect_procedural(src, bc, (float)x/(float)src->xrad, (float)y/(float)src->yrad);
 
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1118,7 +1119,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 	}
 	else if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=bc[3]; 
 			case CB_VEC3: col[2]=bc[2];
@@ -1127,7 +1128,7 @@ void qd_getPixel(CompBuf* src, int x, int y, float* col)
 		}
 	}
 	else {
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: col[3]=0.0; 
 			case CB_VEC3: col[2]=0.0; 
@@ -1142,7 +1143,7 @@ void qd_setPixel(CompBuf* src, int x, int y, float* col)
 {
 	if ((x >= 0) && (x < src->x) && (y >= 0) && (y < src->y)) {
 		float* bc = &src->rect[(x + y*src->x)*src->type];
-		switch(src->type) {
+		switch (src->type) {
 			/* these fallthrough to get all the channels */
 			case CB_RGBA: bc[3]=col[3]; 
 			case CB_VEC3: bc[2]=col[2];
@@ -1199,7 +1200,7 @@ void qd_getPixelLerp(CompBuf* src, float u, float v, float* col)
 	const int x1 = (int)ufl, y1 = (int)vfl;
 	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
 	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
-		const float B[4] = {0,0,0,0};
+		const float B[4] = {0, 0, 0, 0};
 		const int ox1 = (x1 < 0), oy1 = (y1 < 0), ox2 = (x2 >= src->x), oy2 = (y2 >= src->y);
 		const float* c00 = (ox1 || oy1) ? B : &src->rect[(x1 + y1*src->x)*src->type];
 		const float* c10 = (ox2 || oy1) ? B : &src->rect[(x2 + y1*src->x)*src->type];
@@ -1225,7 +1226,7 @@ void qd_getPixelLerpChan(CompBuf* src, float u, float v, int chan, float* out)
 	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
 	if (chan >= src->type) chan = 0;
 	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
-		const float B[4] = {0,0,0,0};
+		const float B[4] = {0, 0, 0, 0};
 		const int ox1 = (x1 < 0), oy1 = (y1 < 0), ox2 = (x2 >= src->x), oy2 = (y2 >= src->y);
 		const float* c00 = (ox1 || oy1) ? B : &src->rect[(x1 + y1*src->x)*src->type + chan];
 		const float* c10 = (ox2 || oy1) ? B : &src->rect[(x2 + y1*src->x)*src->type + chan];

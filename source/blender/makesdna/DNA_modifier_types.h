@@ -898,7 +898,7 @@ typedef struct WeightVGEditModifierData {
 typedef struct WeightVGMixModifierData {
 	ModifierData modifier;
 
-	/* XXX Note: I tried to keep everything logically ordered – provided the
+	/* XXX Note: I tried to keep everything logically ordered - provided the
 	 *           alignment constraints... */
 
 	char	defgrp_name_a[64];      /* Name of vertex group to modify/weight. MAX_VGROUP_NAME. */

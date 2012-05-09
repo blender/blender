@@ -82,7 +82,7 @@ enum {
 
 static void do_file_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	switch(event) {
+	switch (event) {
 		case B_FS_FILENAME:
 			file_filename_exec(C, NULL);
 			break;
@@ -279,7 +279,7 @@ static int get_file_icon(struct direntry *file)
 static void file_draw_icon(uiBlock *block, char *path, int sx, int sy, int icon, int width, int height)
 {
 	uiBut *but;
-	int x,y;
+	int x, y;
 	/*float alpha=1.0f;*/
 	
 	x = sx;
@@ -301,7 +301,7 @@ static void file_draw_string(int sx, int sy, const char* string, float width, in
 
 	fs.align = align;
 
-	BLI_strncpy(fname,string, FILE_MAXFILE);
+	BLI_strncpy(fname, string, FILE_MAXFILE);
 	file_shorten_string(fname, width + 1.0f, 0);
 
 	/* no text clipping needed, uiStyleFontDraw does it but is a bit too strict (for buttons it works) */
@@ -417,8 +417,7 @@ static void draw_background(FileLayout *layout, View2D *v2d)
 	int sy;
 
 	/* alternating flat shade background */
-	for (i=0; (i <= layout->rows); i+=2)
-	{
+	for (i=0; (i <= layout->rows); i+=2) {
 		sy = (int)v2d->cur.ymax - i*(layout->tile_h+2*layout->tile_border_y) - layout->tile_border_y;
 
 		UI_ThemeColorShade(TH_BACK, -7);
@@ -490,8 +489,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 
 	align = ( FILE_IMGDISPLAY == params->display) ? UI_STYLE_TEXT_CENTER : UI_STYLE_TEXT_LEFT;
 
-	for (i=offset; (i < numfiles) && (i<offset+numfiles_layout); ++i)
-	{
+	for (i = offset; (i < numfiles) && (i<offset+numfiles_layout); i++) {
 		ED_fileselect_layout_tilepos(layout, i, &sx, &sy);
 		sx += (int)(v2d->tot.xmin+2.0f);
 		sy = (int)(v2d->tot.ymax - sy);
@@ -514,7 +512,7 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			is_icon = 0;
 			imb = filelist_getimage(files, i);
 			if (!imb) {
-				imb = filelist_geticon(files,i);
+				imb = filelist_geticon(files, i);
 				is_icon = 1;
 			}
 			
@@ -528,8 +526,8 @@ void file_draw_list(const bContext *C, ARegion *ar)
 		UI_ThemeColor4(TH_TEXT);
 
 		if (file->selflag & EDITING_FILE) {
-			uiBut *but = uiDefBut(block, TEX, 1, "", sx , sy-layout->tile_h-3, 
-				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit),0,0,"");
+			uiBut *but = uiDefBut(block, TEX, 1, "", sx, sy-layout->tile_h-3,
+				textwidth, textheight, sfile->params->renameedit, 1.0f, (float)sizeof(sfile->params->renameedit), 0, 0, "");
 			uiButSetRenameFunc(but, renamebutton_cb, file);
 			uiButSetFlag(but, UI_BUT_NO_UTF8); /* allow non utf8 names */
 			uiButClearFlag(but, UI_BUT_UNDO);
@@ -564,14 +562,14 @@ void file_draw_list(const bContext *C, ARegion *ar)
 			file_draw_string(sx, sy, file->mode3, layout->column_widths[COLUMN_MODE3], layout->tile_h, align);
 			sx += layout->column_widths[COLUMN_MODE3] + 12;
 
-			file_draw_string(sx, sy, file->owner, layout->column_widths[COLUMN_OWNER] , layout->tile_h, align);
+			file_draw_string(sx, sy, file->owner, layout->column_widths[COLUMN_OWNER], layout->tile_h, align);
 			sx += layout->column_widths[COLUMN_OWNER] + 12;
 #endif
 
 			file_draw_string(sx, sy, file->date, layout->column_widths[COLUMN_DATE], layout->tile_h, align);
 			sx += (int)layout->column_widths[COLUMN_DATE] + 12;
 
-			file_draw_string(sx, sy, file->time, layout->column_widths[COLUMN_TIME] , layout->tile_h, align); 
+			file_draw_string(sx, sy, file->time, layout->column_widths[COLUMN_TIME], layout->tile_h, align);
 			sx += (int)layout->column_widths[COLUMN_TIME] + 12;
 
 			if (!(file->type & S_IFDIR)) {

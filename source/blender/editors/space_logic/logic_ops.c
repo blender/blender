@@ -198,7 +198,7 @@ static int edit_actuator_invoke_properties(bContext *C, wmOperator *op)
 		bActuator *act = ptr.data;
 		Object *ob = ptr.id.data;
 		
-		RNA_string_set(op->ptr, "actuator",act->name);
+		RNA_string_set(op->ptr, "actuator", act->name);
 		RNA_string_set(op->ptr, "object", ob->id.name+2);
 		return 1;
 	}

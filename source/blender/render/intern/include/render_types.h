@@ -525,13 +525,13 @@ typedef struct LampRen {
 	float shdwr, shdwg, shdwb;
 	float energy, haint;
 	int lay;
-	float spotsi,spotbl;
+	float spotsi, spotbl;
 	float vec[3];
 	float xsp, ysp, distkw, inpr;
 	float halokw, halo;
 	
 	short falloff_type;
-	float ld1,ld2;
+	float ld1, ld2;
 	struct CurveMapping *curfalloff;
 
 	/* copied from Lamp, to decouple more rendering stuff */

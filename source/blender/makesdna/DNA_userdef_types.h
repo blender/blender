@@ -205,7 +205,7 @@ typedef struct ThemeSpace {
 	char grid[4]; 
 	
 	char wire[4], select[4];
-	char lamp[4], speaker[4], empty[4],camera[4], pad[8];
+	char lamp[4], speaker[4], empty[4], camera[4], pad[8];
 	char active[4], group[4], group_active[4], transform[4];
 	char vertex[4], vertex_select[4];
 	char edge[4], edge_select[4];
@@ -376,13 +376,13 @@ typedef struct UserDef {
 	short tb_leftmouse, tb_rightmouse;
 	struct SolidLight light[3];
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
-	short textimeout,texcollectrate;
+	short textimeout, texcollectrate;
 	short wmdrawmethod; /* removed wmpad */
 	short dragthreshold;
 	int memcachelimit;
 	int prefetchframes;
 	short frameserverport;
-	short pad_rot_angle;	/*control the rotation step of the view when PAD2,PAD4,PAD6&PAD8 is use*/
+	short pad_rot_angle;	/*control the rotation step of the view when PAD2, PAD4, PAD6&PAD8 is use*/
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */

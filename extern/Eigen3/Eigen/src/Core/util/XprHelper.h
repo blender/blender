@@ -125,10 +125,9 @@ class compute_matrix_flags
       aligned_bit =
       (
             ((Options&DontAlign)==0)
-        &&  packet_traits<Scalar>::Vectorizable
         && (
 #if EIGEN_ALIGN_STATICALLY
-             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows) % packet_traits<Scalar>::size) == 0))
+             ((!is_dynamic_size_storage) && (((MaxCols*MaxRows*int(sizeof(Scalar))) % 16) == 0))
 #else
              0
 #endif

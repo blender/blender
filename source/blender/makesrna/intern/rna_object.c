@@ -164,7 +164,7 @@ static void rna_Object_internal_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 static void rna_Object_matrix_world_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	/* don't use compat so we get predictable rotation */
-	object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
+	BKE_object_apply_mat4(ptr->id.data, ((Object *)ptr->id.data)->obmat, FALSE, TRUE);
 	rna_Object_internal_update(bmain, scene, ptr);
 }
 
@@ -199,19 +199,19 @@ static void rna_Object_matrix_local_set(PointerRNA *ptr, const float values[16])
 	}
 
 	/* don't use compat so we get predictable rotation */
-	object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, ob->obmat, FALSE, FALSE);
 }
 
 static void rna_Object_matrix_basis_get(PointerRNA *ptr, float values[16])
 {
 	Object *ob = ptr->id.data;
-	object_to_mat4(ob, (float(*)[4])values);
+	BKE_object_to_mat4(ob, (float(*)[4])values);
 }
 
 static void rna_Object_matrix_basis_set(PointerRNA *ptr, const float values[16])
 {
 	Object *ob = ptr->id.data;
-	object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
+	BKE_object_apply_mat4(ob, (float(*)[4])values, FALSE, FALSE);
 }
 
 void rna_Object_internal_update_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -263,7 +263,7 @@ static void rna_Object_select_update(Main *UNUSED(bmain), Scene *scene, PointerR
 	if (scene) {
 		Object *ob = (Object*)ptr->id.data;
 		short mode = ob->flag & SELECT ? BA_SELECT : BA_DESELECT;
-		ED_base_object_select(object_in_scene(ob, scene), mode);
+		ED_base_object_select(BKE_scene_base_find(scene, ob), mode);
 	}
 }
 
@@ -298,7 +298,7 @@ static void rna_Object_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	Object *ob = (Object*)ptr->id.data;
 	Base *base;
 
-	base = scene ? object_in_scene(ob, scene) : NULL;
+	base = scene ? BKE_scene_base_find(scene, ob) : NULL;
 	if (!base)
 		return;
 	
@@ -353,9 +353,9 @@ static void rna_Object_data_set(PointerRNA *ptr, PointerRNA value)
 		test_object_materials(id);
 
 		if (GS(id->name) == ID_CU)
-			test_curve_type(ob);
+			BKE_curve_type_test(ob);
 		else if (ob->type == OB_ARMATURE)
-			armature_rebuild_pose(ob, ob->data);
+			BKE_pose_rebuild(ob, ob->data);
 	}
 }
 
@@ -383,8 +383,14 @@ static void rna_Object_parent_set(PointerRNA *ptr, PointerRNA value)
 {
 	Object *ob = (Object*)ptr->data;
 	Object *par = (Object*)value.data;
-
-	ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+	
+#ifdef FREE_WINDOWS
+	/* NOTE: this dummy check here prevents this method causing weird runtime errors on mingw 4.6.2 */
+	if (ob)
+#endif
+	{
+		ED_object_parent(ob, par, ob->partype, ob->parsubstr);
+	}
 }
 
 static void rna_Object_parent_type_set(PointerRNA *ptr, int value)
@@ -708,13 +714,13 @@ static void rna_Object_rotation_mode_set(PointerRNA *ptr, int value)
 static void rna_Object_dimensions_get(PointerRNA *ptr, float *value)
 {
 	Object *ob = ptr->data;
-	object_get_dimensions(ob, value);
+	BKE_object_dimensions_get(ob, value);
 }
 
 static void rna_Object_dimensions_set(PointerRNA *ptr, const float *value)
 {
 	Object *ob = ptr->data;
-	object_set_dimensions(ob, value);
+	BKE_object_dimensions_set(ob, value);
 }
 
 static int rna_Object_location_editable(PointerRNA *ptr, int index)
@@ -909,9 +915,9 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 
 	switch (ob->body_type) {
 	case OB_BODY_TYPE_SENSOR:
-		ob->gameflag |= OB_SENSOR|OB_COLLISION|OB_GHOST;
-		ob->gameflag &= ~(OB_OCCLUDER|OB_DYNAMIC|OB_RIGID_BODY|OB_SOFT_BODY|OB_ACTOR|OB_ANISOTROPIC_FRICTION
-		                  |OB_DO_FH|OB_ROT_FH|OB_COLLISION_RESPONSE|OB_NAVMESH);
+		ob->gameflag |= OB_SENSOR | OB_COLLISION | OB_GHOST;
+		ob->gameflag &= ~(OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
+		                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
 		break;
 	case OB_BODY_TYPE_OCCLUDER:
 		ob->gameflag |= OB_OCCLUDER;
@@ -1202,7 +1208,7 @@ static void rna_Object_modifier_clear(Object *object, bContext *C)
 static void rna_Object_boundbox_get(PointerRNA *ptr, float *values)
 {
 	Object *ob = (Object*)ptr->id.data;
-	BoundBox *bb = object_get_boundbox(ob);
+	BoundBox *bb = BKE_object_boundbox_get(ob);
 	if (bb) {
 		memcpy(values, bb->vec, sizeof(bb->vec));
 	}
@@ -1888,9 +1894,9 @@ static void rna_def_object(BlenderRNA *brna)
 		                     "Axis Angle (W+XYZ), defines a rotation around some axis defined by 3D-Vector"},
 		{0, NULL, 0, NULL, NULL}};
 	
-	static float default_quat[4] = {1,0,0,0};	/* default quaternion values */
-	static float default_axisAngle[4] = {0,0,1,0};	/* default axis-angle rotation values */
-	static float default_scale[3] = {1,1,1}; /* default scale values */
+	static float default_quat[4] = {1, 0, 0, 0};	/* default quaternion values */
+	static float default_axisAngle[4] = {0, 0, 1, 0};	/* default axis-angle rotation values */
+	static float default_scale[3] = {1, 1, 1}; /* default scale values */
 	static int boundbox_dimsize[] = {8, 3};
 
 	srna = RNA_def_struct(brna, "Object", "ID");

@@ -240,7 +240,7 @@ void wm_event_do_notifiers(bContext *C)
 		if (do_anim) {
 
 			/* XXX, quick frame changes can cause a crash if framechange and rendering
-			 * collide (happens on slow scenes), scene_update_for_newframe can be called
+			 * collide (happens on slow scenes), BKE_scene_update_for_newframe can be called
 			 * twice which can depgraph update the same object at once */
 			if (!G.rendering) {
 
@@ -311,7 +311,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
-			scene_update_tagged(bmain, win->screen->scene);
+			BKE_scene_update_tagged(bmain, win->screen->scene);
 		}
 	}
 
@@ -691,7 +691,7 @@ static wmOperator *wm_operator_create(wmWindowManager *wm, wmOperatorType *ot, P
 		if (properties) {
 			otmacro = ot->macro.first;
 
-			RNA_STRUCT_BEGIN(properties, prop)
+			RNA_STRUCT_BEGIN (properties, prop)
 			{
 
 				if (otmacro == NULL)
@@ -747,6 +747,7 @@ static void wm_region_mouse_co(bContext *C, wmEvent *event)
 	}
 }
 
+#if 1 /* disabling for 2.63 release, since we keep getting reports some menu items are leaving props undefined */
 int WM_operator_last_properties_init(wmOperator *op)
 {
 	int change = FALSE;
@@ -760,7 +761,8 @@ int WM_operator_last_properties_init(wmOperator *op)
 
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop) {
+		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
+		{
 			PropertyRNA *prop = itemptr.data;
 			if ((RNA_property_flag(prop) & PROP_SKIP_SAVE) == 0) {
 				if (!RNA_property_is_set(op->ptr, prop)) { /* don't override a setting already set */
@@ -804,6 +806,20 @@ int WM_operator_last_properties_store(wmOperator *op)
 		return FALSE;
 	}
 }
+
+#else
+
+int WM_operator_last_properties_init(wmOperator *UNUSED(op))
+{
+	return FALSE;
+}
+
+int WM_operator_last_properties_store(wmOperator *UNUSED(op))
+{
+	return FALSE;
+}
+
+#endif
 
 static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, PointerRNA *properties, ReportList *reports, short poll_only)
 {

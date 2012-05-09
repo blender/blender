@@ -30,6 +30,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <structmember.h>
 
 #include <KX_GameObject.h>
+#include <KX_Light.h>
 #include <RAS_MeshObject.h>
 #include <DNA_mesh_types.h>
 #include <DNA_meshdata_types.h>
@@ -59,6 +60,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 // Blender GameObject type
 BlendType<KX_GameObject> gameObjectType ("KX_GameObject");
+BlendType<KX_LightObject> lightObjectType ("KX_LightObject");
 
 
 // load texture
@@ -103,6 +105,16 @@ RAS_IPolyMaterial * getMaterial (PyObject *obj, short matID)
 	}
 	// otherwise material was not found
 	return NULL;
+}
+
+// get pointer to a lamp
+KX_LightObject * getLamp(PyObject *obj)
+{
+	// if object is available
+	if (obj == NULL) return NULL;
+
+	// returns NULL if obj is not a KX_LightObject
+	return lightObjectType.checkType(obj);
 }
 
 
@@ -206,6 +218,7 @@ int Texture_init (Texture *self, PyObject *args, PyObject *kwds)
 		{
 			// get pointer to texture image
 			RAS_IPolyMaterial * mat = getMaterial(obj, matID);
+			KX_LightObject * lamp = getLamp(obj);
 			if (mat != NULL)
 			{
 				// is it blender material or polygon material
@@ -227,6 +240,12 @@ int Texture_init (Texture *self, PyObject *args, PyObject *kwds)
 					self->m_useMatTexture = false;
 				}
 			}
+			else if (lamp != NULL)
+			{
+				self->m_imgTexture = lamp->GetTextureImage(texID);
+				self->m_useMatTexture = false;
+			}
+
 			// check if texture is available, if not, initialization failed
 			if (self->m_imgTexture == NULL && self->m_matTexture == NULL)
 				// throw exception if initialization failed

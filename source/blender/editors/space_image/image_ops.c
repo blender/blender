@@ -190,13 +190,14 @@ int space_image_main_area_poll(bContext *C)
 	return 0;
 }
 
-/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode */
+/* For IMAGE_OT_curves_point_set to avoid sampling when in uv smooth mode or editmode */
 int space_image_main_area_not_uv_brush_poll(bContext *C)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
+	Scene *scene = CTX_data_scene(C);
+	ToolSettings *toolsettings = scene->toolsettings;
 
-	ToolSettings *toolsettings = CTX_data_scene(C)->toolsettings;
-	if (sima && !toolsettings->uvsculpt)
+	if (sima && !toolsettings->uvsculpt && !scene->obedit)
 		return 1;
 
 	return 0;
@@ -333,6 +334,7 @@ void IMAGE_OT_view_pan(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Pan";
 	ot->idname = "IMAGE_OT_view_pan";
+	ot->description = "Pan the view";
 	
 	/* api callbacks */
 	ot->exec = image_view_pan_exec;
@@ -470,6 +472,7 @@ void IMAGE_OT_view_zoom(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom";
 	ot->idname = "IMAGE_OT_view_zoom";
+	ot->description = "Zoom in/out the image";
 	
 	/* api callbacks */
 	ot->exec = image_view_zoom_exec;
@@ -538,6 +541,7 @@ void IMAGE_OT_view_ndof(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "NDOF Pan/Zoom";
 	ot->idname = "IMAGE_OT_view_ndof";
+	ot->description = "Use a 3D mouse device to pan/zoom the view";
 	
 	/* api callbacks */
 	ot->invoke = image_view_ndof_invoke;
@@ -591,6 +595,7 @@ void IMAGE_OT_view_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View All";
 	ot->idname = "IMAGE_OT_view_all";
+	ot->description = "View the whole picture";
 	
 	/* api callbacks */
 	ot->exec = image_view_all_exec;
@@ -652,6 +657,7 @@ void IMAGE_OT_view_selected(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Center";
 	ot->idname = "IMAGE_OT_view_selected";
+	ot->description = "View all selected UVs";
 	
 	/* api callbacks */
 	ot->exec = image_view_selected_exec;
@@ -691,6 +697,7 @@ void IMAGE_OT_view_zoom_in(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom In";
 	ot->idname = "IMAGE_OT_view_zoom_in";
+	ot->description = "Zoom in the image (centered around 2D cursor)";
 	
 	/* api callbacks */
 	ot->invoke = image_view_zoom_in_invoke;
@@ -732,6 +739,7 @@ void IMAGE_OT_view_zoom_out(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom Out";
 	ot->idname = "IMAGE_OT_view_zoom_out";
+	ot->description = "Zoom out the image (centered around 2D cursor)";
 	
 	/* api callbacks */
 	ot->invoke = image_view_zoom_out_invoke;
@@ -774,6 +782,7 @@ void IMAGE_OT_view_zoom_ratio(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "View Zoom Ratio";
 	ot->idname = "IMAGE_OT_view_zoom_ratio";
+	ot->description = "Set zoom ration of the view";
 	
 	/* api callbacks */
 	ot->exec = image_view_zoom_ratio_exec;
@@ -824,7 +833,7 @@ static int image_open_exec(bContext *C, wmOperator *op)
 
 	errno = 0;
 
-	ima = BKE_add_image_file(str);
+	ima = BKE_image_load_exists(str);
 
 	if (!ima) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -977,6 +986,7 @@ void IMAGE_OT_replace(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Replace Image";
 	ot->idname = "IMAGE_OT_replace";
+	ot->description = "Replace current image by another one from disk";
 	
 	/* api callbacks */
 	ot->exec = image_replace_exec;
@@ -1140,7 +1150,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			/* TODO, better solution, if a 24bit image is painted onto it may contain alpha */
 			if (ibuf->userflags & IB_BITMAPDIRTY) { /* it has been painted onto */
 				/* checks each pixel, not ideal */
-				ibuf->planes = BKE_alphatest_ibuf(ibuf) ? 32 : 24;
+				ibuf->planes = BKE_imbuf_alpha_test(ibuf) ? 32 : 24;
 			}
 		}
 		
@@ -1157,7 +1167,7 @@ static void save_image_doit(bContext *C, SpaceImage *sima, wmOperator *op, SaveI
 			BKE_image_release_renderresult(scene, ima);
 		}
 		else {
-			if (BKE_write_ibuf_as(ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
+			if (BKE_imbuf_write_as(ibuf, simopts->filepath, &simopts->im_format, save_copy)) {
 				ok = TRUE;
 			}
 		}
@@ -1315,6 +1325,7 @@ void IMAGE_OT_save_as(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Save As Image";
 	ot->idname = "IMAGE_OT_save_as";
+	ot->description = "Save the image with another name and/or settings";
 	
 	/* api callbacks */
 	ot->exec = image_save_as_exec;
@@ -1361,6 +1372,7 @@ void IMAGE_OT_save(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Save Image";
 	ot->idname = "IMAGE_OT_save";
+	ot->description = "Save the image with current name and settings";
 	
 	/* api callbacks */
 	ot->exec = image_save_exec;
@@ -1438,6 +1450,7 @@ void IMAGE_OT_save_sequence(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Save Sequence";
 	ot->idname = "IMAGE_OT_save_sequence";
+	ot->description = "Save a sequence of images";
 	
 	/* api callbacks */
 	ot->exec = image_save_sequence_exec;
@@ -1473,6 +1486,7 @@ void IMAGE_OT_reload(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Reload Image";
 	ot->idname = "IMAGE_OT_reload";
+	ot->description = "Reload current image from disk";
 	
 	/* api callbacks */
 	ot->exec = image_reload_exec;
@@ -1514,7 +1528,7 @@ static int image_new_exec(bContext *C, wmOperator *op)
 	if (!alpha)
 		color[3] = 1.0f;
 
-	ima = BKE_add_image_size(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
+	ima = BKE_image_add_generated(width, height, name, alpha ? 32 : 24, floatbuf, uvtestgrid, color);
 
 	if (!ima)
 		return OPERATOR_CANCELLED;
@@ -1645,6 +1659,7 @@ void IMAGE_OT_invert(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Invert Channels";
 	ot->idname = "IMAGE_OT_invert";
+	ot->description = "Invert image's channels";
 	
 	/* api callbacks */
 	ot->exec = image_invert_exec;
@@ -2020,6 +2035,7 @@ void IMAGE_OT_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sample Color";
 	ot->idname = "IMAGE_OT_sample";
+	ot->description = "Use mouse to sample a color in current image";
 	
 	/* api callbacks */
 	ot->invoke = image_sample_invoke;
@@ -2129,6 +2145,7 @@ void IMAGE_OT_sample_line(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sample Line";
 	ot->idname = "IMAGE_OT_sample_line";
+	ot->description = "Sample a line and show it in Scope panels";
 	
 	/* api callbacks */
 	ot->invoke = image_sample_line_invoke;
@@ -2156,6 +2173,7 @@ void IMAGE_OT_curves_point_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Curves Point";
 	ot->idname = "IMAGE_OT_curves_point_set";
+	ot->description = "Set black point or white point for curves";
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -2361,6 +2379,7 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Cycle Render Slot";
 	ot->idname = "IMAGE_OT_cycle_render_slot";
+	ot->description = "Cycle through all non-void render slots";
 	
 	/* api callbacks */
 	ot->exec = image_cycle_render_slot_exec;
@@ -2389,7 +2408,7 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 		if (tex->type == TEX_IMAGE && tex->ima) {
 			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_frame(&tex->iuser, cfra, 0);
+					BKE_image_user_frame_calc(&tex->iuser, cfra, 0);
 			}
 		}
 	}
@@ -2404,12 +2423,12 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 					BGpic *bgpic;
 					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
 						if (bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_calc_frame(&bgpic->iuser, cfra, 0);
+							BKE_image_user_frame_calc(&bgpic->iuser, cfra, 0);
 				}
 				else if (sa->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = sa->spacedata.first;
 					if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_calc_frame(&sima->iuser, cfra, 0);
+						BKE_image_user_frame_calc(&sima->iuser, cfra, 0);
 				}
 				else if (sa->spacetype == SPACE_NODE) {
 					SpaceNode *snode = sa->spacedata.first;
@@ -2421,7 +2440,7 @@ void ED_image_update_frame(const Main *mainp, int cfra)
 								ImageUser *iuser = node->storage;
 								if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
 									if (iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_calc_frame(iuser, cfra, 0);
+										BKE_image_user_frame_calc(iuser, cfra, 0);
 							}
 						}
 					}

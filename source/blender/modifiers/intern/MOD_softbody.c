@@ -45,11 +45,11 @@
 #include "MOD_modifiertypes.h"
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *UNUSED(derivedData),
-						float (*vertexCos)[3],
-						int numVerts,
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *UNUSED(derivedData),
+                        float (*vertexCos)[3],
+                        int numVerts,
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }
@@ -65,9 +65,9 @@ ModifierTypeInfo modifierType_Softbody = {
 	/* structName */        "SoftbodyModifierData",
 	/* structSize */        sizeof(SoftbodyModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsCVs
-							| eModifierTypeFlag_RequiresOriginalData
-							| eModifierTypeFlag_Single,
+	/* flags */             eModifierTypeFlag_AcceptsCVs |
+	                        eModifierTypeFlag_RequiresOriginalData |
+	                        eModifierTypeFlag_Single,
 
 	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,

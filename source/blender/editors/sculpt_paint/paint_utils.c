@@ -186,7 +186,7 @@ float paint_get_tex_pixel(Brush *br, float u, float v)
 	hasrgb = multitex_ext(br->mtex.tex, co, NULL, NULL, 0, &texres);
 
 	if (hasrgb & TEX_RGB)
-		texres.tin = (0.35f * texres.tr + 0.45f * texres.tg + 0.2f * texres.tb) * texres.ta;
+		texres.tin = rgb_to_grayscale(&texres.tr) * texres.ta;
 
 	return texres.tin;
 }
@@ -358,7 +358,7 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)    /* frontbuf 
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
 	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
-	brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
+	BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;
 }

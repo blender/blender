@@ -48,82 +48,82 @@ struct Object;
 typedef struct TreeElement {
 	struct TreeElement *next, *prev, *parent;
 	ListBase subtree;
-	float xs, ys;		// do selection
-	int store_index;	// offset in tree store
-	short flag;			// flag for non-saved stuff
-	short index;		// index for data arrays
-	short idcode;		// from TreeStore id
-	short xend;			// width of item display, for select
+	float xs, ys;       // do selection
+	int store_index;    // offset in tree store
+	short flag;         // flag for non-saved stuff
+	short index;        // index for data arrays
+	short idcode;       // from TreeStore id
+	short xend;         // width of item display, for select
 	const char *name;
-	void *directdata;	// Armature Bones, Base, Sequence, Strip...
-	PointerRNA rnaptr;	// RNA Pointer
+	void *directdata;   // Armature Bones, Base, Sequence, Strip...
+	PointerRNA rnaptr;  // RNA Pointer
 }  TreeElement;
 
 /* TreeElement->flag */
-#define TE_ACTIVE		1
-#define TE_ICONROW		2
-#define TE_LAZY_CLOSED	4
-#define TE_FREE_NAME	8
+#define TE_ACTIVE       1
+#define TE_ICONROW      2
+#define TE_LAZY_CLOSED  4
+#define TE_FREE_NAME    8
 
 /* TreeStoreElem types */
-#define TSE_NLA				1	
-#define TSE_NLA_ACTION		2
-#define TSE_DEFGROUP_BASE	3
-#define TSE_DEFGROUP		4
-#define TSE_BONE			5
-#define TSE_EBONE			6
-#define TSE_CONSTRAINT_BASE	7
-#define TSE_CONSTRAINT		8
-#define TSE_MODIFIER_BASE	9
-#define TSE_MODIFIER		10
-#define TSE_LINKED_OB		11
-#define TSE_SCRIPT_BASE		12
-#define TSE_POSE_BASE		13
-#define TSE_POSE_CHANNEL	14
-#define TSE_ANIM_DATA		15
-#define TSE_DRIVER_BASE		16
-#define TSE_DRIVER			17
+#define TSE_NLA             1
+#define TSE_NLA_ACTION      2
+#define TSE_DEFGROUP_BASE   3
+#define TSE_DEFGROUP        4
+#define TSE_BONE            5
+#define TSE_EBONE           6
+#define TSE_CONSTRAINT_BASE 7
+#define TSE_CONSTRAINT      8
+#define TSE_MODIFIER_BASE   9
+#define TSE_MODIFIER        10
+#define TSE_LINKED_OB       11
+#define TSE_SCRIPT_BASE     12
+#define TSE_POSE_BASE       13
+#define TSE_POSE_CHANNEL    14
+#define TSE_ANIM_DATA       15
+#define TSE_DRIVER_BASE     16
+#define TSE_DRIVER          17
 
-#define TSE_PROXY			18
-#define TSE_R_LAYER_BASE	19
-#define TSE_R_LAYER			20
-#define TSE_R_PASS			21
-#define TSE_LINKED_MAT		22
+#define TSE_PROXY           18
+#define TSE_R_LAYER_BASE    19
+#define TSE_R_LAYER         20
+#define TSE_R_PASS          21
+#define TSE_LINKED_MAT      22
 /* NOTE, is used for light group */
-#define TSE_LINKED_LAMP		23
-#define TSE_POSEGRP_BASE	24
-#define TSE_POSEGRP			25
-#define TSE_SEQUENCE		26
-#define TSE_SEQ_STRIP		27
-#define TSE_SEQUENCE_DUP	28
+#define TSE_LINKED_LAMP     23
+#define TSE_POSEGRP_BASE    24
+#define TSE_POSEGRP         25
+#define TSE_SEQUENCE        26
+#define TSE_SEQ_STRIP       27
+#define TSE_SEQUENCE_DUP    28
 #define TSE_LINKED_PSYS     29
-#define TSE_RNA_STRUCT		30
-#define TSE_RNA_PROPERTY	31
-#define TSE_RNA_ARRAY_ELEM	32
-#define TSE_NLA_TRACK		33
-#define TSE_KEYMAP			34
-#define TSE_KEYMAP_ITEM		35
+#define TSE_RNA_STRUCT      30
+#define TSE_RNA_PROPERTY    31
+#define TSE_RNA_ARRAY_ELEM  32
+#define TSE_NLA_TRACK       33
+#define TSE_KEYMAP          34
+#define TSE_KEYMAP_ITEM     35
 
 /* button events */
-#define OL_NAMEBUTTON		1
+#define OL_NAMEBUTTON       1
 
 /* get TreeStoreElem associated with a TreeElement 
  * < a: (TreeElement) tree element to find stored element for
  */
-#define TREESTORE(a) ((a)?soops->treestore->data+(a)->store_index:NULL)
+#define TREESTORE(a) ((a) ? soops->treestore->data + (a)->store_index : NULL)
 
 /* size constants */
-#define OL_Y_OFFSET	2
+#define OL_Y_OFFSET 2
 
-#define OL_TOG_RESTRICT_VIEWX	(UI_UNIT_X*3)
-#define OL_TOG_RESTRICT_SELECTX	(UI_UNIT_X*2)
-#define OL_TOG_RESTRICT_RENDERX	UI_UNIT_X
+#define OL_TOG_RESTRICT_VIEWX   (UI_UNIT_X * 3)
+#define OL_TOG_RESTRICT_SELECTX (UI_UNIT_X * 2)
+#define OL_TOG_RESTRICT_RENDERX UI_UNIT_X
 
 #define OL_TOGW OL_TOG_RESTRICT_VIEWX
 
-#define OL_RNA_COLX			(UI_UNIT_X*15)
-#define OL_RNA_COL_SIZEX	(UI_UNIT_X*7.5f)
-#define OL_RNA_COL_SPACEX	(UI_UNIT_X*2.5f)
+#define OL_RNA_COLX         (UI_UNIT_X * 15)
+#define OL_RNA_COL_SIZEX    (UI_UNIT_X * 7.5f)
+#define OL_RNA_COL_SPACEX   (UI_UNIT_X * 2.5f)
 
 
 /* Outliner Searching --
@@ -145,7 +145,7 @@ typedef struct TreeElement {
 #define SEARCHING_OUTLINER(sov)   (sov->search_flags & SO_SEARCH_RECURSIVE)
 
 /* is the currrent element open? if so we also show children */
-#define TSELEM_OPEN(telm,sv)	( (telm->flag & TSE_CLOSED)==0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)) )
+#define TSELEM_OPEN(telm, sv)    ( (telm->flag & TSE_CLOSED) == 0 || (SEARCHING_OUTLINER(sv) && (telm->flag & TSE_CHILDSEARCH)) )
 
 /* outliner_tree.c ----------------------------------------------- */
 
@@ -170,7 +170,7 @@ int tree_element_active(struct bContext *C, struct Scene *scene, SpaceOops *soop
 /* outliner_edit.c ---------------------------------------------- */
 
 void outliner_do_object_operation(struct bContext *C, struct Scene *scene, struct SpaceOops *soops, struct ListBase *lb, 
-								  void (*operation_cb)(struct bContext *C, struct Scene *scene, struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *));
+                                  void (*operation_cb)(struct bContext *C, struct Scene *scene, struct TreeElement *, struct TreeStoreElem *, TreeStoreElem *));
 
 int common_restrict_check(struct bContext *C, struct Object *ob);
 

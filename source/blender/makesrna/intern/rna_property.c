@@ -109,7 +109,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 
 	/* Base Struct for GameProperty */
 	srna = RNA_def_struct(brna, "GameProperty", NULL);
-	RNA_def_struct_ui_text(srna , "Game Property", "Game engine user defined object property");
+	RNA_def_struct_ui_text(srna, "Game Property", "Game engine user defined object property");
 	RNA_def_struct_sdna(srna, "bProperty");
 	RNA_def_struct_refine_func(srna, "rna_GameProperty_refine");
 
@@ -132,7 +132,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 
 	/* GameBooleanProperty */
 	srna = RNA_def_struct(brna, "GameBooleanProperty", "GameProperty");
-	RNA_def_struct_ui_text(srna , "Game Boolean Property", "Game engine user defined Boolean property");
+	RNA_def_struct_ui_text(srna, "Game Boolean Property", "Game engine user defined Boolean property");
 	RNA_def_struct_sdna(srna, "bProperty");
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
@@ -143,7 +143,7 @@ void RNA_def_gameproperty(BlenderRNA *brna)
 
 	/* GameIntProperty */
 	srna = RNA_def_struct(brna, "GameIntProperty", "GameProperty");
-	RNA_def_struct_ui_text(srna , "Game Integer Property", "Game engine user defined integer number property");
+	RNA_def_struct_ui_text(srna, "Game Integer Property", "Game engine user defined integer number property");
 	RNA_def_struct_sdna(srna, "bProperty");
 
 	prop = RNA_def_property(srna, "value", PROP_INT, PROP_NONE);

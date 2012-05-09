@@ -40,10 +40,10 @@ struct Object;
 struct bAction;
 struct Scene;
 
-void		free_group_objects(struct Group *group);
-void		unlink_group(struct Group *group);
+void		BKE_group_free(struct Group *group);
+void		BKE_group_unlink(struct Group *group);
 struct Group *add_group(const char *name);
-struct Group *copy_group(struct Group *group);
+struct Group *BKE_group_copy(struct Group *group);
 int			add_to_group(struct Group *group, struct Object *ob, struct Scene *scene, struct Base *base);
 int			rem_from_group(struct Group *group, struct Object *ob, struct Scene *scene, struct Base *base);
 struct Group *find_group(struct Object *ob, struct Group *group);

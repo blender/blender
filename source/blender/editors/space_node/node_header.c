@@ -201,7 +201,7 @@ static void node_add_menu(bContext *C, uiLayout *layout, void *arg_nodeclass)
 	}
 
 	if (ntree->type == NTREE_SHADER) {
-		if (scene_use_new_shading_nodes(scene))
+		if (BKE_scene_use_new_shading_nodes(scene))
 			compatibility= NODE_NEW_SHADING;
 		else
 			compatibility= NODE_OLD_SHADING;

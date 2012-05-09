@@ -190,7 +190,7 @@ class DATA_PT_sunsky(DataButtonsPanel, Panel):
 
 class DATA_PT_shadow(DataButtonsPanel, Panel):
     bl_label = "Shadow"
-    COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
+    COMPAT_ENGINES = {'BLENDER_RENDER'}
 
     @classmethod
     def poll(cls, context):

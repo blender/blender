@@ -37,6 +37,7 @@ static bNodeSocketTemplate sh_node_light_path_out[]= {
 	{	SOCK_FLOAT, 0, "Is Singular Ray",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, "Is Reflection Ray",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_FLOAT, 0, "Is Transmission Ray",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, "Ray Length",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

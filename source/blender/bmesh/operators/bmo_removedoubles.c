@@ -147,7 +147,7 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 		BM_elem_index_set(f, 0); /* set_dirty! */
 		BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
 			if (BMO_elem_flag_test(bm, l->v, ELE_DEL)) {
-				BMO_elem_flag_enable(bm, f, FACE_MARK|ELE_DEL);
+				BMO_elem_flag_enable(bm, f, FACE_MARK | ELE_DEL);
 			}
 			if (BMO_elem_flag_test(bm, l->e, EDGE_COL)) {
 				BM_elem_index_set(f, BM_elem_index_get(f) + 1); /* set_dirty! */
@@ -191,8 +191,8 @@ void bmo_weldverts_exec(BMesh *bm, BMOperator *op)
 					continue;
 				}
 
-				BLI_array_growone(edges);
-				BLI_array_growone(loops);
+				BLI_array_grow_one(edges);
+				BLI_array_grow_one(loops);
 
 				edges[a] = e2;
 				loops[a] = l;
@@ -393,7 +393,7 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 
 		INIT_MINMAX(min, max);
 		for (tot = 0; e; tot++, e = BMW_step(&walker)) {
-			BLI_array_growone(edges);
+			BLI_array_grow_one(edges);
 			edges[tot] = e;
 
 			DO_MINMAX(e->v1->co, min, max);
@@ -454,7 +454,7 @@ static void bmo_collapsecon_do_layer(BMesh *bm, BMOperator *op, int layer)
 
 				CustomData_data_initminmax(type, &min, &max);
 				for (tot = 0; l2; tot++, l2 = BMW_step(&walker)) {
-					BLI_array_growone(blocks);
+					BLI_array_grow_one(blocks);
 					blocks[tot] = CustomData_bmesh_get_layer_n(&bm->ldata, l2->head.data, layer);
 					CustomData_data_dominmax(type, blocks[tot], &min, &max);
 				}
@@ -501,7 +501,7 @@ void bmesh_finddoubles_common(BMesh *bm, BMOperator *op, BMOperator *optarget, c
 
 	i = 0;
 	BMO_ITER (v, &oiter, bm, op, "verts", BM_VERT) {
-		BLI_array_growone(verts);
+		BLI_array_grow_one(verts);
 		verts[i++] = v;
 	}
 

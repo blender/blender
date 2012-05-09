@@ -68,7 +68,7 @@ static void filepath_avi(char *string, RenderData *rd);
 
 #include "BKE_writeframeserver.h"
 
-bMovieHandle *BKE_get_movie_handle(const char imtype)
+bMovieHandle *BKE_movie_handle_get(const char imtype)
 {
 	static bMovieHandle mh;
 	
@@ -97,18 +97,18 @@ bMovieHandle *BKE_get_movie_handle(const char imtype)
 #endif
 #ifdef WITH_FFMPEG
 	if (ELEM4(imtype, R_IMF_IMTYPE_FFMPEG, R_IMF_IMTYPE_H264, R_IMF_IMTYPE_XVID, R_IMF_IMTYPE_THEORA)) {
-		mh.start_movie = start_ffmpeg;
-		mh.append_movie = append_ffmpeg;
-		mh.end_movie = end_ffmpeg;
-		mh.get_movie_path = filepath_ffmpeg;
+		mh.start_movie = BKE_ffmpeg_start;
+		mh.append_movie = BKE_ffmpeg_append;
+		mh.end_movie = BKE_ffmpeg_end;
+		mh.get_movie_path = BKE_ffmpeg_filepath_get;
 	}
 #endif
 #ifdef WITH_FRAMESERVER
 	if (imtype == R_IMF_IMTYPE_FRAMESERVER) {
-		mh.start_movie = start_frameserver;
-		mh.append_movie = append_frameserver;
-		mh.end_movie = end_frameserver;
-		mh.get_next_frame = frameserver_loop;
+		mh.start_movie = BKE_frameserver_start;
+		mh.append_movie = BKE_frameserver_append;
+		mh.end_movie = BKE_frameserver_end;
+		mh.get_next_frame = BKE_frameserver_loop;
 	}
 #endif
 
@@ -228,9 +228,9 @@ static void end_avi(void)
 }
 
 /* similar to BKE_makepicstring() */
-void BKE_makeanimstring(char *string, RenderData *rd)
+void BKE_movie_filepath_get(char *string, RenderData *rd)
 {
-	bMovieHandle *mh= BKE_get_movie_handle(rd->im_format.imtype);
+	bMovieHandle *mh= BKE_movie_handle_get(rd->im_format.imtype);
 	if (mh->get_movie_path)
 		mh->get_movie_path(string, rd);
 	else

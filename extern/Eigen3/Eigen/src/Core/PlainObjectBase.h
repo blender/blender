@@ -34,6 +34,19 @@
 
 namespace internal {
 
+template<typename Index>
+EIGEN_ALWAYS_INLINE void check_rows_cols_for_overflow(Index rows, Index cols)
+{
+  // http://hg.mozilla.org/mozilla-central/file/6c8a909977d3/xpcom/ds/CheckedInt.h#l242
+  // we assume Index is signed
+  Index max_index = (size_t(1) << (8 * sizeof(Index) - 1)) - 1; // assume Index is signed
+  bool error = (rows < 0  || cols < 0)  ? true
+             : (rows == 0 || cols == 0) ? false
+                                        : (rows > max_index / cols);
+  if (error)
+    throw_std_bad_alloc();
+}
+
 template <typename Derived, typename OtherDerived = Derived, bool IsVector = static_cast<bool>(Derived::IsVectorAtCompileTime)> struct conservative_resize_like_impl;
 
 template<typename MatrixTypeA, typename MatrixTypeB, bool SwapPointers> struct matrix_swap_impl;
@@ -84,14 +97,12 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     template<typename StrideType> struct StridedConstMapType { typedef Eigen::Map<const Derived, Unaligned, StrideType> type; };
     template<typename StrideType> struct StridedAlignedMapType { typedef Eigen::Map<Derived, Aligned, StrideType> type; };
     template<typename StrideType> struct StridedConstAlignedMapType { typedef Eigen::Map<const Derived, Aligned, StrideType> type; };
-    
 
   protected:
     DenseStorage<Scalar, Base::MaxSizeAtCompileTime, Base::RowsAtCompileTime, Base::ColsAtCompileTime, Options> m_storage;
 
   public:
-    enum { NeedsToAlign = (!(Options&DontAlign))
-                          && SizeAtCompileTime!=Dynamic && ((static_cast<int>(sizeof(Scalar))*SizeAtCompileTime)%16)==0 };
+    enum { NeedsToAlign = SizeAtCompileTime != Dynamic && (internal::traits<Derived>::Flags & AlignedBit) != 0 };
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     Base& base() { return *static_cast<Base*>(this); }
@@ -200,11 +211,13 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void resize(Index rows, Index cols)
     {
       #ifdef EIGEN_INITIALIZE_MATRICES_BY_ZERO
+        internal::check_rows_cols_for_overflow(rows, cols);
         Index size = rows*cols;
         bool size_changed = size != this->size();
         m_storage.resize(size, rows, cols);
         if(size_changed) EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
       #else
+        internal::check_rows_cols_for_overflow(rows, cols);
         m_storage.resize(rows*cols, rows, cols);
       #endif
     }
@@ -273,6 +286,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_STRONG_INLINE void resizeLike(const EigenBase<OtherDerived>& _other)
     {
       const OtherDerived& other = _other.derived();
+      internal::check_rows_cols_for_overflow(other.rows(), other.cols());
       const Index othersize = other.rows()*other.cols();
       if(RowsAtCompileTime == 1)
       {
@@ -417,6 +431,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       : m_storage(other.derived().rows() * other.derived().cols(), other.derived().rows(), other.derived().cols())
     {
       _check_template_params();
+      internal::check_rows_cols_for_overflow(other.derived().rows(), other.derived().cols());
       Base::operator=(other.derived());
     }
 
@@ -581,6 +596,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     {
       eigen_assert(rows >= 0 && (RowsAtCompileTime == Dynamic || RowsAtCompileTime == rows)
              && cols >= 0 && (ColsAtCompileTime == Dynamic || ColsAtCompileTime == cols));
+      internal::check_rows_cols_for_overflow(rows, cols);      
       m_storage.resize(rows*cols,rows,cols);
       EIGEN_INITIALIZE_BY_ZERO_IF_THAT_OPTION_IS_ENABLED
     }
@@ -638,6 +654,7 @@ struct internal::conservative_resize_like_impl
     if ( ( Derived::IsRowMajor && _this.cols() == cols) || // row-major and we change only the number of rows
          (!Derived::IsRowMajor && _this.rows() == rows) )  // column-major and we change only the number of columns
     {
+      internal::check_rows_cols_for_overflow(rows, cols);
       _this.derived().m_storage.conservativeResize(rows*cols,rows,cols);
     }
     else

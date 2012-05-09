@@ -41,15 +41,15 @@ struct ReebEdge;
 struct ReebNode;
 
 typedef struct ReebGraph {
-	ListBase	arcs;
-	ListBase	nodes;
+	ListBase arcs;
+	ListBase nodes;
 	
 	float length;
 	
-	FreeArc			free_arc;
-	FreeNode		free_node;
-	RadialSymmetry	radial_symmetry;
-	AxialSymmetry	axial_symmetry;
+	FreeArc         free_arc;
+	FreeNode        free_node;
+	RadialSymmetry  radial_symmetry;
+	AxialSymmetry   axial_symmetry;
 	/*********************************/
 	
 	int resolution;
@@ -61,7 +61,7 @@ typedef struct ReebGraph {
 
 typedef struct EmbedBucket {
 	float val;
-	int	  nv;
+	int nv;
 	float p[3];
 	float no[3]; /* if non-null, normal of the bucket */
 } EmbedBucket;
@@ -85,7 +85,7 @@ typedef struct ReebNode {
 
 	int index;
 	float weight;
-	int	multi_level;
+	int multi_level;
 	struct ReebNode *link_down; /* for multi resolution filtering, points to lower levels, if present */
 	struct ReebNode *link_up;
 } ReebNode;
@@ -120,13 +120,13 @@ typedef struct ReebArc {
 } ReebArc;
 
 typedef struct ReebArcIterator {
-	HeadFct		head;
-	TailFct		tail;
-	PeekFct		peek;
-	NextFct		next;
-	NextNFct	nextN;
-	PreviousFct	previous;
-	StoppedFct	stopped;
+	HeadFct      head;
+	TailFct      tail;
+	PeekFct      peek;
+	NextFct      next;
+	NextNFct     nextN;
+	PreviousFct  previous;
+	StoppedFct   stopped;
 	
 	float *p, *no;
 	float size;
@@ -134,7 +134,7 @@ typedef struct ReebArcIterator {
 	int length;
 	int index;
 	/*********************************/
-	struct ReebArc	*arc;
+	struct ReebArc *arc;
 	int start;
 	int end;
 	int stride;
@@ -151,8 +151,8 @@ void arcToVCol(struct ReebGraph *rg, struct EditMesh *em, int index);
 void angleToVCol(struct EditMesh *em, int index);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
-ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
-ReebGraph * newReebGraph(void);
+ReebGraph *generateReebGraph(struct EditMesh *me, int subdivisions);
+ReebGraph *newReebGraph(void);
 
 void initArcIterator(BArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
 void initArcIterator2(BArcIterator *iter, struct ReebArc *arc, int start, int end);
@@ -178,7 +178,7 @@ void verifyNodeDegree(ReebGraph *rg);
 
 /*********************** PUBLIC *********************************/
 
-#define REEB_MAX_MULTI_LEVEL	10
+#define REEB_MAX_MULTI_LEVEL  10
 
 struct bContext;
 

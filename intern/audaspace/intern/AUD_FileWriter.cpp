@@ -93,3 +93,39 @@ void AUD_FileWriter::writeReader(AUD_Reference<AUD_IReader> reader, AUD_Referenc
 		writer->write(len, buf);
 	}
 }
+
+void AUD_FileWriter::writeReader(AUD_Reference<AUD_IReader> reader, std::vector<AUD_Reference<AUD_IWriter> >& writers, unsigned int length, unsigned int buffersize)
+{
+	AUD_Buffer buffer(buffersize * AUD_SAMPLE_SIZE(reader->getSpecs()));
+	AUD_Buffer buffer2(buffersize * sizeof(sample_t));
+	sample_t* buf = buffer.getBuffer();
+	sample_t* buf2 = buffer2.getBuffer();
+
+	int len;
+	bool eos = false;
+	int channels = reader->getSpecs().channels;
+
+	for(unsigned int pos = 0; ((pos < length) || (length <= 0)) && !eos; pos += len)
+	{
+		len = buffersize;
+		if((len > length - pos) && (length > 0))
+			len = length - pos;
+		reader->read(len, eos, buf);
+
+		for(int channel = 0; channel < channels; channel++)
+		{
+			for(int i = 0; i < len; i++)
+			{
+				// clamping!
+				if(buf[i * channels + channel] > 1)
+					buf2[i] = 1;
+				else if(buf[i * channels + channel] < -1)
+					buf2[i] = -1;
+				else
+					buf2[i] = buf[i * channels + channel];
+			}
+
+			writers[channel]->write(len, buf2);
+		}
+	}
+}

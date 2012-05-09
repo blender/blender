@@ -130,7 +130,7 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 			/* no groups in groups */
 			if (node->type==NODE_GROUP)
 				return NULL;
-			DO_MINMAX2( (&node->locx), min, max);
+			DO_MINMAX2((&node->locx), min, max);
 			totnode++;
 		}
 		node->done= 0;
@@ -368,7 +368,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		bAction *waction;
 		
 		/* firstly, wgroup needs to temporary dummy action that can be destroyed, as it shares copies */
-		waction = wgroup->adt->action = copy_action(wgroup->adt->action);
+		waction = wgroup->adt->action = BKE_action_copy(wgroup->adt->action);
 		
 		/* now perform the moving */
 		BKE_animdata_separate_by_basepath(&wgroup->id, &ntree->id, &anim_basepaths);
@@ -383,7 +383,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		
 		/* free temp action too */
 		if (waction) {
-			free_libblock(&G.main->action, waction);
+			BKE_libblock_free(&G.main->action, waction);
 		}
 	}
 	
@@ -391,7 +391,7 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 	nodeFreeNode(ntree, gnode);
 
 	/* free the group tree (takes care of user count) */
-	free_libblock(&G.main->nodetree, wgroup);
+	BKE_libblock_free(&G.main->nodetree, wgroup);
 	
 	ntree->update |= NTREE_UPDATE_NODES | NTREE_UPDATE_LINKS;
 	ntreeUpdateTree(ntree);
@@ -551,7 +551,8 @@ static bNodeSocket *group_verify_socket(bNodeTree *ntree, ListBase *lb, int in_o
 		sock->groupsock = gsock;
 		
 		BLI_strncpy(sock->name, gsock->name, sizeof(sock->name));
-		sock->type= gsock->type;
+		if(gsock->type != sock->type)
+			nodeSocketSetType(sock, gsock->type);
 		
 		/* XXX hack: group socket input/output roles are inverted internally,
 		 * need to change the limit value when making actual node sockets from them.

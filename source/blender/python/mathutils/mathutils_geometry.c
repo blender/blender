@@ -1,5 +1,4 @@
 /*
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -1011,7 +1010,7 @@ static PyObject *M_Geometry_interpolate_bezier(PyObject *UNUSED(self), PyObject 
 
 	coord_array = MEM_callocN(dims * (resolu) * sizeof(float), "interpolate_bezier");
 	for (i = 0; i < dims; i++) {
-		forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
+		BKE_curve_forward_diff_bezier(k1[i], h1[i], h2[i], k2[i], coord_array + i, resolu - 1, sizeof(float) * dims);
 	}
 
 	list = PyList_New(resolu);
@@ -1056,7 +1055,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	for (i = 0; i < len_polylines; i++) {
 		polyLine = PySequence_GetItem(polyLineSeq, i);
 		if (!PySequence_Check(polyLine)) {
-			freedisplist(&dispbase);
+			BKE_displist_free(&dispbase);
 			Py_XDECREF(polyLine); /* may be null so use Py_XDECREF*/
 			PyErr_SetString(PyExc_TypeError,
 			                "One or more of the polylines is not a sequence of mathutils.Vector's");
@@ -1110,7 +1109,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	}
 
 	if (ls_error) {
-		freedisplist(&dispbase); /* possible some dl was allocated */
+		BKE_displist_free(&dispbase); /* possible some dl was allocated */
 		PyErr_SetString(PyExc_TypeError,
 		                "A point in one of the polylines "
 		                "is not a mathutils.Vector type");
@@ -1118,7 +1117,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 	}
 	else if (totpoints) {
 		/* now make the list to return */
-		filldisplist(&dispbase, &dispbase, 0);
+		BKE_displist_fill(&dispbase, &dispbase, 0);
 
 		/* The faces are stored in a new DisplayList
 		 * thats added to the head of the listbase */
@@ -1126,7 +1125,7 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 
 		tri_list = PyList_New(dl->parts);
 		if (!tri_list) {
-			freedisplist(&dispbase);
+			BKE_displist_free(&dispbase);
 			PyErr_SetString(PyExc_RuntimeError,
 			                "failed to make a new list");
 			return NULL;
@@ -1139,11 +1138,11 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 			dl_face += 3;
 			index++;
 		}
-		freedisplist(&dispbase);
+		BKE_displist_free(&dispbase);
 	}
 	else {
 		/* no points, do this so scripts don't barf */
-		freedisplist(&dispbase); /* possible some dl was allocated */
+		BKE_displist_free(&dispbase); /* possible some dl was allocated */
 		tri_list = PyList_New(0);
 	}
 
@@ -1151,11 +1150,11 @@ static PyObject *M_Geometry_tessellate_polygon(PyObject *UNUSED(self), PyObject 
 }
 
 
-static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
+static int boxPack_FromPyObject(PyObject *value, BoxPack **boxarray)
 {
 	Py_ssize_t len, i;
 	PyObject *list_item, *item_1, *item_2;
-	boxPack *box;
+	BoxPack *box;
 
 
 	/* Error checking must already be done */
@@ -1167,7 +1166,7 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 
 	len = PyList_GET_SIZE(value);
 
-	*boxarray = MEM_mallocN(len * sizeof(boxPack), "boxPack box");
+	*boxarray = MEM_mallocN(len * sizeof(BoxPack), "BoxPack box");
 
 
 	for (i = 0; i < len; i++) {
@@ -1202,11 +1201,11 @@ static int boxPack_FromPyObject(PyObject *value, boxPack **boxarray)
 	return 0;
 }
 
-static void boxPack_ToPyObject(PyObject *value, boxPack **boxarray)
+static void boxPack_ToPyObject(PyObject *value, BoxPack **boxarray)
 {
 	Py_ssize_t len, i;
 	PyObject *list_item;
-	boxPack *box;
+	BoxPack *box;
 
 	len = PyList_GET_SIZE(value);
 
@@ -1244,13 +1243,13 @@ static PyObject *M_Geometry_box_pack_2d(PyObject *UNUSED(self), PyObject *boxlis
 
 	len = PyList_GET_SIZE(boxlist);
 	if (len) {
-		boxPack *boxarray = NULL;
+		BoxPack *boxarray = NULL;
 		if (boxPack_FromPyObject(boxlist, &boxarray) == -1) {
 			return NULL; /* exception set */
 		}
 
 		/* Non Python function */
-		boxPack2D(boxarray, len, &tot_width, &tot_height);
+		BLI_box_pack_2D(boxarray, len, &tot_width, &tot_height);
 
 		boxPack_ToPyObject(boxlist, &boxarray);
 	}

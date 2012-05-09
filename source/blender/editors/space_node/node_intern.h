@@ -166,6 +166,7 @@ void NODE_OT_new_node_tree(struct wmOperatorType *ot);
 
 void NODE_OT_output_file_add_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_remove_active_socket(struct wmOperatorType *ot);
+void NODE_OT_output_file_move_active_socket(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

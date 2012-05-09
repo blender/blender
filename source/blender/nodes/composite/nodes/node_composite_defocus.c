@@ -261,7 +261,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	if (camob && camob->type==OB_CAMERA) {
 		Camera* cam = (Camera*)camob->data;
 		cam_lens = cam->lens;
-		cam_fdist = object_camera_dof_distance(camob);
+		cam_fdist = BKE_camera_object_dof_distance(camob);
 		if (cam_fdist==0.0f) cam_fdist = 1e10f; /* if the dof is 0.0 then set it be be far away */
 		cam_invfdist = 1.f/cam_fdist;
 	}

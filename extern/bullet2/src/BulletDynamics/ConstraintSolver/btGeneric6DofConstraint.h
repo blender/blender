@@ -354,7 +354,7 @@ public:
     
 	//! Calcs global transform of the offsets
 	/*!
-	Calcs the global transform for the joint offset for body A an B, and also calcs the agle differences between the bodies.
+	Calcs the global transform for the joint offset for body A an B, and also calcs the angle differences between the bodies.
 	\sa btGeneric6DofConstraint.getCalculatedTransformA , btGeneric6DofConstraint.getCalculatedTransformB, btGeneric6DofConstraint.calculateAngleInfo
 	*/
     void calculateTransforms(const btTransform& transA,const btTransform& transB);

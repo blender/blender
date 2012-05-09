@@ -103,18 +103,18 @@ void RNA_api_environment_map(StructRNA *srna)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	static const float default_layout[] = { 0,0, 1,0, 2,0, 0,1, 1,1, 2,1 };
+	static const float default_layout[] = {0, 0, 1, 0, 2, 0, 0, 1, 1, 1, 2, 1};
 
 	func = RNA_def_function(srna, "clear", "clear_envmap");
 	RNA_def_function_ui_description(func, "Discard the environment map and free it from memory");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 
 
-	func = RNA_def_function(srna,"save", "save_envmap");
+	func = RNA_def_function(srna, "save", "save_envmap");
 	RNA_def_function_ui_description(func, "Save the environment map to disc using the scene render settings");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
 
-	parm = RNA_def_string_file_name(func,"filepath","",FILE_MAX,"File path","Location of the output file");
+	parm = RNA_def_string_file_name(func, "filepath", "", FILE_MAX, "File path", "Location of the output file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_def_pointer(func, "scene", "Scene", "", "Overrides the scene from which image parameters are taken");

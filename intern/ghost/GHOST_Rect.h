@@ -241,8 +241,10 @@ inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32
 	GHOST_TInt32 h= getHeight();
 
 	/* highly unlikely but avoid eternal loop */
-	if(w-ofs*2 <= 0 || h-ofs*2 <= 0)
+	if (w-ofs*2 <= 0 || h-ofs*2 <= 0) {
 		return;
+	}
+
 	while(x-ofs < m_l)		x+= w-(ofs*2);
 	while(y-ofs < m_t)		y+= h-(ofs*2);
 	while(x+ofs > m_r)		x-= w-(ofs*2);

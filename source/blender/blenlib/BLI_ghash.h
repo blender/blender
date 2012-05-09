@@ -131,6 +131,11 @@ void			BLI_ghashIterator_step		(GHashIterator *ghi);
 	 */
 int				BLI_ghashIterator_isDone	(GHashIterator *ghi);
 
+#define GHASH_ITER(gh_iter_, ghash_)                                          \
+	for (BLI_ghashIterator_init(&gh_iter_, ghash_);                           \
+	     !BLI_ghashIterator_isDone(&gh_iter_);                                \
+	     BLI_ghashIterator_step(&gh_iter_))
+
 /* *** */
 
 unsigned int	BLI_ghashutil_ptrhash	(const void *key);
@@ -144,10 +149,10 @@ int				BLI_ghashutil_intcmp	(const void *a, const void *b);
 
 typedef struct GHashPair {
 	const void *first;
-	int second;
+	const void *second;
 } GHashPair;
 
-GHashPair*		BLI_ghashutil_pairalloc (const void *first, int second);
+GHashPair*		BLI_ghashutil_pairalloc (const void *first, const void *second);
 unsigned int	BLI_ghashutil_pairhash	(const void *ptr);
 int				BLI_ghashutil_paircmp	(const void *a, const void *b);
 void			BLI_ghashutil_pairfree	(void *ptr);

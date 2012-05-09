@@ -23,8 +23,13 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/**
+ * \file blender/blenpluginapi/documentation.h
+ * \ingroup blpluginapi
  *
- * @mainpage plugin API - the access point for texture and sequence
+ * \mainpage plugin API - the access point for texture and sequence
  * plugins
  *
  * \section about About the plugin API
@@ -63,10 +68,4 @@
  *
  * The plugins wraps functions from IMB and BLI. In addition, they
  * define some useful variables.
- * */
-
-/** \file blender/blenpluginapi/documentation.h
- *  \ingroup blpluginapi
  */
-
-

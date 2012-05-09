@@ -206,14 +206,12 @@ static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x
 			length = floor((waveform->length - startsample) / samplestep);
 
 		glBegin(GL_LINE_STRIP);
-		for (i = 0; i < length; i++)
-		{
+		for (i = 0; i < length; i++) {
 			pos = startsample + i * samplestep;
 
 			value = waveform->data[pos * 3];
 
-			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++)
-			{
+			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
 				if (value > waveform->data[j * 3])
 					value = waveform->data[j * 3];
 			}
@@ -223,14 +221,12 @@ static void drawseqwave(Scene *scene, Sequence *seq, float x1, float y1, float x
 		glEnd();
 
 		glBegin(GL_LINE_STRIP);
-		for (i = 0; i < length; i++)
-		{
+		for (i = 0; i < length; i++) {
 			pos = startsample + i * samplestep;
 
 			value = waveform->data[pos * 3 + 1];
 
-			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++)
-			{
+			for (j = pos + 1; (j < waveform->length) && (j < pos + samplestep); j++) {
 				if (value < waveform->data[j * 3 + 1])
 					value = waveform->data[j * 3 + 1];
 			}
@@ -930,7 +926,7 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 		glTexCoord2f(1.0f, 1.0f); glVertex2f(v2d->tot.xmax, v2d->tot.ymax);
 		glTexCoord2f(1.0f, 0.0f); glVertex2f(v2d->tot.xmax, v2d->tot.ymin);
 	}
-	glEnd( );
+	glEnd();
 	glBindTexture(GL_TEXTURE_2D, last_texid);
 	glDisable(GL_TEXTURE_2D);
 	glDeleteTextures(1, &texid);

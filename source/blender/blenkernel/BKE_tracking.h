@@ -164,6 +164,10 @@ struct MovieTrackingObject *BKE_tracking_named_object(struct MovieTracking *trac
 void BKE_tracking_select_track(struct ListBase *tracksbase, struct MovieTrackingTrack *track, int area, int extend);
 void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 
+/* Dopesheet */
+void BKE_tracking_dopesheet_tag_update(struct MovieTracking *tracking);
+void BKE_tracking_dopesheet_update(struct MovieTracking *tracking, int sort_method, int inverse);
+
 #define TRACK_SELECTED(track)				((track)->flag&SELECT || (track)->pat_flag&SELECT || (track)->search_flag&SELECT)
 
 #define TRACK_AREA_SELECTED(track, area)	((area)==TRACK_AREA_POINT ? (track)->flag&SELECT : \
@@ -175,7 +179,7 @@ void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
                                                 (((sc)->flag & SC_SHOW_MARKER_PATTERN) && TRACK_AREA_SELECTED(track, TRACK_AREA_PAT)) || \
                                                 (((sc)->flag & SC_SHOW_MARKER_SEARCH) && TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))))
 
-#define MARKER_VISIBLE(sc, marker)			(((marker)->flag & MARKER_DISABLED)==0 || ((sc)->flag & SC_HIDE_DISABLED)==0)
+#define MARKER_VISIBLE(sc, track, marker)		(((marker)->flag & MARKER_DISABLED)==0 || ((sc)->flag & SC_HIDE_DISABLED)==0 || (sc->clip->tracking.act_track == track))
 
 #define TRACK_CLEAR_UPTO		0
 #define TRACK_CLEAR_REMAINED	1
@@ -193,5 +197,10 @@ void BKE_tracking_deselect_track(struct MovieTrackingTrack *track, int area);
 #define TRACK_AREA_SEARCH	4
 
 #define TRACK_AREA_ALL		(TRACK_AREA_POINT|TRACK_AREA_PAT|TRACK_AREA_SEARCH)
+
+#define TRACK_SORT_NONE		-1
+#define TRACK_SORT_NAME		0
+#define TRACK_SORT_LONGEST	1
+#define TRACK_SORT_TOTAL	2
 
 #endif

@@ -1297,7 +1297,7 @@ static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsign
 {
 	
 	/* Draw a 3d octahedral bone, we use normalized space based on length,
-	 * for glDisplayLists */
+	 * for display-lists */
 	
 	glScalef(length, length, length);
 
@@ -1996,7 +1996,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 
 	/* finally names and axes */
 	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) && (is_outline == 0)) {
-		/* patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing */
+		/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
 			
@@ -2208,7 +2208,7 @@ static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
 	
 	/* finally names and axes */
 	if (arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) {
-		// patch for several 3d cards (IBM mostly) that crash on glSelect with text drawing
+		// patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
 			unsigned char col[4];
@@ -2338,9 +2338,9 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 	
 	/* copy the pose */
 	poseo = ob->pose;
-	copy_pose(&posen, ob->pose, 1);
+	BKE_pose_copy_data(&posen, ob->pose, 1);
 	ob->pose = posen;
-	armature_rebuild_pose(ob, ob->data);    /* child pointers for IK */
+	BKE_pose_rebuild(ob, ob->data);    /* child pointers for IK */
 	ghost_poses_tag_unselected(ob, 0);      /* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
@@ -2352,20 +2352,20 @@ static void draw_ghost_poses_range(Scene *scene, View3D *v3d, ARegion *ar, Base 
 		UI_ThemeColorShadeAlpha(TH_WIRE, 0, -128 - (int)(120.0 * sqrt(colfac)));
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 	}
 	glDisable(GL_BLEND);
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
-	free_pose(posen);
+	BKE_pose_free(posen);
 	
 	/* restore */
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	armature_rebuild_pose(ob, ob->data);
+	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 	ob->ipoflag = ipoflago;
 }
@@ -2415,9 +2415,9 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 	
 	/* copy the pose */
 	poseo = ob->pose;
-	copy_pose(&posen, ob->pose, 1);
+	BKE_pose_copy_data(&posen, ob->pose, 1);
 	ob->pose = posen;
-	armature_rebuild_pose(ob, ob->data);  /* child pointers for IK */
+	BKE_pose_rebuild(ob, ob->data);  /* child pointers for IK */
 	ghost_poses_tag_unselected(ob, 0);    /* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
@@ -2431,7 +2431,7 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 		CFRA = (int)ak->cfra;
 		
 		BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-		where_is_pose(scene, ob);
+		BKE_pose_where_is(scene, ob);
 		draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 	}
 	glDisable(GL_BLEND);
@@ -2439,13 +2439,13 @@ static void draw_ghost_poses_keys(Scene *scene, View3D *v3d, ARegion *ar, Base *
 
 	ghost_poses_tag_unselected(ob, 1);  /* unhide unselected bones if need be */
 	BLI_dlrbTree_free(&keys);
-	free_pose(posen);
+	BKE_pose_free(posen);
 	
 	/* restore */
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	armature_rebuild_pose(ob, ob->data);
+	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 
@@ -2481,9 +2481,9 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	
 	/* copy the pose */
 	poseo = ob->pose;
-	copy_pose(&posen, ob->pose, 1);
+	BKE_pose_copy_data(&posen, ob->pose, 1);
 	ob->pose = posen;
-	armature_rebuild_pose(ob, ob->data);    /* child pointers for IK */
+	BKE_pose_rebuild(ob, ob->data);    /* child pointers for IK */
 	ghost_poses_tag_unselected(ob, 0);      /* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
@@ -2501,7 +2501,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				where_is_pose(scene, ob);
+				BKE_pose_where_is(scene, ob);
 				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 			}
 		}
@@ -2516,7 +2516,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 			
 			if (CFRA != cfrao) {
 				BKE_animsys_evaluate_animdata(scene, &ob->id, adt, (float)CFRA, ADT_RECALC_ALL);
-				where_is_pose(scene, ob);
+				BKE_pose_where_is(scene, ob);
 				draw_pose_bones(scene, v3d, ar, base, OB_WIRE, TRUE, FALSE);
 			}
 		}
@@ -2525,13 +2525,13 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 	if (v3d->zbuf) glEnable(GL_DEPTH_TEST);
 
 	ghost_poses_tag_unselected(ob, 1);      /* unhide unselected bones if need be */
-	free_pose(posen);
+	BKE_pose_free(posen);
 	
 	/* restore */
 	CFRA = cfrao;
 	ob->pose = poseo;
 	arm->flag = flago;
-	armature_rebuild_pose(ob, ob->data);
+	BKE_pose_rebuild(ob, ob->data);
 	ob->mode |= OB_MODE_POSE;
 }
 

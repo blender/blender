@@ -240,7 +240,21 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 						PRINT("    loop %u has invalid vert reference (%u)\n", sp->loopstart + j, ml->v);
 						sp->invalid = TRUE;
 					}
+
+					mverts[ml->v].flag |= ME_VERT_TMP_TAG;
 					*v = ml->v;
+				}
+
+				/* is the same vertex used more then once */
+				if (!sp->invalid) {
+					v = sp->verts;
+					for (j = 0; j < mp->totloop; j++, v++) {
+						if ((mverts[*v].flag & ME_VERT_TMP_TAG) == 0) {
+							PRINT("    poly %u has duplicate vert reference at corner (%u)\n", i, j);
+							sp->invalid = TRUE;
+						}
+						mverts[*v].flag &= ~ME_VERT_TMP_TAG;
+					}
 				}
 
 				if (sp->invalid)
@@ -522,11 +536,11 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 
 	if (mesh) {
 		if (do_polyloop_free) {
-			mesh_strip_loose_polysloops(mesh);
+			BKE_mesh_strip_loose_polysloops(mesh);
 		}
 
 		if (do_edge_free) {
-			mesh_strip_loose_edges(mesh);
+			BKE_mesh_strip_loose_edges(mesh);
 		}
 
 		if (do_edge_recalc) {

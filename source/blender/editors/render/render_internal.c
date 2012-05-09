@@ -170,7 +170,7 @@ static void screen_render_scene_layer_set(wmOperator *op, Main *mainp, Scene **s
 		if (scn) {
 			/* camera switch wont have updated */
 			scn->r.cfra = (*scene)->r.cfra;
-			scene_camera_switch_update(scn);
+			BKE_scene_camera_switch_update(scn);
 
 			*scene = scn;
 		}

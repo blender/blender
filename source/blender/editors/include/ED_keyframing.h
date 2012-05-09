@@ -190,7 +190,7 @@ int ANIM_apply_keyingset(struct bContext *C, ListBase *dsources, struct bAction 
 struct KeyingSet *ANIM_builtin_keyingset_get_named(struct KeyingSet *prevKS, const char name[]);
 
 /* Find KeyingSet type info given a name */
-KeyingSetInfo *ANIM_keyingset_info_find_named(const char name[]);
+KeyingSetInfo *ANIM_keyingset_info_find_name(const char name[]);
 
 /* for RNA type registrations... */
 void ANIM_keyingset_info_register(KeyingSetInfo *ksi);
@@ -292,7 +292,7 @@ short fcurve_frame_has_keyframe(struct FCurve *fcu, float frame, short filter);
  * Checks whether a keyframe exists for the given ID-block one the given frame.
  *  - It is recommended to call this method over the other keyframe-checkers directly,
  * 	  in case some detail of the implementation changes...
- *	- frame: the value of this is quite often result of BKE_curframe()
+ *	- frame: the value of this is quite often result of BKE_scene_frame_get()
  */
 short id_frame_has_keyframe(struct ID *id, float frame, short filter);
 
@@ -323,7 +323,7 @@ int ED_autokeyframe_pchan(struct bContext *C, struct Scene *scene, struct Object
 #define ANIM_KS_SCALING_ID          "Scaling"
 #define ANIM_KS_LOC_ROT_SCALE_ID    "LocRotScale"
 #define ANIM_KS_AVAILABLE_ID        "Available"
-#define ANIM_KS_WHOLE_CHARACTER_ID  "Whole Character"
+#define ANIM_KS_WHOLE_CHARACTER_ID  "WholeCharacter"
 
 #ifdef __cplusplus
 }

@@ -1,6 +1,3 @@
-/** \file blender/imbuf/intern/cineon/logmemfile.c
- *  \ingroup imbcineon
- */
 /*
  *	 Cineon image file format library routines.
  *
@@ -21,6 +18,11 @@
  *	 Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
  */
+
+/** \file blender/imbuf/intern/cineon/logmemfile.c
+ *  \ingroup imbcineon
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

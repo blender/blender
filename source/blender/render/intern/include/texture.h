@@ -1,7 +1,4 @@
 /*
- * texture_ext.h
- *
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -56,8 +53,6 @@
 		hsv_to_rgb(_hsv[0], _hsv[1], _hsv[2],                                 \
 		           &texres->tr, &texres->tg, &texres->tb);                    \
 	}                                                                         \
-
-#define RGBTOBW(r,g,b)	( r*0.35f + g*0.45f + b*0.2f )		/* keep this in sync with gpu_shader_material.glsl:rgbtobw */
 
 struct HaloRen;
 struct ShadeInput;

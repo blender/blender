@@ -225,7 +225,11 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 		adr[1]= out[1];
 	}
 	else if (t->spacetype==SPACE_CLIP) {
-		UI_view2d_to_region_no_clip(t->view, vec[0], vec[1], adr, adr+1);
+		float v[2];
+
+		copy_v2_v2(v, vec);
+
+		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
 }
 
@@ -274,6 +278,19 @@ void applyAspectRatio(TransInfo *t, float *vec)
 		vec[0] /= aspx;
 		vec[1] /= aspy;
 	}
+	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			float aspx, aspy;
+			int width, height;
+
+			ED_space_clip_size(sc, &width, &height);
+			ED_space_clip_aspect(sc, &aspx, &aspy);
+
+			vec[0] *= width / aspx;
+			vec[1] *= height / aspy;
+		}
+	}
 }
 
 void removeAspectRatio(TransInfo *t, float *vec)
@@ -294,12 +311,24 @@ void removeAspectRatio(TransInfo *t, float *vec)
 		vec[0] *= aspx;
 		vec[1] *= aspy;
 	}
+	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
+		if (t->options & CTX_MOVIECLIP) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			float aspx, aspy;
+			int width, height;
+
+			ED_space_clip_size(sc, &width, &height);
+			ED_space_clip_aspect(sc, &aspx, &aspy);
+
+			vec[0] *= aspx / width;
+			vec[1] *= aspy / height;
+		}
+	}
 }
 
 static void viewRedrawForce(const bContext *C, TransInfo *t)
 {
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		/* Do we need more refined tags? */
 		if (t->flag & T_POSE)
 			WM_event_add_notifier(C, NC_OBJECT|ND_POSE, NULL);
@@ -415,7 +444,7 @@ static void view_editmove(unsigned short UNUSED(event))
 	if (Trans.flag & T_2D_EDIT)
 		return;
 
-	switch(event) {
+	switch (event) {
 		case WHEELUPMOUSE:
 
 			if ( G.qual & LR_SHIFTKEY ) {
@@ -586,8 +615,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 
 	t->redraw |= handleMouseInput(t, &t->mouse, event);
 
-	if (event->type == MOUSEMOVE)
-	{
+	if (event->type == MOUSEMOVE) {
 		if (t->modifiers & MOD_CONSTRAINT_SELECT)
 			t->con.mode |= CON_SELECT;
 
@@ -626,10 +654,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if (t->options&CTX_MOVIECLIP) {
+					if (t->options & CTX_MOVIECLIP) {
 						restoreTransObjects(t);
 
-						t->flag^= T_ALT_TRANSFORM;
+						t->flag ^= T_ALT_TRANSFORM;
 						t->redraw |= TREDRAW_HARD;
 					}
 				}
@@ -802,7 +830,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		t->redraw |= handleNumInput(&(t->num), event);
 	}
 	/* else do non-mapped events */
-	else if (event->val==KM_PRESS) {
+	else if (event->val == KM_PRESS) {
 		switch (event->type) {
 		case RIGHTMOUSE:
 			t->state = TRANS_CANCEL;
@@ -1088,11 +1116,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		}
 
 		/* confirm transform if launch key is released after mouse move */
-		if (t->flag & T_RELEASE_CONFIRM)
-		{
+		if (t->flag & T_RELEASE_CONFIRM) {
 			/* XXX Keyrepeat bug in Xorg fucks this up, will test when fixed */
-			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE))
-			{
+			if (event->type == t->launch_event && (t->launch_event == LEFTMOUSE || t->launch_event == RIGHTMOUSE)) {
 				t->state = TRANS_CONFIRM;
 			}
 		}
@@ -1156,20 +1182,19 @@ typedef enum {
 } ArrowDirection;
 static void drawArrow(ArrowDirection d, short offset, short length, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			offset = -offset;
 			length = -length;
 			size = -size;
 		case RIGHT:
 			glBegin(GL_LINES);
-			glVertex2s( offset, 0);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length - size, -size);
-			glVertex2s( offset + length, 0);
-			glVertex2s( offset + length - size,  size);
+			glVertex2s(offset, 0);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length - size, -size);
+			glVertex2s(offset + length, 0);
+			glVertex2s(offset + length - size,  size);
 			glEnd();
 			break;
 		case DOWN:
@@ -1178,12 +1203,12 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 			size = -size;
 		case UP:
 			glBegin(GL_LINES);
-			glVertex2s( 0, offset);
-			glVertex2s( 0, offset + length);
-			glVertex2s( 0, offset + length);
+			glVertex2s(0, offset);
+			glVertex2s(0, offset + length);
+			glVertex2s(0, offset + length);
 			glVertex2s(-size, offset + length - size);
-			glVertex2s( 0, offset + length);
-			glVertex2s( size, offset + length - size);
+			glVertex2s(0, offset + length);
+			glVertex2s(size, offset + length - size);
 			glEnd();
 			break;
 	}
@@ -1191,26 +1216,25 @@ static void drawArrow(ArrowDirection d, short offset, short length, short size)
 
 static void drawArrowHead(ArrowDirection d, short size)
 {
-	switch(d)
-	{
+	switch (d) {
 		case LEFT:
 			size = -size;
 		case RIGHT:
 			glBegin(GL_LINES);
-			glVertex2s( 0, 0);
-			glVertex2s( -size, -size);
-			glVertex2s( 0, 0);
-			glVertex2s( -size,  size);
+			glVertex2s(0, 0);
+			glVertex2s(-size, -size);
+			glVertex2s(0, 0);
+			glVertex2s(-size,  size);
 			glEnd();
 			break;
 		case DOWN:
 			size = -size;
 		case UP:
 			glBegin(GL_LINES);
-			glVertex2s( 0, 0);
+			glVertex2s(0, 0);
 			glVertex2s(-size, -size);
-			glVertex2s( 0, 0);
-			glVertex2s( size, -size);
+			glVertex2s(0, 0);
+			glVertex2s(size, -size);
 			glEnd();
 			break;
 	}
@@ -1223,11 +1247,10 @@ static void drawArc(float size, float angle_start, float angle_end, int segments
 
 	glBegin(GL_LINE_STRIP);
 
-	for ( angle = angle_start; angle < angle_end; angle += delta)
-	{
-		glVertex2f( cosf(angle) * size, sinf(angle) * size);
+	for ( angle = angle_start; angle < angle_end; angle += delta) {
+		glVertex2f(cosf(angle) * size, sinf(angle) * size);
 	}
-	glVertex2f( cosf(angle_end) * size, sinf(angle_end) * size);
+	glVertex2f(cosf(angle_end) * size, sinf(angle_end) * size);
 
 	glEnd();
 }
@@ -1245,8 +1268,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 {
 	TransInfo *t = (TransInfo*)customdata;
 
-	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR))
-	{
+	if (t->helpline != HLP_NONE && !(t->flag & T_USES_MANIPULATOR)) {
 		float vecrot[3], cent[2];
 		int mval[2];
 
@@ -1267,8 +1289,7 @@ static void drawHelpline(bContext *UNUSED(C), int x, int y, void *customdata)
 
 		glPushMatrix();
 
-		switch(t->helpline)
-		{
+		switch (t->helpline) {
 			case HLP_SPRING:
 				UI_ThemeColor(TH_WIRE);
 
@@ -1417,23 +1438,23 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 	}
 
 	/* convert flag to enum */
-	switch(t->flag & (T_PROP_EDIT|T_PROP_CONNECTED))
-	{
-	case (T_PROP_EDIT|T_PROP_CONNECTED):
-		proportional = PROP_EDIT_CONNECTED;
-		break;
-	case T_PROP_EDIT:
-		proportional = PROP_EDIT_ON;
-		break;
-	default:
-		proportional = PROP_EDIT_OFF;
+	switch (t->flag & (T_PROP_EDIT|T_PROP_CONNECTED)) {
+		case (T_PROP_EDIT|T_PROP_CONNECTED):
+			proportional = PROP_EDIT_CONNECTED;
+			break;
+		case T_PROP_EDIT:
+			proportional = PROP_EDIT_ON;
+			break;
+		default:
+			proportional = PROP_EDIT_OFF;
 	}
 
 	// If modal, save settings back in scene if not set as operator argument
 	if (t->flag & T_MODAL) {
 
 		/* save settings if not set in operator */
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			if (t->obedit)
 				ts->proportional = proportional;
@@ -1441,12 +1462,14 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_size")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_size")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->proportional_size = t->prop_size;
 		}
 
-		if ( (prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) && !RNA_property_is_set(op->ptr, prop))
+		if ((prop = RNA_struct_find_property(op->ptr, "proportional_edit_falloff")) &&
+		    !RNA_property_is_set(op->ptr, prop))
 		{
 			ts->prop_mode = t->prop_mode;
 		}
@@ -1460,34 +1483,31 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		}
 
 		if (t->spacetype == SPACE_VIEW3D) {
-			if ( (prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) && !RNA_property_is_set(op->ptr, prop))
+			if ((prop = RNA_struct_find_property(op->ptr, "constraint_orientation")) &&
+			    !RNA_property_is_set(op->ptr, prop))
 			{
 				View3D *v3d = t->view;
-	
+
 				v3d->twmode = t->current_orientation;
 			}
 		}
 	}
 	
-	if (RNA_struct_find_property(op->ptr, "proportional"))
-	{
+	if (RNA_struct_find_property(op->ptr, "proportional")) {
 		RNA_enum_set(op->ptr, "proportional", proportional);
 		RNA_enum_set(op->ptr, "proportional_edit_falloff", t->prop_mode);
 		RNA_float_set(op->ptr, "proportional_size", t->prop_size);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis"))) {
 		RNA_property_float_set_array(op->ptr, prop, t->axis);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "mirror")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "mirror"))) {
 		RNA_property_boolean_set(op->ptr, prop, t->flag & T_MIRROR);
 	}
 
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis"))) {
 		/* constraint orientation can be global, event if user selects something else
 		 * so use the orientation in the constraint if set
 		 * */
@@ -1498,8 +1518,7 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 			RNA_enum_set(op->ptr, "constraint_orientation", t->current_orientation);
 		}
 
-		if (t->con.mode & CON_APPLY)
-		{
+		if (t->con.mode & CON_APPLY) {
 			if (t->con.mode & CON_AXIS0) {
 				constraint_axis[0] = 1;
 			}
@@ -1527,8 +1546,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
-	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop)) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
 			options |= CTX_TEXTURE;
 		}
@@ -1540,8 +1558,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->launch_event = event ? event->type : -1;
 
-	if (t->launch_event == EVT_TWEAK_R)
-	{
+	if (t->launch_event == EVT_TWEAK_R) {
 		t->launch_event = RIGHTMOUSE;
 	}
 	else if (t->launch_event == EVT_TWEAK_L) {
@@ -1550,18 +1567,15 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	// XXX Remove this when wm_operator_call_internal doesn't use window->eventstate (which can have type = 0)
 	// For manipulator only, so assume LEFTMOUSE
-	if (t->launch_event == 0)
-	{
+	if (t->launch_event == 0) {
 		t->launch_event = LEFTMOUSE;
 	}
 
-	if (!initTransInfo(C, t, op, event))					// internal data, mouse, vectors
-	{
+	if (!initTransInfo(C, t, op, event)) {  /* internal data, mouse, vectors */
 		return 0;
 	}
 
-	if (t->spacetype == SPACE_VIEW3D)
-	{
+	if (t->spacetype == SPACE_VIEW3D) {
 		//calc_manipulator_stats(curarea);
 		initTransformOrientation(C, t);
 
@@ -1592,15 +1606,12 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Stupid code to have Ctrl-Click on manipulator work ok */
-	if (event)
-	{
+	if (event) {
 		wmKeyMap *keymap = WM_keymap_active(CTX_wm_manager(C), op->type->modalkeymap);
 		wmKeyMapItem *kmi;
 
-		for (kmi = keymap->items.first; kmi; kmi = kmi->next)
-		{
-			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS)
-			{
+		for (kmi = keymap->items.first; kmi; kmi = kmi->next) {
+			if (kmi->propvalue == TFM_MODAL_SNAP_INV_ON && kmi->val == KM_PRESS) {
 				if ((ELEM(kmi->type, LEFTCTRLKEY, RIGHTCTRLKEY) &&   event->ctrl)  ||
 				    (ELEM(kmi->type, LEFTSHIFTKEY, RIGHTSHIFTKEY) && event->shift) ||
 				    (ELEM(kmi->type, LEFTALTKEY, RIGHTALTKEY) &&     event->alt)   ||
@@ -1731,16 +1742,14 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	}
 
-	if (t->state == TRANS_CANCEL)
-	{
+	if (t->state == TRANS_CANCEL) {
 		postTrans(C, t);
 		return 0;
 	}
 
 
 	/* overwrite initial values if operator supplied a non-null vector */
-	if ( (prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "value")) && RNA_property_is_set(op->ptr, prop)) {
 		float values[4]= {0}; /* in case value isn't length 4, avoid uninitialized memory  */
 
 		if (RNA_property_array_check(prop)) {
@@ -1756,22 +1765,19 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	}
 
 	/* Transformation axis from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "axis")) && RNA_property_is_set(op->ptr, prop)) {
 		RNA_property_float_get_array(op->ptr, prop, t->axis);
 		normalize_v3(t->axis);
 		copy_v3_v3(t->axis_orig, t->axis);
 	}
 
 	/* Constraint init from operator */
-	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop))
-	{
+	if ((prop = RNA_struct_find_property(op->ptr, "constraint_axis")) && RNA_property_is_set(op->ptr, prop)) {
 		int constraint_axis[3];
 
 		RNA_property_boolean_get_array(op->ptr, prop, constraint_axis);
 
-		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2])
-		{
+		if (constraint_axis[0] || constraint_axis[1] || constraint_axis[2]) {
 			t->con.mode |= CON_APPLY;
 
 			if (constraint_axis[0]) {
@@ -1797,8 +1803,7 @@ void transformApply(bContext *C, TransInfo *t)
 {
 	t->context = C;
 
-	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT)))
-	{
+	if ((t->redraw & TREDRAW_HARD) || (t->draw_handle_apply == NULL && (t->redraw & TREDRAW_SOFT))) {
 		selectConstraint(t);
 		if (t->transform) {
 			t->transform(t, t->mval);  // calls recalcData()
@@ -1811,13 +1816,11 @@ void transformApply(bContext *C, TransInfo *t)
 	}
 
 	/* If auto confirm is on, break after one pass */
-	if (t->options & CTX_AUTOCONFIRM)
-	{
+	if (t->options & CTX_AUTOCONFIRM) {
 		t->state = TRANS_CONFIRM;
 	}
 
-	if (BKE_ptcache_get_continue_physics())
-	{
+	if (BKE_ptcache_get_continue_physics()) {
 		// TRANSFORM_FIX_ME
 		//do_screenhandlers(G.curscreen);
 		t->redraw |= TREDRAW_HARD;
@@ -1842,11 +1845,9 @@ int transformEnd(bContext *C, TransInfo *t)
 
 	t->context = C;
 
-	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING)
-	{
+	if (t->state != TRANS_STARTING && t->state != TRANS_RUNNING) {
 		/* handle restoring objects */
-		if (t->state == TRANS_CANCEL)
-		{
+		if (t->state == TRANS_CANCEL) {
 			/* exception, edge slide transformed UVs too */
 			if (t->mode==TFM_EDGE_SLIDE)
 				doEdgeSlide(t, 0.0f);
@@ -1942,8 +1943,8 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		/* axis-angle get limited with euler... */
 		float eul[3], oldeul[3];
 		
-		axis_angle_to_eulO( eul, EULER_ORDER_DEFAULT,axis, *angle);
-		axis_angle_to_eulO( oldeul, EULER_ORDER_DEFAULT,oldAxis, oldAngle);
+		axis_angle_to_eulO(eul, EULER_ORDER_DEFAULT, axis, *angle);
+		axis_angle_to_eulO(oldeul, EULER_ORDER_DEFAULT, oldAxis, oldAngle);
 		
 		if (protectflag & OB_LOCK_ROTX)
 			eul[0]= oldeul[0];
@@ -1952,7 +1953,7 @@ static void protectedAxisAngleBits(short protectflag, float axis[3], float *angl
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 		
-		eulO_to_axis_angle( axis, angle,eul, EULER_ORDER_DEFAULT);
+		eulO_to_axis_angle(axis, angle, eul, EULER_ORDER_DEFAULT);
 		
 		/* when converting to axis-angle, we need a special exception for the case when there is no axis */
 		if (IS_EQF(axis[0], axis[1]) && IS_EQF(axis[1], axis[2])) {
@@ -1998,7 +1999,7 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		if (protectflag & OB_LOCK_ROTZ)
 			eul[2]= oldeul[2];
 
-		eul_to_quat( quat,eul);
+		eul_to_quat(quat, eul);
 
 		/* restore original quat size */
 		mul_qt_fl(quat, qlen);
@@ -2097,8 +2098,7 @@ static void constraintob_from_transdata(bConstraintOb *cob, TransData *td)
 	 *	- current space should be local
 	 */
 	memset(cob, 0, sizeof(bConstraintOb));
-	if (td->ext)
-	{
+	if (td->ext) {
 		if (td->ext->rotOrder == ROT_MODE_QUAT) {
 			/* quats */
 			/* objects and bones do normalization first too, otherwise
@@ -2175,15 +2175,15 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 			/* copy results from cob->matrix */
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				/* quats */
-				mat4_to_quat( td->ext->quat,cob.matrix);
+				mat4_to_quat(td->ext->quat, cob.matrix);
 			}
 			else if (td->ext->rotOrder == ROT_MODE_AXISANGLE) {
 				/* axis angle */
-				mat4_to_axis_angle( &td->ext->quat[1], &td->ext->quat[0],cob.matrix);
+				mat4_to_axis_angle(&td->ext->quat[1], &td->ext->quat[0], cob.matrix);
 			}
 			else {
 				/* eulers */
-				mat4_to_eulO( td->ext->rot, td->ext->rotOrder,cob.matrix);
+				mat4_to_eulO(td->ext->rot, td->ext->rotOrder, cob.matrix);
 			}
 		}
 	}
@@ -2209,7 +2209,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			size_to_mat4( cob.matrix,td->ext->size);
+			size_to_mat4(cob.matrix, td->ext->size);
 		}
 		
 		/* Evaluate valid constraints */
@@ -2260,7 +2260,7 @@ static void constraintSizeLim(TransInfo *t, TransData *td)
 			if (td->flag & TD_SINGLESIZE)
 				return;
 			
-			mat4_to_size( td->ext->size,cob.matrix);
+			mat4_to_size(td->ext->size, cob.matrix);
 		}
 	}
 }
@@ -2271,8 +2271,7 @@ static void postInputWarp(TransInfo *t, float values[3])
 {
 	mul_v3_fl(values, (float)(M_PI * 2));
 
-	if (t->customData) /* non-null value indicates reversed input */
-	{
+	if (t->customData) { /* non-null value indicates reversed input */
 		negate_v3(values);
 	}
 }
@@ -2324,8 +2323,7 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal warp direction
 		if	(t->customData == NULL)
 			t->customData = (void*)1;
@@ -2465,11 +2463,9 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 {
 	int status = 0;
 	
-	if (event->type == MIDDLEMOUSE && event->val==KM_PRESS)
-	{
+	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == NULL)
-		{
+		if	(t->customData == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}
@@ -2603,7 +2599,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 	}
 	
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "Scale: %s%s %s", &tvec[0], t->con.text, t->proptext);
 			break;
@@ -2632,7 +2628,7 @@ static void headerResize(TransInfo *t, float vec[3], char *str)
 #define VECSIGNFLIP(a, b) ((SIGN(a[0]) & SIGN(b[0]))==0 || (SIGN(a[1]) & SIGN(b[1]))==0 || (SIGN(a[2]) & SIGN(b[2]))==0)
 
 /* smat is reference matrix, only scaled */
-static void TransMat3ToSize( float mat[][3], float smat[][3], float *size)
+static void TransMat3ToSize(float mat[][3], float smat[][3], float *size)
 {
 	float vec[3];
 	
@@ -2692,7 +2688,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 			//print_v3("fsize", fsize);
 		}
 		else {
-			mat3_to_size( fsize,tmat);
+			mat3_to_size(fsize, tmat);
 		}
 		
 		protectedSizeBits(td->protectflag, fsize);
@@ -2755,8 +2751,7 @@ int Resize(TransInfo *t, const int mval[2])
 	char str[200];
 	
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0)
-	{
+	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1]))/100.0f;
 	}
 	else {
@@ -2774,14 +2769,13 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	applySnapping(t, size);
 	
-	if (t->flag & T_AUTOVALUES)
-	{
+	if (t->flag & T_AUTOVALUES) {
 		copy_v3_v3(size, t->auto_values);
 	}
 	
 	copy_v3_v3(t->values, size);
 	
-	size_to_mat3( mat,size);
+	size_to_mat3(mat, size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
@@ -2803,7 +2797,7 @@ int Resize(TransInfo *t, const int mval[2])
 	
 	/* evil hack - redo resize if cliping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 		
 		if (t->con.applySize)
 			t->con.applySize(t, NULL, mat);
@@ -2972,14 +2966,14 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		
 		add_v3_v3v3(td->loc, vec, center);
 		
-		sub_v3_v3v3(vec,td->loc,td->iloc);
+		sub_v3_v3v3(vec, td->loc, td->iloc);
 		protectedTransBits(td->protectflag, vec);
 		add_v3_v3v3(td->loc, td->iloc, vec);
 		
 		
 		if (td->flag & TD_USEQUAT) {
 			mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-			mat3_to_quat( quat,fmat);	// Actual transform
+			mat3_to_quat(quat, fmat);	// Actual transform
 			
 			if (td->ext->quat) {
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
@@ -3008,8 +3002,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		copy_m3_m4(pmtx, t->poseobj->obmat);
 		invert_m3_m3(imtx, pmtx);
 		
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			sub_v3_v3v3(vec, td->center, center);
 			
 			mul_m3_v3(pmtx, vec);	// To Global space
@@ -3047,7 +3040,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
 				
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
@@ -3061,10 +3054,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
+				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -3077,12 +3070,12 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				copy_v3_v3(eul, td->ext->irot);
-				eulO_to_mat3( eulmat,eul, td->ext->rotOrder);
+				eulO_to_mat3(eulmat, eul, td->ext->rotOrder);
 				
 				/* mat = transform, obmat = bone rotation */
 				mul_m3_m3m3(fmat, smat, eulmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
+				mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 				
 				/* and apply (to end result only) */
 				protectedRotateBits(td->protectflag, eul, td->ext->irot);
@@ -3093,8 +3086,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 	}
 	else {
-		if ((td->flag & TD_NO_LOC) == 0)
-		{
+		if ((td->flag & TD_NO_LOC) == 0) {
 			/* translation */
 			sub_v3_v3v3(vec, td->center, center);
 			mul_m3_v3(mat, vec);
@@ -3116,7 +3108,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			/* euler or quaternion? */
 			   if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
@@ -3129,10 +3121,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat( quat,fmat);	// Actual transform
+				mat3_to_quat(quat, fmat);	// Actual transform
 				mul_qt_qtqt(tquat, quat, iquat);
 				
-				quat_to_axis_angle( td->ext->rotAxis, td->ext->rotAngle,tquat); 
+				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
 				
 				/* this function works on end result */
 				protectedAxisAngleBits(td->protectflag, td->ext->rotAxis, td->ext->rotAngle, td->ext->irotAxis, td->ext->irotAngle);
@@ -3145,11 +3137,11 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				/* calculate the total rotatation in eulers */
 				add_v3_v3v3(eul, td->ext->irot, td->ext->drot); /* we have to correct for delta rot */
-				eulO_to_mat3( obmat,eul, td->ext->rotOrder);
+				eulO_to_mat3(obmat, eul, td->ext->rotOrder);
 				/* mat = transform, obmat = object rotation */
 				mul_m3_m3m3(fmat, smat, obmat);
 				
-				mat3_to_compatible_eulO( eul, td->ext->rot, td->ext->rotOrder,fmat);
+				mat3_to_compatible_eulO(eul, td->ext->rot, td->ext->rotOrder, fmat);
 				
 				/* correct back for delta rot */
 				sub_v3_v3v3(eul, eul, td->ext->drot);
@@ -3170,7 +3162,7 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	float mat[3][3];
 	int i;
 	
-	vec_rot_to_mat3( mat,axis, angle);
+	vec_rot_to_mat3(mat, axis, angle);
 	
 	for (i = 0 ; i < t->total; i++, td++) {
 		
@@ -3182,10 +3174,10 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 		
 		if (t->con.applyRot) {
 			t->con.applyRot(t, td, axis, NULL);
-			vec_rot_to_mat3( mat,axis, angle * td->factor);
+			vec_rot_to_mat3(mat, axis, angle * td->factor);
 		}
 		else if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3( mat,axis, angle * td->factor);
+			vec_rot_to_mat3(mat, axis, angle * td->factor);
 		}
 		
 		ElementRotation(t, td, mat, t->around);
@@ -3271,8 +3263,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	float mat[3][3], smat[3][3], totmat[3][3];
 	int i;
 
-	vec_rot_to_mat3( smat,axis1, angles[0]);
-	vec_rot_to_mat3( totmat,axis2, angles[1]);
+	vec_rot_to_mat3(smat, axis1, angles[0]);
+	vec_rot_to_mat3(totmat, axis2, angles[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3284,8 +3276,8 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			continue;
 
 		if (t->flag & T_PROP_EDIT) {
-			vec_rot_to_mat3( smat,axis1, td->factor * angles[0]);
-			vec_rot_to_mat3( totmat,axis2, td->factor * angles[1]);
+			vec_rot_to_mat3(smat, axis1, td->factor * angles[0]);
+			vec_rot_to_mat3(totmat, axis2, td->factor * angles[1]);
 
 			mul_m3_m3m3(mat, smat, totmat);
 		}
@@ -3332,8 +3324,8 @@ int Trackball(TransInfo *t, const int UNUSED(mval[2]))
 	}
 	(void)spos;
 
-	vec_rot_to_mat3( smat,axis1, phi[0]);
-	vec_rot_to_mat3( totmat,axis2, phi[1]);
+	vec_rot_to_mat3(smat, axis1, phi[0]);
+	vec_rot_to_mat3(totmat, axis2, phi[1]);
 
 	mul_m3_m3m3(mat, smat, totmat);
 
@@ -3440,7 +3432,7 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str)
 		autoik[0]= '\0';
 
 	if (t->con.mode & CON_APPLY) {
-		switch(t->num.idx_max) {
+		switch (t->num.idx_max) {
 		case 0:
 			spos += sprintf(spos, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
@@ -3491,7 +3483,7 @@ static void applyTranslation(TransInfo *t, float vec[3])
 				
 				axis_angle_to_quat(quat, axis, angle);
 				
-				quat_to_mat3( mat,quat);
+				quat_to_mat3(mat, quat);
 				
 				ElementRotation(t, td, mat, V3D_LOCAL);
 			}
@@ -3899,7 +3891,7 @@ void initBevel(TransInfo *t)
 
 int handleEventBevel(TransInfo *t, wmEvent *event)
 {
-	if (event->val==KM_PRESS) {
+	if (event->val == KM_PRESS) {
 		if (!G.editBMesh) return 0;
 
 		switch (event->type) {
@@ -3932,7 +3924,7 @@ int handleEventBevel(TransInfo *t, wmEvent *event)
 
 int Bevel(TransInfo *t, const int UNUSED(mval[2]))
 {
-	float distance,d;
+	float distance, d;
 	int i;
 	char str[128];
 	const char *mode;
@@ -4185,9 +4177,9 @@ static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3])
 
 	/* we've tucked the scale in loc */
 	oldy= td->iloc[1];
-	size_to_mat3( sizemat,td->iloc);
+	size_to_mat3(sizemat, td->iloc);
 	mul_m3_m3m3(tmat, tmat, sizemat);
-	mat3_to_size( td->loc,tmat);
+	mat3_to_size(td->loc, tmat);
 	td->loc[1]= oldy;
 }
 
@@ -4217,7 +4209,7 @@ int BoneSize(TransInfo *t, const int mval[2])
 		constraintNumInput(t, size);
 	}
 	
-	size_to_mat3( mat,size);
+	size_to_mat3(mat, size);
 	
 	if (t->con.applySize) {
 		t->con.applySize(t, NULL, mat);
@@ -4394,8 +4386,8 @@ static int createSlideVerts(TransInfo *t)
 	BMEdge *e, *e1 /*, *ee, *le */ /* UNUSED */;
 	BMVert *v, *v2, *first;
 	BMLoop *l, *l1, *l2;
-	TransDataSlideVert *tempsv;
-	BMBVHTree *btree = BMBVH_NewBVH(em, 0, NULL, NULL);
+	TransDataSlideVert *sv_array;
+	BMBVHTree *btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
 	View3D *v3d = t->sa ? t->sa->spacedata.first : NULL;
@@ -4468,7 +4460,7 @@ static int createSlideVerts(TransInfo *t)
 		return 0;
 	}
 
-	tempsv = MEM_callocN(sizeof(TransDataSlideVert)*j, "tempsv");
+	sv_array = MEM_callocN(sizeof(TransDataSlideVert) * j, "sv_array");
 
 	j = 0;
 	while (1) {
@@ -4527,7 +4519,7 @@ static int createSlideVerts(TransInfo *t)
 		/*iterate over the loop*/
 		first = v;
 		do {
-			TransDataSlideVert *sv = tempsv + j;
+			TransDataSlideVert *sv = sv_array + j;
 
 			sv->v = v;
 			sv->origvert = *v;
@@ -4550,7 +4542,7 @@ static int createSlideVerts(TransInfo *t)
 			if (!e) {
 				//v2=v, v = BM_edge_other_vert(l1->e, v);
 
-				sv = tempsv + j + 1;
+				sv = sv_array + j + 1;
 				sv->v = v;
 				sv->origvert = *v;
 				
@@ -4583,7 +4575,7 @@ static int createSlideVerts(TransInfo *t)
 
 	//EDBM_flag_disable_all(em, BM_ELEM_SELECT);
 
-	sld->sv = tempsv;
+	sld->sv = sv_array;
 	sld->totsv = j;
 	
 	/*find mouse vector*/
@@ -4611,19 +4603,19 @@ static int createSlideVerts(TransInfo *t)
 					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
 
-					if (tempsv[j].down) {
-						ED_view3d_project_float_v3(ar, tempsv[j].down->co, vec1, projectMat);
+					if (sv_array[j].down) {
+						ED_view3d_project_float_v3(ar, sv_array[j].down->co, vec1, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].downvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].downvec);
 						ED_view3d_project_float_v3(ar, vec1, vec1, projectMat);
 					}
 					
-					if (tempsv[j].up) {
-						ED_view3d_project_float_v3(ar, tempsv[j].up->co, vec2, projectMat);
+					if (sv_array[j].up) {
+						ED_view3d_project_float_v3(ar, sv_array[j].up->co, vec2, projectMat);
 					}
 					else {
-						add_v3_v3v3(vec1, v->co, tempsv[j].upvec);
+						add_v3_v3v3(vec1, v->co, sv_array[j].upvec);
 						ED_view3d_project_float_v3(ar, vec2, vec2, projectMat);
 					}
 
@@ -4642,13 +4634,13 @@ static int createSlideVerts(TransInfo *t)
 	bmesh_edit_begin(bm, BMO_OP_FLAG_UNTAN_MULTIRES);
 
 	/*create copies of faces for customdata projection*/
-	tempsv = sld->sv;
-	for (i=0; i<sld->totsv; i++, tempsv++) {
+	sv_array = sld->sv;
+	for (i=0; i<sld->totsv; i++, sv_array++) {
 		BMIter fiter, liter;
 		BMFace *f;
 		BMLoop *l;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (f, &fiter, sv_array->v, BM_FACES_OF_VERT) {
 			
 			if (!BLI_smallhash_haskey(&sld->origfaces, (uintptr_t)f)) {
 				BMFace *copyf = BM_face_copy(bm, f, TRUE, TRUE);
@@ -4666,7 +4658,7 @@ static int createSlideVerts(TransInfo *t)
 			}
 		}
 
-		BLI_smallhash_insert(&sld->vhash, (uintptr_t)tempsv->v, tempsv);
+		BLI_smallhash_insert(&sld->vhash, (uintptr_t)sv_array->v, sv_array);
 	}
 	
 	sld->origfaces_init = TRUE;
@@ -4698,7 +4690,7 @@ static int createSlideVerts(TransInfo *t)
 void projectSVData(TransInfo *t, int final)
 {
 	SlideData *sld = t->customData;
-	TransDataSlideVert *tempsv;
+	TransDataSlideVert *sv;
 	BMEditMesh *em = sld->em;
 	SmallHash visit;
 	int i;
@@ -4716,15 +4708,23 @@ void projectSVData(TransInfo *t, int final)
 
 	BLI_smallhash_init(&visit);
 	
-		for (i=0, tempsv=sld->sv; i<sld->totsv; i++, tempsv++) {
+	for (i=0, sv = sld->sv; i < sld->totsv; sv++, i++) {
 		BMIter fiter;
 		BMFace *f;
 		
-		BM_ITER_ELEM (f, &fiter, tempsv->v, BM_FACES_OF_VERT) {
-			BMIter liter2;
-			BMFace *copyf, *copyf2;
-			BMLoop *l2;
-			int sel, hide;
+
+		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
+		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
+		 * here and only iterpolate those? */
+		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
+			BMIter liter;
+			BMLoop *l;
+
+			BMFace *f_copy;      /* the copy of 'f' */
+			BMFace *f_copy_flip; /* the copy of 'f' or detect if we need to flip to the shorter side. */
+
+			char is_sel, is_hide;
+
 			
 			if (BLI_smallhash_haskey(&visit, (uintptr_t)f))
 				continue;
@@ -4734,50 +4734,98 @@ void projectSVData(TransInfo *t, int final)
 			/* the face attributes of the copied face will get
 			 * copied over, so its necessary to save the selection
 			 * and hidden state*/
-			sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
-			hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
+			is_sel = BM_elem_flag_test(f, BM_ELEM_SELECT);
+			is_hide = BM_elem_flag_test(f, BM_ELEM_HIDDEN);
 			
-			copyf2 = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
+			f_copy = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)f);
 			
 			/* project onto copied projection face */
-			BM_ITER_ELEM (l2, &liter2, f, BM_LOOPS_OF_FACE) {
-				copyf = copyf2;
-				
-				if (BM_elem_flag_test(l2->e, BM_ELEM_SELECT) || BM_elem_flag_test(l2->prev->e, BM_ELEM_SELECT)) {
-					BMLoop *l3 = l2;
+			BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+				f_copy_flip = f_copy;
+
+				if (BM_elem_flag_test(l->e, BM_ELEM_SELECT) || BM_elem_flag_test(l->prev->e, BM_ELEM_SELECT)) {
+					/* the loop is attached of the selected edges that are sliding */
+					BMLoop *l_ed_sel = l;
 					
-					if (!BM_elem_flag_test(l2->e, BM_ELEM_SELECT))
-						l3 = l3->prev;
+					if (!BM_elem_flag_test(l->e, BM_ELEM_SELECT))
+						l_ed_sel = l_ed_sel->prev;
 					
-					if (sld->perc < 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->down)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					if (sld->perc < 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->down)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
-					else if (sld->perc > 0.0 && BM_vert_in_face(l3->radial_next->f, tempsv->up)) {
-						copyf = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l3->radial_next->f);
+					else if (sld->perc > 0.0f) {
+						if (BM_vert_in_face(l_ed_sel->radial_next->f, sv->up)) {
+							f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)l_ed_sel->radial_next->f);
+						}
 					}
-					if (!copyf)
+
+					BLI_assert(f_copy_flip != NULL);
+					if (!f_copy_flip) {
 						continue;  /* shouldn't happen, but protection */
+					}
+				}
+				else {
+					/* the loop is attached to only one vertex and not a selected edge,
+					 * this means we have to find a selected edges face going in the right direction
+					 * to copy from else we get bad distortion see: [#31080] */
+					BMIter eiter;
+					BMEdge *e_sel;
+
+					BM_ITER_ELEM (e_sel, &eiter, l->v, BM_EDGES_OF_VERT) {
+						if (BM_elem_flag_test(e_sel, BM_ELEM_SELECT)) {;
+							break;
+						}
+					}
+
+					if (e_sel) {
+						/* warning if the UV's are not contiguous, this will copy from the _wrong_ UVs
+						 * in fact whenever the face being copied is not 'f_copy' this can happen,
+						 * we could be a lot smarter about this but would need to deal with every UV channel or
+						 * add a way to mask out lauers when calling #BM_loop_interp_from_face() */
+						if (sld->perc < 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->down)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+
+						}
+						else if (sld->perc > 0.0f) {
+							if (BM_vert_in_face(e_sel->l->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->f);
+							}
+							else if (BM_vert_in_face(e_sel->l->radial_next->f, sv->up)) {
+								f_copy_flip = BLI_smallhash_lookup(&sld->origfaces, (uintptr_t)e_sel->l->radial_next->f);
+							}
+						}
+					}
+
 				}
 				
 				/* only loop data, no vertex data since that contains shape keys,
 				 * and we do not want to mess up other shape keys */
-				BM_loop_interp_from_face(em->bm, l2, copyf, FALSE, FALSE);
+				BM_loop_interp_from_face(em->bm, l, f_copy_flip, FALSE, FALSE);
 
 				if (final) {
-					BM_loop_interp_multires(em->bm, l2, copyf);	
-					if (copyf2 != copyf) {
-						BM_loop_interp_multires(em->bm, l2, copyf2);
+					BM_loop_interp_multires(em->bm, l, f_copy_flip);
+					if (f_copy != f_copy_flip) {
+						BM_loop_interp_multires(em->bm, l, f_copy);
 					}
 				}
 			}
 			
 			/* make sure face-attributes are correct (e.g. MTexPoly) */
-			BM_elem_attrs_copy(em->bm, em->bm, copyf2, f);
+			BM_elem_attrs_copy(em->bm, em->bm, f_copy, f);
 			
 			/* restore selection and hidden flags */
-			BM_face_select_set(em->bm, f, sel);
-			if (!hide) { /* this check is a workaround for bug, see note - [#30735], without this edge can be hidden and selected */
-				BM_elem_hide_set(em->bm, f, hide);
+			BM_face_select_set(em->bm, f, is_sel);
+			if (!is_hide) {
+				/* this check is a workaround for bug, see note - [#30735],
+				 * without this edge can be hidden and selected */
+				BM_elem_hide_set(em->bm, f, is_hide);
 			}
 		}
 	}
@@ -4785,7 +4833,8 @@ void projectSVData(TransInfo *t, int final)
 	BLI_smallhash_release(&visit);
 }
 
-void freeSlideTempFaces(SlideData *sld) {
+void freeSlideTempFaces(SlideData *sld)
+{
 	if (sld->origfaces_init) {
 		SmallHashIter hiter;
 		BMFace *copyf;
@@ -4808,14 +4857,14 @@ void freeSlideVerts(TransInfo *t)
 	
 #if 0 /*BMESH_TODO*/
 	if (me->drawflag & ME_DRAWEXTRA_EDGELEN) {
-		TransDataSlideVert *tempsv;
+		TransDataSlideVert *sv;
 		LinkNode *look = sld->vertlist;
 		GHash *vertgh = sld->vhash;
 		while (look) {
-			tempsv  = BLI_ghash_lookup(vertgh,(EditVert*)look->link);
-			if (tempsv != NULL) {
-				tempsv->up->f &= !SELECT;
-				tempsv->down->f &= !SELECT;
+			sv  = BLI_ghash_lookup(vertgh, (EditVert*)look->link);
+			if (sv != NULL) {
+				sv->up->f &= !SELECT;
+				sv->down->f &= !SELECT;
 			}
 			look = look->next;
 		}
@@ -5118,7 +5167,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	if (t->con.mode & CON_APPLY) {
 		size[0] = size[1] = size[2] = -1;
 
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 
 		if (t->con.applySize) {
 			t->con.applySize(t, NULL, mat);
@@ -5143,7 +5192,7 @@ int Mirror(TransInfo *t, const int UNUSED(mval[2]))
 	else {
 		size[0] = size[1] = size[2] = 1;
 
-		size_to_mat3( mat,size);
+		size_to_mat3(mat, size);
 
 		for (i = 0, td=t->data; i < t->total; i++, td++) {
 			if (td->flag & TD_NOACTION)
@@ -5186,8 +5235,7 @@ int Align(TransInfo *t, const int UNUSED(mval[2]))
 	/* saving original center */
 	copy_v3_v3(center, t->center);
 
-	for (i = 0 ; i < t->total; i++, td++)
-	{
+	for (i = 0 ; i < t->total; i++, td++) {
 		float mat[3][3], invmat[3][3];
 
 		if (td->flag & TD_NOACTION)
@@ -5412,7 +5460,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 
 		/* do the snapping to nearest frame/second */
 		if (doTime) {
-			val= (float)( floor((val/secf) + 0.5f) * secf );
+			val= (float)(floor((val/secf) + 0.5f) * secf);
 		}
 		else
 #endif
@@ -5551,9 +5599,9 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime)
-					deltax= (float)( floor((deltax/secf) + 0.5f) * secf );
+					deltax= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
-					deltax= (float)( floor(deltax + 0.5f) );
+					deltax= (float)(floor(deltax + 0.5f));
 			}
 
 			val = BKE_nla_tweakedit_remap(adt, td->ival, NLATIME_CONVERT_MAP);
@@ -5565,9 +5613,9 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime)
-					val= (float)( floor((deltax/secf) + 0.5f) * secf );
+					val= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
-					val= (float)( floor(val + 0.5f) );
+					val= (float)(floor(val + 0.5f));
 			}
 
 			*(td->val) = td->ival + val;
@@ -5817,9 +5865,9 @@ static void applyTimeScale(TransInfo *t)
 
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
-				fac= (float)( floor(fac/secf + 0.5f) * secf );
+				fac= (float)(floor(fac/secf + 0.5f) * secf);
 			else
-				fac= (float)( floor(fac + 0.5f) );
+				fac= (float)(floor(fac + 0.5f));
 		}
 
 		/* check if any need to apply nla-mapping */

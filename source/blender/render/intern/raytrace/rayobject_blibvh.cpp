@@ -102,8 +102,7 @@ static void bvh_callback(void *userdata, int index, const BVHTreeRay *UNUSED(ray
 	Isect *isec = data->isec;
 	RayObject *face = data->leafs[index];
 	
-	if (RE_rayobject_intersect(face,isec))
-	{
+	if (RE_rayobject_intersect(face, isec)) {
 		hit->index = index;
 
 		if (isec->mode == RE_RAY_SHADOW)
@@ -137,8 +136,8 @@ static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob)
 	INIT_MINMAX(min_max, min_max+3);
 	RE_rayobject_merge_bb(ob, min_max, min_max+3);
 
-	DO_MIN(min_max  , obj->bb[0]);
-	DO_MAX(min_max+3, obj->bb[1]);
+	DO_MIN(min_max,     obj->bb[0]);
+	DO_MAX(min_max + 3, obj->bb[1]);
 	
 	BLI_bvhtree_insert(obj->bvh, obj->next_leaf - obj->leafs, min_max, 2);	
 	*(obj->next_leaf++) = ob;

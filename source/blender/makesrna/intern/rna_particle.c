@@ -1516,7 +1516,7 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 		{PART_AVE_GLOBAL_X, "GLOBAL_X", 0, "Global X", ""},
 		{PART_AVE_GLOBAL_Y, "GLOBAL_Y", 0, "Global Y", ""},
 		{PART_AVE_GLOBAL_Z, "GLOBAL_Z", 0, "Global Z", ""},
-		{PART_AVE_RAND, "RAND", 0, "Random", ""} ,
+		{PART_AVE_RAND, "RAND", 0, "Random", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 

@@ -108,7 +108,7 @@ bool PyMatTo(PyObject* pymat, T& mat)
 					noerror = false;
 				else
 				{
-					for( unsigned int col = 0; col < cols; col++)
+					for(unsigned int col = 0; col < cols; col++)
 					{
 						PyObject *item = PySequence_GetItem(pyrow, col); /* new ref */
 						mat[row][col] = PyFloat_AsDouble(item);

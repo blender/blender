@@ -66,6 +66,8 @@
 
 #include "RE_render_ext.h"
 
+#include "UI_interface.h"
+
 #include "mesh_intern.h"
 
 /* allow accumulated normals to form a new direction but don't
@@ -87,6 +89,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 	float smooth = 0.292f * RNA_float_get(op->ptr, "smoothness");
 	float fractal = RNA_float_get(op->ptr, "fractal") / 2.5f;
+	float along_normal = RNA_float_get(op->ptr, "fractal_along_normal");
 
 	if (RNA_boolean_get(op->ptr, "quadtri") && 
 	    RNA_enum_get(op->ptr, "quadcorner") == SUBD_STRAIGHT_CUT)
@@ -95,7 +98,7 @@ static int edbm_subdivide_exec(bContext *C, wmOperator *op)
 	}
 	
 	BM_mesh_esubdivide(em->bm, BM_ELEM_SELECT,
-	                   smooth, fractal,
+	                   smooth, fractal, along_normal,
 	                   cuts,
 	                   SUBDIV_SELECT_ORIG, RNA_enum_get(op->ptr, "quadcorner"),
 	                   RNA_boolean_get(op->ptr, "quadtri"), TRUE,
@@ -143,6 +146,7 @@ void MESH_OT_subdivide(wmOperatorType *ot)
 	             "Quad Corner Type", "How to subdivide quad corners (anything other than Straight Cut will prevent ngons)");
 
 	RNA_def_float(ot->srna, "fractal", 0.0f, 0.0f, FLT_MAX, "Fractal", "Fractal randomness factor", 0.0f, 1000.0f);
+	RNA_def_float(ot->srna, "fractal_along_normal", 0.0f, 0.0f, 1.0f, "Along Normal", "Apply fractal displacement along normal only", 0.0f, 1.0f);
 	RNA_def_int(ot->srna, "seed", 0, 0, 10000, "Random Seed", "Seed for the random number generator", 0, 50);
 }
 
@@ -483,7 +487,7 @@ static int edbm_extrude_mesh(Scene *scene, Object *obedit, BMEditMesh *em, wmOpe
 		 * automatically building this data if invalid. Or something.
 		 */
 //		DAG_object_flush_update(scene, obedit, OB_RECALC_DATA);
-		object_handle_update(scene, obedit);
+		BKE_object_handle_update(scene, obedit);
 
 		/* individual faces? */
 //		BIF_TransformSetUndo("Extrude");
@@ -612,7 +616,7 @@ static int edbm_extrude_faces_exec(bContext *C, wmOperator *op)
 
 	edbm_extrude_face_indiv(em, op, BM_ELEM_SELECT, nor);
 	
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);
+	EDBM_update_generic(C, em, TRUE);
 	
 	return OPERATOR_FINISHED;
 }
@@ -896,7 +900,7 @@ static EnumPropertyItem prop_mesh_delete_types[] = {
 	{0, "VERT",      0, "Vertices", ""},
 	{1,  "EDGE",      0, "Edges", ""},
 	{2,  "FACE",      0, "Faces", ""},
-	{3,  "EDGE_FACE", 0, "Edges & Faces", ""},
+	{3,  "EDGE_FACE", 0, "Only Edges & Faces", ""},
 	{4,  "ONLY_FACE", 0, "Only Faces", ""},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -927,7 +931,9 @@ static int edbm_delete_exec(bContext *C, wmOperator *op)
 		//"Erase Only Faces";
 		if (!EDBM_op_callf(em, op, "del geom=%hf context=%i",
 		                   BM_ELEM_SELECT, DEL_ONLYFACES))
+		{
 			return OPERATOR_CANCELLED;
+		}
 	}
 
 	EDBM_flag_disable_all(em, BM_ELEM_SELECT);
@@ -1021,8 +1027,7 @@ static int edbm_add_edge_face__smooth_get(BMesh *bm)
 	unsigned int vote_on_smooth[2] = {0, 0};
 
 	BM_ITER_MESH (e, &iter, bm, BM_EDGES_OF_MESH) {
-		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l)
-		{
+		if (BM_elem_flag_test(e, BM_ELEM_SELECT) && e->l) {
 			vote_on_smooth[BM_elem_flag_test_bool(e->l->f, BM_ELEM_SMOOTH)]++;
 		}
 	}
@@ -1248,6 +1253,7 @@ void MESH_OT_edge_split(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Edge Split";
 	ot->idname = "MESH_OT_edge_split";
+	ot->description = "Split selected edges so that each neighbor face gets its own copy";
 	
 	/* api callbacks */
 	ot->exec = edbm_edge_split_exec;
@@ -2343,7 +2349,7 @@ static int edbm_select_axis_exec(bContext *C, wmOperator *op)
 			if (!BM_elem_flag_test(ev, BM_ELEM_HIDDEN)) {
 				switch (mode) {
 					case -1: /* aligned */
-						if (fabs(ev->co[axis] - value) < limit)
+						if (fabsf(ev->co[axis] - value) < limit)
 							BM_vert_select_set(em->bm, ev, TRUE);
 						break;
 					case 0: /* neg */
@@ -2590,21 +2596,21 @@ static float bm_edge_seg_isect(BMEdge *e, CutCurve *c, int len, char mode,
 				m1 = MAXSLOPE;
 				b1 = x12;
 			}
-			x2max = MAX2(x21, x22) + 0.001; /* prevent missed edges   */
-			x2min = MIN2(x21, x22) - 0.001; /* due to round off error */
-			y2max = MAX2(y21, y22) + 0.001;
-			y2min = MIN2(y21, y22) - 0.001;
+			x2max = MAX2(x21, x22) + 0.001f; /* prevent missed edges   */
+			x2min = MIN2(x21, x22) - 0.001f; /* due to round off error */
+			y2max = MAX2(y21, y22) + 0.001f;
+			y2min = MIN2(y21, y22) - 0.001f;
 			
 			/* Found an intersect,  calc intersect point */
 			if (m1 == m2) { /* co-incident lines */
 				/* cut at 50% of overlap area */
 				x1max = MAX2(x11, x12);
 				x1min = MIN2(x11, x12);
-				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0;
+				xi = (MIN2(x2max, x1max) + MAX2(x2min, x1min)) / 2.0f;
 				
 				y1max = MAX2(y11, y12);
 				y1min = MIN2(y11, y12);
-				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0;
+				yi = (MIN2(y2max, y1max) + MAX2(y2min, y1min)) / 2.0f;
 			}
 			else if (m2 == MAXSLOPE) {
 				xi = x22;
@@ -2679,7 +2685,8 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* get the cut curve */
-	RNA_BEGIN (op->ptr, itemptr, "path") {
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
 		if (len >= MAX_CUTS) {
@@ -3056,6 +3063,7 @@ void MESH_OT_beautify_fill(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Beautify Fill";
 	ot->idname = "MESH_OT_beautify_fill";
+	ot->description = "Rearrange some faces to try to get less degenerated geometry";
 
 	/* api callbacks */
 	ot->exec = edbm_beautify_fill_exec;
@@ -3122,10 +3130,22 @@ static int edbm_tris_convert_to_quads_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+static void join_triangle_props(wmOperatorType *ot)
 {
 	PropertyRNA *prop;
 
+	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
+	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
+
+	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
+	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
+	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
+	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+}
+
+void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
+{
 	/* identifiers */
 	ot->name = "Tris to Quads";
 	ot->idname = "MESH_OT_tris_convert_to_quads";
@@ -3138,14 +3158,7 @@ void MESH_OT_tris_convert_to_quads(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	prop = RNA_def_float_rotation(ot->srna, "limit", 0, NULL, 0.0f, DEG2RADF(180.0f),
-	                              "Max Angle", "Angle Limit", 0.0f, DEG2RADF(180.0f));
-	RNA_def_property_float_default(prop, DEG2RADF(40.0f));
-
-	RNA_def_boolean(ot->srna, "uvs", 0, "Compare UVs", "");
-	RNA_def_boolean(ot->srna, "vcols", 0, "Compare VCols", "");
-	RNA_def_boolean(ot->srna, "sharp", 0, "Compare Sharp", "");
-	RNA_def_boolean(ot->srna, "materials", 0, "Compare Materials", "");
+	join_triangle_props(ot);
 }
 
 static int edbm_dissolve_exec(bContext *C, wmOperator *op)
@@ -3196,11 +3209,45 @@ static int edbm_dissolve_limited_exec(bContext *C, wmOperator *op)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMesh *bm = em->bm;
 	float angle_limit = RNA_float_get(op->ptr, "angle_limit");
+
+	char dissolve_flag;
+
+	if (em->selectmode == SCE_SELECT_FACE) {
+		/* flush selection to tags and untag edges/verts with partially selected faces */
+		BMIter iter;
+		BMIter liter;
+
+		BMElem *ele;
+		BMFace *f;
+		BMLoop *l;
+
+		BM_ITER_MESH (ele, &iter, bm, BM_VERTS_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+		BM_ITER_MESH (ele, &iter, bm, BM_EDGES_OF_MESH) {
+			BM_elem_flag_set(ele, BM_ELEM_TAG, BM_elem_flag_test(ele, BM_ELEM_SELECT));
+		}
+
+		BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
+			if (!BM_elem_flag_test(f, BM_ELEM_SELECT)) {
+				BM_ITER_ELEM (l, &liter, f, BM_LOOPS_OF_FACE) {
+					BM_elem_flag_disable(l->v, BM_ELEM_TAG);
+					BM_elem_flag_disable(l->e, BM_ELEM_TAG);
+				}
+			}
+		}
+
+		dissolve_flag = BM_ELEM_TAG;
+	}
+	else {
+		dissolve_flag = BM_ELEM_SELECT;
+	}
 
 	if (!EDBM_op_callf(em, op,
 	                   "dissolve_limit edges=%he verts=%hv angle_limit=%f",
-	                   BM_ELEM_SELECT, BM_ELEM_SELECT, angle_limit))
+	                   dissolve_flag, dissolve_flag, angle_limit))
 	{
 		return OPERATOR_CANCELLED;
 	}
@@ -3614,403 +3661,577 @@ void MESH_OT_select_mirror(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend the existing selection");
 }
 
-/* qsort routines.  not sure how to make these
- * work, since we aren't using linked lists for
- * geometry anymore.  might need a sort of "swap"
- * function for bmesh elements. */
+/******************************************************************************
+ * qsort routines.
+ * Now unified, for vertices/edges/faces. */
 
-/* TODO All this section could probably use a refresh...
- *      face code works in object mode, does everything in one op, while vert uses several...
- */
-
-typedef struct xvertsort {
-	int x; /* X screen-coordinate */
-	int org_idx; /* Original index of this vertex _in the mempool_ */
-} xvertsort;
-
-
-static int vergxco(const void *v1, const void *v2)
-{
-	const xvertsort *x1 = v1, *x2 = v2;
-
-	/* We move unchanged vertices (org_idx < 0) at the begining of the sorted list. */
-	if (x1->org_idx >= 0 && x2->org_idx >= 0)
-		return (x1->x > x2->x) - (x1->x < x2->x);
-	return (x2->org_idx < 0) - (x1->org_idx < 0);
-}
-
-#if 0 /* Unused */
-struct facesort {
-	uintptr_t x;
-	struct EditFace *efa;
+enum {
+	SRT_VIEW_ZAXIS = 1,  /* Use view Z (deep) axis. */
+	SRT_VIEW_XAXIS,      /* Use view X (left to right) axis. */
+	SRT_CURSOR_DISTANCE, /* Use distance from element to 3D cursor. */
+	SRT_MATERIAL,        /* Face only: use mat number. */
+	SRT_SELECTED,        /* Move selected elements in first, without modifying 
+	                      * relative order of selected and unselected elements. */
+	SRT_RANDOMIZE,       /* Randomize selected elements. */
+	SRT_REVERSE,         /* Reverse current order of selected elements. */
 };
 
-static int vergface(const void *v1, const void *v2)
+typedef struct bmelemsort {
+	float srt; /* Sort factor */
+	int org_idx; /* Original index of this element _in its mempool_ */
+} bmelemsort;
+
+static int bmelemsort_comp(const void *v1, const void *v2)
 {
-	const struct facesort *x1 = v1, *x2 = v2;
+	const bmelemsort *x1 = v1, *x2 = v2;
 
-	if (x1->x > x2->x) return 1;
-	else if (x1->x < x2->x) return -1;
-	return 0;
-}
-#endif
-
-static void xsortvert_flag__doSetX(void *userData, BMVert *UNUSED(eve), int x, int UNUSED(y), int index)
-{
-	xvertsort *sortblock = userData;
-
-	sortblock[index].x = x;
+	return (x1->srt > x2->srt) - (x1->srt < x2->srt);
 }
 
-/* all verts with (flag & 'flag') are sorted */
-static void xsortvert_flag(bContext *C, int flag)
+/* Reorders vertices/edges/faces using a given methods. Loops are not supported. */
+static void sort_bmelem_flag(bContext *C, const int types, const int flag, const int action,
+                             const int reverse, const unsigned int seed)
 {
+	Scene *scene = CTX_data_scene(C);
+	Object *ob = CTX_data_edit_object(C);
 	ViewContext vc;
 	BMEditMesh *em;
 	BMVert *ve;
+	BMEdge *ed;
+	BMFace *fa;
 	BMIter iter;
-	xvertsort *sortblock;
-	int *unchangedblock, *vmap;
-	int totvert, sorted = 0, unchanged = 0, i;
+
+	/* In all five elements below, 0 = vertices, 1 = edges, 2 = faces. */
+	/* Just to mark protected elements. */
+	char *pblock[3] = {NULL, NULL, NULL}, *pb;
+	bmelemsort *sblock[3] = {NULL, NULL, NULL}, *sb;
+	int *map[3] = {NULL, NULL, NULL}, *mp;
+	int totelem[3] = {0, 0, 0}, tot;
+	int affected[3] = {0, 0, 0}, aff;
+	int i, j;
+
+	if (!(types && flag && action))
+		return;
 
 	em_setup_viewcontext(C, &vc);
 	em = vc.em;
 
-	totvert = em->bm->totvert;
+	if (types & BM_VERT)
+		totelem[0] = em->bm->totvert;
+	if (types & BM_EDGE)
+		totelem[1] = em->bm->totedge;
+	if (types & BM_FACE)
+		totelem[2] = em->bm->totface;
 
-	sortblock = MEM_callocN(sizeof(xvertsort) * totvert, "xsort sorted");
-	/* Stores unchanged verts, will be reused as final old2new vert mapping... */
-	unchangedblock = MEM_callocN(sizeof(int) * totvert, "xsort unchanged");
-	BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-		if (BM_elem_flag_test(ve, flag)) {
-			sortblock[i].org_idx = i;
-			sorted++;
+	if (ELEM(action, SRT_VIEW_ZAXIS, SRT_VIEW_XAXIS)) {
+		RegionView3D *rv3d = ED_view3d_context_rv3d(C);
+		float mat[4][4];
+		float fact = reverse ? -1.0 : 1.0;
+		int coidx = (action == SRT_VIEW_ZAXIS) ? 2 : 0;
+
+		mult_m4_m4m4(mat, rv3d->viewmat, ob->obmat);  /* Apply the view matrix to the object matrix. */
+
+		if (totelem[0]) {
+			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
+			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+
+			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(ve, flag)) {
+					float co[3];
+					mul_v3_m4v3(co, mat, ve->co);
+
+					pb[i] = FALSE;
+					sb[affected[0]].org_idx = i;
+					sb[affected[0]++].srt = co[coidx] * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
 		}
-		else {
-			unchangedblock[unchanged++] = i;
-			sortblock[i].org_idx = -1;
+
+		if (totelem[1]) {
+			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
+			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+
+			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+				if (BM_elem_flag_test(ed, flag)) {
+					float co[3];
+					mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
+					mul_m4_v3(mat, co);
+
+					pb[i] = FALSE;
+					sb[affected[1]].org_idx = i;
+					sb[affected[1]++].srt = co[coidx] * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[2]) {
+			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
+			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+
+			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+				if (BM_elem_flag_test(fa, flag)) {
+					float co[3];
+					BM_face_calc_center_mean(fa, co);
+					mul_m4_v3(mat, co);
+
+					pb[i] = FALSE;
+					sb[affected[2]].org_idx = i;
+					sb[affected[2]++].srt = co[coidx] * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
 		}
 	}
-/*	printf("%d verts: %d to be sorted, %d unchanged…\n", totvert, sorted, unchanged);*/
-	if (sorted == 0)
-		return;
 
-	ED_view3d_init_mats_rv3d(vc.obedit, vc.rv3d);
-	mesh_foreachScreenVert(&vc, xsortvert_flag__doSetX, sortblock, V3D_CLIP_TEST_OFF);
+	else if (action == SRT_CURSOR_DISTANCE) {
+		View3D *v3d = CTX_wm_view3d(C);
+		float cur[3];
+		float mat[4][4];
+		float fact = reverse ? -1.0 : 1.0;
 
-	qsort(sortblock, totvert, sizeof(xvertsort), vergxco);
-
-	/* Convert sortblock into an array mapping old idx to new. */
-	vmap = unchangedblock;
-	unchangedblock = NULL;
-	if (unchanged) {
-		unchangedblock = MEM_mallocN(sizeof(int) * unchanged, "xsort unchanged");
-		memcpy(unchangedblock, vmap, unchanged * sizeof(int));
-	}
-	for (i = totvert; i--; ) {
-		if (i < unchanged)
-			vmap[unchangedblock[i]] = i;
+		if (v3d && v3d->localvd)
+			copy_v3_v3(cur, v3d->cursor);
 		else
-			vmap[sortblock[i].org_idx] = i;
-	}
+			copy_v3_v3(cur, scene->cursor);
+		invert_m4_m4(mat, ob->obmat);
+		mul_m4_v3(mat, cur);
 
-	MEM_freeN(sortblock);
-	if (unchangedblock)
-		MEM_freeN(unchangedblock);
+		if (totelem[0]) {
+			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
+			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
 
-	BM_mesh_remap(em->bm, vmap, NULL, NULL);
-
-	MEM_freeN(vmap);
-}
-
-static int edbm_vertices_sort_exec(bContext *C, wmOperator *UNUSED(op))
-{
-	xsortvert_flag(C, BM_ELEM_SELECT);
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_vertices_sort(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Vertex Sort";
-	ot->description = "Sort vertex order";
-	ot->idname = "MESH_OT_vertices_sort";
-
-	/* api callbacks */
-	ot->exec = edbm_vertices_sort_exec;
-
-	ot->poll = EM_view3d_poll; /* uses view relative X axis to sort verts */
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-/* ********************** SORT FACES ******************* */
-
-static void permutate(void *list, int num, int size, int *index)
-{
-	void *buf;
-	int len;
-	int i;
-
-	len = num * size;
-
-	buf = MEM_mallocN(len, "permutate");
-	memcpy(buf, list, len);
-	
-	for (i = 0; i < num; i++) {
-		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
-	}
-	MEM_freeN(buf);
-}
-
-/* sort faces on view axis */
-static float *face_sort_floats;
-static int float_sort(const void *v1, const void *v2)
-{
-	float x1, x2;
-	
-	x1 = face_sort_floats[((int *) v1)[0]];
-	x2 = face_sort_floats[((int *) v2)[0]];
-	
-	if      (x1 > x2) return  1;
-	else if (x1 < x2) return -1;
-	return 0;
-}
-
-static int edbm_sort_faces_exec(bContext *C, wmOperator *op)
-{
-	RegionView3D *rv3d = ED_view3d_context_rv3d(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	Object *ob = CTX_data_edit_object(C);
-	Scene *scene = CTX_data_scene(C);
-	Mesh *me;
-	CustomDataLayer *layer;
-	int i, j, *index;
-	int event;
-	float reverse = 1;
-	// XXX int ctrl = 0;
-	
-	if (!v3d) return OPERATOR_CANCELLED;
-
-	/* This operator work in Object Mode, not in edit mode.
-	 * After talk with Campbell we agree that there is no point to port this to EditMesh right now.
-	 * so for now, we just exit_editmode and enter_editmode at the end of this function.
-	 */
-	ED_object_exit_editmode(C, EM_FREEDATA);
-
-	me = ob->data;
-	if (me->totpoly == 0) {
-		ED_object_enter_editmode(C, 0);
-		return OPERATOR_FINISHED;
-	}
-
-	event = RNA_enum_get(op->ptr, "type");
-
-	// XXX
-	//if (ctrl)
-	//	reverse = -1;
-	
-	/* create index list */
-	index = (int *)MEM_mallocN(sizeof(int) * me->totpoly, "sort faces");
-	for (i = 0; i < me->totpoly; i++) {
-		index[i] = i;
-	}
-	
-	face_sort_floats = (float *) MEM_mallocN(sizeof(float) * me->totpoly, "sort faces float");
-
-	/* sort index list instead of faces itself 
-	 * and apply this permutation to all face layers
-	 */
-	if (event == 5) {
-		/* Random */
-		for (i = 0; i < me->totpoly; i++) {
-			face_sort_floats[i] = BLI_frand();
+			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(ve, flag)) {
+					pb[i] = FALSE;
+					sb[affected[0]].org_idx = i;
+					sb[affected[0]++].srt = len_squared_v3v3(cur, ve->co) * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
 		}
-		qsort(index, me->totpoly, sizeof(int), float_sort);
+
+		if (totelem[1]) {
+			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
+			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+
+			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+				if (BM_elem_flag_test(ed, flag)) {
+					float co[3];
+					mid_v3_v3v3(co, ed->v1->co, ed->v2->co);
+
+					pb[i] = FALSE;
+					sb[affected[1]].org_idx = i;
+					sb[affected[1]++].srt = len_squared_v3v3(cur, co) * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[2]) {
+			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
+			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+
+			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+				if (BM_elem_flag_test(fa, flag)) {
+					float co[3];
+					BM_face_calc_center_mean(fa, co);
+
+					pb[i] = FALSE;
+					sb[affected[2]].org_idx = i;
+					sb[affected[2]++].srt = len_squared_v3v3(cur, co) * fact;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+	}
+
+	/* Faces only! */
+	else if (action == SRT_MATERIAL && totelem[2]) {
+		pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
+		sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+
+		BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+			if (BM_elem_flag_test(fa, flag)) {
+				/* Reverse materials' order, not order of faces inside each mat! */
+				/* Note: cannot use totcol, as mat_nr may sometimes be greater... */
+				float srt = reverse ? (float)(MAXMAT - fa->mat_nr) : (float)fa->mat_nr;
+				pb[i] = FALSE;
+				sb[affected[2]].org_idx = i;
+				/* Multiplying with totface and adding i ensures us we keep current order for all faces of same mat. */
+				sb[affected[2]++].srt = srt * ((float)totelem[2]) + ((float)i);
+/*				printf("e: %d; srt: %f; final: %f\n", i, srt, srt * ((float)totface) + ((float)i));*/
+			}
+			else {
+				pb[i] = TRUE;
+			}
+		}
+	}
+
+	else if (action == SRT_SELECTED) {
+		int *tbuf[3] = {NULL, NULL, NULL}, *tb;
+
+		if (totelem[0]) {
+			tb = tbuf[0] = MEM_callocN(sizeof(int) * totelem[0], "sort_bmelem vert tbuf");
+			mp = map[0] = MEM_callocN(sizeof(int) * totelem[0], "sort_bmelem vert map");
+
+			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+			if (BM_elem_flag_test(ve, flag)) {
+				mp[affected[0]++] = i;
+			}
+			else {
+				*tb = i;
+				tb++;
+				}
+			}
+		}
+
+		if (totelem[1]) {
+			tb = tbuf[1] = MEM_callocN(sizeof(int) * totelem[1], "sort_bmelem edge tbuf");
+			mp = map[1] = MEM_callocN(sizeof(int) * totelem[1], "sort_bmelem edge map");
+
+			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+			if (BM_elem_flag_test(ed, flag)) {
+				mp[affected[1]++] = i;
+			}
+			else {
+				*tb = i;
+				tb++;
+				}
+			}
+		}
+
+		if (totelem[2]) {
+			tb = tbuf[2] = MEM_callocN(sizeof(int) * totelem[2], "sort_bmelem face tbuf");
+			mp = map[2] = MEM_callocN(sizeof(int) * totelem[2], "sort_bmelem face map");
+
+			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+			if (BM_elem_flag_test(fa, flag)) {
+				mp[affected[2]++] = i;
+			}
+			else {
+				*tb = i;
+				tb++;
+				}
+			}
+		}
+
+		for (j = 3; j--;) {
+			int tot = totelem[j];
+			int aff = affected[j];
+			tb = tbuf[j];
+			mp = map[j];
+			if (!(tb && mp))
+				continue;
+			if (ELEM(aff, 0, tot)) {
+				MEM_freeN(tb);
+				MEM_freeN(mp);
+				map[j] = NULL;
+				continue;
+			}
+			if (reverse) {
+				memcpy(tb + (tot - aff), mp, aff * sizeof(int));
+			}
+			else {
+				memcpy(mp + aff, tb, (tot - aff) * sizeof(int));
+				tb = mp;
+				mp = map[j] = tbuf[j];
+				tbuf[j] = tb;
+			}
+
+			/* Reverse mapping, we want an org2new one! */
+			for (i = tot, tb = tbuf[j] + tot - 1; i--; tb--) {
+				mp[*tb] = i;
+			}
+			MEM_freeN(tbuf[j]);
+		}
+	}
+
+	else if (action == SRT_RANDOMIZE) {
+		if (totelem[0]) {
+			/* Re-init random generator for each element type, to get consistant random when
+			 * enabling/disabling an element type. */
+			BLI_srandom(seed);
+			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
+			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+
+			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(ve, flag)) {
+					pb[i] = FALSE;
+					sb[affected[0]].org_idx = i;
+					sb[affected[0]++].srt = BLI_frand();
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[1]) {
+			BLI_srandom(seed);
+			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
+			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+
+			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+				if (BM_elem_flag_test(ed, flag)) {
+					pb[i] = FALSE;
+					sb[affected[1]].org_idx = i;
+					sb[affected[1]++].srt = BLI_frand();
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[2]) {
+			BLI_srandom(seed);
+			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
+			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+
+			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+				if (BM_elem_flag_test(fa, flag)) {
+					pb[i] = FALSE;
+					sb[affected[2]].org_idx = i;
+					sb[affected[2]++].srt = BLI_frand();
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+	}
+
+	else if (action == SRT_REVERSE) {
+		if (totelem[0]) {
+			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
+			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+
+			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
+				if (BM_elem_flag_test(ve, flag)) {
+					pb[i] = FALSE;
+					sb[affected[0]].org_idx = i;
+					sb[affected[0]++].srt = (float)-i;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[1]) {
+			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
+			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+
+			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
+				if (BM_elem_flag_test(ed, flag)) {
+					pb[i] = FALSE;
+					sb[affected[1]].org_idx = i;
+					sb[affected[1]++].srt = (float)-i;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+
+		if (totelem[2]) {
+			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
+			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+
+			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
+				if (BM_elem_flag_test(fa, flag)) {
+					pb[i] = FALSE;
+					sb[affected[2]].org_idx = i;
+					sb[affected[2]++].srt = (float)-i;
+				}
+				else {
+					pb[i] = TRUE;
+				}
+			}
+		}
+	}
+
+/*	printf("%d vertices: %d to be affected…\n", totelem[0], affected[0]);*/
+/*	printf("%d edges: %d to be affected…\n", totelem[1], affected[1]);*/
+/*	printf("%d faces: %d to be affected…\n", totelem[2], affected[2]);*/
+	if (affected[0] == 0 && affected[1] == 0 && affected[2] == 0) {
+		for (j = 3; j--;) {
+			if (pblock[j])
+				MEM_freeN(pblock[j]);
+			if (sblock[j])
+				MEM_freeN(sblock[j]);
+			if (map[j])
+				MEM_freeN(map[j]);
+		}
+		return;
+	}
+
+	/* Sort affected elements, and populate mapping arrays, if needed. */
+	for (j = 3; j--;) {
+		pb = pblock[j];
+		sb = sblock[j];
+		if (pb && sb && !map[j]) {
+			char *p_blk;
+			bmelemsort *s_blk;
+			tot = totelem[j];
+			aff = affected[j];
+
+			qsort(sb, aff, sizeof(bmelemsort), bmelemsort_comp);
+
+			mp = map[j] = MEM_mallocN(sizeof(int) * tot, "sort_bmelem map");
+			p_blk = pb + tot - 1;
+			s_blk = sb + aff - 1;
+			for (i = tot; i--; p_blk--) {
+				if (*p_blk) { /* Protected! */
+					mp[i] = i;
+				}
+				else {
+					mp[s_blk->org_idx] = i;
+					s_blk--;
+				}
+			}
+		}
+		if (pb)
+			MEM_freeN(pb);
+		if (sb)
+			MEM_freeN(sb);
+	}
+
+	BM_mesh_remap(em->bm, map[0], map[1], map[2]);
+/*	DAG_id_tag_update(ob->data, 0);*/
+
+	for (j = 3; j--;) {
+		if (map[j])
+			MEM_freeN(map[j]);
+	}
+}
+
+static int edbm_sort_elements_exec(bContext *C, wmOperator *op)
+{
+	int action = RNA_enum_get(op->ptr, "type");
+	PropertyRNA *prop_elem_types = RNA_struct_find_property(op->ptr, "elements");
+	int elem_types = 0;
+	int reverse = RNA_boolean_get(op->ptr, "reverse");
+	unsigned int seed = RNA_int_get(op->ptr, "seed");
+
+	/* If no elem_types set, use current selection mode to set it! */
+	if (RNA_property_is_set(op->ptr, prop_elem_types)) {
+		elem_types = RNA_property_enum_get(op->ptr, prop_elem_types);
 	}
 	else {
-		MPoly *mp;
-		MLoop *ml;
-		MVert *mv;
-		float vec[3];
-		float mat[4][4];
-		float cur[3];
-		
-		if (event == 1)
-			mult_m4_m4m4(mat, rv3d->viewmat, OBACT->obmat);  /* apply the view matrix to the object matrix */
-		else if (event == 2) { /* sort from cursor */
-			if (v3d && v3d->localvd) {
-				copy_v3_v3(cur, v3d->cursor);
-			}
-			else {
-				copy_v3_v3(cur, scene->cursor);
-			}
-			invert_m4_m4(mat, OBACT->obmat);
-			mul_m4_v3(mat, cur);
-		}
-		
-		mp = me->mpoly;
-
-		for (i = 0; i < me->totpoly; i++, mp++) {
-			if (event == 3) {
-				face_sort_floats[i] = ((float)mp->mat_nr) * reverse;
-			}
-			else if (event == 4) {
-				/* selected first */
-				if (mp->flag & ME_FACE_SEL)
-					face_sort_floats[i] = 0.0;
-				else
-					face_sort_floats[i] = reverse;
-			}
-			else {
-				/* find the face's center */
-				ml = me->mloop + mp->loopstart;
-				zero_v3(vec);
-				for (j = 0; j < mp->totloop; j++, ml++) {
-					mv = me->mvert + ml->v;
-					add_v3_v3(vec, mv->co);
-				}
-				mul_v3_fl(vec, 1.0f / (float)mp->totloop);
-				
-				if (event == 1) { /* sort on view axis */
-					mul_m4_v3(mat, vec);
-					face_sort_floats[i] = vec[2] * reverse;
-				}
-				else if (event == 2) { /* distance from cursor */
-					face_sort_floats[i] = len_v3v3(cur, vec) * reverse; /* back to front */
-				}
-			}
-		}
-		qsort(index, me->totpoly, sizeof(int), float_sort);
-	}
-	
-	MEM_freeN(face_sort_floats);
-	for (i = 0; i < me->pdata.totlayer; i++) {
-		layer = &me->pdata.layers[i];
-		permutate(layer->data, me->totpoly, CustomData_sizeof(layer->type), index);
+		BMEditMesh *em = BMEdit_FromObject(CTX_data_edit_object(C));
+		if (em->selectmode & SCE_SELECT_VERTEX)
+			elem_types |= BM_VERT;
+		if (em->selectmode & SCE_SELECT_EDGE)
+			elem_types |= BM_EDGE;
+		if (em->selectmode & SCE_SELECT_FACE)
+			elem_types |= BM_FACE;
+		RNA_enum_set(op->ptr, "elements", elem_types);
 	}
 
-	MEM_freeN(index);
-	DAG_id_tag_update(ob->data, 0);
-
-	/* Return to editmode. */
-	ED_object_enter_editmode(C, 0);
-
+	sort_bmelem_flag(C, elem_types, BM_ELEM_SELECT, action, reverse, seed);
 	return OPERATOR_FINISHED;
 }
 
-void MESH_OT_sort_faces(wmOperatorType *ot)
+static int edbm_sort_elements_draw_check_prop(PointerRNA *ptr, PropertyRNA *prop)
+{
+	const char *prop_id = RNA_property_identifier(prop);
+	int action = RNA_enum_get(ptr, "type");
+
+	/* Only show seed for randomize action! */
+	if (strcmp(prop_id, "seed") == 0) {
+		if (action == SRT_RANDOMIZE)
+			return TRUE;
+		else
+			return FALSE;
+	}
+
+	/* Hide seed for reverse and randomize actions! */
+	if (strcmp(prop_id, "reverse") == 0) {
+		if (ELEM(action, SRT_RANDOMIZE, SRT_REVERSE))
+			return FALSE;
+		else
+			return TRUE;
+	}
+
+	return TRUE;
+}
+
+static void edbm_sort_elements_ui(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	wmWindowManager *wm = CTX_wm_manager(C);
+	PointerRNA ptr;
+
+	RNA_pointer_create(&wm->id, op->type->srna, op->properties, &ptr);
+
+	/* Main auto-draw call. */
+	uiDefAutoButsRNA(layout, &ptr, edbm_sort_elements_draw_check_prop, '\0');
+}
+
+void MESH_OT_sort_elements(wmOperatorType *ot)
 {
 	static EnumPropertyItem type_items[] = {
-		{ 1, "VIEW_AXIS", 0, "View Axis", "" },
-		{ 2, "CURSOR_DISTANCE", 0, "Cursor Distance", "" },
-		{ 3, "MATERIAL", 0, "Material", "" },
-		{ 4, "SELECTED", 0, "Selected", "" },
-		{ 5, "RANDOMIZE", 0, "Randomize", "" },
-		{ 0, NULL, 0, NULL, NULL }};
+		{SRT_VIEW_ZAXIS, "VIEW_ZAXIS", 0, "View Z Axis",
+		                 "Sort selected elements from farest to nearest one in current view"},
+		{SRT_VIEW_XAXIS, "VIEW_XAXIS", 0, "View X Axis",
+		                 "Sort selected elements from left to right one in current view"},
+		{SRT_CURSOR_DISTANCE, "CURSOR_DISTANCE", 0, "Cursor Distance",
+		                      "Sort selected elements from nearest to farest from 3D cursor"},
+		{SRT_MATERIAL, "MATERIAL", 0, "Material",
+		               "Sort selected elements from smallest to greatest material index (faces only!)"},
+		{SRT_SELECTED, "SELECTED", 0, "Selected",
+		               "Move all selected elements in first places, preserving their relative order "
+		               "(WARNING: this will affect unselected elements' indices as well!)"},
+		{SRT_RANDOMIZE, "RANDOMIZE", 0, "Randomize", "Randomize order of selected elements"},
+		{SRT_REVERSE, "REVERSE", 0, "Reverse", "Reverse current order of selected elements"},
+		{0, NULL, 0, NULL, NULL},
+	};
+
+	static EnumPropertyItem elem_items[] = {
+		{BM_VERT, "VERT", 0, "Vertices", ""},
+		{BM_EDGE, "EDGE", 0, "Edges", ""},
+		{BM_FACE, "FACE", 0, "Faces", ""},
+		{0, NULL, 0, NULL, NULL},
+	};
 
 	/* identifiers */
-	ot->name = "Sort Faces"; // XXX (Ctrl to reverse)%t|
-	ot->description = "The faces of the active Mesh Object are sorted, based on the current view";
-	ot->idname = "MESH_OT_sort_faces";
+	ot->name = "Sort Mesh Elements";
+	ot->description = "The order of selected vertices/edges/faces is modified, based on a given method";
+	ot->idname = "MESH_OT_sort_elements";
 
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
-	ot->exec = edbm_sort_faces_exec;
+	ot->exec = edbm_sort_elements_exec;
 	ot->poll = ED_operator_editmesh;
+	ot->ui = edbm_sort_elements_ui;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "");
+	ot->prop = RNA_def_enum(ot->srna, "type", type_items, 0, "Type", "Type of re-ordering operation to apply");
+	RNA_def_enum_flag(ot->srna, "elements", elem_items, 0, "Elements",
+	                  "Which elements to affect (vertices, edges and/or faces)");
+	RNA_def_boolean(ot->srna, "reverse", FALSE, "Reverse", "Reverse the sorting effect");
+	RNA_def_int(ot->srna, "seed", 0, 0, INT_MAX, "Seed", "Seed for random-based operations", 0, 255);
 }
 
-/* ******************************* Randomize verts ************************* */
-static void hashvert_flag(BMEditMesh *em, int flag, unsigned int seed)
-{
-	BMVert *ve;
-	BMIter iter;
-	char *block /* Just to mark protected vertices */, *t_blk;
-	int *randblock, *vmap, *t_idx, *r_idx;
-	int totvert, randomized = 0, /*protected = 0, */ i;
-
-	totvert = em->bm->totvert;
-
-	block = MEM_callocN(sizeof(char) * totvert, "randvert block");
-	randblock = MEM_callocN(sizeof(int) * totvert, "randvert randblock");
-	BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-		if (BM_elem_flag_test(ve, flag)) {
-			block[i] = FALSE;
-			randblock[randomized++] = i;
-		}
-		else {
-			block[i] = TRUE;
-		}
-	}
-/*	protected = totvert - randomized;*/
-/*	printf("%d verts: %d to be randomized, %d protected…\n", totvert, randomized, protected);*/
-	if (randomized == 0)
-		return;
-
-	
-	/* Randomize non-protected vertices indices, and create an array mapping old idx to new
-	 *  from both blocks, keeping protected vertices at the same indices. */
-	vmap = randblock;
-	randblock = MEM_mallocN(sizeof(int) * randomized, "randvert randblock");
-	memcpy(randblock, vmap, randomized * sizeof(int));
-	BLI_array_randomize((void *)randblock, sizeof(int), randomized, seed);
-	t_blk = block + totvert - 1;
-	t_idx = vmap + totvert - 1;
-	r_idx = randblock + randomized - 1;
-	for (i = totvert; i--; t_blk--, t_idx--) {
-		if (*t_blk) /* Protected! */
-			*t_idx = i;
-		else
-			*t_idx = *r_idx--;
-	}
-
-	MEM_freeN(randblock);
-	MEM_freeN(block);
-
-	BM_mesh_remap(em->bm, vmap, NULL, NULL);
-
-	MEM_freeN(vmap);
-}
-
-static int edbm_vertices_randomize_exec(bContext *C, wmOperator *op)
-{
-	Object *obedit = CTX_data_edit_object(C);
-	BMEditMesh *em = BMEdit_FromObject(obedit);
-	unsigned int seed = RNA_int_get(op->ptr, "seed");
-
-	hashvert_flag(em, BM_ELEM_SELECT, seed);
-
-	return OPERATOR_FINISHED;
-}
-
-void MESH_OT_vertices_randomize(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Vertex Randomize";
-	ot->description = "Randomize vertex order";
-	ot->idname = "MESH_OT_vertices_randomize";
-
-	/* api callbacks */
-	ot->exec = edbm_vertices_randomize_exec;
-
-	ot->poll = ED_operator_editmesh;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* Properties */
-	ot->prop = RNA_def_int(ot->srna, "seed", 0, 0, INT_MAX, "Seed", "Seed for the random generator", 0, 255);
-}
-
-/******end of qsort stuff ****/
-
+/****** end of qsort stuff ****/
 
 static int edbm_noise_exec(bContext *C, wmOperator *op)
 {
@@ -4035,7 +4256,7 @@ static int edbm_noise_exec(bContext *C, wmOperator *op)
 
 	if (tex->type == TEX_STUCCI) {
 		float b2, vec[3];
-		float ofs = tex->turbul / 200.0;
+		float ofs = tex->turbul / 200.0f;
 		BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 			if (BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
 				b2 = BLI_hnoise(tex->noisesize, eve->co[0], eve->co[1], eve->co[2]);
@@ -4091,7 +4312,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 	BMEdge *eed;
 	BMOperator bmop;
 	float factor = RNA_float_get(op->ptr, "percent") /*, dfac */ /* UNUSED */, df, s;
-	int i, recursion = RNA_int_get(op->ptr, "recursion");
+	int i, recursion = 1; /* RNA_int_get(op->ptr, "recursion"); */ /* temp removed, see comment below */
 	const int use_even = RNA_boolean_get(op->ptr, "use_even");
 	const int use_dist = RNA_boolean_get(op->ptr, "use_dist");
 	float *w = NULL, ftot;
@@ -4122,7 +4343,7 @@ static int edbm_bevel_exec(bContext *C, wmOperator *op)
 		w[i] = s;
 		ftot += s;
 
-		df *= 2.0;
+		df *= 2.0f;
 	}
 
 	mul_vn_fl(w, recursion, 1.0f / (float)ftot);
@@ -4168,7 +4389,8 @@ void MESH_OT_bevel(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_float(ot->srna, "percent", 0.5f, -FLT_MAX, FLT_MAX, "Percentage", "", 0.0f, 1.0f);
-	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
+//  XXX, disabled for 2.63 release, needs to work much better without overlap before we can give to users.
+//	RNA_def_int(ot->srna, "recursion", 1, 1, 50, "Recursion Level", "Recursion Level", 1, 8);
 
 	RNA_def_boolean(ot->srna, "use_even", FALSE, "Even",     "Calculate evenly spaced bevel");
 	RNA_def_boolean(ot->srna, "use_dist", FALSE, "Distance", "Interpret the percent in blender units");
@@ -4278,4 +4500,167 @@ void MESH_OT_inset(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_outset", FALSE, "Outset", "Outset rather than inset");
 	RNA_def_boolean(ot->srna, "use_select_inset", TRUE, "Select Outer", "Select the new inset faces");
+}
+
+static int edbm_wireframe_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+	const int use_boundary        = RNA_boolean_get(op->ptr, "use_boundary");
+	const int use_even_offset     = RNA_boolean_get(op->ptr, "use_even_offset");
+	const int use_replace         = RNA_boolean_get(op->ptr, "use_replace");
+	const int use_relative_offset = RNA_boolean_get(op->ptr, "use_relative_offset");
+	const int use_crease          = RNA_boolean_get(op->ptr, "use_crease");
+	const float thickness         = RNA_float_get(op->ptr,   "thickness");
+
+	EDBM_op_init(em, &bmop, op,
+	             "wireframe faces=%hf use_boundary=%b use_even_offset=%b use_relative_offset=%b use_crease=%b "
+	             "thickness=%f",
+	             BM_ELEM_SELECT, use_boundary, use_even_offset, use_relative_offset, use_crease,
+	             thickness);
+
+	BMO_op_exec(em->bm, &bmop);
+
+	if (use_replace) {
+		BM_mesh_elem_hflag_disable_all(em->bm, BM_FACE, BM_ELEM_TAG, FALSE);
+		BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faces", BM_FACE, BM_ELEM_TAG, FALSE);
+
+		BMO_op_callf(em->bm, "del geom=%hvef context=%i", BM_ELEM_TAG, DEL_FACES);
+	}
+
+	BM_mesh_elem_hflag_disable_all(em->bm, BM_VERT | BM_EDGE | BM_FACE, BM_ELEM_SELECT, FALSE);
+	BMO_slot_buffer_hflag_enable(em->bm, &bmop, "faceout", BM_FACE, BM_ELEM_SELECT, TRUE);
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_wireframe(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Wire Frame";
+	ot->idname = "MESH_OT_wireframe";
+	ot->description = "Inset new faces into selected faces";
+
+	/* api callbacks */
+	ot->exec = edbm_wireframe_exec;
+	ot->poll = ED_operator_editmesh;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_boolean(ot->srna, "use_boundary",        TRUE,  "Boundary",        "Inset face boundaries");
+	RNA_def_boolean(ot->srna, "use_even_offset",     TRUE,  "Offset Even",     "Scale the offset to give more even thickness");
+	RNA_def_boolean(ot->srna, "use_relative_offset", FALSE, "Offset Relative", "Scale the offset by surrounding geometry");
+	RNA_def_boolean(ot->srna, "use_crease",          FALSE, "Crease",          "Crease hub edges for improved subsurf");
+
+	prop = RNA_def_float(ot->srna, "thickness", 0.01f, 0.0f, FLT_MAX, "Thickness", "", 0.0f, 10.0f);
+	/* use 1 rather then 10 for max else dragging the button moves too far */
+	RNA_def_property_ui_range(prop, 0.0, 1.0, 0.01, 4);
+
+
+	RNA_def_boolean(ot->srna, "use_replace",         TRUE, "Replace", "Remove original faces");
+}
+
+static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
+{
+	Object *obedit = CTX_data_edit_object(C);
+	BMEditMesh *em = BMEdit_FromObject(obedit);
+	BMOperator bmop;
+		
+	EDBM_op_init(em, &bmop, op, "convex_hull input=%hvef "
+				 "use_existing_faces=%b",
+				 BM_ELEM_SELECT,
+				 RNA_boolean_get(op->ptr, "use_existing_faces"));
+	BMO_op_exec(em->bm, &bmop);
+
+	/* Hull fails if input is coplanar */
+	if (BMO_error_occurred(em->bm)) {
+		EDBM_op_finish(em, &bmop, op, TRUE);
+		return OPERATOR_CANCELLED;
+	}
+
+	
+	/* Delete unused vertices, edges, and faces */
+	if (RNA_boolean_get(op->ptr, "delete_unused")) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "unused_geom", DEL_ONLYTAGGED))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Delete hole edges/faces */
+	if (RNA_boolean_get(op->ptr, "make_holes")) {
+		if (!EDBM_op_callf(em, op, "del geom=%s context=%i",
+		                   &bmop, "holes_geom", DEL_ONLYTAGGED))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	/* Merge adjacent triangles */
+	if (RNA_boolean_get(op->ptr, "join_triangles")) {
+		if (!EDBM_op_callf(em, op, "join_triangles faces=%s limit=%f",
+		                   &bmop, "geomout",
+		                   RNA_float_get(op->ptr, "limit")))
+		{
+			EDBM_op_finish(em, &bmop, op, TRUE);
+			return OPERATOR_CANCELLED;
+		}
+	}
+
+	if (!EDBM_op_finish(em, &bmop, op, TRUE)) {
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		EDBM_update_generic(C, em, TRUE);
+		EDBM_selectmode_flush(em);
+		return OPERATOR_FINISHED;
+	}
+}
+
+void MESH_OT_convex_hull(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Convex Hull";
+	ot->description = "Enclose selected vertices in a convex polyhedron";
+	ot->idname = "MESH_OT_convex_hull";
+
+	/* api callbacks */
+	ot->exec = edbm_convex_hull_exec;
+	ot->poll = EM_view3d_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* props */
+	RNA_def_boolean(ot->srna, "delete_unused", TRUE,
+					"Delete Unused",
+					"Delete selected elements that are not used by the hull");
+
+	RNA_def_boolean(ot->srna, "use_existing_faces", TRUE,
+					"Use Existing Faces",
+					"Skip hull triangles that are covered by a pre-existing face");
+
+	RNA_def_boolean(ot->srna, "make_holes", FALSE,
+					"Make Holes",
+					"Delete selected faces that are used by the hull");
+
+	RNA_def_boolean(ot->srna, "join_triangles", TRUE,
+					"Join Triangles",
+					"Merge adjacent triangles into quads");
+
+	join_triangle_props(ot);
 }

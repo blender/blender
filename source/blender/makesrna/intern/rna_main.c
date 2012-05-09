@@ -301,7 +301,7 @@ void RNA_def_main(BlenderRNA *brna)
 		                    RNA_def_main_window_managers},
 		{"images", "Image", "rna_Main_image_begin", "Images", "Image datablocks", RNA_def_main_images},
 		{"lattices", "Lattice", "rna_Main_latt_begin", "Lattices", "Lattice datablocks", RNA_def_main_lattices},
-		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks", RNA_def_main_curves} ,
+		{"curves", "Curve", "rna_Main_curve_begin", "Curves", "Curve datablocks", RNA_def_main_curves},
 		{"metaballs", "MetaBall", "rna_Main_mball_begin", "Metaballs", "Metaball datablocks", RNA_def_main_metaballs},
 		{"fonts", "VectorFont", "rna_Main_font_begin", "Vector Fonts", "Vector font datablocks", RNA_def_main_fonts},
 		{"textures", "Texture", "rna_Main_tex_begin", "Textures", "Texture datablocks", RNA_def_main_textures},
@@ -347,8 +347,7 @@ void RNA_def_main(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_Main_is_saved_get", NULL);
 	RNA_def_property_ui_text(prop, "File is Saved", "Has the current session been saved to disk as a .blend file");
 
-	for (i = 0; lists[i].name; i++)
-	{
+	for (i = 0; lists[i].name; i++) {
 		prop = RNA_def_property(srna, lists[i].identifier, PROP_COLLECTION, PROP_NONE);
 		RNA_def_property_struct_type(prop, lists[i].type);
 		RNA_def_property_collection_funcs(prop, lists[i].iter_begin, "rna_iterator_listbase_next",

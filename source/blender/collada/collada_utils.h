@@ -39,6 +39,7 @@
 #include "DNA_customdata_types.h"
 #include "DNA_texture_types.h"
 #include "BKE_context.h"
+#include "DNA_scene_types.h"
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
@@ -48,5 +49,6 @@ extern int bc_test_parent_loop(Object *par, Object *ob);
 extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space=true);
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
+extern Object *bc_add_object(Scene *scene, int type, const char *name);
 
 #endif

@@ -51,7 +51,7 @@
 
 static void initData(ModifierData *md)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 
 	smd->levels = 1;
 	smd->renderLevels = 2;
@@ -60,8 +60,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
-	SubsurfModifierData *tsmd = (SubsurfModifierData*) target;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	SubsurfModifierData *tsmd = (SubsurfModifierData *) target;
 
 	tsmd->flags = smd->flags;
 	tsmd->levels = smd->levels;
@@ -71,7 +71,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static void freeData(ModifierData *md)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 
 	if (smd->mCache) {
 		ccgSubSurf_free(smd->mCache);
@@ -83,41 +83,41 @@ static void freeData(ModifierData *md)
 
 static int isDisabled(ModifierData *md, int useRenderParams)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
-	int levels= (useRenderParams)? smd->renderLevels: smd->levels;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	int levels = (useRenderParams) ? smd->renderLevels : smd->levels;
 
 	return get_render_subsurf_level(&md->scene->r, levels) == 0;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						int useRenderParams,
-						int isFinalCalc)
+                                  DerivedMesh *derivedData,
+                                  int useRenderParams,
+                                  int isFinalCalc)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	DerivedMesh *result;
 
 	result = subsurf_make_derived_from_derived(derivedData, smd,
-			useRenderParams, NULL, isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
+	                                           useRenderParams, NULL, isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
 	
 	if (useRenderParams || !isFinalCalc) {
-		DerivedMesh *cddm= CDDM_copy(result);
+		DerivedMesh *cddm = CDDM_copy(result);
 		result->release(result);
-		result= cddm;
+		result = cddm;
 	}
 
 	return result;
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
-						struct BMEditMesh *UNUSED(editData),
-						DerivedMesh *derivedData)
+                                    struct BMEditMesh *UNUSED(editData),
+                                    DerivedMesh *derivedData)
 {
-	SubsurfModifierData *smd = (SubsurfModifierData*) md;
+	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	DerivedMesh *result;
 
 	result = subsurf_make_derived_from_derived(derivedData, smd, 0,
-			NULL, 0, 1, 1);
+	                                           NULL, 0, 1, 1);
 
 	return result;
 }
@@ -128,11 +128,11 @@ ModifierTypeInfo modifierType_Subsurf = {
 	/* structName */        "SubsurfModifierData",
 	/* structSize */        sizeof(SubsurfModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode
-							| eModifierTypeFlag_AcceptsCVs,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode |
+	                        eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

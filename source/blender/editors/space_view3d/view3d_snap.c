@@ -106,7 +106,7 @@ static void special_transvert_update(Object *obedit)
 		}
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 			Curve *cu = obedit->data;
-			ListBase *nurbs = curve_editnurbs(cu);
+			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 			Nurb *nu = nurbs->first;
 
 			while (nu) {
@@ -141,8 +141,8 @@ static void special_transvert_update(Object *obedit)
 					}
 				}
 
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
+				BKE_nurb_test2D(nu);
+				BKE_nurb_handles_test(nu); /* test for bezier too */
 				nu = nu->next;
 			}
 		}
@@ -375,7 +375,7 @@ static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
 	else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
 		Curve *cu = obedit->data;
 		int totmalloc = 0;
-		ListBase *nurbs = curve_editnurbs(cu);
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
 		for (nu = nurbs->first; nu; nu = nu->next) {
 			if (nu->type == CU_BEZIER)
@@ -557,7 +557,8 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+		{
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
@@ -581,7 +582,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 								mul_m4_v3(ob->imat, vec);
 								
 								/* Get location of grid point in pose space. */
-								armature_loc_pose_to_bone(pchan, vec, vec);
+								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
 								
 								/* adjust location */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
@@ -612,7 +613,7 @@ static int snap_sel_to_grid(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + gridf *floorf(0.5f + ob->obmat[3][2] / gridf);
 				
 				if (ob->parent) {
-					where_is_object(scene, ob);
+					BKE_object_where_is_calc(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -691,7 +692,8 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 	else {
 		struct KeyingSet *ks = ANIM_get_keyingset_for_autokeying(scene, ANIM_KS_LOCATION_ID);
 
-		CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects) {
+		CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+		{
 			if (ob->mode & OB_MODE_POSE) {
 				bPoseChannel *pchan;
 				bArmature *arm = ob->data;
@@ -705,7 +707,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 						if (pchan->bone->layer & arm->layer) {
 							if ((pchan->bone->flag & BONE_CONNECTED) == 0) {
 								/* Get position in pchan (pose) space. */
-								armature_loc_pose_to_bone(pchan, vec, vec);
+								BKE_armature_loc_pose_to_bone(pchan, vec, vec);
 
 								/* copy new position */
 								if ((pchan->protectflag & OB_LOCK_LOCX) == 0)
@@ -736,7 +738,7 @@ static int snap_sel_to_curs(bContext *C, wmOperator *UNUSED(op))
 				vec[2] = -ob->obmat[3][2] + curs[2];
 				
 				if (ob->parent) {
-					where_is_object(scene, ob);
+					BKE_object_where_is_calc(scene, ob);
 					
 					invert_m3_m3(imat, originmat);
 					mul_m3_v3(imat, vec);
@@ -816,7 +818,7 @@ void VIEW3D_OT_snap_cursor_to_grid(wmOperatorType *ot)
 
 static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 {
-	MovieClip *clip = object_get_movieclip(scene, ob, 0);
+	MovieClip *clip = BKE_object_movieclip_get(scene, ob, 0);
 	MovieTracking *tracking;
 	MovieTrackingObject *object;
 	int ok = 0;
@@ -928,7 +930,8 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			}
 		}
 		else {
-			CTX_DATA_BEGIN(C, Object *, ob, selected_objects) {
+			CTX_DATA_BEGIN (C, Object *, ob, selected_objects)
+			{
 				copy_v3_v3(vec, ob->obmat[3]);
 
 				/* special case for camera -- snap to bundles */
@@ -993,8 +996,8 @@ static int snap_curs_to_active(bContext *C, wmOperator *UNUSED(op))
 			Mesh *me = obedit->data;
 			BMEditSelection ese;
 			
-			if (EDBM_editselection_active_get(me->edit_btmesh, &ese)) {
-				EDBM_editselection_center(curs, &ese);
+			if (BM_select_history_active_get(me->edit_btmesh->bm, &ese)) {
+				BM_editselection_center(&ese, curs);
 			}
 			
 			mul_m4_v3(obedit->obmat, curs);

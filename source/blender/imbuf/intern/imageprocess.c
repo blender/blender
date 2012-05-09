@@ -23,16 +23,18 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL LICENSE BLOCK *****
+ */
+
+/** \file blender/imbuf/intern/imageprocess.c
+ *  \ingroup imbuf
+ *
  * This file was moved here from the src/ directory. It is meant to
  * deal with endianness. It resided in a general blending lib. The
  * other functions were only used during rendering. This single
  * function remained. It should probably move to imbuf/intern/util.c,
- * but we'll keep it here for the time being. (nzc)*/
-
-/** \file blender/imbuf/intern/imageprocess.c
- *  \ingroup imbuf
+ * but we'll keep it here for the time being. (nzc)
+ *
  */
-
 
 /*  imageprocess.c        MIXED MODEL
  * 
@@ -50,7 +52,7 @@
 
 /* This define should be relocated to a global header some where  Kent Mein 
  * I stole it from util.h in the plugins api */
-#define MAX2(x,y)                ( (x)>(y) ? (x) : (y) )
+#define MAX2(x, y)                ( (x)>(y) ? (x) : (y) )
 
 /* Only this one is used liberally here, and in imbuf */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
@@ -113,10 +115,10 @@ static void pixel_from_buffer(struct ImBuf *ibuf, unsigned char **outI, float **
 static float P(float k)
 {
 	float p1, p2, p3, p4;
-	p1 = MAX2(k+2.0f,0);
-	p2 = MAX2(k+1.0f,0);
-	p3 = MAX2(k,0);
-	p4 = MAX2(k-1.0f,0);
+	p1 = MAX2(k+2.0f, 0);
+	p2 = MAX2(k+1.0f, 0);
+	p3 = MAX2(k, 0);
+	p4 = MAX2(k-1.0f, 0);
 	return (float)(1.0f/6.0f)*( p1*p1*p1 - 4.0f * p2*p2*p2 + 6.0f * p3*p3*p3 - 4.0f * p4*p4*p4);
 }
 
@@ -125,15 +127,15 @@ static float P(float k)
 /* older, slower function, works the same as above */
 static float P(float k)
 {
-	return (float)(1.0f/6.0f)*( pow( MAX2(k+2.0f,0) , 3.0f ) - 4.0f * pow( MAX2(k+1.0f,0) , 3.0f ) + 6.0f * pow( MAX2(k,0) , 3.0f ) - 4.0f * pow( MAX2(k-1.0f,0) , 3.0f));
+	return (float)(1.0f/6.0f)*( pow( MAX2(k+2.0f, 0), 3.0f ) - 4.0f * pow( MAX2(k+1.0f, 0), 3.0f ) + 6.0f * pow( MAX2(k, 0), 3.0f ) - 4.0f * pow( MAX2(k-1.0f, 0), 3.0f));
 }
 #endif
 
 void bicubic_interpolation_color(struct ImBuf *in, unsigned char *outI, float *outF, float u, float v)
 {
-	int i,j,n,m,x1,y1;
+	int i, j, n, m, x1, y1;
 	unsigned char *dataI;
-	float a,b,w,wx,wy[4], outR,outG,outB,outA,*dataF;
+	float a, b, w, wx, wy[4], outR, outG, outB, outA, *dataF;
 
 	/* sample area entirely outside image? */
 	if (ceil(u)<0 || floor(u)>in->x-1 || ceil(v)<0 || floor(v)>in->y-1)

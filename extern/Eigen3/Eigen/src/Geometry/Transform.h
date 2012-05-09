@@ -61,7 +61,7 @@ template< typename Lhs,
           typename Rhs,
           bool AnyProjective = 
             transform_traits<Lhs>::IsProjective ||
-            transform_traits<Lhs>::IsProjective>
+            transform_traits<Rhs>::IsProjective>
 struct transform_transform_product_impl;
 
 template< typename Other,
@@ -1388,6 +1388,35 @@ struct transform_transform_product_impl<Transform<Scalar,Dim,LhsMode,LhsOptions>
   static ResultType run(const Lhs& lhs, const Rhs& rhs)
   {
     return ResultType( lhs.matrix() * rhs.matrix() );
+  }
+};
+
+template<typename Scalar, int Dim, int LhsOptions, int RhsOptions>
+struct transform_transform_product_impl<Transform<Scalar,Dim,AffineCompact,LhsOptions>,Transform<Scalar,Dim,Projective,RhsOptions>,true >
+{
+  typedef Transform<Scalar,Dim,AffineCompact,LhsOptions> Lhs;
+  typedef Transform<Scalar,Dim,Projective,RhsOptions> Rhs;
+  typedef Transform<Scalar,Dim,Projective> ResultType;
+  static ResultType run(const Lhs& lhs, const Rhs& rhs)
+  {
+    ResultType res;
+    res.matrix().template topRows<Dim>() = lhs.matrix() * rhs.matrix();
+    res.matrix().row(Dim) = rhs.matrix().row(Dim);
+    return res;
+  }
+};
+
+template<typename Scalar, int Dim, int LhsOptions, int RhsOptions>
+struct transform_transform_product_impl<Transform<Scalar,Dim,Projective,LhsOptions>,Transform<Scalar,Dim,AffineCompact,RhsOptions>,true >
+{
+  typedef Transform<Scalar,Dim,Projective,LhsOptions> Lhs;
+  typedef Transform<Scalar,Dim,AffineCompact,RhsOptions> Rhs;
+  typedef Transform<Scalar,Dim,Projective> ResultType;
+  static ResultType run(const Lhs& lhs, const Rhs& rhs)
+  {
+    ResultType res(lhs.matrix().template leftCols<Dim>() * rhs.matrix());
+    res.matrix().col(Dim) += lhs.matrix().col(Dim);
+    return res;
   }
 };
 

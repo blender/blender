@@ -44,7 +44,7 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-static MEM_CacheLimiterC *limitor= NULL;
+static MEM_CacheLimiterC *limitor = NULL;
 
 typedef struct MovieCache {
 	GHash *hash;
@@ -113,7 +113,7 @@ static void check_unused_keys(MovieCache *cache)
 {
 	GHashIterator *iter;
 
-	iter= BLI_ghashIterator_new(cache->hash);
+	iter = BLI_ghashIterator_new(cache->hash);
 	while (!BLI_ghashIterator_isDone(iter)) {
 		MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
 		MovieCacheItem *item = BLI_ghashIterator_getValue(iter);
@@ -253,7 +253,7 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 
 	if (cache->points) {
 		MEM_freeN(cache->points);
-		cache->points= NULL;
+		cache->points = NULL;
 	}
 }
 
@@ -321,7 +321,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 		GHashIterator *iter;
 
 		iter = BLI_ghashIterator_new(cache->hash);
-		a= 0;
+		a = 0;
 		while (!BLI_ghashIterator_isDone(iter)) {
 			MovieCacheKey *key = BLI_ghashIterator_getKey(iter);
 			MovieCacheItem *item = BLI_ghashIterator_getValue(iter);

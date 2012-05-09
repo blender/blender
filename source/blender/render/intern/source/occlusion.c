@@ -1,5 +1,4 @@
-/* 
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -29,7 +28,6 @@
 /** \file blender/render/intern/source/occlusion.c
  *  \ingroup render
  */
-
 
 #include <math.h>
 #include <stdio.h>
@@ -1627,11 +1625,11 @@ static void *exec_strandsurface_sample(void *data)
 			co4= mesh->co[face[3]];
 
 			mid_v3_v3v3(co, co1, co3);
-			normal_quad_v3( n,co1, co2, co3, co4);
+			normal_quad_v3(n, co1, co2, co3, co4);
 		}
 		else {
 			cent_tri_v3(co, co1, co2, co3);
-			normal_tri_v3( n,co1, co2, co3);
+			normal_tri_v3(n, co1, co2, co3);
 		}
 		negate_v3(n);
 

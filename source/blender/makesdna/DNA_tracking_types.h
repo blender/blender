@@ -123,7 +123,7 @@ typedef struct MovieTrackingSettings {
 	short default_pattern_match;		/* re-adjust every N frames */
 	short default_flag;					/* default flags like color channels used by default */
 
-	short pod;
+	short motion_flag;		/* flags describes motion type */
 
 	/* ** common tracker settings ** */
 	short speed;			/* speed of tracking */
@@ -131,8 +131,8 @@ typedef struct MovieTrackingSettings {
 	/* ** reconstruction settings ** */
 	int keyframe1, keyframe2;	/* two keyframes for reconstrution initialization */
 
-	/* ** which camera intrinsics to refine. uses on the REFINE_* flags */
-	short refine_camera_intrinsics, pad23;
+	/* which camera intrinsics to refine. uses on the REFINE_* flags */
+	short refine_camera_intrinsics, pad2;
 
 	/* ** tool settings ** */
 
@@ -193,6 +193,27 @@ typedef struct MovieTrackingStats {
 	char message[256];
 } MovieTrackingStats;
 
+typedef struct MovieTrackingDopesheetChannel {
+	struct MovieTrackingDopesheetChannel *next, *prev;
+
+	MovieTrackingTrack *track;	/* motion track for which channel is created */
+	int pad;
+
+	int tot_segment;		/* total number of segments */
+	int *segments;			/* tracked segments */
+	int max_segment, total_frames;	/* longest segment length and total number of tracked frames */
+} MovieTrackingDopesheetChannel;
+
+typedef struct MovieTrackingDopesheet {
+	int ok, pad;				/* flag if dopesheet information is still relevant */
+
+	ListBase channels;
+	int tot_channel;
+
+	short sort_method;			/* method to be used to sort tracks */
+	short sort_inverse;			/* order of tracks is inverted */
+} MovieTrackingDopesheet;
+
 typedef struct MovieTracking {
 	MovieTrackingSettings settings;	/* different tracking-related settings */
 	MovieTrackingCamera camera;		/* camera intrinsics */
@@ -205,6 +226,8 @@ typedef struct MovieTracking {
 	int objectnr, tot_object;		/* index of active object and total number of objects */
 
 	MovieTrackingStats *stats;		/* statistics displaying in clip editor */
+
+	MovieTrackingDopesheet dopesheet;	/* dopesheet data */
 } MovieTracking;
 
 /* MovieTrackingCamera->units */
@@ -230,6 +253,7 @@ enum {
 #define TRACK_CUSTOMCOLOR	(1<<7)
 #define TRACK_USE_2D_STAB	(1<<8)
 #define TRACK_PREVIEW_GRAYSCALE	(1<<9)
+#define TRACK_DOPE_SEL		(1<<10)
 
 /* MovieTrackingTrack->tracker */
 #define TRACKER_KLT		0
@@ -242,6 +266,11 @@ enum {
 
 /* MovieTrackingSettings->flag */
 #define TRACKING_SETTINGS_SHOW_DEFAULT_EXPANDED	(1<<0)
+
+/* MovieTrackingSettings->motion_flag */
+#define TRACKING_MOTION_TRIPOD		(1<<0)
+
+#define TRACKING_MOTION_MODAL		(TRACKING_MOTION_TRIPOD)
 
 /* MovieTrackingSettings->speed */
 #define TRACKING_SPEED_FASTEST		0

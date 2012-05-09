@@ -248,9 +248,9 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	                         "Use a preview proxy and/or timecode index for this clip");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
-	prop = RNA_def_int_vector(srna, "size" , 2 , NULL , 0, 0, "Size",
-	                          "Width and height in pixels, zero when image data cant be loaded" , 0 , 0);
-	RNA_def_property_int_funcs(prop, "rna_MovieClip_size_get" , NULL, NULL);
+	prop = RNA_def_int_vector(srna, "size", 2, NULL, 0, 0, "Size",
+	                          "Width and height in pixels, zero when image data cant be loaded", 0, 0);
+	RNA_def_property_int_funcs(prop, "rna_MovieClip_size_get", NULL, NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "display_aspect", PROP_FLOAT, PROP_XYZ);

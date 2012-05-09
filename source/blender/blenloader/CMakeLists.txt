@@ -44,6 +44,8 @@ set(SRC
 	intern/readfile.c
 	intern/runtime.c
 	intern/undofile.c
+	intern/versioning_250.c
+	intern/versioning_legacy.c
 	intern/writefile.c
 
 	BLO_readfile.h

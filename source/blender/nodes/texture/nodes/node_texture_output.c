@@ -88,14 +88,14 @@ static void unique_name(bNode *node)
 	
 	i = node;
 	while (i->prev) i = i->prev;
-	for (; i; i=i->next) {
-		if (
-			i == node ||
-			i->type != TEX_NODE_OUTPUT ||
-			strcmp(name, ((TexNodeOutput*)(i->storage))->name)
-		)
+	for ( ; i; i = i->next) {
+		if (i == node ||
+		    i->type != TEX_NODE_OUTPUT ||
+		    strcmp(name, ((TexNodeOutput*)(i->storage))->name))
+		{
 			continue;
-		
+		}
+
 		if (!new_name) {
 			int len = strlen(name);
 			if (len >= 4 && sscanf(name + len - 4, ".%03d", &suffix) == 1) {

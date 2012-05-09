@@ -65,6 +65,7 @@ typedef struct Brush {
 
 	short blend;		/* blend mode */
 	short ob_mode;		/* & with ob->mode to see if the brush is compatible, use for display only. */
+	float weight;		/* brush weight */
 	int size;			/* brush diameter */
 	int flag;			/* general purpose flag */	
 	float jitter;			/* jitter the position of the brush */
@@ -83,7 +84,7 @@ typedef struct Brush {
 	char sculpt_tool;		/* active sculpt tool */
 	char vertexpaint_tool;		/* active vertex/weight paint blend mode (poorly named) */
 	char imagepaint_tool;		/* active image paint tool */
-	char pad3[5];
+	char pad;
 
 	float autosmooth_factor;
 

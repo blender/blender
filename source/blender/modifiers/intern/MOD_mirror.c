@@ -51,7 +51,7 @@
 
 static void initData(ModifierData *md)
 {
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	mmd->flag |= (MOD_MIR_AXIS_X | MOD_MIR_VGROUP);
 	mmd->tolerance = 0.001;
@@ -60,8 +60,8 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
-	MirrorModifierData *tmmd = (MirrorModifierData*) target;
+	MirrorModifierData *mmd = (MirrorModifierData *) md;
+	MirrorModifierData *tmmd = (MirrorModifierData *) target;
 
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
@@ -72,7 +72,7 @@ static void foreachObjectLink(ModifierData *md, Object *ob,
                               void (*walk)(void *userData, Object *ob, Object **obpoin),
                               void *userData)
 {
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	walk(userData, ob, &mmd->mirror_ob);
 }
@@ -82,7 +82,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
                            Object *UNUSED(ob),
                            DagNode *obNode)
 {
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	if (mmd->mirror_ob) {
 		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
@@ -113,7 +113,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	float mtx[4][4];
 	int i, j;
 	int a, totshape;
-	int *vtargetmap, *vtmap_a = NULL, *vtmap_b = NULL;
+	int *vtargetmap = NULL, *vtmap_a = NULL, *vtmap_b = NULL;
 
 	/* mtx is the mirror transformation */
 	unit_m4(mtx);
@@ -138,7 +138,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		mult_m4_m4m4(mtx, itmp, mtx);
 	}
 
-	result = CDDM_from_template(dm, maxVerts*2, maxEdges*2, 0, maxLoops*2, maxPolys*2);
+	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, 0, maxLoops * 2, maxPolys * 2);
 
 	/*copy customdata to original geometry*/
 	DM_copy_vert_data(dm, result, 0, 0, maxVerts);
@@ -223,17 +223,18 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		MLoop *ml2;
 		int e;
 
-		/* reverse the loop */
-		for (j = 0; j < mp->totloop; j++) {
-			DM_copy_loop_data(result, result, mp->loopstart + j, mp->loopstart + maxLoops + mp->totloop - j - 1, 1);
-		}
+		/* reverse the loop, but we keep the first vertex in the face the same,
+		 * to ensure that quads are split the same way as on the other side */
+		DM_copy_loop_data(result, result, mp->loopstart, mp->loopstart + maxLoops, 1);
+		for (j = 1; j < mp->totloop; j++)
+			DM_copy_loop_data(result, result, mp->loopstart + j, mp->loopstart + maxLoops + mp->totloop - j, 1);
 
 		ml2 = ml + mp->loopstart + maxLoops;
 		e = ml2[0].e;
-		for (j = 0; j < mp->totloop-1; j++) {
-			ml2[j].e = ml2[j+1].e;
+		for (j = 0; j < mp->totloop - 1; j++) {
+			ml2[j].e = ml2[j + 1].e;
 		}
-		ml2[mp->totloop-1].e = e;
+		ml2[mp->totloop - 1].e = e;
 		
 		mp->loopstart += maxLoops;
 	}
@@ -248,8 +249,8 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	/* handle uvs,
 	 * let tessface recalc handle updating the MTFace data */
 	if (mmd->flag & (MOD_MIR_MIRROR_U | MOD_MIR_MIRROR_V)) {
-		const int do_mirr_u= (mmd->flag & MOD_MIR_MIRROR_U) != 0;
-		const int do_mirr_v= (mmd->flag & MOD_MIR_MIRROR_V) != 0;
+		const int do_mirr_u = (mmd->flag & MOD_MIR_MIRROR_U) != 0;
+		const int do_mirr_v = (mmd->flag & MOD_MIR_MIRROR_V) != 0;
 
 		const int totuv = CustomData_number_of_layers(&result->loopData, CD_MLOOPUV);
 
@@ -257,7 +258,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			MLoopUV *dmloopuv = CustomData_get_layer_n(&result->loopData, CD_MLOOPUV, a);
 			int j = maxLoops;
 			dmloopuv += j; /* second set of loops only */
-			for ( ; i-- > 0; dmloopuv++) {
+			for (; i-- > 0; dmloopuv++) {
 				if (do_mirr_u) dmloopuv->uv[0] = 1.0f - dmloopuv->uv[0];
 				if (do_mirr_v) dmloopuv->uv[1] = 1.0f - dmloopuv->uv[1];
 			}
@@ -267,9 +268,9 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	/* handle vgroup stuff */
 	if ((mmd->flag & MOD_MIR_VGROUP) && CustomData_has_layer(&result->vertData, CD_MDEFORMVERT)) {
 		MDeformVert *dvert = (MDeformVert *) CustomData_get_layer(&result->vertData, CD_MDEFORMVERT) + maxVerts;
-		int *flip_map= NULL, flip_map_len= 0;
+		int *flip_map = NULL, flip_map_len = 0;
 
-		flip_map= defgroup_flip_map(ob, &flip_map_len, FALSE);
+		flip_map = defgroup_flip_map(ob, &flip_map_len, FALSE);
 		
 		if (flip_map) {
 			for (i = 0; i < maxVerts; dvert++, i++) {
@@ -308,12 +309,12 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	if (mmd->flag & MOD_MIR_AXIS_Y) {
 		DerivedMesh *tmp = result;
 		result = doMirrorOnAxis(mmd, ob, result, 1);
-		if (tmp != dm) tmp->release(tmp); /* free intermediate results */
+		if (tmp != dm) tmp->release(tmp);  /* free intermediate results */
 	}
 	if (mmd->flag & MOD_MIR_AXIS_Z) {
 		DerivedMesh *tmp = result;
 		result = doMirrorOnAxis(mmd, ob, result, 2);
-		if (tmp != dm) tmp->release(tmp); /* free intermediate results */
+		if (tmp != dm) tmp->release(tmp);  /* free intermediate results */
 	}
 
 	return result;
@@ -325,7 +326,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   int UNUSED(isFinalCalc))
 {
 	DerivedMesh *result;
-	MirrorModifierData *mmd = (MirrorModifierData*) md;
+	MirrorModifierData *mmd = (MirrorModifierData *) md;
 
 	result = mirrorModifier__doMirror(mmd, ob, derivedData);
 
@@ -348,11 +349,11 @@ ModifierTypeInfo modifierType_Mirror = {
 	/* structName */        "MirrorModifierData",
 	/* structSize */        sizeof(MirrorModifierData),
 	/* type */              eModifierTypeType_Constructive,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_SupportsMapping
-							| eModifierTypeFlag_SupportsEditmode
-							| eModifierTypeFlag_EnableInEditmode
-							| eModifierTypeFlag_AcceptsCVs,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_SupportsMapping |
+	                        eModifierTypeFlag_SupportsEditmode |
+	                        eModifierTypeFlag_EnableInEditmode |
+	                        eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

@@ -87,9 +87,8 @@ static int test_break(void *data)
 
 static void RE_rayobject_config_control(RayObject *r, Render *re)
 {
-	if (RE_rayobject_isRayAPI(r))
-	{
-		r = RE_rayobject_align( r );
+	if (RE_rayobject_isRayAPI(r)) {
+		r = RE_rayobject_align(r);
 		r->control.data = re;
 		r->control.test_break = test_break;
 	}
@@ -99,8 +98,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 {
 	RayObject * res = NULL;
 
-	if (type == R_RAYSTRUCTURE_AUTO)
-	{
+	if (type == R_RAYSTRUCTURE_AUTO) {
 		//TODO
 		//if (detect_simd())
 #ifdef __SSE__
@@ -111,8 +109,7 @@ static RayObject*  RE_rayobject_create(Render *re, int type, int size)
 	}
 	
 #ifndef __SSE__
-	if (type == R_RAYSTRUCTURE_SIMD_SVBVH || type == R_RAYSTRUCTURE_SIMD_QBVH)
-	{
+	if (type == R_RAYSTRUCTURE_SIMD_SVBVH || type == R_RAYSTRUCTURE_SIMD_QBVH) {
 		puts("Warning: Using VBVH (SSE was disabled at compile time)");
 		type = R_RAYSTRUCTURE_VBVH;
 	}
@@ -148,37 +145,30 @@ void freeraytree(Render *re)
 {
 	ObjectInstanceRen *obi;
 	
-	if (re->raytree)
-	{
+	if (re->raytree) {
 		RE_rayobject_free(re->raytree);
 		re->raytree = NULL;
 	}
-	if (re->rayfaces)
-	{
+	if (re->rayfaces) {
 		MEM_freeN(re->rayfaces);
 		re->rayfaces = NULL;
 	}
-	if (re->rayprimitives)
-	{
+	if (re->rayprimitives) {
 		MEM_freeN(re->rayprimitives);
 		re->rayprimitives = NULL;
 	}
 
-	for (obi=re->instancetable.first; obi; obi=obi->next)
-	{
+	for (obi=re->instancetable.first; obi; obi=obi->next) {
 		ObjectRen *obr = obi->obr;
-		if (obr->raytree)
-		{
+		if (obr->raytree) {
 			RE_rayobject_free(obr->raytree);
 			obr->raytree = NULL;
 		}
-		if (obr->rayfaces)
-		{
+		if (obr->rayfaces) {
 			MEM_freeN(obr->rayfaces);
 			obr->rayfaces = NULL;
 		}
-		if (obi->raytree)
-		{
+		if (obi->raytree) {
 			RE_rayobject_free(obi->raytree);
 			obi->raytree = NULL;
 		}
@@ -187,7 +177,7 @@ void freeraytree(Render *re)
 #ifdef RE_RAYCOUNTER
 	{
 		RayCounter sum;
-		memset( &sum, 0, sizeof(sum) );
+		memset(&sum, 0, sizeof(sum));
 		int i;
 		for (i=0; i<BLENDER_MAX_THREADS; i++)
 			RE_RC_MERGE(&sum, re_rc_counter+i);
@@ -232,8 +222,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	// update render stats
 	ObjectRen *obr = obi->obr;
 	
-	if (obr->raytree == NULL)
-	{
+	if (obr->raytree == NULL) {
 		RayObject *raytree;
 		RayFace *face = NULL;
 		VlakPrimitive *vlakprimitive = NULL;
@@ -241,8 +230,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 		
 		//Count faces
 		int faces = 0;
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 			if (is_raytraceable_vlr(re, vlr))
 				faces++;
@@ -260,23 +248,21 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 		obr->rayobi = obi;
 		
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			if (is_raytraceable_vlr(re, vlr))
-			{
+			if (is_raytraceable_vlr(re, vlr)) {
 				if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
-					RE_rayobject_add( raytree, RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr ) );
+					RE_rayobject_add(raytree, RE_vlakprimitive_from_vlak(vlakprimitive, obi, vlr));
 					vlakprimitive++;
 				}
 				else {
 					RE_rayface_from_vlak(face, obi, vlr);
-					RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
+					RE_rayobject_add(raytree, RE_rayobject_unalignRayFace(face));
 					face++;
 				}
 			}
 		}
-		RE_rayobject_done( raytree );
+		RE_rayobject_done(raytree);
 
 		/* in case of cancel during build, raytree is not usable */
 		if (test_break(re))
@@ -286,8 +272,7 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 	}
 
 	if (obr->raytree) {
-		if ((obi->flag & R_TRANSFORMED) && obi->raytree == NULL)
-		{
+		if ((obi->flag & R_TRANSFORMED) && obi->raytree == NULL) {
 			obi->transform_primitives = 0;
 			obi->raytree = RE_rayobject_instance_create( obr->raytree, obi->mat, obi, obi->obr->rayobi );
 		}
@@ -299,16 +284,13 @@ RayObject* makeraytree_object(Render *re, ObjectInstanceRen *obi)
 
 static int has_special_rayobject(Render *re, ObjectInstanceRen *obi)
 {
-	if ( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) )
-	{
+	if ( (obi->flag & R_TRANSFORMED) && (re->r.raytrace_options & R_RAYTRACE_USE_INSTANCES) ) {
 		ObjectRen *obr = obi->obr;
 		int v, faces = 0;
 		
-		for (v=0;v<obr->totvlak;v++)
-		{
+		for (v=0;v<obr->totvlak;v++) {
 			VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
-			if (is_raytraceable_vlr(re, vlr))
-			{
+			if (is_raytraceable_vlr(re, vlr)) {
 				faces++;
 				if (faces > 4)
 					return 1;
@@ -329,8 +311,7 @@ static void makeraytree_single(Render *re)
 	int faces = 0, obs = 0, special = 0;
 
 	for (obi=re->instancetable.first; obi; obi=obi->next)
-	if (is_raytraceable(re, obi))
-	{
+	if (is_raytraceable(re, obi)) {
 		ObjectRen *obr = obi->obr;
 		obs++;
 		
@@ -339,8 +320,7 @@ static void makeraytree_single(Render *re)
 		}
 		else {
 			int v;
-			for (v=0;v<obr->totvlak;v++)
-			{
+			for (v=0;v<obr->totvlak;v++) {
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if (is_raytraceable_vlr(re, vlr))
 					faces++;
@@ -348,8 +328,7 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
-	if (faces + special == 0)
-	{
+	if (faces + special == 0) {
 		re->raytree = RE_rayobject_empty_create();
 		return;
 	}
@@ -357,8 +336,7 @@ static void makeraytree_single(Render *re)
 	//Create raytree
 	raytree = re->raytree = RE_rayobject_create( re, re->r.raytrace_structure, faces+special );
 
-	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) )
-	{
+	if ( (re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS) ) {
 		vlakprimitive = re->rayprimitives = (VlakPrimitive*)MEM_callocN(faces*sizeof(VlakPrimitive), "Raytrace vlak-primitives");
 	}
 	else {
@@ -366,8 +344,7 @@ static void makeraytree_single(Render *re)
 	}
 	
 	for (obi=re->instancetable.first; obi; obi=obi->next)
-	if (is_raytraceable(re, obi))
-	{
+	if (is_raytraceable(re, obi)) {
 		if (test_break(re))
 			break;
 
@@ -378,30 +355,27 @@ static void makeraytree_single(Render *re)
 				break;
 
 			if (obj)
-				RE_rayobject_add( re->raytree, obj );
+				RE_rayobject_add(re->raytree, obj);
 		}
 		else {
 			int v;
 			ObjectRen *obr = obi->obr;
 			
-			if (obi->flag & R_TRANSFORMED)
-			{
+			if (obi->flag & R_TRANSFORMED) {
 				obi->transform_primitives = 1;
 			}
 
-			for (v=0;v<obr->totvlak;v++)
-			{
+			for (v=0;v<obr->totvlak;v++) {
 				VlakRen *vlr = obr->vlaknodes[v>>8].vlak + (v&255);
 				if (is_raytraceable_vlr(re, vlr)) {
 					if ((re->r.raytrace_options & R_RAYTRACE_USE_LOCAL_COORDS)) {
 						RayObject *obj = RE_vlakprimitive_from_vlak( vlakprimitive, obi, vlr );
-						RE_rayobject_add( raytree, obj );
+						RE_rayobject_add(raytree, obj);
 						vlakprimitive++;
 					}
 					else {
 						RE_rayface_from_vlak(face, obi, vlr);
-						if ((obi->flag & R_TRANSFORMED))
-						{
+						if ((obi->flag & R_TRANSFORMED)) {
 							mul_m4_v3(obi->mat, face->v1);
 							mul_m4_v3(obi->mat, face->v2);
 							mul_m4_v3(obi->mat, face->v3);
@@ -409,7 +383,7 @@ static void makeraytree_single(Render *re)
 								mul_m4_v3(obi->mat, face->v4);
 						}
 
-						RE_rayobject_add( raytree, RE_rayobject_unalignRayFace(face) );
+						RE_rayobject_add(raytree, RE_rayobject_unalignRayFace(face));
 						face++;
 					}
 				}
@@ -417,12 +391,11 @@ static void makeraytree_single(Render *re)
 		}
 	}
 	
-	if (!test_break(re))
-	{	
+	if (!test_break(re)) {
 		re->i.infostr= "Raytree.. building";
 		re->stats_draw(re->sdh, &re->i);
 
-		RE_rayobject_done( raytree );	
+		RE_rayobject_done(raytree);
 	}
 }
 
@@ -451,9 +424,8 @@ void makeraytree(Render *re)
 		//Calculate raytree max_size
 		//This is ONLY needed to kept a bogus behavior of SUN and HEMI lights
 		INIT_MINMAX(min, max);
-		RE_rayobject_merge_bb( re->raytree, min, max );
-		for (i=0; i<3; i++)
-		{
+		RE_rayobject_merge_bb(re->raytree, min, max);
+		for (i=0; i<3; i++) {
 			min[i] += 0.01f;
 			max[i] += 0.01f;
 			sub[i] = max[i]-min[i];
@@ -467,7 +439,7 @@ void makeraytree(Render *re)
 	}
 
 #ifdef RE_RAYCOUNTER
-	memset( re_rc_counter, 0, sizeof(re_rc_counter) );
+	memset(re_rc_counter, 0, sizeof(re_rc_counter));
 #endif
 }
 
@@ -720,7 +692,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, con
 	float dist_mir = origshi->mat->dist_mir;
 	
 	copy_v3_v3(isec.start, start);
-	copy_v3_v3(isec.dir, dir );
+	copy_v3_v3(isec.dir, dir);
 	isec.dist = dist_mir > 0 ? dist_mir : RE_RAYTRACE_MAXDIST;
 	isec.mode= RE_RAY_MIRROR;
 	isec.check = RE_CHECK_VLR_RENDER;
@@ -1006,12 +978,10 @@ static void halton_sample(double *ht_invprimes, double *ht_nums, double *v)
 	// "Instant Radiosity", Keller A.
 	unsigned int i;
 	
-	for (i = 0; i < 2; i++)
-	{
+	for (i = 0; i < 2; i++) {
 		double r = fabs((1.0 - ht_nums[i]) - 1e-10);
 		
-		if (ht_invprimes[i] >= r)
-		{
+		if (ht_invprimes[i] >= r) {
 			double lasth;
 			double h = ht_invprimes[i];
 			
@@ -1065,8 +1035,7 @@ static struct QMCSampler *QMC_initSampler(int type, int tot)
 
 static void QMC_initPixel(QMCSampler *qsa, int thread)
 {
-	if (qsa->type==SAMP_TYPE_HAMMERSLEY)
-	{
+	if (qsa->type==SAMP_TYPE_HAMMERSLEY) {
 		/* hammersley sequence is fixed, already created in QMCSampler init.
 		 * per pixel, gets a random offset. We create separate offsets per thread, for write-safety */
 		qsa->offs[thread][0] = 0.5f * BLI_thread_frand(thread);
@@ -1270,7 +1239,7 @@ static int adaptive_sample_contrast_val(int samples, float prev, float val, floa
 	/* if the last sample's contribution to the total value was below a small threshold
 	 * (i.e. the samples taken are very similar), then taking more samples that are probably 
 	 * going to be the same is wasting effort */
-	if (fabsf( prev/(float)(samples-1) - val/(float)samples ) < thresh) {
+	if (fabsf(prev / (float)(samples - 1) - val / (float)samples ) < thresh) {
 		return 1;
 	}
 	else
@@ -1345,7 +1314,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 			/* get a quasi-random vector from a phong-weighted disc */
 			QMC_samplePhong(samp3d, qsa, shi->thread, samples, blur);
 						
-			ortho_basis_v3v3_v3( orthx, orthy,v_refract);
+			ortho_basis_v3v3_v3(orthx, orthy, v_refract);
 			mul_v3_fl(orthx, samp3d[0]);
 			mul_v3_fl(orthy, samp3d[1]);
 				
@@ -1377,8 +1346,7 @@ static void trace_refract(float col[4], ShadeInput *shi, ShadeResult *shr)
 		samples++;
 		
 		/* adaptive sampling */
-		if (adapt_thresh < 1.0f && samples > max_samples/2)
-		{
+		if (adapt_thresh < 1.0f && samples > max_samples/2) {
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
@@ -1442,7 +1410,7 @@ static void trace_reflect(float col[3], ShadeInput *shi, ShadeResult *shr, float
 				mul_v3_fl(orthy, samp3d[1]*aniso);
 			}
 			else {
-				ortho_basis_v3v3_v3( orthx, orthy,shi->vn);
+				ortho_basis_v3v3_v3(orthx, orthy, shi->vn);
 				mul_v3_fl(orthx, samp3d[0]);
 				mul_v3_fl(orthy, samp3d[1]);
 			}
@@ -1479,8 +1447,7 @@ static void trace_reflect(float col[3], ShadeInput *shi, ShadeResult *shr, float
 		samples++;
 
 		/* adaptive sampling */
-		if (adapt_thresh > 0.0f && samples > max_samples/3)
-		{
+		if (adapt_thresh > 0.0f && samples > max_samples/3) {
 			if (adaptive_sample_variance(samples, col, colsq, adapt_thresh))
 				break;
 			
@@ -1712,7 +1679,7 @@ static int UNUSED_FUNCTION(ray_trace_shadow_rad)(ShadeInput *ship, ShadeResult *
 			vec[2]-= vec[2];
 		}
 
-		copy_v3_v3(isec.dir, vec );
+		copy_v3_v3(isec.dir, vec);
 		isec.dist = RE_RAYTRACE_MAXDIST;
 
 		if (RE_rayobject_raycast(R.raytree, &isec)) {
@@ -1922,7 +1889,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 	isec.lay= -1;
 	
 	copy_v3_v3(isec.start, shi->co);
-	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
+	RE_rayobject_hint_bb(R.raytree, &point_hint, isec.start, isec.start);
 	isec.hint = &point_hint;
 
 	zero_v3(ao);
@@ -1946,7 +1913,7 @@ static void ray_ao_qmc(ShadeInput *shi, float ao[3], float env[3])
 		copy_v3_v3(nrm, shi->facenor);
 	}
 
-	ortho_basis_v3v3_v3( up, side,nrm);
+	ortho_basis_v3v3_v3(up, side, nrm);
 	
 	/* sampling init */
 	if (R.wrld.ao_samp_method==WO_AOSAMP_HALTON) {
@@ -2062,7 +2029,7 @@ static void ray_ao_spheresamp(ShadeInput *shi, float ao[3], float env[3])
 	isec.lay= -1;
 
 	copy_v3_v3(isec.start, shi->co);
-	RE_rayobject_hint_bb( R.raytree, &point_hint, isec.start, isec.start );
+	RE_rayobject_hint_bb(R.raytree, &point_hint, isec.start, isec.start);
 	isec.hint = &point_hint;
 
 	zero_v3(ao);
@@ -2267,11 +2234,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 	QMC_initPixel(qsa, shi->thread);
 
 	INIT_MINMAX(min, max);
-	for (i=0; i<totjitco; i++)
-	{
+	for (i=0; i<totjitco; i++) {
 		DO_MINMAX(jitco[i], min, max);
 	}
-	RE_rayobject_hint_bb( R.raytree, &bb_hint, min, max);
+	RE_rayobject_hint_bb(R.raytree, &bb_hint, min, max);
 	
 	isec->hint = &bb_hint;
 	isec->check = RE_CHECK_VLR_RENDER;
@@ -2296,10 +2262,10 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 				/* calc tangent plane vectors */
 				sub_v3_v3v3(v, co, lampco);
 				normalize_v3(v);
-				ortho_basis_v3v3_v3( ru, rv,v);
+				ortho_basis_v3v3_v3(ru, rv, v);
 				
 				/* sampling, returns quasi-random vector in area_size disc */
-				QMC_sampleDisc(samp3d, qsa, shi->thread, samples,lar->area_size);
+				QMC_sampleDisc(samp3d, qsa, shi->thread, samples, lar->area_size);
 
 				/* distribute disc samples across the tangent plane */
 				s[0] = samp3d[0]*ru[0] + samp3d[1]*rv[0];
@@ -2420,7 +2386,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, const float lampco[
 	copy_v3_v3(isec->start, shi->co);
 	isec->orig.ob   = shi->obi;
 	isec->orig.face = shi->vlr;
-	RE_rayobject_hint_bb( R.raytree, &point_hint, isec->start, isec->start );
+	RE_rayobject_hint_bb(R.raytree, &point_hint, isec->start, isec->start);
 	isec->hint = &point_hint;
 	
 	while (a--) {

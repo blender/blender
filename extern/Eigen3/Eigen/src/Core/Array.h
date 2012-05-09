@@ -68,10 +68,8 @@ class Array
     friend struct internal::conservative_resize_like_impl;
 
     using Base::m_storage;
+
   public:
-    enum { NeedsToAlign = (!(Options&DontAlign))
-                          && SizeAtCompileTime!=Dynamic && ((static_cast<int>(sizeof(Scalar))*SizeAtCompileTime)%16)==0 };
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
 
     using Base::base;
     using Base::coeff;

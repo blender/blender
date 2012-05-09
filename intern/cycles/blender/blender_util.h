@@ -49,8 +49,10 @@ void RE_engine_update_progress(struct RenderEngine *engine, float progress);
 void engine_tag_redraw(void *engine);
 void engine_tag_update(void *engine);
 int rna_Object_is_modified(void *ob, void *scene, int settings);
+int rna_Object_is_deform_modified(void *ob, void *scene, int settings);
 void BLI_timestr(double _time, char *str);
 void rna_ColorRamp_eval(void *coba, float position, float color[4]);
+void rna_Scene_frame_set(void *scene, int frame, float subframe);
 
 }
 
@@ -89,9 +91,19 @@ static inline void object_free_duplilist(BL::Object self)
 	rna_Object_free_duplilist(self.ptr.data, NULL);
 }
 
-static inline bool object_is_modified(BL::Object self, BL::Scene scene, bool preview)
+static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return rna_Object_is_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
+}
+
+static inline bool BKE_object_is_deform_modified(BL::Object self, BL::Scene scene, bool preview)
+{
+	return rna_Object_is_deform_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
+}
+
+static inline void scene_frame_set(BL::Scene scene, int frame)
+{
+	rna_Scene_frame_set(scene.ptr.data, frame, 0.0f);
 }
 
 /* Utilities */

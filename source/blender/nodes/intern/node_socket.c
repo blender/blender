@@ -59,7 +59,7 @@ static bNodeSocketType node_socket_type_float = {
 	/* ui_name */			"Float",
 	/* ui_description */	"Floating Point",
 	/* ui_icon */			0,
-	/* ui_color */			{160,160,160,255},
+	/* ui_color */			{160, 160, 160, 255},
 
 	/* value_structname */	"bNodeSocketValueFloat",
 	/* value_structsize */	sizeof(bNodeSocketValueFloat),
@@ -74,7 +74,7 @@ static bNodeSocketType node_socket_type_vector = {
 	/* ui_name */			"Vector",
 	/* ui_description */	"3-dimensional floating point vector",
 	/* ui_icon */			0,
-	/* ui_color */			{100,100,200,255},
+	/* ui_color */			{100, 100, 200, 255},
 
 	/* value_structname */	"bNodeSocketValueVector",
 	/* value_structsize */	sizeof(bNodeSocketValueVector),
@@ -89,7 +89,7 @@ static bNodeSocketType node_socket_type_rgba = {
 	/* ui_name */			"RGBA",
 	/* ui_description */	"RGBA color",
 	/* ui_icon */			0,
-	/* ui_color */			{200,200,40,255},
+	/* ui_color */			{200, 200, 40, 255},
 
 	/* value_structname */	"bNodeSocketValueRGBA",
 	/* value_structsize */	sizeof(bNodeSocketValueRGBA),
@@ -104,7 +104,7 @@ static bNodeSocketType node_socket_type_int = {
 	/* ui_name */			"Int",
 	/* ui_description */	"Integer",
 	/* ui_icon */			0,
-	/* ui_color */			{17,133,37,255},
+	/* ui_color */			{17, 133, 37, 255},
 
 	/* value_structname */	"bNodeSocketValueInt",
 	/* value_structsize */	sizeof(bNodeSocketValueInt),
@@ -119,7 +119,7 @@ static bNodeSocketType node_socket_type_boolean = {
 	/* ui_name */			"Boolean",
 	/* ui_description */	"Boolean",
 	/* ui_icon */			0,
-	/* ui_color */			{158,139,63,255},
+	/* ui_color */			{158, 139, 63, 255},
 
 	/* value_structname */	"bNodeSocketValueBoolean",
 	/* value_structsize */	sizeof(bNodeSocketValueBoolean),
@@ -134,7 +134,7 @@ static bNodeSocketType node_socket_type_shader = {
 	/* ui_name */			"Shader",
 	/* ui_description */	"Shader",
 	/* ui_icon */			0,
-	/* ui_color */			{100,200,100,255},
+	/* ui_color */			{100, 200, 100, 255},
 
 	/* value_structname */	NULL,
 	/* value_structsize */	0,
@@ -149,7 +149,7 @@ static bNodeSocketType node_socket_type_mesh = {
 	/* ui_name */			"Mesh",
 	/* ui_description */	"Mesh geometry data",
 	/* ui_icon */			0,
-	/* ui_color */			{255,133,7,255},
+	/* ui_color */			{255, 133, 7, 255},
 
 	/* value_structname */	NULL,
 	/* value_structsize */	0,

@@ -186,7 +186,7 @@ static void sequencer_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceSeq *sseq= (SpaceSequencer*) sl;
 	
-// XXX	if (sseq->gpd) free_gpencil_data(sseq->gpd);
+// XXX	if (sseq->gpd) BKE_gpencil_free(sseq->gpd);
 
 }
 
@@ -466,6 +466,7 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 				case ND_FRAME:
 				case ND_MARKERS:
 				case ND_SEQUENCER:
+				case ND_RENDER_OPTIONS:
 					ED_region_tag_redraw(ar);
 					break;
 			}

@@ -118,6 +118,7 @@ void TEXT_OT_refresh_pyconstraints(struct wmOperatorType *ot);
 void TEXT_OT_paste(struct wmOperatorType *ot);
 void TEXT_OT_copy(struct wmOperatorType *ot);
 void TEXT_OT_cut(struct wmOperatorType *ot);
+void TEXT_OT_duplicate_line(struct wmOperatorType *ot);
 
 void TEXT_OT_convert_whitespace(struct wmOperatorType *ot);
 void TEXT_OT_uncomment(struct wmOperatorType *ot);
@@ -135,6 +136,8 @@ void TEXT_OT_previous_marker(struct wmOperatorType *ot);
 void TEXT_OT_select_line(struct wmOperatorType *ot);
 void TEXT_OT_select_all(struct wmOperatorType *ot);
 void TEXT_OT_select_word(struct wmOperatorType *ot);
+
+void TEXT_OT_move_lines(struct wmOperatorType *ot);
 
 void TEXT_OT_jump(struct wmOperatorType *ot);
 void TEXT_OT_move(struct wmOperatorType *ot);

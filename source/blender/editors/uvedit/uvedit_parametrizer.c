@@ -1,3 +1,25 @@
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ *
+ * Contributor(s):
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+
 /** \file blender/editors/uvedit/uvedit_parametrizer.c
  *  \ingroup eduv
  */
@@ -4334,7 +4356,7 @@ void param_smooth_area(ParamHandle *handle)
 void param_pack(ParamHandle *handle, float margin)
 {	
 	/* box packing variables */
-	boxPack *boxarray, *box;
+	BoxPack *boxarray, *box;
 	float tot_width, tot_height, scale;
 	 
 	PChart *chart;
@@ -4351,7 +4373,7 @@ void param_pack(ParamHandle *handle, float margin)
 		param_scale(handle, 1.0f / phandle->aspx, 1.0f / phandle->aspy);
 	
 	/* we may not use all these boxes */
-	boxarray = MEM_mallocN(phandle->ncharts * sizeof(boxPack), "boxPack box");
+	boxarray = MEM_mallocN(phandle->ncharts * sizeof(BoxPack), "BoxPack box");
 	
 	
 	for (i = 0; i < phandle->ncharts; i++) {
@@ -4402,7 +4424,7 @@ void param_pack(ParamHandle *handle, float margin)
 		}
 	}
 	
-	boxPack2D(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
+	BLI_box_pack_2D(boxarray, phandle->ncharts - unpacked, &tot_width, &tot_height);
 	
 	if (tot_height > tot_width)
 		scale = 1.0f / tot_height;

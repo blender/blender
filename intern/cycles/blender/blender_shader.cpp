@@ -97,6 +97,13 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 	mapping->translation = get_float3(b_mapping.translation());
 	mapping->rotation = get_float3(b_mapping.rotation());
 	mapping->scale = get_float3(b_mapping.scale());
+
+	mapping->use_minmax = b_mapping.use_min() || b_mapping.use_max();
+
+	if(b_mapping.use_min())
+		mapping->min = get_float3(b_mapping.min());
+	if(b_mapping.use_max())
+		mapping->max = get_float3(b_mapping.max());
 }
 
 static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNode b_node)
@@ -321,6 +328,10 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 		}
 		case BL::ShaderNode::type_LIGHT_PATH: {
 			node = new LightPathNode();
+			break;
+		}
+		case BL::ShaderNode::type_LIGHT_FALLOFF: {
+			node = new LightFalloffNode();
 			break;
 		}
 		case BL::ShaderNode::type_TEX_IMAGE: {

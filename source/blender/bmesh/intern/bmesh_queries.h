@@ -65,6 +65,7 @@ void    BM_edge_calc_face_tangent(BMEdge *e, BMLoop *e_loop, float r_tangent[3])
 
 float   BM_vert_calc_edge_angle(BMVert *v);
 float   BM_vert_calc_shell_factor(BMVert *v);
+float   BM_vert_calc_mean_tagged_edge_length(BMVert *v);
 
 BMEdge *BM_edge_exists(BMVert *v1, BMVert *v2);
 

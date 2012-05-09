@@ -225,7 +225,7 @@ PyObject *BPY_app_handlers_struct(void)
 			funcstore->func = bpy_app_generic_callback;
 			funcstore->alloc = 0;
 			funcstore->arg = SET_INT_IN_POINTER(pos);
-			BLI_add_cb(funcstore, pos);
+			BLI_callback_add(funcstore, pos);
 		}
 	}
 

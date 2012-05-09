@@ -259,7 +259,7 @@ void seq_free_editing(Scene *scene)
 	if (ed == NULL)
 		return;
 
-	SEQ_BEGIN(ed, seq)
+	SEQ_BEGIN (ed, seq)
 	{
 		seq_free_sequence(scene, seq);
 	}
@@ -363,7 +363,7 @@ unsigned int seq_hash_render_data(const SeqRenderData *a)
 
 /* ************************* iterator ************************** */
 /* *************** (replaces old WHILE_SEQ) ********************* */
-/* **************** use now SEQ_BEGIN() SEQ_END ***************** */
+/* **************** use now SEQ_BEGIN () SEQ_END ***************** */
 
 /* sequence strip iterator:
  * - builds a full array, recursively into meta strips */
@@ -515,8 +515,17 @@ void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
 	*seqar = tseqar;
 }
 
+static int metaseq_start(Sequence *metaseq)
+{
+	return metaseq->start + metaseq->startofs;
+}
 
-static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+static int metaseq_end(Sequence *metaseq)
+{
+	return metaseq->start + metaseq->len - metaseq->endofs;
+}
+
+static void seq_update_sound_bounds_recursive_rec(Scene *scene, Sequence *metaseq, int start, int end)
 {
 	Sequence *seq;
 
@@ -524,21 +533,26 @@ static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
 	 * since sound is played outside of evaluating the imbufs, */
 	for (seq = metaseq->seqbase.first; seq; seq = seq->next) {
 		if (seq->type == SEQ_META) {
-			seq_update_sound_bounds_recursive(scene, seq);
+			seq_update_sound_bounds_recursive_rec(scene, seq, MAX2(start, metaseq_start(seq)), MIN2(end, metaseq_end(seq)));
 		}
 		else if (ELEM(seq->type, SEQ_SOUND, SEQ_SCENE)) {
 			if (seq->scene_sound) {
 				int startofs = seq->startofs;
 				int endofs = seq->endofs;
-				if (seq->startofs + seq->start < metaseq->start + metaseq->startofs)
-					startofs = metaseq->start + metaseq->startofs - seq->start;
+				if (seq->startofs + seq->start < start)
+					startofs = start - seq->start;
 
-				if (seq->start + seq->len - seq->endofs > metaseq->start + metaseq->len - metaseq->endofs)
-					endofs = seq->start + seq->len - metaseq->start - metaseq->len + metaseq->endofs;
+				if (seq->start + seq->len - seq->endofs > end)
+					endofs = seq->start + seq->len - end;
 				sound_move_scene_sound(scene, seq->scene_sound, seq->start + startofs, seq->start + seq->len - endofs, startofs);
 			}
 		}
 	}
+}
+
+static void seq_update_sound_bounds_recursive(Scene *scene, Sequence *metaseq)
+{
+	seq_update_sound_bounds_recursive_rec(scene, metaseq, metaseq_start(metaseq), metaseq_end(metaseq));
 }
 
 void calc_sequence_disp(Scene *scene, Sequence *seq)
@@ -2085,7 +2099,7 @@ static ImBuf *seq_render_scene_strip(
 	if (seq->scene_camera)	
 		camera = seq->scene_camera;
 	else {	
-		scene_camera_switch_update(scene);
+		BKE_scene_camera_switch_update(scene);
 		camera = scene->camera;
 	}
 
@@ -2113,7 +2127,7 @@ static ImBuf *seq_render_scene_strip(
 			context.scene->r.seq_prev_type = 3 /* ==OB_SOLID */; 
 
 		/* opengl offscreen render */
-		scene_update_for_newframe(context.bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 		ibuf = sequencer_view3d_cb(scene, camera, context.rectx, context.recty,
 		                           IB_rect, context.scene->r.seq_prev_type, TRUE, err_out);
 		if (ibuf == NULL) {
@@ -2168,7 +2182,7 @@ static ImBuf *seq_render_scene_strip(
 	scene->r.cfra = oldcfra;
 
 	if (frame != oldcfra)
-		scene_update_for_newframe(context.bmain, scene, scene->lay);
+		BKE_scene_update_for_newframe(context.bmain, scene, scene->lay);
 	
 #ifdef DURIAN_CAMERA_SWITCH
 	/* stooping to new low's in hackyness :( */
@@ -3099,13 +3113,17 @@ int seqbase_isolated_sel_check(ListBase *seqbase)
 			if ( (seq->seq1 && (seq->seq1->flag & SELECT) == 0) ||
 			     (seq->seq2 && (seq->seq2->flag & SELECT) == 0) ||
 			     (seq->seq3 && (seq->seq3->flag & SELECT) == 0) )
+			{
 				return FALSE;
+			}
 		}
 		else {
 			if ( (seq->seq1 && (seq->seq1->flag & SELECT)) ||
 			     (seq->seq2 && (seq->seq2->flag & SELECT)) ||
 			     (seq->seq3 && (seq->seq3->flag & SELECT)) )
+			{
 				return FALSE;
+			}
 		}
 	}
 
@@ -3916,8 +3934,7 @@ static Sequence *seq_dupli(struct Scene *scene, struct Scene *scene_to, Sequence
 	}
 
 	if (seq->strip->color_balance) {
-		seqn->strip->color_balance
-		    = MEM_dupallocN(seq->strip->color_balance);
+		seqn->strip->color_balance = MEM_dupallocN(seq->strip->color_balance);
 	}
 
 	if (seq->type == SEQ_META) {

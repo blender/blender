@@ -173,10 +173,12 @@ int WM_jobs_test(wmWindowManager *wm, void *owner)
 {
 	wmJob *steve;
 	
+	/* job can be running or about to run (suspended) */
 	for (steve = wm->jobs.first; steve; steve = steve->next)
 		if (steve->owner == owner)
-			if (steve->running)
+			if (steve->running || steve->suspended)
 				return 1;
+
 	return 0;
 }
 
@@ -240,8 +242,8 @@ void WM_jobs_timer(wmJob *steve, double timestep, unsigned int note, unsigned in
 void WM_jobs_callbacks(wmJob *steve, 
                        void (*startjob)(void *, short *, short *, float *),
                        void (*initjob)(void *),
-                       void (*update)(void  *),
-                       void (*endjob)(void  *))
+                       void (*update)(void *),
+                       void (*endjob)(void *))
 {
 	steve->startjob = startjob;
 	steve->initjob = initjob;

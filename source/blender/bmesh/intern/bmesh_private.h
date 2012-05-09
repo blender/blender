@@ -40,18 +40,18 @@
 int bmesh_elem_check(void *element, const char htype);
 
 #define BM_CHECK_ELEMENT(el)                                                  \
-    if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
-        printf("check_element failure, with code %i on line %i in file\n"     \
-        "    \"%s\"\n\n",                                                     \
-        bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
-        __LINE__, __FILE__);                                                  \
-    }
+	if (bmesh_elem_check(el, ((BMHeader *)el)->htype)) {                      \
+	    printf("check_element failure, with code %i on line %i in file\n"     \
+	    "    \"%s\"\n\n",                                                     \
+	    bmesh_elem_check(el, ((BMHeader *)el)->htype),                    \
+	    __LINE__, __FILE__);                                                  \
+	}
 
 #define BM_DISK_EDGE_LINK_GET(e, v)  (                                        \
 	((v) == ((BMEdge *)(e))->v1) ?                                            \
 		&((e)->v1_disk_link) :                                                \
 		&((e)->v2_disk_link)                                                  \
-    )
+	)
 
 int bmesh_radial_length(BMLoop *l);
 int bmesh_disk_count(BMVert *v);
@@ -60,6 +60,7 @@ int bmesh_disk_count(BMVert *v);
  * on using these internal flags!*/
 #define _FLAG_JF	1 /* join faces */
 #define _FLAG_MF	2 /* make face */
+#define _FLAG_MV	2 /* make face, vertex */
 
 #define BM_ELEM_API_FLAG_ENABLE(element, f)  ((element)->oflags[0].pflag |=  (f))
 #define BM_ELEM_API_FLAG_DISABLE(element, f) ((element)->oflags[0].pflag &= ~(f))

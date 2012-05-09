@@ -151,10 +151,10 @@ static void calc_corner_co(BMLoop *l, const float fac, float r_co[3],
 
 		/* done */
 		if (do_even) {
-			mul_v3_fl(co_ofs, (fac * 0.5) * shell_angle_to_dist(0.5f * angle));
+			mul_v3_fl(co_ofs, (fac * 0.5f) * shell_angle_to_dist(0.5f * angle));
 		}
 		else {
-			mul_v3_fl(co_ofs, fac * 0.5);
+			mul_v3_fl(co_ofs, fac * 0.5f);
 		}
 	}
 
@@ -208,9 +208,9 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 	BLI_smallhash_init(&hash);
 	
 	BMO_ITER (e, &siter, bm, op, "geom", BM_EDGE) {
-		BMO_elem_flag_enable(bm, e, BEVEL_FLAG|BEVEL_DEL);
-		BMO_elem_flag_enable(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
-		BMO_elem_flag_enable(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_enable(bm, e, BEVEL_FLAG | BEVEL_DEL);
+		BMO_elem_flag_enable(bm, e->v1, BEVEL_FLAG | BEVEL_DEL);
+		BMO_elem_flag_enable(bm, e->v2, BEVEL_FLAG | BEVEL_DEL);
 		
 		if (BM_edge_face_count(e) < 2) {
 			BMO_elem_flag_disable(bm, e, BEVEL_DEL);
@@ -242,7 +242,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 			
 			if (!BMO_elem_flag_test(bm, e, EDGE_OLD)) {
 				BM_elem_index_set(e, BLI_array_count(etags)); /* set_dirty! */
-				BLI_array_growone(etags);
+				BLI_array_grow_one(etags);
 				
 				BMO_elem_flag_enable(bm, e, EDGE_OLD);
 			}
@@ -256,11 +256,11 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 
 				BM_ITER_ELEM (l2, &liter2, l->f, BM_LOOPS_OF_FACE) {
 					BM_elem_index_set(l2, BLI_array_count(tags)); /* set_loop */
-					BLI_array_growone(tags);
+					BLI_array_grow_one(tags);
 
 					if (!BMO_elem_flag_test(bm, l2->e, EDGE_OLD)) {
 						BM_elem_index_set(l2->e, BLI_array_count(etags)); /* set_dirty! */
-						BLI_array_growone(etags);
+						BLI_array_grow_one(etags);
 						
 						BMO_elem_flag_enable(bm, l2->e, EDGE_OLD);
 					}
@@ -281,8 +281,8 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		BMLoop *l;
 		BMIter liter;
 
-		BMO_elem_flag_enable(bm, e->v1, BEVEL_FLAG|BEVEL_DEL);
-		BMO_elem_flag_enable(bm, e->v2, BEVEL_FLAG|BEVEL_DEL);
+		BMO_elem_flag_enable(bm, e->v1, BEVEL_FLAG | BEVEL_DEL);
+		BMO_elem_flag_enable(bm, e->v2, BEVEL_FLAG | BEVEL_DEL);
 		
 		if (BM_edge_face_count(e) < 2) {
 			BMO_elem_flag_disable(bm, e, BEVEL_DEL);
@@ -291,7 +291,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (intptr_t)e)) {
-			BLI_array_growone(etags);
+			BLI_array_grow_one(etags);
 			BM_elem_index_set(e, BLI_array_count(etags) - 1); /* set_dirty! */
 			BLI_smallhash_insert(&hash, (intptr_t)e, NULL);
 			BMO_elem_flag_enable(bm, e, EDGE_OLD);
@@ -309,11 +309,11 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				
 				/* create tags for all loops in l-> */
 				BM_ITER_ELEM (l2, &liter2, l->f, BM_LOOPS_OF_FACE) {
-					BLI_array_growone(tags);
+					BLI_array_grow_one(tags);
 					BM_elem_index_set(l2, BLI_array_count(tags) - 1); /* set_loop */
 					
 					if (!BLI_smallhash_haskey(&hash, (intptr_t)l2->e)) {
-						BLI_array_growone(etags);
+						BLI_array_grow_one(etags);
 						BM_elem_index_set(l2->e, BLI_array_count(etags) - 1); /* set_dirty! */
 						BLI_smallhash_insert(&hash, (intptr_t)l2->e, NULL);
 						BMO_elem_flag_enable(bm, l2->e, EDGE_OLD);
@@ -597,7 +597,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 					continue;
 				}
 				
-				BMO_elem_flag_enable(bm, f, FACE_NEW|FACE_SPAN);
+				BMO_elem_flag_enable(bm, f, FACE_NEW | FACE_SPAN);
 				
 				/* un-tag edges in f for deletio */
 				BM_ITER_ELEM (l2, &liter2, f, BM_LOOPS_OF_FACE) {
@@ -775,7 +775,7 @@ void bmo_bevel_exec(BMesh *bm, BMOperator *op)
 				fprintf(stderr, "%s: in bevel vert fill! (bmesh internal error)\n", __func__);
 			}
 			else {
-				BMO_elem_flag_enable(bm, f, FACE_NEW|FACE_HOLE);
+				BMO_elem_flag_enable(bm, f, FACE_NEW | FACE_HOLE);
 			}
 		}
 		BLI_smallhash_release(&tmphash);

@@ -109,21 +109,21 @@ static void rna_Lattice_update_size(Main *bmain, Scene *scene, PointerRNA *ptr)
 	newv = (lt->opntsv > 0)? lt->opntsv: lt->pntsv;
 	neww = (lt->opntsw > 0)? lt->opntsw: lt->pntsw;
 
-	/* resizelattice needs an object, any object will have the same result */
+	/* BKE_lattice_resize needs an object, any object will have the same result */
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == lt) {
-			resizelattice(lt, newu, newv, neww, ob);
+			BKE_lattice_resize(lt, newu, newv, neww, ob);
 			if (lt->editlatt)
-				resizelattice(lt->editlatt->latt, newu, newv, neww, ob);
+				BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, ob);
 			break;
 		}
 	}
 
 	/* otherwise without, means old points are not repositioned */
 	if (!ob) {
-		resizelattice(lt, newu, newv, neww, NULL);
+		BKE_lattice_resize(lt, newu, newv, neww, NULL);
 		if (lt->editlatt)
-			resizelattice(lt->editlatt->latt, newu, newv, neww, NULL);
+			BKE_lattice_resize(lt->editlatt->latt, newu, newv, neww, NULL);
 	}
 
 	rna_Lattice_update_data(bmain, scene, ptr);

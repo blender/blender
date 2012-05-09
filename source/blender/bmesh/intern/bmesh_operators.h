@@ -98,7 +98,7 @@ extern int bmesh_total_ops;
 struct Object;
 
 void BM_mesh_esubdivide(BMesh *bm, const char edge_hflag,
-                        float smooth, float fractal,
+                        float smooth, float fractal, float along_normal,
                         int numcuts,
                         int seltype, int cornertype,
                         const short use_singleedge, const short use_gridfill,

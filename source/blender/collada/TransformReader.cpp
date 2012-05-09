@@ -43,7 +43,7 @@ void TransformReader::get_node_mat(float mat[][4], COLLADAFW::Node *node, std::m
 		COLLADAFW::Transformation *tm = node->getTransformations()[i];
 		COLLADAFW::Transformation::TransformationType type = tm->getTransformationType();
 
-			switch(type) {
+			switch (type) {
 			case COLLADAFW::Transformation::TRANSLATE:
 				dae_translate_to_mat4(tm, cur);
 				break;

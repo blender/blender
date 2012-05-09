@@ -1054,7 +1054,7 @@ static void bmo_flag_layer_alloc(BMesh *bm)
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
-	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
+	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 
 	BLI_mempool_destroy(oldpool);
 }
@@ -1099,7 +1099,7 @@ static void bmo_flag_layer_free(BMesh *bm)
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
-	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
+	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 
 	BLI_mempool_destroy(oldpool);
 }
@@ -1128,7 +1128,7 @@ static void bmo_flag_layer_clear(BMesh *bm)
 		BM_elem_index_set(ele, i); /* set_inline */
 	}
 
-	bm->elem_index_dirty &= ~(BM_VERT|BM_EDGE|BM_FACE);
+	bm->elem_index_dirty &= ~(BM_VERT | BM_EDGE | BM_FACE);
 }
 
 void *BMO_slot_buffer_elem_first(BMOperator *op, const char *slotname)

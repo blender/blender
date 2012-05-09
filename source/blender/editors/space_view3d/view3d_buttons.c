@@ -83,8 +83,8 @@
 
 
 /* ******************* view3d space & buttons ************** */
-#define B_NOP       		1
-#define B_REDR      		2
+#define B_NOP               1
+#define B_REDR              2
 #define B_OBJECTPANELMEDIAN 1008
 
 /* temporary struct for storing transform properties */
@@ -211,7 +211,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		BPoint *bp;
 		BezTriple *bezt;
 		int a;
-		ListBase *nurbs = curve_editnurbs(cu);
+		ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 		StructRNA *seltype = NULL;
 		void *selp = NULL;
 
@@ -333,7 +333,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Y:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[1]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
-		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:",0, yi -= buth, 200, buth,
+		but = uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Z:", 0, yi -= buth, 200, buth,
 		                &(tfp->ve_median[2]), -lim, lim, 10, RNA_TRANSLATION_PREC_DEFAULT, "");
 		uiButSetUnitType(but, PROP_UNIT_LENGTH);
 
@@ -509,7 +509,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 			BPoint *bp;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs = curve_editnurbs(cu);
+			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 			const float scale_w = compute_scale_factor(ve_median[4], median[4]);
 
 			nu = nurbs->first;
@@ -571,8 +571,8 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						bp++;
 					}
 				}
-				test2DNurb(nu);
-				testhandlesNurb(nu); /* test for bezier too */
+				BKE_nurb_test2D(nu);
+				BKE_nurb_handles_test(nu); /* test for bezier too */
 
 				nu = nu->next;
 			}
@@ -595,7 +595,7 @@ static void v3d_editvertex_buts(uiLayout *layout, View3D *v3d, Object *ob, float
 						}
 						else {
 							bp->weight = scale_w > 0.0f ? bp->weight * scale_w :
-							                              1.0f + ((1.0f - bp->weight) * scale_w);
+							             1.0f + ((1.0f - bp->weight) * scale_w);
 							CLAMP(bp->weight, 0.0f, 1.0f);
 						}
 					}
@@ -939,7 +939,7 @@ static void v3d_posearmature_buts(uiLayout *layout, Object *ob)
 	PointerRNA pchanptr;
 	uiLayout *col;
 
-	pchan = get_active_posechannel(ob);
+	pchan = BKE_pose_channel_active(ob);
 
 	if (!pchan) {
 		uiItemL(layout, IFACE_("No Bone Active"), ICON_NONE);

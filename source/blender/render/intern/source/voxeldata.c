@@ -117,7 +117,7 @@ static int load_frame_raw8(VoxelData *vd, FILE *fp, int frame)
 		return 0;
 	}
 
-	if (fseek(fp,(frame-1)*size*sizeof(char),0) == -1) {
+	if (fseek(fp, (frame-1)*size*sizeof(char), 0) == -1) {
 		MEM_freeN(data_c);
 		MEM_freeN(vd->dataset);
 		vd->dataset= NULL;
@@ -171,8 +171,7 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 	vd->resol[2] = iuser.frames;
 	vd->dataset = MEM_mapallocN(sizeof(float)*vd_resol_size(vd), "voxel dataset");
 	
-	for (z=0; z < iuser.frames; z++)
-	{	
+	for (z=0; z < iuser.frames; z++) {
 		/* get a new ibuf for each frame */
 		if (z > 0) {
 			iuser.framenr++;
@@ -182,12 +181,10 @@ static void load_frame_image_sequence(VoxelData *vd, Tex *tex)
 		}
 		rf = ibuf->rect_float;
 		
-		for (y=0; y < ibuf->y; y++)
-		{
-			for (x=0; x < ibuf->x; x++)
-			{
+		for (y=0; y < ibuf->y; y++) {
+			for (x=0; x < ibuf->x; x++) {
 				/* currently averaged to monchrome */
-				vd->dataset[ V_I(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2])*0.333f;
+				vd->dataset[ BLI_VOXEL_INDEX(x, y, z, vd->resol) ] = (rf[0] + rf[1] + rf[2]) * 0.333f;
 				rf +=4;
 			}
 		}
@@ -204,7 +201,7 @@ static int read_voxeldata_header(FILE *fp, struct VoxelData *vd)
 	VoxelDataHeader *h=(VoxelDataHeader *)MEM_mallocN(sizeof(VoxelDataHeader), "voxel data header");
 	
 	rewind(fp);
-	if (fread(h,sizeof(VoxelDataHeader),1,fp) != 1) {
+	if (fread(h, sizeof(VoxelDataHeader), 1, fp) != 1) {
 		MEM_freeN(h);
 		return 0;
 	}
@@ -249,8 +246,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 
 				heat = smoke_get_heat(smd->domain->fluid);
 
-				for (i=0; i<totRes; i++)
-				{
+				for (i=0; i<totRes; i++) {
 					vd->dataset[i] = (heat[i]+2.0f)/4.0f;
 				}
 
@@ -271,8 +267,7 @@ static void init_frame_smoke(VoxelData *vd, float cfra)
 				yvel = smoke_get_velocity_y(smd->domain->fluid);
 				zvel = smoke_get_velocity_z(smd->domain->fluid);
 
-				for (i=0; i<totRes; i++)
-				{
+				for (i=0; i<totRes; i++) {
 					vd->dataset[i] = sqrt(xvel[i]*xvel[i] + yvel[i]*yvel[i] + zvel[i]*zvel[i])*3.0f;
 				}
 
@@ -333,7 +328,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 	
 	BLI_strncpy(path, vd->source_path, sizeof(path));
 	
-	switch(vd->file_format) {
+	switch (vd->file_format) {
 		case TEX_VD_IMAGE_SEQUENCE:
 			load_frame_image_sequence(vd, tex);
 			return;
@@ -343,7 +338,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 		case TEX_VD_BLENDERVOXEL:
 			BLI_path_abs(path, G.main->name);
 			if (!BLI_exists(path)) return;
-			fp = BLI_fopen(path,"rb");
+			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			
 			if (read_voxeldata_header(fp, vd))
@@ -354,7 +349,7 @@ void cache_voxeldata(Tex *tex, int scene_frame)
 		case TEX_VD_RAW_8BIT:
 			BLI_path_abs(path, G.main->name);
 			if (!BLI_exists(path)) return;
-			fp = BLI_fopen(path,"rb");
+			fp = BLI_fopen(path, "rb");
 			if (!fp) return;
 			
 			load_frame_raw8(vd, fp, curframe);
@@ -428,17 +423,17 @@ int voxeldatatex(struct Tex *tex, const float texvec[3], struct TexResult *texre
 	
 	switch (vd->interp_type) {
 		case TEX_VD_NEARESTNEIGHBOR:
-			texres->tin = voxel_sample_nearest(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_nearest(vd->dataset, vd->resol, co);
 			break;  
 		case TEX_VD_LINEAR:
-			texres->tin = voxel_sample_trilinear(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_trilinear(vd->dataset, vd->resol, co);
 			break;					
 		case TEX_VD_QUADRATIC:
-			texres->tin = voxel_sample_triquadratic(vd->dataset, vd->resol, co);
+			texres->tin = BLI_voxel_sample_triquadratic(vd->dataset, vd->resol, co);
 			break;
 		case TEX_VD_TRICUBIC_CATROM:
 		case TEX_VD_TRICUBIC_BSPLINE:
-			texres->tin = voxel_sample_tricubic(vd->dataset, vd->resol, co, (vd->interp_type == TEX_VD_TRICUBIC_BSPLINE));
+			texres->tin = BLI_voxel_sample_tricubic(vd->dataset, vd->resol, co, (vd->interp_type == TEX_VD_TRICUBIC_BSPLINE));
 			break;
 	}
 	

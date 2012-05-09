@@ -69,7 +69,9 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 	    !ELEM7(falloff_type, MOD_WVG_MAPPING_CURVE, MOD_WVG_MAPPING_SHARP, MOD_WVG_MAPPING_SMOOTH,
 	           MOD_WVG_MAPPING_ROOT, MOD_WVG_MAPPING_SPHERE, MOD_WVG_MAPPING_RANDOM,
 	           MOD_WVG_MAPPING_STEP))
+	{
 		return;
+	}
 
 	/* Map each weight (vertex) to its new value, accordingly to the chosen mode. */
 	for (i = 0; i < num; ++i) {
@@ -77,29 +79,29 @@ void weightvg_do_map(int num, float *new_w, short falloff_type, CurveMapping *cm
 
 		/* Code borrowed from the warp modifier. */
 		/* Closely matches PROP_SMOOTH and similar. */
-		switch(falloff_type) {
-		case MOD_WVG_MAPPING_CURVE:
-			fac = curvemapping_evaluateF(cmap, 0, fac);
-			break;
-		case MOD_WVG_MAPPING_SHARP:
-			fac = fac*fac;
-			break;
-		case MOD_WVG_MAPPING_SMOOTH:
-			fac = 3.0f*fac*fac - 2.0f*fac*fac*fac;
-			break;
-		case MOD_WVG_MAPPING_ROOT:
-			fac = (float)sqrt(fac);
-			break;
-		case MOD_WVG_MAPPING_SPHERE:
-			fac = (float)sqrt(2*fac - fac * fac);
-			break;
-		case MOD_WVG_MAPPING_RANDOM:
-			BLI_srand(BLI_rand()); /* random seed */
-			fac = BLI_frand()*fac;
-			break;
-		case MOD_WVG_MAPPING_STEP:
-			fac = (fac >= 0.5f)?1.0f:0.0f;
-			break;
+		switch (falloff_type) {
+			case MOD_WVG_MAPPING_CURVE:
+				fac = curvemapping_evaluateF(cmap, 0, fac);
+				break;
+			case MOD_WVG_MAPPING_SHARP:
+				fac = fac * fac;
+				break;
+			case MOD_WVG_MAPPING_SMOOTH:
+				fac = 3.0f * fac * fac - 2.0f * fac * fac * fac;
+				break;
+			case MOD_WVG_MAPPING_ROOT:
+				fac = (float)sqrt(fac);
+				break;
+			case MOD_WVG_MAPPING_SPHERE:
+				fac = (float)sqrt(2 * fac - fac * fac);
+				break;
+			case MOD_WVG_MAPPING_RANDOM:
+				BLI_srand(BLI_rand()); /* random seed */
+				fac = BLI_frand() * fac;
+				break;
+			case MOD_WVG_MAPPING_STEP:
+				fac = (fac >= 0.5f) ? 1.0f : 0.0f;
+				break;
 		}
 
 		new_w[i] = fac;
@@ -157,37 +159,37 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 			texres.nor = NULL;
 			get_texture_value(texture, tex_co[idx], &texres);
 			/* Get the good channel value... */
-			switch(tex_use_channel) {
-			case MOD_WVG_MASK_TEX_USE_INT:
-				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_RED:
-				org_w[i] = (new_w[i] * texres.tr * fact) + (org_w[i] * (1.0f - (texres.tr*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_GREEN:
-				org_w[i] = (new_w[i] * texres.tg * fact) + (org_w[i] * (1.0f - (texres.tg*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_BLUE:
-				org_w[i] = (new_w[i] * texres.tb * fact) + (org_w[i] * (1.0f - (texres.tb*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_HUE:
-				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * h * fact) + (org_w[i] * (1.0f - (h*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_SAT:
-				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * s * fact) + (org_w[i] * (1.0f - (s*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_VAL:
-				rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
-				org_w[i] = (new_w[i] * v * fact) + (org_w[i] * (1.0f - (v*fact)));
-				break;
-			case MOD_WVG_MASK_TEX_USE_ALPHA:
-				org_w[i] = (new_w[i] * texres.ta * fact) + (org_w[i] * (1.0f - (texres.ta*fact)));
-				break;
-			default:
-				org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin*fact)));
-				break;
+			switch (tex_use_channel) {
+				case MOD_WVG_MASK_TEX_USE_INT:
+					org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_RED:
+					org_w[i] = (new_w[i] * texres.tr * fact) + (org_w[i] * (1.0f - (texres.tr * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_GREEN:
+					org_w[i] = (new_w[i] * texres.tg * fact) + (org_w[i] * (1.0f - (texres.tg * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_BLUE:
+					org_w[i] = (new_w[i] * texres.tb * fact) + (org_w[i] * (1.0f - (texres.tb * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_HUE:
+					rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
+					org_w[i] = (new_w[i] * h * fact) + (org_w[i] * (1.0f - (h * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_SAT:
+					rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
+					org_w[i] = (new_w[i] * s * fact) + (org_w[i] * (1.0f - (s * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_VAL:
+					rgb_to_hsv(texres.tr, texres.tg, texres.tb, &h, &s, &v);
+					org_w[i] = (new_w[i] * v * fact) + (org_w[i] * (1.0f - (v * fact)));
+					break;
+				case MOD_WVG_MASK_TEX_USE_ALPHA:
+					org_w[i] = (new_w[i] * texres.ta * fact) + (org_w[i] * (1.0f - (texres.ta * fact)));
+					break;
+				default:
+					org_w[i] = (new_w[i] * texres.tin * fact) + (org_w[i] * (1.0f - (texres.tin * fact)));
+					break;
 			}
 		}
 
@@ -211,7 +213,7 @@ void weightvg_do_mask(int num, const int *indices, float *org_w, const float *ne
 		for (i = 0; i < num; i++) {
 			int idx = indices ? indices[i] : i;
 			const float f = defvert_find_weight(&dvert[idx], ref_didx) * fact;
-			org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0f-f));
+			org_w[i] = (new_w[i] * f) + (org_w[i] * (1.0f - f));
 			/* If that vertex is not in ref vgroup, assume null factor, and hence do nothing! */
 		}
 	}

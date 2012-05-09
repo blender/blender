@@ -313,7 +313,7 @@ float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc)
 }
 
 /* note: this function is used for multilayer too, to ensure uniform 
-   handling with BKE_image_get_ibuf() */
+ * handling with BKE_image_get_ibuf() */
 static CompBuf *node_composit_get_image(RenderData *rd, Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf;
@@ -420,7 +420,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 		ImageUser *iuser= (ImageUser *)node->storage;
 		
 		/* first set the right frame number in iuser */
-		BKE_image_user_calc_frame(iuser, rd->cfra, 0);
+		BKE_image_user_frame_calc(iuser, rd->cfra, 0);
 		
 		/* force a load, we assume iuser index will be set OK anyway */
 		if (ima->type==IMA_TYPE_MULTILAYER)
@@ -442,11 +442,14 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 							/* preview policy: take first 'Combined' pass if available,
 							 * otherwise just use the first layer.
 							 */
-							if (!firstbuf)
+							if (!firstbuf) {
 								firstbuf = stackbuf;
+							}
 							if (!combinedbuf &&
-							    (strcmp(sock->name, "Combined")==0 || strcmp(sock->name, "Image")==0))
+							    (strcmp(sock->name, "Combined") == 0 || strcmp(sock->name, "Image") == 0))
+							{
 								combinedbuf = stackbuf;
+							}
 						}
 					}
 				}

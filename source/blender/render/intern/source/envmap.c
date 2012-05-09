@@ -1,5 +1,4 @@
-/* 
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -28,7 +27,6 @@
  *  \ingroup render
  */
 
-
 #include <math.h>
 #include <string.h>
 
@@ -51,7 +49,7 @@
 
 #include "BKE_library.h"
 #include "BKE_main.h"
-#include "BKE_image.h"   // BKE_write_ibuf 
+#include "BKE_image.h"   // BKE_imbuf_write 
 #include "BKE_texture.h"
 
 
@@ -239,10 +237,10 @@ static void envmap_transmatrix(float mat[][4], int part)
 	}
 	
 	copy_m4_m4(tmat, mat);
-	eul_to_mat4( rotmat,eul);
+	eul_to_mat4(rotmat, eul);
 	mul_serie_m4(mat, tmat, rotmat,
-					 NULL, NULL, NULL,
-					 NULL, NULL, NULL);
+	             NULL, NULL, NULL,
+	             NULL, NULL, NULL);
 }
 
 /* ------------------------------------------------------------------------- */

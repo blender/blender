@@ -723,7 +723,7 @@ static void rna_def_panel(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_context", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->context");
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* should this be optional? - Campbell */
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL); /* Only used in Properties Editor and 3D View - Thomas */
 	RNA_def_property_ui_text(prop, "Context",
 	                         "The context in which the panel belongs to. (TODO: explain the "
 	                         "possible combinations bl_context/bl_region_type/bl_space_type)");

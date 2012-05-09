@@ -1,5 +1,4 @@
-/* 
- *
+/*
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -27,13 +26,12 @@
  *
  */
 
+#ifndef __MATHUTILS_EULER_H__
+#define __MATHUTILS_EULER_H__
+
 /** \file blender/python/mathutils/mathutils_Euler.h
  *  \ingroup pymathutils
  */
-
-
-#ifndef __MATHUTILS_EULER_H__
-#define __MATHUTILS_EULER_H__
 
 extern PyTypeObject euler_Type;
 #define EulerObject_Check(_v) PyObject_TypeCheck((_v), &euler_Type)

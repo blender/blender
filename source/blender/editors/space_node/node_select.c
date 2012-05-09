@@ -517,7 +517,7 @@ static int node_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	RNA_int_set(op->ptr, "mouse_x", event->mval[0]);
 	RNA_int_set(op->ptr, "mouse_y", event->mval[1]);
 
-	return node_select_exec(C,op);
+	return node_select_exec(C, op);
 }
 
 

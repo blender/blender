@@ -51,14 +51,14 @@
 
 static void initData(ModifierData *md) 
 {
-	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	
 	surmd->bvhtree = NULL;
 }
 
 static void freeData(ModifierData *md)
 {
-	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 
 	if (surmd) {
 		if (surmd->bvhtree) {
@@ -86,13 +86,13 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int UNUSED(numVerts),
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int UNUSED(numVerts),
+                        int UNUSED(useRenderParams),
+                        int UNUSED(isFinalCalc))
 {
-	SurfaceModifierData *surmd = (SurfaceModifierData*) md;
+	SurfaceModifierData *surmd = (SurfaceModifierData *) md;
 	
 	if (surmd->dm)
 		surmd->dm->release(surmd->dm);
@@ -115,9 +115,13 @@ static void deformVerts(ModifierData *md, Object *ob,
 		CDDM_apply_vert_coords(surmd->dm, vertexCos);
 		CDDM_calc_normals(surmd->dm);
 		
-		numverts = surmd->dm->getNumVerts ( surmd->dm );
+		numverts = surmd->dm->getNumVerts(surmd->dm);
 
-		if (numverts != surmd->numverts || surmd->x == NULL || surmd->v == NULL || md->scene->r.cfra != surmd->cfra+1) {
+		if (numverts != surmd->numverts ||
+		    surmd->x == NULL ||
+		    surmd->v == NULL ||
+		    md->scene->r.cfra != surmd->cfra + 1)
+		{
 			if (surmd->x) {
 				MEM_freeN(surmd->x);
 				surmd->x = NULL;
@@ -136,7 +140,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 		}
 
 		/* convert to global coordinates and calculate velocity */
-		for (i = 0, x = surmd->x, v = surmd->v; i<numverts; i++, x++, v++) {
+		for (i = 0, x = surmd->x, v = surmd->v; i < numverts; i++, x++, v++) {
 			vec = CDDM_get_vert(surmd->dm, i)->co;
 			mul_m4_v3(ob->obmat, vec);
 
@@ -168,8 +172,8 @@ ModifierTypeInfo modifierType_Surface = {
 	/* structName */        "SurfaceModifierData",
 	/* structSize */        sizeof(SurfaceModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_NoUserAdd,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_NoUserAdd,
 
 	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,
@@ -186,6 +190,6 @@ ModifierTypeInfo modifierType_Surface = {
 	/* dependsOnTime */     dependsOnTime,
 	/* dependsOnNormals */	NULL,
 	/* foreachObjectLink */ NULL,
-	/* foreachIDLink */     NULL,
-	/* foreachTexLink */    NULL,
+	/* foreachIDLink */ NULL,
+	/* foreachTexLink */ NULL,
 };

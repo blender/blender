@@ -838,7 +838,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 {
 	BMwEdgeringWalker *lwalk = BMW_current_state(walker);
 	BMEdge *e, *wireedge = lwalk->wireedge;
-	BMLoop *l = lwalk->l , *origl = lwalk->l;
+	BMLoop *l = lwalk->l, *origl = lwalk->l;
 #ifdef BMW_EDGERING_NGON
 	int i, len;
 #endif
@@ -880,7 +880,7 @@ static void *bmw_EdgeringWalker_step(BMWalker *walker)
 	}
 	/* only walk to manifold edge */
 	if ((l->f->len % 2 == 0) && EDGE_CHECK(l->e) &&
-	    !BLI_ghash_haskey(walker->visithash, l->e)) 
+	    !BLI_ghash_haskey(walker->visithash, l->e))
 
 #else
 

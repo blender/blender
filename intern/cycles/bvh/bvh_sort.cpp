@@ -32,23 +32,23 @@ public:
 		dim = dim_;
 	}
 
-	bool operator()(const BVHBuild::Reference& ra, const BVHBuild::Reference& rb)
+	bool operator()(const BVHReference& ra, const BVHReference& rb)
 	{
-		float ca = ra.bounds.min[dim] + ra.bounds.max[dim];
-		float cb = rb.bounds.min[dim] + rb.bounds.max[dim];
+		float ca = ra.bounds().min[dim] + ra.bounds().max[dim];
+		float cb = rb.bounds().min[dim] + rb.bounds().max[dim];
 
 		if(ca < cb) return true;
 		else if(ca > cb) return false;
-		else if(ra.prim_object < rb.prim_object) return true;
-		else if(ra.prim_object > rb.prim_object) return false;
-		else if(ra.prim_index < rb.prim_index) return true;
-		else if(ra.prim_index > rb.prim_index) return false;
+		else if(ra.prim_object() < rb.prim_object()) return true;
+		else if(ra.prim_object() > rb.prim_object()) return false;
+		else if(ra.prim_index() < rb.prim_index()) return true;
+		else if(ra.prim_index() > rb.prim_index()) return false;
 
 		return false;
 	}
 };
 
-void bvh_reference_sort(int start, int end, BVHBuild::Reference *data, int dim)
+void bvh_reference_sort(int start, int end, BVHReference *data, int dim)
 {
 	sort(data+start, data+end, BVHReferenceCompare(dim));
 }

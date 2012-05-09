@@ -87,7 +87,7 @@ static void node_composit_exec_rotate(void *UNUSED(data), bNode *node, bNodeStac
 					v=-s*x + c*y + centy;
 					xo= x+(int)centx;
 
-					switch(node->custom1) {
+					switch (node->custom1) {
 					case 0:
 						neareast_interpolation(ibuf, obuf, u, v, xo, yo);
 						break;

@@ -247,6 +247,7 @@ protected:
 	 * @return Indication whether the event was handled.
 	 */
 	GHOST_TSuccess handleTabletEvent(void *eventPtr, short eventType);
+	bool handleTabletEvent(void *eventPtr);
 
 	/**
 	 * Handles a mouse event.

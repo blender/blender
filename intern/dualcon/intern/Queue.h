@@ -23,83 +23,81 @@
 #ifndef QUEUE_H
 #define QUEUE_H
 
-struct gridQueueEle
-{
+struct gridQueueEle {
 	int x, y, z;
-	UCHAR dir ;
-	gridQueueEle* next ;
+	UCHAR dir;
+	gridQueueEle *next;
 };
 
 class GridQueue
 {
-	gridQueueEle* head ;
-	gridQueueEle* tail ;
-	int numEles ;
+gridQueueEle *head;
+gridQueueEle *tail;
+int numEles;
 
 public:
 
-	GridQueue( )
+GridQueue( )
+{
+	head = NULL;
+	tail = NULL;
+	numEles = 0;
+}
+
+gridQueueEle *getHead( )
+{
+	return head;
+}
+
+int getNumElements( )
+{
+	return numEles;
+}
+
+
+void pushQueue(int st[3], int dir)
+{
+	gridQueueEle *ele = new gridQueueEle;
+	ele->x = st[0];
+	ele->y = st[1];
+	ele->z = st[2];
+	ele->dir = (UCHAR) dir;
+	ele->next = NULL;
+	if (head == NULL)
 	{
-		head = NULL ;
-		tail = NULL ;
-		numEles = 0 ;
+		head = ele;
+	}
+	else {
+		tail->next = ele;
+	}
+	tail = ele;
+	numEles++;
+}
+
+int popQueue(int st[3], int& dir)
+{
+	if (head == NULL)
+	{
+		return 0;
 	}
 
-	gridQueueEle* getHead( )
+	st[0] = head->x;
+	st[1] = head->y;
+	st[2] = head->z;
+	dir = (int) (head->dir);
+
+	gridQueueEle *temp = head;
+	head = head->next;
+	delete temp;
+
+	if (head == NULL)
 	{
-		return head ;
+		tail = NULL;
 	}
+	numEles--;
 
-	int getNumElements( )
-	{
-		return numEles ;
-	}
-
-
-	void pushQueue( int st[3], int dir )
-	{
-		gridQueueEle* ele = new gridQueueEle ;
-		ele->x = st[0] ;
-		ele->y = st[1] ;
-		ele->z = st[2] ;
-		ele->dir = (UCHAR) dir ;
-		ele->next = NULL ;
-		if ( head == NULL )
-		{
-			head = ele ;
-		}
-		else
-		{
-			tail->next = ele ;
-		}
-		tail = ele ;
-		numEles ++ ;
-	}
-
-	int popQueue( int st[3], int& dir )
-	{
-		if ( head == NULL )
-		{
-			return 0 ;
-		}
-
-		st[0] = head->x ;
-		st[1] = head->y ;
-		st[2] = head->z ;
-		dir = (int) (head->dir) ;
-
-		gridQueueEle* temp = head ;
-		head = head->next ;
-		delete temp ;
-
-		if ( head == NULL )
-		{
-			tail = NULL ;
-		}
-		numEles -- ;
-
-		return 1 ;
-	}
+	return 1;
+}
 
 };
 

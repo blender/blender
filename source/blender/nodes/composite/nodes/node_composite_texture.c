@@ -40,7 +40,7 @@ static bNodeSocketTemplate cmp_node_texture_in[]= {
 };
 static bNodeSocketTemplate cmp_node_texture_out[]= {
 	{	SOCK_FLOAT, 0, "Value"},
-	{	SOCK_RGBA , 0, "Color"},
+	{	SOCK_RGBA, 0, "Color"},
 	{	-1, 0, ""	}
 };
 
@@ -73,11 +73,11 @@ static void texture_procedural(CompBuf *cbuf, float *out, float xco, float yco)
 			col[3]= texres.tin;
 		
 		if ((retval & TEX_RGB)) {
-			col[0]= texres.tr;
-			col[1]= texres.tg;
-			col[2]= texres.tb;
+			copy_v3_v3(col, &texres.tr);
 		}
-		else col[0]= col[1]= col[2]= col[3];
+		else {
+			copy_v3_fl(col, col[3]);
+		}
 	}
 	else { 
 		copy_v3_v3(col, nor);

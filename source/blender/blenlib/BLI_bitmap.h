@@ -69,7 +69,7 @@ typedef unsigned int* BLI_bitmap;
 /* set or clear the value of a single bit at '_index' */
 #define BLI_BITMAP_MODIFY(_bitmap, _index, _set) \
 	do { \
-		if(_set) \
+		if (_set) \
 			BLI_BITMAP_SET(_bitmap, _index); \
 		else \
 			BLI_BITMAP_CLEAR(_bitmap, _index); \

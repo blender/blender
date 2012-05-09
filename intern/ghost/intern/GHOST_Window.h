@@ -161,6 +161,7 @@ public:
 	 */
 	inline virtual bool getCursorVisibility() const;
 	inline virtual GHOST_TGrabCursorMode getCursorGrabMode() const;
+	inline virtual bool getCursorGrabModeIsWarp() const;
 	inline virtual void getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
 	inline virtual void getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const;
 	inline virtual void setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y);
@@ -360,6 +361,12 @@ inline bool GHOST_Window::getCursorVisibility() const
 inline GHOST_TGrabCursorMode GHOST_Window::getCursorGrabMode() const
 {
 	return m_cursorGrab;
+}
+
+inline bool GHOST_Window::getCursorGrabModeIsWarp() const
+{
+	return  (m_cursorGrab == GHOST_kGrabWrap) ||
+	        (m_cursorGrab == GHOST_kGrabHide);
 }
 
 inline void GHOST_Window::getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const

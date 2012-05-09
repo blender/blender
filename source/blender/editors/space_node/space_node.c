@@ -172,7 +172,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 	short shader_type = snode->shaderfrom;
 	
 	/* preview renders */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_NODES:
@@ -244,7 +244,7 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				ED_area_tag_redraw(sa);
 			break;
 		case NC_SCREEN:
-			switch(wmn->data) {
+			switch (wmn->data) {
 				case ND_ANIMPLAY:
 					ED_area_tag_refresh(sa);
 					break;
@@ -429,7 +429,7 @@ static void node_header_area_draw(const bContext *C, ARegion *ar)
 static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
-	switch(wmn->category) {
+	switch (wmn->category) {
 		case NC_SPACE:
 			if (wmn->data==ND_SPACE_NODE)
 				ED_region_tag_redraw(ar);

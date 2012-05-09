@@ -69,7 +69,7 @@ class VIEW3D_HT_header(Header):
                 row.prop(toolsettings.particle_edit, "select_mode", text="", expand=True)
 
             # Occlude geometry
-            if view.viewport_shade in {'SOLID', 'SHADED', 'TEXTURED'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
+            if view.viewport_shade not in {'BOUNDBOX', 'WIREFRAME'} and (obj.mode == 'PARTICLE_EDIT' or (obj.mode == 'EDIT' and obj.type == 'MESH')):
                 row.prop(view, "use_occlude_geometry", text="")
 
             # Proportional editing
@@ -131,11 +131,13 @@ class ShowHideMenu():
         layout = self.layout
 
         layout.operator("%s.reveal" % self._operator_name, text="Show Hidden")
-        layout.operator("%s.hide" % self._operator_name, text="Hide Selected")
+        layout.operator("%s.hide" % self._operator_name, text="Hide Selected").unselected = False
         layout.operator("%s.hide" % self._operator_name, text="Hide Unselected").unselected = True
 
 
-class VIEW3D_MT_transform(Menu):
+# Standard transforms which apply to all cases
+# NOTE: this doesn't seem to be able to be used directly
+class VIEW3D_MT_transform_base(Menu):
     bl_label = "Transform"
 
     # TODO: get rid of the custom text strings?
@@ -156,22 +158,38 @@ class VIEW3D_MT_transform(Menu):
         layout.operator("transform.warp", text="Warp")
         layout.operator("transform.push_pull", text="Push/Pull")
 
+
+# Generic transform menu - geometry types
+class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # generic...
+        layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
         layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
 
+
+# Object-specific extensions to Transform menu
+class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # object-specific option follow...
+        layout = self.layout
         layout.separator()
 
-        obj = context.object
-        if obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and obj.data.draw_type in {'BBONE', 'ENVELOPE'}:
-            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
-
-        if context.edit_object and context.edit_object.type == 'ARMATURE':
-            layout.operator("armature.align")
-        else:
-            layout.operator_context = 'EXEC_REGION_WIN'
-            layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
+        layout.operator("transform.translate", text="Move Texture Space").texture_space = True
+        layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
+        
+        layout.separator()
+        
+        layout.operator_context = 'EXEC_REGION_WIN'
+        layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
         layout.separator()
 
@@ -189,6 +207,25 @@ class VIEW3D_MT_transform(Menu):
         layout.separator()
 
         layout.operator("object.anim_transforms_to_deltas")
+
+
+# Armature EditMode extensions to Transform menu
+class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
+    def draw(self, context):
+        # base menu
+        VIEW3D_MT_transform_base.draw(self, context)
+        
+        # armature specific extensions follow...
+        layout = self.layout
+        layout.separator()
+
+        obj = context.object
+        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and 
+            obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
+            layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
+
+        if context.edit_object and context.edit_object.type == 'ARMATURE':
+            layout.operator("armature.align")
 
 
 class VIEW3D_MT_mirror(Menu):
@@ -376,6 +413,11 @@ class VIEW3D_MT_view_align(Menu):
         layout.operator("view3d.camera_to_view_selected", text="Align Active Camera to Selected")
         layout.operator("view3d.view_selected")
         layout.operator("view3d.view_center_cursor")
+
+        layout.separator()
+
+        layout.operator("view3d.view_lock_to_active")
+        layout.operator("view3d.view_lock_clear")
 
 
 class VIEW3D_MT_view_align_selected(Menu):
@@ -699,7 +741,7 @@ class VIEW3D_MT_object(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_object")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_object_clear")
         layout.menu("VIEW3D_MT_object_apply")
@@ -1152,7 +1194,7 @@ class VIEW3D_MT_vertex_group(Menu):
         if ob.mode == 'EDIT' or (ob.mode == 'WEIGHT_PAINT' and ob.type == 'MESH' and ob.data.use_paint_mask_vertex):
             if ob.vertex_groups.active:
                 layout.separator()
-                layout.operator("object.vertex_group_assign", text="Assign to Active Group")
+                layout.operator("object.vertex_group_assign", text="Assign to Active Group").new = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from Active Group").all = False
                 layout.operator("object.vertex_group_remove_from", text="Remove from All").all = True
                 layout.separator()
@@ -1317,7 +1359,7 @@ class VIEW3D_MT_pose(Menu):
 
         layout.separator()
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_armature")
 
         layout.menu("VIEW3D_MT_pose_transform")
         layout.menu("VIEW3D_MT_pose_apply")
@@ -1496,6 +1538,24 @@ class VIEW3D_MT_pose_apply(Menu):
         layout.operator("pose.visual_transform_apply")
 
 
+class VIEW3D_MT_pose_specials(Menu):
+    bl_label = "Specials"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator("pose.select_constraint_target")
+        layout.operator("pose.flip_names")
+        layout.operator("pose.paths_calculate")
+        layout.operator("pose.paths_clear")
+        layout.operator("pose.user_transforms_clear")
+        layout.operator("pose.user_transforms_clear", text="Clear User Transforms (All)").only_selected = False
+        layout.operator("pose.relax")
+
+        layout.separator()
+
+        layout.operator_menu_enum("pose.autoside_names", "axis")
+
+
 class BoneOptions:
     def draw(self, context):
         layout = self.layout
@@ -1602,7 +1662,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.subdivide", text="Subdivide Smooth").smoothness = 1.0
         layout.operator("mesh.merge", text="Merge...")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.hide", text="Hide")
+        layout.operator("mesh.hide", text="Hide").unselected = False
         layout.operator("mesh.reveal", text="Reveal")
         layout.operator("mesh.select_all", text="Select Inverse").action = 'INVERT'
         layout.operator("mesh.flip_normals")
@@ -1615,6 +1675,7 @@ class VIEW3D_MT_edit_mesh_specials(Menu):
         layout.operator("mesh.blend_from_shape")
         layout.operator("mesh.shape_propagate_to_all")
         layout.operator("mesh.select_vertex_path")
+        layout.operator("mesh.sort_elements")
 
 
 class VIEW3D_MT_edit_mesh_select_mode(Menu):
@@ -1690,8 +1751,7 @@ class VIEW3D_MT_edit_mesh_vertices(Menu):
 
         layout.operator("mesh.vertices_smooth")
         layout.operator("mesh.remove_doubles")
-        layout.operator("mesh.vertices_sort")
-        layout.operator("mesh.vertices_randomize")
+        layout.operator("mesh.sort_elements", text="Sort Vertices").elements = {"VERT"}
 
         layout.operator("mesh.select_vertex_path")
 
@@ -1736,6 +1796,7 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
         layout.operator("mesh.bevel")
         layout.operator("mesh.edge_split")
         layout.operator("mesh.bridge_edge_loops")
+        layout.operator("mesh.sort_elements", text="Sort Edges").elements = {"EDGE"}
 
         layout.separator()
 
@@ -1767,7 +1828,8 @@ class VIEW3D_MT_edit_mesh_faces(Menu):
         layout.operator("mesh.inset")
         layout.operator("mesh.bevel")
         layout.operator("mesh.solidify")
-        layout.operator("mesh.sort_faces")
+        layout.operator("mesh.wireframe")
+        layout.operator("mesh.sort_elements", text="Sort Faces").elements = {"FACE"}
 
         layout.separator()
 
@@ -2036,7 +2098,7 @@ class VIEW3D_MT_edit_meta_showhide(Menu):
         layout = self.layout
 
         layout.operator("mball.reveal_metaelems", text="Show Hidden")
-        layout.operator("mball.hide_metaelems", text="Hide Selected")
+        layout.operator("mball.hide_metaelems", text="Hide Selected").unselected = False
         layout.operator("mball.hide_metaelems", text="Hide Unselected").unselected = True
 
 
@@ -2071,7 +2133,7 @@ class VIEW3D_MT_edit_armature(Menu):
         edit_object = context.edit_object
         arm = edit_object.data
 
-        layout.menu("VIEW3D_MT_transform")
+        layout.menu("VIEW3D_MT_transform_armature")
         layout.menu("VIEW3D_MT_mirror")
         layout.menu("VIEW3D_MT_snap")
         layout.menu("VIEW3D_MT_edit_armature_roll")
@@ -2378,9 +2440,10 @@ class VIEW3D_PT_view3d_meshdisplay(Panel):
 
         col.separator()
         col.label(text="Normals:")
-        row = col.row(align=True)
-        row.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
-        row.prop(mesh, "show_normal_face", text="", icon='FACESEL')
+        row = col.row()
+        sub = row.row(align=True)
+        sub.prop(mesh, "show_normal_vertex", text="", icon='VERTEXSEL')
+        sub.prop(mesh, "show_normal_face", text="", icon='FACESEL')
         row.prop(context.scene.tool_settings, "normal_size", text="Size")
 
         col.separator()

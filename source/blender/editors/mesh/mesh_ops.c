@@ -87,8 +87,6 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_primitive_ico_sphere_add);
 	WM_operatortype_append(MESH_OT_duplicate);
 	WM_operatortype_append(MESH_OT_remove_doubles);
-	WM_operatortype_append(MESH_OT_vertices_sort);
-	WM_operatortype_append(MESH_OT_vertices_randomize);
 	WM_operatortype_append(MESH_OT_spin);
 	WM_operatortype_append(MESH_OT_screw);
 
@@ -118,7 +116,7 @@ void ED_operatortypes_mesh(void)
 	WM_operatortype_append(MESH_OT_dissolve_limited);
 	WM_operatortype_append(MESH_OT_faces_shade_smooth);
 	WM_operatortype_append(MESH_OT_faces_shade_flat);
-	WM_operatortype_append(MESH_OT_sort_faces);
+	WM_operatortype_append(MESH_OT_sort_elements);
 
 	WM_operatortype_append(MESH_OT_delete);
 	WM_operatortype_append(MESH_OT_edge_collapse);
@@ -164,7 +162,10 @@ void ED_operatortypes_mesh(void)
 
 	WM_operatortype_append(MESH_OT_bridge_edge_loops);
 	WM_operatortype_append(MESH_OT_inset);
+	WM_operatortype_append(MESH_OT_wireframe);
 	WM_operatortype_append(MESH_OT_edge_split);
+
+	WM_operatortype_append(MESH_OT_convex_hull);
 
 #ifdef WITH_GAMEENGINE
 	WM_operatortype_append(MESH_OT_navmesh_make);
@@ -194,49 +195,49 @@ void ED_operatormacros_mesh(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 	
-	ot = WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Cut mesh loop and slide it";
+	ot = WM_operatortype_append_macro("MESH_OT_loopcut_slide", "Loop Cut and Slide", "Cut mesh loop and slide it",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_loopcut");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_edge_slide");
 	RNA_struct_idprops_unset(otmacro->ptr, "release_confirm");
 
-	ot = WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Duplicate mesh and move";
+	ot = WM_operatortype_append_macro("MESH_OT_duplicate_move", "Add Duplicate", "Duplicate mesh and move",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Rip polygons and move the result";
+	ot = WM_operatortype_append_macro("MESH_OT_rip_move", "Rip", "Rip polygons and move the result",
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "MESH_OT_rip");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Extrude region and move result";
+	ot = WM_operatortype_append_macro("MESH_OT_extrude_region_move", "Extrude Region and Move",
+	                                  "Extrude region and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_region");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("MESH_OT_extrude_faces_move", "Extrude Individual Faces and Move", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Extrude faces and move result";
+	ot = WM_operatortype_append_macro("MESH_OT_extrude_faces_move", "Extrude Individual Faces and Move",
+	                                  "Extrude faces and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_faces_indiv");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_shrink_fatten");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("MESH_OT_extrude_edges_move", "Extrude Only Edges and Move", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Extrude edges and move result";
+	ot = WM_operatortype_append_macro("MESH_OT_extrude_edges_move", "Extrude Only Edges and Move",
+	                                  "Extrude edges and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_edges_indiv");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move", OPTYPE_UNDO | OPTYPE_REGISTER);
-	ot->description = "Extrude vertices and move result";
+	ot = WM_operatortype_append_macro("MESH_OT_extrude_vertices_move", "Extrude Only Vertices and Move",
+	                                  "Extrude vertices and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	otmacro = WM_operatortype_macro_define(ot, "MESH_OT_extrude_verts_indiv");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
@@ -350,11 +351,11 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, 0, 0);
 	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", TRUE);
-	RNA_boolean_set(kmi->ptr, "only_select",          FALSE);
+	RNA_boolean_set(kmi->ptr, "only_selected",          FALSE);
 
 	kmi = WM_keymap_add_item(keymap, "MESH_OT_knife_tool", KKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_boolean_set(kmi->ptr, "use_occlude_geometry", FALSE);
-	RNA_boolean_set(kmi->ptr, "only_select",          TRUE);
+	RNA_boolean_set(kmi->ptr, "only_selected",          TRUE);
 	
 	WM_keymap_add_item(keymap, "OBJECT_OT_vertex_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 

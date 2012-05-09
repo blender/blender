@@ -153,10 +153,6 @@ class Matrix
 
     typedef typename Base::PlainObject PlainObject;
 
-    enum { NeedsToAlign = (!(Options&DontAlign))
-                          && SizeAtCompileTime!=Dynamic && ((static_cast<int>(sizeof(Scalar))*SizeAtCompileTime)%16)==0 };
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(NeedsToAlign)
-
     using Base::base;
     using Base::coeffRef;
 

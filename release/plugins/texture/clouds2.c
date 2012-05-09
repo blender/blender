@@ -150,7 +150,7 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 	/* always return this value */
 	result[0] = CLAMP (val+cast->offset, 0.0, 1.0) * pow (fabs(sqrt(tv[0]*tv[0]+tv[1]*tv[1]+tv[2]*tv[2])), cast->falloff);
 	
-	if(stype==1) {
+	if (stype==1) {
 		/*
 		 * this is r, g, b, a:
 		 */
@@ -161,7 +161,7 @@ int plugin_tex_doit(int stype, Cast *cast, float *texvec, float *dxt, float *dyt
 
 		res |= TEX_RGB;
 	}
-	if(stype==2) {
+	if (stype==2) {
 		/*
 		 * This value is the displacement of the actual normal in 
 		 * the Material calculation. 

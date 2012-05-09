@@ -48,18 +48,18 @@ struct View3D;
 
 /* Camera Datablock */
 
-void *add_camera(const char *name);
-struct Camera *copy_camera(struct Camera *cam);
-void make_local_camera(struct Camera *cam);
-void free_camera(struct Camera *ca);
+void *BKE_camera_add(const char *name);
+struct Camera *BKE_camera_copy(struct Camera *cam);
+void BKE_camera_make_local(struct Camera *cam);
+void BKE_camera_free(struct Camera *ca);
 
 /* Camera Usage */
 
-float object_camera_dof_distance(struct Object *ob);
-void object_camera_mode(struct RenderData *rd, struct Object *ob);
+float BKE_camera_object_dof_distance(struct Object *ob);
+void BKE_camera_object_mode(struct RenderData *rd, struct Object *ob);
 
-int camera_sensor_fit(int sensor_fit, float sizex, float sizey);
-float camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
+int BKE_camera_sensor_fit(int sensor_fit, float sizex, float sizey);
+float BKE_camera_sensor_size(int sensor_fit, float sensor_x, float sensor_y);
 
 /* Camera Parameters:
  *
@@ -102,21 +102,21 @@ typedef struct CameraParams {
 	float winmat[4][4];
 } CameraParams;
 
-void camera_params_init(CameraParams *params);
-void camera_params_from_object(CameraParams *params, struct Object *camera);
-void camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
+void BKE_camera_params_init(CameraParams *params);
+void BKE_camera_params_from_object(CameraParams *params, struct Object *camera);
+void BKE_camera_params_from_view3d(CameraParams *params, struct View3D *v3d, struct RegionView3D *rv3d);
 
-void camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float aspx, float aspy);
-void camera_params_compute_matrix(CameraParams *params);
+void BKE_camera_params_compute_viewplane(CameraParams *params, int winx, int winy, float aspx, float aspy);
+void BKE_camera_params_compute_matrix(CameraParams *params);
 
 /* Camera View Frame */
 
-void camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
+void BKE_camera_view_frame_ex(struct Scene *scene, struct Camera *camera, float drawsize, const short do_clip, const float scale[3],
                           float r_asp[2], float r_shift[2], float *r_drawsize, float r_vec[4][3]);
 
-void camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);
+void BKE_camera_view_frame(struct Scene *scene, struct Camera *camera, float r_vec[4][3]);
 
-int camera_view_frame_fit_to_scene(
+int BKE_camera_view_frame_fit_to_scene(
         struct Scene *scene, struct View3D *v3d, struct Object *camera_ob,
         float r_co[3]);
 

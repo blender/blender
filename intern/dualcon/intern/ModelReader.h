@@ -33,31 +33,32 @@
 class ModelReader
 {
 public:
-	/// Constructor
-	ModelReader(){} ;
+/// Constructor
+ModelReader(){
+};
 
-	/// Get next triangle
-	virtual Triangle* getNextTriangle( ) = 0 ;
-	virtual int getNextTriangle( int t[3] ) = 0 ;
+/// Get next triangle
+virtual Triangle *getNextTriangle( ) = 0;
+virtual int getNextTriangle(int t[3]) = 0;
 
-	/// Get bounding box
-	virtual float getBoundingBox ( float origin[3] ) = 0 ;
+/// Get bounding box
+virtual float getBoundingBox(float origin[3]) = 0;
 
-	/// Get number of triangles
-	virtual int getNumTriangles ( ) = 0 ;
+/// Get number of triangles
+virtual int getNumTriangles( ) = 0;
 
-	/// Get storage size
-	virtual int getMemory ( ) = 0 ;
+/// Get storage size
+virtual int getMemory( ) = 0;
 
-	/// Reset file reading location
-	virtual void reset( ) = 0 ;
+/// Reset file reading location
+virtual void reset( ) = 0;
 
-	/// For explicit vertex models
-	virtual int getNumVertices( ) = 0 ;
+/// For explicit vertex models
+virtual int getNumVertices( ) = 0;
 
-	virtual void getNextVertex( float v[3] ) = 0 ;
+virtual void getNextVertex(float v[3]) = 0;
 
-	virtual void printInfo ( ) = 0 ;
+virtual void printInfo( ) = 0;
 };
 
 

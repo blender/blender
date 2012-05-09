@@ -43,12 +43,12 @@ void SceneExporter::exportScene(Scene *sce)
 void SceneExporter::exportHierarchy(Scene *sce)
 {
 	Base *base= (Base*) sce->base.first;
-	while(base) {
+	while (base) {
 		Object *ob = base->object;
 
 		if (!ob->parent) {
 			if (sce->lay & ob->lay) {
-				switch(ob->type) {
+				switch (ob->type) {
 					case OB_MESH:
 					case OB_CAMERA:
 					case OB_LAMP:
@@ -81,12 +81,12 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// list child objects
 	Base *b = (Base*) sce->base.first;
-	while(b) {
+	while (b) {
 		// cob - child object
 		Object *cob = b->object;
 
 		if (cob->parent == ob) {
-			switch(cob->type) {
+			switch (cob->type) {
 				case OB_MESH:
 				case OB_CAMERA:
 				case OB_LAMP:
@@ -154,8 +154,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		}
 	}
 
-	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i)
-	{
+	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i) {
 		writeNodes(*i, sce);
 	}
 

@@ -49,13 +49,14 @@ extern "C"
 		return 0;
 	}
 
-	int collada_export(Scene *sce, const char *filepath, int selected, int second_life)
+	int collada_export(Scene *sce, const char *filepath, int selected, int apply_modifiers, int second_life)
 	{
 		ExportSettings export_settings;
 		
-		export_settings.selected = selected != 0;
-		export_settings.second_life = second_life != 0;
-		export_settings.filepath = (char *)filepath;
+		export_settings.selected        = selected != 0;
+		export_settings.apply_modifiers = apply_modifiers != 0;
+		export_settings.second_life     = second_life != 0;
+		export_settings.filepath        = (char *)filepath;
 
 		/* annoying, collada crashes if file cant be created! [#27162] */
 		if (!BLI_exists(filepath)) {

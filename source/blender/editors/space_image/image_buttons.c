@@ -146,7 +146,7 @@ static void image_info(Scene *scene, ImageUser *iuser, Image *ima, ImBuf *ibuf, 
 	/* the frame number, even if we cant */
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
-		const int framenr = BKE_image_user_get_frame(iuser, CFRA, 0);
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
 		ofs += sprintf(str + ofs, ", Frame: %d", framenr);
 	}
 
@@ -430,7 +430,7 @@ static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
 	
 	if (ima->anim) {
 		iuser->frames = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
-		BKE_image_user_calc_frame(iuser, scene->r.cfra, 0);
+		BKE_image_user_frame_calc(iuser, scene->r.cfra, 0);
 	}
 }
 

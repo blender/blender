@@ -32,17 +32,16 @@ extern "C" {
 
 typedef struct OceanResult {
 	float disp[3];
-    float normal[3];
+	float normal[3];
 	float foam;
 	
 	/* raw eigenvalues/vectors */
 	float Jminus;
-    float Jplus;
+	float Jplus;
 	float Eminus[3];
-    float Eplus[3];
+	float Eplus[3];
 } OceanResult;
-	
-	
+
 typedef struct OceanCache {
 	struct ImBuf **ibufs_disp;
 	struct ImBuf **ibufs_foam;
@@ -74,13 +73,12 @@ typedef struct OceanCache {
 #define OCEAN_CACHING		1
 #define OCEAN_CACHED		2
 
-	
 struct Ocean *BKE_add_ocean(void);
 void BKE_free_ocean_data(struct Ocean *oc);
 void BKE_free_ocean(struct Ocean *oc);
 
-void BKE_init_ocean(struct Ocean* o, int M,int N, float Lx, float Lz, float V, float l, float A, float w, float damp, 
-					float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
+void BKE_init_ocean(struct Ocean* o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+                    float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
 void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount);
 
 /* sampling the ocean surface */

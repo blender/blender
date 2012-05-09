@@ -116,7 +116,7 @@ UVDataWrapper::UVDataWrapper(COLLADAFW::MeshVertexData& vdata) : mVData(&vdata)
 void WVDataWrapper::print()
 {
 	fprintf(stderr, "UVs:\n");
-	switch(mVData->getType()) {
+	switch (mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
@@ -147,7 +147,7 @@ void UVDataWrapper::getUV(int uv_index, float *uv)
 	int stride = mVData->getStride(0);
 	if (stride==0) stride = 2;
 
-	switch(mVData->getType()) {
+	switch (mVData->getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = mVData->getFloatValues();
@@ -346,7 +346,7 @@ int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *ve
 		vert += 3;
 	}
 	
-	filldisplist(&dispbase, &dispbase, 0);
+	BKE_displist_fill(&dispbase, &dispbase, 0);
 
 	int tottri = 0;
 	dl= (DispList*)dispbase.first;
@@ -368,7 +368,7 @@ int MeshImporter::triangulate_poly(unsigned int *indices, int totvert, MVert *ve
 		}
 	}
 
-	freedisplist(&dispbase);
+	BKE_displist_free(&dispbase);
 
 	return tottri;
 }
@@ -676,7 +676,7 @@ void MeshImporter::get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i,
 {
 	i *= stride;
 	
-	switch(arr.getType()) {
+	switch (arr.getType()) {
 	case COLLADAFW::MeshVertexData::DATA_TYPE_FLOAT:
 		{
 			COLLADAFW::ArrayPrimitiveType<float>* values = arr.getFloatValues();
@@ -726,6 +726,22 @@ bool MeshImporter::flat_face(unsigned int *nind, COLLADAFW::MeshVertexData& nor,
 }
 
 MeshImporter::MeshImporter(UnitConverter *unitconv, ArmatureImporter *arm, Scene *sce) : unitconverter(unitconv), scene(sce), armature_importer(arm) {}
+
+void MeshImporter::bmeshConversion()
+{
+	for (std::map<COLLADAFW::UniqueId, Mesh*>::iterator m = uid_mesh_map.begin();
+			m != uid_mesh_map.end(); ++m)
+	{
+		if ((*m).second) {
+			Mesh *me = (*m).second;
+			BKE_mesh_convert_mfaces_to_mpolys(me);
+			BKE_mesh_tessface_clear(me);
+
+			BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		}
+	}
+}
+
 
 Object *MeshImporter::get_object_by_geom_uid(const COLLADAFW::UniqueId& geom_uid)
 {
@@ -797,7 +813,7 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	// what we already have handled.
 	std::multimap<COLLADAFW::UniqueId, COLLADAFW::UniqueId>::iterator it;
 	it=materials_mapped_to_geom.find(*geom_uid);
-	while(it!=materials_mapped_to_geom.end()) {
+	while (it!=materials_mapped_to_geom.end()) {
 		if (it->second == ma_uid && it->first == *geom_uid) return NULL; // do nothing if already found
 		it++;
 	}
@@ -839,13 +855,12 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 		
 		for (it = prims.begin(); it != prims.end(); it++) {
 			Primitive& prim = *it;
-			i = 0;
-			while (i++ < prim.totface) {
-				prim.mface->mat_nr = mat_index;
-				prim.mface++;
+			MFace *mface = prim.mface;
+
+			for (i = 0; i < prim.totface; i++, mface++) {
+				mface->mat_nr = mat_index;
 				// bind texture images to faces
 				if (texture_face && (*color_texture)) {
-					texture_face->mode = TF_TEX;
 					texture_face->tpage = (Image*)(*color_texture)->tex->ima;
 					texture_face++;
 				}
@@ -855,7 +870,6 @@ MTFace *MeshImporter::assign_material_to_geom(COLLADAFW::MaterialBinding cmateri
 	
 	return texture_face;
 }
-
 
 Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::InstanceGeometry *geom,
 						   bool isController,
@@ -885,22 +899,22 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 	}
 	if (!uid_mesh_map[*geom_uid]) return NULL;
 	
-	Object *ob = add_object(scene, OB_MESH);
+	// name Object
+	const std::string& id = node->getName().size() ? node->getName() : node->getOriginalId();
+	const char *name = (id.length())? id.c_str(): NULL;
+	
+	// add object
+	Object *ob = bc_add_object(scene, OB_MESH, name);
 
 	// store object pointer for ArmatureImporter
 	uid_object_map[*geom_uid] = ob;
-	
-	// name Object
-	const std::string& id = node->getName().size() ? node->getName() : node->getOriginalId();
-	if (id.length())
-		rename_id(&ob->id, (char*)id.c_str());
 	
 	// replace ob->data freeing the old one
 	Mesh *old_mesh = (Mesh*)ob->data;
 
 	set_mesh(ob, uid_mesh_map[*geom_uid]);
 	
-	if (old_mesh->id.us == 0) free_libblock(&G.main->mesh, old_mesh);
+	if (old_mesh->id.us == 0) BKE_libblock_free(&G.main->mesh, old_mesh);
 	
 	char layername[100];
 	layername[0] = '\0';
@@ -922,7 +936,7 @@ Object *MeshImporter::create_mesh_object(COLLADAFW::Node *node, COLLADAFW::Insta
 			fprintf(stderr, "invalid referenced material for %s\n", mat_array[i].getName().c_str());
 		}
 	}
-		
+
 	return ob;
 }
 
@@ -948,7 +962,8 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	}
 	
 	const std::string& str_geom_id = mesh->getName().size() ? mesh->getName() : mesh->getOriginalId();
-	Mesh *me = add_mesh((char*)str_geom_id.c_str());
+	Mesh *me = BKE_mesh_add((char*)str_geom_id.c_str());
+	me->id.us--; // is already 1 here, but will be set later in set_mesh
 
 	// store the Mesh pointer to link it later with an Object
 	this->uid_mesh_map[mesh->getUniqueId()] = me;
@@ -961,10 +976,7 @@ bool MeshImporter::write_geometry(const COLLADAFW::Geometry* geom)
 	
 	read_faces(mesh, me, new_tris);
 
-	make_edges(me, 0);
+	BKE_mesh_make_edges(me, 0);
 
-	mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
-
-	BKE_mesh_convert_mfaces_to_mpolys(me);
 	return true;
 }

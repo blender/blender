@@ -156,8 +156,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype, int *to
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
 			char *idname= bhead_id_name(fd, bhead);
-			switch(GS(idname))
-			{
+			switch (GS(idname)) {
 				case ID_MA: /* fall through */
 				case ID_TE: /* fall through */
 				case ID_IM: /* fall through */

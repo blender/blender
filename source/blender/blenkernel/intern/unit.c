@@ -251,7 +251,7 @@ static struct bUnitDef buNaturalTimeDef[] = {
 	{"hour", "hours",				"hr", "h",	"Hours",		3600.0, 0.0,	B_UNIT_DEF_NONE},
 	{"minute", "minutes",			"min", "m",	"Minutes",		60.0, 0.0,		B_UNIT_DEF_NONE},
 	{"second", "seconds",			"sec", "s",	"Seconds",		1.0, 0.0,		B_UNIT_DEF_NONE}, /* base unit */
-	{"millisecond", "milliseconds",	"ms", NULL,	"Milliseconds",	0.001, 0.0	,	B_UNIT_DEF_NONE},
+	{"millisecond", "milliseconds",	"ms", NULL,	"Milliseconds",	0.001, 0.0,		B_UNIT_DEF_NONE},
 	{"microsecond", "microseconds",	"µs", "us",	"Microseconds",	0.000001, 0.0,	B_UNIT_DEF_NONE},
 	{NULL, NULL, NULL, NULL, NULL, 0.0, 0.0}
 };

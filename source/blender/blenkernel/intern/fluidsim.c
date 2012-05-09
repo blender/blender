@@ -78,7 +78,8 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	int *tris;
 
 	dm = mesh_create_derived_index_render(scene, ob, CD_MASK_BAREMESH, modifierIndex);
-	//dm = mesh_create_derived_no_deform(ob,NULL);
+
+	DM_ensure_tessface(dm);
 
 	mvert = dm->getVertArray(dm);
 	mface = dm->getTessFaceArray(dm);
@@ -86,7 +87,7 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 	totface = dm->getNumTessFaces(dm);
 
 	*numVertices = totvert;
-	verts = MEM_callocN( totvert*3*sizeof(float), "elbeemmesh_vertices");
+	verts = MEM_callocN(totvert*3*sizeof(float), "elbeemmesh_vertices");
 	for (i=0; i<totvert; i++) {
 		copy_v3_v3(&verts[i*3], mvert[i].co);
 		if (useGlobalCoords) { mul_m4_v3(ob->obmat, &verts[i*3]); }
@@ -98,7 +99,7 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 		if (mface[i].v4) { countTris++; }
 	}
 	*numTriangles = countTris;
-	tris = MEM_callocN( countTris*3*sizeof(int), "elbeemmesh_triangles");
+	tris = MEM_callocN(countTris*3*sizeof(int), "elbeemmesh_triangles");
 	countTris = 0;
 	for (i=0; i<totface; i++) {
 		int face[4];
@@ -122,3 +123,4 @@ void initElbeemMesh(struct Scene *scene, struct Object *ob,
 
 	dm->release(dm);
 }
+

@@ -1,9 +1,4 @@
 /*
- *
- * quicktime_export.c
- *
- * Code to create QuickTime Movies with Blender
- *
  * ***** BEGIN GPL LICENSE BLOCK *****
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -29,6 +24,8 @@
 
 /** \file blender/quicktime/apple/quicktime_export.c
  *  \ingroup quicktime
+ *
+ * Code to create QuickTime Movies with Blender
  */
 
 
@@ -144,7 +141,7 @@ static QuicktimeCodecTypeDesc qtVideoCodecList[] = {
 	{kMPEG4VisualCodecType, 10, "MPEG4"},
 	{kH263CodecType, 11, "H.263"},
 	{kH264CodecType, 12, "H.264"},
-	{0,0,NULL}};
+	{0, 0, NULL}};
 
 static int qtVideoCodecCount = 12;
 
@@ -263,7 +260,7 @@ static OSErr QT_GetCodecSettingsFromScene(RenderData *rd, ReportList *reports)
 	// if there is codecdata in the blendfile, convert it to a Quicktime handle 
 	if (qcd) {
 		myHandle = NewHandle(qcd->cdSize);
-		PtrToHand( qcd->cdParms, &myHandle, qcd->cdSize);
+		PtrToHand(qcd->cdParms, &myHandle, qcd->cdSize);
 	}
 		
 	// restore codecsettings to the quicktime component
@@ -346,26 +343,26 @@ static void QT_CreateMyVideoTrack(int rectx, int recty, ReportList *reports)
 	trackFrame.bottom = recty;
 	trackFrame.right = rectx;
 	
-	qtexport->theTrack = NewMovieTrack (qtexport->theMovie, 
-							FixRatio(trackFrame.right,1),
-							FixRatio(trackFrame.bottom,1), 
-							0);
-	CheckError( GetMoviesError(), "NewMovieTrack error", reports );
+	qtexport->theTrack = NewMovieTrack (qtexport->theMovie,
+	                                    FixRatio(trackFrame.right, 1),
+	                                    FixRatio(trackFrame.bottom, 1),
+	                                    0);
+	CheckError(GetMoviesError(), "NewMovieTrack error", reports);
 
-//	SetIdentityMatrix(&myMatrix);
-//	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
-//	TranslateMatrix(&myMatrix, 0, Long2Fix(trackFrame.bottom));
-//	SetMovieMatrix(qtexport->theMovie, &myMatrix);
+	//	SetIdentityMatrix(&myMatrix);
+	//	ScaleMatrix(&myMatrix, fixed1, Long2Fix(-1), 0, 0);
+	//	TranslateMatrix(&myMatrix, 0, Long2Fix(trackFrame.bottom));
+	//	SetMovieMatrix(qtexport->theMovie, &myMatrix);
 
 	qtexport->theMedia = NewTrackMedia (qtexport->theTrack,
-							VideoMediaType,
-							qtdata->kVideoTimeScale,
-							nil,
-							0);
-	CheckError( GetMoviesError(), "NewTrackMedia error", reports );
+	                                    VideoMediaType,
+	                                    qtdata->kVideoTimeScale,
+	                                    nil,
+	                                    0);
+	CheckError(GetMoviesError(), "NewTrackMedia error", reports);
 
 	err = BeginMediaEdits (qtexport->theMedia);
-	CheckError( err, "BeginMediaEdits error", reports );
+	CheckError(err, "BeginMediaEdits error", reports);
 
 	QT_StartAddVideoSamplesToMedia (&trackFrame, rectx, recty, reports);
 } 
@@ -378,14 +375,14 @@ static void QT_EndCreateMyVideoTrack(ReportList *reports)
 	QT_EndAddVideoSamplesToMedia ();
 
 	err = EndMediaEdits (qtexport->theMedia);
-	CheckError( err, "EndMediaEdits error", reports );
+	CheckError(err, "EndMediaEdits error", reports);
 
 	err = InsertMediaIntoTrack (qtexport->theTrack,
-								kTrackStart,/* track start time */
-								kMediaStart,/* media start time */
-								GetMediaDuration (qtexport->theMedia),
-								fixed1);
-	CheckError( err, "InsertMediaIntoTrack error", reports );
+	                            kTrackStart, /* track start time */
+	                            kMediaStart, /* media start time */
+	                            GetMediaDuration (qtexport->theMedia),
+	                            fixed1);
+	CheckError(err, "InsertMediaIntoTrack error", reports);
 } 
 
 
@@ -515,7 +512,7 @@ void filepath_qt(char *string, RenderData *rd)
 	BLI_make_existing_file(string);
 
 	if (BLI_strcasecmp(string + strlen(string) - 4, ".mov")) {
-		sprintf(txt, "%04d-%04d.mov", (rd->sfra) , (rd->efra) );
+		sprintf(txt, "%04d-%04d.mov", (rd->sfra), (rd->efra));
 		strcat(string, txt);
 	}
 }
@@ -684,7 +681,7 @@ static void check_renderbutton_framerate(RenderData *rd, ReportList *reports)
 	}
 	
 	err = SCSetInfo(qtdata->theComponent, scTemporalSettingsType,	&qtdata->gTemporalSettings);
-	CheckError( err, "SCSetInfo error", reports );
+	CheckError(err, "SCSetInfo error", reports);
 
 	if (qtdata->gTemporalSettings.frameRate == 1571553) {			// 23.98 fps
 		qtdata->kVideoTimeScale = 24000;

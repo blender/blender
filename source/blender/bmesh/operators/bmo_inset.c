@@ -80,23 +80,6 @@ static BMLoop *bm_edge_is_mixed_face_tag(BMLoop *l)
 	}
 }
 
-float bm_vert_avg_tag_dist(BMVert *v)
-{
-	BMIter iter;
-	BMEdge *e;
-	int tot;
-	float length = 0.0f;
-
-	BM_ITER_ELEM_INDEX (e, &iter, v, BM_EDGES_OF_VERT, tot) {
-		BMVert *v_other = BM_edge_other_vert(e, v);
-		if (BM_elem_flag_test(v_other, BM_ELEM_TAG)) {
-			length += BM_edge_calc_length(e);
-		}
-	}
-
-	return length / (float)tot;
-}
-
 /**
  * implementation is as follows...
  *
@@ -330,7 +313,8 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 
 							/* scale by edge angle */
 							if (use_even_offset) {
-								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no, e_info_b->no) / 2.0f));
+								mul_v3_fl(tvec, shell_angle_to_dist(angle_normalized_v3v3(e_info_a->no,
+								                                                          e_info_b->no) / 2.0f));
 							}
 
 							/* scale relative to edge lengths */
@@ -495,8 +479,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_face_copy_shared(bm, f);
 	}
 
-	MEM_freeN(edge_info);
-
 	/* we could flag new edges/verts too, is it useful? */
 	BMO_slot_buffer_from_enabled_flag(bm, op, "faceout", BM_FACE, ELE_NEW);
 
@@ -504,6 +486,28 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 	if (depth != 0.0f) {
 		float (*varr_co)[3];
 		BMOIter oiter;
+
+		/* we need to re-calculate tagged normals, but for this purpose we can copy tagged verts from the
+		 * faces they inset from,  */
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			zero_v3(es->e_new->v1->no);
+			zero_v3(es->e_new->v2->no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			float *no = es->l->f->no;
+			add_v3_v3(es->e_new->v1->no, no);
+			add_v3_v3(es->e_new->v2->no, no);
+		}
+		for (i = 0, es = edge_info; i < edge_info_len; i++, es++) {
+			/* annoying, avoid normalizing twice */
+			if (len_squared_v3(es->e_new->v1->no) != 1.0f) {
+				normalize_v3(es->e_new->v1->no);
+			}
+			if (len_squared_v3(es->e_new->v2->no) != 1.0f) {
+				normalize_v3(es->e_new->v2->no);
+			}
+		}
+		/* done correcting edge verts normals */
 
 		/* untag verts */
 		BM_mesh_elem_hflag_disable_all(bm, BM_VERT, BM_ELEM_TAG, FALSE);
@@ -524,7 +528,7 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		BM_ITER_MESH_INDEX (v, &iter, bm, BM_VERTS_OF_MESH, i) {
 			if (BM_elem_flag_test(v, BM_ELEM_TAG)) {
 				const float fac = (depth *
-				                   (use_relative_offset ? bm_vert_avg_tag_dist(v) : 1.0f) *
+				                   (use_relative_offset ? BM_vert_calc_mean_tagged_edge_length(v) : 1.0f) *
 				                   (use_even_boundry    ? BM_vert_calc_shell_factor(v) : 1.0f));
 				madd_v3_v3v3fl(varr_co[i], v->co, v->no, fac);
 			}
@@ -537,4 +541,6 @@ void bmo_inset_exec(BMesh *bm, BMOperator *op)
 		}
 		MEM_freeN(varr_co);
 	}
+
+	MEM_freeN(edge_info);
 }

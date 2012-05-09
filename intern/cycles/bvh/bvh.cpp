@@ -530,7 +530,7 @@ void RegularBVH::refit_nodes()
 {
 	assert(!params.top_level);
 
-	BoundBox bbox;
+	BoundBox bbox = BoundBox::empty;
 	uint visibility = 0;
 	refit_node(0, (pack.is_leaf[0])? true: false, bbox, visibility);
 }
@@ -572,7 +572,7 @@ void RegularBVH::refit_node(int idx, bool leaf, BoundBox& bbox, uint& visibility
 	}
 	else {
 		/* refit inner node, set bbox from children */
-		BoundBox bbox0, bbox1;
+		BoundBox bbox0 = BoundBox::empty, bbox1 = BoundBox::empty;
 		uint visibility0 = 0, visibility1 = 0;
 
 		refit_node((c0 < 0)? -c0-1: c0, (c0 < 0), bbox0, visibility0);

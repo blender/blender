@@ -21,6 +21,7 @@
 #ifndef LIBMV_IMAGE_CORRELATION_H
 #define LIBMV_IMAGE_CORRELATION_H
 
+#include "libmv/logging/logging.h"
 #include "libmv/image/image.h"
 
 namespace libmv {
@@ -28,7 +29,8 @@ namespace libmv {
 inline double PearsonProductMomentCorrelation(Array3Df image_and_gradient1_sampled,
                                               Array3Df image_and_gradient2_sampled,
                                               int width) {
-  double sX=0,sY=0,sXX=0,sYY=0,sXY=0;
+  double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
+
   for (int r = 0; r < width; ++r) {
     for (int c = 0; c < width; ++c) {
       double x = image_and_gradient1_sampled(r, c, 0);
@@ -40,9 +42,23 @@ inline double PearsonProductMomentCorrelation(Array3Df image_and_gradient1_sampl
       sXY += x*y;
     }
   }
-  double N = width*width;
-  sX /= N, sY /= N, sXX /= N, sYY /= N, sXY /= N;
-  double correlation = (sXY-sX*sY)/sqrt(double((sXX-sX*sX)*(sYY-sY*sY)));
+
+  // Normalize.
+  double N = width * width;
+  sX /= N;
+  sY /= N;
+  sXX /= N;
+  sYY /= N;
+  sXY /= N;
+
+  double var_x = sXX - sX*sX;
+  double var_y = sYY - sY*sY;
+  double covariance_xy = sXY - sX*sY;
+
+  double correlation = covariance_xy / sqrt(var_x * var_y);
+  LG << "Covariance xy: " << covariance_xy
+     << ", var 1: " << var_x << ", var 2: " << var_y
+     << ", correlation: " << correlation;
   return correlation;
 }
 

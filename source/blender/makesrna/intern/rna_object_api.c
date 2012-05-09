@@ -87,16 +87,16 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 	case OB_SURF:
 
 		/* copies object and modifiers (but not the data) */
-		tmpobj = copy_object(ob);
+		tmpobj = BKE_object_copy(ob);
 		tmpcu = (Curve *)tmpobj->data;
 		tmpcu->id.us--;
 
 		/* if getting the original caged mesh, delete object modifiers */
 		if ( cage )
-			object_free_modifiers(tmpobj);
+			BKE_object_free_modifiers(tmpobj);
 
 		/* copies the data */
-		copycu = tmpobj->data = copy_curve( (Curve *) ob->data );
+		copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data );
 
 		/* temporarily set edit so we get updates from edit mode, but
 		 * also because for text datablocks copying it while in edit
@@ -105,42 +105,42 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		copycu->editnurb = tmpcu->editnurb;
 
 		/* get updated display list, and convert to a mesh */
-		makeDispListCurveTypes( sce, tmpobj, 0 );
+		BKE_displist_make_curveTypes(sce, tmpobj, 0);
 
 		copycu->editfont = NULL;
 		copycu->editnurb = NULL;
 
-		nurbs_to_mesh( tmpobj );
+		BKE_mesh_from_nurbs(tmpobj);
 
-		/* nurbs_to_mesh changes the type to a mesh, check it worked */
+		/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
 		if (tmpobj->type != OB_MESH) {
-			free_libblock_us( &(G.main->object), tmpobj );
+			BKE_libblock_free_us(&(G.main->object), tmpobj);
 			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
 			return NULL;
 		}
 		tmpmesh = tmpobj->data;
-		free_libblock_us( &G.main->object, tmpobj );
+		BKE_libblock_free_us(&G.main->object, tmpobj);
 		break;
 
 	case OB_MBALL: {
 		/* metaballs don't have modifiers, so just convert to mesh */
-		Object *basis_ob = find_basis_mball(sce, ob);
+		Object *basis_ob = BKE_mball_basis_find(sce, ob);
 		/* todo, re-generatre for render-res */
 		/* metaball_polygonize(scene, ob) */
 
 		if (ob != basis_ob)
 			return NULL; /* only do basis metaball */
 
-		tmpmesh = add_mesh("Mesh");
+		tmpmesh = BKE_mesh_add("Mesh");
 			
 		if (render) {
 			ListBase disp = {NULL, NULL};
-			makeDispListMBall_forRender(sce, ob, &disp);
-			mball_to_mesh(&disp, tmpmesh);
-			freedisplist(&disp);
+			BKE_displist_make_mball_forRender(sce, ob, &disp);
+			BKE_mesh_from_metaball(&disp, tmpmesh);
+			BKE_displist_free(&disp);
 		}
 		else
-			mball_to_mesh(&ob->disp, tmpmesh);
+			BKE_mesh_from_metaball(&ob->disp, tmpmesh);
 		break;
 
 	}
@@ -148,7 +148,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 		/* copies object and modifiers (but not the data) */
 		if (cage) {
 			/* copies the data */
-			tmpmesh = copy_mesh( ob->data );
+			tmpmesh = BKE_mesh_copy( ob->data );
 		/* if not getting the original caged mesh, get final derived mesh */
 		}
 		else {
@@ -164,7 +164,7 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 			else
 				dm = mesh_create_derived_view(sce, ob, mask);
 			
-			tmpmesh = add_mesh("Mesh");
+			tmpmesh = BKE_mesh_add("Mesh");
 			DM_to_mesh(dm, tmpmesh, ob);
 			dm->release(dm);
 		}
@@ -328,7 +328,7 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 	Scene *scene = CTX_data_scene(C);
 	KeyBlock *kb = NULL;
 
-	if ((kb = object_insert_shape_key(scene, ob, name, from_mix))) {
+	if ((kb = BKE_object_insert_shape_key(scene, ob, name, from_mix))) {
 		PointerRNA keyptr;
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
@@ -364,7 +364,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 	}
 
 	if (assignmode != WEIGHT_REPLACE && assignmode != WEIGHT_ADD && assignmode != WEIGHT_SUBTRACT) {
-		BKE_report(reports, RPT_ERROR, "Bad assignment mode" );
+		BKE_report(reports, RPT_ERROR, "Bad assignment mode");
 		return;
 	}
 
@@ -473,7 +473,12 @@ void rna_ObjectBase_layers_from_view(Base *base, View3D *v3d)
 
 int rna_Object_is_modified(Object *ob, Scene *scene, int settings)
 {
-	return object_is_modified(scene, ob) & settings;
+	return BKE_object_is_modified(scene, ob) & settings;
+}
+
+int rna_Object_is_deform_modified(Object *ob, Scene *scene, int settings)
+{
+	return BKE_object_is_deform_modified(scene, ob) & settings;
 }
 
 #ifndef NDEBUG
@@ -644,6 +649,14 @@ void RNA_api_object(StructRNA *srna)
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
 	RNA_def_function_return(func, parm);
 
+	func = RNA_def_function(srna, "is_deform_modified", "rna_Object_is_deform_modified");
+	RNA_def_function_ui_description(func, "Determine if this object is modified by a deformation from the base mesh data");
+	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
+	RNA_def_function_return(func, parm);
 
 #ifndef NDEBUG
 	/* mesh */

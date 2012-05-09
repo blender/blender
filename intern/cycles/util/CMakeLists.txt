@@ -15,6 +15,7 @@ set(SRC
 	util_path.cpp
 	util_string.cpp
 	util_system.cpp
+	util_task.cpp
 	util_time.cpp
 	util_transform.cpp
 )
@@ -50,6 +51,7 @@ set(SRC_HEADERS
 	util_set.h
 	util_string.h
 	util_system.h
+	util_task.h
 	util_thread.h
 	util_time.h
 	util_transform.h

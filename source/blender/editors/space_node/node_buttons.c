@@ -89,7 +89,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
-	uiLayout *layout= pa->layout;
+	uiLayout *layout;
 	PointerRNA ptr;
 	
 	/* verify pointers, and create RNA pointer for the node */
@@ -99,6 +99,10 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	//	RNA_pointer_create(node->id, &RNA_Node, node, &ptr);
 	//else
 		RNA_pointer_create(&ntree->id, &RNA_Node, node, &ptr); 
+	
+	/* XXX nicer way to make sub-layout? */
+	layout = uiLayoutColumn(pa->layout, 0);
+	uiLayoutSetContextPointer(layout, "node", &ptr);
 	
 	/* draw this node's name, etc. */
 	uiItemR(layout, &ptr, "label", 0, NULL, ICON_NODE);

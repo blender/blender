@@ -103,6 +103,10 @@ typedef struct SculptSession {
 
 	struct SculptStroke *stroke;
 	struct StrokeCache *cache;
+
+	/* last paint/sculpt stroke location */
+	int last_stroke_valid;
+	float last_stroke[3];
 } SculptSession;
 
 void free_sculptsession(struct Object *ob);

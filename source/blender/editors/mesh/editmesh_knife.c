@@ -277,7 +277,7 @@ static void knife_add_to_vert_edges(KnifeTool_OpData *kcd, KnifeEdge *kfe)
 	knife_append_list(kcd, &kfe->v2->edges, kfe);
 }
 
-static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, float *co, float *cageco)
+static KnifeVert *new_knife_vert(KnifeTool_OpData *kcd, const float co[3], float *cageco)
 {
 	KnifeVert *kfv = BLI_mempool_calloc(kcd->kverts);
 
@@ -1412,7 +1412,7 @@ static KnifeEdge *knife_find_closest_edge(KnifeTool_OpData *kcd, float p[3], flo
 	float co[3], cageco[3], sco[3], maxdist = knife_snap_size(kcd, kcd->ethresh);
 
 	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5;
+		maxdist *= 0.5f;
 
 	f = knife_find_closest_face(kcd, co, cageco, NULL);
 	*is_space = !f;
@@ -1502,7 +1502,7 @@ static KnifeVert *knife_find_closest_vert(KnifeTool_OpData *kcd, float p[3], flo
 	float co[3], cageco[3], sco[3], maxdist = knife_snap_size(kcd, kcd->vthresh);
 
 	if (kcd->ignore_vert_snapping)
-		maxdist *= 0.5;
+		maxdist *= 0.5f;
 
 	f = knife_find_closest_face(kcd, co, cageco, is_space);
 
@@ -1877,11 +1877,11 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 		if (face_nets[i].first)
 			BMO_elem_flag_enable(bm, f, DEL);
 
-		BLI_begin_edgefill(&sf_ctx);
+		BLI_scanfill_begin(&sf_ctx);
 
 		for (entry = face_nets[i].first; entry; entry = entry->next) {
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
-				eve = BLI_addfillvert(&sf_ctx, entry->kfe->v1->v->co);
+				eve = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v1->v->co);
 				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v1->v;
@@ -1889,7 +1889,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			}
 
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
-				eve = BLI_addfillvert(&sf_ctx, entry->kfe->v2->v->co);
+				eve = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v2->v->co);
 				eve->poly_nr = 0;
 				rnd_offset_co(eve->co, rndscale);
 				eve->tmp.p = entry->kfe->v2->v;
@@ -1911,7 +1911,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 
 			if (eve->poly_nr > 1 && lasteve->poly_nr > 1) {
 				ScanFillEdge *eed;
-				eed = BLI_addfilledge(&sf_ctx, lasteve, eve);
+				eed = BLI_scanfill_edge_add(&sf_ctx, lasteve, eve);
 				if (entry->kfe->oe)
 					eed->f = SF_EDGE_BOUNDARY;  /* mark as original boundary edge */
 
@@ -1926,7 +1926,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			}
 		}
 
-		BLI_edgefill(&sf_ctx, FALSE);
+		BLI_scanfill_calc(&sf_ctx, FALSE);
 
 		for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
 			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;
@@ -1959,7 +1959,7 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 			}
 		}
 
-		BLI_end_edgefill(&sf_ctx);
+		BLI_scanfill_end(&sf_ctx);
 		BLI_smallhash_release(hash);
 	}
 	bm->elem_index_dirty |= BM_FACE;
@@ -2684,6 +2684,7 @@ static void knifetool_finish(bContext *C, wmOperator *op)
 	knife_make_cuts(kcd);
 #endif
 
+	EDBM_mesh_normals_update(kcd->em);
 	EDBM_update_generic(C, kcd->em, TRUE);
 }
 
@@ -2721,10 +2722,6 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	WM_cursor_restore(CTX_wm_window(C));
 
-	/* remember setting for later */
-	RNA_boolean_set(op->ptr, "use_occlude_geometry", !kcd->cut_through);
-	WM_operator_last_properties_store(op); /* XXX - this is clunky but modal ops wont do this automatic */
-
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(kcd->ar->type, kcd->draw_handle);
 
@@ -2745,6 +2742,9 @@ static void knifetool_exit(bContext *C, wmOperator *op)
 
 	if (kcd->cagecos)
 		MEM_freeN(kcd->cagecos);
+
+	if (kcd->linehits)
+		MEM_freeN(kcd->linehits);
 
 	/* destroy kcd itself */
 	MEM_freeN(kcd);
@@ -2785,7 +2785,7 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	DerivedMesh *cage, *final;
 	SmallHash shash;
 	void *data[3];
-	const short only_select = RNA_boolean_get(op->ptr, "only_select");
+	const short only_select = RNA_boolean_get(op->ptr, "only_selected");
 
 	/* alloc new customdata */
 	kcd = op->customdata = MEM_callocN(sizeof(KnifeTool_OpData), "knifetool Modal Op Data");
@@ -3086,5 +3086,5 @@ void MESH_OT_knife_tool(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO | OPTYPE_BLOCKING;
 
 	RNA_def_boolean(ot->srna, "use_occlude_geometry", TRUE, "Occlude Geometry", "Only cut the front most geometry");
-	RNA_def_boolean(ot->srna, "only_select", FALSE, "Only Selected", "Only cut selected geometry");
+	RNA_def_boolean(ot->srna, "only_selected", FALSE, "Only Selected", "Only cut selected geometry");
 }

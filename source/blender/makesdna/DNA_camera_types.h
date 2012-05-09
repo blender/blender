@@ -48,7 +48,7 @@ typedef struct Camera {
 	ID id;
 	struct AnimData *adt;	/* animation data (must be immediately after id for utilities to use it) */ 
 	
-	char type; /* CAM_PERSP or CAM_ORTHO */
+	char type; /* CAM_PERSP, CAM_ORTHO or CAM_PANO */
 	char dtx; /* draw type extra */
 	short flag;
 	float passepartalpha;
@@ -75,6 +75,7 @@ typedef struct Camera {
 /* type */
 #define CAM_PERSP		0
 #define CAM_ORTHO		1
+#define CAM_PANO		2
 
 /* dtx */
 #define CAM_DTX_CENTER			1
@@ -94,7 +95,7 @@ typedef struct Camera {
 #define CAM_SHOWNAME		16
 #define CAM_ANGLETOGGLE		32
 #define CAM_DS_EXPAND		64
-#define CAM_PANORAMA		128
+#define CAM_PANORAMA		128 /* deprecated */
 #define CAM_SHOWSENSOR		256
 
 /* yafray: dof sampling switch */

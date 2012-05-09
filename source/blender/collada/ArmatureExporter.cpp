@@ -127,7 +127,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 	objects.clear();
 
 	Base *base= (Base*) sce->base.first;
-	while(base) {
+	while (base) {
 		Object *ob = base->object;
 		
 		if (ob->type == OB_MESH && get_assigned_armature(ob) == ob_arm) {
@@ -191,10 +191,8 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 	// Write nodes of childobjects, remove written objects from list
 	std::list<Object*>::iterator i = child_objects.begin();
 
-	while( i != child_objects.end() )
-	{
-		if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name)))
-		{
+	while (i != child_objects.end()) {
+		if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name))) {
 			float backup_parinv[4][4];
 			copy_m4_m4(backup_parinv, (*i)->parentinv);
 
@@ -210,8 +208,7 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 			// TODO: when such objects are animated as
 			// single matrix the tweak must be applied
 			// to the result.
-			if (export_settings->second_life)
-			{
+			if (export_settings->second_life) {
 				// tweak objects parentinverse to match compatibility
 				float temp[4][4];
 
@@ -254,13 +251,13 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 }*/
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, bone->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
 
 	float mat[4][4];
 
 	if (bone->parent) {
 		// get bone-space matrix from armature-space
-		bPoseChannel *parchan = get_pose_channel(ob_arm->pose, bone->parent->name);
+		bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, bone->parent->name);
 
 		float invpar[4][4];
 		invert_m4_m4(invpar, parchan->pose_mat);
@@ -274,8 +271,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 	}
 
 	// SECOND_LIFE_COMPATIBILITY
-	if (export_settings->second_life)
-	{
+	if (export_settings->second_life) {
 		// Remove rotations vs armature from transform
 		// parent_rest_rot * mat * irest_rot
 		float temp[4][4];
@@ -285,8 +281,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 
 		mult_m4_m4m4(mat, mat, temp);
 
-		if (bone->parent)
-		{
+		if (bone->parent) {
 			copy_m4_m4(temp, bone->parent->arm_mat);
 			temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
@@ -294,7 +289,7 @@ void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW:
 		}
 	}
 
-	TransformWriter::add_node_transform(node, mat,NULL );
+	TransformWriter::add_node_transform(node, mat, NULL);
 }
 
 std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)
@@ -370,25 +365,21 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 
 			for (j = 0; j < vert->totweight; j++) {
 				int joint_index = joint_index_by_def_index[vert->dw[j].def_nr];
-				if (joint_index != -1 && vert->dw[j].weight > 0.0f)
-				{
+				if (joint_index != -1 && vert->dw[j].weight > 0.0f) {
 					jw[joint_index] += vert->dw[j].weight;
 					sumw += vert->dw[j].weight;
 				}
 			}
 
-			if (sumw > 0.0f)
-			{
+			if (sumw > 0.0f) {
 				float invsumw = 1.0f/sumw;
 				vcounts.push_back(jw.size());
-				for (std::map<int, float>::iterator m = jw.begin(); m != jw.end(); ++m)
-				{
+				for (std::map<int, float>::iterator m = jw.begin(); m != jw.end(); ++m) {
 					joints.push_back((*m).first);
 					weights.push_back(invsumw*(*m).second);
 				}
 			}
-			else
-			{
+			else {
 				vcounts.push_back(0);
 				/*vcounts.push_back(1);
 				joints.push_back(-1);
@@ -490,28 +481,26 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	// put armature in rest position
 	if (!(arm->flag & ARM_RESTPOS)) {
 		arm->flag |= ARM_RESTPOS;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 
 	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def)) {
-			bPoseChannel *pchan = get_pose_channel(pose, def->name);
+			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, def->name);
 
 			float mat[4][4];
 			float world[4][4];
 			float inv_bind_mat[4][4];
 
 			// SECOND_LIFE_COMPATIBILITY
-			if (export_settings->second_life)
-			{
+			if (export_settings->second_life) {
 				// Only translations, no rotation vs armature
 				float temp[4][4];
 				unit_m4(temp);
 				copy_v3_v3(temp[3], pchan->bone->arm_mat[3]);
 				mult_m4_m4m4(world, ob_arm->obmat, temp);
 			}
-			else
-			{
+			else {
 				// make world-space matrix, arm_mat is armature-space
 				mult_m4_m4m4(world, ob_arm->obmat, pchan->bone->arm_mat);
 			}
@@ -526,7 +515,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	// back from rest positon
 	if (!(flag & ARM_RESTPOS)) {
 		arm->flag = flag;
-		where_is_pose(scene, ob_arm);
+		BKE_pose_where_is(scene, ob_arm);
 	}
 
 	source.finish();
@@ -536,7 +525,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 
 Bone *ArmatureExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup* def)
 {
-	bPoseChannel *pchan = get_pose_channel(ob_arm->pose, def->name);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, def->name);
 	return pchan ? pchan->bone : NULL;
 }
 
@@ -597,8 +586,7 @@ void ArmatureExporter::add_vertex_weights_element(const std::string& weights_sou
 
 	// write deformer index - weight index pairs
 	int weight_index = 0;
-	for (std::list<int>::const_iterator i = joints.begin(); i != joints.end(); ++i)
-	{
+	for (std::list<int>::const_iterator i = joints.begin(); i != joints.end(); ++i) {
 		weightselem.appendValues(*i, weight_index++);
 	}
 

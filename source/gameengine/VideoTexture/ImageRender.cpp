@@ -608,10 +608,10 @@ ImageRender::ImageRender (KX_Scene * scene, KX_GameObject * observer, KX_GameObj
 				{
 					v4 = polygon->GetVertex(3);
 					mirrorVerts.push_back(v4);
-					area = normal_quad_v3( normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
+					area = normal_quad_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ(), (float*)v4->getXYZ());
 				} else
 				{
-					area = normal_tri_v3( normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
+					area = normal_tri_v3(normal,(float*)v1->getXYZ(), (float*)v2->getXYZ(), (float*)v3->getXYZ());
 				}
 				area = fabs(area);
 				mirrorArea += area;

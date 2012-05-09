@@ -151,7 +151,7 @@ private:
 	std::map<COLLADAFW::UniqueId, Camera*> uid_camera_map;
 	std::map<COLLADAFW::UniqueId, Lamp*> uid_lamp_map;
 	std::map<Material*, TexIndexTextureArrayMap> material_texture_mapping_map;
-	std::map<COLLADAFW::UniqueId, Object*> object_map;
+	std::multimap<COLLADAFW::UniqueId, Object*> object_map;
 	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*> node_map;
 	std::vector<const COLLADAFW::VisualScene*> vscenes;
 	std::vector<Object*> libnode_ob;

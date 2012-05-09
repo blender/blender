@@ -90,12 +90,12 @@ void register_node_type_sh_valtorgb(bNodeTreeType *ttype)
 
 /* **************** RGBTOBW ******************** */
 static bNodeSocketTemplate sh_node_rgbtobw_in[]= {
-   {	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_rgbtobw_out[]= {
-   {	SOCK_FLOAT, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-   {	-1, 0, ""	}
+	{	SOCK_FLOAT, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
 };
 
 

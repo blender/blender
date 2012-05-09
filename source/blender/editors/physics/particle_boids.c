@@ -145,6 +145,7 @@ void BOID_OT_rule_del(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Boid Rule";
 	ot->idname = "BOID_OT_rule_del";
+	ot->description = "Delete current boid rule";
 	
 	/* api callbacks */
 	ot->exec = rule_del_exec;
@@ -318,6 +319,7 @@ void BOID_OT_state_del(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Remove Boid State";
 	ot->idname = "BOID_OT_state_del";
+	ot->description = "Delete current boid state";
 	
 	/* api callbacks */
 	ot->exec = state_del_exec;

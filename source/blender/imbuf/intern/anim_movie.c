@@ -133,8 +133,8 @@ static void free_anim_movie(struct anim *UNUSED(anim)) { ; }
 
 static int an_stringdec(const char *string, char* head, char *tail, unsigned short *numlen)
 {
-	unsigned short len,nume,nums=0;
-	short i,found=FALSE;
+	unsigned short len, nume, nums=0;
+	short i, found=FALSE;
 
 	len=strlen(string);
 	nume = len;
@@ -156,7 +156,7 @@ static int an_stringdec(const char *string, char* head, char *tail, unsigned sho
 		}
 	}
 	if (found) {
-		strcpy(tail ,&string[nume+1]);
+		strcpy(tail, &string[nume+1]);
 		strcpy(head, string);
 		head[nums]= '\0';
 		*numlen=nume-nums+1;
@@ -255,7 +255,7 @@ void IMB_close_anim_proxies(struct anim *anim)
 	IMB_free_indices(anim);
 }
 
-struct anim * IMB_open_anim( const char * name, int ib_flags, int streamindex)
+struct anim * IMB_open_anim(const char * name, int ib_flags, int streamindex)
 {
 	struct anim * anim;
 
@@ -285,7 +285,7 @@ static int startavi (struct anim *anim)
 	streamcount = anim->streamindex;
 #endif
 
-	anim->avi = MEM_callocN (sizeof(AviMovie),"animavi");
+	anim->avi = MEM_callocN (sizeof(AviMovie), "animavi");
 
 	if (anim->avi == NULL) {
 		printf("Can't open avi: %s\n", anim->name);
@@ -471,8 +471,7 @@ static int startffmpeg(struct anim * anim)
 	videoStream = -1;
 
 	for (i = 0; i < pFormatCtx->nb_streams; i++)
-		if (pFormatCtx->streams[i]->codec->codec_type
-		   == AVMEDIA_TYPE_VIDEO) {
+		if (pFormatCtx->streams[i]->codec->codec_type == AVMEDIA_TYPE_VIDEO) {
 			if (streamcount > 0) {
 				streamcount--;
 				continue;
@@ -502,9 +501,9 @@ static int startffmpeg(struct anim * anim)
 		return -1;
 	}
 
-	anim->duration = ceil(pFormatCtx->duration
-		* av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) 
-		/ AV_TIME_BASE);
+	anim->duration = ceil(pFormatCtx->duration *
+	                      av_q2d(pFormatCtx->streams[videoStream]->r_frame_rate) /
+	                      AV_TIME_BASE);
 
 	frs_num	= pFormatCtx->streams[videoStream]->r_frame_rate.num;
 	frs_den = pFormatCtx->streams[videoStream]->r_frame_rate.den;
@@ -658,8 +657,8 @@ static void ffmpeg_postprocess(struct anim * anim)
 			    anim->pFrame,
 			    anim->pCodecCtx->pix_fmt,
 			    anim->pCodecCtx->width,
-			    anim->pCodecCtx->height)
-		    < 0) {
+			    anim->pCodecCtx->height) < 0)
+		{
 			filter_y = TRUE;
 		}
 		else {
@@ -676,7 +675,7 @@ static void ffmpeg_postprocess(struct anim * anim)
 		uint8_t** dst     = anim->pFrameRGB->data;
 		int dstStride2[4] = { dstStride[0], 0, 0, 0 };
 		uint8_t* dst2[4]  = { dst[0], 0, 0, 0 };
-		int x,y,h,w;
+		int x, y, h, w;
 		unsigned char* bottom;
 		unsigned char* top;
 		
@@ -785,8 +784,7 @@ static int ffmpeg_decode_video_frame(struct anim * anim)
 				       "pkt_pts=%lld, guessed_pts=%lld\n",
 				       (anim->pFrame->pts == AV_NOPTS_VALUE) ?
 				       -1 : (long long int)anim->pFrame->pts,
-				       (anim->pFrame->pkt_pts 
-					== AV_NOPTS_VALUE) ?
+				       (anim->pFrame->pkt_pts == AV_NOPTS_VALUE) ?
 				       -1 : (long long int)anim->pFrame->pkt_pts,
 					(long long int)anim->next_pts);
 				break;
@@ -921,19 +919,18 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 	}
 	else {
 		pts_to_search = (long long) 
-			floor(((double) position) 
-			      / pts_time_base / frame_rate + 0.5);
+			floor(((double) position) /
+		          pts_time_base / frame_rate + 0.5);
 
 		if (st_time != AV_NOPTS_VALUE) {
-			pts_to_search += st_time / pts_time_base 
-				/ AV_TIME_BASE;
+			pts_to_search += st_time / pts_time_base / AV_TIME_BASE;
 		}
 	}
 
 	av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 	       "FETCH: looking for PTS=%lld "
 	       "(pts_timebase=%g, frame_rate=%g, st_time=%lld)\n", 
-	       (long long int)pts_to_search,pts_time_base, frame_rate, st_time);
+	       (long long int)pts_to_search, pts_time_base, frame_rate, st_time);
 
 	if (anim->last_frame && 
 	    anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search) {
@@ -1001,8 +998,8 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 			}
 		}
 		else {
-			pos = (long long) (position - anim->preseek) 
-				* AV_TIME_BASE / frame_rate;
+			pos = (long long) (position - anim->preseek) *
+			        AV_TIME_BASE / frame_rate;
 
 			av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 			       "NO INDEX seek pos = %lld, st_time = %lld\n", 
@@ -1040,7 +1037,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position,
 			anim->next_packet.stream_index = -1;
 		}
 
-		/* memset(anim->pFrame,...) ?? */
+		/* memset(anim->pFrame, ...) ?? */
 
 		if (ret >= 0) {
 			ffmpeg_decode_video_frame_scan(anim, pts_to_search);
@@ -1271,7 +1268,7 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position,
 		}
 	}
 
-	switch(anim->curtype) {
+	switch (anim->curtype) {
 	case ANIM_SEQUENCE:
 		pic = an_stringdec(anim->first, head, tail, &digits);
 		pic += position;

@@ -123,7 +123,7 @@ typedef struct bNodeTemplate {
  * implementing the node behavior.
  */
 typedef struct bNodeType {
-	void *next,*prev;
+	void *next, *prev;
 	short needs_free;		/* set for allocated types that need to be freed */
 	
 	int type;
@@ -145,6 +145,9 @@ typedef struct bNodeType {
 	void (*uifunc)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
 	/// Additional parameters in the side panel.
 	void (*uifuncbut)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
+	/// Draw a node socket. Default draws the input value button.
+	NodeSocketButtonFunction drawinputfunc;
+	NodeSocketButtonFunction drawoutputfunc;
 	/// Optional custom label function for the node header.
 	const char *(*labelfunc)(struct bNode *);
 	/// Optional custom resize handle polling.
@@ -505,9 +508,10 @@ struct ShadeResult;
 #define SH_NODE_LAYER_WEIGHT			160
 #define SH_NODE_VOLUME_TRANSPARENT		161
 #define SH_NODE_VOLUME_ISOTROPIC		162
-#define SH_NODE_GAMMA				163
-#define SH_NODE_TEX_CHECKER			164
+#define SH_NODE_GAMMA					163
+#define SH_NODE_TEX_CHECKER				164
 #define SH_NODE_BRIGHTCONTRAST			165
+#define SH_NODE_LIGHT_FALLOFF			166
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

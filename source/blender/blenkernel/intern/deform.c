@@ -437,9 +437,49 @@ void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 	BLI_uniquename_cb(defgroup_unique_check, &data, "Group", '.', dg->name, sizeof(dg->name));
 }
 
-BLI_INLINE int is_char_sep(const char c)
+static int is_char_sep(const char c)
 {
 	return ELEM4(c, '.', ' ', '-', '_');
+}
+
+/* based on BLI_split_dirfile() / os.path.splitext(), "a.b.c" -> ("a.b", ".c") */
+
+void BKE_deform_split_suffix(const char string[MAX_VGROUP_NAME], char body[MAX_VGROUP_NAME], char suf[MAX_VGROUP_NAME])
+{
+	size_t len = BLI_strnlen(string, MAX_VGROUP_NAME);
+	size_t i;
+
+	body[0] = suf[0] = '\0';
+
+	for (i = len - 1; i > 1; i--) {
+		if (is_char_sep(string[i])) {
+			BLI_strncpy(body, string, i + 1);
+			BLI_strncpy(suf, string + i,  (len + 1) - i);
+			return;
+		}
+	}
+
+	BLI_strncpy(body, string, len);
+}
+
+/* "a.b.c" -> ("a.", "b.c") */
+void BKE_deform_split_prefix(const char string[MAX_VGROUP_NAME], char pre[MAX_VGROUP_NAME], char body[MAX_VGROUP_NAME])
+{
+	size_t len = BLI_strnlen(string, MAX_VGROUP_NAME);
+	size_t i;
+
+	body[0] = pre[0] = '\0';
+
+	for (i = 1; i < len; i++) {
+		if (is_char_sep(string[i])) {
+			i++;
+			BLI_strncpy(pre, string, i + 1);
+			BLI_strncpy(body, string + i, (len + 1) - i);
+			return;
+		}
+	}
+
+	BLI_strncpy(body, string, len);
 }
 
 /* finds the best possible flipped name. For renaming; check for unique names afterwards */
@@ -466,7 +506,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	/* We first check the case with a .### extension, let's find the last period */
 	if (isdigit(name[len - 1])) {
 		index = strrchr(name, '.'); // last occurrence
-		if (index && isdigit(index[1]) ) { // doesnt handle case bone.1abc2 correct..., whatever!
+		if (index && isdigit(index[1])) { // doesnt handle case bone.1abc2 correct..., whatever!
 			if (strip_number == 0) {
 				BLI_strncpy(number, index, sizeof(number));
 			}
@@ -478,8 +518,8 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 	BLI_strncpy(prefix, name, sizeof(prefix));
 
 	/* first case; separator . - _ with extensions r R l L  */
-	if (is_char_sep(name[len - 2]) ) {
-		switch(name[len - 1]) {
+	if (is_char_sep(name[len - 2])) {
+		switch (name[len - 1]) {
 			case 'l':
 				prefix[len - 1] = 0;
 				strcpy(replace, "r");
@@ -499,8 +539,8 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 		}
 	}
 	/* case; beginning with r R l L , with separator after it */
-	else if (is_char_sep(name[1]) ) {
-		switch(name[0]) {
+	else if (is_char_sep(name[1])) {
+		switch (name[0]) {
 			case 'l':
 				strcpy(replace, "r");
 				BLI_strncpy(suffix, name + 1, sizeof(suffix));

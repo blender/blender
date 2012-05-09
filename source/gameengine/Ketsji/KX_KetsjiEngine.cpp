@@ -52,12 +52,9 @@
 #include "RAS_IRasterizer.h"
 #include "RAS_IRenderTools.h"
 #include "RAS_ICanvas.h"
-#include "STR_String.h"
 #include "MT_Vector3.h"
 #include "MT_Transform.h"
 #include "SCA_IInputDevice.h"
-#include "KX_Scene.h"
-#include "MT_CmMatrix4x4.h"
 #include "KX_Camera.h"
 #include "KX_FontObject.h"
 #include "KX_Dome.h"
@@ -89,6 +86,12 @@
 //#define NZC_GUARDED_OUTPUT
 #define DEFAULT_LOGIC_TIC_RATE 60.0
 #define DEFAULT_PHYSICS_TIC_RATE 60.0
+
+#ifdef FREE_WINDOWS /* XXX mingw64 (gcc 4.7.0) defines a macro for DrawText that translates to DrawTextA. Not good */
+#ifdef DrawText
+#undef DrawText
+#endif
+#endif
 
 const char KX_KetsjiEngine::m_profileLabels[tc_numCategories][15] = {
 	"Physics:",		// tc_physics
@@ -1063,37 +1066,30 @@ void KX_KetsjiEngine::EnableCameraOverride(const STR_String& forscene)
 	m_overrideSceneName = forscene;
 }
 
-
-
 void KX_KetsjiEngine::SetCameraZoom(float camzoom)
 {
 	m_cameraZoom = camzoom;
 }
-
-
 
 void KX_KetsjiEngine::SetCameraOverrideUseOrtho(bool useOrtho)
 {
 	m_overrideCamUseOrtho = useOrtho;
 }
 
-
-
 void KX_KetsjiEngine::SetCameraOverrideProjectionMatrix(const MT_CmMatrix4x4& mat)
 {
 	m_overrideCamProjMat = mat;
 }
-
 
 void KX_KetsjiEngine::SetCameraOverrideViewMatrix(const MT_CmMatrix4x4& mat)
 {
 	m_overrideCamViewMat = mat;
 }
 
-void KX_KetsjiEngine::SetCameraOverrideClipping(float near, float far)
+void KX_KetsjiEngine::SetCameraOverrideClipping(float nearfrust, float farfrust)
 {
-	m_overrideCamNear = near;
-	m_overrideCamFar = far;
+	m_overrideCamNear = nearfrust;
+	m_overrideCamFar = farfrust;
 }
 
 void KX_KetsjiEngine::SetCameraOverrideLens(float lens)

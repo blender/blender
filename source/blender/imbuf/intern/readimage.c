@@ -152,7 +152,7 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = BLI_open(filepath_tx,O_BINARY|O_RDONLY,0);
+	file = BLI_open(filepath_tx, O_BINARY|O_RDONLY, 0);
 	if (file < 0) return NULL;
 
 	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer, filepath_tx);

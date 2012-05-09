@@ -447,8 +447,7 @@ static void column_widths(struct FileList* files, struct FileLayout* layout)
 		layout->column_widths[i] = 0;
 	}
 
-	for (i=0; (i < numfiles); ++i)
-	{
+	for (i=0; (i < numfiles); ++i) {
 		struct direntry* file = filelist_file(files, i);	
 		if (file) {
 			float len;

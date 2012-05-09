@@ -500,7 +500,7 @@ PyObject* KX_VertexProxy::PyGetRGBA()
 
 PyObject* KX_VertexProxy::PySetRGBA(PyObject* value)
 {
-	if PyLong_Check(value) {
+	if (PyLong_Check(value)) {
 		int rgba = PyLong_AsSsize_t(value);
 		m_vertex->SetRGBA(rgba);
 		m_mesh->SetMeshModified(true);

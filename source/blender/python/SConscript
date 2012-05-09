@@ -18,7 +18,7 @@ sources = env.Glob('bmesh/*.c')
 env.BlenderLib( libname = 'bf_python_bmesh', sources = Split(sources), includes = Split(incs), defines = defs, libtype = ['core','player'], priority = [362,165])
 
 # generic
-defs = []
+defs = ['GLEW_STATIC']
 
 if is_debug:
     defs.append('_DEBUG')
