@@ -3703,6 +3703,71 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
 }
 
+void ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+{
+	float *paint_mask;
+	Mesh *me = ob->data;
+
+	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
+
+	/* if multires is active, create a grid paint mask layer if there
+	   isn't one already */
+	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
+		GridPaintMask *gmask;
+		int level = MAX2(1, mmd->sculptlvl);
+		int gridsize = ccg_gridsize(level);
+		int gridarea = gridsize * gridsize;
+		int i, j;
+
+		gmask = CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK,
+									 CD_CALLOC, NULL, me->totloop);
+
+		for (i = 0; i < me->totloop; i++) {
+			GridPaintMask *gpm = &gmask[i];
+
+			gpm->level = level;
+			gpm->data = MEM_callocN(sizeof(float) * gridarea,
+									"GridPaintMask.data");
+		}
+
+		/* if vertices already have mask, copy into multires data */
+		if (paint_mask) {
+			for (i = 0; i < me->totpoly; i++) {
+				const MPoly *p = &me->mpoly[i];
+				float avg = 0;
+
+				/* mask center */
+				for (j = 0; j < p->totloop; j++) {
+					const MLoop *l = &me->mloop[p->loopstart + j];
+					avg += paint_mask[l->v];
+				}
+				avg /= (float)p->totloop;
+
+				/* fill in multires mask corner */
+				for (j = 0; j < p->totloop; j++) {
+					GridPaintMask *gpm = &gmask[p->loopstart + j];
+					const MLoop *l = &me->mloop[p->loopstart + j];
+					const MLoop *prev = ME_POLY_LOOP_PREV(me->mloop, p, j);
+					const MLoop *next = ME_POLY_LOOP_NEXT(me->mloop, p, j);
+
+					gpm->data[0] = avg;
+					gpm->data[1] = (paint_mask[l->v] +
+									paint_mask[next->v]) * 0.5f;
+					gpm->data[2] = (paint_mask[l->v] +
+									paint_mask[prev->v]) * 0.5f;
+					gpm->data[3] = paint_mask[l->v];
+				}
+			}
+		}
+	}
+
+	/* create vertex paint mask layer if there isn't one already */
+	if (!paint_mask) {
+		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
+							 CD_CALLOC, NULL, me->totvert);
+	}
+}
+
 static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -3748,6 +3813,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 			free_sculptsession(ob);
 
 		sculpt_init_session(scene, ob);
+
+		/* Mask layer is required */
+		ED_sculpt_mask_layers_ensure(ob, mmd);
 
 		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
