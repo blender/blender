@@ -1407,25 +1407,37 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 							 const DMFlagMat *grid_flag_mats, int *grid_indices,
 							 int totgrid, const CCGKey *key)
 {
-	CCGElem *vert_data;
-	int i, j, k, totvert;
-
-	totvert= key->grid_area * totgrid;
+	VertexBufferFormat *vert_data;
+	int i, j, k, x, y;
 
 	/* Build VBO */
 	if (buffers->vert_buf) {
+		int totvert = key->grid_area * totgrid;
 		int smooth = grid_flag_mats[grid_indices[0]].flag & ME_SMOOTH;
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-		                key->elem_size * totvert,
+		                sizeof(VertexBufferFormat) * totvert,
 		                NULL, GL_STATIC_DRAW_ARB);
 		vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		if (vert_data) {
 			for (i = 0; i < totgrid; ++i) {
+				VertexBufferFormat *vd = vert_data;
 				CCGElem *grid= grids[grid_indices[i]];
-				memcpy(vert_data, grid, key->elem_size * key->grid_area);
 
+				for (y = 0; y < key->grid_size; y++) {
+					for (x = 0; x < key->grid_size; x++) {
+						CCGElem *elem = CCG_grid_elem(key, grid, x, y);
+						
+						copy_v3_v3(vd->co, CCG_elem_co(key, elem));
+						if(smooth) {
+							normal_float_to_short_v3(vd->no,
+													 CCG_elem_no(key, elem));
+						}
+						vd++;
+					}
+				}
+				
 				if (!smooth) {
 					/* for flat shading, recalc normals and set the last vertex of
 					 * each quad in the index buffer to have the flat normal as
@@ -1433,18 +1445,20 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
 					for (j = 0; j < key->grid_size - 1; j++) {
 						for (k = 0; k < key->grid_size - 1; k++) {
 							float fno[3];
+							
 							normal_quad_v3(fno,
 								CCG_grid_elem_co(key, grid, k, j+1),
 								CCG_grid_elem_co(key, grid, k+1, j+1),
 								CCG_grid_elem_co(key, grid, k+1, j),
 								CCG_grid_elem_co(key, grid, k, j));
 
-							copy_v3_v3(CCG_grid_elem_no(key, vert_data, k+1, j+1), fno);
+							vd = vert_data + (j+1) * key->grid_size + (k+1);
+							normal_float_to_short_v3(vd->no, fno);
 						}
 					}
 				}
 
-				vert_data = CCG_elem_offset(key, vert_data, key->grid_area);
+				vert_data += key->grid_area;
 			}
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 		}
@@ -1811,17 +1825,21 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 			char *offset = 0;
 			int i, last = buffers->has_hidden ? 1 : buffers->totgrid;
 			for (i = 0; i < last; i++) {
-				glVertexPointer(3, GL_FLOAT, buffers->gridkey.elem_size, offset);
-				glNormalPointer(GL_FLOAT, buffers->gridkey.elem_size, offset + buffers->gridkey.normal_offset);
+				glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
+								offset + offsetof(VertexBufferFormat, co));
+				glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+								offset + offsetof(VertexBufferFormat, no));
 				
 				glDrawElements(GL_QUADS, buffers->tot_quad * 4, buffers->index_type, 0);
 
-				offset += buffers->gridkey.grid_area * buffers->gridkey.elem_size;
+				offset += buffers->gridkey.grid_area * sizeof(VertexBufferFormat);
 			}
 		}
 		else {
-			glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat), (void*)offsetof(VertexBufferFormat, co));
-			glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat), (void*)offsetof(VertexBufferFormat, no));
+			glVertexPointer(3, GL_FLOAT, sizeof(VertexBufferFormat),
+							(void*)offsetof(VertexBufferFormat, co));
+			glNormalPointer(GL_SHORT, sizeof(VertexBufferFormat),
+							(void*)offsetof(VertexBufferFormat, no));
 
 			glDrawElements(GL_TRIANGLES, buffers->tot_tri * 3, buffers->index_type, 0);
 		}
