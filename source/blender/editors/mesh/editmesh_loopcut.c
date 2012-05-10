@@ -492,7 +492,7 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE)
 				break;
 
-			cuts = MAX2(cuts - 1, 1);
+			cuts = MAX2(cuts - 1, 0);
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
 			show_cuts = TRUE;
@@ -519,12 +519,15 @@ static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* using the keyboard to input the number of cuts */
 	if (event->val == KM_PRESS) {
-		float value;
+		/* init as zero so backspace clears */
+		float value = 0.0f;
 		
 		if (handleNumInput(&lcd->num, event)) {
 			applyNumInput(&lcd->num, &value);
 			
-			cuts = CLAMPIS(value, 1, 130);
+			/* allow zero so you can backspace and type in a value
+			 * otherwise 1 as minimum would make more sense */
+			cuts = CLAMPIS(value, 0, 130);
 			
 			RNA_int_set(op->ptr, "number_cuts", cuts);
 			ringsel_find_edge(lcd, cuts);
