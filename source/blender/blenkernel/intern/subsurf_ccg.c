@@ -113,12 +113,14 @@ typedef enum {
 	CCG_CALC_NORMALS = 4
 } CCGFlags;
 
-static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, CCGFlags flags)
+static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
+							   int numLayers, CCGFlags flags)
 {
 	CCGMeshIFC ifc;
 	CCGSubSurf *ccgSS;
 	int useAging = !!(flags & CCG_USE_AGING);
 	int useArena = flags & CCG_USE_ARENA;
+	int normalOffset = 0;
 
 	/* subdivLevels==0 is not allowed */
 	subdivLevels = MAX2(subdivLevels, 1);
@@ -144,7 +146,11 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, CCGFlags fl
 	else {
 		ifc.vertUserSize = ifc.edgeUserSize = ifc.faceUserSize = 8;
 	}
-	ifc.vertDataSize = sizeof(float) * (flags & CCG_CALC_NORMALS ? 6 : 3);
+	ifc.numLayers = numLayers;
+	ifc.vertDataSize = sizeof(float) * numLayers;
+	normalOffset += sizeof(float) * numLayers;
+	if(flags & CCG_CALC_NORMALS)
+		ifc.vertDataSize += sizeof(float) * 3;
 
 	if (useArena) {
 		CCGAllocatorIFC allocatorIFC;
@@ -166,7 +172,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels, CCGFlags fl
 	}
 
 	if (flags & CCG_CALC_NORMALS)
-		ccgSubSurf_setCalcVertexNormals(ccgSS, 1, offsetof(DMGridData, no));
+		ccgSubSurf_setCalcVertexNormals(ccgSS, 1, normalOffset);
 	else
 		ccgSubSurf_setCalcVertexNormals(ccgSS, 0, 0);
 
@@ -382,7 +388,7 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 		return;
 
 	/* create a CCGSubSurf from uv's */
-	uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss), CCG_USE_ARENA);
+	uvss = _getSubSurf(NULL, ccgSubSurf_getSubdivisionLevels(ss), 2, CCG_USE_ARENA);
 
 	if (!ss_sync_from_uv(uvss, ss, dm, dmloopuv)) {
 		ccgSubSurf_free(uvss);
@@ -414,7 +420,7 @@ static void set_subsurf_uv(CCGSubSurf *ss, DerivedMesh *dm, DerivedMesh *result,
 		int numVerts = ccgSubSurf_getFaceNumVerts(f);
 
 		for (S = 0; S < numVerts; S++) {
-			float (*faceGridData)[3] = ccgSubSurf_getFaceGridDataArray(uvss, f, S);
+			float (*faceGridData)[2] = ccgSubSurf_getFaceGridDataArray(uvss, f, S);
 
 			for (y = 0; y < gridFaces; y++) {
 				for (x = 0; x < gridFaces; x++) {
@@ -3379,7 +3385,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	if (flags & SUBSURF_FOR_EDIT_MODE) {
 		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels) : smd->levels;
 
-		smd->emCache = _getSubSurf(smd->emCache, levels, useAging | CCG_CALC_NORMALS);
+		smd->emCache = _getSubSurf(smd->emCache, levels, 3, useAging | CCG_CALC_NORMALS);
 		ss_sync_from_derivedmesh(smd->emCache, dm, vertCos, useSimple);
 
 		result = getCCGDerivedMesh(smd->emCache,
@@ -3394,7 +3400,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		if (levels == 0)
 			return dm;
 		
-		ss = _getSubSurf(NULL, levels, CCG_USE_ARENA | CCG_CALC_NORMALS);
+		ss = _getSubSurf(NULL, levels, 3, CCG_USE_ARENA | CCG_CALC_NORMALS);
 
 		ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
@@ -3425,7 +3431,8 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		}
 
 		if (useIncremental && (flags & SUBSURF_IS_FINAL_CALC)) {
-			smd->mCache = ss = _getSubSurf(smd->mCache, levels, useAging | CCG_CALC_NORMALS);
+			smd->mCache = ss = _getSubSurf(smd->mCache, levels, 3, useAging | CCG_CALC_NORMALS);
+
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(smd->mCache,
@@ -3438,7 +3445,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				smd->mCache = NULL;
 			}
 
-			ss = _getSubSurf(NULL, levels, CCG_USE_ARENA | CCG_CALC_NORMALS);
+			ss = _getSubSurf(NULL, levels, 3, CCG_USE_ARENA | CCG_CALC_NORMALS);
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
@@ -3460,7 +3467,7 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 	 * calculated vert positions is incorrect for the verts 
 	 * on the boundary of the mesh.
 	 */
-	CCGSubSurf *ss = _getSubSurf(NULL, 1, CCG_USE_ARENA);
+	CCGSubSurf *ss = _getSubSurf(NULL, 1, 3, CCG_USE_ARENA);
 	float edge_sum[3], face_sum[3];
 	CCGVertIterator *vi;
 	DerivedMesh *dm = CDDM_from_mesh(me, NULL);
