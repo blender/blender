@@ -3828,6 +3828,19 @@ static void direct_link_mdisps(FileData *fd, int count, MDisps *mdisps, int exte
 	}
 }
 
+static void direct_link_grid_paint_mask(FileData *fd, int count, GridPaintMask *grid_paint_mask)
+{
+	if(grid_paint_mask) {
+		int i;
+
+		for(i = 0; i < count; ++i) {
+			GridPaintMask *gpm = &grid_paint_mask[i];
+			if(gpm->data)
+				gpm->data = newdataadr(fd, gpm->data);
+		}
+	}
+}
+
 /*this isn't really a public api function, so prototyped here*/
 static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 {
@@ -3854,6 +3867,8 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			layer->data = newdataadr(fd, layer->data);
 			if (layer->type == CD_MDISPS)
 				direct_link_mdisps(fd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+			else if(layer->type == CD_GRID_PAINT_MASK)
+				direct_link_grid_paint_mask(fd, count, layer->data);
 			i++;
 		}
 	}

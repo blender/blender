@@ -152,6 +152,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
+#include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
@@ -1654,6 +1655,24 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 	}
 }
 
+static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_paint_mask)
+{
+	if(grid_paint_mask) {
+		int i;
+		
+		writestruct(wd, DATA, "GridPaintMask", count, grid_paint_mask);
+		for(i = 0; i < count; ++i) {
+			GridPaintMask *gpm = &grid_paint_mask[i];
+			if(gpm->data) {
+				const int gridsize = ccg_gridsize(gpm->level);
+				writedata(wd, DATA,
+						  sizeof(*gpm->data) * gridsize * gridsize,
+						  gpm->data);
+			}
+		}
+	}
+}
+
 static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data, int partial_type, int partial_count)
 {
 	int i;
@@ -1675,6 +1694,13 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 		}
 		else if (layer->type == CD_MDISPS) {
 			write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+		}
+		else if (layer->type == CD_PAINT_MASK) {
+			float *layer_data = layer->data;
+			writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+		}
+		else if (layer->type == CD_GRID_PAINT_MASK) {
+			write_grid_paint_mask(wd, count, layer->data);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);

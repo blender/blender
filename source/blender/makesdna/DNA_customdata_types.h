@@ -63,7 +63,7 @@ typedef struct CustomDataExternal {
  * layers, each with a data type (e.g. MTFace, MDeformVert, etc.). */
 typedef struct CustomData {
 	CustomDataLayer *layers;      /* CustomDataLayers, ordered by type */
-	int typemap[34];              /* runtime only! - maps types to indices of first layer of that type,
+	int typemap[36];              /* runtime only! - maps types to indices of first layer of that type,
 	                               * MUST be >= CD_NUMTYPES, but we cant use a define here.
 	                               * Correct size is ensured in CustomData_update_typemap assert() */
 
@@ -112,7 +112,10 @@ typedef struct CustomData {
 #define CD_BM_ELEM_PYPTR	33
 /* BMESH ONLY END */
 
-#define CD_NUMTYPES		34
+#define CD_PAINT_MASK	34
+#define CD_GRID_PAINT_MASK	35
+
+#define CD_NUMTYPES		36
 
 /* Bits for CustomDataMask */
 #define CD_MASK_MVERT		(1 << CD_MVERT)
@@ -150,6 +153,9 @@ typedef struct CustomData {
 #define CD_MASK_PREVIEW_MLOOPCOL (1LL << CD_PREVIEW_MLOOPCOL)
 #define CD_MASK_BM_ELEM_PYPTR (1LL << CD_BM_ELEM_PYPTR)
 /* BMESH ONLY END */
+
+#define CD_MASK_PAINT_MASK		(1LL << CD_PAINT_MASK)
+#define CD_MASK_GRID_PAINT_MASK	(1LL << CD_GRID_PAINT_MASK)
 
 /* CustomData.flag */
 
