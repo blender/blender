@@ -86,7 +86,7 @@ typedef struct Brush {
 	char sculpt_tool;		/* active sculpt tool */
 	char vertexpaint_tool;		/* active vertex/weight paint blend mode (poorly named) */
 	char imagepaint_tool;		/* active image paint tool */
-	char pad;
+	char mask_tool;			/* enum BrushMaskTool, only used if sculpt_tool is SCULPT_TOOL_MASK */
 
 	float autosmooth_factor;
 
@@ -162,7 +162,8 @@ typedef enum BrushSculptTool {
 	
 	SCULPT_TOOL_CREASE = 16,
 	SCULPT_TOOL_BLOB = 17,
-	SCULPT_TOOL_CLAY_STRIPS = 18
+	SCULPT_TOOL_CLAY_STRIPS = 18,
+	SCULPT_TOOL_MASK = 19
 } BrushSculptTool;
 
 /* ImagePaintSettings.tool */
@@ -190,6 +191,10 @@ enum {
 	PAINT_BLEND_DARKEN
 };
 
+typedef enum {
+	BRUSH_MASK_DRAW,
+	BRUSH_MASK_SMOOTH
+} BrushMaskTool;
 
 #define MAX_BRUSH_PIXEL_RADIUS 200
 
