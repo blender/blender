@@ -136,6 +136,7 @@ struct PBVH {
 	/* Mesh data */
 	MVert *verts;
 	MFace *faces;
+	CustomData *vdata;
 
 	/* Grid Data */
 	CCGKey gridkey;
@@ -602,7 +603,7 @@ static void pbvh_build(PBVH *bvh, BB *cb, BBC *prim_bbc, int totprim)
 }
 
 /* Do a full rebuild with on Mesh data structure */
-void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int totvert)
+void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int totvert, struct CustomData *vdata)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
@@ -614,6 +615,7 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 	bvh->vert_bitmap = BLI_BITMAP_NEW(totvert, "bvh->vert_bitmap");
 	bvh->totvert = totvert;
 	bvh->leaf_limit = LEAF_LIMIT;
+	bvh->vdata = vdata;
 
 	BB_reset(&cb);
 

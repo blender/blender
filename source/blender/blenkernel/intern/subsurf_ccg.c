@@ -2963,7 +2963,7 @@ static struct PBVH *ccgDM_getPBVH(Object *ob, DerivedMesh *dm)
 		ob->sculpt->pbvh= ccgdm->pbvh = BLI_pbvh_new();
 		BLI_assert(!(me->mface == NULL && me->mpoly != NULL)); /* BMESH ONLY complain if mpoly is valid but not mface */
 		BLI_pbvh_build_mesh(ccgdm->pbvh, me->mface, me->mvert,
-		                    me->totface, me->totvert);
+							me->totface, me->totvert, &me->vdata);
 	}
 
 	return ccgdm->pbvh;

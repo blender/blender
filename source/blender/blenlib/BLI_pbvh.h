@@ -30,6 +30,7 @@
 
 struct CCGElem;
 struct CCGKey;
+struct CustomData;
 struct DMFlagMat;
 struct DMGridAdjacency;
 struct ListBase;
@@ -57,7 +58,7 @@ typedef void (*BLI_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float* 
 
 PBVH *BLI_pbvh_new(void);
 void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
-			int totface, int totvert);
+			int totface, int totvert, struct CustomData *vdata);
 void BLI_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
 	struct DMGridAdjacency *gridadj, int totgrid,
 	struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
