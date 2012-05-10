@@ -179,6 +179,19 @@ AlignedMatrixRef DenseSparseMatrix::mutable_matrix() {
   return AlignedMatrixRef(m_.data(), m_.rows(), m_.cols());
 }
 
+void DenseSparseMatrix::ToTextFile(FILE* file) const {
+  CHECK_NOTNULL(file);
+  const int active_rows =
+      (has_diagonal_reserved_ && !has_diagonal_appended_)
+      ? (m_.rows() - m_.cols()) 
+      : m_.rows();
+
+  for (int r = 0; r < active_rows; ++r) {
+    for (int c = 0; c < m_.cols(); ++c) {
+      fprintf(file,  "% 10d % 10d %17f\n", r, c, m_(r, c));
+    }
+  }
+}
 
 }  // namespace internal
 }  // namespace ceres

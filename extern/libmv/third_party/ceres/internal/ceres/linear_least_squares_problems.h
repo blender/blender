@@ -32,7 +32,7 @@
 #define CERES_INTERNAL_LINEAR_LEAST_SQUARES_PROBLEMS_H_
 
 #include <string>
-
+#include <vector>
 #include "ceres/sparse_matrix.h"
 #include "ceres/internal/port.h"
 #include "ceres/internal/scoped_ptr.h"
@@ -71,6 +71,16 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem1();
 LinearLeastSquaresProblem* LinearLeastSquaresProblem2();
 LinearLeastSquaresProblem* LinearLeastSquaresProblem3();
 
+// Write the linear least squares problem to disk. The exact format
+// depends on dump_format_type.
+bool DumpLinearLeastSquaresProblem(const string& directory,
+                              	   int iteration,
+                                   DumpFormatType dump_format_type,
+                                   const SparseMatrix* A,
+                                   const double* D,
+                                   const double* b,
+                                   const double* x,
+                                   int num_eliminate_blocks);
 }  // namespace internal
 }  // namespace ceres
 

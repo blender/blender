@@ -210,6 +210,40 @@ enum CallbackReturnType {
   SOLVER_TERMINATE_SUCCESSFULLY
 };
 
+// The format in which linear least squares problems should be logged
+// when Solver::Options::lsqp_iterations_to_dump is non-empty.
+enum DumpFormatType {
+  // Print the linear least squares problem in a human readable format
+  // to stderr. The Jacobian is printed as a dense matrix. The vectors
+  // D, x and f are printed as dense vectors. This should only be used
+  // for small problems.
+  CONSOLE,
+
+  // Write out the linear least squares problem to the directory
+  // pointed to by Solver::Options::lsqp_dump_directory as a protocol
+  // buffer. linear_least_squares_problems.h/cc contains routines for
+  // loading these problems. For details on the on disk format used,
+  // see matrix.proto. The files are named lm_iteration_???.lsqp.
+  PROTOBUF,
+
+  // Write out the linear least squares problem to the directory
+  // pointed to by Solver::Options::lsqp_dump_directory as text files
+  // which can be read into MATLAB/Octave. The Jacobian is dumped as a
+  // text file containing (i,j,s) triplets, the vectors D, x and f are
+  // dumped as text files containing a list of their values.
+  //
+  // A MATLAB/octave script called lm_iteration_???.m is also output,
+  // which can be used to parse and load the problem into memory.
+  TEXTFILE
+};
+
+// For SizedCostFunction and AutoDiffCostFunction, DYNAMIC can be specified for
+// the number of residuals. If specified, then the number of residuas for that
+// cost function can vary at runtime.
+enum DimensionType {
+  DYNAMIC = -1
+};
+
 const char* LinearSolverTypeToString(LinearSolverType type);
 const char* PreconditionerTypeToString(PreconditionerType type);
 const char* LinearSolverTerminationTypeToString(

@@ -295,5 +295,12 @@ TripletSparseMatrix* TripletSparseMatrix::CreateSparseDiagonalMatrix(
   return m;
 }
 
+void TripletSparseMatrix::ToTextFile(FILE* file) const {
+  CHECK_NOTNULL(file);
+  for (int i = 0; i < num_nonzeros_; ++i) {
+    fprintf(file, "% 10d % 10d %17f\n", rows_[i], cols_[i], values_[i]);
+  }
+}
+
 }  // namespace internal
 }  // namespace ceres

@@ -144,6 +144,7 @@
 
 #include <glog/logging.h>
 #include "ceres/jet.h"
+#include "ceres/internal/eigen.h"
 #include "ceres/internal/fixed_array.h"
 
 namespace ceres {
@@ -185,18 +186,12 @@ inline void Take0thOrderPart(int M, const JetT *src, T dst) {
 
 // Takes N 1st order parts, starting at index N0, and puts them in the M x N
 // matrix 'dst'. This is used to pick out the "matrix" parts of the extended y.
-template <typename JetT, typename T, int M, int N0, int N>
-inline void Take1stOrderPart(const JetT *src, T *dst) {
+template <typename JetT, typename T, int N0, int N>
+inline void Take1stOrderPart(const int M, const JetT *src, T *dst) {
   DCHECK(src);
   DCHECK(dst);
-  // TODO(keir): Change Jet to use a single array, where v[0] is the
-  // non-infinitesimal part rather than "a". That way it's possible to use a
-  // single memcpy or eigen operation, rather than the explicit loop. The loop
-  // doesn't exploit any SSE or other intrinsics.
   for (int i = 0; i < M; ++i) {
-    for (int j = 0; j < N; ++j) {
-      dst[N * i + j] = src[i].v[N0 + j];
-    }
+    Eigen::Map<Eigen::Matrix<T, N, 1> >(dst + N * i, N) = src[i].v.template segment<N>(N0);
   }
 }
 
@@ -208,7 +203,7 @@ inline void Take1stOrderPart(const JetT *src, T *dst) {
 // Supporting variadic functions is the primary source of complexity in the
 // autodiff implementation.
 
-template<typename Functor, typename T, int kNumOutputs,
+template<typename Functor, typename T,
          int N0, int N1, int N2, int N3, int N4, int N5>
 struct VariadicEvaluate {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
@@ -222,9 +217,9 @@ struct VariadicEvaluate {
   }
 };
 
-template<typename Functor, typename T, int kNumOutputs,
+template<typename Functor, typename T,
          int N0, int N1, int N2, int N3, int N4>
-struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, N3, N4, 0> {
+struct VariadicEvaluate<Functor, T, N0, N1, N2, N3, N4, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    input[1],
@@ -235,9 +230,9 @@ struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, N3, N4, 0> {
   }
 };
 
-template<typename Functor, typename T, int kNumOutputs,
+template<typename Functor, typename T,
          int N0, int N1, int N2, int N3>
-struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, N3, 0, 0> {
+struct VariadicEvaluate<Functor, T, N0, N1, N2, N3, 0, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    input[1],
@@ -247,9 +242,9 @@ struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, N3, 0, 0> {
   }
 };
 
-template<typename Functor, typename T, int kNumOutputs,
+template<typename Functor, typename T,
          int N0, int N1, int N2>
-struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, 0, 0, 0> {
+struct VariadicEvaluate<Functor, T, N0, N1, N2, 0, 0, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    input[1],
@@ -258,9 +253,9 @@ struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, N2, 0, 0, 0> {
   }
 };
 
-template<typename Functor, typename T, int kNumOutputs,
+template<typename Functor, typename T,
          int N0, int N1>
-struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, 0, 0, 0, 0> {
+struct VariadicEvaluate<Functor, T, N0, N1, 0, 0, 0, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    input[1],
@@ -268,8 +263,8 @@ struct VariadicEvaluate<Functor, T, kNumOutputs, N0, N1, 0, 0, 0, 0> {
   }
 };
 
-template<typename Functor, typename T, int kNumOutputs, int N0>
-struct VariadicEvaluate<Functor, T, kNumOutputs, N0, 0, 0, 0, 0, 0> {
+template<typename Functor, typename T, int N0>
+struct VariadicEvaluate<Functor, T, N0, 0, 0, 0, 0, 0> {
   static bool Call(const Functor& functor, T const *const *input, T* output) {
     return functor(input[0],
                    output);
@@ -279,11 +274,12 @@ struct VariadicEvaluate<Functor, T, kNumOutputs, N0, 0, 0, 0, 0, 0> {
 // This is in a struct because default template parameters on a function are not
 // supported in C++03 (though it is available in C++0x). N0 through N5 are the
 // dimension of the input arguments to the user supplied functor.
-template <typename Functor, typename T, int kNumOutputs,
+template <typename Functor, typename T,
           int N0 = 0, int N1 = 0, int N2 = 0, int N3 = 0, int N4 = 0, int N5=0>
 struct AutoDiff {
   static bool Differentiate(const Functor& functor,
                             T const *const *parameters,
+                            int num_outputs,
                             T *function_value,
                             T **jacobians) {
     typedef Jet<T, N0 + N1 + N2 + N3 + N4 + N5> JetT;
@@ -300,10 +296,10 @@ struct AutoDiff {
         << "(ignore trailing 0s): " << N0 << ", " << N1 << ", " << N2 << ", "
         << N3 << ", " << N4 << ", " << N5;
 
-    DCHECK_GT(kNumOutputs, 0);
+    DCHECK_GT(num_outputs, 0);
 
     FixedArray<JetT, (256 * 7) / sizeof(JetT)> x(
-        N0 + N1 + N2 + N3 + N4 + N5 + kNumOutputs);
+        N0 + N1 + N2 + N3 + N4 + N5 + num_outputs);
 
     // It's ugly, but it works.
     const int jet0 = 0;
@@ -339,22 +335,22 @@ struct AutoDiff {
     CERES_MAKE_1ST_ORDER_PERTURBATION(5);
 #undef CERES_MAKE_1ST_ORDER_PERTURBATION
 
-    if (!VariadicEvaluate<Functor, JetT, kNumOutputs,
+    if (!VariadicEvaluate<Functor, JetT,
                           N0, N1, N2, N3, N4, N5>::Call(
         functor, unpacked_parameters, output)) {
       return false;
     }
 
-    internal::Take0thOrderPart(kNumOutputs, output, function_value);
+    internal::Take0thOrderPart(num_outputs, output, function_value);
 
 #define CERES_TAKE_1ST_ORDER_PERTURBATION(i) \
     if (N ## i) { \
       if (jacobians[i]) { \
         internal::Take1stOrderPart<JetT, T, \
-                                   kNumOutputs, \
                                    jet ## i, \
-                                   N ## i>(output, \
-                                          jacobians[i]); \
+                                   N ## i>(num_outputs, \
+                                           output, \
+                                           jacobians[i]); \
       } \
     }
     CERES_TAKE_1ST_ORDER_PERTURBATION(0);

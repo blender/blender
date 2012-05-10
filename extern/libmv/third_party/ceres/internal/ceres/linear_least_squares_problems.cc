@@ -30,15 +30,18 @@
 
 #include "ceres/linear_least_squares_problems.h"
 
+#include <cstdio>
 #include <string>
 #include <vector>
 #include <glog/logging.h>
 #include "ceres/block_sparse_matrix.h"
 #include "ceres/block_structure.h"
+#include "ceres/casts.h"
 #include "ceres/compressed_row_sparse_matrix.h"
 #include "ceres/file.h"
 #include "ceres/matrix_proto.h"
 #include "ceres/triplet_sparse_matrix.h"
+#include "ceres/stringprintf.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/types.h"
 
@@ -568,6 +571,173 @@ LinearLeastSquaresProblem* LinearLeastSquaresProblem3() {
   problem->A.reset(A);
 
   return problem;
+}
+
+bool DumpLinearLeastSquaresProblemToConsole(const string& directory,
+                                            int iteration,
+                                            const SparseMatrix* A,
+                                            const double* D,
+                                            const double* b,
+                                            const double* x,
+                                            int num_eliminate_blocks) {
+  CHECK_NOTNULL(A);
+  Matrix AA;
+  A->ToDenseMatrix(&AA);
+  LOG(INFO) << "A^T: \n" << AA.transpose();
+
+  if (D != NULL) {
+    LOG(INFO) << "A's appended diagonal:\n"
+              << ConstVectorRef(D, A->num_cols());
+  }
+
+  if (b != NULL) {
+    LOG(INFO) << "b: \n" << ConstVectorRef(b, A->num_rows());
+  }
+
+  if (x != NULL) {
+    LOG(INFO) << "x: \n" << ConstVectorRef(x, A->num_cols());
+  }
+  return true;
+};
+
+#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
+bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+                                                   int iteration,
+                                                   const SparseMatrix* A,
+                                                   const double* D,
+                                                   const double* b,
+                                                   const double* x,
+                                                   int num_eliminate_blocks) {
+  CHECK_NOTNULL(A);
+  LinearLeastSquaresProblemProto lsqp;
+  A->ToProto(lsqp.mutable_a());
+
+  if (D != NULL) {
+    for (int i = 0; i < A->num_cols(); ++i) {
+      lsqp.add_d(D[i]);
+    }
+  }
+
+  if (b != NULL) {
+    for (int i = 0; i < A->num_rows(); ++i) {
+      lsqp.add_b(b[i]);
+    }
+  }
+
+  if (x != NULL) {
+    for (int i = 0; i < A->num_cols(); ++i) {
+      lsqp.add_x(x[i]);
+    }
+  }
+
+  lsqp.set_num_eliminate_blocks(num_eliminate_blocks);
+  string format_string = JoinPath(directory,
+                                  "lm_iteration_%03d.lsqp");
+  string filename =
+      StringPrintf(format_string.c_str(),  iteration);
+  LOG(INFO) << "Dumping least squares problem for iteration " << iteration
+            << " to disk. File: " << filename;
+  WriteStringToFileOrDie(lsqp.SerializeAsString(), filename);
+  return true;
+}
+#else
+bool DumpLinearLeastSquaresProblemToProtocolBuffer(const string& directory,
+                                                   int iteration,
+                                                   const SparseMatrix* A,
+                                                   const double* D,
+                                                   const double* b,
+                                                   const double* x,
+                                                   int num_eliminate_blocks) {
+  LOG(ERROR) << "Dumping least squares problems is only "
+             << "supported when Ceres is compiled with "
+             << "protocol buffer support.";
+  return false;
+}
+#endif
+
+void WriteArrayToFileOrDie(const string& filename,
+                           const double* x,
+                           const int size) {
+  CHECK_NOTNULL(x);
+  VLOG(2) << "Writing array to: " << filename;
+  FILE* fptr = fopen(filename.c_str(), "w");
+  CHECK_NOTNULL(fptr);
+  for (int i = 0; i < size; ++i) {
+    fprintf(fptr, "%17f\n", x[i]);
+  }
+  fclose(fptr);
+}
+
+bool DumpLinearLeastSquaresProblemToTextFile(const string& directory,
+                                             int iteration,
+                                             const SparseMatrix* A,
+                                             const double* D,
+                                             const double* b,
+                                             const double* x,
+                                             int num_eliminate_blocks) {
+  CHECK_NOTNULL(A);
+  string format_string = JoinPath(directory,
+                                  "lm_iteration_%03d");
+  string filename_prefix =
+      StringPrintf(format_string.c_str(), iteration);
+
+  {
+    string filename = filename_prefix + "_A.txt";
+    LOG(INFO) << "writing to: " << filename;
+    FILE* fptr = fopen(filename.c_str(), "w");
+    CHECK_NOTNULL(fptr);
+    A->ToTextFile(fptr);
+    fclose(fptr);
+  }
+
+  if (D != NULL) {
+    string filename = filename_prefix + "_D.txt";
+    WriteArrayToFileOrDie(filename, D, A->num_cols());
+  }
+
+  if (b != NULL) {
+    string filename = filename_prefix + "_b.txt";
+    WriteArrayToFileOrDie(filename, b, A->num_rows());
+  }
+
+  if (x != NULL) {
+    string filename = filename_prefix + "_x.txt";
+    WriteArrayToFileOrDie(filename, x, A->num_cols());
+  }
+
+  return true;
+}
+
+bool DumpLinearLeastSquaresProblem(const string& directory,
+                              	   int iteration,
+                                   DumpFormatType dump_format_type,
+                                   const SparseMatrix* A,
+                                   const double* D,
+                                   const double* b,
+                                   const double* x,
+                                   int num_eliminate_blocks) {
+  switch (dump_format_type) {
+    case (CONSOLE):
+      return DumpLinearLeastSquaresProblemToConsole(directory,
+                                                    iteration,
+                                                    A, D, b, x,
+                                                    num_eliminate_blocks);
+    case (PROTOBUF):
+      return DumpLinearLeastSquaresProblemToProtocolBuffer(
+          directory,
+          iteration,
+          A, D, b, x,
+          num_eliminate_blocks);
+    case (TEXTFILE):
+      return DumpLinearLeastSquaresProblemToTextFile(directory,
+                                                     iteration,
+                                                     A, D, b, x,
+                                                     num_eliminate_blocks);
+    default:
+      LOG(FATAL) << "Unknown DumpFormatType " << dump_format_type;
+  };
+
+  return true;
 }
 
 }  // namespace internal

@@ -59,8 +59,9 @@ class Minimizer {
       tau = options.tau;
       jacobi_scaling = options.jacobi_scaling;
       crash_and_dump_lsqp_on_failure = options.crash_and_dump_lsqp_on_failure;
-      lsqp_dump_format = options.lsqp_dump_format;
+      lsqp_dump_directory = options.lsqp_dump_directory;
       lsqp_iterations_to_dump = options.lsqp_iterations_to_dump;
+      lsqp_dump_format_type = options.lsqp_dump_format_type;
       num_eliminate_blocks = options.num_eliminate_blocks;
       logging_type = options.logging_type;
     }
@@ -75,8 +76,9 @@ class Minimizer {
     double tau;
     bool jacobi_scaling;
     bool crash_and_dump_lsqp_on_failure;
-    string lsqp_dump_format;
     vector<int> lsqp_iterations_to_dump;
+    DumpFormatType lsqp_dump_format_type;
+    string lsqp_dump_directory;
     int num_eliminate_blocks;
     LoggingType logging_type;
 

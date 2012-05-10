@@ -93,6 +93,20 @@
 // "MyScalarCostFunction", "1, 2, 2", describe the functor as computing a
 // 1-dimensional output from two arguments, both 2-dimensional.
 //
+// The autodiff cost function also supports cost functions with a
+// runtime-determined number of residuals. For example:
+//
+//   CostFunction* cost_function
+//       = new AutoDiffCostFunction<MyScalarCostFunction, DYNAMIC, 2, 2>(
+//           new CostFunctionWithDynamicNumResiduals(1.0),   ^     ^  ^
+//           runtime_number_of_residuals); <----+            |     |  |
+//                                              |            |     |  |
+//                                              |            |     |  |
+//             Actual number of residuals ------+            |     |  |
+//             Indicate dynamic number of residuals ---------+     |  |
+//             Dimension of x -------------------------------------+  |
+//             Dimension of y ----------------------------------------+
+//
 // The framework can currently accommodate cost functions of up to 6 independent
 // variables, and there is no limit on the dimensionality of each of them.
 //
@@ -115,18 +129,26 @@
 #include "ceres/internal/autodiff.h"
 #include "ceres/internal/scoped_ptr.h"
 #include "ceres/sized_cost_function.h"
+#include "ceres/types.h"
 
 namespace ceres {
 
-// A cost function which computes the derivative of the cost with respect to the
-// parameters (a.k.a. the jacobian) using an autodifferentiation framework. The
-// first template argument is the functor object, described in the header
-// comment. The second argument is the dimension of the residual, and subsequent
+// A cost function which computes the derivative of the cost with respect to
+// the parameters (a.k.a. the jacobian) using an autodifferentiation framework.
+// The first template argument is the functor object, described in the header
+// comment. The second argument is the dimension of the residual (or
+// ceres::DYNAMIC to indicate it will be set at runtime), and subsequent
 // arguments describe the size of the Nth parameter, one per parameter.
 //
-// The constructor, which takes a cost functor, takes ownership of the functor.
+// The constructors take ownership of the cost functor.
+//
+// If the number of residuals (argument "M" below) is ceres::DYNAMIC, then the
+// two-argument constructor must be used. The second constructor takes a number
+// of residuals (in addition to the templated number of residuals). This allows
+// for varying the number of residuals for a single autodiff cost function at
+// runtime.
 template <typename CostFunctor,
-          int M,        // Number of residuals.
+          int M,        // Number of residuals, or ceres::DYNAMIC.
           int N0,       // Number of parameters in block 0.
           int N1 = 0,   // Number of parameters in block 1.
           int N2 = 0,   // Number of parameters in block 2.
@@ -136,8 +158,25 @@ template <typename CostFunctor,
 class AutoDiffCostFunction :
   public SizedCostFunction<M, N0, N1, N2, N3, N4, N5> {
  public:
-  // Takes ownership of functor.
-  explicit AutoDiffCostFunction(CostFunctor* functor) : functor_(functor) {}
+  // Takes ownership of functor. Uses the template-provided value for the
+  // number of residuals ("M").
+  explicit AutoDiffCostFunction(CostFunctor* functor)
+      : functor_(functor) {
+    CHECK_NE(M, DYNAMIC) << "Can't run the fixed-size constructor if the "
+                          << "number of residuals is set to ceres::DYNAMIC.";
+  }
+
+  // Takes ownership of functor. Ignores the template-provided number of
+  // residuals ("M") in favor of the "num_residuals" argument provided.
+  //
+  // This allows for having autodiff cost functions which return varying
+  // numbers of residuals at runtime.
+  AutoDiffCostFunction(CostFunctor* functor, int num_residuals)
+      : functor_(functor) {
+    CHECK_EQ(M, DYNAMIC) << "Can't run the dynamic-size constructor if the "
+                          << "number of residuals is not ceres::DYNAMIC.";
+    SizedCostFunction<M, N0, N1, N2, N3, N4, N5>::set_num_residuals(num_residuals);
+  }
 
   virtual ~AutoDiffCostFunction() {}
 
@@ -151,14 +190,16 @@ class AutoDiffCostFunction :
                         double** jacobians) const {
     if (!jacobians) {
       return internal::VariadicEvaluate<
-          CostFunctor, double, M, N0, N1, N2, N3, N4, N5>
+          CostFunctor, double, N0, N1, N2, N3, N4, N5>
           ::Call(*functor_, parameters, residuals);
     }
     return internal::AutoDiff<CostFunctor, double,
-           M, N0, N1, N2, N3, N4, N5>::Differentiate(*functor_,
-                                                     parameters,
-                                                     residuals,
-                                                     jacobians);
+           N0, N1, N2, N3, N4, N5>::Differentiate(
+               *functor_,
+               parameters,
+               SizedCostFunction<M, N0, N1, N2, N3, N4, N5>::num_residuals(),
+               residuals,
+               jacobians);
   }
 
  private:

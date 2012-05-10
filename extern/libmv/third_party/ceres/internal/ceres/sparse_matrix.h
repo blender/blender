@@ -33,6 +33,7 @@
 #ifndef CERES_INTERNAL_SPARSE_MATRIX_H_
 #define CERES_INTERNAL_SPARSE_MATRIX_H_
 
+#include <cstdio>
 #include "ceres/linear_operator.h"
 #include "ceres/internal/eigen.h"
 #include "ceres/types.h"
@@ -87,8 +88,13 @@ class SparseMatrix : public LinearOperator {
 
 #ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
   // Dump the sparse matrix to a proto. Destroys the contents of proto.
-  virtual void ToProto(SparseMatrixProto *proto) const = 0;
+  virtual void ToProto(SparseMatrixProto* proto) const = 0;
 #endif
+
+  // Write out the matrix as a sequence of (i,j,s) triplets. This
+  // format is useful for loading the matrix into MATLAB/octave as a
+  // sparse matrix.
+  virtual void ToTextFile(FILE* file) const = 0;
 
   // Accessors for the values array that stores the entries of the
   // sparse matrix. The exact interpreptation of the values of this

@@ -30,11 +30,16 @@
 //
 // A convenience class for cost functions which are statically sized.
 // Compared to the dynamically-sized base class, this reduces boilerplate.
+//
+// The kNumResiduals template parameter can be a constant such as 2 or 5, or it
+// can be ceres::DYNAMIC. If kNumResiduals is ceres::DYNAMIC, then subclasses
+// are responsible for calling set_num_residuals() at runtime.
 
 #ifndef CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 #define CERES_PUBLIC_SIZED_COST_FUNCTION_H_
 
 #include <glog/logging.h>
+#include "ceres/types.h"
 #include "ceres/cost_function.h"
 
 namespace ceres {
@@ -45,11 +50,12 @@ class SizedCostFunction : public CostFunction {
  public:
   SizedCostFunction() {
     // Sanity checking.
-    DCHECK_GT(kNumResiduals, 0) << "Cost functions must have at least "
-                                << "one residual block.";
-    DCHECK_GT(N0, 0)
+    CHECK(kNumResiduals > 0 || kNumResiduals == DYNAMIC)
+        << "Cost functions must have at least one residual block.";
+
+    CHECK_GT(N0, 0)
         << "Cost functions must have at least one parameter block.";
-    DCHECK((!N1 && !N2 && !N3 && !N4 && !N5) ||
+    CHECK((!N1 && !N2 && !N3 && !N4 && !N5) ||
            ((N1 > 0) && !N2 && !N3 && !N4 && !N5) ||
            ((N1 > 0) && (N2 > 0) && !N3 && !N4 && !N5) ||
            ((N1 > 0) && (N2 > 0) && (N3 > 0) && !N4 && !N5) ||

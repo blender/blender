@@ -58,6 +58,7 @@
 #include "Eigen/Core"
 #include "ceres/evaluator.h"
 #include "ceres/file.h"
+#include "ceres/linear_least_squares_problems.h"
 #include "ceres/linear_solver.h"
 #include "ceres/matrix_proto.h"
 #include "ceres/sparse_matrix.h"
@@ -105,62 +106,6 @@ void LevenbergMarquardtDiagonal(const SparseMatrix& jacobian,
     D[i] = min(max(D[i], kMinLevenbergMarquardtDiagonal),
                kMaxLevenbergMarquardtDiagonal);
   }
-}
-
-string DumpLinearSolverProblem(
-    int iteration,
-    const SparseMatrix* A,
-    const double* D,
-    const double* b,
-    const double* x,
-    const Minimizer::Options& solver_options) {
-  if (solver_options.lsqp_dump_format == "ascii") {
-    // Dump to the screen instead of to file. Useful for debugging.
-    Matrix AA;
-    A->ToDenseMatrix(&AA);
-    LOG(INFO) << "A^T: \n" << AA.transpose();
-    if (D) {
-      LOG(INFO) << "A's appended diagonal:\n"
-                << ConstVectorRef(D, A->num_cols());
-    }
-    LOG(INFO) << "b: \n" << ConstVectorRef(b, A->num_rows());
-    LOG(INFO) << "x: \n" << ConstVectorRef(x, A->num_cols());
-    return "";
-  }
-#ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
-  LinearLeastSquaresProblemProto lsqp;
-  A->ToProto(lsqp.mutable_a());
-  for (int i = 0; i < A->num_rows(); ++i) {
-    lsqp.add_b(b[i]);
-  }
-  if (D) {
-    for (int i = 0; i < A->num_cols(); ++i) {
-      lsqp.add_d(D[i]);
-    }
-  }
-  if (x) {
-    for (int i = 0; i < A->num_cols(); ++i) {
-      lsqp.add_x(x[i]);
-    }
-  }
-
-  lsqp.set_num_eliminate_blocks(solver_options.num_eliminate_blocks);
-
-  CHECK(solver_options.lsqp_dump_format.size());
-  string filename =
-      StringPrintf(solver_options.lsqp_dump_format.c_str(),  // NOLINT
-                   iteration);
-  VLOG(1) << "Dumping least squares problem for iteration " << iteration
-          << " to disk. File: " << filename;
-  WriteStringToFileOrDie(lsqp.SerializeAsString(), filename);
-  VLOG(2) << "Done dumping to disk";
-  return filename;
-#else
-  LOG(ERROR) << "Dumping least squares problems is only "
-             << "supported when Ceres is compiled with "
-             << "protocol buffer support.";
-  return "";
-#endif
 }
 
 bool RunCallback(IterationCallback* callback,
@@ -380,12 +325,17 @@ void LevenbergMarquardt::Minimize(const Minimizer::Options& options,
       if (binary_search(iterations_to_dump.begin(),
                         iterations_to_dump.end(),
                         iteration)) {
-        DumpLinearSolverProblem(iteration,
-                                jacobian.get(),
-                                muD.data(),
-                                f.data(),
-                                lm_step.data(),
-                                options);
+        CHECK(DumpLinearLeastSquaresProblem(options.lsqp_dump_directory,
+                                            iteration,
+                                            options.lsqp_dump_format_type,
+                                            jacobian.get(),
+                                            muD.data(),
+                                            f.data(),
+                                            lm_step.data(),
+                                            options.num_eliminate_blocks))
+            << "Tried writing linear least squares problem: " 
+            << options.lsqp_dump_directory
+            << " but failed.";
       }
 
       // We ignore the case where the linear solver did not converge,
@@ -413,7 +363,7 @@ void LevenbergMarquardt::Minimize(const Minimizer::Options& options,
           (x_norm + options.parameter_tolerance)) {
         summary->termination_type = PARAMETER_TOLERANCE;
         VLOG(1) << "Terminating on PARAMETER_TOLERANCE."
-             << "Relative step size: " << step_norm / step_size_tolerance
+                << "Relative step size: " << step_norm / step_size_tolerance
             << " <= " << options.parameter_tolerance;
         return;
       }
@@ -545,33 +495,37 @@ void LevenbergMarquardt::Minimize(const Minimizer::Options& options,
     }
 
     if (num_consecutive_insane_steps == kMaxLinearSolverRetries) {
-      VLOG(1) << "Too many consecutive retries; ending with numerical fail.";
       summary->termination_type = NUMERICAL_FAILURE;
+      VLOG(1) << "Too many consecutive retries; ending with numerical fail.";
 
       if (!options.crash_and_dump_lsqp_on_failure) {
         return;
       }
 
       // Dump debugging information to disk.
-      CHECK(!options.lsqp_dump_format.empty())
+      CHECK(options.lsqp_dump_format_type == TEXTFILE ||
+            options.lsqp_dump_format_type == PROTOBUF)
           << "Dumping the linear least squares problem on crash "
-          << "requires Solver::Options::lsqp_dump_format set a "
-          << "filename";
-      CHECK_NE(options.lsqp_dump_format, "ascii")
-          << "Dumping the linear least squares problem on crash "
-          << "requires Solver::Options::lsqp_dump_format set a "
-          << "filename";
+          << "requires Solver::Options::lsqp_dump_format_type to be "
+          << "PROTOBUF or TEXTFILE.";
 
-      const string filename = DumpLinearSolverProblem(iteration,
-                                                      jacobian.get(),
-                                                      muD.data(),
-                                                      f.data(),
-                                                      lm_step.data(),
-                                                      options);
-      LOG(FATAL) << "Linear least squares problem saved to " << filename
-                 << " please provide this to the Ceres developers for "
-                 << " debugging along with the v=2 log.";
-      return;
+      if (DumpLinearLeastSquaresProblem(options.lsqp_dump_directory,
+                                        iteration,
+                                        options.lsqp_dump_format_type,
+                                        jacobian.get(),
+                                        muD.data(),
+                                        f.data(),
+                                        lm_step.data(),
+                                        options.num_eliminate_blocks)) {
+        LOG(FATAL) << "Linear least squares problem saved to: " 
+                   << options.lsqp_dump_directory
+                   << ". Please provide this to the Ceres developers for "
+                   << " debugging along with the v=2 log.";
+      } else {
+        LOG(FATAL) << "Tried writing linear least squares problem: " 
+                   << options.lsqp_dump_directory
+                   << " but failed.";
+      }
     }
 
     if (!step_is_successful) {

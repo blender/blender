@@ -83,7 +83,8 @@ class Solver {
       minimizer_progress_to_stdout = false;
       return_initial_residuals = false;
       return_final_residuals = false;
-      lsqp_dump_format = "lm_iteration_%03d.lsqp";
+      lsqp_dump_directory = "/tmp";
+      lsqp_dump_format_type = TEXTFILE;
       crash_and_dump_lsqp_on_failure = false;
       check_gradients = false;
       gradient_check_relative_precision = 1e-8;
@@ -213,12 +214,8 @@ class Solver {
     //
     // This is ignored if protocol buffers are disabled.
     vector<int> lsqp_iterations_to_dump;
-
-    // Format string for the file name used for dumping the least
-    // squares problem to disk. If the format is 'ascii', then the
-    // problem is logged to the screen; don't try this with large
-    // problems or expect a frozen terminal.
-    string lsqp_dump_format;
+    string lsqp_dump_directory;
+    DumpFormatType lsqp_dump_format_type;
 
     // Dump the linear least squares problem to disk if the minimizer
     // fails due to NUMERICAL_FAILURE and crash the process. This flag

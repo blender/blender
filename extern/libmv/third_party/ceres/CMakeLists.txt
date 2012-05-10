@@ -208,11 +208,11 @@ else()
 endif()
 
 add_definitions(
-    -DCERES_HAVE_PTHREAD
-    -D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
-    -D"CERES_HASH_NAMESPACE_END=}}"
-    -DCERES_NO_SUITESPARSE
-    -DCERES_DONT_HAVE_PROTOCOL_BUFFERS
+	-DCERES_HAVE_PTHREAD
+	-D"CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {"
+	-D"CERES_HASH_NAMESPACE_END=}}"
+	-DCERES_NO_SUITESPARSE
+	-DCERES_DONT_HAVE_PROTOCOL_BUFFERS
 )
 
 blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}")

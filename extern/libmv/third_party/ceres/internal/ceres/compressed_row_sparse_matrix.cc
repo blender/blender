@@ -321,5 +321,14 @@ void CompressedRowSparseMatrix::AppendRows(const CompressedRowSparseMatrix& m) {
   num_rows_ += m.num_rows();
 }
 
+void CompressedRowSparseMatrix::ToTextFile(FILE* file) const {
+  CHECK_NOTNULL(file);
+  for (int r = 0; r < num_rows_; ++r) {
+    for (int idx = rows_[r]; idx < rows_[r + 1]; ++idx) {
+      fprintf(file, "% 10d % 10d %17f\n", r, cols_[idx], values_[idx]);
+    }
+  }
+}
+
 }  // namespace internal
 }  // namespace ceres

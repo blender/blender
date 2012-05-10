@@ -88,7 +88,7 @@ class CompressedRowSparseMatrix : public SparseMatrix {
 #ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto* proto) const;
 #endif
-
+  virtual void ToTextFile(FILE* file) const;
   virtual int num_rows() const { return num_rows_; }
   virtual int num_cols() const { return num_cols_; }
   virtual int num_nonzeros() const { return rows_[num_rows_]; }

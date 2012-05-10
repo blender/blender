@@ -70,6 +70,7 @@ class DenseSparseMatrix : public SparseMatrix {
 #ifndef CERES_DONT_HAVE_PROTOCOL_BUFFERS
   virtual void ToProto(SparseMatrixProto* proto) const;
 #endif
+  virtual void ToTextFile(FILE* file) const;
   virtual int num_rows() const;
   virtual int num_cols() const;
   virtual int num_nonzeros() const;

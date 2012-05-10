@@ -259,5 +259,28 @@ void BlockSparseMatrix::ToProto(SparseMatrixProto* outer_proto) const {
 }
 #endif
 
+void BlockSparseMatrix::ToTextFile(FILE* file) const {
+  CHECK_NOTNULL(file);
+  for (int i = 0; i < block_structure_->rows.size(); ++i) {
+    const int row_block_pos = block_structure_->rows[i].block.position;
+    const int row_block_size = block_structure_->rows[i].block.size;
+    const vector<Cell>& cells = block_structure_->rows[i].cells;
+    for (int j = 0; j < cells.size(); ++j) {
+      const int col_block_id = cells[j].block_id;
+      const int col_block_size = block_structure_->cols[col_block_id].size;
+      const int col_block_pos = block_structure_->cols[col_block_id].position;
+      int jac_pos = cells[j].position;
+      for (int r = 0; r < row_block_size; ++r) {
+        for (int c = 0; c < col_block_size; ++c) {
+          fprintf(file, "% 10d % 10d %17f\n",
+                  row_block_pos + r,
+                  col_block_pos + c,
+                  values_[jac_pos++]);
+        }
+      }
+    }
+  }
+}
+
 }  // namespace internal
 }  // namespace ceres
