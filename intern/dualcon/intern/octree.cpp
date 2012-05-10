@@ -113,7 +113,7 @@ void Octree::scanConvert()
 	start = clock();
 #endif
 
-	addTrian();
+	addAllTriangles();
 	resetMinimalEdges();
 	preparePrimalEdgesMask(&root->internal);
 
@@ -257,7 +257,7 @@ void Octree::resetMinimalEdges()
 	cellProcParity(root, 0, maxDepth);
 }
 
-void Octree::addTrian()
+void Octree::addAllTriangles()
 {
 	Triangle *trian;
 	int count = 0;
@@ -273,7 +273,7 @@ void Octree::addTrian()
 	while ((trian = reader->getNextTriangle()) != NULL) {
 		// Drop triangles
 		{
-			addTrian(trian, count);
+			addTriangle(trian, count);
 		}
 		delete trian;
 
@@ -316,48 +316,60 @@ void Octree::addTrian()
 	putchar(13);
 }
 
-void Octree::addTrian(Triangle *trian, int triind)
+/* Prepare a triangle for insertion into the octree; call the other
+   addTriangle() to (recursively) build the octree */
+void Octree::addTriangle(Triangle *trian, int triind)
 {
 	int i, j;
 
-	// Blowing up the triangle to the grid
-	float mid[3] = {0, 0, 0};
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++) {
+	/* Project the triangle's coordinates into the grid */
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++)
 			trian->vt[i][j] = dimen * (trian->vt[i][j] - origin[j]) / range;
-			mid[j] += trian->vt[i][j] / 3;
-		}
+	}
 
-	// Generate projections
-	LONG cube[2][3] = {{0, 0, 0}, {dimen, dimen, dimen}};
-	LONG trig[3][3];
+	/* Generate projections */
+	int64_t cube[2][3] = {{0, 0, 0}, {dimen, dimen, dimen}};
+	int64_t trig[3][3];
+	for (i = 0; i < 3; i++) {
+		for (j = 0; j < 3; j++)
+			trig[i][j] = (int64_t)(trian->vt[i][j]);
+	}
 
-	for (i = 0; i < 3; i++)
-		for (j = 0; j < 3; j++) {
-			trig[i][j] = (LONG)(trian->vt[i][j]);
-			// Perturb end points, if set so
-		}
-
-	// Add to the octree
-	// int start[3] = {0, 0, 0};
-	LONG errorvec = (LONG)(0);
-	Projections *proj = new Projections(cube, trig, errorvec, triind);
-	root = (Node *)addTrian(&root->internal, proj, maxDepth);
+	/* Add triangle to the octree */
+	int64_t errorvec = (int64_t)(0);
+	CubeTriangleIsect *proj = new CubeTriangleIsect(cube, trig, errorvec, triind);
+	root = (Node *)addTriangle(&root->internal, proj, maxDepth);
 
 	delete proj->inherit;
 	delete proj;
 }
 
+void print_depth(int height, int maxDepth)
+{
+	for (int i = 0; i < maxDepth - height; i++)
+		printf("  ");
+}
 
-InternalNode *Octree::addTrian(InternalNode *node, Projections *p, int height)
+InternalNode *Octree::addTriangle(InternalNode *node, CubeTriangleIsect *p, int height)
 {
 	int i;
-	int vertdiff[8][3] = {{0, 0, 0}, {0, 0, 1}, {0, 1, -1}, {0, 0, 1}, {1, -1, -1}, {0, 0, 1}, {0, 1, -1}, {0, 0, 1}};
-	UCHAR boxmask = p->getBoxMask();
-	Projections *subp = new Projections(p);
-
+	const int vertdiff[8][3] = {
+		{0,  0,  0},
+		{0,  0,  1},
+		{0,  1, -1},
+		{0,  0,  1},
+		{1, -1, -1},
+		{0,  0,  1},
+		{0,  1, -1},
+		{0,  0,  1}};
+	unsigned char boxmask = p->getBoxMask();
+	CubeTriangleIsect *subp = new CubeTriangleIsect(p);
+	
 	int count = 0;
 	int tempdiff[3] = {0, 0, 0};
+
+	/* Check triangle against each of the input node's children */
 	for (i = 0; i < 8; i++) {
 		tempdiff[0] += vertdiff[i][0];
 		tempdiff[1] += vertdiff[i][1];
@@ -370,30 +382,23 @@ InternalNode *Octree::addTrian(InternalNode *node, Projections *p, int height)
 
 			/* Pruning using intersection test */
 			if (subp->isIntersecting()) {
-			// if(subp->getIntersectionMasks(cedgemask, edgemask))
 				if (!hasChild(node, i)) {
-					if (height == 1) {
+					if (height == 1)
 						node = addLeafChild(node, i, count, createLeaf(0));
-					}
-					else {
+					else
 						node = addInternalChild(node, i, count, createInternal(0));
-					}
 				}
 				Node *chd = getChild(node, count);
 
-				if (!isLeaf(node, i)) {
-					// setChild(node, count, addTrian(chd, subp, height - 1, vertmask[i], edgemask));
-					setChild(node, count, (Node *)addTrian(&chd->internal, subp, height - 1));
-				}
-				else {
+				if (node->is_child_leaf(i))
 					setChild(node, count, (Node *)updateCell(&chd->leaf, subp));
-				}
+				else
+					setChild(node, count, (Node *)addTriangle(&chd->internal, subp, height - 1));
 			}
 		}
 
-		if (hasChild(node, i)) {
+		if (hasChild(node, i))
 			count++;
-		}
 	}
 
 	delete subp;
@@ -401,7 +406,7 @@ InternalNode *Octree::addTrian(InternalNode *node, Projections *p, int height)
 	return node;
 }
 
-LeafNode *Octree::updateCell(LeafNode *node, Projections *p)
+LeafNode *Octree::updateCell(LeafNode *node, CubeTriangleIsect *p)
 {
 	int i;
 
@@ -426,13 +431,6 @@ LeafNode *Octree::updateCell(LeafNode *node, Projections *p)
 		else {
 			offs[newc] = getEdgeOffsetNormal(node, oldc, a[newc], b[newc], c[newc]);
 
-//			if(p->isIntersectingPrimary(i))
-			{
-				// dc_printf("Multiple intersections!\n");
-
-//				setPatchEdge(node, i);
-			}
-
 			oldc++;
 			newc++;
 		}
@@ -451,7 +449,7 @@ void Octree::preparePrimalEdgesMask(InternalNode *node)
 	int count = 0;
 	for (int i = 0; i < 8; i++) {
 		if (hasChild(node, i)) {
-			if (isLeaf(node, i))
+			if (node->is_child_leaf(i))
 				createPrimalEdgesMask(&getChild(node, count)->leaf);
 			else
 				preparePrimalEdgesMask(&getChild(node, count)->internal);
@@ -495,7 +493,7 @@ Node *Octree::trace(Node *newnode, int *st, int len, int depth, PathList *& path
 			nst[i][j] = st[j] + len * vertmap[i][j];
 		}
 
-		if (chd[i] == NULL || isLeaf(&newnode->internal, i)) {
+		if (chd[i] == NULL || newnode->internal.is_child_leaf(i)) {
 			chdpaths[i] = NULL;
 		}
 		else {
@@ -1411,7 +1409,7 @@ Node *Octree::locateCell(InternalNode *node, int st[3], int len, int ori[3], int
 	if (hasChild(node, ind)) {
 		int count = getChildCount(node, ind);
 		Node *chd = getChild(node, count);
-		if (isLeaf(node, ind)) {
+		if (node->is_child_leaf(ind)) {
 			rleaf = chd;
 			rlen = len;
 		}
@@ -2367,7 +2365,7 @@ void Octree::edgeProcContour(Node *node[4], int leaf[4], int depth[4], int maxde
 					de[j] = depth[j];
 				}
 				else {
-					le[j] = isLeaf(&node[j]->internal, c[j]);
+					le[j] = node[j]->internal.is_child_leaf(c[j]);
 					ne[j] = chd[j][c[j]];
 					de[j] = depth[j] - 1;
 				}
@@ -2410,7 +2408,7 @@ void Octree::faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxde
 					df[j] = depth[j];
 				}
 				else {
-					lf[j] = isLeaf(&node[j]->internal, c[j]);
+					lf[j] = node[j]->internal.is_child_leaf(c[j]);
 					nf[j] = chd[j][c[j]];
 					df[j] = depth[j] - 1;
 				}
@@ -2436,7 +2434,7 @@ void Octree::faceProcContour(Node *node[2], int leaf[2], int depth[2], int maxde
 					de[j] = depth[order[j]];
 				}
 				else {
-					le[j] = isLeaf(&node[order[j]]->internal, c[j]);
+					le[j] = node[order[j]]->internal.is_child_leaf(c[j]);
 					ne[j] = chd[order[j]][c[j]];
 					de[j] = depth[order[j]] - 1;
 				}
@@ -2467,7 +2465,7 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
 
 		// 8 Cell calls
 		for (i = 0; i < 8; i++) {
-			cellProcContour(chd[i], isLeaf(&node->internal, i), depth - 1);
+			cellProcContour(chd[i], node->internal.is_child_leaf(i), depth - 1);
 		}
 
 		// 12 face calls
@@ -2477,8 +2475,8 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
 		for (i = 0; i < 12; i++) {
 			int c[2] = {cellProcFaceMask[i][0], cellProcFaceMask[i][1]};
 
-			lf[0] = isLeaf(&node->internal, c[0]);
-			lf[1] = isLeaf(&node->internal, c[1]);
+			lf[0] = node->internal.is_child_leaf(c[0]);
+			lf[1] = node->internal.is_child_leaf(c[1]);
 
 			nf[0] = chd[c[0]];
 			nf[1] = chd[c[1]];
@@ -2494,7 +2492,7 @@ void Octree::cellProcContour(Node *node, int leaf, int depth)
 			int c[4] = {cellProcEdgeMask[i][0], cellProcEdgeMask[i][1], cellProcEdgeMask[i][2], cellProcEdgeMask[i][3]};
 
 			for (int j = 0; j < 4; j++) {
-				le[j] = isLeaf(&node->internal, c[j]);
+				le[j] = node->internal.is_child_leaf(c[j]);
 				ne[j] = chd[c[j]];
 			}
 
@@ -2563,7 +2561,7 @@ void Octree::edgeProcParity(Node *node[4], int leaf[4], int depth[4], int maxdep
 					de[j] = depth[j];
 				}
 				else {
-					le[j] = isLeaf(&node[j]->internal, c[j]);
+					le[j] = node[j]->internal.is_child_leaf(c[j]);
 					ne[j] = chd[j][c[j]];
 					de[j] = depth[j] - 1;
 
@@ -2608,7 +2606,7 @@ void Octree::faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep
 					df[j] = depth[j];
 				}
 				else {
-					lf[j] = isLeaf(&node[j]->internal, c[j]);
+					lf[j] = node[j]->internal.is_child_leaf(c[j]);
 					nf[j] = chd[j][c[j]];
 					df[j] = depth[j] - 1;
 				}
@@ -2634,7 +2632,7 @@ void Octree::faceProcParity(Node *node[2], int leaf[2], int depth[2], int maxdep
 					de[j] = depth[order[j]];
 				}
 				else {
-					le[j] = isLeaf((InternalNode *)(node[order[j]]), c[j]);
+					le[j] = node[order[j]]->internal.is_child_leaf(c[j]);
 					ne[j] = chd[order[j]][c[j]];
 					de[j] = depth[order[j]] - 1;
 				}
@@ -2665,7 +2663,7 @@ void Octree::cellProcParity(Node *node, int leaf, int depth)
 
 		// 8 Cell calls
 		for (i = 0; i < 8; i++) {
-			cellProcParity(chd[i], isLeaf((InternalNode *)node, i), depth - 1);
+			cellProcParity(chd[i], node->internal.is_child_leaf(i), depth - 1);
 		}
 
 		// 12 face calls
@@ -2675,8 +2673,8 @@ void Octree::cellProcParity(Node *node, int leaf, int depth)
 		for (i = 0; i < 12; i++) {
 			int c[2] = {cellProcFaceMask[i][0], cellProcFaceMask[i][1]};
 
-			lf[0] = isLeaf((InternalNode *)node, c[0]);
-			lf[1] = isLeaf((InternalNode *)node, c[1]);
+			lf[0] = node->internal.is_child_leaf(c[0]);
+			lf[1] = node->internal.is_child_leaf(c[1]);
 
 			nf[0] = chd[c[0]];
 			nf[1] = chd[c[1]];
@@ -2692,7 +2690,7 @@ void Octree::cellProcParity(Node *node, int leaf, int depth)
 			int c[4] = {cellProcEdgeMask[i][0], cellProcEdgeMask[i][1], cellProcEdgeMask[i][2], cellProcEdgeMask[i][3]};
 
 			for (int j = 0; j < 4; j++) {
-				le[j] = isLeaf((InternalNode *)node, c[j]);
+				le[j] = node->internal.is_child_leaf(c[j]);
 				ne[j] = chd[c[j]];
 			}
 
