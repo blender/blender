@@ -265,7 +265,7 @@ unsigned char CubeTriangleIsect::getBoxMask( )
 		if (mid >= inherit->tri_proj[i][0]) {
 			bmask[i][0] = 1;
 		}
-		if (mid <= inherit->tri_proj[i][1]) {
+		if (mid < inherit->tri_proj[i][1]) {
 			bmask[i][1] = 1;
 		}
 
