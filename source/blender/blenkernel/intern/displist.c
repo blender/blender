@@ -783,7 +783,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 			 * shape key modifier yet. */
 			deformedVerts = BKE_curve_keyVertexCos_get(cu, nurb, keyVerts);
 			originalVerts = MEM_dupallocN(deformedVerts);
-			numVerts = BKE_nurbList_verts_count_without_handles(nurb);
+			numVerts = BKE_nurbList_verts_count(nurb);
 		}
 	}
 
