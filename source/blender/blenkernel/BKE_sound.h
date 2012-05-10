@@ -136,6 +136,8 @@ void sound_read_waveform(struct bSound* sound);
 
 void sound_update_scene(struct Scene* scene);
 
-void* sound_get_factory(void* sound);
+void *sound_get_factory(void* sound);
+
+float sound_get_length(struct bSound *sound);
 
 #endif

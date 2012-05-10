@@ -756,6 +756,14 @@ void *sound_get_factory(void *sound)
 	return ((struct bSound *) sound)->playback_handle;
 }
 
+/* stupid wrapper because AUD_C-API.h includes Python.h which makesrna doesn't like */
+float sound_get_length(struct bSound* sound)
+{
+	AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
+
+	return info.length;
+}
+
 #else // WITH_AUDASPACE
 
 #include "BLI_utildefines.h"
@@ -797,5 +805,5 @@ void sound_set_scene_sound_volume(void* handle, float volume, char animated) { (
 void sound_set_scene_sound_pan(void* handle, float pan, char animated) { (void)handle; (void)pan; (void)animated; }
 void sound_set_scene_volume(struct Scene *scene, float volume) { (void)scene; (void)volume; }
 void sound_set_scene_sound_pitch(void* handle, float pitch, char animated) { (void)handle; (void)pitch; (void)animated; }
-
+float sound_get_length(struct bSound* sound) { (void)sound; return 0; }
 #endif // WITH_AUDASPACE

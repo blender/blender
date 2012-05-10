@@ -49,6 +49,15 @@
 #include "WM_types.h"
 #include "BLI_math.h"
 
+typedef struct EffectInfo
+{
+	const char *struct_name;
+	const char *ui_name;
+	const char *ui_desc;
+	void (*func)(StructRNA*);
+	int inputs;
+} EffectInfo;
+
 #ifdef RNA_RUNTIME
 
 /* build a temp referene to the parent */
@@ -401,14 +410,21 @@ static StructRNA* rna_Sequence_refine(struct PointerRNA *ptr)
 		case SEQ_SOUND:
 			return &RNA_SoundSequence;
 		case SEQ_CROSS:
+			return &RNA_CrossSequence;
 		case SEQ_ADD:
+			return &RNA_AddSequence;
 		case SEQ_SUB:
+			return &RNA_SubtractSequence;
 		case SEQ_ALPHAOVER:
+			return &RNA_AlphaOverSequence;
 		case SEQ_ALPHAUNDER:
+			return &RNA_AlphaUnderSequence;
 		case SEQ_GAMCROSS:
+			return &RNA_GammaCrossSequence;
 		case SEQ_MUL:
+			return &RNA_MultiplySequence;
 		case SEQ_OVERDROP:
-			return &RNA_EffectSequence;
+			return &RNA_OverDropSequence;
 		case SEQ_MULTICAM:
 			return &RNA_MulticamSequence;
 		case SEQ_ADJUSTMENT:
@@ -944,6 +960,19 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update"); */
 }
 
+EnumPropertyItem blend_mode_items[] = {
+	{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
+	{SEQ_CROSS, "CROSS", 0, "Cross", ""},
+	{SEQ_ADD, "ADD", 0, "Add", ""},
+	{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
+	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+	{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
+	{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static void rna_def_sequence(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -973,18 +1002,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
 		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}};
-
-	static const EnumPropertyItem blend_mode_items[] = {
-		{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
-		{SEQ_CROSS, "CROSS", 0, "Cross", ""},
-		{SEQ_ADD, "ADD", 0, "Add", ""},
-		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
-		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-		{0, NULL, 0, NULL, NULL}};
 	
 	srna = RNA_def_struct(brna, "Sequence", NULL);
 	RNA_def_struct_ui_text(srna, "Sequence", "Sequence strip in the sequence editor");
@@ -1004,11 +1021,8 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Type", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	/*prop= RNA_def_property(srna, "ipo", PROP_POINTER, PROP_NONE); */
-	/*RNA_def_property_ui_text(prop, "IPO Curves", "IPO curves used by this sequence"); */
 
 	/* flags */
-
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SELECT);
 	RNA_def_property_ui_text(prop, "Select", "");
@@ -1034,13 +1048,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Lock", "Lock strip so that it can't be transformed");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 
-	prop = RNA_def_property(srna, "waveform", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
-	RNA_def_property_ui_text(prop, "Draw Waveform", "Whether to draw the sound's waveform");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
-
 	/* strip positioning */
-
 	prop = RNA_def_property(srna, "frame_final_duration", PROP_INT, PROP_TIME);
 	RNA_def_property_range(prop, 1, MAXFRAME);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -1154,24 +1162,6 @@ static void rna_def_sequence(BlenderRNA *brna)
 	                         "to this frame");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	/* effect strip inputs */
-
-	prop = RNA_def_property(srna, "input_count", PROP_INT, PROP_UNSIGNED);
-	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
-	RNA_def_property_int_funcs(prop, "rna_Sequence_input_count_get", NULL, NULL);
-
-	prop = RNA_def_property(srna, "input_1",  PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "seq1");
-	RNA_def_property_ui_text(prop, "Input 1", "First input for the effect strip");
-
-	prop = RNA_def_property(srna, "input_2",  PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "seq2");
-	RNA_def_property_ui_text(prop, "Input 2", "Second input for the effect strip");
-
-	prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "seq1");
-	RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
-
 	RNA_api_sequence_strip(srna);
 }
 
@@ -1189,6 +1179,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
 	RNA_def_property_struct_type(prop, "Sequence");
 	RNA_def_property_ui_text(prop, "Sequences", "");
+	RNA_api_sequences(brna, prop);
 
 	prop = RNA_def_property(srna, "sequences_all", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "seqbase", NULL);
@@ -1207,6 +1198,7 @@ static void rna_def_editor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "active_strip", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "act_seq");
 	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Active Strip", "Sequencer's active strip");
 
 	prop = RNA_def_property(srna, "show_overlay", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "over_flag", SEQ_EDIT_OVERLAY_SHOW);
@@ -1225,7 +1217,6 @@ static void rna_def_editor(BlenderRNA *brna)
 	RNA_def_property_int_funcs(prop, "rna_SequenceEditor_overlay_frame_get",
 	                           "rna_SequenceEditor_overlay_frame_set", NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_SEQUENCER, NULL);
-	RNA_def_property_ui_text(prop, "Active Strip", "Sequencer's active strip");
 }
 
 static void rna_def_filter_video(StructRNA *srna)
@@ -1355,6 +1346,36 @@ static void rna_def_input(StructRNA *srna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
+static void rna_def_effect_inputs(StructRNA *srna, int count)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "input_count", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_int_funcs(prop, "rna_Sequence_input_count_get", NULL, NULL);
+
+	if (count >= 1) {
+		prop = RNA_def_property(srna, "input_1",  PROP_POINTER, PROP_NONE);
+		RNA_def_property_pointer_sdna(prop, NULL, "seq1");
+		RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
+		RNA_def_property_ui_text(prop, "Input 1", "First input for the effect strip");
+	}
+
+	if (count >= 2) {
+		prop = RNA_def_property(srna, "input_2",  PROP_POINTER, PROP_NONE);
+		RNA_def_property_pointer_sdna(prop, NULL, "seq2");
+		RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
+		RNA_def_property_ui_text(prop, "Input 2", "Second input for the effect strip");
+	}
+
+	if (count == 3) { /* not used by any effects ...except maybe plugins? */
+		prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
+		RNA_def_property_pointer_sdna(prop, NULL, "seq3");
+		RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_NULL);
+		RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
+	}
+}
+
 static void rna_def_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1376,6 +1397,7 @@ static void rna_def_image(BlenderRNA *brna)
 	RNA_def_property_collection_funcs(prop, "rna_SequenceEditor_elements_begin", "rna_iterator_array_next",
 	                                  "rna_iterator_array_end", "rna_iterator_array_get",
 	                                  "rna_SequenceEditor_elements_length", NULL, NULL, NULL);
+	RNA_api_sequence_elements(brna, prop);
 
 	rna_def_filter_video(srna);
 	rna_def_proxy(srna);
@@ -1532,6 +1554,11 @@ static void rna_def_sound(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_Sequence_filepath_get", "rna_Sequence_filepath_length",
 										"rna_Sequence_filepath_set");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_filepath_update");
+
+	prop = RNA_def_property(srna, "waveform", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
+	RNA_def_property_ui_text(prop, "Draw Waveform", "Whether to draw the sound's waveform");
+	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, NULL);
 	
 	rna_def_input(srna);
 }
@@ -1549,45 +1576,21 @@ static void rna_def_effect(BlenderRNA *brna)
 	rna_def_proxy(srna);
 }
 
-static void rna_def_multicam(BlenderRNA *brna)
+static void rna_def_multicam(StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "MulticamSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Multicam Select Sequence",
-	                       "Sequence strip to perform multicam editing: select channel from below");
-	RNA_def_struct_sdna(srna, "Sequence");
-
 	prop = RNA_def_property(srna, "multicam_source", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "multicam_source");
 	RNA_def_property_range(prop, 0, MAXSEQ-1);
 	RNA_def_property_ui_text(prop, "Multicam Source Channel", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 
-	rna_def_filter_video(srna);
-	rna_def_proxy(srna);
 	rna_def_input(srna);
 }
 
-static void rna_def_adjustment(BlenderRNA *brna)
+static void rna_def_wipe(StructRNA *srna)
 {
-	StructRNA *srna;
-/*	PropertyRNA *prop; */
-	
-	srna = RNA_def_struct(brna, "AdjustmentSequence", "Sequence");
-	RNA_def_struct_ui_text(srna, "Adjustment Layer Sequence",
-	                       "Sequence strip to perform filter adjustments to layers below");
-	RNA_def_struct_sdna(srna, "Sequence");
-
-	rna_def_filter_video(srna);
-	rna_def_proxy(srna);
-	rna_def_input(srna);
-}
-
-static void rna_def_wipe(BlenderRNA *brna)
-{
-	StructRNA *srna;
 	PropertyRNA *prop;
 	
 	static const EnumPropertyItem wipe_type_items[] = {
@@ -1606,8 +1609,6 @@ static void rna_def_wipe(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "WipeSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Wipe Sequence", "Sequence strip creating a wipe transition");
 	RNA_def_struct_sdna_from(srna, "WipeVars", "effectdata");
 
 	prop = RNA_def_property(srna, "blur_width", PROP_FLOAT, PROP_UNSIGNED);
@@ -1642,13 +1643,10 @@ static void rna_def_wipe(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_glow(BlenderRNA *brna)
+static void rna_def_glow(StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
-	
-	srna = RNA_def_struct(brna, "GlowSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Glow Sequence", "Sequence strip creating a glow effect");
+
 	RNA_def_struct_sdna_from(srna, "GlowVars", "effectdata");
 	
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
@@ -1687,9 +1685,8 @@ static void rna_def_glow(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_transform(BlenderRNA *brna)
+static void rna_def_transform(StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem interpolation_items[] = {
@@ -1705,11 +1702,8 @@ static void rna_def_transform(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	srna = RNA_def_struct(brna, "TransformSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Transform Sequence",
-	                       "Sequence strip applying affine transformations to other strips");
 	RNA_def_struct_sdna_from(srna, "TransformVars", "effectdata");
-	
+
 	prop = RNA_def_property(srna, "scale_start_x", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "ScalexIni");
 	RNA_def_property_ui_text(prop, "Scale X", "");
@@ -1759,30 +1753,24 @@ static void rna_def_transform(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_solid_color(BlenderRNA *brna)
+static void rna_def_solid_color(StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "ColorSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "Color Sequence", "Sequence strip creating an image filled with a single color");
 	RNA_def_struct_sdna_from(srna, "SolidColorVars", "effectdata");
-	
+
 	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "col");
 	RNA_def_property_ui_text(prop, "Color", "");
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
-static void rna_def_speed_control(BlenderRNA *brna)
+static void rna_def_speed_control(StructRNA *srna)
 {
-	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna = RNA_def_struct(brna, "SpeedControlSequence", "EffectSequence");
-	RNA_def_struct_ui_text(srna, "SpeedControl Sequence", "Sequence strip to control the speed of other strips");
 	RNA_def_struct_sdna_from(srna, "SpeedControlVars", "effectdata");
-	
+
 	prop = RNA_def_property(srna, "multiply_speed", PROP_FLOAT, PROP_UNSIGNED);
 	RNA_def_property_float_sdna(prop, NULL, "globalSpeed");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* seq->facf0 is used to animate this */
@@ -1806,6 +1794,72 @@ static void rna_def_speed_control(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
 }
 
+static EffectInfo def_effects[] = {
+	{"AddSequence", "Add Sequence",
+	 "Add Sequence",
+	 NULL, 2},
+	{"AdjustmentSequence", "Adjustment Layer Sequence",
+	 "Sequence strip to perform filter adjustments to layers below",
+	 rna_def_input, 0},
+	{"AlphaOverSequence", "Alpha Over Sequence",
+	 "Alpha Over Sequence",
+	 NULL, 2},
+	{"AlphaUnderSequence", "Alpha Under Sequence",
+	 "Alpha Under Sequence",
+	 NULL, 2},
+	{"ColorSequence", "Color Sequence",
+	 "Sequence strip creating an image filled with a single color",
+	 rna_def_solid_color, 0},
+	{"CrossSequence", "Cross Sequence",
+	 "Cross Sequence",
+	 NULL, 2},
+	{"GammaCrossSequence", "Gamma Cross Sequence",
+	 "Gamma Cross Sequence",
+	 NULL, 2},
+	{"GlowSequence", "Glow Sequence",
+	 "Sequence strip creating a glow effect",
+	 rna_def_glow, 1},
+	{"MulticamSequence", "Multicam Select Sequence",
+	 "Sequence strip to perform multicam editing",
+	 rna_def_multicam, 0},
+	{"MultiplySequence", "Multiply Sequence",
+	 "Multiply Sequence",
+	 NULL, 2},
+	{"OverDropSequence", "Over Drop Sequence",
+	 "Over Drop Sequence",
+	 NULL, 2},
+	{"SpeedControlSequence", "SpeedControl Sequence",
+	 "Sequence strip to control the speed of other strips",
+	 rna_def_speed_control, 1},
+	{"SubtractSequence", "Subtract Sequence",
+	 "Subtract Sequence",
+	 NULL, 2},
+	{"TransformSequence", "Transform Sequence",
+	 "Sequence strip applying affine transformations to other strips",
+	 rna_def_transform, 1},
+	{"WipeSequence", "Wipe Sequence",
+	 "Sequence strip creating a wipe transition",
+	 rna_def_wipe, 1},
+	{"", "", "", NULL, 0}
+};
+
+static void rna_def_effects(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	EffectInfo *effect;
+
+	for (effect = def_effects; effect->struct_name[0] != '\0'; effect++) {
+		srna = RNA_def_struct(brna, effect->struct_name, "EffectSequence");
+		RNA_def_struct_ui_text(srna, effect->ui_name, effect->ui_desc);
+		RNA_def_struct_sdna(srna, "Sequence");
+
+		rna_def_effect_inputs(srna, effect->inputs);
+
+		if (effect->func)
+			effect->func(srna);
+	}
+}
+
 void RNA_def_sequencer(BlenderRNA *brna)
 {
 	rna_def_strip_element(brna);
@@ -1824,13 +1878,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_movieclip(brna);
 	rna_def_sound(brna);
 	rna_def_effect(brna);
-	rna_def_multicam(brna);
-	rna_def_adjustment(brna);
-	rna_def_wipe(brna);
-	rna_def_glow(brna);
-	rna_def_transform(brna);
-	rna_def_solid_color(brna);
-	rna_def_speed_control(brna);
+	rna_def_effects(brna);
 }
 
 #endif

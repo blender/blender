@@ -625,6 +625,14 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 	iter->valid = (internal->link != NULL);
 }
 
+static PointerRNA rna_Scene_sequence_editor_get(PointerRNA *ptr)
+{
+	Scene *scene = (Scene *)ptr->data;
+	/* mallocs an Editing (if it doesn't exist) so you can access
+	 * Scene.sequence_editor functions without having to manually
+	 * add a Sequence using the UI to create the SequenceEditor */
+	return rna_pointer_inherit_refine(ptr, &RNA_SequenceEditor, seq_give_editing(scene, TRUE));
+}
 
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
@@ -4307,6 +4315,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Sequencer */
 	prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ed");
+	RNA_def_property_pointer_funcs(prop, "rna_Scene_sequence_editor_get", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "SequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 	
