@@ -70,7 +70,7 @@ static const int NAN_INT = 0x7FC00000;
 static int sound_cfra;
 #endif
 
-struct bSound *sound_new_file(struct Main *bmain, const char *filename)
+bSound *sound_new_file(struct Main *bmain, const char *filename)
 {
 	bSound *sound = NULL;
 
@@ -103,7 +103,7 @@ struct bSound *sound_new_file(struct Main *bmain, const char *filename)
 	return sound;
 }
 
-void BKE_sound_free(struct bSound *sound)
+void BKE_sound_free(bSound *sound)
 {
 	if (sound->packedfile) {
 		freePackedFile(sound->packedfile);
@@ -223,7 +223,7 @@ void sound_exit(void)
 
 // XXX unused currently
 #if 0
-struct bSound *sound_new_buffer(struct Main *bmain, struct bSound *source)
+bSound *sound_new_buffer(struct Main *bmain, bSound *source)
 {
 	bSound *sound = NULL;
 
@@ -247,7 +247,7 @@ struct bSound *sound_new_buffer(struct Main *bmain, struct bSound *source)
 	return sound;
 }
 
-struct bSound *sound_new_limiter(struct Main *bmain, struct bSound *source, float start, float end)
+bSound *sound_new_limiter(struct Main *bmain, bSound *source, float start, float end)
 {
 	bSound *sound = NULL;
 
@@ -274,7 +274,7 @@ struct bSound *sound_new_limiter(struct Main *bmain, struct bSound *source, floa
 }
 #endif
 
-void sound_delete(struct Main *bmain, struct bSound *sound)
+void sound_delete(struct Main *bmain, bSound *sound)
 {
 	if (sound) {
 		BKE_sound_free(sound);
@@ -283,7 +283,7 @@ void sound_delete(struct Main *bmain, struct bSound *sound)
 	}
 }
 
-void sound_cache(struct bSound *sound)
+void sound_cache(bSound *sound)
 {
 	sound->flags |= SOUND_FLAGS_CACHING;
 	if (sound->cache)
@@ -296,13 +296,13 @@ void sound_cache(struct bSound *sound)
 		sound->playback_handle = sound->handle;
 }
 
-void sound_cache_notifying(struct Main *main, struct bSound *sound)
+void sound_cache_notifying(struct Main *main, bSound *sound)
 {
 	sound_cache(sound);
 	sound_update_sequencer(main, sound);
 }
 
-void sound_delete_cache(struct bSound *sound)
+void sound_delete_cache(bSound *sound)
 {
 	sound->flags &= ~SOUND_FLAGS_CACHING;
 	if (sound->cache) {
@@ -312,7 +312,7 @@ void sound_delete_cache(struct bSound *sound)
 	}
 }
 
-void sound_load(struct Main *bmain, struct bSound *sound)
+void sound_load(struct Main *bmain, bSound *sound)
 {
 	if (sound) {
 		if (sound->cache) {
@@ -353,17 +353,17 @@ void sound_load(struct Main *bmain, struct bSound *sound)
 		}
 // XXX unused currently
 #if 0
-			break;
-		}
-		case SOUND_TYPE_BUFFER:
-			if (sound->child_sound && sound->child_sound->handle)
-				sound->handle = AUD_bufferSound(sound->child_sound->handle);
-			break;
-		case SOUND_TYPE_LIMITER:
-			if (sound->child_sound && sound->child_sound->handle)
-				sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
-			break;
-		}
+		break;
+	}
+	case SOUND_TYPE_BUFFER:
+		if (sound->child_sound && sound->child_sound->handle)
+			sound->handle = AUD_bufferSound(sound->child_sound->handle);
+		break;
+	case SOUND_TYPE_LIMITER:
+		if (sound->child_sound && sound->child_sound->handle)
+			sound->handle = AUD_limitSound(sound->child_sound, sound->start, sound->end);
+		break;
+}
 #endif
 		if (sound->flags & SOUND_FLAGS_MONO) {
 			void *handle = AUD_monoSound(sound->handle);
@@ -488,7 +488,7 @@ void sound_move_scene_sound_defaults(struct Scene *scene, struct Sequence *seque
 	}
 }
 
-void sound_update_scene_sound(void *handle, struct bSound *sound)
+void sound_update_scene_sound(void *handle, bSound *sound)
 {
 	AUD_updateSequenceSound(handle, sound->playback_handle);
 }
@@ -518,7 +518,7 @@ void sound_set_scene_sound_pan(void *handle, float pan, char animated)
 	AUD_setSequenceAnimData(handle, AUD_AP_PANNING, sound_cfra, &pan, animated);
 }
 
-void sound_update_sequencer(struct Main *main, struct bSound *sound)
+void sound_update_sequencer(struct Main *main, bSound *sound)
 {
 	struct Scene *scene;
 
@@ -649,7 +649,7 @@ int sound_scene_playing(struct Scene *scene)
 		return -1;
 }
 
-void sound_free_waveform(struct bSound *sound)
+void sound_free_waveform(bSound *sound)
 {
 	if (sound->waveform) {
 		MEM_freeN(((SoundWaveform *)sound->waveform)->data);
@@ -659,7 +659,7 @@ void sound_free_waveform(struct bSound *sound)
 	sound->waveform = NULL;
 }
 
-void sound_read_waveform(struct bSound *sound)
+void sound_read_waveform(bSound *sound)
 {
 	AUD_SoundInfo info;
 
@@ -753,11 +753,11 @@ void sound_update_scene(struct Scene *scene)
 
 void *sound_get_factory(void *sound)
 {
-	return ((struct bSound *) sound)->playback_handle;
+	return ((bSound *) sound)->playback_handle;
 }
 
 /* stupid wrapper because AUD_C-API.h includes Python.h which makesrna doesn't like */
-float sound_get_length(struct bSound* sound)
+float sound_get_length(bSound *sound)
 {
 	AUD_SoundInfo info = AUD_getInfo(sound->playback_handle);
 
