@@ -180,7 +180,8 @@ typedef enum {
 typedef enum {
 	PARTIALVIS_INSIDE,
 	PARTIALVIS_OUTSIDE,
-	PARTIALVIS_ALL
+	PARTIALVIS_ALL,
+	PARTIALVIS_MASKED
 } PartialVisArea;
 
 void PAINT_OT_hide_show(struct wmOperatorType *ot);

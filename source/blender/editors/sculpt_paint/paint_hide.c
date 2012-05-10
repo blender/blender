@@ -83,11 +83,15 @@ static int planes_contain_v3(float (*planes)[4], int totplane, const float p[3])
 
 /* return true if the element should be hidden/shown */
 static int is_effected(PartialVisArea area,
-                       float planes[4][4],
-                       const float co[3])
+					   float planes[4][4],
+					   const float co[3],
+					   const float mask)
 {
 	if (area == PARTIALVIS_ALL)
 		return 1;
+	else if (area == PARTIALVIS_MASKED) {
+		return mask > 0.5;
+	}
 	else {
 		int inside = planes_contain_v3(planes, 4, co);
 		return ((inside && area == PARTIALVIS_INSIDE) ||
@@ -102,20 +106,24 @@ static void partialvis_update_mesh(Object *ob,
                                    PartialVisArea area,
                                    float planes[4][4])
 {
+	Mesh *me = ob->data;
 	MVert *mvert;
+	float *paint_mask;
 	int *vert_indices;
 	int any_changed = 0, any_visible = 0, totvert, i;
 			
 	BLI_pbvh_node_num_verts(pbvh, node, NULL, &totvert);
 	BLI_pbvh_node_get_verts(pbvh, node, &vert_indices, &mvert);
+	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 
 	for (i = 0; i < totvert; i++) {
 		MVert *v = &mvert[vert_indices[i]];
+		float vmask = paint_mask ? paint_mask[vert_indices[i]] : 0;
 
 		/* hide vertex if in the hide volume */
-		if (is_effected(area, planes, v->co)) {
+		if (is_effected(area, planes, v->co, vmask)) {
 			if (action == PARTIALVIS_HIDE)
 				v->flag |= ME_HIDE;
 			else
@@ -187,10 +195,12 @@ static void partialvis_update_grids(Object *ob,
 
 		for (y = 0; y < key.grid_size; y++) {
 			for (x = 0; x < key.grid_size; x++) {
-				const float *co = CCG_grid_elem_co(&key, grids[g], x, y);
+				CCGElem *elem = CCG_grid_elem(&key, grids[g], x, y);
+				const float *co = CCG_elem_co(&key, elem);
+				float mask = *CCG_elem_mask(&key, elem);
 
 				/* skip grid element if not in the effected area */
-				if (is_effected(area, planes, co)) {
+				if (is_effected(area, planes, co, mask)) {
 					/* set or clear the hide flag */
 					BLI_BITMAP_MODIFY(gh, y * key.grid_size + x,
 									  action == PARTIALVIS_HIDE);
@@ -266,7 +276,9 @@ static void get_pbvh_nodes(PBVH *pbvh,
 			cb = BLI_pbvh_node_planes_exclude_AABB;
 			break;
 		case PARTIALVIS_ALL:
+		case PARTIALVIS_MASKED:
 			cb = NULL;
+			break;
 	}
 	
 	BLI_pbvh_search_gather(pbvh, cb, clip_planes, nodes, totnode);
@@ -345,7 +357,7 @@ static int hide_show_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	PartialVisArea area = RNA_enum_get(op->ptr, "area");
 
-	if (area != PARTIALVIS_ALL)
+	if (!ELEM(area, PARTIALVIS_ALL, PARTIALVIS_MASKED))
 		return WM_border_select_invoke(C, op, event);
 	else
 		return op->type->exec(C, op);
@@ -362,6 +374,7 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 		{PARTIALVIS_OUTSIDE, "OUTSIDE", 0, "Outside", "Hide or show vertices outside the selection"},
 		{PARTIALVIS_INSIDE, "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
 		{PARTIALVIS_ALL, "ALL", 0, "All", "Hide or show all vertices"},
+		{PARTIALVIS_MASKED, "MASKED", 0, "Masked", "Hide or show vertices that are masked (minimum mask value of 0.5)"},
 		{0, NULL, 0, NULL, NULL}};
 	
 	/* identifiers */
