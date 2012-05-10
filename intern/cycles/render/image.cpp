@@ -60,19 +60,13 @@ static bool is_float_image(const string& filename)
 
 		if(in->open(filename, spec)) {
 			/* check the main format, and channel formats;
-			   if any are non-integer, we'll need a float texture slot */
-			if(spec.format == TypeDesc::HALF ||
-			   spec.format == TypeDesc::FLOAT ||
-			   spec.format == TypeDesc::DOUBLE) {
+			   if any take up more than one byte, we'll need a float texture slot */
+			if(spec.format.basesize() > 1)
 				is_float = true;
-			}
 
 			for(size_t channel = 0; channel < spec.channelformats.size(); channel++) {
-				if(spec.channelformats[channel] == TypeDesc::HALF ||
-				   spec.channelformats[channel] == TypeDesc::FLOAT ||
-				   spec.channelformats[channel] == TypeDesc::DOUBLE) {
+				if(spec.channelformats[channel].basesize() > 1)
 					is_float = true;
-				}
 			}
 
 			in->close();
