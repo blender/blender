@@ -57,6 +57,8 @@ typedef struct Brush {
 	struct CurveMapping *curve;	/* falloff curve */
 	struct MTex mtex;
 
+	struct Brush *toggle_brush;
+
 	struct ImBuf *icon_imbuf;
 	PreviewImage *preview;
 	char icon_filepath[1024]; /* 1024 = FILE_MAX */
