@@ -634,6 +634,15 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	for (i = 0; i <= 5; i++)
 		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY + i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
 
+	/* Clear mask */
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_mask_flood_fill", MKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "mode", PAINT_MASK_FLOOD_VALUE);
+	RNA_float_set(kmi->ptr, "value", 0);
+
+	/* Invert mask */
+	kmi= WM_keymap_add_item(keymap, "PAINT_OT_mask_flood_fill", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "mode", PAINT_MASK_INVERT);
+
 	/* multires switch */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "level", 1);
