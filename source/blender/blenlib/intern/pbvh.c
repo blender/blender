@@ -1885,4 +1885,8 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	vi->gh= NULL;
 	if (vi->grids && mode == PBVH_ITER_UNIQUE)
 		vi->grid_hidden= bvh->grid_hidden;
+
+	vi->mask= NULL;
+	if(!vi->grids)
+		vi->vmask= CustomData_get_layer(bvh->vdata, CD_PAINT_MASK);
 }
