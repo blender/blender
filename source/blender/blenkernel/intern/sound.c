@@ -391,6 +391,10 @@ AUD_Device *sound_mixdown(struct Scene *scene, AUD_DeviceSpecs specs, int start,
 
 void sound_create_scene(struct Scene *scene)
 {
+	/* should be done in version patch, but this gets called before */
+	if (scene->r.frs_sec_base == 0)
+		scene->r.frs_sec_base = 1;
+
 	scene->sound_scene = AUD_createSequencer(FPS, scene->audio.flag & AUDIO_MUTE);
 	AUD_updateSequencerData(scene->sound_scene, scene->audio.speed_of_sound,
 	                        scene->audio.doppler_factor, scene->audio.distance_model);

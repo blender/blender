@@ -221,7 +221,7 @@ char handleNumInput(NumInput *n, wmEvent *event)
 					break;
 			case MINUSKEY:
 				if (n->flag & NUM_NO_NEGATIVE)
-					break;
+					return 0;
 
 				if (n->ctrl[idx]) {
 					n->ctrl[idx] *= -1;
