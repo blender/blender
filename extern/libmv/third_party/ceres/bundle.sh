@@ -1,7 +1,9 @@
 #!/bin/sh
 
-if [ -d ./.svn ]; then
-  echo "This script is supposed to work only when using git-svn"
+if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
+  echo Proceeding as requested by command line ...
+else
+  echo "*** Please run again with --i-really-know-what-im-doing ..."
   exit 1
 fi
 
@@ -24,8 +26,8 @@ for p in `cat ./patches/series`; do
   cat ./patches/$p | patch -d $tmp/ceres -p1
 done
 
-rm -rf include
-rm -rf internal
+find include -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
+find internal -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
