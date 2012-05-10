@@ -69,7 +69,8 @@ int sculpt_stroke_get_location(bContext *C, float out[3], float mouse[2]);
 
 typedef enum {
 	SCULPT_UNDO_COORDS,
-	SCULPT_UNDO_HIDDEN
+	SCULPT_UNDO_HIDDEN,
+	SCULPT_UNDO_MASK
 } SculptUndoType;
 
 typedef struct SculptUndoNode {
@@ -83,6 +84,7 @@ typedef struct SculptUndoNode {
 	float (*co)[3];
 	float (*orig_co)[3];
 	short (*no)[3];
+	float *mask;
 	int totvert;
 
 	/* non-multires */

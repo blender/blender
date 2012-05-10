@@ -84,6 +84,7 @@ typedef struct SculptSession {
 	int totvert, totpoly;
 	float *face_normals;
 	struct KeyBlock *kb;
+	float *vmask;
 	
 	/* Mesh connectivity */
 	const struct MeshElemMap *pmap;
