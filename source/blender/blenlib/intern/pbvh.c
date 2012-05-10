@@ -34,6 +34,7 @@
 #include "BLI_ghash.h"
 #include "BLI_pbvh.h"
 
+#include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h" /* for BKE_mesh_calc_normals */
 #include "BKE_global.h" /* for BKE_mesh_calc_normals */
@@ -137,12 +138,12 @@ struct PBVH {
 	MFace *faces;
 
 	/* Grid Data */
-	DMGridData **grids;
+	CCGKey gridkey;
+	CCGElem **grids;
 	DMGridAdjacency *gridadj;
 	void **gridfaces;
 	const DMFlagMat *grid_flag_mats;
 	int totgrid;
-	int gridsize;
 	BLI_bitmap *grid_hidden;
 
 	/* Only used during BVH build and update,
@@ -447,7 +448,7 @@ static void build_grids_leaf_node(PBVH *bvh, PBVHNode *node)
 	if (!G.background) {
 		node->draw_buffers =
 			GPU_build_grid_buffers(node->prim_indices,
-				node->totprim, bvh->grid_hidden, bvh->gridsize);
+				node->totprim, bvh->grid_hidden, bvh->gridkey.grid_size);
 	}
 	node->flag |= PBVH_UpdateDrawBuffers;
 }
@@ -642,11 +643,12 @@ void BLI_pbvh_build_mesh(PBVH *bvh, MFace *faces, MVert *verts, int totface, int
 }
 
 /* Do a full rebuild with on Grids data structure */
-void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj,
-	int totgrid, int gridsize, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
+void BLI_pbvh_build_grids(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj,
+	int totgrid, CCGKey *key, void **gridfaces, DMFlagMat *flagmats, BLI_bitmap *grid_hidden)
 {
 	BBC *prim_bbc = NULL;
 	BB cb;
+	int gridsize = key->grid_size;
 	int i, j;
 
 	bvh->type = PBVH_GRIDS;
@@ -655,7 +657,7 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	bvh->gridfaces= gridfaces;
 	bvh->grid_flag_mats= flagmats;
 	bvh->totgrid= totgrid;
-	bvh->gridsize= gridsize;
+	bvh->gridkey = *key;
 	bvh->grid_hidden= grid_hidden;
 	bvh->leaf_limit = MAX2(LEAF_LIMIT/((gridsize-1)*(gridsize-1)), 1);
 
@@ -665,13 +667,13 @@ void BLI_pbvh_build_grids(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridad
 	prim_bbc = MEM_mallocN(sizeof(BBC) * totgrid, "prim_bbc");
 
 	for (i = 0; i < totgrid; ++i) {
-		DMGridData *grid= grids[i];
+		CCGElem *grid= grids[i];
 		BBC *bbc = prim_bbc + i;
 
 		BB_reset((BB*)bbc);
 
 		for (j = 0; j < gridsize*gridsize; ++j)
-			BB_expand((BB*)bbc, grid[j].co);
+			BB_expand((BB*)bbc, CCG_elem_offset_co(key, grid, j));
 
 		BBC_update_centroid(bbc);
 
@@ -1137,7 +1139,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 			if (bvh->grids) {
 				node->draw_buffers =
 					GPU_build_grid_buffers(node->prim_indices,
-						   node->totprim, bvh->grid_hidden, bvh->gridsize);
+						   node->totprim, bvh->grid_hidden, bvh->gridkey.grid_size);
 			}
 			else {
 				node->draw_buffers =
@@ -1158,7 +1160,7 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 						   bvh->grid_flag_mats,
 						   node->prim_indices,
 						   node->totprim,
-						   bvh->gridsize);
+						   &bvh->gridkey);
 				break;
 			case PBVH_FACES:
 				GPU_update_mesh_buffers(node->draw_buffers,
@@ -1315,6 +1317,12 @@ BLI_bitmap *BLI_pbvh_grid_hidden(const PBVH *bvh)
 	return bvh->grid_hidden;
 }
 
+void BLI_pbvh_get_grid_key(const PBVH *bvh, CCGKey *key)
+{
+	BLI_assert(bvh->type == PBVH_GRIDS);
+	*key = bvh->gridkey;
+}
+
 /***************************** Node Access ***********************************/
 
 void BLI_pbvh_node_mark_update(PBVHNode *node)
@@ -1349,7 +1357,7 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 	
 	switch (bvh->type) {
 	case PBVH_GRIDS:
-		tot= node->totprim*bvh->gridsize*bvh->gridsize;
+		tot= node->totprim * bvh->gridkey.grid_area;
 		if (totvert) *totvert= tot;
 		if (uniquevert) *uniquevert= tot;
 		break;
@@ -1360,14 +1368,14 @@ void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node, int *uniquevert, int *to
 	}
 }
 
-void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, DMGridData ***griddata, DMGridAdjacency **gridadj)
+void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node, int **grid_indices, int *totgrid, int *maxgrid, int *gridsize, CCGElem ***griddata, DMGridAdjacency **gridadj)
 {
 	switch (bvh->type) {
 	case PBVH_GRIDS:
 		if (grid_indices) *grid_indices= node->prim_indices;
 		if (totgrid) *totgrid= node->totprim;
 		if (maxgrid) *maxgrid= bvh->totgrid;
-		if (gridsize) *gridsize= bvh->gridsize;
+		if (gridsize) *gridsize= bvh->gridkey.grid_size;
 		if (griddata) *griddata= bvh->grids;
 		if (gridadj) *gridadj= bvh->gridadj;
 		break;
@@ -1541,10 +1549,10 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 		break;
 	case PBVH_GRIDS:
 		totgrid= node->totprim;
-		gridsize= bvh->gridsize;
+		gridsize= bvh->gridkey.grid_size;
 
 		for (i = 0; i < totgrid; ++i) {
-			DMGridData *grid= bvh->grids[node->prim_indices[i]];
+			CCGElem *grid= bvh->grids[node->prim_indices[i]];
 			if (!grid)
 				continue;
 
@@ -1568,11 +1576,11 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 					}
 					else {
 						hit |= ray_face_intersection(ray_start, ray_normal,
-									 grid[y*gridsize + x].co,
-									 grid[y*gridsize + x+1].co,
-									 grid[(y+1)*gridsize + x+1].co,
-									 grid[(y+1)*gridsize + x].co,
-									 dist);
+							         CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
+									 CCG_grid_elem_co(&bvh->gridkey, grid, x+1, y),
+							         CCG_grid_elem_co(&bvh->gridkey, grid, x+1, y+1),
+							         CCG_grid_elem_co(&bvh->gridkey, grid, x, y+1),
+							         dist);
 					}
 				}
 			}
@@ -1690,7 +1698,7 @@ void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
 	}
 }
 
-void BLI_pbvh_grids_update(PBVH *bvh, DMGridData **grids, DMGridAdjacency *gridadj, void **gridfaces)
+void BLI_pbvh_grids_update(PBVH *bvh, CCGElem **grids, DMGridAdjacency *gridadj, void **gridfaces)
 {
 	bvh->grids= grids;
 	bvh->gridadj= gridadj;
@@ -1777,7 +1785,7 @@ PBVHProxyNode* BLI_pbvh_node_add_proxy(PBVH* bvh, PBVHNode* node)
 			node->proxies= MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
 
 		if (bvh->grids)
-			totverts = node->totprim*bvh->gridsize*bvh->gridsize;
+			totverts = node->totprim*bvh->gridkey.grid_area;
 		else
 			totverts = node->uniq_verts;
 
@@ -1845,7 +1853,7 @@ void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** r_array,  int* r_tot)
 void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 						   PBVHVertexIter *vi, int mode)
 {
-	struct DMGridData **grids;
+	struct CCGElem **grids;
 	struct MVert *verts;
 	int *grid_indices, *vert_indices;
 	int totgrid, gridsize, uniq_verts, totvert;
@@ -1858,6 +1866,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 	BLI_pbvh_node_get_grids(bvh, node, &grid_indices, &totgrid, NULL, &gridsize, &grids, NULL);
 	BLI_pbvh_node_num_verts(bvh, node, &uniq_verts, &totvert);
 	BLI_pbvh_node_get_verts(bvh, node, &vert_indices, &verts);
+	vi->key = &bvh->gridkey;
 	
 	vi->grids= grids;
 	vi->grid_indices= grid_indices;

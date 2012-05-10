@@ -52,6 +52,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -1049,7 +1050,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 {
 	Brush *brush = paint_brush(&sd->paint);
 	SculptBrushTest test;
-	DMGridData **griddata, *data;
+	CCGElem **griddata, *data;
+	CCGKey key;
 	DMGridAdjacency *gridadj, *adj;
 	float (*tmpgrid)[3], (*tmprow)[3];
 	int v1, v2, v3, v4;
@@ -1060,7 +1062,8 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	CLAMP(bstrength, 0.0f, 1.0f);
 
 	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
-	                        NULL, &gridsize, &griddata, &gridadj);
+							NULL, &gridsize, &griddata, &gridadj);
+	BLI_pbvh_get_grid_key(ss->pbvh, &key);
 
 	#pragma omp critical
 	{
@@ -1078,7 +1081,9 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 			float tmp[3];
 
 			v1 = y * gridsize;
-			add_v3_v3v3(tmprow[0], data[v1].co, data[v1 + gridsize].co);
+			add_v3_v3v3(tmprow[0],
+						CCG_elem_offset_co(&key, data, v1),
+						CCG_elem_offset_co(&key, data, v1 + gridsize));
 
 			for (x = 0; x < gridsize - 1; x++) {
 				v1 = x + y * gridsize;
@@ -1086,7 +1091,9 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 				v3 = v1 + gridsize;
 				v4 = v3 + 1;
 
-				add_v3_v3v3(tmprow[x + 1], data[v2].co, data[v4].co);
+				add_v3_v3v3(tmprow[x + 1],
+							CCG_elem_offset_co(&key, data, v2),
+							CCG_elem_offset_co(&key, data, v4));
 				add_v3_v3v3(tmp, tmprow[x + 1], tmprow[x]);
 
 				add_v3_v3(tmpgrid[v1], tmp);
@@ -1115,9 +1122,9 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 				if (y == gridsize - 1 && adj->index[1] == -1)
 					continue;
 
-				index = x + y * gridsize;
-				co =  data[index].co;
-				fno = data[index].no;
+				index = x + y*gridsize;
+				co = CCG_elem_offset_co(&key, data, index);
+				fno = CCG_elem_offset_no(&key, data, index);
 
 				if (sculpt_brush_test(&test, co)) {
 					const float fade = bstrength * tex_strength(ss, brush, co, test.dist,

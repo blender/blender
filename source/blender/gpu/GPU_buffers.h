@@ -39,12 +39,11 @@
 #define DEBUG_VBO(X)
 #endif
 
-struct DerivedMesh;
-struct DMFlagMat;
-struct DMGridData;
+struct CCGElem;
+struct CCGKey;
 struct CustomData;
-struct GHash;
-struct DMGridData;
+struct DMFlagMat;
+struct DerivedMesh;
 struct GPUVertPointLink;
 
 typedef struct GPUBuffer {
@@ -169,9 +168,9 @@ void GPU_update_mesh_buffers(GPU_Buffers *buffers, struct MVert *mvert,
 GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 									unsigned int **grid_hidden, int gridsize);
 
-void GPU_update_grid_buffers(GPU_Buffers *buffers, struct DMGridData **grids,
+void GPU_update_grid_buffers(GPU_Buffers *buffers, struct CCGElem **grids,
 							 const struct DMFlagMat *grid_flag_mats,
-							 int *grid_indices, int totgrid, int gridsize);
+							 int *grid_indices, int totgrid, const struct CCGKey *key);
 
 void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial);
 

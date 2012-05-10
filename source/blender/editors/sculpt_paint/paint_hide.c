@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
+#include "BKE_ccg.h"
 #include "BKE_context.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_mesh.h"
@@ -141,16 +142,18 @@ static void partialvis_update_grids(Object *ob,
                                     PartialVisArea area,
                                     float planes[4][4])
 {
-	DMGridData **grids;
+	CCGElem **grids;
+	CCGKey key;
 	BLI_bitmap *grid_hidden;
 	int any_visible = 0;
-	int *grid_indices, gridsize, totgrid, any_changed, i;
+	int *grid_indices, totgrid, any_changed, i;
 
 	/* get PBVH data */
 	BLI_pbvh_node_get_grids(pbvh, node,
-	                        &grid_indices, &totgrid, NULL, &gridsize,
-	                        &grids, NULL);
+							&grid_indices, &totgrid, NULL, NULL,
+							&grids, NULL);
 	grid_hidden = BLI_pbvh_grid_hidden(pbvh);
+	BLI_pbvh_get_grid_key(pbvh, &key);
 	
 	sculpt_undo_push_node(ob, node, SCULPT_UNDO_HIDDEN);
 	
@@ -164,8 +167,8 @@ static void partialvis_update_grids(Object *ob,
 			switch (action) {
 				case PARTIALVIS_HIDE:
 					/* create grid flags data */
-					gh = grid_hidden[g] = BLI_BITMAP_NEW(gridsize * gridsize,
-					                                     "partialvis_update_grids");
+					gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area,
+														 "partialvis_update_grids");
 					break;
 				case PARTIALVIS_SHOW:
 					/* entire grid is visible, nothing to show */
@@ -182,21 +185,21 @@ static void partialvis_update_grids(Object *ob,
 			continue;
 		}
 
-		for (y = 0; y < gridsize; y++) {
-			for (x = 0; x < gridsize; x++) {
-				const float *co = grids[g][y * gridsize + x].co;
+		for (y = 0; y < key.grid_size; y++) {
+			for (x = 0; x < key.grid_size; x++) {
+				const float *co = CCG_grid_elem_co(&key, grids[g], x, y);
 
 				/* skip grid element if not in the effected area */
 				if (is_effected(area, planes, co)) {
 					/* set or clear the hide flag */
-					BLI_BITMAP_MODIFY(gh, y * gridsize + x,
-					                  action == PARTIALVIS_HIDE);
+					BLI_BITMAP_MODIFY(gh, y * key.grid_size + x,
+									  action == PARTIALVIS_HIDE);
 
 					any_changed = 1;
 				}
 
 				/* keep track of whether any elements are still hidden */
-				if (BLI_BITMAP_GET(gh, y * gridsize + x))
+				if (BLI_BITMAP_GET(gh, y * key.grid_size + x))
 					any_hidden = 1;
 				else
 					any_visible = 1;

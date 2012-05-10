@@ -46,6 +46,7 @@
 #include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
 
+#include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -75,7 +76,7 @@ typedef enum {
 } DispOp;
 
 static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert);
-static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, DMGridData **oldGridData, int totlvl);
+static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl);
 
 /** Customdata **/
 
@@ -569,23 +570,27 @@ static void multires_copy_grid(float (*gridA)[3], float (*gridB)[3], int sizeA, 
 	}
 }
 
-static void multires_copy_dm_grid(DMGridData *gridA, DMGridData *gridB, int sizeA, int sizeB)
+static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, CCGKey *keyB)
 {
 	int x, y, j, skip;
 
-	if (sizeA > sizeB) {
-		skip = (sizeA - 1) / (sizeB - 1);
+	if (keyA->grid_size > keyB->grid_size) {
+		skip = (keyA->grid_size - 1) / (keyB->grid_size - 1);
 
-		for (j = 0, y = 0; y < sizeB; y++)
-			for (x = 0; x < sizeB; x++, j++)
-				copy_v3_v3(gridA[y * skip * sizeA + x * skip].co, gridB[j].co);
+		for (j = 0, y = 0; y < keyB->grid_size; y++)
+			for (x = 0; x < keyB->grid_size; x++, j++)
+				memcpy(CCG_elem_offset_co(keyA, gridA, y * skip * keyA->grid_size + x * skip),
+					   CCG_elem_offset_co(keyB, gridB, j),
+					   sizeof(float) * keyA->num_layers);
 	}
 	else {
-		skip = (sizeB - 1) / (sizeA - 1);
+		skip = (keyB->grid_size - 1) / (keyA->grid_size - 1);
 
-		for (j = 0, y = 0; y < sizeA; y++)
-			for (x = 0; x < sizeA; x++, j++)
-				copy_v3_v3(gridA[j].co, gridB[y * skip * sizeB + x * skip].co);
+		for (j = 0, y = 0; y < keyA->grid_size; y++)
+			for (x = 0; x < keyA->grid_size; x++, j++)
+				memcpy(CCG_elem_offset_co(keyA, gridA, j),
+					   CCG_elem_offset_co(keyB, gridB, y * skip * keyB->grid_size + x*skip),
+					   sizeof(float) * keyA->num_layers);
 	}
 }
 
@@ -850,9 +855,10 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 	if (mdisps->disps && !updateblock && totlvl > 1) {
 		/* upsample */
 		DerivedMesh *lowdm, *cddm, *highdm;
-		DMGridData **highGridData, **lowGridData, **subGridData;
+		CCGElem **highGridData, **lowGridData, **subGridData;
+		CCGKey highGridKey, lowGridKey;
 		CCGSubSurf *ss;
-		int i, numGrids, highGridSize, lowGridSize;
+		int i, numGrids, highGridSize;
 
 		/* create subsurf DM from original mesh at high level */
 		cddm = CDDM_from_mesh(me, NULL);
@@ -867,18 +873,19 @@ static void multires_subdivide(MultiresModifierData *mmd, Object *ob, int totlvl
 		numGrids = highdm->getNumGrids(highdm);
 		highGridSize = highdm->getGridSize(highdm);
 		highGridData = highdm->getGridData(highdm);
-		lowGridSize = lowdm->getGridSize(lowdm);
+		highdm->getGridKey(highdm, &highGridKey);
 		lowGridData = lowdm->getGridData(lowdm);
+		lowdm->getGridKey(lowdm, &lowGridKey);
 
 		subGridData = MEM_callocN(sizeof(float *) * numGrids, "subGridData*");
 
 		for (i = 0; i < numGrids; ++i) {
 			/* backup subsurf grids */
-			subGridData[i] = MEM_callocN(sizeof(DMGridData) * highGridSize * highGridSize, "subGridData");
-			memcpy(subGridData[i], highGridData[i], sizeof(DMGridData) * highGridSize * highGridSize);
+			subGridData[i] = MEM_callocN(highGridKey.elem_size * highGridSize * highGridSize, "subGridData");
+			memcpy(subGridData[i], highGridData[i], highGridKey.elem_size*highGridSize * highGridSize);
 
 			/* overwrite with current displaced grids */
-			multires_copy_dm_grid(highGridData[i], lowGridData[i], highGridSize, lowGridSize);
+			multires_copy_dm_grid(highGridData[i], lowGridData[i], &highGridKey, &lowGridKey);
 		}
 
 		/* low lower level dm no longer needed at this point */
@@ -914,34 +921,35 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 	multires_subdivide(mmd, ob, mmd->totlvl + 1, updateblock, simple);
 }
 
-void grid_tangent(int gridSize, int index, int x, int y, int axis, DMGridData **gridData, float t[3])
+void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
 {
 	if (axis == 0) {
-		if (x == gridSize - 1) {
-			if (y == gridSize - 1)
-				sub_v3_v3v3(t, gridData[index][x + gridSize * (y - 1)].co, gridData[index][x - 1 + gridSize * (y - 1)].co);
+		if (x == key->grid_size - 1) {
+			if (y == key->grid_size - 1)
+				sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y - 1), CCG_grid_elem_co(key, grid, x - 1, y - 1));
 			else
-				sub_v3_v3v3(t, gridData[index][x + gridSize * y].co, gridData[index][x - 1 + gridSize * y].co);
+				sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x - 1, y));
 		}
 		else
-			sub_v3_v3v3(t, gridData[index][x + 1 + gridSize * y].co, gridData[index][x + gridSize * y].co);
+			sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x + 1, y), CCG_grid_elem_co(key, grid, x, y));
 	}
 	else if (axis == 1) {
-		if (y == gridSize - 1) {
-			if (x == gridSize - 1)
-				sub_v3_v3v3(t, gridData[index][x - 1 + gridSize * y].co, gridData[index][x - 1 + gridSize * (y - 1)].co);
+		if (y == key->grid_size - 1) {
+			if (x == key->grid_size - 1)
+				sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x - 1, y), CCG_grid_elem_co(key, grid, x - 1, (y - 1)));
 			else
-				sub_v3_v3v3(t, gridData[index][x + gridSize * y].co, gridData[index][x + gridSize * (y - 1)].co);
+				sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, y), CCG_grid_elem_co(key, grid, x, (y - 1)));
 		}
 		else
-			sub_v3_v3v3(t, gridData[index][x + gridSize * (y + 1)].co, gridData[index][x + gridSize * y].co);
+			sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, (y + 1)), CCG_grid_elem_co(key, grid, x, y));
 	}
 }
 
-static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, DMGridData **oldGridData, int totlvl)
+static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *)dm;
-	DMGridData **gridData, **subGridData;
+	CCGElem **gridData, **subGridData;
+	CCGKey key;
 	MPoly *mpoly = me->mpoly;
 	MDisps *mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
 	int *gridOffset;
@@ -971,7 +979,8 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 	gridSize = dm->getGridSize(dm);
 	gridData = dm->getGridData(dm);
 	gridOffset = dm->getGridOffset(dm);
-	subGridData = (oldGridData) ? oldGridData : gridData;
+	dm->getGridKey(dm, &key);
+	subGridData = (oldGridData) ? oldGridData: gridData;
 
 	dGridSize = multires_side_tot[totlvl];
 	dSkip = (dGridSize - 1) / (gridSize - 1);
@@ -986,8 +995,8 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 		for (S = 0; S < numVerts; ++S, ++gIndex, ++k) {
 			MDisps *mdisp = &mdisps[mpoly[i].loopstart + S];
-			DMGridData *grid = gridData[gIndex];
-			DMGridData *subgrid = subGridData[gIndex];
+			CCGElem *grid = gridData[gIndex];
+			CCGElem *subgrid = subGridData[gIndex];
 			float (*dispgrid)[3] = NULL;
 
 			/* when adding new faces in edit mode, need to allocate disps */
@@ -1001,17 +1010,17 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
-					float *co = grid[x + y * gridSize].co;
-					float *sco = subgrid[x + y * gridSize].co;
-					float *no = subgrid[x + y * gridSize].no;
+					float *co = CCG_grid_elem_co(&key, grid, x, y);
+					float *sco = CCG_grid_elem_co(&key, subgrid, x, y);
+					float *no = CCG_grid_elem_no(&key, subgrid, x, y);
 					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
 					float mat[3][3], tx[3], ty[3], disp[3], d[3];
 
 					/* construct tangent space matrix */
-					grid_tangent(gridSize, gIndex, x, y, 0, subGridData, tx);
+					grid_tangent(&key, x, y, 0, subGridData[gIndex], tx);
 					normalize_v3(tx);
 
-					grid_tangent(gridSize, gIndex, x, y, 1, subGridData, ty);
+					grid_tangent(&key, x, y, 1, subGridData[gIndex], ty);
 					normalize_v3(ty);
 
 					//mul_v3_fl(tx, 1.0f/(gridSize-1));
@@ -1075,7 +1084,8 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 		if (lvl < totlvl) {
 			Mesh *me = ob->data;
 			DerivedMesh *lowdm, *cddm, *highdm;
-			DMGridData **highGridData, **lowGridData, **subGridData, **gridData, *diffGrid;
+			CCGElem **highGridData, **lowGridData, **subGridData, **gridData, *diffGrid;
+			CCGKey highGridKey, lowGridKey;
 			CCGSubSurf *ss;
 			int i, j, numGrids, highGridSize, lowGridSize;
 
@@ -1094,23 +1104,30 @@ void multires_modifier_update_mdisps(struct DerivedMesh *dm)
 			numGrids = highdm->getNumGrids(highdm);
 			highGridSize = highdm->getGridSize(highdm);
 			highGridData = highdm->getGridData(highdm);
+			highdm->getGridKey(highdm, &highGridKey);
 			lowGridSize = lowdm->getGridSize(lowdm);
 			lowGridData = lowdm->getGridData(lowdm);
+			lowdm->getGridKey(lowdm, &lowGridKey);
 			gridData = dm->getGridData(dm);
 
-			subGridData = MEM_callocN(sizeof(DMGridData *) * numGrids, "subGridData*");
-			diffGrid = MEM_callocN(sizeof(DMGridData) * lowGridSize * lowGridSize, "diff");
+			BLI_assert(highGridKey.elem_size == lowGridKey.elem_size);
+
+			subGridData = MEM_callocN(sizeof(CCGElem*)*numGrids, "subGridData*");
+			diffGrid = MEM_callocN(lowGridKey.elem_size*lowGridSize*lowGridSize, "diff");
 
 			for (i = 0; i < numGrids; ++i) {
 				/* backup subsurf grids */
-				subGridData[i] = MEM_callocN(sizeof(DMGridData) * highGridSize * highGridSize, "subGridData");
-				memcpy(subGridData[i], highGridData[i], sizeof(DMGridData) * highGridSize * highGridSize);
+				subGridData[i] = MEM_callocN(highGridKey.elem_size*highGridSize*highGridSize, "subGridData");
+				memcpy(subGridData[i], highGridData[i], highGridKey.elem_size*highGridSize*highGridSize);
 
 				/* write difference of subsurf and displaced low level into high subsurf */
-				for (j = 0; j < lowGridSize * lowGridSize; ++j)
-					sub_v3_v3v3(diffGrid[j].co, gridData[i][j].co, lowGridData[i][j].co);
+				for (j = 0; j < lowGridSize*lowGridSize; ++j) {
+					sub_v3_v3v3(CCG_elem_offset_co(&lowGridKey, diffGrid, j),
+								CCG_elem_offset_co(&lowGridKey, gridData[i], j),
+								CCG_elem_offset_co(&lowGridKey, lowGridData[i], j));
+				}
 
-				multires_copy_dm_grid(highGridData[i], diffGrid, highGridSize, lowGridSize);
+				multires_copy_dm_grid(highGridData[i], diffGrid, &highGridKey, &lowGridKey);
 			}
 
 			/* lower level dm no longer needed at this point */
@@ -1183,7 +1200,8 @@ void multires_modifier_update_hidden(DerivedMesh *dm)
 void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 {
 	DerivedMesh *ccgdm = NULL, *subsurf = NULL;
-	DMGridData **gridData, **subGridData = NULL;
+	CCGElem **gridData, **subGridData = NULL;
+	CCGKey key;
 	MPoly *mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 	MDisps *mdisps;
 	MultiresModifierData *mmd = get_multires_modifier(NULL, ob, 1);
@@ -1208,12 +1226,13 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 	numGrids = subsurf->getNumGrids(subsurf);
 	gridSize = subsurf->getGridSize(subsurf);
 	gridData = subsurf->getGridData(subsurf);
+	subsurf->getGridKey(subsurf, &key);
 
-	subGridData = MEM_callocN(sizeof(DMGridData *) * numGrids, "subGridData*");
+	subGridData = MEM_callocN(sizeof(CCGElem*)*numGrids, "subGridData*");
 
 	for (i = 0; i < numGrids; i++) {
-		subGridData[i] = MEM_callocN(sizeof(DMGridData) * gridSize * gridSize, "subGridData");
-		memcpy(subGridData[i], gridData[i], sizeof(DMGridData) * gridSize * gridSize);
+		subGridData[i] = MEM_callocN(key.elem_size*gridSize*gridSize, "subGridData");
+		memcpy(subGridData[i], gridData[i], key.elem_size*gridSize*gridSize);
 	}
 	
 	/*numGrids = ccgdm->dm->getNumGrids((DerivedMesh*)ccgdm);*/ /*UNUSED*/
@@ -1234,8 +1253,8 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 						
 		for (S = 0; S < numVerts; ++S, ++gIndex, ++k) {
 			MDisps *mdisp = &mdisps[mpoly[i].loopstart + S];
-			/* DMGridData *grid = gridData[gIndex]; */ /* UNUSED */
-			DMGridData *subgrid = subGridData[gIndex];
+			/* CCGElem *grid = gridData[gIndex]; */ /* UNUSED */
+			CCGElem *subgrid = subGridData[gIndex];
 			float (*dispgrid)[3] = NULL;
 
 			/* when adding new faces in edit mode, need to allocate disps */
@@ -1249,16 +1268,16 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
-					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-					float *no = subgrid[x + y * gridSize].no;
-					float *co = subgrid[x + y * gridSize].co;
+					float *data = dispgrid[dGridSize*y*dSkip + x*dSkip];
+					float *no = CCG_grid_elem_no(&key, subgrid, x, y);
+					float *co = CCG_grid_elem_co(&key, subgrid, x, y);
 					float mat[3][3], tx[3], ty[3], dco[3];
 					
 					/* construct tangent space matrix */
-					grid_tangent(gridSize, gIndex, x, y, 0, subGridData, tx);
+					grid_tangent(&key, x, y, 0, subGridData[gIndex], tx);
 					normalize_v3(tx);
 
-					grid_tangent(gridSize, gIndex, x, y, 1, subGridData, ty);
+					grid_tangent(&key, x, y, 1, subGridData[gIndex], ty);
 					normalize_v3(ty);
 					column_vectors_to_mat3(mat, tx, ty, no);
 
@@ -1334,7 +1353,8 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 	Mesh *me = ob->data;
 	DerivedMesh *result;
 	CCGDerivedMesh *ccgdm = NULL;
-	DMGridData **gridData, **subGridData;
+	CCGElem **gridData, **subGridData;
+	CCGKey key;
 	int lvl = multires_get_level(ob, mmd, (flags & MULTIRES_USE_RENDER_PARAMS));
 	int i, gridSize, numGrids;
 
@@ -1359,12 +1379,13 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 	numGrids = result->getNumGrids(result);
 	gridSize = result->getGridSize(result);
 	gridData = result->getGridData(result);
+	result->getGridKey(result, &key);
 
-	subGridData = MEM_callocN(sizeof(DMGridData *) * numGrids, "subGridData*");
+	subGridData = MEM_callocN(sizeof(CCGElem*)*numGrids, "subGridData*");
 
 	for (i = 0; i < numGrids; i++) {
-		subGridData[i] = MEM_callocN(sizeof(DMGridData) * gridSize * gridSize, "subGridData");
-		memcpy(subGridData[i], gridData[i], sizeof(DMGridData) * gridSize * gridSize);
+		subGridData[i] = MEM_callocN(key.elem_size*gridSize*gridSize, "subGridData");
+		memcpy(subGridData[i], gridData[i], key.elem_size*gridSize*gridSize);
 	}
 
 	multires_set_tot_mdisps(me, mmd->totlvl);
@@ -1679,12 +1700,15 @@ static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
 	CCGSubSurf *ss = ccgdm->ss;
-	DMGridData *vd;
+	CCGElem *vd;
+	CCGKey key;
 	int index;
 	int totvert, totedge, totface;
 	int gridSize = ccgSubSurf_getGridSize(ss);
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	int i = 0;
+
+	dm->getGridKey(dm, &key);
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (index = 0; index < totface; index++) {
@@ -1692,13 +1716,13 @@ static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 		int x, y, S, numVerts = ccgSubSurf_getFaceNumVerts(f);
 
 		vd = ccgSubSurf_getFaceCenterData(f);
-		copy_v3_v3(vd->co, mvert[i].co);
+		copy_v3_v3(CCG_elem_co(&key, vd), mvert[i].co);
 		i++;
 		
 		for (S = 0; S < numVerts; S++) {
 			for (x = 1; x < gridSize - 1; x++, i++) {
 				vd = ccgSubSurf_getFaceGridEdgeData(ss, f, S, x);
-				copy_v3_v3(vd->co, mvert[i].co);
+				copy_v3_v3(CCG_elem_co(&key, vd), mvert[i].co);
 			}
 		}
 
@@ -1706,7 +1730,7 @@ static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 			for (y = 1; y < gridSize - 1; y++) {
 				for (x = 1; x < gridSize - 1; x++, i++) {
 					vd = ccgSubSurf_getFaceGridData(ss, f, S, x, y);
-					copy_v3_v3(vd->co, mvert[i].co);
+					copy_v3_v3(CCG_elem_co(&key, vd), mvert[i].co);
 				}
 			}
 		}
@@ -1719,7 +1743,7 @@ static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 
 		for (x = 1; x < edgeSize - 1; x++, i++) {
 			vd = ccgSubSurf_getEdgeData(ss, e, x);
-			copy_v3_v3(vd->co, mvert[i].co);
+			copy_v3_v3(CCG_elem_co(&key, vd), mvert[i].co);
 		}
 	}
 
@@ -1728,7 +1752,7 @@ static void multires_mvert_to_ss(DerivedMesh *dm, MVert *mvert)
 		CCGVert *v = ccgdm->vertMap[index].vert;
 
 		vd = ccgSubSurf_getVertData(ss, v);
-		copy_v3_v3(vd->co, mvert[i].co);
+		copy_v3_v3(CCG_elem_co(&key, vd), mvert[i].co);
 		i++;
 	}
 
@@ -2041,8 +2065,9 @@ static void multires_sync_levels(Scene *scene, Object *ob, Object *to_ob)
 static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm = NULL, *cddm = NULL, *subdm = NULL;
-	DMGridData **gridData, **subGridData;
-	Mesh *me = (Mesh *)ob->data;
+	CCGElem **gridData, **subGridData;
+	CCGKey key;
+	Mesh *me = (Mesh*)ob->data;
 	MPoly *mpoly = me->mpoly;
 	/* MLoop *mloop = me->mloop; */ /* UNUSED */
 	MDisps *mdisps;
@@ -2079,10 +2104,11 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dm = subsurf_dm_create_local(ob, cddm, high_mmd.totlvl, high_mmd.simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv);
 	cddm->release(cddm);
 
-	/*numGrids= dm->getNumGrids(dm);*/ /*UNUSED*/
+	/*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
 	gridSize = dm->getGridSize(dm);
 	gridData = dm->getGridData(dm);
 	gridOffset = dm->getGridOffset(dm);
+	dm->getGridKey(dm, &key);
 	subGridData = subdm->getGridData(subdm);
 
 	dGridSize = multires_side_tot[high_mmd.totlvl];
@@ -2095,23 +2121,23 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 		int S, x, y, gIndex = gridOffset[i];
 
 		for (S = 0; S < numVerts; ++S, ++gIndex, mdisp++) {
-			DMGridData *grid = gridData[gIndex];
-			DMGridData *subgrid = subGridData[gIndex];
+			CCGElem *grid = gridData[gIndex];
+			CCGElem *subgrid = subGridData[gIndex];
 			float (*dispgrid)[3] = mdisp->disps;
 
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
-					float *co = grid[x + y * gridSize].co;
-					float *sco = subgrid[x + y * gridSize].co;
-					float *no = grid[x + y * gridSize].no;
-					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
+					float *co = CCG_grid_elem_co(&key, grid, x, y);
+					float *sco = CCG_grid_elem_co(&key, subgrid, x, y);
+					float *no = CCG_grid_elem_no(&key, grid, x, y);
+					float *data = dispgrid[dGridSize*y*dSkip + x*dSkip];
 					float mat[3][3], tx[3], ty[3], disp[3];
 
 					/* construct tangent space matrix */
-					grid_tangent(gridSize, gIndex, x, y, 0, gridData, tx);
+					grid_tangent(&key, x, y, 0, gridData[gIndex], tx);
 					normalize_v3(tx);
 
-					grid_tangent(gridSize, gIndex, x, y, 1, gridData, ty);
+					grid_tangent(&key, x, y, 1, gridData[gIndex], ty);
 					normalize_v3(ty);
 
 					column_vectors_to_mat3(mat, tx, ty, no);

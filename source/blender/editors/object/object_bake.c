@@ -49,6 +49,7 @@
 #include "BLI_math_geom.h"
 
 #include "BKE_blender.h"
+#include "BKE_ccg.h"
 #include "BKE_screen.h"
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -475,32 +476,32 @@ static void interp_barycentric_tri_data(float data[3][3], float u, float v, floa
 
 /* mode = 0: interpolate normals,
  * mode = 1: interpolate coord */
-static void interp_bilinear_grid(DMGridData *grid, int grid_size, float crn_x, float crn_y, int mode, float res[3])
+static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float crn_y, int mode, float res[3])
 {
 	int x0, x1, y0, y1;
 	float u, v;
 	float data[4][3];
 
 	x0 = (int) crn_x;
-	x1 = x0 >= (grid_size - 1) ? (grid_size - 1) : (x0 + 1);
+	x1 = x0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (x0 + 1);
 
 	y0 = (int) crn_y;
-	y1 = y0 >= (grid_size - 1) ? (grid_size - 1) : (y0 + 1);
+	y1 = y0 >= (key->grid_size - 1 ) ? (key->grid_size - 1) : (y0 + 1);
 
 	u = crn_x - x0;
 	v = crn_y - y0;
 
 	if (mode == 0) {
-		copy_v3_v3(data[0], grid[y0 * grid_size + x0].no);
-		copy_v3_v3(data[1], grid[y0 * grid_size + x1].no);
-		copy_v3_v3(data[2], grid[y1 * grid_size + x1].no);
-		copy_v3_v3(data[3], grid[y1 * grid_size + x0].no);
+		copy_v3_v3(data[0], CCG_grid_elem_no(key, grid, x0, y0));
+		copy_v3_v3(data[1], CCG_grid_elem_no(key, grid, x1, y0));
+		copy_v3_v3(data[2], CCG_grid_elem_no(key, grid, x1, y1));
+		copy_v3_v3(data[3], CCG_grid_elem_no(key, grid, x0, y1));
 	}
 	else {
-		copy_v3_v3(data[0], grid[y0 * grid_size + x0].co);
-		copy_v3_v3(data[1], grid[y0 * grid_size + x1].co);
-		copy_v3_v3(data[2], grid[y1 * grid_size + x1].co);
-		copy_v3_v3(data[3], grid[y1 * grid_size + x0].co);
+		copy_v3_v3(data[0], CCG_grid_elem_co(key, grid, x0, y0));
+		copy_v3_v3(data[1], CCG_grid_elem_co(key, grid, x1, y0));
+		copy_v3_v3(data[2], CCG_grid_elem_co(key, grid, x1, y1));
+		copy_v3_v3(data[3], CCG_grid_elem_co(key, grid, x0, y1));
 	}
 
 	interp_bilinear_quad_data(data, u, v, res);
@@ -509,7 +510,8 @@ static void interp_bilinear_grid(DMGridData *grid, int grid_size, float crn_x, f
 static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *origindex,  const int lvl, const int face_index, const float u, const float v, float co[3], float n[3])
 {
 	MFace mface;
-	DMGridData **grid_data;
+	CCGElem **grid_data;
+	CCGKey key;
 	float crn_x, crn_y;
 	int grid_size, S, face_side;
 	int *grid_offset, g_index;
@@ -519,6 +521,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 	grid_size = hidm->getGridSize(hidm);
 	grid_data = hidm->getGridData(hidm);
 	grid_offset = hidm->getGridOffset(hidm);
+	hidm->getGridKey(hidm, &key);
 
 	face_side = (grid_size << 1) - 1;
 
@@ -546,10 +549,10 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 	CLAMP(crn_y, 0.0f, grid_size);
 
 	if (n != NULL)
-		interp_bilinear_grid(grid_data[g_index + S], grid_size, crn_x, crn_y, 0, n);
+		interp_bilinear_grid(&key, grid_data[g_index + S], crn_x, crn_y, 0, n);
 
 	if (co != NULL)
-		interp_bilinear_grid(grid_data[g_index + S], grid_size, crn_x, crn_y, 1, co);
+		interp_bilinear_grid(&key, grid_data[g_index + S], crn_x, crn_y, 1, co);
 }
 
 /* mode = 0: interpolate normals,

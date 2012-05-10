@@ -46,6 +46,7 @@
 
 #include "DNA_meshdata_types.h"
 
+#include "BKE_ccg.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
@@ -1280,12 +1281,12 @@ struct GPU_Buffers {
 	int totface;
 
 	/* grid pointers */
-	DMGridData **grids;
+	CCGKey gridkey;
+	CCGElem **grids;
 	const DMFlagMat *grid_flag_mats;
 	const BLI_bitmap *grid_hidden;
 	int *grid_indices;
 	int totgrid;
-	int gridsize;
 	int has_hidden;
 
 	unsigned int tot_tri, tot_quad;
@@ -1402,13 +1403,14 @@ GPU_Buffers *GPU_build_mesh_buffers(int (*face_vert_indices)[4],
 	return buffers;
 }
 
-void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
-	const DMFlagMat *grid_flag_mats, int *grid_indices, int totgrid, int gridsize)
+void GPU_update_grid_buffers(GPU_Buffers *buffers, CCGElem **grids,
+							 const DMFlagMat *grid_flag_mats, int *grid_indices,
+							 int totgrid, const CCGKey *key)
 {
-	DMGridData *vert_data;
+	CCGElem *vert_data;
 	int i, j, k, totvert;
 
-	totvert= gridsize*gridsize*totgrid;
+	totvert= key->grid_area * totgrid;
 
 	/* Build VBO */
 	if (buffers->vert_buf) {
@@ -1416,33 +1418,33 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 
 		glBindBufferARB(GL_ARRAY_BUFFER_ARB, buffers->vert_buf);
 		glBufferDataARB(GL_ARRAY_BUFFER_ARB,
-		                sizeof(DMGridData) * totvert,
+		                key->elem_size * totvert,
 		                NULL, GL_STATIC_DRAW_ARB);
 		vert_data = glMapBufferARB(GL_ARRAY_BUFFER_ARB, GL_WRITE_ONLY_ARB);
 		if (vert_data) {
 			for (i = 0; i < totgrid; ++i) {
-				DMGridData *grid= grids[grid_indices[i]];
-				memcpy(vert_data, grid, sizeof(DMGridData)*gridsize*gridsize);
+				CCGElem *grid= grids[grid_indices[i]];
+				memcpy(vert_data, grid, key->elem_size * key->grid_area);
 
 				if (!smooth) {
 					/* for flat shading, recalc normals and set the last vertex of
 					 * each quad in the index buffer to have the flat normal as
 					 * that is what opengl will use */
-					for (j = 0; j < gridsize-1; ++j) {
-						for (k = 0; k < gridsize-1; ++k) {
+					for (j = 0; j < key->grid_size - 1; j++) {
+						for (k = 0; k < key->grid_size - 1; k++) {
 							float fno[3];
 							normal_quad_v3(fno,
-								grid[(j+1)*gridsize + k].co,
-								grid[(j+1)*gridsize + k+1].co,
-								grid[j*gridsize + k+1].co,
-								grid[j*gridsize + k].co);
+								CCG_grid_elem_co(key, grid, k, j+1),
+								CCG_grid_elem_co(key, grid, k+1, j+1),
+								CCG_grid_elem_co(key, grid, k+1, j),
+								CCG_grid_elem_co(key, grid, k, j));
 
-							copy_v3_v3(vert_data[(j+1)*gridsize + (k+1)].no, fno);
+							copy_v3_v3(CCG_grid_elem_no(key, vert_data, k+1, j+1), fno);
 						}
 					}
 				}
 
-				vert_data += gridsize*gridsize;
+				vert_data = CCG_elem_offset(key, vert_data, key->grid_area);
 			}
 			glUnmapBufferARB(GL_ARRAY_BUFFER_ARB);
 		}
@@ -1456,8 +1458,8 @@ void GPU_update_grid_buffers(GPU_Buffers *buffers, DMGridData **grids,
 	buffers->grids = grids;
 	buffers->grid_indices = grid_indices;
 	buffers->totgrid = totgrid;
-	buffers->gridsize = gridsize;
 	buffers->grid_flag_mats = grid_flag_mats;
+	buffers->gridkey = *key;
 
 	//printf("node updated %p\n", buffers);
 }
@@ -1600,7 +1602,6 @@ GPU_Buffers *GPU_build_grid_buffers(int *grid_indices, int totgrid,
 
 	buffers = MEM_callocN(sizeof(GPU_Buffers), "GPU_Buffers");
 	buffers->grid_hidden = grid_hidden;
-	buffers->gridsize = gridsize;
 	buffers->totgrid = totgrid;
 
 	/* Count the number of quads */
@@ -1685,11 +1686,12 @@ static void gpu_draw_buffers_legacy_mesh(GPU_Buffers *buffers, int smooth)
 
 static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 {
-	int i, j, x, y, gridsize = buffers->gridsize;
+	const CCGKey *key = &buffers->gridkey;
+	int i, j, x, y, gridsize = buffers->gridkey.grid_size;
 
 	for (i = 0; i < buffers->totgrid; ++i) {
 		int g = buffers->grid_indices[i];
-		const DMGridData *grid = buffers->grids[g];
+		CCGElem *grid = buffers->grids[g];
 		BLI_bitmap gh = buffers->grid_hidden[g];
 
 		/* TODO: could use strips with hiding as well */
@@ -1699,11 +1701,11 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 			
 			for (y = 0; y < gridsize-1; y++) {
 				for (x = 0; x < gridsize-1; x++) {
-					const DMGridData *e[4] = {
-						&grid[y*gridsize + x],
-						&grid[(y+1)*gridsize + x],
-						&grid[(y+1)*gridsize + x+1],
-						&grid[y*gridsize + x+1]
+					CCGElem *e[4] = {
+						CCG_grid_elem(key, grid, x+1, y+1),
+						CCG_grid_elem(key, grid, x+1, y),
+						CCG_grid_elem(key, grid, x, y),
+						CCG_grid_elem(key, grid, x, y+1)
 					};
 
 					/* skip face if any of its corners are hidden */
@@ -1712,17 +1714,21 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 
 					if (smooth) {
 						for (j = 0; j < 4; j++) {
-							glNormal3fv(e[j]->no);
-							glVertex3fv(e[j]->co);
+							glNormal3fv(CCG_elem_no(key, e[j]));
+							glVertex3fv(CCG_elem_co(key, e[j]));
 						}
 					}
 					else {
 						float fno[3];
-						normal_quad_v3(fno, e[0]->co, e[1]->co, e[2]->co, e[3]->co);
+						normal_quad_v3(fno,
+									   CCG_elem_co(key, e[0]),
+									   CCG_elem_co(key, e[1]),
+									   CCG_elem_co(key, e[2]),
+									   CCG_elem_co(key, e[3]));
 						glNormal3fv(fno);
 
 						for (j = 0; j < 4; j++)
-							glVertex3fv(e[j]->co);
+							glVertex3fv(CCG_elem_co(key, e[j]));
 					}
 				}
 			}
@@ -1733,13 +1739,13 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 			for (y = 0; y < gridsize-1; y++) {
 				glBegin(GL_QUAD_STRIP);
 				for (x = 0; x < gridsize; x++) {
-					const DMGridData *a = &grid[y*gridsize + x];
-					const DMGridData *b = &grid[(y+1)*gridsize + x];
+					CCGElem *a = CCG_grid_elem(key, grid, x, y);
+					CCGElem *b = CCG_grid_elem(key, grid, x, y+1);
 
-					glNormal3fv(a->no);
-					glVertex3fv(a->co);
-					glNormal3fv(b->no);
-					glVertex3fv(b->co);
+					glNormal3fv(CCG_elem_no(key, a));
+					glVertex3fv(CCG_elem_co(key, a));
+					glNormal3fv(CCG_elem_no(key, b));
+					glVertex3fv(CCG_elem_co(key, b));
 				}
 				glEnd();
 			}
@@ -1748,19 +1754,24 @@ static void gpu_draw_buffers_legacy_grids(GPU_Buffers *buffers, int smooth)
 			for (y = 0; y < gridsize-1; y++) {
 				glBegin(GL_QUAD_STRIP);
 				for (x = 0; x < gridsize; x++) {
-					const DMGridData *a = &grid[y*gridsize + x];
-					const DMGridData *b = &grid[(y+1)*gridsize + x];
+					CCGElem *a = CCG_grid_elem(key, grid, x, y);
+					CCGElem *b = CCG_grid_elem(key, grid, x, y+1);
 
 					if (x > 0) {
-						const DMGridData *c = &grid[y*gridsize + x-1];
-						const DMGridData *d = &grid[(y+1)*gridsize + x-1];
+						CCGElem *c = CCG_grid_elem(key, grid, x-1, y);
+						CCGElem *d = CCG_grid_elem(key, grid, x-1, y+1);
+
 						float fno[3];
-						normal_quad_v3(fno, d->co, b->co, a->co, c->co);
+						normal_quad_v3(fno,
+									   CCG_elem_co(key, d),
+									   CCG_elem_co(key, b),
+									   CCG_elem_co(key, a),
+									   CCG_elem_co(key, c));
 						glNormal3fv(fno);
 					}
 
-					glVertex3fv(a->co);
-					glVertex3fv(b->co);
+					glVertex3fv(CCG_elem_co(key, a));
+					glVertex3fv(CCG_elem_co(key, b));
 				}
 				glEnd();
 			}
@@ -1797,15 +1808,15 @@ void GPU_draw_buffers(GPU_Buffers *buffers, DMSetMaterial setMaterial)
 		glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, buffers->index_buf);
 
 		if (buffers->tot_quad) {
-			unsigned offset = 0;
+			char *offset = 0;
 			int i, last = buffers->has_hidden ? 1 : buffers->totgrid;
 			for (i = 0; i < last; i++) {
-				glVertexPointer(3, GL_FLOAT, sizeof(DMGridData), offset + (char*)offsetof(DMGridData, co));
-				glNormalPointer(GL_FLOAT, sizeof(DMGridData), offset + (char*)offsetof(DMGridData, no));
+				glVertexPointer(3, GL_FLOAT, buffers->gridkey.elem_size, offset);
+				glNormalPointer(GL_FLOAT, buffers->gridkey.elem_size, offset + buffers->gridkey.normal_offset);
 				
 				glDrawElements(GL_QUADS, buffers->tot_quad * 4, buffers->index_type, 0);
 
-				offset += buffers->gridsize * buffers->gridsize * sizeof(DMGridData);
+				offset += buffers->gridkey.grid_area * buffers->gridkey.elem_size;
 			}
 		}
 		else {

@@ -47,6 +47,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_mesh_types.h"
 
+#include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -157,19 +158,21 @@ static int sculpt_undo_restore_coords(bContext *C, DerivedMesh *dm, SculptUndoNo
 	}
 	else if (unode->maxgrid && dm->getGridData) {
 		/* multires restore */
-		DMGridData **grids, *grid;
+		CCGElem **grids, *grid;
+		CCGKey key;
 		float (*co)[3];
 		int gridsize;
 
 		grids = dm->getGridData(dm);
 		gridsize = dm->getGridSize(dm);
+		dm->getGridKey(dm, &key);
 
 		co = unode->co;
 		for (j = 0; j < unode->totgrid; j++) {
 			grid = grids[unode->grids[j]];
 
-			for (i = 0; i < gridsize * gridsize; i++, co++)
-				swap_v3_v3(grid[i].co, co[0]);
+			for (i = 0; i < gridsize*gridsize; i++, co++)
+				swap_v3_v3(CCG_elem_offset_co(&key, grid, i), co[0]);
 		}
 	}
 

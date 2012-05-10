@@ -28,9 +28,10 @@
 
 #include "BLI_bitmap.h"
 
+struct CCGElem;
+struct CCGKey;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct DMGridData;
 struct ListBase;
 struct MFace;
 struct MVert;
@@ -57,9 +58,9 @@ typedef void (*BLI_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float* 
 PBVH *BLI_pbvh_new(void);
 void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
 			int totface, int totvert);
-void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
+void BLI_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
 	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces, struct DMFlagMat *flagmats,
+	struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
 	unsigned int **grid_hidden);
 void BLI_pbvh_free(PBVH *bvh);
 
@@ -102,6 +103,9 @@ PBVHType BLI_pbvh_type(const PBVH *bvh);
 /* multires hidden data, only valid for type == PBVH_GRIDS */
 unsigned int **BLI_pbvh_grid_hidden(const PBVH *bvh);
 
+/* multires level, only valid for type == PBVH_GRIDS */
+void BLI_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
+
 /* Node Access */
 
 typedef enum {
@@ -123,7 +127,7 @@ void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
 	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
-	struct DMGridData ***griddata, struct DMGridAdjacency **gridadj);
+	struct CCGElem ***grid_elems, struct DMGridAdjacency **gridadj);
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node,
 	int *uniquevert, int *totvert);
 void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node,
@@ -144,7 +148,7 @@ int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
 void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
 void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface);
-void BLI_pbvh_grids_update(PBVH *bvh, struct DMGridData **grids,
+void BLI_pbvh_grids_update(PBVH *bvh, struct CCGElem **grid_elems,
 	struct DMGridAdjacency *gridadj, void **gridfaces);
 
 /* vertex deformer */
@@ -174,8 +178,9 @@ typedef struct PBVHVertexIter {
 	int i;
 
 	/* grid */
-	struct DMGridData **grids;
-	struct DMGridData *grid;
+	struct CCGElem **grids;
+	struct CCGElem *grid;
+	struct CCGKey *key;
 	BLI_bitmap *grid_hidden, gh;
 	int *grid_indices;
 	int totgrid;
@@ -220,9 +225,9 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		for(vi.gy=0; vi.gy<vi.height; vi.gy++) { \
 			for(vi.gx=0; vi.gx<vi.width; vi.gx++, vi.i++) { \
 				if(vi.grid) { \
-					vi.co= vi.grid->co; \
-					vi.fno= vi.grid->no; \
-					vi.grid++; \
+					vi.co= CCG_elem_co(vi.key, vi.grid); \
+					vi.fno= CCG_elem_no(vi.key, vi.grid); \
+					vi.grid= CCG_elem_next(vi.key, vi.grid); \
 					if(vi.gh) { \
 						if(BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
 							continue; \

@@ -34,9 +34,9 @@
 /* struct DerivedMesh is used directly */
 #include "BKE_DerivedMesh.h"
 
+struct CCGElem;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct DMGridData;
 struct DerivedMesh;
 struct MeshElemMap;
 struct Mesh;
@@ -51,7 +51,6 @@ struct CCGSubsurf;
 struct CCGVert;
 struct EdgeHash;
 struct PBVH;
-struct DMGridData;
 struct DMGridAdjacency;
 
 /**************************** External *****************************/
@@ -115,7 +114,7 @@ typedef struct CCGDerivedMesh {
 	struct MeshElemMap *pmap;
 	int *pmap_mem;
 
-	struct DMGridData **gridData;
+	struct CCGElem **gridData;
 	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;
 	struct CCGFace **gridFaces;
