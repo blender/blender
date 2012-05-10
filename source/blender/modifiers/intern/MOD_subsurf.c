@@ -94,12 +94,19 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   ModifierApplyFlag flag)
 {
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
+	SubsurfFlags subsurf_flags = 0;
 	DerivedMesh *result;
 	const int useRenderParams = flag & MOD_APPLY_RENDER;
 	const int isFinalCalc = flag & MOD_APPLY_USECACHE;
 
-	result = subsurf_make_derived_from_derived(derivedData, smd, useRenderParams, NULL,
-	                                           isFinalCalc, 0, (ob->flag & OB_MODE_EDIT));
+	if(useRenderParams)
+		subsurf_flags |= SUBSURF_USE_RENDER_PARAMS;
+	if(isFinalCalc)
+		subsurf_flags |= SUBSURF_IS_FINAL_CALC;
+	if(ob->flag & OB_MODE_EDIT)
+		subsurf_flags |= SUBSURF_IN_EDIT_MODE;
+	
+	result = subsurf_make_derived_from_derived(derivedData, smd, NULL, subsurf_flags);
 	
 	if (useRenderParams || !isFinalCalc) {
 		DerivedMesh *cddm = CDDM_copy(result);
@@ -117,8 +124,9 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *UNUSED(ob),
 	SubsurfModifierData *smd = (SubsurfModifierData *) md;
 	DerivedMesh *result;
 
-	result = subsurf_make_derived_from_derived(derivedData, smd, 0,
-	                                           NULL, 0, 1, 1);
+	result = subsurf_make_derived_from_derived(derivedData, smd,
+											   NULL, (SUBSURF_FOR_EDIT_MODE |
+													  SUBSURF_IN_EDIT_MODE));
 
 	return result;
 }

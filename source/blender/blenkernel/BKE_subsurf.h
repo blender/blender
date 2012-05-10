@@ -56,11 +56,18 @@ struct DMGridAdjacency;
 
 /**************************** External *****************************/
 
+typedef enum {
+	SUBSURF_USE_RENDER_PARAMS = 1,
+	SUBSURF_IS_FINAL_CALC = 2,
+	SUBSURF_FOR_EDIT_MODE = 4,
+	SUBSURF_IN_EDIT_MODE = 8
+} SubsurfFlags;
+
 struct DerivedMesh *subsurf_make_derived_from_derived(
 						struct DerivedMesh *dm,
 						struct SubsurfModifierData *smd,
-						int useRenderParams, float (*vertCos)[3],
-						int isFinalCalc, int forEditMode, int inEditMode);
+						float (*vertCos)[3],
+						SubsurfFlags flags);
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
 

@@ -684,6 +684,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple, int optimal, int plain_uv)
 {
 	SubsurfModifierData smd = {{NULL}};
+	SubsurfFlags flags = 0;
 
 	smd.levels = smd.renderLevels = lvl;
 	if (!plain_uv)
@@ -693,7 +694,9 @@ static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl
 	if (optimal)
 		smd.flags |= eSubsurfModifierFlag_ControlEdges;
 
-	return subsurf_make_derived_from_derived(dm, &smd, 0, NULL, 0, 0, (ob->mode & OB_MODE_EDIT));
+	if (ob->mode & OB_MODE_EDIT)
+		flags |= SUBSURF_IN_EDIT_MODE;
+	return subsurf_make_derived_from_derived(dm, &smd, NULL, flags);
 }
 
 

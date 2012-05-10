@@ -3367,8 +3367,8 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 struct DerivedMesh *subsurf_make_derived_from_derived(
         struct DerivedMesh *dm,
         struct SubsurfModifierData *smd,
-        int useRenderParams, float (*vertCos)[3],
-        int isFinalCalc, int forEditMode, int inEditMode)
+        float (*vertCos)[3],
+        SubsurfFlags flags)
 {
 	int useSimple = smd->subdivType == ME_SIMPLE_SUBSURF;
 	CCGFlags useAging = smd->flags & eSubsurfModifierFlag_DebugIncr ? CCG_USE_AGING : 0;
@@ -3376,7 +3376,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 	int drawInteriorEdges = !(smd->flags & eSubsurfModifierFlag_ControlEdges);
 	CCGDerivedMesh *result;
 
-	if (forEditMode) {
+	if (flags & SUBSURF_FOR_EDIT_MODE) {
 		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->levels) : smd->levels;
 
 		smd->emCache = _getSubSurf(smd->emCache, levels, useAging | CCG_CALC_NORMALS);
@@ -3386,7 +3386,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		                           drawInteriorEdges,
 		                           useSubsurfUv, dm);
 	}
-	else if (useRenderParams) {
+	else if (flags & SUBSURF_USE_RENDER_PARAMS) {
 		/* Do not use cache in render mode. */
 		CCGSubSurf *ss;
 		int levels = (smd->modifier.scene) ? get_render_subsurf_level(&smd->modifier.scene->r, smd->renderLevels) : smd->renderLevels;
@@ -3419,14 +3419,13 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 		 * Addendum: we can't really ensure that this is never called in edit
 		 * mode, so now we have a parameter to verify it. - brecht
 		 */
-		if (!inEditMode && smd->emCache) {
+		if (!(flags & SUBSURF_IN_EDIT_MODE) && smd->emCache) {
 			ccgSubSurf_free(smd->emCache);
 			smd->emCache = NULL;
 		}
 
-		if (useIncremental && isFinalCalc) {
+		if (useIncremental && (flags & SUBSURF_IS_FINAL_CALC)) {
 			smd->mCache = ss = _getSubSurf(smd->mCache, levels, useAging | CCG_CALC_NORMALS);
-
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(smd->mCache,
@@ -3434,7 +3433,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 			                           useSubsurfUv, dm);
 		}
 		else {
-			if (smd->mCache && isFinalCalc) {
+			if (smd->mCache && (flags & SUBSURF_IS_FINAL_CALC)) {
 				ccgSubSurf_free(smd->mCache);
 				smd->mCache = NULL;
 			}
@@ -3444,7 +3443,7 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 			result = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
 
-			if (isFinalCalc)
+			if (flags & SUBSURF_IS_FINAL_CALC)
 				smd->mCache = ss;
 			else
 				result->freeSS = 1;

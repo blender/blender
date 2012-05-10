@@ -619,7 +619,7 @@ static void *init_heights_data(MultiresBakeRender *bkr, Image *ima)
 		if (bkr->simple)
 			smd.subdivType = ME_SIMPLE_SUBSURF;
 
-		height_data->ssdm = subsurf_make_derived_from_derived(bkr->lores_dm, &smd, 0, NULL, 0, 0, 0);
+		height_data->ssdm = subsurf_make_derived_from_derived(bkr->lores_dm, &smd, NULL, 0);
 	}
 
 	height_data->origindex = lodm->getTessFaceDataArray(lodm, CD_ORIGINDEX);
