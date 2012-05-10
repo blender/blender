@@ -654,7 +654,7 @@ class SEQUENCER_PT_sound(SequencerButtonsPanel, Panel):
 
         row.prop(sound, "use_memory_cache")
 
-        layout.prop(strip, "waveform")
+        layout.prop(strip, "show_waveform")
         layout.prop(strip, "volume")
         layout.prop(strip, "pitch")
         layout.prop(strip, "pan")

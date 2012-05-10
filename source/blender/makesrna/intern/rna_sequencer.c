@@ -1561,7 +1561,7 @@ static void rna_def_sound(BlenderRNA *brna)
 	                              "rna_Sequence_filepath_set");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_filepath_update");
 
-	prop = RNA_def_property(srna, "waveform", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "show_waveform", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_AUDIO_DRAW_WAVEFORM);
 	RNA_def_property_ui_text(prop, "Draw Waveform", "Whether to draw the sound's waveform");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, NULL);
