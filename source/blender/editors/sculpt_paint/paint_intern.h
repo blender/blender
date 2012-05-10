@@ -43,6 +43,7 @@ struct PaintStroke;
 struct PointerRNA;
 struct rcti;
 struct Scene;
+struct RegionView3D;
 struct VPaint;
 struct ViewContext;
 struct wmEvent;
@@ -183,5 +184,14 @@ typedef enum {
 } PartialVisArea;
 
 void PAINT_OT_hide_show(struct wmOperatorType *ot);
+
+/* paint_mask.c */
+
+typedef enum {
+	PAINT_MASK_FLOOD_VALUE,
+	PAINT_MASK_INVERT
+} PaintMaskFloodMode;
+
+void PAINT_OT_mask_flood_fill(struct wmOperatorType *ot);
 
 #endif /* __PAINT_INTERN_H__ */

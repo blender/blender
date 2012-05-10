@@ -53,7 +53,7 @@ struct SculptStroke;
 /* Interface */
 struct MultiresModifierData *sculpt_multires_active(struct Scene *scene, struct Object *ob);
 
-void sculpt(Sculpt *sd);
+void sculpt(struct Sculpt *sd);
 
 int sculpt_mode_poll(struct bContext *C);
 int sculpt_poll(struct bContext *C);

@@ -498,6 +498,9 @@ void ED_operatortypes_paint(void)
 
 	/* partial visibility */
 	WM_operatortype_append(PAINT_OT_hide_show);
+
+	/* paint masking */
+	WM_operatortype_append(PAINT_OT_mask_flood_fill);
 }
 
 
