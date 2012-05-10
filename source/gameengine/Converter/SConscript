@@ -39,4 +39,7 @@ if env['WITH_BF_CXX_GUARDEDALLOC']:
 if env['WITH_BF_BULLET']:
     defs.append('USE_BULLET')
 
+if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', 'win64-mingw'):
+    incs += ' ' + env['BF_PTHREADS_INC']
+
 env.BlenderLib ( 'ge_converter', sources, Split(incs), defs, libtype=['core','player'], priority=[305,40], cxx_compileflags=env['BGE_CXXFLAGS'])
