@@ -73,12 +73,13 @@ public:
 protected:
 	friend class TaskScheduler;
 
-	void done_increase(int done);
+	void num_decrease(int done);
+	void num_increase();
 
-	thread_mutex done_mutex;
-	thread_condition_variable done_cond;
+	thread_mutex num_mutex;
+	thread_condition_variable num_cond;
 
-	volatile int num, num_done;
+	volatile int num;
 	volatile bool do_cancel;
 };
 
