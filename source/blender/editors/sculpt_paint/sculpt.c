@@ -258,6 +258,7 @@ typedef struct StrokeCache {
 	float vertex_rotation;
 
 	char saved_active_brush_name[MAX_ID_NAME];
+	char saved_mask_brush_tool;
 	int alt_smooth;
 
 	float plane_trim_squared;
@@ -3112,15 +3113,22 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 
 	/* Alt-Smooth */
 	if (ss->cache->alt_smooth) {
-		Paint *p = &sd->paint;
-		Brush *br;
+		if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+			cache->saved_mask_brush_tool = brush->mask_tool;
+			brush->mask_tool = BRUSH_MASK_SMOOTH;
+		}
+		else {
+			Paint *p = &sd->paint;
+			Brush *br;
 		
-		BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
+			BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2,
+						sizeof(cache->saved_active_brush_name));
 
-		br = (Brush *)BKE_libblock_find_name(ID_BR, "Smooth");
-		if (br) {
-			paint_brush_set(p, br);
-			brush = br;
+			br = (Brush *)BKE_libblock_find_name(ID_BR, "Smooth");
+			if (br) {
+				paint_brush_set(p, br);
+				brush = br;
+			}
 		}
 	}
 
@@ -3683,10 +3691,15 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
-			Paint *p = &sd->paint;
-			brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
-			if (brush) {
-				paint_brush_set(p, brush);
+			if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+				brush->mask_tool = ss->cache->saved_mask_brush_tool;
+			}
+			else {
+				Paint *p = &sd->paint;
+				brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
+				if (brush) {
+					paint_brush_set(p, brush);
+				}
 			}
 		}
 
