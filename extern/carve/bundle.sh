@@ -1,8 +1,10 @@
 #!/bin/sh
 
-if [ -d ./.svn ]; then
-  echo "This script is supposed to work only when using git-svn"
-  exit 1
+if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
+    echo Proceeding as requested by command line ...
+else
+    echo "*** Please run again with --i-really-know-what-im-doing ..."
+    exit 1
 fi
 
 tmp=`mktemp -d`
@@ -14,8 +16,8 @@ for p in `cat ./patches/series`; do
   cat ./patches/$p | patch -d $tmp/carve -p1
 done
 
-rm -rf include
-rm -rf lib
+find include -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
+find lib -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
@@ -24,9 +26,9 @@ done
 
 rm -rf $tmp
 
-sources=`find ./lib -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/'`
-headers=`find ./lib -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/'`
-includes=`find ./include -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/'`
+sources=`find ./lib -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | sort -d`
+headers=`find ./lib -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/' | sort -d`
+includes=`find ./include -type f -iname '*.h' -or -iname '*.hpp' | sed -r 's/^\.\//\t/' | sort -d`
 
 mkdir -p include/carve/external/boost
 cp patches/files/random.hpp include/carve/external/boost/random.hpp

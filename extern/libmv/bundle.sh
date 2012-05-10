@@ -1,13 +1,15 @@
 #!/bin/sh
 
+if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
+    echo Proceeding as requested by command line ...
+else
+    echo "*** Please run again with --i-really-know-what-im-doing ..."
+    exit 1
+fi
+
 #BRANCH="keir"
 #BRANCH="Matthias-Fauconneau"
 BRANCH="Nazg-Gul"
-
-if [ -d ./.svn ]; then
-  echo "This script is supposed to work only when using git-svn"
-  exit 1
-fi
 
 repo="git://github.com/${BRANCH}/libmv.git"
 tmp=`mktemp -d`
@@ -22,8 +24,8 @@ for p in `cat ./patches/series`; do
   cat ./patches/$p | patch -d $tmp/libmv -p1
 done
 
-rm -rf libmv
-rm -rf third_party
+find libmv -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
+find third_party -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
