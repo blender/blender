@@ -678,7 +678,7 @@ static DerivedMesh *multires_dm_create_local(Object *ob, DerivedMesh *dm, int lv
 	mmd.totlvl = totlvl;
 	mmd.simple = simple;
 
-	return multires_dm_create_from_derived(&mmd, 1, dm, ob, 0);
+	return multires_make_derived_from_derived(dm, &mmd, ob, MULTIRES_USE_LOCAL_MMD);
 }
 
 static DerivedMesh *subsurf_dm_create_local(Object *ob, DerivedMesh *dm, int lvl, int simple, int optimal, int plain_uv)
@@ -1326,15 +1326,16 @@ void multires_stitch_grids(Object *ob)
 	}
 }
 
-DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd,
-                                             int local_mmd, DerivedMesh *dm,
-                                             Object *ob, int useRenderParams)
+DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
+												MultiresModifierData *mmd,
+												Object *ob,
+												MultiresFlags flags)
 {
 	Mesh *me = ob->data;
 	DerivedMesh *result;
 	CCGDerivedMesh *ccgdm = NULL;
 	DMGridData **gridData, **subGridData;
-	int lvl = multires_get_level(ob, mmd, useRenderParams);
+	int lvl = multires_get_level(ob, mmd, (flags & MULTIRES_USE_RENDER_PARAMS));
 	int i, gridSize, numGrids;
 
 	if (lvl == 0)
@@ -1344,12 +1345,12 @@ DerivedMesh *multires_dm_create_from_derived(MultiresModifierData *mmd,
 	                                 mmd->simple, mmd->flags & eMultiresModifierFlag_ControlEdges,
 	                                 mmd->flags & eMultiresModifierFlag_PlainUv);
 
-	if (!local_mmd) {
+	if (!(flags & MULTIRES_USE_LOCAL_MMD)) {
 		ccgdm = (CCGDerivedMesh *)result;
 
 		ccgdm->multires.ob = ob;
 		ccgdm->multires.mmd = mmd;
-		ccgdm->multires.local_mmd = local_mmd;
+		ccgdm->multires.local_mmd = 0;
 		ccgdm->multires.lvl = lvl;
 		ccgdm->multires.totlvl = mmd->totlvl;
 		ccgdm->multires.modified_flags = 0;
@@ -1993,7 +1994,7 @@ void multires_load_old(Object *ob, Mesh *me)
 
 	mmd->lvl = mmd->totlvl;
 	orig = CDDM_from_mesh(me, NULL);
-	dm = multires_dm_create_from_derived(mmd, 0, orig, ob, 0);
+	dm = multires_make_derived_from_derived(orig, mmd, ob, 0);
 					   
 	multires_load_old_dm(dm, me, mmd->totlvl + 1);
 

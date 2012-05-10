@@ -77,6 +77,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	DerivedMesh *result;
 	Mesh *me = (Mesh *)ob->data;
 	const int useRenderParams = flag & MOD_APPLY_RENDER;
+	MultiresFlags flags = 0;
 
 	if (mmd->totlvl) {
 		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
@@ -85,7 +86,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 	}
 
-	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams);
+	if (useRenderParams)
+		flags |= MULTIRES_USE_RENDER_PARAMS;
+
+	result = multires_make_derived_from_derived(dm, mmd, ob, flags);
 
 	if (result == dm)
 		return dm;
