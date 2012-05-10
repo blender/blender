@@ -1,10 +1,10 @@
 #!/bin/sh
 
 if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
-    echo Proceeding as requested by command line ...
+  echo Proceeding as requested by command line ...
 else
-    echo "*** Please run again with --i-really-know-what-im-doing ..."
-    exit 1
+  echo "*** Please run again with --i-really-know-what-im-doing ..."
+  exit 1
 fi
 
 #BRANCH="keir"
