@@ -387,6 +387,10 @@ struct CCGSubSurf {
 	int calcVertNormals;
 	int normalDataOffset;
 
+	/* data for paint masks */
+	int allocMask;
+	int maskDataOffset;
+
 	/* data for age'ing (to debug sync) */
 	int currentAge;
 	int useAgeCounts;
@@ -852,6 +856,8 @@ CCGSubSurf *ccgSubSurf_new(CCGMeshIFC *ifc, int subdivLevels, CCGAllocatorIFC *a
 		ss->calcVertNormals = 0;
 		ss->normalDataOffset = 0;
 
+		ss->allocMask = 0;
+
 		ss->q = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
 		ss->r = CCGSUBSURF_alloc(ss, ss->meshIFC.vertDataSize);
 
@@ -994,6 +1000,12 @@ CCGError ccgSubSurf_setCalcVertexNormals(CCGSubSurf *ss, int useVertNormals, int
 	}
 
 	return eCCGError_None;
+}
+
+void ccgSubSurf_setAllocMask(CCGSubSurf *ss, int allocMask, int maskOffset)
+{
+	ss->allocMask = allocMask;
+	ss->maskDataOffset = maskOffset;
 }
 
 void ccgSubSurf_setNumLayers(CCGSubSurf *ss, int numLayers)
@@ -3123,6 +3135,12 @@ void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
 	key->grid_size = ccgSubSurf_getGridLevelSize(ss, level);
 	key->grid_area = key->grid_size * key->grid_size;
 	key->grid_bytes = key->elem_size * key->grid_area;
+
+	key->has_mask = ss->allocMask;
+	if (key->has_mask)
+		key->mask_offset = ss->maskDataOffset;
+	else
+		key->mask_offset = -1;
 }
 
 void CCG_key_top_level(CCGKey *key, const CCGSubSurf *ss)

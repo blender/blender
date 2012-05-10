@@ -76,6 +76,7 @@ void		ccgSubSurf_getUseAgeCounts			(CCGSubSurf *ss, int *useAgeCounts_r, int *ve
 CCGError	ccgSubSurf_setUseAgeCounts			(CCGSubSurf *ss, int useAgeCounts, int vertUserOffset, int edgeUserOffset, int faceUserOffset);
 
 CCGError	ccgSubSurf_setCalcVertexNormals		(CCGSubSurf *ss, int useVertNormals, int normalDataOffset);
+void		ccgSubSurf_setAllocMask				(CCGSubSurf *ss, int allocMask, int maskOffset);
 
 void		ccgSubSurf_setNumLayers				(CCGSubSurf *ss, int numLayers);
 

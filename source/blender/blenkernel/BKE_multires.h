@@ -44,7 +44,7 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 
-/* Delete mesh mdisps */
+/* Delete mesh mdisps and grid paint masks */
 void multires_customdata_delete(struct Mesh *me);
 
 void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
@@ -62,6 +62,7 @@ void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, st
 typedef enum {
 	MULTIRES_USE_LOCAL_MMD = 1,
 	MULTIRES_USE_RENDER_PARAMS = 2,
+	MULTIRES_ALLOC_PAINT_MASK = 4
 } MultiresFlags;
 
 struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,

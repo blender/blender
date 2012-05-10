@@ -111,7 +111,9 @@ static void arena_release(CCGAllocatorHDL a)
 typedef enum {
 	CCG_USE_AGING = 1,
 	CCG_USE_ARENA = 2,
-	CCG_CALC_NORMALS = 4
+	CCG_CALC_NORMALS = 4,
+	/* add an extra four bytes for a mask layer */
+	CCG_ALLOC_MASK = 8
 } CCGFlags;
 
 static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
@@ -152,6 +154,8 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 	normalOffset += sizeof(float) * numLayers;
 	if(flags & CCG_CALC_NORMALS)
 		ifc.vertDataSize += sizeof(float) * 3;
+	if(flags & CCG_ALLOC_MASK)
+		ifc.vertDataSize += sizeof(float);
 
 	if (useArena) {
 		CCGAllocatorIFC allocatorIFC;
@@ -172,6 +176,12 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 		ccgSubSurf_setUseAgeCounts(ccgSS, 1, 8, 8, 8);
 	}
 
+	if (flags & CCG_ALLOC_MASK) {
+		normalOffset += sizeof(float);
+		/* mask is allocated after regular layers */
+		ccgSubSurf_setAllocMask(ccgSS, 1, sizeof(float) * numLayers);
+	}
+	
 	if (flags & CCG_CALC_NORMALS)
 		ccgSubSurf_setCalcVertexNormals(ccgSS, 1, normalOffset);
 	else
@@ -3496,12 +3506,17 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 			                           useSubsurfUv, dm);
 		}
 		else {
+			CCGFlags ccg_flags = CCG_USE_ARENA | CCG_CALC_NORMALS;
+			
 			if (smd->mCache && (flags & SUBSURF_IS_FINAL_CALC)) {
 				ccgSubSurf_free(smd->mCache);
 				smd->mCache = NULL;
 			}
 
-			ss = _getSubSurf(NULL, levels, 3, CCG_USE_ARENA | CCG_CALC_NORMALS);
+			if (flags & SUBSURF_ALLOC_PAINT_MASK)
+				ccg_flags |= CCG_ALLOC_MASK;
+
+			ss = _getSubSurf(NULL, levels, 3, ccg_flags);
 			ss_sync_from_derivedmesh(ss, dm, vertCos, useSimple);
 
 			result = getCCGDerivedMesh(ss, drawInteriorEdges, useSubsurfUv, dm);
@@ -3510,6 +3525,9 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 				smd->mCache = ss;
 			else
 				result->freeSS = 1;
+
+			if (flags & SUBSURF_ALLOC_PAINT_MASK)
+				ccgSubSurf_setNumLayers(ss, 4);
 		}
 	}
 

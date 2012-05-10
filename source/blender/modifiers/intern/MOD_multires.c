@@ -86,6 +86,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 	}
 
+	flags = MULTIRES_ALLOC_PAINT_MASK;
 	if (useRenderParams)
 		flags |= MULTIRES_USE_RENDER_PARAMS;
 
