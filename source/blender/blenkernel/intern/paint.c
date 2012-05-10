@@ -172,3 +172,12 @@ int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
 			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x+1) ||
 			BLI_BITMAP_GET(grid_hidden, (y+1) * gridsize + x));
 }
+
+float paint_grid_paint_mask(const GridPaintMask *gpm, unsigned level,
+							unsigned x, unsigned y)
+{
+	int factor = ccg_factor(level, gpm->level);
+	int gridsize = ccg_gridsize(gpm->level);
+	
+	return gpm->data[(y*factor) * gridsize + (x*factor)];
+}
