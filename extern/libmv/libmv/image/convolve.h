@@ -87,6 +87,16 @@ void BoxFilter(const FloatImage &in,
                int box_width,
                FloatImage *out);
 
+/*!
+    Convolve \a src into \a dst with the discrete laplacian operator.
+
+    \a src and \a dst should be \a width x \a height images.
+    \a strength is an interpolation coefficient (0-256) between original image and the laplacian.
+
+    \note Make sure the search region is filtered with the same strength as the pattern.
+*/
+void LaplaceFilter(unsigned char* src, unsigned char* dst, int width, int height, int strength);
+
 }  // namespace libmv
 
 #endif  // LIBMV_IMAGE_CONVOLVE_H_
