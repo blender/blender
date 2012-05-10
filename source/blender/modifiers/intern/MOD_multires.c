@@ -100,10 +100,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		
 		cddm = CDDM_copy(result);
 
-		/* copy hidden flag to vertices */
+		/* copy hidden/masks to vertices */
 		if (!useRenderParams) {
 			struct MDisps *mdisps;
+			struct GridPaintMask *grid_paint_mask;
+			
 			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+			grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
+			
 			if (mdisps) {
 				subsurf_copy_grid_hidden(result, me->mpoly,
 				                         cddm->getVertArray(cddm),
@@ -115,6 +119,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 				                                 cddm->getNumEdges(cddm),
 				                                 cddm->getPolyArray(cddm),
 				                                 cddm->getNumPolys(cddm));
+			}
+			if(grid_paint_mask) {
+				float *paint_mask = CustomData_add_layer(&cddm->vertData,
+														 CD_PAINT_MASK,
+														 CD_CALLOC, NULL,
+														 cddm->getNumVerts(cddm));
+
+				subsurf_copy_grid_paint_mask(result, me->mpoly,
+											 paint_mask, grid_paint_mask);
 			}
 		}
 

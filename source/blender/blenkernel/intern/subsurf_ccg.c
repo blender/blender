@@ -1047,6 +1047,45 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 	}
 }
 
+/* Translate GridPaintMask into vertex paint masks. Assumes vertices
+   are in the order output by ccgDM_copyFinalVertArray. */
+void subsurf_copy_grid_paint_mask(DerivedMesh *dm, const MPoly *mpoly,
+								  float *paint_mask,
+								  const GridPaintMask *grid_paint_mask)
+{
+	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*)dm;
+	CCGSubSurf *ss = ccgdm->ss;
+	int level = ccgSubSurf_getSubdivisionLevels(ss);
+	int gridSize = ccgSubSurf_getGridSize(ss);
+	int edgeSize = ccgSubSurf_getEdgeSize(ss);
+	int totface = ccgSubSurf_getNumFaces(ss);
+	int i, j, x, y, factor, gpm_gridsize;
+	
+	for(i = 0; i < totface; i++) {
+		CCGFace *f = ccgdm->faceMap[i].face;
+		const MPoly *p = &mpoly[i];
+		
+		for(j = 0; j < p->totloop; j++) {
+			const GridPaintMask *gpm = &grid_paint_mask[p->loopstart + j];
+			if(!gpm->data)
+				continue;
+
+			factor = ccg_factor(level, gpm->level);
+			gpm_gridsize = ccg_gridsize(gpm->level);
+			
+			for(y = 0; y < gridSize; y++) {
+				for(x = 0; x < gridSize; x++) {
+					int vndx, offset;
+					
+					vndx = getFaceIndex(ss, f, j, x, y, edgeSize, gridSize);
+					offset = y*factor * gpm_gridsize + x*factor;
+					paint_mask[vndx] = gpm->data[offset];
+				}
+			}
+		}
+	}
+}
+
 static void ccgDM_copyFinalVertArray(DerivedMesh *dm, MVert *mvert)
 {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh *) dm;
