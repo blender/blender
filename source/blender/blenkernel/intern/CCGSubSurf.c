@@ -7,6 +7,7 @@
 #include <string.h>
 #include <math.h>
 
+#include "BKE_ccg.h"
 #include "CCGSubSurf.h"
 #include "BKE_subsurf.h"
 
@@ -3100,4 +3101,31 @@ int ccgSubSurf_getNumFinalFaces(const CCGSubSurf *ss)
 	int gridSize = ccg_gridsize(ss->subdivLevels);
 	int numFinalFaces = ss->numGrids * ((gridSize - 1) * (gridSize - 1));
 	return numFinalFaces;
+}
+
+/***/
+
+void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
+{
+	key->level = level;
+	
+	key->elem_size = ss->meshIFC.vertDataSize;
+	key->has_normals = ss->calcVertNormals;
+	key->num_layers = ss->meshIFC.numLayers;
+	
+	/* if normals are present, always the last three floats of an
+	   element */
+	if (key->has_normals)
+		key->normal_offset = key->elem_size - sizeof(float) * 3;
+	else
+		key->normal_offset = -1;
+
+	key->grid_size = ccgSubSurf_getGridLevelSize(ss, level);
+	key->grid_area = key->grid_size * key->grid_size;
+	key->grid_bytes = key->elem_size * key->grid_area;
+}
+
+void CCG_key_top_level(CCGKey *key, const CCGSubSurf *ss)
+{
+	CCG_key(key, ss, ccgSubSurf_getSubdivisionLevels(ss));
 }
