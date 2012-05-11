@@ -1853,6 +1853,8 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
+		RNA_property_int_clamp(ptr, prop, &value);
+
 		val.i = value;
 
 		group = RNA_struct_idprops(ptr, 1);
@@ -2092,6 +2094,8 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
+
+		RNA_property_float_clamp(ptr, prop, &value);
 
 		val.f = value;
 
