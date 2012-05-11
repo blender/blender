@@ -94,7 +94,7 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 	float u = -1.0f, du = 1.0f / N, u1 = start_u, u2 = start_u;
 	float ang = -1.0f;
 
-	while (u1 > 0.0f || u2 < 1.0d) {
+	while (u1 > 0.0f || u2 < 1.0f) {
 		float n1[2], n2[2], co1[2], co2[2];
 		float v1[2], v2[2];
 		float ang1, ang2;
