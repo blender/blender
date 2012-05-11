@@ -163,10 +163,10 @@ int blf_dir_split(const char *str, char *file, int *size)
 			file[i] = str[i];
 
 		file[i] = '.';
-		file[i+1] = 't';
-		file[i+2] = 't';
-		file[i+3] = 'f';
-		file[i+4] = '\0';
+		file[i + 1] = 't';
+		file[i + 2] = 't';
+		file[i + 3] = 'f';
+		file[i + 4] = '\0';
 		s++;
 		*size = atoi(s);
 		return 1;

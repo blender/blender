@@ -42,7 +42,7 @@
 
 #include <locale.h>
 
-#if defined (_WIN32)
+#if defined(_WIN32)
 #include <windows.h>
 #endif
 
@@ -83,7 +83,7 @@ static const char *locales[] = {
 	"catalan", "ca_AD",
 	"czech", "cs_CZ",
 	"ptb", "pt",
-#if defined (_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 	"Chinese (Simplified)_China.1252", "zh_CN",
 	"Chinese (Traditional)_China.1252", "zh_TW",
 #else
@@ -170,19 +170,19 @@ void BLF_lang_set(const char *str)
 	int ok = 1;
 	const char *long_locale = locales[2 * U.language];
 
-	if ((U.transopts&USER_DOTRANSLATE) == 0)
+	if ((U.transopts & USER_DOTRANSLATE) == 0)
 		return;
 
 	if (str)
 		short_locale = str;
 	else
-		short_locale = locales[ 2 * U.language + 1];
+		short_locale = locales[2 * U.language + 1];
 
-#if defined (_WIN32) && !defined(FREE_WINDOWS)
+#if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (short_locale) {
 		char *envStr;
 
-		if (U.language == 0)/* use system setting */
+		if (U.language == 0) /* use system setting */
 			envStr = BLI_sprintfN("LANG=%s", getenv("LANG"));
 		else
 			envStr = BLI_sprintfN("LANG=%s", short_locale);
@@ -201,8 +201,8 @@ void BLF_lang_set(const char *str)
 	}
 #else
 	{
-		static char default_lang[64] ="\0";
-		static char default_language[64] ="\0";
+		static char default_lang[64] = "\0";
+		static char default_language[64] = "\0";
 
 		if (default_lang[0] == 0)
 			get_language_variable("LANG", default_lang, sizeof(default_lang));
