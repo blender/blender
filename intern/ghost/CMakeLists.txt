@@ -165,9 +165,11 @@ if(WITH_HEADLESS OR WITH_GHOST_SDL)
 		)
 	endif()
 
-	list(APPEND INC_SYS
-		${SDL_INCLUDE_DIR}
-	)
+	if(NOT WITH_HEADLESS)
+		list(APPEND INC_SYS
+			${SDL_INCLUDE_DIR}
+		)
+	endif()
 
 elseif(APPLE)
 	if(WITH_COCOA)
