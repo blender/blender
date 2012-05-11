@@ -218,7 +218,7 @@ static int isDisabled(ModifierData *md, int UNUSED(useRenderParams))
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	WeightVGMixModifierData *wmd = (WeightVGMixModifierData *) md;
 	DerivedMesh *dm = derivedData;
@@ -402,7 +402,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
                                     struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *derivedData)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
 

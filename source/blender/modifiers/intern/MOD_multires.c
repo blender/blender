@@ -71,11 +71,13 @@ static void copyData(ModifierData *md, ModifierData *target)
 }
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
-                                  int useRenderParams, int isFinalCalc)
+                                  ModifierApplyFlag flag)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)md;
 	DerivedMesh *result;
 	Mesh *me = (Mesh *)ob->data;
+	const int useRenderParams = flag & MOD_APPLY_RENDER;
+	MultiresFlags flags = 0;
 
 	if (mmd->totlvl) {
 		if (!CustomData_get_layer(&me->ldata, CD_MDISPS)) {
@@ -84,20 +86,28 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 		}
 	}
 
-	result = multires_dm_create_from_derived(mmd, 0, dm, ob, useRenderParams);
+	flags = MULTIRES_ALLOC_PAINT_MASK;
+	if (useRenderParams)
+		flags |= MULTIRES_USE_RENDER_PARAMS;
+
+	result = multires_make_derived_from_derived(dm, mmd, ob, flags);
 
 	if (result == dm)
 		return dm;
 
-	if (useRenderParams || !isFinalCalc) {
+	if (useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
 		DerivedMesh *cddm;
 		
 		cddm = CDDM_copy(result);
 
-		/* copy hidden flag to vertices */
+		/* copy hidden/masks to vertices */
 		if (!useRenderParams) {
 			struct MDisps *mdisps;
+			struct GridPaintMask *grid_paint_mask;
+			
 			mdisps = CustomData_get_layer(&me->ldata, CD_MDISPS);
+			grid_paint_mask = CustomData_get_layer(&me->ldata, CD_GRID_PAINT_MASK);
+			
 			if (mdisps) {
 				subsurf_copy_grid_hidden(result, me->mpoly,
 				                         cddm->getVertArray(cddm),
@@ -109,6 +119,15 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 				                                 cddm->getNumEdges(cddm),
 				                                 cddm->getPolyArray(cddm),
 				                                 cddm->getNumPolys(cddm));
+			}
+			if (grid_paint_mask) {
+				float *paint_mask = CustomData_add_layer(&cddm->vertData,
+				                                         CD_PAINT_MASK,
+				                                         CD_CALLOC, NULL,
+				                                         cddm->getNumVerts(cddm));
+
+				subsurf_copy_grid_paint_mask(result, me->mpoly,
+				                             paint_mask, grid_paint_mask);
 			}
 		}
 

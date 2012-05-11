@@ -94,8 +94,7 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	MaskModifierData *mmd = (MaskModifierData *)md;
 	DerivedMesh *dm = derivedData, *result = NULL;

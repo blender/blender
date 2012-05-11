@@ -74,6 +74,8 @@
 #include "BKE_customdata.h"
 #include "BKE_bvhutils.h"
 
+struct CCGElem;
+struct CCGKey;
 struct MVert;
 struct MEdge;
 struct MFace;
@@ -101,11 +103,6 @@ struct PBVH;
  * Note: all mface interfaces now officially operate on tessellated data.
  *       Also, the mface origindex layer indexes mpolys, not mfaces.
  */
-
-typedef struct DMGridData {
-	float co[3];
-	float no[3];
-} DMGridData;
 
 typedef struct DMGridAdjacency {
 	int index[4];
@@ -250,9 +247,10 @@ struct DerivedMesh {
 	/* optional grid access for subsurf */
 	int (*getNumGrids)(DerivedMesh *dm);
 	int (*getGridSize)(DerivedMesh *dm);
-	DMGridData **(*getGridData)(DerivedMesh *dm);
+	struct CCGElem **(*getGridData)(DerivedMesh *dm);
 	DMGridAdjacency *(*getGridAdjacency)(DerivedMesh *dm);
 	int *(*getGridOffset)(DerivedMesh *dm);
+	void (*getGridKey)(DerivedMesh *dm, struct CCGKey *key);
 	DMFlagMat *(*getGridFlagMats)(DerivedMesh *dm);
 	unsigned int **(*getGridHidden)(DerivedMesh *dm);
 	

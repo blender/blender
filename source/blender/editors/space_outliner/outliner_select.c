@@ -585,7 +585,7 @@ static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *UNUSED(t
 static int tree_element_active_sequence_dup(Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
 {
 	Sequence *seq, *p;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	seq = (Sequence *)te->directdata;
 	if (set == 0) {

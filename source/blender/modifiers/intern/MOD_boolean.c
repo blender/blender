@@ -119,8 +119,7 @@ static DerivedMesh *get_quick_derivedMesh(DerivedMesh *derivedData, DerivedMesh 
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	BooleanModifierData *bmd = (BooleanModifierData *) md;
 	DerivedMesh *dm;
@@ -164,8 +163,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 #else // WITH_MOD_BOOLEAN
 static DerivedMesh *applyModifier(ModifierData *UNUSED(md), Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	return derivedData;
 }

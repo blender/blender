@@ -2181,7 +2181,7 @@ void flushTransNodes(TransInfo *t)
 
 void flushTransSeq(TransInfo *t)
 {
-	ListBase *seqbasep= seq_give_editing(t->scene, FALSE)->seqbasep; /* Editing null check already done */
+	ListBase *seqbasep= BKE_sequencer_editing_get(t->scene, FALSE)->seqbasep; /* Editing null check already done */
 	int a, new_frame, old_start;
 	TransData *td= NULL;
 	TransData2D *td2d= NULL;
@@ -3980,7 +3980,7 @@ static int SeqToTransData_Recursive(TransInfo *t, ListBase *seqbase, TransData *
 
 static void freeSeqData(TransInfo *t)
 {
-	Editing *ed= seq_give_editing(t->scene, FALSE);
+	Editing *ed= BKE_sequencer_editing_get(t->scene, FALSE);
 
 	if (ed != NULL) {
 		ListBase *seqbasep= ed->seqbasep;
@@ -4086,7 +4086,7 @@ static void freeSeqData(TransInfo *t)
 				}
 			}
 
-			sort_seq(t->scene);
+			BKE_sequencer_sort(t->scene);
 		}
 		else {
 			/* Cancelled, need to update the strips display */
@@ -4116,7 +4116,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 
 	View2D *v2d= UI_view2d_fromcontext(C);
 	Scene *scene= t->scene;
-	Editing *ed= seq_give_editing(t->scene, FALSE);
+	Editing *ed= BKE_sequencer_editing_get(t->scene, FALSE);
 	TransData *td = NULL;
 	TransData2D *td2d= NULL;
 	TransDataSeq *tdsq= NULL;

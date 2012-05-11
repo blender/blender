@@ -48,8 +48,7 @@ static void deformVerts(ModifierData *md, Object *ob,
                         DerivedMesh *UNUSED(derivedData),
                         float (*vertexCos)[3],
                         int numVerts,
-                        int UNUSED(useRenderParams),
-                        int UNUSED(isFinalCalc))
+                        ModifierApplyFlag UNUSED(flag))
 {
 	sbObjectStep(md->scene, ob, (float)md->scene->r.cfra, vertexCos, numVerts);
 }

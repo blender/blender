@@ -134,12 +134,12 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *derivedData,
-                                  int useRenderParams,
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag flag)
 {
 	DerivedMesh *dm = derivedData;
 	DerivedMesh *result;
 	ScrewModifierData *ltmd = (ScrewModifierData *) md;
+	const int useRenderParams = flag & MOD_APPLY_RENDER;
 	
 	int *origindex;
 	int mpoly_index = 0;
@@ -940,7 +940,7 @@ static DerivedMesh *applyModifierEM(
         struct BMEditMesh *UNUSED(editData),
         DerivedMesh *derivedData)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
 static int dependsOnTime(ModifierData *UNUSED(md))

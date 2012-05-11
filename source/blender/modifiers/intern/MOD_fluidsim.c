@@ -78,8 +78,7 @@ static void copyData(ModifierData *md, ModifierData *target)
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
                                   DerivedMesh *dm,
-                                  int useRenderParams,
-                                  int isFinalCalc)
+                                  ModifierApplyFlag flag)
 {
 	FluidsimModifierData *fluidmd = (FluidsimModifierData *) md;
 	DerivedMesh *result = NULL;
@@ -93,7 +92,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 	}
 
-	result = fluidsimModifier_do(fluidmd, md->scene, ob, dm, useRenderParams, isFinalCalc);
+	result = fluidsimModifier_do(fluidmd, md->scene, ob, dm, flag & MOD_APPLY_RENDER, flag & MOD_APPLY_USECACHE);
 
 	return result ? result : dm;
 }

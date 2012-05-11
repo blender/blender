@@ -196,7 +196,7 @@ static void animchan_sync_fcurve(bAnimContext *UNUSED(ac), bAnimListElem *ale)
 		
 		/* only affect if F-Curve involves sequence_editor.sequences */
 		if ((fcu->rna_path) && strstr(fcu->rna_path, "sequences_all")) {
-			Editing *ed = seq_give_editing(scene, FALSE);
+			Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 			Sequence *seq;
 			char *seq_name;
 			

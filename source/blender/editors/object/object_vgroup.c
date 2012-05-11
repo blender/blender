@@ -501,7 +501,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	MVert *mv_dst;
 	MFace *mface_src;
 	Mesh *me_dst, *me_src;
-	BVHTreeFromMesh tree_mesh_faces_src;
+	BVHTreeFromMesh tree_mesh_faces_src = {NULL};
 	BVHTreeNearest nearest;
 	DerivedMesh *dmesh_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
@@ -519,7 +519,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get meshes*/
 	me_dst= ob_dst->data;
-	me_src= ob_src->data;
+	me_src= ob_src->data; /*mfaces does not exist*/
 	dmesh_src= ob_src->derivedDeform; /*sergey- : this might easily be null?? (using ob_src.deriveddeform*/
 
 	/*make node tree*/
@@ -549,12 +549,15 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get weight*/
+		printf("test %d %d \n", me_src->mface->v1, (*me_src->mface).v1);
 		mface_src= me_src->mface + nearest.index;
 		/*tot_dist= ()+()+(); use a comparable distance
 		if(mface_src->v4){
 			tot_dist+= ();
 		}*/
-		dw_src= defvert_verify_index(dv_array_src[mface_src->v1], index_src);
+		printf("test %d \n", (*mface_src).v1);
+		dv_array_src+= mface_src->v1;
+		dw_src= defvert_verify_index(*dv_array_src, index_src);
 		weight= dw_src->weight;
 		dw_src= defvert_verify_index(dv_array_src[mface_src->v2], index_src);
 		weight+= dw_src->weight;

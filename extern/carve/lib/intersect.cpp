@@ -647,12 +647,9 @@ void carve::csg::CSG::_generateVertexEdgeIntersections(carve::mesh::MeshSet<3>::
     return;
   }
 
-  if (std::min(eb->v1()->v.x, eb->v2()->v.x) - carve::EPSILON > va->v.x ||
-      std::max(eb->v1()->v.x, eb->v2()->v.x) + carve::EPSILON < va->v.x ||
-      std::min(eb->v1()->v.y, eb->v2()->v.y) - carve::EPSILON > va->v.y ||
-      std::max(eb->v1()->v.y, eb->v2()->v.y) + carve::EPSILON < va->v.y ||
-      std::min(eb->v1()->v.z, eb->v2()->v.z) - carve::EPSILON > va->v.z ||
-      std::max(eb->v1()->v.z, eb->v2()->v.z) + carve::EPSILON < va->v.z) {
+  carve::geom::aabb<3> eb_aabb;
+  eb_aabb.fit(eb->v1()->v, eb->v2()->v);
+  if (eb_aabb.maxAxisSeparation(va->v) > carve::EPSILON) {
     return;
   }
 

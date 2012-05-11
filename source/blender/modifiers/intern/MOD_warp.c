@@ -317,7 +317,7 @@ static int warp_needs_dm(WarpModifierData *wmd)
 }
 
 static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData,
-                        float (*vertexCos)[3], int numVerts, int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+                        float (*vertexCos)[3], int numVerts, ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *dm = NULL;
 	int use_dm = warp_needs_dm((WarpModifierData *)md);
@@ -344,7 +344,7 @@ static void deformVertsEM(ModifierData *md, Object *ob, struct BMEditMesh *editD
 			dm = CDDM_from_BMEditMesh(editData, ob->data, FALSE, FALSE);
 	}
 
-	deformVerts(md, ob, dm, vertexCos, numVerts, 0, 0);
+	deformVerts(md, ob, dm, vertexCos, numVerts, 0);
 
 	if (use_dm) {
 		if (!derivedData) dm->release(dm);

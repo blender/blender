@@ -107,8 +107,7 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
  */
 static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
                                   DerivedMesh *dm,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
 	BMesh *bm;
@@ -161,8 +160,7 @@ static DerivedMesh *applyModifier(ModifierData *md, struct Object *UNUSED(ob),
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
                                   DerivedMesh *derivedData,
-                                  int UNUSED(useRenderParams),
-                                  int UNUSED(isFinalCalc))
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
 	BMEditMesh *em;
@@ -202,7 +200,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
                                     struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *derivedData)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
 

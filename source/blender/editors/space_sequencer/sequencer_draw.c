@@ -1062,7 +1062,7 @@ static void draw_seq_strips(const bContext *C, Editing *ed, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	View2D *v2d = &ar->v2d;
-	Sequence *last_seq = seq_active_get(scene);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	int sel = 0, j;
 	float pixelx = (v2d->cur.xmax - v2d->cur.xmin) / (v2d->mask.xmax - v2d->mask.xmin);
 	
@@ -1122,7 +1122,7 @@ static void seq_draw_sfra_efra(Scene *scene, View2D *v2d)
 void draw_timeline_seq(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;

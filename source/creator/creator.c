@@ -603,7 +603,7 @@ static int set_engine(int argc, const char **argv, void *data)
 static int set_image_type(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
-	if (argc >= 1) {
+	if (argc > 1) {
 		const char *imtype = argv[1];
 		Scene *scene = CTX_data_scene(C);
 		if (scene) {
@@ -629,7 +629,7 @@ static int set_image_type(int argc, const char **argv, void *data)
 
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
-	if (argc >= 1) {
+	if (argc > 1) {
 		if (G.background) {
 			RE_set_max_threads(atoi(argv[1]));
 		}
@@ -640,6 +640,21 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 	}
 	else {
 		printf("\nError: you must specify a number of threads between 0 and 8 '-t  / --threads'.\n");
+		return 0;
+	}
+}
+
+static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
+{
+	if (argc > 1) {
+		int level = atoi(argv[1]);
+
+		libmv_setLoggingVerbosity(level);
+
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify a verbosity level.\n");
 		return 0;
 	}
 }
@@ -1111,6 +1126,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 #ifdef WITH_LIBMV
 	BLI_argsAdd(ba, 1, NULL, "--debug-libmv", "\n\tEnable debug messages from libmv library", debug_mode_libmv, NULL);
 #endif
+
+	BLI_argsAdd(ba, 1, NULL, "--verbose", "<verbose>\n\tSet logging verbosity level.", set_verbosity, NULL);
 
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY (BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 

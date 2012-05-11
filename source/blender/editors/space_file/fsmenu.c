@@ -277,11 +277,17 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 		}
 		else {
 			int len = strlen(line);
-			if (len>0) {
-				if (line[len-1] == '\n') {
-					line[len-1] = '\0';
+			if (len > 0) {
+				if (line[len - 1] == '\n') {
+					line[len - 1] = '\0';
 				}
-				if (BLI_exists(line)) {
+				/* don't do this because it can be slow on network drives,
+				 * having a bookmark from a drive thats ejected or so isn't
+				 * all _that_ bad */
+#if 0
+				if (BLI_exists(line))
+#endif
+				{
 					fsmenu_insert_entry(fsmenu, category, line, 0, 1);
 				}
 			}

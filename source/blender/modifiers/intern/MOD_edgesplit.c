@@ -140,9 +140,8 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	return doEdgeSplit(dm, emd, ob);
 }
 
-static DerivedMesh *applyModifier(
-        ModifierData *md, Object *ob, DerivedMesh *derivedData,
-        int UNUSED(useRenderParams), int UNUSED(isFinalCalc))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
 	EdgeSplitModifierData *emd = (EdgeSplitModifierData *) md;
@@ -159,7 +158,7 @@ static DerivedMesh *applyModifierEM(ModifierData *md, Object *ob,
                                     struct BMEditMesh *UNUSED(editData),
                                     DerivedMesh *derivedData)
 {
-	return applyModifier(md, ob, derivedData, 0, 1);
+	return applyModifier(md, ob, derivedData, MOD_APPLY_USECACHE);
 }
 
 

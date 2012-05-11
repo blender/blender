@@ -34,9 +34,9 @@
 /* struct DerivedMesh is used directly */
 #include "BKE_DerivedMesh.h"
 
+struct CCGElem;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct DMGridData;
 struct DerivedMesh;
 struct MeshElemMap;
 struct Mesh;
@@ -51,16 +51,23 @@ struct CCGSubsurf;
 struct CCGVert;
 struct EdgeHash;
 struct PBVH;
-struct DMGridData;
 struct DMGridAdjacency;
 
 /**************************** External *****************************/
 
+typedef enum {
+	SUBSURF_USE_RENDER_PARAMS = 1,
+	SUBSURF_IS_FINAL_CALC = 2,
+	SUBSURF_FOR_EDIT_MODE = 4,
+	SUBSURF_IN_EDIT_MODE = 8,
+	SUBSURF_ALLOC_PAINT_MASK = 16
+} SubsurfFlags;
+
 struct DerivedMesh *subsurf_make_derived_from_derived(
-						struct DerivedMesh *dm,
-						struct SubsurfModifierData *smd,
-						int useRenderParams, float (*vertCos)[3],
-						int isFinalCalc, int forEditMode, int inEditMode);
+        struct DerivedMesh *dm,
+        struct SubsurfModifierData *smd,
+        float (*vertCos)[3],
+        SubsurfFlags flags);
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
 
@@ -72,9 +79,13 @@ int ccg_gridsize(int level);
 int ccg_factor(int low_level, int high_level);
 
 void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
-							  const struct MPoly *mpoly,
-							  struct MVert *mvert,
-							  const struct MDisps *mdisps);
+                              const struct MPoly *mpoly,
+                              struct MVert *mvert,
+                              const struct MDisps *mdisps);
+
+void subsurf_copy_grid_paint_mask(struct DerivedMesh *dm,
+                                  const struct MPoly *mpoly, float *paint_mask,
+                                  const struct GridPaintMask *grid_paint_mask);
 
 typedef enum MultiresModifiedFlags {
 	/* indicates the grids have been sculpted on, so MDisps
@@ -93,10 +104,10 @@ typedef struct CCGDerivedMesh {
 	int freeSS;
 	int drawInteriorEdges, useSubsurfUv;
 
-	struct {int startVert; struct CCGVert *vert;} *vertMap;
-	struct {int startVert; int startEdge; struct CCGEdge *edge;} *edgeMap;
+	struct {int startVert; struct CCGVert *vert; } *vertMap;
+	struct {int startVert; int startEdge; struct CCGEdge *edge; } *edgeMap;
 	struct {int startVert; int startEdge;
-			int startFace; struct CCGFace *face;} *faceMap;
+	        int startFace; struct CCGFace *face; } *faceMap;
 
 	short *edgeFlags;
 	struct DMFlagMat *faceFlags;
@@ -108,7 +119,7 @@ typedef struct CCGDerivedMesh {
 	struct MeshElemMap *pmap;
 	int *pmap_mem;
 
-	struct DMGridData **gridData;
+	struct CCGElem **gridData;
 	struct DMGridAdjacency *gridAdjacency;
 	int *gridOffset;
 	struct CCGFace **gridFaces;

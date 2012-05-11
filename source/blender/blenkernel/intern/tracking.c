@@ -1198,6 +1198,8 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 	else
 		tmpibuf = IMB_allocImBuf(w + margin * 2, h + margin * 2, 32, IB_rect);
 
+	tmpibuf->profile = ibuf->profile;
+
 	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1 - margin, y1 - margin, w + margin * 2, h + margin * 2);
 
 	if (pos != NULL) {

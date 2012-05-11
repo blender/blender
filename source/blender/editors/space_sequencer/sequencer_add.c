@@ -106,7 +106,7 @@ static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op,
 {
 	if (RNA_struct_find_property(op->ptr, identifier)) {
 		Scene *scene = CTX_data_scene(C);
-		Sequence *last_seq = seq_active_get(scene);
+		Sequence *last_seq = BKE_sequencer_active_get(scene);
 		if (last_seq && last_seq->strip && SEQ_HAS_PATH(last_seq)) {
 			char path[sizeof(last_seq->strip->dir)];
 			BLI_strncpy(path, last_seq->strip->dir, sizeof(path));
@@ -203,7 +203,7 @@ static void seq_load_operator_info(SeqLoadInfo *seq_load, wmOperator *op)
 static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 	
 	Scene *sce_seq;
 
@@ -239,11 +239,11 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
 	calc_sequence_disp(scene, seq);
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		seq_active_set(scene, seq);
+		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 
@@ -302,7 +302,7 @@ void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 	
 	MovieClip *clip;
 
@@ -338,11 +338,11 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	seqbase_unique_name_recursive(&ed->seqbase, seq);
 
 	calc_sequence_disp(scene, seq);
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		seq_active_set(scene, seq);
+		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 
@@ -401,7 +401,7 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoadFunc seq_load_func)
 {
 	Scene *scene = CTX_data_scene(C); /* only for sound */
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 	int tot_files;
@@ -453,7 +453,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 		return OPERATOR_CANCELLED;
 	}
 
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	seq_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -575,7 +575,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	/* cant use the generic function for this */
 
 	Scene *scene = CTX_data_scene(C); /* only for sound */
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 	SeqLoadInfo seq_load;
 	Sequence *seq;
 
@@ -616,7 +616,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 	
 	calc_sequence_disp(scene, seq);
 
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 
 	/* last active name */
 	strncpy(ed->act_imagedir, strip->dir, FILE_MAXDIR - 1);
@@ -678,7 +678,7 @@ void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot)
 static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 
 	Sequence *seq;  /* generic strip vars */
 	Strip *strip;
@@ -779,11 +779,11 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 
 	/* not sure if this is needed with update_changed_seq_and_deps.
 	 * it was NOT called in blender 2.4x, but wont hurt */
-	sort_seq(scene); 
+	BKE_sequencer_sort(scene); 
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
 		deselect_all_seq(scene);
-		seq_active_set(scene, seq);
+		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
 

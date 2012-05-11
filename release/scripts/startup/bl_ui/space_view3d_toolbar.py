@@ -575,6 +575,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
 
                 row.prop(brush, "sculpt_plane", text="")
 
+            if brush.sculpt_tool == 'MASK':
+                col.prop(brush, "mask_tool", text="")
+
             # plane_offset, use_offset_pressure, use_plane_trim, plane_trim
             if capabilities.has_plane_offset:
                 row = col.row(align=True)

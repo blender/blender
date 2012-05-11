@@ -234,12 +234,32 @@ static void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
+static int copy_data_path_button_poll(bContext *C)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+	int index;
+
+	uiContextActiveProperty(C, &ptr, &prop, &index);
+
+	if (ptr.id.data && ptr.data && prop) {
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			MEM_freeN(path);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
-	int success = 0;
 	int index;
 
 	/* try to create driver using property retrieved from UI */
@@ -251,11 +271,11 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 		if (path) {
 			WM_clipboard_text_set(path, FALSE);
 			MEM_freeN(path);
+			return OPERATOR_FINISHED;
 		}
 	}
 
-	/* since we're just copying, we don't really need to do anything else...*/
-	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return OPERATOR_CANCELLED;
 }
 
 static void UI_OT_copy_data_path_button(wmOperatorType *ot)
@@ -267,7 +287,7 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = copy_data_path_button_exec;
-	//op->poll= ??? // TODO: need to have some valid property before this can be done
+	ot->poll = copy_data_path_button_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;

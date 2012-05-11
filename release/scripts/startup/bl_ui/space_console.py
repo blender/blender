@@ -42,6 +42,7 @@ class CONSOLE_MT_console(Menu):
         layout = self.layout
 
         layout.operator("console.clear")
+        layout.operator("console.clear_line")
         layout.operator("console.copy")
         layout.operator("console.paste")
         layout.menu("CONSOLE_MT_language")

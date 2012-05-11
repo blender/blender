@@ -487,18 +487,6 @@ static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max, 
 	*softmax = val->max;
 }
 
-static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
-{
-	bNode *node = (bNode*)ptr->data;
-	Image *ima = (Image *)node->id;
-	ImageUser *iuser = node->storage;
-	
-	BKE_image_multilayer_index(ima->rr, iuser);
-	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
-	
-	rna_Node_update(bmain, scene, ptr);
-}
-
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item = NULL;
@@ -515,24 +503,6 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	
 	RNA_enum_item_end(&item, &totitem);
 
-	return item;
-}
-
-static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
-                                                    PropertyRNA *UNUSED(prop), int *free)
-{
-	bNode *node = (bNode*)ptr->data;
-	Image *ima = (Image *)node->id;
-	EnumPropertyItem *item = NULL;
-	RenderLayer *rl;
-	
-	if (!ima || !(ima->rr)) return NULL;
-
-	rl = ima->rr->layers.first;
-	item = renderresult_layers_add_enum(rl);
-	
-	*free = 1;
-	
 	return item;
 }
 
@@ -853,25 +823,74 @@ static void rna_Mapping_Node_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 	rna_Node_update(bmain, scene, ptr);
 }
 
-static void rna_NodeOutputFile_file_inputs_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_NodeOutputFile_slots_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
 	rna_iterator_listbase_begin(iter, &node->inputs, NULL);
 }
 
-static PointerRNA rna_NodeOutputFile_file_inputs_get(CollectionPropertyIterator *iter)
+static PointerRNA rna_NodeOutputFile_slot_file_get(CollectionPropertyIterator *iter)
 {
 	PointerRNA ptr;
 	bNodeSocket *sock = rna_iterator_listbase_get(iter);
-	RNA_pointer_create(iter->ptr.id.data, &RNA_NodeImageFileSocket, sock->storage, &ptr);
+	RNA_pointer_create(iter->ptr.id.data, &RNA_NodeOutputFileSlotFile, sock->storage, &ptr);
 	return ptr;
 }
 
-#else
+static PointerRNA rna_NodeOutputFile_slot_layer_get(CollectionPropertyIterator *iter)
+{
+	PointerRNA ptr;
+	bNodeSocket *sock = rna_iterator_listbase_get(iter);
+	RNA_pointer_create(iter->ptr.id.data, &RNA_NodeOutputFileSlotLayer, sock->storage, &ptr);
+	return ptr;
+}
 
-static EnumPropertyItem prop_image_layer_items[] = {
-{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
-{0, NULL, 0, NULL, NULL}};
+static int rna_NodeOutputFileSocket_find_node(bNodeTree *ntree, NodeImageMultiFileSocket *data, bNode **nodep, bNodeSocket **sockp)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for (node= ntree->nodes.first; node; node= node->next) {
+		for (sock= node->inputs.first; sock; sock= sock->next) {
+			NodeImageMultiFileSocket *sockdata = sock->storage;
+			if (sockdata==data) {
+				*nodep = node;
+				*sockp = sock;
+				return 1;
+			}
+		}
+	}
+	
+	*nodep= NULL;
+	*sockp= NULL;
+	return 0;
+}
+
+static void rna_NodeOutputFileSlotFile_path_set(PointerRNA *ptr, const char *value)
+{
+	bNodeTree *ntree = ptr->id.data;
+	NodeImageMultiFileSocket *sockdata = ptr->data;
+	bNode *node;
+	bNodeSocket *sock;
+	
+	if (rna_NodeOutputFileSocket_find_node(ntree, sockdata, &node, &sock)) {
+		ntreeCompositOutputFileSetPath(node, sock, value);
+	}
+}
+
+static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *value)
+{
+	bNodeTree *ntree = ptr->id.data;
+	NodeImageMultiFileSocket *sockdata = ptr->data;
+	bNode *node;
+	bNodeSocket *sock;
+	
+	if (rna_NodeOutputFileSocket_find_node(ntree, sockdata, &node, &sock)) {
+		ntreeCompositOutputFileSetLayer(node, sock, value);
+	}
+}
+
+#else
 
 static EnumPropertyItem prop_scene_layer_items[] = {
 { 0, "PLACEHOLDER",          0, "Placeholder",          ""},
@@ -1792,13 +1811,6 @@ static void def_cmp_image(StructRNA *srna)
 		/* copied from the rna_image.c */
 	RNA_def_property_ui_text(prop, "Auto-Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "layer");
-	RNA_def_property_enum_items(prop, prop_image_layer_items);
-	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
-	RNA_def_property_ui_text(prop, "Layer", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_layer_update");
 }
 
 static void def_cmp_render_layers(StructRNA *srna)
@@ -1821,14 +1833,14 @@ static void def_cmp_render_layers(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
-static void rna_def_cmp_output_file_socket(BlenderRNA *brna)
+static void rna_def_cmp_output_file_slot_file(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 	
-	srna = RNA_def_struct(brna, "NodeImageFileSocket", NULL);
+	srna = RNA_def_struct(brna, "NodeOutputFileSlotFile", NULL);
 	RNA_def_struct_sdna(srna, "NodeImageMultiFileSocket");
-	RNA_def_struct_ui_text(srna, "Node Image File Socket", "Socket data of file output node");
+	RNA_def_struct_ui_text(srna, "Output File Slot", "Single layer file slot of the file output node");
 	
 	prop = RNA_def_property(srna, "use_node_format", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "use_node_format", 1);
@@ -1840,8 +1852,25 @@ static void rna_def_cmp_output_file_socket(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "path", PROP_STRING, PROP_FILEPATH);
 	RNA_def_property_string_sdna(prop, NULL, "path");
-	RNA_def_property_ui_text(prop, "Path", "Subpath used for this input");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_NodeOutputFileSlotFile_path_set");
 	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_ui_text(prop, "Path", "Subpath used for this slot");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, NULL);
+}
+static void rna_def_cmp_output_file_slot_layer(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+	
+	srna = RNA_def_struct(brna, "NodeOutputFileSlotLayer", NULL);
+	RNA_def_struct_sdna(srna, "NodeImageMultiFileSocket");
+	RNA_def_struct_ui_text(srna, "Output File Layer Slot", "Multilayer slot of the file output node");
+	
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "layer");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_NodeOutputFileSlotLayer_name_set");
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_ui_text(prop, "Name", "OpenEXR layer name used for this slot");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, NULL);
 }
 static void def_cmp_output_file(StructRNA *srna)
@@ -1863,11 +1892,21 @@ static void def_cmp_output_file(StructRNA *srna)
 	prop = RNA_def_property(srna, "format", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ImageFormatSettings");
 	
-	prop = RNA_def_property(srna, "file_inputs", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_NodeOutputFile_file_inputs_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end",
-	                                  "rna_NodeOutputFile_file_inputs_get", NULL, NULL, NULL, NULL);
-	RNA_def_property_struct_type(prop, "NodeImageFileSocket");
-	RNA_def_property_ui_text(prop, "File Inputs", "");
+	/* XXX using two different collections here for the same basic DNA list!
+	 * Details of the output slots depend on whether the node is in Multilayer EXR mode.
+	 */
+	
+	prop = RNA_def_property(srna, "file_slots", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_NodeOutputFile_slots_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end",
+	                                  "rna_NodeOutputFile_slot_file_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "NodeOutputFileSlotFile");
+	RNA_def_property_ui_text(prop, "File Slots", "");
+	
+	prop = RNA_def_property(srna, "layer_slots", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_NodeOutputFile_slots_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end",
+	                                  "rna_NodeOutputFile_slot_layer_get", NULL, NULL, NULL, NULL);
+	RNA_def_property_struct_type(prop, "NodeOutputFileSlotLayer");
+	RNA_def_property_ui_text(prop, "EXR Layer Slots", "");
 }
 
 static void def_cmp_dilate_erode(StructRNA *srna)
@@ -3536,7 +3575,8 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, NODE_FRAME, def_frame);
 	
 	/* special socket types */
-	rna_def_cmp_output_file_socket(brna);
+	rna_def_cmp_output_file_slot_file(brna);
+	rna_def_cmp_output_file_slot_layer(brna);
 }
 
 /* clean up macro definition */

@@ -163,7 +163,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 static void proxy_endjob(void *pjv)
 {
 	ProxyJob *pj = pjv;
-	Editing *ed = seq_give_editing(pj->scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(pj->scene, FALSE);
 	LinkData *link;
 
 	for (link = pj->queue.first; link; link = link->next) {
@@ -180,7 +180,7 @@ static void seq_proxy_build_job(const bContext *C)
 	wmJob *steve;
 	ProxyJob *pj;
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	ScrArea *sa = CTX_wm_area(C);
 	struct SeqIndexBuildContext *context;
 	LinkData *link;
@@ -233,9 +233,9 @@ void seq_rectf(Sequence *seq, rctf *rectf)
 
 static void UNUSED_FUNCTION(change_plugin_seq) (Scene * scene, char *str) /* called from fileselect */
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	struct SeqEffectHandle sh;
-	Sequence *last_seq = seq_active_get(scene);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 
 	if (last_seq == NULL || last_seq->type != SEQ_PLUGIN) return;
 
@@ -255,7 +255,7 @@ static void UNUSED_FUNCTION(change_plugin_seq) (Scene * scene, char *str) /* cal
 void boundbox_seq(Scene *scene, rctf *rect)
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	float min[2], max[2];
 
 	
@@ -302,7 +302,7 @@ Sequence *find_neighboring_sequence(Scene *scene, Sequence *test, int lr, int se
 {
 	/* sel - 0==unselected, 1==selected, -1==done care*/
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	if (ed == NULL) return NULL;
 
@@ -334,7 +334,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 {
 	/* sel - 0==unselected, 1==selected, -1==done care*/
 	Sequence *seq, *best_seq = NULL;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
 	int dist, best_dist;
 	best_dist = MAXFRAME * 2;
@@ -382,7 +382,7 @@ static Sequence *find_next_prev_sequence(Scene *scene, Sequence *test, int lr, i
 Sequence *find_nearest_seq(Scene *scene, View2D *v2d, int *hand, const int mval[2])
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	float x, y;
 	float pixelx;
 	float handsize;
@@ -457,7 +457,7 @@ static int seq_is_predecessor(Sequence *pred, Sequence *seq)
 void deselect_all_seq(Scene *scene)
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	
 	if (ed == NULL) return;
@@ -489,13 +489,13 @@ void recurs_sel_seq(Sequence *seqm)
 
 int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequence **selseq1, Sequence **selseq2, Sequence **selseq3, const char **error_str)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq1 = NULL, *seq2 = NULL, *seq3 = NULL, *seq;
 	
 	*error_str = NULL;
 
 	if (!activeseq)
-		seq2 = seq_active_get(scene);
+		seq2 = BKE_sequencer_active_get(scene);
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
@@ -597,14 +597,14 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short deleteall)
 {
 	Sequence *seq, *seqn;
-	Sequence *last_seq = seq_active_get(scene);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 
 	seq = lb->first;
 	while (seq) {
 		seqn = seq->next;
 		if ((seq->flag & flag) || deleteall) {
 			BLI_remlink(lb, seq);
-			if (seq == last_seq) seq_active_set(scene, NULL);
+			if (seq == last_seq) BKE_sequencer_active_set(scene, NULL);
 			if (seq->type == SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
 			seq_free_sequence(scene, seq);
 		}
@@ -839,7 +839,7 @@ static int cut_seq_list(Scene *scene, ListBase *old, ListBase *new, int cutframe
 static int insert_gap(Scene *scene, int gap, int cfra)
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int done = 0;
 
 	/* all strips >= cfra are shifted */
@@ -862,7 +862,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	char str[256];
 
 	/* touch all strips with movies */
@@ -894,7 +894,7 @@ static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
 static void set_filter_seq(Scene *scene)
 {
 	Sequence *seq;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	
 	if (ed == NULL) return;
@@ -918,8 +918,8 @@ static void set_filter_seq(Scene *scene)
 
 static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 {
-	Sequence *seq, *last_seq = seq_active_get(scene);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	char from[FILE_MAX], to[FILE_MAX], stripped[FILE_MAX];
 	
 	
@@ -960,7 +960,7 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 
 static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cfra, first = 0, done;
 
 	
@@ -1001,14 +1001,14 @@ static int seq_get_snaplimit(View2D *v2d)
 /* Operator functions */
 int sequencer_edit_poll(bContext *C)
 {
-	return (seq_give_editing(CTX_data_scene(C), FALSE) != NULL);
+	return (BKE_sequencer_editing_get(CTX_data_scene(C), FALSE) != NULL);
 }
 
 #if 0 /* UNUSED */
 int sequencer_strip_poll(bContext *C)
 {
 	Editing *ed;
-	return (((ed = seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
+	return (((ed = BKE_sequencer_editing_get(CTX_data_scene(C), FALSE)) != NULL) && (ed->act_seq != NULL));
 }
 #endif
 
@@ -1016,13 +1016,13 @@ int sequencer_strip_has_path_poll(bContext *C)
 {
 	Editing *ed;
 	Sequence *seq;
-	return (((ed = seq_give_editing(CTX_data_scene(C), FALSE)) != NULL) && ((seq = ed->act_seq) != NULL) && (SEQ_HAS_PATH(seq)));
+	return (((ed = BKE_sequencer_editing_get(CTX_data_scene(C), FALSE)) != NULL) && ((seq = ed->act_seq) != NULL) && (SEQ_HAS_PATH(seq)));
 }
 
 int sequencer_view_poll(bContext *C)
 {
 	SpaceSeq *sseq = CTX_wm_space_seq(C);
-	Editing *ed = seq_give_editing(CTX_data_scene(C), FALSE);
+	Editing *ed = BKE_sequencer_editing_get(CTX_data_scene(C), FALSE);
 	if (ed && sseq && (sseq->mainb == SEQ_DRAW_IMG_IMBUF))
 		return 1;
 
@@ -1034,7 +1034,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	int snap_frame;
 
@@ -1084,7 +1084,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 	}
 
 	/* as last: */
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 	
@@ -1125,7 +1125,7 @@ void SEQUENCER_OT_snap(struct wmOperatorType *ot)
 static int sequencer_mute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	int selected;
 
@@ -1172,7 +1172,7 @@ void SEQUENCER_OT_mute(struct wmOperatorType *ot)
 static int sequencer_unmute_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	int selected;
 
@@ -1219,7 +1219,7 @@ void SEQUENCER_OT_unmute(struct wmOperatorType *ot)
 static int sequencer_lock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -1252,7 +1252,7 @@ void SEQUENCER_OT_lock(struct wmOperatorType *ot)
 static int sequencer_unlock_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -1285,7 +1285,7 @@ void SEQUENCER_OT_unlock(struct wmOperatorType *ot)
 static int sequencer_reload_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	int adjust_length = RNA_boolean_get(op->ptr, "adjust_length");
 
@@ -1331,7 +1331,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 static int sequencer_refresh_all_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	free_imbuf_seq(scene, &ed->seqbase, FALSE, FALSE);
 
@@ -1355,7 +1355,7 @@ void SEQUENCER_OT_refresh_all(struct wmOperatorType *ot)
 static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Sequence *seq1, *seq2, *seq3, *last_seq = seq_active_get(scene);
+	Sequence *seq1, *seq2, *seq3, *last_seq = BKE_sequencer_active_get(scene);
 	const char *error_msg;
 
 	if (!seq_effect_find_selected(scene, last_seq, last_seq->type, &seq1, &seq2, &seq3, &error_msg)) {
@@ -1385,10 +1385,10 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 static int sequencer_effect_poll(bContext *C)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	if (ed) {
-		Sequence *last_seq = seq_active_get(scene);
+		Sequence *last_seq = BKE_sequencer_active_get(scene);
 		if (last_seq && (last_seq->type & SEQ_EFFECT)) {
 			return 1;
 		}
@@ -1416,7 +1416,7 @@ void SEQUENCER_OT_reassign_inputs(struct wmOperatorType *ot)
 static int sequencer_swap_inputs_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Sequence *seq, *last_seq = seq_active_get(scene);
+	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene);
 
 	if (last_seq->seq1 == NULL || last_seq->seq2 == NULL) {
 		BKE_report(op->reports, RPT_ERROR, "No valid inputs to swap");
@@ -1459,7 +1459,7 @@ static EnumPropertyItem prop_cut_types[] = {
 static int sequencer_cut_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	int cut_side, cut_hard, cut_frame;
 
 	ListBase newlist;
@@ -1499,7 +1499,7 @@ static int sequencer_cut_exec(bContext *C, wmOperator *op)
 			SEQ_END;
 		}
 		/* as last: */
-		sort_seq(scene);
+		BKE_sequencer_sort(scene);
 	}
 
 	if (changed) {
@@ -1567,7 +1567,7 @@ static int apply_unique_name_cb(Sequence *seq, void *arg_pt)
 static int sequencer_add_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	ListBase nseqbase = {NULL, NULL};
 
@@ -1624,12 +1624,12 @@ void SEQUENCER_OT_duplicate(wmOperatorType *ot)
 static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	MetaStack *ms;
 	int nothingSelected = TRUE;
 
-	seq = seq_active_get(scene);
+	seq = BKE_sequencer_active_get(scene);
 	if (seq && seq->flag & SELECT) { /* avoid a loop since this is likely to be selected */
 		nothingSelected = FALSE;
 	}
@@ -1695,7 +1695,7 @@ void SEQUENCER_OT_delete(wmOperatorType *ot)
 static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	/* for effects, try to find a replacement input */
@@ -1747,7 +1747,7 @@ void SEQUENCER_OT_offset_clear(wmOperatorType *ot)
 static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
 	Sequence *seq, *seq_new;
 	Strip *strip_new;
@@ -1811,7 +1811,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	}
 
 	/* as last: */
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -1843,8 +1843,8 @@ void SEQUENCER_OT_images_separate(wmOperatorType *ot)
 static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *last_seq = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	MetaStack *ms;
 
 	if (last_seq && last_seq->type == SEQ_META && last_seq->flag & SELECT) {
@@ -1856,7 +1856,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 		ed->seqbasep = &last_seq->seqbase;
 
-		seq_active_set(scene, NULL);
+		BKE_sequencer_active_set(scene, NULL);
 
 	}
 	else {
@@ -1876,7 +1876,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		for (seq = ed->seqbasep->first; seq; seq = seq->next)
 			calc_sequence(scene, seq);
 
-		seq_active_set(scene, ms->parseq);
+		BKE_sequencer_active_set(scene, ms->parseq);
 
 		ms->parseq->flag |= SELECT;
 		recurs_sel_seq(ms->parseq);
@@ -1911,9 +1911,9 @@ void SEQUENCER_OT_meta_toggle(wmOperatorType *ot)
 static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
-	Sequence *seq, *seqm, *next, *last_seq = seq_active_get(scene);
+	Sequence *seq, *seqm, *next, *last_seq = BKE_sequencer_active_get(scene);
 	int channel_max = 1;
 
 	if (seqbase_isolated_sel_check(ed->seqbasep) == FALSE) {
@@ -1944,7 +1944,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 	seqm->strip = MEM_callocN(sizeof(Strip), "metastrip");
 	seqm->strip->us = 1;
 	
-	seq_active_set(scene, seqm);
+	BKE_sequencer_active_set(scene, seqm);
 
 	if (seq_test_overlap(ed->seqbasep, seqm) ) shuffle_seq(ed->seqbasep, seqm, scene);
 
@@ -1987,9 +1987,9 @@ static int seq_depends_on_meta(Sequence *seq, Sequence *seqm)
 static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	Sequence *seq, *last_seq = seq_active_get(scene); /* last_seq checks ed==NULL */
+	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks ed==NULL */
 
 	if (last_seq == NULL || last_seq->type != SEQ_META)
 		return OPERATOR_CANCELLED;
@@ -2020,7 +2020,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	sort_seq(scene);
+	BKE_sequencer_sort(scene);
 	seq_update_muting(ed);
 
 	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
@@ -2225,7 +2225,7 @@ static int sequencer_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
 	View2D *v2d = UI_view2d_fromcontext(C);
 	ScrArea *area = CTX_wm_area(C);
 	bScreen *sc = CTX_wm_screen(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	int xmin =  MAXFRAME * 2;
@@ -2300,7 +2300,7 @@ void SEQUENCER_OT_view_selected(wmOperatorType *ot)
 
 static int find_next_prev_edit(Scene *scene, int cfra, int side)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *best_seq = NULL, *frame_seq = NULL;
 	
 	int dist, best_dist;
@@ -2427,7 +2427,7 @@ static void swap_sequence(Scene *scene, Sequence *seqa, Sequence *seqb)
 #if 0
 static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *parent = NULL;
 	Sequence *seq;
 
@@ -2447,8 +2447,8 @@ static Sequence *sequence_find_parent(Scene *scene, Sequence *child)
 static int sequencer_swap_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *active_seq = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *active_seq = BKE_sequencer_active_get(scene);
 	Sequence *seq, *iseq;
 	int side = RNA_enum_get(op->ptr, "side");
 
@@ -2492,7 +2492,7 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
 
 
-		sort_seq(scene);
+		BKE_sequencer_sort(scene);
 
 		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
 
@@ -2524,7 +2524,7 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	int retval = OPERATOR_CANCELLED;
 	Scene *scene = CTX_data_scene(C);
-	Sequence *active_seq = seq_active_get(scene);
+	Sequence *active_seq = BKE_sequencer_active_get(scene);
 	StripElem *se = NULL;
 
 	if (active_seq == NULL)
@@ -2596,7 +2596,7 @@ static void seq_copy_del_sound(Scene *scene, Sequence *seq)
 static int sequencer_copy_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	ListBase nseqbase = {NULL, NULL};
@@ -2660,7 +2660,7 @@ void SEQUENCER_OT_copy(wmOperatorType *ot)
 static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, TRUE); /* create if needed */
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE); /* create if needed */
 	ListBase nseqbase = {NULL, NULL};
 	int ofs;
 	Sequence *iseq;
@@ -2716,7 +2716,7 @@ static int sequencer_swap_data_exec(bContext *C, wmOperator *op)
 	Sequence *seq_other;
 	const char *error_msg;
 
-	if (seq_active_pair_get(scene, &seq_act, &seq_other) == 0) {
+	if (BKE_sequencer_active_get_pair(scene, &seq_act, &seq_other) == 0) {
 		BKE_report(op->reports, RPT_ERROR, "Must select 2 strips");
 		return OPERATOR_CANCELLED;
 	}
@@ -2764,7 +2764,7 @@ void SEQUENCER_OT_swap_data(wmOperatorType *ot)
 static int view_ghost_border_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	View2D *v2d = UI_view2d_fromcontext(C);
 
 	rctf rect;
@@ -2856,8 +2856,8 @@ static EnumPropertyItem prop_change_effect_input_types[] = {
 static int sequencer_change_effect_input_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *seq = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *seq = BKE_sequencer_active_get(scene);
 
 	Sequence **seq_1, **seq_2;
 
@@ -2914,8 +2914,8 @@ void SEQUENCER_OT_change_effect_input(struct wmOperatorType *ot)
 static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *seq = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *seq = BKE_sequencer_active_get(scene);
 	const int new_type = RNA_enum_get(op->ptr, "type");
 
 	/* free previous effect and init new effect */
@@ -2975,8 +2975,8 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
-	Sequence *seq = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+	Sequence *seq = BKE_sequencer_active_get(scene);
 	const int is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
 	if (seq->type == SEQ_IMAGE) {
@@ -3044,7 +3044,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	Scene *scene = CTX_data_scene(C);
-	Sequence *seq = seq_active_get(scene);
+	Sequence *seq = BKE_sequencer_active_get(scene);
 
 	RNA_string_set(op->ptr, "directory", seq->strip->dir);
 

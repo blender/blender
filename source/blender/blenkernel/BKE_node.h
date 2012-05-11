@@ -684,6 +684,11 @@ void ntreeCompositClearTags(struct bNodeTree *ntree);
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,
                                                      const char *name, struct ImageFormatData *im_format);
 int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
+void ntreeCompositOutputFileSetPath(struct bNode *node, struct bNodeSocket *sock, const char *name);
+void ntreeCompositOutputFileSetLayer(struct bNode *node, struct bNodeSocket *sock, const char *name);
+/* needed in do_versions */
+void ntreeCompositOutputFileUniquePath(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
+void ntreeCompositOutputFileUniqueLayer(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
 
 /* ************** TEXTURE NODES *************** */
 
