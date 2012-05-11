@@ -280,6 +280,8 @@ void BKE_sequencer_editing_free(Scene *scene)
 	}
 
 	MEM_freeN(ed);
+
+	scene->ed = NULL;
 }
 
 /* **********************************************************************
