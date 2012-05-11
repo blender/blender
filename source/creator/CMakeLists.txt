@@ -584,7 +584,14 @@ elseif(WIN32)
 				${LIBDIR}/ffmpeg/lib/swscale-2.dll
 			DESTINATION ${TARGETDIR}
 		)
-
+		if(WITH_MINGW64)
+		install(
+			FILES
+				${LIBDIR}/ffmpeg/lib/swresample-0.dll
+				${LIBDIR}/ffmpeg/lib/xvidcore.dll
+			DESTINATION ${TARGETDIR}
+		)
+		endif()
 	endif()
 
 	if(WITH_CODEC_SNDFILE)

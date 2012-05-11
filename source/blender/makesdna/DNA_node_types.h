@@ -324,6 +324,14 @@ typedef struct NodeImageAnim {
 	short pad;
 } NodeImageAnim;
 
+/* layer info for image node outputs */
+typedef struct NodeImageLayer {
+	/* index in the Image->layers and Image->layers->passes lists */
+	int layer_index, pass_index;
+	/* render pass flag, in case this is an original render pass */
+	int pass_flag;
+} NodeImageLayer;
+
 typedef struct NodeBlurData {
 	short sizex, sizey;
 	short samples, maxspeed, minspeed, relative, aspect;
@@ -364,11 +372,16 @@ typedef struct NodeImageMultiFile {
 	int pad;
 } NodeImageMultiFile;
 typedef struct NodeImageMultiFileSocket {
+	/* single layer file output */
 	short use_render_format  DNA_DEPRECATED;
 	short use_node_format;	/* use overall node image format */
-	int pad2;
-	char path[1024];	/* 1024 = FILE_MAX */
+	int pad1;
+	char path[1024];		/* 1024 = FILE_MAX */
 	ImageFormatData format;
+	
+	/* multilayer output */
+	char layer[30];		/* EXR_TOT_MAXNAME-2 ('.' and channel char are appended) */
+	char pad2[2];
 } NodeImageMultiFileSocket;
 
 typedef struct NodeChroma {

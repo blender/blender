@@ -164,11 +164,11 @@ void select_surround_from_last(Scene *scene)
 
 static void UNUSED_FUNCTION(select_single_seq) (Scene * scene, Sequence * seq, int deselect_all) /* BRING BACK */
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
 	if (deselect_all)
 		deselect_all_seq(scene);
-	seq_active_set(scene, seq);
+	BKE_sequencer_active_set(scene, seq);
 
 	if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 		if (seq->strip)
@@ -185,7 +185,7 @@ static void UNUSED_FUNCTION(select_single_seq) (Scene * scene, Sequence * seq, i
 #if 0
 static void select_neighbor_from_last(Scene *scene, int lr)
 {
-	Sequence *seq = seq_active_get(scene);
+	Sequence *seq = BKE_sequencer_active_get(scene);
 	Sequence *neighbor;
 	int change = 0;
 	if (seq) {
@@ -220,7 +220,7 @@ static int sequencer_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	if (action == SEL_TOGGLE) {
@@ -281,7 +281,7 @@ void SEQUENCER_OT_select_all(struct wmOperatorType *ot)
 static int sequencer_select_inverse_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
@@ -318,7 +318,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	View2D *v2d = UI_view2d_fromcontext(C);
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	short extend = RNA_boolean_get(op->ptr, "extend");
 	short linked_handle = RNA_boolean_get(op->ptr, "linked_handle");
 	short left_right = RNA_boolean_get(op->ptr, "left_right");
@@ -406,7 +406,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			deselect_all_seq(scene);
 	
 		if (seq) {
-			seq_active_set(scene, seq);
+			BKE_sequencer_active_set(scene, seq);
 	
 			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
 				if (seq->strip) {
@@ -557,7 +557,7 @@ void SEQUENCER_OT_select(wmOperatorType *ot)
 /* run recursively to select linked */
 static int select_more_less_seq__internal(Scene *scene, int sel, int linked)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *neighbor;
 	int change = 0;
 	int isel;
@@ -758,7 +758,7 @@ void SEQUENCER_OT_select_linked(wmOperatorType *ot)
 static int sequencer_select_handles_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, 0);
+	Editing *ed = BKE_sequencer_editing_get(scene, 0);
 	Sequence *seq;
 	int sel_side = RNA_enum_get(op->ptr, "side");
 
@@ -808,8 +808,8 @@ void SEQUENCER_OT_select_handles(wmOperatorType *ot)
 static int sequencer_select_active_side_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, 0);
-	Sequence *seq_act = seq_active_get(scene);
+	Editing *ed = BKE_sequencer_editing_get(scene, 0);
+	Sequence *seq_act = BKE_sequencer_active_get(scene);
 
 	if (ed == NULL || seq_act == NULL)
 		return OPERATOR_CANCELLED;
@@ -846,7 +846,7 @@ void SEQUENCER_OT_select_active_side(wmOperatorType *ot)
 static int sequencer_borderselect_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	View2D *v2d = UI_view2d_fromcontext(C);
 	
 	Sequence *seq;
@@ -1150,8 +1150,8 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 static int sequencer_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene  = CTX_data_scene(C);
-	Editing *ed   = seq_give_editing(scene, 0);
-	Sequence *seq, *actseq = seq_active_get(scene);
+	Editing *ed   = BKE_sequencer_editing_get(scene, 0);
+	Sequence *seq, *actseq = BKE_sequencer_active_get(scene);
 	int type = RNA_enum_get(op->ptr, "type");
 	short changed = 0, extend;
 

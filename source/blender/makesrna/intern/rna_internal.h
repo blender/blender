@@ -205,7 +205,7 @@ void rna_PropertyGroup_unregister(struct Main *bmain, struct StructRNA *type);
 struct StructRNA *rna_PropertyGroup_register(struct Main *bmain, struct ReportList *reports, void *data,
                                              const char *identifier, StructValidateFunc validate,
                                              StructCallbackFunc call, StructFreeFunc free);
-struct StructRNA* rna_PropertyGroup_refine(struct PointerRNA *ptr);
+struct StructRNA *rna_PropertyGroup_refine(struct PointerRNA *ptr);
 
 void rna_object_vgroup_name_index_get(struct PointerRNA *ptr, char *value, int index);
 int rna_object_vgroup_name_index_length(struct PointerRNA *ptr, int index);
@@ -268,6 +268,8 @@ void RNA_api_controller(struct StructRNA *srna);
 void RNA_api_actuator(struct StructRNA *srna);
 void RNA_api_texture(struct StructRNA *srna);
 void RNA_api_environment_map(struct StructRNA *srna);
+void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop);
 
 /* main collection functions */
 void RNA_def_main_cameras(BlenderRNA *brna, PropertyRNA *cprop);
@@ -343,7 +345,7 @@ PointerRNA rna_listbase_lookup_int(PointerRNA *ptr, StructRNA *type, struct List
 
 typedef struct ArrayIterator {
 	char *ptr;
-	char *endptr;	/* past the last valid pointer, only for comparisons, ignores skipped values */
+	char *endptr;  /* past the last valid pointer, only for comparisons, ignores skipped values */
 	void *free_ptr; /* will be freed if set */
 	int itemsize;
 

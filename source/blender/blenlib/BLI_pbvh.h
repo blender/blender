@@ -28,9 +28,11 @@
 
 #include "BLI_bitmap.h"
 
+struct CCGElem;
+struct CCGKey;
+struct CustomData;
 struct DMFlagMat;
 struct DMGridAdjacency;
-struct DMGridData;
 struct ListBase;
 struct MFace;
 struct MVert;
@@ -50,17 +52,17 @@ typedef struct {
 typedef int (*BLI_pbvh_SearchCallback)(PBVHNode *node, void *data);
 
 typedef void (*BLI_pbvh_HitCallback)(PBVHNode *node, void *data);
-typedef void (*BLI_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float* tmin);
+typedef void (*BLI_pbvh_HitOccludedCallback)(PBVHNode *node, void *data, float *tmin);
 
 /* Building */
 
 PBVH *BLI_pbvh_new(void);
 void BLI_pbvh_build_mesh(PBVH *bvh, struct MFace *faces, struct MVert *verts,
-			int totface, int totvert);
-void BLI_pbvh_build_grids(PBVH *bvh, struct DMGridData **grids,
-	struct DMGridAdjacency *gridadj, int totgrid,
-	int gridsize, void **gridfaces, struct DMFlagMat *flagmats,
-	unsigned int **grid_hidden);
+                         int totface, int totvert, struct CustomData *vdata);
+void BLI_pbvh_build_grids(PBVH *bvh, struct CCGElem **grid_elems,
+                          struct DMGridAdjacency *gridadj, int totgrid,
+                          struct CCGKey *key, void **gridfaces, struct DMFlagMat *flagmats,
+                          unsigned int **grid_hidden);
 void BLI_pbvh_free(PBVH *bvh);
 
 /* Hierarchical Search in the BVH, two methods:
@@ -68,28 +70,28 @@ void BLI_pbvh_free(PBVH *bvh);
  * - gather nodes in an array (easy to multithread) */
 
 void BLI_pbvh_search_callback(PBVH *bvh,
-	BLI_pbvh_SearchCallback scb, void *search_data,
-	BLI_pbvh_HitCallback hcb, void *hit_data);
+                              BLI_pbvh_SearchCallback scb, void *search_data,
+                              BLI_pbvh_HitCallback hcb, void *hit_data);
 
 void BLI_pbvh_search_gather(PBVH *bvh,
-	BLI_pbvh_SearchCallback scb, void *search_data,
-	PBVHNode ***array, int *tot);
+                            BLI_pbvh_SearchCallback scb, void *search_data,
+                            PBVHNode ***array, int *tot);
 
 /* Raycast
  * the hit callback is called for all leaf nodes intersecting the ray;
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */
 
-void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
+void BLI_pbvh_raycast(PBVH * bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       float ray_start[3], float ray_normal[3], int original);
-int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
-	float ray_start[3], float ray_normal[3], float *dist);
+int BLI_pbvh_node_raycast(PBVH * bvh, PBVHNode * node, float (*origco)[3],
+                          float ray_start[3], float ray_normal[3], float *dist);
 
 /* Drawing */
 
 void BLI_pbvh_node_draw(PBVHNode *node, void *data);
 void BLI_pbvh_draw(PBVH *bvh, float (*planes)[4], float (*face_nors)[3],
-				   int (*setMaterial)(int, void *attribs));
+                   int (*setMaterial)(int, void *attribs));
 
 /* PBVH Access */
 typedef enum {
@@ -101,6 +103,9 @@ PBVHType BLI_pbvh_type(const PBVH *bvh);
 
 /* multires hidden data, only valid for type == PBVH_GRIDS */
 unsigned int **BLI_pbvh_grid_hidden(const PBVH *bvh);
+
+/* multires level, only valid for type == PBVH_GRIDS */
+void BLI_pbvh_get_grid_key(const PBVH *pbvh, struct CCGKey *key);
 
 /* Node Access */
 
@@ -122,17 +127,17 @@ void BLI_pbvh_node_mark_rebuild_draw(PBVHNode *node);
 void BLI_pbvh_node_fully_hidden_set(PBVHNode *node, int fully_hidden);
 
 void BLI_pbvh_node_get_grids(PBVH *bvh, PBVHNode *node,
-	int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
-	struct DMGridData ***griddata, struct DMGridAdjacency **gridadj);
+                             int **grid_indices, int *totgrid, int *maxgrid, int *gridsize,
+                             struct CCGElem ***grid_elems, struct DMGridAdjacency **gridadj);
 void BLI_pbvh_node_num_verts(PBVH *bvh, PBVHNode *node,
-	int *uniquevert, int *totvert);
+                             int *uniquevert, int *totvert);
 void BLI_pbvh_node_get_verts(PBVH *bvh, PBVHNode *node,
-	int **vert_indices, struct MVert **verts);
+                             int **vert_indices, struct MVert **verts);
 
-void BLI_pbvh_node_get_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
-void BLI_pbvh_node_get_original_BB(PBVHNode *node, float bb_min[3], float bb_max[3]);
+void BLI_pbvh_node_get_BB(PBVHNode * node, float bb_min[3], float bb_max[3]);
+void BLI_pbvh_node_get_original_BB(PBVHNode * node, float bb_min[3], float bb_max[3]);
 
-float BLI_pbvh_node_get_tmin(PBVHNode* node);
+float BLI_pbvh_node_get_tmin(PBVHNode *node);
 
 /* test if AABB is at least partially inside the planes' volume */
 int BLI_pbvh_node_planes_contain_AABB(PBVHNode *node, void *data);
@@ -142,10 +147,10 @@ int BLI_pbvh_node_planes_exclude_AABB(PBVHNode *node, void *data);
 /* Update Normals/Bounding Box/Draw Buffers/Redraw and clear flags */
 
 void BLI_pbvh_update(PBVH *bvh, int flags, float (*face_nors)[3]);
-void BLI_pbvh_redraw_BB(PBVH *bvh, float bb_min[3], float bb_max[3]);
+void BLI_pbvh_redraw_BB(PBVH * bvh, float bb_min[3], float bb_max[3]);
 void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *totface);
-void BLI_pbvh_grids_update(PBVH *bvh, struct DMGridData **grids,
-	struct DMGridAdjacency *gridadj, void **gridfaces);
+void BLI_pbvh_grids_update(PBVH *bvh, struct CCGElem **grid_elems,
+                           struct DMGridAdjacency *gridadj, void **gridfaces);
 
 /* vertex deformer */
 float (*BLI_pbvh_get_vertCos(struct PBVH *pbvh))[3];
@@ -161,8 +166,8 @@ int BLI_pbvh_isDeformed(struct PBVH *pbvh);
 
 /* note: PBVH_ITER_ALL does not skip hidden vertices,
  * PBVH_ITER_UNIQUE does */
-#define PBVH_ITER_ALL		0
-#define PBVH_ITER_UNIQUE	1
+#define PBVH_ITER_ALL       0
+#define PBVH_ITER_UNIQUE    1
 
 typedef struct PBVHVertexIter {
 	/* iteration */
@@ -174,8 +179,9 @@ typedef struct PBVHVertexIter {
 	int i;
 
 	/* grid */
-	struct DMGridData **grids;
-	struct DMGridData *grid;
+	struct CCGElem **grids;
+	struct CCGElem *grid;
+	struct CCGKey *key;
 	BLI_bitmap *grid_hidden, gh;
 	int *grid_indices;
 	int totgrid;
@@ -185,6 +191,7 @@ typedef struct PBVHVertexIter {
 	struct MVert *mverts;
 	int totvert;
 	int *vert_indices;
+	float *vmask;
 
 	/* result: these are all computed in the macro, but we assume
 	 * that compiler optimization's will skip the ones we don't use */
@@ -192,6 +199,7 @@ typedef struct PBVHVertexIter {
 	float *co;
 	short *no;
 	float *fno;
+	float *mask;
 } PBVHVertexIter;
 
 #ifdef _MSC_VER
@@ -199,41 +207,44 @@ typedef struct PBVHVertexIter {
 #endif
 
 void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
-						   PBVHVertexIter *vi, int mode);
+                           PBVHVertexIter *vi, int mode);
 
 #define BLI_pbvh_vertex_iter_begin(bvh, node, vi, mode) \
 	pbvh_vertex_iter_init(bvh, node, &vi, mode); \
 	\
-	for(vi.i=0, vi.g=0; vi.g<vi.totgrid; vi.g++) { \
-		if(vi.grids) { \
-			vi.width= vi.gridsize; \
-			vi.height= vi.gridsize; \
-			vi.grid= vi.grids[vi.grid_indices[vi.g]]; \
-			if(mode == PBVH_ITER_UNIQUE) \
-				vi.gh= vi.grid_hidden[vi.grid_indices[vi.g]];	\
+	for (vi.i = 0, vi.g = 0; vi.g < vi.totgrid; vi.g++) { \
+		if (vi.grids) { \
+			vi.width = vi.gridsize; \
+			vi.height = vi.gridsize; \
+			vi.grid = vi.grids[vi.grid_indices[vi.g]]; \
+			if (mode == PBVH_ITER_UNIQUE) \
+				vi.gh = vi.grid_hidden[vi.grid_indices[vi.g]];   \
 		} \
 		else { \
-			vi.width= vi.totvert; \
-			vi.height= 1; \
+			vi.width = vi.totvert; \
+			vi.height = 1; \
 		} \
 		 \
-		for(vi.gy=0; vi.gy<vi.height; vi.gy++) { \
-			for(vi.gx=0; vi.gx<vi.width; vi.gx++, vi.i++) { \
-				if(vi.grid) { \
-					vi.co= vi.grid->co; \
-					vi.fno= vi.grid->no; \
-					vi.grid++; \
-					if(vi.gh) { \
-						if(BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
+		for (vi.gy = 0; vi.gy < vi.height; vi.gy++) { \
+			for (vi.gx = 0; vi.gx < vi.width; vi.gx++, vi.i++) { \
+				if (vi.grid) { \
+					vi.co = CCG_elem_co(vi.key, vi.grid); \
+					vi.fno = CCG_elem_no(vi.key, vi.grid); \
+					vi.mask = CCG_elem_mask(vi.key, vi.grid); \
+					vi.grid = CCG_elem_next(vi.key, vi.grid); \
+					if (vi.gh) { \
+						if (BLI_BITMAP_GET(vi.gh, vi.gy * vi.gridsize + vi.gx)) \
 							continue; \
 					} \
 				} \
 				else { \
-					vi.mvert= &vi.mverts[vi.vert_indices[vi.gx]]; \
-					if(mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
+					vi.mvert = &vi.mverts[vi.vert_indices[vi.gx]]; \
+					if (mode == PBVH_ITER_UNIQUE && vi.mvert->flag & ME_HIDE) \
 						continue; \
-					vi.co= vi.mvert->co; \
-					vi.no= vi.mvert->no; \
+					vi.co = vi.mvert->co; \
+					vi.no = vi.mvert->no; \
+					if (vi.vmask) \
+						vi.mask = &vi.vmask[vi.vert_indices[vi.gx]]; \
 				} \
 
 #define BLI_pbvh_vertex_iter_end \
@@ -241,10 +252,10 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 		} \
 	}
 
-void BLI_pbvh_node_get_proxies(PBVHNode* node, PBVHProxyNode** proxies, int* proxy_count);
-void BLI_pbvh_node_free_proxies(PBVHNode* node);
-PBVHProxyNode* BLI_pbvh_node_add_proxy(PBVH* bvh, PBVHNode* node);
-void BLI_pbvh_gather_proxies(PBVH* pbvh, PBVHNode*** nodes,  int* totnode);
+void BLI_pbvh_node_get_proxies(PBVHNode *node, PBVHProxyNode **proxies, int *proxy_count);
+void BLI_pbvh_node_free_proxies(PBVHNode *node);
+PBVHProxyNode *BLI_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node);
+void BLI_pbvh_gather_proxies(PBVH *pbvh, PBVHNode ***nodes,  int *totnode);
 
 //void BLI_pbvh_node_BB_reset(PBVHNode* node);
 //void BLI_pbvh_node_BB_expand(PBVHNode* node, float co[3]);

@@ -247,6 +247,16 @@ typedef struct MRecast {
 	int		i;
 } MRecast;
 
+typedef struct GridPaintMask {
+	/* The data array contains gridsize*gridsize elements */
+	float *data;
+
+	/* The maximum multires level associated with this grid */
+	unsigned int level;
+
+	int pad;
+} GridPaintMask;
+
 /* mvert->flag (1=SELECT) */
 #define ME_SPHERETEST		2
 #define ME_VERT_TMP_TAG		4

@@ -1776,12 +1776,12 @@ static void ui_litem_layout_row(uiLayout *litem)
 		/* align right/center */
 		offset = 0;
 		if (litem->alignment == UI_LAYOUT_ALIGN_RIGHT) {
-			if (freew > 0 && freew < w - fixedw)
-				offset = (w - fixedw) - freew;
+			if (freew + fixedw > 0 && freew + fixedw < w)
+				offset = w - (fixedw + freew);
 		}
 		else if (litem->alignment == UI_LAYOUT_ALIGN_CENTER) {
-			if (freew > 0 && freew < w - fixedw)
-				offset = ((w - fixedw) - freew) / 2;
+			if (freew + fixedw > 0 && freew + fixedw < w)
+				offset = (w - (fixedw + freew)) / 2;
 		}
 
 		/* position item */

@@ -55,7 +55,7 @@ class VIEW3D_HT_header(Header):
                 if mode_string in {'SCULPT', 'PAINT_VERTEX', 'PAINT_WEIGHT', 'PAINT_TEXTURE'}:
                     sub.menu("VIEW3D_MT_brush")
                 if mode_string == 'SCULPT':
-                    sub.menu("VIEW3D_MT_hide")
+                    sub.menu("VIEW3D_MT_hide_mask")
             else:
                 sub.menu("VIEW3D_MT_object")
 
@@ -1269,8 +1269,8 @@ class VIEW3D_MT_sculpt(Menu):
         layout.prop(sculpt, "use_deform_only")
 
 
-class VIEW3D_MT_hide(Menu):
-    bl_label = "Hide"
+class VIEW3D_MT_hide_mask(Menu):
+    bl_label = "Hide/Mask"
 
     def draw(self, context):
         layout = self.layout
@@ -1286,6 +1286,23 @@ class VIEW3D_MT_hide(Menu):
         op = layout.operator("paint.hide_show", text="Show Bounding Box")
         op.action = 'SHOW'
         op.area = 'INSIDE'
+    
+        op = layout.operator("paint.hide_show", text="Hide Masked")
+        op.area = 'MASKED'
+        op.action = 'HIDE'
+
+        layout.separator()
+
+        op = layout.operator("paint.mask_flood_fill", text="Invert Mask")
+        op.mode = 'INVERT'
+
+        op = layout.operator("paint.mask_flood_fill", text="Fill Mask")
+        op.mode = 'VALUE'
+        op.value = 1
+
+        op = layout.operator("paint.mask_flood_fill", text="Clear Mask")
+        op.mode = 'VALUE'
+        op.value = 0
 
 
 # ********** Particle menu **********

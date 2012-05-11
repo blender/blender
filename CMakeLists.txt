@@ -195,7 +195,6 @@ option(WITH_IMAGE_FRAMESERVER   "Enable image FrameServer Support for rendering"
 
 # Audio/Video format support
 option(WITH_CODEC_FFMPEG        "Enable FFMPeg Support (http://ffmpeg.org)" OFF)
-unset(PLATFORM_DEFAULT)
 
 option(WITH_CODEC_SNDFILE       "Enable libsndfile Support (http://www.mega-nerd.com/libsndfile)" OFF)
 if(APPLE OR (WIN32 AND NOT UNIX))
@@ -372,7 +371,7 @@ if(MINGW)
 		                    "line if youre a developer who wants to add support.")
 	endif()
 	
-	if((WITH_MINGW64) AND (WITH_OPENCOLLADA OR WITH_CODEC_FFMPEG))
+	if((WITH_MINGW64) AND (WITH_OPENCOLLADA))
 		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_CODEC_FFMPEG")
 	endif()
 endif()
@@ -1089,7 +1088,11 @@ elseif(WIN32)
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
 			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
-			set(FFMPEG_LIBRARIES avcodec-53 avformat-53 avdevice-53 avutil-51 swscale-2)
+			if(WITH_MINGW64)
+				set(FFMPEG_LIBRARIES avcodec.dll avformat.dll avdevice.dll avutil.dll swscale.dll swresample.dll)
+			else()
+				set(FFMPEG_LIBRARIES avcodec-53 avformat-53 avdevice-53 avutil-51 swscale-2)
+			endif()
 			set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		endif()
 

@@ -1262,9 +1262,6 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	}
 
 	col= uiLayoutColumn(layout, 0);
-	
-	if (RNA_enum_get(&imaptr, "type")== IMA_TYPE_MULTILAYER)
-		uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -1709,25 +1706,30 @@ static void node_draw_input_file_output(const bContext *C, uiBlock *block,
                                          bNodeTree *ntree, bNode *node, bNodeSocket *sock,
                                          const char *UNUSED(name), int x, int y, int width)
 {
-	NodeImageMultiFileSocket *input = sock->storage;
 	uiLayout *layout, *row;
 	PointerRNA nodeptr, inputptr, imfptr;
 	int imtype;
 	int rx, ry;
 	RNA_pointer_create(&ntree->id, &RNA_Node, node, &nodeptr);
-	RNA_pointer_create(&ntree->id, &RNA_NodeImageFileSocket, input, &inputptr);
 	
 	layout = uiBlockLayout(block, UI_LAYOUT_VERTICAL, UI_LAYOUT_PANEL, x, y+NODE_DY, width, 20, UI_GetStyle());
-	row = uiLayoutRow(layout, 0);		
-	
-	uiItemL(row, input->path, 0);
+	row = uiLayoutRow(layout, 0);
 	
 	imfptr = RNA_pointer_get(&nodeptr, "format");
 	imtype = RNA_enum_get(&imfptr, "file_format");
-	/* in multilayer format all socket format details are ignored */
-	if (imtype != R_IMF_IMTYPE_MULTILAYER) {
+	if (imtype == R_IMF_IMTYPE_MULTILAYER) {
+		NodeImageMultiFileSocket *input = sock->storage;
+		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotLayer, input, &inputptr);
+		
+		uiItemL(row, input->layer, 0);
+	}
+	else {
+		NodeImageMultiFileSocket *input = sock->storage;
 		PropertyRNA *imtype_prop;
 		const char *imtype_name;
+		RNA_pointer_create(&ntree->id, &RNA_NodeOutputFileSlotFile, input, &inputptr);
+		
+		uiItemL(row, input->path, 0);
 		
 		if (!RNA_boolean_get(&inputptr, "use_node_format"))
 			imfptr = RNA_pointer_get(&inputptr, "format");
@@ -1767,10 +1769,18 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	
 	uiItemO(layout, "Add Input", ICON_ZOOMIN, "NODE_OT_output_file_add_socket");
 	
-	uiTemplateList(layout, C, ptr, "file_inputs", ptr, "active_input_index", NULL, 0, 0, 0);
-	
 	active_index = RNA_int_get(ptr, "active_input_index");
-	RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "file_inputs"), active_index, &active_input_ptr);
+	/* using different collection properties if multilayer format is enabled */
+	if (multilayer) {
+		uiTemplateList(layout, C, ptr, "layer_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "layer_slots"), active_index, &active_input_ptr);
+	}
+	else {
+		uiTemplateList(layout, C, ptr, "file_slots", ptr, "active_input_index", NULL, 0, 0, 0);
+		RNA_property_collection_lookup_int(ptr, RNA_struct_find_property(ptr, "file_slots"), active_index, &active_input_ptr);
+	}
+	/* XXX collection lookup does not return the ID part of the pointer, setting this manually here */
+	active_input_ptr.id.data = ptr->id.data;
 	
 	row = uiLayoutRow(layout, 1);
 	op_ptr = uiItemFullO(row, "NODE_OT_output_file_move_active_socket", "", ICON_TRIA_UP, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
@@ -1779,19 +1789,25 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 	RNA_enum_set(&op_ptr, "direction", 2);
 	
 	if (active_input_ptr.data) {
-		uiLayout *row, *col;
-		
-		col = uiLayoutColumn(layout, 1);
-		if (multilayer)
-			uiItemL(col, "Layer Name:", 0);
-		else
+		if (multilayer) {
+			uiLayout *row, *col;
+			col = uiLayoutColumn(layout, 1);
+			
+			uiItemL(col, "Layer:", 0);
+			row = uiLayoutRow(col, 0);
+			uiItemR(row, &active_input_ptr, "name", 0, "", 0);
+			uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
+		}
+		else {
+			uiLayout *row, *col;
+			col = uiLayoutColumn(layout, 1);
+			
 			uiItemL(col, "File Path:", 0);
-		row = uiLayoutRow(col, 0);
-		uiItemR(row, &active_input_ptr, "path", 0, "", 0);
-		uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
-		
-		/* in multilayer format all socket format details are ignored */
-		if (!multilayer) {
+			row = uiLayoutRow(col, 0);
+			uiItemR(row, &active_input_ptr, "path", 0, "", 0);
+			uiItemFullO(row, "NODE_OT_output_file_remove_active_socket", "", ICON_X, NULL, WM_OP_EXEC_DEFAULT, UI_ITEM_R_ICON_ONLY);
+			
+			/* format details for individual files */
 			imfptr = RNA_pointer_get(&active_input_ptr, "format");
 			
 			col = uiLayoutColumn(layout, 1);

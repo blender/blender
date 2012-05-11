@@ -102,6 +102,9 @@ extern char datatoc_layer_png[];
 extern int datatoc_lighten_png_size;
 extern char datatoc_lighten_png[];
 
+extern int datatoc_mask_png_size;
+extern char datatoc_mask_png[];
+
 extern int datatoc_mix_png_size;
 extern char datatoc_mix_png[];
 

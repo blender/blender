@@ -245,7 +245,7 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	return cddm->mvert == me->mvert || ob->sculpt->kb;
 }
 
-static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
+static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 
@@ -276,7 +276,7 @@ static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 		BKE_mesh_tessface_ensure(me);
 		
 		BLI_pbvh_build_mesh(cddm->pbvh, me->mface, me->mvert,
-		                    me->totface, me->totvert);
+		                    me->totface, me->totvert, &me->vdata);
 
 		deformed = ss->modifiers_active || me->key;
 

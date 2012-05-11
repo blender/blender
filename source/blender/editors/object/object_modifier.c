@@ -76,6 +76,7 @@
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_mesh.h"
 
 #include "WM_api.h"
@@ -147,9 +148,13 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 		else if (type == eModifierType_Surface)
 			DAG_scene_sort(bmain, scene);
-		else if (type == eModifierType_Multires)
+		else if (type == eModifierType_Multires) {
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
+
+			/* ensure that grid paint mask layer is created */
+			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+		}
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -610,6 +615,9 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
+	/* ensure mesh paint mask layer remains after applying */
+	ED_sculpt_mask_layers_ensure(ob, NULL);
+
 	return 1;
 }
 
@@ -918,7 +926,8 @@ static int modifier_apply_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 static EnumPropertyItem modifier_apply_as_items[] = {
 	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
 	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
