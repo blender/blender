@@ -180,7 +180,7 @@ void TriangularView<MatrixType,Mode>::solveInPlace(const MatrixBase<OtherDerived
   eigen_assert(cols() == rows());
   eigen_assert( (Side==OnTheLeft && cols() == other.rows()) || (Side==OnTheRight && cols() == other.cols()) );
   eigen_assert(!(Mode & ZeroDiag));
-  eigen_assert(Mode & (Upper|Lower));
+  eigen_assert((Mode & (Upper|Lower)) != 0);
 
   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit  && OtherDerived::IsVectorAtCompileTime };
   typedef typename internal::conditional<copy,

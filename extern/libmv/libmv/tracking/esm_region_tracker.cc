@@ -41,6 +41,7 @@ static bool RegionIsInBounds(const FloatImage &image1,
   int min_y = floor(y) - half_window_size - 1;
   if (min_x < 0.0 ||
       min_y < 0.0) {
+    LG << "Out of bounds; min_x: " << min_x << ", min_y: " << min_y;
     return false;
   }
 
@@ -49,29 +50,14 @@ static bool RegionIsInBounds(const FloatImage &image1,
   int max_y = ceil(y) + half_window_size + 1;
   if (max_x > image1.cols() ||
       max_y > image1.rows()) {
+    LG << "Out of bounds; max_x: " << max_x << ", max_y: " << max_y
+       << ", image1.cols(): " << image1.cols()
+       << ", image1.rows(): " << image1.rows();
     return false;
   }
 
   // Ok, we're good.
   return true;
-}
-
-// Estimate "reasonable" error by computing autocorrelation for a small shift.
-// TODO(keir): Add a facility for 
-static double EstimateReasonableError(const FloatImage &image,
-                               double x, double y,
-                               int half_width) {
-  double error = 0.0;
-  for (int r = -half_width; r <= half_width; ++r) {
-    for (int c = -half_width; c <= half_width; ++c) {
-      double s = SampleLinear(image, y + r, x + c, 0);
-      double e1 = SampleLinear(image, y + r + 0.5, x + c, 0) - s;
-      double e2 = SampleLinear(image, y + r, x + c + 0.5, 0) - s;
-      error += e1*e1 + e2*e2;
-    }
-  }
-  // XXX hack
-  return error / 2.0 * 16.0;
 }
 
 // This is implemented from "Lukas and Kanade 20 years on: Part 1. Page 42,
@@ -106,9 +92,6 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
   // Step 0: Initialize delta = 0.01.
   // 
   // Ignored for my "normal" LM loop.
-
-  double reasonable_error =
-      EstimateReasonableError(image1, x1, y1, half_window_size);
 
   // Step 1: Warp I with W(x, p) to compute I(W(x; p).
   //
@@ -228,7 +211,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
         new_error += e*e;
       }
     }
-    //LG << "Old error: " << error << ", new error: " << new_error;
+    LG << "Old error: " << error << ", new error: " << new_error;
 
     double rho = (error - new_error) / (d.transpose() * (mu * d + z));
 
@@ -253,6 +236,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
 
       mu *= std::max(1/3., 1 - pow(2*rho - 1, 3));
       nu = M_E;  // See above for why to use e.
+      LG << "Error decreased, so accept update.";
     }
 
     // If the step was accepted, then check for termination.
@@ -264,13 +248,15 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
                                                            width);
       LG << "Final correlation: " << correlation;
 
-      if (correlation < minimum_correlation) {
-        LG << "Correlation " << correlation << " greater than "
-           << minimum_correlation << "; bailing.";
-        return false;
+      // Note: Do the comparison here to handle nan's correctly (since all
+      // comparisons with nan are false).
+      if (minimum_correlation < correlation) {
+        LG << "Successful track in " << (i + 1) << " iterations.";
+        return true;
       }
-      LG << "Successful track in " << (i + 1) << " iterations.";
-      return true;
+      LG << "Correlation " << correlation << " greater than "
+         << minimum_correlation << " or is nan; bailing.";
+      return false;
     }
   }
   // Getting here means we hit max iterations, so tracking failed.

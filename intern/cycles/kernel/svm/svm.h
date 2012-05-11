@@ -326,6 +326,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_MAPPING:
 				svm_node_mapping(kg, sd, stack, node.y, node.z, &offset);
 				break;
+			case NODE_MIN_MAX:
+				svm_node_min_max(kg, sd, stack, node.y, node.z, &offset);
+				break;
 			case NODE_TEX_COORD:
 				svm_node_tex_coord(kg, sd, stack, node.y, node.z);
 				break;
@@ -343,6 +346,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 				break;
 			case NODE_RGB_CURVES:
 				svm_node_rgb_curves(kg, sd, stack, node, &offset);
+				break;
+			case NODE_LIGHT_FALLOFF:
+				svm_node_light_falloff(sd, stack, node);
 				break;
 			case NODE_END:
 			default:

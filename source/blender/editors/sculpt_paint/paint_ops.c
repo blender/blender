@@ -25,6 +25,7 @@
 #include "MEM_guardedalloc.h"
 
 #include <stdlib.h>
+#include "BLI_listbase.h"
 #include "BLI_string.h"
 #include "BLI_utildefines.h"
 
@@ -160,6 +161,7 @@ static void PAINT_OT_vertex_color_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Vertex Colors";
 	ot->idname = "PAINT_OT_vertex_color_set";
+	ot->description = "Fill the active vertex color layer with the current paint color";
 	
 	/* api callbacks */
 	ot->exec = vertex_color_set_exec;
@@ -203,6 +205,11 @@ static int brush_tool(const Brush *brush, size_t tool_offset)
 	return *(((char *)brush) + tool_offset);
 }
 
+static void brush_tool_set(const Brush *brush, size_t tool_offset, int tool)
+{
+	*(((char *)brush) + tool_offset) = tool;
+}
+
 /* generic functions for setting the active brush based on the tool */
 static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
 {
@@ -226,11 +233,49 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 	return NULL;
 }
 
-static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool, const size_t tool_offset, const int ob_mode)
+static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, const size_t tool_offset, const int ob_mode)
+{
+	if (!brush_orig || brush_tool(brush_orig, tool_offset) != tool) {
+		Brush *br;
+		/* if the current brush is not using the desired tool, look
+		   for one that is */
+		br = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+		/* store the previously-selected brush */
+		if (br)
+			br->toggle_brush = brush_orig;
+		
+		return br;
+	}
+	else if (brush_orig->toggle_brush &&
+	         BLI_findindex(bmain->brush.first, brush_orig->toggle_brush) != -1)
+	{
+		/* if current brush is using the desired tool, try to toggle
+		   back to the previously selected brush (if it was set, and
+		   if it still exists) */
+		return brush_orig->toggle_brush;
+	}
+	else
+		return NULL;
+}
+
+static int brush_generic_tool_set(Main *bmain, Paint *paint, const int tool,
+                                  const size_t tool_offset, const int ob_mode,
+                                  const char *tool_name, int create_missing,
+                                  int toggle)
 {
 	struct Brush *brush, *brush_orig = paint_brush(paint);
 
-	brush = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+	if (toggle)
+		brush = brush_tool_toggle(bmain, brush_orig, tool, tool_offset, ob_mode);
+	else
+		brush = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
+
+	if (!brush && brush_tool(brush_orig, tool_offset) != tool && create_missing) {
+		brush = BKE_brush_add(tool_name);
+		brush_tool_set(brush, tool_offset, tool);
+		brush->ob_mode = ob_mode;
+		brush->toggle_brush = brush_orig;
+	}
 
 	if (brush) {
 		paint_brush_set(paint, brush);
@@ -251,6 +296,9 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 	ToolSettings *toolsettings = CTX_data_tool_settings(C);
 	Paint *paint = NULL;
 	int tool, paint_mode = RNA_enum_get(op->ptr, "paint_mode");
+	int create_missing = RNA_boolean_get(op->ptr, "create_missing");
+	int toggle = RNA_boolean_get(op->ptr, "toggle");
+	const char *tool_name = "Brush";
 	size_t tool_offset;
 
 	if (paint_mode == OB_MODE_ACTIVE) {
@@ -273,29 +321,35 @@ static int brush_select_exec(bContext *C, wmOperator *op)
 			paint = &toolsettings->sculpt->paint;
 			tool_offset = offsetof(Brush, sculpt_tool);
 			tool = RNA_enum_get(op->ptr, "sculpt_tool");
+			RNA_enum_name_from_value(brush_sculpt_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_VERTEX_PAINT:
 			paint = &toolsettings->vpaint->paint;
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "vertex_paint_tool");
+			RNA_enum_name_from_value(brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_WEIGHT_PAINT:
 			paint = &toolsettings->wpaint->paint;
 			/* vertexpaint_tool is used for weight paint mode */
 			tool_offset = offsetof(Brush, vertexpaint_tool);
 			tool = RNA_enum_get(op->ptr, "weight_paint_tool");
+			RNA_enum_name_from_value(brush_vertex_tool_items, tool, &tool_name);
 			break;
 		case OB_MODE_TEXTURE_PAINT:
 			paint = &toolsettings->imapaint.paint;
 			tool_offset = offsetof(Brush, imagepaint_tool);
 			tool = RNA_enum_get(op->ptr, "texture_paint_tool");
+			RNA_enum_name_from_value(brush_image_tool_items, tool, &tool_name);
 			break;
 		default:
 			/* invalid paint mode */
 			return OPERATOR_CANCELLED;
 	}
 
-	return brush_generic_tool_set(bmain, paint, tool, tool_offset, paint_mode);
+	return brush_generic_tool_set(bmain, paint, tool, tool_offset,
+	                              paint_mode, tool_name, create_missing,
+	                              toggle);
 }
 
 static void PAINT_OT_brush_select(wmOperatorType *ot)
@@ -326,6 +380,9 @@ static void PAINT_OT_brush_select(wmOperatorType *ot)
 	RNA_def_enum(ot->srna, "vertex_paint_tool", brush_vertex_tool_items, 0, "Vertex Paint Tool", "");
 	RNA_def_enum(ot->srna, "weight_paint_tool", brush_vertex_tool_items, 0, "Weight Paint Tool", "");
 	RNA_def_enum(ot->srna, "texture_paint_tool", brush_image_tool_items, 0, "Texture Paint Tool", "");
+
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle", "Toggle between two brushes rather than cycling");
+	RNA_def_boolean(ot->srna, "create_missing", 0, "Create Missing", "If the requested brush type does not exist, create a new brush");
 }
 
 static wmKeyMapItem *keymap_brush_select(wmKeyMap *keymap, int paint_mode,
@@ -442,6 +499,9 @@ void ED_operatortypes_paint(void)
 
 	/* partial visibility */
 	WM_operatortype_append(PAINT_OT_hide_show);
+
+	/* paint masking */
+	WM_operatortype_append(PAINT_OT_mask_flood_fill);
 }
 
 
@@ -575,6 +635,15 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	for (i = 0; i <= 5; i++)
 		RNA_int_set(WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", ZEROKEY + i, KM_PRESS, KM_CTRL, 0)->ptr, "level", i);
 
+	/* Clear mask */
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_mask_flood_fill", MKEY, KM_PRESS, KM_ALT, 0);
+	RNA_enum_set(kmi->ptr, "mode", PAINT_MASK_FLOOD_VALUE);
+	RNA_float_set(kmi->ptr, "value", 0);
+
+	/* Invert mask */
+	kmi = WM_keymap_add_item(keymap, "PAINT_OT_mask_flood_fill", IKEY, KM_PRESS, KM_CTRL, 0);
+	RNA_enum_set(kmi->ptr, "mode", PAINT_MASK_INVERT);
+
 	/* multires switch */
 	kmi = WM_keymap_add_item(keymap, "OBJECT_OT_subdivision_set", PAGEUPKEY, KM_PRESS, 0, 0);
 	RNA_int_set(kmi->ptr, "level", 1);
@@ -597,6 +666,9 @@ void ED_keymap_paint(wmKeyConfig *keyconf)
 	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_FLATTEN, TKEY, KM_SHIFT);
 	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CLAY, CKEY, 0);
 	keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_CREASE, CKEY, KM_SHIFT);
+	kmi = keymap_brush_select(keymap, OB_MODE_SCULPT, SCULPT_TOOL_MASK, MKEY, 0);
+	RNA_boolean_set(kmi->ptr, "toggle", 1);
+	RNA_boolean_set(kmi->ptr, "create_missing", 1);
 
 	/* */
 	kmi = WM_keymap_add_item(keymap, "WM_OT_context_menu_enum", AKEY, KM_PRESS, 0, 0);

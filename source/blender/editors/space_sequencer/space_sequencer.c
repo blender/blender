@@ -186,7 +186,7 @@ static void sequencer_free(SpaceLink *UNUSED(sl))
 {	
 //	SpaceSeq *sseq= (SpaceSequencer*) sl;
 	
-// XXX	if (sseq->gpd) free_gpencil_data(sseq->gpd);
+// XXX	if (sseq->gpd) BKE_gpencil_free(sseq->gpd);
 
 }
 

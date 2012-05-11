@@ -446,10 +446,10 @@ void DM_update_tessface_data(DerivedMesh *dm)
 				not_done--;
 			}
 		}
-		mesh_loops_to_mface_corners(fdata, ldata, pdata,
-		                            ml_idx, mf_idx, polyindex[mf_idx],
-		                            mf_len,
-		                            numTex, numCol, hasPCol, hasOrigSpace);
+		BKE_mesh_loops_to_mface_corners(fdata, ldata, pdata,
+		                                ml_idx, mf_idx, polyindex[mf_idx],
+		                                mf_len,
+		                                numTex, numCol, hasPCol, hasOrigSpace);
 	}
 
 	if (G.debug & G_DEBUG)
@@ -814,7 +814,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		int numVerts;
 		float (*deformedVerts)[3] = mesh_getVertexCos(me, &numVerts);
 
-		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0, 0);
+		mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, 0);
 		dm = mesh_create_derived(me, ob, deformedVerts);
 
 		if (build_shapekey_layers)
@@ -828,7 +828,7 @@ DerivedMesh *mesh_create_derived_for_modifier(Scene *scene, Object *ob,
 		if (build_shapekey_layers)
 			add_shapekey_layers(tdm, me, ob);
 		
-		dm = mti->applyModifier(md, ob, tdm, 0, 0);
+		dm = mti->applyModifier(md, ob, tdm, 0);
 
 		if (tdm != dm) tdm->release(tdm);
 	}
@@ -870,7 +870,7 @@ static void *get_orco_coords_dm(Object *ob, BMEditMesh *em, int layer, int *free
 		if (em)
 			return (float(*)[3])get_editbmesh_orco_verts(em);
 		else
-			return (float(*)[3])get_mesh_orco_verts(ob);
+			return (float(*)[3])BKE_mesh_orco_verts_get(ob);
 	}
 	else if (layer == CD_CLOTH_ORCO) {
 		/* apply shape key for cloth, this should really be solved
@@ -932,7 +932,7 @@ static void add_orco_dm(Object *ob, BMEditMesh *em, DerivedMesh *dm,
 
 	if (orco) {
 		if (layer == CD_ORCO)
-			transform_mesh_orco_verts(ob->data, orco, totvert, 0);
+			BKE_mesh_orco_verts_transform(ob->data, orco, totvert, 0);
 
 		if (!(layerorco = DM_get_vert_data_layer(dm, layer))) {
 			DM_add_vert_layer(dm, layer, CD_CALLOC, NULL);
@@ -1383,6 +1383,13 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 	/* XXX Same as above... For now, only weights preview in WPaint mode. */
 	const int do_mod_wmcol = do_init_wmcol;
 
+	ModifierApplyFlag app_flags = useRenderParams ? MOD_APPLY_RENDER : 0;
+	ModifierApplyFlag deform_app_flags = app_flags;
+    if (useCache)
+		app_flags |= MOD_APPLY_USECACHE;
+    if (useDeform)
+		deform_app_flags |= MOD_APPLY_USECACHE;
+
 	if (mmd && !mmd->sculptlvl)
 		has_multires = 0;
 
@@ -1434,7 +1441,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				if (!deformedVerts)
 					deformedVerts = mesh_getVertexCos(me, &numVerts);
 
-				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, useRenderParams, useDeform);
+				mti->deformVerts(md, ob, NULL, deformedVerts, numVerts, deform_app_flags);
 			}
 			else {
 				break;
@@ -1547,7 +1554,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, useRenderParams, useDeform);
+			mti->deformVerts(md, ob, dm, deformedVerts, numVerts, deform_app_flags);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1622,7 +1629,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 				}
 			}
 
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams, useCache);
+			ndm = mti->applyModifier(md, ob, dm, app_flags);
 
 			if (ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -1645,7 +1652,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_ORCO;
 				DM_set_only_copy(orcodm, nextmask | CD_MASK_ORIGINDEX);
-				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, 0);
+				ndm = mti->applyModifier(md, ob, orcodm, app_flags & ~MOD_APPLY_USECACHE);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1661,7 +1668,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 				nextmask &= ~CD_MASK_CLOTH_ORCO;
 				DM_set_only_copy(clothorcodm, nextmask | CD_MASK_ORIGINDEX);
-				ndm = mti->applyModifier(md, ob, clothorcodm, useRenderParams, 0);
+				ndm = mti->applyModifier(md, ob, clothorcodm, app_flags & ~MOD_APPLY_USECACHE);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1928,7 +1935,8 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 
 			if (mti->deformVertsEM)
 				mti->deformVertsEM(md, ob, em, dm, deformedVerts, numVerts);
-			else mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0, 0);
+			else
+				mti->deformVerts(md, ob, dm, deformedVerts, numVerts, 0);
 		}
 		else {
 			DerivedMesh *ndm;
@@ -1971,7 +1979,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 				if (mti->applyModifierEM)
 					ndm = mti->applyModifierEM(md, ob, em, orcodm);
 				else
-					ndm = mti->applyModifier(md, ob, orcodm, 0, 0);
+					ndm = mti->applyModifier(md, ob, orcodm, 0);
 
 				if (ndm) {
 					/* if the modifier returned a new dm, release the old one */
@@ -1995,7 +2003,7 @@ static void editbmesh_calc_modifiers(Scene *scene, Object *ob, BMEditMesh *em, D
 			if (mti->applyModifierEM)
 				ndm = mti->applyModifierEM(md, ob, em, dm);
 			else
-				ndm = mti->applyModifier(md, ob, dm, 0, 0);
+				ndm = mti->applyModifier(md, ob, dm, 0);
 
 			if (ndm) {
 				if (dm && dm != ndm)
@@ -2097,7 +2105,7 @@ static void clear_mesh_caches(Object *ob)
 		me->bb = NULL;
 	}
 
-	freedisplist(&ob->disp);
+	BKE_displist_free(&ob->disp);
 
 	if (ob->derivedFinal) {
 		ob->derivedFinal->needsFree = 1;
@@ -2111,7 +2119,7 @@ static void clear_mesh_caches(Object *ob)
 	}
 
 	if (ob->sculpt) {
-		object_sculpt_modifiers_changed(ob);
+		BKE_object_sculpt_modifiers_changed(ob);
 	}
 }
 
@@ -2666,7 +2674,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 
 							if (is_degenerate == 0) {
 								copy_v2_v2(prev_edge, cur_edge);
-								++i;
+								i++;
 							}
 						}
 					}
@@ -2725,7 +2733,7 @@ void DM_calc_auto_bump_scale(DerivedMesh *dm)
 								f2x_surf_area = len_v3(norm);
 								fsurf_ratio = f2x_surf_area/f2x_area_uv;	// tri area divided by texture area
 
-								++nr_accumulated;
+								nr_accumulated++;
 								dsum += (double)(fsurf_ratio);
 							}
 						}
@@ -2884,7 +2892,7 @@ void DM_set_object_boundbox(Object *ob, DerivedMesh *dm)
 	if (!ob->bb)
 		ob->bb= MEM_callocN(sizeof(BoundBox), "DM-BoundBox");
 
-	boundbox_set_from_min_max(ob->bb, min, max);
+	BKE_boundbox_init_from_minmax(ob->bb, min, max);
 }
 
 /* --- NAVMESH (begin) --- */

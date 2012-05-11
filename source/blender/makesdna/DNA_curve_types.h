@@ -190,7 +190,7 @@ typedef struct Curve {
 
 	short type;	/* creation-time type of curve datablock */
 
-	short texflag; /* keep a short because of give_obdata_texspace() */
+	short texflag; /* keep a short because of BKE_object_obdata_texspace_get() */
 	short drawflag, twist_mode;
 	float twist_smooth, smallcaps_scale;
 

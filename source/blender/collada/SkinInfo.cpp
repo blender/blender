@@ -178,7 +178,7 @@ bool SkinInfo::get_joint_inv_bind_matrix(float inv_bind_mat[][4], COLLADAFW::Nod
 	return false;
 }
 
-Object *SkinInfo::get_armature()
+Object *SkinInfo::BKE_armature_from_object()
 {
 	return ob_arm;
 }
@@ -218,10 +218,11 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	Scene *scene = CTX_data_scene(C);
 
 	ModifierData *md = ED_object_modifier_add(NULL, bmain, scene, ob, NULL, eModifierType_Armature);
-	((ArmatureModifierData *)md)->object = ob_arm;
+	ArmatureModifierData *amd = (ArmatureModifierData *)md;
+	amd->object = ob_arm;
 
 	copy_m4_m4(ob->obmat, bind_shape_matrix);
-	object_apply_mat4(ob, ob->obmat, 0, 0);
+	BKE_object_apply_mat4(ob, ob->obmat, 0, 0);
 #if 1
 	bc_set_parent(ob, ob_arm, C);
 #else
@@ -229,7 +230,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	ob->parent = ob_arm;
 	ob->partype = PAROBJECT;
 
-	what_does_parent(scene, ob, &workob);
+	BKE_object_workob_calc_parent(scene, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
 
 	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
@@ -239,7 +240,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
 #endif
 
-	((bArmature*)ob_arm->data)->deformflag = ARM_DEF_VGROUP;
+	amd->deformflag = ARM_DEF_VGROUP;
 
 	// create all vertex groups
 	std::vector<JointData>::iterator it;
@@ -288,7 +289,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 
 bPoseChannel *SkinInfo::get_pose_channel_from_node(COLLADAFW::Node *node)
 {
-	return get_pose_channel(ob_arm->pose, bc_get_joint_name(node));
+	return BKE_pose_channel_find_name(ob_arm->pose, bc_get_joint_name(node));
 }
 
 void SkinInfo::set_parent(Object *_parent)

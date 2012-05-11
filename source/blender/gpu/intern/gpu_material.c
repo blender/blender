@@ -1501,7 +1501,7 @@ GPUMaterial *GPU_material_from_blender(Scene *scene, Material *ma)
 		GPU_material_output_link(mat, outlink);
 	}
 
-	if (!scene_use_new_shading_nodes(scene)) {
+	if (!BKE_scene_use_new_shading_nodes(scene)) {
 		if (gpu_do_color_management(mat))
 			if (mat->outlink)
 				GPU_link(mat, "linearrgb_to_srgb", mat->outlink, &mat->outlink);

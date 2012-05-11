@@ -257,7 +257,7 @@ int nextLengthSubdivision(ToolSettings *toolsettings, BArcIterator *iter, int st
 	return -1;
 }
 
-EditBone * subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *UNUSED(editbones), BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
+EditBone *subdivideArcBy(ToolSettings *toolsettings, bArmature *arm, ListBase *UNUSED(editbones), BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion)
 {
 	EditBone *lastBone = NULL;
 	EditBone *child = NULL;

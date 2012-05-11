@@ -45,7 +45,7 @@
 
 
 #include "BLI_blenlib.h"
-#include "BLI_linklist.h"	/* linknode */
+#include "BLI_linklist.h"  /* linknode */
 #include "BLI_math.h"
 
 #include "BIF_gl.h"
@@ -103,7 +103,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 	if (glyph_ascii_table['0'] == NULL) {
 		GlyphBLF *g;
 		unsigned int i;
-		for (i = 0; i<256; i++) {
+		for (i = 0; i < 256; i++) {
 			g = blf_glyph_search(font->glyph_cache, i);
 			if (!g) {
 				FT_UInt glyph_index = FT_Get_Char_Index(font->face, i);
@@ -263,7 +263,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 			/* don't draw beyond the buffer bounds */
 			int width_clip = g->width;
 			int height_clip = g->height;
-			int yb_start = g->pitch < 0 ? 0 : g->height-1;
+			int yb_start = g->pitch < 0 ? 0 : g->height - 1;
 
 			if (width_clip + chx > font->bw)
 				width_clip -= chx + width_clip - font->bw;
@@ -285,7 +285,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 
 						if (a > 0.0f) {
 							float alphatest;
-							fbuf = font->b_fbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+							fbuf = font->b_fbuf + font->bch * ((chx + x) + ((pen_y + y) * font->bw));
 							if (a >= 1.0f) {
 								fbuf[0] = font->b_col[0];
 								fbuf[1] = font->b_col[1];
@@ -293,10 +293,10 @@ void blf_font_buffer(FontBLF *font, const char *str)
 								fbuf[3] = (alphatest = (fbuf[3] + (font->b_col[3]))) < 1.0f ? alphatest : 1.0f;
 							}
 							else {
-								fbuf[0] = (font->b_col[0]*a) + (fbuf[0] * (1-a));
-								fbuf[1] = (font->b_col[1]*a) + (fbuf[1] * (1-a));
-								fbuf[2] = (font->b_col[2]*a) + (fbuf[2] * (1-a));
-								fbuf[3] = (alphatest = (fbuf[3] + (font->b_col[3]*a))) < 1.0f ? alphatest : 1.0f;
+								fbuf[0] = (font->b_col[0] * a) + (fbuf[0] * (1 - a));
+								fbuf[1] = (font->b_col[1] * a) + (fbuf[1] * (1 - a));
+								fbuf[2] = (font->b_col[2] * a) + (fbuf[2] * (1 - a));
+								fbuf[3] = (alphatest = (fbuf[3] + (font->b_col[3] * a))) < 1.0f ? alphatest : 1.0f;
 							}
 						}
 					}
@@ -316,7 +316,7 @@ void blf_font_buffer(FontBLF *font, const char *str)
 
 						if (a > 0.0f) {
 							int alphatest;
-							cbuf = font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y)*font->bw));
+							cbuf = font->b_cbuf + font->bch * ((chx + x) + ((pen_y + y) * font->bw));
 							if (a >= 1.0f) {
 								cbuf[0] = b_col_char[0];
 								cbuf[1] = b_col_char[1];
@@ -324,10 +324,10 @@ void blf_font_buffer(FontBLF *font, const char *str)
 								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)b_col_char[3])) < 255 ? alphatest : 255;
 							}
 							else {
-								cbuf[0] = (b_col_char[0]*a) + (cbuf[0] * (1-a));
-								cbuf[1] = (b_col_char[1]*a) + (cbuf[1] * (1-a));
-								cbuf[2] = (b_col_char[2]*a) + (cbuf[2] * (1-a));
-								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)((font->b_col[3]*a)*255.0f))) <
+								cbuf[0] = (b_col_char[0] * a) + (cbuf[0] * (1 - a));
+								cbuf[1] = (b_col_char[1] * a) + (cbuf[1] * (1 - a));
+								cbuf[2] = (b_col_char[2] * a) + (cbuf[2] * (1 - a));
+								cbuf[3] = (alphatest = ((int)cbuf[3] + (int)((font->b_col[3] * a) * 255.0f))) <
 								          255 ? alphatest : 255;
 							}
 						}

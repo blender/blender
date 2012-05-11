@@ -167,7 +167,7 @@
   #include <intrin.h>
 #endif
 
-#if (defined(_CPPUNWIND) || defined(__EXCEPTIONS)) && !defined(EIGEN_NO_EXCEPTIONS)
+#if defined(_CPPUNWIND) || defined(__EXCEPTIONS)
   #define EIGEN_EXCEPTIONS
 #endif
 

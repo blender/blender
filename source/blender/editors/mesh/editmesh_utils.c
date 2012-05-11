@@ -545,11 +545,11 @@ static void free_undo(void *me_v)
 {
 	Mesh *me = me_v;
 	if (me->key) {
-		free_key(me->key);
+		BKE_key_free(me->key);
 		MEM_freeN(me->key);
 	}
 
-	free_mesh(me, FALSE);
+	BKE_mesh_free(me, FALSE);
 	MEM_freeN(me);
 }
 
@@ -611,7 +611,7 @@ UvVertMap *EDBM_uv_vert_map_create(BMEditMesh *em, int selected, int do_face_idx
 	buf = vmap->buf = (UvMapVert *)MEM_callocN(sizeof(*vmap->buf) * totuv, "UvMapVert");
 
 	if (!vmap->vert || !vmap->buf) {
-		free_uv_vert_map(vmap);
+		BKE_mesh_uv_vert_map_free(vmap);
 		if (do_face_idx_array)
 			EDBM_index_arrays_free(em);
 		return NULL;

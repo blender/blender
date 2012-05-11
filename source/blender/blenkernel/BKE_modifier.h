@@ -109,6 +109,12 @@ typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object 
 typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
 typedef void (*TexWalkFunc)(void *userData, struct Object *ob, struct ModifierData *md, const char *propname);
 
+typedef enum ModifierApplyFlag {
+	MOD_APPLY_RENDER = 1 << 0,       /* Render time. */
+	MOD_APPLY_USECACHE = 1 << 1,     /* Last modifier in stack. */
+} ModifierApplyFlag;
+
+
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
 	char name[32];
@@ -142,7 +148,7 @@ typedef struct ModifierTypeInfo {
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob,
 						struct DerivedMesh *derivedData,
 						float (*vertexCos)[3], int numVerts,
-						int useRenderParams, int isFinalCalc);
+						ModifierApplyFlag flag);
 
 	/* Like deformMatricesEM but called from object mode (for supporting modifiers in sculpt mode) */
 	void (*deformMatrices)(
@@ -187,7 +193,7 @@ typedef struct ModifierTypeInfo {
 	struct DerivedMesh *(*applyModifier)(
 								struct ModifierData *md, struct Object *ob,
 								struct DerivedMesh *derivedData,
-								int useRenderParams, int isFinalCalc);
+								ModifierApplyFlag flag);
 
 	/* Like applyModifier but called during editmode (for supporting
 	 * modifiers).

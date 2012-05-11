@@ -140,15 +140,15 @@ void ED_operatormacros_curve(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *otmacro;
 
-	ot = WM_operatortype_append_macro("CURVE_OT_duplicate_move", "Add Duplicate", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Duplicate curve and move";
+	ot = WM_operatortype_append_macro("CURVE_OT_duplicate_move", "Add Duplicate", "Duplicate curve and move",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "CURVE_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
-	ot = WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move", OPTYPE_UNDO|OPTYPE_REGISTER);
-	ot->description = "Extrude curve and move result";
+	ot = WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move",
+	                                  "Extrude curve and move result", OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);

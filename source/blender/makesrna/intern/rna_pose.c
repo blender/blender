@@ -173,7 +173,7 @@ static void rna_Pose_ik_solver_set(struct PointerRNA *ptr, int value)
 			pose->ikparam = NULL;
 		}
 		pose->iksolver = value;
-		init_pose_ikparam(pose);
+		BKE_pose_ikparam_init(pose);
 	}
 }
 
@@ -185,7 +185,7 @@ static void rna_Pose_ik_solver_update(Main *bmain, Scene *scene, PointerRNA *ptr
 	pose->flag |= POSE_RECALC;	/* checks & sorts pose channels */
 	DAG_scene_sort(bmain, scene);
 	
-	update_pose_constraint_flags(pose);
+	BKE_pose_update_constraint_flags(pose);
 	
 	object_test_constraints(ob);
 
@@ -586,7 +586,7 @@ static int rna_PoseChannel_rotation_4d_editable(PointerRNA *ptr, int index)
 int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_ptr)
 {
 	bPose *pose = (bPose*)ptr->data;
-	bPoseChannel *pchan = get_pose_channel(pose, key);
+	bPoseChannel *pchan = BKE_pose_channel_find_name(pose, key);
 	if (pchan) {
 		RNA_pointer_create(ptr->id.data, &RNA_PoseBone, pchan, r_ptr);
 		return TRUE;
@@ -599,13 +599,13 @@ int rna_PoseBones_lookup_string(PointerRNA *ptr, const char *key, PointerRNA *r_
 static void rna_PoseChannel_matrix_basis_get(PointerRNA *ptr, float *values)
 {
 	bPoseChannel *pchan = (bPoseChannel*)ptr->data;
-	pchan_to_mat4(pchan, (float (*)[4])values);
+	BKE_pchan_to_mat4(pchan, (float (*)[4])values);
 }
 
 static void rna_PoseChannel_matrix_basis_set(PointerRNA *ptr, const float *values)
 {
 	bPoseChannel *pchan = (bPoseChannel*)ptr->data;
-	pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for predictable result */
+	BKE_pchan_apply_mat4(pchan, (float (*)[4])values, FALSE); /* no compat for predictable result */
 }
 
 static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
@@ -614,9 +614,9 @@ static void rna_PoseChannel_matrix_set(PointerRNA *ptr, const float *values)
 	Object *ob = (Object*)ptr->id.data;
 	float tmat[4][4];
 
-	armature_mat_pose_to_bone_ex(ob, pchan, (float (*)[4])values, tmat);
+	BKE_armature_mat_pose_to_bone_ex(ob, pchan, (float (*)[4])values, tmat);
 
-	pchan_apply_mat4(pchan, tmat, FALSE); /* no compat for predictable result */
+	BKE_pchan_apply_mat4(pchan, tmat, FALSE); /* no compat for predictable result */
 }
 
 #else

@@ -174,12 +174,12 @@ char **BLF_dir_get(int *ndir);
 void BLF_dir_free(char **dirs, int count);
 
 /* font->flags. */
-#define BLF_ROTATION (1<<0)
-#define BLF_CLIPPING (1<<1)
-#define BLF_SHADOW (1<<2)
-#define BLF_KERNING_DEFAULT (1<<3)
-#define BLF_MATRIX (1<<4)
-#define BLF_ASPECT (1<<5)
+#define BLF_ROTATION         (1 << 0)
+#define BLF_CLIPPING         (1 << 1)
+#define BLF_SHADOW           (1 << 2)
+#define BLF_KERNING_DEFAULT  (1 << 3)
+#define BLF_MATRIX           (1 << 4)
+#define BLF_ASPECT           (1 << 5)
 
 #define BLF_DRAW_STR_DUMMY_MAX 1024
 

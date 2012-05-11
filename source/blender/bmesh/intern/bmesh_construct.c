@@ -214,6 +214,9 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		BLI_array_append(verts, v);
 		BLI_array_append(edges2, e);
 
+		/* we only flag the verts to check if they are in the face more then once */
+		BM_ELEM_API_FLAG_ENABLE(v, _FLAG_MV);
+
 		do {
 			e2 = bmesh_disk_edge_next(e2, v);
 			if (e2 != e && BM_ELEM_API_FLAG_TEST(e2, _FLAG_MF)) {
@@ -269,6 +272,12 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 		if (!edges2[i]) {
 			goto err;
 		}
+
+		/* check if vert is in face more then once. if the flag is disabled. we've already visited */
+		if (!BM_ELEM_API_FLAG_TEST(verts[i], _FLAG_MV)) {
+			goto err;
+		}
+		BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
 	}
 
 	f = BM_face_create(bm, verts, edges2, len, nodouble);
@@ -286,6 +295,10 @@ BMFace *BM_face_create_ngon(BMesh *bm, BMVert *v1, BMVert *v2, BMEdge **edges, i
 err:
 	for (i = 0; i < len; i++) {
 		BM_ELEM_API_FLAG_DISABLE(edges[i], _FLAG_MF);
+		/* vert count may != len */
+		if (i < BLI_array_count(verts)) {
+			BM_ELEM_API_FLAG_DISABLE(verts[i], _FLAG_MV);
+		}
 	}
 
 	BLI_array_free(verts);

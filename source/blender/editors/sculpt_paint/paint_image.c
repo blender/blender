@@ -310,7 +310,7 @@ typedef struct ProjPaintState {
 	short do_occlude;               /* Use raytraced occlusion? - ortherwise will paint right through to the back*/
 	short do_backfacecull;          /* ignore faces with normals pointing away, skips a lot of raycasts if your normals are correctly flipped */
 	short do_mask_normal;           /* mask out pixels based on their normals */
-	short do_new_shading_nodes;     /* cache scene_use_new_shading_nodes value */
+	short do_new_shading_nodes;     /* cache BKE_scene_use_new_shading_nodes value */
 	float normal_angle;             /* what angle to mask at*/
 	float normal_angle_inner;
 	float normal_angle_range;       /* difference between normal_angle and normal_angle_inner, for easy access */
@@ -526,7 +526,7 @@ static Image *imapaint_face_image(const ImagePaintState *s, int face_index)
 {
 	Image *ima;
 
-	if (scene_use_new_shading_nodes(s->scene)) {
+	if (BKE_scene_use_new_shading_nodes(s->scene)) {
 		MFace *mf = &s->dm_mface[face_index];
 		ED_object_get_active_image(s->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
@@ -542,7 +542,7 @@ static Image *project_paint_face_image(const ProjPaintState *ps, MTFace *dm_mtfa
 {
 	Image *ima;
 
-	if (ps->do_new_shading_nodes) { /* cached scene_use_new_shading_nodes result */
+	if (ps->do_new_shading_nodes) { /* cached BKE_scene_use_new_shading_nodes result */
 		MFace *mf = ps->dm_mface + face_index;
 		ED_object_get_active_image(ps->ob, mf->mat_nr + 1, &ima, NULL, NULL);
 	}
@@ -4775,7 +4775,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->do_backfacecull = (settings->imapaint.flag & IMAGEPAINT_PROJECT_BACKFACE) ? 0 : 1;
 	ps->do_occlude = (settings->imapaint.flag & IMAGEPAINT_PROJECT_XRAY) ? 0 : 1;
 	ps->do_mask_normal = (settings->imapaint.flag & IMAGEPAINT_PROJECT_FLAT) ? 0 : 1;
-	ps->do_new_shading_nodes = scene_use_new_shading_nodes(scene); /* only cache the value */
+	ps->do_new_shading_nodes = BKE_scene_use_new_shading_nodes(scene); /* only cache the value */
 
 	if (ps->tool == PAINT_TOOL_CLONE)
 		ps->do_layer_clone = (settings->imapaint.flag & IMAGEPAINT_PROJECT_LAYER_CLONE);
@@ -4858,7 +4858,7 @@ static int texture_paint_init(bContext *C, wmOperator *op)
 
 	if (pop->mode != PAINT_MODE_2D) {
 		Object *ob = OBACT;
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 
 		if (!me) {
 			return 0;
@@ -5160,6 +5160,7 @@ void PAINT_OT_image_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Image Paint";
 	ot->idname = "PAINT_OT_image_paint";
+	ot->description = "Paint a stroke into the image";
 	
 	/* api callbacks */
 	ot->exec = paint_exec;
@@ -5387,6 +5388,7 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Grab Clone";
 	ot->idname = "PAINT_OT_grab_clone";
+	ot->description = "Move the clone source image";
 	
 	/* api callbacks */
 	ot->exec = grab_clone_exec;
@@ -5451,7 +5453,7 @@ static int image_paint_sample_color_poll(bContext *C)
 		if (CTX_wm_view3d(C)) {
 			Object *obact = CTX_data_active_object(C);
 			if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-				Mesh *me = get_mesh(obact);
+				Mesh *me = BKE_mesh_from_object(obact);
 				if (me) {
 					return !(me->editflag & ME_EDIT_PAINT_MASK);
 				}
@@ -5469,6 +5471,7 @@ void PAINT_OT_sample_color(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sample Color";
 	ot->idname = "PAINT_OT_sample_color";
+	ot->description = "Use the mouse to sample a color in the image";
 	
 	/* api callbacks */
 	ot->exec = sample_color_exec;
@@ -5520,6 +5523,7 @@ void PAINT_OT_clone_cursor_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Clone Cursor";
 	ot->idname = "PAINT_OT_clone_cursor_set";
+	ot->description = "Set the location of the clone cursor";
 	
 	/* api callbacks */
 	ot->exec = set_clone_cursor_exec;
@@ -5554,12 +5558,12 @@ static int texture_paint_toggle_exec(bContext *C, wmOperator *op)
 	if (ob == NULL)
 		return OPERATOR_CANCELLED;
 	
-	if (object_data_is_libdata(ob)) {
+	if (BKE_object_obdata_is_libdata(ob)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't edit external libdata");
 		return OPERATOR_CANCELLED;
 	}
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 
 	if (!(ob->mode & OB_MODE_TEXTURE_PAINT) && !me) {
 		BKE_report(op->reports, RPT_ERROR, "Can only enter texture paint mode for mesh objects");
@@ -5602,6 +5606,7 @@ void PAINT_OT_texture_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Texture Paint Toggle";
 	ot->idname = "PAINT_OT_texture_paint_toggle";
+	ot->description = "Toggle texture paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = texture_paint_toggle_exec;
@@ -5794,7 +5799,7 @@ static int texture_paint_image_from_view_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	image = BKE_add_image_imbuf(ibuf);
+	image = BKE_image_add_from_imbuf(ibuf);
 
 	if (image) {
 		/* now for the trickyness. store the view projection here!

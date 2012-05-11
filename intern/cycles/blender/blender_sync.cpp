@@ -87,7 +87,7 @@ bool BlenderSync::sync_recalc()
 
 		if(object_is_mesh(*b_ob)) {
 			if(b_ob->is_updated_data() || b_ob->data().is_updated()) {
-				BL::ID key = object_is_modified(*b_ob)? *b_ob: b_ob->data();
+				BL::ID key = BKE_object_is_modified(*b_ob)? *b_ob: b_ob->data();
 				mesh_map.set_recalc(key);
 			}
 		}
@@ -215,6 +215,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.holdout_layer = 0;
 			render_layer.material_override = PointerRNA_NULL;
 			render_layer.use_background = true;
+			render_layer.use_viewport_visibility = true;
 			render_layer.samples = 0;
 			return;
 		}
@@ -234,6 +235,7 @@ void BlenderSync::sync_render_layers(BL::SpaceView3D b_v3d, const char *layer)
 			render_layer.layer |= render_layer.holdout_layer;
 			render_layer.material_override = b_rlay->material_override();
 			render_layer.use_background = b_rlay->use_sky();
+			render_layer.use_viewport_visibility = false;
 			render_layer.samples = b_rlay->samples();
 		}
 

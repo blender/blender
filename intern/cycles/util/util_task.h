@@ -29,7 +29,7 @@ class Task;
 class TaskPool;
 class TaskScheduler;
 
-typedef boost::function<void(Task*,int)> TaskRunFunction;
+typedef boost::function<void(void)> TaskRunFunction;
 
 /* Task
  *
@@ -39,7 +39,11 @@ class Task
 {
 public:
 	Task() {};
+	Task(const TaskRunFunction& run_) : run(run_) {}
+
 	virtual ~Task() {}
+
+	TaskRunFunction run;
 };
 
 /* Task Pool
@@ -54,12 +58,13 @@ public:
 class TaskPool
 {
 public:
-	TaskPool(const TaskRunFunction& run);
+	TaskPool();
 	~TaskPool();
 
 	void push(Task *task, bool front = false);
+	void push(const TaskRunFunction& run, bool front = false);
 
-	void wait();		/* wait until all tasks are done */
+	void wait_work();	/* work and wait until all tasks are done */
 	void cancel();		/* cancel all tasks, keep worker threads running */
 	void stop();		/* stop all worker threads */
 
@@ -68,14 +73,13 @@ public:
 protected:
 	friend class TaskScheduler;
 
-	void done_increase(int done);
+	void num_decrease(int done);
+	void num_increase();
 
-	TaskRunFunction run;
+	thread_mutex num_mutex;
+	thread_condition_variable num_cond;
 
-	thread_mutex done_mutex;
-	thread_condition_variable done_cond;
-
-	volatile int num, num_done;
+	volatile int num;
 	volatile bool do_cancel;
 };
 
@@ -103,6 +107,7 @@ protected:
 	static thread_mutex mutex;
 	static int users;
 	static vector<thread*> threads;
+	static vector<int> thread_level;
 	static volatile bool do_exit;
 
 	static list<Entry> queue;

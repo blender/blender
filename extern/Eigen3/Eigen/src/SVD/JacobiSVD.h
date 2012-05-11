@@ -590,6 +590,9 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
   // only worsening the precision of U and V as we accumulate more rotations
   const RealScalar precision = RealScalar(2) * NumTraits<Scalar>::epsilon();
 
+  // limit for very small denormal numbers to be considered zero in order to avoid infinite loops (see bug 286)
+  const RealScalar considerAsZero = RealScalar(2) * std::numeric_limits<RealScalar>::denorm_min();
+
   /*** step 1. The R-SVD step: we use a QR decomposition to reduce to the case of a square matrix */
 
   if(!internal::qr_preconditioner_impl<MatrixType, QRPreconditioner, internal::PreconditionIfMoreColsThanRows>::run(*this, matrix)
@@ -617,10 +620,11 @@ JacobiSVD<MatrixType, QRPreconditioner>::compute(const MatrixType& matrix, unsig
       {
         // if this 2x2 sub-matrix is not diagonal already...
         // notice that this comparison will evaluate to false if any NaN is involved, ensuring that NaN's don't
-        // keep us iterating forever.
+        // keep us iterating forever. Similarly, small denormal numbers are considered zero.
         using std::max;
-        if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p)))
-            > (max)(internal::abs(m_workMatrix.coeff(p,p)),internal::abs(m_workMatrix.coeff(q,q)))*precision)
+        RealScalar threshold = (max)(considerAsZero, precision * (max)(internal::abs(m_workMatrix.coeff(p,p)),
+                                                                       internal::abs(m_workMatrix.coeff(q,q))));
+        if((max)(internal::abs(m_workMatrix.coeff(p,q)),internal::abs(m_workMatrix.coeff(q,p))) > threshold)
         {
           finished = false;
 
@@ -704,6 +708,13 @@ struct solve_retval<JacobiSVD<_MatrixType, QRPreconditioner>, Rhs>
 };
 } // end namespace internal
 
+/** \svd_module
+  *
+  * \return the singular value decomposition of \c *this computed by two-sided
+  * Jacobi transformations.
+  *
+  * \sa class JacobiSVD
+  */
 template<typename Derived>
 JacobiSVD<typename MatrixBase<Derived>::PlainObject>
 MatrixBase<Derived>::jacobiSvd(unsigned int computationOptions) const

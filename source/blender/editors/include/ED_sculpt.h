@@ -32,6 +32,7 @@
 
 struct ARegion;
 struct bContext;
+struct MultiresModifierData;
 struct Object;
 struct RegionView3D;
 struct wmKeyConfig;
@@ -44,14 +45,16 @@ void sculpt_get_redraw_planes(float planes[4][4], struct ARegion *ar,
 void ED_sculpt_force_update(struct bContext *C);
 float *ED_sculpt_get_last_stroke(struct Object *ob);
 int ED_sculpt_minmax(struct bContext *C, float *min, float *max);
+void ED_sculpt_mask_layers_ensure(struct Object *ob,
+                                  struct MultiresModifierData *mmd);
 
 /* paint_ops.c */
 void ED_operatortypes_paint(void);
 void ED_keymap_paint(struct wmKeyConfig *keyconf);
 
 /* paint_undo.c */
-#define UNDO_PAINT_IMAGE	0
-#define UNDO_PAINT_MESH		1
+#define UNDO_PAINT_IMAGE    0
+#define UNDO_PAINT_MESH     1
 
 int ED_undo_paint_step(struct bContext *C, int type, int step, const char *name);
 void ED_undo_paint_free(void);

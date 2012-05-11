@@ -53,8 +53,8 @@ ModifierTypeInfo modifierType_None = {
 	/* structName */        "ModifierData",
 	/* structSize */        sizeof(ModifierData),
 	/* type */              eModifierTypeType_None,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_AcceptsCVs,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_AcceptsCVs,
 
 	/* copyData */          NULL,
 	/* deformVerts */       NULL,

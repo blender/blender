@@ -536,11 +536,11 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
 
 	if (mesh) {
 		if (do_polyloop_free) {
-			mesh_strip_loose_polysloops(mesh);
+			BKE_mesh_strip_loose_polysloops(mesh);
 		}
 
 		if (do_edge_free) {
-			mesh_strip_loose_edges(mesh);
+			BKE_mesh_strip_loose_edges(mesh);
 		}
 
 		if (do_edge_recalc) {

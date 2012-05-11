@@ -172,12 +172,12 @@ extern "C" {
 	{
 		char *s1= escape_quotes(layer_name);
 		char *s2= escape_quotes(lineset_name);
-		Text *text= add_empty_text(lineset_name);
-		write_text(text, "import parameter_editor; parameter_editor.process('");
-		write_text(text, s1);
-		write_text(text, "', '");
-		write_text(text, s2);
-		write_text(text, "')\n");
+		Text *text= BKE_text_add(lineset_name);
+		BKE_text_write(text, "import parameter_editor; parameter_editor.process('");
+		BKE_text_write(text, s1);
+		BKE_text_write(text, "', '");
+		BKE_text_write(text, s2);
+		BKE_text_write(text, "')\n");
 		MEM_freeN(s1);
 		MEM_freeN(s2);
 		return text;

@@ -302,4 +302,18 @@ void BoxFilter(const Array3Df &in,
   BoxFilterVertical(tmp, box_width, out);
 }
 
+void LaplaceFilter(unsigned char* src, unsigned char* dst, int width, int height, int strength) {
+  for(int y=1; y<height-1; y++) for(int x=1; x<width-1; x++) {
+    const unsigned char* s = &src[y*width+x];
+    int l = 128 +
+        s[-width-1] + s[-width] + s[-width+1] +
+        s[1]        - 8*s[0]    + s[1]        +
+        s[ width-1] + s[ width] + s[ width+1] ;
+    int d = ((256-strength)*s[0] + strength*l) / 256;
+    if(d < 0) d=0;
+    if(d > 255) d=255;
+    dst[y*width+x] = d;
+  }
+}
+
 }  // namespace libmv

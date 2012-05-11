@@ -714,7 +714,7 @@ int GPU_set_tpage(MTFace *tface, int mipmap, int alphablend)
 	gpu_verify_repeat(ima);
 	
 	/* Did this get lost in the image recode? */
-	/* tag_image_time(ima);*/
+	/* BKE_image_tag_time(ima);*/
 
 	return 1;
 }
@@ -1076,7 +1076,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GPUBlendMode alphablend;
 	int a;
 	int gamma = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-	int new_shading_nodes = scene_use_new_shading_nodes(scene);
+	int new_shading_nodes = BKE_scene_use_new_shading_nodes(scene);
 	
 	/* initialize state */
 	memset(&GMS, 0, sizeof(GMS));
@@ -1410,7 +1410,7 @@ int GPU_scene_object_lights(Scene *scene, Object *ob, int lay, float viewmat[][4
 		glPushMatrix();
 		glLoadMatrixf((float *)viewmat);
 		
-		where_is_object_simul(scene, base->object);
+		BKE_object_where_is_calc_simul(scene, base->object);
 		
 		if (la->type==LA_SUN) {
 			/* sun lamp */

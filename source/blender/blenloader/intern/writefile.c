@@ -153,6 +153,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_node.h"
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
+#include "BKE_subsurf.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
 #include "BKE_fcurve.h"
@@ -734,6 +735,11 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			for (sock=node->inputs.first; sock; sock=sock->next)
 				writestruct(wd, DATA, "NodeImageMultiFileSocket", 1, sock->storage);
 		}
+		if (node->type==CMP_NODE_IMAGE) {
+			/* write extra socket info */
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				writestruct(wd, DATA, "NodeImageLayer", 1, sock->storage);
+		}
 	}
 	
 	for (link= ntree->links.first; link; link= link->next)
@@ -1272,7 +1278,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 
 	/* write IK param */
 	if (pose->ikparam) {
-		char *structname = (char *)get_ikparam_name(pose);
+		char *structname = (char *)BKE_pose_ikparam_get_name(pose);
 		if (structname)
 			writestruct(wd, DATA, structname, 1, pose->ikparam);
 	}
@@ -1655,6 +1661,24 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 	}
 }
 
+static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_paint_mask)
+{
+	if(grid_paint_mask) {
+		int i;
+		
+		writestruct(wd, DATA, "GridPaintMask", count, grid_paint_mask);
+		for(i = 0; i < count; ++i) {
+			GridPaintMask *gpm = &grid_paint_mask[i];
+			if(gpm->data) {
+				const int gridsize = ccg_gridsize(gpm->level);
+				writedata(wd, DATA,
+						  sizeof(*gpm->data) * gridsize * gridsize,
+						  gpm->data);
+			}
+		}
+	}
+}
+
 static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data, int partial_type, int partial_count)
 {
 	int i;
@@ -1676,6 +1700,13 @@ static void write_customdata(WriteData *wd, ID *id, int count, CustomData *data,
 		}
 		else if (layer->type == CD_MDISPS) {
 			write_mdisps(wd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
+		}
+		else if (layer->type == CD_PAINT_MASK) {
+			float *layer_data = layer->data;
+			writedata(wd, DATA, sizeof(*layer_data) * count, layer_data);
+		}
+		else if (layer->type == CD_GRID_PAINT_MASK) {
+			write_grid_paint_mask(wd, count, layer->data);
 		}
 		else {
 			CustomData_file_write_info(layer->type, &structname, &structnum);
@@ -1785,8 +1816,8 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 
 
 				/* now fill in polys to mfaces*/
-				mesh->totface= mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
-				                                   mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
+				mesh->totface = BKE_mesh_mpoly_to_mface(&mesh->fdata, &backup_mesh.ldata, &backup_mesh.pdata,
+				                                        mesh->totface, backup_mesh.totloop, backup_mesh.totpoly);
 
 				mesh_update_customdata_pointers(mesh, FALSE);
 
@@ -2708,6 +2739,9 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 			MovieTracking *tracking= &clip->tracking;
 			MovieTrackingObject *object;
 			writestruct(wd, ID_MC, "MovieClip", 1, clip);
+
+			if (clip->id.properties)
+				IDP_WriteProperty(clip->id.properties, wd);
 
 			if (clip->adt)
 				write_animdata(wd, clip->adt);

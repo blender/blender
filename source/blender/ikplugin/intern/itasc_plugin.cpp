@@ -418,7 +418,7 @@ static IK_Data* get_ikdata(bPose *pose)
 	// here init ikdata if needed
 	// now that we have scene, make sure the default param are initialized
 	if (!DefIKParam.iksolver)
-		init_pose_itasc(&DefIKParam);
+		BKE_pose_itasc_init(&DefIKParam);
 
 	return (IK_Data*)pose->ikdata;
 }
@@ -1023,7 +1023,7 @@ static void convert_pose(IK_Scene *ikscene)
 }
 
 // compute array of joint value corresponding to current pose
-static void rest_pose(IK_Scene *ikscene)
+static void BKE_pose_rest(IK_Scene *ikscene)
 {
 	bPoseChannel *pchan;
 	IK_Channel *ikchan;
@@ -1133,7 +1133,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 	}
 	else {
 		// in Blender, the rest pose is always 0 for joints
-		rest_pose(ikscene);
+		BKE_pose_rest(ikscene);
 	}
 	rot = &ikscene->jointArray(0);
 	for (a=0, ikchan = ikscene->channels; a<tree->totchannel; ++a, ++ikchan) {
@@ -1545,7 +1545,7 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 	if (ikparam->flag & ITASC_SIMULATION) {
 		for (i=0, ikchan=ikscene->channels; i<ikscene->numchan; i++, ++ikchan) {
 			// In simulation mode we don't allow external contraint to change our bones, mark the channel done
-			// also tell Blender that this channel is part of IK tree (cleared on each where_is_pose()
+			// also tell Blender that this channel is part of IK tree (cleared on each BKE_pose_where_is()
 			ikchan->pchan->flag |= (POSE_DONE|POSE_CHAIN);
 			ikchan->jointValid = 0;
 		}
@@ -1554,8 +1554,8 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 		// in animation mode, we must get the bone position from action and constraints
 		for (i=0, ikchan=ikscene->channels; i<ikscene->numchan; i++, ++ikchan) {
 			if (!(ikchan->pchan->flag & POSE_DONE))
-				where_is_pose_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
-			// tell blender that this channel was controlled by IK, it's cleared on each where_is_pose()
+				BKE_pose_where_is_bone(blscene, ikscene->blArmature, ikchan->pchan, ctime, 1);
+			// tell blender that this channel was controlled by IK, it's cleared on each BKE_pose_where_is()
 			ikchan->pchan->flag |= (POSE_DONE|POSE_CHAIN);
 			ikchan->jointValid = 0;
 		}

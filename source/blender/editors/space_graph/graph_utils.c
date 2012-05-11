@@ -54,7 +54,7 @@
 #include "ED_anim_api.h"
 
 
-#include "graph_intern.h"	// own include
+#include "graph_intern.h"   // own include
 
 /* ************************************************************** */
 /* Active F-Curve */
@@ -65,17 +65,17 @@
  *
  * NOTE: curve-visible flag isn't included, otherwise selecting a curve via list to edit is too cumbersome
  */
-bAnimListElem *get_active_fcurve_channel (bAnimContext *ac)
+bAnimListElem *get_active_fcurve_channel(bAnimContext *ac)
 {
 	ListBase anim_data = {NULL, NULL};
-	int filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE);
+	int filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_ACTIVE);
 	size_t items = ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* We take the first F-Curve only, since some other ones may have had 'active' flag set
 	 * if they were from linked data.
 	 */
 	if (items) {
-		bAnimListElem *ale= (bAnimListElem *)anim_data.first;
+		bAnimListElem *ale = (bAnimListElem *)anim_data.first;
 		
 		/* remove first item from list, then free the rest of the list and return the stored one */
 		BLI_remlink(&anim_data, ale);
@@ -97,7 +97,7 @@ int graphop_visible_keyframes_poll(bContext *C)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	ListBase anim_data = {NULL, NULL};
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	size_t items;
 	int filter;
 	short found = 0;
@@ -114,13 +114,13 @@ int graphop_visible_keyframes_poll(bContext *C)
 	/* loop over the visible (selection doesn't matter) F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	if (items == 0) 
 		return 0;
 	
-	for (ale = anim_data.first; ale; ale= ale->next) {
-		FCurve *fcu= (FCurve *)ale->data;
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
 		
 		/* visible curves for selection must fulfill the following criteria:
 		 *	- it has bezier keyframes
@@ -146,7 +146,7 @@ int graphop_editable_keyframes_poll(bContext *C)
 	bAnimContext ac;
 	bAnimListElem *ale;
 	ListBase anim_data = {NULL, NULL};
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	size_t items;
 	int filter;
 	short found = 0;
@@ -163,13 +163,13 @@ int graphop_editable_keyframes_poll(bContext *C)
 	/* loop over the editable F-Curves, and see if they're suitable
 	 * stopping on the first successful match
 	 */
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_CURVE_VISIBLE);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	if (items == 0) 
 		return 0;
 	
-	for (ale = anim_data.first; ale; ale= ale->next) {
-		FCurve *fcu= (FCurve *)ale->data;
+	for (ale = anim_data.first; ale; ale = ale->next) {
+		FCurve *fcu = (FCurve *)ale->data;
 		
 		/* editable curves must fulfill the following criteria:
 		 *	- it has bezier keyframes
@@ -195,8 +195,8 @@ int graphop_active_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	bAnimListElem *ale;
-	ScrArea *sa= CTX_wm_area(C);
-	short has_fcurve= 0;
+	ScrArea *sa = CTX_wm_area(C);
+	short has_fcurve = 0;
 	
 	/* firstly, check if in Graph Editor */
 	// TODO: also check for region?
@@ -208,15 +208,15 @@ int graphop_active_fcurve_poll(bContext *C)
 		return 0;
 		
 	/* try to get the Active F-Curve */
-	ale= get_active_fcurve_channel(&ac);
+	ale = get_active_fcurve_channel(&ac);
 	if (ale == NULL)
 		return 0;
 		
 	/* free temp data... */
-	has_fcurve= ((ale->data) && (ale->type == ANIMTYPE_FCURVE));
+	has_fcurve = ((ale->data) && (ale->type == ANIMTYPE_FCURVE));
 	if (has_fcurve) {
-		FCurve *fcu= (FCurve *)ale->data;
-		has_fcurve= (fcu->flag & FCURVE_VISIBLE)!=0;
+		FCurve *fcu = (FCurve *)ale->data;
+		has_fcurve = (fcu->flag & FCURVE_VISIBLE) != 0;
 	}
 	
 	MEM_freeN(ale);
@@ -230,7 +230,7 @@ int graphop_selected_fcurve_poll(bContext *C)
 {
 	bAnimContext ac;
 	ListBase anim_data = {NULL, NULL};
-	ScrArea *sa= CTX_wm_area(C);
+	ScrArea *sa = CTX_wm_area(C);
 	size_t items;
 	int filter;
 	
@@ -246,7 +246,7 @@ int graphop_selected_fcurve_poll(bContext *C)
 	/* get the editable + selected F-Curves, and as long as we got some, we can return 
 	 * NOTE: curve-visible flag isn't included, otherwise selecting a curve via list to edit is too cumbersome
 	 */
-	filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT);
 	items = ANIM_animdata_filter(&ac, &anim_data, filter, ac.data, ac.datatype);
 	if (items == 0) 
 		return 0;

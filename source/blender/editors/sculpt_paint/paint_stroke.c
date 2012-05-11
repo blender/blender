@@ -188,7 +188,11 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	output[1] = event->y;
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
-	    !ELEM4(stroke->brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_THUMB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_SNAKE_HOOK) &&
+	    !ELEM4(stroke->brush->sculpt_tool,
+			   SCULPT_TOOL_GRAB,
+			   SCULPT_TOOL_THUMB,
+			   SCULPT_TOOL_ROTATE,
+			   SCULPT_TOOL_SNAKE_HOOK) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
@@ -279,7 +283,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 void paint_stroke_data_free(struct wmOperator *op)
 {
 	MEM_freeN(op->customdata);
-	op->customdata= NULL;
+	op->customdata = NULL;
 }
 
 static void stroke_done(struct bContext *C, struct wmOperator *op)
@@ -323,13 +327,13 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 		{ 0 }
 	};
 
-	static const char *name= "Paint Stroke Modal";
+	static const char *name = "Paint Stroke Modal";
 
-	struct wmKeyMap *keymap= WM_modalkeymap_get(keyconf, name);
+	struct wmKeyMap *keymap = WM_modalkeymap_get(keyconf, name);
 
 	/* this function is called for each spacetype, only needs to add map once */
 	if (!keymap) {
-		keymap= WM_modalkeymap_add(keyconf, name, modal_items);
+		keymap = WM_modalkeymap_add(keyconf, name, modal_items);
 
 		/* items for modal map */
 		WM_modalkeymap_add_item(

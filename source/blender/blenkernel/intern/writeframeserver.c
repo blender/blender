@@ -110,7 +110,7 @@ static int closesocket(int fd)
 }
 #endif
 
-int start_frameserver(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports)
+int BKE_frameserver_start(struct Scene *scene, RenderData *UNUSED(rd), int rectx, int recty, ReportList *reports)
 {
 	struct sockaddr_in addr;
 	int arg = 1;
@@ -258,7 +258,7 @@ static int handle_request(RenderData *rd, char * req)
 	return -1;
 }
 
-int frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
+int BKE_frameserver_loop(RenderData *rd, ReportList *UNUSED(reports))
 {
 	fd_set readfds;
 	struct timeval tv;
@@ -371,7 +371,7 @@ static void serve_ppm(int *pixels, int rectx, int recty)
 	connsock = -1;
 }
 
-int append_frameserver(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
+int BKE_frameserver_append(RenderData *UNUSED(rd), int UNUSED(start_frame), int frame, int *pixels,
                        int rectx, int recty, ReportList *UNUSED(reports))
 {
 	fprintf(stderr, "Serving frame: %d\n", frame);
@@ -386,7 +386,7 @@ int append_frameserver(RenderData *UNUSED(rd), int UNUSED(start_frame), int fram
 	return 0;
 }
 
-void end_frameserver(void)
+void BKE_frameserver_end(void)
 {
 	if (connsock != -1) {
 		closesocket(connsock);

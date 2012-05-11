@@ -508,9 +508,10 @@ struct ShadeResult;
 #define SH_NODE_LAYER_WEIGHT			160
 #define SH_NODE_VOLUME_TRANSPARENT		161
 #define SH_NODE_VOLUME_ISOTROPIC		162
-#define SH_NODE_GAMMA				163
-#define SH_NODE_TEX_CHECKER			164
+#define SH_NODE_GAMMA					163
+#define SH_NODE_TEX_CHECKER				164
 #define SH_NODE_BRIGHTCONTRAST			165
+#define SH_NODE_LIGHT_FALLOFF			166
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -683,6 +684,11 @@ void ntreeCompositClearTags(struct bNodeTree *ntree);
 struct bNodeSocket *ntreeCompositOutputFileAddSocket(struct bNodeTree *ntree, struct bNode *node,
                                                      const char *name, struct ImageFormatData *im_format);
 int ntreeCompositOutputFileRemoveActiveSocket(struct bNodeTree *ntree, struct bNode *node);
+void ntreeCompositOutputFileSetPath(struct bNode *node, struct bNodeSocket *sock, const char *name);
+void ntreeCompositOutputFileSetLayer(struct bNode *node, struct bNodeSocket *sock, const char *name);
+/* needed in do_versions */
+void ntreeCompositOutputFileUniquePath(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
+void ntreeCompositOutputFileUniqueLayer(struct ListBase *list, struct bNodeSocket *sock, const char defname[], char delim);
 
 /* ************** TEXTURE NODES *************** */
 

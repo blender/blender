@@ -44,7 +44,7 @@ struct MultiresModifierData;
 struct Object;
 struct Scene;
 
-/* Delete mesh mdisps */
+/* Delete mesh mdisps and grid paint masks */
 void multires_customdata_delete(struct Mesh *me);
 
 void multires_mark_as_modified(struct Object *ob, enum MultiresModifiedFlags flags);
@@ -59,24 +59,32 @@ void multires_modifier_update_hidden(struct DerivedMesh *dm);
 
 void multiresModifier_set_levels_from_disps(struct MultiresModifierData *mmd, struct Object *ob);
 
-struct DerivedMesh *multires_dm_create_from_derived(struct MultiresModifierData*,
-	int local_mmd, struct DerivedMesh*, struct Object *, int);
+typedef enum {
+	MULTIRES_USE_LOCAL_MMD = 1,
+	MULTIRES_USE_RENDER_PARAMS = 2,
+	MULTIRES_ALLOC_PAINT_MASK = 4
+} MultiresFlags;
+
+struct DerivedMesh *multires_make_derived_from_derived(struct DerivedMesh *dm,
+                                                       struct MultiresModifierData *mmd,
+                                                       struct Object *ob,
+                                                       MultiresFlags flags);
 
 struct MultiresModifierData *find_multires_modifier_before(struct Scene *scene,
-	struct ModifierData *lastmd);
+                                                           struct ModifierData *lastmd);
 struct MultiresModifierData *get_multires_modifier(struct Scene *scene, struct Object *ob, int use_first);
 struct DerivedMesh *get_multires_dm(struct Scene *scene, struct MultiresModifierData *mmd,
-				struct Object *ob);
+                                    struct Object *ob);
 void multiresModifier_del_levels(struct MultiresModifierData *, struct Object *, int direction);
 void multiresModifier_base_apply(struct MultiresModifierData *mmd, struct Object *ob);
 void multiresModifier_subdivide(struct MultiresModifierData *mmd, struct Object *ob,
-				int updateblock, int simple);
+                                int updateblock, int simple);
 int multiresModifier_reshape(struct Scene *scene, struct MultiresModifierData *mmd,
-				struct Object *dst, struct Object *src);
+                             struct Object *dst, struct Object *src);
 int multiresModifier_reshapeFromDM(struct Scene *scene, struct MultiresModifierData *mmd,
-				struct Object *ob, struct DerivedMesh *srcdm);
+                                   struct Object *ob, struct DerivedMesh *srcdm);
 int multiresModifier_reshapeFromDeformMod(struct Scene *scene, struct MultiresModifierData *mmd,
-				struct Object *ob, struct ModifierData *md);
+                                          struct Object *ob, struct ModifierData *md);
 
 void multires_stitch_grids(struct Object *);
 

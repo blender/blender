@@ -242,31 +242,47 @@ void Mesh::pack_verts(float4 *tri_verts, float4 *tri_vindex, size_t vert_offset)
 	}
 }
 
-void Mesh::compute_bvh(SceneParams *params, Progress& progress)
+void Mesh::compute_bvh(SceneParams *params, Progress *progress, int n, int total)
 {
-	Object object;
-	object.mesh = this;
+	if(progress->get_cancel())
+		return;
 
-	vector<Object*> objects;
-	objects.push_back(&object);
+	compute_bounds();
 
-	if(bvh && !need_update_rebuild) {
-		progress.set_substatus("Refitting BVH");
-		bvh->objects = objects;
-		bvh->refit(progress);
+	if(!transform_applied) {
+		string msg = "Updating Mesh BVH ";
+		if(name == "")
+			msg += string_printf("%u/%u", (uint)(n+1), (uint)total);
+		else
+			msg += string_printf("%s %u/%u", name.c_str(), (uint)(n+1), (uint)total);
+
+		Object object;
+		object.mesh = this;
+
+		vector<Object*> objects;
+		objects.push_back(&object);
+
+		if(bvh && !need_update_rebuild) {
+			progress->set_status(msg, "Refitting BVH");
+			bvh->objects = objects;
+			bvh->refit(*progress);
+		}
+		else {
+			progress->set_status(msg, "Building BVH");
+
+			BVHParams bparams;
+			bparams.use_cache = params->use_bvh_cache;
+			bparams.use_spatial_split = params->use_bvh_spatial_split;
+			bparams.use_qbvh = params->use_qbvh;
+
+			delete bvh;
+			bvh = BVH::create(bparams, objects);
+			bvh->build(*progress);
+		}
 	}
-	else {
-		progress.set_substatus("Building BVH");
 
-		BVHParams bparams;
-		bparams.use_cache = params->use_bvh_cache;
-		bparams.use_spatial_split = params->use_bvh_spatial_split;
-		bparams.use_qbvh = params->use_qbvh;
-
-		delete bvh;
-		bvh = BVH::create(bparams, objects);
-		bvh->build(progress);
-	}
+	need_update = false;
+	need_update_rebuild = false;
 }
 
 void Mesh::tag_update(Scene *scene, bool rebuild)
@@ -686,35 +702,22 @@ void MeshManager::device_update(Device *device, DeviceScene *dscene, Scene *scen
 	}
 
 	/* update bvh */
-	size_t i = 0, num_instance_bvh = 0;
+	size_t i = 0, num_bvh = 0;
 
 	foreach(Mesh *mesh, scene->meshes)
 		if(mesh->need_update && !mesh->transform_applied)
-			num_instance_bvh++;
+			num_bvh++;
+
+	TaskPool pool;
 
 	foreach(Mesh *mesh, scene->meshes) {
 		if(mesh->need_update) {
-			mesh->compute_bounds();
-
-			if(!mesh->transform_applied) {
-				string msg = "Updating Mesh BVH ";
-				if(mesh->name == "")
-					msg += string_printf("%u/%u", (uint)(i+1), (uint)num_instance_bvh);
-				else
-					msg += string_printf("%s %u/%u", mesh->name.c_str(), (uint)(i+1), (uint)num_instance_bvh);
-				progress.set_status(msg, "Building BVH");
-
-				mesh->compute_bvh(&scene->params, progress);
-
-				i++;
-			}
-
-			if(progress.get_cancel()) return;
-
-			mesh->need_update = false;
-			mesh->need_update_rebuild = false;
+			pool.push(function_bind(&Mesh::compute_bvh, mesh, &scene->params, &progress, i, num_bvh));
+			i++;
 		}
 	}
+
+	pool.wait_work();
 	
 	foreach(Shader *shader, scene->shaders)
 		shader->need_update_attributes = false;

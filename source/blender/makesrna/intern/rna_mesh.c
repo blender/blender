@@ -222,7 +222,7 @@ static float rna_MeshPolygon_area_get(PointerRNA *ptr)
 	Mesh *me = (Mesh*)ptr->id.data;
 	MPoly *mp = (MPoly*)ptr->data;
 
-	return mesh_calc_poly_area(mp, me->mloop+mp->loopstart, me->mvert, NULL);
+	return BKE_mesh_calc_poly_area(mp, me->mloop+mp->loopstart, me->mvert, NULL);
 }
 
 static void rna_MeshTessFace_normal_get(PointerRNA *ptr, float *values)
@@ -450,6 +450,26 @@ static int rna_Mesh_texspace_editable(PointerRNA *ptr)
 {
 	Mesh *me = (Mesh*)ptr->data;
 	return (me->texflag & ME_AUTOSPACE)? 0: PROP_EDITABLE;
+}
+
+static void rna_Mesh_texspace_size_get(PointerRNA *ptr, float values[3])
+{
+	Mesh *me= (Mesh*)ptr->data;
+
+	if(!me->bb)
+		BKE_mesh_texspace_calc(me);
+
+	copy_v3_v3(values, me->size);
+}
+
+static void rna_Mesh_texspace_loc_get(PointerRNA *ptr, float values[3])
+{
+	Mesh *me= (Mesh*)ptr->data;
+
+	if(!me->bb)
+		BKE_mesh_texspace_calc(me);
+
+	copy_v3_v3(values, me->loc);
 }
 
 static void rna_MeshVertex_groups_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
@@ -2081,12 +2101,14 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 	prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
 	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", NULL, NULL);
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 
 	prop = RNA_def_property(srna, "texspace_size", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "size");
 	RNA_def_property_ui_text(prop, "Texture Space Size", "Texture space size");
+	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_size_get", NULL, NULL);
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
 

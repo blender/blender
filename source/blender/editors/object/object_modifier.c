@@ -76,6 +76,7 @@
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sculpt.h"
 #include "ED_mesh.h"
 
 #include "WM_api.h"
@@ -147,9 +148,13 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		}
 		else if (type == eModifierType_Surface)
 			DAG_scene_sort(bmain, scene);
-		else if (type == eModifierType_Multires)
+		else if (type == eModifierType_Multires) {
 			/* set totlvl from existing MDISPS layer if object already had it */
 			multiresModifier_set_levels_from_disps((MultiresModifierData *)new_md, ob);
+
+			/* ensure that grid paint mask layer is created */
+			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+		}
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
@@ -368,7 +373,7 @@ int ED_object_modifier_convert(ReportList *UNUSED(reports), Main *bmain, Scene *
 	if (totvert == 0) return 0;
 
 	/* add new mesh */
-	obn = add_object(scene, OB_MESH);
+	obn = BKE_object_add(scene, OB_MESH);
 	me = obn->data;
 	
 	me->totvert = totvert;
@@ -545,7 +550,7 @@ static int modifier_apply_obdata(ReportList *reports, Scene *scene, Object *ob, 
 		BKE_report(reports, RPT_INFO, "Applied modifier only changed CV points, not tessellated/bevel vertices");
 
 		vertexCos = BKE_curve_vertexCos_get(cu, &cu->nurb, &numVerts);
-		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0, 0);
+		mti->deformVerts(md, ob, NULL, vertexCos, numVerts, 0);
 		BK_curve_vertexCos_apply(cu, &cu->nurb, vertexCos);
 
 		MEM_freeN(vertexCos);
@@ -610,6 +615,9 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
+	/* ensure mesh paint mask layer remains after applying */
+	ED_sculpt_mask_layers_ensure(ob, NULL);
+
 	return 1;
 }
 
@@ -661,7 +669,7 @@ static EnumPropertyItem *modifier_add_itemf(bContext *C, PointerRNA *UNUSED(ptr)
 			if (mti->flags & eModifierTypeFlag_NoUserAdd)
 				continue;
 
-			if (!object_support_modifier_type(ob, md_item->value))
+			if (!BKE_object_support_modifier_type_check(ob, md_item->value))
 				continue;
 		}
 		else {
@@ -918,7 +926,8 @@ static int modifier_apply_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 static EnumPropertyItem modifier_apply_as_items[] = {
 	{MODIFIER_APPLY_DATA, "DATA", 0, "Object Data", "Apply modifier to the object's data"},
 	{MODIFIER_APPLY_SHAPE, "SHAPE", 0, "New Shape", "Apply deform-only modifier to a new shape on this object"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 void OBJECT_OT_modifier_apply(wmOperatorType *ot)
 {
@@ -1369,13 +1378,13 @@ static int meshdeform_bind_exec(bContext *C, wmOperator *op)
 			dm->release(dm);
 		}
 		else if (ob->type == OB_LATTICE) {
-			lattice_calc_modifiers(scene, ob);
+			BKE_lattice_modifiers_calc(scene, ob);
 		}
 		else if (ob->type == OB_MBALL) {
-			makeDispListMBall(scene, ob);
+			BKE_displist_make_mball(scene, ob);
 		}
 		else if (ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
-			makeDispListCurveTypes(scene, ob, 0);
+			BKE_displist_make_curveTypes(scene, ob, 0);
 		}
 
 		mmd->bindfunc = NULL;

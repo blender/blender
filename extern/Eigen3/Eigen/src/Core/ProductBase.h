@@ -152,7 +152,8 @@ class ProductBase : public MatrixBase<Derived>
 #else
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
-      return derived().coeff(row,col);
+      Matrix<Scalar,1,1> result = *this;
+      return result.coeff(row,col);
 #endif
     }
 
@@ -160,7 +161,8 @@ class ProductBase : public MatrixBase<Derived>
     {
       EIGEN_STATIC_ASSERT_SIZE_1x1(Derived)
       eigen_assert(this->rows() == 1 && this->cols() == 1);
-      return derived().coeff(i);
+      Matrix<Scalar,1,1> result = *this;
+      return result.coeff(i);
     }
 
     const Scalar& coeffRef(Index row, Index col) const
@@ -256,16 +258,16 @@ class ScaledProduct
     : Base(prod.lhs(),prod.rhs()), m_prod(prod), m_alpha(x) {}
 
     template<typename Dest>
-    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst,m_alpha); }
+    inline void evalTo(Dest& dst) const { dst.setZero(); scaleAndAddTo(dst, Scalar(1)); }
 
     template<typename Dest>
-    inline void addTo(Dest& dst) const { scaleAndAddTo(dst,m_alpha); }
+    inline void addTo(Dest& dst) const { scaleAndAddTo(dst, Scalar(1)); }
 
     template<typename Dest>
-    inline void subTo(Dest& dst) const { scaleAndAddTo(dst,-m_alpha); }
+    inline void subTo(Dest& dst) const { scaleAndAddTo(dst, Scalar(-1)); }
 
     template<typename Dest>
-    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha); }
+    inline void scaleAndAddTo(Dest& dst,Scalar alpha) const { m_prod.derived().scaleAndAddTo(dst,alpha * m_alpha); }
 
     const Scalar& alpha() const { return m_alpha; }
     

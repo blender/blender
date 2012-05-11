@@ -81,7 +81,7 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 
 	if (sc->view == SC_VIEW_DOPESHEET) {
 		ar->v2d.tot.xmin = -10.0f;
-		ar->v2d.tot.ymin = (float)(-sa->winy)/3.0f;
+		ar->v2d.tot.ymin = (float)(-sa->winy) / 3.0f;
 		ar->v2d.tot.xmax = (float)(sa->winx);
 		ar->v2d.tot.ymax = 0.0f;
 
@@ -95,7 +95,7 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 
 		ar->v2d.minzoom = 0.01f;
 		ar->v2d.maxzoom = 50;
-		ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
+		ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
 		ar->v2d.scroll |= (V2D_SCROLL_RIGHT);
 		ar->v2d.keepzoom = V2D_LOCKZOOM_Y;
 		ar->v2d.keepofs = V2D_KEEPOFS_Y;
@@ -116,8 +116,8 @@ static void init_preview_region(const bContext *C, ARegion *ar)
 		ar->v2d.max[0] = MAXFRAMEF;
 		ar->v2d.max[1] = FLT_MAX;
 
-		ar->v2d.scroll = (V2D_SCROLL_BOTTOM|V2D_SCROLL_SCALE_HORIZONTAL);
-		ar->v2d.scroll |= (V2D_SCROLL_LEFT|V2D_SCROLL_SCALE_VERTICAL);
+		ar->v2d.scroll = (V2D_SCROLL_BOTTOM | V2D_SCROLL_SCALE_HORIZONTAL);
+		ar->v2d.scroll |= (V2D_SCROLL_LEFT | V2D_SCROLL_SCALE_VERTICAL);
 
 		ar->v2d.minzoom = 0.0f;
 		ar->v2d.maxzoom = 0.0f;
@@ -232,7 +232,8 @@ static SpaceLink *clip_new(const bContext *C)
 
 	sc = MEM_callocN(sizeof(SpaceClip), "initclip");
 	sc->spacetype = SPACE_CLIP;
-	sc->flag = SC_SHOW_MARKER_PATTERN|SC_SHOW_TRACK_PATH|SC_MANUAL_CALIBRATION|SC_SHOW_GRAPH_TRACKS|SC_SHOW_GRAPH_FRAMES;
+	sc->flag = SC_SHOW_MARKER_PATTERN | SC_SHOW_TRACK_PATH | SC_MANUAL_CALIBRATION |
+	           SC_SHOW_GRAPH_TRACKS | SC_SHOW_GRAPH_FRAMES;
 	sc->zoom = 1.0f;
 	sc->path_length = 20;
 	sc->scopes.track_preview_height = 120;
@@ -256,7 +257,7 @@ static SpaceLink *clip_new(const bContext *C)
 
 	BLI_addtail(&sc->regionbase, ar);
 	ar->regiontype = RGN_TYPE_TOOL_PROPS;
-	ar->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+	ar->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 
 	/* properties view */
 	ar = MEM_callocN(sizeof(ARegion), "properties for clip");
@@ -369,12 +370,12 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		 case NC_SCREEN:
-			if (wmn->data ==ND_ANIMPLAY) {
+			if (wmn->data == ND_ANIMPLAY) {
 				ED_area_tag_redraw(sa);
 			}
 			break;
 		case NC_SPACE:
-			if (wmn->data ==ND_SPACE_CLIP) {
+			if (wmn->data == ND_SPACE_CLIP) {
 				clip_scopes_tag_refresh(sa);
 				clip_stabilization_tag_refresh(sa);
 				ED_area_tag_redraw(sa);
@@ -512,7 +513,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", FALSE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_track_markers", TKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0);
 	RNA_boolean_set(kmi->ptr, "backwards", TRUE);
 	RNA_boolean_set(kmi->ptr, "sequence", TRUE);
 
@@ -560,16 +561,16 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_view_selected", PADPERIOD, KM_PRESS, 0, 0);
 
 	/* jump to special frame */
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 0);
 
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_CTRL | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 1);
 
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", LEFTARROWKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 2);
 
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_frame_jump", RIGHTARROWKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "position", 3);
 
 	/* "timeline" */
@@ -645,7 +646,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
 	RNA_boolean_set(kmi->ptr, "clear_active", FALSE);
 
@@ -690,7 +691,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_UPTO);
 	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
-	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT|KM_SHIFT, 0);
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_clear_track_path", TKEY, KM_PRESS, KM_ALT | KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", TRACK_CLEAR_ALL);
 	RNA_boolean_set(kmi->ptr, "clear_active", TRUE);
 
@@ -708,7 +709,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "extend", TRUE);	/* toggle */
 }
 
-const char *clip_context_dir[]= {"edit_movieclip", NULL};
+const char *clip_context_dir[] = {"edit_movieclip", NULL};
 
 static int clip_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -879,8 +880,8 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 			ar_tool_props->v2d.flag &= ~V2D_IS_INITIALISED;
 			view_changed = TRUE;
 		}
-		if (ar_tool_props && (ar_tool_props->alignment != (RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV))) {
-			ar_tool_props->alignment = RGN_ALIGN_BOTTOM|RGN_SPLIT_PREV;
+		if (ar_tool_props && (ar_tool_props->alignment != (RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV))) {
+			ar_tool_props->alignment = RGN_ALIGN_BOTTOM | RGN_SPLIT_PREV;
 			view_changed = TRUE;
 		}
 	}
@@ -984,8 +985,8 @@ static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 	ar->v2d.mask.ymax = winy;
 
 	/* which part of the image space do we see? */
-	x1 = ar->winrct.xmin + (winx-sc->zoom * w) / 2.0f;
-	y1 = ar->winrct.ymin + (winy-sc->zoom * h) / 2.0f;
+	x1 = ar->winrct.xmin + (winx - sc->zoom * w) / 2.0f;
+	y1 = ar->winrct.ymin + (winy - sc->zoom * h) / 2.0f;
 
 	x1 -= sc->zoom * sc->xof;
 	y1 -= sc->zoom * sc->yof;
@@ -1146,7 +1147,8 @@ static void dopesheet_area_draw(const bContext *C, ARegion *ar)
 
 	/* time grid */
 	unit = (sc->flag & SC_SHOW_SECONDS)? V2D_UNIT_SECONDS : V2D_UNIT_FRAMES;
-	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
+	grid = UI_view2d_grid_calc(CTX_data_scene(C), v2d, unit, V2D_GRID_CLAMP,
+	                           V2D_ARG_DUMMY, V2D_ARG_DUMMY, ar->winx, ar->winy);
 	UI_view2d_grid_draw(v2d, grid, V2D_GRIDLINES_ALL);
 	UI_view2d_grid_free(grid);
 
@@ -1298,11 +1300,11 @@ static void clip_properties_area_listener(ARegion *ar, wmNotifier *wmn)
 	/* context changes */
 	switch (wmn->category) {
 		case NC_SCREEN:
-			if (wmn->data ==ND_GPENCIL)
+			if (wmn->data == ND_GPENCIL)
 				ED_region_tag_redraw(ar);
 			break;
 		case NC_BRUSH:
-			if (wmn->action ==NA_EDITED)
+			if (wmn->action == NA_EDITED)
 				ED_region_tag_redraw(ar);
 			break;
 	}
@@ -1336,7 +1338,7 @@ void ED_spacetype_clip(void)
 	art->init = clip_main_area_init;
 	art->draw = clip_main_area_draw;
 	art->listener = clip_main_area_listener;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_GPENCIL;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);
 
@@ -1347,7 +1349,7 @@ void ED_spacetype_clip(void)
 	art->init = clip_preview_area_init;
 	art->draw = clip_preview_area_draw;
 	art->listener = clip_preview_area_listener;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 
 	BLI_addhead(&st->regiontypes, art);
 
@@ -1355,7 +1357,7 @@ void ED_spacetype_clip(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region properties");
 	art->regionid = RGN_TYPE_UI;
 	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
 	art->init = clip_properties_area_init;
 	art->draw = clip_properties_area_draw;
 	art->listener = clip_properties_area_listener;
@@ -1366,7 +1368,7 @@ void ED_spacetype_clip(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region tools");
 	art->regionid = RGN_TYPE_TOOLS;
 	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
 	art->listener = clip_props_area_listener;
 	art->init = clip_tools_area_init;
 	art->draw = clip_tools_area_draw;
@@ -1378,7 +1380,7 @@ void ED_spacetype_clip(void)
 	art->regionid = RGN_TYPE_TOOL_PROPS;
 	art->prefsizex = 0;
 	art->prefsizey = 120;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
 	art->listener = clip_props_area_listener;
 	art->init = clip_tools_area_init;
 	art->draw = clip_tools_area_draw;
@@ -1390,7 +1392,7 @@ void ED_spacetype_clip(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip region");
 	art->regionid = RGN_TYPE_HEADER;
 	art->prefsizey = HEADERY;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
 
 	art->init = clip_header_area_init;
 	art->draw = clip_header_area_draw;
@@ -1403,7 +1405,7 @@ void ED_spacetype_clip(void)
 	art = MEM_callocN(sizeof(ARegionType), "spacetype clip channels region");
 	art->regionid = RGN_TYPE_CHANNELS;
 	art->prefsizex = UI_COMPACT_PANEL_WIDTH;
-	art->keymapflag = ED_KEYMAP_FRAMES|ED_KEYMAP_UI;
+	art->keymapflag = ED_KEYMAP_FRAMES | ED_KEYMAP_UI;
 	art->listener = clip_channels_area_listener;
 	art->init = clip_channels_area_init;
 	art->draw = clip_channels_area_draw;

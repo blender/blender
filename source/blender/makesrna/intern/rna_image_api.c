@@ -85,7 +85,7 @@ static void rna_Image_save_render(Image *image, bContext *C, ReportList *reports
 			const float dither_back = ibuf->dither;
 			ibuf->planes = scene->r.im_format.planes;
 			ibuf->dither = scene->r.dither_intensity;
-			if (!BKE_write_ibuf(ibuf, path, &scene->r.im_format)) {
+			if (!BKE_imbuf_write(ibuf, path, &scene->r.im_format)) {
 				BKE_reportf(reports, RPT_ERROR, "Couldn't write image: %s", path);
 			}
 			ibuf->planes = imb_planes_back;

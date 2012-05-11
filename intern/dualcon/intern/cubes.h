@@ -29,18 +29,18 @@
 class Cubes
 {
 public:
-	/// Get number of triangles
-	int getNumTriangle(int mask)
-	{
-		return marching_cubes_numtri[mask];
-	}
+/// Get number of triangles
+int getNumTriangle(int mask)
+{
+	return marching_cubes_numtri[mask];
+}
 
-	/// Get a triangle
-	void getTriangle(int mask, int index, int indices[3] )
-	{
-		for(int i = 0; i < 3; i++)
-			indices[i] = marching_cubes_tris[mask][index][i];
-	}
+/// Get a triangle
+void getTriangle(int mask, int index, int indices[3])
+{
+	for (int i = 0; i < 3; i++)
+		indices[i] = marching_cubes_tris[mask][index][i];
+}
 };
 
 #endif

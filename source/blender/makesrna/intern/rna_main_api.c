@@ -100,7 +100,7 @@ Camera *rna_Main_cameras_new(Main *UNUSED(bmain), const char *name)
 void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *camera)
 {
 	if (ID_REAL_USERS(camera) <= 0)
-		free_libblock(&bmain->camera, camera);
+		BKE_libblock_free(&bmain->camera, camera);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Camera \"%s\" must have zero users to be removed, found %d",
 		            camera->id.name+2, ID_REAL_USERS(camera));
@@ -110,11 +110,11 @@ void rna_Main_cameras_remove(Main *bmain, ReportList *reports, struct Camera *ca
 
 Scene *rna_Main_scenes_new(Main *UNUSED(bmain), const char *name)
 {
-	return add_scene(name);
+	return BKE_scene_add(name);
 }
 void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struct Scene *scene)
 {
-	/* don't call free_libblock(...) directly */
+	/* don't call BKE_libblock_free(...) directly */
 	Scene *newscene;
 
 	if (scene->id.prev)
@@ -129,7 +129,7 @@ void rna_Main_scenes_remove(Main *bmain, bContext *C, ReportList *reports, struc
 	if (CTX_wm_screen(C)->scene == scene)
 		ED_screen_set_scene(C, CTX_wm_screen(C), newscene);
 
-	unlink_scene(bmain, scene, newscene);
+	BKE_scene_unlink(bmain, scene, newscene);
 }
 
 Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const char *name, ID *data)
@@ -176,7 +176,7 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 		id_us_plus(data);
 	}
 
-	ob = add_only_object(type, name);
+	ob = BKE_object_add_only_object(type, name);
 	id_us_min(&ob->id);
 
 	ob->data = data;
@@ -188,8 +188,8 @@ Object *rna_Main_objects_new(Main *UNUSED(bmain), ReportList *reports, const cha
 void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *object)
 {
 	if (ID_REAL_USERS(object) <= 0) {
-		unlink_object(object); /* needed or ID pointers to this are not cleared */
-		free_libblock(&bmain->object, object);
+		BKE_object_unlink(object); /* needed or ID pointers to this are not cleared */
+		BKE_libblock_free(&bmain->object, object);
 	}
 	else {
 		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" must have zero users to be removed, found %d",
@@ -199,14 +199,14 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 
 struct Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
 {
-	ID *id = (ID *)add_material(name);
+	ID *id = (ID *)BKE_material_add(name);
 	id_us_min(id);
 	return (Material *)id;
 }
 void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material *material)
 {
 	if (ID_REAL_USERS(material) <= 0)
-		free_libblock(&bmain->mat, material);
+		BKE_libblock_free(&bmain->mat, material);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Material \"%s\" must have zero users to be removed, found %d",
 		            material->id.name+2, ID_REAL_USERS(material));
@@ -224,7 +224,7 @@ struct bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, i
 void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree *tree)
 {
 	if (ID_REAL_USERS(tree) <= 0)
-		free_libblock(&bmain->nodetree, tree);
+		BKE_libblock_free(&bmain->nodetree, tree);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Node Tree \"%s\" must have zero users to be removed, found %d",
 		            tree->id.name+2, ID_REAL_USERS(tree));
@@ -234,14 +234,14 @@ void rna_Main_nodetree_remove(Main *bmain, ReportList *reports, struct bNodeTree
 
 Mesh *rna_Main_meshes_new(Main *UNUSED(bmain), const char *name)
 {
-	Mesh *me = add_mesh(name);
+	Mesh *me = BKE_mesh_add(name);
 	id_us_min(&me->id);
 	return me;
 }
 void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 {
 	if (ID_REAL_USERS(mesh) <= 0)
-		free_libblock(&bmain->mesh, mesh);
+		BKE_libblock_free(&bmain->mesh, mesh);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Mesh \"%s\" must have zero users to be removed, found %d",
 		            mesh->id.name+2, ID_REAL_USERS(mesh));
@@ -251,7 +251,7 @@ void rna_Main_meshes_remove(Main *bmain, ReportList *reports, Mesh *mesh)
 
 Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
 {
-	Lamp *lamp = add_lamp(name);
+	Lamp *lamp = BKE_lamp_add(name);
 	lamp->type = type;
 	id_us_min(&lamp->id);
 	return lamp;
@@ -259,7 +259,7 @@ Lamp *rna_Main_lamps_new(Main *UNUSED(bmain), const char *name, int type)
 void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 {
 	if (ID_REAL_USERS(lamp) <= 0)
-		free_libblock(&bmain->lamp, lamp);
+		BKE_libblock_free(&bmain->lamp, lamp);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Lamp \"%s\" must have zero users to be removed, found %d",
 		            lamp->id.name+2, ID_REAL_USERS(lamp));
@@ -270,7 +270,7 @@ void rna_Main_lamps_remove(Main *bmain, ReportList *reports, Lamp *lamp)
 Image *rna_Main_images_new(Main *UNUSED(bmain), const char *name, int width, int height, int alpha, int float_buffer)
 {
 	float color[4] = {0.0, 0.0, 0.0, 1.0};
-	Image *image = BKE_add_image_size(width, height, name, alpha ? 32:24, float_buffer, 0, color);
+	Image *image = BKE_image_add_generated(width, height, name, alpha ? 32:24, float_buffer, 0, color);
 	id_us_min(&image->id);
 	return image;
 }
@@ -279,7 +279,7 @@ Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char
 	Image *ima;
 
 	errno = 0;
-	ima = BKE_add_image_file(filepath);
+	ima = BKE_image_load(filepath);
 
 	if (!ima)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -290,7 +290,7 @@ Image *rna_Main_images_load(Main *UNUSED(bmain), ReportList *reports, const char
 void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 {
 	if (ID_REAL_USERS(image) <= 0)
-		free_libblock(&bmain->image, image);
+		BKE_libblock_free(&bmain->image, image);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" must have zero users to be removed, found %d",
 		            image->id.name+2, ID_REAL_USERS(image));
@@ -300,14 +300,14 @@ void rna_Main_images_remove(Main *bmain, ReportList *reports, Image *image)
 
 Lattice *rna_Main_lattices_new(Main *UNUSED(bmain), const char *name)
 {
-	Lattice *lt = add_lattice(name);
+	Lattice *lt = BKE_lattice_add(name);
 	id_us_min(&lt->id);
 	return lt;
 }
 void rna_Main_lattices_remove(Main *bmain, ReportList *reports, struct Lattice *lt)
 {
 	if (ID_REAL_USERS(lt) <= 0)
-		free_libblock(&bmain->latt, lt);
+		BKE_libblock_free(&bmain->latt, lt);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Lattice \"%s\" must have zero users to be removed, found %d",
 		            lt->id.name+2, ID_REAL_USERS(lt));
@@ -322,7 +322,7 @@ Curve *rna_Main_curves_new(Main *UNUSED(bmain), const char *name, int type)
 void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 {
 	if (ID_REAL_USERS(cu) <= 0)
-		free_libblock(&bmain->curve, cu);
+		BKE_libblock_free(&bmain->curve, cu);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Curve \"%s\" must have zero users to be removed, found %d",
 		            cu->id.name+2, ID_REAL_USERS(cu));
@@ -330,14 +330,14 @@ void rna_Main_curves_remove(Main *bmain, ReportList *reports, struct Curve *cu)
 
 MetaBall *rna_Main_metaballs_new(Main *UNUSED(bmain), const char *name)
 {
-	MetaBall *mb = BKE_metaball_add(name);
+	MetaBall *mb = BKE_mball_add(name);
 	id_us_min(&mb->id);
 	return mb;
 }
 void rna_Main_metaballs_remove(Main *bmain, ReportList *reports, struct MetaBall *mb)
 {
 	if (ID_REAL_USERS(mb) <= 0)
-		free_libblock(&bmain->mball, mb);
+		BKE_libblock_free(&bmain->mball, mb);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Metaball \"%s\" must have zero users to be removed, found %d",
 		            mb->id.name+2, ID_REAL_USERS(mb));
@@ -348,7 +348,7 @@ VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepat
 	VFont *font;
 
 	errno = 0;
-	font = load_vfont(bmain, filepath);
+	font = BKE_vfont_load(bmain, filepath);
 
 	if (!font)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -360,7 +360,7 @@ VFont *rna_Main_fonts_load(Main *bmain, ReportList *reports, const char *filepat
 void rna_Main_fonts_remove(Main *bmain, ReportList *reports, VFont *vfont)
 {
 	if (ID_REAL_USERS(vfont) <= 0)
-		free_libblock(&bmain->vfont, vfont);
+		BKE_libblock_free(&bmain->vfont, vfont);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Font \"%s\" must have zero users to be removed, found %d",
 		            vfont->id.name+2, ID_REAL_USERS(vfont));
@@ -378,7 +378,7 @@ Tex *rna_Main_textures_new(Main *UNUSED(bmain), const char *name, int type)
 void rna_Main_textures_remove(Main *bmain, ReportList *reports, struct Tex *tex)
 {
 	if (ID_REAL_USERS(tex) <= 0)
-		free_libblock(&bmain->tex, tex);
+		BKE_libblock_free(&bmain->tex, tex);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Texture \"%s\" must have zero users to be removed, found %d",
 		            tex->id.name+2, ID_REAL_USERS(tex));
@@ -393,7 +393,7 @@ Brush *rna_Main_brushes_new(Main *UNUSED(bmain), const char *name)
 void rna_Main_brushes_remove(Main *bmain, ReportList *reports, struct Brush *brush)
 {
 	if (ID_REAL_USERS(brush) <= 0)
-		free_libblock(&bmain->brush, brush);
+		BKE_libblock_free(&bmain->brush, brush);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Brush \"%s\" must have zero users to be removed, found %d",
 		            brush->id.name+2, ID_REAL_USERS(brush));
@@ -408,7 +408,7 @@ World *rna_Main_worlds_new(Main *UNUSED(bmain), const char *name)
 void rna_Main_worlds_remove(Main *bmain, ReportList *reports, struct World *world)
 {
 	if (ID_REAL_USERS(world) <= 0)
-		free_libblock(&bmain->world, world);
+		BKE_libblock_free(&bmain->world, world);
 	else
 		BKE_reportf(reports, RPT_ERROR, "World \"%s\" must have zero users to be removed, found %d",
 		            world->id.name+2, ID_REAL_USERS(world));
@@ -420,21 +420,21 @@ Group *rna_Main_groups_new(Main *UNUSED(bmain), const char *name)
 }
 void rna_Main_groups_remove(Main *bmain, Group *group)
 {
-	unlink_group(group);
-	free_libblock(&bmain->group, group);
+	BKE_group_unlink(group);
+	BKE_libblock_free(&bmain->group, group);
 	/* XXX python now has invalid pointer? */
 }
 
 Speaker *rna_Main_speakers_new(Main *UNUSED(bmain), const char *name)
 {
-	Speaker *speaker = add_speaker(name);
+	Speaker *speaker = BKE_speaker_add(name);
 	id_us_min(&speaker->id);
 	return speaker;
 }
 void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker)
 {
 	if (ID_REAL_USERS(speaker) <= 0)
-		free_libblock(&bmain->speaker, speaker);
+		BKE_libblock_free(&bmain->speaker, speaker);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Speaker \"%s\" must have zero users to be removed, found %d",
 		            speaker->id.name+2, ID_REAL_USERS(speaker));
@@ -444,12 +444,12 @@ void rna_Main_speakers_remove(Main *bmain, ReportList *reports, Speaker *speaker
 
 Text *rna_Main_texts_new(Main *UNUSED(bmain), const char *name)
 {
-	return add_empty_text(name);
+	return BKE_text_add(name);
 }
 void rna_Main_texts_remove(Main *bmain, Text *text)
 {
-	unlink_text(bmain, text);
-	free_libblock(&bmain->text, text);
+	BKE_text_unlink(bmain, text);
+	BKE_libblock_free(&bmain->text, text);
 	/* XXX python now has invalid pointer? */
 }
 
@@ -458,7 +458,7 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 	Text *txt;
 
 	errno = 0;
-	txt = add_text(filepath, bmain->name);
+	txt = BKE_text_load(filepath, bmain->name);
 
 	if (!txt)
 		BKE_reportf(reports, RPT_ERROR, "Can't read: \"%s\", %s", filepath,
@@ -469,14 +469,14 @@ Text *rna_Main_texts_load(Main *bmain, ReportList *reports, const char *filepath
 
 bArmature *rna_Main_armatures_new(Main *UNUSED(bmain), const char *name)
 {
-	bArmature *arm = add_armature(name);
+	bArmature *arm = BKE_armature_add(name);
 	id_us_min(&arm->id);
 	return arm;
 }
 void rna_Main_armatures_remove(Main *bmain, ReportList *reports, bArmature *arm)
 {
 	if (ID_REAL_USERS(arm) <= 0)
-		free_libblock(&bmain->armature, arm);
+		BKE_libblock_free(&bmain->armature, arm);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Armature \"%s\" must have zero users to be removed, found %d",
 		            arm->id.name+2, ID_REAL_USERS(arm));
@@ -494,7 +494,7 @@ bAction *rna_Main_actions_new(Main *UNUSED(bmain), const char *name)
 void rna_Main_actions_remove(Main *bmain, ReportList *reports, bAction *act)
 {
 	if (ID_REAL_USERS(act) <= 0)
-		free_libblock(&bmain->action, act);
+		BKE_libblock_free(&bmain->action, act);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Action \"%s\" must have zero users to be removed, found %d",
 		            act->id.name+2, ID_REAL_USERS(act));
@@ -511,7 +511,7 @@ ParticleSettings *rna_Main_particles_new(Main *bmain, const char *name)
 void rna_Main_particles_remove(Main *bmain, ReportList *reports, ParticleSettings *part)
 {
 	if (ID_REAL_USERS(part) <= 0)
-		free_libblock(&bmain->particle, part);
+		BKE_libblock_free(&bmain->particle, part);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Particle Settings \"%s\" must have zero users to be removed, found %d",
 		            part->id.name+2, ID_REAL_USERS(part));
@@ -536,7 +536,7 @@ MovieClip *rna_Main_movieclip_load(Main *UNUSED(bmain), ReportList *reports, con
 void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
 {
 	BKE_movieclip_unlink(bmain, clip);
-	free_libblock(&bmain->movieclip, clip);
+	BKE_libblock_free(&bmain->movieclip, clip);
 	/* XXX python now has invalid pointer? */
 }
 
@@ -550,7 +550,7 @@ FreestyleLineStyle *rna_Main_linestyles_new(Main *bmain, const char* name)
 void rna_Main_linestyles_remove(Main *bmain, ReportList *reports, FreestyleLineStyle *linestyle)
 {
 	if(ID_REAL_USERS(linestyle) <= 0)
-		free_libblock(&bmain->linestyle, linestyle);
+		BKE_libblock_free(&bmain->linestyle, linestyle);
 	else
 		BKE_reportf(reports, RPT_ERROR, "Line style \"%s\" must have zero users to be removed, found %d.", linestyle->id.name+2, ID_REAL_USERS(linestyle));
 

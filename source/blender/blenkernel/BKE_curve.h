@@ -63,7 +63,7 @@ void BKE_curve_make_local(struct Curve *cu);
 short BKE_curve_type_get(struct Curve *cu);
 void BKE_curve_type_test(struct Object *ob);
 void BKE_curve_curve_dimension_update(struct Curve *cu);
-void BKE_curve_tex_space_calc(struct Curve *cu);
+void BKE_curve_texspace_calc(struct Curve *cu);
 
 int BKE_curve_minmax(struct Curve *cu, float min[3], float max[3]);
 int BKE_curve_center_median(struct Curve *cu, float cent[3]);

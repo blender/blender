@@ -29,7 +29,9 @@
 
 CCL_NAMESPACE_BEGIN
 
+class BVHBuildTask;
 class BVHParams;
+class InnerNode;
 class Mesh;
 class Object;
 class Progress;
@@ -54,6 +56,7 @@ protected:
 	friend class BVHMixedSplit;
 	friend class BVHObjectSplit;
 	friend class BVHSpatialSplit;
+	friend class BVHBuildTask;
 
 	/* adding references */
 	void add_reference_mesh(BoundBox& root, BoundBox& center, Mesh *mesh, int i);
@@ -68,7 +71,7 @@ protected:
 
 	/* threads */
 	enum { THREAD_TASK_SIZE = 4096 };
-	void thread_build_node(Task *task_, int thread_id);
+	void thread_build_node(InnerNode *node, int child, BVHObjectBinning *range, int level);
 	thread_mutex build_mutex;
 
 	/* progress */

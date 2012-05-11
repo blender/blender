@@ -201,7 +201,7 @@ static StructRNA *rna_KeyingSetInfo_register(Main *bmain, ReportList *reports, v
 	}
 	
 	/* check if we have registered this info before, and remove it */
-	ksi = ANIM_keyingset_info_find_named(dummyksi.idname);
+	ksi = ANIM_keyingset_info_find_name(dummyksi.idname);
 	if (ksi && ksi->ext.srna)
 		rna_KeyingSetInfo_unregister(bmain, ksi->ext.srna);
 	
@@ -337,7 +337,7 @@ static PointerRNA rna_KeyingSet_typeinfo_get(PointerRNA *ptr)
 	
 	/* keying set info is only for builtin Keying Sets */
 	if ((ks->flag & KEYINGSET_ABSOLUTE) == 0)
-		ksi = ANIM_keyingset_info_find_named(ks->typeinfo);
+		ksi = ANIM_keyingset_info_find_name(ks->typeinfo);
 	return rna_pointer_inherit_refine(ptr, &RNA_KeyingSetInfo, ksi);
 }
 
@@ -837,7 +837,7 @@ void rna_def_animdata(BlenderRNA *brna)
 	/* Active Action */
 	prop = RNA_def_property(srna, "action", PROP_POINTER, PROP_NONE);
 		/* this flag as well as the dynamic test must be defined for this to be editable... */
-	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_REFCOUNT);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_AnimData_action_set", NULL, "rna_Action_id_poll");
 	RNA_def_property_editable_func(prop, "rna_AnimData_action_editable");
 	RNA_def_property_ui_text(prop, "Action", "Active Action for this datablock");

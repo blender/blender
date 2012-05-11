@@ -173,6 +173,7 @@ void PTCACHE_OT_free_bake_all(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Free All Physics Bakes";
 	ot->idname = "PTCACHE_OT_free_bake_all";
+	ot->description = "Free all baked caches of all objects in the current scene";
 	
 	/* api callbacks */
 	ot->exec = ptcache_free_bake_all_exec;

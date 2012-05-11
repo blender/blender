@@ -39,5 +39,32 @@ __device void svm_node_light_path(ShaderData *sd, float *stack, uint type, uint 
 	stack_store_float(stack, out_offset, info);
 }
 
+/* Light Falloff Node */
+
+__device void svm_node_light_falloff(ShaderData *sd, float *stack, uint4 node)
+{
+	uint strength_offset, out_offset, smooth_offset;
+
+	decode_node_uchar4(node.z, &strength_offset, &smooth_offset, &out_offset, NULL);
+
+	float strength = stack_load_float(stack, strength_offset);
+	uint type = node.y;
+
+	switch(type) {
+		case NODE_LIGHT_FALLOFF_QUADRATIC: break;
+		case NODE_LIGHT_FALLOFF_LINEAR: strength *= sd->ray_length; break;
+		case NODE_LIGHT_FALLOFF_CONSTANT: strength *= sd->ray_length*sd->ray_length; break;
+	}
+
+	float smooth = stack_load_float(stack, smooth_offset);
+
+	if(smooth > 0.0f) {
+		float squared = sd->ray_length*sd->ray_length;
+		strength *= squared/(smooth + squared);
+	}
+
+	stack_store_float(stack, out_offset, strength);
+}
+
 CCL_NAMESPACE_END
 

@@ -167,7 +167,7 @@ static int text_new_exec(bContext *C, wmOperator *UNUSED(op))
 	PointerRNA ptr, idptr;
 	PropertyRNA *prop;
 
-	text = add_empty_text("Text");
+	text = BKE_text_add("Text");
 
 	/* hook into UI */
 	uiIDContextProperty(C, &ptr, &prop);
@@ -236,7 +236,7 @@ static int text_open_exec(bContext *C, wmOperator *op)
 
 	RNA_string_get(op->ptr, "filepath", str);
 
-	text = add_text(str, G.main->name);
+	text = BKE_text_load(str, G.main->name);
 
 	if (!text) {
 		if (op->customdata) MEM_freeN(op->customdata);
@@ -320,7 +320,7 @@ static int text_reload_exec(bContext *C, wmOperator *op)
 {
 	Text *text = CTX_data_edit_text(C);
 
-	if (!reopen_text(text)) {
+	if (!BKE_text_reload(text)) {
 		BKE_report(op->reports, RPT_ERROR, "Could not reopen file");
 		return OPERATOR_CANCELLED;
 	}
@@ -379,8 +379,8 @@ static int text_unlink_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 	}
 
-	unlink_text(bmain, text);
-	free_libblock(&bmain->text, text);
+	BKE_text_unlink(bmain, text);
+	BKE_libblock_free(&bmain->text, text);
 
 	text_drawcache_tag_update(st, 1);
 	WM_event_add_notifier(C, NC_TEXT | NA_REMOVED, NULL);
@@ -1156,7 +1156,7 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 			}
 			else {
 				new_line[j] = text_check_line[a];
-				++j;
+				j++;
 			}
 		}
 		new_line[j] = '\0';
@@ -1208,12 +1208,12 @@ static int text_convert_whitespace_exec(bContext *C, wmOperator *op)
 					if (!number) { //found all number of space to equal a tab
 						new_line[extra] = '\t';
 						a = a + (st->tabnumber - 1);
-						++extra;
+						extra++;
 						
 					}
 					else { //not adding a tab
 						new_line[extra] = text_check_line[a];
-						++extra;
+						extra++;
 					}
 				}
 				new_line[extra] = '\0';
@@ -1361,7 +1361,7 @@ void TEXT_OT_move_lines(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Move Lines";
 	ot->idname = "TEXT_OT_move_lines";
-	ot->description = "Moves the currently selected line(s) up/down";
+	ot->description = "Move the currently selected line(s) up/down";
 	
 	/* api callbacks */
 	ot->exec = move_lines_exec;

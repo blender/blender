@@ -833,7 +833,7 @@ static void recalcData_view3d(TransInfo *t)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);  /* sets recalc flags */
 		}
 		else
-			where_is_pose(t->scene, ob);
+			BKE_pose_where_is(t->scene, ob);
 	}
 	else if (base && (base->object->mode & OB_MODE_PARTICLE_EDIT) && PE_get_current(t->scene, base->object)) {
 		if (t->state != TRANS_CANCEL) {

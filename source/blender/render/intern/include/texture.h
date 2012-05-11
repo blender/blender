@@ -54,8 +54,6 @@
 		           &texres->tr, &texres->tg, &texres->tb);                    \
 	}                                                                         \
 
-#define RGBTOBW(r,g,b)	( r*0.35f + g*0.45f + b*0.2f )		/* keep this in sync with gpu_shader_material.glsl:rgbtobw */
-
 struct HaloRen;
 struct ShadeInput;
 struct TexResult;

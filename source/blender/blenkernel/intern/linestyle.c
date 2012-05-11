@@ -102,7 +102,7 @@ FreestyleLineStyle *FRS_new_linestyle(char *name, struct Main *main)
 	if (!main)
 		main = G.main;
 
-	linestyle = (FreestyleLineStyle *)alloc_libblock(&main->linestyle, ID_LS, name);
+	linestyle = (FreestyleLineStyle *)BKE_libblock_alloc(&main->linestyle, ID_LS, name);
 	
 	default_linestyle_settings(linestyle);
 

@@ -77,11 +77,11 @@ class LIB_SYSTEM_EXPORT PythonInterpreter : public Interpreter
 	int status = BPY_filepath_exec(_context, fn, reports);
 #else
 	int status;
-	Text *text = add_text(fn, G.main->name);
+	Text *text = BKE_text_load(fn, G.main->name);
 	if (text) {
 		status = BPY_text_exec(_context, text, reports, false);
-		unlink_text(G.main, text);
-		free_libblock(&G.main->text, text);
+		BKE_text_unlink(G.main, text);
+		BKE_libblock_free(&G.main->text, text);
 	} else {
 		BKE_reportf(reports, RPT_ERROR, "Cannot open file: %s", fn);
 		status = 0;
@@ -151,7 +151,7 @@ private:
 	vector<string> pathnames;
 	StringUtils::getPathName(_path, "", pathnames);
 	
-	struct Text *text = add_empty_text("tmp_freestyle_initpath.txt");
+	struct Text *text = BKE_text_add("tmp_freestyle_initpath.txt");
 	string cmd = "import sys\n";
 	txt_insert_buf(text, const_cast<char*>(cmd.c_str()));
 	
@@ -166,8 +166,8 @@ private:
 	BPY_text_exec(_context, text, NULL, false);
 	
 	// cleaning up
-	unlink_text(G.main, text);
-	free_libblock(&G.main->text, text);
+	BKE_text_unlink(G.main, text);
+	BKE_libblock_free(&G.main->text, text);
 	
 	//PyRun_SimpleString("from Freestyle import *");
     _initialized = true;

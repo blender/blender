@@ -67,7 +67,7 @@
  * use in object mode when selecting faces (while painting) */
 void paintface_flush_flags(Object *ob)
 {
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 	DerivedMesh *dm = ob->derivedFinal;
 	MPoly *polys, *mp_orig;
 	MFace *faces;
@@ -166,7 +166,7 @@ void paintface_hide(Object *ob, const int unselected)
 	MPoly *mpoly;
 	int a;
 	
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
 	mpoly = me->mpoly;
@@ -195,7 +195,7 @@ void paintface_reveal(Object *ob)
 	MPoly *mpoly;
 	int a;
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
 	mpoly = me->mpoly;
@@ -325,7 +325,7 @@ void paintface_select_linked(bContext *UNUSED(C), Object *ob, int UNUSED(mval[2]
 	Mesh *me;
 	unsigned int index = 0;
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (mode == 0 || mode == 1) {
@@ -347,7 +347,7 @@ void paintface_deselect_all_visible(Object *ob, int action, short flush_flags)
 	MPoly *mpoly;
 	int a;
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
 	
 	if (action == SEL_INVERT) {
@@ -410,7 +410,7 @@ int paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 	int a, b, ok = FALSE;
 	float vec[3], bmat[3][3];
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (!me || !me->mtpoly) return ok;
 	
 	copy_m3_m4(bmat, ob->obmat);
@@ -459,7 +459,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 	MEdge *med;
 	int a, b;
 	
-	me = get_mesh(OBACT);
+	me = BKE_mesh_from_object(OBACT);
 	if (me == 0 ||  me->totpoly == 0) return;
 
 	if (mode == 0)
@@ -516,7 +516,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	unsigned int a, index;
 	
 	/* Get the face under the cursor */
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 
 	if (!facesel_face_pick(C, me, ob, mval, &index, 1))
 		return 0;
@@ -567,7 +567,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
 	int sx = rect->xmax - rect->xmin + 1;
 	int sy = rect->ymax - rect->ymin + 1;
 	
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 
 	if (me == NULL || me->totpoly == 0 || sx * sy <= 0)
 		return OPERATOR_CANCELLED;
@@ -629,7 +629,7 @@ int do_paintface_box_select(ViewContext *vc, rcti *rect, int select, int extend)
  * use in object mode when selecting vertices (while painting) */
 void paintvert_flush_flags(Object *ob)
 {
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 	DerivedMesh *dm = ob->derivedFinal;
 	MVert *dm_mvert, *dm_mv;
 	int *index_array = NULL;
@@ -668,7 +668,7 @@ void paintvert_deselect_all_visible(Object *ob, int action, short flush_flags)
 	MVert *mvert;
 	int a;
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
 	
 	if (action == SEL_INVERT) {

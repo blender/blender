@@ -268,7 +268,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 		Transform itfm = object_fetch_transform(kg, ls->object, time, OBJECT_INVERSE_TRANSFORM);
 
 		ls->P = transform_point(&tfm, ls->P);
-		ls->Ng = transform_direction_transposed(&itfm, ls->Ng);
+		ls->Ng = normalize(transform_direction_transposed(&itfm, ls->Ng));
 	}
 #endif
 }

@@ -1275,7 +1275,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	
 	sce->r.cfra= cfra;
 
-	scene_camera_switch_update(sce);
+	BKE_scene_camera_switch_update(sce);
 
 	/* exception: scene uses own size (unfinished code) */
 	if (0) {
@@ -1292,7 +1292,7 @@ static void render_scene(Render *re, Scene *sce, int cfra)
 	resc->lay= sce->lay;
 	
 	/* ensure scene has depsgraph, base flags etc OK */
-	set_scene_bg(re->main, sce);
+	BKE_scene_set_background(re->main, sce);
 
 	/* copy callbacks */
 	resc->display_draw= re->display_draw;
@@ -1378,7 +1378,7 @@ static void ntree_render_scenes(Render *re)
 
 	/* restore scene if we rendered another last */
 	if (restore_scene)
-		set_scene_bg(re->main, re->scene);
+		BKE_scene_set_background(re->main, re->scene);
 }
 
 /* bad call... need to think over proper method still */
@@ -1448,7 +1448,7 @@ static void free_all_freestyle_renders(Scene *scene)
 		for (link = (LinkData *)re1->freestyle_renders.first; link; link = link->next) {
 			if (link->data) {
 				freestyle_render = (Render *)link->data;
-				unlink_scene(G.main, freestyle_render->scene, scene);
+				BKE_scene_unlink(G.main, freestyle_render->scene, scene);
 				RE_FreeRender(freestyle_render);
 			}
 		}
@@ -1670,7 +1670,7 @@ static void do_render_composite_fields_blur_3d(Render *re)
 				R.stats_draw= re->stats_draw;
 				
 				if (update_newframe)
-					scene_update_for_newframe(re->main, re->scene, re->lay);
+					BKE_scene_update_for_newframe(re->main, re->scene, re->lay);
 				
 				if (re->r.scemode & R_FULL_SAMPLE)
 					do_merge_fullsample(re, ntree);
@@ -1735,7 +1735,7 @@ static void do_render_seq(Render * re)
 
 	if (recurs_depth==0) {
 		/* otherwise sequencer animation isn't updated */
-		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_curframe(re->scene)
+		BKE_animsys_evaluate_all_animation(re->main, re->scene, (float)cfra); // XXX, was BKE_scene_frame_get(re->scene)
 	}
 
 	recurs_depth++;
@@ -1794,7 +1794,7 @@ static void do_render_seq(Render * re)
 /* main loop: doing sequence + fields + blur + 3d render + compositing */
 static void do_render_all_options(Render *re)
 {
-	scene_camera_switch_update(re->scene);
+	BKE_scene_camera_switch_update(re->scene);
 
 	re->i.starttime= PIL_check_seconds_timer();
 
@@ -1832,7 +1832,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 	int check_comp= 1;
 
 	if (camera_override == NULL && scene->camera == NULL)
-		scene->camera= scene_find_camera(scene);
+		scene->camera= BKE_scene_camera_find(scene);
 
 	if (scene->r.scemode&R_DOSEQ) {
 		if (scene->ed) {
@@ -1843,7 +1843,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 			while (seq) {
 				if (seq->type == SEQ_SCENE && seq->scene) {
 					if (!seq->scene_camera) {
-						if (!seq->scene->camera && !scene_find_camera(seq->scene)) {
+						if (!seq->scene->camera && !BKE_scene_camera_find(seq->scene)) {
 							if (seq->scene == scene) {
 								/* for current scene camera could be unneeded due to compisite nodes */
 								check_comp= 1;
@@ -1869,7 +1869,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 				if (node->type == CMP_NODE_R_LAYERS) {
 					Scene *sce= node->id ? (Scene*)node->id : scene;
 
-					if (!sce->camera && !scene_find_camera(sce)) {
+					if (!sce->camera && !BKE_scene_camera_find(sce)) {
 						/* all render layers nodes need camera */
 						return 0;
 					}
@@ -1884,6 +1884,28 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 	}
 
 	return 1;
+}
+
+static int node_tree_has_composite_output(bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (node->type == CMP_NODE_COMPOSITE) {
+			return TRUE;
+		}
+		else if (node->type == NODE_GROUP) {
+			if (node_tree_has_composite_output((bNodeTree *)node->id))
+				return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
+static int check_composite_output(Scene *scene)
+{
+	return node_tree_has_composite_output(scene->nodetree);
 }
 
 int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *reports)
@@ -1920,19 +1942,12 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	
 	if (scene->r.scemode & R_DOCOMP) {
 		if (scene->use_nodes) {
-			bNodeTree *ntree= scene->nodetree;
-			bNode *node;
-		
-			if (ntree==NULL) {
+			if (!scene->nodetree) {
 				BKE_report(reports, RPT_ERROR, "No Nodetree in Scene");
 				return 0;
 			}
 			
-			for (node= ntree->nodes.first; node; node= node->next)
-				if (node->type==CMP_NODE_COMPOSITE)
-					break;
-			
-			if (node==NULL) {
+			if (!check_composite_output(scene)) {
 				BKE_report(reports, RPT_ERROR, "No Render Output Node in Scene");
 				return 0;
 			}
@@ -2180,7 +2195,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 		else {
 			ImBuf *ibuf= render_result_rect_to_ibuf(&rres, &scene->r);
 
-			ok= BKE_write_ibuf_stamp(scene, camera, ibuf, name, &scene->r.im_format);
+			ok= BKE_imbuf_write_stamp(scene, camera, ibuf, name, &scene->r.im_format);
 			
 			if (ok==0) {
 				printf("Render error: cannot save %s\n", name);
@@ -2196,7 +2211,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 					name[strlen(name)-4]= 0;
 				BKE_add_image_extension(name, R_IMF_IMTYPE_JPEG90);
 				ibuf->planes= 24;
-				BKE_write_ibuf_stamp(scene, camera, ibuf, name, &imf);
+				BKE_imbuf_write_stamp(scene, camera, ibuf, name, &imf);
 				printf("\nSaved: %s", name);
 			}
 			
@@ -2221,7 +2236,7 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 /* saves images to disk */
 void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_override, unsigned int lay, int sfra, int efra, int tfra)
 {
-	bMovieHandle *mh= BKE_get_movie_handle(scene->r.im_format.imtype);
+	bMovieHandle *mh= BKE_movie_handle_get(scene->r.im_format.imtype);
 	int cfrao= scene->r.cfra;
 	int nfra, totrendered= 0, totskipped= 0;
 	
@@ -2285,7 +2300,7 @@ void RE_BlenderAnim(Render *re, Main *bmain, Scene *scene, Object *camera_overri
 				else
 					updatelay= re->lay;
 
-				scene_update_for_newframe(bmain, scene, updatelay);
+				BKE_scene_update_for_newframe(bmain, scene, updatelay);
 				continue;
 			}
 			else
@@ -2545,7 +2560,7 @@ int RE_WriteEnvmapResult(struct ReportList *reports, Scene *scene, EnvMap *env, 
 	BLI_strncpy(filepath, relpath, sizeof(filepath));
 	BLI_path_abs(filepath, G.main->name);
 
-	ok= BKE_write_ibuf(ibuf, filepath, &imf);
+	ok= BKE_imbuf_write(ibuf, filepath, &imf);
 
 	IMB_freeImBuf(ibuf);
 

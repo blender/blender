@@ -95,7 +95,6 @@ inline void DownsampleChannelsBy2(const Array3Df &in, Array3Df *out) {
       }
     }
   }
-
 }
 
 // Sample a region centered at x,y in image with size extending by half_width

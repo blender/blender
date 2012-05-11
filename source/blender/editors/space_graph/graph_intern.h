@@ -70,14 +70,14 @@ void GRAPH_OT_clickselect(struct wmOperatorType *ot);
 
 /* defines for left-right select tool */
 enum {
-	GRAPHKEYS_LRSEL_TEST	= 0,
+	GRAPHKEYS_LRSEL_TEST    = 0,
 	GRAPHKEYS_LRSEL_LEFT,
 	GRAPHKEYS_LRSEL_RIGHT
 } eGraphKeys_LeftRightSelect_Mode;
 
 /* defines for column-select mode */
 enum {
-	GRAPHKEYS_COLUMNSEL_KEYS	= 0,
+	GRAPHKEYS_COLUMNSEL_KEYS    = 0,
 	GRAPHKEYS_COLUMNSEL_CFRA,
 	GRAPHKEYS_COLUMNSEL_MARKERS_COLUMN,
 	GRAPHKEYS_COLUMNSEL_MARKERS_BETWEEN,
@@ -86,7 +86,7 @@ enum {
 /* ***************************************** */
 /* graph_edit.c */
 
-void get_graph_keyframe_extents (struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short do_selected);
+void get_graph_keyframe_extents(struct bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short do_selected);
 
 void GRAPH_OT_previewrange_set(struct wmOperatorType *ot);
 void GRAPH_OT_view_all(struct wmOperatorType *ot);
@@ -172,4 +172,3 @@ void graphedit_operatortypes(void);
 
 
 #endif /* __GRAPH_INTERN_H__ */
-

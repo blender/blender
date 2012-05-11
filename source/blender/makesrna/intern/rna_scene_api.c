@@ -56,11 +56,11 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	scene->r.subframe = subframe;
 	
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
-	scene_update_for_newframe(G.main, scene, (1<<20) - 1);
-	scene_camera_switch_update(scene);
+	BKE_scene_update_for_newframe(G.main, scene, (1<<20) - 1);
+	BKE_scene_camera_switch_update(scene);
 
 	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call
-	 * scene_update_for_newframe which will loose any un-keyed changes [#24690] */
+	 * BKE_scene_update_for_newframe which will loose any un-keyed changes [#24690] */
 	/* WM_main_add_notifier(NC_SCENE|ND_FRAME, scene); */
 	
 	/* instead just redraw the views */
@@ -69,13 +69,13 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 
 static void rna_Scene_update_tagged(Scene *scene)
 {
-	scene_update_tagged(G.main, scene);
+	BKE_scene_update_tagged(G.main, scene);
 }
 
 static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name)
 {
 	if (BKE_imtype_is_movie(rd->im_format.imtype))
-		BKE_makeanimstring(name, rd);
+		BKE_movie_filepath_get(name, rd);
 	else
 		BKE_makepicstring(name, rd->pic, G.main->name, (frame == INT_MIN) ? rd->cfra : frame, rd->im_format.imtype,
 		                  rd->scemode & R_EXTENSION, TRUE);
@@ -85,9 +85,9 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 /* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 #include "../../collada/collada.h"
 
-static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected, int second_life)
+static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected, int apply_modifiers, int second_life)
 {
-	collada_export(scene, filepath, selected, second_life);
+	collada_export(scene, filepath, selected, apply_modifiers, second_life);
 }
 
 #endif
@@ -115,7 +115,8 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	parm = RNA_def_boolean(func, "selected", 0, "Export only selected", "Export only selected elements");
+	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
+	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers (in Preview resolution)");
 	parm = RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");
 	RNA_def_function_ui_description(func, "Export to collada file");
 #endif

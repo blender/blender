@@ -35,6 +35,7 @@
 struct Brush;
 struct MDisps;
 struct MeshElemMap;
+struct GridPaintMask;
 struct MFace;
 struct MultireModifierData;
 struct MVert;
@@ -66,7 +67,11 @@ int paint_vertsel_test(struct Object *ob);
 /* partial visibility */
 int paint_is_face_hidden(const struct MFace *f, const struct MVert *mvert);
 int paint_is_grid_face_hidden(const unsigned int *grid_hidden,
-							  int gridsize, int x, int y);
+                              int gridsize, int x, int y);
+
+/* paint masks */
+float paint_grid_paint_mask(const struct GridPaintMask *gpm, unsigned level,
+                            unsigned x, unsigned y);
 
 /* Session data (mode-specific) */
 
@@ -79,6 +84,7 @@ typedef struct SculptSession {
 	int totvert, totpoly;
 	float *face_normals;
 	struct KeyBlock *kb;
+	float *vmask;
 	
 	/* Mesh connectivity */
 	const struct MeshElemMap *pmap;

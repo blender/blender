@@ -170,6 +170,22 @@ struct ImBuf *give_ibuf_seq_direct(SeqRenderData context, float cfra, struct Seq
 struct ImBuf *give_ibuf_seqbase(SeqRenderData context, float cfra, int chan_shown, struct ListBase *seqbasep);
 void give_ibuf_prefetch_request(SeqRenderData context, float cfra, int chan_shown);
 
+
+/* **********************************************************************
+ * sequencer scene functions
+ * ********************************************************************** */
+struct Editing  *BKE_sequencer_editing_get(struct Scene *scene, int alloc);
+struct Editing  *BKE_sequencer_editing_ensure(struct Scene *scene);
+void             BKE_sequencer_editing_free(struct Scene *scene);
+
+void             BKE_sequencer_sort(struct Scene *scene);
+
+struct Sequence *BKE_sequencer_active_get(struct Scene *scene);
+int              BKE_sequencer_active_get_pair(struct Scene *scene,
+                                               struct Sequence **seq_act, struct Sequence **seq_other);
+void             BKE_sequencer_active_set(struct Scene *scene, struct Sequence *seq);
+
+
 /* apply functions recursively */
 int seqbase_recursive_apply(struct ListBase *seqbase, int (*apply_func)(struct Sequence *seq, void *), void *arg);
 int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence *, void *), void *arg);
@@ -179,14 +195,12 @@ int seq_recursive_apply(struct Sequence *seq, int (*apply_func)(struct Sequence 
 void seq_free_sequence(struct Scene *scene, struct Sequence *seq);
 void seq_free_sequence_recurse(struct Scene *scene, struct Sequence *seq);
 void seq_free_strip(struct Strip *strip);
-void seq_free_editing(struct Scene *scene);
+
 void seq_free_clipboard(void);
-struct Editing *seq_give_editing(struct Scene *scene, int alloc);
 const char *give_seqname(struct Sequence *seq);
 void calc_sequence(struct Scene *scene, struct Sequence *seq);
 void calc_sequence_disp(struct Scene *scene, struct Sequence *seq);
 void reload_sequence_new_file(struct Scene *scene, struct Sequence * seq, int lock_range);
-void sort_seq(struct Scene *scene);
 void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq,
 					int (*test_func)(struct Sequence * seq));
 int evaluate_seq_frame(struct Scene *scene, int cfra);
@@ -295,10 +309,6 @@ void seqbase_dupli_recursive(struct Scene *scene, struct Scene *scene_to, ListBa
 void clear_scene_in_allseqs(struct Main *bmain, struct Scene *sce);
 
 struct Sequence *get_seq_by_name(struct ListBase *seqbase, const char *name, int recursive);
-
-struct Sequence *seq_active_get(struct Scene *scene);
-void seq_active_set(struct Scene *scene, struct Sequence *seq);
-int seq_active_pair_get(struct Scene *scene, struct Sequence **seq_act, struct Sequence **seq_other);
 
 /* api for adding new sequence strips */
 typedef struct SeqLoadInfo {

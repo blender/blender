@@ -96,7 +96,7 @@ static double  bpy_timer_run_tot;   /* accumulate python runs */
 #endif
 
 /* use for updating while a python script runs - in case of file load */
-void bpy_context_update(bContext *C)
+void BPY_context_update(bContext *C)
 {
 	/* don't do this from a non-main (e.g. render) thread, it can cause a race
 	 * condition on C->data.recursion. ideal solution would be to disable
@@ -117,7 +117,7 @@ void bpy_context_set(bContext *C, PyGILState_STATE *gilstate)
 		*gilstate = PyGILState_Ensure();
 
 	if (py_call_level == 1) {
-		bpy_context_update(C);
+		BPY_context_update(C);
 
 #ifdef TIME_PY_RUN
 		if (bpy_timer_count == 0) {
@@ -178,7 +178,8 @@ void BPY_modules_update(bContext *C)
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-	bpy_context_module->ptr.data = (void *)C;
+	if(bpy_context_module)
+		bpy_context_module->ptr.data = (void *)C;
 }
 
 void BPY_context_set(bContext *C)
@@ -623,7 +624,7 @@ void BPY_modules_load_user(bContext *C)
 	/* update pointers since this can run from a nested script
 	 * on file load */
 	if (py_call_level) {
-		bpy_context_update(C);
+		BPY_context_update(C);
 	}
 
 	bpy_context_set(C, &gilstate);

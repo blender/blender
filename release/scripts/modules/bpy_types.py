@@ -304,7 +304,7 @@ class EditBone(StructRNA, _GenericBone, metaclass=StructMetaPropGroup):
         Align this bone to another by moving its tail and settings its roll
         the length of the other bone is not used.
         """
-        vec = other.vector.normalize() * self.length
+        vec = other.vector.normalized() * self.length
         self.tail = self.head + vec
         self.roll = other.roll
 

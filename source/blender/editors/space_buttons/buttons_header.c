@@ -51,8 +51,8 @@
 #include "buttons_intern.h"
 
 
-#define B_CONTEXT_SWITCH	101
-#define B_BUTSPREVIEW		102
+#define B_CONTEXT_SWITCH    101
+#define B_BUTSPREVIEW       102
 
 static void set_texture_context(bContext *C, SpaceButs *sbuts)
 {
@@ -63,7 +63,7 @@ static void set_texture_context(bContext *C, SpaceButs *sbuts)
 		case BCONTEXT_DATA:
 		{
 			Object *ob = CTX_data_active_object(C);
-			if (ob && ob->type==OB_LAMP)
+			if (ob && ob->type == OB_LAMP)
 				sbuts->texture_context = SB_TEXC_MAT_OR_LAMP;
 			break;
 		}
@@ -78,7 +78,7 @@ static void set_texture_context(bContext *C, SpaceButs *sbuts)
 
 static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 {
-	SpaceButs *sbuts= CTX_wm_space_buts(C);
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
 
 	if (!sbuts) /* editor type switch */
 		return;
@@ -90,28 +90,28 @@ static void do_buttons_buttons(bContext *C, void *UNUSED(arg), int event)
 
 			set_texture_context(C, sbuts);
 
-			sbuts->preview= 1;
+			sbuts->preview = 1;
 			break;
 	}
 
-	sbuts->mainbuser= sbuts->mainb;
+	sbuts->mainbuser = sbuts->mainb;
 }
 
-#define BUT_UNIT_X (UI_UNIT_X+2)
+#define BUT_UNIT_X (UI_UNIT_X + 2)
 
 void buttons_header_buttons(const bContext *C, ARegion *ar)
 {
-	SpaceButs *sbuts= CTX_wm_space_buts(C);
+	SpaceButs *sbuts = CTX_wm_space_buts(C);
 	uiBlock *block;
 	uiBut *but;
-	int xco, yco= 2;
+	int xco, yco = 2;
 
 	buttons_context_compute(C, sbuts);
 	
-	block= uiBeginBlock(C, ar, __func__, UI_EMBOSS);
+	block = uiBeginBlock(C, ar, __func__, UI_EMBOSS);
 	uiBlockSetHandleFunc(block, do_buttons_buttons, NULL);
 	
-	xco= ED_area_header_switchbutton(C, block, yco);
+	xco = ED_area_header_switchbutton(C, block, yco);
 	
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
@@ -122,8 +122,8 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 	uiBlockBeginAlign(block);
 
 #define BUTTON_HEADER_CTX(_ctx, _icon, _tip) \
-	if (sbuts->pathflag & (1<<_ctx)) { \
-		but = uiDefIconButS(block, ROW, B_CONTEXT_SWITCH, _icon, xco+=BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)_ctx, 0, 0, TIP_(_tip)); \
+	if (sbuts->pathflag & (1 << _ctx)) { \
+		but = uiDefIconButS(block, ROW, B_CONTEXT_SWITCH, _icon, xco += BUT_UNIT_X, yco, BUT_UNIT_X, UI_UNIT_Y, &(sbuts->mainb), 0.0, (float)_ctx, 0, 0, TIP_(_tip)); \
 		uiButClearFlag(but, UI_BUT_UNDO); \
 	} \
 
@@ -143,12 +143,12 @@ void buttons_header_buttons(const bContext *C, ARegion *ar)
 
 #undef BUTTON_HEADER_CTX
 
-	xco+= BUT_UNIT_X;
+	xco += BUT_UNIT_X;
 	
 	uiBlockEndAlign(block);
 	
 	/* always as last  */
-	UI_view2d_totRect_set(&ar->v2d, xco+(UI_UNIT_X/2), ar->v2d.tot.ymax-ar->v2d.tot.ymin);
+	UI_view2d_totRect_set(&ar->v2d, xco + (UI_UNIT_X / 2), ar->v2d.tot.ymax - ar->v2d.tot.ymin);
 	
 	uiEndBlock(C, block);
 	uiDrawBlock(C, block);

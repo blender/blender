@@ -279,29 +279,6 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 		smd->time = scene->r.cfra;
 
-		if (smd->flow->psys && smd->flow->psys->part && !(smd->flow->flags & MOD_SMOKE_FLOW_INIT))
-		{
-			// update particle lifetime to be one frame
-			smd->flow->psys->part->lifetime = 1; // scene->r.efra + 1;
-
-			// use "unborn" flag as standard setting
-			smd->flow->psys->part->flag |= PART_UNBORN;
-
-			smd->flow->flags |= MOD_SMOKE_FLOW_INIT;
-		}
-
-/*
-		if(!smd->flow->bvh)
-		{
-			// smd->flow->bvh = MEM_callocN(sizeof(BVHTreeFromMesh), "smoke_bvhfromfaces");
-			// bvhtree_from_mesh_faces(smd->flow->bvh, dm, 0.0, 2, 6);
-
-			// copy obmat
-			// copy_m4_m4(smd->flow->mat, ob->obmat);
-			// copy_m4_m4(smd->flow->mat_old, ob->obmat);
-		}
-*/
-
 		return 1;
 	}
 	else if((smd->type & MOD_SMOKE_TYPE_COLL))

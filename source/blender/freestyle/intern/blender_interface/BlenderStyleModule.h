@@ -20,8 +20,8 @@ public:
 	}
 
 	virtual ~BlenderStyleModule() {
-		unlink_text(G.main, _text);
-		free_libblock(&G.main->text, _text);
+		BKE_text_unlink(G.main, _text);
+		BKE_libblock_free(&G.main->text, _text);
 	}
 
 protected:

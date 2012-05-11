@@ -507,8 +507,8 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	static EnumPropertyItem prop_numbuffer_items[] = {
 		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
-		{4, "BUFFERS_4", 0, "4", "Renders 4 buffers for better AA, this quadruples memory usage"},
-		{9, "BUFFERS_9", 0, "9", "Renders 9 buffers for better AA, this uses nine times more memory"},
+		{4, "BUFFERS_4", 0, "4", "Render 4 buffers for better AA, this quadruples memory usage"},
+		{9, "BUFFERS_9", 0, "9", "Render 9 buffers for better AA, this uses nine times more memory"},
 		{0, NULL, 0, NULL, NULL}};
 
 	/* GE only */

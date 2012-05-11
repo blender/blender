@@ -77,18 +77,18 @@ void gpencil_undo_finish(void);
 typedef struct bActListElem {
 	struct bActListElem *next, *prev;
 	
-	void 	*data;		/* source data this elem represents */
-	int 	type;		/* one of the ACTTYPE_* values */
-	int		flag;		/* copy of elem's flags for quick access */
-	int 	index;		/* copy of adrcode where applicable */
+	void *data;   /* source data this elem represents */
+	int   type;   /* one of the ACTTYPE_* values */
+	int   flag;   /* copy of elem's flags for quick access */
+	int   index;  /* copy of adrcode where applicable */
 	
-	void	*key_data;	/* motion data - ipo or ipo-curve */
-	short	datatype;	/* type of motion data to expect */
+	void  *key_data;  /* motion data - ipo or ipo-curve */
+	short  datatype;  /* type of motion data to expect */
 	
-	struct bActionGroup *grp;	/* action group that owns the channel */
+	struct bActionGroup *grp;   /* action group that owns the channel */
 	
-	void 	*owner;		/* will either be an action channel or fake ipo-channel (for keys) */
-	short	ownertype;	/* type of owner */
+	void  *owner;      /* will either be an action channel or fake ipo-channel (for keys) */
+	short  ownertype;  /* type of owner */
 } bActListElem;
 
 /******************************************************* */
@@ -96,14 +96,14 @@ typedef struct bActListElem {
 
 /* filtering flags  - under what circumstances should a channel be added */
 typedef enum ACTFILTER_FLAGS {
-	ACTFILTER_VISIBLE		= (1<<0),	/* should channels be visible */
-	ACTFILTER_SEL			= (1<<1),	/* should channels be selected */
-	ACTFILTER_FOREDIT		= (1<<2),	/* does editable status matter */
-	ACTFILTER_CHANNELS		= (1<<3),	/* do we only care that it is a channel */
-	ACTFILTER_IPOKEYS		= (1<<4),	/* only channels referencing ipo's */
-	ACTFILTER_ONLYICU		= (1<<5),	/* only reference ipo-curves */
-	ACTFILTER_FORDRAWING	= (1<<6),	/* make list for interface drawing */
-	ACTFILTER_ACTGROUPED	= (1<<7)	/* belongs to the active group */
+	ACTFILTER_VISIBLE       = (1 << 0),   /* should channels be visible */
+	ACTFILTER_SEL           = (1 << 1),   /* should channels be selected */
+	ACTFILTER_FOREDIT       = (1 << 2),   /* does editable status matter */
+	ACTFILTER_CHANNELS      = (1 << 3),   /* do we only care that it is a channel */
+	ACTFILTER_IPOKEYS       = (1 << 4),   /* only channels referencing ipo's */
+	ACTFILTER_ONLYICU       = (1 << 5),   /* only reference ipo-curves */
+	ACTFILTER_FORDRAWING    = (1 << 6),   /* make list for interface drawing */
+	ACTFILTER_ACTGROUPED    = (1 << 7)    /* belongs to the active group */
 } ACTFILTER_FLAGS;
 
 /* Action Editor - Main Data types */

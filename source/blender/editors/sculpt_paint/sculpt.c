@@ -52,6 +52,7 @@
 #include "DNA_brush_types.h"
 
 #include "BKE_brush.h"
+#include "BKE_ccg.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -108,7 +109,7 @@ float *ED_sculpt_get_last_stroke(struct Object *ob)
 
 int ED_sculpt_minmax(bContext *C, float *min, float *max)
 {
-	Object *ob= CTX_data_active_object(C);
+	Object *ob = CTX_data_active_object(C);
 
 	if (ob && ob->sculpt && ob->sculpt->last_stroke_valid) {
 		copy_v3_v3(min, ob->sculpt->last_stroke);
@@ -123,7 +124,7 @@ int ED_sculpt_minmax(bContext *C, float *min, float *max)
 
 /* Sculpt mode handles multires differently from regular meshes, but only if
  * it's the last modifier on the stack and it is not on the first level */
-struct MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
+MultiresModifierData *sculpt_multires_active(Scene *scene, Object *ob)
 {
 	Mesh *me = (Mesh *)ob->data;
 	ModifierData *md;
@@ -257,6 +258,7 @@ typedef struct StrokeCache {
 	float vertex_rotation;
 
 	char saved_active_brush_name[MAX_ID_NAME];
+	char saved_mask_brush_tool;
 	int alt_smooth;
 
 	float plane_trim_squared;
@@ -289,11 +291,16 @@ static void paint_mesh_restore_co(Sculpt *sd, SculptSession *ss)
 		if (unode) {
 			PBVHVertexIter vd;
 
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
-				copy_v3_v3(vd.co, unode->co[vd.i]);
-				if (vd.no) copy_v3_v3_short(vd.no, unode->no[vd.i]);
-				else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
-
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
+				if (unode->type == SCULPT_UNDO_COORDS) {
+					copy_v3_v3(vd.co, unode->co[vd.i]);
+					if (vd.no) copy_v3_v3_short(vd.no, unode->no[vd.i]);
+					else normal_short_to_float_v3(vd.fno, unode->no[vd.i]);
+				}
+				else if (unode->type == SCULPT_UNDO_MASK) {
+					*vd.mask = unode->mask[vd.i];
+				}
 				if (vd.mvert) vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
 			}
 			BLI_pbvh_vertex_iter_end;
@@ -639,6 +646,15 @@ static float brush_strength(Sculpt *sd, StrokeCache *cache, float feather)
 		case SCULPT_TOOL_DRAW:
 		case SCULPT_TOOL_LAYER:
 			return alpha * flip * pressure * overlap * feather;
+			
+		case SCULPT_TOOL_MASK:
+			overlap = (1 + overlap) / 2;
+			switch ((BrushMaskTool)brush->mask_tool) {
+				case BRUSH_MASK_DRAW:
+					return alpha * flip * pressure * overlap * feather;
+				case BRUSH_MASK_SMOOTH:
+					return alpha * pressure * feather;
+			}
 
 		case SCULPT_TOOL_CREASE:
 		case SCULPT_TOOL_BLOB:
@@ -701,7 +717,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
                           const float len,
                           const float sculpt_normal[3],
                           const short vno[3],
-                          const float fno[3])
+                          const float fno[3],
+                          const float mask)
 {
 	MTex *mtex = &br->mtex;
 	float avg = 1;
@@ -796,6 +813,9 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 
 	avg *= frontface(br, sculpt_normal, vno, fno);
 
+	/* Paint mask */
+	avg *= 1.0f - mask;
+
 	return avg;
 }
 
@@ -882,7 +902,8 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 		sculpt_brush_test_init(ss, &test);
 
 		if (ss->cache->original) {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					float fno[3];
 
@@ -893,7 +914,8 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 			BLI_pbvh_vertex_iter_end;
 		}
 		else {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
 					if (vd.no) {
 						float fno[3];
@@ -1014,7 +1036,36 @@ static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 	copy_v3_v3(avg, deform_co ? deform_co[vert] : mvert[vert].co);
 }
 
-static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength)
+/* Similar to neighbor_average(), but returns an averaged mask value
+   instead of coordinate. Also does not restrict based on border or
+   corner vertices. */
+static float neighbor_average_mask(SculptSession *ss, unsigned vert)
+{
+	const float *vmask = ss->vmask;
+	float avg = 0;
+	int i, total = 0;
+
+	for (i = 0; i < ss->pmap[vert].count; i++) {
+		const MPoly *p = &ss->mpoly[ss->pmap[vert].indices[i]];
+		unsigned f_adj_v[3];
+
+		if (poly_get_adj_loops_from_vert(f_adj_v, p, ss->mloop, vert) != -1) {
+			int j;
+			
+			for (j = 0; j < 3; j++) {
+				avg += vmask[f_adj_v[j]];
+				total++;
+			}
+		}
+	}
+
+	if (total > 0)
+		return avg / (float)total;
+	else
+		return vmask[vert];
+}
+
+static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength, int smooth_mask)
 {
 	Brush *brush = paint_brush(&sd->paint);
 	PBVHVertexIter vd;
@@ -1024,19 +1075,29 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, 
 
 	sculpt_brush_test_init(ss, &test);
 
-	BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE) {
+	BLI_pbvh_vertex_iter_begin(ss->pbvh, node, vd, PBVH_ITER_UNIQUE)
+	{
 		if (sculpt_brush_test(&test, vd.co)) {
 			const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-			                                            ss->cache->view_normal, vd.no, vd.fno);
-			float avg[3], val[3];
+			                                            ss->cache->view_normal, vd.no, vd.fno,
+			                                            smooth_mask ? 0 : *vd.mask);
+			if (smooth_mask) {
+				float val = neighbor_average_mask(ss, vd.vert_indices[vd.i]) - *vd.mask;
+				val *= fade * bstrength;
+				*vd.mask += val;
+				CLAMP(*vd.mask, 0, 1);
+			}
+			else {
+				float avg[3], val[3];
 
-			neighbor_average(ss, avg, vd.vert_indices[vd.i]);
-			sub_v3_v3v3(val, avg, vd.co);
-			mul_v3_fl(val, fade);
+				neighbor_average(ss, avg, vd.vert_indices[vd.i]);
+				sub_v3_v3v3(val, avg, vd.co);
+				mul_v3_fl(val, fade);
 
-			add_v3_v3(val, vd.co);
+				add_v3_v3(val, vd.co);
 
-			sculpt_clip(sd, ss, vd.co, val);
+				sculpt_clip(sd, ss, vd.co, val);
+			}
 
 			if (vd.mvert)
 				vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
@@ -1045,13 +1106,16 @@ static void do_mesh_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, 
 	BLI_pbvh_vertex_iter_end;
 }
 
-static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node, float bstrength)
+static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *node,
+                                     float bstrength, int smooth_mask)
 {
 	Brush *brush = paint_brush(&sd->paint);
 	SculptBrushTest test;
-	DMGridData **griddata, *data;
+	CCGElem **griddata, *data;
+	CCGKey key;
 	DMGridAdjacency *gridadj, *adj;
-	float (*tmpgrid)[3], (*tmprow)[3];
+	float (*tmpgrid_co)[3], (*tmprow_co)[3];
+	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
@@ -1061,24 +1125,40 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 
 	BLI_pbvh_node_get_grids(ss->pbvh, node, &grid_indices, &totgrid,
 	                        NULL, &gridsize, &griddata, &gridadj);
+	BLI_pbvh_get_grid_key(ss->pbvh, &key);
 
 	#pragma omp critical
 	{
-		tmpgrid = MEM_mallocN(sizeof(float) * 3 * gridsize * gridsize, "tmpgrid");
-		tmprow =  MEM_mallocN(sizeof(float) * 3 * gridsize, "tmprow");
+		if (smooth_mask) {
+			tmpgrid_mask = MEM_mallocN(sizeof(float) * gridsize * gridsize, "tmpgrid_mask");
+			tmprow_mask = MEM_mallocN(sizeof(float) * gridsize, "tmprow_mask");
+		}
+		else {
+			tmpgrid_co = MEM_mallocN(sizeof(float) * 3 * gridsize * gridsize, "tmpgrid_co");
+			tmprow_co = MEM_mallocN(sizeof(float) * 3 * gridsize, "tmprow_co");
+		}
 	}
 
 	for (i = 0; i < totgrid; ++i) {
 		data = griddata[grid_indices[i]];
 		adj = &gridadj[grid_indices[i]];
 
-		memset(tmpgrid, 0, sizeof(float) * 3 * gridsize * gridsize);
+		if (smooth_mask)
+			memset(tmpgrid_mask, 0, sizeof(float) * gridsize * gridsize);
+		else
+			memset(tmpgrid_co, 0, sizeof(float) * 3 * gridsize * gridsize);
 
 		for (y = 0; y < gridsize - 1; y++) {
-			float tmp[3];
-
 			v1 = y * gridsize;
-			add_v3_v3v3(tmprow[0], data[v1].co, data[v1 + gridsize].co);
+			if (smooth_mask) {
+				tmprow_mask[0] = (*CCG_elem_offset_mask(&key, data, v1) +
+				                  *CCG_elem_offset_mask(&key, data, v1 + gridsize));
+			}
+			else {
+				add_v3_v3v3(tmprow_co[0],
+				            CCG_elem_offset_co(&key, data, v1),
+				            CCG_elem_offset_co(&key, data, v1 + gridsize));
+			}
 
 			for (x = 0; x < gridsize - 1; x++) {
 				v1 = x + y * gridsize;
@@ -1086,13 +1166,31 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 				v3 = v1 + gridsize;
 				v4 = v3 + 1;
 
-				add_v3_v3v3(tmprow[x + 1], data[v2].co, data[v4].co);
-				add_v3_v3v3(tmp, tmprow[x + 1], tmprow[x]);
+				if (smooth_mask) {
+					float tmp;
 
-				add_v3_v3(tmpgrid[v1], tmp);
-				add_v3_v3(tmpgrid[v2], tmp);
-				add_v3_v3(tmpgrid[v3], tmp);
-				add_v3_v3(tmpgrid[v4], tmp);
+					tmprow_mask[x + 1] = (*CCG_elem_offset_mask(&key, data, v2) +
+					                      *CCG_elem_offset_mask(&key, data, v4));
+					tmp = tmprow_mask[x + 1] + tmprow_mask[x];
+
+					tmpgrid_mask[v1] += tmp;
+					tmpgrid_mask[v2] += tmp;
+					tmpgrid_mask[v3] += tmp;
+					tmpgrid_mask[v4] += tmp;
+				}
+				else {
+					float tmp[3];
+
+					add_v3_v3v3(tmprow_co[x + 1],
+					            CCG_elem_offset_co(&key, data, v2),
+					            CCG_elem_offset_co(&key, data, v4));
+					add_v3_v3v3(tmp, tmprow_co[x + 1], tmprow_co[x]);
+
+					add_v3_v3(tmpgrid_co[v1], tmp);
+					add_v3_v3(tmpgrid_co[v2], tmp);
+					add_v3_v3(tmpgrid_co[v3], tmp);
+					add_v3_v3(tmpgrid_co[v4], tmp);
+				}
 			}
 		}
 
@@ -1101,6 +1199,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 			for (x = 0; x < gridsize; ++x) {
 				float *co;
 				float *fno;
+				float *mask;
 				int index;
 
 				if (x == 0 && adj->index[0] == -1)
@@ -1116,33 +1215,40 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 					continue;
 
 				index = x + y * gridsize;
-				co =  data[index].co;
-				fno = data[index].no;
+				co = CCG_elem_offset_co(&key, data, index);
+				fno = CCG_elem_offset_no(&key, data, index);
+				mask = CCG_elem_offset_mask(&key, data, index);
 
 				if (sculpt_brush_test(&test, co)) {
+					const float strength_mask = (smooth_mask ? 0 : *mask);
 					const float fade = bstrength * tex_strength(ss, brush, co, test.dist,
-					                                            ss->cache->view_normal, NULL, fno);
-					float *avg, val[3];
-					float n;
-
-					avg = tmpgrid[x + y * gridsize];
-
-					n = 1 / 16.0f;
-
+					                                            ss->cache->view_normal,
+					                                            NULL, fno, strength_mask);
+					float n = 1.0f / 16.0f;
+					
 					if (x == 0 || x == gridsize - 1)
 						n *= 2;
-
+					
 					if (y == 0 || y == gridsize - 1)
 						n *= 2;
+					
+					if (smooth_mask) {
+						*mask += ((tmpgrid_mask[x + y * gridsize] * n) - *mask) * fade;
+					}
+					else {
+						float *avg, val[3];
 
-					mul_v3_fl(avg, n);
+						avg = tmpgrid_co[x + y * gridsize];
 
-					sub_v3_v3v3(val, avg, co);
-					mul_v3_fl(val, fade);
+						mul_v3_fl(avg, n);
 
-					add_v3_v3(val, co);
+						sub_v3_v3v3(val, avg, co);
+						mul_v3_fl(val, fade);
 
-					sculpt_clip(sd, ss, co, val);
+						add_v3_v3(val, co);
+
+						sculpt_clip(sd, ss, co, val);
+					}
 				}
 			}
 		}
@@ -1150,12 +1256,19 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 
 	#pragma omp critical
 	{
-		MEM_freeN(tmpgrid);
-		MEM_freeN(tmprow);
+		if (smooth_mask) {
+			MEM_freeN(tmpgrid_mask);
+			MEM_freeN(tmprow_mask);
+		}
+		else {
+			MEM_freeN(tmpgrid_co);
+			MEM_freeN(tmprow_co);
+		}
 	}
 }
 
-static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float bstrength)
+static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
+                   float bstrength, int smooth_mask)
 {
 	SculptSession *ss = ob->sculpt;
 	const int max_iterations = 4;
@@ -1172,10 +1285,13 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
 			if (ss->multires) {
-				do_multires_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
+				do_multires_smooth_brush(sd, ss, nodes[n],
+				                         iteration != count ? 1.0f : last, smooth_mask);
 			}
-			else if (ss->pmap)
-				do_mesh_smooth_brush(sd, ss, nodes[n], iteration != count ? 1.0f : last);
+			else if (ss->pmap) {
+				do_mesh_smooth_brush(sd, ss, nodes[n],
+				                     iteration != count ? 1.0f : last, smooth_mask);
+			}
 		}
 
 		if (ss->multires)
@@ -1186,7 +1302,54 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode, float 
 static void do_smooth_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
-	smooth(sd, ob, nodes, totnode, ss->cache->bstrength);
+	smooth(sd, ob, nodes, totnode, ss->cache->bstrength, FALSE);
+}
+
+static void do_mask_brush_draw(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+	SculptSession *ss = ob->sculpt;
+	Brush *brush = paint_brush(&sd->paint);
+	float bstrength = ss->cache->bstrength;
+	int n;
+
+	/* threaded loop over nodes */
+	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
+	for (n = 0; n < totnode; n++) {
+		PBVHVertexIter vd;
+		SculptBrushTest test;
+
+		sculpt_brush_test_init(ss, &test);
+
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
+			if (sculpt_brush_test(&test, vd.co)) {
+				float fade = tex_strength(ss, brush, vd.co, test.dist,
+				                          ss->cache->view_normal, vd.no, vd.fno, 0);
+
+				(*vd.mask) += fade * bstrength;
+				CLAMP(*vd.mask, 0, 1);
+
+				if (vd.mvert)
+					vd.mvert->flag |= ME_VERT_PBVH_UPDATE;
+			}
+			BLI_pbvh_vertex_iter_end;
+		}
+	}
+}
+
+static void do_mask_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
+{
+	SculptSession *ss = ob->sculpt;
+	Brush *brush = paint_brush(&sd->paint);
+	
+	switch ((BrushMaskTool)brush->mask_tool) {
+		case BRUSH_MASK_DRAW:
+			do_mask_brush_draw(sd, ob, nodes, totnode);
+			break;
+		case BRUSH_MASK_SMOOTH:
+			smooth(sd, ob, nodes, totnode, ss->cache->bstrength, TRUE);
+			break;
+	}
 }
 
 static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
@@ -1215,11 +1378,12 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist,
-				                          area_normal, vd.no, vd.fno);
+				                          area_normal, vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1239,6 +1403,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	float offset[3], area_normal[3];
 	float bstrength = ss->cache->bstrength;
 	float flippedbstrength, crease_correction;
+	float brush_alpha;
 	int n;
 
 	calc_sculpt_normal(sd, ob, area_normal, nodes, totnode);
@@ -1249,11 +1414,10 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	mul_v3_fl(offset, bstrength);
 	
 	/* we divide out the squared alpha and multiply by the squared crease to give us the pinch strength */
-	
-	if (BKE_brush_alpha_get(scene, brush) > 0.0f)
-		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor / (BKE_brush_alpha_get(scene, brush) * BKE_brush_alpha_get(scene, brush));
-	else
-		crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
+	crease_correction = brush->crease_pinch_factor * brush->crease_pinch_factor;
+	brush_alpha = BKE_brush_alpha_get(scene, brush);
+	if (brush_alpha > 0.0f)
+		crease_correction /= brush_alpha * brush_alpha;
 
 	/* we always want crease to pinch or blob to relax even when draw is negative */
 	flippedbstrength = (bstrength < 0) ? -crease_correction * bstrength : crease_correction * bstrength;
@@ -1271,11 +1435,12 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				/* offset vertex */
 				const float fade = tex_strength(ss, brush, vd.co, test.dist,
-				                                area_normal, vd.no, vd.fno);
+				                                area_normal, vd.no, vd.fno, *vd.mask);
 				float val1[3];
 				float val2[3];
 
@@ -1313,10 +1478,12 @@ static void do_pinch_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                      ss->cache->view_normal, vd.no, vd.fno);
+				                                      ss->cache->view_normal, vd.no,
+				                                      vd.fno, *vd.mask);
 				float val[3];
 
 				sub_v3_v3v3(val, test.location, vd.co);
@@ -1378,7 +1545,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL);
+				                                            an, origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1417,10 +1584,11 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            an, vd.no, vd.fno);
+				                                            an, vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1467,10 +1635,11 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            an, vd.no, vd.fno);
+				                                            an, vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1516,10 +1685,11 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL);
+				                                            an, origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1570,10 +1740,11 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL);
+				                                            an, origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
@@ -1610,7 +1781,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		SculptUndoNode *unode;
 		float (*origco)[3], *layer_disp;
 		/* XXX: layer brush needs conversion to proxy but its more complicated */
-		/* proxy= BLI_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co; */
+		/* proxy = BLI_pbvh_node_add_proxy(ss->pbvh, nodes[n])->co; */
 		
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		origco = unode->co;
@@ -1623,10 +1794,11 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            area_normal, vd.no, vd.fno);
+				                                            area_normal, vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -1675,10 +1847,11 @@ static void do_inflate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            ss->cache->view_normal, vd.no, vd.fno);
+				                                            ss->cache->view_normal, vd.no, vd.fno, *vd.mask);
 				float val[3];
 
 				if (vd.fno) copy_v3_v3(val, vd.fno);
@@ -1718,7 +1891,8 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		sculpt_brush_test_init(ss, &test);
 
 		if (ss->cache->original) {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					add_v3_v3(private_fc, unode->co[vd.i]);
 					private_count++;
@@ -1727,7 +1901,8 @@ static void calc_flatten_center(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			BLI_pbvh_vertex_iter_end;
 		}
 		else {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
 					add_v3_v3(private_fc, vd.co);
 					private_count++;
@@ -1783,7 +1958,8 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 		sculpt_brush_test_init(ss, &test);
 
 		if (ss->cache->original) {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
 					/* for area normal */
 					float fno[3];
@@ -1799,7 +1975,8 @@ static void calc_area_normal_and_flatten_center(Sculpt *sd, Object *ob,
 			BLI_pbvh_vertex_iter_end;
 		}
 		else {
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				if (sculpt_brush_test_fast(&test, vd.co)) {
 					/* for area normal */
 					if (vd.no) {
@@ -1928,7 +2105,8 @@ static void point_plane_project(float intr[3], float co[3], float plane_normal[3
 
 static int plane_trim(StrokeCache *cache, Brush *brush, float val[3])
 {
-	return !(brush->flag & BRUSH_PLANE_TRIM) || (dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared);
+	return (!(brush->flag & BRUSH_PLANE_TRIM) ||
+	        ((dot_v3v3(val, val) <= cache->radius_squared * cache->plane_trim_squared)));
 }
 
 static int plane_point_side_flip(float co[3], float plane_normal[3], float plane_center[3], int flip)
@@ -2002,7 +2180,8 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
 				float intr[3];
 				float val[3];
@@ -2013,7 +2192,7 @@ static void do_flatten_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totno
 
 				if (plane_trim(ss->cache, brush, val)) {
 					const float fade = bstrength * tex_strength(ss, brush, vd.co, sqrt(test.dist),
-					                                            an, vd.no, vd.fno);
+					                                            an, vd.no, vd.fno, *vd.mask);
 
 					mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2073,7 +2252,8 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
 				if (plane_point_side_flip(vd.co, an, fc, flip)) {
 					float intr[3];
@@ -2086,7 +2266,7 @@ static void do_clay_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno);
+						                                            an, vd.no, vd.fno, *vd.mask);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2174,7 +2354,8 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test_cube(&test, vd.co, mat)) {
 				if (plane_point_side_flip(vd.co, sn, fc, flip)) {
 					float intr[3];
@@ -2187,7 +2368,7 @@ static void do_clay_strips_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int t
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            ss->cache->radius * test.dist,
-						                                            an, vd.no, vd.fno);
+						                                            an, vd.no, vd.fno, *vd.mask);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2237,7 +2418,8 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
 				if (plane_point_side(vd.co, an, fc)) {
 					float intr[3];
@@ -2250,7 +2432,7 @@ static void do_fill_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno);
+						                                            an, vd.no, vd.fno, *vd.mask);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2300,7 +2482,8 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 
 		sculpt_brush_test_init(ss, &test);
 
-		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+		BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+		{
 			if (sculpt_brush_test_sq(&test, vd.co)) {
 				if (!plane_point_side(vd.co, an, fc)) {
 					float intr[3];
@@ -2313,7 +2496,7 @@ static void do_scrape_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 					if (plane_trim(ss->cache, brush, val)) {
 						const float fade = bstrength * tex_strength(ss, brush, vd.co,
 						                                            sqrt(test.dist),
-						                                            an, vd.no, vd.fno);
+						                                            an, vd.no, vd.fno, *vd.mask);
 
 						mul_v3_v3fl(proxy[vd.i], val, fade);
 
@@ -2371,7 +2554,9 @@ void sculpt_vertcos_to_key(Object *ob, KeyBlock *kb, float (*vertCos)[3])
 		for (a = 0; a < me->totvert; a++, mvert++)
 			copy_v3_v3(mvert->co, vertCos[a]);
 
-		mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL, NULL, 0, NULL, NULL);
+		BKE_mesh_calc_normals_mapping(me->mvert, me->totvert, me->mloop,
+		                              me->mpoly, me->totloop, me->totpoly,
+		                              NULL, NULL, 0, NULL, NULL);
 	}
 
 	/* apply new coords on active key block */
@@ -2389,14 +2574,20 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 	data.ss = ss;
 	data.sd = sd;
 	data.radius_squared = ss->cache->radius_squared;
-	data.original = ELEM4(brush->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE, SCULPT_TOOL_THUMB, SCULPT_TOOL_LAYER);
+	data.original = ELEM4(brush->sculpt_tool,
+	                      SCULPT_TOOL_GRAB,
+	                      SCULPT_TOOL_ROTATE,
+	                      SCULPT_TOOL_THUMB,
+	                      SCULPT_TOOL_LAYER);
 	BLI_pbvh_search_gather(ss->pbvh, sculpt_search_sphere_cb, &data, &nodes, &totnode);
 
 	/* Only act if some verts are inside the brush area */
 	if (totnode) {
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
-			sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
+			sculpt_undo_push_node(ob, nodes[n],
+			                      brush->sculpt_tool == SCULPT_TOOL_MASK ?
+			                      SCULPT_UNDO_MASK : SCULPT_UNDO_COORDS);
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
 
@@ -2453,14 +2644,18 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			case SCULPT_TOOL_SCRAPE:
 				do_scrape_brush(sd, ob, nodes, totnode);
 				break;
+			case SCULPT_TOOL_MASK:
+				do_mask_brush(sd, ob, nodes, totnode);
+				break;
 		}
 
-		if (brush->sculpt_tool != SCULPT_TOOL_SMOOTH && brush->autosmooth_factor > 0) {
+		if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
+		    brush->autosmooth_factor > 0) {
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
-				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure));
+				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), FALSE);
 			}
 			else {
-				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor);
+				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor, FALSE);
 			}
 		}
 
@@ -2513,7 +2708,8 @@ static void sculpt_combine_proxies(Sculpt *sd, Object *ob)
 
 			BLI_pbvh_node_get_proxies(nodes[n], &proxies, &proxy_count);
 
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				float val[3];
 				int p;
 
@@ -2583,7 +2779,8 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		for (n = 0; n < totnode; n++) {
 			PBVHVertexIter vd;
 
-			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE) {
+			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
+			{
 				sculpt_flush_pbvhvert_deform(ob, &vd);
 
 				if (vertCos) {
@@ -2604,7 +2801,7 @@ static void sculpt_flush_stroke_deform(Sculpt *sd, Object *ob)
 		/* Modifiers could depend on mesh normals, so we should update them/
 		 * Note, then if sculpting happens on locked key, normals should be re-calculated
 		 * after applying coords from keyblock on base mesh */
-		mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
+		BKE_mesh_calc_normals(me->mvert, me->totvert, me->mloop, me->mpoly, me->totloop, me->totpoly, NULL);
 	}
 	else if (ss->kb) {
 		sculpt_update_keyblock(ob);
@@ -2627,8 +2824,8 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 	 * XXX However, a different approach appears to be needed */
 #if 0
 	if (sd->flags & SCULPT_SYMMETRY_FEATHER) {
-		float frac = 1.0f/max_overlap_count(sd);
-		float reduce = (feather-frac)/(1-frac);
+		float frac = 1.0f / max_overlap_count(sd);
+		float reduce = (feather - frac) / (1 - frac);
 
 		printf("feather: %f frac: %f reduce: %f\n", feather, frac, reduce);
 
@@ -2756,7 +2953,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->face_normals = NULL;
 	}
 	else {
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 		ss->totvert = me->totvert;
 		ss->totpoly = me->totpoly;
 		ss->mvert = me->mvert;
@@ -2764,6 +2961,7 @@ void sculpt_update_mesh_elements(Scene *scene, Sculpt *sd, Object *ob, int need_
 		ss->mloop = me->mloop;
 		ss->face_normals = NULL;
 		ss->multires = NULL;
+		ss->vmask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 	}
 
 	/* BMESH ONLY --- at some point we should move sculpt code to use polygons only - but for now it needs tessfaces */
@@ -2887,7 +3085,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 						    ss->cache->clip_tolerance[i])
 						{
 							ss->cache->clip_tolerance[i] =
-							        mmd->tolerance;
+							    mmd->tolerance;
 						}
 					}
 				}
@@ -2940,15 +3138,22 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 
 	/* Alt-Smooth */
 	if (ss->cache->alt_smooth) {
-		Paint *p = &sd->paint;
-		Brush *br;
+		if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+			cache->saved_mask_brush_tool = brush->mask_tool;
+			brush->mask_tool = BRUSH_MASK_SMOOTH;
+		}
+		else {
+			Paint *p = &sd->paint;
+			Brush *br;
 		
-		BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2, sizeof(cache->saved_active_brush_name));
+			BLI_strncpy(cache->saved_active_brush_name, brush->id.name + 2,
+			            sizeof(cache->saved_active_brush_name));
 
-		br = (Brush *)find_id("BR", "Smooth");
-		if (br) {
-			paint_brush_set(p, br);
-			brush = br;
+			br = (Brush *)BKE_libblock_find_name(ID_BR, "Smooth");
+			if (br) {
+				paint_brush_set(p, br);
+				brush = br;
+			}
 		}
 	}
 
@@ -3134,7 +3339,9 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 
 	if (cache->first_time) {
 		if (!BKE_brush_use_locked_size(scene, brush)) {
-			cache->initial_radius = paint_calc_object_space_radius(cache->vc, cache->true_location, BKE_brush_size_get(scene, brush));
+			cache->initial_radius = paint_calc_object_space_radius(cache->vc,
+			                                                       cache->true_location,
+			                                                       BKE_brush_size_get(scene, brush));
 			BKE_brush_unprojected_radius_set(scene, brush, cache->initial_radius);
 		}
 		else {
@@ -3361,6 +3568,8 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 
 	is_smooth |= mode == BRUSH_STROKE_SMOOTH;
 	is_smooth |= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;
+	is_smooth |= ((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
+	              (brush->mask_tool == BRUSH_MASK_SMOOTH));
 
 	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
 
@@ -3507,15 +3716,20 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 
 		/* Alt-Smooth */
 		if (ss->cache->alt_smooth) {
-			Paint *p = &sd->paint;
-			brush = (Brush *)find_id("BR", ss->cache->saved_active_brush_name);
-			if (brush) {
-				paint_brush_set(p, brush);
+			if (brush->sculpt_tool == SCULPT_TOOL_MASK) {
+				brush->mask_tool = ss->cache->saved_mask_brush_tool;
+			}
+			else {
+				Paint *p = &sd->paint;
+				brush = (Brush *)BKE_libblock_find_name(ID_BR, ss->cache->saved_active_brush_name);
+				if (brush) {
+					paint_brush_set(p, brush);
+				}
 			}
 		}
 
 		/* update last stroke position */
-		ob->sculpt->last_stroke_valid= 1;
+		ob->sculpt->last_stroke_valid = 1;
 		copy_v3_v3(ob->sculpt->last_stroke, ss->cache->true_location);
 		mul_m4_v3(ob->obmat, ob->sculpt->last_stroke);
 
@@ -3621,8 +3835,9 @@ static void SCULPT_OT_brush_stroke(wmOperatorType *ot)
 	};
 
 	/* identifiers */
-	ot->name = "Sculpt Mode";
+	ot->name = "Sculpt";
 	ot->idname = "SCULPT_OT_brush_stroke";
+	ot->description = "Sculpt a stroke into the geometry";
 	
 	/* api callbacks */
 	ot->invoke = sculpt_brush_stroke_invoke;
@@ -3668,6 +3883,7 @@ static void SCULPT_OT_set_persistent_base(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Persistent Base";
 	ot->idname = "SCULPT_OT_set_persistent_base";
+	ot->description = "Reset the copy of the mesh that is being sculpted on";
 	
 	/* api callbacks */
 	ot->exec = sculpt_set_persistent_base;
@@ -3683,6 +3899,71 @@ static void sculpt_init_session(Scene *scene, Object *ob)
 	ob->sculpt = MEM_callocN(sizeof(SculptSession), "sculpt session");
 
 	sculpt_update_mesh_elements(scene, scene->toolsettings->sculpt, ob, 0);
+}
+
+void ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
+{
+	float *paint_mask;
+	Mesh *me = ob->data;
+
+	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
+
+	/* if multires is active, create a grid paint mask layer if there
+	   isn't one already */
+	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
+		GridPaintMask *gmask;
+		int level = MAX2(1, mmd->sculptlvl);
+		int gridsize = ccg_gridsize(level);
+		int gridarea = gridsize * gridsize;
+		int i, j;
+
+		gmask = CustomData_add_layer(&me->ldata, CD_GRID_PAINT_MASK,
+		                             CD_CALLOC, NULL, me->totloop);
+
+		for (i = 0; i < me->totloop; i++) {
+			GridPaintMask *gpm = &gmask[i];
+
+			gpm->level = level;
+			gpm->data = MEM_callocN(sizeof(float) * gridarea,
+			                        "GridPaintMask.data");
+		}
+
+		/* if vertices already have mask, copy into multires data */
+		if (paint_mask) {
+			for (i = 0; i < me->totpoly; i++) {
+				const MPoly *p = &me->mpoly[i];
+				float avg = 0;
+
+				/* mask center */
+				for (j = 0; j < p->totloop; j++) {
+					const MLoop *l = &me->mloop[p->loopstart + j];
+					avg += paint_mask[l->v];
+				}
+				avg /= (float)p->totloop;
+
+				/* fill in multires mask corner */
+				for (j = 0; j < p->totloop; j++) {
+					GridPaintMask *gpm = &gmask[p->loopstart + j];
+					const MLoop *l = &me->mloop[p->loopstart + j];
+					const MLoop *prev = ME_POLY_LOOP_PREV(me->mloop, p, j);
+					const MLoop *next = ME_POLY_LOOP_NEXT(me->mloop, p, j);
+
+					gpm->data[0] = avg;
+					gpm->data[1] = (paint_mask[l->v] +
+					                paint_mask[next->v]) * 0.5f;
+					gpm->data[2] = (paint_mask[l->v] +
+					                paint_mask[prev->v]) * 0.5f;
+					gpm->data[3] = paint_mask[l->v];
+				}
+			}
+		}
+	}
+
+	/* create vertex paint mask layer if there isn't one already */
+	if (!paint_mask) {
+		CustomData_add_layer(&me->vdata, CD_PAINT_MASK,
+		                     CD_CALLOC, NULL, me->totvert);
+	}
 }
 
 static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
@@ -3731,6 +4012,9 @@ static int sculpt_toggle_mode(bContext *C, wmOperator *UNUSED(op))
 
 		sculpt_init_session(scene, ob);
 
+		/* Mask layer is required */
+		ED_sculpt_mask_layers_ensure(ob, mmd);
+
 		paint_init(&ts->sculpt->paint, PAINT_CURSOR_SCULPT);
 		
 		paint_cursor_start(C, sculpt_poll);
@@ -3746,6 +4030,7 @@ static void SCULPT_OT_sculptmode_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Sculpt Mode";
 	ot->idname = "SCULPT_OT_sculptmode_toggle";
+	ot->description = "Toggle sculpt mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = sculpt_toggle_mode;

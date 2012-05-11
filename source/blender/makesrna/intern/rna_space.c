@@ -494,7 +494,7 @@ static EnumPropertyItem *rna_SpaceView3D_viewport_shade_itemf(bContext *UNUSED(C
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_SOLID);
 	RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_TEXTURE);
 
-	if (scene_use_new_shading_nodes(scene))
+	if (BKE_scene_use_new_shading_nodes(scene))
 		RNA_enum_items_add_value(&item, &totitem, viewport_shade_items, OB_MATERIAL);
 	
 	if (type->view_draw)

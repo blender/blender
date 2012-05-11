@@ -49,7 +49,6 @@ short BPy_errors_to_report(struct ReportList *reports);
 struct bContext *BPy_GetContext(void);
 void BPy_SetContext(struct bContext *C);
 
-extern void bpy_context_update(struct bContext *C);
 extern void bpy_context_set(struct bContext *C, PyGILState_STATE *gilstate);
 extern void bpy_context_clear(struct bContext *C, PyGILState_STATE *gilstate);
 #endif

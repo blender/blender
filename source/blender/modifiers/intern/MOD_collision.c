@@ -55,7 +55,7 @@
 
 static void initData(ModifierData *md) 
 {
-	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	
 	collmd->x = NULL;
 	collmd->xnew = NULL;
@@ -69,7 +69,7 @@ static void initData(ModifierData *md)
 
 static void freeData(ModifierData *md)
 {
-	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	
 	if (collmd)  {
 		if (collmd->bvhtree)
@@ -105,13 +105,12 @@ static int dependsOnTime(ModifierData *UNUSED(md))
 }
 
 static void deformVerts(ModifierData *md, Object *ob,
-						DerivedMesh *derivedData,
-						float (*vertexCos)[3],
-						int UNUSED(numVerts),
-						int UNUSED(useRenderParams),
-						int UNUSED(isFinalCalc))
+                        DerivedMesh *derivedData,
+                        float (*vertexCos)[3],
+                        int UNUSED(numVerts),
+                        ModifierApplyFlag UNUSED(flag))
 {
-	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	DerivedMesh *dm = NULL;
 	MVert *tempVert = NULL;
 	
@@ -131,12 +130,12 @@ static void deformVerts(ModifierData *md, Object *ob,
 		CDDM_apply_vert_coords(dm, vertexCos);
 		CDDM_calc_normals(dm);
 		
-		current_time = BKE_curframe(md->scene);
+		current_time = BKE_scene_frame_get(md->scene);
 		
 		if (G.rt > 0)
 			printf("current_time %f, collmd->time_xnew %f\n", current_time, collmd->time_xnew);
 		
-		numverts = dm->getNumVerts (dm);
+		numverts = dm->getNumVerts(dm);
 		
 		if ((current_time > collmd->time_xnew) || (BKE_ptcache_get_continue_physics())) {
 			unsigned int i;
@@ -177,15 +176,15 @@ static void deformVerts(ModifierData *md, Object *ob,
 				collmd->xnew = tempVert;
 				collmd->time_x = collmd->time_xnew;
 				
-				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
+				memcpy(collmd->xnew, dm->getVertArray(dm), numverts * sizeof(MVert));
 				
 				for (i = 0; i < numverts; i++) {
 					// we save global positions
 					mul_m4_v3(ob->obmat, collmd->xnew[i].co);
 				}
 				
-				memcpy(collmd->current_xnew, collmd->x, numverts*sizeof(MVert));
-				memcpy(collmd->current_x, collmd->x, numverts*sizeof(MVert));
+				memcpy(collmd->current_xnew, collmd->x, numverts * sizeof(MVert));
+				memcpy(collmd->current_x, collmd->x, numverts * sizeof(MVert));
 				
 				/* check if GUI setting has changed for bvh */
 				if (collmd->bvhtree) {
@@ -202,7 +201,7 @@ static void deformVerts(ModifierData *md, Object *ob,
 				}
 				else {
 					// recalc static bounding boxes
-					bvhtree_update_from_mvert ( collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1 );
+					bvhtree_update_from_mvert(collmd->bvhtree, collmd->mfaces, collmd->numfaces, collmd->current_x, collmd->current_xnew, collmd->numverts, 1);
 				}
 				
 				collmd->time_xnew = current_time;
@@ -232,8 +231,8 @@ ModifierTypeInfo modifierType_Collision = {
 	/* structName */        "CollisionModifierData",
 	/* structSize */        sizeof(CollisionModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
-	/* flags */             eModifierTypeFlag_AcceptsMesh
-							| eModifierTypeFlag_Single,
+	/* flags */             eModifierTypeFlag_AcceptsMesh |
+	                        eModifierTypeFlag_Single,
 
 	/* copyData */          NULL,
 	/* deformVerts */       deformVerts,

@@ -234,12 +234,32 @@ static void UI_OT_reset_default_theme(wmOperatorType *ot)
 
 /* Copy Data Path Operator ------------------------ */
 
+static int copy_data_path_button_poll(bContext *C)
+{
+	PointerRNA ptr;
+	PropertyRNA *prop;
+	char *path;
+	int index;
+
+	uiContextActiveProperty(C, &ptr, &prop, &index);
+
+	if (ptr.id.data && ptr.data && prop) {
+		path = RNA_path_from_ID_to_property(&ptr, prop);
+		
+		if (path) {
+			MEM_freeN(path);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	char *path;
-	int success = 0;
 	int index;
 
 	/* try to create driver using property retrieved from UI */
@@ -251,11 +271,11 @@ static int copy_data_path_button_exec(bContext *C, wmOperator *UNUSED(op))
 		if (path) {
 			WM_clipboard_text_set(path, FALSE);
 			MEM_freeN(path);
+			return OPERATOR_FINISHED;
 		}
 	}
 
-	/* since we're just copying, we don't really need to do anything else...*/
-	return (success) ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
+	return OPERATOR_CANCELLED;
 }
 
 static void UI_OT_copy_data_path_button(wmOperatorType *ot)
@@ -267,7 +287,7 @@ static void UI_OT_copy_data_path_button(wmOperatorType *ot)
 
 	/* callbacks */
 	ot->exec = copy_data_path_button_exec;
-	//op->poll= ??? // TODO: need to have some valid property before this can be done
+	ot->poll = copy_data_path_button_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER;
@@ -507,7 +527,7 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	char *str;
 	
 	/* create new text-block to write to */
-	txt = add_empty_text("Recent Reports");
+	txt = BKE_text_add("Recent Reports");
 	
 	/* convert entire list to a display string, and add this to the text-block
 	 *	- if commandline debug option enabled, show debug reports too
@@ -516,7 +536,7 @@ static int reports_to_text_exec(bContext *C, wmOperator *UNUSED(op))
 	str = BKE_reports_string(reports, (G.debug & G_DEBUG) ? RPT_DEBUG : RPT_INFO);
 
 	if (str) {
-		write_text(txt, str);
+		BKE_text_write(txt, str);
 		MEM_freeN(str);
 
 		return OPERATOR_FINISHED;
@@ -652,7 +672,7 @@ static int editsource_text_edit(bContext *C, wmOperator *op,
 	}
 
 	if (text == NULL) {
-		text = add_text(filepath, bmain->name);
+		text = BKE_text_load(filepath, bmain->name);
 	}
 
 	if (text == NULL) {

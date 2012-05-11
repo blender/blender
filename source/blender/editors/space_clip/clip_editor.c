@@ -162,7 +162,7 @@ void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *c
 	}
 
 	if (C)
-		WM_event_add_notifier(C, NC_MOVIECLIP|NA_SELECTED, sc->clip);
+		WM_event_add_notifier(C, NC_MOVIECLIP | NA_SELECTED, sc->clip);
 }
 
 MovieClip *ED_space_clip(SpaceClip *sc)
@@ -220,8 +220,8 @@ void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
 
 	ED_space_clip_size(sc, &width, &height);
 
-	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1)/(float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin)*width);
-	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1)/(float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin)*height);
+	*zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin) * width);
+	*zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin) * height);
 }
 
 void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
@@ -317,7 +317,8 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 		return FALSE;
 
 	/* center view */
-	clip_view_center_to_point(sc, (max[0]+min[0])/(2*frame_width), (max[1]+min[1])/(2*frame_height));
+	clip_view_center_to_point(sc, (max[0] + min[0]) / (2 * frame_width),
+	                          (max[1] + min[1]) / (2 * frame_height));
 
 	w = max[0] - min[0];
 	h = max[1] - min[1];
@@ -337,7 +338,7 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 
 		newzoom = 1.0f / power_of_2(1.0f / MIN2(zoomx, zoomy));
 
-		if (fit || sc->zoom>newzoom)
+		if (fit || sc->zoom > newzoom)
 			sc->zoom = newzoom;
 	}
 
@@ -455,15 +456,10 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
-		float *frect = NULL, *fscalerect = NULL;
-		unsigned int *rect = NULL, *scalerect = NULL;
 		int need_recreate = 0;
 
 		if (width > GL_MAX_TEXTURE_SIZE || height > GL_MAX_TEXTURE_SIZE)
 			return 0;
-
-		rect = ibuf->rect;
-		frect = ibuf->rect_float;
 
 		/* if image resolution changed (e.g. switched to proxy display) texture need to be recreated */
 		need_recreate = context->image_width != ibuf->x || context->image_height != ibuf->y;
@@ -497,10 +493,13 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 			glBindTexture(GL_TEXTURE_2D, context->texture);
 		}
 
-		if (frect)
-			glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  width, height, 0, GL_RGBA, GL_FLOAT, frect);
-		else
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		if (ibuf->rect_float) {
+			if (ibuf->rect == NULL)
+				IMB_rect_from_float(ibuf);
+		}
+
+		if (ibuf->rect)
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
 		/* store settings */
 		context->texture_allocated = 1;
@@ -508,11 +507,6 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
-
-		if (fscalerect)
-			MEM_freeN(fscalerect);
-		if (scalerect)
-			MEM_freeN(scalerect);
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

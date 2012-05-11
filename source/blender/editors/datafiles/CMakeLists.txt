@@ -64,6 +64,7 @@ if(WITH_BLENDER)
 			inflate.png.c
 			layer.png.c
 			lighten.png.c
+			mask.png.c
 			mix.png.c
 			multiply.png.c
 			nudge.png.c

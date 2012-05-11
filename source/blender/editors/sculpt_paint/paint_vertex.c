@@ -93,7 +93,7 @@ static int vertex_paint_use_fast_update_check(Object *ob)
 	DerivedMesh *dm = ob->derivedFinal;
 
 	if (dm) {
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 		if (me && me->mcol) {
 			return (me->mcol == CustomData_get_layer(&dm->faceData, CD_MCOL));
 		}
@@ -110,7 +110,7 @@ static int vertex_paint_use_tessface_check(Object *ob)
 	DerivedMesh *dm = ob->derivedFinal;
 
 	if (dm) {
-		Mesh *me = get_mesh(ob);
+		Mesh *me = BKE_mesh_from_object(ob);
 		return (me->mpoly == CustomData_get_layer(&dm->faceData, CD_MPOLY));
 	}
 
@@ -239,7 +239,7 @@ static void do_shared_vertex_tesscol(Mesh *me)
 	mface = me->mface;
 	mcol = (char *)me->mcol;
 	for (a = me->totface; a > 0; a--, mface++, mcol += 16) {
-		if ((use_face_sel == FALSE)|| (mface->flag & ME_FACE_SEL)) {
+		if ((use_face_sel == FALSE) || (mface->flag & ME_FACE_SEL)) {
 			scol = scolmain + 4 * mface->v1;
 			mcol[1] = scol[1]; mcol[2] = scol[2]; mcol[3] = scol[3];
 			scol = scolmain + 4 * mface->v2;
@@ -317,7 +317,7 @@ static void make_vertexcol(Object *ob)  /* single ob */
 {
 	Mesh *me;
 	if (!ob || ob->id.lib) return;
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL) return;
 	if (me->edit_btmesh) return;
 
@@ -433,7 +433,7 @@ void vpaint_fill(Object *ob, unsigned int paintcol)
 	MLoopCol *lcol;
 	int i, j, selected;
 
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return;
 
 	if (!me->mloopcol) make_vertexcol(ob);
@@ -551,7 +551,7 @@ void vpaint_dogamma(Scene *scene)
 	unsigned char *cp, gamtab[256];
 
 	ob = OBACT;
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 
 	if (!(ob->mode & OB_MODE_VERTEX_PAINT)) return;
 	if (me == 0 || me->mcol == 0 || me->totface == 0) return;
@@ -1007,7 +1007,7 @@ static int weight_sample_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	short change = FALSE;
 
 	view3d_set_viewcontext(C, &vc);
-	me = get_mesh(vc.obact);
+	me = BKE_mesh_from_object(vc.obact);
 
 	if (me && me->dvert && vc.v3d && vc.rv3d) {
 		int index;
@@ -1075,6 +1075,7 @@ void PAINT_OT_weight_sample(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Sample Weight";
 	ot->idname = "PAINT_OT_weight_sample";
+	ot->description = "Use the mouse to sample a weight in the 3D view";
 
 	/* api callbacks */
 	ot->invoke = weight_sample_invoke;
@@ -1094,7 +1095,7 @@ static EnumPropertyItem *weight_paint_sample_enum_itemf(bContext *C, PointerRNA 
 			Mesh *me;
 
 			view3d_set_viewcontext(C, &vc);
-			me = get_mesh(vc.obact);
+			me = BKE_mesh_from_object(vc.obact);
 
 			if (me && me->dvert && vc.v3d && vc.rv3d) {
 				int index;
@@ -1176,6 +1177,7 @@ void PAINT_OT_weight_sample_group(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Sample Group";
 	ot->idname = "PAINT_OT_weight_sample_group";
+	ot->description = "Select one of the vertex groups available under current mouse position";
 
 	/* api callbacks */
 	ot->exec = weight_sample_group_exec;
@@ -1975,7 +1977,7 @@ static int set_wpaint(bContext *C, wmOperator *UNUSED(op))  /* toggle */
 	VPaint *wp = scene->toolsettings->wpaint;
 	Mesh *me;
 	
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (ob->id.lib || me == NULL) return OPERATOR_PASS_THROUGH;
 	
 	if (ob->mode & OB_MODE_WEIGHT_PAINT) ob->mode &= ~OB_MODE_WEIGHT_PAINT;
@@ -2038,6 +2040,7 @@ void PAINT_OT_weight_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint Mode";
 	ot->idname = "PAINT_OT_weight_paint_toggle";
+	ot->description = "Toggle weight paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = set_wpaint;
@@ -2139,7 +2142,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		return FALSE;
 	}
 	
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0) return OPERATOR_PASS_THROUGH;
 	
 	/* if nothing was added yet, we make dverts and a vertex deform group */
@@ -2154,7 +2157,7 @@ static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED
 		if ((modob = modifiers_isDeformedByArmature(ob))) {
 			Bone *actbone = ((bArmature *)modob->data)->act_bone;
 			if (actbone) {
-				bPoseChannel *pchan = get_pose_channel(modob->pose, actbone->name);
+				bPoseChannel *pchan = BKE_pose_channel_find_name(modob->pose, actbone->name);
 
 				if (pchan) {
 					bDeformGroup *dg = defgroup_find_name(ob, pchan->name);
@@ -2490,6 +2493,7 @@ void PAINT_OT_weight_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight Paint";
 	ot->idname = "PAINT_OT_weight_paint";
+	ot->description = "Paint a stroke in the current vertex group's weights";
 	
 	/* api callbacks */
 	ot->invoke = wpaint_invoke;
@@ -2522,6 +2526,7 @@ void PAINT_OT_weight_set(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Set Weight";
 	ot->idname = "PAINT_OT_weight_set";
+	ot->description = "Fill the active vertex group with the current paint weight";
 
 	/* api callbacks */
 	ot->exec = weight_paint_set_exec;
@@ -2541,9 +2546,9 @@ static int set_vpaint(bContext *C, wmOperator *op)  /* toggle */
 	VPaint *vp = scene->toolsettings->vpaint;
 	Mesh *me;
 	
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	
-	if (me == NULL || object_data_is_libdata(ob)) {
+	if (me == NULL || BKE_object_obdata_is_libdata(ob)) {
 		ob->mode &= ~OB_MODE_VERTEX_PAINT;
 		return OPERATOR_PASS_THROUGH;
 	}
@@ -2586,6 +2591,7 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Paint Mode";
 	ot->idname = "PAINT_OT_vertex_paint_toggle";
+	ot->description = "Toggle the vertex paint mode in 3D view";
 	
 	/* api callbacks */
 	ot->exec = set_vpaint;
@@ -2678,7 +2684,7 @@ static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent 
 	float mat[4][4], imat[4][4];
 
 	/* context checks could be a poll() */
-	me = get_mesh(ob);
+	me = BKE_mesh_from_object(ob);
 	if (me == NULL || me->totpoly == 0)
 		return OPERATOR_PASS_THROUGH;
 	
@@ -2726,7 +2732,7 @@ static void vpaint_paint_face(VPaint *vp, VPaintData *vpd, Object *ob,
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 	MFace *mface = &me->mface[index];
 	unsigned int *mcol = ((unsigned int *)me->mcol) + 4 * index;
 	unsigned int *mcolorig = ((unsigned int *)vp->vpaint_prev) + 4 * index;
@@ -2771,7 +2777,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 {
 	ViewContext *vc = &vpd->vc;
 	Brush *brush = paint_brush(&vp->paint);
-	Mesh *me = get_mesh(ob);
+	Mesh *me = BKE_mesh_from_object(ob);
 	MPoly *mpoly = &me->mpoly[index];
 	MFace *mf;
 	MCol *mc;
@@ -2991,6 +2997,7 @@ void PAINT_OT_vertex_paint(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Vertex Paint";
 	ot->idname = "PAINT_OT_vertex_paint";
+	ot->description = "Paint a stroke in the active vertex color layer";
 	
 	/* api callbacks */
 	ot->invoke = vpaint_invoke;
@@ -3040,6 +3047,8 @@ void PAINT_OT_weight_from_bones(wmOperatorType *ot)
 	/* identifiers */
 	ot->name = "Weight from Bones";
 	ot->idname = "PAINT_OT_weight_from_bones";
+	ot->description = "Set the weights of the groups matching the attached armature's selected bones, "
+	                  "using the distance between the vertices and the bones";
 	
 	/* api callbacks */
 	ot->exec = weight_from_bones_exec;

@@ -122,7 +122,7 @@ bool DocumentImporter::import()
 	loader.registerExtraDataCallbackHandler(ehandler);
 
 	// deselect all to select new objects
-	scene_deselect_all(CTX_data_scene(mContext));
+	BKE_scene_base_deselect_all(CTX_data_scene(mContext));
 
 	if (!root.loadDocument(mFilename)) {
 		fprintf(stderr, "COLLADAFW::Root::loadDocument() returned false on 1st pass\n");
@@ -227,10 +227,10 @@ void DocumentImporter::finish()
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
 
-			Base *base = object_in_scene(ob, sce);
+			Base *base = BKE_scene_base_find(sce, ob);
 			if (base) {
 				BLI_remlink(&sce->base, base);
-				free_libblock_us(&G.main->object, base->object);
+				BKE_libblock_free_us(&G.main->object, base->object);
 				if (sce->basact==base)
 					sce->basact= NULL;
 				MEM_freeN(base);
@@ -312,7 +312,7 @@ Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 	ob->data = cam;
 	old_cam->id.us--;
 	if (old_cam->id.us == 0)
-		free_libblock(&G.main->camera, old_cam);
+		BKE_libblock_free(&G.main->camera, old_cam);
 	return ob;
 }
 
@@ -330,7 +330,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	ob->data = la;
 	old_lamp->id.us--;
 	if (old_lamp->id.us == 0)
-		free_libblock(&G.main->lamp, old_lamp);
+		BKE_libblock_free(&G.main->lamp, old_lamp);
 	return ob;
 }
 
@@ -338,9 +338,9 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 {
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
-	Object *obn = copy_object(source_ob);
+	Object *obn = BKE_object_copy(source_ob);
 	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
-	scene_add_base(sce, obn);
+	BKE_scene_base_add(sce, obn);
 
 	if (instance_node) {
 		anim_importer.read_node_transform(instance_node, obn);
@@ -359,7 +359,7 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			}
 			// calc new matrix and apply
 			mult_m4_m4m4(obn->obmat, obn->obmat, mat);
-			object_apply_mat4(obn, obn->obmat, 0, 0);
+			BKE_object_apply_mat4(obn, obn->obmat, 0, 0);
 		}
 	}
 	else {
@@ -572,7 +572,7 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = add_material((char*)str_mat_id.c_str());
+	Material *ma = BKE_material_add((char*)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -921,7 +921,7 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 	
 	BLI_split_dir_part(filename, dir, sizeof(dir));
 	BLI_join_dirfile(full_path, sizeof(full_path), dir, filepath.c_str());
-	Image *ima = BKE_add_image_file(full_path);
+	Image *ima = BKE_image_load_exists(full_path);
 	if (!ima) {
 		fprintf(stderr, "Cannot create image.\n");
 		return true;
@@ -949,8 +949,8 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp*)add_lamp((char*)la_name.c_str());
-	else lamp = (Lamp*)add_lamp((char*)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp*)BKE_lamp_add((char*)la_name.c_str());
+	else lamp = (Lamp*)BKE_lamp_add((char*)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");

@@ -47,17 +47,17 @@ struct uiLayout;
 struct wmOperatorType;
 
 /* buts->scaflag */		
-#define BUTS_SENS_SEL		1
-#define BUTS_SENS_ACT		2
-#define BUTS_SENS_LINK		4
-#define BUTS_CONT_SEL		8
-#define BUTS_CONT_ACT		16
-#define BUTS_CONT_LINK		32
-#define BUTS_ACT_SEL		64
-#define BUTS_ACT_ACT		128
-#define BUTS_ACT_LINK		256
-#define BUTS_SENS_STATE		512
-#define BUTS_ACT_STATE		1024
+#define BUTS_SENS_SEL       1
+#define BUTS_SENS_ACT       2
+#define BUTS_SENS_LINK      4
+#define BUTS_CONT_SEL       8
+#define BUTS_CONT_ACT       16
+#define BUTS_CONT_LINK      32
+#define BUTS_ACT_SEL        64
+#define BUTS_ACT_ACT        128
+#define BUTS_ACT_LINK       256
+#define BUTS_SENS_STATE     512
+#define BUTS_ACT_STATE      1024
 
 /* context data */
 

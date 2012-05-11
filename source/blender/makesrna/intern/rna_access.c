@@ -1853,6 +1853,8 @@ void RNA_property_int_set(PointerRNA *ptr, PropertyRNA *prop, int value)
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
+		RNA_property_int_clamp(ptr, prop, &value);
+
 		val.i = value;
 
 		group = RNA_struct_idprops(ptr, 1);
@@ -1969,6 +1971,8 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
+
+		/* TODO: RNA_property_int_clamp_array(ptr, prop, &value); */
 
 		val.array.len = prop->totarraylength;
 		val.array.type = IDP_INT;
@@ -2092,6 +2096,8 @@ void RNA_property_float_set(PointerRNA *ptr, PropertyRNA *prop, float value)
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
+
+		RNA_property_float_clamp(ptr, prop, &value);
 
 		val.f = value;
 
@@ -2227,6 +2233,8 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
+
+		/* TODO: RNA_property_float_clamp_array(ptr, prop, &value); */
 
 		val.array.len = prop->totarraylength;
 		val.array.type = IDP_FLOAT;
@@ -4325,6 +4333,18 @@ int RNA_enum_icon_from_value(EnumPropertyItem *item, int value, int *icon)
 	for ( ; item->identifier; item++) {
 		if (item->value == value) {
 			*icon = item->icon;
+			return 1;
+		}
+	}
+	
+	return 0;
+}
+
+int RNA_enum_name_from_value(EnumPropertyItem *item, int value, const char **name)
+{
+	for( ; item->identifier; item++) {
+		if(item->value==value) {
+			*name = item->name;
 			return 1;
 		}
 	}

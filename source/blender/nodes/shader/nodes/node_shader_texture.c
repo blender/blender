@@ -100,17 +100,13 @@ static void node_shader_exec_texture(void *data, bNode *node, bNodeStack **in, b
 		else
 			out[0]->vec[0]= texres.tin;
 		
-		if ((retval & TEX_RGB)==0) {
-			out[1]->vec[0]= out[0]->vec[0];
-			out[1]->vec[1]= out[0]->vec[0];
-			out[1]->vec[2]= out[0]->vec[0];
-			out[1]->vec[3]= 1.0f;
+		if ((retval & TEX_RGB) == 0) {
+			copy_v3_fl(out[1]->vec, out[0]->vec[0]);
+			out[1]->vec[3] = 1.0f;
 		}
 		else {
-			out[1]->vec[0]= texres.tr;
-			out[1]->vec[1]= texres.tg;
-			out[1]->vec[2]= texres.tb;
-			out[1]->vec[3]= 1.0f;
+			copy_v3_v3(out[1]->vec, &texres.tr);
+			out[1]->vec[3] = 1.0f;
 		}
 		
 		copy_v3_v3(out[2]->vec, nor);

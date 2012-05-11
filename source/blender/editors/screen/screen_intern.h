@@ -35,24 +35,24 @@
 struct wmWindow;
 struct Scene;
 
-#define AZONESPOT		12
+#define AZONESPOT       12
 
 /* area.c */
-void		area_copy_data	(ScrArea *sa1, ScrArea *sa2, int swap_space);
+void        area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
 /* screen_edit.c */
-ScrEdge		*screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
-ScrArea		*area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
-int			screen_area_join(bContext *C, bScreen* scr, ScrArea *sa1, ScrArea *sa2);
-int			area_getorientation(ScrArea *sa, ScrArea *sb);
-void		select_connected_scredge(bScreen *sc, ScrEdge *edge);
+ScrEdge    *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
+ScrArea    *area_split(bScreen *sc, ScrArea *sa, char dir, float fac, int merge);
+int         screen_area_join(bContext *C, bScreen *scr, ScrArea *sa1, ScrArea *sa2);
+int         area_getorientation(ScrArea *sa, ScrArea *sb);
+void        select_connected_scredge(bScreen *sc, ScrEdge *edge);
 
-void		removenotused_scrverts(bScreen *sc);
-void		removedouble_scrverts(bScreen *sc);
-void		removedouble_scredges(bScreen *sc);
-void		removenotused_scredges(bScreen *sc);
-int			scredge_is_horizontal(ScrEdge *se);
-ScrEdge		*screen_find_active_scredge(bScreen *sc, int mx, int my);
+void        removenotused_scrverts(bScreen *sc);
+void        removedouble_scrverts(bScreen *sc);
+void        removedouble_scredges(bScreen *sc);
+void        removenotused_scredges(bScreen *sc);
+int         scredge_is_horizontal(ScrEdge *se);
+ScrEdge    *screen_find_active_scredge(bScreen *sc, int mx, int my);
 
 struct AZone *is_in_area_actionzone(ScrArea *sa, int x, int y);
 
@@ -66,7 +66,3 @@ void SCREEN_OT_screenshot(struct wmOperatorType *ot);
 void SCREEN_OT_screencast(struct wmOperatorType *ot);
 
 #endif /* __SCREEN_INTERN_H__ */
-
-
-
-

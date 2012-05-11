@@ -391,8 +391,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
-											  kLSSharedFileListNoUserInteraction
-											  | kLSSharedFileListDoNotMountVolumes, 
+											  kLSSharedFileListNoUserInteraction |
+			                                  kLSSharedFileListDoNotMountVolumes,
 											  &cfURL, NULL);
 			if (err != noErr)
 				continue;
@@ -440,8 +440,8 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
-											  kLSSharedFileListNoUserInteraction
-											  | kLSSharedFileListDoNotMountVolumes, 
+											  kLSSharedFileListNoUserInteraction |
+			                                  kLSSharedFileListDoNotMountVolumes,
 											  &cfURL, NULL);
 			if (err != noErr)
 				continue;

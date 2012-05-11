@@ -16,25 +16,16 @@ SConscript(['audaspace/SConscript',
             'mikktspace/SConscript',
             'smoke/SConscript'])
 
-# NEW_CSG was intended for intern/csg, but
-# getting it to compile is difficult
-# intern/bsp has been used anyway, so
-# perhaps get rid of intern/csg?
-NEW_CSG = 'false'
-
 if env ['WITH_BF_REMESH']:
     SConscript(['dualcon/SConscript'])
 
 if env['WITH_BF_FLUID']:
     SConscript(['elbeem/SConscript'])
-    
+
 if env['WITH_BF_CYCLES']:
     SConscript(['cycles/SConscript'])
 
-if NEW_CSG == 'false':
-    SConscript(['bsp/SConscript'])
-else:
-    SConscript(['csg/SConscript'])
+SConscript(['bsp/SConscript'])
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-mingw', 'linuxcross', 'win64-vc'):
     SConscript(['utfconv/SConscript'])

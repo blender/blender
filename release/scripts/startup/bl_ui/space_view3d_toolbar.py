@@ -145,10 +145,10 @@ class VIEW3D_PT_tools_meshedit(View3DPanel, Panel):
         row = col.row(align=True)
         props = row.operator("mesh.knife_tool", text="Knife")
         props.use_occlude_geometry = True
-        props.only_select = False
+        props.only_selected = False
         props = row.operator("mesh.knife_tool", text="Select")
         props.use_occlude_geometry = False
-        props.only_select = True
+        props.only_selected = True
 
         col = layout.column(align=True)
         col.label(text="Remove:")
@@ -574,6 +574,9 @@ class VIEW3D_PT_tools_brush(Panel, View3DPaintPanel):
                     row.prop(brush, "use_original_normal", toggle=True, text="", icon='UNLOCKED')
 
                 row.prop(brush, "sculpt_plane", text="")
+
+            if brush.sculpt_tool == 'MASK':
+                col.prop(brush, "mask_tool", text="")
 
             # plane_offset, use_offset_pressure, use_plane_trim, plane_trim
             if capabilities.has_plane_offset:

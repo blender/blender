@@ -44,6 +44,7 @@
 #include "BLI_utildefines.h"
 
 static PyObject *Buffer_new(PyTypeObject *type, PyObject *args, PyObject *kwds);
+static PyObject *Method_ShaderSource (PyObject *self, PyObject *args);
 
 /* Buffer sequence methods */
 
@@ -613,8 +614,10 @@ static PyObject *Buffer_repr(Buffer *self)
 
 
 BGL_Wrap(2, Accum,          void,     (GLenum, GLfloat))
+BGL_Wrap(1, ActiveTexture,  void,     (GLenum))
 BGL_Wrap(2, AlphaFunc,      void,     (GLenum, GLclampf))
 BGL_Wrap(3, AreTexturesResident,  GLboolean,  (GLsizei, GLuintP, GLbooleanP))
+BGL_Wrap(2, AttachShader,   void,       (GLuint, GLuint))
 BGL_Wrap(1, Begin,          void,     (GLenum))
 BGL_Wrap(2, BindTexture,    void,   (GLenum, GLuint))
 BGL_Wrap(7, Bitmap,         void,     (GLsizei, GLsizei, GLfloat,
@@ -663,14 +666,20 @@ BGL_Wrap(4, Color4us,         void,     (GLushort, GLushort, GLushort, GLushort)
 BGL_Wrap(1, Color4usv,        void,     (GLushortP))
 BGL_Wrap(4, ColorMask,        void,     (GLboolean, GLboolean, GLboolean, GLboolean))
 BGL_Wrap(2, ColorMaterial,    void,     (GLenum, GLenum))
+BGL_Wrap(1, CompileShader,    void,     (GLuint))
 BGL_Wrap(5, CopyPixels,       void,     (GLint, GLint, GLsizei, GLsizei, GLenum))
 BGL_Wrap(8, CopyTexImage2D,   void,     (GLenum, GLint, GLenum, GLint, GLint, GLsizei, GLsizei, GLint))
+BGL_Wrap(1, CreateProgram,    GLuint,   (void))
+BGL_Wrap(1, CreateShader,     GLuint,   (GLenum))
 BGL_Wrap(1, CullFace,         void,     (GLenum))
 BGL_Wrap(2, DeleteLists,      void,     (GLuint, GLsizei))
+BGL_Wrap(1, DeleteProgram,    void,     (GLuint))
+BGL_Wrap(1, DeleteShader,     void,     (GLuint))
 BGL_Wrap(2, DeleteTextures,   void,   (GLsizei, GLuintP))
 BGL_Wrap(1, DepthFunc,        void,     (GLenum))
 BGL_Wrap(1, DepthMask,        void,     (GLboolean))
 BGL_Wrap(2, DepthRange,       void,     (GLclampd, GLclampd))
+BGL_Wrap(2, DetachShader,     void,     (GLuint, GLuint))
 BGL_Wrap(1, Disable,          void,     (GLenum))
 BGL_Wrap(1, DrawBuffer,       void,     (GLenum))
 BGL_Wrap(5, DrawPixels,       void,     (GLsizei, GLsizei, GLenum, GLenum, GLvoidP))
@@ -703,6 +712,7 @@ BGL_Wrap(6, Frustum,          void,     (GLdouble, GLdouble,
                                          GLdouble, GLdouble, GLdouble, GLdouble))
 BGL_Wrap(1, GenLists,         GLuint,   (GLsizei))
 BGL_Wrap(2, GenTextures,      void,   (GLsizei, GLuintP))
+BGL_Wrap(4, GetAttachedShaders, void,   (GLuint, GLsizei, GLsizeiP, GLuintP))
 BGL_Wrap(2, GetBooleanv,      void,     (GLenum, GLbooleanP))
 BGL_Wrap(2, GetClipPlane,     void,     (GLenum, GLdoubleP))
 BGL_Wrap(2, GetDoublev,       void,     (GLenum, GLdoubleP))
@@ -720,6 +730,11 @@ BGL_Wrap(2, GetPixelMapfv,    void,     (GLenum, GLfloatP))
 BGL_Wrap(2, GetPixelMapuiv,   void,     (GLenum, GLuintP))
 BGL_Wrap(2, GetPixelMapusv,   void,     (GLenum, GLushortP))
 BGL_Wrap(1, GetPolygonStipple, void,     (GLubyteP))
+BGL_Wrap(4, GetProgramInfoLog, void,    (GLuint, GLsizei, GLsizeiP, GLcharP))
+BGL_Wrap(3, GetProgramiv,     void,     (GLuint, GLenum, GLintP))
+BGL_Wrap(4, GetShaderInfoLog, void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
+BGL_Wrap(3, GetShaderiv,      void,     (GLuint, GLenum, GLintP))
+BGL_Wrap(4, GetShaderSource,  void,     (GLuint, GLsizei, GLsizeiP, GLcharP))
 BGL_Wrap(1, GetString,        GLstring,   (GLenum))
 BGL_Wrap(3, GetTexEnvfv,      void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, GetTexEnviv,      void,     (GLenum, GLenum, GLintP))
@@ -731,6 +746,7 @@ BGL_Wrap(4, GetTexLevelParameterfv, void,     (GLenum, GLint, GLenum, GLfloatP))
 BGL_Wrap(4, GetTexLevelParameteriv, void,     (GLenum, GLint, GLenum, GLintP))
 BGL_Wrap(3, GetTexParameterfv,    void,     (GLenum, GLenum, GLfloatP))
 BGL_Wrap(3, GetTexParameteriv,    void,     (GLenum, GLenum, GLintP))
+BGL_Wrap(2, GetUniformLocation, GLint, (GLuint, GLstring))
 BGL_Wrap(2, Hint,           void,     (GLenum, GLenum))
 BGL_Wrap(1, IndexMask,      void,     (GLuint))
 BGL_Wrap(1, Indexd,         void,     (GLdouble))
@@ -744,6 +760,8 @@ BGL_Wrap(1, Indexsv,        void,     (GLshortP))
 BGL_Wrap(1, InitNames,      void,     (void))
 BGL_Wrap(1, IsEnabled,      GLboolean,  (GLenum))
 BGL_Wrap(1, IsList,         GLboolean,  (GLuint))
+BGL_Wrap(1, IsProgram,      GLboolean,  (GLuint))
+BGL_Wrap(1, IsShader,       GLboolean,  (GLuint))
 BGL_Wrap(1, IsTexture,      GLboolean,  (GLuint))
 BGL_Wrap(2, LightModelf,    void,     (GLenum, GLfloat))
 BGL_Wrap(2, LightModelfv,   void,     (GLenum, GLfloatP))
@@ -755,6 +773,7 @@ BGL_Wrap(3, Lighti,         void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, Lightiv,        void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(2, LineStipple,    void,     (GLint, GLushort))
 BGL_Wrap(1, LineWidth,      void,     (GLfloat))
+BGL_Wrap(1, LinkProgram,   void,      (GLuint))
 BGL_Wrap(1, ListBase,       void,     (GLuint))
 BGL_Wrap(1, LoadIdentity,   void,     (void))
 BGL_Wrap(1, LoadMatrixd,    void,     (GLdoubleP))
@@ -915,6 +934,33 @@ BGL_Wrap(3, TexParameteri,      void,     (GLenum, GLenum, GLint))
 BGL_Wrap(3, TexParameteriv,     void,     (GLenum, GLenum, GLintP))
 BGL_Wrap(3, Translated,         void,     (GLdouble, GLdouble, GLdouble))
 BGL_Wrap(3, Translatef,         void,     (GLfloat, GLfloat, GLfloat))
+BGL_Wrap(2, Uniform1f,          void,     (GLint, GLfloat))
+BGL_Wrap(3, Uniform2f,          void,     (GLint, GLfloat, GLfloat))
+BGL_Wrap(4, Uniform3f,          void,     (GLint, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(5, Uniform4f,          void,     (GLint, GLfloat, GLfloat, GLfloat, GLfloat))
+BGL_Wrap(3, Uniform1fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(3, Uniform2fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(3, Uniform3fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(3, Uniform4fv,         void,     (GLint, GLsizei, GLfloatP))
+BGL_Wrap(2, Uniform1i,          void,     (GLint, GLint))
+BGL_Wrap(3, Uniform2i,          void,     (GLint, GLint, GLint))
+BGL_Wrap(4, Uniform3i,          void,     (GLint, GLint, GLint, GLint))
+BGL_Wrap(5, Uniform4i,          void,     (GLint, GLint, GLint, GLint, GLint))
+BGL_Wrap(3, Uniform1iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(3, Uniform2iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(3, Uniform3iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(3, Uniform4iv,         void,     (GLint, GLsizei, GLintP))
+BGL_Wrap(4, UniformMatrix2fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix3fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix4fv,   void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix2x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix3x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix2x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix4x2fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix3x4fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(4, UniformMatrix4x3fv, void,     (GLint, GLsizei, GLboolean, GLfloatP))
+BGL_Wrap(1, UseProgram,         void,     (GLuint))
+BGL_Wrap(1, ValidateProgram,    void,     (GLuint))
 BGL_Wrap(2, Vertex2d,           void,     (GLdouble, GLdouble))
 BGL_Wrap(1, Vertex2dv,          void,     (GLdoubleP))
 BGL_Wrap(2, Vertex2f,           void,     (GLfloat, GLfloat))
@@ -957,8 +1003,10 @@ static struct PyMethodDef BGL_methods[] = {
 
 /* #ifndef __APPLE__ */
 	MethodDef(Accum),
+	MethodDef(ActiveTexture),
 	MethodDef(AlphaFunc),
 	MethodDef(AreTexturesResident), 
+	MethodDef(AttachShader),
 	MethodDef(Begin),
 	MethodDef(BindTexture), 
 	MethodDef(Bitmap),
@@ -1006,14 +1054,20 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(Color4usv),
 	MethodDef(ColorMask),
 	MethodDef(ColorMaterial),
+	MethodDef(CompileShader),
 	MethodDef(CopyPixels),
 	MethodDef(CopyTexImage2D),
+	MethodDef(CreateProgram),
+	MethodDef(CreateShader),
 	MethodDef(CullFace),
 	MethodDef(DeleteLists),
+	MethodDef(DeleteProgram),
+	MethodDef(DeleteShader),
 	MethodDef(DeleteTextures),
 	MethodDef(DepthFunc),
 	MethodDef(DepthMask),
 	MethodDef(DepthRange),
+	MethodDef(DetachShader),
 	MethodDef(Disable),
 	MethodDef(DrawBuffer),
 	MethodDef(DrawPixels),
@@ -1045,6 +1099,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(Frustum),
 	MethodDef(GenLists),
 	MethodDef(GenTextures), 
+	MethodDef(GetAttachedShaders),
 	MethodDef(GetBooleanv),
 	MethodDef(GetClipPlane),
 	MethodDef(GetDoublev),
@@ -1062,6 +1117,11 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(GetPixelMapuiv),
 	MethodDef(GetPixelMapusv),
 	MethodDef(GetPolygonStipple),
+	MethodDef(GetProgramInfoLog),
+	MethodDef(GetProgramiv),
+	MethodDef(GetShaderInfoLog),
+	MethodDef(GetShaderiv),
+	MethodDef(GetShaderSource),
 	MethodDef(GetString),
 	MethodDef(GetTexEnvfv),
 	MethodDef(GetTexEnviv),
@@ -1073,6 +1133,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(GetTexLevelParameteriv),
 	MethodDef(GetTexParameterfv),
 	MethodDef(GetTexParameteriv),
+	MethodDef(GetUniformLocation),
 	MethodDef(Hint),
 	MethodDef(IndexMask),
 	MethodDef(Indexd),
@@ -1086,6 +1147,8 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(InitNames),
 	MethodDef(IsEnabled),
 	MethodDef(IsList),
+	MethodDef(IsProgram),
+	MethodDef(IsShader),
 	MethodDef(IsTexture), 
 	MethodDef(LightModelf),
 	MethodDef(LightModelfv),
@@ -1097,6 +1160,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(Lightiv),
 	MethodDef(LineStipple),
 	MethodDef(LineWidth),
+	MethodDef(LinkProgram),
 	MethodDef(ListBase),
 	MethodDef(LoadIdentity),
 	MethodDef(LoadMatrixd),
@@ -1194,6 +1258,7 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(Scissor),
 	MethodDef(SelectBuffer),
 	MethodDef(ShadeModel),
+	MethodDef(ShaderSource),
 	MethodDef(StencilFunc),
 	MethodDef(StencilMask),
 	MethodDef(StencilOp),
@@ -1247,6 +1312,33 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(TexParameteriv),
 	MethodDef(Translated),
 	MethodDef(Translatef),
+	MethodDef(Uniform1f),
+	MethodDef(Uniform2f),
+	MethodDef(Uniform3f),
+	MethodDef(Uniform4f),
+	MethodDef(Uniform1fv),
+	MethodDef(Uniform2fv),
+	MethodDef(Uniform3fv),
+	MethodDef(Uniform4fv),
+	MethodDef(Uniform1i),
+	MethodDef(Uniform2i),
+	MethodDef(Uniform3i),
+	MethodDef(Uniform4i),
+	MethodDef(Uniform1iv),
+	MethodDef(Uniform2iv),
+	MethodDef(Uniform3iv),
+	MethodDef(Uniform4iv),
+	MethodDef(UniformMatrix2fv),
+	MethodDef(UniformMatrix3fv),
+	MethodDef(UniformMatrix4fv),
+	MethodDef(UniformMatrix2x3fv),
+	MethodDef(UniformMatrix3x2fv),
+	MethodDef(UniformMatrix2x4fv),
+	MethodDef(UniformMatrix4x2fv),
+	MethodDef(UniformMatrix3x4fv),
+	MethodDef(UniformMatrix4x3fv),
+	MethodDef(UseProgram),
+	MethodDef(ValidateProgram),
 	MethodDef(Vertex2d),
 	MethodDef(Vertex2dv),
 	MethodDef(Vertex2f),
@@ -1794,5 +1886,37 @@ PyObject *BPyInit_bgl(void)
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_1D);
 	EXPP_ADDCONST(GL_TEXTURE_BINDING_2D);
 
+	EXPP_ADDCONST(GL_VERTEX_SHADER);
+	EXPP_ADDCONST(GL_FRAGMENT_SHADER);
+	EXPP_ADDCONST(GL_COMPILE_STATUS);
+	EXPP_ADDCONST(GL_ACTIVE_TEXTURE);
+
+	EXPP_ADDCONST(GL_TEXTURE0);
+	EXPP_ADDCONST(GL_TEXTURE1);
+	EXPP_ADDCONST(GL_TEXTURE2);
+	EXPP_ADDCONST(GL_TEXTURE3);
+	EXPP_ADDCONST(GL_TEXTURE4);
+	EXPP_ADDCONST(GL_TEXTURE5);
+	EXPP_ADDCONST(GL_TEXTURE6);
+	EXPP_ADDCONST(GL_TEXTURE7);
+	EXPP_ADDCONST(GL_TEXTURE8);
+
+	EXPP_ADDCONST(GL_DEPTH_COMPONENT32);
+	EXPP_ADDCONST(GL_TEXTURE_COMPARE_MODE);
+
 	return submodule;
 }
+
+static PyObject *Method_ShaderSource (PyObject *UNUSED(self), PyObject *args)
+{
+	int shader;
+	char *source;
+
+	if (!PyArg_ParseTuple(args, "Is", &shader, &source))
+		return NULL;
+
+	glShaderSource(shader, 1, (const char **)&source, NULL);
+
+	return Py_INCREF(Py_None), Py_None;
+}
+

@@ -605,7 +605,7 @@ static int set_engine(int argc, const char **argv, void *data)
 static int set_image_type(int argc, const char **argv, void *data)
 {
 	bContext *C = data;
-	if (argc >= 1) {
+	if (argc > 1) {
 		const char *imtype = argv[1];
 		Scene *scene = CTX_data_scene(C);
 		if (scene) {
@@ -631,7 +631,7 @@ static int set_image_type(int argc, const char **argv, void *data)
 
 static int set_threads(int argc, const char **argv, void *UNUSED(data))
 {
-	if (argc >= 1) {
+	if (argc > 1) {
 		if (G.background) {
 			RE_set_max_threads(atoi(argv[1]));
 		}
@@ -642,6 +642,21 @@ static int set_threads(int argc, const char **argv, void *UNUSED(data))
 	}
 	else {
 		printf("\nError: you must specify a number of threads between 0 and 8 '-t  / --threads'.\n");
+		return 0;
+	}
+}
+
+static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
+{
+	if (argc > 1) {
+		int level = atoi(argv[1]);
+
+		libmv_setLoggingVerbosity(level);
+
+		return 1;
+	}
+	else {
+		printf("\nError: you must specify a verbosity level.\n");
 		return 0;
 	}
 }
@@ -797,7 +812,7 @@ static int set_scene(int argc, const char **argv, void *data)
 {
 	if (argc > 1) {
 		bContext *C = data;
-		Scene *scene = set_scene_name(CTX_data_main(C), argv[1]);
+		Scene *scene = BKE_scene_set_name(CTX_data_main(C), argv[1]);
 		if (scene) {
 			CTX_data_scene_set(C, scene);
 		}
@@ -1114,6 +1129,8 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 1, NULL, "--debug-libmv", "\n\tEnable debug messages from libmv library", debug_mode_libmv, NULL);
 #endif
 
+	BLI_argsAdd(ba, 1, NULL, "--verbose", "<verbose>\n\tSet logging verbosity level.", set_verbosity, NULL);
+
 	BLI_argsAdd(ba, 1, NULL, "--factory-startup", "\n\tSkip reading the "STRINGIFY (BLENDER_STARTUP_FILE)" in the users home directory", set_factory_startup, NULL);
 
 	/* TODO, add user env vars? */
@@ -1272,7 +1289,7 @@ int main(int argc, const char **argv)
 #endif
 	
 	/* background render uses this font too */
-	BKE_font_register_builtin(datatoc_Bfont, datatoc_Bfont_size);
+	BKE_vfont_builtin_register(datatoc_Bfont, datatoc_Bfont_size);
 
 	/* Initialize ffmpeg if built in, also needed for bg mode if videos are
 	 * rendered via ffmpeg */

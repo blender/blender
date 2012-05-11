@@ -171,7 +171,7 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(MatrixBase<OtherDer
   eigen_assert(m_matrix.cols() == m_matrix.rows());
   eigen_assert(m_matrix.cols() == other.rows());
   eigen_assert(!(Mode & ZeroDiag));
-  eigen_assert(Mode & (Upper|Lower));
+  eigen_assert((Mode & (Upper|Lower)) != 0);
 
   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 
@@ -298,7 +298,7 @@ void SparseTriangularView<ExpressionType,Mode>::solveInPlace(SparseMatrixBase<Ot
   eigen_assert(m_matrix.cols() == m_matrix.rows());
   eigen_assert(m_matrix.cols() == other.rows());
   eigen_assert(!(Mode & ZeroDiag));
-  eigen_assert(Mode & (Upper|Lower));
+  eigen_assert((Mode & (Upper|Lower)) != 0);
 
 //   enum { copy = internal::traits<OtherDerived>::Flags & RowMajorBit };
 

@@ -240,7 +240,7 @@ void wm_event_do_notifiers(bContext *C)
 		if (do_anim) {
 
 			/* XXX, quick frame changes can cause a crash if framechange and rendering
-			 * collide (happens on slow scenes), scene_update_for_newframe can be called
+			 * collide (happens on slow scenes), BKE_scene_update_for_newframe can be called
 			 * twice which can depgraph update the same object at once */
 			if (!G.rendering) {
 
@@ -311,7 +311,7 @@ void wm_event_do_notifiers(bContext *C)
 			/* XXX, hack so operators can enforce datamasks [#26482], gl render */
 			win->screen->scene->customdata_mask |= win->screen->scene->customdata_mask_modal;
 
-			scene_update_tagged(bmain, win->screen->scene);
+			BKE_scene_update_tagged(bmain, win->screen->scene);
 		}
 	}
 
