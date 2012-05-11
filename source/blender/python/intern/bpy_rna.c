@@ -1550,9 +1550,13 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 				}
 				else {
 					int param_i = (int)param;
-					RNA_property_int_clamp(ptr, prop, &param_i);
-					if (data) *((int *)data) = param_i;
-					else RNA_property_int_set(ptr, prop, param_i);
+					if (data) {
+						RNA_property_int_clamp(ptr, prop, &param_i);
+						*((int *)data) = param_i;
+					}
+					else {
+						RNA_property_int_set(ptr, prop, param_i);
+					}
 				}
 				break;
 			}
@@ -1567,9 +1571,13 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 					return -1;
 				}
 				else {
-					RNA_property_float_clamp(ptr, prop, (float *)&param);
-					if (data) *((float *)data) = param;
-					else RNA_property_float_set(ptr, prop, param);
+					if (data) {
+						RNA_property_float_clamp(ptr, prop, (float *)&param);
+						*((float *)data) = param;
+					}
+					else {
+						RNA_property_float_set(ptr, prop, param);
+					}
 				}
 				break;
 			}

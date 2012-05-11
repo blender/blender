@@ -1972,6 +1972,8 @@ void RNA_property_int_set_array(PointerRNA *ptr, PropertyRNA *prop, const int *v
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
 
+		/* TODO: RNA_property_int_clamp_array(ptr, prop, &value); */
+
 		val.array.len = prop->totarraylength;
 		val.array.type = IDP_INT;
 
@@ -2231,6 +2233,8 @@ void RNA_property_float_set_array(PointerRNA *ptr, PropertyRNA *prop, const floa
 	else if (prop->flag & PROP_EDITABLE) {
 		IDPropertyTemplate val = {0};
 		IDProperty *group;
+
+		/* TODO: RNA_property_float_clamp_array(ptr, prop, &value); */
 
 		val.array.len = prop->totarraylength;
 		val.array.type = IDP_FLOAT;
