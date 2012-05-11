@@ -31,8 +31,9 @@
 /* defines BLI_INLINE */
 #include "BLI_utildefines.h"
 
-/* declares fprintf(), needed for BLI_assert */
+/* declares fprintf() and abort(), needed for BLI_assert */
 #include <stdio.h>
+#include <stdlib.h>
 
 struct CCGSubSurf;
 
