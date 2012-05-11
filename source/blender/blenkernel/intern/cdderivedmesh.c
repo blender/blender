@@ -245,7 +245,7 @@ static int can_pbvh_draw(Object *ob, DerivedMesh *dm)
 	return cddm->mvert == me->mvert || ob->sculpt->kb;
 }
 
-static struct PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
+static PBVH *cdDM_getPBVH(Object *ob, DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh *) dm;
 

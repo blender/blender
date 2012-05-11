@@ -83,9 +83,9 @@ static int planes_contain_v3(float (*planes)[4], int totplane, const float p[3])
 
 /* return true if the element should be hidden/shown */
 static int is_effected(PartialVisArea area,
-					   float planes[4][4],
-					   const float co[3],
-					   const float mask)
+                       float planes[4][4],
+                       const float co[3],
+                       const float mask)
 {
 	if (area == PARTIALVIS_ALL)
 		return 1;
@@ -158,8 +158,8 @@ static void partialvis_update_grids(Object *ob,
 
 	/* get PBVH data */
 	BLI_pbvh_node_get_grids(pbvh, node,
-							&grid_indices, &totgrid, NULL, NULL,
-							&grids, NULL);
+	                        &grid_indices, &totgrid, NULL, NULL,
+	                        &grids, NULL);
 	grid_hidden = BLI_pbvh_grid_hidden(pbvh);
 	BLI_pbvh_get_grid_key(pbvh, &key);
 	
@@ -176,7 +176,7 @@ static void partialvis_update_grids(Object *ob,
 				case PARTIALVIS_HIDE:
 					/* create grid flags data */
 					gh = grid_hidden[g] = BLI_BITMAP_NEW(key.grid_area,
-														 "partialvis_update_grids");
+					                                     "partialvis_update_grids");
 					break;
 				case PARTIALVIS_SHOW:
 					/* entire grid is visible, nothing to show */
@@ -203,7 +203,7 @@ static void partialvis_update_grids(Object *ob,
 				if (is_effected(area, planes, co, mask)) {
 					/* set or clear the hide flag */
 					BLI_BITMAP_MODIFY(gh, y * key.grid_size + x,
-									  action == PARTIALVIS_HIDE);
+					                  action == PARTIALVIS_HIDE);
 
 					any_changed = 1;
 				}
@@ -368,14 +368,16 @@ void PAINT_OT_hide_show(struct wmOperatorType *ot)
 	static EnumPropertyItem action_items[] = {
 		{PARTIALVIS_HIDE, "HIDE", 0, "Hide", "Hide vertices"},
 		{PARTIALVIS_SHOW, "SHOW", 0, "Show", "Show vertices"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem area_items[] = {
 		{PARTIALVIS_OUTSIDE, "OUTSIDE", 0, "Outside", "Hide or show vertices outside the selection"},
 		{PARTIALVIS_INSIDE, "INSIDE", 0, "Inside", "Hide or show vertices inside the selection"},
 		{PARTIALVIS_ALL, "ALL", 0, "All", "Hide or show all vertices"},
 		{PARTIALVIS_MASKED, "MASKED", 0, "Masked", "Hide or show vertices that are masked (minimum mask value of 0.5)"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	/* identifiers */
 	ot->name = "Hide/Show";

@@ -95,7 +95,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 	if (result == dm)
 		return dm;
 
-	if(useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
+	if (useRenderParams || !(flag & MOD_APPLY_USECACHE)) {
 		DerivedMesh *cddm;
 		
 		cddm = CDDM_copy(result);
@@ -120,14 +120,14 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob, DerivedMesh *dm,
 				                                 cddm->getPolyArray(cddm),
 				                                 cddm->getNumPolys(cddm));
 			}
-			if(grid_paint_mask) {
+			if (grid_paint_mask) {
 				float *paint_mask = CustomData_add_layer(&cddm->vertData,
-														 CD_PAINT_MASK,
-														 CD_CALLOC, NULL,
-														 cddm->getNumVerts(cddm));
+				                                         CD_PAINT_MASK,
+				                                         CD_CALLOC, NULL,
+				                                         cddm->getNumVerts(cddm));
 
 				subsurf_copy_grid_paint_mask(result, me->mpoly,
-											 paint_mask, grid_paint_mask);
+				                             paint_mask, grid_paint_mask);
 			}
 		}
 

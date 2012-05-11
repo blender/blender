@@ -64,10 +64,10 @@ typedef enum {
 } SubsurfFlags;
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
-						struct DerivedMesh *dm,
-						struct SubsurfModifierData *smd,
-						float (*vertCos)[3],
-						SubsurfFlags flags);
+        struct DerivedMesh *dm,
+        struct SubsurfModifierData *smd,
+        float (*vertCos)[3],
+        SubsurfFlags flags);
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
 
@@ -79,13 +79,13 @@ int ccg_gridsize(int level);
 int ccg_factor(int low_level, int high_level);
 
 void subsurf_copy_grid_hidden(struct DerivedMesh *dm,
-							  const struct MPoly *mpoly,
-							  struct MVert *mvert,
-							  const struct MDisps *mdisps);
+                              const struct MPoly *mpoly,
+                              struct MVert *mvert,
+                              const struct MDisps *mdisps);
 
 void subsurf_copy_grid_paint_mask(struct DerivedMesh *dm,
-								  const struct MPoly *mpoly, float *paint_mask,
-								  const struct GridPaintMask *grid_paint_mask);
+                                  const struct MPoly *mpoly, float *paint_mask,
+                                  const struct GridPaintMask *grid_paint_mask);
 
 typedef enum MultiresModifiedFlags {
 	/* indicates the grids have been sculpted on, so MDisps
@@ -104,10 +104,10 @@ typedef struct CCGDerivedMesh {
 	int freeSS;
 	int drawInteriorEdges, useSubsurfUv;
 
-	struct {int startVert; struct CCGVert *vert;} *vertMap;
-	struct {int startVert; int startEdge; struct CCGEdge *edge;} *edgeMap;
+	struct {int startVert; struct CCGVert *vert; } *vertMap;
+	struct {int startVert; int startEdge; struct CCGEdge *edge; } *edgeMap;
 	struct {int startVert; int startEdge;
-			int startFace; struct CCGFace *face;} *faceMap;
+	        int startFace; struct CCGFace *face; } *faceMap;
 
 	short *edgeFlags;
 	struct DMFlagMat *faceFlags;

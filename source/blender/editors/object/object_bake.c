@@ -486,7 +486,7 @@ static void interp_bilinear_grid(CCGKey *key, CCGElem *grid, float crn_x, float 
 	x1 = x0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (x0 + 1);
 
 	y0 = (int) crn_y;
-	y1 = y0 >= (key->grid_size - 1 ) ? (key->grid_size - 1) : (y0 + 1);
+	y1 = y0 >= (key->grid_size - 1) ? (key->grid_size - 1) : (y0 + 1);
 
 	u = crn_x - x0;
 	v = crn_y - y0;
@@ -1024,7 +1024,7 @@ static DerivedMesh *multiresbake_create_loresdm(Scene *scene, Object *ob, int *l
 		tmp_mmd.lvl = *lvl;
 		tmp_mmd.sculptlvl = *lvl;
 		dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob,
-												MULTIRES_USE_LOCAL_MMD);
+		                                        MULTIRES_USE_LOCAL_MMD);
 		cddm->release(cddm);
 	}
 
@@ -1045,7 +1045,7 @@ static DerivedMesh *multiresbake_create_hiresdm(Scene *scene, Object *ob, int *l
 	tmp_mmd.lvl = mmd->totlvl;
 	tmp_mmd.sculptlvl = mmd->totlvl;
 	dm = multires_make_derived_from_derived(cddm, &tmp_mmd, ob,
-											MULTIRES_USE_LOCAL_MMD);
+	                                        MULTIRES_USE_LOCAL_MMD);
 	cddm->release(cddm);
 
 	return dm;

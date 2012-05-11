@@ -57,8 +57,8 @@ typedef void (*StrokeUpdateStep)(struct bContext *C, struct PaintStroke *stroke,
 typedef void (*StrokeDone)(const struct bContext *C, struct PaintStroke *stroke);
 
 struct PaintStroke *paint_stroke_new(struct bContext *C,
-					 StrokeGetLocation get_location, StrokeTestStart test_start,
-					 StrokeUpdateStep update_step, StrokeDone done, int event_type);
+                                     StrokeGetLocation get_location, StrokeTestStart test_start,
+                                     StrokeUpdateStep update_step, StrokeDone done, int event_type);
 void paint_stroke_data_free(struct wmOperator *op);
 
 int paint_space_stroke_enabled(struct Brush *br);
@@ -116,24 +116,24 @@ void SCULPT_OT_uv_sculpt_stroke(struct wmOperatorType *ot);
  * its minimum and maximum corners) into a screen-space rectangle,
  * returns zero if the result is empty */
 int paint_convert_bb_to_rect(struct rcti *rect,
-							 const float bb_min[3],
-							 const float bb_max[3],
-							 const struct ARegion *ar,
-							 struct RegionView3D *rv3d,
-							 struct Object *ob);
+                             const float bb_min[3],
+                             const float bb_max[3],
+                             const struct ARegion *ar,
+                             struct RegionView3D *rv3d,
+                             struct Object *ob);
 
 /* Get four planes in object-space that describe the projection of
  * screen_rect from screen into object-space (essentially converting a
  * 2D screens-space bounding box into four 3D planes) */
 void paint_calc_redraw_planes(float planes[4][4],
-							  const struct ARegion *ar,
-							  struct RegionView3D *rv3d,
-							  struct Object *ob,
-							  const struct rcti *screen_rect);
+                              const struct ARegion *ar,
+                              struct RegionView3D *rv3d,
+                              struct Object *ob,
+                              const struct rcti *screen_rect);
 
 void projectf(struct bglMats *mats, const float v[3], float p[2]);
 float paint_calc_object_space_radius(struct ViewContext *vc, const float center[3], float pixel_radius);
-float paint_get_tex_pixel(struct Brush* br, float u, float v);
+float paint_get_tex_pixel(struct Brush *br, float u, float v);
 int imapaint_pick_face(struct ViewContext *vc, const int mval[2], unsigned int *index, unsigned int totface);
 void imapaint_pick_uv(struct Scene *scene, struct Object *ob, unsigned int faceindex, const int xy[2], float uv[2]);
 

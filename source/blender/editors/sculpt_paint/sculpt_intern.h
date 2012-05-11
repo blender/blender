@@ -78,8 +78,8 @@ typedef struct SculptUndoNode {
 
 	SculptUndoType type;
 
-	char idname[MAX_ID_NAME];	/* name instead of pointer*/
-	void *node;					/* only during push, not valid afterwards! */
+	char idname[MAX_ID_NAME];   /* name instead of pointer*/
+	void *node;                 /* only during push, not valid afterwards! */
 
 	float (*co)[3];
 	float (*orig_co)[3];
@@ -88,15 +88,15 @@ typedef struct SculptUndoNode {
 	int totvert;
 
 	/* non-multires */
-	int maxvert;				/* to verify if totvert it still the same */
-	int *index;					/* to restore into right location */
+	int maxvert;                /* to verify if totvert it still the same */
+	int *index;                 /* to restore into right location */
 	BLI_bitmap vert_hidden;
 
 	/* multires */
-	int maxgrid;				/* same for grid */
-	int gridsize;				/* same for grid */
-	int totgrid;				/* to restore into right location */
-	int *grids;					/* to restore into right location */
+	int maxgrid;                /* same for grid */
+	int gridsize;               /* same for grid */
+	int totgrid;                /* to restore into right location */
+	int *grids;                 /* to restore into right location */
 	BLI_bitmap *grid_hidden;
 
 	/* layer brush */
