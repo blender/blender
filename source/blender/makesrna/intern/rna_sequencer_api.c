@@ -330,7 +330,7 @@ static StripElem *rna_SequenceElements_push(Sequence *seq, Main *bmain, const ch
 	StripElem *se;
 
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		Editing *ed = seq_give_editing(scene, FALSE);
+		Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 		if (ed) {
 			for (seqn = ed->seqbase.first; seqn; seqn = seqn->next) {
 				if (seqn == seq)
@@ -362,7 +362,7 @@ static void rna_SequenceElements_pop(Sequence *seq, Main *bmain, ReportList *rep
 	}
 
 	for (scene = bmain->scene.first; scene; scene = scene->id.next) {
-		Editing *ed = seq_give_editing(scene, FALSE);
+		Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 		if (ed) {
 			for (seqn = ed->seqbase.first; seqn; seqn = seqn->next) {
 				if (seqn == seq)

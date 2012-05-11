@@ -635,15 +635,6 @@ static void rna_Scene_all_keyingsets_next(CollectionPropertyIterator *iter)
 	iter->valid = (internal->link != NULL);
 }
 
-static PointerRNA rna_Scene_sequence_editor_get(PointerRNA *ptr)
-{
-	Scene *scene = (Scene *)ptr->data;
-	/* mallocs an Editing (if it doesn't exist) so you can access
-	* Scene.sequence_editor functions without having to manually
-	* add a Sequence using the UI to create the SequenceEditor */
-	return rna_pointer_inherit_refine(ptr, &RNA_SequenceEditor, seq_give_editing(scene, TRUE));
-}
-
 static char *rna_RenderSettings_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("render");
@@ -4168,7 +4159,9 @@ void RNA_def_scene(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
 	FunctionRNA *func;
+	PropertyRNA *parm;
 	
 	static EnumPropertyItem audio_distance_model_items[] = {
 		{0, "NONE", 0, "None", "No distance attenuation"},
@@ -4362,10 +4355,17 @@ void RNA_def_scene(BlenderRNA *brna)
 	/* Sequencer */
 	prop = RNA_def_property(srna, "sequence_editor", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "ed");
-	RNA_def_property_pointer_funcs(prop, "rna_Scene_sequence_editor_get", NULL, NULL, NULL);
 	RNA_def_property_struct_type(prop, "SequenceEditor");
 	RNA_def_property_ui_text(prop, "Sequence Editor", "");
 	
+	func = RNA_def_function(srna, "sequence_editor_create", "BKE_sequencer_editing_ensure");
+	RNA_def_function_ui_description(func, "Ensure sequence editor is valid in this scene");
+	parm = RNA_def_pointer(func, "sequence_editor", "SequenceEditor", "", "New sequence editor data or NULL");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "sequence_editor_clear", "BKE_sequencer_editing_free");
+	RNA_def_function_ui_description(func, "Clear sequence editor in this scene");
+
 	/* Keying Sets */
 	prop = RNA_def_property(srna, "keying_sets", PROP_COLLECTION, PROP_NONE);
 	RNA_def_property_collection_sdna(prop, NULL, "keyingsets", NULL);

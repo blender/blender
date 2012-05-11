@@ -216,13 +216,10 @@ void seq_free_sequence_recurse(Scene *scene, Sequence *seq)
 }
 
 
-Editing *seq_give_editing(Scene *scene, int alloc)
+Editing *BKE_sequencer_editing_get(Scene *scene, int alloc)
 {
-	if (scene->ed == NULL && alloc) {
-		Editing *ed;
-
-		ed = scene->ed = MEM_callocN(sizeof(Editing), "addseq");
-		ed->seqbasep = &ed->seqbase;
+	if (alloc) {
+		BKE_sequencer_editing_ensure(scene);
 	}
 	return scene->ed;
 }
@@ -250,7 +247,19 @@ void seq_free_clipboard(void)
 	seqbase_clipboard.first = seqbase_clipboard.last = NULL;
 }
 
-void seq_free_editing(Scene *scene)
+Editing *BKE_sequencer_editing_ensure(Scene *scene)
+{
+	if (scene->ed == NULL) {
+		Editing *ed;
+
+		ed = scene->ed = MEM_callocN(sizeof(Editing), "addseq");
+		ed->seqbasep = &ed->seqbase;
+	}
+
+	return scene->ed;
+}
+
+void BKE_sequencer_editing_free(Scene *scene)
 {
 	Editing *ed = scene->ed;
 	MetaStack *ms;
@@ -754,11 +763,11 @@ void reload_sequence_new_file(Scene *scene, Sequence *seq, int lock_range)
 	calc_sequence(scene, seq);
 }
 
-void sort_seq(Scene *scene)
+void BKE_sequencer_sort(Scene *scene)
 {
 	/* all strips together per kind, and in order of y location ("machine") */
 	ListBase seqbase, effbase;
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *seqt;
 
 	
@@ -1075,7 +1084,7 @@ static int evaluate_seq_frame_gen(Sequence **seq_arr, ListBase *seqbase, int cfr
 
 int evaluate_seq_frame(Scene *scene, int cfra)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq_arr[MAXSEQ + 1];
 
 	if (ed == NULL) return 0;
@@ -2530,7 +2539,7 @@ static ImBuf *seq_render_strip_stack(
 
 ImBuf *give_ibuf_seq(SeqRenderData context, float cfra, int chanshown)
 {
-	Editing *ed = seq_give_editing(context.scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(context.scene, FALSE);
 	int count;
 	ListBase *seqbasep;
 	
@@ -3007,7 +3016,7 @@ static int update_changed_seq_recurs(Scene *scene, Sequence *seq, Sequence *chan
 
 void update_changed_seq_and_deps(Scene *scene, Sequence *changed_seq, int len_change, int ibuf_change)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq;
 	
 	if (ed == NULL) return;
@@ -3254,7 +3263,7 @@ void seq_sound_init(Scene *scene, Sequence *seq)
 
 Sequence *seq_foreground_frame_get(Scene *scene, int frame)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	Sequence *seq, *best_seq = NULL;
 	int best_machine = -1;
 	
@@ -3660,26 +3669,26 @@ Sequence *get_seq_by_name(ListBase *seqbase, const char *name, int recursive)
 }
 
 
-Sequence *seq_active_get(Scene *scene)
+Sequence *BKE_sequencer_active_get(Scene *scene)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	if (ed == NULL) return NULL;
 	return ed->act_seq;
 }
 
-void seq_active_set(Scene *scene, Sequence *seq)
+void BKE_sequencer_active_set(Scene *scene, Sequence *seq)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	if (ed == NULL) return;
 
 	ed->act_seq = seq;
 }
 
-int seq_active_pair_get(Scene *scene, Sequence **seq_act, Sequence **seq_other)
+int BKE_sequencer_active_get_pair(Scene *scene, Sequence **seq_act, Sequence **seq_other)
 {
-	Editing *ed = seq_give_editing(scene, FALSE);
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	*seq_act = seq_active_get(scene);
+	*seq_act = BKE_sequencer_active_get(scene);
 
 	if (*seq_act == NULL) {
 		return 0;
@@ -3718,7 +3727,7 @@ void seq_load_apply(Scene *scene, Sequence *seq, SeqLoadInfo *seq_load)
 
 		if (seq_load->flag & SEQ_LOAD_REPLACE_SEL) {
 			seq_load->flag |= SELECT;
-			seq_active_set(scene, seq);
+			BKE_sequencer_active_set(scene, seq);
 		}
 
 		if (seq_load->flag & SEQ_LOAD_SOUND_CACHE) {
@@ -3785,7 +3794,7 @@ Sequence *sequencer_add_sound_strip(bContext *C, ListBase *seqbasep, SeqLoadInfo
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C); /* only for sound */
-	Editing *ed = seq_give_editing(scene, TRUE);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
 	bSound *sound;
 
 	Sequence *seq;  /* generic strip vars */
@@ -4015,7 +4024,7 @@ void seqbase_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *nseqbase, 
 {
 	Sequence *seq;
 	Sequence *seqn = NULL;
-	Sequence *last_seq = seq_active_get(scene);
+	Sequence *last_seq = BKE_sequencer_active_get(scene);
 
 	for (seq = seqbase->first; seq; seq = seq->next) {
 		seq->tmp = NULL;
@@ -4033,7 +4042,7 @@ void seqbase_dupli_recursive(Scene *scene, Scene *scene_to, ListBase *nseqbase, 
 
 				if (dupe_flag & SEQ_DUPE_CONTEXT) {
 					if (seq == last_seq) {
-						seq_active_set(scene, seqn);
+						BKE_sequencer_active_set(scene, seqn);
 					}
 				}
 			}

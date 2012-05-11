@@ -266,7 +266,7 @@ void BKE_scene_free(Scene *sce)
 	}
 
 	BLI_freelistN(&sce->base);
-	seq_free_editing(sce);
+	BKE_sequencer_editing_free(sce);
 
 	BKE_free_animdata((ID *)sce);
 	BKE_keyingsets_free(&sce->keyingsets);
