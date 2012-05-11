@@ -719,41 +719,55 @@ void IMB_exr_close(void *handle)
 
 /* ********* */
 
+/* get a substring from the end of the name, separated by '.' */
+static int imb_exr_split_token(const char *str, const char *end, const char **token)
+{
+	int maxlen = end-str;
+	int len = 0;
+	while (len < maxlen && *(end-len-1) != '.')
+		++len;
+	
+	*token = end-len;
+	return len;
+}
+
 static int imb_exr_split_channel_name(ExrChannel *echan, char *layname, char *passname)
 {
-	int plen, len= strlen(echan->name);
+	const char *name = echan->name;
+	const char *end = name + strlen(name);
+	const char *token;
+	char tokenbuf[EXR_TOT_MAXNAME];
+	int len;
 	
-	if (len < 4) {
-		printf("multilayer read: name too short: %s\n", echan->name);
+	/* last token is single character channel identifier */
+	len = imb_exr_split_token(name, end, &token);
+	if (len == 0) {
+		printf("multilayer read: bad channel name: %s\n", name);
 		return 0;
 	}
-	if (echan->name[len-2]!='.') {
-		printf("multilayer read: name has no Channel: %s\n", echan->name);
+	else if (len > 1) {
+		BLI_strncpy(tokenbuf, token, len);
+		printf("multilayer read: channel token too long: %s\n", tokenbuf);
 		return 0;
 	}
-	echan->chan_id= echan->name[len-1];
+	echan->chan_id = token[0];
+	end -= len + 1;	/* +1 to skip '.' separator */
 	
-	len-= 3;
-	while (len>=0) {
-		if (echan->name[len]=='.')
-			break;
-		len--;
-	}
-	BLI_strncpy(passname, echan->name+len+1, EXR_PASS_MAXNAME);
-	plen= strlen(passname);
-	if (plen < 3) {
-		printf("multilayer read: should not happen: %s\n", echan->name);
+	/* second token is pass name */
+	len = imb_exr_split_token(name, end, &token);
+	if (len == 0) {
+		printf("multilayer read: bad channel name: %s\n", name);
 		return 0;
 	}
-	passname[plen-2]= 0;
+	BLI_strncpy(passname, token, len+1);
+	end -= len + 1;	/* +1 to skip '.' separator */
 	
-	if (len<1)
-		layname[0]= 0;
-	else {
-		BLI_strncpy(layname, echan->name, EXR_LAY_MAXNAME);
-		layname[len]= 0;
-	}
-	// printf("found lay %s pass %s chan %c\n", layname, passname, echan->chan_id);
+	/* all preceding tokens combined as layer name */
+	if (end > name)
+		BLI_strncpy(layname, name, (int)(end-name)+1);
+	else
+		layname[0] = '\0';
+	
 	return 1;
 }
 

@@ -734,6 +734,11 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			for (sock=node->inputs.first; sock; sock=sock->next)
 				writestruct(wd, DATA, "NodeImageMultiFileSocket", 1, sock->storage);
 		}
+		if (node->type==CMP_NODE_IMAGE) {
+			/* write extra socket info */
+			for (sock=node->outputs.first; sock; sock=sock->next)
+				writestruct(wd, DATA, "NodeImageLayer", 1, sock->storage);
+		}
 	}
 	
 	for (link= ntree->links.first; link; link= link->next)

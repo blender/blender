@@ -6840,6 +6840,52 @@ static void do_versions_nodetree_multi_file_output_path_2_64_0(bNodeTree *ntree)
 	}
 }
 
+static void do_versions_nodetree_file_output_layers_2_64_5(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type==CMP_NODE_OUTPUT_FILE) {
+			bNodeSocket *sock;
+			for (sock=node->inputs.first; sock; sock=sock->next) {
+				NodeImageMultiFileSocket *input = sock->storage;
+				
+				/* multilayer names are stored as separate strings now,
+				 * used the path string before, so copy it over.
+				 */
+				BLI_strncpy(input->layer, input->path, sizeof(input->layer));
+				
+				/* paths/layer names also have to be unique now, initial check */
+				ntreeCompositOutputFileUniquePath(&node->inputs, sock, input->path, '_');
+				ntreeCompositOutputFileUniqueLayer(&node->inputs, sock, input->layer, '_');
+			}
+		}
+	}
+}
+
+static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type==CMP_NODE_IMAGE) {
+			ImageUser *iuser= (ImageUser *)node->storage;
+			bNodeSocket *sock;
+			for (sock=node->outputs.first; sock; sock=sock->next) {
+				NodeImageLayer *output = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
+				
+				/* take layer index from image user (this is ignored from now on) */
+				output->layer_index = iuser->layer;
+				/* take pass index both from current storage ptr (actually an int) */
+				output->pass_index = GET_INT_FROM_POINTER(sock->storage);
+				
+				/* replace socket data pointer */
+				sock->storage = output;
+			}
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7452,6 +7498,26 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(cu->bevfac2 == 0.0f) {
 				cu->bevfac1 = 0.0f;
 				cu->bevfac2 = 1.0f;
+			}
+		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 5))
+	{
+		{
+			/* file output node paths are now stored in the file info struct instead socket name */
+			Scene *sce;
+			bNodeTree *ntree;
+			
+			for (sce = main->scene.first; sce; sce=sce->id.next) {
+				if (sce->nodetree) {
+					do_versions_nodetree_file_output_layers_2_64_5(sce->nodetree);
+					do_versions_nodetree_image_layer_2_64_5(sce->nodetree);
+				}
+			}
+			for (ntree = main->nodetree.first; ntree; ntree=ntree->id.next) {
+				do_versions_nodetree_file_output_layers_2_64_5(ntree);
+				do_versions_nodetree_image_layer_2_64_5(ntree);
 			}
 		}
 	}
