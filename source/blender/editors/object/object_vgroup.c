@@ -538,6 +538,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
 
+	/*get faces*/
+	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
+
+	/*printf("test % \n", *mface_src);*/
+
 	/* Loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
@@ -549,15 +554,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get weight*/
-		printf("test %d %d \n", me_src->mface->v1, (*me_src->mface).v1);
-		mface_src= me_src->mface + nearest.index;
 		/*tot_dist= ()+()+(); use a comparable distance
 		if(mface_src->v4){
 			tot_dist+= ();
 		}*/
-		printf("test %d \n", (*mface_src).v1);
-		dv_array_src+= mface_src->v1;
-		dw_src= defvert_verify_index(*dv_array_src, index_src);
+		dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
 		weight= dw_src->weight;
 		dw_src= defvert_verify_index(dv_array_src[mface_src->v2], index_src);
 		weight+= dw_src->weight;
