@@ -764,6 +764,7 @@ class WM_OT_path_open(Operator):
 
     filepath = StringProperty(
             subtype='FILE_PATH',
+            options={'SKIP_SAVE'},
             )
 
     def execute(self, context):
@@ -771,7 +772,13 @@ class WM_OT_path_open(Operator):
         import os
         import subprocess
 
-        filepath = bpy.path.abspath(self.filepath)
+        filepath = self.filepath
+
+        if not filepath:
+            self.report({'ERROR'}, "File path was not set")
+            return {'CANCELLED'}
+
+        filepath = bpy.path.abspath(filepath)
         filepath = os.path.normpath(filepath)
 
         if not os.path.exists(filepath):
