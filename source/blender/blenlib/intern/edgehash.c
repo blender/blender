@@ -41,14 +41,14 @@
 #include "BLI_mempool.h"
 
 /**************inlined code************/
-static unsigned int _ehash_hashsizes[]= {
+static unsigned int _ehash_hashsizes[] = {
 	1, 3, 5, 11, 17, 37, 67, 131, 257, 521, 1031, 2053, 4099, 8209,
 	16411, 32771, 65537, 131101, 262147, 524309, 1048583, 2097169,
 	4194319, 8388617, 16777259, 33554467, 67108879, 134217757,
 	268435459
 };
 
-#define EDGE_HASH(v0, v1)  ((v0 * 39)^(v1 * 31))
+#define EDGE_HASH(v0, v1)  ((v0 * 39) ^ (v1 * 31))
 
 /* ensure v0 is smaller */
 #define EDGE_ORD(v0, v1) \
@@ -105,9 +105,9 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 	e->v1 = v1;
 	e->val = val;
 	e->next = eh->buckets[hash];
-	eh->buckets[hash]= e;
+	eh->buckets[hash] = e;
 
-	if (++eh->nentries>eh->nbuckets * 3) {
+	if (++eh->nentries > eh->nbuckets * 3) {
 		EdgeEntry *e, **old = eh->buckets;
 		int i, nold = eh->nbuckets;
 
@@ -116,12 +116,12 @@ void BLI_edgehash_insert(EdgeHash *eh, unsigned int v0, unsigned int v1, void *v
 		memset(eh->buckets, 0, eh->nbuckets * sizeof(*eh->buckets));
 
 		for (i = 0; i < nold; i++) {
-			for (e = old[i]; e;) {
+			for (e = old[i]; e; ) {
 				EdgeEntry *n = e->next;
 
 				hash = EDGE_HASH(e->v0, e->v1) % eh->nbuckets;
 				e->next = eh->buckets[hash];
-				eh->buckets[hash]= e;
+				eh->buckets[hash] = e;
 
 				e = n;
 			}
@@ -150,7 +150,7 @@ void *BLI_edgehash_lookup(EdgeHash *eh, unsigned int v0, unsigned int v1)
 {
 	void **value_p = BLI_edgehash_lookup_p(eh, v0, v1);
 
-	return value_p?*value_p:NULL;
+	return value_p ? *value_p : NULL;
 }
 
 int BLI_edgehash_haskey(EdgeHash *eh, unsigned int v0, unsigned int v1)
@@ -167,7 +167,7 @@ void BLI_edgehash_clear(EdgeHash *eh, EdgeHashFreeFP valfreefp)
 {
 	int i;
 	
-	for (i = 0; i<eh->nbuckets; i++) {
+	for (i = 0; i < eh->nbuckets; i++) {
 		EdgeEntry *e;
 		
 		for (e = eh->buckets[i]; e; ) {
@@ -231,7 +231,7 @@ void BLI_edgehashIterator_getKey(EdgeHashIterator *ehi, unsigned int *v0_r, unsi
 }
 void *BLI_edgehashIterator_getValue(EdgeHashIterator *ehi)
 {
-	return ehi->curEntry?ehi->curEntry->val:NULL;
+	return ehi->curEntry ? ehi->curEntry->val : NULL;
 }
 
 void BLI_edgehashIterator_setValue(EdgeHashIterator *ehi, void *val)

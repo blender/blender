@@ -184,7 +184,7 @@ void *BLI_heap_popmin(Heap *heap)
 	if (heap->size == 1)
 		heap->size--;
 	else {
-		HEAP_SWAP(heap, 0, heap->size-1);
+		HEAP_SWAP(heap, 0, heap->size - 1);
 		heap->size--;
 
 		BLI_heap_down(heap, 0);

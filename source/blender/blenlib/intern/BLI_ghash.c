@@ -78,7 +78,7 @@ int BLI_ghash_size(GHash *gh)
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-	Entry *e = (Entry*)BLI_mempool_alloc(gh->entrypool);
+	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
 
 	e->key = key;
 	e->val = val;
@@ -90,11 +90,11 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 		int i, nold = gh->nbuckets;
 
 		gh->nbuckets = hashsizes[++gh->cursize];
-		gh->buckets = (Entry**)MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+		gh->buckets = (Entry **)MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 		memset(gh->buckets, 0, gh->nbuckets * sizeof(*gh->buckets));
 
 		for (i = 0; i < nold; i++) {
-			for (e = old[i]; e;) {
+			for (e = old[i]; e; ) {
 				Entry *n = e->next;
 
 				hash = gh->hashfp(e->key) % gh->nbuckets;
@@ -174,7 +174,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 		for (i = 0; i < gh->nbuckets; i++) {
 			Entry *e;
 
-			for (e = gh->buckets[i]; e;) {
+			for (e = gh->buckets[i]; e; ) {
 				Entry *n = e->next;
 
 				if (keyfreefp) keyfreefp(e->key);
@@ -333,6 +333,6 @@ int BLI_ghashutil_paircmp(const void *a, const void *b)
 
 void BLI_ghashutil_pairfree(void *ptr)
 {
-	MEM_freeN((void*)ptr);
+	MEM_freeN((void *)ptr);
 }
 

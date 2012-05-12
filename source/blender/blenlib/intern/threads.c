@@ -114,7 +114,7 @@ static pthread_mutex_t _opengl_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _nodes_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_mutex_t _movieclip_lock = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t mainid;
-static int thread_levels= 0;	/* threads can be invoked inside threads */
+static int thread_levels = 0;  /* threads can be invoked inside threads */
 
 /* just a max for security reasons */
 #define RE_MAX_THREAD BLENDER_MAX_THREADS
@@ -151,16 +151,16 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 	int a;
 
 	if (threadbase != NULL && tot > 0) {
-		threadbase->first= threadbase->last= NULL;
+		threadbase->first = threadbase->last = NULL;
 	
-		if (tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
-		else if (tot<1) tot= 1;
+		if (tot > RE_MAX_THREAD) tot = RE_MAX_THREAD;
+		else if (tot < 1) tot = 1;
 	
-		for (a=0; a<tot; a++) {
-			ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
+		for (a = 0; a < tot; a++) {
+			ThreadSlot *tslot = MEM_callocN(sizeof(ThreadSlot), "threadslot");
 			BLI_addtail(threadbase, tslot);
-			tslot->do_thread= do_thread;
-			tslot->avail= 1;
+			tslot->do_thread = do_thread;
+			tslot->avail = 1;
 		}
 	}
 	
@@ -182,9 +182,9 @@ void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 int BLI_available_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
-	int counter=0;
+	int counter = 0;
 	
-	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail)
 			counter++;
 	}
@@ -195,9 +195,9 @@ int BLI_available_threads(ListBase *threadbase)
 int BLI_available_thread_index(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
-	int counter=0;
+	int counter = 0;
 	
-	for (tslot= threadbase->first; tslot; tslot= tslot->next, counter++) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (tslot->avail)
 			return counter;
 	}
@@ -206,12 +206,12 @@ int BLI_available_thread_index(ListBase *threadbase)
 
 static void *tslot_thread_start(void *tslot_p)
 {
-	ThreadSlot *tslot= (ThreadSlot*)tslot_p;
+	ThreadSlot *tslot = (ThreadSlot *)tslot_p;
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
 	/* workaround for Apple gcc 4.2.1 omp vs background thread bug,
 	 * set gomp thread local storage pointer which was copied beforehand */
-	pthread_setspecific (gomp_tls_key, thread_tls_data);
+	pthread_setspecific(gomp_tls_key, thread_tls_data);
 #endif
 
 	return tslot->do_thread(tslot->callerdata);
@@ -226,10 +226,10 @@ void BLI_insert_thread(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
-	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
 		if (tslot->avail) {
-			tslot->avail= 0;
-			tslot->callerdata= callerdata;
+			tslot->avail = 0;
+			tslot->callerdata = callerdata;
 			pthread_create(&tslot->pthread, NULL, tslot_thread_start, tslot);
 			return;
 		}
@@ -241,11 +241,11 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 {
 	ThreadSlot *tslot;
 	
-	for (tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if (tslot->callerdata==callerdata) {
+	for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+		if (tslot->callerdata == callerdata) {
 			pthread_join(tslot->pthread, NULL);
-			tslot->callerdata= NULL;
-			tslot->avail= 1;
+			tslot->callerdata = NULL;
+			tslot->avail = 1;
 		}
 	}
 }
@@ -253,7 +253,7 @@ void BLI_remove_thread(ListBase *threadbase, void *callerdata)
 void BLI_remove_thread_index(ListBase *threadbase, int index)
 {
 	ThreadSlot *tslot;
-	int counter=0;
+	int counter = 0;
 	
 	for (tslot = threadbase->first; tslot; tslot = tslot->next, counter++) {
 		if (counter == index && tslot->avail == 0) {
@@ -286,8 +286,8 @@ void BLI_end_threads(ListBase *threadbase)
 	 * this way we don't end up decrementing thread_levels on an empty threadbase 
 	 * */
 	if (threadbase && threadbase->first != NULL) {
-		for (tslot= threadbase->first; tslot; tslot= tslot->next) {
-			if (tslot->avail==0) {
+		for (tslot = threadbase->first; tslot; tslot = tslot->next) {
+			if (tslot->avail == 0) {
 				pthread_join(tslot->pthread, NULL);
 			}
 		}
@@ -295,7 +295,7 @@ void BLI_end_threads(ListBase *threadbase)
 	}
 
 	thread_levels--;
-	if (thread_levels==0)
+	if (thread_levels == 0)
 		MEM_set_lock_callback(NULL, NULL);
 }
 
@@ -310,7 +310,7 @@ int BLI_system_thread_count(void)
 	GetSystemInfo(&info);
 	t = (int) info.dwNumberOfProcessors;
 #else 
-#	ifdef __APPLE__
+#   ifdef __APPLE__
 	int mib[2];
 	size_t len;
 	
@@ -318,14 +318,14 @@ int BLI_system_thread_count(void)
 	mib[1] = HW_NCPU;
 	len = sizeof(t);
 	sysctl(mib, 2, &t, &len, NULL, 0);
-#	else
+#   else
 	t = (int)sysconf(_SC_NPROCESSORS_ONLN);
-#	endif
+#   endif
 #endif
 	
-	if (t>RE_MAX_THREAD)
+	if (t > RE_MAX_THREAD)
 		return RE_MAX_THREAD;
-	if (t<1)
+	if (t < 1)
 		return 1;
 	
 	return t;
@@ -335,41 +335,41 @@ int BLI_system_thread_count(void)
 
 void BLI_lock_thread(int type)
 {
-	if (type==LOCK_IMAGE)
+	if (type == LOCK_IMAGE)
 		pthread_mutex_lock(&_image_lock);
-	else if (type==LOCK_PREVIEW)
+	else if (type == LOCK_PREVIEW)
 		pthread_mutex_lock(&_preview_lock);
-	else if (type==LOCK_VIEWER)
+	else if (type == LOCK_VIEWER)
 		pthread_mutex_lock(&_viewer_lock);
-	else if (type==LOCK_CUSTOM1)
+	else if (type == LOCK_CUSTOM1)
 		pthread_mutex_lock(&_custom1_lock);
-	else if (type==LOCK_RCACHE)
+	else if (type == LOCK_RCACHE)
 		pthread_mutex_lock(&_rcache_lock);
-	else if (type==LOCK_OPENGL)
+	else if (type == LOCK_OPENGL)
 		pthread_mutex_lock(&_opengl_lock);
-	else if (type==LOCK_NODES)
+	else if (type == LOCK_NODES)
 		pthread_mutex_lock(&_nodes_lock);
-	else if (type==LOCK_MOVIECLIP)
+	else if (type == LOCK_MOVIECLIP)
 		pthread_mutex_lock(&_movieclip_lock);
 }
 
 void BLI_unlock_thread(int type)
 {
-	if (type==LOCK_IMAGE)
+	if (type == LOCK_IMAGE)
 		pthread_mutex_unlock(&_image_lock);
-	else if (type==LOCK_PREVIEW)
+	else if (type == LOCK_PREVIEW)
 		pthread_mutex_unlock(&_preview_lock);
-	else if (type==LOCK_VIEWER)
+	else if (type == LOCK_VIEWER)
 		pthread_mutex_unlock(&_viewer_lock);
-	else if (type==LOCK_CUSTOM1)
+	else if (type == LOCK_CUSTOM1)
 		pthread_mutex_unlock(&_custom1_lock);
-	else if (type==LOCK_RCACHE)
+	else if (type == LOCK_RCACHE)
 		pthread_mutex_unlock(&_rcache_lock);
-	else if (type==LOCK_OPENGL)
+	else if (type == LOCK_OPENGL)
 		pthread_mutex_unlock(&_opengl_lock);
-	else if (type==LOCK_NODES)
+	else if (type == LOCK_NODES)
 		pthread_mutex_unlock(&_nodes_lock);
-	else if (type==LOCK_MOVIECLIP)
+	else if (type == LOCK_MOVIECLIP)
 		pthread_mutex_unlock(&_movieclip_lock);
 }
 
@@ -425,20 +425,20 @@ void BLI_rw_mutex_end(ThreadRWMutex *mutex)
 typedef struct ThreadedWorker {
 	ListBase threadbase;
 	void *(*work_fnct)(void *);
-	char	 busy[RE_MAX_THREAD];
-	int		 total;
-	int		 sleep_time;
+	char busy[RE_MAX_THREAD];
+	int total;
+	int sleep_time;
 } ThreadedWorker;
 
 typedef struct WorkParam {
 	ThreadedWorker *worker;
 	void *param;
-	int	  index;
+	int index;
 } WorkParam;
 
 static void *exec_work_fnct(void *v_param)
 {
-	WorkParam *p = (WorkParam*)v_param;
+	WorkParam *p = (WorkParam *)v_param;
 	void *value;
 	
 	value = p->worker->work_fnct(p->param);
@@ -461,7 +461,7 @@ ThreadedWorker *BLI_create_worker(void *(*do_thread)(void *), int tot, int sleep
 		tot = RE_MAX_THREAD;
 	}
 	else if (tot < 1) {
-		tot= 1;
+		tot = 1;
 	}
 	
 	worker->total = tot;
@@ -528,8 +528,8 @@ ThreadQueue *BLI_thread_queue_init(void)
 {
 	ThreadQueue *queue;
 
-	queue= MEM_callocN(sizeof(ThreadQueue), "ThreadQueue");
-	queue->queue= BLI_gsqueue_new(sizeof(void*));
+	queue = MEM_callocN(sizeof(ThreadQueue), "ThreadQueue");
+	queue->queue = BLI_gsqueue_new(sizeof(void *));
 
 	pthread_mutex_init(&queue->mutex, NULL);
 	pthread_cond_init(&queue->cond, NULL);
@@ -560,7 +560,7 @@ void BLI_thread_queue_push(ThreadQueue *queue, void *work)
 
 void *BLI_thread_queue_pop(ThreadQueue *queue)
 {
-	void *work= NULL;
+	void *work = NULL;
 
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
@@ -586,7 +586,7 @@ static void wait_timeout(struct timespec *timeout, int ms)
 		struct _timeb now;
 		_ftime(&now);
 		sec = now.time;
-		usec = now.millitm*1000; /* microsecond precision would be better */
+		usec = now.millitm * 1000; /* microsecond precision would be better */
 	}
 #else
 	{
@@ -601,23 +601,23 @@ static void wait_timeout(struct timespec *timeout, int ms)
 	div_result = ldiv(ms, 1000);
 	timeout->tv_sec = sec + div_result.quot;
 
-	x = usec + (div_result.rem*1000);
+	x = usec + (div_result.rem * 1000);
 
 	if (x >= 1000000) {
 		timeout->tv_sec++;
 		x -= 1000000;
 	}
 
-	timeout->tv_nsec = x*1000;
+	timeout->tv_nsec = x * 1000;
 }
 
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 {
 	double t;
-	void *work= NULL;
+	void *work = NULL;
 	struct timespec timeout;
 
-	t= PIL_check_seconds_timer();
+	t = PIL_check_seconds_timer();
 	wait_timeout(&timeout, ms);
 
 	/* wait until there is work */
@@ -625,7 +625,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
 		if (pthread_cond_timedwait(&queue->cond, &queue->mutex, &timeout) == ETIMEDOUT)
 			break;
-		else if (PIL_check_seconds_timer() - t >= ms*0.001)
+		else if (PIL_check_seconds_timer() - t >= ms * 0.001)
 			break;
 	}
 
@@ -643,7 +643,7 @@ int BLI_thread_queue_size(ThreadQueue *queue)
 	int size;
 
 	pthread_mutex_lock(&queue->mutex);
-	size= BLI_gsqueue_size(queue->queue);
+	size = BLI_gsqueue_size(queue->queue);
 	pthread_mutex_unlock(&queue->mutex);
 
 	return size;
@@ -653,7 +653,7 @@ void BLI_thread_queue_nowait(ThreadQueue *queue)
 {
 	pthread_mutex_lock(&queue->mutex);
 
-	queue->nowait= 1;
+	queue->nowait = 1;
 
 	/* signal threads waiting to pop */
 	pthread_cond_signal(&queue->cond);
@@ -671,6 +671,6 @@ void BLI_begin_threaded_malloc(void)
 void BLI_end_threaded_malloc(void)
 {
 	thread_levels--;
-	if (thread_levels==0)
+	if (thread_levels == 0)
 		MEM_set_lock_callback(NULL, NULL);
 }

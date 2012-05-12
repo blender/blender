@@ -429,23 +429,23 @@ int isect_line_sphere_v3(const float l1[3], const float l2[3],
 	 */
 
 	const float ldir[3] = {
-	    l2[0] - l1[0],
-	    l2[1] - l1[1],
-	    l2[2] - l1[2]
+		l2[0] - l1[0],
+		l2[1] - l1[1],
+		l2[2] - l1[2]
 	};
 
 	const float a = dot_v3v3(ldir, ldir);
 
 	const float b = 2.0f *
-	        (ldir[0] * (l1[0] - sp[0]) +
-	         ldir[1] * (l1[1] - sp[1]) +
-	         ldir[2] * (l1[2] - sp[2]));
+	                (ldir[0] * (l1[0] - sp[0]) +
+	                 ldir[1] * (l1[1] - sp[1]) +
+	                 ldir[2] * (l1[2] - sp[2]));
 
 	const float c =
-	        dot_v3v3(sp, sp) +
-	        dot_v3v3(l1, l1) -
-	        (2.0f * dot_v3v3(sp, l1)) -
-	        (r * r);
+	    dot_v3v3(sp, sp) +
+	    dot_v3v3(l1, l1) -
+	    (2.0f * dot_v3v3(sp, l1)) -
+	    (r * r);
 
 	const float i = b * b - 4.0f * a * c;
 
@@ -490,14 +490,14 @@ int isect_line_sphere_v2(const float l1[2], const float l2[2],
 	const float a = dot_v2v2(ldir, ldir);
 
 	const float b = 2.0f *
-	        (ldir[0] * (l1[0] - sp[0]) +
-	         ldir[1] * (l1[1] - sp[1]));
+	                (ldir[0] * (l1[0] - sp[0]) +
+	                 ldir[1] * (l1[1] - sp[1]));
 
 	const float c =
-	        dot_v2v2(sp, sp) +
-	        dot_v2v2(l1, l1) -
-	        (2.0f * dot_v2v2(sp, l1)) -
-	        (r * r);
+	    dot_v2v2(sp, sp) +
+	    dot_v2v2(l1, l1) -
+	    (2.0f * dot_v2v2(sp, l1)) -
+	    (r * r);
 
 	const float i = b * b - 4.0f * a * c;
 
@@ -1738,9 +1738,9 @@ void axis_dominant_v3(int *axis_a, int *axis_b, const float axis[3])
 	const float yn = fabsf(axis[1]);
 	const float zn = fabsf(axis[2]);
 
-	if      (zn >= xn && zn >= yn) { *axis_a= 0; *axis_b = 1; }
-	else if (yn >= xn && yn >= zn) { *axis_a= 0; *axis_b = 2; }
-	else                           { *axis_a= 1; *axis_b = 2; }
+	if      (zn >= xn && zn >= yn) { *axis_a = 0; *axis_b = 1; }
+	else if (yn >= xn && yn >= zn) { *axis_a = 0; *axis_b = 2; }
+	else                           { *axis_a = 1; *axis_b = 2; }
 }
 
 static float tri_signed_area(const float v1[3], const float v2[3], const float v3[3], const int i, const int j)
