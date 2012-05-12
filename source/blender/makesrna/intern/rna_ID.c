@@ -82,6 +82,8 @@ EnumPropertyItem id_type_items[] = {
 #include "BKE_material.h"
 #include "BKE_depsgraph.h"
 
+#include "WM_api.h"
+
 /* name functions that ignore the first two ID characters */
 void rna_ID_name_get(PointerRNA *ptr, char *value)
 {
@@ -336,6 +338,25 @@ int rna_IDMaterials_assign_int(PointerRNA *ptr, int key, const PointerRNA *assig
 	}
 }
 
+void rna_IDMaterials_append_id(ID *id, Material *ma)
+{
+	material_append_id(id, ma);
+
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
+	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
+}
+
+Material *rna_IDMaterials_pop_id(ID *id, int index_i, int remove_material_slot)
+{
+	Material *ma = material_pop_id(id, index_i, remove_material_slot);
+
+	DAG_id_tag_update(id, OB_RECALC_DATA);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, id);
+	WM_main_add_notifier(NC_OBJECT | ND_OB_SHADING, id);
+
+	return ma;
+}
+
 void rna_Library_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Library *lib = (Library *)ptr->data;
@@ -442,12 +463,12 @@ static void rna_def_ID_materials(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "ID");
 	RNA_def_struct_ui_text(srna, "ID Materials", "Collection of materials");
 
-	func = RNA_def_function(srna, "append", "material_append_id");
+	func = RNA_def_function(srna, "append", "rna_IDMaterials_append_id");
 	RNA_def_function_ui_description(func, "Add a new material to the data block");
 	parm = RNA_def_pointer(func, "material", "Material", "", "Material to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
-	
-	func = RNA_def_function(srna, "pop", "material_pop_id");
+
+	func = RNA_def_function(srna, "pop", "rna_IDMaterials_pop_id");
 	RNA_def_function_ui_description(func, "Remove a material from the data block");
 	parm = RNA_def_int(func, "index", 0, 0, MAXMAT, "", "Index of material to remove", 0, MAXMAT);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
