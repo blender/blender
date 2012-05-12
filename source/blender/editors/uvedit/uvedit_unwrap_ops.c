@@ -1184,7 +1184,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))
 		scene->toolsettings->unwrapper = method;
-	
+	else
+		RNA_enum_set(op->ptr, "method", scene->toolsettings->unwrapper);
+
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
 	if (fill_holes) scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;
