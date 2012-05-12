@@ -128,7 +128,8 @@ enum {
 
 /* Runtime flags */
 enum {
-	GP_PAINTFLAG_FIRSTRUN       = (1 << 0)    /* operator just started */
+	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),    /* operator just started */
+	GP_PAINTFLAG_STROKEADDED    = (1 << 1)
 };
 
 /* ------ */
@@ -142,9 +143,15 @@ enum {
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX    (U.gp_euclideandist)
 
-static int gp_stroke_is_added(tGPsdata *p)
+static int gp_stroke_added_check(tGPsdata *p)
 {
-	return (p->gpf && p->gpf->strokes.last);
+	return (p->gpf && p->gpf->strokes.last && p->flags & GP_PAINTFLAG_STROKEADDED);
+}
+
+static void gp_stroke_added_enable(tGPsdata *p)
+{
+	BLI_assert(p->gpf->strokes.last != NULL);
+	p->flags |= GP_PAINTFLAG_STROKEADDED;
 }
 
 /* ------ */
@@ -394,7 +401,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 		 * to stroke. This allows to draw lines more interactively (see new segment
 		 * during mouse slide, i.e.) 
 		 */
-		if (gp_stroke_is_added(p)) {
+		if (gp_stroke_added_check(p)) {
 			bGPDstroke *gps = p->gpf->strokes.last;
 			bGPDspoint *pts;
 
@@ -582,7 +589,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	 * coordinates are getting added to stroke immediately to allow more
 	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
-		if (gp_stroke_is_added(p)) {
+		if (gp_stroke_added_check(p)) {
 			return;
 		}
 	}
@@ -718,6 +725,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
+	gp_stroke_added_enable(p);
 }
 
 /* --- 'Eraser' for 'Paint' Tool ------ */
@@ -1803,7 +1811,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	//printf("\tGP - handle modal event...\n");
 	
 	/* exit painting mode (and/or end current stroke) */
-	if (ELEM4(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY)) {
+	if (ELEM5(event->type, RETKEY, PADENTER, ESCKEY, SPACEKEY, RIGHTMOUSE)) {
 		/* exit() ends the current stroke before cleaning up */
 		//printf("\t\tGP - end of paint op + end of stroke\n");
 		p->status = GP_STATUS_DONE;
@@ -1811,7 +1819,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 	}
 	
 	/* toggle painting mode upon mouse-button movement */
-	if (ELEM(event->type, LEFTMOUSE, RIGHTMOUSE)) {
+	if (event->type == LEFTMOUSE) {
 		/* if painting, end stroke */
 		if (p->status == GP_STATUS_PAINTING) {
 			int sketch = 0;
