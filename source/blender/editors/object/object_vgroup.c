@@ -514,7 +514,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight, tot_dist, dist_v1, dist_v2, dist_v3, dist_v4;
+	float weight, tot_dist, dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3];
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -556,17 +556,21 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
+		/*set destination coordinate*/
+		copy_v3_v3(tmp_co, mv_dst->co);
+
 		/*Node tree accelerated search for closest face*/
-		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get weight*/
 
 		/*TODO: Have to project onto face to get a decent result*/
+		/*Smart solution might be to just substract the distance difference to plane instead.*/
 
 		/*get distances*/
-		dist_v1= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v1].co);
-		dist_v2= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v2].co);
-		dist_v3= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v3].co);
+		dist_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+		dist_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+		dist_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
 
 		/*get weight from overlapping vert if any*/
 		if(dist_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
@@ -578,25 +582,57 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 			/*check for quad*/
 			if(mface_src[nearest.index].v4){
-				dist_v4= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src->v4].co);
+				dist_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src->v4].co);
 
 				/*check if vert 4 is overlapping*/
 				if(dist_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 
 				/*get weight from quad*/
 				else{
-					tot_dist= dist_v1 + dist_v2 + dist_v3 + dist_v4;
+					if(dist_v1 > dist_v2||dist_v1 > dist_v3||dist_v1 > dist_v4){
+						/*exclude v1 and get weight from the 3 closest*/
+						tot_dist= dist_v4 + dist_v2 + dist_v3;
 
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-					weight= dw_src->weight * dist_v1;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-					weight+= dw_src->weight * dist_v2;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-					weight+= dw_src->weight * dist_v3;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-					weight+= dw_src->weight * dist_v4;
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+						weight= dw_src->weight * (1-dist_v4/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+					}
+					else if(dist_v2 > dist_v3||dist_v2 > dist_v4){
+						/*exclude v2 and get weight from the 3 closest*/
+						tot_dist= dist_v1 + dist_v4 + dist_v3;
 
-					weight/= tot_dist;
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+					}
+					else if(dist_v3 > dist_v4){
+						/*exclude v3 and get weight from the 3 closest*/
+						tot_dist= dist_v1 + dist_v2 + dist_v4;
+
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+					}
+					else{
+						/*exclude v4 and get weight from the 3 closest*/
+						tot_dist= dist_v1 + dist_v2 + dist_v3;
+
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+					}
 				}
 			}
 
@@ -605,13 +641,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 				tot_dist= dist_v1 + dist_v2 + dist_v3;
 
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-				weight= dw_src->weight * dist_v1;
+				weight= dw_src->weight * (1-dist_v1/tot_dist);
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-				weight+= dw_src->weight * dist_v2;
+				weight+= dw_src->weight * (1-dist_v2/tot_dist);
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-				weight+= dw_src->weight * dist_v3;
-
-				weight/= tot_dist;
+				weight+= dw_src->weight * (1-dist_v3/tot_dist);
 			}
 		}
 
