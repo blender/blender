@@ -809,6 +809,20 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 						}
 						break;
 
+					case SIMEDGE_BEVEL:
+						if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+							float *c1, *c2;
+
+							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
+							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_BWEIGHT);
+
+							if (c1 && c2 && fabsf(*c1 - *c2) <= thresh) {
+								BMO_elem_flag_enable(bm, e, EDGE_MARK);
+								cont = FALSE;
+							}
+						}
+						break;
+
 					case SIMEDGE_SEAM:
 						if (BM_elem_flag_test(e, BM_ELEM_SEAM) == BM_elem_flag_test(es, BM_ELEM_SEAM)) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
