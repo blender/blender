@@ -1016,7 +1016,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 
 	/* Crease needs edge flag */
-	if (t->mode == TFM_CREASE) {
+	if (ELEM(t->mode, TFM_CREASE, TFM_BWEIGHT)) {
 		t->options |= CTX_EDGE;
 	}
 
