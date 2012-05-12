@@ -1937,8 +1937,8 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.operator("curve.extrude")
-    layout.operator("curve.duplicate")
+    layout.operator("curve.extrude_move")
+    layout.operator("curve.duplicate_move")
     layout.operator("curve.separate")
     layout.operator("curve.make_segment")
     layout.operator("curve.cyclic_toggle")
