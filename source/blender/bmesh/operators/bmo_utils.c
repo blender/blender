@@ -522,7 +522,8 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	int *indices = NULL;
 	float t_no[3];	/* temporary normal */
 	int type = BMO_slot_int_get(op, "type");
-	float thresh = BMO_slot_float_get(op, "thresh");
+	const float thresh = BMO_slot_float_get(op, "thresh");
+	const float thresh_radians = thresh * (float)M_PI;
 
 	num_total = BM_mesh_elem_count(bm, BM_FACE);
 
@@ -616,16 +617,16 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMFACE_NORMAL:
-						angle = RAD2DEGF(angle_v3v3(fs->no, fm->no));	/* if the angle between the normals -> 0 */
-						if (angle / 180.0f <= thresh) {
+						angle = angle_normalized_v3v3(fs->no, fm->no);	/* if the angle between the normals -> 0 */
+						if (angle <= thresh_radians) {
 							BMO_elem_flag_enable(bm, fm, FACE_MARK);
 							cont = FALSE;
 						}
 						break;
 
 					case SIMFACE_COPLANAR:
-						angle = RAD2DEGF(angle_v3v3(fs->no, fm->no)); /* angle -> 0 */
-						if (angle / 180.0f <= thresh) { /* and dot product difference -> 0 */
+						angle = angle_normalized_v3v3(fs->no, fm->no); /* angle -> 0 */
+						if (angle <= thresh_radians) { /* and dot product difference -> 0 */
 							if (fabsf(f_ext[i].d - f_ext[indices[idx]].d) <= thresh) {
 								BMO_elem_flag_enable(bm, fm, FACE_MARK);
 								cont = FALSE;
@@ -697,7 +698,21 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 
 	int num_sels = 0, num_total = 0;
 	int type = BMO_slot_int_get(op, "type");
-	float thresh = BMO_slot_float_get(op, "thresh");
+	const float thresh = BMO_slot_float_get(op, "thresh");
+
+	/* sanity checks that the data we need is available */
+	switch (type) {
+		case SIMEDGE_CREASE:
+			if (!CustomData_has_layer(&bm->edata, CD_CREASE)) {
+				return;
+			}
+			break;
+		case SIMEDGE_BEVEL:
+			if (!CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+				return;
+			}
+			break;
+	}
 
 	num_total = BM_mesh_elem_count(bm, BM_EDGE);
 
@@ -708,8 +723,8 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* allocate memory for the selected edges indices and for all temporary edges */
-	indices = (int *)MEM_callocN(sizeof(int) * num_sels, "indices util.c");
-	e_ext = (SimSel_EdgeExt *)MEM_callocN(sizeof(SimSel_EdgeExt) * num_total, "e_ext util.c");
+	indices = (int *)MEM_callocN(sizeof(int) * num_sels, __func__);
+	e_ext = (SimSel_EdgeExt *)MEM_callocN(sizeof(SimSel_EdgeExt) * num_total, __func__);
 
 	/* loop through all the edges and fill the edges/indices structure */
 	BM_ITER_MESH (e, &e_iter, bm, BM_EDGES_OF_MESH) {
@@ -731,6 +746,7 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 
 				case SIMEDGE_DIR:		/* compute the direction */
 					sub_v3_v3v3(e_ext[i].dir, e_ext[i].e->v1->co, e_ext[i].e->v2->co);
+					normalize_v3(e_ext[i].dir);
 					break;
 
 				case SIMEDGE_FACE:		/* count the faces around the edge */
@@ -763,12 +779,12 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 
 					case SIMEDGE_DIR:
 						/* compute the angle between the two edges */
-						angle = RAD2DEGF(angle_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir));
+						angle = angle_normalized_v3v3(e_ext[i].dir, e_ext[indices[idx]].dir);
 
-						if (angle > 90.0f) /* use the smallest angle between the edges */
-							angle = fabsf(angle - 180.0f);
+						if (angle > (float)(M_PI / 2.0)) /* use the smallest angle between the edges */
+							angle = fabsf(angle - (float)M_PI);
 
-						if (angle / 90.0f <= thresh) {
+						if (angle / (float)(M_PI / 2.0) <= thresh) {
 							BMO_elem_flag_enable(bm, e, EDGE_MARK);
 							cont = FALSE;
 						}
@@ -796,13 +812,13 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMEDGE_CREASE:
-						if (CustomData_has_layer(&bm->edata, CD_CREASE)) {
+						{
 							float *c1, *c2;
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_CREASE);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_CREASE);
 
-							if (c1 && c2 && fabsf(*c1 - *c2) <= thresh) {
+							if (fabsf(*c1 - *c2) <= thresh) {
 								BMO_elem_flag_enable(bm, e, EDGE_MARK);
 								cont = FALSE;
 							}
@@ -810,13 +826,13 @@ void bmo_similaredges_exec(BMesh *bm, BMOperator *op)
 						break;
 
 					case SIMEDGE_BEVEL:
-						if (CustomData_has_layer(&bm->edata, CD_BWEIGHT)) {
+						{
 							float *c1, *c2;
 
 							c1 = CustomData_bmesh_get(&bm->edata, e->head.data, CD_BWEIGHT);
 							c2 = CustomData_bmesh_get(&bm->edata, es->head.data, CD_BWEIGHT);
 
-							if (c1 && c2 && fabsf(*c1 - *c2) <= thresh) {
+							if (fabsf(*c1 - *c2) <= thresh) {
 								BMO_elem_flag_enable(bm, e, EDGE_MARK);
 								cont = FALSE;
 							}
@@ -875,7 +891,8 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 	int *indices = NULL;
 	int num_total = 0, num_sels = 0, i = 0, idx = 0;
 	int type = BMO_slot_int_get(op, "type");
-	float thresh = BMO_slot_float_get(op, "thresh");
+	const float thresh = BMO_slot_float_get(op, "thresh");
+	const float thresh_radians = thresh * (float)M_PI;
 
 	num_total = BM_mesh_elem_count(bm, BM_VERT);
 
@@ -926,7 +943,7 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 				switch (type) {
 					case SIMVERT_NORMAL:
 						/* compare the angle between the normals */
-						if (RAD2DEGF(angle_v3v3(v->no, vs->no)) / 180.0f <= thresh) {
+						if (angle_normalized_v3v3(v->no, vs->no) <= thresh_radians) {
 							BMO_elem_flag_enable(bm, v, VERT_MARK);
 							cont = FALSE;
 						}
