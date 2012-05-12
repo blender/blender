@@ -514,7 +514,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight, tot_dist, dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3];
+	float weight, tot_distribution, distribution_v1, distribution_v2, distribution_v3, distribution_v4, tmp_co[3];
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -544,6 +544,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
+
 	mv_src= dmesh_src->getVertArray(dmesh_src);
 
 	/*get faces*/
@@ -568,84 +569,100 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		/*Smart solution might be to just substract the distance difference to plane instead.*/
 
 		/*get distances*/
-		dist_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
-		dist_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
-		dist_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+		distribution_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+		distribution_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+		distribution_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+
+		/*test
+		printf("dist_v1 %f index v1%d \n", dist_v1, mface_src[nearest.index].v1);
+		printf("dist_v2 %f index v2%d \n", dist_v2, mface_src[nearest.index].v2);
+		printf("dist_v3 %f index v3%d \n", dist_v3, mface_src[nearest.index].v3);*/
 
 		/*get weight from overlapping vert if any*/
-		if(dist_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
-		if(dist_v2 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
-		if(dist_v3 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+		if(distribution_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+		if(distribution_v2 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+		if(distribution_v3 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
 
 		/*interpolate weight*/
 		else{
 
 			/*check for quad*/
 			if(mface_src[nearest.index].v4){
-				dist_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src->v4].co);
+				distribution_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src->v4].co);
 
 				/*check if vert 4 is overlapping*/
-				if(dist_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+				if(distribution_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 
 				/*get weight from quad*/
 				else{
 
+					/*invert distribution*/
+					distribution_v1= 1 / distribution_v1;
+					distribution_v2= 1 / distribution_v2;
+					distribution_v3= 1 / distribution_v3;
+					distribution_v4= 1 / distribution_v4;
+
 					/*exclude v1 and get weight from the 3 closest*/
-					if(dist_v1 >= dist_v2 && dist_v1 >= dist_v3 && dist_v1 >= dist_v4){
-						tot_dist= dist_v4 + dist_v2 + dist_v3;
+					if(distribution_v1 > distribution_v2 && distribution_v1 > distribution_v3 && distribution_v1 > distribution_v4){
+						tot_distribution= distribution_v4 + distribution_v2 + distribution_v3;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight= dw_src->weight * (1-dist_v4/tot_dist);
+						weight= dw_src->weight * distribution_v4 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight * distribution_v2 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight * distribution_v3 / tot_distribution;
 					}
 
 					/*exclude v2 and get weight from the 3 closest*/
-					else if(dist_v2 >= dist_v3 && dist_v2 >= dist_v4){
-						tot_dist= dist_v1 + dist_v4 + dist_v3;
+					else if(distribution_v2 > distribution_v3 && distribution_v2 > distribution_v4){
+						tot_distribution= distribution_v1 + distribution_v4 + distribution_v3;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight * distribution_v1 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+						weight+= dw_src->weight * distribution_v4 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight * distribution_v3 / tot_distribution;
 					}
 
 					/*exclude v3 and get weight from the 3 closest*/
-					else if(dist_v3 >= dist_v4){
-						tot_dist= dist_v1 + dist_v2 + dist_v4;
+					else if(distribution_v3 > distribution_v4){
+						tot_distribution= distribution_v1 + distribution_v2 + distribution_v4;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight * distribution_v1 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight * distribution_v2 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+						weight+= dw_src->weight * distribution_v4 / tot_distribution;
 					}
 
-					/*exclude v4 and get weight from the 3 closest*/
+					/*exclude v4 and get weight from the 3 closest. Also when some distances are the same*/
 					else{
-						tot_dist= dist_v1 + dist_v2 + dist_v3;
+						tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight * distribution_v1 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight * distribution_v2 / tot_distribution;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight * distribution_v3 / tot_distribution;
 					}
 				}
 			}
 
 			/*get weight from triangle*/
 			else{
-				tot_dist= dist_v1 + dist_v2 + dist_v3;
 
+				/*invert distribution*/
+				distribution_v1= 1 / distribution_v1;
+				distribution_v2= 1 / distribution_v2;
+				distribution_v3= 1 / distribution_v3;
+
+				tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-				weight= dw_src->weight * (1-dist_v1/tot_dist);
+				weight= dw_src->weight * distribution_v1 / tot_distribution;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-				weight+= dw_src->weight * (1-dist_v2/tot_dist);
+				weight+= dw_src->weight * distribution_v2 / tot_distribution;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-				weight+= dw_src->weight * (1-dist_v3/tot_dist);
+				weight+= dw_src->weight * distribution_v3 / tot_distribution;
 			}
 		}
 
