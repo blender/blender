@@ -40,31 +40,31 @@ struct _GSQueueElem {
 };
 
 struct _GSQueue {
-	GSQueueElem	*head;
-	GSQueueElem	*tail;
-	int			elem_size;
+	GSQueueElem *head;
+	GSQueueElem *tail;
+	int elem_size;
 };
 
 GSQueue *BLI_gsqueue_new(int elem_size)
 {
-	GSQueue *gq= MEM_mallocN(sizeof(*gq), "gqueue_new");
-	gq->head= gq->tail= NULL;
-	gq->elem_size= elem_size;
+	GSQueue *gq = MEM_mallocN(sizeof(*gq), "gqueue_new");
+	gq->head = gq->tail = NULL;
+	gq->elem_size = elem_size;
 	
 	return gq;
 }
 
 int BLI_gsqueue_is_empty(GSQueue *gq)
 {
-	return (gq->head==NULL);
+	return (gq->head == NULL);
 }
 
 int BLI_gsqueue_size(GSQueue *gq)
 { 
 	GSQueueElem *elem;
-	int size= 0;
+	int size = 0;
 
-	for (elem=gq->head; elem; elem=elem->next)
+	for (elem = gq->head; elem; elem = elem->next)
 		size++;
 	
 	return size;
@@ -76,12 +76,12 @@ void BLI_gsqueue_peek(GSQueue *gq, void *item_r)
 }
 void BLI_gsqueue_pop(GSQueue *gq, void *item_r)
 {
-	GSQueueElem *elem= gq->head;
-	if (elem==gq->tail) {
-		gq->head= gq->tail= NULL;
+	GSQueueElem *elem = gq->head;
+	if (elem == gq->tail) {
+		gq->head = gq->tail = NULL;
 	}
 	else {
-		gq->head= gq->head->next;
+		gq->head = gq->head->next;
 	}
 	
 	if (item_r) memcpy(item_r, &elem[1], gq->elem_size);
@@ -93,31 +93,31 @@ void BLI_gsqueue_push(GSQueue *gq, void *item)
 	
 	/* compare: prevent events added double in row */
 	if (!BLI_gsqueue_is_empty(gq)) {
-		if (0==memcmp(item, &gq->head[1], gq->elem_size))
+		if (0 == memcmp(item, &gq->head[1], gq->elem_size))
 			return;
 	}
-	elem= MEM_mallocN(sizeof(*elem)+gq->elem_size, "gqueue_push");
+	elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
 	memcpy(&elem[1], item, gq->elem_size);
-	elem->next= NULL;
+	elem->next = NULL;
 	
 	if (BLI_gsqueue_is_empty(gq)) {
-		gq->tail= gq->head= elem;
+		gq->tail = gq->head = elem;
 	}
 	else {
-		gq->tail= gq->tail->next= elem;
+		gq->tail = gq->tail->next = elem;
 	}
 }
 void BLI_gsqueue_pushback(GSQueue *gq, void *item)
 {
-	GSQueueElem *elem= MEM_mallocN(sizeof(*elem)+gq->elem_size, "gqueue_push");
+	GSQueueElem *elem = MEM_mallocN(sizeof(*elem) + gq->elem_size, "gqueue_push");
 	memcpy(&elem[1], item, gq->elem_size);
-	elem->next= gq->head;
+	elem->next = gq->head;
 
 	if (BLI_gsqueue_is_empty(gq)) {
-		gq->head= gq->tail= elem;
+		gq->head = gq->tail = elem;
 	}
 	else {
-		gq->head= elem;
+		gq->head = elem;
 	}
 }
 

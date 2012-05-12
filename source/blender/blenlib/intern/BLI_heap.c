@@ -60,10 +60,10 @@ struct Heap {
 #define HEAP_COMPARE(a, b) (a->value < b->value)
 #define HEAP_EQUALS(a, b) (a->value == b->value)
 #define HEAP_SWAP(heap, i, j) \
-{                                                                             \
-	SWAP(int, heap->tree[i]->index, heap->tree[j]->index);                    \
-	SWAP(HeapNode *, heap->tree[i], heap->tree[j]);                           \
-}
+	{                                                                            \
+		SWAP(int, heap->tree[i]->index, heap->tree[j]->index);                   \
+		SWAP(HeapNode *, heap->tree[i], heap->tree[j]);                          \
+	}
 
 /***/
 

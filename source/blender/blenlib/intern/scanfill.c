@@ -193,7 +193,7 @@ static void mem_element_reset(ScanFillContext *sf_ctx, int keep_first)
 
 void BLI_scanfill_end(ScanFillContext *sf_ctx)
 {
-	 mem_element_reset(sf_ctx, FALSE);
+	mem_element_reset(sf_ctx, FALSE);
 	
 	sf_ctx->fillvertbase.first = sf_ctx->fillvertbase.last = NULL;
 	sf_ctx->filledgebase.first = sf_ctx->filledgebase.last = NULL;

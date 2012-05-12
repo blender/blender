@@ -38,17 +38,17 @@
 #include "DNA_vec_types.h"
 #include "BLI_rect.h"
 
-int BLI_rcti_is_empty(rcti * rect)
+int BLI_rcti_is_empty(rcti *rect)
 {
 	return ((rect->xmax <= rect->xmin) || (rect->ymax <= rect->ymin));
 }
 
-int BLI_rctf_is_empty(rctf * rect)
+int BLI_rctf_is_empty(rctf *rect)
 {
 	return ((rect->xmax <= rect->xmin) || (rect->ymax <= rect->ymin));
 }
 
-int BLI_in_rcti(rcti * rect, int x, int y)
+int BLI_in_rcti(rcti *rect, int x, int y)
 {
 	if (x < rect->xmin) return 0;
 	if (x > rect->xmax) return 0;

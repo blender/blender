@@ -38,10 +38,10 @@
 
 
 
-static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group);
+static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring, int total, float axis[3], float limit, int group);
 
 static void handleAxialSymmetry(BGraph *graph, BNode *root_node, int depth, float axis[3], float limit);
-static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNode* node2, BArc* arc1, BArc* arc2, float axis[3], float limit, int group);
+static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNode *node2, BArc *arc1, BArc *arc2, float axis[3], float limit, int group);
 static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int group);
 
 void BLI_freeNode(BGraph *graph, BNode *node)
@@ -109,13 +109,13 @@ void BLI_buildAdjacencyList(BGraph *graph)
 			MEM_freeN(node->arcs);
 		}
 		
-		node->arcs = MEM_callocN((node->degree) * sizeof(BArc*), "adjacency list");
+		node->arcs = MEM_callocN((node->degree) * sizeof(BArc *), "adjacency list");
 		
 		/* temporary use to indicate the first index available in the lists */
 		node->flag = 0;
 	}
 
-	for (arc = graph->arcs.first; arc; arc= arc->next) {
+	for (arc = graph->arcs.first; arc; arc = arc->next) {
 		addArcToNodeAdjacencyList(arc->head, arc);
 		addArcToNodeAdjacencyList(arc->tail, arc);
 	}
@@ -127,7 +127,7 @@ void BLI_buildAdjacencyList(BGraph *graph)
 	}
 }
 
-void BLI_rebuildAdjacencyListForNode(BGraph* graph, BNode *node)
+void BLI_rebuildAdjacencyListForNode(BGraph *graph, BNode *node)
 {
 	BArc *arc;
 
@@ -135,12 +135,12 @@ void BLI_rebuildAdjacencyListForNode(BGraph* graph, BNode *node)
 		MEM_freeN(node->arcs);
 	}
 	
-	node->arcs = MEM_callocN((node->degree) * sizeof(BArc*), "adjacency list");
+	node->arcs = MEM_callocN((node->degree) * sizeof(BArc *), "adjacency list");
 	
 	/* temporary use to indicate the first index available in the lists */
 	node->flag = 0;
 
-	for (arc = graph->arcs.first; arc; arc= arc->next) {
+	for (arc = graph->arcs.first; arc; arc = arc->next) {
 		if (arc->head == node) {
 			addArcToNodeAdjacencyList(arc->head, arc);
 		}
@@ -249,7 +249,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 	
 }
 
-BNode * BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
+BNode *BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
 {
 	BNode *closest_node = NULL, *node;
 	float min_distance = 0.0f;
@@ -343,7 +343,7 @@ static int detectCycle(BNode *node, BArc *src_arc)
 	return value;
 }
 
-int	BLI_isGraphCyclic(BGraph *graph)
+int BLI_isGraphCyclic(BGraph *graph)
 {
 	BNode *node;
 	int value = 0;
@@ -364,7 +364,7 @@ int	BLI_isGraphCyclic(BGraph *graph)
 	return value;
 }
 
-BArc * BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
+BArc *BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v)
 {
 	BArc *nextArc;
 	
@@ -476,7 +476,7 @@ void BLI_mirrorAlongAxis(float v[3], float center[3], float axis[3])
 	add_v3_v3(v, pv);
 }
 
-static void testRadialSymmetry(BGraph *graph, BNode* root_node, RadialArc* ring, int total, float axis[3], float limit, int group)
+static void testRadialSymmetry(BGraph *graph, BNode *root_node, RadialArc *ring, int total, float axis[3], float limit, int group)
 {
 	int symmetric = 1;
 	int i;
@@ -707,7 +707,7 @@ static void flagAxialSymmetry(BNode *root_node, BNode *end_node, BArc *arc, int 
 	}
 }
 
-static void testAxialSymmetry(BGraph *graph, BNode* root_node, BNode* node1, BNode* node2, BArc* arc1, BArc* arc2, float axis[3], float limit, int group)
+static void testAxialSymmetry(BGraph *graph, BNode *root_node, BNode *node1, BNode *node2, BArc *arc1, BArc *arc2, float axis[3], float limit, int group)
 {
 	float nor[3], vec[3], p[3];
 
@@ -962,21 +962,21 @@ void BLI_markdownSymmetry(BGraph *graph, BNode *root_node, float limit)
 	}
 }
 
-void* IT_head(void* arg)
+void *IT_head(void *arg)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->head(iter);
 }
 
-void* IT_tail(void* arg)
+void *IT_tail(void *arg)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->tail(iter); 
 }
 
-void* IT_peek(void* arg, int n)
+void *IT_peek(void *arg, int n)
 {
-	BArcIterator *iter = (BArcIterator*)arg;
+	BArcIterator *iter = (BArcIterator *)arg;
 	
 	if (iter->index + n < 0) {
 		return iter->head(iter);
@@ -989,26 +989,26 @@ void* IT_peek(void* arg, int n)
 	}
 }
 
-void* IT_next(void* arg)
+void *IT_next(void *arg)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->next(iter);
 }
 
-void* IT_nextN(void* arg, int n)
+void *IT_nextN(void *arg, int n)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->nextN(iter, n);
 }
 
-void* IT_previous(void* arg)
+void *IT_previous(void *arg)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->previous(iter);
 }
 
-int   IT_stopped(void* arg)
+int   IT_stopped(void *arg)
 {
-	BArcIterator *iter = (BArcIterator*)arg; 
+	BArcIterator *iter = (BArcIterator *)arg;
 	return iter->stopped(iter);
 }
