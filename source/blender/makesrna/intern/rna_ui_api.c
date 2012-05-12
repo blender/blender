@@ -50,13 +50,13 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname,
 		return;
 	}
 
-	flag |= (slider)? UI_ITEM_R_SLIDER: 0;
-	flag |= (expand)? UI_ITEM_R_EXPAND: 0;
-	flag |= (toggle)? UI_ITEM_R_TOGGLE: 0;
-	flag |= (icon_only)? UI_ITEM_R_ICON_ONLY: 0;
-	flag |= (event)? UI_ITEM_R_EVENT: 0;
-	flag |= (full_event)? UI_ITEM_R_FULL_EVENT: 0;
-	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
+	flag |= (slider) ? UI_ITEM_R_SLIDER : 0;
+	flag |= (expand) ? UI_ITEM_R_EXPAND : 0;
+	flag |= (toggle) ? UI_ITEM_R_TOGGLE : 0;
+	flag |= (icon_only) ? UI_ITEM_R_ICON_ONLY : 0;
+	flag |= (event) ? UI_ITEM_R_EVENT : 0;
+	flag |= (full_event) ? UI_ITEM_R_FULL_EVENT : 0;
+	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
 
 	uiItemFullR(layout, ptr, prop, index, 0, flag, name, icon);
 }
@@ -64,7 +64,7 @@ static void rna_uiItemR(uiLayout *layout, PointerRNA *ptr, const char *propname,
 static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *name, int icon, int emboss)
 {
 	int flag = UI_ITEM_O_RETURN_PROPS;
-	flag |= (emboss)? 0: UI_ITEM_R_NO_BG;
+	flag |= (emboss) ? 0 : UI_ITEM_R_NO_BG;
 	return uiItemFullO(layout, opname, name, icon, NULL, uiLayoutGetOperatorContext(layout), flag);
 }
 
@@ -75,7 +75,8 @@ static PointerRNA rna_uiItemO(uiLayout *layout, const char *opname, const char *
 #define DEF_VICO(name) {VICO_##name, (#name), 0, (#name), ""},
 static EnumPropertyItem icon_items[] = {
 #include "UI_icons.h"
-		{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 #undef DEF_ICON_BLANK_SKIP
 #undef DEF_ICON
 #undef DEF_VICO
@@ -110,7 +111,7 @@ static void api_ui_item_rna_common(FunctionRNA *func)
 	PropertyRNA *parm;
 
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
@@ -124,13 +125,15 @@ void RNA_api_ui_layout(StructRNA *srna)
 		{0, "NONE", 0, "None", ""},
 		{'v', "VECTOR", 0, "Vector", ""},
 		{'c', "COLOR", 0, "Color", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	static EnumPropertyItem list_type_items[] = {
 		{0, "DEFAULT", 0, "None", ""},
 		{'c', "COMPACT", 0, "Compact", ""},
 		{'i', "ICONS", 0, "Icons", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* simple layout specifiers */
 	func = RNA_def_function(srna, "row", "uiLayoutRow");
@@ -160,7 +163,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
 	RNA_def_function_ui_description(func, "Sublayout (items placed in this sublayout are placed "
-	                                      "under each other in a column and are surrounded by a box)");
+	                                "under each other in a column and are surrounded by a box)");
 	
 	/* split layout */
 	func = RNA_def_function(srna, "split", "uiLayoutSplit");
@@ -201,7 +204,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "prop_search", "uiItemPointerR");
 	api_ui_item_rna_common(func);
 	parm = RNA_def_pointer(func, "search_data", "AnyType", "", "Data from which to take collection to search in");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_string(func, "search_property", "", 0, "", "Identifier of search collection property");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
@@ -210,17 +213,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 	api_ui_item_op_common(func);
 	RNA_def_boolean(func, "emboss", 1, "", "Draw the button itself, just the icon/text");
 	parm = RNA_def_pointer(func, "properties", "OperatorProperties", "",
-	                      "Operator properties to fill in, return when 'properties' is set to true");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	                       "Operator properties to fill in, return when 'properties' is set to true");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	RNA_def_function_return(func, parm);
 	RNA_def_function_ui_description(func, "Item. Places a button into the layout to call an Operator");
-
-/*	func= RNA_def_function(srna, "operator_enum_single", "uiItemEnumO_string");
-	api_ui_item_op_common(func);
-	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
-	RNA_def_property_flag(parm, PROP_REQUIRED);
-	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value");
-	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
 	func = RNA_def_function(srna, "operator_enum", "uiItemsEnumO");
 	parm = RNA_def_string(func, "operator", "", 0, "", "Identifier of the operator");
@@ -234,14 +230,24 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	api_ui_item_common(func);
 
-/*	func= RNA_def_function(srna, "operator_boolean", "uiItemBooleanO");
+	/* useful in C but not in python */
+#if 0
+
+	func= RNA_def_function(srna, "operator_enum_single", "uiItemEnumO_string");
+	api_ui_item_op_common(func);
+	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm= RNA_def_string(func, "value", "", 0, "", "Enum property value");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func= RNA_def_function(srna, "operator_boolean", "uiItemBooleanO");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_boolean(func, "value", 0, "", "Value of the property to call the operator with");
 	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
-/*	func= RNA_def_function(srna, "operator_int", "uiItemIntO");
+	func= RNA_def_function(srna, "operator_int", "uiItemIntO");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -249,7 +255,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	                  "Value of the property to call the operator with", INT_MIN, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
-/*	func= RNA_def_function(srna, "operator_float", "uiItemFloatO");
+	func= RNA_def_function(srna, "operator_float", "uiItemFloatO");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -257,12 +263,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	                    "Value of the property to call the operator with", -FLT_MAX, FLT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED); */
 
-/*	func= RNA_def_function(srna, "operator_string", "uiItemStringO");
+	func= RNA_def_function(srna, "operator_string", "uiItemStringO");
 	api_ui_item_op_common(func);
 	parm= RNA_def_string(func, "property", "", 0, "", "Identifier of property in operator");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm= RNA_def_string(func, "value", "", 0, "", "Value of the property to call the operator with");
-	RNA_def_property_flag(parm, PROP_REQUIRED); */
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+#endif
 
 	func = RNA_def_function(srna, "label", "uiItemL");
 	RNA_def_function_ui_description(func, "Item. Display text in the layout");
@@ -282,7 +289,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	parm = RNA_def_string(func, "name", "", 0, "Name", "Name of entry in the context");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Pointer to put in context");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	
 	/* templates */
 	func = RNA_def_function(srna, "template_header", "uiTemplateHeader");
@@ -307,35 +314,35 @@ void RNA_api_ui_layout(StructRNA *srna)
 	
 	func = RNA_def_function(srna, "template_any_ID", "uiTemplateAnyID");
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_string(func, "type_property", "", 0, "",
-	                     "Identifier of property in data giving the type of the ID-blocks to use");
+	                      "Identifier of property in data giving the type of the ID-blocks to use");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func = RNA_def_function(srna, "template_path_builder", "uiTemplatePathBuilder");
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "root", "ID", "", "ID-block from which path is evaluated from");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	RNA_def_string_translate(func, "text", "", 0, "", "Custom label to display in UI");
 	
 	func = RNA_def_function(srna, "template_modifier", "uiTemplateModifier");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	RNA_def_function_ui_description(func, "Layout . Generates the UI layout for modifiers");
 	parm = RNA_def_pointer(func, "data", "Modifier", "", "Modifier data");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "template_constraint", "uiTemplateConstraint");
 	RNA_def_function_ui_description(func, "Layout . Generates the UI layout for constraints");
 	parm = RNA_def_pointer(func, "data", "Constraint", "", "Constraint data");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "layout", "UILayout", "", "Sub-layout to put items in");
 	RNA_def_function_return(func, parm);
 
@@ -374,7 +381,7 @@ void RNA_api_ui_layout(StructRNA *srna)
 	func = RNA_def_function(srna, "template_layers", "uiTemplateLayers");
 	api_ui_item_rna_common(func);
 	parm = RNA_def_pointer(func, "used_layers_data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	parm = RNA_def_string(func, "used_layers_property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_int(func, "active_layer", 0, 0, INT_MAX, "Active Layer", "", 0, INT_MAX);
@@ -400,13 +407,13 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	api_ui_item_rna_common(func);
 	parm = RNA_def_pointer(func, "image_user", "ImageUser", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_image_settings", "uiTemplateImageSettings");
 	RNA_def_function_ui_description(func, "User interface for setting image format options");
 	parm = RNA_def_pointer(func, "image_settings", "ImageFormatSettings", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 
 	func = RNA_def_function(srna, "template_movieclip", "uiTemplateMovieClip");
 	RNA_def_function_ui_description(func, "Item(s). User interface for selecting movie clips and their source paths");
@@ -422,21 +429,21 @@ void RNA_api_ui_layout(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Item. A widget to control single marker settings.");
 	api_ui_item_rna_common(func);
 	parm = RNA_def_pointer(func, "clip_user", "MovieClipUser", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_pointer(func, "track", "MovieTrackingTrack", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	RNA_def_boolean(func, "compact", 0, "", "Use more compact layout");
 
 	func = RNA_def_function(srna, "template_list", "uiTemplateList");
 	RNA_def_function_ui_description(func, "Item. A list widget to display data. e.g. vertexgroups");
 	RNA_def_function_flag(func, FUNC_USE_CONTEXT);
 	parm = RNA_def_pointer(func, "data", "AnyType", "", "Data from which to take property");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR);
 	parm = RNA_def_string(func, "property", "", 0, "", "Identifier of property in data");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "active_data", "AnyType", "",
 	                       "Data from which to take property for the active element");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 	parm = RNA_def_string(func, "active_property", "", 0, "",
 	                      "Identifier of property in data, for the active element");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -484,10 +491,10 @@ void RNA_api_ui_layout(StructRNA *srna)
 
 	func = RNA_def_function(srna, "template_keymap_item_properties", "uiTemplateKeymapItemProperties");
 	parm = RNA_def_pointer(func, "item", "KeyMapItem", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_RNAPTR|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_RNAPTR | PROP_NEVER_NULL);
 
 	func = RNA_def_function(srna, "introspect", "uiLayoutIntrospect");
-	parm = RNA_def_string(func, "string", "", 1024*1024, "Descr", "DESCR");
+	parm = RNA_def_string(func, "string", "", 1024 * 1024, "Descr", "DESCR");
 	RNA_def_function_return(func, parm);
 }
 

@@ -65,7 +65,8 @@ EnumPropertyItem boidrule_type_items[] = {
 	{eBoidRuleType_FollowWall, "FOLLOW_WALL", 0, "Follow Wall",
 	                           "Move next to a deflector object's in direction of it's tangent"},
 #endif
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 EnumPropertyItem boidruleset_type_items[] = {
 	{eBoidRulesetType_Fuzzy, "FUZZY", 0, "Fuzzy",
@@ -73,7 +74,8 @@ EnumPropertyItem boidruleset_type_items[] = {
 	                         "fuzziness threshold is evaluated)"},
 	{eBoidRulesetType_Random, "RANDOM", 0, "Random", "A random rule is selected for each boid"},
 	{eBoidRulesetType_Average, "AVERAGE", 0, "Average", "All rules are averaged"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 
 #ifdef RNA_RUNTIME
@@ -85,37 +87,37 @@ EnumPropertyItem boidruleset_type_items[] = {
 static void rna_Boids_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (ptr->type == &RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		ParticleSystem *psys = (ParticleSystem *)ptr->data;
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }
 static void rna_Boids_reset_deps(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if (ptr->type == &RNA_ParticleSystem) {
-		ParticleSystem *psys = (ParticleSystem*)ptr->data;
+		ParticleSystem *psys = (ParticleSystem *)ptr->data;
 		
 		psys->recalc = PSYS_RECALC_RESET;
 
 		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA);
 	}
 	else
-		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+		DAG_id_tag_update(ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
 	DAG_scene_sort(bmain, scene);
 
-	WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 }
 
-static StructRNA* rna_BoidRule_refine(struct PointerRNA *ptr)
+static StructRNA *rna_BoidRule_refine(struct PointerRNA *ptr)
 {
-	BoidRule *rule = (BoidRule*)ptr->data;
+	BoidRule *rule = (BoidRule *)ptr->data;
 
 	switch (rule->type) {
 		case eBoidRuleType_Goal:
@@ -137,13 +139,13 @@ static StructRNA* rna_BoidRule_refine(struct PointerRNA *ptr)
 
 static char *rna_BoidRule_path(PointerRNA *ptr)
 {
-	return BLI_sprintfN("rules[\"%s\"]", ((BoidRule*)ptr->data)->name);  /* XXX not unique */
+	return BLI_sprintfN("rules[\"%s\"]", ((BoidRule *)ptr->data)->name);  /* XXX not unique */
 }
 
 static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
 {
-	BoidState *state = (BoidState*)ptr->data;
-	BoidRule *rule = (BoidRule*)state->rules.first;
+	BoidState *state = (BoidState *)ptr->data;
+	BoidRule *rule = (BoidRule *)state->rules.first;
 
 	for (; rule; rule = rule->next) {
 		if (rule->flag & BOIDRULE_CURRENT)
@@ -153,16 +155,16 @@ static PointerRNA rna_BoidState_active_boid_rule_get(PointerRNA *ptr)
 }
 static void rna_BoidState_active_boid_rule_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
-	BoidState *state = (BoidState*)ptr->data;
+	BoidState *state = (BoidState *)ptr->data;
 	*min = 0;
-	*max = BLI_countlist(&state->rules)-1;
+	*max = BLI_countlist(&state->rules) - 1;
 	*max = MAX2(0, *max);
 }
 
 static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
 {
-	BoidState *state = (BoidState*)ptr->data;
-	BoidRule *rule = (BoidRule*)state->rules.first;
+	BoidState *state = (BoidState *)ptr->data;
+	BoidRule *rule = (BoidRule *)state->rules.first;
 	int i = 0;
 
 	for (; rule; rule = rule->next, i++) {
@@ -174,8 +176,8 @@ static int rna_BoidState_active_boid_rule_index_get(PointerRNA *ptr)
 
 static void rna_BoidState_active_boid_rule_index_set(struct PointerRNA *ptr, int value)
 {
-	BoidState *state = (BoidState*)ptr->data;
-	BoidRule *rule = (BoidRule*)state->rules.first;
+	BoidState *state = (BoidState *)ptr->data;
+	BoidRule *rule = (BoidRule *)state->rules.first;
 	int i = 0;
 
 	for (; rule; rule = rule->next, i++) {
@@ -198,7 +200,7 @@ static char *rna_BoidSettings_path(PointerRNA *ptr)
 	BoidSettings *boids = (BoidSettings *)ptr->data;
 	
 	if (particle_id_check(ptr)) {
-		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 		
 		if (part->boids == boids)
 			return BLI_sprintfN("boids");
@@ -208,8 +210,8 @@ static char *rna_BoidSettings_path(PointerRNA *ptr)
 
 static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 {
-	BoidSettings *boids = (BoidSettings*)ptr->data;
-	BoidState *state = (BoidState*)boids->states.first;
+	BoidSettings *boids = (BoidSettings *)ptr->data;
+	BoidState *state = (BoidState *)boids->states.first;
 
 	for (; state; state = state->next) {
 		if (state->flag & BOIDSTATE_CURRENT)
@@ -220,16 +222,16 @@ static PointerRNA rna_BoidSettings_active_boid_state_get(PointerRNA *ptr)
 static void rna_BoidSettings_active_boid_state_index_range(PointerRNA *ptr, int *min, int *max,
                                                            int *softmin, int *softmax)
 {
-	BoidSettings *boids = (BoidSettings*)ptr->data;
+	BoidSettings *boids = (BoidSettings *)ptr->data;
 	*min = 0;
-	*max = BLI_countlist(&boids->states)-1;
+	*max = BLI_countlist(&boids->states) - 1;
 	*max = MAX2(0, *max);
 }
 
 static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)
 {
-	BoidSettings *boids = (BoidSettings*)ptr->data;
-	BoidState *state = (BoidState*)boids->states.first;
+	BoidSettings *boids = (BoidSettings *)ptr->data;
+	BoidState *state = (BoidState *)boids->states.first;
 	int i = 0;
 
 	for (; state; state = state->next, i++) {
@@ -241,8 +243,8 @@ static int rna_BoidSettings_active_boid_state_index_get(PointerRNA *ptr)
 
 static void rna_BoidSettings_active_boid_state_index_set(struct PointerRNA *ptr, int value)
 {
-	BoidSettings *boids = (BoidSettings*)ptr->data;
-	BoidState *state = (BoidState*)boids->states.first;
+	BoidSettings *boids = (BoidSettings *)ptr->data;
+	BoidState *state = (BoidState *)boids->states.first;
 	int i = 0;
 
 	for (; state; state = state->next, i++) {

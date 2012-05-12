@@ -82,157 +82,157 @@ Mesh *rna_Object_to_mesh(Object *ob, ReportList *reports, Scene *sce, int apply_
 
 	/* perform the mesh extraction based on type */
 	switch (ob->type) {
-	case OB_FONT:
-	case OB_CURVE:
-	case OB_SURF:
+		case OB_FONT:
+		case OB_CURVE:
+		case OB_SURF:
 
-		/* copies object and modifiers (but not the data) */
-		tmpobj = BKE_object_copy(ob);
-		tmpcu = (Curve *)tmpobj->data;
-		tmpcu->id.us--;
+			/* copies object and modifiers (but not the data) */
+			tmpobj = BKE_object_copy(ob);
+			tmpcu = (Curve *)tmpobj->data;
+			tmpcu->id.us--;
 
-		/* if getting the original caged mesh, delete object modifiers */
-		if ( cage )
-			BKE_object_free_modifiers(tmpobj);
+			/* if getting the original caged mesh, delete object modifiers */
+			if (cage)
+				BKE_object_free_modifiers(tmpobj);
 
-		/* copies the data */
-		copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data );
-
-		/* temporarily set edit so we get updates from edit mode, but
-		 * also because for text datablocks copying it while in edit
-		 * mode gives invalid data structures */
-		copycu->editfont = tmpcu->editfont;
-		copycu->editnurb = tmpcu->editnurb;
-
-		/* get updated display list, and convert to a mesh */
-		BKE_displist_make_curveTypes(sce, tmpobj, 0);
-
-		copycu->editfont = NULL;
-		copycu->editnurb = NULL;
-
-		BKE_mesh_from_nurbs(tmpobj);
-
-		/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
-		if (tmpobj->type != OB_MESH) {
-			BKE_libblock_free_us(&(G.main->object), tmpobj);
-			BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
-			return NULL;
-		}
-		tmpmesh = tmpobj->data;
-		BKE_libblock_free_us(&G.main->object, tmpobj);
-		break;
-
-	case OB_MBALL: {
-		/* metaballs don't have modifiers, so just convert to mesh */
-		Object *basis_ob = BKE_mball_basis_find(sce, ob);
-		/* todo, re-generatre for render-res */
-		/* metaball_polygonize(scene, ob) */
-
-		if (ob != basis_ob)
-			return NULL; /* only do basis metaball */
-
-		tmpmesh = BKE_mesh_add("Mesh");
-			
-		if (render) {
-			ListBase disp = {NULL, NULL};
-			BKE_displist_make_mball_forRender(sce, ob, &disp);
-			BKE_mesh_from_metaball(&disp, tmpmesh);
-			BKE_displist_free(&disp);
-		}
-		else
-			BKE_mesh_from_metaball(&ob->disp, tmpmesh);
-		break;
-
-	}
-	case OB_MESH:
-		/* copies object and modifiers (but not the data) */
-		if (cage) {
 			/* copies the data */
-			tmpmesh = BKE_mesh_copy( ob->data );
-		/* if not getting the original caged mesh, get final derived mesh */
-		}
-		else {
-			/* Make a dummy mesh, saves copying */
-			DerivedMesh *dm;
-			/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
-			CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
-												 * for example, needs CD_MASK_MDEFORMVERT */
-			
-			/* Write the display mesh into the dummy mesh */
-			if (render)
-				dm = mesh_create_derived_render(sce, ob, mask);
-			else
-				dm = mesh_create_derived_view(sce, ob, mask);
+			copycu = tmpobj->data = BKE_curve_copy((Curve *) ob->data);
+
+			/* temporarily set edit so we get updates from edit mode, but
+			 * also because for text datablocks copying it while in edit
+			 * mode gives invalid data structures */
+			copycu->editfont = tmpcu->editfont;
+			copycu->editnurb = tmpcu->editnurb;
+
+			/* get updated display list, and convert to a mesh */
+			BKE_displist_make_curveTypes(sce, tmpobj, 0);
+
+			copycu->editfont = NULL;
+			copycu->editnurb = NULL;
+
+			BKE_mesh_from_nurbs(tmpobj);
+
+			/* BKE_mesh_from_nurbs changes the type to a mesh, check it worked */
+			if (tmpobj->type != OB_MESH) {
+				BKE_libblock_free_us(&(G.main->object), tmpobj);
+				BKE_report(reports, RPT_ERROR, "cant convert curve to mesh. Does the curve have any segments?");
+				return NULL;
+			}
+			tmpmesh = tmpobj->data;
+			BKE_libblock_free_us(&G.main->object, tmpobj);
+			break;
+
+		case OB_MBALL: {
+			/* metaballs don't have modifiers, so just convert to mesh */
+			Object *basis_ob = BKE_mball_basis_find(sce, ob);
+			/* todo, re-generatre for render-res */
+			/* metaball_polygonize(scene, ob) */
+
+			if (ob != basis_ob)
+				return NULL;  /* only do basis metaball */
 			
 			tmpmesh = BKE_mesh_add("Mesh");
-			DM_to_mesh(dm, tmpmesh, ob);
-			dm->release(dm);
+
+			if (render) {
+				ListBase disp = {NULL, NULL};
+				BKE_displist_make_mball_forRender(sce, ob, &disp);
+				BKE_mesh_from_metaball(&disp, tmpmesh);
+				BKE_displist_free(&disp);
+			}
+			else
+				BKE_mesh_from_metaball(&ob->disp, tmpmesh);
+			break;
+
 		}
+		case OB_MESH:
+			/* copies object and modifiers (but not the data) */
+			if (cage) {
+				/* copies the data */
+				tmpmesh = BKE_mesh_copy(ob->data);
+				/* if not getting the original caged mesh, get final derived mesh */
+			}
+			else {
+				/* Make a dummy mesh, saves copying */
+				DerivedMesh *dm;
+				/* CustomDataMask mask = CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL; */
+				CustomDataMask mask = CD_MASK_MESH; /* this seems more suitable, exporter,
+			                                         * for example, needs CD_MASK_MDEFORMVERT */
+
+				/* Write the display mesh into the dummy mesh */
+				if (render)
+					dm = mesh_create_derived_render(sce, ob, mask);
+				else
+					dm = mesh_create_derived_view(sce, ob, mask);
 		
-		break;
-	default:
-		BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
-		return NULL;
+				tmpmesh = BKE_mesh_add("Mesh");
+				DM_to_mesh(dm, tmpmesh, ob);
+				dm->release(dm);
+			}
+
+			break;
+		default:
+			BKE_report(reports, RPT_ERROR, "Object does not have geometry data");
+			return NULL;
 	}
 
 	/* Copy materials to new mesh */
 	switch (ob->type) {
-	case OB_SURF:
-	case OB_FONT:
-	case OB_CURVE:
-		tmpmesh->totcol = tmpcu->totcol;
-		
-		/* free old material list (if it exists) and adjust user counts */
-		if ( tmpcu->mat ) {
-			for ( i = tmpcu->totcol; i-- > 0; ) {
-				/* are we an object material or data based? */
+		case OB_SURF:
+		case OB_FONT:
+		case OB_CURVE:
+			tmpmesh->totcol = tmpcu->totcol;
 
-				tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
-
-				if (tmpmesh->mat[i]) {
-					tmpmesh->mat[i]->id.us++;
-				}
-			}
-		}
-		break;
-
-#if 0
-	/* Crashes when assigning the new material, not sure why */
-	case OB_MBALL:
-		tmpmb = (MetaBall *)ob->data;
-		tmpmesh->totcol = tmpmb->totcol;
-		
-		/* free old material list (if it exists) and adjust user counts */
-		if ( tmpmb->mat ) {
-			for ( i = tmpmb->totcol; i-- > 0; ) {
-				tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
-				if (tmpmesh->mat[i]) {
-					tmpmb->mat[i]->id.us++;
-				}
-			}
-		}
-		break;
-#endif
-
-	case OB_MESH:
-		if (!cage) {
-			Mesh *origmesh = ob->data;
-			tmpmesh->flag = origmesh->flag;
-			tmpmesh->mat = MEM_dupallocN(origmesh->mat);
-			tmpmesh->totcol = origmesh->totcol;
-			tmpmesh->smoothresh = origmesh->smoothresh;
-			if ( origmesh->mat ) {
-				for ( i = origmesh->totcol; i-- > 0; ) {
+			/* free old material list (if it exists) and adjust user counts */
+			if (tmpcu->mat) {
+				for (i = tmpcu->totcol; i-- > 0; ) {
 					/* are we an object material or data based? */
-					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
+
+					tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : tmpcu->mat[i];
 
 					if (tmpmesh->mat[i]) {
 						tmpmesh->mat[i]->id.us++;
 					}
 				}
 			}
-		}
-		break;
+			break;
+
+#if 0
+		/* Crashes when assigning the new material, not sure why */
+		case OB_MBALL:
+			tmpmb = (MetaBall *)ob->data;
+			tmpmesh->totcol = tmpmb->totcol;
+
+			/* free old material list (if it exists) and adjust user counts */
+			if (tmpmb->mat) {
+				for (i = tmpmb->totcol; i-- > 0; ) {
+					tmpmesh->mat[i] = tmpmb->mat[i]; /* CRASH HERE ??? */
+					if (tmpmesh->mat[i]) {
+						tmpmb->mat[i]->id.us++;
+					}
+				}
+			}
+			break;
+#endif
+
+		case OB_MESH:
+			if (!cage) {
+				Mesh *origmesh = ob->data;
+				tmpmesh->flag = origmesh->flag;
+				tmpmesh->mat = MEM_dupallocN(origmesh->mat);
+				tmpmesh->totcol = origmesh->totcol;
+				tmpmesh->smoothresh = origmesh->smoothresh;
+				if (origmesh->mat) {
+					for (i = origmesh->totcol; i-- > 0; ) {
+						/* are we an object material or data based? */
+						tmpmesh->mat[i] = ob->matbits[i] ? ob->mat[i] : origmesh->mat[i];
+
+						if (tmpmesh->mat[i]) {
+							tmpmesh->mat[i]->id.us++;
+						}
+					}
+				}
+			}
+			break;
 	} /* end copy materials */
 
 	/* cycles and exporters rely on this still */
@@ -277,7 +277,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 			/* this is to make sure we get render level duplis in groups:
 			 * the derivedmesh must be created before init_render_mesh,
 			 * since object_duplilist does dupliparticles before that */
-			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm = mesh_create_derived_render(scene, ob, CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
 			dm->release(dm);
 
 			for (psys = ob->particlesystem.first; psys; psys = psys->next)
@@ -289,7 +289,7 @@ static void dupli_render_particle_set(Scene *scene, Object *ob, int level, int e
 	group = ob->dup_group;
 
 	for (go = group->gobject.first; go; go = go->next)
-		dupli_render_particle_set(scene, go->ob, level+1, enable);
+		dupli_render_particle_set(scene, go->ob, level + 1, enable);
 }
 /* When no longer needed, duplilist should be freed with Object.free_duplilist */
 void rna_Object_create_duplilist(Object *ob, ReportList *reports, Scene *sce)
@@ -332,12 +332,12 @@ static PointerRNA rna_Object_shape_key_add(Object *ob, bContext *C, ReportList *
 		PointerRNA keyptr;
 
 		RNA_pointer_create((ID *)ob->data, &RNA_ShapeKey, kb, &keyptr);
-		WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob);
+		WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 		
 		return keyptr;
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\"does not support shapes", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\"does not support shapes", ob->id.name + 2);
 		return PointerRNA_NULL;
 	}
 }
@@ -356,7 +356,7 @@ static void rna_Mesh_assign_verts_to_group(Object *ob, bDeformGroup *group, int 
 		return;
 	}
 
-	Mesh *me = (Mesh*)ob->data;
+	Mesh *me = (Mesh *)ob->data;
 	int group_index = BLI_findlink(&ob->defbase, group);
 	if (group_index == -1) {
 		BKE_report(reports, RPT_ERROR, "No deform groups assigned to mesh");
@@ -391,7 +391,7 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	BVHTreeFromMesh treeData = {NULL};
 	
 	if (ob->derivedFinal == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for ray casting", ob->id.name + 2);
 		return;
 	}
 
@@ -399,7 +399,7 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 	bvhtree_from_mesh_faces(&treeData, ob->derivedFinal, 0.0f, 4, 6);
 
 	if (treeData.tree == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for ray casting", ob->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for ray casting", ob->id.name + 2);
 		return;
 	}
 	else {
@@ -433,7 +433,7 @@ void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float poi
 	
 	if (ob->derivedFinal == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "object \"%s\" has no mesh data to be used for finding nearest point",
-		            ob->id.name+2);
+		            ob->id.name + 2);
 		return;
 	}
 
@@ -442,7 +442,7 @@ void rna_Object_closest_point_on_mesh(Object *ob, ReportList *reports, float poi
 
 	if (treeData.tree == NULL) {
 		BKE_reportf(reports, RPT_ERROR, "object \"%s\" could not create internal data for finding nearest point",
-		            ob->id.name+2);
+		            ob->id.name + 2);
 		return;
 	}
 	else {
@@ -546,7 +546,7 @@ void RNA_api_object(StructRNA *srna)
 	RNA_def_function_ui_description(func, "Create a Mesh datablock with modifiers applied");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate modifiers");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "", "Apply modifiers");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
@@ -558,10 +558,10 @@ void RNA_api_object(StructRNA *srna)
 	/* duplis */
 	func = RNA_def_function(srna, "dupli_list_create", "rna_Object_create_duplilist");
 	RNA_def_function_ui_description(func, "Create a list of dupli objects for this object, needs to "
-	                                      "be freed manually with free_dupli_list to restore the "
-	                                      "objects real matrix and layers");
+	                                "be freed manually with free_dupli_list to restore the "
+	                                "objects real matrix and layers");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "Scene within which to evaluate duplis");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 
 	func = RNA_def_function(srna, "dupli_list_clear", "rna_Object_free_duplilist");
@@ -576,7 +576,7 @@ void RNA_api_object(StructRNA *srna)
 	/* Shape key */
 	func = RNA_def_function(srna, "shape_key_add", "rna_Object_shape_key_add");
 	RNA_def_function_ui_description(func, "Add shape key to an object");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_string(func, "name", "Key", 0, "", "Unique name for the new keylock"); /* optional */
 	RNA_def_boolean(func, "from_mix", 1, "", "Create new shape from existing mix of shapes");
 	parm = RNA_def_pointer(func, "key", "ShapeKey", "", "New shape keyblock");
@@ -635,7 +635,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "is_visible", "rna_Object_is_visible");
 	RNA_def_function_ui_description(func, "Determine if object is visible in a given scene");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
 	RNA_def_function_return(func, parm);
 
@@ -643,7 +643,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "is_modified", "rna_Object_is_modified");
 	RNA_def_function_ui_description(func, "Determine if this object is modified from the base mesh data");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
@@ -652,7 +652,7 @@ void RNA_api_object(StructRNA *srna)
 	func = RNA_def_function(srna, "is_deform_modified", "rna_Object_is_deform_modified");
 	RNA_def_function_ui_description(func, "Determine if this object is modified by a deformation from the base mesh data");
 	parm = RNA_def_pointer(func, "scene", "Scene", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_enum(func, "settings", mesh_type_items, 0, "", "Modifier settings to apply");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_boolean(func, "result", 0, "", "Object visibility");
@@ -682,7 +682,7 @@ void RNA_api_object_base(StructRNA *srna)
 	RNA_def_function_ui_description(func,
 	                                "Sets the object layers from a 3D View (use when adding an object in local view)");
 	parm = RNA_def_pointer(func, "view", "SpaceView3D", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 #endif

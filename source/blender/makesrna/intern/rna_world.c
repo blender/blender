@@ -67,13 +67,13 @@ static PointerRNA rna_World_mist_get(PointerRNA *ptr)
 
 static void rna_World_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	World *wo = (World*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)wo->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
+	World *wo = (World *)ptr->data;
+	rna_iterator_array_begin(iter, (void *)wo->mtex, sizeof(MTex *), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 {
-	World *wo = (World*)ptr->data;
+	World *wo = (World *)ptr->data;
 	Tex *tex;
 
 	tex = give_current_world_texture(wo);
@@ -82,7 +82,7 @@ static PointerRNA rna_World_active_texture_get(PointerRNA *ptr)
 
 static void rna_World_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
-	World *wo = (World*)ptr->data;
+	World *wo = (World *)ptr->data;
 
 	set_current_world_texture(wo, value.data);
 }
@@ -100,7 +100,7 @@ static void rna_World_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poi
 	World *wo = ptr->id.data;
 
 	DAG_id_tag_update(&wo->id, 0);
-	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
+	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
 }
 
 /* so camera mist limits redraw */
@@ -109,8 +109,8 @@ static void rna_World_draw_mist_update(Main *UNUSED(bmain), Scene *UNUSED(scene)
 	World *wo = ptr->id.data;
 
 	DAG_id_tag_update(&wo->id, 0);
-	WM_main_add_notifier(NC_WORLD|ND_WORLD_DRAW, wo);
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_WORLD | ND_WORLD_DRAW, wo);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
 static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -118,12 +118,12 @@ static void rna_World_stars_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Po
 	World *wo = ptr->id.data;
 
 	DAG_id_tag_update(&wo->id, 0);
-	WM_main_add_notifier(NC_WORLD|ND_WORLD_STARS, wo);
+	WM_main_add_notifier(NC_WORLD | ND_WORLD_STARS, wo);
 }
 
 static void rna_World_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	World *wrld = (World*)ptr->data;
+	World *wrld = (World *)ptr->data;
 
 	if (wrld->use_nodes && wrld->nodetree == NULL)
 		ED_node_shader_default(scene, &wrld->id);
@@ -146,7 +146,8 @@ static void rna_def_world_mtex(BlenderRNA *brna)
 		{TEXCO_EQUIRECTMAP, "EQUIRECT", 0, "Equirectangular", "For 360 degree panorama sky, equirectangular mapping"},
 		{TEXCO_H_TUBEMAP, "TUBE", 0, "Tube", "For 360 degree panorama sky, cylindrical mapped, only top half"},
 		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "WorldTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
@@ -220,24 +221,28 @@ static void rna_def_lighting(BlenderRNA *brna)
 	static EnumPropertyItem blend_mode_items[] = {
 		{WO_AOMUL, "MULTIPLY", 0, "Multiply", "Multiply direct lighting with ambient occlusion, darkening the result"},
 		{WO_AOADD, "ADD", 0, "Add", "Add light and shadow"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_color_items[] = {
 		{WO_AOPLAIN, "PLAIN", 0, "White", "Plain diffuse energy (white.)"},
 		{WO_AOSKYCOL, "SKY_COLOR", 0, "Sky Color", "Use horizon and zenith color for diffuse energy"},
 		{WO_AOSKYTEX, "SKY_TEXTURE", 0, "Sky Texture", "Does full Sky texture render for diffuse energy"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_sample_method_items[] = {
 		{WO_AOSAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", "Fastest and gives the most noise"},
 		{WO_AOSAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", "Fast in high-contrast areas"},
 		{WO_AOSAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", "Best quality"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_gather_method_items[] = {
 		{WO_AOGATHER_RAYTRACE, "RAYTRACE", 0, "Raytrace", "Accurate, but slow when noise-free results are required"},
 		{WO_AOGATHER_APPROX, "APPROXIMATE", 0, "Approximate", "Inaccurate, but faster and without noise"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "WorldLighting", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -398,7 +403,8 @@ static void rna_def_world_mist(BlenderRNA *brna)
 		{0, "QUADRATIC", 0, "Quadratic", "Use quadratic progression"},
 		{1, "LINEAR", 0, "Linear", "Use linear progression"},
 		{2, "INVERSE_QUADRATIC", 0, "Inverse Quadratic", "Use inverse quadratic progression"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "WorldMistSettings", NULL);
 	RNA_def_struct_sdna(srna, "World");
@@ -496,7 +502,8 @@ void RNA_def_world(BlenderRNA *brna)
 		/*{WOPHY_DYNAMO, "DYNAMO", 0, "Dynamo", ""}, */
 		/*{WOPHY_ODE, "ODE", 0, "ODE", ""}, */
 		{WOPHY_BULLET, "BULLET", 0, "Bullet", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 #endif
 
 	srna = RNA_def_struct(brna, "World", "ID");
@@ -506,7 +513,7 @@ void RNA_def_world(BlenderRNA *brna)
 
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(brna, srna, "rna_World_mtex_begin", "rna_World_active_texture_get",
-		"rna_World_active_texture_set", NULL, "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
+	                    "rna_World_active_texture_set", NULL, "WorldTextureSlot", "WorldTextureSlots", "rna_World_update");
 
 	/* colors */
 	prop = RNA_def_property(srna, "horizon_color", PROP_FLOAT, PROP_COLOR);
@@ -515,7 +522,7 @@ void RNA_def_world(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Horizon Color", "Color at the horizon");
 	/* RNA_def_property_update(prop, 0, "rna_World_update"); */
 	/* render-only uses this */
-	RNA_def_property_update(prop, NC_WORLD|ND_WORLD_DRAW, "rna_World_update");
+	RNA_def_property_update(prop, NC_WORLD | ND_WORLD_DRAW, "rna_World_update");
 
 	
 	prop = RNA_def_property(srna, "zenith_color", PROP_FLOAT, PROP_COLOR);

@@ -561,14 +561,14 @@ static int rna_Sequence_input_count_get(PointerRNA *ptr)
 #if 0
 static void rna_SoundSequence_filename_set(PointerRNA *ptr, const char *value)
 {
-	Sequence *seq= (Sequence*)(ptr->data);
+	Sequence *seq = (Sequence *)(ptr->data);
 	BLI_split_dirfile(value, seq->strip->dir, seq->strip->stripdata->name, sizeof(seq->strip->dir),
 	                  sizeof(seq->strip->stripdata->name));
 }
 
 static void rna_SequenceElement_filename_set(PointerRNA *ptr, const char *value)
 {
-	StripElem *elem= (StripElem*)(ptr->data);
+	StripElem *elem = (StripElem *)(ptr->data);
 	BLI_split_file_part(value, elem->name, sizeof(elem->name));
 }
 #endif
@@ -953,15 +953,15 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 
 	/* not yet used */
 #if 0
-	prop= RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "exposure", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Exposure", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 	
-	prop= RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Saturation", "");
-	RNA_def_property_update(prop, NC_SCENE|ND_SEQUENCER, "rna_Sequence_update");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
 #endif
 }
 

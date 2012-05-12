@@ -55,10 +55,10 @@
 
 static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 	int len;
 
-	for (len = 0; len<CM_TOT; len++)
+	for (len = 0; len < CM_TOT; len++)
 		if (!cumap->cm[len].curve)
 			break;
 	
@@ -67,14 +67,14 @@ static int rna_CurveMapping_curves_length(PointerRNA *ptr)
 
 static void rna_CurveMapping_curves_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	rna_iterator_array_begin(iter, cumap->cm, sizeof(CurveMap), rna_CurveMapping_curves_length(ptr), 0, NULL);
 }
 
 static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	if (value) cumap->flag |= CUMA_DO_CLIP;
 	else cumap->flag &= ~CUMA_DO_CLIP;
@@ -84,7 +84,7 @@ static void rna_CurveMapping_clip_set(PointerRNA *ptr, int value)
 
 static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *values)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 	cumap->black[0] = values[0];
 	cumap->black[1] = values[1];
 	cumap->black[2] = values[2];
@@ -93,7 +93,7 @@ static void rna_CurveMapping_black_level_set(PointerRNA *ptr, const float *value
 
 static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *values)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 	cumap->white[0] = values[0];
 	cumap->white[1] = values[1];
 	cumap->white[2] = values[2];
@@ -102,7 +102,7 @@ static void rna_CurveMapping_white_level_set(PointerRNA *ptr, const float *value
 
 static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	*min = -100.0f;
 	*max = cumap->clipr.xmax;
@@ -110,7 +110,7 @@ static void rna_CurveMapping_clipminx_range(PointerRNA *ptr, float *min, float *
 
 static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	*min = -100.0f;
 	*max = cumap->clipr.ymax;
@@ -118,7 +118,7 @@ static void rna_CurveMapping_clipminy_range(PointerRNA *ptr, float *min, float *
 
 static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	*min = cumap->clipr.xmin;
 	*max = 100.0f;
@@ -126,7 +126,7 @@ static void rna_CurveMapping_clipmaxx_range(PointerRNA *ptr, float *min, float *
 
 static void rna_CurveMapping_clipmaxy_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	CurveMapping *cumap = (CurveMapping*)ptr->data;
+	CurveMapping *cumap = (CurveMapping *)ptr->data;
 
 	*min = cumap->clipr.ymin;
 	*max = 100.0f;
@@ -140,16 +140,16 @@ static char *rna_ColorRamp_path(PointerRNA *ptr)
 		ID *id = ptr->id.data;
 		
 		switch (GS(id->name)) {
-			case ID_MA:	/* material has 2 cases - diffuse and specular */
+			case ID_MA: /* material has 2 cases - diffuse and specular */
 			{
-				Material *ma = (Material*)id;
+				Material *ma = (Material *)id;
 				
 				if (ptr->data == ma->ramp_col)
 					return BLI_strdup("diffuse_ramp");
 				else if (ptr->data == ma->ramp_spec)
 					return BLI_strdup("specular_ramp");
 			}
-				break;
+			break;
 		}
 	}
 	
@@ -202,9 +202,9 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 					COLRAMP_GETPATH;
 				}
 			}
-				break;
+			break;
 				
-				/* TODO: node trees need special attention */
+			/* TODO: node trees need special attention */
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
@@ -217,7 +217,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 					}
 				}
 			}
-				break;
+			break;
 				
 			default: /* everything else should have a "color_ramp" property */
 			{
@@ -247,9 +247,9 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				Material *ma = ptr->id.data;
 				
 				DAG_id_tag_update(&ma->id, 0);
-				WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
+				WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 			}
-				break;
+			break;
 			case ID_NT:
 			{
 				bNodeTree *ntree = (bNodeTree *)id;
@@ -261,7 +261,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 					}
 				}
 			}
-				break;
+			break;
 			case ID_TE:
 			{
 				Tex *tex = ptr->id.data;
@@ -269,7 +269,7 @@ static void rna_ColorRamp_update(Main *bmain, Scene *UNUSED(scene), PointerRNA *
 				DAG_id_tag_update(&tex->id, 0);
 				WM_main_add_notifier(NC_TEXTURE, tex);
 			}
-				break;
+			break;
 			default:
 				break;
 		}
@@ -301,7 +301,7 @@ static void rna_ColorRampElement_remove(struct ColorBand *coba, ReportList *repo
 
 static void rna_Scopes_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Scopes *s = (Scopes*)ptr->data;
+	Scopes *s = (Scopes *)ptr->data;
 	s->ok = 0;
 }
 
@@ -474,7 +474,7 @@ static void rna_def_color_ramp_element_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "Delete element from ColorRamp");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "element", "ColorRampElement", "", "Element to remove");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 }
 
 static void rna_def_color_ramp(BlenderRNA *brna)
@@ -489,7 +489,8 @@ static void rna_def_color_ramp(BlenderRNA *brna)
 		{0, "LINEAR", 0, "Linear", ""},
 		{2, "B_SPLINE", 0, "B-Spline", ""},
 		{4, "CONSTANT", 0, "Constant", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "ColorRamp", NULL);
 	RNA_def_struct_sdna(srna, "ColorBand");
@@ -541,7 +542,8 @@ static void rna_def_histogram(BlenderRNA *brna)
 		{HISTO_MODE_R, "R", ICON_COLOR, "Red", ""},
 		{HISTO_MODE_G, "G", ICON_COLOR, "Green", ""},
 		{HISTO_MODE_B, "B", ICON_COLOR, "Blue", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	srna = RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
@@ -564,7 +566,8 @@ static void rna_def_scopes(BlenderRNA *brna)
 		{SCOPES_WAVEFRM_YCC_601, "YCBCR601", ICON_COLOR, "YCbCr (ITU 601)", ""},
 		{SCOPES_WAVEFRM_YCC_709, "YCBCR709", ICON_COLOR, "YCbCr (ITU 709)", ""},
 		{SCOPES_WAVEFRM_YCC_JPEG, "YCBCRJPG", ICON_COLOR, "YCbCr (Jpeg)", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "Scopes", NULL);
 	RNA_def_struct_ui_text(srna, "Scopes", "Scopes for statistical view of an image");

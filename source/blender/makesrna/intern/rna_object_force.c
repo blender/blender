@@ -100,8 +100,8 @@ static EnumPropertyItem empty_vortex_shape_items[] = {
 
 static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
-	PointCache *cache = (PointCache*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
 	PTCacheID *pid = NULL;
 	ListBase pidlist;
 
@@ -131,8 +131,8 @@ static void rna_Cache_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 
 static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
-	PointCache *cache = (PointCache*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
 	PTCacheID *pid = NULL;
 	ListBase pidlist;
 
@@ -157,8 +157,8 @@ static void rna_Cache_toggle_disk_cache(Main *UNUSED(bmain), Scene *UNUSED(scene
 
 static void rna_Cache_idname_change(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
-	PointCache *cache = (PointCache*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	PointCache *cache = (PointCache *)ptr->data;
 	PTCacheID *pid = NULL, *pid2 = NULL;
 	ListBase pidlist;
 	int new_name = 1;
@@ -239,7 +239,7 @@ static void rna_Cache_active_point_cache_index_range(PointerRNA *ptr, int *min, 
 
 	for (pid = pidlist.first; pid; pid = pid->next) {
 		if (pid->cache == cache) {
-			*max = BLI_countlist(pid->ptcaches)-1;
+			*max = BLI_countlist(pid->ptcaches) - 1;
 			*max = MAX2(0, *max);
 			break;
 		}
@@ -315,7 +315,7 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
 {
 	/* both methods work ok, but return the shorter path */
 #if 0
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Collision);
 
 	if (md) {
@@ -332,59 +332,59 @@ static char *rna_CollisionSettings_path(PointerRNA *UNUSED(ptr))
 
 static int rna_SoftBodySettings_use_edges_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGES) != 0);
 }
 
 static void rna_SoftBodySettings_use_edges_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_EDGES;
 	else data->softflag &= ~OB_SB_EDGES;
 }
 
 static int rna_SoftBodySettings_use_goal_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_GOAL) != 0);
 }
 
 static void rna_SoftBodySettings_use_goal_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_GOAL;
 	else data->softflag &= ~OB_SB_GOAL;
 }
 
 static int rna_SoftBodySettings_stiff_quads_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_QUADS) != 0);
 }
 
 static void rna_SoftBodySettings_stiff_quads_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_QUADS;
 	else data->softflag &= ~OB_SB_QUADS;
 }
 
 static int rna_SoftBodySettings_self_collision_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_SELF) != 0);
 }
 
 static void rna_SoftBodySettings_self_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_SELF;
 	else data->softflag &= ~OB_SB_SELF;
 }
 
 static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (data->softflag & OB_SB_AERO_ANGLE)
 		return 1;
 	else
@@ -393,73 +393,73 @@ static int rna_SoftBodySettings_new_aero_get(PointerRNA *ptr)
 
 static void rna_SoftBodySettings_new_aero_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value == 1)
 		data->softflag |= OB_SB_AERO_ANGLE;
-	else	/* value == 0 */
+	else    /* value == 0 */
 		data->softflag &= ~OB_SB_AERO_ANGLE;
 }
 
 static int rna_SoftBodySettings_face_collision_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_FACECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_face_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_FACECOLL;
 	else data->softflag &= ~OB_SB_FACECOLL;
 }
 
 static int rna_SoftBodySettings_edge_collision_get(PointerRNA *ptr)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	return (((data->softflag) & OB_SB_EDGECOLL) != 0);
 }
 
 static void rna_SoftBodySettings_edge_collision_set(PointerRNA *ptr, int value)
 {
-	Object *data = (Object*)(ptr->id.data);
+	Object *data = (Object *)(ptr->id.data);
 	if (value) data->softflag |= OB_SB_EDGECOLL;
 	else data->softflag &= ~OB_SB_EDGECOLL;
 }
 
 static void rna_SoftBodySettings_goal_vgroup_get(PointerRNA *ptr, char *value)
 {
-	SoftBody *sb = (SoftBody*)ptr->data;
+	SoftBody *sb = (SoftBody *)ptr->data;
 	rna_object_vgroup_name_index_get(ptr, value, sb->vertgroup);
 }
 
 static int rna_SoftBodySettings_goal_vgroup_length(PointerRNA *ptr)
 {
-	SoftBody *sb = (SoftBody*)ptr->data;
+	SoftBody *sb = (SoftBody *)ptr->data;
 	return rna_object_vgroup_name_index_length(ptr, sb->vertgroup);
 }
 
 static void rna_SoftBodySettings_goal_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	SoftBody *sb = (SoftBody*)ptr->data;
+	SoftBody *sb = (SoftBody *)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sb->vertgroup);
 }
 
 static void rna_SoftBodySettings_mass_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	SoftBody *sb = (SoftBody*)ptr->data;
+	SoftBody *sb = (SoftBody *)ptr->data;
 	rna_object_vgroup_name_set(ptr, value, sb->namedVG_Mass, sizeof(sb->namedVG_Mass));
 }
 
 static void rna_SoftBodySettings_spring_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	SoftBody *sb = (SoftBody*)ptr->data;
+	SoftBody *sb = (SoftBody *)ptr->data;
 	rna_object_vgroup_name_set(ptr, value, sb->namedVG_Spring_K, sizeof(sb->namedVG_Spring_K));
 }
 
 
 static char *rna_SoftBodySettings_path(PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = (ModifierData *)modifiers_findByType(ob, eModifierType_Softbody);
 	
 	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
@@ -475,7 +475,7 @@ static int particle_id_check(PointerRNA *ptr)
 static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	if (particle_id_check(ptr)) {
-		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 
 		if (part->pd->forcefield != PFIELD_TEXTURE && part->pd->tex) {
 			part->pd->tex->id.us--;
@@ -487,12 +487,12 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 			part->pd2->tex = NULL;
 		}
 
-		DAG_id_tag_update(&part->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME|PSYS_RECALC_RESET);
-		WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
+		DAG_id_tag_update(&part->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 
 	}
 	else {
-		Object *ob = (Object*)ptr->id.data;
+		Object *ob = (Object *)ptr->id.data;
 
 		if (ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex) {
 			ob->pd->tex->id.us--;
@@ -500,14 +500,14 @@ static void rna_FieldSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 		}
 
 		DAG_id_tag_update(&ob->id, OB_RECALC_OB);
-		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 	}
 }
 
 static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if (!particle_id_check(ptr)) {
-		Object *ob = (Object*)ptr->id.data;
+		Object *ob = (Object *)ptr->id.data;
 		PartDeflect *pd = ob->pd;
 		ModifierData *md = modifiers_findByType(ob, eModifierType_Surface);
 
@@ -522,23 +522,23 @@ static void rna_FieldSettings_shape_update(Main *bmain, Scene *scene, PointerRNA
 				ED_object_modifier_remove(NULL, bmain, scene, ob, md);
 		}
 
-		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 	}
 }
 
 static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	if (particle_id_check(ptr)) {
-		DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME|PSYS_RECALC_RESET);
+		DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME | PSYS_RECALC_RESET);
 	}
 	else {
-		Object *ob = (Object*)ptr->id.data;
+		Object *ob = (Object *)ptr->id.data;
 
 		/* do this before scene sort, that one checks for CU_PATH */
 #if 0 /* XXX */
 		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE) {
 			Curve *cu = ob->data;
-			cu->flag |= (CU_PATH|CU_3D);
+			cu->flag |= (CU_PATH | CU_3D);
 			do_curvebuts(B_CU3D);  /* all curves too */
 		}
 #endif
@@ -548,11 +548,11 @@ static void rna_FieldSettings_dependency_update(Main *bmain, Scene *scene, Point
 		DAG_scene_sort(bmain, scene);
 
 		if (ob->type == OB_CURVE && ob->pd->forcefield == PFIELD_GUIDE)
-			DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
+			DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
 		else
 			DAG_id_tag_update(&ob->id, OB_RECALC_OB);
 
-		WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 	}
 }
 
@@ -564,7 +564,7 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	
 	if (particle_id_check(ptr)) {
 		/* particle system force field */
-		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 		
 		if (part->pd == pd)
 			return BLI_sprintfN("force_field_1");
@@ -573,7 +573,7 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 	}
 	else {
 		/* object force field */
-		Object *ob = (Object*)ptr->id.data;
+		Object *ob = (Object *)ptr->id.data;
 		
 		if (ob->pd == pd)
 			return BLI_sprintfN("field");
@@ -583,18 +583,18 @@ static char *rna_FieldSettings_path(PointerRNA *ptr)
 
 static void rna_EffectorWeight_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
 static void rna_EffectorWeight_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	DAG_scene_sort(bmain, scene);
 
-	DAG_id_tag_update((ID*)ptr->id.data, OB_RECALC_DATA|PSYS_RECALC_RESET);
+	DAG_id_tag_update((ID *)ptr->id.data, OB_RECALC_DATA | PSYS_RECALC_RESET);
 
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, NULL);
 }
 
 static char *rna_EffectorWeight_path(PointerRNA *ptr)
@@ -604,13 +604,13 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 	
 	if (particle_id_check(ptr)) {
 		/* particle effector weights */
-		ParticleSettings *part = (ParticleSettings*)ptr->id.data;
+		ParticleSettings *part = (ParticleSettings *)ptr->id.data;
 		
 		if (part->effector_weights == ew)
 			return BLI_sprintfN("effector_weights");
 	}
 	else {
-		Object *ob = (Object*)ptr->id.data;
+		Object *ob = (Object *)ptr->id.data;
 		ModifierData *md;
 		
 		/* check softbody modifier */
@@ -660,7 +660,7 @@ static char *rna_EffectorWeight_path(PointerRNA *ptr)
 
 static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
 
 	/* add/remove modifier as needed */
@@ -669,23 +669,23 @@ static void rna_CollisionSettings_dependency_update(Main *bmain, Scene *scene, P
 	else if (!ob->pd->deflect && md)
 		ED_object_modifier_remove(NULL, bmain, scene, ob, md);
 
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
 static void rna_CollisionSettings_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 
-	DAG_id_tag_update(&ob->id, OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME);
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, ob);
+	DAG_id_tag_update(&ob->id, OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, ob);
 }
 
 static void rna_softbody_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 
@@ -697,7 +697,7 @@ static EnumPropertyItem *rna_Effector_shape_itemf(bContext *UNUSED(C), PointerRN
 	if (particle_id_check(ptr))
 		return empty_shape_items;
 	
-	ob = (Object*)ptr->id.data;
+	ob = (Object *)ptr->id.data;
 	
 	if (ob->type == OB_CURVE) {
 		if (ob->pd->forcefield == PFIELD_VORTEX)
@@ -752,7 +752,8 @@ static void rna_def_pointcache(BlenderRNA *brna)
 		{PTCACHE_COMPRESS_NO, "NO", 0, "No", "No compression"},
 		{PTCACHE_COMPRESS_LZO, "LIGHT", 0, "Light", "Fast but not so effective compression"},
 		{PTCACHE_COMPRESS_LZMA, "HEAVY", 0, "Heavy", "Effective but slow compression"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "PointCache", NULL);
 	RNA_def_struct_ui_text(srna, "Point Cache", "Point cache for physics simulations");
@@ -1081,25 +1082,29 @@ static void rna_def_field(BlenderRNA *brna)
 		{PFIELD_BOID, "BOID", ICON_FORCE_BOID, "Boid", ""},
 		{PFIELD_TURBULENCE, "TURBULENCE", ICON_FORCE_TURBULENCE, "Turbulence", "Create turbulence with a noise field"},
 		{PFIELD_DRAG, "DRAG", ICON_FORCE_DRAG, "Drag", "Create a force that dampens motion"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem falloff_items[] = {
 		{PFIELD_FALL_SPHERE, "SPHERE", 0, "Sphere", ""},
 		{PFIELD_FALL_TUBE, "TUBE", 0, "Tube", ""},
 		{PFIELD_FALL_CONE, "CONE", 0, "Cone", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem texture_items[] = {
 		{PFIELD_TEX_RGB, "RGB", 0, "RGB", ""},
 		{PFIELD_TEX_GRAD, "GRADIENT", 0, "Gradient", ""},
 		{PFIELD_TEX_CURL, "CURL", 0, "Curl", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem zdirection_items[] = {
 		{PFIELD_Z_BOTH, "BOTH", 0, "Both Z", ""},
 		{PFIELD_Z_POS, "POSITIVE", 0, "+Z", ""},
 		{PFIELD_Z_NEG, "NEGATIVE", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem guide_kink_items[] = {
 		{0, "NONE", 0, "Nothing", ""},
@@ -1109,13 +1114,15 @@ static void rna_def_field(BlenderRNA *brna)
 		{4, "BRAID", 0, "Braid", ""},
 		{5, "ROTATION", 0, "Rotation", ""},
 		{6, "ROLL", 0, "Roll", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem guide_kink_axis_items[] = {
 		{0, "X", 0, "X", ""},
 		{1, "Y", 0, "Y", ""},
 		{2, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "FieldSettings", NULL);
 	RNA_def_struct_sdna(srna, "PartDeflect");
@@ -1495,12 +1502,14 @@ static void rna_def_softbody(BlenderRNA *brna)
 		{SBC_MODE_MIN, "MINIMAL", 0, "Minimal", "Minimal Spring length * Ball Size"},
 		{SBC_MODE_MAX, "MAXIMAL", 0, "Maximal", "Maximal Spring length * Ball Size"},
 		{SBC_MODE_AVGMINMAX, "MINMAX", 0, "AvMinMax", "(Min+Max)/2 * Ball Size"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	static EnumPropertyItem aerodynamics_type[] = {
 		{0, "SIMPLE", 0, "Simple", "Edges receive a drag force from surrounding media"},
 		{1, "LIFT_FORCE", 0, "Lift Force", "Edges receive a lift force when passing through surrounding media"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "SoftBodySettings", NULL);
 	RNA_def_struct_sdna(srna, "SoftBody");

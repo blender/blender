@@ -37,23 +37,23 @@
 #ifdef BUILD_DATE
 
 /* currently only these are defined in the header */
-char build_date[]= BUILD_DATE;
-char build_time[]= BUILD_TIME;
-char build_rev[]= BUILD_REV;
+char build_date[] = BUILD_DATE;
+char build_time[] = BUILD_TIME;
+char build_rev[] = BUILD_REV;
 
-char build_platform[]= BUILD_PLATFORM;
-char build_type[]= BUILD_TYPE;
+char build_platform[] = BUILD_PLATFORM;
+char build_type[] = BUILD_TYPE;
 
 #ifdef BUILD_CFLAGS
-char build_cflags[]= BUILD_CFLAGS;
-char build_cxxflags[]= BUILD_CXXFLAGS;
-char build_linkflags[]= BUILD_LINKFLAGS;
-char build_system[]= BUILD_SYSTEM;
+char build_cflags[] = BUILD_CFLAGS;
+char build_cxxflags[] = BUILD_CXXFLAGS;
+char build_linkflags[] = BUILD_LINKFLAGS;
+char build_system[] = BUILD_SYSTEM;
 #else
-char build_cflags[]= "unmaintained buildsystem alert!";
-char build_cxxflags[]= "unmaintained buildsystem alert!";
-char build_linkflags[]= "unmaintained buildsystem alert!";
-char build_system[]= "unmaintained buildsystem alert!";
+char build_cflags[] = "unmaintained buildsystem alert!";
+char build_cxxflags[] = "unmaintained buildsystem alert!";
+char build_linkflags[] = "unmaintained buildsystem alert!";
+char build_system[] = "unmaintained buildsystem alert!";
 #endif
 
 #endif // BUILD_DATE

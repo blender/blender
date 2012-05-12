@@ -52,7 +52,7 @@
 
 static void rna_Lamp_buffer_size_set(PointerRNA *ptr, int value)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 
 	CLAMP(value, 512, 10240);
 	la->bufsize = value;
@@ -66,13 +66,13 @@ static PointerRNA rna_Lamp_sky_settings_get(PointerRNA *ptr)
 
 static void rna_Lamp_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Lamp *la = (Lamp*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)la->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
+	Lamp *la = (Lamp *)ptr->data;
+	rna_iterator_array_begin(iter, (void *)la->mtex, sizeof(MTex *), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 	Tex *tex;
 
 	tex = give_current_lamp_texture(la);
@@ -81,16 +81,16 @@ static PointerRNA rna_Lamp_active_texture_get(PointerRNA *ptr)
 
 static void rna_Lamp_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 
 	set_current_lamp_texture(la, value.data);
 }
 
 static int rna_use_shadow_get(PointerRNA *ptr)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 
-	if(la->type == LA_SPOT)
+	if (la->type == LA_SPOT)
 		return la->mode & LA_SHAD_BUF;
 	else
 		return la->mode & LA_SHAD_RAY;
@@ -98,20 +98,20 @@ static int rna_use_shadow_get(PointerRNA *ptr)
 
 static void rna_use_shadow_set(PointerRNA *ptr, int value)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 	if (value) {
-		if(la->type == LA_SPOT)
+		if (la->type == LA_SPOT)
 			la->mode |= LA_SHAD_BUF;
 		else
 			la->mode |= LA_SHAD_RAY;
 	}
 	else
-		la->mode &= ~(LA_SHAD_BUF|LA_SHAD_RAY);
+		la->mode &= ~(LA_SHAD_BUF | LA_SHAD_RAY);
 }
 
-static StructRNA* rna_Lamp_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Lamp_refine(struct PointerRNA *ptr)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 
 	switch (la->type) {
 		case LA_LOCAL:
@@ -135,9 +135,9 @@ static void rna_Lamp_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
 
 	DAG_id_tag_update(&la->id, 0);
 	if (scene->gm.matmode == GAME_MAT_GLSL)
-		WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
+		WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 	else
-		WM_main_add_notifier(NC_LAMP|ND_LIGHTING, la);
+		WM_main_add_notifier(NC_LAMP | ND_LIGHTING, la);
 }
 
 static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -145,7 +145,7 @@ static void rna_Lamp_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Poin
 	Lamp *la = ptr->id.data;
 
 	DAG_id_tag_update(&la->id, 0);
-	WM_main_add_notifier(NC_LAMP|ND_LIGHTING_DRAW, la);
+	WM_main_add_notifier(NC_LAMP | ND_LIGHTING_DRAW, la);
 }
 
 static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -153,7 +153,7 @@ static void rna_Lamp_sky_update(Main *UNUSED(bmain), Scene *UNUSED(scene), Point
 	Lamp *la = ptr->id.data;
 
 	DAG_id_tag_update(&la->id, 0);
-	WM_main_add_notifier(NC_LAMP|ND_SKY, la);
+	WM_main_add_notifier(NC_LAMP | ND_SKY, la);
 }
 
 /* only for rad/deg conversion! can remove later */
@@ -171,7 +171,7 @@ static void rna_Lamp_spot_size_set(PointerRNA *ptr, float value)
 
 static void rna_Lamp_use_nodes_update(Main *blain, Scene *scene, PointerRNA *ptr)
 {
-	Lamp *la = (Lamp*)ptr->data;
+	Lamp *la = (Lamp *)ptr->data;
 
 	if (la->use_nodes && la->nodetree == NULL)
 		ED_node_shader_default(scene, &la->id);
@@ -187,7 +187,8 @@ EnumPropertyItem lamp_type_items[] = {
 	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
 	{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
 	{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 static void rna_def_lamp_mtex(BlenderRNA *brna)
 {
@@ -198,7 +199,8 @@ static void rna_def_lamp_mtex(BlenderRNA *brna)
 		{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
 		{TEXCO_VIEW, "VIEW", 0, "View", "Use view coordinates for the texture coordinates"},
 		{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "LampTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
@@ -247,7 +249,8 @@ static void rna_def_lamp_sky_settings(BlenderRNA *brna)
 		{0, "SMPTE", 0, "SMPTE", ""},
 		{1, "REC709", 0, "REC709", ""},
 		{2, "CIE", 0, "CIE", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	srna = RNA_def_struct(brna, "LampSkySettings", NULL);
 	RNA_def_struct_sdna(srna, "Lamp");
@@ -418,7 +421,7 @@ static void rna_def_lamp(BlenderRNA *brna)
 	
 	/* textures */
 	rna_def_mtex_common(brna, srna, "rna_Lamp_mtex_begin", "rna_Lamp_active_texture_get",
-		"rna_Lamp_active_texture_set", NULL, "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
+	                    "rna_Lamp_active_texture_set", NULL, "LampTextureSlot", "LampTextureSlots", "rna_Lamp_update");
 }
 
 static void rna_def_lamp_falloff(StructRNA *srna)
@@ -431,7 +434,8 @@ static void rna_def_lamp_falloff(StructRNA *srna)
 		{LA_FALLOFF_INVSQUARE, "INVERSE_SQUARE", 0, "Inverse Square", ""},
 		{LA_FALLOFF_CURVE, "CUSTOM_CURVE", 0, "Custom Curve", ""},
 		{LA_FALLOFF_SLIDERS, "LINEAR_QUADRATIC_WEIGHTED", 0, "Lin/Quad Weighted", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	prop = RNA_def_property(srna, "falloff_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_fallofftype_items);
@@ -468,24 +472,28 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	static EnumPropertyItem prop_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
 		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_spot_shadow_items[] = {
 		{0, "NOSHADOW", 0, "No Shadow", ""},
 		{LA_SHAD_BUF, "BUFFER_SHADOW", 0, "Buffer Shadow", "Let spotlight produce shadows using shadow buffer"},
 		{LA_SHAD_RAY, "RAY_SHADOW", 0, "Ray Shadow", "Use ray tracing for shadow"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	static EnumPropertyItem prop_spot_ray_sampling_method_items[] = {
 		{LA_SAMP_HALTON, "ADAPTIVE_QMC", 0, "Adaptive QMC", ""},
 		{LA_SAMP_HAMMERSLEY, "CONSTANT_QMC", 0, "Constant QMC", ""},
 		{LA_SAMP_CONSTANT, "CONSTANT_JITTERED", 0, "Constant Jittered", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_shadbuftype_items[] = {
 		{LA_SHADBUF_REGULAR, "REGULAR", 0, "Classical", "Classic shadow buffer"},
@@ -497,33 +505,37 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 		{LA_SHADBUF_DEEP, "DEEP", 0, "Deep",
 		                  "Deep shadow buffer supports transparency and better filtering, at the cost of "
 		                  "more memory usage and processing time"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
 		{LA_SHADBUF_BOX, "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
 		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
 		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_numbuffer_items[] = {
 		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
 		{4, "BUFFERS_4", 0, "4", "Render 4 buffers for better AA, this quadruples memory usage"},
 		{9, "BUFFERS_9", 0, "9", "Render 9 buffers for better AA, this uses nine times more memory"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* GE only */
 	static EnumPropertyItem prop_ge_shadowbuffer_type_items[] = {
 		{LA_SHADMAP_SIMPLE, "SIMPLE", 0, "Simple", "Simple shadow maps"},
 		{LA_SHADMAP_VARIANCE, "VARIANCE", 0, "Variance", "Variance shadow maps"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
-	prop= RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_shadow", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_use_shadow_get", "rna_use_shadow_set");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
+	prop = RNA_def_property(srna, "shadow_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "mode");
-	RNA_def_property_enum_items(prop, (spot)? prop_spot_shadow_items: prop_shadow_items);
+	RNA_def_property_enum_items(prop, (spot) ? prop_spot_shadow_items : prop_shadow_items);
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
 	prop = RNA_def_property(srna, "shadow_buffer_size", PROP_INT, PROP_NONE);
@@ -555,7 +567,7 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 	                         "Shadow map clip start, below which objects will not generate shadows");
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
-	prop= RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_DISTANCE);
+	prop = RNA_def_property(srna, "shadow_buffer_clip_end", PROP_FLOAT, PROP_DISTANCE);
 	RNA_def_property_float_sdna(prop, NULL, "clipend");
 	RNA_def_property_range(prop, 0.0f, 9999.0f);
 	RNA_def_property_ui_text(prop, "Shadow Buffer Clip End",
@@ -629,16 +641,16 @@ static void rna_def_lamp_shadow(StructRNA *srna, int spot, int area)
 
 	prop = RNA_def_property(srna, "shadow_ray_sample_method", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "ray_samp_method");
-	RNA_def_property_enum_items(prop, (area)? prop_spot_ray_sampling_method_items: prop_ray_sampling_method_items);
+	RNA_def_property_enum_items(prop, (area) ? prop_spot_ray_sampling_method_items : prop_ray_sampling_method_items);
 	RNA_def_property_ui_text(prop, "Shadow Ray Sampling Method",
 	                         "Method for generating shadow samples: Adaptive QMC is fastest, "
 	                         "Constant QMC is less noisy but slower");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
-	prop = RNA_def_property(srna, (area)? "shadow_ray_samples_x": "shadow_ray_samples", PROP_INT, PROP_NONE);
+	prop = RNA_def_property(srna, (area) ? "shadow_ray_samples_x" : "shadow_ray_samples", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "ray_samp");
 	RNA_def_property_range(prop, 1, 64);
-	RNA_def_property_ui_text(prop, (area)? "Shadow Ray Samples": "Shadow Ray Samples X",
+	RNA_def_property_ui_text(prop, (area) ? "Shadow Ray Samples" : "Shadow Ray Samples X",
 	                         "Number of samples taken extra (samples x samples)");
 	RNA_def_property_update(prop, 0, "rna_Lamp_update");
 
@@ -690,7 +702,8 @@ static void rna_def_area_lamp(BlenderRNA *brna)
 	static EnumPropertyItem prop_areashape_items[] = {
 		{LA_AREA_SQUARE, "SQUARE", 0, "Square", ""},
 		{LA_AREA_RECT, "RECTANGLE", 0, "Rectangle", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "AreaLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
@@ -749,13 +762,15 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 		{LA_SHADBUF_BOX,  "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
 		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
 		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_numbuffer_items[] = {
 		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
 		{4, "BUFFERS_4", 0, "4", "Render 4 buffers for better AA, this quadruples memory usage"},
 		{9, "BUFFERS_9", 0, "9", "Render 9 buffers for better AA, this uses nine times more memory"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "SpotLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
@@ -795,9 +810,9 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "spot_size", PROP_FLOAT, PROP_ANGLE);
 	/* RNA_def_property_float_sdna(prop, NULL, "spotsize"); */
-	RNA_def_property_range(prop, M_PI/180.0, M_PI);
+	RNA_def_property_range(prop, M_PI / 180.0, M_PI);
 	RNA_def_property_ui_text(prop, "Spot Size", "Angle of the spotlight beam");
-		/* only for deg/rad conversion */
+	/* only for deg/rad conversion */
 	RNA_def_property_float_funcs(prop, "rna_Lamp_spot_size_get", "rna_Lamp_spot_size_set", NULL);
 	RNA_def_property_update(prop, 0, "rna_Lamp_draw_update");
 
@@ -830,7 +845,7 @@ static void rna_def_sun_lamp(BlenderRNA *brna)
 	rna_def_lamp_sky_settings(brna);
 
 	/* BGE Only */
-	prop= RNA_def_property(srna, "shadow_frustum_size", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "shadow_frustum_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shadow_frustum_size");
 	RNA_def_property_ui_range(prop, 0.001, 100.0, 2, 1);
 	RNA_def_property_ui_text(prop, "Frustum Size", "Size of the frustum used for creating the shadow map");

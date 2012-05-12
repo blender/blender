@@ -41,16 +41,17 @@ EnumPropertyItem gameproperty_type_items[] = {
 	{GPROP_FLOAT, "FLOAT", 0, "Float", "Floating-Point Property"},
 	{GPROP_STRING, "STRING", 0, "String", "String Property"},
 	{GPROP_TIME, "TIMER", 0, "Timer", "Timer Property"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 
 #ifdef RNA_RUNTIME
 
 #include "BKE_property.h"
 
-static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)
+static StructRNA *rna_GameProperty_refine(struct PointerRNA *ptr)
 {
-	bProperty *property = (bProperty*)ptr->data;
+	bProperty *property = (bProperty *)ptr->data;
 
 	switch (property->type) {
 		case GPROP_BOOL:
@@ -71,20 +72,20 @@ static StructRNA* rna_GameProperty_refine(struct PointerRNA *ptr)
 /* for both float and timer */
 static float rna_GameFloatProperty_value_get(PointerRNA *ptr)
 {
-	bProperty *prop = (bProperty*)(ptr->data);
-	return *(float*)(&prop->data);
+	bProperty *prop = (bProperty *)(ptr->data);
+	return *(float *)(&prop->data);
 }
 
 static void rna_GameFloatProperty_value_set(PointerRNA *ptr, float value)
 {
-	bProperty *prop = (bProperty*)(ptr->data);
+	bProperty *prop = (bProperty *)(ptr->data);
 	CLAMP(value, -10000.0f, 10000.0f);
-	*(float*)(&prop->data) = value;
+	*(float *)(&prop->data) = value;
 }
 
 static void rna_GameProperty_type_set(PointerRNA *ptr, int value)
 {
-	bProperty *prop = (bProperty*)(ptr->data);
+	bProperty *prop = (bProperty *)(ptr->data);
 
 	if (prop->type != value) {
 		prop->type = value;
@@ -94,7 +95,7 @@ static void rna_GameProperty_type_set(PointerRNA *ptr, int value)
 
 static void rna_GameProperty_name_set(PointerRNA *ptr, const char *value)
 {
-	bProperty *prop = (bProperty*)(ptr->data);
+	bProperty *prop = (bProperty *)(ptr->data);
 	BLI_strncpy_utf8(prop->name, value, sizeof(prop->name));
 	unique_property(NULL, prop, 1);
 }
