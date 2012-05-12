@@ -156,7 +156,7 @@ static int convex(float *p0, float *up, float *a, float *b)
 	return dot_v3v3(up, tmp) >= 0;
 }
 
-void draw_volume(ARegion *ar, GPUTexture *tex, float *min, float *max, int res[3], float dx, GPUTexture *tex_shadow)
+void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int res[3], float dx, GPUTexture *tex_shadow)
 {
 	RegionView3D *rv3d = ar->regiondata;
 

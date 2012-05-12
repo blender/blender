@@ -211,7 +211,7 @@ static void set_mapped_co(void *vuserdata, int index, const float co[3],
 /* mode flags: */
 #define TM_ALL_JOINTS       1 /* all joints (for bones only) */
 #define TM_SKIP_HANDLES     2 /* skip handles when control point is selected (for curves only) */
-static void make_trans_verts(Object *obedit, float *min, float *max, int mode)
+static void make_trans_verts(Object *obedit, float min[3], float max[3], int mode)
 {
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1062,7 +1062,7 @@ void VIEW3D_OT_snap_cursor_to_center(wmOperatorType *ot)
 /* **************************************************** */
 
 
-int minmax_verts(Object *obedit, float *min, float *max)
+int ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 {
 	TransVert *tv;
 	float centroid[3], vec[3], bmat[3][3];

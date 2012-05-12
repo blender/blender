@@ -444,7 +444,7 @@ static float p_edge_uv_length(PEdge *e)
 	return sqrt(d[0] * d[0] + d[1] * d[1]);
 }
 
-static void p_chart_uv_bbox(PChart *chart, float *minv, float *maxv)
+static void p_chart_uv_bbox(PChart *chart, float minv[2], float maxv[2])
 {
 	PVert *v;
 

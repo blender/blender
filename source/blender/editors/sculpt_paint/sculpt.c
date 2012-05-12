@@ -107,7 +107,7 @@ float *ED_sculpt_get_last_stroke(struct Object *ob)
 	return (ob && ob->sculpt && ob->sculpt->last_stroke_valid) ? ob->sculpt->last_stroke : NULL;
 }
 
-int ED_sculpt_minmax(bContext *C, float *min, float *max)
+int ED_sculpt_minmax(bContext *C, float min[3], float max[3])
 {
 	Object *ob = CTX_data_active_object(C);
 

@@ -2175,7 +2175,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 
 	if (obedit) {
-		ok = minmax_verts(obedit, min, max);    /* only selected */
+		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		if (ob->pose) {

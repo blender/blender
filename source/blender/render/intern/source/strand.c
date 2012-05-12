@@ -1060,7 +1060,7 @@ void free_strand_surface(Render *re)
 	BLI_freelistN(&re->strandsurface);
 }
 
-void strand_minmax(StrandRen *strand, float *min, float *max, float width)
+void strand_minmax(StrandRen *strand, float min[3], float max[3], const float width)
 {
 	StrandVert *svert;
 	float vec[3], width2= 2.0f*width;
