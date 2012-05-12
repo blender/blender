@@ -528,7 +528,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get meshes*/
 	me_dst= ob_dst->data;
-	dmesh_src= ob_src->derivedDeform; /*sergey- : this might easily be null?? (using ob_src.deriveddeform*/
+	dmesh_src= ob_src->derivedDeform;
 
 	/*make node tree*/
 	DM_ensure_tessface(dmesh_src);
@@ -552,7 +552,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	/* Loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
-		/*Reset nearest*//*can I accellerate further with tweaking this=*/
+		/*Reset nearest*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
@@ -560,14 +560,18 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get weight*/
+
+		/*TODO: Have to project onto face to get a decent result*/
+
+		/*get distances*/
 		dist_v1= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v1].co);
 		dist_v2= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v2].co);
 		dist_v3= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v3].co);
 
 		/*get weight from overlapping vert if any*/
-		if(dist_v1 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
-		if(dist_v2 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
-		if(dist_v3 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+		if(dist_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+		if(dist_v2 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+		if(dist_v3 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
 
 		/*interpolate weight*/
 		else{
@@ -577,7 +581,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 				dist_v4= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src->v4].co);
 
 				/*check if vert 4 is overlapping*/
-				if(dist_v4 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+				if(dist_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 
 				/*get weight from quad*/
 				else{
@@ -592,7 +596,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
 					weight+= dw_src->weight * dist_v4;
 
-					weight/=tot_dist;
+					weight/= tot_dist;
 				}
 			}
 
@@ -607,7 +611,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
 				weight+= dw_src->weight * dist_v3;
 
-				weight/=tot_dist;
+				weight/= tot_dist;
 			}
 		}
 
