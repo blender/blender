@@ -249,7 +249,7 @@ void BLI_removeDoubleNodes(BGraph *graph, float limit)
 	
 }
 
-BNode *BLI_FindNodeByPosition(BGraph *graph, float *p, float limit)
+BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit)
 {
 	BNode *closest_node = NULL, *node;
 	float min_distance = 0.0f;

@@ -588,7 +588,7 @@ void BKE_nurb_test2D(Nurb *nu)
 	}
 }
 
-void BKE_nurb_minmax(Nurb *nu, float *min, float *max)
+void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -1166,19 +1166,23 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 	}
 }
 
-static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
+static void forward_diff_bezier_cotangent(const float p0[3], const float p1[3], const float p2[3], const float p3[3],
+                                          float p[3], int it, int stride)
 {
 	/* note that these are not purpendicular to the curve
 	 * they need to be rotated for this,
 	 *
-	 * This could also be optimized like forward_diff_bezier */
+	 * This could also be optimized like BKE_curve_forward_diff_bezier */
 	int a;
 	for (a = 0; a <= it; a++) {
 		float t = (float)a / (float)it;
 
 		int i;
 		for (i = 0; i < 3; i++) {
-			p[i] = (-6 * t + 6) * p0[i] + (18 * t - 12) * p1[i] + (-18 * t + 6) * p2[i] + (6 * t) * p3[i];
+			p[i] = (-6.0f  * t +  6.0f) * p0[i] +
+			       ( 18.0f * t - 12.0f) * p1[i] +
+			       (-18.0f * t +  6.0f) * p2[i] +
+			       ( 6.0f  * t)         * p3[i];
 		}
 		normalize_v3(p);
 		p = (float *)(((char *)p) + stride);

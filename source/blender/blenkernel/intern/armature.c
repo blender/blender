@@ -2541,7 +2541,7 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
 }
 
 /************** Bounding box ********************/
-int minmax_armature(Object *ob, float min[3], float max[3])
+static int minmax_armature(Object *ob, float min[3], float max[3])
 {
 	bPoseChannel *pchan;
 
@@ -2554,7 +2554,7 @@ int minmax_armature(Object *ob, float min[3], float max[3])
 	return (ob->pose->chanbase.first != NULL);
 }
 
-void boundbox_armature(Object *ob, float *loc, float *size)
+static void boundbox_armature(Object *ob, float loc[3], float size[3])
 {
 	BoundBox *bb;
 	float min[3], max[3];

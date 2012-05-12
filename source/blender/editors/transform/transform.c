@@ -260,7 +260,7 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 	zero_v2(adr);
 }
 
-void applyAspectRatio(TransInfo *t, float *vec)
+void applyAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		SpaceImage *sima= t->sa->spacedata.first;
@@ -293,7 +293,7 @@ void applyAspectRatio(TransInfo *t, float *vec)
 	}
 }
 
-void removeAspectRatio(TransInfo *t, float *vec)
+void removeAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		SpaceImage *sima= t->sa->spacedata.first;

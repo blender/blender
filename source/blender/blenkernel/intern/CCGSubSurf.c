@@ -777,7 +777,7 @@ static float *_face_getIFNoEdge(CCGFace *f, CCGEdge *e, int f_ed_idx, int lvl, i
 {
 	return (float *) ((byte *) _face_getIFCoEdge(f, e, f_ed_idx, lvl, eX, eY, levels, dataSize) + normalDataOffset);
 }
-static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float *no, int levels, int dataSize)
+static void _face_calcIFNo(CCGFace *f, int lvl, int S, int x, int y, float no[3], int levels, int dataSize)
 {
 	float *a = _face_getIFCo(f, lvl, S, x + 0, y + 0, levels, dataSize);
 	float *b = _face_getIFCo(f, lvl, S, x + 1, y + 0, levels, dataSize);

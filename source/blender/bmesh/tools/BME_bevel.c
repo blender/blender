@@ -195,7 +195,7 @@ static int BME_bevel_is_split_vert(BMesh *bm, BMLoop *l)
  * the bevel operation as a whole based on the relationship between v1 and v2
  * (won't necessarily be a vec from v1->co to v2->co, though it probably will be);
  * the return value is -1 for failure, 0 if we used vert co's, and 1 if we used transform origins */
-static int BME_bevel_get_vec(float *vec, BMVert *v1, BMVert *v2, BME_TransData_Head *td)
+static int BME_bevel_get_vec(float vec[3], BMVert *v1, BMVert *v2, BME_TransData_Head *td)
 {
 	BME_TransData *vtd1, *vtd2;
 

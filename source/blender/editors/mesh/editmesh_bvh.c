@@ -201,12 +201,13 @@ void BMBVH_FreeBVH(BMBVHTree *tree)
 }
 
 /* taken from bvhutils.c */
-static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist), float *v0, 
-                                  float *v1, float *v2, float *uv, float UNUSED(e))
+static float ray_tri_intersection(const BVHTreeRay *ray, const float UNUSED(m_dist),
+                                  const float v0[3],  const float v1[3], const float v2[3],
+                                  float r_uv[2], float UNUSED(e))
 {
 	float dist;
 
-	if (isect_ray_tri_v3((float *)ray->origin, (float *)ray->direction, v0, v1, v2, &dist, uv)) {
+	if (isect_ray_tri_v3((float *)ray->origin, (float *)ray->direction, v0, v1, v2, &dist, r_uv)) {
 		return dist;
 	}
 
@@ -343,7 +344,7 @@ BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
 
 /* UNUSED */
 #if 0
-static short winding(float *v1, float *v2, float *v3)
+static short winding(const float v1[3], const float v2[3], const float v3[3])
 /* is v3 to the right of (v1 - v2) ? With exception: v3 == v1 || v3 == v2 */
 {
 	double inp;

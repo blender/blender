@@ -155,7 +155,7 @@ void BLI_calcGraphLength(BGraph *graph);
 void BLI_replaceNode(BGraph *graph, BNode *node_src, BNode *node_replaced);
 void BLI_replaceNodeInArc(BGraph *graph, BArc *arc, BNode *node_src, BNode *node_replaced);
 void BLI_removeDoubleNodes(BGraph *graph, float limit);
-BNode *BLI_FindNodeByPosition(BGraph *graph, float *p, float limit);
+BNode *BLI_FindNodeByPosition(BGraph *graph, const float p[3], const float limit);
 
 BArc  *BLI_findConnectedArc(BGraph *graph, BArc *arc, BNode *v);
 

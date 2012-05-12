@@ -3853,13 +3853,6 @@ static int shade_tra_samples(ShadeSample *ssamp, StrandShadeCache *cache, int x,
 	return 0;
 }
 
-static void addvecmul(float *v1, float *v2, float fac)
-{
-	v1[0]= v1[0]+fac*v2[0];
-	v1[1]= v1[1]+fac*v2[1];
-	v1[2]= v1[2]+fac*v2[2];
-}
-
 static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 {
 	int a, sample, osa = (R.osa? R.osa: 1), retval = osa;
@@ -3887,34 +3880,34 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 						addAlphaUnderFloat(samp_shr->col, shr->col);
 					
 					if (addpassflag & SCE_PASS_NORMAL)
-						addvecmul(samp_shr->nor, shr->nor, fac);
+						madd_v3_v3fl(samp_shr->nor, shr->nor, fac);
 
 					if (addpassflag & SCE_PASS_EMIT)
-						addvecmul(samp_shr->emit, shr->emit, fac);
+						madd_v3_v3fl(samp_shr->emit, shr->emit, fac);
 
 					if (addpassflag & SCE_PASS_DIFFUSE)
-						addvecmul(samp_shr->diff, shr->diff, fac);
+						madd_v3_v3fl(samp_shr->diff, shr->diff, fac);
 					
 					if (addpassflag & SCE_PASS_SPEC)
-						addvecmul(samp_shr->spec, shr->spec, fac);
+						madd_v3_v3fl(samp_shr->spec, shr->spec, fac);
 
 					if (addpassflag & SCE_PASS_SHADOW)
-						addvecmul(samp_shr->shad, shr->shad, fac);
+						madd_v3_v3fl(samp_shr->shad, shr->shad, fac);
 
 					if (addpassflag & SCE_PASS_AO)
-						addvecmul(samp_shr->ao, shr->ao, fac);
+						madd_v3_v3fl(samp_shr->ao, shr->ao, fac);
 
 					if (addpassflag & SCE_PASS_ENVIRONMENT)
-						addvecmul(samp_shr->env, shr->env, fac);
+						madd_v3_v3fl(samp_shr->env, shr->env, fac);
 
 					if (addpassflag & SCE_PASS_INDIRECT)
-						addvecmul(samp_shr->indirect, shr->indirect, fac);
+						madd_v3_v3fl(samp_shr->indirect, shr->indirect, fac);
 
 					if (addpassflag & SCE_PASS_REFLECT)
-						addvecmul(samp_shr->refl, shr->refl, fac);
+						madd_v3_v3fl(samp_shr->refl, shr->refl, fac);
 					
 					if (addpassflag & SCE_PASS_REFRACT)
-						addvecmul(samp_shr->refr, shr->refr, fac);
+						madd_v3_v3fl(samp_shr->refr, shr->refr, fac);
 					
 					if (addpassflag & SCE_PASS_MIST)
 						samp_shr->mist= samp_shr->mist+fac*shr->mist;

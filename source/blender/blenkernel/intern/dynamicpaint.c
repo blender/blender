@@ -424,7 +424,7 @@ static int surface_totalSamples(DynamicPaintSurface *surface)
 	return surface->data->total_points;
 }
 
-static void blendColors(float t_color[3], float t_alpha, float s_color[3], float s_alpha, float result[4])
+static void blendColors(const float t_color[3], float t_alpha, const float s_color[3], float s_alpha, float result[4])
 {
 	int i;
 	float i_alpha = 1.0f - s_alpha;
@@ -2842,7 +2842,8 @@ static void mesh_faces_nearest_point_dp(void *userdata, int index, const float c
  *	timescale : value used to adjust time dependand
  *			    operations when using substeps
  */
-static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index, int paintFlags, float *paintColor, float *paintAlpha, float *paintWetness, float *timescale)
+static void dynamicPaint_mixPaintColors(DynamicPaintSurface *surface, int index, int paintFlags,
+                                        const float paintColor[3], float *paintAlpha, float *paintWetness, float *timescale)
 {
 	PaintPoint *pPoint = &((PaintPoint *)surface->data->type_data)[index];
 
