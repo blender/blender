@@ -491,21 +491,30 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	return 1;
 }
 
+float sqr_dist_v3v3(float v1[3], float v2[3])
+{
+	float d[3];
+	d[0]= v2[0]-v1[0];
+	d[1]= v2[1]-v1[1];
+	d[2]= v2[2]-v1[2];
+	return dot_v3v3(d, d);
+}
+
 /*Copy a single vertex group from source to destination with weights by nearest weight*/
 /*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
 int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 {
 	bDeformGroup *dg_src, *dg_dst;
-	MDeformVert **dv_array_src, **dv_array_dst;
-	MDeformWeight *dw_dst, *dw_src;
-	MVert *mv_dst;
-	MFace *mface_src;
-	Mesh *me_dst, *me_src;
-	BVHTreeFromMesh tree_mesh_faces_src = {NULL};
-	BVHTreeNearest nearest;
+	Mesh *me_dst;
 	DerivedMesh *dmesh_src;
+	BVHTreeFromMesh tree_mesh_faces_src = {NULL};
+	MDeformVert **dv_array_src, **dv_array_dst;
+	MVert *mv_dst, *mv_src;
+	MFace *mface_src;
+	BVHTreeNearest nearest;
+	MDeformWeight *dw_dst, *dw_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight/*, tot_dist*/;
+	float weight, tot_dist, dist_v1, dist_v2, dist_v3, dist_v4;
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -519,13 +528,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get meshes*/
 	me_dst= ob_dst->data;
-	me_src= ob_src->data; /*mfaces does not exist*/
 	dmesh_src= ob_src->derivedDeform; /*sergey- : this might easily be null?? (using ob_src.deriveddeform*/
 
 	/*make node tree*/
 	DM_ensure_tessface(dmesh_src);
 	bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
-
 
 	/*get vertex group arrays*/
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
@@ -537,16 +544,15 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
+	mv_src= dmesh_src->getVertArray(dmesh_src);
 
 	/*get faces*/
 	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
 
-	/*printf("test % \n", *mface_src);*/
-
 	/* Loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
-		/*Reset nearest*/
+		/*Reset nearest*//*can I accellerate further with tweaking this=*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
@@ -554,25 +560,56 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, mv_dst->co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get weight*/
-		/*tot_dist= ()+()+(); use a comparable distance
-		if(mface_src->v4){
-			tot_dist+= ();
-		}*/
-		dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-		weight= dw_src->weight;
-		dw_src= defvert_verify_index(dv_array_src[mface_src->v2], index_src);
-		weight+= dw_src->weight;
-		dw_src= defvert_verify_index(dv_array_src[mface_src->v3], index_src);
-		weight+= dw_src->weight;
-		if(mface_src->v4){
-			dw_src= defvert_verify_index(dv_array_src[mface_src->v4], index_src);
-			weight+= dw_src->weight;
-			weight/=4;
-		}
-		else{
-			weight/=3;
-		}
+		dist_v1= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v1].co);
+		dist_v2= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v2].co);
+		dist_v3= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src[nearest.index].v3].co);
 
+		/*get weight from overlapping vert if any*/
+		if(dist_v1 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+		if(dist_v2 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+		if(dist_v3 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+
+		/*interpolate weight*/
+		else{
+
+			/*check for quad*/
+			if(mface_src[nearest.index].v4){
+				dist_v4= sqr_dist_v3v3(mv_dst->co, mv_src[mface_src->v4].co);
+
+				/*check if vert 4 is overlapping*/
+				if(dist_v4 == 0)weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+
+				/*get weight from quad*/
+				else{
+					tot_dist= dist_v1 + dist_v2 + dist_v3 + dist_v4;
+
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+					weight= dw_src->weight * dist_v1;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+					weight+= dw_src->weight * dist_v2;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+					weight+= dw_src->weight * dist_v3;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+					weight+= dw_src->weight * dist_v4;
+
+					weight/=tot_dist;
+				}
+			}
+
+			/*get weight from triangle*/
+			else{
+				tot_dist= dist_v1 + dist_v2 + dist_v3;
+
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+				weight= dw_src->weight * dist_v1;
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+				weight+= dw_src->weight * dist_v2;
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+				weight+= dw_src->weight * dist_v3;
+
+				weight/=tot_dist;
+			}
+		}
 
 		/*copy weight*/
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
