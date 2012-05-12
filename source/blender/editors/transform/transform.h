@@ -435,8 +435,6 @@ typedef struct TransInfo {
 #define POINT_INIT		4
 #define MULTI_POINTS	8
 
-void TRANSFORM_OT_transform(struct wmOperatorType *ot);
-
 int initTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op, struct wmEvent *event, int mode);
 void saveTransform(struct bContext *C, struct TransInfo *t, struct wmOperator *op);
 int  transformEvent(TransInfo *t, struct wmEvent *event);
