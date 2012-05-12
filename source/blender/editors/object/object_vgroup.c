@@ -589,49 +589,49 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 				/*get weight from quad*/
 				else{
-					if(dist_v1 > dist_v2||dist_v1 > dist_v3||dist_v1 > dist_v4){
-						/*exclude v1 and get weight from the 3 closest*/
+
+					/*exclude v1 and get weight from the 3 closest*/
+					if(dist_v1 >= dist_v2 && dist_v1 >= dist_v3 && dist_v1 >= dist_v4){
 						tot_dist= dist_v4 + dist_v2 + dist_v3;
-
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight= dw_src->weight * (1-dist_v4/tot_dist);
+						weight= dw_src->weight / tot_dist * dist_v4;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v2;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v3;
 					}
-					else if(dist_v2 > dist_v3||dist_v2 > dist_v4){
-						/*exclude v2 and get weight from the 3 closest*/
+
+					/*exclude v2 and get weight from the 3 closest*/
+					else if(dist_v2 >= dist_v3 && dist_v2 >= dist_v4){
 						tot_dist= dist_v1 + dist_v4 + dist_v3;
-
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight / tot_dist * dist_v1;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v4;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v3;
 					}
-					else if(dist_v3 > dist_v4){
-						/*exclude v3 and get weight from the 3 closest*/
+
+					/*exclude v3 and get weight from the 3 closest*/
+					else if(dist_v3 >= dist_v4){
 						tot_dist= dist_v1 + dist_v2 + dist_v4;
-
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight / tot_dist * dist_v1;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v2;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * (1-dist_v4/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v4;
 					}
-					else{
-						/*exclude v4 and get weight from the 3 closest*/
-						tot_dist= dist_v1 + dist_v2 + dist_v3;
 
+					/*exclude v4 and get weight from the 3 closest*/
+					else{
+						tot_dist= dist_v1 + dist_v2 + dist_v3;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * (1-dist_v1/tot_dist);
+						weight= dw_src->weight / tot_dist * dist_v1;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * (1-dist_v2/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v2;
 						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * (1-dist_v3/tot_dist);
+						weight+= dw_src->weight / tot_dist * dist_v3;
 					}
 				}
 			}
@@ -641,11 +641,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 				tot_dist= dist_v1 + dist_v2 + dist_v3;
 
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-				weight= dw_src->weight * (1-dist_v1/tot_dist);
+				weight= dw_src->weight / tot_dist * dist_v1;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-				weight+= dw_src->weight * (1-dist_v2/tot_dist);
+				weight+= dw_src->weight / tot_dist * dist_v2;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-				weight+= dw_src->weight * (1-dist_v3/tot_dist);
+				weight+= dw_src->weight / tot_dist * dist_v3;
 			}
 		}
 
