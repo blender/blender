@@ -416,10 +416,10 @@ struct CCGSubSurf {
 static int VertDataEqual(const float a[], const float b[], const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++) {
-		if(a[i] != b[i])
+	for (i = 0; i < ss->meshIFC.numLayers; i++) {
+		if (a[i] != b[i])
 			return 0;
- 	}
+	}
 	return 1;
 }
 
@@ -431,38 +431,38 @@ static void VertDataZero(float v[], const CCGSubSurf *ss)
 static void VertDataCopy(float dst[], const float src[], const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++)
+	for (i = 0; i < ss->meshIFC.numLayers; i++)
 		dst[i] = src[i];
 }
 
 static void VertDataAdd(float a[], const float b[], const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++)
+	for (i = 0; i < ss->meshIFC.numLayers; i++)
 		a[i] += b[i];
 }
 
 static void VertDataSub(float a[], const float b[], const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++)
+	for (i = 0; i < ss->meshIFC.numLayers; i++)
 		a[i] -= b[i];
 }
 
 static void VertDataMulN(float v[], float f, const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++)
+	for (i = 0; i < ss->meshIFC.numLayers; i++)
 		v[i] *= f;
 }
 
 static void VertDataAvg4(float v[],
-						 const float a[], const float b[],
-						 const float c[], const float d[],
-						 const CCGSubSurf *ss)
+                         const float a[], const float b[],
+                         const float c[], const float d[],
+                         const CCGSubSurf *ss)
 {
 	int i;
-	for(i = 0; i < ss->meshIFC.numLayers; i++)
+	for (i = 0; i < ss->meshIFC.numLayers; i++)
 		v[i] = (a[i] + b[i] + c[i] + d[i]) * 0.25f;
 }
 
@@ -1133,7 +1133,8 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertDa
 			v->flags = Vert_eEffected | seamflag;
 		}
 		else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize), ss) ||
-				 ((v->flags & Vert_eSeam) != seamflag)) {
+		         ((v->flags & Vert_eSeam) != seamflag))
+		{
 			int i, j;
 
 			VertDataCopy(_vert_getCo(v, 0, ss->meshIFC.vertDataSize), vertData, ss);
@@ -1165,7 +1166,7 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertDa
 			v->flags = Vert_eEffected | seamflag;
 		}
 		else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize), ss) ||
-				 ((v->flags & Vert_eSeam) != seamflag)) {
+		         ((v->flags & Vert_eSeam) != seamflag)) {
 			*prevp = v->next;
 			_ehash_insert(ss->vMap, (EHEntry *) v);
 			VertDataCopy(_vert_getCo(v, 0, ss->meshIFC.vertDataSize), vertData, ss);
@@ -2001,10 +2002,10 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			}
 			VertDataMulN(r, 1.0f / f->numVerts, ss);
 
-			VertDataMulN((float*)FACE_getCenterData(f), f->numVerts - 2.0f, ss);
-			VertDataAdd((float*)FACE_getCenterData(f), q, ss);
-			VertDataAdd((float*)FACE_getCenterData(f), r, ss);
-			VertDataMulN((float*)FACE_getCenterData(f), 1.0f / f->numVerts, ss);
+			VertDataMulN((float *)FACE_getCenterData(f), f->numVerts - 2.0f, ss);
+			VertDataAdd((float *)FACE_getCenterData(f), q, ss);
+			VertDataAdd((float *)FACE_getCenterData(f), r, ss);
+			VertDataMulN((float *)FACE_getCenterData(f), 1.0f / f->numVerts, ss);
 
 			for (S = 0; S < f->numVerts; S++) {
 				/* interior face shift
@@ -2024,14 +2025,14 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy - 1),
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy + 1),
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy + 1),
-		                             ss);
+						             ss);
 
 						VertDataAvg4(r,
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy + 0),
 						             FACE_getIFCo(f, nextLvl, S, fx + 1, fy + 0),
 						             FACE_getIFCo(f, nextLvl, S, fx + 0, fy - 1),
 						             FACE_getIFCo(f, nextLvl, S, fx + 0, fy + 1),
-		                             ss);
+						             ss);
 
 						VertDataCopy(nCo, co, ss);
 						VertDataSub(nCo, q, ss);
@@ -2061,7 +2062,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 					             FACE_getIECo(f, nextLvl, S, fx + 1),
 					             FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx),
 					             FACE_getIFCo(f, nextLvl, S, fx, 1),
-		                         ss);
+					             ss);
 
 					VertDataCopy(nCo, co, ss);
 					VertDataSub(nCo, q, ss);
@@ -2099,8 +2100,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[(S + f->numVerts - 1) % f->numVerts];
 
-			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), (float*)FACE_getCenterData(f), ss);
-			VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), (float*)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), (float *)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), (float *)FACE_getCenterData(f), ss);
 			VertDataCopy(FACE_getIFCo(f, nextLvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], nextLvl), ss);
 			VertDataCopy(FACE_getIECo(f, nextLvl, S, cornerIdx), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, cornerIdx), ss);
 			for (x = 1; x < gridSize - 1; x++) {
@@ -2189,7 +2190,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataAdd(q, VERT_getCo(e->v1, curLvl), ss);
 			for (i = 0; i < e->numFaces; i++) {
 				CCGFace *f = e->faces[i];
-				VertDataAdd(q, (float*)FACE_getCenterData(f), ss);
+				VertDataAdd(q, (float *)FACE_getCenterData(f), ss);
 				numFaces++;
 			}
 			VertDataMulN(q, 1.0f / (2.0f + numFaces), ss);
@@ -2265,7 +2266,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			VertDataZero(q, ss);
 			for (i = 0; i < v->numFaces; i++) {
 				CCGFace *f = v->faces[i];
-				VertDataAdd(q, (float*)FACE_getCenterData(f), ss);
+				VertDataAdd(q, (float *)FACE_getCenterData(f), ss);
 				numFaces++;
 			}
 			VertDataMulN(q, 1.0f / numFaces, ss);
@@ -2365,8 +2366,8 @@ static void ccgSubSurf__sync(CCGSubSurf *ss)
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[(S + f->numVerts - 1) % f->numVerts];
 
-			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), (float*)FACE_getCenterData(f), ss);
-			VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), (float*)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 0, 0), (float *)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIECo(f, nextLvl, S, 0), (float *)FACE_getCenterData(f), ss);
 			VertDataCopy(FACE_getIFCo(f, nextLvl, S, 1, 1), VERT_getCo(FACE_getVerts(f)[S], nextLvl), ss);
 			VertDataCopy(FACE_getIECo(f, nextLvl, S, 1), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, 1), ss);
 
@@ -2495,7 +2496,7 @@ CCGError ccgSubSurf_updateFromFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[(S + f->numVerts - 1) % f->numVerts];
 
-			VertDataCopy((float*)FACE_getCenterData(f), FACE_getIFCo(f, lvl, S, 0, 0), ss);
+			VertDataCopy((float *)FACE_getCenterData(f), FACE_getIFCo(f, lvl, S, 0, 0), ss);
 			VertDataCopy(VERT_getCo(FACE_getVerts(f)[S], lvl), FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx), ss);
 
 			for (x = 0; x < gridSize; x++)
@@ -2546,7 +2547,7 @@ CCGError ccgSubSurf_updateToFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, 
 				VertDataCopy(FACE_getIFCo(f, lvl, S, x, 0), FACE_getIECo(f, lvl, S, x), ss);
 			}
 
-			VertDataCopy(FACE_getIFCo(f, lvl, S, 0, 0), (float*)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIFCo(f, lvl, S, 0, 0), (float *)FACE_getCenterData(f), ss);
 			VertDataCopy(FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], lvl), ss);
 		}
 	}
@@ -2595,7 +2596,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 	for (i = 0; i < numEffectedF; i++) {
 		CCGFace *f = effectedF[i];
 
-		VertDataZero((float*)FACE_getCenterData(f), ss);
+		VertDataZero((float *)FACE_getCenterData(f), ss);
 
 		for (S = 0; S < f->numVerts; S++)
 			for (x = 0; x < gridSize; x++)
@@ -2606,7 +2607,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[prevS];
 
-			VertDataAdd((float*)FACE_getCenterData(f), FACE_getIFCo(f, lvl, S, 0, 0), ss);
+			VertDataAdd((float *)FACE_getCenterData(f), FACE_getIFCo(f, lvl, S, 0, 0), ss);
 			if (FACE_getVerts(f)[S]->flags & Vert_eEffected)
 				VertDataAdd(VERT_getCo(FACE_getVerts(f)[S], lvl), FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx), ss);
 
@@ -2648,7 +2649,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 	for (i = 0; i < numEffectedF; i++) {
 		CCGFace *f = effectedF[i];
 
-		VertDataMulN((float*)FACE_getCenterData(f), 1.0f / f->numVerts, ss);
+		VertDataMulN((float *)FACE_getCenterData(f), 1.0f / f->numVerts, ss);
 
 		for (S = 0; S < f->numVerts; S++)
 			for (x = 1; x < gridSize - 1; x++)
@@ -2659,7 +2660,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 			CCGEdge *e = FACE_getEdges(f)[S];
 			CCGEdge *prevE = FACE_getEdges(f)[prevS];
 
-			VertDataCopy(FACE_getIFCo(f, lvl, S, 0, 0), (float*)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIFCo(f, lvl, S, 0, 0), (float *)FACE_getCenterData(f), ss);
 			VertDataCopy(FACE_getIFCo(f, lvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], lvl), ss);
 
 			for (x = 1; x < gridSize - 1; x++) {
@@ -2674,7 +2675,7 @@ CCGError ccgSubSurf_stitchFaces(CCGSubSurf *ss, int lvl, CCGFace **effectedF, in
 				VertDataCopy(FACE_getIFCo(f, lvl, S, x, cornerIdx), _edge_getCoVert(prevE, FACE_getVerts(f)[S], lvl, eI, vertDataSize), ss);
 			}
 
-			VertDataCopy(FACE_getIECo(f, lvl, S, 0), (float*)FACE_getCenterData(f), ss);
+			VertDataCopy(FACE_getIECo(f, lvl, S, 0), (float *)FACE_getCenterData(f), ss);
 			VertDataCopy(FACE_getIECo(f, lvl, S, gridSize - 1), FACE_getIFCo(f, lvl, S, gridSize - 1, 0), ss);
 		}
 	}

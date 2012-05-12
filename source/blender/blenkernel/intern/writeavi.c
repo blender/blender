@@ -73,9 +73,9 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 	static bMovieHandle mh;
 	
 	/* set the default handle, as builtin */
-	mh.start_movie= start_avi;
-	mh.append_movie= append_avi;
-	mh.end_movie= end_avi;
+	mh.start_movie = start_avi;
+	mh.append_movie = append_avi;
+	mh.end_movie = end_avi;
 	mh.get_next_frame = NULL;
 	mh.get_movie_path = filepath_avi;
 	
@@ -89,9 +89,9 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 #endif
 #ifdef WITH_QUICKTIME
 	if (imtype == R_IMF_IMTYPE_QUICKTIME) {
-		mh.start_movie= start_qt;
-		mh.append_movie= append_qt;
-		mh.end_movie= end_qt;
+		mh.start_movie = start_qt;
+		mh.append_movie = append_qt;
+		mh.end_movie = end_qt;
 		mh.get_movie_path = filepath_qt;
 	}
 #endif
@@ -121,11 +121,11 @@ bMovieHandle *BKE_movie_handle_get(const char imtype)
 /* ****************************************************************** */
 
 
-static AviMovie *avi=NULL;
+static AviMovie *avi = NULL;
 
-static void filepath_avi (char *string, RenderData *rd)
+static void filepath_avi(char *string, RenderData *rd)
 {
-	if (string==NULL) return;
+	if (string == NULL) return;
 
 	strcpy(string, rd->pic);
 	BLI_path_abs(string, G.main->name);
@@ -153,30 +153,30 @@ static int start_avi(Scene *scene, RenderData *rd, int rectx, int recty, ReportL
 	x = rectx;
 	y = recty;
 
-	quality= rd->im_format.quality;
-	framerate= (double) rd->frs_sec / (double) rd->frs_sec_base;
+	quality = rd->im_format.quality;
+	framerate = (double) rd->frs_sec / (double) rd->frs_sec_base;
 	
-	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
+	avi = MEM_mallocN(sizeof(AviMovie), "avimovie");
 
-	if (rd->im_format.imtype != R_IMF_IMTYPE_AVIJPEG ) format = AVI_FORMAT_AVI_RGB;
+	if (rd->im_format.imtype != R_IMF_IMTYPE_AVIJPEG) format = AVI_FORMAT_AVI_RGB;
 	else format = AVI_FORMAT_MJPEG;
 
-	if (AVI_open_compress (name, avi, 1, format) != AVI_ERROR_NONE) {
+	if (AVI_open_compress(name, avi, 1, format) != AVI_ERROR_NONE) {
 		BKE_report(reports, RPT_ERROR, "Cannot open or start AVI movie file.");
-		MEM_freeN (avi);
+		MEM_freeN(avi);
 		avi = NULL;
 		return 0;
 	}
 			
-	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_WIDTH, &x);
-	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_HEIGHT, &y);
-	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_QUALITY, &quality);		
-	AVI_set_compress_option (avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_FRAMERATE, &framerate);
+	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_WIDTH, &x);
+	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_HEIGHT, &y);
+	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_QUALITY, &quality);
+	AVI_set_compress_option(avi, AVI_OPTION_TYPE_MAIN, 0, AVI_OPTION_FRAMERATE, &framerate);
 
-	avi->interlace= 0;
-	avi->odd_fields= 0;
-/* 	avi->interlace= rd->mode & R_FIELDS; */
-/* 	avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
+	avi->interlace = 0;
+	avi->odd_fields = 0;
+/*  avi->interlace= rd->mode & R_FIELDS; */
+/*  avi->odd_fields= (rd->mode & R_ODDFIELD)?1:0; */
 	
 	printf("Created avi: %s\n", name);
 	return 1;
@@ -193,26 +193,26 @@ static int append_avi(RenderData *UNUSED(rd), int start_frame, int frame, int *p
 		return 0;
 
 	/* note that libavi free's the buffer... stupid interface - zr */
-	rectot= MEM_mallocN(rectx*recty*sizeof(int), "rectot");
-	rt1= rectot;
-	rt2= (unsigned int*)pixels + (recty-1)*rectx;
+	rectot = MEM_mallocN(rectx * recty * sizeof(int), "rectot");
+	rt1 = rectot;
+	rt2 = (unsigned int *)pixels + (recty - 1) * rectx;
 	/* flip y and convert to abgr */
-	for (y=0; y < recty; y++, rt1+= rectx, rt2-= rectx) {
-		memcpy (rt1, rt2, rectx*sizeof(int));
+	for (y = 0; y < recty; y++, rt1 += rectx, rt2 -= rectx) {
+		memcpy(rt1, rt2, rectx * sizeof(int));
 		
-		cp= (char *)rt1;
-		for (x= rectx; x>0; x--) {
-			rt= cp[0];
-			cp[0]= cp[3];
-			cp[3]= rt;
-			rt= cp[1];
-			cp[1]= cp[2];
-			cp[2]= rt;
-			cp+= 4;
+		cp = (char *)rt1;
+		for (x = rectx; x > 0; x--) {
+			rt = cp[0];
+			cp[0] = cp[3];
+			cp[3] = rt;
+			rt = cp[1];
+			cp[1] = cp[2];
+			cp[2] = rt;
+			cp += 4;
 		}
 	}
 	
-	AVI_write_frame (avi, (frame-start_frame), AVI_FORMAT_RGB32, rectot, rectx*recty*4);
+	AVI_write_frame(avi, (frame - start_frame), AVI_FORMAT_RGB32, rectot, rectx * recty * 4);
 //	printf ("added frame %3d (frame %3d in avi): ", frame, frame-start_frame);
 
 	return 1;
@@ -222,17 +222,17 @@ static void end_avi(void)
 {
 	if (avi == NULL) return;
 
-	AVI_close_compress (avi);
-	MEM_freeN (avi);
-	avi= NULL;
+	AVI_close_compress(avi);
+	MEM_freeN(avi);
+	avi = NULL;
 }
 
 /* similar to BKE_makepicstring() */
 void BKE_movie_filepath_get(char *string, RenderData *rd)
 {
-	bMovieHandle *mh= BKE_movie_handle_get(rd->im_format.imtype);
+	bMovieHandle *mh = BKE_movie_handle_get(rd->im_format.imtype);
 	if (mh->get_movie_path)
 		mh->get_movie_path(string, rd);
 	else
-		string[0]= '\0';
+		string[0] = '\0';
 }
