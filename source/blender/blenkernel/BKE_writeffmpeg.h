@@ -38,12 +38,12 @@
 extern "C" {
 #endif
 
-#define FFMPEG_MPEG1 	0
-#define FFMPEG_MPEG2 	1
-#define FFMPEG_MPEG4 	2
-#define FFMPEG_AVI	3
-#define FFMPEG_MOV	4
-#define FFMPEG_DV	5
+#define FFMPEG_MPEG1    0
+#define FFMPEG_MPEG2    1
+#define FFMPEG_MPEG4    2
+#define FFMPEG_AVI  3
+#define FFMPEG_MOV  4
+#define FFMPEG_DV   5
 #define FFMPEG_H264     6
 #define FFMPEG_XVID     7
 #define FFMPEG_FLV      8
@@ -52,14 +52,14 @@ extern "C" {
 #define FFMPEG_WAV      11
 #define FFMPEG_MP3      12
 
-#define FFMPEG_PRESET_NONE		0
-#define FFMPEG_PRESET_DVD		1
-#define FFMPEG_PRESET_SVCD		2
-#define FFMPEG_PRESET_VCD 		3
-#define FFMPEG_PRESET_DV		4
-#define FFMPEG_PRESET_H264		5
-#define FFMPEG_PRESET_THEORA	6
-#define FFMPEG_PRESET_XVID		7
+#define FFMPEG_PRESET_NONE      0
+#define FFMPEG_PRESET_DVD       1
+#define FFMPEG_PRESET_SVCD      2
+#define FFMPEG_PRESET_VCD       3
+#define FFMPEG_PRESET_DV        4
+#define FFMPEG_PRESET_H264      5
+#define FFMPEG_PRESET_THEORA    6
+#define FFMPEG_PRESET_XVID      7
 
 struct IDProperty;
 struct RenderData;	
@@ -69,8 +69,8 @@ struct Scene;
 int BKE_ffmpeg_start(struct Scene *scene, struct RenderData *rd, int rectx, int recty, struct ReportList *reports);
 void BKE_ffmpeg_end(void);
 int BKE_ffmpeg_append(struct RenderData *rd, int start_frame, int frame, int *pixels,
-                             int rectx, int recty, struct ReportList *reports);
-void BKE_ffmpeg_filepath_get(char* string, struct RenderData* rd);
+                      int rectx, int recty, struct ReportList *reports);
+void BKE_ffmpeg_filepath_get(char *string, struct RenderData *rd);
 
 void BKE_ffmpeg_preset_set(struct RenderData *rd, int preset);
 void BKE_ffmpeg_image_type_verify(struct RenderData *rd, struct ImageFormatData *imf);

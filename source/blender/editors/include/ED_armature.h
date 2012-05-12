@@ -53,13 +53,12 @@ struct ViewContext;
 struct wmKeyConfig;
 struct wmOperator;
 
-typedef struct EditBone
-{
+typedef struct EditBone {
 	struct EditBone *next, *prev;
-	struct IDProperty *prop;/* User-Defined Properties on this Bone */
-	struct EditBone *parent;/* Editbones have a one-way link  (i.e. children refer
-	                         * to parents.  This is converted to a two-way link for
-	                         * normal bones when leaving editmode. */
+	struct IDProperty *prop; /* User-Defined Properties on this Bone */
+	struct EditBone *parent; /* Editbones have a one-way link  (i.e. children refer
+	                          * to parents.  This is converted to a two-way link for
+	                          * normal bones when leaving editmode. */
 	void    *temp;          /* Used to store temporary data */
 
 	char    name[64];       /* MAX_NAME */
@@ -68,13 +67,13 @@ typedef struct EditBone
 	                         * is tail-head while roll provides the angle. Refer to Graphics
 	                         * Gems 1 p. 466 (section IX.6) if it's not already in here somewhere*/
 
-	float	head[3];        /* Orientation and length is implicit during editing */
-	float	tail[3];
-	                        /* All joints are considered to have zero rotation with respect to
-	                         * their parents.	Therefore any rotations specified during the
-	                         * animation are automatically relative to the bones' rest positions*/
-	int		flag;
-	int		layer;
+	float head[3];          /* Orientation and length is implicit during editing */
+	float tail[3];
+	/* All joints are considered to have zero rotation with respect to
+	 * their parents.	Therefore any rotations specified during the
+	 * animation are automatically relative to the bones' rest positions*/
+	int flag;
+	int layer;
 	
 	float dist, weight;
 	float xwidth, length, zwidth;  /* put them in order! transform uses this as scale */
@@ -86,20 +85,20 @@ typedef struct EditBone
 	short segments;
 } EditBone;
 
-#define	BONESEL_ROOT	(1<<28)
-#define	BONESEL_TIP		(1<<29)
-#define	BONESEL_BONE	(1<<30)
-#define BONESEL_ANY		(BONESEL_TIP|BONESEL_ROOT|BONESEL_BONE)
+#define BONESEL_ROOT    (1 << 28)
+#define BONESEL_TIP     (1 << 29)
+#define BONESEL_BONE    (1 << 30)
+#define BONESEL_ANY     (BONESEL_TIP | BONESEL_ROOT | BONESEL_BONE)
 
-#define BONESEL_NOSEL	(1<<31)	/* Indicates a negative number */
+#define BONESEL_NOSEL   (1 << 31) /* Indicates a negative number */
 
 /* useful macros */
 #define EBONE_VISIBLE(arm, ebone) (((arm)->layer & (ebone)->layer) && !((ebone)->flag & BONE_HIDDEN_A))
 #define EBONE_EDITABLE(ebone) (((ebone)->flag & BONE_SELECTED) && !((ebone)->flag & BONE_EDITMODE_LOCKED)) 
 
 /* used in bone_select_hierachy() */
-#define BONE_SELECT_PARENT	0
-#define BONE_SELECT_CHILD	1
+#define BONE_SELECT_PARENT  0
+#define BONE_SELECT_CHILD   1
 
 /* armature_ops.c */
 void ED_operatortypes_armature(void);
@@ -114,10 +113,10 @@ void ED_armature_deselect_all(struct Object *obedit, int toggle);
 void ED_armature_deselect_all_visible(struct Object *obedit);
 
 int ED_do_pose_selectbuffer(struct Scene *scene, struct Base *base, unsigned int *buffer, 
-							short hits, short extend);
+                            short hits, short extend);
 int mouse_armature(struct bContext *C, const int mval[2], int extend);
 int join_armature_exec(struct bContext *C, struct wmOperator *op);
-struct Bone *get_indexed_bone (struct Object *ob, int index);
+struct Bone *get_indexed_bone(struct Object *ob, int index);
 float ED_rollBoneToVector(EditBone *bone, const float new_up_axis[3], const short axis_only);
 EditBone *ED_armature_bone_get_mirrored(struct ListBase *edbo, EditBone *ebo); // XXX this is needed for populating the context iterators
 void ED_armature_sync_selection(struct ListBase *edbo);
@@ -128,13 +127,13 @@ struct EditBone *ED_armature_edit_bone_add(struct bArmature *arm, const char *na
 void ED_armature_edit_bone_remove(struct bArmature *arm, EditBone *exBone);
 
 void transform_armature_mirror_update(struct Object *obedit);
-void docenter_armature (struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
+void docenter_armature(struct Scene *scene, struct Object *ob, float cursor[3], int centermode, int around);
 
 void ED_armature_apply_transform(struct Object *ob, float mat[4][4]);
 
-#define ARM_GROUPS_NAME		1
-#define ARM_GROUPS_ENVELOPE	2
-#define ARM_GROUPS_AUTO		3
+#define ARM_GROUPS_NAME     1
+#define ARM_GROUPS_ENVELOPE 2
+#define ARM_GROUPS_AUTO     3
 
 void create_vgroups_from_armature(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct Object *par, int mode, int mirror);
 
@@ -166,15 +165,15 @@ int   BIF_currentTemplate(const struct bContext *C);
 void  BIF_freeTemplates(struct bContext *C);
 void  BIF_setTemplate(struct bContext *C, int index);
 int   BIF_nbJointsTemplate(const struct bContext *C);
-const char * BIF_nameBoneTemplate(const struct bContext *C);
+const char *BIF_nameBoneTemplate(const struct bContext *C);
 
 void BDR_drawSketch(const struct bContext *vc);
 int BDR_drawSketchNames(struct ViewContext *vc);
 
 /* meshlaplacian.c */
 void mesh_deform_bind(struct Scene *scene,
-	struct MeshDeformModifierData *mmd,
-	float *vertexcos, int totvert, float cagemat[][4]);
+                      struct MeshDeformModifierData *mmd,
+                      float *vertexcos, int totvert, float cagemat[][4]);
 	
 #ifdef __cplusplus
 }

@@ -75,8 +75,8 @@ typedef struct FileData {
 	char *compflags;
 	
 	int fileversion;
-	int id_name_offs;		/* used to retrieve ID names from (bhead+1) */
-	int globalf, fileflags;	/* for do_versions patching */
+	int id_name_offs;       /* used to retrieve ID names from (bhead+1) */
+	int globalf, fileflags; /* for do_versions patching */
 	
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
@@ -89,9 +89,9 @@ typedef struct FileData {
 	
 	ListBase mainlist;
 	
-		/* ick ick, used to return
-		 * data through streamglue.
-		 */
+	/* ick ick, used to return
+	 * data through streamglue.
+	 */
 	BlendFileData **bfd_r;
 	struct ReportList *reports;
 } FileData;
@@ -102,16 +102,16 @@ typedef struct BHeadN {
 } BHeadN;
 
 
-#define FD_FLAGS_SWITCH_ENDIAN             (1<<0)
-#define FD_FLAGS_FILE_POINTSIZE_IS_4       (1<<1)
-#define FD_FLAGS_POINTSIZE_DIFFERS         (1<<2)
-#define FD_FLAGS_FILE_OK                   (1<<3)
-#define FD_FLAGS_NOT_MY_BUFFER			   (1<<4)
-#define FD_FLAGS_NOT_MY_LIBMAP			   (1<<5)
+#define FD_FLAGS_SWITCH_ENDIAN             (1 << 0)
+#define FD_FLAGS_FILE_POINTSIZE_IS_4       (1 << 1)
+#define FD_FLAGS_POINTSIZE_DIFFERS         (1 << 2)
+#define FD_FLAGS_FILE_OK                   (1 << 3)
+#define FD_FLAGS_NOT_MY_BUFFER             (1 << 4)
+#define FD_FLAGS_NOT_MY_LIBMAP             (1 << 5)
 
 #define SIZEOFBLENDERHEADER 12
 
-	/***/
+/***/
 struct Main;
 void blo_join_main(ListBase *mainlist);
 void blo_split_main(ListBase *mainlist, struct Main *main);
@@ -129,7 +129,7 @@ void blo_make_movieclip_pointer_map(FileData *fd, Main *oldmain);
 void blo_end_movieclip_pointer_map(FileData *fd, Main *oldmain);
 void blo_add_library_pointer_map(ListBase *mainlist, FileData *fd);
 
-void blo_freefiledata( FileData *fd);
+void blo_freefiledata(FileData *fd);
 
 BHead *blo_firstbhead(FileData *fd);
 BHead *blo_nextbhead(FileData *fd, BHead *thisblock);

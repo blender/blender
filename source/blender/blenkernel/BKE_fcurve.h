@@ -70,15 +70,15 @@ void bezt_add_to_cfra_elem(ListBase *lb, struct BezTriple *bezt);
 /* convenience looper over ALL driver targets for a given variable (even the unused ones) */
 #define DRIVER_TARGETS_LOOPER(dvar) \
 	{ \
-		DriverTarget *dtar= &dvar->targets[0]; \
-		int tarIndex= 0; \
+		DriverTarget *dtar = &dvar->targets[0]; \
+		int tarIndex = 0; \
 		for (; tarIndex < MAX_DRIVER_TARGETS; tarIndex++, dtar++)
 		 
 /* convenience looper over USED driver targets only */
 #define DRIVER_TARGETS_USED_LOOPER(dvar) \
 	{ \
-		DriverTarget *dtar= &dvar->targets[0]; \
-		int tarIndex= 0; \
+		DriverTarget *dtar = &dvar->targets[0]; \
+		int tarIndex = 0; \
 		for (; tarIndex < dvar->num_targets; tarIndex++, dtar++)
 		
 /* tidy up for driver targets loopers */
@@ -94,7 +94,7 @@ void driver_free_variable(struct ChannelDriver *driver, struct DriverVar *dvar);
 void driver_change_variable_type(struct DriverVar *dvar, int type);
 struct DriverVar *driver_add_new_variable(struct ChannelDriver *driver);
 
-float driver_get_variable_value (struct ChannelDriver *driver, struct DriverVar *dvar);
+float driver_get_variable_value(struct ChannelDriver *driver, struct DriverVar *dvar);
 
 /* ************** F-Curve Modifiers *************** */
 
@@ -111,52 +111,52 @@ float driver_get_variable_value (struct ChannelDriver *driver, struct DriverVar 
  */
 typedef struct FModifierTypeInfo {
 	/* admin/ident */
-	short type;				/* FMODIFIER_TYPE_### */
-	short size;				/* size in bytes of the struct */
-	short acttype;			/* eFMI_Action_Types */
-	short requires;			/* eFMI_Requirement_Flags */
-	char name[64]; 			/* name of modifier in interface */
-	char structName[64];	/* name of struct for SDNA */
+	short type;             /* FMODIFIER_TYPE_### */
+	short size;             /* size in bytes of the struct */
+	short acttype;          /* eFMI_Action_Types */
+	short requires;         /* eFMI_Requirement_Flags */
+	char  name[64];          /* name of modifier in interface */
+	char  structName[64];    /* name of struct for SDNA */
 	
 	/* data management function pointers - special handling */
-		/* free any data that is allocated separately (optional) */
+	/* free any data that is allocated separately (optional) */
 	void (*free_data)(struct FModifier *fcm);
-		/* copy any special data that is allocated separately (optional) */
+	/* copy any special data that is allocated separately (optional) */
 	void (*copy_data)(struct FModifier *fcm, struct FModifier *src);
-		/* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
+	/* set settings for data that will be used for FCuModifier.data (memory already allocated using MEM_callocN) */
 	void (*new_data)(void *mdata);
-		/* verifies that the modifier settings are valid */
+	/* verifies that the modifier settings are valid */
 	void (*verify_data)(struct FModifier *fcm);
 	
 	/* evaluation */
-		/* evaluate time that the modifier requires the F-Curve to be evaluated at */
+	/* evaluate time that the modifier requires the F-Curve to be evaluated at */
 	float (*evaluate_modifier_time)(struct FCurve *fcu, struct FModifier *fcm, float cvalue, float evaltime);
-		/* evaluate the modifier for the given time and 'accumulated' value */
+	/* evaluate the modifier for the given time and 'accumulated' value */
 	void (*evaluate_modifier)(struct FCurve *fcu, struct FModifier *fcm, float *cvalue, float evaltime);
 } FModifierTypeInfo;
 
 /* Values which describe the behavior of a FModifier Type */
 typedef enum eFMI_Action_Types {
-		/* modifier only modifies values outside of data range */
+	/* modifier only modifies values outside of data range */
 	FMI_TYPE_EXTRAPOLATION = 0,
-		/* modifier leaves data-points alone, but adjusts the interpolation between and around them */
+	/* modifier leaves data-points alone, but adjusts the interpolation between and around them */
 	FMI_TYPE_INTERPOLATION,
-		/* modifier only modifies the values of points (but times stay the same) */
+	/* modifier only modifies the values of points (but times stay the same) */
 	FMI_TYPE_REPLACE_VALUES,
-		/* modifier generates a curve regardless of what came before */
+	/* modifier generates a curve regardless of what came before */
 	FMI_TYPE_GENERATE_CURVE
 } eFMI_Action_Types;
 
 /* Flags for the requirements of a FModifier Type */
 typedef enum eFMI_Requirement_Flags {
-		/* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
-	FMI_REQUIRES_ORIGINAL_DATA		= (1<<0),
-		/* modifier doesn't require on any preceding data (i.e. it will generate a curve). 
-		 * Use in conjunction with FMI_TYPE_GENRATE_CURVE 
-		 */
-	FMI_REQUIRES_NOTHING			= (1<<1),
-		/* refer to modifier instance */
-	FMI_REQUIRES_RUNTIME_CHECK		= (1<<2)
+	/* modifier requires original data-points (kindof beats the purpose of a modifier stack?) */
+	FMI_REQUIRES_ORIGINAL_DATA      = (1 << 0),
+	/* modifier doesn't require on any preceding data (i.e. it will generate a curve).
+	 * Use in conjunction with FMI_TYPE_GENRATE_CURVE
+	 */
+	FMI_REQUIRES_NOTHING            = (1 << 1),
+	/* refer to modifier instance */
+	FMI_REQUIRES_RUNTIME_CHECK      = (1 << 2)
 } eFMI_Requirement_Flags;
 
 /* Function Prototypes for FModifierTypeInfo's */
@@ -194,7 +194,7 @@ void copy_fcurves(ListBase *dst, ListBase *src);
 /* find matching F-Curve in the given list of F-Curves */
 struct FCurve *list_find_fcurve(ListBase *list, const char rna_path[], const int array_index);
 
-struct FCurve *iter_step_fcurve (struct FCurve *fcu_iter, const char rna_path[]);
+struct FCurve *iter_step_fcurve(struct FCurve *fcu_iter, const char rna_path[]);
 
 /* high level function to get an fcurve from C without having the rna */
 struct FCurve *id_data_find_fcurve(ID *id, void *data, struct StructRNA *type, const char *prop_name, int index, char *driven);

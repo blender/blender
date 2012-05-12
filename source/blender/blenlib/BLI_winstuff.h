@@ -52,7 +52,7 @@
 
 #ifndef WIN32_SKIP_HKEY_PROTECTION
 #  undef HKEY
-#  define HKEY WIN32_HKEY				// prevent competing definitions
+#  define HKEY WIN32_HKEY  /* prevent competing definitions */
 #  include <windows.h>
 #  undef HKEY
 #else
@@ -85,10 +85,10 @@ extern "C" {
 #define MAXPATHLEN MAX_PATH
 
 #ifndef S_ISREG
-#  define S_ISREG(x) (((x)&_S_IFREG) == _S_IFREG)
+#  define S_ISREG(x) (((x) & _S_IFREG) == _S_IFREG)
 #endif
 #ifndef S_ISDIR
-#  define S_ISDIR(x) (((x)&_S_IFDIR) == _S_IFDIR)
+#  define S_ISDIR(x) (((x) & _S_IFDIR) == _S_IFDIR)
 #endif
 
 /* defines for using ISO C++ conformant names */
@@ -139,9 +139,9 @@ typedef struct _DIR {
 } DIR;
 
 void RegisterBlendExtension(void);
-DIR *opendir (const char *path);
+DIR *opendir(const char *path);
 struct dirent *readdir(DIR *dp);
-int closedir (DIR *dp);
+int closedir(DIR *dp);
 void get_default_root(char *root);
 int check_file_chars(char *filename);
 const char *dirname(char *path);

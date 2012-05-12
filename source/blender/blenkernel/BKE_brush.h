@@ -59,17 +59,17 @@ int BKE_brush_clone_image_delete(struct Brush *brush);
 
 /* jitter */
 void BKE_brush_jitter_pos(const struct Scene *scene, struct Brush *brush,
-                      const float pos[2], float jitterpos[2]);
+                          const float pos[2], float jitterpos[2]);
 
 /* brush curve */
-void BKE_brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/int preset);
+void BKE_brush_curve_preset(struct Brush *b, /*enum CurveMappingPreset*/ int preset);
 float BKE_brush_curve_strength_clamp(struct Brush *br, float p, const float len);
 float BKE_brush_curve_strength(struct Brush *br, float p, const float len); /* used for sculpt */
 
 /* sampling */
 void BKE_brush_sample_tex(const struct Scene *scene, struct Brush *brush, const float xy[2], float rgba[4], const int thread);
 void BKE_brush_imbuf_new(const struct Scene *scene, struct Brush *brush, short flt, short texfalloff, int size,
-	struct ImBuf **imbuf, int use_color_correction);
+                         struct ImBuf **imbuf, int use_color_correction);
 
 /* painting */
 struct BrushPainter;
@@ -78,9 +78,9 @@ typedef int (*BrushFunc)(void *user, struct ImBuf *ibuf, const float lastpos[2],
 
 BrushPainter *BKE_brush_painter_new(struct Scene *scene, struct Brush *brush);
 void BKE_brush_painter_require_imbuf(BrushPainter *painter, short flt,
-                                 short texonly, int size);
+                                     short texonly, int size);
 int BKE_brush_painter_paint(BrushPainter *painter, BrushFunc func, const float pos[2],
-                        double time, float pressure, void *user, int use_color_correction);
+                            double time, float pressure, void *user, int use_color_correction);
 void BKE_brush_painter_break_stroke(BrushPainter *painter);
 void BKE_brush_painter_free(BrushPainter *painter);
 
@@ -108,13 +108,13 @@ int  BKE_brush_use_size_pressure(const struct Scene *scene, struct Brush *brush)
 
 /* scale unprojected radius to reflect a change in the brush's 2D size */
 void BKE_brush_scale_unprojected_radius(float *unprojected_radius,
-									int new_brush_size,
-									int old_brush_size);
+                                        int new_brush_size,
+                                        int old_brush_size);
 
 /* scale brush size to reflect a change in the brush's unprojected radius */
 void BKE_brush_scale_size(int *BKE_brush_size_get,
-					  float new_unprojected_radius,
-					  float old_unprojected_radius);
+                          float new_unprojected_radius,
+                          float old_unprojected_radius);
 
 /* debugging only */
 void BKE_brush_debug_print_state(struct Brush *br);

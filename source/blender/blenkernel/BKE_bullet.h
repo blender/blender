@@ -38,7 +38,7 @@ struct BulletSoftBody;
 extern struct BulletSoftBody *bsbNew(void);
 
 /* frees internal data and softbody itself */
-extern void	bsbFree(struct BulletSoftBody *sb);
+extern void bsbFree(struct BulletSoftBody *sb);
 
 #endif
 

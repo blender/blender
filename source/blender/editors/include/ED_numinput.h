@@ -48,11 +48,11 @@ typedef struct NumInput {
 } NumInput;
 
 /* NUMINPUT FLAGS */
-#define NUM_NULL_ONE		2
-#define NUM_NO_NEGATIVE		4
-#define	NUM_NO_ZERO			8
-#define NUM_NO_FRACTION		16
-#define	NUM_AFFECT_ALL		32
+#define NUM_NULL_ONE        2
+#define NUM_NO_NEGATIVE     4
+#define NUM_NO_ZERO         8
+#define NUM_NO_FRACTION     16
+#define NUM_AFFECT_ALL      32
 
 /*********************** NumInput ********************************/
 

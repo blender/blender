@@ -49,54 +49,54 @@ struct bContext;
 struct BHead;
 struct FileData;
 
-typedef struct BlendHandle	BlendHandle;
+typedef struct BlendHandle BlendHandle;
 
 typedef enum BlenFileType {
-	BLENFILETYPE_BLEND= 1, 
-	BLENFILETYPE_PUB= 2, 
-	BLENFILETYPE_RUNTIME= 3
+	BLENFILETYPE_BLEND = 1,
+	BLENFILETYPE_PUB = 2,
+	BLENFILETYPE_RUNTIME = 3
 } BlenFileType;
 
 typedef struct BlendFileData {
-	struct Main*	main;
-	struct UserDef*	user;
+	struct Main *main;
+	struct UserDef *user;
 
 	int winpos;
 	int fileflags;
 	int displaymode;
 	int globalf;
-	char filename[1024];	/* 1024 = FILE_MAX */
+	char filename[1024];    /* 1024 = FILE_MAX */
 	
-	struct bScreen*	curscreen;
-	struct Scene*	curscene;
+	struct bScreen *curscreen;
+	struct Scene *curscene;
 	
-	BlenFileType	type;
+	BlenFileType type;
 } BlendFileData;
 
-	/**
-	 * Open a blender file from a pathname. The function
-	 * returns NULL and sets a report in the list if
-	 * it cannot open the file.
-	 * 
-	 * \param filepath The path of the file to open.
-	 * \param reports If the return value is NULL, errors
-	 * indicating the cause of the failure.
-	 * \return The data of the file.
-	 */
-BlendFileData*	BLO_read_from_file(const char *filepath, struct ReportList *reports);
+/**
+ * Open a blender file from a pathname. The function
+ * returns NULL and sets a report in the list if
+ * it cannot open the file.
+ *
+ * \param filepath The path of the file to open.
+ * \param reports If the return value is NULL, errors
+ * indicating the cause of the failure.
+ * \return The data of the file.
+ */
+BlendFileData *BLO_read_from_file(const char *filepath, struct ReportList *reports);
 
-	/**
-	 * Open a blender file from memory. The function
-	 * returns NULL and sets a report in the list if
-	 * it cannot open the file.
-	 * 
-	 * \param mem The file data.
-	 * \param memsize The length of \a mem.
-	 * \param reports If the return value is NULL, errors
-	 * indicating the cause of the failure.
-	 * \return The data of the file.
-	 */
-BlendFileData*	BLO_read_from_memory(void *mem, int memsize, struct ReportList *reports);
+/**
+ * Open a blender file from memory. The function
+ * returns NULL and sets a report in the list if
+ * it cannot open the file.
+ *
+ * \param mem The file data.
+ * \param memsize The length of \a mem.
+ * \param reports If the return value is NULL, errors
+ * indicating the cause of the failure.
+ * \return The data of the file.
+ */
+BlendFileData *BLO_read_from_memory(void *mem, int memsize, struct ReportList *reports);
 
 /**
  * oldmain is old main, from which we will keep libraries, images, ..
@@ -111,9 +111,8 @@ BlendFileData *BLO_read_from_memfile(struct Main *oldmain, const char *filename,
  * 
  * \param bfd The structure to free.
  */
-	void
-BLO_blendfiledata_free(
-	BlendFileData *bfd);
+void
+BLO_blendfiledata_free(BlendFileData *bfd);
 	
 /**
  * Open a blendhandle from a file path.
@@ -122,10 +121,9 @@ BLO_blendfiledata_free(
  * \param reports Report errors in opening the file (can be NULL).
  * \return A handle on success, or NULL on failure.
  */
-	BlendHandle*
-BLO_blendhandle_from_file(
-	char *file,
-	struct ReportList *reports);
+BlendHandle *
+BLO_blendhandle_from_file(char *file,
+                          struct ReportList *reports);
 
 /**
  * Open a blendhandle from memory.
@@ -135,10 +133,9 @@ BLO_blendhandle_from_file(
  * \return A handle on success, or NULL on failure.
  */
 
-	BlendHandle*
-BLO_blendhandle_from_memory(
-	void *mem,
-	int memsize);
+BlendHandle *
+BLO_blendhandle_from_memory(void *mem,
+                            int memsize);
 
 /**
  * Gets the names of all the datablocks in a file
@@ -151,11 +148,10 @@ BLO_blendhandle_from_memory(
  * \return A BLI_linklist of strings. The string links
  * should be freed with malloc.
  */
-	struct LinkNode*
-BLO_blendhandle_get_datablock_names(
-	BlendHandle *bh, 
-	int ofblocktype,
-	int *tot_names);
+struct LinkNode *
+BLO_blendhandle_get_datablock_names(BlendHandle *bh,
+                                    int ofblocktype,
+                                    int *tot_names);
 
 /**
  * Gets the previews of all the datablocks in a file
@@ -168,11 +164,10 @@ BLO_blendhandle_get_datablock_names(
  * \return A BLI_linklist of PreviewImage. The PreviewImage links
  * should be freed with malloc.
  */
-	struct LinkNode*
-BLO_blendhandle_get_previews(
-	BlendHandle *bh, 
-	int ofblocktype,
-	int *tot_prev);
+struct LinkNode *
+BLO_blendhandle_get_previews(BlendHandle *bh,
+                             int ofblocktype,
+                             int *tot_prev);
 
 /**
  * Gets the names of all the datablock groups in a
@@ -183,9 +178,8 @@ BLO_blendhandle_get_previews(
  * \return A BLI_linklist of strings. The string links
  * should be freed with malloc.
  */
-	struct LinkNode*
-BLO_blendhandle_get_linkable_groups(
-	BlendHandle *bh);
+struct LinkNode *
+BLO_blendhandle_get_linkable_groups(BlendHandle *bh);
 
 /**
  * Close and free a blendhandle. The handle
@@ -193,11 +187,10 @@ BLO_blendhandle_get_linkable_groups(
  *
  * \param bh The handle to close.
  */
-	void
-BLO_blendhandle_close(
-	BlendHandle *bh);
+void
+BLO_blendhandle_close(BlendHandle *bh);
 	
-	/***/
+/***/
 
 #define GROUP_MAX 32
 
@@ -217,7 +210,7 @@ int BLO_is_a_library(const char *path, char *dir, char *group);
  * \param filepath Used for relative linking, copied to the lib->name
  * \return the library Main, to be passed to BLO_library_append_named_part as mainl.
  */
-struct Main* BLO_library_append_begin(struct Main *mainvar, BlendHandle** bh, const char *filepath);
+struct Main *BLO_library_append_begin(struct Main *mainvar, BlendHandle **bh, const char *filepath);
 
 
 /**
@@ -229,7 +222,7 @@ struct Main* BLO_library_append_begin(struct Main *mainvar, BlendHandle** bh, co
  * \param idcode The kind of datablock to link.
  * \return the appended ID when found.
  */
-struct ID *BLO_library_append_named_part(struct Main *mainl, BlendHandle** bh, const char *idname, const int idcode);
+struct ID *BLO_library_append_named_part(struct Main *mainl, BlendHandle **bh, const char *idname, const int idcode);
 
 /**
  * Link/Append a named datablock from an external blend file.
@@ -243,13 +236,13 @@ struct ID *BLO_library_append_named_part(struct Main *mainl, BlendHandle** bh, c
  * \param flag Options for linking, used for instancing.
  * \return the appended ID when found.
  */
-struct ID *BLO_library_append_named_part_ex(const struct bContext *C, struct Main *mainl, BlendHandle** bh, const char *idname, const int idcode, const short flag);
+struct ID *BLO_library_append_named_part_ex(const struct bContext *C, struct Main *mainl, BlendHandle **bh, const char *idname, const int idcode, const short flag);
 
-void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle** bh, int idcode, short flag);
+void BLO_library_append_end(const struct bContext *C, struct Main *mainl, BlendHandle **bh, int idcode, short flag);
 
 void *BLO_library_read_struct(struct FileData *fd, struct BHead *bh, const char *blockname);
 
-BlendFileData* blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
+BlendFileData *blo_read_blendafterruntime(int file, const char *name, int actualsize, struct ReportList *reports);
 
 #ifdef __cplusplus
 } 

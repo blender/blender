@@ -58,7 +58,7 @@ typedef struct DLRBT_Node {
 
 /* Red/Black defines for tree_col */
 typedef enum eDLRBT_Colors {
-	DLRBT_BLACK= 0,
+	DLRBT_BLACK = 0,
 	DLRBT_RED,
 } eDLRBT_Colors;
 
@@ -67,10 +67,10 @@ typedef enum eDLRBT_Colors {
 /* The Tree Data */
 typedef struct DLRBT_Tree {
 	/* ListBase capabilities */
-	void *first, *last;			/* these should be based on DLRBT_Node-s */
+	void *first, *last;         /* these should be based on DLRBT_Node-s */
 
 	/* Root Node */
-	void *root;					/* this should be based on DLRBT_Node-s */
+	void *root;                 /* this should be based on DLRBT_Node-s */
 } DLRBT_Tree;
 
 /* Callback Types --------------------------------- */
@@ -87,7 +87,7 @@ typedef short (*DLRBT_Comparator_FP)(void *node, void *data);
 typedef DLRBT_Node *(*DLRBT_NAlloc_FP)(void *data);
 
 /* update an existing node instance accordingly to be in sync with the given data *	
- * 	- node: <DLRBT_Node> the node to update
+ *  - node: <DLRBT_Node> the node to update
  *	- data: pointer to the relevant data or values stored in the bitpattern dependent on the function
  */
 typedef void (*DLRBT_NUpdate_FP)(void *node, void *data);
@@ -137,7 +137,7 @@ short BLI_dlrbTree_contains(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, void *
 /* Add the given data to the tree, and return the node added */
 // NOTE: for duplicates, the update_cb is called (if available), and the existing node is returned
 DLRBT_Node *BLI_dlrbTree_add(DLRBT_Tree *tree, DLRBT_Comparator_FP cmp_cb, 
-			DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data);
+                             DLRBT_NAlloc_FP new_cb, DLRBT_NUpdate_FP update_cb, void *data);
 
 
 /* Remove the given element from the tree and balance again */

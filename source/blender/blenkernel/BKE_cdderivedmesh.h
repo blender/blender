@@ -79,11 +79,11 @@ struct DerivedMesh *CDDM_copy_from_tessface(struct DerivedMesh *dm);
  * elements are initialized to all zeros
  */
 struct DerivedMesh *CDDM_from_template(struct DerivedMesh *source,
-                                  int numVerts, int numEdges, int numFaces,
-                                  int numLoops, int numPolys);
+                                       int numVerts, int numEdges, int numFaces,
+                                       int numLoops, int numPolys);
 
-/*converts mfaces to mpolys.  note things may break if there are not valid
- *medges surrounding each mface.
+/* converts mfaces to mpolys.  note things may break if there are not valid
+ * medges surrounding each mface.
  */
 void CDDM_tessfaces_to_faces(struct DerivedMesh *dm);
 

@@ -58,43 +58,43 @@ struct wmWindowManager;
  * ED_spacetypes_init() in editors/area/spacetypes.c   */
 /* an editor in Blender is a combined ScrArea + SpaceType + SpaceData */
 
-#define BKE_ST_MAXNAME	64
+#define BKE_ST_MAXNAME  64
 
 typedef struct SpaceType {
 	struct SpaceType *next, *prev;
 	
-	char			name[BKE_ST_MAXNAME];		/* for menus */
-	int				spaceid;					/* unique space identifier */
-	int				iconid;						/* icon lookup for menus */
+	char name[BKE_ST_MAXNAME];                  /* for menus */
+	int spaceid;                                /* unique space identifier */
+	int iconid;                                 /* icon lookup for menus */
 	
 	/* initial allocation, after this WM will call init() too */
-	struct SpaceLink	*(*new)(const struct bContext *C);
+	struct SpaceLink    *(*new)(const struct bContext *C);
 	/* not free spacelink itself */
-	void		(*free)(struct SpaceLink *);
+	void (*free)(struct SpaceLink *);
 	
 	/* init is to cope with file load, screen (size) changes, check handlers */
-	void		(*init)(struct wmWindowManager *, struct ScrArea *);
+	void (*init)(struct wmWindowManager *, struct ScrArea *);
 	/* Listeners can react to bContext changes */
-	void		(*listener)(struct ScrArea *, struct wmNotifier *);
+	void (*listener)(struct ScrArea *, struct wmNotifier *);
 	
 	/* refresh context, called after filereads, ED_area_tag_refresh() */
-	void		(*refresh)(const struct bContext *, struct ScrArea *);
+	void (*refresh)(const struct bContext *, struct ScrArea *);
 	
 	/* after a spacedata copy, an init should result in exact same situation */
-	struct SpaceLink	*(*duplicate)(struct SpaceLink *);
+	struct SpaceLink    *(*duplicate)(struct SpaceLink *);
 
 	/* register operator types on startup */
-	void		(*operatortypes)(void);
+	void (*operatortypes)(void);
 	/* add default items to WM keymap */
-	void		(*keymap)(struct wmKeyConfig *);
+	void (*keymap)(struct wmKeyConfig *);
 	/* on startup, define dropboxes for spacetype+regions */
-	void		(*dropboxes)(void);
+	void (*dropboxes)(void);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, const char*, struct bContextDataResult *);
+	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
 
 	/* region type definitions */
-	ListBase	regiontypes;
+	ListBase regiontypes;
 	
 	/* tool shelf definitions */
 	ListBase toolshelf;
@@ -102,7 +102,7 @@ typedef struct SpaceType {
 	/* read and write... */
 	
 	/* default keymaps to add */
-	int			keymapflag;
+	int keymapflag;
 	
 } SpaceType;
 
@@ -111,33 +111,33 @@ typedef struct SpaceType {
 typedef struct ARegionType {
 	struct ARegionType *next, *prev;
 	
-	int			regionid;	/* unique identifier within this space, defines RGN_TYPE_xxxx */
+	int regionid;           /* unique identifier within this space, defines RGN_TYPE_xxxx */
 	
 	/* add handlers, stuff you only do once or on area/region type/size changes */
-	void		(*init)(struct wmWindowManager *, struct ARegion *);
+	void (*init)(struct wmWindowManager *, struct ARegion *);
 	/* draw entirely, view changes should be handled here */
-	void		(*draw)(const struct bContext *, struct ARegion *);	
+	void (*draw)(const struct bContext *, struct ARegion *);
 	/* contextual changes should be handled here */
-	void		(*listener)(struct ARegion *, struct wmNotifier *);
+	void (*listener)(struct ARegion *, struct wmNotifier *);
 	
-	void		(*free)(struct ARegion *);
+	void (*free)(struct ARegion *);
 
 	/* split region, copy data optionally */
-	void		*(*duplicate)(void *);
+	void        *(*duplicate)(void *);
 
 	
 	/* register operator types on startup */
-	void		(*operatortypes)(void);
+	void (*operatortypes)(void);
 	/* add own items to keymap */
-	void		(*keymap)(struct wmKeyConfig *);
+	void (*keymap)(struct wmKeyConfig *);
 	/* allows default cursor per region */
-	void		(*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
+	void (*cursor)(struct wmWindow *, struct ScrArea *, struct ARegion *ar);
 
 	/* return context data */
-	int			(*context)(const struct bContext *, const char *, struct bContextDataResult *);
+	int (*context)(const struct bContext *, const char *, struct bContextDataResult *);
 
 	/* custom drawing callbacks */
-	ListBase	drawcalls;
+	ListBase drawcalls;
 
 	/* panels type definitions */
 	ListBase paneltypes;
@@ -146,13 +146,13 @@ typedef struct ARegionType {
 	ListBase headertypes;
 	
 	/* hardcoded constraints, smaller than these values region is not visible */
-	int			minsizex, minsizey;
+	int minsizex, minsizey;
 	/* when new region opens (region prefsizex/y are zero then */
-	int			prefsizex, prefsizey;
+	int prefsizex, prefsizey;
 	/* default keymaps to add */
-	int			keymapflag;
+	int keymapflag;
 	/* return without drawing. lock is set by region definition, and copied to do_lock by render. can become flag */
-	short		do_lock, lock;
+	short do_lock, lock;
 } ARegionType;
 
 /* panel types */
@@ -160,20 +160,20 @@ typedef struct ARegionType {
 typedef struct PanelType {
 	struct PanelType *next, *prev;
 	
-	char		idname[BKE_ST_MAXNAME];		/* unique name */
-	char		label[BKE_ST_MAXNAME];		/* for panel header */
-	char		context[BKE_ST_MAXNAME];	/* for buttons window */
-	int			space_type;
-	int			region_type;
+	char idname[BKE_ST_MAXNAME];            /* unique name */
+	char label[BKE_ST_MAXNAME];             /* for panel header */
+	char context[BKE_ST_MAXNAME];           /* for buttons window */
+	int space_type;
+	int region_type;
 
-	int 		flag;
+	int flag;
 
 	/* verify if the panel should draw or not */
-	int			(*poll)(const struct bContext *, struct PanelType *);
+	int (*poll)(const struct bContext *, struct PanelType *);
 	/* draw header (optional) */
-	void		(*draw_header)(const struct bContext *, struct Panel *);	
+	void (*draw_header)(const struct bContext *, struct Panel *);
 	/* draw entirely, view changes should be handled here */
-	void		(*draw)(const struct bContext *, struct Panel *);	
+	void (*draw)(const struct bContext *, struct Panel *);
 
 	/* RNA integration */
 	ExtensionRNA ext;
@@ -184,19 +184,19 @@ typedef struct PanelType {
 typedef struct HeaderType {
 	struct HeaderType *next, *prev;
 
-	char		idname[BKE_ST_MAXNAME];	/* unique name */
-	int 		space_type;
+	char idname[BKE_ST_MAXNAME];        /* unique name */
+	int space_type;
 
 	/* draw entirely, view changes should be handled here */
-	void		(*draw)(const struct bContext *, struct Header *);	
+	void (*draw)(const struct bContext *, struct Header *);
 
 	/* RNA integration */
 	ExtensionRNA ext;
 } HeaderType;
 
 typedef struct Header {
-	struct HeaderType *type;	/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
+	struct HeaderType *type;    /* runtime */
+	struct uiLayout *layout;    /* runtime for drawing */
 } Header;
 
 
@@ -205,22 +205,22 @@ typedef struct Header {
 typedef struct MenuType {
 	struct MenuType *next, *prev;
 
-	char		idname[BKE_ST_MAXNAME];	/* unique name */
-	char		label[BKE_ST_MAXNAME];	/* for button text */
+	char idname[BKE_ST_MAXNAME];        /* unique name */
+	char label[BKE_ST_MAXNAME];         /* for button text */
 	char       *description;
 
 	/* verify if the menu should draw or not */
-	int			(*poll)(const struct bContext *, struct MenuType *);
+	int (*poll)(const struct bContext *, struct MenuType *);
 	/* draw entirely, view changes should be handled here */
-	void		(*draw)(const struct bContext *, struct Menu *);	
+	void (*draw)(const struct bContext *, struct Menu *);
 
 	/* RNA integration */
 	ExtensionRNA ext;
 } MenuType;
 
 typedef struct Menu {
-	struct MenuType *type;		/* runtime */
-	struct uiLayout *layout;	/* runtime for drawing */
+	struct MenuType *type;      /* runtime */
+	struct uiLayout *layout;    /* runtime for drawing */
 } Menu;
 
 /* spacetypes */
@@ -228,7 +228,7 @@ struct SpaceType *BKE_spacetype_from_id(int spaceid);
 struct ARegionType *BKE_regiontype_from_id(struct SpaceType *st, int regionid);
 const struct ListBase *BKE_spacetypes_list(void);
 void BKE_spacetype_register(struct SpaceType *st);
-void BKE_spacetypes_free(void);	/* only for quitting blender */
+void BKE_spacetypes_free(void); /* only for quitting blender */
 
 /* spacedata */
 void BKE_spacedata_freelist(ListBase *lb);
@@ -237,8 +237,8 @@ void BKE_spacedata_draw_locks(int set);
 
 /* area/regions */
 struct ARegion *BKE_area_region_copy(struct SpaceType *st, struct ARegion *ar);
-void	BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
-void	BKE_screen_area_free(struct ScrArea *sa);
+void            BKE_area_region_free(struct SpaceType *st, struct ARegion *ar);
+void            BKE_screen_area_free(struct ScrArea *sa);
 
 struct ARegion *BKE_area_find_region_type(struct ScrArea *sa, int type);
 struct ScrArea *BKE_screen_find_big_area(struct bScreen *sc, const int spacetype, const short min);

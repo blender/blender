@@ -54,7 +54,7 @@ float mg_HeteroTerrain(float x, float y, float z, float H, float lacunarity, flo
 float mg_HybridMultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, float offset, float gain, int noisebasis);
 float mg_RidgedMultiFractal(float x, float y, float z, float H, float lacunarity, float octaves, float offset, float gain, int noisebasis);
 /* newnoise: voronoi */
-void voronoi(float x, float y, float z, float* da, float* pa, float me, int dtype);
+void voronoi(float x, float y, float z, float *da, float *pa, float me, int dtype);
 /* newnoise: cellNoise & cellNoiseV (for vector/point/color) */
 float cellNoise(float x, float y, float z);
 void cellNoiseV(float x, float y, float z, float *ca);

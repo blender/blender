@@ -37,19 +37,19 @@ extern "C" {
 #include "BLI_math_inline.h"
 
 /* primaries */
-#define BLI_XYZ_SMPTE	0
-#define BLI_XYZ_REC709_SRGB	1
-#define BLI_XYZ_CIE		2
+#define BLI_XYZ_SMPTE        0
+#define BLI_XYZ_REC709_SRGB  1
+#define BLI_XYZ_CIE          2
 
 /* built-in profiles */
-#define BLI_PR_NONE		0
-#define BLI_PR_SRGB		1
-#define BLI_PR_REC709	2
+#define BLI_PR_NONE     0
+#define BLI_PR_SRGB     1
+#define BLI_PR_REC709   2
 
 /* YCbCr */
-#define BLI_YCC_ITU_BT601	0
-#define BLI_YCC_ITU_BT709	1
-#define BLI_YCC_JFIF_0_255	2
+#define BLI_YCC_ITU_BT601   0
+#define BLI_YCC_ITU_BT709   1
+#define BLI_YCC_JFIF_0_255  2
 
 /******************* Conversion to RGB ********************/
 
@@ -101,8 +101,8 @@ void BLI_init_srgb_conversion(void);
 int constrain_rgb(float *r, float *g, float *b);
 void minmax_rgb(short c[3]);
 
-void rgb_float_set_hue_float_offset(float * rgb, float hue_offset);
-void rgb_byte_set_hue_float_offset(unsigned char * rgb, float hue_offset);
+void rgb_float_set_hue_float_offset(float *rgb, float hue_offset);
+void rgb_byte_set_hue_float_offset(unsigned char *rgb, float hue_offset);
 
 void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3]);
 void rgba_uchar_to_float(float col_r[4], const unsigned char col_ub[4]);

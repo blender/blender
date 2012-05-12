@@ -65,8 +65,7 @@ struct DerivedMesh *object_get_derived_final(struct Object *ob);
  */
 struct Object;
 
-typedef struct SpaceTransform
-{
+typedef struct SpaceTransform {
 	float local2target[4][4];
 	float target2local[4][4];
 
@@ -103,23 +102,22 @@ struct MDeformVert;
 struct BVHTree;
 
 
-typedef struct ShrinkwrapCalcData
-{
-	ShrinkwrapModifierData *smd;	//shrinkwrap modifier data
+typedef struct ShrinkwrapCalcData {
+	ShrinkwrapModifierData *smd;    //shrinkwrap modifier data
 
-	struct Object *ob;				//object we are applying shrinkwrap to
+	struct Object *ob;              //object we are applying shrinkwrap to
 
-	struct MVert *vert;					//Array of verts being projected (to fetch normals or other data)
-	float (*vertexCos)[3];			//vertexs being shrinkwraped
+	struct MVert *vert;             //Array of verts being projected (to fetch normals or other data)
+	float (*vertexCos)[3];          //vertexs being shrinkwraped
 	int numVerts;
 
-	struct MDeformVert* dvert;			//Pointer to mdeform array
-	int vgroup;						//Vertex group num
+	struct MDeformVert *dvert;      //Pointer to mdeform array
+	int vgroup;                     //Vertex group num
 
-	struct DerivedMesh *target;		//mesh we are shrinking to	
-	SpaceTransform local2target;	//transform to move between local and target space
+	struct DerivedMesh *target;     //mesh we are shrinking to
+	SpaceTransform local2target;    //transform to move between local and target space
 
-	float keepDist;					//Distance to keep above target surface (units are in local space)
+	float keepDist;                 //Distance to keep above target surface (units are in local space)
 
 } ShrinkwrapCalcData;
 
@@ -139,10 +137,10 @@ int normal_projection_project_vertex(char options, const float *vert, const floa
 /*
  * NULL initializers to local data
  */
-#define NULL_ShrinkwrapCalcData	{NULL, }
-#define NULL_BVHTreeFromMesh	{NULL, }
-#define NULL_BVHTreeRayHit		{NULL, }
-#define NULL_BVHTreeNearest		{0, }
+#define NULL_ShrinkwrapCalcData {NULL, }
+#define NULL_BVHTreeFromMesh    {NULL, }
+#define NULL_BVHTreeRayHit      {NULL, }
+#define NULL_BVHTreeNearest     {0, }
 
 
 #endif

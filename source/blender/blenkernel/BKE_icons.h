@@ -36,10 +36,9 @@
  * Resizable Icons for Blender
  */
 
-typedef void (*DrawInfoFreeFP) (void *drawinfo);
+typedef void (*DrawInfoFreeFP)(void *drawinfo);
 
-struct Icon
-{
+struct Icon {
 	void *drawinfo;
 	void *obj;
 	short type;
@@ -54,17 +53,17 @@ struct ID;
 void BKE_icons_init(int first_dyn_id);
 
 /* return icon id for library object or create new icon if not found */
-int	BKE_icon_getid(struct ID* id);
+int BKE_icon_getid(struct ID *id);
 
 /* retrieve icon for id */
-struct Icon* BKE_icon_get(int icon_id);
+struct Icon *BKE_icon_get(int icon_id);
 
 /* set icon for id if not already defined */
 /* used for inserting the internal icons */
-void BKE_icon_set(int icon_id, struct Icon* icon);
+void BKE_icon_set(int icon_id, struct Icon *icon);
 
 /* remove icon and free date if library object becomes invalid */
-void BKE_icon_delete(struct ID* id);
+void BKE_icon_delete(struct ID *id);
 
 /* report changes - icon needs to be recalculated */
 void BKE_icon_changed(int icon_id);
@@ -82,12 +81,12 @@ void BKE_previewimg_free(struct PreviewImage **prv);
 void BKE_previewimg_free_id(struct ID *id);
 
 /* create a new preview image */
-struct PreviewImage* BKE_previewimg_create(void);
+struct PreviewImage *BKE_previewimg_create(void);
 
 /* create a copy of the preview image */
-struct PreviewImage* BKE_previewimg_copy(struct PreviewImage *prv);
+struct PreviewImage *BKE_previewimg_copy(struct PreviewImage *prv);
 
 /* retrieve existing or create new preview image */
-struct PreviewImage* BKE_previewimg_get(struct ID *id);
+struct PreviewImage *BKE_previewimg_get(struct ID *id);
 
 #endif /*  __BKE_ICONS_H__ */

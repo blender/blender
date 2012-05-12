@@ -31,7 +31,7 @@
  *  \ingroup bke
  */
 
-#include "DNA_modifier_types.h"		/* needed for all enum typdefs */
+#include "DNA_modifier_types.h"     /* needed for all enum typdefs */
 #include "BKE_customdata.h"
 
 struct ID;
@@ -73,10 +73,10 @@ typedef enum {
 } ModifierTypeType;
 
 typedef enum {
-	eModifierTypeFlag_AcceptsMesh          = (1<<0),
-	eModifierTypeFlag_AcceptsCVs           = (1<<1),
-	eModifierTypeFlag_SupportsMapping      = (1<<2),
-	eModifierTypeFlag_SupportsEditmode     = (1<<3),
+	eModifierTypeFlag_AcceptsMesh          = (1 << 0),
+	eModifierTypeFlag_AcceptsCVs           = (1 << 1),
+	eModifierTypeFlag_SupportsMapping      = (1 << 2),
+	eModifierTypeFlag_SupportsEditmode     = (1 << 3),
 
 	/* For modifiers that support editmode this determines if the
 	 * modifier should be enabled by default in editmode. This should
@@ -84,25 +84,25 @@ typedef enum {
 	 * also generally used in editmode, otherwise let the user enable
 	 * it by hand.
 	 */
-	eModifierTypeFlag_EnableInEditmode     = (1<<4),
+	eModifierTypeFlag_EnableInEditmode     = (1 << 4),
 
 	/* For modifiers that require original data and so cannot
 	 * be placed after any non-deformative modifier.
 	 */
-	eModifierTypeFlag_RequiresOriginalData = (1<<5),
+	eModifierTypeFlag_RequiresOriginalData = (1 << 5),
 
 	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
 	 */
-	eModifierTypeFlag_UsesPointCache = (1<<6),
+	eModifierTypeFlag_UsesPointCache = (1 << 6),
 
 	/* For physics modifiers, max one per type */
-	eModifierTypeFlag_Single = (1<<7),
+	eModifierTypeFlag_Single = (1 << 7),
 
 	/* Some modifier can't be added manually by user */
-	eModifierTypeFlag_NoUserAdd = (1<<8),
+	eModifierTypeFlag_NoUserAdd = (1 << 8),
 
 	/* For modifiers that use CD_PREVIEW_MCOL for preview. */
-	eModifierTypeFlag_UsesPreview = (1<<9)
+	eModifierTypeFlag_UsesPreview = (1 << 9)
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
@@ -146,28 +146,25 @@ typedef struct ModifierTypeInfo {
 	 * and otherwise the ob argument.
 	 */
 	void (*deformVerts)(struct ModifierData *md, struct Object *ob,
-						struct DerivedMesh *derivedData,
-						float (*vertexCos)[3], int numVerts,
-						ModifierApplyFlag flag);
+	                    struct DerivedMesh *derivedData,
+	                    float (*vertexCos)[3], int numVerts,
+	                    ModifierApplyFlag flag);
 
 	/* Like deformMatricesEM but called from object mode (for supporting modifiers in sculpt mode) */
-	void (*deformMatrices)(
-				struct ModifierData *md, struct Object *ob,
-				struct DerivedMesh *derivedData,
-				float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+	void (*deformMatrices)(struct ModifierData *md, struct Object *ob,
+	                       struct DerivedMesh *derivedData,
+	                       float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/* Like deformVerts but called during editmode (for supporting modifiers)
 	 */
-	void (*deformVertsEM)(
-				struct ModifierData *md, struct Object *ob,
-				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
-				float (*vertexCos)[3], int numVerts);
+	void (*deformVertsEM)(struct ModifierData *md, struct Object *ob,
+	                      struct BMEditMesh *editData, struct DerivedMesh *derivedData,
+	                      float (*vertexCos)[3], int numVerts);
 
 	/* Set deform matrix per vertex for crazyspace correction */
-	void (*deformMatricesEM)(
-				struct ModifierData *md, struct Object *ob,
-				struct BMEditMesh *editData, struct DerivedMesh *derivedData,
-				float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
+	void (*deformMatricesEM)(struct ModifierData *md, struct Object *ob,
+	                         struct BMEditMesh *editData, struct DerivedMesh *derivedData,
+	                         float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
 
@@ -190,10 +187,9 @@ typedef struct ModifierTypeInfo {
 	 * The modifier may reuse the derivedData argument (i.e. return it in
 	 * modified form), but must not release it.
 	 */
-	struct DerivedMesh *(*applyModifier)(
-								struct ModifierData *md, struct Object *ob,
-								struct DerivedMesh *derivedData,
-								ModifierApplyFlag flag);
+	struct DerivedMesh *(*applyModifier)(struct ModifierData *md, struct Object *ob,
+	                                     struct DerivedMesh *derivedData,
+	                                     ModifierApplyFlag flag);
 
 	/* Like applyModifier but called during editmode (for supporting
 	 * modifiers).
@@ -202,10 +198,9 @@ typedef struct ModifierTypeInfo {
 	 * are expected from editmode objects. The same qualifications regarding
 	 * derivedData apply as for applyModifier.
 	 */
-	struct DerivedMesh *(*applyModifierEM)(
-								struct ModifierData *md, struct Object *ob,
-								struct BMEditMesh *editData,
-								struct DerivedMesh *derivedData);
+	struct DerivedMesh *(*applyModifierEM)(struct ModifierData *md, struct Object *ob,
+	                                       struct BMEditMesh *editData,
+	                                       struct DerivedMesh *derivedData);
 
 
 	/********************* Optional functions *********************/
@@ -258,7 +253,7 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*updateDepgraph)(struct ModifierData *md, struct DagForest *forest, struct Scene *scene,
-						   struct Object *ob, struct DagNode *obNode);
+	                       struct Object *ob, struct DagNode *obNode);
 
 	/* Should return true if the modifier needs to be recalculated on time
 	 * changes.
@@ -285,7 +280,7 @@ typedef struct ModifierTypeInfo {
 	 * This function is optional.
 	 */
 	void (*foreachObjectLink)(struct ModifierData *md, struct Object *ob,
-							  ObjectWalkFunc walk, void *userData);
+	                          ObjectWalkFunc walk, void *userData);
 
 	/* Should call the given walk function with a pointer to each ID
 	 * pointer (i.e. each datablock pointer) that the modifier data
@@ -296,7 +291,7 @@ typedef struct ModifierTypeInfo {
 	 * will be used.
 	 */
 	void (*foreachIDLink)(struct ModifierData *md, struct Object *ob,
-						  IDWalkFunc walk, void *userData);
+	                      IDWalkFunc walk, void *userData);
 
 	/* Should call the given walk function for each texture that the
 	 * modifier data stores. This is used for finding all textures in
@@ -306,10 +301,10 @@ typedef struct ModifierTypeInfo {
 	 * assumed the modifier has no textures.
 	 */
 	void (*foreachTexLink)(struct ModifierData *md, struct Object *ob,
-						  TexWalkFunc walk, void *userData);
+	                       TexWalkFunc walk, void *userData);
 } ModifierTypeInfo;
 
-ModifierTypeInfo *modifierType_getInfo (ModifierType type);
+ModifierTypeInfo *modifierType_getInfo(ModifierType type);
 
 /* Modifier utility calls, do call through type pointer and return
  * default values if pointer is optional.
@@ -317,38 +312,38 @@ ModifierTypeInfo *modifierType_getInfo (ModifierType type);
 struct ModifierData  *modifier_new(int type);
 void          modifier_free(struct ModifierData *md);
 
-void 		  modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
+void          modifier_unique_name(struct ListBase *modifiers, struct ModifierData *md);
 
 void          modifier_copyData(struct ModifierData *md, struct ModifierData *target);
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct Scene *scene, struct ModifierData *md);
 int           modifier_isCorrectableDeformed(struct ModifierData *md);
-int			  modifier_sameTopology(ModifierData *md);
+int           modifier_sameTopology(ModifierData *md);
 int           modifier_nonGeometrical(ModifierData *md);
 int           modifier_isEnabled(struct Scene *scene, struct ModifierData *md, int required_mode);
 void          modifier_setError(struct ModifierData *md, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 2, 3)))
+__attribute__ ((format(printf, 2, 3)))
 #endif
 ;
 int           modifier_isPreview(struct ModifierData *md);
 
 void          modifiers_foreachObjectLink(struct Object *ob,
-										  ObjectWalkFunc walk,
-										  void *userData);
+                                          ObjectWalkFunc walk,
+                                          void *userData);
 void          modifiers_foreachIDLink(struct Object *ob,
-									  IDWalkFunc walk,
-									  void *userData);
+                                      IDWalkFunc walk,
+                                      void *userData);
 void          modifiers_foreachTexLink(struct Object *ob,
-									  TexWalkFunc walk,
-									  void *userData);
+                                       TexWalkFunc walk,
+                                       void *userData);
 
 struct ModifierData  *modifiers_findByType(struct Object *ob, ModifierType type);
 struct ModifierData  *modifiers_findByName(struct Object *ob, const char *name);
 void          modifiers_clearErrors(struct Object *ob);
 int           modifiers_getCageIndex(struct Scene *scene, struct Object *ob,
-									 int *lastPossibleCageIndex_r, int virtual_);
+                                     int *lastPossibleCageIndex_r, int virtual_);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
 int           modifiers_isClothEnabled(struct Object *ob);
@@ -374,10 +369,10 @@ typedef struct CDMaskLink {
  * end of the stack.
  */
 struct CDMaskLink *modifiers_calcDataMasks(struct Scene *scene, 
-										   struct Object *ob,
-										   struct ModifierData *md,
-										   CustomDataMask dataMask,
-										   int required_mode);
+                                           struct Object *ob,
+                                           struct ModifierData *md,
+                                           CustomDataMask dataMask,
+                                           int required_mode);
 struct ModifierData *modifiers_getLastPreview(struct Scene *scene,
                                               struct ModifierData *md,
                                               int required_mode);

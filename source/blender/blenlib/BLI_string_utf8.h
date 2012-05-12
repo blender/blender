@@ -37,17 +37,17 @@ int          BLI_utf8_invalid_byte(const char *str, int length);
 int          BLI_utf8_invalid_strip(char *str, int length);
 
 int          BLI_str_utf8_size(const char *p); /* warning, can return -1 on bad chars */
-    /* copied from glib */
+/* copied from glib */
 unsigned int BLI_str_utf8_as_unicode(const char *p);
 unsigned int BLI_str_utf8_as_unicode_and_size(const char *p, size_t *index);
 unsigned int BLI_str_utf8_as_unicode_step(const char *p, size_t *index);
-size_t		 BLI_str_utf8_from_unicode(unsigned int c, char *outbuf);
+size_t       BLI_str_utf8_from_unicode(unsigned int c, char *outbuf);
 
 char        *BLI_str_find_prev_char_utf8(const char *str, const char *p);
 char        *BLI_str_find_next_char_utf8(const char *p, const char *end);
 char        *BLI_str_prev_char_utf8(const char *p);
 
-    /* wchar_t functions, copied from blenders own font.c originally */
+/* wchar_t functions, copied from blenders own font.c originally */
 size_t       BLI_wstrlen_utf8(const wchar_t *src);
 size_t       BLI_strlen_utf8(const char *strc);
 size_t       BLI_strncpy_wchar_as_utf8(char *dst, const wchar_t *src, const size_t maxcpy);

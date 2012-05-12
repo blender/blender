@@ -49,37 +49,34 @@ typedef struct BVHTreeOverlap {
 	int indexB;
 } BVHTreeOverlap;
 
-typedef struct BVHTreeNearest
-{
-	int index;			/* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
-	float co[3];		/* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float no[3];		/* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
-	float dist;			/* squared distance to search arround */
+typedef struct BVHTreeNearest {
+	int index;          /* the index of the nearest found (untouched if none is found within a dist radius from the given coordinates) */
+	float co[3];        /* nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
+	float no[3];        /* normal at nearest coordinates (untouched it none is found within a dist radius from the given coordinates) */
+	float dist;         /* squared distance to search arround */
 } BVHTreeNearest;
 
-typedef struct BVHTreeRay
-{
-	float origin[3];	/* ray origin */
-	float direction[3];	/* ray direction */
-	float radius;		/* radius around ray */
+typedef struct BVHTreeRay {
+	float origin[3];    /* ray origin */
+	float direction[3]; /* ray direction */
+	float radius;       /* radius around ray */
 } BVHTreeRay;
 
-typedef struct BVHTreeRayHit
-{
-	int index;			/* index of the tree node (untouched if no hit is found) */
-	float co[3];		/* coordinates of the hit point */
-	float no[3];		/* normal on hit point */
-	float dist;			/* distance to the hit point */
+typedef struct BVHTreeRayHit {
+	int index;          /* index of the tree node (untouched if no hit is found) */
+	float co[3];        /* coordinates of the hit point */
+	float no[3];        /* normal on hit point */
+	float dist;         /* distance to the hit point */
 } BVHTreeRayHit;
 
 /* callback must update nearest in case it finds a nearest result */
-typedef void (*BVHTree_NearestPointCallback) (void *userdata, int index, const float *co, BVHTreeNearest *nearest);
+typedef void (*BVHTree_NearestPointCallback)(void *userdata, int index, const float *co, BVHTreeNearest *nearest);
 
 /* callback must update hit in case it finds a nearest successful hit */
-typedef void (*BVHTree_RayCastCallback) (void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
+typedef void (*BVHTree_RayCastCallback)(void *userdata, int index, const BVHTreeRay *ray, BVHTreeRayHit *hit);
 
 /* callback to range search query */
-typedef void (*BVHTree_RangeQuery) (void *userdata, int index, float squared_dist);
+typedef void (*BVHTree_RangeQuery)(void *userdata, int index, float squared_dist);
 
 BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis);
 void BLI_bvhtree_free(BVHTree *tree);

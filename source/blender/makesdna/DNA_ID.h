@@ -225,9 +225,13 @@ typedef struct PreviewImage {
 #define ID_BLEND_PATH(_bmain, _id) ((_id)->lib ? (_id)->lib->filepath : (_bmain)->name)
 
 #ifdef GS
-#undef GS
+#  undef GS
 #endif
 #define GS(a)	(*((short *)(a)))
+
+#define ID_NEW(a)		if (      (a) && (a)->id.newid ) (a) = (void *)(a)->id.newid
+#define ID_NEW_US(a)	if (      (a)->id.newid)       { (a) = (void *)(a)->id.newid;       (a)->id.us++; }
+#define ID_NEW_US2(a)	if (((ID *)a)->newid)          { (a) = ((ID  *)a)->newid;     ((ID *)a)->us++;    }
 
 /* id->flag: set frist 8 bits always at zero while reading */
 #define LIB_LOCAL		0

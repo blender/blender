@@ -34,12 +34,12 @@
 extern "C" {
 #endif
 
-#define RAD2DEG(_rad) ((_rad)*(180.0/M_PI))
-#define DEG2RAD(_deg) ((_deg)*(M_PI/180.0))
+#define RAD2DEG(_rad) ((_rad) * (180.0 / M_PI))
+#define DEG2RAD(_deg) ((_deg) * (M_PI / 180.0))
 
 
-#define RAD2DEGF(_rad) ((_rad)*(float)(180.0/M_PI))
-#define DEG2RADF(_deg) ((_deg)*(float)(M_PI/180.0))
+#define RAD2DEGF(_rad) ((_rad) * (float)(180.0 / M_PI))
+#define DEG2RADF(_deg) ((_deg) * (float)(M_PI / 180.0))
 
 /******************************** Quaternions ********************************/
 /* stored in (w, x, y, z) order                                              */
@@ -171,10 +171,10 @@ typedef struct DualQuat {
 void copy_dq_dq(DualQuat *r, DualQuat *dq);
 void normalize_dq(DualQuat *dq, float totw);
 void add_weighted_dq_dq(DualQuat *r, DualQuat *dq, float weight);
-void mul_v3m3_dq(float r[3], float R[3][3], DualQuat *dq);
+void mul_v3m3_dq(float r[3], float R[3][3], DualQuat * dq);
 
-void mat4_to_dquat(DualQuat *r, float base[4][4], float M[4][4]);
-void dquat_to_mat4(float R[4][4], DualQuat *dq);
+void mat4_to_dquat(DualQuat * r, float base[4][4], float M[4][4]);
+void dquat_to_mat4(float R[4][4], DualQuat * dq);
 
 void quat_apply_track(float quat[4], short axis, short upflag);
 void vec_apply_track(float vec[3], short axis);

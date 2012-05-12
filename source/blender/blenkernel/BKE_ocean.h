@@ -69,25 +69,25 @@ typedef struct OceanCache {
 } OceanCache;
 
 
-#define OCEAN_NOT_CACHED	0
-#define OCEAN_CACHING		1
-#define OCEAN_CACHED		2
+#define OCEAN_NOT_CACHED    0
+#define OCEAN_CACHING       1
+#define OCEAN_CACHED        2
 
 struct Ocean *BKE_add_ocean(void);
 void BKE_free_ocean_data(struct Ocean *oc);
 void BKE_free_ocean(struct Ocean *oc);
 
-void BKE_init_ocean(struct Ocean* o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
+void BKE_init_ocean(struct Ocean *o, int M, int N, float Lx, float Lz, float V, float l, float A, float w, float damp,
                     float alignment, float depth, float time, short do_height_field, short do_chop, short do_normals, short do_jacobian, int seed);
 void BKE_simulate_ocean(struct Ocean *o, float t, float scale, float chop_amount);
 
 /* sampling the ocean surface */
 float BKE_ocean_jminus_to_foam(float jminus, float coverage);
-void BKE_ocean_eval_uv(struct Ocean * oc, struct OceanResult *ocr, float u, float v);
-void BKE_ocean_eval_uv_catrom(struct Ocean * oc, struct OceanResult *ocr, float u, float v);
-void BKE_ocean_eval_xz(struct Ocean * oc, struct OceanResult *ocr, float x, float z);
-void BKE_ocean_eval_xz_catrom(struct Ocean * oc, struct OceanResult *ocr, float x, float z);
-void BKE_ocean_eval_ij(struct Ocean * oc, struct OceanResult *ocr, int i, int j);
+void  BKE_ocean_eval_uv(struct Ocean *oc, struct OceanResult *ocr, float u, float v);
+void  BKE_ocean_eval_uv_catrom(struct Ocean *oc, struct OceanResult *ocr, float u, float v);
+void  BKE_ocean_eval_xz(struct Ocean *oc, struct OceanResult *ocr, float x, float z);
+void  BKE_ocean_eval_xz_catrom(struct Ocean *oc, struct OceanResult *ocr, float x, float z);
+void  BKE_ocean_eval_ij(struct Ocean *oc, struct OceanResult *ocr, int i, int j);
 
 
 /* ocean cache handling */

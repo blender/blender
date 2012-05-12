@@ -52,8 +52,7 @@ typedef enum FileListColumns {
 	COLUMN_OWNER
 } FileListColumns;
 
-typedef struct FileLayout
-{
+typedef struct FileLayout {
 	/* view settings - XXX - move into own struct */
 	int prv_w;
 	int prv_h;
@@ -80,7 +79,7 @@ typedef struct FileSelection {
 
 struct rcti;
 
-struct FileSelectParams* ED_fileselect_get_params(struct SpaceFile *sfile);
+struct FileSelectParams *ED_fileselect_get_params(struct SpaceFile *sfile);
 
 short ED_fileselect_set_params(struct SpaceFile *sfile);
 
@@ -90,13 +89,13 @@ void ED_fileselect_reset_params(struct SpaceFile *sfile);
 void ED_fileselect_init_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
 
-FileLayout* ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
+FileLayout *ED_fileselect_get_layout(struct SpaceFile *sfile, struct ARegion *ar);
 
-int ED_fileselect_layout_numfiles(FileLayout* layout, struct ARegion *ar);
-int ED_fileselect_layout_offset(FileLayout* layout, int x, int y);
-FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const struct rcti* rect);
+int ED_fileselect_layout_numfiles(FileLayout *layout, struct ARegion *ar);
+int ED_fileselect_layout_offset(FileLayout *layout, int x, int y);
+FileSelection ED_fileselect_layout_offset_rect(FileLayout *layout, const struct rcti *rect);
 
-void ED_fileselect_layout_tilepos(FileLayout* layout, int tile, int *x, int *y);
+void ED_fileselect_layout_tilepos(FileLayout *layout, int tile, int *x, int *y);
 
 void ED_operatormacros_file(void);
 

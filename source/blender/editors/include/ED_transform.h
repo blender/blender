@@ -85,16 +85,16 @@ enum {
 } TfmMode;
 
 /* TRANSFORM CONTEXTS */
-#define CTX_NONE			0
-#define CTX_TEXTURE			1
-#define CTX_EDGE			2
-#define CTX_NO_PET			4
-#define CTX_TWEAK			8
-#define CTX_NO_MIRROR		16
-#define CTX_AUTOCONFIRM		32
-#define CTX_BMESH			64
-#define CTX_NDOF			128
-#define CTX_MOVIECLIP		256
+#define CTX_NONE            0
+#define CTX_TEXTURE         1
+#define CTX_EDGE            2
+#define CTX_NO_PET          4
+#define CTX_TWEAK           8
+#define CTX_NO_MIRROR       16
+#define CTX_AUTOCONFIRM     32
+#define CTX_BMESH           64
+#define CTX_NDOF            128
+#define CTX_MOVIECLIP       256
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
@@ -124,7 +124,7 @@ void BIF_selectTransformOrientationValue(struct bContext *C, int orientation);
 void ED_getTransformOrientationMatrix(const struct bContext *C, float orientation_mat[][3], int activeOnly);
 
 struct EnumPropertyItem *BIF_enumTransformOrientation(struct bContext *C);
-const char * BIF_menustringTransformOrientation(const struct bContext *C, const char *title); /* the returned value was allocated and needs to be freed after use */
+const char *BIF_menustringTransformOrientation(const struct bContext *C, const char *title);  /* the returned value was allocated and needs to be freed after use */
 int BIF_countTransformOrientation(const struct bContext *C);
 
 void BIF_TransformSetUndo(const char *str);
@@ -133,15 +133,15 @@ void BIF_selectOrientation(void);
 
 /* to be able to add operator properties to other operators */
 
-#define P_MIRROR		(1 << 0)
-#define P_PROPORTIONAL	(1 << 1)
-#define P_AXIS			(1 << 2)
-#define P_SNAP			(1 << 3)
-#define P_GEO_SNAP		(P_SNAP|(1 << 4))
-#define P_ALIGN_SNAP	(P_GEO_SNAP|(1 << 5))
-#define P_CONSTRAINT	(1 << 6)
-#define P_OPTIONS		(1 << 7)
-#define P_CORRECT_UV 	(1 << 8)
+#define P_MIRROR        (1 << 0)
+#define P_PROPORTIONAL  (1 << 1)
+#define P_AXIS          (1 << 2)
+#define P_SNAP          (1 << 3)
+#define P_GEO_SNAP      (P_SNAP | (1 << 4))
+#define P_ALIGN_SNAP    (P_GEO_SNAP | (1 << 5))
+#define P_CONSTRAINT    (1 << 6)
+#define P_OPTIONS       (1 << 7)
+#define P_CORRECT_UV    (1 << 8)
 
 void Transform_Properties(struct wmOperatorType *ot, int flags);
 
@@ -153,8 +153,7 @@ void BIF_draw_manipulator(const struct bContext *C);
 /* Snapping */
 
 
-typedef struct DepthPeel
-{
+typedef struct DepthPeel {
 	struct DepthPeel *next, *prev;
 
 	float depth;

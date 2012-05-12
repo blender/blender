@@ -41,25 +41,25 @@
 extern "C" {
 #endif
 
-	/* A reasonable standard buffer size, big
-	 * enough to not cause much internal fragmentation, 
-	 * small enough not to waste resources
-	 */
-#define BLI_MEMARENA_STD_BUFSIZE	(1<<14)
+/* A reasonable standard buffer size, big
+ * enough to not cause much internal fragmentation,
+ * small enough not to waste resources
+ */
+#define BLI_MEMARENA_STD_BUFSIZE    (1 << 14)
 
 struct MemArena;
 typedef struct MemArena MemArena;
 
 
-struct MemArena*	BLI_memarena_new	(int bufsize, const char *name);
-void				BLI_memarena_free	(struct MemArena *ma);
+struct MemArena    *BLI_memarena_new(int bufsize, const char *name);
+void                BLI_memarena_free(struct MemArena *ma);
 
-void				BLI_memarena_use_malloc (struct MemArena *ma);
-void				BLI_memarena_use_calloc (struct MemArena *ma);
+void                BLI_memarena_use_malloc(struct MemArena *ma);
+void                BLI_memarena_use_calloc(struct MemArena *ma);
 
-void				BLI_memarena_use_align(struct MemArena *ma, int align);
+void                BLI_memarena_use_align(struct MemArena *ma, int align);
 
-void*				BLI_memarena_alloc	(struct MemArena *ma, int size);
+void               *BLI_memarena_alloc(struct MemArena *ma, int size);
 
 #ifdef __cplusplus
 }
