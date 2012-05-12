@@ -128,8 +128,7 @@ enum {
 
 /* Runtime flags */
 enum {
-	GP_PAINTFLAG_FIRSTRUN       = (1 << 0),   /* operator just started */
-	GP_PAINTFLAG_STROKEADDED    = (1 << 1)    /* stroke was already added during draw session */
+	GP_PAINTFLAG_FIRSTRUN       = (1 << 0)    /* operator just started */
 };
 
 /* ------ */
@@ -142,6 +141,11 @@ enum {
 #define MIN_MANHATTEN_PX    (U.gp_manhattendist)
 /* minimum length of new segment before new point can be added */
 #define MIN_EUCLIDEAN_PX    (U.gp_euclideandist)
+
+static int gp_stroke_is_added(tGPsdata *p)
+{
+	return (p->gpf && p->gpf->strokes.last);
+}
 
 /* ------ */
 /* Forward defines for some functions... */
@@ -322,11 +326,6 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 	bGPdata *gpd = p->gpd;
 	tGPspoint *pt;
 
-	/* sanity check, can happen after undo [#31427] */
-	if (p->flags & GP_PAINTFLAG_STROKEADDED && p->gpf->strokes.last == NULL) {
-		p->flags &= ~GP_PAINTFLAG_STROKEADDED;
-	}
-
 	/* check painting mode */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only - i.e. only store start and end point in buffer */
@@ -395,7 +394,7 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 		 * to stroke. This allows to draw lines more interactively (see new segment
 		 * during mouse slide, i.e.) 
 		 */
-		if (p->flags & GP_PAINTFLAG_STROKEADDED) {
+		if (gp_stroke_is_added(p)) {
 			bGPDstroke *gps = p->gpf->strokes.last;
 			bGPDspoint *pts;
 
@@ -583,8 +582,9 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	 * coordinates are getting added to stroke immediately to allow more
 	 * interactive behavior */
 	if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
-		if (p->flags & GP_PAINTFLAG_STROKEADDED)
+		if (gp_stroke_is_added(p)) {
 			return;
+		}
 	}
 
 	/* allocate memory for a new stroke */
@@ -715,8 +715,6 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 		if (depth_arr)
 			MEM_freeN(depth_arr);
 	}
-	
-	p->flags |= GP_PAINTFLAG_STROKEADDED;
 
 	/* add stroke to frame */
 	BLI_addtail(&p->gpf->strokes, gps);
