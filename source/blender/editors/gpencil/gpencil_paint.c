@@ -321,7 +321,12 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 {
 	bGPdata *gpd = p->gpd;
 	tGPspoint *pt;
-	
+
+	/* sanity check, can happen after undo [#31427] */
+	if (p->flags & GP_PAINTFLAG_STROKEADDED && p->gpf->strokes.last == NULL) {
+		p->flags &= ~GP_PAINTFLAG_STROKEADDED;
+	}
+
 	/* check painting mode */
 	if (p->paintmode == GP_PAINTMODE_DRAW_STRAIGHT) {
 		/* straight lines only - i.e. only store start and end point in buffer */
