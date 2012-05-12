@@ -62,7 +62,7 @@
 /* ------------------------- Declarations --------------------------- */
 
 #define INVALID_INDEX ((int)(~0))
-#define INVPI 0.31830988618379069f
+#define INVPI ((float)M_1_PI)
 #define TOTCHILD 8
 #define CACHE_STEP 3
 

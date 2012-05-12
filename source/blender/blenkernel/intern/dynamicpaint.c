@@ -3991,12 +3991,11 @@ void surface_determineForceTargetPoints(PaintSurfaceData *sData, int index, floa
 		/* and multiply depending on how deeply force intersects surface */
 		temp = fabs(force_intersect);
 		CLAMP(temp, 0.0f, 1.0f);
-		closest_d[0] *= acosf(temp) / 1.57079633f;
-		closest_d[1] *= acosf(temp) / 1.57079633f;
+		mul_v2_fl(closest_d, acosf(temp) / (float)M_PI_2);
 	}
 	else {
 		/* if only single neighbor, still linearize force intersection effect */
-		closest_d[0] = 1.0f - acosf(closest_d[0]) / 1.57079633f;
+		closest_d[0] = 1.0f - acosf(closest_d[0]) / (float)M_PI_2;
 	}
 }
 

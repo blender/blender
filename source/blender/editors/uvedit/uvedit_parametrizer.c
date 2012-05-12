@@ -47,10 +47,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#if defined(_WIN32)
-#define M_PI 3.14159265358979323846
-#endif
-
 /* Utils */
 
 #if 0
