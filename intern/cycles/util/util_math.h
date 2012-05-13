@@ -965,6 +965,20 @@ __device_inline void print_int4(const char *label, const int4& a)
 
 #ifndef __KERNEL_OPENCL__
 
+__device_inline unsigned int as_int(uint i)
+{
+	union { unsigned int ui; int i; } u;
+	u.ui = i;
+	return u.i;
+}
+
+__device_inline unsigned int as_uint(int i)
+{
+	union { unsigned int ui; int i; } u;
+	u.i = i;
+	return u.ui;
+}
+
 __device_inline unsigned int as_uint(float f)
 {
 	union { unsigned int i; float f; } u;

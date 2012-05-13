@@ -49,8 +49,30 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 #ifdef __KERNEL_OPENCL__
-//#define __KERNEL_SHADING__
-//#define __KERNEL_ADV_SHADING__
+
+#ifdef __KERNEL_OPENCL_NVIDIA__
+#define __KERNEL_SHADING__
+#define __MULTI_CLOSURE__
+#endif
+
+#ifdef __KERNEL_OPENCL_APPLE__
+//#define __SVM__
+//#define __EMISSION__
+//#define __IMAGE_TEXTURES__
+//#define __HOLDOUT__
+//#define __PROCEDURAL_TEXTURES__
+//#define __EXTRA_NODES__
+#endif
+
+#ifdef __KERNEL_OPENCL_AMD__
+#define __SVM__
+#define __EMISSION__
+#define __IMAGE_TEXTURES__
+#define __HOLDOUT__
+#define __PROCEDURAL_TEXTURES__
+#define __EXTRA_NODES__
+#endif
+
 #endif
 
 /* kernel features */
@@ -69,7 +91,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_SHADING__
 #define __SVM__
 #define __EMISSION__
-#define __TEXTURES__
+#define __PROCEDURAL_TEXTURES__
+#define __IMAGE_TEXTURES__
+#define __EXTRA_NODES__
 #define __HOLDOUT__
 #endif
 
@@ -85,7 +109,6 @@ CCL_NAMESPACE_BEGIN
 //#define __MULTI_LIGHT__
 //#define __OSL__
 //#define __SOBOL_FULL_SCREEN__
-//#define __MODIFY_TP__
 //#define __QBVH__
 
 /* Shader Evaluation */

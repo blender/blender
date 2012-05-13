@@ -260,6 +260,7 @@ void device_cpu_info(vector<DeviceInfo>& devices)
 	info.id = "CPU";
 	info.num = 0;
 	info.advanced_shading = true;
+	info.pack_images = false;
 
 	devices.insert(devices.begin(), info);
 }

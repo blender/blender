@@ -53,6 +53,7 @@ public:
 	int num;
 	bool display_device;
 	bool advanced_shading;
+	bool pack_images;
 	vector<DeviceInfo> multi_devices;
 
 	DeviceInfo()
@@ -62,6 +63,7 @@ public:
 		num = 0;
 		display_device = false;
 		advanced_shading = true;
+		pack_images = false;
 	}
 };
 
