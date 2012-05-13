@@ -491,16 +491,6 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	return 1;
 }
 
-/*Return the squared distance between two points in 3d space*/
-float sqr_dist_v3v3(float v1[3], float v2[3])
-{
-	float d[3];
-	d[0]= v2[0]-v1[0];
-	d[1]= v2[1]-v1[1];
-	d[2]= v2[2]-v1[2];
-	return dot_v3v3(d, d);
-}
-
 /*Copy a single vertex group from source to destination with weights by nearest weight in face*/
 int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_src)
 {
@@ -567,9 +557,9 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get distances*/
-		dist_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
-		dist_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
-		dist_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+		dist_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+		dist_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+		dist_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
 
 		/*get weight from triangle*/
 		if(dist_v1<dist_v2 && dist_v1<dist_v3){
@@ -583,7 +573,7 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 		}
 		/*check for and get weight from quad*/
 		if(mface_src[nearest.index].v4){
-			dist_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
+			dist_v4= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
 			if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
 			}
@@ -665,9 +655,9 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		/*Smart solution might be to just substract the distance difference to plane instead.*/
 
 		/*get distances*/
-		distribution_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
-		distribution_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
-		distribution_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+		distribution_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+		distribution_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+		distribution_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
 
 		/*get weight from overlapping vert if any*/
 		if(distribution_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
@@ -684,7 +674,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 			/*check for quad*/
 			if(mface_src[nearest.index].v4){
-				distribution_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src->v4].co);
+				distribution_v4= len_squared_v3v3(tmp_co, mv_src[mface_src->v4].co);
 				if(distribution_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 				else{
 					distribution_v4= 1/distribution_v4;
