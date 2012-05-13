@@ -216,7 +216,7 @@ test_deprecated:
 
 test_style:
 	# run our own checks on C/C++ style
-	PYTHONIOENCODING=utf_8 python3.2 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/source/blender $(BLENDER_DIR)/source/creator
+	PYTHONIOENCODING=utf_8 python3.2 $(BLENDER_DIR)/source/tools/check_style_c.py $(BLENDER_DIR)/source/blender $(BLENDER_DIR)/source/creator --no-length-check
 
 # -----------------------------------------------------------------------------
 # Project Files
