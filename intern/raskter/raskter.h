@@ -28,27 +28,27 @@
  *  \ingroup RASKTER
  */
 
-struct poly_vert{
+struct poly_vert {
 	int x;
 	int y;
 };
 
-struct scan_line{
+struct scan_line {
 	int xstart;
 	int xend;
 };
 
-struct scan_line_batch{
+struct scan_line_batch {
 	int num;
 	int ystart;
-	struct scan_line * slines;
+	struct scan_line *slines;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int PLX_raskterize(float * verts, int num, float * buf, int buf_x, int buf_y);
+int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y);
 
 #ifdef __cplusplus
 }

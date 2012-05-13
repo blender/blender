@@ -573,7 +573,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->library);
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
-	lb[a++]= &(main->mask);
+	lb[a++] = &(main->mask);
 	
 	lb[a] = NULL;
 

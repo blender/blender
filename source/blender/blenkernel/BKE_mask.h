@@ -83,12 +83,12 @@ void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene);
 void BKE_mask_parent_init(struct MaskParent *parent);
 
-#define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT )
+#define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 #define MASKPOINT_INVSEL(p) { (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; } (void)0
 
-#define MASKPOINT_CV_ISSEL(p)       ( (p)->bezt.f2 & SELECT )
+#define MASKPOINT_CV_ISSEL(p)       ( (p)->bezt.f2 & SELECT)
 
 #define MASKPOINT_HANDLE_ONLY_ISSEL(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
 #define MASKPOINT_HANDLE_ISSEL(p)   ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )

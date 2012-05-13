@@ -38,7 +38,7 @@
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"   /* SELECT */
 
 #include "ED_mask.h"
 
@@ -47,7 +47,7 @@
 
 #include "UI_resources.h"
 
-#include "mask_intern.h"	// own include
+#include "mask_intern.h"  /* own include */
 
 typedef struct PixelSpaceContext {
 	int width, height;
@@ -102,11 +102,13 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else
 					glColor3f(1.0f, 1.0f, 0.0f);
-			} else
+			}
+			else {
 				glColor3f(0.5f, 0.5f, 0.0f);
+			}
 
 			glBegin(GL_POINTS);
-				glVertex2fv(fp);
+			glVertex2fv(fp);
 			glEnd();
 
 			fp += 2;
@@ -119,7 +121,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 		MaskSplinePoint *point = &spline->points[i];
 		BezTriple *bezt = &point->bezt;
 		float vert[2], handle[2];
-		int has_handle = BKE_mask_point_has_handle(point);;
+		int has_handle = BKE_mask_point_has_handle(point);
 
 		copy_v2_v2(vert, bezt->vec[1]);
 		BKE_mask_point_handle(point, pixelspace->aspx, pixelspace->aspy, handle);
@@ -129,8 +131,8 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 			set_spline_color(shape, spline);
 
 			glBegin(GL_LINES);
-				glVertex3fv(vert);
-				glVertex3fv(handle);
+			glVertex3fv(vert);
+			glVertex3fv(handle);
 			glEnd();
 		}
 
@@ -140,11 +142,12 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 				glColor3f(1.0f, 1.0f, 1.0f);
 			else
 				glColor3f(1.0f, 1.0f, 0.0f);
-		} else
+		}
+		else
 			glColor3f(0.5f, 0.5f, 0.0f);
 
 		glBegin(GL_POINTS);
-			glVertex3fv(vert);
+		glVertex3fv(vert);
 		glEnd();
 
 		/* draw handle points */
@@ -154,11 +157,13 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else
 					glColor3f(1.0f, 1.0f, 0.0f);
-			} else
+			}
+			else {
 				glColor3f(0.5f, 0.5f, 0.0f);
+			}
 
 			glBegin(GL_POINTS);
-				glVertex3fv(handle);
+			glVertex3fv(handle);
 			glEnd();
 		}
 	}
@@ -176,7 +181,8 @@ static void draw_spline_curve_lines(float *points, int tot_point, int closed)
 	else
 		glBegin(GL_LINE_STRIP);
 
-	for (i = 0; i < tot_point; i++, fp+=2) {
+	/* MASK_TODO - vertex arrays */
+	for (i = 0; i < tot_point; i++, fp += 2) {
 		glVertex3fv(fp);
 	}
 	glEnd();
@@ -210,7 +216,7 @@ static void draw_spline_curve(MaskShape *shape, MaskSpline *spline, PixelSpaceCo
 		return;
 
 	feather_points = BKE_mask_spline_feather_differentiated_points(spline, pixelspace->aspx, pixelspace->aspy,
-	                                                              &tot_feather_point);
+	                                                               &tot_feather_point);
 
 	/* draw feather */
 	if (spline->flag & SELECT)

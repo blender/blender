@@ -41,7 +41,7 @@
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"  /* SELECT */
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -53,7 +53,7 @@
 #include "RNA_access.h"
 #include "RNA_define.h"
 
-#include "mask_intern.h"	// own include
+#include "mask_intern.h"  /* own include */
 
 /******************** utility functions *********************/
 
@@ -88,8 +88,11 @@ static void spline_point_select(MaskSplinePoint *point, int action)
 	}
 }
 
-static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, float aspx, float aspy, float start_u, float co[2])
+
+static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, float aspx, float aspy, float start_u, const float co[2])
 {
+	const float proj_eps         = 1e-3;
+	const float proj_eps_squared = proj_eps * proj_eps;
 	const int N = 1000;
 	float u = -1.0f, du = 1.0f / N, u1 = start_u, u2 = start_u;
 	float ang = -1.0f;
@@ -104,7 +107,7 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 			BKE_mask_point_normal(spline, point, aspx, aspy, u1, n1);
 			sub_v2_v2v2(v1, co, co1);
 
-			if (len_v2(v1) > 1e-3) {
+			if (len_squared_v2(v1) > proj_eps_squared) {
 				ang1 = angle_v2v2(v1, n1);
 				if (ang1 > M_PI / 2.0f)
 					ang1 = M_PI  - ang1;
@@ -125,7 +128,7 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 			BKE_mask_point_normal(spline, point, aspx, aspy, u2, n2);
 			sub_v2_v2v2(v2, co, co2);
 
-			if (len_v2(v2) > 1e-3) {
+			if (len_squared_v2(v2) > proj_eps_squared) {
 				ang2 = angle_v2v2(v2, n2);
 				if (ang2 > M_PI / 2.0f)
 					ang2 = M_PI  - ang2;
@@ -441,7 +444,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 
 					if (feather) {
 						feather_points = BKE_mask_point_segment_feather_diff(spline, cur_point,
-								aspx, aspy, &tot_feather_point);
+						                                                     aspx, aspy, &tot_feather_point);
 
 						points = feather_points;
 						tot_point = tot_feather_point;
@@ -563,7 +566,7 @@ static int mask_new_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Mask *mask;
-	char name[MAX_ID_NAME-2];
+	char name[MAX_ID_NAME - 2];
 
 	RNA_string_get(op->ptr, "name", name);
 
@@ -583,14 +586,14 @@ void MASK_OT_new(wmOperatorType *ot)
 	ot->idname = "MASK_OT_new";
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* api callbacks */
 	ot->exec = mask_new_exec;
 	ot->poll = ED_operator_mask;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", "Name of new mask");
+	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask");
 }
 
 /******************** create new shape *********************/
@@ -598,14 +601,14 @@ void MASK_OT_new(wmOperatorType *ot)
 static int shape_new_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	char name[MAX_ID_NAME-2];
+	char name[MAX_ID_NAME - 2];
 
 	RNA_string_get(op->ptr, "name", name);
 
 	BKE_mask_shape_new(mask, name);
 	mask->shapenr = mask->tot_shape - 1;
 
-	WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
 }
@@ -622,10 +625,10 @@ void MASK_OT_shape_new(wmOperatorType *ot)
 	ot->poll = ED_maskediting_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME-2, "Name", "Name of new shape");
+	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new shape");
 }
 
 /******************** remove shape *********************/
@@ -638,7 +641,7 @@ static int shape_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	if (shape) {
 		BKE_mask_shape_remove(mask, shape);
 
-		WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 	}
 
 	return OPERATOR_FINISHED;
@@ -656,15 +659,15 @@ void MASK_OT_shape_remove(wmOperatorType *ot)
 	ot->poll = ED_maskediting_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************** slide *********************/
 
-#define SLIDE_ACTION_NONE		0
-#define SLIDE_ACTION_POINT		1
-#define SLIDE_ACTION_HANDLE		2
-#define SLIDE_ACTION_FEATHER	3
+#define SLIDE_ACTION_NONE       0
+#define SLIDE_ACTION_POINT      1
+#define SLIDE_ACTION_HANDLE     2
+#define SLIDE_ACTION_FEATHER    3
 
 typedef struct SlidePointData {
 	int action;
@@ -798,7 +801,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		slidedata->shape->act_spline = slidedata->spline;
 		slidedata->shape->act_point = slidedata->point;
 
-		WM_event_add_notifier(C, NC_MASK|ND_SELECT, mask);
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
 		return OPERATOR_RUNNING_MODAL;
 	}
@@ -831,18 +834,18 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 	BezTriple *bezt = &data->point->bezt;
 	float co[2], dco[2];
 
-	switch(event->type) {
+	switch (event->type) {
 		case LEFTCTRLKEY:
 		case RIGHTCTRLKEY:
 		case LEFTSHIFTKEY:
 		case RIGHTSHIFTKEY:
 			if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
-				data->curvature_only = event->val==KM_PRESS;
+				data->curvature_only = event->val == KM_PRESS;
 
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
-				data->accurate = event->val==KM_PRESS;
+				data->accurate = event->val == KM_PRESS;
 
-			/* no break! update CV position */
+		/* no break! update CV position */
 
 		case MOUSEMOVE:
 			ED_mask_mouse_pos(C, event, co);
@@ -909,16 +912,16 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 					*weight = 0;
 			}
 
-			WM_event_add_notifier(C, NC_MASK|NA_EDITED, data->mask);
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 			DAG_id_tag_update(&data->mask->id, 0);
 
 			break;
 
 		case LEFTMOUSE:
-			if(event->val==KM_RELEASE) {
+			if (event->val == KM_RELEASE) {
 				free_slide_point_data(op->customdata);
 
-				WM_event_add_notifier(C, NC_MASK|NA_EDITED, data->mask);
+				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 				DAG_id_tag_update(&data->mask->id, 0);
 
 				return OPERATOR_FINISHED;
@@ -931,7 +934,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			free_slide_point_data(op->customdata);
 
-			WM_event_add_notifier(C, NC_MASK|NA_EDITED, data->mask);
+			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 			DAG_id_tag_update(&data->mask->id, 0);
 
 			return OPERATOR_CANCELLED;
@@ -953,7 +956,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide slide feather instead of vertex");
 }
@@ -968,7 +971,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	toggle_selection_all(mask, action);
 	mask_flush_selection(mask);
 
-	WM_event_add_notifier(C, NC_MASK|ND_SELECT, mask);
+	WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
 	return OPERATOR_FINISHED;
 }
@@ -985,7 +988,7 @@ void MASK_OT_select_all(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	WM_operator_properties_select_all(ot);
@@ -1024,7 +1027,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
 		mask_flush_selection(mask);
 
-		WM_event_add_notifier(C, NC_MASK|ND_SELECT, mask);
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 	}
 	else {
 		MaskSplinePointUW *uw;
@@ -1040,7 +1043,7 @@ static int select_exec(bContext *C, wmOperator *op)
 
 			mask_flush_selection(mask);
 
-			WM_event_add_notifier(C, NC_MASK|ND_SELECT, mask);
+			WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 		}
 	}
 
@@ -1075,9 +1078,9 @@ void MASK_OT_select(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection");
+	                "Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
-		"Location", "Location of vertex in normalized space", -1.0f, 1.0f);
+	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
 /******************** add vertex *********************/
@@ -1125,7 +1128,8 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 
 		sub_v2_v2(bezt->vec[0], vec);
 		add_v2_v2(bezt->vec[2], vec);
-	} else {
+	}
+	else {
 		/* next points are aligning in the direction of previous/next point */
 		MaskSplinePoint *point;
 		float v1[2], v2[2], vec[2];
@@ -1134,7 +1138,8 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		if (new_point == spline->points) {
 			point = new_point + 1;
 			dir = -1.0f;
-		} else
+		}
+		else
 			point = new_point - 1;
 
 		if (spline->tot_point < 3) {
@@ -1210,7 +1215,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 
 		shape->act_point = new_point;
 
-		WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 		return TRUE;
 	}
@@ -1312,7 +1317,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 	shape->act_point = new_point;
 
 	setup_vertex_point(C, mask, spline, new_point, co, NULL);
-	WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return TRUE;
 }
@@ -1356,11 +1361,11 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
-		"Location", "Location of vertex in normalized space", -1.0f, 1.0f);
+	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
 /******************** add feather vertex *********************/
@@ -1385,7 +1390,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 
 		BKE_mask_point_add_uw(point, u, w);
 
-		WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 		return OPERATOR_FINISHED;
 	}
@@ -1417,11 +1422,11 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
-		"Location", "Location of vertex in normalized space", -1.0f, 1.0f);
+	                     "Location", "Location of vertex in normalized space", -1.0f, 1.0f);
 }
 
 /******************** toggle cyclic *********************/
@@ -1444,7 +1449,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		shape = shape->next;
 	}
 
-	WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
 }
@@ -1461,7 +1466,7 @@ void MASK_OT_cyclic_toggle(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************** delete *********************/
@@ -1536,7 +1541,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 				MaskSplinePoint *new_points;
 				int j;
 
-				new_points = MEM_callocN(count*sizeof(MaskSplinePoint), "deleteMaskPoints");
+				new_points = MEM_callocN(count * sizeof(MaskSplinePoint), "deleteMaskPoints");
 
 				for (i = 0, j = 0; i < spline->tot_point; i++) {
 					MaskSplinePoint *point = &spline->points[i];
@@ -1571,7 +1576,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 		shape = shape->next;
 	}
 
-	WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
 }
@@ -1589,7 +1594,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /******************** set handle type *********************/
@@ -1621,7 +1626,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 		shape = shape->next;
 	}
 
-	WM_event_add_notifier(C, NC_MASK|ND_DATA, mask);
+	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
 	DAG_id_tag_update(&mask->id, 0);
 
 	return OPERATOR_FINISHED;
@@ -1629,11 +1634,12 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 
 void MASK_OT_handle_type_set(wmOperatorType *ot)
 {
-	static EnumPropertyItem editcurve_handle_type_items[]= {
+	static EnumPropertyItem editcurve_handle_type_items[] = {
 		{HD_AUTO, "AUTO", 0, "Auto", ""},
 		{HD_VECT, "VECTOR", 0, "Vector", ""},
 		{HD_ALIGN, "ALIGNED", 0, "Aligned", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Set Handle Type";
@@ -1646,7 +1652,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 	ot->poll = ED_maskediting_mask_poll;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
