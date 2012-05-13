@@ -376,7 +376,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 	return 1;
 }
 
-/*Copy a single vertex group from source to destination with weights*/
+/*Copy a single vertex group from source to destination with weights by identical meshes*/
 int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 {
 	MDeformVert **dv_array_src;
@@ -389,7 +389,7 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
-	/*Create new and overwrite vertex group on destination without data*/
+	/*create new and overwrite vertex group on destination without data*/
 	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 	ED_vgroup_add_name(ob_dst, dg_src->name);
 
@@ -404,13 +404,13 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 	index_src= BLI_findindex(&ob_src->defbase, dg_src);
 	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
 
-	/*Check if indices are matching, delete and return if not*/
+	/*check if indices are matching, delete and return if not*/
 	if (ob_dst == ob_src || dv_tot_dst == 0 || (dv_tot_dst != dv_tot_src) || dv_array_src == NULL || dv_array_dst == NULL) {
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
 		return 0;
 	}
 
-	/* Loop through the vertices and copy weight*/
+	/* loop through the vertices and copy weight*/
 	for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
 		dw_src= defvert_verify_index(*dv_array_src, index_src);
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
@@ -437,7 +437,7 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
-	/*Create new and overwrite vertex group on destination without data*/
+	/*create new and overwrite vertex group on destination without data*/
 	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 	ED_vgroup_add_name(ob_dst, dg_src->name);
 
@@ -462,22 +462,22 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
 
-	/*Prepearing transformation matrix*/
-	/*This can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
+	/*prepare transformation matrix*/
+	/*this can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	/* Loop through the vertices and copy weight from nearest weight*/
+	/* loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
-		/*Reset nearest*/
+		/*reset nearest*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
-		/*Transforming into target space*/
+		/*transform into target space*/
 		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 
-		/*Node tree accelerated search for closest vetex*/
+		/*node tree accelerated search for closest vetex*/
 		BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
 
 		/*copy weight*/
@@ -491,6 +491,7 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	return 1;
 }
 
+/*Return the squared distance between two points in 3d space*/
 float sqr_dist_v3v3(float v1[3], float v2[3])
 {
 	float d[3];
@@ -518,7 +519,7 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
-	/*Create new and overwrite vertex group on destination without data*/
+	/*create new and overwrite vertex group on destination without data*/
 	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 	ED_vgroup_add_name(ob_dst, dg_src->name);
 
@@ -543,27 +544,26 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
-
 	mv_src= dmesh_src->getVertArray(dmesh_src);
 
 	/*get faces*/
 	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
 
-	/*Prepearing transformation matrix*/
+	/*prepare transformation matrix*/
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	/* Loop through the vertices and copy weight from nearest weight*/
+	/* loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
-		/*Reset nearest*/
+		/*reset nearest*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
-		/*Transforming into target space*/
+		/*transform into target space*/
 		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 
-		/*Node tree accelerated search for closest face*/
+		/*node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
 		/*get distances*/
@@ -581,7 +581,7 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 		else{
 			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
 		}
-		/*Check for and get weight from quad*/
+		/*check for and get weight from quad*/
 		if(mface_src[nearest.index].v4){
 			dist_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
 			if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
@@ -599,7 +599,7 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 	return 1;
 }
 
-/*Copy a single vertex group from source to destination with weights by nearest weight*/
+/*Copy a single vertex group from source to destination with weights interpolated over nearest face*/
 /*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
 int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 {
@@ -618,7 +618,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
-	/*Create new and overwrite vertex group on destination without data*/
+	/*create new and overwrite vertex group on destination without data*/
 	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 	ED_vgroup_add_name(ob_dst, dg_src->name);
 
@@ -643,26 +643,23 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 	/*get vertices*/
 	mv_dst= me_dst->mvert;
-
 	mv_src= dmesh_src->getVertArray(dmesh_src);
 
 	/*get faces*/
 	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
 
-	/* Loop through the vertices and copy weight from nearest weight*/
+	/* loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
-		/*Reset nearest*/
+		/*reset nearest*/
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
 		/*set destination coordinate*/
 		copy_v3_v3(tmp_co, mv_dst->co);
 
-		/*Node tree accelerated search for closest face*/
+		/*node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
-
-		/*get weight*/
 
 		/*TODO: Have to project onto face to get a decent result*/
 		/*Smart solution might be to just substract the distance difference to plane instead.*/
@@ -672,90 +669,40 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		distribution_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
 		distribution_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
 
-		/*test
-		printf("dist_v1 %f index v1%d \n", dist_v1, mface_src[nearest.index].v1);
-		printf("dist_v2 %f index v2%d \n", dist_v2, mface_src[nearest.index].v2);
-		printf("dist_v3 %f index v3%d \n", dist_v3, mface_src[nearest.index].v3);*/
-
 		/*get weight from overlapping vert if any*/
 		if(distribution_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
 		if(distribution_v2 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
 		if(distribution_v3 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
-
-		/*interpolate weight*/
 		else{
+			/*invert distribution*/
+			distribution_v1= 1/distribution_v1;
+			distribution_v2= 1/distribution_v2;
+			distribution_v3= 1/distribution_v3;
+
+			/*set total distribution*/
+			tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
 
 			/*check for quad*/
 			if(mface_src[nearest.index].v4){
 				distribution_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src->v4].co);
-
-				/*check if vert 4 is overlapping*/
 				if(distribution_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
-
-				/*get weight from quad*/
 				else{
+					distribution_v4= 1/distribution_v4;
+					tot_distribution+= distribution_v4;
 
-					/*invert distribution*/
-					distribution_v1= 1 / distribution_v1;
-					distribution_v2= 1 / distribution_v2;
-					distribution_v3= 1 / distribution_v3;
-					distribution_v4= 1 / distribution_v4;
-
-					/*exclude v1 and get weight from the 3 closest*/
-					if(distribution_v1 > distribution_v2 && distribution_v1 > distribution_v3 && distribution_v1 > distribution_v4){
-						tot_distribution= distribution_v4 + distribution_v2 + distribution_v3;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight= dw_src->weight * distribution_v4 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * distribution_v2 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * distribution_v3 / tot_distribution;
-					}
-
-					/*exclude v2 and get weight from the 3 closest*/
-					else if(distribution_v2 > distribution_v3 && distribution_v2 > distribution_v4){
-						tot_distribution= distribution_v1 + distribution_v4 + distribution_v3;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * distribution_v1 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * distribution_v4 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * distribution_v3 / tot_distribution;
-					}
-
-					/*exclude v3 and get weight from the 3 closest*/
-					else if(distribution_v3 > distribution_v4){
-						tot_distribution= distribution_v1 + distribution_v2 + distribution_v4;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * distribution_v1 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * distribution_v2 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-						weight+= dw_src->weight * distribution_v4 / tot_distribution;
-					}
-
-					/*exclude v4 and get weight from the 3 closest. Also when some distances are the same*/
-					else{
-						tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-						weight= dw_src->weight * distribution_v1 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-						weight+= dw_src->weight * distribution_v2 / tot_distribution;
-						dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-						weight+= dw_src->weight * distribution_v3 / tot_distribution;
-					}
+					/*get weight from quad*/
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+					weight= dw_src->weight * distribution_v1 / tot_distribution;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+					weight+= dw_src->weight * distribution_v2 / tot_distribution;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+					weight+= dw_src->weight * distribution_v3 / tot_distribution;
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+					weight+= dw_src->weight * distribution_v4 / tot_distribution;
 				}
 			}
-
-			/*get weight from triangle*/
 			else{
-
-				/*invert distribution*/
-				distribution_v1= 1 / distribution_v1;
-				distribution_v2= 1 / distribution_v2;
-				distribution_v3= 1 / distribution_v3;
-
-				tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
+				/*get weight from triangle*/
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
 				weight= dw_src->weight * distribution_v1 / tot_distribution;
 				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
@@ -764,6 +711,13 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 				weight+= dw_src->weight * distribution_v3 / tot_distribution;
 			}
 		}
+
+		/*snap to valid number*/
+		weight*= 1000;
+		weight+= 0.5;
+		weight= (int)weight;
+		weight/=1000;
+		if(weight>1)weight= 1;
 
 		/*copy weight*/
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
@@ -3174,7 +3128,7 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 			/*Try function for get weight from closest vertex*/
 			/*TODO: try this function*/
 			/*Try function for get weight from closest face*/
-			else if(ED_vgroup_copy_by_nearest_vertex_in_face_single(obslc, obact)) change++;
+			else if(ED_vgroup_copy_by_nearest_face_single(obslc, obact)) change++;
 			/*Trigger error message*/
 			else fail++;
 			/*Event notifiers for correct display of data*/
