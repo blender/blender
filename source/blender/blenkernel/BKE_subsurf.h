@@ -64,10 +64,10 @@ typedef enum {
 } SubsurfFlags;
 
 struct DerivedMesh *subsurf_make_derived_from_derived(
-        struct DerivedMesh *dm,
-        struct SubsurfModifierData *smd,
-        float (*vertCos)[3],
-        SubsurfFlags flags);
+    struct DerivedMesh *dm,
+    struct SubsurfModifierData *smd,
+    float (*vertCos)[3],
+    SubsurfFlags flags);
 
 void subsurf_calculate_limit_positions(struct Mesh *me, float (*positions_r)[3]);
 
@@ -107,7 +107,7 @@ typedef struct CCGDerivedMesh {
 	struct {int startVert; struct CCGVert *vert; } *vertMap;
 	struct {int startVert; int startEdge; struct CCGEdge *edge; } *edgeMap;
 	struct {int startVert; int startEdge;
-	        int startFace; struct CCGFace *face; } *faceMap;
+		    int startFace; struct CCGFace *face; } *faceMap;
 
 	short *edgeFlags;
 	struct DMFlagMat *faceFlags;

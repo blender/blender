@@ -49,39 +49,39 @@
 
 static void rna_cloth_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 static void rna_cloth_pinning_changed(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 /*	ClothSimSettings *settings = (ClothSimSettings*)ptr->data; */
-	ClothModifierData *clmd = (ClothModifierData*)modifiers_findByType(ob, eModifierType_Cloth);
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 
 	cloth_free_modifier(clmd);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 static void rna_cloth_reset(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
-	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 
 	settings->reset = 1;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 
 static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
 {
-	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 	
 	/* check for clipping */
 	if (value < settings->bending)
@@ -92,7 +92,7 @@ static void rna_ClothSettings_max_bend_set(struct PointerRNA *ptr, float value)
 
 static void rna_ClothSettings_max_struct_set(struct PointerRNA *ptr, float value)
 {
-	ClothSimSettings *settings = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *settings = (ClothSimSettings *)ptr->data;
 	
 	/* check for clipping */
 	if (value < settings->structural)
@@ -103,77 +103,77 @@ static void rna_ClothSettings_max_struct_set(struct PointerRNA *ptr, float value
 
 static void rna_ClothSettings_mass_vgroup_get(PointerRNA *ptr, char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_get(ptr, value, sim->vgroup_mass);
 }
 
 static int rna_ClothSettings_mass_vgroup_length(PointerRNA *ptr)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	return rna_object_vgroup_name_index_length(ptr, sim->vgroup_mass);
 }
 
 static void rna_ClothSettings_mass_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_mass);
 }
 
 static void rna_ClothSettings_struct_vgroup_get(PointerRNA *ptr, char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_get(ptr, value, sim->vgroup_struct);
 }
 
 static int rna_ClothSettings_struct_vgroup_length(PointerRNA *ptr)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	return rna_object_vgroup_name_index_length(ptr, sim->vgroup_struct);
 }
 
 static void rna_ClothSettings_struct_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_struct);
 }
 
 static void rna_ClothSettings_bend_vgroup_get(PointerRNA *ptr, char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_get(ptr, value, sim->vgroup_bend);
 }
 
 static int rna_ClothSettings_bend_vgroup_length(PointerRNA *ptr)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	return rna_object_vgroup_name_index_length(ptr, sim->vgroup_bend);
 }
 
 static void rna_ClothSettings_bend_vgroup_set(PointerRNA *ptr, const char *value)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_bend);
 }
 
 static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
 	return rna_object_shapekey_index_get(ob->data, sim->shapekey_rest);
 }
 
 static void rna_ClothSettings_rest_shape_key_set(PointerRNA *ptr, PointerRNA value)
 {
-	Object *ob = (Object*)ptr->id.data;
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
 	sim->shapekey_rest = rna_object_shapekey_index_set(ob->data, value, sim->shapekey_rest);
 }
 
 static void rna_ClothSettings_gravity_get(PointerRNA *ptr, float *values)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
 	values[0] = sim->gravity[0];
 	values[1] = sim->gravity[1];
@@ -182,7 +182,7 @@ static void rna_ClothSettings_gravity_get(PointerRNA *ptr, float *values)
 
 static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 {
-	ClothSimSettings *sim = (ClothSimSettings*)ptr->data;
+	ClothSimSettings *sim = (ClothSimSettings *)ptr->data;
 
 	sim->gravity[0] = values[0];
 	sim->gravity[1] = values[1];
@@ -191,7 +191,7 @@ static void rna_ClothSettings_gravity_set(PointerRNA *ptr, const float *values)
 
 static char *rna_ClothSettings_path(PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
 	return md ? BLI_sprintfN("modifiers[\"%s\"].settings", md->name) : NULL;
@@ -199,7 +199,7 @@ static char *rna_ClothSettings_path(PointerRNA *ptr)
 
 static char *rna_ClothCollisionSettings_path(PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 
 	return md ? BLI_sprintfN("modifiers[\"%s\"].collision_settings", md->name) : NULL;
@@ -398,40 +398,47 @@ static void rna_def_cloth_sim_settings(BlenderRNA *brna)
 
 	/* unused */
 
-	/* unused still
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "shear_stiffness", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shear");
 	RNA_def_property_range(prop, 0.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Shear Stiffness", "Shear spring stiffness"); */
-
-	/* unused still
+	RNA_def_property_ui_text(prop, "Shear Stiffness", "Shear spring stiffness");
+#endif
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "shear_stiffness_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "max_shear");
 	RNA_def_property_range(prop, 0.0f, upperLimitf);
-	RNA_def_property_ui_text(prop, "Shear Stiffness Maximum", "Maximum shear scaling value"); */
-	
-	/* unused still
+	RNA_def_property_ui_text(prop, "Shear Stiffness Maximum", "Maximum shear scaling value");
+#endif
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "effector_force_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eff_force_scale");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Effector Force Scale", ""); */
-
-	/* unused still
+	RNA_def_property_ui_text(prop, "Effector Force Scale", "");
+#endif
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "effector_wind_scale", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "eff_wind_scale");
 	RNA_def_property_range(prop, 0.0f, 100.0f);
-	RNA_def_property_ui_text(prop, "Effector Wind Scale", ""); */
-	
-	/* unused still
+	RNA_def_property_ui_text(prop, "Effector Wind Scale", "");
+#endif
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "tearing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", CLOTH_SIMSETTINGS_FLAG_TEARING);
-	RNA_def_property_ui_text(prop, "Tearing", "");*/
-	
-	/* unused still
+	RNA_def_property_ui_text(prop, "Tearing", "");
+#endif
+	/* unused still */
+#if 0
 	prop= RNA_def_property(srna, "max_spring_extensions", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "maxspringlen");
 	RNA_def_property_range(prop, 1.0, 1000.0);
-	RNA_def_property_ui_text(prop, "Maximum Spring Extension", "Maximum extension before spring gets cut"); */
+	RNA_def_property_ui_text(prop, "Maximum Spring Extension", "Maximum extension before spring gets cut");
+#endif
 }
 
 static void rna_def_cloth_collision_settings(BlenderRNA *brna)

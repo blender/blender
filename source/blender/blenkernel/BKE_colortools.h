@@ -39,42 +39,42 @@ struct rctf;
 
 #if defined _WIN32
 #   define DO_INLINE __inline
-#elif defined (__sun) || defined (__sun__)
+#elif defined(__sun) || defined(__sun__)
 #   define DO_INLINE
 #else
 #   define DO_INLINE static inline
 #endif
 
-struct CurveMapping	*curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
-void				curvemapping_free(struct CurveMapping *cumap);
-struct CurveMapping	*curvemapping_copy(struct CurveMapping *cumap);
-void				curvemapping_set_black_white(struct CurveMapping *cumap, const float black[3], const float white[3]);
+struct CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, float maxy);
+void                curvemapping_free(struct CurveMapping *cumap);
+struct CurveMapping *curvemapping_copy(struct CurveMapping *cumap);
+void                curvemapping_set_black_white(struct CurveMapping *cumap, const float black[3], const float white[3]);
 
-#define CURVEMAP_SLOPE_NEGATIVE	0
-#define CURVEMAP_SLOPE_POSITIVE	1
-void				curvemap_reset(struct CurveMap *cuma, struct rctf *clipr, int preset, int slope);
-void				curvemap_remove(struct CurveMap *cuma, int flag);
-void				curvemap_insert(struct CurveMap *cuma, float x, float y);
-void				curvemap_sethandle(struct CurveMap *cuma, int type);
+#define CURVEMAP_SLOPE_NEGATIVE 0
+#define CURVEMAP_SLOPE_POSITIVE 1
+void                curvemap_reset(struct CurveMap *cuma, struct rctf *clipr, int preset, int slope);
+void                curvemap_remove(struct CurveMap *cuma, int flag);
+void                curvemap_insert(struct CurveMap *cuma, float x, float y);
+void                curvemap_sethandle(struct CurveMap *cuma, int type);
 
-void				curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
-					
-					/* single curve, no table check */
-float				curvemap_evaluateF(struct CurveMap *cuma, float value);
-					/* single curve, with table check */
-float				curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
-void				curvemapping_evaluate3F(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
-void				curvemapping_evaluateRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
-void				curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
-void				curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
-void				curvemapping_premultiply(struct CurveMapping *cumap, int restore);
-int					curvemapping_RGBA_does_something(struct CurveMapping *cumap);
-void				curvemapping_initialize(struct CurveMapping *cumap);
-void				curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
+void                curvemapping_changed(struct CurveMapping *cumap, int rem_doubles);
 
-void				scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
-void				scopes_free(struct Scopes *scopes);
-void				scopes_new(struct Scopes *scopes);
+/* single curve, no table check */
+float               curvemap_evaluateF(struct CurveMap *cuma, float value);
+/* single curve, with table check */
+float               curvemapping_evaluateF(struct CurveMapping *cumap, int cur, float value);
+void                curvemapping_evaluate3F(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+void                curvemapping_evaluateRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+void                curvemapping_evaluate_premulRGBF(struct CurveMapping *cumap, float vecout[3], const float vecin[3]);
+void                curvemapping_do_ibuf(struct CurveMapping *cumap, struct ImBuf *ibuf);
+void                curvemapping_premultiply(struct CurveMapping *cumap, int restore);
+int                 curvemapping_RGBA_does_something(struct CurveMapping *cumap);
+void                curvemapping_initialize(struct CurveMapping *cumap);
+void                curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
+
+void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
+void                scopes_free(struct Scopes *scopes);
+void                scopes_new(struct Scopes *scopes);
 
 #endif
 

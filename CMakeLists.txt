@@ -370,10 +370,6 @@ if(MINGW)
 		                    "because it is currently unsupported, remove this "
 		                    "line if youre a developer who wants to add support.")
 	endif()
-	
-	if((WITH_MINGW64) AND (WITH_OPENCOLLADA))
-		message(FATAL_ERROR "MINGW64 still doesn't support: WITH_OPENCOLLADA/WITH_CODEC_FFMPEG")
-	endif()
 endif()
 
 TEST_SSE_SUPPORT(COMPILER_SSE_FLAG COMPILER_SSE2_FLAG)
@@ -1081,7 +1077,7 @@ elseif(WIN32)
 				${LIBDIR}/opencollada/include/GeneratedSaxParser/include
 			)
 			set(OPENCOLLADA_LIBPATH ${OPENCOLLADA}/lib ${OPENCOLLADA}/lib)
-			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver expat pcre buffer ftoa)
+			set(OPENCOLLADA_LIBRARIES OpenCOLLADAStreamWriter OpenCOLLADASaxFrameworkLoader OpenCOLLADAFramework OpenCOLLADABaseUtils GeneratedSaxParser UTF MathMLSolver pcre buffer ftoa xml)
 			set(PCRE_LIBRARIES pcre)
 		endif()
 

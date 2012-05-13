@@ -844,7 +844,7 @@ static int sample_backbuf_area(ViewContext *vc, int *indexar, int totface, int x
 }
 
 /* whats _dl mean? */
-static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float *vert_nor,
+static float calc_vp_strength_dl(VPaint *vp, ViewContext *vc, const float vert_nor[3],
                                  const float mval[2], const float brush_size_pressure)
 {
 	Brush *brush = paint_brush(&vp->paint);

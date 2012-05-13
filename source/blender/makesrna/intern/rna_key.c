@@ -57,11 +57,11 @@
 static Key *rna_ShapeKey_find_key(ID *id)
 {
 	switch (GS(id->name)) {
-		case ID_CU: return ((Curve*)id)->key;
-		case ID_KE: return (Key*)id;
-		case ID_LT: return ((Lattice*)id)->key;
-		case ID_ME: return ((Mesh*)id)->key;
-		case ID_OB: return ob_get_key((Object*)id);
+		case ID_CU: return ((Curve *)id)->key;
+		case ID_KE: return (Key *)id;
+		case ID_LT: return ((Lattice *)id)->key;
+		case ID_ME: return ((Mesh *)id)->key;
+		case ID_OB: return ob_get_key((Object *)id);
 		default: return NULL;
 	}
 }
@@ -89,14 +89,14 @@ void rna_ShapeKey_name_set(PointerRNA *ptr, const char *value)
 
 static void rna_ShapeKey_value_set(PointerRNA *ptr, float value)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 	CLAMP(value, data->slidermin, data->slidermax);
 	data->curval = value;
 }
 
 static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 
 	*min = data->slidermin;
 	*max = data->slidermax;
@@ -107,7 +107,7 @@ static void rna_ShapeKey_value_range(PointerRNA *ptr, float *min, float *max, fl
 
 static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 
 	*min = -10.0f;
 	*max = data->slidermax - SHAPEKEY_SLIDER_TOL;
@@ -115,7 +115,7 @@ static void rna_ShapeKey_slider_min_range(PointerRNA *ptr, float *min, float *ma
 
 static void rna_ShapeKey_slider_min_set(PointerRNA *ptr, float value)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 	float min, max, softmin, softmax;
 	
 	rna_ShapeKey_slider_min_range(ptr, &min, &max, &softmin, &softmax);
@@ -125,7 +125,7 @@ static void rna_ShapeKey_slider_min_set(PointerRNA *ptr, float value)
 
 static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 
 	*min = data->slidermin + SHAPEKEY_SLIDER_TOL;
 	*max = 10.0f;
@@ -133,7 +133,7 @@ static void rna_ShapeKey_slider_max_range(PointerRNA *ptr, float *min, float *ma
 
 static void rna_ShapeKey_slider_max_set(PointerRNA *ptr, float value)
 {
-	KeyBlock *data = (KeyBlock*)ptr->data;
+	KeyBlock *data = (KeyBlock *)ptr->data;
 	float min, max, softmin, softmax;
 	
 	rna_ShapeKey_slider_max_range(ptr, &min, &max, &softmin, &softmax);
@@ -171,21 +171,21 @@ int rna_object_shapekey_index_set(ID *id, PointerRNA value, int current)
 
 static PointerRNA rna_ShapeKey_relative_key_get(PointerRNA *ptr)
 {
-	KeyBlock *kb = (KeyBlock*)ptr->data;
+	KeyBlock *kb = (KeyBlock *)ptr->data;
 
 	return rna_object_shapekey_index_get(ptr->id.data, kb->relative);
 }
 
 static void rna_ShapeKey_relative_key_set(PointerRNA *ptr, PointerRNA value)
 {
-	KeyBlock *kb = (KeyBlock*)ptr->data;
+	KeyBlock *kb = (KeyBlock *)ptr->data;
 
 	kb->relative = rna_object_shapekey_index_set(ptr->id.data, value, kb->relative);
 }
 
 static void rna_ShapeKeyPoint_co_get(PointerRNA *ptr, float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
 	values[0] = vec[0];
 	values[1] = vec[1];
@@ -194,7 +194,7 @@ static void rna_ShapeKeyPoint_co_get(PointerRNA *ptr, float *values)
 
 static void rna_ShapeKeyPoint_co_set(PointerRNA *ptr, const float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
 	vec[0] = values[0];
 	vec[1] = values[1];
@@ -203,37 +203,37 @@ static void rna_ShapeKeyPoint_co_set(PointerRNA *ptr, const float *values)
 
 static float rna_ShapeKeyCurvePoint_tilt_get(PointerRNA *ptr)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 	return vec[3];
 }
 
 static void rna_ShapeKeyCurvePoint_tilt_set(PointerRNA *ptr, float value)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 	vec[3] = value;
 }
 
 static void rna_ShapeKeyBezierPoint_co_get(PointerRNA *ptr, float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
-	values[0] = vec[0+3];
-	values[1] = vec[1+3];
-	values[2] = vec[2+3];
+	values[0] = vec[0 + 3];
+	values[1] = vec[1 + 3];
+	values[2] = vec[2 + 3];
 }
 
 static void rna_ShapeKeyBezierPoint_co_set(PointerRNA *ptr, const float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
-	vec[0+3] = values[0];
-	vec[1+3] = values[1];
-	vec[2+3] = values[2];
+	vec[0 + 3] = values[0];
+	vec[1 + 3] = values[1];
+	vec[2 + 3] = values[2];
 }
 
 static void rna_ShapeKeyBezierPoint_handle_1_co_get(PointerRNA *ptr, float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
 	values[0] = vec[0];
 	values[1] = vec[1];
@@ -242,7 +242,7 @@ static void rna_ShapeKeyBezierPoint_handle_1_co_get(PointerRNA *ptr, float *valu
 
 static void rna_ShapeKeyBezierPoint_handle_1_co_set(PointerRNA *ptr, const float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
 	vec[0] = values[0];
 	vec[1] = values[1];
@@ -251,46 +251,46 @@ static void rna_ShapeKeyBezierPoint_handle_1_co_set(PointerRNA *ptr, const float
 
 static void rna_ShapeKeyBezierPoint_handle_2_co_get(PointerRNA *ptr, float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
-	values[0] = vec[6+0];
-	values[1] = vec[6+1];
-	values[2] = vec[6+2];
+	values[0] = vec[6 + 0];
+	values[1] = vec[6 + 1];
+	values[2] = vec[6 + 2];
 }
 
 static void rna_ShapeKeyBezierPoint_handle_2_co_set(PointerRNA *ptr, const float *values)
 {
-	float *vec = (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 
-	vec[6+0] = values[0];
-	vec[6+1] = values[1];
-	vec[6+2] = values[2];
+	vec[6 + 0] = values[0];
+	vec[6 + 1] = values[1];
+	vec[6 + 2] = values[2];
 }
 
 #if 0
 static float rna_ShapeKeyBezierPoint_tilt_get(PointerRNA *ptr)
 {
-	float *vec= (float*)ptr->data;
+	float *vec = (float *)ptr->data;
 	return vec[10];
 }
 
 static void rna_ShapeKeyBezierPoint_tilt_set(PointerRNA *ptr, float value)
 {
-	float *vec= (float*)ptr->data;
-	vec[10]= value;
+	float *vec = (float *)ptr->data;
+	vec[10] = value;
 }
 #endif
 
 static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Key *key = rna_ShapeKey_find_key(ptr->id.data);
-	KeyBlock *kb = (KeyBlock*)ptr->data;
+	KeyBlock *kb = (KeyBlock *)ptr->data;
 	Curve *cu;
 	Nurb *nu;
 	int tot = kb->totelem, size = key->elemsize;
 	
 	if (GS(key->from->name) == ID_CU) {
-		cu = (Curve*)key->from;
+		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
 		
 		if (nu->bezt) {
@@ -299,19 +299,19 @@ static void rna_ShapeKey_data_begin(CollectionPropertyIterator *iter, PointerRNA
 		}
 	}
 	
-	rna_iterator_array_begin(iter, (void*)kb->data, size, tot, 0, NULL);
+	rna_iterator_array_begin(iter, (void *)kb->data, size, tot, 0, NULL);
 }
 
 static int rna_ShapeKey_data_length(PointerRNA *ptr)
 {
 	Key *key = rna_ShapeKey_find_key(ptr->id.data);
-	KeyBlock *kb = (KeyBlock*)ptr->data;
+	KeyBlock *kb = (KeyBlock *)ptr->data;
 	Curve *cu;
 	Nurb *nu;
 	int tot = kb->totelem;
 	
 	if (GS(key->from->name) == ID_CU) {
-		cu = (Curve*)key->from;
+		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
 		
 		if (nu->bezt)
@@ -329,7 +329,7 @@ static PointerRNA rna_ShapeKey_data_get(CollectionPropertyIterator *iter)
 	Nurb *nu;
 	
 	if (GS(key->from->name) == ID_CU) {
-		cu = (Curve*)key->from;
+		cu = (Curve *)key->from;
 		nu = cu->nurb.first;
 		
 		if (nu->bezt)
@@ -362,7 +362,7 @@ static void rna_Key_update_data(Main *bmain, Scene *UNUSED(scene), PointerRNA *p
 	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob_get_key(ob) == key) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+			WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 		}
 	}
 }
@@ -440,7 +440,7 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 			return BLI_sprintfN("shape_keys.key_blocks[\"%s\"].data[%d]", kb->name, index);
 	}
 	else
-		return NULL; /* XXX: there's really no way to resolve this... */
+		return NULL;  /* XXX: there's really no way to resolve this... */
 }
 
 #else
@@ -462,7 +462,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ShapeKeyCurvePoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Curve Point", "Point in a shape key for curves");
-		/* there's nothing type specific here, so this is fine for now */
+	/* there's nothing type specific here, so this is fine for now */
 	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path");
 
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
@@ -478,7 +478,7 @@ static void rna_def_keydata(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "ShapeKeyBezierPoint", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key Bezier Point", "Point in a shape key for Bezier curves");
-		/* there's nothing type specific here, so this is fine for now */
+	/* there's nothing type specific here, so this is fine for now */
 	RNA_def_struct_path_func(srna, "rna_ShapeKeyPoint_path");
 
 	prop = RNA_def_property(srna, "co", PROP_FLOAT, PROP_TRANSLATION);
@@ -519,7 +519,8 @@ static void rna_def_keyblock(BlenderRNA *brna)
 		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
 		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
 		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock");

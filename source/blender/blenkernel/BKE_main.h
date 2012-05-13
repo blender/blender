@@ -53,7 +53,7 @@ typedef struct Main {
 	char name[1024]; /* 1024 = FILE_MAX */
 	short versionfile, subversionfile;
 	short minversionfile, minsubversionfile;
-	int revision;	/* svn revision of binary that saved file */
+	int revision;   /* svn revision of binary that saved file */
 	
 	struct Library *curlib;
 	ListBase scene;
@@ -68,7 +68,7 @@ typedef struct Main {
 	ListBase latt;
 	ListBase lamp;
 	ListBase camera;
-	ListBase ipo;	// XXX depreceated
+	ListBase ipo;   // XXX depreceated
 	ListBase key;
 	ListBase world;
 	ListBase screen;

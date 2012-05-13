@@ -62,7 +62,7 @@
 /* ------------------------- Declarations --------------------------- */
 
 #define INVALID_INDEX ((int)(~0))
-#define INVPI 0.31830988618379069f
+#define INVPI ((float)M_1_PI)
 #define TOTCHILD 8
 #define CACHE_STEP 3
 
@@ -402,7 +402,7 @@ static int occ_find_bbox_axis(OcclusionTree *tree, int begin, int end, float *mi
 	INIT_MINMAX(min, max);
 
 	for (a = begin; a < end; a++) {
-		DO_MINMAX(tree->co[a], min, max);
+		minmax_v3v3_v3(min, max, tree->co[a]);
 	}
 
 	for (a=0; a<3; a++) {

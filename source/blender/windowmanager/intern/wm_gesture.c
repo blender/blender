@@ -231,8 +231,8 @@ static void wm_gesture_draw_circle(wmGesture *gt)
 static void draw_filled_lasso(wmGesture *gt)
 {
 	ScanFillContext sf_ctx;
-	ScanFillVert *v = NULL, *lastv = NULL, *firstv = NULL;
-	ScanFillFace *efa;
+	ScanFillVert *sf_vert = NULL, *sf_vert_last = NULL, *sf_vert_first = NULL;
+	ScanFillFace *sf_tri;
 	short *lasso = (short *)gt->customdata;
 	int i;
 	
@@ -244,26 +244,26 @@ static void draw_filled_lasso(wmGesture *gt)
 		co[1] = (float)lasso[1];
 		co[2] = 0.0f;
 
-		v = BLI_scanfill_vert_add(&sf_ctx, co);
-		if (lastv)
-			/* e = */ /* UNUSED */ BLI_scanfill_edge_add(&sf_ctx, lastv, v);
-		lastv = v;
-		if (firstv == NULL) firstv = v;
+		sf_vert = BLI_scanfill_vert_add(&sf_ctx, co);
+		if (sf_vert_last)
+			/* e = */ /* UNUSED */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
+		sf_vert_last = sf_vert;
+		if (sf_vert_first == NULL) sf_vert_first = sf_vert;
 	}
 	
 	/* highly unlikely this will fail, but could crash if (gt->points == 0) */
-	if (firstv) {
+	if (sf_vert_first) {
 		float zvec[3] = {0.0f, 0.0f, 1.0f};
-		BLI_scanfill_edge_add(&sf_ctx, firstv, v);
+		BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 		BLI_scanfill_calc_ex(&sf_ctx, FALSE, zvec);
 	
 		glEnable(GL_BLEND);
 		glColor4f(1.0, 1.0, 1.0, 0.05);
 		glBegin(GL_TRIANGLES);
-		for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
-			glVertex2fv(efa->v1->co);
-			glVertex2fv(efa->v2->co);
-			glVertex2fv(efa->v3->co);
+		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			glVertex2fv(sf_tri->v1->co);
+			glVertex2fv(sf_tri->v2->co);
+			glVertex2fv(sf_tri->v3->co);
 		}
 		glEnd();
 		glDisable(GL_BLEND);

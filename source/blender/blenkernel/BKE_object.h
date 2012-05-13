@@ -101,25 +101,23 @@ void BKE_object_where_is_calc_mat4(struct Scene *scene, struct Object *ob, float
 
 /* possibly belong in own moduke? */
 struct BoundBox *BKE_boundbox_alloc_unit(void);
-void             BKE_boundbox_init_from_minmax(struct BoundBox *bb, float min[3], float max[3]);
-int              BKE_boundbox_ray_hit_check(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
+void BKE_boundbox_init_from_minmax(struct BoundBox *bb, float min[3], float max[3]);
+int BKE_boundbox_ray_hit_check(struct BoundBox *bb, float ray_start[3], float ray_normal[3]);
 
 struct BoundBox *BKE_object_boundbox_get(struct Object *ob);
 void BKE_object_dimensions_get(struct Object *ob, float vec[3]);
 void BKE_object_dimensions_set(struct Object *ob, const float *value);
 void BKE_object_boundbox_flag(struct Object *ob, int flag, int set);
 void BKE_object_minmax(struct Object *ob, float r_min[3], float r_max[3]);
-int  BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3]);
+int BKE_object_minmax_dupli(struct Scene *scene, struct Object *ob, float r_min[3], float r_max[3]);
 
 /* sometimes min-max isn't enough, we need to loop over each point */
-void BKE_object_foreach_display_point(
-        struct Object *ob, float obmat[4][4],
-        void (*func_cb)(const float[3], void *), void *user_data);
-void BKE_scene_foreach_display_point(
-        struct Scene *scene,
-        struct View3D *v3d,
-        const short flag,
-        void (*func_cb)(const float[3], void *), void *user_data);
+void BKE_object_foreach_display_point(struct Object *ob, float obmat[4][4],
+                                      void (*func_cb)(const float[3], void *), void *user_data);
+void BKE_scene_foreach_display_point(struct Scene *scene,
+                                     struct View3D *v3d,
+                                     const short flag,
+                                     void (*func_cb)(const float[3], void *), void *user_data);
 
 int BKE_object_parent_loop_check(const struct Object *parent, const struct Object *ob);
 
@@ -136,11 +134,11 @@ typedef struct ObjectTfmProtectedChannels {
 } ObjectTfmProtectedChannels;
 
 void BKE_object_tfm_protected_backup(const struct Object *ob,
-									 ObjectTfmProtectedChannels *obtfm);
+                                     ObjectTfmProtectedChannels *obtfm);
 
 void BKE_object_tfm_protected_restore(struct Object *ob,
-									  const ObjectTfmProtectedChannels *obtfm,
-									  const short protectflag);
+                                      const ObjectTfmProtectedChannels *obtfm,
+                                      const short protectflag);
 
 void BKE_object_handle_update(struct Scene *scene, struct Object *ob);
 void BKE_object_sculpt_modifiers_changed(struct Object *ob);

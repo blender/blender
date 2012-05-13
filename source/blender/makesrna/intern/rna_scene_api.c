@@ -56,7 +56,7 @@ void rna_Scene_frame_set(Scene *scene, int frame, float subframe)
 	scene->r.subframe = subframe;
 	
 	CLAMP(scene->r.cfra, MINAFRAME, MAXFRAME);
-	BKE_scene_update_for_newframe(G.main, scene, (1<<20) - 1);
+	BKE_scene_update_for_newframe(G.main, scene, (1 << 20) - 1);
 	BKE_scene_camera_switch_update(scene);
 
 	/* cant use NC_SCENE|ND_FRAME because this casues wm_event_do_notifiers to call
@@ -133,7 +133,7 @@ void RNA_api_scene_render(StructRNA *srna)
 	RNA_def_int(func, "frame", INT_MIN, INT_MIN, INT_MAX, "",
 	            "Frame number to use, if unset the current frame will be used", MINAFRAME, MAXFRAME);
 	parm = RNA_def_string_file_path(func, "filepath", "", FILE_MAX, "File Path",
-	                               "The resulting filepath from the scenes render settings");
+	                                "The resulting filepath from the scenes render settings");
 	RNA_def_property_flag(parm, PROP_THICK_WRAP); /* needed for string return value */
 	RNA_def_function_output(func, parm);
 }

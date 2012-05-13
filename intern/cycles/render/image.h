@@ -47,6 +47,7 @@ public:
 	void device_free(Device *device, DeviceScene *dscene);
 
 	void set_osl_texture_system(void *texture_system);
+	void set_pack_images(bool pack_images_);
 
 	bool need_update;
 
@@ -61,12 +62,15 @@ private:
 	vector<Image*> images;
 	vector<Image*> float_images;
 	void *osl_texture_system;
+	bool pack_images;
 
 	bool file_load_image(Image *img, device_vector<uchar4>& tex_img);
 	bool file_load_float_image(Image *img, device_vector<float4>& tex_img);
 
 	void device_load_image(Device *device, DeviceScene *dscene, int slot, Progress *progess);
 	void device_free_image(Device *device, DeviceScene *dscene, int slot);
+
+	void device_pack_images(Device *device, DeviceScene *dscene, Progress& progess);
 };
 
 CCL_NAMESPACE_END

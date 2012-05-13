@@ -111,6 +111,8 @@ void Scene::device_update(Device *device_, Progress& progress)
 	 * - Displacement shader must have all shader data available.
 	 * - Light manager needs final mesh data to compute emission CDF.
 	 */
+	
+	image_manager->set_pack_images(device->info.pack_images);
 
 	progress.set_status("Updating Background");
 	background->device_update(device, &dscene, this);

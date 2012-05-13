@@ -164,14 +164,14 @@ void BKE_mesh_strip_loose_faces(struct Mesh *me); /* Needed for compatibility (s
 void BKE_mesh_strip_loose_polysloops(struct Mesh *me);
 void BKE_mesh_strip_loose_edges(struct Mesh *me);
 
-	/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
-	 * and vertex normals are stored in actual mverts.
-	 */
+/* Calculate vertex and face normals, face normals are returned in *faceNors_r if non-NULL
+ * and vertex normals are stored in actual mverts.
+ */
 void BKE_mesh_calc_normals_mapping(
         struct MVert *mverts, int numVerts,
         struct MLoop *mloop, struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
         struct MFace *mfaces, int numFaces, int *origIndexFace, float (*faceNors_r)[3]);
-	/* extended version of 'BKE_mesh_calc_normals' with option not to calc vertex normals */
+/* extended version of 'BKE_mesh_calc_normals' with option not to calc vertex normals */
 void BKE_mesh_calc_normals_mapping_ex(
         struct MVert *mverts, int numVerts,
         struct MLoop *mloop, struct MPoly *mpolys, int numLoops, int numPolys, float (*polyNors_r)[3],
@@ -183,15 +183,15 @@ void BKE_mesh_calc_normals(
         struct MLoop *mloop, struct MPoly *mpolys,
         int numLoops, int numPolys, float (*polyNors_r)[3]);
 
-	/* Return a newly MEM_malloc'd array of all the mesh vertex locations
-	 * (_numVerts_r_ may be NULL) */
+/* Return a newly MEM_malloc'd array of all the mesh vertex locations
+ * (_numVerts_r_ may be NULL) */
 float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 
 /* UvVertMap */
 
-#define STD_UV_CONNECT_LIMIT	0.0001f
+#define STD_UV_CONNECT_LIMIT  0.0001f
 
 typedef struct UvVertMap {
 	struct UvMapVert **vert;
@@ -271,9 +271,9 @@ void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct M
 
 /* vertex level transformations & checks (no derived mesh) */
 
-int  BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
-int  BKE_mesh_center_median(struct Mesh *me, float cent[3]);
-int  BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
+int BKE_mesh_minmax(struct Mesh *me, float r_min[3], float r_max[3]);
+int BKE_mesh_center_median(struct Mesh *me, float cent[3]);
+int BKE_mesh_center_bounds(struct Mesh *me, float cent[3]);
 void BKE_mesh_translate(struct Mesh *me, float offset[3], int do_keys);
 
 /* mesh_validate.c */

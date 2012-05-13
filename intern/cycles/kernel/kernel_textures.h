@@ -7,7 +7,6 @@
 #define KERNEL_IMAGE_TEX(type, ttype, name)
 #endif
 
-
 /* bvh */
 KERNEL_TEX(float4, texture_float4, __bvh_nodes)
 KERNEL_TEX(float4, texture_float4, __tri_woop)
@@ -150,6 +149,10 @@ KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_096)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_097)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_098)
 KERNEL_IMAGE_TEX(float4, texture_image_float4, __tex_image_float_099)
+
+/* packed image (opencl) */
+KERNEL_TEX(uchar4, texture_uchar4, __tex_image_packed)
+KERNEL_TEX(uint4, texture_uint4, __tex_image_packed_info)
 
 #undef KERNEL_TEX
 #undef KERNEL_IMAGE_TEX

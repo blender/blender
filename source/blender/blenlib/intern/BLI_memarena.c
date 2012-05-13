@@ -74,12 +74,12 @@ void BLI_memarena_use_align(struct MemArena *ma, int align)
 
 void BLI_memarena_free(MemArena *ma)
 {
-	BLI_linklist_free(ma->bufs, (void(*)(void *))MEM_freeN);
+	BLI_linklist_free(ma->bufs, (void (*)(void *))MEM_freeN);
 	MEM_freeN(ma);
 }
 
 /* amt must be power of two */
-#define PADUP(num, amt)	((num + (amt - 1)) &~ (amt-1))
+#define PADUP(num, amt) ((num + (amt - 1)) & ~(amt - 1))
 
 void *BLI_memarena_alloc(MemArena *ma, int size)
 {
@@ -93,7 +93,7 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 		unsigned char *tmp;
 
 		if (size > ma->bufsize - (ma->align - 1)) {
-			ma->cursize = PADUP(size+1, ma->align);
+			ma->cursize = PADUP(size + 1, ma->align);
 		}
 		else
 			ma->cursize = ma->bufsize;
@@ -106,7 +106,7 @@ void *BLI_memarena_alloc(MemArena *ma, int size)
 		BLI_linklist_prepend(&ma->bufs, ma->curbuf);
 
 		/* align alloc'ed memory (needed if align > 8) */
-		tmp = (unsigned char*)PADUP( (intptr_t) ma->curbuf, ma->align);
+		tmp = (unsigned char *)PADUP( (intptr_t) ma->curbuf, ma->align);
 		ma->cursize -= (tmp - ma->curbuf);
 		ma->curbuf = tmp;
 	}

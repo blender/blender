@@ -54,8 +54,8 @@ struct wmKeyConfig;
  * Used as part of the 'stroke cache' used during drawing of new strokes
  */
 typedef struct tGPspoint {
-	int x, y;				/* x and y coordinates of cursor (in relative to area) */
-	float pressure;			/* pressure of tablet at this point */
+	int x, y;               /* x and y coordinates of cursor (in relative to area) */
+	float pressure;         /* pressure of tablet at this point */
 } tGPspoint;
 
 

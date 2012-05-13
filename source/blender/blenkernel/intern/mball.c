@@ -368,7 +368,7 @@ void BKE_mball_texspace_calc(Object *ob)
 		data = dl->verts;
 		while (tot--) {
 			/* Also weird... but longer. From utildefines. */
-			DO_MINMAX(data, min, max);
+			minmax_v3v3_v3(min, max, data);
 			data += 3;
 		}
 		dl = dl->next;
@@ -2397,7 +2397,7 @@ int BKE_mball_minmax(MetaBall *mb, float min[3], float max[3])
 	INIT_MINMAX(min, max);
 
 	for (ml = mb->elems.first; ml; ml = ml->next) {
-		DO_MINMAX(&ml->x, min, max);
+		minmax_v3v3_v3(min, max, &ml->x);
 	}
 
 	return (mb->elems.first != NULL);

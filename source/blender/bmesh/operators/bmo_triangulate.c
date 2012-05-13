@@ -161,9 +161,9 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 	BMEdge *e;
 	BMOperator bmop;
 	ScanFillContext sf_ctx;
-	/* ScanFillEdge *eed; */ /* UNUSED */
-	ScanFillVert *eve, *v1, *v2;
-	ScanFillFace *efa;
+	/* ScanFillEdge *sf_edge; */ /* UNUSED */
+	ScanFillVert *sf_vert, *sf_vert_1, *sf_vert_2;
+	ScanFillFace *sf_tri;
 	SmallHash hash;
 
 	BLI_smallhash_init(&hash);
@@ -174,28 +174,28 @@ void bmo_triangle_fill_exec(BMesh *bm, BMOperator *op)
 		BMO_elem_flag_enable(bm, e, EDGE_MARK);
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v1)) {
-			eve = BLI_scanfill_vert_add(&sf_ctx, e->v1->co);
-			eve->tmp.p = e->v1;
-			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, eve);
+			sf_vert = BLI_scanfill_vert_add(&sf_ctx, e->v1->co);
+			sf_vert->tmp.p = e->v1;
+			BLI_smallhash_insert(&hash, (uintptr_t)e->v1, sf_vert);
 		}
 		
 		if (!BLI_smallhash_haskey(&hash, (uintptr_t)e->v2)) {
-			eve = BLI_scanfill_vert_add(&sf_ctx, e->v2->co);
-			eve->tmp.p = e->v2;
-			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, eve);
+			sf_vert = BLI_scanfill_vert_add(&sf_ctx, e->v2->co);
+			sf_vert->tmp.p = e->v2;
+			BLI_smallhash_insert(&hash, (uintptr_t)e->v2, sf_vert);
 		}
 		
-		v1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
-		v2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
-		/* eed = */ BLI_scanfill_edge_add(&sf_ctx, v1, v2);
-		/* eed->tmp.p = e; */ /* UNUSED */
+		sf_vert_1 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v1);
+		sf_vert_2 = BLI_smallhash_lookup(&hash, (uintptr_t)e->v2);
+		/* sf_edge = */ BLI_scanfill_edge_add(&sf_ctx, sf_vert_1, sf_vert_2);
+		/* sf_edge->tmp.p = e; */ /* UNUSED */
 	}
 	
 	BLI_scanfill_calc(&sf_ctx, FALSE);
 	
-	for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
+	for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
 		BMFace *f = BM_face_create_quad_tri(bm,
-		                                    efa->v1->tmp.p, efa->v2->tmp.p, efa->v3->tmp.p, NULL,
+		                                    sf_tri->v1->tmp.p, sf_tri->v2->tmp.p, sf_tri->v3->tmp.p, NULL,
 		                                    NULL, TRUE);
 		BMLoop *l;
 		BMIter liter;

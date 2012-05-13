@@ -201,7 +201,7 @@ typedef struct _AviMovie {
 } AviMovie;
 
 typedef enum {
-	AVI_ERROR_NONE=0,
+	AVI_ERROR_NONE = 0,
 	AVI_ERROR_COMPRESSION,
 	AVI_ERROR_OPEN,
 	AVI_ERROR_READING,
@@ -214,7 +214,7 @@ typedef enum {
 
 /* belongs to the option-setting function. */
 typedef enum {
-	AVI_OPTION_WIDTH=0,
+	AVI_OPTION_WIDTH = 0,
 	AVI_OPTION_HEIGHT, 
 	AVI_OPTION_QUALITY,
 	AVI_OPTION_FRAMERATE
@@ -230,7 +230,7 @@ typedef enum {
 /**
  * This is a sort of MAKE_ID thing. Used in imbuf :( It is used
  * through options in the AVI header (AviStreamHeader). */
-#define FCC(ch4) (ch4[0] | ch4[1]<<8 | ch4[2]<<16 | ch4[3] << 24)
+#define FCC(ch4) (ch4[0] | ch4[1] << 8 | ch4[2] << 16 | ch4[3] << 24)
 
 /**
  * Test whether this is an avi-format.

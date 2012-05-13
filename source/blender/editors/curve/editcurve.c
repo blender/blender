@@ -4729,7 +4729,7 @@ void CURVE_OT_extrude(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Extrude";
-	ot->description = "Extrude selected control point(s) and move";
+	ot->description = "Extrude selected control point(s)";
 	ot->idname = "CURVE_OT_extrude";
 	
 	/* api callbacks */

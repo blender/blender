@@ -157,29 +157,27 @@ static int svbvh_node_stack_raycast(SVBVHNode *root, Isect *isec)
 
 
 template<>
-inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float *min, float *max)
+inline void bvh_node_merge_bb<SVBVHNode>(SVBVHNode *node, float min[3], float max[3])
 {
 	if (is_leaf(node)) {
 		RE_rayobject_merge_bb((RayObject*)node, min, max);
 	}
 	else {
-		int i=0;
-		while (i+4 <= node->nchilds) {
-			float *res = node->child_bb + 6*i;
+		int i;
+		for (i = 0; i + 4 <= node->nchilds; i += 4) {
+			float *res = node->child_bb + 6 * i;
 			for (int j = 0; j < 3; j++) {
-				min[j] = MIN2(min[j], res[4*j+0]);
-				min[j] = MIN2(min[j], res[4*j+1]);
-				min[j] = MIN2(min[j], res[4*j+2]);
-				min[j] = MIN2(min[j], res[4*j+3]);
+				min[j] = minf(res[4 * j + 0],
+				         minf(res[4 * j + 1],
+				         minf(res[4 * j + 2],
+				         minf(res[4 * j + 3], min[j]))));
 			}
 			for (int j = 0; j < 3; j++) {
-				max[j] = MAX2(max[j], res[4*(j+3)+0]);
-				max[j] = MAX2(max[j], res[4*(j+3)+1]);
-				max[j] = MAX2(max[j], res[4*(j+3)+2]);
-				max[j] = MAX2(max[j], res[4*(j+3)+3]);
+				max[j] = maxf(res[4 * (j + 3) + 0],
+				         maxf(res[4 * (j + 3) + 1],
+				         maxf(res[4 * (j + 3) + 2],
+				         maxf(res[4 * (j + 3) + 3], max[j]))));
 			}
-			
-			i += 4;
 		}
 
 		for ( ; i < node->nchilds; i++) {

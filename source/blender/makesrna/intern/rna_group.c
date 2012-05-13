@@ -48,27 +48,27 @@ static PointerRNA rna_Group_objects_get(CollectionPropertyIterator *iter)
 	ListBaseIterator *internal = iter->internal;
 
 	/* we are actually iterating a GroupObject list, so override get */
-	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject*)internal->link)->ob);
+	return rna_pointer_inherit_refine(&iter->parent, &RNA_Object, ((GroupObject *)internal->link)->ob);
 }
 
 static void rna_Group_objects_link(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if (!add_to_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\"", object->id.name+2, group->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" already in group \"%s\"", object->id.name + 2, group->id.name + 2);
 		return;
 	}
 
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
 
 static void rna_Group_objects_unlink(Group *group, bContext *C, ReportList *reports, Object *object)
 {
 	if (!rem_from_group(group, object, CTX_data_scene(C), NULL)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\"", object->id.name+2, group->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" not in group \"%s\"", object->id.name + 2, group->id.name + 2);
 		return;
 	}
 
-	WM_main_add_notifier(NC_OBJECT|ND_DRAW, &object->id);
+	WM_main_add_notifier(NC_OBJECT | ND_DRAW, &object->id);
 }
 
 #else
@@ -89,16 +89,16 @@ static void rna_def_group_objects(BlenderRNA *brna, PropertyRNA *cprop)
 
 	/* add object */
 	func = RNA_def_function(srna, "link", "rna_Group_objects_link");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	RNA_def_function_ui_description(func, "Add this object to a group");
 	/* object to add */
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to add");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* remove object */
 	func = RNA_def_function(srna, "unlink", "rna_Group_objects_unlink");
 	RNA_def_function_ui_description(func, "Remove this object to a group");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	/* object to remove */
 	parm = RNA_def_pointer(func, "object", "Object", "", "Object to remove");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -113,7 +113,7 @@ void RNA_def_group(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "Group", "ID");
 	RNA_def_struct_ui_text(srna, "Group", "Group of Object datablocks");
 	RNA_def_struct_ui_icon(srna, ICON_GROUP);
-		/* this is done on save/load in readfile.c, removed if no objects are in the group */
+	/* this is done on save/load in readfile.c, removed if no objects are in the group */
 	RNA_def_struct_clear_flag(srna, STRUCT_ID_REFCOUNT);
 
 	prop = RNA_def_property(srna, "dupli_offset", PROP_FLOAT, PROP_TRANSLATION);

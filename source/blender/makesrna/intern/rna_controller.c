@@ -43,36 +43,36 @@ EnumPropertyItem controller_type_items[] = {
 	{CONT_LOGIC_XNOR, "LOGIC_XNOR", 0, "Xnor", "Logic Xnor"},
 	{CONT_EXPRESSION, "EXPRESSION", 0, "Expression", ""},
 	{CONT_PYTHON, "PYTHON", 0, "Python", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
 #include "DNA_actuator_types.h"
 
-static struct StructRNA* rna_Controller_refine(struct PointerRNA *ptr)
-{
-	bController *controller = (bController*)ptr->data;
+static struct StructRNA *rna_Controller_refine(struct PointerRNA *ptr){
+	bController *controller = (bController *)ptr->data;
 
 	switch (controller->type) {
-	case CONT_LOGIC_AND:
-		return &RNA_AndController;
-	case CONT_LOGIC_OR:
-		return &RNA_OrController;
-	case CONT_LOGIC_NAND:
-		return &RNA_NandController;
-	case CONT_LOGIC_NOR:
-		return &RNA_NorController;
-	case CONT_LOGIC_XOR:
-		return &RNA_XorController;
-	case CONT_LOGIC_XNOR:
-		return &RNA_XnorController;
-	case CONT_EXPRESSION:
-		return &RNA_ExpressionController;
-	case CONT_PYTHON:
-		return &RNA_PythonController;
-	default:
-		return &RNA_Controller;
+		case CONT_LOGIC_AND:
+			return &RNA_AndController;
+		case CONT_LOGIC_OR:
+			return &RNA_OrController;
+		case CONT_LOGIC_NAND:
+			return &RNA_NandController;
+		case CONT_LOGIC_NOR:
+			return &RNA_NorController;
+		case CONT_LOGIC_XOR:
+			return &RNA_XorController;
+		case CONT_LOGIC_XNOR:
+			return &RNA_XnorController;
+		case CONT_EXPRESSION:
+			return &RNA_ExpressionController;
+		case CONT_PYTHON:
+			return &RNA_PythonController;
+		default:
+			return &RNA_Controller;
 	}
 }
 
@@ -116,9 +116,9 @@ static int rna_Controller_state_number_get(struct PointerRNA *ptr)
 	bController *cont = (bController *)ptr->data;
 	int bit;
 
-	for (bit = 0; bit<32; bit++) {
-		if (cont->state_mask & (1<<bit))
-			return bit+1;
+	for (bit = 0; bit < 32; bit++) {
+		if (cont->state_mask & (1 << bit))
+			return bit + 1;
 	}
 	return 0;
 }
@@ -150,9 +150,9 @@ static void rna_Controller_state_get(PointerRNA *ptr, int *values)
 	bController *cont = (bController *)ptr->data;
 	int i;
 
-	memset(values, 0, sizeof(int)*OB_MAX_STATES);
-	for (i = 0; i<OB_MAX_STATES; i++)
-		values[i] = (cont->state_mask & (1<<i));
+	memset(values, 0, sizeof(int) * OB_MAX_STATES);
+	for (i = 0; i < OB_MAX_STATES; i++)
+		values[i] = (cont->state_mask & (1 << i));
 }
 
 static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
@@ -161,7 +161,7 @@ static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
 	int i, tot = 0;
 
 	/* ensure we always have some state selected */
-	for (i = 0; i<OB_MAX_STATES; i++)
+	for (i = 0; i < OB_MAX_STATES; i++)
 		if (values[i])
 			tot++;
 	
@@ -169,12 +169,12 @@ static void rna_Controller_state_set(PointerRNA *ptr, const int *values)
 		return;
 
 	/* only works for one state at once */
-	if (tot>1)
+	if (tot > 1)
 		return;
 
-	for (i = 0; i<OB_MAX_STATES; i++) {
-		if (values[i]) cont->state_mask |= (1<<i);
-		else cont->state_mask &= ~(1<<i);
+	for (i = 0; i < OB_MAX_STATES; i++) {
+		if (values[i]) cont->state_mask |= (1 << i);
+		else cont->state_mask &= ~(1 << i);
 	}
 }
 #endif
@@ -189,7 +189,8 @@ void RNA_def_controller(BlenderRNA *brna)
 	static EnumPropertyItem python_controller_modes[] = {
 		{CONT_PY_SCRIPT, "SCRIPT", 0, "Script", ""},
 		{CONT_PY_MODULE, "MODULE", 0, "Module", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* Controller */
 	srna = RNA_def_struct(brna, "Controller", NULL);
@@ -265,7 +266,7 @@ void RNA_def_controller(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	/* Python Controller */
-	srna = RNA_def_struct(brna, "PythonController", "Controller" );
+	srna = RNA_def_struct(brna, "PythonController", "Controller");
 	RNA_def_struct_sdna_from(srna, "bPythonCont", "data");
 	RNA_def_struct_ui_text(srna, "Python Controller", "Controller executing a python script");
 

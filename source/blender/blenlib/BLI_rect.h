@@ -58,7 +58,7 @@ void BLI_resize_rcti(struct rcti *rect, int x, int y);
 void BLI_resize_rctf(struct rctf *rect, float x, float y);
 int  BLI_in_rcti(struct rcti *rect, int x, int y);
 int  BLI_in_rctf(struct rctf *rect, float x, float y);
-int  BLI_segment_in_rcti(struct rcti *rect, int s1[2], int s2[2]);
+int BLI_segment_in_rcti(struct rcti *rect, int s1[2], int s2[2]);
 // int  BLI_segment_in_rctf(struct rcti *rect, int s1[2], int s2[2]); // NOT NEEDED YET
 int  BLI_isect_rctf(struct rctf *src1, struct rctf *src2, struct rctf *dest);
 int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);

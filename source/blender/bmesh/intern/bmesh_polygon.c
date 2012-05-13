@@ -213,7 +213,7 @@ void BM_face_calc_center_bounds(BMFace *f, float r_cent[3])
 
 	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
 	do {
-		DO_MINMAX(l_iter->v->co, min, max);
+		minmax_v3v3_v3(min, max, l_iter->v->co);
 	} while ((l_iter = l_iter->next) != l_first);
 
 	mid_v3_v3v3(r_cent, min, max);

@@ -77,7 +77,7 @@ void RNA_api_keyingset(StructRNA *srna)
 	RNA_def_function_ui_description(func,
 	                                "Refresh Keying Set to ensure that it is valid for the current context "
 	                                "(call before each use of one)");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 }
 
 #endif

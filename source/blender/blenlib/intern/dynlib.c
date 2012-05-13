@@ -53,14 +53,14 @@ DynamicLibrary *BLI_dynlib_open(char *name)
 	void *handle;
 
 	UTF16_ENCODE(name);
-	handle= LoadLibraryW(name_16);
+	handle = LoadLibraryW(name_16);
 	UTF16_UN_ENCODE(name);
 
 	if (!handle)
 		return NULL;
 
-	lib= MEM_callocN(sizeof(*lib), "Dynamic Library");
-	lib->handle= handle;
+	lib = MEM_callocN(sizeof(*lib), "Dynamic Library");
+	lib->handle = handle;
 		
 	return lib;
 }
@@ -75,16 +75,16 @@ char *BLI_dynlib_get_error_as_string(DynamicLibrary *lib)
 	int err;
 
 	/* if lib is NULL reset the last error code */
-	err= GetLastError();
+	err = GetLastError();
 	if (!lib)
 		SetLastError(ERROR_SUCCESS);
 
 	if (err) {
 		static char buf[1024];
 
-		if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM|FORMAT_MESSAGE_IGNORE_INSERTS, 
-			NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-			buf, sizeof(buf), NULL))
+		if (FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
+		                  NULL, err, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		                  buf, sizeof(buf), NULL))
 		{
 			return buf;
 		}
@@ -106,13 +106,13 @@ void BLI_dynlib_close(DynamicLibrary *lib)
 DynamicLibrary *BLI_dynlib_open(char *name)
 {
 	DynamicLibrary *lib;
-	void *handle= dlopen(name, RTLD_LAZY);
+	void *handle = dlopen(name, RTLD_LAZY);
 
 	if (!handle)
 		return NULL;
 
-	lib= MEM_callocN(sizeof(*lib), "Dynamic Library");
-	lib->handle= handle;
+	lib = MEM_callocN(sizeof(*lib), "Dynamic Library");
+	lib->handle = handle;
 		
 	return lib;
 }

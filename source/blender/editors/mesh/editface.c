@@ -427,7 +427,7 @@ int paintface_minmax(Object *ob, float r_min[3], float r_max[3])
 			copy_v3_v3(vec, (mvert[ml->v].co));
 			mul_m3_v3(bmat, vec);
 			add_v3_v3v3(vec, vec, ob->obmat[3]);
-			DO_MINMAX(vec, r_min, r_max);
+			minmax_v3v3_v3(r_min, r_max, vec);
 		}
 
 		ok = TRUE;

@@ -40,8 +40,8 @@
  *
  * note: these have the SMHASH suffix because we may want to make them public.
  */
-#define SMHASH_CELL_UNUSED	((void *)0x7FFFFFFF)
-#define SMHASH_CELL_FREE	((void *)0x7FFFFFFD)
+#define SMHASH_CELL_UNUSED  ((void *)0x7FFFFFFF)
+#define SMHASH_CELL_FREE    ((void *)0x7FFFFFFD)
 
 #define SMHASH_NONZERO(n) ((n) + !(n))
 #define SMHASH_NEXT(h, hoff) ABS(((h) + ((hoff = SMHASH_NONZERO(hoff * 2) + 1), hoff)))
@@ -80,7 +80,7 @@ void BLI_smallhash_release(SmallHash *hash)
 
 void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 {
-	int h, hoff=1;
+	int h, hoff = 1;
 
 	if (hash->size < hash->used * 3) {
 		int newsize = hashsizes[++hash->curhash];
@@ -103,7 +103,7 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 			hash->table[i].val = SMHASH_CELL_FREE;
 		}
 
-		for (i = 0; i<hashsizes[hash->curhash - 1]; i++) {
+		for (i = 0; i < hashsizes[hash->curhash - 1]; i++) {
 			if (ELEM(tmp[i].val, SMHASH_CELL_UNUSED, SMHASH_CELL_FREE)) {
 				continue;
 			}
@@ -141,7 +141,7 @@ void BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item)
 
 void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 {
-	int h, hoff=1;
+	int h, hoff = 1;
 
 	h = ABS((int)key);
 
@@ -162,7 +162,7 @@ void BLI_smallhash_remove(SmallHash *hash, uintptr_t key)
 
 void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 {
-	int h, hoff=1;
+	int h, hoff = 1;
 	void *v;
 
 	h = ABS((int)key);
@@ -193,7 +193,7 @@ void *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key)
 int BLI_smallhash_haskey(SmallHash *hash, uintptr_t key)
 {
 	int h = ABS((int)key);
-	int hoff =1;
+	int hoff = 1;
 
 	if (hash->table == NULL) {
 		return 0;
@@ -251,21 +251,21 @@ void *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key
 #if 0
 void BLI_smallhash_print(SmallHash *hash)
 {
-	int i, linecol=79, c=0;
+	int i, linecol = 79, c = 0;
 
 	printf("{");
-	for (i=0; i<hash->size; i++) {
+	for (i = 0; i < hash->size; i++) {
 		if (hash->table[i].val == SMHASH_CELL_UNUSED) {
 			printf("--u-");
 		}
 		else if (hash->table[i].val == SMHASH_CELL_FREE) {
 			printf("--f-");
 		}
-		else	{
+		else {
 			printf("%2x", (unsigned int)hash->table[i].key);
 		}
 
-		if (i != hash->size-1)
+		if (i != hash->size - 1)
 			printf(", ");
 
 		c += 6;

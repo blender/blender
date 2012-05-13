@@ -1055,8 +1055,7 @@ static float *get_weights_array(Object *ob, char *vgroup)
 		weights = MEM_callocN(totvert * sizeof(float), "weights");
 
 		if (em) {
-			eve = BM_iter_new(&iter, em->bm, BM_VERTS_OF_MESH, NULL);
-			for (i = 0; eve; eve = BM_iter_step(&iter), i++) {
+			BM_ITER_MESH_INDEX (eve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				dvert = CustomData_bmesh_get(&em->bm->vdata, eve->head.data, CD_MDEFORMVERT);
 
 				if (dvert) {

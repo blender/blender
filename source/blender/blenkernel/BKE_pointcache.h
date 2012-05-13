@@ -40,15 +40,15 @@
 
 /* Point cache clearing option, for BKE_ptcache_id_clear, before
  * and after are non inclusive (they wont remove the cfra) */
-#define PTCACHE_CLEAR_ALL		0
-#define PTCACHE_CLEAR_FRAME		1
-#define PTCACHE_CLEAR_BEFORE	2
-#define PTCACHE_CLEAR_AFTER		3
+#define PTCACHE_CLEAR_ALL       0
+#define PTCACHE_CLEAR_FRAME     1
+#define PTCACHE_CLEAR_BEFORE    2
+#define PTCACHE_CLEAR_AFTER     3
 
 /* Point cache reset options */
-#define PTCACHE_RESET_DEPSGRAPH		0
-#define PTCACHE_RESET_BAKED			1
-#define PTCACHE_RESET_OUTDATED		2
+#define PTCACHE_RESET_DEPSGRAPH     0
+#define PTCACHE_RESET_BAKED         1
+#define PTCACHE_RESET_OUTDATED      2
 /* #define PTCACHE_RESET_FREE			3 */ /*UNUSED*/
 
 /* Add the blendfile name after blendcache_ */
@@ -56,29 +56,29 @@
 #define PTCACHE_PATH "blendcache_"
 
 /* File open options, for BKE_ptcache_file_open */
-#define PTCACHE_FILE_READ	0
-#define PTCACHE_FILE_WRITE	1
-#define PTCACHE_FILE_UPDATE	2
+#define PTCACHE_FILE_READ   0
+#define PTCACHE_FILE_WRITE  1
+#define PTCACHE_FILE_UPDATE 2
 
 /* PTCacheID types */
-#define PTCACHE_TYPE_SOFTBODY			0
-#define PTCACHE_TYPE_PARTICLES			1
-#define PTCACHE_TYPE_CLOTH				2
-#define PTCACHE_TYPE_SMOKE_DOMAIN		3
-#define PTCACHE_TYPE_SMOKE_HIGHRES		4
-#define PTCACHE_TYPE_DYNAMICPAINT		5
+#define PTCACHE_TYPE_SOFTBODY           0
+#define PTCACHE_TYPE_PARTICLES          1
+#define PTCACHE_TYPE_CLOTH              2
+#define PTCACHE_TYPE_SMOKE_DOMAIN       3
+#define PTCACHE_TYPE_SMOKE_HIGHRES      4
+#define PTCACHE_TYPE_DYNAMICPAINT       5
 
 /* high bits reserved for flags that need to be stored in file */
-#define PTCACHE_TYPEFLAG_COMPRESS		(1<<16)
-#define PTCACHE_TYPEFLAG_EXTRADATA		(1<<17)
+#define PTCACHE_TYPEFLAG_COMPRESS       (1 << 16)
+#define PTCACHE_TYPEFLAG_EXTRADATA      (1 << 17)
 
-#define PTCACHE_TYPEFLAG_TYPEMASK			0x0000FFFF
-#define PTCACHE_TYPEFLAG_FLAGMASK			0xFFFF0000
+#define PTCACHE_TYPEFLAG_TYPEMASK           0x0000FFFF
+#define PTCACHE_TYPEFLAG_FLAGMASK           0xFFFF0000
 
 /* PTCache read return code */
-#define PTCACHE_READ_EXACT				1
-#define PTCACHE_READ_INTERPOLATED		2
-#define PTCACHE_READ_OLD				3
+#define PTCACHE_READ_EXACT              1
+#define PTCACHE_READ_INTERPOLATED       2
+#define PTCACHE_READ_OLD                3
 
 /* Structs */
 struct ClothModifierData;
@@ -115,7 +115,7 @@ typedef struct PTCacheFile {
 	void *cur[BPHYS_TOT_DATA];
 } PTCacheFile;
 
-#define PTCACHE_VEL_PER_SEC		1
+#define PTCACHE_VEL_PER_SEC     1
 
 typedef struct PTCacheID {
 	struct PTCacheID *next, *prev;
@@ -182,10 +182,10 @@ typedef struct PTCacheBaker {
 } PTCacheBaker;
 
 /* PTCacheEditKey->flag */
-#define PEK_SELECT		1
-#define PEK_TAG			2
-#define PEK_HIDE		4
-#define PEK_USE_WCO		8
+#define PEK_SELECT      1
+#define PEK_TAG         2
+#define PEK_HIDE        4
+#define PEK_USE_WCO     8
 
 typedef struct PTCacheEditKey {
 	float *co;
@@ -200,10 +200,10 @@ typedef struct PTCacheEditKey {
 } PTCacheEditKey;
 
 /* PTCacheEditPoint->flag */
-#define PEP_TAG				1
-#define PEP_EDIT_RECALC		2
-#define PEP_TRANSFORM		4
-#define PEP_HIDE			8
+#define PEP_TAG             1
+#define PEP_EDIT_RECALC     2
+#define PEP_TRANSFORM       4
+#define PEP_HIDE            8
 
 typedef struct PTCacheEditPoint {
 	struct PTCacheEditKey *keys;
@@ -242,7 +242,7 @@ typedef struct PTCacheEdit {
 	float *emitter_cosnos; /* localspace face centers and normals (average of its verts), from the derived mesh */
 	int *mirror_cache;
 
-	struct ParticleCacheKey **pathcache;	/* path cache (runtime) */
+	struct ParticleCacheKey **pathcache;    /* path cache (runtime) */
 	ListBase pathcachebufs;
 
 	int totpoint, totframes, totcached, edited;
@@ -267,18 +267,18 @@ void BKE_ptcache_ids_from_object(struct ListBase *lb, struct Object *ob, struct 
 void BKE_ptcache_remove(void);
 
 /************ ID specific functions ************************/
-void	BKE_ptcache_id_clear(PTCacheID *id, int mode, unsigned int cfra);
-int		BKE_ptcache_id_exist(PTCacheID *id, int cfra);
-int		BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
-void	BKE_ptcache_id_time(PTCacheID *pid, struct Scene *scene, float cfra, int *startframe, int *endframe, float *timescale);
-int		BKE_ptcache_object_reset(struct Scene *scene, struct Object *ob, int mode);
+void    BKE_ptcache_id_clear(PTCacheID *id, int mode, unsigned int cfra);
+int     BKE_ptcache_id_exist(PTCacheID *id, int cfra);
+int     BKE_ptcache_id_reset(struct Scene *scene, PTCacheID *id, int mode);
+void    BKE_ptcache_id_time(PTCacheID *pid, struct Scene *scene, float cfra, int *startframe, int *endframe, float *timescale);
+int     BKE_ptcache_object_reset(struct Scene *scene, struct Object *ob, int mode);
 
 void BKE_ptcache_update_info(PTCacheID *pid);
 
 /*********** General cache reading/writing ******************/
 
 /* Size of cache data type. */
-int		BKE_ptcache_data_size(int data_type);
+int     BKE_ptcache_data_size(int data_type);
 
 /* Is point with indes in memory cache */
 int BKE_ptcache_mem_index_find(struct PTCacheMem *pm, unsigned int index);
@@ -289,10 +289,10 @@ void BKE_ptcache_mem_pointers_incr(struct PTCacheMem *pm);
 int  BKE_ptcache_mem_pointers_seek(int point_index, struct PTCacheMem *pm);
 
 /* Main cache reading call. */
-int		BKE_ptcache_read(PTCacheID *pid, float cfra);
+int     BKE_ptcache_read(PTCacheID *pid, float cfra);
 
 /* Main cache writing call. */
-int		BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
+int     BKE_ptcache_write(PTCacheID *pid, unsigned int cfra);
 
 /****************** Continue physics ***************/
 void BKE_ptcache_set_continue_physics(struct Main *bmain, struct Scene *scene, int enable);
@@ -311,7 +311,7 @@ struct PointCache *BKE_ptcache_copy_list(struct ListBase *ptcaches_new, struct L
 void BKE_ptcache_quick_cache_all(struct Main *bmain, struct Scene *scene);
 
 /* Bake cache or simulate to current frame with settings defined in the baker. */
-void BKE_ptcache_bake(struct PTCacheBaker* baker);
+void BKE_ptcache_bake(struct PTCacheBaker *baker);
 
 /* Convert disk cache to memory cache. */
 void BKE_ptcache_disk_to_mem(struct PTCacheID *pid);

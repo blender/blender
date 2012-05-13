@@ -72,7 +72,7 @@ void BLI_uvproject_from_camera(float target[2], float source[3], ProjCameraInfo 
 	}
 	else {
 		if (pv4[2] == 0.0f)
-			pv4[2] = 0.00001f; /* don't allow div by 0 */
+			pv4[2] = 0.00001f;  /* don't allow div by 0 */
 
 		if (uci->do_persp == 0) {
 			target[0] = (pv4[0] / uci->camsize);

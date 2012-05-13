@@ -56,7 +56,7 @@ typedef enum {
 
 typedef struct {
 	struct bCallbackFuncStore *next, *prev;
-	void (* func)(struct Main *, struct ID *, void *arg);
+	void (*func)(struct Main *, struct ID *, void *arg);
 	void *arg;
 	short alloc;
 } bCallbackFuncStore;
@@ -70,6 +70,6 @@ void BLI_callback_global_finalize(void);
 
 
 /* This is blenlib internal only, unrelated to above */
-void callLocalErrorCallBack(const char* msg);
+void callLocalErrorCallBack(const char *msg);
 
 #endif /* __BLI_CALLBACKS_H__ */

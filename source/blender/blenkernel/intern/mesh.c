@@ -2391,8 +2391,8 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	MFace *mface = NULL, *mf;
 	BLI_array_declare(mface);
 	ScanFillContext sf_ctx;
-	ScanFillVert *v, *lastv, *firstv;
-	ScanFillFace *f;
+	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
+	ScanFillFace *sf_tri;
 	int *mface_orig_index = NULL;
 	BLI_array_declare(mface_orig_index);
 	int *mface_to_poly_map = NULL;
@@ -2485,21 +2485,21 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			ml = mloop + mp->loopstart;
 			
 			BLI_scanfill_begin(&sf_ctx);
-			firstv = NULL;
-			lastv = NULL;
+			sf_vert_first = NULL;
+			sf_vert_last = NULL;
 			for (j = 0; j < mp->totloop; j++, ml++) {
-				v = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
 	
-				v->keyindex = mp->loopstart + j;
+				sf_vert->keyindex = mp->loopstart + j;
 	
-				if (lastv)
-					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
+				if (sf_vert_last)
+					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 	
-				if (!firstv)
-					firstv = v;
-				lastv = v;
+				if (!sf_vert_first)
+					sf_vert_first = sf_vert;
+				sf_vert_last = sf_vert;
 			}
-			BLI_scanfill_edge_add(&sf_ctx, lastv, firstv);
+			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 			
 			totfilltri = BLI_scanfill_calc(&sf_ctx, FALSE);
 			if (totfilltri) {
@@ -2509,14 +2509,14 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 					BLI_array_grow_items(mface_orig_index, totfilltri);
 				}
 
-				for (f = sf_ctx.fillfacebase.first; f; f = f->next, mf++) {
+				for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
 					mface_to_poly_map[mface_index] = poly_index;
 					mf = &mface[mface_index];
 
 					/* set loop indices, transformed to vert indices later */
-					mf->v1 = f->v1->keyindex;
-					mf->v2 = f->v2->keyindex;
-					mf->v3 = f->v3->keyindex;
+					mf->v1 = sf_tri->v1->keyindex;
+					mf->v2 = sf_tri->v2->keyindex;
+					mf->v3 = sf_tri->v3->keyindex;
 					mf->v4 = 0;
 
 					mf->mat_nr = mp->mat_nr;
@@ -2771,16 +2771,19 @@ static void mesh_calc_ngon_normal(MPoly *mpoly, MLoop *loopstart,
 {
 	const int nverts = mpoly->totloop;
 	float const *v_prev = mvert[loopstart[nverts - 1].v].co;
-	float const *v_curr = mvert[loopstart->v].co;
-	float n[3] = {0.0f};
+	float const *v_curr;
 	int i;
 
+	zero_v3(normal);
+
 	/* Newell's Method */
-	for (i = 0; i < nverts; v_prev = v_curr, v_curr = mvert[loopstart[++i].v].co) {
-		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
+	for (i = 0; i < nverts; i++) {
+		v_curr = mvert[loopstart[i].v].co;
+		add_newell_cross_v3_v3v3(normal, v_prev, v_curr);
+		v_prev = v_curr;
 	}
 
-	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
+	if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
 		normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
 }
@@ -2818,16 +2821,19 @@ static void mesh_calc_ngon_normal_coords(MPoly *mpoly, MLoop *loopstart,
 {
 	const int nverts = mpoly->totloop;
 	float const *v_prev = vertex_coords[loopstart[nverts - 1].v];
-	float const *v_curr = vertex_coords[loopstart->v];
-	float n[3] = {0.0f};
+	float const *v_curr;
 	int i;
 
+	zero_v3(normal);
+
 	/* Newell's Method */
-	for (i = 0; i < nverts; v_prev = v_curr, v_curr = vertex_coords[loopstart[++i].v]) {
-		add_newell_cross_v3_v3v3(n, v_prev, v_curr);
+	for (i = 0; i < nverts; i++) {
+		v_curr = vertex_coords[loopstart[i].v];
+		add_newell_cross_v3_v3v3(normal, v_prev, v_curr);
+		v_prev = v_curr;
 	}
 
-	if (UNLIKELY(normalize_v3_v3(normal, n) == 0.0f)) {
+	if (UNLIKELY(normalize_v3(normal) == 0.0f)) {
 		normal[2] = 1.0f; /* other axis set to 0.0 */
 	}
 }
@@ -3011,7 +3017,7 @@ int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 	int i = me->totvert;
 	MVert *mvert;
 	for (mvert = me->mvert; i--; mvert++) {
-		DO_MINMAX(mvert->co, r_min, r_max);
+		minmax_v3v3_v3(r_min, r_max, mvert->co);
 	}
 	
 	return (me->totvert != 0);

@@ -186,7 +186,7 @@ void view3d_toolshelf_register(struct ARegionType *art);
 void view3d_tool_props_register(struct ARegionType *art);
 
 /* view3d_snap.c */
-int minmax_verts(struct Object *obedit, float *min, float *max);
+int ED_view3d_minmax_verts(struct Object *obedit, float min[3], float max[3]);
 
 void VIEW3D_OT_snap_selected_to_grid(struct wmOperatorType *ot);
 void VIEW3D_OT_snap_selected_to_cursor(struct wmOperatorType *ot);
@@ -202,7 +202,7 @@ ARegion *view3d_has_tools_region(ScrArea *sa);
 extern const char *view3d_context_dir[]; /* doc access */
 
 /* draw_volume.c */
-void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float *min, float *max, int res[3], float dx, struct GPUTexture *tex_shadow);
+void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float min[3], float max[3], int res[3], float dx, struct GPUTexture *tex_shadow);
 
 /* workaround for trivial but noticeable camera bug caused by imprecision
  * between view border calculation in 2D/3D space, workaround for bug [#28037].

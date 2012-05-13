@@ -49,7 +49,8 @@ static EnumPropertyItem particle_edit_hair_brush_items[] = {
 	{PE_BRUSH_PUFF, "PUFF", 0, "Puff", "Make hairs stand up"},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
 	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 #include "MEM_guardedalloc.h"
@@ -68,18 +69,20 @@ static EnumPropertyItem particle_edit_disconnected_hair_brush_items[] = {
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make hairs longer or shorter"},
 	{PE_BRUSH_CUT, "CUT", 0, "Cut", "Cut hairs"},
 	{PE_BRUSH_WEIGHT, "WEIGHT", 0, "Weight", "Weight hair particles"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 static EnumPropertyItem particle_edit_cache_brush_items[] = {
 	{PE_BRUSH_NONE, "NONE", 0, "None", "Don't use any brush"},
 	{PE_BRUSH_COMB, "COMB", 0, "Comb", "Comb paths"},
 	{PE_BRUSH_SMOOTH, "SMOOTH", 0, "Smooth", "Smooth paths"},
 	{PE_BRUSH_LENGTH, "LENGTH", 0, "Length", "Make paths longer or shorter"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 static PointerRNA rna_ParticleEdit_brush_get(PointerRNA *ptr)
 {
-	ParticleEditSettings *pset = (ParticleEditSettings*)ptr->data;
+	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 	ParticleBrushData *brush = NULL;
 
 	if (pset->brushtype != PE_BRUSH_NONE)
@@ -95,7 +98,7 @@ static PointerRNA rna_ParticleBrush_curve_get(PointerRNA *ptr)
 
 static void rna_ParticleEdit_redo(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact)? scene->basact->object: NULL;
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 
 	if (!edit)
@@ -106,20 +109,20 @@ static void rna_ParticleEdit_redo(Main *UNUSED(bmain), Scene *scene, PointerRNA 
 
 static void rna_ParticleEdit_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact)? scene->basact->object: NULL;
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 
 	if (ob) DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 }
 static void rna_ParticleEdit_tool_set(PointerRNA *ptr, int value)
 {
-	ParticleEditSettings *pset = (ParticleEditSettings*)ptr->data;
+	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 	
 	/* redraw hair completely if weight brush is/was used */
 	if ((pset->brushtype == PE_BRUSH_WEIGHT || value == PE_BRUSH_WEIGHT) && pset->scene) {
-		Object *ob = (pset->scene->basact)? pset->scene->basact->object: NULL;
+		Object *ob = (pset->scene->basact) ? pset->scene->basact->object : NULL;
 		if (ob) {
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-			WM_main_add_notifier(NC_OBJECT|ND_PARTICLE|NA_EDITED, NULL);
+			WM_main_add_notifier(NC_OBJECT | ND_PARTICLE | NA_EDITED, NULL);
 		}
 	}
 
@@ -129,7 +132,7 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UN
                                                      PropertyRNA *UNUSED(prop), int *UNUSED(free))
 {
 	Scene *scene = CTX_data_scene(C);
-	Object *ob = (scene->basact)? scene->basact->object: NULL;
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 #if 0
 	PTCacheEdit *edit = PE_get_current(scene, ob);
 	ParticleSystem *psys = edit ? edit->psys : NULL;
@@ -154,13 +157,13 @@ static EnumPropertyItem *rna_ParticleEdit_tool_itemf(bContext *C, PointerRNA *UN
 
 static int rna_ParticleEdit_editable_get(PointerRNA *ptr)
 {
-	ParticleEditSettings *pset = (ParticleEditSettings*)ptr->data;
+	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	return (pset->object && pset->scene && PE_get_current(pset->scene, pset->object));
 }
 static int rna_ParticleEdit_hair_get(PointerRNA *ptr)
 {
-	ParticleEditSettings *pset = (ParticleEditSettings*)ptr->data;
+	ParticleEditSettings *pset = (ParticleEditSettings *)ptr->data;
 
 	if (pset->scene) {
 		PTCacheEdit *edit = PE_get_current(pset->scene, pset->object);
@@ -195,11 +198,11 @@ static int rna_Brush_mode_poll(PointerRNA *ptr, PointerRNA value)
 
 static void rna_Sculpt_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *UNUSED(ptr))
 {
-	Object *ob = (scene->basact)? scene->basact->object: NULL;
+	Object *ob = (scene->basact) ? scene->basact->object : NULL;
 
 	if (ob) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-		WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+		WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 	}
 }
 
@@ -218,7 +221,7 @@ static void rna_def_paint(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_pointer_funcs(prop, NULL, NULL, NULL, "rna_Brush_mode_poll");
 	RNA_def_property_ui_text(prop, "Brush", "Active Brush");
-	RNA_def_property_update(prop, NC_BRUSH|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_BRUSH | NA_EDITED, NULL);
 
 	prop = RNA_def_property(srna, "show_brush", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_SHOW_BRUSH);
@@ -288,7 +291,7 @@ static void rna_def_sculpt(BlenderRNA  *brna)
 	RNA_def_property_ui_text(prop, "Use Deform Only",
 	                         "Use only deformation modifiers (temporary disable all "
 	                         "constructive modifiers except multi-resolution)");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_Sculpt_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_Sculpt_update");
 }
 
 
@@ -381,7 +384,7 @@ static void rna_def_image_paint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Angle", "Paint most on faces pointing towards the view according to this angle");
 
 	prop = RNA_def_int_array(srna, "screen_grab_size", 2, NULL, 0, 0, "screen_grab_size",
-	                        "Size to capture the image for re-projecting", 0, 0);
+	                         "Size to capture the image for re-projecting", 0, 0);
 	RNA_def_property_range(prop, 512, 16384);
 }
 
@@ -394,17 +397,20 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 		{SCE_SELECT_PATH, "PATH", ICON_PARTICLE_PATH, "Path", "Path edit mode"},
 		{SCE_SELECT_POINT, "POINT", ICON_PARTICLE_POINT, "Point", "Point select mode"},
 		{SCE_SELECT_END, "TIP", ICON_PARTICLE_TIP, "Tip", "Tip select mode"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem puff_mode[] = {
 		{0, "ADD", 0, "Add", "Make hairs more puffy"},
 		{1, "SUB", 0, "Sub", "Make hairs less puffy"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem length_mode[] = {
 		{0, "GROW", 0, "Grow", "Make hairs longer"},
 		{1, "SHRINK", 0, "Shrink", "Make hairs shorter"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem edit_type_items[] = {
 		{PE_TYPE_PARTICLES, "PARTICLES", 0, "Particles", ""},
@@ -430,7 +436,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "selectmode");
 	RNA_def_property_enum_items(prop, select_mode_items);
 	RNA_def_property_ui_text(prop, "Selection Mode", "Particle select and display mode");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "use_preserve_length", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_KEEP_LENGTHS);
@@ -452,7 +458,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_fade_time", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_FADE_TIME);
 	RNA_def_property_ui_text(prop, "Fade Time", "Fade paths and keys further away from current frame");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "use_auto_velocity", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_AUTO_VELOCITY);
@@ -461,7 +467,7 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_particles", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_DRAW_PART);
 	RNA_def_property_ui_text(prop, "Draw Particles", "Draw actual particles");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "use_default_interpolate", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", PE_INTERPOLATE_ADDED);
@@ -481,18 +487,18 @@ static void rna_def_particle_edit(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "draw_step", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 10);
 	RNA_def_property_ui_text(prop, "Steps", "How many steps to draw the path with");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "fade_frames", PROP_INT, PROP_NONE);
 	RNA_def_property_range(prop, 1, 100);
 	RNA_def_property_ui_text(prop, "Frames", "How many frames to fade");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_update");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_update");
 
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "edittype");
 	RNA_def_property_enum_items(prop, edit_type_items);
 	RNA_def_property_ui_text(prop, "Type", "");
-	RNA_def_property_update(prop, NC_OBJECT|ND_DRAW, "rna_ParticleEdit_redo");
+	RNA_def_property_update(prop, NC_OBJECT | ND_DRAW, "rna_ParticleEdit_redo");
 
 	prop = RNA_def_property(srna, "is_editable", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_funcs(prop, "rna_ParticleEdit_editable_get", NULL);

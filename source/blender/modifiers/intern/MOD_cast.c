@@ -367,16 +367,16 @@ static void cuboid_do(
 			float vec[3];
 
 			/* let the center of the ctrl_ob be part of the bound box: */
-			DO_MINMAX(center, min, max);
+			minmax_v3v3_v3(min, max, center);
 
 			for (i = 0; i < numVerts; i++) {
 				sub_v3_v3v3(vec, vertexCos[i], center);
-				DO_MINMAX(vec, min, max);
+				minmax_v3v3_v3(min, max, vec);
 			}
 		}
 		else {
 			for (i = 0; i < numVerts; i++) {
-				DO_MINMAX(vertexCos[i], min, max);
+				minmax_v3v3_v3(min, max, vertexCos[i]);
 			}
 		}
 

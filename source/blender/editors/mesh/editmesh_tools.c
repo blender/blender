@@ -734,7 +734,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	
 	BM_ITER_MESH (v1, &iter, vc.em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v1, BM_ELEM_SELECT)) {
-			DO_MINMAX(v1->co, min, max);
+			minmax_v3v3_v3(min, max, v1->co);
 			done = 1;
 		}
 	}

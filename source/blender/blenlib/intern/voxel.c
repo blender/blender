@@ -40,7 +40,7 @@ BLI_INLINE float D(float *data, const int res[3], int x, int y, int z)
 	CLAMP(x, 0, res[0] - 1);
 	CLAMP(y, 0, res[1] - 1);
 	CLAMP(z, 0, res[2] - 1);
-	return data[ BLI_VOXEL_INDEX(x, y, z, res) ];
+	return data[BLI_VOXEL_INDEX(x, y, z, res)];
 }
 
 /* *** nearest neighbor *** */
@@ -128,7 +128,7 @@ float BLI_voxel_sample_triquadratic(float *data, const int res[3], const float c
 						+ v[1] * ( u[0] * data[xc[0] + yc[1] + zc[2]] + u[1] * data[xc[1] + yc[1] + zc[2]] + u[2] * data[xc[2] + yc[1] + zc[2]] )
 						+ v[2] * ( u[0] * data[xc[0] + yc[2] + zc[2]] + u[1] * data[xc[1] + yc[2] + zc[2]] + u[2] * data[xc[2] + yc[2] + zc[2]] ) );
 
-}
+	}
 	return 0.f;
 }
 

@@ -109,7 +109,7 @@ static void rna_Image_save(Image *image, ReportList *reports)
 
 		if (image->packedfile) {
 			if (writePackedFile(reports, image->name, image->packedfile, 0) != RET_OK) {
-				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name+2, image->name);
+				BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could saved packed file to \"%s\"", image->id.name + 2, image->name);
 			}
 		}
 		else if (IMB_saveiff(ibuf, filename, ibuf->flags)) {
@@ -121,11 +121,11 @@ static void rna_Image_save(Image *image, ReportList *reports)
 			ibuf->userflags &= ~IB_BITMAPDIRTY;
 		}
 		else {
-			BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could not be saved to \"%s\"", image->id.name+2, image->name);
+			BKE_reportf(reports, RPT_ERROR, "Image \"%s\" could not be saved to \"%s\"", image->id.name + 2, image->name);
 		}
 	}
 	else {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
 	}
 }
 
@@ -157,7 +157,7 @@ static void rna_Image_unpack(Image *image, ReportList *reports, int method)
 	}
 	else {
 		/* reports its own error on failure */
-		unpackImage (reports, image, method);
+		unpackImage(reports, image, method);
 	}
 }
 
@@ -171,7 +171,7 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
 
 	if (ibuf == NULL) {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
 		return;
 	}
 
@@ -189,13 +189,13 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 
 	ibuf = BKE_image_get_ibuf(image, NULL);
 
-	if (ibuf == NULL || ibuf->rect == NULL ) {
-		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name+2);
+	if (ibuf == NULL || ibuf->rect == NULL) {
+		BKE_reportf(reports, RPT_ERROR, "Image \"%s\" does not have any image data", image->id.name + 2);
 		return (int)GL_INVALID_OPERATION;
 	}
 
 	/* could be made into a function? */
-	glGenTextures(1, (GLuint*)bind);
+	glGenTextures(1, (GLuint *)bind);
 	glBindTexture(GL_TEXTURE_2D, *bind);
 
 	if (filter != GL_NEAREST && filter != GL_LINEAR)
@@ -212,7 +212,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 	}
 
 	if (error) {
-		glDeleteTextures(1, (GLuint*)bind);
+		glDeleteTextures(1, (GLuint *)bind);
 		image->bindcode = 0;
 	}
 
@@ -236,7 +236,7 @@ void RNA_api_image(StructRNA *srna)
 
 	func = RNA_def_function(srna, "save_render", "rna_Image_save_render");
 	RNA_def_function_ui_description(func, "Save image to a specific path using a scenes render settings");
-	RNA_def_function_flag(func, FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_string_file_path(func, "filepath", "", 0, "", "Save path");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_pointer(func, "scene", "Scene", "", "Scene to take image parameters from");

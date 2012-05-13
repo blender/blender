@@ -41,16 +41,16 @@
 #endif
 
 
-#define ELEM(a, b, c)           ( (a)==(b) || (a)==(c) )
-#define ELEM3(a, b, c, d)       ( ELEM(a, b, c) || (a)==(d) )
-#define ELEM4(a, b, c, d, e)    ( ELEM(a, b, c) || ELEM(a, d, e) )
-#define ELEM5(a, b, c, d, e, f) ( ELEM(a, b, c) || ELEM3(a, d, e, f) )
-#define ELEM6(a, b, c, d, e, f, g)      ( ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
-#define ELEM7(a, b, c, d, e, f, g, h)   ( ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
-#define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
-#define ELEM9(a, b, c, d, e, f, g, h, i, j)        ( ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
-#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        ( ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
-#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        ( ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
+#define ELEM(a, b, c)           ((a) == (b) || (a) == (c))
+#define ELEM3(a, b, c, d)       (ELEM(a, b, c) || (a) == (d) )
+#define ELEM4(a, b, c, d, e)    (ELEM(a, b, c) || ELEM(a, d, e) )
+#define ELEM5(a, b, c, d, e, f) (ELEM(a, b, c) || ELEM3(a, d, e, f) )
+#define ELEM6(a, b, c, d, e, f, g)      (ELEM(a, b, c) || ELEM4(a, d, e, f, g) )
+#define ELEM7(a, b, c, d, e, f, g, h)   (ELEM3(a, b, c, d) || ELEM4(a, e, f, g, h) )
+#define ELEM8(a, b, c, d, e, f, g, h, i)        (ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
+#define ELEM9(a, b, c, d, e, f, g, h, i, j)        (ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
+#define ELEM10(a, b, c, d, e, f, g, h, i, j, k)        (ELEM4(a, b, c, d, e) || ELEM6(a, f, g, h, i, j, k) )
+#define ELEM11(a, b, c, d, e, f, g, h, i, j, k, l)        (ELEM4(a, b, c, d, e) || ELEM7(a, f, g, h, i, j, k, l) )
 
 /* shift around elements */
 #define SHIFT3(type, a, b, c)  {                                              \
@@ -59,7 +59,7 @@
 		a = c;                                                                \
 		c = b;                                                                \
 		b = tmp;                                                              \
-	} (void)0
+} (void)0
 #define SHIFT4(type, a, b, c, d)  {                                           \
 		type tmp;                                                             \
 		tmp = a;                                                              \
@@ -67,16 +67,16 @@
 		d = c;                                                                \
 		c = b;                                                                \
 		b = tmp;                                                              \
-	} (void)0
+} (void)0
 
 /* min/max */
-#define MIN2(x,y)               ( (x)<(y) ? (x) : (y) )
-#define MIN3(x,y,z)             MIN2( MIN2((x),(y)) , (z) )
-#define MIN4(x,y,z,a)           MIN2( MIN2((x),(y)) , MIN2((z),(a)) )
+#define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
+#define MIN3(x, y, z)             MIN2(MIN2((x), (y)), (z) )
+#define MIN4(x, y, z, a)           MIN2(MIN2((x), (y)), MIN2((z), (a)) )
 
-#define MAX2(x,y)               ( (x)>(y) ? (x) : (y) )
-#define MAX3(x,y,z)             MAX2( MAX2((x),(y)) , (z) )
-#define MAX4(x,y,z,a)           MAX2( MAX2((x),(y)) , MAX2((z),(a)) )
+#define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
+#define MAX3(x, y, z)             MAX2(MAX2((x), (y)), (z) )
+#define MAX4(x, y, z, a)           MAX2(MAX2((x), (y)), MAX2((z), (a)) )
 
 #define INIT_MINMAX(min, max) {                                               \
 		(min)[0] = (min)[1] = (min)[2] =  1.0e30f;                            \
@@ -114,70 +114,71 @@
 /* some math and copy defines */
 
 #ifndef SWAP
-#  define SWAP(type, a, b)       { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#  define SWAP(type, a, b)       { type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; }
 #endif
 
-#define ABS(a)          ( (a)<0 ? (-(a)) : (a) )
+#define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
 
-#define FTOCHAR(val) ((val)<=0.0f)? 0 : (((val)>(1.0f-0.5f/255.0f))? 255 : (char)((255.0f*(val))+0.5f))
-#define FTOUSHORT(val) ((val >= 1.0f-0.5f/65535)? 65535: (val <= 0.0f)? 0: (unsigned short)(val*65535.0f + 0.5f))
-#define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535-128)? 255: ((val)+128)>>8))
+#define FTOCHAR(val) ((val) <= 0.0f) ? 0 : (((val) > (1.0f - 0.5f / 255.0f)) ? 255 : (char)((255.0f * (val)) + 0.5f))
+#define FTOUSHORT(val) ((val >= 1.0f - 0.5f / 65535) ? 65535 : (val <= 0.0f) ? 0 : (unsigned short)(val * 65535.0f + 0.5f))
+#define USHORTTOUCHAR(val) ((unsigned char)(((val) >= 65535 - 128) ? 255 : ((val) + 128) >> 8))
 #define F3TOCHAR3(v2, v1) {                                                   \
-		(v1)[0]= FTOCHAR((v2[0]));                                            \
-		(v1)[1]= FTOCHAR((v2[1]));                                            \
-		(v1)[2]= FTOCHAR((v2[2]));                                            \
-	} (void)0
+		(v1)[0] = FTOCHAR((v2[0]));                                           \
+		(v1)[1] = FTOCHAR((v2[1]));                                           \
+		(v1)[2] = FTOCHAR((v2[2]));                                           \
+} (void)0
 #define F3TOCHAR4(v2, v1) {                                                   \
-		(v1)[0]= FTOCHAR((v2[0]));                                            \
-		(v1)[1]= FTOCHAR((v2[1]));                                            \
-		(v1)[2]= FTOCHAR((v2[2]));                                            \
-		(v1)[3]= 255;                                                         \
-	} (void)0
+		(v1)[0] = FTOCHAR((v2[0]));                                           \
+		(v1)[1] = FTOCHAR((v2[1]));                                           \
+		(v1)[2] = FTOCHAR((v2[2]));                                           \
+		(v1)[3] = 255;                                                        \
+} (void)0
 #define F4TOCHAR4(v2, v1) {                                                   \
-		(v1)[0]= FTOCHAR((v2[0]));                                            \
-		(v1)[1]= FTOCHAR((v2[1]));                                            \
-		(v1)[2]= FTOCHAR((v2[2]));                                            \
-		(v1)[3]= FTOCHAR((v2[3]));                                            \
-	} (void)0
+		(v1)[0] = FTOCHAR((v2[0]));                                           \
+		(v1)[1] = FTOCHAR((v2[1]));                                           \
+		(v1)[2] = FTOCHAR((v2[2]));                                           \
+		(v1)[3] = FTOCHAR((v2[3]));                                           \
+} (void)0
 #define VECCOPY(v1, v2) {                                                     \
-		*(v1)=   *(v2);                                                       \
-		*(v1+1)= *(v2+1);                                                     \
-		*(v1+2)= *(v2+2);                                                     \
-	} (void)0
+		*(v1) =   *(v2);                                                      \
+		*(v1 + 1) = *(v2 + 1);                                                \
+		*(v1 + 2) = *(v2 + 2);                                                \
+} (void)0
 #define VECCOPY2D(v1, v2) {                                                   \
-		*(v1)=   *(v2);                                                       \
-		*(v1+1)= *(v2+1);                                                     \
-	} (void)0
-#define VECADD(v1,v2,v3) {                                                    \
-		*(v1)=   *(v2)   + *(v3);                                             \
-		*(v1+1)= *(v2+1) + *(v3+1);                                           \
-		*(v1+2)= *(v2+2) + *(v3+2);                                           \
-	} (void)0
-#define VECSUB(v1,v2,v3) {                                                    \
-		*(v1)=   *(v2)   - *(v3);                                             \
-		*(v1+1)= *(v2+1) - *(v3+1);                                           \
-		*(v1+2)= *(v2+2) - *(v3+2);                                           \
-	} (void)0
-#define VECSUB2D(v1,v2,v3)     {                                              \
-		*(v1)=   *(v2)   - *(v3);                                             \
-		*(v1+1)= *(v2+1) - *(v3+1);                                           \
-	} (void)0
-#define VECADDFAC(v1,v2,v3,fac) {                                             \
-		*(v1)=   *(v2)   + *(v3)*(fac);                                       \
-		*(v1+1)= *(v2+1) + *(v3+1)*(fac);                                     \
-		*(v1+2)= *(v2+2) + *(v3+2)*(fac);                                     \
-	} (void)0
-#define VECSUBFAC(v1,v2,v3,fac) {                                             \
-		*(v1)=   *(v2)   - *(v3)*(fac);                                       \
-		*(v1+1)= *(v2+1) - *(v3+1)*(fac);                                     \
-		*(v1+2)= *(v2+2) - *(v3+2)*(fac);                                     \
-	} (void)0
+		*(v1) =   *(v2);                                                      \
+		*(v1 + 1) = *(v2 + 1);                                                \
+} (void)0
+#define VECADD(v1, v2, v3) {                                                   \
+		*(v1) =   *(v2)   + *(v3);                                             \
+		*(v1 + 1) = *(v2 + 1) + *(v3 + 1);                                     \
+		*(v1 + 2) = *(v2 + 2) + *(v3 + 2);                                     \
+} (void)0
+#define VECSUB(v1, v2, v3) {                                                   \
+		*(v1) =   *(v2)   - *(v3);                                             \
+		*(v1 + 1) = *(v2 + 1) - *(v3 + 1);                                     \
+		*(v1 + 2) = *(v2 + 2) - *(v3 + 2);                                     \
+} (void)0
+#define VECSUB2D(v1, v2, v3)     {                                             \
+		*(v1) =   *(v2)   - *(v3);                                             \
+		*(v1 + 1) = *(v2 + 1) - *(v3 + 1);                                     \
+} (void)0
+#define VECADDFAC(v1, v2, v3, fac) {                                           \
+		*(v1) =   *(v2)   + *(v3) * (fac);                                     \
+		*(v1 + 1) = *(v2 + 1) + *(v3 + 1) * (fac);                             \
+		*(v1 + 2) = *(v2 + 2) + *(v3 + 2) * (fac);                             \
+} (void)0
+#define VECSUBFAC(v1, v2, v3, fac) {                                           \
+		*(v1) =   *(v2)   - *(v3) * (fac);                                     \
+		*(v1 + 1) = *(v2 + 1) - *(v3 + 1) * (fac);                             \
+		*(v1 + 2) = *(v2 + 2) - *(v3 + 2) * (fac);                             \
+} (void)0
 
-#define INPR(v1, v2) ( (v1)[0]*(v2)[0] + (v1)[1]*(v2)[1] + (v1)[2]*(v2)[2] )
+#define INPR(v1, v2) ( (v1)[0] * (v2)[0] + (v1)[1] * (v2)[1] + (v1)[2] * (v2)[2])
 
 /* some misc stuff.... */
-#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
-#define CLAMPIS(a, b, c) ((a)<(b) ? (b) : (a)>(c) ? (c) : (a))
+#define CLAMP(a, b, c)  if ((a) < (b)) (a) = (b); else if ((a) > (c)) (a) = (c)
+
+#define CLAMPIS(a, b, c) ((a) < (b) ? (b) : (a) > (c) ? (c) : (a))
 #define CLAMPTEST(a, b, c)                                                    \
 	if ((b) < (c)) {                                                          \
 		CLAMP(a, b, c);                                                       \
@@ -186,16 +187,16 @@
 		CLAMP(a, c, b);                                                       \
 	} (void)
 
-#define IS_EQ(a,b) ((fabs((double)(a)-(b)) >= (double) FLT_EPSILON) ? 0 : 1)
-#define IS_EQF(a,b) ((fabsf((float)(a)-(b)) >= (float) FLT_EPSILON) ? 0 : 1)
+#define IS_EQ(a, b) ((fabs((double)(a) - (b)) >= (double) FLT_EPSILON) ? 0 : 1)
+#define IS_EQF(a, b) ((fabsf((float)(a) - (b)) >= (float) FLT_EPSILON) ? 0 : 1)
 
-#define IS_EQT(a, b, c) ((a > b)? (((a-b) <= c)? 1:0) : ((((b-a) <= c)? 1:0)))
-#define IN_RANGE(a, b, c) ((b < c)? ((b<a && a<c)? 1:0) : ((c<a && a<b)? 1:0))
-#define IN_RANGE_INCL(a, b, c) ((b < c)? ((b<=a && a<=c)? 1:0) : ((c<=a && a<=b)? 1:0))
+#define IS_EQT(a, b, c) ((a > b) ? (((a - b) <= c) ? 1 : 0) : ((((b - a) <= c) ? 1 : 0)))
+#define IN_RANGE(a, b, c) ((b < c) ? ((b < a && a < c) ? 1 : 0) : ((c < a && a < b) ? 1 : 0))
+#define IN_RANGE_INCL(a, b, c) ((b < c) ? ((b <= a && a <= c) ? 1 : 0) : ((c <= a && a <= b) ? 1 : 0))
 
 /* array helpers */
 #define ARRAY_LAST_ITEM(arr_start, arr_dtype, elem_size, tot)                 \
-		(arr_dtype *)((char*)arr_start + (elem_size*(tot - 1)))
+	(arr_dtype *)((char *)arr_start + (elem_size * (tot - 1)))
 
 #define ARRAY_HAS_ITEM(item, arr_start, arr_dtype, elem_size, tot) (          \
 		(item >= arr_start) &&                                                \
@@ -205,24 +206,24 @@
 /* This one rotates the bytes in an int64, int (32) and short (16) */
 #define SWITCH_INT64(a) {                                                     \
 		char s_i, *p_i;                                                       \
-		p_i= (char *)&(a);                                                    \
-		s_i= p_i[0]; p_i[0]= p_i[7]; p_i[7]= s_i;                             \
-		s_i= p_i[1]; p_i[1]= p_i[6]; p_i[6]= s_i;                             \
-		s_i= p_i[2]; p_i[2]= p_i[5]; p_i[5]= s_i;                             \
-		s_i= p_i[3]; p_i[3]= p_i[4]; p_i[4]= s_i;                             \
+		p_i = (char *)&(a);                                                   \
+		s_i = p_i[0]; p_i[0] = p_i[7]; p_i[7] = s_i;                          \
+		s_i = p_i[1]; p_i[1] = p_i[6]; p_i[6] = s_i;                          \
+		s_i = p_i[2]; p_i[2] = p_i[5]; p_i[5] = s_i;                          \
+		s_i = p_i[3]; p_i[3] = p_i[4]; p_i[4] = s_i;                          \
 	} (void)0
 
 #define SWITCH_INT(a) {                                                       \
 		char s_i, *p_i;                                                       \
-		p_i= (char *)&(a);                                                    \
-		s_i= p_i[0]; p_i[0]= p_i[3]; p_i[3]= s_i;                             \
-		s_i= p_i[1]; p_i[1]= p_i[2]; p_i[2]= s_i;                             \
+		p_i = (char *)&(a);                                                   \
+		s_i = p_i[0]; p_i[0] = p_i[3]; p_i[3] = s_i;                          \
+		s_i = p_i[1]; p_i[1] = p_i[2]; p_i[2] = s_i;                          \
 	} (void)0
 
 #define SWITCH_SHORT(a) {                                                     \
 		char s_i, *p_i;                                                       \
-		p_i= (char *)&(a);                                                    \
-		s_i=p_i[0]; p_i[0]=p_i[1]; p_i[1]=s_i;                                \
+		p_i = (char *)&(a);                                                   \
+		s_i = p_i[0]; p_i[0] = p_i[1]; p_i[1] = s_i;                           \
 	} (void)0
 
 

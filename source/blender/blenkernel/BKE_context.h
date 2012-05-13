@@ -72,7 +72,7 @@ struct bContextDataResult;
 typedef struct bContextDataResult bContextDataResult;
 
 typedef int (*bContextDataCallback)(const bContext *C,
-	const char *member, bContextDataResult *result);
+                                    const char *member, bContextDataResult *result);
 
 typedef struct bContextStoreEntry {
 	struct bContextStoreEntry *next, *prev;
@@ -223,7 +223,7 @@ void CTX_data_list_add(bContextDataResult *result, void *data);
 		BLI_freelistN(&ctx_data_list);                                        \
 	}
 
-int ctx_data_list_count(const bContext *C, int (*func)(const bContext*, ListBase*));
+int ctx_data_list_count(const bContext *C, int (*func)(const bContext *, ListBase *));
 
 #define CTX_DATA_COUNT(C, member) \
 	ctx_data_list_count(C, CTX_data_##member)

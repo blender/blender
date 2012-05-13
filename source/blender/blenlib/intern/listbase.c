@@ -47,23 +47,23 @@
 /* Ripped this from blender.c */
 void BLI_movelisttolist(ListBase *dst, ListBase *src)
 {
-	if (src->first==NULL) return;
+	if (src->first == NULL) return;
 
-	if (dst->first==NULL) {
-		dst->first= src->first;
-		dst->last= src->last;
+	if (dst->first == NULL) {
+		dst->first = src->first;
+		dst->last = src->last;
 	}
 	else {
-		((Link *)dst->last)->next= src->first;
-		((Link *)src->first)->prev= dst->last;
-		dst->last= src->last;
+		((Link *)dst->last)->next = src->first;
+		((Link *)src->first)->prev = dst->last;
+		dst->last = src->last;
 	}
-	src->first= src->last= NULL;
+	src->first = src->last = NULL;
 }
 
 void BLI_addhead(ListBase *listbase, void *vlink)
 {
-	Link *link= vlink;
+	Link *link = vlink;
 
 	if (link == NULL) return;
 	if (listbase == NULL) return;
@@ -79,7 +79,7 @@ void BLI_addhead(ListBase *listbase, void *vlink)
 
 void BLI_addtail(ListBase *listbase, void *vlink)
 {
-	Link *link= vlink;
+	Link *link = vlink;
 
 	if (link == NULL) return;
 	if (listbase == NULL) return;
@@ -95,7 +95,7 @@ void BLI_addtail(ListBase *listbase, void *vlink)
 
 void BLI_remlink(ListBase *listbase, void *vlink)
 {
-	Link *link= vlink;
+	Link *link = vlink;
 
 	if (link == NULL) return;
 	if (listbase == NULL) return;
@@ -121,7 +121,7 @@ int BLI_remlink_safe(ListBase *listbase, void *vlink)
 
 void BLI_freelinkN(ListBase *listbase, void *vlink)
 {
-	Link *link= vlink;
+	Link *link = vlink;
 
 	if (link == NULL) return;
 	if (listbase == NULL) return;
@@ -133,8 +133,8 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 
 void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 {
-	Link *prevlink= vprevlink;
-	Link *newlink= vnewlink;
+	Link *prevlink = vprevlink;
+	Link *newlink = vnewlink;
 
 	/* newlink comes after prevlink */
 	if (newlink == NULL) return;
@@ -143,28 +143,28 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 	/* empty list */
 	if (listbase->first == NULL) { 
 		
-		listbase->first= newlink;
-		listbase->last= newlink;
+		listbase->first = newlink;
+		listbase->last = newlink;
 		return;
 	}
 	
 	/* insert before first element */
 	if (prevlink == NULL) {	
-		newlink->next= listbase->first;
-		newlink->prev= NULL;
-		newlink->next->prev= newlink;
-		listbase->first= newlink;
+		newlink->next = listbase->first;
+		newlink->prev = NULL;
+		newlink->next->prev = newlink;
+		listbase->first = newlink;
 		return;
 	}
 
 	/* at end of list */
-	if (listbase->last== prevlink) 
+	if (listbase->last == prevlink)
 		listbase->last = newlink;
 
-	newlink->next= prevlink->next;
-	prevlink->next= newlink;
-	if (newlink->next) newlink->next->prev= newlink;
-	newlink->prev= prevlink;
+	newlink->next = prevlink->next;
+	prevlink->next = newlink;
+	if (newlink->next) newlink->next->prev = newlink;
+	newlink->prev = prevlink;
 }
 
 /* This uses insertion sort, so NOT ok for large list */
@@ -195,8 +195,8 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 
 void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 {
-	Link *prevlink= vprevlink;
-	Link *newlink= vnewlink;
+	Link *prevlink = vprevlink;
+	Link *newlink = vnewlink;
 
 	/* newlink before nextlink */
 	if (newlink == NULL) return;
@@ -204,8 +204,8 @@ void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 
 	/* empty list */
 	if (listbase->first == NULL) { 
-		listbase->first= newlink;
-		listbase->last= newlink;
+		listbase->first = newlink;
+		listbase->last = newlink;
 		return;
 	}
 	
@@ -230,8 +230,8 @@ void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
 
 void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 {
-	Link *nextlink= vnextlink;
-	Link *newlink= vnewlink;
+	Link *nextlink = vnextlink;
+	Link *newlink = vnewlink;
 
 	/* newlink before nextlink */
 	if (newlink == NULL) return;
@@ -239,28 +239,28 @@ void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 
 	/* empty list */
 	if (listbase->first == NULL) { 
-		listbase->first= newlink;
-		listbase->last= newlink;
+		listbase->first = newlink;
+		listbase->last = newlink;
 		return;
 	}
 	
 	/* insert at end of list */
 	if (nextlink == NULL) {	
-		newlink->prev= listbase->last;
-		newlink->next= NULL;
-		((Link *)listbase->last)->next= newlink;
-		listbase->last= newlink;
+		newlink->prev = listbase->last;
+		newlink->next = NULL;
+		((Link *)listbase->last)->next = newlink;
+		listbase->last = newlink;
 		return;
 	}
 
 	/* at beginning of list */
-	if (listbase->first== nextlink) 
+	if (listbase->first == nextlink)
 		listbase->first = newlink;
 
-	newlink->next= nextlink;
-	newlink->prev= nextlink->prev;
-	nextlink->prev= newlink;
-	if (newlink->prev) newlink->prev->next= newlink;
+	newlink->next = nextlink;
+	newlink->prev = nextlink->prev;
+	nextlink->prev = newlink;
+	if (newlink->prev) newlink->prev->next = newlink;
 }
 
 
@@ -271,15 +271,15 @@ void BLI_freelist(ListBase *listbase)
 	if (listbase == NULL) 
 		return;
 	
-	link= listbase->first;
+	link = listbase->first;
 	while (link) {
-		next= link->next;
+		next = link->next;
 		free(link);
-		link= next;
+		link = next;
 	}
 	
-	listbase->first= NULL;
-	listbase->last= NULL;
+	listbase->first = NULL;
+	listbase->last = NULL;
 }
 
 void BLI_freelistN(ListBase *listbase)
@@ -288,15 +288,15 @@ void BLI_freelistN(ListBase *listbase)
 
 	if (listbase == NULL) return;
 	
-	link= listbase->first;
+	link = listbase->first;
 	while (link) {
-		next= link->next;
+		next = link->next;
 		MEM_freeN(link);
-		link= next;
+		link = next;
 	}
 	
-	listbase->first= NULL;
-	listbase->last= NULL;
+	listbase->first = NULL;
+	listbase->last = NULL;
 }
 
 
@@ -309,7 +309,7 @@ int BLI_countlist(const ListBase *listbase)
 		link = listbase->first;
 		while (link) {
 			count++;
-			link= link->next;
+			link = link->next;
 		}
 	}
 	return count;
@@ -347,19 +347,19 @@ void *BLI_rfindlink(const ListBase *listbase, int number)
 
 int BLI_findindex(const ListBase *listbase, void *vlink)
 {
-	Link *link= NULL;
-	int number= 0;
+	Link *link = NULL;
+	int number = 0;
 	
 	if (listbase == NULL) return -1;
 	if (vlink == NULL) return -1;
 	
-	link= listbase->first;
+	link = listbase->first;
 	while (link) {
 		if (link == vlink)
 			return number;
 		
 		number++;
-		link= link->next;
+		link = link->next;
 	}
 	
 	return -1;
@@ -367,15 +367,15 @@ int BLI_findindex(const ListBase *listbase, void *vlink)
 
 void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 {
-	Link *link= NULL;
+	Link *link = NULL;
 	const char *id_iter;
 
 	if (listbase == NULL) return NULL;
 
-	for (link= listbase->first; link; link= link->next) {
-		id_iter= ((const char *)link) + offset;
+	for (link = listbase->first; link; link = link->next) {
+		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
 			return link;
 		}
 	}
@@ -385,15 +385,15 @@ void *BLI_findstring(const ListBase *listbase, const char *id, const int offset)
 /* same as above but find reverse */
 void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset)
 {
-	Link *link= NULL;
+	Link *link = NULL;
 	const char *id_iter;
 
 	if (listbase == NULL) return NULL;
 
-	for (link= listbase->last; link; link= link->prev) {
-		id_iter= ((const char *)link) + offset;
+	for (link = listbase->last; link; link = link->prev) {
+		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
 			return link;
 		}
 	}
@@ -403,16 +403,16 @@ void *BLI_rfindstring(const ListBase *listbase, const char *id, const int offset
 
 void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int offset)
 {
-	Link *link= NULL;
+	Link *link = NULL;
 	const char *id_iter;
 
 	if (listbase == NULL) return NULL;
 
-	for (link= listbase->first; link; link= link->next) {
+	for (link = listbase->first; link; link = link->next) {
 		/* exact copy of BLI_findstring(), except for this line */
-		id_iter= *((const char **)(((const char *)link) + offset));
+		id_iter = *((const char **)(((const char *)link) + offset));
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
 			return link;
 		}
 	}
@@ -422,16 +422,16 @@ void *BLI_findstring_ptr(const ListBase *listbase, const char *id, const int off
 /* same as above but find reverse */
 void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int offset)
 {
-	Link *link= NULL;
+	Link *link = NULL;
 	const char *id_iter;
 
 	if (listbase == NULL) return NULL;
 
-	for (link= listbase->last; link; link= link->prev) {
+	for (link = listbase->last; link; link = link->prev) {
 		/* exact copy of BLI_rfindstring(), except for this line */
-		id_iter= *((const char **)(((const char *)link) + offset));
+		id_iter = *((const char **)(((const char *)link) + offset));
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0) {
+		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0) {
 			return link;
 		}
 	}
@@ -441,20 +441,20 @@ void *BLI_rfindstring_ptr(const ListBase *listbase, const char *id, const int of
 
 int BLI_findstringindex(const ListBase *listbase, const char *id, const int offset)
 {
-	Link *link= NULL;
+	Link *link = NULL;
 	const char *id_iter;
-	int i= 0;
+	int i = 0;
 
 	if (listbase == NULL) return -1;
 
-	link= listbase->first;
+	link = listbase->first;
 	while (link) {
-		id_iter= ((const char *)link) + offset;
+		id_iter = ((const char *)link) + offset;
 
-		if (id[0] == id_iter[0] && strcmp(id, id_iter)==0)
+		if (id[0] == id_iter[0] && strcmp(id, id_iter) == 0)
 			return i;
 		i++;
-		link= link->next;
+		link = link->next;
 	}
 
 	return -1;
@@ -465,19 +465,19 @@ void BLI_duplicatelist(ListBase *dst, const ListBase *src)
 	struct Link *dst_link, *src_link;
 
 	/* in this order, to ensure it works if dst == src */
-	src_link= src->first;
-	dst->first= dst->last= NULL;
+	src_link = src->first;
+	dst->first = dst->last = NULL;
 
 	while (src_link) {
-		dst_link= MEM_dupallocN(src_link);
+		dst_link = MEM_dupallocN(src_link);
 		BLI_addtail(dst, dst_link);
 
-		src_link= src_link->next;
+		src_link = src_link->next;
 	}
 }
 
 /* create a generic list node containing link to provided data */
-LinkData *BLI_genericNodeN (void *data)
+LinkData *BLI_genericNodeN(void *data)
 {
 	LinkData *ld;
 	
@@ -485,8 +485,8 @@ LinkData *BLI_genericNodeN (void *data)
 		return NULL;
 		
 	/* create new link, and make it hold the given data */
-	ld= MEM_callocN(sizeof(LinkData), "BLI_genericNodeN()");
-	ld->data= data;
+	ld = MEM_callocN(sizeof(LinkData), "BLI_genericNodeN()");
+	ld->data = data;
 	
 	return ld;
 } 

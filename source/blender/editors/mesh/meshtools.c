@@ -806,7 +806,7 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 			BMVert *eve;
 			
 			BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-				DO_MINMAX(eve->co, min, max);
+				minmax_v3v3_v3(min, max, eve->co);
 			}
 		}
 		else {		
@@ -814,19 +814,17 @@ intptr_t mesh_octree_table(Object *ob, BMEditMesh *em, const float co[3], char m
 			int a;
 			
 			for (a = 0, mvert = me->mvert; a < me->totvert; a++, mvert++)
-				DO_MINMAX(mvert->co, min, max);
+				minmax_v3v3_v3(min, max, mvert->co);
 		}
 		
 		/* for quick unit coordinate calculus */
 		copy_v3_v3(MeshOctree.offs, min);
-		MeshOctree.offs[0] -= MOC_THRESH;        /* we offset it 1 threshold unit extra */
-		MeshOctree.offs[1] -= MOC_THRESH;
-		MeshOctree.offs[2] -= MOC_THRESH;
+		/* we offset it 1 threshold unit extra */
+		add_v3_fl(MeshOctree.offs, -MOC_THRESH);
 		
 		sub_v3_v3v3(MeshOctree.div, max, min);
-		MeshOctree.div[0] += 2 * MOC_THRESH;   /* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
-		MeshOctree.div[1] += 2 * MOC_THRESH;
-		MeshOctree.div[2] += 2 * MOC_THRESH;
+		/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
+		add_v3_fl(MeshOctree.div, 2.0f * MOC_THRESH);
 
 		mul_v3_fl(MeshOctree.div, 1.0f / MOC_RES);
 		if (MeshOctree.div[0] == 0.0f) MeshOctree.div[0] = 1.0f;

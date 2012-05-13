@@ -18,6 +18,75 @@
 
 CCL_NAMESPACE_BEGIN
 
+#ifdef __KERNEL_OPENCL__
+
+/* For OpenCL all images are packed in a single array, and we do manual lookup
+ * and interpolation. */
+
+__device_inline float4 svm_image_texture_read(KernelGlobals *kg, int offset)
+{
+	uchar4 r = kernel_tex_fetch(__tex_image_packed, offset);
+	float f = 1.0f/255.0f;
+	return make_float4(r.x*f, r.y*f, r.z*f, r.w*f);
+}
+
+__device_inline int svm_image_texture_wrap_periodic(int x, int width)
+{
+	x %= width;
+	if(x < 0)
+		x += width;
+	return x;
+}
+
+__device_inline int svm_image_texture_wrap_clamp(int x, int width)
+{
+	return clamp(x, 0, width-1);
+}
+
+__device_inline float svm_image_texture_frac(float x, int *ix)
+{
+	int i = (int)x - ((x < 0.0f)? 1: 0);
+	*ix = i;
+	return x - (float)i;
+}
+
+__device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
+{
+	uint4 info = kernel_tex_fetch(__tex_image_packed_info, id);
+	uint width = info.x;
+	uint height = info.y;
+	uint offset = info.z;
+	uint periodic = info.w;
+
+	int ix, iy, nix, niy;
+	float tx = svm_image_texture_frac(x*width, &ix);
+	float ty = svm_image_texture_frac(y*height, &iy);
+
+	if(periodic) {
+		ix = svm_image_texture_wrap_periodic(ix, width);
+		iy = svm_image_texture_wrap_periodic(iy, height);
+
+		nix = svm_image_texture_wrap_periodic(ix+1, width);
+		niy = svm_image_texture_wrap_periodic(iy+1, height);
+	}
+	else {
+		ix = svm_image_texture_wrap_clamp(ix, width);
+		iy = svm_image_texture_wrap_clamp(iy, height);
+
+		nix = svm_image_texture_wrap_clamp(ix+1, width);
+		niy = svm_image_texture_wrap_clamp(iy+1, height);
+	}
+
+	float4 r = (1.0f - ty)*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + iy*width);
+	r += (1.0f - ty)*tx*svm_image_texture_read(kg, offset + nix + iy*width);
+	r += ty*(1.0f - tx)*svm_image_texture_read(kg, offset + ix + niy*width);
+	r += ty*tx*svm_image_texture_read(kg, offset + nix + niy*width);
+
+	return r;
+}
+
+#else
+
 __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 {
 	float4 r;
@@ -31,9 +100,6 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	   also note that cuda has 128 textures limit, we use 100 now, since
 	   we still need some for other storage */
 
-#ifdef __KERNEL_OPENCL__
-	r = make_float4(0.0f, 0.0f, 0.0f, 0.0f); /* todo */
-#else
 	switch(id) {
 		case 0: r = kernel_tex_image_interp(__tex_image_000, x, y); break;
 		case 1: r = kernel_tex_image_interp(__tex_image_001, x, y); break;
@@ -139,10 +205,11 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 			kernel_assert(0);
 			return make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 	}
-#endif
 
 	return r;
 }
+
+#endif
 
 __device void svm_node_tex_image(KernelGlobals *kg, ShaderData *sd, float *stack, uint4 node)
 {

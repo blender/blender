@@ -146,6 +146,7 @@ typedef texture<float> texture_float;
 typedef texture<uint> texture_uint;
 typedef texture<int> texture_int;
 typedef texture<uint4> texture_uint4;
+typedef texture<uchar4> texture_uchar4;
 typedef texture_image<float4> texture_image_float4;
 typedef texture_image<uchar4> texture_image_uchar4;
 

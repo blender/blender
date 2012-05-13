@@ -41,22 +41,22 @@
 #include "BLI_rand.h"
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
-typedef unsigned __int64	r_uint64;
+typedef unsigned __int64 r_uint64;
 
-#define MULTIPLIER	0x5DEECE66Di64 
-#define MASK		0x0000FFFFFFFFFFFFi64
+#define MULTIPLIER  0x5DEECE66Di64
+#define MASK        0x0000FFFFFFFFFFFFi64
 #else
-typedef unsigned long long	r_uint64;
+typedef unsigned long long r_uint64;
 
-#define MULTIPLIER	0x5DEECE66Dll
-#define MASK		0x0000FFFFFFFFFFFFll
+#define MULTIPLIER  0x5DEECE66Dll
+#define MASK        0x0000FFFFFFFFFFFFll
 #endif
 
-#define ADDEND		0xB
+#define ADDEND      0xB
 
-#define LOWSEED		0x330E
+#define LOWSEED     0x330E
 
-extern unsigned char hash[];	// noise.c
+extern unsigned char hash[];    // noise.c
 
 /***/
 
@@ -64,7 +64,7 @@ struct RNG {
 	r_uint64 X;
 };
 
-RNG	*rng_new(unsigned int seed)
+RNG *rng_new(unsigned int seed)
 {
 	RNG *rng = MEM_mallocN(sizeof(*rng), "rng");
 
@@ -73,39 +73,39 @@ RNG	*rng_new(unsigned int seed)
 	return rng;
 }
 
-void rng_free(RNG* rng)
+void rng_free(RNG *rng)
 {
 	MEM_freeN(rng);
 }
 
 void rng_seed(RNG *rng, unsigned int seed)
 {
-	rng->X= (((r_uint64) seed)<<16) | LOWSEED;
+	rng->X = (((r_uint64) seed) << 16) | LOWSEED;
 }
 
 void rng_srandom(RNG *rng, unsigned int seed)
 {
 	rng_seed(rng, seed + hash[seed & 255]);
-	seed= rng_getInt(rng);
+	seed = rng_getInt(rng);
 	rng_seed(rng, seed + hash[seed & 255]);
-	seed= rng_getInt(rng);
+	seed = rng_getInt(rng);
 	rng_seed(rng, seed + hash[seed & 255]);
 }
 
 int rng_getInt(RNG *rng)
 {
-	rng->X= (MULTIPLIER*rng->X + ADDEND)&MASK;
-	return (int) (rng->X>>17);
+	rng->X = (MULTIPLIER * rng->X + ADDEND) & MASK;
+	return (int) (rng->X >> 17);
 }
 
 double rng_getDouble(RNG *rng)
 {
-	return (double) rng_getInt(rng)/0x80000000;
+	return (double) rng_getInt(rng) / 0x80000000;
 }
 
 float rng_getFloat(RNG *rng)
 {
-	return (float) rng_getInt(rng)/0x80000000;
+	return (float) rng_getInt(rng) / 0x80000000;
 }
 
 void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
@@ -122,10 +122,10 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 	/* XXX Shouldn't it rather be "while (i--) {" ?
 	 *     Else we have no guaranty first (0) element has a chance to be shuffled... --mont29 */
 	while (--i) {
-		int j = rng_getInt(rng)%numElems;
-		if (i!=j) {
-			void *iElem = (unsigned char*)data + i*elemSize;
-			void *jElem = (unsigned char*)data + j*elemSize;
+		int j = rng_getInt(rng) % numElems;
+		if (i != j) {
+			void *iElem = (unsigned char *)data + i * elemSize;
+			void *jElem = (unsigned char *)data + j * elemSize;
 			memcpy(temp, iElem, elemSize);
 			memcpy(iElem, jElem, elemSize);
 			memcpy(jElem, temp, elemSize);
@@ -139,7 +139,7 @@ void rng_skip(RNG *rng, int n)
 {
 	int i;
 
-	for (i=0; i<n; i++)
+	for (i = 0; i < n; i++)
 		rng_getInt(rng);
 }
 
@@ -177,10 +177,10 @@ float BLI_frand(void)
 void BLI_fillrand(void *addr, int len)
 {
 	RNG rng;
-	unsigned char *p= addr;
+	unsigned char *p = addr;
 
-	rng_seed(&rng, (unsigned int) (PIL_check_seconds_timer()*0x7FFFFFFF));
-	while (len--) *p++= rng_getInt(&rng)&0xFF;
+	rng_seed(&rng, (unsigned int) (PIL_check_seconds_timer() * 0x7FFFFFFF));
+	while (len--) *p++ = rng_getInt(&rng) & 0xFF;
 }
 
 void BLI_array_randomize(void *data, int elemSize, int numElems, unsigned int seed)
@@ -198,12 +198,12 @@ static RNG rng_tab[BLENDER_MAX_THREADS];
 void BLI_thread_srandom(int thread, unsigned int seed)
 {
 	if (thread >= BLENDER_MAX_THREADS)
-		thread= 0;
+		thread = 0;
 	
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
-	seed= rng_getInt(&rng_tab[thread]);
+	seed = rng_getInt(&rng_tab[thread]);
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
-	seed= rng_getInt(&rng_tab[thread]);
+	seed = rng_getInt(&rng_tab[thread]);
 	rng_seed(&rng_tab[thread], seed + hash[seed & 255]);
 }
 

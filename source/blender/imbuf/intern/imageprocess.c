@@ -50,10 +50,6 @@
 #include "IMB_imbuf.h"
 #include <math.h>
 
-/* This define should be relocated to a global header some where  Kent Mein 
- * I stole it from util.h in the plugins api */
-#define MAX2(x, y)                ( (x)>(y) ? (x) : (y) )
-
 /* Only this one is used liberally here, and in imbuf */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 {
