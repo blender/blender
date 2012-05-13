@@ -653,7 +653,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *obedit = CTX_data_edit_object(C);
 	Object *tob;
-	float cursor[3], cent[3], cent_neg[3], centn[3], min[3], max[3];
+	float cursor[3], cent[3], cent_neg[3], centn[3];
 	int centermode = RNA_enum_get(op->ptr, "type");
 	int around = RNA_enum_get(op->ptr, "center"); /* initialized from v3d->around */
 
@@ -675,14 +675,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 	zero_v3(cent);
 
 	if (obedit) {
-		INIT_MINMAX(min, max);
-
 		if (obedit->type == OB_MESH) {
 			Mesh *me = obedit->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMIter iter;
-			int total = 0;
 			
 			if (centermode == ORIGIN_TO_CURSOR) {
 				copy_v3_v3(cent, cursor);
@@ -690,16 +687,19 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 				mul_m4_v3(obedit->imat, cent);
 			}
 			else {
-				BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
-					if (around == V3D_CENTROID) {
-						total++;
-						add_v3_v3(cent, eve->co);
-						mul_v3_fl(cent, 1.0f / (float)total);
+				if (around == V3D_CENTROID) {
+					const float total_div = 1.0f / (float)em->bm->totvert;
+					BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
+						madd_v3_v3fl(cent, eve->co, total_div);
 					}
-					else {
+				}
+				else {
+					float min[3], max[3];
+					INIT_MINMAX(min, max);
+					BM_ITER_MESH (eve, &iter, em->bm, BM_VERTS_OF_MESH) {
 						minmax_v3v3_v3(min, max, eve->co);
-						mid_v3_v3v3(cent, min, max);
 					}
+					mid_v3_v3v3(cent, min, max);
 				}
 			}
 			
@@ -746,8 +746,11 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						tot_lib_error++;
 					}
 					else {
-						if (centermode == ORIGIN_TO_CURSOR) { /* done */ }
+						if (centermode == ORIGIN_TO_CURSOR) {
+							/* done */
+						}
 						else {
+							float min[3], max[3];
 							/* only bounds support */
 							INIT_MINMAX(min, max);
 							BKE_object_minmax_dupli(scene, ob, min, max);
