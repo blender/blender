@@ -62,6 +62,7 @@ set(SRC
 	libmv/multiview/fundamental.cc
 	libmv/multiview/projection.cc
 	libmv/multiview/triangulation.cc
+	libmv/multiview/homography.cc
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
 	libmv/simple_pipeline/bundle.cc
@@ -84,6 +85,7 @@ set(SRC
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
+	libmv/tracking/track_region.cc
 
 	third_party/fast/fast_10.c
 	third_party/fast/fast_11.c

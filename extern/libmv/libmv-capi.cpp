@@ -45,6 +45,7 @@
 #include "libmv/tracking/trklt_region_tracker.h"
 #include "libmv/tracking/lmicklt_region_tracker.h"
 #include "libmv/tracking/pyramid_region_tracker.h"
+#include "libmv/tracking/track_region.h"
 
 #include "libmv/simple_pipeline/callbacks.h"
 #include "libmv/simple_pipeline/tracks.h"
@@ -97,7 +98,7 @@ void libmv_initLogging(const char *argv0)
 void libmv_startDebugLogging(void)
 {
 	google::SetCommandLineOption("logtostderr", "1");
-	google::SetCommandLineOption("v", "0");
+	google::SetCommandLineOption("v", "2");
 	google::SetCommandLineOption("stderrthreshold", "1");
 	google::SetCommandLineOption("minloglevel", "0");
 	V3D::optimizerVerbosenessLevel = 1;
@@ -327,6 +328,71 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 	libmv::RegionTracker *region_tracker= (libmv::RegionTracker *)libmv_tracker;
 
 	delete region_tracker;
+}
+
+/* ************ Planar tracker ************ */
+
+/* TrackRegion (new planar tracker) */
+int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
+                       const float *image1, const float *image2,
+                       int width, int height, 
+                       const double *x1, const double *y1,
+                       struct libmv_trackRegionResult *result,
+                       double *x2, double *y2) {
+  double xx1[4], yy1[4];
+  double xx2[4], yy2[4];
+
+  // Convert to doubles for the libmv api.
+  for (int i = 0; i < 4; ++i) {
+    xx1[i] = x1[i];
+    yy1[i] = y1[i];
+    xx2[i] = x2[i];
+    yy2[i] = y2[i];
+  }
+
+  libmv::TrackRegionOptions track_region_options;
+  switch (options->motion_model) {
+#define LIBMV_CONVERT(the_model) \
+    case libmv::TrackRegionOptions::the_model: \
+		track_region_options.mode = libmv::TrackRegionOptions::the_model; \
+		break;
+    LIBMV_CONVERT(TRANSLATION)
+    LIBMV_CONVERT(TRANSLATION_ROTATION)
+    LIBMV_CONVERT(TRANSLATION_SCALE)
+    LIBMV_CONVERT(TRANSLATION_ROTATION_SCALE)
+    LIBMV_CONVERT(AFFINE)
+    LIBMV_CONVERT(HOMOGRAPHY)
+#undef LIBMV_CONVERT
+  }
+  track_region_options.num_samples_x = options->num_samples_x;
+  track_region_options.num_samples_y = options->num_samples_y;
+  track_region_options.minimum_correlation = options->minimum_correlation;
+  track_region_options.max_iterations = options->num_iterations;
+  track_region_options.sigma = options->sigma;
+  
+  // Convert from raw float buffers to libmv's FloatImage.
+  libmv::FloatImage old_patch, new_patch;
+  floatBufToImage(image1, width, height, &old_patch);
+  floatBufToImage(image2, width, height, &new_patch);
+
+  libmv::TrackRegionResult track_region_result;
+  libmv::TrackRegion(old_patch, new_patch, xx1, yy1, track_region_options, xx2, yy2, &track_region_result);
+
+  // Convert to floats for the blender api.
+  for (int i = 0; i < 4; ++i) {
+    x2[i] = xx2[i];
+    y2[i] = yy2[i];
+  }
+
+  // TODO(keir): Update the termination string with failure details.
+  if (track_region_result.termination == libmv::TrackRegionResult::PARAMETER_TOLERANCE ||
+      track_region_result.termination == libmv::TrackRegionResult::FUNCTION_TOLERANCE  ||
+      track_region_result.termination == libmv::TrackRegionResult::GRADIENT_TOLERANCE  ||
+      track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE      ||
+      track_region_result.termination == libmv::TrackRegionResult::INSUFFICIENT_CORRELATION) {
+    return true;
+  }
+  return false;
 }
 
 /* ************ Tracks ************ */
