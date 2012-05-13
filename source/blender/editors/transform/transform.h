@@ -137,6 +137,10 @@ typedef struct TransDataExtension {
 	float  isize[3];	 /* Initial size                                                                   */
 	float  obmat[4][4];	 /* Object matrix */
 	float  l_smtx[3][3]; /* use instead of td->smtx, It is the same but without the 'bone->bone_mat', see TD_PBONE_LOCAL_MTX_C */
+	float  r_mtx[3][3];  /* The rotscale matrix of pose bone, to allow using snap-align in translation mode,
+	                      * when td->mtx is the loc pose bone matrix (and hence can't be used to apply rotation in some cases,
+	                      * namely when a bone is in "NoLocal" or "Hinge" mode)... */
+	float  r_smtx[3][3]; /* Invers of previous one. */
 	int    rotOrder;	/* rotation mode,  as defined in eRotationModes (DNA_action_types.h) */
 } TransDataExtension;
 

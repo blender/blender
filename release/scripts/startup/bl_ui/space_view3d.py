@@ -93,7 +93,7 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode == 'OBJECT' and snap_element != 'VOLUME':
+                    if obj.mode in {'OBJECT','POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
                     elif obj.mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
