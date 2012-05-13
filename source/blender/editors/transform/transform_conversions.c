@@ -5868,7 +5868,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	TransDataMasking *tdm = NULL;
 
 	/* count */
-	shape = mask->shapes.first;
+	shape = mask ? mask->shapes.first : NULL;
 	while (shape) {
 		MaskSpline *spline = shape->splines.first;
 
