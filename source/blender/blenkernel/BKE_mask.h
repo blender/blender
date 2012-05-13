@@ -53,20 +53,22 @@ struct MaskSpline *BKE_mask_spline_add(struct MaskShape *shape);
 int BKE_mask_spline_resolution(struct MaskSpline *spline);
 float *BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point);
 float *BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline, float aspx,
-                                                    float aspy, int *tot_feather_point);
+                                                     float aspy, int *tot_feather_point);
 float *BKE_mask_spline_feather_points(struct MaskSpline *spline, float aspx, float aspy, int *tot_feather_point);
 
 /* point */
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
 void BKE_mask_point_handle(struct MaskSplinePoint *point, float aspx, float aspy, float handle[2]);
-void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], int keep_direction, float aspx, float aspy, float orig_handle[2], float orig_vec[3][3]);
+void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], int keep_direction,
+                               float aspx, float aspy, float orig_handle[2], float orig_vec[3][3]);
 float *BKE_mask_point_segment_diff(struct MaskSpline *spline, struct MaskSplinePoint *point, int *tot_diff_point);
 float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                            float aspx, float aspy, int *tot_feather_point);
 void BKE_mask_point_segment_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float u, float co[2]);
-void BKE_mask_point_normal(struct MaskSpline *spline, struct MaskSplinePoint *point, float aspx, float aspy, float u, float n[2]);
+void BKE_mask_point_normal(struct MaskSpline *spline, struct MaskSplinePoint *point,
+                           float aspx, float aspy, float u, float n[2]);
 float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, float u);
-struct MaskSplinePointUW * BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
+struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
 /* general */
@@ -81,15 +83,15 @@ void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene);
 void BKE_mask_parent_init(struct MaskParent *parent);
 
-#define MASKPOINT_ISSEL(p)	( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT )
-#define MASKPOINT_SEL(p)	{ (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; }
-#define MASKPOINT_DESEL(p)	{ (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; }
-#define MASKPOINT_INVSEL(p)	{ (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; }
+#define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT )
+#define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
+#define MASKPOINT_DESEL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
+#define MASKPOINT_INVSEL(p) { (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; } (void)0
 
-#define MASKPOINT_CV_ISSEL(p)		( (p)->bezt.f2 & SELECT )
+#define MASKPOINT_CV_ISSEL(p)       ( (p)->bezt.f2 & SELECT )
 
-#define MASKPOINT_HANDLE_ONLY_ISSEL(p)	( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT ) && (((p)->bezt.f2 & SELECT) == 0) )
-#define MASKPOINT_HANDLE_ISSEL(p)	( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT ) )
-#define MASKPOINT_HANDLE_SEL(p)		{ (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; }
+#define MASKPOINT_HANDLE_ONLY_ISSEL(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
+#define MASKPOINT_HANDLE_ISSEL(p)   ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )
+#define MASKPOINT_HANDLE_SEL(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 
 #endif

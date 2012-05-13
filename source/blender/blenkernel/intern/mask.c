@@ -217,7 +217,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 
 	/* len+1 because of 'forward_diff_bezier' function */
 	*tot_diff_point = len;
-	diff_points = fp = MEM_callocN((len + 1)*2*sizeof(float), "mask spline vets");
+	diff_points = fp = MEM_callocN((len + 1) * 2 * sizeof(float), "mask spline vets");
 
 	a = spline->tot_point - 1;
 	if (spline->flag & MASK_SPLINE_CYCLIC)
@@ -231,7 +231,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 		BezTriple *bezt;
 		int j;
 
-		if (a==0 && (spline->flag & MASK_SPLINE_CYCLIC))
+		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC))
 			point = spline->points;
 
 		prevbezt = &prev->bezt;
@@ -245,7 +245,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 
 		fp += 2 * resol;
 
-		if (a==0 && (spline->flag & MASK_SPLINE_CYCLIC)==0) {
+		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC) == 0) {
 			copy_v2_v2(fp, bezt->vec[1]);
 		}
 
@@ -257,7 +257,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 }
 
 float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, float aspx, float aspy,
-                                                    int *tot_feather_point)
+                                                     int *tot_feather_point)
 {
 	float *feather, *fp;
 	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
@@ -352,8 +352,8 @@ void BKE_mask_point_handle(MaskSplinePoint *point, float aspx, float aspy, float
 	vec[0] *= aspx;
 	vec[1] *= aspy;
 
-	handle[0] = (point->bezt.vec[1][0]*aspx + vec[1]) / aspx;
-	handle[1] = (point->bezt.vec[1][1]*aspy - vec[0]) / aspy;
+	handle[0] = (point->bezt.vec[1][0] * aspx + vec[1]) / aspx;
+	handle[1] = (point->bezt.vec[1][1] * aspy - vec[0]) / aspy;
 }
 
 void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_direction, float aspx, float aspy,
@@ -393,7 +393,8 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 			copy_v3_v3(bezt->vec[0], bezt->vec[1]);
 			copy_v3_v3(bezt->vec[2], bezt->vec[1]);
 		}
-	} else {
+	}
+	else {
 		sub_v2_v2v2(v1, loc, bezt->vec[1]);
 
 		v2[0] = -v1[1] * aspy / aspx;
@@ -450,7 +451,7 @@ float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point, i
 
 	/* resol+1 because of 'forward_diff_bezier' function */
 	*tot_diff_point = resol + 1;
-	diff_points = fp = MEM_callocN((resol + 1)*2*sizeof(float), "mask segment vets");
+	diff_points = fp = MEM_callocN((resol + 1) * 2 * sizeof(float), "mask segment vets");
 
 	for (j = 0; j < 2; j++) {
 		BKE_curve_forward_diff_bezier(bezt->vec[1][j], bezt->vec[2][j],
@@ -712,18 +713,18 @@ void BKE_mask_unlink(Main *bmain, Mask *mask)
 
 	for (scr = bmain->screen.first; scr; scr = scr->id.next) {
 		for (area = scr->areabase.first; area; area = area->next) {
-			for(sl = area->spacedata.first; sl; sl = sl->next) {
-				if(sl->spacetype == SPACE_CLIP) {
+			for (sl = area->spacedata.first; sl; sl = sl->next) {
+				if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sc = (SpaceClip *) sl;
 
-					if(sc->mask == mask)
+					if (sc->mask == mask)
 						sc->mask = NULL;
 				}
 			}
 		}
 	}
 
-	mask->id.us= 0;
+	mask->id.us = 0;
 }
 
 static void evaluate_mask_parent(MaskParent *parent, float ctime, float co[2])

@@ -43,13 +43,13 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_mask_in[] = {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	-1, 0, ""	}
+	{   SOCK_RGBA, 1, "Image",          0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{   -1, 0, ""   }
 };
 
 static bNodeSocketTemplate cmp_node_mask_out[] = {
-	{	SOCK_RGBA, 0, "Image"},
-	{	-1, 0, ""	}
+	{   SOCK_RGBA, 0, "Image"},
+	{   -1, 0, ""   }
 };
 
 static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
