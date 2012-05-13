@@ -2323,7 +2323,7 @@ void box_minmax_bounds_m4(float min[3], float max[3], float boundbox[2][3], floa
 		vec[2] = (a & 4) ? boundbox[0][2] : boundbox[1][2];
 
 		mul_m4_v3(mat, vec);
-		DO_MINMAX(vec, mn, mx);
+		minmax_v3v3_v3(mn, mx, vec);
 	}
 
 	copy_v3_v3(min, mn);

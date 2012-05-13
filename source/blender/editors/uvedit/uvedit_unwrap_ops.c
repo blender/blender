@@ -870,13 +870,12 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 
 	switch (around) {
 		case V3D_CENTER: /* bounding box center */
-			min[0] = min[1] = min[2] = 1e20f;
-			max[0] = max[1] = max[2] = -1e20f;
+			INIT_MINMAX(min, max);
 			
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						DO_MINMAX(l->v->co, min, max);
+						minmax_v3v3_v3(min, max, l->v->co);
 					}
 				}
 			}
@@ -886,9 +885,7 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 		case V3D_CURSOR: /*cursor center*/ 
 			cursx = give_cursor(scene, v3d);
 			/* shift to objects world */
-			result[0] = cursx[0] - ob->obmat[3][0];
-			result[1] = cursx[1] - ob->obmat[3][1];
-			result[2] = cursx[2] - ob->obmat[3][2];
+			sub_v3_v3v3(result, cursx, ob->obmat[3]);
 			break;
 
 		case V3D_LOCAL: /*object center*/

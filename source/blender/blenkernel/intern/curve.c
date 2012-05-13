@@ -393,7 +393,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 		if (tot) doit = 1;
 		fp = dl->verts;
 		while (tot--) {
-			DO_MINMAX(fp, min, max);
+			minmax_v3v3_v3(min, max, fp);
 			fp += 3;
 		}
 		dl = dl->next;
@@ -598,9 +598,9 @@ void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
 		a = nu->pntsu;
 		bezt = nu->bezt;
 		while (a--) {
-			DO_MINMAX(bezt->vec[0], min, max);
-			DO_MINMAX(bezt->vec[1], min, max);
-			DO_MINMAX(bezt->vec[2], min, max);
+			minmax_v3v3_v3(min, max, bezt->vec[0]);
+			minmax_v3v3_v3(min, max, bezt->vec[1]);
+			minmax_v3v3_v3(min, max, bezt->vec[2]);
 			bezt++;
 		}
 	}
@@ -608,7 +608,7 @@ void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
 		a = nu->pntsu * nu->pntsv;
 		bp = nu->bp;
 		while (a--) {
-			DO_MINMAX(bp->vec, min, max);
+			minmax_v3v3_v3(min, max, bp->vec);
 			bp++;
 		}
 	}

@@ -114,7 +114,7 @@ static void calc_tw_center(Scene *scene, float *co)
 	float *min= scene->twmin;
 	float *max= scene->twmax;
 
-	DO_MINMAX(co, min, max);
+	minmax_v3v3_v3(min, max, co);
 	add_v3_v3(twcent, co);
 }
 

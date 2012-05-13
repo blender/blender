@@ -3017,7 +3017,7 @@ int BKE_mesh_minmax(Mesh *me, float r_min[3], float r_max[3])
 	int i = me->totvert;
 	MVert *mvert;
 	for (mvert = me->mvert; i--; mvert++) {
-		DO_MINMAX(mvert->co, r_min, r_max);
+		minmax_v3v3_v3(r_min, r_max, mvert->co);
 	}
 	
 	return (me->totvert != 0);

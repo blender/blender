@@ -697,7 +697,7 @@ static int object_origin_set_exec(bContext *C, wmOperator *op)
 						mul_v3_fl(cent, 1.0f / (float)total);
 					}
 					else {
-						DO_MINMAX(eve->co, min, max);
+						minmax_v3v3_v3(min, max, eve->co);
 						mid_v3_v3v3(cent, min, max);
 					}
 				}

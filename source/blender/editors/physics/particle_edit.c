@@ -3100,8 +3100,8 @@ static int particle_intersect_dm(Scene *scene, Object *ob, DerivedMesh *dm,
 
 	if (pa_minmax==0) {
 		INIT_MINMAX(p_min, p_max);
-		DO_MINMAX(co1, p_min, p_max);
-		DO_MINMAX(co2, p_min, p_max);
+		minmax_v3v3_v3(p_min, p_max, co1);
+		minmax_v3v3_v3(p_min, p_max, co2);
 	}
 	else {
 		copy_v3_v3(p_min, pa_minmax);

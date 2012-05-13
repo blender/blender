@@ -1063,18 +1063,19 @@ void free_strand_surface(Render *re)
 void strand_minmax(StrandRen *strand, float min[3], float max[3], const float width)
 {
 	StrandVert *svert;
-	float vec[3], width2= 2.0f*width;
+	const float width2 = width * 2.0f;
+	float vec[3];
 	int a;
 
 	for (a=0, svert=strand->vert; a<strand->totvert; a++, svert++) {
 		copy_v3_v3(vec, svert->co);
-		DO_MINMAX(vec, min, max);
+		minmax_v3v3_v3(min, max, vec);
 		
 		if (width!=0.0f) {
-			vec[0]+= width; vec[1]+= width; vec[2]+= width;
-			DO_MINMAX(vec, min, max);
-			vec[0]-= width2; vec[1]-= width2; vec[2]-= width2;
-			DO_MINMAX(vec, min, max);
+			add_v3_fl(vec, width);
+			minmax_v3v3_v3(min, max, vec);
+			add_v3_fl(vec, -width2);
+			minmax_v3v3_v3(min, max, vec);
 		}
 	}
 }

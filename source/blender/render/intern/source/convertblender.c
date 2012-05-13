@@ -4331,7 +4331,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				if ((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
 				else ver++;
 
-				DO_MINMAX(ver->co, min, max);
+				minmax_v3v3_v3(min, max, ver->co);
 			}
 
 			if (obr->strandbuf) {
@@ -4357,8 +4357,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 					copy_v3_v3(sbound->boundbox[0], smin);
 					copy_v3_v3(sbound->boundbox[1], smax);
 
-					DO_MINMAX(smin, min, max);
-					DO_MINMAX(smax, min, max);
+					minmax_v3v3_v3(min, max, smin);
+					minmax_v3v3_v3(min, max, smax);
 				}
 			}
 

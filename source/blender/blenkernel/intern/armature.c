@@ -2541,14 +2541,14 @@ int get_selected_defgroups(Object *ob, char *dg_selection, int defbase_tot)
 }
 
 /************** Bounding box ********************/
-static int minmax_armature(Object *ob, float min[3], float max[3])
+static int minmax_armature(Object *ob, float r_min[3], float r_max[3])
 {
 	bPoseChannel *pchan;
 
 	/* For now, we assume BKE_pose_where_is has already been called (hence we have valid data in pachan). */
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
-		DO_MINMAX(pchan->pose_head, min, max);
-		DO_MINMAX(pchan->pose_tail, min, max);
+		minmax_v3v3_v3(r_min, r_max, pchan->pose_head);
+		minmax_v3v3_v3(r_min, r_max, pchan->pose_tail);
 	}
 
 	return (ob->pose->chanbase.first != NULL);

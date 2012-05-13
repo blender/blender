@@ -1229,12 +1229,12 @@ static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 	if (bmdm->tc->bm->totvert) {
 		if (bmdm->vertexCos) {
 			BM_ITER_MESH_INDEX (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH, i) {
-				DO_MINMAX(bmdm->vertexCos[i], min_r, max_r);
+				minmax_v3v3_v3(min_r, max_r, bmdm->vertexCos[i]);
 			}
 		}
 		else {
 			BM_ITER_MESH (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH) {
-				DO_MINMAX(eve->co, min_r, max_r);
+				minmax_v3v3_v3(min_r, max_r, eve->co);
 			}
 		}
 	}

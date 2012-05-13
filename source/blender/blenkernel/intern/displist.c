@@ -1606,19 +1606,13 @@ static void boundbox_displist(Object *ob)
 		if (cu->bb == NULL) cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
 		bb = cu->bb;
 
-		dl = ob->disp.first;
-
-		while (dl) {
-			if (dl->type == DL_INDEX3) tot = dl->nr;
-			else tot = dl->nr * dl->parts;
-
+		for (dl = ob->disp.first; dl; dl = dl->next) {
+			tot = (dl->type == DL_INDEX3) ? dl->nr : dl->nr * dl->parts;
 			vert = dl->verts;
 			for (a = 0; a < tot; a++, vert += 3) {
-				doit = 1;
-				DO_MINMAX(vert, min, max);
+				minmax_v3v3_v3(min, max, vert);
 			}
-
-			dl = dl->next;
+			doit = (tot != 0);
 		}
 
 		if (!doit) {

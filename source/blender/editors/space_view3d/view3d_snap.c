@@ -501,7 +501,7 @@ static void make_trans_verts(Object *obedit, float min[3], float max[3], int mod
 		if (tv->flag & SELECT) {
 			add_v3_v3(centroid, tv->oldloc);
 			total += 1.0f;
-			DO_MINMAX(tv->oldloc, min, max);
+			minmax_v3v3_v3(min, max, tv->oldloc);
 		}
 	}
 	if (total != 0.0f) {
@@ -856,7 +856,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 			if ((track->flag & TRACK_HAS_BUNDLE) && TRACK_SELECTED(track)) {
 				ok = 1;
 				mul_v3_m4v3(pos, obmat, track->bundle_pos);
-				DO_MINMAX(pos, min, max);
+				minmax_v3v3_v3(min, max, pos);
 			}
 
 			track = track->next;
@@ -898,7 +898,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 			mul_m3_v3(bmat, vec);
 			add_v3_v3(vec, obedit->obmat[3]);
 			add_v3_v3(centroid, vec);
-			DO_MINMAX(vec, min, max);
+			minmax_v3v3_v3(min, max, vec);
 		}
 		
 		if (v3d->around == V3D_CENTROID) {
@@ -923,7 +923,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 						copy_v3_v3(vec, pchan->pose_head);
 						mul_m4_v3(obact->obmat, vec);
 						add_v3_v3(centroid, vec);
-						DO_MINMAX(vec, min, max);
+						minmax_v3v3_v3(min, max, vec);
 						count++;
 					}
 				}
@@ -943,7 +943,7 @@ static int snap_curs_to_sel(bContext *C, wmOperator *UNUSED(op))
 				}
 
 				add_v3_v3(centroid, vec);
-				DO_MINMAX(vec, min, max);
+				minmax_v3v3_v3(min, max, vec);
 				count++;
 			}
 			CTX_DATA_END;
@@ -1082,7 +1082,7 @@ int ED_view3d_minmax_verts(Object *obedit, float min[3], float max[3])
 		mul_m3_v3(bmat, vec);
 		add_v3_v3(vec, obedit->obmat[3]);
 		add_v3_v3(centroid, vec);
-		DO_MINMAX(vec, min, max);
+		minmax_v3v3_v3(min, max, vec);
 	}
 	
 	MEM_freeN(transvmain);
