@@ -86,8 +86,8 @@ typedef struct PolyFill {
 } PolyFill;
 
 typedef struct ScanFillVertLink {
-	ScanFillVert *v1;
-	ScanFillEdge *first, *last;
+	ScanFillVert *vert;
+	ScanFillEdge *edge_first, *edge_last;
 } ScanFillVertLink;
 
 
@@ -112,10 +112,10 @@ static int vergscdata(const void *a1, const void *a2)
 {
 	const ScanFillVertLink *x1 = a1, *x2 = a2;
 	
-	if      (x1->v1->xy[1] < x2->v1->xy[1]) return  1;
-	else if (x1->v1->xy[1] > x2->v1->xy[1]) return -1;
-	else if (x1->v1->xy[0] > x2->v1->xy[0]) return  1;
-	else if (x1->v1->xy[0] < x2->v1->xy[0]) return -1;
+	if      (x1->vert->xy[1] < x2->vert->xy[1]) return  1;
+	else if (x1->vert->xy[1] > x2->vert->xy[1]) return -1;
+	else if (x1->vert->xy[0] > x2->vert->xy[0]) return  1;
+	else if (x1->vert->xy[0] < x2->vert->xy[0]) return -1;
 
 	return 0;
 }
@@ -230,14 +230,14 @@ ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, ScanFillVert *v1, S
 static void addfillface(ScanFillContext *sf_ctx, ScanFillVert *v1, ScanFillVert *v2, ScanFillVert *v3)
 {
 	/* does not make edges */
-	ScanFillFace *evl;
+	ScanFillFace *sf_tri;
 
-	evl = mem_element_new(sf_ctx, sizeof(ScanFillFace));
-	BLI_addtail(&sf_ctx->fillfacebase, evl);
+	sf_tri = mem_element_new(sf_ctx, sizeof(ScanFillFace));
+	BLI_addtail(&sf_ctx->fillfacebase, sf_tri);
 	
-	evl->v1 = v1;
-	evl->v2 = v2;
-	evl->v3 = v3;
+	sf_tri->v1 = v1;
+	sf_tri->v2 = v2;
+	sf_tri->v3 = v3;
 }
 
 static int boundisect(PolyFill *pf2, PolyFill *pf1)
@@ -311,8 +311,8 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 	ScanFillEdge *ed;
 	float fac, fac1, x, y;
 
-	if (sc->first == NULL) {
-		sc->first = sc->last = eed;
+	if (sc->edge_first == NULL) {
+		sc->edge_first = sc->edge_last = eed;
 		eed->prev = eed->next = NULL;
 		return 1;
 	}
@@ -327,7 +327,7 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 	}
 	else fac1 = (x - eed->v2->xy[0]) / fac1;
 
-	for (ed = sc->first; ed; ed = ed->next) {
+	for (ed = sc->edge_first; ed; ed = ed->next) {
 
 		if (ed->v2 == eed->v2) {
 			return 0;
@@ -345,8 +345,8 @@ static short addedgetoscanvert(ScanFillVertLink *sc, ScanFillEdge *eed)
 			break;
 		}
 	}
-	if (ed) BLI_insertlinkbefore((ListBase *)&(sc->first), ed, eed);
-	else BLI_addtail((ListBase *)&(sc->first), eed);
+	if (ed) BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed, eed);
+	else BLI_addtail((ListBase *)&(sc->edge_first), eed);
 
 	return 1;
 }
@@ -373,7 +373,7 @@ static ScanFillVertLink *addedgetoscanlist(ScanFillContext *sf_ctx, ScanFillEdge
 		eed->v2 = eve;
 	}
 	/* find location in list */
-	scsearch.v1 = eed->v1;
+	scsearch.vert = eed->v1;
 	sc = (ScanFillVertLink *)bsearch(&scsearch, sf_ctx->_scdata, len,
 	                                 sizeof(ScanFillVertLink), vergscdata);
 
@@ -559,7 +559,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 			if (eve->f != SF_VERT_ZERO_LEN) {
 				verts++;
 				eve->f = 0;  /* flag for connectedges later on */
-				sc->v1 = eve;
+				sc->vert = eve;
 				sc++;
 			}
 		}
@@ -616,11 +616,11 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 	sc = sf_ctx->_scdata;
 	for (a = 0; a < verts; a++) {
 		/* printf("VERTEX %d %x\n",a,sc->v1); */
-		ed1 = sc->first;
+		ed1 = sc->edge_first;
 		while (ed1) {   /* set connectflags  */
 			nexted = ed1->next;
 			if (ed1->v1->h == 1 || ed1->v2->h == 1) {
-				BLI_remlink((ListBase *)&(sc->first), ed1);
+				BLI_remlink((ListBase *)&(sc->edge_first), ed1);
 				BLI_addtail(&sf_ctx->filledgebase, ed1);
 				if (ed1->v1->h > 1) ed1->v1->h--;
 				if (ed1->v2->h > 1) ed1->v2->h--;
@@ -629,8 +629,8 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 
 			ed1 = nexted;
 		}
-		while (sc->first) { /* for as long there are edges */
-			ed1 = sc->first;
+		while (sc->edge_first) { /* for as long there are edges */
+			ed1 = sc->edge_first;
 			ed2 = ed1->next;
 			
 			/* commented out... the ESC here delivers corrupted memory (and doesnt work during grab) */
@@ -641,7 +641,7 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				break;
 			}
 			if (ed2 == 0) {
-				sc->first = sc->last = NULL;
+				sc->edge_first = sc->edge_last = NULL;
 				/* printf("just 1 edge to vert\n"); */
 				BLI_addtail(&sf_ctx->filledgebase, ed1);
 				ed1->v2->f = 0;
@@ -663,12 +663,12 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				test = 0;
 
 				for (b = a + 1; b < verts; b++) {
-					if (sc1->v1->f == 0) {
-						if (sc1->v1->xy[1] <= miny) break;
+					if (sc1->vert->f == 0) {
+						if (sc1->vert->xy[1] <= miny) break;
 
-						if (testedgeside(v1->xy, v2->xy, sc1->v1->xy))
-							if (testedgeside(v2->xy, v3->xy, sc1->v1->xy))
-								if (testedgeside(v3->xy, v1->xy, sc1->v1->xy)) {
+						if (testedgeside(v1->xy, v2->xy, sc1->vert->xy))
+							if (testedgeside(v2->xy, v3->xy, sc1->vert->xy))
+								if (testedgeside(v3->xy, v1->xy, sc1->vert->xy)) {
 									/* point in triangle */
 								
 									test = 1;
@@ -679,11 +679,11 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				}
 				if (test) {
 					/* make new edge, and start over */
-					/* printf("add new edge %x %x and start again\n",v2,sc1->v1); */
+					/* printf("add new edge %x %x and start again\n",v2,sc1->vert); */
 
-					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, sc1->v1);
+					ed3 = BLI_scanfill_edge_add(sf_ctx, v2, sc1->vert);
 					BLI_remlink(&sf_ctx->filledgebase, ed3);
-					BLI_insertlinkbefore((ListBase *)&(sc->first), ed2, ed3);
+					BLI_insertlinkbefore((ListBase *)&(sc->edge_first), ed2, ed3);
 					ed3->v2->f = SF_VERT_UNKNOWN;
 					ed3->f = SF_EDGE_UNKNOWN;
 					ed3->v1->h++; 
@@ -694,14 +694,14 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 					/* printf("add face %x %x %x\n",v1,v2,v3); */
 					addfillface(sf_ctx, v1, v2, v3);
 					totface++;
-					BLI_remlink((ListBase *)&(sc->first), ed1);
+					BLI_remlink((ListBase *)&(sc->edge_first), ed1);
 					BLI_addtail(&sf_ctx->filledgebase, ed1);
 					ed1->v2->f = 0;
 					ed1->v1->h--; 
 					ed1->v2->h--;
 					/* ed2 can be removed when it's a boundary edge */
 					if ((ed2->f == 0 && twoconnected) || (ed2->f == SF_EDGE_BOUNDARY)) {
-						BLI_remlink((ListBase *)&(sc->first), ed2);
+						BLI_remlink((ListBase *)&(sc->edge_first), ed2);
 						BLI_addtail(&sf_ctx->filledgebase, ed2);
 						ed2->v2->f = 0;
 						ed2->v1->h--; 
@@ -723,11 +723,11 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 						ed3->v1->h--; 
 						ed3->v2->h--;
 
-						ed3 = sc1->first;
+						ed3 = sc1->edge_first;
 						while (ed3) {
 							if ( (ed3->v1 == v1 && ed3->v2 == v3) || (ed3->v1 == v3 && ed3->v2 == v1) ) {
 								if (twoconnected || ed3->f == SF_EDGE_BOUNDARY) {
-									BLI_remlink((ListBase *)&(sc1->first), ed3);
+									BLI_remlink((ListBase *)&(sc1->edge_first), ed3);
 									BLI_addtail(&sf_ctx->filledgebase, ed3);
 									ed3->v1->h--; 
 									ed3->v2->h--;
@@ -741,11 +741,11 @@ static int scanfill(ScanFillContext *sf_ctx, PolyFill *pf)
 				}
 			}
 			/* test for loose edges */
-			ed1 = sc->first;
+			ed1 = sc->edge_first;
 			while (ed1) {
 				nexted = ed1->next;
 				if (ed1->v1->h < 2 || ed1->v2->h < 2) {
-					BLI_remlink((ListBase *)&(sc->first), ed1);
+					BLI_remlink((ListBase *)&(sc->edge_first), ed1);
 					BLI_addtail(&sf_ctx->filledgebase, ed1);
 					if (ed1->v1->h > 1) ed1->v1->h--;
 					if (ed1->v2->h > 1) ed1->v2->h--;

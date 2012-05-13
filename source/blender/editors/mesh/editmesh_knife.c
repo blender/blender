@@ -1866,8 +1866,8 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 
 	for (i = 0; i < totface; i++) {
 		SmallHash *hash = &shash;
-		ScanFillFace *efa;
-		ScanFillVert *eve, *lasteve;
+		ScanFillFace *sf_tri;
+		ScanFillVert *sf_vert, *sf_vert_last;
 		int j;
 		float rndscale = FLT_EPSILON * 25;
 
@@ -1881,55 +1881,55 @@ static void knifenet_fill_faces(KnifeTool_OpData *kcd)
 
 		for (entry = face_nets[i].first; entry; entry = entry->next) {
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v1)) {
-				eve = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v1->v->co);
-				eve->poly_nr = 0;
-				rnd_offset_co(eve->co, rndscale);
-				eve->tmp.p = entry->kfe->v1->v;
-				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, eve);
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v1->v->co);
+				sf_vert->poly_nr = 0;
+				rnd_offset_co(sf_vert->co, rndscale);
+				sf_vert->tmp.p = entry->kfe->v1->v;
+				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v1, sf_vert);
 			}
 
 			if (!BLI_smallhash_haskey(hash, (intptr_t)entry->kfe->v2)) {
-				eve = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v2->v->co);
-				eve->poly_nr = 0;
-				rnd_offset_co(eve->co, rndscale);
-				eve->tmp.p = entry->kfe->v2->v;
-				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, eve);
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, entry->kfe->v2->v->co);
+				sf_vert->poly_nr = 0;
+				rnd_offset_co(sf_vert->co, rndscale);
+				sf_vert->tmp.p = entry->kfe->v2->v;
+				BLI_smallhash_insert(hash, (intptr_t)entry->kfe->v2, sf_vert);
 			}
 		}
 
 		for (j = 0, entry = face_nets[i].first; entry; entry = entry->next, j++) {
-			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
-			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
+			sf_vert_last = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
+			sf_vert = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 
-			eve->poly_nr++;
-			lasteve->poly_nr++;
+			sf_vert->poly_nr++;
+			sf_vert_last->poly_nr++;
 		}
 
 		for (j = 0, entry = face_nets[i].first; entry; entry = entry->next, j++) {
-			lasteve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
-			eve = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
+			sf_vert_last = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v1);
+			sf_vert = BLI_smallhash_lookup(hash, (intptr_t)entry->kfe->v2);
 
-			if (eve->poly_nr > 1 && lasteve->poly_nr > 1) {
-				ScanFillEdge *eed;
-				eed = BLI_scanfill_edge_add(&sf_ctx, lasteve, eve);
+			if (sf_vert->poly_nr > 1 && sf_vert_last->poly_nr > 1) {
+				ScanFillEdge *sf_edge;
+				sf_edge = BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 				if (entry->kfe->oe)
-					eed->f = SF_EDGE_BOUNDARY;  /* mark as original boundary edge */
+					sf_edge->f = SF_EDGE_BOUNDARY;  /* mark as original boundary edge */
 
 				BMO_elem_flag_disable(bm, entry->kfe->e->v1, DEL);
 				BMO_elem_flag_disable(bm, entry->kfe->e->v2, DEL);
 			}
 			else {
-				if (lasteve->poly_nr < 2)
-					BLI_remlink(&sf_ctx.fillvertbase, lasteve);
-				if (eve->poly_nr < 2)
-					BLI_remlink(&sf_ctx.fillvertbase, eve);
+				if (sf_vert_last->poly_nr < 2)
+					BLI_remlink(&sf_ctx.fillvertbase, sf_vert_last);
+				if (sf_vert->poly_nr < 2)
+					BLI_remlink(&sf_ctx.fillvertbase, sf_vert);
 			}
 		}
 
 		BLI_scanfill_calc(&sf_ctx, FALSE);
 
-		for (efa = sf_ctx.fillfacebase.first; efa; efa = efa->next) {
-			BMVert *v1 = efa->v3->tmp.p, *v2 = efa->v2->tmp.p, *v3 = efa->v1->tmp.p;
+		for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+			BMVert *v1 = sf_tri->v3->tmp.p, *v2 = sf_tri->v2->tmp.p, *v3 = sf_tri->v1->tmp.p;
 			BMFace *f2;
 			BMLoop *l_iter;
 			BMVert *verts[3] = {v1, v2, v3};

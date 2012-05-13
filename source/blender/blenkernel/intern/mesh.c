@@ -2391,8 +2391,8 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 	MFace *mface = NULL, *mf;
 	BLI_array_declare(mface);
 	ScanFillContext sf_ctx;
-	ScanFillVert *v, *lastv, *firstv;
-	ScanFillFace *f;
+	ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
+	ScanFillFace *sf_tri;
 	int *mface_orig_index = NULL;
 	BLI_array_declare(mface_orig_index);
 	int *mface_to_poly_map = NULL;
@@ -2485,21 +2485,21 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 			ml = mloop + mp->loopstart;
 			
 			BLI_scanfill_begin(&sf_ctx);
-			firstv = NULL;
-			lastv = NULL;
+			sf_vert_first = NULL;
+			sf_vert_last = NULL;
 			for (j = 0; j < mp->totloop; j++, ml++) {
-				v = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, mvert[ml->v].co);
 	
-				v->keyindex = mp->loopstart + j;
+				sf_vert->keyindex = mp->loopstart + j;
 	
-				if (lastv)
-					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
+				if (sf_vert_last)
+					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 	
-				if (!firstv)
-					firstv = v;
-				lastv = v;
+				if (!sf_vert_first)
+					sf_vert_first = sf_vert;
+				sf_vert_last = sf_vert;
 			}
-			BLI_scanfill_edge_add(&sf_ctx, lastv, firstv);
+			BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert_first);
 			
 			totfilltri = BLI_scanfill_calc(&sf_ctx, FALSE);
 			if (totfilltri) {
@@ -2509,14 +2509,14 @@ int BKE_mesh_recalc_tessellation(CustomData *fdata,
 					BLI_array_grow_items(mface_orig_index, totfilltri);
 				}
 
-				for (f = sf_ctx.fillfacebase.first; f; f = f->next, mf++) {
+				for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next, mf++) {
 					mface_to_poly_map[mface_index] = poly_index;
 					mf = &mface[mface_index];
 
 					/* set loop indices, transformed to vert indices later */
-					mf->v1 = f->v1->keyindex;
-					mf->v2 = f->v2->keyindex;
-					mf->v3 = f->v3->keyindex;
+					mf->v1 = sf_tri->v1->keyindex;
+					mf->v2 = sf_tri->v2->keyindex;
+					mf->v3 = sf_tri->v3->keyindex;
 					mf->v4 = 0;
 
 					mf->mat_nr = mp->mat_nr;

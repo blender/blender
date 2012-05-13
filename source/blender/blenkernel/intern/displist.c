@@ -425,8 +425,8 @@ static void curve_to_displist(Curve *cu, ListBase *nubase, ListBase *dispbase, i
 void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 {
 	ScanFillContext sf_ctx;
-	ScanFillVert *eve, *v1, *vlast;
-	ScanFillFace *efa;
+	ScanFillVert *sf_vert, *sf_vert_new, *sf_vert_last;
+	ScanFillFace *sf_tri;
 	DispList *dlnew = NULL, *dl;
 	float *f1;
 	int colnr = 0, charidx = 0, cont = 1, tot, a, *index, nextcol = 0;
@@ -454,24 +454,24 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 						/* make editverts and edges */
 						f1 = dl->verts;
 						a = dl->nr;
-						eve = v1 = NULL;
+						sf_vert = sf_vert_new = NULL;
 
 						while (a--) {
-							vlast = eve;
+							sf_vert_last = sf_vert;
 
-							eve = BLI_scanfill_vert_add(&sf_ctx, f1);
+							sf_vert = BLI_scanfill_vert_add(&sf_ctx, f1);
 							totvert++;
 
-							if (vlast == NULL)
-								v1 = eve;
+							if (sf_vert_last == NULL)
+								sf_vert_new = sf_vert;
 							else {
-								BLI_scanfill_edge_add(&sf_ctx, vlast, eve);
+								BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 							}
 							f1 += 3;
 						}
 
-						if (eve != NULL && v1 != NULL) {
-							BLI_scanfill_edge_add(&sf_ctx, eve, v1);
+						if (sf_vert != NULL && sf_vert_new != NULL) {
+							BLI_scanfill_edge_add(&sf_ctx, sf_vert, sf_vert_new);
 						}
 					}
 					else if (colnr < dl->col) {
@@ -499,31 +499,31 @@ void BKE_displist_fill(ListBase *dispbase, ListBase *to, int flipnormal)
 				/* vert data */
 				f1 = dlnew->verts;
 				totvert = 0;
-				eve = sf_ctx.fillvertbase.first;
-				while (eve) {
-					copy_v3_v3(f1, eve->co);
+				sf_vert = sf_ctx.fillvertbase.first;
+				while (sf_vert) {
+					copy_v3_v3(f1, sf_vert->co);
 					f1 += 3;
 
 					/* index number */
-					eve->tmp.l = totvert;
+					sf_vert->tmp.l = totvert;
 					totvert++;
 
-					eve = eve->next;
+					sf_vert = sf_vert->next;
 				}
 
 				/* index data */
-				efa = sf_ctx.fillfacebase.first;
+				sf_tri = sf_ctx.fillfacebase.first;
 				index = dlnew->index;
-				while (efa) {
-					index[0] = (intptr_t)efa->v1->tmp.l;
-					index[1] = (intptr_t)efa->v2->tmp.l;
-					index[2] = (intptr_t)efa->v3->tmp.l;
+				while (sf_tri) {
+					index[0] = (intptr_t)sf_tri->v1->tmp.l;
+					index[1] = (intptr_t)sf_tri->v2->tmp.l;
+					index[2] = (intptr_t)sf_tri->v3->tmp.l;
 
 					if (flipnormal)
 						SWAP(int, index[0], index[2]);
 
 					index += 3;
-					efa = efa->next;
+					sf_tri = sf_tri->next;
 				}
 			}
 
