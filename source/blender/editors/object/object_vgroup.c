@@ -603,7 +603,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight, tot_distribution, distribution_v1, distribution_v2, distribution_v3, distribution_v4, tmp_co[3];
+	float weight, tot_distribution, distribution_v1, distribution_v2, distribution_v3, distribution_v4, tmp_co[3], tmp_co_v4[3], normal[3];
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -651,8 +651,9 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		/*node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
-		/*TODO: Have to project onto face to get a decent result*/
-		/*Smart solution might be to just substract the distance difference to plane instead.*/
+		/*project destination coordinate onto face*/
+		normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+		project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
 
 		/*get distances*/
 		distribution_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
@@ -674,7 +675,10 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 
 			/*check for quad*/
 			if(mface_src[nearest.index].v4){
-				distribution_v4= len_squared_v3v3(tmp_co, mv_src[mface_src->v4].co);
+				/*project vertex nr4 coordinate onto face and distribute*/
+				copy_v3_v3(tmp_co_v4, mv_src[mface_src[nearest.index].v4].co);
+				project_v3_plane(tmp_co_v4, normal, mv_src[mface_src[nearest.index].v1].co);
+				distribution_v4= len_squared_v3v3(tmp_co, tmp_co_v4);
 				if(distribution_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 				else{
 					distribution_v4= 1/distribution_v4;
@@ -702,12 +706,12 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 			}
 		}
 
-		/*snap to valid number*/
+		/*snap to valid number, for testing. This should not be nessecary if interpolation works as its supposed to! or is my logick wrong???*//*
 		weight*= 1000;
 		weight+= 0.5;
 		weight= (int)weight;
 		weight/=1000;
-		if(weight>1)weight= 1;
+		if(weight>1)weight= 1;*/
 
 		/*copy weight*/
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
