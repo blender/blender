@@ -500,6 +500,105 @@ float sqr_dist_v3v3(float v1[3], float v2[3])
 	return dot_v3v3(d, d);
 }
 
+/*Copy a single vertex group from source to destination with weights by nearest weight in face*/
+int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_src)
+{
+	bDeformGroup *dg_src, *dg_dst;
+	Mesh *me_dst;
+	DerivedMesh *dmesh_src;
+	BVHTreeFromMesh tree_mesh_faces_src = {NULL};
+	MDeformVert **dv_array_src, **dv_array_dst;
+	MVert *mv_dst, *mv_src;
+	MFace *mface_src;
+	BVHTreeNearest nearest;
+	MDeformWeight *dw_dst, *dw_src;
+	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+	float dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3], tmp_mat[4][4];
+
+	/*get source deform group*/
+	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*Create new and overwrite vertex group on destination without data*/
+	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+	ED_vgroup_add_name(ob_dst, dg_src->name);
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get meshes*/
+	me_dst= ob_dst->data;
+	dmesh_src= ob_src->derivedDeform;
+
+	/*make node tree*/
+	DM_ensure_tessface(dmesh_src);
+	bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*get vertices*/
+	mv_dst= me_dst->mvert;
+
+	mv_src= dmesh_src->getVertArray(dmesh_src);
+
+	/*get faces*/
+	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
+
+	/*Prepearing transformation matrix*/
+	invert_m4_m4(ob_src->imat, ob_src->obmat);
+	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
+
+	/* Loop through the vertices and copy weight from nearest weight*/
+	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+
+		/*Reset nearest*/
+		nearest.index= -1;
+		nearest.dist= FLT_MAX;
+
+		/*Transforming into target space*/
+		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+
+		/*Node tree accelerated search for closest face*/
+		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+
+		/*get distances*/
+		dist_v1= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+		dist_v2= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+		dist_v3= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+
+		/*get weight from triangle*/
+		if(dist_v1<dist_v2 && dist_v1<dist_v3){
+			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+		}
+		else if(dist_v2<dist_v3){
+			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+		}
+		else{
+			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+		}
+		/*Check for and get weight from quad*/
+		if(mface_src[nearest.index].v4){
+			dist_v4= sqr_dist_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
+			if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+			}
+		}
+
+		/*copy weight*/
+		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+		dw_dst->weight= dw_src->weight;
+	}
+
+	/*free memory and return*/
+	free_bvhtree_from_mesh(&tree_mesh_faces_src);
+	return 1;
+}
+
 /*Copy a single vertex group from source to destination with weights by nearest weight*/
 /*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
 int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
@@ -3075,7 +3174,7 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 			/*Try function for get weight from closest vertex*/
 			/*TODO: try this function*/
 			/*Try function for get weight from closest face*/
-			else if(ED_vgroup_copy_by_nearest_face_single(obslc, obact)) change++;
+			else if(ED_vgroup_copy_by_nearest_vertex_in_face_single(obslc, obact)) change++;
 			/*Trigger error message*/
 			else fail++;
 			/*Event notifiers for correct display of data*/
