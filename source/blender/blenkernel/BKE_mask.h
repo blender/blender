@@ -82,6 +82,12 @@ void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
 void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene);
 void BKE_mask_parent_init(struct MaskParent *parent);
+void BKE_mask_calc_handle_point(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point);
+void BKE_mask_calc_handle_point_auto(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
+                                     const short do_length_match);
+void BKE_mask_get_handle_point_adjacent(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
+                                        struct MaskSplinePoint **r_point_prev, struct MaskSplinePoint **r_point_next);
+void BKE_mask_calc_handles(struct Mask *mask);
 
 #define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0

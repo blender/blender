@@ -794,42 +794,125 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *prev
 	}
 }
 
-void BKE_mask_calc_handles(Mask *mask)
+void BKE_mask_get_handle_point_adjacent(Mask *UNUSED(mask), MaskSpline *spline, MaskSplinePoint *point,
+                                        MaskSplinePoint **r_point_prev, MaskSplinePoint **r_point_next)
 {
-	MaskShape *shape = mask->shapes.first;
+	MaskSplinePoint *prev_point, *next_point;
+	int i = (int)(point - spline->points);
 
-	while (shape) {
-		MaskSpline *spline = shape->splines.first;
-		int i;
+	BLI_assert(i >= i && i < spline->tot_point);
 
-		while (spline) {
-			for (i = 0; i < spline->tot_point; i++) {
-				MaskSplinePoint *point = &spline->points[i];
-				MaskSplinePoint *prev_point, *next_point;
+	if (i == 0) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			prev_point = &spline->points[spline->tot_point - 1];
+		}
+		else {
+			prev_point = NULL;
+		}
+	}
+	else {
+		prev_point = point - 1;
+	}
 
-				if (i == 0) {
-					if (spline->flag & MASK_SPLINE_CYCLIC)
-						prev_point = &spline->points[spline->tot_point - 1];
-					else
-						prev_point = NULL;
-				}
-				else prev_point = point - 1;
+	if (i == spline->tot_point - 1) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			next_point = &spline->points[0];
+		}
+		else {
+			next_point = NULL;
+		}
+	}
+	else {
+		next_point = point + 1;
+	}
 
-				if (i == spline->tot_point - 1) {
-					if (spline->flag & MASK_SPLINE_CYCLIC)
-						next_point = &spline->points[0];
-					else
-						next_point = NULL;
-				}
-				else next_point = point + 1;
+	*r_point_prev = prev_point;
+	*r_point_next = next_point;
+}
 
-				mask_calc_point_handle(point, prev_point, next_point);
-			}
+void BKE_mask_calc_handle_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
+{
+	MaskSplinePoint *prev_point, *next_point;
 
-			spline = spline->next;
+	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	                                   &prev_point, &next_point);
+
+	mask_calc_point_handle(point, prev_point, next_point);
+}
+
+static void enforce_dist_v2_v2fl(float v1[2], const float v2[2], const float dist)
+{
+	if (!equals_v2v2(v2, v1)) {
+		float nor[2];
+
+		sub_v2_v2v2(nor, v1, v2);
+		normalize_v2(nor);
+		madd_v2_v2v2fl(v1, v2, nor, dist);
+	}
+}
+
+/**
+ * \brief Resets auto handles even for non-auto bezier points
+ *
+ * Useful for giving sane defaults.
+ */
+void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplinePoint *point,
+                                     const short do_length_match)
+{
+	MaskSplinePoint *prev_point, *next_point;
+
+	const char h_back[2] = {point->bezt.h1, point->bezt.h2};
+
+	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	                                   &prev_point, &next_point);
+
+	point->bezt.h1 = HD_AUTO;
+	point->bezt.h2 = HD_AUTO;
+	mask_calc_point_handle(point, prev_point, next_point);
+
+	point->bezt.h1 = h_back[0];
+	point->bezt.h2 = h_back[1];
+	mask_calc_point_handle(point, prev_point, next_point);
+
+	/* TODO! - make this aspect aware! */
+	/* TODO! - not working right with cyclic curves, need to investigate! */
+	if (do_length_match) {
+		int   length_tot = 0;
+		float length_average = 0.0f;
+
+		if (prev_point) {
+			length_average += len_v2v2(prev_point->bezt.vec[0], prev_point->bezt.vec[1]);
+			length_tot++;
 		}
 
-		shape = shape->next;
+		if (next_point) {
+			length_average += len_v2v2(next_point->bezt.vec[2], next_point->bezt.vec[1]);
+			length_tot++;
+		}
+
+		if (length_tot) {
+			length_average /= (float)length_tot;
+
+			enforce_dist_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
+			enforce_dist_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
+		}
+	}
+}
+
+void BKE_mask_calc_handles(Mask *mask)
+{
+	MaskShape *shape;
+
+	for (shape = mask->shapes.first; shape; shape = shape->next) {
+		MaskSpline *spline;
+
+		for (spline = shape->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				BKE_mask_calc_handle_point(mask, spline, &spline->points[i]);
+			}
+		}
 	}
 }
 

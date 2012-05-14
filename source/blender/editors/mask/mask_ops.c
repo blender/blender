@@ -480,9 +480,9 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 
 					if (feather_points)
 						MEM_freeN(feather_points);
-				}
 
-				MEM_freeN(diff_points);
+					MEM_freeN(diff_points);
+				}
 			}
 
 			spline = spline->next;
@@ -1148,6 +1148,9 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[2], vec);
 	}
 	else {
+
+		/* calculating auto handles works much nicer */
+#if 0
 		/* next points are aligning in the direction of previous/next point */
 		MaskSplinePoint *point;
 		float v1[2], v2[2], vec[2];
@@ -1192,6 +1195,11 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 
 		add_v2_v2(bezt->vec[0], vec);
 		sub_v2_v2(bezt->vec[2], vec);
+#else
+		BKE_mask_calc_handle_point_auto(mask, spline, new_point, TRUE);
+
+#endif
+
 	}
 
 	BKE_mask_parent_init(&new_point->parent);
