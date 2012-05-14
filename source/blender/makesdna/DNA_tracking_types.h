@@ -35,6 +35,7 @@
 #ifndef __DNA_TRACKING_TYPES_H__
 #define __DNA_TRACKING_TYPES_H__
 
+#include "DNA_defs.h"
 #include "DNA_listBase.h"
 
 /* match-moving data */
@@ -68,6 +69,20 @@ typedef struct MovieTrackingCamera {
 
 typedef struct MovieTrackingMarker {
 	float pos[2];	/* 2d position of marker on frame (in unified 0..1 space) */
+
+	/* corners of pattern in the following order:
+	 *
+	 * Y
+	 * ^
+	 * | (3) --- (2)
+	 * |  |       |
+	 * |  |       |
+	 * |  |       |
+	 * | (0) --- (1)
+	 * +-------------> X
+	 */
+	float pattern_corners[4][2];
+
 	int framenr;	/* number of frame marker is associated with */
 	int flag;		/* Marker's flag (alive, ...) */
 } MovieTrackingMarker;
@@ -78,8 +93,13 @@ typedef struct MovieTrackingTrack {
 	char name[64];	/* MAX_NAME */
 
 	/* ** setings ** */
-	float pat_min[2], pat_max[2];		/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
-	float search_min[2], search_max[2];	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
+
+	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
+	float pat_min[2], pat_max[2]		DNA_DEPRECATED;
+
+	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
+	float search_min[2], search_max[2];
+
 	float offset[2];					/* offset to "parenting" point */
 
 	/* ** track ** */

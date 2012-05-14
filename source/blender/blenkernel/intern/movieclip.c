@@ -1076,10 +1076,18 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 			}
 
 			if ((track->flag & TRACK_LOCKED) == 0) {
+				float pat_min[2], pat_max[2];
+
 				scopes->marker = marker;
 				scopes->track = track;
-				scopes->slide_scale[0] = track->pat_max[0] - track->pat_min[0];
-				scopes->slide_scale[1] = track->pat_max[1] - track->pat_min[1];
+
+				/* XXX: would work fine with non-transformed patterns, but would likely fail
+				 *      with transformed patterns, but that would be easier to debug when
+				 *      we'll have real pattern sampling (at least to test) */
+				BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+				scopes->slide_scale[0] = pat_max[0] - pat_min[0];
+				scopes->slide_scale[1] = pat_max[1] - pat_min[1];
 			}
 		}
 	}

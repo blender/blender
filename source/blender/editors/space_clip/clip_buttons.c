@@ -186,6 +186,7 @@ typedef struct {
 	MovieClip *clip;
 	MovieClipUser *user;						/* user of clip */
 	MovieTrackingTrack *track;
+	MovieTrackingMarker *marker;
 
 	int framenr;								/* current frame number */
 	float marker_pos[2];						/* position of marker in pixel coords */
@@ -238,9 +239,11 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		ok = TRUE;
 	}
 	else if (event == B_MARKER_PAT_DIM) {
-		float dim[2], pat_dim[2];
+		float dim[2], pat_dim[2], pat_min[2], pat_max[2];
 
-		sub_v2_v2v2(pat_dim, cb->track->pat_max, cb->track->pat_min);
+		BKE_tracking_marker_pattern_minmax(cb->marker, pat_min, pat_max);
+
+		sub_v2_v2v2(pat_dim, pat_max, pat_min);
 
 		dim[0] = cb->track_pat[0] / width;
 		dim[1] = cb->track_pat[1] / height;
@@ -248,11 +251,17 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		sub_v2_v2(dim, pat_dim);
 		mul_v2_fl(dim, 0.5f);
 
-		cb->track->pat_min[0] -= dim[0];
-		cb->track->pat_min[1] -= dim[1];
+		cb->marker->pattern_corners[0][0] -= dim[0];
+		cb->marker->pattern_corners[0][1] -= dim[1];
 
-		cb->track->pat_max[0] += dim[0];
-		cb->track->pat_max[1] += dim[1];
+		cb->marker->pattern_corners[1][0] += dim[0];
+		cb->marker->pattern_corners[1][1] -= dim[1];
+
+		cb->marker->pattern_corners[2][0] += dim[0];
+		cb->marker->pattern_corners[2][1] += dim[1];
+
+		cb->marker->pattern_corners[3][0] -= dim[0];
+		cb->marker->pattern_corners[3][1] += dim[1];
 
 		BKE_tracking_clamp_track(cb->track, CLAMP_PAT_DIM);
 
@@ -337,6 +346,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	MovieTrackingMarker *marker;
 	MarkerUpdateCb *cb;
 	const char *tip;
+	float pat_min[2], pat_max[2];
 
 	if (!ptr->data)
 		return;
@@ -366,6 +376,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	cb->clip = clip;
 	cb->user = user;
 	cb->track = track;
+	cb->marker = marker;
 	cb->marker_flag = marker->flag;
 	cb->framenr = user->framenr;
 
@@ -383,7 +394,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	}
 	else {
 		int width, height, step, digits;
-		float pat_dim[2], pat_pos[2], search_dim[2], search_pos[2];
+		float pat_dim[2], search_dim[2], search_pos[2];
 		uiLayout *col;
 
 		BKE_movieclip_get_size(clip, user, &width, &height);
@@ -399,14 +410,13 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 		step = 100;
 		digits = 2;
 
-		sub_v2_v2v2(pat_dim, track->pat_max, track->pat_min);
+		BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+		sub_v2_v2v2(pat_dim, pat_max, pat_min);
 		sub_v2_v2v2(search_dim, track->search_max, track->search_min);
 
 		add_v2_v2v2(search_pos, track->search_max, track->search_min);
 		mul_v2_fl(search_pos, 0.5);
-
-		add_v2_v2v2(pat_pos, track->pat_max, track->pat_min);
-		mul_v2_fl(pat_pos, 0.5);
 
 		to_pixel_space(cb->marker_pos, marker->pos, width, height);
 		to_pixel_space(cb->track_pat, pat_dim, width, height);

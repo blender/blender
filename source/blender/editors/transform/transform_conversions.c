@@ -5420,8 +5420,10 @@ static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
 		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, marker->pos, NULL, NULL);
 
 	if (track->pat_flag & SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, marker->pattern_corners[0], marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, marker->pattern_corners[1], marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, marker->pattern_corners[2], marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, marker->pattern_corners[3], marker->pos, NULL);
 	}
 
 	if (track->search_flag & SELECT) {
@@ -5468,7 +5470,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				t->total++;
 
 			if (track->pat_flag & SELECT)
-				t->total+= 2;
+				t->total+= 4;
 
 			if (track->search_flag & SELECT)
 				t->total+= 2;
@@ -5507,9 +5509,9 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				}
 
 				if (track->pat_flag & SELECT) {
-					td += 2;
-					td2d += 2;
-					tdt +=2;
+					td += 4;
+					td2d += 4;
+					tdt += 4;
 				}
 			}
 

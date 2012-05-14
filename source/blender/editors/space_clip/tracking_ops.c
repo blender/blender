@@ -78,6 +78,8 @@
 
 #include "clip_intern.h"	// own include
 
+static float dist_to_crns(float co[2], float pos[2], float crns[4][2]);
+
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -245,6 +247,8 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 }
 
 /********************** slide marker operator *********************/
+/* XXX: need porting! */
+#if 0
 
 #define SLIDE_ACTION_POS	0
 #define SLIDE_ACTION_SIZE	1
@@ -646,6 +650,8 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 		"Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
 }
 
+#endif
+
 /********************** mouse select operator *********************/
 
 static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
@@ -668,18 +674,28 @@ static int mouse_on_rect(float co[2], float pos[2], float min[2], float max[2], 
 	       mouse_on_side(co, pos[0] + max[0], pos[1] + min[1], pos[0] + max[0], pos[1] + max[1], epsx, epsy);
 }
 
+static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx, float epsy)
+{
+	float dist = dist_to_crns(co, pos, crns);
+
+	return dist < MAX2(epsx, epsy);
+}
+
 static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
 {
 	MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+	float pat_min[2], pat_max[2];
 	float epsx, epsy;
 	int width, height;
 
 	ED_space_clip_size(sc, &width, &height);
 
-	epsx = MIN4(track->pat_min[0] - track->search_min[0], track->search_max[0] - track->pat_max[0],
-	           fabsf(track->pat_min[0]), fabsf(track->pat_max[0])) / 2;
-	epsy = MIN4(track->pat_min[1] - track->search_min[1], track->search_max[1] - track->pat_max[1],
-	           fabsf(track->pat_min[1]), fabsf(track->pat_max[1])) / 2;
+	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+	epsx = MIN4(pat_min[0] - track->search_min[0], track->search_max[0] - pat_max[0],
+	            fabsf(pat_min[0]), fabsf(pat_max[0])) / 2;
+	epsy = MIN4(pat_min[1] - track->search_min[1], track->search_max[1] - pat_max[1],
+	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
 
 	epsx = MAX2(epsx, 2.0f / width);
 	epsy = MAX2(epsy, 2.0f / height);
@@ -691,7 +707,7 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 
 	if ((marker->flag & MARKER_DISABLED) == 0) {
 		if (sc->flag & SC_SHOW_MARKER_PATTERN)
-			if (mouse_on_rect(co, marker->pos, track->pat_min, track->pat_max, epsx, epsy))
+			if (mouse_on_crns(co, marker->pos, marker->pattern_corners, epsx, epsy))
 				return TRACK_AREA_PAT;
 
 		epsx = 12.0f / width;
@@ -722,6 +738,21 @@ static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
 	return MIN4(d1, d2, d3, d4);
 }
 
+static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
+{
+	float d1, d2, d3, d4;
+	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
+	float *v1 = crns[0], *v2 = crns[1],
+	      *v3 = crns[2], *v4 = crns[3];
+
+	d1 = dist_to_line_segment_v2(p, v1, v2);
+	d2 = dist_to_line_segment_v2(p, v2, v3);
+	d3 = dist_to_line_segment_v2(p, v3, v4);
+	d4 = dist_to_line_segment_v2(p, v4, v1);
+
+	return MIN4(d1, d2, d3, d4);
+}
+
 static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2])
 {
 	MovieTrackingTrack *track = NULL, *cur;
@@ -736,11 +767,11 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 
 			/* distance to marker point */
 			d1 = sqrtf((co[0] - marker->pos[0] - cur->offset[0]) * (co[0] - marker->pos[0] - cur->offset[0]) +
-					  (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
+					   (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
 
 			/* distance to pattern boundbox */
 			if (sc->flag & SC_SHOW_MARKER_PATTERN)
-				d2 = dist_to_rect(co, marker->pos, cur->pat_min, cur->pat_max);
+				d2 = dist_to_crns(co, marker->pos, marker->pattern_corners);
 
 			/* distance to search boundbox */
 			if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
@@ -822,6 +853,8 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (!extend) {
+#if 0
+		/* XXX: need porting */
 		SlideMarkerData *slidedata = slide_marker_customdata(C, event);
 
 		if (slidedata) {
@@ -836,6 +869,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 			return OPERATOR_PASS_THROUGH;
 		}
+#endif
 	}
 
 	ED_clip_mouse_pos(C, event, co);
