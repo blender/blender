@@ -2636,7 +2636,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 
 /* ******************** lasso select operator **************** */
 
-static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
 {
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2695,6 +2695,7 @@ static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, s
 			}
 		}
 	}
+
 	if (change) {
 		uv_select_sync_flush(scene->toolsettings, em, select);
 
@@ -2702,6 +2703,8 @@ static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, s
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
+
+	return change;
 }
 
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
@@ -2725,9 +2728,14 @@ static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 		short select;
 
 		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_mesh_uv(C, mcords, i, select);
 
-		return OPERATOR_FINISHED;
+		if (do_lasso_select_mesh_uv(C, mcords, i, select)) {
+			return OPERATOR_FINISHED;
+		}
+		else {
+			return OPERATOR_CANCELLED;
+		}
+
 	}
 	return OPERATOR_PASS_THROUGH;
 }

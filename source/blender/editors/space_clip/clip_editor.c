@@ -400,6 +400,30 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 	}
 }
 
+/**
+ * \brief the reverse of ED_clip_point_stable_pos(), gets the marker region coords.
+ * better name here? view_to_tracker / tracker_to_view or so?
+ */
+void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], float nco[2])
+{
+	float zoomx, zoomy;
+	float pos[3];
+	int width, height;
+	int sx, sy;
+
+	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &sx, &sy);
+	ED_space_clip_size(sc, &width, &height);
+	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+
+	ED_clip_point_undistorted_pos(sc, co, pos);
+
+	/* untested */
+	mul_v3_m4v3(pos, sc->stabmat, pos);
+
+	nco[0] = (pos[0] * width  * zoomx) + (float)sx;
+	nco[1] = (pos[1] * height * zoomy) + (float)sy;
+}
+
 void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])
 {
 	ED_clip_point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);

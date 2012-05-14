@@ -63,6 +63,7 @@ int ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 
 void ED_clip_point_undistorted_pos(SpaceClip * sc, float co[2], float nco[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
+void ED_clip_point_stable_pos__reverse(SpaceClip * sc, ARegion *ar, float co[2], float nco[2]);
 void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
 int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);

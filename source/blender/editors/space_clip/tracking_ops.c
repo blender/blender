@@ -42,6 +42,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_rect.h"
+#include "BLI_lasso.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_main.h"
@@ -941,6 +942,105 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_gesture_border(ot, TRUE);
+}
+
+
+static int do_lasso_select_mar(bContext *C, int mcords[][2], short moves, short select)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingTrack *track;
+	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	rcti rect;
+	int change = FALSE;
+
+	/* get rectangle from operator */
+	BLI_lasso_boundbox(&rect, mcords, moves);
+
+	/* do actual selection */
+	track = tracksbase->first;
+	while (track) {
+		if ((track->flag & TRACK_HIDDEN) == 0) {
+			if (MARKER_VISIBLE(sc, track, marker)) {
+				MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+				float screen_co[2];
+
+				/* tracker in screen coords */
+				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
+
+				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
+				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
+				{
+					BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, !select);
+				}
+
+				change = TRUE;
+			}
+		}
+
+		track = track->next;
+	}
+
+	if (change) {
+		BKE_tracking_dopesheet_tag_update(tracking);
+
+		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
+	}
+
+	return change;
+}
+
+static int clip_lasso_select_exec(bContext *C, wmOperator *op)
+{
+	int i = 0;
+	int mcords[1024][2];
+
+	RNA_BEGIN (op->ptr, itemptr, "path")
+	{
+		float loc[2];
+
+		RNA_float_get_array(&itemptr, "loc", loc);
+		mcords[i][0] = (int)loc[0];
+		mcords[i][1] = (int)loc[1];
+		i++;
+		if (i >= 1024) break;
+	}
+	RNA_END;
+
+	if (i > 1) {
+		short select;
+
+		select = !RNA_boolean_get(op->ptr, "deselect");
+		do_lasso_select_movieclip(C, mcords, i, select);
+
+		return OPERATOR_FINISHED;
+	}
+	return OPERATOR_PASS_THROUGH;
+}
+
+void CLIP_OT_select_lasso(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Lasso Select";
+	ot->description = "Select markers using lasso selection";
+	ot->idname = "CLIP_OT_select_lasso";
+
+	/* api callbacks */
+	ot->invoke = WM_gesture_lasso_invoke;
+	ot->modal = WM_gesture_lasso_modal;
+	ot->exec = clip_lasso_select_exec;
+	ot->poll = ED_space_clip_tracking_poll;
+	ot->cancel = WM_gesture_lasso_cancel;
+
+	/* flags */
+	ot->flag = OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
+	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
 /********************** circle select operator *********************/
