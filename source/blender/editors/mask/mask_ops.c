@@ -1086,8 +1086,11 @@ void MASK_OT_select(wmOperatorType *ot)
 /******************** add vertex *********************/
 
 static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
-                               float point_co[2], float tangent[2])
+                               const float point_co[2], const float tangent[2],
+                               MaskSplinePoint *reference_point, const short reference_adjacent)
 {
+	MaskSplinePoint *prev_point = NULL;
+	MaskSplinePoint *next_point = NULL;
 	BezTriple *bezt;
 	int width, height;
 	float co[3];
@@ -1102,6 +1105,21 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 	bezt = &new_point->bezt;
 
 	bezt->h1 = bezt->h2 = HD_ALIGN;
+
+	if (reference_point) {
+		bezt->h1 = bezt->h2 = MAX2(reference_point->bezt.h2, reference_point->bezt.h1);
+	}
+	else if (reference_adjacent) {
+		if (spline->tot_point != 1) {
+			int index = (int)(new_point - spline->points);
+			prev_point = &spline->points[(index - 1) % spline->tot_point];
+			next_point = &spline->points[(index + 1) % spline->tot_point];
+
+			bezt->h1 = bezt->h2 = MAX2(prev_point->bezt.h2, next_point->bezt.h1);
+
+			/* note, we may want to copy other attributes later, radius? pressure? color? */
+		}
+	}
 
 	copy_v3_v3(bezt->vec[0], co);
 	copy_v3_v3(bezt->vec[1], co);
@@ -1214,7 +1232,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 
 		new_point = &new_point_array[point_index + 1];
 
-		setup_vertex_point(C, mask, spline, new_point, co, tangent);
+		setup_vertex_point(C, mask, spline, new_point, co, tangent, NULL, TRUE);
 
 		shape->act_point = new_point;
 
@@ -1273,7 +1291,8 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 {
 	MaskShape *shape;
 	MaskSpline *spline;
-	MaskSplinePoint *point, *new_point = NULL;
+	MaskSplinePoint *point;
+	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
 	/* adding _could_ deselect, for now don't */
 #if 0
@@ -1312,6 +1331,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 			spline->tot_point++;
 
 			new_point = &spline->points[spline->tot_point - 1];
+			ref_point = &spline->points[spline->tot_point - 2];
 		}
 		else if (point == &spline->points[0]) {
 			MASKPOINT_DESEL(point);
@@ -1322,6 +1342,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 			spline->tot_point++;
 
 			new_point = &spline->points[0];
+			ref_point = &spline->points[1];
 		}
 		else {
 			spline = BKE_mask_spline_add(shape);
@@ -1332,7 +1353,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 
 	shape->act_point = new_point;
 
-	setup_vertex_point(C, mask, spline, new_point, co, NULL);
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return TRUE;
