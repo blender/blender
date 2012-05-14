@@ -1196,8 +1196,10 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	int i, j, a;
 	float pos[2], tpos[2], grid[11][11][2];
 	MovieTracking *tracking = &clip->tracking;
+	bGPdata *gpd = NULL;
 	float aspy = 1.0f / tracking->camera.pixel_aspect;
 	float dx = (float)width / n, dy = (float)height / n * aspy;
+	float offsx = 0.0f, offsy = 0.0f;
 
 	if (sc->mode != SC_MODE_DISTORTION)
 		return;
@@ -1305,8 +1307,27 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		}
 	}
 
-	if (sc->flag & SC_MANUAL_CALIBRATION && clip->gpd) {
-		bGPDlayer *layer = clip->gpd->layers.first;
+	if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+		MovieTrackingTrack *track = BKE_tracking_active_track(&sc->clip->tracking);
+
+		if (track) {
+			int framenr = sc->user.framenr;
+			MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
+
+			offsx = marker->pos[0];
+			offsy = marker->pos[1];
+
+			gpd = track->gpd;
+		}
+
+	}
+	else {
+		gpd = clip->gpd;
+	}
+
+
+	if (sc->flag & SC_MANUAL_CALIBRATION) {
+		bGPDlayer *layer = gpd->layers.first;
 
 		while (layer) {
 			bGPDframe *frame = layer->frames.first;
@@ -1331,11 +1352,11 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 									float npos[2], dpos[2], len;
 									int steps;
 
-									pos[0] = stroke->points[i].x * width;
-									pos[1] = stroke->points[i].y * height * aspy;
+									pos[0] = (stroke->points[i].x + offsx) * width;
+									pos[1] = (stroke->points[i].y + offsy) * height * aspy;
 
-									npos[0] = stroke->points[i + 1].x * width;
-									npos[1] = stroke->points[i + 1].y * height * aspy;
+									npos[0] = (stroke->points[i + 1].x + offsx) * width;
+									npos[1] = (stroke->points[i + 1].y + offsy) * height * aspy;
 
 									len = len_v2v2(pos, npos);
 									steps = ceil(len / 5.0f);
@@ -1360,7 +1381,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 						}
 						else if (stroke->totpoints == 1) {
 							glBegin(GL_POINTS);
-								glVertex2f(stroke->points[0].x, stroke->points[0].y);
+								glVertex2f(stroke->points[0].x + offsx, stroke->points[0].y + offsy);
 							glEnd();
 						}
 					}
@@ -1464,6 +1485,18 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 			if (ibuf) {
 				glPushMatrix();
 				glMultMatrixf(sc->unistabmat);
+
+				if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+					MovieTrackingTrack *track = BKE_tracking_active_track(&sc->clip->tracking);
+
+					if (track) {
+						int framenr = sc->user.framenr;
+						MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
+
+						glTranslatef(marker->pos[0], marker->pos[1], 0.0f);
+					}
+				}
+
 				draw_gpencil_2dimage(C, ibuf);
 
 				IMB_freeImBuf(ibuf);

@@ -521,7 +521,10 @@ typedef struct SpaceClip {
 	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
-	int postproc_flag, pad2;
+	int postproc_flag;
+
+	/* grease pencil */
+	short gpencil_src, pad2;
 
 	void *draw_context;
 
@@ -934,6 +937,10 @@ enum {
 
 /* SpaceClip->dope_flag */
 #define SC_DOPE_SORT_INVERSE		1
+
+/* SPaceClip->gpencil_src */
+#define SC_GPENCIL_SRC_CLIP		0
+#define SC_GPENCIL_SRC_TRACK		1
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */

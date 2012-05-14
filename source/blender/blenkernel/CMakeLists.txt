@@ -43,6 +43,7 @@ set(INC
 	../../../intern/memutil
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
+	../../../intern/raskter
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager

@@ -57,6 +57,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 
 
 #include "WM_api.h"
@@ -144,9 +145,23 @@ bGPdata **gpencil_data_get_pointers(bContext *C, PointerRNA *ptr)
 				MovieClip *clip = ED_space_clip(sc);
 
 				if (clip) {
-					/* for now, as long as there's a clip, default to using that in Clip Editor */
-					if (ptr) RNA_id_pointer_create(&clip->id, ptr);
-					return &clip->gpd;
+					if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+						MovieTrackingTrack *track = BKE_tracking_active_track(&clip->tracking);
+
+						if (!track)
+							return NULL;
+
+						if (ptr)
+							RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, ptr);
+
+						return &track->gpd;
+					}
+					else {
+						if (ptr)
+							RNA_id_pointer_create(&clip->id, ptr);
+
+						return &clip->gpd;
+					}
 				}
 			}
 			break;

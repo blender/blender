@@ -6198,7 +6198,7 @@ static void direct_link_movieReconstruction(FileData *fd, MovieTrackingReconstru
 	reconstruction->cameras= newdataadr(fd, reconstruction->cameras);
 }
 
-static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
+static void direct_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
 {
 	MovieTrackingTrack *track;
 
@@ -6207,6 +6207,7 @@ static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 	track= tracksbase->first;
 	while (track) {
 		track->markers= newdataadr(fd, track->markers);
+		track->gpd= newlibadr_us(fd, clip->id.lib, track->gpd);
 
 		track= track->next;
 	}
@@ -6225,7 +6226,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	if (fd->movieclipmap) clip->tracking.camera.intrinsics= newmclipadr(fd, clip->tracking.camera.intrinsics);
 	else clip->tracking.camera.intrinsics= NULL;
 
-	direct_link_movieTracks(fd, &tracking->tracks);
+	direct_link_movieTracks(fd, clip, &tracking->tracks);
 	direct_link_movieReconstruction(fd, &tracking->reconstruction);
 
 	clip->tracking.act_track= newdataadr(fd, clip->tracking.act_track);
@@ -6245,7 +6246,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 
 	object= tracking->objects.first;
 	while (object) {
-		direct_link_movieTracks(fd, &object->tracks);
+		direct_link_movieTracks(fd, clip, &object->tracks);
 		direct_link_movieReconstruction(fd, &object->reconstruction);
 
 		object= object->next;

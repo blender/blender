@@ -2886,6 +2886,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 		write_windowmanagers(wd, &mainvar->wm);
 		write_screens  (wd, &mainvar->screen);
 	}
+	write_gpencils (wd, &mainvar->gpencil);
 	write_movieclips (wd, &mainvar->movieclip);
 	write_masks    (wd, &mainvar->mask);
 	write_scenes   (wd, &mainvar->scene);
@@ -2912,7 +2913,6 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 	write_nodetrees(wd, &mainvar->nodetree);
 	write_brushes  (wd, &mainvar->brush);
 	write_scripts  (wd, &mainvar->script);
-	write_gpencils (wd, &mainvar->gpencil);
 	write_libraries(wd,  mainvar->next);
 
 	if (write_user_block) {

@@ -59,6 +59,8 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
+#include "raskter.h"
+
 #ifdef WITH_LIBMV
 #  include "libmv-capi.h"
 #else
@@ -1261,6 +1263,106 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
                                      int margin, int anchored, float pos[2], int origin[2])
 {
 	return get_area_imbuf(ibuf, track, marker, track->search_min, track->search_max, margin, anchored, pos, origin);
+}
+
+static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
+{
+	bGPDlayer *layer;
+
+	if (!track->gpd)
+		return NULL;
+
+	layer = track->gpd->layers.first;
+
+	while (layer) {
+		if (layer->flag & GP_LAYER_ACTIVE)
+			return layer;
+
+		layer = layer->next;
+	}
+
+	return NULL;
+}
+
+static void track_mask_gpencil_layer_rasterize(MovieTracking *tracking, MovieTrackingTrack *track,
+                                               bGPDlayer *layer, ImBuf *ibuf, int width, int height)
+{
+	bGPDframe *frame = layer->frames.first;
+	float *mask;
+	int x, y;
+	float aspy = 1.0f / tracking->camera.pixel_aspect;
+
+	mask = MEM_callocN(ibuf->x * ibuf->y * sizeof(float), "track mask");
+
+	while (frame) {
+		bGPDstroke *stroke = frame->strokes.first;
+
+		while (stroke) {
+			bGPDspoint *stroke_points = stroke->points;
+			float *mask_points, *fp;
+			int i;
+
+			if (stroke->flag & GP_STROKE_2DSPACE) {
+				fp = mask_points = MEM_callocN(2 * stroke->totpoints * sizeof(float),
+				                               "track mask rasterization points");
+
+				for (i = 0; i < stroke->totpoints; i++, fp += 2) {
+					fp[0] = stroke_points[i].x * width / ibuf->x - track->search_min[0];
+					fp[1] = stroke_points[i].y * height * aspy / ibuf->x - track->search_min[1];
+				}
+
+				PLX_raskterize(mask_points, stroke->totpoints, mask, ibuf->x, ibuf->y);
+
+				MEM_freeN(mask_points);
+			}
+
+			stroke = stroke->next;
+		}
+
+		frame = frame->next;
+	}
+
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			float *pixel = &ibuf->rect_float[4 * (y * ibuf->x + x)];
+			float val = mask[y * ibuf->x + x];
+
+			pixel[0] = val;
+			pixel[1] = val;
+			pixel[2] = val;
+			pixel[3] = 1.0f;
+		}
+	}
+
+	MEM_freeN(mask);
+
+	IMB_rect_from_float(ibuf);
+}
+
+ImBuf *BKE_tracking_track_mask_get(MovieTracking *tracking, MovieTrackingTrack *track, int width, int height)
+{
+	ImBuf *ibuf;
+	bGPDlayer *layer = track_mask_gpencil_layer_get(track);
+	int mask_width, mask_height;
+
+	/* XXX: currently copied from get_area_ibuf */
+	mask_width = (track->search_max[0] - track->search_min[0]) * width;
+	mask_height = (track->search_max[1] - track->search_min[1]) * height;
+
+	mask_width = mask_width | 1;
+	mask_height = mask_height | 1;
+
+	ibuf = IMB_allocImBuf(mask_width, mask_height, 32, IB_rect | IB_rectfloat);
+
+	if (layer) {
+		track_mask_gpencil_layer_rasterize(tracking, track, layer, ibuf, width, height);
+	}
+	else {
+		float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+		IMB_rectfill(ibuf, white);
+	}
+
+	return ibuf;
 }
 
 #ifdef WITH_LIBMV
