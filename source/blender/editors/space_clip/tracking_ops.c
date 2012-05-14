@@ -945,7 +945,7 @@ void CLIP_OT_select_border(wmOperatorType *ot)
 }
 
 
-static int do_lasso_select_mar(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, short select)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -963,8 +963,9 @@ static int do_lasso_select_mar(bContext *C, int mcords[][2], short moves, short 
 	track = tracksbase->first;
 	while (track) {
 		if ((track->flag & TRACK_HIDDEN) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+
 			if (MARKER_VISIBLE(sc, track, marker)) {
-				MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
 				float screen_co[2];
 
 				/* tracker in screen coords */
@@ -994,26 +995,16 @@ static int do_lasso_select_mar(bContext *C, int mcords[][2], short moves, short 
 
 static int clip_lasso_select_exec(bContext *C, wmOperator *op)
 {
-	int i = 0;
-	int mcords[1024][2];
+	int mcords_tot;
+	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
-	RNA_BEGIN (op->ptr, itemptr, "path")
-	{
-		float loc[2];
-
-		RNA_float_get_array(&itemptr, "loc", loc);
-		mcords[i][0] = (int)loc[0];
-		mcords[i][1] = (int)loc[1];
-		i++;
-		if (i >= 1024) break;
-	}
-	RNA_END;
-
-	if (i > 1) {
+	if (mcords) {
 		short select;
 
 		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_movieclip(C, mcords, i, select);
+		do_lasso_select_marker(C, mcords, mcords_tot, select);
+
+		MEM_freeN(mcords);
 
 		return OPERATOR_FINISHED;
 	}

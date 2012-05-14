@@ -2709,34 +2709,21 @@ static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, sh
 
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
-	int i = 0;
-	int mcords[1024][2];
+	int mcords_tot;
+	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
-	RNA_BEGIN (op->ptr, itemptr, "path")
-	{
-		float loc[2];
-
-		RNA_float_get_array(&itemptr, "loc", loc);
-		mcords[i][0] = (int)loc[0];
-		mcords[i][1] = (int)loc[1];
-		i++;
-		if (i >= 1024) break;
-	}
-	RNA_END;
-
-	if (i > 1) {
+	if (mcords) {
 		short select;
+		short change;
 
 		select = !RNA_boolean_get(op->ptr, "deselect");
+		change = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select);
 
-		if (do_lasso_select_mesh_uv(C, mcords, i, select)) {
-			return OPERATOR_FINISHED;
-		}
-		else {
-			return OPERATOR_CANCELLED;
-		}
+		MEM_freeN(mcords);
 
+		return change ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}
+
 	return OPERATOR_PASS_THROUGH;
 }
 
