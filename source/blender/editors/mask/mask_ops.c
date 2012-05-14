@@ -1197,7 +1197,10 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 		MaskSplinePoint *new_point_array, *new_point;
 		int point_index = point - spline->points;
 
+		/* adding _could_ deselect, for now don't */
+#if 0
 		toggle_selection_all(mask, SEL_DESELECT);
+#endif
 
 		new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
 
@@ -1225,12 +1228,20 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 
 /* **** add extrude vertex **** */
 
-static void finSelectedSplinePoint(MaskShape *shape, MaskSpline **spline, MaskSplinePoint **point)
+static void finSelectedSplinePoint(MaskShape *shape, MaskSpline **spline, MaskSplinePoint **point, short check_active)
 {
 	MaskSpline *cur_spline = shape->splines.first;
 
 	*spline = NULL;
 	*point = NULL;
+
+	if (check_active) {
+		if (shape->act_spline && shape->act_point) {
+			*spline = shape->act_spline;
+			*point = shape->act_point;
+			return;
+		}
+	}
 
 	while (cur_spline) {
 		int i;
@@ -1264,6 +1275,11 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 	MaskSpline *spline;
 	MaskSplinePoint *point, *new_point = NULL;
 
+	/* adding _could_ deselect, for now don't */
+#if 0
+	toggle_selection_all(mask, SEL_DESELECT);
+#endif
+
 	shape = BKE_mask_shape_active(mask);
 
 	if (!shape) {
@@ -1274,7 +1290,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 		point = NULL;
 	}
 	else {
-		finSelectedSplinePoint(shape, &spline, &point);
+		finSelectedSplinePoint(shape, &spline, &point, TRUE);
 	}
 
 	if (!spline) {
