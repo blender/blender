@@ -63,25 +63,24 @@ bool AllInBounds(const FloatImage &image,
 // supported, the sample function must be inside a template-specialized class
 // with a non-templated static member.
 
-// The "AutoDiffImage::Sample()" function allows sampling an image at an x, y
+// The "AutoDiff::Sample()" function allows sampling an image at an x, y
 // position such that if x and y are jets, then the derivative information is
 // correctly propagated.
 
 // Empty default template.
 template<typename T>
-struct AutoDiffImage {
+struct AutoDiff {
+  // Sample only the image when the coordinates are scalars.
   static T Sample(const FloatImage &image_and_gradient,
                   const T &x, const T &y) {
-    return 0.0;
-  }
-};
-
-// Sample only the image when the coordinates are scalars.
-template<>
-struct AutoDiffImage<double> {
-  static double Sample(const FloatImage &image_and_gradient,
-                       const double& x, const double& y) {
     return SampleLinear(image_and_gradient, y, x, 0);
+  }
+
+  static void SetScalarPart(double scalar, T *value) {
+    *value = scalar;
+  }
+  static void ScaleDerivative(double scale_by, T *value) {
+    // For double, there is no derivative to scale.
   }
 };
 
@@ -89,7 +88,7 @@ struct AutoDiffImage<double> {
 // jacobian appropriately to propagate the derivatives from the coordinates.
 template<>
 template<typename T, int N>
-struct AutoDiffImage<ceres::Jet<T, N> > {
+struct AutoDiff<ceres::Jet<T, N> > {
   static ceres::Jet<T, N> Sample(const FloatImage &image_and_gradient,
                                  const ceres::Jet<T, N> &x,
                                  const ceres::Jet<T, N> &y) {
@@ -115,6 +114,13 @@ struct AutoDiffImage<ceres::Jet<T, N> > {
     jet_s.a = s;
     jet_s.v = Matrix<T, 1, 2>(dsdx, dsdy) * dxydz;
     return jet_s;
+  }
+
+  static void SetScalarPart(double scalar, ceres::Jet<T, N> *value) {
+    value->a = scalar;
+  }
+  static void ScaleDerivative(double scale_by, ceres::Jet<T, N> *value) {
+    value->v *= scale_by;
   }
 };
 
@@ -151,18 +157,16 @@ class BoundaryCheckingCallback : public ceres::IterationCallback {
 template<typename Warp>
 class WarpCostFunctor {
  public:
-  WarpCostFunctor(const FloatImage &image_and_gradient1,
+  WarpCostFunctor(const TrackRegionOptions &options,
+                  const FloatImage &image_and_gradient1,
                   const FloatImage &image_and_gradient2,
                   const Mat3 &canonical_to_image1,
-                  const Warp &warp,
-                  int num_samples_x,
-                  int num_samples_y)
-      : image_and_gradient1_(image_and_gradient1),       
+                  const Warp &warp)
+      : options_(options),
+        image_and_gradient1_(image_and_gradient1),       
         image_and_gradient2_(image_and_gradient2),       
         canonical_to_image1_(canonical_to_image1),
-        warp_(warp),
-        num_samples_x_(num_samples_x),  
-        num_samples_y_(num_samples_y) {}
+        warp_(warp) {}
 
  template<typename T>
  bool operator()(const T *warp_parameters, T *residuals) const {
@@ -171,8 +175,8 @@ class WarpCostFunctor {
    }
 
    int cursor = 0;
-   for (int r = 0; r < num_samples_y_; ++r) {
-     for (int c = 0; c < num_samples_x_; ++c) {
+   for (int r = 0; r < options_.num_samples_y; ++r) {
+     for (int c = 0; c < options_.num_samples_x; ++c) {
         // Compute the location of the source pixel (via homography).
         Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
         image1_position /= image1_position(2);
@@ -185,28 +189,52 @@ class WarpCostFunctor {
                       &image2_position[0],
                       &image2_position[1]);
 
-        // Sample the source and destination.
-        double src_sample = AutoDiffImage<double>::Sample(image_and_gradient1_,
-                                                          image1_position[0],
-                                                          image1_position[1]);
-        T dst_sample = AutoDiffImage<T>::Sample(image_and_gradient2_,
-                                                image2_position[0],
-                                                image2_position[1]);
+
+        // Sample the destination, propagating derivatives.
+        T dst_sample = AutoDiff<T>::Sample(image_and_gradient2_,
+                                           image2_position[0],
+                                           image2_position[1]);
+
+        // Sample the source. This is made complicated by ESM mode.
+        T src_sample;
+        if (options_.use_esm) {
+          // In ESM mode, the derivative of the source is also taken into
+          // account. This changes the linearization in a way that causes
+          // better convergence. Copy the derivative of the warp parameters
+          // onto the jets for the image1 position. This is the ESM hack.
+          T image1_position_x = image2_position[0];
+          T image1_position_y = image2_position[1];
+          AutoDiff<T>::SetScalarPart(image1_position[0], &image1_position_x);
+          AutoDiff<T>::SetScalarPart(image1_position[1], &image1_position_y);
+          src_sample = AutoDiff<T>::Sample(image_and_gradient1_,
+                                           image1_position_x,
+                                           image1_position_y);
+
+          // The jacobians for these should be averaged. Due to the subtraction
+          // below, flip the sign of the src derivative so that the effect
+          // after subtraction of the jets is that they are averaged.
+          AutoDiff<T>::ScaleDerivative(-0.5, &src_sample);
+          AutoDiff<T>::ScaleDerivative(0.5, &dst_sample);
+        } else {
+          // This is the traditional, forward-mode KLT solution.
+          src_sample = T(AutoDiff<double>::Sample(image_and_gradient1_,
+                                                  image1_position[0],
+                                                  image1_position[1]));
+        }
 
         // The difference is the error.
-        residuals[cursor++] = T(src_sample) - dst_sample;
+        residuals[cursor++] = src_sample - dst_sample;
       }
     }
     return true;
   }
 
  private:
+  const TrackRegionOptions &options_;
   const FloatImage &image_and_gradient1_;
   const FloatImage &image_and_gradient2_;
   const Mat3 &canonical_to_image1_;
   const Warp &warp_;
-  int num_samples_x_;
-  int num_samples_y_;
 };
 
 // Compute the warp from rectangular coordinates, where one corner is the
@@ -570,12 +598,11 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // Construct the warp cost function. AutoDiffCostFunction takes ownership.
   WarpCostFunctor<Warp> *cost_function =
-      new WarpCostFunctor<Warp>(image_and_gradient1,
+      new WarpCostFunctor<Warp>(options,
+                                image_and_gradient1,
                                 image_and_gradient2,
                                 canonical_homography,
-                                warp,
-                                options.num_samples_x,
-                                options.num_samples_y);
+                                warp);
 
   // Construct the problem with a single residual.
   ceres::Problem::Options problem_options;

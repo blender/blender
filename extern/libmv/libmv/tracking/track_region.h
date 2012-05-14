@@ -47,6 +47,9 @@ struct TrackRegionOptions {
 
   double minimum_correlation;
   int max_iterations;
+
+  // Use the "Efficient Second-order Minimization" scheme. This increases
+  // convergence speed at the cost of more per-iteration work.
   bool use_esm;
 
   double sigma;

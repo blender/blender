@@ -102,6 +102,7 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
   options.num_samples_y = 2 * half_window_size + 1;
   options.max_iterations = 20;
   options.sigma = sigma;
+  options.use_esm = true;
   
   TrackRegionResult result;
   TrackRegion(image1, image2, xx1, yy1, options, xx2, yy2, &result);
