@@ -2636,7 +2636,7 @@ static void UV_OT_circle_select(wmOperatorType *ot)
 
 /* ******************** lasso select operator **************** */
 
-static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
+static int do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, short select)
 {
 	Image *ima = CTX_data_edit_image(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -2695,6 +2695,7 @@ static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, s
 			}
 		}
 	}
+
 	if (change) {
 		uv_select_sync_flush(scene->toolsettings, em, select);
 
@@ -2702,33 +2703,27 @@ static void do_lasso_select_mesh_uv(bContext *C, int mcords[][2], short moves, s
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit->data);
 		}
 	}
+
+	return change;
 }
 
 static int uv_lasso_select_exec(bContext *C, wmOperator *op)
 {
-	int i = 0;
-	int mcords[1024][2];
+	int mcords_tot;
+	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 
-	RNA_BEGIN (op->ptr, itemptr, "path")
-	{
-		float loc[2];
-
-		RNA_float_get_array(&itemptr, "loc", loc);
-		mcords[i][0] = (int)loc[0];
-		mcords[i][1] = (int)loc[1];
-		i++;
-		if (i >= 1024) break;
-	}
-	RNA_END;
-
-	if (i > 1) {
+	if (mcords) {
 		short select;
+		short change;
 
 		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_mesh_uv(C, mcords, i, select);
+		change = do_lasso_select_mesh_uv(C, mcords, mcords_tot, select);
 
-		return OPERATOR_FINISHED;
+		MEM_freeN(mcords);
+
+		return change ? OPERATOR_FINISHED : OPERATOR_CANCELLED;
 	}
+
 	return OPERATOR_PASS_THROUGH;
 }
 

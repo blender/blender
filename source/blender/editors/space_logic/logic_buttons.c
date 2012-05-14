@@ -109,8 +109,9 @@ static int cut_links_exec(bContext *C, wmOperator *op)
 		float loc[2];
 		
 		RNA_float_get_array(&itemptr, "loc", loc);
-		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1], 
-								 &mcoords[i][0], &mcoords[i][1]);
+		UI_view2d_region_to_view(&ar->v2d,
+		                         (int)loc[0], (int)loc[1],
+		                         &mcoords[i][0], &mcoords[i][1]);
 		i++;
 		if (i>= 256) break;
 	}

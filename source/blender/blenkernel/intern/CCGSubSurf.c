@@ -2406,7 +2406,7 @@ static void ccgSubSurf__allFaces(CCGSubSurf *ss, CCGFace ***faces, int *numFaces
 	CCGFace **array;
 	int i, num;
 
-	if (!*faces) {
+	if (*faces == NULL) {
 		array = MEM_mallocN(sizeof(*array) * ss->fMap->numEntries, "CCGSubsurf allFaces");
 		num = 0;
 		for (i = 0; i < ss->fMap->curSize; i++) {
