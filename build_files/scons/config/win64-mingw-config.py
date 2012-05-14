@@ -167,7 +167,7 @@ BF_BOOST_LIBPATH = BF_BOOST + '/lib'
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
-BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2', '-ftree-vectorize']
+BF_RAYOPTIMIZATION_SSE_FLAGS = ['-mmmx', '-msse', '-msse2']
 
 #Produces errors while rendering with subsurf/multires,
 WITH_BF_OPENMP = False
@@ -182,7 +182,7 @@ CXXFLAGS = [ '-fpermissive' ]
 CPPFLAGS = ['-DWIN32', '-DMS_WIN64', '-DFREE_WINDOWS', '-DFREE_WINDOWS64', '-D_LARGEFILE_SOURCE', '-D_FILE_OFFSET_BITS=64', '-D_LARGEFILE64_SOURCE', '-DBOOST_ALL_NO_LIB', '-DBOOST_THREAD_USE_LIB', '-DGLEW_STATIC']
 REL_CFLAGS = []
 REL_CXXFLAGS = []
-REL_CCFLAGS = ['-DNDEBUG', '-O2', '-mmmx', '-msse', '-msse2', '-ftree-vectorize']
+REL_CCFLAGS = ['-DNDEBUG', '-O2', '-ftree-vectorize']
 
 C_WARN = ['-Wno-char-subscripts', '-Wdeclaration-after-statement', '-Wstrict-prototypes']
 
