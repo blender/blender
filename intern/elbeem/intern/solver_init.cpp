@@ -15,6 +15,8 @@
 #include "solver_relax.h"
 // for geo init FGI_ defines
 #include "elbeem.h"
+#include "globals.h"
+
 
 // helper for 2d init
 #define SWAPYZ(vec) { \
@@ -296,9 +298,6 @@
 #endif  // LBMDIM==2
 
 
-// required globals
-extern bool glob_mpactive;
-extern int glob_mpnum, glob_mpindex;
 
 
 /******************************************************************************

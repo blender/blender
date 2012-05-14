@@ -86,6 +86,7 @@ set(SRC
 	intern/solver_interface.h
 	intern/solver_relax.h
 	intern/utilities.h
+    intern/globals.h
 )
 
 add_definitions(
