@@ -402,7 +402,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 
 /**
  * \brief the reverse of ED_clip_point_stable_pos(), gets the marker region coords.
- * better name here? view_to_tracker / tracker_to_view or so?
+ * better name here? view_to_track / track_to_view or so?
  */
 void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], float nco[2])
 {

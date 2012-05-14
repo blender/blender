@@ -968,7 +968,7 @@ static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, sho
 			if (MARKER_VISIBLE(sc, track, marker)) {
 				float screen_co[2];
 
-				/* tracker in screen coords */
+				/* marker in screen coords */
 				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
 
 				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
