@@ -1264,11 +1264,29 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
 }
 
 #ifdef WITH_LIBMV
+
+/* Convert from float and byte RGBA to grayscale. Supports different coefficients for RGB. */
+static void float_rgba_to_gray(const float *rgba, float *gray, int num_pixels, float weight_red, float weight_green, float weight_blue) {
+	int i;
+	for (i = 0; i < num_pixels; ++i) {
+		const float *pixel = rgba + 4 * i;
+		gray[i] = weight_red * pixel[0] + weight_green * pixel[1] + weight_blue * pixel[2];
+	}
+}
+
+static void uint8_rgba_to_float_gray(const unsigned char *rgba, float *gray, int num_pixels, float weight_red, float weight_green, float weight_blue) {
+	int i;
+	for (i = 0; i < num_pixels; ++i) {
+		const unsigned char *pixel = rgba + i * 4;
+		*gray++ = (weight_red * pixel[0] + weight_green * pixel[1] + weight_blue * pixel[2]) / 255.0f;
+	}
+}
+
 static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
                                   int *width_r, int *height_r, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
-	float *pixels, *fp;
+	float *gray_pixels;
 	int x, y, width, height;
 
 	width = (track->search_max[0] - track->search_min[0]) * ibuf->x;
@@ -1280,29 +1298,18 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	*width_r = width;
 	*height_r = height;
 
-	fp = pixels = MEM_callocN(width * height * sizeof(float), "tracking floatBuf");
-	for (y = 0; y < (int)height; y++) {
-		for (x = 0; x < (int)width; x++) {
-			int pixel = tmpibuf->x * y + x;
+	gray_pixels = MEM_callocN(width * height * sizeof(float), "tracking floatBuf");
 
-			if (tmpibuf->rect_float) {
-				float *rrgbf = tmpibuf->rect_float + pixel * 4;
-
-				*fp = 0.2126 * rrgbf[0] + 0.7152 * rrgbf[1] + 0.0722 * rrgbf[2];
-			}
-			else {
-				unsigned char *rrgb = (unsigned char*)tmpibuf->rect + pixel * 4;
-
-				*fp = (0.2126 * rrgb[0] + 0.7152 * rrgb[1] + 0.0722 * rrgb[2]) / 255.0f;
-			}
-
-			fp++;
-		}
+	if (tmpibuf->rect_float) {
+		float_rgba_to_gray(tmpibuf->rect_float, gray_pixels, height * width, 0.2126f, 0.7152f, 0.0722f);
+	}
+	else {
+		uint8_rgba_to_float_gray((unsigned char *)tmpibuf->rect, gray_pixels, height * width, 0.2126f, 0.7152f, 0.0722f);
 	}
 
 	IMB_freeImBuf(tmpibuf);
 
-	return pixels;
+	return gray_pixels;
 }
 
 static unsigned char *get_ucharbuf(ImBuf *ibuf)
