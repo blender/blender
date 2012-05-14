@@ -161,7 +161,7 @@ static GHash *hull_triangles_v_outside(GHash *hull_triangles, const BMVert *v)
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
 		
-		if (hull_point_tri_side(t, v->co) >= 0)
+		if (hull_point_tri_side(t, v->co) > 0)
 			BLI_ghash_insert(outside, t, NULL);
 	}
 
