@@ -305,10 +305,12 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 			float aspx, aspy;
 			int width, height;
 
+			ED_space_clip_size(sc, &width, &height);
+
 			if (t->options & CTX_MOVIECLIP)
-				ED_space_clip_size(sc, &width, &height);
-			else if (t->options & CTX_MASK)
 				ED_space_clip_aspect(sc, &aspx, &aspy);
+			else if (t->options & CTX_MASK)
+				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
 
 			vec[0] *= width / aspx;
 			vec[1] *= height / aspy;
