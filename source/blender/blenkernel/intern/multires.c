@@ -1056,12 +1056,10 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 			dispgrid = mdisp->disps;
 
 			/* if needed, reallocate multires paint mask */
-			if (gpm && op == CALC_DISPLACEMENTS) {
-				if (gpm->level < key.level) {
-					gpm->level = key.level;
-					MEM_freeN(gpm->data);
-					gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
-				}
+			if (gpm && gpm->level < key.level) {
+				gpm->level = key.level;
+				MEM_freeN(gpm->data);
+				gpm->data = MEM_callocN(sizeof(float) * key.grid_area, "gpm.data");
 			}
 
 			for (y = 0; y < gridSize; y++) {
