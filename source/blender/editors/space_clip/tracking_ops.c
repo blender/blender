@@ -315,7 +315,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	}
 
 	if ((area == TRACK_AREA_SEARCH) ||
-		(area == TRACK_AREA_PAT && !ELEM(action, SLIDE_ACTION_OFFSET, SLIDE_ACTION_POS)))
+		(area == TRACK_AREA_PAT && action != SLIDE_ACTION_OFFSET))
 	{
 		if (data->corners) {
 			memcpy(data->scorners, data->corners, sizeof(data->scorners));
@@ -591,7 +591,9 @@ static void cancel_mouse_slide(SlideMarkerData *data)
 			copy_v2_v2(data->pos, data->spos);
 	}
 	else {
-		if (data->action == SLIDE_ACTION_SIZE) {
+		if ((data->action == SLIDE_ACTION_SIZE) ||
+		    (data->action == SLIDE_ACTION_POS && data->area == TRACK_AREA_PAT))
+		{
 			if (data->corners) {
 				memcpy(data->corners, data->scorners, sizeof(data->scorners));
 			}
@@ -663,8 +665,6 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 				else {
 					data->pos[0] = data->spos[0] + dx;
 					data->pos[1] = data->spos[1] + dy;
-
-					data->marker->flag &= ~MARKER_TRACKED;
 				}
 
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
@@ -733,6 +733,8 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
 				}
 			}
+
+			data->marker->flag &= ~MARKER_TRACKED;
 
 			WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, NULL);
 
