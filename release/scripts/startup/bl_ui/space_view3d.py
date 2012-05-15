@@ -1989,7 +1989,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 
             layout.separator()
 
-            layout.menu("VIEW3D_MT_hook")
+        layout.menu("VIEW3D_MT_hook")
 
 
 class VIEW3D_MT_edit_curve_segments(Menu):
