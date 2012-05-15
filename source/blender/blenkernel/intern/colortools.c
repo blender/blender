@@ -146,6 +146,32 @@ void curvemapping_set_black_white(CurveMapping *cumap, const float black[3], con
 /* ***************** operations on single curve ************* */
 /* ********** NOTE: requires curvemapping_changed() call after ******** */
 
+/* remove specified point */
+void curvemap_remove_point(CurveMap *cuma, CurveMapPoint *point)
+{
+	CurveMapPoint *cmp;
+	int a, b, removed = 0;
+	
+	/* must have 2 points minimum */
+	if (cuma->totpoint <= 2)
+		return;
+
+	cmp = MEM_mallocN((cuma->totpoint) * sizeof(CurveMapPoint), "curve points");
+
+	/* well, lets keep the two outer points! */
+	for (a = 0, b = 0; a < cuma->totpoint; a++) {
+		if (&cuma->curve[a] != point) {
+			cmp[b] = cuma->curve[a];
+			b++;
+		}
+		else removed++;
+	}
+	
+	MEM_freeN(cuma->curve);
+	cuma->curve = cmp;
+	cuma->totpoint -= removed;
+}
+
 /* removes with flag set */
 void curvemap_remove(CurveMap *cuma, int flag)
 {
@@ -168,9 +194,10 @@ void curvemap_remove(CurveMap *cuma, int flag)
 	cuma->totpoint -= removed;
 }
 
-void curvemap_insert(CurveMap *cuma, float x, float y)
+CurveMapPoint *curvemap_insert(CurveMap *cuma, float x, float y)
 {
 	CurveMapPoint *cmp = MEM_callocN((cuma->totpoint + 1) * sizeof(CurveMapPoint), "curve points");
+	CurveMapPoint *newcmp = NULL;
 	int a, b, foundloc = 0;
 		
 	/* insert fragments of the old one and the new point to the new curve */
@@ -181,6 +208,7 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 			cmp[a].y = y;
 			cmp[a].flag = CUMA_SELECT;
 			foundloc = 1;
+			newcmp = &cmp[a];
 		}
 		else {
 			cmp[a].x = cuma->curve[b].x;
@@ -195,6 +223,8 @@ void curvemap_insert(CurveMap *cuma, float x, float y)
 	/* free old curve and replace it with new one */
 	MEM_freeN(cuma->curve);
 	cuma->curve = cmp;
+
+	return newcmp;
 }
 
 void curvemap_reset(CurveMap *cuma, rctf *clipr, int preset, int slope)
@@ -668,6 +698,20 @@ void curvemapping_changed(CurveMapping *cumap, int rem_doubles)
 			curvemap_remove(cuma, 2);
 	}	
 	curvemap_make_table(cuma, clipr);
+}
+
+void curvemapping_changed_all(CurveMapping *cumap)
+{
+	int a, cur = cumap->cur;
+
+	for (a = 0; a < CM_TOT; a++) {
+		if (cumap->cm[a].curve) {
+			cumap->cur = a;
+			curvemapping_changed(cumap, 0);
+		}
+	}
+
+	cumap->cur = cur;
 }
 
 /* table should be verified */
