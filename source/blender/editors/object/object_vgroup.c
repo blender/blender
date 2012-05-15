@@ -590,7 +590,6 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 }
 
 /*Copy a single vertex group from source to destination with weights interpolated over nearest face*/
-/*TODO: transform into target space as in by_vertex function. postphoned due to easier testing during development*/
 int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 {
 	bDeformGroup *dg_src, *dg_dst;
@@ -601,9 +600,9 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	MVert *mv_dst, *mv_src;
 	MFace *mface_src;
 	BVHTreeNearest nearest;
-	MDeformWeight *dw_dst, *dw_src;
+	MDeformWeight *dw_dst;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
-	float weight, tot_distribution, distribution_v1, distribution_v2, distribution_v3, distribution_v4, tmp_co[3], tmp_co_v4[3], normal[3];
+	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4];
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -638,6 +637,10 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	/*get faces*/
 	mface_src= dmesh_src->getTessFaceArray(dmesh_src);
 
+	/*prepare transformation matrix*/
+	invert_m4_m4(ob_src->imat, ob_src->obmat);
+	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
+
 	/* loop through the vertices and copy weight from nearest weight*/
 	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
 
@@ -645,80 +648,25 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
-		/*set destination coordinate*/
-		copy_v3_v3(tmp_co, mv_dst->co);
-
 		/*node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
-		/*project destination coordinate onto face*/
+		/*transform into target space onto face*/
+		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 		normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
 		project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
 
-		/*get distances*/
-		distribution_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
-		distribution_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
-		distribution_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+		/*interpolate weights*/
+		interp_weights_face_v3(tmp_weight, mv_src[mface_src[nearest.index].v1].co,
+																		mv_src[mface_src[nearest.index].v2].co,
+																			mv_src[mface_src[nearest.index].v3].co,
+																				mv_src[mface_src[nearest.index].v4].co, tmp_co);
 
-		/*get weight from overlapping vert if any*/
-		if(distribution_v1 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
-		if(distribution_v2 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
-		if(distribution_v3 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
-		else{
-			/*invert distribution*/
-			distribution_v1= 1/distribution_v1;
-			distribution_v2= 1/distribution_v2;
-			distribution_v3= 1/distribution_v3;
-
-			/*set total distribution*/
-			tot_distribution= distribution_v1 + distribution_v2 + distribution_v3;
-
-			/*check for quad*/
-			if(mface_src[nearest.index].v4){
-				/*project vertex nr4 coordinate onto face and distribute*/
-				copy_v3_v3(tmp_co_v4, mv_src[mface_src[nearest.index].v4].co);
-				project_v3_plane(tmp_co_v4, normal, mv_src[mface_src[nearest.index].v1].co);
-				distribution_v4= len_squared_v3v3(tmp_co, tmp_co_v4);
-				if(distribution_v4 == 0) weight= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
-				else{
-					distribution_v4= 1/distribution_v4;
-					tot_distribution+= distribution_v4;
-
-					/*get weight from quad*/
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-					weight= dw_src->weight * distribution_v1 / tot_distribution;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-					weight+= dw_src->weight * distribution_v2 / tot_distribution;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-					weight+= dw_src->weight * distribution_v3 / tot_distribution;
-					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-					weight+= dw_src->weight * distribution_v4 / tot_distribution;
-				}
-			}
-			else{
-				/*get weight from triangle*/
-				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-				weight= dw_src->weight * distribution_v1 / tot_distribution;
-				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-				weight+= dw_src->weight * distribution_v2 / tot_distribution;
-				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-				weight+= dw_src->weight * distribution_v3 / tot_distribution;
-			}
-		}
-
-		/*dist_to_line_segment_v3()*/
-		/*There is probably something fundamentaly wrong about the interpolation.
-		When a vertex is on an edge, it should get no weight from the vertex not connected to the edge...
-		Projected onto edge it should get linar interpolation from two vertices.
-		so it should get the interpolated weight from the third vertex based on the inverted distance from edge along normal to edge!
-		if I got this right! :P
-		*/
-		/*snap to valid number, for testing. This should not be nessecary if interpolation works as its supposed to! or is my logick wrong???*//*
-		weight*= 1000;
-		weight+= 0.5;
-		weight= (int)weight;
-		weight/=1000;
-		if(weight>1)weight= 1;*/
+		/*get weights*/
+		weight= tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+		weight+= tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+		weight+= tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+		weight+= tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
 
 		/*copy weight*/
 		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
