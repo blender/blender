@@ -444,8 +444,7 @@ static void clip_operatortypes(void)
 
 	/* markers */
 	WM_operatortype_append(CLIP_OT_add_marker);
-	/* XXX: need porting! */
-	//WM_operatortype_append(CLIP_OT_slide_marker);
+	WM_operatortype_append(CLIP_OT_slide_marker);
 	WM_operatortype_append(CLIP_OT_delete_track);
 	WM_operatortype_append(CLIP_OT_delete_marker);
 
@@ -624,8 +623,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_marker", DELKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CLIP_OT_delete_marker", XKEY, KM_PRESS, KM_SHIFT, 0);
 
-	/* XXX: need porting */
-	//WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "CLIP_OT_slide_marker", LEFTMOUSE, KM_PRESS, 0, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CLIP_OT_disable_markers", DKEY, KM_PRESS, KM_SHIFT, 0);
 	RNA_enum_set(kmi->ptr, "action", 2);	/* toggle */

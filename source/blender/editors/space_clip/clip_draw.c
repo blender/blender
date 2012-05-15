@@ -719,24 +719,69 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	glPopMatrix();
 }
 
+static float get_shortest_pattern_side(MovieTrackingMarker *marker)
+{
+	int i, next;
+	float len = FLT_MAX;
+
+	for (i = 0; i < 4; i++) {
+		float cur_len;
+
+		next = (i + 1) % 4;
+
+		cur_len = len_v2v2(marker->pattern_corners[i], marker->pattern_corners[next]);
+
+		len = MIN2(cur_len, len);
+	}
+
+	return len;
+}
+
+static void draw_marker_slide_square(float x, float y, float dx, float dy, int outline, float px[2])
+{
+	float tdx, tdy;
+
+	tdx = dx;
+	tdy = dy;
+
+	if (outline) {
+		tdx += px[0];
+		tdy += px[1];
+	}
+
+	glBegin(GL_QUADS);
+		glVertex3f(x - tdx, y + tdy, 0.0f);
+		glVertex3f(x + tdx, y + tdy, 0.0f);
+		glVertex3f(x + tdx, y - tdy, 0.0f);
+		glVertex3f(x - tdx, y - tdy, 0.0f);
+	glEnd();
+}
+
+static void draw_marker_slide_triangle(float x, float y, float dx, float dy, int outline, float px[2])
+{
+	float tdx, tdy;
+
+	tdx = dx * 2.0f;
+	tdy = dy * 2.0f;
+
+	if (outline) {
+		tdx += px[0];
+		tdy += px[1];
+	}
+
+	glBegin(GL_TRIANGLES);
+		glVertex3f(x,       y,       0.0f);
+		glVertex3f(x - tdx, y,       0.0f);
+		glVertex3f(x,       y + tdy, 0.0f);
+	glEnd();
+}
+
 static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
                                     float marker_pos[2], int outline, int sel, int act, int width, int height)
 {
-#if 1
-	/* XXX: not re-implemented yet */
-	(void) sc;
-	(void) track;
-	(void) marker;
-	(void) marker_pos;
-	(void) outline;
-	(void) sel;
-	(void) act;
-	(void) width;
-	(void) height;
-#else
-	float x, y, dx, dy, patdx, patdy, searchdx, searchdy, tdx, tdy;
+	float dx, dy, patdx, patdy, searchdx, searchdy;
 	int tiny = sc->flag & SC_SHOW_TINY_MARKER;
-	float col[3], scol[3], px[2];
+	float col[3], scol[3], px[2], side;
 
 	if ((tiny && outline) || (marker->flag & MARKER_DISABLED))
 		return;
@@ -757,8 +802,9 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	dx = 6.0f / width / sc->zoom;
 	dy = 6.0f / height / sc->zoom;
 
-	patdx = MIN2(dx * 2.0f / 3.0f, (track->pat_max[0] - track->pat_min[0]) / 6.0f);
-	patdy = MIN2(dy * 2.0f / 3.0f, (track->pat_max[1] - track->pat_min[1]) / 6.0f);
+	side = get_shortest_pattern_side(marker);
+	patdx = MIN2(dx * 2.0f / 3.0f, side / 6.0f);
+	patdy = MIN2(dy * 2.0f / 3.0f, side * width / height / 6.0f);
 
 	searchdx = MIN2(dx, (track->search_max[0] - track->search_min[0]) / 6.0f);
 	searchdy = MIN2(dy, (track->search_max[1] - track->search_min[1]) / 6.0f);
@@ -775,41 +821,10 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		}
 
 		/* search offset square */
-		x = track->search_min[0];
-		y = track->search_max[1];
-
-		tdx = searchdx;
-		tdy = searchdy;
-
-		if (outline) {
-			tdx += px[0];
-			tdy += px[1];
-		}
-
-		glBegin(GL_QUADS);
-			glVertex3f(x - tdx, y + tdy, 0);
-			glVertex3f(x + tdx, y + tdy, 0);
-			glVertex3f(x + tdx, y - tdy, 0);
-			glVertex3f(x - tdx, y - tdy, 0);
-		glEnd();
+		draw_marker_slide_square(track->search_min[0], track->search_max[1], searchdx, searchdy, outline, px);
 
 		/* search re-sizing triangle */
-		x = track->search_max[0];
-		y = track->search_min[1];
-
-		tdx = searchdx * 2.0f;
-		tdy = searchdy * 2.0f;
-
-		if (outline) {
-			tdx += px[0];
-			tdy += px[1];
-		}
-
-		glBegin(GL_TRIANGLES);
-			glVertex3f(x, y, 0);
-			glVertex3f(x - tdx, y, 0);
-			glVertex3f(x, y + tdy, 0);
-		glEnd();
+		draw_marker_slide_triangle(track->search_max[0], track->search_min[1], searchdx, searchdy, outline, px);
 	}
 
 	if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
@@ -820,49 +835,32 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 				glColor3fv(col);
 		}
 
-		/* pattern offset square */
-		x = track->pat_min[0];
-		y = track->pat_max[1];
+		/* XXX: need to be real check if affine tracking is enabled, but for now not
+		 *      sure how to do this, so assume affine tracker is always enabled */
+		if (TRUE) {
+			int i;
 
-		tdx = patdx;
-		tdy = patdy;
-
-		if (outline) {
-			tdx += px[0];
-			tdy += px[1];
+			/* pattern's corners sliding squares */
+			for (i = 0; i < 4; i++) {
+				draw_marker_slide_square(marker->pattern_corners[i][0], marker->pattern_corners[i][1],
+				                         patdx / 1.5f, patdy / 1.5f, outline, px);
+			}
 		}
+		else {
+			/* pattern offset square */
+			draw_marker_slide_square(marker->pattern_corners[3][0], marker->pattern_corners[3][1],
+			                         patdx, patdy, outline, px);
 
-		glBegin(GL_QUADS);
-			glVertex3f(x - tdx, y + tdy, 0);
-			glVertex3f(x + tdx, y + tdy, 0);
-			glVertex3f(x + tdx, y - tdy, 0);
-			glVertex3f(x - tdx, y - tdy, 0);
-		glEnd();
-
-		/* pattern re-sizing triangle */
-		x = track->pat_max[0];
-		y = track->pat_min[1];
-
-		tdx = patdx*2.0f;
-		tdy = patdy*2.0f;
-
-		if (outline) {
-			tdx += px[0];
-			tdy += px[1];
+			/* pattern re-sizing triangle */
+			draw_marker_slide_triangle(marker->pattern_corners[1][0], marker->pattern_corners[1][1],
+			                           patdx, patdy, outline, px);
 		}
-
-		glBegin(GL_TRIANGLES);
-			glVertex3f(x, y, 0);
-			glVertex3f(x - tdx, y, 0);
-			glVertex3f(x, y + tdy, 0);
-		glEnd();
 	}
 
 	glPopMatrix();
 
 	if (outline)
 		glLineWidth(1.0f);
-#endif
 }
 
 static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
