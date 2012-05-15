@@ -67,10 +67,10 @@ static void initData(ModifierData *md)
 	cloth_init(clmd);
 }
 
-static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, float (*vertexCos)[3],
-                        int UNUSED(numVerts), ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+								  DerivedMesh *dm,
+								  ModifierApplyFlag UNUSED(flag))
 {
-	DerivedMesh *dm;
 	ClothModifierData *clmd = (ClothModifierData *) md;
 	DerivedMesh *result = NULL;
 	
@@ -79,25 +79,20 @@ static void deformVerts(ModifierData *md, Object *ob, DerivedMesh *derivedData, 
 		initData(md);
 
 		if (!clmd->sim_parms || !clmd->coll_parms)
-			return;
+			return dm;
 	}
-
-	dm = get_dm(ob, NULL, derivedData, NULL, 0);
-	if (dm == derivedData)
-		dm = CDDM_copy(dm);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
 
 	DM_ensure_tessface(dm); /* BMESH - UNTIL MODIFIER IS UPDATED FOR MPoly */
 
-	clothModifier_do(clmd, md->scene, ob, dm, vertexCos);
+	result = clothModifier_do(clmd, md->scene, ob, dm);
 
-	if (result) {
-		result->getVertCos(result, vertexCos);
-		result->release(result);
+	if(result)
+	{
+		CDDM_calc_normals(result);
+		return result;
 	}
 
-	dm->release(dm);
+	return dm;
 }
 
 static void updateDepgraph(ModifierData *md, DagForest *forest, Scene *scene, Object *ob, DagNode *obNode)
@@ -205,17 +200,17 @@ ModifierTypeInfo modifierType_Cloth = {
 	/* name */              "Cloth",
 	/* structName */        "ClothModifierData",
 	/* structSize */        sizeof(ClothModifierData),
-	/* type */              eModifierTypeType_OnlyDeform,
+	/* type */              eModifierTypeType_Constructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
 	                        eModifierTypeFlag_UsesPointCache |
 	                        eModifierTypeFlag_Single,
 
 	/* copyData */          copyData,
-	/* deformVerts */       deformVerts,
+	/* deformVerts */       NULL,
 	/* deformMatrices */    NULL,
 	/* deformVertsEM */     NULL,
 	/* deformMatricesEM */  NULL,
-	/* applyModifier */     NULL,
+	/* applyModifier */     applyModifier,
 	/* applyModifierEM */   NULL,
 	/* initData */          initData,
 	/* requiredDataMask */  requiredDataMask,
