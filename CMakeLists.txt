@@ -837,6 +837,15 @@ elseif(WIN32)
 			set(GETTEXT_LIBPATH ${GETTEXT}/lib)
 			set(GETTEXT_LIBRARIES gnu_gettext)
 		endif()
+		
+		set(LAPACK ${LIBDIR}/lapack)
+		# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
+		set_lib_path(LAPACK_LIBPATH ${LAPACK}/lib)	
+		set(LAPACK_LIBRARIES
+			${LIBDIR}/lapack/lib/libf2c.lib
+			${LIBDIR}/lapack/lib/clapack_nowrap.lib
+			${LIBDIR}/lapack/lib/BLAS_nowrap.lib
+		)
 
 		set(PNG_LIBRARIES libpng)
 		set(JPEG_LIBRARIES libjpeg)
