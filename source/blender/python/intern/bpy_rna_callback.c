@@ -107,7 +107,7 @@ PyObject *pyrna_callback_add(BPy_StructRNA *self, PyObject *args)
 		Py_INCREF(args);
 	}
 	else {
-		PyErr_SetString(PyExc_TypeError, "callback_add(): type does not suppport callbacks");
+		PyErr_SetString(PyExc_TypeError, "callback_add(): type does not support callbacks");
 		return NULL;
 	}
 
