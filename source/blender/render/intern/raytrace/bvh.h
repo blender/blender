@@ -59,12 +59,12 @@ inline int test_bb_group4(__m128 *bb_group, const Isect *isec)
 	copy_v3_v3(start, isec->start);
 	copy_v3_v3(idot_axis, isec->idot_axis);
 
-	const __m128 tmin1 = _mm_max_ps(tmin0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[0]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
-	const __m128 tmax1 = _mm_min_ps(tmax0, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[1]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
-	const __m128 tmin2 = _mm_max_ps(tmin1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[2]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
-	const __m128 tmax2 = _mm_min_ps(tmax1, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[3]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
-	const __m128 tmin3 = _mm_max_ps(tmin2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[4]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
-	const __m128 tmax3 = _mm_min_ps(tmax2, _mm_mul_ps( _mm_sub_ps( bb_group[isec->bv_index[5]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
+	const __m128 tmin1 = _mm_max_ps(tmin0, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[0]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
+	const __m128 tmax1 = _mm_min_ps(tmax0, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[1]], _mm_set_ps1(start[0]) ), _mm_set_ps1(idot_axis[0])) );
+	const __m128 tmin2 = _mm_max_ps(tmin1, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[2]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
+	const __m128 tmax2 = _mm_min_ps(tmax1, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[3]], _mm_set_ps1(start[1]) ), _mm_set_ps1(idot_axis[1])) );
+	const __m128 tmin3 = _mm_max_ps(tmin2, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[4]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
+	const __m128 tmax3 = _mm_min_ps(tmax2, _mm_mul_ps(_mm_sub_ps(bb_group[isec->bv_index[5]], _mm_set_ps1(start[2]) ), _mm_set_ps1(idot_axis[2])) );
 	
 	return _mm_movemask_ps(_mm_cmpge_ps(tmax3, tmin3));
 }
@@ -142,7 +142,7 @@ static float bvh_cost(Tree *obj)
 /* bvh tree nodes generics */
 template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec)
 {
-	return rayobject_bb_intersect_test(isec, (const float*)node->bb);
+	return rayobject_bb_intersect_test(isec, (const float *)node->bb);
 }
 
 
@@ -185,7 +185,7 @@ static int bvh_node_stack_raycast(Node *root, Isect *isec)
 			}
 		}
 		else {
-			hit |= RE_rayobject_intersect( (RayObject*)node, isec);
+			hit |= RE_rayobject_intersect( (RayObject *)node, isec);
 			if (SHADOW && hit) return hit;
 		}
 	}
@@ -211,84 +211,84 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 			if (!is_leaf(root->child))
 				bvh_node_push_childs(root, isec, stack, stack_pos);
 			else
-				return RE_rayobject_intersect( (RayObject*)root->child, isec);
+				return RE_rayobject_intersect( (RayObject *)root->child, isec);
 		}
 		else
-			return RE_rayobject_intersect( (RayObject*)root, isec);
+			return RE_rayobject_intersect( (RayObject *)root, isec);
 	}
 	else {
 		if (!is_leaf(root))
 			stack[stack_pos++] = root;
 		else
-			return RE_rayobject_intersect( (RayObject*)root, isec);
+			return RE_rayobject_intersect( (RayObject *)root, isec);
 	}
 
 	while (true) {
 		//Use SIMD 4
 		if (stack_pos >= 4) {
 			__m128 t_bb[6];
-			Node * t_node[4];
+			Node *t_node[4];
 			
 			stack_pos -= 4;
 
 			/* prepare the 4BB for SIMD */
-			t_node[0] = stack[stack_pos+0]->child;
-			t_node[1] = stack[stack_pos+1]->child;
-			t_node[2] = stack[stack_pos+2]->child;
-			t_node[3] = stack[stack_pos+3]->child;
-			
-			const float *bb0 = stack[stack_pos+0]->bb;
-			const float *bb1 = stack[stack_pos+1]->bb;
-			const float *bb2 = stack[stack_pos+2]->bb;
-			const float *bb3 = stack[stack_pos+3]->bb;
-			
-			const __m128 x0y0x1y1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(1, 0, 1, 0) );
-			const __m128 x2y2x3y3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(1, 0, 1, 0) );
-			t_bb[0] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2, 0, 2, 0) );
-			t_bb[1] = _mm_shuffle_ps( x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3, 1, 3, 1) );
+			t_node[0] = stack[stack_pos + 0]->child;
+			t_node[1] = stack[stack_pos + 1]->child;
+			t_node[2] = stack[stack_pos + 2]->child;
+			t_node[3] = stack[stack_pos + 3]->child;
 
-			const __m128 z0X0z1X1 = _mm_shuffle_ps( _mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3, 2, 3, 2) );
-			const __m128 z2X2z3X3 = _mm_shuffle_ps( _mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3, 2, 3, 2) );
-			t_bb[2] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2, 0, 2, 0) );
-			t_bb[3] = _mm_shuffle_ps( z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3, 1, 3, 1) );
+			const float *bb0 = stack[stack_pos + 0]->bb;
+			const float *bb1 = stack[stack_pos + 1]->bb;
+			const float *bb2 = stack[stack_pos + 2]->bb;
+			const float *bb3 = stack[stack_pos + 3]->bb;
 
-			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps( _mm_load_ps(bb0+4), _mm_load_ps(bb1+4), _MM_SHUFFLE(1, 0, 1, 0) );
-			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps( _mm_load_ps(bb2+4), _mm_load_ps(bb3+4), _MM_SHUFFLE(1, 0, 1, 0) );
-			t_bb[4] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2, 0, 2, 0) );
-			t_bb[5] = _mm_shuffle_ps( Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3, 1, 3, 1) );
+			const __m128 x0y0x1y1 = _mm_shuffle_ps(_mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(1, 0, 1, 0) );
+			const __m128 x2y2x3y3 = _mm_shuffle_ps(_mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(1, 0, 1, 0) );
+			t_bb[0] = _mm_shuffle_ps(x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[1] = _mm_shuffle_ps(x0y0x1y1, x2y2x3y3, _MM_SHUFFLE(3, 1, 3, 1) );
+
+			const __m128 z0X0z1X1 = _mm_shuffle_ps(_mm_load_ps(bb0), _mm_load_ps(bb1), _MM_SHUFFLE(3, 2, 3, 2) );
+			const __m128 z2X2z3X3 = _mm_shuffle_ps(_mm_load_ps(bb2), _mm_load_ps(bb3), _MM_SHUFFLE(3, 2, 3, 2) );
+			t_bb[2] = _mm_shuffle_ps(z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[3] = _mm_shuffle_ps(z0X0z1X1, z2X2z3X3, _MM_SHUFFLE(3, 1, 3, 1) );
+
+			const __m128 Y0Z0Y1Z1 = _mm_shuffle_ps(_mm_load_ps(bb0 + 4), _mm_load_ps(bb1 + 4), _MM_SHUFFLE(1, 0, 1, 0) );
+			const __m128 Y2Z2Y3Z3 = _mm_shuffle_ps(_mm_load_ps(bb2 + 4), _mm_load_ps(bb3 + 4), _MM_SHUFFLE(1, 0, 1, 0) );
+			t_bb[4] = _mm_shuffle_ps(Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(2, 0, 2, 0) );
+			t_bb[5] = _mm_shuffle_ps(Y0Z0Y1Z1, Y2Z2Y3Z3, _MM_SHUFFLE(3, 1, 3, 1) );
 #if 0
-			for(int i=0; i<4; i++)
+			for (int i = 0; i < 4; i++)
 			{
-				Node *t = stack[stack_pos+i];
+				Node *t = stack[stack_pos + i];
 				assert(!is_leaf(t));
 				
-				float *bb = ((float*)t_bb)+i;
-				bb[4*0] = t->bb[0];
-				bb[4*1] = t->bb[1];
-				bb[4*2] = t->bb[2];
-				bb[4*3] = t->bb[3];
-				bb[4*4] = t->bb[4];
-				bb[4*5] = t->bb[5];
+				float *bb = ((float *)t_bb) + i;
+				bb[4 * 0] = t->bb[0];
+				bb[4 * 1] = t->bb[1];
+				bb[4 * 2] = t->bb[2];
+				bb[4 * 3] = t->bb[3];
+				bb[4 * 4] = t->bb[4];
+				bb[4 * 5] = t->bb[5];
 				t_node[i] = t->child;
 			}
 #endif
 			RE_RC_COUNT(isec->raycounter->simd_bb.test);
-			int res = test_bb_group4( t_bb, isec );
+			int res = test_bb_group4(t_bb, isec);
 
 			for (int i = 0; i < 4; i++)
-			if (res & (1 << i)) {
-				RE_RC_COUNT(isec->raycounter->simd_bb.hit);
-				if (!is_leaf(t_node[i])) {
-					for (Node *t = t_node[i]; t; t = t->sibling) {
-						assert(stack_pos < MAX_STACK_SIZE);
-						stack[stack_pos++] = t;
+				if (res & (1 << i)) {
+					RE_RC_COUNT(isec->raycounter->simd_bb.hit);
+					if (!is_leaf(t_node[i])) {
+						for (Node *t = t_node[i]; t; t = t->sibling) {
+							assert(stack_pos < MAX_STACK_SIZE);
+							stack[stack_pos++] = t;
+						}
+					}
+					else {
+						hit |= RE_rayobject_intersect( (RayObject *)t_node[i], isec);
+						if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 					}
 				}
-				else {
-					hit |= RE_rayobject_intersect( (RayObject*)t_node[i], isec);
-					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
-				}	
-			}
 		}
 		else if (stack_pos > 0) {
 			Node *node = stack[--stack_pos];
@@ -300,7 +300,7 @@ static int bvh_node_stack_raycast_simd(Node *root, Isect *isec)
 					assert(stack_pos <= MAX_STACK_SIZE);
 				}
 				else {
-					hit |= RE_rayobject_intersect( (RayObject*)node->child, isec);
+					hit |= RE_rayobject_intersect( (RayObject *)node->child, isec);
 					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 			}
@@ -324,7 +324,7 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 		if (isec->idot_axis[node->split_axis] > 0.0f)
 		{
 			int i;
-			for(i=0; i<BVH_NCHILDS; i++)
+			for (i = 0; i < BVH_NCHILDS; i++)
 				if (!is_leaf(node->child[i]))
 				{
 					if (node->child[i] == 0) break;
@@ -332,16 +332,14 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 					hit |= bvh_node_raycast(node->child[i], isec);
 					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
-				else
-				{
-					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
+				else {
+					hit |= RE_rayobject_intersect( (RayObject *)node->child[i], isec);
 					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
-		else
-		{
+		else {
 			int i;
-			for(i=BVH_NCHILDS-1; i>=0; i--)
+			for (i = BVH_NCHILDS - 1; i >= 0; i--)
 				if (!is_leaf(node->child[i]))
 				{
 					if (node->child[i])
@@ -350,9 +348,8 @@ static int bvh_node_raycast(Node *node, Isect *isec)
 						if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 					}
 				}
-				else
-				{
-					hit |= RE_rayobject_intersect( (RayObject*)node->child[i], isec);
+				else {
+					hit |= RE_rayobject_intersect( (RayObject *)node->child[i], isec);
 					if (hit && isec->mode == RE_RAY_SHADOW) return hit;
 				}
 		}
@@ -367,44 +364,44 @@ void bvh_dfs_make_hint(Node *node, LCTSHint *hint, int reserve_space, HintObject
 	assert(hint->size + reserve_space + 1 <= RE_RAY_LCTS_MAX_SIZE);
 	
 	if (is_leaf(node)) {
-		hint->stack[hint->size++] = (RayObject*)node;
+		hint->stack[hint->size++] = (RayObject *)node;
 	}
 	else {
 		int childs = count_childs(node);
 		if (hint->size + reserve_space + childs <= RE_RAY_LCTS_MAX_SIZE) {
-			int result = hint_test_bb(hintObject, node->bb, node->bb+3);
+			int result = hint_test_bb(hintObject, node->bb, node->bb + 3);
 			if (result == HINT_RECURSE) {
 				/* We are 100% sure the ray will be pass inside this node */
 				bvh_dfs_make_hint_push_siblings(node->child, hint, reserve_space, hintObject);
 			}
 			else if (result == HINT_ACCEPT) {
-				hint->stack[hint->size++] = (RayObject*)node;
+				hint->stack[hint->size++] = (RayObject *)node;
 			}
 		}
 		else {
-			hint->stack[hint->size++] = (RayObject*)node;
+			hint->stack[hint->size++] = (RayObject *)node;
 		}
 	}
 }
 
 
 template<class Tree>
-static RayObjectAPI* bvh_get_api(int maxstacksize);
+static RayObjectAPI *bvh_get_api(int maxstacksize);
 
 
 template<class Tree, int DFS_STACK_SIZE>
 static inline RayObject *bvh_create_tree(int size)
 {
-	Tree *obj= (Tree*)MEM_callocN(sizeof(Tree), "BVHTree" );
+	Tree *obj = (Tree *)MEM_callocN(sizeof(Tree), "BVHTree");
 	assert(RE_rayobject_isAligned(obj)); /* RayObject API assumes real data to be 4-byte aligned */
 	
 	obj->rayobj.api = bvh_get_api<Tree>(DFS_STACK_SIZE);
 	obj->root = NULL;
 	
 	obj->node_arena = NULL;
-	obj->builder    = rtbuild_create( size );
+	obj->builder    = rtbuild_create(size);
 	
-	return RE_rayobject_unalignRayAPI((RayObject*) obj);
+	return RE_rayobject_unalignRayAPI((RayObject *) obj);
 }
 
 #endif

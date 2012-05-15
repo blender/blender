@@ -366,12 +366,12 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 }
 
 //Determines collisions on overlap, collisions are written to collpair[i] and collision+number_collision_found is returned
-static CollPair* cloth_collision ( ModifierData *md1, ModifierData *md2, 
-	BVHTreeOverlap *overlap, CollPair *collpair, float UNUSED(dt) )
+static CollPair* cloth_collision(ModifierData *md1, ModifierData *md2,
+                                 BVHTreeOverlap *overlap, CollPair *collpair, float UNUSED(dt))
 {
 	ClothModifierData *clmd = (ClothModifierData *)md1;
 	CollisionModifierData *collmd = (CollisionModifierData *) md2;
-	Cloth *cloth = clmd->clothObject;
+	/* Cloth *cloth = clmd->clothObject; */ /* UNUSED */
 	MFace *face1=NULL, *face2 = NULL;
 #ifdef USE_BULLET
 	ClothVertex *verts1 = clmd->clothObject->verts;

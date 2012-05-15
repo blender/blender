@@ -2301,7 +2301,7 @@ class VIEW3D_PT_view3d_cursor(Panel):
     @classmethod
     def poll(cls, context):
         view = context.space_data
-        return (view)
+        return (view is not None)
 
     def draw(self, context):
         layout = self.layout

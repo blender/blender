@@ -40,10 +40,9 @@
 
 #ifdef __SSE__
 
-#define DFS_STACK_SIZE	256
+#define DFS_STACK_SIZE  256
 
-struct QBVHTree
-{
+struct QBVHTree {
 	RayObject rayobj;
 
 	SVBVHNode *root;
@@ -61,11 +60,11 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 	
 	//TODO find a away to exactly calculate the needed memory
 	MemArena *arena1 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "qbvh arena");
-					   BLI_memarena_use_malloc(arena1);
+	BLI_memarena_use_malloc(arena1);
 
 	MemArena *arena2 = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "qbvh arena 2");
-					   BLI_memarena_use_malloc(arena2);
-					   BLI_memarena_use_align(arena2, 16);
+	BLI_memarena_use_malloc(arena2);
+	BLI_memarena_use_align(arena2, 16);
 
 	//Build and optimize the tree
 	//TODO do this in 1 pass (half memory usage during building)
@@ -95,7 +94,7 @@ void bvh_done<QBVHTree>(QBVHTree *obj)
 }
 
 template<int StackSize>
-int intersect(QBVHTree *obj, Isect* isec)
+int intersect(QBVHTree *obj, Isect *isec)
 {
 	//TODO renable hint support
 	if (RE_rayobject_isAligned(obj->root)) {
@@ -105,7 +104,7 @@ int intersect(QBVHTree *obj, Isect* isec)
 			return svbvh_node_stack_raycast<StackSize, false>(obj->root, isec);
 	}
 	else
-		return RE_rayobject_intersect((RayObject*)obj->root, isec);
+		return RE_rayobject_intersect((RayObject *)obj->root, isec);
 }
 
 template<class Tree>
@@ -114,7 +113,7 @@ void bvh_hint_bb(Tree *tree, LCTSHint *hint, float *UNUSED(min), float *UNUSED(m
 	//TODO renable hint support
 	{
 		hint->size = 0;
-		hint->stack[hint->size++] = (RayObject*)tree->root;
+		hint->stack[hint->size++] = (RayObject *)tree->root;
 	}
 }
 /* the cast to pointer function is needed to workarround gcc bug: http://gcc.gnu.org/bugzilla/show_bug.cgi?id=11407 */
@@ -123,20 +122,20 @@ RayObjectAPI make_api()
 {
 	static RayObjectAPI api = 
 	{
-		(RE_rayobject_raycast_callback) ((int(*)(Tree*, Isect*)) &intersect<STACK_SIZE>),
-		(RE_rayobject_add_callback)     ((void(*)(Tree*, RayObject*)) &bvh_add<Tree>),
-		(RE_rayobject_done_callback)    ((void(*)(Tree*))       &bvh_done<Tree>),
-		(RE_rayobject_free_callback)    ((void(*)(Tree*))       &bvh_free<Tree>),
-		(RE_rayobject_merge_bb_callback)((void(*)(Tree*, float*, float*)) &bvh_bb<Tree>),
-		(RE_rayobject_cost_callback)	((float(*)(Tree*))      &bvh_cost<Tree>),
-		(RE_rayobject_hint_bb_callback)	((void(*)(Tree*, LCTSHint*, float*, float*)) &bvh_hint_bb<Tree>)
+		(RE_rayobject_raycast_callback) ((int   (*)(Tree *, Isect *)) & intersect<STACK_SIZE>),
+		(RE_rayobject_add_callback)     ((void  (*)(Tree *, RayObject *)) & bvh_add<Tree>),
+		(RE_rayobject_done_callback)    ((void  (*)(Tree *))       & bvh_done<Tree>),
+		(RE_rayobject_free_callback)    ((void  (*)(Tree *))       & bvh_free<Tree>),
+		(RE_rayobject_merge_bb_callback)((void  (*)(Tree *, float *, float *)) & bvh_bb<Tree>),
+		(RE_rayobject_cost_callback)    ((float (*)(Tree *))      & bvh_cost<Tree>),
+		(RE_rayobject_hint_bb_callback) ((void  (*)(Tree *, LCTSHint *, float *, float *)) & bvh_hint_bb<Tree>)
 	};
 	
 	return api;
 }
 
 template<class Tree>
-RayObjectAPI* bvh_get_api(int maxstacksize)
+RayObjectAPI *bvh_get_api(int maxstacksize)
 {
 	static RayObjectAPI bvh_api256 = make_api<Tree, 1024>();
 	
