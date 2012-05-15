@@ -172,7 +172,9 @@ static int rna_SculptCapabilities_has_plane_offset_get(PointerRNA *ptr)
 static int rna_SculptCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ((br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
+	return (ELEM(br->mtex.brush_map_mode,
+				 MTEX_MAP_MODE_VIEW,
+				 MTEX_MAP_MODE_AREA) &&
 	        !(br->flag & BRUSH_ANCHORED) &&
 	        !ELEM4(br->sculpt_tool,
 	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
@@ -233,15 +235,18 @@ static int rna_SculptCapabilities_has_strength_get(PointerRNA *ptr)
 static int rna_SculptCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ELEM(br->mtex.brush_map_mode,
-				MTEX_MAP_MODE_VIEW,
-				MTEX_MAP_MODE_TILED);
+	return ELEM3(br->mtex.brush_map_mode,
+				 MTEX_MAP_MODE_VIEW,
+				 MTEX_MAP_MODE_AREA,
+				 MTEX_MAP_MODE_TILED);
 }
 
 static int rna_SculptCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW;
+	return ELEM(br->mtex.brush_map_mode,
+				MTEX_MAP_MODE_VIEW,
+				MTEX_MAP_MODE_AREA);
 }
 
 static PointerRNA rna_Brush_sculpt_capabilities_get(PointerRNA *ptr)
@@ -416,6 +421,7 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 
 	static EnumPropertyItem prop_map_mode_items[] = {
 		{MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+		{MTEX_MAP_MODE_AREA, "AREA_PLANE", 0, "Area Plane", ""},
 		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
 		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{0, NULL, 0, NULL, NULL}

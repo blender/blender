@@ -253,6 +253,10 @@ typedef struct StrokeCache {
 	   transforms */
 	float sculpt_normal[3];
 	float sculpt_normal_symm[3];
+
+	/* Used for wrap texture mode, local_mat gets calculated by
+	   calc_brush_local_mat() and used in tex_strength(). */
+	float brush_local_mat[4][4];
 	
 	float last_center[3];
 	int radial_symmetry_pass;
@@ -786,17 +790,31 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			x = point_2d[0];
 			y = point_2d[1];
 		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
+			/* Similar to fixed mode, but projects from brush angle
+			   rather than view direction */
 
-		x /= ss->cache->vc->ar->winx;
-		y /= ss->cache->vc->ar->winy;
+			/* Rotation is handled by the brush_local_mat */
+			rotation = 0;
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-			x -= 0.5f;
-			y -= 0.5f;
+			mul_m4_v3(ss->cache->brush_local_mat, symm_point);
+
+			x = symm_point[0];
+			y = symm_point[1];
 		}
+
+		if (mtex->brush_map_mode != MTEX_MAP_MODE_AREA) {
+			x /= ss->cache->vc->ar->winx;
+			y /= ss->cache->vc->ar->winy;
+
+			if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+				x -= 0.5f;
+				y -= 0.5f;
+			}
 		
-		x *= ss->cache->vc->ar->winx / radius;
-		y *= ss->cache->vc->ar->winy / radius;
+			x *= ss->cache->vc->ar->winx / radius;
+			y *= ss->cache->vc->ar->winy / radius;
+		}
 
 		/* it is probably worth optimizing for those cases where 
 		 * the texture is not rotated by skipping the calls to
@@ -1021,6 +1039,78 @@ static void update_sculpt_normal(Sculpt *sd, Object *ob,
 	}
 }
 
+static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
+{
+	Object *ob = vc->obact;
+	float loc[3], mval_f[2] = {0.0f, 1.0f};
+
+	mul_v3_m4v3(loc, ob->imat, center);
+	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
+
+	ED_view3d_win_to_delta(vc->ar, mval_f, y);
+	normalize_v3(y);
+
+	add_v3_v3(y, ob->loc);
+	mul_m4_v3(ob->imat, y);
+}
+
+static void calc_brush_local_mat(const Brush *brush, Object *ob,
+								 float local_mat[4][4])
+{
+	const StrokeCache *cache = ob->sculpt->cache;
+	float tmat[4][4];
+	float mat[4][4];
+	float scale[4][4];
+	float angle, v[3];
+	float up[3];
+
+	/* Ensure ob->imat is up to date */
+	invert_m4_m4(ob->imat, ob->obmat);
+
+	/* Initialize last column of matrix */
+	mat[0][3] = 0;
+	mat[1][3] = 0;
+	mat[2][3] = 0;
+	mat[3][3] = 1;
+
+	/* Get view's up vector in object-space */
+	calc_local_y(cache->vc, cache->location, up);
+
+	/* Calculate the X axis of the local matrix */
+	cross_v3_v3v3(v, up, cache->sculpt_normal);
+	/* Apply rotation (user angle, rake, etc.) to X axis */
+	angle = brush->mtex.rot - cache->special_rotation;
+	rotate_v3_v3v3fl(mat[0], v, cache->sculpt_normal, angle);
+
+	/* Get other axes */
+	cross_v3_v3v3(mat[1], cache->sculpt_normal, mat[0]);
+	copy_v3_v3(mat[2], cache->sculpt_normal);
+
+	/* Set location */
+	copy_v3_v3(mat[3], cache->location);
+
+	/* Scale by brush radius */
+	normalize_m4(mat);
+	scale_m4_fl(scale, cache->radius);
+	mult_m4_m4m4(tmat, mat, scale);
+
+	/* Return inverse (for converting from modelspace coords to local
+	   area coords) */
+	invert_m4_m4(local_mat, tmat);
+}
+
+static void update_brush_local_mat(Sculpt *sd, Object *ob)
+{
+	StrokeCache *cache = ob->sculpt->cache;
+
+	if (cache->mirror_symmetry_pass == 0 &&
+		cache->radial_symmetry_pass == 0)
+	{
+		calc_brush_local_mat(paint_brush(&sd->paint), ob,
+							 cache->brush_local_mat);
+	}
+}
+
 /* Test whether the StrokeCache.sculpt_normal needs update in
    do_brush_action() */
 static int brush_needs_sculpt_normal(const Brush *brush)
@@ -1038,7 +1128,9 @@ static int brush_needs_sculpt_normal(const Brush *brush)
 				  SCULPT_TOOL_LAYER,
 				  SCULPT_TOOL_NUDGE,
 				  SCULPT_TOOL_ROTATE,
-				  SCULPT_TOOL_THUMB));
+				  SCULPT_TOOL_THUMB) ||
+
+			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
@@ -2620,6 +2712,9 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 
 		if (brush_needs_sculpt_normal(brush))
 			update_sculpt_normal(sd, ob, nodes, totnode);
+
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
+			update_brush_local_mat(sd, ob);
 
 		/* Apply one type of brush action */
 		switch (brush->sculpt_tool) {
