@@ -20,6 +20,7 @@
 import bpy
 from bpy.types import Menu, Panel
 from bl_ui.properties_paint_common import UnifiedPaintPanel
+from bl_ui.properties_paint_common import sculpt_brush_texture_settings
 
 
 class View3DPanel():
@@ -719,45 +720,11 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             col.prop(brush, "use_fixed_texture")
 
         if context.sculpt_object:
-            #XXX duplicated from properties_texture.py
+            sculpt_brush_texture_settings(col, brush)
 
-            col.label(text="Brush Mapping:")
-            col.row().prop(tex_slot, "map_mode", expand=True)
-
-            col.separator()
-
-            col = layout.column()
-            col.active = tex_slot.map_mode in {'FIXED'}
-            col.label(text="Angle:")
-            if brush.sculpt_capabilities.has_random_texture_angle:
-                col.prop(brush, "texture_angle_source_random", text="")
-            else:
-                col.prop(brush, "texture_angle_source_no_random", text="")
-
-            #row = col.row(align=True)
-            #row.label(text="Angle:")
-            #row.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-
-            #row = col.row(align=True)
-
-            #col = row.column()
-            #col.active = tex_slot.map_mode in {'FIXED'}
-            #col.prop(brush, "use_rake", toggle=True, icon='PARTICLEMODE', text="")
-
-            col = layout.column()
-            col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
-            col.prop(tex_slot, "angle", text="")
-
-            split = layout.split()
-            split.prop(tex_slot, "offset")
-            split.prop(tex_slot, "scale")
-
+            # use_texture_overlay and texture_overlay_alpha
             col = layout.column(align=True)
-            col.label(text="Sample Bias:")
-            col.prop(brush, "texture_sample_bias", slider=True, text="")
-
-            col = layout.column(align=True)
-            col.active = tex_slot.map_mode in {'FIXED', 'TILED'}
+            col.active = brush.sculpt_capabilities.has_overlay
             col.label(text="Overlay:")
 
             row = col.row()
@@ -766,7 +733,6 @@ class VIEW3D_PT_tools_brush_texture(Panel, View3DPaintPanel):
             else:
                 row.prop(brush, "use_texture_overlay", toggle=True, text="", icon='RESTRICT_VIEW_ON')
             sub = row.row()
-            sub.active = tex_slot.map_mode in {'FIXED', 'TILED'} and brush.use_texture_overlay
             sub.prop(brush, "texture_overlay_alpha", text="Alpha")
 
 
