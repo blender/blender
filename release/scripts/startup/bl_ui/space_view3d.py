@@ -93,7 +93,7 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode in {'OBJECT','POSE'} and snap_element != 'VOLUME':
+                    if obj.mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
                     elif obj.mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
@@ -164,7 +164,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # generic...
         layout = self.layout
         layout.separator()
@@ -178,16 +178,16 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # object-specific option follow...
         layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
         layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
-        
+
         layout.separator()
-        
+
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
@@ -214,13 +214,13 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # armature specific extensions follow...
         layout = self.layout
         layout.separator()
 
         obj = context.object
-        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and 
+        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
             obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
 
@@ -1288,7 +1288,7 @@ class VIEW3D_MT_hide_mask(Menu):
         op = layout.operator("paint.hide_show", text="Show Bounding Box")
         op.action = 'SHOW'
         op.area = 'INSIDE'
-    
+
         op = layout.operator("paint.hide_show", text="Hide Masked")
         op.area = 'MASKED'
         op.action = 'HIDE'

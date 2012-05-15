@@ -121,12 +121,14 @@ class SaveDirty(Operator):
                 if image.packed_file:
                     if image.library:
                         self.report({'WARNING'},
-                                    "Packed library image: %r from library %r can't be re-packed" %
+                                    "Packed library image: %r from library %r"
+                                    " can't be re-packed" %
                                     (image.name, image.library.filepath))
                     else:
                         image.pack(as_png=True)
                 else:
-                    filepath = bpy.path.abspath(image.filepath, library=image.library)
+                    filepath = bpy.path.abspath(image.filepath,
+                                                library=image.library)
                     if "\\" not in filepath and "/" not in filepath:
                         self.report({'WARNING'}, "Invalid path: " + filepath)
                     elif filepath in unique_paths:

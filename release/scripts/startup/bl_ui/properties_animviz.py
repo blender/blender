@@ -35,7 +35,7 @@ class MotionPathButtonsPanel():
         layout = self.layout
 
         mps = avs.motion_path
-        
+
         # Display Range
         layout.prop(mps, "type", expand=True)
 
@@ -50,21 +50,21 @@ class MotionPathButtonsPanel():
         elif (mps.type == 'RANGE'):
             sub.prop(mps, "frame_start", text="Start")
             sub.prop(mps, "frame_end", text="End")
-            
+
         sub.prop(mps, "frame_step", text="Step")
-        
+
         col = split.column()
         if bones:
             col.label(text="Cache for Bone:")
         else:
             col.label(text="Cache:")
-            
+
         if mpath:
             sub = col.column(align=True)
             sub.enabled = False
             sub.prop(mpath, "frame_start", text="From")
             sub.prop(mpath, "frame_end", text="To")
-            
+
             if bones:
                 col.operator("pose.paths_update", text="Update Paths", icon='BONE_DATA')
             else:
@@ -72,15 +72,14 @@ class MotionPathButtonsPanel():
         else:
             col.label(text="Not available yet...", icon='ERROR')
             col.label(text="Calculate Paths first", icon='INFO')
-        
-        
+
         # Display Settings
         split = layout.split()
-        
+
         col = split.column()
         col.label(text="Show:")
         col.prop(mps, "show_frame_numbers", text="Frame Numbers")
-        
+
         col = split.column()
         col.prop(mps, "show_keyframe_highlight", text="Keyframes")
         sub = col.column()

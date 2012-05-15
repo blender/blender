@@ -101,6 +101,7 @@ class CLIP_PT_clip_view_panel:
 
         return clip and sc.view == 'CLIP'
 
+
 class CLIP_PT_tracking_panel:
 
     @classmethod
