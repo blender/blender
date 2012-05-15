@@ -15,7 +15,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
-  * The Original Code is Copyright (C) 2011 Blender Foundation.
+ * The Original Code is Copyright (C) 2011 Blender Foundation.
  * All rights reserved.
  *
  * Contributor(s): Blender Foundation,
@@ -64,12 +64,12 @@ void BKE_movieclip_build_proxy_frame(struct MovieClip *clip, int clip_flag, stru
                                      int cfra, int *build_sizes, int build_count, int undistorted);
 
 /* cacheing flags */
-#define MOVIECLIP_CACHE_SKIP        (1<<0)
+#define MOVIECLIP_CACHE_SKIP        (1 << 0)
 
 /* postprocessing flags */
-#define MOVIECLIP_DISABLE_RED       (1<<0)
-#define MOVIECLIP_DISABLE_GREEN     (1<<1)
-#define MOVIECLIP_DISABLE_BLUE      (1<<2)
-#define MOVIECLIP_PREVIEW_GRAYSCALE (1<<3)
+#define MOVIECLIP_DISABLE_RED       (1 << 0)
+#define MOVIECLIP_DISABLE_GREEN     (1 << 1)
+#define MOVIECLIP_DISABLE_BLUE      (1 << 2)
+#define MOVIECLIP_PREVIEW_GRAYSCALE (1 << 3)
 
 #endif

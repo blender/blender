@@ -34,6 +34,7 @@ CCL_NAMESPACE_BEGIN
 ImageManager::ImageManager()
 {
 	need_update = true;
+	pack_images = false;
 	osl_texture_system = NULL;
 }
 
@@ -43,6 +44,11 @@ ImageManager::~ImageManager()
 		assert(!images[slot]);
 	for(size_t slot = 0; slot < float_images.size(); slot++)
 		assert(!float_images[slot]);
+}
+
+void ImageManager::set_pack_images(bool pack_images_)
+{
+	pack_images = pack_images_;
 }
 
 void ImageManager::set_osl_texture_system(void *texture_system)
@@ -84,7 +90,7 @@ int ImageManager::add_image(const string& filename, bool& is_float)
 	size_t slot;
 
 	/* load image info and find out if we need a float texture */
-	is_float = is_float_image(filename);
+	is_float = (pack_images)? false: is_float_image(filename);
 
 	if(is_float) {
 		/* find existing image */
@@ -361,7 +367,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		if(slot >= 10) name = string_printf("__tex_image_float_0%d", slot);
 		else name = string_printf("__tex_image_float_00%d", slot);
 
-		device->tex_alloc(name.c_str(), tex_img, true, true);
+		if(!pack_images)
+			device->tex_alloc(name.c_str(), tex_img, true, true);
 	}
 	else {
 		string filename = path_filename(images[slot]->filename);
@@ -387,7 +394,8 @@ void ImageManager::device_load_image(Device *device, DeviceScene *dscene, int sl
 		if(slot >= 10) name = string_printf("__tex_image_0%d", slot);
 		else name = string_printf("__tex_image_00%d", slot);
 
-		device->tex_alloc(name.c_str(), tex_img, true, true);
+		if(!pack_images)
+			device->tex_alloc(name.c_str(), tex_img, true, true);
 	}
 
 	img->need_load = false;
@@ -466,7 +474,47 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 
 	pool.wait_work();
 
+	if(pack_images)
+		device_pack_images(device, dscene, progress);
+
 	need_update = false;
+}
+
+void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progress& progess)
+{
+	/* for OpenCL, we pack all image textures inside a single big texture, and
+	   will do our own interpolation in the kernel */
+	size_t size = 0;
+
+	for(size_t slot = 0; slot < images.size(); slot++) {
+		if(!images[slot])
+			continue;
+
+		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
+		size += tex_img.size();
+	}
+
+	uint4 *info = dscene->tex_image_packed_info.resize(images.size());
+	uchar4 *pixels = dscene->tex_image_packed.resize(size);
+
+	size_t offset = 0;
+
+	for(size_t slot = 0; slot < images.size(); slot++) {
+		if(!images[slot])
+			continue;
+
+		device_vector<uchar4>& tex_img = dscene->tex_image[slot];
+
+		info[slot] = make_uint4(tex_img.data_width, tex_img.data_height, offset, 1);
+
+		memcpy(pixels+offset, (void*)tex_img.data_pointer, tex_img.memory_size());
+		offset += tex_img.size();
+	}
+
+	if(dscene->tex_image_packed.size())
+		device->tex_alloc("__tex_image_packed", dscene->tex_image_packed);
+	if(dscene->tex_image_packed_info.size())
+		device->tex_alloc("__tex_image_packed_info", dscene->tex_image_packed_info);
 }
 
 void ImageManager::device_free(Device *device, DeviceScene *dscene)
@@ -475,6 +523,12 @@ void ImageManager::device_free(Device *device, DeviceScene *dscene)
 		device_free_image(device, dscene, slot);
 	for(size_t slot = 0; slot < float_images.size(); slot++)
 		device_free_image(device, dscene, slot + TEX_IMAGE_FLOAT_START);
+
+	device->tex_free(dscene->tex_image_packed);
+	dscene->tex_image_packed.clear();
+
+	device->tex_free(dscene->tex_image_packed_info);
+	dscene->tex_image_packed_info.clear();
 
 	images.clear();
 	float_images.clear();

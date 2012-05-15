@@ -49,19 +49,19 @@ static void filtrow(unsigned char *point, int x)
 {
 	unsigned int c1, c2, c3, error;
 
-	if (x>1) {
+	if (x > 1) {
 		c1 = c2 = *point;
 		error = 2;
-		for (x--;x>0;x--) {
+		for (x--; x > 0; x--) {
 			c3 = point[4];
-			c1 += (c2<<1) + c3 + error;
+			c1 += (c2 << 1) + c3 + error;
 			error = c1 & 3;
 			*point = c1 >> 2;
 			point += 4;
-			c1=c2;
-			c2=c3;
+			c1 = c2;
+			c2 = c3;
 		}
-		*point = (c1 + (c2<<1) + c2 + error) >> 2;
+		*point = (c1 + (c2 << 1) + c2 + error) >> 2;
 	}
 }
 
@@ -69,17 +69,17 @@ static void filtrowf(float *point, int x)
 {
 	float c1, c2, c3;
 	
-	if (x>1) {
+	if (x > 1) {
 		c1 = c2 = *point;
-		for (x--;x>0;x--) {
+		for (x--; x > 0; x--) {
 			c3 = point[4];
 			c1 += (c2 * 2) + c3;
-			*point = 0.25f*c1;
+			*point = 0.25f * c1;
 			point += 4;
-			c1=c2;
-			c2=c3;
+			c1 = c2;
+			c2 = c3;
 		}
-		*point = 0.25f*(c1 + (c2 * 2) + c2);
+		*point = 0.25f * (c1 + (c2 * 2) + c2);
 	}
 }
 
@@ -90,21 +90,21 @@ static void filtcolum(unsigned char *point, int y, int skip)
 	unsigned int c1, c2, c3, error;
 	unsigned char *point2;
 
-	if (y>1) {
+	if (y > 1) {
 		c1 = c2 = *point;
 		point2 = point;
 		error = 2;
-		for (y--;y>0;y--) {
+		for (y--; y > 0; y--) {
 			point2 += skip;
 			c3 = *point2;
-			c1 += (c2<<1) + c3 +error;
+			c1 += (c2 << 1) + c3 + error;
 			error = c1 & 3;
 			*point = c1 >> 2;
-			point=point2;
-			c1=c2;
-			c2=c3;
+			point = point2;
+			c1 = c2;
+			c2 = c3;
 		}
-		*point = (c1 + (c2<<1) + c2 + error) >> 2;
+		*point = (c1 + (c2 << 1) + c2 + error) >> 2;
 	}
 }
 
@@ -112,19 +112,19 @@ static void filtcolumf(float *point, int y, int skip)
 {
 	float c1, c2, c3, *point2;
 	
-	if (y>1) {
+	if (y > 1) {
 		c1 = c2 = *point;
 		point2 = point;
-		for (y--;y>0;y--) {
+		for (y--; y > 0; y--) {
 			point2 += skip;
 			c3 = *point2;
 			c1 += (c2 * 2) + c3;
-			*point = 0.25f*c1;
-			point=point2;
-			c1=c2;
-			c2=c3;
+			*point = 0.25f * c1;
+			point = point2;
+			c1 = c2;
+			c2 = c3;
 		}
-		*point = 0.25f*(c1 + (c2 * 2) + c2);
+		*point = 0.25f * (c1 + (c2 * 2) + c2);
 	}
 }
 
@@ -139,9 +139,9 @@ void IMB_filtery(struct ImBuf *ibuf)
 
 	x = ibuf->x;
 	y = ibuf->y;
-	skip = x<<2;
+	skip = x << 2;
 
-	for (;x>0;x--) {
+	for (; x > 0; x--) {
 		if (point) {
 			if (ibuf->planes > 24) filtcolum(point, y, skip);
 			point++;
@@ -177,9 +177,9 @@ void imb_filterx(struct ImBuf *ibuf)
 
 	x = ibuf->x;
 	y = ibuf->y;
-	skip = (x<<2) - 3;
+	skip = (x << 2) - 3;
 
-	for (;y>0;y--) {
+	for (; y > 0; y--) {
 		if (point) {
 			if (ibuf->planes > 24) filtrow(point, x);
 			point++;
@@ -188,7 +188,7 @@ void imb_filterx(struct ImBuf *ibuf)
 			filtrow(point, x);
 			point++;
 			filtrow(point, x);
-			point+=skip;
+			point += skip;
 		}
 		if (pointf) {
 			if (ibuf->planes > 24) filtrowf(pointf, x);
@@ -198,7 +198,7 @@ void imb_filterx(struct ImBuf *ibuf)
 			filtrowf(pointf, x);
 			pointf++;
 			filtrowf(pointf, x);
-			pointf+=skip;
+			pointf += skip;
 		}
 	}
 }
@@ -209,44 +209,44 @@ void IMB_filterN(ImBuf *out, ImBuf *in)
 	register char *cp, *r11, *r13, *r21, *r23, *r31, *r33;
 	int rowlen, x, y;
 	
-	rowlen= in->x;
+	rowlen = in->x;
 	
-	for (y=0; y<in->y; y++) {
+	for (y = 0; y < in->y; y++) {
 		/* setup rows */
-		row2= (char*)(in->rect + y*rowlen);
-		row1= (y == 0)? row2: row2 - 4*rowlen;
-		row3= (y == in->y-1)? row2: row2 + 4*rowlen;
+		row2 = (char *)(in->rect + y * rowlen);
+		row1 = (y == 0) ? row2 : row2 - 4 * rowlen;
+		row3 = (y == in->y - 1) ? row2 : row2 + 4 * rowlen;
 		
-		cp= (char *)(out->rect + y*rowlen);
+		cp = (char *)(out->rect + y * rowlen);
 		
-		for (x=0; x<rowlen; x++) {
+		for (x = 0; x < rowlen; x++) {
 			if (x == 0) {
 				r11 = row1;
 				r21 = row1;
 				r31 = row1;
 			}
 			else {
-				r11 = row1-4;
-				r21 = row1-4;
-				r31 = row1-4;
+				r11 = row1 - 4;
+				r21 = row1 - 4;
+				r31 = row1 - 4;
 			}
 
-			if (x == rowlen-1) {
+			if (x == rowlen - 1) {
 				r13 = row1;
 				r23 = row1;
 				r33 = row1;
 			}
 			else {
-				r13 = row1+4;
-				r23 = row1+4;
-				r33 = row1+4;
+				r13 = row1 + 4;
+				r23 = row1 + 4;
+				r33 = row1 + 4;
 			}
 
-			cp[0]= (r11[0] + 2*row1[0] + r13[0] + 2*r21[0] + 4*row2[0] + 2*r23[0] + r31[0] + 2*row3[0] + r33[0])>>4;
-			cp[1]= (r11[1] + 2*row1[1] + r13[1] + 2*r21[1] + 4*row2[1] + 2*r23[1] + r31[1] + 2*row3[1] + r33[1])>>4;
-			cp[2]= (r11[2] + 2*row1[2] + r13[2] + 2*r21[2] + 4*row2[2] + 2*r23[2] + r31[2] + 2*row3[2] + r33[2])>>4;
-			cp[3]= (r11[3] + 2*row1[3] + r13[3] + 2*r21[3] + 4*row2[3] + 2*r23[3] + r31[3] + 2*row3[3] + r33[3])>>4;
-			cp+=4; row1+=4; row2+=4; row3+=4;
+			cp[0] = (r11[0] + 2 * row1[0] + r13[0] + 2 * r21[0] + 4 * row2[0] + 2 * r23[0] + r31[0] + 2 * row3[0] + r33[0]) >> 4;
+			cp[1] = (r11[1] + 2 * row1[1] + r13[1] + 2 * r21[1] + 4 * row2[1] + 2 * r23[1] + r31[1] + 2 * row3[1] + r33[1]) >> 4;
+			cp[2] = (r11[2] + 2 * row1[2] + r13[2] + 2 * r21[2] + 4 * row2[2] + 2 * r23[2] + r31[2] + 2 * row3[2] + r33[2]) >> 4;
+			cp[3] = (r11[3] + 2 * row1[3] + r13[3] + 2 * r21[3] + 4 * row2[3] + 2 * r23[3] + r31[3] + 2 * row3[3] + r33[3]) >> 4;
+			cp += 4; row1 += 4; row2 += 4; row3 += 4;
 		}
 	}
 }
@@ -263,32 +263,32 @@ void IMB_mask_filter_extend(char *mask, int width, int height)
 	int rowlen, x, y;
 	char *temprect;
 
-	rowlen= width;
+	rowlen = width;
 
 	/* make a copy, to prevent flooding */
-	temprect= MEM_dupallocN(mask);
+	temprect = MEM_dupallocN(mask);
 
-	for (y=1; y<=height; y++) {
+	for (y = 1; y <= height; y++) {
 		/* setup rows */
-		row1= (char *)(temprect + (y-2)*rowlen);
-		row2= row1 + rowlen;
-		row3= row2 + rowlen;
-		if (y==1)
-			row1= row2;
-		else if (y==height)
-			row3= row2;
+		row1 = (char *)(temprect + (y - 2) * rowlen);
+		row2 = row1 + rowlen;
+		row3 = row2 + rowlen;
+		if (y == 1)
+			row1 = row2;
+		else if (y == height)
+			row3 = row2;
 
-		for (x=0; x<rowlen; x++) {
-			if (mask[((y-1)*rowlen)+x]==0) {
-				if (*row1 || *row2 || *row3 || *(row1+1) || *(row3+1) ) {
-					mask[((y-1)*rowlen)+x] = FILTER_MASK_MARGIN;
+		for (x = 0; x < rowlen; x++) {
+			if (mask[((y - 1) * rowlen) + x] == 0) {
+				if (*row1 || *row2 || *row3 || *(row1 + 1) || *(row3 + 1) ) {
+					mask[((y - 1) * rowlen) + x] = FILTER_MASK_MARGIN;
 				}
-				else if ((x!=rowlen-1) && (*(row1+2) || *(row2+2) || *(row3+2)) ) {
-					mask[((y-1)*rowlen)+x] = FILTER_MASK_MARGIN;
+				else if ((x != rowlen - 1) && (*(row1 + 2) || *(row2 + 2) || *(row3 + 2)) ) {
+					mask[((y - 1) * rowlen) + x] = FILTER_MASK_MARGIN;
 				}
 			}
 
-			if (x!=0) {
+			if (x != 0) {
 				row1++; row2++; row3++;
 			}
 		}
@@ -301,10 +301,10 @@ void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 {
 	int x, y;
 	if (ibuf->rect_float) {
-		for (x=0; x<ibuf->x; x++) {
-			for (y=0; y<ibuf->y; y++) {
-				if (mask[ibuf->x*y + x] == val) {
-					float *col= ibuf->rect_float + 4*(ibuf->x*y + x);
+		for (x = 0; x < ibuf->x; x++) {
+			for (y = 0; y < ibuf->y; y++) {
+				if (mask[ibuf->x * y + x] == val) {
+					float *col = ibuf->rect_float + 4 * (ibuf->x * y + x);
 					col[0] = col[1] = col[2] = col[3] = 0.0f;
 				}
 			}
@@ -312,10 +312,10 @@ void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 	}
 	else {
 		/* char buffer */
-		for (x=0; x<ibuf->x; x++) {
-			for (y=0; y<ibuf->y; y++) {
-				if (mask[ibuf->x*y + x] == val) {
-					char *col= (char *)(ibuf->rect + ibuf->x*y + x);
+		for (x = 0; x < ibuf->x; x++) {
+			for (y = 0; y < ibuf->y; y++) {
+				if (mask[ibuf->x * y + x] == val) {
+					char *col = (char *)(ibuf->rect + ibuf->x * y + x);
 					col[0] = col[1] = col[2] = col[3] = 0;
 				}
 			}
@@ -325,23 +325,23 @@ void IMB_mask_clear(ImBuf *ibuf, char *mask, int val)
 
 static int filter_make_index(const int x, const int y, const int w, const int h)
 {
-	if (x<0 || x>=w || y<0 || y>=h) return -1;	/* return bad index */
-	else return y*w+x;
+	if (x < 0 || x >= w || y < 0 || y >= h) return -1;  /* return bad index */
+	else return y * w + x;
 }
 
 static int check_pixel_assigned(const void *buffer, const char *mask, const int index, const int depth, const int is_float)
 {
 	int res = 0;
 
-	if (index>=0) {
-		const int alpha_index = depth*index+(depth-1);
+	if (index >= 0) {
+		const int alpha_index = depth * index + (depth - 1);
 
-		if (mask!=NULL) {
-			res = mask[index]!=0 ? 1 : 0;
+		if (mask != NULL) {
+			res = mask[index] != 0 ? 1 : 0;
 		}
-		else if ( (is_float && ((const float *) buffer)[alpha_index]!=0.0f) ||
-				(!is_float && ((const unsigned char *) buffer)[alpha_index]!=0) ) {
-			res=1;
+		else if ( (is_float && ((const float *) buffer)[alpha_index] != 0.0f) ||
+		          (!is_float && ((const unsigned char *) buffer)[alpha_index] != 0) ) {
+			res = 1;
 		}
 	}
 
@@ -354,93 +354,94 @@ static int check_pixel_assigned(const void *buffer, const char *mask, const int 
  * */
 void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 {
-	const int width= ibuf->x;
-	const int height= ibuf->y;
-	const int depth= 4;		/* always 4 channels */
-	const int chsize= ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
-	const int bsize= width*height*depth*chsize;
-	const int is_float= ibuf->rect_float!=NULL;
-	void *dstbuf= (void *) MEM_dupallocN(ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect);
-	char *dstmask= mask==NULL ? NULL : (char *) MEM_dupallocN(mask);
-	void *srcbuf= ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect;
-	char *srcmask= mask;
-	int cannot_early_out= 1, r, n, k, i, j, c;
+	const int width = ibuf->x;
+	const int height = ibuf->y;
+	const int depth = 4;     /* always 4 channels */
+	const int chsize = ibuf->rect_float ? sizeof(float) : sizeof(unsigned char);
+	const int bsize = width * height * depth * chsize;
+	const int is_float = ibuf->rect_float != NULL;
+	void *dstbuf = (void *) MEM_dupallocN(ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect);
+	char *dstmask = mask == NULL ? NULL : (char *) MEM_dupallocN(mask);
+	void *srcbuf = ibuf->rect_float ? (void *) ibuf->rect_float : (void *) ibuf->rect;
+	char *srcmask = mask;
+	int cannot_early_out = 1, r, n, k, i, j, c;
 	float weight[25];
 
 	/* build a weights buffer */
-	n= 1;
+	n = 1;
 
 #if 0
-	k= 0;
+	k = 0;
 	for (i = -n; i <= n; i++)
 		for (j = -n; j <= n; j++)
 			weight[k++] = sqrt((float) i * i + j * j);
 #endif
 
-	weight[0]=1; weight[1]=2; weight[2]=1;
-	weight[3]=2; weight[4]=0; weight[5]=2;
-	weight[6]=1; weight[7]=2; weight[8]=1;
+	weight[0] = 1; weight[1] = 2; weight[2] = 1;
+	weight[3] = 2; weight[4] = 0; weight[5] = 2;
+	weight[6] = 1; weight[7] = 2; weight[8] = 1;
 
 	/* run passes */
 	for (r = 0; cannot_early_out == 1 && r < filter; r++) {
 		int x, y;
 		cannot_early_out = 0;
 
-		for (y= 0; y<height; y++) {
-			for (x= 0; x<width; x++) {
-				const int index= filter_make_index(x, y, width, height);
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++) {
+				const int index = filter_make_index(x, y, width, height);
 
 				/* only update unassigned pixels */
 				if (!check_pixel_assigned(srcbuf, srcmask, index, depth, is_float)) {
 					float tmp[4];
-					float wsum=0;
-					float acc[4]={0, 0, 0, 0};
+					float wsum = 0;
+					float acc[4] = {0, 0, 0, 0};
 					k = 0;
 
-					if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x-1, y, width, height), depth, is_float) ||
-						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x+1, y, width, height), depth, is_float) ||
-						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y-1, width, height), depth, is_float) ||
-						check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y+1, width, height), depth, is_float)) {
-						for (i= -n; i<=n; i++) {
-							for (j=-n; j<=n; j++) {
+					if (check_pixel_assigned(srcbuf, srcmask, filter_make_index(x - 1, y, width, height), depth, is_float) ||
+					    check_pixel_assigned(srcbuf, srcmask, filter_make_index(x + 1, y, width, height), depth, is_float) ||
+					    check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y - 1, width, height), depth, is_float) ||
+					    check_pixel_assigned(srcbuf, srcmask, filter_make_index(x, y + 1, width, height), depth, is_float))
+					{
+						for (i = -n; i <= n; i++) {
+							for (j = -n; j <= n; j++) {
 								if (i != 0 || j != 0) {
-									const int tmpindex= filter_make_index(x+i, y+j, width, height);
+									const int tmpindex = filter_make_index(x + i, y + j, width, height);
 
-									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float))	{
+									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float))   {
 										if (is_float) {
-											for (c=0; c<depth; c++)
-												tmp[c] = ((const float *) srcbuf)[depth*tmpindex+c];
+											for (c = 0; c < depth; c++)
+												tmp[c] = ((const float *) srcbuf)[depth * tmpindex + c];
 										}
 										else {
-											for (c=0; c<depth; c++)
-												tmp[c] = (float) ((const unsigned char *) srcbuf)[depth*tmpindex+c];
+											for (c = 0; c < depth; c++)
+												tmp[c] = (float) ((const unsigned char *) srcbuf)[depth * tmpindex + c];
 										}
 
-										wsum+= weight[k];
+										wsum += weight[k];
 
-										for (c=0; c<depth; c++)
-											acc[c]+= weight[k] * tmp[c];
+										for (c = 0; c < depth; c++)
+											acc[c] += weight[k] * tmp[c];
 									}
 								}
 								k++;
 							}
 						}
 
-						if (wsum!=0) {
-							for (c=0; c<depth; c++)
-								acc[c]/= wsum;
+						if (wsum != 0) {
+							for (c = 0; c < depth; c++)
+								acc[c] /= wsum;
 
 							if (is_float) {
-								for (c=0; c<depth; c++)
-									((float *) dstbuf)[depth*index+c] = acc[c];
+								for (c = 0; c < depth; c++)
+									((float *) dstbuf)[depth * index + c] = acc[c];
 							}
 							else {
-								for (c=0; c<depth; c++) {
-									((unsigned char *) dstbuf)[depth*index+c]= acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : ((unsigned char) (acc[c]+0.5f)));
+								for (c = 0; c < depth; c++) {
+									((unsigned char *) dstbuf)[depth * index + c] = acc[c] > 255 ? 255 : (acc[c] < 0 ? 0 : ((unsigned char) (acc[c] + 0.5f)));
 								}
 							}
 
-							if (dstmask!=NULL) dstmask[index]=FILTER_MASK_MARGIN;	/* assigned */
+							if (dstmask != NULL) dstmask[index] = FILTER_MASK_MARGIN;  /* assigned */
 							cannot_early_out = 1;
 						}
 					}
@@ -450,12 +451,12 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 
 		/* keep the original buffer up to date. */
 		memcpy(srcbuf, dstbuf, bsize);
-		if (dstmask!=NULL) memcpy(srcmask, dstmask, width*height);
+		if (dstmask != NULL) memcpy(srcmask, dstmask, width * height);
 	}
 
 	/* free memory */
 	MEM_freeN(dstbuf);
-	if (dstmask!=NULL) MEM_freeN(dstmask);
+	if (dstmask != NULL) MEM_freeN(dstmask);
 }
 
 /* threadsafe version, only recreates existing maps */
@@ -464,14 +465,14 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
 	ImBuf *hbuf = ibuf;
 	int curmap = 0;
 	
-	ibuf->miptot= 1;
+	ibuf->miptot = 1;
 	
 	while (curmap < IB_MIPMAP_LEVELS) {
 		
 		if (ibuf->mipmap[curmap]) {
 			
 			if (use_filter) {
-				ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect);
+				ImBuf *nbuf = IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect);
 				IMB_filterN(nbuf, hbuf);
 				imb_onehalf_no_alloc(ibuf->mipmap[curmap], nbuf);
 				IMB_freeImBuf(nbuf);
@@ -480,10 +481,10 @@ void IMB_remakemipmap(ImBuf *ibuf, int use_filter)
 				imb_onehalf_no_alloc(ibuf->mipmap[curmap], hbuf);
 		}
 		
-		ibuf->miptot= curmap+2;
-		hbuf= ibuf->mipmap[curmap];
+		ibuf->miptot = curmap + 2;
+		hbuf = ibuf->mipmap[curmap];
 		if (hbuf)
-			hbuf->miplevel= curmap+1;
+			hbuf->miplevel = curmap + 1;
 		
 		if (!hbuf || (hbuf->x <= 2 && hbuf->y <= 2))
 			break;
@@ -500,11 +501,11 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 
 	imb_freemipmapImBuf(ibuf);
 	
-	ibuf->miptot= 1;
+	ibuf->miptot = 1;
 
 	while (curmap < IB_MIPMAP_LEVELS) {
 		if (use_filter) {
-			ImBuf *nbuf= IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect);
+			ImBuf *nbuf = IMB_allocImBuf(hbuf->x, hbuf->y, 32, IB_rect);
 			IMB_filterN(nbuf, hbuf);
 			ibuf->mipmap[curmap] = IMB_onehalf(nbuf);
 			IMB_freeImBuf(nbuf);
@@ -512,9 +513,9 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 		else
 			ibuf->mipmap[curmap] = IMB_onehalf(hbuf);
 
-		ibuf->miptot= curmap+2;
-		hbuf= ibuf->mipmap[curmap];
-		hbuf->miplevel= curmap+1;
+		ibuf->miptot = curmap + 2;
+		hbuf = ibuf->mipmap[curmap];
+		hbuf->miplevel = curmap + 1;
 
 		if (hbuf->x <= 2 && hbuf->y <= 2)
 			break;
@@ -525,8 +526,8 @@ void IMB_makemipmap(ImBuf *ibuf, int use_filter)
 
 ImBuf *IMB_getmipmap(ImBuf *ibuf, int level)
 {
-	CLAMP(level, 0, ibuf->miptot-1);
-	return (level == 0)? ibuf: ibuf->mipmap[level-1];
+	CLAMP(level, 0, ibuf->miptot - 1);
+	return (level == 0) ? ibuf : ibuf->mipmap[level - 1];
 }
 
 void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h)
@@ -534,22 +535,22 @@ void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h)
 	char *cp;
 	int x, y, val;
 
-	if (planes == 24) {	/* put alpha at 255 */
-		cp= (char *)(rect);
+	if (planes == 24) { /* put alpha at 255 */
+		cp = (char *)(rect);
 
-		for (y=0; y<h; y++)
-			for (x=0; x<w; x++, cp+=4)
-				cp[3]= 255;
+		for (y = 0; y < h; y++)
+			for (x = 0; x < w; x++, cp += 4)
+				cp[3] = 255;
 	}
 	else {
-		cp= (char *)(rect);
+		cp = (char *)(rect);
 
-		for (y=0; y<h; y++) {
-			for (x=0; x<w; x++, cp+=4) {
-				val= cp[3];
-				cp[0]= (cp[0]*val)>>8;
-				cp[1]= (cp[1]*val)>>8;
-				cp[2]= (cp[2]*val)>>8;
+		for (y = 0; y < h; y++) {
+			for (x = 0; x < w; x++, cp += 4) {
+				val = cp[3];
+				cp[0] = (cp[0] * val) >> 8;
+				cp[1] = (cp[1] * val) >> 8;
+				cp[2] = (cp[2] * val) >> 8;
 			}
 		}
 	}
@@ -560,21 +561,21 @@ void IMB_premultiply_rect_float(float *rect_float, char planes, int w, int h)
 	float val, *cp;
 	int x, y;
 
-	if (planes==24) {	/* put alpha at 1.0 */
-		cp= rect_float;
+	if (planes == 24) {   /* put alpha at 1.0 */
+		cp = rect_float;
 
-		for (y=0; y<h; y++)
-			for (x=0; x<w; x++, cp+=4)
-				cp[3]= 1.0;
+		for (y = 0; y < h; y++)
+			for (x = 0; x < w; x++, cp += 4)
+				cp[3] = 1.0;
 	}
 	else {
-		cp= rect_float;
-		for (y=0; y<h; y++) {
-			for (x=0; x<w; x++, cp+=4) {
-				val= cp[3];
-				cp[0]= cp[0]*val;
-				cp[1]= cp[1]*val;
-				cp[2]= cp[2]*val;
+		cp = rect_float;
+		for (y = 0; y < h; y++) {
+			for (x = 0; x < w; x++, cp += 4) {
+				val = cp[3];
+				cp[0] = cp[0] * val;
+				cp[1] = cp[1] * val;
+				cp[2] = cp[2] * val;
 			}
 		}
 	}
@@ -583,7 +584,7 @@ void IMB_premultiply_rect_float(float *rect_float, char planes, int w, int h)
 
 void IMB_premultiply_alpha(ImBuf *ibuf)
 {
-	if (ibuf==NULL)
+	if (ibuf == NULL)
 		return;
 
 	if (ibuf->rect)

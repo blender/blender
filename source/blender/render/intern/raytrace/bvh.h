@@ -147,14 +147,14 @@ template<class Node> static inline int bvh_node_hit_test(Node *node, Isect *isec
 
 
 template<class Node>
-static inline void bvh_node_merge_bb(Node *node, float *min, float *max)
+static inline void bvh_node_merge_bb(Node *node, float min[3], float max[3])
 {
 	if (is_leaf(node)) {
 		RE_rayobject_merge_bb((RayObject *)node, min, max);
 	}
 	else {
-		DO_MIN(node->bb,   min);
-		DO_MAX(node->bb+3, max);
+		DO_MIN(node->bb,     min);
+		DO_MAX(node->bb + 3, max);
 	}
 }
 

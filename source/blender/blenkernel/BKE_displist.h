@@ -42,13 +42,13 @@
 #define DL_INDEX3               4
 #define DL_INDEX4               5
 #define DL_VERTCOL              6
-#define DL_VERTS				7
+#define DL_VERTS                7
 
 /* dl->flag */
-#define DL_CYCL_U		1
-#define DL_CYCL_V		2
-#define DL_FRONT_CURVE	4
-#define DL_BACK_CURVE	8
+#define DL_CYCL_U       1
+#define DL_CYCL_V       2
+#define DL_FRONT_CURVE  4
+#define DL_BACK_CURVE   8
 
 
 /* prototypes */
@@ -73,7 +73,7 @@ typedef struct DispList {
 	int *index;
 	unsigned int *col1, *col2;
 	int charidx;
-	int totindex;				/* indexed array drawing surfaces */
+	int totindex;               /* indexed array drawing surfaces */
 
 	unsigned int *bevelSplitFlag;
 } DispList;

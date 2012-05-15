@@ -2259,7 +2259,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 
 			for (a = 0; a < 8; a++) {
 				mul_m4_v3(ob->obmat, bb.vec[a]);
-				DO_MINMAX(bb.vec[a], min_r, max_r);
+				minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 			}
 			change = TRUE;
 		}
@@ -2274,7 +2274,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 				for (v = 0; v < lt->pntsv; v++) {
 					for (u = 0; u < lt->pntsu; u++, bp++) {
 						mul_v3_m4v3(vec, ob->obmat, bp->vec);
-						DO_MINMAX(vec, min_r, max_r);
+						minmax_v3v3_v3(min_r, max_r, vec);
 					}
 				}
 			}
@@ -2286,9 +2286,9 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 				bPoseChannel *pchan;
 				for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 					mul_v3_m4v3(vec, ob->obmat, pchan->pose_head);
-					DO_MINMAX(vec, min_r, max_r);
+					minmax_v3v3_v3(min_r, max_r, vec);
 					mul_v3_m4v3(vec, ob->obmat, pchan->pose_tail);
-					DO_MINMAX(vec, min_r, max_r);
+					minmax_v3v3_v3(min_r, max_r, vec);
 				}
 				change = TRUE;
 			}
@@ -2302,7 +2302,7 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 
 				for (a = 0; a < 8; a++) {
 					mul_m4_v3(ob->obmat, bb.vec[a]);
-					DO_MINMAX(bb.vec[a], min_r, max_r);
+					minmax_v3v3_v3(min_r, max_r, bb.vec[a]);
 				}
 				change = TRUE;
 			}
@@ -2311,15 +2311,15 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 	}
 
 	if (change == FALSE) {
-		DO_MINMAX(ob->obmat[3], min_r, max_r);
+		minmax_v3v3_v3(min_r, max_r, ob->obmat[3]);
 
 		copy_v3_v3(vec, ob->obmat[3]);
 		add_v3_v3(vec, ob->size);
-		DO_MINMAX(vec, min_r, max_r);
+		minmax_v3v3_v3(min_r, max_r, vec);
 
 		copy_v3_v3(vec, ob->obmat[3]);
 		sub_v3_v3(vec, ob->size);
-		DO_MINMAX(vec, min_r, max_r);
+		minmax_v3v3_v3(min_r, max_r, vec);
 	}
 }
 
@@ -2343,7 +2343,7 @@ int BKE_object_minmax_dupli(Scene *scene, Object *ob, float r_min[3], float r_ma
 					for (i = 0; i < 8; i++) {
 						float vec[3];
 						mul_v3_m4v3(vec, dob->mat, bb->vec[i]);
-						DO_MINMAX(vec, r_min, r_max);
+						minmax_v3v3_v3(r_min, r_max, vec);
 					}
 
 					ok = 1;

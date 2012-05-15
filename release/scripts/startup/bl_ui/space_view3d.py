@@ -93,7 +93,7 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode == 'OBJECT' and snap_element != 'VOLUME':
+                    if obj.mode in {'OBJECT','POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
                     elif obj.mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
@@ -1795,6 +1795,11 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
+        layout.operator("transform.edge_crease")
+        layout.operator("transform.edge_bevelweight")
+
+        layout.separator()
+
         layout.operator("mesh.mark_seam").clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
@@ -1937,8 +1942,8 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.operator("curve.extrude")
-    layout.operator("curve.duplicate")
+    layout.operator("curve.extrude_move")
+    layout.operator("curve.duplicate_move")
     layout.operator("curve.separate")
     layout.operator("curve.make_segment")
     layout.operator("curve.cyclic_toggle")

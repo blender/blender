@@ -46,28 +46,26 @@ struct Mesh;
 struct PoseTree;
 struct ListBase;
 
-typedef struct PoseTarget
-{
+typedef struct PoseTarget {
 	struct PoseTarget *next, *prev;
 
-	struct bConstraint *con;		/* the constrait of this target */
-	int tip;						/* index of tip pchan in PoseTree */
+	struct bConstraint *con;        /* the constrait of this target */
+	int tip;                        /* index of tip pchan in PoseTree */
 } PoseTarget;
 
-typedef struct PoseTree
-{
+typedef struct PoseTree {
 	struct PoseTree *next, *prev;
 	
-	int 	type;					/* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
-	int		totchannel;				/* number of pose channels */
+	int type;                       /* type of IK that this serves (CONSTRAINT_TYPE_KINEMATIC or ..._SPLINEIK) */
+	int totchannel;                 /* number of pose channels */
 	
-	struct ListBase targets;		/* list of targets of the tree */
-	struct bPoseChannel	**pchan;	/* array of pose channels */
-	int		*parent;				/* and their parents */
-	
-	float	(*basis_change)[3][3]; 	/* basis change result from solver */
-	int		iterations;				/* iterations from the constraint */
-	int     stretch;				/* disable stretching */
+	struct ListBase targets;        /* list of targets of the tree */
+	struct bPoseChannel **pchan;    /* array of pose channels */
+	int     *parent;                /* and their parents */
+
+	float (*basis_change)[3][3];    /* basis change result from solver */
+	int iterations;                 /* iterations from the constraint */
+	int stretch;                    /* disable stretching */
 } PoseTree;
 
 /*	Core armature functionality */
@@ -77,7 +75,7 @@ extern "C" {
 
 struct bArmature *BKE_armature_add(const char *name);
 struct bArmature *BKE_armature_from_object(struct Object *ob);
-void BKE_armature_bonelist_free (struct ListBase *lb);
+void BKE_armature_bonelist_free(struct ListBase *lb);
 void BKE_armature_free(struct bArmature *arm);
 void BKE_armature_make_local(struct bArmature *arm);
 struct bArmature *BKE_armature_copy(struct bArmature *arm);
@@ -85,9 +83,9 @@ struct bArmature *BKE_armature_copy(struct bArmature *arm);
 /* Bounding box. */
 struct BoundBox *BKE_armature_boundbox_get(struct Object *ob);
 
-int bone_autoside_name (char name[64], int strip_number, short axis, float head, float tail);
+int bone_autoside_name(char name[64], int strip_number, short axis, float head, float tail);
 
-struct Bone *BKE_armature_find_bone_name (struct bArmature *arm, const char *name);
+struct Bone *BKE_armature_find_bone_name(struct bArmature *arm, const char *name);
 
 float distfactor_to_bone(const float vec[3], const float b1[3], const float b2[3], float r1, float r2, float rdist);
 
@@ -99,7 +97,7 @@ void BKE_pose_where_is_bone(struct Scene *scene, struct Object *ob, struct bPose
 void BKE_pose_where_is_bone_tail(struct bPoseChannel *pchan);
 
 /* get_objectspace_bone_matrix has to be removed still */
-void get_objectspace_bone_matrix (struct Bone* bone, float M_accumulatedMatrix[][4], int root, int posed);
+void get_objectspace_bone_matrix(struct Bone *bone, float M_accumulatedMatrix[][4], int root, int posed);
 void vec_roll_to_mat3(const float vec[3], const float roll, float mat[][3]);
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll);
 

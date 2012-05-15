@@ -54,7 +54,7 @@
 #endif
 
 #ifdef __APPLE__
-   /* XXX BIG WARNING: carbon.h can not be included in blender code, it conflicts with struct ID */
+/* XXX BIG WARNING: carbon.h can not be included in blender code, it conflicts with struct ID */
 #  define ID ID_
 #  include <CoreServices/CoreServices.h>
 #endif /* __APPLE__ */
@@ -68,7 +68,7 @@
 
 /* FSMENU HANDLING */
 
-	/* FSMenuEntry's without paths indicate seperators */
+/* FSMenuEntry's without paths indicate seperators */
 typedef struct _FSMenuEntry FSMenuEntry;
 struct _FSMenuEntry {
 	FSMenuEntry *next;
@@ -77,8 +77,7 @@ struct _FSMenuEntry {
 	short save;
 };
 
-typedef struct FSMenu
-{
+typedef struct FSMenu {
 	FSMenuEntry *fsmenu_system;
 	FSMenuEntry *fsmenu_bookmarks;
 	FSMenuEntry *fsmenu_recent;
@@ -87,15 +86,15 @@ typedef struct FSMenu
 
 static FSMenu *g_fsmenu = NULL;
 
-struct FSMenu* fsmenu_get(void)
+FSMenu *fsmenu_get(void)
 {
 	if (!g_fsmenu) {
-		g_fsmenu=MEM_callocN(sizeof(struct FSMenu), "fsmenu");
+		g_fsmenu = MEM_callocN(sizeof(struct FSMenu), "fsmenu");
 	}
 	return g_fsmenu;
 }
 
-static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory category)
+static FSMenuEntry *fsmenu_get_category(struct FSMenu *fsmenu, FSMenuCategory category)
 {
 	FSMenuEntry *fsms = NULL;
 
@@ -113,7 +112,7 @@ static FSMenuEntry *fsmenu_get_category(struct FSMenu* fsmenu, FSMenuCategory ca
 	return fsms;
 }
 
-static void fsmenu_set_category(struct FSMenu* fsmenu, FSMenuCategory category, FSMenuEntry *fsms)
+static void fsmenu_set_category(struct FSMenu *fsmenu, FSMenuCategory category, FSMenuEntry *fsms)
 {
 	switch (category) {
 		case FS_CATEGORY_SYSTEM:
@@ -128,49 +127,49 @@ static void fsmenu_set_category(struct FSMenu* fsmenu, FSMenuCategory category, 
 	}
 }
 
-int fsmenu_get_nentries(struct FSMenu* fsmenu, FSMenuCategory category)
+int fsmenu_get_nentries(struct FSMenu *fsmenu, FSMenuCategory category)
 {
 	FSMenuEntry *fsme;
-	int count= 0;
+	int count = 0;
 
-	for (fsme= fsmenu_get_category(fsmenu, category); fsme; fsme= fsme->next) 
+	for (fsme = fsmenu_get_category(fsmenu, category); fsme; fsme = fsme->next)
 		count++;
 
 	return count;
 }
 
-char *fsmenu_get_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx)
+char *fsmenu_get_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
 {
 	FSMenuEntry *fsme;
 
-	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
+	for (fsme = fsmenu_get_category(fsmenu, category); fsme && idx; fsme = fsme->next)
 		idx--;
 
-	return fsme?fsme->path:NULL;
+	return fsme ? fsme->path : NULL;
 }
 
-short fsmenu_can_save (struct FSMenu* fsmenu, FSMenuCategory category, int idx)
+short fsmenu_can_save(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
 {
 	FSMenuEntry *fsme;
 
-	for (fsme= fsmenu_get_category(fsmenu, category); fsme && idx; fsme= fsme->next)
+	for (fsme = fsmenu_get_category(fsmenu, category); fsme && idx; fsme = fsme->next)
 		idx--;
 
-	return fsme?fsme->save:0;
+	return fsme ? fsme->save : 0;
 }
 
-void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const char *path, int sorted, short save)
+void fsmenu_insert_entry(struct FSMenu *fsmenu, FSMenuCategory category, const char *path, int sorted, short save)
 {
 	FSMenuEntry *prev;
 	FSMenuEntry *fsme;
 	FSMenuEntry *fsms;
 
 	fsms = fsmenu_get_category(fsmenu, category);
-	prev= fsme= fsms;
+	prev = fsme = fsms;
 
-	for (; fsme; prev= fsme, fsme= fsme->next) {
+	for (; fsme; prev = fsme, fsme = fsme->next) {
 		if (fsme->path) {
-			const int cmp_ret= BLI_path_cmp(path, fsme->path);
+			const int cmp_ret = BLI_path_cmp(path, fsme->path);
 			if (cmp_ret == 0) {
 				return;
 			}
@@ -188,26 +187,26 @@ void fsmenu_insert_entry(struct FSMenu* fsmenu, FSMenuCategory category, const c
 		}
 	}
 	
-	fsme= MEM_mallocN(sizeof(*fsme), "fsme");
-	fsme->path= BLI_strdup(path);
+	fsme = MEM_mallocN(sizeof(*fsme), "fsme");
+	fsme->path = BLI_strdup(path);
 	fsme->save = save;
 
 	if (prev) {
-		fsme->next= prev->next;
-		prev->next= fsme;
+		fsme->next = prev->next;
+		prev->next = fsme;
 	}
 	else {
-		fsme->next= fsms;
+		fsme->next = fsms;
 		fsmenu_set_category(fsmenu, category, fsme);
 	}
 }
 
-void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx)
+void fsmenu_remove_entry(struct FSMenu *fsmenu, FSMenuCategory category, int idx)
 {
-	FSMenuEntry *prev= NULL, *fsme= NULL;
+	FSMenuEntry *prev = NULL, *fsme = NULL;
 	FSMenuEntry *fsms = fsmenu_get_category(fsmenu, category);
 
-	for (fsme= fsms; fsme && idx; prev= fsme, fsme= fsme->next)		
+	for (fsme = fsms; fsme && idx; prev = fsme, fsme = fsme->next)
 		idx--;
 
 	if (fsme) {
@@ -218,10 +217,10 @@ void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx
 
 			/* remove fsme from list */
 			if (prev) {
-				prev->next= fsme->next;
+				prev->next = fsme->next;
 			}
 			else {
-				fsms= fsme->next;
+				fsms = fsme->next;
 				fsmenu_set_category(fsmenu, category, fsms);
 			}
 			/* free entry */
@@ -231,16 +230,16 @@ void fsmenu_remove_entry(struct FSMenu* fsmenu, FSMenuCategory category, int idx
 	}
 }
 
-void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
+void fsmenu_write_file(struct FSMenu *fsmenu, const char *filename)
 {
-	FSMenuEntry *fsme= NULL;
-	int nskip= 0;
+	FSMenuEntry *fsme = NULL;
+	int nskip = 0;
 
 	FILE *fp = BLI_fopen(filename, "w");
 	if (!fp) return;
 	
 	fprintf(fp, "[Bookmarks]\n");
-	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsme; fsme= fsme->next) {
+	for (fsme = fsmenu_get_category(fsmenu, FS_CATEGORY_BOOKMARKS); fsme; fsme = fsme->next) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);
 		}
@@ -248,10 +247,10 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	fprintf(fp, "[Recent]\n");
 	nskip = fsmenu_get_nentries(fsmenu, FS_CATEGORY_RECENT) - FSMENU_RECENT_MAX;
 	// skip first entries if list too long
-	for (fsme= fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip>0); fsme= fsme->next, --nskip) {
+	for (fsme = fsmenu_get_category(fsmenu, FS_CATEGORY_RECENT); fsme && (nskip > 0); fsme = fsme->next, --nskip) {
 		/* pass */
 	}
-	for (; fsme; fsme= fsme->next) {
+	for (; fsme; fsme = fsme->next) {
 		if (fsme->path && fsme->save) {
 			fprintf(fp, "%s\n", fsme->path);
 		}
@@ -259,7 +258,7 @@ void fsmenu_write_file(struct FSMenu* fsmenu, const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
+void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 {
 	char line[256];
 	FSMenuCategory category = FS_CATEGORY_BOOKMARKS;
@@ -268,11 +267,11 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 	fp = BLI_fopen(filename, "r");
 	if (!fp) return;
 
-	while ( fgets ( line, 256, fp ) != NULL ) {  /* read a line */
-		if (strncmp(line, "[Bookmarks]", 11)==0) {
+	while (fgets(line, 256, fp) != NULL) {       /* read a line */
+		if (strncmp(line, "[Bookmarks]", 11) == 0) {
 			category = FS_CATEGORY_BOOKMARKS;
 		}
-		else if (strncmp(line, "[Recent]", 8)==0) {
+		else if (strncmp(line, "[Recent]", 8) == 0) {
 			category = FS_CATEGORY_RECENT;
 		}
 		else {
@@ -296,7 +295,7 @@ void fsmenu_read_bookmarks(struct FSMenu* fsmenu, const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_system(struct FSMenu* fsmenu)
+void fsmenu_read_system(struct FSMenu *fsmenu)
 {
 	char line[256];
 #ifdef WIN32
@@ -306,14 +305,14 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		char tmps[4];
 		int i;
 			
-		tmp= GetLogicalDrives();
+		tmp = GetLogicalDrives();
 		
-		for (i=0; i < 26; i++) {
-			if ((tmp>>i) & 1) {
-				tmps[0]='A'+i;
-				tmps[1]=':';
-				tmps[2]='\\';
-				tmps[3]=0;
+		for (i = 0; i < 26; i++) {
+			if ((tmp >> i) & 1) {
+				tmps[0] = 'A' + i;
+				tmps[1] = ':';
+				tmps[2] = '\\';
+				tmps[3] = 0;
 				
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, tmps, 1, 0);
 			}
@@ -329,7 +328,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #ifdef __APPLE__
 	{
 #if (MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4)
-		OSErr err=noErr;
+		OSErr err = noErr;
 		int i;
 		const char *home;
 		
@@ -343,7 +342,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 				continue;
 			
 			FSRefMakePath(&dir, path, FILE_MAX);
-			if (strcmp((char*)path, "/home") && strcmp((char*)path, "/net")) {
+			if (strcmp((char *)path, "/home") && strcmp((char *)path, "/net")) {
 				/* /net and /home are meaningless on OSX, home folders are stored in /Users */
 				fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, (char *)path, 1, 0);
 			}
@@ -393,13 +392,13 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
 		
-		for (i=0; i<pathesCount; i++) {
+		for (i = 0; i < pathesCount; i++) {
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
-											  kLSSharedFileListNoUserInteraction |
+			                                  kLSSharedFileListNoUserInteraction |
 			                                  kLSSharedFileListDoNotMountVolumes,
-											  &cfURL, NULL);
+			                                  &cfURL, NULL);
 			if (err != noErr)
 				continue;
 			
@@ -418,7 +417,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		
 		/* Then get network volumes */
 		err = noErr;
-		for (i=1; err!=nsvErr; i++) {
+		for (i = 1; err != nsvErr; i++) {
 			FSRef dir;
 			FSVolumeRefNum volRefNum;
 			struct GetVolParmsInfoBuffer volParmsBuffer;
@@ -442,13 +441,13 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
 		pathesCount = CFArrayGetCount(pathesArray);
 		
-		for (i=0; i<pathesCount; i++) {
+		for (i = 0; i < pathesCount; i++) {
 			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 			
 			err = LSSharedFileListItemResolve(itemRef, 
-											  kLSSharedFileListNoUserInteraction |
+			                                  kLSSharedFileListNoUserInteraction |
 			                                  kLSSharedFileListDoNotMountVolumes,
-											  &cfURL, NULL);
+			                                  &cfURL, NULL);
 			if (err != noErr)
 				continue;
 			
@@ -469,7 +468,7 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 #else
 	/* unix */
 	{
-		const char *home= getenv("HOME");
+		const char *home = getenv("HOME");
 
 		if (home) {
 			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
@@ -481,34 +480,34 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 		}
 
 		{
-			int found= 0;
+			int found = 0;
 #ifdef __linux__
 			/* loop over mount points */
 			struct mntent *mnt;
 			int len;
 			FILE *fp;
 
-			fp = setmntent (MOUNTED, "r");
+			fp = setmntent(MOUNTED, "r");
 			if (fp == NULL) {
 				fprintf(stderr, "could not get a list of mounted filesystemts\n");
 			}
 			else {
-				while ((mnt = getmntent (fp))) {
+				while ((mnt = getmntent(fp))) {
 					/* not sure if this is right, but seems to give the relevant mnts */
 					if (strncmp(mnt->mnt_fsname, "/dev", 4))
 						continue;
 
-					len= strlen(mnt->mnt_dir);
-					if (len && mnt->mnt_dir[len-1] != '/') {
+					len = strlen(mnt->mnt_dir);
+					if (len && mnt->mnt_dir[len - 1] != '/') {
 						BLI_snprintf(line, FILE_MAXDIR, "%s/", mnt->mnt_dir);
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, line, 1, 0);
 					}
 					else
 						fsmenu_insert_entry(fsmenu, FS_CATEGORY_SYSTEM, mnt->mnt_dir, 1, 0);
 
-					found= 1;
+					found = 1;
 				}
-				if (endmntent (fp) == 0) {
+				if (endmntent(fp) == 0) {
 					fprintf(stderr, "could not close the list of mounted filesystemts\n");
 				}
 			}
@@ -524,25 +523,24 @@ void fsmenu_read_system(struct FSMenu* fsmenu)
 }
 
 
-static void fsmenu_free_category(struct FSMenu* fsmenu, FSMenuCategory category)
+static void fsmenu_free_category(struct FSMenu *fsmenu, FSMenuCategory category)
 {
-	FSMenuEntry *fsme= fsmenu_get_category(fsmenu, category);
+	FSMenuEntry *fsme = fsmenu_get_category(fsmenu, category);
 
 	while (fsme) {
-		FSMenuEntry *n= fsme->next;
+		FSMenuEntry *n = fsme->next;
 
 		if (fsme->path) MEM_freeN(fsme->path);
 		MEM_freeN(fsme);
 
-		fsme= n;
+		fsme = n;
 	}
 }
 
-void fsmenu_free(struct FSMenu* fsmenu)
+void fsmenu_free(struct FSMenu *fsmenu)
 {
 	fsmenu_free_category(fsmenu, FS_CATEGORY_SYSTEM);
 	fsmenu_free_category(fsmenu, FS_CATEGORY_BOOKMARKS);
 	fsmenu_free_category(fsmenu, FS_CATEGORY_RECENT);
 	MEM_freeN(fsmenu);
 }
-

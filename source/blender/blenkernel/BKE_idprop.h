@@ -77,8 +77,8 @@ void IDP_ResizeArray(struct IDProperty *prop, int newlen);
 void IDP_FreeArray(struct IDProperty *prop);
 
 /* ---------- String Type ------------ */
-IDProperty *IDP_NewString(const char *st, const char *name, int maxlen);/* maxlen excludes '\0' */
-void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen);	/* maxlen excludes '\0' */
+IDProperty *IDP_NewString(const char *st, const char *name, int maxlen); /* maxlen excludes '\0' */
+void IDP_AssignString(struct IDProperty *prop, const char *st, int maxlen); /* maxlen excludes '\0' */
 void IDP_ConcatStringC(struct IDProperty *prop, const char *st);
 void IDP_ConcatString(struct IDProperty *str1, struct IDProperty *append);
 void IDP_FreeString(struct IDProperty *prop);
@@ -122,7 +122,7 @@ int IDP_AddToGroup(struct IDProperty *group, struct IDProperty *prop);
 /** this is the same as IDP_AddToGroup, only you pass an item
  * in the group list to be inserted after. */
 int IDP_InsertToGroup(struct IDProperty *group, struct IDProperty *previous, 
-					  struct IDProperty *pnew);
+                      struct IDProperty *pnew);
 
 /** \note this does not free the property!!
  *
@@ -201,10 +201,10 @@ void IDP_FreeProperty(struct IDProperty *prop);
 void IDP_UnlinkProperty(struct IDProperty *prop);
 
 #define IDP_Int(prop) ((prop)->data.val)
-#define IDP_Float(prop) (*(float*)&(prop)->data.val)
-#define IDP_String(prop) ((char*)(prop)->data.pointer)
+#define IDP_Float(prop) (*(float *)&(prop)->data.val)
+#define IDP_String(prop) ((char *)(prop)->data.pointer)
 #define IDP_Array(prop) ((prop)->data.pointer)
-#define IDP_IDPArray(prop) ((IDProperty*)(prop)->data.pointer)
-#define IDP_Double(prop) (*(double*)&(prop)->data.val)
+#define IDP_IDPArray(prop) ((IDProperty *)(prop)->data.pointer)
+#define IDP_Double(prop) (*(double *)&(prop)->data.val)
 
 #endif /* __BKE_IDPROP_H__ */

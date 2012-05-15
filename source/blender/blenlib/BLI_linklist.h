@@ -46,20 +46,19 @@ typedef struct LinkNode {
 	void *link;
 } LinkNode;
 
-int		BLI_linklist_length		(struct LinkNode *list);
-int		BLI_linklist_index		(struct LinkNode *list, void *ptr);
+int     BLI_linklist_length(struct LinkNode *list);
+int     BLI_linklist_index(struct LinkNode *list, void *ptr);
 
-struct LinkNode *BLI_linklist_find	(struct LinkNode *list, int index);
+struct LinkNode *BLI_linklist_find(struct LinkNode *list, int index);
 
-void	BLI_linklist_reverse	(struct LinkNode **listp);
+void    BLI_linklist_reverse(struct LinkNode **listp);
 
-void	BLI_linklist_prepend		(struct LinkNode **listp, void *ptr);
-void	BLI_linklist_append	    	(struct LinkNode **listp, void *ptr);
-void	BLI_linklist_prepend_arena	(struct LinkNode **listp, void *ptr, struct MemArena *ma);
-void	BLI_linklist_insert_after	(struct LinkNode **listp, void *ptr);
+void    BLI_linklist_prepend(struct LinkNode **listp, void *ptr);
+void    BLI_linklist_append(struct LinkNode **listp, void *ptr);
+void    BLI_linklist_prepend_arena(struct LinkNode **listp, void *ptr, struct MemArena *ma);
+void    BLI_linklist_insert_after(struct LinkNode **listp, void *ptr);
 
-void	BLI_linklist_free		(struct LinkNode *list, LinkNodeFreeFP freefunc);
-void	BLI_linklist_apply		(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
+void    BLI_linklist_free(struct LinkNode *list, LinkNodeFreeFP freefunc);
+void    BLI_linklist_apply(struct LinkNode *list, LinkNodeApplyFP applyfunc, void *userdata);
 
 #endif
-

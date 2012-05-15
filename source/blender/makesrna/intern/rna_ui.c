@@ -52,7 +52,8 @@ EnumPropertyItem operator_context_items[] = {
 	{WM_OP_EXEC_REGION_PREVIEW, "EXEC_REGION_PREVIEW", 0, "Exec Region Preview", ""},
 	{WM_OP_EXEC_AREA, "EXEC_AREA", 0, "Exec Area", ""},
 	{WM_OP_EXEC_SCREEN, "EXEC_SCREEN", 0, "Exec Screen", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -77,7 +78,7 @@ static ARegionType *region_type_find(ReportList *reports, int space_type, int re
 
 	st = BKE_spacetype_from_id(space_type);
 
-	for (art = (st)? st->regiontypes.first: NULL; art; art = art->next) {
+	for (art = (st) ? st->regiontypes.first : NULL; art; art = art->next) {
 		if (art->regionid == region_type)
 			break;
 	}
@@ -111,7 +112,7 @@ static int panel_poll(const bContext *C, PanelType *pt)
 	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
-	visible = *(int*)ret;
+	visible = *(int *)ret;
 
 	RNA_parameter_list_free(&list);
 
@@ -127,7 +128,7 @@ static void panel_draw(const bContext *C, Panel *pnl)
 	FunctionRNA *func;
 
 	RNA_pointer_create(&CTX_wm_screen(C)->id, pnl->type->ext.srna, pnl, &ptr);
-	func = &rna_Panel_draw_func;/* RNA_struct_find_function(&ptr, "draw"); */
+	func = &rna_Panel_draw_func; /* RNA_struct_find_function(&ptr, "draw"); */
 
 	RNA_parameter_list_create(&list, &ptr, func);
 	RNA_parameter_set_lookup(&list, "context", &C);
@@ -170,7 +171,7 @@ static void rna_Panel_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 }
 
 static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
@@ -221,9 +222,9 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 	RNA_struct_blender_type_set(pt->ext.srna, pt);
 	RNA_def_struct_flag(pt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
-	pt->poll = (have_function[0])? panel_poll: NULL;
-	pt->draw = (have_function[1])? panel_draw: NULL;
-	pt->draw_header = (have_function[2])? panel_draw_header: NULL;
+	pt->poll = (have_function[0]) ? panel_poll : NULL;
+	pt->draw = (have_function[1]) ? panel_draw : NULL;
+	pt->draw_header = (have_function[2]) ? panel_draw_header : NULL;
 
 	/* XXX use "no header" flag for some ordering of panels until we have real panel ordering */
 	if (pt->flag & PNL_NO_HEADER) {
@@ -240,15 +241,15 @@ static StructRNA *rna_Panel_register(Main *bmain, ReportList *reports, void *dat
 		BLI_addtail(&art->paneltypes, pt);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 	
 	return pt->ext.srna;
 }
 
-static StructRNA* rna_Panel_refine(PointerRNA *ptr)
+static StructRNA *rna_Panel_refine(PointerRNA *ptr)
 {
-	Panel *hdr = (Panel*)ptr->data;
-	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Panel;
+	Panel *hdr = (Panel *)ptr->data;
+	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Panel;
 }
 
 /* Header */
@@ -287,7 +288,7 @@ static void rna_Header_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 }
 
 static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *data, const char *identifier,
@@ -335,20 +336,20 @@ static StructRNA *rna_Header_register(Main *bmain, ReportList *reports, void *da
 	ht->ext.free = free;
 	RNA_struct_blender_type_set(ht->ext.srna, ht);
 
-	ht->draw = (have_function[0])? header_draw: NULL;
+	ht->draw = (have_function[0]) ? header_draw : NULL;
 
 	BLI_addtail(&art->headertypes, ht);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 	
 	return ht->ext.srna;
 }
 
-static StructRNA* rna_Header_refine(PointerRNA *htr)
+static StructRNA *rna_Header_refine(PointerRNA *htr)
 {
-	Header *hdr = (Header*)htr->data;
-	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Header;
+	Header *hdr = (Header *)htr->data;
+	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Header;
 }
 
 /* Menu */
@@ -371,7 +372,7 @@ static int menu_poll(const bContext *C, MenuType *pt)
 	pt->ext.call((bContext *)C, &ptr, func, &list);
 
 	RNA_parameter_get_lookup(&list, "visible", &ret);
-	visible = *(int*)ret;
+	visible = *(int *)ret;
 
 	RNA_parameter_list_free(&list);
 
@@ -410,7 +411,7 @@ static void rna_Menu_unregister(Main *UNUSED(bmain), StructRNA *type)
 	RNA_struct_free(&BLENDER_RNA, type);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 }
 
 static char _menu_descr[RNA_DYN_DESCR_MAX];
@@ -469,29 +470,29 @@ static StructRNA *rna_Menu_register(Main *bmain, ReportList *reports, void *data
 	RNA_struct_blender_type_set(mt->ext.srna, mt);
 	RNA_def_struct_flag(mt->ext.srna, STRUCT_NO_IDPROPERTIES);
 
-	mt->poll = (have_function[0])? menu_poll: NULL;
-	mt->draw = (have_function[1])? menu_draw: NULL;
+	mt->poll = (have_function[0]) ? menu_poll : NULL;
+	mt->draw = (have_function[1]) ? menu_draw : NULL;
 
 	WM_menutype_add(mt);
 
 	/* update while blender is running */
-	WM_main_add_notifier(NC_SCREEN|NA_EDITED, NULL);
+	WM_main_add_notifier(NC_SCREEN | NA_EDITED, NULL);
 	
 	return mt->ext.srna;
 }
 
-static StructRNA* rna_Menu_refine(PointerRNA *mtr)
+static StructRNA *rna_Menu_refine(PointerRNA *mtr)
 {
-	Menu *hdr = (Menu*)mtr->data;
-	return (hdr->type && hdr->type->ext.srna)? hdr->type->ext.srna: &RNA_Menu;
+	Menu *hdr = (Menu *)mtr->data;
+	return (hdr->type && hdr->type->ext.srna) ? hdr->type->ext.srna : &RNA_Menu;
 }
 
 static void rna_Menu_bl_description_set(PointerRNA *ptr, const char *value)
 {
-	Menu *data = (Menu*)(ptr->data);
+	Menu *data = (Menu *)(ptr->data);
 	char *str = (char *)data->type->description;
-	if (!str[0])	BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);  /* utf8 already ensured */
-	else		assert(!"setting the bl_description on a non-builtin menu");
+	if (!str[0]) BLI_strncpy(str, value, RNA_DYN_DESCR_MAX);     /* utf8 already ensured */
+	else assert(!"setting the bl_description on a non-builtin menu");
 }
 
 static int rna_UILayout_active_get(PointerRNA *ptr)
@@ -598,7 +599,8 @@ static void rna_def_ui_layout(BlenderRNA *brna)
 		{UI_LAYOUT_ALIGN_LEFT, "LEFT", 0, "Left", ""},
 		{UI_LAYOUT_ALIGN_CENTER, "CENTER", 0, "Center", ""},
 		{UI_LAYOUT_ALIGN_RIGHT, "RIGHT", 0, "Right", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	/* layout */
 
@@ -647,12 +649,13 @@ static void rna_def_panel(BlenderRNA *brna)
 	FunctionRNA *func;
 	
 	static EnumPropertyItem panel_flag_items[] = {
-			{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed",
-			                     "Defines if the panel has to be open or collapsed at the time of its creation"},
-			{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header",
-			                "If set to True, the panel shows a header, which contains a clickable "
-			                "arrow to collapse the panel and the label (see bl_label)"},
-			{0, NULL, 0, NULL, NULL}};
+		{PNL_DEFAULT_CLOSED, "DEFAULT_CLOSED", 0, "Default Closed",
+		                     "Defines if the panel has to be open or collapsed at the time of its creation"},
+		{PNL_NO_HEADER, "HIDE_HEADER", 0, "Show Header",
+		                "If set to True, the panel shows a header, which contains a clickable "
+		                "arrow to collapse the panel and the label (see bl_label)"},
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "Panel", NULL);
 	RNA_def_struct_ui_text(srna, "Panel", "Panel containing UI elements");
@@ -663,23 +666,23 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the panel can be drawn");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	/* draw */
 	func = RNA_def_function(srna, "draw", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	func = RNA_def_function(srna, "draw_header", NULL);
 	RNA_def_function_ui_description(func, "Draw UI elements into the panel's header UI layout");
 	RNA_def_function_flag(func, FUNC_REGISTER);
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
-	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 
 	prop = RNA_def_property(srna, "layout", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "UILayout");
@@ -692,7 +695,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name",
 	                         "If this is set, the panel gets a custom ID, otherwise it takes the "
 	                         "name of the class used to define the panel. For example, if the "
@@ -731,7 +734,7 @@ static void rna_def_panel(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "bl_options", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type->flag");
 	RNA_def_property_enum_items(prop, panel_flag_items);
-	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL|PROP_ENUM_FLAG);
+	RNA_def_property_flag(prop, PROP_REGISTER_OPTIONAL | PROP_ENUM_FLAG);
 	RNA_def_property_ui_text(prop, "Options",  "Options for this panel type");
 }
 
@@ -765,7 +768,7 @@ static void rna_def_header(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name",
 	                         "If this is set, the header gets a custom ID, otherwise it takes the "
 	                         "name of the class used to define the panel; for example, if the "
@@ -797,7 +800,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* poll */
 	func = RNA_def_function(srna, "poll", NULL);
 	RNA_def_function_ui_description(func, "If this method returns a non-null output, then the menu can be drawn");
-	RNA_def_function_flag(func, FUNC_NO_SELF|FUNC_REGISTER_OPTIONAL);
+	RNA_def_function_flag(func, FUNC_NO_SELF | FUNC_REGISTER_OPTIONAL);
 	RNA_def_function_return(func, RNA_def_boolean(func, "visible", 1, "", ""));
 	parm = RNA_def_pointer(func, "context", "Context", "", "");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
@@ -819,7 +822,7 @@ static void rna_def_menu(BlenderRNA *brna)
 	/* registration */
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 	RNA_def_property_ui_text(prop, "ID Name",
 	                         "If this is set, the menu gets a custom ID, otherwise it takes the "
 	                         "name of the class used to define the menu (for example, if the "

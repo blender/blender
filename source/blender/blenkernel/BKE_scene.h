@@ -49,13 +49,13 @@ struct Scene;
 struct Text;
 struct Text;
 
-#define SCE_COPY_NEW		0
-#define SCE_COPY_EMPTY		1
-#define SCE_COPY_LINK_OB	2
-#define SCE_COPY_LINK_DATA	3
-#define SCE_COPY_FULL		4
+#define SCE_COPY_NEW        0
+#define SCE_COPY_EMPTY      1
+#define SCE_COPY_LINK_OB    2
+#define SCE_COPY_LINK_DATA  3
+#define SCE_COPY_FULL       4
 
-#define SETLOOPER(_sce_basis, _sce_iter, _base) _sce_iter= _sce_basis, _base= _setlooper_base_step(&_sce_iter, NULL); _base; _base= _setlooper_base_step(&_sce_iter, _base)
+#define SETLOOPER(_sce_basis, _sce_iter, _base) _sce_iter = _sce_basis, _base = _setlooper_base_step(&_sce_iter, NULL); _base; _base = _setlooper_base_step(&_sce_iter, _base)
 struct Base *_setlooper_base_step(struct Scene **sce_iter, struct Base *base);
 
 void free_avicodecdata(struct AviCodecData *acd);

@@ -48,7 +48,7 @@
 
 void IMB_de_interlace(ImBuf *ibuf)
 {
-	ImBuf * tbuf1, * tbuf2;
+	ImBuf *tbuf1, *tbuf2;
 	
 	if (ibuf == NULL) return;
 	if (ibuf->flags & IB_fields) return;
@@ -75,7 +75,7 @@ void IMB_de_interlace(ImBuf *ibuf)
 
 void IMB_interlace(ImBuf *ibuf)
 {
-	ImBuf * tbuf1, * tbuf2;
+	ImBuf *tbuf1, *tbuf2;
 
 	if (ibuf == NULL) return;
 	ibuf->flags &= ~IB_fields;
@@ -113,13 +113,13 @@ DitherContext *create_dither_context(int w, float factor)
 	DitherContext *di;
 	int i;
 	
-	di= MEM_callocN(sizeof(DitherContext), "dithering context");
-	di->f= factor / 16.0f;
-	di->error_buf= MEM_callocN(4*(w+1)*sizeof(int), "dithering error");
-	di->e= di->error_buf;
+	di = MEM_callocN(sizeof(DitherContext), "dithering context");
+	di->f = factor / 16.0f;
+	di->error_buf = MEM_callocN(4 * (w + 1) * sizeof(int), "dithering error");
+	di->e = di->error_buf;
 
-	for (i=0; i<4; ++i)
-		di->v[i]= di->v0[i]= di->v1[i]= 1024.0f*(BLI_frand()-0.5f);
+	for (i = 0; i < 4; ++i)
+		di->v[i] = di->v0[i] = di->v1[i] = 1024.0f * (BLI_frand() - 0.5f);
 
 	return di;
 }
@@ -134,10 +134,10 @@ static void dither_finish_row(DitherContext *di)
 {
 	int i;
 
-	for (i=0; i<4; i++)
-		di->v[i]= di->v0[i]= di->v1[i] = 0;
+	for (i = 0; i < 4; i++)
+		di->v[i] = di->v0[i] = di->v1[i] = 0;
 
-	di->e= di->error_buf;
+	di->e = di->error_buf;
 }
 
 MINLINE unsigned char dither_value(unsigned short v_in, DitherContext *di, int i)
@@ -145,12 +145,12 @@ MINLINE unsigned char dither_value(unsigned short v_in, DitherContext *di, int i
 	int dv, d2;
 	unsigned char v_out;
 
-	di->v[i] = v_in + (2*di->v[i] + di->e[4]) * di->f;
+	di->v[i] = v_in + (2 * di->v[i] + di->e[4]) * di->f;
 	CLAMP(di->v[i], 0, 0xFF00);
 	v_out = USHORTTOUCHAR(di->v[i]);
-	di->v[i] -= v_out<<8;
+	di->v[i] -= v_out << 8;
 	dv = di->v[i];
-	d2 = di->v[i]<<1;
+	d2 = di->v[i] << 1;
 	di->v[i] += d2;
 	*(di->e++) = di->v[i] + di->v0[i];
 	di->v[i] += d2;
@@ -166,18 +166,18 @@ MINLINE unsigned char dither_value(unsigned short v_in, DitherContext *di, int i
 
 MINLINE void ushort_to_byte_v4(uchar b[4], const unsigned short us[4])
 {
-	b[0]= USHORTTOUCHAR(us[0]);
-	b[1]= USHORTTOUCHAR(us[1]);
-	b[2]= USHORTTOUCHAR(us[2]);
-	b[3]= USHORTTOUCHAR(us[3]);
+	b[0] = USHORTTOUCHAR(us[0]);
+	b[1] = USHORTTOUCHAR(us[1]);
+	b[2] = USHORTTOUCHAR(us[2]);
+	b[3] = USHORTTOUCHAR(us[3]);
 }
 
 MINLINE void ushort_to_byte_dither_v4(uchar b[4], const unsigned short us[4], DitherContext *di)
 {
-	b[0]= dither_value(us[0], di, 0);
-	b[1]= dither_value(us[1], di, 1);
-	b[2]= dither_value(us[2], di, 2);
-	b[3]= dither_value(us[3], di, 3);
+	b[0] = dither_value(us[0], di, 0);
+	b[1] = dither_value(us[1], di, 1);
+	b[2] = dither_value(us[2], di, 2);
+	b[3] = dither_value(us[3], di, 3);
 }
 
 MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext *di)
@@ -188,8 +188,8 @@ MINLINE void float_to_byte_dither_v4(uchar b[4], const float f[4], DitherContext
 
 /* float to byte pixels, output 4-channel RGBA */
 void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
-	int channels_from, float dither, int profile_to, int profile_from, int predivide,
-	int width, int height, int stride_to, int stride_from)
+                                int channels_from, float dither, int profile_to, int profile_from, int predivide,
+                                int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
 	int x, y;
@@ -201,32 +201,32 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 
 	BLI_init_srgb_conversion();
 	if (dither)
-		di= create_dither_context(width, dither);
+		di = create_dither_context(width, dither);
 
 	for (y = 0; y < height; y++) {
 		if (channels_from == 1) {
-		/* single channel input */
-			const float *from = rect_from + stride_from*y;
-			uchar *to = rect_to + stride_to*y*4;
+			/* single channel input */
+			const float *from = rect_from + stride_from * y;
+			uchar *to = rect_to + stride_to * y * 4;
 
-			for (x = 0; x < width; x++, from++, to+=4)
+			for (x = 0; x < width; x++, from++, to += 4)
 				to[0] = to[1] = to[2] = to[3] = FTOCHAR(from[0]);
 		}
 		else if (channels_from == 3) {
-		/* RGB input */
-			const float *from = rect_from + stride_from*y*3;
-			uchar *to = rect_to + stride_to*y*4;
+			/* RGB input */
+			const float *from = rect_from + stride_from * y * 3;
+			uchar *to = rect_to + stride_to * y * 4;
 
 			if (profile_to == profile_from) {
 				/* no color space conversion */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					rgb_float_to_uchar(to, from);
 					to[3] = 255;
 				}
 			}
 			else if (profile_to == IB_PROFILE_SRGB) {
 				/* convert from linear to sRGB */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					linearrgb_to_srgb_v3_v3(tmp, from);
 					rgb_float_to_uchar(to, tmp);
 					to[3] = 255;
@@ -234,7 +234,7 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 			}
 			else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 				/* convert from sRGB to linear */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					srgb_to_linearrgb_v3_v3(tmp, from);
 					rgb_float_to_uchar(to, tmp);
 					to[3] = 255;
@@ -242,18 +242,18 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 			}
 		}
 		else if (channels_from == 4) {
-		/* RGBA input */
-			const float *from = rect_from + stride_from*y*4;
-			uchar *to = rect_to + stride_to*y*4;
+			/* RGBA input */
+			const float *from = rect_from + stride_from * y * 4;
+			uchar *to = rect_to + stride_to * y * 4;
 
 			if (profile_to == profile_from) {
 				/* no color space conversion */
 				if (dither) {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						float_to_byte_dither_v4(to, from, di);
 				}
 				else {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						rgba_float_to_uchar(to, from);
 				}
 			}
@@ -262,25 +262,25 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 				unsigned short us[4];
 
 				if (dither && predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						linearrgb_to_srgb_ushort4_predivide(us, from);
 						ushort_to_byte_dither_v4(to, us, di);
 					}
 				}
 				else if (dither) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						linearrgb_to_srgb_ushort4(us, from);
 						ushort_to_byte_dither_v4(to, us, di);
 					}
 				}
 				else if (predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						linearrgb_to_srgb_ushort4_predivide(us, from);
 						ushort_to_byte_v4(to, us);
 					}
 				}
 				else {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						linearrgb_to_srgb_ushort4(us, from);
 						ushort_to_byte_v4(to, us);
 					}
@@ -289,25 +289,25 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 			else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 				/* convert from sRGB to linear */
 				if (dither && predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_predivide_v4(tmp, from);
 						float_to_byte_dither_v4(to, tmp, di);
 					}
 				}
 				else if (dither) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_v4(tmp, from);
 						float_to_byte_dither_v4(to, tmp, di);
 					}
 				}
 				else if (predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_predivide_v4(tmp, from);
 						rgba_float_to_uchar(to, tmp);
 					}
 				}
 				else {
-					for (x = 0; x < width; x++, from+=4, to+=4) {
+					for (x = 0; x < width; x++, from += 4, to += 4) {
 						srgb_to_linearrgb_v4(tmp, from);
 						rgba_float_to_uchar(to, tmp);
 					}
@@ -325,8 +325,8 @@ void IMB_buffer_byte_from_float(uchar *rect_to, const float *rect_from,
 
 /* byte to float pixels, input and output 4-channel RGBA  */
 void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
-	int profile_to, int profile_from, int predivide,
-	int width, int height, int stride_to, int stride_from)
+                                int profile_to, int profile_from, int predivide,
+                                int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
 	int x, y;
@@ -339,23 +339,23 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 
 	/* RGBA input */
 	for (y = 0; y < height; y++) {
-		const uchar *from = rect_from + stride_from*y*4;
-		float *to = rect_to + stride_to*y*4;
+		const uchar *from = rect_from + stride_from * y * 4;
+		float *to = rect_to + stride_to * y * 4;
 
 		if (profile_to == profile_from) {
 			/* no color space conversion */
-			for (x = 0; x < width; x++, from+=4, to+=4)
+			for (x = 0; x < width; x++, from += 4, to += 4)
 				rgba_uchar_to_float(to, from);
 		}
 		else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 			/* convert sRGB to linear */
 			if (predivide) {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					srgb_to_linearrgb_uchar4_predivide(to, from);
 				}
 			}
 			else {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					srgb_to_linearrgb_uchar4(to, from);
 				}
 			}
@@ -363,13 +363,13 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 		else if (profile_to == IB_PROFILE_SRGB) {
 			/* convert linear to sRGB */
 			if (predivide) {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_predivide_v4(to, tmp);
 				}
 			}
 			else {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_v4(to, tmp);
 				}
@@ -380,8 +380,8 @@ void IMB_buffer_float_from_byte(float *rect_to, const uchar *rect_from,
 
 /* float to float pixels, output 4-channel RGBA */
 void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
-	int channels_from, int profile_to, int profile_from, int predivide,
-	int width, int height, int stride_to, int stride_from)
+                                 int channels_from, int profile_to, int profile_from, int predivide,
+                                 int width, int height, int stride_to, int stride_from)
 {
 	int x, y;
 
@@ -389,39 +389,39 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	BLI_assert(profile_to != IB_PROFILE_NONE);
 	BLI_assert(profile_from != IB_PROFILE_NONE);
 
-	if (channels_from==1) {
+	if (channels_from == 1) {
 		/* single channel input */
 		for (y = 0; y < height; y++) {
-			const float *from = rect_from + stride_from*y;
-			float *to = rect_to + stride_to*y*4;
+			const float *from = rect_from + stride_from * y;
+			float *to = rect_to + stride_to * y * 4;
 
-			for (x = 0; x < width; x++, from++, to+=4)
+			for (x = 0; x < width; x++, from++, to += 4)
 				to[0] = to[1] = to[2] = to[3] = from[0];
 		}
 	}
 	else if (channels_from == 3) {
 		/* RGB input */
 		for (y = 0; y < height; y++) {
-			const float *from = rect_from + stride_from*y*3;
-			float *to = rect_to + stride_to*y*4;
+			const float *from = rect_from + stride_from * y * 3;
+			float *to = rect_to + stride_to * y * 4;
 
 			if (profile_to == profile_from) {
 				/* no color space conversion */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					copy_v3_v3(to, from);
 					to[3] = 1.0f;
 				}
 			}
 			else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 				/* convert from sRGB to linear */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					srgb_to_linearrgb_v3_v3(to, from);
 					to[3] = 1.0f;
 				}
 			}
 			else if (profile_to == IB_PROFILE_SRGB) {
 				/* convert from linear to sRGB */
-				for (x = 0; x < width; x++, from+=3, to+=4) {
+				for (x = 0; x < width; x++, from += 3, to += 4) {
 					linearrgb_to_srgb_v3_v3(to, from);
 					to[3] = 1.0f;
 				}
@@ -431,32 +431,32 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 	else if (channels_from == 4) {
 		/* RGBA input */
 		for (y = 0; y < height; y++) {
-			const float *from = rect_from + stride_from*y*4;
-			float *to = rect_to + stride_to*y*4;
+			const float *from = rect_from + stride_from * y * 4;
+			float *to = rect_to + stride_to * y * 4;
 
 			if (profile_to == profile_from) {
 				/* same profile, copy */
-				memcpy(to, from, sizeof(float)*4*width);
+				memcpy(to, from, sizeof(float) * 4 * width);
 			}
 			else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 				/* convert to sRGB to linear */
 				if (predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						srgb_to_linearrgb_predivide_v4(to, from);
 				}
 				else {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						srgb_to_linearrgb_v4(to, from);
 				}
 			}
 			else if (profile_to == IB_PROFILE_SRGB) {
 				/* convert from linear to sRGB */
 				if (predivide) {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						linearrgb_to_srgb_predivide_v4(to, from);
 				}
 				else {
-					for (x = 0; x < width; x++, from+=4, to+=4)
+					for (x = 0; x < width; x++, from += 4, to += 4)
 						linearrgb_to_srgb_v4(to, from);
 				}
 			}
@@ -466,8 +466,8 @@ void IMB_buffer_float_from_float(float *rect_to, const float *rect_from,
 
 /* byte to byte pixels, input and output 4-channel RGBA */
 void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
-	int profile_to, int profile_from, int predivide,
-	int width, int height, int stride_to, int stride_from)
+                               int profile_to, int profile_from, int predivide,
+                               int width, int height, int stride_to, int stride_from)
 {
 	float tmp[4];
 	int x, y;
@@ -478,24 +478,24 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 
 	/* always RGBA input */
 	for (y = 0; y < height; y++) {
-		const uchar *from = rect_from + stride_from*y*4;
-		uchar *to = rect_to + stride_to*y*4;
+		const uchar *from = rect_from + stride_from * y * 4;
+		uchar *to = rect_to + stride_to * y * 4;
 
 		if (profile_to == profile_from) {
 			/* same profile, copy */
-			memcpy(to, from, sizeof(uchar)*4*width);
+			memcpy(to, from, sizeof(uchar) * 4 * width);
 		}
 		else if (profile_to == IB_PROFILE_LINEAR_RGB) {
 			/* convert to sRGB to linear */
 			if (predivide) {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					srgb_to_linearrgb_predivide_v4(tmp, tmp);
 					rgba_float_to_uchar(to, tmp);
 				}
 			}
 			else {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					srgb_to_linearrgb_v4(tmp, tmp);
 					rgba_float_to_uchar(to, tmp);
@@ -505,14 +505,14 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 		else if (profile_to == IB_PROFILE_SRGB) {
 			/* convert from linear to sRGB */
 			if (predivide) {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_predivide_v4(tmp, tmp);
 					rgba_float_to_uchar(to, tmp);
 				}
 			}
 			else {
-				for (x = 0; x < width; x++, from+=4, to+=4) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
 					rgba_uchar_to_float(tmp, from);
 					linearrgb_to_srgb_v4(tmp, tmp);
 					rgba_float_to_uchar(to, tmp);
@@ -526,15 +526,15 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 
 void IMB_rect_from_float(ImBuf *ibuf)
 {
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 	int profile_from;
 
 	/* verify we have a float buffer */
-	if (ibuf->rect_float==NULL)
+	if (ibuf->rect_float == NULL)
 		return;
 
 	/* create byte rect if it didn't exist yet */
-	if (ibuf->rect==NULL)
+	if (ibuf->rect == NULL)
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
@@ -546,9 +546,9 @@ void IMB_rect_from_float(ImBuf *ibuf)
 		BLI_assert(0);
 
 	/* do conversion */
-	IMB_buffer_byte_from_float((uchar*)ibuf->rect, ibuf->rect_float,
-		ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
-		ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	IMB_buffer_byte_from_float((uchar *)ibuf->rect, ibuf->rect_float,
+	                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
+	                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 	/* ensure user flag is reset */
 	ibuf->userflags &= ~IB_RECT_INVALID;
@@ -559,15 +559,15 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 {
 	float *rect_float;
 	uchar *rect_byte;
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 	int profile_from;
 
 	/* verify we have a float buffer */
-	if (ibuf->rect_float==NULL || buffer==NULL)
+	if (ibuf->rect_float == NULL || buffer == NULL)
 		return;
 
 	/* create byte rect if it didn't exist yet */
-	if (ibuf->rect==NULL)
+	if (ibuf->rect == NULL)
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
@@ -579,16 +579,16 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 		BLI_assert(0);
 
 	/* do conversion */
-	rect_float= ibuf->rect_float + (x + y*ibuf->x)*ibuf->channels;
-	rect_byte= (uchar*)ibuf->rect + (x + y*ibuf->x)*4;
+	rect_float = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;
+	rect_byte = (uchar *)ibuf->rect + (x + y * ibuf->x) * 4;
 
 	IMB_buffer_float_from_float(buffer, rect_float,
-		ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
-		w, h, w, ibuf->x);
+	                            ibuf->channels, IB_PROFILE_SRGB, profile_from, predivide,
+	                            w, h, w, ibuf->x);
 
 	IMB_buffer_byte_from_float(rect_byte, buffer,
-		4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
-		w, h, ibuf->x, w);
+	                           4, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, 0,
+	                           w, h, ibuf->x, w);
 
 	/* ensure user flag is reset */
 	ibuf->userflags &= ~IB_RECT_INVALID;
@@ -596,14 +596,14 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 
 void IMB_float_from_rect(ImBuf *ibuf)
 {
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 	int profile_from;
 
 	/* verify if we byte and float buffers */
-	if (ibuf->rect==NULL)
+	if (ibuf->rect == NULL)
 		return;
 
-	if (ibuf->rect_float==NULL)
+	if (ibuf->rect_float == NULL)
 		if (imb_addrectfloatImBuf(ibuf) == 0)
 			return;
 	
@@ -614,27 +614,27 @@ void IMB_float_from_rect(ImBuf *ibuf)
 		profile_from = IB_PROFILE_SRGB;
 	
 	/* do conversion */
-	IMB_buffer_float_from_byte(ibuf->rect_float, (uchar*)ibuf->rect,
-		IB_PROFILE_LINEAR_RGB, profile_from, predivide,
-		ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	IMB_buffer_float_from_byte(ibuf->rect_float, (uchar *)ibuf->rect,
+	                           IB_PROFILE_LINEAR_RGB, profile_from, predivide,
+	                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 }
 
 /* no profile conversion */
 void IMB_float_from_rect_simple(ImBuf *ibuf)
 {
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 
-	if (ibuf->rect_float==NULL)
+	if (ibuf->rect_float == NULL)
 		imb_addrectfloatImBuf(ibuf);
 
-	IMB_buffer_float_from_byte(ibuf->rect_float, (uchar*)ibuf->rect,
-		IB_PROFILE_SRGB, IB_PROFILE_SRGB, predivide,
-		ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	IMB_buffer_float_from_byte(ibuf->rect_float, (uchar *)ibuf->rect,
+	                           IB_PROFILE_SRGB, IB_PROFILE_SRGB, predivide,
+	                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 }
 
 void IMB_convert_profile(ImBuf *ibuf, int profile)
 {
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 	int profile_from, profile_to;
 
 	if (ibuf->profile == profile)
@@ -662,25 +662,25 @@ void IMB_convert_profile(ImBuf *ibuf, int profile)
 	/* do conversion */
 	if (ibuf->rect_float) {
 		IMB_buffer_float_from_float(ibuf->rect_float, ibuf->rect_float,
-			4, profile_to, profile_from, predivide,
-			ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		                            4, profile_to, profile_from, predivide,
+		                            ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
 
 	if (ibuf->rect) {
-		IMB_buffer_byte_from_byte((uchar*)ibuf->rect, (uchar*)ibuf->rect,
-			profile_to, profile_from, predivide,
-			ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+		IMB_buffer_byte_from_byte((uchar *)ibuf->rect, (uchar *)ibuf->rect,
+		                          profile_to, profile_from, predivide,
+		                          ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
 
 	/* set new profile */
-	ibuf->profile= profile;
+	ibuf->profile = profile;
 }
 
 /* use when you need to get a buffer with a certain profile
  * if the return  */
 float *IMB_float_profile_ensure(ImBuf *ibuf, int profile, int *alloc)
 {
-	int predivide= (ibuf->flags & IB_cm_predivide);
+	int predivide = (ibuf->flags & IB_cm_predivide);
 	int profile_from, profile_to;
 
 	/* determine profiles */
@@ -696,7 +696,7 @@ float *IMB_float_profile_ensure(ImBuf *ibuf, int profile, int *alloc)
 	
 	if (profile_from == profile_to) {
 		/* simple case, just allocate the buffer and return */
-		*alloc= 0;
+		*alloc = 0;
 
 		if (ibuf->rect_float == NULL)
 			IMB_float_from_rect(ibuf);
@@ -705,18 +705,18 @@ float *IMB_float_profile_ensure(ImBuf *ibuf, int profile, int *alloc)
 	}
 	else {
 		/* conversion is needed, first check */
-		float *fbuf= MEM_mallocN(ibuf->x * ibuf->y * sizeof(float) * 4, "IMB_float_profile_ensure");
-		*alloc= 1;
+		float *fbuf = MEM_mallocN(ibuf->x * ibuf->y * sizeof(float) * 4, "IMB_float_profile_ensure");
+		*alloc = 1;
 
 		if (ibuf->rect_float == NULL) {
-			IMB_buffer_float_from_byte(fbuf, (uchar*)ibuf->rect,
-				profile_to, profile_from, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+			IMB_buffer_float_from_byte(fbuf, (uchar *)ibuf->rect,
+			                           profile_to, profile_from, predivide,
+			                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 		}
 		else {
 			IMB_buffer_float_from_float(fbuf, ibuf->rect_float,
-				4, profile_to, profile_from, predivide,
-				ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+			                            4, profile_to, profile_from, predivide,
+			                            ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 		}
 
 		return fbuf;
@@ -728,24 +728,24 @@ float *IMB_float_profile_ensure(ImBuf *ibuf, int profile, int *alloc)
 /* no profile conversion */
 void IMB_color_to_bw(ImBuf *ibuf)
 {
-	float *rctf= ibuf->rect_float;
-	uchar *rct= (uchar*)ibuf->rect;
+	float *rctf = ibuf->rect_float;
+	uchar *rct = (uchar *)ibuf->rect;
 	int i;
 
 	if (rctf) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4)
-			rctf[0]= rctf[1]= rctf[2]= rgb_to_grayscale(rctf);
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4)
+			rctf[0] = rctf[1] = rctf[2] = rgb_to_grayscale(rctf);
 	}
 
 	if (rct) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4)
-			rct[0]= rct[1]= rct[2]= rgb_to_grayscale_byte(rct);
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct += 4)
+			rct[0] = rct[1] = rct[2] = rgb_to_grayscale_byte(rct);
 	}
 }
 
 void IMB_buffer_float_clamp(float *buf, int width, int height)
 {
-	int i, total = width*height*4;
+	int i, total = width * height * 4;
 	for (i = 0; i < total; i++) {
 		buf[i] = MIN2(1.0, buf[i]);
 	}
@@ -753,27 +753,27 @@ void IMB_buffer_float_clamp(float *buf, int width, int height)
 
 /**************************** alter saturation *****************************/
 
-void IMB_saturation(ImBuf * ibuf, float sat)
+void IMB_saturation(ImBuf *ibuf, float sat)
 {
 	int i;
-	unsigned char *rct= (unsigned char *)ibuf->rect;
-	float *rctf= ibuf->rect_float;
+	unsigned char *rct = (unsigned char *)ibuf->rect;
+	float *rctf = ibuf->rect_float;
 	float hsv[3];
 
 	if (rct) {
 		float rgb[3];
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rct+=4) {
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rct += 4) {
 			rgb_uchar_to_float(rgb, rct);
-			rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv+1, hsv+2);
-			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb+1, rgb+2);
+			rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb + 1, rgb + 2);
 			rgb_float_to_uchar(rct, rgb);
 		}
 	}
 
 	if (rctf) {
-		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf+=4) {
-			rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv+1, hsv+2);
-			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf+1, rctf+2);
+		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4) {
+			rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv + 1, hsv + 2);
+			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf + 1, rctf + 2);
 		}
 	}
 }

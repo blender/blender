@@ -221,7 +221,7 @@ static int findFileRecursive(char *filename_new,
 		return found;
 
 	if (*filesize == -1)
-		*filesize = 0; /* dir opened fine */
+		*filesize = 0;  /* dir opened fine */
 
 	while ((de = readdir(dir)) != NULL) {
 
@@ -231,7 +231,7 @@ static int findFileRecursive(char *filename_new,
 		BLI_join_dirfile(path, sizeof(path), dirname, de->d_name);
 
 		if (stat(path, &status) != 0)
-			continue; /* cant stat, don't bother with this file, could print debug info here */
+			continue;  /* cant stat, don't bother with this file, could print debug info here */
 
 		if (S_ISREG(status.st_mode)) { /* is file */
 			if (strncmp(filename, de->d_name, FILE_MAX) == 0) { /* name matches */
@@ -388,29 +388,29 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 	}
 
 	switch (GS(id->name)) {
-	case ID_IM:
-		ima= (Image *)id;
-		if (ima->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
-			if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
+		case ID_IM:
+			ima = (Image *)id;
+			if (ima->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
+				if (ELEM3(ima->source, IMA_SRC_FILE, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+					rewrite_path_fixed(ima->name, visit_cb, absbase, bpath_user_data);
+				}
 			}
-		}
-		break;
-	case ID_BR:
+			break;
+		case ID_BR:
 		{
-			Brush *brush= (Brush *)id;
+			Brush *brush = (Brush *)id;
 			if (brush->icon_filepath[0]) {
 				rewrite_path_fixed(brush->icon_filepath, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
-	case ID_OB:
+		case ID_OB:
 
 #define BPATH_TRAVERSE_POINTCACHE(ptcaches)                                    \
 	{                                                                          \
 		PointCache *cache;                                                     \
-		for (cache= (ptcaches).first; cache; cache= cache->next) {              \
-			if (cache->flag & PTCACHE_DISK_CACHE) {                             \
+		for (cache = (ptcaches).first; cache; cache = cache->next) {           \
+			if (cache->flag & PTCACHE_DISK_CACHE) {                            \
 				rewrite_path_fixed(cache->path,                                \
 				                   visit_cb,                                   \
 				                   absbase,                                    \
@@ -420,69 +420,69 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 	}                                                                          \
 
 
-		{
-			Object *ob= (Object *)id;
-			ModifierData *md;
-			ParticleSystem *psys;
+			{
+				Object *ob = (Object *)id;
+				ModifierData *md;
+				ParticleSystem *psys;
 
-			/* do via modifiers instead */
+				/* do via modifiers instead */
 #if 0
-			if (ob->fluidsimSettings) {
-				rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
-			}
+				if (ob->fluidsimSettings) {
+					rewrite_path_fixed(ob->fluidsimSettings->surfdataPath, visit_cb, absbase, bpath_user_data);
+				}
 #endif
 
-			for (md= ob->modifiers.first; md; md= md->next) {
-				if (md->type == eModifierType_Fluidsim) {
-					FluidsimModifierData *fluidmd= (FluidsimModifierData *)md;
-					if (fluidmd->fss) {
-						rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
+				for (md = ob->modifiers.first; md; md = md->next) {
+					if (md->type == eModifierType_Fluidsim) {
+						FluidsimModifierData *fluidmd = (FluidsimModifierData *)md;
+						if (fluidmd->fss) {
+							rewrite_path_fixed(fluidmd->fss->surfdataPath, visit_cb, absbase, bpath_user_data);
+						}
+					}
+					else if (md->type == eModifierType_Smoke) {
+						SmokeModifierData *smd = (SmokeModifierData *)md;
+						if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
+							BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
+						}
+					}
+					else if (md->type == eModifierType_Cloth) {
+						ClothModifierData *clmd = (ClothModifierData *) md;
+						BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
+					}
+					else if (md->type == eModifierType_Ocean) {
+						OceanModifierData *omd = (OceanModifierData *) md;
+						rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
 					}
 				}
-				else if (md->type == eModifierType_Smoke) {
-					SmokeModifierData *smd= (SmokeModifierData *)md;
-					if (smd->type & MOD_SMOKE_TYPE_DOMAIN) {
-						BPATH_TRAVERSE_POINTCACHE(smd->domain->ptcaches[0]);
-					}
-				}
-				else if (md->type==eModifierType_Cloth) {
-					ClothModifierData *clmd= (ClothModifierData*) md;
-					BPATH_TRAVERSE_POINTCACHE(clmd->ptcaches);
-				}
-				else if (md->type==eModifierType_Ocean) {
-					OceanModifierData *omd= (OceanModifierData*) md;
-					rewrite_path_fixed(omd->cachepath, visit_cb, absbase, bpath_user_data);
-				}
-			}
 
-			if (ob->soft) {
-				BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
-			}
+				if (ob->soft) {
+					BPATH_TRAVERSE_POINTCACHE(ob->soft->ptcaches);
+				}
 
-			for (psys= ob->particlesystem.first; psys; psys= psys->next) {
-				BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
+				for (psys = ob->particlesystem.first; psys; psys = psys->next) {
+					BPATH_TRAVERSE_POINTCACHE(psys->ptcaches);
+				}
 			}
-		}
 
 #undef BPATH_TRAVERSE_POINTCACHE
 
-		break;
-	case ID_SO:
+			break;
+		case ID_SO:
 		{
-			bSound *sound= (bSound *)id;
+			bSound *sound = (bSound *)id;
 			if (sound->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				rewrite_path_fixed(sound->name, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
-	case ID_TXT:
-		if (((Text*)id)->name) {
-			rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, bpath_user_data);
-		}
-		break;
-	case ID_VF:
+		case ID_TXT:
+			if (((Text *)id)->name) {
+				rewrite_path_alloc(&((Text *)id)->name, visit_cb, absbase, bpath_user_data);
+			}
+			break;
+		case ID_VF:
 		{
-			VFont *vf= (VFont *)id;
+			VFont *vf = (VFont *)id;
 			if (vf->packedfile == NULL || (flag & BLI_BPATH_TRAVERSE_SKIP_PACKED) == 0) {
 				if (strcmp(vf->name, FO_BUILTIN_NAME) != 0) {
 					rewrite_path_fixed(((VFont *)id)->name, visit_cb, absbase, bpath_user_data);
@@ -490,7 +490,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			}
 		}
 		break;
-	case ID_TE:
+		case ID_TE:
 		{
 			Tex *tex = (Tex *)id;
 			if (tex->plugin) {
@@ -504,13 +504,13 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		}
 		break;
 
-	case ID_SCE:
+		case ID_SCE:
 		{
-			Scene *scene= (Scene *)id;
+			Scene *scene = (Scene *)id;
 			if (scene->ed) {
 				Sequence *seq;
 
-				SEQ_BEGIN (scene->ed, seq)
+				SEQ_BEGIN(scene->ed, seq)
 				{
 					if (SEQ_HAS_PATH(seq)) {
 						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
@@ -519,16 +519,16 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 						}
 						else if (seq->type == SEQ_IMAGE) {
 							/* might want an option not to loop over all strips */
-							StripElem *se= seq->strip->stripdata;
-							int len= MEM_allocN_len(se) / sizeof(*se);
+							StripElem *se = seq->strip->stripdata;
+							int len = MEM_allocN_len(se) / sizeof(*se);
 							int i;
 
 							if (flag & BLI_BPATH_TRAVERSE_SKIP_MULTIFILE) {
 								/* only operate on one path */
-								len= MIN2(1, len);
+								len = MIN2(1, len);
 							}
 
-							for (i= 0; i < len; i++, se++) {
+							for (i = 0; i < len; i++, se++) {
 								rewrite_path_fixed_dirfile(seq->strip->dir, se->name,
 								                           visit_cb, absbase, bpath_user_data);
 							}
@@ -547,31 +547,31 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 			}
 		}
 		break;
-	case ID_ME:
+		case ID_ME:
 		{
-			Mesh *me= (Mesh *)id;
+			Mesh *me = (Mesh *)id;
 			if (me->fdata.external) {
 				rewrite_path_fixed(me->fdata.external->filename, visit_cb, absbase, bpath_user_data);
 			}
 		}
 		break;
-	case ID_LI:
+		case ID_LI:
 		{
-			Library *lib= (Library *)id;
+			Library *lib = (Library *)id;
 			if (rewrite_path_fixed(lib->name, visit_cb, absbase, bpath_user_data)) {
 				BKE_library_filepath_set(lib, lib->name);
 			}
 		}
 		break;
-	case ID_MC:
+		case ID_MC:
 		{
-			MovieClip *clip= (MovieClip *)id;
+			MovieClip *clip = (MovieClip *)id;
 			rewrite_path_fixed(clip->name, visit_cb, absbase, bpath_user_data);
 		}
 		break;
-	default:
-		/* Nothing to do for other IDs that don't contain file paths. */
-		break;
+		default:
+			/* Nothing to do for other IDs that don't contain file paths. */
+			break;
 	}
 }
 

@@ -451,11 +451,11 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 		float bb[6];
 
 		INIT_MINMAX(bb, bb + 3);
-		DO_MINMAX(verts[mf->v1], bb, bb + 3);
-		DO_MINMAX(verts[mf->v2], bb, bb + 3);
-		DO_MINMAX(verts[mf->v3], bb, bb + 3);
+		minmax_v3v3_v3(bb, bb + 3, verts[mf->v1]);
+		minmax_v3v3_v3(bb, bb + 3, verts[mf->v2]);
+		minmax_v3v3_v3(bb, bb + 3, verts[mf->v3]);
 		if (mf->v4) {
-			DO_MINMAX(verts[mf->v4], bb, bb + 3);
+			minmax_v3v3_v3(bb, bb + 3, verts[mf->v4]);
 		}
 
 		BLI_bvhtree_insert(sys->heat.bvhtree, a, bb, 2);
@@ -1753,7 +1753,7 @@ static void harmonic_coordinates_bind(Scene *UNUSED(scene), MeshDeformModifierDa
 	INIT_MINMAX(mdb->min, mdb->max);
 
 	for (a = 0; a < mdb->totcagevert; a++)
-		DO_MINMAX(mdb->cagecos[a], mdb->min, mdb->max);
+		minmax_v3v3_v3(mdb->min, mdb->max, mdb->cagecos[a]);
 
 	/* allocate memory */
 	mdb->size = (2 << (mmd->gridsize - 1)) + 2;

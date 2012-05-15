@@ -35,8 +35,8 @@
 #include "BKE_constraint.h"
 
 
-#define DEPSX	5.0f
-#define DEPSY	1.8f
+#define DEPSX   5.0f
+#define DEPSY   1.8f
 
 #define DAGQUEUEALLOC 50
 
@@ -48,33 +48,31 @@ enum {
 
 
 
-typedef struct DagAdjList
-{
+typedef struct DagAdjList {
 	struct DagNode *node;
 	short type;
-	int count;			// number of identical arcs
+	int count;  /* number of identical arcs */
 	unsigned int lay;   // for flushing redraw/rebuild events
 	const char *name;
 	struct DagAdjList *next;
 } DagAdjList;
 
 
-typedef struct DagNode 
-{
+typedef struct DagNode {
 	int color;
 	short type;
 	float x, y, k;	
-	void * ob;
-	void * first_ancestor;
+	void *ob;
+	void *first_ancestor;
 	int ancestor_count;
-	unsigned int lay;				// accumulated layers of its relations + itself
-	unsigned int scelay;			// layers due to being in scene
-	uint64_t customdata_mask;	// customdata mask
-	int lasttime;		// if lasttime != DagForest->time, this node was not evaluated yet for flushing
-	int BFS_dist;		// BFS distance
-	int DFS_dist;		// DFS distance
-	int DFS_dvtm;		// DFS discovery time
-	int DFS_fntm;		// DFS Finishing time
+	unsigned int lay;               /* accumulated layers of its relations + itself */
+	unsigned int scelay;            /* layers due to being in scene */
+	uint64_t customdata_mask;       /* customdata mask */
+	int lasttime;       /* if lasttime != DagForest->time, this node was not evaluated yet for flushing */
+	int BFS_dist;       /* BFS distance */
+	int DFS_dist;       /* DFS distance */
+	int DFS_dvtm;       /* DFS discovery time */
+	int DFS_fntm;       /* DFS Finishing time */
 	struct DagAdjList *child;
 	struct DagAdjList *parent;
 	struct DagNode *next;
@@ -85,8 +83,7 @@ typedef struct DagNodeQueueElem {
 	struct DagNodeQueueElem *next;
 } DagNodeQueueElem;
 
-typedef struct DagNodeQueue
-{
+typedef struct DagNodeQueue {
 	DagNodeQueueElem *first;
 	DagNodeQueueElem *last;
 	int count;
@@ -95,37 +92,36 @@ typedef struct DagNodeQueue
 } DagNodeQueue;
 
 // forest as we may have more than one DAG unnconected
-typedef struct DagForest 
-{
+typedef struct DagForest {
 	ListBase DagNode;
 	struct GHash *nodeHash;
 	int numNodes;
 	int is_acyclic;
-	int time;		// for flushing/tagging, compare with node->lasttime
+	int time;  /* for flushing/tagging, compare with node->lasttime */
 } DagForest;
 
 
 // queue operations
-DagNodeQueue * queue_create (int slots);
+DagNodeQueue *queue_create(int slots);
 void queue_raz(DagNodeQueue *queue);
 void push_queue(DagNodeQueue *queue, DagNode *node);
 void push_stack(DagNodeQueue *queue, DagNode *node);
-DagNode * pop_queue(DagNodeQueue *queue);
-DagNode * get_top_node_queue(DagNodeQueue *queue);
+DagNode *pop_queue(DagNodeQueue *queue);
+DagNode *get_top_node_queue(DagNodeQueue *queue);
 
 // Dag management
 DagForest *getMainDag(void);
 void setMainDag(DagForest *dag);
-DagForest * dag_init(void);
-DagNode * dag_find_node (DagForest *forest, void * fob);
-DagNode * dag_add_node (DagForest *forest, void * fob);
-DagNode * dag_get_node (DagForest *forest, void * fob);
-DagNode * dag_get_sub_node (DagForest *forest, void * fob);
+DagForest *dag_init(void);
+DagNode *dag_find_node(DagForest *forest, void *fob);
+DagNode *dag_add_node(DagForest *forest, void *fob);
+DagNode *dag_get_node(DagForest *forest, void *fob);
+DagNode *dag_get_sub_node(DagForest *forest, void *fob);
 void dag_add_relation(DagForest *forest, DagNode *fob1, DagNode *fob2, short rel, const char *name);
 
 void graph_bfs(void);
 
-DagNodeQueue * graph_dfs(void);
+DagNodeQueue *graph_dfs(void);
 
 void set_node_xy(DagNode *node, float x, float y);
 void graph_print_queue(DagNodeQueue *nqueue);

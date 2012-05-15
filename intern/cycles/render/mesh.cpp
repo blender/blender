@@ -421,7 +421,7 @@ void MeshManager::update_svm_attributes(Device *device, DeviceScene *dscene, Sce
 
 			attr_map[index].x = id;
 			attr_map[index].y = req.element;
-			attr_map[index].z = req.offset;
+			attr_map[index].z = as_uint(req.offset);
 
 			if(req.type == TypeDesc::TypeFloat)
 				attr_map[index].w = NODE_ATTR_FLOAT;

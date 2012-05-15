@@ -43,7 +43,7 @@ struct CCGSubSurf;
    this reason, CCGElem is presented as an opaque pointer, and
    elements should always be accompanied by a CCGKey, which provides
    the necessary offsets to access components of a CCGElem.
-*/
+ */
 typedef struct CCGElem CCGElem;
 
 typedef struct CCGKey {
@@ -104,24 +104,24 @@ BLI_INLINE CCGElem *CCG_elem_next(const CCGKey *key, CCGElem *elem);
 
 BLI_INLINE float *CCG_elem_co(const CCGKey *UNUSED(key), CCGElem *elem)
 {
-	return (float*)elem;
+	return (float *)elem;
 }
 
 BLI_INLINE float *CCG_elem_no(const CCGKey *key, CCGElem *elem)
 {
 	BLI_assert(key->has_normals);
-	return (float*)((char*)elem + key->normal_offset);
+	return (float *)((char *)elem + key->normal_offset);
 }
 
 BLI_INLINE float *CCG_elem_mask(const CCGKey *key, CCGElem *elem)
 {
 	BLI_assert(key->has_mask);
-	return (float*)((char*)elem + (key->mask_offset));
+	return (float *)((char *)elem + (key->mask_offset));
 }
 
 BLI_INLINE CCGElem *CCG_elem_offset(const CCGKey *key, CCGElem *elem, int offset)
 {
-	return (CCGElem*)(((char*)elem) + key->elem_size * offset);
+	return (CCGElem *)(((char *)elem) + key->elem_size * offset);
 }
 
 BLI_INLINE CCGElem *CCG_grid_elem(const CCGKey *key, CCGElem *elem, int x, int y)

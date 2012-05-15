@@ -44,7 +44,7 @@ static int  RE_rayobject_blibvh_intersect(RayObject *o, Isect *isec);
 static void RE_rayobject_blibvh_add(RayObject *o, RayObject *ob);
 static void RE_rayobject_blibvh_done(RayObject *o);
 static void RE_rayobject_blibvh_free(RayObject *o);
-static void RE_rayobject_blibvh_bb(RayObject *o, float *min, float *max);
+static void RE_rayobject_blibvh_bb(RayObject *o, float min[3], float max[3]);
 
 static float RE_rayobject_blibvh_cost(RayObject *UNUSED(o))
 {
@@ -162,7 +162,7 @@ static void RE_rayobject_blibvh_free(RayObject *o)
 	MEM_freeN(obj);
 }
 
-static void RE_rayobject_blibvh_bb(RayObject *o, float *min, float *max)
+static void RE_rayobject_blibvh_bb(RayObject *o, float min[3], float max[3])
 {
 	BVHObject *obj = (BVHObject*)o;
 	DO_MIN(obj->bb[0], min);

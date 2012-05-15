@@ -706,6 +706,13 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 			}
 		}
 
+		/*dist_to_line_segment_v3()*/
+		/*There is probably something fundamentaly wrong about the interpolation.
+		When a vertex is on an edge, it should get no weight from the vertex not connected to the edge...
+		Projected onto edge it should get linar interpolation from two vertices.
+		so it should get the interpolated weight from the third vertex based on the inverted distance from edge along normal to edge!
+		if I got this right! :P
+		*/
 		/*snap to valid number, for testing. This should not be nessecary if interpolation works as its supposed to! or is my logick wrong???*//*
 		weight*= 1000;
 		weight+= 0.5;

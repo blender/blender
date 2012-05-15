@@ -42,8 +42,8 @@ struct TimeMarker;
 
 /* flags for drawing markers */
 enum {
-	DRAW_MARKERS_LINES	= (1<<0),
-	DRAW_MARKERS_LOCAL	= (1<<1)
+	DRAW_MARKERS_LINES  = (1 << 0),
+	DRAW_MARKERS_LOCAL  = (1 << 1)
 };
 
 void draw_markers_time(const struct bContext *C, int flag);
@@ -78,4 +78,3 @@ void ED_marker_keymap_animedit_conflictfree(struct wmKeyMap *keymap);
 void debug_markers_print_list(struct ListBase *markers);
 
 #endif /* __ED_MARKERS_H__ */
-

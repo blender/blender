@@ -57,16 +57,16 @@ typedef struct RenderInfo {
 	int pr_rectx;
 	int pr_recty;
 	short curtile, tottile, status;
-	rcti disprect;			/* storage for view3d preview rect */
-	unsigned int* rect;		
-	struct Render *re;		/* persistent render */
+	rcti disprect;          /* storage for view3d preview rect */
+	unsigned int *rect;
+	struct Render *re;      /* persistent render */
 } RenderInfo;
 
 /* ri->status */
-#define PR_DBASE			1
-#define PR_DISPRECT			2
-#define PR_PROJECTED		4
-#define PR_ROTATED			8
+#define PR_DBASE            1
+#define PR_DISPRECT         2
+#define PR_PROJECTED        4
+#define PR_ROTATED          8
 
 /* Render the preview
  *
@@ -76,9 +76,9 @@ typedef struct RenderInfo {
  * - PR_NODE_RENDER: preview is rendered for node editor
  */
 
-#define PR_BUTS_RENDER	0
-#define PR_ICON_RENDER	1
-#define PR_NODE_RENDER	2
+#define PR_BUTS_RENDER  0
+#define PR_ICON_RENDER  1
+#define PR_NODE_RENDER  2
 
 void ED_preview_init_dbase(void);
 void ED_preview_free_dbase(void);

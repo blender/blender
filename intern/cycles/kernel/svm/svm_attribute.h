@@ -22,7 +22,7 @@ CCL_NAMESPACE_BEGIN
 
 __device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 	uint4 node, NodeAttributeType *type,
-	NodeAttributeType *mesh_type, AttributeElement *elem, uint *offset, uint *out_offset)
+	NodeAttributeType *mesh_type, AttributeElement *elem, int *offset, uint *out_offset)
 {
 	if(sd->object != ~0) {
 		/* find attribute by unique id */
@@ -35,7 +35,7 @@ __device void svm_node_attr_init(KernelGlobals *kg, ShaderData *sd,
 
 		/* return result */
 		*elem = (AttributeElement)attr_map.y;
-		*offset = attr_map.z;
+		*offset = as_int(attr_map.z);
 		*mesh_type = (NodeAttributeType)attr_map.w;
 	}
 	else {
@@ -53,7 +53,8 @@ __device void svm_node_attr(KernelGlobals *kg, ShaderData *sd, float *stack, uin
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;
-	uint offset, out_offset;
+	uint out_offset;
+	int offset;
 
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 
@@ -84,7 +85,8 @@ __device void svm_node_attr_bump_dx(KernelGlobals *kg, ShaderData *sd, float *st
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;
-	uint offset, out_offset;
+	uint out_offset;
+	int offset;
 
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 
@@ -119,7 +121,8 @@ __device void svm_node_attr_bump_dy(KernelGlobals *kg, ShaderData *sd, float *st
 {
 	NodeAttributeType type, mesh_type;
 	AttributeElement elem;
-	uint offset, out_offset;
+	uint out_offset;
+	int offset;
 
 	svm_node_attr_init(kg, sd, node, &type, &mesh_type, &elem, &offset, &out_offset);
 

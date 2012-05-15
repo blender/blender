@@ -71,24 +71,24 @@ void BKE_action_make_local(struct bAction *act);
 /* Action API ----------------- */
 
 /* types of transforms applied to the given item 
- * 	- these are the return falgs for action_get_item_transforms()
+ *  - these are the return falgs for action_get_item_transforms()
  */
 typedef enum eAction_TransformFlags {
-		/* location */
-	ACT_TRANS_LOC	= (1<<0),
-		/* rotation */
-	ACT_TRANS_ROT	= (1<<1),
-		/* scaling */
-	ACT_TRANS_SCALE	= (1<<2),
-	
-		/* strictly not a transform, but custom properties are also
-		 * quite often used in modern rigs
-		 */
-	ACT_TRANS_PROP 	= (1<<3),
-		
-		/* all flags */
-	ACT_TRANS_ONLY 	= (ACT_TRANS_LOC|ACT_TRANS_ROT|ACT_TRANS_SCALE),
-	ACT_TRANS_ALL	= (ACT_TRANS_ONLY|ACT_TRANS_PROP)
+	/* location */
+	ACT_TRANS_LOC   = (1 << 0),
+	/* rotation */
+	ACT_TRANS_ROT   = (1 << 1),
+	/* scaling */
+	ACT_TRANS_SCALE = (1 << 2),
+
+	/* strictly not a transform, but custom properties are also
+	 * quite often used in modern rigs
+	 */
+	ACT_TRANS_PROP  = (1 << 3),
+
+	/* all flags */
+	ACT_TRANS_ONLY  = (ACT_TRANS_LOC | ACT_TRANS_ROT | ACT_TRANS_SCALE),
+	ACT_TRANS_ALL   = (ACT_TRANS_ONLY | ACT_TRANS_PROP)
 } eAction_TransformFlags;
 
 /* Return flags indicating which transforms the given object/posechannel has 
@@ -182,7 +182,7 @@ struct bPoseChannel *BKE_pose_channel_active(struct Object *ob);
  * already exists in this pose - if not a new one is
  * allocated and initialized.
  */
-struct bPoseChannel *BKE_pose_channel_verify(struct bPose* pose, const char* name);
+struct bPoseChannel *BKE_pose_channel_verify(struct bPose *pose, const char *name);
 
 /* Copy the data from the action-pose (src) into the pose */
 void extract_pose_from_pose(struct bPose *pose, const struct bPose *src);

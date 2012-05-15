@@ -46,25 +46,25 @@ struct Object;
 struct ImageFormatData;
 
 /* call from library */
-void	BKE_image_free(struct Image *me);
+void    BKE_image_free(struct Image *me);
 
-void	BKE_imbuf_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
-void	BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
-int		BKE_imbuf_alpha_test(struct ImBuf *ibuf);
-int		BKE_imbuf_write_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
-int		BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
+void    BKE_imbuf_stamp_info(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf);
+void    BKE_stamp_buf(struct Scene *scene, struct Object *camera, unsigned char *rect, float *rectf, int width, int height, int channels);
+int     BKE_imbuf_alpha_test(struct ImBuf *ibuf);
+int     BKE_imbuf_write_stamp(struct Scene *scene, struct Object *camera, struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
+int     BKE_imbuf_write(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf);
 int     BKE_imbuf_write_as(struct ImBuf *ibuf, const char *name, struct ImageFormatData *imf, const short is_copy);
-void	BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
-int		BKE_add_image_extension(char *string, const char imtype);
-char	BKE_ftype_to_imtype(const int ftype);
-int		BKE_imtype_to_ftype(const char imtype);
+void    BKE_makepicstring(char *string, const char *base, const char *relbase, int frame, const char imtype, const short use_ext, const short use_frames);
+int     BKE_add_image_extension(char *string, const char imtype);
+char    BKE_ftype_to_imtype(const int ftype);
+int     BKE_imtype_to_ftype(const char imtype);
 
-int		BKE_imtype_is_movie(const char imtype);
-int		BKE_imtype_supports_zbuf(const char imtype);
-int		BKE_imtype_supports_compress(const char imtype);
-int		BKE_imtype_supports_quality(const char imtype);
+int     BKE_imtype_is_movie(const char imtype);
+int     BKE_imtype_supports_zbuf(const char imtype);
+int     BKE_imtype_supports_compress(const char imtype);
+int     BKE_imtype_supports_quality(const char imtype);
 char    BKE_imtype_valid_channels(const char imtype);
-char	BKE_imtype_valid_depths(const char imtype);
+char    BKE_imtype_valid_depths(const char imtype);
 
 char    BKE_imtype_from_arg(const char *arg);
 
@@ -72,12 +72,12 @@ void    BKE_imformat_defaults(struct ImageFormatData *im_format);
 
 struct anim *openanim(const char *name, int flags, int streamindex);
 
-void	BKE_image_de_interlace(struct Image *ima, int odd);
+void    BKE_image_de_interlace(struct Image *ima, int odd);
 
-void	BKE_image_make_local(struct Image *ima);
+void    BKE_image_make_local(struct Image *ima);
 
-void	BKE_image_tag_time(struct Image *ima);
-void	free_old_images(void);
+void    BKE_image_tag_time(struct Image *ima);
+void    free_old_images(void);
 
 /* ********************************** NEW IMAGE API *********************** */
 
@@ -88,34 +88,34 @@ struct RenderPass;
 struct RenderResult;
 
 /* ima->source; where image comes from */
-#define IMA_SRC_CHECK		0
-#define IMA_SRC_FILE		1
-#define IMA_SRC_SEQUENCE	2
-#define IMA_SRC_MOVIE		3
-#define IMA_SRC_GENERATED	4
-#define IMA_SRC_VIEWER		5
+#define IMA_SRC_CHECK       0
+#define IMA_SRC_FILE        1
+#define IMA_SRC_SEQUENCE    2
+#define IMA_SRC_MOVIE       3
+#define IMA_SRC_GENERATED   4
+#define IMA_SRC_VIEWER      5
 
 /* ima->type, how to handle/generate it */
-#define IMA_TYPE_IMAGE		0
-#define IMA_TYPE_MULTILAYER	1
-		/* generated */
-#define IMA_TYPE_UV_TEST	2
-		/* viewers */
+#define IMA_TYPE_IMAGE      0
+#define IMA_TYPE_MULTILAYER 1
+/* generated */
+#define IMA_TYPE_UV_TEST    2
+/* viewers */
 #define IMA_TYPE_R_RESULT   4
-#define IMA_TYPE_COMPOSITE	5
+#define IMA_TYPE_COMPOSITE  5
 
 /* ima->ok */
-#define IMA_OK				1
-#define IMA_OK_LOADED		2
+#define IMA_OK              1
+#define IMA_OK_LOADED       2
 
 /* signals */
-	/* reload only frees, doesn't read until image_get_ibuf() called */
-#define IMA_SIGNAL_RELOAD			0
-#define IMA_SIGNAL_FREE				1
-	/* source changes, from image to sequence or movie, etc */
-#define IMA_SIGNAL_SRC_CHANGE		5
-	/* image-user gets a new image, check settings */
-#define IMA_SIGNAL_USER_NEW_IMAGE	6
+/* reload only frees, doesn't read until image_get_ibuf() called */
+#define IMA_SIGNAL_RELOAD           0
+#define IMA_SIGNAL_FREE             1
+/* source changes, from image to sequence or movie, etc */
+#define IMA_SIGNAL_SRC_CHANGE       5
+/* image-user gets a new image, check settings */
+#define IMA_SIGNAL_USER_NEW_IMAGE   6
 
 #define IMA_CHAN_FLAG_BW    1
 #define IMA_CHAN_FLAG_RGB   2
@@ -164,10 +164,10 @@ void BKE_image_release_renderresult(struct Scene *scene, struct Image *ima);
 void BKE_image_backup_render(struct Scene *scene, struct Image *ima);
 	
 /* goes over all textures that use images */
-void	BKE_image_free_all_textures(void);
+void    BKE_image_free_all_textures(void);
 
 /* does one image! */
-void	BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
+void    BKE_image_free_anim_ibufs(struct Image *ima, int except_frame);
 
 /* does all images with type MOVIE or SEQUENCE */
 void BKE_image_all_free_anim_ibufs(int except_frame);

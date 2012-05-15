@@ -177,7 +177,7 @@ static void cdDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 
 	if (dm->numVertData) {
 		for (i = 0; i < dm->numVertData; i++) {
-			DO_MINMAX(cddm->mvert[i].co, min_r, max_r);
+			minmax_v3v3_v3(min_r, max_r, cddm->mvert[i].co);
 		}
 	}
 	else {

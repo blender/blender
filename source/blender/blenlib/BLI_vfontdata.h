@@ -47,20 +47,19 @@ typedef struct VFontData {
 	// float	    resol[MAX_VF_CHARS];
 	// float	    width[MAX_VF_CHARS];
 	// float	    *points[MAX_VF_CHARS];
-	char		name[128];
+	char name[128];
 } VFontData;
 
 typedef struct VChar {
 	struct VChar    *next, *prev;
-	ListBase        nurbsbase;
-	intptr_t        index;
-	float           resol;
-	float           width;
+	ListBase nurbsbase;
+	intptr_t index;
+	float resol;
+	float width;
 	float           *points;
 } VChar;
 
-struct TmpFont
-{
+struct TmpFont {
 	struct TmpFont *next, *prev;
 	struct PackedFile *pf;
 	struct VFont *vfont;
@@ -74,13 +73,9 @@ struct TmpFont
  * \retval A new VFontData structure, or NULL
  * if unable to load.
  */
-	VFontData*
-BLI_vfontdata_from_freetypefont(
-	struct PackedFile *pf);
+VFontData *BLI_vfontdata_from_freetypefont(struct PackedFile *pf);
 
-	int
-BLI_vfontchar_from_freetypefont(
-	struct VFont *vfont, unsigned long character);
+int BLI_vfontchar_from_freetypefont(struct VFont *vfont, unsigned long character);
 
 #endif
 

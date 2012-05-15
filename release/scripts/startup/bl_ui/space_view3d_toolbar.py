@@ -231,7 +231,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Curve:")
-        col.operator("curve.duplicate")
+        col.operator("curve.duplicate_move", text="Duplicate")
         col.operator("curve.delete")
         col.operator("curve.cyclic_toggle")
         col.operator("curve.switch_direction")
@@ -248,7 +248,7 @@ class VIEW3D_PT_tools_curveedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Modeling:")
-        col.operator("curve.extrude")
+        col.operator("curve.extrude_move", text="Extrude")
         col.operator("curve.subdivide")
 
         draw_repeat_tools(context, layout)
@@ -273,14 +273,14 @@ class VIEW3D_PT_tools_surfaceedit(View3DPanel, Panel):
 
         col = layout.column(align=True)
         col.label(text="Curve:")
-        col.operator("curve.duplicate")
+        col.operator("curve.duplicate_move", text="Duplicate")
         col.operator("curve.delete")
         col.operator("curve.cyclic_toggle")
         col.operator("curve.switch_direction")
 
         col = layout.column(align=True)
         col.label(text="Modeling:")
-        col.operator("curve.extrude")
+        col.operator("curve.extrude", text="Extrude")
         col.operator("curve.subdivide")
 
         draw_repeat_tools(context, layout)

@@ -43,7 +43,7 @@ typedef struct {
 } SmallHashEntry;
 
 /*how much stack space to use before dynamically allocating memory*/
-#define SMSTACKSIZE	521
+#define SMSTACKSIZE 521
 typedef struct SmallHash {
 	SmallHashEntry *table;
 	SmallHashEntry _stacktable[SMSTACKSIZE];
@@ -59,15 +59,15 @@ typedef struct {
 	int i;
 } SmallHashIter;
 
-void	BLI_smallhash_init(SmallHash *hash);
-void	BLI_smallhash_release(SmallHash *hash);
-void	BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item);
-void	BLI_smallhash_remove(SmallHash *hash, uintptr_t key);
-void *	BLI_smallhash_lookup(SmallHash *hash, uintptr_t key);
-int		BLI_smallhash_haskey(SmallHash *hash, uintptr_t key);
-int		BLI_smallhash_count(SmallHash *hash);
-void *	BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key);
-void *	BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key);
+void    BLI_smallhash_init(SmallHash *hash);
+void    BLI_smallhash_release(SmallHash *hash);
+void    BLI_smallhash_insert(SmallHash *hash, uintptr_t key, void *item);
+void    BLI_smallhash_remove(SmallHash *hash, uintptr_t key);
+void   *BLI_smallhash_lookup(SmallHash *hash, uintptr_t key);
+int     BLI_smallhash_haskey(SmallHash *hash, uintptr_t key);
+int     BLI_smallhash_count(SmallHash *hash);
+void   *BLI_smallhash_iternext(SmallHashIter *iter, uintptr_t *key);
+void   *BLI_smallhash_iternew(SmallHash *hash, SmallHashIter *iter, uintptr_t *key);
 /* void BLI_smallhash_print(SmallHash *hash); */ /* UNUSED */
 
 #endif /* __BLI_SMALLHASH_H__ */

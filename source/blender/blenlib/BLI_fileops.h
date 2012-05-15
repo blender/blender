@@ -84,10 +84,10 @@ char  *BLI_file_ungzip_to_mem(const char *from_file, int *size_r);
 size_t BLI_file_descriptor_size(int file);
 size_t BLI_file_size(const char *file);
 
-	/* compare if one was last modified before the other */
+/* compare if one was last modified before the other */
 int    BLI_file_older(const char *file1, const char *file2);
 
-	/* read ascii file as lines, empty list if reading fails */
+/* read ascii file as lines, empty list if reading fails */
 struct LinkNode *BLI_file_read_as_lines(const char *file);
 void   BLI_file_free_lines(struct LinkNode *lines);
 

@@ -51,9 +51,9 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 
-static StructRNA* rna_FluidSettings_refine(struct PointerRNA *ptr)
+static StructRNA *rna_FluidSettings_refine(struct PointerRNA *ptr)
 {
-	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 
 	switch (fss->type) {
 		case OB_FLUIDSIM_DOMAIN:
@@ -80,7 +80,7 @@ static void rna_fluid_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerR
 	Object *ob = ptr->id.data;
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_main_add_notifier(NC_OBJECT|ND_MODIFIER, ob);
+	WM_main_add_notifier(NC_OBJECT | ND_MODIFIER, ob);
 }
 
 static int fluidsim_find_lastframe(Object *ob, FluidsimSettings *fss)
@@ -103,7 +103,7 @@ static int fluidsim_find_lastframe(Object *ob, FluidsimSettings *fss)
 static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
 	Object *ob = ptr->id.data;
-	FluidsimModifierData *fluidmd = (FluidsimModifierData*)modifiers_findByType(ob, eModifierType_Fluidsim);
+	FluidsimModifierData *fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 
 	if (fluidmd->fss->flag & OB_FLUIDSIM_REVERSE) {
 		fluidmd->fss->lastgoodframe = fluidsim_find_lastframe(ob, fluidmd->fss);
@@ -116,13 +116,13 @@ static void rna_fluid_find_enframe(Main *bmain, Scene *scene, PointerRNA *ptr)
 
 static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Object *ob = (Object*)ptr->id.data;
+	Object *ob = (Object *)ptr->id.data;
 	FluidsimModifierData *fluidmd;
 	ParticleSystemModifierData *psmd;
 	ParticleSystem *psys;
 	ParticleSettings *part;
 	
-	fluidmd = (FluidsimModifierData*)modifiers_findByType(ob, eModifierType_Fluidsim);
+	fluidmd = (FluidsimModifierData *)modifiers_findByType(ob, eModifierType_Fluidsim);
 	fluidmd->fss->flag &= ~OB_FLUIDSIM_REVERSE; /* clear flag */
 
 	/* remove fluidsim particle system */
@@ -144,7 +144,7 @@ static void rna_FluidSettings_update_type(Main *bmain, Scene *scene, PointerRNA 
 			BLI_addtail(&ob->particlesystem, psys);
 
 			/* add modifier */
-			psmd = (ParticleSystemModifierData*)modifier_new(eModifierType_ParticleSystem);
+			psmd = (ParticleSystemModifierData *)modifier_new(eModifierType_ParticleSystem);
 			BLI_strncpy(psmd->modifier.name, "FluidParticleSystem", sizeof(psmd->modifier.name));
 			psmd->psys = psys;
 			BLI_addtail(&ob->modifiers, psmd);
@@ -175,8 +175,8 @@ static void rna_DomainFluidSettings_memory_estimate_get(PointerRNA *ptr, char *v
 	(void)ptr;
 	value[0] = '\0';
 #else
-	Object *ob = (Object*)ptr->id.data;
-	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	Object *ob = (Object *)ptr->id.data;
+	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 
 	fluid_estimate_memory(ob, fss, value);
 #endif
@@ -193,7 +193,7 @@ static int rna_DomainFluidSettings_memory_estimate_length(PointerRNA *UNUSED(ptr
 
 static char *rna_FluidSettings_path(PointerRNA *ptr)
 {
-	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 	ModifierData *md = (ModifierData *)fss->fmd;
 
 	return BLI_sprintfN("modifiers[\"%s\"].settings", md->name);
@@ -201,13 +201,13 @@ static char *rna_FluidSettings_path(PointerRNA *ptr)
 
 static void rna_FluidMeshVertex_data_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
-	rna_iterator_array_begin(iter, fss->meshVelocities, sizeof(float)*3, fss->totvert, 0, NULL);
+	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
+	rna_iterator_array_begin(iter, fss->meshVelocities, sizeof(float) * 3, fss->totvert, 0, NULL);
 }
 
 static int rna_FluidMeshVertex_data_length(PointerRNA *ptr)
 {
-	FluidsimSettings *fss = (FluidsimSettings*)ptr->data;
+	FluidsimSettings *fss = (FluidsimSettings *)ptr->data;
 	return fss->totvert;
 }
 
@@ -225,7 +225,8 @@ static void rna_def_fluidsim_slip(StructRNA *srna)
 		                    "Mix between no-slip and free-slip (non moving objects only!)"},
 		{OB_FSBND_FREESLIP, "FREESLIP", 0, "Free Slip",
 		                    "Obstacle only causes zero normal velocity (=not sticky, non moving objects only!)"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	prop = RNA_def_property(srna, "slip_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "typeFlags");
@@ -267,7 +268,8 @@ static void rna_def_fluidsim_domain(BlenderRNA *brna)
 		{OB_FSDOM_GEOM, "GEOMETRY", 0, "Geometry", "Display geometry"},
 		{OB_FSDOM_PREVIEW, "PREVIEW", 0, "Preview", "Display preview quality results"},
 		{OB_FSDOM_FINAL, "FINAL", 0, "Final", "Display final quality results"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "DomainFluidSettings", "FluidSettings");
 	RNA_def_struct_sdna(srna, "FluidsimSettings");
@@ -446,7 +448,8 @@ static void rna_def_fluidsim_volume(StructRNA *srna)
 		{1, "VOLUME", 0, "Volume", "Use only the inner volume of the mesh"},
 		{2, "SHELL", 0, "Shell", "Use only the outer shell of the mesh"},
 		{3, "BOTH", 0, "Both", "Use both the inner volume and the outer shell of the mesh"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	prop = RNA_def_property(srna, "volume_initialization", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "volumeInitType");
@@ -675,8 +678,9 @@ void RNA_def_fluidsim(BlenderRNA *brna)
 		                       "Object is made a particle system to display particles generated by a "
 		                       "fluidsim domain object"},
 		{OB_FLUIDSIM_CONTROL, "CONTROL", 0, "Control",
-		                      "Object is made a fluid control mesh, which influences the fluid"},
-		{0, NULL, 0, NULL, NULL}};
+		 "Object is made a fluid control mesh, which influences the fluid"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 
 	srna = RNA_def_struct(brna, "FluidSettings", NULL);

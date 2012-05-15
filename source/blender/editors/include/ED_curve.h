@@ -46,9 +46,9 @@ struct BezTriple;
 struct BPoint;
 
 /* curve_ops.c */
-void	ED_operatortypes_curve(void);
-void	ED_operatormacros_curve(void);
-void	ED_keymap_curve	(struct wmKeyConfig *keyconf);
+void    ED_operatortypes_curve(void);
+void    ED_operatormacros_curve(void);
+void    ED_keymap_curve(struct wmKeyConfig *keyconf);
 
 /* editcurve.c */
 void CU_deselect_all(struct Object *obedit);
@@ -56,31 +56,31 @@ void CU_select_all(struct Object *obedit);
 void CU_select_swap(struct Object *obedit);
 
 
-void	undo_push_curve	(struct bContext *C, const char *name);
+void    undo_push_curve(struct bContext *C, const char *name);
 ListBase *object_editcurve_get(struct Object *ob);
 
-void	load_editNurb	(struct Object *obedit);
-void	make_editNurb	(struct Object *obedit);
-void	free_editNurb	(struct Object *obedit);
+void    load_editNurb(struct Object *obedit);
+void    make_editNurb(struct Object *obedit);
+void    free_editNurb(struct Object *obedit);
 
-void	BKE_curve_editNurb_free	(struct Curve *cu);
+void    BKE_curve_editNurb_free(struct Curve *cu);
 
-int 	mouse_nurb		(struct bContext *C, const int mval[2], int extend);
+int     mouse_nurb(struct bContext *C, const int mval[2], int extend);
 
 struct Nurb *add_nurbs_primitive(struct bContext *C, float mat[4][4], int type, int newob);
 
-int		isNurbsel		(struct Nurb *nu);
-void	ED_nurb_set_spline_type(struct Nurb *nu, int type);
+int     isNurbsel(struct Nurb *nu);
+void    ED_nurb_set_spline_type(struct Nurb *nu, int type);
 
-int		join_curve_exec	(struct bContext *C, struct wmOperator *op);
+int     join_curve_exec(struct bContext *C, struct wmOperator *op);
 
 /* editfont.h */
-void	undo_push_font	(struct bContext *C, const char *name);
-void	make_editText	(struct Object *obedit);
-void	load_editText	(struct Object *obedit);
-void	free_editText	(struct Object *obedit);
+void    undo_push_font(struct bContext *C, const char *name);
+void    make_editText(struct Object *obedit);
+void    load_editText(struct Object *obedit);
+void    free_editText(struct Object *obedit);
 
-void	ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
+void    ED_text_to_object(struct bContext *C, struct Text *text, int split_lines);
 
 int CU_select_nth(struct Object *obedit, int nth);
 

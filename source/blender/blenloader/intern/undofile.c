@@ -56,11 +56,11 @@ void BLO_free_memfile(MemFile *memfile)
 	MemFileChunk *chunk;
 	
 	while ( (chunk = (memfile->chunks.first) ) ) {
-		if (chunk->ident==0) MEM_freeN(chunk->buf);
+		if (chunk->ident == 0) MEM_freeN(chunk->buf);
 		BLI_remlink(&memfile->chunks, chunk);
 		MEM_freeN(chunk);
 	}
-	memfile->size= 0;
+	memfile->size = 0;
 }
 
 /* to keep list of memfiles consistent, 'first' is always first in list */
@@ -69,17 +69,17 @@ void BLO_merge_memfile(MemFile *first, MemFile *second)
 {
 	MemFileChunk *fc, *sc;
 	
-	fc= first->chunks.first;
-	sc= second->chunks.first;
+	fc = first->chunks.first;
+	sc = second->chunks.first;
 	while (fc || sc) {
 		if (fc && sc) {
 			if (sc->ident) {
-				sc->ident= 0;
-				fc->ident= 1;
+				sc->ident = 0;
+				fc->ident = 1;
 			}
 		}
-		if (fc) fc= fc->next;
-		if (sc) sc= sc->next;
+		if (fc) fc = fc->next;
+		if (sc) sc = sc->next;
 	}
 	
 	BLO_free_memfile(first);
@@ -92,7 +92,7 @@ static int my_memcmp(const int *mem1, const int *mem2, const int len)
 	register const int *memb = mem2;
 	
 	while (a--) {
-		if ( *mema != *memb) return 1;
+		if (*mema != *memb) return 1;
 		mema++;
 		memb++;
 	}
@@ -101,39 +101,39 @@ static int my_memcmp(const int *mem1, const int *mem2, const int len)
 
 void add_memfilechunk(MemFile *compare, MemFile *current, const char *buf, unsigned int size)
 {
-	static MemFileChunk *compchunk=NULL;
+	static MemFileChunk *compchunk = NULL;
 	MemFileChunk *curchunk;
 	
 	/* this function inits when compare != NULL or when current==NULL */
 	if (compare) {
-		compchunk= compare->chunks.first;
+		compchunk = compare->chunks.first;
 		return;
 	}
-	if (current==NULL) {
-		compchunk= NULL;
+	if (current == NULL) {
+		compchunk = NULL;
 		return;
 	}
 	
-	curchunk= MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
-	curchunk->size= size;
-	curchunk->buf= NULL;
-	curchunk->ident= 0;
+	curchunk = MEM_mallocN(sizeof(MemFileChunk), "MemFileChunk");
+	curchunk->size = size;
+	curchunk->buf = NULL;
+	curchunk->ident = 0;
 	BLI_addtail(&current->chunks, curchunk);
 	
 	/* we compare compchunk with buf */
 	if (compchunk) {
 		if (compchunk->size == curchunk->size) {
 			if (my_memcmp((int *)compchunk->buf, (const int *)buf, size / 4) == 0) {
-				curchunk->buf= compchunk->buf;
-				curchunk->ident= 1;
+				curchunk->buf = compchunk->buf;
+				curchunk->ident = 1;
 			}
 		}
-		compchunk= compchunk->next;
+		compchunk = compchunk->next;
 	}
 	
 	/* not equal... */
-	if (curchunk->buf==NULL) {
-		curchunk->buf= MEM_mallocN(size, "Chunk buffer");
+	if (curchunk->buf == NULL) {
+		curchunk->buf = MEM_mallocN(size, "Chunk buffer");
 		memcpy(curchunk->buf, buf, size);
 		current->size += size;
 	}

@@ -50,8 +50,8 @@ static char *documentation = NULL;
 static int txttl_cmp(const char *first, const char *second, int len)
 {
 	int cmp, i;
-	for (cmp=0, i=0; i<len; i++) {
-		if ( (cmp= toupper(first[i])-toupper(second[i])) ) {
+	for (cmp = 0, i = 0; i < len; i++) {
+		if ( (cmp = toupper(first[i]) - toupper(second[i])) ) {
 			break;
 		}
 	}
@@ -61,7 +61,7 @@ static int txttl_cmp(const char *first, const char *second, int len)
 static void txttl_free_suggest(void)
 {
 	SuggItem *item, *prev;
-	for (item = suggestions.last; item; item=prev) {
+	for (item = suggestions.last; item; item = prev) {
 		prev = item->prev;
 		MEM_freeN(item);
 	}
@@ -104,7 +104,7 @@ void texttool_text_clear(void)
 
 short texttool_text_is_active(Text *text)
 {
-	return activeToolText==text ? 1 : 0;
+	return activeToolText == text ? 1 : 0;
 }
 
 /***************************/
@@ -135,7 +135,7 @@ void texttool_suggest_add(const char *name, char type)
 	}
 	else {
 		cmp = -1;
-		for (item=suggestions.last; item; item=item->prev) {
+		for (item = suggestions.last; item; item = item->prev) {
 			cmp = txttl_cmp(name, item->name, len);
 
 			/* Newitem comes after this item, insert here */
@@ -160,7 +160,7 @@ void texttool_suggest_add(const char *name, char type)
 		}
 	}
 	suggestions.firstmatch = suggestions.lastmatch = suggestions.selected = NULL;
-	suggestions.top= 0;
+	suggestions.top = 0;
 }
 
 void texttool_suggest_prefix(const char *prefix)
@@ -169,22 +169,22 @@ void texttool_suggest_prefix(const char *prefix)
 	int cmp, len = strlen(prefix), top = 0;
 
 	if (!suggestions.first) return;
-	if (len==0) {
+	if (len == 0) {
 		suggestions.selected = suggestions.firstmatch = suggestions.first;
 		suggestions.lastmatch = suggestions.last;
 		return;
 	}
 	
 	first = last = NULL;
-	for (match=suggestions.first; match; match=match->next) {
+	for (match = suggestions.first; match; match = match->next) {
 		cmp = txttl_cmp(prefix, match->name, len);
-		if (cmp==0) {
+		if (cmp == 0) {
 			if (!first) {
 				first = match;
 				suggestions.top = top;
 			}
 		}
-		else if (cmp<0) {
+		else if (cmp < 0) {
 			if (!last) {
 				last = match->prev;
 				break;
@@ -254,13 +254,13 @@ void texttool_docs_show(const char *docs)
 	}
 
 	/* Ensure documentation ends with a '\n' */
-	if (docs[len-1] != '\n') {
-		documentation = MEM_mallocN(len+2, "Documentation");
+	if (docs[len - 1] != '\n') {
+		documentation = MEM_mallocN(len + 2, "Documentation");
 		strncpy(documentation, docs, len);
 		documentation[len++] = '\n';
 	}
 	else {
-		documentation = MEM_mallocN(len+1, "Documentation");
+		documentation = MEM_mallocN(len + 1, "Documentation");
 		strncpy(documentation, docs, len);
 	}
 	documentation[len] = '\0';

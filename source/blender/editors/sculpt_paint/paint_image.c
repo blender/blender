@@ -3769,7 +3769,7 @@ static void do_projectpaint_smear_f(ProjPaintState *ps, ProjPixel *projPixel, fl
 	BLI_linklist_prepend_arena(smearPixels_f, (void *)projPixel, smearArena);
 }
 
-static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask)
+static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, const float rgba[4], float alpha, float mask)
 {
 	unsigned char rgba_ub[4];
 	
@@ -3793,7 +3793,7 @@ static void do_projectpaint_draw(ProjPaintState *ps, ProjPixel *projPixel, float
 	}
 }
 
-static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float *rgba, float alpha, float mask, int use_color_correction)
+static void do_projectpaint_draw_f(ProjPaintState *ps, ProjPixel *projPixel, float rgba[4], float alpha, float mask, int use_color_correction)
 {
 	if (ps->is_texbrush) {
 		/* rgba already holds a texture result here from higher level function */
@@ -4190,9 +4190,10 @@ static void imapaint_image_update(SpaceImage *sima, Image *image, ImBuf *ibuf, s
 
 /* Image Paint Operations */
 
-static void imapaint_ibuf_get_set_rgb(ImBuf *ibuf, int x, int y, short torus, short set, float *rgb)
+/* keep these functions in sync */
+static void imapaint_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_torus, float r_rgb[3])
 {
-	if (torus) {
+	if (is_torus) {
 		x %= ibuf->x;
 		if (x < 0) x += ibuf->x;
 		y %= ibuf->y;
@@ -4201,23 +4202,29 @@ static void imapaint_ibuf_get_set_rgb(ImBuf *ibuf, int x, int y, short torus, sh
 
 	if (ibuf->rect_float) {
 		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
-
-		if (set) {
-			IMAPAINT_FLOAT_RGB_COPY(rrgbf, rgb);
-		}
-		else {
-			IMAPAINT_FLOAT_RGB_COPY(rgb, rrgbf);
-		}
+		IMAPAINT_FLOAT_RGB_COPY(r_rgb, rrgbf);
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
+		IMAPAINT_CHAR_RGB_TO_FLOAT(r_rgb, rrgb)
+	}
+}
+static void imapaint_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[3])
+{
+	if (is_torus) {
+		x %= ibuf->x;
+		if (x < 0) x += ibuf->x;
+		y %= ibuf->y;
+		if (y < 0) y += ibuf->y;
+	}
 
-		if (set) {
-			IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb)
-		}
-		else {
-			IMAPAINT_CHAR_RGB_TO_FLOAT(rgb, rrgb)
-		}
+	if (ibuf->rect_float) {
+		float *rrgbf = ibuf->rect_float + (ibuf->x * y + x) * 4;
+		IMAPAINT_FLOAT_RGB_COPY(rrgbf, rgb);
+	}
+	else {
+		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
+		IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb)
 	}
 }
 
@@ -4227,10 +4234,10 @@ static int imapaint_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 
 	// XXX: signed unsigned mismatch
 	if ((x >= (unsigned int)(ibuf->x)) || (y >= (unsigned int)(ibuf->y))) {
-		if (torus) imapaint_ibuf_get_set_rgb(ibuf, x, y, 1, 0, inrgb);
+		if (torus) imapaint_ibuf_rgb_get(ibuf, x, y, 1, inrgb);
 		else return 0;
 	}
-	else imapaint_ibuf_get_set_rgb(ibuf, x, y, 0, 0, inrgb);
+	else imapaint_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
 
 	outrgb[0] += inrgb[0];
 	outrgb[1] += inrgb[1];
@@ -4239,7 +4246,7 @@ static int imapaint_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 	return 1;
 }
 
-static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short torus)
+static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, const short is_torus)
 {
 	int x, y, count, xi, yi, xo, yo;
 	int out_off[2], in_off[2], dim[2];
@@ -4251,7 +4258,7 @@ static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short toru
 	in_off[1] = pos[1];
 	out_off[0] = out_off[1] = 0;
 
-	if (!torus) {
+	if (!is_torus) {
 		IMB_rectclip(ibuf, ibufb, &in_off[0], &in_off[1], &out_off[0],
 		             &out_off[1], &dim[0], &dim[1]);
 
@@ -4266,27 +4273,25 @@ static void imapaint_lift_soften(ImBuf *ibuf, ImBuf *ibufb, int *pos, short toru
 			yi = in_off[1] + y;
 
 			count = 1;
-			imapaint_ibuf_get_set_rgb(ibuf, xi, yi, torus, 0, outrgb);
+			imapaint_ibuf_rgb_get(ibuf, xi, yi, is_torus, outrgb);
 
-			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi - 1, outrgb, torus);
-			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi, outrgb, torus);
-			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi + 1, outrgb, torus);
+			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi - 1, outrgb, is_torus);
+			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi, outrgb, is_torus);
+			count += imapaint_ibuf_add_if(ibuf, xi - 1, yi + 1, outrgb, is_torus);
 
-			count += imapaint_ibuf_add_if(ibuf, xi, yi - 1, outrgb, torus);
-			count += imapaint_ibuf_add_if(ibuf, xi, yi + 1, outrgb, torus);
+			count += imapaint_ibuf_add_if(ibuf, xi, yi - 1, outrgb, is_torus);
+			count += imapaint_ibuf_add_if(ibuf, xi, yi + 1, outrgb, is_torus);
 
-			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi - 1, outrgb, torus);
-			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi, outrgb, torus);
-			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi + 1, outrgb, torus);
+			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi - 1, outrgb, is_torus);
+			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi, outrgb, is_torus);
+			count += imapaint_ibuf_add_if(ibuf, xi + 1, yi + 1, outrgb, is_torus);
 
-			outrgb[0] /= count;
-			outrgb[1] /= count;
-			outrgb[2] /= count;
+			mul_v3_fl(outrgb, 1.0f / (float)count);
 
 			/* write into brush buffer */
 			xo = out_off[0] + x;
 			yo = out_off[1] + y;
-			imapaint_ibuf_get_set_rgb(ibufb, xo, yo, 0, 1, outrgb);
+			imapaint_ibuf_rgb_set(ibufb, xo, yo, 0, outrgb);
 		}
 	}
 }

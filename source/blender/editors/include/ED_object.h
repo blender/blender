@@ -90,21 +90,21 @@ void ED_object_parent_clear(struct bContext *C, int type);
 
 /* generic editmode keys like pet
  * do_pet
- * 	0: No
- * 	1: Object
- * 	2: Edit
- * 	3: Edit with connected
+ *  0: No
+ *  1: Object
+ *  2: Edit
+ *  3: Edit with connected
  * */
 void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
 
-	/* send your own notifier for select! */
+/* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);
-	/* includes notifier */
+/* includes notifier */
 void ED_base_object_activate(struct bContext *C, struct Base *base);
 
 void ED_base_object_free_and_unlink(struct Main *bmain, struct Scene *scene, struct Base *base);
 
-	/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
+/* single object duplicate, if dupflag==0, fully linked, else it uses the flags given */
 struct Base *ED_object_add_duplicate(struct Main *bmain, struct Scene *scene, struct Base *base, int dupflag);
 
 void ED_object_parent(struct Object *ob, struct Object *parent, int type, const char *substr);
@@ -112,11 +112,11 @@ void ED_object_parent(struct Object *ob, struct Object *parent, int type, const 
 void ED_object_toggle_modes(struct bContext *C, int mode);
 
 /* bitflags for enter/exit editmode */
-#define EM_FREEDATA		1
-#define EM_FREEUNDO		2
-#define EM_WAITCURSOR	4
-#define EM_DO_UNDO		8
-#define EM_IGNORE_LAYER	16
+#define EM_FREEDATA     1
+#define EM_FREEUNDO     2
+#define EM_WAITCURSOR   4
+#define EM_DO_UNDO      8
+#define EM_IGNORE_LAYER 16
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
@@ -128,10 +128,10 @@ float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob, 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
 int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, 
-	float *loc, float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned);
+                                   float *loc, float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned);
 
 struct Object *ED_object_add_type(struct bContext *C, int type, float *loc,
-	float *rot, int enter_editmode, unsigned int layer);
+                                  float *rot, int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
 void ED_object_single_user(struct Scene *scene, struct Object *ob);
@@ -161,7 +161,7 @@ void ED_setflagsLatt(struct Object *obedit, int flag);
 
 /* object_modifier.c */
 enum {
-	MODIFIER_APPLY_DATA=1,
+	MODIFIER_APPLY_DATA = 1,
 	MODIFIER_APPLY_SHAPE
 };
 

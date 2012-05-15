@@ -396,8 +396,8 @@ void bmo_collapse_exec(BMesh *bm, BMOperator *op)
 			BLI_array_grow_one(edges);
 			edges[tot] = e;
 
-			DO_MINMAX(e->v1->co, min, max);
-			DO_MINMAX(e->v2->co, min, max);
+			minmax_v3v3_v3(min, max, e->v1->co);
+			minmax_v3v3_v3(min, max, e->v2->co);
 		}
 
 		add_v3_v3v3(min, min, max);

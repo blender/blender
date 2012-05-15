@@ -46,7 +46,7 @@ int text_file_modified(Text *text); /* XXX bad level call */
 
 static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 {
-	Text *text = (Text*)ptr->data;
+	Text *text = (Text *)ptr->data;
 
 	if (text->name)
 		strcpy(value, text->name);
@@ -56,13 +56,13 @@ static void rna_Text_filename_get(PointerRNA *ptr, char *value)
 
 static int rna_Text_filename_length(PointerRNA *ptr)
 {
-	Text *text = (Text*)ptr->data;
-	return (text->name)? strlen(text->name): 0;
+	Text *text = (Text *)ptr->data;
+	return (text->name) ? strlen(text->name) : 0;
 }
 
 static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 {
-	Text *text = (Text*)ptr->data;
+	Text *text = (Text *)ptr->data;
 
 	if (text->name)
 		MEM_freeN(text->name);
@@ -75,13 +75,13 @@ static void rna_Text_filename_set(PointerRNA *ptr, const char *value)
 
 static int rna_Text_modified_get(PointerRNA *ptr)
 {
-	Text *text = (Text*)ptr->data;
+	Text *text = (Text *)ptr->data;
 	return text_file_modified(text);
 }
 
 static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 {
-	TextLine *line = (TextLine*)ptr->data;
+	TextLine *line = (TextLine *)ptr->data;
 
 	if (line->line)
 		strcpy(value, line->line);
@@ -91,13 +91,13 @@ static void rna_TextLine_body_get(PointerRNA *ptr, char *value)
 
 static int rna_TextLine_body_length(PointerRNA *ptr)
 {
-	TextLine *line = (TextLine*)ptr->data;
+	TextLine *line = (TextLine *)ptr->data;
 	return line->len;
 }
 
 static void rna_TextLine_body_set(PointerRNA *ptr, const char *value)
 {
-	TextLine *line = (TextLine*)ptr->data;
+	TextLine *line = (TextLine *)ptr->data;
 	int len = strlen(value);
 
 	if (line->line)
@@ -126,7 +126,7 @@ static void rna_def_text_line(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "body", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_funcs(prop, "rna_TextLine_body_get", "rna_TextLine_body_length", "rna_TextLine_body_set");
 	RNA_def_property_ui_text(prop, "Line", "Text in the line");
-	RNA_def_property_update(prop, NC_TEXT|NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_TEXT | NA_EDITED, NULL);
 }
 
 static void rna_def_text_marker(BlenderRNA *brna)

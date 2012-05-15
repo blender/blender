@@ -56,16 +56,17 @@ EnumPropertyItem sensor_type_items[] = {
 	{SENS_RANDOM, "RANDOM", 0, "Random", ""},
 	{SENS_RAY, "RAY", 0, "Ray", ""},
 	{SENS_TOUCH, "TOUCH", 0, "Touch", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
 #include "DNA_controller_types.h"
 
-static StructRNA* rna_Sensor_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Sensor_refine(struct PointerRNA *ptr)
 {
-	bSensor *sensor = (bSensor*)ptr->data;
+	bSensor *sensor = (bSensor *)ptr->data;
 
 	switch (sensor->type) {
 		case SENS_ALWAYS:
@@ -214,7 +215,7 @@ static void rna_Sensor_keyboard_modifier2_set(struct PointerRNA *ptr, int value)
 
 static void rna_Sensor_tap_set(struct PointerRNA *ptr, int value)
 {
-	bSensor *sens = (bSensor*)ptr->data;
+	bSensor *sens = (bSensor *)ptr->data;
 
 	sens->tap = value;
 	if (sens->tap == 1)
@@ -223,7 +224,7 @@ static void rna_Sensor_tap_set(struct PointerRNA *ptr, int value)
 
 static void rna_Sensor_level_set(struct PointerRNA *ptr, int value)
 {
-	bSensor *sens = (bSensor*)ptr->data;
+	bSensor *sens = (bSensor *)ptr->data;
 
 	sens->level = value;
 	if (sens->level == 1)
@@ -404,7 +405,8 @@ static void rna_def_mouse_sensor(BlenderRNA *brna)
 		{BL_SENS_MOUSE_MOVEMENT, "MOVEMENT", 0, "Movement", ""},
 		{BL_SENS_MOUSE_MOUSEOVER, "MOUSEOVER", 0, "Mouse Over", ""},
 		{BL_SENS_MOUSE_MOUSEOVER_ANY, "MOUSEOVERANY", 0, "Mouse Over Any", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "MouseSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Mouse Sensor", "Sensor to detect mouse events");
@@ -492,7 +494,8 @@ static void rna_def_property_sensor(BlenderRNA *brna)
 		{SENS_PROP_INTERVAL, "PROPINTERVAL", 0, "Interval", ""},
 		{SENS_PROP_CHANGED, "PROPCHANGED", 0, "Changed", ""},
 		/* {SENS_PROP_EXPRESSION, "PROPEXPRESSION", 0, "Expression", ""},  NOT_USED_IN_UI */
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "PropertySensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Property Sensor", "Sensor to detect values and changes in values of properties");
@@ -535,7 +538,8 @@ static void rna_def_armature_sensor(BlenderRNA *brna)
 		{SENS_ARM_LIN_ERROR_ABOVE, "LINERRORABOVE", 0, "Lin error above", ""},
 		{SENS_ARM_ROT_ERROR_BELOW, "ROTERRORBELOW", 0, "Rot error below", ""},
 		{SENS_ARM_ROT_ERROR_ABOVE, "ROTERRORABOVE", 0, "Rot error above", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ArmatureSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Armature Sensor", "Sensor to detect values and changes in values of IK solver");
@@ -663,7 +667,8 @@ static void rna_def_radar_sensor(BlenderRNA *brna)
 		{SENS_RADAR_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
 		{SENS_RADAR_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
 		{SENS_RADAR_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "RadarSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Radar Sensor",
@@ -719,12 +724,14 @@ static void rna_def_ray_sensor(BlenderRNA *brna)
 		{SENS_RAY_NEG_X_AXIS, "NEGXAXIS", 0, "-X axis", ""},
 		{SENS_RAY_NEG_Y_AXIS, "NEGYAXIS", 0, "-Y axis", ""},
 		{SENS_RAY_NEG_Z_AXIS, "NEGZAXIS", 0, "-Z axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	static const EnumPropertyItem prop_ray_type_items[] = {
 		{SENS_COLLISION_PROPERTY, "PROPERTY", ICON_LOGIC, "Property", "Use a material for ray intersections"},
 		{SENS_COLLISION_MATERIAL, "MATERIAL", ICON_MATERIAL_DATA, "Material", "Use a property for ray intersections"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "RaySensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Ray Sensor",
@@ -801,14 +808,16 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 		{SENS_JOY_AXIS, "AXIS", 0, "Axis", ""},
 		{SENS_JOY_HAT, "HAT", 0, "Hat", ""},
 		{SENS_JOY_AXIS_SINGLE, "AXIS_SINGLE", 0, "Single Axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem axis_direction_items[] = {
 		{SENS_JOY_X_AXIS, "RIGHTAXIS", 0, "Right Axis", ""},
 		{SENS_JOY_Y_AXIS, "UPAXIS", 0, "Up Axis", ""},
 		{SENS_JOY_NEG_X_AXIS, "LEFTAXIS", 0, "Left Axis", ""},
 		{SENS_JOY_NEG_Y_AXIS, "DOWNAXIS", 0, "Down Axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem hat_direction_items[] = {
 		{SENS_JOY_HAT_UP, "UP", 0, "Up", ""},
@@ -820,7 +829,8 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 		{SENS_JOY_HAT_DOWN_LEFT, "DOWNLEFT", 0, "Down/Left", ""},
 		{SENS_JOY_HAT_UP_LEFT, "UPLEFT", 0, "Up/Left", ""},
 		{SENS_JOY_HAT_DOWN_RIGHT, "DOWNRIGHT", 0, "Down/Right", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "JoystickSensor", "Sensor");
 	RNA_def_struct_ui_text(srna, "Joystick Sensor", "Sensor to detect joystick events");
@@ -829,7 +839,7 @@ static void rna_def_joystick_sensor(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "joystick_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "joyindex");
 	RNA_def_property_ui_text(prop, "Index", "Which joystick to use");
-	RNA_def_property_range(prop, 0, SENS_JOY_MAXINDEX-1);
+	RNA_def_property_range(prop, 0, SENS_JOY_MAXINDEX - 1);
 	RNA_def_property_update(prop, NC_LOGIC, NULL);
 
 	prop = RNA_def_property(srna, "event_type", PROP_ENUM, PROP_NONE);

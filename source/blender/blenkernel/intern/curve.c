@@ -393,7 +393,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 		if (tot) doit = 1;
 		fp = dl->verts;
 		while (tot--) {
-			DO_MINMAX(fp, min, max);
+			minmax_v3v3_v3(min, max, fp);
 			fp += 3;
 		}
 		dl = dl->next;
@@ -588,7 +588,7 @@ void BKE_nurb_test2D(Nurb *nu)
 	}
 }
 
-void BKE_nurb_minmax(Nurb *nu, float *min, float *max)
+void BKE_nurb_minmax(Nurb *nu, float min[3], float max[3])
 {
 	BezTriple *bezt;
 	BPoint *bp;
@@ -598,9 +598,9 @@ void BKE_nurb_minmax(Nurb *nu, float *min, float *max)
 		a = nu->pntsu;
 		bezt = nu->bezt;
 		while (a--) {
-			DO_MINMAX(bezt->vec[0], min, max);
-			DO_MINMAX(bezt->vec[1], min, max);
-			DO_MINMAX(bezt->vec[2], min, max);
+			minmax_v3v3_v3(min, max, bezt->vec[0]);
+			minmax_v3v3_v3(min, max, bezt->vec[1]);
+			minmax_v3v3_v3(min, max, bezt->vec[2]);
 			bezt++;
 		}
 	}
@@ -608,7 +608,7 @@ void BKE_nurb_minmax(Nurb *nu, float *min, float *max)
 		a = nu->pntsu * nu->pntsv;
 		bp = nu->bp;
 		while (a--) {
-			DO_MINMAX(bp->vec, min, max);
+			minmax_v3v3_v3(min, max, bp->vec);
 			bp++;
 		}
 	}
@@ -1166,19 +1166,23 @@ void BKE_curve_forward_diff_bezier(float q0, float q1, float q2, float q3, float
 	}
 }
 
-static void forward_diff_bezier_cotangent(float *p0, float *p1, float *p2, float *p3, float *p, int it, int stride)
+static void forward_diff_bezier_cotangent(const float p0[3], const float p1[3], const float p2[3], const float p3[3],
+                                          float p[3], int it, int stride)
 {
 	/* note that these are not purpendicular to the curve
 	 * they need to be rotated for this,
 	 *
-	 * This could also be optimized like forward_diff_bezier */
+	 * This could also be optimized like BKE_curve_forward_diff_bezier */
 	int a;
 	for (a = 0; a <= it; a++) {
 		float t = (float)a / (float)it;
 
 		int i;
 		for (i = 0; i < 3; i++) {
-			p[i] = (-6 * t + 6) * p0[i] + (18 * t - 12) * p1[i] + (-18 * t + 6) * p2[i] + (6 * t) * p3[i];
+			p[i] = (-6.0f  * t +  6.0f) * p0[i] +
+			       ( 18.0f * t - 12.0f) * p1[i] +
+			       (-18.0f * t +  6.0f) * p2[i] +
+			       ( 6.0f  * t)         * p3[i];
 		}
 		normalize_v3(p);
 		p = (float *)(((char *)p) + stride);

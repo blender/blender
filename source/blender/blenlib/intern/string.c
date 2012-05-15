@@ -43,9 +43,9 @@
 
 char *BLI_strdupn(const char *str, const size_t len)
 {
-	char *n= MEM_mallocN(len+1, "strdup");
+	char *n = MEM_mallocN(len + 1, "strdup");
 	memcpy(n, str, len);
-	n[len]= '\0';
+	n[len] = '\0';
 	
 	return n;
 }
@@ -59,8 +59,8 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 	size_t len;
 	char *n;
 	
-	len= strlen(str1)+strlen(str2);
-	n= MEM_mallocN(len+1, "strdupcat");
+	len = strlen(str1) + strlen(str2);
+	n = MEM_mallocN(len + 1, "strdupcat");
 	strcpy(n, str1);
 	strcat(n, str2);
 	
@@ -69,11 +69,11 @@ char *BLI_strdupcat(const char *str1, const char *str2)
 
 char *BLI_strncpy(char *dst, const char *src, const size_t maxncpy)
 {
-	size_t srclen= strlen(src);
-	size_t cpylen= (srclen>(maxncpy-1))?(maxncpy-1):srclen;
+	size_t srclen = strlen(src);
+	size_t cpylen = (srclen > (maxncpy - 1)) ? (maxncpy - 1) : srclen;
 	
 	memcpy(dst, src, cpylen);
-	dst[cpylen]= '\0';
+	dst[cpylen] = '\0';
 	
 	return dst;
 }
@@ -90,7 +90,7 @@ size_t BLI_snprintf(char *buffer, size_t count, const char *format, ...)
 		buffer[n] = '\0';
 	}
 	else {
-		buffer[count-1] = '\0';
+		buffer[count - 1] = '\0';
 	}
 	
 	va_end(arg);
@@ -105,9 +105,9 @@ char *BLI_sprintfN(const char *format, ...)
 
 	va_start(arg, format);
 
-	ds= BLI_dynstr_new();
+	ds = BLI_dynstr_new();
 	BLI_dynstr_vappendf(ds, format, arg);
-	n= BLI_dynstr_get_cstring(ds);
+	n = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 
 	va_end(arg);
@@ -123,7 +123,7 @@ char *BLI_sprintfN(const char *format, ...)
  *    which is a useful reference. */
 size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 {
-	size_t len= 0;
+	size_t len = 0;
 	while (len < maxlen) {
 		switch (*src) {
 			case '\0':
@@ -131,7 +131,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 			case '\\':
 			case '"':
 
-				/* less common but should also be support */
+			/* less common but should also be support */
 			case '\t':
 			case '\n':
 			case '\r':
@@ -143,7 +143,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 					/* not enough space to escape */
 					break;
 				}
-				/* intentionally pass through */
+			/* intentionally pass through */
 			default:
 				*dst = *src;
 		}
@@ -154,7 +154,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 
 escape_finish:
 
-	*dst= '\0';
+	*dst = '\0';
 
 	return len;
 }
@@ -163,25 +163,25 @@ escape_finish:
 /* Makes a copy of the text within the "" that appear after some text 'blahblah'
  * i.e. for string 'pose["apples"]' with prefix 'pose[', it should grab "apples"
  * 
- * 	- str: is the entire string to chop
+ *  - str: is the entire string to chop
  *	- prefix: is the part of the string to leave out 
  *
  * Assume that the strings returned must be freed afterwards, and that the inputs will contain 
  * data we want...
  */
-char *BLI_getQuotedStr (const char *str, const char *prefix)
+char *BLI_getQuotedStr(const char *str, const char *prefix)
 {
 	size_t prefixLen = strlen(prefix);
 	char *startMatch, *endMatch;
 	
 	/* get the starting point (i.e. where prefix starts, and add prefixLen+1 to it to get be after the first " */
-	startMatch= strstr(str, prefix) + prefixLen + 1;
+	startMatch = strstr(str, prefix) + prefixLen + 1;
 	
 	/* get the end point (i.e. where the next occurance of " is after the starting point) */
-	endMatch= strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
+	endMatch = strchr(startMatch, '"'); // "  NOTE: this comment here is just so that my text editor still shows the functions ok...
 	
 	/* return the slice indicated */
-	return BLI_strdupn(startMatch, (size_t)(endMatch-startMatch));
+	return BLI_strdupn(startMatch, (size_t)(endMatch - startMatch));
 }
 
 /* Replaces all occurrences of oldText with newText in str, returning a new string that doesn't 
@@ -191,14 +191,14 @@ char *BLI_getQuotedStr (const char *str, const char *prefix)
 // Feel free to replace this with an even safe + nicer alternative 
 char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 {
-	DynStr *ds= NULL;
-	size_t lenOld= strlen(oldText);
+	DynStr *ds = NULL;
+	size_t lenOld = strlen(oldText);
 	char *match;
 	
 	/* sanity checks */
-	if ((str == NULL) || (str[0]==0))
+	if ((str == NULL) || (str[0] == 0))
 		return NULL;
-	else if ((oldText == NULL) || (newText == NULL) || (oldText[0]==0))
+	else if ((oldText == NULL) || (newText == NULL) || (oldText[0] == 0))
 		return BLI_strdup(str);
 	
 	/* while we can still find a match for the old substring that we're searching for, 
@@ -207,7 +207,7 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 	while ( (match = strstr(str, oldText)) ) {
 		/* the assembly buffer only gets created when we actually need to rebuild the string */
 		if (ds == NULL)
-			ds= BLI_dynstr_new();
+			ds = BLI_dynstr_new();
 			
 		/* if the match position does not match the current position in the string, 
 		 * copy the text up to this position and advance the current position in the string
@@ -216,12 +216,12 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 			/* replace the token at the 'match' position with \0 so that the copied string will be ok,
 			 * add the segment of the string from str to match to the buffer, then restore the value at match
 			 */
-			match[0]= 0;
+			match[0] = 0;
 			BLI_dynstr_append(ds, str);
-			match[0]= oldText[0];
+			match[0] = oldText[0];
 			
 			/* now our current position should be set on the start of the match */
-			str= match;
+			str = match;
 		}
 		
 		/* add the replacement text to the accumulation buffer */
@@ -242,7 +242,7 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 			BLI_dynstr_append(ds, str);
 		
 		/* convert to new c-string (MEM_malloc'd), and free the buffer */
-		newStr= BLI_dynstr_get_cstring(ds);
+		newStr = BLI_dynstr_get_cstring(ds);
 		BLI_dynstr_free(ds);
 		
 		return newStr;
@@ -257,7 +257,7 @@ char *BLI_replacestr(char *str, const char *oldText, const char *newText)
 
 int BLI_strcaseeq(const char *a, const char *b) 
 {
-	return (BLI_strcasecmp(a, b)==0);
+	return (BLI_strcasecmp(a, b) == 0);
 }
 
 /* strcasestr not available in MSVC */
@@ -267,13 +267,13 @@ char *BLI_strcasestr(const char *s, const char *find)
 	register size_t len;
 	
 	if ((c = *find++) != 0) {
-		c= tolower(c);
+		c = tolower(c);
 		len = strlen(find);
 		do {
 			do {
 				if ((sc = *s++) == 0)
 					return (NULL);
-				sc= tolower(sc);
+				sc = tolower(sc);
 			} while (sc != c);
 		} while (BLI_strncasecmp(s, find, len) != 0);
 		s--;
@@ -286,17 +286,17 @@ int BLI_strcasecmp(const char *s1, const char *s2)
 {
 	int i;
 
-	for (i=0; ; i++) {
+	for (i = 0;; i++) {
 		char c1 = tolower(s1[i]);
 		char c2 = tolower(s2[i]);
 
-		if (c1<c2) {
+		if (c1 < c2) {
 			return -1;
 		}
-		else if (c1>c2) {
+		else if (c1 > c2) {
 			return 1;
 		}
-		else if (c1==0) {
+		else if (c1 == 0) {
 			break;
 		}
 	}
@@ -308,17 +308,17 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 {
 	int i;
 
-	for (i=0; i<len; i++) {
+	for (i = 0; i < len; i++) {
 		char c1 = tolower(s1[i]);
 		char c2 = tolower(s2[i]);
 
-		if (c1<c2) {
+		if (c1 < c2) {
 			return -1;
 		}
-		else if (c1>c2) {
+		else if (c1 > c2) {
 			return 1;
 		}
-		else if (c1==0) {
+		else if (c1 == 0) {
 			break;
 		}
 	}
@@ -329,7 +329,7 @@ int BLI_strncasecmp(const char *s1, const char *s2, size_t len)
 /* natural string compare, keeping numbers in order */
 int BLI_natstrcmp(const char *s1, const char *s2)
 {
-	int d1= 0, d2= 0;
+	int d1 = 0, d2 = 0;
 
 	/* if both chars are numeric, to a strtol().
 	 * then increase string deltas as long they are 
@@ -339,23 +339,23 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		char c1 = tolower(s1[d1]);
 		char c2 = tolower(s2[d2]);
 		
-		if ( isdigit(c1) && isdigit(c2) ) {
+		if (isdigit(c1) && isdigit(c2) ) {
 			int val1, val2;
 			
-			val1= (int)strtol(s1+d1, (char **)NULL, 10);
-			val2= (int)strtol(s2+d2, (char **)NULL, 10);
+			val1 = (int)strtol(s1 + d1, (char **)NULL, 10);
+			val2 = (int)strtol(s2 + d2, (char **)NULL, 10);
 			
-			if (val1<val2) {
+			if (val1 < val2) {
 				return -1;
 			}
-			else if (val1>val2) {
+			else if (val1 > val2) {
 				return 1;
 			}
 			d1++;
-			while ( isdigit(s1[d1]) )
+			while (isdigit(s1[d1]) )
 				d1++;
 			d2++;
-			while ( isdigit(s2[d2]) )
+			while (isdigit(s2[d2]) )
 				d2++;
 			
 			c1 = tolower(s1[d1]);
@@ -363,17 +363,17 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 		}
 	
 		/* first check for '.' so "foo.bar" comes before "foo 1.bar" */	
-		if (c1=='.' && c2!='.')
+		if (c1 == '.' && c2 != '.')
 			return -1;
-		if (c1!='.' && c2=='.')
+		if (c1 != '.' && c2 == '.')
 			return 1;
-		else if (c1<c2) {
+		else if (c1 < c2) {
 			return -1;
 		}
-		else if (c1>c2) {
+		else if (c1 > c2) {
 			return 1;
 		}
-		else if (c1==0) {
+		else if (c1 == 0) {
 			break;
 		}
 		d1++;
@@ -385,10 +385,10 @@ int BLI_natstrcmp(const char *s1, const char *s2)
 void BLI_timestr(double _time, char *str)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= ( (int)  _time) / (60*60);
-	int min= (((int)  _time) / 60 ) % 60;
-	int sec= ( (int) (_time)) % 60;
-	int hun= ( (int) (_time   * 100.0)) % 100;
+	int  hr = ( (int)  _time) / (60*60);
+	int min = (((int)  _time) / 60 ) % 60;
+	int sec = ( (int) (_time)) % 60;
+	int hun = ( (int) (_time   * 100.0)) % 100;
 	
 	if (hr) {
 		sprintf(str, "%.2d:%.2d:%.2d.%.2d", hr, min, sec, hun);
@@ -397,7 +397,7 @@ void BLI_timestr(double _time, char *str)
 		sprintf(str, "%.2d:%.2d.%.2d", min, sec, hun);
 	}
 	
-	str[11]=0;
+	str[11] = 0;
 }
 
 /* determine the length of a fixed-size string */
@@ -411,7 +411,7 @@ void BLI_ascii_strtolower(char *str, int len)
 {
 	int i;
 
-	for (i=0; i<len; i++)
+	for (i = 0; i < len; i++)
 		if (str[i] >= 'A' && str[i] <= 'Z')
 			str[i] += 'a' - 'A';
 }
@@ -420,7 +420,7 @@ void BLI_ascii_strtoupper(char *str, int len)
 {
 	int i;
 
-	for (i=0; i<len; i++)
+	for (i = 0; i < len; i++)
 		if (str[i] >= 'a' && str[i] <= 'z')
 			str[i] -= 'a' - 'A';
 }

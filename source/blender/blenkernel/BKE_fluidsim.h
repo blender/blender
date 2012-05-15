@@ -42,9 +42,9 @@ struct MVert;
 /* old interface */
 
 void initElbeemMesh(struct Scene *scene, struct Object *ob,
-	int *numVertices, float **vertices,
-	int *numTriangles, int **triangles,
-	int useGlobalCoords, int modifierIndex);
+                    int *numVertices, float **vertices,
+                    int *numTriangles, int **triangles,
+                    int useGlobalCoords, int modifierIndex);
 
 /* bounding box & memory estimate */
 void fluid_get_bb(struct MVert *mvert, int totvert, float obmat[][4],

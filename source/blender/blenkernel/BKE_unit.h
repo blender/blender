@@ -34,10 +34,10 @@ extern "C" {
 /* in all cases the value is assumed to be scaled by the user preference */
 
 /* humanly readable representation of a value in units (used for button drawing) */
-void	bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad);
+void    bUnit_AsString(char *str, int len_max, double value, int prec, int system, int type, int split, int pad);
 
 /* replace units with values, used before python button evaluation */
-int		bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
+int     bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double scale_pref, int system, int type);
 
 /* make string keyboard-friendly: 10µm --> 10um */
 void bUnit_ToUnitAltName(char *str, int len_max, const char *orig_str, int system, int type);
@@ -54,23 +54,23 @@ int bUnit_IsValid(int system, int type);
 /* loop over scales, coudl add names later */
 //double bUnit_Iter(void **unit, char **name, int system, int type);
 
-void		bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
-int			bUnit_GetBaseUnit(void *usys_pt);
-const char*	bUnit_GetName(void *usys_pt, int index);
-const char*	bUnit_GetNameDisplay(void *usys_pt, int index);
-double		bUnit_GetScaler(void *usys_pt, int index);
+void        bUnit_GetSystem(void **usys_pt, int *len, int system, int type);
+int         bUnit_GetBaseUnit(void *usys_pt);
+const char *bUnit_GetName(void *usys_pt, int index);
+const char *bUnit_GetNameDisplay(void *usys_pt, int index);
+double      bUnit_GetScaler(void *usys_pt, int index);
 
 /* aligned with PropertyUnit */
-#define		B_UNIT_NONE 0
-#define 	B_UNIT_LENGTH 1
-#define 	B_UNIT_AREA 2
-#define 	B_UNIT_VOLUME 3
-#define 	B_UNIT_MASS 4
-#define 	B_UNIT_ROTATION 5
-#define 	B_UNIT_TIME 6
-#define 	B_UNIT_VELOCITY 7
-#define 	B_UNIT_ACCELERATION 8
-#define 	B_UNIT_TYPE_TOT 9
+#define     B_UNIT_NONE 0
+#define     B_UNIT_LENGTH 1
+#define     B_UNIT_AREA 2
+#define     B_UNIT_VOLUME 3
+#define     B_UNIT_MASS 4
+#define     B_UNIT_ROTATION 5
+#define     B_UNIT_TIME 6
+#define     B_UNIT_VELOCITY 7
+#define     B_UNIT_ACCELERATION 8
+#define     B_UNIT_TYPE_TOT 9
 
 #ifdef __cplusplus
 }

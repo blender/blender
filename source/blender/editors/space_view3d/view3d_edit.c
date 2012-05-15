@@ -2175,7 +2175,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 
 	if (obedit) {
-		ok = minmax_verts(obedit, min, max);    /* only selected */
+		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		if (ob->pose) {
@@ -2189,9 +2189,9 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 						bPoseChannel *pchan_tx = pchan->custom_tx ? pchan->custom_tx : pchan;
 						ok = 1;
 						mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
-						DO_MINMAX(vec, min, max);
+						minmax_v3v3_v3(min, max, vec);
 						mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
-						DO_MINMAX(vec, min, max);
+						minmax_v3v3_v3(min, max, vec);
 					}
 				}
 			}

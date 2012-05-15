@@ -96,6 +96,10 @@ if(WITH_CODEC_FFMPEG)
 		${PTHREADS_INCLUDE_DIRS}
 	)
 	add_definitions(-DWITH_FFMPEG)
+
+	remove_strict_flags_file(
+		VideoFFmpeg.cpp
+	)
 endif()
 
 blender_add_lib(ge_videotex "${SRC}" "${INC}" "${INC_SYS}")

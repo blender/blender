@@ -961,7 +961,7 @@ static int basis_cross(int n, int m)
 	}
 }
 
-static void vectomat(float *vec, float *target_up, short axis, short upflag, short flags, float m[][3])
+static void vectomat(const float vec[3], const float target_up[3], short axis, short upflag, short flags, float m[][3])
 {
 	float n[3];
 	float u[3]; /* vector specifying the up axis */

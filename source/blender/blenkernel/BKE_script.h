@@ -40,7 +40,7 @@ extern "C" {
 
 struct Script;
 
-void free_script (struct Script *script);
+void free_script(struct Script *script);
 
 #ifdef __cplusplus
 }

@@ -41,7 +41,7 @@ void wm_init_cursor_data(void);
 
 /* old cursors */
 enum {
-	CURSOR_FACESEL=BC_GHOST_CURSORS, 
+	CURSOR_FACESEL = BC_GHOST_CURSORS,
 	CURSOR_WAIT, 
 	CURSOR_EDIT, 
 	CURSOR_X_MOVE, 
@@ -80,7 +80,7 @@ typedef struct BCursor {
 
 #define SYSCURSOR 1
 enum {
-	BC_NW_ARROWCURSOR=2, 
+	BC_NW_ARROWCURSOR = 2,
 	BC_NS_ARROWCURSOR,
 	BC_EW_ARROWCURSOR,
 	BC_WAITCURSOR,
@@ -103,7 +103,7 @@ enum {
 
 
 enum {
-	BC_BLACK=0, 
+	BC_BLACK = 0,
 	BC_WHITE, 
 	BC_RED,
 	BC_BLUE,
@@ -111,8 +111,8 @@ enum {
 	BC_YELLOW
 };
 
-#define SMALL_CURSOR 	0
-#define BIG_CURSOR 		1
+#define SMALL_CURSOR    0
+#define BIG_CURSOR      1
 
 struct wmWindow;
 struct wmEvent;

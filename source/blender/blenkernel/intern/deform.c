@@ -251,7 +251,7 @@ void defvert_flip(MDeformVert *dvert, const int *flip_map, const int flip_map_le
 	MDeformWeight *dw;
 	int i;
 
-	for (dw = dvert->dw, i = 0; i<dvert->totweight; dw++, i++) {
+	for (dw = dvert->dw, i = 0; i < dvert->totweight; dw++, i++) {
 		if (dw->def_nr < flip_map_len) {
 			if (flip_map[dw->def_nr] >= 0) {
 				dw->def_nr = flip_map[dw->def_nr];
@@ -275,8 +275,8 @@ void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip
 				dw = &dvert->dw[i]; /* in case array got realloced */
 
 				/* distribute weights: if only one of the vertex groups was
-				 * assigned this will halve the weights, otherwise it gets
-				 * evened out. this keeps it proportional to other groups */
+				* assigned this will halve the weights, otherwise it gets
+				* evened out. this keeps it proportional to other groups */
 				weight = 0.5f * (dw_cpy->weight + dw->weight);
 				dw_cpy->weight = weight;
 				dw->weight = weight;
@@ -424,13 +424,13 @@ static int defgroup_find_name_dupe(const char *name, bDeformGroup *dg, Object *o
 
 static int defgroup_unique_check(void *arg, const char *name)
 {
-	struct {Object *ob; void *dg;} *data = arg;
+	struct {Object *ob; void *dg; } *data = arg;
 	return defgroup_find_name_dupe(name, data->dg, data->ob);
 }
 
 void defgroup_unique_name(bDeformGroup *dg, Object *ob)
 {
-	struct {Object *ob; void *dg;} data;
+	struct {Object *ob; void *dg; } data;
 	data.ob = ob;
 	data.dg = dg;
 
@@ -595,7 +595,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 		}
 	}
 
-	BLI_snprintf (name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
+	BLI_snprintf(name, MAX_VGROUP_NAME, "%s%s%s%s", prefix, replace, suffix, number);
 }
 
 float defvert_find_weight(const struct MDeformVert *dvert, const int defgroup)
@@ -710,7 +710,7 @@ void defvert_remove_group(MDeformVert *dvert, MDeformWeight *dw)
 		if (dvert->totweight) {
 			dw_new = MEM_mallocN(sizeof(MDeformWeight) * (dvert->totweight), __func__);
 			if (dvert->dw) {
-#if 1			/* since we don't care about order, swap this with the last, save a memcpy */
+#if 1           /* since we don't care about order, swap this with the last, save a memcpy */
 				if (i != dvert->totweight) {
 					dvert->dw[i] = dvert->dw[dvert->totweight];
 				}

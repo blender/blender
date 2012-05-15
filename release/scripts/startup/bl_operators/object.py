@@ -104,24 +104,29 @@ class SelectPattern(Operator):
 
 
 class SelectCamera(Operator):
-    '''Select object matching a naming pattern'''
+    '''Select the active camera'''
     bl_idname = "object.select_camera"
     bl_label = "Select Camera"
     bl_options = {'REGISTER', 'UNDO'}
 
-    @classmethod
-    def poll(cls, context):
-        return context.scene.camera is not None
-
     def execute(self, context):
         scene = context.scene
-        camera = scene.camera
-        if camera.name not in scene.objects:
-            self.report({'WARNING'}, "Active camera is not in this scene")
+        view = context.space_data
+        if view.type == 'VIEW_3D' and not view.lock_camera_and_layers:
+            camera = view.camera
+        else:
+            camera = scene.camera
 
-        context.scene.objects.active = camera
-        camera.select = True
-        return {'FINISHED'}
+        if camera is None:
+            self.report({'WARNING'}, "No camera found")
+        elif camera.name not in scene.objects:
+            self.report({'WARNING'}, "Active camera is not in this scene")
+        else:
+            context.scene.objects.active = camera
+            camera.select = True
+            return {'FINISHED'}
+
+        return {'CANCELLED'}
 
 
 class SelectHierarchy(Operator):

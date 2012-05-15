@@ -1090,11 +1090,8 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 					copy_v3_v3(no, vnor[v]);
 					normalize_v3(no);
-					
-					mvert->no[0] = (short)(no[0] * 32767.0f);
-					mvert->no[1] = (short)(no[1] * 32767.0f);
-					mvert->no[2] = (short)(no[2] * 32767.0f);
-					
+					normal_float_to_short_v3(mvert->no, no);
+
 					mvert->flag &= ~ME_VERT_PBVH_UPDATE;
 				}
 			}

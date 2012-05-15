@@ -56,7 +56,7 @@ typedef struct boxVert {
 #define TRF 2
 #define TLF 4
 #define BRF 8
-#define CORNERFLAGS (BLF|TRF|TLF|BRF)
+#define CORNERFLAGS (BLF | TRF | TLF | BRF)
 
 #define BL 0
 #define TR 1
@@ -93,13 +93,13 @@ typedef struct boxVert {
 	  BOXRIGHT(b1)  - EPSILON <= BOXLEFT(b2)  || \
 	  BOXTOP(b1)    - EPSILON <= BOXBOTTOM(b2))
 
-#define MIN2(x,y)               ((x) < (y) ? (x) : (y))
-#define MAX2(x,y)               ((x) > (y) ? (x) : (y))
+#define MIN2(x, y)              ((x) < (y) ? (x) : (y))
+#define MAX2(x, y)              ((x) > (y) ? (x) : (y))
 
 #if 0
 #define BOXDEBUG(b) \
 	printf("\tBox Debug i %i, w:%.3f h:%.3f x:%.3f y:%.3f\n", \
-	b->index, b->w, b->h, b->x, b->y)
+	       b->index, b->w, b->h, b->x, b->y)
 #endif
 
 /* qsort function - sort largest to smallest */
@@ -131,11 +131,11 @@ static int vertex_sort(const void *p1, const void *p2)
 	v1 = vertarray + ((int *)p1)[0];
 	v2 = vertarray + ((int *)p2)[0];
 
-	a1 = MAX2(v1->x+box_width, v1->y+box_height);
-	a2 = MAX2(v2->x+box_width, v2->y+box_height);
+	a1 = MAX2(v1->x + box_width, v1->y + box_height);
+	a2 = MAX2(v2->x + box_width, v2->y + box_height);
 
 	/* sort largest to smallest */
-	if      (a1 > a2) return  1;
+	if      (a1 > a2) return 1;
 	else if (a1 < a2) return -1;
 	return 0;
 }
@@ -145,11 +145,11 @@ static int vertex_sort(const void *p1, const void *p2)
  * tightly into the lower left hand corner (0,0)
  * 
  * boxarray - a pre allocated array of boxes.
- * 		only the 'box->x' and 'box->y' are set, 'box->w' and 'box->h' are used,
- * 		'box->index' is not used at all, the only reason its there
- * 			is that the box array is sorted by area and programs need to be able
- * 			to have some way of writing the boxes back to the original data.
- * 	len - the number of boxes in the array.
+ *      only the 'box->x' and 'box->y' are set, 'box->w' and 'box->h' are used,
+ *      'box->index' is not used at all, the only reason its there
+ *          is that the box array is sorted by area and programs need to be able
+ *          to have some way of writing the boxes back to the original data.
+ *  len - the number of boxes in the array.
  *	tot_width and tot_height are set so you can normalize the data.
  *  */
 void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height)
@@ -178,15 +178,15 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 		vert->blb = vert->brb = vert->tlb =
 		        vert->isect_cache[0] = vert->isect_cache[1] =
 		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = CORNERFLAGS &~ TRF;
+		vert->free = CORNERFLAGS & ~TRF;
 		vert->trb = box;
 		vert->index = i; i++;
 		box->v[BL] = vert; vert++;
 		
-		vert->trb= vert->brb = vert->tlb =
+		vert->trb = vert->brb = vert->tlb =
 		        vert->isect_cache[0] = vert->isect_cache[1] =
 		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = CORNERFLAGS &~ BLF;
+		vert->free = CORNERFLAGS & ~BLF;
 		vert->blb = box;
 		vert->index = i; i++;
 		box->v[TR] = vert; vert++;
@@ -194,7 +194,7 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 		vert->trb = vert->blb = vert->tlb =
 		        vert->isect_cache[0] = vert->isect_cache[1] =
 		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = CORNERFLAGS &~ BRF;
+		vert->free = CORNERFLAGS & ~BRF;
 		vert->brb = box;
 		vert->index = i; i++;
 		box->v[TL] = vert; vert++;
@@ -202,7 +202,7 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 		vert->trb = vert->blb = vert->brb =
 		        vert->isect_cache[0] = vert->isect_cache[1] =
 		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
-		vert->free = CORNERFLAGS &~ TLF;
+		vert->free = CORNERFLAGS & ~TLF;
 		vert->tlb = box; 
 		vert->index = i; i++;
 		box->v[BR] = vert; vert++;
@@ -248,7 +248,7 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 		for (i = 0; i < verts_pack_len && isect; i++) {
 			vert = vertarray + vertex_pack_indices[i];
 			/* printf("\ttesting vert %i %i %i %f %f\n", i,
-			 * 		vert->free, verts_pack_len, vert->x, vert->y); */
+			 *        vert->free, verts_pack_len, vert->x, vert->y); */
 
 			/* This vert has a free quadrant
 			 * Test if we can place the box here
@@ -281,11 +281,11 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 					 * Assume no intersection... */
 					isect = 0;
 					
-					if (/* Constrain boxes to positive X/Y values */
-						BOXLEFT(box) < 0.0f || BOXBOTTOM(box) < 0.0f ||
-						/* check for last intersected */
-						(	vert->isect_cache[j] &&
-							BOXINTERSECT(box, vert->isect_cache[j])))
+					if ( /* Constrain boxes to positive X/Y values */
+					    BOXLEFT(box) < 0.0f || BOXBOTTOM(box) < 0.0f ||
+					    /* check for last intersected */
+					    (vert->isect_cache[j] &&
+					     BOXINTERSECT(box, vert->isect_cache[j])))
 					{
 						/* Here we check that the last intersected
 						 * box will intersect with this one using

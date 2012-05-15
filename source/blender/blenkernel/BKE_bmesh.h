@@ -42,28 +42,28 @@
 
 /* bevel tool defines */
 /* element flags */
-#define BME_BEVEL_ORIG			1
-#define BME_BEVEL_BEVEL			(1<<1)
-#define BME_BEVEL_NONMAN		(1<<2)
-#define BME_BEVEL_WIRE			(1<<3)
+#define BME_BEVEL_ORIG          1
+#define BME_BEVEL_BEVEL         (1 << 1)
+#define BME_BEVEL_NONMAN        (1 << 2)
+#define BME_BEVEL_WIRE          (1 << 3)
 
 /* tool options */
-#define BME_BEVEL_SELECT		1
-#define BME_BEVEL_VERT			(1<<1)
-#define BME_BEVEL_RADIUS		(1<<2)
-#define BME_BEVEL_ANGLE			(1<<3)
-#define BME_BEVEL_WEIGHT		(1<<4)
+#define BME_BEVEL_SELECT        1
+#define BME_BEVEL_VERT          (1 << 1)
+#define BME_BEVEL_RADIUS        (1 << 2)
+#define BME_BEVEL_ANGLE         (1 << 3)
+#define BME_BEVEL_WEIGHT        (1 << 4)
 //~ #define BME_BEVEL_EWEIGHT		(1<<4)
 //~ #define BME_BEVEL_VWEIGHT		(1<<5)
-#define BME_BEVEL_PERCENT		(1<<6)
-#define BME_BEVEL_EMIN			(1<<7)
-#define BME_BEVEL_EMAX			(1<<8)
-#define BME_BEVEL_RUNNING		(1<<9)
-#define BME_BEVEL_RES			(1<<10)
+#define BME_BEVEL_PERCENT       (1 << 6)
+#define BME_BEVEL_EMIN          (1 << 7)
+#define BME_BEVEL_EMAX          (1 << 8)
+#define BME_BEVEL_RUNNING       (1 << 9)
+#define BME_BEVEL_RES           (1 << 10)
 
-#define BME_BEVEL_EVEN			(1<<11) /* this is a new setting not related to old (trunk bmesh bevel code) but adding
-                                         * here because they are mixed - campbell */
-#define BME_BEVEL_DIST			(1<<12) /* same as above */
+#define BME_BEVEL_EVEN          (1 << 11) /* this is a new setting not related to old (trunk bmesh bevel code) but adding
+	                                       * here because they are mixed - campbell */
+#define BME_BEVEL_DIST          (1 << 12) /* same as above */
 
 typedef struct BME_TransData {
 	struct BMesh *bm; /* the bmesh the vert belongs to */
@@ -74,11 +74,11 @@ typedef struct BME_TransData {
 	void *loc;    /* a pointer to the data to transform (likely the vert's cos) */
 	float factor; /* primary scaling factor; also accumulates number of weighted edges for beveling tool */
 	float weight; /* another scaling factor; used primarily for propogating vertex weights to transforms; */
-				  /* weight is also used across recursive bevels to help with the math */
+	              /* weight is also used across recursive bevels to help with the math */
 	float maxfactor; /* the unscaled, original factor (used only by "edge verts" in recursive beveling) */
 	float *max;   /* the maximum distance this vert can be transformed; negative is infinite
-				   * it points to the "parent" maxfactor (where maxfactor makes little sense)
-				   * where the max limit is stored (limits are stored per-corner) */
+	               * it points to the "parent" maxfactor (where maxfactor makes little sense)
+	               * where the max limit is stored (limits are stored per-corner) */
 } BME_TransData;
 
 typedef struct BME_TransData_Head {

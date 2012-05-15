@@ -649,7 +649,11 @@ static int set_verbosity(int argc, const char **argv, void *UNUSED(data))
 	if (argc > 1) {
 		int level = atoi(argv[1]);
 
+#ifdef WITH_LIBMV
 		libmv_setLoggingVerbosity(level);
+#else
+		(void)level;
+#endif
 
 		return 1;
 	}

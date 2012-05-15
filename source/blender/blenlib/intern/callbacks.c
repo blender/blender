@@ -26,21 +26,21 @@
 
 #include "MEM_guardedalloc.h"
 
-static ListBase callback_slots[BLI_CB_EVT_TOT]= {{NULL}};
+static ListBase callback_slots[BLI_CB_EVT_TOT] = {{NULL}};
 
 void BLI_callback_exec(struct Main *main, struct ID *self, eCbEvent evt)
 {
-	ListBase *lb= &callback_slots[evt];
+	ListBase *lb = &callback_slots[evt];
 	bCallbackFuncStore *funcstore;
 
-	for (funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= (bCallbackFuncStore *)funcstore->next) {
+	for (funcstore = (bCallbackFuncStore *)lb->first; funcstore; funcstore = (bCallbackFuncStore *)funcstore->next) {
 		funcstore->func(main, self, funcstore->arg);
 	}
 }
 
 void BLI_callback_add(bCallbackFuncStore *funcstore, eCbEvent evt)
 {
-	ListBase *lb= &callback_slots[evt];
+	ListBase *lb = &callback_slots[evt];
 	BLI_addtail(lb, funcstore);
 }
 
@@ -53,12 +53,12 @@ void BLI_callback_global_init(void)
 void BLI_callback_global_finalize(void)
 {
 	eCbEvent evt;
-	for (evt= 0; evt < BLI_CB_EVT_TOT; evt++) {
-		ListBase *lb= &callback_slots[evt];
+	for (evt = 0; evt < BLI_CB_EVT_TOT; evt++) {
+		ListBase *lb = &callback_slots[evt];
 		bCallbackFuncStore *funcstore;
 		bCallbackFuncStore *funcstore_next;
-		for (funcstore= (bCallbackFuncStore *)lb->first; funcstore; funcstore= funcstore_next) {
-			funcstore_next= (bCallbackFuncStore *)funcstore->next;
+		for (funcstore = (bCallbackFuncStore *)lb->first; funcstore; funcstore = funcstore_next) {
+			funcstore_next = (bCallbackFuncStore *)funcstore->next;
 			BLI_remlink(lb, funcstore);
 			if (funcstore->alloc) {
 				MEM_freeN(funcstore);
