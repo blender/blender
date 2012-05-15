@@ -3555,7 +3555,6 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 {
 	ParticleSystem *psys = sim->psys;
 	DerivedMesh *dm = psys->hair_in_dm;
-	DerivedMesh *result = NULL;
 	MVert *mvert = NULL;
 	MEdge *medge = NULL;
 	MDeformVert *dvert = NULL;
@@ -3660,15 +3659,14 @@ static void do_hair_dynamics(ParticleSimulationData *sim)
 	psys->clmd->sim_parms->effector_weights = psys->part->effector_weights;
 
 	deformedVerts = MEM_callocN(sizeof(*deformedVerts)*dm->getNumVerts(dm), "do_hair_dynamics vertexCos");
+	psys->hair_out_dm = CDDM_copy(dm);
+	psys->hair_out_dm->getVertCos(psys->hair_out_dm, deformedVerts);
 
-	result = clothModifier_do(psys->clmd, sim->scene, sim->ob, dm);
+	clothModifier_do(psys->clmd, sim->scene, sim->ob, dm, deformedVerts);
 
-	if (result) {
-		CDDM_calc_normals(result);
-		psys->hair_out_dm = result;
-	}
-	else
-		psys->hair_out_dm = CDDM_copy(dm);
+	CDDM_apply_vert_coords(psys->hair_out_dm, deformedVerts);
+
+	MEM_freeN(deformedVerts);
 
 	psys->clmd->sim_parms->effector_weights = NULL;
 }

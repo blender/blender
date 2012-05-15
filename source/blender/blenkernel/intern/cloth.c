@@ -93,7 +93,7 @@ static CM_SOLVER_DEF	solvers [] =
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
 */
-static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *dm);
+static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3]);
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
 static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
@@ -419,7 +419,7 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return ret;
 }
 
-
+#if 0
 static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 {
 	DerivedMesh *result = NULL;
@@ -472,18 +472,18 @@ static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 
 	return result;
 }
+#endif
 
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
-DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm)
+void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	PointCache *cache;
 	PTCacheID pid;
 	float timescale;
 	int framenr, startframe, endframe;
 	int cache_result;
-	DerivedMesh *result = NULL;
 
 	clmd->scene= scene;	/* nice to pass on later :) */
 	framenr= (int)scene->r.cfra;
@@ -503,7 +503,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_validate(cache, 0);
 		cache->last_exact= 0;
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
-		return NULL;
+		return;
 	}
 	
 	// unused in the moment, calculated separately in implicit.c
@@ -515,21 +515,20 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 		/* do simulation */
 		if (!do_init_cloth(ob, clmd, dm, framenr))
-			return NULL;
+			return;
 
 		do_step_cloth(ob, clmd, dm, framenr);
-		result = cloth_to_triangles(dm);
-		cloth_to_object(ob, clmd, result);
+		cloth_to_object(ob, clmd, vertexCos);
 
 		clmd->clothObject->last_frame= framenr;
 
-		return result;
+		return;
 	}
 
 	/* simulation is only active during a specific period */
 	if (framenr < startframe) {
 		BKE_ptcache_invalidate(cache);
-		return NULL;
+		return;
 	}
 	else if (framenr > endframe) {
 		framenr= endframe;
@@ -537,7 +536,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 	/* initialize simulation data if it didn't exist already */
 	if (!do_init_cloth(ob, clmd, dm, framenr))
-		return NULL;
+		return;
 
 	if ((framenr == startframe) && (clmd->sim_parms->preroll == 0)) {
 		BKE_ptcache_id_reset(scene, &pid, PTCACHE_RESET_OUTDATED);
@@ -545,7 +544,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 		BKE_ptcache_validate(cache, framenr);
 		cache->flag &= ~PTCACHE_REDO_NEEDED;
 		clmd->clothObject->last_frame= framenr;
-		return NULL;
+		return;
 	}
 
 	/* try to read from cache */
@@ -553,8 +552,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 	if (cache_result == PTCACHE_READ_EXACT || cache_result == PTCACHE_READ_INTERPOLATED) {
 		implicit_set_positions(clmd);
-		result = cloth_to_triangles(dm);
-		cloth_to_object (ob, clmd, result);
+		cloth_to_object (ob, clmd, vertexCos);
 
 		BKE_ptcache_validate(cache, framenr);
 
@@ -563,7 +561,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 
 		clmd->clothObject->last_frame= framenr;
 
-		return result;
+		return;
 	}
 	else if (cache_result==PTCACHE_READ_OLD) {
 		implicit_set_positions(clmd);
@@ -571,11 +569,11 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	else if ( /*ob->id.lib ||*/ (cache->flag & PTCACHE_BAKED)) { /* 2.4x disabled lib, but this can be used in some cases, testing further - campbell */
 		/* if baked and nothing in cache, do nothing */
 		BKE_ptcache_invalidate(cache);
-		return NULL;
+		return;
 	}
 
 	if (framenr!=clmd->clothObject->last_frame+1)
-		return NULL;
+		return;
 
 	/* if on second frame, write cache for first frame */
 	if (cache->simframe == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0))
@@ -592,11 +590,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob,
 	else
 		BKE_ptcache_write(&pid, framenr);
 
-	result = cloth_to_triangles(dm);
-	cloth_to_object (ob, clmd, result);
+	cloth_to_object (ob, clmd, vertexCos);
 	clmd->clothObject->last_frame= framenr;
-
-	return result;
 }
 
 /* frees all */
@@ -743,19 +738,18 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
  * cloth_to_object - copies the deformed vertices to the object.
  *
  **/
-static void cloth_to_object (Object *ob,  ClothModifierData *clmd, DerivedMesh *dm)
+static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3])
 {
 	unsigned int	i = 0;
 	Cloth *cloth = clmd->clothObject;
-	MVert *verts = dm->getVertArray(dm);
 
 	if (clmd->clothObject) {
 		/* inverse matrix is not uptodate... */
 		invert_m4_m4(ob->imat, ob->obmat);
 
 		for (i = 0; i < cloth->numverts; i++) {
-			copy_v3_v3 (verts[i].co, cloth->verts[i].x);
-			mul_m4_v3(ob->imat, verts[i].co);	/* cloth is in global coords */
+			copy_v3_v3 (vertexCos[i], cloth->verts[i].x);
+			mul_m4_v3(ob->imat, vertexCos[i]);	/* cloth is in global coords */
 		}
 	}
 }
