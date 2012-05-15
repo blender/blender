@@ -220,6 +220,12 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 	cloth1 = clmd->clothObject;
 
 	for ( ; collpair != collision_end; collpair++ ) {
+		float i1[3], i2[3], i3[3];
+
+		zero_v3(i1);
+		zero_v3(i2);
+		zero_v3(i3);
+
 		// only handle static collisions here
 		if ( collpair->flag & COLLISION_IN_FUTURE )
 			continue;
@@ -260,11 +266,6 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			double impulse = 0.0;
 			float vrel_t_pre[3];
 			float temp[3], spf;
-			float i1[3], i2[3], i3[3];
-
-			zero_v3(i1);
-			zero_v3(i2);
-			zero_v3(i3);
 
 			// calculate tangential velocity
 			copy_v3_v3 ( temp, collpair->normal );
@@ -318,23 +319,47 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 				VECADDMUL ( i3, collpair->normal,  impulse );
 			}
 
-			{
-				int i = 0;
-
-				for(i = 0; i < 3; i++)
-				{
-					if(cloth1->verts[collpair->ap1].impulse_count > 0 && ABS(cloth1->verts[collpair->ap1].impulse[i]) < ABS(i1[i]))
-						cloth1->verts[collpair->ap1].impulse[i] = i1[i];
-
-					if(cloth1->verts[collpair->ap2].impulse_count > 0 && ABS(cloth1->verts[collpair->ap2].impulse[i]) < ABS(i2[i]))
-						cloth1->verts[collpair->ap2].impulse[i] = i2[i];
-
-					if(cloth1->verts[collpair->ap3].impulse_count > 0 && ABS(cloth1->verts[collpair->ap3].impulse[i]) < ABS(i3[i]))
-						cloth1->verts[collpair->ap3].impulse[i] = i3[i];
-				}
-			}
-
 			result = 1;
+		}
+		else
+		{
+			// Apply repulse impulse if distance too short
+			// I_r = -min(dt*kd, m(0, 1d/dt - v_n))
+			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
+
+			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
+			if ( d > ALMOST_ZERO) {
+				// stay on the safe side and clamp repulse
+				float repulse = d*1.0f/spf;
+
+				float impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
+				VECADDMUL ( i1, collpair->normal,  impulse );
+				VECADDMUL ( i2, collpair->normal,  impulse );
+				VECADDMUL ( i3, collpair->normal,  impulse );
+
+				cloth1->verts[collpair->ap1].impulse_count++;
+				cloth1->verts[collpair->ap2].impulse_count++;
+				cloth1->verts[collpair->ap3].impulse_count++;
+
+				result = 1;
+			}
+		}
+
+		if(result)
+		{
+			int i = 0;
+
+			for(i = 0; i < 3; i++)
+			{
+				if(cloth1->verts[collpair->ap1].impulse_count > 0 && ABS(cloth1->verts[collpair->ap1].impulse[i]) < ABS(i1[i]))
+					cloth1->verts[collpair->ap1].impulse[i] = i1[i];
+
+				if(cloth1->verts[collpair->ap2].impulse_count > 0 && ABS(cloth1->verts[collpair->ap2].impulse[i]) < ABS(i2[i]))
+					cloth1->verts[collpair->ap2].impulse[i] = i2[i];
+
+				if(cloth1->verts[collpair->ap3].impulse_count > 0 && ABS(cloth1->verts[collpair->ap3].impulse[i]) < ABS(i3[i]))
+					cloth1->verts[collpair->ap3].impulse[i] = i3[i];
+			}
 		}
 	}
 	return result;
