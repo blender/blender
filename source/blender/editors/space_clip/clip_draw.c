@@ -1323,8 +1323,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 		gpd = clip->gpd;
 	}
 
-
-	if (sc->flag & SC_MANUAL_CALIBRATION) {
+	if (sc->flag & SC_MANUAL_CALIBRATION && gpd) {
 		bGPDlayer *layer = gpd->layers.first;
 
 		while (layer) {
