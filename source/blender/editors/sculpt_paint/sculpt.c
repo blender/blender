@@ -537,7 +537,7 @@ static float integrate_overlap(Brush *br)
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */
-static void flip_coord(float out[3], float in[3], const char symm)
+static void flip_v3_v3(float out[3], const float in[3], const char symm)
 {
 	if (symm & SCULPT_SYMM_X)
 		out[0] = -in[0];
@@ -553,13 +553,18 @@ static void flip_coord(float out[3], float in[3], const char symm)
 		out[2] = in[2];
 }
 
+static void flip_v3(float v[3], const char symm)
+{
+	flip_v3_v3(v, v, symm);
+}
+
 static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
 {
 	float mirror[3];
 	float distsq;
 	
-	/* flip_coord(mirror, cache->traced_location, symm); */
-	flip_coord(mirror, cache->true_location, symm);
+	/* flip_v3_v3(mirror, cache->traced_location, symm); */
+	flip_v3_v3(mirror, cache->true_location, symm);
 
 	if (axis != 0) {
 		float mat[4][4] = MAT4_UNITY;
@@ -745,15 +750,16 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		 * position in order to project it. This insures that the 
 		 * brush texture will be oriented correctly. */
 
-		flip_coord(symm_point, point, ss->cache->mirror_symmetry_pass);
+		flip_v3_v3(symm_point, point, ss->cache->mirror_symmetry_pass);
 
 		if (ss->cache->radial_symmetry_pass)
 			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
 
 		ED_view3d_project_float_v2(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
 
-		/* if fixed mode, keep coordinates relative to mouse */
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			/* keep coordinates relative to mouse */
+
 			rotation += ss->cache->special_rotation;
 
 			point_2d[0] -= ss->cache->tex_mouse[0];
@@ -765,8 +771,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			x = point_2d[0] + ss->cache->vc->ar->winrct.xmin;
 			y = point_2d[1] + ss->cache->vc->ar->winrct.ymin;
 		}
-		else { /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) */
-			   /* leave the coordinates relative to the screen */
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			/* leave the coordinates relative to the screen */
 
 			/* use unadjusted size for tiled mode */
 			radius = BKE_brush_size_get(ss->cache->vc->scene, br);
@@ -882,9 +888,13 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], floa
 static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
-	int n;
-
 	float out_flip[3] = {0.0f, 0.0f, 0.0f};
+	int n, original;
+
+	/* Grab brush requires to test on original data (see r33888 and
+	   bug #25371) */
+	original = (paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
+				TRUE : ss->cache->original);
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -901,7 +911,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		if (ss->cache->original) {
+		if (original) {
 			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
@@ -989,7 +999,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **n
 	}
 	else {
 		copy_v3_v3(an, ss->cache->last_area_normal);
-		flip_coord(an, an, ss->cache->mirror_symmetry_pass);
+		flip_v3(an, ss->cache->mirror_symmetry_pass);
 		mul_m4_v3(ss->cache->symm_rot_mat, an);
 	}
 }
@@ -1506,13 +1516,8 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	int n;
 	float len;
 
-	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE) {
-		int cache = 1;
-		/* grab brush requires to test on original data */
-		SWAP(int, ss->cache->original, cache);
+	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE)
 		calc_sculpt_normal(sd, ob, an, nodes, totnode);
-		SWAP(int, ss->cache->original, cache);
-	}
 	
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
@@ -2082,10 +2087,10 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 		copy_v3_v3(fc, ss->cache->last_center);
 
 		/* for area normal */
-		flip_coord(an, an, ss->cache->mirror_symmetry_pass);
+		flip_v3(an, ss->cache->mirror_symmetry_pass);
 
 		/* for flatten center */
-		flip_coord(fc, fc, ss->cache->mirror_symmetry_pass);
+		flip_v3(fc, ss->cache->mirror_symmetry_pass);
 
 		/* for area normal */
 		mul_m4_v3(ss->cache->symm_rot_mat, an);
@@ -2816,9 +2821,9 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 {
 	(void)sd; /* unused */
 
-	flip_coord(cache->location, cache->true_location, symm);
-	flip_coord(cache->grab_delta_symmetry, cache->grab_delta, symm);
-	flip_coord(cache->view_normal, cache->true_view_normal, symm);
+	flip_v3_v3(cache->location, cache->true_location, symm);
+	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
+	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
 
 	/* XXX This reduces the length of the grab delta if it approaches the line of symmetry
 	 * XXX However, a different approach appears to be needed */
@@ -3364,7 +3369,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	{
 		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
 		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
 		    !(brush->flag & BRUSH_RAKE))
 		{

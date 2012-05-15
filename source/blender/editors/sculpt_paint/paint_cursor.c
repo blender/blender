@@ -86,7 +86,7 @@ static int same_snap(Snapshot *snap, Brush *brush, ViewContext *vc)
 	         mtex->rot == snap->rot) &&
 
 	        /* make brush smaller shouldn't cause a resample */
-	        ((mtex->brush_map_mode == MTEX_MAP_MODE_FIXED &&
+	        ((mtex->brush_map_mode == MTEX_MAP_MODE_VIEW &&
 	          (BKE_brush_size_get(vc->scene, brush) <= snap->BKE_brush_size_get)) ||
 	         (BKE_brush_size_get(vc->scene, brush) == snap->BKE_brush_size_get)) &&
 
@@ -154,7 +154,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 
 		make_snap(&snap, br, vc);
 
-		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
+		if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			int s = BKE_brush_size_get(vc->scene, br);
 			int r = 1;
 
@@ -239,7 +239,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 
 					avg += br->texture_sample_bias;
 
-					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED)
+					if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW)
 						avg *= BKE_brush_curve_strength(br, len, 1);  /* Falloff curve */
 
 					buffer[index] = 255 - (GLubyte)(255 * avg);
@@ -278,7 +278,7 @@ static int load_tex(Sculpt *sd, Brush *br, ViewContext *vc)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
+	if (br->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	}
@@ -376,7 +376,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 
 	/* check for overlay mode */
 	if (!(brush->flag & BRUSH_TEXTURE_OVERLAY) ||
-	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_FIXED, MTEX_MAP_MODE_TILED)))
+	    !(ELEM(brush->mtex.brush_map_mode, MTEX_MAP_MODE_VIEW, MTEX_MAP_MODE_TILED)))
 	{
 		return;
 	}
@@ -405,7 +405,7 @@ static void paint_draw_alpha_overlay(Sculpt *sd, Brush *brush,
 		glPushMatrix();
 		glLoadIdentity();
 
-		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) {
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) {
 			/* brush rotation */
 			glTranslatef(0.5, 0.5, 0);
 			glRotatef((double)RAD2DEGF((brush->flag & BRUSH_RAKE) ?
