@@ -151,6 +151,7 @@ struct KeyBlock *BKE_object_insert_shape_key(struct Scene *scene, struct Object 
 
 int BKE_object_is_modified(struct Scene *scene, struct Object *ob);
 int BKE_object_is_deform_modified(struct Scene *scene, struct Object *ob);
+int BKE_object_is_animated(struct Scene *scene, struct Object *ob);
 
 void BKE_object_relink(struct Object *ob);
 
