@@ -127,7 +127,7 @@ void ED_render_engine_area_exit(ScrArea *sa)
 	for (ar = sa->regionbase.first; ar; ar = ar->next) {
 		RegionView3D *rv3d;
 
-		if (ar->regiontype != RGN_TYPE_WINDOW)
+		if (ar->regiontype != RGN_TYPE_WINDOW || !(ar->regiondata))
 			continue;
 		
 		rv3d = ar->regiondata;
