@@ -38,11 +38,11 @@
 struct CCGSubSurf;
 
 /* Each CCGElem is CCGSubSurf's representation of a subdivided
-   vertex. All CCGElems in a particular CCGSubSurf have the same
-   layout, but the layout can vary from one CCGSubSurf to another. For
-   this reason, CCGElem is presented as an opaque pointer, and
-   elements should always be accompanied by a CCGKey, which provides
-   the necessary offsets to access components of a CCGElem.
+ * vertex. All CCGElems in a particular CCGSubSurf have the same
+ * layout, but the layout can vary from one CCGSubSurf to another. For
+ * this reason, CCGElem is presented as an opaque pointer, and
+ * elements should always be accompanied by a CCGKey, which provides
+ * the necessary offsets to access components of a CCGElem.
  */
 typedef struct CCGElem CCGElem;
 
@@ -50,7 +50,7 @@ typedef struct CCGKey {
 	int level;
 
 	/* number of bytes in each element (one float per layer, plus
-	   three floats for normals if enabled) */
+	 * three floats for normals if enabled) */
 	int elem_size;
 
 	/* number of elements along each side of grid */
@@ -61,11 +61,11 @@ typedef struct CCGKey {
 	int grid_bytes;
 
 	/* currently always the last three floats, unless normals are
-	   disabled */
+	 * disabled */
 	int normal_offset;
 
 	/* offset in bytes of mask value; only valid if 'has_mask' is
-	   true */
+	 * true */
 	int mask_offset;
 
 	int num_layers;

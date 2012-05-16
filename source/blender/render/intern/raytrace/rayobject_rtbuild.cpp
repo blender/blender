@@ -114,7 +114,7 @@ void rtbuild_add(RTBuilder *b, RayObject *o)
 	if (!finite(bb[3]) || !finite(bb[4]) || !finite(bb[5]))
 		return;
 	/* skip objects with zero bounding box, they are of no use, and
-	* will give problems in rtbuild_heuristic_object_split later */
+	 * will give problems in rtbuild_heuristic_object_split later */
 	if (bb[0] == bb[3] && bb[1] == bb[4] && bb[2] == bb[5])
 		return;
 	

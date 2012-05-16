@@ -130,7 +130,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 	Object *ob;
 
 	/* proxy lib exception, store it here so we can restore layers on file
-	   load, since it would otherwise get lost due to being linked data */
+	 * load, since it would otherwise get lost due to being linked data */
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->data == arm && ob->pose)
 			ob->pose->proxy_layer = arm->layer;

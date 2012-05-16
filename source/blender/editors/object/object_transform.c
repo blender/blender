@@ -361,7 +361,7 @@ void OBJECT_OT_origin_clear(wmOperatorType *ot)
 /*************************** Apply Transformation ****************************/
 
 /* use this when the loc/size/rot of the parent has changed but the children
-* should stay in the same place, e.g. for apply-size-rot or object center */
+ * should stay in the same place, e.g. for apply-size-rot or object center */
 static void ignore_parent_tx(Main *bmain, Scene *scene, Object *ob)
 {
 	Object workob;

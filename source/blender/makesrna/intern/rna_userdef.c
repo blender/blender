@@ -376,7 +376,7 @@ static EnumPropertyItem *rna_userdef_compute_device_itemf(bContext *UNUSED(C), P
 	}
 	else {
 		/* get device list from cycles. it would be good to make this generic
-		   once we have more subsystems using opencl, for now this is easiest */
+		 * once we have more subsystems using opencl, for now this is easiest */
 		int opencl = (U.compute_device_type == USER_COMPUTE_DEVICE_OPENCL);
 		CCLDeviceInfo *devices = CCL_compute_device_list(opencl);
 		int a;

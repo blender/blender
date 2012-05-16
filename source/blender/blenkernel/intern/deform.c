@@ -275,8 +275,8 @@ void defvert_flip_merged(MDeformVert *dvert, const int *flip_map, const int flip
 				dw = &dvert->dw[i]; /* in case array got realloced */
 
 				/* distribute weights: if only one of the vertex groups was
-				* assigned this will halve the weights, otherwise it gets
-				* evened out. this keeps it proportional to other groups */
+				 * assigned this will halve the weights, otherwise it gets
+				 * evened out. this keeps it proportional to other groups */
 				weight = 0.5f * (dw_cpy->weight + dw->weight);
 				dw_cpy->weight = weight;
 				dw->weight = weight;

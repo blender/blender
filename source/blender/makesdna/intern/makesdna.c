@@ -701,7 +701,7 @@ static int arraysize(char *astr, int len)
 		else if (str[a] == ']' && cp) {
 			str[a] = 0;
 			/* if 'cp' is a preprocessor definition, it will evaluate to 0,
-			* the caller needs to check for this case and throw an error */
+			 * the caller needs to check for this case and throw an error */
 			mul *= atoi(cp);
 		}
 	}

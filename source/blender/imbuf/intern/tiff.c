@@ -64,8 +64,8 @@
 
 
 /***********************
-* Local declarations. *
-***********************/
+ * Local declarations. *
+ ***********************/
 /* Reading and writing of an in-memory TIFF file. */
 static tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n);
 static tsize_t imb_tiff_WriteProc(thandle_t handle, tdata_t data, tsize_t n);
@@ -87,8 +87,8 @@ typedef struct ImbTIFFMemFile {
 
 
 /*****************************
-* Function implementations. *
-*****************************/
+ * Function implementations. *
+ *****************************/
 
 
 static void imb_tiff_DummyUnmapProc(thandle_t fd, tdata_t base, toff_t size)

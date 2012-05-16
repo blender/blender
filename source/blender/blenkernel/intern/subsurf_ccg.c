@@ -1045,7 +1045,7 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 }
 
 /* Translate GridPaintMask into vertex paint masks. Assumes vertices
-   are in the order output by ccgDM_copyFinalVertArray. */
+ * are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_paint_mask(DerivedMesh *dm, const MPoly *mpoly,
                                   float *paint_mask,
                                   const GridPaintMask *grid_paint_mask)

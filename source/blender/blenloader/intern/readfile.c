@@ -7425,8 +7425,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *brush;
 
 		/* For weight paint, each brush now gets its own weight;
-		   unified paint settings also have weight. Update unified
-		   paint settings and brushes with a default weight value. */
+		 * unified paint settings also have weight. Update unified
+		 * paint settings and brushes with a default weight value. */
 		
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;

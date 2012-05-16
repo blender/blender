@@ -140,7 +140,7 @@ typedef struct VolumeGrid {
 	int *s_pos; /* (x*y*z) t_index begin id */
 	int *s_num; /* (x*y*z) number of t_index points */
 	int *t_index; /* actual surface point index,
-	                       access: (s_pos+s_num) */
+	               * access: (s_pos+s_num) */
 } VolumeGrid;
 
 typedef struct Vec3f {
@@ -192,7 +192,7 @@ typedef struct PaintUVPoint {
 	unsigned int v1, v2, v3;                /* vertex indexes */
 
 	unsigned int neighbour_pixel;   /* If this pixel isn't uv mapped to any face,
-	                                   but it's neighboring pixel is */
+	                                 * but it's neighboring pixel is */
 	short quad;
 } PaintUVPoint;
 
@@ -205,9 +205,9 @@ typedef struct ImgSeqFormatData {
 #define ADJ_ON_MESH_EDGE (1 << 0)
 
 typedef struct PaintAdjData {
-	int *n_target;      /* array of neighboring point indexes,
-	                               for single sample use (n_index+neigh_num) */
-	int *n_index;       /* index to start reading n_target for each point */
+	int *n_target;  /* array of neighboring point indexes,
+	                 * for single sample use (n_index + neigh_num) */
+	int *n_index;   /* index to start reading n_target for each point */
 	int *n_num;     /* num of neighs for each point */
 	int *flags;     /* vertex adjacency flags */
 	int total_targets; /* size of n_target */
@@ -2540,8 +2540,8 @@ int dynamicPaint_createUVSurface(DynamicPaintSurface *surface)
 
 #if 0
 		/*  -----------------------------------------------------------------
-		*	For debug, output pixel statuses to the color map
-		*	-----------------------------------------------------------------*/
+		 *	For debug, output pixel statuses to the color map
+		 *	-----------------------------------------------------------------*/
 		#pragma omp parallel for schedule(static)
 		for (index = 0; index < sData->total_points; index++)
 		{
@@ -3293,7 +3293,7 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 										int f_index = hit.index;
 
 										/* Also cast a ray in opposite direction to make sure
-										*  point is at least surrounded by two brush faces */
+										 * point is at least surrounded by two brush faces */
 										negate_v3(ray_dir);
 										hit.index = -1;
 										hit.dist = 9999;
