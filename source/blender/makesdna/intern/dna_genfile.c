@@ -496,7 +496,7 @@ static void init_structDNA(SDNA *sdna, int do_endian_swap)
 
 #ifdef WITH_DNA_GHASH
 		/* create a ghash lookup to speed up */
-		sdna->structs_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "init_structDNA gh");
+		sdna->structs_map = BLI_ghash_str_new("init_structDNA gh");
 
 		for (nr = 0; nr < sdna->nr_structs; nr++) {
 			sp = sdna->structs[nr];

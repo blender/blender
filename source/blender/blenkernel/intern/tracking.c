@@ -768,7 +768,7 @@ static TracksMap *tracks_map_new(const char *object_name, int is_camera, int num
 	if (customdata_size)
 		map->customdata = MEM_callocN(customdata_size*num_tracks, "TracksMap customdata");
 
-	map->hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "TracksMap hash");
+	map->hash = BLI_ghash_ptr_new("TracksMap hash");
 
 	return map;
 }

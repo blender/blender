@@ -154,9 +154,7 @@ static GHash *hull_triangles_v_outside(GHash *hull_triangles, const BMVert *v)
 	GHash *outside;
 	GHashIterator iter;
 
-	outside = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                        BLI_ghashutil_ptrcmp,
-	                        "outside");
+	outside = BLI_ghash_ptr_new("outside");
 
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
@@ -298,9 +296,7 @@ static HullFinalEdges *hull_final_edges(GHash *hull_triangles)
 	GHashIterator iter;
 	
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
-	final_edges->edges = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                                   BLI_ghashutil_ptrcmp,
-	                                   "final edges ghash");
+	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
 	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, 0);
 	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, 0);
 
@@ -683,9 +679,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
 	edge_pool = BLI_mempool_create(sizeof(HullBoundaryEdge), 128, 128, 0);
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
-	hull_triangles = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                               BLI_ghashutil_ptrcmp,
-	                               "hull_triangles");
+	hull_triangles = BLI_ghash_ptr_new("hull_triangles");
 
 	/* Add tetrahedron triangles */
 	hull_add_tetrahedron(bm, hull_triangles, hull_pool, tetra);

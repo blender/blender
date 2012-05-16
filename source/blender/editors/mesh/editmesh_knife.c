@@ -2829,9 +2829,9 @@ static int knifetool_init(bContext *C, wmOperator *op, int UNUSED(do_cut))
 	kcd->kverts = BLI_mempool_create(sizeof(KnifeVert), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
 	kcd->kedges = BLI_mempool_create(sizeof(KnifeEdge), 1, 512, BLI_MEMPOOL_ALLOW_ITER);
 
-	kcd->origedgemap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origedgemap");
-	kcd->origvertmap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origvertmap");
-	kcd->kedgefacemap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife origvertmap");
+	kcd->origedgemap = BLI_ghash_ptr_new("knife origedgemap");
+	kcd->origvertmap = BLI_ghash_ptr_new("knife origvertmap");
+	kcd->kedgefacemap = BLI_ghash_ptr_new("knife origvertmap");
 
 	/* cut all the way through the mesh if use_occlude_geometry button not pushed */
 	kcd->cut_through = !RNA_boolean_get(op->ptr, "use_occlude_geometry");

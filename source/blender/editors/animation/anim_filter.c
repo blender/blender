@@ -2223,7 +2223,7 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 	/* build new hashtable to efficiently store and retrieve which entries have been 
 	 * encountered already while searching
 	 */
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "animdata_filter_duplis_remove gh");
+	gh = BLI_ghash_ptr_new("animdata_filter_duplis_remove gh");
 	
 	/* loop through items, removing them from the list if a similar item occurs already */
 	for (ale = anim_data->first; ale; ale = next) {
