@@ -3669,7 +3669,7 @@ static void sb_new_scratch(SoftBody *sb)
 {
 	if (!sb) return;
 	sb->scratch = MEM_callocN(sizeof(SBScratch), "SBScratch");
-	sb->scratch->colliderhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "sb_new_scratch gh");
+	sb->scratch->colliderhash = BLI_ghash_ptr_new("sb_new_scratch gh");
 	sb->scratch->bodyface = NULL;
 	sb->scratch->totface = 0;
 	sb->scratch->aabbmax[0]=sb->scratch->aabbmax[1]=sb->scratch->aabbmax[2] = 1.0e30f;

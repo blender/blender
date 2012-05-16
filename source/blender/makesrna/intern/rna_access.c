@@ -74,7 +74,7 @@ void RNA_init(void)
 
 	for (srna = BLENDER_RNA.structs.first; srna; srna = srna->cont.next) {
 		if (!srna->cont.prophash) {
-			srna->cont.prophash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "RNA_init gh");
+			srna->cont.prophash = BLI_ghash_str_new("RNA_init gh");
 
 			for (prop = srna->cont.properties.first; prop; prop = prop->next)
 				if (!(prop->flag & PROP_BUILTIN))

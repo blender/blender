@@ -176,13 +176,13 @@ static GHash *id_weakref_pool_get(ID *id)
 	}
 	else {
 		/* first time, allocate pool */
-		id_weakref_pool = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "rna_global_pool");
+		id_weakref_pool = BLI_ghash_ptr_new("rna_global_pool");
 		weakinfo_hash = NULL;
 	}
 
 	if (weakinfo_hash == NULL) {
 		/* we're using a ghash as a set, could use libHX's HXMAP_SINGULAR but would be an extra dep. */
-		weakinfo_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "rna_id");
+		weakinfo_hash = BLI_ghash_ptr_new("rna_id");
 		BLI_ghash_insert(id_weakref_pool, (void *)id, weakinfo_hash);
 	}
 

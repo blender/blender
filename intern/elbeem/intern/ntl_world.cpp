@@ -496,9 +496,6 @@ void ntlWorld::singleStepSims(double targetTime) {
 
 
 
-extern bool glob_mpactive;
-extern int glob_mpindex;
-
 /******************************************************************************
  * Render the current scene
  * uses the global variables from the parser

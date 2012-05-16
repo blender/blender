@@ -274,7 +274,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 		}
 
 		if (!dest_slot->data.ghash) {
-			dest_slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh operator 2");
+			dest_slot->data.ghash = BLI_ghash_ptr_new("bmesh operator 2");
 		}
 
 		BLI_ghashIterator_init(&it, source_slot->data.ghash);
@@ -556,7 +556,7 @@ void BMO_slot_map_insert(BMesh *UNUSED(bm), BMOperator *op, const char *slotname
 	memcpy(mapping + 1, data, len);
 
 	if (!slot->data.ghash) {
-		slot->data.ghash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh slot map hash");
+		slot->data.ghash = BLI_ghash_ptr_new("bmesh slot map hash");
 	}
 
 	BLI_ghash_insert(slot->data.ghash, element, mapping);

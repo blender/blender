@@ -5945,7 +5945,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	ED_armature_to_edit(obedit);
 
-	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "SkeletonFromReebGraph gh");
+	arcBoneMap = BLI_ghash_ptr_new("SkeletonFromReebGraph gh");
 	
 	BLI_markdownSymmetry((BGraph *)rg, rg->nodes.first, scene->toolsettings->skgen_symmetry_limit);
 	

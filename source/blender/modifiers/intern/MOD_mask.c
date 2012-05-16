@@ -167,7 +167,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		 * - vgroups to indices -> vgroupHash  (string, int)
 		 * - bones to vgroup indices -> boneHash (index of vgroup, dummy)
 		 */
-		vgroupHash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "mask vgroup gh");
+		vgroupHash = BLI_ghash_str_new("mask vgroup gh");
 		
 		/* build mapping of names of vertex groups to indices */
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
@@ -191,7 +191,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-		vertHash = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert gh");
+		vertHash = BLI_ghash_int_new("mask vert gh");
 		
 		/* add vertices which exist in vertexgroups into vertHash for filtering */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
@@ -239,7 +239,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			return dm;
 			
 		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-		vertHash = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask vert2 bh");
+		vertHash = BLI_ghash_int_new("mask vert2 bh");
 		
 		/* add vertices which exist in vertexgroup into ghash for filtering */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
@@ -262,8 +262,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
-	edgeHash = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask ed2 gh");
-	polyHash = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "mask fa2 gh");
+	edgeHash = BLI_ghash_int_new("mask ed2 gh");
+	polyHash = BLI_ghash_int_new("mask fa2 gh");
 	
 	mpoly = dm->getPolyArray(dm);
 	mloop = dm->getLoopArray(dm);

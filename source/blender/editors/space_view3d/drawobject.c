@@ -3603,19 +3603,21 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	/* GPU_begin_object_materials checked if this is needed */
-	if (do_alpha_after) {
-		if (ob->dtx & OB_DRAWXRAY) {
-			add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
+	if ((flag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0) {
+		/* GPU_begin_object_materials checked if this is needed */
+		if (do_alpha_after) {
+			if (ob->dtx & OB_DRAWXRAY) {
+				add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
+			}
+			else {
+				add_view3d_after(&v3d->afterdraw_transp, base, flag);
+			}
 		}
-		else {
-			add_view3d_after(&v3d->afterdraw_transp, base, flag);
-		}
-	}
-	else if (ob->dtx & OB_DRAWXRAY && ob->dtx & OB_DRAWTRANSP) {
-		/* special case xray+transp when alpha is 1.0, without this the object vanishes */
-		if (v3d->xray == 0 && v3d->transp == 0) {
-			add_view3d_after(&v3d->afterdraw_xray, base, flag);
+		else if (ob->dtx & OB_DRAWXRAY && ob->dtx & OB_DRAWTRANSP) {
+			/* special case xray+transp when alpha is 1.0, without this the object vanishes */
+			if (v3d->xray == 0 && v3d->transp == 0) {
+				add_view3d_after(&v3d->afterdraw_xray, base, flag);
+			}
 		}
 	}
 	

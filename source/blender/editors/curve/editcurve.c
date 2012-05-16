@@ -311,7 +311,7 @@ static void init_editNurb_keyIndex(EditNurb *editnurb, ListBase *origBase)
 
 	if (editnurb->keyindex) return;
 
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "editNurb keyIndex");
+	gh = BLI_ghash_ptr_new("editNurb keyIndex");
 
 	while (orignu) {
 		if (orignu->bezt) {
@@ -667,7 +667,7 @@ static GHash *dupli_keyIndexHash(GHash *keyindex)
 	GHash *gh;
 	GHashIterator *hashIter;
 
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "dupli_keyIndex gh");
+	gh = BLI_ghash_ptr_new("dupli_keyIndex gh");
 
 	for (hashIter = BLI_ghashIterator_new(keyindex);
 	     !BLI_ghashIterator_isDone(hashIter);

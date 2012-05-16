@@ -419,6 +419,61 @@ static int do_step_cloth(Object *ob, ClothModifierData *clmd, DerivedMesh *resul
 	return ret;
 }
 
+#if 0
+static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
+{
+	DerivedMesh *result = NULL;
+	unsigned int i = 0, j = 0;
+	unsigned int quads = 0, numfaces = dm->getNumTessFaces(dm);
+	MFace *mface = dm->getTessFaceArray(dm);
+	MFace *mface2 = NULL;
+
+	/* calc faces */
+	for(i = 0; i < numfaces; i++)
+	{
+		if(mface[i].v4)
+			quads++;
+	}
+		
+	result = CDDM_from_template(dm, dm->getNumVerts(dm), 0, numfaces + quads, 0, 0);
+
+	DM_copy_vert_data(dm, result, 0, 0, dm->getNumVerts(dm));
+	DM_copy_tessface_data(dm, result, 0, 0, numfaces);
+
+	DM_ensure_tessface(result);
+	mface2 = result->getTessFaceArray(result);
+
+	for(i = 0, j = numfaces; i < numfaces; i++)
+	{
+		// DG TODO: is this necessary?
+		mface2[i].v1 = mface[i].v1;
+		mface2[i].v2 = mface[i].v2;
+		mface2[i].v3 = mface[i].v3;
+
+		mface2[i].v4 = 0;
+		//test_index_face(&mface2[i], &result->faceData, i, 3);
+
+		if(mface[i].v4)
+		{
+			DM_copy_tessface_data(dm, result, i, j, 1);
+
+			mface2[j].v1 = mface[i].v1;
+			mface2[j].v2 = mface[i].v3;
+			mface2[j].v3 = mface[i].v4;
+			mface2[j].v4 = 0;
+			//test_index_face(&mface2[j], &result->faceData, j, 3);
+
+			j++;
+		}
+	}
+
+	CDDM_calc_edges_tessface(result);
+	CDDM_tessfaces_to_faces(result); /* builds ngon faces from tess (mface) faces */
+
+	return result;
+}
+#endif
+
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/

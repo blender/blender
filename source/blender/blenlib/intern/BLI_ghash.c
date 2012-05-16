@@ -305,6 +305,23 @@ int BLI_ghashutil_strcmp(const void *a, const void *b)
 	return strcmp(a, b);
 }
 
+GHash *BLI_ghash_ptr_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info);
+}
+GHash *BLI_ghash_str_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, info);
+}
+GHash *BLI_ghash_int_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, info);
+}
+GHash *BLI_ghash_pair_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info);
+}
+
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
 	GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");

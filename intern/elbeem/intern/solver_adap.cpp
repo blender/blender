@@ -928,9 +928,6 @@ void LbmFsgrSolver::interpolateCellFromCoarse(int lev, int i, int j,int k, int d
 
 
 
-// required globals
-extern bool glob_mpactive;
-extern int glob_mpnum, glob_mpindex;
 #define MPTADAP_INTERV 4
 
 /*****************************************************************************/

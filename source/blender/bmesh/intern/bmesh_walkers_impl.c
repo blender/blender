@@ -482,7 +482,7 @@ static void bmw_LoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->lastv = lwalk->startv = BM_edge_other_vert(owalk.cur, lwalk->lastv);
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 2");
+	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 2");
 	BLI_ghash_insert(walker->visithash, owalk.cur, NULL);
 }
 
@@ -707,11 +707,11 @@ static void bmw_FaceLoopWalker_begin(BMWalker *walker, void *data)
 	lwalk->nocalc = 0;
 
 	BLI_ghash_free(walker->secvisithash, NULL, NULL);
-	walker->secvisithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 3");
+	walker->secvisithash = BLI_ghash_ptr_new("bmesh walkers 3");
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 3");
+	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 3");
 	BLI_ghash_insert(walker->visithash, lwalk->l->f, NULL);
 }
 
@@ -814,7 +814,7 @@ static void bmw_EdgeringWalker_begin(BMWalker *walker, void *data)
 	}
 
 	BLI_ghash_free(walker->visithash, NULL, NULL);
-	walker->visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh walkers 4");
+	walker->visithash = BLI_ghash_ptr_new("bmesh walkers 4");
 	BLI_ghash_insert(walker->visithash, lwalk->l->e, NULL);
 }
 

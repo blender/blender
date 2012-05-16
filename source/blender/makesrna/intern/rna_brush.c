@@ -142,6 +142,14 @@ static int rna_SculptCapabilities_has_normal_weight_get(PointerRNA *ptr)
 	return ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
 }
 
+static int rna_SculptCapabilities_has_overlay_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM(br->mtex.brush_map_mode,
+				MTEX_MAP_MODE_VIEW,
+				MTEX_MAP_MODE_TILED);
+}
+
 static int rna_SculptCapabilities_has_persistence_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
@@ -164,7 +172,9 @@ static int rna_SculptCapabilities_has_plane_offset_get(PointerRNA *ptr)
 static int rna_SculptCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
-	return ((br->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
+	return (ELEM(br->mtex.brush_map_mode,
+				 MTEX_MAP_MODE_VIEW,
+				 MTEX_MAP_MODE_AREA) &&
 	        !(br->flag & BRUSH_ANCHORED) &&
 	        !ELEM4(br->sculpt_tool,
 	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
@@ -220,6 +230,23 @@ static int rna_SculptCapabilities_has_strength_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return !ELEM(br->sculpt_tool, SCULPT_TOOL_GRAB, SCULPT_TOOL_SNAKE_HOOK);
+}
+
+static int rna_SculptCapabilities_has_texture_angle_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM3(br->mtex.brush_map_mode,
+				 MTEX_MAP_MODE_VIEW,
+				 MTEX_MAP_MODE_AREA,
+				 MTEX_MAP_MODE_TILED);
+}
+
+static int rna_SculptCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
+{
+	Brush *br = (Brush *)ptr->data;
+	return ELEM(br->mtex.brush_map_mode,
+				MTEX_MAP_MODE_VIEW,
+				MTEX_MAP_MODE_AREA);
 }
 
 static PointerRNA rna_Brush_sculpt_capabilities_get(PointerRNA *ptr)
@@ -393,7 +420,8 @@ static void rna_def_brush_texture_slot(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_map_mode_items[] = {
-		{MTEX_MAP_MODE_FIXED, "FIXED", 0, "Fixed", ""},
+		{MTEX_MAP_MODE_VIEW, "VIEW_PLANE", 0, "View Plane", ""},
+		{MTEX_MAP_MODE_AREA, "AREA_PLANE", 0, "Area Plane", ""},
 		{MTEX_MAP_MODE_TILED, "TILED", 0, "Tiled", ""},
 		{MTEX_MAP_MODE_3D, "3D", 0, "3D", ""},
 		{0, NULL, 0, NULL, NULL}
@@ -441,6 +469,7 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	BRUSH_CAPABILITY(has_height, "Has Height");
 	BRUSH_CAPABILITY(has_jitter, "Has Jitter");
 	BRUSH_CAPABILITY(has_normal_weight, "Has Crease/Pinch Factor");
+	BRUSH_CAPABILITY(has_overlay, "Has Overlay");
 	BRUSH_CAPABILITY(has_persistence, "Has Persistence");
 	BRUSH_CAPABILITY(has_pinch_factor, "Has Pinch Factor");
 	BRUSH_CAPABILITY(has_plane_offset, "Has Plane Offset");
@@ -451,6 +480,8 @@ static void rna_def_sculpt_capabilities(BlenderRNA *brna)
 	BRUSH_CAPABILITY(has_space_attenuation, "Has Space Attenuation");
 	BRUSH_CAPABILITY(has_spacing, "Has Spacing");
 	BRUSH_CAPABILITY(has_strength, "Has Strength");
+	BRUSH_CAPABILITY(has_texture_angle, "Has Texture Angle");
+	BRUSH_CAPABILITY(has_texture_angle_source, "Has Texture Angle Source");
 
 #undef SCULPT_CAPABILITY
 }

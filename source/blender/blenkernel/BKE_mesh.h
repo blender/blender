@@ -266,8 +266,8 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
                           const struct MPoly *mface, const struct MLoop *mloop,
                           int totvert, int totface, int totloop);
 	
-void create_vert_edge_map(struct ListBase **map, IndexNode **mem, const struct MEdge *medge,
-                          const int totvert, const int totedge);
+void create_vert_edge_map(MeshElemMap **map, int **mem,
+						  const struct MEdge *medge, int totvert, int totedge);
 
 /* vertex level transformations & checks (no derived mesh) */
 

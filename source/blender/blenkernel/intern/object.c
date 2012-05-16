@@ -3020,6 +3020,19 @@ int BKE_object_is_deform_modified(Scene *scene, Object *ob)
 	return flag;
 }
 
+/* See if an object is using an animated modifier */
+int BKE_object_is_animated(Scene *scene, Object *ob)
+{
+	ModifierData *md;
+
+	for (md = modifiers_getVirtualModifierList(ob); md; md = md->next)
+		if(modifier_dependsOnTime(md) && 
+			(modifier_isEnabled(scene, md, eModifierMode_Realtime) || 
+			modifier_isEnabled(scene, md, eModifierMode_Render)))
+			return 1;
+	return 0;
+}
+
 static void copy_object__forwardModifierLinks(void *UNUSED(userData), Object *UNUSED(ob), ID **idpoin)
 {
 	/* this is copied from ID_NEW; it might be better to have a macro */

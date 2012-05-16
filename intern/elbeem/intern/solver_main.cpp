@@ -14,6 +14,8 @@
 #include "solver_relax.h"
 #include "particletracer.h"
 #include "loop_tools.h"
+#include "globals.h"
+
 #include <stdlib.h>
 
 /*****************************************************************************/
@@ -24,8 +26,6 @@ double globdfcnt;
 double globdfavg[19];
 double globdfmax[19];
 double globdfmin[19];
-extern int glob_mpindex,glob_mpnum;
-extern bool globOutstrForce;
 
 // simulation object interface
 void LbmFsgrSolver::step() { 

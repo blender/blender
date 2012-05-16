@@ -354,7 +354,7 @@ static ReebArc *copyArc(ReebGraph *rg, ReebArc *arc)
 	memcpy(cp_arc->buckets, arc->buckets, sizeof(EmbedBucket) * cp_arc->bcount);
 	
 	/* copy faces map */
-	cp_arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "copyArc gh");
+	cp_arc->faces = BLI_ghash_ptr_new("copyArc gh");
 	mergeArcFaces(rg, cp_arc, arc);
 	
 	/* find corresponding head and tail */
@@ -2295,7 +2295,7 @@ static ReebEdge *createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		
 		arc->flag = 0; // clear flag on init
 		arc->symmetry_level = 0;
-		arc->faces = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createArc gh");
+		arc->faces = BLI_ghash_ptr_new("createArc gh");
 		
 		if (node1->weight <= node2->weight) {
 			v1 = node1;	

@@ -90,13 +90,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *UNUSED(ob),
 	MLoop *ml_dst, *ml_src /*, *mloop_dst */;
 	GHashIterator *hashIter;
 	/* maps vert indices in old mesh to indices in new mesh */
-	GHash *vertHash = BLI_ghash_new(BLI_ghashutil_inthash,
-	                                BLI_ghashutil_intcmp, "build ve apply gh");
+	GHash *vertHash = BLI_ghash_int_new("build ve apply gh");
 	/* maps edge indices in new mesh to indices in old mesh */
-	GHash *edgeHash = BLI_ghash_new(BLI_ghashutil_inthash,
-	                                BLI_ghashutil_intcmp, "build ed apply gh");
-	GHash *edgeHash2 = BLI_ghash_new(BLI_ghashutil_inthash,
-	                                 BLI_ghashutil_intcmp, "build ed apply gh");
+	GHash *edgeHash = BLI_ghash_int_new("build ed apply gh");
+	GHash *edgeHash2 = BLI_ghash_int_new("build ed apply gh");
 
 	const int numVert_src = dm->getNumVerts(dm);
 	const int numEdge_src = dm->getNumEdges(dm);

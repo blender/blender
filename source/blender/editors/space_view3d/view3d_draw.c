@@ -1715,6 +1715,7 @@ typedef struct View3DAfter {
 void add_view3d_after(ListBase *lb, Base *base, int flag)
 {
 	View3DAfter *v3da = MEM_callocN(sizeof(View3DAfter), "View 3d after");
+	BLI_assert((base->flag & OB_FROMDUPLI) == 0);
 	BLI_addtail(lb, v3da);
 	v3da->base = base;
 	v3da->flag = flag;

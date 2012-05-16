@@ -173,6 +173,7 @@ void sound_force_device(int device)
 void sound_init_once(void)
 {
 	AUD_initOnce();
+	atexit(sound_exit);
 }
 
 void sound_init(struct Main *bmain)

@@ -19,6 +19,7 @@
 #include "ntl_matrices.h"
 #include "ntl_ray.h"
 #include "ntl_matrices.h"
+#include "globals.h"
 
 #include <zlib.h>
 
@@ -155,9 +156,6 @@ void ParticleTracer::cleanup() {
 	}
 }
 		
-extern bool glob_mpactive;
-extern int glob_mpindex,glob_mpnum;
-
 /******************************************************************************
  *! dump particles if desired 
  *****************************************************************************/

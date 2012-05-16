@@ -316,18 +316,33 @@ static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *f
 	return se;
 }
 
-static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports)
+static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
+	int i;
 	Scene *scene = (Scene *)id;
+	StripElem *new_seq, *se;
 
 	if (seq->len == 1) {
 		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: can not pop the last element");
 		return;
 	}
 
-	/* just chop off the end ...what could possibly go wrong? */
-	seq->strip->stripdata = MEM_reallocN(seq->strip->stripdata, sizeof(StripElem) * (seq->len - 1));
+	if (seq->len <= index) {
+		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: index out of range");
+		return;
+	}
+
+	new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
 	seq->len--;
+
+	for (i = 0, se = seq->strip->stripdata; i < seq->len; i++, se++) {
+		if (i == index)
+			se++;
+		BLI_strncpy(new_seq[i].name, se->name, sizeof(se->name));
+	}
+
+	MEM_freeN(seq->strip->stripdata);
+	seq->strip->stripdata = new_seq;
 
 	calc_sequence_disp(scene, seq);
 
@@ -379,6 +394,8 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "pop", "rna_SequenceElements_pop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Pop an image off the collection");
+	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of image to remove", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)

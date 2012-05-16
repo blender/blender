@@ -67,3 +67,37 @@ class UnifiedPaintPanel():
         ups = context.tool_settings.unified_paint_settings
         ptr = ups if ups.use_unified_weight else brush
         parent.prop(ptr, prop_name, icon=icon, text=text, slider=slider)
+
+
+# Used in both the View3D toolbar and texture properties
+def sculpt_brush_texture_settings(layout, brush):
+    tex_slot = brush.texture_slot
+
+    layout.label(text="Brush Mapping:")
+
+    # map_mode
+    layout.row().prop(tex_slot, "map_mode", text="")
+    layout.separator()
+
+    # angle and texture_angle_source
+    col = layout.column()
+    col.active = brush.sculpt_capabilities.has_texture_angle_source
+    col.label(text="Angle:")
+    if brush.sculpt_capabilities.has_random_texture_angle:
+        col.prop(brush, "texture_angle_source_random", text="")
+    else:
+        col.prop(brush, "texture_angle_source_no_random", text="")
+
+    col = layout.column()
+    col.active = brush.sculpt_capabilities.has_texture_angle
+    col.prop(tex_slot, "angle", text="")
+
+    # scale and offset
+    split = layout.split()
+    split.prop(tex_slot, "offset")
+    split.prop(tex_slot, "scale")
+
+    # texture_sample_bias
+    col = layout.column(align=True)
+    col.label(text="Sample Bias:")
+    col.prop(brush, "texture_sample_bias", slider=True, text="")

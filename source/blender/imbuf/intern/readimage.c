@@ -60,9 +60,9 @@ ImBuf *IMB_ibImageFromMemory(unsigned char *mem, size_t size, int flags, const c
 		return NULL;
 	}
 
-	for (type=IMB_FILE_TYPES; type->is_a; type++) {
+	for (type = IMB_FILE_TYPES; type->is_a; type++) {
 		if (type->load) {
-			ibuf= type->load(mem, size, flags);
+			ibuf = type->load(mem, size, flags);
 			if (ibuf) {
 				if (flags & IB_premul) {
 					IMB_premultiply_alpha(ibuf);
@@ -87,15 +87,15 @@ ImBuf *IMB_loadifffile(int file, int flags, const char *descr)
 
 	if (file == -1) return NULL;
 
-	size= BLI_file_descriptor_size(file);
+	size = BLI_file_descriptor_size(file);
 
-	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
-	if (mem==(unsigned char*)-1) {
+	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+	if (mem == (unsigned char *)-1) {
 		fprintf(stderr, "%s: couldn't get mapping %s\n", __func__, descr);
 		return NULL;
 	}
 
-	ibuf= IMB_ibImageFromMemory(mem, size, flags, descr);
+	ibuf = IMB_ibImageFromMemory(mem, size, flags, descr);
 
 	if (munmap(mem, size))
 		fprintf(stderr, "%s: couldn't unmap file %s\n", __func__, descr);
@@ -126,16 +126,16 @@ ImBuf *IMB_loadiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = BLI_open(filepath_tx, O_BINARY|O_RDONLY, 0);
+	file = BLI_open(filepath_tx, O_BINARY | O_RDONLY, 0);
 	if (file < 0) return NULL;
 
-	ibuf= IMB_loadifffile(file, flags, filepath_tx);
+	ibuf = IMB_loadifffile(file, flags, filepath_tx);
 
 	if (ibuf) {
 		BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
 		BLI_strncpy(ibuf->cachename, filepath_tx, sizeof(ibuf->cachename));
-		for (a=1; a<ibuf->miptot; a++)
-			BLI_strncpy(ibuf->mipmap[a-1]->cachename, filepath_tx, sizeof(ibuf->cachename));
+		for (a = 1; a < ibuf->miptot; a++)
+			BLI_strncpy(ibuf->mipmap[a - 1]->cachename, filepath_tx, sizeof(ibuf->cachename));
 		if (flags & IB_fields) IMB_de_interlace(ibuf);
 	}
 
@@ -152,10 +152,10 @@ ImBuf *IMB_testiffname(const char *filepath, int flags)
 
 	imb_cache_filename(filepath_tx, filepath, flags);
 
-	file = BLI_open(filepath_tx, O_BINARY|O_RDONLY, 0);
+	file = BLI_open(filepath_tx, O_BINARY | O_RDONLY, 0);
 	if (file < 0) return NULL;
 
-	ibuf=IMB_loadifffile(file, flags|IB_test|IB_multilayer, filepath_tx);
+	ibuf = IMB_loadifffile(file, flags | IB_test | IB_multilayer, filepath_tx);
 
 	if (ibuf) {
 		BLI_strncpy(ibuf->name, filepath, sizeof(ibuf->name));
@@ -175,15 +175,15 @@ static void imb_loadtilefile(ImBuf *ibuf, int file, int tx, int ty, unsigned int
 
 	if (file == -1) return;
 
-	size= BLI_file_descriptor_size(file);
+	size = BLI_file_descriptor_size(file);
 
-	mem= mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
-	if (mem==(unsigned char*)-1) {
+	mem = mmap(NULL, size, PROT_READ, MAP_SHARED, file, 0);
+	if (mem == (unsigned char *)-1) {
 		fprintf(stderr, "Couldn't get memory mapping for %s\n", ibuf->cachename);
 		return;
 	}
 
-	for (type=IMB_FILE_TYPES; type->is_a; type++)
+	for (type = IMB_FILE_TYPES; type->is_a; type++)
 		if (type->load_tile && type->ftype(type, ibuf))
 			type->load_tile(ibuf, mem, size, tx, ty, rect);
 
@@ -195,7 +195,7 @@ void imb_loadtile(ImBuf *ibuf, int tx, int ty, unsigned int *rect)
 {
 	int file;
 
-	file = BLI_open(ibuf->cachename, O_BINARY|O_RDONLY, 0);
+	file = BLI_open(ibuf->cachename, O_BINARY | O_RDONLY, 0);
 	if (file < 0) return;
 
 	imb_loadtilefile(ibuf, file, tx, ty, rect);

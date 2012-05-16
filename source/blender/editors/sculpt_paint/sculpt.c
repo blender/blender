@@ -247,7 +247,17 @@ typedef struct StrokeCache {
 	int mirror_symmetry_pass; /* the symmetry pass we are currently on between 0 and 7*/
 	float true_view_normal[3];
 	float view_normal[3];
-	float last_area_normal[3];
+
+	/* sculpt_normal gets calculated by calc_sculpt_normal(), then the
+	   sculpt_normal_symm gets updated quickly with the usual symmetry
+	   transforms */
+	float sculpt_normal[3];
+	float sculpt_normal_symm[3];
+
+	/* Used for wrap texture mode, local_mat gets calculated by
+	   calc_brush_local_mat() and used in tex_strength(). */
+	float brush_local_mat[4][4];
+	
 	float last_center[3];
 	int radial_symmetry_pass;
 	float symm_rot_mat[4][4];
@@ -537,7 +547,7 @@ static float integrate_overlap(Brush *br)
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */
-static void flip_coord(float out[3], float in[3], const char symm)
+static void flip_v3_v3(float out[3], const float in[3], const char symm)
 {
 	if (symm & SCULPT_SYMM_X)
 		out[0] = -in[0];
@@ -553,13 +563,18 @@ static void flip_coord(float out[3], float in[3], const char symm)
 		out[2] = in[2];
 }
 
+static void flip_v3(float v[3], const char symm)
+{
+	flip_v3_v3(v, v, symm);
+}
+
 static float calc_overlap(StrokeCache *cache, const char symm, const char axis, const float angle)
 {
 	float mirror[3];
 	float distsq;
 	
-	/* flip_coord(mirror, cache->traced_location, symm); */
-	flip_coord(mirror, cache->true_location, symm);
+	/* flip_v3_v3(mirror, cache->traced_location, symm); */
+	flip_v3_v3(mirror, cache->true_location, symm);
 
 	if (axis != 0) {
 		float mat[4][4] = MAT4_UNITY;
@@ -745,15 +760,16 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		 * position in order to project it. This insures that the 
 		 * brush texture will be oriented correctly. */
 
-		flip_coord(symm_point, point, ss->cache->mirror_symmetry_pass);
+		flip_v3_v3(symm_point, point, ss->cache->mirror_symmetry_pass);
 
 		if (ss->cache->radial_symmetry_pass)
 			mul_m4_v3(ss->cache->symm_rot_mat_inv, symm_point);
 
 		ED_view3d_project_float_v2(ss->cache->vc->ar, symm_point, point_2d, ss->cache->projection_mat);
 
-		/* if fixed mode, keep coordinates relative to mouse */
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_FIXED) {
+		if (mtex->brush_map_mode == MTEX_MAP_MODE_VIEW) {
+			/* keep coordinates relative to mouse */
+
 			rotation += ss->cache->special_rotation;
 
 			point_2d[0] -= ss->cache->tex_mouse[0];
@@ -765,8 +781,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			x = point_2d[0] + ss->cache->vc->ar->winrct.xmin;
 			y = point_2d[1] + ss->cache->vc->ar->winrct.ymin;
 		}
-		else { /* else (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) */
-			   /* leave the coordinates relative to the screen */
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+			/* leave the coordinates relative to the screen */
 
 			/* use unadjusted size for tiled mode */
 			radius = BKE_brush_size_get(ss->cache->vc->scene, br);
@@ -774,17 +790,31 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 			x = point_2d[0];
 			y = point_2d[1];
 		}
+		else if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
+			/* Similar to fixed mode, but projects from brush angle
+			   rather than view direction */
 
-		x /= ss->cache->vc->ar->winx;
-		y /= ss->cache->vc->ar->winy;
+			/* Rotation is handled by the brush_local_mat */
+			rotation = 0;
 
-		if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
-			x -= 0.5f;
-			y -= 0.5f;
+			mul_m4_v3(ss->cache->brush_local_mat, symm_point);
+
+			x = symm_point[0];
+			y = symm_point[1];
 		}
+
+		if (mtex->brush_map_mode != MTEX_MAP_MODE_AREA) {
+			x /= ss->cache->vc->ar->winx;
+			y /= ss->cache->vc->ar->winy;
+
+			if (mtex->brush_map_mode == MTEX_MAP_MODE_TILED) {
+				x -= 0.5f;
+				y -= 0.5f;
+			}
 		
-		x *= ss->cache->vc->ar->winx / radius;
-		y *= ss->cache->vc->ar->winy / radius;
+			x *= ss->cache->vc->ar->winx / radius;
+			y *= ss->cache->vc->ar->winy / radius;
+		}
 
 		/* it is probably worth optimizing for those cases where 
 		 * the texture is not rotated by skipping the calls to
@@ -882,9 +912,13 @@ static void add_norm_if(float view_vec[3], float out[3], float out_flip[3], floa
 static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
-	int n;
-
 	float out_flip[3] = {0.0f, 0.0f, 0.0f};
+	int n, original;
+
+	/* Grab brush requires to test on original data (see r33888 and
+	   bug #25371) */
+	original = (paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
+				TRUE : ss->cache->original);
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -901,7 +935,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 		unode = sculpt_undo_push_node(ob, nodes[n], SCULPT_UNDO_COORDS);
 		sculpt_brush_test_init(ss, &test);
 
-		if (ss->cache->original) {
+		if (original) {
 			BLI_pbvh_vertex_iter_begin(ss->pbvh, nodes[n], vd, PBVH_ITER_UNIQUE)
 			{
 				if (sculpt_brush_test_fast(&test, unode->co[vd.i])) {
@@ -944,54 +978,159 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 	normalize_v3(an);
 }
 
-/* This initializes the faces to be moved for this sculpt for draw/layer/flatten; then it
- * finds average normal for all active vertices - note that this is called once for each mirroring direction */
-static void calc_sculpt_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nodes, int totnode)
+/* Calculate primary direction of movement for many brushes */
+static void calc_sculpt_normal(Sculpt *sd, Object *ob,
+							   PBVHNode **nodes, int totnode,
+							   float an[3])
 {
-	SculptSession *ss = ob->sculpt;
-	Brush *brush = paint_brush(&sd->paint);
+	const Brush *brush = paint_brush(&sd->paint);
+	const SculptSession *ss = ob->sculpt;
 
-	if (ss->cache->mirror_symmetry_pass == 0 &&
-	    ss->cache->radial_symmetry_pass == 0 &&
-	    (ss->cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
+	switch (brush->sculpt_plane) {
+		case SCULPT_DISP_DIR_VIEW:
+			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
+									   ss->cache->vc->rv3d->twmat[3],
+									   an);
+			break;
+
+		case SCULPT_DISP_DIR_X:
+			an[1] = 0.0;
+			an[2] = 0.0;
+			an[0] = 1.0;
+			break;
+
+		case SCULPT_DISP_DIR_Y:
+			an[0] = 0.0;
+			an[2] = 0.0;
+			an[1] = 1.0;
+			break;
+
+		case SCULPT_DISP_DIR_Z:
+			an[0] = 0.0;
+			an[1] = 0.0;
+			an[2] = 1.0;
+			break;
+
+		case SCULPT_DISP_DIR_AREA:
+			calc_area_normal(sd, ob, an, nodes, totnode);
+
+		default:
+			break;
+	}
+}
+
+static void update_sculpt_normal(Sculpt *sd, Object *ob,
+								 PBVHNode **nodes, int totnode)
+{
+	const Brush *brush = paint_brush(&sd->paint);
+	StrokeCache *cache = ob->sculpt->cache;
+	
+	if (cache->mirror_symmetry_pass == 0 &&
+	    cache->radial_symmetry_pass == 0 &&
+	    (cache->first_time || !(brush->flag & BRUSH_ORIGINAL_NORMAL)))
 	{
-		switch (brush->sculpt_plane) {
-			case SCULPT_DISP_DIR_VIEW:
-				ED_view3d_global_to_vector(ss->cache->vc->rv3d, ss->cache->vc->rv3d->twmat[3], an);
-				break;
-
-			case SCULPT_DISP_DIR_X:
-				an[1] = 0.0;
-				an[2] = 0.0;
-				an[0] = 1.0;
-				break;
-
-			case SCULPT_DISP_DIR_Y:
-				an[0] = 0.0;
-				an[2] = 0.0;
-				an[1] = 1.0;
-				break;
-
-			case SCULPT_DISP_DIR_Z:
-				an[0] = 0.0;
-				an[1] = 0.0;
-				an[2] = 1.0;
-				break;
-
-			case SCULPT_DISP_DIR_AREA:
-				calc_area_normal(sd, ob, an, nodes, totnode);
-
-			default:
-				break;
-		}
-
-		copy_v3_v3(ss->cache->last_area_normal, an);
+		calc_sculpt_normal(sd, ob, nodes, totnode, cache->sculpt_normal);
+		copy_v3_v3(cache->sculpt_normal_symm, cache->sculpt_normal);
 	}
 	else {
-		copy_v3_v3(an, ss->cache->last_area_normal);
-		flip_coord(an, an, ss->cache->mirror_symmetry_pass);
-		mul_m4_v3(ss->cache->symm_rot_mat, an);
+		copy_v3_v3(cache->sculpt_normal_symm, cache->sculpt_normal);
+		flip_v3(cache->sculpt_normal_symm, cache->mirror_symmetry_pass);
+		mul_m4_v3(cache->symm_rot_mat, cache->sculpt_normal_symm);
 	}
+}
+
+static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
+{
+	Object *ob = vc->obact;
+	float loc[3], mval_f[2] = {0.0f, 1.0f};
+
+	mul_v3_m4v3(loc, ob->imat, center);
+	initgrabz(vc->rv3d, loc[0], loc[1], loc[2]);
+
+	ED_view3d_win_to_delta(vc->ar, mval_f, y);
+	normalize_v3(y);
+
+	add_v3_v3(y, ob->loc);
+	mul_m4_v3(ob->imat, y);
+}
+
+static void calc_brush_local_mat(const Brush *brush, Object *ob,
+								 float local_mat[4][4])
+{
+	const StrokeCache *cache = ob->sculpt->cache;
+	float tmat[4][4];
+	float mat[4][4];
+	float scale[4][4];
+	float angle, v[3];
+	float up[3];
+
+	/* Ensure ob->imat is up to date */
+	invert_m4_m4(ob->imat, ob->obmat);
+
+	/* Initialize last column of matrix */
+	mat[0][3] = 0;
+	mat[1][3] = 0;
+	mat[2][3] = 0;
+	mat[3][3] = 1;
+
+	/* Get view's up vector in object-space */
+	calc_local_y(cache->vc, cache->location, up);
+
+	/* Calculate the X axis of the local matrix */
+	cross_v3_v3v3(v, up, cache->sculpt_normal);
+	/* Apply rotation (user angle, rake, etc.) to X axis */
+	angle = brush->mtex.rot - cache->special_rotation;
+	rotate_v3_v3v3fl(mat[0], v, cache->sculpt_normal, angle);
+
+	/* Get other axes */
+	cross_v3_v3v3(mat[1], cache->sculpt_normal, mat[0]);
+	copy_v3_v3(mat[2], cache->sculpt_normal);
+
+	/* Set location */
+	copy_v3_v3(mat[3], cache->location);
+
+	/* Scale by brush radius */
+	normalize_m4(mat);
+	scale_m4_fl(scale, cache->radius);
+	mult_m4_m4m4(tmat, mat, scale);
+
+	/* Return inverse (for converting from modelspace coords to local
+	   area coords) */
+	invert_m4_m4(local_mat, tmat);
+}
+
+static void update_brush_local_mat(Sculpt *sd, Object *ob)
+{
+	StrokeCache *cache = ob->sculpt->cache;
+
+	if (cache->mirror_symmetry_pass == 0 &&
+		cache->radial_symmetry_pass == 0)
+	{
+		calc_brush_local_mat(paint_brush(&sd->paint), ob,
+							 cache->brush_local_mat);
+	}
+}
+
+/* Test whether the StrokeCache.sculpt_normal needs update in
+   do_brush_action() */
+static int brush_needs_sculpt_normal(const Brush *brush)
+{
+	return ((ELEM(brush->sculpt_tool,
+				  SCULPT_TOOL_GRAB,
+				  SCULPT_TOOL_SNAKE_HOOK) &&
+			 ((brush->normal_weight > 0) ||
+			  (brush->flag & BRUSH_FRONTFACE))) ||
+
+			ELEM7(brush->sculpt_tool,
+				  SCULPT_TOOL_BLOB,
+				  SCULPT_TOOL_CREASE,
+				  SCULPT_TOOL_DRAW,
+				  SCULPT_TOOL_LAYER,
+				  SCULPT_TOOL_NUDGE,
+				  SCULPT_TOOL_ROTATE,
+				  SCULPT_TOOL_THUMB) ||
+
+			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
@@ -1356,14 +1495,12 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 {
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
-	float offset[3], area_normal[3];
+	float offset[3];
 	float bstrength = ss->cache->bstrength;
 	int n;
 
-	calc_sculpt_normal(sd, ob, area_normal, nodes, totnode);
-	
 	/* offset with as much as possible factored in already */
-	mul_v3_v3fl(offset, area_normal, ss->cache->radius);
+	mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
 	mul_v3_v3(offset, ss->cache->scale);
 	mul_v3_fl(offset, bstrength);
 
@@ -1383,7 +1520,8 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 			if (sculpt_brush_test(&test, vd.co)) {
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist,
-				                          area_normal, vd.no, vd.fno, *vd.mask);
+				                          ss->cache->sculpt_normal_symm, vd.no,
+										  vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1400,16 +1538,14 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	SculptSession *ss = ob->sculpt;
 	const Scene *scene = ss->cache->vc->scene;
 	Brush *brush = paint_brush(&sd->paint);
-	float offset[3], area_normal[3];
+	float offset[3];
 	float bstrength = ss->cache->bstrength;
 	float flippedbstrength, crease_correction;
 	float brush_alpha;
 	int n;
 
-	calc_sculpt_normal(sd, ob, area_normal, nodes, totnode);
-	
 	/* offset with as much as possible factored in already */
-	mul_v3_v3fl(offset, area_normal, ss->cache->radius);
+	mul_v3_v3fl(offset, ss->cache->sculpt_normal_symm, ss->cache->radius);
 	mul_v3_v3(offset, ss->cache->scale);
 	mul_v3_fl(offset, bstrength);
 	
@@ -1440,7 +1576,8 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 			if (sculpt_brush_test(&test, vd.co)) {
 				/* offset vertex */
 				const float fade = tex_strength(ss, brush, vd.co, test.dist,
-				                                area_normal, vd.no, vd.fno, *vd.mask);
+				                                ss->cache->sculpt_normal_symm,
+												vd.no, vd.fno, *vd.mask);
 				float val1[3];
 				float val2[3];
 
@@ -1502,26 +1639,18 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float grab_delta[3], an[3];
+	float grab_delta[3];
 	int n;
 	float len;
 
-	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE) {
-		int cache = 1;
-		/* grab brush requires to test on original data */
-		SWAP(int, ss->cache->original, cache);
-		calc_sculpt_normal(sd, ob, an, nodes, totnode);
-		SWAP(int, ss->cache->original, cache);
-	}
-	
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
 	len = len_v3(grab_delta);
 
 	if (brush->normal_weight > 0) {
-		mul_v3_fl(an, len * brush->normal_weight);
+		mul_v3_fl(ss->cache->sculpt_normal_symm, len * brush->normal_weight);
 		mul_v3_fl(grab_delta, 1.0f - brush->normal_weight);
-		add_v3_v3(grab_delta, an);
+		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
 	}
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
@@ -1545,7 +1674,7 @@ static void do_grab_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm, origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1563,16 +1692,13 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
 	float grab_delta[3];
-	int n;
-	float an[3];
 	float tmp[3], cono[3];
+	int n;
 
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
-	calc_sculpt_normal(sd, ob, an, nodes, totnode);
-
-	cross_v3_v3v3(tmp, an, grab_delta);
-	cross_v3_v3v3(cono, tmp, an);
+	cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
+	cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -1588,7 +1714,8 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            an, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+															vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1605,12 +1732,9 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float grab_delta[3], an[3];
+	float grab_delta[3];
 	int n;
 	float len;
-
-	if (brush->normal_weight > 0 || brush->flag & BRUSH_FRONTFACE)
-		calc_sculpt_normal(sd, ob, an, nodes, totnode);
 
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
@@ -1620,9 +1744,9 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		negate_v3(grab_delta);
 
 	if (brush->normal_weight > 0) {
-		mul_v3_fl(an, len * brush->normal_weight);
+		mul_v3_fl(ss->cache->sculpt_normal_symm, len * brush->normal_weight);
 		mul_v3_fl(grab_delta, 1.0f - brush->normal_weight);
-		add_v3_v3(grab_delta, an);
+		add_v3_v3(grab_delta, ss->cache->sculpt_normal_symm);
 	}
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
@@ -1639,7 +1763,8 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 		{
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            an, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+														    vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1657,16 +1782,13 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
 	float grab_delta[3];
-	int n;
-	float an[3];
 	float tmp[3], cono[3];
+	int n;
 
 	copy_v3_v3(grab_delta, ss->cache->grab_delta_symmetry);
 
-	calc_sculpt_normal(sd, ob, an, nodes, totnode);
-
-	cross_v3_v3v3(tmp, an, grab_delta);
-	cross_v3_v3v3(cono, tmp, an);
+	cross_v3_v3v3(tmp, ss->cache->sculpt_normal_symm, grab_delta);
+	cross_v3_v3v3(cono, tmp, ss->cache->sculpt_normal_symm);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -1689,7 +1811,8 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+															origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1706,20 +1829,17 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float an[3];
 	int n;
 	float m[4][4], rot[4][4], lmat[4][4], ilmat[4][4];
 	static const int flip[8] = { 1, -1, -1, 1, -1, 1, 1, -1 };
 	float angle = ss->cache->vertex_rotation * flip[ss->cache->mirror_symmetry_pass];
-
-	calc_sculpt_normal(sd, ob, an, nodes, totnode);
 
 	unit_m4(m);
 	unit_m4(lmat);
 
 	copy_v3_v3(lmat[3], ss->cache->location);
 	invert_m4_m4(ilmat, lmat);
-	axis_angle_to_mat4(rot, an, angle);
+	axis_angle_to_mat4(rot, ss->cache->sculpt_normal_symm, angle);
 
 	mul_serie_m4(m, lmat, rot, ilmat, NULL, NULL, NULL, NULL, NULL);
 
@@ -1744,7 +1864,8 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
-				                                            an, origno[vd.i], NULL, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+														    origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
@@ -1769,8 +1890,6 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 
 	if (bstrength < 0)
 		lim = -lim;
-
-	calc_sculpt_normal(sd, ob, area_normal, nodes, totnode);
 
 	mul_v3_v3v3(offset, ss->cache->scale, area_normal);
 
@@ -2069,23 +2188,23 @@ static void calc_sculpt_plane(Sculpt *sd, Object *ob, PBVHNode **nodes, int totn
 			calc_flatten_center(sd, ob, nodes, totnode, fc);
 
 		/* for area normal */
-		copy_v3_v3(ss->cache->last_area_normal, an);
+		copy_v3_v3(ss->cache->sculpt_normal, an);
 
 		/* for flatten center */
 		copy_v3_v3(ss->cache->last_center, fc);
 	}
 	else {
 		/* for area normal */
-		copy_v3_v3(an, ss->cache->last_area_normal);
+		copy_v3_v3(an, ss->cache->sculpt_normal);
 
 		/* for flatten center */
 		copy_v3_v3(fc, ss->cache->last_center);
 
 		/* for area normal */
-		flip_coord(an, an, ss->cache->mirror_symmetry_pass);
+		flip_v3(an, ss->cache->mirror_symmetry_pass);
 
 		/* for flatten center */
-		flip_coord(fc, fc, ss->cache->mirror_symmetry_pass);
+		flip_v3(fc, ss->cache->mirror_symmetry_pass);
 
 		/* for area normal */
 		mul_m4_v3(ss->cache->symm_rot_mat, an);
@@ -2591,6 +2710,12 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 			BLI_pbvh_node_mark_update(nodes[n]);
 		}
 
+		if (brush_needs_sculpt_normal(brush))
+			update_sculpt_normal(sd, ob, nodes, totnode);
+
+		if (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA)
+			update_brush_local_mat(sd, ob);
+
 		/* Apply one type of brush action */
 		switch (brush->sculpt_tool) {
 			case SCULPT_TOOL_DRAW:
@@ -2816,9 +2941,9 @@ static void calc_brushdata_symm(Sculpt *sd, StrokeCache *cache, const char symm,
 {
 	(void)sd; /* unused */
 
-	flip_coord(cache->location, cache->true_location, symm);
-	flip_coord(cache->grab_delta_symmetry, cache->grab_delta, symm);
-	flip_coord(cache->view_normal, cache->true_view_normal, symm);
+	flip_v3_v3(cache->location, cache->true_location, symm);
+	flip_v3_v3(cache->grab_delta_symmetry, cache->grab_delta, symm);
+	flip_v3_v3(cache->view_normal, cache->true_view_normal, symm);
 
 	/* XXX This reduces the length of the grab delta if it approaches the line of symmetry
 	 * XXX However, a different approach appears to be needed */
@@ -3364,7 +3489,7 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	{
 		copy_v2_v2(cache->tex_mouse, cache->mouse);
 
-		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_FIXED) &&
+		if ((brush->mtex.brush_map_mode == MTEX_MAP_MODE_VIEW) &&
 		    (brush->flag & BRUSH_RANDOM_ROTATION) &&
 		    !(brush->flag & BRUSH_RAKE))
 		{

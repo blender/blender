@@ -2700,7 +2700,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* the floating point coordinates of verts in screen space will be stored in a hash table according to the vertices pointer */
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "knife cut exec");
+	gh = BLI_ghash_ptr_new("knife cut exec");
 	for (bv = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); bv; bv = BM_iter_step(&iter)) {
 		scr = MEM_mallocN(sizeof(float) * 2, "Vertex Screen Coordinates");
 		copy_v3_v3(co, bv->co);
