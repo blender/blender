@@ -107,15 +107,15 @@
 #endif
 
 /* anim.curtype, runtime only */
-#define ANIM_NONE		0
-#define ANIM_SEQUENCE	(1 << 0)
-#define ANIM_MOVIE		(1 << 4)
-#define ANIM_AVI		(1 << 6)
-#define ANIM_QTIME		(1 << 7)
+#define ANIM_NONE       0
+#define ANIM_SEQUENCE   (1 << 0)
+#define ANIM_MOVIE      (1 << 4)
+#define ANIM_AVI        (1 << 6)
+#define ANIM_QTIME      (1 << 7)
 #define ANIM_FFMPEG     (1 << 8)
 #define ANIM_REDCODE    (1 << 9)
 
-#define MAXNUMSTREAMS		50
+#define MAXNUMSTREAMS       50
 
 struct _AviMovie;
 struct anim_index;
@@ -123,18 +123,18 @@ struct anim_index;
 struct anim {
 	int ib_flags;
 	int curtype;
-	int curposition;	/* index  0 = 1e,  1 = 2e, enz. */
+	int curposition;    /* index  0 = 1e,  1 = 2e, enz. */
 	int duration;
 	short frs_sec;
 	float frs_sec_base;
 	int x, y;
 	
-		/* voor op nummer */
+	/* voor op nummer */
 	char name[1024];
-		/* voor sequence */
+	/* voor sequence */
 	char first[1024];
 
-		/* movie */
+	/* movie */
 	void *movie;
 	void *track;
 	void *params;
@@ -144,21 +144,21 @@ struct anim {
 	int preseek;
 	int streamindex;
 	
-		/* avi */
+	/* avi */
 	struct _AviMovie *avi;
 
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
-		/* windows avi */
+	/* windows avi */
 	int avistreams;
 	int firstvideo;
 	int pfileopen;
-	PAVIFILE	pfile;
-	PAVISTREAM  pavi[MAXNUMSTREAMS];	// the current streams
-	PGETFRAME	  pgf;
+	PAVIFILE pfile;
+	PAVISTREAM pavi[MAXNUMSTREAMS];     // the current streams
+	PGETFRAME pgf;
 #endif
 
 #ifdef WITH_QUICKTIME
-		/* quicktime */
+	/* quicktime */
 	struct _QuicktimeMovie *qtime;
 #endif /* WITH_QUICKTIME */
 
@@ -173,14 +173,14 @@ struct anim {
 	struct SwsContext *img_convert_ctx;
 	int videoStream;
 
-	struct ImBuf * last_frame;
+	struct ImBuf *last_frame;
 	int64_t last_pts;
 	int64_t next_pts;
 	AVPacket next_packet;
 #endif
 
 #ifdef WITH_REDCODE
-	struct redcode_handle * redcodeCtx;
+	struct redcode_handle *redcodeCtx;
 #endif
 
 	char index_dir[768];
@@ -188,10 +188,9 @@ struct anim {
 	int proxies_tried;
 	int indices_tried;
 	
-	struct anim * proxy_anim[IMB_PROXY_MAX_SLOT];
-	struct anim_index * curr_idx[IMB_TC_MAX_SLOT];
+	struct anim *proxy_anim[IMB_PROXY_MAX_SLOT];
+	struct anim_index *curr_idx[IMB_TC_MAX_SLOT];
 
 };
 
 #endif
-

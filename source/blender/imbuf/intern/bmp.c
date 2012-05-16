@@ -45,17 +45,17 @@
  */
 
 typedef struct BMPINFOHEADER {
-	unsigned int	biSize;
-	unsigned int	biWidth;
-	unsigned int	biHeight;
-	unsigned short	biPlanes;
-	unsigned short	biBitCount;
-	unsigned int	biCompression;
-	unsigned int	biSizeImage;
-	unsigned int	biXPelsPerMeter;
-	unsigned int	biYPelsPerMeter;
-	unsigned int	biClrUsed;
-	unsigned int	biClrImportant;
+	unsigned int    biSize;
+	unsigned int    biWidth;
+	unsigned int    biHeight;
+	unsigned short  biPlanes;
+	unsigned short  biBitCount;
+	unsigned int    biCompression;
+	unsigned int    biSizeImage;
+	unsigned int    biXPelsPerMeter;
+	unsigned int    biYPelsPerMeter;
+	unsigned int    biClrUsed;
+	unsigned int    biClrImportant;
 } BMPINFOHEADER;
 
 typedef struct BMPHEADER {
@@ -160,7 +160,7 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 		else if (depth == 24) {
 			for (i = y; i > 0; i--) {
 				int j;
-				for (j = x ; j > 0; j--) {
+				for (j = x; j > 0; j--) {
 					rect[0] = bmp[2];
 					rect[1] = bmp[1];
 					rect[2] = bmp[0];
@@ -194,16 +194,16 @@ struct ImBuf *imb_bmp_decode(unsigned char *mem, size_t size, int flags)
 /* Couple of helper functions for writing our data */
 static int putIntLSB(unsigned int ui, FILE *ofile)
 {
-	putc((ui>>0)&0xFF, ofile);
-	putc((ui>>8)&0xFF, ofile);
-	putc((ui>>16)&0xFF, ofile);
-	return putc((ui>>24)&0xFF, ofile);
+	putc((ui >> 0) & 0xFF, ofile);
+	putc((ui >> 8) & 0xFF, ofile);
+	putc((ui >> 16) & 0xFF, ofile);
+	return putc((ui >> 24) & 0xFF, ofile);
 }
 
 static int putShortLSB(unsigned short us, FILE *ofile)
 {
-	putc((us>>0)&0xFF, ofile);
-	return putc((us>>8)&0xFF, ofile);
+	putc((us >> 0) & 0xFF, ofile);
+	return putc((us >> 8) & 0xFF, ofile);
 } 
 
 /* Found write info at http://users.ece.gatech.edu/~slabaugh/personal/c/bitmapUnix.c */
@@ -216,12 +216,12 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	
 	(void)flags; /* unused */
 
-	extrabytes = (4 - ibuf->x*3 % 4) % 4;
+	extrabytes = (4 - ibuf->x * 3 % 4) % 4;
 	bytesize = (ibuf->x * 3 + extrabytes) * ibuf->y;
 
 	data = (uchar *) ibuf->rect;
 	ofile = BLI_fopen(name, "wb");
-		if (!ofile) return 0;
+	if (!ofile) return 0;
 
 	putShortLSB(19778, ofile); /* "BM" */
 	putIntLSB(0, ofile); /* This can be 0 for BI_RGB bitmaps */
@@ -242,15 +242,15 @@ int imb_savebmp(struct ImBuf *ibuf, const char *name, int flags)
 	putIntLSB(0, ofile);
 
 	/* Need to write out padded image data in bgr format */
-	for (y=0;y<ibuf->y;y++) {
-		for (x=0;x<ibuf->x;x++) {
-			ptr=(x + y * ibuf->x) * 4;
-			if (putc(data[ptr+2], ofile) == EOF) return 0;
-			if (putc(data[ptr+1], ofile) == EOF) return 0;
+	for (y = 0; y < ibuf->y; y++) {
+		for (x = 0; x < ibuf->x; x++) {
+			ptr = (x + y * ibuf->x) * 4;
+			if (putc(data[ptr + 2], ofile) == EOF) return 0;
+			if (putc(data[ptr + 1], ofile) == EOF) return 0;
 			if (putc(data[ptr], ofile) == EOF) return 0;
 		}
 		/* add padding here */
-		for (t=0;t<extrabytes;t++) if (putc(0, ofile) == EOF) return 0;
+		for (t = 0; t < extrabytes; t++) if (putc(0, ofile) == EOF) return 0;
 	}
 	if (ofile) {
 		fflush(ofile);
