@@ -1134,7 +1134,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float *vec)
+int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *cent2d)
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	int success = 1;
@@ -1159,8 +1159,12 @@ int calculateTransformCenter(bContext *C, int centerMode, float *vec)
 
 		calculateCenter(t);
 
-		// Copy center from constraint center. Transform center can be local
-		copy_v3_v3(vec, t->con.center);
+		if(cent2d)
+			copy_v2_v2_int(cent2d, t->center2d);
+		if(cent3d) {
+			// Copy center from constraint center. Transform center can be local
+			copy_v3_v3(cent3d, t->con.center);
+		}
 	}
 
 

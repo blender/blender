@@ -255,6 +255,8 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 	keymap->poll = ED_operator_editmesh;
 	
 	WM_keymap_add_item(keymap, "MESH_OT_loopcut_slide", RKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_bevel", BKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MESH_OT_inset", IKEY, KM_PRESS, 0, 0);
 
 	/* selecting */
 	/* standard mouse selection goes via space_view3d */

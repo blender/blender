@@ -100,7 +100,7 @@ enum {
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
  * (if 0 is returns, *vec is unmodified)
  * */
-int calculateTransformCenter(struct bContext *C, int centerMode, float *vec);
+int calculateTransformCenter(struct bContext *C, int centerMode, float *cent3d, int *cent2d);
 
 struct TransInfo;
 struct ScrArea;
