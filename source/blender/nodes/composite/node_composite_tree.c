@@ -72,16 +72,16 @@ static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 
 static void foreach_nodeclass(Scene *UNUSED(scene), void *calldata, bNodeClassCallback func)
 {
-	func(calldata, NODE_CLASS_INPUT, IFACE_("Input"));
-	func(calldata, NODE_CLASS_OUTPUT, IFACE_("Output"));
-	func(calldata, NODE_CLASS_OP_COLOR, IFACE_("Color"));
-	func(calldata, NODE_CLASS_OP_VECTOR, IFACE_("Vector"));
-	func(calldata, NODE_CLASS_OP_FILTER, IFACE_("Filter"));
-	func(calldata, NODE_CLASS_CONVERTOR, IFACE_("Convertor"));
-	func(calldata, NODE_CLASS_MATTE, IFACE_("Matte"));
-	func(calldata, NODE_CLASS_DISTORT, IFACE_("Distort"));
-	func(calldata, NODE_CLASS_GROUP, IFACE_("Group"));
-	func(calldata, NODE_CLASS_LAYOUT, IFACE_("Layout"));
+	func(calldata, NODE_CLASS_INPUT, N_("Input"));
+	func(calldata, NODE_CLASS_OUTPUT, N_("Output"));
+	func(calldata, NODE_CLASS_OP_COLOR, N_("Color"));
+	func(calldata, NODE_CLASS_OP_VECTOR, N_("Vector"));
+	func(calldata, NODE_CLASS_OP_FILTER, N_("Filter"));
+	func(calldata, NODE_CLASS_CONVERTOR, N_("Convertor"));
+	func(calldata, NODE_CLASS_MATTE, N_("Matte"));
+	func(calldata, NODE_CLASS_DISTORT, N_("Distort"));
+	func(calldata, NODE_CLASS_GROUP, N_("Group"));
+	func(calldata, NODE_CLASS_LAYOUT, N_("Layout"));
 }
 
 static void free_node_cache(bNodeTree *UNUSED(ntree), bNode *node)
