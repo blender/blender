@@ -1146,6 +1146,10 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 
 		sub_v2_v2(bezt->vec[0], vec);
 		add_v2_v2(bezt->vec[2], vec);
+
+		if (reference_adjacent) {
+			BKE_mask_calc_handle_adjacent_length(mask, spline, new_point);
+		}
 	}
 	else {
 
@@ -1196,10 +1200,10 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[0], vec);
 		sub_v2_v2(bezt->vec[2], vec);
 #else
-		BKE_mask_calc_handle_point_auto(mask, spline, new_point, TRUE);
+		BKE_mask_calc_handle_point_auto(mask, spline, new_point);
+		BKE_mask_calc_handle_adjacent_length(mask, spline, new_point);
 
 #endif
-
 	}
 
 	BKE_mask_parent_init(&new_point->parent);
@@ -1223,10 +1227,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 		MaskSplinePoint *new_point_array, *new_point;
 		int point_index = point - spline->points;
 
-		/* adding _could_ deselect, for now don't */
-#if 0
 		toggle_selection_all(mask, SEL_DESELECT);
-#endif
 
 		new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
 
@@ -1302,10 +1303,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
-	/* adding _could_ deselect, for now don't */
-#if 0
 	toggle_selection_all(mask, SEL_DESELECT);
-#endif
 
 	shape = BKE_mask_shape_active(mask);
 
