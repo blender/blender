@@ -127,12 +127,15 @@ void GeometryExporter::operator()(Object *ob)
 		createVertexColorSource(geom_id, me);
 
 	// <vertices>
+
 	COLLADASW::Vertices verts(mSW);
 	verts.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX));
 	COLLADASW::InputList &input_list = verts.getInputList();
 	COLLADASW::Input input(COLLADASW::InputSemantic::POSITION, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
 	input_list.push_back(input);
 	verts.add();
+
+	createLooseEdgeList(ob, me, geom_id, norind);
 
 	// XXX slow		
 	if (ob->totcol) {
@@ -149,7 +152,7 @@ void GeometryExporter::operator()(Object *ob)
 	if (me->flag & ME_TWOSIDED) {
 		mSW->appendTextBlock("<extra><technique profile=\"MAYA\"><double_sided>1</double_sided></technique></extra>");
 	}
-	
+
 	closeGeometry();
 
 	if (this->export_settings->apply_modifiers)
@@ -157,9 +160,63 @@ void GeometryExporter::operator()(Object *ob)
 		BKE_libblock_free_us(&(G.main->mesh), me);
 	}
 
+
 #if 0
 	dm->release(dm);
 #endif
+}
+
+
+void GeometryExporter::createLooseEdgeList(Object *ob,
+					     Mesh   *me,
+					     std::string& geom_id,
+					     std::vector<Face>& norind)
+{
+
+	MEdge *medges = me->medge;
+	int totedges  = me->totedge;
+	int edges_in_linelist = 0;
+	std::vector<unsigned int> edge_list;
+	int index;
+
+	// Find all loose edges in Mesh 
+	// and save vertex indices in edge_list
+	for (index = 0; index < totedges; index++) 
+	{
+		MEdge *edge = &medges[index];
+
+		if (edge->flag & ME_LOOSEEDGE)
+		{
+			edges_in_linelist += 1;
+			edge_list.push_back(edge->v1);
+			edge_list.push_back(edge->v2);
+		}
+	}
+
+	if (edges_in_linelist > 0)
+	{
+		// Create the list of loose edges
+		COLLADASW::Lines lines(mSW);
+
+		lines.setCount(edges_in_linelist);
+
+
+		COLLADASW::InputList &til = lines.getInputList();
+			
+		// creates <input> in <lines> for vertices 
+		COLLADASW::Input input1(COLLADASW::InputSemantic::VERTEX, getUrlBySemantics(geom_id, COLLADASW::InputSemantic::VERTEX), 0);
+		til.push_back(input1);
+
+		lines.prepareToAppendValues();
+
+		for (index = 0; index < edges_in_linelist; index++) 
+		{
+			lines.appendValues(edge_list[2*index+1]);
+			lines.appendValues(edge_list[2*index]);
+		}
+		lines.finish();
+	}
+
 }
 
 // powerful because it handles both cases when there is material and when there's not
@@ -247,6 +304,8 @@ void GeometryExporter::createPolylist(short material_index,
 		
 	// performs the actual writing
 	polylist.prepareToAppendValues();
+	
+
 		
 	// <p>
 	int texindex = 0;

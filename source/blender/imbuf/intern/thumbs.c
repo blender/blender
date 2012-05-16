@@ -67,19 +67,19 @@
 #  include <unistd.h>
 #endif
 
-#define URI_MAX FILE_MAX*3 + 8
+#define URI_MAX FILE_MAX * 3 + 8
 
 static int get_thumb_dir(char *dir, ThumbSize size)
 {
 #ifdef WIN32
-	wchar_t dir_16 [MAX_PATH];
+	wchar_t dir_16[MAX_PATH];
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
 	SHGetSpecialFolderPathW(0, dir_16, CSIDL_PROFILE, 0);
 	conv_utf_16_to_8(dir_16, dir, FILE_MAX);
 
 
 #else
-	const char* home = getenv("HOME");
+	const char *home = getenv("HOME");
 	if (!home) return 0;
 	BLI_strncpy(dir, home, FILE_MAX);
 #endif
@@ -105,11 +105,11 @@ static int get_thumb_dir(char *dir, ThumbSize size)
  * released under the Gnu General Public License.
  */
 typedef enum {
-  UNSAFE_ALL        = 0x1,  /* Escape all unsafe characters   */
-  UNSAFE_ALLOW_PLUS = 0x2,  /* Allows '+'  */
-  UNSAFE_PATH       = 0x8,  /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
-  UNSAFE_HOST       = 0x10, /* Allows '/' and ':' and '@' */
-  UNSAFE_SLASHES    = 0x20  /* Allows all characters except for '/' and '%' */
+	UNSAFE_ALL        = 0x1, /* Escape all unsafe characters   */
+	UNSAFE_ALLOW_PLUS = 0x2, /* Allows '+'  */
+	UNSAFE_PATH       = 0x8, /* Allows '/', '&', '=', ':', '@', '+', '$' and ',' */
+	UNSAFE_HOST       = 0x10, /* Allows '/' and ':' and '@' */
+	UNSAFE_SLASHES    = 0x20 /* Allows all characters except for '/' and '%' */
 } UnsafeCharacterSet;
 
 static const unsigned char acceptable[96] = {
@@ -132,9 +132,9 @@ static const char hex[17] = "0123456789abcdef";
 
 /* Note: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
-static void escape_uri_string (const char *string, char* escaped_string, int len, UnsafeCharacterSet mask)
+static void escape_uri_string(const char *string, char *escaped_string, int len, UnsafeCharacterSet mask)
 {
-#define ACCEPTABLE(a) ((a)>=32 && (a)<128 && (acceptable[(a)-32] & use_mask))
+#define ACCEPTABLE(a) ((a) >= 32 && (a) < 128 && (acceptable[(a) - 32] & use_mask))
 
 	const char *p;
 	char *q;
@@ -146,7 +146,7 @@ static void escape_uri_string (const char *string, char* escaped_string, int len
 		c = (unsigned char) *p;
 		len--;
 
-		if (!ACCEPTABLE (c)) {
+		if (!ACCEPTABLE(c)) {
 			*q++ = '%'; /* means hex coming */
 			*q++ = hex[c >> 4];
 			*q++ = hex[c & 15];
@@ -159,7 +159,7 @@ static void escape_uri_string (const char *string, char* escaped_string, int len
 	*q = '\0';
 }
 
-static void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
+static void to_hex_char(char *hexbytes, const unsigned char *bytes, int len)
 {
 	const unsigned char *p;
 	char *q;
@@ -177,7 +177,7 @@ static void to_hex_char(char* hexbytes, const unsigned char* bytes, int len)
 static int uri_from_filename(const char *path, char *uri)
 {
 	char orig_uri[URI_MAX];	
-	const char* dirstart = path;
+	const char *dirstart = path;
 	
 #ifdef WIN32
 	{
@@ -203,17 +203,17 @@ static int uri_from_filename(const char *path, char *uri)
 	
 #ifdef WITH_ICONV
 	{
-		char uri_utf8[FILE_MAX*3+8];
-		escape_uri_string(orig_uri, uri_utf8, FILE_MAX*3+8, UNSAFE_PATH);
+		char uri_utf8[FILE_MAX * 3 + 8];
+		escape_uri_string(orig_uri, uri_utf8, FILE_MAX * 3 + 8, UNSAFE_PATH);
 		BLI_string_to_utf8(uri_utf8, uri, NULL);
 	}
 #else 
-	escape_uri_string(orig_uri, uri, FILE_MAX*3+8, UNSAFE_PATH);
+	escape_uri_string(orig_uri, uri, FILE_MAX * 3 + 8, UNSAFE_PATH);
 #endif
 	return 1;
 }
 
-static void thumbname_from_uri(const char* uri, char* thumb, const int thumb_len)
+static void thumbname_from_uri(const char *uri, char *thumb, const int thumb_len)
 {
 	char hexdigest[33];
 	unsigned char digest[16];
@@ -227,7 +227,7 @@ static void thumbname_from_uri(const char* uri, char* thumb, const int thumb_len
 	// printf("%s: '%s' --> '%s'\n", __func__, uri, thumb);
 }
 
-static int thumbpath_from_uri(const char* uri, char* path, const int path_len, ThumbSize size)
+static int thumbpath_from_uri(const char *uri, char *path, const int path_len, ThumbSize size)
 {
 	char tmppath[FILE_MAX];
 	int rv = 0;
@@ -253,16 +253,16 @@ void IMB_thumb_makedirs(void)
 }
 
 /* create thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, ImBuf *img)
+ImBuf *IMB_thumb_create(const char *path, ThumbSize size, ThumbSource source, ImBuf *img)
 {
-	char uri[URI_MAX]= "";
-	char desc[URI_MAX+22];
+	char uri[URI_MAX] = "";
+	char desc[URI_MAX + 22];
 	char tpath[FILE_MAX];
 	char tdir[FILE_MAX];
 	char temp[FILE_MAX];
-	char mtime[40]= "0"; /* in case we can't stat the file */
-	char cwidth[40]= "0"; /* in case images have no data */
-	char cheight[40]= "0";
+	char mtime[40] = "0"; /* in case we can't stat the file */
+	char cwidth[40] = "0"; /* in case images have no data */
+	char cheight[40] = "0";
 	char thumb[40];
 	short tsize = 128;
 	short ex, ey;
@@ -285,7 +285,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 
 	/* exception, skip images over 100mb */
 	if (source == THB_SOURCE_IMAGE) {
-		const size_t size= BLI_file_size(path);
+		const size_t size = BLI_file_size(path);
 		if (size != -1 && size > THUMB_SIZE_MAX) {
 			// printf("file too big: %d, skipping %s\n", (int)size, path);
 			return NULL;
@@ -309,7 +309,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 			if (THB_SOURCE_IMAGE == source || THB_SOURCE_BLEND == source) {
 				
 				/* only load if we didnt give an image */
-				if (img==NULL) {
+				if (img == NULL) {
 					if (THB_SOURCE_BLEND == source) {
 						img = IMB_loadblend_thumb(path);
 					}
@@ -326,7 +326,7 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 				}
 			}
 			else if (THB_SOURCE_MOVIE == source) {
-				struct anim * anim = NULL;
+				struct anim *anim = NULL;
 				anim = IMB_open_anim(path, IB_rect | IB_metadata, 0);
 				if (anim != NULL) {
 					img = IMB_anim_absolute(anim, 0, IMB_TC_NONE, IMB_PROXY_NONE);
@@ -346,11 +346,11 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 
 			if (img->x > img->y) {
 				scaledx = (float)tsize;
-				scaledy =  ( (float)img->y/(float)img->x )*tsize;
+				scaledy =  ( (float)img->y / (float)img->x) * tsize;
 			}
 			else {
 				scaledy = (float)tsize;
-				scaledx =  ( (float)img->x/(float)img->y )*tsize;
+				scaledx =  ( (float)img->x / (float)img->y) * tsize;
 			}
 			ex = (short)scaledx;
 			ey = (short)scaledy;
@@ -392,10 +392,10 @@ ImBuf* IMB_thumb_create(const char* path, ThumbSize size, ThumbSource source, Im
 }
 
 /* read thumbnail for file and returns new imbuf for thumbnail */
-ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
+ImBuf *IMB_thumb_read(const char *path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX*3+8];
+	char uri[FILE_MAX * 3 + 8];
 	ImBuf *img = NULL;
 
 	if (!uri_from_filename(path, uri)) {
@@ -409,10 +409,10 @@ ImBuf* IMB_thumb_read(const char* path, ThumbSize size)
 }
 
 /* delete all thumbs for the file */
-void IMB_thumb_delete(const char* path, ThumbSize size)
+void IMB_thumb_delete(const char *path, ThumbSize size)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX*3+8];
+	char uri[FILE_MAX * 3 + 8];
 
 	if (!uri_from_filename(path, uri)) {
 		return;
@@ -429,12 +429,12 @@ void IMB_thumb_delete(const char* path, ThumbSize size)
 
 
 /* create the thumb if necessary and manage failed and old thumbs */
-ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
+ImBuf *IMB_thumb_manage(const char *path, ThumbSize size, ThumbSource source)
 {
 	char thumb[FILE_MAX];
-	char uri[FILE_MAX*3+8];
+	char uri[FILE_MAX * 3 + 8];
 	struct stat st;
-	ImBuf* img = NULL;
+	ImBuf *img = NULL;
 	
 	if (stat(path, &st)) {
 		return NULL;
@@ -507,5 +507,3 @@ ImBuf* IMB_thumb_manage(const char* path, ThumbSize size, ThumbSource source)
 
 	return img;
 }
-
-

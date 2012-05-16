@@ -58,6 +58,52 @@
 
 #include "mesh_intern.h"
 
+/* mesh backup implementation. This would greatly benefit from some sort of binary diffing
+ * just as the undo stack would. So leaving this as an interface for further work */
+
+BMBackup EDBM_redo_state_store(BMEditMesh *em)
+{
+	BMBackup backup;
+	backup.bmcopy = BM_mesh_copy(em->bm);
+	return backup;
+}
+
+void EDBM_redo_state_restore(BMBackup backup, BMEditMesh *em, int recalctess)
+{
+	BMesh *tmpbm;
+	if (!em || !backup.bmcopy)
+		return;
+
+	BM_mesh_data_free(em->bm);
+	tmpbm = BM_mesh_copy(backup.bmcopy);
+	*em->bm = *tmpbm;
+	MEM_freeN(tmpbm);
+	tmpbm = NULL;
+
+	if (recalctess)
+		BMEdit_RecalcTessellation(em);
+}
+
+void EDBM_redo_state_free(BMBackup *backup, BMEditMesh *em, int recalctess)
+{
+	if (em && backup->bmcopy) {
+		BM_mesh_data_free(em->bm);
+		*em->bm = *backup->bmcopy;
+	}
+	else if (backup->bmcopy) {
+		BM_mesh_data_free(backup->bmcopy);
+	}
+
+	if (backup->bmcopy)
+		MEM_freeN(backup->bmcopy);
+	backup->bmcopy = NULL;
+
+	if (recalctess && em)
+		BMEdit_RecalcTessellation(em);
+}
+
+
+
 void EDBM_mesh_normals_update(BMEditMesh *em)
 {
 	BM_mesh_normals_update(em->bm, TRUE);

@@ -838,14 +838,16 @@ elseif(WIN32)
 			set(GETTEXT_LIBRARIES gnu_gettext)
 		endif()
 		
-		set(LAPACK ${LIBDIR}/lapack)
-		# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
-		set_lib_path(LAPACK_LIBPATH ${LAPACK}/lib)	
-		set(LAPACK_LIBRARIES
-			${LIBDIR}/lapack/lib/libf2c.lib
-			${LIBDIR}/lapack/lib/clapack_nowrap.lib
-			${LIBDIR}/lapack/lib/BLAS_nowrap.lib
-		)
+		if(WITH_MOD_CLOTH_ELTOPO)
+			set(LAPACK ${LIBDIR}/lapack)
+			# set(LAPACK_INCLUDE_DIR ${LAPACK}/include)
+			set_lib_path(LAPACK_LIBPATH ${LAPACK}/lib)	
+			set(LAPACK_LIBRARIES
+				${LIBDIR}/lapack/lib/libf2c.lib
+				${LIBDIR}/lapack/lib/clapack_nowrap.lib
+				${LIBDIR}/lapack/lib/BLAS_nowrap.lib
+			)
+		endif()
 
 		set(PNG_LIBRARIES libpng)
 		set(JPEG_LIBRARIES libjpeg)

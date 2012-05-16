@@ -59,7 +59,7 @@ typedef struct MovieCache {
 	int keysize;
 	unsigned long curtime;
 
-	int totseg, *points, proxy, render_flags;	/* for visual statistics optimization */
+	int totseg, *points, proxy, render_flags;  /* for visual statistics optimization */
 	int pad;
 } MovieCache;
 
@@ -71,35 +71,35 @@ typedef struct MovieCacheKey {
 typedef struct MovieCacheItem {
 	MovieCache *cache_owner;
 	ImBuf *ibuf;
-	MEM_CacheLimiterHandleC * c_handle;
+	MEM_CacheLimiterHandleC *c_handle;
 	unsigned long last_access;
 } MovieCacheItem;
 
 static unsigned int moviecache_hashhash(const void *keyv)
 {
-	MovieCacheKey *key = (MovieCacheKey*)keyv;
+	MovieCacheKey *key = (MovieCacheKey *)keyv;
 
 	return key->cache_owner->hashfp(key->userkey);
 }
 
 static int moviecache_hashcmp(const void *av, const void *bv)
 {
-	const MovieCacheKey *a = (MovieCacheKey*)av;
-	const MovieCacheKey *b = (MovieCacheKey*)bv;
+	const MovieCacheKey *a = (MovieCacheKey *)av;
+	const MovieCacheKey *b = (MovieCacheKey *)bv;
 
 	return a->cache_owner->cmpfp(a->userkey, b->userkey);
 }
 
 static void moviecache_keyfree(void *val)
 {
-	MovieCacheKey *key = (MovieCacheKey*)val;
+	MovieCacheKey *key = (MovieCacheKey *)val;
 
 	BLI_mempool_free(key->cache_owner->keys_pool, key);
 }
 
 static void moviecache_valfree(void *val)
 {
-	MovieCacheItem *item = (MovieCacheItem*)val;
+	MovieCacheItem *item = (MovieCacheItem *)val;
 
 	if (item->ibuf) {
 		MEM_CacheLimiter_unmanage(item->c_handle);
@@ -160,7 +160,7 @@ static size_t IMB_get_size_in_memory(ImBuf *ibuf)
 	if (ibuf->rect_float)
 		channel_size += sizeof(float);
 
-	 size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
+	size += channel_size * ibuf->x * ibuf->y * ibuf->channels;
 
 	if (ibuf->miptot) {
 		for (a = 0; a < ibuf->miptot; a++) {
@@ -170,13 +170,13 @@ static size_t IMB_get_size_in_memory(ImBuf *ibuf)
 	}
 
 	if (ibuf->tiles) {
-		size += sizeof(unsigned int)*ibuf->ytiles*ibuf->xtiles;
+		size += sizeof(unsigned int) * ibuf->ytiles * ibuf->xtiles;
 	}
 
 	return size;
 }
 
-static size_t get_item_size (void *p)
+static size_t get_item_size(void *p)
 {
 	size_t size = sizeof(MovieCacheItem);
 	MovieCacheItem *item = (MovieCacheItem *) p;
@@ -199,8 +199,7 @@ void IMB_moviecache_destruct(void)
 }
 
 struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
-		MovieCacheGetKeyDataFP getdatafp)
-{
+                                         MovieCacheGetKeyDataFP getdatafp){
 	MovieCache *cache;
 
 	cache = MEM_callocN(sizeof(MovieCache), "MovieCache");
@@ -257,14 +256,14 @@ void IMB_moviecache_put(MovieCache *cache, void *userkey, ImBuf *ibuf)
 	}
 }
 
-ImBuf* IMB_moviecache_get(MovieCache *cache, void *userkey)
+ImBuf *IMB_moviecache_get(MovieCache *cache, void *userkey)
 {
 	MovieCacheKey key;
 	MovieCacheItem *item;
 
 	key.cache_owner = cache;
 	key.userkey = userkey;
-	item = (MovieCacheItem*)BLI_ghash_lookup(cache->hash, &key);
+	item = (MovieCacheItem *)BLI_ghash_lookup(cache->hash, &key);
 
 	if (item) {
 		item->last_access = cache->curtime++;
@@ -316,7 +315,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 	}
 	else {
 		int totframe = BLI_ghash_size(cache->hash);
-		int *frames = MEM_callocN(totframe*sizeof(int), "movieclip cache frames");
+		int *frames = MEM_callocN(totframe * sizeof(int), "movieclip cache frames");
 		int a, totseg = 0;
 		GHashIterator *iter;
 
@@ -353,7 +352,7 @@ void IMB_moviecache_get_cache_segments(MovieCache *cache, int proxy, int render_
 		if (totseg) {
 			int b, *points;
 
-			points = MEM_callocN(2*sizeof(int)*totseg, "movieclip cache segments");
+			points = MEM_callocN(2 * sizeof(int) * totseg, "movieclip cache segments");
 
 			/* fill */
 			for (a = 0, b = 0; a < totframe; a++) {

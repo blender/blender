@@ -64,6 +64,11 @@ public:
 
 	void operator()(Object *ob);
 
+	void createLooseEdgeList(Object *ob,
+						     Mesh   *me,
+						     std::string& geom_id,
+						     std::vector<Face>& norind);
+
 	// powerful because it handles both cases when there is material and when there's not
 	void createPolylist(short material_index,
 						bool has_uvs,

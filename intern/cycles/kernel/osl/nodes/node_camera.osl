@@ -26,7 +26,7 @@ shader node_camera(
 	ViewVector = (vector)transform("world", "camera", P);
 
 	ViewZDepth = fabs(ViewVector[2]);
-	ViewDistance = lenght(ViewVector);
+	ViewDistance = length(ViewVector);
 
 	ViewVector = normalize(ViewVector);
 }

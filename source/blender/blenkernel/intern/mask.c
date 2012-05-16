@@ -862,9 +862,14 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 	MaskSplinePoint *prev_point, *next_point;
 
 	const char h_back[2] = {point->bezt.h1, point->bezt.h2};
-
+int i1=999, i2=999;
 	BKE_mask_get_handle_point_adjacent(mask, spline, point,
 	                                   &prev_point, &next_point);
+
+	if (prev_point) i1 = (int)(prev_point - spline->points);
+	if (next_point) i2 = (int)(next_point - spline->points);
+
+printf("found points %d %d : %d\n", i1, i2, (int)(point - spline->points));
 
 	point->bezt.h1 = HD_AUTO;
 	point->bezt.h2 = HD_AUTO;
@@ -897,6 +902,34 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 			enforce_dist_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
 		}
 	}
+
+	mask_calc_point_handle(point, prev_point, next_point);
+
+	// XXX
+	if ((point->bezt.h1 == HD_ALIGN || point->bezt.h2 == HD_ALIGN) ){
+		float vec[2];
+		sub_v2_v2(point->bezt.vec[0], point->bezt.vec[1]);
+		sub_v2_v2(point->bezt.vec[2], point->bezt.vec[1]);
+
+		copy_v2_v2(vec, point->bezt.vec[0]);
+		point->bezt.vec[0][0] =  vec[1];
+		point->bezt.vec[0][0] = -vec[0];
+		add_v2_v2(point->bezt.vec[0], point->bezt.vec[1]);
+
+		copy_v2_v2(vec, point->bezt.vec[2]);
+		point->bezt.vec[2][0] =  vec[1];
+		point->bezt.vec[2][0] = -vec[0];
+		add_v2_v2(point->bezt.vec[2], point->bezt.vec[1]);
+
+		copy_v2_v2(vec, point->bezt.vec[2]);
+		copy_v2_v2(point->bezt.vec[0], vec);
+		copy_v2_v2(point->bezt.vec[2], point->bezt.vec[0]);
+
+
+
+	}
+
+	mask_calc_point_handle(point, prev_point, next_point);
 }
 
 void BKE_mask_calc_handles(Mask *mask)

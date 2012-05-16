@@ -833,7 +833,7 @@ static PointerRNA rna_NodeOutputFile_slot_file_get(CollectionPropertyIterator *i
 {
 	PointerRNA ptr;
 	bNodeSocket *sock = rna_iterator_listbase_get(iter);
-	RNA_pointer_create(iter->ptr.id.data, &RNA_NodeOutputFileSlotFile, sock->storage, &ptr);
+	RNA_pointer_create(iter->parent.id.data, &RNA_NodeOutputFileSlotFile, sock->storage, &ptr);
 	return ptr;
 }
 
@@ -841,7 +841,7 @@ static PointerRNA rna_NodeOutputFile_slot_layer_get(CollectionPropertyIterator *
 {
 	PointerRNA ptr;
 	bNodeSocket *sock = rna_iterator_listbase_get(iter);
-	RNA_pointer_create(iter->ptr.id.data, &RNA_NodeOutputFileSlotLayer, sock->storage, &ptr);
+	RNA_pointer_create(iter->parent.id.data, &RNA_NodeOutputFileSlotLayer, sock->storage, &ptr);
 	return ptr;
 }
 

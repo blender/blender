@@ -267,6 +267,18 @@ void ED_mesh_mirrtopo_init(struct Mesh *me, const int ob_mode, MirrTopoStore_t *
                            const short skip_em_vert_array_init);
 void ED_mesh_mirrtopo_free(MirrTopoStore_t *mesh_topo_store);
 
+/* mesh backup */
+typedef struct BMBackup {
+	struct BMesh *bmcopy;
+} BMBackup;
+
+/* save a copy of the bmesh for restoring later */
+struct BMBackup EDBM_redo_state_store(struct BMEditMesh *em);
+/* restore a bmesh from backup */
+void EDBM_redo_state_restore(struct BMBackup, struct BMEditMesh *em, int recalctess);
+/* delete the backup, optionally flushing it to an editmesh */
+void EDBM_redo_state_free(struct BMBackup *, struct BMEditMesh *em, int recalctess);
+
 #ifdef __cplusplus
 }
 #endif

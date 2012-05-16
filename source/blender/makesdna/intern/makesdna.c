@@ -213,7 +213,7 @@ void dna_write(FILE *file, void *pntr, int size);
 /**
  * Report all structures found so far, and print their lengths.
  */
-void printStructLenghts(void);
+void printStructLengths(void);
 
 
 
@@ -902,7 +902,7 @@ void dna_write(FILE *file, void *pntr, int size)
 	}
 }
 
-void printStructLenghts(void)
+void printStructLengths(void)
 {
 	int a, unknown = nr_structs, structtype;
 	/*int lastunknown;*/ /*UNUSED*/
