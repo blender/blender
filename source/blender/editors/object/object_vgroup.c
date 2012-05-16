@@ -648,12 +648,14 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 		nearest.index= -1;
 		nearest.dist= FLT_MAX;
 
+		/*transform into target space*/
+		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+		normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+
 		/*node tree accelerated search for closest face*/
 		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 
-		/*transform into target space onto face*/
-		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
-		normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+		/*project onto face*/
 		project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
 
 		/*interpolate weights*/
