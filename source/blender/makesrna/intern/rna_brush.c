@@ -380,6 +380,7 @@ static EnumPropertyItem *rna_Brush_direction_itemf(bContext *UNUSED(C), PointerR
 		case SCULPT_TOOL_BLOB:
 		case SCULPT_TOOL_LAYER:
 		case SCULPT_TOOL_CLAY:
+		case SCULPT_TOOL_CLAY_STRIPS:
 			return prop_direction_items;
 
 		case SCULPT_TOOL_MASK:
