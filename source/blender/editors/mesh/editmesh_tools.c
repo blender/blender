@@ -1344,7 +1344,8 @@ void MESH_OT_flip_normals(wmOperatorType *ot)
 static const EnumPropertyItem direction_items[] = {
 	{DIRECTION_CW, "CW", 0, "Clockwise", ""},
 	{DIRECTION_CCW, "CCW", 0, "Counter Clockwise", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 /* only accepts 1 selected edge, or 2 selected faces */
 static int edbm_edge_rotate_selected_exec(bContext *C, wmOperator *op)
@@ -1957,7 +1958,8 @@ static EnumPropertyItem merge_type_items[] = {
 	{3, "CENTER", 0, "At Center", ""},
 	{4, "CURSOR", 0, "At Cursor", ""},
 	{5, "COLLAPSE", 0, "Collapse", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 static EnumPropertyItem *merge_type_itemf(bContext *C, PointerRNA *UNUSED(ptr),  PropertyRNA *UNUSED(prop), int *free)
 {	
@@ -2377,13 +2379,15 @@ void MESH_OT_select_axis(wmOperatorType *ot)
 		{0,  "POSITIVE", 0, "Positive Axis", ""},
 		{1,  "NEGATIVE", 0, "Negative Axis", ""},
 		{-1, "ALIGNED",  0, "Aligned Axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem axis_items_xyz[] = {
 		{0, "X_AXIS", 0, "X Axis", ""},
 		{1, "Y_AXIS", 0, "Y Axis", ""},
 		{2, "Z_AXIS", 0, "Z Axis", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Select Axis";
@@ -2685,7 +2689,7 @@ static int edbm_knife_cut_exec(bContext *C, wmOperator *op)
 	}
 
 	/* get the cut curve */
-	RNA_BEGIN (op->ptr, itemptr, "path")
+	RNA_BEGIN(op->ptr, itemptr, "path")
 	{
 		RNA_float_get_array(&itemptr, "loc", (float *)&curve[len]);
 		len++;
@@ -3566,7 +3570,8 @@ void MESH_OT_select_by_number_vertices(wmOperatorType *ot)
 		{1, "EQUAL", 0, "Equal To", ""},
 		{2, "GREATER", 0, "Greater Than", ""},
 		{3, "NOTEQUAL", 0, "Not Equal To", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Select by Number of Vertices";
@@ -3889,12 +3894,12 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 			mp = map[0] = MEM_callocN(sizeof(int) * totelem[0], "sort_bmelem vert map");
 
 			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
-			if (BM_elem_flag_test(ve, flag)) {
-				mp[affected[0]++] = i;
-			}
-			else {
-				*tb = i;
-				tb++;
+				if (BM_elem_flag_test(ve, flag)) {
+					mp[affected[0]++] = i;
+				}
+				else {
+					*tb = i;
+					tb++;
 				}
 			}
 		}
@@ -3904,12 +3909,12 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 			mp = map[1] = MEM_callocN(sizeof(int) * totelem[1], "sort_bmelem edge map");
 
 			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
-			if (BM_elem_flag_test(ed, flag)) {
-				mp[affected[1]++] = i;
-			}
-			else {
-				*tb = i;
-				tb++;
+				if (BM_elem_flag_test(ed, flag)) {
+					mp[affected[1]++] = i;
+				}
+				else {
+					*tb = i;
+					tb++;
 				}
 			}
 		}
@@ -3919,17 +3924,17 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 			mp = map[2] = MEM_callocN(sizeof(int) * totelem[2], "sort_bmelem face map");
 
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
-			if (BM_elem_flag_test(fa, flag)) {
-				mp[affected[2]++] = i;
-			}
-			else {
-				*tb = i;
-				tb++;
+				if (BM_elem_flag_test(fa, flag)) {
+					mp[affected[2]++] = i;
+				}
+				else {
+					*tb = i;
+					tb++;
 				}
 			}
 		}
 
-		for (j = 3; j--;) {
+		for (j = 3; j--; ) {
 			int tot = totelem[j];
 			int aff = affected[j];
 			tb = tbuf[j];
@@ -4069,7 +4074,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 /*	printf("%d edges: %d to be affected…\n", totelem[1], affected[1]);*/
 /*	printf("%d faces: %d to be affected…\n", totelem[2], affected[2]);*/
 	if (affected[0] == 0 && affected[1] == 0 && affected[2] == 0) {
-		for (j = 3; j--;) {
+		for (j = 3; j--; ) {
 			if (pblock[j])
 				MEM_freeN(pblock[j]);
 			if (sblock[j])
@@ -4081,7 +4086,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	}
 
 	/* Sort affected elements, and populate mapping arrays, if needed. */
-	for (j = 3; j--;) {
+	for (j = 3; j--; ) {
 		pb = pblock[j];
 		sb = sblock[j];
 		if (pb && sb && !map[j]) {
@@ -4114,7 +4119,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	BM_mesh_remap(em->bm, map[0], map[1], map[2]);
 /*	DAG_id_tag_update(ob->data, 0);*/
 
-	for (j = 3; j--;) {
+	for (j = 3; j--; ) {
 		if (map[j])
 			MEM_freeN(map[j]);
 	}
@@ -4578,9 +4583,9 @@ static int edbm_convex_hull_exec(bContext *C, wmOperator *op)
 	BMOperator bmop;
 		
 	EDBM_op_init(em, &bmop, op, "convex_hull input=%hvef "
-				 "use_existing_faces=%b",
-				 BM_ELEM_SELECT,
-				 RNA_boolean_get(op->ptr, "use_existing_faces"));
+	             "use_existing_faces=%b",
+	             BM_ELEM_SELECT,
+	             RNA_boolean_get(op->ptr, "use_existing_faces"));
 	BMO_op_exec(em->bm, &bmop);
 
 	/* Hull fails if input is coplanar */
@@ -4647,20 +4652,20 @@ void MESH_OT_convex_hull(wmOperatorType *ot)
 
 	/* props */
 	RNA_def_boolean(ot->srna, "delete_unused", TRUE,
-					"Delete Unused",
-					"Delete selected elements that are not used by the hull");
+	                "Delete Unused",
+	                "Delete selected elements that are not used by the hull");
 
 	RNA_def_boolean(ot->srna, "use_existing_faces", TRUE,
-					"Use Existing Faces",
-					"Skip hull triangles that are covered by a pre-existing face");
+	                "Use Existing Faces",
+	                "Skip hull triangles that are covered by a pre-existing face");
 
 	RNA_def_boolean(ot->srna, "make_holes", FALSE,
-					"Make Holes",
-					"Delete selected faces that are used by the hull");
+	                "Make Holes",
+	                "Delete selected faces that are used by the hull");
 
 	RNA_def_boolean(ot->srna, "join_triangles", TRUE,
-					"Join Triangles",
-					"Merge adjacent triangles into quads");
+	                "Join Triangles",
+	                "Merge adjacent triangles into quads");
 
 	join_triangle_props(ot);
 }
