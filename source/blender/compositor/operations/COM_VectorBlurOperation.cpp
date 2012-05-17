@@ -94,7 +94,8 @@ bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 		newInput.ymax = this->getHeight();
 		newInput.ymin = 0;
 		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
-	} else {
+	}
+	else {
 		return false;
 	}
 }

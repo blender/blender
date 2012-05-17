@@ -27,15 +27,16 @@
 CropNode::CropNode(bNode *editorNode) : Node(editorNode) {
 }
 
-void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context){
+void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
 	bNode* node = getbNode();
 	NodeTwoXYs *cropSettings = (NodeTwoXYs*)node->storage;
 	bool relative = (bool)node->custom2;
 	bool cropImage = (bool)node->custom1;
 	CropBaseOperation *operation;
-	if (cropImage){
+	if (cropImage) {
 		operation = new CropImageOperation();
-	} else {
+	}
+	else {
 		operation = new CropOperation();	
 	}
 	operation->setCropSettings(cropSettings);

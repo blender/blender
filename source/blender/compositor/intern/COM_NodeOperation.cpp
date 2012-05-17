@@ -95,7 +95,8 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOpe
 	if (this->isInputNode()) {
 		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return false;
-	} else {
+	}
+	else {
 		unsigned int index;
 		vector<InputSocket*> &inputsockets = this->getInputSockets();
 	

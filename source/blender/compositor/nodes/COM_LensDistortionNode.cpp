@@ -42,7 +42,8 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 		operation->setData(data);
 		graph->addOperation(operation);
 
-	} else {
+	}
+	else {
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
 
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);

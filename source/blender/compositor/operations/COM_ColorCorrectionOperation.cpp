@@ -63,15 +63,19 @@ void ColorCorrectionOperation::executePixel(float* output, float x, float y, Pix
 #define MARGIN_DIV (0.5/MARGIN)
 	if ( level < this->data->startmidtones-MARGIN) {
 		levelShadows = 1.0f;
-	} else if (level < this->data->startmidtones+MARGIN) {
+	}
+	else if (level < this->data->startmidtones+MARGIN) {
 		levelMidtones = ((level-this->data->startmidtones)*MARGIN_DIV)+0.5;
 		levelShadows = 1.0- levelMidtones;
-	} else if (level < this->data->endmidtones-MARGIN) {
+	}
+	else if (level < this->data->endmidtones-MARGIN) {
 		levelMidtones = 1.0f;
-	} else if (level < this->data->endmidtones+MARGIN) {
+	}
+	else if (level < this->data->endmidtones+MARGIN) {
 		levelHighlights = ((level-this->data->endmidtones)*MARGIN_DIV)+0.5;
 		levelMidtones = 1.0- levelHighlights;
-	} else {
+	}
+	else {
 		levelHighlights = 1.0f;
 	}
 #undef MARGIN
@@ -111,17 +115,20 @@ void ColorCorrectionOperation::executePixel(float* output, float x, float y, Pix
 	
 	if (this->redChannelEnabled) {
 		output[0] = r;
-	} else {
+	}
+	else {
 		output[0] = inputImageColor[0];
 	}
 	if (this->greenChannelEnabled) {
 		output[1] = g;
-	} else {
+	}
+	else {
 		output[1] = inputImageColor[1];
 	}
 	if (this->blueChannelEnabled) {
 		output[2] = b;
-	} else {
+	}
+	else {
 		output[2] = inputImageColor[2];
 	}
 	output[3] = inputImageColor[3];

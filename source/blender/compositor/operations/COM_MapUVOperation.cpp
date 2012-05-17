@@ -110,7 +110,7 @@ void MapUVOperation::executePixel(float* color, float x, float y, PixelSampler s
 	this->inputColorProgram->read(color, u, v, dx, dy, inputBuffers);
 
 	/* "premul" */
-	if(alpha < 1.0f) {
+	if (alpha < 1.0f) {
 		color[0]*= alpha;
 		color[1]*= alpha;
 		color[2]*= alpha;

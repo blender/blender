@@ -36,7 +36,8 @@ void RenderLayersAlphaProg::executePixel(float* output, float x, float y, PixelS
 		output[1] = 0.0f;
 		output[2] = 0.0f;
 		output[3] = 0.0f;
-	} else {
+	}
+	else {
 		unsigned int offset = (iy*this->getWidth()+ix) * 4;
 		output[0] = inputBuffer[offset+3];
 		output[1] = 0.0f;

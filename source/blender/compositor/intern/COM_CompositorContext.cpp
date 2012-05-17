@@ -33,7 +33,8 @@ CompositorContext::CompositorContext() {
 const int CompositorContext::getFramenumber() const {
 	if (this->scene) {
 		return this->scene->r.cfra;
-	} else {
+	}
+	else {
 		return -1; /* this should never happen */
 	}
 }
@@ -41,7 +42,8 @@ const int CompositorContext::getFramenumber() const {
 const int CompositorContext::isColorManaged() const {
 	if (this->scene) {
 		return this->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-	} else {
+	}
+	else {
 		return 0; /* this should never happen */
 	}
 }

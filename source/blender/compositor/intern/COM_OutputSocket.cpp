@@ -98,7 +98,8 @@ void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single) 
 			relinkToSocket->addConnection(connection);
 //			relinkToSocket->setActualDataType(this->getActualDataType());
 			this->connections.erase(this->connections.begin());
-		} else {
+		}
+		else {
 			unsigned int index;
 			for (index = 0 ; index < this->connections.size();index ++) {
 				SocketConnection *connection = this->connections[index];

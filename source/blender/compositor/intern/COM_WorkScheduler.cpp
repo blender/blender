@@ -114,9 +114,10 @@ void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber) {
 	delete package;
 #elif COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #ifdef COM_OPENCL_ENABLED
-	if (group->isOpenCL() && openclActive){
+	if (group->isOpenCL() && openclActive) {
 		BLI_thread_queue_push(gpuqueue, package);
-	} else{
+	}
+	else {
 		BLI_thread_queue_push(cpuqueue, package);
 	}
 #else
@@ -145,7 +146,8 @@ void WorkScheduler::start(CompositorContext &context) {
 			BLI_insert_thread(&gputhreads, device);
 		}
 		openclActive = true;
-	} else {
+	}
+	else {
 		openclActive = false;
 	}
 #endif
@@ -159,7 +161,8 @@ void WorkScheduler::finish() {
 		while (BLI_thread_queue_size(gpuqueue) + BLI_thread_queue_size(cpuqueue) > 0) {
 			PIL_sleep_ms(10);
 		}
-	} else {
+	}
+	else {
 		while (BLI_thread_queue_size(cpuqueue) > 0) {
 			PIL_sleep_ms(10);
 		}
@@ -286,14 +289,14 @@ void WorkScheduler::initialize() {
 void WorkScheduler::deinitialize() {
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	Device* device;
-	while(cpudevices.size()>0) {
+	while (cpudevices.size()>0) {
 		device = cpudevices.back();
 		cpudevices.pop_back();
 		device->deinitialize();
 		delete device;
 	}
 #ifdef COM_OPENCL_ENABLED
-	while(gpudevices.size()>0) {
+	while (gpudevices.size()>0) {
 		device = gpudevices.back();
 		gpudevices.pop_back();
 		device->deinitialize();

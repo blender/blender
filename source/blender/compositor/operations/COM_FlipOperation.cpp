@@ -52,14 +52,16 @@ bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOper
 	if (this->flipX) {
 		newInput.xmax = (this->getWidth()- 1 - input->xmin)+1;
 		newInput.xmin = (this->getWidth()- 1 - input->xmax)-1;
-	} else {
+	}
+	else {
 		newInput.xmin = input->xmin;
 		newInput.xmax = input->xmax;
 	}
 	if (this->flipY) {
 		newInput.ymax = (this->getHeight()- 1 - input->ymin)+1;
 		newInput.ymin = (this->getHeight()- 1 - input->ymax)-1;
-	} else {
+	}
+	else {
 		newInput.ymin = input->ymin;
 		newInput.ymax = input->ymax;
 	}

@@ -33,7 +33,7 @@ void ConvertYCCToRGBOperation::initExecution() {
 }
 
 void ConvertYCCToRGBOperation::setMode(int mode) {
-	switch(mode)
+	switch (mode)
 	{
 	case 1:
 		this->mode = BLI_YCC_ITU_BT709;

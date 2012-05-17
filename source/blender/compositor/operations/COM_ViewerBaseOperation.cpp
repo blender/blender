@@ -86,7 +86,8 @@ void ViewerBaseOperation::deinitExecution() {
 const int ViewerBaseOperation::getRenderPriority() const {
 	if (this->isActiveViewerOutput()) {
 		return 8;
-	} else {
+	}
+	else {
 		return 0;
 	}
 }

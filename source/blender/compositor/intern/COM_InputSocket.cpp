@@ -48,9 +48,10 @@ void InputSocket::setConnection(SocketConnection *connection) {
 SocketConnection* InputSocket::getConnection() {return this->connection;}
 
 void InputSocket::determineResolution(unsigned int resolution[],unsigned int preferredResolution[]) {
-	if (this->isConnected()){
+	if (this->isConnected()) {
 		this->connection->getFromSocket()->determineResolution(resolution, preferredResolution);
-	} else {
+	}
+	else {
 		return;
 	}
 }
@@ -67,19 +68,24 @@ DataType InputSocket::convertToSupportedDataType(DataType datatype) {
 	if (datatype == COM_DT_VALUE) {
 		if (candoColor) {
 			return COM_DT_COLOR;
-		} else if (candoVector) {
+		}
+		else if (candoVector) {
 			return COM_DT_VECTOR;
 		}
-	} else if (datatype == COM_DT_VECTOR) {
+	}
+	else if (datatype == COM_DT_VECTOR) {
 		if (candoColor) {
 			return COM_DT_COLOR;
-		} else if (candoValue) {
+		}
+		else if (candoValue) {
 			return COM_DT_VALUE;
 		}
-	} else if (datatype == COM_DT_COLOR) {
+	}
+	else if (datatype == COM_DT_COLOR) {
 		if (candoVector) {
 			return COM_DT_VECTOR;
-		} else if (candoValue) {
+		}
+		else if (candoValue) {
 			return COM_DT_VALUE;
 		}
 	}
@@ -115,7 +121,8 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket) {
 void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem* graph) {
 	if (!duplicate) {
 		this->relinkConnections(relinkToSocket, autoconnect, editorNodeInputSocketIndex, graph);
-	} else {
+	}
+	else {
 		if (!this->isConnected() && autoconnect) {
 			Node* node = (Node*)this->getNode();
 			switch (this->getActualDataType()) {
@@ -170,7 +177,8 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnec
 const ChannelInfo* InputSocket::getChannelInfo(const int channelnumber) {
 	if (this->isConnected() && this->connection->getFromSocket()) {
 		return this->connection->getFromSocket()->getChannelInfo(channelnumber);
-	} else {
+	}
+	else {
 		return NULL;
 	}
 }
@@ -191,7 +199,8 @@ SocketReader* InputSocket::getReader() {
 NodeOperation* InputSocket::getOperation() const {
 	if (isConnected()) {
 		return (NodeOperation*)this->connection->getFromSocket()->getNode();
-	} else {
+	}
+	else {
 		return NULL;
 	}
 }

@@ -42,7 +42,7 @@ void BlurBaseOperation::initExecution() {
 	this->inputSize = this->getInputSocketReader(1);
 	this->data->image_in_width= this->getWidth();
 	this->data->image_in_height= this->getHeight();
-	if(this->data->relative) {
+	if (this->data->relative) {
 		switch (this->data->aspect) {
 		case CMP_NODE_BLUR_ASPECT_NONE:
 			this->data->sizex= (int)(this->data->percentx*0.01f*this->data->image_in_width);
@@ -80,7 +80,7 @@ float* BlurBaseOperation::make_gausstab(int rad)
 	}
 
 	sum= 1.0f/sum;
-	for(i=0; i<n; i++)
+	for (i=0; i<n; i++)
 		gausstab[i]*= sum;
 
 	return gausstab;
@@ -95,7 +95,7 @@ void BlurBaseOperation::deinitExecution() {
 	this->data = NULL;
 }
 
-void BlurBaseOperation::updateSize(MemoryBuffer **memoryBuffers){
+void BlurBaseOperation::updateSize(MemoryBuffer **memoryBuffers) {
 	float result[4];
 	this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, memoryBuffers);
 	this->size = result[0];

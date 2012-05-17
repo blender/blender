@@ -24,7 +24,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
 
-FastGaussianBlurOperation::FastGaussianBlurOperation(): BlurBaseOperation(){
+FastGaussianBlurOperation::FastGaussianBlurOperation(): BlurBaseOperation() {
 	this->iirgaus = false;
 }
 
@@ -34,7 +34,7 @@ void FastGaussianBlurOperation::executePixel(float *color,int x, int y, MemoryBu
 	newData->read(color, x, y);	
 }
 
-bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output){
+bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
 	rcti newInput;
 	rcti sizeInput;
 	sizeInput.xmin = 0;
@@ -45,13 +45,15 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 	NodeOperation * operation = this->getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
-	}else {
-		if(this->iirgaus){
+	}
+	else {
+		if (this->iirgaus) {
 			newInput.xmax = input->xmax + (sx);
 			newInput.xmin = input->xmin - (sx);
 			newInput.ymax = input->ymax + (sy);
 			newInput.ymin = input->ymin - (sy);
-		}else {
+		}
+		else {
 			newInput.xmin = 0;
 			newInput.ymin = 0;
 			newInput.xmax = this->getWidth();
@@ -61,7 +63,7 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 	}
 }
 
-void* FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers){
+void* FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
 	MemoryBuffer *newBuf = (MemoryBuffer*)this->inputProgram->initializeTileData(rect, memoryBuffers);
 	MemoryBuffer *copy = newBuf->duplicate();
 	updateSize(memoryBuffers);
@@ -88,7 +90,7 @@ void* FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **m
 	return copy;
 }
 
-void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data){
+void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
 	MemoryBuffer *newData = (MemoryBuffer*)data;
 	delete newData;
 }

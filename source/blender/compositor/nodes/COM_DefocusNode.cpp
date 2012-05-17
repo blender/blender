@@ -60,7 +60,8 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		graph->addOperation(maxRadius);
 		graph->addOperation(minimize);
 		radiusOperation = minimize;
-	} else {
+	}
+	else {
 		ConvertDepthToRadiusOperation *converter = new ConvertDepthToRadiusOperation();
 		converter->setCameraObject(camob);
 		converter->setfStop(data->fstop);
@@ -101,7 +102,8 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		this->getOutputSocket()->relinkConnections(inverse->getOutputSocket());
 		graph->addOperation(correct);
 		graph->addOperation(inverse);
-	} else {
+	}
+	else {
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, true, graph);
 		this->getOutputSocket()->relinkConnections(operation->getOutputSocket());
 	}

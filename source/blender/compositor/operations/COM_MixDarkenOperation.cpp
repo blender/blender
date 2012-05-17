@@ -40,13 +40,13 @@ void MixDarkenOperation::executePixel(float* outputValue, float x, float y, Pixe
 	float valuem = 1.0f-value;
 	float tmp;
 	tmp=inputColor2[0]+((1.0f-inputColor2[0])*valuem);
-	if(tmp < inputColor1[0]) outputValue[0]= tmp;
+	if (tmp < inputColor1[0]) outputValue[0]= tmp;
 	else outputValue[0] = inputColor1[0];
 	tmp=inputColor2[1]+((1.0f-inputColor2[1])*valuem);
-	if(tmp < inputColor1[1]) outputValue[1]= tmp;
+	if (tmp < inputColor1[1]) outputValue[1]= tmp;
 	else outputValue[1] = inputColor1[1];
 	tmp=inputColor2[2]+((1.0f-inputColor2[2])*valuem);
-	if(tmp < inputColor1[2]) outputValue[2]= tmp;
+	if (tmp < inputColor1[2]) outputValue[2]= tmp;
 	else outputValue[2] = inputColor1[2];
 	
 	outputValue[3] = inputColor1[3];

@@ -48,7 +48,8 @@ void ReadBufferOperation::executePixel(float* color, float x, float y, PixelSamp
 	if (inputBuffer) {
 		if (sampler == COM_PS_NEAREST) {
 			inputBuffer->read(color, x, y);
-		} else {
+		}
+		else {
 			inputBuffer->readCubic(color, x, y);
 		}
 	}

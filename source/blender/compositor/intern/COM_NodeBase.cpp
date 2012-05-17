@@ -33,7 +33,7 @@ NodeBase::NodeBase() {
 }
 
 
-NodeBase::~NodeBase(){
+NodeBase::~NodeBase() {
 	while (!this->outputsockets.empty()) {
 		delete (this->outputsockets.back());
 		this->outputsockets.pop_back();
@@ -101,7 +101,8 @@ DataType NodeBase::determineActualDataType(OutputSocket *outputsocket) {
 	const int inputIndex = outputsocket->getInputSocketDataTypeDeterminatorIndex();
 	if (inputIndex != -1) {
 		return this->getInputSocket(inputIndex)->getActualDataType();
-	} else {
+	}
+	else {
 		return outputsocket->getDataType();
 	}
 }

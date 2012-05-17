@@ -53,7 +53,8 @@ void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 		operationLGG->setLift(n->lift_lgg);
 		operationLGG->setGammaInv(n->gamma_inv);
 		operation = operationLGG;
-	} else {
+	}
+	else {
 		ColorBalanceASCCDLOperation *operationCDL = new ColorBalanceASCCDLOperation();
 		operationCDL->setGain(n->gain);
 		operationCDL->setLift(n->lift);

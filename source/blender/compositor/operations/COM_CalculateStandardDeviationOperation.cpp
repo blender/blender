@@ -48,7 +48,7 @@ void* CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 			if (buffer[offset+3] > 0) {
 				pixels ++;
 		
-				switch(this->setting)
+				switch (this->setting)
 				{
 				case 1:
 					{

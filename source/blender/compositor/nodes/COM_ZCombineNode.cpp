@@ -35,7 +35,8 @@ void ZCombineNode::convertToOperations(ExecutionSystem* system, CompositorContex
 		ZCombineOperation * operation = NULL;
 		if (this->getbNode()->custom1) {
 			operation = new ZCombineAlphaOperation();
-		} else {
+		}
+		else {
 			operation = new ZCombineOperation();
 		}
 
@@ -52,7 +53,8 @@ void ZCombineNode::convertToOperations(ExecutionSystem* system, CompositorContex
 			this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
 			system->addOperation(zoperation);
 		}
-	} else {
+	}
+	else {
 		if (this->getOutputSocket(1)->isConnected()) {
 			MathMinimumOperation * zoperation = new MathMinimumOperation();
 			this->getInputSocket(1)->relinkConnections(zoperation->getInputSocket(0), true, 1, system);

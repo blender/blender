@@ -43,11 +43,14 @@ void CombineRGBANode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	CombineChannelsOperation *operation = new CombineChannelsOperation();
 	if (inputRSocket->isConnected()) {
 		operation->setResolutionInputSocketIndex(0);
-	} else if (inputGSocket->isConnected()) {
+	}
+	else if (inputGSocket->isConnected()) {
 		operation->setResolutionInputSocketIndex(1);
-	} else if (inputBSocket->isConnected()) {
+	}
+	else if (inputBSocket->isConnected()) {
 		operation->setResolutionInputSocketIndex(2);
-	} else {
+	}
+	else {
 		operation->setResolutionInputSocketIndex(3);
 	}
 	inputRSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);

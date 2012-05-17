@@ -39,7 +39,8 @@ void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	if (editorsnode->custom2 == 0) {
 		// Simple color spill
 		operation = new ColorSpillOperation();
-	} else {
+	}
+	else {
 		// Average color spill
 		operation = new ColorSpillAverageOperation();
 	}

@@ -80,7 +80,8 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 			this->input->deinitializeTileData(rect, memoryBuffers, data);
 			data = NULL;
 		}
-	} else {
+	}
+	else {
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;

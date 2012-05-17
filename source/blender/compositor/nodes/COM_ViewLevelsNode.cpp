@@ -52,7 +52,8 @@ void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 			CalculateStandardDeviationOperation * operation = new CalculateStandardDeviationOperation();
 			if (firstOperationConnected) {
 				addLink(graph, inputSocket, operation->getInputSocket(0));
-			}else{
+			}
+			else {
 				input->relinkConnections(operation->getInputSocket(0), true, 0, graph);
 			}
 			operation->setSetting(this->getbNode()->custom1);

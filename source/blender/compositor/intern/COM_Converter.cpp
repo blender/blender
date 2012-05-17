@@ -361,15 +361,20 @@ void Converter::convertDataType(SocketConnection* connection, ExecutionSystem *s
 	NodeOperation * converter = NULL;
 	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
 		converter = new ConvertValueToColourProg();
-	} else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
+	}
+	else if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertValueToVectorOperation();
-	} else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
+	}
+	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VALUE) {
 		converter = new ConvertColourToValueProg();
-	} else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
+	}
+	else if (fromDatatype == COM_DT_COLOR && toDatatype == COM_DT_VECTOR) {
 		converter = new ConvertColorToVectorOperation();
-	} else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
+	}
+	else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_VALUE) {
 		converter = new ConvertVectorToValueOperation();
-	} else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
+	}
+	else if (fromDatatype == COM_DT_VECTOR && toDatatype == COM_DT_COLOR) {
 		converter = new ConvertVectorToColorOperation();
 	}
 	if (converter != NULL) {
@@ -418,7 +423,8 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 		scaleY = toHeight/fromHeight;
 		if (scaleX < scaleY) {
 			scaleX = scaleY;
-		} else {
+		}
+		else {
 			scaleY = scaleX;
 		}
 		break;
@@ -435,7 +441,7 @@ void Converter::convertResolution(SocketConnection *connection, ExecutionSystem 
 		NodeOperation *first = NULL;
 		SocketConnection *c;
 		ScaleOperation * scaleOperation = NULL;
-		if(doScale) {
+		if (doScale) {
 			scaleOperation = new ScaleOperation();
 			first = scaleOperation;
 			SetValueOperation * sxop = new SetValueOperation();

@@ -52,7 +52,7 @@ Node::Node(bNode* editorNode, bool create_sockets) {
 			input = (bNodeSocket*)input->next;
 		}
 		bNodeSocket *output = (bNodeSocket*)editorNode->outputs.first;
-		while(output != NULL) {
+		while (output != NULL) {
 			DataType dt = COM_DT_VALUE;
 			if (output->type == SOCK_RGBA) dt = COM_DT_COLOR;
 			if (output->type == SOCK_VECTOR) dt = COM_DT_VECTOR;

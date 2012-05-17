@@ -50,7 +50,8 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		graph->addOperation(operation);
 		graph->addOperation(converter);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-	} else {
+	}
+	else {
 		BokehBlurOperation *operation = new BokehBlurOperation();
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);

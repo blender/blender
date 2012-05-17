@@ -37,7 +37,8 @@ void IDMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
 	if (bnode->custom2==0 || context->getScene()->r.scemode & R_FULL_SAMPLE) {
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
-	} else {
+	}
+	else {
 		AntiAliasOperation * antiAliasOperation = new AntiAliasOperation();
 		addLink(graph, operation->getOutputSocket(), antiAliasOperation->getInputSocket(0));
 		this->getOutputSocket(0)->relinkConnections(antiAliasOperation->getOutputSocket(0));

@@ -119,7 +119,8 @@ public:
 		float b2c = b*b-c;
 		if (b2c < 0) {
 			result->hit = false;
-		} else {
+		}
+		else {
 			float sgn = (this->radius*ray->direction[2])>0?1.0f:-1.0f;
 			float t = sqrtf(b2c)*sgn-b;
 			result->position[0] = ray->direction[0]*t+ray->position[0];
@@ -137,7 +138,8 @@ public:
 				result->normal[0] = -p[0];
 				result->normal[1] = -p[1];
 				result->normal[2] = -p[2];
-			} else {
+			}
+			else {
 				result->normal[0] = p[0];
 				result->normal[1] = p[1];
 				result->normal[2] = p[2];
@@ -168,7 +170,7 @@ public:
 	bool valid;
 	bool hasIntensity;
 };
-class Bounce{
+class Bounce {
 public:
 	LensInterface *interface1;
 	LensInterface *interface2;
@@ -245,15 +247,15 @@ public:
 
 //                dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
-//                if(dot>0.0f) {
+//                if (dot>0.0f) {
 //                        index = 1.0f/index;
 //                        fac= 1.0f - (1.0f - dot*dot)*index*index;
-//                        if(fac<= 0.0f) return 0;
+//                        if (fac<= 0.0f) return 0;
 //                        fac= -dot*index + sqrt(fac);
 //                }
 //                else {
 //                        fac= 1.0f - (1.0f - dot*dot)*index*index;
-//                        if(fac<= 0.0f) return 0;
+//                        if (fac<= 0.0f) return 0;
 //                        fac= -dot*index - sqrt(fac);
 //                }
 
@@ -281,7 +283,8 @@ public:
 //                double test = 1.0f - index*index*(1.0f-ni*ni);
 //                if (test < 0) {
 //                        return 0;
-//                } else {
+//                }
+//                else {
 //                        double mul = index*ni + sqrt(test);
 //                        refract[0] = index * view[0] - mul*n[0];
 //                        refract[1] = index * view[1] - mul*n[1];
@@ -348,7 +351,8 @@ public:
 				delta = -delta;
 				if (phase == 0) {
 					next = bounce->interface2;
-				} else {
+				}
+				else {
 					next = NULL;
 				}
 				phase ++;
@@ -399,7 +403,8 @@ public:
 					if (ref == 0) {
 						break;
 					}
-				} else {
+				}
+				else {
 					this->reflection(result->direction, intersection.normal, result->direction);
 					float  fresnelMultiplyer = fresnelAR(intersection.theta, result->wavelength, f->thicknessCoathing, n0, n1, n2);
 					if (isnan(fresnelMultiplyer)) {
@@ -412,7 +417,8 @@ public:
 		}
 		if (k < bounce->length-1) {
 			result->intensity = 0;
-		} else {
+		}
+		else {
 			result->valid = true;
 		}
 	}
@@ -446,7 +452,8 @@ void LensGhostProjectionOperation::initExecution() {
 			visualLampPosition[0] = 0;
 			visualLampPosition[1] = 0;
 			visualLampPosition[2] = 0;
-		} else {
+		}
+		else {
 			/* too simple, better to return the distance on the view axis only
 			 * return len_v3v3(ob->obmat[3], cam->dof_ob->obmat[3]); */
 			float matt[4][4], imat[4][4], obmat[4][4];
@@ -612,21 +619,25 @@ void* LensGhostOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 						face->v2 = vertex4;
 						face->v3 = vertex1;
 						result->push_back(face);
-					} else if (number == 3) {
+					}
+					else if (number == 3) {
 						LensFace *face = new LensFace();
 						if (!vertex1->hasIntensity) {
 							face->v1 = vertex2;
 							face->v2 = vertex3;
 							face->v3 = vertex4;
-						} else if (!vertex2->hasIntensity) {
+						}
+						else if (!vertex2->hasIntensity) {
 							face->v1 = vertex1;
 							face->v2 = vertex3;
 							face->v3 = vertex4;
-						} else if (!vertex3->hasIntensity) {
+						}
+						else if (!vertex3->hasIntensity) {
 							face->v1 = vertex1;
 							face->v2 = vertex2;
 							face->v3 = vertex4;
-						} else {
+						}
+						else {
 							face->v1 = vertex1;
 							face->v2 = vertex2;
 							face->v3 = vertex3;

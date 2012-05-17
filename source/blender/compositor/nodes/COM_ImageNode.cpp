@@ -65,9 +65,9 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	int numberOfOutputs = this->getNumberOfOutputSockets();
 
 	/* force a load, we assume iuser index will be set OK anyway */
-	if(image && image->type==IMA_TYPE_MULTILAYER) {
+	if (image && image->type==IMA_TYPE_MULTILAYER) {
 		BKE_image_get_ibuf(image, imageuser);
-		if(image->rr) {
+		if (image->rr) {
 			OutputSocket * socket;
 			int index;
 			for (index = 0 ; index < numberOfOutputs ; index ++) {
@@ -110,7 +110,8 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 				}
 			}
 		}
-	} else {
+	}
+	else {
 		if (numberOfOutputs >  0) {
 			ImageOperation *operation = new ImageOperation();
 			if (outputImage->isConnected()) {

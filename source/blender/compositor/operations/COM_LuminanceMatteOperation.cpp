@@ -52,10 +52,10 @@ void LuminanceMatteOperation::executePixel(float* outputValue, float x, float y,
 	*/
 		
 	/* test range*/
-	if(inColor[0] > high) {
+	if (inColor[0] > high) {
 		alpha=1.f;
 	}
-	else if(inColor[0] < low){
+	else if (inColor[0] < low) {
 		alpha=0.f;
 	}
 	else {/*blend */

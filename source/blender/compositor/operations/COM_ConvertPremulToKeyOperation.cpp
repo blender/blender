@@ -40,7 +40,7 @@ void ConvertPremulToKeyOperation::executePixel(float* outputValue, float x, floa
 	this->inputColor->read(inputValue, x, y, sampler, inputBuffers);
 	alpha = inputValue[3];
 
-	if(fabsf(alpha) < 1e-5f) {
+	if (fabsf(alpha) < 1e-5f) {
 		outputValue[0]= 0.f;
 		outputValue[1]= 0.f;
 		outputValue[2]= 0.f;

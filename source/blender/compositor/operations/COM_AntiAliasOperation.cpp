@@ -43,7 +43,8 @@ void AntiAliasOperation::initExecution() {
 void AntiAliasOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
 	if (y < 0 || y >= this->height || x < 0 || x >= this->width) {
 		color[0] = 0.0f;
-	} else {
+	}
+	else {
 		int offset = y*this->width + x;
 		color[0] = buffer[offset]/255.0f;
 	}
@@ -62,7 +63,8 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	rcti imageInput;
 	if (this->buffer) {
 		return false;
-	} else {
+	}
+	else {
 		NodeOperation* operation = getInputOperation(0);
 		imageInput.xmax = operation->getWidth();
 		imageInput.xmin = 0;

@@ -57,7 +57,8 @@ void BokehBlurOperation::initExecution() {
 	float dimension;
 	if (width<height) {
 		dimension = width;
-	} else {
+	}
+	else {
 		dimension = height;
 	}
 	this->bokehMidX = width/2.0f;
@@ -119,7 +120,8 @@ void BokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 		color[1] = tempColor[1]*(1.0/overallmultiplyerg);
 		color[2] = tempColor[2]*(1.0/overallmultiplyerb);
 		color[3] = 1.0f;
-	} else {
+	}
+	else {
 		inputProgram->read(color, x, y, COM_PS_NEAREST, inputBuffers);
 	}
 }

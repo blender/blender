@@ -52,7 +52,8 @@ void PreviewOperation::initExecution() {
 	this->input = getInputSocketReader(0);
 	if (!this->node->preview) {
 		this->node->preview = (bNodePreview*)MEM_callocN(sizeof(bNodePreview), "node preview");
-	} else {
+	}
+	else {
 		if (this->getWidth() == (unsigned int)this->node->preview->xsize && this->getHeight() == (unsigned int)this->node->preview->ysize) {
 			this->outputBuffer = this->node->preview->rect;
 		}
@@ -60,7 +61,7 @@ void PreviewOperation::initExecution() {
 
 	if (this->outputBuffer == NULL) {
 		this->outputBuffer = (unsigned char*)MEM_callocN(sizeof(unsigned char)*4*getWidth()*getHeight(), "PreviewOperation");
-		if(this->node->preview->rect) {
+		if (this->node->preview->rect) {
 				MEM_freeN(this->node->preview->rect);
 		}
 		this->node->preview->xsize= getWidth();
@@ -112,7 +113,8 @@ void PreviewOperation::determineResolution(unsigned int resolution[], unsigned i
 	this->divider = 0.0f;
 	if (width > height) {
 		divider = COM_PREVIEW_SIZE / (width-1);
-	} else {
+	}
+	else {
 		divider = COM_PREVIEW_SIZE / (height-1);
 	}
 	width = width * divider;

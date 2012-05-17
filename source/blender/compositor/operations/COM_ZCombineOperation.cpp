@@ -52,7 +52,8 @@ void ZCombineOperation::executePixel(float* color, float x, float y, PixelSample
 	this->depth2Reader->read(depth2, x, y, sampler, inputBuffers);
 	if (depth1[0]<depth2[0]) {
 		this->image1Reader->read(color, x, y, sampler, inputBuffers);
-	} else {
+	}
+	else {
 		this->image2Reader->read(color, x, y, sampler, inputBuffers);
 	}
 }
@@ -67,7 +68,8 @@ void ZCombineAlphaOperation::executePixel(float* color, float x, float y, PixelS
 	if (depth1[0]<depth2[0]) {
 		this->image1Reader->read(color1, x, y, sampler, inputBuffers);
 		this->image2Reader->read(color2, x, y, sampler, inputBuffers);
-	} else {
+	}
+	else {
 		this->image1Reader->read(color2, x, y, sampler, inputBuffers);
 		this->image2Reader->read(color1, x, y, sampler, inputBuffers);
 	}

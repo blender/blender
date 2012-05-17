@@ -46,7 +46,8 @@ ExecutionSystem::ExecutionSystem(bNodeTree* editingtree, bool rendering) {
 	/* initialize the CompositorContext */
 	if (rendering) {
 		context.setQuality((CompositorQuality)editingtree->render_quality);
-	} else {
+	}
+	else {
 		context.setQuality((CompositorQuality)editingtree->edit_quality);
 	}
 	context.setRendering(rendering);
@@ -77,22 +78,22 @@ ExecutionSystem::ExecutionSystem(bNodeTree* editingtree, bool rendering) {
 
 ExecutionSystem::~ExecutionSystem() {
 	unsigned int index;
-	for(index = 0; index < this->connections.size(); index++) {
+	for (index = 0; index < this->connections.size(); index++) {
 		SocketConnection* connection = this->connections[index];
 		delete connection;
 	}
 	this->connections.clear();
-	for(index = 0; index < this->nodes.size(); index++) {
+	for (index = 0; index < this->nodes.size(); index++) {
 		Node* node = this->nodes[index];
 		delete node;
 	}
 	this->nodes.clear();
-	for(index = 0; index < this->operations.size(); index++) {
+	for (index = 0; index < this->operations.size(); index++) {
 		NodeOperation* operation = this->operations[index];
 		delete operation;
 	}
 	this->operations.clear();
-	for(index = 0; index < this->groups.size(); index++) {
+	for (index = 0; index < this->groups.size(); index++) {
 		ExecutionGroup* group = this->groups[index];
 		delete group;
 	}
@@ -101,7 +102,7 @@ ExecutionSystem::~ExecutionSystem() {
 
 void ExecutionSystem::execute() {
 	unsigned int order = 0;
-	for( vector<NodeOperation*>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter ) {
+	for ( vector<NodeOperation*>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter ) {
 		NodeBase* node = *iter;
 		NodeOperation *operation = (NodeOperation*) node;
 		if (operation->isReadBufferOperation()) {
@@ -214,7 +215,7 @@ void ExecutionSystem::convertToOperations() {
 	unsigned int index;
 	// first determine data types of the nodes, this can be used by the node to convert to a different operation system
 	this->determineActualSocketDataTypes((vector<NodeBase*>&)this->nodes);
-	for(index = 0; index < this->nodes.size(); index++) {
+	for (index = 0; index < this->nodes.size(); index++) {
 		Node* node = (Node*)this->nodes[index];
 		node->convertToOperations(this, &this->context);
 	}
@@ -258,14 +259,14 @@ void ExecutionSystem::groupOperations() {
 	NodeOperation * operation;
 	unsigned int index;
 	// surround complex operations with ReadBufferOperation and WriteBufferOperation
-	for(index = 0; index < this->operations.size(); index++) {
+	for (index = 0; index < this->operations.size(); index++) {
 		operation = this->operations[index];
 		if (operation->isComplex()) {
 			this->addReadWriteBufferOperations(operation);
 		}
 	}
 	ExecutionSystemHelper::findOutputNodeOperations(&outputOperations, this->getOperations(), this->context.isRendering());
-	for( vector<NodeOperation*>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter ) {
+	for ( vector<NodeOperation*>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter ) {
 		operation = *iter;
 		ExecutionGroup *group = new ExecutionGroup();
 		group->addOperation(this, operation);
@@ -283,7 +284,7 @@ void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 void ExecutionSystem::determineActualSocketDataTypes(vector<NodeBase*> &nodes) {
 	unsigned int index;
 	/* first do all input nodes */
-	for(index = 0; index < nodes.size(); index++) {
+	for (index = 0; index < nodes.size(); index++) {
 		NodeBase* node = nodes[index];
 		if (node->isInputNode()) {
 			node->determineActualSocketDataTypes();
@@ -291,7 +292,7 @@ void ExecutionSystem::determineActualSocketDataTypes(vector<NodeBase*> &nodes) {
 	}
 
 	/* then all other nodes */
-	for(index = 0; index < nodes.size(); index++) {
+	for (index = 0; index < nodes.size(); index++) {
 		NodeBase* node = nodes[index];
 		if (!node->isInputNode()) {
 			node->determineActualSocketDataTypes();

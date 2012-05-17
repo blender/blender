@@ -68,7 +68,8 @@ void BoxMaskOperation::executePixel(float* color, float x, float y, PixelSampler
 		case CMP_NODE_MASKTYPE_ADD:
 			if (inside) {
 				color[0] = max(inputMask[0],inputValue[0]);
-			} else {
+			}
+			else {
 				color[0] = inputMask[0];
 			}
 			break;
@@ -76,14 +77,16 @@ void BoxMaskOperation::executePixel(float* color, float x, float y, PixelSampler
 			if (inside) {
 				color[0] = inputMask[0]-inputValue[0];
 				CLAMP(color[0], 0, 1);
-			} else {
+			}
+			else {
 				color[0] = inputMask[0];
 			}
 			break;
 		case CMP_NODE_MASKTYPE_MULTIPLY:
 			if (inside) {
 				color[0] = inputMask[0]*inputValue[0];
-			} else {
+			}
+			else {
 				color[0] = 0;
 			}
 			break;
@@ -91,10 +94,12 @@ void BoxMaskOperation::executePixel(float* color, float x, float y, PixelSampler
 		if (inside) {
 			if (inputMask[0]>0.0f) {
 				color[0] = 0;
-			} else {
+			}
+			else {
 				color[0] = inputValue[0];
 			}
-		} else {
+		}
+		else {
 			color[0] = inputMask[0];
 		}
 			break;

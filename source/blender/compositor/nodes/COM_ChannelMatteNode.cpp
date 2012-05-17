@@ -39,7 +39,7 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	bNode* node = this->getbNode();
 
 	/* colorspace */
-	switch(node->custom1) {
+	switch (node->custom1) {
 	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
 		break;
 	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/

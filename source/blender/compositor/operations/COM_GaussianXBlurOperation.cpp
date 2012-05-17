@@ -43,7 +43,7 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers) {
 	if (this->gausstab == NULL) {
 		updateSize(memoryBuffers);
 		float rad = size*this->data->sizex;
-		if(rad<1)
+		if (rad<1)
 			rad= 1;
 
 		this->rad = rad;
@@ -111,13 +111,15 @@ bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	NodeOperation * operation = this->getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
-	}else {
+	}
+	else {
 		if (this->gausstab == NULL) {
 			newInput.xmax = this->getWidth();
 			newInput.xmin = 0;
 			newInput.ymax = this->getHeight();
 			newInput.ymin = 0;
-		}else{
+		}
+		else {
 			newInput.xmax = input->xmax + rad;
 			newInput.xmin = input->xmin - rad;
 			newInput.ymax = input->ymax;

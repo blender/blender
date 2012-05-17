@@ -24,21 +24,21 @@
 #include "COM_WorkScheduler.h"
 
 
-OpenCLDevice::OpenCLDevice(cl_context context, cl_device_id device, cl_program program){
+OpenCLDevice::OpenCLDevice(cl_context context, cl_device_id device, cl_program program) {
 	this->device = device;
 	this->context = context;
 	this->program = program;
 	this->queue = NULL;
 }
 
-bool OpenCLDevice::initialize(){
+bool OpenCLDevice::initialize() {
 	cl_int error;
 	queue = clCreateCommandQueue(context, device, 0, &error);
 	return false;
 }
 
-void OpenCLDevice::deinitialize(){
-	if(queue){
+void OpenCLDevice::deinitialize() {
+	if (queue) {
 		clReleaseCommandQueue(queue);
 	}
 }

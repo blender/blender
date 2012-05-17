@@ -46,7 +46,7 @@ void MemoryManager::addMemoryProxy(MemoryProxy *memoryProxy) {
 		memoryProxy->setState(state);
 	}
 }
-MemoryBuffer* MemoryManager::getMemoryBuffer(MemoryProxy *id, unsigned int chunkNumber){
+MemoryBuffer* MemoryManager::getMemoryBuffer(MemoryProxy *id, unsigned int chunkNumber) {
 	MemoryManagerState * state = MemoryManager::getState(id);
 	if (!state) {
 		return NULL;

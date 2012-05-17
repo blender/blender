@@ -107,13 +107,14 @@ void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation*>* res
 
 static InputSocket* find_input(NodeRange &node_range, bNode *bnode, bNodeSocket* bsocket) {
 	if (bnode != NULL) {
-		for(NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
 			Node* node = *it;
 			if (node->getbNode() == bnode)
 				return node->findInputSocketBybNodeSocket(bsocket);
 		}
-	} else {
-		for(NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+	}
+	else {
+		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
 			Node* node = *it;
 			if (node->isProxyNode()) {
 				InputSocket *proxySocket = node->getInputSocket(0);
@@ -126,13 +127,14 @@ static InputSocket* find_input(NodeRange &node_range, bNode *bnode, bNodeSocket*
 }
 static OutputSocket* find_output(NodeRange &node_range, bNode *bnode, bNodeSocket* bsocket) {
 	if (bnode != NULL) {
-		for(NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
 			Node* node = *it;
 			if (node->getbNode() == bnode)
 				return node->findOutputSocketBybNodeSocket(bsocket);
 		}
-	} else {
-		for(NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+	}
+	else {
+		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
 			Node* node = *it;
 			if (node->isProxyNode()) {
 				OutputSocket *proxySocket = node->getOutputSocket(0);
@@ -146,7 +148,7 @@ static OutputSocket* find_output(NodeRange &node_range, bNode *bnode, bNodeSocke
 SocketConnection* ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink) {
 	/// @note: cyclic lines will be ignored. This has been copied from node.c
 	if (bNodeLink->tonode != 0 && bNodeLink->fromnode != 0) {
-		if(!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level!=0xFFF)) { // only add non cyclic lines! so execution will procede
+		if (!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level!=0xFFF)) { // only add non cyclic lines! so execution will procede
 			return NULL;
 		}
 	}
@@ -221,15 +223,20 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem* system) {
 		}
 		if (operation->isViewerOperation()) {
 			printf("Viewer");
-		} else if (operation->isOutputOperation(system->getContext().isRendering())) {
+		}
+		else if (operation->isOutputOperation(system->getContext().isRendering())) {
 			printf("Output");
-		} else if (operation->isSetOperation()) {
+		}
+		else if (operation->isSetOperation()) {
 			printf("Set");
-		} else if (operation->isReadBufferOperation()) {
+		}
+		else if (operation->isReadBufferOperation()) {
 			printf("ReadBuffer");
-		} else if (operation->isWriteBufferOperation()) {
+		}
+		else if (operation->isWriteBufferOperation()) {
 			printf("WriteBuffer");
-		} else {
+		}
+		else {
 			printf("O_%p", operation);
 		}
 		tot2 = operation->getNumberOfOutputSockets();
@@ -287,7 +294,8 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem* system) {
 		printf("\t\"O_%p\":\"OUT_%p\" -> \"O_%p\":\"IN_%p\"", connection->getFromNode(), connection->getFromSocket(), connection->getToNode(), connection->getToSocket());
 		if (!connection->isValid()) {
 			printf(" [color=red]");
-		} else {
+		}
+		else {
 			switch (connection->getFromSocket()->getActualDataType()) {
 			case COM_DT_VALUE:
 				printf(" [color=grey]");

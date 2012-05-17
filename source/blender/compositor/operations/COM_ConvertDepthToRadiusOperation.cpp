@@ -37,7 +37,8 @@ float ConvertDepthToRadiusOperation::determineFocalDistance() {
 
 	if (cameraObject == NULL || cameraObject->type != OB_CAMERA) {
 		return 10.0f;
-	} else {
+	}
+	else {
 		Camera *camera= (Camera*)this->cameraObject->data;
 		cam_lens = camera->lens;
 		if (camera->dof_ob) {

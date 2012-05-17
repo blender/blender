@@ -63,15 +63,15 @@ void DistanceMatteOperation::executePixel(float* outputValue, float x, float y, 
 	 */
  
 	/*make 100% transparent */
-	if(distance < tolerence) {
+	if (distance < tolerence) {
 		outputValue[0]=0.f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if(distance < falloff+tolerence){
+	else if (distance < falloff+tolerence) {
 		distance=distance-tolerence;
 		alpha=distance/falloff;
 		/*only change if more transparent than before */
-		if(alpha < inImage[3]) {
+		if (alpha < inImage[3]) {
 			outputValue[0]=alpha;
 		}
 		else { /* leave as before */

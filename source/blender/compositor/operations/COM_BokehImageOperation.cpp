@@ -70,9 +70,11 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y) {
 	if (distanceRoundingToCenter>=distanceToCenter && catadioptricDistanceToCenter<=distanceToCenter) {
 		if (distanceRoundingToCenter-distanceToCenter<1.0) {
 			insideBokeh = (distanceRoundingToCenter-distanceToCenter);
-		} else if (this->data->catadioptric != 0.0 && distanceToCenter-catadioptricDistanceToCenter<1.0) {
+		}
+		else if (this->data->catadioptric != 0.0 && distanceToCenter-catadioptricDistanceToCenter<1.0) {
 			insideBokeh = (distanceToCenter-catadioptricDistanceToCenter);
-		} else {
+		}
+		else {
 			insideBokeh = 1.0;
 		}
 	}
@@ -89,7 +91,8 @@ void BokehImageOperation::executePixel(float* color, float x, float y, PixelSamp
 		color[0] = insideBokehMax;
 		color[1] = insideBokehMed;
 		color[2] = insideBokehMin;
-	} else {
+	}
+	else {
 		color[0] = insideBokehMin;
 		color[1] = insideBokehMed;
 		color[2] = insideBokehMax;

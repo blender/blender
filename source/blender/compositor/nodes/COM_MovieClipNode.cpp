@@ -67,7 +67,8 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		if (ibuf) {
 			converter->setPredivided(ibuf->flags & IB_cm_predivide);
 		}
-	} else {
+	}
+	else {
 		addPreviewOperation(graph, operation->getOutputSocket(), 9);
 		if (outputMovieClip->isConnected()) {
 			outputMovieClip->relinkConnections(operation->getOutputSocket());
@@ -86,7 +87,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	angle = 0.0f;
 
 	if (ibuf) {
-		if(stab->flag&TRACKING_2D_STABILIZATION) {
+		if (stab->flag&TRACKING_2D_STABILIZATION) {
 			BKE_tracking_stabilization_data(&movieClip->tracking, context->getFramenumber(), ibuf->x, ibuf->y, loc, &scale, &angle);
 		}
 	}

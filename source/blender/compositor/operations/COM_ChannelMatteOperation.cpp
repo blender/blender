@@ -97,10 +97,10 @@ void ChannelMatteOperation::executePixel(float* outputValue, float x, float y, P
 	alpha = 1.f - alpha;
 	
 	/* test range*/
-	if(alpha > limit_max) {
+	if (alpha > limit_max) {
 		alpha = inColor[3]; /*whatever it was prior */
 	}
-	else if(alpha < limit_min){
+	else if (alpha < limit_min) {
 		alpha = 0.f;
 	}
 	else {/*blend */

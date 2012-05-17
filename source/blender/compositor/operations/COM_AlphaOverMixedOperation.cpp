@@ -35,13 +35,13 @@ void AlphaOverMixedOperation::executePixel(float* outputValue, float x, float y,
 	inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
 	inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
 	
-	if(inputOverColor[3]<=0.0f) {
+	if (inputOverColor[3]<=0.0f) {
 		outputValue[0] = inputColor1[0];
 		outputValue[1] = inputColor1[1];
 		outputValue[2] = inputColor1[2];
 		outputValue[3] = inputColor1[3];
 	}
-	else if(value[0]==1.0f && inputOverColor[3]>=1.0f) {
+	else if (value[0]==1.0f && inputOverColor[3]>=1.0f) {
 		outputValue[0] = inputOverColor[0];
 		outputValue[1] = inputOverColor[1];
 		outputValue[2] = inputOverColor[2];

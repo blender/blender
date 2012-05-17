@@ -89,7 +89,8 @@ void BilateralBlurOperation::executePixel(float* color, int x, int y, MemoryBuff
 		color[1] = blurColor[1]/blurDivider;
 		color[2] = blurColor[2]/blurDivider;
 		color[3] = blurColor[3]/blurDivider;
-	} else {
+	}
+	else {
 		color[0] = 0.0f;
 		color[1] = 0.0f;
 		color[2] = 0.0f;

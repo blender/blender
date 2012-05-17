@@ -54,7 +54,8 @@ void MovieDistortionOperation::initExecution() {
 		DistortionCache* newC = new DistortionCache(this->movieClip, this->width, this->height, this->distortion);
 		s_cache.push_back(newC);
 		this->cache = newC;
-	} else {
+	}
+	else {
 		this->cache = NULL;
 	}
 }

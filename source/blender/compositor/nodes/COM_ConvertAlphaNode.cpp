@@ -29,7 +29,7 @@ void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	bNode* node = this->getbNode();
 
 	/* value hardcoded in rna_nodetree.c */
-	if (node->custom1 == 1){
+	if (node->custom1 == 1) {
 		operation = new ConvertPremulToKeyOperation();
 	}
 	else {

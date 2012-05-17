@@ -59,7 +59,7 @@ void ColorMatteOperation::executePixel(float* outputValue, float x, float y, Pix
 	 * COM_SetAlphaOperation and the Value output
 	 */
 
-	if(
+	if (
 	/* do hue last because it needs to wrap, and does some more checks  */
 
 	/* sat */	(fabsf(inColor[1]-inKey[1]) < sat) &&

@@ -36,10 +36,12 @@ void DilateErodeOperation::initExecution() {
 	this->inputProgram = this->getInputSocketReader(0);
 	if (this->distance < 0.0f) {
 		this->scope = - this->distance + this->inset;
-	} else {
+	}
+	else {
 		if (this->inset*2 > this->distance) {
 			this->scope = max(this->inset*2 - this->distance, this->distance);
-		} else {
+		}
+		else {
 			this->scope = distance;
 		}
 	}
@@ -87,7 +89,8 @@ void DilateErodeOperation::executePixel(float* color, int x, int y, MemoryBuffer
 			}
 		}
 		pixelvalue = -sqrtf(mindist);
-	} else {
+	}
+	else {
 		for (int yi = miny ; yi<maxy;yi++) {
 			offset = ((yi-rect->ymin)*bufferWidth+(minx-rect->xmin))*4;
 			for (int xi = minx ; xi<maxx;xi++) {
@@ -109,21 +112,26 @@ void DilateErodeOperation::executePixel(float* color, int x, int y, MemoryBuffer
 		if (delta >= 0.0f) {
 			if (delta >= inset) {
 				color[0] = 1.0f;
-			} else {
+			}
+			else {
 				color[0] = delta/inset;
 			}
-		} else {
+		}
+		else {
 			color[0] = 0.0f;
 		}
-	} else {
+	}
+	else {
 		const float delta = -distance+pixelvalue;
 		if (delta < 0.0f) {
 			if (delta < -inset) {
 				color[0] = 1.0f;
-			} else {
+			}
+			else {
 				color[0] = (-delta)/inset;
 			}
-		} else {
+		}
+		else {
 			color[0] = 0.0f;
 		}
 	}

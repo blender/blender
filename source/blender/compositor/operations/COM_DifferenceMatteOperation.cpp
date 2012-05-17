@@ -61,15 +61,15 @@ void DifferenceMatteOperation::executePixel(float* outputValue, float x, float y
 	difference=difference/3.0;
 
 	/*make 100% transparent*/
-	if(difference < tolerence) {
+	if (difference < tolerence) {
 		outputValue[0]=0.0;
 	}
 	/*in the falloff region, make partially transparent */
-	else if(difference < falloff+tolerence) {
+	else if (difference < falloff+tolerence) {
 		difference=difference-tolerence;
 		alpha=difference/falloff;
 		/*only change if more transparent than before */
-		if(alpha < inColor1[3]) {
+		if (alpha < inColor1[3]) {
 			outputValue[0]=alpha;
 		}
 		else { /* leave as before */

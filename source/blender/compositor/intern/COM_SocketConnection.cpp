@@ -29,7 +29,7 @@ SocketConnection::SocketConnection() {
 	this->setIgnoreResizeCheck(false);
 }
 
-void SocketConnection::setFromSocket(OutputSocket* fromsocket){
+void SocketConnection::setFromSocket(OutputSocket* fromsocket) {
 	if (fromsocket == NULL) {
 		throw "ERROR";
 	}
@@ -49,14 +49,16 @@ InputSocket* SocketConnection::getToSocket() const {return this->toSocket;}
 NodeBase* SocketConnection::getFromNode() const {
 	if (this->getFromSocket() == NULL) {
 		return NULL;
-	} else {
+	}
+	else {
 		return this->getFromSocket()->getNode();
 	}
 }
 NodeBase* SocketConnection::getToNode() const {
 	if (this->getToSocket() == NULL) {
 		return NULL;
-	} else {
+	}
+	else {
 		return this->getToSocket()->getNode();
 	}
 }

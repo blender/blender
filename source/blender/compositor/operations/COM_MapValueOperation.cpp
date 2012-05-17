@@ -37,11 +37,11 @@ void MapValueOperation::executePixel(float* outputValue, float x, float y, Pixel
 	inputOperation->read(src, x, y, sampler, inputBuffers);
 	TexMapping *texmap= this->settings;
 	float value = (src[0] + texmap->loc[0])*texmap->size[0];
-	if(texmap->flag & TEXMAP_CLIP_MIN)
-		if(value<texmap->min[0])
+	if (texmap->flag & TEXMAP_CLIP_MIN)
+		if (value<texmap->min[0])
 			value= texmap->min[0];
-	if(texmap->flag & TEXMAP_CLIP_MAX)
-		if(value>texmap->max[0])
+	if (texmap->flag & TEXMAP_CLIP_MAX)
+		if (value>texmap->max[0])
 			value= texmap->max[0];
 	
 	outputValue[0] = value;

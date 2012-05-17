@@ -83,7 +83,8 @@ bool ExecutionGroup::canContainOperation(NodeOperation* operation) {
 
 	if (!this->isComplex()) {
 		return (!operation->isComplex());
-	} else {
+	}
+	else {
 		return false;
 	}
 }
@@ -101,7 +102,8 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 			ReadBufferOperation* readOperation = (ReadBufferOperation*)operation;
 			WriteBufferOperation* writeOperation = readOperation->getMemoryProxy()->getWriteBufferOperation();
 			this->addOperation(system, writeOperation);
-		} else {
+		}
+		else {
 			unsigned int index;
 			for (index = 0 ; index < operation->getNumberOfInputSockets(); index ++) {
 				InputSocket * inputSocket = operation->getInputSocket(index);
@@ -111,7 +113,8 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 				}
 			}
 		}
-	} else {
+	}
+	else {
 		if (operation->isWriteBufferOperation()) {
 			WriteBufferOperation * writeoperation = (WriteBufferOperation*)operation;
 			if (writeoperation->getMemoryProxy()->getExecutor() == NULL) {
@@ -124,7 +127,7 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 	}
 }
 
-NodeOperation* ExecutionGroup::getOutputNodeOperation() const{
+NodeOperation* ExecutionGroup::getOutputNodeOperation() const {
 	return this->operations[0]; // the first operation of the group is always the output operation.
 }
 
@@ -328,11 +331,13 @@ void ExecutionGroup::execute(ExecutionSystem* graph) {
 				finished=false;
 				startEvaluated = true;
 				numberEvaluated++;
-			} else if (state == COM_ES_SCHEDULED) {
+			}
+			else if (state == COM_ES_SCHEDULED) {
 				finished=false;
 				startEvaluated = true;
 				numberEvaluated++;
-			} else if (state == COM_ES_EXECUTED && !startEvaluated) {
+			}
+			else if (state == COM_ES_EXECUTED && !startEvaluated) {
 				startIndex = index+1;
 			}
 		}
@@ -533,7 +538,8 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem * graph, int xChu
 			if (!group->scheduleAreaWhenPossible(graph, &area)) {
 				canBeExecuted = false;
 			}
-		} else {
+		}
+		else {
 			throw "ERROR";
 		}
 	}

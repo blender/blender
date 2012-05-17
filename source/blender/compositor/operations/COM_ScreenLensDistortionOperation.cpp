@@ -133,7 +133,8 @@ void ScreenLensDistortionOperation::executePixel(float* outputColor, int x, int 
 
 		/* set alpha */
 		outputColor[3]= 1.0f;
-	} else {
+	}
+	else {
 		outputColor[0]= 0.0f;
 		outputColor[1]= 0.0f;
 		outputColor[2]= 0.0f;

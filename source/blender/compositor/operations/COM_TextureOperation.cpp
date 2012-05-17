@@ -52,7 +52,8 @@ void TextureBaseOperation::determineResolution(unsigned int resolution[], unsign
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
 		resolution[0] = COM_DEFAULT_RESOLUTION_WIDTH;
 		resolution[1] = COM_DEFAULT_RESOLUTION_HEIGHT;
-	} else {
+	}
+	else {
 		resolution[0] = preferredResolution[0];
 		resolution[1] = preferredResolution[1];
 	}
@@ -86,12 +87,12 @@ void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSam
 
 	retval= multitex_ext(this->texture, vec, NULL, NULL, 0, &texres);
 
-	if(texres.talpha)
+	if (texres.talpha)
 		color[3]= texres.ta;
 	else
 		color[3]= texres.tin;
 
-	if((retval & TEX_RGB)) {
+	if ((retval & TEX_RGB)) {
 		color[0]= texres.tr;
 		color[1]= texres.tg;
 		color[2]= texres.tb;

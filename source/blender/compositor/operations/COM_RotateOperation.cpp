@@ -42,7 +42,8 @@ void RotateOperation::initExecution() {
 	double rad;
 	if (this->doDegree2RadConversion) {
 		rad = DEG2RAD(degree[0]);
-	} else {
+	}
+	else {
 		rad = degree[0];
 	}
 	this->cosine = cos(rad);

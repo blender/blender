@@ -48,7 +48,8 @@ void ColorSpillOperation::initExecution() {
 			settings->uspillg = 0.0f;
 			settings->uspillb = 0.0f;
 		}
-	} else if (spillChannel == 1) {
+	}
+	else if (spillChannel == 1) {
 		rmut = 1.0f;
 		gmut = -1.0f;
 		bmut = 1.0f;
@@ -59,7 +60,8 @@ void ColorSpillOperation::initExecution() {
 			settings->uspillg = 1.0f;
 			settings->uspillb = 0.0f;
 		}
-	} else {
+	}
+	else {
 		rmut = 1.0f;
 		gmut = 1.0f;
 		bmut = -1.0f;
@@ -87,7 +89,7 @@ void ColorSpillOperation::executePixel(float* outputValue, float x, float y, Pix
 	this->inputImageReader->read(input, x, y, sampler, inputBuffers);
 	float rfac = min(1.0f, fac[0]);
 	map = calculateMapValue(rfac, input);
-	if(map>0) {
+	if (map>0) {
 		outputValue[0]=input[0]+rmut*(settings->uspillr*map);
 		outputValue[1]=input[1]+gmut*(settings->uspillg*map);
 		outputValue[2]=input[2]+bmut*(settings->uspillb*map);

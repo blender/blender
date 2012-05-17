@@ -36,7 +36,7 @@ MemoryProxy * MemoryManagerState::getMemoryProxy() {
 MemoryManagerState::~MemoryManagerState() {
 	this->memoryProxy = NULL;
 	unsigned int index;
-	for (index = 0 ; index < this->currentSize; index ++){
+	for (index = 0 ; index < this->currentSize; index ++) {
 		MemoryBuffer* buffer = this->chunkBuffers[index];
 		if (buffer) {
 			delete buffer;
@@ -69,7 +69,8 @@ void MemoryManagerState::addMemoryBuffer(MemoryBuffer *buffer) {
 	
 	if (this->chunkBuffers[chunkNumber] == NULL) {
 		this->chunkBuffers[chunkNumber] = buffer;
-	} else {
+	}
+	else {
 		throw "ALREADY ALLOCATED!";
 	}
 	BLI_mutex_unlock(&this->mutex);
@@ -77,7 +78,7 @@ void MemoryManagerState::addMemoryBuffer(MemoryBuffer *buffer) {
 
 MemoryBuffer* MemoryManagerState::getMemoryBuffer(unsigned int chunkNumber) {
 	MemoryBuffer* result = NULL;
-	if (chunkNumber< this->currentSize){
+	if (chunkNumber< this->currentSize) {
 		result = this->chunkBuffers[chunkNumber];
 		if (result) {
 			return result;
@@ -85,7 +86,7 @@ MemoryBuffer* MemoryManagerState::getMemoryBuffer(unsigned int chunkNumber) {
 	}
 	
 	BLI_mutex_lock(&this->mutex);
-	if (chunkNumber< this->currentSize){
+	if (chunkNumber< this->currentSize) {
 		result = this->chunkBuffers[chunkNumber];
 	}
 	

@@ -81,7 +81,7 @@ void MathDivideOperation::executePixel(float* outputValue, float x, float y, Pix
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if(inputValue2[0]==0)	/* We don't want to divide by zero. */
+	if (inputValue2[0]==0)	/* We don't want to divide by zero. */
 		outputValue[0]= 0.0;
 	else
 		outputValue[0]= inputValue1[0] / inputValue2[0];
@@ -124,7 +124,7 @@ void MathArcSineOperation::executePixel(float* outputValue, float x, float y, Pi
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if(inputValue1[0] <= 1 && inputValue1[0] >= -1 )
+	if (inputValue1[0] <= 1 && inputValue1[0] >= -1 )
 		outputValue[0]= asin(inputValue1[0]);
 	else
 		outputValue[0]= 0.0;
@@ -137,7 +137,7 @@ void MathArcCosineOperation::executePixel(float* outputValue, float x, float y, 
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if(inputValue1[0] <= 1 && inputValue1[0] >= -1 )
+	if (inputValue1[0] <= 1 && inputValue1[0] >= -1 )
 		outputValue[0]= acos(inputValue1[0]);
 	else
 		outputValue[0]= 0.0;
@@ -160,14 +160,16 @@ void MathPowerOperation::executePixel(float* outputValue, float x, float y, Pixe
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if( inputValue1[0] >= 0 ) {
+	if ( inputValue1[0] >= 0 ) {
 		outputValue[0]= pow(inputValue1[0], inputValue2[0]);
-	} else {
+	}
+	else {
 		float y_mod_1 = fmod(inputValue2[0], 1);
 		/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
 		if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
 			outputValue[0]= pow(inputValue1[0], (float)floor(inputValue2[0] + 0.5));
-		} else {
+		}
+		else {
 			outputValue[0] = 0.0;
 		}
 	}
@@ -180,7 +182,7 @@ void MathLogarithmOperation::executePixel(float* outputValue, float x, float y, 
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if( inputValue1[0] > 0  && inputValue2[0] > 0 )
+	if ( inputValue1[0] > 0  && inputValue2[0] > 0 )
 		outputValue[0]= log(inputValue1[0]) / log(inputValue2[0]);
 	else
 		outputValue[0]= 0.0;

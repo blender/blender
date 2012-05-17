@@ -38,7 +38,8 @@ void SetVectorOperation::determineResolution(unsigned int resolution[], unsigned
 	if (preferredResolution[0] == 0 ||preferredResolution[1]==0) {
 		resolution[0] = COM_DEFAULT_RESOLUTION_WIDTH;
 		resolution[1] = COM_DEFAULT_RESOLUTION_HEIGHT;
-	} else {
+	}
+	else {
 		resolution[0] = preferredResolution[0];
 		resolution[1] = preferredResolution[1];
 	}

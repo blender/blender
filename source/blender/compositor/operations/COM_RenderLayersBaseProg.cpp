@@ -44,15 +44,15 @@ void RenderLayersBaseProg::initExecution() {
 	Render *re= (scene)? RE_GetRender(scene->id.name): NULL;
 	RenderResult *rr= NULL;
 	
-	if(re)
+	if (re)
 			rr= RE_AcquireResultRead(re);
 	
-	if(rr) {
+	if (rr) {
 		SceneRenderLayer *srl= (SceneRenderLayer*)BLI_findlink(&scene->r.layers, getLayerId());
-		if(srl) {
+		if (srl) {
 	
 			   RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-			   if(rl && rl->rectf) {
+			   if (rl && rl->rectf) {
 				   this->inputBuffer = RE_RenderLayerGetPass(rl, renderpass);
 	
 				   if (this->inputBuffer == NULL || renderpass == SCE_PASS_COMBINED) {
@@ -76,19 +76,22 @@ void RenderLayersBaseProg::executePixel(float* output, float x, float y, PixelSa
 		output[1] = 0.0f;
 		output[2] = 0.0f;
 		output[3] = 0.0f;
-	} else {
+	}
+	else {
 		unsigned int offset = (iy*this->getWidth()+ix) * elementsize;
 		if (elementsize == 1) {
 			output[0] = inputBuffer[offset];
 			output[1] = 0.0f;
 			output[2] = 0.0f;
 			output[3] = 0.0f;
-		} else if (elementsize == 3){
+		}
+		else if (elementsize == 3) {
 			output[0] = inputBuffer[offset];
 			output[1] = inputBuffer[offset+1];
 			output[2] = inputBuffer[offset+2];
 			output[3] = 1.0f;
-		} else {
+		}
+		else {
 			output[0] = inputBuffer[offset];
 			output[1] = inputBuffer[offset+1];
 			output[2] = inputBuffer[offset+2];
@@ -109,21 +112,21 @@ void RenderLayersBaseProg::determineResolution(unsigned int resolution[], unsign
 	resolution[0] = 0;
 	resolution[1] = 0;
 	
-	if(re)
+	if (re)
 			rr= RE_AcquireResultRead(re);
 	
-	if(rr) {
+	if (rr) {
 		SceneRenderLayer *srl= (SceneRenderLayer*)BLI_findlink(&sce->r.layers, getLayerId());
-		if(srl) {
+		if (srl) {
 			   RenderLayer *rl= RE_GetRenderLayer(rr, srl->name);
-			   if(rl && rl->rectf) {
+			   if (rl && rl->rectf) {
 				   resolution[0]=rl->rectx;
 				   resolution[1]=rl->recty;
 			   }
 		}
 	}
 	
-	if(re)
+	if (re)
 		 RE_ReleaseResult(re);
 
 }

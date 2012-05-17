@@ -78,7 +78,8 @@ void MovieClipOperation::executePixel(float *color, float x, float y, PixelSampl
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 0.0f;
-	} else {
+	}
+	else {
 		switch (sampler) {
 		case COM_PS_NEAREST:
 			neareast_interpolation_color(this->movieClipBuffer, NULL, color, x, y);

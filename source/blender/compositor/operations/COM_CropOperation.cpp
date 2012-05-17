@@ -23,7 +23,7 @@
 #include "COM_CropOperation.h"
 #include "BLI_math.h"
 
-CropBaseOperation::CropBaseOperation() :NodeOperation(){
+CropBaseOperation::CropBaseOperation() :NodeOperation() {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
@@ -34,7 +34,7 @@ void CropBaseOperation::updateArea() {
 	SocketReader * inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
-	if (this->relative){
+	if (this->relative) {
 		settings->x1= width * settings->fac_x1;
 		settings->x2= width * settings->fac_x2;
 		settings->y1= height * settings->fac_y1;
@@ -55,22 +55,23 @@ void CropBaseOperation::updateArea() {
 	this->ymin = MIN2(settings->y1, settings->y2);
 }
 
-void CropBaseOperation::initExecution(){
+void CropBaseOperation::initExecution() {
 	this->inputOperation = this->getInputSocketReader(0);
 	updateArea();
 }
 
-void CropBaseOperation::deinitExecution(){
+void CropBaseOperation::deinitExecution() {
 	this->inputOperation = NULL;
 }
 
-CropOperation::CropOperation() :CropBaseOperation(){
+CropOperation::CropOperation() :CropBaseOperation() {
 }
 
-void CropOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]){
-	if ((x < this->xmax && x >= xmin) && (y < ymax && y >= ymin)){
+void CropOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+	if ((x < this->xmax && x >= xmin) && (y < ymax && y >= ymin)) {
 		inputOperation->read(color, x, y, sampler, inputBuffers);
-	} else {
+	}
+	else {
 		color[0] = 0.0f;
 		color[1] = 0.0f;
 		color[2] = 0.0f;
@@ -78,10 +79,10 @@ void CropOperation::executePixel(float *color, float x, float y, PixelSampler sa
 	}
 }
 
-CropImageOperation::CropImageOperation() :CropBaseOperation(){
+CropImageOperation::CropImageOperation() :CropBaseOperation() {
 }
 
-bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output){
+bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
 	rcti newInput;
 	
 	newInput.xmax = input->xmax + this->xmin;
@@ -92,13 +93,13 @@ bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void CropImageOperation::determineResolution(unsigned int resolution[], unsigned int preferedResolution[]){
+void CropImageOperation::determineResolution(unsigned int resolution[], unsigned int preferedResolution[]) {
 	NodeOperation::determineResolution(resolution, preferedResolution);
 	updateArea();
 	resolution[0] = this->xmax - this->xmin;
 	resolution[1] = this->ymax - this->ymin;
 }
 
-void CropImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]){
+void CropImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
 	this->inputOperation->read(color, (x + this->xmin), (y + this->ymin), sampler, inputBuffers);
 }

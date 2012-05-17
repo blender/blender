@@ -45,18 +45,22 @@ void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		mixOperation->setX(ntf->x);
 		convertProg = mixOperation;
 	
-	} else if (editorNode->custom1) {
+	}
+	else if (editorNode->custom1) {
 		convertProg = new AlphaOverKeyOperation();
-	} else {
+	}
+	else {
 		convertProg = new AlphaOverPremultiplyOperation();
 	}
 	
 	convertProg->setUseValueAlphaMultiply(false);
 	if (color1Socket->isConnected()) {
 		convertProg->setResolutionInputSocketIndex(1);
-	} else if (color2Socket->isConnected()) {
+	}
+	else if (color2Socket->isConnected()) {
 		convertProg->setResolutionInputSocketIndex(2);
-	} else {
+	}
+	else {
 		convertProg->setResolutionInputSocketIndex(0);
 	}
 	valueSocket->relinkConnections(convertProg->getInputSocket(0), true, 0, graph);

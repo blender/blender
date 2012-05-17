@@ -63,13 +63,15 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem* system, int outputS
 		if (outputSocketNumber == 0) { // only do for image socket if connected
 			addPreviewOperation(system, operation->getOutputSocket(), 9);
 		}
-	} else {
+	}
+	else {
 		if (outputSocketNumber == 0) {
 			system->addOperation(operation);
 			operation->setScene(scene);
 			operation->setLayerId(layerId);
 			addPreviewOperation(system, operation->getOutputSocket(), 9);
-		} else {
+		}
+		else {
 			delete operation;
 		}
 	}

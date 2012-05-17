@@ -72,13 +72,13 @@ void ChromaMatteOperation::executePixel(float* outputValue, float x, float y, Pi
 	/* if kfg is <0 then the pixel is outside of the key color */
 	kfg= x_angle-(fabsf(z_angle)/tanf(acceptance/2.f));
 
-	if(kfg>0.f) {  /* found a pixel that is within key color */
+	if (kfg>0.f) {  /* found a pixel that is within key color */
 		alpha=(1.f-kfg)*(gain);
 
 		beta=atan2(z_angle,x_angle);
 
 		/* if beta is within the cutoff angle */
-		if(fabsf(beta) < (cutoff/2.f)) {
+		if (fabsf(beta) < (cutoff/2.f)) {
 			alpha=0.f;
 		}
 

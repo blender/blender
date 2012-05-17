@@ -61,7 +61,7 @@ ImBuf* BaseImageOperation::getImBuf() {
 	ImBuf *ibuf;
 	
 	ibuf= BKE_image_get_ibuf(this->image, this->imageUser);
-	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
+	if (ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 			return NULL;
 	}
 	
@@ -102,7 +102,8 @@ void ImageOperation::executePixel(float *color, float x, float y, PixelSampler s
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 0.0f;
-	} else {
+	}
+	else {
 		switch (sampler) {
 		case COM_PS_NEAREST:
 			neareast_interpolation_color(this->buffer, NULL, color, x, y);
@@ -122,7 +123,8 @@ void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSamp
 
 	if (this->imageBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		color[0] = 0.0f;
-	} else {
+	}
+	else {
 		tempcolor[3] = 1.0f;
 		switch (sampler) {
 		case COM_PS_NEAREST:
@@ -142,7 +144,8 @@ void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSamp
 void ImageDepthOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
 	if (this->depthBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		color[0] = 0.0f;
-	} else {
+	}
+	else {
 		int offset = y * width + x;
 		color[0] = this->depthBuffer[offset];
 	}

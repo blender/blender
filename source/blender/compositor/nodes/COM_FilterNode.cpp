@@ -37,7 +37,7 @@ void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	ConvolutionFilterOperation *operation = NULL;
 	
-	switch(this->getbNode()->custom1) {
+	switch (this->getbNode()->custom1) {
 	case CMP_FILT_SOFT:
 		operation = new ConvolutionFilterOperation();
 		operation->set3x3Filter(1/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 4/16.0f, 2/16.0f, 1/16.0f, 2/16.0f, 1/16.0f);

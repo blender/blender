@@ -33,7 +33,7 @@ MultilayerBaseOperation::MultilayerBaseOperation(int pass): BaseImageOperation()
 ImBuf* MultilayerBaseOperation::getImBuf() {
 	RenderPass *rpass;
 	rpass = (RenderPass *)BLI_findlink(&this->renderlayer->passes, this->passId);
-	if(rpass) {
+	if (rpass) {
 		this->imageUser->pass= this->passId;
 		BKE_image_multilayer_index(image->rr, this->imageUser);
 		return BaseImageOperation::getImBuf();
@@ -49,7 +49,8 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 0.0f;
-	} else {
+	}
+	else {
 		if (this->numberOfChannels == 4) {
 			switch (sampler) {
 			case COM_PS_NEAREST:
@@ -62,7 +63,8 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 				bicubic_interpolation_color(this->buffer, NULL, color, x, y);
 				break;
 			}
-		} else {
+		}
+		else {
 			int offset = (yi*this->getWidth()+xi)*3;
 			color[0] = this->imageBuffer[offset];
 			color[1] = this->imageBuffer[offset+1];
@@ -76,7 +78,8 @@ void MultilayerValueOperation::executePixel(float *color, float x, float y, Pixe
 	int xi = x;
 	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
 		color[0] = 0.0f;
-	} else {
+	}
+	else {
 		float result = this->imageBuffer[yi*this->getWidth()+xi];
 		color[0] = result;
 	}
@@ -87,7 +90,8 @@ void MultilayerVectorOperation::executePixel(float *color, float x, float y, Pix
 	int xi = x;
 	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
 		color[0] = 0.0f;
-	} else {
+	}
+	else {
 		int offset = (yi*this->getWidth()+xi)*3;
 		color[0] = this->imageBuffer[offset];
 		color[1] = this->imageBuffer[offset+1];

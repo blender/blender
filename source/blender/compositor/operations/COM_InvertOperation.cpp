@@ -46,17 +46,18 @@ void InvertOperation::executePixel(float* out, float x, float y, PixelSampler sa
 	const float value = inputValue[0];
 	const float invertedValue = 1.0f - value;
 	
-	if(color) {
+	if (color) {
 		out[0] = (1.0f - inputColor[0])*value + inputColor[0]*invertedValue;
 		out[1] = (1.0f - inputColor[1])*value + inputColor[1]*invertedValue;
 		out[2] = (1.0f - inputColor[2])*value + inputColor[2]*invertedValue;
-	} else {
+	}
+	else {
 		out[0] = inputColor[0];
 		out[1] = inputColor[1];
 		out[2] = inputColor[2];
 	}
 	
-	if(alpha)
+	if (alpha)
 		out[3] = (1.0f - inputColor[3])*value + inputColor[3]*invertedValue;
 	else
 		out[3] = inputColor[3];

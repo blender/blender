@@ -34,7 +34,8 @@ void SwitchNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	if (!switchFrame) {
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-	} else {
+	}
+	else {
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(0), true, 1, graph);
 	}
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
