@@ -171,21 +171,12 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 	glPointSize(1.0f);
 }
 
-static void draw_spline_curve_lines(float *points, int tot_point, int closed)
+static void draw_spline_curve_lines(const float *points, int tot_point, int closed)
 {
-	int i;
-	float *fp = points;
-
-	if (closed)
-		glBegin(GL_LINE_LOOP);
-	else
-		glBegin(GL_LINE_STRIP);
-
-	/* MASK_TODO - vertex arrays */
-	for (i = 0; i < tot_point; i++, fp += 2) {
-		glVertex3fv(fp);
-	}
-	glEnd();
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, points);
+	glDrawArrays(closed ? GL_LINE_LOOP : GL_LINE_STRIP, 0, tot_point);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 static void draw_dashed_curve(MaskSpline *spline, float *points, int tot_point)
