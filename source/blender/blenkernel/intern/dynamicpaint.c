@@ -259,7 +259,8 @@ int dynamicPaint_surfaceHasColorPreview(DynamicPaintSurface *surface)
 }
 
 /* get currently active surface (in user interface) */
-struct DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas){
+DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
+{
 	DynamicPaintSurface *surface = canvas->surfaces.first;
 	int i;
 
@@ -993,7 +994,8 @@ void dynamicPaint_Modifier_free(struct DynamicPaintModifierData *pmd)
  * If scene is null, frame range of 1-250 is used
  * A pointer to this surface is returned
  */
-struct DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas, Scene *scene){
+DynamicPaintSurface *dynamicPaint_createNewSurface(DynamicPaintCanvasSettings *canvas, Scene *scene)
+{
 	DynamicPaintSurface *surface = MEM_callocN(sizeof(DynamicPaintSurface), "DynamicPaintSurface");
 	if (!surface) return NULL;
 
@@ -1594,9 +1596,10 @@ static void dynamicPaint_applySurfaceDisplace(DynamicPaintSurface *surface, Deri
 /*
  *	Apply canvas data to the object derived mesh
  */
-static struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
-                                                       Object *ob,
-                                                       DerivedMesh *dm){
+struct DerivedMesh *dynamicPaint_Modifier_apply(DynamicPaintModifierData *pmd,
+                                                Object *ob,
+                                                DerivedMesh *dm)
+{
 	DerivedMesh *result = CDDM_copy(dm);
 
 	if (pmd->canvas && !(pmd->canvas->flags & MOD_DPAINT_BAKING)) {
@@ -1901,7 +1904,8 @@ static void dynamicPaint_frameUpdate(DynamicPaintModifierData *pmd, Scene *scene
 }
 
 /* Modifier call. Processes dynamic paint modifier step. */
-struct DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm){
+DerivedMesh *dynamicPaint_Modifier_do(DynamicPaintModifierData *pmd, Scene *scene, Object *ob, DerivedMesh *dm)
+{
 	/* For now generate tessfaces in every case
 	 *  XXX - move/remove when most of dpaint functions are converted to use bmesh types */
 	DM_ensure_tessface(dm);

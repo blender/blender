@@ -343,7 +343,8 @@ void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1)
 	
 }
 
-struct ImBuf *IMB_onehalf(struct ImBuf *ibuf1){
+ImBuf *IMB_onehalf(struct ImBuf *ibuf1)
+{
 	struct ImBuf *ibuf2;
 
 	if (ibuf1 == NULL) return (NULL);
@@ -810,7 +811,7 @@ static int q_scale_linear_interpolation(
 	return TRUE;
 }
 
-static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
+static ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 {
 	const int do_rect = (ibuf->rect != NULL);
 	const int do_float = (ibuf->rect_float != NULL);
@@ -940,7 +941,7 @@ static struct ImBuf *scaledownx(struct ImBuf *ibuf, int newx)
 }
 
 
-static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
+static ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 {
 	const int do_rect = (ibuf->rect != NULL);
 	const int do_float = (ibuf->rect_float != NULL);
@@ -1071,7 +1072,7 @@ static struct ImBuf *scaledowny(struct ImBuf *ibuf, int newy)
 }
 
 
-static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
+static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 {
 	uchar *rect, *_newrect = NULL, *newrect;
 	float *rectf, *_newrectf = NULL, *newrectf;
@@ -1238,7 +1239,7 @@ static struct ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	return(ibuf);
 }
 
-static struct ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
+static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 {
 	uchar *rect, *_newrect = NULL, *newrect;
 	float *rectf, *_newrectf = NULL, *newrectf;

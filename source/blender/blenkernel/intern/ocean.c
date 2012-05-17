@@ -735,7 +735,8 @@ static void set_height_normalize_factor(struct Ocean *oc)
 	oc->normalize_factor = res;
 }
 
-struct Ocean *BKE_add_ocean(void){
+struct Ocean *BKE_add_ocean(void)
+{
 	Ocean *oc = MEM_callocN(sizeof(Ocean), "ocean sim data");
 
 	BLI_rw_mutex_init(&oc->oceanmutex);
@@ -1079,7 +1080,8 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *och, struct OceanResult *ocr, in
 
 struct OceanCache *BKE_init_ocean_cache(const char *bakepath, const char *relbase,
                                         int start, int end, float wave_scale,
-                                        float chop_amount, float foam_coverage, float foam_fade, int resolution){
+                                        float chop_amount, float foam_coverage, float foam_fade, int resolution)
+{
 	OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
 
 	och->bakepath = bakepath;
@@ -1360,9 +1362,10 @@ void BKE_ocean_cache_eval_ij(struct OceanCache *UNUSED(och), struct OceanResult 
 {
 }
 
-struct OceanCache *BKE_init_ocean_cache(const char *UNUSED(bakepath), const char *UNUSED(relbase),
+OceanCache *BKE_init_ocean_cache(const char *UNUSED(bakepath), const char *UNUSED(relbase),
                                         int UNUSED(start), int UNUSED(end), float UNUSED(wave_scale),
-                                        float UNUSED(chop_amount), float UNUSED(foam_coverage), float UNUSED(foam_fade), int UNUSED(resolution)){
+                                        float UNUSED(chop_amount), float UNUSED(foam_coverage), float UNUSED(foam_fade), int UNUSED(resolution))
+{
 	OceanCache *och = MEM_callocN(sizeof(OceanCache), "ocean cache data");
 
 	return och;

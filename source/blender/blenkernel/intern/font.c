@@ -520,7 +520,8 @@ static float char_width(Curve *cu, VChar *che, CharInfo *info)
 	}
 }
 
-struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode){
+struct chartrans *BKE_vfont_to_curve(Main *bmain, Scene *scene, Object *ob, int mode)
+{
 	VFont *vfont, *oldvfont;
 	VFontData *vfd = NULL;
 	Curve *cu;

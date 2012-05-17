@@ -1743,7 +1743,8 @@ void BKE_makepicstring(char *string, const char *base, const char *relbase, int 
 }
 
 /* used by sequencer too */
-struct anim *openanim(const char *name, int flags, int streamindex){
+struct anim *openanim(const char *name, int flags, int streamindex)
+{
 	struct anim *anim;
 	struct ImBuf *ibuf;
 	

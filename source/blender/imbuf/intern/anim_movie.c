@@ -261,7 +261,8 @@ void IMB_close_anim_proxies(struct anim *anim)
 	IMB_free_indices(anim);
 }
 
-struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex){
+struct anim *IMB_open_anim(const char *name, int ib_flags, int streamindex)
+{
 	struct anim *anim;
 
 	anim = (struct anim *)MEM_callocN(sizeof(struct anim), "anim struct");
@@ -1159,7 +1160,7 @@ static void free_anim_redcode(struct anim *anim)
 /* Geen plaatje, probeer dan volgende animatie te openen */
 /* gelukt, haal dan eerste plaatje van animatie */
 
-static struct ImBuf *anim_getnew(struct anim *anim)
+static ImBuf *anim_getnew(struct anim *anim)
 {
 	struct ImBuf *ibuf = NULL;
 
@@ -1222,7 +1223,8 @@ static struct ImBuf *anim_getnew(struct anim *anim)
 	return(ibuf);
 }
 
-struct ImBuf *IMB_anim_previewframe(struct anim *anim){
+struct ImBuf *IMB_anim_previewframe(struct anim *anim)
+{
 	struct ImBuf *ibuf = NULL;
 	int position = 0;
 	
