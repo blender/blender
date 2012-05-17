@@ -90,7 +90,7 @@ extern struct Render R;
 	*(v1 + 0) += *(v3 + 0) * (fac); \
 	*(v1 + 1) += *(v3 + 1) * (fac); \
 	*(v1 + 2) += *(v3 + 2) * (fac); \
-}
+} (void)0
 
 /* initialize material variables in shadeinput, 
  * doing inverse gamma correction where applicable */

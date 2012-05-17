@@ -231,7 +231,8 @@ READ
 	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
 	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
 	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
+	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; \
+} (void)0
 
 /***/
 

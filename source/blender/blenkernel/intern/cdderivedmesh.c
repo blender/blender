@@ -522,7 +522,7 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm,
 		glNormal3sv(no);						\
 	}											\
 	glVertex3fv(mvert[index].co);				\
-}
+} (void)0
 
 	if (cddm->pbvh && cddm->pbvh_draw) {
 		if (dm->numTessFaceData) {

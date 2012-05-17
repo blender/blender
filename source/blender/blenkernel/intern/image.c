@@ -2177,7 +2177,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		flag = IB_rect | IB_multilayer;
 		if (ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
 		
-		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data, ima->packedfile->size, flag, "<packed data>");
+		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data,
+		                             ima->packedfile->size, flag, "<packed data>");
 	} 
 	else {
 		flag = IB_rect | IB_multilayer | IB_metadata;

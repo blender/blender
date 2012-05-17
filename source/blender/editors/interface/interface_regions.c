@@ -429,7 +429,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 	/* create tooltip data */
 	data = MEM_callocN(sizeof(uiTooltipData), "uiTooltipData");
 
-	/* special case, enum rna buttons only have enum item description, use general enum description too before the specific one */
+	/* special case, enum rna buttons only have enum item description,
+	 * use general enum description too before the specific one */
 	if (but->rnaprop && RNA_property_type(but->rnaprop) == PROP_ENUM) {
 		const char *descr = RNA_property_description(but->rnaprop);
 		if (descr && descr[0]) {
@@ -448,7 +449,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 			for (i = 0; i < totitem; i++) {
 				if (item[i].identifier[0] && item[i].value == value) {
 					if (item[i].description && item[i].description[0]) {
-						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s", item[i].name, item[i].description);
+						BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), "%s: %s",
+						             item[i].name, item[i].description);
 						data->color_id[data->totline] = UI_TIP_LC_SUBMENU;
 						data->totline++;
 					}
@@ -496,7 +498,9 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		
 		if (unit_type == PROP_UNIT_ROTATION) {
 			if (RNA_property_type(but->rnaprop) == PROP_FLOAT) {
-				float value = RNA_property_array_check(but->rnaprop) ? RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) : RNA_property_float_get(&but->rnapoin, but->rnaprop);
+				float value = RNA_property_array_check(but->rnaprop) ?
+				                  RNA_property_float_get_index(&but->rnapoin, but->rnaprop, but->rnaindex) :
+				                  RNA_property_float_get(&but->rnapoin, but->rnaprop);
 				BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Radians: %f"), value);
 				data->color_id[data->totline] = UI_TIP_LC_NORMAL;
 				data->totline++;
@@ -514,7 +518,8 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 
 		/* rna info */
 		if ((U.flag & USER_TOOLTIPS_PYTHON) == 0) {
-			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"), RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(data->lines[data->totline], sizeof(data->lines[0]), TIP_("Python: %s.%s"),
+			             RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 			data->color_id[data->totline] = UI_TIP_LC_PYTHON;
 			data->totline++;
 		}
@@ -1553,7 +1558,9 @@ void ui_popup_block_scrolltest(uiBlock *block)
 	}
 }
 
-uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut *but, uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg)
+uiPopupBlockHandle *ui_popup_block_create(bContext *C, ARegion *butregion, uiBut *but,
+                                          uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
+                                          void *arg)
 {
 	wmWindow *window = CTX_wm_window(C);
 	static ARegionType type;
@@ -1881,7 +1888,8 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 			if (rgb_gamma[1] > 1.0f) rgb_gamma[1] = modf(rgb_gamma[1], &intpart);
 			if (rgb_gamma[2] > 1.0f) rgb_gamma[2] = modf(rgb_gamma[2], &intpart);
 
-			BLI_snprintf(col, sizeof(col), "%02X%02X%02X", FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
+			BLI_snprintf(col, sizeof(col), "%02X%02X%02X",
+			             FTOCHAR(rgb_gamma[0]), FTOCHAR(rgb_gamma[1]), FTOCHAR(rgb_gamma[2]));
 			
 			strcpy(bt->poin, col);
 		}
@@ -2382,7 +2390,8 @@ static uiBlock *ui_block_func_POPUP(bContext *C, uiPopupBlockHandle *handle, voi
 	return pup->block;
 }
 
-uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but, uiMenuCreateFunc menu_func, void *arg, char *str)
+uiPopupBlockHandle *ui_popup_menu_create(bContext *C, ARegion *butregion, uiBut *but,
+                                         uiMenuCreateFunc menu_func, void *arg, char *str)
 {
 	wmWindow *window = CTX_wm_window(C);
 	uiStyle *style = UI_GetStyle();
