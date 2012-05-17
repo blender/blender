@@ -157,6 +157,7 @@ set(SRC
 	BKE_bullet.h
 	BKE_bvhutils.h
 	BKE_camera.h
+	BKE_ccg.h
 	BKE_cdderivedmesh.h
 	BKE_cloth.h
 	BKE_collision.h

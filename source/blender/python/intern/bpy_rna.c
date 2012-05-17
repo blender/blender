@@ -986,7 +986,7 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
 			                           BKE_idcode_to_name_plural(GS(id->name)),
 			                           tmp_str,
-		    	                       path);
+			                           path);
 		}
 
 		MEM_freeN((void *)path);
