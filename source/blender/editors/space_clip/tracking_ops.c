@@ -264,7 +264,7 @@ typedef struct {
 	float smin[2], smax[2], spos[2], soff[2], scorners[4][2];
 	float (*smarkers)[2];
 
-	int lock, accurate;
+	int lock, accurate, scale;
 } SlideMarkerData;
 
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
@@ -636,6 +636,10 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 				if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
 					data->lock = event->val == KM_RELEASE;
 
+			if (data->action == SLIDE_ACTION_POS)
+				if (ELEM(event->type, LEFTCTRLKEY, RIGHTCTRLKEY))
+					data->scale = event->val == KM_PRESS;
+
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
 				data->accurate = event->val == KM_PRESS;
 
@@ -718,15 +722,31 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 						BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_POS);
 				}
 				else if (data->action == SLIDE_ACTION_POS) {
-					float spos[2];
+					if (data->scale) {
+						float scale = 1.0f + 10.0f * (dx - dy);
 
-					copy_v2_v2(spos, data->pos);
+						if (scale > 0.0f) {
+							int a;
 
-					data->pos[0] = data->spos[0] + dx;
-					data->pos[1] = data->spos[1] + dy;
+							for (a = 0; a < 4; a++) {
+								mul_v2_v2fl(data->corners[a], data->scorners[a], scale);
+							}
+						}
+					}
+					else {
+						float spos[2];
 
-					if (!slide_check_corners(data->corners)) {
-						copy_v2_v2(data->pos, spos);
+						copy_v2_v2(spos, data->pos);
+
+						/* corners might've been scaled before, restore their original position */
+						memcpy(data->corners, data->scorners, sizeof(data->scorners));
+
+						data->pos[0] = data->spos[0] + dx;
+						data->pos[1] = data->spos[1] + dy;
+
+						if (!slide_check_corners(data->corners)) {
+							copy_v2_v2(data->pos, spos);
+						}
 					}
 
 					/* currently only patterns are allowed to have such combination of event and data */
