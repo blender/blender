@@ -505,6 +505,20 @@ void BKE_image_merge(Image *dest, Image *source)
 	}
 }
 
+/* note, we could be clever and scale all imbuf's but since some are mipmaps its not so simple */
+void BKE_image_scale(Image *image, int width, int height)
+{
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+
+	IMB_scaleImBuf(ibuf, width, height);
+	ibuf->userflags |= IB_BITMAPDIRTY;
+
+	BKE_image_release_ibuf(image, lock);
+}
+
 Image *BKE_image_load(const char *filepath)
 {
 	Image *ima;

@@ -183,6 +183,9 @@ struct Image *BKE_image_copy(struct Image *ima);
 /* merge source into dest, and free source */
 void BKE_image_merge(struct Image *dest, struct Image *source);
 
+/* scale the image */
+void BKE_image_scale(struct Image *image, int width, int height);
+
 /* check if texture has alpha (depth=32) */
 int BKE_image_has_alpha(struct Image *image);
 
