@@ -239,14 +239,14 @@ static void saveImage(char *prefix, libmv::FloatImage image, int x0, int y0)
 		row_pointers[y]= (png_bytep)malloc(sizeof(png_byte)*4*image.Width());
 
 		for (x = 0; x < image.Width(); x++) {
-			if (x0 == x && y0 == y) {
+			if (x0 == x && image.Height() - y0 - 1 == y) {
 				row_pointers[y][x*4+0]= 255;
 				row_pointers[y][x*4+1]= 0;
 				row_pointers[y][x*4+2]= 0;
 				row_pointers[y][x*4+3]= 255;
 			}
 			else {
-				float pixel = image(y, x, 0);
+				float pixel = image(image.Height() - y - 1, x, 0);
 				row_pointers[y][x*4+0]= pixel*255;
 				row_pointers[y][x*4+1]= pixel*255;
 				row_pointers[y][x*4+2]= pixel*255;
