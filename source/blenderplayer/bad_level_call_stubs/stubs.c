@@ -74,6 +74,7 @@ struct NodeBlurData;
 struct Nurb;
 struct Object;
 struct PBVHNode;
+struct PyObject;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -519,7 +520,7 @@ struct CCLDeviceInfo;
 struct CCLDeviceInfo *CCL_compute_device_list(int opencl) { return NULL; }
 
 /* compositor */
-void COM_execute(bNodeTree *editingtree, int rendering) {}
+void COM_execute(struct bNodeTree *editingtree, int rendering) {}
 
 char blender_path[] = "";
 
