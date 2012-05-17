@@ -890,6 +890,9 @@ static void rna_SpaceDopeSheetEditor_mode_update(Main *UNUSED(bmain), Scene *sce
 		else
 			saction->action = NULL;
 	}
+	
+	/* recalculate extents of channel list */
+	saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 }
 
 /* Space Graph Editor */
