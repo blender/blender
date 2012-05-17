@@ -2068,8 +2068,8 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), Po
 	uiLayout *row;
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
-	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "x", 0, "X", ICON_NONE);
+	uiItemR(row, ptr, "y", 0, "Y", ICON_NONE);
 	
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -2195,8 +2195,8 @@ static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiLayout *row;
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
-	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "x", 0, "X", ICON_NONE);
+	uiItemR(row, ptr, "y", 0, "Y", ICON_NONE);
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
