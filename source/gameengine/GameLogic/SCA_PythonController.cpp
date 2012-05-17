@@ -507,7 +507,7 @@ int SCA_PythonController::pyattr_set_script(void *self_v, const KX_PYATTRIBUTE_D
 	}
 
 	/* set scripttext sets m_bModified to true, 
-		so next time the script is needed, a reparse into byte code is done */
+	 * so next time the script is needed, a reparse into byte code is done */
 	self->SetScriptText(scriptArg);
 		
 	return PY_SET_ATTR_SUCCESS;

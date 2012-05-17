@@ -1253,7 +1253,7 @@ DagNodeQueue *graph_dfs(void)
 	int maxpos = 0;
 	/* int	is_cycle = 0; */ /* UNUSED */
 	/*
-	   *fprintf(stderr, "starting DFS\n ------------\n");
+	 *fprintf(stderr, "starting DFS\n ------------\n");
 	 */	
 	nqueue = queue_create(DAGQUEUEALLOC);
 	retqueue = queue_create(MainDag->numNodes);

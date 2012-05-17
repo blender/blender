@@ -92,7 +92,7 @@ static CM_SOLVER_DEF	solvers [] =
 
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
-*/
+ */
 static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*vertexCos)[3]);
 static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm );
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr, int first);
@@ -101,10 +101,10 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm );
 
 
 /******************************************************************************
-*
-* External interface called by modifier.c clothModifier functions.
-*
-******************************************************************************/
+ *
+ * External interface called by modifier.c clothModifier functions.
+ *
+ ******************************************************************************/
 /**
  * cloth_init -  creates a new cloth simulation.
  *
@@ -145,8 +145,8 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->coll_parms->selfepsilon = 0.75;
 
 	/* These defaults are copied from softbody.c's
-	* softbody_calc_forces() function.
-	*/
+	 * softbody_calc_forces() function.
+	 */
 	clmd->sim_parms->eff_force_scale = 1000.0;
 	clmd->sim_parms->eff_wind_scale = 250.0;
 
@@ -476,7 +476,7 @@ static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 
 /************************************************
  * clothModifier_do - main simulation function
-************************************************/
+ ************************************************/
 void clothModifier_do(ClothModifierData *clmd, Scene *scene, Object *ob, DerivedMesh *dm, float (*vertexCos)[3])
 {
 	PointCache *cache;
@@ -729,10 +729,10 @@ void cloth_free_modifier_extern(ClothModifierData *clmd )
 }
 
 /******************************************************************************
-*
-* Internal functions.
-*
-******************************************************************************/
+ *
+ * Internal functions.
+ *
+ ******************************************************************************/
 
 /**
  * cloth_to_object - copies the deformed vertices to the object.
@@ -978,16 +978,16 @@ static void cloth_from_mesh ( ClothModifierData *clmd, DerivedMesh *dm )
 		memcpy ( &clmd->clothObject->mfaces[i], &mface[i], sizeof ( MFace ) );
 
 	/* Free the springs since they can't be correct if the vertices
-	* changed.
-	*/
+	 * changed.
+	 */
 	if ( clmd->clothObject->springs != NULL )
 		MEM_freeN ( clmd->clothObject->springs );
 
 }
 
 /***************************************************************************************
-* SPRING NETWORK BUILDING IMPLEMENTATION BEGIN
-***************************************************************************************/
+ * SPRING NETWORK BUILDING IMPLEMENTATION BEGIN
+ ***************************************************************************************/
 
 // be careful: implicit solver has to be resettet when using this one!
 // --> only for implicit handling of this spring!
@@ -1276,6 +1276,6 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 } /* cloth_build_springs */
 /***************************************************************************************
-* SPRING NETWORK BUILDING IMPLEMENTATION END
-***************************************************************************************/
+ * SPRING NETWORK BUILDING IMPLEMENTATION END
+ ***************************************************************************************/
 

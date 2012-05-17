@@ -884,7 +884,7 @@ typedef struct ToolSettings {
 	UvSculpt *uvsculpt;	/* uv smooth */
 	
 	/* Vertex group weight - used only for editmode, not weight
-	   paint */
+	 * paint */
 	float vgroup_weight;
 
 	/* Subdivide Settings */

@@ -232,7 +232,8 @@ READ
 	s_i=p_i[0]; p_i[0]=p_i[7]; p_i[7]=s_i; \
 	s_i=p_i[1]; p_i[1]=p_i[6]; p_i[6]=s_i; \
 	s_i=p_i[2]; p_i[2]=p_i[5]; p_i[5]=s_i; \
-	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; }
+	s_i=p_i[3]; p_i[3]=p_i[4]; p_i[4]=s_i; \
+} (void)0
 
 /***/
 
@@ -7516,8 +7517,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Brush *brush;
 
 		/* For weight paint, each brush now gets its own weight;
-		   unified paint settings also have weight. Update unified
-		   paint settings and brushes with a default weight value. */
+		 * unified paint settings also have weight. Update unified
+		 * paint settings and brushes with a default weight value. */
 		
 		for (scene = main->scene.first; scene; scene = scene->id.next) {
 			ToolSettings *ts = scene->toolsettings;

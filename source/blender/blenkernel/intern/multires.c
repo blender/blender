@@ -600,7 +600,7 @@ static void multires_copy_dm_grid(CCGElem *gridA, CCGElem *gridB, CCGKey *keyA, 
 }
 
 /* Reallocate gpm->data at a lower resolution and copy values over
-   from the original high-resolution data */
+ * from the original high-resolution data */
 static void multires_grid_paint_mask_downsample(GridPaintMask *gpm, int level)
 {
 	if (level < gpm->level) {
@@ -1092,7 +1092,7 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 							break;
 						case CALC_DISPLACEMENTS:
 							/* Calculate displacement between new and old
-							* grid points and convert to tangent space */
+							 * grid points and convert to tangent space */
 							sub_v3_v3v3(disp, co, sco);
 							invert_m3(mat);
 							mul_v3_m3v3(data, mat, disp);
@@ -1481,7 +1481,7 @@ DerivedMesh *multires_make_derived_from_derived(DerivedMesh *dm,
 }
 
 /**** Old Multires code ****
-***************************/
+ ***************************/
 
 /* Adapted from sculptmode.c */
 void old_mdisps_bilinear(float out[3], float (*disps)[3], const int st, float u, float v)

@@ -379,7 +379,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 /* ... standard sub-channel filtering can go on here now ... */
 #define END_ANIMFILTER_SUBCHANNELS \
 		filter_mode = _filter; \
-	}
+	} (void)0
 
 /* ............................... */
 
@@ -447,7 +447,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 				} \
 			} \
 		} \
-	}
+	} (void)0
 
 /* ............................... */
 
@@ -467,7 +467,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 			items ++; \
 			ale_statement \
 		} \
-	}
+	} (void)0
 	
 #define ANIMCHANNEL_NEW_CHANNEL(channel_data, channel_type, owner_id) \
 	ANIMCHANNEL_NEW_CHANNEL_FULL(channel_data, channel_type, owner_id, {})

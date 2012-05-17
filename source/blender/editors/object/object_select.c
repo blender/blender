@@ -79,8 +79,8 @@
 /************************ Exported **************************/
 
 /* simple API for object selection, rather than just using the flag
-* this takes into account the 'restrict selection in 3d view' flag.
-* deselect works always, the restriction just prevents selection */
+ * this takes into account the 'restrict selection in 3d view' flag.
+ * deselect works always, the restriction just prevents selection */
 
 /* Note: send a NC_SCENE|ND_OB_SELECT notifier yourself! (or 
  * or a NC_SCENE|ND_OB_VISIBLE in case of visibility toggling */

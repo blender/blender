@@ -428,7 +428,8 @@ void ui_but_search_test(uiBut *but);
 typedef uiBlock * (*uiBlockHandleCreateFunc)(struct bContext *C, struct uiPopupBlockHandle *handle, void *arg1);
 
 uiPopupBlockHandle *ui_popup_block_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
-                                          uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func, void *arg);
+                                          uiBlockCreateFunc create_func, uiBlockHandleCreateFunc handle_create_func,
+                                          void *arg);
 uiPopupBlockHandle *ui_popup_menu_create(struct bContext *C, struct ARegion *butregion, uiBut *but,
                                          uiMenuCreateFunc create_func, void *arg, char *str);
 

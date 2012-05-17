@@ -261,8 +261,8 @@ void CustomData_bmesh_set(const struct CustomData *data, void *block, int type,
 
 void CustomData_bmesh_set_n(struct CustomData *data, void *block, int type, int n, 
                             void *source);
-/*sets the data of the block at physical layer n.  no real type checking 
-   *is performed.
+/* sets the data of the block at physical layer n.  no real type checking
+ * is performed.
  */
 void CustomData_bmesh_set_layer_n(struct CustomData *data, void *block, int n,
                                   void *source);

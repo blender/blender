@@ -2047,7 +2047,7 @@ static void make_bevel_list_3D_minimum_twist(BevList *bl)
 		normalize_v3(vec_2);
 
 		/* align the vector, can avoid this and it looks 98% OK but
-		* better to align the angle quat roll's before comparing */
+		 * better to align the angle quat roll's before comparing */
 		{
 			cross_v3_v3v3(cross_tmp, bevp_last->dir, bevp_first->dir);
 			angle = angle_normalized_v3v3(bevp_first->dir, bevp_last->dir);

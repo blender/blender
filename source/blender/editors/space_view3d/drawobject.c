@@ -2987,7 +2987,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 							interp_v3_v3v3(fvec, vmid, v2, 0.8f);
 						}
 						else {
-							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->v->co);
+							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->next->v->co);
 							interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
 						}
 

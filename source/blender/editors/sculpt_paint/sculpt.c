@@ -249,13 +249,13 @@ typedef struct StrokeCache {
 	float view_normal[3];
 
 	/* sculpt_normal gets calculated by calc_sculpt_normal(), then the
-	   sculpt_normal_symm gets updated quickly with the usual symmetry
-	   transforms */
+	 * sculpt_normal_symm gets updated quickly with the usual symmetry
+	 * transforms */
 	float sculpt_normal[3];
 	float sculpt_normal_symm[3];
 
 	/* Used for wrap texture mode, local_mat gets calculated by
-	   calc_brush_local_mat() and used in tex_strength(). */
+	 * calc_brush_local_mat() and used in tex_strength(). */
 	float brush_local_mat[4][4];
 	
 	float last_center[3];
@@ -792,7 +792,7 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 		}
 		else if (mtex->brush_map_mode == MTEX_MAP_MODE_AREA) {
 			/* Similar to fixed mode, but projects from brush angle
-			   rather than view direction */
+			 * rather than view direction */
 
 			/* Rotation is handled by the brush_local_mat */
 			rotation = 0;
@@ -916,7 +916,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 	int n, original;
 
 	/* Grab brush requires to test on original data (see r33888 and
-	   bug #25371) */
+	 * bug #25371) */
 	original = (paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
 				TRUE : ss->cache->original);
 
@@ -1095,7 +1095,7 @@ static void calc_brush_local_mat(const Brush *brush, Object *ob,
 	mult_m4_m4m4(tmat, mat, scale);
 
 	/* Return inverse (for converting from modelspace coords to local
-	   area coords) */
+	 * area coords) */
 	invert_m4_m4(local_mat, tmat);
 }
 
@@ -1112,7 +1112,7 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 }
 
 /* Test whether the StrokeCache.sculpt_normal needs update in
-   do_brush_action() */
+ * do_brush_action() */
 static int brush_needs_sculpt_normal(const Brush *brush)
 {
 	return ((ELEM(brush->sculpt_tool,
@@ -1176,8 +1176,8 @@ static void neighbor_average(SculptSession *ss, float avg[3], unsigned vert)
 }
 
 /* Similar to neighbor_average(), but returns an averaged mask value
-   instead of coordinate. Also does not restrict based on border or
-   corner vertices. */
+ * instead of coordinate. Also does not restrict based on border or
+ * corner vertices. */
 static float neighbor_average_mask(SculptSession *ss, unsigned vert)
 {
 	const float *vmask = ss->vmask;
@@ -4034,7 +4034,7 @@ void ED_sculpt_mask_layers_ensure(Object *ob, MultiresModifierData *mmd)
 	paint_mask = CustomData_get_layer(&me->vdata, CD_PAINT_MASK);
 
 	/* if multires is active, create a grid paint mask layer if there
-	   isn't one already */
+	 * isn't one already */
 	if (mmd && !CustomData_has_layer(&me->ldata, CD_GRID_PAINT_MASK)) {
 		GridPaintMask *gmask;
 		int level = MAX2(1, mmd->sculptlvl);

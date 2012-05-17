@@ -114,24 +114,24 @@
 	(c)[0]= FTOCHAR((f)[0]);                                                  \
 	(c)[1]= FTOCHAR((f)[1]);                                                  \
 	(c)[2]= FTOCHAR((f)[2]);                                                  \
-}
+} (void)0
 #define IMAPAINT_FLOAT_RGBA_TO_CHAR(c, f)  {                                  \
 	(c)[0]= FTOCHAR((f)[0]);                                                  \
 	(c)[1]= FTOCHAR((f)[1]);                                                  \
 	(c)[2]= FTOCHAR((f)[2]);                                                  \
 	(c)[3]= FTOCHAR((f)[3]);                                                  \
-}
+} (void)0
 #define IMAPAINT_CHAR_RGB_TO_FLOAT(f, c)  {                                   \
 	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
 	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
 	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
-}
+} (void)0
 #define IMAPAINT_CHAR_RGBA_TO_FLOAT(f, c)  {                                  \
 	(f)[0]= IMAPAINT_CHAR_TO_FLOAT((c)[0]);                                   \
 	(f)[1]= IMAPAINT_CHAR_TO_FLOAT((c)[1]);                                   \
 	(f)[2]= IMAPAINT_CHAR_TO_FLOAT((c)[2]);                                   \
 	(f)[3]= IMAPAINT_CHAR_TO_FLOAT((c)[3]);                                   \
-}
+} (void)0
 
 #define IMAPAINT_FLOAT_RGB_COPY(a, b) copy_v3_v3(a, b)
 
@@ -1547,7 +1547,7 @@ static ProjPixel *project_paint_uvpixel_init(
 					if (ibuf_other->rect_float) { /* float to char */
 						float rgba[4];
 						project_face_pixel(tf_other, ibuf_other, w, side, NULL, rgba);
-						IMAPAINT_FLOAT_RGBA_TO_CHAR(((ProjPixelClone *)projPixel)->clonepx.ch, rgba)
+						IMAPAINT_FLOAT_RGBA_TO_CHAR(((ProjPixelClone *)projPixel)->clonepx.ch, rgba);
 					}
 					else { /* char to char */
 						project_face_pixel(tf_other, ibuf_other, w, side, ((ProjPixelClone *)projPixel)->clonepx.ch, NULL);
@@ -4206,7 +4206,7 @@ static void imapaint_ibuf_rgb_get(ImBuf *ibuf, int x, int y, const short is_toru
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
-		IMAPAINT_CHAR_RGB_TO_FLOAT(r_rgb, rrgb)
+		IMAPAINT_CHAR_RGB_TO_FLOAT(r_rgb, rrgb);
 	}
 }
 static void imapaint_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_torus, const float rgb[3])
@@ -4224,7 +4224,7 @@ static void imapaint_ibuf_rgb_set(ImBuf *ibuf, int x, int y, const short is_toru
 	}
 	else {
 		char *rrgb = (char *)ibuf->rect + (ibuf->x * y + x) * 4;
-		IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb)
+		IMAPAINT_FLOAT_RGB_TO_CHAR(rrgb, rgb);
 	}
 }
 
@@ -4237,7 +4237,9 @@ static int imapaint_ibuf_add_if(ImBuf *ibuf, unsigned int x, unsigned int y, flo
 		if (torus) imapaint_ibuf_rgb_get(ibuf, x, y, 1, inrgb);
 		else return 0;
 	}
-	else imapaint_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
+	else {
+		imapaint_ibuf_rgb_get(ibuf, x, y, 0, inrgb);
+	}
 
 	outrgb[0] += inrgb[0];
 	outrgb[1] += inrgb[1];

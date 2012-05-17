@@ -238,7 +238,7 @@ static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, 
 	if (!brush_orig || brush_tool(brush_orig, tool_offset) != tool) {
 		Brush *br;
 		/* if the current brush is not using the desired tool, look
-		   for one that is */
+		 * for one that is */
 		br = brush_tool_cycle(bmain, brush_orig, tool, tool_offset, ob_mode);
 		/* store the previously-selected brush */
 		if (br)
@@ -250,8 +250,8 @@ static Brush *brush_tool_toggle(Main *bmain, Brush *brush_orig, const int tool, 
 	         BLI_findindex(bmain->brush.first, brush_orig->toggle_brush) != -1)
 	{
 		/* if current brush is using the desired tool, try to toggle
-		   back to the previously selected brush (if it was set, and
-		   if it still exists) */
+		 * back to the previously selected brush (if it was set, and
+		 * if it still exists) */
 		return brush_orig->toggle_brush;
 	}
 	else

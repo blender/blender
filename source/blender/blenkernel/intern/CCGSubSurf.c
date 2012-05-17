@@ -3127,7 +3127,7 @@ void CCG_key(CCGKey *key, const CCGSubSurf *ss, int level)
 	key->num_layers = ss->meshIFC.numLayers;
 	
 	/* if normals are present, always the last three floats of an
-	   element */
+	 * element */
 	if (key->has_normals)
 		key->normal_offset = key->elem_size - sizeof(float) * 3;
 	else
