@@ -437,6 +437,7 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 
 	/*remove this:*/
 	option=option;
+	/*TODO: for option all, loop through all vertex groups*/
 
 	/*get source deform group*/
 	dg_src = BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -3110,6 +3111,10 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+/*
+ideasman42 2012/05/17 09:04:35
+suggest to have one operator with single vgroup as an option, if this is a hassle, it can be done later.
+*/
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3123,64 +3128,6 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-}
-
-static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op)
-{
-	Object *obact = CTX_data_active_object(C);
-	int change = 0;
-	int fail = 0;
-
-	/*Macro to loop through selected objects and perform operation*/
-	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
-	{
-		if(obact != obslc) {
-			/*Try function for matching indices*/
-			if(ED_vgroup_copy_single(obslc, obact)) change++;
-			/*Trigger error message*/
-			else fail++;
-			/*Event notifiers for correct display of data*/
-			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
-			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obslc);
-			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obslc->data);
-		}
-	}
-	CTX_DATA_END;
-
-	/*Report error when task can not be completed with available functions.*/
-	if((change == 0 && fail == 0) || fail) {
-		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected single warning done %d, failed %d, object data must have matching indices",
-		            change, fail);
-	}
-
-	return OPERATOR_FINISHED;
-}
-
-/*
-ideasman42 2012/05/17 09:04:35
-suggest to have one operator with single vgroup as an option, if this is a hassle, it can be done later.
-
-example properties?:
-	* properties *
-	prop = RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active");
-	RNA_def_enum_funcs(prop, vgroup_itemf);
-	ot->prop = prop;
-*/
-/*Transfer vertex group with weight to selected*/
-void OBJECT_OT_vertex_group_copy_to_selected_single(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Copy a Vertex Group to Selected";
-	ot->idname = "OBJECT_OT_vertex_group_copy_to_selected_single";
-	ot->description = "Copy a vertex group to other selected objects with matching indices";
-
-	/* api callbacks */
-	ot->poll = vertex_group_poll;
-	ot->exec = vertex_group_copy_to_selected_single_exec;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }
 
 static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
@@ -3249,6 +3196,14 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	/*
+	example properties?:
+		* properties *
+		prop = RNA_def_enum(ot->srna, "group", vgroup_items, 0, "Group", "Vertex group to set as active");
+		RNA_def_enum_funcs(prop, vgroup_itemf);
+		ot->prop = prop;
+	*/
 }
 
 static EnumPropertyItem vgroup_items[] = {
