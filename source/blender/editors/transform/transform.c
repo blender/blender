@@ -237,7 +237,7 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 
 		copy_v2_v2(v, vec);
 
-		if (t->options & CTX_MASK) {
+		if (t->options & CTX_MOVIECLIP) {
 			float aspx, aspy;
 			ED_space_clip_aspect(t->sa->spacedata.first, &aspx, &aspy);
 			v[0] /= aspx;
