@@ -606,6 +606,72 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	return keymap;
 }
 
+static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cmode)
+{
+	if (!(t->flag & T_NO_CONSTRAINT)) {
+		int constraint_axis, constraint_plane;
+		int edit_2d = (t->flag & T_2D_EDIT);
+		char msg1[] = "along _";
+		char msg2[] = "along %s _";
+		char msg3[] = "locking %s _";
+		char axis;
+	
+		/* Initialize */
+		switch(key_type) {
+			case XKEY:
+				axis = 'X';
+				constraint_axis = CON_AXIS0;
+				break;
+			case YKEY:
+				axis = 'Y';
+				constraint_axis = CON_AXIS1;
+				break;
+			case ZKEY:
+				axis = 'Z';
+				constraint_axis = CON_AXIS2;
+				break;
+			default:
+				/* Invalid key */
+				return;
+		}
+		msg1[sizeof(msg1) - 2] = axis;
+		msg2[sizeof(msg2) - 2] = axis;
+		msg3[sizeof(msg3) - 2] = axis;
+		constraint_plane = ((CON_AXIS0 | CON_AXIS1 | CON_AXIS2) &
+							(~constraint_axis));
+
+		if (edit_2d && (key_type != ZKEY)) {
+			if (cmode == axis) {
+				stopConstraint(t);
+			}
+			else {
+				setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_axis, msg1);
+			}
+		}
+		else if (!edit_2d) {
+			if (cmode == axis) {
+				if (t->con.orientation != V3D_MANIP_GLOBAL) {
+					stopConstraint(t);
+				}
+				else {
+					short orientation = (t->current_orientation != V3D_MANIP_GLOBAL ?
+										 t->current_orientation : V3D_MANIP_LOCAL);
+					if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
+						setUserConstraint(t, orientation, constraint_axis, msg2);
+					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
+						setUserConstraint(t, orientation, constraint_plane, msg3);
+				}
+			}
+			else {
+				if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
+					setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_axis, msg2);
+				else if (t->modifiers & MOD_CONSTRAINT_PLANE)
+					setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_plane, msg3);
+			}
+		}
+		t->redraw |= TREDRAW_HARD;
+	}
+}
 
 int transformEvent(TransInfo *t, wmEvent *event)
 {
@@ -950,93 +1016,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 			break;
 		case XKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (t->flag & T_2D_EDIT) {
-					if (cmode == 'X') {
-						stopConstraint(t);
-					}
-					else {
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
-					}
-				}
-				else {
-					if (cmode == 'X') {
-						if (t->con.orientation != V3D_MANIP_GLOBAL) {
-							stopConstraint(t);
-						}
-						else {
-							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
-							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
-						}
-					}
-					else {
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along %s X");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
-					}
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
 		case YKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (t->flag & T_2D_EDIT) {
-					if (cmode == 'Y') {
-						stopConstraint(t);
-					}
-					else {
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
-					}
-				}
-				else {
-					if (cmode == 'Y') {
-						if (t->con.orientation != V3D_MANIP_GLOBAL) {
-							stopConstraint(t);
-						}
-						else {
-							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
-							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
-						}
-					}
-					else {
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along %s Y");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
-					}
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
 		case ZKEY:
-			if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))==0) {
-				if (cmode == 'Z') {
-					if (t->con.orientation != V3D_MANIP_GLOBAL) {
-						stopConstraint(t);
-					}
-					else {
-						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
-					}
-				}
-				else {
-					if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS2), "along %s Z");
-					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
+			transform_event_xyz_constraint(t, event->type, cmode);
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->shift) {
