@@ -28,6 +28,10 @@
    tracking between which failed */
 #undef DUMP_FAILURE
 
+/* define this to generate PNG images with content of search areas
+   on every itteration of tracking */
+#undef DUMP_ALWAYS
+
 #include "libmv-capi.h"
 
 #include "third_party/gflags/gflags/gflags.h"
@@ -60,7 +64,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#ifdef DUMP_FAILURE
+#if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
 #  include <png.h>
 #endif
 
@@ -172,7 +176,7 @@ static void floatBufToImage(const float *buf, int width, int height, libmv::Floa
 	}
 }
 
-#ifdef DUMP_FAILURE
+#if defined(DUMP_FAILURE) || defined (DUMP_ALWAYS)
 void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int color_type, char *file_name)
 {
 	png_infop info_ptr;
@@ -306,16 +310,20 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *im
 	floatBufToImage(ima1, width, height, &old_patch);
 	floatBufToImage(ima2, width, height, &new_patch);
 
-#ifndef DUMP_FAILURE
+#if !defined(DUMP_FAILURE) && !defined(DUMP_ALWAYS)
 	return region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
 #else
 	{
-		double sx2 = *x2, sy2 = *y2;
+		/* double sx2 = *x2, sy2 = *y2; */
 		int result = region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
 
+#if defined(DUMP_ALWAYS)
+		{
+#else
 		if (!result) {
+#endif
 			saveImage("old_patch", old_patch, x1, y1);
-			saveImage("new_patch", new_patch, sx2, sy2);
+			saveImage("new_patch", new_patch, *x2, *y2);
 		}
 
 		return result;
@@ -334,65 +342,81 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 
 /* TrackRegion (new planar tracker) */
 int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
-                       const float *image1, const float *image2,
-                       int width, int height, 
-                       const double *x1, const double *y1,
-                       struct libmv_trackRegionResult *result,
-                       double *x2, double *y2) {
-  double xx1[4], yy1[4];
-  double xx2[4], yy2[4];
+                      const float *image1, const float *image2,
+                      int width, int height, 
+                      const double *x1, const double *y1,
+                      struct libmv_trackRegionResult *result,
+                      double *x2, double *y2)
+{
+	double xx1[5], yy1[5];
+	double xx2[5], yy2[5];
+	bool tracking_result = false;
 
-  // Convert to doubles for the libmv api.
-  for (int i = 0; i < 4; ++i) {
-    xx1[i] = x1[i];
-    yy1[i] = y1[i];
-    xx2[i] = x2[i];
-    yy2[i] = y2[i];
-  }
+	/* Convert to doubles for the libmv api. The four corners and the center. */
+	for (int i = 0; i < 5; ++i) {
+		xx1[i] = x1[i];
+		yy1[i] = y1[i];
+		xx2[i] = x2[i];
+		yy2[i] = y2[i];
+	}
 
-  libmv::TrackRegionOptions track_region_options;
-  switch (options->motion_model) {
+	libmv::TrackRegionOptions track_region_options;
+	switch (options->motion_model) {
 #define LIBMV_CONVERT(the_model) \
     case libmv::TrackRegionOptions::the_model: \
 		track_region_options.mode = libmv::TrackRegionOptions::the_model; \
 		break;
-    LIBMV_CONVERT(TRANSLATION)
-    LIBMV_CONVERT(TRANSLATION_ROTATION)
-    LIBMV_CONVERT(TRANSLATION_SCALE)
-    LIBMV_CONVERT(TRANSLATION_ROTATION_SCALE)
-    LIBMV_CONVERT(AFFINE)
-    LIBMV_CONVERT(HOMOGRAPHY)
+		LIBMV_CONVERT(TRANSLATION)
+		LIBMV_CONVERT(TRANSLATION_ROTATION)
+		LIBMV_CONVERT(TRANSLATION_SCALE)
+		LIBMV_CONVERT(TRANSLATION_ROTATION_SCALE)
+		LIBMV_CONVERT(AFFINE)
+		LIBMV_CONVERT(HOMOGRAPHY)
 #undef LIBMV_CONVERT
-  }
-  track_region_options.num_samples_x = options->num_samples_x;
-  track_region_options.num_samples_y = options->num_samples_y;
-  track_region_options.minimum_correlation = options->minimum_correlation;
-  track_region_options.max_iterations = options->num_iterations;
-  track_region_options.sigma = options->sigma;
-  
-  // Convert from raw float buffers to libmv's FloatImage.
-  libmv::FloatImage old_patch, new_patch;
-  floatBufToImage(image1, width, height, &old_patch);
-  floatBufToImage(image2, width, height, &new_patch);
+	}
 
-  libmv::TrackRegionResult track_region_result;
-  libmv::TrackRegion(old_patch, new_patch, xx1, yy1, track_region_options, xx2, yy2, &track_region_result);
+	track_region_options.minimum_correlation = options->minimum_correlation;
+	track_region_options.max_iterations = options->num_iterations;
+	track_region_options.sigma = options->sigma;
+	track_region_options.num_extra_points = 1;
+	track_region_options.image1_mask = NULL;
 
-  // Convert to floats for the blender api.
-  for (int i = 0; i < 4; ++i) {
-    x2[i] = xx2[i];
-    y2[i] = yy2[i];
-  }
+	/* Convert from raw float buffers to libmv's FloatImage. */
+	libmv::FloatImage old_patch, new_patch;
+	floatBufToImage(image1, width, height, &old_patch);
+	floatBufToImage(image2, width, height, &new_patch);
 
-  // TODO(keir): Update the termination string with failure details.
-  if (track_region_result.termination == libmv::TrackRegionResult::PARAMETER_TOLERANCE ||
-      track_region_result.termination == libmv::TrackRegionResult::FUNCTION_TOLERANCE  ||
-      track_region_result.termination == libmv::TrackRegionResult::GRADIENT_TOLERANCE  ||
-      track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE      ||
-      track_region_result.termination == libmv::TrackRegionResult::INSUFFICIENT_CORRELATION) {
-    return true;
-  }
-  return false;
+	libmv::TrackRegionResult track_region_result;
+	libmv::TrackRegion(old_patch, new_patch, xx1, yy1, track_region_options, xx2, yy2, &track_region_result);
+
+	/* Convert to floats for the blender api. */
+	for (int i = 0; i < 5; ++i) {
+		x2[i] = xx2[i];
+		y2[i] = yy2[i];
+	}
+
+	/* TODO(keir): Update the termination string with failure details. */
+	if (track_region_result.termination == libmv::TrackRegionResult::PARAMETER_TOLERANCE ||
+	    track_region_result.termination == libmv::TrackRegionResult::FUNCTION_TOLERANCE  ||
+	    track_region_result.termination == libmv::TrackRegionResult::GRADIENT_TOLERANCE  ||
+	    track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE      ||
+	    track_region_result.termination == libmv::TrackRegionResult::INSUFFICIENT_CORRELATION)
+	{
+		tracking_result = true;
+	}
+
+#if defined(DUMP_FAILURE) || defined(DUMP_ALWAYS)
+#if defined(DUMP_ALWAYS)
+	{
+#else
+	if (!tracking_result) {
+#endif
+		saveImage("old_patch", old_patch, x1[4], y1[4]);
+		saveImage("new_patch", new_patch, x2[4], y2[4]);
+	}
+#endif
+
+	return tracking_result;
 }
 
 /* ************ Tracks ************ */

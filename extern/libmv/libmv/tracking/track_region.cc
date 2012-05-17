@@ -38,6 +38,19 @@
 
 namespace libmv {
 
+TrackRegionOptions::TrackRegionOptions()
+    : mode(TRANSLATION),
+      minimum_correlation(0),
+      max_iterations(20),
+      use_esm(true),
+      use_brute_initialization(true),
+      sigma(0.9),
+      num_extra_points(0),
+      image1_mask(NULL) {
+}
+
+namespace {
+
 // TODO(keir): Consider adding padding.
 template<typename T>
 bool InBounds(const FloatImage &image,
@@ -161,22 +174,26 @@ class WarpCostFunctor {
                   const FloatImage &image_and_gradient1,
                   const FloatImage &image_and_gradient2,
                   const Mat3 &canonical_to_image1,
+                  int num_samples_x,
+                  int num_samples_y,
                   const Warp &warp)
       : options_(options),
         image_and_gradient1_(image_and_gradient1),       
         image_and_gradient2_(image_and_gradient2),       
         canonical_to_image1_(canonical_to_image1),
+        num_samples_x_(num_samples_x),
+        num_samples_y_(num_samples_y),
         warp_(warp) {}
 
- template<typename T>
- bool operator()(const T *warp_parameters, T *residuals) const {
-   for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
-     VLOG(2) << "warp_parameters[" << i << "]: " << warp_parameters[i];
-   }
+  template<typename T>
+  bool operator()(const T *warp_parameters, T *residuals) const {
+    for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
+      VLOG(2) << "warp_parameters[" << i << "]: " << warp_parameters[i];
+    }
 
-   int cursor = 0;
-   for (int r = 0; r < options_.num_samples_y; ++r) {
-     for (int c = 0; c < options_.num_samples_x; ++c) {
+    int cursor = 0;
+    for (int r = 0; r < num_samples_y_; ++r) {
+      for (int c = 0; c < num_samples_x_; ++c) {
         // Compute the location of the source pixel (via homography).
         Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
         image1_position /= image1_position(2);
@@ -223,10 +240,93 @@ class WarpCostFunctor {
         }
 
         // The difference is the error.
+        T error = src_sample - dst_sample;
+
+        // Weight the error by the mask, if one is present.
+        if (options_.image1_mask != NULL) {
+          error *= T(AutoDiff<double>::Sample(*options_.image1_mask,
+                                              image1_position[0],
+                                              image1_position[1]));
+        }
         residuals[cursor++] = src_sample - dst_sample;
       }
     }
     return true;
+  }
+
+ // TODO(keir): Consider also computing the cost here.
+ double PearsonProductMomentCorrelationCoefficient(
+     const double *warp_parameters) const {
+   for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
+     VLOG(2) << "Correlation warp_parameters[" << i << "]: "
+             << warp_parameters[i];
+   }
+
+   // The single-pass PMCC computation is somewhat numerically unstable, but
+   // it's sufficient for the tracker.
+   double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
+
+   // Due to masking, it's important to account for fractional samples.
+   // Samples with a 50% mask get counted as a half sample.
+   double num_samples = 0;
+
+   for (int r = 0; r < num_samples_y_; ++r) {
+     for (int c = 0; c < num_samples_x_; ++c) {
+        // Compute the location of the source pixel (via homography).
+        // TODO(keir): Cache these projections.
+        Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
+        image1_position /= image1_position(2);
+        
+        // Compute the location of the destination pixel.
+        double image2_position[2];
+        warp_.Forward(warp_parameters,
+                      image1_position[0],
+                      image1_position[1],
+                      &image2_position[0],
+                      &image2_position[1]);
+
+        double x = AutoDiff<double>::Sample(image_and_gradient2_,
+                                            image2_position[0],
+                                            image2_position[1]);
+
+        double y = AutoDiff<double>::Sample(image_and_gradient1_,
+                                            image1_position[0],
+                                            image1_position[1]);
+
+        // Weight the signals by the mask, if one is present.
+        if (options_.image1_mask != NULL) {
+          double mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
+                                                       image1_position[0],
+                                                       image1_position[1]);
+          x *= mask_value;
+          y *= mask_value;
+          num_samples += mask_value;
+        } else {
+          num_samples++;
+        }
+        sX += x;
+        sY += y;
+        sXX += x*x;
+        sYY += y*y;
+        sXY += x*y;
+      }
+    }
+    // Normalize.
+    sX /= num_samples;
+    sY /= num_samples;
+    sXX /= num_samples;
+    sYY /= num_samples;
+    sXY /= num_samples;
+
+    double var_x = sXX - sX*sX;
+    double var_y = sYY - sY*sY;
+    double covariance_xy = sXY - sX*sY;
+
+    double correlation = covariance_xy / sqrt(var_x * var_y);
+    LG << "Covariance xy: " << covariance_xy
+       << ", var 1: " << var_x << ", var 2: " << var_y
+       << ", correlation: " << correlation;
+    return correlation;
   }
 
  private:
@@ -234,6 +334,8 @@ class WarpCostFunctor {
   const FloatImage &image_and_gradient1_;
   const FloatImage &image_and_gradient2_;
   const Mat3 &canonical_to_image1_;
+  int num_samples_x_;
+  int num_samples_y_;
   const Warp &warp_;
 };
 
@@ -260,9 +362,7 @@ Mat3 ComputeCanonicalHomography(const double *x1,
 
 class Quad {
  public:
-  Quad(const double *x, const double *y)
-      : x_(x), y_(y) {
-
+  Quad(const double *x, const double *y) : x_(x), y_(y) {
     // Compute the centroid and store it.
     centroid_ = Vec2(0.0, 0.0);
     for (int i = 0; i < 4; ++i) {
@@ -298,7 +398,7 @@ class Quad {
 struct TranslationWarp {
   TranslationWarp(const double *x1, const double *y1,
                   const double *x2, const double *y2) {
-    Vec2 t = Quad(x1, y1).Centroid() - Quad(x2, y2).Centroid();
+    Vec2 t = Quad(x2, y2).Centroid() - Quad(x1, y1).Centroid() ;
     parameters[0] = t[0];
     parameters[1] = t[1];
   }
@@ -308,6 +408,13 @@ struct TranslationWarp {
                const T &x1, const T& y1, T *x2, T* y2) const {
     *x2 = x1 + warp_parameters[0];
     *y2 = y1 + warp_parameters[1];
+  }
+
+  template<typename T>
+  void Backward(const T *warp_parameters,
+                const T &x2, const T& y2, T *x1, T* y1) const {
+    *x1 = x2 - warp_parameters[0];
+    *y1 = y2 - warp_parameters[1];
   }
 
   // Translation x, translation y.
@@ -322,7 +429,7 @@ struct TranslationScaleWarp {
     Quad q2(x2, y2);
 
     // The difference in centroids is the best guess for translation.
-    Vec2 t = q1.Centroid() - q2.Centroid();
+    Vec2 t = q2.Centroid() - q1.Centroid();
     parameters[0] = t[0];
     parameters[1] = t[1];
 
@@ -354,6 +461,12 @@ struct TranslationScaleWarp {
     *y2 = y1_scaled + warp_parameters[1];
   }
 
+  template<typename T>
+  void Backward(const T *warp_parameters,
+                const T &x2, const T& y2, T *x1, T* y1) const {
+    // XXX
+  }
+
   // Translation x, translation y, scale.
   enum { NUM_PARAMETERS = 3 };
   double parameters[NUM_PARAMETERS];
@@ -375,7 +488,7 @@ struct TranslationRotationWarp {
     Quad q2(x2, y2);
 
     // The difference in centroids is the best guess for translation.
-    Vec2 t = q1.Centroid() - q2.Centroid();
+    Vec2 t = q2.Centroid() - q1.Centroid();
     parameters[0] = t[0];
     parameters[1] = t[1];
 
@@ -387,6 +500,10 @@ struct TranslationRotationWarp {
     }
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
     parameters[2] = acos(R(0, 0));
+
+    std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
+    std::cout << "R:\n" << R << "\n";
+    std::cout << "theta:" << parameters[2] << "\n";
   }
 
   // The strange way of parameterizing the translation and rotation is to make
@@ -422,6 +539,12 @@ struct TranslationRotationWarp {
     *y2 = y1_rotated + warp_parameters[1];
   }
 
+  template<typename T>
+  void Backward(const T *warp_parameters,
+                const T &x2, const T& y2, T *x1, T* y1) const {
+    // XXX
+  }
+
   // Translation x, translation y, rotation about the center of Q1 degrees.
   enum { NUM_PARAMETERS = 3 };
   double parameters[NUM_PARAMETERS];
@@ -436,7 +559,7 @@ struct TranslationRotationScaleWarp {
     Quad q2(x2, y2);
 
     // The difference in centroids is the best guess for translation.
-    Vec2 t = q1.Centroid() - q2.Centroid();
+    Vec2 t = q2.Centroid() - q1.Centroid();
     parameters[0] = t[0];
     parameters[1] = t[1];
 
@@ -449,8 +572,11 @@ struct TranslationRotationScaleWarp {
       correlation_matrix += q1.CornerRelativeToCentroid(i) * 
                             q2.CornerRelativeToCentroid(i).transpose();
     }
+    std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
+    std::cout << "R:\n" << R << "\n";
     parameters[3] = acos(R(0, 0));
+    std::cout << "theta:" << parameters[3] << "\n";
   }
 
   // The strange way of parameterizing the translation and rotation is to make
@@ -471,7 +597,7 @@ struct TranslationRotationScaleWarp {
     const T y1_origin = y1 - q1.Centroid()(1);
 
     // Rotate about the origin (i.e. centroid of Q1).
-    const T theta = warp_parameters[2];
+    const T theta = warp_parameters[3];
     const T costheta = cos(theta);
     const T sintheta = sin(theta);
     const T x1_origin_rotated = costheta * x1_origin - sintheta * y1_origin;
@@ -489,6 +615,12 @@ struct TranslationRotationScaleWarp {
     // Translate into the space of Q2.
     *x2 = x1_rotated_scaled + warp_parameters[0];
     *y2 = y1_rotated_scaled + warp_parameters[1];
+  }
+
+  template<typename T>
+  void Backward(const T *warp_parameters,
+                const T &x2, const T& y2, T *x1, T* y1) const {
+    // XXX
   }
 
   // Translation x, translation y, rotation about the center of Q1 degrees,
@@ -542,9 +674,215 @@ struct HomographyWarp {
     *y2 = yy2 / zz2;
   }
 
+  template<typename T>
+  void Backward(const T *warp_parameters,
+                const T &x2, const T& y2, T *x1, T* y1) const {
+    // XXX
+  }
+
   enum { NUM_PARAMETERS = 8 };
   double parameters[NUM_PARAMETERS];
 };
+
+// Determine the number of samples to use for x and y. Quad winding goes:
+//
+//    0 1
+//    3 2
+//
+// The idea is to take the maximum x or y distance. This may be oversampling.
+// TODO(keir): Investigate the various choices; perhaps average is better?
+void PickSampling(const double *x1, const double *y1,
+                  const double *x2, const double *y2,
+                  int *num_samples_x, int *num_samples_y) {
+  Vec2 a0(x1[0], y1[0]);
+  Vec2 a1(x1[1], y1[1]);
+  Vec2 a2(x1[2], y1[2]);
+  Vec2 a3(x1[3], y1[3]);
+
+  Vec2 b0(x1[0], y1[0]);
+  Vec2 b1(x1[1], y1[1]);
+  Vec2 b2(x1[2], y1[2]);
+  Vec2 b3(x1[3], y1[3]);
+
+  double x_dimensions[4] = {
+    (a1 - a0).norm(),
+    (a3 - a2).norm(),
+    (b1 - b0).norm(),
+    (b3 - b2).norm()
+  };
+
+  double y_dimensions[4] = {
+    (a3 - a0).norm(),
+    (a1 - a2).norm(),
+    (b3 - b0).norm(),
+    (b1 - b2).norm()
+  };
+  const double kScaleFactor = 1.0;
+  *num_samples_x = static_cast<int>(
+      kScaleFactor * *std::max_element(x_dimensions, x_dimensions + 4));
+  *num_samples_y = static_cast<int>(
+      kScaleFactor * *std::max_element(y_dimensions, y_dimensions + 4));
+  LG << "Automatic num_samples_x: " << *num_samples_x
+     << ", num_samples_y: " << *num_samples_y;
+}
+
+bool SearchAreaTooBigForDescent(const FloatImage &image2,
+                                const double *x2, const double *y2) {
+  // TODO(keir): Check the bounds and enable only when it makes sense.
+  return true;
+}
+
+bool PointOnRightHalfPlane(const Vec2 &a, const Vec2 &b, double x, double y) {
+  Vec2 ba = b - a;
+  return ((Vec2(x, y) - b).transpose() * Vec2(-ba.y(), ba.x())) > 0;
+}
+
+// Determine if a point is in a quad. The quad is arranged as:
+//
+//    +--> x
+//    |
+//    |  0 1
+//    v  3 2
+//    y
+//
+// The idea is to take the maximum x or y distance. This may be oversampling.
+// TODO(keir): Investigate the various choices; perhaps average is better?
+bool PointInQuad(const double *xs, const double *ys, double x, double y) {
+  Vec2 a0(xs[0], ys[0]);
+  Vec2 a1(xs[1], ys[1]);
+  Vec2 a2(xs[2], ys[2]);
+  Vec2 a3(xs[3], ys[3]);
+
+  return PointOnRightHalfPlane(a0, a1, x, y) &&
+         PointOnRightHalfPlane(a1, a2, x, y) &&
+         PointOnRightHalfPlane(a2, a3, x, y) &&
+         PointOnRightHalfPlane(a3, a0, x, y);
+}
+
+typedef Eigen::Array<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> FloatArray;
+
+// This creates a pattern in the frame of image2, from the pixel is image1,
+// based on the initial guess represented by the two quads x1, y1, and x2, y2.
+template<typename Warp>
+void CreateBrutePattern(const double *x1, const double *y1,
+                        const double *x2, const double *y2,
+                        const FloatImage &image1,
+                        const FloatImage *image1_mask,
+                        FloatArray *pattern,
+                        FloatArray *mask,
+                        int *origin_x,
+                        int *origin_y) {
+  // Get integer bounding box of quad2 in image2.
+  int min_x = static_cast<int>(floor(*std::min_element(x2, x2 + 4)));
+  int min_y = static_cast<int>(floor(*std::min_element(y2, y2 + 4)));
+  int max_x = static_cast<int>(ceil (*std::max_element(x2, x2 + 4)));
+  int max_y = static_cast<int>(ceil (*std::max_element(y2, y2 + 4)));
+
+  int w = max_x - min_x;
+  int h = max_y - min_y;
+
+  pattern->resize(h, w);
+  mask->resize(h, w);
+
+  Warp inverse_warp(x2, y2, x1, y1);
+
+  // r,c are in the coordinate frame of image2.
+  for (int r = min_y; r < max_y; ++r) {
+    for (int c = min_x; c < max_x; ++c) {
+      // i and j are in the coordinate frame of the pattern in image2.
+      int i = r - min_y;
+      int j = c - min_x;
+
+      double dst_x = c;
+      double dst_y = r;
+      double src_x;
+      double src_y;
+      inverse_warp.Forward(inverse_warp.parameters,
+                           dst_x, dst_y,
+                           &src_x, &src_y);
+      
+      if (PointInQuad(x1, y1, src_x, src_y)) {
+        (*pattern)(i, j) = SampleLinear(image1, src_y, src_x);
+        (*mask)(i, j) = 1.0;
+        if (image1_mask) {
+          (*mask)(i, j) = SampleLinear(*image1_mask, src_y, src_x);;
+        }
+      } else {
+        (*pattern)(i, j) = 0.0;
+        (*mask)(i, j) = 0.0;
+      }
+    }
+  }
+  *origin_x = min_x;
+  *origin_y = min_y;
+}
+
+template<typename Warp>
+void BruteTranslationOnlyInitialize(const FloatImage &image1,
+                                    const FloatImage *image1_mask,
+                                    const FloatImage &image2,
+                                    const int num_extra_points,
+                                    const double *x1, const double *y1,
+                                    double *x2, double *y2) {
+  // Create the pattern to match in the space of image2, assuming our inital
+  // guess isn't too far from the template in image1. If there is no image1
+  // mask, then the resulting mask is binary.
+  FloatArray pattern;
+  FloatArray mask;
+  int origin_x = -1, origin_y = -1;
+  CreateBrutePattern<Warp>(x1, y1, x2, y2, image1, image1_mask,
+                           &pattern, &mask, &origin_x, &origin_y);
+
+  // Use Eigen on the images via maps for strong vectorization.
+  Map<const FloatArray> search(image2.Data(), image2.Height(), image2.Width());
+
+  // Try all possible locations inside the search area. Yes, everywhere.
+  //
+  // TODO(keir): There are a number of possible optimizations here. One choice
+  // is to make a grid and only try one out of every N possible samples.
+  // 
+  // Another, slightly more clever idea, is to compute some sort of spatial
+  // frequency distribution of the pattern patch. If the spatial resolution is
+  // high (e.g. a grating pattern or fine lines) then checking every possible
+  // translation is necessary, since a 1-pixel shift may induce a massive
+  // change in the cost function. If the image is a blob or splotch with blurry
+  // edges, then fewer samples are necessary since a few pixels offset won't
+  // change the cost function much.
+  double best_sad = std::numeric_limits<double>::max();
+  int best_r = -1;
+  int best_c = -1;
+  int w = pattern.cols();
+  int h = pattern.rows();
+  for (int r = 0; r < (image2.Height() - h); ++r) {
+    for (int c = 0; c < (image2.Width() - w); ++c) {
+      // Compute the weighted sum of absolute differences, Eigen style.
+      double sad = (mask * (pattern - search.block(r, c, h, w))).abs().sum();
+      if (sad < best_sad) {
+        best_r = r;
+        best_c = c;
+        best_sad = sad;
+      }
+    }
+  }
+  CHECK_NE(best_r, -1);
+  CHECK_NE(best_c, -1);
+
+  LG << "Brute force translation found a shift. "
+     << "best_c: " << best_c << ", best_r: " << best_r << ", "
+     << "origin_x: " << origin_x << ", origin_y: " << origin_y << ", "
+     << "dc: " << (best_c - origin_x) << ", "
+     << "dr: " << (best_r - origin_y)
+     << ", tried " << ((image2.Height() - h) * (image2.Width() - w))
+     << " shifts.";
+
+  // Apply the shift.
+  for (int i = 0; i < 4 + num_extra_points; ++i) {
+    x2[i] += best_c - origin_x;
+    y2[i] += best_r - origin_y;
+  }
+}
+
+}  // namespace
 
 template<typename Warp>
 void TemplatedTrackRegion(const FloatImage &image1,
@@ -553,6 +891,12 @@ void TemplatedTrackRegion(const FloatImage &image1,
                           const TrackRegionOptions &options,
                           double *x2, double *y2,
                           TrackRegionResult *result) {
+  for (int i = 0; i < 4; ++i) {
+    LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); guess ("
+       << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
+       << (y2[i] - y1[i]) << ").";
+  }
+
   // Bail early if the points are already outside.
   if (!AllInBounds(image1, x1, y1)) {
     result->termination = TrackRegionResult::SOURCE_OUT_OF_BOUNDS;
@@ -564,6 +908,19 @@ void TemplatedTrackRegion(const FloatImage &image1,
   }
   // TODO(keir): Check quads to ensure there is some area.
 
+  // Prepare the initial warp parameters from the four correspondences.
+  Warp warp(x1, y1, x2, y2);
+
+  // Decide how many samples to use in the x and y dimensions.
+  int num_samples_x;
+  int num_samples_y;
+  PickSampling(x1, y1, x2, y2, &num_samples_x, &num_samples_y);
+
+  // Compute the warp from rectangular coordinates.
+  Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
+                                                         num_samples_x,
+                                                         num_samples_y);
+
   // Prepare the image and gradient.
   Array3Df image_and_gradient1;
   Array3Df image_and_gradient2;
@@ -572,8 +929,16 @@ void TemplatedTrackRegion(const FloatImage &image1,
   BlurredImageAndDerivativesChannels(image2, options.sigma,
                                      &image_and_gradient2);
 
-  // Prepare the initial warp parameters from the four correspondences.
-  Warp warp(x1, y1, x2, y2);
+  // Possibly do a brute-force translation-only initialization.
+  if (SearchAreaTooBigForDescent(image2, x2, y2) &&
+      options.use_brute_initialization) {
+    LG << "Running brute initialization...";
+    BruteTranslationOnlyInitialize<Warp>(image_and_gradient1,
+                                         options.image1_mask,
+                                         image2,
+                                         options.num_extra_points,
+                                         x1, y1, x2, y2);
+  }
 
   ceres::Solver::Options solver_options;
   solver_options.linear_solver_type = ceres::DENSE_QR;
@@ -591,17 +956,14 @@ void TemplatedTrackRegion(const FloatImage &image1,
   BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
   solver_options.callbacks.push_back(&callback);
 
-  // Compute the warp from rectangular coordinates.
-  Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
-                                                         options.num_samples_x,
-                                                         options.num_samples_y);
-
   // Construct the warp cost function. AutoDiffCostFunction takes ownership.
-  WarpCostFunctor<Warp> *cost_function =
+  WarpCostFunctor<Warp> *warp_cost_function =
       new WarpCostFunctor<Warp>(options,
                                 image_and_gradient1,
                                 image_and_gradient2,
                                 canonical_homography,
+                                num_samples_x,
+                                num_samples_y,
                                 warp);
 
   // Construct the problem with a single residual.
@@ -612,8 +974,8 @@ void TemplatedTrackRegion(const FloatImage &image1,
       new ceres::AutoDiffCostFunction<
           WarpCostFunctor<Warp>,
           ceres::DYNAMIC,
-          Warp::NUM_PARAMETERS>(cost_function,
-                                options.num_samples_x * options.num_samples_y),
+          Warp::NUM_PARAMETERS>(warp_cost_function,
+                                num_samples_x * num_samples_y),
       NULL,
       warp.parameters);
 
@@ -624,11 +986,17 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // Update the four points with the found solution; if the solver failed, then
   // the warp parameters are the identity (so ignore failure).
-  for (int i = 0; i < 4; ++i) {
+  //
+  // Also warp any extra points on the end of the array.
+  for (int i = 0; i < 4 + options.num_extra_points; ++i) {
     warp.Forward(warp.parameters, x1[i], y1[i], x2 + i, y2 + i);
+    LG << "Warped point " << i << ": (" << x1[i] << ", " << y1[i] << ") -> ("
+       << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
+       << (y2[i] - y1[i]) << ").";
   }
 
   // TODO(keir): Update the result statistics.
+  // TODO(keir): Add a normalize-cross-correlation variant.
 
   CHECK_NE(summary.termination_type, ceres::USER_ABORT) << "Libmv bug.";
   if (summary.termination_type == ceres::USER_ABORT) {
@@ -640,12 +1008,26 @@ void TemplatedTrackRegion(const FloatImage &image1,
     result->termination = TrackRegionResult::termination_enum; \
     return; \
   }
+
+  // Avoid computing correlation for tracking failures.
+  HANDLE_TERMINATION(DID_NOT_RUN);
+  HANDLE_TERMINATION(NUMERICAL_FAILURE);
+
+  // Otherwise, run a final correlation check.
+  if (options.minimum_correlation > 0.0) {
+    result->correlation = warp_cost_function->
+          PearsonProductMomentCorrelationCoefficient(warp.parameters);
+    if (result->correlation < options.minimum_correlation) {
+      LG << "Failing with insufficient correlation.";
+      result->termination = TrackRegionResult::INSUFFICIENT_CORRELATION;
+      return;
+    }
+  }
+
   HANDLE_TERMINATION(PARAMETER_TOLERANCE);
   HANDLE_TERMINATION(FUNCTION_TOLERANCE);
   HANDLE_TERMINATION(GRADIENT_TOLERANCE);
   HANDLE_TERMINATION(NO_CONVERGENCE);
-  HANDLE_TERMINATION(DID_NOT_RUN);
-  HANDLE_TERMINATION(NUMERICAL_FAILURE);
 #undef HANDLE_TERMINATION
 };
 

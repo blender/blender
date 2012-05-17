@@ -32,6 +32,8 @@
 namespace libmv {
 
 struct TrackRegionOptions {
+  TrackRegionOptions();
+
   enum Mode {
     TRANSLATION,
     TRANSLATION_ROTATION,
@@ -42,9 +44,6 @@ struct TrackRegionOptions {
   };
   Mode mode;
 
-  int num_samples_x;
-  int num_samples_y;
-
   double minimum_correlation;
   int max_iterations;
 
@@ -52,13 +51,28 @@ struct TrackRegionOptions {
   // convergence speed at the cost of more per-iteration work.
   bool use_esm;
 
+  // If true, apply a brute-force translation-only search before attempting the
+  // full search. This is not enabled if the destination image ("image2") is
+  // too small; in that case eithen the basin of attraction is close enough
+  // that the nearby minima is correct, or the search area is too small.
+  bool use_brute_initialization;
+
   double sigma;
+
+  // Extra points that should get transformed by the warp. This is useful
+  // because the actual warp parameters are not exposed.
+  int num_extra_points;
+
+  // If non-null, this is used as the pattern mask. It should match the size of
+  // image1, even though only values inside the image1 quad are examined. The
+  // values must be in the range 0.0 to 0.1.
+  FloatImage *image1_mask;
 };
 
 struct TrackRegionResult {
   enum Termination {
-    // Ceres termination types, duplicated.
-    PARAMETER_TOLERANCE = 0,
+    // Ceres termination types, duplicated; though, not the int values.
+    PARAMETER_TOLERANCE,
     FUNCTION_TOLERANCE,
     GRADIENT_TOLERANCE,
     NO_CONVERGENCE,
@@ -70,6 +84,7 @@ struct TrackRegionResult {
     DESTINATION_OUT_OF_BOUNDS,
     FELL_OUT_OF_BOUNDS,
     INSUFFICIENT_CORRELATION,
+    CONFIGURATION_ERROR,
   };
   Termination termination;
 
@@ -77,6 +92,7 @@ struct TrackRegionResult {
   double correlation;
 
   // Final parameters?
+  bool used_brute_translation_initialization;
 };
 
 // Always needs 4 correspondences.
@@ -86,8 +102,6 @@ void TrackRegion(const FloatImage &image1,
                  const TrackRegionOptions &options,
                  double *x2, double *y2,
                  TrackRegionResult *result);
-
-// TODO(keir): May need a "samplewarp" function.
 
 }  // namespace libmv
 

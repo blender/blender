@@ -53,8 +53,6 @@ void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 /* TrackRegion (new planar tracker) */
 struct libmv_trackRegionOptions {
   int motion_model;
-  int num_samples_x;
-  int num_samples_y;
   int num_iterations;
   double minimum_correlation;
   double sigma;

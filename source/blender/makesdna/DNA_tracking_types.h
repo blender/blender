@@ -73,14 +73,16 @@ typedef struct MovieTrackingMarker {
 
 	/* corners of pattern in the following order:
 	 *
-	 * Y
-	 * ^
-	 * | (3) --- (2)
-	 * |  |       |
-	 * |  |       |
-	 * |  |       |
-	 * | (0) --- (1)
-	 * +-------------> X
+	 *       Y
+	 *       ^
+	 *       | (3) --- (2)
+	 *       |  |       |
+	 *       |  |       |
+	 *       |  |       |
+	 *       | (0) --- (1)
+	 *       +-------------> X
+     *
+     * the coordinates are stored relative to pos.
 	 */
 	float pattern_corners[4][2];
 
@@ -95,10 +97,10 @@ typedef struct MovieTrackingTrack {
 
 	/* ** setings ** */
 
-	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 space) */
+	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 units, relative to marker->pos) */
 	float pat_min[2], pat_max[2]		DNA_DEPRECATED;
 
-	/* positions of left-bottom and right-top corners of search area (in unified 0..1 space) */
+	/* positions of left-bottom and right-top corners of search area (in unified 0..1 units, relative to marker->pos */
 	float search_min[2], search_max[2];
 
 	float offset[2];					/* offset to "parenting" point */
