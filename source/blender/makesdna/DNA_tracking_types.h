@@ -286,7 +286,7 @@ enum {
 #define TRACK_MOTION_MODEL_HOMOGRAPHY                  5
 
 /* MovieTrackingTrack->algorithm_flag */
-#define TRACK_ALGORITHM_FLAG_USE_BRUTE 0
+#define TRACK_ALGORITHM_FLAG_USE_BRUTE 1
 
 /* MovieTrackingTrack->adjframes */
 #define TRACK_MATCH_KEYFRAME		0
