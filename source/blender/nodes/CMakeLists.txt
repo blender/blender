@@ -35,6 +35,7 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
+	../compositor
 )
 
 set(INC_SYS
@@ -107,6 +108,13 @@ set(SRC
 	composite/nodes/node_composite_vecBlur.c
 	composite/nodes/node_composite_viewer.c
 	composite/nodes/node_composite_zcombine.c
+	composite/nodes/node_composite_bokehblur.c
+	composite/nodes/node_composite_bokehimage.c
+	composite/nodes/node_composite_boxmask.c
+	composite/nodes/node_composite_ellipsemask.c
+	composite/nodes/node_composite_switch.c
+	composite/nodes/node_composite_colorcorrection.c
+	
 	composite/node_composite_tree.c
 	composite/node_composite_util.c
 

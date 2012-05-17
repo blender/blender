@@ -356,9 +356,6 @@ class BONE_PT_deform(BoneButtonsPanel, Panel):
         sub.prop(bone, "bbone_in", text="Ease In")
         sub.prop(bone, "bbone_out", text="Ease Out")
 
-        col.label(text="Offset:")
-        col.prop(bone, "use_cyclic_offset")
-
 
 class BONE_PT_custom_props(BoneButtonsPanel, PropertyPanel, Panel):
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}

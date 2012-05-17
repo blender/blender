@@ -1159,7 +1159,7 @@ static BMOpDefine bmo_vertex_slide_def = {
  * 'unused_geom' slot will contain all interior geometry that is
  * completely unused. Lastly, 'holes_geom' contains edges and faces
  * that were in the input and are part of the hull.
-*/
+ */
 static BMOpDefine bmo_convex_hull_def = {
 	"convex_hull",
 	{{BMO_OP_SLOT_ELEMENT_BUF, "input"},

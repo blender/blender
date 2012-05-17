@@ -83,7 +83,7 @@ class TIME_HT_header(Header):
         row.prop(toolsettings, "use_keyframe_insert_auto", text="", toggle=True)
         if toolsettings.use_keyframe_insert_auto:
             row.prop(toolsettings, "use_keyframe_insert_keyingset", text="", toggle=True)
-            
+
             if screen.is_animation_playing:
                 subsub = row.row()
                 subsub.prop(toolsettings, "use_record_with_nla", toggle=True)

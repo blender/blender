@@ -112,7 +112,6 @@ class PHYSICS_PT_field(PhysicButtonsPanel, Panel):
 
             col = split.column()
             col.prop(field, "use_object_coords")
-            col.prop(field, "use_root_coords")
             col.prop(field, "use_2d_force")
         else:
             basic_force_field_settings_ui(self, context, field)

@@ -1,0 +1,8 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+incs = '.'
+
+env.BlenderLib ( 'bf_opencl', sources, Split(incs), libtype=['core','player'], priority = [192,192] )

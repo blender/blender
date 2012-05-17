@@ -2092,8 +2092,9 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 		mp->mat_nr = mf->mat_nr;
 		mp->flag = mf->flag;
 		
-#       define ML(v1, v2) {ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++; \
-}
+#       define ML(v1, v2) { \
+			ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++; \
+		} (void)0
 		
 		ML(v1, v2);
 		ML(v2, v3);
@@ -2287,21 +2288,39 @@ void create_vert_poly_map(MeshElemMap **map, int **mem,
 /* Generates a map where the key is the vertex and the value is a list
  * of edges that use that vertex as an endpoint. The lists are allocated
  * from one memory pool. */
-void create_vert_edge_map(ListBase **map, IndexNode **mem, const MEdge *medge, const int totvert, const int totedge)
+void create_vert_edge_map(MeshElemMap **map, int **mem,
+						  const MEdge *medge, int totvert, int totedge)
 {
-	int i, j;
-	IndexNode *node = NULL;
- 
-	(*map) = MEM_callocN(sizeof(ListBase) * totvert, "vert edge map");
-	(*mem) = MEM_callocN(sizeof(IndexNode) * totedge * 2, "vert edge map mem");
-	node = *mem;
+	int i, *indices;
 
+	(*map) = MEM_callocN(sizeof(MeshElemMap) * totvert, "vert-edge map");
+	(*mem) = MEM_mallocN(sizeof(int) * totedge * 2, "vert-edge map mem");
+
+	/* Count number of edges for each vertex */
+	for (i = 0; i < totedge; i++) {
+		(*map)[medge[i].v1].count++;
+		(*map)[medge[i].v2].count++;
+	}
+
+	/* Assign indices mem */
+	indices = (*mem);
+	for (i = 0; i < totvert; i++) {
+		(*map)[i].indices = indices;
+		indices += (*map)[i].count;
+
+		/* Reset 'count' for use as index in last loop */
+		(*map)[i].count = 0;
+	}
+		
 	/* Find the users */
-	for (i = 0; i < totedge; ++i) {
-		for (j = 0; j < 2; ++j, ++node) {
-			node->index = i;
-			BLI_addtail(&(*map)[((unsigned int *)(&medge[i].v1))[j]], node);
-		}
+	for (i = 0; i < totedge; i++) {
+		const int v[2] = {medge[i].v1, medge[i].v2};
+
+		(*map)[v[0]].indices[(*map)[v[0]].count] = i;
+		(*map)[v[1]].indices[(*map)[v[1]].count] = i;
+		
+		(*map)[v[0]].count++;
+		(*map)[v[1]].count++;
 	}
 }
 

@@ -1012,7 +1012,7 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			float *tang = attribs.tang.array[i * 4 + vert];                         \
 			glVertexAttrib3fvARB(attribs.tang.gl_index, tang);                      \
 		}                                                                           \
-}
+	} (void)0
 
 
 	for (i = 0, ltri = em->looptris[0]; i < em->tottri; i++, ltri += 3) {
@@ -1141,7 +1141,7 @@ static void emDM_drawMappedFacesMat(DerivedMesh *dm,
 			float *tang = attribs.tang.array[i * 4 + vert];                         \
 			glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                      \
 		}                                                                           \
-}
+	} (void)0
 
 	for (i = 0, ltri = em->looptris[0]; i < em->tottri; i++, ltri += 3) {
 		int drawSmooth;

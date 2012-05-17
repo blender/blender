@@ -1715,6 +1715,7 @@ typedef struct View3DAfter {
 void add_view3d_after(ListBase *lb, Base *base, int flag)
 {
 	View3DAfter *v3da = MEM_callocN(sizeof(View3DAfter), "View 3d after");
+	BLI_assert((base->flag & OB_FROMDUPLI) == 0);
 	BLI_addtail(lb, v3da);
 	v3da->base = base;
 	v3da->flag = flag;
@@ -1815,7 +1816,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 	RegionView3D *rv3d = ar->regiondata;
 	ListBase *lb;
 	DupliObject *dob_prev = NULL, *dob, *dob_next = NULL;
-	Base tbase;
+	Base tbase = {NULL};
 	BoundBox bb, *bb_tmp; /* use a copy because draw_object, calls clear_mesh_caches */
 	GLuint displist = 0;
 	short transflag, use_displist = -1;  /* -1 is initialize */

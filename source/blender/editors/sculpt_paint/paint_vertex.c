@@ -2079,7 +2079,7 @@ static char *wpaint_make_validmap(Object *ob)
 		return NULL;
 	}
 
-	gh = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wpaint_make_validmap gh");
+	gh = BLI_ghash_str_new("wpaint_make_validmap gh");
 
 	/* add all names to a hash table */
 	for (dg = ob->defbase.first; dg; dg = dg->next) {

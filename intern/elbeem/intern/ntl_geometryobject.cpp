@@ -125,7 +125,7 @@ void ntlGeometryObject::initialize(ntlRenderGlobals *glob)
 		}
 
 		if(!gotit) {
-			errFatal("ntlGeometryObject::initialize","Obj '"<<mName<<"', Unkown 'geoinittype' value: '"<< ginitStr <<"' ", SIMWORLD_INITERROR);
+			errFatal("ntlGeometryObject::initialize","Obj '"<<mName<<"', Unknown 'geoinittype' value: '"<< ginitStr <<"' ", SIMWORLD_INITERROR);
 			return;
 		}
 	}

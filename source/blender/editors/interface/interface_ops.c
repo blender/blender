@@ -589,9 +589,7 @@ static void ui_editsource_active_but_set(uiBut *but)
 	ui_editsource_info = MEM_callocN(sizeof(uiEditSourceStore), __func__);
 	memcpy(&ui_editsource_info->but_orig, but, sizeof(uiBut));
 
-	ui_editsource_info->hash = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                                         BLI_ghashutil_ptrcmp,
-	                                         __func__);
+	ui_editsource_info->hash = BLI_ghash_ptr_new(__func__);
 }
 
 static void ui_editsource_active_but_clear(void)

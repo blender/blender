@@ -715,7 +715,6 @@ static void node_composit_exec_rlayers(void *data, bNode *node, bNodeStack **UNU
 		RE_ReleaseResult(re);
 }
 
-
 void register_node_type_cmp_rlayers(bNodeTreeType *ttype)
 {
 	static bNodeType ntype;

@@ -733,7 +733,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
                                       VertData *vdata, PathBase *pathbase, int group)
 {
 	BMEdge *e;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createops find shortest path");
+	GHash *gh = BLI_ghash_ptr_new("createops find shortest path");
 	BMVert *v1, *v2;
 	BMVert **verts = NULL;
 	BLI_array_staticdeclare(verts, 1024);

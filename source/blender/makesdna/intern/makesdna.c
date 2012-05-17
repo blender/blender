@@ -212,7 +212,7 @@ void dna_write(FILE *file, void *pntr, int size);
 /**
  * Report all structures found so far, and print their lengths.
  */
-void printStructLenghts(void);
+void printStructLengths(void);
 
 
 
@@ -701,7 +701,7 @@ static int arraysize(char *astr, int len)
 		else if (str[a] == ']' && cp) {
 			str[a] = 0;
 			/* if 'cp' is a preprocessor definition, it will evaluate to 0,
-			* the caller needs to check for this case and throw an error */
+			 * the caller needs to check for this case and throw an error */
 			mul *= atoi(cp);
 		}
 	}
@@ -901,7 +901,7 @@ void dna_write(FILE *file, void *pntr, int size)
 	}
 }
 
-void printStructLenghts(void)
+void printStructLengths(void)
 {
 	int a, unknown = nr_structs, structtype;
 	/*int lastunknown;*/ /*UNUSED*/

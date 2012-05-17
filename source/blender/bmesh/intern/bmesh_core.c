@@ -1833,7 +1833,7 @@ int bmesh_vert_separate(BMesh *bm, BMVert *v, BMVert ***r_vout, int *r_vout_len)
 	int i, maxindex;
 	BMLoop *nl;
 
-	visithash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, __func__);
+	visithash = BLI_ghash_ptr_new(__func__);
 
 	maxindex = 0;
 	BM_ITER_ELEM (e, &eiter, v, BM_EDGES_OF_VERT) {

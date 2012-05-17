@@ -130,7 +130,7 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 	Object *ob;
 
 	/* proxy lib exception, store it here so we can restore layers on file
-	   load, since it would otherwise get lost due to being linked data */
+	 * load, since it would otherwise get lost due to being linked data */
 	for (ob = bmain->object.first; ob; ob = ob->id.next)
 		if (ob->data == arm && ob->pose)
 			ob->pose->proxy_layer = arm->layer;
@@ -492,10 +492,12 @@ static void rna_def_bone_common(StructRNA *srna, int editbone)
 	                         "(useful for non-obstructive custom bone shapes)");
 	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
 	
+	/* XXX: use_cyclic_offset is deprecated in 2.5. May/may not return */
 	prop = RNA_def_property(srna, "use_cyclic_offset", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", BONE_NO_CYCLICOFFSET);
 	RNA_def_property_ui_text(prop, "Cyclic Offset",
-	                         "When bone doesn't have a parent, it receives cyclic offset effects");
+	                         "When bone doesn't have a parent, it receives cyclic offset effects (Deprecated)");
+	//                         "When bone doesn't have a parent, it receives cyclic offset effects");
 	RNA_def_property_update(prop, 0, "rna_Armature_update_data");
 	
 	prop = RNA_def_property(srna, "hide_select", PROP_BOOLEAN, PROP_NONE);

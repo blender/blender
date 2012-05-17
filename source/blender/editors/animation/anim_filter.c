@@ -379,7 +379,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 /* ... standard sub-channel filtering can go on here now ... */
 #define END_ANIMFILTER_SUBCHANNELS \
 		filter_mode = _filter; \
-	}
+	} (void)0
 
 /* ............................... */
 
@@ -447,7 +447,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 				} \
 			} \
 		} \
-	}
+	} (void)0
 
 /* ............................... */
 
@@ -467,7 +467,7 @@ short ANIM_animdata_get_context(const bContext *C, bAnimContext *ac)
 			items ++; \
 			ale_statement \
 		} \
-	}
+	} (void)0
 	
 #define ANIMCHANNEL_NEW_CHANNEL(channel_data, channel_type, owner_id) \
 	ANIMCHANNEL_NEW_CHANNEL_FULL(channel_data, channel_type, owner_id, {})
@@ -2223,7 +2223,7 @@ static size_t animdata_filter_remove_duplis(ListBase *anim_data)
 	/* build new hashtable to efficiently store and retrieve which entries have been 
 	 * encountered already while searching
 	 */
-	gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "animdata_filter_duplis_remove gh");
+	gh = BLI_ghash_ptr_new("animdata_filter_duplis_remove gh");
 	
 	/* loop through items, removing them from the list if a similar item occurs already */
 	for (ale = anim_data->first; ale; ale = next) {

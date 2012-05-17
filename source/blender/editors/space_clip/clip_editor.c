@@ -142,7 +142,7 @@ void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *c
 	if (sc->clip && sc->clip->id.us == 0)
 		sc->clip->id.us = 1;
 
-	if (screen) {
+	if (screen && sc->view == SC_VIEW_CLIP) {
 		ScrArea *area;
 		SpaceLink *sl;
 
@@ -151,7 +151,7 @@ void ED_space_clip_set(bContext *C, bScreen *screen, SpaceClip *sc, MovieClip *c
 				if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *cur_sc = (SpaceClip *) sl;
 
-					if (cur_sc != sc) {
+					if (cur_sc != sc && cur_sc->view != SC_VIEW_CLIP) {
 						if (cur_sc->clip == old_clip || cur_sc->clip == NULL) {
 							cur_sc->clip = clip;
 						}

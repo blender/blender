@@ -202,7 +202,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 
 	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SOUND, sound->name);
 	seq->sound = sound;
-	seq->len = ceil(sound_get_length(sound) * FPS);
+	seq->len = ceil((double)sound_get_length(sound) * FPS);
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
@@ -213,8 +213,8 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 	return seq;
 }
 #else /* WITH_AUDASPACE */
-static Sequence *rna_Sequences_new_sound(ID *UNUSED(id), Editing *UNUSED(ed), bMain *UNUSED(main), ReportList *UNUSED(reports),
-                                         const char *UNUSED(name), bSound *UNUSED(sound), int UNUSED(channel), int UNUSED(start_frame))
+static Sequence *rna_Sequences_new_sound(ID *UNUSED(id), Editing *UNUSED(ed), Main *UNUSED(bmain), ReportList *reports,
+                                         const char *UNUSED(name), const char *UNUSED(file), int UNUSED(channel), int UNUSED(start_frame))
 {
 	BKE_report(reports, RPT_ERROR, "Blender compiled without Audaspace support.");
 	return NULL;

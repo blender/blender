@@ -47,7 +47,7 @@
 static ImBuf *loadblend_thumb(gzFile gzfile)
 {
 	char buf[12];
-	int bhead[24/sizeof(int)]; /* max size on 64bit */
+	int bhead[24 / sizeof(int)]; /* max size on 64bit */
 	char endian, pointer_size;
 	char endian_switch;
 	int sizeof_bhead;
@@ -58,19 +58,19 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 	if (strncmp(buf, "BLENDER", 7))
 		return NULL;
 
-	if (buf[7]=='-')
-		pointer_size= 8;
-	else if (buf[7]=='_')
-		pointer_size= 4;
+	if (buf[7] == '-')
+		pointer_size = 8;
+	else if (buf[7] == '_')
+		pointer_size = 4;
 	else
 		return NULL;
 
 	sizeof_bhead = 16 + pointer_size;
 
-	if (buf[8]=='V')
-		endian= B_ENDIAN; /* big: PPC */
-	else if (buf[8]=='v')
-		endian= L_ENDIAN; /* little: x86 */
+	if (buf[8] == 'V')
+		endian = B_ENDIAN;  /* big: PPC */
+	else if (buf[8] == 'v')
+		endian = L_ENDIAN;  /* little: x86 */
 	else
 		return NULL;
 
@@ -78,9 +78,9 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 
 	while (gzread(gzfile, bhead, sizeof_bhead) == sizeof_bhead) {
 		if (endian_switch)
-			SWITCH_INT(bhead[1]); /* length */
+			SWITCH_INT(bhead[1]);  /* length */
 
-		if (bhead[0]==REND) {
+		if (bhead[0] == REND) {
 			gzseek(gzfile, bhead[1], SEEK_CUR); /* skip to the next */
 		}
 		else {
@@ -90,7 +90,7 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 
 	/* using 'TEST' since new names segfault when loading in old blenders */
 	if (bhead[0] == TEST) {
-		ImBuf *img= NULL;
+		ImBuf *img = NULL;
 		int size[2];
 
 		if (gzread(gzfile, size, sizeof(size)) != sizeof(size))
@@ -108,11 +108,11 @@ static ImBuf *loadblend_thumb(gzFile gzfile)
 			return NULL;
 	
 		/* finally malloc and read the data */
-		img= IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
+		img = IMB_allocImBuf(size[0], size[1], 32, IB_rect | IB_metadata);
 	
 		if (gzread(gzfile, img->rect, bhead[1]) != bhead[1]) {
 			IMB_freeImBuf(img);
-			img= NULL;
+			img = NULL;
 		}
 	
 		return img;
@@ -127,11 +127,11 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 	/* not necessarily a gzip */
 	gzfile = BLI_gzopen(path, "rb");
 
-	if (NULL == gzfile ) {
+	if (NULL == gzfile) {
 		return NULL;
 	}
 	else {
-		ImBuf *img= loadblend_thumb(gzfile);
+		ImBuf *img = loadblend_thumb(gzfile);
 
 		/* read ok! */
 		gzclose(gzfile);
@@ -145,43 +145,43 @@ ImBuf *IMB_loadblend_thumb(const char *path)
 
 void IMB_overlayblend_thumb(unsigned int *thumb, int width, int height, float aspect)
 {
-	unsigned char *px= (unsigned char *)thumb;
+	unsigned char *px = (unsigned char *)thumb;
 	int margin_l = MARGIN;
 	int margin_b = MARGIN;
 	int margin_r = width - MARGIN;
 	int margin_t = height - MARGIN;
 
 	if (aspect < 1.0f) {
-		margin_l= (int)((width - ((float)width * aspect)) / 2.0f);
+		margin_l = (int)((width - ((float)width * aspect)) / 2.0f);
 		margin_l += MARGIN;
-		CLAMP(margin_l, MARGIN, (width/2));
+		CLAMP(margin_l, MARGIN, (width / 2));
 		margin_r = width - margin_l;
 	}
 	else if (aspect > 1.0f) {
-		margin_b= (int)((height - ((float)height / aspect)) / 2.0f);
+		margin_b = (int)((height - ((float)height / aspect)) / 2.0f);
 		margin_b += MARGIN;
-		CLAMP(margin_b, MARGIN, (height/2));
+		CLAMP(margin_b, MARGIN, (height / 2));
 		margin_t = height - margin_b;
 	}
 
 	{	
 		int x, y;
-		int stride_x= (margin_r - margin_l) - 2;
+		int stride_x = (margin_r - margin_l) - 2;
 		
-		for (y=0; y < height; y++) {
-			for (x=0; x < width; x++, px+=4) {
-				int hline= 0, vline= 0;
+		for (y = 0; y < height; y++) {
+			for (x = 0; x < width; x++, px += 4) {
+				int hline = 0, vline = 0;
 				if ((x > margin_l && x < margin_r) && (y > margin_b && y < margin_t)) {
 					/* interior. skip */
 					x  += stride_x;
 					px += stride_x * 4;
 				}
-				else if ((hline=(((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
-				        (vline=(((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r)))
+				else if ((hline = (((x == margin_l || x == margin_r)) && y >= margin_b && y <= margin_t)) ||
+				         (vline = (((y == margin_b || y == margin_t)) && x >= margin_l && x <= margin_r)))
 				{
 					/* dashed line */
 					if ((hline && y % 2) || (vline && x % 2)) {
-						px[0]= px[1]= px[2]= 0;
+						px[0] = px[1] = px[2] = 0;
 						px[3] = 255;
 					}
 				}

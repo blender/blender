@@ -48,7 +48,7 @@
  * back to the global cache every pixel, but not to big to keep too many tiles
  * locked and using memory. */
 
-#define IB_THREAD_CACHE_SIZE	100
+#define IB_THREAD_CACHE_SIZE    100
 
 typedef struct ImGlobalTile {
 	struct ImGlobalTile *next, *prev;
@@ -82,7 +82,7 @@ typedef struct ImGlobalTileCache {
 	MemArena *memarena;
 	uintptr_t totmem, maxmem;
 
-	ImThreadTileCache thread_cache[BLENDER_MAX_THREADS+1];
+	ImThreadTileCache thread_cache[BLENDER_MAX_THREADS + 1];
 	int totthread;
 
 	ThreadMutex mutex;
@@ -96,15 +96,15 @@ static ImGlobalTileCache GLOBAL_CACHE;
 
 static unsigned int imb_global_tile_hash(const void *gtile_p)
 {
-	const ImGlobalTile *gtile= gtile_p;
+	const ImGlobalTile *gtile = gtile_p;
 
-	return ((unsigned int)(intptr_t)gtile->ibuf)*769 + gtile->tx*53 + gtile->ty*97;
+	return ((unsigned int)(intptr_t)gtile->ibuf) * 769 + gtile->tx * 53 + gtile->ty * 97;
 }
 
 static int imb_global_tile_cmp(const void *a_p, const void *b_p)
 {
-	const ImGlobalTile *a= a_p;
-	const ImGlobalTile *b= b_p;
+	const ImGlobalTile *a = a_p;
+	const ImGlobalTile *b = b_p;
 
 	if (a->ibuf == b->ibuf && a->tx == b->tx && a->ty == b->ty) return 0;
 	else if (a->ibuf < b->ibuf || a->tx < b->tx || a->ty < b->ty) return -1;
@@ -113,15 +113,15 @@ static int imb_global_tile_cmp(const void *a_p, const void *b_p)
 
 static unsigned int imb_thread_tile_hash(const void *ttile_p)
 {
-	const ImThreadTile *ttile= ttile_p;
+	const ImThreadTile *ttile = ttile_p;
 
-	return ((unsigned int)(intptr_t)ttile->ibuf)*769 + ttile->tx*53 + ttile->ty*97;
+	return ((unsigned int)(intptr_t)ttile->ibuf) * 769 + ttile->tx * 53 + ttile->ty * 97;
 }
 
 static int imb_thread_tile_cmp(const void *a_p, const void *b_p)
 {
-	const ImThreadTile *a= a_p;
-	const ImThreadTile *b= b_p;
+	const ImThreadTile *a = a_p;
+	const ImThreadTile *b = b_p;
 
 	if (a->ibuf == b->ibuf && a->tx == b->tx && a->ty == b->ty) return 0;
 	else if (a->ibuf < b->ibuf || a->tx < b->tx || a->ty < b->ty) return -1;
@@ -132,24 +132,24 @@ static int imb_thread_tile_cmp(const void *a_p, const void *b_p)
 
 static void imb_global_cache_tile_load(ImGlobalTile *gtile)
 {
-	ImBuf *ibuf= gtile->ibuf;
-	int toffs= ibuf->xtiles*gtile->ty + gtile->tx;
+	ImBuf *ibuf = gtile->ibuf;
+	int toffs = ibuf->xtiles * gtile->ty + gtile->tx;
 	unsigned int *rect;
 
-	rect = MEM_callocN(sizeof(unsigned int)*ibuf->tilex*ibuf->tiley, "imb_tile");
+	rect = MEM_callocN(sizeof(unsigned int) * ibuf->tilex * ibuf->tiley, "imb_tile");
 	imb_loadtile(ibuf, gtile->tx, gtile->ty, rect);
-	ibuf->tiles[toffs]= rect;
+	ibuf->tiles[toffs] = rect;
 }
 
 static void imb_global_cache_tile_unload(ImGlobalTile *gtile)
 {
-	ImBuf *ibuf= gtile->ibuf;
-	int toffs= ibuf->xtiles*gtile->ty + gtile->tx;
+	ImBuf *ibuf = gtile->ibuf;
+	int toffs = ibuf->xtiles * gtile->ty + gtile->tx;
 
 	MEM_freeN(ibuf->tiles[toffs]);
-	ibuf->tiles[toffs]= NULL;
+	ibuf->tiles[toffs] = NULL;
 
-	GLOBAL_CACHE.totmem -= sizeof(unsigned int)*ibuf->tilex*ibuf->tiley;
+	GLOBAL_CACHE.totmem -= sizeof(unsigned int) * ibuf->tilex * ibuf->tiley;
 }
 
 /* external free */
@@ -162,7 +162,7 @@ void imb_tile_cache_tile_free(ImBuf *ibuf, int tx, int ty)
 	lookuptile.ibuf = ibuf;
 	lookuptile.tx = tx;
 	lookuptile.ty = ty;
-	gtile= BLI_ghash_lookup(GLOBAL_CACHE.tilehash, &lookuptile);
+	gtile = BLI_ghash_lookup(GLOBAL_CACHE.tilehash, &lookuptile);
 
 	if (gtile) {
 		/* in case another thread is loading this */
@@ -186,11 +186,11 @@ static void imb_thread_cache_init(ImThreadTileCache *cache)
 
 	memset(cache, 0, sizeof(ImThreadTileCache));
 
-	cache->tilehash= BLI_ghash_new(imb_thread_tile_hash, imb_thread_tile_cmp, "imb_thread_cache_init gh");
+	cache->tilehash = BLI_ghash_new(imb_thread_tile_hash, imb_thread_tile_cmp, "imb_thread_cache_init gh");
 
 	/* pre-allocate all thread local tiles in unused list */
-	for (a=0; a<IB_THREAD_CACHE_SIZE; a++) {
-		ttile= BLI_memarena_alloc(GLOBAL_CACHE.memarena, sizeof(ImThreadTile));
+	for (a = 0; a < IB_THREAD_CACHE_SIZE; a++) {
+		ttile = BLI_memarena_alloc(GLOBAL_CACHE.memarena, sizeof(ImThreadTile));
 		BLI_addtail(&cache->unused, ttile);
 	}
 }
@@ -219,10 +219,10 @@ void imb_tile_cache_exit(void)
 	int a;
 
 	if (GLOBAL_CACHE.initialized) {
-		for (gtile=GLOBAL_CACHE.tiles.first; gtile; gtile=gtile->next)
+		for (gtile = GLOBAL_CACHE.tiles.first; gtile; gtile = gtile->next)
 			imb_global_cache_tile_unload(gtile);
 
-		for (a=0; a<GLOBAL_CACHE.totthread; a++)
+		for (a = 0; a < GLOBAL_CACHE.totthread; a++)
 			imb_thread_cache_exit(&GLOBAL_CACHE.thread_cache[a]);
 
 		if (GLOBAL_CACHE.memarena)
@@ -253,15 +253,15 @@ void IMB_tile_cache_params(int totthread, int maxmem)
 
 	memset(&GLOBAL_CACHE, 0, sizeof(ImGlobalTileCache));
 
-	GLOBAL_CACHE.tilehash= BLI_ghash_new(imb_global_tile_hash, imb_global_tile_cmp, "tile_cache_params gh");
+	GLOBAL_CACHE.tilehash = BLI_ghash_new(imb_global_tile_hash, imb_global_tile_cmp, "tile_cache_params gh");
 
-	GLOBAL_CACHE.memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "ImTileCache arena");
+	GLOBAL_CACHE.memarena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "ImTileCache arena");
 	BLI_memarena_use_calloc(GLOBAL_CACHE.memarena);
 
-	GLOBAL_CACHE.maxmem= maxmem*1024*1024;
+	GLOBAL_CACHE.maxmem = maxmem * 1024 * 1024;
 
-	GLOBAL_CACHE.totthread= totthread;
-	for (a=0; a<totthread; a++)
+	GLOBAL_CACHE.totthread = totthread;
+	for (a = 0; a < totthread; a++)
 		imb_thread_cache_init(&GLOBAL_CACHE.thread_cache[a]);
 
 	BLI_mutex_init(&GLOBAL_CACHE.mutex);
@@ -282,7 +282,7 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 	lookuptile.ibuf = ibuf;
 	lookuptile.tx = tx;
 	lookuptile.ty = ty;
-	gtile= BLI_ghash_lookup(GLOBAL_CACHE.tilehash, &lookuptile);
+	gtile = BLI_ghash_lookup(GLOBAL_CACHE.tilehash, &lookuptile);
 	
 	if (gtile) {
 		/* found tile. however it may be in the process of being loaded
@@ -301,7 +301,7 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 		/* first check if we hit the memory limit */
 		if (GLOBAL_CACHE.maxmem && GLOBAL_CACHE.totmem > GLOBAL_CACHE.maxmem) {
 			/* find an existing tile to unload */
-			for (gtile=GLOBAL_CACHE.tiles.last; gtile; gtile=gtile->prev)
+			for (gtile = GLOBAL_CACHE.tiles.last; gtile; gtile = gtile->prev)
 				if (gtile->refcount == 0 && gtile->loading == 0)
 					break;
 		}
@@ -315,25 +315,25 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 		else {
 			/* allocate a new tile or reuse unused */
 			if (GLOBAL_CACHE.unused.first) {
-				gtile= GLOBAL_CACHE.unused.first;
+				gtile = GLOBAL_CACHE.unused.first;
 				BLI_remlink(&GLOBAL_CACHE.unused, gtile);
 			}
 			else
-				gtile= BLI_memarena_alloc(GLOBAL_CACHE.memarena, sizeof(ImGlobalTile));
+				gtile = BLI_memarena_alloc(GLOBAL_CACHE.memarena, sizeof(ImGlobalTile));
 		}
 
 		/* setup new tile */
-		gtile->ibuf= ibuf;
-		gtile->tx= tx;
-		gtile->ty= ty;
-		gtile->refcount= 1;
-		gtile->loading= 1;
+		gtile->ibuf = ibuf;
+		gtile->tx = tx;
+		gtile->ty = ty;
+		gtile->refcount = 1;
+		gtile->loading = 1;
 
 		BLI_ghash_insert(GLOBAL_CACHE.tilehash, gtile, gtile);
 		BLI_addhead(&GLOBAL_CACHE.tiles, gtile);
 
 		/* mark as being loaded and unlock to allow other threads to load too */
-		GLOBAL_CACHE.totmem += sizeof(unsigned int)*ibuf->tilex*ibuf->tiley;
+		GLOBAL_CACHE.totmem += sizeof(unsigned int) * ibuf->tilex * ibuf->tiley;
 
 		BLI_mutex_unlock(&GLOBAL_CACHE.mutex);
 
@@ -341,7 +341,7 @@ static ImGlobalTile *imb_global_cache_get_tile(ImBuf *ibuf, int tx, int ty, ImGl
 		imb_global_cache_tile_load(gtile);
 
 		/* mark as done loading */
-		gtile->loading= 0;
+		gtile->loading = 0;
 	}
 
 	return gtile;
@@ -353,10 +353,10 @@ static unsigned int *imb_thread_cache_get_tile(ImThreadTileCache *cache, ImBuf *
 {
 	ImThreadTile *ttile, lookuptile;
 	ImGlobalTile *gtile, *replacetile;
-	int toffs= ibuf->xtiles*ty + tx;
+	int toffs = ibuf->xtiles * ty + tx;
 
 	/* test if it is already in our thread local cache */
-	if ((ttile=cache->tiles.first)) {
+	if ((ttile = cache->tiles.first)) {
 		/* check last used tile before going to hash */
 		if (ttile->ibuf == ibuf && ttile->tx == tx && ttile->ty == ty)
 			return ibuf->tiles[toffs];
@@ -366,7 +366,7 @@ static unsigned int *imb_thread_cache_get_tile(ImThreadTileCache *cache, ImBuf *
 		lookuptile.tx = tx;
 		lookuptile.ty = ty;
 
-		if ((ttile=BLI_ghash_lookup(cache->tilehash, &lookuptile))) {
+		if ((ttile = BLI_ghash_lookup(cache->tilehash, &lookuptile))) {
 			BLI_remlink(&cache->tiles, ttile);
 			BLI_addhead(&cache->tiles, ttile);
 
@@ -376,33 +376,33 @@ static unsigned int *imb_thread_cache_get_tile(ImThreadTileCache *cache, ImBuf *
 
 	/* not found, have to do slow lookup in global cache */
 	if (cache->unused.first == NULL) {
-		ttile= cache->tiles.last;
-		replacetile= ttile->global;
+		ttile = cache->tiles.last;
+		replacetile = ttile->global;
 		BLI_remlink(&cache->tiles, ttile);
 		BLI_ghash_remove(cache->tilehash, ttile, NULL, NULL);
 	}
 	else {
-		ttile= cache->unused.first;
-		replacetile= NULL;
+		ttile = cache->unused.first;
+		replacetile = NULL;
 		BLI_remlink(&cache->unused, ttile);
 	}
 
 	BLI_addhead(&cache->tiles, ttile);
 	BLI_ghash_insert(cache->tilehash, ttile, ttile);
 
-	gtile= imb_global_cache_get_tile(ibuf, tx, ty, replacetile);
+	gtile = imb_global_cache_get_tile(ibuf, tx, ty, replacetile);
 
-	ttile->ibuf= gtile->ibuf;
-	ttile->tx= gtile->tx;
-	ttile->ty= gtile->ty;
-	ttile->global= gtile;
+	ttile->ibuf = gtile->ibuf;
+	ttile->tx = gtile->tx;
+	ttile->ty = gtile->ty;
+	ttile->global = gtile;
 
 	return ibuf->tiles[toffs];
 }
 
 unsigned int *IMB_gettile(ImBuf *ibuf, int tx, int ty, int thread)
 {
-	return imb_thread_cache_get_tile(&GLOBAL_CACHE.thread_cache[thread+1], ibuf, tx, ty);
+	return imb_thread_cache_get_tile(&GLOBAL_CACHE.thread_cache[thread + 1], ibuf, tx, ty);
 }
 
 void IMB_tiles_to_rect(ImBuf *ibuf)
@@ -412,12 +412,12 @@ void IMB_tiles_to_rect(ImBuf *ibuf)
 	unsigned int *to, *from;
 	int a, tx, ty, y, w, h;
 
-	for (a=0; a<ibuf->miptot; a++) {
-		mipbuf= IMB_getmipmap(ibuf, a);
+	for (a = 0; a < ibuf->miptot; a++) {
+		mipbuf = IMB_getmipmap(ibuf, a);
 
 		/* don't call imb_addrectImBuf, it frees all mipmaps */
 		if (!mipbuf->rect) {
-			if ((mipbuf->rect = MEM_mapallocN(ibuf->x*ibuf->y*sizeof(unsigned int), "imb_addrectImBuf"))) {
+			if ((mipbuf->rect = MEM_mapallocN(ibuf->x * ibuf->y * sizeof(unsigned int), "imb_addrectImBuf"))) {
 				mipbuf->mall |= IB_rect;
 				mipbuf->flags |= IB_rect;
 			}
@@ -425,22 +425,22 @@ void IMB_tiles_to_rect(ImBuf *ibuf)
 				break;
 		}
 
-		for (ty=0; ty<mipbuf->ytiles; ty++) {
-			for (tx=0; tx<mipbuf->xtiles; tx++) {
+		for (ty = 0; ty < mipbuf->ytiles; ty++) {
+			for (tx = 0; tx < mipbuf->xtiles; tx++) {
 				/* acquire tile through cache, this assumes cache is initialized,
 				 * which it is always now but it's a weak assumption ... */
-				gtile= imb_global_cache_get_tile(mipbuf, tx, ty, NULL);
+				gtile = imb_global_cache_get_tile(mipbuf, tx, ty, NULL);
 
 				/* setup pointers */
-				from= mipbuf->tiles[mipbuf->xtiles*ty + tx];
-				to= mipbuf->rect + mipbuf->x*ty*mipbuf->tiley + tx*mipbuf->tilex;
+				from = mipbuf->tiles[mipbuf->xtiles * ty + tx];
+				to = mipbuf->rect + mipbuf->x * ty * mipbuf->tiley + tx * mipbuf->tilex;
 
 				/* exception in tile width/height for tiles at end of image */
-				w= (tx == mipbuf->xtiles-1)? mipbuf->x - tx*mipbuf->tilex: mipbuf->tilex;
-				h= (ty == mipbuf->ytiles-1)? mipbuf->y - ty*mipbuf->tiley: mipbuf->tiley;
+				w = (tx == mipbuf->xtiles - 1) ? mipbuf->x - tx * mipbuf->tilex : mipbuf->tilex;
+				h = (ty == mipbuf->ytiles - 1) ? mipbuf->y - ty * mipbuf->tiley : mipbuf->tiley;
 
-				for (y=0; y<h; y++) {
-					memcpy(to, from, sizeof(unsigned int)*w);
+				for (y = 0; y < h; y++) {
+					memcpy(to, from, sizeof(unsigned int) * w);
 					from += mipbuf->tilex;
 					to += mipbuf->x;
 				}

@@ -154,9 +154,7 @@ static GHash *hull_triangles_v_outside(GHash *hull_triangles, const BMVert *v)
 	GHash *outside;
 	GHashIterator iter;
 
-	outside = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                        BLI_ghashutil_ptrcmp,
-	                        "outside");
+	outside = BLI_ghash_ptr_new("outside");
 
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
@@ -298,9 +296,7 @@ static HullFinalEdges *hull_final_edges(GHash *hull_triangles)
 	GHashIterator iter;
 	
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
-	final_edges->edges = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                                   BLI_ghashutil_ptrcmp,
-	                                   "final edges ghash");
+	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
 	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, 0);
 	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, 0);
 
@@ -513,7 +509,7 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 			BMEdge *e;
 
 			/* Check that all the face's edges are on the hull,
-			   otherwise can't reuse it */
+			 * otherwise can't reuse it */
 			f_on_hull = TRUE;
 			BM_ITER_ELEM (e, &bm_iter2, f, BM_EDGES_OF_FACE) {
 				if (!hull_final_edges_lookup(final_edges, e->v1, e->v2)) {
@@ -523,9 +519,10 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 			}
 			
 			/* Note: can't change ghash while iterating, so mark
-			   with 'skip' flag rather than deleting triangles */
+			 * with 'skip' flag rather than deleting triangles */
 			if (BM_vert_in_face(f, t->v[1]) &&
-			    BM_vert_in_face(f, t->v[2]) && f_on_hull) {
+			    BM_vert_in_face(f, t->v[2]) && f_on_hull)
+			{
 				t->skip = TRUE;
 				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 				BMO_elem_flag_enable(bm, f, HULL_FLAG_HOLE);
@@ -548,7 +545,7 @@ static void hull_mark_interior_elements(BMesh *bm, BMOperator *op,
 	}
 
 	/* Mark all input faces as interior, some may be unmarked in
-	   hull_remove_overlapping() */
+	 * hull_remove_overlapping() */
 	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
 		BMO_elem_flag_enable(bm, f, HULL_FLAG_INTERIOR_ELE);
 	}
@@ -563,9 +560,9 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	BMFace *f;
 
 	/* Mark vertices, edges, and faces that are already marked
-	   interior (i.e. were already part of the input, but not part of
-	   the hull), but that aren't also used by elements outside the
-	   input set */
+	 * interior (i.e. were already part of the input, but not part of
+	 * the hull), but that aren't also used by elements outside the
+	 * input set */
 	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
 		if (BMO_elem_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
 			int del = TRUE;
@@ -683,9 +680,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 
 	edge_pool = BLI_mempool_create(sizeof(HullBoundaryEdge), 128, 128, 0);
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
-	hull_triangles = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                               BLI_ghashutil_ptrcmp,
-	                               "hull_triangles");
+	hull_triangles = BLI_ghash_ptr_new("hull_triangles");
 
 	/* Add tetrahedron triangles */
 	hull_add_tetrahedron(bm, hull_triangles, hull_pool, tetra);

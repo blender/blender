@@ -301,7 +301,7 @@ class OBJECT_PT_motion_paths(MotionPathButtonsPanel, Panel):
         ob = context.object
         avs = ob.animation_visualisation
         mpath = ob.motion_path
-        
+
         self.draw_settings(context, avs, mpath)
 
 

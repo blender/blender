@@ -333,8 +333,8 @@ StrandShadeCache *strand_shade_cache_create(void)
 	StrandShadeCache *cache;
 
 	cache= MEM_callocN(sizeof(StrandShadeCache), "StrandShadeCache");
-	cache->resulthash= BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, "strand_shade_cache_create1 gh");
-	cache->refcounthash= BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, "strand_shade_cache_create2 gh");
+	cache->resulthash= BLI_ghash_pair_new("strand_shade_cache_create1 gh");
+	cache->refcounthash= BLI_ghash_pair_new("strand_shade_cache_create2 gh");
 	cache->memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE, "strand shade cache arena");
 	
 	return cache;

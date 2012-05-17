@@ -431,7 +431,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (vod->use_dyn_ofs) {
 		/* If there's no selection, lastofs is unmodified and last value since static */
-		calculateTransformCenter(C, V3D_CENTROID, lastofs);
+		calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
 		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
@@ -1423,7 +1423,8 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
 

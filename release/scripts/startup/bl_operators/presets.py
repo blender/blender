@@ -129,9 +129,6 @@ class AddPresetBase():
                         value = eval(rna_path)
                         rna_recursive_attr_expand(value, rna_path, 1)
 
-                            
-
-
                     file_preset.close()
 
             preset_menu_class.bl_label = bpy.path.display_name(filename)

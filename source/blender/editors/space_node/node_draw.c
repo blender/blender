@@ -914,6 +914,7 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	Scene *scene= CTX_data_scene(C);
 	int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	bNodeLinkDrag *nldrag;
+	LinkData *linkdata;
 	
 	UI_ThemeClearColor(TH_BACK);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -965,8 +966,10 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	/* temporary links */
 	glEnable(GL_BLEND);
 	glEnable(GL_LINE_SMOOTH);
-	for (nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next)
-		node_draw_link(&ar->v2d, snode, nldrag->link);
+	for (nldrag= snode->linkdrag.first; nldrag; nldrag= nldrag->next) {
+		for (linkdata=nldrag->links.first; linkdata; linkdata=linkdata->next)
+			node_draw_link(&ar->v2d, snode, (bNodeLink *)linkdata->data);
+	}
 	glDisable(GL_LINE_SMOOTH);
 	glDisable(GL_BLEND);
 	

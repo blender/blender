@@ -381,7 +381,7 @@ static DerivedMesh *ConvertCSGDescriptorsToDerivedMesh(
 	}
 
 	// a hash table to remap materials to indices
-	material_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "CSG_mat gh");
+	material_hash = BLI_ghash_ptr_new("CSG_mat gh");
 
 	if (mat)
 		*totmat = 0;

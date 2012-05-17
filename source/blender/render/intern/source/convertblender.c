@@ -902,7 +902,7 @@ static float *get_object_orco(Render *re, Object *ob)
 	float *orco;
 
 	if (!re->orco_hash)
-		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "get_object_orco gh");
+		re->orco_hash = BLI_ghash_ptr_new("get_object_orco gh");
 
 	orco = BLI_ghash_lookup(re->orco_hash, ob);
 
@@ -924,7 +924,7 @@ static float *get_object_orco(Render *re, Object *ob)
 static void set_object_orco(Render *re, void *ob, float *orco)
 {
 	if (!re->orco_hash)
-		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "set_object_orco gh");
+		re->orco_hash = BLI_ghash_ptr_new("set_object_orco gh");
 	
 	BLI_ghash_insert(re->orco_hash, ob, orco);
 }
@@ -4318,6 +4318,8 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			}
+			else if(BKE_object_is_animated(re->scene, ob))
+				split_quads(obr, 1);
 			else {
 				if ((re->r.mode & R_SIMPLIFY && re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
 					check_non_flat_quads(obr);

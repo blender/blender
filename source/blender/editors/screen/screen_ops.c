@@ -2301,7 +2301,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 				} 
 				else {
 					/* we are back in the area previously selected for keeping 
-					* we swap the areas if possible to allow user to choose */
+					 * we swap the areas if possible to allow user to choose */
 					if (jd->sa2 != NULL) {
 						if (jd->sa1) jd->sa1->flag &= ~AREA_FLAG_DRAWJOINFROM;
 						if (jd->sa2) jd->sa2->flag &= ~AREA_FLAG_DRAWJOINTO;

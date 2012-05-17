@@ -752,7 +752,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 	Curve *cu = ob->data;
 	ListBase *nurb = BKE_curve_nurbs_get(cu);
 	int numVerts = 0;
-	const int editmode = (!forRender && cu->editnurb);
+	const int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	ModifierApplyFlag app_flag = 0;
 	float (*originalVerts)[3] = NULL;
 	float (*deformedVerts)[3] = NULL;
@@ -793,9 +793,7 @@ static void curve_calc_modifiers_pre(Scene *scene, Object *ob, int forRender, fl
 
 			md->scene = scene;
 
-			if ((md->mode & required_mode) != required_mode)
-				continue;
-			if (mti->isDisabled && mti->isDisabled(md, forRender))
+			if (!modifier_isEnabled(scene, md, required_mode))
 				continue;
 			if (mti->type != eModifierTypeType_OnlyDeform)
 				continue;
@@ -867,7 +865,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 	Curve *cu = ob->data;
 	ListBase *nurb = BKE_curve_nurbs_get(cu);
 	int required_mode = 0, totvert = 0;
-	int editmode = (!forRender && cu->editnurb);
+	int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	DerivedMesh *dm = NULL, *ndm;
 	float (*vertCos)[3] = NULL;
 	int useCache = !forRender;
@@ -899,9 +897,7 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 
 		md->scene = scene;
 
-		if ((md->mode & required_mode) != required_mode)
-			continue;
-		if (mti->isDisabled && mti->isDisabled(md, forRender))
+		if (!modifier_isEnabled(scene, md, required_mode))
 			continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform ||
@@ -1095,7 +1091,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 	ModifierData *pretessellatePoint;
 	Curve *cu = ob->data;
 	int required_mode;
-	int editmode = (!forRender && cu->editnurb);
+	int editmode = (!forRender && (cu->editnurb || cu->editfont));
 	DerivedMesh *ndm, *orcodm = NULL;
 	const ModifierApplyFlag app_flag = forRender ? MOD_APPLY_RENDER : 0;
 
@@ -1118,9 +1114,7 @@ static void curve_calc_orcodm(Scene *scene, Object *ob, DerivedMesh *derivedFina
 
 		md->scene = scene;
 
-		if ((md->mode & required_mode) != required_mode)
-			continue;
-		if (mti->isDisabled && mti->isDisabled(md, forRender))
+		if (!modifier_isEnabled(scene, md, required_mode))
 			continue;
 		if (mti->type != eModifierTypeType_Constructive)
 			continue;

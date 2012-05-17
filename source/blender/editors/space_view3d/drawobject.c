@@ -2987,7 +2987,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 							interp_v3_v3v3(fvec, vmid, v2, 0.8f);
 						}
 						else {
-							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->v->co);
+							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->next->v->co);
 							interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
 						}
 
@@ -3586,7 +3586,7 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 	}
 	else {
 		/* ob->bb was set by derived mesh system, do NULL check just to be sure */
-		if (me->totpoly <= 4 || (ob->bb && ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb))) {
+		if (me->totpoly <= 4 || (!ob->bb || ED_view3d_boundbox_clip(rv3d, ob->obmat, ob->bb))) {
 			glsl = draw_glsl_material(scene, ob, v3d, dt);
 			check_alpha = check_alpha_pass(base);
 
@@ -3603,19 +3603,21 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		}
 	}
 	
-	/* GPU_begin_object_materials checked if this is needed */
-	if (do_alpha_after) {
-		if (ob->dtx & OB_DRAWXRAY) {
-			add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
+	if ((flag & DRAW_PICKING) == 0 && (base->flag & OB_FROMDUPLI) == 0) {
+		/* GPU_begin_object_materials checked if this is needed */
+		if (do_alpha_after) {
+			if (ob->dtx & OB_DRAWXRAY) {
+				add_view3d_after(&v3d->afterdraw_xraytransp, base, flag);
+			}
+			else {
+				add_view3d_after(&v3d->afterdraw_transp, base, flag);
+			}
 		}
-		else {
-			add_view3d_after(&v3d->afterdraw_transp, base, flag);
-		}
-	}
-	else if (ob->dtx & OB_DRAWXRAY && ob->dtx & OB_DRAWTRANSP) {
-		/* special case xray+transp when alpha is 1.0, without this the object vanishes */
-		if (v3d->xray == 0 && v3d->transp == 0) {
-			add_view3d_after(&v3d->afterdraw_xray, base, flag);
+		else if (ob->dtx & OB_DRAWXRAY && ob->dtx & OB_DRAWTRANSP) {
+			/* special case xray+transp when alpha is 1.0, without this the object vanishes */
+			if (v3d->xray == 0 && v3d->transp == 0) {
+				add_view3d_after(&v3d->afterdraw_xray, base, flag);
+			}
 		}
 	}
 	

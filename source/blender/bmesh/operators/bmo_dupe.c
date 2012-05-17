@@ -197,8 +197,8 @@ static void BKE_mesh_copy(BMOperator *op, BMesh *source, BMesh *target)
 	GHash *vhash, *ehash;
 
 	/* initialize pointer hashes */
-	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops v");
-	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "bmesh dupeops e");
+	vhash = BLI_ghash_ptr_new("bmesh dupeops v");
+	ehash = BLI_ghash_ptr_new("bmesh dupeops e");
 
 	/* duplicate flagged vertices */
 	BM_ITER_MESH (v, &viter, source, BM_VERTS_OF_MESH) {

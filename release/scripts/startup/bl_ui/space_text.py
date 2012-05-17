@@ -277,7 +277,7 @@ class TEXT_MT_edit(Menu):
 
         layout.separator()
 
-        layout.operator("text.move_lines", 
+        layout.operator("text.move_lines",
                         text="Move line(s) up").direction = 'UP'
         layout.operator("text.move_lines",
                         text="Move line(s) down").direction = 'DOWN'

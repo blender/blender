@@ -52,10 +52,8 @@ extern "C" {
 #define RTBUILD_MAX_CHILDS 32
 
 
-typedef struct RTBuilder
-{
-	struct Object
-	{
+typedef struct RTBuilder {
+	struct Object {
 		RayObject *obj;
 		float cost;
 		float bb[6];
@@ -63,8 +61,7 @@ typedef struct RTBuilder
 	};
 	
 	/* list to all primitives added in this tree */
-	struct
-	{
+	struct {
 		Object *begin, *end;
 		int maxsize;
 	} primitives;
@@ -76,7 +73,7 @@ typedef struct RTBuilder
 	int split_axis;
 	
 	/* child partitions calculated during splitting */
-	int child_offset[RTBUILD_MAX_CHILDS+1];
+	int child_offset[RTBUILD_MAX_CHILDS + 1];
 	
 //	int child_sorted_axis; /* -1 if not sorted */
 	
@@ -85,17 +82,17 @@ typedef struct RTBuilder
 } RTBuilder;
 
 /* used during creation */
-RTBuilder* rtbuild_create(int size);
+RTBuilder *rtbuild_create(int size);
 void rtbuild_free(RTBuilder *b);
 void rtbuild_add(RTBuilder *b, RayObject *o);
 void rtbuild_done(RTBuilder *b, RayObjectControl *c);
 void rtbuild_merge_bb(RTBuilder *b, float *min, float *max);
 int rtbuild_size(RTBuilder *b);
 
-RayObject* rtbuild_get_primitive(RTBuilder *b, int offset);
+RayObject *rtbuild_get_primitive(RTBuilder *b, int offset);
 
 /* used during tree reorganization */
-RTBuilder* rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);
+RTBuilder *rtbuild_get_child(RTBuilder *b, int child, RTBuilder *tmp);
 
 /* Calculates child partitions and returns number of efectively needed partitions */
 int rtbuild_get_largest_axis(RTBuilder *b);

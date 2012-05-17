@@ -932,7 +932,7 @@ static int wm_window_timer(const bContext *C)
 		wtnext = wt->next; /* in case timer gets removed */
 		win = wt->win;
 
-		if (wt->sleep== 0) {
+		if (wt->sleep == 0) {
 			if (time > wt->ntime) {
 				wt->delta = time - wt->ltime;
 				wt->duration += wt->delta;

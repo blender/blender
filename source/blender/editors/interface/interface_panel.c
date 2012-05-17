@@ -1253,7 +1253,8 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		if (data && data->state != PANEL_STATE_ANIMATION) {
 			/* XXX:
 			 *	- the panel tabbing function call below (test_add_new_tabs()) has been commented out
-			 *	  "It is too easy to do by accident when reordering panels, is very hard to control and use, and has no real benefit." - BillRey
+			 *	  "It is too easy to do by accident when reordering panels,
+			 *     is very hard to control and use, and has no real benefit." - BillRey
 			 * Aligorith, 2009Sep
 			 */
 			//test_add_new_tabs(ar);   // also copies locations of tabs in dragged panel
@@ -1274,7 +1275,7 @@ static void panel_activate_state(const bContext *C, Panel *pa, uiHandlePanelStat
 		MEM_freeN(data);
 		pa->activedata = NULL;
 
-		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, 0);
+		WM_event_remove_ui_handler(&win->modalhandlers, ui_handler_panel, ui_handler_remove_panel, pa, FALSE);
 	}
 	else {
 		if (!data) {

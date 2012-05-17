@@ -1099,7 +1099,11 @@ static void file_expand_directory(bContext *C)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	
 	if (sfile->params) {
-		if ( sfile->params->dir[0] == '~' ) {
+		/* TODO, what about // when relbase isn't valid? */
+		if (G.relbase_valid && strncmp(sfile->params->dir, "//", 2) == 0) {
+			BLI_path_abs(sfile->params->dir, G.main->name);
+		}
+		else if (sfile->params->dir[0] == '~') {
 			char tmpstr[sizeof(sfile->params->dir)-1];
 			BLI_strncpy(tmpstr, sfile->params->dir+1, sizeof(tmpstr));
 			BLI_join_dirfile(sfile->params->dir, sizeof(sfile->params->dir), BLI_getDefaultDocumentFolder(), tmpstr);

@@ -1045,7 +1045,7 @@ void subsurf_copy_grid_hidden(DerivedMesh *dm, const MPoly *mpoly,
 }
 
 /* Translate GridPaintMask into vertex paint masks. Assumes vertices
-   are in the order output by ccgDM_copyFinalVertArray. */
+ * are in the order output by ccgDM_copyFinalVertArray. */
 void subsurf_copy_grid_paint_mask(DerivedMesh *dm, const MPoly *mpoly,
                                   float *paint_mask,
                                   const GridPaintMask *grid_paint_mask)
@@ -1816,7 +1816,7 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		float *tang = attribs.tang.array[a * 4 + vert];                       \
 		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                    \
 	}                                                                         \
-}
+} (void)0
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (a = 0, i = 0; i < totface; i++) {
@@ -1972,7 +1972,7 @@ static void ccgDM_drawMappedFacesMat(DerivedMesh *dm,
 		float *tang = attribs.tang.array[a * 4 + vert];                       \
 		glVertexAttrib4fvARB(attribs.tang.gl_index, tang);                    \
 	}                                                                         \
-}
+} (void)0
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for (a = 0, i = 0; i < totface; i++) {

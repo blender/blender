@@ -57,10 +57,10 @@ static void do_brightnesscontrast(bNode *UNUSED(node), float *out, float *in, fl
 	float delta = contrast / 200.0f;
 	a = 1.0f - delta * 2.0f;
 	/*
-	* The algorithm is by Werner D. Streidt
-	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
-	* Extracted of OpenCV demhist.c
-	*/
+	 * The algorithm is by Werner D. Streidt
+	 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
+	 * Extracted of OpenCV demhist.c
+	 */
 	if (contrast > 0) {
 		a = 1.0f / a;
 		b = a * (brightness - delta);

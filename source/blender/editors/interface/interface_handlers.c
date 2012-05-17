@@ -286,7 +286,9 @@ static void ui_apply_but_func(bContext *C, uiBut *but)
 	 * handling is done, i.e. menus are closed, in order to avoid conflicts
 	 * with these functions removing the buttons we are working with */
 
-	if (but->func || but->funcN || block->handle_func || but->rename_func || (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop) {
+	if (but->func || but->funcN || block->handle_func || but->rename_func ||
+	    (but->type == BUTM && block->butm_func) || but->optype || but->rnaprop)
+	{
 		after = MEM_callocN(sizeof(uiAfterFunc), "uiAfterFunc");
 
 		if (but->func && ELEM(but, but->func_arg1, but->func_arg2)) {
@@ -4553,7 +4555,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		PointerRNA ptr_props;
 
 		if (but->rnapoin.data && but->rnaprop) {
-			BLI_snprintf(buf, sizeof(buf), "%s.%s", RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
+			BLI_snprintf(buf, sizeof(buf), "%s.%s",
+			             RNA_struct_identifier(but->rnapoin.type), RNA_property_identifier(but->rnaprop));
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
@@ -5128,8 +5131,10 @@ static void button_activate_state(bContext *C, uiBut *but, uiHandleButtonState s
 				WM_event_add_ui_handler(C, &data->window->modalhandlers, ui_handler_region_menu, NULL, data);
 		}
 		else {
-			if (button_modal_state(data->state))
-				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data, 1);  /* 1 = postpone free */
+			if (button_modal_state(data->state)) {
+				/* TRUE = postpone free */
+				WM_event_remove_ui_handler(&data->window->modalhandlers, ui_handler_region_menu, NULL, data, TRUE);
+			}
 		}
 	}
 	
@@ -6548,7 +6553,7 @@ static void ui_handler_remove_popup(bContext *C, void *userdata)
 
 void UI_add_region_handlers(ListBase *handlers)
 {
-	WM_event_remove_ui_handler(handlers, ui_handler_region, ui_handler_remove_region, NULL, 0);
+	WM_event_remove_ui_handler(handlers, ui_handler_region, ui_handler_remove_region, NULL, FALSE);
 	WM_event_add_ui_handler(NULL, handlers, ui_handler_region, ui_handler_remove_region, NULL);
 }
 
@@ -6559,7 +6564,7 @@ void UI_add_popup_handlers(bContext *C, ListBase *handlers, uiPopupBlockHandle *
 
 void UI_remove_popup_handlers(ListBase *handlers, uiPopupBlockHandle *popup)
 {
-	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, 0);
+	WM_event_remove_ui_handler(handlers, ui_handler_popup, ui_handler_remove_popup, popup, FALSE);
 }
 
 

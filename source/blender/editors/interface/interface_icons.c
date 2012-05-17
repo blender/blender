@@ -533,7 +533,8 @@ static void init_internal_icons(void)
 		}
 	}
 	if (bbuf == NULL)
-		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons_png, datatoc_blender_icons_png_size, IB_rect, "<blender icons>");
+		bbuf = IMB_ibImageFromMemory((unsigned char *)datatoc_blender_icons_png,
+		                             datatoc_blender_icons_png_size, IB_rect, "<blender icons>");
 
 	if (bbuf) {
 		/* free existing texture if any */

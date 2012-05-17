@@ -40,9 +40,8 @@
 /*
  * VBVHNode represents a BVHNode with support for a variable number of childrens
  */
-struct VBVHNode
-{
-	float	bb[6];
+struct VBVHNode {
+	float bb[6];
 
 	VBVHNode *child;
 	VBVHNode *sibling;
@@ -107,8 +106,7 @@ void append_sibling(Node *node, Node *sibling)
  * Builds a binary VBVH from a rtbuild
  */
 template<class Node>
-struct BuildBinaryVBVH
-{
+struct BuildBinaryVBVH {
 	MemArena *arena;
 	RayObjectControl *control;
 
@@ -126,7 +124,7 @@ struct BuildBinaryVBVH
 
 	Node *create_node()
 	{
-		Node *node = (Node*)BLI_memarena_alloc( arena, sizeof(Node) );
+		Node *node = (Node *)BLI_memarena_alloc(arena, sizeof(Node) );
 		assert(RE_rayobject_isAligned(node));
 
 		node->sibling = NULL;
@@ -146,7 +144,7 @@ struct BuildBinaryVBVH
 		{
 			return _transform(builder);
 			
-		} catch(...)
+		} catch (...)
 		{
 		}
 		return NULL;
@@ -161,8 +159,8 @@ struct BuildBinaryVBVH
 		}
 		else if (size == 1) {
 			Node *node = create_node();
-			INIT_MINMAX(node->bb, node->bb+3);
-			rtbuild_merge_bb(builder, node->bb, node->bb+3);
+			INIT_MINMAX(node->bb, node->bb + 3);
+			rtbuild_merge_bb(builder, node->bb, node->bb + 3);
 			node->child = (Node *) rtbuild_get_primitive(builder, 0);
 			return node;
 		}
@@ -174,7 +172,7 @@ struct BuildBinaryVBVH
 			Node **child = &node->child;
 
 			int nc = rtbuild_split(builder);
-			INIT_MINMAX(node->bb, node->bb+3);
+			INIT_MINMAX(node->bb, node->bb + 3);
 
 			assert(nc == 2);
 			for (int i = 0; i < nc; i++) {
@@ -183,7 +181,7 @@ struct BuildBinaryVBVH
 				
 				*child = _transform(&tmp);
 				DO_MIN((*child)->bb, node->bb);
-				DO_MAX((*child)->bb+3, node->bb+3);
+				DO_MAX((*child)->bb + 3, node->bb + 3);
 				child = &((*child)->sibling);
 			}
 
@@ -194,9 +192,8 @@ struct BuildBinaryVBVH
 };
 
 #if 0
-template<class Tree,class OldNode>
-struct Reorganize_VBVH
-{
+template<class Tree, class OldNode>
+struct Reorganize_VBVH {
 	Tree *tree;
 	
 	Reorganize_VBVH(Tree *t)
@@ -206,27 +203,27 @@ struct Reorganize_VBVH
 	
 	VBVHNode *create_node()
 	{
-		VBVHNode *node = (VBVHNode*)BLI_memarena_alloc(tree->node_arena, sizeof(VBVHNode));
+		VBVHNode *node = (VBVHNode *)BLI_memarena_alloc(tree->node_arena, sizeof(VBVHNode));
 		return node;
 	}
 	
 	void copy_bb(VBVHNode *node, OldNode *old)
 	{
-		std::copy( old->bb, old->bb+6, node->bb );
+		std::copy(old->bb, old->bb + 6, node->bb);
 	}
 	
 	VBVHNode *transform(OldNode *old)
 	{
 		if (is_leaf(old))
-			return (VBVHNode*)old;
+			return (VBVHNode *)old;
 
 		VBVHNode *node = create_node();
 		VBVHNode **child_ptr = &node->child;
 		node->sibling = 0;
 
-		copy_bb(node,old);
+		copy_bb(node, old);
 
-		for(OldNode *o_child = old->child; o_child; o_child = o_child->sibling)
+		for (OldNode *o_child = old->child; o_child; o_child = o_child->sibling)
 		{
 			VBVHNode *n_child = transform(o_child);
 			*child_ptr = n_child;

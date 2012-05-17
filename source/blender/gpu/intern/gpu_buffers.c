@@ -1269,8 +1269,8 @@ typedef struct {
 	short no[3];
 
 	/* inserting this to align the 'color' field to a four-byte
-	   boundary; drastically increases viewport performance on my
-	   drivers (Gallium/Radeon) --nicholasbishop */
+	 * boundary; drastically increases viewport performance on my
+	 * drivers (Gallium/Radeon) --nicholasbishop */
 	char pad[2];
 	
 	unsigned char color[3];
