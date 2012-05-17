@@ -22,7 +22,8 @@
 #include "COM_ChromaMatteOperation.h"
 #include "BLI_math.h"
 
-ChromaMatteOperation::ChromaMatteOperation(): NodeOperation() {
+ChromaMatteOperation::ChromaMatteOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
@@ -31,17 +32,20 @@ ChromaMatteOperation::ChromaMatteOperation(): NodeOperation() {
 	inputKeyProgram = NULL;
 }
 
-void ChromaMatteOperation::initExecution() {
+void ChromaMatteOperation::initExecution()
+{
 	this->inputImageProgram = this->getInputSocketReader(0);
 	this->inputKeyProgram = this->getInputSocketReader(1);
 }
 
-void ChromaMatteOperation::deinitExecution() {
-	this->inputImageProgram= NULL;
-	this->inputKeyProgram= NULL;
+void ChromaMatteOperation::deinitExecution()
+{
+	this->inputImageProgram = NULL;
+	this->inputKeyProgram = NULL;
 }
 
-void ChromaMatteOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inKey[4];
 	float inImage[4];
 
@@ -70,7 +74,7 @@ void ChromaMatteOperation::executePixel(float* outputValue, float x, float y, Pi
 
 	/*if within the acceptance angle */
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg= x_angle-(fabsf(z_angle)/tanf(acceptance/2.f));
+	kfg = x_angle-(fabsf(z_angle)/tanf(acceptance/2.f));
 
 	if (kfg>0.f) {  /* found a pixel that is within key color */
 		alpha=(1.f-kfg)*(gain);

@@ -25,10 +25,12 @@
 #include "COM_BoxMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
-BoxMaskNode::BoxMaskNode(bNode *editorNode): Node(editorNode) {
+BoxMaskNode::BoxMaskNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void BoxMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void BoxMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	BoxMaskOperation *operation;
 	operation = new BoxMaskOperation();
 	operation->setData((NodeBoxMask*)this->getbNode()->storage);

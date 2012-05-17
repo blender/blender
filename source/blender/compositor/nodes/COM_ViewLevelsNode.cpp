@@ -26,13 +26,15 @@
 #include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"
 
-ViewLevelsNode::ViewLevelsNode(bNode *editorNode): Node(editorNode) {
+ViewLevelsNode::ViewLevelsNode(bNode *editorNode): Node(editorNode)
+{
 }
-void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket * input = this->getInputSocket(0);
 	bool firstOperationConnected = false;
 	if (input->isConnected()) {
-		OutputSocket* inputSocket= input->getConnection()->getFromSocket();
+		OutputSocket *inputSocket = input->getConnection()->getFromSocket();
 		// add preview to inputSocket;
 		
 		OutputSocket * socket = this->getOutputSocket(0);

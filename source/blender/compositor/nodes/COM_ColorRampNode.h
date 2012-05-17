@@ -32,8 +32,8 @@
 class ColorRampNode : public Node
 {
 public:
-	ColorRampNode(bNode* editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	ColorRampNode(bNode *editorNode);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif // COM_ColorRampNODE_H

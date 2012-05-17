@@ -27,13 +27,15 @@ extern "C" {
 	#include "BLI_rand.h"
 }
 
-ScreenLensDistortionOperation::ScreenLensDistortionOperation(): NodeOperation() {
+ScreenLensDistortionOperation::ScreenLensDistortionOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 	this->inputProgram = NULL;
 }
-void ScreenLensDistortionOperation::initExecution() {
+void ScreenLensDistortionOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	kg = MAX2(MIN2(this->distortion, 1.f), -0.999f);
 	// smaller dispersion range for somewhat more control
@@ -53,15 +55,17 @@ void ScreenLensDistortionOperation::initExecution() {
 
 }
 
-void* ScreenLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
-	void* buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+void *ScreenLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void ScreenLensDistortionOperation::executePixel(float* outputColor, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void ScreenLensDistortionOperation::executePixel(float *outputColor, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	const float height = this->getHeight();
 	const float width = this->getWidth();
-	MemoryBuffer* buffer = (MemoryBuffer*)data;
+	MemoryBuffer *buffer = (MemoryBuffer*)data;
 
 	int dr = 0, dg = 0, db = 0;
 	float d, t, ln[6] = {0, 0, 0, 0, 0, 0};
@@ -132,21 +136,23 @@ void ScreenLensDistortionOperation::executePixel(float* outputColor, int x, int 
 		if (db) outputColor[2] = 2.f*tc[2] / (float)db;
 
 		/* set alpha */
-		outputColor[3]= 1.0f;
+		outputColor[3] = 1.0f;
 	}
 	else {
-		outputColor[0]= 0.0f;
-		outputColor[1]= 0.0f;
-		outputColor[2]= 0.0f;
-		outputColor[3]= 0.0f;
+		outputColor[0] = 0.0f;
+		outputColor[1] = 0.0f;
+		outputColor[2] = 0.0f;
+		outputColor[3] = 0.0f;
 	}
 }
 
-void ScreenLensDistortionOperation::deinitExecution() {
+void ScreenLensDistortionOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 
-void ScreenLensDistortionOperation::determineUV(float result[2], float x, float y) const {
+void ScreenLensDistortionOperation::determineUV(float result[2], float x, float y) const
+{
 	const float v = sc*((y + 0.5f) - cy)/cy;
 	const float u = sc*((x + 0.5f) - cx)/cx;
 	const float t = ABS(MIN3(kr, kg, kb)*4);
@@ -155,7 +161,8 @@ void ScreenLensDistortionOperation::determineUV(float result[2], float x, float 
 	result[1] = (v*d + 0.5f)*getHeight() - 0.5f;
 }
 
-bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ScreenLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	newInput.xmin = 0;
 	newInput.ymin = 0;

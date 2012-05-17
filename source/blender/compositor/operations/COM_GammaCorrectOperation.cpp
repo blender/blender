@@ -23,16 +23,19 @@
 #include "COM_GammaCorrectOperation.h"
 #include "BLI_math.h"
 
-GammaCorrectOperation::GammaCorrectOperation(): NodeOperation() {
+GammaCorrectOperation::GammaCorrectOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 }
-void GammaCorrectOperation::initExecution() {
+void GammaCorrectOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void GammaCorrectOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void GammaCorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	this->inputProgram->read(inputColor, x, y, sampler, inputBuffers);
 	if (inputColor[3] > 0.0f) {
@@ -56,20 +59,24 @@ void GammaCorrectOperation::executePixel(float* color, float x, float y, PixelSa
 	color[3] = inputColor[3];
 }
 
-void GammaCorrectOperation::deinitExecution() {
+void GammaCorrectOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 
-GammaUncorrectOperation::GammaUncorrectOperation(): NodeOperation() {
+GammaUncorrectOperation::GammaUncorrectOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 }
-void GammaUncorrectOperation::initExecution() {
+void GammaUncorrectOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void GammaUncorrectOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void GammaUncorrectOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	this->inputProgram->read(inputColor, x, y, sampler, inputBuffers);
 
@@ -93,6 +100,7 @@ void GammaUncorrectOperation::executePixel(float* color, float x, float y, Pixel
 	color[3] = inputColor[3];
 }
 
-void GammaUncorrectOperation::deinitExecution() {
+void GammaUncorrectOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

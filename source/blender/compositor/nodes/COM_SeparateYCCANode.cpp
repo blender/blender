@@ -25,10 +25,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertRGBToYCCOperation.h"
 
-SeparateYCCANode::SeparateYCCANode(bNode *editorNode): SeparateRGBANode(editorNode) {
+SeparateYCCANode::SeparateYCCANode(bNode *editorNode): SeparateRGBANode(editorNode)
+{
 }
 
-void SeparateYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void SeparateYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	ConvertRGBToYCCOperation *operation = new ConvertRGBToYCCOperation();
 	InputSocket *inputSocket = this->getInputSocket(0);
 

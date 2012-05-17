@@ -23,7 +23,8 @@
 #include "COM_DilateErodeOperation.h"
 #include "BLI_math.h"
 
-DilateErodeOperation::DilateErodeOperation(): NodeOperation() {
+DilateErodeOperation::DilateErodeOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->setComplex(true);
@@ -32,7 +33,8 @@ DilateErodeOperation::DilateErodeOperation(): NodeOperation() {
 	this->_switch = 0.5f;
 	this->distance = 0.0f;
 }
-void DilateErodeOperation::initExecution() {
+void DilateErodeOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	if (this->distance < 0.0f) {
 		this->scope = - this->distance + this->inset;
@@ -50,12 +52,14 @@ void DilateErodeOperation::initExecution() {
 	}
 }
 
-void* DilateErodeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
-	void* buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+void *DilateErodeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void DilateErodeOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void DilateErodeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float inputValue[4];
 	const float sw = this->_switch;
 	const float distance = this->distance;
@@ -64,9 +68,9 @@ void DilateErodeOperation::executePixel(float* color, int x, int y, MemoryBuffer
 	const float inset = this->inset;
 	float mindist = rd*2;
 
-	MemoryBuffer* inputBuffer = (MemoryBuffer*)data;
-	float* buffer = inputBuffer->getBuffer();
-	rcti* rect = inputBuffer->getRect();
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
+	rcti *rect = inputBuffer->getRect();
 	const int minx = max(x - scope, rect->xmin);
 	const int miny = max(y - scope, rect->ymin);
 	const int maxx = min(x + scope, rect->xmax);
@@ -137,11 +141,13 @@ void DilateErodeOperation::executePixel(float* color, int x, int y, MemoryBuffer
 	}
 }
 
-void DilateErodeOperation::deinitExecution() {
+void DilateErodeOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 
-bool DilateErodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool DilateErodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 
 	newInput.xmax = input->xmax + scope;

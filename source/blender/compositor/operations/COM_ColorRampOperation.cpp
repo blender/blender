@@ -30,24 +30,28 @@ extern "C" {
 }
 #endif
 
-ColorRampOperation::ColorRampOperation(): NodeOperation() {
+ColorRampOperation::ColorRampOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 
 	this->inputProgram = NULL;
 	this->colorBand = NULL;
 }
-void ColorRampOperation::initExecution() {
+void ColorRampOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void ColorRampOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ColorRampOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float values[4];
 
 	this->inputProgram->read(values, x, y, sampler, inputBuffers);
 	do_colorband(this->colorBand, values[0], color);
 }
 
-void ColorRampOperation::deinitExecution() {
+void ColorRampOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

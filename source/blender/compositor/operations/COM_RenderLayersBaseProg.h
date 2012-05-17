@@ -45,7 +45,7 @@ private:
 	/**
 	  * Reference to the scene object.
 	  */
-	Scene* scene;
+	Scene *scene;
 	
 	/**
 	  * layerId of the layer where this operation needs to get its data from
@@ -55,7 +55,7 @@ private:
 	/**
 	  * cached instance to the float buffer inside the layer
 	  */
-	float* inputBuffer;
+	float *inputBuffer;
 	
 	/**
 	  * renderpass where this operation needs to get its data from
@@ -78,7 +78,7 @@ protected:
 	/**
 	  * retrieve the reference to the float buffer of the renderer.
 	  */
-	inline float* getInputBuffer() {return this->inputBuffer;}
+	inline float *getInputBuffer() {return this->inputBuffer;}
 
 public:
 	/**
@@ -86,13 +86,13 @@ public:
 	  * @see RenderLayerNode to set the actual scene where
 	  * the data will be retrieved from.
 	  */
-	void setScene(Scene* scene) {this->scene = scene;}
-	Scene* getScene() {return this->scene;}
+	void setScene(Scene *scene) {this->scene = scene;}
+	Scene *getScene() {return this->scene;}
 	void setLayerId(short layerId) {this->layerId = layerId;}
 	short getLayerId() {return this->layerId;}
 	void initExecution();
 	void deinitExecution();
-	void executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 
 };
 

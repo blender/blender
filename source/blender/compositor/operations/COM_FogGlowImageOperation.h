@@ -32,7 +32,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 };

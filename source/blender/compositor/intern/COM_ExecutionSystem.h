@@ -135,7 +135,7 @@ private: //methods
 	  * @brief add ReadBufferOperation and WriteBufferOperation around an operation
 	  * @param operation the operation to add the bufferoperations around.
 	  */
-	void addReadWriteBufferOperations(NodeOperation* operation);
+	void addReadWriteBufferOperations(NodeOperation *operation);
 
 
 	/**
@@ -151,7 +151,7 @@ public:
 	  * @param editingtree [bNodeTree*]
 	  * @param rendering [true false]
 	  */
-	ExecutionSystem(bNodeTree* editingtree, bool rendering);
+	ExecutionSystem(bNodeTree *editingtree, bool rendering);
 
 	/**
 	  * Destructor
@@ -172,14 +172,14 @@ public:
 	  *
 	  * @param operation the operation to add
 	  */
-	void addOperation(NodeOperation* operation);
+	void addOperation(NodeOperation *operation);
 
 	/**
 	  * Add an editor link to the system. convert it to an socketconnection (CPP-representative)
 	  * this converted socket is returned.
 	  */
-	SocketConnection* addNodeLink(bNodeLink* bNodeLink);
-	void addSocketConnection(SocketConnection* connection);
+	SocketConnection *addNodeLink(bNodeLink *bNodeLink);
+	void addSocketConnection(SocketConnection *connection);
 
 	/**
 	  * @brief Convert all nodes to operations

@@ -1,7 +1,7 @@
 /// @todo: this source needs to be generated from COM_OpenCLKernels.cl.
 /// not implemented yet. new data to h
 
-const char* sourcecode = "/// This file contains all opencl kernels for node-operation implementations \n" \
+const char *sourcecode = "/// This file contains all opencl kernels for node-operation implementations \n" \
 "\n" \
 "__kernel void testKernel(__global __write_only image2d_t output) {\n" \
 "	int x = get_global_id(0);\n" \

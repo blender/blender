@@ -23,30 +23,34 @@
 #include "COM_SocketConnection.h"
 #include "COM_NodeOperation.h"
 
-SocketConnection::SocketConnection() {
+SocketConnection::SocketConnection()
+{
 	this->fromSocket = NULL;
 	this->toSocket = NULL;
 	this->setIgnoreResizeCheck(false);
 }
 
-void SocketConnection::setFromSocket(OutputSocket* fromsocket) {
+void SocketConnection::setFromSocket(OutputSocket *fromsocket)
+{
 	if (fromsocket == NULL) {
 		throw "ERROR";
 	}
 	this->fromSocket = fromsocket;
 }
 
-OutputSocket* SocketConnection::getFromSocket() const {return this->fromSocket;}
-void SocketConnection::setToSocket(InputSocket* tosocket) {
+OutputSocket *SocketConnection::getFromSocket() const {return this->fromSocket;}
+void SocketConnection::setToSocket(InputSocket *tosocket)
+{
 	if (tosocket == NULL) {
 		throw "ERROR";
 	}
 	this->toSocket = tosocket;
 }
 
-InputSocket* SocketConnection::getToSocket() const {return this->toSocket;}
+InputSocket *SocketConnection::getToSocket() const {return this->toSocket;}
 
-NodeBase* SocketConnection::getFromNode() const {
+NodeBase *SocketConnection::getFromNode() const
+{
 	if (this->getFromSocket() == NULL) {
 		return NULL;
 	}
@@ -54,7 +58,8 @@ NodeBase* SocketConnection::getFromNode() const {
 		return this->getFromSocket()->getNode();
 	}
 }
-NodeBase* SocketConnection::getToNode() const {
+NodeBase *SocketConnection::getToNode() const
+{
 	if (this->getToSocket() == NULL) {
 		return NULL;
 	}
@@ -62,7 +67,8 @@ NodeBase* SocketConnection::getToNode() const {
 		return this->getToSocket()->getNode();
 	}
 }
-bool SocketConnection::isValid() const {
+bool SocketConnection::isValid() const
+{
 	if ((this->getToSocket() != NULL && this->getFromSocket() != NULL)) {
 		if (this->getFromNode()->isOperation() && this->getToNode()->isOperation()) {
 			return true;
@@ -71,10 +77,11 @@ bool SocketConnection::isValid() const {
 	return false;
 }
 
-bool SocketConnection::needsResolutionConversion() const {
+bool SocketConnection::needsResolutionConversion() const
+{
 	if (this->ignoreResizeCheck) {return false;}
-	NodeOperation* fromOperation = (NodeOperation*)this->getFromNode();
-	NodeOperation* toOperation = (NodeOperation*)this->getToNode();
+	NodeOperation *fromOperation = (NodeOperation*)this->getFromNode();
+	NodeOperation *toOperation = (NodeOperation*)this->getToNode();
 	if (this->toSocket->getResizeMode() == COM_SC_NO_RESIZE) {return false;}
 	const unsigned int fromWidth = fromOperation->getWidth();
 	const unsigned int fromHeight = fromOperation->getHeight();

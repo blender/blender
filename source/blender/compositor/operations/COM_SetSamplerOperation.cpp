@@ -22,18 +22,22 @@
 
 #include "COM_SetSamplerOperation.h"
 
-SetSamplerOperation::SetSamplerOperation(): NodeOperation() {
+SetSamplerOperation::SetSamplerOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 }
 
-void SetSamplerOperation::initExecution() {
+void SetSamplerOperation::initExecution()
+{
 	this->reader = this->getInputSocketReader(0);
 }
-void SetSamplerOperation::deinitExecution() {
+void SetSamplerOperation::deinitExecution()
+{
 	this->reader = NULL;
 }
 
-void SetSamplerOperation::executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void SetSamplerOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	reader->read(output, x, y, this->sampler, inputBuffers);
 }

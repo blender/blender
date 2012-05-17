@@ -41,7 +41,8 @@
 #include "BLI_math.h"
 #include "COM_ExecutionSystemHelper.h"
 
-ExecutionGroup::ExecutionGroup() {
+ExecutionGroup::ExecutionGroup()
+{
 	this->isOutput = false;
 	this->complex = false;
 	this->chunkExecutionStates = NULL;
@@ -57,13 +58,15 @@ ExecutionGroup::ExecutionGroup() {
 	this->chunksFinished = 0;
 }
 
-int ExecutionGroup::getRenderPriotrity() {
+int ExecutionGroup::getRenderPriotrity()
+{
 	return this->getOutputNodeOperation()->getRenderPriority();
 }
 
-bool ExecutionGroup::containsOperation(NodeOperation* operation) {
+bool ExecutionGroup::containsOperation(NodeOperation *operation)
+{
 	for (vector<NodeOperation*>::const_iterator iterator = this->operations.begin() ; iterator != this->operations.end() ; ++iterator) {
-		NodeOperation* inListOperation = *iterator;
+		NodeOperation *inListOperation = *iterator;
 		if (inListOperation == operation) {
 			return true;
 		}
@@ -71,11 +74,13 @@ bool ExecutionGroup::containsOperation(NodeOperation* operation) {
 	return false;
 }
 
-const bool ExecutionGroup::isComplex() const {
+const bool ExecutionGroup::isComplex() const
+{
 	return this->complex;
 }
 
-bool ExecutionGroup::canContainOperation(NodeOperation* operation) {
+bool ExecutionGroup::canContainOperation(NodeOperation *operation)
+{
 	if (!this->initialized) {return true;}
 	if (operation->isReadBufferOperation()) {return true;}
 	if (operation->isWriteBufferOperation()) {return false;}
@@ -89,7 +94,8 @@ bool ExecutionGroup::canContainOperation(NodeOperation* operation) {
 	}
 }
 
-void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operation) {
+void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operation)
+{
 	if (containsOperation(operation)) return;
 	if (canContainOperation(operation)) {
 		if (!operation->isBufferOperation()) {
@@ -99,8 +105,8 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 		}
 		this->operations.push_back(operation);
 		if (operation->isReadBufferOperation()) {
-			ReadBufferOperation* readOperation = (ReadBufferOperation*)operation;
-			WriteBufferOperation* writeOperation = readOperation->getMemoryProxy()->getWriteBufferOperation();
+			ReadBufferOperation *readOperation = (ReadBufferOperation*)operation;
+			WriteBufferOperation *writeOperation = readOperation->getMemoryProxy()->getWriteBufferOperation();
 			this->addOperation(system, writeOperation);
 		}
 		else {
@@ -108,7 +114,7 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 			for (index = 0 ; index < operation->getNumberOfInputSockets(); index ++) {
 				InputSocket * inputSocket = operation->getInputSocket(index);
 				if (inputSocket->isConnected()) {
-					NodeOperation* node = (NodeOperation*)inputSocket->getConnection()->getFromNode();
+					NodeOperation *node = (NodeOperation*)inputSocket->getConnection()->getFromNode();
 					this->addOperation(system, node);
 				}
 			}
@@ -118,7 +124,7 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 		if (operation->isWriteBufferOperation()) {
 			WriteBufferOperation * writeoperation = (WriteBufferOperation*)operation;
 			if (writeoperation->getMemoryProxy()->getExecutor() == NULL) {
-				ExecutionGroup* newGroup = new ExecutionGroup();
+				ExecutionGroup *newGroup = new ExecutionGroup();
 				writeoperation->getMemoryProxy()->setExecutor(newGroup);
 				newGroup->addOperation(system, operation);
 				ExecutionSystemHelper::addExecutionGroup(system->getExecutionGroups(), newGroup);
@@ -127,7 +133,8 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 	}
 }
 
-NodeOperation* ExecutionGroup::getOutputNodeOperation() const {
+NodeOperation *ExecutionGroup::getOutputNodeOperation() const
+{
 	return this->operations[0]; // the first operation of the group is always the output operation.
 }
 
@@ -151,7 +158,7 @@ void ExecutionGroup::initExecution()
 	unsigned int maxNumber = 0;
 
 	for (index = 0 ; index < this->operations.size(); index ++) {
-		NodeOperation* operation = this->operations[index];
+		NodeOperation *operation = this->operations[index];
 		if (operation->isReadBufferOperation()) {
 			ReadBufferOperation *readOperation = (ReadBufferOperation*)operation;
 			this->cachedReadOperations.push_back(readOperation);
@@ -163,7 +170,8 @@ void ExecutionGroup::initExecution()
 
 }
 
-void ExecutionGroup::deinitExecution() {
+void ExecutionGroup::deinitExecution()
+{
 	if (this->chunkExecutionStates != NULL) {
 		delete[] this->chunkExecutionStates;
 		this->chunkExecutionStates = NULL;
@@ -174,8 +182,9 @@ void ExecutionGroup::deinitExecution() {
 	this->cachedReadOperations.clear();
 	this->bTree = NULL;
 }
-void ExecutionGroup::determineResolution(unsigned int resolution[]) {
-	NodeOperation* operation = this->getOutputNodeOperation();
+void ExecutionGroup::determineResolution(unsigned int resolution[])
+{
+	NodeOperation *operation = this->getOutputNodeOperation();
 	unsigned int preferredResolution[2];
 	preferredResolution[0] = 0;
 	preferredResolution[1] = 0;
@@ -184,7 +193,8 @@ void ExecutionGroup::determineResolution(unsigned int resolution[]) {
 	this->setResolution(resolution);
 }
 
-void ExecutionGroup::determineNumberOfChunks() {
+void ExecutionGroup::determineNumberOfChunks()
+{
 	const float chunkSizef = this->chunkSize;
 	this->numberOfXChunks = ceil(this->width / chunkSizef);
 	this->numberOfYChunks = ceil(this->height / chunkSizef);
@@ -194,9 +204,10 @@ void ExecutionGroup::determineNumberOfChunks() {
 /**
   * this method is called for the top execution groups. containing the compositor node or the preview node or the viewer node)
   */
-void ExecutionGroup::execute(ExecutionSystem* graph) {
+void ExecutionGroup::execute(ExecutionSystem *graph)
+{
 	CompositorContext& context = graph->getContext();
-	const bNodeTree* bTree = context.getbNodeTree();
+	const bNodeTree *bTree = context.getbNodeTree();
 	if (this->width == 0 || this->height == 0) {return;} /// @note: break out... no pixels to calculate.
 	if (bTree->test_break && bTree->test_break(bTree->tbh)) {return;} /// @note: early break out for blur and preview nodes
 	if (this->numberOfChunks == 0) {return;} /// @note: early break out
@@ -216,7 +227,7 @@ void ExecutionGroup::execute(ExecutionSystem* graph) {
 	int chunkorder = COM_TO_CENTER_OUT;
 
 	if (operation->isViewerOperation()) {
-		ViewerBaseOperation* viewer = (ViewerBaseOperation*)operation;
+		ViewerBaseOperation *viewer = (ViewerBaseOperation*)operation;
 		centerX = viewer->getCenterX();
 		centerY = viewer->getCenterY();
 		chunkorder = viewer->getChunkOrder();
@@ -224,7 +235,7 @@ void ExecutionGroup::execute(ExecutionSystem* graph) {
 
 	switch (chunkorder) {
 	case COM_TO_RANDOM:
-		for (index = 0 ; index < 2* numberOfChunks ; index ++) {
+		for (index = 0 ; index < 2 * numberOfChunks ; index ++) {
 			int index1 = rand()%numberOfChunks;
 			int index2 = rand()%numberOfChunks;
 			int s = chunkOrder[index1];
@@ -351,7 +362,8 @@ void ExecutionGroup::execute(ExecutionSystem* graph) {
 	delete[] chunkOrder;
 }
 
-MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber) {
+MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber)
+{
 	rcti rect;
 	vector<MemoryProxy*> memoryproxies;
 	unsigned int index;
@@ -359,7 +371,7 @@ MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber) {
 
 	this->determineDependingMemoryProxies(&memoryproxies);
 	MemoryBuffer **memoryBuffers = new MemoryBuffer*[this->cachedMaxReadBufferOffset];
-	for (index= 0 ; index < this->cachedMaxReadBufferOffset ; index ++) {
+	for (index = 0 ; index < this->cachedMaxReadBufferOffset ; index ++) {
 		memoryBuffers[index] = NULL;
 	}
 	rcti output;
@@ -367,13 +379,14 @@ MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber) {
 		ReadBufferOperation *readOperation = (ReadBufferOperation*)this->cachedReadOperations[index];
 		MemoryProxy * memoryProxy = readOperation->getMemoryProxy();
 		this->determineDependingAreaOfInterest(&rect, readOperation, &output);
-		MemoryBuffer* memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(memoryProxy, &output);
+		MemoryBuffer *memoryBuffer = memoryProxy->getExecutor()->constructConsolidatedMemoryBuffer(memoryProxy, &output);
 		memoryBuffers[readOperation->getOffset()] = memoryBuffer;
 	}
 	return memoryBuffers;
 }
 
-MemoryBuffer* ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect) {
+MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
+{
 	// find all chunks inside the rect
 	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
 	float chunkSizef = this->chunkSize;
@@ -415,7 +428,8 @@ MemoryBuffer* ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 	return result;
 }
 
-void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer** memoryBuffers) {
+void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer** memoryBuffers)
+{
 	if (this->chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
 		this->chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
 	else 
@@ -442,31 +456,35 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer** memo
 	}
 }
 
-inline void ExecutionGroup::determineChunkRect(rcti* rect, const unsigned int xChunk, const unsigned int yChunk ) const {
+inline void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk ) const
+{
 	const unsigned int minx = xChunk * chunkSize;
 	const unsigned int miny = yChunk * chunkSize;
 	BLI_init_rcti(rect, minx, min(minx + this->chunkSize, this->width), miny, min(miny + this->chunkSize, this->height));
 }
 
-void ExecutionGroup::determineChunkRect(rcti* rect, const unsigned int chunkNumber) const {
+void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumber) const
+{
 	const unsigned int yChunk = chunkNumber / numberOfXChunks;
 	const unsigned int xChunk = chunkNumber - (yChunk * numberOfXChunks);
 	determineChunkRect(rect, xChunk, yChunk);
 }
 
-MemoryBuffer* ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti* rect) {
-	MemoryBuffer* outputBuffer = NULL;
+MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
+{
+	MemoryBuffer *outputBuffer = NULL;
 	// output allocation is only valid when our outputoperation is a memorywriter
 	NodeOperation * operation = this->getOutputNodeOperation();
 	if (operation->isWriteBufferOperation()) {
-		WriteBufferOperation* writeOperation = (WriteBufferOperation*)operation;
+		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;
 		outputBuffer = MemoryManager::allocateMemoryBuffer(writeOperation->getMemoryProxy(), chunkNumber, rect);
 	}
 	return outputBuffer;
 }
 
 
-bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem * graph, rcti *area) {
+bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem * graph, rcti *area)
+{
 	// find all chunks inside the rect
 	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
 
@@ -490,7 +508,8 @@ bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem * graph, rcti *are
 	return result;
 }
 
-bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber) {
+bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber)
+{
 	if (this->chunkExecutionStates[chunkNumber] == COM_ES_NOT_SCHEDULED) {
 		this->chunkExecutionStates[chunkNumber] = COM_ES_SCHEDULED;
 		WorkScheduler::schedule(this, chunkNumber);
@@ -499,7 +518,8 @@ bool ExecutionGroup::scheduleChunk(unsigned int chunkNumber) {
 	return false;
 }
 
-bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem * graph, int xChunk, int yChunk) {
+bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem * graph, int xChunk, int yChunk)
+{
 	if (xChunk < 0 || xChunk >= (int)this->numberOfXChunks) {
 		return true;
 	}
@@ -551,11 +571,13 @@ bool ExecutionGroup::scheduleChunkWhenPossible(ExecutionSystem * graph, int xChu
 	return false;
 }
 
-void ExecutionGroup::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation* readOperation, rcti* output) {
+void ExecutionGroup::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output)
+{
 	this->getOutputNodeOperation()->determineDependingAreaOfInterest(input, readOperation, output);
 }
 
-void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy*> *memoryProxies) {
+void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy*> *memoryProxies)
+{
 	unsigned int index;
 	for (index = 0 ; index < this->cachedReadOperations.size() ; index ++) {
 		ReadBufferOperation * readOperation = (ReadBufferOperation*) this->cachedReadOperations[index];
@@ -563,10 +585,12 @@ void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy*> *memor
 	}
 }
 
-bool ExecutionGroup::operator ==(const ExecutionGroup & executionGroup) const {
+bool ExecutionGroup::operator ==(const ExecutionGroup & executionGroup) const
+{
 	return this->getOutputNodeOperation() == executionGroup.getOutputNodeOperation();
 }
 
-bool ExecutionGroup::isOpenCL() {
+bool ExecutionGroup::isOpenCL()
+{
 	return this->openCL;
 }

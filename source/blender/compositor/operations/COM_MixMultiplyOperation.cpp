@@ -22,10 +22,12 @@
 
 #include "COM_MixMultiplyOperation.h"
 
-MixMultiplyOperation::MixMultiplyOperation(): MixBaseOperation() {
+MixMultiplyOperation::MixMultiplyOperation(): MixBaseOperation()
+{
 }
 
-void MixMultiplyOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
@@ -38,7 +40,7 @@ void MixMultiplyOperation::executePixel(float* outputValue, float x, float y, Pi
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	outputValue[0] = inputColor1[0] *(valuem+value*inputColor2[0]);
 	outputValue[1] = inputColor1[1] *(valuem+value*inputColor2[1]);
 	outputValue[2] = inputColor1[2] *(valuem+value*inputColor2[2]);

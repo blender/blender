@@ -22,7 +22,8 @@
 
 #include "COM_DotproductOperation.h"
 
-DotproductOperation::DotproductOperation() : NodeOperation() {
+DotproductOperation::DotproductOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -30,19 +31,22 @@ DotproductOperation::DotproductOperation() : NodeOperation() {
 	this->input1Operation = NULL;
 	this->input2Operation = NULL;
 }
-void DotproductOperation::initExecution() {
+void DotproductOperation::initExecution()
+{
 	this->input1Operation = this->getInputSocketReader(0);
 	this->input2Operation = this->getInputSocketReader(1);
 }
 
-void DotproductOperation::deinitExecution() {
+void DotproductOperation::deinitExecution()
+{
 	this->input1Operation = NULL;
 	this->input2Operation = NULL;
 }
 
 /** @todo: current implementation is the inverse of a dotproduct. not 'logically' correct
   */
-void DotproductOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void DotproductOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float input1[4];
 	float input2[4];
 	this->input1Operation->read(input1, x, y, sampler, inputBuffers);

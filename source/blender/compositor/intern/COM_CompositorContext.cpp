@@ -24,13 +24,15 @@
 #include "COM_defines.h"
 #include <stdio.h>
 
-CompositorContext::CompositorContext() {
+CompositorContext::CompositorContext()
+{
 	this->scene = NULL;
 	this->quality = COM_QUALITY_HIGH;
 	this->hasActiveOpenCLDevices = false;
 }
 
-const int CompositorContext::getFramenumber() const {
+const int CompositorContext::getFramenumber() const
+{
 	if (this->scene) {
 		return this->scene->r.cfra;
 	}
@@ -39,7 +41,8 @@ const int CompositorContext::getFramenumber() const {
 	}
 }
 
-const int CompositorContext::isColorManaged() const {
+const int CompositorContext::isColorManaged() const
+{
 	if (this->scene) {
 		return this->scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	}

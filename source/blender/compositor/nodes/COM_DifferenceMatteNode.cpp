@@ -25,15 +25,16 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-DifferenceMatteNode::DifferenceMatteNode(bNode* editorNode): Node(editorNode)
+DifferenceMatteNode::DifferenceMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void DifferenceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void DifferenceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputSocket2 = this->getInputSocket(1);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
-	bNode* editorNode = this->getbNode();
+	bNode *editorNode = this->getbNode();
 
 	DifferenceMatteOperation * operationSet = new DifferenceMatteOperation();
 	operationSet->setSettings((NodeChroma*)editorNode->storage);

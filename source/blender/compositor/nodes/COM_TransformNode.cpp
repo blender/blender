@@ -28,10 +28,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_SetSamplerOperation.h"
 
-TransformNode::TransformNode(bNode *editorNode): Node(editorNode) {
+TransformNode::TransformNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *imageInput = this->getInputSocket(0);
 	InputSocket *xInput = this->getInputSocket(1);
 	InputSocket *yInput = this->getInputSocket(2);

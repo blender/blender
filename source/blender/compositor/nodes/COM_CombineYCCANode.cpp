@@ -22,10 +22,12 @@
 #include "COM_CombineYCCANode.h"
 #include "COM_ConvertYCCToRGBOperation.h"
 
-CombineYCCANode::CombineYCCANode(bNode *editorNode): CombineRGBANode(editorNode) {
+CombineYCCANode::CombineYCCANode(bNode *editorNode): CombineRGBANode(editorNode)
+{
 }
 
-void CombineYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void CombineYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	ConvertYCCToRGBOperation *operation = new ConvertYCCToRGBOperation();
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 

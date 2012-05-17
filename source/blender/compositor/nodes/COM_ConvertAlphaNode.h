@@ -30,7 +30,7 @@
   */
 class ConvertAlphaNode: public Node {
 public:
-	ConvertAlphaNode(bNode* editorNode) :Node(editorNode) {}
+	ConvertAlphaNode(bNode *editorNode) :Node(editorNode) {}
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 

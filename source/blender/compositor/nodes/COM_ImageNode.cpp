@@ -28,9 +28,11 @@
 #include "BKE_node.h"
 #include "BLI_utildefines.h"
 
-ImageNode::ImageNode(bNode *editorNode): Node(editorNode) {
+ImageNode::ImageNode(bNode *editorNode): Node(editorNode)
+{
 }
-NodeOperation* ImageNode::doMultilayerCheck(ExecutionSystem *system, RenderLayer* rl, Image* image, ImageUser* user, int framenumber, int outputsocketIndex, int pass, DataType datatype) {
+NodeOperation *ImageNode::doMultilayerCheck(ExecutionSystem *system, RenderLayer *rl, Image *image, ImageUser *user, int framenumber, int outputsocketIndex, int pass, DataType datatype)
+{
 	OutputSocket *outputSocket = this->getOutputSocket(outputsocketIndex);
 	MultilayerBaseOperation * operation = NULL;
 	switch (datatype) {
@@ -55,7 +57,8 @@ NodeOperation* ImageNode::doMultilayerCheck(ExecutionSystem *system, RenderLayer
 	return operation;
 }
 
-void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	/// Image output
 	OutputSocket *outputImage = this->getOutputSocket(0);
 	bNode *editorNode = this->getbNode();
@@ -77,7 +80,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 					NodeImageLayer *storage = (NodeImageLayer*)bnodeSocket->storage;
 					int passindex = storage->pass_index;
 					int layerindex = storage->layer_index;
-					RenderLayer *rl= (RenderLayer*)BLI_findlink(&image->rr->layers, layerindex);
+					RenderLayer *rl = (RenderLayer*)BLI_findlink(&image->rr->layers, layerindex);
 					if (rl) {
 					
 						RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);

@@ -28,8 +28,8 @@
 
 class SplitViewerOperation : public ViewerBaseOperation {
 private:
-	SocketReader* image1Input;
-	SocketReader* image2Input;
+	SocketReader *image1Input;
+	SocketReader *image2Input;
 
 	float splitPercentage;
 	bool xSplit;

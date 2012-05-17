@@ -33,14 +33,16 @@
 #include "DNA_node_types.h"
 #include "COM_HueSaturationValueCorrectOperation.h"
 
-HueSaturationValueCorrectNode::HueSaturationValueCorrectNode(bNode *editorNode): Node(editorNode) {
+HueSaturationValueCorrectNode::HueSaturationValueCorrectNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void HueSaturationValueCorrectNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void HueSaturationValueCorrectNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *valueSocket = this->getInputSocket(0);
 	InputSocket *colourSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 	CurveMapping *storage = (CurveMapping*)editorsnode->storage;
 	
 	if (colourSocket->isConnected() && outputSocket->isConnected()) {

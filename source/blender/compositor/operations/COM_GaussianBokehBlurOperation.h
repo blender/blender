@@ -28,18 +28,18 @@
 
 class GaussianBokehBlurOperation : public BlurBaseOperation {
 private:
-	float* gausstab;
+	float *gausstab;
 	int radx, rady;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 
 public:
 	GaussianBokehBlurOperation();
 
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Deinitialize the execution

@@ -66,25 +66,25 @@ public:
 	  * @brief set the startpoint of the connection
 	  * @param fromsocket
 	  */
-	void setFromSocket(OutputSocket* fromsocket);
+	void setFromSocket(OutputSocket *fromsocket);
 	
 	/**
 	  * @brief get the startpoint of the connection
 	  * @return from OutputSocket
 	  */
-	OutputSocket* getFromSocket() const;
+	OutputSocket *getFromSocket() const;
 	
 	/**
 	  * @brief set the endpoint of the connection
 	  * @param tosocket
 	  */
-	void setToSocket(InputSocket* tosocket);
+	void setToSocket(InputSocket *tosocket);
 	
 	/**
 	  * @brief get the endpoint of the connection
 	  * @return to InputSocket
 	  */
-	InputSocket* getToSocket() const;
+	InputSocket *getToSocket() const;
 	
 	/**
 	  * @brief check if this connection is valid

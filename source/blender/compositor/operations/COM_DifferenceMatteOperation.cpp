@@ -23,7 +23,8 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "BLI_math.h"
 
-DifferenceMatteOperation::DifferenceMatteOperation(): NodeOperation() {
+DifferenceMatteOperation::DifferenceMatteOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
@@ -32,16 +33,19 @@ DifferenceMatteOperation::DifferenceMatteOperation(): NodeOperation() {
 	inputImage2Program = NULL;
 }
 
-void DifferenceMatteOperation::initExecution() {
+void DifferenceMatteOperation::initExecution()
+{
 	this->inputImage1Program = this->getInputSocketReader(0);
 	this->inputImage2Program = this->getInputSocketReader(1);
 }
-void DifferenceMatteOperation::deinitExecution() {
-	this->inputImage1Program= NULL;
-	this->inputImage2Program= NULL;
+void DifferenceMatteOperation::deinitExecution()
+{
+	this->inputImage1Program = NULL;
+	this->inputImage2Program = NULL;
 }
 
-void DifferenceMatteOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inColor1[4];
 	float inColor2[4];
 
@@ -53,9 +57,9 @@ void DifferenceMatteOperation::executePixel(float* outputValue, float x, float y
 	this->inputImage1Program->read(inColor1, x, y, sampler, inputBuffers);
 	this->inputImage2Program->read(inColor2, x, y, sampler, inputBuffers);
 
-	difference= fabs(inColor2[0]-inColor1[0])+
-			   fabs(inColor2[1]-inColor1[1])+
-			   fabs(inColor2[2]-inColor1[2]);
+	difference = (fabs(inColor2[0] - inColor1[0]) +
+	              fabs(inColor2[1] - inColor1[1]) +
+	              fabs(inColor2[2] - inColor1[2]));
 
 	/*average together the distances*/
 	difference=difference/3.0;
@@ -78,7 +82,7 @@ void DifferenceMatteOperation::executePixel(float* outputValue, float x, float y
 	}
 	else {
 		/*foreground object*/
-		outputValue[0]= inColor1[3];
+		outputValue[0] = inColor1[3];
 	}
 }
 

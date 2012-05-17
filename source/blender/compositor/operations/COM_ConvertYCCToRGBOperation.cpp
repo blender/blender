@@ -22,17 +22,20 @@
 #include "COM_ConvertYCCToRGBOperation.h"
 #include "BLI_math_color.h"
 
-ConvertYCCToRGBOperation::ConvertYCCToRGBOperation(): NodeOperation() {
+ConvertYCCToRGBOperation::ConvertYCCToRGBOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 }
 
-void ConvertYCCToRGBOperation::initExecution() {
+void ConvertYCCToRGBOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertYCCToRGBOperation::setMode(int mode) {
+void ConvertYCCToRGBOperation::setMode(int mode)
+{
 	switch (mode)
 	{
 	case 1:
@@ -48,7 +51,8 @@ void ConvertYCCToRGBOperation::setMode(int mode) {
 	}
 }
 
-void ConvertYCCToRGBOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertYCCToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	inputOperation->read(inputColor, x, y, sampler, inputBuffers);
 
@@ -61,7 +65,8 @@ void ConvertYCCToRGBOperation::executePixel(float* outputValue, float x, float y
 	outputValue[3] = inputColor[3];
 }
 
-void ConvertYCCToRGBOperation::deinitExecution() {
+void ConvertYCCToRGBOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }
 

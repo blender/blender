@@ -109,7 +109,7 @@ private:
 	  * @brief retrieve the state of a certain MemoryProxy;
 	  * @param memoryProxy the MemoryProxy to retrieve the state from
 	  */
-	static MemoryManagerState* getState(MemoryProxy* memoryProxy);
+	static MemoryManagerState *getState(MemoryProxy *memoryProxy);
 public:
 	/**
 	  * @brief allocate a memory buffer
@@ -117,7 +117,7 @@ public:
 	   * @param chunkNumber number of the chunk to receive
 	   * @param rect size + position of the chunk
 	  */
-	static MemoryBuffer* allocateMemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti* rect);
+	static MemoryBuffer *allocateMemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
 
 	/**
 	  * @brief get a memory buffer
@@ -125,7 +125,7 @@ public:
 	  * @param chunkNumber number of the chunk to receive
 	  * @param addUser must we add a user to the chunk.
 	  */
-	static MemoryBuffer* getMemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber);
+	static MemoryBuffer *getMemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber);
 
 	/**
 	  * @brief add a MemoryProxy to the scope of the memory manager

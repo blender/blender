@@ -25,10 +25,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertRGBToYUVOperation.h"
 
-SeparateYUVANode::SeparateYUVANode(bNode *editorNode): SeparateRGBANode(editorNode) {
+SeparateYUVANode::SeparateYUVANode(bNode *editorNode): SeparateRGBANode(editorNode)
+{
 }
 
-void SeparateYUVANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void SeparateYUVANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	ConvertRGBToYUVOperation *operation = new ConvertRGBToYUVOperation();
 	InputSocket *inputSocket = this->getInputSocket(0);
 	if (inputSocket->isConnected()) {

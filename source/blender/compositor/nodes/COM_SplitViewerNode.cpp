@@ -26,13 +26,15 @@
 #include "COM_SplitViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
-SplitViewerNode::SplitViewerNode(bNode *editorNode): Node(editorNode) {
+SplitViewerNode::SplitViewerNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *image1Socket = this->getInputSocket(0);
 	InputSocket *image2Socket = this->getInputSocket(1);
-	Image* image = (Image*)this->getbNode()->id;
+	Image *image = (Image*)this->getbNode()->id;
 	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
 	if (image1Socket->isConnected() && image2Socket->isConnected()) {
 		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();

@@ -23,17 +23,19 @@
 #include "COM_MapUVOperation.h"
 #include "COM_ExecutionSystem.h"
 
-MapUVNode::MapUVNode(bNode *editorNode): Node(editorNode) {
+MapUVNode::MapUVNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	MapUVOperation *operation = new MapUVOperation();
 
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	
-	bNode* node = this->getbNode();
+	bNode *node = this->getbNode();
 	operation->setAlpha((float)node->custom1);
 	operation->setResolutionInputSocketIndex(1);
 

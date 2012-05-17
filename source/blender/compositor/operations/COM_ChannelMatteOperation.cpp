@@ -22,14 +22,16 @@
 #include "COM_ChannelMatteOperation.h"
 #include "BLI_math.h"
 
-ChannelMatteOperation::ChannelMatteOperation(): NodeOperation() {
+ChannelMatteOperation::ChannelMatteOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
 
 	inputImageProgram = NULL;
 }
 
-void ChannelMatteOperation::initExecution() {
+void ChannelMatteOperation::initExecution()
+{
 	this->inputImageProgram = this->getInputSocketReader(0);
 
 	this->limit_range = this->limit_max - this->limit_min;
@@ -76,11 +78,13 @@ void ChannelMatteOperation::initExecution() {
 	}
 }
 
-void ChannelMatteOperation::deinitExecution() {
-	this->inputImageProgram= NULL;
+void ChannelMatteOperation::deinitExecution()
+{
+	this->inputImageProgram = NULL;
 }
 
-void ChannelMatteOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inColor[4];
 	float alpha;
 

@@ -22,17 +22,20 @@
 #include "COM_ConvertRGBToYCCOperation.h"
 #include "BLI_math_color.h"
 
-ConvertRGBToYCCOperation::ConvertRGBToYCCOperation(): NodeOperation() {
+ConvertRGBToYCCOperation::ConvertRGBToYCCOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 }
 
-void ConvertRGBToYCCOperation::initExecution() {
+void ConvertRGBToYCCOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertRGBToYCCOperation::setMode(int mode) {
+void ConvertRGBToYCCOperation::setMode(int mode)
+{
 	switch (mode)
 	{
 	case 1:
@@ -48,7 +51,8 @@ void ConvertRGBToYCCOperation::setMode(int mode) {
 	}
 }
 
-void ConvertRGBToYCCOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertRGBToYCCOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	float color[3];
 
@@ -62,6 +66,7 @@ void ConvertRGBToYCCOperation::executePixel(float* outputValue, float x, float y
 	outputValue[3] = inputColor[3];
 }
 
-void ConvertRGBToYCCOperation::deinitExecution() {
+void ConvertRGBToYCCOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

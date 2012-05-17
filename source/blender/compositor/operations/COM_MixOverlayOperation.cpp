@@ -22,10 +22,12 @@
 
 #include "COM_MixOverlayOperation.h"
 
-MixOverlayOperation::MixOverlayOperation(): MixBaseOperation() {
+MixOverlayOperation::MixOverlayOperation(): MixBaseOperation()
+{
 }
 
-void MixOverlayOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixOverlayOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -38,7 +40,7 @@ void MixOverlayOperation::executePixel(float* outputValue, float x, float y, Pix
 		value *= inputColor2[3];
 	}
 	
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	
 	if (inputColor1[0] < 0.5f) {
 			outputValue[0] = inputColor1[0] * (valuem + 2.0f*value*inputColor2[0]);

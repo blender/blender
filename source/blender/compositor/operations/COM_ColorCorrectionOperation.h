@@ -30,8 +30,8 @@ private:
 	/**
 	  * Cached reference to the inputProgram
 	  */
-	SocketReader * inputImage;
-	SocketReader* inputMask;
+	SocketReader *inputImage;
+	SocketReader *inputMask;
 	NodeColorCorrection *data;
 	
 	bool redChannelEnabled;
@@ -44,7 +44,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution

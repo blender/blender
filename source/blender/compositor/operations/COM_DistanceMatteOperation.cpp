@@ -22,7 +22,8 @@
 #include "COM_DistanceMatteOperation.h"
 #include "BLI_math.h"
 
-DistanceMatteOperation::DistanceMatteOperation(): NodeOperation() {
+DistanceMatteOperation::DistanceMatteOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
@@ -31,17 +32,20 @@ DistanceMatteOperation::DistanceMatteOperation(): NodeOperation() {
 	inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::initExecution() {
+void DistanceMatteOperation::initExecution()
+{
 	this->inputImageProgram = this->getInputSocketReader(0);
 	this->inputKeyProgram = this->getInputSocketReader(1);
 }
 
-void DistanceMatteOperation::deinitExecution() {
-	this->inputImageProgram= NULL;
-	this->inputKeyProgram= NULL;
+void DistanceMatteOperation::deinitExecution()
+{
+	this->inputImageProgram = NULL;
+	this->inputKeyProgram = NULL;
 }
 
-void DistanceMatteOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inKey[4];
 	float inImage[4];
 

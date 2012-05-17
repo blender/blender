@@ -22,22 +22,26 @@
 #include "COM_LuminanceMatteOperation.h"
 #include "BLI_math.h"
 
-LuminanceMatteOperation::LuminanceMatteOperation(): NodeOperation() {
+LuminanceMatteOperation::LuminanceMatteOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
 
 	inputImageProgram = NULL;
 }
 
-void LuminanceMatteOperation::initExecution() {
+void LuminanceMatteOperation::initExecution()
+{
 	this->inputImageProgram = this->getInputSocketReader(0);
 }
 
-void LuminanceMatteOperation::deinitExecution() {
-	this->inputImageProgram= NULL;
+void LuminanceMatteOperation::deinitExecution()
+{
+	this->inputImageProgram = NULL;
 }
 
-void LuminanceMatteOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void LuminanceMatteOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inColor[4];
 
 	const float high=this->settings->t1;

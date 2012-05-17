@@ -31,7 +31,8 @@ extern "C" {
 }
 #include "BKE_image.h"
 
-MovieClipOperation::MovieClipOperation(): NodeOperation() {
+MovieClipOperation::MovieClipOperation(): NodeOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 	this->movieClip = NULL;
 	this->movieClipBuffer = NULL;
@@ -42,11 +43,12 @@ MovieClipOperation::MovieClipOperation(): NodeOperation() {
 }
 
 
-void MovieClipOperation::initExecution() {
+void MovieClipOperation::initExecution()
+{
 	if (this->movieClip) {
 		BKE_movieclip_user_set_frame(this->movieClipUser, this->framenumber);
 		ImBuf *ibuf;
-		ibuf= BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
+		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
 		if (ibuf) {
 			this->movieClipBuffer = ibuf;
 			if (ibuf->rect_float == NULL || ibuf->userflags&IB_RECT_INVALID) {
@@ -57,14 +59,16 @@ void MovieClipOperation::initExecution() {
 	}
 }
 
-void MovieClipOperation::deinitExecution() {
+void MovieClipOperation::deinitExecution()
+{
 	this->movieClipBuffer = NULL;
 }
 
-void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	ImBuf *ibuf;
 	if (this->movieClip) {
-		ibuf= BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
+		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
 		if (ibuf) {
 			resolution[0] = ibuf->x;
 			resolution[1] = ibuf->y;
@@ -72,7 +76,8 @@ void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned
 	}
 }
 
-void MovieClipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MovieClipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	if (this->movieClipBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		color[0] = 0.0f;
 		color[1] = 0.0f;

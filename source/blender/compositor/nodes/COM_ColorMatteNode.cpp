@@ -28,7 +28,8 @@
 ColorMatteNode::ColorMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocketImage = this->getInputSocket(0);
 	InputSocket *inputSocketKey = this->getInputSocket(1);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
@@ -38,7 +39,7 @@ void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	ConvertRGBToHSVOperation *operationRGBToHSV_Key = new ConvertRGBToHSVOperation();
 
 	ColorMatteOperation *operation = new ColorMatteOperation();
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operationRGBToHSV_Image->getInputSocket(0), true, 0, graph);

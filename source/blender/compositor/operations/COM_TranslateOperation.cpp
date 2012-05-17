@@ -22,7 +22,8 @@
 
 #include "COM_TranslateOperation.h"
 
-TranslateOperation::TranslateOperation() : NodeOperation() {
+TranslateOperation::TranslateOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
@@ -32,7 +33,8 @@ TranslateOperation::TranslateOperation() : NodeOperation() {
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
-void TranslateOperation::initExecution() {
+void TranslateOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	this->inputXOperation = this->getInputSocketReader(1);
 	this->inputYOperation = this->getInputSocketReader(2);
@@ -44,18 +46,21 @@ void TranslateOperation::initExecution() {
 	this->deltaY = tempDelta[0];
 }
 
-void TranslateOperation::deinitExecution() {
+void TranslateOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
 
 
-void TranslateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void TranslateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	this->inputOperation->read(color, x-this->getDeltaX(), y-this->getDeltaY(), sampler, inputBuffers);
 }
 
-bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	
 	newInput.xmax = input->xmax - this->getDeltaX();

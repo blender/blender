@@ -27,21 +27,24 @@ extern "C" {
 	#include "IMB_imbuf_types.h"
 }
 
-MultilayerBaseOperation::MultilayerBaseOperation(int pass): BaseImageOperation() {
+MultilayerBaseOperation::MultilayerBaseOperation(int pass): BaseImageOperation()
+{
 	this->passId = pass;
 }
-ImBuf* MultilayerBaseOperation::getImBuf() {
+ImBuf *MultilayerBaseOperation::getImBuf()
+{
 	RenderPass *rpass;
 	rpass = (RenderPass *)BLI_findlink(&this->renderlayer->passes, this->passId);
 	if (rpass) {
-		this->imageUser->pass= this->passId;
+		this->imageUser->pass = this->passId;
 		BKE_image_multilayer_index(image->rr, this->imageUser);
 		return BaseImageOperation::getImBuf();
 	}
 	return NULL;
 }
 
-void MultilayerColorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MultilayerColorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	int yi = y;
 	int xi = x;
 	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
@@ -73,7 +76,8 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 	}
 }
 
-void MultilayerValueOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MultilayerValueOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	int yi = y;
 	int xi = x;
 	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
@@ -85,7 +89,8 @@ void MultilayerValueOperation::executePixel(float *color, float x, float y, Pixe
 	}
 }
 
-void MultilayerVectorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MultilayerVectorOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	int yi = y;
 	int xi = x;
 	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {

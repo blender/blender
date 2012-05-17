@@ -22,14 +22,15 @@
 
 #include "COM_GlareSimpleStarOperation.h"
 
-void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) {
+void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
+{
 	int i, x, y, ym, yp, xm, xp;
 	float c[4] = {0,0,0,0}, tc[4] = {0,0,0,0};
 	const float f1 = 1.f - settings->fade, f2 = (1.f - f1)*0.5f;
 
 
-	MemoryBuffer* tbuf1 = inputTile->duplicate();
-	MemoryBuffer* tbuf2 = inputTile->duplicate();
+	MemoryBuffer *tbuf1 = inputTile->duplicate();
+	MemoryBuffer *tbuf2 = inputTile->duplicate();
 
 	for (i=0; i<settings->iter; i++) {
 //		// (x || x-1, y-1) to (x || x+1, y+1)

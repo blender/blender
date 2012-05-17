@@ -22,10 +22,12 @@
 
 #include "COM_AlphaOverPremultiplyOperation.h"
 
-AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation(): MixBaseOperation() {
+AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation(): MixBaseOperation()
+{
 }
 
-void AlphaOverPremultiplyOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void AlphaOverPremultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputOverColor[4];
 	float value[4];
@@ -41,19 +43,19 @@ void AlphaOverPremultiplyOperation::executePixel(float* outputValue, float x, fl
 		outputValue[2] = inputColor1[2];
 		outputValue[3] = inputColor1[3];
 	}
-	else if (value[0]==1.0f && inputOverColor[3]>=1.0f) {
+	else if (value[0] == 1.0f && inputOverColor[3] >= 1.0f) {
 		outputValue[0] = inputOverColor[0];
 		outputValue[1] = inputOverColor[1];
 		outputValue[2] = inputOverColor[2];
 		outputValue[3] = inputOverColor[3];
 	}
 	else {
-		float mul= 1.0f - value[0]*inputOverColor[3];
+		float mul = 1.0f - value[0]*inputOverColor[3];
 	
-		outputValue[0]= (mul*inputColor1[0]) + value[0]*inputOverColor[0];
-		outputValue[1]= (mul*inputColor1[1]) + value[0]*inputOverColor[1];
-		outputValue[2]= (mul*inputColor1[2]) + value[0]*inputOverColor[2];
-		outputValue[3]= (mul*inputColor1[3]) + value[0]*inputOverColor[3];
+		outputValue[0] = (mul*inputColor1[0]) + value[0]*inputOverColor[0];
+		outputValue[1] = (mul*inputColor1[1]) + value[0]*inputOverColor[1];
+		outputValue[2] = (mul*inputColor1[2]) + value[0]*inputOverColor[2];
+		outputValue[3] = (mul*inputColor1[3]) + value[0]*inputOverColor[3];
 	}
 }
 

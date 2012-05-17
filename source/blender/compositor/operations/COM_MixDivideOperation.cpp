@@ -22,10 +22,12 @@
 
 #include "COM_MixDivideOperation.h"
 
-MixDivideOperation::MixDivideOperation(): MixBaseOperation() {
+MixDivideOperation::MixDivideOperation(): MixBaseOperation()
+{
 }
 
-void MixDivideOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixDivideOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -37,17 +39,17 @@ void MixDivideOperation::executePixel(float* outputValue, float x, float y, Pixe
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	
-	if (inputColor2[0]!=0.0f)
+	if (inputColor2[0] != 0.0f)
 		outputValue[0] = valuem*(inputColor1[0]) + value*(inputColor1[0])/inputColor2[0];
 	else
 		outputValue[0] = 0.0f;
-	if (inputColor2[1]!=0.0f)
+	if (inputColor2[1] != 0.0f)
 		outputValue[1] = valuem*(inputColor1[1]) + value*(inputColor1[1])/inputColor2[1];
 	else
 		outputValue[1] = 0.0f;
-	if (inputColor2[2]!=0.0f)
+	if (inputColor2[2] != 0.0f)
 		outputValue[2] = valuem*(inputColor1[2]) + value*(inputColor1[2])/inputColor2[2];
 	else
 		outputValue[2] = 0.0f;

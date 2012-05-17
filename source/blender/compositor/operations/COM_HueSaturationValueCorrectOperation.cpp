@@ -32,18 +32,21 @@ extern "C" {
 }
 #endif
 
-HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation(): CurveBaseOperation() {
+HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation(): CurveBaseOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
 	this->inputProgram = NULL;
 }
-void HueSaturationValueCorrectOperation::initExecution() {
+void HueSaturationValueCorrectOperation::initExecution()
+{
 	CurveBaseOperation::initExecution();
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void HueSaturationValueCorrectOperation::executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void HueSaturationValueCorrectOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float hsv[4], f;
 
 	this->inputProgram->read(hsv, x, y, sampler, inputBuffers);
@@ -63,12 +66,13 @@ void HueSaturationValueCorrectOperation::executePixel(float* output, float x, fl
 	hsv[0] = hsv[0] - floor(hsv[0]);  /* mod 1.0 */
 	CLAMP(hsv[1], 0.f, 1.f);
 
-	output[0]= hsv[0];
-	output[1]= hsv[1];
-	output[2]= hsv[2];
-	output[3]= hsv[3];
+	output[0] = hsv[0];
+	output[1] = hsv[1];
+	output[2] = hsv[2];
+	output[3] = hsv[3];
 }
 
-void HueSaturationValueCorrectOperation::deinitExecution() {
+void HueSaturationValueCorrectOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

@@ -24,17 +24,20 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
 
-FastGaussianBlurOperation::FastGaussianBlurOperation(): BlurBaseOperation() {
+FastGaussianBlurOperation::FastGaussianBlurOperation(): BlurBaseOperation()
+{
 	this->iirgaus = false;
 }
 
-void FastGaussianBlurOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data) {
+void FastGaussianBlurOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	MemoryBuffer *newData = (MemoryBuffer*)data;
 	
 	newData->read(color, x, y);	
 }
 
-bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	rcti sizeInput;
 	sizeInput.xmin = 0;
@@ -63,7 +66,8 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 	}
 }
 
-void* FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	MemoryBuffer *newBuf = (MemoryBuffer*)this->inputProgram->initializeTileData(rect, memoryBuffers);
 	MemoryBuffer *copy = newBuf->duplicate();
 	updateSize(memoryBuffers);
@@ -90,12 +94,14 @@ void* FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **m
 	return copy;
 }
 
-void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
+void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
 	MemoryBuffer *newData = (MemoryBuffer*)data;
 	delete newData;
 }
 
-void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, int chan, int xy) {
+void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, int chan, int xy)
+{
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
 	double *X, *Y, *W;
 	int i, x, y, sz;

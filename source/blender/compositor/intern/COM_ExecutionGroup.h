@@ -166,7 +166,7 @@ private:
 	  * @brief check whether parameter operation can be added to the execution group
 	  * @param operation the operation to be added
 	  */
-	bool canContainOperation(NodeOperation* operation);
+	bool canContainOperation(NodeOperation *operation);
 	
 	/**
 	  * @brief get the Render priority of this ExecutionGroup
@@ -188,7 +188,7 @@ private:
 	  * @note Only gives usefull results ater the determination of the chunksize
 	  * @see determineChunkSize()
 	  */
-	void determineChunkRect(rcti* rect, const unsigned int xChunk, const unsigned int yChunk) const;
+	void determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk) const;
 	
 	/**
 	  * @brief determine the number of chunks, based on the chunkSize, width and height.
@@ -233,7 +233,7 @@ private:
 	  * @param readOperation The ReadBufferOperation where the area needs to be evaluated
 	  * @param output the area needed of the ReadBufferOperation. Result
 	  */
-	void determineDependingAreaOfInterest(rcti * input, ReadBufferOperation* readOperation, rcti* output);
+	void determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output);
 
 
 public:
@@ -257,7 +257,7 @@ public:
 	  * @param operation the NodeOperation to check
 	  * @return [true,false]
 	  */
-	bool containsOperation(NodeOperation* operation);
+	bool containsOperation(NodeOperation *operation);
 	
 	/**
 	  * @brief add an operation to this ExecutionGroup
@@ -266,7 +266,7 @@ public:
 	  * @param system
 	  * @param operation
 	  */
-	void addOperation(ExecutionSystem* system, NodeOperation *operation);
+	void addOperation(ExecutionSystem *system, NodeOperation *operation);
 	
 	/**
 	  * @brief is this ExecutionGroup an output ExecutionGroup
@@ -312,15 +312,15 @@ public:
 	
 	/**
 	  * @brief get the output operation of this ExecutionGroup
-	  * @return NodeOperation* output operation
+	  * @return NodeOperation *output operation
 	  */
-		NodeOperation* getOutputNodeOperation() const;
+		NodeOperation *getOutputNodeOperation() const;
 	
 	/**
 	  * @brief compose multiple chunks into a single chunk
-	  * @return Memorybuffer* consolidated chunk
+	  * @return Memorybuffer *consolidated chunk
 	  */
-	MemoryBuffer* constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *output);
+	MemoryBuffer *constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *output);
 	
 	/**
 	  * @brief initExecution is called just before the execution of the whole graph will be done.
@@ -342,7 +342,7 @@ public:
 	  * @param rect the rect of that chunk
 	  * @see determineChunkRect
 	  */
-	MemoryBuffer* allocateOutputBuffer(int chunkNumber, rcti *rect);
+	MemoryBuffer *allocateOutputBuffer(int chunkNumber, rcti *rect);
 	
 	/**
 	  * @brief after a chunk is executed the needed resources can be freed or unlocked.
@@ -372,7 +372,7 @@ public:
 	  * @see ViewerOperation
 	  * @param system
 	  */
-	void execute(ExecutionSystem* system);
+	void execute(ExecutionSystem *system);
 	
 	/**
 	  * @brief this method determines the MemoryProxy's where this execution group depends on.
@@ -387,7 +387,7 @@ public:
 	  * @note Only gives usefull results ater the determination of the chunksize
 	  * @see determineChunkSize()
 	  */
-	void determineChunkRect(rcti* rect, const unsigned int chunkNumber) const;
+	void determineChunkRect(rcti *rect, const unsigned int chunkNumber) const;
 	
 	
 		bool operator ==(const ExecutionGroup &executionGroup) const;

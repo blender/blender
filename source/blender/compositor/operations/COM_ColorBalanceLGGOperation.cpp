@@ -30,7 +30,7 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
 	 * but best keep it this way, sice testing for durian shows a similar calculation
 	 * without lin/srgb conversions gives bad results (over-saturated shadows) with colors
 	 * slightly below 1.0. some correction can be done but it ends up looking bad for shadows or lighter tones - campbell */
-	float x= (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
+	float x = (((linearrgb_to_srgb(in) - 1.0f) * lift_lgg) + 1.0f) * gain;
 
 	/* prevent NaN */
 	if (x < 0.f) x = 0.f;
@@ -38,7 +38,8 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
 	return powf(srgb_to_linearrgb(x), gamma_inv);
 }
 
-ColorBalanceLGGOperation::ColorBalanceLGGOperation(): NodeOperation() {
+ColorBalanceLGGOperation::ColorBalanceLGGOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -47,12 +48,14 @@ ColorBalanceLGGOperation::ColorBalanceLGGOperation(): NodeOperation() {
 	this->setResolutionInputSocketIndex(1);
 }
 
-void ColorBalanceLGGOperation::initExecution() {
+void ColorBalanceLGGOperation::initExecution()
+{
 	this->inputValueOperation = this->getInputSocketReader(0);
 	this->inputColorOperation = this->getInputSocketReader(1);
 }
 
-void ColorBalanceLGGOperation::executePixel(float* outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ColorBalanceLGGOperation::executePixel(float *outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	float value[4];
 	
@@ -61,7 +64,7 @@ void ColorBalanceLGGOperation::executePixel(float* outputColor, float x, float y
 	
 	float fac = value[0];
 	fac = min(1.0f, fac);
-	const float mfac= 1.0f - fac;
+	const float mfac = 1.0f - fac;
 	
 	outputColor[0] = mfac*inputColor[0] + fac * colorbalance_lgg(inputColor[0], this->lift[0], this->gamma_inv[0], this->gain[0]);
 	outputColor[1] = mfac*inputColor[1] + fac * colorbalance_lgg(inputColor[1], this->lift[1], this->gamma_inv[1], this->gain[1]);
@@ -70,7 +73,8 @@ void ColorBalanceLGGOperation::executePixel(float* outputColor, float x, float y
 
 }
 
-void ColorBalanceLGGOperation::deinitExecution() {
+void ColorBalanceLGGOperation::deinitExecution()
+{
 	this->inputValueOperation = NULL;
 	this->inputColorOperation = NULL;
 }

@@ -31,7 +31,7 @@ private:
 	  * Cached reference to the inputProgram
 	  */
 	SocketReader * inputProgram;
-	SocketReader* inputGammaProgram;
+	SocketReader *inputGammaProgram;
 
 public:
 	GammaOperation();
@@ -39,7 +39,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution

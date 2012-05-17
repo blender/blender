@@ -30,8 +30,8 @@
   */
 class RenderLayersNode : public Node {
 public:
-	RenderLayersNode(bNode* editorNode);
+	RenderLayersNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 private:
-	void testSocketConnection(ExecutionSystem* graph, int outputSocketNumber, RenderLayersBaseProg * operation);
+	void testSocketConnection(ExecutionSystem *graph, int outputSocketNumber, RenderLayersBaseProg * operation);
 };

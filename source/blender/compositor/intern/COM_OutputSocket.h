@@ -58,7 +58,7 @@ public:
 	OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex);
 	OutputSocket(OutputSocket * from);
 	void addConnection(SocketConnection *connection);
-	SocketConnection* getConnection(unsigned int index) {return this->connections[index];}
+	SocketConnection *getConnection(unsigned int index) {return this->connections[index];}
 	const int isConnected() const;
 	int isOutputSocket() const;
 	
@@ -90,8 +90,8 @@ public:
 	  * @brief find a connected write buffer operation to this OutputSocket
 	  * @return WriteBufferOperation or NULL
 	  */
-	WriteBufferOperation* findAttachedWriteBufferOperation() const;
-	ChannelInfo* getChannelInfo(const int channelnumber);
+	WriteBufferOperation *findAttachedWriteBufferOperation() const;
+	ChannelInfo *getChannelInfo(const int channelnumber);
 	
 	/**
 	  * @brief trigger determine actual data type to all connected sockets

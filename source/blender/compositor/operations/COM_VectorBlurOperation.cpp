@@ -28,7 +28,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-VectorBlurOperation::VectorBlurOperation(): NodeOperation() {
+VectorBlurOperation::VectorBlurOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE); // ZBUF
 	this->addInputSocket(COM_DT_COLOR); //SPEED
@@ -40,7 +41,8 @@ VectorBlurOperation::VectorBlurOperation(): NodeOperation() {
 	this->inputZProgram = NULL;
 	setComplex(true);
 }
-void VectorBlurOperation::initExecution() {
+void VectorBlurOperation::initExecution()
+{
 	initMutex();
 	this->inputImageProgram = getInputSocketReader(0);
 	this->inputZProgram = getInputSocketReader(1);
@@ -50,8 +52,9 @@ void VectorBlurOperation::initExecution() {
 	
 }
 
-void VectorBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
-	float* buffer = (float*) data;
+void VectorBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	float *buffer = (float*) data;
 	int index = (y*this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
 	color[0] = buffer[index];
 	color[1] = buffer[index+1];
@@ -59,7 +62,8 @@ void VectorBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer 
 	color[3] = buffer[index+3];
 }
 
-void VectorBlurOperation::deinitExecution() {
+void VectorBlurOperation::deinitExecution()
+{
 	deinitMutex();
 	this->inputImageProgram = NULL;
 	this->inputSpeedProgram = NULL;
@@ -69,15 +73,16 @@ void VectorBlurOperation::deinitExecution() {
 		this->cachedInstance = NULL;
 	}
 }
-void* VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	if (this->cachedInstance) return this->cachedInstance;
 	
 	BLI_mutex_lock(getMutex());
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer* tile = (MemoryBuffer*)inputImageProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer* speed= (MemoryBuffer*)inputSpeedProgram->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer* z = (MemoryBuffer*)inputZProgram->initializeTileData(rect, memoryBuffers);
-		float* data = new float[this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS];
+		MemoryBuffer *tile = (MemoryBuffer*)inputImageProgram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *speed = (MemoryBuffer*)inputSpeedProgram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *z = (MemoryBuffer*)inputZProgram->initializeTileData(rect, memoryBuffers);
+		float *data = new float[this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS];
 		memcpy(data, tile->getBuffer(),this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS*sizeof(float));
 		this->generateVectorBlur(data, tile, speed, z);
 		this->cachedInstance = data;
@@ -86,7 +91,8 @@ void* VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 	return this->cachedInstance;
 }
 
-bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	if (this->cachedInstance == NULL) {
 		rcti newInput;
 		newInput.xmax = this->getWidth();
@@ -100,7 +106,8 @@ bool VectorBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 	}
 }
 
-void VectorBlurOperation::generateVectorBlur(float* data, MemoryBuffer* inputImage, MemoryBuffer* inputSpeed, MemoryBuffer* inputZ) {
+void VectorBlurOperation::generateVectorBlur(float *data, MemoryBuffer *inputImage, MemoryBuffer *inputSpeed, MemoryBuffer *inputZ)
+{
 	float *zbuf = inputZ->convertToValueBuffer();
 	NodeBlurData blurdata;
 	blurdata.samples = this->settings->samples/QualityStepHelper::getStep();

@@ -22,10 +22,12 @@
 
 #include "COM_MixLinearLightOperation.h"
 
-MixLinearLightOperation::MixLinearLightOperation(): MixBaseOperation() {
+MixLinearLightOperation::MixLinearLightOperation(): MixBaseOperation()
+{
 }
 
-void MixLinearLightOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixLinearLightOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;

@@ -59,12 +59,12 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 
-	void setSettings(NodeChroma* nodeChroma, const int custom2)
+	void setSettings(NodeChroma *nodeChroma, const int custom2)
 	{
 		this->limit_max = nodeChroma->t1;
 		this->limit_min = nodeChroma->t2;

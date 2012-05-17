@@ -33,14 +33,14 @@
 class OutputSingleLayerOperation : public NodeOperation {
 private:
 	const Scene *scene;
-	const bNodeTree* tree;
+	const bNodeTree *tree;
 	
 	ImageFormatData *format;
 	char path[FILE_MAX];
 	
 	float *outputBuffer;
 	DataType datatype;
-	SocketReader* imageInput;
+	SocketReader *imageInput;
 
 public:
 	OutputSingleLayerOperation(const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
@@ -59,7 +59,7 @@ struct OutputOpenExrLayer {
 	char name[EXR_TOT_MAXNAME-2];
 	float *outputBuffer;
 	DataType datatype;
-	SocketReader* imageInput;
+	SocketReader *imageInput;
 };
 
 /* Writes inputs into OpenEXR multilayer channels. */
@@ -68,7 +68,7 @@ private:
 	typedef std::vector<OutputOpenExrLayer> LayerList;
 	
 	const Scene *scene;
-	const bNodeTree* tree;
+	const bNodeTree *tree;
 	
 	char path[FILE_MAX];
 	char exr_codec;

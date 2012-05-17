@@ -25,30 +25,35 @@
 #include "COM_SocketConnection.h"
 #include "COM_NodeOperation.h"
 
-OutputSocket::OutputSocket(DataType datatype) :Socket(datatype) {
+OutputSocket::OutputSocket(DataType datatype) :Socket(datatype)
+{
 	this->inputSocketDataTypeDeterminatorIndex = -1;
 }
-OutputSocket::OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex) :Socket(datatype) {
+OutputSocket::OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex) :Socket(datatype)
+{
 	this->inputSocketDataTypeDeterminatorIndex = inputSocketDataTypeDeterminatorIndex;
 }
 
-OutputSocket::OutputSocket(OutputSocket *from): Socket(from->getDataType()) {
+OutputSocket::OutputSocket(OutputSocket *from): Socket(from->getDataType())
+{
 	this->inputSocketDataTypeDeterminatorIndex = from->getInputSocketDataTypeDeterminatorIndex();	
 }
 
 int OutputSocket::isOutputSocket() const { return true; }
 const int OutputSocket::isConnected() const { return this->connections.size()!=0; }
 
-void OutputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
-	NodeBase* node = this->getNode();
+void OutputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	NodeBase *node = this->getNode();
 	if (node->isOperation()) {
-		NodeOperation* operation = (NodeOperation*)node;
+		NodeOperation *operation = (NodeOperation*)node;
 		operation->determineResolution(resolution, preferredResolution);
 		operation->setResolution(resolution);
 	}
 }
 
-void OutputSocket::determineActualDataType() {
+void OutputSocket::determineActualDataType()
+{
 	DataType actualDatatype = this->getNode()->determineActualDataType(this);
 
 	/** @todo: set the channel info needs to be moved after integration with OCIO */
@@ -79,18 +84,21 @@ void OutputSocket::determineActualDataType() {
 	this->fireActualDataType();
 }
 
-void OutputSocket::addConnection(SocketConnection *connection) {
+void OutputSocket::addConnection(SocketConnection *connection)
+{
 	this->connections.push_back(connection);
 }
 
-void OutputSocket::fireActualDataType() {
+void OutputSocket::fireActualDataType()
+{
 	unsigned int index;
 	for (index = 0 ; index < this->connections.size();index ++) {
 		SocketConnection *connection = this->connections[index];
 		connection->getToSocket()->notifyActualInputType(this->getActualDataType());
 	}
 }
-void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single) {
+void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
+{
 	if (isConnected()) {
 		if (single) {
 			SocketConnection *connection = this->connections[0];
@@ -111,28 +119,31 @@ void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single) 
 		}
 	}
 }
-void OutputSocket::removeFirstConnection() {
+void OutputSocket::removeFirstConnection()
+{
 	SocketConnection *connection = this->connections[0];
-	InputSocket* inputSocket = connection->getToSocket();
+	InputSocket *inputSocket = connection->getToSocket();
 	if (inputSocket != NULL) {
 		inputSocket->setConnection(NULL);
 	}
 	this->connections.erase(this->connections.begin());
 }
 
-void OutputSocket::clearConnections() {
+void OutputSocket::clearConnections()
+{
 	while (this->isConnected()) {
 		removeFirstConnection();
 	}
 }
 
-WriteBufferOperation* OutputSocket::findAttachedWriteBufferOperation() const {
+WriteBufferOperation *OutputSocket::findAttachedWriteBufferOperation() const
+{
 	unsigned int index;
 	for (index = 0 ; index < this->connections.size();index++) {
-		SocketConnection* connection = this->connections[index];
-		NodeBase* node = connection->getToNode();
+		SocketConnection *connection = this->connections[index];
+		NodeBase *node = connection->getToNode();
 		if (node->isOperation()) {
-			NodeOperation* operation = (NodeOperation*)node;
+			NodeOperation *operation = (NodeOperation*)node;
 			if (operation->isWriteBufferOperation()) {
 				return (WriteBufferOperation*)operation;
 			}
@@ -141,7 +152,8 @@ WriteBufferOperation* OutputSocket::findAttachedWriteBufferOperation() const {
 	return NULL;
 }
 
-ChannelInfo* OutputSocket::getChannelInfo(const int channelnumber) {
+ChannelInfo *OutputSocket::getChannelInfo(const int channelnumber)
+{
 	return &this->channelinfo[channelnumber];
 }
 

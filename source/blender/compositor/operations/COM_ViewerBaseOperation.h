@@ -34,7 +34,7 @@ protected:
 	ImageUser * imageUser;
 	void *lock;
 	bool active;
-	const bNodeTree* tree;
+	const bNodeTree *tree;
 	float centerX;
 	float centerY;
 	OrderOfChunks chunkOrder;
@@ -45,11 +45,11 @@ public:
 	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
-	void setImage(Image* image) {this->image = image;}
-	void setImageUser(ImageUser* imageUser) {this->imageUser = imageUser;}
+	void setImage(Image *image) {this->image = image;}
+	void setImageUser(ImageUser *imageUser) {this->imageUser = imageUser;}
 	const bool isActiveViewerOutput() const {return active;}
 	void setActive(bool active) {this->active = active;}
-	void setbNodeTree(const bNodeTree* tree) {this->tree = tree;}
+	void setbNodeTree(const bNodeTree *tree) {this->tree = tree;}
 	void setCenterX(float centerX) {this->centerX = centerX;}
 	void setCenterY(float centerY) {this->centerY = centerY;}
 	void setChunkOrder(OrderOfChunks tileOrder) {this->chunkOrder = tileOrder;}

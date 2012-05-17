@@ -29,11 +29,11 @@
 
 class LensGhostProjectionOperation : public NodeOperation {
 protected:
-	Object* lampObject;
-	Lamp* lamp;
-	Object* cameraObject;
+	Object *lampObject;
+	Lamp *lamp;
+	Object *cameraObject;
 
-	void* system;
+	void *system;
 	float visualLampPosition[3];
 	CompositorQuality quality;
 	int step;
@@ -45,7 +45,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 
 	/**
 	  * Initialize the execution
@@ -58,8 +58,8 @@ public:
 	void deinitExecution();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
-	void setLampObject(Object* lampObject) {this->lampObject = lampObject;}
-	void setCameraObject(Object* cameraObject) {this->cameraObject = cameraObject;}
+	void setLampObject(Object *lampObject) {this->lampObject = lampObject;}
+	void setCameraObject(Object *cameraObject) {this->cameraObject = cameraObject;}
 
 	void setQuality(CompositorQuality quality) {this->quality = quality;}
 };
@@ -68,12 +68,12 @@ class LensGhostOperation : public LensGhostProjectionOperation {
 public:
 	LensGhostOperation();
 
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
 	/**
 	  * Initialize the execution
 	  */

@@ -22,20 +22,23 @@
 
 #include "COM_BrightnessOperation.h"
 
-BrightnessOperation::BrightnessOperation(): NodeOperation() {
+BrightnessOperation::BrightnessOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 }
-void BrightnessOperation::initExecution() {
+void BrightnessOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	this->inputBrightnessProgram = this->getInputSocketReader(1);
 	this->inputContrastProgram = this->getInputSocketReader(2);
 }
 
-void BrightnessOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void BrightnessOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float a, b;
 	float inputBrightness[4];
@@ -68,7 +71,8 @@ void BrightnessOperation::executePixel(float* color, float x, float y, PixelSamp
 	color[3] = inputValue[3];
 }
 
-void BrightnessOperation::deinitExecution() {
+void BrightnessOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 	this->inputBrightnessProgram = NULL;
 	this->inputContrastProgram = NULL;

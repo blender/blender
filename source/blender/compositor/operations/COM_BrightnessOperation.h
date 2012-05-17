@@ -30,9 +30,9 @@ private:
 	/**
 	  * Cached reference to the inputProgram
 	  */
-	SocketReader * inputProgram;
-	SocketReader * inputBrightnessProgram;
-	SocketReader* inputContrastProgram;
+	SocketReader *inputProgram;
+	SocketReader *inputBrightnessProgram;
+	SocketReader *inputContrastProgram;
 
 public:
 	BrightnessOperation();
@@ -40,7 +40,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution

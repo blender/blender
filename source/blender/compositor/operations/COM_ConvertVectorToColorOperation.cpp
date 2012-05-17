@@ -22,21 +22,25 @@
 
 #include "COM_ConvertVectorToColorOperation.h"
 
-ConvertVectorToColorOperation::ConvertVectorToColorOperation(): NodeOperation() {
+ConvertVectorToColorOperation::ConvertVectorToColorOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 }
 
-void ConvertVectorToColorOperation::initExecution() {
+void ConvertVectorToColorOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertVectorToColorOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertVectorToColorOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	inputOperation->read(outputValue, x, y, sampler, inputBuffers);
 	outputValue[3] = 1.0f;
 }
 
-void ConvertVectorToColorOperation::deinitExecution() {
+void ConvertVectorToColorOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

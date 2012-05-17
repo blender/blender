@@ -22,22 +22,25 @@
 
 #include "COM_MemoryManagerState.h"
 
-MemoryManagerState::MemoryManagerState(MemoryProxy *memoryProxy) {
+MemoryManagerState::MemoryManagerState(MemoryProxy *memoryProxy)
+{
 	this->memoryProxy = memoryProxy;
 	this->currentSize = 0;
 	this->chunkBuffers = NULL;
 	BLI_mutex_init(&this->mutex);
 }
 
-MemoryProxy * MemoryManagerState::getMemoryProxy() {
+MemoryProxy * MemoryManagerState::getMemoryProxy()
+{
 	return this->memoryProxy;
 }
 
-MemoryManagerState::~MemoryManagerState() {
+MemoryManagerState::~MemoryManagerState()
+{
 	this->memoryProxy = NULL;
 	unsigned int index;
 	for (index = 0 ; index < this->currentSize; index ++) {
-		MemoryBuffer* buffer = this->chunkBuffers[index];
+		MemoryBuffer *buffer = this->chunkBuffers[index];
 		if (buffer) {
 			delete buffer;
 		}
@@ -46,7 +49,8 @@ MemoryManagerState::~MemoryManagerState() {
 	BLI_mutex_end(&this->mutex);
 }
 
-void MemoryManagerState::addMemoryBuffer(MemoryBuffer *buffer) {
+void MemoryManagerState::addMemoryBuffer(MemoryBuffer *buffer)
+{
 	BLI_mutex_lock(&this->mutex);
 	unsigned int chunkNumber = buffer->getChunkNumber();
 	unsigned int index;
@@ -76,8 +80,9 @@ void MemoryManagerState::addMemoryBuffer(MemoryBuffer *buffer) {
 	BLI_mutex_unlock(&this->mutex);
 }
 
-MemoryBuffer* MemoryManagerState::getMemoryBuffer(unsigned int chunkNumber) {
-	MemoryBuffer* result = NULL;
+MemoryBuffer *MemoryManagerState::getMemoryBuffer(unsigned int chunkNumber)
+{
+	MemoryBuffer *result = NULL;
 	if (chunkNumber< this->currentSize) {
 		result = this->chunkBuffers[chunkNumber];
 		if (result) {

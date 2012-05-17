@@ -34,12 +34,12 @@ private:
 	/**
 	  * @brief local reference to the scene
 	  */
-	const Scene* scene;
+	const Scene *scene;
 	
 	/**
 	  * @brief local reference to the node tree
 	  */
-	const bNodeTree* tree;
+	const bNodeTree *tree;
 	
 	/**
 	  * @brief reference to the output float buffer
@@ -49,17 +49,17 @@ private:
 	/**
 	  * @brief local reference to the input image operation
 	  */
-	SocketReader* imageInput;
+	SocketReader *imageInput;
 
 	/**
 	  * @brief local reference to the input alpha operation
 	  */
-	SocketReader* alphaInput;
+	SocketReader *alphaInput;
 public:
 	CompositorOperation();
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
-	void setScene(const Scene* scene) {this->scene = scene;}
-	void setbNodeTree(const bNodeTree* tree) {this->tree= tree;}
+	void setScene(const Scene *scene) {this->scene = scene;}
+	void setbNodeTree(const bNodeTree *tree) {this->tree = tree;}
 	bool isOutputOperation(bool rendering) const {return rendering;}
 	void initExecution();
 	void deinitExecution();

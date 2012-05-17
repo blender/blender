@@ -42,7 +42,7 @@ extern "C" {
   */
 class TextureBaseOperation : public NodeOperation {
 private:
-	Tex* texture;
+	Tex *texture;
 	SocketReader *inputSize;
 	SocketReader *inputOffset;
 
@@ -61,7 +61,7 @@ protected:
 public:
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 
-	void setTexture(Tex* texture) {this->texture = texture;}
+	void setTexture(Tex *texture) {this->texture = texture;}
 	void initExecution();
 	void deinitExecution();
 };

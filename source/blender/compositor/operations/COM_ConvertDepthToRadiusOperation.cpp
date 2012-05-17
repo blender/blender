@@ -24,7 +24,8 @@
 #include "BLI_math.h"
 #include "DNA_camera_types.h"
 
-ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation(): NodeOperation() {
+ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->inputOperation = NULL;
@@ -33,13 +34,14 @@ ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation(): NodeOperation() 
 	this->maxRadius = 32.0f;
 }
 
-float ConvertDepthToRadiusOperation::determineFocalDistance() {
+float ConvertDepthToRadiusOperation::determineFocalDistance()
+{
 
 	if (cameraObject == NULL || cameraObject->type != OB_CAMERA) {
 		return 10.0f;
 	}
 	else {
-		Camera *camera= (Camera*)this->cameraObject->data;
+		Camera *camera = (Camera*)this->cameraObject->data;
 		cam_lens = camera->lens;
 		if (camera->dof_ob) {
 			/* too simple, better to return the distance on the view axis only
@@ -56,10 +58,11 @@ float ConvertDepthToRadiusOperation::determineFocalDistance() {
 	}
 }
 
-void ConvertDepthToRadiusOperation::initExecution() {
+void ConvertDepthToRadiusOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	float focalDistance = determineFocalDistance();
-	if (focalDistance==0.0f) focalDistance = 1e10f; /* if the dof is 0.0 then set it be be far away */
+	if (focalDistance == 0.0f) focalDistance = 1e10f; /* if the dof is 0.0 then set it be be far away */
 	inverseFocalDistance = 1.f/focalDistance;
 	this->aspect = (this->getWidth() > this->getHeight()) ? (this->getHeight() / (float)this->getWidth()) : (this->getWidth() / (float)this->getHeight());
 	this->aperture = 0.5f*(this->cam_lens / (this->aspect*32.f)) / this->fStop;
@@ -67,7 +70,8 @@ void ConvertDepthToRadiusOperation::initExecution() {
 	this->dof_sp = (float)minsz / (16.f / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 }
 
-void ConvertDepthToRadiusOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float z;
 	float radius;
@@ -93,6 +97,7 @@ void ConvertDepthToRadiusOperation::executePixel(float* outputValue, float x, fl
 	else outputValue[0] = 0.0f;
 }
 
-void ConvertDepthToRadiusOperation::deinitExecution() {
+void ConvertDepthToRadiusOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

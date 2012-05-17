@@ -36,7 +36,8 @@ extern "C" {
 #include "PIL_time.h"
 
 
-CompositorOperation::CompositorOperation() : NodeOperation() {
+CompositorOperation::CompositorOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 
@@ -46,7 +47,8 @@ CompositorOperation::CompositorOperation() : NodeOperation() {
 	this->alphaInput = NULL;
 }
 
-void CompositorOperation::initExecution() {
+void CompositorOperation::initExecution()
+{
 	// When initializing the tree during initial load the width and height can be zero.
 	this->imageInput = getInputSocketReader(0);
 	this->alphaInput = getInputSocketReader(1);
@@ -54,13 +56,13 @@ void CompositorOperation::initExecution() {
 		this->outputBuffer=(float*) MEM_callocN(this->getWidth()*this->getHeight()*4*sizeof(float), "CompositorOperation");
 	}
 	const Scene * scene = this->scene;
-	Render* re= RE_GetRender(scene->id.name);
-	RenderResult *rr= RE_AcquireResultWrite(re);
+	Render *re = RE_GetRender(scene->id.name);
+	RenderResult *rr = RE_AcquireResultWrite(re);
 	if (rr) {
 		if (rr->rectf  != NULL) {
 			MEM_freeN(rr->rectf);
 		}
-		rr->rectf= outputBuffer;
+		rr->rectf = outputBuffer;
 	}
 	if (re) {
 		RE_ReleaseResult(re);
@@ -69,16 +71,18 @@ void CompositorOperation::initExecution() {
 	
 }
 
-void CompositorOperation::deinitExecution() {
+void CompositorOperation::deinitExecution()
+{
 	this->outputBuffer = NULL;
 	this->imageInput = NULL;
 	this->alphaInput = NULL;
 }
 
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers) {
+void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+{
 	float color[8]; // 7 is enough
-	float* buffer = this->outputBuffer;
+	float *buffer = this->outputBuffer;
 
 	if (!buffer) return;
 	int x1 = rect->xmin;
@@ -109,9 +113,10 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 	}
 }
 
-void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	int width = this->scene->r.xsch*this->scene->r.size/100;
-	int height= this->scene->r.ysch*this->scene->r.size/100;
+	int height = this->scene->r.ysch*this->scene->r.size/100;
 	preferredResolution[0] = width;
 	preferredResolution[1] = height;
 	

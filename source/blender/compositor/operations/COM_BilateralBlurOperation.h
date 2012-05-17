@@ -27,9 +27,9 @@
 
 class BilateralBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
-	SocketReader* inputColorProgram;
-	SocketReader* inputDeterminatorProgram;
-	NodeBilateralBlurData* data;
+	SocketReader *inputColorProgram;
+	SocketReader *inputDeterminatorProgram;
+	NodeBilateralBlurData *data;
 	float space;
 
 public:
@@ -38,7 +38,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution

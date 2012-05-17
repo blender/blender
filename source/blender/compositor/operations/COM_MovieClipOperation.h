@@ -37,8 +37,8 @@
   */
 class MovieClipOperation : public NodeOperation {
 protected:
-	MovieClip* movieClip;
-	MovieClipUser* movieClipUser;
+	MovieClip *movieClip;
+	MovieClipUser *movieClipUser;
 	ImBuf *movieClipBuffer;
 	int movieClipheight;
 	int movieClipwidth;
@@ -54,8 +54,8 @@ public:
 	
 	void initExecution();
 	void deinitExecution();
-	void setMovieClip(MovieClip* image) {this->movieClip = image;}
-	void setMovieClipUser(MovieClipUser* imageuser) {this->movieClipUser = imageuser;}
+	void setMovieClip(MovieClip *image) {this->movieClip = image;}
+	void setMovieClipUser(MovieClipUser *imageuser) {this->movieClipUser = imageuser;}
 	
 	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);

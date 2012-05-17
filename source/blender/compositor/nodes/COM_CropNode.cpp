@@ -24,11 +24,13 @@
 #include "COM_CropOperation.h"
 
 
-CropNode::CropNode(bNode *editorNode) : Node(editorNode) {
+CropNode::CropNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	bNode* node = getbNode();
+void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	bNode *node = getbNode();
 	NodeTwoXYs *cropSettings = (NodeTwoXYs*)node->storage;
 	bool relative = (bool)node->custom2;
 	bool cropImage = (bool)node->custom1;

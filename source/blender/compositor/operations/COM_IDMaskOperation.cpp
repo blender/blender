@@ -22,16 +22,19 @@
 
 #include "COM_IDMaskOperation.h"
 
-IDMaskOperation::IDMaskOperation(): NodeOperation() {
+IDMaskOperation::IDMaskOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->inputProgram = NULL;
 }
-void IDMaskOperation::initExecution() {
+void IDMaskOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void IDMaskOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void IDMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	
 	this->inputProgram->read(inputValue, x, y, sampler, inputBuffers);
@@ -39,7 +42,8 @@ void IDMaskOperation::executePixel(float* color, float x, float y, PixelSampler 
 	color[0] = a;
 }
 
-void IDMaskOperation::deinitExecution() {
+void IDMaskOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 

@@ -32,7 +32,7 @@
 class BilateralBlurNode: public Node {
 public:
 	BilateralBlurNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif

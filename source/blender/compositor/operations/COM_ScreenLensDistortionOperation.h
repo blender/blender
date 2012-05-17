@@ -30,7 +30,7 @@ private:
 	/**
 	  * Cached reference to the inputProgram
 	  */
-	SocketReader* inputProgram;
+	SocketReader *inputProgram;
 	
 	NodeLensDist * data;
 	
@@ -48,27 +48,27 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution
 	  */
 	void initExecution();
 	
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
 	  * Deinitialize the execution
 	  */
 	void deinitExecution();
 	
-	void setData(NodeLensDist* data) {this->data = data;}
+	void setData(NodeLensDist *data) {this->data = data;}
 	void setDispertion(float dispersion) {this->dispersion = dispersion;}
 	void setDistortion(float distortion) {this->distortion = distortion;}
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 private:
-	void determineUV(float* result, float x, float y) const;
+	void determineUV(float *result, float x, float y) const;
 
 };
 #endif

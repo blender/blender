@@ -23,21 +23,24 @@
 #include "COM_GlareBaseOperation.h"
 #include "BLI_math.h"
 
-GlareBaseOperation::GlareBaseOperation(): NodeOperation() {
+GlareBaseOperation::GlareBaseOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->settings = NULL;
 	this->cachedInstance = NULL;
 	setComplex(true);
 }
-void GlareBaseOperation::initExecution() {
+void GlareBaseOperation::initExecution()
+{
 	initMutex();
 	this->inputProgram = getInputSocketReader(0);
 	this->cachedInstance = NULL;
 }
 
-void GlareBaseOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
-	float* buffer = (float*) data;
+void GlareBaseOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)\
+{
+	float *buffer = (float*) data;
 	int index = (y*this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
 	color[0] = buffer[index];
 	color[1] = buffer[index+1];
@@ -45,7 +48,8 @@ void GlareBaseOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 	color[3] = buffer[index+3];
 }
 
-void GlareBaseOperation::deinitExecution() {
+void GlareBaseOperation::deinitExecution()
+{
 	deinitMutex();
 	this->inputProgram = NULL;
 	if (this->cachedInstance) {
@@ -53,11 +57,12 @@ void GlareBaseOperation::deinitExecution() {
 		this->cachedInstance = NULL;
 	}
 }
-void* GlareBaseOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *GlareBaseOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	BLI_mutex_lock(getMutex());
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer* tile = (MemoryBuffer*)inputProgram->initializeTileData(rect, memoryBuffers);
-		float* data = new float[this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS];
+		MemoryBuffer *tile = (MemoryBuffer*)inputProgram->initializeTileData(rect, memoryBuffers);
+		float *data = new float[this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS];
 		this->generateGlare(data, tile, this->settings);
 		this->cachedInstance = data;
 	}
@@ -65,7 +70,8 @@ void* GlareBaseOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	return this->cachedInstance;
 }
 
-bool GlareBaseOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool GlareBaseOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	newInput.xmax = this->getWidth();
 	newInput.xmin = 0;

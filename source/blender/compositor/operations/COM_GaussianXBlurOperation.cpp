@@ -27,40 +27,43 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianXBlurOperation::GaussianXBlurOperation(): BlurBaseOperation() {
+GaussianXBlurOperation::GaussianXBlurOperation(): BlurBaseOperation()
+{
 	this->gausstab = NULL;
 	this->rad = 0;
 
 }
 
-void* GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	updateGauss(memoryBuffers);
-	void* buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers) {
+void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+{
 	if (this->gausstab == NULL) {
 		updateSize(memoryBuffers);
 		float rad = size*this->data->sizex;
 		if (rad<1)
-			rad= 1;
+			rad = 1;
 
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);	
 	}	
 }
 
-void GaussianXBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void *data) {
-
+void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float tempColor[4];
 	tempColor[0] = 0;
 	tempColor[1] = 0;
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float overallmultiplyer = 0;
-	MemoryBuffer* inputBuffer = (MemoryBuffer*)data;
-	float* buffer = inputBuffer->getBuffer();
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
@@ -94,13 +97,15 @@ void GaussianXBlurOperation::executePixel(float* color, int x, int y, MemoryBuff
 	color[3] = tempColor[3]*divider;
 }
 
-void GaussianXBlurOperation::deinitExecution() {
+void GaussianXBlurOperation::deinitExecution()
+{
 	BlurBaseOperation::deinitExecution();
 	delete this->gausstab;
 	this->gausstab = NULL;
 }
 
-bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	rcti sizeInput;
 	sizeInput.xmin = 0;

@@ -46,14 +46,14 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
 	
 	/**
 	  * Initialize the execution
 	  */
 	void initExecution();
 	
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	
 	/**
 	  * Deinitialize the execution
@@ -64,6 +64,6 @@ public:
 	void setSetting(int setting) {this->setting = setting;}
 	
 protected:
-	void calculateMean(MemoryBuffer* tile);
+	void calculateMean(MemoryBuffer *tile);
 };
 #endif

@@ -22,10 +22,12 @@
 
 #include "COM_MixBurnOperation.h"
 
-MixBurnOperation::MixBurnOperation(): MixBaseOperation() {
+MixBurnOperation::MixBurnOperation(): MixBaseOperation()
+{
 }
 
-void MixBurnOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixBurnOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -38,7 +40,7 @@ void MixBurnOperation::executePixel(float* outputValue, float x, float y, PixelS
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	
 	tmp = valuem + value*inputColor2[0];
 	if (tmp <= 0.0f)

@@ -22,10 +22,12 @@
 
 #include "COM_MixDodgeOperation.h"
 
-MixDodgeOperation::MixDodgeOperation(): MixBaseOperation() {
+MixDodgeOperation::MixDodgeOperation(): MixBaseOperation()
+{
 }
 
-void MixDodgeOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixDodgeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;

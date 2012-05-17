@@ -24,7 +24,8 @@
 #include "BLI_math.h"
 #include "DNA_node_types.h"
 
-BoxMaskOperation::BoxMaskOperation(): NodeOperation() {
+BoxMaskOperation::BoxMaskOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -33,7 +34,8 @@ BoxMaskOperation::BoxMaskOperation(): NodeOperation() {
 	this->cosine = 0.0f;
 	this->sine = 0.0f;
 }
-void BoxMaskOperation::initExecution() {
+void BoxMaskOperation::initExecution()
+{
 	this->inputMask = this->getInputSocketReader(0);
 	this->inputValue = this->getInputSocketReader(1);
 	const double rad = DEG2RAD(this->data->rotation);
@@ -42,7 +44,8 @@ void BoxMaskOperation::initExecution() {
 	this->aspectRatio = ((float)this->getWidth())/this->getHeight();
 }
 
-void BoxMaskOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputMask[4];
 	float inputValue[4];
 	
@@ -108,7 +111,8 @@ void BoxMaskOperation::executePixel(float* color, float x, float y, PixelSampler
 
 }
 
-void BoxMaskOperation::deinitExecution() {
+void BoxMaskOperation::deinitExecution()
+{
 	this->inputMask = NULL;
 	this->inputValue = NULL;
 }

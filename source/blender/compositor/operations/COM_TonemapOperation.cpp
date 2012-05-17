@@ -26,7 +26,8 @@
 
 
 
-TonemapOperation::TonemapOperation(): NodeOperation() {
+TonemapOperation::TonemapOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->imageReader = NULL;
@@ -34,12 +35,14 @@ TonemapOperation::TonemapOperation(): NodeOperation() {
 	this->cachedInstance = NULL;
 	this->setComplex(true);
 }
-void TonemapOperation::initExecution() {
+void TonemapOperation::initExecution()
+{
 	this->imageReader = this->getInputSocketReader(0);
 	NodeOperation::initMutex();
 }
 
-void TonemapOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	AvgLogLum * avg = (AvgLogLum*)data;
 
 	float output[4];
@@ -65,7 +68,8 @@ void TonemapOperation::executePixel(float* color, int x, int y, MemoryBuffer *in
 	color[2] = output[2];
 	color[3] = output[3];
 }
-void PhotoreceptorTonemapOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	AvgLogLum * avg = (AvgLogLum*)data;
 	NodeTonemap *ntm = this->data;
 
@@ -96,7 +100,8 @@ void PhotoreceptorTonemapOperation::executePixel(float* color, int x, int y, Mem
 	color[3] = output[3];
 }
 
-void TonemapOperation::deinitExecution() {
+void TonemapOperation::deinitExecution()
+{
 	this->imageReader = NULL;
 	if (this->cachedInstance) {
 		delete cachedInstance;
@@ -104,10 +109,11 @@ void TonemapOperation::deinitExecution() {
 	NodeOperation::deinitMutex();
 }
 
-bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti imageInput;
 
-	NodeOperation* operation = getInputOperation(0);
+	NodeOperation *operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;
 	imageInput.ymax = operation->getHeight();
@@ -118,17 +124,18 @@ bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 	return false;
 }
 
-void* TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	BLI_mutex_lock(getMutex());
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer* tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		AvgLogLum *data = new AvgLogLum();
 
 		float * buffer = tile->getBuffer();
 
 		float lsum = 0;
 		int p = tile->getWidth() * tile->getHeight();
-		float* bc = buffer;
+		float *bc = buffer;
 		float avl, maxl = -1e10f, minl = 1e10f;
 		const float sc = 1.f/(p);
 		float Lav = 0.f;
@@ -159,5 +166,6 @@ void* TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 	return this->cachedInstance;
 }
 
-void TonemapOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
+void TonemapOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
 }

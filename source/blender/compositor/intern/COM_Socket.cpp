@@ -24,14 +24,16 @@
 #include "COM_Node.h"
 #include "COM_SocketConnection.h"
 
-Socket::Socket(DataType datatype) {
+Socket::Socket(DataType datatype)
+{
 	this->datatype = datatype;
 	this->actualType = COM_DT_UNKNOWN;
 	this->editorSocket = NULL;
 	this->node = NULL;
 }
 
-DataType Socket::getDataType() const {
+DataType Socket::getDataType() const
+{
 	return this->datatype;
 }
 
@@ -39,9 +41,10 @@ int Socket::isInputSocket() const { return false; }
 int Socket::isOutputSocket() const { return false; }
 const int Socket::isConnected() const {return false;}
 void Socket::setNode(NodeBase *node) {this->node = node;}
-NodeBase* Socket::getNode() const {return this->node;}
+NodeBase *Socket::getNode() const {return this->node;}
 
 DataType Socket::getActualDataType() const {return this->actualType;}
-void Socket::setActualDataType(DataType actualType) {
+void Socket::setActualDataType(DataType actualType)
+{
 	this->actualType = actualType;
 }

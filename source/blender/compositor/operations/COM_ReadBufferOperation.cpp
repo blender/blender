@@ -24,16 +24,19 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-ReadBufferOperation::ReadBufferOperation():NodeOperation() {
+ReadBufferOperation::ReadBufferOperation():NodeOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 	this->offset = 0;
 }
 
-void* ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	return getInputMemoryBuffer(memoryBuffers);
 }
 
-void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	if (this->memoryProxy != NULL) {
 		WriteBufferOperation * operation = memoryProxy->getWriteBufferOperation();
 		operation->determineResolution(resolution, preferredResolution);
@@ -43,7 +46,8 @@ void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigne
 		if (memoryProxy->getExecutor()) memoryProxy->getExecutor()->setResolution(resolution);
 	}
 }
-void ReadBufferOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ReadBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	MemoryBuffer *inputBuffer = inputBuffers[this->offset];
 	if (inputBuffer) {
 		if (sampler == COM_PS_NEAREST) {
@@ -55,14 +59,16 @@ void ReadBufferOperation::executePixel(float* color, float x, float y, PixelSamp
 	}
 }
 
-void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[]) {
+void ReadBufferOperation::executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[])
+{
 	MemoryBuffer *inputBuffer = inputBuffers[this->offset];
 	if (inputBuffer) {
 		inputBuffer->readEWA(color, x, y, dx, dy);
 	}
 }
 
-bool ReadBufferOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation* readOperation, rcti* output) {
+bool ReadBufferOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output)
+{
 	if (this==readOperation) {
 		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return true;

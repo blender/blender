@@ -27,19 +27,20 @@
 #include "BKE_node.h"
 #include "COM_MixBlendOperation.h"
 
-ColorBalanceNode::ColorBalanceNode(bNode* editorNode): Node(editorNode)
+ColorBalanceNode::ColorBalanceNode(bNode *editorNode): Node(editorNode)
 {
 }
-void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ColorBalanceNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputImageSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	
-	bNode* node = this->getbNode();
-	NodeColorBalance *n= (NodeColorBalance *)node->storage;
+	bNode *node = this->getbNode();
+	NodeColorBalance *n = (NodeColorBalance *)node->storage;
 	NodeOperation*operation;
 	if (node->custom1 == 0) {
-		ColorBalanceLGGOperation* operationLGG = new ColorBalanceLGGOperation();
+		ColorBalanceLGGOperation *operationLGG = new ColorBalanceLGGOperation();
 		{
 				int c;
 	

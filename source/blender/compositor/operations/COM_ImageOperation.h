@@ -40,9 +40,9 @@ extern "C" {
   */
 class BaseImageOperation : public NodeOperation {
 protected:
-	ImBuf* buffer;
-	Image* image;
-	ImageUser* imageUser;
+	ImBuf *buffer;
+	Image *image;
+	ImageUser *imageUser;
 	float *imageBuffer;
 	float *depthBuffer;
 	int imageheight;
@@ -56,14 +56,14 @@ protected:
 	  */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	virtual ImBuf* getImBuf();
+	virtual ImBuf *getImBuf();
 
 public:
 	
 	void initExecution();
 	void deinitExecution();
-	void setImage(Image* image) {this->image = image;}
-	void setImageUser(ImageUser* imageuser) {this->imageUser = imageuser;}
+	void setImage(Image *image) {this->image = image;}
+	void setImageUser(ImageUser *imageuser) {this->imageUser = imageuser;}
 	
 	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
 };

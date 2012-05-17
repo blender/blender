@@ -23,7 +23,8 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "BLI_math.h"
 
-ColorCorrectionOperation::ColorCorrectionOperation(): NodeOperation() {
+ColorCorrectionOperation::ColorCorrectionOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -33,19 +34,21 @@ ColorCorrectionOperation::ColorCorrectionOperation(): NodeOperation() {
 	this->greenChannelEnabled = true;
 	this->blueChannelEnabled = true;
 }
-void ColorCorrectionOperation::initExecution() {
+void ColorCorrectionOperation::initExecution()
+{
 	this->inputImage = this->getInputSocketReader(0);
 	this->inputMask = this->getInputSocketReader(1);
 }
 
-void ColorCorrectionOperation::executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ColorCorrectionOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputImageColor[4];
 	float inputMask[4];
 	this->inputImage->read(inputImageColor, x, y, sampler, inputBuffers);
 	this->inputMask->read(inputMask, x, y, sampler, inputBuffers);
 	
 	float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2])/3.0f;
-	float contrast= this->data->master.contrast;
+	float contrast = this->data->master.contrast;
 	float saturation = this->data->master.saturation;
 	float gamma = this->data->master.gamma;
 	float gain = this->data->master.gain;
@@ -54,7 +57,7 @@ void ColorCorrectionOperation::executePixel(float* output, float x, float y, Pix
 	
 	float value = inputMask[0];
 	value = min(1.0f, value);
-	const float mvalue= 1.0f - value;
+	const float mvalue = 1.0f - value;
 	
 	float levelShadows = 0.0;
 	float levelMidtones = 0.0;
@@ -66,14 +69,14 @@ void ColorCorrectionOperation::executePixel(float* output, float x, float y, Pix
 	}
 	else if (level < this->data->startmidtones+MARGIN) {
 		levelMidtones = ((level-this->data->startmidtones)*MARGIN_DIV)+0.5;
-		levelShadows = 1.0- levelMidtones;
+		levelShadows = 1.0 - levelMidtones;
 	}
 	else if (level < this->data->endmidtones-MARGIN) {
 		levelMidtones = 1.0f;
 	}
 	else if (level < this->data->endmidtones+MARGIN) {
 		levelHighlights = ((level-this->data->endmidtones)*MARGIN_DIV)+0.5;
-		levelMidtones = 1.0- levelHighlights;
+		levelMidtones = 1.0 - levelHighlights;
 	}
 	else {
 		levelHighlights = 1.0f;
@@ -134,7 +137,8 @@ void ColorCorrectionOperation::executePixel(float* output, float x, float y, Pix
 	output[3] = inputImageColor[3];
 }
 
-void ColorCorrectionOperation::deinitExecution() {
+void ColorCorrectionOperation::deinitExecution()
+{
 	this->inputImage = NULL;
 	this->inputMask = NULL;
 }

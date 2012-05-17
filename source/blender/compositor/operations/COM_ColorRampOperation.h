@@ -31,14 +31,14 @@ private:
 	  * Cached reference to the inputProgram
 	  */
 	SocketReader * inputProgram;
-	ColorBand* colorBand;
+	ColorBand *colorBand;
 public:
 	ColorRampOperation();
 	
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution
@@ -50,7 +50,7 @@ public:
 	  */
 	void deinitExecution();
 	
-	void setColorBand(ColorBand* colorBand) {this->colorBand = colorBand;}
+	void setColorBand(ColorBand *colorBand) {this->colorBand = colorBand;}
 
 
 };

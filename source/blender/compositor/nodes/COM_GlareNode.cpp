@@ -30,12 +30,14 @@
 #include "COM_SetValueOperation.h"
 #include "COM_MixBlendOperation.h"
 
-GlareNode::GlareNode(bNode *editorNode): Node(editorNode) {
+GlareNode::GlareNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
-	bNode* node = this->getbNode();
-	NodeGlare* glare = (NodeGlare*)node->storage;
+void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)\
+{
+	bNode *node = this->getbNode();
+	NodeGlare *glare = (NodeGlare*)node->storage;
 	
 	switch (glare->type) {
 	

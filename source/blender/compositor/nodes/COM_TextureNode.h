@@ -29,6 +29,6 @@
   */
 class TextureNode : public Node {
 public:
-	TextureNode(bNode* editorNode);
+	TextureNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };

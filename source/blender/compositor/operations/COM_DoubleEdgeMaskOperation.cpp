@@ -26,7 +26,8 @@
 
 // this part has been copied from the double edge mask
 // Contributor(s): Peter Larabell.
-static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize) {
+static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
 	int x;
 	unsigned int isz=0; // inner edge size
 	unsigned int osz=0; // outer edge size
@@ -106,7 +107,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 	}
 	
 	/* Test the TOP row of pixels in buffer, except corners */
-	for (x= t-1; x>=(t-rw)+2; x--) {
+	for (x = t-1; x>=(t-rw)+2; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel to the right, or to the left, are empty in the inner mask,
@@ -126,7 +127,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 	}
 	
 	/* Test the BOTTOM row of pixels in buffer, except corners */
-	for (x= rw-2; x; x--) {
+	for (x = rw-2; x; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel to the right, or to the left, are empty in the inner mask,
@@ -145,7 +146,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 		}
 	}
 	/* Test the LEFT edge of pixels in buffer, except corners */
-	for (x= t-(rw<<1)+1; x>=rw; x-=rw) {
+	for (x = t-(rw<<1)+1; x>=rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel underneath, or above, are empty in the inner mask,
@@ -165,7 +166,7 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 	}
 	
 	/* Test the RIGHT edge of pixels in buffer, except corners */
-	for (x= t-rw; x>rw; x-=rw) {
+	for (x = t-rw; x>rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel underneath, or above, are empty in the inner mask,
@@ -189,7 +190,8 @@ static void do_adjacentKeepBorders(unsigned int t, unsigned int rw, unsigned int
 	rsize[2]=gsz;
 }
 
-static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize) {
+static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
 	int x;
 	unsigned int isz=0; // inner edge size
 	unsigned int osz=0; // outer edge size
@@ -292,7 +294,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 		}
 	}
 	/* Test the TOP row of pixels in buffer, except corners */
-	for (x= t-1; x>=(t-rw)+2; x--) {
+	for (x = t-1; x>=(t-rw)+2; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel to the left, or to the right, are empty in the inner mask,
@@ -318,7 +320,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 	}
 	
 	/* Test the BOTTOM row of pixels in buffer, except corners */
-	for (x= rw-2; x; x--) {
+	for (x = rw-2; x; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel to the left, or to the right, are empty in the inner mask,
@@ -343,7 +345,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 		}
 	}
 	/* Test the LEFT edge of pixels in buffer, except corners */
-	for (x= t-(rw<<1)+1; x>=rw; x-=rw) {
+	for (x = t-(rw<<1)+1; x>=rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel underneath, or above, are empty in the inner mask,
@@ -369,7 +371,7 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 	}
 	
 	/* Test the RIGHT edge of pixels in buffer, except corners */
-	for (x= t-rw; x>rw; x-=rw) {
+	for (x = t-rw; x>rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if pixel underneath, or above, are empty in the inner mask,
@@ -399,7 +401,8 @@ static void do_adjacentBleedBorders(unsigned int t, unsigned int rw, unsigned in
 	rsize[2]=gsz;
 }
 
-static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize) {
+static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
 	int x;
 	unsigned int isz=0; // inner edge size
 	unsigned int osz=0; // outer edge size
@@ -475,7 +478,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 	}
 	
 	/* Test the TOP row of pixels in buffer, except corners */
-	for (x= t-1; x>=(t-rw)+2; x--) {
+	for (x = t-1; x>=(t-rw)+2; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty to the left or to the right
@@ -494,7 +497,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 	}
 	
 	/* Test the BOTTOM row of pixels in buffer, except corners */
-	for (x= rw-2; x; x--) {
+	for (x = rw-2; x; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty to the left or to the right
@@ -512,7 +515,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 		}
 	}
 	/* Test the LEFT edge of pixels in buffer, except corners */
-	for (x= t-(rw<<1)+1; x>=rw; x-=rw) {
+	for (x = t-(rw<<1)+1; x>=rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty underneath or above
@@ -531,7 +534,7 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 	}
 	
 	/* Test the RIGHT edge of pixels in buffer, except corners */
-	for (x= t-rw; x>rw; x-=rw) {
+	for (x = t-rw; x>rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty underneath or above
@@ -554,7 +557,8 @@ static void do_allKeepBorders(unsigned int t, unsigned int rw, unsigned int *lim
 	rsize[2]=gsz;
 }
 
-static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize) {
+static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize)
+{
 	int x;
 	unsigned int isz=0; // inner edge size
 	unsigned int osz=0; // outer edge size
@@ -653,7 +657,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 		}
 	}
 	/* Test the TOP row of pixels in buffer, except corners */
-	for (x= t-1; x>=(t-rw)+2; x--) {
+	for (x = t-1; x>=(t-rw)+2; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty to the left or to the right
@@ -678,7 +682,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 	}
 	
 	/* Test the BOTTOM row of pixels in buffer, except corners */
-	for (x= rw-2; x; x--) {
+	for (x = rw-2; x; x--) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty to the left or to the right
@@ -702,7 +706,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 		}
 	}
 	/* Test the LEFT edge of pixels in buffer, except corners */
-	for (x= t-(rw<<1)+1; x>=rw; x-=rw) {
+	for (x = t-(rw<<1)+1; x>=rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty underneath or above
@@ -727,7 +731,7 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 	}
 	
 	/* Test the RIGHT edge of pixels in buffer, except corners */
-	for (x= t-rw; x>rw; x-=rw) {
+	for (x = t-rw; x>rw; x-=rw) {
 		// test if inner mask is filled
 		if (limask[x]) {
 			// test if inner mask is empty underneath or above
@@ -756,7 +760,8 @@ static void do_allBleedBorders(unsigned int t, unsigned int rw, unsigned int *li
 	rsize[2]=gsz;
 }
 
-static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz) {
+static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz)
+{
 	int x;                             // x = pixel loop counter
 	int a;                             // a = pixel loop counter
 	int dx;                            // dx = delta x
@@ -765,7 +770,7 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 	int pix_prevCol;                   // pix_prevCol = pixel one column behind the one we are testing in a loop
 	int pix_nextCol;                   // pix_nextCol = pixel one column in front of the one we are testing in a loop
 	/* Test all rows between the FIRST and LAST rows, excluding left and right edges */
-	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
+	for (x = (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
 		a=x-2;
 		pix_prevRow=a+rw;
 		pix_nextRow=a-rw;
@@ -781,9 +786,9 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 	   then the current pixel is counted as being a true outer edge pixel.
 	  */
 					if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
-					        (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
-					        (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
-					        (!lomask[pix_prevRow] && !limask[pix_prevRow]))
+					    (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
+					    (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
+					    (!lomask[pix_prevRow] && !limask[pix_prevRow]))
 					{
 						in_osz++;           // increment the outer boundary pixel count
 						lres[a]=3;       // flag pixel as part of outer edge
@@ -817,7 +822,8 @@ static void do_allEdgeDetection(unsigned int t, unsigned int rw, unsigned int *l
 	rsize[2]=in_gsz;
 }
 
-static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz) {
+static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned int *limask, unsigned int *lomask, unsigned int *lres, float *res, unsigned int *rsize, unsigned int in_isz, unsigned int in_osz, unsigned int in_gsz)
+{
 	int x;                             // x = pixel loop counter
 	int a;                             // a = pixel loop counter
 	int dx;                            // dx = delta x
@@ -826,7 +832,7 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 	int pix_prevCol;                   // pix_prevCol = pixel one column behind the one we are testing in a loop
 	int pix_nextCol;                   // pix_nextCol = pixel one column in front of the one we are testing in a loop
 	/* Test all rows between the FIRST and LAST rows, excluding left and right edges */
-	for (x= (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
+	for (x = (t-rw)+1, dx=x-(rw-2); dx>rw; x-=rw,dx-=rw) {
 		a=x-2;
 		pix_prevRow=a+rw;
 		pix_nextRow=a-rw;
@@ -842,9 +848,9 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 	   then the current pixel is counted as being a true outer edge pixel.
 	  */
 					if ((!lomask[pix_nextCol] && !limask[pix_nextCol]) ||
-					        (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
-					        (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
-					        (!lomask[pix_prevRow] && !limask[pix_prevRow]))
+					    (!lomask[pix_prevCol] && !limask[pix_prevCol]) ||
+					    (!lomask[pix_nextRow] && !limask[pix_nextRow]) ||
+					    (!lomask[pix_prevRow] && !limask[pix_prevRow]))
 					{
 						in_osz++;           // increment the outer boundary pixel count
 						lres[a]=3;       // flag pixel as part of outer edge
@@ -858,9 +864,9 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 			}
 			else {
 				if ((!limask[pix_nextCol] && lomask[pix_nextCol]) ||
-				        (!limask[pix_prevCol] && lomask[pix_prevCol]) ||
-				        (!limask[pix_nextRow] && lomask[pix_nextRow]) ||
-				        (!limask[pix_prevRow] && lomask[pix_prevRow]))
+				    (!limask[pix_prevCol] && lomask[pix_prevCol]) ||
+				    (!limask[pix_nextRow] && lomask[pix_nextRow]) ||
+				    (!limask[pix_prevRow] && lomask[pix_prevRow]))
 				{
 					in_isz++;               // increment the inner boundary pixel count
 					lres[a]=4;           // flag pixel as part of inner edge
@@ -882,7 +888,8 @@ static void do_adjacentEdgeDetection(unsigned int t, unsigned int rw, unsigned i
 	rsize[2]=in_gsz;
 }
 
-static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigned int *lres, float *res, unsigned short *gbuf, unsigned int *innerEdgeOffset, unsigned int *outerEdgeOffset, unsigned int isz, unsigned int gsz) {
+static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigned int *lres, float *res, unsigned short *gbuf, unsigned int *innerEdgeOffset, unsigned int *outerEdgeOffset, unsigned int isz, unsigned int gsz)
+{
 	int x;                             // x = pixel loop counter
 	int a;                             // a = temporary pixel index buffer loop counter
 	unsigned int ud;                   // ud = unscaled edge distance
@@ -904,7 +911,7 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
  
  This does make the assumption that x and y can fit in 16 unsigned bits
  so if Blender starts doing renders greater than 65536 in either direction
- this will need to allocate gbuf[] as unsigned int* and allocate 8 bytes
+ this will need to allocate gbuf[] as unsigned int *and allocate 8 bytes
  per flagged pixel.
  
  In general, the buffer on-screen:
@@ -992,7 +999,8 @@ static void do_createEdgeLocationBuffer(unsigned int t, unsigned int rw, unsigne
 	
 }
 
-static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *gbuf, unsigned int isz, unsigned int osz, unsigned int gsz, unsigned int innerEdgeOffset, unsigned int outerEdgeOffset) {
+static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *gbuf, unsigned int isz, unsigned int osz, unsigned int gsz, unsigned int innerEdgeOffset, unsigned int outerEdgeOffset)
+{
 	int x;                             // x = pixel loop counter
 	int a;                             // a = temporary pixel index buffer loop counter
 	int fsz;                           // size of the frame
@@ -1068,7 +1076,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
   Loop through all gradient pixels.
   */
 	
-	for (x= gsz-1; x>=0; x--) {
+	for (x = gsz-1; x>=0; x--) {
 		gradientFillOffset=x<<1;
 		t=gbuf[gradientFillOffset];         // calculate column of pixel indexed by gbuf[x]
 		fsz=gbuf[gradientFillOffset+1];     // calculate row of pixel indexed by gbuf[x]
@@ -1089,7 +1097,7 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 		odist=*(float*)&rsl;                     // reciprocal square root
 		odist=odist*(rsopf-(rsf*odist*odist));   // -- ** this line can be iterated for more accuracy ** --
 		dmin=0xffffffff;                         // reset min distance to edge pixel
-		for (a= innerEdgeOffset+isz-1; a>=innerEdgeOffset; a--) {   // loop through all inside edge pixels
+		for (a = innerEdgeOffset+isz-1; a>=innerEdgeOffset; a--) {   // loop through all inside edge pixels
 			ud=a<<1;
 			dy=t-gbuf[ud];         // compute delta in Y from gradient pixel to inside edge pixel
 			dx=fsz-gbuf[ud+1];     // compute delta in X from gradient pixel to inside edge pixel
@@ -1121,8 +1129,8 @@ static void do_fillGradientBuffer(unsigned int rw, float *res, unsigned short *g
 
 // end of copy
 
-void DoubleEdgeMaskOperation::doDoubleEdgeMask(float* imask, float *omask, float *res) {
-	
+void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float *res)
+{
 	unsigned int *lres;                // lres = unsigned int pointer to output pixel buffer (for bit operations)
 	unsigned int *limask;              // limask = unsigned int pointer to inner mask (for bit operations)
 	unsigned int *lomask;              // lomask = unsigned int pointer to outer mask (for bit operations)
@@ -1144,10 +1152,10 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float* imask, float *omask, float
 		
 		t=(this->getWidth()*this->getHeight())-1;                                // determine size of the frame
 		
-		lres= (unsigned int*)res;      // unsigned int pointer to output buffer (for bit level ops)
+		lres = (unsigned int*)res;      // unsigned int pointer to output buffer (for bit level ops)
 		limask=(unsigned int*)imask;   // unsigned int pointer to input mask (for bit level ops)
 		lomask=(unsigned int*)omask;   // unsigned int pointer to output mask (for bit level ops)
-		rw= this->getWidth();                   // width of a row of pixels
+		rw = this->getWidth();                   // width of a row of pixels
 		
 		
 		/*
@@ -1207,7 +1215,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float* imask, float *omask, float
 		gsz=rsize[2];                  // by the do_*EdgeDetection() function.
 		
 		fsz=gsz+isz+osz;                                   // calculate size of pixel index buffer needed
-		gbuf= new unsigned short[fsz*2];     // allocate edge/gradient pixel index buffer
+		gbuf = new unsigned short[fsz*2];     // allocate edge/gradient pixel index buffer
 		
 		do_createEdgeLocationBuffer(t,rw,lres,res,gbuf,&innerEdgeOffset,&outerEdgeOffset,isz,gsz);
 		do_fillGradientBuffer(rw,res,gbuf,isz,osz,gsz,innerEdgeOffset,outerEdgeOffset);
@@ -1216,7 +1224,8 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float* imask, float *omask, float
 	}
 }
 
-DoubleEdgeMaskOperation::DoubleEdgeMaskOperation(): NodeOperation() {
+DoubleEdgeMaskOperation::DoubleEdgeMaskOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -1227,7 +1236,8 @@ DoubleEdgeMaskOperation::DoubleEdgeMaskOperation(): NodeOperation() {
 	this->setComplex(true);
 }
 
-bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	if (this->cachedInstance == NULL) {
 		rcti newInput;
 		newInput.xmax = this->getWidth();
@@ -1241,23 +1251,25 @@ bool DoubleEdgeMaskOperation::determineDependingAreaOfInterest(rcti *input, Read
 	}
 }
 
-void DoubleEdgeMaskOperation::initExecution() {
+void DoubleEdgeMaskOperation::initExecution()
+{
 	this->inputInnerMask = this->getInputSocketReader(0);
 	this->inputOuterMask = this->getInputSocketReader(1);
 	initMutex();
 	this->cachedInstance = NULL;
 }
 
-void* DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	if (this->cachedInstance) return this->cachedInstance;
 	
 	BLI_mutex_lock(getMutex());
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer* innerMask = (MemoryBuffer*)inputInnerMask->initializeTileData(rect, memoryBuffers);
-		MemoryBuffer* outerMask= (MemoryBuffer*)inputOuterMask->initializeTileData(rect, memoryBuffers);
-		float* data = new float[this->getWidth()*this->getHeight()];
-		float* imask = innerMask->convertToValueBuffer();
-		float* omask = outerMask->convertToValueBuffer();
+		MemoryBuffer *innerMask = (MemoryBuffer*)inputInnerMask->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *outerMask = (MemoryBuffer*)inputOuterMask->initializeTileData(rect, memoryBuffers);
+		float *data = new float[this->getWidth()*this->getHeight()];
+		float *imask = innerMask->convertToValueBuffer();
+		float *omask = outerMask->convertToValueBuffer();
 		doDoubleEdgeMask(imask, omask, data);
 		delete imask;
 		delete omask;
@@ -1266,8 +1278,9 @@ void* DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **mem
 	BLI_mutex_unlock(getMutex());
 	return this->cachedInstance;
 }
-void DoubleEdgeMaskOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
-	float* buffer = (float*) data;
+void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	float *buffer = (float*) data;
 	int index = (y*this->getWidth() + x);
 	color[0] = buffer[index];
 	color[1] = buffer[index+1];
@@ -1275,7 +1288,8 @@ void DoubleEdgeMaskOperation::executePixel(float* color, int x, int y, MemoryBuf
 	color[3] = buffer[index+3];
 }
 
-void DoubleEdgeMaskOperation::deinitExecution() {
+void DoubleEdgeMaskOperation::deinitExecution()
+{
 	this->inputInnerMask = NULL;
 	this->inputOuterMask = NULL;
 	deinitMutex();

@@ -32,7 +32,8 @@ extern "C" {
 vector<DistortionCache*> s_cache;
 
 
-MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation() {
+MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
@@ -41,17 +42,18 @@ MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperat
 	this->cache = NULL;
 	this->distortion = distortion;
 }
-void MovieDistortionOperation::initExecution() {
+void MovieDistortionOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	if (this->movieClip) {
 		for (int i = 0 ; i < s_cache.size() ; i ++) {
-			DistortionCache* c = (DistortionCache*)s_cache[i];
+			DistortionCache *c = (DistortionCache*)s_cache[i];
 			if (c->isCacheFor(this->movieClip, this->width, this->height, this->distortion)) {
 				this->cache = c;
 				return;
 			}
 		}
-		DistortionCache* newC = new DistortionCache(this->movieClip, this->width, this->height, this->distortion);
+		DistortionCache *newC = new DistortionCache(this->movieClip, this->width, this->height, this->distortion);
 		s_cache.push_back(newC);
 		this->cache = newC;
 	}
@@ -60,13 +62,15 @@ void MovieDistortionOperation::initExecution() {
 	}
 }
 
-void MovieDistortionOperation::deinitExecution() {
+void MovieDistortionOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 	this->movieClip = NULL;
 }
 
 
-void MovieDistortionOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MovieDistortionOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	
 	if (this->cache != NULL) {
 		float u, v;
@@ -78,7 +82,8 @@ void MovieDistortionOperation::executePixel(float *color,float x, float y, Pixel
 	}
 }
 
-bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool MovieDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	
 	newInput.xmax = input->xmax + 100;

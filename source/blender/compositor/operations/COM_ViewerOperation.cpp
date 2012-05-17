@@ -39,7 +39,8 @@ extern "C" {
 }
 
 
-ViewerOperation::ViewerOperation() : ViewerBaseOperation() {
+ViewerOperation::ViewerOperation() : ViewerBaseOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 
@@ -47,23 +48,26 @@ ViewerOperation::ViewerOperation() : ViewerBaseOperation() {
 	this->alphaInput = NULL;
 }
 
-void ViewerOperation::initExecution() {
+void ViewerOperation::initExecution()
+{
 	// When initializing the tree during initial load the width and height can be zero.
 	this->imageInput = getInputSocketReader(0);
 	this->alphaInput = getInputSocketReader(1);
 	ViewerBaseOperation::initExecution();
 }
 
-void ViewerOperation::deinitExecution() {
+void ViewerOperation::deinitExecution()
+{
 	this->imageInput = NULL;
 	this->alphaInput = NULL;
 	ViewerBaseOperation::deinitExecution();
 }
 
 
-void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers) {
-	float* buffer = this->outputBuffer;
-	unsigned char* bufferDisplay = this->outputBufferDisplay;
+void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+{
+	float *buffer = this->outputBuffer;
+	unsigned char *bufferDisplay = this->outputBufferDisplay;
 	if (!buffer) return;
 	const int x1 = rect->xmin;
 	const int y1 = rect->ymin;

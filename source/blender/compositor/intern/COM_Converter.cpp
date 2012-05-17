@@ -112,7 +112,8 @@
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_CropNode.h"
 
-Node* Converter::convert(bNode *bNode) {
+Node *Converter::convert(bNode *bNode)
+{
 	Node * node;
 
 	if (bNode->flag & NODE_MUTED) {
@@ -353,9 +354,10 @@ case CMP_NODE_OUTPUT_FILE:
 	}
 	return node;
 }
-void Converter::convertDataType(SocketConnection* connection, ExecutionSystem *system) {
-	OutputSocket* outputSocket = connection->getFromSocket();
-	InputSocket* inputSocket = connection->getToSocket();
+void Converter::convertDataType(SocketConnection *connection, ExecutionSystem *system)
+{
+	OutputSocket *outputSocket = connection->getFromSocket();
+	InputSocket *inputSocket = connection->getToSocket();
 	DataType fromDatatype = outputSocket->getActualDataType();
 	DataType toDatatype = inputSocket->getActualDataType();
 	NodeOperation * converter = NULL;
@@ -384,7 +386,8 @@ void Converter::convertDataType(SocketConnection* connection, ExecutionSystem *s
 	}
 }
 
-void Converter::convertResolution(SocketConnection *connection, ExecutionSystem *system) {
+void Converter::convertResolution(SocketConnection *connection, ExecutionSystem *system)
+{
 	InputSocketResizeMode mode = connection->getToSocket()->getResizeMode();
 
 	NodeOperation * toOperation = (NodeOperation*)connection->getToNode();

@@ -23,16 +23,19 @@
 #include "COM_GlareThresholdOperation.h"
 #include "BLI_math.h"
 
-GlareThresholdOperation::GlareThresholdOperation(): NodeOperation() {
+GlareThresholdOperation::GlareThresholdOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 }
-void GlareThresholdOperation::initExecution() {
+void GlareThresholdOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void GlareThresholdOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void GlareThresholdOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	this->inputProgram->read(color, x, y, sampler, inputBuffers);
 	if ((0.212671f*color[0] + 0.71516f*color[1] + 0.072169f*color[2]) >= threshold) {
 		color[0] -= threshold, color[1] -= threshold, color[2] -= threshold;
@@ -43,6 +46,7 @@ void GlareThresholdOperation::executePixel(float* color, float x, float y, Pixel
 	else color[0] = color[1] = color[2] = 0.f;
 }
 
-void GlareThresholdOperation::deinitExecution() {
+void GlareThresholdOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

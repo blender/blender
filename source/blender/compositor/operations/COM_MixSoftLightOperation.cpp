@@ -22,10 +22,12 @@
 
 #include "COM_MixSoftLightOperation.h"
 
-MixSoftLightOperation::MixSoftLightOperation(): MixBaseOperation() {
+MixSoftLightOperation::MixSoftLightOperation(): MixBaseOperation()
+{
 }
 
-void MixSoftLightOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixSoftLightOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])\
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -37,7 +39,7 @@ void MixSoftLightOperation::executePixel(float* outputValue, float x, float y, P
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem = 1.0f-value;
+	float valuem = 1.0f - value;
 	float scr, scg, scb;
 	
 	/* first calculate non-fac based Screen mix */

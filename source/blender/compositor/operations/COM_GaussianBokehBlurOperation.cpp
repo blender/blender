@@ -27,23 +27,26 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianBokehBlurOperation::GaussianBokehBlurOperation(): BlurBaseOperation() {
+GaussianBokehBlurOperation::GaussianBokehBlurOperation(): BlurBaseOperation()
+{
 	this->gausstab = NULL;
 }
 
-void* GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	updateGauss(memoryBuffers);
-	void* buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers) {
+void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+{
 	if (this->gausstab == NULL) {
 		float radxf;
 		float radyf;
 		int n;
-		float* dgauss;
-		float* ddgauss;
+		float *dgauss;
+		float *ddgauss;
 		float val;
 		int j, i;
 		const float width = this->getWidth();
@@ -52,56 +55,57 @@ void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers) {
 		
 		radxf = size*(float)this->data->sizex;
 		if (radxf>width/2.0f)
-			radxf= width/2.0f;
+			radxf = width/2.0f;
 		else if (radxf<1.0f)
-			radxf= 1.0f;
+			radxf = 1.0f;
 	
 		/* vertical */
 		radyf = size*(float)this->data->sizey;
 		if (radyf>height/2.0f)
-			radyf= height/2.0f;
+			radyf = height/2.0f;
 		else if (radyf<1.0f)
-			radyf= 1.0f;
+			radyf = 1.0f;
 	
-		radx= ceil(radxf);
-		rady= ceil(radyf);
+		radx = ceil(radxf);
+		rady = ceil(radyf);
 	
 		n = (2*radx+1)*(2*rady+1);
 	
 		/* create a full filter image */
-		ddgauss= new float[n];
-		dgauss= ddgauss;
-		val= 0.0f;
+		ddgauss = new float[n];
+		dgauss = ddgauss;
+		val = 0.0f;
 		for (j=-rady; j<=rady; j++) {
 			for (i=-radx; i<=radx; i++, dgauss++) {
-				float fj= (float)j/radyf;
-				float fi= (float)i/radxf;
-				float dist= sqrt(fj*fj + fi*fi);
-				*dgauss= RE_filter_value(this->data->filtertype, dist);
+				float fj = (float)j / radyf;
+				float fi = (float)i / radxf;
+				float dist = sqrt(fj * fj + fi * fi);
+				*dgauss = RE_filter_value(this->data->filtertype, dist);
 				
 				val+= *dgauss;
 			}
 		}
 		if (val!=0.0f) {
-			val= 1.0f/val;
-			for (j= n -1; j>=0; j--)
+			val = 1.0f/val;
+			for (j = n - 1; j>=0; j--)
 				ddgauss[j]*= val;
 		}
-		else ddgauss[4]= 1.0f;
+		else ddgauss[4] = 1.0f;
 		
 		gausstab = ddgauss;
 	}
 }
 
-void GaussianBokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float tempColor[4];
 	tempColor[0] = 0;
 	tempColor[1] = 0;
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float overallmultiplyer = 0;
-	MemoryBuffer* inputBuffer = (MemoryBuffer*)data;
-	float* buffer = inputBuffer->getBuffer();
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
 	int bufferstarty = inputBuffer->getRect()->ymin;
@@ -138,13 +142,15 @@ void GaussianBokehBlurOperation::executePixel(float* color, int x, int y, Memory
 	color[3] = tempColor[3]*divider;
 }
 
-void GaussianBokehBlurOperation::deinitExecution() {
+void GaussianBokehBlurOperation::deinitExecution()
+{
 	BlurBaseOperation::deinitExecution();
 	delete this->gausstab;
 	this->gausstab = NULL;
 }
 
-bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	rcti sizeInput;
 	sizeInput.xmin = 0;

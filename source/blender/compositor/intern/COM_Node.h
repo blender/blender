@@ -50,15 +50,15 @@ private:
 	/**
 	  * @brief stores the reference to the SDNA bNode struct
 	  */
-	bNode* editorNode;
+	bNode *editorNode;
 
 public:
-	Node(bNode* editorNode, bool create_sockets=true);
+	Node(bNode *editorNode, bool create_sockets=true);
 	
 	/**
 	  * @brief get the reference to the SDNA bNode struct
 	  */
-	bNode* getbNode();
+	bNode *getbNode();
 	
 	/**
 	  * @brief convert node to operation
@@ -68,31 +68,31 @@ public:
 	  * @param system the ExecutionSystem where the operations need to be added
 	  * @param context reference to the CompositorContext
 	  */
-	virtual void convertToOperations(ExecutionSystem* system, CompositorContext * context) =0;
+	virtual void convertToOperations(ExecutionSystem *system, CompositorContext * context) =0;
 	
 	/**
 	  * this method adds a SetValueOperation as input of the input socket.
 	  * This can only be used from the convertToOperation method. all other usages are not allowed
 	  */
-	void addSetValueOperation(ExecutionSystem *graph, InputSocket* inputsocket, int editorNodeInputSocketIndex);
+	void addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
 	  * this method adds a SetColorOperation as input of the input socket.
 	  * This can only be used from the convertToOperation method. all other usages are not allowed
 	  */
-	void addSetColorOperation(ExecutionSystem *graph, InputSocket* inputsocket, int editorNodeInputSocketIndex);
+	void addSetColorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
 	  * this method adds a SetVectorOperation as input of the input socket.
 	  * This can only be used from the convertToOperation method. all other usages are not allowed
 	  */
-	void addSetVectorOperation(ExecutionSystem *graph, InputSocket* inputsocket, int editorNodeInputSocketIndex);
+	void addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
 	  * Creates a new link between an outputSocket and inputSocket and registrates the link to the graph
 	  * @return the new created link
 	  */
-	SocketConnection* addLink(ExecutionSystem *graph, OutputSocket* outputSocket, InputSocket* inputsocket);
+	SocketConnection *addLink(ExecutionSystem *graph, OutputSocket *outputSocket, InputSocket *inputsocket);
 	
 	/**
 	  * is this node a group node.
@@ -108,23 +108,23 @@ public:
 	  *
 	  * @param socket
 	  */
-	InputSocket* findInputSocketBybNodeSocket(bNodeSocket* socket);
+	InputSocket *findInputSocketBybNodeSocket(bNodeSocket *socket);
 	
 	/**
 	  * @brief find the OutputSocket by bNodeSocket
 	  *
 	  * @param socket
 	  */
-	OutputSocket* findOutputSocketBybNodeSocket(bNodeSocket* socket);
+	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 protected:
 	
 	Node();
 	
-	void addPreviewOperation(ExecutionSystem *system, InputSocket* inputSocket, int priority);
-	void addPreviewOperation(ExecutionSystem *system, OutputSocket* inputSocket, int priority);
+	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket, int priority);
+	void addPreviewOperation(ExecutionSystem *system, OutputSocket *inputSocket, int priority);
 	
-	bNodeSocket* getEditorInputSocket(int editorNodeInputSocketIndex);
-	bNodeSocket* getEditorOutputSocket(int editorNodeOutputSocketIndex);
+	bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
+	bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);
 private:
 };
 

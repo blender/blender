@@ -25,10 +25,12 @@
 #include "COM_EllipseMaskOperation.h"
 #include "COM_ExecutionSystem.h"
 
-EllipseMaskNode::EllipseMaskNode(bNode *editorNode): Node(editorNode) {
+EllipseMaskNode::EllipseMaskNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void EllipseMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void EllipseMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	EllipseMaskOperation *operation;
 	operation = new EllipseMaskOperation();
 	operation->setData((NodeEllipseMask*)this->getbNode()->storage);

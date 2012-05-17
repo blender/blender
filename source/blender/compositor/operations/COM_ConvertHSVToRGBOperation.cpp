@@ -23,24 +23,28 @@
 #include "COM_ConvertHSVToRGBOperation.h"
 #include "BLI_math_color.h"
 
-ConvertHSVToRGBOperation::ConvertHSVToRGBOperation(): NodeOperation() {
+ConvertHSVToRGBOperation::ConvertHSVToRGBOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 }
 
-void ConvertHSVToRGBOperation::initExecution() {
+void ConvertHSVToRGBOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertHSVToRGBOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertHSVToRGBOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	inputOperation->read(inputColor, x, y, sampler, inputBuffers);
 	hsv_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2]);
 	outputValue[3] = inputColor[3];
 }
 
-void ConvertHSVToRGBOperation::deinitExecution() {
+void ConvertHSVToRGBOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }
 

@@ -28,14 +28,15 @@
 LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
 
 	ConvertRGBToYUVOperation *rgbToYUV = new ConvertRGBToYUVOperation();
 	LuminanceMatteOperation *operationSet = new LuminanceMatteOperation();
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 	operationSet->setSettings((NodeChroma*)editorsnode->storage);
 
 	inputSocket->relinkConnections(rgbToYUV->getInputSocket(0), true, 0, graph);

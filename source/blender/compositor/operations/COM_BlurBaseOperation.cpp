@@ -27,7 +27,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BlurBaseOperation::BlurBaseOperation(): NodeOperation() {
+BlurBaseOperation::BlurBaseOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -37,24 +38,25 @@ BlurBaseOperation::BlurBaseOperation(): NodeOperation() {
 	this->size = 1.0f;
 	this->deleteData = false;
 }
-void BlurBaseOperation::initExecution() {
+void BlurBaseOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	this->inputSize = this->getInputSocketReader(1);
-	this->data->image_in_width= this->getWidth();
-	this->data->image_in_height= this->getHeight();
+	this->data->image_in_width = this->getWidth();
+	this->data->image_in_height = this->getHeight();
 	if (this->data->relative) {
 		switch (this->data->aspect) {
 		case CMP_NODE_BLUR_ASPECT_NONE:
-			this->data->sizex= (int)(this->data->percentx*0.01f*this->data->image_in_width);
-			this->data->sizey= (int)(this->data->percenty*0.01f*this->data->image_in_height);
+			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_width);
+			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_height);
 			break;
 		case CMP_NODE_BLUR_ASPECT_Y:
-			this->data->sizex= (int)(this->data->percentx*0.01f*this->data->image_in_width);
-			this->data->sizey= (int)(this->data->percenty*0.01f*this->data->image_in_width);
+			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_width);
+			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_width);
 			break;
 		case CMP_NODE_BLUR_ASPECT_X:
-			this->data->sizex= (int)(this->data->percentx*0.01f*this->data->image_in_height);
-			this->data->sizey= (int)(this->data->percenty*0.01f*this->data->image_in_height);
+			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_height);
+			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_height);
 			break;
 		}
 	}
@@ -63,7 +65,7 @@ void BlurBaseOperation::initExecution() {
 
 }
 
-float* BlurBaseOperation::make_gausstab(int rad)
+float *BlurBaseOperation::make_gausstab(int rad)
 {
 	float *gausstab, sum, val;
 	int i, n;
@@ -74,19 +76,20 @@ float* BlurBaseOperation::make_gausstab(int rad)
 
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
-		val= RE_filter_value(this->data->filtertype, (float)i/(float)rad);
+		val = RE_filter_value(this->data->filtertype, (float)i/(float)rad);
 		sum += val;
 		gausstab[i+rad] = val;
 	}
 
-	sum= 1.0f/sum;
+	sum = 1.0f/sum;
 	for (i=0; i<n; i++)
 		gausstab[i]*= sum;
 
 	return gausstab;
 }
 
-void BlurBaseOperation::deinitExecution() {
+void BlurBaseOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 	this->inputSize = NULL;
 	if (this->deleteData) {
@@ -95,7 +98,8 @@ void BlurBaseOperation::deinitExecution() {
 	this->data = NULL;
 }
 
-void BlurBaseOperation::updateSize(MemoryBuffer **memoryBuffers) {
+void BlurBaseOperation::updateSize(MemoryBuffer **memoryBuffers)
+{
 	float result[4];
 	this->getInputSocketReader(1)->read(result, 0, 0, COM_PS_NEAREST, memoryBuffers);
 	this->size = result[0];

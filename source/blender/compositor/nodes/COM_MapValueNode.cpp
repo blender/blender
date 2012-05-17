@@ -25,13 +25,15 @@
 #include "COM_MapValueOperation.h"
 #include "COM_ExecutionSystem.h"
 
-MapValueNode::MapValueNode(bNode *editorNode): Node(editorNode) {
+MapValueNode::MapValueNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void MapValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void MapValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *colourSocket = this->getInputSocket(0);
 	OutputSocket *valueSocket = this->getOutputSocket(0);
-	TexMapping* storage =  (TexMapping*)this->getbNode()->storage;
+	TexMapping *storage =  (TexMapping*)this->getbNode()->storage;
 	MapValueOperation *convertProg = new MapValueOperation();
 	convertProg->setSettings(storage);
 	colourSocket->relinkConnections(convertProg->getInputSocket(0), true, 0, graph);

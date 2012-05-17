@@ -124,32 +124,32 @@ public:
 	  * @param actualType [COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR]
 	  * the actual data type that is coming from the connected output socket
 	  */
-	virtual void notifyActualDataTypeSet(InputSocket* socket, const DataType actualType);
+	virtual void notifyActualDataTypeSet(InputSocket *socket, const DataType actualType);
 	
 	/**
 	  * get the reference to a certain outputsocket
 	  * @param index
 	  * the index of the needed outputsocket
 	  */
-	OutputSocket* getOutputSocket(const int index);
+	OutputSocket *getOutputSocket(const int index);
 	
 	/**
 	  * get the reference to the first outputsocket
 	  * @param index
 	  * the index of the needed outputsocket
 	  */
-	inline OutputSocket* getOutputSocket() {return getOutputSocket(0);}
+	inline OutputSocket *getOutputSocket() {return getOutputSocket(0);}
 	
 	/**
 	  * get the reference to a certain inputsocket
 	  * @param index
 	  * the index of the needed inputsocket
 	  */
-	InputSocket* getInputSocket(const int index);
+	InputSocket *getInputSocket(const int index);
 	
 	
 	virtual bool isStatic() const {return false;}
-	void getStaticValues(float* result) const {}
+	void getStaticValues(float *result) const {}
 protected:
 	NodeBase();
 	
@@ -160,7 +160,7 @@ protected:
 	  */
 	void addInputSocket(DataType datatype);
 	void addInputSocket(DataType datatype, InputSocketResizeMode resizeMode);
-	void addInputSocket(DataType datatype, InputSocketResizeMode resizeMode, bNodeSocket* socket);
+	void addInputSocket(DataType datatype, InputSocketResizeMode resizeMode, bNodeSocket *socket);
 	
 	/**
 	  * @brief add an OutputSocket to the collection of outputsockets
@@ -168,7 +168,7 @@ protected:
 	  * @param socket the OutputSocket to add
 	  */
 	void addOutputSocket(DataType datatype);
-	void addOutputSocket(DataType datatype, bNodeSocket* socket);
+	void addOutputSocket(DataType datatype, bNodeSocket *socket);
 };
 
 #endif

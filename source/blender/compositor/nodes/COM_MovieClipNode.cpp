@@ -32,10 +32,12 @@ extern "C" {
 	#include "BKE_tracking.h"
 }
 
-MovieClipNode::MovieClipNode(bNode *editorNode): Node(editorNode) {
+MovieClipNode::MovieClipNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	OutputSocket *outputMovieClip = this->getOutputSocket(0);
 	OutputSocket *offsetXMovieClip = this->getOutputSocket(1);
 	OutputSocket *offsetYMovieClip = this->getOutputSocket(2);
@@ -46,7 +48,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	MovieClip *movieClip = (MovieClip*)editorNode->id;
 	MovieClipUser *movieClipUser = (MovieClipUser*)editorNode->storage;
 	
-	ImBuf * ibuf= NULL;
+	ImBuf * ibuf = NULL;
 	if (movieClip) {
 		ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
 	}
@@ -79,7 +81,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	operation->setFramenumber(context->getFramenumber());
 	graph->addOperation(operation);
 
-	MovieTrackingStabilization *stab= &movieClip->tracking.stabilization;
+	MovieTrackingStabilization *stab = &movieClip->tracking.stabilization;
 	float loc[2], scale, angle;
 	loc[0] = 0.0f;
 	loc[1] = 0.0f;

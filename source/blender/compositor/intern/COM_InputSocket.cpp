@@ -25,16 +25,19 @@
 #include "COM_SocketConnection.h"
 #include "COM_ExecutionSystem.h"
 
-InputSocket::InputSocket(DataType datatype) :Socket(datatype) {
+InputSocket::InputSocket(DataType datatype) :Socket(datatype)
+{
 	this->connection = NULL;
 	this->resizeMode = COM_SC_CENTER;
 }
-InputSocket::InputSocket(DataType datatype, InputSocketResizeMode resizeMode) :Socket(datatype) {
+InputSocket::InputSocket(DataType datatype, InputSocketResizeMode resizeMode) :Socket(datatype)
+{
 	this->connection = NULL;
 	this->resizeMode = resizeMode;
 }
 
-InputSocket::InputSocket(InputSocket* from) :Socket(from->getDataType()) {
+InputSocket::InputSocket(InputSocket *from) :Socket(from->getDataType())
+{
 	this->connection = NULL;
 	this->resizeMode = from->getResizeMode();
 }
@@ -42,12 +45,17 @@ InputSocket::InputSocket(InputSocket* from) :Socket(from->getDataType()) {
 int InputSocket::isInputSocket() const { return true; }
 const int InputSocket::isConnected() const { return this->connection != NULL; }
 
-void InputSocket::setConnection(SocketConnection *connection) {
+void InputSocket::setConnection(SocketConnection *connection)
+{
 	this->connection = connection;
 }
-SocketConnection* InputSocket::getConnection() {return this->connection;}
+SocketConnection *InputSocket::getConnection()
+{
+	return this->connection;
+}
 
-void InputSocket::determineResolution(unsigned int resolution[],unsigned int preferredResolution[]) {
+void InputSocket::determineResolution(unsigned int resolution[],unsigned int preferredResolution[])
+{
 	if (this->isConnected()) {
 		this->connection->getFromSocket()->determineResolution(resolution, preferredResolution);
 	}
@@ -56,7 +64,8 @@ void InputSocket::determineResolution(unsigned int resolution[],unsigned int pre
 	}
 }
 
-DataType InputSocket::convertToSupportedDataType(DataType datatype) {
+DataType InputSocket::convertToSupportedDataType(DataType datatype)
+{
 	int supportedDataTypes = getDataType();
 	if (supportedDataTypes&datatype) {
 		return datatype;
@@ -92,7 +101,8 @@ DataType InputSocket::convertToSupportedDataType(DataType datatype) {
 	return this->getDataType();
 }
 
-void InputSocket::determineActualDataType() {
+void InputSocket::determineActualDataType()
+{
 	/// @note: this method is only called for inputsocket that are not connected.
 	/// @note: passes COM_DT_COLOR, the convertToSupportedDataType converts this to a capable DataType
 	this->setActualDataType(this->convertToSupportedDataType(COM_DT_COLOR));
@@ -105,26 +115,30 @@ void InputSocket::determineActualDataType() {
 	#endif
 }
 
-void InputSocket::notifyActualInputType(DataType datatype) {
+void InputSocket::notifyActualInputType(DataType datatype)
+{
 	DataType supportedDataType = convertToSupportedDataType(datatype);
 	this->setActualDataType(supportedDataType);
 	this->fireActualDataTypeSet();
 }
 
-void InputSocket::fireActualDataTypeSet() {
+void InputSocket::fireActualDataTypeSet()
+{
 	this->getNode()->notifyActualDataTypeSet(this, this->getActualDataType());
 }
-void InputSocket::relinkConnections(InputSocket *relinkToSocket) {
+void InputSocket::relinkConnections(InputSocket *relinkToSocket)
+{
 	this->relinkConnections(relinkToSocket, false, -1, NULL);
 }
 
-void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem* graph) {
+void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem *graph)
+{
 	if (!duplicate) {
 		this->relinkConnections(relinkToSocket, autoconnect, editorNodeInputSocketIndex, graph);
 	}
 	else {
 		if (!this->isConnected() && autoconnect) {
-			Node* node = (Node*)this->getNode();
+			Node *node = (Node*)this->getNode();
 			switch (this->getActualDataType()) {
 			case COM_DT_UNKNOWN:
 			case COM_DT_COLOR:
@@ -149,10 +163,11 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnec
 	}
 }
 
-void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, ExecutionSystem* graph) {
+void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, ExecutionSystem *graph)
+{
 	if (!isConnected()) {
 		if (autoconnect) {
-			Node* node = (Node*)this->getNode();
+			Node *node = (Node*)this->getNode();
 			switch (this->getActualDataType()) {
 			case COM_DT_UNKNOWN:
 			case COM_DT_COLOR:
@@ -174,7 +189,8 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnec
 	this->setConnection(NULL);
 }
 
-const ChannelInfo* InputSocket::getChannelInfo(const int channelnumber) {
+const ChannelInfo *InputSocket::getChannelInfo(const int channelnumber)
+{
 	if (this->isConnected() && this->connection->getFromSocket()) {
 		return this->connection->getFromSocket()->getChannelInfo(channelnumber);
 	}
@@ -183,20 +199,23 @@ const ChannelInfo* InputSocket::getChannelInfo(const int channelnumber) {
 	}
 }
 
-bool InputSocket::isStatic() {
+bool InputSocket::isStatic()
+{
 	if (isConnected()) {
-		NodeBase* node = this->getConnection()->getFromNode();
+		NodeBase *node = this->getConnection()->getFromNode();
 		if (node) {
 			return node->isStatic();
 		}
 	}
 	return true;
 }
-SocketReader* InputSocket::getReader() {
+SocketReader *InputSocket::getReader()
+{
 	return this->getOperation();
 }
 
-NodeOperation* InputSocket::getOperation() const {
+NodeOperation *InputSocket::getOperation() const
+{
 	if (isConnected()) {
 		return (NodeOperation*)this->connection->getFromSocket()->getNode();
 	}
@@ -205,7 +224,8 @@ NodeOperation* InputSocket::getOperation() const {
 	}
 }
 
-float* InputSocket::getStaticValues() {
+float *InputSocket::getStaticValues()
+{
 	/* XXX only works for socket types with actual float input values.
 	 * currently all compositor socket types (value, rgba, vector) support this.
 	 */

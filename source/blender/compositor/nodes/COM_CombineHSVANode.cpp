@@ -28,10 +28,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertHSVToRGBOperation.h"
 
-CombineHSVANode::CombineHSVANode(bNode *editorNode): CombineRGBANode(editorNode) {
+CombineHSVANode::CombineHSVANode(bNode *editorNode): CombineRGBANode(editorNode)
+{
 }
 
-void CombineHSVANode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void CombineHSVANode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	ConvertHSVToRGBOperation *operation = new ConvertHSVToRGBOperation();
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	if (outputSocket->isConnected()) {

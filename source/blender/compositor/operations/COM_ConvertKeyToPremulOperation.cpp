@@ -22,18 +22,21 @@
 #include "COM_ConvertKeyToPremulOperation.h"
 #include "BLI_math.h"
 
-ConvertKeyToPremulOperation::ConvertKeyToPremulOperation(): NodeOperation() {
+ConvertKeyToPremulOperation::ConvertKeyToPremulOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
 	this->inputColor = NULL;
 }
 
-void ConvertKeyToPremulOperation::initExecution() {
+void ConvertKeyToPremulOperation::initExecution()
+{
 	this->inputColor = getInputSocketReader(0);
 }
 
-void ConvertKeyToPremulOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertKeyToPremulOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float alpha;
 
@@ -48,6 +51,7 @@ void ConvertKeyToPremulOperation::executePixel(float* outputValue, float x, floa
 	outputValue[3] = alpha;
 }
 
-void ConvertKeyToPremulOperation::deinitExecution() {
+void ConvertKeyToPremulOperation::deinitExecution()
+{
 	this->inputColor = NULL;
 }

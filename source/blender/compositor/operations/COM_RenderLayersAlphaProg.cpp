@@ -22,11 +22,13 @@
 
 #include "COM_RenderLayersAlphaProg.h"
 
-RenderLayersAlphaProg::RenderLayersAlphaProg() :RenderLayersBaseProg(SCE_PASS_COMBINED, 4) {
+RenderLayersAlphaProg::RenderLayersAlphaProg() :RenderLayersBaseProg(SCE_PASS_COMBINED, 4)
+{
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void RenderLayersAlphaProg::executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void RenderLayersAlphaProg::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	int ix = x;
 	int iy = y;
 	float * inputBuffer = this->getInputBuffer();

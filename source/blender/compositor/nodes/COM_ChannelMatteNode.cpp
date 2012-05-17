@@ -30,13 +30,14 @@
 ChannelMatteNode::ChannelMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocketImage = this->getInputSocket(0);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
 
 	NodeOperation *convert=NULL;
-	bNode* node = this->getbNode();
+	bNode *node = this->getbNode();
 
 	/* colorspace */
 	switch (node->custom1) {

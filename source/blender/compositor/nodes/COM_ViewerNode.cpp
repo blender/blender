@@ -26,16 +26,18 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ViewerNode::ViewerNode(bNode *editorNode): Node(editorNode) {
+ViewerNode::ViewerNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)\
+{
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
-	Image* image = (Image*)this->getbNode()->id;
+	Image *image = (Image*)this->getbNode()->id;
 	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
 	if (imageSocket->isConnected()) {
-		bNode* editorNode = this->getbNode();
+		bNode *editorNode = this->getbNode();
 		ViewerOperation *viewerOperation = new ViewerOperation();
 		viewerOperation->setColorManagement( context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 		viewerOperation->setColorPredivide( context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);

@@ -22,22 +22,26 @@
 
 #include "COM_ConvertColourToValueProg.h"
 
-ConvertColourToValueProg::ConvertColourToValueProg(): NodeOperation() {
+ConvertColourToValueProg::ConvertColourToValueProg(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->inputOperation = NULL;
 }
 
-void ConvertColourToValueProg::initExecution() {
+void ConvertColourToValueProg::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColourToValueProg::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertColourToValueProg::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
 	outputValue[0] = ((inputColor[0] + inputColor[1] + inputColor[2])/3.0f)*inputColor[3];
 }
 
-void ConvertColourToValueProg::deinitExecution() {
+void ConvertColourToValueProg::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

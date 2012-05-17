@@ -26,37 +26,43 @@
 #include <stdio.h>
 
 /// @TODO: writebuffers don't have an actual data type set.
-WriteBufferOperation::WriteBufferOperation() :NodeOperation() {
+WriteBufferOperation::WriteBufferOperation() :NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->memoryProxy = new MemoryProxy();
 	this->memoryProxy->setWriteBufferOperation(this);
 	this->memoryProxy->setExecutor(NULL);
 	this->tree = NULL;
 }
-WriteBufferOperation::~WriteBufferOperation() {
+WriteBufferOperation::~WriteBufferOperation()
+{
 	if (this->memoryProxy) {
 		delete this->memoryProxy;
 		this->memoryProxy = NULL;
 	}
 }
 
-void WriteBufferOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	input->read(color, x, y, sampler, inputBuffers);
 }
-void WriteBufferOperation::initExecution() {
+void WriteBufferOperation::initExecution()
+{
 		this->input = this->getInputOperation(0);
 	MemoryManager::addMemoryProxy(this->memoryProxy);
 }
-void WriteBufferOperation::deinitExecution() {
+void WriteBufferOperation::deinitExecution()
+{
 	this->input = NULL;
 }
 
 
-void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers) {
-	MemoryBuffer* memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
-	float* buffer = memoryBuffer->getBuffer();
+void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+{
+	MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
+	float *buffer = memoryBuffer->getBuffer();
 	if (this->input->isComplex()) {
-		void* data = this->input->initializeTileData(rect, memoryBuffers);
+		void *data = this->input->initializeTileData(rect, memoryBuffers);
 		int x1 = rect->xmin;
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
@@ -103,18 +109,19 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** inputMemoryBuffers) {
-	MemoryBuffer* outputMemoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), chunkNumber);
-	float* outputFloatBuffer = outputMemoryBuffer->getBuffer();
+void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** inputMemoryBuffers)
+{
+	MemoryBuffer *outputMemoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), chunkNumber);
+	float *outputFloatBuffer = outputMemoryBuffer->getBuffer();
 	cl_int error;
 	/*
-	  1. create cl_mem from outputbuffer
-	  2. call NodeOperation (input) executeOpenCLChunk(.....)
-	  3. schedule readback from opencl to main device (outputbuffer)
-	  4. schedule native callback
-
-	  note: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
-	  */
+	 * 1. create cl_mem from outputbuffer
+	 * 2. call NodeOperation (input) executeOpenCLChunk(.....)
+	 * 3. schedule readback from opencl to main device (outputbuffer)
+	 * 4. schedule native callback
+	 *
+	 * note: list of cl_mem will be filled by 2, and needs to be cleaned up by 4
+	 */
 	// STEP 1
 	const unsigned int outputBufferWidth = outputMemoryBuffer->getWidth();
 	const unsigned int outputBufferHeight = outputMemoryBuffer->getHeight();

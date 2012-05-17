@@ -48,7 +48,7 @@ public:
 	  * @param tree bNodeTree to add
 	  * @return Node representing the "Compositor node" of the maintree. or NULL when a subtree is added
 	  */
-	static Node* addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree * tree);
+	static Node *addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree * tree);
 	
 	/**
 	  * @brief add an editor node to the system.
@@ -58,7 +58,7 @@ public:
 	  * @param bNode node to add
 	  * @return Node that represents the bNode or null when not able to convert.
 	  */
-	static Node* addNode(vector<Node*>& nodes, bNode* bNode);
+	static Node *addNode(vector<Node*>& nodes, bNode *bNode);
 	
 	/**
 	  * @brief Add a Node to a list
@@ -66,7 +66,7 @@ public:
 	  * @param nodes the list where the node needs to be added to
 	  * @param node the node to be added
 	  */
-	static void addNode(vector<Node*>& nodes, Node* node);
+	static void addNode(vector<Node*>& nodes, Node *node);
 	
 	/**
 	  * @brief Add an operation to the operation list
@@ -76,7 +76,7 @@ public:
 	  * @param operations the list where the operation need to be added to
 	  * @param operation the operation to add
 	  */
-	static void addOperation(vector<NodeOperation*> &operations, NodeOperation* operation);
+	static void addOperation(vector<NodeOperation*> &operations, NodeOperation *operation);
 	
 	/**
 	  * @brief Add an ExecutionGroup to a list
@@ -107,7 +107,7 @@ public:
 	  * @param bNodeLink the link to be added
 	  * @return the created SocketConnection or NULL
 	  */
-	static SocketConnection* addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink);
+	static SocketConnection *addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink);
 	
 	/**
 	  * @brief create a new SocketConnection and add to a vector of links
@@ -116,12 +116,12 @@ public:
 	  * @param toSocket the endpoint of the connection
 	  * @return the new created SocketConnection
 	  */
-	static SocketConnection* addLink(vector<SocketConnection*>& links, OutputSocket* fromSocket, InputSocket* toSocket);
+	static SocketConnection *addLink(vector<SocketConnection*>& links, OutputSocket *fromSocket, InputSocket *toSocket);
 	
 	/**
 	  * @brief dumps the content of the execution system to standard out
 	  * @param system the execution system to dump
 	  */
-	static void debugDump(ExecutionSystem* system);
+	static void debugDump(ExecutionSystem *system);
 };
 #endif

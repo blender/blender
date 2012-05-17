@@ -22,31 +22,35 @@
 
 #include "COM_MapValueOperation.h"
 
-MapValueOperation::MapValueOperation(): NodeOperation() {
+MapValueOperation::MapValueOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->inputOperation = NULL;
 }
 
-void MapValueOperation::initExecution() {
+void MapValueOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void MapValueOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MapValueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float src[4];
 	inputOperation->read(src, x, y, sampler, inputBuffers);
-	TexMapping *texmap= this->settings;
+	TexMapping *texmap = this->settings;
 	float value = (src[0] + texmap->loc[0])*texmap->size[0];
 	if (texmap->flag & TEXMAP_CLIP_MIN)
 		if (value<texmap->min[0])
-			value= texmap->min[0];
+			value = texmap->min[0];
 	if (texmap->flag & TEXMAP_CLIP_MAX)
 		if (value>texmap->max[0])
-			value= texmap->max[0];
+			value = texmap->max[0];
 	
 	outputValue[0] = value;
 }
 
-void MapValueOperation::deinitExecution() {
+void MapValueOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

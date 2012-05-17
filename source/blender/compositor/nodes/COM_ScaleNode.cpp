@@ -27,15 +27,17 @@
 #include "BKE_node.h"
 #include "COM_SetValueOperation.h"
 
-ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode) {
+ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputXSocket = this->getInputSocket(1);
 	InputSocket *inputYSocket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	bNode* bnode = this->getbNode();
+	bNode *bnode = this->getbNode();
 	switch (bnode->custom1) {
 	case CMP_SCALE_RELATIVE: {
 		ScaleOperation *operation = new ScaleOperation();
@@ -61,7 +63,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 		break;
 		
 	case CMP_SCALE_RENDERPERCENT: {
-		const RenderData* data = &context->getScene()->r;
+		const RenderData *data = &context->getScene()->r;
 		ScaleFixedSizeOperation * operation = new ScaleFixedSizeOperation();
 		operation->setNewWidth(data->xsch*data->size/100.0f);
 		operation->setNewHeight(data->ysch*data->size/100.0f);

@@ -31,10 +31,10 @@
   */
 class ZCombineOperation : public NodeOperation {
 protected:
-	SocketReader* image1Reader;
-	SocketReader* depth1Reader;
-	SocketReader* image2Reader;
-	SocketReader* depth2Reader;
+	SocketReader *image1Reader;
+	SocketReader *depth1Reader;
+	SocketReader *image2Reader;
+	SocketReader *depth2Reader;
 public:
 	/**
 	  * Default constructor
@@ -47,11 +47,11 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };
 
 class ZCombineAlphaOperation: public ZCombineOperation {
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };
 
 #endif

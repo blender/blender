@@ -46,12 +46,12 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 
-	void setSettings(NodeColorspill* nodeColorSpill) {this->settings= nodeColorSpill;}
+	void setSettings(NodeColorspill *nodeColorSpill) {this->settings = nodeColorSpill;}
 	void setSpillChannel(int channel) {this->spillChannel = channel;}
 	
 	float calculateMapValue(float fac, float *input);

@@ -22,7 +22,8 @@
 
 #include "COM_ConvolutionFilterOperation.h"
 
-ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation() {
+ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -31,12 +32,14 @@ ConvolutionFilterOperation::ConvolutionFilterOperation() : NodeOperation() {
 	this->filter = NULL;
 	this->setComplex(true);
 }
-void ConvolutionFilterOperation::initExecution() {
+void ConvolutionFilterOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	this->inputValueOperation = this->getInputSocketReader(1);
 }
 
-void ConvolutionFilterOperation::set3x3Filter(float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9) {
+void ConvolutionFilterOperation::set3x3Filter(float f1, float f2, float f3, float f4, float f5, float f6, float f7, float f8, float f9)
+{
 	this->filter = new float[9];
 	this->filter[0] = f1;
 	this->filter[1] = f2;
@@ -51,7 +54,8 @@ void ConvolutionFilterOperation::set3x3Filter(float f1, float f2, float f3, floa
 	this->filterWidth = 3;
 }
 
-void ConvolutionFilterOperation::deinitExecution() {
+void ConvolutionFilterOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 	this->inputValueOperation = NULL;
 	if (this->filter) {
@@ -61,7 +65,8 @@ void ConvolutionFilterOperation::deinitExecution() {
 }
 
 
-void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	color[0] = 0.0;
 	color[1] = 0.0;
 	color[2] = 0.0;
@@ -123,7 +128,8 @@ void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryB
 	color[2] = color[2]*value[0] + in2[2] * mval;
 }
 
-bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	int addx = (this->filterWidth-1)/2+1;
 	int addy = (this->filterHeight-1)/2+1;

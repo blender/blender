@@ -33,7 +33,8 @@ inline float colorbalance_cdl(float in, float offset, float power, float slope)
 	return powf(x, power);
 }
 
-ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation(): NodeOperation() {
+ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -42,12 +43,14 @@ ColorBalanceASCCDLOperation::ColorBalanceASCCDLOperation(): NodeOperation() {
 	this->setResolutionInputSocketIndex(1);
 }
 
-void ColorBalanceASCCDLOperation::initExecution() {
+void ColorBalanceASCCDLOperation::initExecution()
+{
 	this->inputValueOperation = this->getInputSocketReader(0);
 	this->inputColorOperation = this->getInputSocketReader(1);
 }
 
-void ColorBalanceASCCDLOperation::executePixel(float* outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ColorBalanceASCCDLOperation::executePixel(float *outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor[4];
 	float value[4];
 	
@@ -56,7 +59,7 @@ void ColorBalanceASCCDLOperation::executePixel(float* outputColor, float x, floa
 	
 	float fac = value[0];
 	fac = min(1.0f, fac);
-	const float mfac= 1.0f - fac;
+	const float mfac = 1.0f - fac;
 	
 	outputColor[0] = mfac*inputColor[0] + fac * colorbalance_cdl(inputColor[0], this->lift[0], this->gamma[0], this->gain[0]);
 	outputColor[1] = mfac*inputColor[1] + fac * colorbalance_cdl(inputColor[1], this->lift[1], this->gamma[1], this->gain[1]);
@@ -65,7 +68,8 @@ void ColorBalanceASCCDLOperation::executePixel(float* outputColor, float x, floa
 
 }
 
-void ColorBalanceASCCDLOperation::deinitExecution() {
+void ColorBalanceASCCDLOperation::deinitExecution()
+{
 	this->inputValueOperation = NULL;
 	this->inputColorOperation = NULL;
 }

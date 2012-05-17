@@ -38,7 +38,8 @@ extern "C" {
 }
 
 
-ViewerBaseOperation::ViewerBaseOperation() : NodeOperation() {
+ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
+{
 	this->setImage(NULL);
 	this->setImageUser(NULL);
 	this->outputBuffer = NULL;
@@ -47,25 +48,27 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation() {
 	this->doColorManagement = true;
 }
 
-void ViewerBaseOperation::initExecution() {
+void ViewerBaseOperation::initExecution()
+{
 	// When initializing the tree during initial load the width and height can be zero.
 	initImage();
 }
 
-void ViewerBaseOperation::initImage() {
-	Image* anImage = this->image;
-	ImBuf *ibuf= BKE_image_acquire_ibuf(anImage, this->imageUser, &this->lock);
+void ViewerBaseOperation::initImage()
+{
+	Image *anImage = this->image;
+	ImBuf *ibuf = BKE_image_acquire_ibuf(anImage, this->imageUser, &this->lock);
 	
 	if (!ibuf) return;
 	if (ibuf->x != (int)getWidth() || ibuf->y != (int)getHeight()) {
 		imb_freerectImBuf(ibuf);
 		imb_freerectfloatImBuf(ibuf);
 		IMB_freezbuffloatImBuf(ibuf);
-		ibuf->x= getWidth();
-		ibuf->y= getHeight();
+		ibuf->x = getWidth();
+		ibuf->y = getHeight();
 		imb_addrectImBuf(ibuf);
 		imb_addrectfloatImBuf(ibuf);
-		anImage->ok= IMA_OK_LOADED;
+		anImage->ok = IMA_OK_LOADED;
 	}
 	
 	/* now we combine the input with ibuf */
@@ -74,16 +77,19 @@ void ViewerBaseOperation::initImage() {
 	
 	BKE_image_release_ibuf(this->image, this->lock);
 }
-void ViewerBaseOperation:: updateImage(rcti *rect) {
+void ViewerBaseOperation:: updateImage(rcti *rect)
+{
 	/// @todo: introduce new event to update smaller area
 	WM_main_add_notifier(NC_WINDOW|ND_DRAW, NULL);
 }
 
-void ViewerBaseOperation::deinitExecution() {
+void ViewerBaseOperation::deinitExecution()
+{
 	this->outputBuffer = NULL;
 }
 
-const int ViewerBaseOperation::getRenderPriority() const {
+const int ViewerBaseOperation::getRenderPriority() const
+{
 	if (this->isActiveViewerOutput()) {
 		return 8;
 	}

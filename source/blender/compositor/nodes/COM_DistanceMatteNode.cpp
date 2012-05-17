@@ -27,14 +27,15 @@
 DistanceMatteNode::DistanceMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocketImage = this->getInputSocket(0);
 	InputSocket *inputSocketKey = this->getInputSocket(1);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
 
 	DistanceMatteOperation *operation = new DistanceMatteOperation();
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operation->getInputSocket(0), true, 0, graph);

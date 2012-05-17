@@ -32,7 +32,7 @@
 class VectorCurveNode: public Node {
 public:
 	VectorCurveNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif

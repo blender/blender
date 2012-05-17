@@ -46,16 +46,18 @@
 #include "DNA_material_types.h" // the ramp types
 
 
-MixNode::MixNode(bNode *editorNode): Node(editorNode) {
+MixNode::MixNode(bNode *editorNode): Node(editorNode)
+{
 }
 
 
-void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void MixNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *valueSocket = this->getInputSocket(0);
 	InputSocket *color1Socket = this->getInputSocket(1);
 	InputSocket *color2Socket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	bNode* editorNode = this->getbNode();
+	bNode *editorNode = this->getbNode();
 	
 	MixBaseOperation *convertProg;
 	

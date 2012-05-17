@@ -37,12 +37,12 @@ private:
 
 protected:
 	/**
-	   * Initialize the execution
-	   */
-	 void initExecution(QualityHelper helper);
+	  * Initialize the execution
+	  */
+	void initExecution(QualityHelper helper);
 
-	 inline int getStep() const {return this->step;}
-	 inline int getOffsetAdd() const {return this->offsetadd;}
+	inline int getStep() const {return this->step;}
+	inline int getOffsetAdd() const {return this->offsetadd;}
 
 public:
 	QualityStepHelper();

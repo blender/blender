@@ -23,11 +23,13 @@
 #include "COM_BokehImageOperation.h"
 #include "BLI_math.h"
 
-BokehImageOperation::BokehImageOperation(): NodeOperation() {
+BokehImageOperation::BokehImageOperation(): NodeOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 	this->deleteData = false;
 }
-void BokehImageOperation::initExecution() {
+void BokehImageOperation::initExecution()
+{
 	this->centerX = getWidth() / 2;
 	this->centerY = getHeight() / 2;
 	this->center[0] = this->centerX;
@@ -40,11 +42,13 @@ void BokehImageOperation::initExecution() {
 		this->flapRadAdd-=M_PI*2;
 	}
 }
-void BokehImageOperation::detemineStartPointOfFlap(float r[2], int flapNumber, float distance) {
+void BokehImageOperation::detemineStartPointOfFlap(float r[2], int flapNumber, float distance)
+{
 	r[0] = sin(flapRad*flapNumber + flapRadAdd)*distance+centerX;
 	r[1] = cos(flapRad*flapNumber + flapRadAdd)*distance+centerY;
 }
-float BokehImageOperation::isInsideBokeh(float distance, float x, float y) {
+float BokehImageOperation::isInsideBokeh(float distance, float x, float y)
+{
 	float insideBokeh = 0.0;
 	const float deltaX = x - centerX;
 	const float deltaY = y - centerY;
@@ -80,7 +84,8 @@ float BokehImageOperation::isInsideBokeh(float distance, float x, float y) {
 	}
 	return insideBokeh;
 }
-void BokehImageOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void BokehImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float shift = this->data->lensshift;
 	float shift2 = shift/2.0f;
 	float distance = this->circularDistance;
@@ -100,7 +105,8 @@ void BokehImageOperation::executePixel(float* color, float x, float y, PixelSamp
 	color[3] = 1.0f;
 }
 
-void BokehImageOperation::deinitExecution() {
+void BokehImageOperation::deinitExecution()
+{
 	if (deleteData) {
 		if (data) {
 			delete data;
@@ -109,7 +115,8 @@ void BokehImageOperation::deinitExecution() {
 	}
 }
 
-void BokehImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void BokehImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	resolution[0] = 512;
 	resolution[1] = 512;
 }

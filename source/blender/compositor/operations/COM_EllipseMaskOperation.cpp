@@ -24,7 +24,8 @@
 #include "BLI_math.h"
 #include "DNA_node_types.h"
 
-EllipseMaskOperation::EllipseMaskOperation(): NodeOperation() {
+EllipseMaskOperation::EllipseMaskOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -33,7 +34,8 @@ EllipseMaskOperation::EllipseMaskOperation(): NodeOperation() {
 	this->cosine = 0.0f;
 	this->sine = 0.0f;
 }
-void EllipseMaskOperation::initExecution() {
+void EllipseMaskOperation::initExecution()
+{
 	this->inputMask = this->getInputSocketReader(0);
 	this->inputValue = this->getInputSocketReader(1);
 	const double rad = DEG2RAD(this->data->rotation);
@@ -42,7 +44,8 @@ void EllipseMaskOperation::initExecution() {
 	this->aspectRatio = ((float)this->getWidth())/this->getHeight();
 }
 
-void EllipseMaskOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void EllipseMaskOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputMask[4];
 	float inputValue[4];
 	
@@ -112,7 +115,8 @@ void EllipseMaskOperation::executePixel(float* color, float x, float y, PixelSam
 
 }
 
-void EllipseMaskOperation::deinitExecution() {
+void EllipseMaskOperation::deinitExecution()
+{
 	this->inputMask = NULL;
 	this->inputValue = NULL;
 }

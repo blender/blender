@@ -32,8 +32,8 @@
 class ColorBalanceNode : public Node
 {
 public:
-	ColorBalanceNode(bNode* editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	ColorBalanceNode(bNode *editorNode);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif // COM_ColorBalanceNODE_H

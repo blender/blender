@@ -21,19 +21,22 @@
 
 #include "COM_NormalizeOperation.h"
 
-NormalizeOperation::NormalizeOperation(): NodeOperation() {
+NormalizeOperation::NormalizeOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->imageReader = NULL;
 	this->cachedInstance = NULL;
 	this->setComplex(true);
 }
-void NormalizeOperation::initExecution() {
+void NormalizeOperation::initExecution()
+{
 	this->imageReader = this->getInputSocketReader(0);
 	NodeOperation::initMutex();
 }
 
-void NormalizeOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void NormalizeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	/* using generic two floats struct to store x: min  y: mult */
 	NodeTwoFloats *minmult = (NodeTwoFloats *)data;
 
@@ -43,7 +46,8 @@ void NormalizeOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 	color[0] = (output[0] - minmult->x) * minmult->y;
 }
 
-void NormalizeOperation::deinitExecution() {
+void NormalizeOperation::deinitExecution()
+{
 	this->imageReader = NULL;
 	if (this->cachedInstance) {
 		delete cachedInstance;
@@ -51,10 +55,11 @@ void NormalizeOperation::deinitExecution() {
 	NodeOperation::deinitMutex();
 }
 
-bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti imageInput;
 
-	NodeOperation* operation = getInputOperation(0);
+	NodeOperation *operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;
 	imageInput.ymax = operation->getHeight();
@@ -69,12 +74,12 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 /* The code below assumes all data is inside range +- this, and that input buffer is single channel */
 #define BLENDER_ZMAX 10000.0f
 
-void* NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
-
+void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	BLI_mutex_lock(getMutex());
 
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer* tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		/* using generic two floats struct to store x: min  y: mult */
 		NodeTwoFloats *minmult = new NodeTwoFloats();
 
@@ -104,5 +109,6 @@ void* NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	return this->cachedInstance;
 }
 
-void NormalizeOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
+void NormalizeOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
 }

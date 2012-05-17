@@ -27,11 +27,13 @@
 #include "COM_AntiAliasOperation.h"
 #include "BLI_math.h"
 
-DilateErodeNode::DilateErodeNode(bNode *editorNode): Node(editorNode) {
+DilateErodeNode::DilateErodeNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	bNode* editorNode = this->getbNode();
+void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	bNode *editorNode = this->getbNode();
 	DilateErodeOperation *operation = new DilateErodeOperation();
 	operation->setDistance(editorNode->custom2);
 	operation->setInset(2.0f);

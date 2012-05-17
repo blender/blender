@@ -25,10 +25,12 @@
 #include "COM_ColorCurveOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ColorCurveNode::ColorCurveNode(bNode *editorNode): Node(editorNode) {
+ColorCurveNode::ColorCurveNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void ColorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ColorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	ColorCurveOperation *operation = new ColorCurveOperation();
 
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);

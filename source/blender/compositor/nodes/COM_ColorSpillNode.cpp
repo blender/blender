@@ -27,12 +27,13 @@
 ColorSpillNode::ColorSpillNode(bNode *editorNode): Node(editorNode)
 {}
 
-void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocketImage = this->getInputSocket(0);
 	InputSocket *inputSocketFac = this->getInputSocket(1);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 
 	
 	ColorSpillOperation *operation;

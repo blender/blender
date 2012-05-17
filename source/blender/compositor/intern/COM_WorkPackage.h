@@ -36,7 +36,7 @@ private:
 	/**
 	  * @brief executionGroup with the operations-setup to be evaluated
 	  */
-	ExecutionGroup* executionGroup;
+	ExecutionGroup *executionGroup;
 
 	/**
 	  * @brief number of the chunk to be executed
@@ -48,12 +48,12 @@ public:
 	  * @param group the ExecutionGroup
 	  * @param chunkNumber the number of the chunk
 	  */
-	WorkPackage(ExecutionGroup* group, unsigned int chunkNumber);
+	WorkPackage(ExecutionGroup *group, unsigned int chunkNumber);
 
 	/**
 	  * @brief get the ExecutionGroup
 	  */
-	ExecutionGroup* getExecutionGroup() const {return this->executionGroup;}
+	ExecutionGroup *getExecutionGroup() const {return this->executionGroup;}
 
 	/**
 	  * @brief get the number of the chunk

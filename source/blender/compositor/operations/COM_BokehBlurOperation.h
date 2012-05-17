@@ -27,9 +27,9 @@
 
 class BokehBlurOperation : public NodeOperation, public QualityStepHelper {
 private:
-	SocketReader* inputProgram;
-	SocketReader* inputBokehProgram;
-	SocketReader* inputBoundingBoxReader;
+	SocketReader *inputProgram;
+	SocketReader *inputBokehProgram;
+	SocketReader *inputBoundingBoxReader;
 	float size;
 	float bokehMidX;
 	float bokehMidY;
@@ -37,11 +37,11 @@ private:
 public:
 	BokehBlurOperation();
 
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution

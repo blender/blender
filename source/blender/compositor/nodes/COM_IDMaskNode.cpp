@@ -26,10 +26,12 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_AntiAliasOperation.h"
 
-IDMaskNode::IDMaskNode(bNode *editorNode): Node(editorNode) {
+IDMaskNode::IDMaskNode(bNode *editorNode): Node(editorNode)
+{
 }
-void IDMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	bNode* bnode = this->getbNode();
+void IDMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	bNode *bnode = this->getbNode();
 	IDMaskOperation *operation;
 	operation = new IDMaskOperation();
 	operation->setObjectIndex(bnode->custom1);

@@ -36,9 +36,9 @@ extern "C" {
 class ImageNode : public Node {
 
 private:
-	NodeOperation* doMultilayerCheck(ExecutionSystem *system, RenderLayer* rl, Image* image, ImageUser* user, int framenumber, int outputsocketIndex, int pass, DataType datatype);
+	NodeOperation *doMultilayerCheck(ExecutionSystem *system, RenderLayer *rl, Image *image, ImageUser *user, int framenumber, int outputsocketIndex, int pass, DataType datatype);
 public:
-	ImageNode(bNode* editorNode);
+	ImageNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 
 };

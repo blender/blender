@@ -27,10 +27,12 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
 
-MuteNode::MuteNode(bNode *editorNode): Node(editorNode) {
+MuteNode::MuteNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output) {
+void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output)
+{
 	vector<InputSocket*> &inputsockets = this->getInputSockets();
 	for (unsigned int index = 0; index < inputsockets.size() ; index ++) {
 		InputSocket *input = inputsockets[index];
@@ -83,7 +85,8 @@ void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output) {
 	output->clearConnections();
 }
 
-void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void MuteNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	vector<OutputSocket*> &outputsockets = this->getOutputSockets();
 
 	for (unsigned int index = 0 ; index < outputsockets.size() ; index ++) {

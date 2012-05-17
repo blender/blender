@@ -22,7 +22,8 @@
 
 #include "COM_FlipOperation.h"
 
-FlipOperation::FlipOperation() : NodeOperation() {
+FlipOperation::FlipOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
@@ -30,23 +31,27 @@ FlipOperation::FlipOperation() : NodeOperation() {
 	this->flipX = true;
 	this->flipY = false;
 }
-void FlipOperation::initExecution() {
+void FlipOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void FlipOperation::deinitExecution() {
+void FlipOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }
 
 
-void FlipOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void FlipOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float nx = this->flipX?this->getWidth()-1-x:x;
 	float ny = this->flipY?this->getHeight()-1-y:y;
 	
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
 
-bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	
 	if (this->flipX) {

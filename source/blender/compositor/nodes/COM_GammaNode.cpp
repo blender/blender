@@ -25,10 +25,12 @@
 #include "COM_GammaOperation.h"
 #include "COM_ExecutionSystem.h"
 
-GammaNode::GammaNode(bNode *editorNode): Node(editorNode) {
+GammaNode::GammaNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void GammaNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void GammaNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	GammaOperation *operation = new GammaOperation();
 	
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);

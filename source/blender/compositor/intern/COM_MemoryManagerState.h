@@ -75,13 +75,13 @@ public:
 	/**
 	  * @brief add a new memorybuffer to the state
 	  */
-	void addMemoryBuffer(MemoryBuffer* buffer);
+	void addMemoryBuffer(MemoryBuffer *buffer);
 	
 	/**
 	  * @brief get the MemoryBuffer assiciated to a chunk.
 	  * @param chunkNumber the chunknumber
 	  */
-	MemoryBuffer* getMemoryBuffer(unsigned int chunkNumber);
+	MemoryBuffer *getMemoryBuffer(unsigned int chunkNumber);
 };
 
 #endif

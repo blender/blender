@@ -32,7 +32,7 @@
 class ValueNode: public Node {
 public:
 	ValueNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif

@@ -26,10 +26,12 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_SetSamplerOperation.h"
 
-RotateNode::RotateNode(bNode *editorNode) : Node(editorNode) {
+RotateNode::RotateNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
+void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputDegreeSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);

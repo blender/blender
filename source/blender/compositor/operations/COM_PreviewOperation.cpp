@@ -39,7 +39,8 @@ extern "C" {
 }
 
 
-PreviewOperation::PreviewOperation() : NodeOperation() {
+PreviewOperation::PreviewOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->outputBuffer = NULL;
 	this->input = NULL;
@@ -48,7 +49,8 @@ PreviewOperation::PreviewOperation() : NodeOperation() {
 	this->priority = 0;
 }
 
-void PreviewOperation::initExecution() {
+void PreviewOperation::initExecution()
+{
 	this->input = getInputSocketReader(0);
 	if (!this->node->preview) {
 		this->node->preview = (bNodePreview*)MEM_callocN(sizeof(bNodePreview), "node preview");
@@ -64,18 +66,20 @@ void PreviewOperation::initExecution() {
 		if (this->node->preview->rect) {
 				MEM_freeN(this->node->preview->rect);
 		}
-		this->node->preview->xsize= getWidth();
-		this->node->preview->ysize= getHeight();
-		this->node->preview->rect= outputBuffer;
+		this->node->preview->xsize = getWidth();
+		this->node->preview->ysize = getHeight();
+		this->node->preview->rect = outputBuffer;
 	}
 }
 
-void PreviewOperation::deinitExecution() {
+void PreviewOperation::deinitExecution()
+{
 	this->outputBuffer = NULL;
 	this->input = NULL;
 }
 
-void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers) {
+void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
+{
 	int offset;
 	float color[4];
 	for (int y = rect->ymin ; y < rect->ymax ; y++) {
@@ -96,7 +100,8 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 		}
 	}
 }
-bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 
 	newInput.xmin = input->xmin/divider;
@@ -106,7 +111,8 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
-void PreviewOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void PreviewOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	NodeOperation::determineResolution(resolution, preferredResolution);
 	int width = resolution[0];
 	int height = resolution[1];
@@ -124,6 +130,7 @@ void PreviewOperation::determineResolution(unsigned int resolution[], unsigned i
 	resolution[1] = height;
 }
 
-const int PreviewOperation::getRenderPriority() const {
+const int PreviewOperation::getRenderPriority() const
+{
 	return this->priority;
 }

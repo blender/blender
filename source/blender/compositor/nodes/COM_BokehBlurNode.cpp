@@ -30,11 +30,13 @@
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_ConvertDepthToRadiusOperation.h"
 
-BokehBlurNode::BokehBlurNode(bNode *editorNode): Node(editorNode) {
+BokehBlurNode::BokehBlurNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	Object* camob = context->getScene()->camera;
+void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	Object *camob = context->getScene()->camera;
 
 	if (this->getInputSocket(2)->isConnected()) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();

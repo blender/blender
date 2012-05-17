@@ -36,30 +36,34 @@ extern "C" {
 }
 
 
-SplitViewerOperation::SplitViewerOperation() : ViewerBaseOperation() {
+SplitViewerOperation::SplitViewerOperation() : ViewerBaseOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
 	this->image1Input = NULL;
 	this->image2Input = NULL;
 }
 
-void SplitViewerOperation::initExecution() {
+void SplitViewerOperation::initExecution()
+{
 	// When initializing the tree during initial load the width and height can be zero.
 	this->image1Input = getInputSocketReader(0);
 	this->image2Input = getInputSocketReader(1);
 	ViewerBaseOperation::initExecution();
 }
 
-void SplitViewerOperation::deinitExecution() {
+void SplitViewerOperation::deinitExecution()
+{
 	this->image1Input = NULL;
 	this->image2Input = NULL;
 	ViewerBaseOperation::deinitExecution();
 }
 
 
-void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers) {
-	float* buffer = this->outputBuffer;
-	unsigned char* bufferDisplay = this->outputBufferDisplay;
+void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+{
+	float *buffer = this->outputBuffer;
+	unsigned char *bufferDisplay = this->outputBufferDisplay;
 	
 	if (!buffer) return;
 	int x1 = rect->xmin;

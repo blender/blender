@@ -25,18 +25,22 @@
 #include "BLI_math.h"
 #include "BKE_global.h"
 
-unsigned int MemoryBuffer::determineBufferSize() {
+unsigned int MemoryBuffer::determineBufferSize()
+{
 	return getWidth() * getHeight();
 }
 
-int MemoryBuffer::getWidth() const {
+int MemoryBuffer::getWidth() const
+{
 	return  this->rect.xmax-this->rect.xmin;
 }
-int MemoryBuffer::getHeight() const {
+int MemoryBuffer::getHeight() const
+{
 	return  this->rect.ymax-this->rect.ymin;
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, unsigned int chunkNumber, rcti* rect) {
+MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, unsigned int chunkNumber, rcti *rect)
+{
 	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->memoryProxy = memoryProxy;
 	this->chunkNumber = chunkNumber;
@@ -46,7 +50,8 @@ MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, unsigned int chunkNumber, 
 	this->chunkWidth = this->rect.xmax - this->rect.xmin;
 }
 
-MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, rcti* rect) {
+MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, rcti *rect)
+{
 	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->memoryProxy = memoryProxy;
 	this->chunkNumber = -1;
@@ -55,20 +60,23 @@ MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, rcti* rect) {
 	this->datatype = COM_DT_COLOR;
 	this->chunkWidth = this->rect.xmax - this->rect.xmin;
 }
-MemoryBuffer* MemoryBuffer::duplicate() {
+MemoryBuffer *MemoryBuffer::duplicate()
+{
 	MemoryBuffer *result = new MemoryBuffer(this->memoryProxy, &this->rect);
 	memcpy(result->buffer, this->buffer, this->determineBufferSize()*4*sizeof(float));
 	return result;
 }
-void MemoryBuffer::clear() {
+void MemoryBuffer::clear()
+{
 	memset(this->buffer, 0, this->determineBufferSize()*4*sizeof(float));
 }
 
-float* MemoryBuffer::convertToValueBuffer() {
+float *MemoryBuffer::convertToValueBuffer()
+{
 	int size = this->determineBufferSize();
 	int i;
 	int offset4;
-	float* result = new float[size];
+	float *result = new float[size];
 	for (i = 0, offset4 = 0 ; i < size ; i ++, offset4 +=4) {
 		result[i] = this->buffer[offset4];
 	}
@@ -76,14 +84,16 @@ float* MemoryBuffer::convertToValueBuffer() {
 	return result;
 }
 
-MemoryBuffer::~MemoryBuffer() {
+MemoryBuffer::~MemoryBuffer()
+{
 	if (this->buffer) {
 		MEM_freeN(this->buffer);
 		this->buffer = NULL;
 	}
 }
 
-void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer) {
+void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
+{
 	if (!otherBuffer) {
 		return;
 	}
@@ -103,7 +113,8 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer) {
 	}
 }
 
-void MemoryBuffer::read(float* result, int x, int y) {
+void MemoryBuffer::read(float *result, int x, int y)
+{
 	if (x>=this->rect.xmin && x < this->rect.xmax &&
 			y>=this->rect.ymin && y < this->rect.ymax) {
 		int dx = x-this->rect.xmin;
@@ -121,7 +132,8 @@ void MemoryBuffer::read(float* result, int x, int y) {
 		result[3] = 0.0f;
 	}
 }
-void MemoryBuffer::writePixel(int x, int y, float color[4]) {
+void MemoryBuffer::writePixel(int x, int y, float color[4])
+{
 	if (x>=this->rect.xmin && x < this->rect.xmax &&
 			y>=this->rect.ymin && y < this->rect.ymax) {
 		int offset = (this->chunkWidth*y+x)*4;
@@ -132,7 +144,8 @@ void MemoryBuffer::writePixel(int x, int y, float color[4]) {
 	}
 }
 
-void MemoryBuffer::readCubic(float* result, float x, float y) {
+void MemoryBuffer::readCubic(float *result, float x, float y)
+{
 	int x1 = floor(x);
 	int x2 = x1 + 1;
 	int y1 = floor(y);
@@ -208,7 +221,7 @@ static float EWA_WTS[EWA_MAXIDX + 1] =
  0.00754159f, 0.00625989f, 0.00498819f, 0.00372644f, 0.00247454f, 0.00123242f, 0.f
 };
 
-static void radangle2imp(float a2, float b2, float th, float* A, float* B, float* C, float* F)
+static void radangle2imp(float a2, float b2, float th, float *A, float *B, float *C, float *F)
 {
 	float ct2 = cosf(th);
 	const float st2 = 1.f - ct2*ct2;	// <- sin(th)^2
@@ -220,7 +233,7 @@ static void radangle2imp(float a2, float b2, float th, float* A, float* B, float
 }
 
 // all tests here are done to make sure possible overflows are hopefully minimized
-static void imp2radangle(float A, float B, float C, float F, float* a, float* b, float* th, float* ecc)
+static void imp2radangle(float A, float B, float C, float F, float *a, float *b, float *th, float *ecc)
 {
 	if (F <= 1e-5f) {	// use arbitrary major radius, zero minor, infinite eccentricity
 		*a = sqrtf(A > C ? A : C);
@@ -247,12 +260,14 @@ static void imp2radangle(float A, float B, float C, float F, float* a, float* b,
 	}
 }
 
-float clipuv(float x, float limit) {
+float clipuv(float x, float limit)
+{
 	x = (x < 0) ? 0 : ((x >= limit) ? (limit - 1) : x);
 	return x;
 }
 
-void MemoryBuffer::readEWA(float* result, float fx, float fy, float dx, float dy) {
+void MemoryBuffer::readEWA(float *result, float fx, float fy, float dx, float dy)
+{
 	int width = this->getWidth(), height = this->getHeight();
 	
 	// scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,

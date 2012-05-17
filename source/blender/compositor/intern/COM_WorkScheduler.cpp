@@ -65,14 +65,15 @@ static bool openclActive = false;
 
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-void* WorkScheduler::thread_execute_cpu(void* data) {
+void *WorkScheduler::thread_execute_cpu(void *data)
+{
 	bool continueLoop = true;
-	Device* device = (Device*)data;
+	Device *device = (Device*)data;
 	while (continueLoop) {
-		WorkPackage* work = (WorkPackage*)BLI_thread_queue_pop(cpuqueue);
+		WorkPackage *work = (WorkPackage*)BLI_thread_queue_pop(cpuqueue);
 		if (work) {
-		   device->execute(work);
-		   delete work;
+			device->execute(work);
+			delete work;
 		}
 		PIL_sleep_ms(10);
 
@@ -83,11 +84,12 @@ void* WorkScheduler::thread_execute_cpu(void* data) {
 	return NULL;
 }
 
-void* WorkScheduler::thread_execute_gpu(void* data) {
+void *WorkScheduler::thread_execute_gpu(void *data)
+{
 	bool continueLoop = true;
-	Device* device = (Device*)data;
+	Device *device = (Device*)data;
 	while (continueLoop) {
-		WorkPackage* work = (WorkPackage*)BLI_thread_queue_pop(gpuqueue);
+		WorkPackage *work = (WorkPackage*)BLI_thread_queue_pop(gpuqueue);
 		if (work) {
 			device->execute(work);
 			delete work;
@@ -106,8 +108,9 @@ bool WorkScheduler::isStopping() {return state == COM_WSS_STOPPING;}
 
 
 
-void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber) {
-	WorkPackage* package = new WorkPackage(group, chunkNumber);
+void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber)
+{
+	WorkPackage *package = new WorkPackage(group, chunkNumber);
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
 	CPUDevice device;
 	device.execute(package);
@@ -126,14 +129,15 @@ void WorkScheduler::schedule(ExecutionGroup *group, int chunkNumber) {
 #endif
 }
 
-void WorkScheduler::start(CompositorContext &context) {
+void WorkScheduler::start(CompositorContext &context)
+{
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	unsigned int index;
 	cpuqueue = BLI_thread_queue_init();
 	BLI_thread_queue_nowait(cpuqueue);
 	BLI_init_threads(&cputhreads, thread_execute_cpu, cpudevices.size());
 	for (index = 0 ; index < cpudevices.size() ; index ++) {
-		Device* device = cpudevices[index];
+		Device *device = cpudevices[index];
 		BLI_insert_thread(&cputhreads, device);
 	}
 #ifdef COM_OPENCL_ENABLED
@@ -142,7 +146,7 @@ void WorkScheduler::start(CompositorContext &context) {
 		BLI_thread_queue_nowait(gpuqueue);
 		BLI_init_threads(&gputhreads, thread_execute_gpu, gpudevices.size());
 		for (index = 0 ; index < gpudevices.size() ; index ++) {
-			Device* device = gpudevices[index];
+			Device *device = gpudevices[index];
 			BLI_insert_thread(&gputhreads, device);
 		}
 		openclActive = true;
@@ -154,7 +158,8 @@ void WorkScheduler::start(CompositorContext &context) {
 #endif
 	state = COM_WSS_STARTED;
 }
-void WorkScheduler::finish() {
+void WorkScheduler::finish()
+{
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #ifdef COM_OPENCL_ENABLED
 	if (openclActive) {
@@ -174,7 +179,8 @@ void WorkScheduler::finish() {
 #endif
 #endif
 }
-void WorkScheduler::stop() {
+void WorkScheduler::stop()
+{
 	state = COM_WSS_STOPPING;
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 	BLI_end_threads(&cputhreads);
@@ -191,7 +197,8 @@ void WorkScheduler::stop() {
 	state = COM_WSS_STOPPED;
 }
 
-bool WorkScheduler::hasGPUDevices() {
+bool WorkScheduler::hasGPUDevices()
+{
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
 #ifdef COM_OPENCL_ENABLED
 	return gpudevices.size()>0;
@@ -203,11 +210,13 @@ bool WorkScheduler::hasGPUDevices() {
 #endif
 }
 
-extern void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data) {
+extern void clContextError(const char *errinfo, const void *private_info, size_t cb, void *user_data)
+{
 	printf("OPENCL error: %s\n", errinfo);
 }
 
-void WorkScheduler::initialize() {
+void WorkScheduler::initialize()
+{
 	state = COM_WSS_UNKNOWN;
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
@@ -257,7 +266,7 @@ void WorkScheduler::initialize() {
 			printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
 			error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 			if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
-			char* build_log =  new char[ret_val_size+1];
+			char *build_log =  new char[ret_val_size+1];
 			error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, ret_val_size, build_log, NULL);
 			if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
 			build_log[ret_val_size] = '\0';
@@ -268,7 +277,7 @@ void WorkScheduler::initialize() {
 		unsigned int indexDevices;
 		for (indexDevices = 0 ; indexDevices < totalNumberOfDevices ; indexDevices ++) {
 			cl_device_id device = cldevices[indexDevices];
-			OpenCLDevice* clDevice = new OpenCLDevice(context, device, program);
+			OpenCLDevice *clDevice = new OpenCLDevice(context, device, program);
 			clDevice->initialize(),
 			gpudevices.push_back(clDevice);
 			char resultString[32];
@@ -286,9 +295,10 @@ void WorkScheduler::initialize() {
 	state = COM_WSS_INITIALIZED;
 }
 
-void WorkScheduler::deinitialize() {
+void WorkScheduler::deinitialize()
+{
 #if COM_CURRENT_THREADING_MODEL == COM_TM_QUEUE
-	Device* device;
+	Device *device;
 	while (cpudevices.size()>0) {
 		device = cpudevices.back();
 		cpudevices.pop_back();

@@ -45,7 +45,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution
@@ -60,7 +60,7 @@ public:
 	/**
 	  * @brief set the TexMapping settings
 	  */
-	void setSettings(TexMapping* settings) {this->settings = settings;}
+	void setSettings(TexMapping *settings) {this->settings = settings;}
 	
 };
 #endif

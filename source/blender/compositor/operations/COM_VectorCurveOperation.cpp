@@ -30,27 +30,31 @@ extern "C" {
 }
 #endif
 
-VectorCurveOperation::VectorCurveOperation(): CurveBaseOperation() {
+VectorCurveOperation::VectorCurveOperation(): CurveBaseOperation()
+{
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_VECTOR);
 
 	this->inputProgram = NULL;
 }
-void VectorCurveOperation::initExecution() {
+void VectorCurveOperation::initExecution()
+{
 	CurveBaseOperation::initExecution();
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void VectorCurveOperation::executePixel(float* output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void VectorCurveOperation::executePixel(float *output, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float input[4];
 
 
 	this->inputProgram->read(input, x, y, sampler, inputBuffers);
 
 	curvemapping_evaluate_premulRGBF(this->curveMapping, output, input);
-	output[3]= input[3];
+	output[3] = input[3];
 }
 
-void VectorCurveOperation::deinitExecution() {
+void VectorCurveOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

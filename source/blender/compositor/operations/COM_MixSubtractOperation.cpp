@@ -22,10 +22,12 @@
 
 #include "COM_MixSubtractOperation.h"
 
-MixSubtractOperation::MixSubtractOperation(): MixBaseOperation() {
+MixSubtractOperation::MixSubtractOperation(): MixBaseOperation()
+{
 }
 
-void MixSubtractOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixSubtractOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;

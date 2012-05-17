@@ -25,11 +25,13 @@
 #include "COM_TonemapOperation.h"
 #include "COM_ExecutionSystem.h"
 
-TonemapNode::TonemapNode(bNode *editorNode): Node(editorNode) {
+TonemapNode::TonemapNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void TonemapNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
-	NodeTonemap* data = (NodeTonemap*)this->getbNode()->storage;
+void TonemapNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
+	NodeTonemap *data = (NodeTonemap*)this->getbNode()->storage;
 	TonemapOperation *operation = data->type==1?new PhotoreceptorTonemapOperation():new TonemapOperation();
 
 	operation->setData(data);

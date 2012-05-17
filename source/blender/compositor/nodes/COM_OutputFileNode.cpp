@@ -27,11 +27,13 @@
 #include "BLI_path_util.h"
 #include "BKE_utildefines.h"
 
-OutputFileNode::OutputFileNode(bNode *editorNode): Node(editorNode) {
+OutputFileNode::OutputFileNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	NodeImageMultiFile* storage = (NodeImageMultiFile*)this->getbNode()->storage;
+void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	NodeImageMultiFile *storage = (NodeImageMultiFile*)this->getbNode()->storage;
 	
 	if (!context->isRendering()) {
 		/* XXX TODO as in previous implementation?

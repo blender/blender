@@ -22,7 +22,8 @@
 
 #include "COM_SetAlphaOperation.h"
 
-SetAlphaOperation::SetAlphaOperation(): NodeOperation() {
+SetAlphaOperation::SetAlphaOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -31,12 +32,14 @@ SetAlphaOperation::SetAlphaOperation(): NodeOperation() {
 	this->inputAlpha = NULL;
 }
 
-void SetAlphaOperation::initExecution() {
+void SetAlphaOperation::initExecution()
+{
 	this->inputColor = getInputSocketReader(0);
 	this->inputAlpha = getInputSocketReader(1);
 }
 
-void SetAlphaOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void SetAlphaOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float alphaInput[4];
 	
 	this->inputColor->read(outputValue, x, y, sampler, inputBuffers);
@@ -45,7 +48,8 @@ void SetAlphaOperation::executePixel(float* outputValue, float x, float y, Pixel
 	outputValue[3] = alphaInput[0];
 }
 
-void SetAlphaOperation::deinitExecution() {
+void SetAlphaOperation::deinitExecution()
+{
 	this->inputColor = NULL;
 	this->inputAlpha = NULL;
 }

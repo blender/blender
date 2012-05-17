@@ -41,11 +41,11 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
 	
-	void setSettings(NodeChroma* nodeChroma) {this->settings= nodeChroma;}
+	void setSettings(NodeChroma *nodeChroma) {this->settings = nodeChroma;}
 };
 #endif

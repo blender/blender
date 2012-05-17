@@ -31,9 +31,9 @@
   */
 class DifferenceMatteOperation : public NodeOperation {
 private:
-	NodeChroma* settings;
+	NodeChroma *settings;
 	SocketReader * inputImage1Program;
-	SocketReader* inputImage2Program;
+	SocketReader *inputImage2Program;
 public:
 	/**
 	  * Default constructor
@@ -43,11 +43,11 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
 	
-	void setSettings(NodeChroma* nodeChroma) {this->settings= nodeChroma;}
+	void setSettings(NodeChroma *nodeChroma) {this->settings = nodeChroma;}
 };
 #endif

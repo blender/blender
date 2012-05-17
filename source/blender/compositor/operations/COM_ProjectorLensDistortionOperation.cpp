@@ -24,24 +24,28 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-ProjectorLensDistortionOperation::ProjectorLensDistortionOperation(): NodeOperation() {
+ProjectorLensDistortionOperation::ProjectorLensDistortionOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 	this->inputProgram = NULL;
 }
-void ProjectorLensDistortionOperation::initExecution() {
+void ProjectorLensDistortionOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	kr = 0.25f*MAX2(MIN2(this->dispersion, 1.f), 0.f);
 	kr2 = kr * 20;
 }
 
-void* ProjectorLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
-	void* buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+void *ProjectorLensDistortionOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void ProjectorLensDistortionOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void ProjectorLensDistortionOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float inputValue[4];
 	const float height = this->getHeight();
 	const float width = this->getWidth();
@@ -57,11 +61,13 @@ void ProjectorLensDistortionOperation::executePixel(float* color, int x, int y, 
 	color[3] = 1.0f;
 }
 
-void ProjectorLensDistortionOperation::deinitExecution() {
+void ProjectorLensDistortionOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 
-bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ProjectorLensDistortionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	newInput.ymax = input->ymax;
 	newInput.ymin = input->ymin;

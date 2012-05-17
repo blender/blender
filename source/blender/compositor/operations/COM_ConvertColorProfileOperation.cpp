@@ -25,23 +25,27 @@
 extern "C" {
 	#include "IMB_imbuf.h"
 }
-ConvertColorProfileOperation::ConvertColorProfileOperation(): NodeOperation() {
+ConvertColorProfileOperation::ConvertColorProfileOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 	this->predivided = false;
 }
 
-void ConvertColorProfileOperation::initExecution() {
+void ConvertColorProfileOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 }
 
-void ConvertColorProfileOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertColorProfileOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float color[4];
 	inputOperation->read(color, x, y, sampler, inputBuffers);
 	IMB_buffer_float_from_float(outputValue, color, 4, this->toProfile, this->fromProfile, this->predivided, 1, 1, 0, 0);
 }
 
-void ConvertColorProfileOperation::deinitExecution() {
+void ConvertColorProfileOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }

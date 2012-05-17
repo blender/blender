@@ -31,15 +31,16 @@
 #include "COM_SetValueOperation.h"
 #include "DNA_material_types.h" // the ramp types
 
-void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *valueSocket = this->getInputSocket(0);
 	InputSocket *color1Socket = this->getInputSocket(1);
 	InputSocket *color2Socket = this->getInputSocket(2);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	bNode* editorNode = this->getbNode();
+	bNode *editorNode = this->getbNode();
 	
 	MixBaseOperation *convertProg;
-	NodeTwoFloats *ntf= (NodeTwoFloats*)editorNode->storage;
+	NodeTwoFloats *ntf = (NodeTwoFloats*)editorNode->storage;
 	if (ntf->x!= 0.0f) {
 		AlphaOverMixedOperation *mixOperation  = new AlphaOverMixedOperation();
 		mixOperation->setX(ntf->x);

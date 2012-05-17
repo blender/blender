@@ -38,14 +38,14 @@ public:
 	WriteBufferOperation();
 	~WriteBufferOperation();
 	int isBufferOperation() {return true;}
-	MemoryProxy* getMemoryProxy() {return this->memoryProxy;}
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	MemoryProxy *getMemoryProxy() {return this->memoryProxy;}
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	const bool isWriteBufferOperation() const {return true;}
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
 	void initExecution();
 	void deinitExecution();
-	void setbNodeTree(const bNodeTree* tree) {this->tree = tree;}
+	void setbNodeTree(const bNodeTree *tree) {this->tree = tree;}
 	void executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** memoryBuffers);
 
 };

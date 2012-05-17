@@ -42,20 +42,20 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution
 	  */
 	void initExecution();
 	
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
 	  * Deinitialize the execution
 	  */
 	void deinitExecution();
 	
-	void setData(NodeLensDist* data) {this->data = data;}
+	void setData(NodeLensDist *data) {this->data = data;}
 	void setDispertion(float dispersion) {this->dispersion = dispersion;}
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);

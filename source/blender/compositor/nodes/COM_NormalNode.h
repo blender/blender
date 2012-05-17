@@ -32,8 +32,8 @@
 class NormalNode : public Node
 {
 public:
-	NormalNode(bNode* editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	NormalNode(bNode *editorNode);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif // COM_NormalNODE_H

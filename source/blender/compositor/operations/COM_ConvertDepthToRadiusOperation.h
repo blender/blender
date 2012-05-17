@@ -52,7 +52,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution
@@ -66,7 +66,7 @@ public:
 	
 	void setfStop(float fStop) {this->fStop = fStop;}
 	void setMaxRadius(float maxRadius) {this->maxRadius = maxRadius;}
-	void setCameraObject(Object* camera) {this->cameraObject = camera;}
+	void setCameraObject(Object *camera) {this->cameraObject = camera;}
 	float determineFocalDistance();
 };
 #endif

@@ -28,7 +28,8 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
 
-SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput): Node(editorNode, false) {
+SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput): Node(editorNode, false)
+{
 	DataType dt;
 	
 	dt = COM_DT_VALUE;
@@ -42,7 +43,8 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bN
 	this->addOutputSocket(dt, editorOutput);
 }
 
-void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	OutputSocket * outputsocket = this->getOutputSocket(0);
 	if (outputsocket->isConnected()) {
 		SocketProxyOperation *operation = new SocketProxyOperation();
@@ -52,7 +54,8 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	}
 }
 
-void OutputSocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void OutputSocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	OutputSocket * outputsocket = this->getOutputSocket(0);
 	InputSocket * inputsocket = this->getInputSocket(0);
 	if (outputsocket->isConnected()) {

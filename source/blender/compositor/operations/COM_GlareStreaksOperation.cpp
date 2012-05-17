@@ -23,7 +23,8 @@
 #include "COM_GlareStreaksOperation.h"
 #include "BLI_math.h"
 
-void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) {
+void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
+{
 	int x, y, n;
 	unsigned int nump=0;
 	float c1[4], c2[4], c3[4], c4[4];
@@ -33,8 +34,8 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	int size4 = size*4;
 
 	
-	MemoryBuffer* tsrc = inputTile->duplicate();
-	MemoryBuffer* tdst = new MemoryBuffer(NULL, inputTile->getRect());
+	MemoryBuffer *tsrc = inputTile->duplicate();
+	MemoryBuffer *tdst = new MemoryBuffer(NULL, inputTile->getRect());
 	tdst->clear();
 	memset(data, 0, size4*sizeof(float));
 	
@@ -46,7 +47,7 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 			const float vxp = vx*p4, vyp = vy*p4;
 			const float wt = pow((double)settings->fade, (double)p4);
 			const float cmo = 1.f - (float)pow((double)settings->colmod, (double)n+1);	// colormodulation amount relative to current pass
-			float* tdstcol = tdst->getBuffer();
+			float *tdstcol = tdst->getBuffer();
 			for (y=0; y<tsrc->getHeight(); ++y) {
 				for (x=0; x<tsrc->getWidth(); ++x, tdstcol+=4) {
 					// first pass no offset, always same for every pass, exact copy,
@@ -75,7 +76,7 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 		}
 
 //		addImage(sbuf, tsrc, 1.f/(float)(6 - ndg->iter)); // add result to data @todo
-		float* sourcebuffer = tsrc->getBuffer();
+		float *sourcebuffer = tsrc->getBuffer();
 		float factor = 1.f/(float)(6 - settings->iter);
 		for (int i = 0 ; i < size4; i ++) {
 			data[i] += sourcebuffer[i] * factor;

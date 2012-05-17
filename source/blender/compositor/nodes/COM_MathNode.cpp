@@ -24,8 +24,9 @@
 #include "COM_MathBaseOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	MathBaseOperation* operation=NULL;
+void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	MathBaseOperation *operation=NULL;
 	
 	switch (this->getbNode()->custom1)
 	{

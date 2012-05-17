@@ -30,7 +30,8 @@
 
 #include "DNA_material_types.h" // the ramp types
 
-void ZCombineNode::convertToOperations(ExecutionSystem* system, CompositorContext * context) {
+void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
 	if (this->getOutputSocket(0)->isConnected()) {
 		ZCombineOperation * operation = NULL;
 		if (this->getbNode()->custom1) {

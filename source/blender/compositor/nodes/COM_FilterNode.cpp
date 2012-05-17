@@ -27,11 +27,12 @@
 #include "BKE_node.h"
 #include "COM_MixBlendOperation.h"
 
-FilterNode::FilterNode(bNode* editorNode): Node(editorNode)
+FilterNode::FilterNode(bNode *editorNode): Node(editorNode)
 {
 }
 
-void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputImageSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);

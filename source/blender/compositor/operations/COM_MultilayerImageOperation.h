@@ -30,9 +30,9 @@
 class MultilayerBaseOperation: public BaseImageOperation {
 private:
 	int passId;
-	RenderLayer* renderlayer;
+	RenderLayer *renderlayer;
 protected:
-	ImBuf* getImBuf();
+	ImBuf *getImBuf();
 public:
 	/**
 	  * Constructor

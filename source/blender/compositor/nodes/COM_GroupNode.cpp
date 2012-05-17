@@ -24,13 +24,16 @@
 #include "COM_SocketProxyNode.h"
 #include "COM_ExecutionSystemHelper.h"
 
-GroupNode::GroupNode(bNode *editorNode): Node(editorNode) {
+GroupNode::GroupNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 }
 
-void GroupNode::ungroup(ExecutionSystem &system) {
+void GroupNode::ungroup(ExecutionSystem &system)
+{
 	vector<InputSocket*> &inputsockets = this->getInputSockets();
 	vector<OutputSocket*> &outputsockets = this->getOutputSockets();
 	unsigned int index;
@@ -65,6 +68,6 @@ void GroupNode::ungroup(ExecutionSystem &system) {
 		}
 	}
 
-	bNodeTree* subtree = (bNodeTree*)this->getbNode()->id;
+	bNodeTree *subtree = (bNodeTree*)this->getbNode()->id;
 	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree);
 }

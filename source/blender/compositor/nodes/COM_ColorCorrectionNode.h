@@ -32,7 +32,7 @@
 class ColorCorrectionNode: public Node {
 public:
 	ColorCorrectionNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif

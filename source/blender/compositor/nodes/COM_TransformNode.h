@@ -29,6 +29,6 @@
   */
 class TransformNode : public Node {
 public:
-	TransformNode(bNode* editorNode);
+	TransformNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };

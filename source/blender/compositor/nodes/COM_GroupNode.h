@@ -33,7 +33,7 @@
 class GroupNode: public Node {
 public:
 	GroupNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 
 	/**
 	  * @brief check if this node a group node.

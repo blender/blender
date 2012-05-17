@@ -23,17 +23,20 @@
 #include "COM_LensGlowOperation.h"
 #include "BLI_math.h"
 
-LensGlowOperation::LensGlowOperation(): NodeOperation() {
+LensGlowOperation::LensGlowOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 	this->lamp = NULL;
 }
-void LensGlowOperation::initExecution() {
+void LensGlowOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 }
 
-void LensGlowOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void LensGlowOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 //	const float emit100 = this->lamp->energy*100;
 //	const float emit200 = emit100*2;
 //	const float deltaX = 160-x;
@@ -49,6 +52,7 @@ void LensGlowOperation::executePixel(float* color, float x, float y, PixelSample
 //	color[3] = 1.0f;
 }
 
-void LensGlowOperation::deinitExecution() {
+void LensGlowOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }

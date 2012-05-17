@@ -26,7 +26,8 @@
 
 
 
-CalculateMeanOperation::CalculateMeanOperation(): NodeOperation() {
+CalculateMeanOperation::CalculateMeanOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->imageReader = NULL;
@@ -34,27 +35,31 @@ CalculateMeanOperation::CalculateMeanOperation(): NodeOperation() {
 	this->setting = 1;
 	this->setComplex(true);
 }
-void CalculateMeanOperation::initExecution() {
+void CalculateMeanOperation::initExecution()
+{
 	this->imageReader = this->getInputSocketReader(0);
 	this->iscalculated = false;
 	NodeOperation::initMutex();
 }
 
-void CalculateMeanOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void CalculateMeanOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	color[0] = this->result;
 }
 
-void CalculateMeanOperation::deinitExecution() {
+void CalculateMeanOperation::deinitExecution()
+{
 	this->imageReader = NULL;
 	NodeOperation::deinitMutex();
 }
 
-bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti imageInput;
 	if (iscalculated) {
 		return false;
 	}
-	NodeOperation* operation = getInputOperation(0);
+	NodeOperation *operation = getInputOperation(0);
 	imageInput.xmax = operation->getWidth();
 	imageInput.xmin = 0;
 	imageInput.ymax = operation->getHeight();
@@ -65,10 +70,11 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	return false;
 }
 
-void* CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	BLI_mutex_lock(getMutex());
 	if (!this->iscalculated) {
-		MemoryBuffer* tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		calculateMean(tile);
 		this->iscalculated = true;
 	}
@@ -76,9 +82,10 @@ void* CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 	return NULL;
 }
 
-void CalculateMeanOperation::calculateMean(MemoryBuffer * tile) {
+void CalculateMeanOperation::calculateMean(MemoryBuffer * tile)
+{
 	this->result = 0.0f;
-	float* buffer = tile->getBuffer();
+	float *buffer = tile->getBuffer();
 	int size = tile->getWidth()*tile->getHeight();
 	int pixels = 0;
 	float sum;

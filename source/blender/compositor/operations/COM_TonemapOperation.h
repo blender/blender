@@ -64,14 +64,14 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
 	
 	/**
 	  * Initialize the execution
 	  */
 	void initExecution();
 	
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
 	
 	/**
@@ -79,7 +79,7 @@ public:
 	  */
 	void deinitExecution();
 	
-	void setData(NodeTonemap* data) {this->data = data;}
+	void setData(NodeTonemap *data) {this->data = data;}
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
@@ -97,7 +97,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
 };
 
 #endif

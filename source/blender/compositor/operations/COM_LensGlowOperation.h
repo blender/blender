@@ -31,7 +31,7 @@ private:
 	  * Cached reference to the inputProgram
 	  */
 	SocketReader * inputProgram;
-	Lamp* lamp;
+	Lamp *lamp;
 
 public:
 	LensGlowOperation();
@@ -39,7 +39,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution
@@ -51,6 +51,6 @@ public:
 	  */
 	void deinitExecution();
 	
-	void setLamp(Lamp* lamp) {this->lamp = lamp;}
+	void setLamp(Lamp *lamp) {this->lamp = lamp;}
 };
 #endif

@@ -37,14 +37,14 @@ private:
 	  */
 	NodeGlare * settings;
 	
-	float* cachedInstance;
+	float *cachedInstance;
 
 public:
 	
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution
@@ -56,14 +56,14 @@ public:
 	  */
 	void deinitExecution();
 
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
 	void setGlareSettings(NodeGlare * settings) {this->settings = settings;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 protected:
 	GlareBaseOperation();
 	
-	virtual void generateGlare(float* data, MemoryBuffer* inputTile, NodeGlare* settings) = 0;
+	virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
 	
 	
 };

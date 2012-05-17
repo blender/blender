@@ -31,7 +31,7 @@ class MovieClipNode : public Node {
 
 
 public:
-	MovieClipNode(bNode* editorNode);
+	MovieClipNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 
 };

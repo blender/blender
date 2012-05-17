@@ -27,7 +27,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation() {
+VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE); // do not resize the bokeh image.
 	this->addInputSocket(COM_DT_VALUE);
@@ -42,14 +43,16 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 }
 
 
-void VariableSizeBokehBlurOperation::initExecution() {
+void VariableSizeBokehBlurOperation::initExecution()
+{
 	this->inputProgram = getInputSocketReader(0);
 	this->inputBokehProgram = getInputSocketReader(1);
 	this->inputSizeProgram = getInputSocketReader(2);
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void VariableSizeBokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float tempColor[4];
 	float readColor[4];
 	float bokeh[4];
@@ -87,8 +90,8 @@ void VariableSizeBokehBlurOperation::executePixel(float* color, int x, int y, Me
 						/* pass */
 					}
 					else if (size>=  fabs(dx) && size >= fabs(dy)) {
-						float u = 256+ dx*256/size;
-						float v = 256+ dy*256/size;
+						float u = 256 + dx*256/size;
+						float v = 256 + dy*256/size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
 						tempColor[0] += bokeh[0] * readColor[0];
@@ -109,13 +112,15 @@ void VariableSizeBokehBlurOperation::executePixel(float* color, int x, int y, Me
 
 }
 
-void VariableSizeBokehBlurOperation::deinitExecution() {
+void VariableSizeBokehBlurOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 	this->inputBokehProgram = NULL;
 	this->inputSizeProgram = NULL;
 }
 
-bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	rcti bokehInput;
 
@@ -128,7 +133,7 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	bokehInput.ymax = 512;
 	bokehInput.ymin = 0;
 
-	NodeOperation* operation = getInputOperation(2);
+	NodeOperation *operation = getInputOperation(2);
 	if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output) ) {
 		return true;
 	}

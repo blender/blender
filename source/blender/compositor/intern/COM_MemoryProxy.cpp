@@ -23,13 +23,15 @@
 #include "COM_MemoryProxy.h"
 
 
-MemoryProxy::MemoryProxy() {
+MemoryProxy::MemoryProxy()
+{
 	this->state = NULL;
 	this->writeBufferOperation = NULL;
 	this->executor = NULL;
 }
 
-MemoryProxy::~MemoryProxy() {
+MemoryProxy::~MemoryProxy()
+{
 	if (this->state) {
 		delete this->state;
 		this->state = NULL;

@@ -23,7 +23,8 @@
 #include "COM_RotateOperation.h"
 #include "BLI_math.h"
 
-RotateOperation::RotateOperation() : NodeOperation() {
+RotateOperation::RotateOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -32,7 +33,8 @@ RotateOperation::RotateOperation() : NodeOperation() {
 	this->degreeSocket =  NULL;
 	this->doDegree2RadConversion = false;
 }
-void RotateOperation::initExecution() {
+void RotateOperation::initExecution()
+{
 	this->imageSocket = this->getInputSocketReader(0);
 	this->degreeSocket = this->getInputSocketReader(1);
 	this->centerX = this->getWidth()/2.0;
@@ -50,13 +52,15 @@ void RotateOperation::initExecution() {
 	this->sine = sin(rad);
 }
 
-void RotateOperation::deinitExecution() {
+void RotateOperation::deinitExecution()
+{
 	this->imageSocket = NULL;
 	this->degreeSocket = NULL;
 }
 
 
-void RotateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void RotateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	const float dy = y - this->centerY;
 	const float dx = x - this->centerX;
 	const float nx = this->centerX+(this->cosine*dx + this->sine*dy);
@@ -64,7 +68,8 @@ void RotateOperation::executePixel(float *color,float x, float y, PixelSampler s
 	this->imageSocket->read(color, nx, ny, sampler, inputBuffers);
 }
 
-bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	
 	const float dxmin = input->xmin - this->centerX;

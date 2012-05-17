@@ -27,7 +27,8 @@
 /**
   * @brief create new ChannelInfo instance and sets the defaults.
   */
-ChannelInfo::ChannelInfo() {
+ChannelInfo::ChannelInfo()
+{
 	this->number = 0;
 	this->premultiplied = true;
 	this->type = COM_CT_UNUSED;

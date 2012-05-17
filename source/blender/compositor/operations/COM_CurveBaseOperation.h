@@ -39,6 +39,6 @@ public:
 	 */
 	void initExecution();
 	
-	void setCurveMapping(CurveMapping* mapping) {this->curveMapping = mapping;}
+	void setCurveMapping(CurveMapping *mapping) {this->curveMapping = mapping;}
 };
 #endif

@@ -23,10 +23,12 @@
 #include "COM_FogGlowImageOperation.h"
 #include "BLI_math.h"
 
-FogGlowImageOperation::FogGlowImageOperation(): NodeOperation() {
+FogGlowImageOperation::FogGlowImageOperation(): NodeOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 }
-void FogGlowImageOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void FogGlowImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	const float cs_r = 1.f, cs_g = 1.f, cs_b = 1.f;
 
 	float u, v, w, d, r;
@@ -42,7 +44,8 @@ void FogGlowImageOperation::executePixel(float* color, float x, float y, PixelSa
 	color[3] = 1.0f;
 }
 
-void FogGlowImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void FogGlowImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	resolution[0] = 512;
 	resolution[1] = 512;
 }

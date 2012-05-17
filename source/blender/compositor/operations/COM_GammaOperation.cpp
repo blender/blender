@@ -23,19 +23,22 @@
 #include "COM_GammaOperation.h"
 #include "BLI_math.h"
 
-GammaOperation::GammaOperation(): NodeOperation() {
+GammaOperation::GammaOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 	this->inputGammaProgram = NULL;
 }
-void GammaOperation::initExecution() {
+void GammaOperation::initExecution()
+{
 	this->inputProgram = this->getInputSocketReader(0);
 	this->inputGammaProgram = this->getInputSocketReader(1);
 }
 
-void GammaOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void GammaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float inputGamma[4];
 	
@@ -50,7 +53,8 @@ void GammaOperation::executePixel(float* color, float x, float y, PixelSampler s
 	color[3] = inputValue[3];
 }
 
-void GammaOperation::deinitExecution() {
+void GammaOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 	this->inputGammaProgram = NULL;
 }

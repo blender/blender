@@ -33,16 +33,18 @@
 #include "COM_SetValueOperation.h"
 #include "COM_GammaCorrectOperation.h"
 
-DefocusNode::DefocusNode(bNode *editorNode): Node(editorNode) {
+DefocusNode::DefocusNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	bNode *node = this->getbNode();
-	Scene *scene= (Scene*)node->id;
-	Object* camob = (scene)? scene->camera: NULL;
+	Scene *scene = (Scene*)node->id;
+	Object *camob = (scene)? scene->camera: NULL;
 	NodeDefocus *data = (NodeDefocus*)node->storage;
 
-	NodeOperation* radiusOperation;
+	NodeOperation *radiusOperation;
 	if (data->no_zbuf) {
 		MathMultiplyOperation *multiply = new MathMultiplyOperation();
 		SetValueOperation *multiplier = new SetValueOperation();

@@ -22,7 +22,8 @@
 
 #include "COM_MixBaseOperation.h"
 
-MixBaseOperation::MixBaseOperation(): NodeOperation() {
+MixBaseOperation::MixBaseOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
@@ -33,13 +34,15 @@ MixBaseOperation::MixBaseOperation(): NodeOperation() {
 	this->setUseValueAlphaMultiply(false);
 }
 
-void MixBaseOperation::initExecution() {
+void MixBaseOperation::initExecution()
+{
 	this->inputValueOperation = this->getInputSocketReader(0);
 	this->inputColor1Operation = this->getInputSocketReader(1);
 	this->inputColor2Operation = this->getInputSocketReader(2);
 }
 
-void MixBaseOperation::executePixel(float* outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixBaseOperation::executePixel(float *outputColor, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -51,21 +54,23 @@ void MixBaseOperation::executePixel(float* outputColor, float x, float y, PixelS
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	outputColor[0] = valuem*(inputColor1[0])+value*(inputColor2[0]);
 	outputColor[1] = valuem*(inputColor1[1])+value*(inputColor2[1]);
 	outputColor[2] = valuem*(inputColor1[2])+value*(inputColor2[2]);
 	outputColor[3] = inputColor1[3];
 }
 
-void MixBaseOperation::deinitExecution() {
+void MixBaseOperation::deinitExecution()
+{
 	this->inputValueOperation = NULL;
 	this->inputColor1Operation = NULL;
 	this->inputColor2Operation = NULL;
 }
 
-void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
-	InputSocket* socket;
+void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	InputSocket *socket;
 	unsigned int tempPreferredResolution[] = {0,0};
 	unsigned int tempResolution[2];
 	

@@ -24,13 +24,15 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_TextureOperation.h"
 
-TextureNode::TextureNode(bNode *editorNode): Node(editorNode) {
+TextureNode::TextureNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
-	bNode* editorNode = this->getbNode();
-	Tex* texture = (Tex*)editorNode->id;
-	TextureOperation* operation = new TextureOperation();
+void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
+	bNode *editorNode = this->getbNode();
+	Tex *texture = (Tex*)editorNode->id;
+	TextureOperation *operation = new TextureOperation();
 	this->getOutputSocket(1)->relinkConnections(operation->getOutputSocket());
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, system);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, system);
@@ -39,7 +41,7 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	addPreviewOperation(system, operation->getOutputSocket(), 9);
 
 	if (this->getOutputSocket(0)->isConnected()) {
-		TextureAlphaOperation* alphaOperation = new TextureAlphaOperation();
+		TextureAlphaOperation *alphaOperation = new TextureAlphaOperation();
 		this->getOutputSocket(0)->relinkConnections(alphaOperation->getOutputSocket());
 		addLink(system, operation->getInputSocket(0)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(0));
 		addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), alphaOperation->getInputSocket(1));

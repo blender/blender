@@ -24,10 +24,12 @@
 #include "COM_CompositorOperation.h"
 #include "COM_ExecutionSystem.h"
 
-CompositorNode::CompositorNode(bNode *editorNode): Node(editorNode) {
+CompositorNode::CompositorNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
 	if (imageSocket->isConnected()) {

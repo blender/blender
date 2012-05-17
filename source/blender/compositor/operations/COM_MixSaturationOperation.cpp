@@ -26,10 +26,12 @@ extern "C" {
 	#include "BLI_math.h"
 }
 
-MixSaturationOperation::MixSaturationOperation(): MixBaseOperation() {
+MixSaturationOperation::MixSaturationOperation(): MixBaseOperation()
+{
 }
 
-void MixSaturationOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixSaturationOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float value;
@@ -41,7 +43,7 @@ void MixSaturationOperation::executePixel(float* outputValue, float x, float y, 
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	
 	float rH,rS,rV;
 	rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);

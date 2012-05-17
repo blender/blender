@@ -27,7 +27,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BokehBlurOperation::BokehBlurOperation() : NodeOperation() {
+BokehBlurOperation::BokehBlurOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addInputSocket(COM_DT_VALUE);
@@ -41,12 +42,14 @@ BokehBlurOperation::BokehBlurOperation() : NodeOperation() {
 	this->inputBoundingBoxReader = NULL;
 }
 
-void* BokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
-	void* buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
+void *BokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void BokehBlurOperation::initExecution() {
+void BokehBlurOperation::initExecution()
+{
 	this->inputProgram = getInputSocketReader(0);
 	this->inputBokehProgram = getInputSocketReader(1);
 	this->inputBoundingBoxReader = getInputSocketReader(2);
@@ -67,7 +70,8 @@ void BokehBlurOperation::initExecution() {
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float tempColor[4];
 	float tempBoundingBox[4];
 	float bokeh[4];
@@ -81,8 +85,8 @@ void BokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 		float overallmultiplyerr = 0;
 		float overallmultiplyerg = 0;
 		float overallmultiplyerb = 0;
-		MemoryBuffer* inputBuffer = (MemoryBuffer*)data;
-		float* buffer = inputBuffer->getBuffer();
+		MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+		float *buffer = inputBuffer->getBuffer();
 		int bufferwidth = inputBuffer->getWidth();
 		int bufferstartx = inputBuffer->getRect()->xmin;
 		int bufferstarty = inputBuffer->getRect()->ymin;
@@ -126,13 +130,15 @@ void BokehBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 	}
 }
 
-void BokehBlurOperation::deinitExecution() {
+void BokehBlurOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 	this->inputBokehProgram = NULL;
 	this->inputBoundingBoxReader = NULL;
 }
 
-bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	rcti bokehInput;
 
@@ -141,7 +147,7 @@ bool BokehBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	newInput.ymax = input->ymax + (size*this->getWidth());
 	newInput.ymin = input->ymin - (size*this->getWidth());
 
-	NodeOperation* operation = getInputOperation(1);
+	NodeOperation *operation = getInputOperation(1);
 	bokehInput.xmax = operation->getWidth();
 	bokehInput.xmin = 0;
 	bokehInput.ymax = operation->getHeight();

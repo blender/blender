@@ -29,9 +29,9 @@ class VariableSizeBokehBlurOperation : public NodeOperation, public QualityStepH
 private:
 	int maxBlur;
 	float threshold;
-	SocketReader* inputProgram;
-	SocketReader* inputBokehProgram;
-	SocketReader* inputSizeProgram;
+	SocketReader *inputProgram;
+	SocketReader *inputBokehProgram;
+	SocketReader *inputSizeProgram;
 
 public:
 	VariableSizeBokehBlurOperation();
@@ -39,7 +39,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution

@@ -31,7 +31,7 @@
   */
 class AlphaOverNode: public Node {
 public:
-	AlphaOverNode(bNode* editorNode) :Node(editorNode) {}
+	AlphaOverNode(bNode *editorNode) :Node(editorNode) {}
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 

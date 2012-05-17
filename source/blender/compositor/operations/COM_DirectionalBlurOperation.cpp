@@ -27,7 +27,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation() {
+DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
@@ -35,7 +36,8 @@ DirectionalBlurOperation::DirectionalBlurOperation() : NodeOperation() {
 	this->inputProgram = NULL;
 }
 
-void DirectionalBlurOperation::initExecution() {
+void DirectionalBlurOperation::initExecution()
+{
 	this->inputProgram = getInputSocketReader(0);
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 	const float angle = this->data->angle;
@@ -48,37 +50,38 @@ void DirectionalBlurOperation::initExecution() {
 	const float width = getWidth();
 	const float height = getHeight();
 
-	const float a= angle;
-	const float itsc= 1.f / pow(2.f, (float)iterations);
+	const float a = angle;
+	const float itsc = 1.f / pow(2.f, (float)iterations);
 	float D;
 
-	D= distance * sqrtf(width*width + height*height);
-	center_x_pix= center_x * width;
-	center_y_pix= center_y * height;
+	D = distance * sqrtf(width*width + height*height);
+	center_x_pix = center_x * width;
+	center_y_pix = center_y * height;
 
 	tx=  itsc * D * cos(a);
 	ty= -itsc * D * sin(a);
 	sc=  itsc * zoom;
-	rot= itsc * spin;
+	rot = itsc * spin;
 
 }
 
-void DirectionalBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	const int iterations = pow(2.f, this->data->iter);
-	float col[4]= {0,0,0,0};
-	float col2[4]= {0,0,0,0};
+	float col[4] = {0,0,0,0};
+	float col2[4] = {0,0,0,0};
 	this->inputProgram->read(col2, x, y, COM_PS_NEAREST, inputBuffers);
 	float ltx = tx;
 	float lty = ty;
 	float lsc = sc;
 	float lrot = rot;
 	/* blur the image */
-	for (int i= 0; i < iterations; ++i) {
-		const float cs= cos(lrot), ss= sin(lrot);
-		const float isc= 1.f / (1.f + lsc);
+	for (int i = 0; i < iterations; ++i) {
+		const float cs = cos(lrot), ss = sin(lrot);
+		const float isc = 1.f / (1.f + lsc);
 
-		const float v= isc * (y - center_y_pix) + lty;
-		const float u= isc * (x - center_x_pix) + ltx;
+		const float v = isc * (y - center_y_pix) + lty;
+		const float u = isc * (x - center_x_pix) + ltx;
 
 		this->inputProgram->read(col, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, COM_PS_NEAREST, inputBuffers);
 
@@ -99,11 +102,13 @@ void DirectionalBlurOperation::executePixel(float* color, int x, int y, MemoryBu
 	color[3] = col2[3]/iterations;
 }
 
-void DirectionalBlurOperation::deinitExecution() {
+void DirectionalBlurOperation::deinitExecution()
+{
 	this->inputProgram = NULL;
 }
 
-bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool DirectionalBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 
 	newInput.xmax = this->getWidth();

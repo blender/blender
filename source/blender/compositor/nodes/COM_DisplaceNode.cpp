@@ -24,7 +24,8 @@
 #include "COM_DisplaceSimpleOperation.h"
 #include "COM_ExecutionSystem.h"
 
-DisplaceNode::DisplaceNode(bNode *editorNode): Node(editorNode) {
+DisplaceNode::DisplaceNode(bNode *editorNode): Node(editorNode)
+{
 }
 
 void DisplaceNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)

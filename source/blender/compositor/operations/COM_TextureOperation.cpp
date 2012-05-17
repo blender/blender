@@ -25,30 +25,36 @@
 #include "BLI_listbase.h"
 #include "DNA_scene_types.h"
 
-TextureBaseOperation::TextureBaseOperation(): NodeOperation() {
+TextureBaseOperation::TextureBaseOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VECTOR);//offset
 	this->addInputSocket(COM_DT_VECTOR);//size
 	this->texture = NULL;
 	this->inputSize = NULL;
 	this->inputOffset = NULL;
 }
-TextureOperation::TextureOperation() : TextureBaseOperation() {
+TextureOperation::TextureOperation() : TextureBaseOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 }
-TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation() {
+TextureAlphaOperation::TextureAlphaOperation() : TextureBaseOperation()
+{
 	this->addOutputSocket(COM_DT_VALUE);
 }
 
-void TextureBaseOperation::initExecution() {
+void TextureBaseOperation::initExecution()
+{
 	this->inputOffset = getInputSocketReader(0);
 	this->inputSize = getInputSocketReader(1);
 }
-void TextureBaseOperation::deinitExecution() {
+void TextureBaseOperation::deinitExecution()
+{
 	this->inputSize = NULL;
 	this->inputOffset = NULL;
 }
 
-void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
 		resolution[0] = COM_DEFAULT_RESOLUTION_WIDTH;
 		resolution[1] = COM_DEFAULT_RESOLUTION_HEIGHT;
@@ -59,7 +65,8 @@ void TextureBaseOperation::determineResolution(unsigned int resolution[], unsign
 	}
 }
 
-void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	TextureBaseOperation::executePixel(color, x, y, sampler, inputBuffers);
 	color[0] = color[3];
 	color[1] = 0.0f;
@@ -67,7 +74,8 @@ void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSa
 	color[3] = 0.0f;
 }
 
-void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float textureSize[4];
 	float textureOffset[4];
@@ -81,21 +89,21 @@ void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSam
 	this->inputSize->read(textureSize, x, y, sampler, inputBuffers);
 	this->inputOffset->read(textureOffset, x, y, sampler, inputBuffers);
 
-	vec[0]= textureSize[0]*(u + textureOffset[0]);
-	vec[1]= textureSize[1]*(v + textureOffset[1]);
-	vec[2]= textureSize[2]*textureOffset[2];
+	vec[0] = textureSize[0]*(u + textureOffset[0]);
+	vec[1] = textureSize[1]*(v + textureOffset[1]);
+	vec[2] = textureSize[2]*textureOffset[2];
 
-	retval= multitex_ext(this->texture, vec, NULL, NULL, 0, &texres);
+	retval = multitex_ext(this->texture, vec, NULL, NULL, 0, &texres);
 
 	if (texres.talpha)
-		color[3]= texres.ta;
+		color[3] = texres.ta;
 	else
-		color[3]= texres.tin;
+		color[3] = texres.tin;
 
 	if ((retval & TEX_RGB)) {
-		color[0]= texres.tr;
-		color[1]= texres.tg;
-		color[2]= texres.tb;
+		color[0] = texres.tr;
+		color[1] = texres.tg;
+		color[2] = texres.tb;
 	}
-	else color[0]= color[1]= color[2]= color[3];
+	else color[0] = color[1] = color[2] = color[3];
 }

@@ -27,7 +27,8 @@
 #include "COM_defines.h"
 #include "stdio.h"
 
-NodeOperation::NodeOperation() {
+NodeOperation::NodeOperation()
+{
 	this->resolutionInputSocketIndex = 0;
 	this->complex = false;
 	this->width = 0;
@@ -35,13 +36,14 @@ NodeOperation::NodeOperation() {
 	this->openCL = false;
 }
 
-void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	unsigned int temp[2];
 	unsigned int temp2[2];
 	vector<InputSocket*> &inputsockets = this->getInputSockets();
 	
 	for (unsigned int index = 0 ; index < inputsockets.size();index++) {
-		InputSocket* inputSocket = inputsockets[index];
+		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
 			if (index == this->resolutionInputSocketIndex) {
 				inputSocket->determineResolution(resolution, preferredResolution);
@@ -52,7 +54,7 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 		}
 	}
 	for (unsigned int index = 0 ; index < inputsockets.size();index++) {
-		InputSocket* inputSocket = inputsockets[index];
+		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
 			if (index != resolutionInputSocketIndex) {
 				inputSocket->determineResolution(temp, temp2);
@@ -60,28 +62,36 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 		}
 	}
 }
-void NodeOperation::setResolutionInputSocketIndex(unsigned int index) {
+void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
+{
 	this->resolutionInputSocketIndex = index;
 }
-void NodeOperation::initExecution() {
+void NodeOperation::initExecution()
+{
 }
 
-void NodeOperation::initMutex() {
+void NodeOperation::initMutex()
+{
 	BLI_mutex_init(&mutex);
 }
-void NodeOperation::deinitMutex() {
+void NodeOperation::deinitMutex()
+{
 	BLI_mutex_end(&mutex);
 }
-void NodeOperation::deinitExecution() {
+void NodeOperation::deinitExecution()
+{
 }
-SocketReader* NodeOperation::getInputSocketReader(unsigned int inputSocketIndex) {
+SocketReader *NodeOperation::getInputSocketReader(unsigned int inputSocketIndex)
+{
 	return this->getInputSocket(inputSocketIndex)->getReader();
 }
-NodeOperation* NodeOperation::getInputOperation(unsigned int inputSocketIndex) {
+NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
+{
 	return this->getInputSocket(inputSocketIndex)->getOperation();
 }
 
-void NodeOperation::getConnectedInputSockets(vector<InputSocket*> *sockets) {
+void NodeOperation::getConnectedInputSockets(vector<InputSocket*> *sockets)
+{
 	vector<InputSocket*> &inputsockets = this->getInputSockets();
 	for (vector<InputSocket*>::iterator iterator = inputsockets.begin() ; iterator!= inputsockets.end() ; iterator++) {
 		InputSocket *socket = *iterator;
@@ -91,7 +101,8 @@ void NodeOperation::getConnectedInputSockets(vector<InputSocket*> *sockets) {
 	}
 }
 
-bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti* output) {
+bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output)
+{
 	if (this->isInputNode()) {
 		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return false;
@@ -101,9 +112,9 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOpe
 		vector<InputSocket*> &inputsockets = this->getInputSockets();
 	
 		for (index = 0 ; index < inputsockets.size() ; index++) {
-			InputSocket* inputsocket = inputsockets[index];
+			InputSocket *inputsocket = inputsockets[index];
 			if (inputsocket->isConnected()) {
-				NodeOperation* inputoperation = (NodeOperation*)inputsocket->getConnection()->getFromNode();
+				NodeOperation *inputoperation = (NodeOperation*)inputsocket->getConnection()->getFromNode();
 				bool result = inputoperation->determineDependingAreaOfInterest(input, readOperation, output);
 				if (result) {
 					return true;

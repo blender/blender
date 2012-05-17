@@ -23,15 +23,18 @@
 #include "COM_ConvolutionEdgeFilterOperation.h"
 #include "BLI_math.h"
 
-ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFilterOperation() {
+ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFilterOperation()
+{
 }
-inline void addFilter(float* result, float*input, float value) {
+inline void addFilter(float *result, float*input, float value)
+{
 	result[0] += input[0] * value;
 	result[1] += input[1] * value;
 	result[2] += input[2] * value;
 }
 
-void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	float in1[4],in2[4], res1[4], res2[4];
 	
 	float value[4];

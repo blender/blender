@@ -22,13 +22,15 @@
 
 #include "COM_QualityStepHelper.h"
 
-QualityStepHelper::QualityStepHelper() {
+QualityStepHelper::QualityStepHelper()
+{
 	this->quality = COM_QUALITY_HIGH;
 	this->step = 1;
 	this->offsetadd = 4;
 }
 
-void QualityStepHelper::initExecution(QualityHelper helper) {
+void QualityStepHelper::initExecution(QualityHelper helper)
+{
 	switch (helper) {
 	case COM_QH_INCREASE:
 		switch (this->quality) {

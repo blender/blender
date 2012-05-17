@@ -51,10 +51,10 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
-	void setMovieClip(MovieClip* clip) {this->clip = clip;}
+	void setMovieClip(MovieClip *clip) {this->clip = clip;}
 	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
 	void setAttribute(MovieClipAttribute attribute) {this->attribute = attribute;}
 };

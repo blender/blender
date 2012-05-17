@@ -55,14 +55,14 @@ private:
 	  * This field is initialized in ExecutionSystem and must only be read from that point on.
 	  * @see ExecutionSystem
 	  */
-	Scene* scene;
+	Scene *scene;
 
 	/**
 	  * @brief reference to the bNodeTree
 	  * This field is initialized in ExecutionSystem and must only be read from that point on.
 	  * @see ExecutionSystem
 	  */
-	bNodeTree* bnodetree;
+	bNodeTree *bnodetree;
 
 	/**
 	  * @brief does this system have active opencl devices?
@@ -88,12 +88,12 @@ public:
 	/**
 	  * @brief set the scene of the context
 	  */
-	void setScene(Scene* scene) {this->scene = scene;}
+	void setScene(Scene *scene) {this->scene = scene;}
 
 	/**
 	  * @brief set the bnodetree of the context
 	  */
-	void setbNodeTree(bNodeTree* bnodetree) {this->bnodetree = bnodetree;}
+	void setbNodeTree(bNodeTree *bnodetree) {this->bnodetree = bnodetree;}
 
 	/**
 	  * @brief get the bnodetree of the context
@@ -103,7 +103,7 @@ public:
 	/**
 	  * @brief get the scene of the context
 	  */
-	const Scene* getScene() const {return this->scene;}
+	const Scene *getScene() const {return this->scene;}
 
 	/**
 	  * @brief set the quality

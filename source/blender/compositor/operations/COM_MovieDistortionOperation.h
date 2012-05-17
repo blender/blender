@@ -40,7 +40,7 @@ private:
 	float *buffer;
 	int *bufferCalculated;
 public:
-	DistortionCache(MovieClip* movieclip, int width, int height, bool inverted) {
+	DistortionCache(MovieClip *movieclip, int width, int height, bool inverted) {
 		this->k1 = movieclip->tracking.camera.k1;
 		this->k2 = movieclip->tracking.camera.k2;
 		this->k3 = movieclip->tracking.camera.k3;
@@ -53,7 +53,7 @@ public:
 			this->bufferCalculated[i] = 0;
 		}
 	}
-	bool isCacheFor(MovieClip* movieclip, int width, int height, bool inverted) {
+	bool isCacheFor(MovieClip *movieclip, int width, int height, bool inverted) {
 		return this->k1 == movieclip->tracking.camera.k1 &&
 			this->k2 == movieclip->tracking.camera.k2 &&
 			this->k3 == movieclip->tracking.camera.k3 &&
@@ -62,7 +62,7 @@ public:
 			this->height == height;
 	}
 	
-	void getUV(MovieTracking* trackingData, int x, int y, float *u, float*v) {
+	void getUV(MovieTracking *trackingData, int x, int y, float *u, float*v) {
 		if (x<0 || x >= this->width || y <0 || y >= this->height) {
 			*u = x;
 			*v = y;
@@ -106,7 +106,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	
-	void setMovieClip(MovieClip* clip) {this->movieClip = clip;}
+	void setMovieClip(MovieClip *clip) {this->movieClip = clip;}
 
 };
 

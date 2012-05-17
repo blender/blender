@@ -22,21 +22,25 @@
 
 #include "COM_ChangeHSVOperation.h"
 
-ChangeHSVOperation::ChangeHSVOperation(): NodeOperation() {
+ChangeHSVOperation::ChangeHSVOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputOperation = NULL;
 }
 
-void ChangeHSVOperation::initExecution() {
+void ChangeHSVOperation::initExecution()
+{
 	this->inputOperation = getInputSocketReader(0);
 }
 
-void ChangeHSVOperation::deinitExecution() {
+void ChangeHSVOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }
 
-void ChangeHSVOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ChangeHSVOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	
 	inputOperation->read(inputColor1, x, y, sampler, inputBuffers);

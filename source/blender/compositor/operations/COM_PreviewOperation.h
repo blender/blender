@@ -33,9 +33,9 @@ protected:
 	/**
 	  * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
 	  */
-	bNode* node;
-	const bNodeTree* tree;
-	SocketReader* input;
+	bNode *node;
+	const bNodeTree *tree;
+	SocketReader *input;
 	float divider;
 	int priority;
 
@@ -48,8 +48,8 @@ public:
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	void setbNode(bNode* node) { this->node = node;}
-	void setbNodeTree(const bNodeTree* tree) { this->tree = tree;}
+	void setbNode(bNode *node) { this->node = node;}
+	void setbNodeTree(const bNodeTree *tree) { this->tree = tree;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void setPriority(int priority) { this->priority = priority; }
 };

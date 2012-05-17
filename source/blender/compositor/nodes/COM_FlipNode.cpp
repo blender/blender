@@ -25,10 +25,12 @@
 #include "COM_FlipOperation.h"
 #include "COM_ExecutionSystem.h"
 
-FlipNode::FlipNode(bNode *editorNode) : Node(editorNode) {
+FlipNode::FlipNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void FlipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void FlipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	FlipOperation *operation = new FlipOperation();

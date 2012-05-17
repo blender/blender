@@ -23,7 +23,8 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-DisplaceSimpleOperation::DisplaceSimpleOperation(): NodeOperation() {
+DisplaceSimpleOperation::DisplaceSimpleOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -36,7 +37,8 @@ DisplaceSimpleOperation::DisplaceSimpleOperation(): NodeOperation() {
 	this->inputScaleYProgram = NULL;
 }
 
-void DisplaceSimpleOperation::initExecution() {
+void DisplaceSimpleOperation::initExecution()
+{
 	this->inputColorProgram = this->getInputSocketReader(0);
 	this->inputVectorProgram = this->getInputSocketReader(1);
 	this->inputScaleXProgram = this->getInputSocketReader(2);
@@ -51,7 +53,7 @@ void DisplaceSimpleOperation::initExecution() {
  * in order to take effect */
 #define DISPLACE_EPSILON	0.01f
 
-void DisplaceSimpleOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void DisplaceSimpleOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inVector[4];
 	float inScale[4];
@@ -83,14 +85,16 @@ void DisplaceSimpleOperation::executePixel(float* color, float x, float y, Pixel
 	this->inputColorProgram->read(color, u, v, sampler, inputBuffers);
 }
 
-void DisplaceSimpleOperation::deinitExecution() {
+void DisplaceSimpleOperation::deinitExecution()
+{
 	this->inputColorProgram = NULL;
 	this->inputVectorProgram = NULL;
 	this->inputScaleXProgram = NULL;
 	this->inputScaleYProgram = NULL;
 }
 
-bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti colorInput;
 	NodeOperation *operation=NULL;
 

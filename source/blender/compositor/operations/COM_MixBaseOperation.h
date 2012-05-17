@@ -34,9 +34,9 @@ protected:
 	/**
 	  * Prefetched reference to the inputProgram
 	  */
-	SocketReader * inputValueOperation;
-	SocketReader* inputColor1Operation;
-	SocketReader* inputColor2Operation;
+	SocketReader *inputValueOperation;
+	SocketReader *inputColor1Operation;
+	SocketReader *inputColor2Operation;
 	bool valueAlphaMultiply;
 public:
 	/**
@@ -47,7 +47,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution

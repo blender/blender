@@ -22,10 +22,12 @@
 
 #include "COM_MixAddOperation.h"
 
-MixAddOperation::MixAddOperation(): MixBaseOperation() {
+MixAddOperation::MixAddOperation(): MixBaseOperation()
+{
 }
 
-void MixAddOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixAddOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];

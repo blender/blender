@@ -59,13 +59,13 @@ class WorkScheduler {
 	  * @brief main thread loop for cpudevices
 	  * inside this loop new work is queried and being executed
 	  */
-	static void* thread_execute_cpu(void* data);
+	static void *thread_execute_cpu(void *data);
 
 	/**
 	  * @brief main thread loop for gpudevices
 	  * inside this loop new work is queried and being executed
 	  */
-	static void* thread_execute_gpu(void* data);
+	static void *thread_execute_gpu(void *data);
 #endif	
 public:
 	/**
@@ -77,7 +77,7 @@ public:
 	  * @param group the execution group
 	  * @param chunkNumber the number of the chunk in the group to be executed
 	  */
-	static void schedule(ExecutionGroup* group, int chunkNumber);
+	static void schedule(ExecutionGroup *group, int chunkNumber);
 
 	/**
 	  * @brief initialize the WorkScheduler

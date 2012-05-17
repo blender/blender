@@ -28,19 +28,22 @@ extern "C" {
 }
 
 
-AntiAliasOperation::AntiAliasOperation(): NodeOperation() {
+AntiAliasOperation::AntiAliasOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 	this->valueReader = NULL;
 	this->buffer = NULL;
 	this->setComplex(true);
 }
-void AntiAliasOperation::initExecution() {
+void AntiAliasOperation::initExecution()
+{
 	this->valueReader = this->getInputSocketReader(0);
 	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	if (y < 0 || y >= this->height || x < 0 || x >= this->width) {
 		color[0] = 0.0f;
 	}
@@ -51,7 +54,8 @@ void AntiAliasOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 	
 }
 
-void AntiAliasOperation::deinitExecution() {
+void AntiAliasOperation::deinitExecution()
+{
 	this->valueReader = NULL;
 	if (this->buffer) {
 		delete buffer;
@@ -59,13 +63,14 @@ void AntiAliasOperation::deinitExecution() {
 	NodeOperation::deinitMutex();
 }
 
-bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti imageInput;
 	if (this->buffer) {
 		return false;
 	}
 	else {
-		NodeOperation* operation = getInputOperation(0);
+		NodeOperation *operation = getInputOperation(0);
 		imageInput.xmax = operation->getWidth();
 		imageInput.xmin = 0;
 		imageInput.ymax = operation->getHeight();
@@ -77,16 +82,17 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 	return false;
 }
 
-void* AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	if (this->buffer) {return buffer;}
 	BLI_mutex_lock(getMutex());
 	if (this->buffer == NULL) {
-		MemoryBuffer* tile = (MemoryBuffer*)valueReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer*)valueReader->initializeTileData(rect, memoryBuffers);
 		int size = tile->getHeight()*tile->getWidth();
 		float * input = tile->getBuffer();
-		char* valuebuffer = new char[size];
+		char *valuebuffer = new char[size];
 		for (int i = 0 ; i < size ; i ++) {
-			float in = input[i* COM_NUMBER_OF_CHANNELS];
+			float in = input[i * COM_NUMBER_OF_CHANNELS];
 			if (in < 0.0f) { in = 0.0f;}
 			if (in > 1.0f) {in = 1.0f;}
 			valuebuffer[i] = in * 255;

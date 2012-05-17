@@ -24,7 +24,8 @@
 #include "BLI_math.h"
 #define avg(a,b) ((a+b)/2)
 
-ColorSpillOperation::ColorSpillOperation(): NodeOperation() {
+ColorSpillOperation::ColorSpillOperation(): NodeOperation()
+{
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_VALUE);
 	addOutputSocket(COM_DT_COLOR);
@@ -34,7 +35,8 @@ ColorSpillOperation::ColorSpillOperation(): NodeOperation() {
 	this->spillChannel = 1; // GREEN
 }
 
-void ColorSpillOperation::initExecution() {
+void ColorSpillOperation::initExecution()
+{
 	this->inputImageReader = this->getInputSocketReader(0);
 	this->inputFacReader = this->getInputSocketReader(1);
 	if (spillChannel == 0) {
@@ -76,12 +78,14 @@ void ColorSpillOperation::initExecution() {
 	}
 }
 
-void ColorSpillOperation::deinitExecution() {
-	this->inputImageReader= NULL;
+void ColorSpillOperation::deinitExecution()
+{
+	this->inputImageReader = NULL;
 	this->inputFacReader = NULL;
 }
 
-void ColorSpillOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ColorSpillOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float fac[4];
 	float input[4];
 	float map;	
@@ -102,11 +106,13 @@ void ColorSpillOperation::executePixel(float* outputValue, float x, float y, Pix
 		outputValue[3]=input[3];
 	}	
 }
-float ColorSpillOperation::calculateMapValue(float fac, float *input) {
+float ColorSpillOperation::calculateMapValue(float fac, float *input)
+{
 	return fac * (input[this->spillChannel]-(this->settings->limscale*input[settings->limchan]));
 }
 
 
-float ColorSpillAverageOperation::calculateMapValue(float fac, float *input) {
+float ColorSpillAverageOperation::calculateMapValue(float fac, float *input)
+{
 	return fac * (input[this->spillChannel]-(this->settings->limscale*avg(input[this->channel2], input[this->channel3])));
 }

@@ -27,10 +27,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertRGBToHSVOperation.h"
 
-SeparateHSVANode::SeparateHSVANode(bNode *editorNode): SeparateRGBANode(editorNode) {
+SeparateHSVANode::SeparateHSVANode(bNode *editorNode): SeparateRGBANode(editorNode)
+{
 }
 
-void SeparateHSVANode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void SeparateHSVANode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	ConvertRGBToHSVOperation *operation = new ConvertRGBToHSVOperation();
 	InputSocket *inputSocket = this->getInputSocket(0);
 	if (inputSocket->isConnected()) {

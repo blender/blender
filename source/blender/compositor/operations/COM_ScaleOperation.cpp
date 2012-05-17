@@ -22,7 +22,8 @@
 
 #include "COM_ScaleOperation.h"
 
-ScaleOperation::ScaleOperation() : NodeOperation() {
+ScaleOperation::ScaleOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
@@ -32,7 +33,8 @@ ScaleOperation::ScaleOperation() : NodeOperation() {
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
-void ScaleOperation::initExecution() {
+void ScaleOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	this->inputXOperation = this->getInputSocketReader(1);
 	this->inputYOperation = this->getInputSocketReader(2);
@@ -40,14 +42,16 @@ void ScaleOperation::initExecution() {
 	this->centerY = this->getHeight()/2.0;
 }
 
-void ScaleOperation::deinitExecution() {
+void ScaleOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
 
 
-void ScaleOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ScaleOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float scaleX[4];
 	float scaleY[4];
 
@@ -62,7 +66,8 @@ void ScaleOperation::executePixel(float *color,float x, float y, PixelSampler sa
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
 
-bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	float scaleX[4];
 	float scaleY[4];
@@ -83,17 +88,19 @@ bool ScaleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 
 
 // SCALE ABSOLUTE
-ScaleAbsoluteOperation::ScaleAbsoluteOperation() : NodeOperation() {
+ScaleAbsoluteOperation::ScaleAbsoluteOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);	
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->inputOperation = NULL;
-	this->inputXOperation= NULL;
+	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
-void ScaleAbsoluteOperation::initExecution() {
+void ScaleAbsoluteOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	this->inputXOperation = this->getInputSocketReader(1);
 	this->inputYOperation = this->getInputSocketReader(2);
@@ -101,14 +108,16 @@ void ScaleAbsoluteOperation::initExecution() {
 	this->centerY = this->getHeight()/2.0;
 }
 
-void ScaleAbsoluteOperation::deinitExecution() {
+void ScaleAbsoluteOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
 }
 
 
-void ScaleAbsoluteOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ScaleAbsoluteOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float scaleX[4];
 	float scaleY[4];
 
@@ -128,7 +137,8 @@ void ScaleAbsoluteOperation::executePixel(float *color,float x, float y, PixelSa
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
 
-bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	float scaleX[4];
 	float scaleY[4];
@@ -154,28 +164,33 @@ bool ScaleAbsoluteOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 
 
 // Absolute fixed siez
-ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation() {
+ScaleFixedSizeOperation::ScaleFixedSizeOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setResolutionInputSocketIndex(0);
 	this->inputOperation = NULL;
 }
-void ScaleFixedSizeOperation::initExecution() {
+void ScaleFixedSizeOperation::initExecution()
+{
 	this->inputOperation = this->getInputSocketReader(0);
 	this->relX = inputOperation->getWidth() / (float)this->newWidth;
 	this->relY = inputOperation->getHeight() / (float)this->newHeight;
 }
 
-void ScaleFixedSizeOperation::deinitExecution() {
+void ScaleFixedSizeOperation::deinitExecution()
+{
 	this->inputOperation = NULL;
 }
 
 
-void ScaleFixedSizeOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ScaleFixedSizeOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	this->inputOperation->read(color, x*relX, y*relY, sampler, inputBuffers);
 }
 
-bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	
 	newInput.xmax = input->xmax *relX;
@@ -186,7 +201,8 @@ bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, Read
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
 
-void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void ScaleFixedSizeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	unsigned int nr[2];
 	nr[0] = newWidth;
 	nr[1] = newHeight;

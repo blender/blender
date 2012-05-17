@@ -23,13 +23,16 @@
 #include "COM_LensGlowImageOperation.h"
 #include "BLI_math.h"
 
-LensGlowImageOperation::LensGlowImageOperation(): NodeOperation() {
+LensGlowImageOperation::LensGlowImageOperation(): NodeOperation()
+{
 	this->addOutputSocket(COM_DT_COLOR);
 }
-void LensGlowImageOperation::initExecution() {
+void LensGlowImageOperation::initExecution()
+{
 	this->scale = 1/20000.0f;
 }
-void LensGlowImageOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void LensGlowImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	const float cs_r = 1.f, cs_g = 1.f, cs_b = 1.f;
 	const float v = 2.f*(y / (float)512.0f) - 1.f;
 	const float u = 2.f*(x / (float)512.0f) - 1.f;
@@ -42,10 +45,12 @@ void LensGlowImageOperation::executePixel(float* color, float x, float y, PixelS
 	color[3] = 1.0f;
 }
 
-void LensGlowImageOperation::deinitExecution() {
+void LensGlowImageOperation::deinitExecution()
+{
 }
 
-void LensGlowImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void LensGlowImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	resolution[0] = 512;
 	resolution[1] = 512;
 }

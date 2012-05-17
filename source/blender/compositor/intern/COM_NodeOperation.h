@@ -153,7 +153,7 @@ public:
 	  * @param clMemToCleanUp all created cl_mem references must be added to this list. Framework will clean this after execution
 	  * @param clKernelsToCleanUp all created cl_kernel references must be added to this list. Framework will clean this after execution
 	  */
-	virtual void executeOpenCL(cl_context context,cl_program program, cl_command_queue queue, MemoryBuffer* outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer** inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
+	virtual void executeOpenCL(cl_context context,cl_program program, cl_command_queue queue, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer** inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
 	void deinitMutex();
 
@@ -195,7 +195,7 @@ public:
 	  */
 	virtual const bool isActiveViewerOutput() const {return false;}
 
-	virtual bool determineDependingAreaOfInterest(rcti * input, ReadBufferOperation* readOperation, rcti* output);
+	virtual bool determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output);
 
 	/**
 	  * @brief set the index of the input socket that will determine the resolution of this operation
@@ -222,11 +222,11 @@ protected:
 	NodeOperation();
 
 	void setWidth(unsigned int width) {this->width = width;}
-	void setHeight(unsigned int height) {this->height= height;}
-	SocketReader* getInputSocketReader(unsigned int inputSocketindex);
-	NodeOperation* getInputOperation(unsigned int inputSocketindex);
+	void setHeight(unsigned int height) {this->height = height;}
+	SocketReader *getInputSocketReader(unsigned int inputSocketindex);
+	NodeOperation *getInputOperation(unsigned int inputSocketindex);
 
-	inline ThreadMutex* getMutex() {return &this->mutex;}
+	inline ThreadMutex *getMutex() {return &this->mutex;}
 
 	/**
 	  * @brief set whether this operation is complex

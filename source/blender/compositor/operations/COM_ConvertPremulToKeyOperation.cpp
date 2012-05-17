@@ -22,18 +22,21 @@
 #include "COM_ConvertPremulToKeyOperation.h"
 #include "BLI_math.h"
 
-ConvertPremulToKeyOperation::ConvertPremulToKeyOperation(): NodeOperation() {
+ConvertPremulToKeyOperation::ConvertPremulToKeyOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
 	this->inputColor = NULL;
 }
 
-void ConvertPremulToKeyOperation::initExecution() {
+void ConvertPremulToKeyOperation::initExecution()
+{
 	this->inputColor = getInputSocketReader(0);
 }
 
-void ConvertPremulToKeyOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float alpha;
 
@@ -41,9 +44,9 @@ void ConvertPremulToKeyOperation::executePixel(float* outputValue, float x, floa
 	alpha = inputValue[3];
 
 	if (fabsf(alpha) < 1e-5f) {
-		outputValue[0]= 0.f;
-		outputValue[1]= 0.f;
-		outputValue[2]= 0.f;
+		outputValue[0] = 0.f;
+		outputValue[1] = 0.f;
+		outputValue[2] = 0.f;
 	}
 	else {
 		outputValue[0] = inputValue[0] / alpha;
@@ -55,6 +58,7 @@ void ConvertPremulToKeyOperation::executePixel(float* outputValue, float x, floa
 	outputValue[3] = alpha;
 }
 
-void ConvertPremulToKeyOperation::deinitExecution() {
+void ConvertPremulToKeyOperation::deinitExecution()
+{
 	this->inputColor = NULL;
 }

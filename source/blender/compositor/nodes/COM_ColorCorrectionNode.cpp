@@ -25,12 +25,14 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ColorCorrectionNode::ColorCorrectionNode(bNode *editorNode): Node(editorNode) {
+ColorCorrectionNode::ColorCorrectionNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void ColorCorrectionNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ColorCorrectionNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	ColorCorrectionOperation *operation = new ColorCorrectionOperation();
-	bNode* editorNode = getbNode();
+	bNode *editorNode = getbNode();
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0),true, 0, graph);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1),true, 1, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));

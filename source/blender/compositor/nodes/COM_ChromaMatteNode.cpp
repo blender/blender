@@ -28,7 +28,8 @@
 ChromaMatteNode::ChromaMatteNode(bNode *editorNode): Node(editorNode)
 {}
 
-void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context) {
+void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
+{
 	InputSocket *inputSocketImage = this->getInputSocket(0);
 	InputSocket *inputSocketKey = this->getInputSocket(1);
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
@@ -40,7 +41,7 @@ void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	operationRGBToYCC_Key->setMode(0); /* BLI_YCC_ITU_BT601 */
 
 	ChromaMatteOperation *operation = new ChromaMatteOperation();
-	bNode* editorsnode = getbNode();
+	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operationRGBToYCC_Image->getInputSocket(0), true, 0, graph);

@@ -88,18 +88,18 @@ private:
 	/**
 	  * @brief the actual float buffer/data
 	  */
-	float* buffer;
+	float *buffer;
 
 public:
 	/**
 	  * @brief construct new MemoryBuffer for a chunk
 	  */
-	MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti* rect);
+	MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
 	
 	/**
 	  * @brief construct new temporarily MemoryBuffer for an area
 	  */
-	MemoryBuffer(MemoryProxy *memoryProxy, rcti* rect);
+	MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
 	
 	/**
 	  * @brief destructor
@@ -115,7 +115,7 @@ public:
 	  * @brief get the data of this MemoryBuffer
 	  * @note buffer should already be available in memory
 	  */
-	float* getBuffer() {return this->buffer;}
+	float *getBuffer() {return this->buffer;}
 	
 	/**
 	  * @brief after execution the state will be set to available by calling this method
@@ -124,9 +124,9 @@ public:
 		this->state = COM_MB_AVAILABLE;
 	}
 	
-	void read(float* result, int x, int y);
+	void read(float *result, int x, int y);
 	void writePixel(int x, int y, float color[4]);
-	void readCubic(float* result, float x, float y);
+	void readCubic(float *result, float x, float y);
 	void readEWA(float *result, float fx, float fy, float dx, float dy);
 	
 	/**
@@ -138,12 +138,12 @@ public:
 	  * @brief add the content from otherBuffer to this MemoryBuffer
 	  * @param otherBuffer source buffer
 	  */
-	void copyContentFrom(MemoryBuffer* otherBuffer);
+	void copyContentFrom(MemoryBuffer *otherBuffer);
 	
 	/**
 	  * @brief get the rect of this MemoryBuffer
 	  */
-	rcti* getRect() {return &this->rect;}
+	rcti *getRect() {return &this->rect;}
 	
 	/**
 	  * @brief get the width of this MemoryBuffer
@@ -160,9 +160,9 @@ public:
 	  */
 	void clear();
 	
-	MemoryBuffer* duplicate();
+	MemoryBuffer *duplicate();
 	
-	float* convertToValueBuffer();
+	float *convertToValueBuffer();
 private:
 	unsigned int determineBufferSize();
 };

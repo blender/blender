@@ -26,13 +26,15 @@
 #include "COM_ExecutionSystem.h"
 #include "DNA_movieclip_types.h"
 
-MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode) {
+MovieDistortionNode::MovieDistortionNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void MovieDistortionNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
+void MovieDistortionNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
-	bNode* bnode = this->getbNode();
+	bNode *bnode = this->getbNode();
 	MovieClip * clip = (MovieClip*)bnode->id;
 	
 	MovieDistortionOperation * operation = new MovieDistortionOperation(bnode->custom1 == 1);

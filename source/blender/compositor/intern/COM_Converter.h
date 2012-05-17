@@ -42,7 +42,7 @@ public:
 	  * @see Node
 	  * @see MuteNode
 	  */
-	static Node* convert(bNode* bNode);
+	static Node *convert(bNode *bNode);
 	
 	/**
 	  * @brief This method will add a datetype conversion rule when the to-socket does not support the from-socket actual data type.
@@ -53,7 +53,7 @@ public:
 	  * @param system the ExecutionSystem to add the conversion to.
 	  * @see SocketConnection - a link between two sockets
 	  */
-	static void convertDataType(SocketConnection* connection, ExecutionSystem *system);
+	static void convertDataType(SocketConnection *connection, ExecutionSystem *system);
 	
 	/**
 	  * @brief This method will add a resolution rule based on the settings of the InputSocket.
@@ -65,6 +65,6 @@ public:
 	  * @param system the ExecutionSystem to add the conversion to.
 	  * @see SocketConnection - a link between two sockets
 	  */
-	static void convertResolution(SocketConnection* connection, ExecutionSystem *system);
+	static void convertResolution(SocketConnection *connection, ExecutionSystem *system);
 };
 #endif

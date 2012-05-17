@@ -32,7 +32,7 @@
 class DilateErodeNode: public Node {
 public:
 	DilateErodeNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif

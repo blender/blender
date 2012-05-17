@@ -27,16 +27,17 @@
 #include "COM_SeparateChannelOperation.h"
 #include "DNA_texture_types.h"
 
-ColorRampNode::ColorRampNode(bNode* editorNode): Node(editorNode)
+ColorRampNode::ColorRampNode(bNode *editorNode): Node(editorNode)
 {}
 
-void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	OutputSocket *outputSocketAlpha = this->getOutputSocket(1);
-	bNode* editorNode = this->getbNode();
+	bNode *editorNode = this->getbNode();
 
-	ColorRampOperation * operation = new ColorRampOperation();
+	ColorRampOperation *operation = new ColorRampOperation();
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	if (outputSocketAlpha->isConnected()) {
 		SeparateChannelOperation *operation2 = new SeparateChannelOperation();

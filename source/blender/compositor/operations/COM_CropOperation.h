@@ -41,7 +41,7 @@ public:
 	void initExecution();
 	void deinitExecution();
 	void setCropSettings(NodeTwoXYs *settings) {this->settings = settings;}
-	void setRelative(bool rel) {this->relative =rel;}
+	void setRelative(bool rel) {this->relative = rel;}
 };
 
 class CropOperation: public CropBaseOperation {

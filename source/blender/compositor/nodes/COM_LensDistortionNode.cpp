@@ -26,11 +26,13 @@
 #include "COM_ProjectorLensDistortionOperation.h"
 #include "COM_ScreenLensDistortionOperation.h"
 
-LensDistortionNode::LensDistortionNode(bNode *editorNode): Node(editorNode) {
+LensDistortionNode::LensDistortionNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
-	bNode* editorNode = this->getbNode();
+void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
+	bNode *editorNode = this->getbNode();
 	NodeLensDist * data = (NodeLensDist*)editorNode->storage;
 	if (data->proj) {
 		ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();

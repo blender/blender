@@ -22,7 +22,8 @@
 
 #include "COM_InvertOperation.h"
 
-InvertOperation::InvertOperation(): NodeOperation() {
+InvertOperation::InvertOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -32,12 +33,14 @@ InvertOperation::InvertOperation(): NodeOperation() {
 	this->alpha = false;
 	setResolutionInputSocketIndex(1);
 }
-void InvertOperation::initExecution() {
+void InvertOperation::initExecution()
+{
 	this->inputValueProgram = this->getInputSocketReader(0);
 	this->inputColorProgram = this->getInputSocketReader(1);
 }
 
-void InvertOperation::executePixel(float* out, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void InvertOperation::executePixel(float *out, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputValue[4];
 	float inputColor[4];
 	this->inputValueProgram->read(inputValue, x, y, sampler, inputBuffers);
@@ -64,7 +67,8 @@ void InvertOperation::executePixel(float* out, float x, float y, PixelSampler sa
 
 }
 
-void InvertOperation::deinitExecution() {
+void InvertOperation::deinitExecution()
+{
 	this->inputValueProgram = NULL;
 	this->inputColorProgram = NULL;
 }

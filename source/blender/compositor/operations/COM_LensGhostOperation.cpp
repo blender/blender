@@ -33,7 +33,7 @@ public:
 	double wavelength;
 	float intensity;
 	bool valid;
-	void copyFrom(Ray* other) {
+	void copyFrom(Ray *other) {
 		copy_v3_v3(position, other->position);
 		copy_v3_v3(direction, other->direction);
 		copy_v2_v2(uv, other->uv);
@@ -62,7 +62,7 @@ public:
 	double refraction3;
 	float thicknessCoathing;
 	virtual bool isFlat() = 0;
-	virtual void intersect(Intersection* result, Ray* ray) = 0;
+	virtual void intersect(Intersection *result, Ray *ray) = 0;
 };
 
 class FlatInterface: public LensInterface {
@@ -80,7 +80,7 @@ public:
 		this->thicknessCoathing = 0.0f;
 
 	}
-	void intersect(Intersection* result, Ray* ray) {
+	void intersect(Intersection *result, Ray *ray) {
 		const float dz = this->position[2]-ray->position[2];
 		result->position[0] = ray->position[0] + ray->direction[0]*(dz)/ray->direction[2];
 		result->position[1] = ray->position[1] + ray->direction[1]*(dz)/ray->direction[2];
@@ -110,7 +110,7 @@ public:
 		this->thicknessCoathing = coatingPhase/4/this->refraction2;
 	}
 	bool isFlat() {return false;}
-	void intersect(Intersection* result, Ray* ray) {
+	void intersect(Intersection *result, Ray *ray) {
 		float delta[3] ={ray->position[0] - this->position[0],
 			ray->position[1] - this->position[1],
 			ray->position[2] - this->position[2]};
@@ -200,7 +200,7 @@ public:
 
 	}
 
-	RayResult* getRayResult(int x, int y) {
+	RayResult *getRayResult(int x, int y) {
 		return &(raster[x+y*rasterLength]);
 	}
 };
@@ -222,7 +222,7 @@ public:
 				for (int j = i+1; j < interfaces.size()-1 ; j ++) {
 					if (!interfaces[j]->isFlat()) {
 						int length = interfaces.size()+2*(j-i);
-						Bounce* bounce = new Bounce(interfaces[j], interfaces[i], length, step);
+						Bounce *bounce = new Bounce(interfaces[j], interfaces[i], length, step);
 						bounces.push_back(bounce);
 					}
 				}
@@ -231,7 +231,7 @@ public:
 
 	}
 
-	void addInterface(LensInterface* pinterface) {
+	void addInterface(LensInterface *pinterface) {
 		this->interfaces.push_back(pinterface);
 		this->lensIndex = this->interfaces.size()-1;
 	}
@@ -245,23 +245,23 @@ public:
 
 //                VECCOPY(refract, view);
 
-//                dot= view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
+//                dot = view[0]*n[0] + view[1]*n[1] + view[2]*n[2];
 
 //                if (dot>0.0f) {
 //                        index = 1.0f/index;
-//                        fac= 1.0f - (1.0f - dot*dot)*index*index;
+//                        fac = 1.0f - (1.0f - dot*dot)*index*index;
 //                        if (fac<= 0.0f) return 0;
 //                        fac= -dot*index + sqrt(fac);
 //                }
 //                else {
-//                        fac= 1.0f - (1.0f - dot*dot)*index*index;
+//                        fac = 1.0f - (1.0f - dot*dot)*index*index;
 //                        if (fac<= 0.0f) return 0;
 //                        fac= -dot*index - sqrt(fac);
 //                }
 
-//                refract[0]= index*view[0] + fac*n[0];
-//                refract[1]= index*view[1] + fac*n[1];
-//                refract[2]= index*view[2] + fac*n[2];
+//                refract[0] = index*view[0] + fac*n[0];
+//                refract[1] = index*view[1] + fac*n[1];
+//                refract[2] = index*view[2] + fac*n[2];
 
 //                normalize_v3(refract);
 //                return 1;
@@ -301,9 +301,9 @@ public:
 
 		f1= -2.0f*dot_v3v3(n, view);
 
-		ref[0]= (view[0]+f1*n[0]);
-		ref[1]= (view[1]+f1*n[1]);
-		ref[2]= (view[2]+f1*n[2]);
+		ref[0] = (view[0]+f1*n[0]);
+		ref[1] = (view[1]+f1*n[1]);
+		ref[2] = (view[2]+f1*n[2]);
 		normalize_v3(ref);
 	}
 
@@ -334,15 +334,15 @@ public:
 		return ( out_s2+out_p2 ) / 2 ;
 	}
 
-	void detectHit(Ray* result, Ray* inputRay, Bounce *bounce) {
+	void detectHit(Ray *result, Ray *inputRay, Bounce *bounce) {
 		int phase = 0;
 		int delta = 1;
 		int t = 1;
 		int k;
 		result->copyFrom(inputRay);
 		result->valid = false;
-		LensInterface* next = bounce->interface1;
-		LensInterface* f = NULL;
+		LensInterface *next = bounce->interface1;
+		LensInterface *f = NULL;
 		Intersection intersection;
 		for (k = 0 ; k < bounce->length-1;k++, t+=delta) {
 			f = this->interfaces[t];
@@ -425,12 +425,13 @@ public:
 };
 
 typedef struct LensFace {
-	RayResult* v1;
-	RayResult* v2;
-	RayResult* v3;
+	RayResult *v1;
+	RayResult *v2;
+	RayResult *v3;
 } LensFace;
 
-LensGhostProjectionOperation::LensGhostProjectionOperation(): NodeOperation() {
+LensGhostProjectionOperation::LensGhostProjectionOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -441,12 +442,14 @@ LensGhostProjectionOperation::LensGhostProjectionOperation(): NodeOperation() {
 	this->setComplex(false);
 }
 
-LensGhostOperation::LensGhostOperation(): LensGhostProjectionOperation() {
+LensGhostOperation::LensGhostOperation(): LensGhostProjectionOperation()
+{
 	this->setComplex(true);
 
 }
 
-void LensGhostProjectionOperation::initExecution() {
+void LensGhostProjectionOperation::initExecution()
+{
 	if (this->cameraObject != NULL && this->lampObject != NULL) {
 		if (lampObject == NULL || cameraObject == NULL) {
 			visualLampPosition[0] = 0;
@@ -491,7 +494,7 @@ void LensGhostProjectionOperation::initExecution() {
         system->addInterface(new SphereInterface(0.0f,0.0f, 6 CM, 3 CM, 2 CM, AIR, GLASS, 0.0f));
         system->addInterface(new SphereInterface(0.0f,0.0f, 5.5 CM, 3 CM, 2 CM, GLASS, AIR, 0.f));
         system->addInterface(new FlatInterface(0.0f,0.0f,0 CM, 30 MM)); // SENSOR
-	system->bokehIndex =3;
+	system->bokehIndex = 3;
 
 	// determine interfaces
 //	LensSystem *system = new LensSystem();
@@ -510,7 +513,8 @@ void LensGhostProjectionOperation::initExecution() {
 	this->system = system;
 }
 
-void LensGhostOperation::initExecution() {
+void LensGhostOperation::initExecution()
+{
 	LensGhostProjectionOperation::initExecution();
 	LensSystem *system = (LensSystem*)this->system;
 	LensInterface *interface1 = system->interfaces[0];
@@ -521,7 +525,7 @@ void LensGhostOperation::initExecution() {
 		float wavelength = HERZ[iw];
 	// for every bounce
 		for (int ib = 0 ; ib < system->bounces.size() ; ib++) {
-			Bounce* bounce = system->bounces[ib];
+			Bounce *bounce = system->bounces[ib];
 	// based on quality setting the number of iteration will be different (128^2, 64^2, 32^2)
 			for (int xi = 0 ; xi < step ; xi ++) {
 				float x = -interface1->radius+xi*(interface1->radius*2/step);
@@ -572,11 +576,11 @@ void LensGhostOperation::initExecution() {
 //	LensSystem *system = (LensSystem*)this->system;
 	LensInterface * lens = system->interfaces[system->lensIndex];
 	for (int i = 0 ; i < system->bounces.size() ; i ++) {
-		Bounce* bounce = system->bounces[i];
+		Bounce *bounce = system->bounces[i];
 		for (int r = 0 ; r < bounce->rasterLength*bounce->rasterLength ; r ++) {
 			RayResult *result = &bounce->raster[r];
 //			if (result->valid) {
-				float ru= result->x/lens->nominalRadius*width2+width2;
+				float ru = result->x/lens->nominalRadius*width2+width2;
 				float rv  = result->y/lens->nominalRadius*height2+height2;
 				result->screenX = ru;
 				result->screenY = rv;
@@ -586,7 +590,8 @@ void LensGhostOperation::initExecution() {
 	}
 }
 
-void* LensGhostOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *LensGhostOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	vector<LensFace*>* result = new vector<LensFace*>();
 	LensSystem *system = (LensSystem*)this->system;
 	const float minx = rect->xmin;
@@ -594,22 +599,22 @@ void* LensGhostOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	const float maxx = rect->xmax;
 	const float maxy = rect->ymax;
 	for (int i = 0 ; i < system->bounces.size() ; i ++) {
-		Bounce* bounce = system->bounces[i];
+		Bounce *bounce = system->bounces[i];
 		int faceX, faceY;
 		for (faceX = 0 ; faceX < bounce->rasterLength-1 ; faceX++) {
 			for (faceY = 0 ; faceY < bounce->rasterLength-1 ; faceY++) {
-				RayResult* vertex1 = bounce->getRayResult(faceX, faceY);
-				RayResult* vertex2 = bounce->getRayResult(faceX+1, faceY);
-				RayResult* vertex3 = bounce->getRayResult(faceX+1, faceY+1);
-				RayResult* vertex4 = bounce->getRayResult(faceX, faceY+1);
+				RayResult *vertex1 = bounce->getRayResult(faceX, faceY);
+				RayResult *vertex2 = bounce->getRayResult(faceX+1, faceY);
+				RayResult *vertex3 = bounce->getRayResult(faceX+1, faceY+1);
+				RayResult *vertex4 = bounce->getRayResult(faceX, faceY+1);
 				// early hit test
 				if (!((vertex1->screenX < minx && vertex2->screenX < minx && vertex3->screenX < minx && vertex4->screenX < minx) ||
 					(vertex1->screenX > maxx && vertex2->screenX > maxx && vertex3->screenX > maxx && vertex4->screenX > maxx) ||
 					(vertex1->screenY < miny && vertex2->screenY < miny && vertex3->screenY < miny && vertex4->screenY < miny) ||
 					(vertex1->screenY > maxy && vertex2->screenY > maxy && vertex3->screenY > maxy && vertex4->screenY > maxy))) {
-					int number = vertex1->hasIntensity +vertex2->hasIntensity +vertex3->hasIntensity +vertex4->hasIntensity;
+					int number = vertex1->hasIntensity + vertex2->hasIntensity + vertex3->hasIntensity + vertex4->hasIntensity;
 					if (number == 4) {
-						LensFace* face = new LensFace();
+						LensFace *face = new LensFace();
 						face->v1 = vertex1;
 						face->v2 = vertex2;
 						face->v3 = vertex3;
@@ -652,7 +657,8 @@ void* LensGhostOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	return result;
 }
 
-void LensGhostOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
+void LensGhostOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+{
 	if (data) {
 		vector<LensFace*>* faces = (vector<LensFace*>*)data;
 		while (faces->size() != 0) {
@@ -665,7 +671,8 @@ void LensGhostOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryB
 }
 
 
-void LensGhostProjectionOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void LensGhostProjectionOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float bokeh[4];
 	LensSystem *system = (LensSystem*)this->system;
 	LensInterface *interface1 = system->interfaces[0];
@@ -696,7 +703,7 @@ void LensGhostProjectionOperation::executePixel(float* color, float x, float y, 
 
 	// for every bounce
 		for (int ib = 0 ; ib < system->bounces.size() ; ib++) {
-			Bounce* bounce = system->bounces[ib];
+			Bounce *bounce = system->bounces[ib];
 	// based on quality setting the number of iteration will be different (128^2, 64^2, 32^2)
 
 			Ray r;
@@ -732,7 +739,8 @@ void LensGhostProjectionOperation::executePixel(float* color, float x, float y, 
 
 
 
-void LensGhostOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void LensGhostOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	vector<LensFace*>* faces = (vector<LensFace*>*)data;
 #if 0 /* UNUSED */
 	const float bokehWidth = bokehReader->getWidth();
@@ -747,9 +755,9 @@ void LensGhostOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 	unsigned int index;
 	for (index = 0 ; index < faces->size() ; index ++) {
 		LensFace * face = faces->operator [](index);
-		RayResult* vertex1 = face->v1;
-		RayResult* vertex2 = face->v2;
-		RayResult* vertex3 = face->v3;
+		RayResult *vertex1 = face->v1;
+		RayResult *vertex2 = face->v2;
+		RayResult *vertex3 = face->v3;
 		if (!((vertex1->screenX < x && vertex2->screenX < x && vertex3->screenX < x) ||
 			(vertex1->screenX > x && vertex2->screenX > x && vertex3->screenX > x) ||
 			(vertex1->screenY < y && vertex2->screenY < y && vertex3->screenY < y) ||
@@ -783,13 +791,15 @@ void LensGhostOperation::executePixel(float* color, int x, int y, MemoryBuffer *
 }
 
 
-void LensGhostProjectionOperation::deinitExecution() {
+void LensGhostProjectionOperation::deinitExecution()
+{
 	if (this->system) delete (LensSystem*)this->system;
 	this->system = NULL;
 	this->bokehReader = NULL;
 }
 
-bool LensGhostProjectionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool LensGhostProjectionOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti bokehInput;
 
 	NodeOperation *operation = this->getInputOperation(1);

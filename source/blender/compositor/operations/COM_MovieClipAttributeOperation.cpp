@@ -24,14 +24,16 @@
 extern "C" {
 	#include "BKE_tracking.h"
 }
-MovieClipAttributeOperation::MovieClipAttributeOperation(): NodeOperation() {
+MovieClipAttributeOperation::MovieClipAttributeOperation(): NodeOperation()
+{
 	this->addOutputSocket(COM_DT_VALUE);
 	this->valueSet = false;
 	this->framenumber = 0;
 	this->attribute = MCA_X;
 }
 
-void MovieClipAttributeOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MovieClipAttributeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	if (!valueSet) {
 		float loc[2], scale, angle;
 		loc[0] = 0.0f;
@@ -60,7 +62,8 @@ void MovieClipAttributeOperation::executePixel(float* outputValue, float x, floa
 	outputValue[0] = this->value;
 }
 
-void MovieClipAttributeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[]) {
+void MovieClipAttributeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
 	resolution[0] = preferredResolution[0];
 	resolution[1] = preferredResolution[1];
 }

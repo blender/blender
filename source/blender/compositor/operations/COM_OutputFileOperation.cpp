@@ -48,7 +48,8 @@ static int get_datatype_size(DataType datatype)
 	}
 }
 
-static float *init_buffer(unsigned int width, unsigned int height, DataType datatype) {
+static float *init_buffer(unsigned int width, unsigned int height, DataType datatype)
+{
 	// When initializing the tree during initial load the width and height can be zero.
 	if (width != 0 && height != 0) {
 		int size = get_datatype_size(datatype);
@@ -59,7 +60,7 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
 }
 
 static void write_buffer_rect(rcti *rect, MemoryBuffer** memoryBuffers, const bNodeTree *tree, 
-                              SocketReader *reader, float* buffer, unsigned int width, DataType datatype)
+                              SocketReader *reader, float *buffer, unsigned int width, DataType datatype)
 {
 	float color[4];
 	int i, size = get_datatype_size(datatype);
@@ -106,12 +107,14 @@ OutputSingleLayerOperation::OutputSingleLayerOperation(
 	BLI_strncpy(this->path, path, sizeof(this->path));
 }
 
-void OutputSingleLayerOperation::initExecution() {
+void OutputSingleLayerOperation::initExecution()
+{
 	this->imageInput = getInputSocketReader(0);
 	this->outputBuffer = init_buffer(this->getWidth(), this->getHeight(), this->datatype);
 }
 
-void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers) {
+void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+{
 	write_buffer_rect(rect, memoryBuffers, this->tree, imageInput, this->outputBuffer, this->getWidth(), this->datatype);
 }
 
@@ -120,14 +123,14 @@ void OutputSingleLayerOperation::deinitExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		
 		int size = get_datatype_size(this->datatype);
-		ImBuf *ibuf= IMB_allocImBuf(this->getWidth(), this->getHeight(), size*8, 0);
-		Main *bmain= G.main; /* TODO, have this passed along */
+		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size*8, 0);
+		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		
 		ibuf->channels = size;
-		ibuf->rect_float= this->outputBuffer;
+		ibuf->rect_float = this->outputBuffer;
 		ibuf->mall |= IB_rectfloat; 
-		ibuf->dither= scene->r.dither_intensity;
+		ibuf->dither = scene->r.dither_intensity;
 		
 		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
 			ibuf->profile = IB_PROFILE_LINEAR_RGB;
@@ -192,9 +195,9 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 	unsigned int width = this->getWidth();
 	unsigned int height = this->getHeight();
 	if (width != 0 && height != 0) {
-		Main *bmain= G.main; /* TODO, have this passed along */
+		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
-		void *exrhandle= IMB_exr_get_handle();
+		void *exrhandle = IMB_exr_get_handle();
 		
 		BKE_makepicstring(filename, this->path, bmain->name, this->scene->r.cfra, R_IMF_IMTYPE_MULTILAYER,
 		                  (this->scene->r.scemode & R_EXTENSION), true);

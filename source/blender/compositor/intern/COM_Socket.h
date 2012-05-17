@@ -49,7 +49,7 @@ private:
 	/**
 	  * Reference to the node where this Socket belongs to
 	  */
-	NodeBase* node;
+	NodeBase *node;
 	
 	/**
 	  * the datatype of this socket. Is used for automatically data transformation.
@@ -63,13 +63,13 @@ private:
 	  */
 	DataType actualType;
 	
-	bNodeSocket* editorSocket;
+	bNodeSocket *editorSocket;
 public:
 	Socket(DataType datatype);
 	
 	DataType getDataType() const;
-	void setNode(NodeBase* node);
-	NodeBase* getNode() const;
+	void setNode(NodeBase *node);
+	NodeBase *getNode() const;
 	
 	/**
 	  * @brief get the actual data type
@@ -91,8 +91,8 @@ public:
 	virtual void determineResolution(int resolution[], unsigned int preferredResolution[]) {}
 	virtual void determineActualDataType() {}
 	
-	void setEditorSocket(bNodeSocket* editorSocket) {this->editorSocket = editorSocket;}
-	bNodeSocket* getbNodeSocket() const {return this->editorSocket;}
+	void setEditorSocket(bNodeSocket *editorSocket) {this->editorSocket = editorSocket;}
+	bNodeSocket *getbNodeSocket() const {return this->editorSocket;}
 	
 };
 

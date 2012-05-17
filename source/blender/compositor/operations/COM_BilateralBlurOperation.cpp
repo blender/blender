@@ -27,7 +27,8 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BilateralBlurOperation::BilateralBlurOperation() : NodeOperation() {
+BilateralBlurOperation::BilateralBlurOperation() : NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -37,14 +38,16 @@ BilateralBlurOperation::BilateralBlurOperation() : NodeOperation() {
 	this->inputDeterminatorProgram = NULL;
 }
 
-void BilateralBlurOperation::initExecution() {
+void BilateralBlurOperation::initExecution()
+{
 	this->inputColorProgram = getInputSocketReader(0);
 	this->inputDeterminatorProgram = getInputSocketReader(1);
 	this->space = this->data->sigma_space + this->data->iter;
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
-void BilateralBlurOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
+void BilateralBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
 	// read the determinator color at x, y, this will be used as the reference color for the determinator
 	float determinatorReferenceColor[4];
 	float determinator[4];
@@ -98,12 +101,14 @@ void BilateralBlurOperation::executePixel(float* color, int x, int y, MemoryBuff
 	}
 }
 
-void BilateralBlurOperation::deinitExecution() {
+void BilateralBlurOperation::deinitExecution()
+{
 	this->inputColorProgram = NULL;
 	this->inputDeterminatorProgram = NULL;
 }
 
-bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output) {
+bool BilateralBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
 	rcti newInput;
 	int add = ceil(this->space)+1;
 

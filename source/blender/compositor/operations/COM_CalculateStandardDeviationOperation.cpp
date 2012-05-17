@@ -26,20 +26,23 @@
 
 
 
-CalculateStandardDeviationOperation::CalculateStandardDeviationOperation(): CalculateMeanOperation() {
+CalculateStandardDeviationOperation::CalculateStandardDeviationOperation(): CalculateMeanOperation()
+{
 }
 
-void CalculateStandardDeviationOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void * data) {
+void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+{
 	color[0] = this->standardDeviation;
 }
 
-void* CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) {
+void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
 	BLI_mutex_lock(getMutex());
 	if (!this->iscalculated) {
-		MemoryBuffer* tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		CalculateMeanOperation::calculateMean(tile);
 		this->standardDeviation = 0.0f;
-		float* buffer = tile->getBuffer();
+		float *buffer = tile->getBuffer();
 		int size = tile->getWidth()*tile->getHeight();
 		int pixels = 0;
 		float sum;

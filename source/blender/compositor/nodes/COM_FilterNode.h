@@ -32,8 +32,8 @@
 class FilterNode : public Node
 {
 public:
-	FilterNode(bNode* editorNode);
-	void convertToOperations(ExecutionSystem* graph, CompositorContext * context);
+	FilterNode(bNode *editorNode);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };
 
 #endif // COM_FILTERNODE_H

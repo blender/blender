@@ -40,7 +40,7 @@ private:
 	  */
 	NodeBlurData * settings;
 	
-	float* cachedInstance;
+	float *cachedInstance;
 
 public:
 	VectorBlurOperation();
@@ -48,7 +48,7 @@ public:
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
 	  * Initialize the execution
@@ -60,13 +60,13 @@ public:
 	  */
 	void deinitExecution();
 
-	void* initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
 	void setVectorBlurSettings(NodeBlurData * settings) {this->settings = settings;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 protected:
 	
-	void generateVectorBlur(float* data, MemoryBuffer* inputImage, MemoryBuffer* inputSpeed, MemoryBuffer* inputZ);
+	void generateVectorBlur(float *data, MemoryBuffer *inputImage, MemoryBuffer *inputSpeed, MemoryBuffer *inputZ);
 	
 	
 };

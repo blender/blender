@@ -25,10 +25,12 @@
 #include "COM_TranslateOperation.h"
 #include "COM_ExecutionSystem.h"
 
-TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode) {
+TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
+{
 }
 
-void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
+void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+{
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputXSocket = this->getInputSocket(1);
 	InputSocket *inputYSocket = this->getInputSocket(2);

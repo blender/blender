@@ -30,14 +30,14 @@ private:
 	/**
 	  * Cached reference to the inputProgram
 	  */
-	SocketReader* inputProgram;
+	SocketReader *inputProgram;
 public:
 	ConvertValueToColourProg();
 	
 	/**
 	  * the inner loop of this program
 	  */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	  * Initialize the execution

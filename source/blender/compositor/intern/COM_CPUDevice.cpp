@@ -22,7 +22,8 @@
 
 #include "COM_CPUDevice.h"
 
-void CPUDevice::execute(WorkPackage *work) {
+void CPUDevice::execute(WorkPackage *work)
+{
 	const unsigned int chunkNumber = work->getChunkNumber();
 	ExecutionGroup * executionGroup = work->getExecutionGroup();
 	rcti rect;

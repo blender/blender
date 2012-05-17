@@ -28,12 +28,14 @@
 #include "COM_SetValueOperation.h"
 #include "COM_MixBlendOperation.h"
 
-VectorBlurNode::VectorBlurNode(bNode *editorNode): Node(editorNode) {
+VectorBlurNode::VectorBlurNode(bNode *editorNode): Node(editorNode)
+{
 }
 
-void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorContext * context) {
-	bNode* node = this->getbNode();
-	NodeBlurData* vectorBlurSettings = (NodeBlurData*)node->storage;
+void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+{
+	bNode *node = this->getbNode();
+	NodeBlurData *vectorBlurSettings = (NodeBlurData*)node->storage;
 	VectorBlurOperation *operation = new VectorBlurOperation();
 	operation->setVectorBlurSettings(vectorBlurSettings);
 	operation->setQuality(context->getQuality());

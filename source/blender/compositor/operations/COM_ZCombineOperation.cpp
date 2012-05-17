@@ -23,7 +23,8 @@
 #include "COM_ZCombineOperation.h"
 #include "BLI_utildefines.h"
 
-ZCombineOperation::ZCombineOperation(): NodeOperation() {
+ZCombineOperation::ZCombineOperation(): NodeOperation()
+{
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -37,14 +38,16 @@ ZCombineOperation::ZCombineOperation(): NodeOperation() {
 
 }
 
-void ZCombineOperation::initExecution() {
+void ZCombineOperation::initExecution()
+{
 	this->image1Reader = this->getInputSocketReader(0);
 	this->depth1Reader = this->getInputSocketReader(1);
 	this->image2Reader = this->getInputSocketReader(2);
 	this->depth2Reader = this->getInputSocketReader(3);
 }
 
-void ZCombineOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ZCombineOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float depth1[4];
 	float depth2[4];
 
@@ -57,7 +60,8 @@ void ZCombineOperation::executePixel(float* color, float x, float y, PixelSample
 		this->image2Reader->read(color, x, y, sampler, inputBuffers);
 	}
 }
-void ZCombineAlphaOperation::executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float depth1[4];
 	float depth2[4];
 	float color1[4];
@@ -81,7 +85,8 @@ void ZCombineAlphaOperation::executePixel(float* color, float x, float y, PixelS
 	color[3] = MAX2(color1[3], color2[3]);
 }
 
-void ZCombineOperation::deinitExecution() {
+void ZCombineOperation::deinitExecution()
+{
 	this->image1Reader = NULL;
 	this->depth1Reader = NULL;
 	this->image2Reader = NULL;

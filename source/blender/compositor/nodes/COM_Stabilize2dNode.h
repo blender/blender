@@ -29,6 +29,6 @@
   */
 class Stabilize2dNode : public Node {
 public:
-	Stabilize2dNode(bNode* editorNode);
+	Stabilize2dNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
 };

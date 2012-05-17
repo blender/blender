@@ -29,10 +29,10 @@ private:
 	/**
 	 * Cached reference to the inputProgram
 	 */
-	SocketReader* inputColorProgram;
-	SocketReader* inputVectorProgram;
-	SocketReader* inputScaleXProgram;
-	SocketReader* inputScaleYProgram;
+	SocketReader *inputColorProgram;
+	SocketReader *inputVectorProgram;
+	SocketReader *inputScaleXProgram;
+	SocketReader *inputScaleYProgram;
 
 	float width_x4;
 	float height_x4;
@@ -48,7 +48,7 @@ public:
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float* color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 	
 	/**
 	 * Initialize the execution

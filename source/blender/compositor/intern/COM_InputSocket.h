@@ -65,7 +65,7 @@ private:
 	  * @brief connection connected to this InputSocket.
 	  * An input socket can only have a single connection
 	  */
-	SocketConnection* connection;
+	SocketConnection *connection;
 	
 	/**
 	  * @brief resize mode of this socket
@@ -89,10 +89,10 @@ private:
 public:
 	InputSocket(DataType datatype);
 	InputSocket(DataType datatype, InputSocketResizeMode resizeMode);
-	InputSocket(InputSocket* from);
+	InputSocket(InputSocket *from);
 	
-	void setConnection(SocketConnection* connection);
-	SocketConnection* getConnection();
+	void setConnection(SocketConnection *connection);
+	SocketConnection *getConnection();
 	
 	const int isConnected() const;
 	int isInputSocket() const;
@@ -126,7 +126,7 @@ public:
 	  * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
 	  * @param system ExecutionSystem to update to
 	  */
-	void relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, ExecutionSystem* system);
+	void relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, ExecutionSystem *system);
 	
 	/**
 	  * @brief move all connections of this input socket to another socket
@@ -136,7 +136,7 @@ public:
 	  * @param duplicate instead of move do a copy of the connection.
 	  * @param system ExecutionSystem to update to
 	  */
-	void relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem* system);
+	void relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem *system);
 	
 	/**
 	  * @brief set the resize mode
@@ -150,13 +150,13 @@ public:
 	  */
 	InputSocketResizeMode getResizeMode() const {return this->resizeMode;}
 	
-	const ChannelInfo* getChannelInfo(const int channelnumber);
+	const ChannelInfo *getChannelInfo(const int channelnumber);
 	
 	bool isStatic();
 	
-	float* getStaticValues();
-	SocketReader* getReader();
-	NodeOperation* getOperation() const;
+	float *getStaticValues();
+	SocketReader *getReader();
+	NodeOperation *getOperation() const;
 };
 
 #endif

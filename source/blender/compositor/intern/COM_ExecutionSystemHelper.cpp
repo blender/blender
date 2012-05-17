@@ -37,14 +37,15 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 
-Node* ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree) {
+Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree)
+{
 	vector<Node*>& nodes = system.getNodes();
 	vector<SocketConnection*>& links = system.getConnections();
-	Node* mainnode = NULL;
+	Node *mainnode = NULL;
 	/* add all nodes of the tree to the node list */
-	bNode* node = (bNode*)tree->nodes.first;
+	bNode *node = (bNode*)tree->nodes.first;
 	while (node != NULL) {
-		Node* execnode = addNode(nodes, node);
+		Node *execnode = addNode(nodes, node);
 		if (node->type == CMP_NODE_COMPOSITE) {
 			mainnode = execnode;
 		}
@@ -54,7 +55,7 @@ Node* ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 	NodeRange node_range(nodes.begin()+nodes_start, nodes.end());
 
 	/* add all nodelinks of the tree to the link list */
-	bNodeLink* nodelink = (bNodeLink*)tree->links.first;
+	bNodeLink *nodelink = (bNodeLink*)tree->links.first;
 	while (nodelink != NULL) {
 		addNodeLink(node_range, links, nodelink);
 		nodelink = (bNodeLink*)nodelink->next;
@@ -72,11 +73,13 @@ Node* ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 	return mainnode;
 }
 
-void ExecutionSystemHelper::addNode(vector<Node*>& nodes, Node *node) {
+void ExecutionSystemHelper::addNode(vector<Node*>& nodes, Node *node)
+{
 	nodes.push_back(node);
 }
 
-Node* ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode) {
+Node *ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode)
+{
 	Converter converter;
 	Node * node;
 	node = converter.convert(bNode);
@@ -86,36 +89,40 @@ Node* ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode) {
 	}
 	return NULL;
 }
-void ExecutionSystemHelper::addOperation(vector<NodeOperation*>& operations, NodeOperation *operation) {
+void ExecutionSystemHelper::addOperation(vector<NodeOperation*>& operations, NodeOperation *operation)
+{
 	operations.push_back(operation);
 }
 
-void ExecutionSystemHelper::addExecutionGroup(vector<ExecutionGroup*>& executionGroups, ExecutionGroup *executionGroup) {
+void ExecutionSystemHelper::addExecutionGroup(vector<ExecutionGroup*>& executionGroups, ExecutionGroup *executionGroup)
+{
 	executionGroups.push_back(executionGroup);
 }
 
-void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation*>* result, vector<NodeOperation*>& operations, bool rendering) {
+void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation*>* result, vector<NodeOperation*>& operations, bool rendering)
+{
 	unsigned int index;
 
 	for (index = 0 ; index < operations.size() ; index ++) {
-		NodeOperation* operation = operations[index];
+		NodeOperation *operation = operations[index];
 		if (operation->isOutputOperation(rendering)) {
 			result->push_back(operation);
-		 }
+		}
 	}
 }
 
-static InputSocket* find_input(NodeRange &node_range, bNode *bnode, bNodeSocket* bsocket) {
+static InputSocket *find_input(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
+{
 	if (bnode != NULL) {
 		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
-			Node* node = *it;
+			Node *node = *it;
 			if (node->getbNode() == bnode)
 				return node->findInputSocketBybNodeSocket(bsocket);
 		}
 	}
 	else {
 		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
-			Node* node = *it;
+			Node *node = *it;
 			if (node->isProxyNode()) {
 				InputSocket *proxySocket = node->getInputSocket(0);
 				if (proxySocket->getbNodeSocket()==bsocket)
@@ -125,17 +132,18 @@ static InputSocket* find_input(NodeRange &node_range, bNode *bnode, bNodeSocket*
 	}
 	return NULL;
 }
-static OutputSocket* find_output(NodeRange &node_range, bNode *bnode, bNodeSocket* bsocket) {
+static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
+{
 	if (bnode != NULL) {
 		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
-			Node* node = *it;
+			Node *node = *it;
 			if (node->getbNode() == bnode)
 				return node->findOutputSocketBybNodeSocket(bsocket);
 		}
 	}
 	else {
 		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
-			Node* node = *it;
+			Node *node = *it;
 			if (node->isProxyNode()) {
 				OutputSocket *proxySocket = node->getOutputSocket(0);
 				if (proxySocket->getbNodeSocket()==bsocket)
@@ -145,7 +153,8 @@ static OutputSocket* find_output(NodeRange &node_range, bNode *bnode, bNodeSocke
 	}
 	return NULL;
 }
-SocketConnection* ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink) {
+SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink)
+{
 	/// @note: cyclic lines will be ignored. This has been copied from node.c
 	if (bNodeLink->tonode != 0 && bNodeLink->fromnode != 0) {
 		if (!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level!=0xFFF)) { // only add non cyclic lines! so execution will procede
@@ -161,11 +170,12 @@ SocketConnection* ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vect
 	if (inputSocket->isConnected()) {
 		return NULL;
 	}
-	SocketConnection* connection = addLink(links, outputSocket, inputSocket);
+	SocketConnection *connection = addLink(links, outputSocket, inputSocket);
 	return connection;
 }
 
-SocketConnection* ExecutionSystemHelper::addLink(vector<SocketConnection*>& links, OutputSocket* fromSocket, InputSocket* toSocket) {
+SocketConnection *ExecutionSystemHelper::addLink(vector<SocketConnection*>& links, OutputSocket *fromSocket, InputSocket *toSocket)
+{
 	SocketConnection * newconnection = new SocketConnection();
 	newconnection->setFromSocket(fromSocket);
 	newconnection->setToSocket(toSocket);
@@ -175,11 +185,12 @@ SocketConnection* ExecutionSystemHelper::addLink(vector<SocketConnection*>& link
 	return newconnection;
 }
 
-void ExecutionSystemHelper::debugDump(ExecutionSystem* system) {
-	Node* node;
-	NodeOperation* operation;
-	ExecutionGroup* group;
-	SocketConnection* connection; 
+void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
+{
+	Node *node;
+	NodeOperation *operation;
+	ExecutionGroup *group;
+	SocketConnection *connection;
 	int tot, tot2;
 	printf("-- BEGIN COMPOSITOR DUMP --\r\n");
 	printf("digraph compositorexecution {\r\n");
@@ -283,7 +294,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem* system) {
 		operation = system->getOperations()[i];
 		if (operation->isReadBufferOperation()) {
 			ReadBufferOperation * read = (ReadBufferOperation*)operation;
-			WriteBufferOperation * write= read->getMemoryProxy()->getWriteBufferOperation();
+			WriteBufferOperation * write = read->getMemoryProxy()->getWriteBufferOperation();
 			printf("\t\"O_%p\" -> \"O_%p\" [style=dotted]\r\n", write, read);
 		}
 	}

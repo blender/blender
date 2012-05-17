@@ -31,7 +31,8 @@ extern "C" {
 #include "COM_WorkScheduler.h"
 
 static ThreadMutex *compositorMutex;
-void COM_execute(bNodeTree *editingtree, int rendering) {
+void COM_execute(bNodeTree *editingtree, int rendering)
+{
 	if (compositorMutex == NULL) { /// TODO: move to blender startup phase
 		compositorMutex = new ThreadMutex();
 		BLI_mutex_init(compositorMutex);
@@ -51,7 +52,7 @@ void COM_execute(bNodeTree *editingtree, int rendering) {
 	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing");
 
 	/* initialize execution system */
-	ExecutionSystem* system = new ExecutionSystem(editingtree, rendering);
+	ExecutionSystem *system = new ExecutionSystem(editingtree, rendering);
 	system->execute();
 	delete system;
 

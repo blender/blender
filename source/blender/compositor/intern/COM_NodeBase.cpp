@@ -29,11 +29,13 @@
 #include "COM_SocketConnection.h"
 #include "COM_ExecutionSystem.h"
 
-NodeBase::NodeBase() {
+NodeBase::NodeBase()
+{
 }
 
 
-NodeBase::~NodeBase() {
+NodeBase::~NodeBase()
+{
 	while (!this->outputsockets.empty()) {
 		delete (this->outputsockets.back());
 		this->outputsockets.pop_back();
@@ -44,60 +46,70 @@ NodeBase::~NodeBase() {
 	}
 }
 
-void NodeBase::addInputSocket(DataType datatype) {
+void NodeBase::addInputSocket(DataType datatype)
+{
 	this->addInputSocket(datatype, COM_SC_CENTER, NULL);
 }
 
-void NodeBase::addInputSocket(DataType datatype, InputSocketResizeMode resizeMode) {
+void NodeBase::addInputSocket(DataType datatype, InputSocketResizeMode resizeMode)
+{
 	this->addInputSocket(datatype, resizeMode, NULL);
 }
-void NodeBase::addInputSocket(DataType datatype, InputSocketResizeMode resizeMode, bNodeSocket* bSocket) {
+void NodeBase::addInputSocket(DataType datatype, InputSocketResizeMode resizeMode, bNodeSocket *bSocket)
+{
 	InputSocket *socket = new InputSocket(datatype, resizeMode);
 	socket->setEditorSocket(bSocket);
 	socket->setNode(this);
 	this->inputsockets.push_back(socket);
 }
 
-void NodeBase::addOutputSocket(DataType datatype) {
+void NodeBase::addOutputSocket(DataType datatype)
+{
 	this->addOutputSocket(datatype, NULL);
 	
 }
-void NodeBase::addOutputSocket(DataType datatype, bNodeSocket* bSocket) {
+void NodeBase::addOutputSocket(DataType datatype, bNodeSocket *bSocket)
+{
 	OutputSocket *socket = new OutputSocket(datatype);
 	socket->setEditorSocket(bSocket);
 	socket->setNode(this);
 	this->outputsockets.push_back(socket);
 }
-const bool NodeBase::isInputNode() const {
+const bool NodeBase::isInputNode() const
+{
 	return this->inputsockets.size() == 0;
 }
 
-OutputSocket* NodeBase::getOutputSocket(int index) {
+OutputSocket *NodeBase::getOutputSocket(int index)
+{
 	return this->outputsockets[index];
 }
 
-InputSocket* NodeBase::getInputSocket(int index) {
+InputSocket *NodeBase::getInputSocket(int index)
+{
 	return this->inputsockets[index];
 }
 
 
-void NodeBase::determineActualSocketDataTypes() {
+void NodeBase::determineActualSocketDataTypes()
+{
 	unsigned int index;
 	for (index = 0 ; index < this->outputsockets.size() ; index ++) {
-		OutputSocket* socket = this->outputsockets[index];
+		OutputSocket *socket = this->outputsockets[index];
 		if (socket->getActualDataType() ==COM_DT_UNKNOWN && socket->isConnected()) {
 			socket->determineActualDataType();
 		}
 	}
 	for (index = 0 ; index < this->inputsockets.size() ; index ++) {
-		InputSocket* socket = this->inputsockets[index];
+		InputSocket *socket = this->inputsockets[index];
 		if (socket->getActualDataType() ==COM_DT_UNKNOWN) {
 			socket->determineActualDataType();
 		}
 	}
 }
 
-DataType NodeBase::determineActualDataType(OutputSocket *outputsocket) {
+DataType NodeBase::determineActualDataType(OutputSocket *outputsocket)
+{
 	const int inputIndex = outputsocket->getInputSocketDataTypeDeterminatorIndex();
 	if (inputIndex != -1) {
 		return this->getInputSocket(inputIndex)->getActualDataType();
@@ -107,7 +119,8 @@ DataType NodeBase::determineActualDataType(OutputSocket *outputsocket) {
 	}
 }
 
-void NodeBase::notifyActualDataTypeSet(InputSocket *socket, DataType actualType) {
+void NodeBase::notifyActualDataTypeSet(InputSocket *socket, DataType actualType)
+{
 	unsigned int index;
 	int socketIndex = -1;
 	for (index = 0 ; index < this->inputsockets.size() ; index ++) {
@@ -119,9 +132,10 @@ void NodeBase::notifyActualDataTypeSet(InputSocket *socket, DataType actualType)
 	if (socketIndex == -1) return;
 	
 	for (index = 0 ; index < this->outputsockets.size() ; index ++) {
-		OutputSocket* socket = this->outputsockets[index];
+		OutputSocket *socket = this->outputsockets[index];
 		if (socket->isActualDataTypeDeterminedByInputSocket() &&
-				socket->getInputSocketDataTypeDeterminatorIndex() == socketIndex) {
+		    socket->getInputSocketDataTypeDeterminatorIndex() == socketIndex)
+		{
 			socket->setActualDataType(actualType);
 			socket->fireActualDataType();
 		}

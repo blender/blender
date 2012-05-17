@@ -22,10 +22,12 @@
 
 #include "COM_MixBlendOperation.h"
 
-MixBlendOperation::MixBlendOperation(): MixBaseOperation() {
+MixBlendOperation::MixBlendOperation(): MixBaseOperation()
+{
 }
 
-void MixBlendOperation::executePixel(float* outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {
+void MixBlendOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+{
 	float inputColor1[4];
 	float inputColor2[4];
 	float inputValue[4];
@@ -39,7 +41,7 @@ void MixBlendOperation::executePixel(float* outputValue, float x, float y, Pixel
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	float valuem= 1.0f-value;
+	float valuem = 1.0f - value;
 	outputValue[0] = valuem*(inputColor1[0])+value*(inputColor2[0]);
 	outputValue[1] = valuem*(inputColor1[1])+value*(inputColor2[1]);
 	outputValue[2] = valuem*(inputColor1[2])+value*(inputColor2[2]);
