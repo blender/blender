@@ -7122,9 +7122,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				track= clip->tracking.tracks.first;
 				while (track) {
-					if (track->pyramid_levels==0)
-						track->pyramid_levels= 2;
-
 					if (track->minimum_correlation==0.0f)
 						track->minimum_correlation= 0.75f;
 
@@ -7146,9 +7143,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
 			MovieTrackingSettings *settings= &clip->tracking.settings;
 
-			if (settings->default_pyramid_levels==0) {
-				settings->default_tracker= TRACKER_KLT;
-				settings->default_pyramid_levels= 2;
+			if (settings->default_pattern_size == 0.0f) {
+				settings->default_motion_model= TRACK_MOTION_MODEL_TRANSLATION;
 				settings->default_minimum_correlation= 0.75;
 				settings->default_pattern_size= 11;
 				settings->default_search_size= 51;

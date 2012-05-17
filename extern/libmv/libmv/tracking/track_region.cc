@@ -499,7 +499,7 @@ struct TranslationRotationWarp {
                             q2.CornerRelativeToCentroid(i).transpose();
     }
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
-    parameters[2] = acos(R(0, 0));
+    parameters[2] = atan2(R(1, 0), R(0, 0));
 
     std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
     std::cout << "R:\n" << R << "\n";
@@ -575,7 +575,7 @@ struct TranslationRotationScaleWarp {
     std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
     std::cout << "R:\n" << R << "\n";
-    parameters[3] = acos(R(0, 0));
+    parameters[3] = atan2(R(1, 0), R(0, 0));
     std::cout << "theta:" << parameters[3] << "\n";
   }
 
@@ -949,6 +949,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // TODO(keir): Consider removing these options before committing.
   solver_options.numeric_derivative_relative_step_size = 1e-3;
+  solver_options.check_gradients = false;
   solver_options.gradient_check_relative_precision = 1e-10;
   solver_options.minimizer_progress_to_stdout = false;
 

@@ -54,6 +54,7 @@ void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 struct libmv_trackRegionOptions {
   int motion_model;
   int num_iterations;
+  int use_brute;
   double minimum_correlation;
   double sigma;
 };

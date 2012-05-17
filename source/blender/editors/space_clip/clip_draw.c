@@ -668,51 +668,6 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		glEnd();
 	}
 
-	/* pyramid */
-	if (sel && TRACK_VIEW_SELECTED(sc, track) &&
-	    (track->tracker == TRACKER_KLT) &&
-		(marker->flag & MARKER_DISABLED) == 0)
-	{
-		if (track->flag & TRACK_LOCKED) {
-			if (act)
-				UI_ThemeColor(TH_ACT_MARKER);
-			else if (track->pat_flag & SELECT)
-				UI_ThemeColorShade(TH_LOCK_MARKER, 64);
-			else UI_ThemeColor(TH_LOCK_MARKER);
-		}
-		else if (marker->flag & MARKER_DISABLED) {
-			if (act)
-				UI_ThemeColor(TH_ACT_MARKER);
-			else if (track->pat_flag & SELECT)
-				UI_ThemeColorShade(TH_DIS_MARKER, 128);
-			else UI_ThemeColor(TH_DIS_MARKER);
-		}
-		else {
-			if (track->pat_flag & SELECT)
-				glColor3fv(scol);
-			else
-				glColor3fv(col);
-		}
-
-		{
-			int i = 0;
-			glPushMatrix();
-			glEnable(GL_LINE_STIPPLE);
-			for (i = 1; i < track->pyramid_levels; ++i) {
-				glScalef(2.0f, 2.0f, 1.0);
-			}
-			/* only draw a pattern for the coarsest level */
-			glBegin(GL_LINE_LOOP);
-				glVertex2fv(marker->pattern_corners[0]);
-				glVertex2fv(marker->pattern_corners[1]);
-				glVertex2fv(marker->pattern_corners[2]);
-				glVertex2fv(marker->pattern_corners[3]);
-			glEnd();
-			glDisable(GL_LINE_STIPPLE);
-			glPopMatrix();
-		}
-	}
-
 	if (tiny)
 		glDisable(GL_LINE_STIPPLE);
 

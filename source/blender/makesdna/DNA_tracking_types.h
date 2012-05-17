@@ -118,17 +118,14 @@ typedef struct MovieTrackingTrack {
 	int flag, pat_flag, search_flag;	/* flags (selection, ...) */
 	float color[3];						/* custom color for track */
 
-	/* tracking algorithm to use; can be KLT or SAD */
+	/* ** control how tracking happens */
 	short frames_limit;		/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
 	short margin;			/* margin from frame boundaries */
 	short pattern_match;	/* re-adjust every N frames */
 
-	short tracker;			/* tracking algorithm used for this track */
-
-	/* ** KLT tracker settings ** */
-	short pyramid_levels, pad2;		/* number of pyramid levels to use for KLT tracking */
-
-	/* ** SAD tracker settings ** */
+	/* tracking parameters */
+	short motion_model;     /* model of the motion for this track */
+	int algorithm_flag;    /* flags for the tracking algorithm (use brute, use esm, use pyramid, etc */
 	float minimum_correlation;			/* minimal correlation which is still treated as successful tracking */
 
 	struct bGPdata *gpd;		/* grease-pencil data */
@@ -138,15 +135,15 @@ typedef struct MovieTrackingSettings {
 	int flag;
 
 	/* ** default tracker settings */
-	short default_tracker;				/* tracking algorithm used by default */
-	short default_pyramid_levels;		/* number of pyramid levels to use for KLT tracking */
-	float default_minimum_correlation;	/* minimal correlation which is still treated as successful tracking */
-	short default_pattern_size;			/* size of pattern area for new tracks */
-	short default_search_size;			/* size of search area for new tracks */
-	short default_frames_limit;			/* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
-	short default_margin;				/* margin from frame boundaries */
-	short default_pattern_match;		/* re-adjust every N frames */
-	short default_flag;					/* default flags like color channels used by default */
+	short default_motion_model;         /* model of the motion for this track */
+	short default_algorithm_flag;       /* flags for the tracking algorithm (use brute, use esm, use pyramid, etc */
+	float default_minimum_correlation;  /* minimal correlation which is still treated as successful tracking */
+	short default_pattern_size;         /* size of pattern area for new tracks */
+	short default_search_size;          /* size of search area for new tracks */
+	short default_frames_limit;         /* number of frames to be tarcked during single tracking session (if TRACKING_FRAMES_LIMIT is set) */
+	short default_margin;               /* margin from frame boundaries */
+	short default_pattern_match;        /* re-adjust every N frames */
+	short default_flag;                 /* default flags like color channels used by default */
 
 	short motion_flag;		/* flags describes motion type */
 
@@ -280,10 +277,16 @@ enum {
 #define TRACK_PREVIEW_GRAYSCALE	(1<<9)
 #define TRACK_DOPE_SEL		(1<<10)
 
-/* MovieTrackingTrack->tracker */
-#define TRACKER_KLT		0
-#define TRACKER_SAD		1
-#define TRACKER_HYBRID		2
+/* MovieTrackingTrack->motion_model */
+#define TRACK_MOTION_MODEL_TRANSLATION                 0
+#define TRACK_MOTION_MODEL_TRANSLATION_ROTATION        1
+#define TRACK_MOTION_MODEL_TRANSLATION_SCALE           2
+#define TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE  3
+#define TRACK_MOTION_MODEL_AFFINE                      4
+#define TRACK_MOTION_MODEL_HOMOGRAPHY                  5
+
+/* MovieTrackingTrack->algorithm_flag */
+#define TRACK_ALGORITHM_FLAG_USE_BRUTE 0
 
 /* MovieTrackingTrack->adjframes */
 #define TRACK_MATCH_KEYFRAME		0

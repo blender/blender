@@ -156,11 +156,10 @@ void BKE_tracking_init_settings(MovieTracking *tracking)
 	tracking->camera.pixel_aspect = 1.0f;
 	tracking->camera.units = CAMERA_UNITS_MM;
 
-	tracking->settings.default_tracker = TRACKER_HYBRID;
+	tracking->settings.default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
 	tracking->settings.default_minimum_correlation = 0.75;
 	tracking->settings.default_pattern_size = 11;
 	tracking->settings.default_search_size = 61;
-	tracking->settings.default_pyramid_levels = 2;
 	tracking->settings.keyframe1 = 1;
 	tracking->settings.keyframe2 = 30;
 	tracking->settings.dist = 1;
@@ -179,11 +178,6 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 	int a;
 	float pat_min[2], pat_max[2];
 	float eff_pat_min[2], eff_pat_max[2];
-	float max_pyramid_level_factor = 1.0;
-
-	if (track->tracker == TRACKER_KLT) {
-		max_pyramid_level_factor = 1 << (track->pyramid_levels - 1);
-	}
 
 	/* XXX: currently search area is global, pattern size is per-marker, so we'll need to
 	 *      find maximal size of pattern to clamp search size nicely
@@ -199,13 +193,8 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 		DO_MINMAX2(cur_pat_max, pat_min, pat_max);
 	}
 
-	/* compute the effective pattern size, which differs from the fine resolution
-	 * pattern size for the pyramid KLT tracker
-	 */
-	for (a = 0; a < 2; a++) {
-		eff_pat_min[a] = max_pyramid_level_factor * pat_min[a];
-		eff_pat_max[a] = max_pyramid_level_factor * pat_max[a];
-	}
+	copy_v2_v2(eff_pat_min, pat_min);
+	copy_v2_v2(eff_pat_max, pat_max);
 
 	if (event == CLAMP_PAT_DIM) {
 		for (a = 0; a < 2; a++) {
@@ -260,19 +249,12 @@ void BKE_tracking_clamp_track(MovieTrackingTrack *track, int event)
 			}
 		}
 	}
-	else if (event == CLAMP_PYRAMID_LEVELS || (event == CLAMP_SEARCH_DIM && track->tracker == TRACKER_KLT)) {
+	else if (event == CLAMP_SEARCH_DIM) {
 		float dim[2];
 		sub_v2_v2v2(dim, pat_max, pat_min);
-		{
-			float search_ratio = 2.3f * max_pyramid_level_factor;
-
-			/* resize the search area to something sensible based
-			 * on the number of pyramid levels
-			 */
-			for (a = 0; a < 2; a++) {
-				track->search_min[a] = search_ratio * pat_min[a];
-				track->search_max[a] = search_ratio * pat_max[a];
-			}
+		for (a = 0; a < 2; a++) {
+			track->search_min[a] = pat_min[a];
+			track->search_max[a] = pat_max[a];
 		}
 	}
 }
@@ -320,13 +302,13 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	track = MEM_callocN(sizeof(MovieTrackingTrack), "add_marker_exec track");
 	strcpy(track->name, "Track");
 
-	track->tracker = settings->default_tracker;
-	track->pyramid_levels = settings->default_pyramid_levels;
+	track->motion_model = settings->default_motion_model;
 	track->minimum_correlation = settings->default_minimum_correlation;
 	track->margin = settings->default_margin;
 	track->pattern_match = settings->default_pattern_match;
 	track->frames_limit = settings->default_frames_limit;
 	track->flag = settings->default_flag;
+	track->algorithm_flag = settings->default_algorithm_flag;
 
 	memset(&marker, 0, sizeof(marker));
 	marker.pos[0] = x;
@@ -346,9 +328,6 @@ MovieTrackingTrack *BKE_tracking_add_track(MovieTracking *tracking, ListBase *tr
 	negate_v2_v2(track->search_min, search);
 
 	BKE_tracking_insert_marker(track, &marker);
-
-	if (track->tracker == TRACKER_KLT)
-		BKE_tracking_clamp_track(track, CLAMP_PYRAMID_LEVELS);
 
 	BLI_addtail(tracksbase, track);
 	BKE_track_unique_name(tracksbase, track);
@@ -1754,8 +1733,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				patch_new = get_search_floatbuf(destination_ibuf, track, marker, &width, &height);
 
 				/* Configure the tracker */
-				options.motion_model = 0;
-				options.num_iterations = 10;
+				options.motion_model = track->motion_model;
+				options.use_brute = ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_BRUTE) == 0);
+				options.num_iterations = 50;
 				options.minimum_correlation = track->minimum_correlation;
 				options.sigma = 0.9;
 
