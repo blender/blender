@@ -120,4 +120,12 @@ void register_node_type_cmp_glare(struct bNodeTreeType *ttype);
 void register_node_type_cmp_tonemap(struct bNodeTreeType *ttype);
 void register_node_type_cmp_lensdist(struct bNodeTreeType *ttype);
 
+
+void register_node_type_cmp_colorcorrection(struct bNodeTreeType *ttype);
+void register_node_type_cmp_boxmask(struct bNodeTreeType *ttype);
+void register_node_type_cmp_ellipsemask(struct bNodeTreeType *ttype);
+void register_node_type_cmp_bokehimage(struct bNodeTreeType *ttype);
+void register_node_type_cmp_bokehblur(struct bNodeTreeType *ttype);
+void register_node_type_cmp_switch(struct bNodeTreeType *ttype);
+
 #endif

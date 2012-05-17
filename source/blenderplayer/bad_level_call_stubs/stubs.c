@@ -518,6 +518,9 @@ struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
 struct CCLDeviceInfo;
 struct CCLDeviceInfo *CCL_compute_device_list(int opencl) { return NULL; }
 
+/* compositor */
+void COM_execute(bNodeTree *editingtree, int rendering) {}
+
 char blender_path[] = "";
 
 #endif // WITH_GAMEENGINE

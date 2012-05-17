@@ -1967,6 +1967,256 @@ static void node_composit_buts_moviedistortion(uiLayout *layout, bContext *C, Po
 	uiItemR(layout, ptr, "distortion_type", 0, "", 0);
 }
 
+static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row;
+	
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "red", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "green", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "blue", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "master_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "master_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "master_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "master_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "master_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemL(row, "Saturation", 0);
+	uiItemL(row, "Contrast", 0);
+	uiItemL(row, "Gamma", 0);
+	uiItemL(row, "Gain", 0);
+	uiItemL(row, "Lift", 0);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "highlights_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "midtones_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "shadows_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+}
+static void node_composit_buts_colorcorrection_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr) {
+	uiLayout *row;
+	
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "red", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "green", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "blue", 0, NULL, ICON_NONE);
+	row = layout;
+	uiItemL(row, "Saturation", 0);
+	uiItemR(row, ptr, "master_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	uiItemL(row, "Contrast", 0);
+	uiItemR(row, ptr, "master_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	uiItemL(row, "Gamma", 0);
+	uiItemR(row, ptr, "master_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	uiItemL(row, "Gain", 0);
+	uiItemR(row, ptr, "master_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	
+	uiItemL(row, "Lift", 0);
+	uiItemR(row, ptr, "master_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "highlights_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "midtones_start", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_end", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_switch(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "check", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row;
+	
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
+	
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "mask_type", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "flaps", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "angle", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "rounding", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "catadioptric", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "shift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+}
+
+void node_composit_backdrop_viewer(SpaceNode* snode, ImBuf* backdrop, bNode* node, int x, int y)
+{
+//	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
+	if (node->custom1 == 0) { /// @todo: why did we need this one?
+		const float backdropWidth = backdrop->x;
+		const float backdropHeight = backdrop->y;
+		const float cx  = x+snode->zoom*backdropWidth*node->custom3;
+		const float cy = y+snode->zoom*backdropHeight*node->custom4;
+
+		glColor3f(1.0, 1.0, 1.0);
+
+		glBegin(GL_LINES);
+		glVertex2f(cx-25, cy-25);
+		glVertex2f(cx+25, cy+25);
+		glVertex2f(cx+25, cy-25);
+		glVertex2f(cx-25, cy+25);
+		glEnd();
+	}
+}
+
+void node_composit_backdrop_boxmask(SpaceNode* snode, ImBuf* backdrop, bNode* node, int x, int y)
+{
+	NodeBoxMask * boxmask = node->storage;
+	const float backdropWidth = backdrop->x;
+	const float backdropHeight = backdrop->y;
+	const float aspect = backdropWidth/backdropHeight;
+	const float rad = DEG2RAD(-boxmask->rotation);
+	const float cosine = cos(rad);
+	const float sine = sin(rad);
+	const float halveBoxWidth = backdropWidth*(boxmask->width/2.0f);
+	const float halveBoxHeight = backdropHeight*(boxmask->height/2.0f)*aspect;
+
+	float cx, cy, x1, x2, x3, x4;
+	float y1, y2, y3, y4;
+
+
+	/* keep this, saves us from a version patch */
+	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+
+	glColor3f(1.0, 1.0, 1.0);
+
+	cx  = x+snode->zoom*backdropWidth*boxmask->x;
+	cy = y+snode->zoom*backdropHeight*boxmask->y;
+
+	x1 = cx - (cosine*halveBoxWidth+sine*halveBoxHeight)*snode->zoom;
+	x2 = cx - (cosine*-halveBoxWidth+sine*halveBoxHeight)*snode->zoom;
+	x3 = cx - (cosine*-halveBoxWidth+sine*-halveBoxHeight)*snode->zoom;
+	x4 = cx - (cosine*halveBoxWidth+sine*-halveBoxHeight)*snode->zoom;
+	y1 = cy - (-sine*halveBoxWidth + cosine*halveBoxHeight)*snode->zoom;
+	y2 = cy - (-sine*-halveBoxWidth + cosine*halveBoxHeight)*snode->zoom;
+	y3 = cy - (-sine*-halveBoxWidth + cosine*-halveBoxHeight)*snode->zoom;
+	y4 = cy - (-sine*halveBoxWidth + cosine*-halveBoxHeight)*snode->zoom;
+
+	glBegin(GL_LINE_LOOP);
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glVertex2f(x3, y3);
+	glVertex2f(x4, y4);
+	glEnd();
+}
+
+void node_composit_backdrop_ellipsemask(SpaceNode* snode, ImBuf* backdrop, bNode* node, int x, int y)
+{
+	NodeEllipseMask * ellipsemask = node->storage;
+	const float backdropWidth = backdrop->x;
+	const float backdropHeight = backdrop->y;
+	const float aspect = backdropWidth/backdropHeight;
+	const float rad = DEG2RAD(-ellipsemask->rotation);
+	const float cosine = cos(rad);
+	const float sine = sin(rad);
+	const float halveBoxWidth = backdropWidth*(ellipsemask->width/2.0f);
+	const float halveBoxHeight = backdropHeight*(ellipsemask->height/2.0f)*aspect;
+
+	float cx, cy, x1, x2, x3, x4;
+	float y1, y2, y3, y4;
+
+
+	/* keep this, saves us from a version patch */
+	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+
+	glColor3f(1.0, 1.0, 1.0);
+
+	cx  = x+snode->zoom*backdropWidth*ellipsemask->x;
+	cy = y+snode->zoom*backdropHeight*ellipsemask->y;
+
+	x1 = cx - (cosine*halveBoxWidth+sine*halveBoxHeight)*snode->zoom;
+	x2 = cx - (cosine*-halveBoxWidth+sine*halveBoxHeight)*snode->zoom;
+	x3 = cx - (cosine*-halveBoxWidth+sine*-halveBoxHeight)*snode->zoom;
+	x4 = cx - (cosine*halveBoxWidth+sine*-halveBoxHeight)*snode->zoom;
+	y1 = cy - (-sine*halveBoxWidth + cosine*halveBoxHeight)*snode->zoom;
+	y2 = cy - (-sine*-halveBoxWidth + cosine*halveBoxHeight)*snode->zoom;
+	y3 = cy - (-sine*-halveBoxWidth + cosine*-halveBoxHeight)*snode->zoom;
+	y4 = cy - (-sine*halveBoxWidth + cosine*-halveBoxHeight)*snode->zoom;
+
+	glBegin(GL_LINE_LOOP);
+
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glVertex2f(x3, y3);
+	glVertex2f(x4, y4);
+	glEnd();
+}
+
+static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *row;
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
+	row= uiLayoutRow(layout, 1);
+	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+
+	uiItemR(layout, ptr, "rotation", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "mask_type", 0, NULL, ICON_NONE);
+}
+
+static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiLayout *col;
+	
+	uiItemR(layout, ptr, "tile_order", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "tile_order")==0) {
+		col= uiLayoutColumn(layout, 1);
+		uiItemR(col, ptr, "center_x", 0, NULL, ICON_NONE);
+		uiItemR(col, ptr, "center_y", 0, NULL, ICON_NONE);
+	}
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2134,6 +2384,30 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_MOVIEDISTORTION:
 			ntype->uifunc= node_composit_buts_moviedistortion;
 			break;
+		case CMP_NODE_COLORCORRECTION:
+			ntype->uifunc=node_composit_buts_colorcorrection;
+			ntype->uifuncbut=node_composit_buts_colorcorrection_but;
+			break;
+		case CMP_NODE_SWITCH:
+			ntype->uifunc= node_composit_buts_switch;
+			break;
+		case CMP_NODE_MASK_BOX:
+			ntype->uifunc= node_composit_buts_boxmask;
+			ntype->uibackdropfunc = node_composit_backdrop_boxmask;
+			break;
+		case CMP_NODE_MASK_ELLIPSE:
+			ntype->uifunc= node_composit_buts_ellipsemask;
+			ntype->uibackdropfunc = node_composit_backdrop_ellipsemask;
+			break;
+		case CMP_NODE_BOKEHIMAGE:
+			ntype->uifunc= node_composit_buts_bokehimage;
+			break;
+		case CMP_NODE_VIEWER:
+			ntype->uifunc = NULL;
+			ntype->uifuncbut= node_composit_buts_viewer_but;
+			ntype->uibackdropfunc = node_composit_backdrop_viewer;
+			break;
+
 		default:
 			ntype->uifunc= NULL;
 	}
@@ -2430,6 +2704,19 @@ void draw_nodespace_back_pix(ARegion *ar, SpaceNode *snode, int color_manage)
 					glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 					
 					glPixelZoom(1.0f, 1.0f);
+				}
+			}
+
+			/// @note draw selected info on backdrop
+			if (snode->edittree) {
+				bNode *node = snode->edittree->nodes.first;
+				while (node) {
+					if (node->flag & NODE_SELECT) {
+						if (node->typeinfo->uibackdropfunc) {
+							node->typeinfo->uibackdropfunc(snode, ibuf, node, x, y);
+						}
+					}
+					node = node->next;
 				}
 			}
 			

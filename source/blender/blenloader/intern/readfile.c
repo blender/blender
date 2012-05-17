@@ -7402,6 +7402,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 
 	if (main->versionfile < 263) {
+		/* Default for old files is to save particle rotations to pointcache */
+		ParticleSettings *part;
+		for (part = main->particle.first; part; part = part->id.next)
+			part->flag |= PART_ROTATIONS;
 		{
 			/* Default for old files is to save particle rotations to pointcache */
 			ParticleSettings *part;
@@ -7419,6 +7423,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (ntree = main->nodetree.first; ntree; ntree=ntree->id.next)
 				do_versions_nodetree_multi_file_output_path_2_64_0(ntree);
 		}
+
+
+
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 3)) {
@@ -7525,7 +7532,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
-
+	{
+		Scene *scene;
+		// composite redesign
+		for (scene=main->scene.first; scene; scene=scene->id.next)
+			if (scene->nodetree) 
+				if ( scene->nodetree->chunksize == 0) {
+					scene->nodetree->chunksize = 256;
+				}
+	}
 	/* don't forget to set version number in blender.c! */
 }
 

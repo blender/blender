@@ -185,8 +185,8 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	
 	// XXX BIF_store_spare();
 	
-	ntreeCompositExecTree(ntree, &cj->scene->r, 1);	/* 1 is do_previews */
-	
+	ntreeCompositExecTree(ntree, &cj->scene->r, 0, 1);	/* 1 is do_previews */
+
 	ntree->test_break= NULL;
 	ntree->stats_draw= NULL;
 	ntree->progress= NULL;
@@ -405,6 +405,10 @@ void ED_node_composit_default(Scene *sce)
 	}
 	
 	sce->nodetree= ntreeAddTree("Compositing Nodetree", NTREE_COMPOSIT, 0);
+
+	sce->nodetree->chunksize = 256;
+	sce->nodetree->edit_quality = NTREE_QUALITY_HIGH;
+	sce->nodetree->render_quality = NTREE_QUALITY_HIGH;
 	
 	ntemp.type = CMP_NODE_COMPOSITE;
 	out= nodeAddNode(sce->nodetree, &ntemp);

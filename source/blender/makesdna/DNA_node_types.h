@@ -68,6 +68,14 @@ typedef struct bNodeStack {
 #define NS_OSA_VECTORS		1
 #define NS_OSA_VALUES		2
 
+/* node socket/node socket type -b conversion rules */
+#define NS_CR_CENTER		0
+#define NS_CR_NONE			1
+#define NS_CR_FIT_WIDTH		2
+#define NS_CR_FIT_HEIGHT	3
+#define NS_CR_FIT			4
+#define NS_CR_STRETCH		5
+
 typedef struct bNodeSocket {
 	struct bNodeSocket *next, *prev, *new_sock;
 	
@@ -87,7 +95,7 @@ typedef struct bNodeSocket {
 	short stack_index;			/* local stack index */
 	/* XXX deprecated, kept for forward compatibility */
 	short stack_type  DNA_DEPRECATED;
-	int pad2;
+	int resizemode;				/* compositor resize mode of the socket */
 	void *cache;				/* cached data from execution */
 	
 	/* internal data to retrieve relations and groups */
@@ -223,6 +231,11 @@ typedef struct bNodeLink {
 #define NODE_LINKFLAG_HILITE	1		/* link has been successfully validated */
 #define NODE_LINK_VALID			2
 
+/* tree->edit_quality/tree->render_quality */
+#define NTREE_QUALITY_HIGH    0
+#define NTREE_QUALITY_MEDIUM  1
+#define NTREE_QUALITY_LOW     2
+
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {
@@ -240,6 +253,10 @@ typedef struct bNodeTree {
 	int update;						/* update flags */
 	
 	int nodetype;					/* specific node type this tree is used for */
+
+	short edit_quality;				/* Quality setting when editing */
+	short render_quality;				/* Quality setting when rendering */
+	int chunksize;					/* tile size for compositor engine */
 	
 	ListBase inputs, outputs;		/* external sockets for group nodes */
 	
@@ -271,6 +288,7 @@ typedef struct bNodeTree {
 
 /* ntree->flag */
 #define NTREE_DS_EXPAND		1	/* for animation editors */
+#define NTREE_COM_OPENCL	2	/* use opencl */
 /* XXX not nice, but needed as a temporary flags
  * for group updates after library linking.
  */
@@ -317,12 +335,66 @@ typedef struct bNodeSocketValueRGBA {
 
 /* data structs, for node->storage */
 
+#define CMP_NODE_MASKTYPE_ADD       	0
+#define CMP_NODE_MASKTYPE_SUBTRACT  	1
+#define CMP_NODE_MASKTYPE_MULTIPLY  	2
+#define CMP_NODE_MASKTYPE_NOT       	3
+
+#define CMP_NODE_LENSFLARE_GHOST   1
+#define CMP_NODE_LENSFLARE_GLOW    2
+#define CMP_NODE_LENSFLARE_CIRCLE  4
+#define CMP_NODE_LENSFLARE_STREAKS 8
+
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
 	int frames, sfra, nr;
 	char cyclic, movie;
 	short pad;
 } NodeImageAnim;
+
+typedef struct ColorCorrectionData {
+	float saturation;
+	float contrast;
+	float gamma;
+	float gain;
+	float lift;
+	int pad;
+} ColorCorrectionData;
+
+typedef struct NodeColorCorrection {
+	ColorCorrectionData master;
+	ColorCorrectionData shadows;
+	ColorCorrectionData midtones;
+	ColorCorrectionData highlights;
+	float startmidtones;
+	float endmidtones;
+} NodeColorCorrection;
+
+typedef struct NodeBokehImage {
+	float angle;
+	int flaps;
+	float rounding;
+	float catadioptric;
+	float lensshift;
+} NodeBokehImage;
+
+typedef struct NodeBoxMask {
+	float x;
+	float y;
+	float rotation;
+	float height;
+	float width;
+	int pad;
+} NodeBoxMask;
+
+typedef struct NodeEllipseMask {
+	float x;
+	float y;
+	float rotation;
+	float height;
+	float width;
+	int pad;
+} NodeEllipseMask;
 
 /* layer info for image node outputs */
 typedef struct NodeImageLayer {
