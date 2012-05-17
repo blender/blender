@@ -420,8 +420,57 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 	return 1;
 }
 
-/*Copy a single vertex group from source to destination with weights by nearest weight*/
-int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
+/********************** Start transfer weight functions *********************/
+
+int ED_vgroup_transfer_weight_by_index_all(Object *ob_dst, Object *ob_src, short mode)
+{
+	/* mode 1 == replace all weights*/
+	if(mode == 1){
+		return ED_vgroup_copy_array(ob_dst, ob_src);
+	}
+
+	/* mode 2 == apply to null/0 weights*/
+	else if(mode == 2){
+		return 0;
+	}
+
+	/* mode 3 == apply to selected weights*/
+	else if(mode == 3){
+		return 0;
+	}
+	else return 0;
+}
+
+int ED_vgroup_transfer_weight_by_index_single(Object *ob_dst, Object *ob_src, short mode)
+{
+	/* mode 1 == replace all weights*/
+	if(mode == 1){
+		return ED_vgroup_copy_single(ob_dst, ob_src);
+	}
+
+	/* mode 2 == apply to null/0 weights*/
+	else if(mode == 2){
+		return 0;
+	}
+
+	/* mode 3 == apply to selected weights*/
+	else if(mode == 3){
+		return 0;
+	}
+	else return 0;
+}
+
+int ED_vgroup_transfer_weight_by_nearest_vertex_all(Object *ob_dst, Object *ob_src, short mode)
+{
+	ob_dst= ob_dst;
+	ob_src= ob_src;
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
+}
+
+int ED_vgroup_transfer_weight_by_nearest_vertex_single(Object *ob_dst, Object *ob_src, short mode)
 {
 	bDeformGroup *dg_src, *dg_dst;
 	MDeformVert **dv_array_src, **dv_array_dst;
@@ -433,6 +482,11 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	DerivedMesh *dmesh_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float tmp_co[3], tmp_mat[4][4];
+
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -491,8 +545,17 @@ int ED_vgroup_copy_by_nearest_vertex_single(Object *ob_dst, Object *ob_src)
 	return 1;
 }
 
-/*Copy a single vertex group from source to destination with weights by nearest weight in face*/
-int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_src)
+int ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(Object *ob_dst, Object *ob_src, short mode)
+{
+	ob_dst= ob_dst;
+	ob_src= ob_src;
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
+}
+
+int ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_src, short mode)
 {
 	bDeformGroup *dg_src, *dg_dst;
 	Mesh *me_dst;
@@ -505,6 +568,11 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 	MDeformWeight *dw_dst, *dw_src;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3], tmp_mat[4][4];
+
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -589,8 +657,17 @@ int ED_vgroup_copy_by_nearest_vertex_in_face_single(Object *ob_dst, Object *ob_s
 	return 1;
 }
 
-/*Copy a single vertex group from source to destination with weights interpolated over nearest face*/
-int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
+int ED_vgroup_transfer_weight_by_nearest_face_all(Object *ob_dst, Object *ob_src, short mode)
+{
+	ob_dst= ob_dst;
+	ob_src= ob_src;
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
+}
+
+int ED_vgroup_transfer_weight_by_nearest_face_single(Object *ob_dst, Object *ob_src, short mode)
 {
 	bDeformGroup *dg_src, *dg_dst;
 	Mesh *me_dst;
@@ -603,6 +680,11 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	MDeformWeight *dw_dst;
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4];
+
+	/* mode 1 == replace all weights*/
+	/* mode 2 == apply to null/0 weights*/
+	/* mode 3 == apply to selected weights*/
+	return mode;
 
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
@@ -680,6 +762,7 @@ int ED_vgroup_copy_by_nearest_face_single(Object *ob_dst, Object *ob_src)
 	return 1;
 }
 
+/********************** End transfer weight functions *********************/
 
 /* for Mesh in Object mode */
 /* allows editmode for Lattice */
@@ -3048,7 +3131,6 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
 void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3074,12 +3156,8 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
 	{
 		if(obact != obslc) {
-			/*Try function for matching number of vertices*/
+			/*Try function for matching indices*/
 			if(ED_vgroup_copy_single(obslc, obact)) change++;
-			/*Try function for get weight from closest vertex*/
-			/*TODO: try this function*/
-			/*Try function for get weight from closest face*/
-			else if(ED_vgroup_copy_by_nearest_face_single(obslc, obact)) change++;
 			/*Trigger error message*/
 			else fail++;
 			/*Event notifiers for correct display of data*/
@@ -3093,7 +3171,7 @@ static int vertex_group_copy_to_selected_single_exec(bContext *C, wmOperator *op
 	/*Report error when task can not be completed with available functions.*/
 	if((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, All functions failed!",
+		            "Copy to VGroups to Selected single warning done %d, failed %d, object data must have matching indices",
 		            change, fail);
 	}
 
@@ -3111,6 +3189,110 @@ void OBJECT_OT_vertex_group_copy_to_selected_single(wmOperatorType *ot)
 	/* api callbacks */
 	ot->poll= vertex_group_poll;
 	ot->exec= vertex_group_copy_to_selected_single_exec;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
+{
+	Object *obact= CTX_data_active_object(C);
+	int change= 0;
+	int fail= 0;
+
+	/*TODO: get this parameter*/
+	short option= 2;
+	/* option 1 == single*/
+	/* option 2 == all*/
+
+	/*TODO: get this parameter*/
+	short method= 1;
+	/*method 1 == by matching indices*/
+	/*method 2 == by nearest vertex*/
+	/*method 3 == by nearest vertex in face*/
+	/*method 4 == by nearest face*/
+
+	/*TODO: get this parameter*/
+	short mode= 1;
+	/* mode is passed on to lower funtions*/
+
+	/*Macro to loop through selected objects and perform operation*/
+	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
+	{
+		/*check if object is the same*/
+		if(obact != obslc) {
+			/*apply option*/
+			if(option == 1){
+				/*apply method*/
+				if(method == 1){
+					/*Try function with mode*/
+					if(ED_vgroup_transfer_weight_by_index_single(obslc, obact, mode)) change++; /*(tmp dev info remove) tested and working*/
+					else fail++;
+				}
+				else if(method == 2){
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_single(obslc, obact, mode)) change++;
+					else fail++;
+				}
+				else if(method == 3){
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
+					else fail++;
+				}
+				else if(method == 4){
+					if(ED_vgroup_transfer_weight_by_nearest_face_single(obslc, obact, mode)) change++;
+					else fail++;
+				}
+				else fail++;
+			}
+			else if(option == 2){
+				if(method == 1){
+					if(ED_vgroup_transfer_weight_by_index_all(obslc, obact, mode)) change++; /*(tmp dev info remove) tested and working*/
+					else fail++;
+				}
+				else if(method == 2){
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_all(obslc, obact, mode)) change++;
+					else fail++;
+				}
+				else if(method == 3){
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(obslc, obact, mode)) change++;
+					else fail++;
+				}
+				else if(method == 4){
+					if(ED_vgroup_transfer_weight_by_nearest_face_all(obslc, obact, mode)) change++;
+					else fail++; /*Trigger error message on function failed, includes unknown mode)*/
+				}
+				else fail++; /*Trigger error message on unknown method*/
+			}
+			else fail++; /*Trigger error message on unknown option*/
+
+			/*Event notifiers for correct display of data*/
+			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
+			WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, obslc);
+			WM_event_add_notifier(C, NC_GEOM|ND_DATA, obslc->data);
+		}
+	}
+	CTX_DATA_END;
+
+	/*Report error when task can not be completed with available functions.*/
+	if((change == 0 && fail == 0) || fail) {
+		BKE_reportf(op->reports, RPT_ERROR,
+		            "Copy to VGroups to Selected warning done %d, failed %d, unknown option/method or All functions failed!",
+		            change, fail);
+	}
+
+	return OPERATOR_FINISHED;
+}
+
+/*transfers weight from active to selected*/
+void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name= "Transfer weight to selected";
+	ot->idname= "OBJECT_OT_vertex_group_transfer_weight";
+	ot->description= "Transfers weight from active to selected depending on options";
+
+	/* api callbacks */
+	ot->poll= vertex_group_poll;
+	ot->exec= vertex_group_transfer_weight_exec;
 
 	/* flags */
 	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
