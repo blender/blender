@@ -400,8 +400,7 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 	if (track_region_result.termination == libmv::TrackRegionResult::PARAMETER_TOLERANCE ||
 	    track_region_result.termination == libmv::TrackRegionResult::FUNCTION_TOLERANCE  ||
 	    track_region_result.termination == libmv::TrackRegionResult::GRADIENT_TOLERANCE  ||
-	    track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE      ||
-	    track_region_result.termination == libmv::TrackRegionResult::INSUFFICIENT_CORRELATION)
+	    track_region_result.termination == libmv::TrackRegionResult::NO_CONVERGENCE)
 	{
 		tracking_result = true;
 	}

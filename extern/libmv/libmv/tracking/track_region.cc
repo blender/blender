@@ -398,7 +398,7 @@ class Quad {
 struct TranslationWarp {
   TranslationWarp(const double *x1, const double *y1,
                   const double *x2, const double *y2) {
-    Vec2 t = Quad(x2, y2).Centroid() - Quad(x1, y1).Centroid() ;
+    Vec2 t = Quad(x2, y2).Centroid() - Quad(x1, y1).Centroid();
     parameters[0] = t[0];
     parameters[1] = t[1];
   }
@@ -908,19 +908,6 @@ void TemplatedTrackRegion(const FloatImage &image1,
   }
   // TODO(keir): Check quads to ensure there is some area.
 
-  // Prepare the initial warp parameters from the four correspondences.
-  Warp warp(x1, y1, x2, y2);
-
-  // Decide how many samples to use in the x and y dimensions.
-  int num_samples_x;
-  int num_samples_y;
-  PickSampling(x1, y1, x2, y2, &num_samples_x, &num_samples_y);
-
-  // Compute the warp from rectangular coordinates.
-  Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
-                                                         num_samples_x,
-                                                         num_samples_y);
-
   // Prepare the image and gradient.
   Array3Df image_and_gradient1;
   Array3Df image_and_gradient2;
@@ -938,7 +925,21 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                          image2,
                                          options.num_extra_points,
                                          x1, y1, x2, y2);
+    for (int i = 0; i < 4; ++i) {
+      LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); brute ("
+         << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
+         << (y2[i] - y1[i]) << ").";
+    }
   }
+
+  // Prepare the initial warp parameters from the four correspondences.
+  // Note: This must happen after the brute initialization runs.
+  Warp warp(x1, y1, x2, y2);
+
+  // Decide how many samples to use in the x and y dimensions.
+  int num_samples_x;
+  int num_samples_y;
+  PickSampling(x1, y1, x2, y2, &num_samples_x, &num_samples_y);
 
   ceres::Solver::Options solver_options;
   solver_options.linear_solver_type = ceres::DENSE_QR;
@@ -956,6 +957,11 @@ void TemplatedTrackRegion(const FloatImage &image1,
   // Prevent the corners from going outside the destination image.
   BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
   solver_options.callbacks.push_back(&callback);
+
+  // Compute the warp from rectangular coordinates.
+  Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
+                                                         num_samples_x,
+                                                         num_samples_y);
 
   // Construct the warp cost function. AutoDiffCostFunction takes ownership.
   WarpCostFunctor<Warp> *warp_cost_function =
