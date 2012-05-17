@@ -229,8 +229,8 @@ public:
 
 	}
 
-	void addInterface(LensInterface* interface) {
-		this->interfaces.push_back(interface);
+	void addInterface(LensInterface* pinterface) {
+		this->interfaces.push_back(pinterface);
 		this->lensIndex = this->interfaces.size()-1;
 	}
 
