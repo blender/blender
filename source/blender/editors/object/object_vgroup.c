@@ -3201,68 +3201,72 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	int fail= 0;
 
 	/*TODO: get this parameter*/
-	short option= 2;
-	/* option 1 == single*/
-	/* option 2 == all*/
+	enum option {single =1, all =2};
+	enum option option_choise= 1;
 
 	/*TODO: get this parameter*/
-	short method= 1;
-	/*method 1 == by matching indices*/
-	/*method 2 == by nearest vertex*/
-	/*method 3 == by nearest vertex in face*/
-	/*method 4 == by nearest face*/
+	enum method {by_index = 1, by_nearest_vertex = 2, by_nearest_vertex_in_face = 3, by_nearest_face = 4};
+	enum method method_choise= 1;
 
 	/*TODO: get this parameter*/
 	short mode= 1;
 	/* mode is passed on to lower funtions*/
 
-	/*Macro to loop through selected objects and perform operation*/
+	/*Macro to loop through selected objects and perform operation depending on option and method*/
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
 	{
-		/*check if object is the same*/
 		if(obact != obslc) {
-			/*apply option*/
-			if(option == 1){
-				/*apply method*/
-				if(method == 1){
-					/*Try function with mode*/
-					if(ED_vgroup_transfer_weight_by_index_single(obslc, obact, mode)) change++; /*(tmp dev info remove) tested and working*/
+			switch(option_choise){
+
+			/*single*/
+			case(single):
+				switch(method_choise){
+
+				case(by_index):
+					if(ED_vgroup_transfer_weight_by_index_single(obslc, obact, mode)) change++;
 					else fail++;
-				}
-				else if(method == 2){
+					break;
+
+				case(by_nearest_vertex):
 					if(ED_vgroup_transfer_weight_by_nearest_vertex_single(obslc, obact, mode)) change++;
 					else fail++;
-				}
-				else if(method == 3){
+					break;
+
+				case(by_nearest_vertex_in_face):
 					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
 					else fail++;
-				}
-				else if(method == 4){
+					break;
+
+				case(by_nearest_face):
 					if(ED_vgroup_transfer_weight_by_nearest_face_single(obslc, obact, mode)) change++;
 					else fail++;
+					break;
 				}
-				else fail++;
+
+			/*all*/
+			case(all):
+				switch(method_choise){
+				case(by_index):
+					if(ED_vgroup_transfer_weight_by_index_all(obslc, obact, mode)) change++;
+					else fail++;
+					break;
+
+				case(by_nearest_vertex):
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_single(obslc, obact, mode)) change++;
+					else fail++;
+					break;
+
+				case(by_nearest_vertex_in_face):
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
+					else fail++;
+					break;
+
+				case(by_nearest_face):
+					if(ED_vgroup_transfer_weight_by_nearest_face_single(obslc, obact, mode)) change++;
+					else fail++;
+					break;
+				}
 			}
-			else if(option == 2){
-				if(method == 1){
-					if(ED_vgroup_transfer_weight_by_index_all(obslc, obact, mode)) change++; /*(tmp dev info remove) tested and working*/
-					else fail++;
-				}
-				else if(method == 2){
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_all(obslc, obact, mode)) change++;
-					else fail++;
-				}
-				else if(method == 3){
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(obslc, obact, mode)) change++;
-					else fail++;
-				}
-				else if(method == 4){
-					if(ED_vgroup_transfer_weight_by_nearest_face_all(obslc, obact, mode)) change++;
-					else fail++; /*Trigger error message on function failed, includes unknown mode)*/
-				}
-				else fail++; /*Trigger error message on unknown method*/
-			}
-			else fail++; /*Trigger error message on unknown option*/
 
 			/*Event notifiers for correct display of data*/
 			DAG_id_tag_update(&obslc->id, OB_RECALC_DATA);
