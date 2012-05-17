@@ -723,10 +723,12 @@ void LensGhostProjectionOperation::executePixel(float* color, float x, float y, 
 
 void LensGhostOperation::executePixel(float* color, int x, int y, MemoryBuffer *inputBuffers[], void* data) {
 	vector<LensFace*>* faces = (vector<LensFace*>*)data;
-        const float bokehWidth = bokehReader->getWidth();
-        const float bokehHeight = bokehReader->getHeight();
-        float bokeh[4];
-        color[0] = 0.0f;
+#if 0 /* UNUSED */
+	const float bokehWidth = bokehReader->getWidth();
+	const float bokehHeight = bokehReader->getHeight();
+	float bokeh[4];
+#endif
+	color[0] = 0.0f;
 	color[1] = 0.0f;
 	color[2] = 0.0f;
 	color[3] = 1.0f;

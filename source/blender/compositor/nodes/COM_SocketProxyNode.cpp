@@ -84,6 +84,9 @@ void OutputSocketProxyNode::convertToOperations(ExecutionSystem *graph, Composit
 			graph->addOperation(operation);
 			break;
 		}
+			/* quiet warnings */
+		case COM_DT_UNKNOWN:
+			break;
 		}
 	}
 }

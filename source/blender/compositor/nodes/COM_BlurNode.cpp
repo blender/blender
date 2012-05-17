@@ -35,8 +35,10 @@ BlurNode::BlurNode(bNode *editorNode): Node(editorNode) {
 void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context) {
 	bNode* editorNode = this->getbNode();
 	NodeBlurData * data = (NodeBlurData*)editorNode->storage;
+#if 0
 	const bNodeSocket *sock = this->getInputSocket(1)->getbNodeSocket();
-	//const float size = ((const bNodeSocketValueFloat*)sock->default_value)->value;
+	const float size = ((const bNodeSocketValueFloat*)sock->default_value)->value;
+#endif
 	
 	CompositorQuality quality = context->getQuality();
 	
