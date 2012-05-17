@@ -3252,17 +3252,17 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 					break;
 
 				case(by_nearest_vertex):
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_single(obslc, obact, mode)) change++;
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_all(obslc, obact, mode)) change++;
 					else fail++;
 					break;
 
 				case(by_nearest_vertex_in_face):
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(obslc, obact, mode)) change++;
 					else fail++;
 					break;
 
 				case(by_nearest_face):
-					if(ED_vgroup_transfer_weight_by_nearest_face_single(obslc, obact, mode)) change++;
+					if(ED_vgroup_transfer_weight_by_nearest_face_all(obslc, obact, mode)) change++;
 					else fail++;
 					break;
 				}
