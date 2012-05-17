@@ -93,7 +93,7 @@ void ScreenLensDistortionOperation::executePixel(float* outputColor, int x, int 
 		{
 			// RG
 			const int dx = ln[2] - ln[0], dy = ln[3] - ln[1];
-			const float dsf = sqrtf(dx*dx + dy*dy) + 1.f;
+			const float dsf = sqrtf((float)dx*dx + dy*dy) + 1.f;
 			const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
 			const float sd = 1.f/(float)ds;
 
@@ -111,7 +111,7 @@ void ScreenLensDistortionOperation::executePixel(float* outputColor, int x, int 
 		{
 			// GB
 			const int dx = ln[4] - ln[2], dy = ln[5] - ln[3];
-			const float dsf = sqrtf(dx*dx + dy*dy) + 1.f;
+			const float dsf = sqrtf((float)dx*dx + dy*dy) + 1.f;
 			const int ds = (int)(jit ? ((dsf < 4.f) ? 2.f : sqrtf(dsf)) : dsf);
 			const float sd = 1.f/(float)ds;
 
