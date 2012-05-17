@@ -8995,7 +8995,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					/* printf and reports for now... its important users know this */
 					BKE_reportf_wrap(basefd->reports, RPT_INFO,
-					                 "read library:  '%s', '%s'\n",
+					                 "read library:  '%s', '%s'",
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
