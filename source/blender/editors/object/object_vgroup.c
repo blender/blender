@@ -424,17 +424,17 @@ int ED_vgroup_copy_single(Object *ob_dst, const Object *ob_src)
 
 int ED_vgroup_transfer_weight_by_index_all(Object *ob_dst, Object *ob_src, short mode)
 {
-	/* mode 1 == replace all weights*/
+
 	if(mode == 1){
 		return ED_vgroup_copy_array(ob_dst, ob_src);
 	}
 
-	/* mode 2 == apply to null/0 weights*/
+
 	else if(mode == 2){
 		return 0;
 	}
 
-	/* mode 3 == apply to selected weights*/
+
 	else if(mode == 3){
 		return 0;
 	}
@@ -443,19 +443,72 @@ int ED_vgroup_transfer_weight_by_index_all(Object *ob_dst, Object *ob_src, short
 
 int ED_vgroup_transfer_weight_by_index_single(Object *ob_dst, Object *ob_src, short mode)
 {
+	MDeformVert **dv_array_src;
+	MDeformVert **dv_array_dst;
+	MDeformWeight *dw_dst, *dw_src;
+	int dv_tot_src, dv_tot_dst;
+	int i, index_src, index_dst;
+	bDeformGroup *dg_src, *dg_dst;
+
+	/*get source deform group*/
+	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
+
+	/*create new and overwrite vertex group on destination without data*/
+	if(!defgroup_find_name(ob_dst, dg_src->name) || mode == 1){
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+		ED_vgroup_add_name(ob_dst, dg_src->name);
+	}
+
+	/*get destination deformgroup*/
+	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
+
+	/*get vertex group arrays*/
+	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
+	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
+
+	/*get indexes of vertex groups*/
+	index_src= BLI_findindex(&ob_src->defbase, dg_src);
+	index_dst= BLI_findindex(&ob_dst->defbase, dg_dst);
+
+	/*check if indices are matching, delete and return if not*/
+	if (ob_dst == ob_src || dv_tot_dst == 0 || (dv_tot_dst != dv_tot_src) || dv_array_src == NULL || dv_array_dst == NULL) {
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+		return 0;
+	}
+
 	/* mode 1 == replace all weights*/
 	if(mode == 1){
-		return ED_vgroup_copy_single(ob_dst, ob_src);
+		/* loop through the vertices and copy weight*/
+		for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
+			dw_src= defvert_verify_index(*dv_array_src, index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			dw_dst->weight= dw_src->weight;
+		}
+		return 1;
 	}
 
-	/* mode 2 == apply to null/0 weights*/
+	/* mode 2 == replace null weights*/
 	else if(mode == 2){
-		return 0;
+		/* loop through the vertices and copy weight*/
+		for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
+			dw_src= defvert_verify_index(*dv_array_src, index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*check if destination weight is null or zero*/
+			if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight= dw_src->weight;
+		}
+		return 1;
 	}
 
-	/* mode 3 == apply to selected weights*/
+	/* mode 3 == replace selected weights*/
 	else if(mode == 3){
-		return 0;
+		/* loop through the vertices and copy weight*/
+		for(i=0; i<dv_tot_dst; i++, dv_array_src++, dv_array_dst++) {
+			dw_src= defvert_verify_index(*dv_array_src, index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*check if source vertex is selected*/
+			if((*dv_array_src)->flag == 1) dw_dst->weight= dw_src->weight; /*this does not work*/
+		}
+		return 1;
 	}
 	else return 0;
 }
@@ -464,9 +517,6 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_all(Object *ob_dst, Object *ob_s
 {
 	ob_dst= ob_dst;
 	ob_src= ob_src;
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
 	return mode;
 }
 
@@ -483,17 +533,14 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_single(Object *ob_dst, Object *o
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float tmp_co[3], tmp_mat[4][4];
 
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
-	return mode;
-
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
 	/*create new and overwrite vertex group on destination without data*/
-	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
-	ED_vgroup_add_name(ob_dst, dg_src->name);
+	if(!defgroup_find_name(ob_dst, dg_src->name) || mode == 1){
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+		ED_vgroup_add_name(ob_dst, dg_src->name);
+	}
 
 	/*get destination deformgroup*/
 	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
@@ -521,37 +568,74 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_single(Object *ob_dst, Object *o
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	/* loop through the vertices and copy weight from nearest weight*/
-	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
-
-		/*reset nearest*/
-		nearest.index= -1;
-		nearest.dist= FLT_MAX;
-
-		/*transform into target space*/
-		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
-
-		/*node tree accelerated search for closest vetex*/
-		BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
-
-		/*copy weight*/
-		dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
-		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
-		dw_dst->weight= dw_src->weight;
+	/* mode 1 == replace all weights*/
+	if(mode == 1){
+		/* loop through the vertices and copy weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest vetex*/
+			BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+			dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			dw_dst->weight= dw_src->weight;
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_src);
+		return 1;
 	}
 
-	/*free memory and return*/
-	free_bvhtree_from_mesh(&tree_mesh_src);
-	return 1;
+	/* mode 2 == replace null weights*/
+	else if(mode == 2){
+		/* loop through the vertices and copy weight weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest vetex*/
+			BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+			dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*check if destination weight is null or zero*/
+			if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight= dw_src->weight;
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_src);
+		return 1;
+	}
+
+	/* mode 3 == replace selected weights*/
+	else if(mode == 3){
+		/* loop through the vertices and copy weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest vetex*/
+			BLI_bvhtree_find_nearest(tree_mesh_src.tree, tmp_co, &nearest, tree_mesh_src.nearest_callback, &tree_mesh_src);
+			dw_src= defvert_verify_index(dv_array_src[nearest.index], index_src);
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*dw_dst->weight= dw_src->weight;*//*TODO fix this*/
+		}
+
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_src);
+		return 1;
+	}
+	else return 0;
 }
 
 int ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(Object *ob_dst, Object *ob_src, short mode)
 {
 	ob_dst= ob_dst;
 	ob_src= ob_src;
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
 	return mode;
 }
 
@@ -569,17 +653,14 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(Object *ob_dst, O
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3], tmp_mat[4][4];
 
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
-	return mode;
-
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
 	/*create new and overwrite vertex group on destination without data*/
-	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
-	ED_vgroup_add_name(ob_dst, dg_src->name);
+	if(!defgroup_find_name(ob_dst, dg_src->name) || mode == 1){
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+		ED_vgroup_add_name(ob_dst, dg_src->name);
+	}
 
 	/*get destination deformgroup*/
 	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
@@ -611,59 +692,136 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(Object *ob_dst, O
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	/* loop through the vertices and copy weight from nearest weight*/
-	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
-
-		/*reset nearest*/
-		nearest.index= -1;
-		nearest.dist= FLT_MAX;
-
-		/*transform into target space*/
-		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
-
-		/*node tree accelerated search for closest face*/
-		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
-
-		/*get distances*/
-		dist_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
-		dist_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
-		dist_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
-
-		/*get weight from triangle*/
-		if(dist_v1<dist_v2 && dist_v1<dist_v3){
-			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-		}
-		else if(dist_v2<dist_v3){
-			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-		}
-		else{
-			dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-		}
-		/*check for and get weight from quad*/
-		if(mface_src[nearest.index].v4){
-			dist_v4= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
-			if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
-				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+	/* mode 1 == replace all weights*/
+	if(mode == 1){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*get distances*/
+			dist_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+			dist_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+			dist_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+			/*get weight from triangle*/
+			if(dist_v1<dist_v2 && dist_v1<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
 			}
+			else if(dist_v2<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+			}
+			else{
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+			}
+			/*check for and get weight from quad*/
+			if(mface_src[nearest.index].v4){
+				dist_v4= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
+				if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+				}
+			}
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			dw_dst->weight= dw_src->weight;
 		}
-
-		/*copy weight*/
-		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
-		dw_dst->weight= dw_src->weight;
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
 	}
 
-	/*free memory and return*/
-	free_bvhtree_from_mesh(&tree_mesh_faces_src);
-	return 1;
+	/* mode 2 == replace null weights*/
+	else if(mode == 2){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*get distances*/
+			dist_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+			dist_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+			dist_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+			/*get weight from triangle*/
+			if(dist_v1<dist_v2 && dist_v1<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+			}
+			else if(dist_v2<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+			}
+			else{
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+			}
+			/*check for and get weight from quad*/
+			if(mface_src[nearest.index].v4){
+				dist_v4= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
+				if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+				}
+			}
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*check if destination weight is null or zero*/
+			if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight= dw_src->weight;
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
+	}
+
+	/* mode 3 == replace selected weights*/
+	else if(mode == 3){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*get distances*/
+			dist_v1= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
+			dist_v2= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
+			dist_v3= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
+			/*get weight from triangle*/
+			if(dist_v1<dist_v2 && dist_v1<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
+			}
+			else if(dist_v2<dist_v3){
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
+			}
+			else{
+				dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
+			}
+			/*check for and get weight from quad*/
+			if(mface_src[nearest.index].v4){
+				dist_v4= len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
+				if(dist_v4<dist_v1 && dist_v4<dist_v2 && dist_v4<dist_v3){
+					dw_src= defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
+				}
+			}
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*dw_dst->weight= dw_src->weight;*/ /*TODO: fix this!*/
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
+	}
+	else return 0;
 }
 
 int ED_vgroup_transfer_weight_by_nearest_face_all(Object *ob_dst, Object *ob_src, short mode)
 {
 	ob_dst= ob_dst;
 	ob_src= ob_src;
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
 	return mode;
 }
 
@@ -681,17 +839,14 @@ int ED_vgroup_transfer_weight_by_nearest_face_single(Object *ob_dst, Object *ob_
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4];
 
-	/* mode 1 == replace all weights*/
-	/* mode 2 == apply to null/0 weights*/
-	/* mode 3 == apply to selected weights*/
-	return mode;
-
 	/*get source deform group*/
 	dg_src= BLI_findlink(&ob_src->defbase, (ob_src->actdef-1));
 
 	/*create new and overwrite vertex group on destination without data*/
-	ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
-	ED_vgroup_add_name(ob_dst, dg_src->name);
+	if(!defgroup_find_name(ob_dst, dg_src->name) || mode == 1){
+		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
+		ED_vgroup_add_name(ob_dst, dg_src->name);
+	}
 
 	/*get destination deformgroup*/
 	dg_dst= defgroup_find_name(ob_dst, dg_src->name);
@@ -723,43 +878,106 @@ int ED_vgroup_transfer_weight_by_nearest_face_single(Object *ob_dst, Object *ob_
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	/* loop through the vertices and copy weight from nearest weight*/
-	for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
-
-		/*reset nearest*/
-		nearest.index= -1;
-		nearest.dist= FLT_MAX;
-
-		/*transform into target space*/
-		mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
-		normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
-
-		/*node tree accelerated search for closest face*/
-		BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
-
-		/*project onto face*/
-		project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
-
-		/*interpolate weights*/
-		interp_weights_face_v3(tmp_weight, mv_src[mface_src[nearest.index].v1].co,
-																		mv_src[mface_src[nearest.index].v2].co,
-																			mv_src[mface_src[nearest.index].v3].co,
-																				mv_src[mface_src[nearest.index].v4].co, tmp_co);
-
-		/*get weights*/
-		weight= tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
-		weight+= tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
-		weight+= tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
-		weight+= tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
-
-		/*copy weight*/
-		dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
-		dw_dst->weight= weight;
+	/* mode 1 == replace all weights*/
+	if(mode == 1){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*project onto face*/
+			project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
+			/*interpolate weights*/
+			interp_weights_face_v3(tmp_weight, mv_src[mface_src[nearest.index].v1].co,
+																			mv_src[mface_src[nearest.index].v2].co,
+																				mv_src[mface_src[nearest.index].v3].co,
+																					mv_src[mface_src[nearest.index].v4].co, tmp_co);
+			/*get weights*/
+			weight= tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+			weight+= tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+			weight+= tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+			weight+= tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			dw_dst->weight= weight;
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
 	}
 
-	/*free memory and return*/
-	free_bvhtree_from_mesh(&tree_mesh_faces_src);
-	return 1;
+	/* mode 2 == replace null weights*/
+	else if(mode == 2){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*project onto face*/
+			project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
+			/*interpolate weights*/
+			interp_weights_face_v3(tmp_weight, mv_src[mface_src[nearest.index].v1].co,
+																			mv_src[mface_src[nearest.index].v2].co,
+																				mv_src[mface_src[nearest.index].v3].co,
+																					mv_src[mface_src[nearest.index].v4].co, tmp_co);
+			/*get weights*/
+			weight= tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+			weight+= tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+			weight+= tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+			weight+= tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*check if destination weight is null or zero and copy weight*/
+			if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight= weight;
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
+	}
+
+	/* mode 3 == replace selected weights*/
+	else if(mode == 3){
+		/* loop through the vertices and copy weight from nearest weight*/
+		for(i=0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			/*reset nearest*/
+			nearest.index= -1;
+			nearest.dist= FLT_MAX;
+			/*transform into target space*/
+			mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
+			normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co, mv_src[mface_src[nearest.index].v2].co, mv_src[mface_src[nearest.index].v3].co);
+			/*node tree accelerated search for closest face*/
+			BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co, &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+			/*project onto face*/
+			project_v3_plane(tmp_co, normal, mv_src[mface_src[nearest.index].v1].co);
+			/*interpolate weights*/
+			interp_weights_face_v3(tmp_weight, mv_src[mface_src[nearest.index].v1].co,
+																			mv_src[mface_src[nearest.index].v2].co,
+																				mv_src[mface_src[nearest.index].v3].co,
+																					mv_src[mface_src[nearest.index].v4].co, tmp_co);
+			/*get weights*/
+			weight= tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src)->weight;
+			weight+= tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src)->weight;
+			weight+= tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src)->weight;
+			weight+= tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src)->weight;
+			/*copy weight*/
+			dw_dst= defvert_verify_index(*dv_array_dst, index_dst);
+			/*dw_dst->weight= weight;*//*TODO: fix this!*/
+		}
+		/*free memory and return*/
+		free_bvhtree_from_mesh(&tree_mesh_faces_src);
+		return 1;
+	}
+	else return 0;
 }
 
 /********************** End transfer weight functions *********************/
@@ -3201,70 +3419,78 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	int fail= 0;
 
 	/*TODO: get this parameter*/
-	enum option {single =1, all =2};
-	enum option option_choise= 1;
+	enum option {single =1, all =2} option= 1;
 
 	/*TODO: get this parameter*/
-	enum method {by_index = 1, by_nearest_vertex = 2, by_nearest_vertex_in_face = 3, by_nearest_face = 4};
-	enum method method_choise= 1;
+	enum method {by_index = 1, by_nearest_vertex = 2, by_nearest_face = 3, by_nearest_vertex_in_face = 4} method= 4;
 
 	/*TODO: get this parameter*/
-	short mode= 1;
 	/* mode is passed on to lower funtions*/
+	short mode= 2;
+
+	/* mode 1 == replace all weights*/
+	/* mode 2 == replace null weights*/
+	/* mode 3 == replace selected weights*/
+
+	/*Truth table for testing:----*/
+	/*1,1,1 Tested and working.*/
+	/*1,1,2 Tested and working.*/
+	/*1,1,3 Tested and NOT working.*/
+	/*1,2,1 Tested and working.*/
+	/*1,2,2 Tested and working.*/
+	/*1,2,3 Tested and NOT working.*/
+	/*1,3,1 Tested and working.*/
+	/*1,3,2 Tested and working.*/
+	/*1,3,3 Tested and NOT working.*/
+	/*1,4,1 Tested and working.*/
+	/*1,4,2 Tested and working.*/
+	/*1,4,3 Tested and NOT working.*/
 
 	/*Macro to loop through selected objects and perform operation depending on option and method*/
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
 	{
 		if(obact != obslc) {
-			switch(option_choise){
+			switch(option){
 
 			/*single*/
 			case(single):
-				switch(method_choise){
+				switch(method){
 
 				case(by_index):
 					if(ED_vgroup_transfer_weight_by_index_single(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					else fail++; break;
 
 				case(by_nearest_vertex):
 					if(ED_vgroup_transfer_weight_by_nearest_vertex_single(obslc, obact, mode)) change++;
-					else fail++;
-					break;
-
-				case(by_nearest_vertex_in_face):
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					else fail++; break;
 
 				case(by_nearest_face):
+					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_single(obslc, obact, mode)) change++;
+					else fail++; break;
+
+				case(by_nearest_vertex_in_face):
 					if(ED_vgroup_transfer_weight_by_nearest_face_single(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					else fail++; break;
 				}
 
 			/*all*/
 			case(all):
-				switch(method_choise){
+				switch(method){
 				case(by_index):
-					if(ED_vgroup_transfer_weight_by_index_all(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					/*if(ED_vgroup_transfer_weight_by_index_all(obslc, obact, mode)) change++;
+					else fail++;*/ break;
 
 				case(by_nearest_vertex):
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_all(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					/*if(ED_vgroup_transfer_weight_by_nearest_vertex_all(obslc, obact, mode)) change++;
+					else fail++;*/ break;
 
 				case(by_nearest_vertex_in_face):
-					if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					/*if(ED_vgroup_transfer_weight_by_nearest_vertex_in_face_all(obslc, obact, mode)) change++;
+					else fail++;*/ break;
 
 				case(by_nearest_face):
-					if(ED_vgroup_transfer_weight_by_nearest_face_all(obslc, obact, mode)) change++;
-					else fail++;
-					break;
+					/*if(ED_vgroup_transfer_weight_by_nearest_face_all(obslc, obact, mode)) change++;
+					else fail++;*/ break;
 				}
 			}
 
