@@ -410,13 +410,6 @@ struct TranslationWarp {
     *y2 = y1 + warp_parameters[1];
   }
 
-  template<typename T>
-  void Backward(const T *warp_parameters,
-                const T &x2, const T& y2, T *x1, T* y1) const {
-    *x1 = x2 - warp_parameters[0];
-    *y1 = y2 - warp_parameters[1];
-  }
-
   // Translation x, translation y.
   enum { NUM_PARAMETERS = 2 };
   double parameters[NUM_PARAMETERS];
@@ -459,12 +452,6 @@ struct TranslationScaleWarp {
     // Translate into the space of Q2.
     *x2 = x1_scaled + warp_parameters[0];
     *y2 = y1_scaled + warp_parameters[1];
-  }
-
-  template<typename T>
-  void Backward(const T *warp_parameters,
-                const T &x2, const T& y2, T *x1, T* y1) const {
-    // XXX
   }
 
   // Translation x, translation y, scale.
@@ -539,12 +526,6 @@ struct TranslationRotationWarp {
     *y2 = y1_rotated + warp_parameters[1];
   }
 
-  template<typename T>
-  void Backward(const T *warp_parameters,
-                const T &x2, const T& y2, T *x1, T* y1) const {
-    // XXX
-  }
-
   // Translation x, translation y, rotation about the center of Q1 degrees.
   enum { NUM_PARAMETERS = 3 };
   double parameters[NUM_PARAMETERS];
@@ -617,12 +598,6 @@ struct TranslationRotationScaleWarp {
     *y2 = y1_rotated_scaled + warp_parameters[1];
   }
 
-  template<typename T>
-  void Backward(const T *warp_parameters,
-                const T &x2, const T& y2, T *x1, T* y1) const {
-    // XXX
-  }
-
   // Translation x, translation y, rotation about the center of Q1 degrees,
   // scale.
   enum { NUM_PARAMETERS = 4 };
@@ -631,7 +606,69 @@ struct TranslationRotationScaleWarp {
   Quad q1;
 };
 
-// TODO(keir): Finish affine warp.
+struct AffineWarp {
+  AffineWarp(const double *x1, const double *y1,
+             const double *x2, const double *y2)
+      : q1(x1, y1) {
+    Quad q2(x2, y2);
+
+    // The difference in centroids is the best guess for translation.
+    Vec2 t = q2.Centroid() - q1.Centroid();
+    parameters[0] = t[0];
+    parameters[1] = t[1];
+
+    // Estimate the four affine parameters with the usual least squares.
+    Mat Q1(8, 4);
+    Vec Q2(8);
+    for (int i = 0; i < 4; ++i) {
+      Vec2 v1 = q1.CornerRelativeToCentroid(i);
+      Vec2 v2 = q2.CornerRelativeToCentroid(i);
+
+      Q1.row(2 * i + 0) << v1[0], v1[1],   0,     0  ;
+      Q1.row(2 * i + 1) <<   0,     0,   v1[0], v1[1];
+
+      Q2(2 * i + 0) = v2[0];
+      Q2(2 * i + 1) = v2[1];
+    }
+
+    // TODO(keir): Check solution quality.
+    Vec4 a = Q1.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV).solve(Q2);
+    parameters[2] = a[0];
+    parameters[3] = a[1];
+    parameters[4] = a[2];
+    parameters[5] = a[3];
+
+    std::cout << "a:" << a.transpose() << "\n";
+    std::cout << "t:" << t.transpose() << "\n";
+  }
+
+  // See comments in other parameterizations about why the centroid is used.
+  template<typename T>
+  void Forward(const T *p, const T &x1, const T& y1, T *x2, T* y2) const {
+    // Make the centroid of Q1 the origin.
+    const T x1_origin = x1 - q1.Centroid()(0);
+    const T y1_origin = y1 - q1.Centroid()(1);
+
+    // Apply the affine transformation.
+    const T x1_origin_affine = p[2] * x1_origin + p[3] * y1_origin;
+    const T y1_origin_affine = p[4] * x1_origin + p[5] * y1_origin;
+
+    // Translate back into the space of Q1 (but affine transformed).
+    const T x1_affine = x1_origin_affine + q1.Centroid()(0);
+    const T y1_affine = y1_origin_affine + q1.Centroid()(1);
+
+    // Translate into the space of Q2.
+    *x2 = x1_affine + p[0];
+    *y2 = y1_affine + p[1];
+  }
+
+  // Translation x, translation y, rotation about the center of Q1 degrees,
+  // scale.
+  enum { NUM_PARAMETERS = 6 };
+  double parameters[NUM_PARAMETERS];
+
+  Quad q1;
+};
 
 struct HomographyWarp {
   HomographyWarp(const double *x1, const double *y1,
@@ -672,12 +709,6 @@ struct HomographyWarp {
     const T zz2 =     p[6]     * x1 +     p[7]     * y1 + 1.0;
     *x2 = xx2 / zz2;
     *y2 = yy2 / zz2;
-  }
-
-  template<typename T>
-  void Backward(const T *warp_parameters,
-                const T &x2, const T& y2, T *x1, T* y1) const {
-    // XXX
   }
 
   enum { NUM_PARAMETERS = 8 };
@@ -1059,7 +1090,7 @@ void TrackRegion(const FloatImage &image1,
   HANDLE_MODE(TRANSLATION_SCALE,          TranslationScaleWarp);
   HANDLE_MODE(TRANSLATION_ROTATION,       TranslationRotationWarp);
   HANDLE_MODE(TRANSLATION_ROTATION_SCALE, TranslationRotationScaleWarp);
-  //HANDLE_MODE(AFFINE,                     AffineWarp);
+  HANDLE_MODE(AFFINE,                     AffineWarp);
   HANDLE_MODE(HOMOGRAPHY,                 HomographyWarp);
 #undef HANDLE_MODE
 }
