@@ -58,7 +58,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		Mask *mask = (Mask *)node->id;
 		CompBuf *stackbuf;
 		RenderData *rd = data;
-		MaskShape *shape = mask->shapes.first;
+		MaskObject *maskobj = mask->maskobjs.first;
 		float *res;
 		int sx, sy;
 
@@ -84,9 +84,9 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		shape = mask->shapes.first;
-		while (shape) {
-			MaskSpline *spline = shape->splines.first;
+		maskobj = mask->maskobjs.first;
+		while (maskobj) {
+			MaskSpline *spline = maskobj->splines.first;
 
 			while (spline) {
 				float *diff_points;
@@ -123,7 +123,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 				spline = spline->next;
 			}
 
-			shape = shape->next;
+			maskobj = maskobj->next;
 		}
 
 		/* pass on output and free */

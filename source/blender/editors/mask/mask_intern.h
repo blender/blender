@@ -40,8 +40,8 @@ struct wmOperatorType;
 
 /* mask_ops.c */
 void MASK_OT_new(struct wmOperatorType *ot);
-void MASK_OT_shape_new(struct wmOperatorType *ot);
-void MASK_OT_shape_remove(struct wmOperatorType *ot);
+void MASK_OT_object_new(struct wmOperatorType *ot);
+void MASK_OT_object_remove(struct wmOperatorType *ot);
 
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);

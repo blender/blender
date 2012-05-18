@@ -43,9 +43,9 @@
 typedef struct Mask {
 	ID id;
 	struct AnimData *adt;
-	ListBase shapes;     /* shapes which defines this mask */
-	int shapenr;         /* index of active shape */
-	int tot_shape;       /* total number of shapes */
+	ListBase maskobjs;   /* mask objects */
+	int act_maskobj;     /* index of active mask object */
+	int tot_maskobj;     /* total number of mask objects */
 } Mask;
 
 typedef struct MaskParent {
@@ -85,15 +85,15 @@ typedef struct MaskSpline {
 	int weight_interp, pad;  /* weight interpolation */
 } MaskSpline;
 
-typedef struct MaskShape {
-	struct MaskShape *next, *prev;
+typedef struct MaskObject {
+	struct MaskObject *next, *prev;
 
-	char name[64];                     /* name of the shape (64 = MAD_ID_NAME - 2) */
+	char name[64];                     /* name of the mask object (64 = MAD_ID_NAME - 2) */
 
-	ListBase splines;                  /* list of splines which defines this shape */
+	ListBase splines;                  /* list of splines which defines this mask object */
 	struct MaskSpline *act_spline;     /* active spline */
 	struct MaskSplinePoint *act_point; /* active point */
-} MaskShape;
+} MaskObject;
 
 /* MaskParent->flag */
 #define MASK_PARENT_ACTIVE  (1 << 0)

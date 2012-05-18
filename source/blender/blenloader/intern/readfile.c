@@ -6276,19 +6276,19 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 
 static void direct_link_mask(FileData *fd, Mask *mask)
 {
-	MaskShape *shape;
+	MaskObject *maskobj;
 
 	mask->adt = newdataadr(fd, mask->adt);
 
-	link_list(fd, &mask->shapes);
+	link_list(fd, &mask->maskobjs);
 
-	shape = mask->shapes.first;
-	while (shape) {
+	maskobj = mask->maskobjs.first;
+	while (maskobj) {
 		MaskSpline *spline;
 
-		link_list(fd, &shape->splines);
+		link_list(fd, &maskobj->splines);
 
-		spline = shape->splines.first;
+		spline = maskobj->splines.first;
 		while (spline) {
 			int i;
 
@@ -6304,10 +6304,10 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 			spline = spline->next;
 		}
 
-		shape->act_spline = newdataadr(fd, shape->act_spline);
-		shape->act_point = newdataadr(fd, shape->act_point);
+		maskobj->act_spline = newdataadr(fd, maskobj->act_spline);
+		maskobj->act_point = newdataadr(fd, maskobj->act_point);
 
-		shape = shape->next;
+		maskobj = maskobj->next;
 	}
 }
 
@@ -6323,16 +6323,16 @@ static void lib_link_mask(FileData *fd, Main *main)
 	mask = main->mask.first;
 	while (mask) {
 		if(mask->id.flag & LIB_NEEDLINK) {
-			MaskShape *shape;
+			MaskObject *maskobj;
 
 			if (mask->adt)
 				lib_link_animdata(fd, &mask->id, mask->adt);
 
-			shape = mask->shapes.first;
-			while (shape) {
+			maskobj = mask->maskobjs.first;
+			while (maskobj) {
 				MaskSpline *spline;
 
-				spline = shape->splines.first;
+				spline = maskobj->splines.first;
 				while (spline) {
 					int i;
 
@@ -6347,7 +6347,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 					spline = spline->next;
 				}
 
-				shape = shape->next;
+				maskobj = maskobj->next;
 			}
 
 			mask->id.flag -= LIB_NEEDLINK;

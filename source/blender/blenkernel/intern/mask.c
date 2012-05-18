@@ -55,68 +55,68 @@
 #include "BKE_movieclip.h"
 #include "BKE_utildefines.h"
 
-/* shapes */
+/* mask objects */
 
-MaskShape *BKE_mask_shape_new(Mask *mask, const char *name)
+MaskObject *BKE_mask_object_new(Mask *mask, const char *name)
 {
-	MaskShape *shape = MEM_callocN(sizeof(MaskShape), "new mask shape");
+	MaskObject *maskobj = MEM_callocN(sizeof(MaskObject), "new mask object");
 
 	if (name && name[0])
-		BLI_strncpy(shape->name, name, sizeof(shape->name));
+		BLI_strncpy(maskobj->name, name, sizeof(maskobj->name));
 	else
-		strcpy(shape->name, "Shape");
+		strcpy(maskobj->name, "MaskObject");
 
-	BLI_addtail(&mask->shapes, shape);
+	BLI_addtail(&mask->maskobjs, maskobj);
 
-	BKE_mask_shape_unique_name(mask, shape);
+	BKE_mask_object_unique_name(mask, maskobj);
 
-	mask->tot_shape++;
+	mask->tot_maskobj++;
 
-	return shape;
+	return maskobj;
 }
 
-MaskShape *BKE_mask_shape_active(Mask *mask)
+MaskObject *BKE_mask_object_active(Mask *mask)
 {
-	return BLI_findlink(&mask->shapes, mask->shapenr);
+	return BLI_findlink(&mask->maskobjs, mask->act_maskobj);
 }
 
-void BKE_mask_shape_active_set(Mask *mask, MaskShape *shape)
+void BKE_mask_object_active_set(Mask *mask, MaskObject *maskobj)
 {
-	int index = BLI_findindex(&mask->shapes, shape);
+	int index = BLI_findindex(&mask->maskobjs, maskobj);
 
 	if (index >= 0)
-		mask->shapenr = index;
+		mask->act_maskobj = index;
 	else
-		mask->shapenr = 0;
+		mask->act_maskobj = 0;
 }
 
-void BKE_mask_shape_remove(Mask *mask, MaskShape *shape)
+void BKE_mask_object_remove(Mask *mask, MaskObject *maskobj)
 {
-	BLI_remlink(&mask->shapes, shape);
-	BKE_mask_shape_free(shape);
+	BLI_remlink(&mask->maskobjs, maskobj);
+	BKE_mask_object_free(maskobj);
 
-	mask->tot_shape--;
+	mask->tot_maskobj--;
 
-	if (mask->shapenr >= mask->tot_shape)
-		mask->shapenr = mask->tot_shape - 1;
+	if (mask->act_maskobj >= mask->tot_maskobj)
+		mask->act_maskobj = mask->tot_maskobj - 1;
 }
 
-void BKE_mask_shape_unique_name(Mask *mask, MaskShape *shape)
+void BKE_mask_object_unique_name(Mask *mask, MaskObject *maskobj)
 {
-	BLI_uniquename(&mask->shapes, shape, "Shape", '.', offsetof(MaskShape, name), sizeof(shape->name));
+	BLI_uniquename(&mask->maskobjs, maskobj, "MaskObject", '.', offsetof(MaskObject, name), sizeof(maskobj->name));
 }
 
 /* splines */
 
-MaskSpline *BKE_mask_spline_add(MaskShape *shape)
+MaskSpline *BKE_mask_spline_add(MaskObject *maskobj)
 {
 	MaskSpline *spline;
 
-	spline = MEM_callocN(sizeof(MaskSpline), "new shape spline");
-	BLI_addtail(&shape->splines, spline);
+	spline = MEM_callocN(sizeof(MaskSpline), "new mask spline");
+	BLI_addtail(&maskobj->splines, spline);
 
 	/* spline shall have one point at least */
-	spline->points = MEM_callocN(sizeof(MaskSplinePoint), "new shape spline point");
+	spline->points = MEM_callocN(sizeof(MaskSplinePoint), "new mask spline point");
 	spline->tot_point = 1;
 
 	/* cyclic shapes are more usually used */
@@ -662,33 +662,33 @@ void BKE_mask_spline_free(MaskSpline *spline)
 	MEM_freeN(spline);
 }
 
-void BKE_mask_shape_free(MaskShape *shape)
+void BKE_mask_object_free(MaskObject *maskobj)
 {
-	MaskSpline *spline = shape->splines.first;
+	MaskSpline *spline = maskobj->splines.first;
 
 	while (spline) {
 		MaskSpline *next_spline = spline->next;
 
-		BLI_remlink(&shape->splines, spline);
+		BLI_remlink(&maskobj->splines, spline);
 		BKE_mask_spline_free(spline);
 
 		spline = next_spline;
 	}
 
-	MEM_freeN(shape);
+	MEM_freeN(maskobj);
 }
 
 void BKE_mask_free(Mask *mask)
 {
-	MaskShape *shape = mask->shapes.first;
+	MaskObject *maskobj = mask->maskobjs.first;
 
-	while (shape) {
-		MaskShape *next_shape = shape->next;
+	while (maskobj) {
+		MaskObject *next_maskobj = maskobj->next;
 
-		BLI_remlink(&mask->shapes, shape);
-		BKE_mask_shape_free(shape);
+		BLI_remlink(&mask->maskobjs, maskobj);
+		BKE_mask_object_free(maskobj);
 
-		shape = next_shape;
+		maskobj = next_maskobj;
 	}
 }
 
@@ -940,12 +940,12 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 
 void BKE_mask_calc_handles(Mask *mask)
 {
-	MaskShape *shape;
+	MaskObject *maskobj;
 
-	for (shape = mask->shapes.first; shape; shape = shape->next) {
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		for (spline = shape->splines.first; spline; spline = spline->next) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -957,10 +957,10 @@ void BKE_mask_calc_handles(Mask *mask)
 
 void BKE_mask_evaluate(Mask *mask, float ctime)
 {
-	MaskShape *shape = mask->shapes.first;
+	MaskObject *maskobj = mask->maskobjs.first;
 
-	while (shape) {
-		MaskSpline *spline = shape->splines.first;
+	while (maskobj) {
+		MaskSpline *spline = maskobj->splines.first;
 		int i;
 
 		while (spline) {
@@ -981,7 +981,7 @@ void BKE_mask_evaluate(Mask *mask, float ctime)
 			spline = spline->next;
 		}
 
-		shape = shape->next;
+		maskobj = maskobj->next;
 	}
 
 	BKE_mask_calc_handles(mask);

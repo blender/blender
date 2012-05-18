@@ -146,9 +146,9 @@ void ED_operatortypes_mask(void)
 {
 	WM_operatortype_append(MASK_OT_new);
 
-	/* shapes */
-	WM_operatortype_append(MASK_OT_shape_new);
-	WM_operatortype_append(MASK_OT_shape_remove);
+	/* mask objects */
+	WM_operatortype_append(MASK_OT_object_new);
+	WM_operatortype_append(MASK_OT_object_remove);
 
 	/* geometry */
 	WM_operatortype_append(MASK_OT_add_vertex);

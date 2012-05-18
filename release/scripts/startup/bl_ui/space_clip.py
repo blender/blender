@@ -555,10 +555,10 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_shapes(Panel):
+class CLIP_PT_mask_objects(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
-    bl_label = "Shapes"
+    bl_label = "Mask Objects"
 
     @classmethod
     def poll(cls, context):
@@ -573,15 +573,15 @@ class CLIP_PT_shapes(Panel):
         mask = sc.mask
 
         row = layout.row()
-        row.template_list(mask, "shapes",
-                          mask, "active_shape_index", rows=3)
+        row.template_list(mask, "objects",
+                          mask, "active_object_index", rows=3)
 
         sub = row.column(align=True)
 
-        sub.operator("mask.shape_new", icon='ZOOMIN', text="")
-        sub.operator("mask.shape_remove", icon='ZOOMOUT', text="")
+        sub.operator("mask.object_new", icon='ZOOMIN', text="")
+        sub.operator("mask.object_remove", icon='ZOOMOUT', text="")
 
-        active = mask.shapes.active
+        active = mask.objects.active
         if active:
             layout.prop(active, "name")
 
@@ -597,7 +597,7 @@ class CLIP_PT_active_mask_spline(Panel):
         mask = sc.mask
 
         if mask and sc.mode == 'MASKEDITING':
-            return mask.shapes.active and mask.shapes.active.splines.active
+            return mask.objects.active and mask.objects.active.splines.active
 
         return False
 
@@ -606,7 +606,7 @@ class CLIP_PT_active_mask_spline(Panel):
 
         sc = context.space_data
         mask = sc.mask
-        spline = mask.shapes.active.splines.active
+        spline = mask.objects.active.splines.active
 
         col = layout.column()
         col.prop(spline, "weight_interpolation")
@@ -624,7 +624,7 @@ class CLIP_PT_active_mask_point(Panel):
         mask = sc.mask
 
         if mask and sc.mode == 'MASKEDITING':
-            return mask.shapes.active and mask.shapes.active.splines.active_point
+            return mask.objects.active and mask.objects.active.splines.active_point
 
         return False
 
@@ -633,7 +633,7 @@ class CLIP_PT_active_mask_point(Panel):
 
         sc = context.space_data
         mask = sc.mask
-        point = mask.shapes.active.splines.active_point
+        point = mask.objects.active.splines.active_point
         parent = point.parent
 
         col = layout.column()

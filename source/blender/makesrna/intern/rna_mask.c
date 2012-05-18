@@ -93,106 +93,106 @@ static void rna_MaskParent_id_type_set(PointerRNA *ptr, int value)
 		mpar->id = NULL;
 }
 
-static void rna_Mask_shapes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_Mask_objects_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 
-	rna_iterator_listbase_begin(iter, &mask->shapes, NULL);
+	rna_iterator_listbase_begin(iter, &mask->maskobjs, NULL);
 }
 
-static int rna_Mask_active_shape_index_get(PointerRNA *ptr)
+static int rna_Mask_object_active_index_get(PointerRNA *ptr)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 
-	return mask->shapenr;
+	return mask->act_maskobj;
 }
 
-static void rna_Mask_active_shape_index_set(PointerRNA *ptr, int value)
+static void rna_Mask_object_active_index_set(PointerRNA *ptr, int value)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 
-	mask->shapenr = value;
+	mask->act_maskobj = value;
 }
 
-static void rna_Mask_active_shape_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Mask_object_active_index_range(PointerRNA *ptr, int *min, int *max)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 
 	*min = 0;
-	*max = mask->tot_shape - 1;
+	*max = mask->tot_maskobj - 1;
 	*max = MAX2(0, *max);
 }
 
-static PointerRNA rna_Mask_active_shape_get(PointerRNA *ptr)
+static PointerRNA rna_Mask_object_active_get(PointerRNA *ptr)
 {
 	Mask *mask = (Mask *)ptr->id.data;
-	MaskShape *shape = BKE_mask_shape_active(mask);
+	MaskObject *maskobj = BKE_mask_object_active(mask);
 
-	return rna_pointer_inherit_refine(ptr, &RNA_MaskShape, shape);
+	return rna_pointer_inherit_refine(ptr, &RNA_MaskObject, maskobj);
 }
 
-static void rna_Mask_active_shape_set(PointerRNA *ptr, PointerRNA value)
+static void rna_Mask_object_active_set(PointerRNA *ptr, PointerRNA value)
 {
 	Mask *mask = (Mask *)ptr->id.data;
-	MaskShape *shape = (MaskShape *)value.data;
+	MaskObject *maskobj = (MaskObject *)value.data;
 
-	BKE_mask_shape_active_set(mask, shape);
+	BKE_mask_object_active_set(mask, maskobj);
 }
 
-static void rna_MaskShape_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+static void rna_MaskObject_splines_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	MaskShape *shape = (MaskShape *)ptr->data;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
 
-	rna_iterator_listbase_begin(iter, &shape->splines, NULL);
+	rna_iterator_listbase_begin(iter, &maskobj->splines, NULL);
 }
 
-void rna_MaskShape_name_set(PointerRNA *ptr, const char *value)
+void rna_MaskObject_name_set(PointerRNA *ptr, const char *value)
 {
 	Mask *mask = (Mask *)ptr->id.data;
-	MaskShape *shape = (MaskShape *)ptr->data;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
 
-	BLI_strncpy(shape->name, value, sizeof(shape->name));
+	BLI_strncpy(maskobj->name, value, sizeof(maskobj->name));
 
-	BKE_mask_shape_unique_name(mask, shape);
+	BKE_mask_object_unique_name(mask, maskobj);
 }
 
-static PointerRNA rna_MaskShape_active_spline_get(PointerRNA *ptr)
+static PointerRNA rna_MaskObject_active_spline_get(PointerRNA *ptr)
 {
-	MaskShape *shape = (MaskShape *)ptr->data;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_MaskSpline, shape->act_spline);
+	return rna_pointer_inherit_refine(ptr, &RNA_MaskSpline, maskobj->act_spline);
 }
 
-static void rna_MaskShape_active_spline_set(PointerRNA *ptr, PointerRNA value)
+static void rna_MaskObject_active_spline_set(PointerRNA *ptr, PointerRNA value)
 {
-	MaskShape *shape = (MaskShape *)ptr->data;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
 	MaskSpline *spline = (MaskSpline *)value.data;
-	int index = BLI_findindex(&shape->splines, spline);
+	int index = BLI_findindex(&maskobj->splines, spline);
 
 	if (index >= 0)
-		shape->act_spline = spline;
+		maskobj->act_spline = spline;
 	else
-		shape->act_spline = NULL;
+		maskobj->act_spline = NULL;
 }
 
-static PointerRNA rna_MaskShape_active_spline_point_get(PointerRNA *ptr)
+static PointerRNA rna_MaskObject_active_spline_point_get(PointerRNA *ptr)
 {
-	MaskShape *shape = (MaskShape *)ptr->data;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
 
-	return rna_pointer_inherit_refine(ptr, &RNA_MaskSplinePoint, shape->act_point);
+	return rna_pointer_inherit_refine(ptr, &RNA_MaskSplinePoint, maskobj->act_point);
 }
 
-static void rna_MaskShape_active_spline_point_set(PointerRNA *ptr, PointerRNA value)
+static void rna_MaskObject_active_spline_point_set(PointerRNA *ptr, PointerRNA value)
 {
-	MaskShape *shape = (MaskShape *)ptr->data;
-	MaskSpline *spline = shape->splines.first;
+	MaskObject *maskobj = (MaskObject *)ptr->data;
+	MaskSpline *spline = maskobj->splines.first;
 	MaskSplinePoint *point = (MaskSplinePoint *)value.data;
 
-	shape->act_point = NULL;
+	maskobj->act_point = NULL;
 
 	while (spline) {
 		if (point >= spline->points && point < spline->points + spline->tot_point) {
-			shape->act_point = point;
+			maskobj->act_point = point;
 
 			break;
 		}
@@ -279,29 +279,29 @@ static void rna_MaskSplinePoint_handle_type_set(PointerRNA *ptr, int value)
 
 /* ** API **  */
 
-static MaskShape *rna_Mask_shape_new(Mask *mask, const char *name)
+static MaskObject *rna_Mask_object_new(Mask *mask, const char *name)
 {
-	MaskShape *shape = BKE_mask_shape_new(mask, name);
+	MaskObject *maskobj = BKE_mask_object_new(mask, name);
 
 	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
 
-	return shape;
+	return maskobj;
 }
 
-void rna_Mask_shape_remove(Mask *mask, MaskShape *shape)
+void rna_Mask_object_remove(Mask *mask, MaskObject *maskobj)
 {
-	BKE_mask_shape_remove(mask, shape);
+	BKE_mask_object_remove(mask, maskobj);
 
 	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
 }
 
-static void rna_MaskShape_spline_add(ID *id, MaskShape *shape, int number)
+static void rna_MaskObject_spline_add(ID *id, MaskObject *maskobj, int number)
 {
 	Mask *mask = (Mask*) id;
 	int i;
 
 	for (i = 0; i < number; i++)
-		BKE_mask_spline_add(shape);
+		BKE_mask_spline_add(maskobj);
 
 	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
 }
@@ -402,7 +402,7 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 	rna_def_maskSplinePointUW(brna);
 
 	srna = RNA_def_struct(brna, "MaskSplinePoint", NULL);
-	RNA_def_struct_ui_text(srna, "Mask Spline Point", "Single point in spline used for defining mash shape");
+	RNA_def_struct_ui_text(srna, "Mask Spline Point", "Single point in spline used for defining mask");
 
 	/* Vector values */
 	prop = RNA_def_property(srna, "handle_left", PROP_FLOAT, PROP_TRANSLATION);
@@ -447,34 +447,34 @@ static void rna_def_maskSplinePoint(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Feather Points", "Points defining feather");
 }
 
-static void rna_def_maskSplines(BlenderRNA *brna)
+static void rna_def_mask_splines(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	FunctionRNA *func;
 	PropertyRNA *prop;
 
 	srna = RNA_def_struct(brna, "MaskSplines", NULL);
-	RNA_def_struct_sdna(srna, "MaskShape");
+	RNA_def_struct_sdna(srna, "MaskObject");
 	RNA_def_struct_ui_text(srna, "Mask Splines", "Collection of masking splines");
 
-	func = RNA_def_function(srna, "add", "rna_MaskShape_spline_add");
+	func = RNA_def_function(srna, "add", "rna_MaskObject_spline_add");
 	RNA_def_function_flag(func, FUNC_USE_SELF_ID);
-	RNA_def_function_ui_description(func, "Add a number of splines to mask shape");
-	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of splines to add to the shape", 0, INT_MAX);
+	RNA_def_function_ui_description(func, "Add a number of splines to mask object");
+	RNA_def_int(func, "count", 1, 0, INT_MAX, "Number", "Number of splines to add to the object", 0, INT_MAX);
 
 	/* active spline */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaskSpline");
-	RNA_def_property_pointer_funcs(prop, "rna_MaskShape_active_spline_get", "rna_MaskShape_active_spline_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_MaskObject_active_spline_get", "rna_MaskObject_active_spline_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
-	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking shape");
+	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking object");
 
 	/* active point */
 	prop = RNA_def_property(srna, "active_point", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "MaskSplinePoint");
-	RNA_def_property_pointer_funcs(prop, "rna_MaskShape_active_spline_point_get", "rna_MaskShape_active_spline_point_set", NULL, NULL);
+	RNA_def_property_pointer_funcs(prop, "rna_MaskObject_active_spline_point_get", "rna_MaskObject_active_spline_point_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
-	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking shape");
+	RNA_def_property_ui_text(prop, "Active Spline", "Active spline of masking object");
 }
 
 static void rna_def_maskSpline(BlenderRNA *brna)
@@ -507,34 +507,34 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 }
 
-static void rna_def_maskShape(BlenderRNA *brna)
+static void rna_def_mask_object(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
 
 	rna_def_maskSpline(brna);
-	rna_def_maskSplines(brna);
+	rna_def_mask_splines(brna);
 
-	srna = RNA_def_struct(brna, "MaskShape", NULL);
-	RNA_def_struct_ui_text(srna, "Mask shape", "Single shape used for masking stuff");
+	srna = RNA_def_struct(brna, "MaskObject", NULL);
+	RNA_def_struct_ui_text(srna, "Mask Object", "Single object used for masking pixels");
 
 	/* name */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
-	RNA_def_property_ui_text(prop, "Name", "Unique name of shape");
-	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MaskShape_name_set");
+	RNA_def_property_ui_text(prop, "Name", "Unique name of object");
+	RNA_def_property_string_funcs(prop, NULL, NULL, "rna_MaskObject_name_set");
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME - 2);
 	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 	RNA_def_struct_name_property(srna, prop);
 
 	/* splines */
 	prop = RNA_def_property(srna, "splines", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_MaskShape_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_collection_funcs(prop, "rna_MaskObject_splines_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
 	RNA_def_property_struct_type(prop, "MaskSpline");
-	RNA_def_property_ui_text(prop, "Splines", "Collection of splines which defines this shape");
+	RNA_def_property_ui_text(prop, "Splines", "Collection of splines which defines this object");
 	RNA_def_property_srna(prop, "MaskSplines");
 }
 
-static void rna_def_maskShapes(BlenderRNA *brna, PropertyRNA *cprop)
+static void rna_def_maskobjects(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -542,27 +542,27 @@ static void rna_def_maskShapes(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 	PropertyRNA *parm;
 
-	RNA_def_property_srna(cprop, "MaskShapes");
-	srna = RNA_def_struct(brna, "MaskShapes", NULL);
+	RNA_def_property_srna(cprop, "MaskObjects");
+	srna = RNA_def_struct(brna, "MaskObjects", NULL);
 	RNA_def_struct_sdna(srna, "Mask");
-	RNA_def_struct_ui_text(srna, "Mask Shapes", "Collection of shapes used by mask");
+	RNA_def_struct_ui_text(srna, "Mask Objects", "Collection of objects used by mask");
 
-	func = RNA_def_function(srna, "new", "rna_Mask_shape_new");
-	RNA_def_function_ui_description(func, "Add shape to this mask");
-	RNA_def_string(func, "name", "", 0, "Name", "Name of new shape");
-	parm = RNA_def_pointer(func, "shape", "MaskShape", "", "New mask shape");
+	func = RNA_def_function(srna, "new", "rna_Mask_object_new");
+	RNA_def_function_ui_description(func, "Add object to this mask");
+	RNA_def_string(func, "name", "", 0, "Name", "Name of new object");
+	parm = RNA_def_pointer(func, "object", "MaskObject", "", "New mask object");
 	RNA_def_function_return(func, parm);
 
-	func = RNA_def_function(srna, "remove", "rna_Mask_shape_remove");
-	RNA_def_function_ui_description(func, "Remove shape from this mask");
-	RNA_def_pointer(func, "shape", "MaskShape", "", "Shape to be removed");
+	func = RNA_def_function(srna, "remove", "rna_Mask_object_remove");
+	RNA_def_function_ui_description(func, "Remove object from this mask");
+	RNA_def_pointer(func, "object", "MaskObject", "", "Shape to be removed");
 
 	/* active object */
 	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
-	RNA_def_property_struct_type(prop, "MaskShape");
-	RNA_def_property_pointer_funcs(prop, "rna_Mask_active_shape_get", "rna_Mask_active_shape_set", NULL, NULL);
+	RNA_def_property_struct_type(prop, "MaskObject");
+	RNA_def_property_pointer_funcs(prop, "rna_Mask_object_active_get", "rna_Mask_object_active_set", NULL, NULL);
 	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_NEVER_UNLINK);
-	RNA_def_property_ui_text(prop, "Active Shape", "Active shape in this mask");
+	RNA_def_property_ui_text(prop, "Active Shape", "Active object in this mask");
 }
 
 static void rna_def_mask(BlenderRNA *brna)
@@ -570,25 +570,25 @@ static void rna_def_mask(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	rna_def_maskShape(brna);
+	rna_def_mask_object(brna);
 
 	srna = RNA_def_struct(brna, "Mask", "ID");
 	RNA_def_struct_ui_text(srna, "Mask", "Mask datablock defining mask for compositing");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MASK);
 
-	/* shapes */
-	prop = RNA_def_property(srna, "shapes", PROP_COLLECTION, PROP_NONE);
-	RNA_def_property_collection_funcs(prop, "rna_Mask_shapes_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
-	RNA_def_property_struct_type(prop, "MaskShape");
-	RNA_def_property_ui_text(prop, "Shapes", "Collection of shapes which defines this mask");
-	rna_def_maskShapes(brna, prop);
+	/* mask objects */
+	prop = RNA_def_property(srna, "objects", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_collection_funcs(prop, "rna_Mask_objects_begin", "rna_iterator_listbase_next", "rna_iterator_listbase_end", "rna_iterator_listbase_get", 0, 0, 0, 0);
+	RNA_def_property_struct_type(prop, "MaskObject");
+	RNA_def_property_ui_text(prop, "Objects", "Collection of objects which defines this mask");
+	rna_def_maskobjects(brna, prop);
 
-	/* active shape index */
-	prop = RNA_def_property(srna, "active_shape_index", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "shapenr");
+	/* active maskobj index */
+	prop = RNA_def_property(srna, "active_object_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "act_maskobj");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_int_funcs(prop, "rna_Mask_active_shape_index_get", "rna_Mask_active_shape_index_set", "rna_Mask_active_shape_index_range");
-	RNA_def_property_ui_text(prop, "Active Shape Index", "Index of active shape in list of all mask's shapes");
+	RNA_def_property_int_funcs(prop, "rna_Mask_object_active_index_get", "rna_Mask_object_active_index_set", "rna_Mask_object_active_index_range");
+	RNA_def_property_ui_text(prop, "Active Shape Index", "Index of active object in list of all mask's objects");
 }
 
 void RNA_def_mask(BlenderRNA *brna)

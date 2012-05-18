@@ -5943,15 +5943,15 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskShape *shape;
+	MaskObject *maskobj;
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	TransDataMasking *tdm = NULL;
 
 	/* count */
-	shape = mask ? mask->shapes.first : NULL;
-	while (shape) {
-		MaskSpline *spline = shape->splines.first;
+	maskobj = mask ? mask->maskobjs.first : NULL;
+	while (maskobj) {
+		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
 			int i;
@@ -5970,7 +5970,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 			spline = spline->next;
 		}
 
-		shape = shape->next;
+		maskobj = maskobj->next;
 	}
 
 	if (t->total == 0)
@@ -5985,9 +5985,9 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	t->flag |= T_FREE_CUSTOMDATA;
 
 	/* create data */
-	shape = mask->shapes.first;
-	while (shape) {
-		MaskSpline *spline = shape->splines.first;
+	maskobj = mask->maskobjs.first;
+	while (maskobj) {
+		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
 			int i;
@@ -6014,7 +6014,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 			spline = spline->next;
 		}
 
-		shape = shape->next;
+		maskobj = maskobj->next;
 	}
 }
 

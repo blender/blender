@@ -49,10 +49,10 @@
 
 #include "mask_intern.h"  /* own include */
 
-static void set_spline_color(MaskShape *shape, MaskSpline *spline)
+static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
 {
 	if (spline->flag & SELECT) {
-		if (shape->act_spline == spline)
+		if (maskobj->act_spline == spline)
 			glColor3f(1.0f, 1.0f, 1.0f);
 		else
 			glColor3f(1.0f, 0.0f, 0.0f);
@@ -63,7 +63,7 @@ static void set_spline_color(MaskShape *shape, MaskSpline *spline)
 }
 
 /* return non-zero if spline is selected */
-static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
+static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 {
 	int i, hsize, tot_feather_point;
 	float *feather_points, *fp;
@@ -92,7 +92,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
 			}
 
 			if (sel) {
-				if (point == shape->act_point)
+				if (point == maskobj->act_point)
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else
 					glColor3f(1.0f, 1.0f, 0.0f);
@@ -121,7 +121,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
 
 		/* draw handle segment */
 		if (has_handle) {
-			set_spline_color(shape, spline);
+			set_spline_color(maskobj, spline);
 
 			glBegin(GL_LINES);
 			glVertex3fv(vert);
@@ -131,7 +131,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
 
 		/* draw CV point */
 		if (MASKPOINT_CV_ISSEL(point)) {
-			if (point == shape->act_point)
+			if (point == maskobj->act_point)
 				glColor3f(1.0f, 1.0f, 1.0f);
 			else
 				glColor3f(1.0f, 1.0f, 0.0f);
@@ -146,7 +146,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
 		/* draw handle points */
 		if (has_handle) {
 			if (MASKPOINT_HANDLE_ISSEL(point)) {
-				if (point == shape->act_point)
+				if (point == maskobj->act_point)
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else
 					glColor3f(1.0f, 1.0f, 0.0f);
@@ -189,7 +189,7 @@ static void draw_dashed_curve(MaskSpline *spline, float *points, int tot_point)
 	glDisable(GL_LINE_STIPPLE);
 }
 
-static void draw_spline_curve(MaskShape *shape, MaskSpline *spline)
+static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline)
 {
 	float *diff_points, *feather_points;
 	int tot_diff_point, tot_feather_point;
@@ -209,31 +209,31 @@ static void draw_spline_curve(MaskShape *shape, MaskSpline *spline)
 	draw_dashed_curve(spline, feather_points, tot_feather_point);
 
 	/* draw main curve */
-	set_spline_color(shape, spline);
+	set_spline_color(maskobj, spline);
 	draw_dashed_curve(spline, diff_points, tot_diff_point);
 
 	MEM_freeN(diff_points);
 	MEM_freeN(feather_points);
 }
 
-static void draw_shapes(Mask *mask)
+static void draw_maskobjs(Mask *mask)
 {
-	MaskShape *shape = mask->shapes.first;
+	MaskObject *maskobj = mask->maskobjs.first;
 
-	while (shape) {
-		MaskSpline *spline = shape->splines.first;
+	while (maskobj) {
+		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
 			/* draw curve itself first... */
-			draw_spline_curve(shape, spline);
+			draw_spline_curve(maskobj, spline);
 
 			/* ...and then handles over the curve so they're nicely visible */
-			draw_spline_points(shape, spline);
+			draw_spline_points(maskobj, spline);
 
 			spline = spline->next;
 		}
 
-		shape = shape->next;
+		maskobj = maskobj->next;
 	}
 }
 
@@ -244,5 +244,5 @@ void ED_mask_draw(const bContext *C)
 	if (!mask)
 		return;
 
-	draw_shapes(mask);
+	draw_maskobjs(mask);
 }

@@ -30,7 +30,7 @@
 struct Main;
 struct Mask;
 struct MaskParent;
-struct MaskShape;
+struct MaskObject;
 struct MaskSpline;
 struct MaskSplinePoint;
 struct MaskSplinePointUW;
@@ -38,20 +38,20 @@ struct MovieClip;
 struct MovieClipUser;
 struct Scene;
 
-/* shapes */
-struct MaskShape *BKE_mask_shape_new(struct Mask *mask, const char *name);
-struct MaskShape *BKE_mask_shape_active(struct Mask *mask);
-void BKE_mask_shape_active_set(struct Mask *mask, struct MaskShape *shape);
-void BKE_mask_shape_remove(struct Mask *mask, struct MaskShape *shape);
+/* mask objects */
+struct MaskObject *BKE_mask_object_new(struct Mask *mask, const char *name);
+struct MaskObject *BKE_mask_object_active(struct Mask *mask);
+void BKE_mask_object_active_set(struct Mask *mask, struct MaskObject *maskobj);
+void BKE_mask_object_remove(struct Mask *mask, struct MaskObject *maskobj);
 
-void BKE_mask_shape_free(struct MaskShape *shape);
+void BKE_mask_object_free(struct MaskObject *maskobj);
 void BKE_mask_spline_free(struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
-void BKE_mask_shape_unique_name(struct Mask *mask, struct MaskShape *shape);
+void BKE_mask_object_unique_name(struct Mask *mask, struct MaskObject *maskobj);
 
 /* splines */
-struct MaskSpline *BKE_mask_spline_add(struct MaskShape *shape);
+struct MaskSpline *BKE_mask_spline_add(struct MaskObject *maskobj);
 int BKE_mask_spline_resolution(struct MaskSpline *spline);
 float *BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point);
 float *BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline, int *tot_feather_point);

@@ -2762,20 +2762,20 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 	mask = idbase->first;
 	while (mask) {
 		if (mask->id.us > 0 || wd->current) {
-			MaskShape *shape;
+			MaskObject *maskobj;
 
 			writestruct(wd, ID_MSK, "Mask", 1, mask);
 
 			if (mask->adt)
 				write_animdata(wd, mask->adt);
 
-			shape = mask->shapes.first;
-			while (shape) {
+			maskobj = mask->maskobjs.first;
+			while (maskobj) {
 				MaskSpline *spline;
 
-				writestruct(wd, DATA, "MaskShape", 1, shape);
+				writestruct(wd, DATA, "MaskObject", 1, maskobj);
 
-				spline = shape->splines.first;
+				spline = maskobj->splines.first;
 				while (spline) {
 					int i;
 
@@ -2792,7 +2792,7 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 					spline = spline->next;
 				}
 
-				shape = shape->next;
+				maskobj = maskobj->next;
 			}
 		}
 
