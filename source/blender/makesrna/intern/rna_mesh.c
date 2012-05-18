@@ -503,6 +503,7 @@ static int rna_CustomDataLayer_clone_get(PointerRNA *ptr, CustomData *data, int 
 
 static void rna_CustomDataLayer_active_set(PointerRNA *ptr, CustomData *data, int value, int type, int render)
 {
+	Mesh *me = ptr->id.data;
 	int n = (((CustomDataLayer *)ptr->data) - data->layers) - CustomData_get_layer_index(data, type);
 
 	if (value == 0)
@@ -517,6 +518,8 @@ static void rna_CustomDataLayer_active_set(PointerRNA *ptr, CustomData *data, in
 		if (render) CustomData_set_layer_render(ldata, CD_MLOOPUV, n);
 		else CustomData_set_layer_active(ldata, CD_MLOOPUV, n);
 	}
+
+	mesh_update_customdata_pointers(me, TRUE);
 }
 
 static void rna_CustomDataLayer_clone_set(PointerRNA *ptr, CustomData *data, int value, int type, int render)
