@@ -39,6 +39,7 @@
 
 #include "DNA_space_types.h" /* FILE_MAX */
 
+#include "BLI_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 #include "BLI_dynstr.h"
