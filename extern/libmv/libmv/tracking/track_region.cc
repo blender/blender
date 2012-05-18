@@ -105,7 +105,6 @@ struct AutoDiff {
 
 // Sample the image and gradient when the coordinates are jets, applying the
 // jacobian appropriately to propagate the derivatives from the coordinates.
-template<>
 template<typename T, int N>
 struct AutoDiff<ceres::Jet<T, N> > {
   static ceres::Jet<T, N> Sample(const FloatImage &image_and_gradient,
@@ -353,8 +352,8 @@ class WarpCostFunctor {
     }
     *src_mean /= T(num_samples);
     *dst_mean /= T(num_samples);
-    std::cout << "Normalization for src:\n" << *src_mean << "\n";
-    std::cout << "Normalization for dst:\n" << *dst_mean << "\n";
+    LG << "Normalization for src:" << *src_mean;
+    LG << "Normalization for dst:" << *dst_mean;
   }
 
  // TODO(keir): Consider also computing the cost here.
@@ -591,9 +590,9 @@ struct TranslationRotationWarp {
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
     parameters[2] = atan2(R(1, 0), R(0, 0));
 
-    std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
-    std::cout << "R:\n" << R << "\n";
-    std::cout << "theta:" << parameters[2] << "\n";
+    LG << "Correlation_matrix:\n" << correlation_matrix;
+    LG << "R:\n" << R;
+    LG << "Theta:" << parameters[2];
   }
 
   // The strange way of parameterizing the translation and rotation is to make
@@ -656,11 +655,12 @@ struct TranslationRotationScaleWarp {
       correlation_matrix += q1.CornerRelativeToCentroid(i) * 
                             q2.CornerRelativeToCentroid(i).transpose();
     }
-    std::cout << "correlation_matrix:\n" << correlation_matrix << "\n";
     Mat2 R = OrthogonalProcrustes(correlation_matrix);
-    std::cout << "R:\n" << R << "\n";
     parameters[3] = atan2(R(1, 0), R(0, 0));
-    std::cout << "theta:" << parameters[3] << "\n";
+
+    LG << "Correlation_matrix:\n" << correlation_matrix;
+    LG << "R:\n" << R;
+    LG << "Theta:" << parameters[3];
   }
 
   // The strange way of parameterizing the translation and rotation is to make
@@ -741,8 +741,8 @@ struct AffineWarp {
     parameters[4] = a[2];
     parameters[5] = a[3];
 
-    std::cout << "a:" << a.transpose() << "\n";
-    std::cout << "t:" << t.transpose() << "\n";
+    LG << "a:" << a.transpose();
+    LG << "t:" << t.transpose();
   }
 
   // See comments in other parameterizations about why the centroid is used.
