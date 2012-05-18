@@ -1032,6 +1032,7 @@ typedef struct DynamicPaintModifierData {
 
 typedef enum RemeshModifierFlags {
 	MOD_REMESH_FLOOD_FILL = 1,
+	MOD_REMESH_SMOOTH_SHADING = 2,
 } RemeshModifierFlags;
 
 typedef enum RemeshModifierMode {

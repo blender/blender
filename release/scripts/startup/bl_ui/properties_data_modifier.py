@@ -838,6 +838,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.mode == 'SHARP':
             layout.prop(md, "sharpness")
 
+        layout.prop(md, "smooth_shading")
         layout.prop(md, "remove_disconnected_pieces")
         row = layout.row()
         row.active = md.remove_disconnected_pieces
