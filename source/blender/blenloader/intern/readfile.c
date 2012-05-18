@@ -4747,7 +4747,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 		test_pointer_array(fd, (void **)&cont->links);
 		if (cont->state_mask == 0)
 			cont->state_mask = 1;
-		cont= cont->next;
 	}
 
 	link_glob_list(fd, &ob->actuators);
