@@ -195,13 +195,6 @@ static void rna_trackingTrack_select_set(PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_tracking_trackerPattern_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-
-	BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
-}
-
 static void rna_tracking_trackerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
@@ -621,14 +614,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 
 	/* use_brute */
 	prop = RNA_def_property(srna, "default_use_brute", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
+	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
 	RNA_def_property_ui_text(prop, "Prepass", "Use a brute-force translation-only initialization when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* default use_normalization */
 	prop = RNA_def_property(srna, "default_use_normalization", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
-	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower.");
+	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
+	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* default minmal correlation */
@@ -932,16 +925,16 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 
 	/* use_brute */
 	prop = RNA_def_property(srna, "use_brute", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
+	RNA_def_property_boolean_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Prepass", "Use a brute-force translation only pre-track before refinement");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* use_brute */
 	prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_negative_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
+	RNA_def_property_boolean_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower.");
+	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* markers */

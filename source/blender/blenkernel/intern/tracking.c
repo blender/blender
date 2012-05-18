@@ -1734,8 +1734,13 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				/* Configure the tracker */
 				options.motion_model = track->motion_model;
-				options.use_brute = ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_BRUTE) == 0);
-				options.use_normalization = ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_NORMALIZATION) == 0);
+
+				options.use_brute =
+					((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_BRUTE) != 0);
+
+				options.use_normalization =
+					((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_NORMALIZATION) != 0);
+
 				options.num_iterations = 50;
 				options.minimum_correlation = track->minimum_correlation;
 				options.sigma = 0.9;
