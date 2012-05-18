@@ -44,6 +44,7 @@ TrackRegionOptions::TrackRegionOptions()
       max_iterations(20),
       use_esm(true),
       use_brute_initialization(true),
+      use_normalized_intensities(false),
       sigma(0.9),
       num_extra_points(0),
       image1_mask(NULL) {
@@ -191,6 +192,14 @@ class WarpCostFunctor {
       VLOG(2) << "warp_parameters[" << i << "]: " << warp_parameters[i];
     }
 
+    T src_mean = T(1.0);
+    T dst_mean = T(1.0);
+    if (options_.use_normalized_intensities) {
+      ComputeNormalizingCoefficients(warp_parameters,
+                                     &src_mean,
+                                     &dst_mean);
+    }
+
     int cursor = 0;
     for (int r = 0; r < num_samples_y_; ++r) {
       for (int c = 0; c < num_samples_x_; ++c) {
@@ -198,6 +207,19 @@ class WarpCostFunctor {
         Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
         image1_position /= image1_position(2);
         
+        // Sample the mask early; if it's zero, this pixel has no effect. This
+        // allows early bailout from the expensive sampling that happens below.
+        double mask_value = 1.0;
+        if (options_.image1_mask != NULL) {
+          mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
+                                                image1_position[0],
+                                                image1_position[1]);
+          if (mask_value == 0.0) {
+            residuals[cursor++] = T(0.0);
+            continue;
+          }
+        }
+
         // Compute the location of the destination pixel.
         T image2_position[2];
         warp_.Forward(warp_parameters,
@@ -205,7 +227,6 @@ class WarpCostFunctor {
                       T(image1_position[1]),
                       &image2_position[0],
                       &image2_position[1]);
-
 
         // Sample the destination, propagating derivatives.
         T dst_sample = AutoDiff<T>::Sample(image_and_gradient2_,
@@ -239,6 +260,15 @@ class WarpCostFunctor {
                                                   image1_position[1]));
         }
 
+        // Normalize the samples by the mean values of each signal. The typical
+        // light model assumes multiplicative intensity changes with changing
+        // light, so this is a reasonable choice. Note that dst_mean has
+        // derivative information attached thanks to autodiff.
+        if (options_.use_normalized_intensities) {
+          src_sample /= src_mean;
+          dst_sample /= dst_mean;
+        }
+
         // The difference is the error.
         T error = src_sample - dst_sample;
 
@@ -248,10 +278,78 @@ class WarpCostFunctor {
                                               image1_position[0],
                                               image1_position[1]));
         }
-        residuals[cursor++] = src_sample - dst_sample;
+        residuals[cursor++] = error;
       }
     }
     return true;
+  }
+
+  // For normalized matching, the average and 
+  template<typename T>
+  void ComputeNormalizingCoefficients(const T *warp_parameters,
+                                      T *src_mean,
+                                      T *dst_mean) const {
+
+    *src_mean = T(0.0);
+    *dst_mean = T(0.0);
+    double num_samples = 0.0;
+    for (int r = 0; r < num_samples_y_; ++r) {
+      for (int c = 0; c < num_samples_x_; ++c) {
+        // Compute the location of the source pixel (via homography).
+        Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
+        image1_position /= image1_position(2);
+        
+        // Sample the mask early; if it's zero, this pixel has no effect. This
+        // allows early bailout from the expensive sampling that happens below.
+        double mask_value = 1.0;
+        if (options_.image1_mask != NULL) {
+          mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
+                                                image1_position[0],
+                                                image1_position[1]);
+          if (mask_value == 0.0) {
+            continue;
+          }
+        }
+
+        // Compute the location of the destination pixel.
+        T image2_position[2];
+        warp_.Forward(warp_parameters,
+                      T(image1_position[0]),
+                      T(image1_position[1]),
+                      &image2_position[0],
+                      &image2_position[1]);
+
+
+        // Sample the destination, propagating derivatives.
+        // TODO(keir): This accumulation can, surprisingly, be done as a
+        // pre-pass by using integral images. This is complicated by the need
+        // to store the jets in the integral image, but it is possible.
+        T dst_sample = AutoDiff<T>::Sample(image_and_gradient2_,
+                                           image2_position[0],
+                                           image2_position[1]);
+
+        // Sample the source.
+        // TODO(keir): There is no reason to do this inside the loop;
+        // precompute this and reuse it.
+        T src_sample = T(AutoDiff<double>::Sample(image_and_gradient1_,
+                                                  image1_position[0],
+                                                  image1_position[1]));
+
+        // Weight the sample by the mask, if one is present.
+        if (options_.image1_mask != NULL) {
+          src_sample *= T(mask_value);
+          dst_sample *= T(mask_value);
+        }
+
+        *src_mean += src_sample;
+        *dst_mean += dst_sample;
+        num_samples += mask_value;
+      }
+    }
+    *src_mean /= T(num_samples);
+    *dst_mean /= T(num_samples);
+    std::cout << "Normalization for src:\n" << *src_mean << "\n";
+    std::cout << "Normalization for dst:\n" << *dst_mean << "\n";
   }
 
  // TODO(keir): Consider also computing the cost here.

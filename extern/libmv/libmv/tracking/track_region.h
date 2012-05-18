@@ -57,6 +57,16 @@ struct TrackRegionOptions {
   // that the nearby minima is correct, or the search area is too small.
   bool use_brute_initialization;
 
+  // If true, normalize the image patches by their mean before doing the sum of
+  // squared error calculation. This is reasonable since the effect of
+  // increasing light intensity is multiplicative on the pixel intensities.
+  //
+  // Note: This does nearly double the solving time, so it is not advised to
+  // turn this on all the time.
+  bool use_normalized_intensities;
+
+  // The size in pixels of the blur kernel used to both smooth the image and
+  // take the image derivative.
   double sigma;
 
   // Extra points that should get transformed by the warp. This is useful

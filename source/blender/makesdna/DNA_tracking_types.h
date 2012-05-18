@@ -287,6 +287,7 @@ enum {
 
 /* MovieTrackingTrack->algorithm_flag */
 #define TRACK_ALGORITHM_FLAG_USE_BRUTE 1
+#define TRACK_ALGORITHM_FLAG_USE_NORMALIZATION 2
 
 /* MovieTrackingTrack->adjframes */
 #define TRACK_MATCH_KEYFRAME		0

@@ -590,14 +590,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "motion_flag", TRACKING_MOTION_TRIPOD);
 	RNA_def_property_ui_text(prop, "Tripod Motion", "Use special solver to track a stable camera position, such as a tripod");
 
-	/* limit frames */
+	/* default_limit_frames */
 	prop = RNA_def_property(srna, "default_frames_limit", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "default_frames_limit");
 	RNA_def_property_range(prop, 0, SHRT_MAX);
 	RNA_def_property_ui_text(prop, "Frames Limit", "Every tracking cycle, this number of frames are tracked");
 
-	/* pattern match */
+	/* default_pattern_match */
 	prop = RNA_def_property(srna, "default_pattern_match", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_sdna(prop, NULL, "default_pattern_match");
@@ -605,14 +605,14 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Pattern Match",
 	                         "Track pattern from given frame when tracking marker to next frame");
 
-	/* margin */
+	/* default_margin */
 	prop = RNA_def_property(srna, "default_margin", PROP_INT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_sdna(prop, NULL, "default_margin");
 	RNA_def_property_range(prop, 0, 300);
 	RNA_def_property_ui_text(prop, "Margin", "Default distance from image boudary at which marker stops tracking");
 
-	/* tracking motion model */
+	/* default_tracking_motion_model */
 	prop = RNA_def_property(srna, "default_motion_model", PROP_ENUM, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -622,10 +622,16 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	/* use_brute */
 	prop = RNA_def_property(srna, "default_use_brute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
-	RNA_def_property_ui_text(prop, "Translation-only initialization", "Use a brute-force translation-only initialization when tracking");
+	RNA_def_property_ui_text(prop, "Prepass", "Use a brute-force translation-only initialization when tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
-	/* minmal correlation */
+	/* default use_normalization */
+	prop = RNA_def_property(srna, "default_use_normalization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
+	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower.");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* default minmal correlation */
 	prop = RNA_def_property(srna, "default_correlation_min", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
@@ -652,19 +658,19 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_tracking_defaultSettings_searchUpdate");
 	RNA_def_property_ui_text(prop, "Search Size", "Size of search area for newly created tracks");
 
-	/* use_red_channel */
+	/* default use_red_channel */
 	prop = RNA_def_property(srna, "use_default_red_channel", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_flag", TRACK_DISABLE_RED);
 	RNA_def_property_ui_text(prop, "Use Red Channel", "Use red channel from footage for tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
-	/* use_green_channel */
+	/* default_use_green_channel */
 	prop = RNA_def_property(srna, "use_default_green_channel", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_flag", TRACK_DISABLE_GREEN);
 	RNA_def_property_ui_text(prop, "Use Green Channel", "Use green channel from footage for tracking");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
-	/* use_blue_channel */
+	/* default_use_blue_channel */
 	prop = RNA_def_property(srna, "use_default_blue_channel", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "default_flag", TRACK_DISABLE_BLUE);
 	RNA_def_property_ui_text(prop, "Use Blue Channel", "Use blue channel from footage for tracking");
@@ -928,7 +934,14 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_brute", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_BRUTE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Translation-only initialization", "Use a brute-force translation only pre-track before refinement");
+	RNA_def_property_ui_text(prop, "Prepass", "Use a brute-force translation only pre-track before refinement");
+	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
+
+	/* use_brute */
+	prop = RNA_def_property(srna, "use_normalization", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_negative_sdna(prop, NULL, "algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower.");
 	RNA_def_property_update(prop, NC_MOVIECLIP|ND_DISPLAY, NULL);
 
 	/* markers */

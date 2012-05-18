@@ -55,6 +55,7 @@ struct libmv_trackRegionOptions {
   int motion_model;
   int num_iterations;
   int use_brute;
+  int use_normalization;
   double minimum_correlation;
   double sigma;
 };

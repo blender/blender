@@ -381,6 +381,7 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 	track_region_options.num_extra_points = 1;
 	track_region_options.image1_mask = NULL;
 	track_region_options.use_brute_initialization = options->use_brute;
+	track_region_options.use_normalized_intensities = options->use_normalization;
 
 	/* Convert from raw float buffers to libmv's FloatImage. */
 	libmv::FloatImage old_patch, new_patch;

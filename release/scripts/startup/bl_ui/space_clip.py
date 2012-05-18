@@ -189,6 +189,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
             col.label(text="Tracker:")
             col.prop(settings, "default_motion_model")
             col.prop(settings, "default_use_brute")
+            col.prop(settings, "default_use_normalization")
             col.prop(settings, "default_correlation_min")
 
             col.separator()
@@ -488,6 +489,7 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
         if active:
             col.prop(active, "motion_model")
             col.prop(active, "use_brute")
+            col.prop(active, "use_normalization")
             col.prop(active, "correlation_min")
 
             col.separator()
