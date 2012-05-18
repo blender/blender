@@ -2434,7 +2434,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	ar->winrct.ymin = 0;
 	ar->winrct.xmax = winx;
 	ar->winrct.ymax = winy;
-	
+
+	/* set theme */
+	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 	
 	/* set flags */
 	G.f |= G_RENDER_OGL;
