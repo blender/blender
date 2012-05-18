@@ -28,6 +28,7 @@
  *  \ingroup RASKTER
  */
 
+#include <stdio.h>
 #include <malloc.h>
 #include "raskter.h"
 
