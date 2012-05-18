@@ -54,7 +54,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				hasConnections = true;
 				NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
 				
-				outputOperation->add_layer(sockdata->path, input->getDataType());
+				outputOperation->add_layer(sockdata->layer, input->getDataType());
 				
 				input->relinkConnections(outputOperation->getInputSocket(i));
 			}
