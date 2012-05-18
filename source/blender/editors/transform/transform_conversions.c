@@ -5875,12 +5875,9 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransDat
 		}
 	}
 	else {
-		int width, height;
-
 		tdm->is_handle = TRUE;
 
-		ED_space_clip_mask_size(sc, &width, &height);
-		BKE_mask_point_handle(point, width, height, tdm->handle);
+		BKE_mask_point_handle(point, aspx, aspy, tdm->handle);
 
 		copy_v2_v2(tdm->orig_handle, tdm->handle);
 

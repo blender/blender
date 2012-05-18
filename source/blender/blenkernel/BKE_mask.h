@@ -34,6 +34,8 @@ struct MaskShape;
 struct MaskSpline;
 struct MaskSplinePoint;
 struct MaskSplinePointUW;
+struct MovieClip;
+struct MovieClipUser;
 struct Scene;
 
 /* shapes */
@@ -76,6 +78,9 @@ struct Mask *BKE_mask_new(const char *name);
 
 void BKE_mask_free(struct Mask *mask);
 void BKE_mask_unlink(struct Main *bmain, struct Mask *mask);
+
+void BKE_mask_coord_from_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
+void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *user, float r_co[2], const float co[2]);
 
 /* parenting */
 

@@ -268,10 +268,13 @@ void ED_space_clip_mask_aspect(SpaceClip *sc, float *aspx, float *aspy)
 	int w, h;
 
 	ED_space_clip_aspect(sc, aspx, aspy);
-        ED_space_clip_size(sc, &w, &h);
+	ED_space_clip_size(sc, &w, &h);
 
+	/* now this is not accounted for! */
+#if 0
 	*aspx *= (float)w;
 	*aspy *= (float)h;
+#endif
 
 	if(*aspx < *aspy) {
 		*aspy= *aspy / *aspx;

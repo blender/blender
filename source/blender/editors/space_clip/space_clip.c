@@ -1101,6 +1101,10 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		int width, height;
 		float zoomx, zoomy, aspx, aspy;
 
+		/* frame image */
+		float maxdim;
+		float xofs, yofs;
+
 		/* find window pixel coordinates of origin */
 		UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
@@ -1108,10 +1112,24 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 		ED_space_clip_aspect(sc, &aspx, &aspy);
 
+		/* frame the image */
+		maxdim = maxf(width, height);
+		if (width == height) {
+			xofs = yofs = 0;
+		}
+		else if (width < height) {
+			xofs = ((height - width) / -2.0f) * zoomx;
+			yofs = 0.0f;
+		}
+		else { /* (width > height) */
+			xofs = 0.0f;
+			yofs = ((width - height) / -2.0f) * zoomy;
+		}
+
 		/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
 		glPushMatrix();
-		glTranslatef(x, y, 0);
-		glScalef(width*zoomx, height*zoomy, 0);
+		glTranslatef(x + xofs, y + yofs, 0);
+		glScalef(maxdim * zoomx, maxdim * zoomy, 0);
 		glMultMatrixf(sc->stabmat);
 
 		ED_mask_draw((bContext *)C, width*aspx, height*aspy, zoomx, zoomy);

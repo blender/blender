@@ -52,6 +52,7 @@
 #include "BKE_main.h"
 #include "BKE_mask.h"
 #include "BKE_tracking.h"
+#include "BKE_movieclip.h"
 #include "BKE_utildefines.h"
 
 /* shapes */
@@ -727,6 +728,49 @@ void BKE_mask_unlink(Main *bmain, Mask *mask)
 	mask->id.us = 0;
 }
 
+void BKE_mask_coord_from_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
+{
+	int width, height;
+
+	/* scaling for the clip */
+	BKE_movieclip_get_size(clip, user, &width, &height);
+
+	if (width == height) {
+		r_co[0] = co[0];
+		r_co[1] = co[1];
+	}
+	else if (width < height) {
+		r_co[0] = ((co[0] - 0.5f) * ((float)width / (float)height)) + 0.5f;
+		r_co[1] = co[1];
+	}
+	else { /* (width > height) */
+		r_co[0] = co[0];
+		r_co[1] = ((co[1] - 0.5f) * ((float)height / (float)width)) + 0.5f;
+	}
+}
+
+/* as above but divide */
+void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_co[2], const float co[2])
+{
+	int width, height;
+
+	/* scaling for the clip */
+	BKE_movieclip_get_size(clip, user, &width, &height);
+
+	if (width == height) {
+		r_co[0] = co[0];
+		r_co[1] = co[1];
+	}
+	else if (width < height) {
+		r_co[0] = ((co[0] - 0.5f) / ((float)width / (float)height)) + 0.5f;
+		r_co[1] = co[1];
+	}
+	else { /* (width > height) */
+		r_co[0] = co[0];
+		r_co[1] = ((co[1] - 0.5f) / ((float)height / (float)width)) + 0.5f;
+	}
+}
+
 static void evaluate_mask_parent(MaskParent *parent, float ctime, float co[2])
 {
 	if (!parent)
@@ -744,10 +788,12 @@ static void evaluate_mask_parent(MaskParent *parent, float ctime, float co[2])
 			if (ob) {
 				MovieTrackingTrack *track = BKE_tracking_named_track(tracking, ob, parent->sub_parent);
 
+				MovieClipUser user = {0};
+				user.framenr = ctime;
+
 				if (track) {
 					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
-
-					copy_v2_v2(co, marker->pos);
+					BKE_mask_coord_from_movieclip(clip, &user, co, marker->pos);
 				}
 			}
 		}

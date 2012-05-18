@@ -81,6 +81,7 @@ void ED_mask_mouse_pos(bContext *C, wmEvent *event, float co[2])
 
 	if (sc) {
 		ED_clip_mouse_pos(C, event, co);
+		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
 	}
 	else {
 		/* possible other spaces from which mask editing is available */

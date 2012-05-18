@@ -94,6 +94,26 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 				diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
 
+				/* TODO, make this optional! */
+				if (sx != sy) {
+					float *fp;
+					int i;
+					float asp;
+
+					if (sx < sy) {
+						fp = &diff_points[0];
+						asp = (float)sx / (float)sy;
+					}
+					else {
+						fp = &diff_points[1];
+						asp = (float)sy / (float)sx;
+					}
+
+					for (i = 0; i < tot_diff_point; i++, fp += 2) {
+						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+					}
+				}
+
 				if (tot_diff_point) {
 					PLX_raskterize(diff_points, tot_diff_point, res, sx, sy);
 
