@@ -1843,19 +1843,24 @@ PyObject* initGamePlayerPythonScripting(const STR_String& progname, TPythonSecur
 	 * somehow it remembers the sys.path - Campbell
 	 */
 	static bool first_time = true;
-	
+	char *py_path_bundle   = BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL);
+
 #if 0 // TODO - py3
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
 #endif
-	Py_NoSiteFlag=1;
-	Py_FrozenFlag=1;
+
+	if (py_path_bundle != NULL) {
+		Py_NoSiteFlag = 1;
+	}
+
+	Py_FrozenFlag = 1;
 
 	/* must run before python initializes */
 	PyImport_ExtendInittab(bge_internal_modules);
 
 	/* find local python installation */
-	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
+	PyC_SetHomePath(py_path_bundle);
 
 	Py_Initialize();
 	
@@ -1929,8 +1934,6 @@ PyObject* initGamePythonScripting(const STR_String& progname, TPythonSecurityLev
 	STR_String pname = progname;
 	Py_SetProgramName(pname.Ptr());
 #endif
-	Py_NoSiteFlag=1;
-	Py_FrozenFlag=1;
 
 #ifdef WITH_AUDASPACE
 	/* accessing a SoundActuator's sound results in a crash if aud is not initialized... */
