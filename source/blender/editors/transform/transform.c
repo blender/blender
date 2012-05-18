@@ -173,7 +173,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 
 		if (t->options & CTX_MASK) {
 			/* clamp w/h, mask only */
-			divx = divy = minf(divx, divy);
+			divx = divy = maxf(divx, divy);
 			mulx = muly = minf(mulx, muly);
 		}
 
@@ -181,6 +181,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		r_vec[1] = muly * (dy) / divy;
 		r_vec[2] = 0.0f;
 
+		/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
 		if (t->options & CTX_MASK) {
 			float aspx, aspy;
 			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
