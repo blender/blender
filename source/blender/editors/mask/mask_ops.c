@@ -89,7 +89,7 @@ static void spline_point_select(MaskSplinePoint *point, int action)
 }
 
 
-static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, float aspx, float aspy, float start_u, const float co[2])
+static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, float start_u, const float co[2])
 {
 	const float proj_eps         = 1e-3;
 	const float proj_eps_squared = proj_eps * proj_eps;
@@ -104,7 +104,7 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 
 		if (u1 >= 0.0f) {
 			BKE_mask_point_segment_co(spline, point, u1, co1);
-			BKE_mask_point_normal(spline, point, aspx, aspy, u1, n1);
+			BKE_mask_point_normal(spline, point, u1, n1);
 			sub_v2_v2v2(v1, co, co1);
 
 			if (len_squared_v2(v1) > proj_eps_squared) {
@@ -125,7 +125,7 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 
 		if (u2 <= 1.0f) {
 			BKE_mask_point_segment_co(spline, point, u2, co2);
-			BKE_mask_point_normal(spline, point, aspx, aspy, u2, n2);
+			BKE_mask_point_normal(spline, point, u2, n2);
 			sub_v2_v2v2(v2, co, co2);
 
 			if (len_squared_v2(v2) > proj_eps_squared) {
@@ -249,7 +249,7 @@ static MaskSplinePoint *find_nearest_point(bContext *C, Mask *mask, float normal
 				vec[1] = cur_point->bezt.vec[1][1] * scaley;
 
 				if (BKE_mask_point_has_handle(cur_point)) {
-					BKE_mask_point_handle(cur_point, aspx, aspy, handle);
+					BKE_mask_point_handle(cur_point, handle);
 					handle[0] *= scalex;
 					handle[1] *= scaley;
 
@@ -336,7 +336,7 @@ static int find_nearest_feather(bContext *C, Mask *mask, float normal_co[2], int
 			int i, tot_feather_point;
 			float *feather_points, *fp;
 
-			feather_points = fp = BKE_mask_spline_feather_points(spline, aspx, aspy, &tot_feather_point);
+			feather_points = fp = BKE_mask_spline_feather_points(spline, &tot_feather_point);
 
 			for (i = 0; i < spline->tot_point; i++) {
 				int j;
@@ -444,7 +444,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 
 					if (feather) {
 						feather_points = BKE_mask_point_segment_feather_diff(spline, cur_point,
-						                                                     aspx, aspy, &tot_feather_point);
+						                                                     &tot_feather_point);
 
 						points = feather_points;
 						tot_point = tot_feather_point;
@@ -502,7 +502,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 			*point_r = point;
 
 		if (u_r) {
-			u = projection_on_spline(point_spline, point, aspx, aspy, u, normal_co);
+			u = projection_on_spline(point_spline, point, u, normal_co);
 
 			*u_r = u;
 		}
@@ -748,14 +748,14 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 
 			customdata->weight = uw->w;
 			BKE_mask_point_segment_co(spline, point, uw->u, co);
-			BKE_mask_point_normal(spline, point, customdata->aspx, customdata->aspy, uw->u, customdata->no);
+			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
 			customdata->feather[0] = co[0] + customdata->no[0] * uw->w;
 			customdata->feather[1] = co[1] + customdata->no[1] * uw->w;
 		}
 		else {
 			BezTriple *bezt = &point->bezt;
-			BKE_mask_point_normal(spline, point, customdata->aspx, customdata->aspy, 0.0f, customdata->no);
+			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
 			customdata->feather[0] = bezt->vec[1][0] + customdata->no[0] * bezt->weight;
 			customdata->feather[1] = bezt->vec[1][1] + customdata->no[1] * bezt->weight;
@@ -763,7 +763,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 
 		copy_m3_m3(customdata->vec, point->bezt.vec);
 		if (BKE_mask_point_has_handle(point))
-			BKE_mask_point_handle(point, customdata->aspx, customdata->aspy, customdata->handle);
+			BKE_mask_point_handle(point, customdata->handle);
 		ED_mask_mouse_pos(C, event, customdata->co);
 	}
 
@@ -882,14 +882,14 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 				add_v2_v2v2(offco, data->feather, dco);
 
 				if (data->uw) {
-					float u = projection_on_spline(data->spline, data->point, data->aspx, data->aspy, data->uw->u, offco);
+					float u = projection_on_spline(data->spline, data->point, data->uw->u, offco);
 
 					if (u > 0.0f && u < 1.0f)
 						data->uw->u = u;
 
 					data->uw = BKE_mask_point_sort_uw(data->point, data->uw);
 					weight = &data->uw->w;
-					BKE_mask_point_normal(data->spline, data->point, data->aspx, data->aspy, data->uw->u, no);
+					BKE_mask_point_normal(data->spline, data->point, data->uw->u, no);
 					BKE_mask_point_segment_co(data->spline, data->point, data->uw->u, p);
 				}
 				else {

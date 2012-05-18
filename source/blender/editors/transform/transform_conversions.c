@@ -5908,7 +5908,7 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransDat
 	else {
 		tdm->is_handle = TRUE;
 
-		BKE_mask_point_handle(point, aspx, aspy, tdm->handle);
+		BKE_mask_point_handle(point, tdm->handle);
 
 		copy_v2_v2(tdm->orig_handle, tdm->handle);
 

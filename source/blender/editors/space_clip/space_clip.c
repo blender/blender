@@ -1134,7 +1134,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		glScalef(maxdim * zoomx, maxdim * zoomy, 0);
 		glMultMatrixf(sc->stabmat);
 
-		ED_mask_draw((bContext *)C, width*aspx, height*aspy, zoomx, zoomy);
+		ED_mask_draw((bContext *)C);
 
 		glPopMatrix();
 	}

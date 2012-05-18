@@ -54,9 +54,9 @@ typedef struct MaskParent {
 	ID *id;               /* ID block of entity to which mask/spline is parented to
 	                       * in case of parenting to movie tracking data set to MovieClip datablock */
 	char parent[64];      /* entity of parent to which parenting happened
-                               * in case of parenting to movie tracking data contains name of object */
+	                       * in case of parenting to movie tracking data contains name of object */
 	char sub_parent[64];  /* sub-entity of parent to which parenting happened
-                               * in case of parenting to movie tracking data contains name of track */
+	                       * in case of parenting to movie tracking data contains name of track */
 	float offset[2];      /* offset from parent position, so object/control point can be parented to a
 	                       * motion track and also be animated (see ZanQdo's request below)  */
 } MaskParent;
@@ -96,13 +96,13 @@ typedef struct MaskShape {
 } MaskShape;
 
 /* MaskParent->flag */
-#define MASK_PARENT_ACTIVE	(1<<0)
+#define MASK_PARENT_ACTIVE  (1 << 0)
 
 /* MaskSpline->flag */
-#define MASK_SPLINE_CYCLIC	(1<<1)
+#define MASK_SPLINE_CYCLIC  (1 << 1)
 
 /* MaskSpline->weight_interp */
-#define MASK_SPLINE_INTERP_LINEAR	1
-#define MASK_SPLINE_INTERP_EASE		2
+#define MASK_SPLINE_INTERP_LINEAR   1
+#define MASK_SPLINE_INTERP_EASE     2
 
 #endif // __DNA_MASK_TYPES_H__

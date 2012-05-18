@@ -39,6 +39,6 @@ void ED_keymap_mask(struct wmKeyConfig *keyconf);
 void ED_operatormacros_mask(void);
 
 /* mask_draw.c */
-void ED_mask_draw(bContext *C, int width, int height, float zoomx, float zoomy);
+void ED_mask_draw(const bContext *C);
 
 #endif /* ED_TEXT_H */

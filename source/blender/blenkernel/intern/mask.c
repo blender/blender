@@ -257,8 +257,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 	return diff_points;
 }
 
-float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, float aspx, float aspy,
-                                                     int *tot_feather_point)
+float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point)
 {
 	float *feather, *fp;
 	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
@@ -274,7 +273,7 @@ float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, float a
 			float co[2], n[2];
 
 			BKE_mask_point_segment_co(spline, point, u, co);
-			BKE_mask_point_normal(spline, point, aspx, aspy, u, n);
+			BKE_mask_point_normal(spline, point, u, n);
 			weight = BKE_mask_point_weight(spline, point, u);
 
 			fp[0] = co[0] + n[0] * weight;
@@ -287,7 +286,7 @@ float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, float a
 	return feather;
 }
 
-float *BKE_mask_spline_feather_points(MaskSpline *spline, float aspx, float aspy, int *tot_feather_point)
+float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point)
 {
 	int i, tot = 0;
 	float *feather, *fp;
@@ -308,7 +307,7 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, float aspx, float aspy
 		float weight, n[2];
 		int j;
 
-		BKE_mask_point_normal(spline, point, aspx, aspy, 0.0f, n);
+		BKE_mask_point_normal(spline, point, 0.0f, n);
 		weight = BKE_mask_point_weight(spline, point, 0.0f);
 
 		fp[0] = bezt->vec[1][0] + n[0] * weight;
@@ -320,7 +319,7 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, float aspx, float aspy
 			float co[2];
 
 			BKE_mask_point_segment_co(spline, point, u, co);
-			BKE_mask_point_normal(spline, point, aspx, aspy, u, n);
+			BKE_mask_point_normal(spline, point, u, n);
 			weight = BKE_mask_point_weight(spline, point, u);
 
 			fp[0] = co[0] + n[0] * weight;
@@ -344,17 +343,14 @@ int BKE_mask_point_has_handle(MaskSplinePoint *point)
 	return bezt->h1 == HD_ALIGN;
 }
 
-void BKE_mask_point_handle(MaskSplinePoint *point, float aspx, float aspy, float handle[2])
+void BKE_mask_point_handle(MaskSplinePoint *point, float handle[2])
 {
 	float vec[2];
 
 	sub_v2_v2v2(vec, point->bezt.vec[0], point->bezt.vec[1]);
 
-	vec[0] *= aspx;
-	vec[1] *= aspy;
-
-	handle[0] = (point->bezt.vec[1][0] * aspx + vec[1]) / aspx;
-	handle[1] = (point->bezt.vec[1][1] * aspy - vec[0]) / aspy;
+	handle[0] = (point->bezt.vec[1][0] + vec[1]);
+	handle[1] = (point->bezt.vec[1][1] - vec[0]);
 }
 
 void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_direction, float aspx, float aspy,
@@ -406,8 +402,7 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 	}
 }
 
-float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *point, float aspx, float aspy,
-                                           int *tot_feather_point)
+float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *point, int *tot_feather_point)
 {
 	float *feather, *fp;
 	int i, resol = BKE_mask_spline_feather_resolution(spline);
@@ -419,7 +414,7 @@ float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *
 		float co[2], n[2];
 
 		BKE_mask_point_segment_co(spline, point, u, co);
-		BKE_mask_point_normal(spline, point, aspx, aspy, u, n);
+		BKE_mask_point_normal(spline, point, u, n);
 		weight = BKE_mask_point_weight(spline, point, u);
 
 		fp[0] = co[0] + n[0] * weight;
@@ -493,7 +488,7 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
 	interp_v2_v2v2(co, r0, r1, u);
 }
 
-void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float aspx, float aspy, float u, float n[2])
+void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, float n[2])
 {
 	BezTriple *bezt = &point->bezt, *next;
 	float q0[2], q1[2], q2[2], r0[2], r1[2], vec[2];
@@ -504,21 +499,15 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float asp
 		else
 			next = NULL;
 	}
-	else next = &((point + 1))->bezt;
+	else {
+		next = &((point + 1))->bezt;
+	}
 
 	if (!next) {
-		BKE_mask_point_handle(point, aspx, aspy, vec);
+		BKE_mask_point_handle(point, vec);
 
 		sub_v2_v2v2(n, vec, bezt->vec[1]);
-
-		n[0] *= aspx;
-		n[1] *= aspy;
-
 		normalize_v2(n);
-
-		n[0] /= aspx;
-		n[1] /= aspy;
-
 		return;
 	}
 
@@ -531,13 +520,10 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float asp
 
 	sub_v2_v2v2(vec, r1, r0);
 
-	n[0] = -vec[1] * aspy;
-	n[1] =  vec[0] * aspx;
+	n[0] = -vec[1];
+	n[1] =  vec[0];
 
 	normalize_v2(n);
-
-	n[0] /= aspx;
-	n[1] /= aspy;
 }
 
 float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)

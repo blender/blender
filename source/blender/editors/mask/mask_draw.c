@@ -49,12 +49,6 @@
 
 #include "mask_intern.h"  /* own include */
 
-typedef struct PixelSpaceContext {
-	int width, height;
-	float zoomx, zoomy;
-	float aspx, aspy;
-} PixelSpaceContext;
-
 static void set_spline_color(MaskShape *shape, MaskSpline *spline)
 {
 	if (spline->flag & SELECT) {
@@ -69,7 +63,7 @@ static void set_spline_color(MaskShape *shape, MaskSpline *spline)
 }
 
 /* return non-zero if spline is selected */
-static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceContext *pixelspace)
+static void draw_spline_points(MaskShape *shape, MaskSpline *spline)
 {
 	int i, hsize, tot_feather_point;
 	float *feather_points, *fp;
@@ -82,7 +76,7 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 	glPointSize(hsize);
 
 	/* feather points */
-	feather_points = fp = BKE_mask_spline_feather_points(spline, pixelspace->aspx, pixelspace->aspy, &tot_feather_point);
+	feather_points = fp = BKE_mask_spline_feather_points(spline, &tot_feather_point);
 	for (i = 0; i < spline->tot_point; i++) {
 		int j;
 		MaskSplinePoint *point = &spline->points[i];
@@ -119,12 +113,11 @@ static void draw_spline_points(MaskShape *shape, MaskSpline *spline, PixelSpaceC
 	/* control points */
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &spline->points[i];
-		BezTriple *bezt = &point->bezt;
-		float vert[2], handle[2];
+		float handle[2];
+		float *vert = point->bezt.vec[1];
 		int has_handle = BKE_mask_point_has_handle(point);
 
-		copy_v2_v2(vert, bezt->vec[1]);
-		BKE_mask_point_handle(point, pixelspace->aspx, pixelspace->aspy, handle);
+		BKE_mask_point_handle(point, handle);
 
 		/* draw handle segment */
 		if (has_handle) {
@@ -196,7 +189,7 @@ static void draw_dashed_curve(MaskSpline *spline, float *points, int tot_point)
 	glDisable(GL_LINE_STIPPLE);
 }
 
-static void draw_spline_curve(MaskShape *shape, MaskSpline *spline, PixelSpaceContext *pixelspace)
+static void draw_spline_curve(MaskShape *shape, MaskSpline *spline)
 {
 	float *diff_points, *feather_points;
 	int tot_diff_point, tot_feather_point;
@@ -206,8 +199,7 @@ static void draw_spline_curve(MaskShape *shape, MaskSpline *spline, PixelSpaceCo
 	if (!diff_points)
 		return;
 
-	feather_points = BKE_mask_spline_feather_differentiated_points(spline, pixelspace->aspx, pixelspace->aspy,
-	                                                               &tot_feather_point);
+	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point);
 
 	/* draw feather */
 	if (spline->flag & SELECT)
@@ -224,7 +216,7 @@ static void draw_spline_curve(MaskShape *shape, MaskSpline *spline, PixelSpaceCo
 	MEM_freeN(feather_points);
 }
 
-static void draw_shapes(Mask *mask, PixelSpaceContext *pixelspace)
+static void draw_shapes(Mask *mask)
 {
 	MaskShape *shape = mask->shapes.first;
 
@@ -233,10 +225,10 @@ static void draw_shapes(Mask *mask, PixelSpaceContext *pixelspace)
 
 		while (spline) {
 			/* draw curve itself first... */
-			draw_spline_curve(shape, spline, pixelspace);
+			draw_spline_curve(shape, spline);
 
 			/* ...and then handles over the curve so they're nicely visible */
-			draw_spline_points(shape, spline, pixelspace);
+			draw_spline_points(shape, spline);
 
 			spline = spline->next;
 		}
@@ -245,23 +237,12 @@ static void draw_shapes(Mask *mask, PixelSpaceContext *pixelspace)
 	}
 }
 
-void ED_mask_draw(bContext *C, int width, int height, float zoomx, float zoomy)
+void ED_mask_draw(const bContext *C)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	PixelSpaceContext pixelspace;
-	float aspx, aspy;
 
 	if (!mask)
 		return;
 
-	ED_mask_aspect(C, &aspx, &aspy);
-
-	pixelspace.width = width;
-	pixelspace.height = height;
-	pixelspace.zoomx = zoomx;
-	pixelspace.zoomy = zoomy;
-	pixelspace.aspx = aspx;
-	pixelspace.aspy = aspy;
-
-	draw_shapes(mask, &pixelspace);
+	draw_shapes(mask);
 }
