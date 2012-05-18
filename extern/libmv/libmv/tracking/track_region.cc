@@ -19,6 +19,11 @@
 // IN THE SOFTWARE.
 //
 // Author: mierle@google.com (Keir Mierle)
+//
+// TODO(keir): While this tracking code works rather well, it has some
+// outragous inefficiencies. There is probably a 5-10x speedup to be had if a
+// smart coder went through the TODO's and made the suggested performance
+// enhancements.
 
 // Necessary for M_E when building with MSVC.
 #define _USE_MATH_DEFINES
@@ -868,14 +873,17 @@ bool PointOnRightHalfPlane(const Vec2 &a, const Vec2 &b, double x, double y) {
 
 // Determine if a point is in a quad. The quad is arranged as:
 //
-//    +--> x
+//    +-------> x
 //    |
-//    |  0 1
-//    v  3 2
+//    |  a0------a1
+//    |   |       |
+//    |   |       |
+//    |   |       |
+//    |  a3------a2
+//    v
 //    y
 //
-// The idea is to take the maximum x or y distance. This may be oversampling.
-// TODO(keir): Investigate the various choices; perhaps average is better?
+// The implementation does up to four half-plane comparisons.
 bool PointInQuad(const double *xs, const double *ys, double x, double y) {
   Vec2 a0(xs[0], ys[0]);
   Vec2 a1(xs[1], ys[1]);
@@ -888,6 +896,8 @@ bool PointInQuad(const double *xs, const double *ys, double x, double y) {
          PointOnRightHalfPlane(a3, a0, x, y);
 }
 
+// This makes it possible to map between Eigen float arrays and FloatImage
+// without using comparisons.
 typedef Eigen::Array<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> FloatArray;
 
 // This creates a pattern in the frame of image2, from the pixel is image1,
@@ -946,11 +956,26 @@ void CreateBrutePattern(const double *x1, const double *y1,
   *origin_y = min_y;
 }
 
+// Compute a translation-only estimate of the warp, using brute force search. A
+// smarter implementation would use the FFT to compute the normalized cross
+// correlation. Instead, this is a dumb implementation. Surprisingly, it is
+// fast enough in practice.
+//
+// TODO(keir): The normalization is less effective for the brute force search
+// than it is with the Ceres solver. It's unclear if this is a bug or due to
+// the original frame being too different from the reprojected reference in the
+// destination frame.
+//
+// The likely solution is to use the previous frame, instead of the original
+// pattern, when doing brute initialization. Unfortunately that implies a
+// totally different warping interface, since access to more than a the source
+// and current destination frame is necessary.
 template<typename Warp>
 void BruteTranslationOnlyInitialize(const FloatImage &image1,
                                     const FloatImage *image1_mask,
                                     const FloatImage &image2,
                                     const int num_extra_points,
+                                    const bool use_normalized_intensities,
                                     const double *x1, const double *y1,
                                     double *x2, double *y2) {
   // Create the pattern to match in the space of image2, assuming our inital
@@ -959,8 +984,18 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
   FloatArray pattern;
   FloatArray mask;
   int origin_x = -1, origin_y = -1;
-  CreateBrutePattern<Warp>(x1, y1, x2, y2, image1, image1_mask,
-                           &pattern, &mask, &origin_x, &origin_y);
+  CreateBrutePattern<Warp>(x1, y1, x2, y2,
+                           image1, image1_mask,
+                           &pattern, &mask,
+                           &origin_x, &origin_y);
+
+  // For normalization, premultiply the pattern by the inverse pattern mean.
+  double mask_sum = 1.0;
+  if (use_normalized_intensities) {
+    mask_sum = mask.sum();
+    double inverse_pattern_mean = mask_sum / ((mask * pattern).sum());
+    pattern *= inverse_pattern_mean;
+  }
 
   // Use Eigen on the images via maps for strong vectorization.
   Map<const FloatArray> search(image2.Data(), image2.Height(), image2.Width());
@@ -984,8 +1019,21 @@ void BruteTranslationOnlyInitialize(const FloatImage &image1,
   int h = pattern.rows();
   for (int r = 0; r < (image2.Height() - h); ++r) {
     for (int c = 0; c < (image2.Width() - w); ++c) {
-      // Compute the weighted sum of absolute differences, Eigen style.
-      double sad = (mask * (pattern - search.block(r, c, h, w))).abs().sum();
+      // Compute the weighted sum of absolute differences, Eigen style. Note
+      // that the block from the search image is never stored in a variable, to
+      // avoid copying overhead and permit inlining.
+      double sad;
+      if (use_normalized_intensities) {
+        // TODO(keir): It's really dumb to recompute the search mean for every
+        // shift. A smarter implementation would use summed area tables
+        // instead, reducing the mean calculation to an O(1) operation.
+        double inverse_search_mean =
+            mask_sum / ((mask * search.block(r, c, h, w)).sum());
+        sad = (mask * (pattern - (search.block(r, c, h, w) *
+                                  inverse_search_mean))).abs().sum();
+      } else {
+        sad = (mask * (pattern - search.block(r, c, h, w))).abs().sum();
+      }
       if (sad < best_sad) {
         best_r = r;
         best_c = c;
@@ -1053,6 +1101,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                          options.image1_mask,
                                          image2,
                                          options.num_extra_points,
+                                         options.use_normalized_intensities,
                                          x1, y1, x2, y2);
     for (int i = 0; i < 4; ++i) {
       LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); brute ("
