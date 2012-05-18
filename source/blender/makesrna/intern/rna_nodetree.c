@@ -512,7 +512,11 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	
 	while (rl) {
 		tmp.identifier = rl->name;
-		tmp.name = rl->name;
+		/* little trick: using space char instead empty string makes the item selectable in the dropdown */
+		if (rl->name[0] == '\0')
+			tmp.name = " ";
+		else
+			tmp.name = rl->name;
 		tmp.value = i++;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 		rl = rl->next;
