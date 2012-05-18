@@ -492,6 +492,18 @@ static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max, 
 	*softmax = val->max;
 }
 
+static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNode *node = (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	ImageUser *iuser = node->storage;
+	
+	BKE_image_multilayer_index(ima->rr, iuser);
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
+	
+	rna_Node_update(bmain, scene, ptr);
+}
+
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item = NULL;
@@ -508,6 +520,24 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	
 	RNA_enum_item_end(&item, &totitem);
 
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                    PropertyRNA *UNUSED(prop), int *free)
+{
+	bNode *node = (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	EnumPropertyItem *item = NULL;
+	RenderLayer *rl;
+	
+	if (!ima || !(ima->rr)) return NULL;
+	
+	rl = ima->rr->layers.first;
+	item = renderresult_layers_add_enum(rl);
+	
+	*free = 1;
+	
 	return item;
 }
 
@@ -896,6 +926,10 @@ static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *va
 }
 
 #else
+
+static EnumPropertyItem prop_image_layer_items[] = {
+{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
+{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_scene_layer_items[] = {
 { 0, "PLACEHOLDER",          0, "Placeholder",          ""},
@@ -1816,6 +1850,13 @@ static void def_cmp_image(StructRNA *srna)
 		/* copied from the rna_image.c */
 	RNA_def_property_ui_text(prop, "Auto-Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "layer");
+	RNA_def_property_enum_items(prop, prop_image_layer_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
+	RNA_def_property_ui_text(prop, "Layer", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_layer_update");
 }
 
 static void def_cmp_render_layers(StructRNA *srna)

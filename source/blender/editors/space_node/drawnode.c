@@ -1262,6 +1262,9 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	}
 
 	col= uiLayoutColumn(layout, 0);
+
+	if (RNA_enum_get(&imaptr, "type")== IMA_TYPE_MULTILAYER)
+		uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)

@@ -398,8 +398,8 @@ typedef struct NodeEllipseMask {
 
 /* layer info for image node outputs */
 typedef struct NodeImageLayer {
-	/* index in the Image->layers and Image->layers->passes lists */
-	int layer_index, pass_index;
+	/* index in the Image->layers->passes lists */
+	int pass_index;
 	/* render pass flag, in case this is an original render pass */
 	int pass_flag;
 } NodeImageLayer;

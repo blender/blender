@@ -6855,13 +6855,10 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
 	
 	for (node = ntree->nodes.first; node; node = node->next) {
 		if (node->type == CMP_NODE_IMAGE) {
-			ImageUser *iuser = (ImageUser *)node->storage;
 			bNodeSocket *sock;
 			for (sock = node->outputs.first; sock; sock = sock->next) {
 				NodeImageLayer *output = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
 				
-				/* take layer index from image user (this is ignored from now on) */
-				output->layer_index = iuser->layer;
 				/* take pass index both from current storage ptr (actually an int) */
 				output->pass_index = GET_INT_FROM_POINTER(sock->storage);
 				
