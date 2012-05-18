@@ -547,6 +547,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         col.prop(md, "angle")
         col.prop(md, "steps")
         col.prop(md, "render_steps")
+        col.prop(md, "use_smooth_shade")
 
         col = split.column()
         row = col.row()
@@ -838,7 +839,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         if md.mode == 'SHARP':
             layout.prop(md, "sharpness")
 
-        layout.prop(md, "smooth_shading")
+        layout.prop(md, "use_smooth_shade")
         layout.prop(md, "remove_disconnected_pieces")
         row = layout.row()
         row.active = md.remove_disconnected_pieces
