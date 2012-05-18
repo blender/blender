@@ -1545,6 +1545,65 @@ class WM_OT_addon_disable(Operator):
         addon_utils.disable(self.module)
         return {'FINISHED'}
 
+class WM_OT_theme_install(Operator):
+    "Install a theme"
+    bl_idname = "wm.theme_install"
+    bl_label  = "Install Theme..."
+
+    overwrite = BoolProperty(
+            name="Overwrite",
+            description="Remove existing theme file if exists",
+            default=True,
+            )
+    filepath = StringProperty(
+            subtype='FILE_PATH',
+            )
+    filter_folder = BoolProperty(
+            name="Filter folders",
+            default=True,
+            options={'HIDDEN'},
+            )
+    filter_glob = StringProperty(
+            default="*.xml",
+            options={'HIDDEN'},
+            )
+
+    def execute(self, context):
+        import os
+        import shutil
+        import traceback
+        
+        xmlfile = self.filepath
+
+        path_themes = bpy.utils.user_resource('SCRIPTS','presets/interface_theme',create=True)
+
+        if not path_themes:
+            self.report({'ERROR'}, "Failed to get themes path")
+            return {'CANCELLED'}
+
+        path_dest = os.path.join(path_themes, os.path.basename(xmlfile))
+
+        if not self.overwrite:
+            if os.path.exists(path_dest):
+                self.report({'WARNING'}, "File already installed to %r\n" % path_dest)
+                return {'CANCELLED'}
+
+        try:
+            shutil.copyfile(xmlfile, path_dest)
+            bpy.ops.script.execute_preset(filepath=path_dest,menu_idname="USERPREF_MT_interface_theme_presets")
+
+        except:
+            traceback.print_exc()
+            return {'CANCELLED'}
+
+        return {'FINISHED'}
+
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        wm.fileselect_add(self)
+        return {'RUNNING_MODAL'}
+
 
 class WM_OT_addon_install(Operator):
     "Install an addon"
