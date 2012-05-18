@@ -295,7 +295,7 @@ void fsmenu_read_bookmarks(struct FSMenu *fsmenu, const char *filename)
 	fclose(fp);
 }
 
-void fsmenu_read_system(struct FSMenu *fsmenu)
+void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 {
 	char line[256];
 #ifdef WIN32
@@ -319,10 +319,12 @@ void fsmenu_read_system(struct FSMenu *fsmenu)
 		}
 
 		/* Adding Desktop and My Documents */
-		SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
-		SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
-		fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+		if (read_bookmarks) {
+			SHGetSpecialFolderPath(0, line, CSIDL_PERSONAL, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+			SHGetSpecialFolderPath(0, line, CSIDL_DESKTOPDIRECTORY, 0);
+			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+		}
 	}
 #else
 #ifdef __APPLE__
@@ -352,7 +354,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu)
 		 * assume they are the standard ones 
 		 * TODO : replace hardcoded paths with proper BLI_get_folder calls */
 		home = getenv("HOME");
-		if (home) {
+		if (read_bookmarks && home) {
 			BLI_snprintf(line, 256, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			BLI_snprintf(line, 256, "%s/Desktop/", home);
@@ -437,32 +439,34 @@ void fsmenu_read_system(struct FSMenu *fsmenu)
 		}
 		
 		/* Finally get user favorite places */
-		list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
-		pathesArray = LSSharedFileListCopySnapshot(list, &seed);
-		pathesCount = CFArrayGetCount(pathesArray);
-		
-		for (i = 0; i < pathesCount; i++) {
-			itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
+		if(read_bookmarks) {
+			list = LSSharedFileListCreate(NULL, kLSSharedFileListFavoriteItems, NULL);
+			pathesArray = LSSharedFileListCopySnapshot(list, &seed);
+			pathesCount = CFArrayGetCount(pathesArray);
 			
-			err = LSSharedFileListItemResolve(itemRef, 
-			                                  kLSSharedFileListNoUserInteraction |
-			                                  kLSSharedFileListDoNotMountVolumes,
-			                                  &cfURL, NULL);
-			if (err != noErr)
-				continue;
+			for (i = 0; i < pathesCount; i++) {
+				itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
+				
+				err = LSSharedFileListItemResolve(itemRef, 
+												  kLSSharedFileListNoUserInteraction |
+												  kLSSharedFileListDoNotMountVolumes,
+												  &cfURL, NULL);
+				if (err != noErr)
+					continue;
+				
+				pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
+				
+				if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
+					continue;
+				fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
+				
+				CFRelease(pathString);
+				CFRelease(cfURL);
+			}
 			
-			pathString = CFURLCopyFileSystemPath(cfURL, kCFURLPOSIXPathStyle);
-			
-			if (!CFStringGetCString(pathString, line, 256, kCFStringEncodingASCII))
-				continue;
-			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
-			
-			CFRelease(pathString);
-			CFRelease(cfURL);
+			CFRelease(pathesArray);
+			CFRelease(list);
 		}
-		
-		CFRelease(pathesArray);
-		CFRelease(list);
 #endif /* OSX 10.5+ */
 	}
 #else
@@ -470,7 +474,7 @@ void fsmenu_read_system(struct FSMenu *fsmenu)
 	{
 		const char *home = getenv("HOME");
 
-		if (home) {
+		if (read_bookmarks && home) {
 			BLI_snprintf(line, FILE_MAXDIR, "%s/", home);
 			fsmenu_insert_entry(fsmenu, FS_CATEGORY_BOOKMARKS, line, 1, 0);
 			BLI_snprintf(line, FILE_MAXDIR, "%s/Desktop/", home);
@@ -535,6 +539,15 @@ static void fsmenu_free_category(struct FSMenu *fsmenu, FSMenuCategory category)
 
 		fsme = n;
 	}
+}
+
+void fsmenu_refresh_system_category(struct FSMenu *fsmenu)
+{
+	fsmenu_free_category(fsmenu, FS_CATEGORY_SYSTEM);
+	fsmenu_set_category(fsmenu, FS_CATEGORY_SYSTEM, NULL);
+
+	/* Add all entries to system category */
+	fsmenu_read_system(fsmenu, FALSE);
 }
 
 void fsmenu_free(struct FSMenu *fsmenu)
