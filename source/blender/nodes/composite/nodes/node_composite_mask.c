@@ -84,11 +84,10 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		maskobj = mask->maskobjs.first;
-		while (maskobj) {
-			MaskSpline *spline = maskobj->splines.first;
+		for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+			MaskSpline *spline;
 
-			while (spline) {
+			for (spline = maskobj->splines.first; spline; spline = spline->next) {
 				float *diff_points;
 				int tot_diff_point;
 
@@ -119,11 +118,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 
 					MEM_freeN(diff_points);
 				}
-
-				spline = spline->next;
 			}
-
-			maskobj = maskobj->next;
 		}
 
 		/* pass on output and free */

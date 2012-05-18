@@ -185,19 +185,17 @@ static PointerRNA rna_MaskObject_active_spline_point_get(PointerRNA *ptr)
 static void rna_MaskObject_active_spline_point_set(PointerRNA *ptr, PointerRNA value)
 {
 	MaskObject *maskobj = (MaskObject *)ptr->data;
-	MaskSpline *spline = maskobj->splines.first;
+	MaskSpline *spline;
 	MaskSplinePoint *point = (MaskSplinePoint *)value.data;
 
 	maskobj->act_point = NULL;
 
-	while (spline) {
+	for (spline = maskobj->splines.first; spline; spline = spline->next) {
 		if (point >= spline->points && point < spline->points + spline->tot_point) {
 			maskobj->act_point = point;
 
 			break;
 		}
-
-		spline = spline->next;
 	}
 }
 

@@ -957,13 +957,13 @@ void BKE_mask_calc_handles(Mask *mask)
 
 void BKE_mask_evaluate(Mask *mask, float ctime)
 {
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 		int i;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 				BezTriple *bezt = &point->bezt;
@@ -977,11 +977,7 @@ void BKE_mask_evaluate(Mask *mask, float ctime)
 				add_v2_v2(bezt->vec[1], delta);
 				add_v2_v2(bezt->vec[2], delta);
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	BKE_mask_calc_handles(mask);

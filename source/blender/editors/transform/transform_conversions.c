@@ -5949,8 +5949,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	TransDataMasking *tdm = NULL;
 
 	/* count */
-	maskobj = mask ? mask->maskobjs.first : NULL;
-	while (maskobj) {
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
@@ -5969,8 +5968,6 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	if (t->total == 0)
@@ -5985,8 +5982,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	t->flag |= T_FREE_CUSTOMDATA;
 
 	/* create data */
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
@@ -6013,8 +6009,6 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 }
 

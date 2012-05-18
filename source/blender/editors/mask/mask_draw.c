@@ -218,22 +218,18 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline)
 
 static void draw_maskobjs(Mask *mask)
 {
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			/* draw curve itself first... */
 			draw_spline_curve(maskobj, spline);
 
 			/* ...and then handles over the curve so they're nicely visible */
 			draw_spline_points(maskobj, spline);
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 }
 

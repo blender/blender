@@ -6282,8 +6282,7 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 	link_list(fd, &mask->maskobjs);
 
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
 		link_list(fd, &maskobj->splines);
@@ -6306,8 +6305,6 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 		maskobj->act_spline = newdataadr(fd, maskobj->act_spline);
 		maskobj->act_point = newdataadr(fd, maskobj->act_point);
-
-		maskobj = maskobj->next;
 	}
 }
 
@@ -6328,8 +6325,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 			if (mask->adt)
 				lib_link_animdata(fd, &mask->id, mask->adt);
 
-			maskobj = mask->maskobjs.first;
-			while (maskobj) {
+			for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 				MaskSpline *spline;
 
 				spline = maskobj->splines.first;
@@ -6346,8 +6342,6 @@ static void lib_link_mask(FileData *fd, Main *main)
 
 					spline = spline->next;
 				}
-
-				maskobj = maskobj->next;
 			}
 
 			mask->id.flag -= LIB_NEEDLINK;

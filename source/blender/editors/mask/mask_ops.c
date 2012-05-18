@@ -167,19 +167,16 @@ static int points_has_selection(MaskSplinePoint *points, int tot_point)
 
 static int mask_has_selection(Mask *mask)
 {
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
-			if (points_has_selection(spline->points, spline->tot_point))
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			if (points_has_selection(spline->points, spline->tot_point)) {
 				return TRUE;
-
-			spline = spline->next;
+			}
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	return FALSE;
@@ -187,7 +184,7 @@ static int mask_has_selection(Mask *mask)
 
 static void toggle_selection_all(Mask *mask, int action)
 {
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
 	if (action == SEL_TOGGLE) {
 		if (mask_has_selection(mask))
@@ -196,10 +193,10 @@ static void toggle_selection_all(Mask *mask, int action)
 			action = SEL_SELECT;
 	}
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -207,11 +204,7 @@ static void toggle_selection_all(Mask *mask, int action)
 
 				spline_point_select(point, action);
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 }
 
@@ -234,11 +227,10 @@ static MaskSplinePoint *find_nearest_point(bContext *C, Mask *mask, float normal
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -274,11 +266,7 @@ static MaskSplinePoint *find_nearest_point(bContext *C, Mask *mask, float normal
 					is_handle = FALSE;
 				}
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	if (len < threshold) {
@@ -328,11 +316,10 @@ static int find_nearest_feather(bContext *C, Mask *mask, float normal_co[2], int
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i, tot_feather_point;
 			float *feather_points, *fp;
 
@@ -367,11 +354,7 @@ static int find_nearest_feather(bContext *C, Mask *mask, float normal_co[2], int
 			}
 
 			MEM_freeN(feather_points);
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	if (len < threshold) {
@@ -424,11 +407,10 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -484,11 +466,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], 
 					MEM_freeN(diff_points);
 				}
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	if (point && dist < threshold) {
@@ -526,11 +504,10 @@ static void mask_flush_selection(Mask *mask)
 {
 	MaskObject *maskobj;
 
-	maskobj = mask->maskobjs.first;
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			spline->flag &= ~SELECT;
@@ -552,11 +529,7 @@ static void mask_flush_selection(Mask *mask)
 					}
 				}
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 }
 
@@ -1477,19 +1450,16 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-		while (spline) {
-			if (points_has_selection(spline->points, spline->tot_point))
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			if (points_has_selection(spline->points, spline->tot_point)) {
 				spline->flag ^= MASK_SPLINE_CYCLIC;
-
-			spline = spline->next;
+			}
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
@@ -1553,9 +1523,9 @@ static void delete_feather_points(MaskSplinePoint *point)
 static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 
-	while (maskobj) {
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
@@ -1615,8 +1585,6 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 			spline = next_spline;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
@@ -1645,14 +1613,14 @@ void MASK_OT_delete(wmOperatorType *ot)
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskObject *maskobj;
 	int handle_type = RNA_enum_get(op->ptr, "type");
 
-	while (maskobj) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 		int i;
 
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
@@ -1662,11 +1630,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 					bezt->h1 = bezt->h2 = handle_type;
 				}
 			}
-
-			spline = spline->next;
 		}
-
-		maskobj = maskobj->next;
 	}
 
 	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
