@@ -532,7 +532,7 @@ typedef struct SpaceClip {
 	short dope_sort;		/* sort order in dopesheet view */
 	short dope_flag;		/* dopsheet view flags */
 
-	int pad3;
+	int around;			/* pivot point for transforms */
 
 	/* **** mask editing **** */
 	struct Mask *mask;

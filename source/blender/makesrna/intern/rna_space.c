@@ -2989,6 +2989,16 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
+		             "Pivot around bounding box center of selected object(s)"},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
+		            "Individual Origins", "Pivot around each object's own origin"},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point",
+		               "Pivot around the median point of selected objects"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "SpaceClipEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceClip");
 	RNA_def_struct_ui_text(srna, "Space Clip Editor", "Clip editor space data");
@@ -3181,6 +3191,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, gpencil_source_items);
 	RNA_def_property_ui_text(prop, "Grease Pencil Source", "Where the grease pencil comes from");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+
+	/* pivot point */
+	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* ** dopesheet ** */
 

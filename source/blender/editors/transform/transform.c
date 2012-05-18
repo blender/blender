@@ -244,21 +244,17 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 	}
 	else if (t->spacetype==SPACE_CLIP) {
 		float v[2];
+		float aspx = 1.0f, aspy = 1.0f;
 
 		copy_v2_v2(v, vec);
 
-		if (t->options & CTX_MOVIECLIP) {
-			float aspx, aspy;
-			ED_space_clip_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			v[0] /= aspx;
-			v[1] /= aspy;
-		}
-		else if (t->options & CTX_MASK) {
-			float aspx, aspy;
+		if (t->options & CTX_MOVIECLIP)
+			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+		else if (t->options & CTX_MASK)
 			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			v[0] /= aspx;
-			v[1] /= aspy;
-		}
+
+		v[0] /= aspx;
+		v[1] /= aspy;
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
@@ -316,12 +312,10 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 
 
 			if (t->options & CTX_MOVIECLIP) {
-				int width, height;
-				ED_space_clip_size(sc, &width, &height);
-				ED_space_clip_aspect(sc, &aspx, &aspy);
+				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
-				vec[0] *= width / aspx;
-				vec[1] *= height / aspy;
+				vec[0] /= aspx;
+				vec[1] /= aspy;
 			}
 			else if (t->options & CTX_MASK) {
 				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
@@ -357,12 +351,10 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 			float aspx, aspy;
 
 			if (t->options & CTX_MOVIECLIP) {
-				int width, height;
-				ED_space_clip_size(sc, &width, &height);
-				ED_space_clip_aspect(sc, &aspx, &aspy);
+				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
-				vec[0] *= aspx / width;
-				vec[1] *= aspy / height;
+				vec[0] *= aspx;
+				vec[1] *= aspy;
 			}
 			else if (t->options & CTX_MASK) {
 				ED_space_clip_aspect(sc, &aspx, &aspy);
@@ -711,7 +703,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if(t->options & (CTX_MOVIECLIP | CTX_MASK)) {
+					if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 						restoreTransObjects(t);
 
 						t->flag ^= T_ALT_TRANSFORM;
@@ -721,7 +713,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
-				if (!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
+				if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
 					if ( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 						
 						resetTransRestrictions(t);
@@ -747,6 +739,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initResize(t);
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
+				}
+				else if (t->mode == TFM_RESIZE) {
+					if (t->options & CTX_MOVIECLIP) {
+						restoreTransObjects(t);
+
+						t->flag ^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+					}
 				}
 				break;
 				
@@ -976,7 +976,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case RKEY:
 			/* only switch when... */
-			if (!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
+			if (!(t->options & CTX_TEXTURE)) {
 				if ( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 
 					resetTransRestrictions(t);
@@ -2737,6 +2737,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	{
 		copy_v3_v3(center, td->center);
 	}
+	else if (t->options & CTX_MOVIECLIP) {
+		copy_v3_v3(center, td->center);
+	}
 	else {
 		copy_v3_v3(center, t->center);
 	}
@@ -3018,6 +3021,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	            (t->settings->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) ||
 		        (t->obedit && t->obedit->type == OB_ARMATURE))
 		{
+			center = td->center;
+		}
+
+		if (t->options & CTX_MOVIECLIP) {
 			center = td->center;
 		}
 	}

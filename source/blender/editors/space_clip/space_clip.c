@@ -35,6 +35,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_view3d_types.h"	/* for pivot point */
 
 #include "MEM_guardedalloc.h"
 
@@ -239,6 +240,7 @@ static SpaceLink *clip_new(const bContext *C)
 	sc->zoom = 1.0f;
 	sc->path_length = 20;
 	sc->scopes.track_preview_height = 120;
+	sc->around = V3D_LOCAL;
 
 	/* header */
 	ar = MEM_callocN(sizeof(ARegion), "header for clip");

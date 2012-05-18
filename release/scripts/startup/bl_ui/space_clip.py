@@ -54,7 +54,8 @@ class CLIP_HT_header(Header):
         if clip:
             if sc.view == 'CLIP':
                 layout.prop(sc, "mode", text="")
-            if sc.view == 'GRAPH':
+                layout.prop(sc, "pivot_point", text="", icon_only=True)
+            elif sc.view == 'GRAPH':
                 row = layout.row(align=True)
 
                 if sc.show_filters:

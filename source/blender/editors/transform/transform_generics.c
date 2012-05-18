@@ -660,6 +660,10 @@ static void recalcData_spaceclip(TransInfo *t)
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
 						BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
 				}
+				else if (t->mode == TFM_ROTATION) {
+					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
+				}
 			}
 
 			track = track->next;
@@ -1113,6 +1117,11 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		SpaceIpo *sipo= sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sipo->around;
+	}
+	else if (t->spacetype==SPACE_CLIP) {
+		SpaceClip *sclip = sa->spacedata.first;
+		t->view = &ar->v2d;
+		t->around = sclip->around;
 	}
 	else {
 		if (ar) {

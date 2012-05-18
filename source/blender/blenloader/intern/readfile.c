@@ -7612,6 +7612,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	{
 		MovieClip *clip;
+		bScreen *sc;
 
 		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 			MovieTrackingTrack *track;
@@ -7641,6 +7642,24 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 
 				track = track->next;
+			}
+		}
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_CLIP) {
+						SpaceClip *sclip = (SpaceClip *)sl;
+
+						if (sclip->around == 0) {
+							sclip->around = V3D_CENTROID;
+						}
+					}
+				}
 			}
 		}
 	}

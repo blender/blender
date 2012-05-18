@@ -249,9 +249,15 @@ void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 
 void ED_space_clip_mask_size(SpaceClip *sc, int *width, int *height)
 {
-	if(!sc->mask) {
-		*width= 0;
-		*height= 0;
+	/* quite the same as ED_space_clip_size, but it also runs aspect correction on output resolution
+	 * this is needed because mask should be rasterized with exactly the same resolution as
+	 * currently displaying frame and it doesn't have access to aspect correction currently
+	 * used for display. (sergey)
+	 */
+
+	if (!sc->mask) {
+		*width = 0;
+		*height = 0;
 	} else {
 		float aspx, aspy;
 
@@ -304,6 +310,33 @@ void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
 		BKE_movieclip_aspect(clip, aspx, aspy);
 	else
 		*aspx = *aspy = 1.0f;
+}
+
+void ED_space_clip_aspect_dimension_aware(SpaceClip *sc, float *aspx, float *aspy)
+{
+	int w, h;
+
+	/* most of tools does not require aspect to be returned with dimensions correction
+	 * due to they're invariant to this stuff, but some transformation tools like rotation
+	 * should be aware of aspect correction caused by different resolution in different
+	 * directions.
+	 * mainly this is sued for transformation stuff
+	 */
+
+	ED_space_clip_aspect(sc, aspx, aspy);
+	ED_space_clip_size(sc, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+
+	if(*aspx < *aspy) {
+		*aspy= *aspy / *aspx;
+		*aspx= 1.0f;
+	}
+	else {
+		*aspx= *aspx / *aspy;
+		*aspy= 1.0f;
+	}
 }
 
 void ED_clip_update_frame(const Main *mainp, int cfra)
