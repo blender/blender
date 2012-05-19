@@ -37,6 +37,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
@@ -1535,7 +1537,7 @@ static EnumPropertyItem prop_direction_items[] = {
 
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
-	ot->name = "Split area";
+	ot->name = "Split Area";
 	ot->description = "Split selected area into new windows";
 	ot->idname = "SCREEN_OT_area_split";
 	
@@ -2351,7 +2353,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Join area";
+	ot->name = "Join Area";
 	ot->description = "Join selected areas into new window";
 	ot->idname = "SCREEN_OT_area_join";
 	
@@ -2382,7 +2384,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	if (actedge == NULL) return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	WM_operator_properties_create(&ptr1, "SCREEN_OT_area_join");
@@ -2399,8 +2401,8 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	RNA_int_set(&ptr2, "mouse_x", event->x);
 	RNA_int_set(&ptr2, "mouse_y", event->y);
 	
-	uiItemFullO(layout, "SCREEN_OT_area_split", "Split Area", ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
-	uiItemFullO(layout, "SCREEN_OT_area_join", "Join Area", ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_split", NULL, ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
 	
 	uiPupMenuEnd(C, pup);
 	
