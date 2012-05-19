@@ -164,6 +164,7 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		View2D *v2d = t->view;
 		float divx, divy;
 		float mulx, muly;
+		float aspx = 1.0f, aspy = 1.0f;
 
 		divx = v2d->mask.xmax-v2d->mask.xmin;
 		divy = v2d->mask.ymax-v2d->mask.ymin;
@@ -181,13 +182,16 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 		r_vec[1] = muly * (dy) / divy;
 		r_vec[2] = 0.0f;
 
-		/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
-		if (t->options & CTX_MASK) {
-			float aspx, aspy;
-			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
-			r_vec[0] *= aspx;
-			r_vec[1] *= aspy;
+		if (t->options & CTX_MOVIECLIP) {
+			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
 		}
+		else if (t->options & CTX_MASK) {
+			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
+			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+
+		r_vec[0] *= aspx;
+		r_vec[1] *= aspy;
 	}
 	else {
 		printf("%s: called in an invalid context\n", __func__);
@@ -349,21 +353,17 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
 		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 			SpaceClip *sc = t->sa->spacedata.first;
-			float aspx, aspy;
+			float aspx = 1.0f, aspy = 1.0f;
 
 			if (t->options & CTX_MOVIECLIP) {
 				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
-
-				vec[0] *= aspx;
-				vec[1] *= aspy;
 			}
 			else if (t->options & CTX_MASK) {
-				ED_space_clip_aspect(sc, &aspx, &aspy);
 				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
-
-				vec[0] *= aspx;
-				vec[1] *= aspy;
 			}
+
+			vec[0] *= aspx;
+			vec[1] *= aspy;
 		}
 	}
 }
