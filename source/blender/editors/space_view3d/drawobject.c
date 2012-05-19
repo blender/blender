@@ -2951,6 +2951,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 
 	if (me->drawflag & ME_DRAWEXTRA_FACEANG) {
 		BMFace *efa;
+		int is_rad = unit->system_rotation == USER_UNIT_ROT_RADIANS;
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEANG, col);
 
@@ -2961,37 +2962,41 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 			if (is_face_sel || do_moving) {
 				BMIter liter;
 				BMLoop *loop;
-				int cent_ok = FALSE;
+				int is_first = TRUE;
 
 				BM_ITER_ELEM(loop, &liter, efa, BM_LOOPS_OF_FACE) {
 					if (is_face_sel || (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT))) {
-						/* yes, we should avoid triple matrix multiply every vertex for 'global' */
 						float angle;
 
 						/* lazy init center calc */
-						if (cent_ok == FALSE) {
+						if (is_first) {
 							BM_face_calc_center_bounds(efa, vmid);
-							cent_ok = TRUE;
+							/* Avoid triple matrix multiply every vertex for 'global' */
+							if (do_global) {
+								copy_v3_v3(v1, loop->prev->v->co);
+								copy_v3_v3(v2, loop->v->co);
+								mul_mat3_m4_v3(ob->obmat, v1);
+								mul_mat3_m4_v3(ob->obmat, v2);
+							}
+							is_first = FALSE;
 						}
 
 						if (do_global) {
-							copy_v3_v3(v1, loop->prev->v->co);
-							copy_v3_v3(v2, loop->v->co);
 							copy_v3_v3(v3, loop->next->v->co);
 
-							mul_mat3_m4_v3(ob->obmat, v1);
-							mul_mat3_m4_v3(ob->obmat, v2);
 							mul_mat3_m4_v3(ob->obmat, v3);
 
 							angle = angle_v3v3v3(v1, v2, v3);
 							interp_v3_v3v3(fvec, vmid, v2, 0.8f);
+							copy_v3_v3(v1, v2);
+							copy_v3_v3(v2, v3);
 						}
 						else {
 							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->next->v->co);
 							interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
 						}
 
-						BLI_snprintf(numstr, sizeof(numstr), "%.3f", RAD2DEGF(angle));
+						BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
 						view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
 					}
 				}
