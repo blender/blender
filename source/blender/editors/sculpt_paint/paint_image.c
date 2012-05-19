@@ -2433,8 +2433,8 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 					
 					/* Note about IsectPoly2Df_twoside, checking the face or uv flipping doesnt work,
 					 * could check the poly direction but better to do this */
-					if ((do_backfacecull          && IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
-					    (do_backfacecull == 0     && IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot)))
+					if ((do_backfacecull == TRUE  && IsectPoly2Df(uv, uv_clip, uv_clip_tot)) ||
+					    (do_backfacecull == FALSE && IsectPoly2Df_twoside(uv, uv_clip, uv_clip_tot)))
 					{
 						
 						has_x_isect = has_isect = 1;
@@ -2453,7 +2453,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 						/* Is this UV visible from the view? - raytrace */
 						/* project_paint_PickFace is less complex, use for testing */
 						//if (project_paint_PickFace(ps, pixelScreenCo, w, &side) == face_index) {
-						if (ps->do_occlude == 0 || !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo)) {
+						if ((ps->do_occlude == FALSE) ||
+						    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
+						{
 							
 							mask = project_paint_uvpixel_mask(ps, face_index, side, w);
 							
@@ -2629,8 +2631,9 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 											pixelScreenCo[2] = pixelScreenCo[2] / pixelScreenCo[3]; /* Use the depth for bucket point occlusion */
 										}
 										
-										if (ps->do_occlude == 0 || !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo)) {
-											
+										if ((ps->do_occlude == FALSE) ||
+										    !project_bucket_point_occluded(ps, bucketFaceNodes, face_index, pixelScreenCo))
+										{
 											/* Only bother calculating the weights if we intersect */
 											if (ps->do_mask_normal || ps->dm_mtface_clone) {
 #if 1
@@ -3005,7 +3008,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			ps->dm_mtface_clone = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 		
 		if (ps->dm_mtface_clone == NULL || ps->dm_mtface_clone == ps->dm_mtface) {
-			ps->do_layer_clone = 0;
+			ps->do_layer_clone = FALSE;
 			ps->dm_mtface_clone = NULL;
 			printf("ACK!\n");
 		}
@@ -3018,7 +3021,7 @@ static void project_paint_begin(ProjPaintState *ps)
 			ps->dm_mtface_stencil = CustomData_get_layer_n(&ps->dm->faceData, CD_MTFACE, layer_num);
 		
 		if (ps->dm_mtface_stencil == NULL || ps->dm_mtface_stencil == ps->dm_mtface) {
-			ps->do_layer_stencil = 0;
+			ps->do_layer_stencil = FALSE;
 			ps->dm_mtface_stencil = NULL;
 		}
 	}
@@ -3850,7 +3853,7 @@ static void *do_projectpaint_thread(void *ph_v)
 	float falloff;
 	int bucket_index;
 	int is_floatbuf = 0;
-	int use_color_correction = 0;
+	int use_color_correction = FALSE;
 	const short tool =  ps->tool;
 	rctf bucket_bounds;
 	
@@ -4808,7 +4811,7 @@ static void project_state_init(bContext *C, Object *ob, ProjPaintState *ps)
 	ps->normal_angle_range = ps->normal_angle - ps->normal_angle_inner;
 
 	if (ps->normal_angle_range <= 0.0f)
-		ps->do_mask_normal = 0;  /* no need to do blending */
+		ps->do_mask_normal = FALSE;  /* no need to do blending */
 }
 
 static void paint_brush_init_tex(Brush *brush)

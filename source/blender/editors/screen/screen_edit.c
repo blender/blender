@@ -421,7 +421,7 @@ bScreen *ED_screen_add(wmWindow *win, Scene *scene, const char *name)
 	
 	sc = BKE_libblock_alloc(&G.main->screen, ID_SCR, name);
 	sc->scene = scene;
-	sc->do_refresh = 1;
+	sc->do_refresh = TRUE;
 	sc->redraws_flag = TIME_ALL_3D_WIN | TIME_ALL_ANIM_WIN;
 	sc->winid = win->winid;
 
@@ -970,16 +970,16 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 	switch (note->category) {
 		case NC_WM:
 			if (note->data == ND_FILEREAD)
-				win->screen->do_draw = 1;
+				win->screen->do_draw = TRUE;
 			break;
 		case NC_WINDOW:
-			win->screen->do_draw = 1;
+			win->screen->do_draw = TRUE;
 			break;
 		case NC_SCREEN:
 			if (note->data == ND_SUBWINACTIVE)
 				uiFreeActiveButtons(C, win->screen);
 			if (note->action == NA_EDITED)
-				win->screen->do_draw = win->screen->do_refresh = 1;
+				win->screen->do_draw = win->screen->do_refresh = TRUE;
 			break;
 		case NC_SCENE:
 			if (note->data == ND_MODE)
@@ -1055,7 +1055,7 @@ void ED_screen_draw(wmWindow *win)
 		glDisable(GL_BLEND);
 	}
 	
-	win->screen->do_draw = 0;
+	win->screen->do_draw = FALSE;
 }
 
 /* helper call for below, dpi changes headers */
@@ -1108,7 +1108,7 @@ void ED_screen_refresh(wmWindowManager *wm, wmWindow *win)
 	if (G.debug & G_DEBUG_EVENTS) {
 		printf("%s: set screen\n", __func__);
 	}
-	win->screen->do_refresh = 0;
+	win->screen->do_refresh = FALSE;
 
 	win->screen->context = ed_screen_context;
 }
@@ -1276,11 +1276,11 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		if (oldswin != scr->subwinactive) {
 
 			for (sa = scr->areabase.first; sa; sa = sa->next) {
-				int do_draw = 0;
+				int do_draw = FALSE;
 				
 				for (ar = sa->regionbase.first; ar; ar = ar->next)
 					if (ar->swinid == oldswin || ar->swinid == scr->subwinactive)
-						do_draw = 1;
+						do_draw = TRUE;
 				
 				if (do_draw) {
 					for (ar = sa->regionbase.first; ar; ar = ar->next)

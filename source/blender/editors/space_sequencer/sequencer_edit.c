@@ -840,7 +840,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	int done = 0;
+	int done = FALSE;
 
 	/* all strips >= cfra are shifted */
 	
@@ -851,7 +851,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 		if (seq->startdisp >= cfra) {
 			seq->start += gap;
 			calc_sequence(scene, seq);
-			done = 1;
+			done = TRUE;
 		}
 	}
 	SEQ_END
@@ -971,7 +971,7 @@ static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
 			if (evaluate_seq_frame(scene, cfra) ) first = 1;
 		}
 		else {
-			done = 1;
+			done = TRUE;
 			while (evaluate_seq_frame(scene, cfra) == 0) {
 				done = insert_gap(scene, -1, cfra);
 				if (done == 0) break;

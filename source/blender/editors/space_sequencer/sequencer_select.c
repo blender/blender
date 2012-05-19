@@ -1100,7 +1100,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 	actseq->tmp = SET_INT_IN_POINTER(TRUE);
 
-	for (seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {
+	for (seq_begin(ed, &iter, TRUE); iter.valid; seq_next(&iter)) {
 		seq = iter.seq;
 
 		/* Ignore all seqs already selected! */
@@ -1129,7 +1129,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 
 			/* Unfortunately, we must restart checks from the beginning. */
 			seq_end(&iter);
-			seq_begin(ed, &iter, 1);
+			seq_begin(ed, &iter, TRUE);
 		}
 
 		/* Video strips bellow active one, or any strip for audio (order do no matters here!). */

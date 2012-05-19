@@ -194,7 +194,7 @@ void wm_event_do_notifiers(bContext *C)
 	
 	/* cache & catch WM level notifiers, such as frame change, scene/screen set */
 	for (win = wm->windows.first; win; win = win->next) {
-		int do_anim = 0;
+		int do_anim = FALSE;
 		
 		CTX_wm_window_set(C, win);
 		
@@ -229,7 +229,7 @@ void wm_event_do_notifiers(bContext *C)
 			{
 				if (note->category == NC_SCENE) {
 					if (note->data == ND_FRAME)
-						do_anim = 1;
+						do_anim = TRUE;
 				}
 			}
 			if (ELEM5(note->category, NC_SCENE, NC_OBJECT, NC_GEOM, NC_SCENE, NC_WM)) {
@@ -331,17 +331,17 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	ScrArea *area = CTX_wm_area(C);
 	ARegion *region = CTX_wm_region(C);
 	ARegion *menu = CTX_wm_menu(C);
-	static int do_wheel_ui = 1;
+	static int do_wheel_ui = TRUE;
 	int is_wheel = ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE);
 	int retval;
 	
 	/* UI is quite aggressive with swallowing events, like scrollwheel */
 	/* I realize this is not extremely nice code... when UI gets keymaps it can be maybe smarter */
-	if (do_wheel_ui == 0) {
+	if (do_wheel_ui == FALSE) {
 		if (is_wheel)
 			return WM_HANDLER_CONTINUE;
 		else if (wm_event_always_pass(event) == 0)
-			do_wheel_ui = 1;
+			do_wheel_ui = TRUE;
 	}
 	
 	/* we set context to where ui handler came from */
@@ -369,7 +369,7 @@ static int wm_handler_ui_call(bContext *C, wmEventHandler *handler, wmEvent *eve
 	
 	/* event not handled in UI, if wheel then we temporarily disable it */
 	if (is_wheel)
-		do_wheel_ui = 0;
+		do_wheel_ui = FALSE;
 	
 	return WM_HANDLER_CONTINUE;
 }
@@ -1863,7 +1863,7 @@ static void wm_paintcursor_tag(bContext *C, wmPaintCursor *pc, ARegion *ar)
 		for (; pc; pc = pc->next) {
 			if (pc->poll == NULL || pc->poll(C)) {
 				wmWindow *win = CTX_wm_window(C);
-				win->screen->do_draw_paintcursor = 1;
+				win->screen->do_draw_paintcursor = TRUE;
 				wm_tag_redraw_overlay(win, ar);
 			}
 		}
@@ -1902,10 +1902,10 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 	if (wm->drags.first == NULL) return;
 	
 	if (event->type == MOUSEMOVE)
-		win->screen->do_draw_drag = 1;
+		win->screen->do_draw_drag = TRUE;
 	else if (event->type == ESCKEY) {
 		BLI_freelistN(&wm->drags);
-		win->screen->do_draw_drag = 1;
+		win->screen->do_draw_drag = TRUE;
 	}
 	else if (event->type == LEFTMOUSE && event->val == KM_RELEASE) {
 		event->type = EVT_DROP;
@@ -1921,7 +1921,7 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 		event->customdatafree = 1;
 		
 		/* clear drop icon */
-		win->screen->do_draw_drag = 1;
+		win->screen->do_draw_drag = TRUE;
 		
 		/* restore cursor (disabled, see wm_dragdrop.c) */
 		// WM_cursor_restore(win);
@@ -1930,7 +1930,7 @@ static void wm_event_drag_test(wmWindowManager *wm, wmWindow *win, wmEvent *even
 	/* overlap fails otherwise */
 	if (win->screen->do_draw_drag)
 		if (win->drawmethod == USER_DRAW_OVERLAP)
-			win->screen->do_draw = 1;
+			win->screen->do_draw = TRUE;
 	
 }
 

@@ -2732,7 +2732,7 @@ static void ptcache_dt_to_str(char *str, double dtime)
 
 static void *ptcache_bake_thread(void *ptr)
 {
-	int usetimer = 0, sfra, efra;
+	int use_timer = FALSE, sfra, efra;
 	double stime, ptime, ctime, fetd;
 	char run[32], cur[32], etd[32];
 
@@ -2752,8 +2752,8 @@ static void *ptcache_bake_thread(void *ptr)
 
 			fetd = (ctime-ptime)*(efra-*data->cfra_ptr)/data->step;
 
-			if (usetimer || fetd > 60.0) {
-				usetimer = 1;
+			if (use_timer || fetd > 60.0) {
+				use_timer = TRUE;
 
 				ptcache_dt_to_str(cur, ctime-ptime);
 				ptcache_dt_to_str(run, ctime-stime);
@@ -2765,7 +2765,7 @@ static void *ptcache_bake_thread(void *ptr)
 		}
 	}
 
-	if (usetimer) {
+	if (use_timer) {
 		ptcache_dt_to_str(run, PIL_check_seconds_timer()-stime);
 		printf("Bake %s %s (%i frames simulated).\n", (data->break_operation ? "canceled after" : "finished in"), run, *data->cfra_ptr-sfra);
 	}

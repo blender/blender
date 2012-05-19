@@ -1099,7 +1099,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.use_alpha_pass = (do_alpha_after != NULL);
 	GMS.is_alpha_pass = (v3d && v3d->transp);
 	if (GMS.use_alpha_pass)
-		*do_alpha_after = 0;
+		*do_alpha_after = FALSE;
 	
 	if (GMS.totmat > FIXEDMAT) {
 		GMS.matbuf= MEM_callocN(sizeof(GPUMaterialFixed)*GMS.totmat, "GMS.matbuf");
@@ -1156,11 +1156,11 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			}
 		}
 
-		/* setting do_alpha_after = 1 indicates this object needs to be
+		/* setting 'do_alpha_after = TRUE' indicates this object needs to be
 		 * drawn in a second alpha pass for improved blending */
 		if (do_alpha_after && !GMS.is_alpha_pass)
 			if (ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
-				*do_alpha_after= 1;
+				*do_alpha_after = TRUE;
 
 		GMS.alphablend[a]= alphablend;
 	}

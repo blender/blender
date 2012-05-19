@@ -4599,45 +4599,45 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-			short doLoc=0, doRot=0, doScale=0;
+			short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {
-				doLoc = 1;
+				do_loc = TRUE;
 			}
 			else if (tmode == TFM_ROTATION) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						doLoc = 1;
+						do_loc = TRUE;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					doLoc = 1;
+					do_loc = TRUE;
 				
 				if ((v3d->flag & V3D_ALIGN)==0)
-					doRot = 1;
+					do_rot = TRUE;
 			}
 			else if (tmode == TFM_RESIZE) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						doLoc = 1;
+						do_loc = TRUE;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					doLoc = 1;
+					do_loc = TRUE;
 				
 				if ((v3d->flag & V3D_ALIGN)==0)
-					doScale = 1;
+					do_scale = TRUE;
 			}
 			
 			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
-			if (doLoc) {
+			if (do_loc) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
-			if (doRot) {
+			if (do_rot) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
-			if (doScale) {
+			if (do_scale) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_SCALING_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
@@ -4720,39 +4720,39 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				}
 				/* only insert keyframe if needed? */
 				else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-					short doLoc=0, doRot=0, doScale=0;
+					short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
 					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 					if (tmode == TFM_TRANSLATION) {
 						if (targetless_ik)
-							doRot= 1;
+							do_rot = TRUE;
 						else
-							doLoc = 1;
+							do_loc = TRUE;
 					}
 					else if (tmode == TFM_ROTATION) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							doLoc = 1;
+							do_loc = TRUE;
 							
 						if ((v3d->flag & V3D_ALIGN)==0)
-							doRot = 1;
+							do_rot = TRUE;
 					}
 					else if (tmode == TFM_RESIZE) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							doLoc = 1;
+							do_loc = TRUE;
 							
 						if ((v3d->flag & V3D_ALIGN)==0)
-							doScale = 1;
+							do_scale = TRUE;
 					}
 					
-					if (doLoc) {
+					if (do_loc) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
-					if (doRot) {
+					if (do_rot) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
-					if (doScale) {
+					if (do_scale) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_SCALING_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}

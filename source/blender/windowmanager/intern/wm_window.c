@@ -238,8 +238,8 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
 	win->screen->winid = win->winid;
 
-	win->screen->do_refresh = 1;
-	win->screen->do_draw = 1;
+	win->screen->do_refresh = TRUE;
+	win->screen->do_draw = TRUE;
 
 	win->drawmethod = -1;
 	win->drawdata = NULL;

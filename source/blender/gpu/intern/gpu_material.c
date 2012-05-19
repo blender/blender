@@ -952,7 +952,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	/*char *lastuvname = NULL;*/ /*UNUSED*/
 	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
-	int init_done = 0, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
+	int init_done = FALSE, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
 	int iFirstTimeNMap=1;
 	int found_deriv_map = 0;
@@ -1184,7 +1184,7 @@ static void do_material_tex(GPUShadeInput *shi)
 							// copy shi->vn to vNorg and vNacc, set magnitude to 1
 							GPU_link(mat, "mtex_bump_normals_init", shi->vn, &vNorg, &vNacc, &fPrevMagnitude);
 							iBumpSpacePrev = 0;
-							init_done = 1;
+							init_done = TRUE;
 						}
 						
 						// find current bump space

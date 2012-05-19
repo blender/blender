@@ -722,7 +722,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	BMVert *v1;
 	BMIter iter;
 	float min[3], max[3];
-	int done = 0;
+	int done = FALSE;
 	short use_proj;
 	
 	em_setup_viewcontext(C, &vc);
@@ -735,7 +735,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 	BM_ITER_MESH (v1, &iter, vc.em->bm, BM_VERTS_OF_MESH) {
 		if (BM_elem_flag_test(v1, BM_ELEM_SELECT)) {
 			minmax_v3v3_v3(min, max, v1->co);
-			done = 1;
+			done = TRUE;
 		}
 	}
 
@@ -753,7 +753,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 		mval_f[1] = (float)event->mval[1];
 
 		/* check for edges that are half selected, use for rotation */
-		done = 0;
+		done = FALSE;
 		BM_ITER_MESH (eed, &iter, vc.em->bm, BM_EDGES_OF_MESH) {
 			if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 				float co1[3], co2[3];
@@ -776,7 +776,7 @@ static int edbm_dupli_extrude_cursor_invoke(bContext *C, wmOperator *op, wmEvent
 					nor[1] += -(co2[0] - co1[0]);
 				}
 			}
-			done = 1;
+			done = TRUE;
 		}
 
 		if (done) {

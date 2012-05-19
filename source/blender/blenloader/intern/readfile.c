@@ -5023,7 +5023,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			
 			seq->strip = newdataadr(fd, seq->strip);
 			if (seq->strip && seq->strip->done==0) {
-				seq->strip->done = 1;
+				seq->strip->done = TRUE;
 				
 				if (seq->type == SEQ_IMAGE ||
 				   seq->type == SEQ_MOVIE ||
@@ -5732,7 +5732,7 @@ static void direct_link_region(FileData *fd, ARegion *ar, int spacetype)
 	ar->swinid = 0;
 	ar->type = NULL;
 	ar->swap = 0;
-	ar->do_draw = 0;
+	ar->do_draw = FALSE;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 }
 
@@ -8537,12 +8537,12 @@ static void expand_main(FileData *fd, Main *mainvar)
 {
 	ListBase *lbarray[MAX_LIBARRAY];
 	ID *id;
-	int a, doit = 1;
+	int a, do_it = TRUE;
 	
 	if (fd == NULL) return;
 	
-	while (doit) {
-		doit = 0;
+	while (do_it) {
+		do_it = FALSE;
 		
 		a = set_listbasepointers(mainvar, lbarray);
 		while (a--) {
@@ -8618,7 +8618,7 @@ static void expand_main(FileData *fd, Main *mainvar)
 						break;
 					}
 					
-					doit = 1;
+					do_it = TRUE;
 					id->flag -= LIB_TEST;
 					
 				}
@@ -8655,15 +8655,15 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 			 *
 			 * (ob->id.flag & LIB_PRE_EXISTING)==0 means that this is a newly appended object - Campbell */
 			if (is_group_append==0 || (ob->id.flag & LIB_PRE_EXISTING)==0) {
-				int do_it= 0;
+				int do_it = FALSE;
 				
 				if (ob->id.us == 0) {
-					do_it = 1;
+					do_it = TRUE;
 				}
 				else if (idcode==ID_GR) {
 					if (ob->id.us==1 && is_link==FALSE && ob->id.lib==lib) {
 						if ((ob->flag & OB_FROMGROUP) && object_in_any_scene(mainvar, ob)==0) {
-							do_it = 1;
+							do_it = TRUE;
 						}
 					}
 				}
@@ -8675,7 +8675,7 @@ static void give_base_to_objects(Main *mainvar, Scene *sce, Library *lib, const 
 						 *  have a linked object which is not in any scene [#27616] */
 						if ((ob->id.flag & LIB_PRE_EXISTING)==0) {
 							if (object_in_any_scene(mainvar, ob)==0) {
-								do_it = 1;
+								do_it = TRUE;
 							}
 						}
 					}
@@ -8971,10 +8971,10 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 	Main *mainl = mainlist->first;
 	Main *mainptr;
 	ListBase *lbarray[MAX_LIBARRAY];
-	int a, doit= 1;
+	int a, do_it = TRUE;
 	
-	while (doit) {
-		doit = 0;
+	while (do_it) {
+		do_it = FALSE;
 		
 		/* test 1: read libdata */
 		mainptr= mainl->next;
@@ -9040,7 +9040,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 				}
 				if (fd) {
-					doit = 1;
+					do_it = TRUE;
 					a = set_listbasepointers(mainptr, lbarray);
 					while (a--) {
 						ID *id = lbarray[a]->first;

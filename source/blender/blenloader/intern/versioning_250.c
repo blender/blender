@@ -1084,7 +1084,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		World *wo;
 		Tex *tex;
 		ParticleSettings *part;
-		int do_gravity = 0;
+		int do_gravity = FALSE;
 
 		for (sce = main->scene.first; sce; sce = sce->id.next)
 			if (sce->unit.scale_length == 0.0f)
@@ -1140,7 +1140,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 				sce->physics_settings.gravity[0] = sce->physics_settings.gravity[1] = 0.0f;
 				sce->physics_settings.gravity[2] = -9.81f;
 				sce->physics_settings.flag = PHYS_GLOBAL_GRAVITY;
-				do_gravity = 1;
+				do_gravity = TRUE;
 			}
 		}
 

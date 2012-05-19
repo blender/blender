@@ -1468,7 +1468,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				
-				CTX_wm_window(C)->screen->do_draw = 1;
+				CTX_wm_window(C)->screen->do_draw = TRUE;
 
 			}
 			
@@ -1913,7 +1913,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	ActKeyColumn *ak;
 	float cfra;
 	short next = RNA_boolean_get(op->ptr, "next");
-	short done = 0;
+	short done = FALSE;
 	
 	/* sanity checks */
 	if (scene == NULL)
@@ -1944,7 +1944,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 			if (CFRA != (int)ak->cfra) {
 				/* this changes the frame, so set the frame and we're done */
 				CFRA = (int)ak->cfra;
-				done = 1;
+				done = TRUE;
 			}
 			else {
 				/* make this the new starting point for the search */

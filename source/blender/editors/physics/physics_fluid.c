@@ -750,8 +750,8 @@ static void fluidbake_updatejob(void *customdata, float progress)
 {
 	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
-	*(fb->do_update)= 1;
-	*(fb->progress)= progress;
+	*(fb->do_update) = TRUE;
+	*(fb->progress) = progress;
 }
 
 static void fluidbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
@@ -765,7 +765,7 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
 	
 	elbeemSimulate();
-	*do_update= 1;
+	*do_update = TRUE;
 	*stop = 0;
 }
 

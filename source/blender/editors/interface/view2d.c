@@ -419,14 +419,14 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 	
 	/* check if we should restore aspect ratio (if view size changed) */
 	if (v2d->keepzoom & V2D_KEEPASPECT) {
-		short do_x = 0, do_y = 0, do_cur /* , do_win */ /* UNUSED */;
+		short do_x = FALSE, do_y = FALSE, do_cur /* , do_win */ /* UNUSED */;
 		float /* curRatio, */ /* UNUSED */ winRatio;
 		
 		/* when a window edge changes, the aspect ratio can't be used to
 		 * find which is the best new 'cur' rect. thats why it stores 'old' 
 		 */
-		if (winx != v2d->oldwinx) do_x = 1;
-		if (winy != v2d->oldwiny) do_y = 1;
+		if (winx != v2d->oldwinx) do_x = TRUE;
+		if (winy != v2d->oldwiny) do_y = TRUE;
 		
 		/* curRatio= height / width; */ /* UNUSED */
 		winRatio = winy / winx;
@@ -435,11 +435,11 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		if (do_x == do_y) {
 			if (do_x && do_y) {
 				/* here is 1,1 case, so all others must be 0,0 */
-				if (ABS(winx - v2d->oldwinx) > ABS(winy - v2d->oldwiny)) do_y = 0;
-				else do_x = 0;
+				if (ABS(winx - v2d->oldwinx) > ABS(winy - v2d->oldwiny)) do_y = FALSE;
+				else do_x = FALSE;
 			}
-			else if (winRatio > 1.0f) do_x = 0;
-			else do_x = 1;
+			else if (winRatio > 1.0f) do_x = FALSE;
+			else do_x = TRUE;
 		}
 		do_cur = do_x;
 		/* do_win= do_y; */ /* UNUSED */

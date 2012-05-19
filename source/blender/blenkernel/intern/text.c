@@ -912,7 +912,7 @@ void txt_move_left(Text *text, short sel)
 void txt_move_right(Text *text, short sel) 
 {
 	TextLine **linep;
-	int *charp, oundoing = undoing, do_tab = 0, i;
+	int *charp, oundoing = undoing, do_tab = FALSE, i;
 	
 	if (!text) return;
 	if (sel) txt_curs_sel(text, &linep, &charp);
@@ -931,10 +931,10 @@ void txt_move_right(Text *text, short sel)
 		// do nice right only if there are only spaces
 		// spaces hardcoded in DNA_text_types.h
 		if (text->flags & TXT_TABSTOSPACES && (*linep)->line[*charp] == ' ') {
-			do_tab = 1;
+			do_tab = TRUE;
 			for (i = 0; i < *charp; i++)
 				if ((*linep)->line[i] != ' ') {
-					do_tab = 0;
+					do_tab = FALSE;
 					break;
 				}
 		}

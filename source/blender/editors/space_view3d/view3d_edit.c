@@ -2051,7 +2051,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 	int center = RNA_boolean_get(op->ptr, "center");
 
 	float size, min[3], max[3], afm[3];
-	int ok = 1, onedone = 0;
+	int ok = 1, onedone = FALSE;
 
 	if (center) {
 		/* in 2.4x this also move the cursor to (0, 0, 0) (with shift+c). */
@@ -2066,7 +2066,7 @@ static int view3d_all_exec(bContext *C, wmOperator *op) /* was view3d_home() in 
 
 	for (base = scene->base.first; base; base = base->next) {
 		if (BASE_VISIBLE(v3d, base)) {
-			onedone = 1;
+			onedone = TRUE;
 
 			if (skip_camera && base->object == v3d->camera) {
 				continue;

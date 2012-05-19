@@ -1746,7 +1746,7 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set_fl(btheme->toops.selected_highlight, 0.51, 0.53, 0.55, 0.3);
 		}
 		
-		U.use_16bit_textures = 1;
+		U.use_16bit_textures = TRUE;
 	}
 
 	if (bmain->versionfile < 262 || (bmain->versionfile == 262 && bmain->subversionfile < 2)) {

@@ -775,7 +775,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	bSensor *sens;
 	bController *cont;
 	unsigned int lay;
-	int a, nr, doit;
+	int a, nr, do_it;
 	
 	/* we need a sorted object list */
 	/* set scavisflags flags in Objects to indicate these should be evaluated */
@@ -815,9 +815,9 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 	
 	/* BUTS_XXX_STATE are similar to BUTS_XXX_LINK for selecting the object */
 	if (scavisflag & (BUTS_SENS_LINK|BUTS_CONT_LINK|BUTS_ACT_LINK|BUTS_SENS_STATE|BUTS_ACT_STATE)) {
-		doit= 1;
-		while (doit) {
-			doit= 0;
+		do_it = TRUE;
+		while (do_it) {
+			do_it = FALSE;
 			
 			ob= bmain->object.first;
 			while (ob) {
@@ -830,13 +830,13 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
 								if (obt && (obt->scavisflag & OB_VIS_CONT)) {
-									doit= 1;
+									do_it = TRUE;
 									ob->scavisflag |= OB_VIS_SENS;
 									break;
 								}
 							}
 						}
-						if (doit) break;
+						if (do_it) break;
 						sens= sens->next;
 					}
 				}
@@ -849,13 +849,13 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
 								if (obt && (obt->scavisflag & OB_VIS_ACT)) {
-									doit= 1;
+									do_it = TRUE;
 									ob->scavisflag |= OB_VIS_CONT;
 									break;
 								}
 							}
 						}
-						if (doit) break;
+						if (do_it) break;
 						cont= cont->next;
 					}
 				}
@@ -868,7 +868,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 							if (sens->links[a]) {
 								obt= (Object *)sens->links[a]->mynew;
 								if (obt && (obt->scavisflag & OB_VIS_CONT)==0) {
-									doit= 1;
+									do_it = TRUE;
 									obt->scavisflag |= OB_VIS_CONT;
 								}
 							}
@@ -885,7 +885,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 							if (cont->links[a]) {
 								obt= (Object *)cont->links[a]->mynew;
 								if (obt && (obt->scavisflag & OB_VIS_ACT)==0) {
-									doit= 1;
+									do_it = TRUE;
 									obt->scavisflag |= OB_VIS_ACT;
 								}
 							}
@@ -3333,7 +3333,7 @@ static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(layout, ptr, "use_all_events", 0, NULL, ICON_NONE);
 
 			col = uiLayoutColumn(layout, 0);
-			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events")==0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events") == FALSE);
 			uiItemR(col, ptr, "button_number", 0, NULL, ICON_NONE);
 			break;
 		case SENS_JOY_AXIS:
@@ -3343,7 +3343,7 @@ static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 
 			uiItemR(layout, ptr, "use_all_events", 0, NULL, ICON_NONE);
 			col = uiLayoutColumn(layout, 0);
-			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events")==0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events") == FALSE);
 			uiItemR(col, ptr, "axis_direction", 0, NULL, ICON_NONE);
 			break;
 		case SENS_JOY_HAT:
@@ -3351,7 +3351,7 @@ static void draw_sensor_joystick(uiLayout *layout, PointerRNA *ptr)
 			uiItemR(layout, ptr, "use_all_events", 0, NULL, ICON_NONE);
 
 			col = uiLayoutColumn(layout, 0);
-			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events")==0);
+			uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_events") == FALSE);
 			uiItemR(col, ptr, "hat_direction", 0, NULL, ICON_NONE);
 			break;
 		case SENS_JOY_AXIS_SINGLE:
@@ -3371,13 +3371,13 @@ static void draw_sensor_keyboard(uiLayout *layout, PointerRNA *ptr)
 	row = uiLayoutRow(layout, 0);
 	uiItemL(row, "Key:", ICON_NONE);
 	col = uiLayoutColumn(row, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys")==0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	uiItemR(col, ptr, "key", UI_ITEM_R_EVENT, "", ICON_NONE);
 	col = uiLayoutColumn(row, 0);
 	uiItemR(col, ptr, "use_all_keys", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 	
 	col = uiLayoutColumn(layout, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys")==0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_all_keys") == FALSE);
 	row = uiLayoutRow(col, 0);
 	uiItemL(row, "First Modifier:", ICON_NONE);
 	uiItemR(row, ptr, "modifier_key_1", UI_ITEM_R_EVENT, "", ICON_NONE);
@@ -3843,7 +3843,7 @@ static void draw_actuator_constraint(uiLayout *layout, PointerRNA *ptr, bContext
 			col = uiLayoutColumn(row, 1);
 			uiItemR(col, ptr, "use_force_distance", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			sub = uiLayoutColumn(col, 0);
-			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_force_distance")==1);
+			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_force_distance") == TRUE);
 			uiItemR(sub, ptr, "distance", 0, "", ICON_NONE);
 
 			uiItemR(layout, ptr, "damping", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -3976,7 +3976,7 @@ static void draw_actuator_filter_2d(uiLayout *layout, PointerRNA *ptr)
 		case ACT_2DFILTER_MOTIONBLUR:
 			split=uiLayoutSplit(layout, 0.75, 1);
 			row= uiLayoutRow(split, 0);
-			uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_motion_blur")==1);
+			uiLayoutSetActive(row, RNA_boolean_get(ptr, "use_motion_blur") == TRUE);
 			uiItemR(row, ptr, "motion_blur_factor", 0, NULL, ICON_NONE);
 			uiItemR(split, ptr, "use_motion_blur", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			break;
@@ -4080,21 +4080,21 @@ static void draw_actuator_motion(uiLayout *layout, PointerRNA *ptr)
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "use_servo_limit_x", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			sub = uiLayoutColumn(col, 1);
-			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_x")==1);
+			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_x") == TRUE);
 			uiItemR(sub, ptr, "force_max_x", 0, NULL, ICON_NONE);
 			uiItemR(sub, ptr, "force_min_x", 0, NULL, ICON_NONE);
 
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "use_servo_limit_y", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			sub = uiLayoutColumn(col, 1);
-			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_y")==1);
+			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_y") == TRUE);
 			uiItemR(sub, ptr, "force_max_y", 0, NULL, ICON_NONE);
 			uiItemR(sub, ptr, "force_min_y", 0, NULL, ICON_NONE);
 
 			col = uiLayoutColumn(row, 0);
 			uiItemR(col, ptr, "use_servo_limit_z", UI_ITEM_R_TOGGLE, NULL, ICON_NONE);
 			sub = uiLayoutColumn(col, 1);
-			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_z")==1);
+			uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_servo_limit_z") == TRUE);
 			uiItemR(sub, ptr, "force_max_z", 0, NULL, ICON_NONE);
 			uiItemR(sub, ptr, "force_min_z", 0, NULL, ICON_NONE);
 
@@ -4122,7 +4122,7 @@ static void draw_actuator_parent(uiLayout *layout, PointerRNA *ptr)
 		row = uiLayoutRow(layout, 0);
 		uiItemR(row, ptr, "use_compound", 0, NULL, ICON_NONE);
 		sub= uiLayoutRow(row, 0);
-		uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_compound")==1);
+		uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_compound") == TRUE);
 		uiItemR(sub, ptr, "use_ghost", 0, NULL, ICON_NONE);
 	}
 }
@@ -4305,7 +4305,7 @@ static void draw_actuator_sound(uiLayout *layout, PointerRNA *ptr, bContext *C)
 	uiItemR(layout, ptr, "use_sound_3d", 0, NULL, ICON_NONE);
 	
 	col = uiLayoutColumn(layout, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_sound_3d")==1);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_sound_3d") == TRUE);
 
 	row = uiLayoutRow(col, 0);
 	uiItemR(row, ptr, "gain_3d_min", 0, NULL, ICON_NONE);
@@ -4565,7 +4565,7 @@ static void logic_buttons_new(bContext *C, ARegion *ar)
 			subsplit= uiLayoutSplit(split, 0.85, 0);
 			col= uiLayoutColumn(subsplit, 0);
 			row= uiLayoutRow(col, 0);
-			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "use_all_states")==0);
+			uiLayoutSetActive(row, RNA_boolean_get(&settings_ptr, "use_all_states") == FALSE);
 			uiTemplateLayers(row, &settings_ptr, "states_visible", &settings_ptr, "used_states", 0);
 			row= uiLayoutRow(col, 0);
 			uiTemplateLayers(row, &settings_ptr, "states_initial", &settings_ptr, "used_states", 0);

@@ -566,7 +566,7 @@ void shadeSunView(float col_r[3], const float view[3])
 	GroupObject *go;
 	LampRen *lar;
 	float sview[3];
-	int do_init= 1;
+	int do_init = TRUE;
 	
 	for (go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
@@ -581,7 +581,7 @@ void shadeSunView(float col_r[3], const float view[3])
 				if (sview[2] < 0.0f)
 					sview[2] = 0.0f;
 				normalize_v3(sview);
-				do_init= 0;
+				do_init = FALSE;
 			}
 			
 			GetSkyXYZRadiancef(lar->sunsky, sview, colorxyz);

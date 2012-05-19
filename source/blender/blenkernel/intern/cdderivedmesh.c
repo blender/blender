@@ -1039,13 +1039,13 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	MFace *mface = cddm->mface;
 	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	int a, b, dodraw, matnr, new_matnr;
+	int a, b, do_draw, matnr, new_matnr;
 	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
-	dodraw = 0;
+	do_draw = FALSE;
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1062,14 +1062,14 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			if (new_matnr != matnr) {
 				glEnd();
 
-				dodraw = setMaterial(matnr = new_matnr, &gattribs);
-				if (dodraw)
+				do_draw = setMaterial(matnr = new_matnr, &gattribs);
+				if (do_draw)
 					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
 				glBegin(GL_QUADS);
 			}
 
-			if (!dodraw) {
+			if (!do_draw) {
 				continue;
 			}
 			else if (setDrawOptions) {
@@ -1139,7 +1139,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					numfaces = curface - start;
 					if (numfaces > 0) {
 
-						if (dodraw) {
+						if (do_draw) {
 
 							if (numdata != 0) {
 
@@ -1161,9 +1161,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					}
 					numdata = 0;
 					start = curface;
-					/* prevdraw = dodraw; */ /* UNUSED */
-					dodraw = setMaterial(matnr = new_matnr, &gattribs);
-					if (dodraw) {
+					/* prevdraw = do_draw; */ /* UNUSED */
+					do_draw = setMaterial(matnr = new_matnr, &gattribs);
+					if (do_draw) {
 						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
 						if (attribs.totorco) {
@@ -1215,7 +1215,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					}
 				}
 
-				if (dodraw && numdata != 0) {
+				if (do_draw && numdata != 0) {
 					offset = 0;
 					if (attribs.totorco) {
 						copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v1]);
@@ -1257,7 +1257,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				}
 				curface++;
 				if (mface->v4) {
-					if (dodraw && numdata != 0) {
+					if (do_draw && numdata != 0) {
 						offset = 0;
 						if (attribs.totorco) {
 							copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v3]);
@@ -1302,7 +1302,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			}
 			numfaces = curface - start;
 			if (numfaces > 0) {
-				if (dodraw) {
+				if (do_draw) {
 					if (numdata != 0) {
 						GPU_buffer_unlock(buffer);
 						GPU_interleaved_attrib_setup(buffer, datatypes, numdata);

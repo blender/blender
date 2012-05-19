@@ -291,9 +291,9 @@ static ImBuf *do_plugin_effect(
 {
 	char *cp;
 	int float_rendering;
-	int use_temp_bufs = 0; /* Are needed since blur.c (and maybe some other
-	                        * old plugins) do very bad stuff
-	                        * with imbuf-internals */
+	int use_temp_bufs = FALSE; /* Are needed since blur.c (and maybe some other
+	                            * old plugins) do very bad stuff
+	                            * with imbuf-internals */
 
 	struct ImBuf *out = prepare_effect_imbufs(context, ibuf1, ibuf2, ibuf3);
 	int x = context.rectx;
@@ -319,7 +319,7 @@ static ImBuf *do_plugin_effect(
 		float_rendering = (out->rect_float != NULL);
 
 		if (seq->plugin->version <= 3 && float_rendering) {
-			use_temp_bufs = 1;
+			use_temp_bufs = TRUE;
 
 			if (ibuf1) {
 				ibuf1 = IMB_dupImBuf(ibuf1);

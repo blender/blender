@@ -1464,7 +1464,7 @@ void seq_proxy_rebuild(SeqIndexBuildContext *context, short *stop, short *do_upd
 
 		*progress = (float)cfra / (seq->enddisp - seq->endstill -
 		                           seq->startdisp + seq->startstill);
-		*do_update = 1;
+		*do_update = TRUE;
 
 		if (*stop || G.afbreek)
 			break;

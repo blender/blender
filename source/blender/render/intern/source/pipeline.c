@@ -1302,7 +1302,7 @@ static int composite_needs_render(Scene *sce, int this_scene)
 	bNode *node;
 	
 	if (ntree==NULL) return 1;
-	if (sce->use_nodes==0) return 1;
+	if (sce->use_nodes == FALSE) return 1;
 	if ((sce->r.scemode & R_DOCOMP)==0) return 1;
 	
 	for (node= ntree->nodes.first; node; node= node->next) {
@@ -2074,18 +2074,18 @@ static int do_write_image_or_movie(Render *re, Main *bmain, Scene *scene, bMovie
 
 	/* write movie or image */
 	if (BKE_imtype_is_movie(scene->r.im_format.imtype)) {
-		int dofree = 0;
+		int do_free = FALSE;
 		unsigned int *rect32 = (unsigned int *)rres.rect32;
 		/* note; the way it gets 32 bits rects is weak... */
 		if (rres.rect32 == NULL) {
 			rect32 = MEM_mapallocN(sizeof(int)*rres.rectx*rres.recty, "temp 32 bits rect");
 			RE_ResultGet32(re, rect32);
-			dofree = 1;
+			do_free = TRUE;
 		}
 
 		ok= mh->append_movie(&re->r, scene->r.sfra, scene->r.cfra, (int *)rect32,
 		                     rres.rectx, rres.recty, re->reports);
-		if (dofree) {
+		if (do_free) {
 			MEM_freeN(rect32);
 		}
 		printf("Append frame %d", scene->r.cfra);

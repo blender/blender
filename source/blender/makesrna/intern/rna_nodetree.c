@@ -3123,7 +3123,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "lensshift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens.");
+	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 }

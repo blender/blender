@@ -276,12 +276,12 @@ DynamicPaintSurface *get_activeSurface(DynamicPaintCanvasSettings *canvas)
 void dynamicPaint_resetPreview(DynamicPaintCanvasSettings *canvas)
 {
 	DynamicPaintSurface *surface = canvas->surfaces.first;
-	int done = 0;
+	int done = FALSE;
 
 	for (; surface; surface = surface->next) {
 		if (!done && dynamicPaint_surfaceHasColorPreview(surface)) {
 			surface->flags |= MOD_DPAINT_PREVIEW;
-			done = 1;
+			done = TRUE;
 		}
 		else
 			surface->flags &= ~MOD_DPAINT_PREVIEW;

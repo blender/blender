@@ -5222,7 +5222,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 			but->block->auto_open = FALSE;
 
 	if (type == BUTTON_ACTIVATE_OVER) {
-		data->used_mouse = 1;
+		data->used_mouse = TRUE;
 	}
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 	
@@ -5845,7 +5845,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 		else {
 			if (ISKEYBOARD(event->type)) {
 				/* keyboard menu hierarchy navigation, going back to previous level */
-				but->active->used_mouse = 0;
+				but->active->used_mouse = FALSE;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}
 			else {

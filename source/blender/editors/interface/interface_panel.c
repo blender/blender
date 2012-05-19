@@ -754,14 +754,14 @@ static int uiAlignPanelStep(ScrArea *sa, ARegion *ar, float fac, int drag)
 	}
 	
 	/* we interpolate */
-	done = 0;
+	done = FALSE;
 	ps = panelsort;
 	for (a = 0; a < tot; a++, ps++) {
 		if ((ps->pa->flag & PNL_SELECT) == 0) {
 			if ((ps->orig->ofsx != ps->pa->ofsx) || (ps->orig->ofsy != ps->pa->ofsy)) {
 				ps->orig->ofsx = floorf(0.5f + fac * (float)ps->pa->ofsx + (1.0f - fac) * (float)ps->orig->ofsx);
 				ps->orig->ofsy = floorf(0.5f + fac * (float)ps->pa->ofsy + (1.0f - fac) * (float)ps->orig->ofsy);
-				done = 1;
+				done = TRUE;
 			}
 		}
 	}

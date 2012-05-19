@@ -827,7 +827,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 			UvEdge *edge = state->edges + i;
 			if ((state->uvs[edge->uv1]->flag & STITCH_STITCHABLE) && (state->uvs[edge->uv2]->flag & STITCH_STITCHABLE)) {
 				stitch_island_calculate_edge_rotation(edge, state, final_position, uvfinal_map, island_stitch_data);
-				island_stitch_data[state->uvs[edge->uv1]->island].use_edge_rotation = 1;
+				island_stitch_data[state->uvs[edge->uv1]->island].use_edge_rotation = TRUE;
 			}
 		}
 

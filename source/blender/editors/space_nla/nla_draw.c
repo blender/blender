@@ -676,7 +676,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 			short indent = 0, offset = 0, sel = 0, group = 0, nonSolo = 0;
 			int expand = -1, protect = -1, special = -1, mute = -1;
 			char name[128];
-			short doDraw = 0;
+			short do_draw = FALSE;
 			
 			/* determine what needs to be drawn */
 			switch (ale->type) {
@@ -716,8 +716,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					sel = SEL_NLT(nlt);
 					BLI_strncpy(name, nlt->name, sizeof(name));
 					
-					// draw manually still
-					doDraw = 1;
+					/* draw manually still */
+					do_draw = TRUE;
 				}
 				break;
 				case ANIMTYPE_NLAACTION: /* NLA Action-Line */
@@ -733,8 +733,8 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 					else
 						BLI_strncpy(name, "<No Action>", sizeof(name));
 						
-					// draw manually still
-					doDraw = 1;
+					/* draw manually still */
+					do_draw = TRUE;
 				}
 				break;
 					
@@ -745,7 +745,7 @@ static void draw_nla_channel_list_gl(bAnimContext *ac, ListBase *anim_data, View
 			}	
 			
 			/* if special types, draw manually for now... */
-			if (doDraw) {
+			if (do_draw) {
 				if (ale->id) {
 					/* special exception for textures */
 					if (GS(ale->id->name) == ID_TE) {

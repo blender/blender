@@ -161,7 +161,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	double a, b, c, disc, nray[3], npos[3];
 	double t0, t1 = 0.0f, t2= 0.0f, t3;
 	float p1[3], p2[3], ladist, maxz = 0.0f, maxy = 0.0f, haint;
-	int snijp, doclip=1, use_yco=0;
+	int snijp, do_clip = TRUE, use_yco = FALSE;
 
 	*intens= 0.0f;
 	haint= lar->haint;
@@ -196,7 +196,9 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 
 
 	/* rotate maxz */
-	if (shi->co[2]==0.0f) doclip= 0;	/* for when halo at sky */
+	if (shi->co[2]==0.0f) {
+		do_clip = FALSE;  /* for when halo at sky */
+	}
 	else {
 		p1[0]= shi->co[0]-lar->co[0];
 		p1[1]= shi->co[1]-lar->co[1];
@@ -206,7 +208,9 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if ( fabs(nray[2]) < FLT_EPSILON ) use_yco= 1;
+		if (fabsf(nray[2]) < FLT_EPSILON) {
+			use_yco = TRUE;
+		}
 	}
 	
 	/* scale z to make sure volume is normalized */	
@@ -261,7 +265,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		if (ok1==0 && ok2==0) return;
 		
 		/* intersction point with -ladist, the bottom of the cone */
-		if (use_yco==0) {
+		if (use_yco == FALSE) {
 			t3= ((double)(-ladist)-npos[2])/nray[2];
 				
 			/* de we have to replace one of the intersection points? */
@@ -294,12 +298,12 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		}
 		
 		/* calculate t0: is the maximum visible z (when halo is intersected by face) */ 
-		if (doclip) {
-			if (use_yco==0) t0= (maxz-npos[2])/nray[2];
-			else t0= (maxy-npos[1])/nray[1];
+		if (do_clip) {
+			if (use_yco == FALSE) t0 = (maxz - npos[2]) / nray[2];
+			else t0 = (maxy - npos[1]) / nray[1];
 
-			if (t0<t1) return;
-			if (t0<t2) t2= t0;
+			if (t0 < t1) return;
+			if (t0 < t2) t2= t0;
 		}
 
 		/* calc points */

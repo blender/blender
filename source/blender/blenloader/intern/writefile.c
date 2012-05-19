@@ -2141,7 +2141,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			SEQ_BEGIN (ed, seq)
 			{
-				if (seq->strip) seq->strip->done= 0;
+				if (seq->strip) seq->strip->done = FALSE;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
@@ -2191,7 +2191,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					else if (seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 					
-					strip->done= 1;
+					strip->done = TRUE;
 				}
 			}
 			SEQ_END
@@ -2467,11 +2467,11 @@ static void write_libraries(WriteData *wd, Main *main)
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
-		foundone= 0;
+		foundone = FALSE;
 		while (tot--) {
 			for (id= lbarray[tot]->first; id; id= id->next) {
 				if (id->us>0 && (id->flag & LIB_EXTERN)) {
-					foundone= 1;
+					foundone = TRUE;
 					break;
 				}
 			}

@@ -429,7 +429,7 @@ void ED_object_generic_keymap(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyM
 		RNA_string_set(kmi->ptr, "data_path", "tool_settings.proportional_edit_falloff");
 
 		// Object mode
-		if (do_pet == 1) {
+		if (do_pet == TRUE) {
 
 			kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
 			RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_edit_objects");

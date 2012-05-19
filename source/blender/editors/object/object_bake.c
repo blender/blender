@@ -434,7 +434,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData
 			bkr->baked_faces++;
 
 			if (bkr->do_update)
-				*bkr->do_update = 1;
+				*bkr->do_update = TRUE;
 
 			if (bkr->progress)
 				*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / tot_face) / bkr->tot_obj;

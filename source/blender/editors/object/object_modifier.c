@@ -1530,7 +1530,7 @@ static void oceanbake_update(void *customdata, float progress, int *cancel)
 	if (oceanbake_breakjob(oj))
 		*cancel = 1;
 	
-	*(oj->do_update) = 1;
+	*(oj->do_update) = TRUE;
 	*(oj->progress) = progress;
 }
 
@@ -1546,7 +1546,7 @@ static void oceanbake_startjob(void *customdata, short *stop, short *do_update, 
 	
 	BKE_bake_ocean(oj->ocean, oj->och, oceanbake_update, (void *)oj);
 	
-	*do_update = 1;
+	*do_update = TRUE;
 	*stop = 0;
 }
 

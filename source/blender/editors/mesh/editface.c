@@ -231,7 +231,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	MLoop *ml;
 	MEdge *med;
 	char *linkflag;
-	int a, b, doit = 1, mark = 0;
+	int a, b, do_it = TRUE, mark = 0;
 
 	ehash = BLI_edgehash_new();
 	seamhash = BLI_edgehash_new();
@@ -259,8 +259,8 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 		}
 	}
 
-	while (doit) {
-		doit = 0;
+	while (do_it) {
+		do_it = FALSE;
 
 		/* expand selection */
 		mp = me->mpoly;
@@ -283,7 +283,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 				if (mark) {
 					linkflag[a] = 1;
 					hash_add_face(ehash, mp, me->mloop + mp->loopstart);
-					doit = 1;
+					do_it = TRUE;
 				}
 			}
 		}

@@ -133,7 +133,7 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 			DO_MINMAX2((&node->locx), min, max);
 			totnode++;
 		}
-		node->done= 0;
+		node->done = FALSE;
 	}
 	if (totnode==0) return NULL;
 	

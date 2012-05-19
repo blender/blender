@@ -1379,7 +1379,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "use_gamma_correction", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(layout, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer")==1);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer") == TRUE);
 	uiItemR(col, ptr, "f_stop", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
@@ -1394,7 +1394,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer")==0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer") == FALSE);
 	uiItemR(sub, ptr, "z_scale", 0, NULL, ICON_NONE);
 }
 
@@ -1456,7 +1456,7 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(col, ptr, "use_projector", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector")==0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == FALSE);
 	uiItemR(col, ptr, "use_jitter", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_fit", 0, NULL, ICON_NONE);
 }
@@ -1627,7 +1627,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 
 	uiItemR(col, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_unspill", 0, NULL, ICON_NONE);
-	if (RNA_boolean_get(ptr, "use_unspill")== 1) {
+	if (RNA_boolean_get(ptr, "use_unspill") == TRUE) {
 		uiItemR(col, ptr, "unspill_red", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_green", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_blue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1818,7 +1818,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			uiItemR(col, &active_input_ptr, "use_node_format", 0, NULL, 0);
 			
 			col= uiLayoutColumn(layout, 0);
-			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format")==0);
+			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
 			uiTemplateImageSettings(col, &imfptr);
 		}
 	}
@@ -2976,8 +2976,8 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int
 /* note; this is used for fake links in groups too */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
-	int do_shaded= 0, th_col1= TH_HEADER, th_col2= TH_HEADER;
-	int do_triple= 0, th_col3= TH_WIRE;
+	int do_shaded= FALSE, th_col1= TH_HEADER, th_col2= TH_HEADER;
+	int do_triple= FALSE, th_col3= TH_WIRE;
 	
 	if (link->fromsock==NULL && link->tosock==NULL)
 		return;
@@ -2985,7 +2985,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	/* new connection */
 	if (!link->fromsock || !link->tosock) {
 		th_col1 = TH_ACTIVE;
-		do_triple = 1;
+		do_triple = TRUE;
 	}
 	else {
 		/* going to give issues once... */
@@ -2997,7 +2997,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		/* a bit ugly... but thats how we detect the internal group links */
 		if (!link->fromnode || !link->tonode) {
 			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5f);
-			do_shaded= 0;
+			do_shaded = FALSE;
 		}
 		else {
 			/* check cyclic */
@@ -3013,8 +3013,8 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 					if (link->tonode->flag & SELECT)
 						th_col2= TH_EDGE_SELECT;
 				}
-				do_shaded= 1;
-				do_triple= 1;
+				do_shaded = TRUE;
+				do_triple = TRUE;
 			}				
 			else {
 				th_col1 = TH_REDALERT;

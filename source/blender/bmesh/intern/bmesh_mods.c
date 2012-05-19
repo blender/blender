@@ -161,10 +161,10 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 	}
 
 	if (keepedge) {
-		int done = 0;
+		int done = FALSE;
 
 		while (!done) {
-			done = 1;
+			done = TRUE;
 			e = v->e;
 			do {
 				f = NULL;
@@ -180,7 +180,7 @@ int BM_disk_dissolve(BMesh *bm, BMVert *v)
 				}
 
 				if (f) {
-					done = 0;
+					done = FALSE;
 					break;
 				}
 				e = bmesh_disk_edge_next(e, v);

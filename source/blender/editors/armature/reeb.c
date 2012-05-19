@@ -1818,7 +1818,7 @@ int filterSmartReebGraph(ReebGraph *UNUSED(rg), float UNUSED(threshold))
 
 static void filterGraph(ReebGraph *rg, short options, float threshold_internal, float threshold_external)
 {
-	int done = 1;
+	int done = TRUE;
 	
 	calculateGraphLength(rg);
 
@@ -1833,7 +1833,7 @@ static void filterGraph(ReebGraph *rg, short options, float threshold_internal, 
 	if (threshold_internal > 0 || threshold_external > 0) {
 		/* filter until there's nothing more to do */
 		while (done == 1) {
-			done = 0; /* no work done yet */
+			done = FALSE; /* no work done yet */
 			
 			done = filterInternalExternalReebGraph(rg, threshold_internal, threshold_external);
 		}

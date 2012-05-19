@@ -4075,7 +4075,7 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*do_free = 1;
+	*do_free = TRUE;
 
 	return item;
 }

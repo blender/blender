@@ -1451,7 +1451,7 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 	ScrArea *sa = CTX_wm_area(C);
 	Object *ob;
 	bPose *pose;
-	short done = 0;
+	short done = FALSE;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
 	if (sa->spacetype == SPACE_BUTS) 
@@ -1476,7 +1476,7 @@ static int pose_group_assign_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, bPoseChannel *, pchan, selected_pose_bones)
 	{
 		pchan->agrp_index = pose->active_group;
-		done = 1;
+		done = TRUE;
 	}
 	CTX_DATA_END;
 
@@ -1514,7 +1514,7 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	ScrArea *sa = CTX_wm_area(C);
 	Object *ob;
-	short done = 0;
+	short done = FALSE;
 	
 	/* since this call may also be used from the buttons window, we need to check for where to get the object */
 	if (sa->spacetype == SPACE_BUTS) 
@@ -1531,7 +1531,7 @@ static int pose_group_unassign_exec(bContext *C, wmOperator *UNUSED(op))
 	{
 		if (pchan->agrp_index) {
 			pchan->agrp_index = 0;
-			done = 1;
+			done = TRUE;
 		}
 	}
 	CTX_DATA_END;
