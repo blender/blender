@@ -2234,8 +2234,8 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, const float lampco[3],
 	QMC_initPixel(qsa, shi->thread);
 
 	INIT_MINMAX(min, max);
-	for (i=0; i<totjitco; i++) {
-		DO_MINMAX(jitco[i], min, max);
+	for (i = 0; i < totjitco; i++) {
+		minmax_v3v3_v3(min, max, jitco[i]);
 	}
 	RE_rayobject_hint_bb(R.raytree, &bb_hint, min, max);
 	

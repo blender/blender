@@ -52,9 +52,11 @@ typedef struct bNodeLinkDrag
 {
 	struct bNodeLinkDrag *next, *prev;
 	
-	struct bNode *node;
-	struct bNodeSocket *sock;
-	struct bNodeLink *link;
+	/* List of links dragged by the operator.
+	 * Note: This is a list of LinkData structs on top of the actual bNodeLinks.
+	 * This way the links can be added to the node tree while being stored in this list.
+	 */
+	ListBase links;
 	int in_out;
 } bNodeLinkDrag;
 

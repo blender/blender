@@ -150,7 +150,7 @@ void global_bounds_obi(Render *re, ObjectInstanceRen *obi, float *bbmin, float *
 		/* convert to global space */
 		mul_m4_v3(re->viewinv, co);
 		
-		DO_MINMAX(co, vp->bbmin, vp->bbmax);
+		minmax_v3v3_v3(vp->bbmin, vp->bbmax, co);
 	}
 	
 	copy_v3_v3(bbmin, vp->bbmin);

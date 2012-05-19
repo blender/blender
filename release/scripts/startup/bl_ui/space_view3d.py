@@ -93,7 +93,7 @@ class VIEW3D_HT_header(Header):
             if snap_element != 'INCREMENT':
                 row.prop(toolsettings, "snap_target", text="")
                 if obj:
-                    if obj.mode == 'OBJECT' and snap_element != 'VOLUME':
+                    if obj.mode in {'OBJECT', 'POSE'} and snap_element != 'VOLUME':
                         row.prop(toolsettings, "use_snap_align_rotation", text="")
                     elif obj.mode == 'EDIT':
                         row.prop(toolsettings, "use_snap_self", text="")
@@ -164,7 +164,7 @@ class VIEW3D_MT_transform(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # generic...
         layout = self.layout
         layout.separator()
@@ -178,16 +178,16 @@ class VIEW3D_MT_transform_object(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # object-specific option follow...
         layout = self.layout
         layout.separator()
 
         layout.operator("transform.translate", text="Move Texture Space").texture_space = True
         layout.operator("transform.resize", text="Scale Texture Space").texture_space = True
-        
+
         layout.separator()
-        
+
         layout.operator_context = 'EXEC_REGION_WIN'
         layout.operator("transform.transform", text="Align to Transform Orientation").mode = 'ALIGN'  # XXX see alignmenu() in edit.c of b2.4x to get this working
 
@@ -214,13 +214,13 @@ class VIEW3D_MT_transform_armature(VIEW3D_MT_transform_base):
     def draw(self, context):
         # base menu
         VIEW3D_MT_transform_base.draw(self, context)
-        
+
         # armature specific extensions follow...
         layout = self.layout
         layout.separator()
 
         obj = context.object
-        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and 
+        if (obj.type == 'ARMATURE' and obj.mode in {'EDIT', 'POSE'} and
             obj.data.draw_type in {'BBONE', 'ENVELOPE'}):
             layout.operator("transform.transform", text="Scale Envelope/BBone").mode = 'BONE_SIZE'
 
@@ -612,6 +612,7 @@ class VIEW3D_MT_select_edit_curve(Menu):
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
 
@@ -641,6 +642,7 @@ class VIEW3D_MT_select_edit_surface(Menu):
         layout.operator("curve.select_all", text="Inverse").action = 'INVERT'
         layout.operator("curve.select_random")
         layout.operator("curve.select_nth", text="Every Nth Number of Points")
+        layout.operator("curve.select_linked", text="Select Linked")
 
         layout.separator()
 
@@ -1286,7 +1288,7 @@ class VIEW3D_MT_hide_mask(Menu):
         op = layout.operator("paint.hide_show", text="Show Bounding Box")
         op.action = 'SHOW'
         op.area = 'INSIDE'
-    
+
         op = layout.operator("paint.hide_show", text="Hide Masked")
         op.area = 'MASKED'
         op.action = 'HIDE'
@@ -1795,6 +1797,11 @@ class VIEW3D_MT_edit_mesh_edges(Menu):
 
         layout.separator()
 
+        layout.operator("transform.edge_crease")
+        layout.operator("transform.edge_bevelweight")
+
+        layout.separator()
+
         layout.operator("mesh.mark_seam").clear = False
         layout.operator("mesh.mark_seam", text="Clear Seam").clear = True
 
@@ -1947,8 +1954,8 @@ def draw_curve(self, context):
 
     layout.separator()
 
-    layout.operator("curve.extrude")
-    layout.operator("curve.duplicate")
+    layout.operator("curve.extrude_move")
+    layout.operator("curve.duplicate_move")
     layout.operator("curve.separate")
     layout.operator("curve.make_segment")
     layout.operator("curve.cyclic_toggle")
@@ -1994,7 +2001,7 @@ class VIEW3D_MT_edit_curve_ctrlpoints(Menu):
 
             layout.separator()
 
-            layout.menu("VIEW3D_MT_hook")
+        layout.menu("VIEW3D_MT_hook")
 
 
 class VIEW3D_MT_edit_curve_segments(Menu):
@@ -2304,7 +2311,7 @@ class VIEW3D_PT_view3d_cursor(Panel):
     @classmethod
     def poll(cls, context):
         view = context.space_data
-        return (view)
+        return (view is not None)
 
     def draw(self, context):
         layout = self.layout

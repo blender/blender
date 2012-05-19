@@ -39,23 +39,23 @@
 typedef struct NlaEvalStrip {
 	struct NlaEvalStrip *next, *prev;
 	
-	NlaTrack *track;			/* track that this strip belongs to */
-	NlaStrip *strip;			/* strip that's being used */
+	NlaTrack *track;            /* track that this strip belongs to */
+	NlaStrip *strip;            /* strip that's being used */
 	
-	short track_index;			/* the index of the track within the list */
-	short strip_mode;			/* which end of the strip are we looking at */
+	short track_index;          /* the index of the track within the list */
+	short strip_mode;           /* which end of the strip are we looking at */
 	
-	float strip_time;			/* time at which which strip is being evaluated */
+	float strip_time;           /* time at which which strip is being evaluated */
 } NlaEvalStrip;
 
 /* NlaEvalStrip->strip_mode */
 enum {
-		/* standard evaluation */
+	/* standard evaluation */
 	NES_TIME_BEFORE = -1,
 	NES_TIME_WITHIN,
 	NES_TIME_AFTER,
 	
-		/* transition-strip evaluations */
+	/* transition-strip evaluations */
 	NES_TIME_TRANSITION_START,
 	NES_TIME_TRANSITION_END,
 } eNlaEvalStrip_StripMode;
@@ -66,11 +66,11 @@ enum {
 typedef struct NlaEvalChannel {
 	struct NlaEvalChannel *next, *prev;
 	
-	PointerRNA ptr;			/* pointer to struct containing property to use */
-	PropertyRNA *prop;		/* RNA-property type to use (should be in the struct given) */
-	int index;				/* array index (where applicable) */
+	PointerRNA ptr;         /* pointer to struct containing property to use */
+	PropertyRNA *prop;      /* RNA-property type to use (should be in the struct given) */
+	int index;              /* array index (where applicable) */
 	
-	float value;			/* value of this channel */
+	float value;            /* value of this channel */
 } NlaEvalChannel;
 
 /* --------------- NLA Functions (not to be used as a proper API) ----------------------- */

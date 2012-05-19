@@ -827,22 +827,10 @@ static void view3d_lasso_select(bContext *C, ViewContext *vc, int mcords[][2], s
 static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 {
 	ViewContext vc;
-	int i = 0;
-	int mcords[1024][2];
-
-	RNA_BEGIN (op->ptr, itemptr, "path")
-	{
-		float loc[2];
-		
-		RNA_float_get_array(&itemptr, "loc", loc);
-		mcords[i][0] = (int)loc[0];
-		mcords[i][1] = (int)loc[1];
-		i++;
-		if (i >= 1024) break;
-	}
-	RNA_END;
+	int mcords_tot;
+	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
 	
-	if (i > 1) {
+	if (mcords) {
 		short extend, select;
 		view3d_operator_needs_opengl(C);
 		
@@ -851,8 +839,10 @@ static int view3d_lasso_select_exec(bContext *C, wmOperator *op)
 		
 		extend = RNA_boolean_get(op->ptr, "extend");
 		select = !RNA_boolean_get(op->ptr, "deselect");
-		view3d_lasso_select(C, &vc, mcords, i, extend, select);
+		view3d_lasso_select(C, &vc, mcords, mcords_tot, extend, select);
 		
+		MEM_freeN(mcords);
+
 		return OPERATOR_FINISHED;
 	}
 	return OPERATOR_PASS_THROUGH;

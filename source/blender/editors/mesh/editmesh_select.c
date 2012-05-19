@@ -682,6 +682,7 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMEDGE_FACE, "FACE", 0, "Amount of Faces Around an Edge", ""},
 	{SIMEDGE_FACE_ANGLE, "FACE_ANGLE", 0, "Face Angles", ""},
 	{SIMEDGE_CREASE, "CREASE", 0, "Crease", ""},
+	{SIMEDGE_BEVEL, "BEVEL", 0, "Bevel", ""},
 	{SIMEDGE_SEAM, "SEAM", 0, "Seam", ""},
 	{SIMEDGE_SHARP, "SHARP", 0, "Sharpness", ""},
 	{SIMEDGE_FREESTYLE, "FREESTYLE_EDGE", 0, "Freestyle Edge Marks", ""},
@@ -835,7 +836,12 @@ static int edbm_select_similar_exec(bContext *C, wmOperator *op)
 static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop),
                                                    int *free)
 {
-	Object *obedit = CTX_data_edit_object(C);
+	Object *obedit;
+
+	if (!C) /* needed for docs and i18n tools */
+		return prop_similar_types;
+
+	obedit = CTX_data_edit_object(C);
 
 	if (obedit && obedit->type == OB_MESH) {
 		EnumPropertyItem *item = NULL;
@@ -863,7 +869,7 @@ static EnumPropertyItem *select_similar_type_itemf(bContext *C, PointerRNA *UNUS
 
 		return item;
 	}
-	
+
 	return NULL;
 }
 

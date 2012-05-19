@@ -63,7 +63,7 @@ static void cineon_conversion_parameters(LogImageByteConversionParameters *param
 }
 #endif
 
-static struct ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
+static ImBuf *imb_load_dpx_cineon(unsigned char *mem, int use_cineon, int size, int flags)
 {
 	ImBuf *ibuf;
 	LogImageFile *image;

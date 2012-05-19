@@ -1375,16 +1375,17 @@ static float my_boundbox_mesh(Mesh *me, float *loc, float *size)
 	if (!size) size= msize;
 	
 	mvert= me->mvert;
-	for (a=0; a<me->totvert; a++, mvert++) {
-		co= mvert->co;
+	for (a = 0; a<me->totvert; a++, mvert++) {
+		co = mvert->co;
 		
 		/* bounds */
-		DO_MINMAX(co, min, max);
+		minmax_v3v3_v3(min, max, co);
 		
 		/* radius */
-		vert_radius= co[0]*co[0] + co[1]*co[1] + co[2]*co[2];
+
+		vert_radius = len_squared_v3(co);
 		if (vert_radius > radius)
-			radius= vert_radius;
+			radius = vert_radius;
 	}
 		
 	if (me->totvert) {
@@ -1432,8 +1433,8 @@ static void my_tex_space_mesh(Mesh *me)
 				INIT_MINMAX(min, max);
 
 				fp= (float *)kb->data;
-				for (a=0; a<kb->totelem; a++, fp+=3) {
-					DO_MINMAX(fp, min, max);
+				for (a=0; a<kb->totelem; a++, fp += 3) {
+					minmax_v3v3_v3(min, max, fp);
 				}
 				if (kb->totelem) {
 					loc[0]= (min[0]+max[0])/2.0f; loc[1]= (min[1]+max[1])/2.0f; loc[2]= (min[2]+max[2])/2.0f;

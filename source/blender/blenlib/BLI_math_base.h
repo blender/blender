@@ -127,19 +127,19 @@
 #endif
 
 #ifdef WIN32
-#ifndef FREE_WINDOWS
-#define isnan(n) _isnan(n)
-#define finite _finite
-#define hypot _hypot
-#endif
+#  ifndef FREE_WINDOWS
+#    define isnan(n) _isnan(n)
+#    define finite _finite
+#    define hypot _hypot
+#  endif
 #endif
 
 #ifndef SWAP
-#define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#  define SWAP(type, a, b)  { type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; }
 #endif
 
 #ifndef CLAMP
-#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
+#  define CLAMP(a, b, c)  if ((a) < (b)) (a) = (b); else if ((a) > (c)) (a) = (c)
 #endif
 
 #ifdef __BLI_MATH_INLINE_H__

@@ -58,35 +58,35 @@
 #include "quicktime_import.h"
 #include "quicktime_export.h"
 
-#define	RECT_WIDTH(r)	(r.right-r.left)
-#define	RECT_HEIGHT(r)	(r.bottom-r.top)
+#define RECT_WIDTH(r)   (r.right - r.left)
+#define RECT_HEIGHT(r)  (r.bottom - r.top)
 
 #define QTIME_DEBUG 0
 
 typedef struct _QuicktimeMovie {
 
-	GWorldPtr	offscreenGWorld;
-	PixMapHandle	offscreenPixMap;
-	Movie		movie;
-	Rect		movieBounds;
-	short		movieRefNum;
-	short		movieResId;
-	int			movWidth, movHeight;
+	GWorldPtr     offscreenGWorld;
+	PixMapHandle  offscreenPixMap;
+	Movie         movie;
+	Rect          movieBounds;
+	short         movieRefNum;
+	short         movieResId;
+	int           movWidth, movHeight;
 
 	
-	int			framecount;
+	int framecount;
 	
 	
-	ImBuf		*ibuf;
+	ImBuf       *ibuf;
 	
 
-	TimeValue	*frameIndex;
-	Media		theMedia;
-	Track		theTrack;
-	long		trackIndex;
-	short		depth;
+	TimeValue   *frameIndex;
+	Media        theMedia;
+	Track        theTrack;
+	long         trackIndex;
+	short        depth;
 	
-	int			have_gw;	//ugly
+	int have_gw; /* ugly */
 } QuicktimeMovie;
 
 
@@ -105,7 +105,7 @@ void quicktime_init(void)
 #endif /* _WIN32 */
 
 	/* Initialize QuickTime */
-#if defined(_WIN32) || defined (__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__)
 	nerr = EnterMovies();
 	if (nerr != noErr)
 		G.have_quicktime = FALSE;
@@ -113,7 +113,7 @@ void quicktime_init(void)
 #endif /* _WIN32 || __APPLE__ */
 #ifdef __linux__
 	/* inititalize quicktime codec registry */
-		lqt_registry_init();
+	lqt_registry_init();
 #endif
 	G.have_quicktime = TRUE;
 }
@@ -141,7 +141,7 @@ char *get_valid_qtname(char *name)
 	TCHAR Buffer[MAX_PATH];
 	DWORD dwRet;
 	char *qtname;
-	DynStr *ds= BLI_dynstr_new();
+	DynStr *ds = BLI_dynstr_new();
 
 	dwRet = GetCurrentDirectory(MAX_PATH, Buffer);
 
@@ -166,7 +166,7 @@ char *get_valid_qtname(char *name)
 		BLI_dynstr_append(ds, name);
 	}
 
-	qtname= BLI_dynstr_get_cstring(ds);
+	qtname = BLI_dynstr_get_cstring(ds);
 	BLI_dynstr_free(ds);
 
 	return qtname;
@@ -176,33 +176,33 @@ char *get_valid_qtname(char *name)
 
 int anim_is_quicktime(const char *name)
 {
-	FSSpec	theFSSpec;
-	char	theFullPath[255];
+	FSSpec theFSSpec;
+	char theFullPath[255];
 
-	Boolean						isMovieFile = false;
-	AliasHandle					myAlias = NULL;
-	Component					myImporter = NULL;
+	Boolean isMovieFile = false;
+	AliasHandle myAlias = NULL;
+	Component myImporter = NULL;
 #ifdef __APPLE__
-	FInfo						myFinderInfo;
-	FSRef						myRef;
+	FInfo myFinderInfo;
+	FSRef myRef;
 #else
 	char *qtname;
-	Str255  dst;
+	Str255 dst;
 #endif
-	OSErr						err = noErr;
+	OSErr err = noErr;
 			
 	// don't let quicktime movie import handle these
-	if ( BLI_testextensie(name, ".swf") ||
-	     BLI_testextensie(name, ".txt") ||
-	     BLI_testextensie(name, ".mpg") ||
-	     BLI_testextensie(name, ".avi") ||	// wouldnt be appropriate ;)
-	     BLI_testextensie(name, ".tga") ||
-	     BLI_testextensie(name, ".png") ||
-	     BLI_testextensie(name, ".bmp") ||
-	     BLI_testextensie(name, ".jpg") ||
-	     BLI_testextensie(name, ".wav") ||
-	     BLI_testextensie(name, ".zip") ||
-	     BLI_testextensie(name, ".mp3"))
+	if (BLI_testextensie(name, ".swf") ||
+	    BLI_testextensie(name, ".txt") ||
+	    BLI_testextensie(name, ".mpg") ||
+	    BLI_testextensie(name, ".avi") ||  /* wouldnt be appropriate ;) */
+	    BLI_testextensie(name, ".tga") ||
+	    BLI_testextensie(name, ".png") ||
+	    BLI_testextensie(name, ".bmp") ||
+	    BLI_testextensie(name, ".jpg") ||
+	    BLI_testextensie(name, ".wav") ||
+	    BLI_testextensie(name, ".zip") ||
+	    BLI_testextensie(name, ".mp3"))
 	{
 		return 0;
 	}
@@ -245,7 +245,7 @@ int anim_is_quicktime(const char *name)
 		}
 	}
 	
-	if ((err == noErr) && (myImporter != NULL)) {		// this file is a movie file
+	if ((err == noErr) && (myImporter != NULL)) {  /* this file is a movie file */
 		isMovieFile = true;
 	}
 
@@ -268,8 +268,8 @@ void free_anim_quicktime(struct anim *anim)
 	DisposeMovie(anim->qtime->movie);
 	CloseMovieFile(anim->qtime->movieRefNum);
 
-	if (anim->qtime->frameIndex) MEM_freeN (anim->qtime->frameIndex);
-	if (anim->qtime) MEM_freeN (anim->qtime);
+	if (anim->qtime->frameIndex) MEM_freeN(anim->qtime->frameIndex);
+	if (anim->qtime) MEM_freeN(anim->qtime);
 
 	anim->qtime = NULL;
 
@@ -280,17 +280,17 @@ void free_anim_quicktime(struct anim *anim)
 static OSErr QT_get_frameIndexes(struct anim *anim)
 {
 	int i;
-	OSErr	anErr = noErr;
-	OSType	media = VideoMediaType;
+	OSErr anErr = noErr;
+	OSType media = VideoMediaType;
 	TimeValue nextTime = 0;
-	TimeValue	startPoint;
-	TimeValue	tmpstartPoint;
+	TimeValue startPoint;
+	TimeValue tmpstartPoint;
 	long sampleCount = 0;
 
 	startPoint = -1;
 
-	GetMovieNextInterestingTime(anim->qtime->movie, nextTimeMediaSample+nextTimeEdgeOK, (TimeValue)1, &media, 0, 
-								1, &startPoint, NULL);
+	GetMovieNextInterestingTime(anim->qtime->movie, nextTimeMediaSample + nextTimeEdgeOK, (TimeValue)1, &media, 0,
+	                            1, &startPoint, NULL);
 
 	tmpstartPoint = startPoint;
 
@@ -320,16 +320,16 @@ static OSErr QT_get_frameIndexes(struct anim *anim)
 }
 
 
-ImBuf * qtime_fetchibuf (struct anim *anim, int position)
+ImBuf *qtime_fetchibuf(struct anim *anim, int position)
 {
-	PixMapHandle			myPixMap = NULL;
-	Ptr						myPtr;
+	PixMapHandle myPixMap = NULL;
+	Ptr myPtr;
 
-	register int		index;
-	register int		boxsize;
+	register int index;
+	register int boxsize;
 
-	register uint32_t	*readPos;
-	register uint32_t	*changePos;
+	register uint32_t   *readPos;
+	register uint32_t   *changePos;
 
 	ImBuf *ibuf = NULL;
 	unsigned int *rect;
@@ -344,7 +344,7 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 		return (NULL);
 	}
 
-	ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
+	ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
 	rect = ibuf->rect;
 
 	SetMovieTimeValue(anim->qtime->movie, anim->qtime->frameIndex[position]);
@@ -356,8 +356,8 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 	myPtr = GetPixBaseAddr(myPixMap);
 
 	if (myPtr == NULL) {
-		printf ("Error reading frame from Quicktime");
-		IMB_freeImBuf (ibuf);
+		printf("Error reading frame from Quicktime");
+		IMB_freeImBuf(ibuf);
 		return NULL;
 	}
 
@@ -367,10 +367,10 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 #ifdef __APPLE__
 	// Swap alpha byte to the end, so ARGB become RGBA;
-	from= (unsigned char *)readPos;
-	to= (unsigned char *)changePos;
+	from = (unsigned char *)readPos;
+	to = (unsigned char *)changePos;
 	
-	for ( index = 0; index < boxsize; index++, from+=4, to+=4 ) {
+	for (index = 0; index < boxsize; index++, from += 4, to += 4) {
 		to[3] = from[0];
 		to[0] = from[1];
 		to[1] = from[2];
@@ -379,14 +379,14 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 #endif
 
 #ifdef _WIN32
-	for ( index = 0; index < boxsize; index++, changePos++, readPos++ )
-		*( changePos ) =  *(readPos );
+	for (index = 0; index < boxsize; index++, changePos++, readPos++)
+		*(changePos) =  *(readPos);
 
 	if (anim->qtime->depth < 32) {
 		//add alpha to ibuf
 		boxsize = anim->x * anim->y * 4;
 		crect = (unsigned char *) rect;
-		for ( index = 0; index < boxsize; index+=4, crect+=4 ) {
+		for (index = 0; index < boxsize; index += 4, crect += 4) {
 			crect[3] = 0xFF;
 		}
 	}
@@ -403,12 +403,12 @@ ImBuf * qtime_fetchibuf (struct anim *anim, int position)
 
 static int GetFirstVideoMedia(struct anim *anim)
 {
-	long    numTracks;
-	OSType  mediaType;
+	long numTracks;
+	OSType mediaType;
 
 	numTracks = GetMovieTrackCount(anim->qtime->movie);
 
-	for (anim->qtime->trackIndex=1; anim->qtime->trackIndex<=numTracks; (anim->qtime->trackIndex)++) {
+	for (anim->qtime->trackIndex = 1; anim->qtime->trackIndex <= numTracks; (anim->qtime->trackIndex)++) {
 		anim->qtime->theTrack = GetMovieIndTrack(anim->qtime->movie, anim->qtime->trackIndex);
 
 		if (anim->qtime->theTrack)
@@ -425,7 +425,7 @@ static int GetFirstVideoMedia(struct anim *anim)
 
 static short GetFirstVideoTrackPixelDepth(struct anim *anim)
 {
-	SampleDescriptionHandle imageDescH =	(SampleDescriptionHandle)NewHandle(sizeof(Handle));
+	SampleDescriptionHandle imageDescH =    (SampleDescriptionHandle)NewHandle(sizeof(Handle));
 //	long	trackIndex = 0; /*unused*/
 	
 	if (!GetFirstVideoMedia(anim))
@@ -440,19 +440,19 @@ static short GetFirstVideoTrackPixelDepth(struct anim *anim)
 
 int startquicktime(struct anim *anim)
 {
-	FSSpec		theFSSpec;
+	FSSpec theFSSpec;
 
-	OSErr		err = noErr;
-	char		theFullPath[255];
+	OSErr err = noErr;
+	char theFullPath[255];
 #ifdef __APPLE__
-	FSRef		myRef;
+	FSRef myRef;
 #else
-	char		*qtname;
-	Str255		dst;
+	char        *qtname;
+	Str255 dst;
 #endif
 	short depth = 0;
 
-	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie), "animqt");
+	anim->qtime = MEM_callocN(sizeof(QuicktimeMovie), "animqt");
 	anim->qtime->have_gw = FALSE;
 
 	if (anim->qtime == NULL) {
@@ -481,8 +481,8 @@ int startquicktime(struct anim *anim)
 	if (err == noErr) {
 		if (QTIME_DEBUG) printf("qt: movie opened\n");
 		err = NewMovieFromFile(&anim->qtime->movie,
-						   anim->qtime->movieRefNum,
-						   &anim->qtime->movieResId, NULL, newMovieActive, NULL);
+		                       anim->qtime->movieRefNum,
+		                       &anim->qtime->movieResId, NULL, newMovieActive, NULL);
 	}
 
 	if (err) {
@@ -506,22 +506,22 @@ int startquicktime(struct anim *anim)
 		return -1;
 	}
 
-	anim->qtime->ibuf = IMB_allocImBuf (anim->x, anim->y, 32, IB_rect);
+	anim->qtime->ibuf = IMB_allocImBuf(anim->x, anim->y, 32, IB_rect);
 
 #ifdef _WIN32
 	err = NewGWorldFromPtr(&anim->qtime->offscreenGWorld,
-		 k32RGBAPixelFormat,
-		 &anim->qtime->movieBounds,
-		 NULL, NULL, 0,
-		(unsigned char *)anim->qtime->ibuf->rect,
-		anim->x * 4);
+	                       k32RGBAPixelFormat,
+	                       &anim->qtime->movieBounds,
+	                       NULL, NULL, 0,
+	                       (unsigned char *)anim->qtime->ibuf->rect,
+	                       anim->x * 4);
 #else
 	err = NewGWorldFromPtr(&anim->qtime->offscreenGWorld,
-		 k32ARGBPixelFormat,
-		 &anim->qtime->movieBounds,
-		 NULL, NULL, 0,
-		(unsigned char *)anim->qtime->ibuf->rect,
-		anim->x * 4);
+	                       k32ARGBPixelFormat,
+	                       &anim->qtime->movieBounds,
+	                       NULL, NULL, 0,
+	                       (unsigned char *)anim->qtime->ibuf->rect,
+	                       anim->x * 4);
 #endif /* _WIN32 */
 
 	if (err == noErr) {
@@ -554,29 +554,29 @@ int startquicktime(struct anim *anim)
 	anim->curposition = 0;
 
 	if (QTIME_DEBUG) printf("qt: load %s %dx%dx%d frames %d\n", anim->name, anim->qtime->movWidth,
-		anim->qtime->movHeight, anim->qtime->depth, anim->qtime->framecount);
+		                    anim->qtime->movHeight, anim->qtime->depth, anim->qtime->framecount);
 
 	return 0;
 }
 
-int imb_is_a_quicktime (char *name)
+int imb_is_a_quicktime(char *name)
 {
-	GraphicsImportComponent		theImporter = NULL;
+	GraphicsImportComponent theImporter = NULL;
 
-	FSSpec	theFSSpec;
+	FSSpec theFSSpec;
 #ifdef _WIN32
-	Str255  dst; /*unused*/
+	Str255 dst;  /*unused*/
 #endif
-	char	theFullPath[255];
+	char theFullPath[255];
 
 //	Boolean						isMovieFile = false; /*unused*/
 //	AliasHandle					myAlias = NULL; /*unused*/
 //	Component					myImporter = NULL; /*unused*/
 #ifdef __APPLE__
 //	FInfo						myFinderInfo; /*unused*/
-	FSRef						myRef;
+	FSRef myRef;
 #endif
-	OSErr						err = noErr;
+	OSErr err = noErr;
 
 	if (!G.have_quicktime) return 0;
 
@@ -587,7 +587,7 @@ int imb_is_a_quicktime (char *name)
 	    BLI_testextensie(name, ".txt") ||
 	    BLI_testextensie(name, ".mpg") ||
 	    BLI_testextensie(name, ".wav") ||
-	    BLI_testextensie(name, ".mov") ||	// not as image, doesn't work
+	    BLI_testextensie(name, ".mov") ||   // not as image, doesn't work
 	    BLI_testextensie(name, ".avi") ||
 	    BLI_testextensie(name, ".mp3"))
 	{
@@ -616,30 +616,30 @@ int imb_is_a_quicktime (char *name)
 
 ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 {
-	Rect						myRect;
-	OSErr						err = noErr;
-	GraphicsImportComponent		gImporter = NULL;
+	Rect myRect;
+	OSErr err = noErr;
+	GraphicsImportComponent gImporter = NULL;
 
-	ImageDescriptionHandle		desc;
+	ImageDescriptionHandle desc;
 
-	ComponentInstance			dataHandler;
+	ComponentInstance dataHandler;
 	PointerDataRef dataref;
 
 	int x, y, depth;
 	int have_gw = FALSE;
 	ImBuf *ibuf = NULL;
 //	ImBuf *imbuf = NULL; /*unused*/
-	GWorldPtr	offGWorld;
-	PixMapHandle		myPixMap = NULL;
+	GWorldPtr offGWorld;
+	PixMapHandle myPixMap = NULL;
 
 #ifdef __APPLE__
-	Ptr					myPtr;
+	Ptr myPtr;
 
-	register int		index;
-	register int		boxsize;
+	register int index;
+	register int boxsize;
 
-	register uint32_t	*readPos;
-	register uint32_t	*changePos;
+	register uint32_t   *readPos;
+	register uint32_t   *changePos;
 
 	ImBuf *wbuf = NULL;
 	unsigned int *rect;
@@ -651,17 +651,17 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	
 	if (QTIME_DEBUG) printf("qt: attempt to load mem as image\n");
 
-	dataref= (PointerDataRef)NewHandle(sizeof(PointerDataRefRecord));
+	dataref = (PointerDataRef)NewHandle(sizeof(PointerDataRefRecord));
 	(**dataref).data = mem;
 	(**dataref).dataLength = size;
 
 	err = OpenADataHandler((Handle)dataref,
-							PointerDataHandlerSubType,
-							nil,
-							(OSType)0,
-							nil,
-							kDataHCanRead,
-							&dataHandler);
+	                       PointerDataHandlerSubType,
+	                       nil,
+	                       (OSType)0,
+	                       nil,
+	                       kDataHCanRead,
+	                       &dataHandler);
 	if (err != noErr) {
 		if (QTIME_DEBUG) printf("no datahandler\n");
 		goto bail;
@@ -679,7 +679,7 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		goto bail;
 	}
 
-	err = GraphicsImportGetImageDescription (gImporter, &desc );
+	err = GraphicsImportGetImageDescription(gImporter, &desc);
 	if (err != noErr) {
 		if (QTIME_DEBUG) printf("no imagedescription\n");
 		goto bail;
@@ -693,26 +693,26 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 		ibuf = IMB_allocImBuf(x, y, depth, 0);
 		ibuf->ftype = QUICKTIME;
 		DisposeHandle((Handle)dataref);
-		if (gImporter != NULL)	CloseComponent(gImporter);
+		if (gImporter != NULL) CloseComponent(gImporter);
 		return ibuf;
 	}
 
 #ifdef __APPLE__
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);
-	wbuf = IMB_allocImBuf (x, y, 32, IB_rect);
+	ibuf = IMB_allocImBuf(x, y, 32, IB_rect);
+	wbuf = IMB_allocImBuf(x, y, 32, IB_rect);
 
 	err = NewGWorldFromPtr(&offGWorld,
-						k32ARGBPixelFormat,
-						&myRect, NULL, NULL, 0,
-						(unsigned char *)wbuf->rect, x * 4);
+	                       k32ARGBPixelFormat,
+	                       &myRect, NULL, NULL, 0,
+	                       (unsigned char *)wbuf->rect, x * 4);
 #else
 
-	ibuf = IMB_allocImBuf (x, y, 32, IB_rect);	
+	ibuf = IMB_allocImBuf(x, y, 32, IB_rect);
 
 	err = NewGWorldFromPtr(&offGWorld,
-							k32RGBAPixelFormat,
-							&myRect, NULL, NULL, 0,
-							(unsigned char *)ibuf->rect, x * 4);
+	                       k32RGBAPixelFormat,
+	                       &myRect, NULL, NULL, 0,
+	                       (unsigned char *)ibuf->rect, x * 4);
 #endif
 	
 	if (err != noErr) {
@@ -734,8 +734,8 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	myPtr = GetPixBaseAddr(myPixMap);
 
 	if (myPtr == NULL) {
-		printf ("Error reading frame from Quicktime");
-		IMB_freeImBuf (ibuf);
+		printf("Error reading frame from Quicktime");
+		IMB_freeImBuf(ibuf);
 		return NULL;
 	}
 
@@ -744,10 +744,10 @@ ImBuf  *imb_quicktime_decode(unsigned char *mem, int size, int flags)
 	changePos = (uint32_t *) rect;
 
 	// Swap alpha byte to the end, so ARGB become RGBA;
-	from= (unsigned char *)readPos;
-	to= (unsigned char *)changePos;
+	from = (unsigned char *)readPos;
+	to = (unsigned char *)changePos;
 	
-	for ( index = 0; index < boxsize; index++, from+=4, to+=4 ) {
+	for (index = 0; index < boxsize; index++, from += 4, to += 4) {
 		to[3] = from[0];
 		to[0] = from[1];
 		to[1] = from[2];
@@ -763,17 +763,17 @@ bail:
 
 #ifdef __APPLE__
 	if (wbuf) {
-		IMB_freeImBuf (wbuf);
+		IMB_freeImBuf(wbuf);
 		wbuf = NULL;
 	}
 #endif
 
-	if (gImporter != NULL)	CloseComponent(gImporter);
+	if (gImporter != NULL) CloseComponent(gImporter);
 
 	if (err != noErr) {
 		if (QTIME_DEBUG) printf("quicktime import unsuccesfull\n");
 		if (ibuf) {
-			IMB_freeImBuf (ibuf);
+			IMB_freeImBuf(ibuf);
 			ibuf = NULL;
 		}
 	}
@@ -788,8 +788,8 @@ bail:
 		int box = x * y;
 		unsigned char *arect = (unsigned char *) ibuf->rect;
 
-		if ( depth < 32 && (**desc).cType != kGIFCodecType) {
-			for (i = 0; i < box; i++, arect+=4)
+		if (depth < 32 && (**desc).cType != kGIFCodecType) {
+			for (i = 0; i < box; i++, arect += 4)
 				arect[3] = 0xFF;
 		}
 #endif

@@ -47,10 +47,6 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
-#if defined(_WIN32)
-#define M_PI 3.14159265358979323846
-#endif
-
 /* Utils */
 
 #if 0
@@ -448,7 +444,7 @@ static float p_edge_uv_length(PEdge *e)
 	return sqrt(d[0] * d[0] + d[1] * d[1]);
 }
 
-static void p_chart_uv_bbox(PChart *chart, float *minv, float *maxv)
+static void p_chart_uv_bbox(PChart *chart, float minv[2], float maxv[2])
 {
 	PVert *v;
 
@@ -4461,6 +4457,9 @@ void param_average(ParamHandle *handle)
 	for (i = 0; i < phandle->ncharts; i++) {
 		PFace *f;
 		chart = phandle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK)
+			continue;
 		
 		chart->u.pack.area = 0.0f; /* 3d area */
 		chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
@@ -4483,6 +4482,10 @@ void param_average(ParamHandle *handle)
 	
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK)
+			continue;
+	
 		if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
 			fac = chart->u.pack.area / chart->u.pack.rescale;
 			

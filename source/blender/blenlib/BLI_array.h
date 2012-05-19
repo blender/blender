@@ -45,7 +45,7 @@
  *
  * for (i=0; i<10; i++) {
  *     BLI_array_grow_one(arr);
- * 	    arr[i] = something;
+ *     arr[i] = something;
  * }
  * BLI_array_free(arr);
  *
@@ -105,7 +105,7 @@
 	                              arr,                                        \
 	                              sizeof(*arr) * _##arr##_count)              \
 	                ),                                                        \
-	        (void) (arr && ((void *)(arr) != (void*)_##arr##_static ?         \
+	        (void) (arr && ((void *)(arr) != (void *)_##arr##_static ?        \
 	                (MEM_freeN(arr), arr) :                                   \
 	                arr)                                                      \
 	                ),                                                        \
@@ -118,7 +118,7 @@
 /* grow an array by a specified number of items */
 #define BLI_array_grow_items(arr, num)  (                                     \
 	((void *)(arr) == NULL && (void *)(_##arr##_static) != NULL) ?            \
-	    ((arr = (void*)_##arr##_static), (_##arr##_count += num)) :           \
+	    ((arr = (void *)_##arr##_static), (_##arr##_count += num)) :           \
 	    _bli_array_grow_items(arr, num)                                       \
 )
 

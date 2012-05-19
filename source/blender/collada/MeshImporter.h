@@ -50,6 +50,10 @@
 #include "ArmatureImporter.h"
 #include "collada_utils.h"
 
+extern "C" {
+#include "BLI_edgehash.h"
+}
+
 // only for ArmatureImporter to "see" MeshImporter::get_object_by_geom_uid
 class MeshImporterBase
 {
@@ -118,8 +122,20 @@ private:
 	
 	int count_new_tris(COLLADAFW::Mesh *mesh, Mesh *me);
 	
+	bool primitive_has_useable_normals(COLLADAFW::MeshPrimitive *mp);
+	bool primitive_has_faces(COLLADAFW::MeshPrimitive *mp);
+
+	static void mesh_add_edges(Mesh *mesh, int len);
+
+	unsigned int get_loose_edge_count(COLLADAFW::Mesh *mesh);
+
+	CustomData create_edge_custom_data(EdgeHash *eh);
+
+    void allocate_face_data(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
+
 	// TODO: import uv set names
 	void read_faces(COLLADAFW::Mesh *mesh, Mesh *me, int new_tris);
+	void read_lines(COLLADAFW::Mesh *mesh, Mesh *me);
 
 	void get_vector(float v[3], COLLADAFW::MeshVertexData& arr, int i, int stride);
 

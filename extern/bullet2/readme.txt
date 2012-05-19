@@ -15,3 +15,7 @@ Once that is done all build systems can be updated to use/build extern/bullet2 f
 Questions? mail blender at erwincoumans.com, or check the bf-blender mailing list.
 Thanks,
 Erwin
+
+Apply patches/make_id.patch to prevent duplicated define of MAKE_ID macro in blender
+side and bullet side.
+Sergey

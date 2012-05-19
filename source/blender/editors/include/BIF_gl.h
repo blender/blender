@@ -35,20 +35,20 @@
 
 #include "GL/glew.h"
 
-	/*
-	 * these should be phased out. cpack should be replaced in
-	 * code with calls to glColor3ub. - zr
-	 */
+/*
+ * these should be phased out. cpack should be replaced in
+ * code with calls to glColor3ub. - zr
+ */
 /* 
  *
  * This define converts a numerical value to the equivalent 24-bit
  * color, while not being endian-sensitive. On little-endians, this
  * is the same as doing a 'naive' indexing, on big-endian, it is not!
  * */
-#define cpack(x)	glColor3ub( ((x)&0xFF), (((x)>>8)&0xFF), (((x)>>16)&0xFF) )
+#define cpack(x)    glColor3ub( ((x) & 0xFF), (((x) >> 8) & 0xFF), (((x) >> 16) & 0xFF) )
 
-#define glMultMatrixf(x)		glMultMatrixf( (float *)(x))
-#define glLoadMatrixf(x)		glLoadMatrixf( (float *)(x))
+#define glMultMatrixf(x)  glMultMatrixf( (float *)(x))
+#define glLoadMatrixf(x)  glLoadMatrixf( (float *)(x))
 
 #endif /* #ifdef __BIF_GL_H__ */
 

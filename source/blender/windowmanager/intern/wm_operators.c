@@ -1270,7 +1270,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	extern char datatoc_splash_png[];
 	extern int datatoc_splash_png_size;
 
-	ImBuf *ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png, datatoc_splash_png_size, IB_rect, "<splash screen>");
+	ImBuf *ibuf = IMB_ibImageFromMemory((unsigned char *)datatoc_splash_png,
+	                                    datatoc_splash_png_size, IB_rect, "<splash screen>");
 #else
 	ImBuf *ibuf = NULL;
 #endif
@@ -2789,6 +2790,44 @@ int WM_gesture_lines_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
+/**
+ * helper function, we may want to add options for conversion to view space
+ *
+ * caller must free.
+ */
+int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C), wmOperator *op, int *mcords_tot))[2]
+{
+	PropertyRNA *prop = RNA_struct_find_property(op->ptr, "path");
+	int (*mcords)[2] = NULL;
+	BLI_assert(prop != NULL);
+
+	if (prop) {
+		const int len = RNA_property_collection_length(op->ptr, prop);
+
+		if (len) {
+			int i = 0;
+			mcords = MEM_mallocN(sizeof(int) * 2 * len, __func__);
+
+			RNA_PROP_BEGIN(op->ptr, itemptr, prop)
+			{
+				float loc[2];
+
+				RNA_float_get_array(&itemptr, "loc", loc);
+				mcords[i][0] = (int)loc[0];
+				mcords[i][1] = (int)loc[1];
+				i++;
+			}
+			RNA_PROP_END;
+		}
+		*mcords_tot = len;
+	}
+	else {
+		*mcords_tot = 0;
+	}
+
+	return mcords;
+}
+
 #if 0
 /* template to copy from */
 
@@ -3702,7 +3741,7 @@ void wm_operatortype_free(void)
 /* called on initialize WM_init() */
 void wm_operatortype_init(void)
 {
-	global_ops_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "wm_operatortype_init gh");
+	global_ops_hash = BLI_ghash_str_new("wm_operatortype_init gh");
 
 	WM_operatortype_append(WM_OT_window_duplicate);
 	WM_operatortype_append(WM_OT_read_homefile);

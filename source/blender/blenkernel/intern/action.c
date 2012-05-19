@@ -574,7 +574,7 @@ void BKE_pose_channels_hash_make(bPose *pose)
 	if (!pose->chanhash) {
 		bPoseChannel *pchan;
 
-		pose->chanhash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "make_pose_chan gh");
+		pose->chanhash = BLI_ghash_str_new("make_pose_chan gh");
 		for (pchan = pose->chanbase.first; pchan; pchan = pchan->next)
 			BLI_ghash_insert(pose->chanhash, pchan->name, pchan);
 	}

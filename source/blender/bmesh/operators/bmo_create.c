@@ -83,8 +83,8 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
 {
-	return 	v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
-	                                 &(((EdgeData *)e_data)->v2_disk_link) ;
+	return v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
+	                                &(((EdgeData *)e_data)->v2_disk_link) ;
 }
 
 static int rotsys_append_edge(BMEdge *e, BMVert *v,
@@ -733,7 +733,7 @@ static EPath *edge_find_shortest_path(BMesh *bm, BMOperator *op, BMEdge *edge, E
                                       VertData *vdata, PathBase *pathbase, int group)
 {
 	BMEdge *e;
-	GHash *gh = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "createops find shortest path");
+	GHash *gh = BLI_ghash_ptr_new("createops find shortest path");
 	BMVert *v1, *v2;
 	BMVert **verts = NULL;
 	BLI_array_staticdeclare(verts, 1024);

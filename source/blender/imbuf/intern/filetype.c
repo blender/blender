@@ -44,13 +44,26 @@
 
 #include "imbuf.h"
 
-static int imb_ftype_default(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype & type->filetype); }
+static int imb_ftype_default(ImFileType *type, ImBuf *ibuf)
+{
+	return (ibuf->ftype & type->filetype);
+}
 #if defined(__APPLE__) && defined(IMBUF_COCOA)
-static int imb_ftype_cocoa(ImFileType *type, ImBuf *ibuf) { return (ibuf->ftype & TIF); }
+static int imb_ftype_cocoa(ImFileType *type, ImBuf *ibuf)
+{
+	return (ibuf->ftype & TIF);
+}
 #endif
-static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf) { (void)type; return (ibuf->ftype == IMAGIC); }
+static int imb_ftype_iris(ImFileType *type, ImBuf *ibuf)
+{
+	(void)type;
+	return (ibuf->ftype == IMAGIC);
+}
 #ifdef WITH_QUICKTIME
-static int imb_ftype_quicktime(ImFileType *type, ImBuf *ibuf) { return 0; } // XXX
+static int imb_ftype_quicktime(ImFileType *type, ImBuf *ibuf)
+{
+	return 0; /* XXX */
+}
 #endif
 
 #ifdef WITH_QUICKTIME
@@ -58,7 +71,7 @@ void quicktime_init(void);
 void quicktime_exit(void);
 #endif
 
-ImFileType IMB_FILE_TYPES[]= {
+ImFileType IMB_FILE_TYPES[] = {
 	{NULL, NULL, imb_is_a_jpeg, imb_ftype_default, imb_load_jpeg, imb_savejpeg, NULL, 0, JPG},
 	{NULL, NULL, imb_is_a_png, imb_ftype_default, imb_loadpng, imb_savepng, NULL, 0, PNG},
 	{NULL, NULL, imb_is_a_bmp, imb_ftype_default, imb_bmp_decode, imb_savebmp, NULL, 0, BMP},
@@ -88,13 +101,14 @@ ImFileType IMB_FILE_TYPES[]= {
 #ifdef WITH_QUICKTIME
 	{quicktime_init, quicktime_exit, imb_is_a_quicktime, imb_ftype_quicktime, imb_quicktime_decode, NULL, NULL, 0, QUICKTIME},
 #endif	
-	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0}};
+	{NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0}
+};
 	
 void imb_filetypes_init(void)
 {
 	ImFileType *type;
 
-	for (type=IMB_FILE_TYPES; type->is_a; type++)
+	for (type = IMB_FILE_TYPES; type->is_a; type++)
 		if (type->init)
 			type->init();
 }
@@ -103,7 +117,7 @@ void imb_filetypes_exit(void)
 {
 	ImFileType *type;
 
-	for (type=IMB_FILE_TYPES; type->is_a; type++)
+	for (type = IMB_FILE_TYPES; type->is_a; type++)
 		if (type->exit)
 			type->exit();
 }

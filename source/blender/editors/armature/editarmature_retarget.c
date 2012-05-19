@@ -298,8 +298,8 @@ static RigGraph *newRigGraph(void)
 	
 	rg->head = NULL;
 	
-	rg->bones_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "newRigGraph bones gh");
-	rg->controls_map = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "newRigGraph cont gh");
+	rg->bones_map = BLI_ghash_str_new("newRigGraph bones gh");
+	rg->controls_map = BLI_ghash_str_new("newRigGraph cont gh");
 	
 	rg->free_arc = RIG_freeRigArc;
 	rg->free_node = NULL;
@@ -532,7 +532,7 @@ static RigGraph *cloneRigGraph(RigGraph *src, ListBase *editbones, Object *ob, c
 	RigControl *ctrl;
 	RigGraph *rg;
 	
-	ptr_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "cloneRigGraph gh");
+	ptr_hash = BLI_ghash_ptr_new("cloneRigGraph gh");
 
 	rg = newRigGraph();
 	

@@ -73,7 +73,7 @@ float (*BKE_lattice_vertexcos_get(struct Object *ob, int *numVerts_r))[3];
 void    BKE_lattice_vertexcos_apply(struct Object *ob, float (*vertexCos)[3]);
 void    BKE_lattice_modifiers_calc(struct Scene *scene, struct Object *ob);
 
-struct MDeformVert* BKE_lattice_deform_verts_get(struct Object *lattice);
+struct MDeformVert *BKE_lattice_deform_verts_get(struct Object *lattice);
 
 #endif
 

@@ -66,7 +66,7 @@ void id_clear_lib_data(struct Main *bmain, struct ID *id);
 
 struct ListBase *which_libbase(struct Main *mainlib, short type);
 
-#define MAX_LIBARRAY	40
+#define MAX_LIBARRAY    40
 int set_listbasepointers(struct Main *main, struct ListBase **lb);
 
 void BKE_libblock_free(struct ListBase *lb, void *idv);
@@ -86,7 +86,7 @@ struct ID *BKE_libblock_find_name(const short type, const char *name);
 void clear_id_newpoins(void);
 
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops,
-                          struct ListBase *lb, struct ID* link, short *nr);
+                          struct ListBase *lb, struct ID *link, short *nr);
 void IMAnames_to_pupstring(const char **str, const char *title, const char *extraops,
                            struct ListBase *lb, struct ID *link, short *nr);
 

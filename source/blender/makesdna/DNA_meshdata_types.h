@@ -189,9 +189,9 @@ typedef struct MDisps {
 	float (*disps)[3];
 	
 	/* Used for hiding parts of a multires mesh. Essentially the multires
-	   equivalent of MVert.flag's ME_HIDE bit.
-	
-	   This is a bitmap, keep in sync with type used in BLI_bitmap.h */
+	 * equivalent of MVert.flag's ME_HIDE bit.
+	 *
+	 * This is a bitmap, keep in sync with type used in BLI_bitmap.h */
 	unsigned int *hidden;
 } MDisps;
 

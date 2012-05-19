@@ -56,7 +56,7 @@ extern struct Render R;
 /* ***** actual texture sampling ***** */
 int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 {
-	OceanTex *ot= tex->ot;
+	OceanTex *ot = tex->ot;
 	ModifierData *md;
 	OceanModifierData *omd;
 
@@ -64,8 +64,8 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 
 	if ( !(ot) ||
 	     !(ot->object) ||
-	     !(md = (ModifierData *)modifiers_findByType(ot->object, eModifierType_Ocean)) ||
-	     !(omd= (OceanModifierData *)md)->ocean)
+	     !(md  = (ModifierData *)modifiers_findByType(ot->object, eModifierType_Ocean)) ||
+	     !(omd = (OceanModifierData *)md)->ocean)
 	{
 		return 0;
 	}
@@ -75,10 +75,10 @@ int ocean_texture(Tex *tex, float *texvec, TexResult *texres)
 		int retval = TEX_INT;
 
 		OceanResult ocr;
-		const float u = 0.5f+0.5f*texvec[0];
-		const float v = 0.5f+0.5f*texvec[1];
+		const float u = 0.5f + 0.5f * texvec[0];
+		const float v = 0.5f + 0.5f * texvec[1];
 
-		if (omd->oceancache && omd->cached==TRUE) {
+		if (omd->oceancache && omd->cached == TRUE) {
 
 			CLAMP(cfra, omd->bakestart, omd->bakeend);
 			cfra -= omd->bakestart;	// shift to 0 based

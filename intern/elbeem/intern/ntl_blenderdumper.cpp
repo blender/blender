@@ -18,6 +18,7 @@
 #include "ntl_blenderdumper.h"
 #include "ntl_world.h"
 #include "solver_interface.h"
+#include "globals.h"
 
 #include <zlib.h>
 
@@ -45,10 +46,6 @@ ntlBlenderDumper::~ntlBlenderDumper()
 {
 	debMsgStd("ntlBlenderDumper",DM_NOTIFY, "ntlBlenderDumper done", 10);
 }
-
-// required globals
-extern bool glob_mpactive;
-extern int glob_mpnum, glob_mpindex;
 
 /******************************************************************************
  * Only dump time dep. objects to file

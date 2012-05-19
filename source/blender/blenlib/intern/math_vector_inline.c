@@ -458,6 +458,14 @@ MINLINE void negate_v4_v4(float r[4], const float a[4])
 	r[3] = -a[3];
 }
 
+/* could add more... */
+MINLINE void negate_v3_short(short r[3])
+{
+	r[0] = -r[0];
+	r[1] = -r[1];
+	r[2] = -r[2];
+}
+
 MINLINE float dot_v2v2(const float a[2], const float b[2])
 {
 	return a[0] * b[0] + a[1] * b[1];

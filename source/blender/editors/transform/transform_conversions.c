@@ -538,6 +538,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	/* New code, using "generic" BKE_pchan_to_pose_mat(). */
 	{
 		float rotscale_mat[4][4], loc_mat[4][4];
+		float rpmat[3][3];
 
 		BKE_pchan_to_pose_mat(pchan, rotscale_mat, loc_mat);
 		if (t->mode == TFM_TRANSLATION)
@@ -545,13 +546,23 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		else
 			copy_m3_m4(pmat, rotscale_mat);
 
+		/* Grrr! Exceptional case: When translating pose bones that are either Hinge or NoLocal,
+		 * and want align snapping, we just need both loc_mat and rotscale_mat.
+		 * So simply always store rotscale mat in td->ext, and always use it to apply rotations...
+		 * Ugly to need such hacks! :/ */
+		copy_m3_m4(rpmat, rotscale_mat);
+
 		if (constraints_list_needinv(t, &pchan->constraints)) {
 			copy_m3_m4(tmat, pchan->constinv);
 			invert_m3_m3(cmat, tmat);
 			mul_serie_m3(td->mtx, pmat, omat, cmat, NULL, NULL, NULL, NULL, NULL);
+			mul_serie_m3(td->ext->r_mtx, rpmat, omat, cmat, NULL,NULL,NULL,NULL,NULL);
 		}
-		else
-			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL, NULL, NULL, NULL, NULL);
+		else {
+			mul_serie_m3(td->mtx, pmat, omat, NULL, NULL,NULL,NULL,NULL,NULL);
+			mul_serie_m3(td->ext->r_mtx, rpmat, omat, NULL, NULL,NULL,NULL,NULL,NULL);
+		}
+		invert_m3_m3(td->ext->r_smtx, td->ext->r_mtx);
 	}
 
 	invert_m3_m3(td->smtx, td->mtx);
@@ -4043,7 +4054,47 @@ static void freeSeqData(TransInfo *t)
 						}
 					}
 
+#if 1				/* (mango hack! - for Ian) this is truely bad - should _never_ be in a release :| */
+					if (CTX_wm_window(t->context)->eventstate->alt) {
+						int minframe = MAXFRAME;
+						td= t->data;
+						seq_prev= NULL;
+						for (a=0; a<t->total; a++, td++) {
+							seq= ((TransDataSeq *)td->extra)->seq;
+							if ((seq != seq_prev)) {
+								minframe = MIN2(minframe, seq->startdisp);
+							}
+						}
+
+
+						for (seq= seqbasep->first; seq; seq= seq->next) {
+							if (!(seq->flag & SELECT)) {
+								if (seq->startdisp >= minframe) {
+									seq->machine += MAXSEQ * 2;
+								}
+							}
+						}
+
+						shuffle_seq_time(seqbasep, t->scene);
+
+						for (seq= seqbasep->first; seq; seq= seq->next) {
+							if (seq->machine >= MAXSEQ * 2) {
+								seq->machine -= MAXSEQ * 2;
+								seq->tmp= (void*)1;
+							}
+							else {
+								seq->tmp= NULL;
+							}
+						}
+
+						shuffle_seq_time(seqbasep, t->scene);
+					}
+					else {
+						shuffle_seq_time(seqbasep, t->scene);
+					}
+#else
 					shuffle_seq_time(seqbasep, t->scene);
+#endif
 
 					if (has_effect) {
 						/* update effects strips based on strips just moved in time */

@@ -37,8 +37,8 @@
 
 bool GHOST_DropTargetX11::m_xdndInitialized = false;
 DndClass GHOST_DropTargetX11::m_dndClass;
-Atom * GHOST_DropTargetX11::m_dndTypes = NULL;
-Atom * GHOST_DropTargetX11::m_dndActions = NULL;
+Atom *GHOST_DropTargetX11::m_dndTypes = NULL;
+Atom *GHOST_DropTargetX11::m_dndActions = NULL;
 const char *GHOST_DropTargetX11::m_dndMimeTypes[] = {"url/url", "text/uri-list", "text/plain", "application/octet-stream"};
 int GHOST_DropTargetX11::m_refCounter = 0;
 
@@ -55,13 +55,13 @@ int GHOST_DropTargetX11::m_refCounter = 0;
 void GHOST_DropTargetX11::Initialize(void)
 {
 	Display *display = m_system->getXDisplay();
-	int dndTypesCount = sizeof(m_dndMimeTypes) / sizeof(char*);
+	int dndTypesCount = sizeof(m_dndMimeTypes) / sizeof(char *);
 	int counter;
 
 	xdnd_init(&m_dndClass, display);
 
 	m_dndTypes = new Atom[dndTypesCount + 1];
-	XInternAtoms(display, (char**)m_dndMimeTypes, dndTypesCount, 0, m_dndTypes);
+	XInternAtoms(display, (char **)m_dndMimeTypes, dndTypesCount, 0, m_dndTypes);
 	m_dndTypes[dndTypesCount] = 0;
 
 	m_dndActions = new Atom[8];
@@ -86,10 +86,10 @@ void GHOST_DropTargetX11::Uninitialize(void)
 	xdnd_shut(&m_dndClass);
 }
 
-GHOST_DropTargetX11::GHOST_DropTargetX11(GHOST_WindowX11 * window, GHOST_SystemX11 * system)
-:
-m_window(window),
-m_system(system)
+GHOST_DropTargetX11::GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system)
+	:
+	m_window(window),
+	m_system(system)
 {
 	if (!m_xdndInitialized) {
 		Initialize();
@@ -177,7 +177,7 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
 				assert(strlen(decodedOut) < bufferSize);
 
 				// Concatenate this character onto the output
-				strncat(decodedOut, (char*)&asciiCharacter, 1);
+				strncat(decodedOut, (char *)&asciiCharacter, 1);
 
 				// Skip the next character
 				i++;
@@ -188,7 +188,7 @@ void GHOST_DropTargetX11::UrlDecode(char *decodedOut, int bufferSize, const char
 
 char *GHOST_DropTargetX11::FileUrlDecode(char *fileUrl)
 {
-	if(!strncpy(fileUrl, "file://", 7) == 0) {
+	if (!strncpy(fileUrl, "file://", 7) == 0) {
 		/* assume one character of encoded URL can be expanded to 4 chars max */
 		int decodedSize = 4 * strlen(fileUrl) + 1;
 		char *decodedPath = (char *)malloc(decodedSize);
@@ -217,9 +217,9 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 		else curLength++;
 	}
 
-	strArray = (GHOST_TStringArray*)malloc(sizeof(GHOST_TStringArray));
+	strArray = (GHOST_TStringArray *)malloc(sizeof(GHOST_TStringArray));
 	strArray->count = 0;
-	strArray->strings = (GHOST_TUns8**)malloc(totPaths*sizeof(GHOST_TUns8*));
+	strArray->strings = (GHOST_TUns8 **)malloc(totPaths * sizeof(GHOST_TUns8 *));
 
 	curLength = 0;
 	for (int i = 0; i <= dropBufferSize; i++) {
@@ -228,12 +228,12 @@ void *GHOST_DropTargetX11::getURIListGhostData(unsigned char *dropBuffer, int dr
 				char *curPath = (char *)malloc(curLength + 1);
 				char *decodedPath;
 
-				strncpy(curPath, (char*)dropBuffer + i - curLength, curLength);
+				strncpy(curPath, (char *)dropBuffer + i - curLength, curLength);
 				curPath[curLength] = 0;
 
 				decodedPath = FileUrlDecode(curPath);
-				if(decodedPath) {
-					strArray->strings[strArray->count] = (GHOST_TUns8*)decodedPath;
+				if (decodedPath) {
+					strArray->strings[strArray->count] = (GHOST_TUns8 *)decodedPath;
 					strArray->count++;
 				}
 

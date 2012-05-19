@@ -50,59 +50,54 @@
 #define MAX_TREETYPE 32
 #define DEFAULT_FIND_NEAREST_HEAP_SIZE 1024
 
-typedef struct BVHNode
-{
+typedef struct BVHNode {
 	struct BVHNode **children;
 	struct BVHNode *parent; // some user defined traversed need that
 	struct BVHNode *skip[2];
-	float *bv;		// Bounding volume of all nodes, max 13 axis
-	int index;		// face, edge, vertex index
-	char totnode;	// how many nodes are used, used for speedup
-	char main_axis;	// Axis used to split this node
+	float *bv;      /* Bounding volume of all nodes, max 13 axis */
+	int index;      /* face, edge, vertex index */
+	char totnode;   /* how many nodes are used, used for speedup */
+	char main_axis; /* Axis used to split this node */
 } BVHNode;
 
-struct BVHTree
-{
+struct BVHTree {
 	BVHNode **nodes;
-	BVHNode *nodearray; /* pre-alloc branch nodes */
-	BVHNode **nodechild;	// pre-alloc childs for nodes
-	float	*nodebv;		// pre-alloc bounding-volumes for nodes
-	float 	epsilon; /* epslion is used for inflation of the k-dop	   */
-	int 	totleaf; // leafs
-	int 	totbranch;
-	char 	tree_type; // type of tree (4 => quadtree)
-	char 	axis; // kdop type (6 => OBB, 7 => AABB, ...)
-	char 	start_axis, stop_axis; // KDOP_AXES array indices according to axis
+	BVHNode *nodearray;     /* pre-alloc branch nodes */
+	BVHNode **nodechild;    /* pre-alloc childs for nodes */
+	float   *nodebv;        /* pre-alloc bounding-volumes for nodes */
+	float epsilon;          /* epslion is used for inflation of the k-dop	   */
+	int totleaf;            /* leafs */
+	int totbranch;
+	char tree_type;         /* type of tree (4 => quadtree) */
+	char axis;              /* kdop type (6 => OBB, 7 => AABB, ...) */
+	char start_axis, stop_axis;  /* KDOP_AXES array indices according to axis */
 };
 
-typedef struct BVHOverlapData 
-{  
+typedef struct BVHOverlapData {
 	BVHTree *tree1, *tree2; 
 	BVHTreeOverlap *overlap; 
 	int i, max_overlap; /* i is number of overlaps */
 	int start_axis, stop_axis;
 } BVHOverlapData;
 
-typedef struct BVHNearestData
-{
+typedef struct BVHNearestData {
 	BVHTree *tree;
-	const float	*co;
+	const float *co;
 	BVHTree_NearestPointCallback callback;
-	void	*userdata;
-	float proj[13];			//coordinates projection over axis
+	void    *userdata;
+	float proj[13];         /* coordinates projection over axis */
 	BVHTreeNearest nearest;
 
 } BVHNearestData;
 
-typedef struct BVHRayCastData
-{
+typedef struct BVHRayCastData {
 	BVHTree *tree;
 
 	BVHTree_RayCastCallback callback;
-	void	*userdata;
+	void    *userdata;
 
 
-	BVHTreeRay    ray;
+	BVHTreeRay ray;
 	float ray_dot_axis[13];
 	float idot_axis[13];
 	int index[6];
@@ -120,55 +115,55 @@ typedef struct BVHRayCastData
 // Notes: You can choose the tree type --> binary, quad, octree, choose below
 ////////////////////////////////////////////////////////////////////////
 
-static float KDOP_AXES[13][3] =
-{ {1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
-{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
-{0, 1.0, -1.0}
+static float KDOP_AXES[13][3] = {
+	{1.0, 0, 0}, {0, 1.0, 0}, {0, 0, 1.0}, {1.0, 1.0, 1.0}, {1.0, -1.0, 1.0}, {1.0, 1.0, -1.0},
+	{1.0, -1.0, -1.0}, {1.0, 1.0, 0}, {1.0, 0, 1.0}, {0, 1.0, 1.0}, {1.0, -1.0, 0}, {1.0, 0, -1.0},
+	{0, 1.0, -1.0}
 };
 
 /*
  * Generic push and pop heap
  */
-#define PUSH_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)	\
-{													\
-	HEAP_TYPE element = heap[heap_size-1];			\
-	int child = heap_size-1;						\
-	while (child != 0)								\
-	{												\
-		int parent = (child-1) / 2;					\
-		if (PRIORITY(element, heap[parent]))			\
-		{											\
-			heap[child] = heap[parent];				\
-			child = parent;							\
-		}											\
-		else break;									\
-	}												\
-	heap[child] = element;							\
-}
+#define PUSH_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)                  \
+	{                                                                         \
+		HEAP_TYPE element = heap[heap_size - 1];                              \
+		int child = heap_size - 1;                                            \
+		while (child != 0)                                                    \
+		{                                                                     \
+			int parent = (child - 1) / 2;                                     \
+			if (PRIORITY(element, heap[parent]))                              \
+			{                                                                 \
+				heap[child] = heap[parent];                                   \
+				child = parent;                                               \
+			}                                                                 \
+			else break;                                                       \
+		}                                                                     \
+		heap[child] = element;                                                \
+	}
 
-#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)	\
-{													\
-	HEAP_TYPE element = heap[heap_size-1];			\
-	int parent = 0;									\
-	while (parent < (heap_size-1)/2 )				\
-	{												\
-		int child2 = (parent+1)*2;					\
-		if (PRIORITY(heap[child2-1], heap[child2]))	\
-			--child2;								\
-													\
-		if (PRIORITY(element, heap[child2]))			\
-			break;									\
-													\
-		heap[parent] = heap[child2];				\
-		parent = child2;							\
-	}												\
-	heap[parent] = element;							\
-}
+#define POP_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)                   \
+	{                                                                         \
+		HEAP_TYPE element = heap[heap_size - 1];                              \
+		int parent = 0;                                                       \
+		while (parent < (heap_size - 1) / 2)                                  \
+		{                                                                     \
+			int child2 = (parent + 1) * 2;                                    \
+			if (PRIORITY(heap[child2 - 1], heap[child2])) {                   \
+				child2--;                                                     \
+			}                                                                 \
+			if (PRIORITY(element, heap[child2])) {                            \
+				break;                                                        \
+			}                                                                 \
+			heap[parent] = heap[child2];                                      \
+			parent = child2;                                                  \
+		}                                                                     \
+		heap[parent] = element;                                               \
+	}
 
 #if 0
 static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)
 {
-	int   new_max_size = *max_size * 2;
+	int new_max_size = *max_size * 2;
 	void *new_memblock = NULL;
 
 	if (new_size <= *max_size)
@@ -176,11 +171,11 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 
 	if (*memblock == local_memblock)
 	{
-		new_memblock = malloc( size_per_item * new_max_size );
+		new_memblock = malloc(size_per_item * new_max_size);
 		memcpy(new_memblock, *memblock, size_per_item * *max_size);
 	}
 	else
-		new_memblock = realloc(*memblock, size_per_item * new_max_size );
+		new_memblock = realloc(*memblock, size_per_item * new_max_size);
 
 	if (new_memblock)
 	{
@@ -206,7 +201,7 @@ static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, in
 #if 0
 static int floor_lg(int a)
 {
-	return (int)(floor(log(a)/log(2)));
+	return (int)(floor(log(a) / log(2)));
 }
 #endif
 
@@ -217,20 +212,20 @@ static void bvh_insertionsort(BVHNode **a, int lo, int hi, int axis)
 {
 	int i, j;
 	BVHNode *t;
-	for (i=lo; i < hi; i++) {
-		j=i;
+	for (i = lo; i < hi; i++) {
+		j = i;
 		t = a[i];
-		while ((j!=lo) && (t->bv[axis] < (a[j-1])->bv[axis])) {
-			a[j] = a[j-1];
+		while ((j != lo) && (t->bv[axis] < (a[j - 1])->bv[axis])) {
+			a[j] = a[j - 1];
 			j--;
 		}
 		a[j] = t;
 	}
 }
 
-static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
+static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode *x, int axis)
 {
-	int i=lo, j=hi;
+	int i = lo, j = hi;
 	while (1) {
 		while ((a[i])->bv[axis] < x->bv[axis]) i++;
 		j--;
@@ -248,33 +243,33 @@ static int bvh_partition(BVHNode **a, int lo, int hi, BVHNode * x, int axis)
 #if 0
 static void bvh_downheap(BVHNode **a, int i, int n, int lo, int axis)
 {
-	BVHNode * d = a[lo+i-1];
+	BVHNode *d = a[lo + i - 1];
 	int child;
-	while (i<=n/2)
+	while (i <= n / 2)
 	{
-		child = 2*i;
-		if ((child < n) && ((a[lo+child-1])->bv[axis] < (a[lo+child])->bv[axis]))
+		child = 2 * i;
+		if ((child < n) && ((a[lo + child - 1])->bv[axis] < (a[lo + child])->bv[axis]))
 		{
 			child++;
 		}
-		if (!(d->bv[axis] < (a[lo+child-1])->bv[axis])) break;
-		a[lo+i-1] = a[lo+child-1];
+		if (!(d->bv[axis] < (a[lo + child - 1])->bv[axis])) break;
+		a[lo + i - 1] = a[lo + child - 1];
 		i = child;
 	}
-	a[lo+i-1] = d;
+	a[lo + i - 1] = d;
 }
 
 static void bvh_heapsort(BVHNode **a, int lo, int hi, int axis)
 {
-	int n = hi-lo, i;
-	for (i=n/2; i>=1; i=i-1)
+	int n = hi - lo, i;
+	for (i = n / 2; i >= 1; i = i - 1)
 	{
 		bvh_downheap(a, i, n, lo, axis);
 	}
-	for (i=n; i>1; i=i-1)
+	for (i = n; i > 1; i = i - 1)
 	{
-		SWAP(BVHNode*, a[lo], a[lo+i-1]);
-		bvh_downheap(a, 1, i-1, lo, axis);
+		SWAP(BVHNode *, a[lo], a[lo + i - 1]);
+		bvh_downheap(a, 1, i - 1, lo, axis);
 	}
 }
 #endif
@@ -307,21 +302,21 @@ static BVHNode *bvh_medianof3(BVHNode **a, int lo, int mid, int hi, int axis) //
 /*
  * Quicksort algorithm modified for Introsort
  */
-static void bvh_introsort_loop (BVHNode **a, int lo, int hi, int depth_limit, int axis)
+static void bvh_introsort_loop(BVHNode **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
-	while (hi-lo > size_threshold)
+	while (hi - lo > size_threshold)
 	{
 		if (depth_limit == 0)
 		{
 			bvh_heapsort(a, lo, hi, axis);
 			return;
 		}
-		depth_limit=depth_limit-1;
-		p=bvh_partition(a, lo, hi, bvh_medianof3(a, lo, lo+((hi-lo)/2)+1, hi-1, axis), axis);
+		depth_limit = depth_limit - 1;
+		p = bvh_partition(a, lo, hi, bvh_medianof3(a, lo, lo + ((hi - lo) / 2) + 1, hi - 1, axis), axis);
 		bvh_introsort_loop(a, p, hi, depth_limit, axis);
-		hi=p;
+		hi = p;
 	}
 }
 
@@ -329,8 +324,8 @@ static void sort(BVHNode **a0, int begin, int end, int axis)
 {
 	if (begin < end)
 	{
-		BVHNode **a=a0;
-		bvh_introsort_loop(a, begin, end, 2*floor_lg(end-begin), axis);
+		BVHNode **a = a0;
+		bvh_introsort_loop(a, begin, end, 2 * floor_lg(end - begin), axis);
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
@@ -347,8 +342,8 @@ static void sort_along_axis(BVHTree *tree, int start, int end, int axis)
 static int partition_nth_element(BVHNode **a, int _begin, int _end, int n, int axis)
 {
 	int begin = _begin, end = _end, cut;
-	while (end-begin > 3) {
-		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin+end)/2, end-1, axis), axis );
+	while (end - begin > 3) {
+		cut = bvh_partition(a, begin, end, bvh_medianof3(a, begin, (begin + end) / 2, end - 1, axis), axis);
 		if (cut <= n)
 			begin = cut;
 		else
@@ -368,7 +363,7 @@ static void build_skip_links(BVHTree *tree, BVHNode *node, BVHNode *left, BVHNod
 	node->skip[1] = right;
 	
 	for (i = 0; i < node->totnode; i++) {
-		if (i+1 < node->totnode)
+		if (i + 1 < node->totnode)
 			build_skip_links(tree, node->children[i], left, node->children[i + 1]);
 		else
 			build_skip_links(tree, node->children[i], left, right);
@@ -415,8 +410,8 @@ static void refit_kdop_hull(BVHTree *tree, BVHNode *node, int start, int end)
 
 	
 	for (i = tree->start_axis; i < tree->stop_axis; i++) {
-		bv[2*i] = FLT_MAX;
-		bv[2*i + 1] = -FLT_MAX;
+		bv[2 * i] = FLT_MAX;
+		bv[2 * i + 1] = -FLT_MAX;
 	}
 
 	for (j = start; j < end; j++) {
@@ -445,15 +440,15 @@ static char get_largest_axis(float *bv)
 	middle_point[2] = (bv[5]) - (bv[4]); // z axis
 	if (middle_point[0] > middle_point[1])  {
 		if (middle_point[0] > middle_point[2])
-			return 1; // max x axis
+			return 1;  // max x axis
 		else
-			return 5; // max z axis
+			return 5;  // max z axis
 	}
 	else {
 		if (middle_point[1] > middle_point[2])
-			return 3; // max y axis
+			return 3;  // max y axis
 		else
-			return 5; // max z axis
+			return 5;  // max z axis
 	}
 }
 
@@ -464,8 +459,8 @@ static void node_join(BVHTree *tree, BVHNode *node)
 	int i, j;
 	
 	for (i = tree->start_axis; i < tree->stop_axis; i++) {
-		node->bv[2*i] = FLT_MAX;
-		node->bv[2*i + 1] = -FLT_MAX;
+		node->bv[2 * i] = FLT_MAX;
+		node->bv[2 * i + 1] = -FLT_MAX;
 	}
 	
 	for (i = 0; i < tree->tree_type; i++) {
@@ -492,15 +487,15 @@ static void node_join(BVHTree *tree, BVHNode *node)
 static void bvhtree_print_tree(BVHTree *tree, BVHNode *node, int depth)
 {
 	int i;
-	for (i=0; i<depth; i++) printf(" ");
+	for (i = 0; i < depth; i++) printf(" ");
 	printf(" - %d (%ld): ", node->index, node - tree->nodearray);
-	for (i=2*tree->start_axis; i<2*tree->stop_axis; i++)
+	for (i = 2 * tree->start_axis; i < 2 * tree->stop_axis; i++)
 		printf("%.3f ", node->bv[i]);
 	printf("\n");
 
-	for (i=0; i<tree->tree_type; i++)
+	for (i = 0; i < tree->tree_type; i++)
 		if (node->children[i])
-			bvhtree_print_tree(tree, node->children[i], depth+1);
+			bvhtree_print_tree(tree, node->children[i], depth + 1);
 }
 
 static void bvhtree_info(BVHTree *tree)
@@ -508,15 +503,14 @@ static void bvhtree_info(BVHTree *tree)
 	printf("BVHTree info\n");
 	printf("tree_type = %d, axis = %d, epsilon = %f\n", tree->tree_type, tree->axis, tree->epsilon);
 	printf("nodes = %d, branches = %d, leafs = %d\n", tree->totbranch + tree->totleaf,  tree->totbranch, tree->totleaf);
-	printf("Memory per node = %ldbytes\n", sizeof(BVHNode) + sizeof(BVHNode*)*tree->tree_type + sizeof(float)*tree->axis);
+	printf("Memory per node = %ldbytes\n", sizeof(BVHNode) + sizeof(BVHNode *) * tree->tree_type + sizeof(float) * tree->axis);
 	printf("BV memory = %dbytes\n", MEM_allocN_len(tree->nodebv));
 
-	printf("Total memory = %ldbytes\n", sizeof(BVHTree)
-		+ MEM_allocN_len(tree->nodes)
-		+ MEM_allocN_len(tree->nodearray)
-		+ MEM_allocN_len(tree->nodechild)
-		+ MEM_allocN_len(tree->nodebv)
-		);
+	printf("Total memory = %ldbytes\n", sizeof(BVHTree) +
+	       MEM_allocN_len(tree->nodes) +
+	       MEM_allocN_len(tree->nodearray) +
+	       MEM_allocN_len(tree->nodechild) +
+	       MEM_allocN_len(tree->nodebv));
 
 //	bvhtree_print_tree(tree, tree->nodes[tree->totleaf], 0);
 }
@@ -532,10 +526,10 @@ static void verify_tree(BVHTree *tree)
 	// check the pointer list
 	for (i = 0; i < tree->totleaf; i++)
 	{
-		if (tree->nodes[i]->parent == NULL)
+		if (tree->nodes[i]->parent == NULL) {
 			printf("Leaf has no parent: %d\n", i);
-		else
-		{
+		}
+		else {
 			for (j = 0; j < tree->tree_type; j++)
 			{
 				if (tree->nodes[i]->parent->children[j] == tree->nodes[i])
@@ -552,10 +546,10 @@ static void verify_tree(BVHTree *tree)
 	// check the leaf list
 	for (i = 0; i < tree->totleaf; i++)
 	{
-		if (tree->nodearray[i].parent == NULL)
+		if (tree->nodearray[i].parent == NULL) {
 			printf("Leaf has no parent: %d\n", i);
-		else
-		{
+		}
+		else {
 			for (j = 0; j < tree->tree_type; j++)
 			{
 				if (tree->nodearray[i].parent->children[j] == &tree->nodearray[i])
@@ -575,15 +569,14 @@ static void verify_tree(BVHTree *tree)
 
 //Helper data and structures to build a min-leaf generalized implicit tree
 //This code can be easily reduced (basicly this is only method to calculate pow(k, n) in O(1).. and stuff like that)
-typedef struct BVHBuildHelper
-{
-	int tree_type;				/* */
-	int totleafs;				/* */
+typedef struct BVHBuildHelper {
+	int tree_type;              /* */
+	int totleafs;               /* */
 
-	int leafs_per_child[32];	/* Min number of leafs that are archievable from a node at depth N */
-	int branches_on_level[32];	/* Number of nodes at depth N (tree_type^N) */
+	int leafs_per_child[32];    /* Min number of leafs that are archievable from a node at depth N */
+	int branches_on_level[32];  /* Number of nodes at depth N (tree_type^N) */
 
-	int remain_leafs;			/* Number of leafs that are placed on the level that is not 100% filled */
+	int remain_leafs;           /* Number of leafs that are placed on the level that is not 100% filled */
 
 } BVHBuildHelper;
 
@@ -594,7 +587,7 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 	int nnodes;
 
 	data->totleafs = tree->totleaf;
-	data->tree_type= tree->tree_type;
+	data->tree_type = tree->tree_type;
 
 	//Calculate the smallest tree_type^n such that tree_type^n >= num_leafs
 	for (data->leafs_per_child[0] = 1;
@@ -608,8 +601,8 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 
 	//We could stop the loop first (but I am lazy to find out when)
 	for (depth = 1; depth < 32; depth++) {
-		data->branches_on_level[depth] = data->branches_on_level[depth-1] * data->tree_type;
-		data->leafs_per_child  [depth] = data->leafs_per_child  [depth-1] / data->tree_type;
+		data->branches_on_level[depth] = data->branches_on_level[depth - 1] * data->tree_type;
+		data->leafs_per_child[depth] = data->leafs_per_child[depth - 1] / data->tree_type;
 	}
 
 	remain = data->totleafs - data->leafs_per_child[1];
@@ -620,11 +613,11 @@ static void build_implicit_tree_helper(BVHTree *tree, BVHBuildHelper *data)
 // return the min index of all the leafs archivable with the given branch
 static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index)
 {
-	int min_leaf_index = child_index * data->leafs_per_child[depth-1];
+	int min_leaf_index = child_index * data->leafs_per_child[depth - 1];
 	if (min_leaf_index <= data->remain_leafs)
 		return min_leaf_index;
 	else if (data->leafs_per_child[depth])
-		return data->totleafs - (data->branches_on_level[depth-1] - child_index) * data->leafs_per_child[depth];
+		return data->totleafs - (data->branches_on_level[depth - 1] - child_index) * data->leafs_per_child[depth];
 	else
 		return data->remain_leafs;
 }
@@ -660,7 +653,7 @@ static int implicit_leafs_index(BVHBuildHelper *data, int depth, int child_index
 // This functions returns the number of branches needed to have the requested number of leafs.
 static int implicit_needed_branches(int tree_type, int leafs)
 {
-	return MAX2(1, (leafs + tree_type - 3) / (tree_type-1) );
+	return MAX2(1, (leafs + tree_type - 3) / (tree_type - 1) );
 }
 
 /*
@@ -678,11 +671,11 @@ static int implicit_needed_branches(int tree_type, int leafs)
 static void split_leafs(BVHNode **leafs_array, int *nth, int partitions, int split_axis)
 {
 	int i;
-	for (i=0; i < partitions-1; i++) {
+	for (i = 0; i < partitions - 1; i++) {
 		if (nth[i] >= nth[partitions])
 			break;
 
-		partition_nth_element(leafs_array, nth[i], nth[partitions], nth[i+1], split_axis);
+		partition_nth_element(leafs_array, nth[i], nth[partitions], nth[i + 1], split_axis);
 	}
 }
 
@@ -708,19 +701,19 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 
 	const int tree_type   = tree->tree_type;
 	const int tree_offset = 2 - tree->tree_type; //this value is 0 (on binary trees) and negative on the others
-	const int num_branches= implicit_needed_branches(tree_type, num_leafs);
+	const int num_branches = implicit_needed_branches(tree_type, num_leafs);
 
 	BVHBuildHelper data;
 	int depth;
 	
 	// set parent from root node to NULL
-	BVHNode *tmp = branches_array+0;
+	BVHNode *tmp = branches_array + 0;
 	tmp->parent = NULL;
 
 	//Most of bvhtree code relies on 1-leaf trees having at least one branch
 	//We handle that special case here
 	if (num_leafs == 1) {
-		BVHNode *root = branches_array+0;
+		BVHNode *root = branches_array + 0;
 		refit_kdop_hull(tree, root, 0, num_leafs);
 		root->main_axis = get_largest_axis(root->bv) / 2;
 		root->totnode = 1;
@@ -729,27 +722,27 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 		return;
 	}
 
-	branches_array--;	//Implicit trees use 1-based indexs
+	branches_array--;   //Implicit trees use 1-based indexs
 	
 	build_implicit_tree_helper(tree, &data);
 
 	//Loop tree levels (log N) loops
-	for (i=1, depth = 1; i <= num_branches; i = i*tree_type + tree_offset, depth++) {
-		const int first_of_next_level = i*tree_type + tree_offset;
-		const int  end_j = MIN2(first_of_next_level, num_branches + 1);	//index of last branch on this level
+	for (i = 1, depth = 1; i <= num_branches; i = i * tree_type + tree_offset, depth++) {
+		const int first_of_next_level = i * tree_type + tree_offset;
+		const int end_j = MIN2(first_of_next_level, num_branches + 1);  //index of last branch on this level
 		int j;
 
 		//Loop all branches on this level
 #pragma omp parallel for private(j) schedule(static)
 		for (j = i; j < end_j; j++) {
 			int k;
-			const int parent_level_index= j-i;
-			BVHNode* parent = branches_array + j;
-			int nth_positions[ MAX_TREETYPE + 1];
+			const int parent_level_index = j - i;
+			BVHNode *parent = branches_array + j;
+			int nth_positions[MAX_TREETYPE + 1];
 			char split_axis;
 
 			int parent_leafs_begin = implicit_leafs_index(&data, depth, parent_level_index);
-			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index+1);
+			int parent_leafs_end   = implicit_leafs_index(&data, depth, parent_level_index + 1);
 
 			//This calculates the bounding box of this branch
 			//and chooses the largest axis as the axis to divide leafs
@@ -763,12 +756,12 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 			//Only to assure that the elements are partioned on a way that each child takes the elements
 			//it would take in case the whole array was sorted.
 			//Split_leafs takes care of that "sort" problem.
-			nth_positions[        0] = parent_leafs_begin;
+			nth_positions[0] = parent_leafs_begin;
 			nth_positions[tree_type] = parent_leafs_end;
 			for (k = 1; k < tree_type; k++) {
 				int child_index = j * tree_type + tree_offset + k;
 				int child_level_index = child_index - first_of_next_level; //child level index
-				nth_positions[k] = implicit_leafs_index(&data, depth+1, child_level_index);
+				nth_positions[k] = implicit_leafs_index(&data, depth + 1, child_level_index);
 			}
 
 			split_leafs(leafs_array, nth_positions, tree_type, split_axis);
@@ -780,22 +773,22 @@ static void non_recursive_bvh_div_nodes(BVHTree *tree, BVHNode *branches_array, 
 				int child_index = j * tree_type + tree_offset + k;
 				int child_level_index = child_index - first_of_next_level; //child level index
 
-				int child_leafs_begin = implicit_leafs_index(&data, depth+1, child_level_index);
-				int child_leafs_end   = implicit_leafs_index(&data, depth+1, child_level_index+1);
+				int child_leafs_begin = implicit_leafs_index(&data, depth + 1, child_level_index);
+				int child_leafs_end   = implicit_leafs_index(&data, depth + 1, child_level_index + 1);
 
 				if (child_leafs_end - child_leafs_begin > 1) {
 					parent->children[k] = branches_array + child_index;
 					parent->children[k]->parent = parent;
 				}
 				else if (child_leafs_end - child_leafs_begin == 1) {
-					parent->children[k] = leafs_array[ child_leafs_begin ];
+					parent->children[k] = leafs_array[child_leafs_begin];
 					parent->children[k]->parent = parent;
 				}
 				else {
 					break;
 				}
 
-				parent->totnode = k+1;
+				parent->totnode = k + 1;
 			}
 		}
 	}
@@ -858,27 +851,27 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		//Allocate arrays
 		numnodes = maxsize + implicit_needed_branches(tree_type, maxsize) + tree_type;
 
-		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *)*numnodes, "BVHNodes");
+		tree->nodes = (BVHNode **)MEM_callocN(sizeof(BVHNode *) * numnodes, "BVHNodes");
 		
 		if (!tree->nodes) {
 			MEM_freeN(tree);
 			return NULL;
 		}
 		
-		tree->nodebv = (float*)MEM_callocN(sizeof(float)* axis * numnodes, "BVHNodeBV");
+		tree->nodebv = (float *)MEM_callocN(sizeof(float) * axis * numnodes, "BVHNodeBV");
 		if (!tree->nodebv) {
 			MEM_freeN(tree->nodes);
 			MEM_freeN(tree);
 		}
 
-		tree->nodechild = (BVHNode**)MEM_callocN(sizeof(BVHNode*) * tree_type * numnodes, "BVHNodeBV");
+		tree->nodechild = (BVHNode **)MEM_callocN(sizeof(BVHNode *) * tree_type * numnodes, "BVHNodeBV");
 		if (!tree->nodechild) {
 			MEM_freeN(tree->nodebv);
 			MEM_freeN(tree->nodes);
 			MEM_freeN(tree);
 		}
 
-		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode)* numnodes, "BVHNodeArray");
+		tree->nodearray = (BVHNode *)MEM_callocN(sizeof(BVHNode) * numnodes, "BVHNodeArray");
 		
 		if (!tree->nodearray) {
 			MEM_freeN(tree->nodechild);
@@ -889,7 +882,7 @@ BVHTree *BLI_bvhtree_new(int maxsize, float epsilon, char tree_type, char axis)
 		}
 
 		//link the dynamic bv and child links
-		for (i=0; i< numnodes; i++) {
+		for (i = 0; i < numnodes; i++) {
 			tree->nodearray[i].bv = tree->nodebv + i * axis;
 			tree->nodearray[i].children = tree->nodechild + i * tree_type;
 		}
@@ -914,8 +907,8 @@ void BLI_bvhtree_balance(BVHTree *tree)
 {
 	int i;
 
-	BVHNode*  branches_array = tree->nodearray + tree->totleaf;
-	BVHNode** leafs_array    = tree->nodes;
+	BVHNode *branches_array = tree->nodearray + tree->totleaf;
+	BVHNode **leafs_array    = tree->nodes;
 
 	//This function should only be called once (some big bug goes here if its being called more than once per tree)
 	assert(tree->totbranch == 0);
@@ -942,7 +935,7 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints)
 	if (tree->totbranch > 0)
 		return 0;
 	
-	if (tree->totleaf+1 >= MEM_allocN_len(tree->nodes)/sizeof(*(tree->nodes)))
+	if (tree->totleaf + 1 >= MEM_allocN_len(tree->nodes) / sizeof(*(tree->nodes)))
 		return 0;
 	
 	// TODO check if have enough nodes in array
@@ -951,7 +944,7 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints)
 	tree->totleaf++;
 	
 	create_kdop_hull(tree, node, co, numpoints, 0);
-	node->index= index;
+	node->index = index;
 	
 	// inflate the bv with some epsilon
 	for (i = tree->start_axis; i < tree->stop_axis; i++) {
@@ -967,7 +960,7 @@ int BLI_bvhtree_insert(BVHTree *tree, int index, const float *co, int numpoints)
 int BLI_bvhtree_update_node(BVHTree *tree, int index, const float *co, const float *co_moving, int numpoints)
 {
 	int i;
-	BVHNode *node= NULL;
+	BVHNode *node = NULL;
 	
 	// check if index exists
 	if (index > tree->totleaf)
@@ -996,8 +989,8 @@ void BLI_bvhtree_update_tree(BVHTree *tree)
 	//TRICKY: the way we build the tree all the childs have an index greater than the parent
 	//This allows us todo a bottom up update by starting on the biger numbered branch
 
-	BVHNode** root  = tree->nodes + tree->totleaf;
-	BVHNode** index = tree->nodes + tree->totleaf + tree->totbranch-1;
+	BVHNode **root  = tree->nodes + tree->totleaf;
+	BVHNode **index = tree->nodes + tree->totleaf + tree->totbranch - 1;
 
 	for (; index >= root; index--)
 		node_join(tree, *index);
@@ -1018,13 +1011,13 @@ static int tree_overlap(BVHNode *node1, BVHNode *node2, int start_axis, int stop
 	float *bv1 = node1->bv;
 	float *bv2 = node2->bv;
 
-	float *bv1_end = bv1 + (stop_axis<<1);
+	float *bv1_end = bv1 + (stop_axis << 1);
 		
-	bv1 += start_axis<<1;
-	bv2 += start_axis<<1;
+	bv1 += start_axis << 1;
+	bv2 += start_axis << 1;
 	
 	// test all axis if min + max overlap
-	for (; bv1 != bv1_end; bv1+=2, bv2+=2) {
+	for (; bv1 != bv1_end; bv1 += 2, bv2 += 2) {
 		if ((*(bv1) > *(bv2 + 1)) || (*(bv2) > *(bv1 + 1))) 
 			return 0;
 	}
@@ -1048,7 +1041,7 @@ static void traverse(BVHOverlapData *data, BVHNode *node1, BVHNode *node2)
 					
 				if (data->i >= data->max_overlap) {
 					// try to make alloc'ed memory bigger
-					data->overlap = realloc(data->overlap, sizeof(BVHTreeOverlap)*data->max_overlap*2);
+					data->overlap = realloc(data->overlap, sizeof(BVHTreeOverlap) * data->max_overlap * 2);
 					
 					if (!data->overlap) {
 						printf("Out of Memory in traverse\n");
@@ -1095,19 +1088,19 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	if (!tree_overlap(tree1->nodes[tree1->totleaf], tree2->nodes[tree2->totleaf], MIN2(tree1->start_axis, tree2->start_axis), MIN2(tree1->stop_axis, tree2->stop_axis)))
 		return NULL;
 
-	data = MEM_callocN(sizeof(BVHOverlapData *)* tree1->tree_type, "BVHOverlapData_star");
+	data = MEM_callocN(sizeof(BVHOverlapData *) * tree1->tree_type, "BVHOverlapData_star");
 	
 	for (j = 0; j < tree1->tree_type; j++) {
 		data[j] = (BVHOverlapData *)MEM_callocN(sizeof(BVHOverlapData), "BVHOverlapData");
 		
 		// init BVHOverlapData
-		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap)*MAX2(tree1->totleaf, tree2->totleaf));
+		data[j]->overlap = (BVHTreeOverlap *)malloc(sizeof(BVHTreeOverlap) * MAX2(tree1->totleaf, tree2->totleaf));
 		data[j]->tree1 = tree1;
 		data[j]->tree2 = tree2;
 		data[j]->max_overlap = MAX2(tree1->totleaf, tree2->totleaf);
 		data[j]->i = 0;
 		data[j]->start_axis = MIN2(tree1->start_axis, tree2->start_axis);
-		data[j]->stop_axis  = MIN2(tree1->stop_axis,  tree2->stop_axis );
+		data[j]->stop_axis  = MIN2(tree1->stop_axis,  tree2->stop_axis);
 	}
 
 #pragma omp parallel for private(j) schedule(static)
@@ -1118,11 +1111,11 @@ BVHTreeOverlap *BLI_bvhtree_overlap(BVHTree *tree1, BVHTree *tree2, unsigned int
 	for (j = 0; j < tree1->tree_type; j++)
 		total += data[j]->i;
 	
-	to = overlap = (BVHTreeOverlap *)MEM_callocN(sizeof(BVHTreeOverlap)*total, "BVHTreeOverlap");
+	to = overlap = (BVHTreeOverlap *)MEM_callocN(sizeof(BVHTreeOverlap) * total, "BVHTreeOverlap");
 	
 	for (j = 0; j < tree1->tree_type; j++) {
-		memcpy(to, data[j]->overlap, data[j]->i*sizeof(BVHTreeOverlap));
-		to+=data[j]->i;
+		memcpy(to, data[j]->overlap, data[j]->i * sizeof(BVHTreeOverlap));
+		to += data[j]->i;
 	}
 	
 	for (j = 0; j < tree1->tree_type; j++) {
@@ -1142,7 +1135,7 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 	const float *bv = node->bv;
 
 	//nearest on AABB hull
-	for (i=0; i != 3; i++, bv += 2) {
+	for (i = 0; i != 3; i++, bv += 2) {
 		if (bv[0] > proj[i])
 			nearest[i] = bv[0];
 		else if (bv[1] < proj[i])
@@ -1154,9 +1147,9 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 #if 0
 	//nearest on a general hull
 	copy_v3_v3(nearest, data->co);
-	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv+=2)
+	for (i = data->tree->start_axis; i != data->tree->stop_axis; i++, bv += 2)
 	{
-		float proj = dot_v3v3( nearest, KDOP_AXES[i]);
+		float proj = dot_v3v3(nearest, KDOP_AXES[i]);
 		float dl = bv[0] - proj;
 		float du = bv[1] - proj;
 
@@ -1173,14 +1166,13 @@ static float calc_nearest_point(const float proj[3], BVHNode *node, float *neare
 }
 
 
-typedef struct NodeDistance
-{
+typedef struct NodeDistance {
 	BVHNode *node;
 	float dist;
 
 } NodeDistance;
 
-#define NodeDistance_priority(a, b)	( (a).dist < (b).dist )
+#define NodeDistance_priority(a, b) ( (a).dist < (b).dist)
 
 // TODO: use a priority queue to reduce the number of nodes looked on
 static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
@@ -1189,8 +1181,8 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		if (data->callback)
 			data->callback(data->userdata, node->index, data->co, &data->nearest);
 		else {
-			data->nearest.index	= node->index;
-			data->nearest.dist	= calc_nearest_point(data->proj, node, data->nearest.co);
+			data->nearest.index = node->index;
+			data->nearest.dist  = calc_nearest_point(data->proj, node, data->nearest.co);
 		}
 	}
 	else {
@@ -1198,16 +1190,16 @@ static void dfs_find_nearest_dfs(BVHNearestData *data, BVHNode *node)
 		int i;
 		float nearest[3];
 
-		if (data->proj[ node->main_axis ] <= node->children[0]->bv[node->main_axis*2+1]) {
+		if (data->proj[node->main_axis] <= node->children[0]->bv[node->main_axis * 2 + 1]) {
 
-			for (i=0; i != node->totnode; i++) {
-				if ( calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
+			for (i = 0; i != node->totnode; i++) {
+				if (calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
 		else {
-			for (i=node->totnode-1; i >= 0 ; i--) {
-				if ( calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
+			for (i = node->totnode - 1; i >= 0; i--) {
+				if (calc_nearest_point(data->proj, node->children[i], nearest) >= data->nearest.dist) continue;
 				dfs_find_nearest_dfs(data, node->children[i]);
 			}
 		}
@@ -1242,8 +1234,8 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 {
 	int i;
 	NodeDistance default_heap[DEFAULT_FIND_NEAREST_HEAP_SIZE];
-	NodeDistance *heap=default_heap, current;
-	int heap_size = 0, max_heap_size = sizeof(default_heap)/sizeof(default_heap[0]);
+	NodeDistance *heap = default_heap, current;
+	int heap_size = 0, max_heap_size = sizeof(default_heap) / sizeof(default_heap[0]);
 	float nearest[3];
 
 	int callbacks = 0, push_heaps = 0;
@@ -1260,7 +1252,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 	while (current.dist < data->nearest.dist)
 	{
 //		printf("%f : %f\n", current.dist, data->nearest.dist);
-		for (i=0; i< current.node->totnode; i++)
+		for (i = 0; i < current.node->totnode; i++)
 		{
 			BVHNode *child = current.node->children[i];
 			if (child->totnode == 0)
@@ -1268,11 +1260,10 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 				callbacks++;
 				dfs_find_nearest_dfs(data, child);
 			}
-			else
-			{
+			else {
 				//adjust heap size
 				if ((heap_size >= max_heap_size) &&
-				    ADJUST_MEMORY(default_heap, (void**)&heap, heap_size+1, &max_heap_size, sizeof(heap[0])) == FALSE)
+				    ADJUST_MEMORY(default_heap, (void **)&heap, heap_size + 1, &max_heap_size, sizeof(heap[0])) == FALSE)
 				{
 					printf("WARNING: bvh_find_nearest got out of memory\n");
 
@@ -1289,7 +1280,7 @@ static void bfs_find_nearest(BVHNearestData *data, BVHNode *node)
 				heap_size++;
 
 				NodeDistance_push_heap(heap, heap_size);
-	//			PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
+				//			PUSH_HEAP_BODY(NodeDistance, NodeDistance_priority, heap, heap_size);
 				push_heaps++;
 			}
 		}
@@ -1315,7 +1306,7 @@ int BLI_bvhtree_find_nearest(BVHTree *tree, const float co[3], BVHTreeNearest *n
 	int i;
 
 	BVHNearestData data;
-	BVHNode* root = tree->nodes[tree->totleaf];
+	BVHNode *root = tree->nodes[tree->totleaf];
 
 	//init data to search
 	data.tree = tree;
@@ -1363,7 +1354,7 @@ static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 
 	float low = 0, upper = data->hit.dist;
 
-	for (i=0; i != 3; i++, bv += 2) {
+	for (i = 0; i != 3; i++, bv += 2) {
 		if (data->ray_dot_axis[i] == 0.0f) {
 			//axis aligned ray
 			if (data->ray.origin[i] < bv[0] - data->ray.radius ||
@@ -1377,11 +1368,11 @@ static float ray_nearest_hit(BVHRayCastData *data, float *bv)
 			float lu = (bv[1] + data->ray.radius - data->ray.origin[i]) / data->ray_dot_axis[i];
 
 			if (data->ray_dot_axis[i] > 0.0f) {
-				if (ll > low)   low = ll;
+				if (ll > low) low = ll;
 				if (lu < upper) upper = lu;
 			}
 			else {
-				if (lu > low)   low = lu;
+				if (lu > low) low = lu;
 				if (ll < upper) upper = ll;
 			}
 	
@@ -1433,20 +1424,20 @@ static void dfs_raycast(BVHRayCastData *data, BVHNode *node)
 			data->callback(data->userdata, node->index, &data->ray, &data->hit);
 		}
 		else {
-			data->hit.index	= node->index;
+			data->hit.index = node->index;
 			data->hit.dist  = dist;
 			madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
 		}
 	}
 	else {
 		//pick loop direction to dive into the tree (based on ray direction and split axis)
-		if (data->ray_dot_axis[ (int)node->main_axis ] > 0.0f) {
-			for (i=0; i != node->totnode; i++) {
+		if (data->ray_dot_axis[(int)node->main_axis] > 0.0f) {
+			for (i = 0; i != node->totnode; i++) {
 				dfs_raycast(data, node->children[i]);
 			}
 		}
 		else {
-			for (i=node->totnode-1; i >= 0; i--) {
+			for (i = node->totnode - 1; i >= 0; i--) {
 				dfs_raycast(data, node->children[i]);
 			}
 		}
@@ -1467,19 +1458,18 @@ static void iterative_raycast(BVHRayCastData *data, BVHNode *node)
 
 		if (node->totnode == 0)
 		{
-			if (data->callback)
+			if (data->callback) {
 				data->callback(data->userdata, node->index, &data->ray, &data->hit);
-			else
-			{
-				data->hit.index	= node->index;
+			}
+			else {
+				data->hit.index = node->index;
 				data->hit.dist  = dist;
 				madd_v3_v3v3fl(data->hit.co, data->ray.origin, data->ray.direction, dist);
 			}
 			
 			node = node->skip[1];
 		}
-		else
-		{
+		else {
 			node = node->children[0];
 		}	
 	}
@@ -1490,7 +1480,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 {
 	int i;
 	BVHRayCastData data;
-	BVHNode * root = tree->nodes[tree->totleaf];
+	BVHNode *root = tree->nodes[tree->totleaf];
 
 	data.tree = tree;
 
@@ -1503,17 +1493,17 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 
 	normalize_v3(data.ray.direction);
 
-	for (i=0; i<3; i++) {
+	for (i = 0; i < 3; i++) {
 		data.ray_dot_axis[i] = dot_v3v3(data.ray.direction, KDOP_AXES[i]);
 		data.idot_axis[i] = 1.0f / data.ray_dot_axis[i];
 
 		if (fabsf(data.ray_dot_axis[i]) < FLT_EPSILON) {
 			data.ray_dot_axis[i] = 0.0;
 		}
-		data.index[2*i] = data.idot_axis[i] < 0.0f ? 1 : 0;
-		data.index[2*i+1] = 1 - data.index[2*i];
-		data.index[2*i]	  += 2*i;
-		data.index[2*i+1] += 2*i;
+		data.index[2 * i] = data.idot_axis[i] < 0.0f ? 1 : 0;
+		data.index[2 * i + 1] = 1 - data.index[2 * i];
+		data.index[2 * i]   += 2 * i;
+		data.index[2 * i + 1] += 2 * i;
 	}
 
 
@@ -1527,7 +1517,7 @@ int BLI_bvhtree_ray_cast(BVHTree *tree, const float co[3], const float dir[3], f
 	if (root) {
 		dfs_raycast(&data, root);
 //		iterative_raycast(&data, root);
-	 }
+	}
 
 
 	if (hit)
@@ -1572,11 +1562,10 @@ float BLI_bvhtree_bb_raycast(float *bv, const float light_start[3], const float 
  * Allocs and fills an array with the indexs of node that are on the given spherical range (center, radius) 
  * Returns the size of the array.
  */
-typedef struct RangeQueryData
-{
+typedef struct RangeQueryData {
 	BVHTree *tree;
 	const float *center;
-	float radius;			//squared radius
+	float radius;           //squared radius
 
 	int hits;
 
@@ -1590,7 +1579,7 @@ typedef struct RangeQueryData
 static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 {
 	if (node->totnode == 0) {
-#if 0	/*UNUSED*/
+#if 0   /*UNUSED*/
 		//Calculate the node min-coords (if the node was a point then this is the point coordinates)
 		float co[3];
 		co[0] = node->bv[0];
@@ -1600,7 +1589,7 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 	}
 	else {
 		int i;
-		for (i=0; i != node->totnode; i++) {
+		for (i = 0; i != node->totnode; i++) {
 			float nearest[3];
 			float dist = calc_nearest_point(data->center, node->children[i], nearest);
 			if (dist < data->radius) {
@@ -1618,12 +1607,12 @@ static void dfs_range_query(RangeQueryData *data, BVHNode *node)
 
 int BLI_bvhtree_range_query(BVHTree *tree, const float co[3], float radius, BVHTree_RangeQuery callback, void *userdata)
 {
-	BVHNode * root = tree->nodes[tree->totleaf];
+	BVHNode *root = tree->nodes[tree->totleaf];
 
 	RangeQueryData data;
 	data.tree = tree;
 	data.center = co;
-	data.radius = radius*radius;
+	data.radius = radius * radius;
 	data.hits = 0;
 
 	data.callback = callback;

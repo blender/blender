@@ -32,8 +32,8 @@
  *  \since March 2001
  *  \author nzc
  */
-#define RET_OK		0
-#define RET_ERROR	1
+#define RET_OK      0
+#define RET_ERROR   1
 
 struct bSound;
 struct Image;

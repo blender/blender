@@ -105,7 +105,7 @@ static void do_displace(bNode *node, CompBuf *stackbuf, CompBuf *cbuf, CompBuf *
 			qd_getPixel(vecbuf, x-vecbuf->xof+1, y-vecbuf->yof, vecdx);
 			qd_getPixel(vecbuf, x-vecbuf->xof, y-vecbuf->yof+1, vecdy);
 			d_dx = vecdx[0] * xs;
-			d_dy = vecdy[0] * ys;
+			d_dy = vecdy[1] * ys;
 
 			/* clamp derivatives to minimum displacement distance in UV space */
 			dxt = p_dx - d_dx;

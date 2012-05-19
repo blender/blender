@@ -3233,9 +3233,9 @@ static void springs_from_mesh(Object *ob)
 	sb= ob->soft;
 	if (me && sb) {
 	/* using bp->origS as a container for spring calcualtions here
-	** will be overwritten sbObjectStep() to receive
-	** actual modifier stack positions
-	*/
+	 * will be overwritten sbObjectStep() to receive
+	 * actual modifier stack positions
+	 */
 		if (me->totvert) {
 			bp= ob->soft->bpoint;
 			for (a=0; a<me->totvert; a++, bp++) {
@@ -3283,10 +3283,10 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 
 	for (a=0; a<me->totvert; a++, bp++) {
 		/* get scalar values needed  *per vertex* from vertex group functions,
-		so we can *paint* them nicly ..
-		they are normalized [0.0..1.0] so may be we need amplitude for scale
-		which can be done by caller but still .. i'd like it to go this way
-		*/
+		 * so we can *paint* them nicly ..
+		 * they are normalized [0.0..1.0] so may be we need amplitude for scale
+		 * which can be done by caller but still .. i'd like it to go this way
+		 */
 
 		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { /* even this is a deprecated evil hack */
 		   /* I'd like to have it  .. if (sb->namedVG_Goal[0]) */
@@ -3306,8 +3306,8 @@ static void mesh_to_softbody(Scene *scene, Object *ob)
 		}
 
 		/* to proove the concept
-		this enables per vertex *mass painting*
-		*/
+		 * this enables per vertex *mass painting*
+		 */
 
 		if (sb->namedVG_Mass[0]) {
 			int grp= defgroup_name_index (ob, sb->namedVG_Mass);
@@ -3411,9 +3411,9 @@ static void reference_to_scratch(Object *ob)
 }
 
 /*
-helper function to get proper spring length
-when object is rescaled
-*/
+ * helper function to get proper spring length
+ * when object is rescaled
+ */
 static float globallen(float *v1, float *v2, Object *ob)
 {
 	float p1[3], p2[3];
@@ -3669,7 +3669,7 @@ static void sb_new_scratch(SoftBody *sb)
 {
 	if (!sb) return;
 	sb->scratch = MEM_callocN(sizeof(SBScratch), "SBScratch");
-	sb->scratch->colliderhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "sb_new_scratch gh");
+	sb->scratch->colliderhash = BLI_ghash_ptr_new("sb_new_scratch gh");
 	sb->scratch->bodyface = NULL;
 	sb->scratch->totface = 0;
 	sb->scratch->aabbmax[0]=sb->scratch->aabbmax[1]=sb->scratch->aabbmax[2] = 1.0e30f;
@@ -3793,7 +3793,7 @@ static void softbody_update_positions(Object *ob, SoftBody *sb, float (*vertexCo
 		/* vertexCos came from local world, go global */
 		mul_m4_v3(ob->obmat, bp->origE);
 		/* just to be save give bp->origT a defined value
-		will be calulated in interpolate_exciter()*/
+		 * will be calulated in interpolate_exciter()*/
 		copy_v3_v3(bp->origT, bp->origE);
 	}
 }

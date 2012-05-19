@@ -41,8 +41,7 @@ struct ScanFillVert;
 extern "C" {
 #endif
 
-typedef struct ScanFillContext
-{
+typedef struct ScanFillContext {
 	ListBase fillvertbase;
 	ListBase filledgebase;
 	ListBase fillfacebase;
@@ -61,13 +60,12 @@ typedef struct ScanFillContext
 } ScanFillContext;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
-typedef struct ScanFillVert
-{
+typedef struct ScanFillVert {
 	struct ScanFillVert *next, *prev;
 	union {
 		struct ScanFillVert *v;
 		void                *p;
-		intptr_t             l;
+		intptr_t l;
 	} tmp;
 	float co[3]; /* vertex location */
 	float xy[2]; /* 2D copy of vertex location (using dominant axis) */
@@ -76,16 +74,14 @@ typedef struct ScanFillVert
 	unsigned char f, h;
 } ScanFillVert;
 
-typedef struct ScanFillEdge
-{
+typedef struct ScanFillEdge {
 	struct ScanFillEdge *next, *prev;
 	struct ScanFillVert *v1, *v2;
 	short poly_nr;
 	unsigned char f;
 } ScanFillEdge;
 
-typedef struct ScanFillFace
-{
+typedef struct ScanFillFace {
 	struct ScanFillFace *next, *prev;
 	struct ScanFillVert *v1, *v2, *v3;
 } ScanFillFace;
@@ -97,7 +93,7 @@ struct ScanFillEdge *BLI_scanfill_edge_add(ScanFillContext *sf_ctx, struct ScanF
 int BLI_scanfill_begin(ScanFillContext *sf_ctx);
 int BLI_scanfill_calc(ScanFillContext *sf_ctx, const short do_quad_tri_speedup);
 int BLI_scanfill_calc_ex(ScanFillContext *sf_ctx, const short do_quad_tri_speedup,
-                    const float nor_proj[3]);
+                         const float nor_proj[3]);
 void BLI_scanfill_end(ScanFillContext *sf_ctx);
 
 /* These callbacks are needed to make the lib finction properly */
@@ -108,7 +104,7 @@ void BLI_scanfill_end(ScanFillContext *sf_ctx);
  * \param f The function to use as callback
  * \attention used in creator.c
  */
-void BLI_setErrorCallBack(void (*f)(const char*));
+void BLI_setErrorCallBack(void (*f)(const char *));
 
 /**
  * Set a function to be able to interrupt the execution of processing

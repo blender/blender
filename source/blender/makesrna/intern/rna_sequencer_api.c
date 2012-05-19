@@ -202,7 +202,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 
 	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SOUND, sound->name);
 	seq->sound = sound;
-	seq->len = ceil(sound_get_length(sound) * FPS);
+	seq->len = ceil((double)sound_get_length(sound) * FPS);
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 
@@ -213,8 +213,8 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 	return seq;
 }
 #else /* WITH_AUDASPACE */
-static Sequence *rna_Sequences_new_sound(ID *UNUSED(id), Editing *UNUSED(ed), bMain *UNUSED(main), ReportList *UNUSED(reports),
-                                         const char *UNUSED(name), bSound *UNUSED(sound), int UNUSED(channel), int UNUSED(start_frame))
+static Sequence *rna_Sequences_new_sound(ID *UNUSED(id), Editing *UNUSED(ed), Main *UNUSED(bmain), ReportList *reports,
+                                         const char *UNUSED(name), const char *UNUSED(file), int UNUSED(channel), int UNUSED(start_frame))
 {
 	BKE_report(reports, RPT_ERROR, "Blender compiled without Audaspace support.");
 	return NULL;
@@ -316,18 +316,33 @@ static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *f
 	return se;
 }
 
-static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports)
+static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
+	int i;
 	Scene *scene = (Scene *)id;
+	StripElem *new_seq, *se;
 
 	if (seq->len == 1) {
 		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: can not pop the last element");
 		return;
 	}
 
-	/* just chop off the end ...what could possibly go wrong? */
-	seq->strip->stripdata = MEM_reallocN(seq->strip->stripdata, sizeof(StripElem) * (seq->len - 1));
+	if (seq->len <= index) {
+		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: index out of range");
+		return;
+	}
+
+	new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
 	seq->len--;
+
+	for (i = 0, se = seq->strip->stripdata; i < seq->len; i++, se++) {
+		if (i == index)
+			se++;
+		BLI_strncpy(new_seq[i].name, se->name, sizeof(se->name));
+	}
+
+	MEM_freeN(seq->strip->stripdata);
+	seq->strip->stripdata = new_seq;
 
 	calc_sequence_disp(scene, seq);
 
@@ -379,6 +394,8 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "pop", "rna_SequenceElements_pop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Pop an image off the collection");
+	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of image to remove", 0, INT_MAX);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)

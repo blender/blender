@@ -611,7 +611,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_tripod_solver", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_boolean_sdna(prop, NULL, "motion_flag", TRACKING_MOTION_TRIPOD);
-	RNA_def_property_ui_text(prop, "Tripod Motion", "Tracking footage is shooted by tripod camera and should use special sovler for this");
+	RNA_def_property_ui_text(prop, "Tripod Motion", "Use special solver to track a stable camera position, such as a tripod");
 
 	/* limit frames */
 	prop = RNA_def_property(srna, "default_frames_limit", PROP_INT, PROP_NONE);

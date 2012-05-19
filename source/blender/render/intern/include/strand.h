@@ -93,7 +93,7 @@ typedef struct StrandShadeCache StrandShadeCache;
 
 void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint);
 void render_strand_segment(struct Render *re, float winmat[][4], struct StrandPart *spart, struct ZSpan *zspan, int totzspan, StrandSegment *sseg);
-void strand_minmax(struct StrandRen *strand, float *min, float *max, float width);
+void strand_minmax(struct StrandRen *strand, float min[3], float max[3], const float width);
 
 struct StrandSurface *cache_strand_surface(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, float mat[][4], int timeoffset);
 void free_strand_surface(struct Render *re);

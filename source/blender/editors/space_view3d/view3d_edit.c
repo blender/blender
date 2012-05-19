@@ -431,7 +431,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 
 	if (vod->use_dyn_ofs) {
 		/* If there's no selection, lastofs is unmodified and last value since static */
-		calculateTransformCenter(C, V3D_CENTROID, lastofs);
+		calculateTransformCenter(C, V3D_CENTROID, lastofs, NULL);
 		negate_v3_v3(vod->dyn_ofs, lastofs);
 	}
 	else if (U.uiflag & USER_ORBIT_ZBUF) {
@@ -1423,7 +1423,8 @@ void viewzoom_modal_keymap(wmKeyConfig *keyconf)
 		{VIEWROT_MODAL_SWITCH_ROTATE, "SWITCH_TO_ROTATE", 0, "Switch to Rotate"},
 		{VIEWROT_MODAL_SWITCH_MOVE, "SWITCH_TO_MOVE", 0, "Switch to Move"},
 
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Zoom Modal");
 
@@ -2175,7 +2176,7 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 
 
 	if (obedit) {
-		ok = minmax_verts(obedit, min, max);    /* only selected */
+		ok = ED_view3d_minmax_verts(obedit, min, max);    /* only selected */
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
 		if (ob->pose) {
@@ -2189,9 +2190,9 @@ static int viewselected_exec(bContext *C, wmOperator *UNUSED(op))
 						bPoseChannel *pchan_tx = pchan->custom_tx ? pchan->custom_tx : pchan;
 						ok = 1;
 						mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_head);
-						DO_MINMAX(vec, min, max);
+						minmax_v3v3_v3(min, max, vec);
 						mul_v3_m4v3(vec, ob->obmat, pchan_tx->pose_tail);
-						DO_MINMAX(vec, min, max);
+						minmax_v3v3_v3(min, max, vec);
 					}
 				}
 			}

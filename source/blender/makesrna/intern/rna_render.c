@@ -184,10 +184,10 @@ static StructRNA *rna_RenderEngine_register(Main *bmain, ReportList *reports, vo
 	et->ext.free = free;
 	RNA_struct_blender_type_set(et->ext.srna, et);
 
-	et->update = (have_function[0])? engine_update: NULL;
-	et->render = (have_function[1])? engine_render: NULL;
-	et->view_update = (have_function[2])? engine_view_update: NULL;
-	et->view_draw = (have_function[3])? engine_view_draw: NULL;
+	et->update = (have_function[0]) ? engine_update : NULL;
+	et->render = (have_function[1]) ? engine_render : NULL;
+	et->view_update = (have_function[2]) ? engine_view_update : NULL;
+	et->view_draw = (have_function[3]) ? engine_view_draw : NULL;
 
 	BLI_addtail(&R_engines, et);
 
@@ -200,66 +200,66 @@ static void **rna_RenderEngine_instance(PointerRNA *ptr)
 	return &engine->py_instance;
 }
 
-static StructRNA* rna_RenderEngine_refine(PointerRNA *ptr)
+static StructRNA *rna_RenderEngine_refine(PointerRNA *ptr)
 {
-	RenderEngine *engine = (RenderEngine*)ptr->data;
-	return (engine->type && engine->type->ext.srna)? engine->type->ext.srna: &RNA_RenderEngine;
+	RenderEngine *engine = (RenderEngine *)ptr->data;
+	return (engine->type && engine->type->ext.srna) ? engine->type->ext.srna : &RNA_RenderEngine;
 }
 
 static void rna_RenderResult_layers_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	RenderResult *rr = (RenderResult*)ptr->data;
+	RenderResult *rr = (RenderResult *)ptr->data;
 	rna_iterator_listbase_begin(iter, &rr->layers, NULL);
 }
 
 static void rna_RenderLayer_passes_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	RenderLayer *rl = (RenderLayer*)ptr->data;
+	RenderLayer *rl = (RenderLayer *)ptr->data;
 	rna_iterator_listbase_begin(iter, &rl->passes, NULL);
 }
 
 static int rna_RenderLayer_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-	RenderLayer *rl = (RenderLayer*)ptr->data;
+	RenderLayer *rl = (RenderLayer *)ptr->data;
 
-	length[0] = rl->rectx*rl->recty;
+	length[0] = rl->rectx * rl->recty;
 	length[1] = 4;
 
-	return length[0]*length[1];
+	return length[0] * length[1];
 }
 
 static void rna_RenderLayer_rect_get(PointerRNA *ptr, float *values)
 {
-	RenderLayer *rl = (RenderLayer*)ptr->data;
-	memcpy(values, rl->rectf, sizeof(float)*rl->rectx*rl->recty*4);
+	RenderLayer *rl = (RenderLayer *)ptr->data;
+	memcpy(values, rl->rectf, sizeof(float) * rl->rectx * rl->recty * 4);
 }
 
 void rna_RenderLayer_rect_set(PointerRNA *ptr, const float *values)
 {
-	RenderLayer *rl = (RenderLayer*)ptr->data;
-	memcpy(rl->rectf, values, sizeof(float)*rl->rectx*rl->recty*4);
+	RenderLayer *rl = (RenderLayer *)ptr->data;
+	memcpy(rl->rectf, values, sizeof(float) * rl->rectx * rl->recty * 4);
 }
 
 static int rna_RenderPass_rect_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
 {
-	RenderPass *rpass = (RenderPass*)ptr->data;
+	RenderPass *rpass = (RenderPass *)ptr->data;
 
-	length[0] = rpass->rectx*rpass->recty;
+	length[0] = rpass->rectx * rpass->recty;
 	length[1] = rpass->channels;
 
-	return length[0]*length[1];
+	return length[0] * length[1];
 }
 
 static void rna_RenderPass_rect_get(PointerRNA *ptr, float *values)
 {
-	RenderPass *rpass = (RenderPass*)ptr->data;
-	memcpy(values, rpass->rect, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
+	RenderPass *rpass = (RenderPass *)ptr->data;
+	memcpy(values, rpass->rect, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 void rna_RenderPass_rect_set(PointerRNA *ptr, const float *values)
 {
-	RenderPass *rpass = (RenderPass*)ptr->data;
-	memcpy(rpass->rect, values, sizeof(float)*rpass->rectx*rpass->recty*rpass->channels);
+	RenderPass *rpass = (RenderPass *)ptr->data;
+	memcpy(rpass->rect, values, sizeof(float) * rpass->rectx * rpass->recty * rpass->channels);
 }
 
 #else /* RNA_RUNTIME */
@@ -364,7 +364,7 @@ static void rna_def_render_engine(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "bl_idname", PROP_STRING, PROP_NONE);
 	RNA_def_property_string_sdna(prop, NULL, "type->idname");
-	RNA_def_property_flag(prop, PROP_REGISTER|PROP_NEVER_CLAMP);
+	RNA_def_property_flag(prop, PROP_REGISTER | PROP_NEVER_CLAMP);
 
 	prop = RNA_def_property(srna, "bl_label", PROP_STRING, PROP_TRANSLATE);
 	RNA_def_property_string_sdna(prop, NULL, "type->name");
@@ -398,8 +398,8 @@ static void rna_def_render_result(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Copies the pixels of this render result from an image file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	parm = RNA_def_string_file_name(func, "filename", "", FILE_MAX, "File Name",
-	                               "Filename to load into this render tile, must be no smaller than "
-	                               "the render result");
+	                                "Filename to load into this render tile, must be no smaller than "
+	                                "the render result");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 
 	RNA_define_verify_sdna(0);
@@ -434,7 +434,7 @@ static void rna_def_render_layer(BlenderRNA *brna)
 	RNA_def_function_ui_description(func, "Copies the pixels of this renderlayer from an image file");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
 	prop = RNA_def_string(func, "filename", "", 0, "Filename",
-	                     "Filename to load into this render tile, must be no smaller than the renderlayer");
+	                      "Filename to load into this render tile, must be no smaller than the renderlayer");
 	RNA_def_property_flag(prop, PROP_REQUIRED);
 	RNA_def_int(func, "x", 0, 0, INT_MAX, "Offset X",
 	            "Offset the position to copy from if the image is larger than the render layer", 0, INT_MAX);
@@ -492,7 +492,8 @@ static void rna_def_render_pass(BlenderRNA *brna)
 		{SCE_PASS_TRANSM_DIRECT, "TRANSMISSION_DIRECT", 0, "Transmission Direct", ""},
 		{SCE_PASS_TRANSM_INDIRECT, "TRANSMISSION_INDIRECT", 0, "Transmission Indirect", ""},
 		{SCE_PASS_TRANSM_COLOR, "TRANSMISSION_COLOR", 0, "Transmission Color", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "RenderPass", NULL);
 	RNA_def_struct_ui_text(srna, "Render Pass", "");

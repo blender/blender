@@ -232,7 +232,7 @@ static char *gpu_generate_function_prototyps(GHash *hash)
 GPUFunction *GPU_lookup_function(const char *name)
 {
 	if (!FUNCTION_HASH) {
-		FUNCTION_HASH = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "GPU_lookup_function gh");
+		FUNCTION_HASH = BLI_ghash_str_new("GPU_lookup_function gh");
 		gpu_parse_functions_string(FUNCTION_HASH, glsl_material_library);
 		/*FUNCTION_PROTOTYPES = gpu_generate_function_prototyps(FUNCTION_HASH);
 		FUNCTION_LIB = GPU_shader_create_lib(datatoc_gpu_shader_material_glsl);*/
@@ -375,8 +375,8 @@ static void codegen_set_unique_ids(ListBase *nodes)
 	GPUOutput *output;
 	int id = 1, texid = 0;
 
-	bindhash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "codegen_set_unique_ids1 gh");
-	definehash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "codegen_set_unique_ids2 gh");
+	bindhash= BLI_ghash_ptr_new("codegen_set_unique_ids1 gh");
+	definehash= BLI_ghash_ptr_new("codegen_set_unique_ids2 gh");
 
 	for (node=nodes->first; node; node=node->next) {
 		for (input=node->inputs.first; input; input=input->next) {

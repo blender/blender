@@ -39,6 +39,7 @@ blender_include_dirs(
 	../blender/gpu
 	../blender/freestyle
 	../blender/windowmanager
+	../blender/opencl
 )
 
 if(WIN32)
@@ -912,6 +913,8 @@ endif()
 		cycles_kernel
 		cycles_util
 		cycles_subd
+		bf_compositor #added for opencl compositor
+		bf_opencl #added for opencl compositor
 	)
 
 	if(WITH_LIBMV)

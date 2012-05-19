@@ -36,13 +36,13 @@ extern "C" {
 
 /********************************* Init **************************************/
 
-#define MAT4_UNITY {{ 1.0, 0.0, 0.0, 0.0},\
-					{ 0.0, 1.0, 0.0, 0.0},\
-					{ 0.0, 0.0, 1.0, 0.0},\
+#define MAT4_UNITY {{ 1.0, 0.0, 0.0, 0.0}, \
+					{ 0.0, 1.0, 0.0, 0.0}, \
+					{ 0.0, 0.0, 1.0, 0.0}, \
 					{ 0.0, 0.0, 0.0, 1.0}}
 
-#define MAT3_UNITY {{ 1.0, 0.0, 0.0},\
-					{ 0.0, 1.0, 0.0},\
+#define MAT3_UNITY {{ 1.0, 0.0, 0.0}, \
+					{ 0.0, 1.0, 0.0}, \
 					{ 0.0, 0.0, 1.0}}
 
 void zero_m3(float R[3][3]);
@@ -76,11 +76,11 @@ void mult_m4_m4m4(float R[4][4], float A[4][4], float B[4][4]);
 void mult_m3_m3m4(float R[3][3], float A[4][4], float B[3][3]);
 
 void mul_serie_m3(float R[3][3],
-	float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
-	float M5[3][3], float M6[3][3], float M7[3][3], float M8[3][3]);
+                  float M1[3][3], float M2[3][3], float M3[3][3], float M4[3][3],
+                  float M5[3][3], float M6[3][3], float M7[3][3], float M8[3][3]);
 void mul_serie_m4(float R[4][4],
-	float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
-	float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]);
+                  float M1[4][4], float M2[4][4], float M3[4][4], float M4[4][4],
+                  float M5[4][4], float M6[4][4], float M7[4][4], float M8[4][4]);
 
 void mul_m4_v3(float M[4][4], float r[3]);
 void mul_v3_m4v3(float r[3], float M[4][4], const float v[3]);
@@ -131,13 +131,11 @@ int is_uniform_scaled_m3(float mat[3][3]);
 void adjoint_m3_m3(float R[3][3], float A[3][3]);
 void adjoint_m4_m4(float R[4][4], float A[4][4]);
 
-float determinant_m2(
-	float a, float b,
-	float c, float d);
-float determinant_m3(
-	float a, float b, float c,
-	float d, float e, float f,
-	float g, float h, float i);
+float determinant_m2(float a, float b,
+                     float c, float d);
+float determinant_m3(float a, float b, float c,
+                     float d, float e, float f,
+                     float g, float h, float i);
 float determinant_m4(float A[4][4]);
 
 void svd_m4(float U[4][4], float s[4], float V[4][4], float A[4][4]);
@@ -165,13 +163,13 @@ void mat3_to_rot_size(float rot[3][3], float size[3], float mat3[][3]);
 void mat4_to_loc_rot_size(float loc[3], float rot[3][3], float size[3], float wmat[][4]);
 
 void loc_eul_size_to_mat4(float R[4][4],
-	const float loc[3], const float eul[3], const float size[3]);
+                          const float loc[3], const float eul[3], const float size[3]);
 void loc_eulO_size_to_mat4(float R[4][4],
-	const float loc[3], const float eul[3], const float size[3], const short order);
+                           const float loc[3], const float eul[3], const float size[3], const short order);
 void loc_quat_size_to_mat4(float R[4][4],
-	const float loc[3], const float quat[4], const float size[3]);
+                           const float loc[3], const float quat[4], const float size[3]);
 void loc_axisangle_size_to_mat4(float R[4][4],
-	const float loc[3], const float axis[4], const float angle, const float size[3]);
+                                const float loc[3], const float axis[4], const float angle, const float size[3]);
 
 void blend_m3_m3m3(float R[3][3], float A[3][3], float B[3][3], const float t);
 void blend_m4_m4m4(float R[4][4], float A[4][4], float B[4][4], const float t);

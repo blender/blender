@@ -245,7 +245,7 @@ void drawcircball(int mode, const float cent[3], float rad, float tmat[][4]);
 void view3d_validate_backbuf(struct ViewContext *vc);
 struct ImBuf *view3d_read_backbuf(struct ViewContext *vc, short xmin, short ymin, short xmax, short ymax);
 unsigned int view3d_sample_backbuf_rect(struct ViewContext *vc, const int mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict,
-										void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
+                                        void *handle, unsigned int (*indextest)(void *handle, unsigned int index));
 unsigned int view3d_sample_backbuf(struct ViewContext *vc, int x, int y);
 
 /* draws and does a 4x4 sample */
@@ -282,7 +282,7 @@ int ED_view3d_scene_layer_set(int lay, const int *values, int *active);
 
 int ED_view3d_context_activate(struct bContext *C);
 void ED_view3d_draw_offscreen(struct Scene *scene, struct View3D *v3d, struct ARegion *ar,
-	int winx, int winy, float viewmat[][4], float winmat[][4], int draw_background);
+                              int winx, int winy, float viewmat[][4], float winmat[][4], int draw_background);
 
 struct ImBuf *ED_view3d_draw_offscreen_imbuf(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, int sizex, int sizey, unsigned int flag, int draw_background, char err_out[256]);
 struct ImBuf *ED_view3d_draw_offscreen_imbuf_simple(struct Scene *scene, struct Object *camera, int width, int height, unsigned int flag, int drawtype, int draw_background, char err_out[256]);

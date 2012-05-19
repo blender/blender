@@ -33,25 +33,23 @@
 #ifndef __RAYOBJECT_HINT_H__
 #define __RAYOBJECT_HINT_H__
 
-#define HINT_RECURSE	 1
-#define HINT_ACCEPT		 0
-#define HINT_DISCARD	-1
+#define HINT_RECURSE     1
+#define HINT_ACCEPT      0
+#define HINT_DISCARD    -1
 
-struct HintBB
-{
+struct HintBB {
 	float bb[6];
 };
 
 inline int hint_test_bb(HintBB *obj, float *Nmin, float *Nmax)
 {
-	if (bb_fits_inside( Nmin, Nmax, obj->bb, obj->bb+3 ) )
+	if (bb_fits_inside(Nmin, Nmax, obj->bb, obj->bb + 3) )
 		return HINT_RECURSE;
 	else
 		return HINT_ACCEPT;
 }
 #if 0
-struct HintFrustum
-{
+struct HintFrustum {
 	float co[3];
 	float no[4][3];
 };

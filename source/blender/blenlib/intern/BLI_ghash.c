@@ -78,7 +78,7 @@ int BLI_ghash_size(GHash *gh)
 void BLI_ghash_insert(GHash *gh, void *key, void *val)
 {
 	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
-	Entry *e = (Entry*)BLI_mempool_alloc(gh->entrypool);
+	Entry *e = (Entry *)BLI_mempool_alloc(gh->entrypool);
 
 	e->key = key;
 	e->val = val;
@@ -90,11 +90,11 @@ void BLI_ghash_insert(GHash *gh, void *key, void *val)
 		int i, nold = gh->nbuckets;
 
 		gh->nbuckets = hashsizes[++gh->cursize];
-		gh->buckets = (Entry**)MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
+		gh->buckets = (Entry **)MEM_mallocN(gh->nbuckets * sizeof(*gh->buckets), "buckets");
 		memset(gh->buckets, 0, gh->nbuckets * sizeof(*gh->buckets));
 
 		for (i = 0; i < nold; i++) {
-			for (e = old[i]; e;) {
+			for (e = old[i]; e; ) {
 				Entry *n = e->next;
 
 				hash = gh->hashfp(e->key) % gh->nbuckets;
@@ -174,7 +174,7 @@ void BLI_ghash_free(GHash *gh, GHashKeyFreeFP keyfreefp, GHashValFreeFP valfreef
 		for (i = 0; i < gh->nbuckets; i++) {
 			Entry *e;
 
-			for (e = gh->buckets[i]; e;) {
+			for (e = gh->buckets[i]; e; ) {
 				Entry *n = e->next;
 
 				if (keyfreefp) keyfreefp(e->key);
@@ -305,6 +305,23 @@ int BLI_ghashutil_strcmp(const void *a, const void *b)
 	return strcmp(a, b);
 }
 
+GHash *BLI_ghash_ptr_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, info);
+}
+GHash *BLI_ghash_str_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, info);
+}
+GHash *BLI_ghash_int_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, info);
+}
+GHash *BLI_ghash_pair_new(const char *info)
+{
+	return BLI_ghash_new(BLI_ghashutil_pairhash, BLI_ghashutil_paircmp, info);
+}
+
 GHashPair *BLI_ghashutil_pairalloc(const void *first, const void *second)
 {
 	GHashPair *pair = MEM_mallocN(sizeof(GHashPair), "GHashPair");
@@ -333,6 +350,6 @@ int BLI_ghashutil_paircmp(const void *a, const void *b)
 
 void BLI_ghashutil_pairfree(void *ptr)
 {
-	MEM_freeN((void*)ptr);
+	MEM_freeN((void *)ptr);
 }
 

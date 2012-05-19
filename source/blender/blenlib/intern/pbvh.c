@@ -381,7 +381,7 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 	GHash *map;
 	int i, j, totface;
 
-	map = BLI_ghash_new(BLI_ghashutil_inthash, BLI_ghashutil_intcmp, "build_mesh_leaf_node gh");
+	map = BLI_ghash_int_new("build_mesh_leaf_node gh");
 	
 	node->uniq_verts = node->face_verts = 0;
 	totface = node->totprim;
@@ -1090,11 +1090,8 @@ static void pbvh_update_normals(PBVH *bvh, PBVHNode **nodes,
 
 					copy_v3_v3(no, vnor[v]);
 					normalize_v3(no);
-					
-					mvert->no[0] = (short)(no[0] * 32767.0f);
-					mvert->no[1] = (short)(no[1] * 32767.0f);
-					mvert->no[2] = (short)(no[2] * 32767.0f);
-					
+					normal_float_to_short_v3(mvert->no, no);
+
 					mvert->flag &= ~ME_VERT_PBVH_UPDATE;
 				}
 			}
@@ -1265,7 +1262,7 @@ void BLI_pbvh_get_grid_updates(PBVH *bvh, int clear, void ***gridfaces, int *tot
 	unsigned i;
 	int tot;
 
-	map = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "pbvh_get_grid_updates gh");
+	map = BLI_ghash_ptr_new("pbvh_get_grid_updates gh");
 
 	pbvh_iter_begin(&iter, bvh, NULL, NULL);
 

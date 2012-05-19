@@ -39,41 +39,43 @@
 #include "WM_types.h"
 
 static EnumPropertyItem prop_texture_coordinates_items[] = {
-{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
-{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
-{TEXCO_UV, "UV", 0, "UV", "Use UV coordinates for texture coordinates"},
-{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
-{TEXCO_STRAND, "STRAND", 0, "Strand / Particle",
-               "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
-{TEXCO_STICKY, "STICKY", 0, "Sticky", "Use mesh's sticky coordinates for the texture coordinates"},
-{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
-{TEXCO_NORM, "NORMAL", 0, "Normal", "Use normal vector as texture coordinates"},
-{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Use reflection vector as texture coordinates"},
-{TEXCO_STRESS, "STRESS", 0, "Stress",
-               "Use the difference of edge lengths compared to original coordinates of the mesh"},
-{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Use the optional tangent vector as texture coordinates"},
-{0, NULL, 0, NULL, NULL}};
+	{TEXCO_GLOB, "GLOBAL", 0, "Global", "Use global coordinates for the texture coordinates"},
+	{TEXCO_OBJECT, "OBJECT", 0, "Object", "Use linked object's coordinates for texture coordinates"},
+	{TEXCO_UV, "UV", 0, "UV", "Use UV coordinates for texture coordinates"},
+	{TEXCO_ORCO, "ORCO", 0, "Generated", "Use the original undeformed coordinates of the object"},
+	{TEXCO_STRAND, "STRAND", 0, "Strand / Particle",
+	               "Use normalized strand texture coordinate (1D) or particle age (X) and trail position (Y)"},
+	{TEXCO_STICKY, "STICKY", 0, "Sticky", "Use mesh's sticky coordinates for the texture coordinates"},
+	{TEXCO_WINDOW, "WINDOW", 0, "Window", "Use screen coordinates as texture coordinates"},
+	{TEXCO_NORM, "NORMAL", 0, "Normal", "Use normal vector as texture coordinates"},
+	{TEXCO_REFL, "REFLECTION", 0, "Reflection", "Use reflection vector as texture coordinates"},
+	{TEXCO_STRESS, "STRESS", 0, "Stress",
+	               "Use the difference of edge lengths compared to original coordinates of the mesh"},
+	{TEXCO_TANGENT, "TANGENT", 0, "Tangent", "Use the optional tangent vector as texture coordinates"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 EnumPropertyItem ramp_blend_items[] = {
-{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
-{MA_RAMP_ADD, "ADD", 0, "Add", ""},
-{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
-{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
-{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
-{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
-{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
-{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
-{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
-{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
-{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
-{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
-{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
-{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
-{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
-{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
-{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""},
-{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
-{0, NULL, 0, NULL, NULL}};
+	{MA_RAMP_BLEND, "MIX", 0, "Mix", ""},
+	{MA_RAMP_ADD, "ADD", 0, "Add", ""},
+	{MA_RAMP_MULT, "MULTIPLY", 0, "Multiply", ""},
+	{MA_RAMP_SUB, "SUBTRACT", 0, "Subtract", ""},
+	{MA_RAMP_SCREEN, "SCREEN", 0, "Screen", ""},
+	{MA_RAMP_DIV, "DIVIDE", 0, "Divide", ""},
+	{MA_RAMP_DIFF, "DIFFERENCE", 0, "Difference", ""},
+	{MA_RAMP_DARK, "DARKEN", 0, "Darken", ""},
+	{MA_RAMP_LIGHT, "LIGHTEN", 0, "Lighten", ""},
+	{MA_RAMP_OVERLAY, "OVERLAY", 0, "Overlay", ""},
+	{MA_RAMP_DODGE, "DODGE", 0, "Dodge", ""},
+	{MA_RAMP_BURN, "BURN", 0, "Burn", ""},
+	{MA_RAMP_HUE, "HUE", 0, "Hue", ""},
+	{MA_RAMP_SAT, "SATURATION", 0, "Saturation", ""},
+	{MA_RAMP_VAL, "VALUE", 0, "Value", ""},
+	{MA_RAMP_COLOR, "COLOR", 0, "Color", ""},
+	{MA_RAMP_SOFT, "SOFT_LIGHT", 0, "Soft Light", ""},
+	{MA_RAMP_LINEAR, "LINEAR_LIGHT", 0, "Linear Light", ""},
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
@@ -96,10 +98,10 @@ static void rna_Material_update(Main *UNUSED(bmain), Scene *scene, PointerRNA *p
 	DAG_id_tag_update(&ma->id, 0);
 	if (scene) {  /* can be NULL, see [#30025] */
 		if (scene->gm.matmode == GAME_MAT_GLSL) {
-			WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 		}
 		else {
-			WM_main_add_notifier(NC_MATERIAL|ND_SHADING, ma);
+			WM_main_add_notifier(NC_MATERIAL | ND_SHADING, ma);
 		}
 	}
 }
@@ -109,7 +111,7 @@ static void rna_Material_draw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 	Material *ma = ptr->id.data;
 
 	DAG_id_tag_update(&ma->id, 0);
-	WM_main_add_notifier(NC_MATERIAL|ND_SHADING_DRAW, ma);
+	WM_main_add_notifier(NC_MATERIAL | ND_SHADING_DRAW, ma);
 }
 
 static PointerRNA rna_Material_mirror_get(PointerRNA *ptr)
@@ -144,23 +146,23 @@ static PointerRNA rna_Material_physics_get(PointerRNA *ptr)
 
 static void rna_Material_type_set(PointerRNA *ptr, int value)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 
 	if (ma->material_type == MA_TYPE_HALO && value != MA_TYPE_HALO)
-		ma->mode &= ~(MA_STAR|MA_HALO_XALPHA|MA_ZINV|MA_ENV);
+		ma->mode &= ~(MA_STAR | MA_HALO_XALPHA | MA_ZINV | MA_ENV);
 
 	ma->material_type = value;
 }
 
 static void rna_Material_mtex_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
-	Material *ma = (Material*)ptr->data;
-	rna_iterator_array_begin(iter, (void*)ma->mtex, sizeof(MTex*), MAX_MTEX, 0, NULL);
+	Material *ma = (Material *)ptr->data;
+	rna_iterator_array_begin(iter, (void *)ma->mtex, sizeof(MTex *), MAX_MTEX, 0, NULL);
 }
 
 static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 	Tex *tex;
 
 	tex = give_current_material_texture(ma);
@@ -169,27 +171,27 @@ static PointerRNA rna_Material_active_texture_get(PointerRNA *ptr)
 
 static void rna_Material_active_texture_set(PointerRNA *ptr, PointerRNA value)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 
 	set_current_material_texture(ma, value.data);
 }
 
 static int rna_Material_active_texture_editable(PointerRNA *ptr)
 {
-	Material *ma = (Material*)ptr->id.data;
+	Material *ma = (Material *)ptr->id.data;
 
 	return has_current_material_texture(ma);
 }
 
 static PointerRNA rna_Material_active_node_material_get(PointerRNA *ptr)
 {
-	Material *ma = give_node_material((Material*)ptr->data);
+	Material *ma = give_node_material((Material *)ptr->data);
 	return rna_pointer_inherit_refine(ptr, &RNA_Material, ma);
 }
 
 static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA value)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 	Material *ma_act = value.data;
 
 	nodeSetActiveID(ma->nodetree, ID_MA, &ma_act->id);
@@ -197,7 +199,7 @@ static void rna_Material_active_node_material_set(PointerRNA *ptr, PointerRNA va
 
 static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	Material *ma = (Material*)ptr->id.data;
+	Material *ma = (Material *)ptr->id.data;
 
 	if (ma->mode & MA_STR_B_UNITS) {
 		*min = 0.0001f;
@@ -211,7 +213,7 @@ static void rna_MaterialStrand_start_size_range(PointerRNA *ptr, float *min, flo
 
 static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float *max, float *softmin, float *softmax)
 {
-	Material *ma = (Material*)ptr->id.data;
+	Material *ma = (Material *)ptr->id.data;
 
 	if (ma->mode & MA_STR_B_UNITS) {
 		*min = 0.0001f;
@@ -225,36 +227,36 @@ static void rna_MaterialStrand_end_size_range(PointerRNA *ptr, float *min, float
 
 static int rna_MaterialTextureSlot_use_get(PointerRNA *ptr)
 {
-	Material *ma = (Material*)ptr->id.data;
-	MTex *mtex = (MTex*)ptr->data;
+	Material *ma = (Material *)ptr->id.data;
+	MTex *mtex = (MTex *)ptr->data;
 	int a;
 
-	for (a = 0; a<MAX_MTEX; a++)
+	for (a = 0; a < MAX_MTEX; a++)
 		if (ma->mtex[a] == mtex)
-			return (ma->septex & (1<<a)) == 0;
+			return (ma->septex & (1 << a)) == 0;
 	
 	return 0;
 }
 
 static void rna_MaterialTextureSlot_use_set(PointerRNA *ptr, int value)
 {
-	Material *ma = (Material*)ptr->id.data;
-	MTex *mtex = (MTex*)ptr->data;
+	Material *ma = (Material *)ptr->id.data;
+	MTex *mtex = (MTex *)ptr->data;
 	int a;
 
-	for (a = 0; a<MAX_MTEX; a++) {
+	for (a = 0; a < MAX_MTEX; a++) {
 		if (ma->mtex[a] == mtex) {
 			if (value)
-				ma->septex &= ~(1<<a);
+				ma->septex &= ~(1 << a);
 			else
-				ma->septex |= (1<<a);
+				ma->septex |= (1 << a);
 		}
 	}
 }
 
 static void rna_Material_use_diffuse_ramp_set(PointerRNA *ptr, int value)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 
 	if (value) ma->mode |= MA_RAMP_COL;
 	else ma->mode &= ~MA_RAMP_COL;
@@ -265,7 +267,7 @@ static void rna_Material_use_diffuse_ramp_set(PointerRNA *ptr, int value)
 
 static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 
 	if (value) ma->mode |= MA_RAMP_SPEC;
 	else ma->mode &= ~MA_RAMP_SPEC;
@@ -276,7 +278,7 @@ static void rna_Material_use_specular_ramp_set(PointerRNA *ptr, int value)
 
 static void rna_Material_use_nodes_update(Main *bmain, Scene *scene, PointerRNA *ptr)
 {
-	Material *ma = (Material*)ptr->data;
+	Material *ma = (Material *)ptr->data;
 
 	if (ma->use_nodes && ma->nodetree == NULL)
 		ED_node_shader_default(scene, &ma->id);
@@ -287,7 +289,7 @@ static void rna_Material_use_nodes_update(Main *bmain, Scene *scene, PointerRNA 
 static EnumPropertyItem *rna_Material_texture_coordinates_itemf(bContext *UNUSED(C), PointerRNA *ptr,
                                                                 PropertyRNA *UNUSED(prop), int *free)
 {
-	Material *ma = (Material*)ptr->id.data;
+	Material *ma = (Material *)ptr->id.data;
 	EnumPropertyItem *item = NULL;
 	int totitem = 0;
 	
@@ -385,35 +387,40 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_CUBE, "CUBE", 0, "Cube", "Map using the normal vector"},
 		{MTEX_TUBE, "TUBE", 0, "Tube", "Map with Z as central axis"},
 		{MTEX_SPHERE, "SPHERE", 0, "Sphere", "Map with Z as central axis"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem prop_x_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem prop_y_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	static EnumPropertyItem prop_z_mapping_items[] = {
 		{0, "NONE", 0, "None", ""},
 		{1, "X", 0, "X", ""},
 		{2, "Y", 0, "Y", ""},
 		{3, "Z", 0, "Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_normal_map_space_items[] = {
 		{MTEX_NSPACE_CAMERA, "CAMERA", 0, "Camera", ""},
 		{MTEX_NSPACE_WORLD, "WORLD", 0, "World", ""},
 		{MTEX_NSPACE_OBJECT, "OBJECT", 0, "Object", ""},
 		{MTEX_NSPACE_TANGENT, "TANGENT", 0, "Tangent", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_bump_method_items[] = {
 		{0, "BUMP_ORIGINAL", 0, "Original", ""},
@@ -421,15 +428,17 @@ static void rna_def_material_mtex(BlenderRNA *brna)
 		{MTEX_3TAP_BUMP, "BUMP_LOW_QUALITY", 0, "Low Quality", "Use 3 tap filtering"},
 		{MTEX_5TAP_BUMP, "BUMP_MEDIUM_QUALITY", 0, "Medium Quality", "Use 5 tap filtering"},
 		{MTEX_BICUBIC_BUMP, "BUMP_BEST_QUALITY", 0,
-		                    "Best Quality", "Use bicubic filtering (requires OpenGL 3.0+, it will fall back on "
-		                    "medium setting for other systems)"},
-		{0, NULL, 0, NULL, NULL}};
+		 "Best Quality", "Use bicubic filtering (requires OpenGL 3.0+, it will fall back on "
+		 "medium setting for other systems)"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_bump_space_items[] = {
 		{0, "BUMP_VIEWSPACE", 0, "ViewSpace", ""},
 		{MTEX_BUMP_OBJECTSPACE, "BUMP_OBJECTSPACE", 0, "ObjectSpace", ""},
 		{MTEX_BUMP_TEXTURESPACE, "BUMP_TEXTURESPACE", 0, "TextureSpace", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "MaterialTextureSlot", "TextureSlot");
 	RNA_def_struct_sdna(srna, "MTex");
@@ -763,14 +772,16 @@ static void rna_def_material_gamesettings(BlenderRNA *brna)
 		              "Render polygon transparent, depending on alpha channel of the texture"},
 		{GEMAT_ALPHA_SORT, "ALPHA_SORT", 0, "Alpha Sort",
 		                   "Sort faces for correct alpha drawing (slow, use Alpha Clip instead when possible)"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_face_orientation_items[] = {
 		{GEMAT_NORMAL, "NORMAL", 0, "Normal", "No tranformation"},
 		{GEMAT_HALO, "HALO", 0, "Halo", "Screen aligned billboard"},
 		{GEMAT_BILLBOARD, "BILLBOARD", 0, "Billboard", "Billboard with Z-axis constraint"},
 		{GEMAT_SHADOW, "SHADOW", 0, "Shadow", "Faces are used for shadow"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "MaterialGameSettings", NULL);
 	RNA_def_struct_sdna(srna, "GameSettings");
@@ -816,7 +827,8 @@ static void rna_def_material_colors(StructRNA *srna)
 		{MA_RAMP_IN_ENERGY, "ENERGY", 0, "Energy", ""},
 		{MA_RAMP_IN_NOR, "NORMAL", 0, "Normal", ""},
 		{MA_RAMP_IN_RESULT, "RESULT", 0, "Result", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	prop = RNA_def_property(srna, "diffuse_color", PROP_FLOAT, PROP_COLOR);
 	RNA_def_property_float_sdna(prop, NULL, "r");
@@ -919,7 +931,8 @@ static void rna_def_material_diffuse(StructRNA *srna)
 		{MA_DIFF_TOON, "TOON", 0, "Toon", "Use a toon shader"},
 		{MA_DIFF_MINNAERT, "MINNAERT", 0, "Minnaert", "Use a Minnaert shader"},
 		{MA_DIFF_FRESNEL, "FRESNEL", 0, "Fresnel", "Use a Fresnel shader"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	prop = RNA_def_property(srna, "diffuse_shader", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "diff_shader");
@@ -976,7 +989,8 @@ static void rna_def_material_raymirror(BlenderRNA *brna)
 	static EnumPropertyItem prop_fadeto_mir_items[] = {
 		{MA_RAYMIR_FADETOSKY, "FADE_TO_SKY", 0, "Sky", ""},
 		{MA_RAYMIR_FADETOMAT, "FADE_TO_MATERIAL", 0, "Material", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "MaterialRaytraceMirror", NULL);
 	RNA_def_struct_sdna(srna, "Material");
@@ -1148,13 +1162,15 @@ static void rna_def_material_volume(BlenderRNA *brna)
 		{MA_VOL_SHADE_SHADED, "SHADED", 0, "Shaded", ""},
 		{MA_VOL_SHADE_MULTIPLE, "MULTIPLE_SCATTERING", 0, "Multiple Scattering", ""},
 		{MA_VOL_SHADE_SHADEDPLUSMULTIPLE, "SHADED_PLUS_MULTIPLE_SCATTERING", 0, "Shaded + Multiple Scattering", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_stepsize_items[] = {
 		{MA_VOL_STEP_RANDOMIZED, "RANDOMIZED", 0, "Randomized", ""},
 		{MA_VOL_STEP_CONSTANT, "CONSTANT", 0, "Constant", ""},
 		/*{MA_VOL_STEP_ADAPTIVE, "ADAPTIVE", 0, "Adaptive", ""}, */
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	srna = RNA_def_struct(brna, "MaterialVolume", NULL);
 	RNA_def_struct_sdna(srna, "VolumeSettings");
@@ -1433,7 +1449,7 @@ static void rna_def_material_sss(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Material Subsurface Scattering",
 	                       "Diffuse subsurface scattering settings for a Material datablock");
 
-	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_COLOR|PROP_UNIT_LENGTH);
+	prop = RNA_def_property(srna, "radius", PROP_FLOAT, PROP_COLOR | PROP_UNIT_LENGTH);
 	RNA_def_property_float_sdna(prop, NULL, "sss_radius");
 	RNA_def_property_range(prop, 0.001, FLT_MAX);
 	RNA_def_property_ui_range(prop, 0.001, 10000, 1, 3);
@@ -1503,7 +1519,8 @@ static void rna_def_material_specularity(StructRNA *srna)
 		{MA_SPEC_BLINN, "BLINN", 0, "Blinn", "Use a Blinn shader"},
 		{MA_SPEC_TOON, "TOON", 0, "Toon", "Use a toon shader"},
 		{MA_SPEC_WARDISO, "WARDISO", 0, "WardIso", "Use a Ward anisotropic shader"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	prop = RNA_def_property(srna, "specular_shader", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "spec_shader");
@@ -1678,12 +1695,14 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_TYPE_WIRE, "WIRE", 0, "Wire", "Render the edges of faces as wires (not supported in raytracing)"},
 		{MA_TYPE_VOLUME, "VOLUME", 0, "Volume", "Render object as a volume"},
 		{MA_TYPE_HALO, "HALO", 0, "Halo", "Render object as halo particles"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	static EnumPropertyItem transparency_items[] = {
 		{0, "MASK", 0, "Mask", "Mask the background"},
 		{MA_ZTRANSP, "Z_TRANSPARENCY", 0, "Z Transparency", "Use alpha buffer for transparent faces"},
 		{MA_RAYTRANSP, "RAYTRACE", 0, "Raytrace", "Use raytracing for transparent refraction rendering"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	/* Render Preview Types */
 	static EnumPropertyItem preview_type_items[] = {
@@ -1693,14 +1712,16 @@ void RNA_def_material(BlenderRNA *brna)
 		{MA_MONKEY, "MONKEY", ICON_MONKEY, "Monkey", "Monkey"},
 		{MA_HAIR, "HAIR", ICON_HAIR, "Hair", "Hair strands"},
 		{MA_SPHERE_A, "SPHERE_A", ICON_MAT_SPHERE_SKY, "World Sphere", "Large sphere with sky"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_shadows_only_items[] = {
 		{MA_SO_OLD, "SHADOW_ONLY_OLD", 0, "Shadow and Distance", "Old shadow only method"},
 		{MA_SO_SHADOW, "SHADOW_ONLY", 0, "Shadow Only", "Improved shadow only method"},
 		{MA_SO_SHADED, "SHADOW_ONLY_SHADED", 0, "Shadow and Shading",
-		               "Improved shadow only method which also renders lightless areas as shadows"},
-		{0, NULL, 0, NULL, NULL}};
+		 "Improved shadow only method which also renders lightless areas as shadows"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "Material", "ID");
 	RNA_def_struct_ui_text(srna, "Material",
@@ -1990,8 +2011,8 @@ void RNA_def_material(BlenderRNA *brna)
 	/* common */
 	rna_def_animdata_common(srna);
 	rna_def_mtex_common(brna, srna, "rna_Material_mtex_begin", "rna_Material_active_texture_get",
-		"rna_Material_active_texture_set", "rna_Material_active_texture_editable",
-		"MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
+	                    "rna_Material_active_texture_set", "rna_Material_active_texture_editable",
+	                    "MaterialTextureSlot", "MaterialTextureSlots", "rna_Material_update");
 
 	/* only material has this one */
 	prop = RNA_def_property(srna, "use_textures", PROP_BOOLEAN, PROP_NONE);
@@ -2034,26 +2055,26 @@ static void rna_def_texture_slots(BlenderRNA *brna, PropertyRNA *cprop, const ch
 
 	/* functions */
 	func = RNA_def_function(srna, "add", "rna_mtex_texture_slots_add");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex");
 	RNA_def_function_return(func, parm);
 	
 	func = RNA_def_function(srna, "create", "rna_mtex_texture_slots_create");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to initialize", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "mtex", structname, "", "The newly initialized mtex");
 	RNA_def_function_return(func, parm);
 	
 	func = RNA_def_function(srna, "clear", "rna_mtex_texture_slots_clear");
-	RNA_def_function_flag(func, FUNC_USE_SELF_ID|FUNC_NO_SELF|FUNC_USE_CONTEXT|FUNC_USE_REPORTS);
+	RNA_def_function_flag(func, FUNC_USE_SELF_ID | FUNC_NO_SELF | FUNC_USE_CONTEXT | FUNC_USE_REPORTS);
 	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "Index", "Slot index to clear", 0, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
 void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
-	const char *activeget, const char *activeset, const char *activeeditable,
-	const char *structname, const char *structname_slots, const char *update)
+                         const char *activeget, const char *activeset, const char *activeeditable,
+                         const char *structname, const char *structname_slots, const char *update)
 {
 	PropertyRNA *prop;
 
@@ -2076,7 +2097,7 @@ void rna_def_mtex_common(BlenderRNA *brna, StructRNA *srna, const char *begin,
 
 	prop = RNA_def_property(srna, "active_texture_index", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "texact");
-	RNA_def_property_range(prop, 0, MAX_MTEX-1);
+	RNA_def_property_range(prop, 0, MAX_MTEX - 1);
 	RNA_def_property_ui_text(prop, "Active Texture Index", "Index of active texture slot");
 	RNA_def_property_update(prop, 0, update);
 }

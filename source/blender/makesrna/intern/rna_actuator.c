@@ -59,15 +59,16 @@ EnumPropertyItem actuator_type_items[] = {
 	{ACT_STATE, "STATE", 0, "State", ""},
 	{ACT_VISIBILITY, "VISIBILITY", 0, "Visibility", ""},
 	{ACT_STEERING, "STEERING", 0, "Steering", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 #ifdef RNA_RUNTIME
 
 #include "BKE_sca.h"
 
-static StructRNA* rna_Actuator_refine(struct PointerRNA *ptr)
+static StructRNA *rna_Actuator_refine(struct PointerRNA *ptr)
 {
-	bActuator *actuator = (bActuator*)ptr->data;
+	bActuator *actuator = (bActuator *)ptr->data;
 
 	switch (actuator->type) {
 		case ACT_ACTION:
@@ -139,185 +140,185 @@ static void rna_ConstraintActuator_type_set(struct PointerRNA *ptr, int value)
 	if (value != ca->type) {
 		ca->type = value;
 		switch (ca->type) {
-		case ACT_CONST_TYPE_ORI:
-			/* negative axis not supported in the orientation mode */
-			if (ELEM3(ca->mode, ACT_CONST_DIRNX, ACT_CONST_DIRNY, ACT_CONST_DIRNZ))
-				ca->mode = ACT_CONST_NONE;
-			break;
+			case ACT_CONST_TYPE_ORI:
+				/* negative axis not supported in the orientation mode */
+				if (ELEM3(ca->mode, ACT_CONST_DIRNX, ACT_CONST_DIRNY, ACT_CONST_DIRNZ))
+					ca->mode = ACT_CONST_NONE;
+				break;
 
-		case ACT_CONST_TYPE_LOC:
-		case ACT_CONST_TYPE_DIST:
-		case ACT_CONST_TYPE_FH:
-		default:
-			break;
+			case ACT_CONST_TYPE_LOC:
+			case ACT_CONST_TYPE_DIST:
+			case ACT_CONST_TYPE_FH:
+			default:
+				break;
 		}
 	}
 }
 
 static float rna_ConstraintActuator_limitmin_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
 	if (ca->flag & ACT_CONST_LOCX) fp = ca->minloc;
-	else if (ca->flag & ACT_CONST_LOCY) fp = ca->minloc+1;
-	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->minloc+2;
+	else if (ca->flag & ACT_CONST_LOCY) fp = ca->minloc + 1;
+	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->minloc + 2;
 	else if (ca->flag & ACT_CONST_ROTX) fp = ca->minrot;
-	else if (ca->flag & ACT_CONST_ROTY) fp = ca->minrot+1;
-	else fp = ca->minrot+2;
+	else if (ca->flag & ACT_CONST_ROTY) fp = ca->minrot + 1;
+	else fp = ca->minrot + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_limitmin_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
 	if (ca->flag & ACT_CONST_LOCX) fp = ca->minloc;
-	else if (ca->flag & ACT_CONST_LOCY) fp = ca->minloc+1;
-	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->minloc+2;
+	else if (ca->flag & ACT_CONST_LOCY) fp = ca->minloc + 1;
+	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->minloc + 2;
 	else if (ca->flag & ACT_CONST_ROTX) fp = ca->minrot;
-	else if (ca->flag & ACT_CONST_ROTY) fp = ca->minrot+1;
-	else fp = ca->minrot+2;
+	else if (ca->flag & ACT_CONST_ROTY) fp = ca->minrot + 1;
+	else fp = ca->minrot + 2;
 
 	*fp = value;
 }
 
 static float rna_ConstraintActuator_limitmax_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
 	if (ca->flag & ACT_CONST_LOCX) fp = ca->maxloc;
-	else if (ca->flag & ACT_CONST_LOCY) fp = ca->maxloc+1;
-	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->maxloc+2;
+	else if (ca->flag & ACT_CONST_LOCY) fp = ca->maxloc + 1;
+	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->maxloc + 2;
 	else if (ca->flag & ACT_CONST_ROTX) fp = ca->maxrot;
-	else if (ca->flag & ACT_CONST_ROTY) fp = ca->maxrot+1;
-	else fp = ca->maxrot+2;
+	else if (ca->flag & ACT_CONST_ROTY) fp = ca->maxrot + 1;
+	else fp = ca->maxrot + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_limitmax_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
 	if (ca->flag & ACT_CONST_LOCX) fp = ca->maxloc;
-	else if (ca->flag & ACT_CONST_LOCY) fp = ca->maxloc+1;
-	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->maxloc+2;
+	else if (ca->flag & ACT_CONST_LOCY) fp = ca->maxloc + 1;
+	else if (ca->flag & ACT_CONST_LOCZ) fp = ca->maxloc + 2;
 	else if (ca->flag & ACT_CONST_ROTX) fp = ca->maxrot;
-	else if (ca->flag & ACT_CONST_ROTY) fp = ca->maxrot+1;
-	else fp = ca->maxrot+2;
+	else if (ca->flag & ACT_CONST_ROTY) fp = ca->maxrot + 1;
+	else fp = ca->maxrot + 2;
 
 	*fp = value;
 }
 
 static float rna_ConstraintActuator_distance_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->minloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->minloc+1;
-	else fp = ca->minloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->minloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->minloc + 1;
+	else fp = ca->minloc + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_distance_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->minloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->minloc+1;
-	else fp = ca->minloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->minloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->minloc + 1;
+	else fp = ca->minloc + 2;
 
 	*fp = value;
 }
 
 static float rna_ConstraintActuator_range_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->maxloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->maxloc+1;
-	else fp = ca->maxloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->maxloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->maxloc + 1;
+	else fp = ca->maxloc + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_range_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->maxloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->maxloc+1;
-	else fp = ca->maxloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->maxloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->maxloc + 1;
+	else fp = ca->maxloc + 2;
 
 	*fp = value;
 }
 
 static float rna_ConstraintActuator_fhheight_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->minloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->minloc+1;
-	else fp = ca->minloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->minloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->minloc + 1;
+	else fp = ca->minloc + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_fhheight_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->minloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->minloc+1;
-	else fp = ca->minloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->minloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->minloc + 1;
+	else fp = ca->minloc + 2;
 
 	*fp = value;
 }
 
 static float rna_ConstraintActuator_spring_get(struct PointerRNA *ptr)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->maxloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->maxloc+1;
-	else fp = ca->maxloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->maxloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->maxloc + 1;
+	else fp = ca->maxloc + 2;
 
 	return *fp;
 }
 
 static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 	float *fp;
 
-	if (ca->mode & (ACT_CONST_DIRPX|ACT_CONST_DIRNX)) fp = ca->maxloc;
-	else if (ca->mode & (ACT_CONST_DIRPY|ACT_CONST_DIRNY)) fp = ca->maxloc+1;
-	else fp = ca->maxloc+2;
+	if (ca->mode & (ACT_CONST_DIRPX | ACT_CONST_DIRNX)) fp = ca->maxloc;
+	else if (ca->mode & (ACT_CONST_DIRPY | ACT_CONST_DIRNY)) fp = ca->maxloc + 1;
+	else fp = ca->maxloc + 2;
 
 	*fp = value;
 }
@@ -325,10 +326,10 @@ static void rna_ConstraintActuator_spring_set(struct PointerRNA *ptr, float valu
  * Therefore we need to clear the property when "use_material_detect" mode changes */
 static void rna_Actuator_constraint_detect_material_set(struct PointerRNA *ptr, int value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bConstraintActuator *ca = act->data;
 
-	short old_value = (ca->flag & ACT_CONST_MATERIAL? 1:0);
+	short old_value = (ca->flag & ACT_CONST_MATERIAL ? 1 : 0);
 
 	if (old_value != value) {
 		ca->flag ^= ACT_CONST_MATERIAL;
@@ -371,51 +372,51 @@ static void rna_ObjectActuator_type_set(struct PointerRNA *ptr, int value)
 	if (value != oa->type) {
 		oa->type = value;
 		switch (oa->type) {
-		case ACT_OBJECT_NORMAL:
-			memset(oa, 0, sizeof(bObjectActuator));
-			oa->flag = ACT_FORCE_LOCAL|ACT_TORQUE_LOCAL|ACT_DLOC_LOCAL|ACT_DROT_LOCAL;
-			oa->type = ACT_OBJECT_NORMAL;
-			break;
+			case ACT_OBJECT_NORMAL:
+				memset(oa, 0, sizeof(bObjectActuator));
+				oa->flag = ACT_FORCE_LOCAL | ACT_TORQUE_LOCAL | ACT_DLOC_LOCAL | ACT_DROT_LOCAL;
+				oa->type = ACT_OBJECT_NORMAL;
+				break;
 
-		case ACT_OBJECT_SERVO:
-			memset(oa, 0, sizeof(bObjectActuator));
-			oa->flag = ACT_LIN_VEL_LOCAL;
-			oa->type = ACT_OBJECT_SERVO;
-			oa->forcerot[0] = 30.0f;
-			oa->forcerot[1] = 0.5f;
-			oa->forcerot[2] = 0.0f;
-			break;
+			case ACT_OBJECT_SERVO:
+				memset(oa, 0, sizeof(bObjectActuator));
+				oa->flag = ACT_LIN_VEL_LOCAL;
+				oa->type = ACT_OBJECT_SERVO;
+				oa->forcerot[0] = 30.0f;
+				oa->forcerot[1] = 0.5f;
+				oa->forcerot[2] = 0.0f;
+				break;
 		}
 	}
 }
 
 static void rna_ObjectActuator_integralcoefficient_set(struct PointerRNA *ptr, float value)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bObjectActuator *oa = act->data;
 	
 	oa->forcerot[1] = value;
-	oa->forcerot[0] = 60.0f*oa->forcerot[1];
+	oa->forcerot[0] = 60.0f * oa->forcerot[1];
 }
 
 static void rna_StateActuator_state_set(PointerRNA *ptr, const int *values)
 {
-	bActuator *act = (bActuator*)ptr->data;
+	bActuator *act = (bActuator *)ptr->data;
 	bStateActuator *sa = act->data;
 
 	int i, tot = 0;
 
 	/* ensure we always have some state selected */
-	for (i = 0; i<OB_MAX_STATES; i++)
+	for (i = 0; i < OB_MAX_STATES; i++)
 		if (values[i])
 			tot++;
 	
 	if (tot == 0)
 		return;
 
-	for (i = 0; i<OB_MAX_STATES; i++) {
-		if (values[i]) sa->mask |= (1<<i);
-		else sa->mask &= ~(1<<i);
+	for (i = 0; i < OB_MAX_STATES; i++) {
+		if (values[i]) sa->mask |= (1 << i);
+		else sa->mask &= ~(1 << i);
 	}
 }
 
@@ -500,10 +501,10 @@ static void rna_Actuator_Armature_update(Main *UNUSED(bmain), Scene *UNUSED(scen
 
 static void rna_SteeringActuator_navmesh_set(PointerRNA *ptr, PointerRNA value)
 {
-	bActuator *act = (bActuator*)ptr->data;
-	bSteeringActuator *sa = (bSteeringActuator*) act->data;
+	bActuator *act = (bActuator *)ptr->data;
+	bSteeringActuator *sa = (bSteeringActuator *) act->data;
 
-	Object* obj = value.data;
+	Object *obj = value.data;
 	if (obj && obj->body_type == OB_BODY_TYPE_NAVMESH)
 		sa->navmesh = obj;
 	else
@@ -579,7 +580,8 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
 		{ACT_ACTION_MOTION, "MOTION", 0, "Displacement", ""},
 #endif
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Action Actuator", "Actuator to control the object movement");
@@ -691,12 +693,13 @@ static void rna_def_action_actuator(BlenderRNA *brna)
 static void rna_def_object_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA* prop;
+	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
 		{ACT_OBJECT_NORMAL, "OBJECT_NORMAL", 0, "Simple Motion", ""},
 		{ACT_OBJECT_SERVO, "OBJECT_SERVO", 0, "Servo Control", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ObjectActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Motion Actuator", "Actuator to control the object movement");
@@ -887,7 +890,8 @@ static void rna_def_camera_actuator(BlenderRNA *brna)
 		{OB_POSY, "POS_Y", 0, "+Y", "Camera tries to get behind the Y axis"},
 		{OB_NEGX, "NEG_X", 0, "-X", "Camera tries to get behind the -X axis"},
 		{OB_NEGY, "NEG_Y", 0, "-Y", "Camera tries to get behind the -Y axis"},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "CameraActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Camera Actuator", "");
@@ -1310,15 +1314,17 @@ static void rna_def_edit_object_actuator(BlenderRNA *brna)
 		{ACT_EDOB_ENABLE_RB, "ENABLERIGIDBODY", 0, "Enable Rigid Body", ""},
 		{ACT_EDOB_DISABLE_RB, "DISABLERIGIDBODY", 0, "Disable Rigid Body", ""},
 		{ACT_EDOB_SET_MASS, "SETMASS", 0, "Set Mass", ""},
-		{0, NULL, 0, NULL, NULL} };
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem prop_type_items[] = {
-	{ACT_EDOB_ADD_OBJECT, "ADDOBJECT", 0, "Add Object", ""},
-	{ACT_EDOB_END_OBJECT, "ENDOBJECT", 0, "End Object", ""},
-	{ACT_EDOB_REPLACE_MESH, "REPLACEMESH", 0, "Replace Mesh", ""},
-	{ACT_EDOB_TRACK_TO, "TRACKTO", 0, "Track to", ""},
-	{ACT_EDOB_DYNAMICS, "DYNAMICS", 0, "Dynamics", ""},
-	{0, NULL, 0, NULL, NULL} };
+		{ACT_EDOB_ADD_OBJECT, "ADDOBJECT", 0, "Add Object", ""},
+		{ACT_EDOB_END_OBJECT, "ENDOBJECT", 0, "End Object", ""},
+		{ACT_EDOB_REPLACE_MESH, "REPLACEMESH", 0, "Replace Mesh", ""},
+		{ACT_EDOB_TRACK_TO, "TRACKTO", 0, "Track to", ""},
+		{ACT_EDOB_DYNAMICS, "DYNAMICS", 0, "Dynamics", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "EditObjectActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Edit Object Actuator", "Actuator used to edit objects");
@@ -1427,7 +1433,8 @@ static void rna_def_scene_actuator(BlenderRNA *brna)
 		{ACT_SCENE_REMOVE, "REMOVE", 0, "Remove Scene", ""},
 		{ACT_SCENE_SUSPEND, "SUSPEND", 0, "Suspend Scene", ""},
 		{ACT_SCENE_RESUME, "RESUME", 0, "Resume Scene", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 		
 	srna = RNA_def_struct(brna, "SceneActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Scene Actuator", "");
@@ -1469,7 +1476,8 @@ static void rna_def_random_actuator(BlenderRNA *brna)
 		{ACT_RANDOM_FLOAT_UNIFORM, "FLOAT_UNIFORM", 0, "Float Uniform", ""},
 		{ACT_RANDOM_FLOAT_NORMAL, "FLOAT_NORMAL", 0, "Float Normal", ""},
 		{ACT_RANDOM_FLOAT_NEGATIVE_EXPONENTIAL, "FLOAT_NEGATIVE_EXPONENTIAL", 0, "Float Neg. Exp.", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "RandomActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Random Actuator", "");
@@ -1588,7 +1596,8 @@ static void rna_def_message_actuator(BlenderRNA *brna)
 	static EnumPropertyItem prop_body_type_items[] = {
 		{ACT_MESG_MESG, "TEXT", 0, "Text", ""},
 		{ACT_MESG_PROP, "PROPERTY", 0, "Property", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "MessageActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Message Actuator", "");
@@ -1638,7 +1647,8 @@ static void rna_def_game_actuator(BlenderRNA *brna)
 		{ACT_GAME_QUIT, "QUIT", 0, "Quit Game", ""},
 		{ACT_GAME_SAVECFG, "SAVECFG", 0, "Save bge.logic.globalDict", ""},
 		{ACT_GAME_LOADCFG, "LOADCFG", 0, "Load bge.logic.globalDict", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "GameActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Game Actuator", "");
@@ -1711,7 +1721,8 @@ static void rna_def_twodfilter_actuator(BlenderRNA *brna)
 		{ACT_2DFILTER_INVERT, "INVERT", 0, "Invert", ""},
 		{ACT_2DFILTER_CUSTOMFILTER, "CUSTOMFILTER", 0, "Custom Filter", ""},
 /*		{ACT_2DFILTER_NUMBER_OF_FILTERS, "", 0, "Do not use it. Sentinel", ""}, */
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "Filter2DActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Filter 2D Actuator", "Actuator to apply screen graphic effects");
@@ -1757,7 +1768,8 @@ static void rna_def_parent_actuator(BlenderRNA *brna)
 	static EnumPropertyItem prop_type_items[] = {
 		{ACT_PARENT_SET, "SETPARENT", 0, "Set Parent", ""},
 		{ACT_PARENT_REMOVE, "REMOVEPARENT", 0, "Remove Parent", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ParentActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Parent Actuator", "");
@@ -1805,7 +1817,8 @@ static void rna_def_shape_action_actuator(BlenderRNA *brna)
 #ifdef __NLA_ACTION_BY_MOTION_ACTUATOR
 		{ACT_ACTION_MOTION, "MOTION", 0, "Displacement", ""},
 #endif
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ShapeActionActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Shape Action Actuator", "Actuator to control shape key animations");
@@ -1886,7 +1899,8 @@ static void rna_def_state_actuator(BlenderRNA *brna)
 		{ACT_STATE_ADD, "ADD", 0, "Add State", ""},
 		{ACT_STATE_REMOVE, "REMOVE", 0, "Remove State", ""},
 		{ACT_STATE_CHANGE, "CHANGE", 0, "Change State", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	srna = RNA_def_struct(brna, "StateActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "State Actuator", "Actuator to handle states");
@@ -1908,7 +1922,7 @@ static void rna_def_state_actuator(BlenderRNA *brna)
 static void rna_def_armature_actuator(BlenderRNA *brna)
 {
 	StructRNA *srna;
-	PropertyRNA* prop;
+	PropertyRNA *prop;
 
 	static EnumPropertyItem prop_type_items[] = {
 		{ACT_ARM_RUN, "RUN", 0, "Run Armature", ""},
@@ -1917,7 +1931,8 @@ static void rna_def_armature_actuator(BlenderRNA *brna)
 		{ACT_ARM_SETTARGET, "SETTARGET", 0, "Set Target", ""},
 		{ACT_ARM_SETWEIGHT, "SETWEIGHT", 0, "Set Weight", ""},
 		{ACT_ARM_SETINFLUENCE, "SETINFLUENCE", 0, "Set Influence", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "ArmatureActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Armature Actuator", "");
@@ -1976,7 +1991,8 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 		{ACT_STEERING_SEEK, "SEEK", 0, "Seek", ""},
 		{ACT_STEERING_FLEE, "FLEE", 0, "Flee", ""},
 		{ACT_STEERING_PATHFOLLOWING, "PATHFOLLOWING", 0, "Path following", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	static EnumPropertyItem facingaxis_items[] = {
 		{1, "X", 0, "X", ""},
@@ -1985,7 +2001,8 @@ static void rna_def_steering_actuator(BlenderRNA *brna)
 		{4, "NEG_X", 0, "-X", ""},
 		{5, "NEG_Y", 0, "-Y", ""},
 		{6, "NEG_Z", 0, "-Z", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "SteeringActuator", "Actuator");
 	RNA_def_struct_ui_text(srna, "Steering Actuator", "");

@@ -762,8 +762,8 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 		points[i].area= fabsf(area[i])/(tree->scale*tree->scale);
 		points[i].back= (area[i] < 0.0f);
 
-		mul_v3_fl(points[i].co, 1.0f/tree->scale);
-		DO_MINMAX(points[i].co, tree->min, tree->max);
+		mul_v3_fl(points[i].co, 1.0f / tree->scale);
+		minmax_v3v3_v3(tree->min, tree->max, points[i].co);
 
 		refpoints[i]= points + i;
 	}
@@ -990,7 +990,7 @@ void make_sss_tree(Render *re)
 {
 	Material *mat;
 	
-	re->sss_hash= BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "make_sss_tree gh");
+	re->sss_hash= BLI_ghash_ptr_new("make_sss_tree gh");
 
 	re->i.infostr= "SSS preprocessing";
 	re->stats_draw(re->sdh, &re->i);

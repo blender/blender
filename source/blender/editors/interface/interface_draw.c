@@ -252,7 +252,8 @@ void uiDrawBoxShade(int mode, float minx, float miny, float maxx, float maxy, fl
 
 /* linear vertical shade within button or in outline */
 /* view2d scrollers use it */
-void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float maxy, float rad, float shadeLeft, float shadeRight)
+void uiDrawBoxVerticalShade(int mode, float minx, float miny, float maxx, float maxy,
+                            float rad, float shadeLeft, float shadeRight)
 {
 	float vec[7][2] = {{0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169}, {0.707, 0.293},
 					   {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}};
@@ -656,7 +657,8 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 	uiDrawBox(GL_LINE_LOOP, rect->xmin - 1, rect->ymin, rect->xmax + 1, rect->ymax + 1, 3.0f);
 }
 
-static void histogram_draw_one(float r, float g, float b, float alpha, float x, float y, float w, float h, float *data, int res)
+static void histogram_draw_one(float r, float g, float b, float alpha,
+                               float x, float y, float w, float h, float *data, int res)
 {
 	int i;
 	
@@ -716,7 +718,10 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 
 	/* need scissor test, histogram can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin - 1), ar->winrct.ymin + (rect.ymin - 1), (rect.xmax + 1) - (rect.xmin - 1), (rect.ymax + 1) - (rect.ymin - 1));
+	glScissor(ar->winrct.xmin + (rect.xmin - 1),
+	          ar->winrct.ymin + (rect.ymin - 1),
+	          (rect.xmax + 1) - (rect.xmin - 1),
+	          (rect.ymax + 1) - (rect.ymin - 1));
 
 	glColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid lines here */
@@ -786,7 +791,10 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 
 	/* need scissor test, waveform can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin - 1), ar->winrct.ymin + (rect.ymin - 1), (rect.xmax + 1) - (rect.xmin - 1), (rect.ymax + 1) - (rect.ymin - 1));
+	glScissor(ar->winrct.xmin + (rect.xmin - 1),
+	          ar->winrct.ymin + (rect.ymin - 1),
+	          (rect.xmax + 1) - (rect.xmin - 1),
+	          (rect.ymax + 1) - (rect.ymin - 1));
 
 	glColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid lines here */
@@ -851,7 +859,12 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 		}
 
 		/* RGB / YCC (3 channels) */
-		else if (ELEM4(scopes->wavefrm_mode, SCOPES_WAVEFRM_RGB, SCOPES_WAVEFRM_YCC_601, SCOPES_WAVEFRM_YCC_709, SCOPES_WAVEFRM_YCC_JPEG)) {
+		else if (ELEM4(scopes->wavefrm_mode,
+		               SCOPES_WAVEFRM_RGB,
+		               SCOPES_WAVEFRM_YCC_601,
+		               SCOPES_WAVEFRM_YCC_709,
+		               SCOPES_WAVEFRM_YCC_JPEG))
+		{
 			int rgb = (scopes->wavefrm_mode == SCOPES_WAVEFRM_RGB);
 			
 			glBlendFunc(GL_ONE, GL_ONE);
@@ -996,7 +1009,10 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 
 	/* need scissor test, hvectorscope can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin - 1), ar->winrct.ymin + (rect.ymin - 1), (rect.xmax + 1) - (rect.xmin - 1), (rect.ymax + 1) - (rect.ymin - 1));
+	glScissor(ar->winrct.xmin + (rect.xmin - 1),
+	          ar->winrct.ymin + (rect.ymin - 1),
+	          (rect.xmax + 1) - (rect.xmin - 1),
+	          (rect.ymax + 1) - (rect.ymin - 1));
 	
 	glColor4f(1.f, 1.f, 1.f, 0.08f);
 	/* draw grid elements */
@@ -1507,7 +1523,10 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 	/* need scissor test, preview image can draw outside of boundary */
 	glGetIntegerv(GL_VIEWPORT, scissor);
-	glScissor(ar->winrct.xmin + (rect.xmin - 1), ar->winrct.ymin + (rect.ymin - 1), (rect.xmax + 1) - (rect.xmin - 1), (rect.ymax + 1) - (rect.ymin - 1));
+	glScissor(ar->winrct.xmin + (rect.xmin - 1),
+	          ar->winrct.ymin + (rect.ymin - 1),
+	          (rect.xmax + 1) - (rect.xmin - 1),
+	          (rect.ymax + 1) - (rect.ymin - 1));
 
 	if (scopes->track_disabled) {
 		glColor4f(0.7f, 0.3f, 0.3f, 0.3f);
@@ -1550,7 +1569,10 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 			/* draw cross for pizel position */
 			glTranslatef(off_x + rect.xmin + track_pos[0] * zoomx, off_y + rect.ymin + track_pos[1] * zoomy, 0.f);
-			glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin, rect.xmax - rect.xmin, rect.ymax - rect.ymin);
+			glScissor(ar->winrct.xmin + rect.xmin,
+			          ar->winrct.ymin + rect.ymin,
+			          rect.xmax - rect.xmin,
+			          rect.ymax - rect.ymin);
 
 			for (a = 0; a < 2; a++) {
 				if (a == 1) {

@@ -43,7 +43,7 @@
 
 
 
-void IMB_metadata_free(struct ImBuf* img)
+void IMB_metadata_free(struct ImBuf *img)
 {
 	ImMetaData *info;
 
@@ -54,7 +54,7 @@ void IMB_metadata_free(struct ImBuf* img)
 	}
 	info = img->metadata;
 	while (info) {
-		ImMetaData* next = info->next;
+		ImMetaData *next = info->next;
 		MEM_freeN(info->key);
 		MEM_freeN(info->value);
 		MEM_freeN(info);
@@ -62,7 +62,7 @@ void IMB_metadata_free(struct ImBuf* img)
 	}
 }
 
-int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* field, int len)
+int IMB_metadata_get_field(struct ImBuf *img, const char *key, char *field, int len)
 {
 	ImMetaData *info;
 	int retval = 0;
@@ -84,7 +84,7 @@ int IMB_metadata_get_field(struct ImBuf* img, const char* key, char* field, int 
 	return retval;
 }
 
-int IMB_metadata_add_field(struct ImBuf* img, const char* key, const char* value)
+int IMB_metadata_add_field(struct ImBuf *img, const char *key, const char *value)
 {
 	ImMetaData *info;
 	ImMetaData *last;
@@ -121,7 +121,7 @@ int IMB_metadata_del_field(struct ImBuf *img, const char *key)
 	p = img->metadata;
 	p1 = NULL;
 	while (p) {
-		if (!strcmp (key, p->key)) {
+		if (!strcmp(key, p->key)) {
 			if (p1)
 				p1->next = p->next;
 			else
@@ -146,18 +146,18 @@ int IMB_metadata_change_field(struct ImBuf *img, const char *key, const char *fi
 		return (0);
 
 	if (!img->metadata)
-		return (IMB_metadata_add_field (img, key, field));
+		return (IMB_metadata_add_field(img, key, field));
 
 	p = img->metadata;
 	while (p) {
-		if (!strcmp (key, p->key)) {
-			MEM_freeN (p->value);
-			p->value = BLI_strdup (field);
+		if (!strcmp(key, p->key)) {
+			MEM_freeN(p->value);
+			p->value = BLI_strdup(field);
 			return (1);
 		}
 		p = p->next;
 	}
 
-	return (IMB_metadata_add_field (img, key, field));
+	return (IMB_metadata_add_field(img, key, field));
 }
 

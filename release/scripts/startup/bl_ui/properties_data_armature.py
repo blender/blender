@@ -305,10 +305,10 @@ class DATA_PT_motion_paths(MotionPathButtonsPanel, Panel):
 
         ob = context.object
         avs = ob.pose.animation_visualisation
-        
+
         pchan = context.active_pose_bone
         mpath = pchan.motion_path if pchan else None
-        
+
         self.draw_settings(context, avs, mpath, bones=True)
 
 

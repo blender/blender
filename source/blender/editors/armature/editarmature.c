@@ -569,8 +569,8 @@ void docenter_armature(Scene *scene, Object *ob, float cursor[3], int centermode
 			float min[3], max[3];
 			INIT_MINMAX(min, max);
 			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
-				DO_MINMAX(ebone->head, min, max);
-				DO_MINMAX(ebone->tail, min, max);
+				minmax_v3v3_v3(min, max, ebone->head);
+				minmax_v3v3_v3(min, max, ebone->tail);
 			}
 			mid_v3_v3v3(cent, min, max);
 		}
@@ -5945,7 +5945,7 @@ void generateSkeletonFromReebGraph(Scene *scene, ReebGraph *rg)
 	
 	ED_armature_to_edit(obedit);
 
-	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "SkeletonFromReebGraph gh");
+	arcBoneMap = BLI_ghash_ptr_new("SkeletonFromReebGraph gh");
 	
 	BLI_markdownSymmetry((BGraph *)rg, rg->nodes.first, scene->toolsettings->skgen_symmetry_limit);
 	

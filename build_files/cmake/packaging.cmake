@@ -1,5 +1,5 @@
 set(PROJECT_DESCRIPTION  "Blender is a very fast and versatile 3D modeller/renderer.")
-set(PROJECT_COPYRIGHT    "Copyright (C) 2001-2011 Blender Foundation")
+set(PROJECT_COPYRIGHT    "Copyright (C) 2001-2012 Blender Foundation")
 set(PROJECT_CONTACT      "foundation@blender.org")
 set(PROJECT_VENDOR       "Blender Foundation")
 set(ORG_WEBSITE          "www.blender.org")
@@ -31,7 +31,7 @@ set(BUILD_REV ${MY_WC_REVISION})
 
 
 # Force Package Name
-set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${BLENDER_VERSION}-r${BUILD_REV}-${CMAKE_SYSTEM_PROCESSOR})
+set(CPACK_PACKAGE_FILE_NAME ${PROJECT_NAME}-${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}-1.r${BUILD_REV}-${CMAKE_SYSTEM_PROCESSOR})
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 	# RPM packages

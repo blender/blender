@@ -50,16 +50,16 @@ struct DLRBT_Tree;
 
 /* Keyframe Column Struct */
 typedef struct ActKeyColumn {
-		/* ListBase linkage */
+	/* ListBase linkage */
 	struct ActKeyColumn *next, *prev;
 	
-		/* sorting-tree linkage */
-	struct ActKeyColumn *left, *right;	/* 'children' of this node, less than and greater than it (respectively) */
-	struct ActKeyColumn *parent;		/* parent of this node in the tree */
-	char tree_col;						/* DLRB_BLACK or DLRB_RED */
+	/* sorting-tree linkage */
+	struct ActKeyColumn *left, *right;  /* 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyColumn *parent;        /* parent of this node in the tree */
+	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
 	
-		/* keyframe info */
-	char key_type;						/* eBezTripe_KeyframeType */
+	/* keyframe info */
+	char key_type;                      /* eBezTripe_KeyframeType */
 	short sel;
 	float cfra;
 	
@@ -70,15 +70,15 @@ typedef struct ActKeyColumn {
 
 /* 'Long Keyframe' Struct */
 typedef struct ActKeyBlock {
-		/* ListBase linkage */
+	/* ListBase linkage */
 	struct ActKeyBlock *next, *prev;
 	
-		/* sorting-tree linkage */
-	struct ActKeyBlock *left, *right;	/* 'children' of this node, less than and greater than it (respectively) */
-	struct ActKeyBlock *parent;			/* parent of this node in the tree */
-	char tree_col;						/* DLRB_BLACK or DLRB_RED */
+	/* sorting-tree linkage */
+	struct ActKeyBlock *left, *right;   /* 'children' of this node, less than and greater than it (respectively) */
+	struct ActKeyBlock *parent;         /* parent of this node in the tree */
+	char tree_col;                      /* DLRB_BLACK or DLRB_RED */
 	
-		/* key-block info */
+	/* key-block info */
 	char sel;
 	short handle_type;
 	float val;
@@ -93,11 +93,11 @@ typedef struct ActKeyBlock {
 
 /* options for keyframe shape drawing */
 typedef enum eKeyframeShapeDrawOpts {
-		/* only the border */
-	KEYFRAME_SHAPE_FRAME	= 0,
-		/* only the inside filling */
+	/* only the border */
+	KEYFRAME_SHAPE_FRAME = 0,
+	/* only the inside filling */
 	KEYFRAME_SHAPE_INSIDE,
-		/* the whole thing */
+	/* the whole thing */
 	KEYFRAME_SHAPE_BOTH
 } eKeyframeShapeDrawOpts;
 

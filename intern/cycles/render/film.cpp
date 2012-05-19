@@ -298,7 +298,6 @@ bool Film::modified(const Film& film)
 
 void Film::tag_update(Scene *scene)
 {
-	scene->integrator->tag_update(scene);
 	need_update = true;
 }
 

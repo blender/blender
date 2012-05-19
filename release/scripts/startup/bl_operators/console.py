@@ -24,7 +24,9 @@ from bpy.props import StringProperty
 
 
 def _lang_module_get(sc):
-    return __import__("console_" + sc.language)
+    return __import__("console_" + sc.language,
+                      # for python 3.3, maybe a bug???
+                      level=0)
 
 
 class ConsoleExec(Operator):

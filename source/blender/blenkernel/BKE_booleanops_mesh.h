@@ -53,12 +53,9 @@ typedef struct CSG_MeshDescriptor {
 } CSG_MeshDescriptor;
 
 
-extern
-	int
-CSG_LoadBlenderMesh(
-	struct Object * obj,
-	CSG_MeshDescriptor *output
-);
+extern int
+CSG_LoadBlenderMesh(struct Object *obj,
+                    CSG_MeshDescriptor *output);
 
 /**
  * Destroy the contents of a mesh descriptor.
@@ -67,11 +64,8 @@ CSG_LoadBlenderMesh(
  * internal memory in the desriptor.
  */
 
-extern
-	void
-CSG_DestroyMeshDescriptor(
-	CSG_MeshDescriptor *mesh
-);
+extern void
+CSG_DestroyMeshDescriptor(CSG_MeshDescriptor *mesh);
 
 /**
  * Perform a boolean operation between 2 meshes and return the 
@@ -82,14 +76,11 @@ CSG_DestroyMeshDescriptor(
  * 3 = difference.
  */
 
-extern
-	int 
-CSG_PerformOp(
-	CSG_MeshDescriptor *mesh1,
-	CSG_MeshDescriptor *mesh2,
-	int op_type,
-	CSG_MeshDescriptor *output
-);
+extern int
+CSG_PerformOp(CSG_MeshDescriptor *mesh1,
+              CSG_MeshDescriptor *mesh2,
+              int op_type,
+              CSG_MeshDescriptor *output);
 
 
 
@@ -97,23 +88,17 @@ CSG_PerformOp(
  * Add a mesh to blender as a new object.
  */
 
-extern
-	int
-CSG_AddMeshToBlender(
-	CSG_MeshDescriptor *mesh
-);
+extern int
+CSG_AddMeshToBlender(CSG_MeshDescriptor *mesh);
 
 /**
  * Test functionality.
  */
 
-extern
-	int
-NewBooleanMeshTest(
-	struct Base * base,
-	struct Base * base_select,
-	int op_type
-);
+extern int
+NewBooleanMeshTest(struct Base *base,
+                   struct Base *base_select,
+                   int op_type);
 
 #endif
 

@@ -1,5 +1,11 @@
 # -*- rpm-spec -*-
 %global __python %{__python3}
+%global blender_api @CPACK_PACKAGE_VERSION_MAJOR@.@CPACK_PACKAGE_VERSION_MINOR@
+
+%define _rpmdir @CPACK_RPM_DIRECTORY@
+%define _rpmfilename @CPACK_RPM_FILE_NAME@
+%define _unpackaged_files_terminate_build 0
+%define _topdir @CPACK_RPM_DIRECTORY@
 
 BuildRoot:      @CPACK_RPM_DIRECTORY@/@CPACK_PACKAGE_FILE_NAME@@CPACK_RPM_PACKAGE_COMPONENT_PART_PATH@
 Summary:        @CPACK_RPM_PACKAGE_SUMMARY@
@@ -9,12 +15,17 @@ Release:        @CPACK_RPM_PACKAGE_RELEASE@%{?dist}
 License:        @CPACK_RPM_PACKAGE_LICENSE@
 Group:          @CPACK_RPM_PACKAGE_GROUP@
 Vendor:         @CPACK_RPM_PACKAGE_VENDOR@
-Epoch:         1
+Epoch:          1
 
-%define _rpmdir @CPACK_RPM_DIRECTORY@
-%define _rpmfilename @CPACK_RPM_FILE_NAME@
-%define _unpackaged_files_terminate_build 0
-%define _topdir @CPACK_RPM_DIRECTORY@
+Requires(post):   desktop-file-utils
+Requires(post):   shared-mime-info
+Requires(postun): desktop-file-utils
+Requires(postun): shared-mime-info
+
+Provides:         blender(ABI) = %{blender_api}
+Provides:         blender-fonts = %{?epoch:%{epoch}:}%{version}-%{release}
+
+Obsoletes:        blender-fonts <= 2.49a-9
 
 %description
 Blender is an integrated 3d suite for modelling, animation, rendering,
@@ -40,6 +51,10 @@ then
 fi
 mv "@CPACK_TOPLEVEL_DIRECTORY@/tmpBBroot" ${RPM_BUILD_ROOT}
 
+rm -f ${RPM_BUILD_ROOT}%{_bindir}/blender-thumbnailer.py
+
+%find_lang %{name}
+
 %clean
 rm -rf ${RPM_BUILD_ROOT}
 
@@ -57,14 +72,15 @@ if [ -x %{_bindir}/gtk-update-icon-cache ]; then
   %{_bindir}/gtk-update-icon-cache --quiet %{_datadir}/icons/hicolor
 fi || :
 
-%files
+%files -f blender.lang
 %defattr(-,root,root,-)
 %{_bindir}/%{name}
-%{_datadir}/%{name}/@CPACK_PACKAGE_VERSION_MAJOR@.@CPACK_PACKAGE_VERSION_MINOR@
+%{_datadir}/%{name}/%{blender_api}/datafiles/fonts
+%{_datadir}/%{name}/%{blender_api}/scripts
 %{_datadir}/icons/hicolor/*/apps/%{name}.*
 %{_datadir}/applications/%{name}.desktop
-%{_datadir}/doc/blender
-%{_mandir}/man1/blender.*
+%{_datadir}/doc/%{name}
+%{_mandir}/man1/%{name}.*
 
 %changelog
 @CPACK_RPM_SPEC_CHANGELOG@

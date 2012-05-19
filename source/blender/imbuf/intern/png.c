@@ -301,7 +301,8 @@ int imb_savepng(struct ImBuf *ibuf, const char *name, int flags)
 	return(1);
 }
 
-struct ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags){
+ImBuf *imb_loadpng(unsigned char *mem, size_t size, int flags)
+{
 	struct ImBuf *ibuf = NULL;
 	png_structp png_ptr;
 	png_infop info_ptr;

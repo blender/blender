@@ -13,6 +13,7 @@ incs += ' ../imbuf ../avi '
 incs += ' ../blenloader'
 incs += ' ../blenfont ../blenkernel ../renderconverter '
 incs += ' ../gpu #/extern/glew/include '
+incs += ' ../compositor '
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']

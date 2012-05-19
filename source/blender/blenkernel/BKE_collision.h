@@ -61,10 +61,10 @@ struct LinkNode;
 /* COLLISION FLAGS */
 typedef enum
 {
-	COLLISION_IN_FUTURE =		(1 << 1),
+	COLLISION_IN_FUTURE =       (1 << 1),
 #ifdef WITH_ELTOPO
-	COLLISION_USE_COLLFACE =	(1 << 2),
-	COLLISION_IS_EDGES =		(1 << 3),
+	COLLISION_USE_COLLFACE =    (1 << 2),
+	COLLISION_IS_EDGES =        (1 << 3),
 #endif
 } COLLISION_FLAGS;
 
@@ -73,8 +73,7 @@ typedef enum
 // used for collisions in collision.c
 ////////////////////////////////////////
 /* used for collisions in collision.c */
-typedef struct CollPair
-{
+typedef struct CollPair {
 	unsigned int face1; // cloth face
 	unsigned int face2; // object face
 	double distance; // magnitude of vector
@@ -95,8 +94,7 @@ typedef struct CollPair
 CollPair;
 
 /* used for collisions in collision.c */
-typedef struct EdgeCollPair
-{
+typedef struct EdgeCollPair {
 	unsigned int p11, p12, p21, p22;
 	float normal[3];
 	float vector[3];
@@ -107,8 +105,7 @@ typedef struct EdgeCollPair
 EdgeCollPair;
 
 /* used for collisions in collision.c */
-typedef struct FaceCollPair
-{
+typedef struct FaceCollPair {
 	unsigned int p11, p12, p13, p21;
 	float normal[3];
 	float vector[3];
@@ -130,8 +127,8 @@ FaceCollPair;
 // used in modifier.c from collision.c
 /////////////////////////////////////////////////
 
-BVHTree *bvhtree_build_from_mvert(struct MFace *mfaces, unsigned int numfaces, struct MVert *x, unsigned int numverts, float epsilon );
-void bvhtree_update_from_mvert(BVHTree * bvhtree, struct MFace *faces, int numfaces, struct MVert *x, struct MVert *xnew, int numverts, int moving );
+BVHTree *bvhtree_build_from_mvert(struct MFace *mfaces, unsigned int numfaces, struct MVert *x, unsigned int numverts, float epsilon);
+void bvhtree_update_from_mvert(BVHTree *bvhtree, struct MFace *faces, int numfaces, struct MVert *x, struct MVert *xnew, int numverts, int moving);
 
 /////////////////////////////////////////////////
 

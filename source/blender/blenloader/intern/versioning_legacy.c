@@ -3559,7 +3559,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 							{
 								SpaceNla *snla = (SpaceNla *)sl;
 								snla->autosnap = SACTSNAP_FRAME;
-		   					}
+							}
 							break;
 					}
 				}

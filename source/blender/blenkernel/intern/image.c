@@ -505,6 +505,20 @@ void BKE_image_merge(Image *dest, Image *source)
 	}
 }
 
+/* note, we could be clever and scale all imbuf's but since some are mipmaps its not so simple */
+void BKE_image_scale(Image *image, int width, int height)
+{
+	ImBuf *ibuf;
+	void *lock;
+
+	ibuf = BKE_image_acquire_ibuf(image, NULL, &lock);
+
+	IMB_scaleImBuf(ibuf, width, height);
+	ibuf->userflags |= IB_BITMAPDIRTY;
+
+	BKE_image_release_ibuf(image, lock);
+}
+
 Image *BKE_image_load(const char *filepath)
 {
 	Image *ima;
@@ -1729,7 +1743,8 @@ void BKE_makepicstring(char *string, const char *base, const char *relbase, int 
 }
 
 /* used by sequencer too */
-struct anim *openanim(const char *name, int flags, int streamindex){
+struct anim *openanim(const char *name, int flags, int streamindex)
+{
 	struct anim *anim;
 	struct ImBuf *ibuf;
 	
@@ -2177,7 +2192,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 		flag = IB_rect | IB_multilayer;
 		if (ima->flag & IMA_DO_PREMUL) flag |= IB_premul;
 		
-		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data, ima->packedfile->size, flag, "<packed data>");
+		ibuf = IMB_ibImageFromMemory((unsigned char *)ima->packedfile->data,
+		                             ima->packedfile->size, flag, "<packed data>");
 	} 
 	else {
 		flag = IB_rect | IB_multilayer | IB_metadata;

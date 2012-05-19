@@ -90,7 +90,7 @@ static int is_effected(PartialVisArea area,
 	if (area == PARTIALVIS_ALL)
 		return 1;
 	else if (area == PARTIALVIS_MASKED) {
-		return mask > 0.5;
+		return mask > 0.5f;
 	}
 	else {
 		int inside = planes_contain_v3(planes, 4, co);

@@ -18,6 +18,8 @@
 #include "ntl_world.h"
 #include "simulation_object.h"
 
+#include "globals.h"
+
 #include <stdlib.h>
 #include <zlib.h>
 #ifndef sqrtf
@@ -30,10 +32,6 @@
 
 // try to enhance surface?
 #define SURFACE_ENH 2
-
-extern bool glob_mpactive;
-extern bool glob_mpnum;
-extern bool glob_mpindex;
 
 //! for raytracing
 void LbmFsgrSolver::prepareVisualization( void ) {

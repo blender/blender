@@ -55,7 +55,7 @@ void freeSketch(SK_Sketch *sketch)
 	MEM_freeN(sketch);
 }
 
-SK_Sketch* createSketch(void)
+SK_Sketch *createSketch(void)
 {
 	SK_Sketch *sketch;
 
@@ -101,7 +101,7 @@ void sk_freeStroke(SK_Stroke *stk)
 	MEM_freeN(stk);
 }
 
-SK_Stroke* sk_createStroke(void)
+SK_Stroke *sk_createStroke(void)
 {
 	SK_Stroke *stk;
 
@@ -261,13 +261,13 @@ void sk_polygonizeStroke(SK_Stroke *stk, int start, int end)
 	int i;
 
 	/* find first exact points outside of range */
-	for (;start > 0; start--) {
+	for (; start > 0; start--) {
 		if (stk->points[start].type == PT_EXACT) {
 			break;
 		}
 	}
 
-	for (;end < stk->nb_points - 1; end++) {
+	for (; end < stk->nb_points - 1; end++) {
 		if (stk->points[end].type == PT_EXACT) {
 			break;
 		}
@@ -382,7 +382,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 		work = 0;
 		
 		ls = start;
-		le = start+1;
+		le = start + 1;
 		
 		/* while not over interval */
 		while (ls < end) {
@@ -400,7 +400,7 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 			v1[0] = old_points[ls].p2d[1] - old_points[le].p2d[1]; 
 			
 
-			for ( i = ls + 1; i < le; i++ ) {
+			for (i = ls + 1; i < le; i++) {
 				float mul;
 				float dist;
 				short v2[2];
@@ -412,9 +412,9 @@ void sk_filterStroke(SK_Stroke *stk, int start, int end)
 					continue;
 				}
 
-				mul = (float)(v1[0]*v2[0] + v1[1]*v2[1]) / (float)(v2[0]*v2[0] + v2[1]*v2[1]);
+				mul = (float)(v1[0] * v2[0] + v1[1] * v2[1]) / (float)(v2[0] * v2[0] + v2[1] * v2[1]);
 				
-				dist = mul * mul * (v2[0]*v2[0] + v2[1]*v2[1]);
+				dist = mul * mul * (v2[0] * v2[0] + v2[1] * v2[1]);
 				
 				if (dist > max_dist) {
 					max_dist = dist;
@@ -457,7 +457,7 @@ void sk_filterLastContinuousStroke(SK_Stroke *stk)
 {
 	int start, end;
 
-	end = stk->nb_points -1;
+	end = stk->nb_points - 1;
 
 	for (start = end - 1; start > 0 && stk->points[start].type == PT_CONTINUOUS; start--) {
 		/* nothing to do here*/

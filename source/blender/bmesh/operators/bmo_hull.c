@@ -119,15 +119,20 @@ static void expand_boundary_edges(ListBase *edges, BLI_mempool *edge_pool,
 
 /*************************** Hull Triangles ***************************/
 
-static void hull_add_triangle(GHash *hull_triangles, BLI_mempool *pool,
+static void hull_add_triangle(BMesh *bm, GHash *hull_triangles, BLI_mempool *pool,
                               BMVert *v1, BMVert *v2, BMVert *v3)
 {
 	HullTriangle *t;
+	int i;
 
 	t = BLI_mempool_calloc(pool);
 	t->v[0] = v1;
 	t->v[1] = v2;
 	t->v[2] = v3;
+
+	/* Mark triangles vertices as not interior */
+	for (i = 0; i < 3; i++)
+		BMO_elem_flag_disable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
 
 	BLI_ghash_insert(hull_triangles, t, NULL);
 	normal_tri_v3(t->no, v1->co, v2->co, v3->co);
@@ -149,41 +154,23 @@ static GHash *hull_triangles_v_outside(GHash *hull_triangles, const BMVert *v)
 	GHash *outside;
 	GHashIterator iter;
 
-	outside = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                        BLI_ghashutil_ptrcmp,
-	                        "outside");
+	outside = BLI_ghash_ptr_new("outside");
 
 	GHASH_ITER (iter, hull_triangles) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
 		
-		if (hull_point_tri_side(t, v->co) >= 0)
+		if (hull_point_tri_side(t, v->co) > 0)
 			BLI_ghash_insert(outside, t, NULL);
 	}
 
 	return outside;
 }
 
-/* Similar to above, but just get true/false rather than triangles */
-static int hull_test_v_outside(GHash *hull_triangles, const BMVert *v)
-{
-	GHashIterator iter;
-
-	GHASH_ITER (iter, hull_triangles) {
-		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
-		
-		if (hull_point_tri_side(t, v->co) >= 0)
-			return TRUE;
-	}
-
-	return FALSE;
-}
-
-
 /* For vertex 'v', find which triangles must be deleted to extend the
  * hull; find the boundary edges of that hole so that it can be filled
  * with connections to the new vertex, and update the hull_triangles
  * to delete the marked triangles */
-static void add_point(GHash *hull_triangles, BLI_mempool *hull_pool,
+static void add_point(BMesh *bm, GHash *hull_triangles, BLI_mempool *hull_pool,
                       BLI_mempool *edge_pool, GHash *outside, BMVert *v)
 {
 	ListBase edges = {NULL, NULL};
@@ -192,7 +179,13 @@ static void add_point(GHash *hull_triangles, BLI_mempool *hull_pool,
 
 	GHASH_ITER (iter, outside) {
 		HullTriangle *t = BLI_ghashIterator_getKey(&iter);
+		int i;
+		
 		expand_boundary_edges(&edges, edge_pool, t);
+
+		/* Mark triangle's vertices as interior */
+		for (i = 0; i < 3; i++)
+			BMO_elem_flag_enable(bm, t->v[i], HULL_FLAG_INTERIOR_ELE);
 		
 		/* Delete the triangle */
 		BLI_ghash_remove(hull_triangles, t, NULL, NULL);
@@ -202,7 +195,7 @@ static void add_point(GHash *hull_triangles, BLI_mempool *hull_pool,
 	/* Fill hole boundary with triangles to new point */
 	for (e = edges.first; e; e = next) {
 		next = e->next;
-		hull_add_triangle(hull_triangles, hull_pool, e->v[0], e->v[1], v);
+		hull_add_triangle(bm, hull_triangles, hull_pool, e->v[0], e->v[1], v);
 		BLI_mempool_free(edge_pool, e);
 	}
 }
@@ -303,9 +296,7 @@ static HullFinalEdges *hull_final_edges(GHash *hull_triangles)
 	GHashIterator iter;
 	
 	final_edges = MEM_callocN(sizeof(HullFinalEdges), "HullFinalEdges");
-	final_edges->edges = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                                   BLI_ghashutil_ptrcmp,
-	                                   "final edges ghash");
+	final_edges->edges = BLI_ghash_ptr_new("final edges ghash");
 	final_edges->base_pool = BLI_mempool_create(sizeof(ListBase), 128, 128, 0);
 	final_edges->link_pool = BLI_mempool_create(sizeof(LinkData), 128, 128, 0);
 
@@ -352,7 +343,7 @@ static void hull_final_edges_free(HullFinalEdges *final_edges)
 
 /************************* Initial Tetrahedron ************************/
 
-static void hull_add_tetrahedron(GHash *hull_triangles, BLI_mempool *pool,
+static void hull_add_tetrahedron(BMesh *bm, GHash *hull_triangles, BLI_mempool *pool,
                                  BMVert *tetra[4])
 {
 	float center[3];
@@ -379,7 +370,7 @@ static void hull_add_tetrahedron(GHash *hull_triangles, BLI_mempool *pool,
 		if (dot_v3v3(no, d) > 0)
 			SWAP(BMVert *, v1, v3);
 
-		hull_add_triangle(hull_triangles, pool, v1, v2, v3);
+		hull_add_triangle(bm, hull_triangles, pool, v1, v2, v3);
 	}
 }
 
@@ -518,7 +509,7 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 			BMEdge *e;
 
 			/* Check that all the face's edges are on the hull,
-			   otherwise can't reuse it */
+			 * otherwise can't reuse it */
 			f_on_hull = TRUE;
 			BM_ITER_ELEM (e, &bm_iter2, f, BM_EDGES_OF_FACE) {
 				if (!hull_final_edges_lookup(final_edges, e->v1, e->v2)) {
@@ -528,9 +519,10 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 			}
 			
 			/* Note: can't change ghash while iterating, so mark
-			   with 'skip' flag rather than deleting triangles */
+			 * with 'skip' flag rather than deleting triangles */
 			if (BM_vert_in_face(f, t->v[1]) &&
-			    BM_vert_in_face(f, t->v[2]) && f_on_hull) {
+			    BM_vert_in_face(f, t->v[2]) && f_on_hull)
+			{
 				t->skip = TRUE;
 				BMO_elem_flag_disable(bm, f, HULL_FLAG_INTERIOR_ELE);
 				BMO_elem_flag_enable(bm, f, HULL_FLAG_HOLE);
@@ -540,22 +532,11 @@ static void hull_remove_overlapping(BMesh *bm, GHash *hull_triangles,
 }
 
 static void hull_mark_interior_elements(BMesh *bm, BMOperator *op,
-                                        GHash *hull_triangles,
                                         HullFinalEdges *final_edges)
 {
-	BMVert *v;
 	BMEdge *e;
 	BMFace *f;
 	BMOIter oiter;
-
-	/* Check all input vertices again to see if they are actually part
-	   of the hull */
-	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
-		if (!hull_test_v_outside(hull_triangles, v)) {
-			/* Mark for 'interior_verts' slot */
-			BMO_elem_flag_enable(bm, v, HULL_FLAG_INTERIOR_ELE);
-		}
-	}
 
 	/* Check for interior edges too */
 	BMO_ITER (e, &oiter, bm, op, "input", BM_EDGE) {
@@ -564,7 +545,7 @@ static void hull_mark_interior_elements(BMesh *bm, BMOperator *op,
 	}
 
 	/* Mark all input faces as interior, some may be unmarked in
-	   hull_remove_overlapping() */
+	 * hull_remove_overlapping() */
 	BMO_ITER (f, &oiter, bm, op, "input", BM_FACE) {
 		BMO_elem_flag_enable(bm, f, HULL_FLAG_INTERIOR_ELE);
 	}
@@ -579,9 +560,9 @@ static void hull_tag_unused(BMesh *bm, BMOperator *op)
 	BMFace *f;
 
 	/* Mark vertices, edges, and faces that are already marked
-	   interior (i.e. were already part of the input, but not part of
-	   the hull), but that aren't also used by elements outside the
-	   input set */
+	 * interior (i.e. were already part of the input, but not part of
+	 * the hull), but that aren't also used by elements outside the
+	 * input set */
 	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
 		if (BMO_elem_flag_test(bm, v, HULL_FLAG_INTERIOR_ELE)) {
 			int del = TRUE;
@@ -689,17 +670,20 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	}
 
 	/* Tag input elements */
-	BMO_ITER (ele, &oiter, bm, op, "input", BM_ALL)
+	BMO_ITER (ele, &oiter, bm, op, "input", BM_ALL) {
 		BMO_elem_flag_enable(bm, ele, HULL_FLAG_INPUT);
+		
+		/* Mark all vertices as interior to begin with */
+		if (ele->head.htype == BM_VERT)
+			BMO_elem_flag_enable(bm, ele, HULL_FLAG_INTERIOR_ELE);
+	}
 
 	edge_pool = BLI_mempool_create(sizeof(HullBoundaryEdge), 128, 128, 0);
 	hull_pool = BLI_mempool_create(sizeof(HullTriangle), 128, 128, 0);
-	hull_triangles = BLI_ghash_new(BLI_ghashutil_ptrhash,
-	                               BLI_ghashutil_ptrcmp,
-	                               "hull_triangles");
+	hull_triangles = BLI_ghash_ptr_new("hull_triangles");
 
 	/* Add tetrahedron triangles */
-	hull_add_tetrahedron(hull_triangles, hull_pool, tetra);
+	hull_add_tetrahedron(bm, hull_triangles, hull_pool, tetra);
 
 	/* Expand hull to cover new vertices outside the existing hull */
 	BMO_ITER (v, &oiter, bm, op, "input", BM_VERT) {
@@ -707,7 +691,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 			GHash *outside = hull_triangles_v_outside(hull_triangles, v);
 			if (BLI_ghash_size(outside)) {
 				/* Expand hull and delete interior triangles */
-				add_point(hull_triangles, hull_pool, edge_pool, outside, v);
+				add_point(bm, hull_triangles, hull_pool, edge_pool, outside, v);
 			}
 			BLI_ghash_free(outside, NULL, NULL);
 		}
@@ -716,7 +700,7 @@ void bmo_convex_hull_exec(BMesh *bm, BMOperator *op)
 	BLI_mempool_destroy(edge_pool);
 	final_edges = hull_final_edges(hull_triangles);
 	
-	hull_mark_interior_elements(bm, op, hull_triangles, final_edges);
+	hull_mark_interior_elements(bm, op, final_edges);
 
 	/* Remove hull triangles covered by an existing face */
 	if (BMO_slot_bool_get(op, "use_existing_faces")) {

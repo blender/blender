@@ -59,18 +59,18 @@ struct SurfaceModifierData;
 struct BVHTreeRay;
 struct BVHTreeRayHit; 
 
-#define PARTICLE_P				ParticleData *pa; int p
-#define LOOP_PARTICLES	for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++)
-#define LOOP_EXISTING_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & PARS_UNEXIST))
-#define LOOP_SHOWN_PARTICLES for(p=0, pa=psys->particles; p<psys->totpart; p++, pa++) if(!(pa->flag & (PARS_UNEXIST|PARS_NO_DISP)))
+#define PARTICLE_P              ParticleData * pa; int p
+#define LOOP_PARTICLES  for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)
+#define LOOP_EXISTING_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & PARS_UNEXIST))
+#define LOOP_SHOWN_PARTICLES for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) if (!(pa->flag & (PARS_UNEXIST | PARS_NO_DISP)))
 /* OpenMP: Can only advance one variable within loop definition. */
-#define LOOP_DYNAMIC_PARTICLES for(p=0; p<psys->totpart; p++ ) if((pa=psys->particles+p)->state.time > 0.0f)
+#define LOOP_DYNAMIC_PARTICLES for (p = 0; p < psys->totpart; p++) if ((pa = psys->particles + p)->state.time > 0.0f)
 
-#define PSYS_FRAND_COUNT	1024
-#define PSYS_FRAND(seed)	psys->frand[(seed) % PSYS_FRAND_COUNT]
+#define PSYS_FRAND_COUNT    1024
+#define PSYS_FRAND(seed)    psys->frand[(seed) % PSYS_FRAND_COUNT]
 
 /* fast but sure way to get the modifier*/
-#define PARTICLE_PSMD ParticleSystemModifierData *psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
+#define PARTICLE_PSMD ParticleSystemModifierData * psmd = sim->psmd ? sim->psmd : psys_get_modifier(sim->ob, sim->psys)
 
 /* common stuff that many particle functions need */
 typedef struct ParticleSimulationData {
@@ -86,11 +86,11 @@ typedef struct ParticleSimulationData {
 } ParticleSimulationData;
 
 typedef struct ParticleTexture {
-	float ivel;							/* used in reset */
-	float time, life, exist, size;		/* used in init */
-	float damp, gravity, field;			/* used in physics */
-	float length, clump, kink, effector;/* used in path caching */
-	float rough1, rough2, roughe;		/* used in path caching */
+	float ivel;                           /* used in reset */
+	float time, life, exist, size;        /* used in init */
+	float damp, gravity, field;           /* used in physics */
+	float length, clump, kink, effector;  /* used in path caching */
+	float rough1, rough2, roughe;         /* used in path caching */
 } ParticleTexture;
 
 typedef struct ParticleSeam {
@@ -145,8 +145,7 @@ typedef struct ParticleThread {
 	int num, tot;
 } ParticleThread;
 
-typedef struct ParticleBillboardData
-{
+typedef struct ParticleBillboardData {
 	struct Object *ob;
 	float vec[3], vel[3];
 	float offset[2];
@@ -159,8 +158,7 @@ typedef struct ParticleBillboardData
 	short align, uv_split, anim, split_offset;
 } ParticleBillboardData;
 
-typedef struct ParticleCollisionElement
-{
+typedef struct ParticleCollisionElement {
 	/* pointers to original data */
 	float *x[4], *v[4];
 
@@ -181,8 +179,7 @@ typedef struct ParticleCollisionElement
 } ParticleCollisionElement;
 
 /* container for moving data between deflet_particle and particle_intersect_face */
-typedef struct ParticleCollision
-{
+typedef struct ParticleCollision {
 	struct Object *current;
 	struct Object *hit;
 	struct Object *prev;
@@ -191,7 +188,7 @@ typedef struct ParticleCollision
 
 	struct CollisionModifierData *md; // collision modifier for current object;
 
-	float f;	// time factor of previous collision, needed for substracting face velocity
+	float f;    // time factor of previous collision, needed for substracting face velocity
 	float fac1, fac2;
 
 	float cfra, old_cfra;
@@ -214,10 +211,10 @@ typedef struct ParticleCollision
 } ParticleCollision;
 
 typedef struct ParticleDrawData {
-	float *vdata, *vd;		/* vertice data */
-	float *ndata, *nd;		/* normal data */
-	float *cdata, *cd;		/* color data */
-	float *vedata, *ved;	/* velocity data */
+	float *vdata, *vd;      /* vertice data */
+	float *ndata, *nd;      /* normal data */
+	float *cdata, *cd;      /* color data */
+	float *vedata, *ved;    /* velocity data */
 	float *ma_col;
 	int tot_vec_size, flag;
 	int totpoint, totve;
@@ -248,7 +245,7 @@ int psys_uses_gravity(struct ParticleSimulationData *sim);
 /* free */
 void BKE_particlesettings_free(struct ParticleSettings *part);
 void psys_free_path_cache(struct ParticleSystem *psys, struct PTCacheEdit *edit);
-void psys_free(struct Object * ob, struct ParticleSystem * psys);
+void psys_free(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy, int timeoffset);
 void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
@@ -291,7 +288,7 @@ void psys_get_dupli_path_transform(struct ParticleSimulationData *sim, struct Pa
 ParticleThread *psys_threads_create(struct ParticleSimulationData *sim);
 void psys_threads_free(ParticleThread *threads);
 
-void psys_make_billboard(ParticleBillboardData *bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
+void psys_make_billboard(ParticleBillboardData * bb, float xvec[3], float yvec[3], float zvec[3], float center[3]);
 void psys_apply_hair_lattice(struct Scene *scene, struct Object *ob, struct ParticleSystem *psys);
 
 /* particle_system.c */
@@ -346,13 +343,13 @@ int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int 
 void reset_particle(struct ParticleSimulationData *sim, struct ParticleData *pa, float dtime, float cfra);
 
 /* psys_reset */
-#define PSYS_RESET_ALL			1
-#define PSYS_RESET_DEPSGRAPH 	2
-/* #define PSYS_RESET_CHILDREN 	3 */ /*UNUSED*/
-#define PSYS_RESET_CACHE_MISS	4
+#define PSYS_RESET_ALL          1
+#define PSYS_RESET_DEPSGRAPH    2
+/* #define PSYS_RESET_CHILDREN  3 */ /*UNUSED*/
+#define PSYS_RESET_CACHE_MISS   4
 
 /* index_dmcache */
-#define DMCACHE_NOTFOUND	-1
-#define DMCACHE_ISCHILD		-2
+#define DMCACHE_NOTFOUND    -1
+#define DMCACHE_ISCHILD     -2
 
 #endif

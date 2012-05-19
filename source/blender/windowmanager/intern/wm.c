@@ -183,7 +183,7 @@ void WM_menutype_freelink(MenuType *mt)
 /* called on initialize WM_init() */
 void WM_menutype_init(void)
 {
-	menutypes_hash = BLI_ghash_new(BLI_ghashutil_strhash, BLI_ghashutil_strcmp, "menutypes_hash gh");
+	menutypes_hash = BLI_ghash_str_new("menutypes_hash gh");
 }
 
 void WM_menutype_free(void)

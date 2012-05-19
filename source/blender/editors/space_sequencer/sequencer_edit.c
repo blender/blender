@@ -1323,7 +1323,7 @@ void SEQUENCER_OT_reload(struct wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER; /* no undo, the data changed is stored outside 'main' */
 
 	prop = RNA_def_boolean(ot->srna, "adjust_length", 0, "Adjust Length",
-	                       "Adjust lenght of strips to their data lenght");
+	                       "Adjust length of strips to their data length");
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 

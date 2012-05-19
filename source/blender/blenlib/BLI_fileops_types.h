@@ -41,35 +41,34 @@ typedef unsigned int mode_t;
 
 struct ImBuf;
 
-struct direntry{
-	char	*string;
-	mode_t	type;
-	char	*relname;
-	char	*path;
-#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER>=1500)
+struct direntry {
+	char   *string;
+	mode_t  type;
+	char   *relname;
+	char   *path;
+#if (defined(WIN32) || defined(WIN64)) && (_MSC_VER >= 1500)
 	struct _stat64 s;
 #elif defined(__MINGW32__)
 	struct _stati64 s;
 #else
-	struct	stat s;
+	struct  stat s;
 #endif
 	unsigned int flags;
-	char	size[16];
-	char	mode1[4];
-	char	mode2[4];
-	char	mode3[4];
-	char	owner[16];
-	char	time[8];
-	char	date[16];
-	char	extra[16];
-	void	*poin;
-	int		nr;
+	char    size[16];
+	char    mode1[4];
+	char    mode2[4];
+	char    mode3[4];
+	char    owner[16];
+	char    time[8];
+	char    date[16];
+	char    extra[16];
+	void   *poin;
+	int     nr;
 	struct ImBuf *image;
 	unsigned int selflag; /* selection flag */
 };
 
-struct dirlink
-{
+struct dirlink {
 	struct dirlink *next, *prev;
 	char *name;
 };

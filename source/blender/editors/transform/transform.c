@@ -260,7 +260,7 @@ void projectFloatView(TransInfo *t, const float vec[3], float adr[2])
 	zero_v2(adr);
 }
 
-void applyAspectRatio(TransInfo *t, float *vec)
+void applyAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		SpaceImage *sima= t->sa->spacedata.first;
@@ -293,7 +293,7 @@ void applyAspectRatio(TransInfo *t, float *vec)
 	}
 }
 
-void removeAspectRatio(TransInfo *t, float *vec)
+void removeAspectRatio(TransInfo *t, float vec[2])
 {
 	if ((t->spacetype==SPACE_IMAGE) && (t->mode==TFM_TRANSLATION)) {
 		SpaceImage *sima= t->sa->spacedata.first;
@@ -606,6 +606,72 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 	return keymap;
 }
 
+static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cmode)
+{
+	if (!(t->flag & T_NO_CONSTRAINT)) {
+		int constraint_axis, constraint_plane;
+		int edit_2d = (t->flag & T_2D_EDIT);
+		char msg1[] = "along _";
+		char msg2[] = "along %s _";
+		char msg3[] = "locking %s _";
+		char axis;
+	
+		/* Initialize */
+		switch(key_type) {
+			case XKEY:
+				axis = 'X';
+				constraint_axis = CON_AXIS0;
+				break;
+			case YKEY:
+				axis = 'Y';
+				constraint_axis = CON_AXIS1;
+				break;
+			case ZKEY:
+				axis = 'Z';
+				constraint_axis = CON_AXIS2;
+				break;
+			default:
+				/* Invalid key */
+				return;
+		}
+		msg1[sizeof(msg1) - 2] = axis;
+		msg2[sizeof(msg2) - 2] = axis;
+		msg3[sizeof(msg3) - 2] = axis;
+		constraint_plane = ((CON_AXIS0 | CON_AXIS1 | CON_AXIS2) &
+							(~constraint_axis));
+
+		if (edit_2d && (key_type != ZKEY)) {
+			if (cmode == axis) {
+				stopConstraint(t);
+			}
+			else {
+				setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_axis, msg1);
+			}
+		}
+		else if (!edit_2d) {
+			if (cmode == axis) {
+				if (t->con.orientation != V3D_MANIP_GLOBAL) {
+					stopConstraint(t);
+				}
+				else {
+					short orientation = (t->current_orientation != V3D_MANIP_GLOBAL ?
+										 t->current_orientation : V3D_MANIP_LOCAL);
+					if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
+						setUserConstraint(t, orientation, constraint_axis, msg2);
+					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
+						setUserConstraint(t, orientation, constraint_plane, msg3);
+				}
+			}
+			else {
+				if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
+					setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_axis, msg2);
+				else if (t->modifiers & MOD_CONSTRAINT_PLANE)
+					setUserConstraint(t, V3D_MANIP_GLOBAL, constraint_plane, msg3);
+			}
+		}
+		t->redraw |= TREDRAW_HARD;
+	}
+}
 
 int transformEvent(TransInfo *t, wmEvent *event)
 {
@@ -947,93 +1013,9 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			}
 			break;
 		case XKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (t->flag & T_2D_EDIT) {
-					if (cmode == 'X') {
-						stopConstraint(t);
-					}
-					else {
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along X");
-					}
-				}
-				else {
-					if (cmode == 'X') {
-						if (t->con.orientation != V3D_MANIP_GLOBAL) {
-							stopConstraint(t);
-						}
-						else {
-							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, orientation, (CON_AXIS0), "along %s X");
-							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, orientation, (CON_AXIS1|CON_AXIS2), "locking %s X");
-						}
-					}
-					else {
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0), "along %s X");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1|CON_AXIS2), "locking %s X");
-					}
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
 		case YKEY:
-			if ((t->flag & T_NO_CONSTRAINT)==0) {
-				if (t->flag & T_2D_EDIT) {
-					if (cmode == 'Y') {
-						stopConstraint(t);
-					}
-					else {
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along Y");
-					}
-				}
-				else {
-					if (cmode == 'Y') {
-						if (t->con.orientation != V3D_MANIP_GLOBAL) {
-							stopConstraint(t);
-						}
-						else {
-							short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-							if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-								setUserConstraint(t, orientation, (CON_AXIS1), "along %s Y");
-							else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-								setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS2), "locking %s Y");
-						}
-					}
-					else {
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS1), "along %s Y");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS2), "locking %s Y");
-					}
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
-			break;
 		case ZKEY:
-			if ((t->flag & (T_NO_CONSTRAINT|T_2D_EDIT))==0) {
-				if (cmode == 'Z') {
-					if (t->con.orientation != V3D_MANIP_GLOBAL) {
-						stopConstraint(t);
-					}
-					else {
-						short orientation = t->current_orientation != V3D_MANIP_GLOBAL ? t->current_orientation : V3D_MANIP_LOCAL;
-						if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-							setUserConstraint(t, orientation, (CON_AXIS2), "along %s Z");
-						else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-							setUserConstraint(t, orientation, (CON_AXIS0|CON_AXIS1), "locking %s Z");
-					}
-				}
-				else {
-					if ((t->modifiers & MOD_CONSTRAINT_PLANE) == 0)
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS2), "along %s Z");
-					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
-						setUserConstraint(t, V3D_MANIP_GLOBAL, (CON_AXIS0|CON_AXIS1), "locking %s Z");
-				}
-				t->redraw |= TREDRAW_HARD;
-			}
+			transform_event_xyz_constraint(t, event->type, cmode);
 			break;
 		case OKEY:
 			if (t->flag & T_PROP_EDIT && event->shift) {
@@ -1131,7 +1113,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float *vec)
+int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *cent2d)
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
 	int success = 1;
@@ -1156,8 +1138,12 @@ int calculateTransformCenter(bContext *C, int centerMode, float *vec)
 
 		calculateCenter(t);
 
-		// Copy center from constraint center. Transform center can be local
-		copy_v3_v3(vec, t->con.center);
+		if(cent2d)
+			copy_v2_v2_int(cent2d, t->center2d);
+		if(cent3d) {
+			// Copy center from constraint center. Transform center can be local
+			copy_v3_v3(cent3d, t->con.center);
+		}
 	}
 
 
@@ -3035,12 +3021,16 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		}
 		
 		/* rotation */
-		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
+		/* MORE HACK: as in some cases the matrix to apply location and rot/scale is not the same,
+		 * and ElementRotation() might be called in Translation context (with align snapping),
+		 * we need to be sure to actually use the *rotation* matrix here...
+		 * So no other way than storing it in some dedicated members of td->ext! */
+		if ((t->flag & T_V3D_ALIGN)==0) { /* align mode doesn't rotate objects itself */
 			/* euler or quaternion/axis-angle? */
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
-				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
+				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx, NULL, NULL, NULL, NULL, NULL);
 				
-				mat3_to_quat(quat, fmat);	// Actual transform
+				mat3_to_quat(quat, fmat); /* Actual transform */
 				
 				mul_qt_qtqt(td->ext->quat, quat, td->ext->iquat);
 				/* this function works on end result */
@@ -3053,8 +3043,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 				
 				axis_angle_to_quat(iquat, td->ext->irotAxis, td->ext->irotAngle);
 				
-				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
-				mat3_to_quat(quat, fmat);	// Actual transform
+				mul_serie_m3(fmat, td->ext->r_mtx, mat, td->ext->r_smtx, NULL, NULL, NULL, NULL, NULL);
+				mat3_to_quat(quat, fmat); /* Actual transform */
 				mul_qt_qtqt(tquat, quat, iquat);
 				
 				quat_to_axis_angle(td->ext->rotAxis, td->ext->rotAngle, tquat);
@@ -3065,8 +3055,8 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 			else { 
 				float eulmat[3][3];
 				
-				mul_m3_m3m3(totmat, mat, td->mtx);
-				mul_m3_m3m3(smat, td->smtx, totmat);
+				mul_m3_m3m3(totmat, mat, td->ext->r_mtx);
+				mul_m3_m3m3(smat, td->ext->r_smtx, totmat);
 				
 				/* calculate the total rotatation in eulers */
 				copy_v3_v3(eul, td->ext->irot);
@@ -3472,11 +3462,17 @@ static void applyTranslation(TransInfo *t, float vec[3])
 		/* handle snapping rotation before doing the translation */
 		if (usingSnappingNormal(t)) {
 			if (validSnappingNormal(t)) {
-				float *original_normal = td->axismtx[2];
+				float *original_normal;
 				float axis[3];
 				float quat[4];
 				float mat[3][3];
 				float angle;
+				
+				/* In pose mode, we want to align normals with Y axis of bones... */
+				if (t->flag & T_POSE)
+					original_normal = td->axismtx[1];
+				else
+					original_normal = td->axismtx[2];
 				
 				cross_v3_v3v3(axis, original_normal, t->tsnap.snapNormal);
 				angle = saacos(dot_v3v3(original_normal, t->tsnap.snapNormal));

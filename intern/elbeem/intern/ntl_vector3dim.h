@@ -17,6 +17,11 @@
 // under windos there seem to be strange 
 // errors when including the STL header too
 // late...
+
+#ifdef _MSC_VER
+#define _USE_MATH_DEFINES 1
+#endif
+
 #include <iostream>
 #include <map>
 #include <vector>
@@ -63,14 +68,11 @@ using std::string;
 #ifndef snprintf
 #define snprintf _snprintf
 #endif
-#ifndef bool
-#define bool int
+
+#ifdef _MSC_VER
+#if _MSC_VER >= 1300
+#include <float.h>
 #endif
-#ifndef false
-#define false 0
-#endif
-#ifndef true
-#define true 1
 #endif
 
 #else // WIN32
@@ -102,6 +104,9 @@ using std::string;
 
 #ifndef M_PI
 #define M_PI 3.1415926536
+#endif
+
+#ifndef M_E
 #define M_E  2.7182818284
 #endif
 

@@ -29,6 +29,8 @@ from bpy.types import (Brush,
 
 from rna_prop_ui import PropertyPanel
 
+from bl_ui.properties_paint_common import sculpt_brush_texture_settings
+
 
 class TEXTURE_MT_specials(Menu):
     bl_label = "Texture Specials"
@@ -856,12 +858,7 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
 
         if isinstance(idblock, Brush):
             if context.sculpt_object:
-                layout.label(text="Brush Mapping:")
-                layout.prop(tex, "map_mode", expand=True)
-
-                row = layout.row()
-                row.active = tex.map_mode in {'FIXED', 'TILED'}
-                row.prop(tex, "angle")
+                sculpt_brush_texture_settings(layout, idblock)
         else:
             if isinstance(idblock, Material):
                 split = layout.split(percentage=0.3)
@@ -884,9 +881,9 @@ class TEXTURE_PT_mapping(TextureSlotPanel, Panel):
                 row.prop(tex, "mapping_y", text="")
                 row.prop(tex, "mapping_z", text="")
 
-        row = layout.row()
-        row.column().prop(tex, "offset")
-        row.column().prop(tex, "scale")
+            row = layout.row()
+            row.column().prop(tex, "offset")
+            row.column().prop(tex, "scale")
 
 
 class TEXTURE_PT_influence(TextureSlotPanel, Panel):

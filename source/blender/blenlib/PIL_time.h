@@ -39,39 +39,39 @@ extern "C" {
 #endif
 
 extern 
-	/** Return an indication of time, expressed	as
-	 * seconds since some fixed point. Successive calls
-	 * are guaranteed to generate values greater than or
-	 * equal to the last call.
-	 */
-double	PIL_check_seconds_timer		(void);
+/** Return an indication of time, expressed	as
+ * seconds since some fixed point. Successive calls
+ * are guaranteed to generate values greater than or
+ * equal to the last call.
+ */
+double  PIL_check_seconds_timer(void);
 
-	/**
-	 * Platform-independent sleep function.
-	 * \param ms Number of milliseconds to sleep
-	 */
-void	PIL_sleep_ms				(int ms);
+/**
+ * Platform-independent sleep function.
+ * \param ms Number of milliseconds to sleep
+ */
+void    PIL_sleep_ms(int ms);
 
 /** Utility defines for timing.
  * requires BLI_utildefines.h for 'AT'
  * TIMEIT_VALUE returns the time since TIMEIT_START was called.
  */
-#define TIMEIT_START(var)													\
-{ 																			\
-	double _timeit_##var= PIL_check_seconds_timer();						\
-	printf("time start (" #var "):  " AT "\n");								\
-	fflush(stdout);															\
-	{																		\
+#define TIMEIT_START(var)                                                     \
+	{                                                                         \
+		double _timeit_##var = PIL_check_seconds_timer();                     \
+		printf("time start (" #var "):  " AT "\n");                           \
+		fflush(stdout);                                                       \
+		{ (void)                                                              \
 
 
 #define TIMEIT_VALUE(var) (float)(PIL_check_seconds_timer() - _timeit_##var)
 
 
-#define TIMEIT_END(var)														\
-	}																		\
-	printf("time end   (" #var "): %.6f" "  " AT "\n",	TIMEIT_VALUE(var));	\
-	fflush(stdout);															\
-}																			\
+#define TIMEIT_END(var)                                                       \
+	}                                                                         \
+	printf("time end   (" #var "): %.6f" "  " AT "\n",  TIMEIT_VALUE(var));   \
+	fflush(stdout);                                                           \
+} (void)                                                                      \
 
 #ifdef __cplusplus
 }

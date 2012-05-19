@@ -41,8 +41,8 @@
 
 static void rna_TimelineMarker_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *UNUSED(ptr))
 {
-	WM_main_add_notifier(NC_SCENE|ND_MARKERS, NULL);
-	WM_main_add_notifier(NC_ANIMATION|ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_SCENE | ND_MARKERS, NULL);
+	WM_main_add_notifier(NC_ANIMATION | ND_MARKERS, NULL);
 }
 
 #else
@@ -74,7 +74,7 @@ static void rna_def_timeline_marker(BlenderRNA *brna)
 #ifdef DURIAN_CAMERA_SWITCH
 	prop = RNA_def_property(srna, "camera", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "Object");
-	RNA_def_property_flag(prop, PROP_EDITABLE|PROP_ID_SELF_CHECK);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_ui_text(prop, "Camera", "Camera this timeline sets to active");
 #endif
 }

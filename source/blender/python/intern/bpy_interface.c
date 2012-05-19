@@ -223,6 +223,7 @@ void BPY_python_start(int argc, const char **argv)
 {
 #ifndef WITH_PYTHON_MODULE
 	PyThreadState *py_tstate = NULL;
+	const char *py_path_bundle = BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL);
 
 	/* not essential but nice to set our name */
 	static wchar_t program_path_wchar[FILE_MAX]; /* python holds a reference */
@@ -233,7 +234,7 @@ void BPY_python_start(int argc, const char **argv)
 	PyImport_ExtendInittab(bpy_internal_modules);
 
 	/* allow to use our own included python */
-	PyC_SetHomePath(BLI_get_folder(BLENDER_SYSTEM_PYTHON, NULL));
+	PyC_SetHomePath(py_path_bundle);
 
 	/* without this the sys.stdout may be set to 'ascii'
 	 * (it is on my system at least), where printing unicode values will raise
@@ -245,7 +246,11 @@ void BPY_python_start(int argc, const char **argv)
 	/* Python 3.2 now looks for '2.xx/python/include/python3.2d/pyconfig.h' to
 	 * parse from the 'sysconfig' module which is used by 'site',
 	 * so for now disable site. alternatively we could copy the file. */
-	Py_NoSiteFlag = 1;
+	if (py_path_bundle) {
+		Py_NoSiteFlag = 1;
+	}
+
+	Py_FrozenFlag = 1;
 
 	Py_Initialize();
 

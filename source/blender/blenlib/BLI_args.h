@@ -37,7 +37,7 @@ struct bArgs;
 typedef struct bArgs bArgs;
 
 /* returns the number of extra arguments consumed by the function. 0 is normal value, -1 stops parsing arguments, other negative indicates skip */
-typedef int	(*BA_ArgCallback)(int argc, const char **argv, void *data);
+typedef int (*BA_ArgCallback)(int argc, const char **argv, void *data);
 
 struct bArgs *BLI_argsInit(int argc, const char **argv);
 void BLI_argsFree(struct bArgs *ba);

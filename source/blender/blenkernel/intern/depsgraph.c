@@ -718,7 +718,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
 }
 
-struct DagForest *build_dag(Main *bmain, Scene *sce, short mask){
+DagForest *build_dag(Main *bmain, Scene *sce, short mask)
+{
 	Base *base;
 	Object *ob;
 	Group *group;
@@ -867,7 +868,7 @@ DagNode *dag_add_node(DagForest *forest, void *fob)
 		}
 
 		if (!forest->nodeHash)
-			forest->nodeHash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp, "dag_add_node gh");
+			forest->nodeHash = BLI_ghash_ptr_new("dag_add_node gh");
 		BLI_ghash_insert(forest->nodeHash, fob, node);
 	}
 
@@ -1253,7 +1254,7 @@ DagNodeQueue *graph_dfs(void)
 	int maxpos = 0;
 	/* int	is_cycle = 0; */ /* UNUSED */
 	/*
-	   *fprintf(stderr, "starting DFS\n ------------\n");
+	 *fprintf(stderr, "starting DFS\n ------------\n");
 	 */	
 	nqueue = queue_create(DAGQUEUEALLOC);
 	retqueue = queue_create(MainDag->numNodes);
@@ -1458,7 +1459,8 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 
 
 // used to get the obs owning a datablock
-struct DagNodeQueue *get_obparents(struct DagForest *dag, void *ob){
+DagNodeQueue *get_obparents(struct DagForest *dag, void *ob)
+{
 	DagNode *node, *node1;
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
@@ -1491,7 +1493,8 @@ struct DagNodeQueue *get_obparents(struct DagForest *dag, void *ob){
 	return nqueue;
 }
 
-struct DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob){
+DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
+{
 	DagNode *node, *node1;
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
@@ -1519,7 +1522,8 @@ struct DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob){
 }
 
 // standard DFS list
-struct DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob){
+DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
+{
 	DagNode *node;
 	DagNodeQueue *nqueue;
 	DagNodeQueue *retqueue;
@@ -2385,7 +2389,7 @@ static void dag_current_scene_layers(Main *bmain, Scene **sce, unsigned int *lay
 		/* if we have a windowmanager, look into windows */
 		for (win = wm->windows.first; win; win = win->next) {
 			if (win->screen) {
-				if (!*sce) *sce = win->screen->scene;
+				if (*sce == NULL) *sce = win->screen->scene;
 				*lay |= BKE_screen_visible_layers(win->screen, win->screen->scene);
 			}
 		}

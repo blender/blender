@@ -91,7 +91,7 @@ DefNode( ShaderNode,     SH_NODE_TEX_VORONOI,        def_sh_tex_voronoi,     "TE
 DefNode( ShaderNode,     SH_NODE_TEX_CHECKER,        def_sh_tex_checker,     "TEX_CHECKER",        TexChecker,       "Checker Texture",   ""       )
 DefNode( ShaderNode,     SH_NODE_TEX_COORD,          0,                      "TEX_COORD",          TexCoord,         "Texture Coordinate","")
 
-DefNode( CompositorNode, CMP_NODE_VIEWER,         0,                      "VIEWER",         Viewer,           "Viewer",            ""              )
+DefNode( CompositorNode, CMP_NODE_VIEWER,         def_cmp_viewer,         "VIEWER",         Viewer,           "Viewer",            ""              )
 DefNode( CompositorNode, CMP_NODE_RGB,            0,                      "RGB",            RGB,              "RGB",               ""              )
 DefNode( CompositorNode, CMP_NODE_VALUE,          0,                      "VALUE",          Value,            "Value",             ""              )
 DefNode( CompositorNode, CMP_NODE_MIX_RGB,        def_mix_rgb,            "MIX_RGB",        MixRGB,           "Mix RGB",           ""              )
@@ -159,6 +159,11 @@ DefNode( CompositorNode, CMP_NODE_MOVIECLIP,      def_cmp_movieclip,      "MOVIE
 DefNode( CompositorNode, CMP_NODE_TRANSFORM,      dev_cmd_transform,      "TRANSFORM",      Transform,        "Transform",         ""              )
 DefNode( CompositorNode, CMP_NODE_STABILIZE2D,    def_cmp_stabilize2d,    "STABILIZE2D",    Stabilize,        "Stabilize 2D",      ""              )
 DefNode( CompositorNode, CMP_NODE_MOVIEDISTORTION,def_cmp_moviedistortion,"MOVIEDISTORTION",MovieDistortion,  "Movie Distortion",  ""              )
+DefNode( CompositorNode, CMP_NODE_MASK_BOX,       def_cmp_boxmask,        "BOXMASK"        ,BoxMask,          "Box mask",          ""              )
+DefNode( CompositorNode, CMP_NODE_MASK_ELLIPSE,   def_cmp_ellipsemask,    "ELLIPSEMASK"    ,EllipseMask,      "Ellipse mask",      ""              )
+DefNode( CompositorNode, CMP_NODE_BOKEHIMAGE,     def_cmp_bokehimage,     "BOKEHIMAGE"     ,BokehImage,       "Bokeh image",       ""              )
+DefNode( CompositorNode, CMP_NODE_SWITCH,         def_cmp_switch,         "SWITCH"         ,Switch,           "Switch",            ""              )
+DefNode( CompositorNode, CMP_NODE_COLORCORRECTION,def_cmp_colorcorrection,"COLORCORRECTION",ColorCorrection,  "ColorCorrection",   ""              )
                                                                                                                                                    
 DefNode( TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode( TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )

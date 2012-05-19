@@ -216,8 +216,8 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 	BLI_srand(0);
 	
 	BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
-		ScanFillVert *v, *lastv, *firstv;
-		ScanFillFace *sefa;
+		ScanFillVert *sf_vert, *sf_vert_last, *sf_vert_first;
+		ScanFillFace *sf_tri;
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
 		BMLoop *ls[3];
@@ -264,35 +264,35 @@ static ParamHandle *construct_param_handle(Scene *scene, BMEditMesh *em,
 			/* ngon - scanfill time! */
 			BLI_scanfill_begin(&sf_ctx);
 			
-			firstv = lastv = NULL;
+			sf_vert_first = sf_vert_last = NULL;
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
 				int i;
 				
-				v = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
+				sf_vert = BLI_scanfill_vert_add(&sf_ctx, l->v->co);
 				
 				/* add small random offset */
 				for (i = 0; i < 3; i++) {
-					v->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
+					sf_vert->co[i] += (BLI_frand() - 0.5f) * FLT_EPSILON * 50;
 				}
 				
-				v->tmp.p = l;
+				sf_vert->tmp.p = l;
 
-				if (lastv) {
-					BLI_scanfill_edge_add(&sf_ctx, lastv, v);
+				if (sf_vert_last) {
+					BLI_scanfill_edge_add(&sf_ctx, sf_vert_last, sf_vert);
 				}
 
-				lastv = v;
-				if (!firstv) 
-					firstv = v;
+				sf_vert_last = sf_vert;
+				if (!sf_vert_first)
+					sf_vert_first = sf_vert;
 			}
 
-			BLI_scanfill_edge_add(&sf_ctx, firstv, v);
+			BLI_scanfill_edge_add(&sf_ctx, sf_vert_first, sf_vert);
 
 			BLI_scanfill_calc_ex(&sf_ctx, TRUE, efa->no);
-			for (sefa = sf_ctx.fillfacebase.first; sefa; sefa = sefa->next) {
-				ls[0] = sefa->v1->tmp.p;
-				ls[1] = sefa->v2->tmp.p;
-				ls[2] = sefa->v3->tmp.p;
+			for (sf_tri = sf_ctx.fillfacebase.first; sf_tri; sf_tri = sf_tri->next) {
+				ls[0] = sf_tri->v1->tmp.p;
+				ls[1] = sf_tri->v2->tmp.p;
+				ls[2] = sf_tri->v3->tmp.p;
 
 				for (i = 0; i < 3; i++) {
 					MLoopUV *luv = CustomData_bmesh_get(&em->bm->ldata, ls[i]->head.data, CD_MLOOPUV);
@@ -870,13 +870,12 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 
 	switch (around) {
 		case V3D_CENTER: /* bounding box center */
-			min[0] = min[1] = min[2] = 1e20f;
-			max[0] = max[1] = max[2] = -1e20f;
+			INIT_MINMAX(min, max);
 			
 			BM_ITER_MESH (efa, &iter, em->bm, BM_FACES_OF_MESH) {
 				if (BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
 					BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-						DO_MINMAX(l->v->co, min, max);
+						minmax_v3v3_v3(min, max, l->v->co);
 					}
 				}
 			}
@@ -886,9 +885,7 @@ static void uv_map_transform_center(Scene *scene, View3D *v3d, float *result,
 		case V3D_CURSOR: /*cursor center*/ 
 			cursx = give_cursor(scene, v3d);
 			/* shift to objects world */
-			result[0] = cursx[0] - ob->obmat[3][0];
-			result[1] = cursx[1] - ob->obmat[3][1];
-			result[2] = cursx[2] - ob->obmat[3][2];
+			sub_v3_v3v3(result, cursx, ob->obmat[3]);
 			break;
 
 		case V3D_LOCAL: /*object center*/
@@ -1184,7 +1181,9 @@ static int unwrap_exec(bContext *C, wmOperator *op)
 	/* remember last method for live unwrap */
 	if (RNA_struct_property_is_set(op->ptr, "method"))
 		scene->toolsettings->unwrapper = method;
-	
+	else
+		RNA_enum_set(op->ptr, "method", scene->toolsettings->unwrapper);
+
 	scene->toolsettings->uv_subsurf_level = subsurf_level;
 
 	if (fill_holes) scene->toolsettings->uvcalc_flag |=  UVCALC_FILLHOLES;

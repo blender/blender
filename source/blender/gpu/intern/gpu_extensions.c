@@ -894,7 +894,7 @@ void GPU_framebuffer_blur(GPUFrameBuffer *fb, GPUTexture *tex, GPUFrameBuffer *b
 	/* Blurring horizontally */
 
 	/* We do the bind ourselves rather than using GPU_framebuffer_texture_bind() to avoid
-	   pushing unnecessary matrices onto the OpenGL stack. */
+	 * pushing unnecessary matrices onto the OpenGL stack. */
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, blurfb->object);
 
 	GPU_shader_bind(blur_shader);

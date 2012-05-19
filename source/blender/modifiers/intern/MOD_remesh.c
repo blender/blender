@@ -190,6 +190,16 @@ static DerivedMesh *applyModifier(ModifierData *md,
 	result = output->dm;
 	MEM_freeN(output);
 
+	if (rmd->flag & MOD_REMESH_SMOOTH_SHADING) {
+		MPoly *mpoly = CDDM_get_polys(result);
+		int i, totpoly = result->getNumPolys(result);
+		
+		/* Apply smooth shading to output faces */
+		for (i = 0; i < totpoly; i++) {
+			mpoly[i].flag |= ME_SMOOTH;
+		}
+	}
+
 	CDDM_calc_edges(result);
 	CDDM_calc_normals(result);
 	return result;
@@ -212,6 +222,7 @@ ModifierTypeInfo modifierType_Remesh = {
 	/* structSize */        sizeof(RemeshModifierData),
 	/* type */              eModifierTypeType_Nonconstructive,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
+							eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_SupportsEditmode,
 	/* copyData */          copyData,
 	/* deformVerts */       NULL,

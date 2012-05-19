@@ -111,7 +111,7 @@ static void initData(ModifierData *md)
 	ltmd->ob_axis = NULL;
 	ltmd->angle = M_PI * 2.0;
 	ltmd->axis = 2;
-	ltmd->flag = 0;
+	ltmd->flag = MOD_SCREW_SMOOTH_SHADING;
 	ltmd->steps = 16;
 	ltmd->render_steps = 16;
 	ltmd->iter = 1;
@@ -174,6 +174,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	MVert *mvert_new, *mvert_orig, *mv_orig, *mv_new, *mv_new_base;
 
 	ScrewVertConnect *vc, *vc_tmp, *vert_connect = NULL;
+
+	const char mpoly_flag = (ltmd->flag & MOD_SCREW_SMOOTH_SHADING) ? ME_SMOOTH : 0;
 
 	/* don't do anything? */
 	if (!totvert)
@@ -810,7 +812,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			mp_new->loopstart = mpoly_index * 4;
 			mp_new->totloop = 4;
-			mp_new->flag = ME_SMOOTH;
+			mp_new->flag = mpoly_flag;
 			origindex[mpoly_index] = ORIGINDEX_NONE;
 			mp_new++;
 			ml_new += 4;
