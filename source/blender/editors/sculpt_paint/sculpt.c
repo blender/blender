@@ -1884,14 +1884,14 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float area_normal[3], offset[3];
+	float offset[3];
 	float lim = brush->height;
 	int n;
 
 	if (bstrength < 0)
 		lim = -lim;
 
-	mul_v3_v3v3(offset, ss->cache->scale, area_normal);
+	mul_v3_v3v3(offset, ss->cache->scale, ss->cache->sculpt_normal_symm);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -1917,7 +1917,8 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            area_normal, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+															vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
