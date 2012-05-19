@@ -4875,8 +4875,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				
 				if (base->object==NULL) {
 					BKE_reportf_wrap(fd->reports, RPT_ERROR,
-					                 "LIB ERROR: Object lost from scene:'%s\'\n",
-					                 sce->id.name+2);
+					                 "LIB ERROR: Object lost from scene:'%s\'",
+					                 sce->id.name + 2);
 					BLI_remlink(&sce->base, base);
 					if (base==sce->basact) sce->basact= NULL;
 					MEM_freeN(base);
@@ -7290,8 +7290,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (prop) {
 						BKE_reportf_wrap(fd->reports, RPT_WARNING,
 						                 "Game property name conflict in object: \"%s\".\nText objects reserve the "
-						                 "[\"Text\"] game property to change their content through Logic Bricks.\n",
-						                 ob->id.name+2);
+						                 "[\"Text\"] game property to change their content through Logic Bricks.",
+						                 ob->id.name + 2);
 					}
 				}
 			}
@@ -9131,7 +9131,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					/* printf and reports for now... its important users know this */
 					BKE_reportf_wrap(basefd->reports, RPT_INFO,
-					                 "read library:  '%s', '%s'\n",
+					                 "read library:  '%s', '%s'",
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 
 					fd= blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
@@ -9178,7 +9178,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 
 					if (fd==NULL) {
 						BKE_reportf_wrap(basefd->reports, RPT_ERROR,
-						                 "Can't find lib '%s'\n",
+						                 "Can't find lib '%s'",
 						                 mainptr->curlib->filepath);
 					}
 				}
@@ -9197,7 +9197,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								append_id_part(fd, mainptr, id, &realid);
 								if (!realid) {
 									BKE_reportf_wrap(fd->reports, RPT_ERROR,
-									                 "LIB ERROR: %s:'%s' missing from '%s'\n",
+									                 "LIB ERROR: %s:'%s' missing from '%s'",
 									                 BKE_idcode_to_name(GS(id->name)),
 									                 id->name+2, mainptr->curlib->filepath);
 								}
@@ -9236,8 +9236,8 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 				if (id->flag & LIB_READ) {
 					BLI_remlink(lbarray[a], id);
 					BKE_reportf_wrap(basefd->reports, RPT_ERROR,
-					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'\n",
-					                 BKE_idcode_to_name(GS(id->name)), id->name+2, mainptr->curlib->filepath);
+					                 "LIB ERROR: %s:'%s' unread libblock missing from '%s'",
+					                 BKE_idcode_to_name(GS(id->name)), id->name + 2, mainptr->curlib->filepath);
 					change_idid_adr(mainlist, basefd, id, NULL);
 
 					MEM_freeN(id);

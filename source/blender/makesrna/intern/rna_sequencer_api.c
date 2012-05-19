@@ -202,7 +202,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 
 	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SOUND, sound->name);
 	seq->sound = sound;
-	seq->len = ceil(sound_get_length(sound) * FPS);
+	seq->len = ceil((double)sound_get_length(sound) * FPS);
 
 	seq->scene_sound = sound_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
 

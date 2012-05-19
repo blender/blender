@@ -93,14 +93,6 @@ class SCENE_PT_unit(SceneButtonsPanel, Panel):
         row.prop(unit, "use_separate")
 
 
-def draw_keyingset_options(data, layout):
-    # NOTE: keep in sync with rna_def_common_keying_flags() in rna_animation.c
-    # These are defined out like this because the standard names are too long
-    layout.prop_enum(data, "bl_options", text="Only Needed", value='INSERTKEY_NEEDED')
-    layout.prop_enum(data, "bl_options", text="Visual Keying", value='INSERTKEY_VISUAL')
-    layout.prop_enum(data, "bl_options", text="XYZ=RGB Coloring", value='INSERTKEY_XYZ_TO_RGB')
-
-
 class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
     bl_label = "Keying Sets"
     COMPAT_ENGINES = {'BLENDER_RENDER', 'BLENDER_GAME'}
@@ -132,7 +124,7 @@ class SCENE_PT_keying_sets(SceneButtonsPanel, Panel):
 
             col = row.column(align=True)
             col.label(text="Keyframing Settings:")
-            draw_keyingset_options(ks, col)
+            col.prop(ks, "bl_options")
 
 
 class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
@@ -188,7 +180,7 @@ class SCENE_PT_keying_set_paths(SceneButtonsPanel, Panel):
             
             col = row.column(align=True)
             col.label(text="Keyframing Settings:")
-            draw_keyingset_options(ks, col)
+            col.prop(ksp, "bl_options")
 
 
 class SCENE_PT_physics(SceneButtonsPanel, Panel):

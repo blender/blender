@@ -356,8 +356,15 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 				bActionConstraint *data = curcon->data;
 				
 				/* validate action */
-				if (data->act == NULL) 
+				if (data->act == NULL) {
+					/* must have action */
 					curcon->flag |= CONSTRAINT_DISABLE;
+				}
+				else if (data->act->idroot != ID_OB) {
+					/* only object-rooted actions can be used */
+					data->act = NULL;
+					curcon->flag |= CONSTRAINT_DISABLE;
+				}
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_FOLLOWPATH) {
 				bFollowPathConstraint *data = curcon->data;
@@ -409,12 +416,12 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 					if (data->clip != NULL && data->track[0]) {
 						MovieTracking *tracking = &data->clip->tracking;
 						MovieTrackingObject *tracking_object;
-
+						
 						if (data->object[0])
 							tracking_object = BKE_tracking_named_object(tracking, data->object);
 						else
 							tracking_object = BKE_tracking_get_camera_object(tracking);
-
+						
 						if (!tracking_object) {
 							curcon->flag |= CONSTRAINT_DISABLE;
 						}
@@ -428,14 +435,14 @@ static void test_constraints(Object *owner, bPoseChannel *pchan)
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_CAMERASOLVER) {
 				bCameraSolverConstraint *data = curcon->data;
-
-				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && data->clip == NULL)
+				
+				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_OBJECTSOLVER) {
 				bObjectSolverConstraint *data = curcon->data;
-
-				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && data->clip == NULL)
+				
+				if ((data->flag & CAMERASOLVER_ACTIVECLIP) == 0 && (data->clip == NULL))
 					curcon->flag |= CONSTRAINT_DISABLE;
 			}
 			

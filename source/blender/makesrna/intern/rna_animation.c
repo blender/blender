@@ -468,11 +468,11 @@ static void rna_def_common_keying_flags(StructRNA *srna, short reg)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem keying_flag_items[] = {
-		{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Insert Keyframes - Only Needed",
+		{INSERTKEY_NEEDED, "INSERTKEY_NEEDED", 0, "Only Needed",
 		                   "Only insert keyframes where they're needed in the relevant F-Curves"},
-		{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Insert Keyframes - Visual",
+		{INSERTKEY_MATRIX, "INSERTKEY_VISUAL", 0, "Visual Keying",
 		                   "Insert keyframes based on 'visual transforms'"},
-		{INSERTKEY_XYZ2RGB, "INSERTKEY_XYZ_TO_RGB", 0, "F-Curve Colors - XYZ to RGB",
+		{INSERTKEY_XYZ2RGB, "INSERTKEY_XYZ_TO_RGB", 0, "XYZ=RGB Colors",
 		                    "Color for newly added transformation F-Curves (Location, Rotation, Scale) "
 		                    "and also Color is based on the transform axis"},
 		{0, NULL, 0, NULL, NULL}
