@@ -1208,7 +1208,7 @@ int main(int argc, const char **argv)
 		argv[argci] = alloc_utf_8_from_16(argv_16[argci], 0);
 	}
 	LocalFree(argv_16);
-#endif	
+#endif
 
 #ifdef WITH_PYTHON_MODULE
 #ifdef __APPLE__

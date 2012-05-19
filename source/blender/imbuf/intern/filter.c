@@ -407,7 +407,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 								if (i != 0 || j != 0) {
 									const int tmpindex = filter_make_index(x + i, y + j, width, height);
 
-									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float))   {
+									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float)) {
 										if (is_float) {
 											for (c = 0; c < depth; c++)
 												tmp[c] = ((const float *) srcbuf)[depth * tmpindex + c];

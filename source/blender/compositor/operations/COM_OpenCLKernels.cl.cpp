@@ -3,7 +3,8 @@
 
 const char *sourcecode = "/// This file contains all opencl kernels for node-operation implementations \n" \
 "\n" \
-"__kernel void testKernel(__global __write_only image2d_t output) {\n" \
+"__kernel void testKernel(__global __write_only image2d_t output)\n" \
+"{\n" \
 "	int x = get_global_id(0);\n" \
 "	int y = get_global_id(1);\n" \
 "	int2 coords = {x, y}; \n" \

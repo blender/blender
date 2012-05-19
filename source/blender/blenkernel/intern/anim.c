@@ -452,7 +452,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 		/* get pointer to animviz settings for each target */
 		if (mpt->pchan)
 			avs = &mpt->ob->pose->avs;
-		else	
+		else
 			avs = &mpt->ob->avs;
 		
 		/* clear the flag requesting recalculation of targets */

@@ -575,16 +575,16 @@ static int surface_getBrushFlags(DynamicPaintSurface *surface, Scene *scene)
 		brushObj = NULL;
 
 		/* select object */
-		if (surface->brush_group) {						
+		if (surface->brush_group) {
 			if (go->ob) brushObj = go->ob;
-		}					
-		else						
+		}
+		else
 			brushObj = base->object;
 
 		if (!brushObj) {
 			if (surface->brush_group) go = go->next;
 			else base = base->next;
-			continue;			
+			continue;
 		}
 
 		if (surface->brush_group)
@@ -3569,7 +3569,7 @@ static int dynamicPaint_paintParticles(DynamicPaintSurface *surface,
 	tree = BLI_kdtree_new(psys->totpart);
 
 	/* loop through particles and insert valid ones	to the tree	*/
-	for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++)   {
+	for (p = 0, pa = psys->particles; p < psys->totpart; p++, pa++) {
 
 		/* Proceed only if particle is active	*/
 		if (pa->alive == PARS_UNBORN && (part->flag & PART_UNBORN) == 0) continue;
@@ -4805,17 +4805,17 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 		while (base || go) {
 			brushObj = NULL;
 			/* select object */
-			if (surface->brush_group) {						
+			if (surface->brush_group) {
 				if (go->ob) brushObj = go->ob;
-			}					
-			else						
+			}
+			else
 				brushObj = base->object;
 
-			if (!brushObj) {			
+			if (!brushObj) {
 				/* skip item */
 				if (surface->brush_group) go = go->next;
 				else base = base->next;
-				continue;			
+				continue;
 			}
 
 			/* next item */

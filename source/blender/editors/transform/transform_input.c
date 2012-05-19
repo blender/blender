@@ -87,8 +87,8 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const int mval[2], flo
 
 	/* flip scale */
 	/* values can become really big when zoomed in so use longs [#26598] */
-	if	((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
-		 (long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
+	if ((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
+		(long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
 	 {
 		output[0] *= -1.0f;
 	 }

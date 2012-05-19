@@ -1807,7 +1807,7 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 				shr->diff[1]= sss[1]*col[1];
 				shr->diff[2]= sss[2]*col[2];
 
-				if (shi->combinedflag & SCE_PASS_SHADOW)	{
+				if (shi->combinedflag & SCE_PASS_SHADOW) {
 					shr->shad[0]= shr->diff[0];
 					shr->shad[1]= shr->diff[1];
 					shr->shad[2]= shr->diff[2];

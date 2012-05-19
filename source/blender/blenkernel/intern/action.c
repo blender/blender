@@ -247,7 +247,7 @@ void set_active_action_group(bAction *act, bActionGroup *agrp, short select)
 	for (grp = act->groups.first; grp; grp = grp->next) {
 		if ((grp == agrp) && (select))
 			grp->flag |= AGRP_ACTIVE;
-		else	
+		else
 			grp->flag &= ~AGRP_ACTIVE;
 	}
 }
@@ -958,7 +958,7 @@ short action_get_item_transforms(bAction *act, Object *ob, bPoseChannel *pchan, 
 		RNA_pointer_create((ID *)ob, &RNA_PoseBone, pchan, &ptr);
 	else if (ob)
 		RNA_id_pointer_create((ID *)ob, &ptr);
-	else	
+	else
 		return 0;
 		
 	/* get the basic path to the properties of interest */

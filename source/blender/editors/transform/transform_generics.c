@@ -1606,7 +1606,7 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 0.0f;
 				restoreElement(td);
 			}
-			else if	((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
+			else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
 			         (connected == 0 && td->rdist > t->prop_size))
 			{
 				/*

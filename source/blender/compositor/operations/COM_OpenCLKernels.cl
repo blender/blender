@@ -1,6 +1,7 @@
 /// This file contains all opencl kernels for node-operation implementations 
 
-__kernel void testKernel(__global __write_only image2d_t output){
+__kernel void testKernel(__global __write_only image2d_t output)
+{
 	int x = get_global_id(0);
 	int y = get_global_id(1);
 	int2 coords = {x, y}; 

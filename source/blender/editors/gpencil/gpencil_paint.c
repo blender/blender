@@ -214,7 +214,7 @@ static void gp_get_3d_reference(tGPsdata *p, float vec[3])
 		sub_v3_v3v3(vec, fp, ob->loc);
 	}
 	else
-#endif	
+#endif
 	{
 		/* use 3D-cursor */
 		copy_v3_v3(vec, fp);

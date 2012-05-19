@@ -1442,7 +1442,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 				v2d->scroll |= V2D_SCROLL_HORIZONTAL_FULLR;
 				scrollers->horfull = 1;
 			}
-			else	
+			else
 				v2d->scroll &= ~V2D_SCROLL_HORIZONTAL_FULLR;
 		}
 	}
@@ -1484,7 +1484,7 @@ View2DScrollers *UI_view2d_scrollers_calc(const bContext *C, View2D *v2d, short 
 				v2d->scroll |= V2D_SCROLL_VERTICAL_FULLR;
 				scrollers->vertfull = 1;
 			}
-			else	
+			else
 				v2d->scroll &= ~V2D_SCROLL_VERTICAL_FULLR;
 		}
 	}

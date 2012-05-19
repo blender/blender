@@ -636,9 +636,9 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			else {
 				if (index) {
 					orig = *index++;
-					if (orig == ORIGINDEX_NONE)     { if (nors) nors += 3; continue; }
-					if (drawParamsMapped) draw_option = drawParamsMapped(userData, orig);
-					else {    if (nors) nors += 3; continue; }
+					if (orig == ORIGINDEX_NONE) { if (nors) nors += 3; continue; }
+					if (drawParamsMapped)       { draw_option = drawParamsMapped(userData, orig); }
+					else                        { if (nors) nors += 3; continue; }
 				}
 				else
 				if (drawParamsMapped) draw_option = drawParamsMapped(userData, i);

@@ -2311,8 +2311,8 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal warp direction
-		if	(t->customData == NULL)
-			t->customData = (void*)1;
+		if (t->customData == NULL)
+			t->customData = (void *)1;
 		else
 			t->customData = NULL;
 		
@@ -2451,7 +2451,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == NULL) {
+		if (t->customData == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}

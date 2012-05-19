@@ -3005,7 +3005,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(rv3d);
-	else	
+	else
 		draw_view_icon(rv3d);
 	
 	ob = OBACT;

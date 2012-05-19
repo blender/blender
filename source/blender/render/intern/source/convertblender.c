@@ -559,7 +559,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->obr->actmtface, NULL, 0);
 	const float *coord;
 	
-	if (tface != NULL)	{
+	if (tface != NULL) {
 		coord= tface->uv[vert_index];
 		fUV[0]= coord[0]; fUV[1]= coord[1];
 	}
@@ -585,7 +585,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	float * ftang= RE_vlakren_get_nmap_tangent(pMesh->obr, vlr, 1);
-	if (ftang!=NULL)	{
+	if (ftang!=NULL) {
 		copy_v3_v3(&ftang[iVert*4+0], fvTangent);
 		ftang[iVert*4+3]=fSign;
 	}

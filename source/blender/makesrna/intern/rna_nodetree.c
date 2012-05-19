@@ -3640,7 +3640,7 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 	PropertyRNA *prop = NULL;
 	PropertySubType propsubtype = PROP_NONE;
 	
-	#define SUBTYPE(socktype, stypename, id, idname)	{ PROP_##id, #socktype "_" #id, 0, #idname, ""},
+	#define SUBTYPE(socktype, stypename, id, idname) { PROP_##id, #socktype "_" #id, 0, #idname, ""},
 	static EnumPropertyItem subtype_items[] = {
 		NODE_DEFINE_SUBTYPES
 		{0, NULL, 0, NULL, NULL}

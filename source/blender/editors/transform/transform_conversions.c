@@ -3757,42 +3757,42 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 		/* *** Extend Transform *** */
 
-		Scene * scene= t->scene;
+		Scene *scene = t->scene;
 		int cfra= CFRA;
 		int left= seq_tx_get_final_left(seq, 1);
 		int right= seq_tx_get_final_right(seq, 1);
 
 		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
-			*recursive= 0;
-			*count= 0;
-			*flag= 0;
+			*recursive = FALSE;
+			*count = 0;
+			*flag = 0;
 		}
-		else if (seq->type ==SEQ_META) {
+		else if (seq->type == SEQ_META) {
 
 			/* for meta's we only ever need to extend their children, no matter what depth
 			 * just check the meta's are in the bounds */
-			if (t->frame_side=='R' && right <= cfra)		*recursive= 0;
-			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
-			else											*recursive= 1;
+			if      (t->frame_side=='R' && right <= cfra)  *recursive = FALSE;
+			else if (t->frame_side=='L' && left  >= cfra)  *recursive = FALSE;
+			else                                           *recursive = TRUE;
 
 			*count= 1;
 			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 		}
 		else {
 
-			*recursive= 0;	/* not a meta, so no thinking here */
-			*count= 1;		/* unless its set to 0, extend will never set 2 handles at once */
-			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*recursive = FALSE;  /* not a meta, so no thinking here */
+			*count = 1;          /* unless its set to 0, extend will never set 2 handles at once */
+			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 
 			if (t->frame_side=='R') {
-				if (right <= cfra)		*count= *flag= 0;	/* ignore */
-				else if (left > cfra)	;	/* keep the selection */
-				else					*flag |= SEQ_RIGHTSEL;
+				if      (right <= cfra) *count = *flag= 0;  /* ignore */
+				else if (left   > cfra) ;                  /* keep the selection */
+				else                    *flag |= SEQ_RIGHTSEL;
 			}
 			else {
-				if (left >= cfra)		*count= *flag= 0;	/* ignore */
-				else if (right < cfra)	;	/* keep the selection */
-				else					*flag |= SEQ_LEFTSEL;
+				if      (left >= cfra)  *count = *flag= 0;  /* ignore */
+				else if (right < cfra)  ;                  /* keep the selection */
+				else                    *flag |= SEQ_LEFTSEL;
 			}
 		}
 	}
@@ -3808,9 +3808,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 			/* Non nested strips (resect selection and handles) */
 			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
-				*recursive= 0;
-				*count= 0;
-				*flag= 0;
+				*recursive = FALSE;
+				*count = 0;
+				*flag = 0;
 			}
 			else {
 				if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
@@ -3826,10 +3826,10 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
 					/* if any handles are selected, don't recurse */
-					*recursive = 1;
+					*recursive = TRUE;
 				}
 				else {
-					*recursive = 0;
+					*recursive = FALSE;
 				}
 			}
 		}
@@ -3837,9 +3837,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			/* Nested, different rules apply */
 
 #ifdef SEQ_TX_NESTED_METAS
-			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
-			*count= 1; /* ignore the selection for nested */
-			*recursive = (seq->type == SEQ_META	);
+			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*count = 1; /* ignore the selection for nested */
+			*recursive = (seq->type == SEQ_META);
 #else
 			if (seq->type == SEQ_META) {
 				/* Meta's can only directly be moved between channels since they
@@ -3848,12 +3848,12 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 				 * calc_sequence() will update its settings when run on the toplevel meta */
 				*flag= 0;
 				*count= 0;
-				*recursive = 1;
+				*recursive = TRUE;
 			}
 			else {
 				*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 				*count= 1; /* ignore the selection for nested */
-				*recursive = 0;
+				*recursive = FALSE;
 			}
 #endif
 		}
@@ -4131,9 +4131,9 @@ static void freeSeqData(TransInfo *t)
 			for (seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if (seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
+					if      (seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
+					else if (seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
+					else if (seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
 				}
 			}
 

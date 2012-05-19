@@ -1136,7 +1136,7 @@ static bPoseChannel *pose_bone_do_paste(Object *ob, bPoseChannel *chan, short se
 			/* quat/euler to axis angle */
 			if (chan->rotmode > 0)
 				eulO_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->eul, chan->rotmode);
-			else	
+			else
 				quat_to_axis_angle(pchan->rotAxis, &pchan->rotAngle, chan->quat);
 		}
 		else {

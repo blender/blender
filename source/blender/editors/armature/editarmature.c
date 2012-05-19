@@ -3653,7 +3653,7 @@ static int armature_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 				ebo->parent = child;
 				if ((child) && equals_v3v3(ebo->head, child->tail))
 					ebo->flag |= BONE_CONNECTED;
-				else	
+				else
 					ebo->flag &= ~BONE_CONNECTED;
 				
 				/* get next bones 

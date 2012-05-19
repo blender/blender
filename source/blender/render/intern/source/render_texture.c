@@ -2425,7 +2425,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 						}
 					}
 				}
-#endif				
+#endif
 			}
 
 			/* mapping */

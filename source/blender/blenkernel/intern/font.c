@@ -634,7 +634,7 @@ makebreak:
 		 * But if the font is FO_BUILTIN_NAME then do not try loading since
 		 * whole font is in the memory already
 		 */
-		if (che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME))    {
+		if (che == NULL && strcmp(vfont->name, FO_BUILTIN_NAME)) {
 			BLI_vfontchar_from_freetypefont(vfont, ascii);
 		}
 

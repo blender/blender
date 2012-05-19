@@ -689,7 +689,7 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		
 		if (dot_v3v3(tmp, axis) < 0.0f)
 			angle = -acos(dot_v3v3(start, end));
-		else	
+		else
 			angle = acos(dot_v3v3(start, end));
 	}
 	else {

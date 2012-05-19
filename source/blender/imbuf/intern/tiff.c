@@ -478,7 +478,7 @@ static int imb_read_tiff_pixels(ImBuf *ibuf, TIFF *image, int premul)
 		/* assign rect last */
 		if (tmpibuf->rect_float)
 			ibuf->rect_float = tmpibuf->rect_float;
-		else	
+		else
 			ibuf->rect = tmpibuf->rect;
 		ibuf->mall |= ib_flag;
 		ibuf->flags |= ib_flag;

@@ -1920,7 +1920,7 @@ static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
 	}
-#endif	
+#endif
 	
 	if (fullname[0] == '\0') {
 		BLI_strncpy(fullname, "/tmp/", maxlen);
