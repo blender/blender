@@ -67,7 +67,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplays(GHOST_TUns8& numDisplay
  */
 GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerWin32::getNumDisplaySettings(): only main displlay is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getNumDisplaySettings(): only main displlay is supported");
 	numSettings = 0;
 	DEVMODE dm;
 	while (::EnumDisplaySettings(NULL, numSettings, &dm)) {
@@ -79,16 +79,16 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getNumDisplaySettings(GHOST_TUns8 disp
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display, GHOST_TInt32 index, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerWin32::getDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getDisplaySetting(): only main display is supported");
 	GHOST_TSuccess success;
 	DEVMODE dm;
 	if (::EnumDisplaySettings(NULL, index, &dm)) {
 #ifdef GHOST_DEBUG
 		printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n", dm.dmPelsWidth, dm.dmPelsHeight, dm.dmBitsPerPel, dm.dmDisplayFrequency);
 #endif // GHOST_DEBUG
-		setting.xPixels		= dm.dmPelsWidth;
-		setting.yPixels		= dm.dmPelsHeight;
-		setting.bpp			= dm.dmBitsPerPel;
+		setting.xPixels     = dm.dmPelsWidth;
+		setting.yPixels     = dm.dmPelsHeight;
+		setting.bpp         = dm.dmBitsPerPel;
 		/* When you call the EnumDisplaySettings function, the dmDisplayFrequency member
 		 * may return with the value 0 or 1. These values represent the display hardware's
 		 * default refresh rate. This default rate is typically set by switches on a display 
@@ -112,14 +112,14 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::getDisplaySetting(GHOST_TUns8 display,
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::getCurrentDisplaySetting(GHOST_TUns8 display, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerWin32::getCurrentDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::getCurrentDisplaySetting(): only main display is supported");
 	return getDisplaySetting(kMainDisplay, ENUM_CURRENT_SETTINGS, setting);
 }
 
 
 GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting)
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerWin32::setCurrentDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerWin32::setCurrentDisplaySetting(): only main display is supported");
 
 	GHOST_DisplaySetting match;
 	findMatch(display, setting, match);
@@ -127,21 +127,22 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 d
 	int i = 0;
 	while (::EnumDisplaySettings(NULL, i++, &dm)) {
 		if ((dm.dmBitsPerPel == match.bpp) &&
-			(dm.dmPelsWidth == match.xPixels) &&
-			(dm.dmPelsHeight == match.yPixels) &&
-			(dm.dmDisplayFrequency == match.frequency)) {
+		    (dm.dmPelsWidth == match.xPixels) &&
+		    (dm.dmPelsHeight == match.yPixels) &&
+		    (dm.dmDisplayFrequency == match.frequency))
+		{
 			break;
 		}
 	}
 	/*
-	dm.dmBitsPerPel = match.bpp;
-	dm.dmPelsWidth = match.xPixels;
-	dm.dmPelsHeight = match.yPixels;
-	dm.dmDisplayFrequency = match.frequency;
-	dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
-	dm.dmSize = sizeof(DEVMODE);
-	dm.dmDriverExtra = 0;
-	*/
+	 * dm.dmBitsPerPel = match.bpp;
+	 * dm.dmPelsWidth = match.xPixels;
+	 * dm.dmPelsHeight = match.yPixels;
+	 * dm.dmDisplayFrequency = match.frequency;
+	 * dm.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT | DM_DISPLAYFREQUENCY;
+	 * dm.dmSize = sizeof(DEVMODE);
+	 * dm.dmDriverExtra = 0;
+	 */
 #ifdef GHOST_DEBUG
 	printf("display change: Requested settings:\n");
 	printf("  dmBitsPerPel=%d\n", dm.dmBitsPerPel);
@@ -154,31 +155,31 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 d
 #ifdef GHOST_DEBUG
 	switch (status)
 	{
-	case DISP_CHANGE_SUCCESSFUL:
-		printf("display change: The settings change was successful.\n");
-		break;
-	case DISP_CHANGE_RESTART:
-		printf("display change: The computer must be restarted in order for the graphics mode to work.\n");
-		break;
-	case DISP_CHANGE_BADFLAGS:
-		printf("display change: An invalid set of flags was passed in.\n");
-		break;
-	case DISP_CHANGE_BADPARAM:
-		printf("display change: An invalid parameter was passed in. This can include an invalid flag or combination of flags.\n");
-		break;
-	case DISP_CHANGE_FAILED:
-		printf("display change: The display driver failed the specified graphics mode.\n");
-		break;
-	case DISP_CHANGE_BADMODE:
-		printf("display change: The graphics mode is not supported.\n");
-		break;
-	case DISP_CHANGE_NOTUPDATED:
-		printf("display change: Windows NT: Unable to write settings to the registry.\n");
-		break;
-	default:
-		printf("display change: Return value invalid\n");
-		break;
+		case DISP_CHANGE_SUCCESSFUL:
+			printf("display change: The settings change was successful.\n");
+			break;
+		case DISP_CHANGE_RESTART:
+			printf("display change: The computer must be restarted in order for the graphics mode to work.\n");
+			break;
+		case DISP_CHANGE_BADFLAGS:
+			printf("display change: An invalid set of flags was passed in.\n");
+			break;
+		case DISP_CHANGE_BADPARAM:
+			printf("display change: An invalid parameter was passed in. This can include an invalid flag or combination of flags.\n");
+			break;
+		case DISP_CHANGE_FAILED:
+			printf("display change: The display driver failed the specified graphics mode.\n");
+			break;
+		case DISP_CHANGE_BADMODE:
+			printf("display change: The graphics mode is not supported.\n");
+			break;
+		case DISP_CHANGE_NOTUPDATED:
+			printf("display change: Windows NT: Unable to write settings to the registry.\n");
+			break;
+		default:
+			printf("display change: Return value invalid\n");
+			break;
 	}
 #endif // GHOST_DEBUG
-	return status == DISP_CHANGE_SUCCESSFUL? GHOST_kSuccess : GHOST_kFailure;
+	return status == DISP_CHANGE_SUCCESSFUL ? GHOST_kSuccess : GHOST_kFailure;
 }

@@ -271,11 +271,11 @@ GHOST_WindowX11(
 	// Specify which events we are interested in hearing.	
 
 	xattributes.event_mask =
-	        ExposureMask | StructureNotifyMask |
-	        KeyPressMask | KeyReleaseMask |
-	        EnterWindowMask | LeaveWindowMask |
-	        ButtonPressMask | ButtonReleaseMask |
-	        PointerMotionMask | FocusChangeMask | PropertyChangeMask;
+	    ExposureMask | StructureNotifyMask |
+	    KeyPressMask | KeyReleaseMask |
+	    EnterWindowMask | LeaveWindowMask |
+	    ButtonPressMask | ButtonReleaseMask |
+	    PointerMotionMask | FocusChangeMask | PropertyChangeMask;
 
 	// create the window!
 
@@ -833,12 +833,12 @@ clientToScreen(
 	Window temp;
 
 	XTranslateCoordinates(
-	            m_display,
-	            m_window,
-	            RootWindow(m_display, m_visual->screen),
-	            inX, inY,
-	            &ax, &ay,
-	            &temp);
+	    m_display,
+	    m_window,
+	    RootWindow(m_display, m_visual->screen),
+	    inX, inY,
+	    &ax, &ay,
+	    &temp);
 	outX = ax;
 	outY = ay;
 }

@@ -61,14 +61,14 @@ GHOST_TUns32 GHOST_TimerManager::getNumTimers()
 }
 
 
-bool GHOST_TimerManager::getTimerFound(GHOST_TimerTask* timer)
+bool GHOST_TimerManager::getTimerFound(GHOST_TimerTask *timer)
 {
 	TTimerVector::const_iterator iter = std::find(m_timers.begin(), m_timers.end(), timer);
 	return iter != m_timers.end();
 }
 
 
-GHOST_TSuccess GHOST_TimerManager::addTimer(GHOST_TimerTask* timer)
+GHOST_TSuccess GHOST_TimerManager::addTimer(GHOST_TimerTask *timer)
 {
 	GHOST_TSuccess success;
 	if (!getTimerFound(timer)) {
@@ -83,7 +83,7 @@ GHOST_TSuccess GHOST_TimerManager::addTimer(GHOST_TimerTask* timer)
 }
 
 
-GHOST_TSuccess GHOST_TimerManager::removeTimer(GHOST_TimerTask* timer)
+GHOST_TSuccess GHOST_TimerManager::removeTimer(GHOST_TimerTask *timer)
 {
 	GHOST_TSuccess success;
 	TTimerVector::iterator iter = std::find(m_timers.begin(), m_timers.end(), timer);
@@ -108,7 +108,7 @@ GHOST_TUns64 GHOST_TimerManager::nextFireTime()
 	for (iter = m_timers.begin(); iter != m_timers.end(); iter++) {
 		GHOST_TUns64 next = (*iter)->getNext();
 		
-		if (next<smallest)
+		if (next < smallest)
 			smallest = next;
 	}
 	
@@ -129,7 +129,7 @@ bool GHOST_TimerManager::fireTimers(GHOST_TUns64 time)
 }
 
 
-bool GHOST_TimerManager::fireTimer(GHOST_TUns64 time, GHOST_TimerTask* task)
+bool GHOST_TimerManager::fireTimer(GHOST_TUns64 time, GHOST_TimerTask *task)
 {
 	GHOST_TUns64 next = task->getNext();
 
@@ -148,7 +148,8 @@ bool GHOST_TimerManager::fireTimer(GHOST_TUns64 time, GHOST_TimerTask* task)
 		task->setNext(next);
 
 		return true;
-	} else {
+	}
+	else {
 		return false;
 	}
 }

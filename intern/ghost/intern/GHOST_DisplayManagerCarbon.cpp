@@ -52,8 +52,8 @@ GHOST_DisplayManagerCarbon::GHOST_DisplayManagerCarbon(void)
 	}
 	if (m_numDisplays > 0)
 	{
-		m_displayIDs = new CGDirectDisplayID [m_numDisplays];
-		GHOST_ASSERT((m_displayIDs!=NULL), "GHOST_DisplayManagerCarbon::GHOST_DisplayManagerCarbon(): memory allocation failed");
+		m_displayIDs = new CGDirectDisplayID[m_numDisplays];
+		GHOST_ASSERT((m_displayIDs != NULL), "GHOST_DisplayManagerCarbon::GHOST_DisplayManagerCarbon(): memory allocation failed");
 		::CGGetActiveDisplayList(m_numDisplays, m_displayIDs, &m_numDisplays);
 	}
 }
@@ -68,7 +68,7 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::getNumDisplays(GHOST_TUns8& numDispla
 
 GHOST_TSuccess GHOST_DisplayManagerCarbon::getNumDisplaySettings(GHOST_TUns8 display, GHOST_TInt32& numSettings) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCarbon::getNumDisplaySettings(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerCarbon::getNumDisplaySettings(): only main display is supported");
 	
 	CFArrayRef displayModes;
 	displayModes = ::CGDisplayAvailableModes(m_displayIDs[display]);
@@ -81,19 +81,19 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::getNumDisplaySettings(GHOST_TUns8 dis
 
 GHOST_TSuccess GHOST_DisplayManagerCarbon::getDisplaySetting(GHOST_TUns8 display, GHOST_TInt32 index, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCarbon::getDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerCarbon::getDisplaySetting(): only main display is supported");
 	
 	CFArrayRef displayModes;
 	CGDirectDisplayID d = m_displayIDs[display];
 	displayModes = ::CGDisplayAvailableModes(d);
 	//CFIndex numModes = ::CFArrayGetCount(displayModes);/*unused*/
 	//GHOST_TInt32 numSettings = (GHOST_TInt32)numModes; /*unused*/
-	CFDictionaryRef displayModeValues = (CFDictionaryRef)::CFArrayGetValueAtIndex(displayModes, index);
+	CFDictionaryRef displayModeValues = (CFDictionaryRef) ::CFArrayGetValueAtIndex(displayModes, index);
 			
-	setting.xPixels		= getValue(displayModeValues, kCGDisplayWidth);
-	setting.yPixels		= getValue(displayModeValues, kCGDisplayHeight);
-	setting.bpp			= getValue(displayModeValues, kCGDisplayBitsPerPixel);
-	setting.frequency	= getValue(displayModeValues, kCGDisplayRefreshRate);
+	setting.xPixels     = getValue(displayModeValues, kCGDisplayWidth);
+	setting.yPixels     = getValue(displayModeValues, kCGDisplayHeight);
+	setting.bpp         = getValue(displayModeValues, kCGDisplayBitsPerPixel);
+	setting.frequency   = getValue(displayModeValues, kCGDisplayRefreshRate);
 			
 #ifdef GHOST_DEBUG
 	printf("display mode: width=%d, height=%d, bpp=%d, frequency=%d\n", setting.xPixels, setting.yPixels, setting.bpp, setting.frequency);
@@ -105,14 +105,14 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::getDisplaySetting(GHOST_TUns8 display
 
 GHOST_TSuccess GHOST_DisplayManagerCarbon::getCurrentDisplaySetting(GHOST_TUns8 display, GHOST_DisplaySetting& setting) const
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCarbon::getCurrentDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerCarbon::getCurrentDisplaySetting(): only main display is supported");
         
 	CFDictionaryRef displayModeValues = ::CGDisplayCurrentMode(m_displayIDs[display]);
 	
-	setting.xPixels		= getValue(displayModeValues, kCGDisplayWidth);
-	setting.yPixels		= getValue(displayModeValues, kCGDisplayHeight);
-	setting.bpp			= getValue(displayModeValues, kCGDisplayBitsPerPixel);
-	setting.frequency	= getValue(displayModeValues, kCGDisplayRefreshRate);
+	setting.xPixels     = getValue(displayModeValues, kCGDisplayWidth);
+	setting.yPixels     = getValue(displayModeValues, kCGDisplayHeight);
+	setting.bpp         = getValue(displayModeValues, kCGDisplayBitsPerPixel);
+	setting.frequency   = getValue(displayModeValues, kCGDisplayRefreshRate);
 
 #ifdef GHOST_DEBUG
 	printf("current display mode: width=%d, height=%d, bpp=%d, frequency=%d\n", setting.xPixels, setting.yPixels, setting.bpp, setting.frequency);
@@ -124,7 +124,7 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::getCurrentDisplaySetting(GHOST_TUns8 
 
 GHOST_TSuccess GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(GHOST_TUns8 display, const GHOST_DisplaySetting& setting)
 {
-	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(): only main display is supported");
+	GHOST_ASSERT((display == kMainDisplay), "GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(): only main display is supported");
 
 #ifdef GHOST_DEBUG
 	printf("GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(): requested settings:\n");
@@ -135,12 +135,12 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(GHOST_TUns8 
 #endif // GHOST_DEBUG
 
 	CFDictionaryRef displayModeValues = ::CGDisplayBestModeForParametersAndRefreshRate(
-		m_displayIDs[display],
-		(size_t)setting.bpp,
-		(size_t)setting.xPixels,
-		(size_t)setting.yPixels,
-		(CGRefreshRate)setting.frequency,
-		NULL);
+	    m_displayIDs[display],
+	    (size_t)setting.bpp,
+	    (size_t)setting.xPixels,
+	    (size_t)setting.yPixels,
+	    (CGRefreshRate)setting.frequency,
+	    NULL);
 
 #ifdef GHOST_DEBUG
 	printf("GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(): switching to:\n");
@@ -158,20 +158,20 @@ GHOST_TSuccess GHOST_DisplayManagerCarbon::setCurrentDisplaySetting(GHOST_TUns8 
 
 long GHOST_DisplayManagerCarbon::getValue(CFDictionaryRef values, CFStringRef key) const
 {
-    CFNumberRef numberValue = (CFNumberRef) CFDictionaryGetValue(values, key);
+	CFNumberRef numberValue = (CFNumberRef) CFDictionaryGetValue(values, key);
     
-    if (!numberValue)
-    {
-        return -1;
-    }
+	if (!numberValue)
+	{
+		return -1;
+	}
     
-    long intValue;
+	long intValue;
     
-    if (!CFNumberGetValue(numberValue, kCFNumberLongType, &intValue))
-    {
-        return -1;
-    }
+	if (!CFNumberGetValue(numberValue, kCFNumberLongType, &intValue))
+	{
+		return -1;
+	}
     
-    return intValue;
+	return intValue;
 }
 
