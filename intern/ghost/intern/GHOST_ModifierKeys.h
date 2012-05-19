@@ -41,8 +41,7 @@
  * @author	Maarten Gribnau
  * @date	May 17, 2001
  */
-struct GHOST_ModifierKeys
-{
+struct GHOST_ModifierKeys {
 	/**
 	 * Constructor.
 	 */

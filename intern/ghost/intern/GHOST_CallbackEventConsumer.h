@@ -51,8 +51,8 @@ public:
 	 * @param	userData		The data passed back though the call-back routine.
 	 */
 	GHOST_CallbackEventConsumer(
-		GHOST_EventCallbackProcPtr eventCallback, 
-		GHOST_TUserDataPtr userData);
+	    GHOST_EventCallbackProcPtr eventCallback,
+	    GHOST_TUserDataPtr userData);
 
 	/**
 	 * Destructor.
@@ -66,13 +66,13 @@ public:
 	 * @param event	The event that can be handled or ignored.
 	 * @return Indication as to whether the event was handled.
 	 */
-	virtual	bool processEvent(GHOST_IEvent* event);
+	virtual bool processEvent(GHOST_IEvent *event);
 
 protected:
 	/** The call-back routine invoked. */
-	GHOST_EventCallbackProcPtr	m_eventCallback;
+	GHOST_EventCallbackProcPtr m_eventCallback;
 	/** The data passed back though the call-back routine. */
-	GHOST_TUserDataPtr			m_userData;
+	GHOST_TUserDataPtr m_userData;
 };
 
 #endif // __GHOST_CALLBACKEVENTCONSUMER_H__

@@ -52,20 +52,22 @@ public:
 	 * Returns a pointer to the one and only system (nil if it hasn't been created).
 	 * @return A pointer to the system.
 	 */
-	static GHOST_ISystemPaths* get();
+	static GHOST_ISystemPaths *get();
 
 protected:
 	/**
 	 * Constructor.
 	 * Protected default constructor to force use of static createSystem member.
 	 */
-	GHOST_ISystemPaths() {}
+	GHOST_ISystemPaths() {
+	}
 
 	/**
 	 * Destructor.
 	 * Protected default constructor to force use of static dispose member.
 	 */
-	virtual ~GHOST_ISystemPaths() {}
+	virtual ~GHOST_ISystemPaths() {
+	}
 
 public:
 	/**
@@ -73,29 +75,29 @@ public:
 	 * "unpack and run" path, then look for properly installed path, not including versioning.
 	 * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
 	 */
-	virtual const GHOST_TUns8* getSystemDir() const = 0;
+	virtual const GHOST_TUns8 *getSystemDir() const = 0;
 
 	/**
 	 * Determine the base dir in which user configuration is stored, not including versioning.
 	 * If needed, it will create the base directory.
 	 * @return Unsigned char string pointing to user dir (eg ~/.blender/).
 	 */
-	virtual const GHOST_TUns8* getUserDir() const = 0;
+	virtual const GHOST_TUns8 *getUserDir() const = 0;
 
 	/**
-	  * Determine the directory of the current binary
-	  * @return Unsigned char string pointing to the binary dir
-	  */
-	virtual const GHOST_TUns8* getBinaryDir() const = 0;
+	 * Determine the directory of the current binary
+	 * @return Unsigned char string pointing to the binary dir
+	 */
+	virtual const GHOST_TUns8 *getBinaryDir() const = 0;
 
 	/**
 	 * Add the file to the operating system most recently used files
 	 */
-	virtual void addToSystemRecentFiles(const char* filename) const = 0;
+	virtual void addToSystemRecentFiles(const char *filename) const = 0;
 
 private:
 	/** The one and only system paths*/
-	static GHOST_ISystemPaths* m_systemPaths;
+	static GHOST_ISystemPaths *m_systemPaths;
 };
 
 #endif

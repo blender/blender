@@ -46,18 +46,18 @@
 
 
 #include <wintab.h>
-#define PACKETDATA	(PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
-#define PACKETMODE	PK_BUTTONS
+#define PACKETDATA  (PK_BUTTONS | PK_NORMAL_PRESSURE | PK_ORIENTATION | PK_CURSOR)
+#define PACKETMODE  PK_BUTTONS
 #include <pktdef.h>
 
 class GHOST_SystemWin32;
 class GHOST_DropTargetWin32;
 
 // typedefs for WinTab functions to allow dynamic loading
-typedef UINT (API * GHOST_WIN32_WTInfo) ( UINT, UINT, LPVOID );
-typedef HCTX (API * GHOST_WIN32_WTOpen) (HWND, LPLOGCONTEXTA, BOOL);
-typedef BOOL (API * GHOST_WIN32_WTClose) (HCTX);
-typedef BOOL (API * GHOST_WIN32_WTPacket) (HCTX, UINT, LPVOID);
+typedef UINT (API * GHOST_WIN32_WTInfo)(UINT, UINT, LPVOID);
+typedef HCTX (API * GHOST_WIN32_WTOpen)(HWND, LPLOGCONTEXTA, BOOL);
+typedef BOOL (API * GHOST_WIN32_WTClose)(HCTX);
+typedef BOOL (API * GHOST_WIN32_WTPacket)(HCTX, UINT, LPVOID);
 
 /**
  * GHOST window on M$ Windows OSs.
@@ -81,20 +81,20 @@ public:
 	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowWin32(
-		GHOST_SystemWin32 * system,
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0,
-		GHOST_TEmbedderWindowID parentWindowHwnd=0,
-		GHOST_TSuccess msEnabled = GHOST_kFailure,
-		int msPixelFormat = 0
-	);
+	    GHOST_SystemWin32 *system,
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 top,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    GHOST_TEmbedderWindowID parentWindowHwnd = 0,
+	    GHOST_TSuccess msEnabled = GHOST_kFailure,
+	    int msPixelFormat = 0
+	    );
 
 	/**
 	 * Destructor.
@@ -113,7 +113,7 @@ public:
 	 * Returns indication as to whether the window is valid.
 	 * @return The validity of the window.
 	 */
-	virtual	bool getValid() const;
+	virtual bool getValid() const;
 
 	/**
 	 * Access to the handle of the window.
@@ -138,33 +138,33 @@ public:
 	 * The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
 	 * @param bounds The bounding rectangle of the window.
 	 */
-	virtual	void getWindowBounds(GHOST_Rect& bounds) const;
+	virtual void getWindowBounds(GHOST_Rect& bounds) const;
 	
 	/**
 	 * Returns the client rectangle dimensions.
 	 * The left and top members of the rectangle are always zero.
 	 * @param bounds The bounding rectangle of the cleient area of the window.
 	 */
-	virtual	void getClientBounds(GHOST_Rect& bounds) const;
+	virtual void getClientBounds(GHOST_Rect& bounds) const;
 
 	/**
 	 * Resizes client rectangle width.
 	 * @param width The new width of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
+	virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
 
 	/**
 	 * Resizes client rectangle height.
 	 * @param height The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
+	virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
 
 	/**
 	 * Resizes client rectangle.
 	 * @param width		The new width of the client area of the window.
 	 * @param height	The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
+	virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
 
 	/**
 	 * Returns the state of the window (normal, minimized, maximized).
@@ -179,7 +179,7 @@ public:
 	 * @param outX	The x-coordinate in the client rectangle.
 	 * @param outY	The y-coordinate in the client rectangle.
 	 */
-	virtual	void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+	virtual void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
@@ -188,7 +188,7 @@ public:
 	 * @param outX	The x-coordinate on the screen.
 	 * @param outY	The y-coordinate on the screen.
 	 */
-	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+	virtual void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Sets the state of the window (normal, minimized, maximized).
@@ -222,7 +222,7 @@ public:
 	virtual GHOST_TSuccess invalidate();
 
 	/**
-     * Sets the progress bar value displayed in the window/application icon
+	 * Sets the progress bar value displayed in the window/application icon
 	 * @param progress The progress %
 	 */
 	virtual GHOST_TSuccess setProgressBar(float progress);
@@ -236,7 +236,9 @@ public:
 	 * Returns the name of the window class.
 	 * @return The name of the window class.
 	 */
-	static wchar_t* getWindowClassName() { return s_windowClassName; }
+	static wchar_t *getWindowClassName() {
+		return s_windowClassName;
+	}
 
 	/**
 	 * Register a mouse click event (should be called 
@@ -264,8 +266,10 @@ public:
 	 */
 	void loadCursor(bool visible, GHOST_TStandardCursor cursorShape) const;
 
-	const GHOST_TabletData* GetTabletData()
-	{ return m_tabletData; }
+	const GHOST_TabletData *GetTabletData()
+	{
+		return m_tabletData;
+	}
 
 	void processWin32TabletInitEvent();
 	void processWin32TabletEvent(WPARAM wParam, LPARAM lParam);
@@ -314,20 +318,20 @@ protected:
 	                                                  int hotX, int hotY);
 
 	virtual GHOST_TSuccess setWindowCustomCursorShape(
-		GHOST_TUns8 *bitmap, 
-		GHOST_TUns8 *mask, 
-		int sizex, 
-		int sizey,
-		int hotX, 
-		int hotY,
-		int fg_color, 
-		int bg_color
-	);
+	    GHOST_TUns8 *bitmap,
+	    GHOST_TUns8 *mask,
+	    int sizex,
+	    int sizey,
+	    int hotX,
+	    int hotY,
+	    int fg_color,
+	    int bg_color
+	    );
 	
 	/** Pointer to system */
-	GHOST_SystemWin32 * m_system;
+	GHOST_SystemWin32 *m_system;
 	/** Pointer to COM IDropTarget implementor */
-	GHOST_DropTargetWin32 * m_dropTarget;
+	GHOST_DropTargetWin32 *m_dropTarget;
 	/** Window handle. */
 	HWND m_hWnd;
 	/** Device context handle. */
@@ -349,16 +353,16 @@ protected:
 	HCURSOR m_customCursor;
 
 	/** ITaskbarList3 structure for progress bar*/
-	ITaskbarList3 * m_Bar;
+	ITaskbarList3 *m_Bar;
 
-	static wchar_t* s_windowClassName;
+	static wchar_t *s_windowClassName;
 	static const int s_maxTitleLength;
 
 	/** WinTab dll handle */
 	HMODULE m_wintab;
 
 	/** Tablet data for GHOST */
-	GHOST_TabletData* m_tabletData;
+	GHOST_TabletData *m_tabletData;
 
 	/** Stores the Tablet context if detected Tablet features using WinTab.dll */
 	HCTX m_tablet;

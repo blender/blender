@@ -51,7 +51,7 @@ public:
 	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
 	 * @param buttons	The state of the buttons  was at at the time of the event.
 	 */
-	GHOST_EventButton(GHOST_TUns64 time, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TButtonMask button)
+	GHOST_EventButton(GHOST_TUns64 time, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask button)
 		: GHOST_Event(time, type, window)
 	{
 		m_buttonEventData.button = button;

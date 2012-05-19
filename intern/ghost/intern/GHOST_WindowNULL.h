@@ -41,20 +41,20 @@ public:
 	const GHOST_TabletData* GetTabletData() { return NULL; }
 
 	GHOST_WindowNULL(
-		GHOST_SystemNULL *system,
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		const GHOST_TEmbedderWindowID parentWindow,
-		GHOST_TDrawingContextType type,
-		const bool stereoVisual,
-		const GHOST_TUns16 numOfAASamples
-		) :
-		GHOST_Window(width,height,state,type,stereoVisual,numOfAASamples),
-		m_system (system)
+	    GHOST_SystemNULL *system,
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 top,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    const GHOST_TEmbedderWindowID parentWindow,
+	    GHOST_TDrawingContextType type,
+	    const bool stereoVisual,
+	    const GHOST_TUns16 numOfAASamples
+	    ) :
+		GHOST_Window(width, height, state, type, stereoVisual, numOfAASamples),
+		m_system(system)
 	{
 		setTitle(title);
 	}
@@ -87,8 +87,8 @@ protected:
 	GHOST_TSuccess setOrder(GHOST_TWindowOrder order) { return GHOST_kSuccess; }
 
 
-private :
-	GHOST_SystemNULL * m_system;
+private:
+	GHOST_SystemNULL *m_system;
 };
 
 
