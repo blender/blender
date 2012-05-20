@@ -153,7 +153,7 @@ class SEQUENCER_MT_select(Menu):
         layout.operator_menu_enum("sequencer.select_grouped", "type", text="Grouped")
         layout.operator("sequencer.select_linked")
         layout.operator("sequencer.select_all").action = 'TOGGLE'
-        layout.operator("sequencer.select_all", text="Invert Selection").action = 'INVERT'
+        layout.operator("sequencer.select_all", text="Inverse").action = 'INVERT'
 
 
 class SEQUENCER_MT_marker(Menu):
@@ -397,7 +397,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
         if elem and elem.orig_width > 0 and elem.orig_height > 0:
             col.label(text="Original Dimension" + ": %dx%d" % (elem.orig_width, elem.orig_height))
         else:
-            col.label(text="Orig Dim: None")
+            col.label(text="Original Dimension: None")
 
 
 class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
