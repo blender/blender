@@ -1867,7 +1867,7 @@ static void do_weight_paint_vertex(
 					 *
 					 * So! just balance out the 2 weights, it keeps them equal and everything normalized.
 					 *
-					 * While it wont hit the desired weight immediatelty as the user waggles their mouse,
+					 * While it wont hit the desired weight immediately as the user waggles their mouse,
 					 * constant painting and re-normalizing will get there. this is also just simpler logic.
 					 * - campbell */
 					dw_mirr->weight = dw->weight = (dw_mirr->weight + dw->weight) * 0.5f;
@@ -1952,7 +1952,7 @@ static void do_weight_paint_vertex(
 		/* dv may have been altered greatly */
 		dw = defvert_find_index(dv, vgroup);
 #else
-		dw = NULL; /* UNUSED after assignment, set to NULL to ensuyre we don't
+		dw = NULL; /* UNUSED after assignment, set to NULL to ensure we don't
 		            * use again, we thats needed un-ifdef the line above */
 		(void)dw;  /* quiet warnigns */
 #endif

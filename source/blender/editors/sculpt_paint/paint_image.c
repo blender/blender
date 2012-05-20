@@ -2342,7 +2342,7 @@ static void project_paint_face_init(const ProjPaintState *ps, const int thread_i
 	
 	
 	/* Use tf_uv_pxoffset instead of tf->uv so we can offset the UV half a pixel
-	 * this is done so we can avoid offseting all the pixels by 0.5 which causes
+	 * this is done so we can avoid offsetting all the pixels by 0.5 which causes
 	 * problems when wrapping negative coords */
 	xhalfpx = (0.5f +   (PROJ_GEOM_TOLERANCE / 3.0f)   ) / ibuf_xf;
 	yhalfpx = (0.5f +   (PROJ_GEOM_TOLERANCE / 4.0f)   ) / ibuf_yf;

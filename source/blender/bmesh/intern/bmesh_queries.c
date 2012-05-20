@@ -745,7 +745,7 @@ BMLoop *BM_face_edge_share_loop(BMFace *f, BMEdge *e)
  * BM_face_create_ngon() on an arbitrary array of verts,
  * though be sure to pick an edge which has a face.
  *
- * \note This is infact quite a simple check, mainly include this function so the intent is more obvious.
+ * \note This is in fact quite a simple check, mainly include this function so the intent is more obvious.
  * We know these 2 verts will _always_ make up the loops edge
  */
 void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,

@@ -2064,7 +2064,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	texres->nor = nvec;
 
 	/* replaced newbump with code based on listing 1 and 2 of
-	 * [Mik10] Mikkelsen M. S.: Bump Mapping Unparametrized Surfaces on the GPU.
+	 * [Mik10] Mikkelsen M. S.: Bump Mapping Unparameterized Surfaces on the GPU.
 	 * -> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
 
 	if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE )

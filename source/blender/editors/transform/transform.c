@@ -4711,7 +4711,7 @@ void projectSVData(TransInfo *t, int final)
 
 		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
 		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
-		 * here and only iterpolate those? */
+		 * here and only interpolate those? */
 		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
 			BMIter liter;
 			BMLoop *l;

@@ -1309,7 +1309,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 			/* check if position is found */
 			if (cdist < x) {
-				/* check is previous location was infact closer */
+				/* check is previous location was in fact closer */
 				if (((float)x - cdist) > (cdist_prev - (float)x)) {
 					but->pos = pos_prev;
 				}

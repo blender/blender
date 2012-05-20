@@ -860,7 +860,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 
 		if (tot_unique <= tot_unique_prev) {
-			/* Finish searching for unique valus when 1 loop dosnt give a
+			/* Finish searching for unique values when 1 loop dosnt give a
 			 * higher number of unique values compared to the previous loop */
 			break;
 		}

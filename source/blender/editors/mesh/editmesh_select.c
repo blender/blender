@@ -1270,7 +1270,7 @@ static int edgetag_shortest_path(Scene *scene, BMEditMesh *em, BMEdge *source, B
 	 * path found so far to edge n. The visitedhash will of course contain entries
 	 * for edges that have been visited, cost[n] will contain the length of the shortest
 	 * path to edge n found so far, Finally, heap is a priority heap which is built on the
-	 * the same data as the cost arry, but inverted: it is a worklist of edges prioritized
+	 * the same data as the cost array, but inverted: it is a worklist of edges prioritized
 	 * by the shortest path found so far to the edge.
 	 */
 

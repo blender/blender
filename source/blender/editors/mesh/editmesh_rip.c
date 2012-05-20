@@ -139,7 +139,7 @@ static float edbm_rip_edge_side_measure(BMEdge *e, BMLoop *e_l,
  *     connected edge loops.
  *     The reason for using loops like this is because when the edges are split we don't which face user gets the newly
  *     created edge (its as good as random so we cant assume new edges will be on once side).
- *     After splittingm, its very simple to walk along boundary loops since each only has one edge from a single side.
+ *     After splitting, its very simple to walk along boundary loops since each only has one edge from a single side.
  * - The end loop pairs are stored in an array however to support multiple edge-selection-islands, so you can rip
  *   multiple selections at once.
  * - * Execute the split *
@@ -711,7 +711,7 @@ static int edbm_rip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	/* running in face mode hardly makes sense, so convert to region loop and rip */
 	if (em->bm->totfacesel) {
-		/* highly nifty but hard to sypport since the operator can fail and we're left
+		/* highly nifty but hard to support since the operator can fail and we're left
 		 * with modified selection */
 		// WM_operator_name_call(C, "MESH_OT_region_to_loop", WM_OP_INVOKE_DEFAULT, NULL);
 

@@ -831,8 +831,8 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 		if (movie->streams[i].sh.Type == FCC("vids")) {	
 #if 0
 			if (movie->streams[i].format == AVI_FORMAT_MJPEG) {
-				movie->streams[i].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader)
-				                                   + sizeof(AviMJPEGUnknown), "moviestreamformatL");
+				movie->streams[i].sf = MEM_mallocN(sizeof(AviBitmapInfoHeader) +
+				                                   sizeof(AviMJPEGUnknown), "moviestreamformatL");
 				movie->streams[i].sf_size = sizeof(AviBitmapInfoHeader) + sizeof(AviMJPEGUnknown);
 			}
 			else {

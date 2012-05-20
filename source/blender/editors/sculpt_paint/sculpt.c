@@ -2870,7 +2870,7 @@ static void sculpt_update_keyblock(Object *ob)
 	SculptSession *ss = ob->sculpt;
 	float (*vertCos)[3];
 
-	/* Keyblock update happens after hadning deformation caused by modifiers,
+	/* Keyblock update happens after handling deformation caused by modifiers,
 	 * so ss->orig_cos would be updated with new stroke */
 	if (ss->orig_cos) vertCos = ss->orig_cos;
 	else vertCos = BLI_pbvh_get_vertCos(ss->pbvh);

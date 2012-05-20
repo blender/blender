@@ -3962,7 +3962,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 	else if (action == SRT_RANDOMIZE) {
 		if (totelem[0]) {
-			/* Re-init random generator for each element type, to get consistant random when
+			/* Re-init random generator for each element type, to get consistent random when
 			 * enabling/disabling an element type. */
 			BLI_srandom(seed);
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
