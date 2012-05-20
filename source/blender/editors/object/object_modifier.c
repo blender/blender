@@ -126,7 +126,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			BLI_addtail(&ob->modifiers, new_md);
 
 		if (name)
-			BLI_strncpy(new_md->name, name, sizeof(new_md->name));
+			BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
 
 		/* make sure modifier data has unique name */
 

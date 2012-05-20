@@ -3465,7 +3465,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	md = modifier_new(eModifierType_ParticleSystem);
 
-	if (name) BLI_strncpy(md->name, name, sizeof(md->name));
+	if (name) BLI_strncpy_utf8(md->name, name, sizeof(md->name));
 	else BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 	modifier_unique_name(&ob->modifiers, md);
 
