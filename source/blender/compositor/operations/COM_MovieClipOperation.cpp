@@ -67,6 +67,10 @@ void MovieClipOperation::deinitExecution()
 void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	ImBuf *ibuf;
+
+        resolution[0] = 0;
+        resolution[1] = 0;
+
 	if (this->movieClip) {
 		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
 		if (ibuf) {
