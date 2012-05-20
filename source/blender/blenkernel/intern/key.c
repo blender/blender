@@ -1260,7 +1260,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	float t[4];
 	int flag;
 	
-	if (key->slurph  && key->type != KEY_RELATIVE) {
+	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
 		float delta = (float)key->slurph / tot;
 		float cfra = (float)scene->r.cfra;

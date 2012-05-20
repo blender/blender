@@ -45,6 +45,7 @@
 #include "BLI_math.h"
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_string_utf8.h"
 #include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 
@@ -125,8 +126,9 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 		else
 			BLI_addtail(&ob->modifiers, new_md);
 
-		if (name)
+		if (name) {
 			BLI_strncpy_utf8(new_md->name, name, sizeof(new_md->name));
+		}
 
 		/* make sure modifier data has unique name */
 
@@ -223,7 +225,8 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 	}
 
 	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
-	    ob->particlesystem.first == NULL) {
+	    ob->particlesystem.first == NULL)
+	{
 		ob->mode &= ~OB_MODE_PARTICLE_EDIT;
 	}
 

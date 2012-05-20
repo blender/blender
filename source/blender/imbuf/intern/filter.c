@@ -339,8 +339,9 @@ static int check_pixel_assigned(const void *buffer, const char *mask, const int 
 		if (mask != NULL) {
 			res = mask[index] != 0 ? 1 : 0;
 		}
-		else if ( (is_float && ((const float *) buffer)[alpha_index] != 0.0f) ||
-		          (!is_float && ((const unsigned char *) buffer)[alpha_index] != 0) ) {
+		else if ((is_float  && ((const float *) buffer)[alpha_index] != 0.0f) ||
+		         (!is_float && ((const unsigned char *) buffer)[alpha_index] != 0) )
+		{
 			res = 1;
 		}
 	}

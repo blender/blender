@@ -411,7 +411,8 @@ void rna_Object_ray_cast(Object *ob, ReportList *reports, float ray_start[3], fl
 		hit.index = -1;
 		
 		if (BLI_bvhtree_ray_cast(treeData.tree, ray_start, ray_nor, 0.0f, &hit,
-		                         treeData.raycast_callback, &treeData) != -1) {
+		                         treeData.raycast_callback, &treeData) != -1)
+		{
 			if (hit.dist <= dist) {
 				copy_v3_v3(r_location, hit.co);
 				copy_v3_v3(r_normal, hit.no);

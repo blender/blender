@@ -450,7 +450,8 @@ void RE_InitState(Render *re, Render *source, RenderData *rd, SceneRenderLayer *
 	}
 	
 	if (re->rectx < 2 || re->recty < 2 || (BKE_imtype_is_movie(rd->im_format.imtype) &&
-										  (re->rectx < 16 || re->recty < 16) )) {
+	                                       (re->rectx < 16 || re->recty < 16) ))
+	{
 		BKE_report(re->reports, RPT_ERROR, "Image too small");
 		re->ok= 0;
 		return;
@@ -1833,7 +1834,8 @@ int RE_is_rendering_allowed(Scene *scene, Object *camera_override, ReportList *r
 	
 	if (scene->r.mode & R_BORDER) {
 		if (scene->r.border.xmax <= scene->r.border.xmin ||
-		   scene->r.border.ymax <= scene->r.border.ymin) {
+		    scene->r.border.ymax <= scene->r.border.ymin)
+		{
 			BKE_report(reports, RPT_ERROR, "No border area selected.");
 			return 0;
 		}
@@ -2376,7 +2378,7 @@ void RE_layer_load_from_file(RenderLayer *layer, ReportList *reports, const char
 {
 	ImBuf *ibuf = IMB_loadiffname(filename, IB_rect);
 
-	if (ibuf  && (ibuf->rect || ibuf->rect_float)) {
+	if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 		if (ibuf->x == layer->rectx && ibuf->y == layer->recty) {
 			if (ibuf->rect_float==NULL)
 				IMB_float_from_rect(ibuf);

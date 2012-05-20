@@ -123,11 +123,11 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 			h = 0.125f * floorf(x / checkerwidth);
 			
 			if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
-			    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 4)) {
-				
+			    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 4))
+			{
 				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
-				    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 1)) {
-					
+				    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 1))
+				{
 					hue = fmodf(fabs(h - hoffs), 1.0f);
 					hsv_to_rgb(hue, s, v, &r, &g, &b);
 					
@@ -250,7 +250,7 @@ static void checker_board_grid_fill(unsigned char *rect, float *rect_float, int 
 	int x, y;
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
-			if (((y % 32) == 0) || ((x % 32) == 0)  || x == 0) {
+			if (((y % 32) == 0) || ((x % 32) == 0) || x == 0) {
 				if (rect) {
 					rect[0] = BLEND_CHAR(rect[0], blend);
 					rect[1] = BLEND_CHAR(rect[1], blend);

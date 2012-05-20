@@ -1539,7 +1539,8 @@ static int wm_handler_fileselect_call(bContext *C, ListBase *handlers, wmEventHa
 				/* a bit weak, might become arg for WM_event_fileselect? */
 				/* XXX also extension code in image-save doesnt work for this yet */
 				if (RNA_struct_find_property(handler->op->ptr, "check_existing") &&
-				    RNA_boolean_get(handler->op->ptr, "check_existing")) {
+				    RNA_boolean_get(handler->op->ptr, "check_existing"))
+				{
 					char *path = RNA_string_get_alloc(handler->op->ptr, "filepath", NULL, 0);
 					/* this gives ownership to pupmenu */
 					uiPupMenuSaveOver(C, handler->op, (path) ? path : "");
@@ -2612,7 +2613,8 @@ static wmWindow *wm_event_cursor_other_windows(wmWindowManager *wm, wmWindow *wi
 			
 			if (owin != win) {
 				if (mx - owin->posx >= 0 && my - owin->posy >= 0 &&
-				    mx - owin->posx <= owin->sizex && my - owin->posy <= owin->sizey) {
+				    mx - owin->posx <= owin->sizex && my - owin->posy <= owin->sizey)
+				{
 					evt->x = mx - (int)owin->posx;
 					evt->y = my - (int)owin->posy;
 					

@@ -206,7 +206,7 @@ static void realloc_particles(ParticleSimulationData *sim, int new_totpart)
 	int totpart, totsaved = 0;
 
 	if (new_totpart<0) {
-		if (part->distr==PART_DISTR_GRID  && part->from != PART_FROM_VERT) {
+		if ((part->distr == PART_DISTR_GRID) && (part->from != PART_FROM_VERT)) {
 			totpart= part->grid_res;
 			totpart*=totpart*totpart;
 		}

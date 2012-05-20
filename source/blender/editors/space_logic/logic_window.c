@@ -842,7 +842,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				}
 				
 				/* 2nd case: select cont when act selected */
-				if ((scavisflag & BUTS_CONT_LINK)  && (ob->scavisflag & OB_VIS_CONT)==0) {
+				if ((scavisflag & BUTS_CONT_LINK) && (ob->scavisflag & OB_VIS_CONT)==0) {
 					cont= ob->controllers.first;
 					while (cont) {
 						for (a=0; a<cont->totlinks; a++) {
@@ -878,7 +878,7 @@ static ID **get_selected_and_linked_obs(bContext *C, short *count, short scavisf
 				}
 				
 				/* 4th case: select actuator when controller selected */
-				if ( (scavisflag & (BUTS_ACT_LINK|BUTS_ACT_STATE))  && (ob->scavisflag & OB_VIS_CONT)) {
+				if ( (scavisflag & (BUTS_ACT_LINK|BUTS_ACT_STATE)) && (ob->scavisflag & OB_VIS_CONT)) {
 					cont= ob->controllers.first;
 					while (cont) {
 						for (a=0; a<cont->totlinks; a++) {
@@ -5070,8 +5070,8 @@ void logic_buttons(bContext *C, ARegion *ar)
 				if (!(slogic->scaflag & BUTS_ACT_STATE) ||
 					!(act->flag & ACT_LINKED) ||		/* always display actuators without links so that is can be edited */
 					 (act->flag & ACT_VISIBLE) ||		/* this actuator has visible connection, display it */
-					 (act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE)) {
-					
+					 (act->flag & ACT_PIN && slogic->scaflag & BUTS_ACT_STATE))
+				{
 					pin = (slogic->scaflag & BUTS_ACT_STATE && (act->flag & SENS_SHOW || act->flag & SENS_PIN)) ? 1 : 0;
 					
 					act->flag |= ACT_VISIBLE;	/* mark the actuator as visible to help implementing the up/down action */

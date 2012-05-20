@@ -1166,7 +1166,8 @@ CCGError ccgSubSurf_syncVert(CCGSubSurf *ss, CCGVertHDL vHDL, const void *vertDa
 			v->flags = Vert_eEffected | seamflag;
 		}
 		else if (!VertDataEqual(vertData, _vert_getCo(v, 0, ss->meshIFC.vertDataSize), ss) ||
-		         ((v->flags & Vert_eSeam) != seamflag)) {
+		         ((v->flags & Vert_eSeam) != seamflag))
+		{
 			*prevp = v->next;
 			_ehash_insert(ss->vMap, (EHEntry *) v);
 			VertDataCopy(_vert_getCo(v, 0, ss->meshIFC.vertDataSize), vertData, ss);

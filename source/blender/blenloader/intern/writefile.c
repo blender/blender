@@ -779,7 +779,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if (sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
+		if (sce->id.lib == NULL && (sce == curscreen->scene || (sce->r.scemode & R_BG_RENDER))) {
 			data.sfra = sce->r.sfra;
 			data.efra = sce->r.efra;
 			memset(data.scene_name, 0, sizeof(data.scene_name));

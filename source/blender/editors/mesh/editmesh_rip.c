@@ -348,7 +348,8 @@ static int edbm_rip_call_edgesplit(BMEditMesh *em, wmOperator *op)
 	BMOperator bmop;
 
 	if (!EDBM_op_init(em, &bmop, op, "edgesplit edges=%he verts=%hv use_verts=%b",
-	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE)) {
+	                  BM_ELEM_TAG, BM_ELEM_SELECT, TRUE))
+	{
 		return FALSE;
 	}
 	BMO_op_exec(em->bm, &bmop);

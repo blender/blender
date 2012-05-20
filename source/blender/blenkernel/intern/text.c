@@ -1124,7 +1124,8 @@ static void txt_pop_first(Text *text)
 {
 			
 	if (txt_get_span(text->curl, text->sell) < 0 ||
-	    (text->curl == text->sell && text->curc > text->selc)) {
+	    (text->curl == text->sell && text->curc > text->selc))
+	{
 		txt_curs_swap(text);
 	}
 
@@ -1140,7 +1141,8 @@ static void txt_pop_first(Text *text)
 static void txt_pop_last(Text *text)
 {
 	if (txt_get_span(text->curl, text->sell) > 0 ||
-	    (text->curl == text->sell && text->curc < text->selc)) {
+	    (text->curl == text->sell && text->curc < text->selc))
+	{
 		txt_curs_swap(text);
 	}
 
@@ -3214,7 +3216,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 		else if (marker->lineno > lineno) break;
 
 		if ((marker->start == marker->end && start <= marker->start && marker->start <= end) ||
-		    (marker->start < end && marker->end > start)) {
+		    (marker->start < end && marker->end > start))
+		{
 			BLI_freelinkN(&text->markers, marker);
 			cleared = 1;
 		}
@@ -3234,7 +3237,8 @@ short txt_clear_markers(Text *text, int group, int flags)
 		next = marker->next;
 
 		if ((!group || marker->group == group) &&
-		    (marker->flags & flags) == flags) {
+		    (marker->flags & flags) == flags)
+		{
 			BLI_freelinkN(&text->markers, marker);
 			cleared = 1;
 		}

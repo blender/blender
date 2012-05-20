@@ -215,7 +215,8 @@ int AVI_is_avi(char *name)
 
 	if (GET_FCC(fp) != FCC("RIFF") ||
 	    !GET_FCC(fp) ||
-	    GET_FCC(fp) != FCC("AVI ")) {
+	    GET_FCC(fp) != FCC("AVI "))
+	{
 		ret = 0;
 	}
 	else {
@@ -245,7 +246,8 @@ int AVI_is_avi(const char *name)
 		return 0;
 
 	if (GET_FCC(movie.fp) != FCC("RIFF") ||
-	    !(movie.size = GET_FCC(movie.fp))) {
+	    !(movie.size = GET_FCC(movie.fp)))
+	{
 		fclose(movie.fp);
 		return 0;
 	}
@@ -257,7 +259,8 @@ int AVI_is_avi(const char *name)
 	    !GET_FCC(movie.fp) ||
 	    GET_FCC(movie.fp) != FCC("hdrl") ||
 	    (movie.header->fcc = GET_FCC(movie.fp)) != FCC("avih") ||
-	    !(movie.header->size = GET_FCC(movie.fp))) {
+	    !(movie.header->size = GET_FCC(movie.fp)))
+	{
 		DEBUG_PRINT("bad initial header info\n");
 		fclose(movie.fp);
 		return 0;
@@ -378,8 +381,7 @@ int AVI_is_avi(const char *name)
 				
 				fcca = bi->Compression;
 
-				if (movie.streams[temp].format ==
-				    AVI_FORMAT_AVI_RGB) {
+				if (movie.streams[temp].format == AVI_FORMAT_AVI_RGB) {
 					if (fcca == FCC("DIB ") ||
 					    fcca == FCC("RGB ") ||
 					    fcca == FCC("rgb ") ||

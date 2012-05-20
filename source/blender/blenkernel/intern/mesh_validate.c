@@ -667,11 +667,11 @@ void BKE_mesh_calc_edges(Mesh *mesh, int update)
 	memset(&edata, 0, sizeof(edata));
 	CustomData_add_layer(&edata, CD_MEDGE, CD_CALLOC, NULL, totedge);
 
-	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edata, CD_MEDGE);
-	for (i = 0; !BLI_edgehashIterator_isDone(ehi);
-	     BLI_edgehashIterator_step(ehi), ++i, ++med) {
-
+	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
+	     BLI_edgehashIterator_isDone(ehi) == FALSE;
+	     BLI_edgehashIterator_step(ehi), ++i, ++med)
+	{
 		if (update && (med_orig = BLI_edgehashIterator_getValue(ehi))) {
 			*med = *med_orig; /* copy from the original */
 		}

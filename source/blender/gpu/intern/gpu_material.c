@@ -539,7 +539,8 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 	GPUNodeLink *fac, *tmp, *addcol;
 	
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	   ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
+	    ma->ramp_col && (ma->mode & MA_RAMP_COL))
+	{
 		/* MA_RAMP_IN_RESULT is exceptional */
 		if (ma->rampin_col==MA_RAMP_IN_RESULT) {
 			addcol = shi->rgb;
@@ -579,7 +580,8 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 	GPUNodeLink *fac;
 
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	   ma->ramp_spec && ma->rampin_spec==MA_RAMP_IN_RESULT) {
+	    ma->ramp_spec && ma->rampin_spec==MA_RAMP_IN_RESULT)
+	{
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
 		/* colorband + blend */
@@ -775,7 +777,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 	if (mat->scene->gm.flag & GAME_GLSL_NO_SHADERS);
 	else if (!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
-	   (GPU_link_changed(shi->spec) || ma->spec != 0.0f)) {
+	         (GPU_link_changed(shi->spec) || ma->spec != 0.0f))
+	{
 		if (lamp->type == LA_HEMI) {
 			GPU_link(mat, "shade_hemi_spec", vn, lv, view, GPU_uniform(&ma->spec), shi->har, visifac, &t);
 			GPU_link(mat, "shade_add_spec", t, lcol, shi->specrgb, &outcol);

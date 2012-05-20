@@ -707,8 +707,8 @@ void quicktime_verify_image_type(RenderData *rd, ImageFormatData *imf)
 	if (imf->imtype == R_IMF_IMTYPE_QUICKTIME) {
 		if ((rd->qtcodecsettings.codecType == 0) ||
 		    (rd->qtcodecsettings.codecSpatialQuality < 0) ||
-		    (rd->qtcodecsettings.codecSpatialQuality > 100)) {
-			
+		    (rd->qtcodecsettings.codecSpatialQuality > 100))
+		{
 			rd->qtcodecsettings.codecType = kJPEGCodecType;
 			rd->qtcodecsettings.codec = (int)anyCodec;
 			rd->qtcodecsettings.codecSpatialQuality = (codecHighQuality * 100) / codecLosslessQuality;

@@ -291,7 +291,8 @@ static void bpy_lib_exit_warn_idname(BPy_Library *self, const char *name_plural,
 	PyErr_Fetch(&exc, &val, &tb);
 	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
 	                     "load: '%s' does not contain %s[\"%s\"]",
-	                     self->abspath, name_plural, idname)) {
+	                     self->abspath, name_plural, idname))
+	{
 		/* Spurious errors can appear at shutdown */
 		if (PyErr_ExceptionMatches(PyExc_Warning)) {
 			PyErr_WriteUnraisable((PyObject *)self);
@@ -306,7 +307,8 @@ static void bpy_lib_exit_warn_type(BPy_Library *self, PyObject *item)
 	PyErr_Fetch(&exc, &val, &tb);
 	if (PyErr_WarnFormat(PyExc_UserWarning, 1,
 	                     "load: '%s' expected a string type, not a %.200s",
-	                     self->abspath, Py_TYPE(item)->tp_name)) {
+	                     self->abspath, Py_TYPE(item)->tp_name))
+	{
 		/* Spurious errors can appear at shutdown */
 		if (PyErr_ExceptionMatches(PyExc_Warning)) {
 			PyErr_WriteUnraisable((PyObject *)self);

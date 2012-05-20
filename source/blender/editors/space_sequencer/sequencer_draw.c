@@ -367,7 +367,8 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	
 	/* draw! */
 	if (seq->type < SEQ_EFFECT || 
-	    get_sequence_effect_num_inputs(seq->type) == 0) {
+	    get_sequence_effect_num_inputs(seq->type) == 0)
+	{
 		glEnable(GL_BLEND);
 		
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

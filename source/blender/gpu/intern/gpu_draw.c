@@ -449,8 +449,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* if tiling mode or repeat changed, change texture matrix to fit */
 	if (GTS.tilemode!=GTS.curtilemode || GTS.curtileXRep!=GTS.tileXRep ||
-	   GTS.curtileYRep != GTS.tileYRep) {
-
+	    GTS.curtileYRep != GTS.tileYRep)
+	{
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 

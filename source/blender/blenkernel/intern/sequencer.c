@@ -1448,7 +1448,8 @@ void seq_proxy_rebuild(SeqIndexBuildContext *context, short *stop, short *do_upd
 	        100);
 
 	for (cfra = seq->startdisp + seq->startstill; 
-	     cfra < seq->enddisp - seq->endstill; cfra++) {
+	     cfra < seq->enddisp - seq->endstill; cfra++)
+	{
 		if (context->size_flags & IMB_PROXY_25) {
 			seq_proxy_build_frame(render_context, seq, cfra, 25);
 		}
@@ -1675,7 +1676,8 @@ int input_have_to_preprocess(
 	float mul;
 
 	if (seq->flag & (SEQ_FILTERY | SEQ_USE_CROP | SEQ_USE_TRANSFORM | SEQ_FLIPX |
-	                 SEQ_FLIPY | SEQ_USE_COLOR_BALANCE | SEQ_MAKE_PREMUL)) {
+	                 SEQ_FLIPY | SEQ_USE_COLOR_BALANCE | SEQ_MAKE_PREMUL))
+	{
 		return TRUE;
 	}
 
@@ -1762,8 +1764,10 @@ static ImBuf *input_preprocess(
 			}
 		}
 
-		if (c.top + c.bottom >= ibuf->y || c.left + c.right >= ibuf->x ||
-		    t.xofs >= dx || t.yofs >= dy) {
+		if (c.top  + c.bottom >= ibuf->y ||
+		    c.left + c.right  >= ibuf->x ||
+		    t.xofs >= dx || t.yofs >= dy)
+		{
 			make_black_ibuf(ibuf);
 		}
 		else {
@@ -3168,7 +3172,7 @@ void seq_tx_handle_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 
 	if (rightflag) {
-		if (seq_tx_get_final_right(seq, 0) <=  seq_tx_get_final_left(seq, 0)) {
+		if (seq_tx_get_final_right(seq, 0) <= seq_tx_get_final_left(seq, 0)) {
 			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq, 0) + 1);
 		}
 
@@ -3508,7 +3512,8 @@ Sequence *seq_metastrip(ListBase *seqbase, Sequence *meta, Sequence *seq)
 			return meta;
 		}
 		else if (iseq->seqbase.first &&
-		         (rval = seq_metastrip(&iseq->seqbase, iseq, seq))) {
+		         (rval = seq_metastrip(&iseq->seqbase, iseq, seq)))
+		{
 			return rval;
 		}
 	}

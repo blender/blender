@@ -50,8 +50,10 @@ public:
 	virtual void NextFrame();
 
 	bool Connect(char *address, unsigned int port, char *password,
-	             unsigned int localport, unsigned int timeout) {
-		return true;}
+	             unsigned int localport, unsigned int timeout)
+	{
+		return true;
+	}
 	bool Disconnect(void) {return true;}
 
 	virtual void SendNetworkMessage(class NG_NetworkMessage* msg);

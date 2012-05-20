@@ -2131,7 +2131,9 @@ static void project_bucket_clip_face(
 		
 		/* remove doubles */
 		/* first/last check */
-		if (fabsf(isectVCosSS[0][0] - isectVCosSS[(*tot) - 1][0]) < PROJ_GEOM_TOLERANCE &&  fabsf(isectVCosSS[0][1] - isectVCosSS[(*tot) - 1][1]) < PROJ_GEOM_TOLERANCE) {
+		if (fabsf(isectVCosSS[0][0] - isectVCosSS[(*tot) - 1][0]) < PROJ_GEOM_TOLERANCE &&
+		    fabsf(isectVCosSS[0][1] - isectVCosSS[(*tot) - 1][1]) < PROJ_GEOM_TOLERANCE)
+		{
 			(*tot)--;
 		}
 		

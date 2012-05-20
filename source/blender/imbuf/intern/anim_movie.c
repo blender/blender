@@ -603,14 +603,14 @@ static int startffmpeg(struct anim *anim)
 #ifdef FFMPEG_SWSCALE_COLOR_SPACE_SUPPORT
 	/* Try do detect if input has 0-255 YCbCR range (JFIF Jpeg MotionJpeg) */
 	if (!sws_getColorspaceDetails(anim->img_convert_ctx, (int **)&inv_table, &srcRange,
-	                              &table, &dstRange, &brightness, &contrast, &saturation)) {
-
+	                              &table, &dstRange, &brightness, &contrast, &saturation))
+	{
 		srcRange = srcRange || anim->pCodecCtx->color_range == AVCOL_RANGE_JPEG;
 		inv_table = sws_getCoefficients(anim->pCodecCtx->colorspace);
 
 		if (sws_setColorspaceDetails(anim->img_convert_ctx, (int *)inv_table, srcRange,
-		                             table, dstRange, brightness, contrast, saturation)) {
-
+		                             table, dstRange, brightness, contrast, saturation))
+		{
 			printf("Warning: Could not set libswscale colorspace details.\n");
 		}
 	}
@@ -940,7 +940,8 @@ static ImBuf *ffmpeg_fetchibuf(struct anim *anim, int position,
 	       (long long int)pts_to_search, pts_time_base, frame_rate, st_time);
 
 	if (anim->last_frame && 
-	    anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search) {
+	    anim->last_pts <= pts_to_search && anim->next_pts > pts_to_search)
+	{
 		av_log(anim->pFormatCtx, AV_LOG_DEBUG, 
 		       "FETCH: frame repeat: last: %lld next: %lld\n",
 		       (long long int)anim->last_pts, 

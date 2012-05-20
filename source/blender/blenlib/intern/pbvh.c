@@ -406,8 +406,9 @@ static void build_mesh_leaf_node(PBVH *bvh, PBVHNode *node)
 
 	/* Build the vertex list, unique verts first */
 	for (iter = BLI_ghashIterator_new(map), i = 0;
-	     !BLI_ghashIterator_isDone(iter);
-	     BLI_ghashIterator_step(iter), ++i) {
+	     BLI_ghashIterator_isDone(iter) == FALSE;
+	     BLI_ghashIterator_step(iter), ++i)
+	{
 		void *value = BLI_ghashIterator_getValue(iter);
 		int ndx = GET_INT_FROM_POINTER(value);
 

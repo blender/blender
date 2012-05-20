@@ -610,7 +610,8 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		 * other parts of code significantly to handle missing faces.
 		 * since this really shouldn't even be possible we just bail.*/
 		if (ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), mp->totloop,
-		                        fVerts, &f) == eCCGError_InvalidValue) {
+		                        fVerts, &f) == eCCGError_InvalidValue)
+		{
 			static int hasGivenError = 0;
 
 			if (!hasGivenError) {

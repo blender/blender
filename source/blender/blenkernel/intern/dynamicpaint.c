@@ -2035,7 +2035,8 @@ static int dynamicPaint_findNeighbourPixel(PaintUVPoint *tempPoints, DerivedMesh
 				int v4 = (mface[i].v4) ? mface[i].v4 : -1;
 
 				if ((e1_index == mface[i].v1 || e1_index == mface[i].v2 || e1_index == mface[i].v3 || e1_index == v4) &&
-				    (e2_index == mface[i].v1 || e2_index == mface[i].v2 || e2_index == mface[i].v3 || e2_index == v4)) {
+				    (e2_index == mface[i].v1 || e2_index == mface[i].v2 || e2_index == mface[i].v3 || e2_index == v4))
+				{
 					if (i == cPoint->face_index) continue;
 
 					target_face = i;
@@ -3511,7 +3512,8 @@ static int dynamicPaint_paintMesh(DynamicPaintSurface *surface,
 							}
 							/* get final object space depth */
 							else if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-							         surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
+							         surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+							{
 								depth /= bData->bNormal[index].normal_scale * total_sample;
 							}
 
@@ -3803,8 +3805,8 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 
 		/* Smooth range or color ramp	*/
 		if (brush->proximity_falloff == MOD_DPAINT_PRFALL_SMOOTH ||
-		    brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP) {
-			
+		    brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP)
+		{
 			strength = 1.0f - distance / brush_radius;
 			CLAMP(strength, 0.0f, 1.0f);
 		}
@@ -3855,7 +3857,8 @@ static int dynamicPaint_paintSinglePoint(DynamicPaintSurface *surface, float *po
 
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT) {
 				if (brush->proximity_falloff == MOD_DPAINT_PRFALL_RAMP &&
-				    !(brush->flags & MOD_DPAINT_RAMP_ALPHA)) {
+				    !(brush->flags & MOD_DPAINT_RAMP_ALPHA))
+				{
 					paintColor[0] = colorband[0];
 					paintColor[1] = colorband[1];
 					paintColor[2] = colorband[2];
@@ -4400,7 +4403,8 @@ void dynamicPaint_doWaveStep(DynamicPaintSurface *surface, float timescale)
 			avg_dist = (numOfN) ? avg_dist / numOfN : 0.0f;
 
 			if (surface->flags & MOD_DPAINT_WAVE_OPEN_BORDERS &&
-			    sData->adj_data->flags[index] & ADJ_ON_MESH_EDGE) {
+			    sData->adj_data->flags[index] & ADJ_ON_MESH_EDGE)
+			{
 				/* if open borders, apply a fake height to keep waves going on */
 				avg_height = (numOfRN) ? avg_height / numOfRN : 0.0f;
 				wPoint->height = (dt * wave_speed * avg_height + wPoint->height * avg_dist) / (avg_dist + dt * wave_speed);
@@ -4507,7 +4511,8 @@ static void dynamicPaint_surfacePreStep(DynamicPaintSurface *surface, float time
 		/* dissolve for float types */
 		else if (surface->flags & MOD_DPAINT_DISSOLVE &&
 		         (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-		          surface->type == MOD_DPAINT_SURFACE_T_WEIGHT)) {
+		          surface->type == MOD_DPAINT_SURFACE_T_WEIGHT))
+		{
 
 			float *point = &((float *)sData->type_data)[index];
 			/* log or linear */
@@ -4727,7 +4732,8 @@ static int dynamicPaint_generateBakeData(DynamicPaintSurface *surface, Scene *sc
 		/* Prepare surface normal directional scale to easily convert
 		 *  brush intersection amount between global and local space */
 		if (surface->type == MOD_DPAINT_SURFACE_T_DISPLACE ||
-		    surface->type == MOD_DPAINT_SURFACE_T_WAVE) {
+		    surface->type == MOD_DPAINT_SURFACE_T_WAVE)
+		{
 			float temp_nor[3];
 			if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX) {
 				normal_short_to_float_v3(temp_nor, mvert[index].no);
@@ -4856,7 +4862,8 @@ static int dynamicPaint_doStep(Scene *scene, Object *ob, DynamicPaintSurface *su
 					/* Particle brush: */
 					if (brush->collision == MOD_DPAINT_COL_PSYS) {
 						if (brush && brush->psys && brush->psys->part && brush->psys->part->type == PART_EMITTER &&
-						    psys_check_enabled(brushObj, brush->psys)) {
+						    psys_check_enabled(brushObj, brush->psys))
+						{
 
 							/* Paint a particle system */
 							BKE_animsys_evaluate_animdata(scene, &brush->psys->part->id, brush->psys->part->adt, BKE_scene_frame_get(scene), ADT_RECALC_ANIM);

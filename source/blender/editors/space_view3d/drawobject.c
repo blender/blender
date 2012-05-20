@@ -3246,7 +3246,8 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		}
 
 		if ((G.debug & G_DEBUG) && (me->drawflag & ME_DRAWEXTRA_INDICES) &&
-		    !(v3d->flag2 & V3D_RENDER_OVERRIDE)) {
+		    !(v3d->flag2 & V3D_RENDER_OVERRIDE))
+		{
 			draw_em_indices(em);
 		}
 	}

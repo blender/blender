@@ -188,9 +188,9 @@ static int IMB_ispic_name(const char *name)
 int IMB_ispic(const char *filename)
 {
 	if (U.uiflag & USER_FILTERFILEEXTS) {
-		if (    (BLI_testextensie_array(filename, imb_ext_image)) ||
-		        (G.have_quicktime && BLI_testextensie_array(filename, imb_ext_image_qt))
-		        ) {
+		if ((BLI_testextensie_array(filename, imb_ext_image)) ||
+		    (G.have_quicktime && BLI_testextensie_array(filename, imb_ext_image_qt)))
+		{
 			return IMB_ispic_name(filename);
 		}
 		else {

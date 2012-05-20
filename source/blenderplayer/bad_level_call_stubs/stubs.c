@@ -161,7 +161,7 @@ int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int o
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) {return (struct Material *)NULL;}
 void RE_free_sample_material(struct Material *mat) {}
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
-						   int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {}
+                              int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}
@@ -507,13 +507,13 @@ void BPY_context_update(struct bContext *C){};
 /* intern/dualcon */
 struct DualConMesh;
 struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
-			    void *create_mesh,
-			    int flags,
-			    int mode,
-			    float threshold,
-			    float hermite_num,
-			    float scale,
-			    int depth) {return 0;}
+                            void *create_mesh,
+                            int flags,
+                            int mode,
+                            float threshold,
+                            float hermite_num,
+                            float scale,
+                            int depth) {return 0;}
 
 /* intern/cycles */
 struct CCLDeviceInfo;

@@ -1296,7 +1296,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		/* do nothing */
 	}
 	else if (scene->obedit && v3d->drawtype > OB_WIRE &&
-	         (v3d->flag & V3D_ZBUF_SELECT)) {
+	         (v3d->flag & V3D_ZBUF_SELECT))
+	{
 		/* do nothing */
 	}
 	else {
@@ -2734,8 +2735,8 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	}
 #endif
 
-	      /* is this more then half a frame behind? */
-	      if (fps + 0.5f < (float)(FPS)) {
+	/* is this more then half a frame behind? */
+	if (fps + 0.5f < (float)(FPS)) {
 		UI_ThemeColor(TH_REDALERT);
 		BLI_snprintf(printable, sizeof(printable), "fps: %.2f", fps);
 	} 

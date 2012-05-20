@@ -54,7 +54,8 @@ bool BL_MeshDeformer::Apply(RAS_IPolyMaterial*)
 
 	// only apply once per frame if the mesh is actually modified
 	if (m_pMeshObject->MeshModified() &&
-	   m_lastDeformUpdate != m_gameobj->GetLastFrame()) {
+	    m_lastDeformUpdate != m_gameobj->GetLastFrame())
+	{
 		// For each material
 		for (list<RAS_MeshMaterial>::iterator mit= m_pMeshObject->GetFirstMaterial();
 			mit != m_pMeshObject->GetLastMaterial(); ++ mit) {

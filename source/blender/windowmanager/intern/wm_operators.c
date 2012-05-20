@@ -3216,7 +3216,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		PropertyType prop_type = RNA_property_type(*r_prop);
 
 		if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT)) {
+		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
+		{
 			MEM_freeN(str);
 			BKE_reportf(op->reports, RPT_ERROR,
 			            "Property from path %s is not a float", name);

@@ -1860,7 +1860,7 @@ static void finalizeGraph(ReebGraph *rg, char passes, char method)
 	
 	sortArcs(rg);
 	
-	for (i = 0; i <  passes; i++) {
+	for (i = 0; i < passes; i++) {
 		postprocessGraph(rg, method);
 	}
 	

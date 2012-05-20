@@ -1529,7 +1529,7 @@ void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const cha
 	size_t dirlen = BLI_strnlen(dir, maxlen);
 
 	if (dst != dir) {
-		if (dirlen  == maxlen) {
+		if (dirlen == maxlen) {
 			memcpy(dst, dir, dirlen);
 			dst[dirlen - 1] = '\0';
 			return; /* dir fills the path */

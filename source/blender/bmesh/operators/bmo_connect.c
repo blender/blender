@@ -444,7 +444,7 @@ void bmo_bridge_loops_exec(BMesh *bm, BMOperator *op)
 			i2 = i;
 			i2next = clamp_index(i + 1, lenv2);
 
-			if (vv1[i1] ==  vv1[i1next]) {
+			if (vv1[i1] == vv1[i1next]) {
 				continue;
 			}
 

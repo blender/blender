@@ -2331,7 +2331,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 		}
 
 		/* redraws flag in SpaceTime has been moved to Screen level */
-		for (sc  = main->screen.first; sc; sc = sc->id.next) {
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
 			if (sc->redraws_flag == 0) {
 				/* just initialize to default? */
 				// XXX: we could also have iterated through areas, and taken them from the first timeline available...

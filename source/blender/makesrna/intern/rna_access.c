@@ -4793,7 +4793,8 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			BLI_dynstr_append(dynstr, "[");
 
 			for (RNA_property_collection_begin(ptr, prop, &collect_iter); collect_iter.valid;
-			     RNA_property_collection_next(&collect_iter)) {
+			     RNA_property_collection_next(&collect_iter))
+			{
 				PointerRNA itemptr = collect_iter.ptr;
 
 				if (first_time == 0)

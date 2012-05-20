@@ -705,9 +705,10 @@ makebreak:
 			linedata3[lnr] = tb->w / cu->fsize;
 			linedata4[lnr] = wsnr;
 			
-			if ( (tb->h != 0.0f) &&
-			     ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
-			     (cu->totbox > (curbox + 1)) ) {
+			if ((tb->h != 0.0f) &&
+			    ((-(yof - (tb->y / cu->fsize))) > ((tb->h / cu->fsize) - (linedist * cu->fsize)) - cu->yof) &&
+			    (cu->totbox > (curbox + 1)) )
+			{
 				maxlen = 0;
 				tb++;
 				curbox++;
@@ -802,8 +803,7 @@ makebreak:
 				ct++;
 			}
 		}
-		else if ((cu->spacemode == CU_FLUSH) &&
-		         (cu->tb[0].w != 0.0f)) {
+		else if ((cu->spacemode == CU_FLUSH) && (cu->tb[0].w != 0.0f)) {
 			for (i = 0; i < lnr; i++)
 				if (linedata2[i] > 1)
 					linedata[i] = (linedata3[i] - linedata[i]) / (linedata2[i] - 1);
@@ -829,7 +829,8 @@ makebreak:
 				}
 
 				if ((mem[j] != '\r') && (mem[j] != '\n') &&
-				    ((chartransdata[j].dobreak != 0))) {
+				    ((chartransdata[j].dobreak != 0)))
+				{
 					if (mem[i] == ' ') curofs += (linedata3[ct->linenr] - linedata[ct->linenr]) / linedata4[ct->linenr];
 					ct->xof += curofs;
 				}
@@ -1029,9 +1030,9 @@ makebreak:
 				if ((info->flag & CU_CHINFO_UNDERLINE) && (cu->textoncurve == NULL) && (cha != '\n') && (cha != '\r')) {
 					float ulwidth, uloverlap = 0.0f;
 					
-					if ( (i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
-					     ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0)
-					     ) {
+					if ((i < (slen - 1)) && (mem[i + 1] != '\n') && (mem[i + 1] != '\r') &&
+					    ((mem[i + 1] != ' ') || (custrinfo[i + 1].flag & CU_CHINFO_UNDERLINE)) && ((custrinfo[i + 1].flag & CU_CHINFO_WRAP) == 0))
+					{
 						uloverlap = xtrax + 0.1f;
 					}
 					// Find the character, the characters has to be in the memory already 

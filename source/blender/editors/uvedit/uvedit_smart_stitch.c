@@ -319,7 +319,7 @@ static void stitch_calculate_island_snapping(StitchState *state, PreviewPosition
 	int i;
 	UvElement *element;
 
-	for (i = 0; i <  state->element_map->totalIslands; i++) {
+	for (i = 0; i < state->element_map->totalIslands; i++) {
 		if (island_stitch_data[i].addedForPreview) {
 			int numOfIslandUVs = 0, j;
 
@@ -649,7 +649,7 @@ static int stitch_process_data(StitchState *state, Scene *scene, int final)
 	 *  Setup preview for stitchable islands *
 	 *****************************************/
 	if (state->snap_islands) {
-		for (i = 0; i <  state->element_map->totalIslands; i++) {
+		for (i = 0; i < state->element_map->totalIslands; i++) {
 			if (island_stitch_data[i].addedForPreview) {
 				int numOfIslandUVs = 0, j;
 				UvElement *element;

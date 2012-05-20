@@ -697,7 +697,7 @@ static void add_2nd_order_roller(Object *ob, float UNUSED(stiffness), int *count
 			if (bpo) {/* so now we have a 2nd order humpdidump */
 				for (c=bpo->nofsprings;c>0;c--) {
 					bs2 = sb->bspring + bpo->springs[c-1];
-					if ((bs2->v1 != notthis)  && (bs2->v1 > v0)) {
+					if ((bs2->v1 != notthis) && (bs2->v1 > v0)) {
 						(*counter)++;/*hit */
 						if (addsprings) {
 							bs3->v1= v0;
@@ -2228,7 +2228,7 @@ static int _softbody_calc_forces_slice_in_a_thread(Scene *scene, Object *ob, flo
 					attached = 0;
 					for (b=obp->nofsprings;b>0;b--) {
 						bs = sb->bspring + obp->springs[b-1];
-						if (( ilast-bb == bs->v2)  || ( ilast-bb == bs->v1)) {
+						if (( ilast-bb == bs->v2) || ( ilast-bb == bs->v1)) {
 							attached=1;
 							continue;}
 					}
@@ -2600,7 +2600,7 @@ static void softbody_calc_forces(Scene *scene, Object *ob, float forcetime, floa
 						attached = 0;
 						for (b=obp->nofsprings;b>0;b--) {
 							bs = sb->bspring + obp->springs[b-1];
-							if (( sb->totpoint-a == bs->v2)  || ( sb->totpoint-a == bs->v1)) {
+							if (( sb->totpoint-a == bs->v2) || ( sb->totpoint-a == bs->v1)) {
 								attached=1;
 								continue;}
 						}
@@ -4078,7 +4078,8 @@ void sbObjectStep(Scene *scene, Object *ob, float cfra, float (*vertexCos)[3], i
 
 	/* verify if we need to create the softbody data */
 	if (sb->bpoint == NULL ||
-	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob))) {
+	   ((ob->softflag & OB_SB_EDGES) && !ob->soft->bspring && object_has_edges(ob)))
+	{
 
 		switch (ob->type) {
 			case OB_MESH:

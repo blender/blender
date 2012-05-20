@@ -812,8 +812,8 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		    mface->v4 == mface->v1 ||
 		    /* across the face */
 		    mface->v1 == mface->v3 ||
-		    mface->v2 == mface->v4
-		    ) {
+		    mface->v2 == mface->v4)
+		{
 			return 0;
 		}
 	}

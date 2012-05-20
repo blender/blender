@@ -1365,8 +1365,8 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 	/* see reassigning would create a cycle */
 	if (seq_is_predecessor(seq1, last_seq) ||
 	    seq_is_predecessor(seq2, last_seq) ||
-	    seq_is_predecessor(seq3, last_seq)
-	    ) {
+	    seq_is_predecessor(seq3, last_seq))
+	{
 		BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed");
 		return OPERATOR_CANCELLED;
 	}
@@ -2109,8 +2109,8 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 	imgwidth = (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
 
 	if (((imgwidth >= width) || (imgheight >= height)) &&
-	    ((width > 0) && (height > 0))) {
-
+	    ((width > 0) && (height > 0)))
+	{
 		/* Find the zoom value that will fit the image in the image space */
 		zoomX = ((float)width) / ((float)imgwidth);
 		zoomY = ((float)height) / ((float)imgheight);

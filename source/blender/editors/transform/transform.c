@@ -3096,7 +3096,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
-			   if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
+			if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
 				mat3_to_quat(quat, fmat);	// Actual transform
 				

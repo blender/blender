@@ -931,23 +931,16 @@ static int edbm_loop_multiselect_exec(bContext *C, wmOperator *op)
 	BMIter iter;
 	int totedgesel = 0;
 
-	for (eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	     eed; eed = BM_iter_step(&iter)) {
-
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 			totedgesel++;
 		}
 	}
-
 	
 	edarray = MEM_mallocN(sizeof(BMEdge *) * totedgesel, "edge array");
 	edindex = 0;
 	
-	for (eed = BM_iter_new(&iter, em->bm, BM_EDGES_OF_MESH, NULL);
-	     eed;
-	     eed = BM_iter_step(&iter))
-	{
-
+	BM_ITER_MESH (eed, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
 			edarray[edindex] = eed;
 			edindex++;

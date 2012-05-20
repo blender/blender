@@ -2323,7 +2323,8 @@ void CustomData_bmesh_copy_data(const CustomData *source, CustomData *dest,
 
 		/* if we found a matching layer, copy the data */
 		if (dest->layers[dest_i].type == source->layers[src_i].type &&
-		    strcmp(dest->layers[dest_i].name, source->layers[src_i].name) == 0) {
+		    strcmp(dest->layers[dest_i].name, source->layers[src_i].name) == 0)
+		{
 			char *src_data = (char *)src_block + source->layers[src_i].offset;
 			char *dest_data = (char *)*dest_block + dest->layers[dest_i].offset;
 

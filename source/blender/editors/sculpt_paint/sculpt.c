@@ -350,7 +350,8 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	                              bb_max,
 	                              ar,
 	                              rv3d,
-	                              ob)) {
+	                              ob))
+	{
 		return 0;
 	}
 
@@ -2776,7 +2777,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		}
 
 		if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-		    brush->autosmooth_factor > 0) {
+		    brush->autosmooth_factor > 0)
+		{
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
 				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), FALSE);
 			}
@@ -3196,7 +3198,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Mirror &&
-		    (md->mode & eModifierMode_Realtime)) {
+		    (md->mode & eModifierMode_Realtime))
+		{
 			MirrorModifierData *mmd = (MirrorModifierData *)md;
 			
 			if (mmd->flag & MOD_MIR_CLIPPING) {
@@ -3355,7 +3358,8 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 	if (ELEM5(tool,
 	          SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
 	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
-	          SCULPT_TOOL_THUMB)) {
+	          SCULPT_TOOL_THUMB))
+	{
 		float grab_location[3], imat[4][4], delta[3], loc[3];
 
 		if (cache->first_time) {

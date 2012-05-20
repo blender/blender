@@ -5025,12 +5025,8 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if (seq->strip && seq->strip->done==0) {
 				seq->strip->done = TRUE;
 				
-				if (seq->type == SEQ_IMAGE ||
-				   seq->type == SEQ_MOVIE ||
-				   seq->type == SEQ_RAM_SOUND ||
-				   seq->type == SEQ_HD_SOUND) {
-					seq->strip->stripdata = newdataadr(
-						fd, seq->strip->stripdata);
+				if (ELEM4(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_RAM_SOUND, SEQ_HD_SOUND)) {
+					seq->strip->stripdata = newdataadr(fd, seq->strip->stripdata);
 				}
 				else {
 					seq->strip->stripdata = NULL;
