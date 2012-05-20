@@ -2245,8 +2245,6 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 	BMLoop *l1, *l2;
 	float sharp = RNA_float_get(op->ptr, "sharpness"), angle;
 
-	sharp = DEG2RADF(sharp);
-
 	BM_ITER_MESH (e, &iter, em->bm, BM_EDGES_OF_MESH) {
 		if (BM_elem_flag_test(e, BM_ELEM_HIDDEN) || !e->l)
 			continue;
@@ -2273,9 +2271,11 @@ static int edbm_select_sharp_edges_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Sharp Edges";
-	ot->description = "Marked selected edges as sharp";
+	ot->description = "Select all sharp-enough edges";
 	ot->idname = "MESH_OT_edges_select_sharp";
 	
 	/* api callbacks */
@@ -2286,7 +2286,9 @@ void MESH_OT_edges_select_sharp(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
+	prop = RNA_def_float_rotation(ot->srna, "sharpness", 0, NULL, DEG2RADF(0.01f), DEG2RADF(180.0f),
+	                              "Sharpness", "", DEG2RADF(1.0f), DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(1.0f));
 }
 
 static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
@@ -2299,8 +2301,6 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 	BMLoop *l, *l2;
 	float sharp = RNA_float_get(op->ptr, "sharpness");
 	int i;
-
-	sharp = (sharp * (float)M_PI) / 180.0f;
 
 	BM_ITER_MESH (f, &iter, em->bm, BM_FACES_OF_MESH) {
 		BM_elem_flag_disable(f, BM_ELEM_TAG);
@@ -2354,6 +2354,8 @@ static int edbm_select_linked_flat_faces_exec(bContext *C, wmOperator *op)
 
 void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 {
+	PropertyRNA *prop;
+
 	/* identifiers */
 	ot->name = "Select Linked Flat Faces";
 	ot->description = "Select linked faces by angle";
@@ -2367,7 +2369,9 @@ void MESH_OT_faces_select_linked_flat(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* props */
-	RNA_def_float(ot->srna, "sharpness", 1.0f, 0.01f, FLT_MAX, "sharpness", "", 1.0f, 180.0f);
+	prop = RNA_def_float_rotation(ot->srna, "sharpness", 0, NULL, DEG2RADF(0.01f), DEG2RADF(180.0f),
+	                              "Sharpness", "", DEG2RADF(1.0f), DEG2RADF(180.0f));
+	RNA_def_property_float_default(prop, DEG2RADF(1.0f));
 }
 
 static int edbm_select_non_manifold_exec(bContext *C, wmOperator *op)

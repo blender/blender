@@ -2501,11 +2501,11 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	if (items == 0)
 		return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--)
-		uiItemIntO(layout, lastop->type->name, ICON_NONE, op->type->idname, "index", i);
+		uiItemIntO(layout, RNA_struct_ui_name(lastop->type->srna), ICON_NONE, op->type->idname, "index", i);
 	
 	uiPupMenuEnd(C, pup);
 	
