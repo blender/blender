@@ -3111,7 +3111,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_range(prop, -0.0f, 360.0f);
+	RNA_def_property_range(prop, -720.0f, 720.0f);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of the bokeh");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
@@ -3140,7 +3140,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "lensshift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens");
+	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens components");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 }
