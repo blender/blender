@@ -431,8 +431,8 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 	MDeformVert **dv_array_src;
 	MDeformVert **dv_array_dst;
 	MDeformWeight *dw_dst, *dw_src;
-	MVert *mv_src;
-	Mesh *me_src;
+	MVert *mv_dst;
+	Mesh *me_dst;
 	int dv_tot_src, dv_tot_dst;
 	int i, index_src, index_dst;
 	bDeformGroup *dg_src, *dg_dst;
@@ -451,10 +451,10 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 	}
 
 	/*get meshes*/
-	me_src = ob_src->data;
+	me_dst = ob_dst->data;
 
 	/*get vertices*/
-	mv_src = me_src->mvert;
+	mv_dst = me_dst->mvert;
 
 	/*get destination deformgroup*/
 	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
@@ -474,12 +474,12 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 	}
 
 	/* loop through the vertices and copy weight*/
-	for(i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_src++){
+	for(i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_dst++){
 		dw_src = defvert_verify_index(*dv_array_src, index_src);
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if(mv_src->flag & SELECT) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mv_dst->flag & SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	return 1;
@@ -490,8 +490,8 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 	bDeformGroup *dg_src, *dg_dst;
 	MDeformVert **dv_array_src, **dv_array_dst;
 	MDeformWeight *dw_dst, *dw_src;
-	MVert *mv_dst, *mv_src;
-	Mesh *me_dst, *me_src;
+	MVert *mv_dst;
+	Mesh *me_dst;
 	BVHTreeFromMesh tree_mesh_src;
 	BVHTreeNearest nearest;
 	DerivedMesh *dmesh_src;
@@ -515,7 +515,6 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 
 	/*get meshes*/
 	me_dst = ob_dst->data;
-	me_src = ob_src->data;
 	dmesh_src = ob_src->derivedDeform;
 
 	/*make node tree*/
@@ -531,7 +530,6 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 
 	/*get vertices*/
 	mv_dst = me_dst->mvert;
-	mv_src = me_src->mvert;
 
 	/*prepare transformation matrix*/
 	/*this can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
@@ -551,7 +549,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if(mv_src[nearest.index].flag & SELECT) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mv_dst->flag & SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -646,7 +644,7 @@ also mode == 1 isnt so readable, better define an enum.
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if(mface_src[nearest.index].flag & ME_FACE_SEL) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mv_dst->flag & SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -736,7 +734,7 @@ int ED_vgroup_transfer_weight_by_nearest_face(Object *ob_dst, Object *ob_src, sh
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = weight;}
-		else if(mode == 3) {if(mface_src[nearest.index].flag & ME_FACE_SEL) dw_dst->weight = weight;}
+		else if(mode == 3) {if(mv_dst->flag & SELECT) dw_dst->weight = weight;}
 		else return 0;
 	}
 	/*free memory and return*/
