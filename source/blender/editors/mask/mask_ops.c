@@ -1001,6 +1001,8 @@ static int select_exec(bContext *C, wmOperator *op)
 		mask_flush_selection(mask);
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+		return OPERATOR_FINISHED;
 	}
 	else {
 		MaskSplinePointUW *uw;
@@ -1017,6 +1019,8 @@ static int select_exec(bContext *C, wmOperator *op)
 			mask_flush_selection(mask);
 
 			WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+			return OPERATOR_FINISHED;
 		}
 	}
 

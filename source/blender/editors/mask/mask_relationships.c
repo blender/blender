@@ -91,7 +91,6 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
 	ot->idname = "MASK_OT_parent_clear";
 
 	/* api callbacks */
-	ot->invoke = WM_menu_invoke;
 	ot->exec = mask_parent_clear_exec;
 
 	ot->poll = ED_operator_object_active_editable;

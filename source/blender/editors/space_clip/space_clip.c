@@ -556,7 +556,7 @@ static void clip_keymap(struct wmKeyConfig *keyconf)
 	/* ******** Hotkeys avalaible for main region only ******** */
 
 	keymap = WM_keymap_find(keyconf, "Clip Editor", SPACE_CLIP, 0);
-
+//	keymap->poll = ED_space_clip_tracking_poll;
 	/* ** View/navigation ** */
 
 	WM_keymap_add_item(keymap, "CLIP_OT_view_pan", MIDDLEMOUSE, KM_PRESS, 0, 0);
@@ -1048,13 +1048,13 @@ static void clip_main_area_init(wmWindowManager *wm, ARegion *ar)
 	UI_view2d_region_reinit(&ar->v2d, V2D_COMMONVIEW_STANDARD, ar->winx, ar->winy);
 
 	/* own keymap */
+	keymap= WM_keymap_find(wm->defaultconf, "Mask Editor", 0, 0);
+	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
+
 	keymap = WM_keymap_find(wm->defaultconf, "Clip", SPACE_CLIP, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 
 	keymap = WM_keymap_find(wm->defaultconf, "Clip Editor", SPACE_CLIP, 0);
-	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
-
-	keymap= WM_keymap_find(wm->defaultconf, "Mask Editor", 0, 0);
 	WM_event_add_keymap_handler_bb(&ar->handlers, keymap, &ar->v2d.mask, &ar->winrct);
 }
 

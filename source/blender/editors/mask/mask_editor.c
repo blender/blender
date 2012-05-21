@@ -195,6 +195,12 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
+	/* select clip while in maker view,
+	 * this matches View3D functionality where you can select an
+	 * object while in editmode to allow vertex parenting */
+	kmi = WM_keymap_add_item(keymap, "CLIP_OT_select", SELECTMOUSE, KM_PRESS, KM_CTRL, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+
 	/* shape */
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", LEFTMOUSE, KM_PRESS, 0, 0);
@@ -202,7 +208,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

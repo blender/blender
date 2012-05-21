@@ -1039,7 +1039,8 @@ void CLIP_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = select_exec;
 	ot->invoke = select_invoke;
-	ot->poll = ED_space_clip_tracking_poll;
+	//ot->poll = ED_space_clip_tracking_poll; // so mask view can Ctrl+RMB markers
+	ot->poll = ED_space_clip_view_clip_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
