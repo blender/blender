@@ -163,6 +163,10 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_slide_point);
 	WM_operatortype_append(MASK_OT_cyclic_toggle);
 	WM_operatortype_append(MASK_OT_handle_type_set);
+
+	/* relationships */
+	WM_operatortype_append(MASK_OT_parent_set);
+	WM_operatortype_append(MASK_OT_parent_clear);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
@@ -195,6 +199,10 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
+
+	/* relationships */
+	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_ALT, 0);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

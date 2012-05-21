@@ -757,7 +757,7 @@ void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_c
 	}
 }
 
-static void evaluate_mask_parent(MaskParent *parent, float ctime, float co[2])
+static void evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
 {
 	if (!parent)
 		return;
@@ -779,7 +779,8 @@ static void evaluate_mask_parent(MaskParent *parent, float ctime, float co[2])
 
 				if (track) {
 					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
-					BKE_mask_coord_from_movieclip(clip, &user, co, marker->pos);
+					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker->pos);
+					add_v2_v2(r_co, parent->offset);
 				}
 			}
 		}

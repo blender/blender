@@ -56,6 +56,10 @@ void MASK_OT_delete(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
 
+/* mask_relationships.c */
+void MASK_OT_parent_set(struct wmOperatorType *ot);
+void MASK_OT_parent_clear(struct wmOperatorType *ot);
+
 /* mask_editor.c */
 int ED_maskediting_poll(struct bContext *C);
 int ED_maskediting_mask_poll(struct bContext *C);

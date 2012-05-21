@@ -62,6 +62,36 @@ static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
 	}
 }
 
+static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
+{
+	int i;
+
+	if (!spline->tot_point)
+		return;
+
+	glColor3ub(0, 0, 0);
+	glEnable(GL_LINE_STIPPLE);
+	glLineStipple(1, 0xAAAA);
+
+	glBegin(GL_LINES);
+
+	for (i = 0; i < spline->tot_point; i++) {
+		MaskSplinePoint *point = &spline->points[i];
+
+		if (point->parent.flag & MASK_PARENT_ACTIVE) {
+			glVertex2f(point->bezt.vec[1][0],
+			           point->bezt.vec[1][1]);
+
+			glVertex2f(point->bezt.vec[1][0] - point->parent.offset[0],
+			           point->bezt.vec[1][1] - point->parent.offset[1]);
+		}
+	}
+
+	glEnd();
+
+	glDisable(GL_LINE_STIPPLE);
+}
+
 /* return non-zero if spline is selected */
 static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 {
@@ -226,6 +256,8 @@ static void draw_maskobjs(Mask *mask)
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			/* draw curve itself first... */
 			draw_spline_curve(maskobj, spline);
+
+			draw_spline_parents(maskobj, spline);
 
 			/* ...and then handles over the curve so they're nicely visible */
 			draw_spline_points(maskobj, spline);
