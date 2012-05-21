@@ -3115,6 +3115,21 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 {
 	if (LIKELY(self->bm)) {
+
+		/* far too slow to enable by default but handy
+		 * to uncomment for debugging tricky errors,
+		 * note that this will throw error on entering a
+		 * function where the actual error will be caused by
+		 * the previous action. */
+#if 0
+		if (BM_mesh_validate(self->bm) == FALSE) {
+			PyErr_Format(PyExc_ReferenceError,
+			             "BMesh used by %.200s has become invalid",
+			             Py_TYPE(self)->tp_name);
+			return -1;
+		}
+#endif
+
 		return 0;
 	}
 	else {
