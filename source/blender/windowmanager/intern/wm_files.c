@@ -373,6 +373,9 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		int G_f = G.f;
 		ListBase wmbase;
 
+		/* assume automated tasks with background, don't write recent file list */
+		const int do_history = (G.background == FALSE) && (CTX_wm_manager(C)->op_undo_depth == 0);
+
 		/* put aside screens to match with persistent windows later */
 		/* also exit screens and editors */
 		wm_window_match_init(C, &wmbase); 
@@ -400,8 +403,9 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		
 		if (retval != BKE_READ_FILE_FAIL) {
 			G.relbase_valid = 1;
-			if (!G.background) /* assume automated tasks with background, don't write recent file list */
+			if (do_history) {
 				write_history();
+			}
 		}
 
 
