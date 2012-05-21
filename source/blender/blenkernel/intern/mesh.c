@@ -50,6 +50,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_scanfill.h"
+#include "BLI_array.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
@@ -70,11 +71,6 @@
 #include "BKE_tessmesh.h"
 #include "BLI_edgehash.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_array.h"
-#include "BLI_edgehash.h"
-
 #include "bmesh.h"
 
 enum {
@@ -88,7 +84,7 @@ enum {
 	MESHCMP_POLYMISMATCH,
 	MESHCMP_EDGEUNKNOWN,
 	MESHCMP_VERTCOMISMATCH,
-	MESHCMP_CDLAYERS_MISMATCH,
+	MESHCMP_CDLAYERS_MISMATCH
 };
 
 static const char *cmpcode_to_str(int code)

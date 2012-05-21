@@ -103,7 +103,7 @@ static void tend ( void )
 {
 	QueryPerformanceCounter ( &liCurrentTime );
 }
-static double tval( void )
+static double UNUSED_FUNCTION(tval)( void )
 {
 	return ((double)( (liCurrentTime.QuadPart - liStartTime.QuadPart)* (double)1000.0/(double)liFrequency.QuadPart ));
 }
@@ -120,7 +120,7 @@ static void tend ( void )
 	gettimeofday ( &_tend,&tz );
 }
 
-static double tval( void )
+static double UNUSED_FUNCTION(tval)( void )
 {
 	double t1, t2;
 	t1 = ( double ) _tstart.tv_sec*1000 + ( double ) _tstart.tv_usec/ ( 1000 );
