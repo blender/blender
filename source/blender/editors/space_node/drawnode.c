@@ -1582,7 +1582,11 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "type") == CMP_NODE_DILATEERODE_DISTANCE) {
+		uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+	}
 }
 
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

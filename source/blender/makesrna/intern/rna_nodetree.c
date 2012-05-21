@@ -1962,11 +1962,28 @@ static void def_cmp_output_file(StructRNA *srna)
 static void def_cmp_dilate_erode(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	static EnumPropertyItem type_items[] = {
+	    {CMP_NODE_DILATEERODE_STEP,     "STEP",       0, "Step",     ""},
+	    {CMP_NODE_DILATEERODE_DISTANCE, "DISTANCE",   0, "Distance", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 

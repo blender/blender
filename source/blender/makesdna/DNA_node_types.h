@@ -345,6 +345,9 @@ typedef struct bNodeSocketValueRGBA {
 #define CMP_NODE_LENSFLARE_CIRCLE  4
 #define CMP_NODE_LENSFLARE_STREAKS 8
 
+#define CMP_NODE_DILATEERODE_STEP     0
+#define CMP_NODE_DILATEERODE_DISTANCE 1
+
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
 	int frames, sfra, nr;

@@ -33,16 +33,37 @@ DilateErodeNode::DilateErodeNode(bNode *editorNode): Node(editorNode)
 
 void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
 {
-	bNode *editorNode = this->getbNode();
-	DilateErodeOperation *operation = new DilateErodeOperation();
-	operation->setDistance(editorNode->custom2);
-	operation->setInset(2.0f);
 	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
-
-	AntiAliasOperation * antiAlias = new AntiAliasOperation();
-	addLink(graph, operation->getOutputSocket(), antiAlias->getInputSocket(0));
-	this->getOutputSocket(0)->relinkConnections(antiAlias->getOutputSocket(0));
-	graph->addOperation(operation);
-	graph->addOperation(antiAlias);
+	bNode *editorNode = this->getbNode();
+	if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
+		DilateErodeDistanceOperation *operation = new DilateErodeDistanceOperation();
+		operation->setDistance(editorNode->custom2);
+		operation->setInset(editorNode->custom3);
+		
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+	
+		if (editorNode->custom3 < 2.0f) {
+			AntiAliasOperation * antiAlias = new AntiAliasOperation();
+			addLink(graph, operation->getOutputSocket(), antiAlias->getInputSocket(0));
+			this->getOutputSocket(0)->relinkConnections(antiAlias->getOutputSocket(0));
+			graph->addOperation(antiAlias);
+		} else {
+			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+		}
+		graph->addOperation(operation);
+	} else {
+		if (editorNode->custom2 > 0) {
+			DilateStepOperation * operation = new DilateStepOperation();
+			operation->setIterations(editorNode->custom2);
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(operation);
+		} else {
+			ErodeStepOperation * operation = new ErodeStepOperation();
+			operation->setIterations(-editorNode->custom2);
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(operation);
+		}
+	}
 }

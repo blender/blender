@@ -23,7 +23,7 @@
 #include "COM_DilateErodeOperation.h"
 #include "BLI_math.h"
 
-DilateErodeOperation::DilateErodeOperation(): NodeOperation()
+DilateErodeDistanceOperation::DilateErodeDistanceOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -33,7 +33,7 @@ DilateErodeOperation::DilateErodeOperation(): NodeOperation()
 	this->_switch = 0.5f;
 	this->distance = 0.0f;
 }
-void DilateErodeOperation::initExecution()
+void DilateErodeDistanceOperation::initExecution()
 {
 	this->inputProgram = this->getInputSocketReader(0);
 	if (this->distance < 0.0f) {
@@ -52,13 +52,13 @@ void DilateErodeOperation::initExecution()
 	}
 }
 
-void *DilateErodeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateErodeDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void DilateErodeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	float inputValue[4];
 	const float sw = this->_switch;
@@ -141,12 +141,12 @@ void DilateErodeOperation::executePixel(float *color, int x, int y, MemoryBuffer
 	}
 }
 
-void DilateErodeOperation::deinitExecution()
+void DilateErodeDistanceOperation::deinitExecution()
 {
 	this->inputProgram = NULL;
 }
 
-bool DilateErodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool DilateErodeDistanceOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 
@@ -156,4 +156,152 @@ bool DilateErodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBuf
 	newInput.ymin = input->ymin - scope;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+// Dilate step
+DilateStepOperation::DilateStepOperation(): NodeOperation()
+{
+	this->addInputSocket(COM_DT_VALUE);
+	this->addOutputSocket(COM_DT_VALUE);
+	this->setComplex(true);
+	this->inputProgram = NULL;
+}
+void DilateStepOperation::initExecution()
+{
+	this->inputProgram = this->getInputSocketReader(0);
+	this->cached_buffer = NULL;
+	this->initMutex();
+}
+
+void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	if (this->cached_buffer != NULL) {
+		return this->cached_buffer;
+	}
+	BLI_mutex_lock(getMutex());
+	if (this->cached_buffer == NULL) {
+		MemoryBuffer *buffer = (MemoryBuffer*)inputProgram->initializeTileData(NULL, memoryBuffers);
+		float *rectf = buffer->convertToValueBuffer();
+		int x, y, i;
+		float *p;
+		int bwidth = buffer->getWidth();
+		int bheight = buffer->getHeight();
+		for (i = 0 ; i < this->iterations ; i ++) {
+			for (y=0; y < bheight; y++) {
+				for (x=0; x < bwidth-1; x++) {
+					p = rectf + (bwidth*y + x);
+					*p = MAX2(*p, *(p + 1));
+				}
+			}
+		
+			for (y=0; y < bheight; y++) {
+				for (x=bwidth-1; x >= 1; x--) {
+					p = rectf + (bwidth*y + x);
+					*p = MAX2(*p, *(p - 1));
+				}
+			}
+		
+			for (x=0; x < bwidth; x++) {
+				for (y=0; y < bheight-1; y++) {
+					p = rectf + (bwidth*y + x);
+					*p = MAX2(*p, *(p + bwidth));
+				}
+			}
+		
+			for (x=0; x < bwidth; x++) {
+				for (y=bheight-1; y >= 1; y--) {
+					p = rectf + (bwidth*y + x);
+					*p = MAX2(*p, *(p - bwidth));
+				}
+			}
+		}
+		this->cached_buffer = rectf;
+	}
+	BLI_mutex_unlock(getMutex());
+	return this->cached_buffer;
+}
+
+
+void DilateStepOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	color[0] = this->cached_buffer[y*this->getWidth()+x];
+}
+
+void DilateStepOperation::deinitExecution()
+{
+	this->inputProgram = NULL;
+	this->deinitMutex();
+	if (this->cached_buffer) {
+		delete cached_buffer;
+		this->cached_buffer = NULL;
+	}
+}
+
+bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
+	if (this->cached_buffer) {
+		return false;
+	} else {
+		rcti newInput;
+	
+		newInput.xmax = getWidth();
+		newInput.xmin = 0;
+		newInput.ymax = getHeight();
+		newInput.ymin = 0;
+	
+		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+	}
+}
+
+// Erode step
+ErodeStepOperation::ErodeStepOperation(): DilateStepOperation()
+{
+}
+
+void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	if (this->cached_buffer != NULL) {
+		return this->cached_buffer;
+	}
+	BLI_mutex_lock(getMutex());
+	if (this->cached_buffer == NULL) {
+		MemoryBuffer *buffer = (MemoryBuffer*)inputProgram->initializeTileData(NULL, memoryBuffers);
+		float *rectf = buffer->convertToValueBuffer();
+		int x, y, i;
+		float *p;
+		int bwidth = buffer->getWidth();
+		int bheight = buffer->getHeight();
+		for (i = 0 ; i < this->iterations ; i ++) {
+			for (y=0; y < bheight; y++) {
+				for (x=0; x < bwidth-1; x++) {
+					p = rectf + (bwidth*y + x);
+					*p = MIN2(*p, *(p + 1));
+				}
+			}
+		
+			for (y=0; y < bheight; y++) {
+				for (x=bwidth-1; x >= 1; x--) {
+					p = rectf + (bwidth*y + x);
+					*p = MIN2(*p, *(p - 1));
+				}
+			}
+		
+			for (x=0; x < bwidth; x++) {
+				for (y=0; y < bheight-1; y++) {
+					p = rectf + (bwidth*y + x);
+					*p = MIN2(*p, *(p + bwidth));
+				}
+			}
+		
+			for (x=0; x < bwidth; x++) {
+				for (y=bheight-1; y >= 1; y--) {
+					p = rectf + (bwidth*y + x);
+					*p = MIN2(*p, *(p - bwidth));
+				}
+			}
+		}
+		this->cached_buffer = rectf;
+	}
+	BLI_mutex_unlock(getMutex());
+	return this->cached_buffer;
 }
