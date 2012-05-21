@@ -3725,65 +3725,78 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_mode");
 	RNA_def_property_enum_items(prop, bake_mode_items);
 	RNA_def_property_ui_text(prop, "Bake Mode", "Choose shading information to bake into the image");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "bake_normal_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_normal_space");
 	RNA_def_property_enum_items(prop, bake_normal_space_items);
 	RNA_def_property_ui_text(prop, "Normal Space", "Choose normal space for baking");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "bake_quad_split", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, bake_qyad_split_items);
 	RNA_def_property_ui_text(prop, "Quad Split", "Choose the method used to split a quad into 2 triangles for baking");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "bake_aa_mode", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_bitflag_sdna(prop, NULL, "bake_osa");
 	RNA_def_property_enum_items(prop, fixed_oversample_items);
 	RNA_def_property_ui_text(prop, "Anti-Aliasing Level", "");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "use_bake_selected_to_active", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_TO_ACTIVE);
 	RNA_def_property_ui_text(prop, "Selected to Active",
 	                         "Bake shading on the surface of selected objects to the active object");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "use_bake_normalize", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_NORMALIZE);
 	RNA_def_property_ui_text(prop, "Normalized",
 	                         "With displacement normalize to the distance, with ambient occlusion "
 	                         "normalize without using material settings");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "use_bake_clear", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_CLEAR);
 	RNA_def_property_ui_text(prop, "Clear", "Clear Images before baking");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "use_bake_antialiasing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_OSA);
 	RNA_def_property_ui_text(prop, "Anti-Aliasing", "Enables Anti-aliasing");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "bake_margin", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "bake_filter");
 	RNA_def_property_range(prop, 0, 64);
 	RNA_def_property_ui_text(prop, "Margin",
 	                         "Amount of pixels to extend the baked result with, as post process filter");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "bake_distance", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bake_maxdist");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Distance",
 	                         "Maximum distance from active object to other object (in blender units)");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "bake_bias", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "bake_biasdist");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Bias", "Bias towards faces further away from the object (in blender units)");
-	
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
+
 	prop = RNA_def_property(srna, "use_bake_multires", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_MULTIRES);
 	RNA_def_property_ui_text(prop, "Bake from Multires", "Bake directly from multires object");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	prop = RNA_def_property(srna, "use_bake_lores_mesh", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "bake_flag", R_BAKE_LORES_MESH);
 	RNA_def_property_ui_text(prop, "Low Resolution Mesh",
 	                         "Calculate heights against unsubdivided low resolution mesh");
+	RNA_def_property_update(prop, NC_SCENE | ND_RENDER_OPTIONS, NULL);
 
 	/* stamp */
 	
