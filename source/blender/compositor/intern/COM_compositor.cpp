@@ -29,6 +29,7 @@ extern "C" {
 #include "COM_compositor.h"
 #include "COM_ExecutionSystem.h"
 #include "COM_WorkScheduler.h"
+#include "OCL_opencl.h"
 
 static ThreadMutex *compositorMutex;
 void COM_execute(bNodeTree *editingtree, int rendering)
@@ -36,6 +37,7 @@ void COM_execute(bNodeTree *editingtree, int rendering)
 	if (compositorMutex == NULL) { /// TODO: move to blender startup phase
 		compositorMutex = new ThreadMutex();
 		BLI_mutex_init(compositorMutex);
+		OCL_init();
 		WorkScheduler::initialize(); ///TODO: call workscheduler.deinitialize somewhere
 	}
 	BLI_mutex_lock(compositorMutex);
