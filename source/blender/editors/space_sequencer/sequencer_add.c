@@ -89,6 +89,8 @@
 
 static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 {
+	PropertyRNA *prop;
+
 	if (flag & SEQPROP_STARTFRAME)
 		RNA_def_int(ot->srna, "frame_start", 0, INT_MIN, INT_MAX, "Start Frame", "Start frame of the sequence strip", INT_MIN, INT_MAX);
 	
@@ -99,7 +101,9 @@ static void sequencer_generic_props__internal(wmOperatorType *ot, int flag)
 	
 	RNA_def_boolean(ot->srna, "replace_sel", 1, "Replace Selection", "Replace the current selection");
 
-	RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
+	/* only for python scripts which import strips and place them after */
+	prop = RNA_def_boolean(ot->srna, "overlap", 0, "Allow Overlap", "Don't correct overlap on new sequence strips");
+	RNA_def_property_flag(prop, PROP_HIDDEN);
 }
 
 static void sequencer_generic_invoke_path__internal(bContext *C, wmOperator *op, const char *identifier)

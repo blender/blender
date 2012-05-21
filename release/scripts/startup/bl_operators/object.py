@@ -35,7 +35,7 @@ class SelectPattern(Operator):
     pattern = StringProperty(
             name="Pattern",
             description="Name filter using '*' and '?' wildcard chars",
-            maxlen=32,
+            maxlen=64,
             default="*",
             )
     case_sensitive = BoolProperty(
