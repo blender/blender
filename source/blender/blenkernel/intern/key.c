@@ -721,7 +721,7 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
-	char *freefrom, *freereffrom;
+	char *freefrom = NULL, *freereffrom = NULL;
 	int poinsize;
 
 	/* currently always 0, in future key_pointer_size may assign */
