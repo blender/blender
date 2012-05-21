@@ -479,7 +479,7 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if(mv_src->flag == 1) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mv_src->flag & SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	return 1;
@@ -551,7 +551,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if(mv_src[nearest.index].flag == 1) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mv_src[nearest.index].flag & SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -646,8 +646,7 @@ also mode == 1 isnt so readable, better define an enum.
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		/*ATTENTION: face select in weightpaint mode seems reversed. Might create bug when fixed*/
-		else if(mode == 3) {if(mface_src[nearest.index].flag != SELECT) dw_dst->weight = dw_src->weight;}
+		else if(mode == 3) {if(mface_src[nearest.index].flag & ME_FACE_SEL) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -737,8 +736,7 @@ int ED_vgroup_transfer_weight_by_nearest_face(Object *ob_dst, Object *ob_src, sh
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = weight;}
-		/*ATTENTION: face select in weightpaint mode seems reversed. Might create bug when fixed*/
-		else if(mode == 3) {if(mface_src[nearest.index].flag != SELECT) dw_dst->weight = weight;}
+		else if(mode == 3) {if(mface_src[nearest.index].flag & ME_FACE_SEL) dw_dst->weight = weight;}
 		else return 0;
 	}
 	/*free memory and return*/
