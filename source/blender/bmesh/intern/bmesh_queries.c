@@ -369,6 +369,7 @@ int BM_edge_face_pair(BMEdge *e, BMFace **r_fa, BMFace **r_fb)
 
 	if ((la = e->l) &&
 	    (lb = la->radial_next) &&
+	    (la != lb) &&
 	    (lb->radial_next == la))
 	{
 		*r_fa = la->f;
@@ -394,6 +395,7 @@ int BM_edge_loop_pair(BMEdge *e, BMLoop **r_la, BMLoop **r_lb)
 
 	if ((la = e->l) &&
 	    (lb = la->radial_next) &&
+	    (la != lb) &&
 	    (lb->radial_next == la))
 	{
 		*r_la = la;
