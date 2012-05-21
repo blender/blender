@@ -1342,13 +1342,13 @@ void KX_KetsjiEngine::PostRenderScene(KX_Scene* scene)
 {
 	// We need to first make sure our viewport is correct (enabling multiple viewports can mess this up)
 	m_canvas->SetViewPort(0, 0, m_canvas->GetWidth(), m_canvas->GetHeight());
-
+	
+	m_rasterizer->FlushDebugShapes();
 	m_rendertools->MotionBlur(m_rasterizer);
 	scene->Render2DFilters(m_canvas);
 #ifdef WITH_PYTHON
 	scene->RunDrawingCallbacks(scene->GetPostDrawCB());	
 #endif
-	m_rasterizer->FlushDebugShapes();
 }
 
 void KX_KetsjiEngine::StopEngine()
