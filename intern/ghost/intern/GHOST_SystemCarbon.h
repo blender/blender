@@ -84,7 +84,7 @@ public:
 	 * Returns the number of displays on this system.
 	 * @return The number of displays.
 	 */
-	virtual	GHOST_TUns8 getNumDisplays() const;
+	virtual GHOST_TUns8 getNumDisplays() const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
@@ -103,29 +103,29 @@ public:
 	 * @param	height	The height the window.
 	 * @param	state	The state of the window when opened.
 	 * @param	type	The type of drawing context installed in this window.
-	 * @param	parentWindow 	Parent (embedder) window
+	 * @param	parentWindow Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
-	virtual GHOST_IWindow* createWindow(
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type,
-		const bool stereoVisual,
-		const GHOST_TUns16 numOfAASamples = 0,
-		const GHOST_TEmbedderWindowID parentWindow = 0 
-	);
+	virtual GHOST_IWindow *createWindow(
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 top,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    GHOST_TDrawingContextType type,
+	    const bool stereoVisual,
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    const GHOST_TEmbedderWindowID parentWindow = 0
+	    );
 	
 	virtual GHOST_TSuccess beginFullScreen(
-		const GHOST_DisplaySetting& setting, 
-		GHOST_IWindow** window,
-		const bool stereoVisual
-	);
+	    const GHOST_DisplaySetting& setting,
+	    GHOST_IWindow **window,
+	    const bool stereoVisual
+	    );
 	
-	virtual GHOST_TSuccess endFullScreen( void );
+	virtual GHOST_TSuccess endFullScreen(void);
 	
 	/***************************************************************************************
 	 ** Event management functionality
@@ -181,7 +181,7 @@ public:
 	 * @param selection		Indicate which buffer to return
 	 * @return				Returns the selected buffer
 	 */
-	virtual GHOST_TUns8* getClipboard(bool selection) const;
+	virtual GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
@@ -193,7 +193,9 @@ public:
 	/**
 	 * @see GHOST_ISystem
 	 */
-	int toggleConsole(int action) { return 0; }
+	int toggleConsole(int action) {
+		return 0;
+	}
 
 protected:
 	/**
@@ -258,7 +260,7 @@ protected:
 	/**
 	 * Callback for Carbon when it has events.
 	 */
-	static OSStatus sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData);
+	static OSStatus sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void *userData);
 	
 	/** Apple Event Handlers */
 	static OSErr sAEHandlerLaunch(const AppleEvent *event, AppleEvent *reply, SInt32 refCon);

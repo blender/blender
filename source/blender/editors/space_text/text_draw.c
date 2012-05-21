@@ -1174,7 +1174,7 @@ static void calc_text_rcts(SpaceText *st, ARegion *ar, rcti *scroll, rcti *back)
 				/* push hl start down */
 				hlstart = barstart + barheight;
 			}
-			else if (lhlend > st->top  && lhlstart < st->top && hlstart > barstart) {
+			else if (lhlend > st->top && lhlstart < st->top && hlstart > barstart) {
 				/*fill out start */
 				hlstart = barstart;
 			}

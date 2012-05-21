@@ -65,8 +65,8 @@ public:
 	void	UnlinkAllActuators();
 	void	UnlinkActuator(class SCA_IActuator* actua);
 	void	UnlinkSensor(class SCA_ISensor* sensor);
-	void    SetState(unsigned int state) { m_statemask = state; }
-	void    ApplyState(unsigned int state);
+	void	SetState(unsigned int state) { m_statemask = state; }
+	void	ApplyState(unsigned int state);
 	void	Deactivate()
 	{
 		// the controller can only be part of a sensor m_newControllers list

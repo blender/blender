@@ -130,7 +130,7 @@ static void wm_region_test_render_do_draw(ScrArea *sa, ARegion *ar)
 		RenderEngine *engine = (rv3d) ? rv3d->render_engine : NULL;
 
 		if (engine && (engine->flag & RE_ENGINE_DO_DRAW)) {
-			ar->do_draw = 1;
+			ar->do_draw = TRUE;
 			engine->flag &= ~RE_ENGINE_DO_DRAW;
 		}
 	}
@@ -661,15 +661,15 @@ static int wm_draw_update_test_window(wmWindow *win)
 {
 	ScrArea *sa;
 	ARegion *ar;
-	int do_draw = 0;
+	int do_draw = FALSE;
 
 	for (ar = win->screen->regionbase.first; ar; ar = ar->next) {
 		if (ar->do_draw_overlay) {
 			wm_tag_redraw_overlay(win, ar);
-			ar->do_draw_overlay = 0;
+			ar->do_draw_overlay = FALSE;
 		}
 		if (ar->swinid && ar->do_draw)
-			do_draw = 1;
+			do_draw = TRUE;
 	}
 
 	for (sa = win->screen->areabase.first; sa; sa = sa->next) {
@@ -677,7 +677,7 @@ static int wm_draw_update_test_window(wmWindow *win)
 			wm_region_test_render_do_draw(sa, ar);
 
 			if (ar->swinid && ar->do_draw)
-				do_draw = 1;
+				do_draw = TRUE;
 		}
 	}
 
@@ -737,7 +737,7 @@ void wm_tag_redraw_overlay(wmWindow *win, ARegion *ar)
 	if (ar && win) {
 		if (wm_automatic_draw_method(win) != USER_DRAW_TRIPLE)
 			ED_region_tag_redraw(ar);
-		win->screen->do_draw_paintcursor = 1;
+		win->screen->do_draw_paintcursor = TRUE;
 	}
 }
 
@@ -778,9 +778,9 @@ void wm_draw_update(bContext *C)
 			else // if (drawmethod == USER_DRAW_TRIPLE)
 				wm_method_draw_triple(C, win);
 
-			win->screen->do_draw_gesture = 0;
-			win->screen->do_draw_paintcursor = 0;
-			win->screen->do_draw_drag = 0;
+			win->screen->do_draw_gesture = FALSE;
+			win->screen->do_draw_paintcursor = FALSE;
+			win->screen->do_draw_drag = FALSE;
 		
 			wm_window_swap_buffers(win);
 
@@ -816,7 +816,7 @@ void wm_draw_region_clear(wmWindow *win, ARegion *ar)
 	if (ELEM(drawmethod, USER_DRAW_OVERLAP, USER_DRAW_OVERLAP_FLIP))
 		wm_flush_regions_down(win->screen, &ar->winrct);
 
-	win->screen->do_draw = 1;
+	win->screen->do_draw = TRUE;
 }
 
 void WM_redraw_windows(bContext *C)

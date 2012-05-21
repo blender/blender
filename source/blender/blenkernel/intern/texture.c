@@ -233,7 +233,8 @@ void init_tex_mapping(TexMapping *texmap)
 	float smat[3][3], rmat[3][3], mat[3][3], proj[3][3];
 
 	if (texmap->projx == PROJ_X && texmap->projy == PROJ_Y && texmap->projz == PROJ_Z &&
-	    is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size)) {
+	    is_zero_v3(texmap->loc) && is_zero_v3(texmap->rot) && is_one_v3(texmap->size))
+	{
 		unit_m4(texmap->mat);
 
 		texmap->flag |= TEXMAP_UNIT_MATRIX;

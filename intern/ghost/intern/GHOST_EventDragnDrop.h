@@ -83,8 +83,8 @@ public:
 	GHOST_EventDragnDrop(GHOST_TUns64 time,
 	                     GHOST_TEventType type,
 	                     GHOST_TDragnDropTypes dataType,
-	                     GHOST_IWindow* window,
-						 int x, int y, GHOST_TEventDataPtr data)
+	                     GHOST_IWindow *window,
+	                     int x, int y, GHOST_TEventDataPtr data)
 		: GHOST_Event(time, type, window)
 	{
 		m_dragnDropEventData.x = x;
@@ -102,22 +102,22 @@ public:
 		
 		switch (m_dragnDropEventData.dataType) {
 			case GHOST_kDragnDropTypeBitmap:
-				IMB_freeImBuf((ImBuf*)m_dragnDropEventData.data);
+				IMB_freeImBuf((ImBuf *)m_dragnDropEventData.data);
 				break;
 			case GHOST_kDragnDropTypeFilenames:
 			{
-				GHOST_TStringArray *strArray = (GHOST_TStringArray*)m_dragnDropEventData.data;
+				GHOST_TStringArray *strArray = (GHOST_TStringArray *)m_dragnDropEventData.data;
 				int i;
 				
-				for (i=0;i<strArray->count;i++)
+				for (i = 0; i < strArray->count; i++)
 					free(strArray->strings[i]);
 				
 				free(strArray);
 			}
-				break;
+			break;
 			case GHOST_kDragnDropTypeString:
 				free(m_dragnDropEventData.data);
-			break;
+				break;
 
 			default:
 				break;

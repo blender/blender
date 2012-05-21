@@ -986,7 +986,7 @@ static PyObject *pyrna_prop_repr(BPy_PropertyRNA *self)
 			ret = PyUnicode_FromFormat("bpy.data.%s[%R].%s",
 			                           BKE_idcode_to_name_plural(GS(id->name)),
 			                           tmp_str,
-		    	                       path);
+			                           path);
 		}
 
 		MEM_freeN((void *)path);
@@ -1702,7 +1702,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 				/* this is really nasty!, so we can fake the operator having direct properties eg:
 				 * layout.prop(self, "filepath")
-				 * ... which infact should be
+				 * ... which in fact should be
 				 * layout.prop(self.properties, "filepath")
 				 *
 				 * we need to do this trick.

@@ -476,7 +476,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 				if (bone->flag & BONE_SELECTED) {
 					bone->flag |= BONE_TRANSFORM;
 					total++;
-					do_next= 0;	// no transform on children if one parent bone is selected
+					do_next = FALSE;	// no transform on children if one parent bone is selected
 				}
 			}
 		}

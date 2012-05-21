@@ -2111,7 +2111,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_ROTLIMIT);
 		bConstraintOb cob;
 		bConstraint *con;
-		int dolimit = 0;
+		int do_limit = FALSE;
 		
 		/* Evaluate valid constraints */
 		for (con= td->con; con; con= con->next) {
@@ -2133,9 +2133,9 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 					continue;
 
 				/* only do conversion if necessary, to preserve quats and eulers */
-				if (!dolimit) {
+				if (do_limit == FALSE) {
 					constraintob_from_transdata(&cob, td);
-					dolimit= 1;
+					do_limit = TRUE;
 				}
 				
 				/* do space conversions */
@@ -2157,7 +2157,7 @@ static void constraintRotLim(TransInfo *UNUSED(t), TransData *td)
 			}
 		}
 		
-		if (dolimit) {
+		if (do_limit) {
 			/* copy results from cob->matrix */
 			if (td->ext->rotOrder == ROT_MODE_QUAT) {
 				/* quats */
@@ -2311,8 +2311,8 @@ int handleEventWarp(TransInfo *t, wmEvent *event)
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal warp direction
-		if	(t->customData == NULL)
-			t->customData = (void*)1;
+		if (t->customData == NULL)
+			t->customData = (void *)1;
 		else
 			t->customData = NULL;
 		
@@ -2451,7 +2451,7 @@ int handleEventShear(TransInfo *t, wmEvent *event)
 	
 	if (event->type == MIDDLEMOUSE && event->val == KM_PRESS) {
 		// Use customData pointer to signal Shear direction
-		if	(t->customData == NULL) {
+		if (t->customData == NULL) {
 			initMouseInputMode(t, &t->mouse, INPUT_VERTICAL_ABSOLUTE);
 			t->customData = (void*)1;
 		}
@@ -3096,7 +3096,7 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 		/* rotation */
 		if ((t->flag & T_V3D_ALIGN)==0) { // align mode doesn't rotate objects itself
 			/* euler or quaternion? */
-			   if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
+			if ((td->ext->rotOrder == ROT_MODE_QUAT) || (td->flag & TD_USEQUAT)) {
 				mul_serie_m3(fmat, td->mtx, mat, td->smtx, NULL, NULL, NULL, NULL, NULL);
 				mat3_to_quat(quat, fmat);	// Actual transform
 				
@@ -4711,7 +4711,7 @@ void projectSVData(TransInfo *t, int final)
 
 		/* BMESH_TODO, this interpolates between vertex/loops which are not moved
 		 * (are only apart of a face attached to a slide vert), couldn't we iterate BM_LOOPS_OF_VERT
-		 * here and only iterpolate those? */
+		 * here and only interpolate those? */
 		BM_ITER_ELEM (f, &fiter, sv->v, BM_FACES_OF_VERT) {
 			BMIter liter;
 			BMLoop *l;
@@ -5438,10 +5438,10 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 
-#if 0   /* 'doTime' disabled for now */
+#if 0   /* 'do_time' disabled for now */
 
 		const Scene *scene= t->scene;
-		const short doTime= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behavior given the option's label, hence disabled
+		const short do_time= 0; //getAnimEdit_DrawTime(t); // NOTE: this works, but may be confusing behavior given the option's label, hence disabled
 		const double secf= FPS;
 #endif
 		double val;
@@ -5452,10 +5452,10 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, TransData2D *td2d,
 		else
 			val= *(td->val);
 		
-#if 0	/* 'doTime' disabled for now */
+#if 0	/* 'do_time' disabled for now */
 
 		/* do the snapping to nearest frame/second */
-		if (doTime) {
+		if (do_time) {
 			val= (float)(floor((val/secf) + 0.5f) * secf);
 		}
 		else
@@ -5540,19 +5540,19 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 	else {
 		const Scene *scene = t->scene;
 		const short autosnap= getAnimEdit_SnapMode(t);
-		const short doTime = getAnimEdit_DrawTime(t);
+		const short do_time = getAnimEdit_DrawTime(t);
 		const double secf= FPS;
 		float val = t->values[0];
 		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
-			if (doTime)
+			if (do_time)
 				val= floorf((double)val/secf + 0.5f);
 			else
 				val= floorf(val + 0.5f);
 		}
 		else {
-			if (doTime)
+			if (do_time)
 				val= (float)((double)val / secf);
 		}
 		
@@ -5572,7 +5572,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 	Scene *scene = t->scene;
 	int i;
 
-	const short doTime= getAnimEdit_DrawTime(t);
+	const short do_time= getAnimEdit_DrawTime(t);
 	const double secf= FPS;
 
 	const short autosnap= getAnimEdit_SnapMode(t);
@@ -5594,7 +5594,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 			deltax = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {
-				if (doTime)
+				if (do_time)
 					deltax= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
 					deltax= (float)(floor(deltax + 0.5f));
@@ -5608,7 +5608,7 @@ static void applyTimeTranslate(TransInfo *t, float UNUSED(sval))
 			deltax = val = t->values[0];
 
 			if (autosnap == SACTSNAP_STEP) {
-				if (doTime)
+				if (do_time)
 					val= (float)(floor((deltax/secf) + 0.5f) * secf);
 				else
 					val= (float)(floor(val + 0.5f));
@@ -5846,7 +5846,7 @@ static void applyTimeScale(TransInfo *t)
 	int i;
 
 	const short autosnap= getAnimEdit_SnapMode(t);
-	const short doTime= getAnimEdit_DrawTime(t);
+	const short do_time= getAnimEdit_DrawTime(t);
 	const double secf= FPS;
 
 
@@ -5860,7 +5860,7 @@ static void applyTimeScale(TransInfo *t)
 		float fac= t->values[0];
 
 		if (autosnap == SACTSNAP_STEP) {
-			if (doTime)
+			if (do_time)
 				fac= (float)(floor(fac/secf + 0.5f) * secf);
 			else
 				fac= (float)(floor(fac + 0.5f));

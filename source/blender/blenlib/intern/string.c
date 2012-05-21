@@ -135,7 +135,7 @@ size_t BLI_strescape(char *dst, const char *src, const size_t maxlen)
 			case '\t':
 			case '\n':
 			case '\r':
-				if (len + 1 <  maxlen) {
+				if (len + 1 < maxlen) {
 					*dst++ = '\\';
 					len++;
 				}

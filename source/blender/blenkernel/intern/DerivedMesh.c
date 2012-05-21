@@ -1546,7 +1546,7 @@ static void mesh_calc_modifiers(Scene *scene, Object *ob, float (*inputVertexCos
 
 			/* if this is not the last modifier in the stack then recalculate the normals
 			 * to avoid giving bogus normals to the next modifier see: [#23673] */
-			if (isPrevDeform &&  mti->dependsOnNormals && mti->dependsOnNormals(md)) {
+			if (isPrevDeform && mti->dependsOnNormals && mti->dependsOnNormals(md)) {
 				/* XXX, this covers bug #23673, but we may need normal calc for other types */
 				if (dm && dm->type == DM_TYPE_CDDM) {
 					CDDM_apply_vert_coords(dm, deformedVerts);
@@ -2942,7 +2942,7 @@ static void navmesh_drawColored(DerivedMesh *dm)
 #endif
 
 	glDisable(GL_LIGHTING);
-	/*  if (GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
+	/* if (GPU_buffer_legacy(dm) ) */ { /* TODO - VBO draw code, not high priority - campbell */
 		DEBUG_VBO("Using legacy code. drawNavMeshColored\n");
 		//glShadeModel(GL_SMOOTH);
 		glBegin(glmode = GL_QUADS);

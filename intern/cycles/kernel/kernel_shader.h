@@ -679,11 +679,6 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 }
 #endif
 
-__device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
-{
-	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2 + 1);
-}
-
 /* Free ShaderData */
 
 __device void shader_release(KernelGlobals *kg, ShaderData *sd)

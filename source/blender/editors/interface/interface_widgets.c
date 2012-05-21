@@ -127,8 +127,11 @@ typedef struct uiWidgetType {
 
 /* *********************** draw data ************************** */
 
-static float cornervec[WIDGET_CURVE_RESOLU][2] = {{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169},
-												  {0.707, 0.293}, {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}};
+static float cornervec[WIDGET_CURVE_RESOLU][2] = {
+	{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067},
+	{0.55, 0.169}, {0.707, 0.293}, {0.831, 0.45},
+	{0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}
+};
 
 #define WIDGET_AA_JITTER 8
 static float jit[WIDGET_AA_JITTER][2] = {

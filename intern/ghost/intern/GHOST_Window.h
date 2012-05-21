@@ -83,12 +83,12 @@ public:
 	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_Window(
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0);
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0);
 
 	/**
 	 * @section Interface inherited from GHOST_IWindow left for derived class
@@ -121,7 +121,7 @@ public:
 	 * Returns the associated OS object/handle
 	 * @return The associated OS object/handle
 	 */
-	virtual void* getOSWindow() const;
+	virtual void *getOSWindow() const;
 	
 	/**
 	 * Returns the current cursor shape.
@@ -145,15 +145,15 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
-												GHOST_TUns8 mask[16][2], 
-												int hotX, 
-												int hotY);
+	                                            GHOST_TUns8 mask[16][2],
+	                                            int hotX,
+	                                            int hotY);
 												
 	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap, 
-												GHOST_TUns8 *mask, 
-												int sizex, int sizey,
-												int hotX,  int hotY,
-												int fg_color, int bg_color);
+	                                            GHOST_TUns8 *mask,
+	                                            int sizex, int sizey,
+	                                            int hotX,  int hotY,
+	                                            int fg_color, int bg_color);
 	
 	/**
 	 * Returns the visibility state of the cursor.
@@ -187,15 +187,19 @@ public:
 	virtual GHOST_TSuccess getCursorGrabBounds(GHOST_Rect& bounds);
 
 	/**
-     * Sets the progress bar value displayed in the window/application icon
+	 * Sets the progress bar value displayed in the window/application icon
 	 * @param progress The progress % (0.0 to 1.0)
 	 */
-	virtual GHOST_TSuccess setProgressBar(float progress) {return GHOST_kFailure;};
+	virtual GHOST_TSuccess setProgressBar(float progress) {
+		return GHOST_kFailure;
+	};
 	
 	/**
 	 * Hides the progress bar in the icon
 	 */
-	virtual GHOST_TSuccess endProgressBar() {return GHOST_kFailure;};
+	virtual GHOST_TSuccess endProgressBar() {
+		return GHOST_kFailure;
+	};
 	
 	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -278,7 +282,9 @@ protected:
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 */
-	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) { return GHOST_kSuccess; };
+	virtual GHOST_TSuccess setWindowCursorGrab(GHOST_TGrabCursorMode mode) {
+		return GHOST_kSuccess;
+	};
 	
 	/**
 	 * Sets the cursor shape on the window using
@@ -295,7 +301,7 @@ protected:
 	                                                  int hotX, int hotY) = 0;
 	
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, 
-						int szx, int szy, int hotX, int hotY, int fg, int bg) = 0;
+	                                                  int szx, int szy, int hotX, int hotY, int fg, int bg) = 0;
 	/** The the of drawing context installed in this window. */
 	GHOST_TDrawingContextType m_drawingContextType;
 	
@@ -365,8 +371,8 @@ inline GHOST_TGrabCursorMode GHOST_Window::getCursorGrabMode() const
 
 inline bool GHOST_Window::getCursorGrabModeIsWarp() const
 {
-	return  (m_cursorGrab == GHOST_kGrabWrap) ||
-	        (m_cursorGrab == GHOST_kGrabHide);
+	return (m_cursorGrab == GHOST_kGrabWrap) ||
+	       (m_cursorGrab == GHOST_kGrabHide);
 }
 
 inline void GHOST_Window::getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y) const
@@ -377,14 +383,14 @@ inline void GHOST_Window::getCursorGrabInitPos(GHOST_TInt32 &x, GHOST_TInt32 &y)
 
 inline void GHOST_Window::getCursorGrabAccum(GHOST_TInt32 &x, GHOST_TInt32 &y) const
 {
-	x= m_cursorGrabAccumPos[0];
-	y= m_cursorGrabAccumPos[1];
+	x = m_cursorGrabAccumPos[0];
+	y = m_cursorGrabAccumPos[1];
 }
 
 inline void GHOST_Window::setCursorGrabAccum(GHOST_TInt32 x, GHOST_TInt32 y)
 {
-	m_cursorGrabAccumPos[0]= x;
-	m_cursorGrabAccumPos[1]= y;
+	m_cursorGrabAccumPos[0] = x;
+	m_cursorGrabAccumPos[1] = y;
 }
 
 inline GHOST_TStandardCursor GHOST_Window::getCursorShape() const

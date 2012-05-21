@@ -2763,11 +2763,11 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 int BKE_boundbox_ray_hit_check(struct BoundBox *bb, float ray_start[3], float ray_normal[3])
 {
 	static int triangle_indexes[12][3] = {{0, 1, 2}, {0, 2, 3},
-										  {3, 2, 6}, {3, 6, 7},
-										  {1, 2, 6}, {1, 6, 5}, 
-										  {5, 6, 7}, {4, 5, 7},
-										  {0, 3, 7}, {0, 4, 7},
-										  {0, 1, 5}, {0, 4, 5}};
+	                                      {3, 2, 6}, {3, 6, 7},
+	                                      {1, 2, 6}, {1, 6, 5},
+	                                      {5, 6, 7}, {4, 5, 7},
+	                                      {0, 3, 7}, {0, 4, 7},
+	                                      {0, 1, 5}, {0, 4, 5}};
 	int result = 0;
 	int i;
 	

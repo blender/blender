@@ -225,7 +225,7 @@
  *
  * - face inset interpolate loop data from face (currently copies - but this stretches UV's in an ugly way)
  * - vert slide UV correction (like we have for edge slide)
- * - fill-face edge net - produce consistant normals, currently it won't, fix should be to fill in edge-net node
+ * - fill-face edge net - produce consistent normals, currently it won't, fix should be to fill in edge-net node
  *   connected with previous one - since they already check for normals of adjacent edge-faces before creating.
  */
 

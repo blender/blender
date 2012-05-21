@@ -71,23 +71,21 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	if (image && image->type==IMA_TYPE_MULTILAYER) {
 		BKE_image_get_ibuf(image, imageuser);
 		if (image->rr) {
-			OutputSocket * socket;
-			int index;
-			for (index = 0 ; index < numberOfOutputs ; index ++) {
-				socket = this->getOutputSocket(index);
-				if (socket->isConnected() || index == 0) {
-					bNodeSocket *bnodeSocket = socket->getbNodeSocket();
-					NodeImageLayer *storage = (NodeImageLayer*)bnodeSocket->storage;
-					int passindex = storage->pass_index;
-					int layerindex = storage->layer_index;
-					RenderLayer *rl = (RenderLayer*)BLI_findlink(&image->rr->layers, layerindex);
-					if (rl) {
-					
+			RenderLayer *rl = (RenderLayer*)BLI_findlink(&image->rr->layers, imageuser->layer);
+			if (rl) {
+				OutputSocket * socket;
+				int index;
+				for (index = 0 ; index < numberOfOutputs ; index ++) {
+					socket = this->getOutputSocket(index);
+					if (socket->isConnected() || index == 0) {
+						bNodeSocket *bnodeSocket = socket->getbNodeSocket();
+						NodeImageLayer *storage = (NodeImageLayer*)bnodeSocket->storage;
+						int passindex = storage->pass_index;
+						
 						RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);
 						if (rpass) {
 							NodeOperation * operation = NULL;
 							imageuser->pass = passindex;
-							imageuser->layer = layerindex;
 							switch (rpass->channels) {
 							case 1:
 								operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);

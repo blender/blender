@@ -721,7 +721,6 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 	KeyBlock *kb;
 	int *ofsp, ofs[3], elemsize, b;
 	char *cp, *poin, *reffrom, *from, elemstr[8];
-	char *freefrom, *freereffrom;
 	int poinsize;
 
 	/* currently always 0, in future key_pointer_size may assign */
@@ -754,6 +753,7 @@ void do_rel_key(const int start, int end, const int tot, char *basispoin, Key *k
 			if (!(kb->flag & KEYBLOCK_MUTE) && icuval != 0.0f && kb->totelem == tot) {
 				KeyBlock *refb;
 				float weight, *weights = kb->weights;
+				char *freefrom = NULL, *freereffrom = NULL;
 
 				/* reference now can be any block */
 				refb = BLI_findlink(&key->block, kb->relative);
@@ -1260,7 +1260,7 @@ static void do_latt_key(Scene *scene, Object *ob, Key *key, char *out, const int
 	float t[4];
 	int flag;
 	
-	if (key->slurph  && key->type != KEY_RELATIVE) {
+	if (key->slurph && key->type != KEY_RELATIVE) {
 		const float ctime_scaled = key->ctime / 100.0f;
 		float delta = (float)key->slurph / tot;
 		float cfra = (float)scene->r.cfra;

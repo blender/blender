@@ -220,6 +220,7 @@ void BlenderSession::render()
 		buffer_params.passes = passes;
 		scene->film->passes = passes;
 		scene->film->tag_update(scene);
+		scene->integrator->tag_update(scene);
 
 		/* update scene */
 		sync->sync_data(b_v3d, b_engine.camera_override(), b_iter->name().c_str());

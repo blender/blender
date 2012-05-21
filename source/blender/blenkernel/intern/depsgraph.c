@@ -718,7 +718,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Scene *scene, O
 		dag_add_relation(dag, scenenode, node, DAG_RL_SCENE, "Scene Relation");
 }
 
-struct DagForest *build_dag(Main *bmain, Scene *sce, short mask){
+DagForest *build_dag(Main *bmain, Scene *sce, short mask)
+{
 	Base *base;
 	Object *ob;
 	Group *group;
@@ -1458,7 +1459,8 @@ int pre_and_post_source_DFS(DagForest *dag, short mask, DagNode *source, graph_a
 
 
 // used to get the obs owning a datablock
-struct DagNodeQueue *get_obparents(struct DagForest *dag, void *ob){
+DagNodeQueue *get_obparents(struct DagForest *dag, void *ob)
+{
 	DagNode *node, *node1;
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
@@ -1491,7 +1493,8 @@ struct DagNodeQueue *get_obparents(struct DagForest *dag, void *ob){
 	return nqueue;
 }
 
-struct DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob){
+DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob)
+{
 	DagNode *node, *node1;
 	DagNodeQueue *nqueue;
 	DagAdjList *itA;
@@ -1519,7 +1522,8 @@ struct DagNodeQueue *get_first_ancestors(struct DagForest   *dag, void *ob){
 }
 
 // standard DFS list
-struct DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob){
+DagNodeQueue *get_all_childs(struct DagForest    *dag, void *ob)
+{
 	DagNode *node;
 	DagNodeQueue *nqueue;
 	DagNodeQueue *retqueue;
@@ -2627,7 +2631,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 	ListBase *lbarray[MAX_LIBARRAY];
 	Scene *sce;
 	unsigned int lay;
-	int a, do_flush = 0;
+	int a, do_flush = FALSE;
 
 	dag_current_scene_layers(bmain, &sce, &lay);
 
@@ -2647,7 +2651,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
 					dag_id_flush_update(sce, id);
-					do_flush = 1;
+					do_flush = TRUE;
 				}
 			}
 		}

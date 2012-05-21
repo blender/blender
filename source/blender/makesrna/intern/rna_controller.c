@@ -51,7 +51,8 @@ EnumPropertyItem controller_type_items[] = {
 #include "BKE_sca.h"
 #include "DNA_actuator_types.h"
 
-static struct StructRNA *rna_Controller_refine(struct PointerRNA *ptr){
+static StructRNA *rna_Controller_refine(struct PointerRNA *ptr)
+{
 	bController *controller = (bController *)ptr->data;
 
 	switch (controller->type) {

@@ -25,7 +25,7 @@
 #include "COM_NodeOperation.h"
 
 
-class DilateErodeOperation : public NodeOperation {
+class DilateErodeDistanceOperation : public NodeOperation {
 private:
 	/**
 	  * Cached reference to the inputProgram
@@ -42,7 +42,7 @@ private:
 	  */
 	int scope;
 public:
-	DilateErodeOperation();
+	DilateErodeDistanceOperation();
 	
 	/**
 	  * the inner loop of this program
@@ -67,4 +67,46 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 };
+
+class DilateStepOperation : public NodeOperation {
+protected:
+	/**
+	  * Cached reference to the inputProgram
+	  */
+	SocketReader * inputProgram;
+	
+	int iterations;
+	
+	float *cached_buffer;
+public:
+	DilateStepOperation();
+	
+	/**
+	  * the inner loop of this program
+	  */
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	
+	/**
+	  * Initialize the execution
+	  */
+	void initExecution();
+	
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	/**
+	  * Deinitialize the execution
+	  */
+	void deinitExecution();
+	
+	void setIterations(int iterations) {this->iterations = iterations;}
+	
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+};
+
+class ErodeStepOperation : public DilateStepOperation {
+public:
+	ErodeStepOperation();
+	
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+};
+
 #endif

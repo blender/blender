@@ -51,7 +51,7 @@ public:
 	 * @param type		The type of this event.
 	 * @param z			The displacement of the mouse wheel.
 	 */
-	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_IWindow* window, GHOST_TInt32 z)
+	GHOST_EventWheel(GHOST_TUns64 msec, GHOST_IWindow *window, GHOST_TInt32 z)
 		: GHOST_Event(msec, GHOST_kEventWheel, window)
 	{
 		m_wheelEventData.z = z;

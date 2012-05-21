@@ -381,7 +381,7 @@ static int view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			return OPERATOR_FINISHED;
 		default:
-			if (event->type == vpd->event_type &&  event->val == KM_RELEASE) {
+			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
 				view_pan_exit(C, op, 0);
 
 				return OPERATOR_FINISHED;

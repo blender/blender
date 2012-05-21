@@ -1299,7 +1299,7 @@ static void thumbnails_startjob(void *tjv, short *stop, short *do_update, float 
 					limg->flags |= MOVIEFILE_ICON;
 				}
 		}
-		*do_update = 1;
+		*do_update = TRUE;
 		PIL_sleep_ms(10);
 		limg = limg->next;
 	}
@@ -1319,7 +1319,7 @@ static void thumbnails_update(void *tjv)
 					tj->filelist->filelist[limg->index].flags &= ~MOVIEFILE;
 					tj->filelist->filelist[limg->index].flags |= MOVIEFILE_ICON;
 				}
-				limg->done=1;
+				limg->done = TRUE;
 			}
 			limg = limg->next;
 		}

@@ -544,7 +544,8 @@ partial_load:
 }
 
 
-struct ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags){
+ImBuf *imb_loadtarga(unsigned char *mem, size_t mem_size, int flags)
+{
 	TARGA tga;
 	struct ImBuf *ibuf;
 	int col, count, size;

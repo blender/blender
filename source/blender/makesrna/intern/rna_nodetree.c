@@ -492,6 +492,18 @@ static void rna_NodeSocketVector_range(PointerRNA *ptr, float *min, float *max, 
 	*softmax = val->max;
 }
 
+static void rna_Node_image_layer_update(Main *bmain, Scene *scene, PointerRNA *ptr)
+{
+	bNode *node = (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	ImageUser *iuser = node->storage;
+	
+	BKE_image_multilayer_index(ima->rr, iuser);
+	BKE_image_signal(ima, iuser, IMA_SIGNAL_SRC_CHANGE);
+	
+	rna_Node_update(bmain, scene, ptr);
+}
+
 static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 {
 	EnumPropertyItem *item = NULL;
@@ -500,7 +512,11 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	
 	while (rl) {
 		tmp.identifier = rl->name;
-		tmp.name = rl->name;
+		/* little trick: using space char instead empty string makes the item selectable in the dropdown */
+		if (rl->name[0] == '\0')
+			tmp.name = " ";
+		else
+			tmp.name = rl->name;
 		tmp.value = i++;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 		rl = rl->next;
@@ -508,6 +524,24 @@ static EnumPropertyItem *renderresult_layers_add_enum(RenderLayer *rl)
 	
 	RNA_enum_item_end(&item, &totitem);
 
+	return item;
+}
+
+static EnumPropertyItem *rna_Node_image_layer_itemf(bContext *UNUSED(C), PointerRNA *ptr,
+                                                    PropertyRNA *UNUSED(prop), int *free)
+{
+	bNode *node = (bNode*)ptr->data;
+	Image *ima = (Image *)node->id;
+	EnumPropertyItem *item = NULL;
+	RenderLayer *rl;
+	
+	if (!ima || !(ima->rr)) return NULL;
+	
+	rl = ima->rr->layers.first;
+	item = renderresult_layers_add_enum(rl);
+	
+	*free = 1;
+	
 	return item;
 }
 
@@ -896,6 +930,10 @@ static void rna_NodeOutputFileSlotLayer_name_set(PointerRNA *ptr, const char *va
 }
 
 #else
+
+static EnumPropertyItem prop_image_layer_items[] = {
+{ 0, "PLACEHOLDER",          0, "Placeholder",          ""},
+{0, NULL, 0, NULL, NULL}};
 
 static EnumPropertyItem prop_scene_layer_items[] = {
 { 0, "PLACEHOLDER",          0, "Placeholder",          ""},
@@ -1816,6 +1854,13 @@ static void def_cmp_image(StructRNA *srna)
 		/* copied from the rna_image.c */
 	RNA_def_property_ui_text(prop, "Auto-Refresh", "Always refresh image on frame changes");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "layer", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "layer");
+	RNA_def_property_enum_items(prop, prop_image_layer_items);
+	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
+	RNA_def_property_ui_text(prop, "Layer", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_image_layer_update");
 }
 
 static void def_cmp_render_layers(StructRNA *srna)
@@ -1917,11 +1962,28 @@ static void def_cmp_output_file(StructRNA *srna)
 static void def_cmp_dilate_erode(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	static EnumPropertyItem type_items[] = {
+	    {CMP_NODE_DILATEERODE_STEP,     "STEP",       0, "Step",     ""},
+	    {CMP_NODE_DILATEERODE_DISTANCE, "DISTANCE",   0, "Distance", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -3049,7 +3111,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_range(prop, -0.0f, 360.0f);
+	RNA_def_property_range(prop, -720.0f, 720.0f);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of the bokeh");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
@@ -3078,7 +3140,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "lensshift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens.");
+	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens components");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 }
@@ -3595,7 +3657,7 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 	PropertyRNA *prop = NULL;
 	PropertySubType propsubtype = PROP_NONE;
 	
-	#define SUBTYPE(socktype, stypename, id, idname)	{ PROP_##id, #socktype "_" #id, 0, #idname, ""},
+	#define SUBTYPE(socktype, stypename, id, idname) { PROP_##id, #socktype "_" #id, 0, #idname, ""},
 	static EnumPropertyItem subtype_items[] = {
 		NODE_DEFINE_SUBTYPES
 		{0, NULL, 0, NULL, NULL}

@@ -196,7 +196,8 @@ void rna_Main_objects_remove(Main *bmain, ReportList *reports, struct Object *ob
 	}
 }
 
-struct Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name){
+Material *rna_Main_materials_new(Main *UNUSED(bmain), const char *name)
+{
 	ID *id = (ID *)BKE_material_add(name);
 	id_us_min(id);
 	return (Material *)id;
@@ -212,7 +213,8 @@ void rna_Main_materials_remove(Main *bmain, ReportList *reports, struct Material
 	/* XXX python now has invalid pointer? */
 }
 
-struct bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type){
+bNodeTree *rna_Main_nodetree_new(Main *UNUSED(bmain), const char *name, int type)
+{
 	bNodeTree *tree = ntreeAddTree(name, type, NODE_GROUP);
 
 	id_us_min(&tree->id);

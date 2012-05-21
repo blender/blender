@@ -483,12 +483,15 @@ void PyC_SetHomePath(const char *py_path_bundle)
 			   \nThis may make python import function fail\n");
 #endif
 
+
+#if 0 /* disable for now [#31506] - campbell */
 #ifdef _WIN32
 	/* cmake/MSVC debug build crashes without this, why only
 	 * in this case is unknown.. */
 	{
 		BLI_setenv("PYTHONPATH", py_path_bundle);
 	}
+#endif
 #endif
 
 	{

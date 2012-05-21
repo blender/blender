@@ -40,25 +40,25 @@
 #include "GHOST_ISystem.h"
 
 #ifdef WITH_HEADLESS
-#	include "GHOST_SystemNULL.h"
+#  include "GHOST_SystemNULL.h"
 #elif defined(WITH_GHOST_SDL)
-#	include "GHOST_SystemSDL.h"
+#  include "GHOST_SystemSDL.h"
 #elif defined(WIN32)
-#	include "GHOST_SystemWin32.h"
+#  include "GHOST_SystemWin32.h"
 #else
-#	ifdef __APPLE__
-#		ifdef GHOST_COCOA
-#			include "GHOST_SystemCocoa.h"
-#		else
-#			include "GHOST_SystemCarbon.h"
-#		endif
-#	else
-#		include "GHOST_SystemX11.h"
-#	endif
+#  ifdef __APPLE__
+#    ifdef GHOST_COCOA
+#      include "GHOST_SystemCocoa.h"
+#    else
+#      include "GHOST_SystemCarbon.h"
+#    endif
+#  else
+#    include "GHOST_SystemX11.h"
+#  endif
 #endif
 
 
-GHOST_ISystem* GHOST_ISystem::m_system = 0;
+GHOST_ISystem *GHOST_ISystem::m_system = 0;
 
 
 GHOST_TSuccess GHOST_ISystem::createSystem()
@@ -70,17 +70,17 @@ GHOST_TSuccess GHOST_ISystem::createSystem()
 #elif defined(WITH_GHOST_SDL)
 		m_system = new GHOST_SystemSDL();
 #elif defined(WIN32)
-		m_system = new GHOST_SystemWin32 ();
+		m_system = new GHOST_SystemWin32();
 #else
-#	ifdef __APPLE__
-#		ifdef GHOST_COCOA
-			m_system = new GHOST_SystemCocoa ();
-#		else
-			m_system = new GHOST_SystemCarbon ();
-#		endif
-#	else 
-		m_system = new GHOST_SystemX11 ();
-#	endif
+#  ifdef __APPLE__
+#    ifdef GHOST_COCOA
+		m_system = new GHOST_SystemCocoa();
+#    else
+		m_system = new GHOST_SystemCarbon();
+#    endif
+#  else
+		m_system = new GHOST_SystemX11();
+#  endif
 #endif 
 		success = m_system != 0 ? GHOST_kSuccess : GHOST_kFailure;
 	}
@@ -107,7 +107,7 @@ GHOST_TSuccess GHOST_ISystem::disposeSystem()
 }
 
 
-GHOST_ISystem* GHOST_ISystem::getSystem()
+GHOST_ISystem *GHOST_ISystem::getSystem()
 {
 	return m_system;
 }

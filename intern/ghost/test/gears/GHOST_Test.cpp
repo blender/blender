@@ -46,7 +46,7 @@
 
 		#include <GL/gl.h>
 	#else // WIN32
-		// __APPLE__ is defined
+          // __APPLE__ is defined
 		#include <AGL/gl.h>
 	#endif // WIN32
 #else // defined(WIN32) || defined(__APPLE__)
@@ -66,20 +66,20 @@
 
 static bool nVidiaWindows;  // very dirty but hey, it's for testing only
 
-static void gearsTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 time);
+static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 time);
 
-static class Application* fApp;
-static GLfloat view_rotx=20.0, view_roty=30.0, view_rotz=0.0;
+static class Application * fApp;
+static GLfloat view_rotx = 20.0, view_roty = 30.0, view_rotz = 0.0;
 static GLfloat fAngle = 0.0;
-static GHOST_ISystem* fSystem = 0;
+static GHOST_ISystem *fSystem = 0;
 
 
 void StereoProjection(float left, float right, float bottom, float top, float nearplane, float farplane,
-		float zero_plane, float dist,
-		float eye);
+                      float zero_plane, float dist,
+                      float eye);
 
 
-static void testTimerProc(GHOST_ITimerTask* /*task*/, GHOST_TUns64 time)
+static void testTimerProc(GHOST_ITimerTask * /*task*/, GHOST_TUns64 time)
 {
 	std::cout << "timer1, time=" << (int)time << "\n";
 }
@@ -93,35 +93,35 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 	GLfloat u, v, len;
 
 	r0 = inner_radius;
-	r1 = outer_radius - tooth_depth/2.0;
-	r2 = outer_radius + tooth_depth/2.0;
+	r1 = outer_radius - tooth_depth / 2.0;
+	r2 = outer_radius + tooth_depth / 2.0;
 
 	const double pi = 3.14159264;
-	da = 2.0*pi / teeth / 4.0;
+	da = 2.0 * pi / teeth / 4.0;
 
 	glShadeModel(GL_FLAT);
 	glNormal3f(0.0, 0.0, 1.0);
 
 	/* draw front face */
 	glBegin(GL_QUAD_STRIP);
-	for (i=0;i<=teeth;i++) {
-		angle = i * 2.0*pi / teeth;
-		glVertex3f(r0*cos(angle), r0*sin(angle), width*0.5);
-		glVertex3f(r1*cos(angle), r1*sin(angle), width*0.5);
-		glVertex3f(r0*cos(angle), r0*sin(angle), width*0.5);
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da), width*0.5);
+	for (i = 0; i <= teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+		glVertex3f(r1 * cos(angle), r1 * sin(angle), width * 0.5);
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da), width * 0.5);
 	}
 	glEnd();
 
 	/* draw front sides of teeth */
 	glBegin(GL_QUADS);
-	da = 2.0*pi / teeth / 4.0;
-	for (i=0;i<teeth;i++) {
-		angle = i * 2.0*pi / teeth;
-		glVertex3f(r1*cos(angle),      r1*sin(angle),	   width*0.5);
-		glVertex3f(r2*cos(angle+da),   r2*sin(angle+da),   width*0.5);
-		glVertex3f(r2*cos(angle+2*da), r2*sin(angle+2*da), width*0.5);
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da), width*0.5);
+	da = 2.0 * pi / teeth / 4.0;
+	for (i = 0; i < teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
+		glVertex3f(r1 * cos(angle),      r1 * sin(angle),      width * 0.5);
+		glVertex3f(r2 * cos(angle + da),   r2 * sin(angle + da),   width * 0.5);
+		glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da), width * 0.5);
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da), width * 0.5);
 	}
 	glEnd();
 
@@ -129,64 +129,64 @@ static void gearGL(GLfloat inner_radius, GLfloat outer_radius, GLfloat width, GL
 
 	/* draw back face */
 	glBegin(GL_QUAD_STRIP);
-	for (i=0;i<=teeth;i++) {
-		angle = i * 2.0*pi / teeth;
-		glVertex3f(r1*cos(angle), r1*sin(angle), -width*0.5);
-		glVertex3f(r0*cos(angle), r0*sin(angle), -width*0.5);
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da), -width*0.5);
-		glVertex3f(r0*cos(angle), r0*sin(angle), -width*0.5);
+	for (i = 0; i <= teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
+		glVertex3f(r1 * cos(angle), r1 * sin(angle), -width * 0.5);
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da), -width * 0.5);
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
 	}
 	glEnd();
 
 	/* draw back sides of teeth */
 	glBegin(GL_QUADS);
-	da = 2.0*pi / teeth / 4.0;
-	for (i=0;i<teeth;i++) {
-		angle = i * 2.0*pi / teeth;
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da), -width*0.5);
-		glVertex3f(r2*cos(angle+2*da), r2*sin(angle+2*da), -width*0.5);
-		glVertex3f(r2*cos(angle+da),   r2*sin(angle+da),	  -width*0.5);
-		glVertex3f(r1*cos(angle),      r1*sin(angle),	  -width*0.5);
+	da = 2.0 * pi / teeth / 4.0;
+	for (i = 0; i < teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da), -width * 0.5);
+		glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da), -width * 0.5);
+		glVertex3f(r2 * cos(angle + da),   r2 * sin(angle + da),      -width * 0.5);
+		glVertex3f(r1 * cos(angle),      r1 * sin(angle),     -width * 0.5);
 	}
 	glEnd();
 
 	/* draw outward faces of teeth */
 	glBegin(GL_QUAD_STRIP);
-	for (i=0;i<teeth;i++) {
-		angle = i * 2.0*pi / teeth;
-		glVertex3f(r1*cos(angle),      r1*sin(angle),	   width*0.5);
-		glVertex3f(r1*cos(angle),      r1*sin(angle),	  -width*0.5);
-		u = r2*cos(angle+da) - r1*cos(angle);
-		v = r2*sin(angle+da) - r1*sin(angle);
-		len = sqrt(u*u + v*v);
+	for (i = 0; i < teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
+		glVertex3f(r1 * cos(angle),      r1 * sin(angle),      width * 0.5);
+		glVertex3f(r1 * cos(angle),      r1 * sin(angle),     -width * 0.5);
+		u = r2 * cos(angle + da) - r1 *cos(angle);
+		v = r2 * sin(angle + da) - r1 *sin(angle);
+		len = sqrt(u * u + v * v);
 		u /= len;
 		v /= len;
 		glNormal3f(v, -u, 0.0);
-		glVertex3f(r2*cos(angle+da),   r2*sin(angle+da),	   width*0.5);
-		glVertex3f(r2*cos(angle+da),   r2*sin(angle+da),	  -width*0.5);
+		glVertex3f(r2 * cos(angle + da),   r2 * sin(angle + da),       width * 0.5);
+		glVertex3f(r2 * cos(angle + da),   r2 * sin(angle + da),      -width * 0.5);
 		glNormal3f(cos(angle), sin(angle), 0.0);
-		glVertex3f(r2*cos(angle+2*da), r2*sin(angle+2*da),  width*0.5);
-		glVertex3f(r2*cos(angle+2*da), r2*sin(angle+2*da), -width*0.5);
-		u = r1*cos(angle+3*da) - r2*cos(angle+2*da);
-		v = r1*sin(angle+3*da) - r2*sin(angle+2*da);
+		glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da),  width * 0.5);
+		glVertex3f(r2 * cos(angle + 2 * da), r2 * sin(angle + 2 * da), -width * 0.5);
+		u = r1 * cos(angle + 3 * da) - r2 *cos(angle + 2 * da);
+		v = r1 * sin(angle + 3 * da) - r2 *sin(angle + 2 * da);
 		glNormal3f(v, -u, 0.0);
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da),  width*0.5);
-		glVertex3f(r1*cos(angle+3*da), r1*sin(angle+3*da), -width*0.5);
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da),  width * 0.5);
+		glVertex3f(r1 * cos(angle + 3 * da), r1 * sin(angle + 3 * da), -width * 0.5);
 		glNormal3f(cos(angle), sin(angle), 0.0);
-		}
-	glVertex3f(r1*cos(0.0), r1*sin(0.0), width*0.5);
-	glVertex3f(r1*cos(0.0), r1*sin(0.0), -width*0.5);
+	}
+	glVertex3f(r1 * cos(0.0), r1 * sin(0.0), width * 0.5);
+	glVertex3f(r1 * cos(0.0), r1 * sin(0.0), -width * 0.5);
 	glEnd();
 
 	glShadeModel(GL_SMOOTH);
 
 	/* draw inside radius cylinder */
 	glBegin(GL_QUAD_STRIP);
-	for (i=0;i<=teeth;i++) {
-		angle = i * 2.0*pi / teeth;
+	for (i = 0; i <= teeth; i++) {
+		angle = i * 2.0 * pi / teeth;
 		glNormal3f(-cos(angle), -sin(angle), 0.0);
-		glVertex3f(r0*cos(angle), r0*sin(angle), -width*0.5);
-		glVertex3f(r0*cos(angle), r0*sin(angle), width*0.5);
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), -width * 0.5);
+		glVertex3f(r0 * cos(angle), r0 * sin(angle), width * 0.5);
 	}
 	glEnd();
 }
@@ -208,20 +208,20 @@ static void drawGearGL(int id)
 
 	switch (id)
 	{
-	case 1:
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ared);
-		gearGL(1.0f, 4.0f, 1.0f, 20, 0.7f);
-		break;
-	case 2:
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, agreen);
-		gearGL(0.5f, 2.0f, 2.0f, 10, 0.7f);
-		break;
-	case 3:
-		glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ablue);
-		gearGL(1.3f, 2.0f, 0.5f, 10, 0.7f);
-		break;
-	default:
-		break;
+		case 1:
+			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ared);
+			gearGL(1.0f, 4.0f, 1.0f, 20, 0.7f);
+			break;
+		case 2:
+			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, agreen);
+			gearGL(0.5f, 2.0f, 2.0f, 10, 0.7f);
+			break;
+		case 3:
+			glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, ablue);
+			gearGL(1.3f, 2.0f, 0.5f, 10, 0.7f);
+			break;
+		default:
+			break;
 	}
 	glEnable(GL_NORMALIZE);
 }
@@ -229,9 +229,9 @@ static void drawGearGL(int id)
 
 void RenderCamera()
 {
-    glRotatef(view_rotx, 1.0, 0.0, 0.0);
-    glRotatef(view_roty, 0.0, 1.0, 0.0);
-    glRotatef(view_rotz, 0.0, 0.0, 1.0);
+	glRotatef(view_rotx, 1.0, 0.0, 0.0);
+	glRotatef(view_roty, 0.0, 1.0, 0.0);
+	glRotatef(view_rotz, 0.0, 0.0, 1.0);
 }
 
 
@@ -258,7 +258,7 @@ void RenderScene()
 }
 
 
-static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
+static void View(GHOST_IWindow *window, bool stereo, int eye = 0)
 {
 	window->activateDrawingContext();
 	GHOST_Rect bnds;
@@ -270,18 +270,17 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 	window->getClientBounds(bnds);
 
 	// viewport
-	if(stereo)
+	if (stereo)
 	{
-		if(nVidiaWindows)
+		if (nVidiaWindows)
 		{ 
 			// handled by nVidia driver so act as normal (explicitly put here since
 			// it -is- stereo)
 			glViewport(0, 0, bnds.getWidth(), bnds.getHeight());
 		}
-		else
-		{  // generic cross platform above-below stereo
+		else { // generic cross platform above-below stereo
 			noOfScanlines = (bnds.getHeight() - verticalBlankingInterval) / 2;
-			switch(eye)
+			switch (eye)
 			{
 				case LEFT_EYE:
 					// upper half of window
@@ -294,8 +293,7 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 			}
 		}
 	}
-	else
-	{
+	else {
 		noOfScanlines = bnds.getHeight();
 		lowerScanline = 0;
 	}
@@ -310,11 +308,11 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 	nearplane = 5.0;
 	farplane = 60.0;
 
-	if(stereo)
+	if (stereo)
 	{
 		zeroPlane = 0.0;
 		distance = 14.5;
-		switch(eye)
+		switch (eye)
 		{
 			case LEFT_EYE:
 				StereoProjection(left, right, bottom, top, nearplane, farplane, zeroPlane, distance, -eyeSeparation / 2.0);
@@ -324,8 +322,7 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 				break;
 		}
 	}
-	else
-	{
+	else {
 //		left = -w;
 //		right = w;
 //		bottom = -h;
@@ -339,7 +336,7 @@ static void View(GHOST_IWindow* window, bool stereo, int eye = 0)
 
 	}
 
-	glClearColor(.2f,0.0f,0.0f,0.0f);
+	glClearColor(.2f, 0.0f, 0.0f, 0.0f);
 }
 
 
@@ -347,31 +344,31 @@ void StereoProjection(float left, float right, float bottom, float top, float ne
 		float zero_plane, float dist,
 		float eye)
 /* Perform the perspective projection for one eye's subfield.
-The projection is in the direction of the negative z axis.
+   The projection is in the direction of the negative z axis.
 
--6.0, 6.0, -4.8, 4.8,
-left, right, bottom, top = the coordinate range, in the plane of zero
-parallax setting, which will be displayed on the screen.  The
-ratio between (right-left) and (top-bottom) should equal the aspect
-ratio of the display.
+   -6.0, 6.0, -4.8, 4.8,
+   left, right, bottom, top = the coordinate range, in the plane of zero
+   parallax setting, which will be displayed on the screen.  The
+   ratio between (right-left) and (top-bottom) should equal the aspect
+   ratio of the display.
 
-6.0, -6.0,
-near, far = the z-coordinate values of the clipping planes.
+   6.0, -6.0,
+   near, far = the z-coordinate values of the clipping planes.
 
-0.0,
-zero_plane = the z-coordinate of the plane of zero parallax setting.
+   0.0,
+   zero_plane = the z-coordinate of the plane of zero parallax setting.
 
-14.5,
-dist = the distance from the center of projection to the plane
-of zero parallax.
+   14.5,
+   dist = the distance from the center of projection to the plane
+   of zero parallax.
 
--0.31
-eye = half the eye separation; positive for the right eye subfield,
-negative for the left eye subfield.
-*/
+   -0.31
+   eye = half the eye separation; positive for the right eye subfield,
+   negative for the left eye subfield.
+ */
 {
 	float xmid, ymid, clip_near, clip_far, topw, bottomw, leftw, rightw,
-	dx, dy, n_over_d;
+	      dx, dy, n_over_d;
 
 	dx = right - left;
 	dy = top - bottom;
@@ -387,7 +384,7 @@ negative for the left eye subfield.
 	topw = n_over_d * dy / 2.0;
 	bottomw = -topw;
 	rightw = n_over_d * (dx / 2.0 - eye);
-	leftw  = n_over_d *(-dx / 2.0 - eye);
+	leftw  = n_over_d * (-dx / 2.0 - eye);
 
 	/* Need to be in projection mode for this. */
 	glLoadIdentity();
@@ -400,15 +397,15 @@ negative for the left eye subfield.
 
 class Application : public GHOST_IEventConsumer {
 public:
-	Application(GHOST_ISystem* system);
+	Application(GHOST_ISystem *system);
 	~Application(void);
-	virtual	bool processEvent(GHOST_IEvent* event);
+	virtual bool processEvent(GHOST_IEvent *event);
 
-	GHOST_ISystem* m_system;
-	GHOST_IWindow* m_mainWindow;
-	GHOST_IWindow* m_secondaryWindow;
-	GHOST_IWindow* m_fullScreenWindow;
-	GHOST_ITimerTask* m_gearsTimer, *m_testTimer;
+	GHOST_ISystem *m_system;
+	GHOST_IWindow *m_mainWindow;
+	GHOST_IWindow *m_secondaryWindow;
+	GHOST_IWindow *m_fullScreenWindow;
+	GHOST_ITimerTask *m_gearsTimer, *m_testTimer;
 	GHOST_TStandardCursor m_cursor;
 	bool m_exitRequested;
 
@@ -416,34 +413,34 @@ public:
 };
 
 
-Application::Application(GHOST_ISystem* system)
+Application::Application(GHOST_ISystem *system)
 	: m_system(system), m_mainWindow(0), m_secondaryWindow(0), m_fullScreenWindow(0),
-	  m_gearsTimer(0), m_testTimer(0), m_cursor(GHOST_kStandardCursorFirstCursor),
-	  m_exitRequested(false), stereo(false)
+	m_gearsTimer(0), m_testTimer(0), m_cursor(GHOST_kStandardCursorFirstCursor),
+	m_exitRequested(false), stereo(false)
 {
 	fApp = this;
 
 	// Create the main window
-	STR_String title1 ("gears - main window");
+	STR_String title1("gears - main window");
 	m_mainWindow = system->createWindow(title1, 10, 64, 320, 200, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, false, false);
+	                                    GHOST_kDrawingContextTypeOpenGL, false, false);
 
-    if (!m_mainWindow) {
+	if (!m_mainWindow) {
 		std::cout << "could not create main window\n";
 		exit(-1);
-    }
+	}
 
 	// Create a secondary window
-	STR_String title2 ("gears - secondary window");
+	STR_String title2("gears - secondary window");
 	m_secondaryWindow = system->createWindow(title2, 340, 64, 320, 200, GHOST_kWindowStateNormal,
-		GHOST_kDrawingContextTypeOpenGL, false, false);
+	                                         GHOST_kDrawingContextTypeOpenGL, false, false);
 	if (!m_secondaryWindow) {
 		cout << "could not create secondary window\n";
 		exit(-1);
 	}
 
 	// Install a timer to have the gears running
-	m_gearsTimer = system->installTimer(0 /*delay*/, 20/*interval*/, gearsTimerProc, m_mainWindow);
+	m_gearsTimer = system->installTimer(0 /*delay*/, 20 /*interval*/, gearsTimerProc, m_mainWindow);
 }
 
 
@@ -459,183 +456,183 @@ Application::~Application(void)
 }
 
 
-bool Application::processEvent(GHOST_IEvent* event)
+bool Application::processEvent(GHOST_IEvent *event)
 {
-	GHOST_IWindow* window = event->getWindow();
+	GHOST_IWindow *window = event->getWindow();
 	bool handled = true;
 
 	switch (event->getType()) {
 /*	case GHOST_kEventUnknown:
-		break;
-	case GHOST_kEventCursorButton:
-		std::cout << "GHOST_kEventCursorButton"; break;
-	case GHOST_kEventCursorMove:
-		std::cout << "GHOST_kEventCursorMove"; break;
-*/
-	case GHOST_kEventWheel:
+        break;
+    case GHOST_kEventCursorButton:
+        std::cout << "GHOST_kEventCursorButton"; break;
+    case GHOST_kEventCursorMove:
+        std::cout << "GHOST_kEventCursorMove"; break;
+ */
+		case GHOST_kEventWheel:
 		{
-		GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*) event->getData();
-		if (wheelData->z > 0)
-		{
-			view_rotz += 5.f;
-		}
-		else
-		{
-			view_rotz -= 5.f;
-		}
-		}
-		break;
-
-	case GHOST_kEventKeyUp:
-		break;
-
-	case GHOST_kEventKeyDown:
-		{
-		GHOST_TEventKeyData* keyData = (GHOST_TEventKeyData*) event->getData();
-		switch (keyData->key) {
-		case GHOST_kKeyC:
+			GHOST_TEventWheelData *wheelData = (GHOST_TEventWheelData *) event->getData();
+			if (wheelData->z > 0)
 			{
-			int cursor = m_cursor;
-			cursor++;
-			if (cursor >= GHOST_kStandardCursorNumCursors) {
-				cursor = GHOST_kStandardCursorFirstCursor;
-			}
-			m_cursor = (GHOST_TStandardCursor)cursor;
-			window->setCursorShape(m_cursor);
-			}
-			break;
-
-		case GHOST_kKeyE:
-			{
-			int x = 200, y= 200;
-			m_system->setCursorPosition(x,y);
-			break;
-			}
-
-		case GHOST_kKeyF:
-			if (!m_system->getFullScreen()) {
-				// Begin fullscreen mode
-				GHOST_DisplaySetting setting;
-				
-				setting.bpp = 16;
-				setting.frequency = 50;
-				setting.xPixels = 640;
-				setting.yPixels = 480;
-				m_system->beginFullScreen(setting, &m_fullScreenWindow, false /* stereo flag */);
+				view_rotz += 5.f;
 			}
 			else {
-				m_system->endFullScreen();
-				m_fullScreenWindow = 0;
+				view_rotz -= 5.f;
 			}
+		}
+		break;
+
+		case GHOST_kEventKeyUp:
 			break;
 
-		case GHOST_kKeyH:
-			window->setCursorVisibility(!window->getCursorVisibility());
-			break;
+		case GHOST_kEventKeyDown:
+		{
+			GHOST_TEventKeyData *keyData = (GHOST_TEventKeyData *) event->getData();
+			switch (keyData->key) {
+				case GHOST_kKeyC:
+				{
+					int cursor = m_cursor;
+					cursor++;
+					if (cursor >= GHOST_kStandardCursorNumCursors) {
+						cursor = GHOST_kStandardCursorFirstCursor;
+					}
+					m_cursor = (GHOST_TStandardCursor)cursor;
+					window->setCursorShape(m_cursor);
+				}
+				break;
 
-		case GHOST_kKeyM:
-			{
-				bool down = false;
-				m_system->getModifierKeyState(GHOST_kModifierKeyLeftShift,down);
-				if (down) {
-					std::cout << "left shift down\n";
+				case GHOST_kKeyE:
+				{
+					int x = 200, y = 200;
+					m_system->setCursorPosition(x, y);
+					break;
 				}
-				m_system->getModifierKeyState(GHOST_kModifierKeyRightShift,down);
-				if (down) {
-					std::cout << "right shift down\n";																												}
-				m_system->getModifierKeyState(GHOST_kModifierKeyLeftAlt,down);
-				if (down) { 
-					std::cout << "left Alt down\n";
+
+				case GHOST_kKeyF:
+					if (!m_system->getFullScreen()) {
+						// Begin fullscreen mode
+						GHOST_DisplaySetting setting;
+
+						setting.bpp = 16;
+						setting.frequency = 50;
+						setting.xPixels = 640;
+						setting.yPixels = 480;
+						m_system->beginFullScreen(setting, &m_fullScreenWindow, false /* stereo flag */);
+					}
+					else {
+						m_system->endFullScreen();
+						m_fullScreenWindow = 0;
+					}
+					break;
+
+				case GHOST_kKeyH:
+					window->setCursorVisibility(!window->getCursorVisibility());
+					break;
+
+				case GHOST_kKeyM:
+				{
+					bool down = false;
+					m_system->getModifierKeyState(GHOST_kModifierKeyLeftShift, down);
+					if (down) {
+						std::cout << "left shift down\n";
+					}
+					m_system->getModifierKeyState(GHOST_kModifierKeyRightShift, down);
+					if (down) {
+						std::cout << "right shift down\n";
+					}
+					m_system->getModifierKeyState(GHOST_kModifierKeyLeftAlt, down);
+					if (down) {
+						std::cout << "left Alt down\n";
+					}
+					m_system->getModifierKeyState(GHOST_kModifierKeyRightAlt, down);
+					if (down) {
+						std::cout << "right Alt down\n";
+					}
+					m_system->getModifierKeyState(GHOST_kModifierKeyLeftControl, down);
+					if (down) {
+						std::cout << "left control down\n";
+					}
+					m_system->getModifierKeyState(GHOST_kModifierKeyRightControl, down);
+					if (down) {
+						std::cout << "right control down\n";
+					}
 				}
-				m_system->getModifierKeyState(GHOST_kModifierKeyRightAlt,down);
-				if (down) {
-					std::cout << "right Alt down\n";
-				}
-				m_system->getModifierKeyState(GHOST_kModifierKeyLeftControl,down);
-				if (down) {
-					std::cout << "left control down\n";
-				}
-				m_system->getModifierKeyState(GHOST_kModifierKeyRightControl,down);
-				if (down) {
-					std::cout << "right control down\n";
-				}
+				break;
+
+				case GHOST_kKeyQ:
+					if (m_system->getFullScreen())
+					{
+						m_system->endFullScreen();
+						m_fullScreenWindow = 0;
+					}
+					m_exitRequested = true;
+					break;
+
+				case GHOST_kKeyS: // toggle mono and stereo
+					if (stereo)
+						stereo = false;
+					else
+						stereo = true;
+					break;
+
+				case GHOST_kKeyT:
+					if (!m_testTimer) {
+						m_testTimer = m_system->installTimer(0, 1000, testTimerProc);
+					}
+
+					else {
+						m_system->removeTimer(m_testTimer);
+						m_testTimer = 0;
+					}
+
+					break;
+
+				case GHOST_kKeyW:
+					if (m_mainWindow)
+					{
+						STR_String title;
+						m_mainWindow->getTitle(title);
+						title += "-";
+						m_mainWindow->setTitle(title);
+
+					}
+					break;
+
+				default:
+					break;
 			}
-			break;
+		}
+		break;
 
-		case GHOST_kKeyQ:
-			if (m_system->getFullScreen())
-			{
-				m_system->endFullScreen();
-				m_fullScreenWindow = 0;
+		case GHOST_kEventWindowClose:
+		{
+			GHOST_IWindow *window2 = event->getWindow();
+			if (window2 == m_mainWindow) {
+				m_exitRequested = true;
 			}
-			m_exitRequested = true;
-			break;
-
-		case GHOST_kKeyS:  // toggle mono and stereo
-			if(stereo)
-				stereo = false;
-			else
-				stereo = true;
-			break;
-
-		case GHOST_kKeyT:
-			if (!m_testTimer) {
-				m_testTimer = m_system->installTimer(0, 1000, testTimerProc);
-			}
-
 			else {
-				m_system->removeTimer(m_testTimer);
-				m_testTimer = 0;
+				m_system->disposeWindow(window2);
 			}
-
-			break;
-
-		case GHOST_kKeyW:
-			if (m_mainWindow)
-			{
-				STR_String title;
-				m_mainWindow->getTitle(title);
-				title += "-";
-				m_mainWindow->setTitle(title);
-
-			}
-			break;
-
-		default:
-			break;
-		}
 		}
 		break;
 
-	case GHOST_kEventWindowClose:
+		case GHOST_kEventWindowActivate:
+			handled = false;
+			break;
+
+		case GHOST_kEventWindowDeactivate:
+			handled = false;
+			break;
+
+		case GHOST_kEventWindowUpdate:
 		{
-		GHOST_IWindow* window2 = event->getWindow();
-		if (window2 == m_mainWindow) {
-			m_exitRequested = true;
-		}
-		else {
-			m_system->disposeWindow(window2);
-		}
-		}
-		break;
-
-	case GHOST_kEventWindowActivate:
-		handled = false;
-		break;
-
-	case GHOST_kEventWindowDeactivate:
-		handled = false;
-		break;
-
-	case GHOST_kEventWindowUpdate:
-		{
-			GHOST_IWindow* window2 = event->getWindow();
-			if(!m_system->validWindow(window2))
+			GHOST_IWindow *window2 = event->getWindow();
+			if (!m_system->validWindow(window2))
 				break;
 
 			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-			if(stereo)
+			if (stereo)
 			{
 				View(window2, stereo, LEFT_EYE);
 				glPushMatrix();
@@ -649,8 +646,7 @@ bool Application::processEvent(GHOST_IEvent* event)
 				RenderScene();
 				glPopMatrix();
 			}
-			else
-			{
+			else {
 				View(window2, stereo);
 				glPushMatrix();
 				RenderCamera();
@@ -661,15 +657,15 @@ bool Application::processEvent(GHOST_IEvent* event)
 		}
 		break;
 		
-	default:
-		handled = false;
-		break;
+		default:
+			handled = false;
+			break;
 	}
 	return handled;
 }
 
 
-int main(int /*argc*/, char** /*argv*/)
+int main(int /*argc*/, char ** /*argv*/)
 {
 	nVidiaWindows = false;
 //	nVidiaWindows = true;
@@ -678,7 +674,7 @@ int main(int /*argc*/, char** /*argv*/)
 	/* Set a couple of settings in the registry for the nVidia detonator driver.
 	 * So this is very specific...
 	 */
-	if(nVidiaWindows)
+	if (nVidiaWindows)
 	{
 		LONG lresult;
 		HKEY hkey = 0;
@@ -691,19 +687,19 @@ int main(int /*argc*/, char** /*argv*/)
 		lresult = regkey.Open(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
 		                      KEY_ALL_ACCESS);
 
-		if(lresult == ERROR_SUCCESS)
+		if (lresult == ERROR_SUCCESS)
 			printf("Succesfully opened key\n");
 #if 0
 		lresult = regkey.QueryValue(&keyValue, "StereoEnable");
-		if(lresult == ERROR_SUCCESS)
+		if (lresult == ERROR_SUCCESS)
 			printf("Succesfully queried key\n");
 #endif
 		lresult = regkey.SetValue(HKEY_LOCAL_MACHINE, "SOFTWARE\\NVIDIA Corporation\\Global\\Stereo3D\\StereoEnable",
-				"1");
-		if(lresult == ERROR_SUCCESS)
+		                          "1");
+		if (lresult == ERROR_SUCCESS)
 			printf("Succesfully set value for key\n");
 		regkey.Close();
-		if(lresult == ERROR_SUCCESS)
+		if (lresult == ERROR_SUCCESS)
 			printf("Succesfully closed key\n");
 //		regkey.Write("2");
 	}
@@ -715,14 +711,14 @@ int main(int /*argc*/, char** /*argv*/)
 
 	if (fSystem) {
 		// Create an application object
-		Application app (fSystem);
+		Application app(fSystem);
 
 		// Add the application as event consumer
 		fSystem->addEventConsumer(&app);
                 
 		// Enter main loop
 		while (!app.m_exitRequested) {
-            //printf("main: loop\n");
+			//printf("main: loop\n");
 			fSystem->processEvents(true);
 			fSystem->dispatchEvents();
 		}
@@ -735,11 +731,11 @@ int main(int /*argc*/, char** /*argv*/)
 }
 
 
-static void gearsTimerProc(GHOST_ITimerTask* task, GHOST_TUns64 /*time*/)
+static void gearsTimerProc(GHOST_ITimerTask *task, GHOST_TUns64 /*time*/)
 {
-    fAngle += 2.0;
-    view_roty += 1.0;
-	GHOST_IWindow* window = (GHOST_IWindow*)task->getUserData();
+	fAngle += 2.0;
+	view_roty += 1.0;
+	GHOST_IWindow *window = (GHOST_IWindow *)task->getUserData();
 	if (fApp->m_fullScreenWindow) {
 		// Running full screen
 		fApp->m_fullScreenWindow->invalidate();

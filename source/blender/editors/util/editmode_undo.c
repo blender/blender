@@ -209,19 +209,19 @@ static void undo_clean_stack(bContext *C)
 	uel = undobase.first;
 	while (uel) {
 		void *editdata = uel->getdata(C);
-		int isvalid = 0;
+		int is_valid = FALSE;
 		next = uel->next;
 		
 		/* for when objects are converted, renamed, or global undo changes pointers... */
 		if (uel->type == obedit->type) {
 			if (strcmp(uel->id.name, obedit->id.name) == 0) {
 				if (uel->validate_undo == NULL)
-					isvalid = 1;
+					is_valid = TRUE;
 				else if (uel->validate_undo(uel->undodata, editdata))
-					isvalid = 1;
+					is_valid = TRUE;
 			}
 		}
-		if (isvalid) 
+		if (is_valid)
 			uel->ob = obedit;
 		else {
 			if (uel == curundo)

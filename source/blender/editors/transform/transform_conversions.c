@@ -1393,10 +1393,10 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 				if (bezt->hide==0) {
 					TransDataCurveHandleFlags *hdata = NULL;
 
-					if (		propmode ||
-							((bezt->f2 & SELECT) && hide_handles) ||
-							((bezt->f1 & SELECT) && hide_handles == 0)
-					  ) {
+					if (propmode ||
+					    ((bezt->f2 & SELECT) && hide_handles) ||
+					    ((bezt->f1 & SELECT) && hide_handles == 0))
+					{
 						copy_v3_v3(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:0]);
@@ -1455,10 +1455,10 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 						count++;
 						tail++;
 					}
-					if (		propmode ||
-							((bezt->f2 & SELECT) && hide_handles) ||
-							((bezt->f3 & SELECT) && hide_handles == 0)
-					  ) {
+					if (propmode ||
+					    ((bezt->f2 & SELECT) && hide_handles) ||
+					    ((bezt->f3 & SELECT) && hide_handles == 0))
+					{
 						copy_v3_v3(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						copy_v3_v3(td->center, bezt->vec[(hide_handles || bezt->f2 & SELECT) ? 1:2]);
@@ -3757,42 +3757,42 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 		/* *** Extend Transform *** */
 
-		Scene * scene= t->scene;
+		Scene *scene = t->scene;
 		int cfra= CFRA;
 		int left= seq_tx_get_final_left(seq, 1);
 		int right= seq_tx_get_final_right(seq, 1);
 
 		if (seq->depth == 0 && ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK))) {
-			*recursive= 0;
-			*count= 0;
-			*flag= 0;
+			*recursive = FALSE;
+			*count = 0;
+			*flag = 0;
 		}
-		else if (seq->type ==SEQ_META) {
+		else if (seq->type == SEQ_META) {
 
 			/* for meta's we only ever need to extend their children, no matter what depth
 			 * just check the meta's are in the bounds */
-			if (t->frame_side=='R' && right <= cfra)		*recursive= 0;
-			else if (t->frame_side=='L' && left >= cfra)	*recursive= 0;
-			else											*recursive= 1;
+			if      (t->frame_side=='R' && right <= cfra)  *recursive = FALSE;
+			else if (t->frame_side=='L' && left  >= cfra)  *recursive = FALSE;
+			else                                           *recursive = TRUE;
 
 			*count= 1;
 			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 		}
 		else {
 
-			*recursive= 0;	/* not a meta, so no thinking here */
-			*count= 1;		/* unless its set to 0, extend will never set 2 handles at once */
-			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*recursive = FALSE;  /* not a meta, so no thinking here */
+			*count = 1;          /* unless its set to 0, extend will never set 2 handles at once */
+			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 
 			if (t->frame_side=='R') {
-				if (right <= cfra)		*count= *flag= 0;	/* ignore */
-				else if (left > cfra)	;	/* keep the selection */
-				else					*flag |= SEQ_RIGHTSEL;
+				if      (right <= cfra) *count = *flag= 0;  /* ignore */
+				else if (left   > cfra) ;                  /* keep the selection */
+				else                    *flag |= SEQ_RIGHTSEL;
 			}
 			else {
-				if (left >= cfra)		*count= *flag= 0;	/* ignore */
-				else if (right < cfra)	;	/* keep the selection */
-				else					*flag |= SEQ_LEFTSEL;
+				if      (left >= cfra)  *count = *flag= 0;  /* ignore */
+				else if (right < cfra)  ;                  /* keep the selection */
+				else                    *flag |= SEQ_LEFTSEL;
 			}
 		}
 	}
@@ -3808,9 +3808,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 			/* Non nested strips (resect selection and handles) */
 			if ((seq->flag & SELECT) == 0 || (seq->flag & SEQ_LOCK)) {
-				*recursive= 0;
-				*count= 0;
-				*flag= 0;
+				*recursive = FALSE;
+				*count = 0;
+				*flag = 0;
 			}
 			else {
 				if ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == (SEQ_LEFTSEL|SEQ_RIGHTSEL)) {
@@ -3826,10 +3826,10 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
 					/* if any handles are selected, don't recurse */
-					*recursive = 1;
+					*recursive = TRUE;
 				}
 				else {
-					*recursive = 0;
+					*recursive = FALSE;
 				}
 			}
 		}
@@ -3837,23 +3837,23 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			/* Nested, different rules apply */
 
 #ifdef SEQ_TX_NESTED_METAS
-			*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
-			*count= 1; /* ignore the selection for nested */
-			*recursive = (seq->type == SEQ_META	);
+			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
+			*count = 1; /* ignore the selection for nested */
+			*recursive = (seq->type == SEQ_META);
 #else
 			if (seq->type == SEQ_META) {
 				/* Meta's can only directly be moved between channels since they
 				 * don't have their start and length set directly (children affect that)
-				 * since this Meta is nested we don't need any of its data infact.
+				 * since this Meta is nested we don't need any of its data in fact.
 				 * calc_sequence() will update its settings when run on the toplevel meta */
 				*flag= 0;
 				*count= 0;
-				*recursive = 1;
+				*recursive = TRUE;
 			}
 			else {
 				*flag= (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 				*count= 1; /* ignore the selection for nested */
-				*recursive = 0;
+				*recursive = FALSE;
 			}
 #endif
 		}
@@ -4131,9 +4131,9 @@ static void freeSeqData(TransInfo *t)
 			for (seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
 				if (seq->type & SEQ_EFFECT) {
-					if		(seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
-					else if	(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
-					else if	(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
+					if      (seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
+					else if (seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
+					else if (seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
 				}
 			}
 
@@ -4438,7 +4438,7 @@ static void set_trans_object_base_flags(TransInfo *t)
 
 			if (parsel) {
 				/* rotation around local centers are allowed to propagate */
-				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL) {
+				if ((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) && t->around == V3D_LOCAL) {
 					base->flag |= BA_TRANSFORM_CHILD;
 				}
 				else {
@@ -4487,7 +4487,7 @@ static int count_proportional_objects(TransInfo *t)
 	Base *base;
 
 	/* rotations around local centers are allowed to propagate, so we take all objects */
-	if (!((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL)  && t->around == V3D_LOCAL)) {
+	if (!((t->mode == TFM_ROTATION || t->mode == TFM_TRACKBALL) && t->around == V3D_LOCAL)) {
 		/* mark all parents */
 		for (base= scene->base.first; base; base= base->next) {
 			if (TESTBASELIB_BGMODE(v3d, scene, base)) {
@@ -4599,45 +4599,45 @@ void autokeyframe_ob_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *ob,
 			}
 		}
 		else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-			short doLoc=0, doRot=0, doScale=0;
+			short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
 			
 			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 			if (tmode == TFM_TRANSLATION) {
-				doLoc = 1;
+				do_loc = TRUE;
 			}
 			else if (tmode == TFM_ROTATION) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						doLoc = 1;
+						do_loc = TRUE;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					doLoc = 1;
+					do_loc = TRUE;
 				
 				if ((v3d->flag & V3D_ALIGN)==0)
-					doRot = 1;
+					do_rot = TRUE;
 			}
 			else if (tmode == TFM_RESIZE) {
 				if (v3d->around == V3D_ACTIVE) {
 					if (ob != OBACT)
-						doLoc = 1;
+						do_loc = TRUE;
 				}
 				else if (v3d->around == V3D_CURSOR)
-					doLoc = 1;
+					do_loc = TRUE;
 				
 				if ((v3d->flag & V3D_ALIGN)==0)
-					doScale = 1;
+					do_scale = TRUE;
 			}
 			
 			/* insert keyframes for the affected sets of channels using the builtin KeyingSets found */
-			if (doLoc) {
+			if (do_loc) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
-			if (doRot) {
+			if (do_rot) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
-			if (doScale) {
+			if (do_scale) {
 				KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_SCALING_ID);
 				ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 			}
@@ -4720,39 +4720,39 @@ void autokeyframe_pose_cb_func(bContext *C, Scene *scene, View3D *v3d, Object *o
 				}
 				/* only insert keyframe if needed? */
 				else if (IS_AUTOKEY_FLAG(scene, INSERTNEEDED)) {
-					short doLoc=0, doRot=0, doScale=0;
+					short do_loc = FALSE, do_rot = FALSE, do_scale = FALSE;
 					
 					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
 					if (tmode == TFM_TRANSLATION) {
 						if (targetless_ik)
-							doRot= 1;
+							do_rot = TRUE;
 						else
-							doLoc = 1;
+							do_loc = TRUE;
 					}
 					else if (tmode == TFM_ROTATION) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							doLoc = 1;
+							do_loc = TRUE;
 							
 						if ((v3d->flag & V3D_ALIGN)==0)
-							doRot = 1;
+							do_rot = TRUE;
 					}
 					else if (tmode == TFM_RESIZE) {
 						if (ELEM(v3d->around, V3D_CURSOR, V3D_ACTIVE))
-							doLoc = 1;
+							do_loc = TRUE;
 							
 						if ((v3d->flag & V3D_ALIGN)==0)
-							doScale = 1;
+							do_scale = TRUE;
 					}
 					
-					if (doLoc) {
+					if (do_loc) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_LOCATION_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
-					if (doRot) {
+					if (do_rot) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_ROTATION_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}
-					if (doScale) {
+					if (do_scale) {
 						KeyingSet *ks= ANIM_builtin_keyingset_get_named(NULL, ANIM_KS_SCALING_ID);
 						ANIM_apply_keyingset(C, &dsources, NULL, ks, MODIFYKEY_MODE_INSERT, cfra);
 					}

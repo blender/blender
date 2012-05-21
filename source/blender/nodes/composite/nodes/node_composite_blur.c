@@ -699,7 +699,7 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 					bokeh_single_image(node, new, gammabuf, in[1]->vec[0]);
 				else if (1)
 					blur_single_image(node, new, gammabuf, in[1]->vec[0]);
-				else	/* bloom experimental... */
+				else  /* bloom experimental... */
 					bloom_with_reference(new, gammabuf, NULL, in[1]->vec[0], nbd);
 				
 				if (nbd->gamma) {

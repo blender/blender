@@ -74,10 +74,13 @@ void	fsmenu_write_file		(struct FSMenu* fsmenu, const char *filename);
 void	fsmenu_read_bookmarks	(struct FSMenu* fsmenu, const char *filename);
 
 	/** adds system specific directories */
-void	fsmenu_read_system	(struct FSMenu* fsmenu);
+void	fsmenu_read_system	(struct FSMenu* fsmenu, int read_bookmarks);
 
 	/** Free's all the memory associated with the fsmenu */
 void	fsmenu_free				(struct FSMenu* fsmenu);
+
+	/** Refresh system directory menu */
+void	fsmenu_refresh_system_category		(struct FSMenu* fsmenu);
 
 #endif
 

@@ -45,12 +45,12 @@
 
 
 GHOST_System::GHOST_System()
-    : m_displayManager(0),
-      m_timerManager(0),
-      m_windowManager(0),
-      m_eventManager(0)
+	: m_displayManager(0),
+	m_timerManager(0),
+	m_windowManager(0),
+	m_eventManager(0)
 #ifdef WITH_INPUT_NDOF
-      , m_ndofManager(0)
+	, m_ndofManager(0)
 #endif
 {
 }
@@ -73,13 +73,13 @@ GHOST_TUns64 GHOST_System::getMilliSeconds() const
 }
 
 
-GHOST_ITimerTask* GHOST_System::installTimer(GHOST_TUns64 delay,
+GHOST_ITimerTask *GHOST_System::installTimer(GHOST_TUns64 delay,
                                              GHOST_TUns64 interval,
                                              GHOST_TimerProcPtr timerProc,
                                              GHOST_TUserDataPtr userData)
 {
 	GHOST_TUns64 millis = getMilliSeconds();
-	GHOST_TimerTask* timer = new GHOST_TimerTask(millis+delay, interval, timerProc, userData);
+	GHOST_TimerTask *timer = new GHOST_TimerTask(millis + delay, interval, timerProc, userData);
 	if (timer) {
 		if (m_timerManager->addTimer(timer) == GHOST_kSuccess) {
 			// Check to see whether we need to fire the timer right away
@@ -94,17 +94,17 @@ GHOST_ITimerTask* GHOST_System::installTimer(GHOST_TUns64 delay,
 }
 
 
-GHOST_TSuccess GHOST_System::removeTimer(GHOST_ITimerTask* timerTask)
+GHOST_TSuccess GHOST_System::removeTimer(GHOST_ITimerTask *timerTask)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	if (timerTask) {
-		success = m_timerManager->removeTimer((GHOST_TimerTask*)timerTask);
+		success = m_timerManager->removeTimer((GHOST_TimerTask *)timerTask);
 	}
 	return success;
 }
 
 
-GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow* window)
+GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow *window)
 {
 	GHOST_TSuccess success;
 
@@ -132,14 +132,14 @@ GHOST_TSuccess GHOST_System::disposeWindow(GHOST_IWindow* window)
 }
 
 
-bool GHOST_System::validWindow(GHOST_IWindow* window)
+bool GHOST_System::validWindow(GHOST_IWindow *window)
 {
 	return m_windowManager->getWindowFound(window);
 }
 
 
-GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-											 const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
+GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
+                                             const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager")
@@ -151,7 +151,7 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
 			success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, setting);
 			if (success == GHOST_kSuccess) {
 				//GHOST_PRINT("GHOST_System::beginFullScreen(): creating full-screen window\n");
-				success = createFullScreenWindow((GHOST_Window**)window, stereoVisual, numOfAASamples);
+				success = createFullScreenWindow((GHOST_Window **)window, stereoVisual, numOfAASamples);
 				if (success == GHOST_kSuccess) {
 					m_windowManager->beginFullScreen(*window, stereoVisual);
 				}
@@ -168,11 +168,11 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
 }
 
 
-GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window)
+GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
 	GHOST_ASSERT(m_windowManager, "GHOST_System::updateFullScreen(): invalid window manager");
-	if(m_displayManager) {
+	if (m_displayManager) {
 		if (m_windowManager->getFullScreen()) {
 			success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, setting);
 		}
@@ -233,7 +233,7 @@ bool GHOST_System::dispatchEvents()
 }
 
 
-GHOST_TSuccess GHOST_System::addEventConsumer(GHOST_IEventConsumer* consumer)
+GHOST_TSuccess GHOST_System::addEventConsumer(GHOST_IEventConsumer *consumer)
 {
 	GHOST_TSuccess success;
 	if (m_eventManager) {
@@ -245,7 +245,7 @@ GHOST_TSuccess GHOST_System::addEventConsumer(GHOST_IEventConsumer* consumer)
 	return success;
 }
 
-GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer* consumer)
+GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer *consumer)
 {
 	GHOST_TSuccess success;
 	if (m_eventManager) {
@@ -257,7 +257,7 @@ GHOST_TSuccess GHOST_System::removeEventConsumer(GHOST_IEventConsumer* consumer)
 	return success;
 }
 
-GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
+GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent *event)
 {
 	GHOST_TSuccess success;
 	if (m_eventManager) {
@@ -296,9 +296,9 @@ GHOST_TSuccess GHOST_System::getButtonState(GHOST_TButtonMask mask, bool& isDown
 
 GHOST_TSuccess GHOST_System::init()
 {
-	m_timerManager = new GHOST_TimerManager ();
-	m_windowManager = new GHOST_WindowManager ();
-	m_eventManager = new GHOST_EventManager ();
+	m_timerManager = new GHOST_TimerManager();
+	m_windowManager = new GHOST_WindowManager();
+	m_eventManager = new GHOST_EventManager();
 	
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
@@ -309,7 +309,8 @@ GHOST_TSuccess GHOST_System::init()
 
 	if (m_timerManager && m_windowManager && m_eventManager) {
 		return GHOST_kSuccess;
-	} else {
+	}
+	else {
 		return GHOST_kFailure;
 	}
 }
@@ -346,7 +347,7 @@ GHOST_TSuccess GHOST_System::exit()
 }
 
 
-GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
+GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
 	GHOST_TSuccess success;
 	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager")
@@ -355,20 +356,20 @@ GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window** window, const
 	success = m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, settings);
 	if (success) {
 		//GHOST_PRINT("GHOST_System::createFullScreenWindow(): creating full-screen window\n");
-		*window = (GHOST_Window*)createWindow(
-					STR_String (""),
-					0, 0, settings.xPixels, settings.yPixels,
-					GHOST_kWindowStateFullScreen,
-					GHOST_kDrawingContextTypeOpenGL,
-					stereoVisual,
-					numOfAASamples);
+		*window = (GHOST_Window *)createWindow(
+		    STR_String(""),
+		    0, 0, settings.xPixels, settings.yPixels,
+		    GHOST_kWindowStateFullScreen,
+		    GHOST_kDrawingContextTypeOpenGL,
+		    stereoVisual,
+		    numOfAASamples);
 		success = *window == 0 ? GHOST_kFailure : GHOST_kSuccess;
 	}
 	return success;
 }
 
 
-int GHOST_System::confirmQuit(GHOST_IWindow * window) const
+int GHOST_System::confirmQuit(GHOST_IWindow *window) const
 {
 	return 1;
 }

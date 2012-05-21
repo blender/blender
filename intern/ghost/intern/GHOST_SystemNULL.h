@@ -66,19 +66,19 @@ public:
 		return GHOST_kFailure;
 	}
 
-	GHOST_IWindow* createWindow(
-	    const STR_String& title,
-	    GHOST_TInt32 left,
-	    GHOST_TInt32 top,
-	    GHOST_TUns32 width,
-	    GHOST_TUns32 height,
-	    GHOST_TWindowState state,
-	    GHOST_TDrawingContextType type,
-	    bool stereoVisual,
-	    const GHOST_TUns16 numOfAASamples,
-	    const GHOST_TEmbedderWindowID parentWindow
-	    ) {
-		return new GHOST_WindowNULL (this, title, left, top, width, height, state, parentWindow, type, stereoVisual, 1);
+	GHOST_IWindow *createWindow(
+			const STR_String& title,
+			GHOST_TInt32 left,
+			GHOST_TInt32 top,
+			GHOST_TUns32 width,
+			GHOST_TUns32 height,
+			GHOST_TWindowState state,
+			GHOST_TDrawingContextType type,
+			bool stereoVisual,
+			const GHOST_TUns16 numOfAASamples,
+			const GHOST_TEmbedderWindowID parentWindow)
+	{
+		return new GHOST_WindowNULL(this, title, left, top, width, height, state, parentWindow, type, stereoVisual, 1);
 	}
 };
 

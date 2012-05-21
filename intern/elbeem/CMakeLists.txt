@@ -86,8 +86,11 @@ set(SRC
 	intern/solver_interface.h
 	intern/solver_relax.h
 	intern/utilities.h
-    intern/globals.h
+	intern/globals.h
 )
+
+# elbeem has some harmless UNUSED warnings
+remove_strict_flags()
 
 add_definitions(
 	-DNOGUI

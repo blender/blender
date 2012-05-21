@@ -636,13 +636,12 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			else {
 				if (index) {
 					orig = *index++;
-					if (orig == ORIGINDEX_NONE)     { if (nors) nors += 3; continue; }
-					if (drawParamsMapped) draw_option = drawParamsMapped(userData, orig);
-					else {    if (nors) nors += 3; continue; }
+					if (orig == ORIGINDEX_NONE) { if (nors) nors += 3; continue; }
+					if (drawParamsMapped)       { draw_option = drawParamsMapped(userData, orig); }
+					else                        { if (nors) nors += 3; continue; }
 				}
-				else
-				if (drawParamsMapped) draw_option = drawParamsMapped(userData, i);
-				else {    if (nors) nors += 3; continue; }
+				else if (drawParamsMapped) { draw_option = drawParamsMapped(userData, i); }
+				else                       { if (nors) nors += 3; continue; }
 			}
 			
 			if (draw_option != DM_DRAW_OPTION_SKIP) {
@@ -1039,13 +1038,13 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	MFace *mface = cddm->mface;
 	/* MTFace *tf = dm->getTessFaceDataArray(dm, CD_MTFACE); */ /* UNUSED */
 	float (*nors)[3] = dm->getTessFaceDataArray(dm, CD_NORMAL);
-	int a, b, dodraw, matnr, new_matnr;
+	int a, b, do_draw, matnr, new_matnr;
 	int orig, *index = dm->getTessFaceDataArray(dm, CD_ORIGINDEX);
 
 	cdDM_update_normals_from_pbvh(dm);
 
 	matnr = -1;
-	dodraw = 0;
+	do_draw = FALSE;
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1062,14 +1061,14 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			if (new_matnr != matnr) {
 				glEnd();
 
-				dodraw = setMaterial(matnr = new_matnr, &gattribs);
-				if (dodraw)
+				do_draw = setMaterial(matnr = new_matnr, &gattribs);
+				if (do_draw)
 					DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
 				glBegin(GL_QUADS);
 			}
 
-			if (!dodraw) {
+			if (!do_draw) {
 				continue;
 			}
 			else if (setDrawOptions) {
@@ -1139,7 +1138,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					numfaces = curface - start;
 					if (numfaces > 0) {
 
-						if (dodraw) {
+						if (do_draw) {
 
 							if (numdata != 0) {
 
@@ -1161,9 +1160,9 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					}
 					numdata = 0;
 					start = curface;
-					/* prevdraw = dodraw; */ /* UNUSED */
-					dodraw = setMaterial(matnr = new_matnr, &gattribs);
-					if (dodraw) {
+					/* prevdraw = do_draw; */ /* UNUSED */
+					do_draw = setMaterial(matnr = new_matnr, &gattribs);
+					if (do_draw) {
 						DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 
 						if (attribs.totorco) {
@@ -1215,7 +1214,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 					}
 				}
 
-				if (dodraw && numdata != 0) {
+				if (do_draw && numdata != 0) {
 					offset = 0;
 					if (attribs.totorco) {
 						copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v1]);
@@ -1257,7 +1256,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 				}
 				curface++;
 				if (mface->v4) {
-					if (dodraw && numdata != 0) {
+					if (do_draw && numdata != 0) {
 						offset = 0;
 						if (attribs.totorco) {
 							copy_v3_v3((float *)&varray[elementsize * curface * 3], (float *)attribs.orco.array[mface->v3]);
@@ -1302,7 +1301,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 			}
 			numfaces = curface - start;
 			if (numfaces > 0) {
-				if (dodraw) {
+				if (do_draw) {
 					if (numdata != 0) {
 						GPU_buffer_unlock(buffer);
 						GPU_interleaved_attrib_setup(buffer, datatypes, numdata);
@@ -2397,11 +2396,13 @@ void CDDM_calc_edges_tessface(DerivedMesh *dm)
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
-	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
-	for (i = 0; !BLI_edgehashIterator_isDone(ehi);
-	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
+
+	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
+	     BLI_edgehashIterator_isDone(ehi) == FALSE;
+	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
+	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 
 		med->flag = ME_EDGEDRAW | ME_EDGERENDER;
@@ -2460,11 +2461,13 @@ void CDDM_calc_edges(DerivedMesh *dm)
 	CustomData_add_layer(&edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&edgeData, CD_ORIGINDEX, CD_CALLOC, NULL, numEdges);
 
-	ehi = BLI_edgehashIterator_new(eh);
 	med = CustomData_get_layer(&edgeData, CD_MEDGE);
 	index = CustomData_get_layer(&edgeData, CD_ORIGINDEX);
-	for (i = 0; !BLI_edgehashIterator_isDone(ehi);
-	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index) {
+
+	for (ehi = BLI_edgehashIterator_new(eh), i = 0;
+	     BLI_edgehashIterator_isDone(ehi) == FALSE;
+	     BLI_edgehashIterator_step(ehi), ++i, ++med, ++index)
+	{
 		BLI_edgehashIterator_getKey(ehi, &med->v1, &med->v2);
 		j = GET_INT_FROM_POINTER(BLI_edgehashIterator_getValue(ehi));
 

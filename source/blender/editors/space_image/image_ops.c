@@ -313,7 +313,7 @@ static int image_view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			image_view_pan_exec(C, op);
 			break;
 		default:
-			if (event->type == vpd->event_type &&  event->val == KM_RELEASE) {
+			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
 				image_view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}

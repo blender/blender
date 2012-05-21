@@ -420,7 +420,8 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 		return type;
 
 	switch (parm->type) {
-		case PROP_POINTER:  {
+		case PROP_POINTER:
+		{
 			PointerPropertyRNA *pparm = (PointerPropertyRNA *)parm;
 
 			if (parm->flag & PROP_RNAPTR)
@@ -428,7 +429,8 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 			else
 				return rna_find_dna_type((const char *)pparm->type);
 		}
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			return "ListBase";
 		}
 		default:

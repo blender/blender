@@ -1529,7 +1529,7 @@ void BLI_join_dirfile(char *dst, const size_t maxlen, const char *dir, const cha
 	size_t dirlen = BLI_strnlen(dir, maxlen);
 
 	if (dst != dir) {
-		if (dirlen  == maxlen) {
+		if (dirlen == maxlen) {
 			memcpy(dst, dir, dirlen);
 			dst[dirlen - 1] = '\0';
 			return; /* dir fills the path */
@@ -1920,7 +1920,7 @@ static void BLI_where_is_temp(char *fullname, const size_t maxlen, char *userdir
 			BLI_strncpy(fullname, tmp, maxlen);
 		}
 	}
-#endif	
+#endif
 	
 	if (fullname[0] == '\0') {
 		BLI_strncpy(fullname, "/tmp/", maxlen);

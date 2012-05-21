@@ -49,7 +49,7 @@ void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	else if (framenumber > node->custom2) {
 		fac = 1.0f;
 	}
-	else 	if (node->custom1 < node->custom2) {
+	else if (node->custom1 < node->custom2) {
 		fac = (context->getFramenumber() - node->custom1)/(float)(node->custom2-node->custom1);
 	}
 

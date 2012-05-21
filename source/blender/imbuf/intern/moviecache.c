@@ -198,8 +198,9 @@ void IMB_moviecache_destruct(void)
 		delete_MEM_CacheLimiter(limitor);
 }
 
-struct MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
-                                         MovieCacheGetKeyDataFP getdatafp){
+MovieCache *IMB_moviecache_create(int keysize, GHashHashFP hashfp, GHashCmpFP cmpfp,
+                                  MovieCacheGetKeyDataFP getdatafp)
+{
 	MovieCache *cache;
 
 	cache = MEM_callocN(sizeof(MovieCache), "MovieCache");

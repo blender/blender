@@ -97,7 +97,7 @@ static void info_callback(const char *msg, void *client_data)
 struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = NULL;
-	int use_float = 0; /* for precision higher then 8 use float */
+	int use_float = FALSE; /* for precision higher then 8 use float */
 	
 	long signed_offsets[4] = {0, 0, 0, 0};
 	int float_divs[4] = {1, 1, 1, 1};
@@ -183,7 +183,7 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 		i--;
 		
 		if (image->comps[i].prec > 8)
-			use_float = 1;
+			use_float = TRUE;
 		
 		if (image->comps[i].sgnd)
 			signed_offsets[i] =  1 << (image->comps[i].prec - 1);

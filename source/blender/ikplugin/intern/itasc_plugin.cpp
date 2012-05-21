@@ -996,7 +996,7 @@ static void convert_pose(IK_Scene *ikscene)
 
 	// assume uniform scaling and take Y scale as general scale for the armature
 	scale = len_v3(ikscene->blArmature->obmat[1]);
-	rot = &ikscene->jointArray(0);
+	rot = (ikscene->jointArray.rows() > 0) ? &ikscene->jointArray(0) : NULL;
 	for (joint=a=0, ikchan = ikscene->channels; a<ikscene->numchan && joint<ikscene->numjoint; ++a, ++ikchan) {
 		pchan= ikchan->pchan;
 		bone= pchan->bone;
@@ -1037,7 +1037,7 @@ static void BKE_pose_rest(IK_Scene *ikscene)
 	// rest pose is 0 
 	SetToZero(ikscene->jointArray);
 	// except for transY joints
-	rot = &ikscene->jointArray(0);
+	rot = (ikscene->jointArray.rows() > 0) ? &ikscene->jointArray(0) : NULL;
 	for (joint=a=0, ikchan = ikscene->channels; a<ikscene->numchan && joint<ikscene->numjoint; ++a, ++ikchan) {
 		pchan= ikchan->pchan;
 		bone= pchan->bone;
@@ -1135,7 +1135,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		// in Blender, the rest pose is always 0 for joints
 		BKE_pose_rest(ikscene);
 	}
-	rot = &ikscene->jointArray(0);
+	rot = (ikscene->jointArray.rows() > 0) ? &ikscene->jointArray(0) : NULL;
 	for (a=0, ikchan = ikscene->channels; a<tree->totchannel; ++a, ++ikchan) {
 		pchan= ikchan->pchan;
 		bone= pchan->bone;

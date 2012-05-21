@@ -539,7 +539,8 @@ static void add_to_diffuse(GPUMaterial *mat, Material *ma, GPUShadeInput *shi, G
 	GPUNodeLink *fac, *tmp, *addcol;
 	
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	   ma->ramp_col && (ma->mode & MA_RAMP_COL)) {
+	    ma->ramp_col && (ma->mode & MA_RAMP_COL))
+	{
 		/* MA_RAMP_IN_RESULT is exceptional */
 		if (ma->rampin_col==MA_RAMP_IN_RESULT) {
 			addcol = shi->rgb;
@@ -579,7 +580,8 @@ static void ramp_spec_result(GPUShadeInput *shi, GPUNodeLink **spec)
 	GPUNodeLink *fac;
 
 	if (!(mat->scene->gm.flag & GAME_GLSL_NO_RAMPS) &&
-	   ma->ramp_spec && ma->rampin_spec==MA_RAMP_IN_RESULT) {
+	    ma->ramp_spec && ma->rampin_spec==MA_RAMP_IN_RESULT)
+	{
 		GPU_link(mat, "ramp_rgbtobw", *spec, &fac);
 		
 		/* colorband + blend */
@@ -706,7 +708,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 	i = is;
 	GPU_link(mat, "shade_visifac", i, visifac, shi->refl, &i);
 	
-	GPU_link(mat, "shade_mul_value", i, GPU_dynamic_uniform(lamp->dyncol, GPU_DYNAMIC_LAMP_DYNCOL, lamp->ob), &lcol);
+	GPU_link(mat, "set_value", GPU_dynamic_uniform(lamp->dyncol, GPU_DYNAMIC_LAMP_DYNCOL, lamp->ob), &lcol);
 	shade_light_textures(mat, lamp, &lcol);
 
 #if 0
@@ -775,7 +777,8 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 
 	if (mat->scene->gm.flag & GAME_GLSL_NO_SHADERS);
 	else if (!(lamp->mode & LA_NO_SPEC) && !(lamp->mode & LA_ONLYSHADOW) &&
-	   (GPU_link_changed(shi->spec) || ma->spec != 0.0f)) {
+	         (GPU_link_changed(shi->spec) || ma->spec != 0.0f))
+	{
 		if (lamp->type == LA_HEMI) {
 			GPU_link(mat, "shade_hemi_spec", vn, lv, view, GPU_uniform(&ma->spec), shi->har, visifac, &t);
 			GPU_link(mat, "shade_add_spec", t, lcol, shi->specrgb, &outcol);
@@ -952,7 +955,7 @@ static void do_material_tex(GPUShadeInput *shi)
 	/*char *lastuvname = NULL;*/ /*UNUSED*/
 	float one = 1.0f, norfac, ofs[3];
 	int tex_nr, rgbnor, talpha;
-	int init_done = 0, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
+	int init_done = FALSE, iBumpSpacePrev = 0; /* Not necessary, quiting gcc warning. */
 	GPUNodeLink *vNorg, *vNacc, *fPrevMagnitude;
 	int iFirstTimeNMap=1;
 	int found_deriv_map = 0;
@@ -1184,7 +1187,7 @@ static void do_material_tex(GPUShadeInput *shi)
 							// copy shi->vn to vNorg and vNacc, set magnitude to 1
 							GPU_link(mat, "mtex_bump_normals_init", shi->vn, &vNorg, &vNacc, &fPrevMagnitude);
 							iBumpSpacePrev = 0;
-							init_done = 1;
+							init_done = TRUE;
 						}
 						
 						// find current bump space

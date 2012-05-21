@@ -952,7 +952,7 @@ static void reconstruct_struct(SDNA *newsdna, SDNA *oldsdna,
 		elen = elementsize(newsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if (spc[0] >= firststructtypenr  &&  !ispointer(name)) {
+		if (spc[0] >= firststructtypenr && !ispointer(name)) {
 		
 			/* where does the old struct data start (and is there an old one?) */
 			cpo = find_elem(oldsdna, type, name, spo, data, &sppo);
@@ -1020,7 +1020,7 @@ void DNA_struct_switch_endian(SDNA *oldsdna, int oldSDNAnr, char *data)
 		elen = elementsize(oldsdna, spc[0], spc[1]);
 
 		/* test: is type a struct? */
-		if (spc[0] >= firststructtypenr  &&  !ispointer(name)) {
+		if (spc[0] >= firststructtypenr && !ispointer(name)) {
 			/* where does the old data start (is there one?) */
 			cpo = find_elem(oldsdna, type, name, spo, data, NULL);
 			if (cpo) {

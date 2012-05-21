@@ -1906,7 +1906,7 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
 
         layout.operator("mesh.dissolve")
         layout.operator("mesh.edge_collapse")
-        layout.operator("mesh.delete_edgeloop")
+        layout.operator("mesh.delete_edgeloop", text="Edge Loop")
 
 
 class VIEW3D_MT_edit_mesh_dissolve(Menu):

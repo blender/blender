@@ -540,7 +540,7 @@ static void export_fluid_objects(ListBase *fobjects, Scene *scene, int length)
 		fsmesh.volumeInitType = fluidmd->fss->volumeInitType;
 		fsmesh.obstacleImpactFactor = fluidmd->fss->surfaceSmoothing; // misused value
 		
-		if (fsmesh.type == OB_FLUIDSIM_CONTROL)	{
+		if (fsmesh.type == OB_FLUIDSIM_CONTROL) {
 			fsmesh.cpsTimeStart = fluidmd->fss->cpsTimeStart;
 			fsmesh.cpsTimeEnd = fluidmd->fss->cpsTimeEnd;
 			fsmesh.cpsQuality = fluidmd->fss->cpsQuality;
@@ -708,7 +708,7 @@ static int fluid_init_filepaths(Object *fsDomain, char *targetDir, char *targetF
 		strncpy(domainSettings->surfdataPath, newSurfdataPath, FILE_MAXDIR);
 		BLI_path_abs(targetDir, G.main->name); // fixed #frame-no 
 	}
-#endif	
+#endif
 	return outStringsChanged;
 }
 
@@ -750,8 +750,8 @@ static void fluidbake_updatejob(void *customdata, float progress)
 {
 	FluidBakeJob *fb= (FluidBakeJob *)customdata;
 	
-	*(fb->do_update)= 1;
-	*(fb->progress)= progress;
+	*(fb->do_update) = TRUE;
+	*(fb->progress) = progress;
 }
 
 static void fluidbake_startjob(void *customdata, short *stop, short *do_update, float *progress)
@@ -765,7 +765,7 @@ static void fluidbake_startjob(void *customdata, short *stop, short *do_update, 
 	G.afbreek= 0;	/* XXX shared with render - replace with job 'stop' switch */
 	
 	elbeemSimulate();
-	*do_update= 1;
+	*do_update = TRUE;
 	*stop = 0;
 }
 

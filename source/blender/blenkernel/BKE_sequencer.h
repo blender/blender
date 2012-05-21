@@ -67,8 +67,8 @@ void seq_end(SeqIterator *iter);
 void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int use_pointer);
 
 #define SEQP_BEGIN(ed, _seq)                                                  \
-	{                                                                             \
-		SeqIterator iter;                                                         \
+	{                                                                         \
+		SeqIterator iter;                                                     \
 		for (seq_begin(ed, &iter, 1); iter.valid; seq_next(&iter)) {          \
 			_seq = iter.seq;
 			
@@ -79,8 +79,8 @@ void seq_array(struct Editing *ed, struct Sequence ***seqarray, int *tot, int us
 			_seq = iter.seq;
 
 #define SEQ_END                                                               \
-	}                                                                     \
-    seq_end(&iter);                                                       \
+		}                                                                     \
+		seq_end(&iter);                                                       \
 	}
 
 typedef struct SeqRenderData {

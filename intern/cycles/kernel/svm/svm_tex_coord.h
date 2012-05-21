@@ -87,7 +87,7 @@ __device void svm_node_tex_coord(KernelGlobals *kg, ShaderData *sd, float *stack
 		}
 		case NODE_TEXCO_REFLECTION: {
 			if(sd->object != ~0)
-				data = sd->I - 2.0f*dot(sd->N, sd->I)*sd->N;
+				data = 2.0f*dot(sd->N, sd->I)*sd->N - sd->I;
 			else
 				data = sd->I;
 			break;
@@ -136,7 +136,7 @@ __device void svm_node_tex_coord_bump_dx(KernelGlobals *kg, ShaderData *sd, floa
 		}
 		case NODE_TEXCO_REFLECTION: {
 			if(sd->object != ~0)
-				data = sd->I - 2.0f*dot(sd->N, sd->I)*sd->N;
+				data = 2.0f*dot(sd->N, sd->I)*sd->N - sd->I;
 			else
 				data = sd->I;
 			break;
@@ -188,7 +188,7 @@ __device void svm_node_tex_coord_bump_dy(KernelGlobals *kg, ShaderData *sd, floa
 		}
 		case NODE_TEXCO_REFLECTION: {
 			if(sd->object != ~0)
-				data = sd->I - 2.0f*dot(sd->N, sd->I)*sd->N;
+				data = 2.0f*dot(sd->N, sd->I)*sd->N - sd->I;
 			else
 				data = sd->I;
 			break;

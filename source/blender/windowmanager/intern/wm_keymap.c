@@ -785,8 +785,8 @@ char *WM_keymap_item_to_string(wmKeyMapItem *kmi, char *str, int len)
 	if (kmi->shift == KM_ANY &&
 	    kmi->ctrl == KM_ANY &&
 	    kmi->alt == KM_ANY &&
-	    kmi->oskey == KM_ANY) {
-
+	    kmi->oskey == KM_ANY)
+	{
 		strcat(buf, "Any ");
 	}
 	else {

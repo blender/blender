@@ -44,27 +44,27 @@ GHOST_SystemPathsCarbon::~GHOST_SystemPathsCarbon()
 {
 }
 
-const GHOST_TUns8* GHOST_SystemPathsCarbon::getSystemDir() const
+const GHOST_TUns8 *GHOST_SystemPathsCarbon::getSystemDir() const
 {
-	return (GHOST_TUns8*)"/Library/Application Support";
+	return (GHOST_TUns8 *)"/Library/Application Support";
 }
 
-const GHOST_TUns8* GHOST_SystemPathsCarbon::getUserDir() const
+const GHOST_TUns8 *GHOST_SystemPathsCarbon::getUserDir() const
 {
 	static char usrPath[256] = "";
-	char* env = getenv("HOME");
+	char *env = getenv("HOME");
 	
 	if (env) {
 		strncpy(usrPath, env, 245);
-		usrPath[245]=0;
+		usrPath[245] = 0;
 		strcat(usrPath, "/Library/Application Support");
-		return (GHOST_TUns8*) usrPath;
+		return (GHOST_TUns8 *) usrPath;
 	}
 	else
 		return NULL;
 }
 
-const GHOST_TUns8* GHOST_SystemPathsCarbon::getBinaryDir() const
+const GHOST_TUns8 *GHOST_SystemPathsCarbon::getBinaryDir() const
 {
 	CFURLRef bundleURL;
 	CFStringRef pathStr;
@@ -76,10 +76,10 @@ const GHOST_TUns8* GHOST_SystemPathsCarbon::getBinaryDir() const
 	CFStringGetCString(pathStr, path, 255, kCFStringEncodingASCII);
 	CFRelease(pathStr);
 	CFRelease(bundleURL);
-	return (GHOST_TUns8*)path;
+	return (GHOST_TUns8 *)path;
 }
 
-void GHOST_SystemPathsCarbon::addToSystemRecentFiles(const char* filename) const
+void GHOST_SystemPathsCarbon::addToSystemRecentFiles(const char *filename) const
 {
 	/* XXXXX TODO: Implementation for Carbon if possible */
 

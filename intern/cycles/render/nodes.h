@@ -285,6 +285,11 @@ public:
 	SHADER_NODE_CLASS(LightFalloffNode)
 };
 
+class ObjectInfoNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(ObjectInfoNode)
+};
+
 class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)

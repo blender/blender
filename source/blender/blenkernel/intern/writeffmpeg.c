@@ -472,7 +472,8 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 		c->time_base.num = 100;
 	}
 	else if ((double) ((int) rd->frs_sec_base) ==
-	         rd->frs_sec_base) {
+	         rd->frs_sec_base)
+	{
 		c->time_base.den = rd->frs_sec;
 		c->time_base.num = (int) rd->frs_sec_base;
 	}
@@ -523,7 +524,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	if (codec_id == CODEC_ID_FFV1) {
 #ifdef FFMPEG_FFV1_ALPHA_SUPPORTED
-		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
+		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
 			c->pix_fmt = PIX_FMT_RGB32;
 		}
 		else {
@@ -535,7 +536,7 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 	}
 
 	if (codec_id == CODEC_ID_QTRLE) {
-		if (rd->im_format.planes ==  R_IMF_PLANES_RGBA) {
+		if (rd->im_format.planes == R_IMF_PLANES_RGBA) {
 			c->pix_fmt = PIX_FMT_ARGB;
 		}
 	}
@@ -544,7 +545,8 @@ static AVStream *alloc_video_stream(RenderData *rd, int codec_id, AVFormatContex
 //		|| !strcmp(of->oformat->name, "mp4")
 //	    || !strcmp(of->oformat->name, "mov")
 //	    || !strcmp(of->oformat->name, "3gp")
-	    ) {
+	    )
+	{
 		fprintf(stderr, "Using global header\n");
 		c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
@@ -903,7 +905,8 @@ void BKE_ffmpeg_filepath_get(char *string, RenderData *rd)
 
 	while (*fe) {
 		if (BLI_strcasecmp(string + strlen(string) - strlen(*fe), 
-		                   *fe) == 0) {
+		                   *fe) == 0)
+		{
 			break;
 		}
 		fe++;
@@ -955,7 +958,8 @@ static void write_audio_frames(double to_pts)
 
 	while (audio_stream && !finished) {
 		if ((audio_time >= to_pts) ||
-		    (write_audio_frame())) {
+		    (write_audio_frame()))
+		{
 			finished = 1;
 		}
 	}
@@ -1406,8 +1410,8 @@ void BKE_ffmpeg_image_type_verify(RenderData *rd, ImageFormatData *imf)
 		if (rd->ffcodecdata.type <= 0 ||
 		    rd->ffcodecdata.codec <= 0 ||
 		    rd->ffcodecdata.audio_codec <= 0 ||
-		    rd->ffcodecdata.video_bitrate <= 1) {
-
+		    rd->ffcodecdata.video_bitrate <= 1)
+		{
 			rd->ffcodecdata.codec = CODEC_ID_MPEG2VIDEO;
 
 			BKE_ffmpeg_preset_set(rd, FFMPEG_PRESET_DVD);

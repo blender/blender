@@ -69,46 +69,46 @@ GHOST_SystemPathsWin32::~GHOST_SystemPathsWin32()
 {
 }
 
-const GHOST_TUns8* GHOST_SystemPathsWin32::getSystemDir() const
+const GHOST_TUns8 *GHOST_SystemPathsWin32::getSystemDir() const
 {
-	static char knownpath[MAX_PATH*3] = {0}; /* 1 utf-16 might translante into 3 utf-8. 2 utf-16 translates into 4 utf-8*/
+	static char knownpath[MAX_PATH * 3] = {0}; /* 1 utf-16 might translante into 3 utf-8. 2 utf-16 translates into 4 utf-8*/
 	wchar_t knownpath_16[MAX_PATH];
 
 	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_COMMON_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
 	if (hResult == S_OK)
 	{
-		conv_utf_16_to_8(knownpath_16,knownpath,MAX_PATH*3);
-		return (GHOST_TUns8*)knownpath;
+		conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
+		return (GHOST_TUns8 *)knownpath;
 	}
 
 	return NULL;
 }
 
-const GHOST_TUns8* GHOST_SystemPathsWin32::getUserDir() const
+const GHOST_TUns8 *GHOST_SystemPathsWin32::getUserDir() const
 {
-	static char knownpath[MAX_PATH*3] = {0};
-	wchar_t  knownpath_16[MAX_PATH];
+	static char knownpath[MAX_PATH * 3] = {0};
+	wchar_t knownpath_16[MAX_PATH];
 
 	HRESULT hResult = SHGetFolderPathW(NULL, CSIDL_APPDATA, NULL, SHGFP_TYPE_CURRENT, knownpath_16);
 
 	if (hResult == S_OK)
 	{
-		conv_utf_16_to_8(knownpath_16,knownpath,MAX_PATH*3);
-		return (GHOST_TUns8*)knownpath;
+		conv_utf_16_to_8(knownpath_16, knownpath, MAX_PATH * 3);
+		return (GHOST_TUns8 *)knownpath;
 	}
 
 	return NULL;
 }
 
-const GHOST_TUns8* GHOST_SystemPathsWin32::getBinaryDir() const
+const GHOST_TUns8 *GHOST_SystemPathsWin32::getBinaryDir() const
 {
-	static char fullname[MAX_PATH*3] = {0};
-	wchar_t  fullname_16[MAX_PATH*3];
+	static char fullname[MAX_PATH * 3] = {0};
+	wchar_t fullname_16[MAX_PATH * 3];
 
-	if(GetModuleFileNameW(0, fullname_16, MAX_PATH)) {
-		conv_utf_16_to_8(fullname_16,fullname,MAX_PATH*3);
-		return (GHOST_TUns8*)fullname;
+	if (GetModuleFileNameW(0, fullname_16, MAX_PATH)) {
+		conv_utf_16_to_8(fullname_16, fullname, MAX_PATH * 3);
+		return (GHOST_TUns8 *)fullname;
 	}
 
 	return NULL;

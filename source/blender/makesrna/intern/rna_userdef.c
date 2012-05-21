@@ -2792,7 +2792,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem anisotropic_items[]  = {
+	static EnumPropertyItem anisotropic_items[] = {
 		{1, "FILTER_0", 0, "Off", ""},
 		{2, "FILTER_2", 0, "2x", ""},
 		{4, "FILTER_4", 0, "4x", ""},

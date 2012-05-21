@@ -151,6 +151,9 @@ static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
 	//printf("file_init\n");
 
+	/* refresh system directory list */
+	fsmenu_refresh_system_category(fsmenu_get());
+
 	if (sfile->layout) sfile->layout->dirty= TRUE;
 }
 
@@ -613,7 +616,7 @@ void ED_file_init(void)
 {
 	char *cfgdir = BLI_get_folder(BLENDER_USER_CONFIG, NULL);
 	
-	fsmenu_read_system(fsmenu_get());
+	fsmenu_read_system(fsmenu_get(), TRUE);
 
 	if (cfgdir) {
 		char name[FILE_MAX];

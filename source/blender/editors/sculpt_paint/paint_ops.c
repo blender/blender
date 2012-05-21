@@ -225,7 +225,8 @@ static Brush *brush_tool_cycle(Main *bmain, Brush *brush_orig, const int tool, c
 	     brush = brush->id.next ? brush->id.next : bmain->brush.first)
 	{
 		if ((brush->ob_mode & ob_mode) &&
-		    (brush_tool(brush, tool_offset) == tool)) {
+		    (brush_tool(brush, tool_offset) == tool))
+		{
 			return brush;
 		}
 	}

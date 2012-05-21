@@ -662,9 +662,9 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 	float cos_theta, sin_theta;
 	float cos_theta1, sin_theta1;
 	float ring_delta, side_delta;
-	int i, j, docaps= 1;
+	int i, j, do_caps = TRUE;
 
-	if (start==0 && end==nrings) docaps= 0;
+	if (start == 0 && end == nrings) do_caps = FALSE;
 
 	ring_delta= 2.0f*(float)M_PI/(float)nrings;
 	side_delta= 2.0f*(float)M_PI/(float)nsides;
@@ -678,7 +678,7 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 		cos_theta1= (float)cos(theta1);
 		sin_theta1= (float)sin(theta1);
 
-		if (docaps && i==start) {	// cap
+		if (do_caps && i==start) {	// cap
 			glBegin(GL_POLYGON);
 			phi= 0.0;
 			for (j= nsides; j >= 0; j--) {
@@ -710,7 +710,7 @@ static void partial_doughnut(float radring, float radhole, int start, int end, i
 			glEnd();
 		}
 
-		if (docaps && i==end) {	// cap
+		if (do_caps && i==end) {	// cap
 			glBegin(GL_POLYGON);
 			phi= 0.0;
 			for (j= nsides; j >= 0; j--) {

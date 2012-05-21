@@ -382,7 +382,7 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	float rsmat[3][3], tmat[3][3], obmat[3][3], iobmat[3][3], mat[4][4], scale;
-	int a, change = 0;
+	int a, change = 1;
 	
 	/* first check if we can execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
@@ -391,19 +391,19 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 		if (ob->type == OB_MESH) {
 			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user mesh, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 		}
 		else if (ob->type == OB_ARMATURE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user armature, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 		}
 		else if (ob->type == OB_LATTICE) {
 			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user lattice, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 		}
 		else if (ELEM(ob->type, OB_CURVE, OB_SURF)) {
@@ -411,23 +411,28 @@ static int apply_objects_internal(bContext *C, ReportList *reports, int apply_lo
 
 			if (ID_REAL_USERS(ob->data) > 1) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a multi user curve, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 
 			cu = ob->data;
 
 			if (!(cu->flag & CU_3D) && (apply_rot || apply_loc)) {
 				BKE_report(reports, RPT_ERROR, "Neither rotation nor location could be applied to a 2d curve, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 			if (cu->key) {
 				BKE_report(reports, RPT_ERROR, "Can't apply to a curve with vertex keys, doing nothing");
-				return OPERATOR_CANCELLED;
+				change = 0;
 			}
 		}
 	}
 	CTX_DATA_END;
 	
+	if (!change)
+		return OPERATOR_CANCELLED;
+
+	change = 0;
+
 	/* now execute */
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{

@@ -44,6 +44,7 @@
 
 #include "BLI_listbase.h"
 #include "BLI_string.h"
+#include "BLI_utildefines.h"
 
 #include "BKE_context.h"
 #include "BKE_main.h"
@@ -251,7 +252,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	bScreen *sc;
 	ScrArea *sa;
 	ARegion *ar;
-	int done = 0, recursion = C->data.recursion;
+	int done = FALSE, recursion = C->data.recursion;
 	int ret = 0;
 
 	memset(result, 0, sizeof(bContextDataResult));
@@ -279,7 +280,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 		entry = BLI_rfindstring(&C->wm.store->entries, member, offsetof(bContextStoreEntry, name));
 		if (entry) {
 			result->ptr = entry->ptr;
-			done = 1;
+			done = TRUE;
 		}
 	}
 	if (done != 1 && recursion < 2 && (ar = CTX_wm_region(C))) {

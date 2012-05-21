@@ -98,6 +98,10 @@ void BaseImageOperation::deinitExecution()
 void BaseImageOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	ImBuf *stackbuf = getImBuf();
+
+        resolution[0] = 0;
+        resolution[1] = 0;
+
 	if (stackbuf) {
 		resolution[0] = stackbuf->x;
 		resolution[1] = stackbuf->y;

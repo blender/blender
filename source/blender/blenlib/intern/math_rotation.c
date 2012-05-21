@@ -82,7 +82,7 @@ void mul_qt_qtqt(float q[4], const float q1[4], const float q2[4])
  * \note:
  * Assumes a unit quaternion?
  *
- * infact not, but you may wan't to use a unit quat, read on...
+ * in fact not, but you may wan't to use a unit quat, read on...
  *
  * Shortcut for 'q v q*' when \a v is actually a quaternion.
  * This removes the need for converting a vector to a quaternion,

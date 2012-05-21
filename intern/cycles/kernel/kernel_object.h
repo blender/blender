@@ -117,6 +117,16 @@ __device_inline void object_dir_transform(KernelGlobals *kg, ShaderData *sd, flo
 #endif
 }
 
+__device_inline float3 object_location(KernelGlobals *kg, ShaderData *sd)
+{
+#ifdef __MOTION__
+	return make_float3(sd->ob_tfm.x.w, sd->ob_tfm.y.w, sd->ob_tfm.z.w);
+#else
+	Transform tfm = object_fetch_transform(kg, sd->object, 0.0f, OBJECT_TRANSFORM);
+	return make_float3(tfm.x.w, tfm.y.w, tfm.z.w);
+#endif
+}
+
 __device_inline float object_surface_area(KernelGlobals *kg, int object)
 {
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
@@ -132,6 +142,21 @@ __device_inline float object_pass_id(KernelGlobals *kg, int object)
 	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
 	float4 f = kernel_tex_fetch(__objects, offset);
 	return f.y;
+}
+
+__device_inline float object_random_number(KernelGlobals *kg, int object)
+{
+	if(object == ~0)
+		return 0.0f;
+
+	int offset = object*OBJECT_SIZE + OBJECT_PROPERTIES;
+	float4 f = kernel_tex_fetch(__objects, offset);
+	return f.z;
+}
+
+__device int shader_pass_id(KernelGlobals *kg, ShaderData *sd)
+{
+	return kernel_tex_fetch(__shader_flag, (sd->shader & SHADER_MASK)*2 + 1);
 }
 
 CCL_NAMESPACE_END

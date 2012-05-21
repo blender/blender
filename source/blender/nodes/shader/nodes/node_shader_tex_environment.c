@@ -55,11 +55,8 @@ static int node_shader_gpu_tex_environment(GPUMaterial *mat, bNode *node, GPUNod
 	Image *ima= (Image*)node->id;
 	ImageUser *iuser= NULL;
 
-	if (!ima) {
-		float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-		GPUNodeLink *vec = GPU_uniform(black);
-		return GPU_stack_link(mat, "set_rgba", out, out, vec);
-	}
+	if (!ima)
+		return GPU_stack_link(mat, "node_tex_environment_empty", in, out);
 
 	if (!in[0].link)
 		in[0].link = GPU_builtin(GPU_VIEW_POSITION);

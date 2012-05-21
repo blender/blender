@@ -47,9 +47,9 @@
 #endif
 
 #ifdef PREFIX
-static const char *static_path= PREFIX "/share";
+static const char *static_path = PREFIX "/share";
 #else
-static const char *static_path= NULL;
+static const char *static_path = NULL;
 #endif
 
 GHOST_SystemPathsX11::GHOST_SystemPathsX11()
@@ -60,18 +60,18 @@ GHOST_SystemPathsX11::~GHOST_SystemPathsX11()
 {
 }
 
-const GHOST_TUns8* GHOST_SystemPathsX11::getSystemDir() const
+const GHOST_TUns8 *GHOST_SystemPathsX11::getSystemDir() const
 {
 	/* no prefix assumes a portable build which only uses bundled scripts */
 	return (const GHOST_TUns8 *)static_path;
 }
 
-const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
+const GHOST_TUns8 *GHOST_SystemPathsX11::getUserDir() const
 {
 #ifndef WITH_XDG_USER_DIRS
 	return (const GHOST_TUns8 *)getenv("HOME");
 #else /* WITH_XDG_USER_DIRS */
-	const char *home= getenv("XDG_CONFIG_HOME");
+	const char *home = getenv("XDG_CONFIG_HOME");
 
 	if (home) {
 		return (const GHOST_TUns8 *)home;
@@ -79,10 +79,10 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 	else {
 		static char user_path[PATH_MAX];
 
-		home= getenv("HOME");
+		home = getenv("HOME");
 
 		if (home == NULL) {
-			home= getpwuid(getuid())->pw_dir;
+			home = getpwuid(getuid())->pw_dir;
 		}
 
 		snprintf(user_path, sizeof(user_path), "%s/.config", home);
@@ -91,12 +91,12 @@ const GHOST_TUns8* GHOST_SystemPathsX11::getUserDir() const
 #endif /* WITH_XDG_USER_DIRS */
 }
 
-const GHOST_TUns8* GHOST_SystemPathsX11::getBinaryDir() const
+const GHOST_TUns8 *GHOST_SystemPathsX11::getBinaryDir() const
 {
 	return NULL;
 }
 
-void GHOST_SystemPathsX11::addToSystemRecentFiles(const char* filename) const
+void GHOST_SystemPathsX11::addToSystemRecentFiles(const char *filename) const
 {
 	/* XXXXX TODO: Implementation for X11 if possible */
 

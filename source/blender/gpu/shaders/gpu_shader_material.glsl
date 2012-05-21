@@ -2127,10 +2127,21 @@ void node_tex_environment(vec3 co, sampler2D ima, out vec4 color)
 	color = texture2D(ima, vec2(u, v));
 }
 
+void node_tex_environment_empty(vec3 co, out vec4 color)
+{
+	color = vec4(0.0);
+}
+
 void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture2D(ima, co.xy);
     alpha = color.a;
+}
+
+void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
+{
+	color = vec4(0.0);
+    alpha = 0.0;
 }
 
 void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)
@@ -2194,6 +2205,15 @@ void node_light_falloff(float strength, float tsmooth, out float quadratic, out 
 	linear = strength;
 	constant = strength;
 }
+
+void node_object_info(out vec3 location, out float object_index, out float material_index, out float random)
+{
+	location = vec3(0.0);
+	object_index = 0.0;
+	material_index = 0.0;
+	random = 0.0;
+}
+
 
 /* output */
 

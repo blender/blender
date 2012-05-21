@@ -45,27 +45,27 @@ GHOST_TSuccess GHOST_DisposeSystemPaths(void)
 	return GHOST_ISystemPaths::dispose();
 }
 
-const GHOST_TUns8* GHOST_getSystemDir()
+const GHOST_TUns8 *GHOST_getSystemDir()
 {
-	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
 	return systemPaths ? systemPaths->getSystemDir() : 0;
 }
 
-const GHOST_TUns8* GHOST_getUserDir()
+const GHOST_TUns8 *GHOST_getUserDir()
 {
-	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
 	return systemPaths ? systemPaths->getUserDir() : 0; /* shouldn't be NULL */
 }
 
-const GHOST_TUns8* GHOST_getBinaryDir()
+const GHOST_TUns8 *GHOST_getBinaryDir()
 {
-	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
 	return systemPaths ? systemPaths->getBinaryDir() : 0;  /* shouldn't be NULL */
 }
 
-void GHOST_addToSystemRecentFiles(const char* filename)
+void GHOST_addToSystemRecentFiles(const char *filename)
 {
-	GHOST_ISystemPaths* systemPaths = GHOST_ISystemPaths::get();
+	GHOST_ISystemPaths *systemPaths = GHOST_ISystemPaths::get();
 	if (systemPaths) {
 		systemPaths->addToSystemRecentFiles(filename);
 	}

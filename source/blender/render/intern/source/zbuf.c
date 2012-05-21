@@ -1703,13 +1703,13 @@ void projectverto(const float v1[3], float winmat[][4], float adr[4])
 	/* calcs homogenic coord of vertex v1 */
 	float x, y, z;
 
-	x= v1[0]; 
-	y= v1[1]; 
-	z= v1[2];
-	adr[0]= x*winmat[0][0]				+	z*winmat[2][0] + winmat[3][0];
-	adr[1]= 		      y*winmat[1][1]	+	z*winmat[2][1] + winmat[3][1];
-	adr[2]=										z*winmat[2][2] + winmat[3][2];
-	adr[3]=										z*winmat[2][3] + winmat[3][3];
+	x = v1[0];
+	y = v1[1];
+	z = v1[2];
+	adr[0] = x * winmat[0][0] + z * winmat[2][0] + winmat[3][0];
+	adr[1] = y * winmat[1][1] + z * winmat[2][1] + winmat[3][1];
+	adr[2] =                    z * winmat[2][2] + winmat[3][2];
+	adr[3] =                    z * winmat[2][3] + winmat[3][3];
 
 	//printf("hoco %f %f %f %f\n", adr[0], adr[1], adr[2], adr[3]);
 }
@@ -1721,13 +1721,13 @@ void projectvert(const float v1[3], float winmat[][4], float adr[4])
 	/* calcs homogenic coord of vertex v1 */
 	float x, y, z;
 
-	x= v1[0]; 
-	y= v1[1]; 
-	z= v1[2];
-	adr[0]= x*winmat[0][0]+ y*winmat[1][0]+ z*winmat[2][0]+ winmat[3][0];
-	adr[1]= x*winmat[0][1]+ y*winmat[1][1]+ z*winmat[2][1]+ winmat[3][1];
-	adr[2]= x*winmat[0][2]+ y*winmat[1][2]+ z*winmat[2][2]+ winmat[3][2];
-	adr[3]= x*winmat[0][3]+ y*winmat[1][3]+ z*winmat[2][3]+ winmat[3][3];
+	x = v1[0];
+	y = v1[1];
+	z = v1[2];
+	adr[0] = x * winmat[0][0] + y * winmat[1][0] + z * winmat[2][0] + winmat[3][0];
+	adr[1] = x * winmat[0][1] + y * winmat[1][1] + z * winmat[2][1] + winmat[3][1];
+	adr[2] = x * winmat[0][2] + y * winmat[1][2] + z * winmat[2][2] + winmat[3][2];
+	adr[3] = x * winmat[0][3] + y * winmat[1][3] + z * winmat[2][3] + winmat[3][3];
 }
 
 /* ------------------------------------------------------------------------- */

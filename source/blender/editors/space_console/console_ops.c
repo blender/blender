@@ -277,7 +277,7 @@ static int console_move_exec(bContext *C, wmOperator *op)
 	ConsoleLine *ci = console_history_verify(C);
 	
 	int type = RNA_enum_get(op->ptr, "type");
-	int done = 0;
+	int done = FALSE;
 	int pos;
 	
 	switch (type) {
@@ -448,7 +448,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 	int stride;
 
 	const short type = RNA_enum_get(op->ptr, "type");
-	int done = 0;
+	int done = FALSE;
 	
 	if (ci->len == 0) {
 		return OPERATOR_CANCELLED;
@@ -466,7 +466,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 				if (stride) {
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
-					done = 1;
+					done = TRUE;
 				}
 			}
 			break;
@@ -482,7 +482,7 @@ static int console_delete_exec(bContext *C, wmOperator *op)
 					ci->cursor -= stride; /* same as above */
 					memmove(ci->line + ci->cursor, ci->line + ci->cursor + stride, (ci->len - ci->cursor) + 1);
 					ci->len -= stride;
-					done = 1;
+					done = TRUE;
 				}
 			}
 			break;

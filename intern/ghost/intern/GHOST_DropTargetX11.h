@@ -47,7 +47,7 @@ public:
 	 * @param window	The window to register as drop target.
 	 * @param system	The associated system.
 	 */
-	GHOST_DropTargetX11(GHOST_WindowX11 * window, GHOST_SystemX11 * system);
+	GHOST_DropTargetX11(GHOST_WindowX11 *window, GHOST_SystemX11 *system);
 
 	/**
 	 * Destructor
@@ -55,8 +55,8 @@ public:
 	~GHOST_DropTargetX11();
 
 	/**
-	  * Handler of ClientMessage X11 event
-	  */
+	 * Handler of ClientMessage X11 event
+	 */
 	bool GHOST_HandleClientMessage(XEvent *event);
 
 	/**
@@ -73,42 +73,42 @@ private:
 	/* Internal helper functions */
 
 	/**
-	  * Initiailize XDND and all related X atoms
-	  */
+	 * Initiailize XDND and all related X atoms
+	 */
 	void Initialize(void);
 
 	/**
-	  * Uninitiailize XDND and all related X atoms
-	  */
+	 * Uninitiailize XDND and all related X atoms
+	 */
 	void Uninitialize(void);
 
 	/**
-	  * Get data to be passed to event from text/uri-list mime type
-	  * @param dropBuffer - buffer returned from source application
-	  * @param dropBufferSize - size of dropped buffer
-	  * @return pointer to newly created GHOST data
-	  */
-	void * getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
+	 * Get data to be passed to event from text/uri-list mime type
+	 * @param dropBuffer - buffer returned from source application
+	 * @param dropBufferSize - size of dropped buffer
+	 * @return pointer to newly created GHOST data
+	 */
+	void *getURIListGhostData(unsigned char *dropBuffer, int dropBufferSize);
 
 	/**
-	  * Decode URL (i.e. converts "file:///a%20b/test" to "file:///a b/test")
-	  * @param decodedOut - buffer for decoded URL
-	  * @param bufferSize - size of output buffer
-	  * @param encodedIn - input encoded buffer to be decoded
-	  */
+	 * Decode URL (i.e. converts "file:///a%20b/test" to "file:///a b/test")
+	 * @param decodedOut - buffer for decoded URL
+	 * @param bufferSize - size of output buffer
+	 * @param encodedIn - input encoded buffer to be decoded
+	 */
 	void UrlDecode(char *decodedOut, int bufferSize, const char *encodedIn);
 
 	/**
-	  * Fully decode file URL (i.e. converts "file:///a%20b/test" to "/a b/test")
-	  * @param fileUrl - file path URL to be fully decoded
-	  * @return decoded file path (resutl shold be free-d)
-	  */
+	 * Fully decode file URL (i.e. converts "file:///a%20b/test" to "/a b/test")
+	 * @param fileUrl - file path URL to be fully decoded
+	 * @return decoded file path (resutl shold be free-d)
+	 */
 	char *FileUrlDecode(char *fileUrl);
 
 	/* The associated GHOST_WindowWin32. */
-	GHOST_WindowX11 * m_window;
+	GHOST_WindowX11 *m_window;
 	/* The System. */
-	GHOST_SystemX11 * m_system;
+	GHOST_SystemX11 *m_system;
 
 	/* Data type of the dragged object */
 	GHOST_TDragnDropTypes m_draggedObjectType;
@@ -120,10 +120,10 @@ private:
 	static DndClass m_dndClass;
 
 	/* list of supported types to eb draggeg into */
-	static Atom * m_dndTypes;
+	static Atom *m_dndTypes;
 
 	/* list of supported dran'n'drop actions */
-	static Atom * m_dndActions;
+	static Atom *m_dndActions;
 
 	/* List of supported MIME types to be dragged into */
 	static const char *m_dndMimeTypes[];

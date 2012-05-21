@@ -350,7 +350,8 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	                              bb_max,
 	                              ar,
 	                              rv3d,
-	                              ob)) {
+	                              ob))
+	{
 		return 0;
 	}
 
@@ -1884,14 +1885,14 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float area_normal[3], offset[3];
+	float offset[3];
 	float lim = brush->height;
 	int n;
 
 	if (bstrength < 0)
 		lim = -lim;
 
-	mul_v3_v3v3(offset, ss->cache->scale, area_normal);
+	mul_v3_v3v3(offset, ss->cache->scale, ss->cache->sculpt_normal_symm);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -1917,7 +1918,8 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            area_normal, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+															vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -2775,7 +2777,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		}
 
 		if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-		    brush->autosmooth_factor > 0) {
+		    brush->autosmooth_factor > 0)
+		{
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
 				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), FALSE);
 			}
@@ -2867,7 +2870,7 @@ static void sculpt_update_keyblock(Object *ob)
 	SculptSession *ss = ob->sculpt;
 	float (*vertCos)[3];
 
-	/* Keyblock update happens after hadning deformation caused by modifiers,
+	/* Keyblock update happens after handling deformation caused by modifiers,
 	 * so ss->orig_cos would be updated with new stroke */
 	if (ss->orig_cos) vertCos = ss->orig_cos;
 	else vertCos = BLI_pbvh_get_vertCos(ss->pbvh);
@@ -3195,7 +3198,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Mirror &&
-		    (md->mode & eModifierMode_Realtime)) {
+		    (md->mode & eModifierMode_Realtime))
+		{
 			MirrorModifierData *mmd = (MirrorModifierData *)md;
 			
 			if (mmd->flag & MOD_MIR_CLIPPING) {
@@ -3354,7 +3358,8 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 	if (ELEM5(tool,
 	          SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
 	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
-	          SCULPT_TOOL_THUMB)) {
+	          SCULPT_TOOL_THUMB))
+	{
 		float grab_location[3], imat[4][4], delta[3], loc[3];
 
 		if (cache->first_time) {

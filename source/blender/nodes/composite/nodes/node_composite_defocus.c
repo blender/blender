@@ -249,7 +249,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	float bkh_b[4] = {0};	// shape 2D bound
 	float cam_fdist=1, cam_invfdist=1, cam_lens=35;
 	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
-	int y, len_bkh=0, ydone=0;
+	int y, len_bkh=0, ydone = FALSE;
 	float aspect, aperture;
 	int minsz;
 	//float bcrad, nmaxc, scf;
@@ -748,7 +748,7 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					p4 = p * new->type;
 					if (nqd->bktype==0)	// Disk
 						lwt = ((u*u + v*v)<=cR2) ? wcor : 0.f;
-					else	// AA not needed here
+					else  /* AA not needed here */
 						lwt = wcor * getWeight(BKH, len_bkh, u, v, ct_crad, inradsq);
 					// prevent background bleeding onto in-focus pixels, user-option
 					if (ct_crad > nqd->bthresh) {  // if center blur > threshold

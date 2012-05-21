@@ -745,10 +745,11 @@ typedef struct ScrewModifierData {
 	short	flag;
 } ScrewModifierData;
 
-#define MOD_SCREW_NORMAL_FLIP	(1<<0)
-#define MOD_SCREW_NORMAL_CALC	(1<<1)
-#define MOD_SCREW_OBJECT_OFFSET	(1<<2)
-// #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
+#define MOD_SCREW_NORMAL_FLIP    (1 << 0)
+#define MOD_SCREW_NORMAL_CALC    (1 << 1)
+#define MOD_SCREW_OBJECT_OFFSET  (1 << 2)
+// #define MOD_SCREW_OBJECT_ANGLE	(1 << 4)
+#define MOD_SCREW_SMOOTH_SHADING (1 << 5)
 
 typedef struct OceanModifierData {
 	ModifierData modifier;
@@ -1032,6 +1033,7 @@ typedef struct DynamicPaintModifierData {
 
 typedef enum RemeshModifierFlags {
 	MOD_REMESH_FLOOD_FILL = 1,
+	MOD_REMESH_SMOOTH_SHADING = 2,
 } RemeshModifierFlags;
 
 typedef enum RemeshModifierMode {

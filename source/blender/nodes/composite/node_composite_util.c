@@ -986,7 +986,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 	fRGB wt, *colp;
 	int x, y, ch;
 	int xbl, ybl, nxb, nyb, xbsz, ybsz;
-	int in2done = 0;
+	int in2done = FALSE;
 
 	CompBuf* rdst = alloc_compbuf(in1->x, in1->y, in1->type, 1);
 
@@ -1086,7 +1086,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 				}
 
 			}
-			in2done = 1;
+			in2done = TRUE;
 		}
 	}
 

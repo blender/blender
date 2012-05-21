@@ -125,7 +125,7 @@ static void compo_redrawjob(void *cjv, char *UNUSED(str))
 {
 	CompoJob *cj= cjv;
 	
-	*(cj->do_update)= 1;
+	*(cj->do_update) = TRUE;
 }
 
 static void compo_freejob(void *cjv)
@@ -169,7 +169,7 @@ static void compo_startjob(void *cjv, short *stop, short *do_update, float *prog
 	CompoJob *cj= cjv;
 	bNodeTree *ntree= cj->localtree;
 
-	if (cj->scene->use_nodes==0)
+	if (cj->scene->use_nodes == FALSE)
 		return;
 	
 	cj->stop= stop;
@@ -2366,7 +2366,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					ntreeUpdateTree(snode->edittree);
 				}
 				else {
-					int do_update = 0;
+					int do_update = FALSE;
 					for (linkdata=nldrag->links.first; linkdata; linkdata=linkdata->next) {
 						link = linkdata->data;
 						
@@ -2377,11 +2377,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							link->tosock= NULL;
 							
 							snode->edittree->update |= NTREE_UPDATE_LINKS;
-							do_update = 1;
+							do_update = TRUE;
 						}
 					}
-					if (do_update)
+					if (do_update) {
 						ntreeUpdateTree(snode->edittree);
+					}
 				}
 			}
 			else {
@@ -2408,7 +2409,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					ntreeUpdateTree(snode->edittree);
 				}
 				else {
-					int do_update = 0;
+					int do_update = FALSE;
 					for (linkdata=nldrag->links.first; linkdata; linkdata=linkdata->next) {
 						link = linkdata->data;
 						
@@ -2419,11 +2420,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 							link->fromsock= NULL;
 							
 							snode->edittree->update |= NTREE_UPDATE_LINKS;
-							do_update = 1;
+							do_update = TRUE;
 						}
 					}
-					if (do_update)
+					if (do_update) {
 						ntreeUpdateTree(snode->edittree);
+					}
 				}
 			}
 			

@@ -683,7 +683,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 	for (y=pa->disprect.ymin; y<pa->disprect.ymax; y++) {
 		for (x=pa->disprect.xmin; x<pa->disprect.xmax; x++, od+=4) {
 			float col[4];
-			int sample, done= 0;
+			int sample, done = FALSE;
 			
 			for (sample= 0; sample<totsample; sample++) {
 				float *pass= rlpp[sample]->rectf + od;
@@ -692,7 +692,7 @@ static void sky_tile(RenderPart *pa, RenderLayer *rl)
 					
 					if (done==0) {
 						shadeSkyPixel(col, x, y, pa->thread);
-						done= 1;
+						done = TRUE;
 					}
 					
 					if (pass[3]==0.0f) {
@@ -748,7 +748,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 				float *zrect= RE_RenderLayerGetPass(rlpp[sample], SCE_PASS_Z) + od;
 				float *rgbrect = rlpp[sample]->rectf + 4*od;
 				float rgb[3] = {0};
-				int done= 0;
+				int done = FALSE;
 				
 				for (go=R.lights.first; go; go= go->next) {
 				
@@ -780,7 +780,7 @@ static void atm_tile(RenderPart *pa, RenderLayer *rl)
 							
 							if (done==0) {
 								copy_v3_v3(rgb, tmp_rgb);
-								done = 1;						
+								done = TRUE;
 							}
 							else {
 								rgb[0] = 0.5f*rgb[0] + 0.5f*tmp_rgb[0];
@@ -1935,7 +1935,7 @@ void add_halo_flare(Render *re)
 	RenderResult *rr= re->result;
 	RenderLayer *rl;
 	HaloRen *har;
-	int a, mode, do_draw=0;
+	int a, mode, do_draw = FALSE;
 	
 	/* for now, we get the first renderlayer in list with halos set */
 	for (rl= rr->layers.first; rl; rl= rl->next)
@@ -1954,7 +1954,7 @@ void add_halo_flare(Render *re)
 		har= R.sortedhalos[a];
 		
 		if (har->flarec) {
-			do_draw= 1;
+			do_draw = TRUE;
 			renderflare(rr, rl->rectf, har);
 		}
 	}
@@ -1988,7 +1988,7 @@ typedef struct BakeShade {
 	unsigned int *rect;
 	float *rect_float;
 	
-	int usemask;
+	int use_mask;
 	char *rect_mask; /* bake pixel mask */
 
 	float dxco[3], dyco[3];
@@ -2408,12 +2408,12 @@ static int get_next_bake_face(BakeShade *bs)
 	ObjectRen *obr;
 	VlakRen *vlr;
 	MTFace *tface;
-	static int v= 0, vdone= 0;
+	static int v= 0, vdone = FALSE;
 	static ObjectInstanceRen *obi= NULL;
 	
 	if (bs==NULL) {
 		vlr= NULL;
-		v= vdone= 0;
+		v= vdone = FALSE;
 		obi= R.instancetable.first;
 		return 0;
 	}
@@ -2507,7 +2507,7 @@ static void shade_tface(BakeShade *bs)
 	bs->rect_float= bs->ibuf->rect_float;
 	bs->quad= 0;
 	
-	if (bs->usemask) {
+	if (bs->use_mask) {
 		if (bs->ibuf->userdata==NULL) {
 			BLI_lock_thread(LOCK_CUSTOM1);
 			if (bs->ibuf->userdata==NULL) /* since the thread was locked, its possible another thread alloced the value */
@@ -2594,7 +2594,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	BakeShade *handles;
 	ListBase threads;
 	Image *ima;
-	int a, vdone=0, usemask=0, result=BAKE_RESULT_OK;
+	int a, vdone = FALSE, use_mask = FALSE, result = BAKE_RESULT_OK;
 	
 	/* initialize render global */
 	R= *re;
@@ -2605,7 +2605,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 	
 	/* do we need a mask? */
 	if (re->r.bake_filter)
-		usemask = 1;
+		use_mask = TRUE;
 	
 	/* baker uses this flag to detect if image was initialized */
 	for (ima= G.main->image.first; ima; ima= ima->id.next) {
@@ -2642,7 +2642,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		handles[a].actob= actob;
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
-		handles[a].usemask = usemask;
+		handles[a].use_mask = use_mask;
 
 		handles[a].do_update = do_update; /* use to tell the view to update */
 		
@@ -2655,7 +2655,7 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob, short *do_up
 		PIL_sleep_ms(50);
 
 		/* calculate progress */
-		for (vdone=0, a=0; a<re->r.threads; a++)
+		for (vdone = FALSE, a=0; a<re->r.threads; a++)
 			vdone+= handles[a].vdone;
 		if (progress)
 			*progress = (float)(vdone / (float)re->totvlak);

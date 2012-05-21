@@ -145,37 +145,26 @@ static void cmp_node_image_add_render_pass_outputs(bNodeTree *ntree, bNode *node
 		cmp_node_image_add_render_pass_output(ntree, node, SCE_PASS_TRANSM_COLOR, RRES_OUT_TRANSM_COLOR);
 }
 
-static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node, ListBase *layers)
+static void cmp_node_image_add_multilayer_outputs(bNodeTree *ntree, bNode *node, RenderLayer *rl)
 {
 	bNodeSocket *sock;
 	NodeImageLayer *sockdata;
-	RenderLayer *rl;
 	RenderPass *rpass;
-	int layer_index, pass_index;
-	char name[30];	/* EXR_TOT_MAXNAME-2 ('.' and channel char are appended) */
-	int type;
-	
-	for (rl=layers->first, layer_index=0; rl; rl=rl->next, ++layer_index) {
-		for (rpass=rl->passes.first, pass_index=0; rpass; rpass=rpass->next, ++pass_index) {
-			/* reconstruct layer name from <render layer>.<render pass> strings */
-			if (rl->name[0] != '\0')
-				BLI_snprintf(name, sizeof(name), "%s.%s", rl->name, rpass->name);
-			else
-				BLI_strncpy(name, rpass->name, sizeof(name));
-			
-			if (rpass->channels == 1)
-				type = SOCK_FLOAT;
-			else
-				type = SOCK_RGBA;
-			
-			sock = nodeAddSocket(ntree, node, SOCK_OUT, name, type);
-			/* extra socket info */
-			sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
-			sock->storage = sockdata;
-			
-			sockdata->layer_index = layer_index;
-			sockdata->pass_index = pass_index;
-		}
+	int index;
+	for (rpass=rl->passes.first, index=0; rpass; rpass=rpass->next, ++index) {
+		int type;
+		if (rpass->channels == 1)
+			type = SOCK_FLOAT;
+		else
+			type = SOCK_RGBA;
+		
+		sock = nodeAddSocket(ntree, node, SOCK_OUT, rpass->name, type);
+		/* extra socket info */
+		sockdata = MEM_callocN(sizeof(NodeImageLayer), "node image layer");
+		sock->storage = sockdata;
+		
+		sockdata->pass_index = index;
+		sockdata->pass_flag = rpass->passtype;
 	}
 }
 
@@ -189,16 +178,16 @@ static void cmp_node_image_create_outputs(bNodeTree *ntree, bNode *node)
 		BKE_image_get_ibuf(ima, iuser);
 		
 		if (ima->rr) {
-			if (ima->type == IMA_TYPE_MULTILAYER) {
-				cmp_node_image_add_multilayer_outputs(ntree, node, &ima->rr->layers);
-			}
-			else {
-				RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
-				if (rl)
+			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+			
+			if (rl) {
+				if (ima->type!=IMA_TYPE_MULTILAYER)
 					cmp_node_image_add_render_pass_outputs(ntree, node, rl->passflag);
 				else
-					cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
+					cmp_node_image_add_multilayer_outputs(ntree, node, rl);
 			}
+			else
+				cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA);
 		}
 		else
 			cmp_node_image_add_render_pass_outputs(ntree, node, RRES_OUT_IMAGE|RRES_OUT_ALPHA|RRES_OUT_Z);
@@ -415,28 +404,23 @@ static CompBuf *node_composit_get_zimage(bNode *node, RenderData *rd)
 }
 
 /* check if layer is available, returns pass buffer */
-static CompBuf *compbuf_multilayer_get(RenderData *rd, Image *ima, ImageUser *iuser, int layer_index, int pass_index)
+static CompBuf *compbuf_multilayer_get(RenderData *rd, RenderLayer *rl, Image *ima, ImageUser *iuser, int passindex)
 {
-	RenderLayer *rl = BLI_findlink(&ima->rr->layers, layer_index);
-	if (rl) {
-		RenderPass *rpass = BLI_findlink(&rl->passes, pass_index);
-		if (rpass) {
-			CompBuf *cbuf;
-			
-			iuser->layer = layer_index;
-			iuser->pass = pass_index;
-			BKE_image_multilayer_index(ima->rr, iuser);
-			cbuf = node_composit_get_image(rd, ima, iuser);
-			
-			return cbuf;
-		}
+	RenderPass *rpass = BLI_findlink(&rl->passes, passindex);
+	if (rpass) {
+		CompBuf *cbuf;
+		
+		iuser->pass = passindex;
+		BKE_image_multilayer_index(ima->rr, iuser);
+		cbuf = node_composit_get_image(rd, ima, iuser);
+		
+		return cbuf;
 	}
 	return NULL;
 }
 
 static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
-	
 	/* image assigned to output */
 	/* stack order input sockets: col, alpha */
 	if (node->id) {
@@ -447,11 +431,14 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 		/* first set the right frame number in iuser */
 		BKE_image_user_frame_calc(iuser, rd->cfra, 0);
 		
-		if (ima->type==IMA_TYPE_MULTILAYER) {
-			/* force a load, we assume iuser index will be set OK anyway */
+		/* force a load, we assume iuser index will be set OK anyway */
+		if (ima->type==IMA_TYPE_MULTILAYER)
 			BKE_image_get_ibuf(ima, iuser);
 		
-			if (ima->rr) {
+		if (ima->type==IMA_TYPE_MULTILAYER && ima->rr) {
+			RenderLayer *rl= BLI_findlink(&ima->rr->layers, iuser->layer);
+			
+			if (rl) {
 				bNodeSocket *sock;
 				NodeImageLayer *sockdata;
 				int out_index;
@@ -460,7 +447,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 				for (sock=node->outputs.first, out_index=0; sock; sock=sock->next, ++out_index) {
 					sockdata = sock->storage;
 					if (out[out_index]->hasoutput) {
-						CompBuf *stackbuf = out[out_index]->data = compbuf_multilayer_get(rd, ima, iuser, sockdata->layer_index, sockdata->pass_index);
+						CompBuf *stackbuf = out[out_index]->data = compbuf_multilayer_get(rd, rl, ima, iuser, sockdata->pass_index);
 						if (stackbuf) {
 							/* preview policy: take first 'Combined' pass if available,
 							 * otherwise just use the first layer.
@@ -469,7 +456,7 @@ static void node_composit_exec_image(void *data, bNode *node, bNodeStack **UNUSE
 								firstbuf = stackbuf;
 							}
 							if (!combinedbuf &&
-									(strcmp(sock->name, "Combined") == 0 || strcmp(sock->name, "Image") == 0))
+							    (strcmp(sock->name, "Combined") == 0 || strcmp(sock->name, "Image") == 0))
 							{
 								combinedbuf = stackbuf;
 							}

@@ -39,22 +39,22 @@
 
 #define GHOST_DECLARE_HANDLE(name) typedef struct name##__ { int unused; } *name
 
-typedef	char				GHOST_TInt8;
-typedef	unsigned char		GHOST_TUns8;
-typedef short				GHOST_TInt16;
-typedef unsigned short		GHOST_TUns16;
-typedef	int					GHOST_TInt32;
-typedef	unsigned int		GHOST_TUns32;
+typedef char GHOST_TInt8;
+typedef unsigned char GHOST_TUns8;
+typedef short GHOST_TInt16;
+typedef unsigned short GHOST_TUns16;
+typedef int GHOST_TInt32;
+typedef unsigned int GHOST_TUns32;
 
 #if defined(WIN32) && !defined(FREE_WINDOWS)
-typedef __int64				GHOST_TInt64;
-typedef unsigned __int64	GHOST_TUns64;
+typedef __int64 GHOST_TInt64;
+typedef unsigned __int64 GHOST_TUns64;
 #else
-typedef long long			GHOST_TInt64;
-typedef unsigned long long	GHOST_TUns64;
+typedef long long GHOST_TInt64;
+typedef unsigned long long GHOST_TUns64;
 #endif
 
-typedef void*				GHOST_TUserDataPtr;
+typedef void *GHOST_TUserDataPtr;
 
 typedef enum
 {
@@ -77,9 +77,9 @@ typedef enum {
 
 typedef struct GHOST_TabletData {
 	GHOST_TTabletMode Active; /* 0=None, 1=Stylus, 2=Eraser */
-	float Pressure;	/* range 0.0 (not touching) to 1.0 (full pressure) */
-	float Xtilt;	/* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
-	float Ytilt;	/* as above */
+	float Pressure; /* range 0.0 (not touching) to 1.0 (full pressure) */
+	float Xtilt;    /* range 0.0 (upright) to 1.0 (tilted fully against the tablet surface) */
+	float Ytilt;    /* as above */
 } GHOST_TabletData;
 
 
@@ -152,14 +152,14 @@ typedef enum {
 typedef enum {
 	GHOST_kEventUnknown = 0,
 
-	GHOST_kEventCursorMove,		/// Mouse move event
-	GHOST_kEventButtonDown,		/// Mouse button event
-	GHOST_kEventButtonUp,		/// Mouse button event
-	GHOST_kEventWheel,			/// Mouse wheel event
-	GHOST_kEventTrackpad,		/// Trackpad event
+	GHOST_kEventCursorMove,     /// Mouse move event
+	GHOST_kEventButtonDown,     /// Mouse button event
+	GHOST_kEventButtonUp,       /// Mouse button event
+	GHOST_kEventWheel,          /// Mouse wheel event
+	GHOST_kEventTrackpad,       /// Trackpad event
 
-	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
-	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
+	GHOST_kEventNDOFMotion,     /// N degree of freedom device motion event
+	GHOST_kEventNDOFButton,     /// N degree of freedom device button event
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
@@ -289,8 +289,8 @@ typedef enum {
 	GHOST_kKeyRightControl,
 	GHOST_kKeyLeftAlt,
 	GHOST_kKeyRightAlt,
-	GHOST_kKeyOS,		// Command key on Apple, Windows key(s) on Windows
-	GHOST_kKeyGrLess ,		// German PC only!
+	GHOST_kKeyOS,       // Command key on Apple, Windows key(s) on Windows
+	GHOST_kKeyGrLess,       // German PC only!
 
 	GHOST_kKeyCapsLock,
 	GHOST_kKeyNumLock,
@@ -363,13 +363,13 @@ typedef enum {
 } GHOST_TKey;
 
 typedef enum {
-	GHOST_kGrabDisable = 0,	/* grab not set */
-	GHOST_kGrabNormal,	/* no cursor adjustments */
-	GHOST_kGrabWrap,		/* wrap the mouse location to prevent limiting screen bounds */
-	GHOST_kGrabHide,		/* hide the mouse while grabbing and restore the original location on release (numbuts) */
+	GHOST_kGrabDisable = 0, /* grab not set */
+	GHOST_kGrabNormal,  /* no cursor adjustments */
+	GHOST_kGrabWrap,        /* wrap the mouse location to prevent limiting screen bounds */
+	GHOST_kGrabHide,        /* hide the mouse while grabbing and restore the original location on release (numbuts) */
 } GHOST_TGrabCursorMode;
 
-typedef void* GHOST_TEventDataPtr;
+typedef void *GHOST_TEventDataPtr;
 
 typedef struct {
 	/** The x-coordinate of the cursor position. */
@@ -389,7 +389,7 @@ typedef struct {
 } GHOST_TEventWheelData;
 
 typedef enum {
-	GHOST_kTrackpadEventUnknown =0,
+	GHOST_kTrackpadEventUnknown = 0,
 	GHOST_kTrackpadEventScroll,
 	GHOST_kTrackpadEventRotate,
 	GHOST_kTrackpadEventSwipe, /* Reserved, not used for now */
@@ -412,7 +412,7 @@ typedef struct {
 
 
 typedef enum {
-	GHOST_kDragnDropTypeUnknown =0,
+	GHOST_kDragnDropTypeUnknown = 0,
 	GHOST_kDragnDropTypeFilenames, /*Array of strings representing file names (full path) */
 	GHOST_kDragnDropTypeString, /* Unformatted text UTF-8 string */
 	GHOST_kDragnDropTypeBitmap /*Bitmap image data */
@@ -440,7 +440,7 @@ typedef enum {
 	GHOST_kInProgress,
 	GHOST_kFinishing,
 	GHOST_kFinished
-	} GHOST_TProgress;
+} GHOST_TProgress;
 
 typedef struct {
 	/** N-degree of freedom device data v3 [GSoC 2010] */
@@ -448,14 +448,14 @@ typedef struct {
 	// These use blender standard view coordinates, with positive rotations being CCW about the axis.
 	float tx, ty, tz; // translation
 	float rx, ry, rz; // rotation:
-		// axis = (rx,ry,rz).normalized
-		// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
+	// axis = (rx,ry,rz).normalized
+	// amount = (rx,ry,rz).magnitude [in revolutions, 1.0 = 360 deg]
 	float dt; // time since previous NDOF Motion event
 	GHOST_TProgress progress; // Starting, InProgress or Finishing (for modal handlers)
 } GHOST_TEventNDOFMotionData;
 
 typedef enum { GHOST_kPress, GHOST_kRelease } GHOST_TButtonAction;
-	// good for mouse or other buttons too, hmmm?
+// good for mouse or other buttons too, hmmm?
 
 typedef struct {
 	GHOST_TButtonAction action;
@@ -464,7 +464,7 @@ typedef struct {
 
 typedef struct {
 	/** The key code. */
-	GHOST_TKey		key;
+	GHOST_TKey key;
 
 	/* ascii / utf8: both should always be set when possible,
 	 * - ascii may be '\0' however if the user presses a non ascii key
@@ -476,20 +476,20 @@ typedef struct {
 	 * use ascii, unicode is ignored - campbell.
 	 */
 	/** The ascii code for the key event ('\0' if none). */
-	char			ascii;
+	char ascii;
 	/** The unicode character. if the length is 6, not NULL terminated if all 6 are set */
-	char			utf8_buf[6];
+	char utf8_buf[6];
 } GHOST_TEventKeyData;
 
 typedef struct {
 	/** Number of pixels on a line. */
-	GHOST_TUns32	xPixels;
+	GHOST_TUns32 xPixels;
 	/** Number of lines. */
-	GHOST_TUns32	yPixels;
+	GHOST_TUns32 yPixels;
 	/** Numberof bits per pixel. */
-	GHOST_TUns32	bpp;
+	GHOST_TUns32 bpp;
 	/** Refresh rate (in Hertz). */
-	GHOST_TUns32	frequency;
+	GHOST_TUns32 frequency;
 } GHOST_DisplaySetting;
 
 
@@ -509,10 +509,10 @@ typedef int GHOST_TEmbedderWindowID;
  */
 #ifdef __cplusplus
 class GHOST_ITimerTask;
-typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask* task, GHOST_TUns64 time);
+typedef void (*GHOST_TimerProcPtr)(GHOST_ITimerTask *task, GHOST_TUns64 time);
 #else
 struct GHOST_TimerTaskHandle__;
-typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__* task, GHOST_TUns64 time);
+typedef void (*GHOST_TimerProcPtr)(struct GHOST_TimerTaskHandle__ *task, GHOST_TUns64 time);
 #endif
 
 #endif // __GHOST_TYPES_H__

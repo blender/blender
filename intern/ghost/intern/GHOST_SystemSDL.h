@@ -110,7 +110,7 @@ private:
 	             );
 
 	/* SDL specific */
-	GHOST_WindowSDL * findGhostWindow(SDL_Window *sdl_win);
+	GHOST_WindowSDL *findGhostWindow(SDL_Window *sdl_win);
 
 	bool
 	generateWindowExposeEvents();

@@ -1393,7 +1393,8 @@ static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
 
 			if (b != -1) {
 				if (tag[b] == MESHDEFORM_TAG_UNTYPED ||
-				    (tag[b] == MESHDEFORM_TAG_BOUNDARY && !mdb->boundisect[a][i - 1])) {
+				    (tag[b] == MESHDEFORM_TAG_BOUNDARY && !mdb->boundisect[a][i - 1]))
+				{
 					tag[b] = MESHDEFORM_TAG_EXTERIOR;
 					stack[stacksize++] = b;
 				}

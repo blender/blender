@@ -701,7 +701,8 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 #endif
 }
 
-const struct ListBase *RNA_struct_type_functions(StructRNA *srna){
+const ListBase *RNA_struct_type_functions(StructRNA *srna)
+{
 	return &srna->functions;
 }
 
@@ -4792,7 +4793,8 @@ char *RNA_property_as_string(bContext *C, PointerRNA *ptr, PropertyRNA *prop)
 			BLI_dynstr_append(dynstr, "[");
 
 			for (RNA_property_collection_begin(ptr, prop, &collect_iter); collect_iter.valid;
-			     RNA_property_collection_next(&collect_iter)) {
+			     RNA_property_collection_next(&collect_iter))
+			{
 				PointerRNA itemptr = collect_iter.ptr;
 
 				if (first_time == 0)
@@ -4851,7 +4853,8 @@ PropertyRNA *RNA_function_find_parameter(PointerRNA *UNUSED(ptr), FunctionRNA *f
 	return BLI_findstring(&func->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
 
-const struct ListBase *RNA_function_defined_parameters(FunctionRNA *func){
+const ListBase *RNA_function_defined_parameters(FunctionRNA *func)
+{
 	return &func->cont.properties;
 }
 

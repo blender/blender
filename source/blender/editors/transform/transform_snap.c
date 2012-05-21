@@ -323,7 +323,7 @@ void applySnapping(TransInfo *t, float *vec)
 		
 		// Time base quirky code to go around findnearest slowness
 		/* !TODO! add exception for object mode, no need to slow it down then */
-		if (current - t->tsnap.last  >= 0.01) {
+		if (current - t->tsnap.last >= 0.01) {
 			t->tsnap.calcSnap(t, vec);
 			t->tsnap.targetSnap(t);
 	
@@ -689,7 +689,7 @@ static float RotationBetween(TransInfo *t, float p1[3], float p2[3])
 		
 		if (dot_v3v3(tmp, axis) < 0.0f)
 			angle = -acos(dot_v3v3(start, end));
-		else	
+		else
 			angle = acos(dot_v3v3(start, end));
 	}
 	else {
@@ -1066,7 +1066,7 @@ static int snapFace(ARegion *ar, float v1co[3], float v2co[3], float v3co[3], fl
 		project_int(ar, location, screen_loc);
 		new_dist = abs(screen_loc[0] - (int)mval[0]) + abs(screen_loc[1] - (int)mval[1]);
 		
-		if (new_dist <= *dist && new_depth < *depth)  {
+		if (new_dist <= *dist && new_depth < *depth) {
 			*depth = new_depth;
 			retval = 1;
 			
