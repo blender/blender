@@ -48,7 +48,7 @@ struct Object;
 struct Scene;
 
 void BKE_tracking_init_settings(struct MovieTracking *tracking);
-void BKE_tracking_clamp_track(struct MovieTrackingTrack *track, int event);
+void BKE_tracking_clamp_marker(struct MovieTrackingMarker *marker, int event);
 void BKE_tracking_track_flag(struct MovieTrackingTrack *track, int area, int flag, int clear);
 
 struct MovieTrackingTrack *BKE_tracking_add_track(struct MovieTracking *tracking, struct ListBase *tracksbase,
@@ -76,7 +76,8 @@ struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTra
                                              float pos[2], int origin[2]);
 struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
                                             struct MovieTrackingMarker *marker);
-struct ImBuf *BKE_tracking_track_mask_get(struct MovieTracking *tracking, struct MovieTrackingTrack *track, int width, int height);
+struct ImBuf *BKE_tracking_track_mask_get(struct MovieTracking *tracking, struct MovieTrackingTrack *track,
+                                          struct MovieTrackingMarker *marker, int width, int height);
 
 void BKE_track_unique_name(struct ListBase *tracksbase, struct MovieTrackingTrack *track);
 

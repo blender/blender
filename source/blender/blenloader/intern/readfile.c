@@ -7633,6 +7633,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						marker->pattern_corners[3][0] = track->pat_min[0];
 						marker->pattern_corners[3][1] = track->pat_max[1];
 					}
+
+					if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
+						copy_v2_v2(marker->search_min, track->search_min);
+						copy_v2_v2(marker->search_max, track->search_max);
+					}
 				}
 
 				track = track->next;

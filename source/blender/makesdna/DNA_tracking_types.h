@@ -81,10 +81,15 @@ typedef struct MovieTrackingMarker {
 	 *       |  |       |
 	 *       | (0) --- (1)
 	 *       +-------------> X
-     *
-     * the coordinates are stored relative to pos.
+	 *
+	 * the coordinates are stored relative to pos.
 	 */
 	float pattern_corners[4][2];
+
+	/* positions of left-bottom and right-top corners of search area (in unified 0..1 units,
+	 * relative to marker->pos
+	 */
+	float search_min[2], search_max[2];
 
 	int framenr;	/* number of frame marker is associated with */
 	int flag;		/* Marker's flag (alive, ...) */
@@ -97,11 +102,17 @@ typedef struct MovieTrackingTrack {
 
 	/* ** setings ** */
 
-	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 units, relative to marker->pos) */
-	float pat_min[2], pat_max[2]		DNA_DEPRECATED;
+	/* positions of left-bottom and right-top corners of pattern (in unified 0..1 units,
+	 * relative to marker->pos)
+	 * moved to marker's corners since planar tracking implementation
+	 */
+	float pat_min[2] DNA_DEPRECATED, pat_max[2] DNA_DEPRECATED;
 
-	/* positions of left-bottom and right-top corners of search area (in unified 0..1 units, relative to marker->pos */
-	float search_min[2], search_max[2];
+	/* positions of left-bottom and right-top corners of search area (in unified 0..1 units,
+	 * relative to marker->pos
+	 * moved to marker since affine tracking implementation
+	 */
+	float search_min[2] DNA_DEPRECATED, search_max[2] DNA_DEPRECATED;
 
 	float offset[2];					/* offset to "parenting" point */
 

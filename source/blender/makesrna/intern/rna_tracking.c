@@ -195,13 +195,6 @@ static void rna_trackingTrack_select_set(PointerRNA *ptr, int value)
 	}
 }
 
-static void rna_tracking_trackerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
-{
-	MovieTrackingTrack *track = (MovieTrackingTrack *)ptr->data;
-
-	BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
-}
-
 static char *rna_trackingCamera_path(PointerRNA *UNUSED(ptr))
 {
 	return BLI_sprintfN("tracking.camera");
@@ -361,6 +354,20 @@ static void rna_trackingMarker_frame_set(PointerRNA *ptr, int value)
 	}
 }
 
+static void rna_tracking_markerPattern_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
+
+	BKE_tracking_clamp_marker(marker, CLAMP_PAT_DIM);
+}
+
+static void rna_tracking_markerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	MovieTrackingMarker *marker = (MovieTrackingMarker *)ptr->data;
+
+	BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_DIM);
+}
+
 /* API */
 
 static void add_tracks_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, int frame, int number)
@@ -467,6 +474,7 @@ static EnumPropertyItem pattern_match_items[] = {
 	{0, NULL, 0, NULL, NULL}};
 
 static int rna_matrix_dimsize_4x4[] = {4, 4};
+static int rna_matrix_dimsize_4x2[] = {4, 2};
 
 static void rna_def_trackingSettings(BlenderRNA *brna)
 {
@@ -797,6 +805,38 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MARKER_DISABLED);
 	RNA_def_property_ui_text(prop, "Mode", "Is marker muted for current frame");
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
+
+	/* pattern */
+	prop = RNA_def_property(srna, "pattern_corners", PROP_FLOAT, PROP_MATRIX);
+	RNA_def_property_float_sdna(prop, NULL, "pattern_corners");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x2);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+	RNA_def_property_ui_text(prop, "Pattern Corners",
+	                               "Array of coordinates which represents patter's corners in "
+	                               " normalized coordinates relative to marker position");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_markerPattern_update");
+
+	/* search */
+	prop = RNA_def_property(srna, "search_min", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+	RNA_def_property_float_sdna(prop, NULL, "search_min");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Search Min",
+	                               "Left-bottom corner of search area in normalized coordinates relative "
+	                               "to marker position");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_markerSearch_update");
+
+	prop = RNA_def_property(srna, "search_max", PROP_FLOAT, PROP_TRANSLATION);
+	RNA_def_property_array(prop, 2);
+	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
+	RNA_def_property_float_sdna(prop, NULL, "search_max");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Search Max",
+	                               "Right-bottom corner of search area in normalized coordinates relative "
+	                               "to marker position");
+	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_markerSearch_update");
 }
 
 static void rna_def_trackingMarkers(BlenderRNA *brna, PropertyRNA *cprop)
@@ -856,30 +896,6 @@ static void rna_def_trackingTrack(BlenderRNA *brna)
 	RNA_def_property_string_maxlength(prop, MAX_ID_NAME-2);
 	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, NULL);
 	RNA_def_struct_name_property(srna, prop);
-
-	/* Pattern */
-	/* XXX The four pattern corners are not exported to rna yet */
-
-	/* Search */
-	prop = RNA_def_property(srna, "search_min", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
-	RNA_def_property_float_sdna(prop, NULL, "search_min");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Search Min",
-	                         "Left-bottom corner of search area in normalized coordinates relative "
-	                         "to marker position");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerSearch_update");
-
-	prop = RNA_def_property(srna, "search_max", PROP_FLOAT, PROP_TRANSLATION);
-	RNA_def_property_array(prop, 2);
-	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
-	RNA_def_property_float_sdna(prop, NULL, "search_max");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_text(prop, "Search Max",
-	                         "Right-bottom corner of search area in normalized coordinates relative "
-	                         "to marker position");
-	RNA_def_property_update(prop, NC_MOVIECLIP|NA_EDITED, "rna_tracking_trackerSearch_update");
 
 	/* limit frames */
 	prop = RNA_def_property(srna, "frames_limit", PROP_INT, PROP_NONE);

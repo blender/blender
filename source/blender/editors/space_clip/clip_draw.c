@@ -485,10 +485,10 @@ static void draw_marker_outline(SpaceClip *sc, MovieTrackingTrack *track, MovieT
 	              ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0);
 	if (sc->flag & SC_SHOW_MARKER_SEARCH && show_search) {
 		glBegin(GL_LINE_LOOP);
-			glVertex2f(track->search_min[0], track->search_min[1]);
-			glVertex2f(track->search_max[0], track->search_min[1]);
-			glVertex2f(track->search_max[0], track->search_max[1]);
-			glVertex2f(track->search_min[0], track->search_max[1]);
+			glVertex2f(marker->search_min[0], marker->search_min[1]);
+			glVertex2f(marker->search_max[0], marker->search_min[1]);
+			glVertex2f(marker->search_max[0], marker->search_max[1]);
+			glVertex2f(marker->search_min[0], marker->search_max[1]);
 		glEnd();
 	}
 	glPopMatrix();
@@ -661,10 +661,10 @@ static void draw_marker_areas(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 		}
 
 		glBegin(GL_LINE_LOOP);
-			glVertex2f(track->search_min[0], track->search_min[1]);
-			glVertex2f(track->search_max[0], track->search_min[1]);
-			glVertex2f(track->search_max[0], track->search_max[1]);
-			glVertex2f(track->search_min[0], track->search_max[1]);
+			glVertex2f(marker->search_min[0], marker->search_min[1]);
+			glVertex2f(marker->search_max[0], marker->search_min[1]);
+			glVertex2f(marker->search_max[0], marker->search_max[1]);
+			glVertex2f(marker->search_min[0], marker->search_max[1]);
 		glEnd();
 	}
 
@@ -761,8 +761,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	patdx = MIN2(dx * 2.0f / 3.0f, side / 6.0f);
 	patdy = MIN2(dy * 2.0f / 3.0f, side * width / height / 6.0f);
 
-	searchdx = MIN2(dx, (track->search_max[0] - track->search_min[0]) / 6.0f);
-	searchdy = MIN2(dy, (track->search_max[1] - track->search_min[1]) / 6.0f);
+	searchdx = MIN2(dx, (marker->search_max[0] - marker->search_min[0]) / 6.0f);
+	searchdy = MIN2(dy, (marker->search_max[1] - marker->search_min[1]) / 6.0f);
 
 	px[0] = 1.0f / sc->zoom / width / sc->scale;
 	px[1] = 1.0f / sc->zoom / height / sc->scale;
@@ -776,10 +776,10 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		}
 
 		/* search offset square */
-		draw_marker_slide_square(track->search_min[0], track->search_max[1], searchdx, searchdy, outline, px);
+		draw_marker_slide_square(marker->search_min[0], marker->search_max[1], searchdx, searchdy, outline, px);
 
 		/* search re-sizing triangle */
-		draw_marker_slide_triangle(track->search_max[0], track->search_min[1], searchdx, searchdy, outline, px);
+		draw_marker_slide_triangle(marker->search_max[0], marker->search_min[1], searchdx, searchdy, outline, px);
 	}
 
 	if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
@@ -848,8 +848,8 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 	if ((sc->flag & SC_SHOW_MARKER_SEARCH) &&
 	   ((marker->flag & MARKER_DISABLED) == 0 || (sc->flag & SC_SHOW_MARKER_PATTERN) == 0))
 	{
-		dx = track->search_min[0];
-		dy = track->search_min[1];
+		dx = marker->search_min[0];
+		dy = marker->search_min[1];
 	}
 	else if (sc->flag & SC_SHOW_MARKER_PATTERN) {
 		float pat_min[2], pat_max[2];

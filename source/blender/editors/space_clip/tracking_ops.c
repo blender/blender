@@ -310,8 +310,8 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 		}
 	}
 	else if (area == TRACK_AREA_SEARCH) {
-		data->min = track->search_min;
-		data->max = track->search_max;
+		data->min = marker->search_min;
+		data->max = marker->search_max;
 	}
 
 	if ((area == TRACK_AREA_SEARCH) ||
@@ -338,7 +338,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	return data;
 }
 
-static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+static int mouse_on_corner(SpaceClip *sc, MovieTrackingMarker *marker,
                            int area, float co[2], int corner, int width, int height)
 {
 	int inside = 0;
@@ -347,8 +347,8 @@ static int mouse_on_corner(SpaceClip *sc, MovieTrackingTrack *track, MovieTracki
 	float crn[2], dx, dy, tdx, tdy;
 
 	if (area == TRACK_AREA_SEARCH) {
-		copy_v2_v2(min, track->search_min);
-		copy_v2_v2(max, track->search_max);
+		copy_v2_v2(min, marker->search_min);
+		copy_v2_v2(max, marker->search_max);
 	}
 	else {
 		BKE_tracking_marker_pattern_minmax(marker, min, max);
@@ -512,11 +512,11 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 				}
 
 				if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-					if (mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
+					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
 						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, 0,
 						                                      SLIDE_ACTION_OFFSET, width, height);
 					}
-					else if (mouse_on_corner(sc, track, marker, TRACK_AREA_SEARCH, co, 0, width, height)) {
+					else if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 0, width, height)) {
 						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, 0,
 						                                      SLIDE_ACTION_SIZE, width, height);
 					}
@@ -534,12 +534,12 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 						}
 					}
 					else {
-						if (mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 1,  width, height)) {
+						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1,  width, height)) {
 							customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, 0,
 							                                      SLIDE_ACTION_OFFSET, width, height);
 						}
 
-						if (!customdata && mouse_on_corner(sc, track, marker, TRACK_AREA_PAT, co, 0, width, height)) {
+						if (!customdata && mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 0, width, height)) {
 							customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, 0,
 							                                      SLIDE_ACTION_SIZE, width, height);
 						}
@@ -698,9 +698,9 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 
 					if (data->area == TRACK_AREA_SEARCH)
-						BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_DIM);
+						BKE_tracking_clamp_marker(data->marker, CLAMP_SEARCH_DIM);
 					else
-						BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
+						BKE_tracking_clamp_marker(data->marker, CLAMP_PAT_DIM);
 				}
 				else if (data->action == SLIDE_ACTION_OFFSET) {
 					float d[2] = {dx, dy};
@@ -719,7 +719,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 
 					if (data->area == TRACK_AREA_SEARCH)
-						BKE_tracking_clamp_track(data->track, CLAMP_SEARCH_POS);
+						BKE_tracking_clamp_marker(data->marker, CLAMP_SEARCH_POS);
 				}
 				else if (data->action == SLIDE_ACTION_POS) {
 					if (data->scale) {
@@ -750,7 +750,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 
 					/* currently only patterns are allowed to have such combination of event and data */
-					BKE_tracking_clamp_track(data->track, CLAMP_PAT_DIM);
+					BKE_tracking_clamp_marker(data->marker, CLAMP_PAT_DIM);
 				}
 			}
 
@@ -846,16 +846,16 @@ static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *trac
 
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-	epsx = MIN4(pat_min[0] - track->search_min[0], track->search_max[0] - pat_max[0],
+	epsx = MIN4(pat_min[0] - marker->search_min[0], marker->search_max[0] - pat_max[0],
 	            fabsf(pat_min[0]), fabsf(pat_max[0])) / 2;
-	epsy = MIN4(pat_min[1] - track->search_min[1], track->search_max[1] - pat_max[1],
+	epsy = MIN4(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
 	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
 
 	epsx = MAX2(epsx, 2.0f / width);
 	epsy = MAX2(epsy, 2.0f / height);
 
 	if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-		if (mouse_on_rect(co, marker->pos, track->search_min, track->search_max, epsx, epsy))
+		if (mouse_on_rect(co, marker->pos, marker->search_min, marker->search_max, epsx, epsy))
 			return TRACK_AREA_SEARCH;
 	}
 
@@ -929,7 +929,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 
 			/* distance to search boundbox */
 			if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
-				d3 = dist_to_rect(co, marker->pos, cur->search_min, cur->search_max);
+				d3 = dist_to_rect(co, marker->pos, marker->search_min, marker->search_max);
 
 			/* choose minimal distance. useful for cases of overlapped markers. */
 			dist = MIN3(d1, d2, d3);
