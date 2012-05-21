@@ -3925,16 +3925,16 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "render_quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "render_quality");
 	RNA_def_property_enum_items(prop, node_quality_items);
-	RNA_def_property_ui_text(prop, "Render quality", "Quality when rendering");
+	RNA_def_property_ui_text(prop, "Render Quality", "Quality when rendering");
 
 	prop= RNA_def_property(srna, "edit_quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "edit_quality");
 	RNA_def_property_enum_items(prop, node_quality_items);
-	RNA_def_property_ui_text(prop, "Edit quality", "Quality when editing");
+	RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
 	prop= RNA_def_property(srna, "chunksize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "chunksize");
-	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a chunk during calculation");
+	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile. Smaller values gives better distribution of multiple threads, but more overhead.");
 	RNA_def_property_range(prop, 32, 1024);
 
 	prop= RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
