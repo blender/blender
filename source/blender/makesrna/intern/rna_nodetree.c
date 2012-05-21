@@ -3051,7 +3051,7 @@ static void def_cmp_boxmask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "rotation");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Rotation", "Rotationangle of the box");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -3182,14 +3182,14 @@ static void def_cmp_colorcorrection(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "startmidtones");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Start of midtones", "Start of midtones");
+	RNA_def_property_ui_text(prop, "Midtones Start", "Start of midtones");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "midtones_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "endmidtones");
 	RNA_def_property_float_default(prop, 0.7f);
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "End of midtones", "end of midtones");
+	RNA_def_property_ui_text(prop, "Midtones End", "End of midtones");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_saturation", PROP_FLOAT, PROP_NONE);
@@ -3347,7 +3347,7 @@ static void def_cmp_viewer(StructRNA *srna)
 	prop = RNA_def_property(srna, "tile_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, tileorder_items);
-	RNA_def_property_ui_text(prop, "Tile order", "tile order");
+	RNA_def_property_ui_text(prop, "Tile order", "Tile order");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
