@@ -3023,28 +3023,28 @@ static void def_cmp_boxmask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "X position", "X position of the middle of the box");
+	RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Y position", "Y position of the middle of the box");
+	RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
 	RNA_def_property_float_default(prop, 0.3f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Width of the box", "Width of the box");
+	RNA_def_property_ui_text(prop, "Width", "Width of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "height");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Height of the box", "Height of the box");
+	RNA_def_property_ui_text(prop, "Height", "Height of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
@@ -3070,28 +3070,28 @@ static void def_cmp_ellipsemask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "X position", "X position of the middle of the box");
+	RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Y position", "Y position of the middle of the box");
+	RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
 	RNA_def_property_float_default(prop, 0.3f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Width of the box", "Width of the box");
+	RNA_def_property_ui_text(prop, "Width", "Width of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "height");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Height of the box", "Height of the box");
+	RNA_def_property_ui_text(prop, "Height", "Height of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);

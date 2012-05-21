@@ -63,7 +63,7 @@ void register_node_type_cmp_boxmask(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_MASK_BOX, "Box Mask", NODE_CLASS_MATTE, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_boxmask_in, cmp_node_boxmask_out);
-	node_type_size(&ntype, 120, 110, 160);
+	node_type_size(&ntype, 260, 110, 300);
 	node_type_init(&ntype, node_composit_init_boxmask);
 	node_type_storage(&ntype, "NodeBoxMask", node_free_standard_storage, node_copy_standard_storage);
 
