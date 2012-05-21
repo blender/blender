@@ -516,6 +516,7 @@ struct ShadeResult;
 #define SH_NODE_TEX_CHECKER				164
 #define SH_NODE_BRIGHTCONTRAST			165
 #define SH_NODE_LIGHT_FALLOFF			166
+#define SH_NODE_OBJECT_INFO				167
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1

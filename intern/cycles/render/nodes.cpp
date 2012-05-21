@@ -1699,7 +1699,7 @@ void LightPathNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_light_path");
 }
 
-/* Light Path */
+/* Light Falloff */
 
 LightFalloffNode::LightFalloffNode()
 : ShaderNode("light_path")
@@ -1744,6 +1744,49 @@ void LightFalloffNode::compile(SVMCompiler& compiler)
 void LightFalloffNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_light_falloff");
+}
+
+/* Object Info */
+
+ObjectInfoNode::ObjectInfoNode()
+: ShaderNode("object_info")
+{
+	add_output("Location", SHADER_SOCKET_VECTOR);
+	add_output("Object Index", SHADER_SOCKET_FLOAT);
+	add_output("Material Index", SHADER_SOCKET_FLOAT);
+	add_output("Random", SHADER_SOCKET_FLOAT);
+}
+
+void ObjectInfoNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *out = output("Location");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_OB_LOCATION, out->stack_offset);
+	}
+
+	out = output("Object Index");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_OB_INDEX, out->stack_offset);
+	}
+
+	out = output("Material Index");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_MAT_INDEX, out->stack_offset);
+	}
+
+	out = output("Random");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_OBJECT_INFO, NODE_INFO_OB_RANDOM, out->stack_offset);
+	}
+}
+
+void ObjectInfoNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_object_info");
 }
 
 /* Value */

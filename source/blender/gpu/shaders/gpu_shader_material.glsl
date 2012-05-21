@@ -2206,6 +2206,15 @@ void node_light_falloff(float strength, float tsmooth, out float quadratic, out 
 	constant = strength;
 }
 
+void node_object_info(out vec3 location, out float object_index, out float material_index, out float random)
+{
+	location = vec3(0.0);
+	object_index = 0.0;
+	material_index = 0.0;
+	random = 0.0;
+}
+
+
 /* output */
 
 void node_output_material(vec4 surface, vec4 volume, float displacement, out vec4 result)

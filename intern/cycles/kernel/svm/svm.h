@@ -266,6 +266,9 @@ __device_noinline void svm_eval_nodes(KernelGlobals *kg, ShaderData *sd, ShaderT
 			case NODE_LIGHT_PATH:
 				svm_node_light_path(sd, stack, node.y, node.z, path_flag);
 				break;
+			case NODE_OBJECT_INFO:
+				svm_node_object_info(kg, sd, stack, node.y, node.z);
+				break;
 #endif
 			case NODE_CONVERT:
 				svm_node_convert(sd, stack, node.y, node.z, node.w);

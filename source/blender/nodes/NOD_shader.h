@@ -74,6 +74,7 @@ void register_node_type_sh_attribute(struct bNodeTreeType *ttype);
 void register_node_type_sh_geometry(struct bNodeTreeType *ttype);
 void register_node_type_sh_light_path(struct bNodeTreeType *ttype);
 void register_node_type_sh_light_falloff(struct bNodeTreeType *ttype);
+void register_node_type_sh_object_info(struct bNodeTreeType *ttype);
 void register_node_type_sh_fresnel(struct bNodeTreeType *ttype);
 void register_node_type_sh_layer_weight(struct bNodeTreeType *ttype);
 void register_node_type_sh_tex_coord(struct bNodeTreeType *ttype);

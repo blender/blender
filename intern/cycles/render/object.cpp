@@ -23,6 +23,7 @@
 #include "scene.h"
 
 #include "util_foreach.h"
+#include "util_hash.h"
 #include "util_map.h"
 #include "util_progress.h"
 
@@ -36,6 +37,7 @@ Object::Object()
 	mesh = NULL;
 	tfm = transform_identity();
 	visibility = ~0;
+	instance_id = 0;
 	pass_id = 0;
 	bounds = BoundBox::empty;
 	motion.pre = transform_identity();
@@ -164,6 +166,9 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		float surface_area = 0.0f;
 		float pass_id = ob->pass_id;
 		
+		uint ob_hash = hash_int_2d(hash_string(ob->name.c_str()), ob->instance_id);
+		float random_number = (float)ob_hash * (1.0f/(float)0xFFFFFFFF);
+		
 		if(transform_uniform_scale(tfm, uniform_scale)) {
 			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
 
@@ -198,7 +203,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
 		memcpy(&objects[offset+3], &itfm, sizeof(float4)*3);
-		objects[offset+6] = make_float4(surface_area, pass_id, 0.0f, 0.0f);
+		objects[offset+6] = make_float4(surface_area, pass_id, random_number, 0.0f);
 
 		if(need_motion == Scene::MOTION_PASS) {
 			/* motion transformations, is world/object space depending if mesh
