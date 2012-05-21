@@ -431,6 +431,8 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 	MDeformVert **dv_array_src;
 	MDeformVert **dv_array_dst;
 	MDeformWeight *dw_dst, *dw_src;
+	MVert *mv_src;
+	Mesh *me_src;
 	int dv_tot_src, dv_tot_dst;
 	int i, index_src, index_dst;
 	bDeformGroup *dg_src, *dg_dst;
@@ -448,6 +450,12 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
 
+	/*get meshes*/
+	me_src = ob_src->data;
+
+	/*get vertices*/
+	mv_src = me_src->mvert;
+
 	/*get destination deformgroup*/
 	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
 
@@ -460,18 +468,18 @@ int ED_vgroup_transfer_weight_by_index(Object *ob_dst, Object *ob_src, short mod
 	index_dst = BLI_findindex(&ob_dst->defbase, dg_dst);
 
 	/*check if indices are matching, delete and return if not*/
-	if (ob_dst == ob_src || dv_tot_dst == 0 || (dv_tot_dst != dv_tot_src) || dv_array_src == NULL || dv_array_dst == NULL) {
+	if(ob_dst == ob_src || dv_tot_dst == 0 || (dv_tot_dst != dv_tot_src) || dv_array_src == NULL || dv_array_dst == NULL) {
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
 		return 0;
 	}
 
 	/* loop through the vertices and copy weight*/
-	for(i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++){
+	for(i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_src++){
 		dw_src = defvert_verify_index(*dv_array_src, index_src);
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {if((*dv_array_src)->flag == 1) dw_dst->weight = dw_src->weight;}/*This does not work*/
+		else if(mode == 3) {if(mv_src->flag == 1) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	return 1;
@@ -482,8 +490,8 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 	bDeformGroup *dg_src, *dg_dst;
 	MDeformVert **dv_array_src, **dv_array_dst;
 	MDeformWeight *dw_dst, *dw_src;
-	MVert *mv_dst;
-	Mesh *me_dst;
+	MVert *mv_dst, *mv_src;
+	Mesh *me_dst, *me_src;
 	BVHTreeFromMesh tree_mesh_src;
 	BVHTreeNearest nearest;
 	DerivedMesh *dmesh_src;
@@ -507,6 +515,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 
 	/*get meshes*/
 	me_dst = ob_dst->data;
+	me_src = ob_src->data;
 	dmesh_src = ob_src->derivedDeform;
 
 	/*make node tree*/
@@ -522,6 +531,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 
 	/*get vertices*/
 	mv_dst = me_dst->mvert;
+	mv_src = me_src->mvert;
 
 	/*prepare transformation matrix*/
 	/*this can be excluded to make a lazy feature that works better when object centers relative to mesh is the same*/
@@ -541,7 +551,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex(Object *ob_dst, Object *ob_src, 
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {dw_dst->weight= dw_src->weight;}/*TODO fix this*/
+		else if(mode == 3) {if(mv_src[nearest.index].flag == 1) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -560,7 +570,7 @@ int ED_vgroup_transfer_weight_by_nearest_vertex_in_face(Object *ob_dst, Object *
 	MFace *mface_src;
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
-	int dv_tot_src, dv_tot_dst, i, index_dst, index_src;
+	int dv_tot_src, dv_tot_dst, i, index_dst, index_src, index_nearest_vertex;
 	float dist_v1, dist_v2, dist_v3, dist_v4, tmp_co[3], tmp_mat[4][4];
 
 	/*remove this:*/
@@ -623,28 +633,21 @@ also mode == 1 isnt so readable, better define an enum.
 		dist_v1 = len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v1].co);
 		dist_v2 = len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v2].co);
 		dist_v3 = len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v3].co);
-		/*get weight from triangle*/
-		if(dist_v1 < dist_v2 && dist_v1 < dist_v3){
-			dw_src = defvert_verify_index(dv_array_src[mface_src[nearest.index].v1], index_src);
-		}
-		else if(dist_v2 < dist_v3){
-			dw_src = defvert_verify_index(dv_array_src[mface_src[nearest.index].v2], index_src);
-		}
-		else{
-			dw_src = defvert_verify_index(dv_array_src[mface_src[nearest.index].v3], index_src);
-		}
-		/*check for and get weight from quad*/
+		/*get closest vertex*/
+		if(dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[nearest.index].v1;
+		else if(dist_v2 < dist_v3) index_nearest_vertex = mface_src[nearest.index].v2;
+		else index_nearest_vertex = mface_src[nearest.index].v3;
 		if(mface_src[nearest.index].v4){
 			dist_v4 = len_squared_v3v3(tmp_co, mv_src[mface_src[nearest.index].v4].co);
-			if(dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3){
-				dw_src = defvert_verify_index(dv_array_src[mface_src[nearest.index].v4], index_src);
-			}
+			if(dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) index_nearest_vertex = mface_src[nearest.index].v1;
 		}
 		/*copy weight*/
+		dw_src = defvert_verify_index(dv_array_src[index_nearest_vertex], index_src);
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = dw_src->weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = dw_src->weight;}
-		else if(mode == 3) {dw_dst->weight= dw_src->weight;}/*TODO: fix this!*/
+		/*ATTENTION: face select in weightpaint mode seems reversed. Might create bug when fixed*/
+		else if(mode == 3) {if(mface_src[nearest.index].flag != SELECT) dw_dst->weight = dw_src->weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -734,7 +737,8 @@ int ED_vgroup_transfer_weight_by_nearest_face(Object *ob_dst, Object *ob_src, sh
 		dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 		if(mode == 1) dw_dst->weight = weight;
 		else if(mode == 2) {if(!dw_dst->weight || dw_dst->weight == 0) dw_dst->weight = weight;}
-		else if(mode == 3) {dw_dst->weight= weight;}/*TODO: fix this!*/
+		/*ATTENTION: face select in weightpaint mode seems reversed. Might create bug when fixed*/
+		else if(mode == 3) {if(mface_src[nearest.index].flag != SELECT) dw_dst->weight = weight;}
 		else return 0;
 	}
 	/*free memory and return*/
@@ -3139,8 +3143,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	/*TODO: get these parameters*/
 	enum Function {by_index = 1, by_nearest_vertex = 2, by_nearest_face = 3, by_nearest_vertex_in_face = 4} function = 4;
 	/*TODO: pass these on to functions*/
-	enum Mode {replace_all_weights = 1, replace_empty_weights = 2, replace_selected_weights = 3} mode= 1;
+	enum Mode {replace_all_weights = 1, replace_empty_weights = 2, replace_selected_weights = 3} mode= 3;
 	enum Option {single = 1, all = 2} option = 1;
+
+	/*Truth table for testing:*/
+	/*1,3,1 working*/
+	/*2,3,1 working*/
+	/*3,3,1 working*/
+	/*4,3,1 working*/
 
 	/*Macro to loop through selected objects and perform operation depending on function, option and method*/
 	CTX_DATA_BEGIN(C, Object*, obslc, selected_editable_objects)
