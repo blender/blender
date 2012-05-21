@@ -60,6 +60,12 @@
 #include <float.h>
 #include <math.h>
 
+typedef struct PaintSample {
+	float mouse[2];
+
+	/* TODO: other input properties, e.g. tablet pressure */
+} PaintSample;
+
 typedef struct PaintStroke {
 	void *mode_data;
 	void *smooth_stroke_cursor;
@@ -69,6 +75,12 @@ typedef struct PaintStroke {
 	ViewContext vc;
 	bglMats mats;
 	Brush *brush;
+
+	/* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES prior inputs
+	 * to smooth the stroke */
+	PaintSample samples[PAINT_MAX_INPUT_SAMPLES];
+	int num_samples;
+	int cur_sample;
 
 	float last_mouse_position[2];
 
@@ -182,10 +194,11 @@ static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *ev
 }
 
 /* Returns zero if no sculpt changes should be made, non-zero otherwise */
-static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *event)
+static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
+							   const PaintSample *sample)
 {
-	output[0] = event->x; 
-	output[1] = event->y;
+	output[0] = sample->mouse[0];
+	output[1] = sample->mouse[1];
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
 	    !ELEM4(stroke->brush->sculpt_tool,
@@ -197,15 +210,16 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2], wmEvent *ev
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
 		float u = stroke->brush->smooth_stroke_factor, v = 1.0f - u;
-		float dx = stroke->last_mouse_position[0] - event->x, dy = stroke->last_mouse_position[1] - event->y;
+		float dx = stroke->last_mouse_position[0] - sample->mouse[0];
+		float dy = stroke->last_mouse_position[1] - sample->mouse[1];
 
 		/* If the mouse is moving within the radius of the last move,
 		 * don't update the mouse position. This allows sharp turns. */
 		if (dx * dx + dy * dy < stroke->brush->smooth_stroke_radius * stroke->brush->smooth_stroke_radius)
 			return 0;
 
-		output[0] = event->x * v + stroke->last_mouse_position[0] * u;
-		output[1] = event->y * v + stroke->last_mouse_position[1] * u;
+		output[0] = sample->mouse[0] * v + stroke->last_mouse_position[0] * u;
+		output[1] = sample->mouse[1] * v + stroke->last_mouse_position[1] * u;
 	}
 
 	return 1;
@@ -343,11 +357,51 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 	return keymap;
 }
 
+static void paint_stroke_add_sample(const Paint *paint,
+									PaintStroke *stroke,
+									float x, float y)
+{
+	PaintSample *sample = &stroke->samples[stroke->cur_sample];
+	int max_samples = MIN2(PAINT_MAX_INPUT_SAMPLES,
+						   MAX2(paint->num_input_samples, 1));
+
+	sample->mouse[0] = x;
+	sample->mouse[1] = y;
+
+	stroke->cur_sample++;
+	if (stroke->cur_sample >= max_samples)
+		stroke->cur_sample = 0;
+	if (stroke->num_samples < max_samples)
+		stroke->num_samples++;
+}
+
+static void paint_stroke_sample_average(const PaintStroke *stroke,
+										PaintSample *average)
+{
+	int i;
+	
+	memset(average, 0, sizeof(*average));
+
+	BLI_assert(stroke->num_samples > 0);
+	
+	for (i = 0; i < stroke->num_samples; i++)
+		add_v2_v2(average->mouse, stroke->samples[i].mouse);
+
+	mul_v2_fl(average->mouse, 1.0f / stroke->num_samples);
+
+	/*printf("avg=(%f, %f), num=%d\n", average->mouse[0], average->mouse[1], stroke->num_samples);*/
+}
+
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
+	Paint *p = paint_get_active(CTX_data_scene(C));
 	PaintStroke *stroke = op->customdata;
+	PaintSample sample_average;
 	float mouse[2];
 	int first = 0;
+
+	paint_stroke_add_sample(p, stroke, event->x, event->y);
+	paint_stroke_sample_average(stroke, &sample_average);
 
 	// let NDOF motion pass through to the 3D view so we can paint and rotate simultaneously!
 	// this isn't perfect... even when an extra MOUSEMOVE is spoofed, the stroke discards it
@@ -357,9 +411,8 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 
 	if (!stroke->stroke_started) {
-		stroke->last_mouse_position[0] = event->x;
-		stroke->last_mouse_position[1] = event->y;
-		stroke->stroke_started = stroke->test_start(C, op, event);
+		copy_v2_v2(stroke->last_mouse_position, sample_average.mouse);
+		stroke->stroke_started = stroke->test_start(C, op, sample_average.mouse);
 
 		if (stroke->stroke_started) {
 			stroke->smooth_stroke_cursor =
@@ -390,7 +443,7 @@ int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 	         (event->type == TIMER && (event->customdata == stroke->timer)) )
 	{
 		if (stroke->stroke_started) {
-			if (paint_smooth_stroke(stroke, mouse, event)) {
+			if (paint_smooth_stroke(stroke, mouse, &sample_average)) {
 				if (paint_space_stroke_enabled(stroke->brush)) {
 					if (!paint_space_stroke(C, op, event, mouse)) {
 						//ED_region_tag_redraw(ar);

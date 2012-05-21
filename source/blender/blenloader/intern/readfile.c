@@ -4897,8 +4897,10 @@ static void link_recurs_seq(FileData *fd, ListBase *lb)
 
 static void direct_link_paint(FileData *fd, Paint **paint)
 {
-/* TODO. is this needed */
+	/* TODO. is this needed */
 	(*paint) = newdataadr(fd, (*paint));
+	if (*paint && (*paint)->num_input_samples < 1)
+		(*paint)->num_input_samples = 1;
 }
 
 static void direct_link_scene(FileData *fd, Scene *sce)

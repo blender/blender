@@ -3224,7 +3224,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, wmEvent *event)
+static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	Brush *brush = paint_brush(&sd->paint);
@@ -3247,14 +3247,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	sculpt_init_mirror_clipping(ob, ss);
 
 	/* Initial mouse location */
-	if (event) {
-		ss->cache->initial_mouse[0] = event->x;
-		ss->cache->initial_mouse[1] = event->y;
-	}
-	else {
-		ss->cache->initial_mouse[0] = 0;
-		ss->cache->initial_mouse[1] = 0;
-	}
+	copy_v2_v2(ss->cache->initial_mouse, mouse);
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	cache->invert = mode == BRUSH_STROKE_INVERT;
@@ -3768,18 +3761,18 @@ static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float 
 }
 
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
-                                    wmEvent *event)
+                                    const float mouse[2])
 {
 	/* Don't start the stroke until mouse goes over the mesh.
 	 * note: event will only be null when re-executing the saved stroke. */
-	if (event == NULL || over_mesh(C, op, event->x, event->y)) {
+	if (over_mesh(C, op, mouse[0], mouse[1])) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 		ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
 
-		sculpt_update_cache_invariants(C, sd, ss, op, event);
+		sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
 		sculpt_undo_push_begin(sculpt_tool_name(sd));
 
