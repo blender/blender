@@ -333,8 +333,9 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 				retval = BKE_READ_EXOTIC_OK_BLEND;
 			}
 			else {
-				//XXX waitcursor(1);
 #if 0           /* historic stuff - no longer used */
+				WM_cursor_wait(TRUE);
+
 				if (is_foo_format(name)) {
 					read_foo(name);
 					retval = BKE_READ_EXOTIC_OK_OTHER;
@@ -344,7 +345,9 @@ static int wm_read_exotic(Scene *UNUSED(scene), const char *name)
 				{
 					retval = BKE_READ_EXOTIC_FAIL_FORMAT;
 				}
-				//XXX waitcursor(0);
+#if 0
+				WM_cursor_wait(FALSE);
+#endif
 			}
 		}
 	}
@@ -393,8 +396,6 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		/* match the read WM with current WM */
 		wm_window_match_do(C, &wmbase);
 		WM_check(C); /* opens window(s), checks keymaps */
-		
-// XXX		mainwindow_set_filename_to_title(G.main->name);
 
 		if (retval == BKE_READ_FILE_OK_USERPREFS) {
 			/* in case a userdef is read from regular .blend */
@@ -453,7 +454,6 @@ void WM_read_file(bContext *C, const char *filepath, ReportList *reports)
 		}
 #endif
 
-		// XXX		undo_editmode_clear();
 		BKE_reset_undo();
 		BKE_write_undo(C, "original");  /* save current state */
 	}
@@ -546,8 +546,7 @@ int WM_read_homefile(bContext *C, ReportList *UNUSED(reports), short from_memory
 	/* XXX */
 	G.save_over = 0;    // start with save preference untitled.blend
 	G.fileflags &= ~G_FILE_AUTOPLAY;    /*  disable autoplay in startup.blend... */
-//	mainwindow_set_filename_to_title("");	// empty string re-initializes title to "Blender"
-	
+
 //	refresh_interface_font();
 	
 //	undo_editmode_clear();

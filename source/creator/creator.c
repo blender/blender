@@ -31,18 +31,18 @@
 
 
 #if defined(__linux__) && defined(__GNUC__)
-#define _GNU_SOURCE
-#include <fenv.h>
+#  define _GNU_SOURCE
+#  include <fenv.h>
 #endif
 
 #if (defined(__APPLE__) && (defined(__i386__) || defined(__x86_64__)))
-#define OSX_SSE_FPE
-#include <xmmintrin.h>
+#  define OSX_SSE_FPE
+#  include <xmmintrin.h>
 #endif
 
 #ifdef WIN32
-#include <Windows.h>
-#include "utfconv.h"
+#  include <Windows.h>
+#  include "utfconv.h"
 #endif
 
 #include <stdlib.h>
@@ -105,30 +105,30 @@
 #include "BLI_scanfill.h" /* for BLI_setErrorCallBack, TODO, move elsewhere */
 
 #ifdef WITH_BUILDINFO_HEADER
-#define BUILD_DATE
+#  define BUILD_DATE
 #endif
 
 /* for passing information between creator and gameengine */
 #ifdef WITH_GAMEENGINE
-#include "BL_System.h"
+#  include "BL_System.h"
 #else /* dummy */
-#define SYS_SystemHandle int
+#  define SYS_SystemHandle int
 #endif
 
 #include <signal.h>
 
 #ifdef __FreeBSD__
-# include <sys/types.h>
-# include <floatingpoint.h>
-# include <sys/rtprio.h>
+#  include <sys/types.h>
+#  include <floatingpoint.h>
+#  include <sys/rtprio.h>
 #endif
 
 #ifdef WITH_BINRELOC
-#include "binreloc.h"
+#  include "binreloc.h"
 #endif
 
 #ifdef WITH_LIBMV
-#include "libmv-capi.h"
+#  include "libmv-capi.h"
 #endif
 
 /* from buildinfo.c */
@@ -1178,15 +1178,14 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 
 #ifdef WITH_PYTHON_MODULE
 /* allow python module to call main */
-#define main main_python_enter
+#  define main main_python_enter
 static void *evil_C = NULL;
 
-#ifdef __APPLE__
-/* environ is not available in mac shared libraries */
-#include <crt_externs.h>
+#  ifdef __APPLE__
+     /* environ is not available in mac shared libraries */
+#    include <crt_externs.h>
 char **environ = NULL;
-#endif
-
+#  endif
 #endif
 
 

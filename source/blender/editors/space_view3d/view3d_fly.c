@@ -580,7 +580,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->pan_view = TRUE;
 				break;
 			case FLY_MODAL_PAN_DISABLE:
-//XXX2.5		warp_pointer(cent_orig[0], cent_orig[1]);
+//XXX2.5				WM_cursor_warp(CTX_wm_window(C), cent_orig[0], cent_orig[1]);
 				fly->pan_view = FALSE;
 				break;
 
