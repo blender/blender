@@ -85,6 +85,8 @@
 
 #include "object_intern.h"
 
+static void modifier_skin_customdata_ensure(struct Object *ob);
+
 /******************************** API ****************************/
 
 ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *scene, Object *ob, const char *name, int type)
@@ -156,6 +158,10 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 
 			/* ensure that grid paint mask layer is created */
 			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
+		}
+		else if(type == eModifierType_Skin) {
+			/* ensure skin-node customdata exists */
+			modifier_skin_customdata_ensure(ob);
 		}
 	}
 
@@ -1324,6 +1330,41 @@ void OBJECT_OT_multires_base_apply(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	edit_modifier_properties(ot);
+}
+
+
+/************************** skin modifier ***********************/
+
+static void modifier_skin_customdata_ensure(Object *ob)
+{
+	Mesh *me = ob->data;
+	BMesh *bm = me->edit_btmesh ? me->edit_btmesh->bm : NULL;
+	MVertSkin *vs;
+
+	if (bm && !CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		BMVert *v;
+		BMIter iter;
+
+		BM_data_layer_add(bm, &bm->vdata, CD_MVERT_SKIN);
+		
+		/* Mark an arbitrary vertex as root */
+		BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+			vs = CustomData_bmesh_get(&bm->vdata, v->head.data,
+									  CD_MVERT_SKIN);
+			vs->flag |= MVERT_SKIN_ROOT;
+			break;
+		}
+	}
+	else if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
+		vs = CustomData_add_layer(&me->vdata,
+								  CD_MVERT_SKIN,
+								  CD_DEFAULT,
+								  NULL,
+								  me->totvert);
+
+		/* Mark an arbitrary vertex as root */
+		vs->flag |= MVERT_SKIN_ROOT;
+	}
 }
 
 
