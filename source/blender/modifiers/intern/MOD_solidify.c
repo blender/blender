@@ -241,7 +241,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	float (*face_nors_result)[3] = NULL;
 
 	const float ofs_orig = -(((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	const float ofs_new  = smd->offset - ofs_orig;
+	const float ofs_new  = smd->offset + ofs_orig;
 	const float offset_fac_vg = smd->offset_fac_vg;
 	const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
 
@@ -286,27 +286,26 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			edge_users[i] = INVALID_UNUSED;
 		}
 
-#define ADD_EDGE_USER(_v1, _v2, edge_ord) \
-		{ \
-			const unsigned int ml_v1 = _v1; \
-			const unsigned int ml_v2 = _v2; \
-			eidx = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2)); \
-			if (edge_users[eidx] == INVALID_UNUSED) { \
-				ed= orig_medge + eidx; \
-				edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces); \
-				edge_order[eidx] = edge_ord; \
-			} \
-			else { \
-				edge_users[eidx] = INVALID_PAIR; \
-			} \
-		} (void)0
-
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
-			MLoop *ml;
-			
-			for (ml = orig_mloop + mp->loopstart, j = 0; j < mp->totloop; ml++, j++) {
-				ADD_EDGE_USER(ml->v, ME_POLY_LOOP_NEXT(orig_mloop, mp, j)->v, j);
-			}	
+			MLoop *ml = orig_mloop + mp->loopstart;
+			unsigned int ml_v1;
+			unsigned int ml_v2;
+
+			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			     j < mp->totloop;
+			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			{
+				/* add edge user */
+				eidx = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2));
+				if (edge_users[eidx] == INVALID_UNUSED) {
+					ed = orig_medge + eidx;
+					edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces);
+					edge_order[eidx] = j;
+				}
+				else {
+					edge_users[eidx] = INVALID_PAIR;
+				}
+			}
 		}
 
 #undef ADD_EDGE_USER
