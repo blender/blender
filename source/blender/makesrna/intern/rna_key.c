@@ -445,6 +445,13 @@ static char *rna_ShapeKeyPoint_path(PointerRNA *ptr)
 
 #else
 
+EnumPropertyItem keyblock_type_items[] = {
+	{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
+	{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
+	{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static void rna_def_keydata(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -515,13 +522,6 @@ static void rna_def_keyblock(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "ShapeKey", NULL);
 	RNA_def_struct_ui_text(srna, "Shape Key", "Shape key in a shape keys datablock");
 	RNA_def_struct_sdna(srna, "KeyBlock");
@@ -551,8 +551,8 @@ static void rna_def_keyblock(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "interpolation", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "type");
-	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
-	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation type");
+	RNA_def_property_enum_items(prop, keyblock_type_items);
+	RNA_def_property_ui_text(prop, "Interpolation", "Interpolation type for absolute shape keys");
 	RNA_def_property_update(prop, 0, "rna_Key_update_data");
 
 	prop = RNA_def_property(srna, "vertex_group", PROP_STRING, PROP_NONE);
