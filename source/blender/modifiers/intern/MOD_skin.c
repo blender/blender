@@ -83,7 +83,7 @@
 typedef struct {
 	float mat[3][3];
 	/* Vert that edge is pointing away from, no relation to
-	   MEdge.v1 */
+	 * MEdge.v1 */
 	int origin;
 } EMat;
 
@@ -130,17 +130,17 @@ typedef struct {
 } SkinOutput;
 
 static void add_poly(SkinOutput *so,
-					 BMVert *v1,
-					 BMVert *v2,
-					 BMVert *v3,
-					 BMVert *v4);
+                     BMVert *v1,
+                     BMVert *v2,
+                     BMVert *v3,
+                     BMVert *v4);
 
 /***************************** Convex Hull ****************************/
 
 static int is_quad_symmetric(BMVert *quad[4],
-							 const SkinModifierData *smd)
+                             const SkinModifierData *smd)
 {
-	const float threshold = 0.0001;
+	const float threshold = 0.0001f;
 	int axis;
 
 	for (axis = 0; axis < 3; axis++) {
@@ -170,7 +170,7 @@ static int is_quad_symmetric(BMVert *quad[4],
 
 /* Returns true if the quad crosses the plane of symmetry, false otherwise */
 static int quad_crosses_symmetry_plane(BMVert *quad[4],
-									   const SkinModifierData *smd)
+                                       const SkinModifierData *smd)
 {
 	int axis;
 
@@ -196,7 +196,7 @@ static int quad_crosses_symmetry_plane(BMVert *quad[4],
 /* Returns true if the frame is filled by precisely two faces (and
  * outputs those faces to fill_faces), otherwise returns false. */
 static int skin_frame_find_contained_faces(const Frame *frame,
-										   BMFace *fill_faces[2])
+                                           BMFace *fill_faces[2])
 {
 	BMEdge *diag;
 
@@ -272,10 +272,10 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 		Frame *frame = frames[i];
 
 		if (!frame->detached &&
-			(!BM_edge_exists(frame->verts[0], frame->verts[1]) ||
-			 !BM_edge_exists(frame->verts[1], frame->verts[2]) ||
-			 !BM_edge_exists(frame->verts[2], frame->verts[3]) ||
-			 !BM_edge_exists(frame->verts[3], frame->verts[0])))
+		    (!BM_edge_exists(frame->verts[0], frame->verts[1]) ||
+		     !BM_edge_exists(frame->verts[1], frame->verts[2]) ||
+		     !BM_edge_exists(frame->verts[2], frame->verts[3]) ||
+		     !BM_edge_exists(frame->verts[3], frame->verts[0])))
 		{
 			frame->detached = TRUE;
 		}
@@ -328,7 +328,7 @@ static int build_hull(SkinOutput *so, Frame **frames, int totframe)
 static float frame_len(const Frame *frame)
 {
 	return (len_v3v3(frame->co[0], frame->co[1]) +
-			len_v3v3(frame->co[1], frame->co[2])) * 0.5f;
+	        len_v3v3(frame->co[1], frame->co[2])) * 0.5f;
 }
 
 static void merge_frame_corners(Frame **frames, int totframe)
@@ -373,11 +373,11 @@ static void merge_frame_corners(Frame **frames, int totframe)
 					 * 'near' is based in the frames' minimum side
 					 * length */
 					dist = len_v3v3(frames[i]->co[j],
-									frames[k]->co[l]);
+					                frames[k]->co[l]);
 					if (dist < thresh) {
 						mid_v3_v3v3(mid,
-									frames[i]->co[j],
-									frames[k]->co[l]);
+						            frames[i]->co[j],
+						            frames[k]->co[l]);
 
 						copy_v3_v3(frames[i]->co[j], mid);
 						copy_v3_v3(frames[k]->co[l], mid);
@@ -396,16 +396,16 @@ static void merge_frame_corners(Frame **frames, int totframe)
 }
 
 static Frame **collect_hull_frames(int v, SkinNode *frames,
-				   const MeshElemMap *emap, const MEdge *medge,
-				   int *tothullframe)
+                                   const MeshElemMap *emap, const MEdge *medge,
+                                   int *tothullframe)
 {
 	SkinNode *f;
 	Frame **hull_frames;
 	int nbr, i;
 
 	(*tothullframe) = emap[v].count;
-	hull_frames = MEM_callocN(sizeof(Frame **) * (*tothullframe),
-				  "hull_from_frames.hull_frames");
+	hull_frames = MEM_callocN(sizeof(Frame * *) * (*tothullframe),
+	                          "hull_from_frames.hull_frames");
 	i = 0;
 	for (nbr = 0; nbr < emap[v].count; nbr++) {
 		const MEdge *e = &medge[emap[v].indices[nbr]];
@@ -436,8 +436,8 @@ static void node_frames_init(SkinNode *nf, int totframe)
 }
 
 static void create_frame(Frame *frame, const float co[3],
-						 const float radius[2],
-						 float mat[3][3], float offset)
+                         const float radius[2],
+                         float mat[3][3], float offset)
 {
 	float rx[3], ry[3], rz[3];
 	int i;
@@ -468,8 +468,8 @@ static float half_v2(const float v[2])
 }
 
 static void end_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
-							const MVertSkin *nodes, const MeshElemMap *emap,
-							EMat *emat)
+                            const MVertSkin *nodes, const MeshElemMap *emap,
+                            EMat *emat)
 {
 	const float *rad = nodes[v].radius;
 	float mat[3][3];
@@ -537,8 +537,8 @@ static int connection_node_mat(float mat[3][3], int v, const MeshElemMap *emap, 
 }
 
 static void connection_node_frames(int v, SkinNode *skin_nodes, const MVert *mvert,
-				   const MVertSkin *nodes, const MeshElemMap *emap,
-				   EMat *emat)
+                                   const MVertSkin *nodes, const MeshElemMap *emap,
+                                   EMat *emat)
 {
 	const float *rad = nodes[v].radius;
 	float mat[3][3];
@@ -575,8 +575,8 @@ static void connection_node_frames(int v, SkinNode *skin_nodes, const MVert *mve
 }
 
 static SkinNode *build_frames(const MVert *mvert, int totvert,
-				const MVertSkin *nodes, const MeshElemMap *emap,
-				EMat *emat)
+                              const MVertSkin *nodes, const MeshElemMap *emap,
+                              EMat *emat)
 {
 	SkinNode *skin_nodes;
 	int v;
@@ -628,15 +628,15 @@ static void calc_edge_mat(float mat[3][3], const float a[3], const float b[3])
 }
 
 static void build_emats_rec(int *visited_e, EMat *emat,
-							const MeshElemMap *emap, const MEdge *medge,
-							const MVertSkin *vs, const MVert *mvert,
-							int parent_v, float parent_mat[3][3])
+                            const MeshElemMap *emap, const MEdge *medge,
+                            const MVertSkin *vs, const MVert *mvert,
+                            int parent_v, float parent_mat[3][3])
 {
 	float axis[3], angle;
 	int i, e, v, parent_is_branch;
 
 	parent_is_branch = ((emap[parent_v].count > 2) ||
-						(vs[parent_v].flag & MVERT_SKIN_ROOT));
+	                    (vs[parent_v].flag & MVERT_SKIN_ROOT));
 
 	for (i = 0; i < emap[parent_v].count; i++) {
 		e = emap[parent_v].indices[i];
@@ -651,7 +651,7 @@ static void build_emats_rec(int *visited_e, EMat *emat,
 		/* If parent is a branch node, start a new edge chain */
 		if (parent_is_branch) {
 			calc_edge_mat(emat[e].mat, mvert[parent_v].co,
-						  mvert[v].co);
+			              mvert[v].co);
 		}
 		else {
 			/* Build edge matrix guided by parent matrix */
@@ -665,12 +665,12 @@ static void build_emats_rec(int *visited_e, EMat *emat,
 		}
 
 		build_emats_rec(visited_e, emat, emap, medge,
-						vs, mvert, v, emat[e].mat);
+		                vs, mvert, v, emat[e].mat);
 	}
 }
 
 static EMat *build_edge_mats(MVertSkin *vs, MVert *mvert, int totvert,
-			     MEdge *medge, MeshElemMap *emap, int totedge)
+                             MEdge *medge, MeshElemMap *emap, int totedge)
 {
 	EMat *emat;
 	float mat[3][3];
@@ -685,7 +685,7 @@ static EMat *build_edge_mats(MVertSkin *vs, MVert *mvert, int totvert,
 			if (emap[v].count >= 1) {
 				const MEdge *e = &medge[emap[v].indices[0]];
 				calc_edge_mat(mat, mvert[v].co,
-					      mvert[BKE_mesh_edge_other_vert(e, v)].co);
+				              mvert[BKE_mesh_edge_other_vert(e, v)].co);
 				build_emats_rec(visited_e, emat, emap, medge, vs, mvert, v, mat);
 			}
 		}
@@ -705,7 +705,7 @@ static EMat *build_edge_mats(MVertSkin *vs, MVert *mvert, int totvert,
  * having any special cases for dealing with sharing a frame between
  * two hulls.) */
 static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
-			   const MEdge *e, int *degree)
+                                  const MEdge *e, int *degree)
 {
 	const MVertSkin *evs[2] = {&nodes[e->v1], &nodes[e->v2]};
 	float edge_len, avg[2];
@@ -716,7 +716,7 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 	/* If either end is a branch node marked 'loose', don't subdivide
 	 * the edge (or subdivide just twice if both are branches) */
 	if ((v1_branch && (evs[0]->flag & MVERT_SKIN_LOOSE)) ||
-		(v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE))) {
+	    (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE))) {
 		if (v1_branch && v2_branch)
 			return 2;
 		else
@@ -769,7 +769,7 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 	edge_subd = MEM_callocN(sizeof(int) * totorigedge, "edge_subd");
 	for (i = 0, totsubd = 0; i < totorigedge; i++) {
 		edge_subd[i] += calc_edge_subdivisions(origvert, orignode,
-						       &origedge[i], degree);
+		                                       &origedge[i], degree);
 		totsubd += edge_subd[i];
 	}
 
@@ -777,9 +777,9 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 	/* Allocate output derivedmesh */
 	dm = CDDM_from_template(orig,
-							totorigvert + totsubd,
-							totorigedge + totsubd,
-							0, 0, 0);
+	                        totorigvert + totsubd,
+	                        totorigedge + totsubd,
+	                        0, 0, 0);
 
 	outvert = dm->getVertArray(dm);
 	outedge = dm->getEdgeArray(dm);
@@ -788,8 +788,8 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 	/* Copy original vertex data */
 	CustomData_copy_data(&orig->vertData,
-						 &dm->vertData,
-						 0, 0, totorigvert);
+	                     &dm->vertData,
+	                     0, 0, totorigvert);
 
 	/* Subdivide edges */
 	for (i = 0, v = totorigvert; i < totorigedge; i++) {
@@ -828,7 +828,7 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 		u = e->v1;
 		radrat = (half_v2(outnode[e->v2].radius) /
-				  half_v2(outnode[e->v1].radius));
+		          half_v2(outnode[e->v1].radius));
 		radrat = (radrat + 1) / 2;
 
 		/* Add vertices and edge segments */
@@ -838,12 +838,12 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 			/* Interpolate vertex coord */
 			interp_v3_v3v3(outvert[v].co, outvert[e->v1].co,
-						   outvert[e->v2].co, t);
+			               outvert[e->v2].co, t);
 
 			/* Interpolate skin radii */
 			interp_v3_v3v3(outnode[v].radius,
-						   orignode[e->v1].radius,
-						   orignode[e->v2].radius, t);
+			               orignode[e->v1].radius,
+			               orignode[e->v2].radius, t);
 
 			/* Interpolate vertex group weights */
 			for (k = 0; k < totvgroup; k++) {
@@ -879,10 +879,10 @@ static DerivedMesh *subdivide_base(DerivedMesh *orig)
 
 /* Can be either quad or triangle */
 static void add_poly(SkinOutput *so,
-					 BMVert *v1,
-					 BMVert *v2,
-					 BMVert *v3,
-					 BMVert *v4)
+                     BMVert *v1,
+                     BMVert *v2,
+                     BMVert *v3,
+                     BMVert *v4)
 {
 	BMVert *verts[4] = {v1, v2, v3, v4};
 	BMEdge *edges[4];
@@ -911,8 +911,8 @@ static void add_poly(SkinOutput *so,
 }
 
 static void connect_frames(SkinOutput *so,
-						   BMVert *frame1[4],
-						   BMVert *frame2[4])
+                           BMVert *frame1[4],
+                           BMVert *frame2[4])
 {
 	BMVert *q[4][4] = {{frame2[0], frame2[1], frame1[1], frame1[0]},
 					   {frame2[1], frame2[2], frame1[2], frame1[1]},
@@ -924,8 +924,8 @@ static void connect_frames(SkinOutput *so,
 	/* Check if frame normals need swap */
 	sub_v3_v3v3(p, q[3][0]->co, q[0][0]->co);
 	normal_quad_v3(no,
-				   q[0][0]->co, q[0][1]->co,
-				   q[0][2]->co, q[0][3]->co);
+	               q[0][0]->co, q[0][1]->co,
+	               q[0][2]->co, q[0][3]->co);
 	swap = dot_v3v3(no, p) > 0;
 
 	for (i = 0; i < 4; i++) {
@@ -937,8 +937,8 @@ static void connect_frames(SkinOutput *so,
 }
 
 static void output_frames(BMesh *bm,
-						  SkinNode *sn,
-						  const MDeformVert *input_dvert)
+                          SkinNode *sn,
+                          const MDeformVert *input_dvert)
 {
 	Frame *f;
 	int i, j;
@@ -953,8 +953,8 @@ static void output_frames(BMesh *bm,
 				if (input_dvert) {
 					MDeformVert *dv;
 					dv = CustomData_bmesh_get(&bm->vdata,
-											  v->head.data,
-											  CD_MDEFORMVERT);
+					                          v->head.data,
+					                          CD_MDEFORMVERT);
 					
 					BLI_assert(dv->totweight == 0);
 					defvert_copy(dv, input_dvert);
@@ -977,16 +977,16 @@ static void calc_frame_center(float center[3], const Frame *frame)
 /* Does crappy fan triangulation of poly, may not be so accurate for
  * concave faces */
 static int isect_ray_poly(const float ray_start[3],
-						  const float ray_dir[3],
-						  BMFace *f,
-						  float *r_lambda)
+                          const float ray_dir[3],
+                          BMFace *f,
+                          float *r_lambda)
 {
 	BMVert *v, *v_first = NULL, *v_prev = NULL;
 	BMIter iter;
 	float best_dist = FLT_MAX;
 	int hit = 0;
 	
-	BM_ITER_ELEM(v, &iter, f, BM_VERTS_OF_FACE) {
+	BM_ITER_ELEM (v, &iter, f, BM_VERTS_OF_FACE) {
 		if (!v_first)
 			v_first = v;
 		else if (v_prev != v_first) {
@@ -994,8 +994,8 @@ static int isect_ray_poly(const float ray_start[3],
 			int curhit;
 			
 			curhit = isect_ray_tri_v3(ray_start, ray_dir,
-									  v_first->co, v_prev->co, v->co,
-									  &dist, NULL);
+			                          v_first->co, v_prev->co, v->co,
+			                          &dist, NULL);
 			if (curhit && dist < best_dist) {
 				hit = TRUE;
 				best_dist = dist;
@@ -1015,7 +1015,7 @@ static int isect_ray_poly(const float ray_start[3],
  * The orig_verts should contain the vertices of 'f'
  */
 static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
-									 BMVert **orig_verts)
+                                     BMVert **orig_verts)
 {
 	int orig_len = f->len;
 
@@ -1048,14 +1048,14 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 
 		/* Find the new face */
 		f = NULL;
-		BM_ITER_ELEM(vf, &iter, v_safe, BM_FACES_OF_VERT) {
+		BM_ITER_ELEM (vf, &iter, v_safe, BM_FACES_OF_VERT) {
 			int wrong_face = FALSE;
 			
 			for (i = 0; i < orig_len; i++) {
 				if (orig_verts[i] == v_merge)
 					orig_verts[i] = NULL;
 				else if (orig_verts[i] &&
-						!BM_vert_in_face(vf, orig_verts[i]))
+				         !BM_vert_in_face(vf, orig_verts[i]))
 				{
 					wrong_face = TRUE;
 					break;
@@ -1087,13 +1087,13 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
 
 	calc_frame_center(frame_center, frame);
 	normal_quad_v3(frame_normal, frame->verts[3]->co,
-				   frame->verts[2]->co, frame->verts[1]->co,
-				   frame->verts[0]->co);
+	               frame->verts[2]->co, frame->verts[1]->co,
+	               frame->verts[0]->co);
 
 	/* Use a line intersection test and nearest center test against
 	 * all faces */
 	isect_target_face = center_target_face = NULL;
-	BM_ITER_MESH(f, &iter, bm, BM_FACES_OF_MESH) {
+	BM_ITER_MESH (f, &iter, bm, BM_FACES_OF_MESH) {
 		float dist, poly_center[3];
 		int hit;
 
@@ -1130,7 +1130,7 @@ static BMFace *skin_hole_target_face(BMesh *bm, Frame *frame)
 
 /* Use edge-length heuristic to choose from eight possible polygon bridges */
 static void skin_choose_quad_bridge_order(BMVert *a[4], BMVert *b[4],
-										  int best_order[4])
+                                          int best_order[4])
 {
 	int orders[8][4];
 	float shortest_len;
@@ -1180,7 +1180,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	/* Update split face (should only be one new face created
 	 * during extrusion) */
 	split_face = NULL;
-	BMO_ITER(f, &oiter, bm, &op, "faceout", BM_FACE) {
+	BMO_ITER (f, &oiter, bm, &op, "faceout", BM_FACE) {
 		BLI_assert(!split_face);
 		split_face = f;
 	}
@@ -1196,19 +1196,19 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		BMO_mesh_flag_disable_all(bm, NULL, BM_EDGE, 1);
 		BMO_elem_flag_enable(bm, longest_edge, 1);
 		BMO_op_callf(bm, "esubd edges=%fe numcuts=%i quadcornertype=%i",
-					 1, 1, SUBD_STRAIGHT_CUT);
+		             1, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
 		/* Maintain a dynamic vert array containing the split_face's
 		 * vertices, avoids frequent allocs in collapse_face_corners() */
 		if (BLI_array_count(vert_buf) < split_face->len) {
 			BLI_array_grow_items(vert_buf, (split_face->len -
-											BLI_array_count(vert_buf)));
+			                                BLI_array_count(vert_buf)));
 		}
 
 		/* Get split face's verts */
 		BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face,
-						 (void **)verts, split_face->len);
+		                 (void **)verts, split_face->len);
 
 		/* Earlier edge split operations may have turned some quads
 		 * into higher-degree faces */
@@ -1230,7 +1230,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BMO_op_init(bm, &op, "weldverts");
 	for (i = 0; i < 4; i++) {
 		BMO_slot_map_ptr_insert(bm, &op, "targetmap",
-								verts[i], frame->verts[best_order[i]]);
+		                        verts[i], frame->verts[best_order[i]]);
 	}
 	BMO_op_exec(bm, &op);
 	BMO_op_finish(bm, &op);
@@ -1271,8 +1271,8 @@ static void quad_from_tris(BMesh *bm, BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
 	/* Find what the second tri has that the first doesn't */
 	for (i = 0; i < 3; i++) {
 		if (tri[1][i] != tri[0][0] &&
-			tri[1][i] != tri[0][1] &&
-			tri[1][i] != tri[0][2])
+		    tri[1][i] != tri[0][1] &&
+		    tri[1][i] != tri[0][2])
 		{
 			opp = tri[1][i];
 			break;
@@ -1285,7 +1285,7 @@ static void quad_from_tris(BMesh *bm, BMEdge *e, BMFace *adj[2], BMVert *ndx[4])
 		/* When the triangle edge cuts across our quad-to-be,
 		 * throw in the second triangle's vertex */
 		if ((tri[0][i] == e->v1 || tri[0][i] == e->v2) &&
-			(tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2))
+		    (tri[0][(i + 1) % 3] == e->v1 || tri[0][(i + 1) % 3] == e->v2))
 		{
 			j++;
 			ndx[j] = opp;
@@ -1311,7 +1311,7 @@ static int BM_face_share_face_count(BMFace *f1, BMFace *f2)
 	int count = 0;
 
 	BM_ITER_ELEM (e, &iter1, f1, BM_EDGES_OF_FACE) {
-		BM_ITER_ELEM(f, &iter2, e, BM_FACES_OF_EDGE) {
+		BM_ITER_ELEM (f, &iter2, e, BM_FACES_OF_EDGE) {
 			if (f != f1 && f != f2 && BM_face_share_edge_count(f, f2))
 				count++;
 		}
@@ -1347,8 +1347,8 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 				/* Calculate a score for the quad, higher score for
 				 * triangles being closer to coplanar */
 				score = ((BM_face_calc_area(adj[0]) +
-						  BM_face_calc_area(adj[1])) *
-						 dot_v3v3(adj[0]->no, adj[1]->no));
+				          BM_face_calc_area(adj[1])) *
+				         dot_v3v3(adj[0]->no, adj[1]->no));
 
 				/* Check if quad crosses the axis of symmetry */
 				if (quad_crosses_symmetry_plane(quad, smd)) {
@@ -1362,7 +1362,7 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 
 				/* Don't use the quad if it's concave */
 				if (!is_quad_convex_v3(quad[0]->co, quad[1]->co,
-									   quad[2]->co, quad[3]->co))
+				                       quad[2]->co, quad[3]->co))
 				{
 					continue;
 				}
@@ -1381,8 +1381,8 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 			/* If both triangles still free, and if they don't already
 			 * share a border with another face, output as a quad */
 			if (!BM_elem_flag_test(adj[0], BM_ELEM_TAG) &&
-				!BM_elem_flag_test(adj[1], BM_ELEM_TAG) &&
-				!BM_face_share_face_count(adj[0], adj[1]))
+			    !BM_elem_flag_test(adj[1], BM_ELEM_TAG) &&
+			    !BM_face_share_face_count(adj[0], adj[1]))
 			{
 				add_quad_from_tris(so, e, adj);
 				BM_elem_flag_enable(adj[0], BM_ELEM_TAG);
@@ -1398,8 +1398,8 @@ static void hull_merge_triangles(SkinOutput *so, const SkinModifierData *smd)
 }
 
 static void skin_merge_close_frame_verts(SkinNode *skin_nodes, int totvert,
-										 const MeshElemMap *emap,
-										 const MEdge *medge)
+                                         const MeshElemMap *emap,
+                                         const MEdge *medge)
 {
 	Frame **hull_frames;
 	int v, tothullframe;
@@ -1408,8 +1408,8 @@ static void skin_merge_close_frame_verts(SkinNode *skin_nodes, int totvert,
 		/* Only check branch nodes */
 		if (!skin_nodes[v].totframe) {
 			hull_frames = collect_hull_frames(v, skin_nodes,
-											  emap, medge,
-											  &tothullframe);
+			                                  emap, medge,
+			                                  &tothullframe);
 			merge_frame_corners(hull_frames, tothullframe);
 			MEM_freeN(hull_frames);
 		}
@@ -1440,7 +1440,7 @@ static void skin_update_merged_vertices(SkinNode *skin_nodes, int totvert)
 }
 
 static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes,
-								   int totvert)
+                                   int totvert)
 {
 	int v;
 	
@@ -1465,7 +1465,7 @@ static void skin_fix_hull_topology(BMesh *bm, SkinNode *skin_nodes,
 }
 
 static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
-								  int totvert)
+                                  int totvert)
 {
 	int v;
 	
@@ -1477,38 +1477,38 @@ static void skin_output_end_nodes(SkinOutput *so, SkinNode *skin_nodes,
 			int i, order[4];
 			
 			skin_choose_quad_bridge_order(sn->frames[0].verts,
-										  sn->frames[1].verts,
-										  order);
+			                              sn->frames[1].verts,
+			                              order);
 			for (i = 0; i < 4; i++)
 				v_order[i] = sn->frames[1].verts[order[i]];
 			connect_frames(so, sn->frames[0].verts, v_order);
 		}
 		else if (sn->totframe == 2) {
 			connect_frames(so,
-						   sn->frames[0].verts,
-						   sn->frames[1].verts);
+			               sn->frames[0].verts,
+			               sn->frames[1].verts);
 		}
 
 		if (sn->flag & CAP_START) {
 			add_poly(so,
-					 sn->frames[0].verts[3],
-					 sn->frames[0].verts[2],
-					 sn->frames[0].verts[1],
-					 sn->frames[0].verts[0]);
+			         sn->frames[0].verts[3],
+			         sn->frames[0].verts[2],
+			         sn->frames[0].verts[1],
+			         sn->frames[0].verts[0]);
 		}
 		if (sn->flag & CAP_END) {
 			add_poly(so,
-					 sn->frames[1].verts[3],
-					 sn->frames[1].verts[2],
-					 sn->frames[1].verts[1],
-					 sn->frames[1].verts[0]);
+			         sn->frames[1].verts[3],
+			         sn->frames[1].verts[2],
+			         sn->frames[1].verts[1],
+			         sn->frames[1].verts[0]);
 		}
 	}
 }
 
 static void skin_output_connections(SkinOutput *so, SkinNode *skin_nodes,
-									const MEdge *medge,
-									int totedge)
+                                    const MEdge *medge,
+                                    int totedge)
 {
 	int e;
 	
@@ -1535,15 +1535,15 @@ static void skin_output_connections(SkinOutput *so, SkinNode *skin_nodes,
 			}
 			else {
 				connect_frames(so,
-							   a->frames[0].verts,
-							   b->frames[0].verts);
+				               a->frames[0].verts,
+				               b->frames[0].verts);
 			}
 		}
 	}
 }
 
 static void skin_smooth_hulls(BMesh *bm, SkinNode *skin_nodes,
-							  int totvert, const SkinModifierData *smd)
+                              int totvert, const SkinModifierData *smd)
 {
 	BMIter iter, eiter;
 	BMVert *v;
@@ -1568,7 +1568,7 @@ static void skin_smooth_hulls(BMesh *bm, SkinNode *skin_nodes,
 	skey = CustomData_number_of_layers(&bm->vdata, CD_SHAPEKEY) - 1;
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		copy_v3_v3(CustomData_bmesh_get_n(&bm->vdata, v->head.data,
-										  CD_SHAPEKEY, skey), v->co);
+		                                  CD_SHAPEKEY, skey), v->co);
 	}
 
 	/* Smooth vertices, weight unmarked vertices more strongly (helps
@@ -1588,8 +1588,8 @@ static void skin_smooth_hulls(BMesh *bm, SkinNode *skin_nodes,
 			BMVert *other = BM_edge_other_vert(e, v);
 
 			add_v3_v3(avg, CustomData_bmesh_get_n(&bm->vdata,
-												  other->head.data,
-												  CD_SHAPEKEY, skey));
+			                                      other->head.data,
+			                                      CD_SHAPEKEY, skey));
 			totv++;
 		}
 
@@ -1605,8 +1605,8 @@ static void skin_smooth_hulls(BMesh *bm, SkinNode *skin_nodes,
 
 /* Returns TRUE if all hulls are successfully built, FALSE otherwise */
 static int skin_output_branch_hulls(SkinOutput *so, SkinNode *skin_nodes,
-									int totvert, const MeshElemMap *emap,
-									const MEdge *medge)
+                                    int totvert, const MeshElemMap *emap,
+                                    const MEdge *medge)
 {
 	int result = TRUE, v;
 	
@@ -1619,8 +1619,8 @@ static int skin_output_branch_hulls(SkinOutput *so, SkinNode *skin_nodes,
 			int tothullframe;
 			
 			hull_frames = collect_hull_frames(v, skin_nodes,
-											  emap, medge,
-											  &tothullframe);
+			                                  emap, medge,
+			                                  &tothullframe);
 			if (!build_hull(so, hull_frames, tothullframe))
 				result = FALSE;
 
@@ -1632,10 +1632,10 @@ static int skin_output_branch_hulls(SkinOutput *so, SkinNode *skin_nodes,
 }
 
 static BMesh *build_skin(SkinNode *skin_nodes,
-						 int totvert, const MeshElemMap *emap,
-						 const MEdge *medge, int totedge,
-						 const MDeformVert *input_dvert,
-						 SkinModifierData *smd)
+                         int totvert, const MeshElemMap *emap,
+                         const MEdge *medge, int totedge,
+                         const MDeformVert *input_dvert,
+                         SkinModifierData *smd)
 {
 	SkinOutput so;
 	int v;
@@ -1655,7 +1655,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	for (v = 0; v < totvert; ++v) {
 		if (skin_nodes[v].totframe)
 			output_frames(so.bm, &skin_nodes[v],
-						  input_dvert ? &input_dvert[v] : NULL);
+			              input_dvert ? &input_dvert[v] : NULL);
 	}
 
 	/* Update vertex pointers for merged frame corners */
@@ -1671,7 +1671,7 @@ static BMesh *build_skin(SkinNode *skin_nodes,
 	/* Using convex hulls may not generate a nice manifold mesh. Two
 	 * problems can occur: an input frame's edges may be inside the
 	 * hull, and/or an input frame's vertices may be inside the hull.
-     *
+	 *
 	 * General fix to produce manifold mesh: for any frame that is
 	 * partially detached, first detach it fully, then find a suitable
 	 * existing face to merge with. (Note that we do this after
@@ -1695,7 +1695,7 @@ static void skin_set_orig_indices(DerivedMesh *dm)
 
 	totpoly = dm->getNumPolys(dm);
 	orig = CustomData_add_layer(&dm->polyData, CD_ORIGINDEX,
-								CD_CALLOC, 0, totpoly);
+	                            CD_CALLOC, 0, totpoly);
 	for (i = 0; i < totpoly; i++)
 		orig[i] = ORIGINDEX_NONE;
 }
@@ -1707,7 +1707,7 @@ static void skin_set_orig_indices(DerivedMesh *dm)
  * 3) Output vertices and polygons from frames, connections, and hulls
  */
 static DerivedMesh *base_skin(DerivedMesh *origdm,
-							  SkinModifierData *smd)
+                              SkinModifierData *smd)
 {
 	BMEditMesh fake_em;
 	DerivedMesh *result;
@@ -1759,7 +1759,7 @@ static DerivedMesh *base_skin(DerivedMesh *origdm,
 }
 
 static DerivedMesh *final_skin(SkinModifierData *smd,
-							   DerivedMesh *origdm)
+                               DerivedMesh *origdm)
 {
 	DerivedMesh *dm;
 
@@ -1780,7 +1780,7 @@ static DerivedMesh *final_skin(SkinModifierData *smd,
 
 static void initData(ModifierData *md)
 {
-	SkinModifierData *smd = (SkinModifierData*) md;
+	SkinModifierData *smd = (SkinModifierData *) md;
 	
 	/* Enable in editmode by default */
 	md->mode |= eModifierMode_Editmode;
@@ -1792,38 +1792,38 @@ static void initData(ModifierData *md)
 
 static void copyData(ModifierData *md, ModifierData *target)
 {
-	SkinModifierData *smd = (SkinModifierData*) md;
-	SkinModifierData *tsmd = (SkinModifierData*) target;
+	SkinModifierData *smd = (SkinModifierData *) md;
+	SkinModifierData *tsmd = (SkinModifierData *) target;
 
 	*tsmd = *smd;
 }
 
 static DerivedMesh *applyModifierEM(ModifierData *md,
-									Object *UNUSED(ob),
-									BMEditMesh *UNUSED(em),
-									DerivedMesh *dm)
+                                    Object *UNUSED(ob),
+                                    BMEditMesh *UNUSED(em),
+                                    DerivedMesh *dm)
 {
 	DerivedMesh *result;
 
-	if (!(result = final_skin((SkinModifierData*)md, dm)))
+	if (!(result = final_skin((SkinModifierData *)md, dm)))
 		return dm;
 	return result;
 }
 
 static DerivedMesh *applyModifier(ModifierData *md,
-								  Object *UNUSED(ob),
-								  DerivedMesh *dm,
-								  ModifierApplyFlag UNUSED(flag))
+                                  Object *UNUSED(ob),
+                                  DerivedMesh *dm,
+                                  ModifierApplyFlag UNUSED(flag))
 {
 	DerivedMesh *result;
 
-	if (!(result = final_skin((SkinModifierData*)md, dm)))
+	if (!(result = final_skin((SkinModifierData *)md, dm)))
 		return dm;
 	return result;
 }
 
 static CustomDataMask requiredDataMask(Object *UNUSED(ob),
-				       ModifierData *UNUSED(md))
+                                       ModifierData *UNUSED(md))
 {
 	return CD_MASK_MVERT_SKIN | CD_MASK_MDEFORMVERT;
 }
