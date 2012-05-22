@@ -932,7 +932,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			{
 				Object *ob = (Object *)tselem->id;
 				ModifierData *md = BLI_findlink(&ob->modifiers, tselem->nr);
-				switch (md->type) {
+				switch ((ModifierType)md->type) {
 					case eModifierType_Subsurf: 
 						UI_icon_draw(x, y, ICON_MOD_SUBSURF); break;
 					case eModifierType_Armature: 
@@ -986,6 +986,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 					case eModifierType_Explode:
 						UI_icon_draw(x, y, ICON_MOD_EXPLODE); break;
 					case eModifierType_Collision:
+					case eModifierType_Surface:
 						UI_icon_draw(x, y, ICON_MOD_PHYSICS); break;
 					case eModifierType_Fluidsim:
 						UI_icon_draw(x, y, ICON_MOD_FLUIDSIM); break;
@@ -1011,7 +1012,11 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_WARP); break;
 					case eModifierType_Skin:
 						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
-					default:
+
+					/* Default */
+					case eModifierType_None:
+					case eModifierType_ShapeKey:
+			        case NUM_MODIFIER_TYPES:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
 				break;
