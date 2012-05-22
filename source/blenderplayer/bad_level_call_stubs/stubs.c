@@ -122,15 +122,6 @@ void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object 
 void EDBM_mesh_normals_update(struct BMEditMesh *em) {}
 void *g_system;
 
-struct Heap* BLI_heap_new (void){return NULL;}
-void BLI_heap_free(struct Heap *heap, void *ptrfreefp) {}
-struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
-void BLI_heap_remove(struct Heap *heap, struct HeapNode *node) {}
-int BLI_heap_empty(struct Heap *heap) {return 0;}
-int BLI_heap_size(struct Heap *heap){return 0;}
-struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
-void* BLI_heap_popmin (struct Heap *heap){return NULL;}
-
 void BLI_smallhash_init(struct SmallHash *hash) {}
 void BLI_smallhash_release(struct SmallHash *hash) {}
 void BLI_smallhash_insert(struct SmallHash *hash, uintptr_t key, void *item) {}
