@@ -952,6 +952,49 @@ float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
 
 
 /**
+ * Returns the shortest edge in f.
+ */
+BMEdge *BM_face_find_shortest_edge(BMFace *f)
+{
+	BMIter iter;
+	BMEdge *shortest_edge = NULL, *e;
+	float shortest_len = FLT_MAX;
+
+	BM_ITER_ELEM(e, &iter, f, BM_EDGES_OF_FACE) {
+		float len = BM_edge_calc_length(e);
+
+		if (len <= shortest_len) {
+			shortest_edge = e;
+			shortest_len = len;
+		}
+	}
+
+	return shortest_edge;
+}
+
+/**
+ * Returns the longest edge in f.
+ */
+BMEdge *BM_face_find_longest_edge(BMFace *f)
+{
+	BMIter iter;
+	BMEdge *longest_edge = NULL, *e;
+	float longest_len = 0;
+
+	BM_ITER_ELEM(e, &iter, f, BM_EDGES_OF_FACE) {
+		float len = BM_edge_calc_length(e);
+
+		if (len >= longest_len) {
+			longest_edge = e;
+			longest_len = len;
+		}
+	}
+
+	return longest_edge;
+}
+
+
+/**
  * Returns the edge existing between v1 and v2, or NULL if there isn't one.
  *
  * \note multiple edges may exist between any two vertices, and therefore
