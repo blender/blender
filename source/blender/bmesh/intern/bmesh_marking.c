@@ -691,21 +691,9 @@ void BM_editselection_plane(BMEditSelection *ese, float r_plane[3])
 				}
 			}
 			else {
-				/* BMESH_TODO (not urgent, use longest ngon edge for alignment) */
+				BMLoop *l_long  = BM_face_find_longest_loop(efa);
 
-				/* start with v1-2 */
-				sub_v3_v3v3(r_plane, verts[0]->co, verts[1]->co);
-
-				/* test the edge between v2-3, use if longer */
-				sub_v3_v3v3(vec, verts[1]->co, verts[2]->co);
-				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec))
-					copy_v3_v3(r_plane, vec);
-
-				/* test the edge between v1-3, use if longer */
-				sub_v3_v3v3(vec, verts[2]->co, verts[0]->co);
-				if (dot_v3v3(r_plane, r_plane) < dot_v3v3(vec, vec)) {
-					copy_v3_v3(r_plane, vec);
-				}
+				sub_v3_v3v3(r_plane, l_long->v->co, l_long->next->v->co);
 			}
 
 		}
