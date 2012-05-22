@@ -39,6 +39,7 @@ void MovieDistortionNode::convertToOperations(ExecutionSystem *system, Composito
 	
 	MovieDistortionOperation * operation = new MovieDistortionOperation(bnode->custom1 == 1);
 	operation->setMovieClip(clip);
+	operation->setFramenumber(context->getFramenumber());
 
 	inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, system);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
