@@ -160,7 +160,11 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 		                                            {1, 5, 6, 2},
 		                                            {7, 4, 0, 3}};
 
-		UI_ThemeColorShade(TH_BACK, -8);
+		/* fill in zero alpha for rendering & re-projection [#31530] */
+		unsigned char col[4];
+		UI_GetThemeColorShade3ubv(TH_BACK, -8, col);
+		col[3] = 0;
+		glColor4ubv(col);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, bb->vec);
