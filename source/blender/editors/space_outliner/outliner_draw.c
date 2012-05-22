@@ -1009,6 +1009,8 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 						UI_icon_draw(x, y, ICON_MOD_OCEAN); break;
 					case eModifierType_Warp:
 						UI_icon_draw(x, y, ICON_MOD_WARP); break;
+					case eModifierType_Skin:
+						UI_icon_draw(x, y, ICON_MOD_SKIN); break;
 					default:
 						UI_icon_draw(x, y, ICON_DOT); break;
 				}
