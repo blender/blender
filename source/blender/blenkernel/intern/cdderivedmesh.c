@@ -1891,6 +1891,14 @@ DerivedMesh *CDDM_from_BMEditMesh(BMEditMesh *em, Mesh *UNUSED(me), int use_mdis
 		
 		med->flag = BM_edge_flag_to_mflag(eed);
 
+		/* handle this differently to editmode switching,
+		 * only enable draw for single user edges rather then calculating angle */
+		if ((med->flag & ME_EDGEDRAW) == 0) {
+			if (eed->l && eed->l == eed->l->radial_next) {
+				med->flag |= ME_EDGEDRAW;
+			}
+		}
+
 		CustomData_from_bmesh_block(&bm->edata, &dm->edgeData, eed->head.data, i);
 		if (add_orig) *index = i;
 	}

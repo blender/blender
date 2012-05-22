@@ -495,6 +495,9 @@ BLI_INLINE void bmesh_quick_edgedraw_flag(MEdge *med, BMEdge *e)
 	{
 		med->flag &= ~ME_EDGEDRAW;
 	}
+	else {
+		med->flag |= ME_EDGEDRAW;
+	}
 }
 
 void BM_mesh_bm_to_me(BMesh *bm, Mesh *me, int dotess)
