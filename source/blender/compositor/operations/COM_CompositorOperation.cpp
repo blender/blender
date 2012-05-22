@@ -31,7 +31,7 @@ extern "C" {
 	#include "RE_shader_ext.h"
 	#include "RE_render_ext.h"
 	#include "MEM_guardedalloc.h"
-#include "render_types.h"
+	#include "render_types.h"
 }
 #include "PIL_time.h"
 
@@ -55,24 +55,31 @@ void CompositorOperation::initExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		this->outputBuffer=(float*) MEM_callocN(this->getWidth()*this->getHeight()*4*sizeof(float), "CompositorOperation");
 	}
-	const Scene * scene = this->scene;
-	Render *re = RE_GetRender(scene->id.name);
-	RenderResult *rr = RE_AcquireResultWrite(re);
-	if (rr) {
-		if (rr->rectf  != NULL) {
-			MEM_freeN(rr->rectf);
-		}
-		rr->rectf = outputBuffer;
-	}
-	if (re) {
-		RE_ReleaseResult(re);
-		re = NULL;
-	}
-	
 }
 
 void CompositorOperation::deinitExecution()
 {
+	if (tree->test_break && !tree->test_break(tree->tbh)) {
+		const Scene * scene = this->scene;
+		Render *re = RE_GetRender(scene->id.name);
+		RenderResult *rr = RE_AcquireResultWrite(re);
+		if (rr) {
+			if (rr->rectf  != NULL) {
+				MEM_freeN(rr->rectf);
+			}
+			rr->rectf = outputBuffer;
+		}
+		if (re) {
+			RE_ReleaseResult(re);
+			re = NULL;
+		}
+		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+	} else {
+		if (this->outputBuffer) {
+			MEM_freeN(this->outputBuffer);
+		}
+	}
+	
 	this->outputBuffer = NULL;
 	this->imageInput = NULL;
 	this->alphaInput = NULL;
