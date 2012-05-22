@@ -99,8 +99,8 @@ Here are some examples ...
    uv_lay = bm.loops.layers.uv.active
 
    for face in bm.faces:
-       for loop in f.loops:
-           uv = loop[uv_lay]
+       for loop in face.loops:
+           uv = loop[uv_lay].uv
            print("Loop UV: %f, %f" % (uv.x, uv.y))
 
 
