@@ -206,10 +206,10 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
-			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length: 0.0;
+			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length : 0.0;
 		}
 
-		output[0] = (length != 0.0) ? (double)(distance / length) : 0.0f;
+		output[0] = (length != 0.0) ? (double)(distance / length) : 0.0;
 	}
 }
 

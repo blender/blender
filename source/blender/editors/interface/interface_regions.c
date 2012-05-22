@@ -442,7 +442,7 @@ ARegion *ui_tooltip_create(bContext *C, ARegion *butregion, uiBut *but)
 		if (ELEM(but->type, ROW, MENU)) {
 			EnumPropertyItem *item;
 			int i, totitem, free;
-			int value = (but->type == ROW) ? but->hardmax : ui_get_but_val(but);
+			int value = (but->type == ROW) ? (int)but->hardmax : (int)ui_get_but_val(but);
 
 			RNA_property_enum_items_gettexted(C, &but->rnapoin, but->rnaprop, &item, &totitem, &free);
 

@@ -2281,15 +2281,15 @@ void node_composit_backdrop_viewer(SpaceNode* snode, ImBuf* backdrop, bNode* nod
 
 void node_composit_backdrop_boxmask(SpaceNode* snode, ImBuf* backdrop, bNode* node, int x, int y)
 {
-	NodeBoxMask * boxmask = node->storage;
+	NodeBoxMask *boxmask = node->storage;
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
 	const float aspect = backdropWidth/backdropHeight;
-	const float rad = DEG2RAD(-boxmask->rotation);
-	const float cosine = cos(rad);
-	const float sine = sin(rad);
-	const float halveBoxWidth = backdropWidth*(boxmask->width/2.0f);
-	const float halveBoxHeight = backdropHeight*(boxmask->height/2.0f)*aspect;
+	const float rad = DEG2RADF(-boxmask->rotation);
+	const float cosine = cosf(rad);
+	const float sine = sinf(rad);
+	const float halveBoxWidth = backdropWidth * (boxmask->width / 2.0f);
+	const float halveBoxHeight = backdropHeight * (boxmask->height / 2.0f) * aspect;
 
 	float cx, cy, x1, x2, x3, x4;
 	float y1, y2, y3, y4;
@@ -2325,12 +2325,12 @@ void node_composit_backdrop_ellipsemask(SpaceNode* snode, ImBuf* backdrop, bNode
 	NodeEllipseMask * ellipsemask = node->storage;
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
-	const float aspect = backdropWidth/backdropHeight;
-	const float rad = DEG2RAD(-ellipsemask->rotation);
-	const float cosine = cos(rad);
-	const float sine = sin(rad);
-	const float halveBoxWidth = backdropWidth*(ellipsemask->width/2.0f);
-	const float halveBoxHeight = backdropHeight*(ellipsemask->height/2.0f)*aspect;
+	const float aspect = backdropWidth / backdropHeight;
+	const float rad = DEG2RADF(-ellipsemask->rotation);
+	const float cosine = cosf(rad);
+	const float sine = sinf(rad);
+	const float halveBoxWidth = backdropWidth * (ellipsemask->width / 2.0f);
+	const float halveBoxHeight = backdropHeight * (ellipsemask->height / 2.0f) * aspect;
 
 	float cx, cy, x1, x2, x3, x4;
 	float y1, y2, y3, y4;
