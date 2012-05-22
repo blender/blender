@@ -47,18 +47,21 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			addLink(graph, operation->getOutputSocket(), antiAlias->getInputSocket(0));
 			this->getOutputSocket(0)->relinkConnections(antiAlias->getOutputSocket(0));
 			graph->addOperation(antiAlias);
-		} else {
+		}
+		else {
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 		}
 		graph->addOperation(operation);
-	} else {
+	}
+	else {
 		if (editorNode->custom2 > 0) {
 			DilateStepOperation * operation = new DilateStepOperation();
 			operation->setIterations(editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
-		} else {
+		}
+		else {
 			ErodeStepOperation * operation = new ErodeStepOperation();
 			operation->setIterations(-editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
