@@ -1350,19 +1350,19 @@ static void modifier_skin_customdata_ensure(Object *ob)
 		BM_data_layer_add(bm, &bm->vdata, CD_MVERT_SKIN);
 		
 		/* Mark an arbitrary vertex as root */
-		BM_ITER_MESH(v, &iter, bm, BM_VERTS_OF_MESH) {
+		BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 			vs = CustomData_bmesh_get(&bm->vdata, v->head.data,
-									  CD_MVERT_SKIN);
+			                          CD_MVERT_SKIN);
 			vs->flag |= MVERT_SKIN_ROOT;
 			break;
 		}
 	}
 	else if (!CustomData_has_layer(&me->vdata, CD_MVERT_SKIN)) {
 		vs = CustomData_add_layer(&me->vdata,
-								  CD_MVERT_SKIN,
-								  CD_DEFAULT,
-								  NULL,
-								  me->totvert);
+		                          CD_MVERT_SKIN,
+		                          CD_DEFAULT,
+		                          NULL,
+		                          me->totvert);
 
 		/* Mark an arbitrary vertex as root */
 		vs->flag |= MVERT_SKIN_ROOT;
@@ -1372,13 +1372,13 @@ static void modifier_skin_customdata_ensure(Object *ob)
 static int skin_poll(bContext *C)
 {
 	return (!CTX_data_edit_object(C) &&
-			edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
+	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
 }
 
 static int skin_edit_poll(bContext *C)
 {
 	return (CTX_data_edit_object(C) &&
-			edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
+	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
 }
 
 static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
@@ -1386,13 +1386,13 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 	BMEdge *bm_edge;
 	BMIter bm_iter;
 	
-	BM_ITER_ELEM(bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
+	BM_ITER_ELEM (bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
 		BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
 		if(!BLI_ghash_lookup(visited, v2)) {
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-												 v2->head.data,
-												 CD_MVERT_SKIN);
+			                                     v2->head.data,
+			                                     CD_MVERT_SKIN);
 
 			/* clear vertex root flag and add to visited set */
 			vs->flag &= ~MVERT_SKIN_ROOT;
@@ -1416,13 +1416,13 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 
 	modifier_skin_customdata_ensure(ob);
 
-	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if(!BLI_ghash_lookup(visited, bm_vert) &&
 		   bm_vert->head.hflag & BM_ELEM_SELECT)
 		{
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-												 bm_vert->head.data,
-												 CD_MVERT_SKIN);
+			                                     bm_vert->head.data,
+			                                     CD_MVERT_SKIN);
 
 			/* mark vertex as root and add to visited set */
 			vs->flag |= MVERT_SKIN_ROOT;
@@ -1456,7 +1456,7 @@ void OBJECT_OT_skin_root_mark(wmOperatorType *ot)
 
 typedef enum {
 	SKIN_LOOSE_MARK,
-	SKIN_LOOSE_CLEAR,
+	SKIN_LOOSE_CLEAR
 } SkinLooseAction;
 
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
@@ -1468,11 +1468,11 @@ static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 	BMIter bm_iter;
 	SkinLooseAction action = RNA_enum_get(op->ptr, "action");
 
-	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-												 bm_vert->head.data,
-												 CD_MVERT_SKIN);
+			                                     bm_vert->head.data,
+			                                     CD_MVERT_SKIN);
 
 
 			switch (action) {
@@ -1520,11 +1520,11 @@ static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 	BMVert *bm_vert;
 	BMIter bm_iter;
 
-	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
 		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
-												 bm_vert->head.data,
-												 CD_MVERT_SKIN);
+			                                     bm_vert->head.data,
+			                                     CD_MVERT_SKIN);
 			float avg = (vs->radius[0] + vs->radius[1]) * 0.5f;
 
 			vs->radius[0] = vs->radius[1] = avg;

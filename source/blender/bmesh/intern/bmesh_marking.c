@@ -612,8 +612,6 @@ void BM_editselection_normal(BMEditSelection *ese, float r_normal[3])
 	}
 }
 
-/* ref - editmesh_lib.cL:EM_editselection_plane() */
-
 /* Calculate a plane that is rightangles to the edge/vert/faces normal
  * also make the plane run along an axis that is related to the geometry,
  * because this is used for the manipulators Y axis. */

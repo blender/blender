@@ -3007,7 +3007,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 				BMLoop *loop;
 				int is_first = TRUE;
 
-				BM_ITER_ELEM(loop, &liter, efa, BM_LOOPS_OF_FACE) {
+				BM_ITER_ELEM (loop, &liter, efa, BM_LOOPS_OF_FACE) {
 					if (is_face_sel || (do_moving && BM_elem_flag_test(loop->v, BM_ELEM_SELECT))) {
 						float angle;
 
