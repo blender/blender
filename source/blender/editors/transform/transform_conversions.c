@@ -2180,7 +2180,6 @@ void flushTransNodes(TransInfo *t)
 	if (t->total==1) {
 		ED_node_link_intersect_test(t->sa, 1);
 	}
-	
 }
 
 /* *** SEQUENCE EDITOR *** */
@@ -4859,10 +4858,11 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NODE) {
 		SpaceNode *snode= (SpaceNode *)t->sa->spacedata.first;
-		ED_node_update_hierarchy(C, snode->edittree);
-		
-		if (canceled == 0)
+		if (canceled == 0) {
+			ED_node_post_apply_transform(C, snode->edittree);
+			
 			ED_node_link_insert(t->sa);
+		}
 		
 		/* clear link line */
 		ED_node_link_intersect_test(t->sa, 0);

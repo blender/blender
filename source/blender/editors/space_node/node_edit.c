@@ -711,55 +711,13 @@ void ED_node_set_active(Main *bmain, bNodeTree *ntree, bNode *node)
 	}
 }
 
-static int inside_rctf(rctf *bounds, rctf *rect)
+void ED_node_post_apply_transform(bContext *UNUSED(C), bNodeTree *UNUSED(ntree))
 {
-	return (bounds->xmin <= rect->xmin &&
-	        bounds->xmax >= rect->xmax &&
-	        bounds->ymin <= rect->ymin &&
-	        bounds->ymax >= rect->ymax);
-}
-
-static void node_frame_attach_nodes(bNodeTree *UNUSED(ntree), bNode *frame)
-{
-	bNode *node;
-	
-	/* only check nodes on top of the frame for attaching */
-	for (node=frame->next; node; node=node->next) {
-		if (node->parent==frame) {
-			/* detach nodes that went outside the frame */
-			if (!inside_rctf(&frame->totr, &node->totr))
-				nodeDetachNode(node);
-		}
-		else if (node->flag & NODE_SELECT && node->parent==NULL) {
-			/* attach selected, still unparented nodes */
-			if (inside_rctf(&frame->totr, &node->totr))
-				nodeAttachNode(node, frame);
-		}
-	}
-}
-
-void ED_node_update_hierarchy(bContext *UNUSED(C), bNodeTree *ntree)
-{
-	bNode *node;
-	
 	/* XXX This does not work due to layout functions relying on node->block,
 	 * which only exists during actual drawing. Can we rely on valid totr rects?
 	 */
 	/* make sure nodes have correct bounding boxes after transform */
-//	node_update_nodetree(C, ntree, 0.0f, 0.0f);
-	
-	/* all selected nodes are re-parented */
-	for (node=ntree->nodes.last; node; node=node->prev) {
-		if (node->flag & NODE_SELECT && node->parent)
-			nodeDetachNode(node);
-	}
-	
-	/* update higher Z-level nodes first */
-	for (node=ntree->nodes.last; node; node=node->prev) {
-		/* XXX callback? */
-		if (node->type==NODE_FRAME)
-			node_frame_attach_nodes(ntree, node);
-	}
+	/* node_update_nodetree(C, ntree, 0.0f, 0.0f); */
 }
 
 /* ***************** generic operator functions for nodes ***************** */
@@ -1517,9 +1475,45 @@ void NODE_OT_backimage_sample(wmOperatorType *ot)
 
 typedef struct NodeSizeWidget {
 	float mxstart, mystart;
+	float oldlocx, oldlocy;
+	float oldoffsetx, oldoffsety;
 	float oldwidth, oldheight;
 	float oldminiwidth;
+	int directions;
 } NodeSizeWidget;
+
+static void node_resize_init(bContext *C, wmOperator *op, wmEvent *UNUSED(event), bNode *node, int dir)
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	
+	NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
+	
+	op->customdata= nsw;
+	nsw->mxstart= snode->mx;
+	nsw->mystart= snode->my;
+	
+	/* store old */
+	nsw->oldlocx= node->locx;
+	nsw->oldlocy= node->locy;
+	nsw->oldoffsetx= node->offsetx;
+	nsw->oldoffsety= node->offsety;
+	nsw->oldwidth= node->width;
+	nsw->oldheight= node->height;
+	nsw->oldminiwidth= node->miniwidth;
+	nsw->directions = dir;
+	
+	WM_cursor_modal(CTX_wm_window(C), node_get_resize_cursor(dir));
+	/* add modal handler */
+	WM_event_add_modal_handler(C, op);
+}
+
+static void node_resize_exit(bContext *C, wmOperator *op, int UNUSED(cancel))
+{
+	WM_cursor_restore(CTX_wm_window(C));
+	
+	MEM_freeN(op->customdata);
+	op->customdata= NULL;
+}
 
 static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -1527,26 +1521,84 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 	ARegion *ar= CTX_wm_region(C);
 	bNode *node= editnode_get_active(snode->edittree);
 	NodeSizeWidget *nsw= op->customdata;
-	float mx, my;
+	float mx, my, dx, dy;
 	
 	switch (event->type) {
 		case MOUSEMOVE:
 			
-			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-									 &mx, &my);
+			UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
+			dx = mx - nsw->mxstart;
+			dy = my - nsw->mystart;
 			
 			if (node) {
 				if (node->flag & NODE_HIDDEN) {
-					node->miniwidth= nsw->oldminiwidth + mx - nsw->mxstart;
-					CLAMP(node->miniwidth, 0.0f, 100.0f);
+					float widthmin = 0.0f;
+					float widthmax = 100.0f;
+					if (nsw->directions & NODE_RESIZE_RIGHT) {
+						node->miniwidth= nsw->oldminiwidth + dx;
+						CLAMP(node->miniwidth, widthmin, widthmax);
+					}
+					if (nsw->directions & NODE_RESIZE_LEFT) {
+						float locmax = nsw->oldlocx + nsw->oldminiwidth;
+						
+						node->locx= nsw->oldlocx + dx;
+						CLAMP(node->locx, locmax - widthmax, locmax - widthmin);
+						node->miniwidth= locmax - node->locx;
+					}
 				}
 				else {
-					node->width= nsw->oldwidth + mx - nsw->mxstart;
-					CLAMP(node->width, UI_DPI_FAC*node->typeinfo->minwidth, UI_DPI_FAC*node->typeinfo->maxwidth);
+					float widthmin = UI_DPI_FAC*node->typeinfo->minwidth;
+					float widthmax = UI_DPI_FAC*node->typeinfo->maxwidth;
+					if (nsw->directions & NODE_RESIZE_RIGHT) {
+						node->width= nsw->oldwidth + dx;
+						CLAMP(node->width, widthmin, widthmax);
+					}
+					if (nsw->directions & NODE_RESIZE_LEFT) {
+						float locmax = nsw->oldlocx + nsw->oldwidth;
+						
+						node->locx= nsw->oldlocx + dx;
+						CLAMP(node->locx, locmax - widthmax, locmax - widthmin);
+						node->width= locmax - node->locx;
+					}
 				}
+			
 				/* height works the other way round ... */
-				node->height= nsw->oldheight - my + nsw->mystart;
-				CLAMP(node->height, node->typeinfo->minheight, node->typeinfo->maxheight);
+				{
+					float heightmin = UI_DPI_FAC*node->typeinfo->minheight;
+					float heightmax = UI_DPI_FAC*node->typeinfo->maxheight;
+					if (nsw->directions & NODE_RESIZE_TOP) {
+						float locmin = nsw->oldlocy - nsw->oldheight;
+						
+						node->locy= nsw->oldlocy + dy;
+						CLAMP(node->locy, locmin + heightmin, locmin + heightmax);
+						node->height= node->locy - locmin;
+					}
+					if (nsw->directions & NODE_RESIZE_BOTTOM) {
+						node->height= nsw->oldheight - dy;
+						CLAMP(node->height, heightmin, heightmax);
+					}
+				}
+				
+				/* XXX make callback? */
+				if (node->type == NODE_FRAME) {
+					/* keep the offset symmetric around center point */
+					if (nsw->directions & NODE_RESIZE_LEFT) {
+						node->locx = nsw->oldlocx + 0.5f*dx;
+						node->offsetx = nsw->oldoffsetx + 0.5f*dx;
+					}
+					if (nsw->directions & NODE_RESIZE_RIGHT) {
+						node->locx = nsw->oldlocx + 0.5f*dx;
+						node->offsetx = nsw->oldoffsetx - 0.5f*dx;
+					}
+					if (nsw->directions & NODE_RESIZE_TOP) {
+						node->locy = nsw->oldlocy + 0.5f*dy;
+						node->offsety = nsw->oldoffsety + 0.5f*dy;
+					}
+					if (nsw->directions & NODE_RESIZE_BOTTOM) {
+						node->locy = nsw->oldlocy + 0.5f*dy;
+						node->offsety = nsw->oldoffsety - 0.5f*dy;
+					}
+				}
 			}
 				
 			ED_region_tag_redraw(ar);
@@ -1557,10 +1609,8 @@ static int node_resize_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case MIDDLEMOUSE:
 		case RIGHTMOUSE:
 			
-			MEM_freeN(nsw);
-			op->customdata= NULL;
-			
-			ED_node_update_hierarchy(C, snode->edittree);
+			node_resize_exit(C, op, 0);
+			ED_node_post_apply_transform(C, snode->edittree);
 			
 			return OPERATOR_FINISHED;
 	}
@@ -1573,37 +1623,24 @@ static int node_resize_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	bNode *node= editnode_get_active(snode->edittree);
+	int dir;
 	
 	if (node) {
 		/* convert mouse coordinates to v2d space */
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1],
-								 &snode->mx, &snode->my);
-		
-		if (node->typeinfo->resize_area_func(node, snode->mx, snode->my)) {
-			NodeSizeWidget *nsw= MEM_callocN(sizeof(NodeSizeWidget), "size widget op data");
-			
-			op->customdata= nsw;
-			nsw->mxstart= snode->mx;
-			nsw->mystart= snode->my;
-			
-			/* store old */
-			nsw->oldwidth= node->width;
-			nsw->oldheight= node->height;
-			nsw->oldminiwidth= node->miniwidth;
-			
-			/* add modal handler */
-			WM_event_add_modal_handler(C, op);
-
+		                         &snode->mx, &snode->my);
+		dir = node->typeinfo->resize_area_func(node, snode->mx, snode->my);
+		if (dir != 0) {
+			node_resize_init(C, op, event, node, dir);
 			return OPERATOR_RUNNING_MODAL;
 		}
 	}
 	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 }
 
-static int node_resize_cancel(bContext *UNUSED(C), wmOperator *op)
+static int node_resize_cancel(bContext *C, wmOperator *op)
 {
-	MEM_freeN(op->customdata);
-	op->customdata= NULL;
+	node_resize_exit(C, op, 1);
 
 	return OPERATOR_CANCELLED;
 }
@@ -2180,6 +2217,27 @@ bNode *node_add_node(SpaceNode *snode, Main *bmain, Scene *scene, bNodeTemplate 
 
 /* ****************** Duplicate *********************** */
 
+static void node_duplicate_reparent_recursive(bNode *node)
+{
+	bNode *parent;
+	
+	node->flag |= NODE_TEST;
+	
+	/* find first selected parent */
+	for (parent=node->parent; parent; parent=parent->parent) {
+		if (parent->flag & SELECT) {
+			if (!(parent->flag & NODE_TEST))
+				node_duplicate_reparent_recursive(parent);
+			break;
+		}
+	}
+	/* reparent node copy to parent copy */
+	if (parent) {
+		nodeDetachNode(node->new_node);
+		nodeAttachNode(node->new_node, parent->new_node);
+	}
+}
+
 static int node_duplicate_exec(bContext *C, wmOperator *op)
 {
 	SpaceNode *snode= CTX_wm_space_node(C);
@@ -2239,6 +2297,19 @@ static int node_duplicate_exec(bContext *C, wmOperator *op)
 		
 		/* make sure we don't copy new links again! */
 		if (link==lastlink)
+			break;
+	}
+	
+	/* clear flags for recursive depth-first iteration */
+	for (node= ntree->nodes.first; node; node= node->next)
+		node->flag &= ~NODE_TEST;
+	/* reparent copied nodes */
+	for (node= ntree->nodes.first; node; node= node->next) {
+		if ((node->flag & SELECT) && !(node->flag & NODE_TEST))
+			node_duplicate_reparent_recursive(node);
+		
+		/* only has to check old nodes */
+		if (node==lastnode)
 			break;
 	}
 	
@@ -3781,4 +3852,355 @@ void NODE_OT_output_file_move_active_socket(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 	
 	RNA_def_enum(ot->srna, "direction", direction_items, 2, "Direction", "");
+}
+
+/* ****************** Copy Node Color ******************* */
+
+static int node_copy_color_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node, *tnode;
+	
+	if (!ntree)
+		return OPERATOR_CANCELLED;
+	node = nodeGetActive(ntree);
+	if (!node)
+		return OPERATOR_CANCELLED;
+	
+	for (tnode=ntree->nodes.first; tnode; tnode=tnode->next) {
+		if (tnode->flag & NODE_SELECT && tnode != node) {
+			if (node->flag & NODE_CUSTOM_COLOR) {
+				tnode->flag |= NODE_CUSTOM_COLOR;
+				copy_v3_v3(tnode->color, node->color);
+			}
+			else
+				tnode->flag &= ~NODE_CUSTOM_COLOR;
+		}
+	}
+
+	ED_node_sort(ntree);
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_node_copy_color(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Copy Color";
+	ot->description = "Copy color to all selected nodes";
+	ot->idname = "NODE_OT_node_copy_color";
+
+	/* api callbacks */
+	ot->exec = node_copy_color_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Set Parent ******************* */
+
+static int node_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *frame = nodeGetActive(ntree), *node;
+	if (!frame || frame->type != NODE_FRAME)
+		return OPERATOR_CANCELLED;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node == frame)
+			continue;
+		if (node->flag & NODE_SELECT) {
+			nodeDetachNode(node);
+			nodeAttachNode(node, frame);
+		}
+	}
+
+	ED_node_sort(ntree);
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_parent_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Make Parent";
+	ot->description = "Attach selected nodes";
+	ot->idname = "NODE_OT_parent_set";
+
+	/* api callbacks */
+	ot->exec = node_parent_set_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Clear Parent ******************* */
+
+static int node_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_SELECT) {
+			nodeDetachNode(node);
+		}
+	}
+
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_parent_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Parent";
+	ot->description = "Detach selected nodes";
+	ot->idname = "NODE_OT_parent_clear";
+
+	/* api callbacks */
+	ot->exec = node_parent_clear_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Join Nodes ******************* */
+
+/* tags for depth-first search */
+#define NODE_JOIN_DONE			1
+#define NODE_JOIN_IS_DESCENDANT	2
+
+static void node_join_attach_recursive(bNode *node, bNode *frame)
+{
+	node->done |= NODE_JOIN_DONE;
+	
+	if (node == frame) {
+		node->done |= NODE_JOIN_IS_DESCENDANT;
+	}
+	else if (node->parent) {
+		/* call recursively */
+		if (!(node->parent->done & NODE_JOIN_DONE))
+			node_join_attach_recursive(node->parent, frame);
+		
+		/* in any case: if the parent is a descendant, so is the child */
+		if (node->parent->done & NODE_JOIN_IS_DESCENDANT)
+			node->done |= NODE_JOIN_IS_DESCENDANT;
+		else if (node->flag & NODE_TEST) {
+			/* if parent is not an decendant of the frame, reattach the node */
+			nodeDetachNode(node);
+			nodeAttachNode(node, frame);
+			node->done |= NODE_JOIN_IS_DESCENDANT;
+		}
+	}
+	else if (node->flag & NODE_TEST) {
+		nodeAttachNode(node, frame);
+		node->done |= NODE_JOIN_IS_DESCENDANT;
+	}
+}
+
+static int node_join_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = CTX_data_scene(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node, *frame;
+	bNodeTemplate ntemp;
+	
+	/* XXX save selection: node_add_node call below sets the new frame as single active+selected node */
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_SELECT)
+			node->flag |= NODE_TEST;
+		else
+			node->flag &= ~NODE_TEST;
+	}
+	
+	ntemp.main = bmain;
+	ntemp.scene = scene;
+	ntemp.type = NODE_FRAME;
+	frame = node_add_node(snode, bmain, scene, &ntemp, 0.0f, 0.0f);
+	
+	/* reset tags */
+	for (node=ntree->nodes.first; node; node=node->next)
+		node->done = 0;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (!(node->done & NODE_JOIN_DONE))
+			node_join_attach_recursive(node, frame);
+	}
+
+	/* restore selection */
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->flag & NODE_TEST)
+			node->flag |= NODE_SELECT;
+	}
+
+	ED_node_sort(ntree);
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_join(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Join Nodes";
+	ot->description = "Attaches selected nodes to a new common frame";
+	ot->idname = "NODE_OT_join";
+
+	/* api callbacks */
+	ot->exec = node_join_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Attach ******************* */
+
+static int node_attach_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *frame;
+	
+	/* check nodes front to back */
+	for (frame=ntree->nodes.last; frame; frame=frame->prev) {
+		/* skip selected, those are the nodes we want to attach */
+		if ((frame->type != NODE_FRAME) || (frame->flag & NODE_SELECT))
+			continue;
+		if (BLI_in_rctf(&frame->totr, snode->mx, snode->my))
+			break;
+	}
+	if (frame) {
+		bNode *node, *parent;
+		for (node=ntree->nodes.last; node; node=node->prev) {
+			if (node->flag & NODE_SELECT) {
+				if (node->parent == NULL) {
+					/* attach all unparented nodes */
+					nodeAttachNode(node, frame);
+				}
+				else {
+					/* attach nodes which share parent with the frame */
+					for (parent=frame->parent; parent; parent=parent->parent)
+						if (parent == node->parent)
+							break;
+					if (parent) {
+						nodeDetachNode(node);
+						nodeAttachNode(node, frame);
+					}
+				}
+			}
+		}
+	}
+	
+	ED_node_sort(ntree);
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+static int node_attach_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	ARegion *ar= CTX_wm_region(C);
+	SpaceNode *snode= CTX_wm_space_node(C);
+	
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &snode->mx, &snode->my);
+	
+	return node_attach_exec(C, op);
+}
+
+void NODE_OT_attach(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Attach Nodes";
+	ot->description = "Attaches active node to a frame";
+	ot->idname = "NODE_OT_attach";
+
+	/* api callbacks */
+	ot->exec = node_attach_exec;
+	ot->invoke = node_attach_invoke;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+/* ****************** Detach ******************* */
+
+/* tags for depth-first search */
+#define NODE_DETACH_DONE			1
+#define NODE_DETACH_IS_DESCENDANT	2
+
+static void node_detach_recursive(bNode *node)
+{
+	node->done |= NODE_DETACH_DONE;
+	
+	if (node->parent) {
+		/* call recursively */
+		if (!(node->parent->done & NODE_DETACH_DONE))
+			node_detach_recursive(node->parent);
+		
+		/* in any case: if the parent is a descendant, so is the child */
+		if (node->parent->done & NODE_DETACH_IS_DESCENDANT)
+			node->done |= NODE_DETACH_IS_DESCENDANT;
+		else if (node->flag & NODE_SELECT) {
+			/* if parent is not a decendant of a selected node, detach */
+			nodeDetachNode(node);
+			node->done |= NODE_DETACH_IS_DESCENDANT;
+		}
+	}
+	else if (node->flag & NODE_SELECT) {
+		node->done |= NODE_DETACH_IS_DESCENDANT;
+	}
+}
+
+/* detach the root nodes in the current selection */
+static int node_detach_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	SpaceNode *snode = CTX_wm_space_node(C);
+	bNodeTree *ntree = snode->edittree;
+	bNode *node;
+	
+	/* reset tags */
+	for (node=ntree->nodes.first; node; node=node->next)
+		node->done = 0;
+	/* detach nodes recursively
+	 * relative order is preserved here!
+	 */
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (!(node->done & NODE_DETACH_DONE))
+			node_detach_recursive(node);
+	}
+	
+	ED_node_sort(ntree);
+	WM_event_add_notifier(C, NC_NODE|ND_DISPLAY, NULL);
+	
+	return OPERATOR_FINISHED;
+}
+
+void NODE_OT_detach(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Detach Nodes";
+	ot->description = "Detaches selected nodes from parents";
+	ot->idname = "NODE_OT_detach";
+
+	/* api callbacks */
+	ot->exec = node_detach_exec;
+	ot->poll = ED_operator_node_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
 }

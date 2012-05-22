@@ -205,6 +205,8 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 			return &RNA_NodeForLoop;
 		case NODE_WHILELOOP:
 			return &RNA_NodeWhileLoop;
+		case NODE_FRAME:
+			return &RNA_NodeFrame;
 			
 		default:
 			return &RNA_Node;
@@ -1123,8 +1125,20 @@ static void def_whileloop(StructRNA *srna)
 
 static void def_frame(StructRNA *srna)
 {
-/*	PropertyRNA *prop; */
+	PropertyRNA *prop; 
 	
+	RNA_def_struct_sdna_from(srna, "NodeFrame", "storage");
+	
+	prop = RNA_def_property(srna, "shrink", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_FRAME_SHRINK);
+	RNA_def_property_ui_text(prop, "Shrink", "Shrink the frame to minimal bounding box");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "label_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "label_size");
+	RNA_def_property_range(prop, 8, 64);
+	RNA_def_property_ui_text(prop, "Label Font Size", "Font size to use for displaying the label");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
 }
 
 static void def_math(StructRNA *srna)
@@ -3787,6 +3801,18 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent this node is attached to");
+	
+	prop = RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_CUSTOM_COLOR);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Custom Color", "Use custom color for the node");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "show_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_TEXTURE);

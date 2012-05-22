@@ -40,7 +40,9 @@ struct ARegion;
 struct ARegionType;
 struct View2D;
 struct bContext;
+struct wmWindow;
 struct wmWindowManager;
+struct wmEvent;
 struct bNodeTemplate;
 struct bNode;
 struct bNodeSocket;
@@ -67,12 +69,17 @@ ARegion *node_has_buttons_region(ScrArea *sa);
 void node_menus_register(void);
 
 /* node_draw.c */
+int node_get_colorid(struct bNode *node);
 void node_socket_circle_draw(struct bNodeTree *ntree, struct bNodeSocket *sock, float size);
+int node_get_resize_cursor(int directions);
+void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius);
 void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *node);
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
 void node_update_nodetree(const struct bContext *C, struct bNodeTree *ntree, float offsetx, float offsety);
 void node_draw_nodetree(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree);
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
+
+void node_set_cursor(struct wmWindow *win, struct SpaceNode *snode);
 
 /* node_buttons.c */
 void node_buttons_register(struct ARegionType *art);
@@ -151,6 +158,7 @@ void NODE_OT_hide_toggle(struct wmOperatorType *ot);
 void NODE_OT_hide_socket_toggle(struct wmOperatorType *ot);
 void NODE_OT_preview_toggle(struct wmOperatorType *ot);
 void NODE_OT_options_toggle(struct wmOperatorType *ot);
+void NODE_OT_node_copy_color(struct wmOperatorType *ot);
 
 void NODE_OT_show_cyclic_dependencies(struct wmOperatorType *ot);
 void NODE_OT_link_viewer(struct wmOperatorType *ot);
@@ -169,6 +177,12 @@ void NODE_OT_new_node_tree(struct wmOperatorType *ot);
 void NODE_OT_output_file_add_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_remove_active_socket(struct wmOperatorType *ot);
 void NODE_OT_output_file_move_active_socket(struct wmOperatorType *ot);
+
+void NODE_OT_parent_set(struct wmOperatorType *ot);
+void NODE_OT_parent_clear(struct wmOperatorType *ot);
+void NODE_OT_join(struct wmOperatorType *ot);
+void NODE_OT_attach(struct wmOperatorType *ot);
+void NODE_OT_detach(struct wmOperatorType *ot);
 
 extern const char *node_context_dir[];
 

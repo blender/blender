@@ -57,6 +57,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "node_common.h"
+#include "node_util.h"
 #include "node_exec.h"
 #include "NOD_socket.h"
 
@@ -810,12 +811,24 @@ bNodeTemplate node_whileloop_template(bNode *node)
 
 /**** FRAME ****/
 
+static void node_frame_init(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
+{
+	NodeFrame *data = (NodeFrame *)MEM_callocN(sizeof(NodeFrame), "frame node storage");
+	node->storage = data;
+	
+	data->flag |= NODE_FRAME_SHRINK;
+	
+	data->label_size = 20;
+}
+
 void register_node_type_frame(bNodeTreeType *ttype)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
 	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
 
-	node_type_base(ttype, ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND);
+	node_type_base(ttype, ntype, NODE_FRAME, "Frame", NODE_CLASS_LAYOUT, NODE_BACKGROUND|NODE_OPTIONS);
+	node_type_init(ntype, node_frame_init);
+	node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
 	node_type_size(ntype, 150, 100, 0);
 	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
 	

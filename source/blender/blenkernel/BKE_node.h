@@ -248,6 +248,12 @@ typedef struct bNodeType {
 #define NODE_OLD_SHADING	1
 #define NODE_NEW_SHADING	2
 
+/* node resize directions */
+#define NODE_RESIZE_TOP		1
+#define NODE_RESIZE_BOTTOM	2
+#define NODE_RESIZE_RIGHT	4
+#define NODE_RESIZE_LEFT	8
+
 /* enum values for input/output */
 #define SOCK_IN		1
 #define SOCK_OUT	2
@@ -348,7 +354,8 @@ void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void			nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 void			nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeSpaceCoords(struct bNode *node, float *locx, float *locy);
+void			nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
+void			nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
 void			nodeAttachNode(struct bNode *node, struct bNode *parent);
 void			nodeDetachNode(struct bNode *node);
 

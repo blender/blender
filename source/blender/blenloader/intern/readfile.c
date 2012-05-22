@@ -6795,6 +6795,29 @@ static void do_versions_nodetree_image_layer_2_64_5(bNodeTree *ntree)
 	}
 }
 
+static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
+{
+	bNode *node;
+	
+	for (node=ntree->nodes.first; node; node=node->next) {
+		if (node->type==NODE_FRAME) {
+			/* initialize frame node storage data */
+			if (node->storage == NULL) {
+				NodeFrame *data = (NodeFrame *)MEM_callocN(sizeof(NodeFrame), "frame node storage");
+				node->storage = data;
+				
+				/* copy current flags */
+				data->flag = node->custom1;
+				
+				data->label_size = 20;
+			}
+		}
+		
+		/* initialize custom node color */
+		node->color[0] = node->color[1] = node->color[2] = 0.608;	/* default theme color */
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7440,6 +7463,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				do_versions_nodetree_image_layer_2_64_5(ntree);
 			}
 		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 6))
+	{
+		/* update use flags for node sockets (was only temporary before) */
+		Scene *sce;
+		Material *mat;
+		Tex *tex;
+		Lamp *lamp;
+		World *world;
+		bNodeTree *ntree;
+		
+		for (sce=main->scene.first; sce; sce=sce->id.next)
+			if (sce->nodetree)
+				do_versions_nodetree_frame_2_64_6(sce->nodetree);
+		
+		for (mat=main->mat.first; mat; mat=mat->id.next)
+			if (mat->nodetree)
+				do_versions_nodetree_frame_2_64_6(mat->nodetree);
+		
+		for (tex=main->tex.first; tex; tex=tex->id.next)
+			if (tex->nodetree)
+				do_versions_nodetree_frame_2_64_6(tex->nodetree);
+		
+		for (lamp=main->lamp.first; lamp; lamp=lamp->id.next)
+			if (lamp->nodetree)
+				do_versions_nodetree_frame_2_64_6(lamp->nodetree);
+		
+		for (world=main->world.first; world; world=world->id.next)
+			if (world->nodetree)
+				do_versions_nodetree_frame_2_64_6(world->nodetree);
+		
+		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_versions_nodetree_frame_2_64_6(ntree);
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

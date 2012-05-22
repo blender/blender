@@ -944,7 +944,7 @@ bScreen *ED_screen_duplicate(wmWindow *win, bScreen *sc)
 }
 
 /* screen sets cursor based on swinid */
-static void region_cursor_set(wmWindow *win, int swinid)
+static void region_cursor_set(wmWindow *win, int swinid, int swin_changed)
 {
 	ScrArea *sa = win->screen->areabase.first;
 	
@@ -952,10 +952,12 @@ static void region_cursor_set(wmWindow *win, int swinid)
 		ARegion *ar = sa->regionbase.first;
 		for (; ar; ar = ar->next) {
 			if (ar->swinid == swinid) {
-				if (ar->type && ar->type->cursor)
-					ar->type->cursor(win, sa, ar);
-				else
-					WM_cursor_set(win, CURSOR_STD);
+				if (swin_changed || (ar->type && ar->type->event_cursor)) {
+					if (ar->type && ar->type->cursor)
+						ar->type->cursor(win, sa, ar);
+					else
+						WM_cursor_set(win, CURSOR_STD);
+				}
 				return;
 			}
 		}
@@ -983,7 +985,7 @@ void ED_screen_do_listen(bContext *C, wmNotifier *note)
 			break;
 		case NC_SCENE:
 			if (note->data == ND_MODE)
-				region_cursor_set(win, note->swinid);				
+				region_cursor_set(win, note->swinid, TRUE);
 			break;
 	}
 }
@@ -1239,9 +1241,7 @@ static void screen_cursor_set(wmWindow *win, wmEvent *event)
 			else
 				WM_cursor_set(win, CURSOR_X_MOVE);
 		}
-		else
-			WM_cursor_set(win, CURSOR_STD);
-	} 
+	}
 }
 
 
@@ -1294,9 +1294,13 @@ void ED_screen_set_subwinactive(bContext *C, wmEvent *event)
 		if (scr->subwinactive == scr->mainwin) {
 			screen_cursor_set(win, event);
 		}
-		else if (oldswin != scr->subwinactive) {
-			region_cursor_set(win, scr->subwinactive);
-			WM_event_add_notifier(C, NC_SCREEN | ND_SUBWINACTIVE, scr);
+		else {
+			if (oldswin != scr->subwinactive) {
+				region_cursor_set(win, scr->subwinactive, TRUE);
+				WM_event_add_notifier(C, NC_SCREEN | ND_SUBWINACTIVE, scr);
+			}
+			else
+				region_cursor_set(win, scr->subwinactive, FALSE);
 		}
 	}
 }

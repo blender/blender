@@ -68,6 +68,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_options_toggle);
 	WM_operatortype_append(NODE_OT_hide_socket_toggle);
 	WM_operatortype_append(NODE_OT_show_cyclic_dependencies);
+	WM_operatortype_append(NODE_OT_node_copy_color);
 	
 	WM_operatortype_append(NODE_OT_duplicate);
 	WM_operatortype_append(NODE_OT_delete);
@@ -104,6 +105,12 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_output_file_add_socket);
 	WM_operatortype_append(NODE_OT_output_file_remove_active_socket);
 	WM_operatortype_append(NODE_OT_output_file_move_active_socket);
+	
+	WM_operatortype_append(NODE_OT_parent_set);
+	WM_operatortype_append(NODE_OT_parent_clear);
+	WM_operatortype_append(NODE_OT_join);
+	WM_operatortype_append(NODE_OT_attach);
+	WM_operatortype_append(NODE_OT_detach);
 }
 
 void ED_operatormacros_node(void)
@@ -111,10 +118,32 @@ void ED_operatormacros_node(void)
 	wmOperatorType *ot;
 	wmOperatorTypeMacro *mot;
 	
-	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate", "Duplicate selected nodes and move them",
+	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer",
+	                                  "Select node and link it to a viewer node",
+	                                  OPTYPE_UNDO);
+	WM_operatortype_macro_define(ot, "NODE_OT_select");
+	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
+
+	ot = WM_operatortype_append_macro("NODE_OT_translate_attach", "Move and Attach",
+	                                  "Move nodes and attach to frame",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
+	WM_operatortype_macro_define(ot, "NODE_OT_attach");
+
+	ot = WM_operatortype_append_macro("NODE_OT_detach_translate_attach", "Detach and Move",
+	                                  "Detach nodes, move and attach to frame",
+	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	WM_operatortype_macro_define(ot, "NODE_OT_detach");
+	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
+	WM_operatortype_macro_define(ot, "NODE_OT_attach");
+
+	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move", "Duplicate",
+	                                  "Duplicate selected nodes and move them",
 	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
-	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
+	WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
 	/* modified operator call for duplicating with input links */
 	ot = WM_operatortype_append_macro("NODE_OT_duplicate_move_keep_inputs", "Duplicate",
@@ -122,12 +151,7 @@ void ED_operatormacros_node(void)
 	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	mot = WM_operatortype_macro_define(ot, "NODE_OT_duplicate");
 	RNA_boolean_set(mot->ptr, "keep_inputs", TRUE);
-	WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-
-	ot = WM_operatortype_append_macro("NODE_OT_select_link_viewer", "Link Viewer",
-	                                  "Select node and link it to a viewer node", OPTYPE_UNDO);
-	WM_operatortype_macro_define(ot, "NODE_OT_select");
-	WM_operatortype_macro_define(ot, "NODE_OT_link_viewer");
+	WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
 
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links", "Detach", "Move a node to detach links",
 	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
@@ -137,8 +161,30 @@ void ED_operatormacros_node(void)
 	ot = WM_operatortype_append_macro("NODE_OT_move_detach_links_release", "Detach", "Move a node to detach links",
 	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "NODE_OT_links_detach");
-	mot = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
-	RNA_boolean_set(mot->ptr, "release_confirm", TRUE);
+	mot = WM_operatortype_macro_define(ot, "NODE_OT_translate_attach");
+}
+
+/* helper function for repetitive select operator keymap */
+static void node_select_keymap(wmKeyMap *keymap, int extend)
+{
+	/* modifier combinations */
+	const int mod_single[] = { 0, KM_CTRL, KM_ALT, KM_CTRL|KM_ALT,
+	                           -1 /* terminator */
+	                         };
+	const int mod_extend[] = { KM_SHIFT, KM_SHIFT|KM_CTRL,
+	                           KM_SHIFT|KM_ALT, KM_SHIFT|KM_CTRL|KM_ALT,
+	                           -1 /* terminator */
+	                         };
+	const int *mod = (extend ? mod_extend : mod_single);
+	wmKeyMapItem *kmi;
+	int i;
+	
+	for (i=0; mod[i] >= 0; ++i) {
+		kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, mod[i], 0);
+		RNA_boolean_set(kmi->ptr, "extend", extend);
+		kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, mod[i], 0);
+		RNA_boolean_set(kmi->ptr, "extend", extend);
+	}
 }
 
 void node_keymap(struct wmKeyConfig *keyconf)
@@ -157,15 +203,12 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	/* mouse select in nodes used to be both keys, but perhaps this should be reduced? 
 	 * NOTE: mouse-clicks on left-mouse will fall through to allow transform-tweak, but also link/resize
 	 * NOTE 2: socket select is part of the node select operator, to handle overlapping cases
+	 * NOTE 3: select op is registered for various combinations of modifier key, so the specialized
+	 *         grab operators (unlink, attach, etc.) can work easily on single nodes.
 	 */
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
-		RNA_boolean_set(kmi->ptr, "extend", FALSE);
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", ACTIONMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", TRUE);
-	kmi = WM_keymap_add_item(keymap, "NODE_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-		RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	node_select_keymap(keymap, FALSE);
+	node_select_keymap(keymap, TRUE);
+	
 	kmi = WM_keymap_add_item(keymap, "NODE_OT_select_border", EVT_TWEAK_S, KM_ANY, 0, 0);
 		RNA_boolean_set(kmi->ptr, "tweak", TRUE);
 	
@@ -194,6 +237,10 @@ void node_keymap(struct wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move", DKEY, KM_PRESS, KM_SHIFT, 0);
 	/* modified operator call for duplicating with input links */
 	WM_keymap_add_item(keymap, "NODE_OT_duplicate_move_keep_inputs", DKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
+	
+	WM_keymap_add_item(keymap, "NODE_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_join", JKEY, KM_PRESS, KM_CTRL, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_hide_toggle", HKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_mute_toggle", MKEY, KM_PRESS, 0, 0);

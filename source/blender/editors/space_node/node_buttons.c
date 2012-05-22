@@ -89,8 +89,8 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	bNodeTree *ntree= (snode) ? snode->edittree : NULL;
 	bNode *node = (ntree) ? nodeGetActive(ntree) : NULL; // xxx... for editing group nodes
-	uiLayout *layout;
-	PointerRNA ptr;
+	uiLayout *layout, *row, *col;
+	PointerRNA ptr, opptr;
 	
 	/* verify pointers, and create RNA pointer for the node */
 	if (ELEM(NULL, ntree, node))
@@ -112,6 +112,20 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	
 	uiItemO(layout, NULL, 0, "NODE_OT_hide_socket_toggle");
 	uiItemS(layout);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemM(row, (bContext *)C, "NODE_MT_node_color_presets", NULL, 0);
+	uiItemM(row, (bContext *)C, "NODE_MT_node_color_specials", "", ICON_DOWNARROW_HLT);
+	uiItemO(row, "", ICON_ZOOMIN, "node.node_color_preset_add");
+	opptr = uiItemFullO(row, "node.node_color_preset_add", "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
+	RNA_boolean_set(&opptr, "remove_active", 1);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, &ptr, "use_custom_color", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
+	col = uiLayoutColumn(row, 0);
+	if (!(node->flag & NODE_CUSTOM_COLOR))
+		uiLayoutSetEnabled(col, 0);
+	uiItemR(col, &ptr, "color", 0, "", 0);
 
 	/* draw this node's settings */
 	if (node->typeinfo && node->typeinfo->uifuncbut)
