@@ -102,7 +102,7 @@ static GPUBufferPool *gpu_buffer_pool_new(void)
 	if (useVBOs == -1)
 		useVBOs = (GLEW_ARB_vertex_buffer_object ? 1 : 0);
 
-	pool = MEM_callocN(sizeof(GPUBufferPool), "GPUBuffer");
+	pool = MEM_callocN(sizeof(GPUBufferPool), "GPUBuffer_Pool");
 
 	pool->maxsize = MAX_FREE_GPU_BUFFERS;
 	pool->buffers = MEM_callocN(sizeof(GPUBuffer *) * pool->maxsize,
@@ -191,6 +191,12 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	GPUBufferPool *pool;
 	GPUBuffer *buf;
 	int i, bufsize, bestfit = -1;
+
+	/* bad case, leads to leak of buf since buf->pointer will allocate
+	 * NULL, leading to return without cleanup. In any case better detect early
+	 * psy-fi */
+	if(size == 0)
+		return NULL;
 
 	pool = gpu_get_global_buffer_pool();
 
