@@ -758,20 +758,6 @@ static void rna_def_spot_lamp(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_shadbuffiltertype_items[] = {
-		{LA_SHADBUF_BOX,  "BOX", 0, "Box", "Apply the Box filter to shadow buffer samples"},
-		{LA_SHADBUF_TENT, "TENT", 0, "Tent", "Apply the Tent Filter to shadow buffer samples"},
-		{LA_SHADBUF_GAUSS, "GAUSS", 0, "Gauss", "Apply the Gauss filter to shadow buffer samples"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem prop_numbuffer_items[] = {
-		{1, "BUFFERS_1", 0, "1", "Only one buffer rendered"},
-		{4, "BUFFERS_4", 0, "4", "Render 4 buffers for better AA, this quadruples memory usage"},
-		{9, "BUFFERS_9", 0, "9", "Render 9 buffers for better AA, this uses nine times more memory"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "SpotLamp", "Lamp");
 	RNA_def_struct_sdna(srna, "Lamp");
 	RNA_def_struct_ui_text(srna, "Spot Lamp", "Directional cone lamp");
