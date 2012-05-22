@@ -308,7 +308,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 		}
 
-#undef ADD_EDGE_USER
 #undef INVALID_UNUSED
 #undef INVALID_PAIR
 
