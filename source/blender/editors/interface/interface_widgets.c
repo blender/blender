@@ -1165,11 +1165,13 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	if (fstyle->kerning == 1)
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-	
-	//	ui_rasterpos_safe(x, y, but->aspect);
-//	if (but->type==IDPOIN) transopts= 0;	// no translation, of course!
-//	else transopts= ui_translate_buttons();
-	
+
+#if 0
+	ui_rasterpos_safe(x, y, but->aspect);
+	if (but->type == IDPOIN) transopts = 0;	// no translation, of course!
+	else transopts = ui_translate_buttons();
+#endif
+
 	/* cut string in 2 parts - only for menu entries */
 	if ((but->block->flag & UI_BLOCK_LOOP)) {
 		if (ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS) == 0) {
@@ -3135,9 +3137,9 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 				/* no text, with icon */
 				else if (!but->str[0] && but->icon) {
 					if (but->flag & UI_ICON_PREVIEW)
-						wt= widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
+						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
 					else
-						wt= widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
+						wt = widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
 				}
 				/* with menu arrows */
 				else

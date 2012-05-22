@@ -161,7 +161,7 @@ ModifierData *ED_object_modifier_add(ReportList *reports, Main *bmain, Scene *sc
 			/* ensure that grid paint mask layer is created */
 			ED_sculpt_mask_layers_ensure(ob, (MultiresModifierData *)new_md);
 		}
-		else if(type == eModifierType_Skin) {
+		else if (type == eModifierType_Skin) {
 			/* ensure skin-node customdata exists */
 			modifier_skin_customdata_ensure(ob);
 		}
@@ -1139,7 +1139,7 @@ static int multires_reshape_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	CTX_DATA_BEGIN (C, Object *, selob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, selob, selected_editable_objects)
 	{
 		if (selob->type == OB_MESH && selob != ob) {
 			secondob = selob;
@@ -1372,13 +1372,13 @@ static void modifier_skin_customdata_ensure(Object *ob)
 static int skin_poll(bContext *C)
 {
 	return (!CTX_data_edit_object(C) &&
-	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
+	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH)));
 }
 
 static int skin_edit_poll(bContext *C)
 {
 	return (CTX_data_edit_object(C) &&
-	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
+	        edit_modifier_poll_generic(C, &RNA_SkinModifier, (1 << OB_MESH)));
 }
 
 static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
@@ -1389,7 +1389,7 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 	BM_ITER_ELEM (bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
 		BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
 
-		if(!BLI_ghash_lookup(visited, v2)) {
+		if (!BLI_ghash_lookup(visited, v2)) {
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
 			                                     v2->head.data,
 			                                     CD_MVERT_SKIN);
@@ -1405,7 +1405,7 @@ static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
 
 static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob = CTX_data_edit_object(C);
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 	BMVert *bm_vert;
@@ -1417,8 +1417,8 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 	modifier_skin_customdata_ensure(ob);
 
 	BM_ITER_MESH (bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
-		if(!BLI_ghash_lookup(visited, bm_vert) &&
-		   bm_vert->head.hflag & BM_ELEM_SELECT)
+		if (!BLI_ghash_lookup(visited, bm_vert) &&
+		    bm_vert->head.hflag & BM_ELEM_SELECT)
 		{
 			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
 			                                     bm_vert->head.data,
@@ -1436,7 +1436,7 @@ static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
 	BLI_ghash_free(visited, NULL, NULL);
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1451,7 +1451,7 @@ void OBJECT_OT_skin_root_mark(wmOperatorType *ot)
 	ot->exec = skin_root_mark_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 typedef enum {
@@ -1461,7 +1461,7 @@ typedef enum {
 
 static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob = CTX_data_edit_object(C);
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 	BMVert *bm_vert;
@@ -1487,7 +1487,7 @@ static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1495,9 +1495,10 @@ static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 {
 	static EnumPropertyItem action_items[] = {
-	{SKIN_LOOSE_MARK, "MARK", 0, "Mark", "Mark selected vertices as loose"},
-	{SKIN_LOOSE_CLEAR, "CLEAR", 0, "Clear", "Set selected vertices as not loose"},
-	{0, NULL, 0, NULL, NULL}};
+		{SKIN_LOOSE_MARK, "MARK", 0, "Mark", "Mark selected vertices as loose"},
+		{SKIN_LOOSE_CLEAR, "CLEAR", 0, "Clear", "Set selected vertices as not loose"},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	ot->name = "Skin Mark/Clear Loose";
 	ot->description = "Mark/clear selected vertices as loose";
@@ -1507,14 +1508,14 @@ void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
 	ot->exec = skin_loose_mark_clear_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_enum(ot->srna, "action", action_items, SKIN_LOOSE_MARK, "Action", NULL);
 }
 
 static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	Object *ob= CTX_data_edit_object(C);
+	Object *ob = CTX_data_edit_object(C);
 	Mesh *me = ob->data;
 	BMesh *bm = me->edit_btmesh->bm;
 	BMVert *bm_vert;
@@ -1532,7 +1533,7 @@ static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 	
 	return OPERATOR_FINISHED;
 }
@@ -1547,20 +1548,20 @@ void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
 	ot->exec = skin_radii_equalize_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static void skin_armature_bone_create(Object *skin_ob,
-									  MVert *mvert, MEdge *medge,
-									  bArmature *arm,
-									  BLI_bitmap edges_visited,
-									  const MeshElemMap *emap,
-									  EditBone *parent_bone,
-									  int parent_v)
+                                      MVert *mvert, MEdge *medge,
+                                      bArmature *arm,
+                                      BLI_bitmap edges_visited,
+                                      const MeshElemMap *emap,
+                                      EditBone *parent_bone,
+                                      int parent_v)
 {
 	int i;
 
-	for(i = 0; i < emap[parent_v].count; i++) {
+	for (i = 0; i < emap[parent_v].count; i++) {
 		int endx = emap[parent_v].indices[i];
 		const MEdge *e = &medge[endx];
 		EditBone *bone;
@@ -1568,14 +1569,14 @@ static void skin_armature_bone_create(Object *skin_ob,
 		int v;
 
 		/* ignore edge if already visited */
-		if(BLI_BITMAP_GET(edges_visited, endx))
+		if (BLI_BITMAP_GET(edges_visited, endx))
 			continue;
 		BLI_BITMAP_SET(edges_visited, endx);
 
 		v = (e->v1 == parent_v ? e->v2 : e->v1);
 
 		bone = MEM_callocN(sizeof(EditBone),
-						   "skin_armature_bone_create EditBone");
+		                   "skin_armature_bone_create EditBone");
 
 		bone->parent = parent_bone;
 		bone->layer = 1;
@@ -1589,23 +1590,23 @@ static void skin_armature_bone_create(Object *skin_ob,
 		BLI_addtail(arm->edbo, bone);
 
 		/* add bDeformGroup */
-		if((dg = ED_vgroup_add_name(skin_ob, bone->name))) {
+		if ((dg = ED_vgroup_add_name(skin_ob, bone->name))) {
 			ED_vgroup_vert_add(skin_ob, dg, parent_v, 1, WEIGHT_REPLACE);
 			ED_vgroup_vert_add(skin_ob, dg, v, 1, WEIGHT_REPLACE);
 		}
 		
 		skin_armature_bone_create(skin_ob,
-								  mvert, medge,
-								  arm,
-								  edges_visited,
-								  emap,
-								  bone,
-								  v);
+		                          mvert, medge,
+		                          arm,
+		                          edges_visited,
+		                          emap,
+		                          bone,
+		                          v);
 	}
 }
 
 static Object *modifier_skin_armature_create(struct Scene *scene,
-											 Object *skin_ob)
+                                             Object *skin_ob)
 {
 	BLI_bitmap edges_visited;
 	DerivedMesh *deform_dm;
@@ -1623,10 +1624,10 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 
 	/* add vertex weights to original mesh */
 	CustomData_add_layer(&me->vdata,
-						 CD_MDEFORMVERT,
-						 CD_CALLOC,
-						 NULL,
-						 me->totvert);
+	                     CD_MDEFORMVERT,
+	                     CD_CALLOC,
+	                     NULL,
+	                     me->totvert);
 	
 	arm_ob = BKE_object_add(scene, OB_ARMATURE);
 	BKE_object_transform_copy(arm_ob, skin_ob);
@@ -1638,19 +1639,19 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 
 	mvert_skin = CustomData_get_layer(&me->vdata, CD_MVERT_SKIN);
 	create_vert_edge_map(&emap, &emap_mem,
-						 me->medge, me->totvert, me->totedge);
+	                     me->medge, me->totvert, me->totedge);
 
 	edges_visited = BLI_BITMAP_NEW(me->totedge, "edge_visited");
 
 	/* note: we use EditBones here, easier to set them up and use
-	 * edit-armature functions to convert back to regular bones */
-	for(v = 0; v < me->totvert; v++) {
-		if(mvert_skin[v].flag & MVERT_SKIN_ROOT) {
+	* edit-armature functions to convert back to regular bones */
+	for (v = 0; v < me->totvert; v++) {
+		if (mvert_skin[v].flag & MVERT_SKIN_ROOT) {
 			EditBone *bone = NULL;
 
 			/* Unless the skin root has just one adjacent edge, create
-			   a fake root bone (have it going off in the Y direction
-			   (arbitrary) */
+			 * a fake root bone (have it going off in the Y direction
+			 * (arbitrary) */
 			if (emap[v].count > 1) {
 				bone = MEM_callocN(sizeof(EditBone), "EditBone");
 
@@ -1664,14 +1665,14 @@ static Object *modifier_skin_armature_create(struct Scene *scene,
 				BLI_addtail(arm->edbo, bone);
 			}
 			
-			if(emap[v].count >= 1) {
+			if (emap[v].count >= 1) {
 				skin_armature_bone_create(skin_ob,
-										  mvert, me->medge,
-										  arm,
-										  edges_visited,
-										  emap,
-										  bone,
-										  v);
+				                          mvert, me->medge,
+				                          arm,
+				                          edges_visited,
+				                          emap,
+				                          bone,
+				                          v);
 			}
 		}
 	}
@@ -1698,7 +1699,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 	arm_ob = modifier_skin_armature_create(scene, ob);
 
 	/* add a modifier to connect the new armature to the mesh */
-	arm_md= (ArmatureModifierData*)modifier_new(eModifierType_Armature);
+	arm_md = (ArmatureModifierData *)modifier_new(eModifierType_Armature);
 	if (arm_md) {
 		skin_md = edit_modifier_property_get(op, ob, eModifierType_Skin);
 		BLI_insertlinkafter(&ob->modifiers, skin_md, arm_md);
@@ -1709,7 +1710,7 @@ static int skin_armature_create_exec(bContext *C, wmOperator *op)
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
-	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	WM_event_add_notifier(C, NC_OBJECT | ND_MODIFIER, ob);
 
 	return OPERATOR_FINISHED;
 }
@@ -1733,7 +1734,7 @@ void OBJECT_OT_skin_armature_create(wmOperatorType *ot)
 	ot->exec = skin_armature_create_exec;
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	edit_modifier_properties(ot);
 }
 
@@ -1926,7 +1927,7 @@ static void oceanbake_free(void *customdata)
 /* called by oceanbake, only to check job 'stop' value */
 static int oceanbake_breakjob(void *UNUSED(customdata))
 {
-	//OceanBakeJob *ob= (OceanBakeJob *)customdata;
+	//OceanBakeJob *ob = (OceanBakeJob *)customdata;
 	//return *(ob->stop);
 	
 	/* this is not nice yet, need to make the jobs list template better 
