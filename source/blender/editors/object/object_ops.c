@@ -139,6 +139,9 @@ void ED_operatortypes_object(void)
 	WM_operatortype_append(OBJECT_OT_multires_base_apply);
 	WM_operatortype_append(OBJECT_OT_multires_external_save);
 	WM_operatortype_append(OBJECT_OT_multires_external_pack);
+	WM_operatortype_append(OBJECT_OT_skin_root_mark);
+	WM_operatortype_append(OBJECT_OT_skin_loose_mark_clear);
+	WM_operatortype_append(OBJECT_OT_skin_radii_equalize);
 	WM_operatortype_append(OBJECT_OT_meshdeform_bind);
 	WM_operatortype_append(OBJECT_OT_explode_refresh);
 	WM_operatortype_append(OBJECT_OT_ocean_bake);

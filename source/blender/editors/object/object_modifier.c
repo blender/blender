@@ -1367,6 +1367,181 @@ static void modifier_skin_customdata_ensure(Object *ob)
 	}
 }
 
+static int skin_edit_poll(bContext *C)
+{
+	return (CTX_data_edit_object(C) &&
+			edit_modifier_poll_generic(C, &RNA_SkinModifier, (1<<OB_MESH)));
+}
+
+static void skin_root_clear(BMesh *bm, BMVert *bm_vert, GHash *visited)
+{
+	BMEdge *bm_edge;
+	BMIter bm_iter;
+	
+	BM_ITER_ELEM(bm_edge, &bm_iter, bm_vert, BM_EDGES_OF_VERT) {
+		BMVert *v2 = BM_edge_other_vert(bm_edge, bm_vert);
+
+		if(!BLI_ghash_lookup(visited, v2)) {
+			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
+												 v2->head.data,
+												 CD_MVERT_SKIN);
+
+			/* clear vertex root flag and add to visited set */
+			vs->flag &= ~MVERT_SKIN_ROOT;
+			BLI_ghash_insert(visited, v2, v2);
+
+			skin_root_clear(bm, v2, visited);
+		}
+	}
+}
+
+static int skin_root_mark_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_edit_object(C);
+	Mesh *me = ob->data;
+	BMesh *bm = me->edit_btmesh->bm;
+	BMVert *bm_vert;
+	BMIter bm_iter;
+	GHash *visited;
+
+	visited = BLI_ghash_ptr_new("skin_root_mark_exec visited");
+
+	modifier_skin_customdata_ensure(ob);
+
+	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+		if(!BLI_ghash_lookup(visited, bm_vert) &&
+		   bm_vert->head.hflag & BM_ELEM_SELECT)
+		{
+			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
+												 bm_vert->head.data,
+												 CD_MVERT_SKIN);
+
+			/* mark vertex as root and add to visited set */
+			vs->flag |= MVERT_SKIN_ROOT;
+			BLI_ghash_insert(visited, bm_vert, bm_vert);
+
+			/* clear root flag from all connected vertices (recursively) */
+			skin_root_clear(bm, bm_vert, visited);
+		}
+	}
+
+	BLI_ghash_free(visited, NULL, NULL);
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_skin_root_mark(wmOperatorType *ot)
+{
+	ot->name = "Skin Root Mark";
+	ot->description = "Mark selected vertices as roots";
+	ot->idname = "OBJECT_OT_skin_root_mark";
+
+	ot->poll = skin_edit_poll;
+	ot->exec = skin_root_mark_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
+typedef enum {
+	SKIN_LOOSE_MARK,
+	SKIN_LOOSE_CLEAR,
+} SkinLooseAction;
+
+static int skin_loose_mark_clear_exec(bContext *C, wmOperator *op)
+{
+	Object *ob= CTX_data_edit_object(C);
+	Mesh *me = ob->data;
+	BMesh *bm = me->edit_btmesh->bm;
+	BMVert *bm_vert;
+	BMIter bm_iter;
+	SkinLooseAction action = RNA_enum_get(op->ptr, "action");
+
+	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
+			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
+												 bm_vert->head.data,
+												 CD_MVERT_SKIN);
+
+
+			switch (action) {
+				case SKIN_LOOSE_MARK:
+					vs->flag |= MVERT_SKIN_LOOSE;
+					break;
+				case SKIN_LOOSE_CLEAR:
+					vs->flag &= ~MVERT_SKIN_LOOSE;
+					break;
+			}
+		}
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_skin_loose_mark_clear(wmOperatorType *ot)
+{
+	static EnumPropertyItem action_items[] = {
+	{SKIN_LOOSE_MARK, "MARK", 0, "Mark", "Mark selected vertices as loose"},
+	{SKIN_LOOSE_CLEAR, "CLEAR", 0, "Clear", "Set selected vertices as not loose"},
+	{0, NULL, 0, NULL, NULL}};
+
+	ot->name = "Skin Mark/Clear Loose";
+	ot->description = "Mark/clear selected vertices as loose";
+	ot->idname = "OBJECT_OT_skin_loose_mark_clear";
+
+	ot->poll = skin_edit_poll;
+	ot->exec = skin_loose_mark_clear_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	RNA_def_enum(ot->srna, "action", action_items, SKIN_LOOSE_MARK, "Action", NULL);
+}
+
+static int skin_radii_equalize_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Object *ob= CTX_data_edit_object(C);
+	Mesh *me = ob->data;
+	BMesh *bm = me->edit_btmesh->bm;
+	BMVert *bm_vert;
+	BMIter bm_iter;
+
+	BM_ITER_MESH(bm_vert, &bm_iter, bm, BM_VERTS_OF_MESH) {
+		if (bm_vert->head.hflag & BM_ELEM_SELECT) {
+			MVertSkin *vs = CustomData_bmesh_get(&bm->vdata,
+												 bm_vert->head.data,
+												 CD_MVERT_SKIN);
+			float avg = (vs->radius[0] + vs->radius[1]) * 0.5f;
+
+			vs->radius[0] = vs->radius[1] = avg;
+		}
+	}
+
+	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	WM_event_add_notifier(C, NC_OBJECT|ND_MODIFIER, ob);
+	
+	return OPERATOR_FINISHED;
+}
+
+void OBJECT_OT_skin_radii_equalize(wmOperatorType *ot)
+{
+	ot->name = "Skin Radii Equalize";
+	ot->description = "Make skin radii of selected vertices equal";
+	ot->idname = "OBJECT_OT_skin_radii_equalize";
+
+	ot->poll = skin_edit_poll;
+	ot->exec = skin_radii_equalize_exec;
+	
+	/* flags */
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+}
+
 
 /************************ mdef bind operator *********************/
 
