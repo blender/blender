@@ -2189,6 +2189,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->invoke = wm_collada_export_invoke;
 	ot->exec = wm_collada_export_exec;
 	ot->poll = WM_operator_winactive;
+
+	ot->flag |= OPTYPE_PRESET;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
