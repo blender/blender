@@ -1633,6 +1633,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_RESIZE:
 		initResize(t);
 		break;
+	case TFM_SKIN_RESIZE:
+		initSkinResize(t);
+		break;
 	case TFM_TOSPHERE:
 		initToSphere(t);
 		break;
@@ -2701,7 +2704,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 		
 		constraintSizeLim(t, td);
 	}
-	
+
 	/* For individual element center, Editmode need to use iloc */
 	if (t->flag & T_POINTS)
 		sub_v3_v3v3(vec, td->iloc, center);
@@ -2790,6 +2793,96 @@ int Resize(TransInfo *t, const int mval[2])
 		
 		for (i = 0, td=t->data; i < t->total; i++, td++)
 			ElementResize(t, td, mat);
+	}
+	
+	recalcData(t);
+	
+	ED_area_headerprint(t->sa, str);
+	
+	return 1;
+}
+
+/* ************************** SKIN *************************** */
+
+void initSkinResize(TransInfo *t)
+{
+	t->mode = TFM_SKIN_RESIZE;
+	t->transform = SkinResize;
+	
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING_FLIP);
+	
+	t->flag |= T_NULL_ONE;
+	t->num.flag |= NUM_NULL_ONE;
+	t->num.flag |= NUM_AFFECT_ALL;
+	if (!t->obedit) {
+		t->flag |= T_NO_ZERO;
+		t->num.flag |= NUM_NO_ZERO;
+	}
+	
+	t->idx_max = 2;
+	t->num.idx_max = 2;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
+}
+
+int SkinResize(TransInfo *t, const int UNUSED(mval[2]))
+{
+	TransData *td;
+	float size[3], mat[3][3];
+	float ratio;
+	int i;
+	char str[200];
+	
+	ratio = t->values[0];
+	size[0] = size[1] = size[2] = ratio;
+	
+	snapGrid(t, size);
+	
+	if (hasNumInput(&t->num)) {
+		applyNumInput(&t->num, size);
+		constraintNumInput(t, size);
+	}
+	
+	applySnapping(t, size);
+	
+	if (t->flag & T_AUTOVALUES) {
+		copy_v3_v3(size, t->auto_values);
+	}
+	
+	copy_v3_v3(t->values, size);
+	
+	size_to_mat3(mat, size);
+	
+	headerResize(t, size, str);
+	
+	for (i = 0, td = t->data; i < t->total; i++, td++) {
+		float tmat[3][3], smat[3][3];
+		float fsize[3];
+		
+		if (td->flag & TD_NOACTION)
+			break;
+		
+		if (td->flag & TD_SKIP)
+			continue;
+
+		if (t->flag & T_EDIT) {
+			mul_m3_m3m3(smat, mat, td->mtx);
+			mul_m3_m3m3(tmat, td->smtx, smat);
+		}
+		else {
+			copy_m3_m3(tmat, mat);
+		}
+	
+		if (t->con.applySize) {
+			t->con.applySize(t, NULL, tmat);
+		}
+
+		mat3_to_size(fsize, tmat);
+		td->val[0] = td->ext->isize[0] * (1 + (fsize[0] - 1) * td->factor);
+		td->val[1] = td->ext->isize[1] * (1 + (fsize[1] - 1) * td->factor);
 	}
 	
 	recalcData(t);

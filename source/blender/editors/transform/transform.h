@@ -464,6 +464,9 @@ int Shear(TransInfo *t, const int mval[2]);
 void initResize(TransInfo *t);
 int Resize(TransInfo *t, const int mval[2]);
 
+void initSkinResize(TransInfo *t);
+int SkinResize(TransInfo *t, const int mval[2]);
+
 void initTranslation(TransInfo *t);
 int Translation(TransInfo *t, const int mval[2]);
 
