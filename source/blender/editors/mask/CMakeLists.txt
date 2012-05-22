@@ -41,6 +41,7 @@ set(SRC
 	mask_editor.c
 	mask_ops.c
 	mask_relationships.c
+	mask_select.c
 
 	mask_intern.h
 )
