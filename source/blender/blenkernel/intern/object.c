@@ -1090,7 +1090,7 @@ Object *BKE_object_pose_armature_get(Object *ob)
 	return NULL;
 }
 
-static void copy_object_transform(Object *ob_tar, Object *ob_src)
+void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 {
 	copy_v3_v3(ob_tar->loc, ob_src->loc);
 	copy_v3_v3(ob_tar->rot, ob_src->rot);
@@ -1365,7 +1365,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 		BKE_object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
 	}
 	else {
-		copy_object_transform(ob, target);
+		BKE_object_transform_copy(ob, target);
 		ob->parent = target->parent; /* libdata */
 		copy_m4_m4(ob->parentinv, target->parentinv);
 	}
