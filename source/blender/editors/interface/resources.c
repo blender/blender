@@ -469,6 +469,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_SELECT_HIGHLIGHT:
 					cp = ts->selected_highlight;
 					break;
+
+				case TH_SKIN_ROOT:
+					cp = ts->skin_root;
+					break;
 			}
 		}
 	}
@@ -702,6 +706,8 @@ void ui_theme_init_default(void)
 
 	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
+
+	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 	
 	/* space buttons */
 	/* to have something initialized */
@@ -1806,6 +1812,12 @@ void init_userdef_do_versions(void)
 				rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 			}
 		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 6)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next)
+			rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */
