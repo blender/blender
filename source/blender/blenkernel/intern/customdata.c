@@ -992,6 +992,38 @@ static void layerInterp_shapekey(void **sources, float *weights,
 	}
 }
 
+static void layerDefault_mvert_skin(void *data, int count)
+{
+	MVertSkin *vs = data;
+	int i;
+	
+	for(i = 0; i < count; i++) {
+		copy_v3_fl(vs[i].radius, 0.25f);
+		vs[i].flag = 0;
+	}
+}
+ 
+static void layerInterp_mvert_skin(void **sources, float *weights,
+								   float *UNUSED(sub_weights),
+								   int count, void *dest)
+{
+	float radius[3], w;
+	MVertSkin *vs;
+	int i;
+
+	zero_v3(radius);
+	for(i = 0; i < count; i++) {
+		w = weights ? weights[i] : 1.0f;
+		vs = sources[i];
+
+		madd_v3_v3fl(radius, vs->radius, w);
+	}
+
+	vs = dest;
+	copy_v3_v3(vs->radius, radius);
+	vs->flag &= ~MVERT_SKIN_ROOT;
+}
+
 static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 0: CD_MVERT */
 	{sizeof(MVert), "MVert", 1, NULL, NULL, NULL, NULL, NULL, NULL},
@@ -1093,7 +1125,10 @@ static const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(float), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	/* 35: CD_GRID_PAINT_MASK */
 	{sizeof(GridPaintMask), "GridPaintMask", 1, NULL, layerCopy_grid_paint_mask,
-	 layerFree_grid_paint_mask, NULL, NULL, NULL}
+	 layerFree_grid_paint_mask, NULL, NULL, NULL},
+	/* 36: CD_SKIN_NODE */
+	{sizeof(MVertSkin), "MVertSkin", 1, "Skin", NULL, NULL,
+	 layerInterp_mvert_skin, NULL, layerDefault_mvert_skin}
 };
 
 /* note, numbers are from trunk and need updating for bmesh */
@@ -1108,10 +1143,7 @@ static const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 /* BMESH ONLY */
 	/* 25-29 */ "CDMPoly", "CDMLoop", "CDShapeKeyIndex", "CDShapeKey", "CDBevelWeight",
 	/* 30-34 */ "CDSubSurfCrease", "CDOrigSpaceLoop", "CDPreviewLoopCol", "CDBMElemPyPtr", "CDPaintMask",
-	/*    35 */ "CDGridPaintMask"
-
-/* END BMESH ONLY */
-
+	/* 35-36 */ "CDGridPaintMask", "CDMVertSkin"
 };
 
 
@@ -1123,7 +1155,7 @@ const CustomDataMask CD_MASK_MESH =
     CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_MDISPS |
     CD_MASK_MLOOPUV | CD_MASK_MLOOPCOL | CD_MASK_MPOLY | CD_MASK_MLOOP |
     CD_MASK_MTEXPOLY | CD_MASK_NORMAL | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
-    CD_MASK_GRID_PAINT_MASK;
+    CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN;
 const CustomDataMask CD_MASK_EDITMESH =
     CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MLOOPUV |
     CD_MASK_MLOOPCOL | CD_MASK_MTEXPOLY | CD_MASK_SHAPE_KEYINDEX |
@@ -1142,7 +1174,7 @@ const CustomDataMask CD_MASK_BMESH =
     CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_PROP_FLT | CD_MASK_PROP_INT |
     CD_MASK_PROP_STR | CD_MASK_SHAPEKEY | CD_MASK_SHAPE_KEYINDEX | CD_MASK_MDISPS |
     CD_MASK_CREASE | CD_MASK_BWEIGHT | CD_MASK_RECAST | CD_MASK_PAINT_MASK |
-    CD_MASK_GRID_PAINT_MASK;
+    CD_MASK_GRID_PAINT_MASK | CD_MASK_MVERT_SKIN;
 const CustomDataMask CD_MASK_FACECORNERS =
     CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_MTEXPOLY | CD_MASK_MLOOPUV |
     CD_MASK_MLOOPCOL;

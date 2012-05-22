@@ -318,6 +318,8 @@ extern StructRNA RNA_MeshFloatProperty;
 extern StructRNA RNA_MeshFloatPropertyLayer;
 extern StructRNA RNA_MeshIntProperty;
 extern StructRNA RNA_MeshIntPropertyLayer;
+extern StructRNA RNA_MeshSkinVertexLayer;
+extern StructRNA RNA_MeshSkinVertex;
 extern StructRNA RNA_MeshSticky;
 extern StructRNA RNA_MeshStringProperty;
 extern StructRNA RNA_MeshStringPropertyLayer;
