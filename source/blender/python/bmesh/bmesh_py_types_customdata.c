@@ -271,11 +271,14 @@ static PyObject *bpy_bmlayeritem_copy_from(BPy_BMLayerItem *self, BPy_BMLayerIte
 	}
 
 	else if ((self->htype != value->htype) ||
-	         (self->type  != value->type) ||
-	         (self->index != value->index))
+	         (self->type  != value->type))
 	{
 		PyErr_SetString(PyExc_ValueError,
 		                "layer.copy_from(other): layer type mismatch");
+	}
+
+	else if (self->index == value->index) {
+		Py_RETURN_NONE;
 	}
 
 	data = bpy_bm_customdata_get(self->bm, self->htype);
