@@ -271,7 +271,7 @@ void sort_keys(Key *key)
 
 /**************** do the key ****************/
 
-void key_curve_position_weights(float t, float *data, int type)
+void key_curve_position_weights(float t, float data[4], int type)
 {
 	float t2, t3, fc;
 	
@@ -303,7 +303,7 @@ void key_curve_position_weights(float t, float *data, int type)
 }
 
 /* first derivative */
-void key_curve_tangent_weights(float t, float *data, int type)
+void key_curve_tangent_weights(float t, float data[4], int type)
 {
 	float t2, fc;
 	
@@ -333,7 +333,7 @@ void key_curve_tangent_weights(float t, float *data, int type)
 }
 
 /* second derivative */
-void key_curve_normal_weights(float t, float *data, int type)
+void key_curve_normal_weights(float t, float data[4], int type)
 {
 	float fc;
 	
@@ -359,11 +359,11 @@ void key_curve_normal_weights(float t, float *data, int type)
 	}
 }
 
-static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
+static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float t[4], int cycl)
 {
 	/* return 1 means k[2] is the position, return 0 means interpolate */
 	KeyBlock *k1, *firstkey;
-	float d, dpos, ofs = 0, lastpos, temp, fval[4];
+	float d, dpos, ofs = 0, lastpos;
 	short bsplinetype;
 
 	firstkey = lb->first;
@@ -467,17 +467,12 @@ static int setkeys(float fac, ListBase *lb, KeyBlock *k[], float *t, int cycl)
 	}
 
 	/* interpolation */
-	
 	key_curve_position_weights(d, t, k[1]->type);
 
 	if (k[1]->type != k[2]->type) {
-		key_curve_position_weights(d, fval, k[2]->type);
-		
-		temp = 1.0f - d;
-		t[0] = temp * t[0] + d * fval[0];
-		t[1] = temp * t[1] + d * fval[1];
-		t[2] = temp * t[2] + d * fval[2];
-		t[3] = temp * t[3] + d * fval[3];
+		float t_other[4];
+		key_curve_position_weights(d, t_other, k[2]->type);
+		interp_v4_v4v4(t, t, t_other, d);
 	}
 
 	return 0;
