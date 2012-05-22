@@ -466,6 +466,7 @@ extern StructRNA RNA_ShapeKeyPoint;
 extern StructRNA RNA_ShrinkwrapConstraint;
 extern StructRNA RNA_ShrinkwrapModifier;
 extern StructRNA RNA_SimpleDeformModifier;
+extern StructRNA RNA_SkinModifier;
 extern StructRNA RNA_SmokeCollSettings;
 extern StructRNA RNA_SmokeDomainSettings;
 extern StructRNA RNA_SmokeFlowSettings;

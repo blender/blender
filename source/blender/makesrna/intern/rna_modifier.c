@@ -75,6 +75,7 @@ EnumPropertyItem modifier_type_items[] = {
 	{eModifierType_Multires, "MULTIRES", ICON_MOD_MULTIRES, "Multiresolution", ""},
 	{eModifierType_Remesh, "REMESH", ICON_MOD_REMESH, "Remesh", ""},
 	{eModifierType_Screw, "SCREW", ICON_MOD_SCREW, "Screw", ""},
+	{eModifierType_Skin, "SKIN", ICON_MOD_SKIN, "Skin", ""},
 	{eModifierType_Solidify, "SOLIDIFY", ICON_MOD_SOLIDIFY, "Solidify", ""},
 	{eModifierType_Subsurf, "SUBSURF", ICON_MOD_SUBSURF, "Subdivision Surface", ""},
 	{0, "", 0, N_("Deform"), ""},
@@ -207,6 +208,8 @@ static StructRNA *rna_Modifier_refine(struct PointerRNA *ptr)
 			return &RNA_DynamicPaintModifier;
 		case eModifierType_Remesh:
 			return &RNA_RemeshModifier;
+		case eModifierType_Skin:
+			return &RNA_SkinModifier;
 		default:
 			return &RNA_Modifier;
 	}
@@ -3196,6 +3199,42 @@ static void rna_def_modifier_ocean(BlenderRNA *brna)
 	/* XXX how to update? */
 }
 
+static void rna_def_modifier_skin(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna= RNA_def_struct(brna, "SkinModifier", "Modifier");
+	RNA_def_struct_ui_text(srna, "Skin Modifier", "Generate Skin");
+	RNA_def_struct_sdna(srna, "SkinModifierData");
+	RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);
+
+	prop = RNA_def_property(srna, "branch_smoothing", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_ui_text(prop, "Branch Smoothing", "Smooth complex geometry around branches");
+	RNA_def_property_ui_range(prop, 0, 1, 1, 0);
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "use_smooth_shade", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SKIN_SMOOTH_SHADING);
+	RNA_def_property_ui_text(prop, "Smooth Shading", "Output faces with smooth shading rather than flat shaded");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "use_x_symmetry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_X);
+	RNA_def_property_ui_text(prop, "X", "Avoid making unsymmetric quads across the X axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "use_y_symmetry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_Y);
+	RNA_def_property_ui_text(prop, "Y", "Avoid making unsymmetric quads across the Y axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	prop = RNA_def_property(srna, "use_z_symmetry", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "symmetry_axes", MOD_SKIN_SYMM_Z);
+	RNA_def_property_ui_text(prop, "Z", "Avoid making unsymmetric quads across the Z axis");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+}
+
 void RNA_def_modifier(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -3301,6 +3340,7 @@ void RNA_def_modifier(BlenderRNA *brna)
 	rna_def_modifier_dynamic_paint(brna);
 	rna_def_modifier_ocean(brna);
 	rna_def_modifier_remesh(brna);
+	rna_def_modifier_skin(brna);
 }
 
 #endif

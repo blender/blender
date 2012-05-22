@@ -959,5 +959,29 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         layout.separator()
         self.vertex_weight_mask(layout, ob, md)
 
+    def SKIN(self, layout, ob, md):
+        layout.operator("object.skin_armature_create", text="Create Armature")
+
+        layout.separator()
+        layout.prop(md, "branch_smoothing")
+        layout.prop(md, "use_smooth_shade")
+
+        layout.label(text="Selected Vertices:")
+        split = layout.split()
+        
+        col = split.column(align=True)
+        col.operator("object.skin_loose_mark_clear", text="Mark Loose").action = "MARK"
+        col.operator("object.skin_loose_mark_clear", text="Clear Loose").action = "CLEAR"
+
+        col = split.column()
+        col.operator("object.skin_root_mark", text="Mark Root")
+        col.operator("object.skin_radii_equalize", text="Equalize Radii")
+
+        layout.label(text="Symmetry Axes:")
+        col = layout.column()
+        col.prop(md, "use_x_symmetry")
+        col.prop(md, "use_y_symmetry")
+        col.prop(md, "use_z_symmetry")
+        
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

@@ -77,6 +77,7 @@ typedef enum ModifierType {
 	eModifierType_Ocean,
 	eModifierType_DynamicPaint,
 	eModifierType_Remesh,
+	eModifierType_Skin,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -1064,5 +1065,31 @@ typedef struct RemeshModifierData {
 	char mode;
 	char pad;
 } RemeshModifierData;
+
+/* Skin modifier */
+
+typedef struct SkinModifierData {
+	ModifierData modifier;
+
+	float branch_smoothing;
+
+	char flag;
+	
+	char symmetry_axes;
+
+	char pad[2];
+} SkinModifierData;
+
+/* SkinModifierData.symmetry_axes */
+enum {
+	MOD_SKIN_SYMM_X = 1,
+	MOD_SKIN_SYMM_Y = 2,
+	MOD_SKIN_SYMM_Z = 4,
+};
+
+/* SkinModifierData.flag */
+enum {
+	MOD_SKIN_SMOOTH_SHADING = 1
+};
 
 #endif
