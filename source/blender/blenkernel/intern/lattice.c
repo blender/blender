@@ -662,7 +662,8 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
 		}
 		else {
-			use_vgroups = FALSE;
+			Mesh *me = target->data;
+			use_vgroups = (me->dvert != NULL);
 		}
 	}
 	else {
@@ -807,7 +808,8 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
 		}
 		else {
-			use_vgroups = FALSE;
+			Mesh *me = target->data;
+			use_vgroups = (me->dvert != NULL);
 		}
 	}
 	else {
