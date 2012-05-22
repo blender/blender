@@ -101,7 +101,9 @@ Here are some examples ...
    for face in bm.faces:
        for loop in face.loops:
            uv = loop[uv_lay].uv
-           print("Loop UV: %f, %f" % (uv.x, uv.y))
+           print("Loop UV: %f, %f" % uv[:])
+           vert = loop.vert
+           print("Loop Vert: (%f,%f,%f)" % vert.co[:])
 
 
 .. code-block:: python
