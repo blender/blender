@@ -2335,6 +2335,9 @@ CustomDataMask ED_view3d_object_datamask(Scene *scene)
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			mask |= CD_MASK_PREVIEW_MCOL;
 		}
+
+		if (ob->mode & OB_MODE_EDIT)
+			mask |= CD_MASK_MVERT_SKIN;
 	}
 
 	return mask;

@@ -1688,6 +1688,20 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 		}
 	}
 
+	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		BMIter iter;
+		BMVert *eve;
+		int i;
+
+		DM_add_vert_layer(&bmdm->dm, CD_MVERT_SKIN, CD_CALLOC, NULL);
+
+		BM_ITER_MESH_INDEX (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH, i) {
+			DM_set_vert_data(&bmdm->dm, i, CD_MVERT_SKIN,
+							 CustomData_bmesh_get(&bm->vdata, eve->head.data,
+												  CD_MVERT_SKIN));
+		}
+	}
+
 	if (vertexCos) {
 		BMFace *efa;
 		BMVert *eve;

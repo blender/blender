@@ -143,6 +143,17 @@ typedef struct drawDMVerts_userData {
 
 	int sel;
 	BMVert *eve_act;
+
+	/* cached theme values */
+	unsigned char th_editmesh_active[4];
+	unsigned char th_vertex_select[4];
+	unsigned char th_vertex[4];
+	unsigned char th_skin_root[4];
+	float th_vertex_size;
+
+	/* for skin node drawing */
+	int has_vskin;
+	float imat[4][4];
 } drawDMVerts_userData;
 
 typedef struct drawDMEdgesSel_userData {
@@ -2400,20 +2411,37 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 	BMVert *eve = EDBM_vert_at_index(data->em, index);
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->sel) {
+		/* skin nodes: draw a red circle around the root
+		   node(s) */
+		if(data->has_vskin) {
+			const MVertSkin *vs = CustomData_bmesh_get(&data->em->bm->vdata,
+													   eve->head.data,
+													   CD_MVERT_SKIN);
+			if (vs->flag & MVERT_SKIN_ROOT) {
+				float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
+				bglEnd();
+			
+				glColor4ubv(data->th_skin_root);
+				drawcircball(GL_LINES, co, radius, data->imat);
+
+				glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
+				bglBegin(GL_POINTS);
+			}
+		}
+
 		/* draw active larger - need to stop/start point drawing for this :/ */
 		if (eve == data->eve_act) {
-			float size = UI_GetThemeValuef(TH_VERTEX_SIZE);
-			UI_ThemeColor4(TH_EDITMESH_ACTIVE);
+			glColor4ubv(data->th_editmesh_active);
 			
 			bglEnd();
 			
-			glPointSize(size);
+			glPointSize(data->th_vertex_size);
 			bglBegin(GL_POINTS);
 			bglVertex3fv(co);
 			bglEnd();
-			
-			UI_ThemeColor4(data->sel ? TH_VERTEX_SELECT : TH_VERTEX);
-			glPointSize(size);
+
+			glColor4ubv(data->sel ? data->th_vertex_select : data->th_vertex);
+			glPointSize(data->th_vertex_size);
 			bglBegin(GL_POINTS);
 		}
 		else {
@@ -2422,12 +2450,26 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 	}
 }
 
-static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_act)
+static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_act,
+						  RegionView3D *rv3d)
 {
 	drawDMVerts_userData data;
 	data.sel = sel;
 	data.eve_act = eve_act;
 	data.em = em;
+
+	/* Cache theme values */
+	UI_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, data.th_editmesh_active);
+	UI_GetThemeColor4ubv(TH_VERTEX_SELECT, data.th_vertex_select);
+	UI_GetThemeColor4ubv(TH_VERTEX, data.th_vertex);
+	UI_GetThemeColor4ubv(TH_SKIN_ROOT, data.th_skin_root);
+	data.th_vertex_size = UI_GetThemeValuef(TH_VERTEX_SIZE);
+
+	/* For skin root drawing */
+	data.has_vskin = CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN);
+	/* view-aligned matrix */
+	mult_m4_m4m4(data.imat, rv3d->viewmat, em->ob->obmat);
+	invert_m4(data.imat);
 
 	bglBegin(GL_POINTS);
 	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
@@ -2711,7 +2753,8 @@ static void draw_dm_bweights(BMEditMesh *em, Scene *scene, DerivedMesh *dm)
 /* EditMesh drawing routines*/
 
 static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit, 
-                                BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act)
+                                BMEditMesh *em, DerivedMesh *cageDM, BMVert *eve_act,
+								RegionView3D *rv3d)
 {
 	ToolSettings *ts = scene->toolsettings;
 	int sel;
@@ -2750,7 +2793,7 @@ static void draw_em_fancy_verts(Scene *scene, View3D *v3d, Object *obedit,
 			if (ts->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
 				glColor4ubv(col);
-				draw_dm_verts(em, cageDM, sel, eve_act);
+				draw_dm_verts(em, cageDM, sel, eve_act, rv3d);
 			}
 			
 			if (check_ob_drawface_dot(scene, v3d, obedit->dt)) {
@@ -3228,7 +3271,7 @@ static void draw_em_fancy(Scene *scene, View3D *v3d, RegionView3D *rv3d,
 		draw_em_fancy_edges(em, scene, v3d, me, cageDM, 0, eed_act);
 	}
 	if (em) {
-		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act);
+		draw_em_fancy_verts(scene, v3d, ob, em, cageDM, eve_act, rv3d);
 
 		if (me->drawflag & ME_DRAWNORMALS) {
 			UI_ThemeColor(TH_NORMAL);
