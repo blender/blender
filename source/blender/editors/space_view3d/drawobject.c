@@ -2412,11 +2412,11 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 
 	if (!BM_elem_flag_test(eve, BM_ELEM_HIDDEN) && BM_elem_flag_test(eve, BM_ELEM_SELECT) == data->sel) {
 		/* skin nodes: draw a red circle around the root
-		   node(s) */
-		if(data->has_vskin) {
+		 * node(s) */
+		if (data->has_vskin) {
 			const MVertSkin *vs = CustomData_bmesh_get(&data->em->bm->vdata,
-													   eve->head.data,
-													   CD_MVERT_SKIN);
+			                                           eve->head.data,
+			                                           CD_MVERT_SKIN);
 			if (vs->flag & MVERT_SKIN_ROOT) {
 				float radius = (vs->radius[0] + vs->radius[1]) * 0.5f;
 				bglEnd();

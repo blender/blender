@@ -997,22 +997,22 @@ static void layerDefault_mvert_skin(void *data, int count)
 	MVertSkin *vs = data;
 	int i;
 	
-	for(i = 0; i < count; i++) {
+	for (i = 0; i < count; i++) {
 		copy_v3_fl(vs[i].radius, 0.25f);
 		vs[i].flag = 0;
 	}
 }
- 
+
 static void layerInterp_mvert_skin(void **sources, float *weights,
-								   float *UNUSED(sub_weights),
-								   int count, void *dest)
+                                   float *UNUSED(sub_weights),
+                                   int count, void *dest)
 {
 	float radius[3], w;
 	MVertSkin *vs;
 	int i;
 
 	zero_v3(radius);
-	for(i = 0; i < count; i++) {
+	for (i = 0; i < count; i++) {
 		w = weights ? weights[i] : 1.0f;
 		vs = sources[i];
 

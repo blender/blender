@@ -64,7 +64,7 @@ static void mask_flood_fill_set_elem(float *elem,
 									 PaintMaskFloodMode mode,
 									 float value)
 {
-	switch(mode) {
+	switch (mode) {
 	case PAINT_MASK_FLOOD_VALUE:
 		(*elem) = value;
 		break;
@@ -96,7 +96,7 @@ static int mask_flood_fill_exec(bContext *C, wmOperator *op)
 
 	sculpt_undo_push_begin("Mask flood fill");
 
-	for(i = 0; i < totnode; i++) {
+	for (i = 0; i < totnode; i++) {
 		PBVHVertexIter vi;
 
 		sculpt_undo_push_node(ob, nodes[i], SCULPT_UNDO_MASK);

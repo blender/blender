@@ -178,7 +178,7 @@ void BPY_modules_update(bContext *C)
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-	if(bpy_context_module)
+	if (bpy_context_module)
 		bpy_context_module->ptr.data = (void *)C;
 }
 

@@ -617,7 +617,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 		char axis;
 	
 		/* Initialize */
-		switch(key_type) {
+		switch (key_type) {
 			case XKEY:
 				axis = 'X';
 				constraint_axis = CON_AXIS0;
@@ -1141,9 +1141,11 @@ int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *ce
 
 		calculateCenter(t);
 
-		if(cent2d)
+		if (cent2d) {
 			copy_v2_v2_int(cent2d, t->center2d);
-		if(cent3d) {
+		}
+
+		if (cent3d) {
 			// Copy center from constraint center. Transform center can be local
 			copy_v3_v3(cent3d, t->con.center);
 		}

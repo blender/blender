@@ -2296,7 +2296,7 @@ void node_composit_backdrop_boxmask(SpaceNode* snode, ImBuf* backdrop, bNode* no
 
 
 	/* keep this, saves us from a version patch */
-	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+	if (snode->zoom == 0.0f) snode->zoom = 1.0f;
 
 	glColor3f(1.0, 1.0, 1.0);
 
@@ -2337,7 +2337,7 @@ void node_composit_backdrop_ellipsemask(SpaceNode* snode, ImBuf* backdrop, bNode
 
 
 	/* keep this, saves us from a version patch */
-	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+	if (snode->zoom == 0.0f) snode->zoom = 1.0f;
 
 	glColor3f(1.0, 1.0, 1.0);
 

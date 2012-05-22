@@ -1662,17 +1662,17 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 
 static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_paint_mask)
 {
-	if(grid_paint_mask) {
+	if (grid_paint_mask) {
 		int i;
 		
 		writestruct(wd, DATA, "GridPaintMask", count, grid_paint_mask);
-		for(i = 0; i < count; ++i) {
+		for (i = 0; i < count; ++i) {
 			GridPaintMask *gpm = &grid_paint_mask[i];
-			if(gpm->data) {
+			if (gpm->data) {
 				const int gridsize = ccg_gridsize(gpm->level);
 				writedata(wd, DATA,
-						  sizeof(*gpm->data) * gridsize * gridsize,
-						  gpm->data);
+				          sizeof(*gpm->data) * gridsize * gridsize,
+				          gpm->data);
 			}
 		}
 	}

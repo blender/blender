@@ -1920,10 +1920,10 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 		td->val = bweight;
 		td->ival = bweight ? *(bweight) : 1.0f;
 	}
-	else if(t->mode == TFM_SKIN_RESIZE) {
+	else if (t->mode == TFM_SKIN_RESIZE) {
 		MVertSkin *vs = CustomData_bmesh_get(&em->bm->vdata,
-											 eve->head.data,
-											 CD_MVERT_SKIN);
+		                                     eve->head.data,
+		                                     CD_MVERT_SKIN);
 		/* skin node size */
 		td->ext = tx;
 		copy_v3_v3(tx->isize, vs->radius);

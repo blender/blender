@@ -6347,7 +6347,7 @@ PyObject *BPY_rna_module(void)
 
 void BPY_update_rna_module(void)
 {
-	if(rna_module_ptr) {
+	if (rna_module_ptr) {
 #if 0
 		RNA_main_pointer_create(G.main, rna_module_ptr);
 #else

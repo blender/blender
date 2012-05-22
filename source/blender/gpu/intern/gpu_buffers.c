@@ -195,7 +195,7 @@ GPUBuffer *GPU_buffer_alloc(int size)
 	/* bad case, leads to leak of buf since buf->pointer will allocate
 	 * NULL, leading to return without cleanup. In any case better detect early
 	 * psy-fi */
-	if(size == 0)
+	if (size == 0)
 		return NULL;
 
 	pool = gpu_get_global_buffer_pool();

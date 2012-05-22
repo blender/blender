@@ -3826,7 +3826,7 @@ static void direct_link_customdata(FileData *fd, CustomData *data, int count)
 			layer->data = newdataadr(fd, layer->data);
 			if (layer->type == CD_MDISPS)
 				direct_link_mdisps(fd, count, layer->data, layer->flag & CD_FLAG_EXTERNAL);
-			else if(layer->type == CD_GRID_PAINT_MASK)
+			else if (layer->type == CD_GRID_PAINT_MASK)
 				direct_link_grid_paint_mask(fd, count, layer->data);
 			i++;
 		}
@@ -7437,7 +7437,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
-		for(cu = main->curve.first; cu; cu = cu->id.next) {
+		for (cu = main->curve.first; cu; cu = cu->id.next) {
 			if (cu->bevfac2 == 0.0f) {
 				cu->bevfac1 = 0.0f;
 				cu->bevfac2 = 1.0f;

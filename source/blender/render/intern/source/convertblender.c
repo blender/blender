@@ -4318,7 +4318,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			}
-			else if(BKE_object_is_animated(re->scene, ob))
+			else if (BKE_object_is_animated(re->scene, ob))
 				split_quads(obr, 1);
 			else {
 				if ((re->r.mode & R_SIMPLIFY && re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)

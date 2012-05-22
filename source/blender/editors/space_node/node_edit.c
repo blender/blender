@@ -2521,7 +2521,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 					/* when linking to group outputs, update the socket type */
 					/* XXX this should all be part of a generic update system */
 					if (!link->tonode) {
-						if(link->tosock->type != link->fromsock->type)
+						if (link->tosock->type != link->fromsock->type)
 							nodeSocketSetType(link->tosock, link->fromsock->type);
 					}
 				}

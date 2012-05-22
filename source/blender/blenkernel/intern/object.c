@@ -3030,10 +3030,12 @@ int BKE_object_is_animated(Scene *scene, Object *ob)
 	ModifierData *md;
 
 	for (md = modifiers_getVirtualModifierList(ob); md; md = md->next)
-		if(modifier_dependsOnTime(md) && 
-			(modifier_isEnabled(scene, md, eModifierMode_Realtime) || 
-			modifier_isEnabled(scene, md, eModifierMode_Render)))
+		if (modifier_dependsOnTime(md) &&
+		    (modifier_isEnabled(scene, md, eModifierMode_Realtime) ||
+		     modifier_isEnabled(scene, md, eModifierMode_Render)))
+		{
 			return 1;
+		}
 	return 0;
 }
 
