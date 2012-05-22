@@ -161,10 +161,12 @@ static unsigned int scroll_circle_face[14][3] = {
 	{6, 13, 12}, {6, 12, 7}, {7, 12, 11}, {7, 11, 8}, {8, 11, 10}, {8, 10, 9}
 };
 
-static float menu_tria_vert[6][2] = {
-	{-0.41, 0.16}, {0.41, 0.16}, {0, 0.82},
-	{0, -0.82}, {-0.41, -0.16}, {0.41, -0.16}
-};
+
+static float menu_tria_vert[6][2]= {
+{-0.33, 0.16}, {0.33, 0.16}, {0, 0.82}, 
+{0, -0.82}, {-0.33, -0.16}, {0.33, -0.16}};
+
+
 
 static unsigned int menu_tria_face[2][3] = {{2, 0, 1}, {3, 5, 4}};
 
@@ -3126,10 +3128,18 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
+				/* new node-link button, not active yet XXX */
 				if (but->flag & UI_BUT_NODE_LINK)
 					wt = widget_type(UI_WTYPE_MENU_NODE_LINK);
-				else if (!but->str[0] && but->icon)
-					wt = widget_type(UI_WTYPE_MENU_ICON_RADIO);
+
+				/* no text, with icon */
+				else if (!but->str[0] && but->icon) {
+					if (but->flag & UI_ICON_PREVIEW)
+						wt= widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
+					else
+						wt= widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
+				}
+				/* with menu arrows */
 				else
 					wt = widget_type(UI_WTYPE_MENU_RADIO);
 				break;
