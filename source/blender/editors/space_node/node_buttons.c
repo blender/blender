@@ -127,7 +127,7 @@ static void active_node_panel(const bContext *C, Panel *pa)
 	uiItemO(col, "", ICON_ZOOMIN, "node.node_color_preset_add");
 	opptr = uiItemFullO(col, "node.node_color_preset_add", "", ICON_ZOOMOUT, NULL, WM_OP_INVOKE_DEFAULT, UI_ITEM_O_RETURN_PROPS);
 	RNA_boolean_set(&opptr, "remove_active", 1);
-	uiItemM(col, (bContext *)C, "NODE_MT_node_color_specials", "", ICON_BLANK1);
+	uiItemM(col, (bContext *)C, "NODE_MT_node_color_specials", "", ICON_DOWNARROW_HLT);
 	
 	/* draw this node's settings */
 	if (node->typeinfo && node->typeinfo->uifuncbut) {
