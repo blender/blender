@@ -168,7 +168,8 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNode
 {
 	if (isConnected()) {
 		relinkConnections(relinkToSocket);
-	} else {
+	}
+	else {
 		Node *node = (Node*)this->getNode();
 		switch (this->getActualDataType()) {
 		case COM_DT_UNKNOWN:

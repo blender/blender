@@ -174,7 +174,7 @@ void MathPowerOperation::executePixel(float *outputValue, float x, float y, Pixe
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if ( inputValue1[0] >= 0 ) {
+	if (inputValue1[0] >= 0) {
 		outputValue[0] = pow(inputValue1[0], inputValue2[0]);
 	}
 	else {
@@ -197,7 +197,7 @@ void MathLogarithmOperation::executePixel(float *outputValue, float x, float y, 
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if ( inputValue1[0] > 0  && inputValue2[0] > 0 )
+	if (inputValue1[0] > 0  && inputValue2[0] > 0)
 		outputValue[0] = log(inputValue1[0]) / log(inputValue2[0]);
 	else
 		outputValue[0] = 0.0;

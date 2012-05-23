@@ -314,24 +314,24 @@ public:
 
 		float rs01 = -sin(theta0-theta1)/sin(theta0+theta1);
 		float rp01 = tan( theta0-theta1)/tan(theta0+theta1);
-		float ts01 = 2 * sin ( theta1 ) * cos ( theta0 ) / sin ( theta0+theta1 ) ;
+		float ts01 = 2 * sin( theta1 ) * cos( theta0 ) / sin( theta0+theta1 ) ;
 		float tp01 = ts01*cos(theta0-theta1);
 		// amplitude for inner reflection
-		float rs12 = -sin ( theta1-theta2 ) / sin ( theta1+theta2 ) ;
-		float rp12 = +tan ( theta1-theta2 ) / tan ( theta1+theta2 ) ;
+		float rs12 = -sin( theta1-theta2 ) / sin( theta1+theta2 ) ;
+		float rp12 = +tan( theta1-theta2 ) / tan( theta1+theta2 ) ;
 		// after passing through first surface twice :
 		// 2 transmissions and 1 reflection
 		float ris = ts01 * ts01 * rs12 ;
 		float rip = tp01 * tp01 * rp12 ;
 		// phase difference between outer and inner reflections
 		float dy = d1 * n1 ;
-		float dx = tan ( theta1 ) * dy ;
-		float delay = sqrt ( dx * dx+dy * dy ) ;
-		float relPhase = 4 * M_PI / lambda * ( delay-dx * sin ( theta0 ) ) ;
+		float dx = tan( theta1 ) * dy ;
+		float delay = sqrt( dx * dx+dy * dy ) ;
+		float relPhase = 4 * M_PI / lambda * ( delay-dx * sin( theta0 ) ) ;
 		// Add up sines of different phase and amplitude
-		float out_s2 = rs01 * rs01 + ris * ris + 2 * rs01 * ris * cos ( relPhase ) ;
-		float out_p2 = rp01 * rp01 + rip * rip + 2 * rp01 * rip * cos ( relPhase ) ;
-		return ( out_s2+out_p2 ) / 2 ;
+		float out_s2 = rs01 * rs01 + ris * ris + 2 * rs01 * ris * cos( relPhase ) ;
+		float out_p2 = rp01 * rp01 + rip * rip + 2 * rp01 * rip * cos( relPhase ) ;
+		return (out_s2 + out_p2) / 2 ;
 	}
 
 	void detectHit(Ray *result, Ray *inputRay, Bounce *bounce) {

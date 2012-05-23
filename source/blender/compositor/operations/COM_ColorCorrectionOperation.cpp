@@ -64,7 +64,7 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	float levelHighlights = 0.0;
 #define MARGIN 0.10
 #define MARGIN_DIV (0.5/MARGIN)
-	if ( level < this->data->startmidtones-MARGIN) {
+	if (level < this->data->startmidtones-MARGIN) {
 		levelShadows = 1.0f;
 	}
 	else if (level < this->data->startmidtones+MARGIN) {
@@ -95,9 +95,9 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	
 	float invgamma = 1.0f/gamma;
 	float luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-	r = ( luma + saturation * (r - luma));
-	g = ( luma + saturation * (g - luma));
-	b = ( luma + saturation * (b - luma));
+	r = (luma + saturation * (r - luma));
+	g = (luma + saturation * (g - luma));
+	b = (luma + saturation * (b - luma));
 	CLAMP (r, 0.0f, 1.0f);
 	CLAMP (g, 0.0f, 1.0f);
 	CLAMP (b, 0.0f, 1.0f);

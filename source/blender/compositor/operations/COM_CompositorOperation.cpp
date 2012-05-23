@@ -74,7 +74,8 @@ void CompositorOperation::deinitExecution()
 			re = NULL;
 		}
 		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
-	} else {
+	}
+	else {
 		if (this->outputBuffer) {
 			MEM_freeN(this->outputBuffer);
 		}

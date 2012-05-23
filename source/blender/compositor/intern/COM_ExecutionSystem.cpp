@@ -105,7 +105,7 @@ ExecutionSystem::~ExecutionSystem()
 void ExecutionSystem::execute()
 {
 	unsigned int order = 0;
-	for ( vector<NodeOperation*>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter ) {
+	for (vector<NodeOperation*>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter) {
 		NodeBase *node = *iter;
 		NodeOperation *operation = (NodeOperation*) node;
 		if (operation->isReadBufferOperation()) {
@@ -273,7 +273,7 @@ void ExecutionSystem::groupOperations()
 		}
 	}
 	ExecutionSystemHelper::findOutputNodeOperations(&outputOperations, this->getOperations(), this->context.isRendering());
-	for ( vector<NodeOperation*>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter ) {
+	for (vector<NodeOperation*>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter) {
 		operation = *iter;
 		ExecutionGroup *group = new ExecutionGroup();
 		group->addOperation(this, operation);
