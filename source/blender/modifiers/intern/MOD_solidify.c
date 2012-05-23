@@ -107,25 +107,10 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
 
-		/* This function adds an edge hash if its not there, and adds the face index */
-#define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
-			{ \
-				const unsigned int ml_v1 = EDV1; \
-				const unsigned int ml_v2 = EDV2; \
-				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2); \
-				if (!edge_ref) { \
-					edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
-					edge_ref->f1 = i; \
-					edge_ref->f2 =- 1; \
-					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref); \
-				} \
-				else { \
-					edge_ref->f2 = i; \
-				} \
-			}
-		/* --- end define --- */
-
+		/* This loop adds an edge hash if its not there, and adds the face index */
 		for (i = 0; i < numFaces; i++, mp++) {
+			unsigned int ml_v1;
+			unsigned int ml_v2;
 			int j;
 			
 			f_no = face_nors[i];
@@ -133,8 +118,23 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 				mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
-			for (j = 0; j < mp->totloop; j++, ml++) {
-				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(ml->v, ME_POLY_LOOP_NEXT(mloop, mp, j)->v);
+
+			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			     j < mp->totloop;
+			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			{
+				/* --- add edge ref to face --- */
+				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2);
+				if (!edge_ref) {
+					edge_ref = &edge_ref_array[edge_ref_count++];
+					edge_ref->f1 =  i;
+					edge_ref->f2 = -1;
+					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref);
+				}
+				else {
+					edge_ref->f2 = i;
+				}
+				/* --- done --- */
 			}
 		}
 
