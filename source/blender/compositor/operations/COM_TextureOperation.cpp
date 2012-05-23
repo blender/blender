@@ -32,6 +32,7 @@ TextureBaseOperation::TextureBaseOperation(): NodeOperation()
 	this->texture = NULL;
 	this->inputSize = NULL;
 	this->inputOffset = NULL;
+	this->scene = NULL;
 }
 TextureOperation::TextureOperation() : TextureBaseOperation()
 {
@@ -56,8 +57,10 @@ void TextureBaseOperation::deinitExecution()
 void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
-		resolution[0] = COM_DEFAULT_RESOLUTION_WIDTH;
-		resolution[1] = COM_DEFAULT_RESOLUTION_HEIGHT;
+		int width = this->scene->r.xsch*this->scene->r.size/100;
+		int height = this->scene->r.ysch*this->scene->r.size/100;
+		resolution[0] = width;
+		resolution[1] = height;
 	}
 	else {
 		resolution[0] = preferredResolution[0];

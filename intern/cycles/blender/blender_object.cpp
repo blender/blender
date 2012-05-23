@@ -285,52 +285,55 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
+	BL::Scene b_sce = b_scene;
 
-	for(b_scene.objects.begin(b_ob); b_ob != b_scene.objects.end(); ++b_ob) {
-		bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
-		uint ob_layer = get_layer(b_ob->layers());
+	for(; b_sce; b_sce = b_sce.background_set()) {
+		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
+			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
+			uint ob_layer = get_layer(b_ob->layers());
 
-		if(!hide && (ob_layer & scene_layer)) {
-			if(b_ob->is_duplicator()) {
-				/* dupli objects */
-				object_create_duplilist(*b_ob, b_scene);
+			if(!hide && (ob_layer & scene_layer)) {
+				if(b_ob->is_duplicator()) {
+					/* dupli objects */
+					object_create_duplilist(*b_ob, b_scene);
 
-				BL::Object::dupli_list_iterator b_dup;
-				int b_index = 0;
+					BL::Object::dupli_list_iterator b_dup;
+					int b_index = 0;
 
-				for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
-					Transform tfm = get_transform(b_dup->matrix());
-					BL::Object b_dup_ob = b_dup->object();
-					bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
+					for(b_ob->dupli_list.begin(b_dup); b_dup != b_ob->dupli_list.end(); ++b_dup) {
+						Transform tfm = get_transform(b_dup->matrix());
+						BL::Object b_dup_ob = b_dup->object();
+						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
 
-					if(!(b_dup->hide() || dup_hide))
-						sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion);
+						if(!(b_dup->hide() || dup_hide))
+							sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion);
 
-					b_index++;
-				}
+						b_index++;
+					}
 
-				object_free_duplilist(*b_ob);
+					object_free_duplilist(*b_ob);
 
-				hide = true;
-			}
-
-			/* check if we should render or hide particle emitter */
-			BL::Object::particle_systems_iterator b_psys;
-			bool render_emitter = false;
-
-			for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
-				if(b_psys->settings().use_render_emitter()) {
-					hide = false;
-					render_emitter = true;
-				}
-				else if(!render_emitter)
 					hide = true;
-			}
+				}
 
-			if(!hide) {
-				/* object itself */
-				Transform tfm = get_transform(b_ob->matrix_world());
-				sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion);
+				/* check if we should render or hide particle emitter */
+				BL::Object::particle_systems_iterator b_psys;
+				bool render_emitter = false;
+
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
+					if(b_psys->settings().use_render_emitter()) {
+						hide = false;
+						render_emitter = true;
+					}
+					else if(!render_emitter)
+						hide = true;
+				}
+
+				if(!hide) {
+					/* object itself */
+					Transform tfm = get_transform(b_ob->matrix_world());
+					sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion);
+				}
 			}
 		}
 	}

@@ -586,9 +586,9 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 	int totnode, curnode, rendering= 1, n;
 	bNodeTreeExec *exec= ntree->execdata;
 	
-	if(ntree==NULL) return;
+	if (ntree == NULL) return;
 	
-	if(do_preview)
+	if (do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
 	if (!ntree->execdata) {
@@ -598,7 +598,7 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 	ntree_composite_texnode(ntree, 1);
 	
 	/* prevent unlucky accidents */
-	if(G.background)
+	if (G.background)
 		rd->scemode &= ~R_COMP_CROP;
 	
 	/* setup callerdata for thread callback */
@@ -613,15 +613,15 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 
 	BLI_init_threads(&threads, exec_composite_node, rd->threads);
 	
-	while(rendering) {
+	while (rendering) {
 		
-		if(BLI_available_threads(&threads)) {
+		if (BLI_available_threads(&threads)) {
 			nodeexec= getExecutableNode(exec);
-			if(nodeexec) {
+			if (nodeexec) {
 				node = nodeexec->node;
-				if(ntree->progress && totnode)
+				if (ntree->progress && totnode)
 					ntree->progress(ntree->prh, (1.0f - curnode/(float)totnode));
-				if(ntree->stats_draw) {
+				if (ntree->stats_draw) {
 					char str[128];
 					BLI_snprintf(str, sizeof(str), "Compositing %d %s", curnode, node->name);
 					ntree->stats_draw(ntree->sdh, str);
@@ -640,21 +640,21 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 		
 		rendering= 0;
 		/* test for ESC */
-		if(ntree->test_break && ntree->test_break(ntree->tbh)) {
-			for(node= ntree->nodes.first; node; node= node->next)
+		if (ntree->test_break && ntree->test_break(ntree->tbh)) {
+			for (node= ntree->nodes.first; node; node= node->next)
 				node->exec |= NODE_READY;
 		}
 		
 		/* check for ready ones, and if we need to continue */
-		for(n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
+		for (n=0, nodeexec=exec->nodeexec; n < exec->totnodes; ++n, ++nodeexec) {
 			node = nodeexec->node;
-			if(node->exec & NODE_READY) {
-				if((node->exec & NODE_FINISHED)==0) {
+			if (node->exec & NODE_READY) {
+				if ((node->exec & NODE_FINISHED)==0) {
 					BLI_remove_thread(&threads, nodeexec); /* this waits for running thread to finish btw */
 					node->exec |= NODE_FINISHED;
 					
 					/* freeing unused buffers */
-					if(rd->scemode & R_COMP_FREE)
+					if (rd->scemode & R_COMP_FREE)
 						freeExecutableNode(exec);
 				}
 			}
@@ -670,7 +670,7 @@ static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_pr
 
 void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
 {
-	if(G.rt == 200)
+	if (G.rt == 200)
 		ntreeCompositExecTreeOld(ntree, rd, do_preview);
 	else
 		COM_execute(ntree, rendering);

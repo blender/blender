@@ -61,21 +61,27 @@ void MovieClipOperation::initExecution()
 
 void MovieClipOperation::deinitExecution()
 {
-	this->movieClipBuffer = NULL;
+	if (this->movieClipBuffer) {
+		IMB_freeImBuf(this->movieClipBuffer);
+
+		this->movieClipBuffer = NULL;
+	}
 }
 
 void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	ImBuf *ibuf;
 
-        resolution[0] = 0;
-        resolution[1] = 0;
+	resolution[0] = 0;
+	resolution[1] = 0;
 
 	if (this->movieClip) {
 		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
 		if (ibuf) {
 			resolution[0] = ibuf->x;
 			resolution[1] = ibuf->y;
+
+			IMB_freeImBuf(ibuf);
 		}
 	}
 }

@@ -1077,7 +1077,7 @@ class WM_OT_properties_context_change(Operator):
 
     context = StringProperty(
             name="Context",
-            maxlen=32,
+            maxlen=64,
             )
 
     def execute(self, context):

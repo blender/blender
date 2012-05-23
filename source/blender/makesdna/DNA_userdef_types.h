@@ -261,6 +261,10 @@ typedef struct ThemeSpace {
 	
 	char match[4];				/* outliner - filter match */
 	char selected_highlight[4];	/* outliner - selected item */
+
+	char skin_root[4]; /* Skin modifier root color */
+
+	int pad4;
 } ThemeSpace;
 
 

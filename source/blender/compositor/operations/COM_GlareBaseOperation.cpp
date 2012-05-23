@@ -74,7 +74,8 @@ bool GlareBaseOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 {
 	if (this->cachedInstance != NULL) {
 		return false;
-	} else {
+	}
+	else {
 		rcti newInput;
 		newInput.xmax = this->getWidth();
 		newInput.xmin = 0;

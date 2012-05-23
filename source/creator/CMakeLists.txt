@@ -38,7 +38,6 @@ blender_include_dirs(
 	../blender/makesdna
 	../blender/gpu
 	../blender/windowmanager
-	../blender/opencl
 )
 
 if(WIN32)

@@ -2154,11 +2154,11 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			manode = give_node_material(ma);
 			if (manode) {
 				char str[MAX_ID_NAME + 12];
-				BLI_snprintf(str, sizeof(str), "Node %s", manode->id.name + 2);
+				BLI_snprintf(str, sizeof(str), IFACE_("Node %s"), manode->id.name + 2);
 				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
 			}
 			else if (ma->use_nodes) {
-				uiItemL(sub, "Node <none>", ICON_NONE);
+				uiItemL(sub, IFACE_("Node <none>"), ICON_NONE);
 			}
 		}
 	}
@@ -2192,7 +2192,9 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "lock_weight", 0, 0, 0, 0, 0,  NULL);
 #else
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0, "Maintain relative weights while painting");
+		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED,
+		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0,
+		                 TIP_("Maintain relative weights while painting"));
 		uiBlockSetEmboss(block, UI_EMBOSS);
 #endif
 	}

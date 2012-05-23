@@ -339,6 +339,17 @@ static void node_buttons_area_draw(const bContext *C, ARegion *ar)
 	ED_region_panels(C, ar, 1, NULL, -1);
 }
 
+static void node_cursor(wmWindow *win, ScrArea *sa, ARegion *ar)
+{
+	SpaceNode *snode= sa->spacedata.first;
+	
+	/* convert mouse coordinates to v2d space */
+	UI_view2d_region_to_view(&ar->v2d, win->eventstate->x - ar->winrct.xmin, win->eventstate->y - ar->winrct.ymin,
+	                         &snode->mx, &snode->my);
+	
+	node_set_cursor(win, snode);
+}
+
 /* Initialize main area, setting handlers. */
 static void node_main_area_init(wmWindowManager *wm, ARegion *ar)
 {
@@ -522,6 +533,8 @@ void ED_spacetype_node(void)
 	art->init= node_main_area_init;
 	art->draw= node_main_area_draw;
 	art->listener= node_region_listener;
+	art->cursor = node_cursor;
+	art->event_cursor = TRUE;
 	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_FRAMES|ED_KEYMAP_GPENCIL;
 
 	BLI_addhead(&st->regiontypes, art);

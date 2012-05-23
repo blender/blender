@@ -868,7 +868,7 @@ static void node_composit_init_defocus(bNodeTree *UNUSED(ntree), bNode* node, bN
 	nbd->gamco = 0;
 	nbd->samples = 16;
 	nbd->fstop = 128.f;
-	nbd->maxblur = 0;
+	nbd->maxblur = 16;
 	nbd->bthresh = 1.f;
 	nbd->scale = 1.f;
 	nbd->no_zbuf = 1;

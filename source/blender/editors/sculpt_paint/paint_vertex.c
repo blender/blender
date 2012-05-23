@@ -2125,7 +2125,7 @@ static char *wpaint_make_validmap(Object *ob)
 	return vgroup_validmap;
 }
 
-static int wpaint_stroke_test_start(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
+static int wpaint_stroke_test_start(bContext *C, wmOperator *op, const float UNUSED(mouse[2]))
 {
 	Scene *scene = CTX_data_scene(C);
 	struct PaintStroke *stroke = op->customdata;
@@ -2673,7 +2673,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 	}
 }
 
-static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, wmEvent *UNUSED(event))
+static int vpaint_stroke_test_start(bContext *C, struct wmOperator *op, const float UNUSED(mouse[2]))
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct PaintStroke *stroke = op->customdata;

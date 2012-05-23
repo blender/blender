@@ -27,6 +27,7 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
 #include "RNA_access.h"
@@ -63,6 +64,7 @@ static char OP_TRANSLATION[] = "TRANSFORM_OT_translate";
 static char OP_ROTATION[] = "TRANSFORM_OT_rotate";
 static char OP_TOSPHERE[] = "TRANSFORM_OT_tosphere";
 static char OP_RESIZE[] = "TRANSFORM_OT_resize";
+static char OP_SKIN_RESIZE[] = "TRANSFORM_OT_skin_resize";
 static char OP_SHEAR[] = "TRANSFORM_OT_shear";
 static char OP_WARP[] = "TRANSFORM_OT_warp";
 static char OP_SHRINK_FATTEN[] = "TRANSFORM_OT_shrink_fatten";
@@ -79,6 +81,7 @@ static void TRANSFORM_OT_translate(struct wmOperatorType *ot);
 static void TRANSFORM_OT_rotate(struct wmOperatorType *ot);
 static void TRANSFORM_OT_tosphere(struct wmOperatorType *ot);
 static void TRANSFORM_OT_resize(struct wmOperatorType *ot);
+static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot);
 static void TRANSFORM_OT_shear(struct wmOperatorType *ot);
 static void TRANSFORM_OT_warp(struct wmOperatorType *ot);
 static void TRANSFORM_OT_shrink_fatten(struct wmOperatorType *ot);
@@ -97,6 +100,7 @@ static TransformModeItem transform_modes[] =
 	{OP_ROTATION, TFM_ROTATION, TRANSFORM_OT_rotate},
 	{OP_TOSPHERE, TFM_TOSPHERE, TRANSFORM_OT_tosphere},
 	{OP_RESIZE, TFM_RESIZE, TRANSFORM_OT_resize},
+	{OP_SKIN_RESIZE, TFM_SKIN_RESIZE, TRANSFORM_OT_skin_resize},
 	{OP_SHEAR, TFM_SHEAR, TRANSFORM_OT_shear},
 	{OP_WARP, TFM_WARP, TRANSFORM_OT_warp},
 	{OP_SHRINK_FATTEN, TFM_SHRINKFATTEN, TRANSFORM_OT_shrink_fatten},
@@ -118,6 +122,7 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_TRANSLATION, "TRANSLATION", 0, "Translation", ""},
 	{TFM_ROTATION, "ROTATION", 0, "Rotation", ""},
 	{TFM_RESIZE, "RESIZE", 0, "Resize", ""},
+	{TFM_SKIN_RESIZE, "SKIN_RESIZE", 0, "Skin Resize", ""},
 	{TFM_TOSPHERE, "TOSPHERE", 0, "Tosphere", ""},
 	{TFM_SHEAR, "SHEAR", 0, "Shear", ""},
 	{TFM_WARP, "WARP", 0, "Warp", ""},
@@ -542,6 +547,35 @@ static void TRANSFORM_OT_resize(struct wmOperatorType *ot)
 	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_GEO_SNAP|P_OPTIONS);
 }
 
+static int skin_resize_poll(bContext *C)
+{
+	struct Object *obedit = CTX_data_edit_object(C);
+	if (obedit && obedit->type == OB_MESH) {
+		BMEditMesh *em = BMEdit_FromObject(obedit);
+		return (em && CustomData_has_layer(&em->bm->vdata, CD_MVERT_SKIN));
+	}
+	return 0;
+}
+
+static void TRANSFORM_OT_skin_resize(struct wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name   = "Skin Resize";
+	ot->description = "Scale selected vertices' skin radii"; 
+	ot->idname = OP_SKIN_RESIZE;
+	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO|OPTYPE_BLOCKING;
+
+	/* api callbacks */
+	ot->invoke = transform_invoke;
+	ot->exec   = transform_exec;
+	ot->modal  = transform_modal;
+	ot->cancel = transform_cancel;
+	ot->poll   = skin_resize_poll;
+
+	RNA_def_float_vector(ot->srna, "value", 3, VecOne, -FLT_MAX, FLT_MAX, "Vector", "", -FLT_MAX, FLT_MAX);
+
+	Transform_Properties(ot, P_CONSTRAINT|P_PROPORTIONAL|P_MIRROR|P_GEO_SNAP|P_OPTIONS);
+}
 
 static void TRANSFORM_OT_trackball(struct wmOperatorType *ot)
 {
@@ -901,6 +935,8 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			kmi = WM_keymap_add_item(keymap, OP_RESIZE, TKEY, KM_PRESS, KM_SHIFT|KM_ALT, 0);
 			RNA_boolean_set(kmi->ptr, "texture_space", TRUE);
 
+			WM_keymap_add_item(keymap, OP_SKIN_RESIZE, AKEY, KM_PRESS, KM_CTRL, 0);
+
 			break;
 		case SPACE_ACTION:
 			kmi = WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", GKEY, KM_PRESS, 0, 0);
@@ -944,11 +980,9 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			RNA_enum_set(kmi->ptr, "mode", TFM_TIME_SCALE);
 			break;
 		case SPACE_NODE:
-			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
-
-			kmi = WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_A, KM_ANY, 0, 0);
-			RNA_boolean_set(kmi->ptr, "release_confirm", TRUE);
-			kmi = WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
+			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", GKEY, KM_PRESS, 0, 0);
+			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", EVT_TWEAK_A, KM_ANY, 0, 0);
+			WM_keymap_add_item(keymap, "NODE_OT_translate_attach", EVT_TWEAK_S, KM_ANY, 0, 0);
 
 			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 
@@ -956,10 +990,12 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 
 			/* detach and translate */
 			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links", DKEY, KM_PRESS, KM_ALT, 0);
-
 			/* XXX release_confirm is set in the macro operator definition */
 			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links_release", EVT_TWEAK_A, KM_ANY, KM_ALT, 0);
 			WM_keymap_add_item(keymap, "NODE_OT_move_detach_links", EVT_TWEAK_S, KM_ANY, KM_ALT, 0);
+
+			/* dettach and translate */
+			WM_keymap_add_item(keymap, "NODE_OT_detach_translate_attach", FKEY, KM_PRESS, KM_ALT, 0);
 			break;
 		case SPACE_SEQ:
 			WM_keymap_add_item(keymap, OP_SEQ_SLIDE, GKEY, KM_PRESS, 0, 0);

@@ -469,6 +469,10 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_SELECT_HIGHLIGHT:
 					cp = ts->selected_highlight;
 					break;
+
+				case TH_SKIN_ROOT:
+					cp = ts->skin_root;
+					break;
 			}
 		}
 	}
@@ -702,6 +706,8 @@ void ui_theme_init_default(void)
 
 	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);
+
+	rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 	
 	/* space buttons */
 	/* to have something initialized */
@@ -837,7 +843,7 @@ void ui_theme_init_default(void)
 	
 	/* space node, re-uses syntax color storage */
 	btheme->tnode = btheme->tv3d;
-	rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);
+	rgba_char_args_set(btheme->tnode.edge_select, 255, 255, 255, 255);	/* wire selected */
 	rgba_char_args_set(btheme->tnode.syntaxl, 155, 155, 155, 160);  /* TH_NODE, backdrop */
 	rgba_char_args_set(btheme->tnode.syntaxn, 100, 100, 100, 255);  /* in/output */
 	rgba_char_args_set(btheme->tnode.syntaxb, 108, 105, 111, 255);  /* operator */
@@ -1028,7 +1034,7 @@ int UI_GetThemeValue(int colorid)
 
 
 // get the color, range 0.0-1.0
-void UI_GetThemeColor3fv(int colorid, float *col)
+void UI_GetThemeColor3fv(int colorid, float col[3])
 {
 	const unsigned char *cp;
 	
@@ -1039,7 +1045,7 @@ void UI_GetThemeColor3fv(int colorid, float *col)
 }
 
 // get the color, range 0.0-1.0, complete with shading offset
-void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
+void UI_GetThemeColorShade3fv(int colorid, int offset, float col[3])
 {
 	int r, g, b;
 	const unsigned char *cp;
@@ -1056,6 +1062,25 @@ void UI_GetThemeColorShade3fv(int colorid, int offset, float *col)
 	col[0] = ((float)r) / 255.0f;
 	col[1] = ((float)g) / 255.0f;
 	col[2] = ((float)b) / 255.0f;
+}
+
+void UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3])
+{
+	int r, g, b;
+	const unsigned char *cp;
+
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+
+	r = offset + (int) cp[0];
+	CLAMP(r, 0, 255);
+	g = offset + (int) cp[1];
+	CLAMP(g, 0, 255);
+	b = offset + (int) cp[2];
+	CLAMP(b, 0, 255);
+
+	col[0] = r;
+	col[1] = g;
+	col[2] = b;
 }
 
 // get the color, in char pointer
@@ -1787,6 +1812,12 @@ void init_userdef_do_versions(void)
 				rgba_char_args_set(btheme->tclip.strip_select, 0xff, 0x8c, 0x00, 0xff);
 			}
 		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 6)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next)
+			rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */

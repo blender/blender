@@ -34,18 +34,28 @@ private:
 	float k1;
 	float k2;
 	float k3;
+	float principal_x;
+	float principal_y;
+	float pixel_aspect;
 	int width;
 	int height;
+	int calibration_width;
+	int calibration_height;
 	bool inverted;
 	float *buffer;
 	int *bufferCalculated;
 public:
-	DistortionCache(MovieClip *movieclip, int width, int height, bool inverted) {
+	DistortionCache(MovieClip *movieclip, int width, int height, int calibration_width, int calibration_height, bool inverted) {
 		this->k1 = movieclip->tracking.camera.k1;
 		this->k2 = movieclip->tracking.camera.k2;
 		this->k3 = movieclip->tracking.camera.k3;
+		this->principal_x = movieclip->tracking.camera.principal[0];
+		this->principal_y = movieclip->tracking.camera.principal[1];
+		this->pixel_aspect = movieclip->tracking.camera.pixel_aspect;
 		this->width = width;
 		this->height = height;
+		this->calibration_width = calibration_width;
+		this->calibration_height = calibration_height;
 		this->inverted = inverted;
 		this->bufferCalculated = new int[this->width*this->height];
 		this->buffer = new float[this->width*this->height*2];
@@ -53,13 +63,18 @@ public:
 			this->bufferCalculated[i] = 0;
 		}
 	}
-	bool isCacheFor(MovieClip *movieclip, int width, int height, bool inverted) {
+	bool isCacheFor(MovieClip *movieclip, int width, int height, int calibration_width, int claibration_height, bool inverted) {
 		return this->k1 == movieclip->tracking.camera.k1 &&
 			this->k2 == movieclip->tracking.camera.k2 &&
 			this->k3 == movieclip->tracking.camera.k3 &&
+			this->principal_x == movieclip->tracking.camera.principal[0] &&
+			this->principal_y == movieclip->tracking.camera.principal[1] &&
+			this->pixel_aspect == movieclip->tracking.camera.pixel_aspect &&
 			this->inverted == inverted &&
-			this->width == width && 
-			this->height == height;
+			this->width == width &&
+			this->height == height &&
+			this->calibration_width == calibration_width &&
+			this->calibration_height == calibration_height;
 	}
 	
 	void getUV(MovieTracking *trackingData, int x, int y, float *u, float*v) {
@@ -67,20 +82,30 @@ public:
 			*u = x;
 			*v = y;
 		} else {
+
 			int offset = y * this->width + x;
 			int offset2 = offset*2;
 			if (!bufferCalculated[offset]) {
+				//float overscan = 0.0f;
+				float w = (float)this->width/* / (1 + overscan) */;
+				float h = (float)this->height/* / (1 + overscan) */;
+				float aspx = (float)w / this->calibration_width;
+				float aspy = (float)h / this->calibration_height;
 				float in[2];
 				float out[2];
-				in[0] = x;
-				in[1] = y;
+
+				in[0] = (x /* - 0.5 * overscan * w */) / aspx;
+				in[1] = (y /* - 0.5 * overscan * h */) / aspy / this->pixel_aspect;
+
 				if (inverted) {
 					BKE_tracking_invert_intrinsics(trackingData, in, out);
 				} else {
 					BKE_tracking_apply_intrinsics(trackingData, in, out);
 				}
-				buffer[offset2] = out[0];
-				buffer[offset2+1] = out[1];
+
+				buffer[offset2] = out[0] * aspx /* + 0.5 * overscan * w */;
+				buffer[offset2+1] = (out[1] * aspy /* + 0.5 * overscan * h */) * this->pixel_aspect;
+
 				bufferCalculated[offset] = 1;
 			}
 			*u = buffer[offset2];
@@ -97,6 +122,7 @@ private:
 
 protected:
 	bool distortion;
+	int framenumber;
 
 public:
 	MovieDistortionOperation(bool distortion);
@@ -107,7 +133,7 @@ public:
 	void deinitExecution();
 	
 	void setMovieClip(MovieClip *clip) {this->movieClip = clip;}
-
+	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
 };
 
 #endif

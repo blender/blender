@@ -241,7 +241,8 @@ bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 {
 	if (this->cached_buffer) {
 		return false;
-	} else {
+	}
+	else {
 		rcti newInput;
 	
 		newInput.xmax = getWidth();

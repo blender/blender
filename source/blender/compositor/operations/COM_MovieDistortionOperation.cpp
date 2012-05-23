@@ -24,8 +24,8 @@
 
 extern "C" {
 	#include "BKE_tracking.h"
-
-#include "BLI_linklist.h"
+	#include "BKE_movieclip.h"
+	#include "BLI_linklist.h"
 }
 
 
@@ -46,14 +46,23 @@ void MovieDistortionOperation::initExecution()
 {
 	this->inputOperation = this->getInputSocketReader(0);
 	if (this->movieClip) {
+		MovieClipUser clipUser = {0};
+		int calibration_width, calibration_height;
+
+		BKE_movieclip_user_set_frame(&clipUser, this->framenumber);
+		BKE_movieclip_get_size(this->movieClip, &clipUser, &calibration_width, &calibration_height);
+
 		for (int i = 0 ; i < s_cache.size() ; i ++) {
 			DistortionCache *c = (DistortionCache*)s_cache[i];
-			if (c->isCacheFor(this->movieClip, this->width, this->height, this->distortion)) {
+			if (c->isCacheFor(this->movieClip, this->width, this->height,
+			                  calibration_width, calibration_height, this->distortion))
+			{
 				this->cache = c;
 				return;
 			}
 		}
-		DistortionCache *newC = new DistortionCache(this->movieClip, this->width, this->height, this->distortion);
+		DistortionCache *newC = new DistortionCache(this->movieClip, this->width, this->height,
+		                                            calibration_width, calibration_height, this->distortion);
 		s_cache.push_back(newC);
 		this->cache = newC;
 	}

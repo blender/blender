@@ -60,7 +60,7 @@ public:
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
 	void setScene(const Scene *scene) {this->scene = scene;}
 	void setbNodeTree(const bNodeTree *tree) {this->tree = tree;}
-	bool isOutputOperation(bool rendering) const {return rendering;}
+	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
 	const int getRenderPriority() const {return 7;}

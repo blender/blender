@@ -3155,7 +3155,7 @@ static void clampto_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 					/* find bounding-box range where target is located */
 					if (ownLoc[clamp_axis] < curveMin[clamp_axis]) {
 						/* bounding-box range is before */
-						offset = curveMin[clamp_axis] - ceil((curveMin[clamp_axis] - ownLoc[clamp_axis]) / len) * len;
+						offset = curveMin[clamp_axis] - ceilf((curveMin[clamp_axis] - ownLoc[clamp_axis]) / len) * len;
 
 						/* now, we calculate as per normal, except using offset instead of curveMin[clamp_axis] */
 						curvetime = (ownLoc[clamp_axis] - offset) / (len);

@@ -2065,7 +2065,7 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 			int index = 0;
 			const char htype = bm_iter_itype_htype_map[self->itype];
 
-			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+			BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 				BM_elem_index_set(ele, index); /* set_dirty! */
 				index++;
 			}
@@ -2278,7 +2278,7 @@ static Py_ssize_t bpy_bmelemseq_length(BPy_BMElemSeq *self)
 		BMHeader *ele;
 		Py_ssize_t tot = 0;
 
-		BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+		BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 			tot++;
 		}
 		return tot;
@@ -2409,7 +2409,7 @@ static int bpy_bmelemseq_contains(BPy_BMElemSeq *self, PyObject *value)
 		if (value_bm_ele->bm == self->bm) {
 			BMElem *ele, *ele_test = value_bm_ele->ele;
 			BMIter iter;
-			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+			BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 				if (ele == ele_test) {
 					return 1;
 				}

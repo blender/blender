@@ -81,7 +81,7 @@ void register_node_type_cmp_colorcorrection(bNodeTreeType *ttype)
 
 	node_type_base(ttype, &ntype, CMP_NODE_COLORCORRECTION, "Color Correction", NODE_CLASS_OP_COLOR, NODE_OPTIONS);
 	node_type_socket_templates(&ntype, cmp_node_colorcorrection_in, cmp_node_colorcorrection_out);
-	node_type_size(&ntype, 400, 200, 400);
+	node_type_size(&ntype, 400, 200, 500);
 	node_type_init(&ntype, node_composit_init_colorcorrection);
 	node_type_storage(&ntype, "NodeColorCorrection", node_free_standard_storage, node_copy_standard_storage);
 

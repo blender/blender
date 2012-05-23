@@ -154,11 +154,13 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[64];	/* MAX_NAME */
-	short type, flag;
+	int flag;
+	short type, pad2;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
 	short stack_index;		/* for groupnode, offset in global caller stack */
 	short nr;				/* number of this node in list, used for UI exec events */
+	float color[3];			/* custom user-defined color */
 	
 	ListBase inputs, outputs;
 	struct bNode *parent;	/* parent node */
@@ -168,6 +170,7 @@ typedef struct bNode {
 	float locx, locy;		/* root offset for drawing */
 	float width, height;	/* node custom width and height */
 	float miniwidth;		/* node width if hidden */
+	float offsetx, offsety;	/* additional offset from loc */
 	
 	int update;				/* update flags */
 	
@@ -209,6 +212,8 @@ typedef struct bNode {
 #define NODE_TRANSFORM		(1<<13)
 	/* node is active texture */
 #define NODE_ACTIVE_TEXTURE	(1<<14)
+	/* use a custom color for the node */
+#define NODE_CUSTOM_COLOR	(1<<15)
 
 /* node->update */
 /* XXX NODE_UPDATE is a generic update flag. More fine-grained updates
@@ -347,6 +352,11 @@ typedef struct bNodeSocketValueRGBA {
 
 #define CMP_NODE_DILATEERODE_STEP     0
 #define CMP_NODE_DILATEERODE_DISTANCE 1
+
+typedef struct NodeFrame {
+	short flag;
+	short label_size;
+} NodeFrame;
 
 /* this one has been replaced with ImageUser, keep it for do_versions() */
 typedef struct NodeImageAnim {
@@ -606,6 +616,10 @@ typedef struct NodeShaderAttribute {
 typedef struct TexNodeOutput {
 	char name[64];
 } TexNodeOutput;
+
+/* frame node flags */
+#define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
+#define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */
 
 /* comp channel matte */
 #define CMP_NODE_CHANNEL_MATTE_CS_RGB	1

@@ -3292,9 +3292,9 @@ void BKE_ptcache_update_info(PTCacheID *pid)
 		mb = (bytes > 1024.0f * 1024.0f);
 
 		BLI_snprintf(mem_info, sizeof(mem_info), "%i frames in memory (%.1f %s)",
-			totframes,
-			bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
-			mb ? "Mb" : "kb");
+		             totframes,
+		             bytes / (mb ? 1024.0f * 1024.0f : 1024.0f),
+		             mb ? "Mb" : "kb");
 	}
 
 	if (cache->flag & PTCACHE_OUTDATED) {

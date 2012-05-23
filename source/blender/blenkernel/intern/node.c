@@ -336,6 +336,7 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	node->width= ntype->width;
 	node->miniwidth= 42.0f;
 	node->height= ntype->height;
+	node->color[0] = node->color[1] = node->color[2] = 0.608;	/* default theme color */
 	
 	node_add_sockets_from_type(ntree, node, ntype);
 	
@@ -591,40 +592,49 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 	BLI_freelistN(&intlinks);
 }
 
-/* transforms node location to area coords */
-void nodeSpaceCoords(bNode *node, float *locx, float *locy)
+void nodeToView(bNode *node, float x, float y, float *rx, float *ry)
 {
 	if (node->parent) {
-		nodeSpaceCoords(node->parent, locx, locy);
-		*locx += node->locx;
-		*locy += node->locy;
+		nodeToView(node->parent, x + node->locx, y + node->locy, rx, ry);
 	}
 	else {
-		*locx = node->locx;
-		*locy = node->locy;
+		*rx = x + node->locx;
+		*ry = y + node->locy;
+	}
+}
+
+void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
+{
+	if (node->parent) {
+		nodeFromView(node->parent, x, y, rx, ry);
+		*rx -= node->locx;
+		*ry -= node->locy;
+	}
+	else {
+		*rx = x - node->locx;
+		*ry = y - node->locy;
 	}
 }
 
 void nodeAttachNode(bNode *node, bNode *parent)
 {
-	float parentx, parenty;
+	float locx, locy;
+	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	node->parent = parent;
 	/* transform to parent space */
-	nodeSpaceCoords(parent, &parentx, &parenty);
-	node->locx -= parentx;
-	node->locy -= parenty;
+	nodeFromView(parent, locx, locy, &node->locx, &node->locy);
 }
 
 void nodeDetachNode(struct bNode *node)
 {
-	float parentx, parenty;
+	float locx, locy;
 	
 	if (node->parent) {
-		/* transform to "global" (area) space */
-		nodeSpaceCoords(node->parent, &parentx, &parenty);
-		node->locx += parentx;
-		node->locy += parenty;
+		/* transform to view space */
+		nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+		node->locx = locx;
+		node->locy = locy;
 		node->parent = NULL;
 	}
 }

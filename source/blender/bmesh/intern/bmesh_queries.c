@@ -952,6 +952,64 @@ float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
 
 
 /**
+ * Returns the shortest edge in f.
+ */
+BMLoop *BM_face_find_shortest_loop(BMFace *f)
+{
+	BMLoop *shortest_loop = NULL;
+	float shortest_len = FLT_MAX;
+
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+	do {
+		const float len = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+		if (len <= shortest_len) {
+			shortest_loop = l_iter;
+			shortest_len = len;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return shortest_loop;
+}
+
+/**
+ * Returns the longest edge in f.
+ */
+BMLoop *BM_face_find_longest_loop(BMFace *f)
+{
+	BMLoop *longest_loop = NULL;
+	float longest_len = 0.0f;
+
+	BMLoop *l_iter;
+	BMLoop *l_first;
+
+	l_iter = l_first = BM_FACE_FIRST_LOOP(f);
+
+	do {
+		const float len = len_squared_v3v3(l_iter->v->co, l_iter->next->v->co);
+		if (len >= longest_len) {
+			longest_loop = l_iter;
+			longest_len = len;
+		}
+	} while ((l_iter = l_iter->next) != l_first);
+
+	return longest_loop;
+}
+
+BMEdge *BM_face_find_shortest_edge(BMFace *f)
+{
+	return BM_face_find_shortest_loop(f)->e;
+}
+
+BMEdge *BM_face_find_longest_edge(BMFace *f)
+{
+	return BM_face_find_longest_loop(f)->e;
+}
+
+/**
  * Returns the edge existing between v1 and v2, or NULL if there isn't one.
  *
  * \note multiple edges may exist between any two vertices, and therefore

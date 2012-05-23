@@ -198,7 +198,9 @@ enum {
 	TH_STITCH_PREVIEW_ACTIVE,
 
 	TH_MATCH,           /* highlight color for search matches */
-	TH_SELECT_HIGHLIGHT /* highlight color for selected outliner item */
+	TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
+
+	TH_SKIN_ROOT
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
@@ -232,9 +234,10 @@ float   UI_GetThemeValuef(int colorid);
 int     UI_GetThemeValue(int colorid);
 
 // get three color values, scaled to 0.0-1.0 range
-void    UI_GetThemeColor3fv(int colorid, float *col);
+void    UI_GetThemeColor3fv(int colorid, float col[3]);
 // get the color, range 0.0-1.0, complete with shading offset
-void    UI_GetThemeColorShade3fv(int colorid, int offset, float *col);
+void    UI_GetThemeColorShade3fv(int colorid, int offset, float col[3]);
+void    UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3]);
 
 // get the 3 or 4 byte values
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);

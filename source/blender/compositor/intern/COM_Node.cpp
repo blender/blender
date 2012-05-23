@@ -138,7 +138,6 @@ void Node::addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocke
 	operation->setX(val->value[0]);
 	operation->setY(val->value[1]);
 	operation->setZ(val->value[2]);
-	operation->setW(val->value[3]);
 	this->addLink(graph, operation->getOutputSocket(), inputsocket);
 	graph->addOperation(operation);
 }

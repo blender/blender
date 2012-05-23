@@ -2996,6 +2996,18 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 	return corner;
 }
 
+/* Return the index of the edge vert that is not equal to 'v'. If
+ * neither edge vertex is equal to 'v', returns -1. */
+int BKE_mesh_edge_other_vert(const MEdge *e, int v)
+{
+	if (e->v1 == v)
+		return e->v2;
+	else if (e->v2 == v)
+		return e->v1;
+	else
+		return -1;
+}
+
 /* update the hide flag for edges and faces from the corresponding
  * flag in verts */
 void BKE_mesh_flush_hidden_from_verts(const MVert *mvert,
