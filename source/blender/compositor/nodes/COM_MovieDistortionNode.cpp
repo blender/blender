@@ -41,7 +41,7 @@ void MovieDistortionNode::convertToOperations(ExecutionSystem *system, Composito
 	operation->setMovieClip(clip);
 	operation->setFramenumber(context->getFramenumber());
 
-	inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, system);
+	inputSocket->relinkConnections(operation->getInputSocket(0), 0, system);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	system->addOperation(operation);
 }

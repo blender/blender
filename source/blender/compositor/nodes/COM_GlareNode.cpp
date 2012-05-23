@@ -49,7 +49,7 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 			SetValueOperation * mixvalueoperation = new SetValueOperation();
 			MixBlendOperation * mixoperation = new MixBlendOperation();
 	
-			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), true, 0, system);
+			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
 			addLink(system, thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
 			addLink(system, mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
 			addLink(system, glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));
@@ -75,7 +75,7 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 			SetValueOperation * mixvalueoperation = new SetValueOperation();
 			MixBlendOperation * mixoperation = new MixBlendOperation();
 			mixoperation->setResolutionInputSocketIndex(1);
-			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), true, 0, system);
+			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
 			addLink(system, thresholdOperation->getOutputSocket(), bluroperation->getInputSocket(0));
 			addLink(system, valueoperation->getOutputSocket(), bluroperation->getInputSocket(1));
 			addLink(system, mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
@@ -109,7 +109,7 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 			SetValueOperation * mixvalueoperation = new SetValueOperation();
 			MixBlendOperation * mixoperation = new MixBlendOperation();
 
-			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), true, 0, system);
+			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
 			addLink(system, thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
 			addLink(system, mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
 			addLink(system, glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));

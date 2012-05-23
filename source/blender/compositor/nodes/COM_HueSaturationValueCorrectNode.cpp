@@ -51,12 +51,12 @@ void HueSaturationValueCorrectNode::convertToOperations(ExecutionSystem *graph, 
 		HueSaturationValueCorrectOperation *changeHSV = new HueSaturationValueCorrectOperation();
 		MixBlendOperation * blend = new MixBlendOperation();
 	
-		colourSocket->relinkConnections(rgbToHSV->getInputSocket(0), true, 0, graph);
+		colourSocket->relinkConnections(rgbToHSV->getInputSocket(0), 1, graph);
 		addLink(graph, rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));
 		addLink(graph, changeHSV->getOutputSocket(), hsvToRGB->getInputSocket(0));
 		addLink(graph, hsvToRGB->getOutputSocket(), blend->getInputSocket(2));
 		addLink(graph, rgbToHSV->getInputSocket(0)->getConnection()->getFromSocket(), blend->getInputSocket(1));
-		valueSocket->relinkConnections(blend->getInputSocket(0), true, 0, graph);
+		valueSocket->relinkConnections(blend->getInputSocket(0), 0, graph);
 		outputSocket->relinkConnections(blend->getOutputSocket());
 	
 		changeHSV->setCurveMapping(storage);

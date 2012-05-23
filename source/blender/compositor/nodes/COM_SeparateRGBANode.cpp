@@ -44,28 +44,28 @@ void SeparateRGBANode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	if (outputRSocket->isConnected()) {
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(0);
-		imageSocket->relinkConnections(operation->getInputSocket(0), true, 0, true, graph);
+		imageSocket->relinkConnectionsDuplicate(operation->getInputSocket(0), 0, graph);
 		outputRSocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}
 	if (outputGSocket->isConnected()) {
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(1);
-		imageSocket->relinkConnections(operation->getInputSocket(0), true, 0, true, graph);
+		imageSocket->relinkConnectionsDuplicate(operation->getInputSocket(0), 0, graph);
 		outputGSocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}
 	if (outputBSocket->isConnected()) {
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(2);
-		imageSocket->relinkConnections(operation->getInputSocket(0), true, 0, true, graph);
+		imageSocket->relinkConnectionsDuplicate(operation->getInputSocket(0), 0, graph);
 		outputBSocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}
 	if (outputASocket->isConnected()) {
 		SeparateChannelOperation *operation = new SeparateChannelOperation();
 		operation->setChannel(3);
-		imageSocket->relinkConnections(operation->getInputSocket(0), true, 0, true, graph);
+		imageSocket->relinkConnectionsDuplicate(operation->getInputSocket(0), 0, graph);
 		outputASocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}

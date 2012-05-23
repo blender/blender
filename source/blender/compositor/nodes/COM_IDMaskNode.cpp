@@ -36,7 +36,7 @@ void IDMaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	operation = new IDMaskOperation();
 	operation->setObjectIndex(bnode->custom1);
 	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	if (bnode->custom2==0 || context->getScene()->r.scemode & R_FULL_SAMPLE) {
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 	}

@@ -64,13 +64,13 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
 
 	if (convert) {
-		inputSocketImage->relinkConnections(convert->getInputSocket(0), true, 0, graph);
+		inputSocketImage->relinkConnections(convert->getInputSocket(0), 0, graph);
 		addLink(graph, convert->getOutputSocket(), operation->getInputSocket(0));
 		addLink(graph, convert->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
 		graph->addOperation(convert);
 	}
 	else {
-		inputSocketImage->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
 		addLink(graph, operation->getInputSocket(0)->getConnection()->getFromSocket(), operationAlpha->getInputSocket(0));
 	}
 

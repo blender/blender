@@ -47,6 +47,6 @@ void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		graph->addOperation(operation2);
 	}
 	operation->setColorBand((ColorBand*)editorNode->storage);
-	inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	graph->addOperation(operation);
 }

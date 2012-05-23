@@ -128,65 +128,61 @@ void InputSocket::fireActualDataTypeSet()
 }
 void InputSocket::relinkConnections(InputSocket *relinkToSocket)
 {
-	this->relinkConnections(relinkToSocket, false, -1, NULL);
-}
-
-void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, bool duplicate, ExecutionSystem *graph)
-{
-	if (!duplicate) {
-		this->relinkConnections(relinkToSocket, autoconnect, editorNodeInputSocketIndex, graph);
-	}
-	else {
-		if (!this->isConnected() && autoconnect) {
-			Node *node = (Node*)this->getNode();
-			switch (this->getActualDataType()) {
-			case COM_DT_UNKNOWN:
-			case COM_DT_COLOR:
-				node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			case COM_DT_VECTOR:
-				node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			case COM_DT_VALUE:
-				node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			}
-			return;
-		}
-		SocketConnection * newConnection = new SocketConnection();
-		OutputSocket * fromSocket = this->getConnection()->getFromSocket();
-		newConnection->setToSocket(relinkToSocket);
-		newConnection->setFromSocket(fromSocket);
-		relinkToSocket->setConnection(newConnection);
-		fromSocket->addConnection(newConnection);
-		graph->addSocketConnection(newConnection);
-	}
-}
-
-void InputSocket::relinkConnections(InputSocket *relinkToSocket, bool autoconnect, int editorNodeInputSocketIndex, ExecutionSystem *graph)
-{
 	if (!isConnected()) {
-		if (autoconnect) {
-			Node *node = (Node*)this->getNode();
-			switch (this->getActualDataType()) {
-			case COM_DT_UNKNOWN:
-			case COM_DT_COLOR:
-				node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			case COM_DT_VECTOR:
-				node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			case COM_DT_VALUE:
-				node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-				break;
-			}
-		}
 		return;
 	}
 	SocketConnection *connection = this->getConnection();
 	connection->setToSocket(relinkToSocket);
 	relinkToSocket->setConnection(connection);
 	this->setConnection(NULL);
+}
+
+void InputSocket::relinkConnectionsDuplicate(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *graph)
+{
+	if (!this->isConnected()) {
+		Node *node = (Node*)this->getNode();
+		switch (this->getActualDataType()) {
+		case COM_DT_UNKNOWN:
+		case COM_DT_COLOR:
+			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		case COM_DT_VECTOR:
+			node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		case COM_DT_VALUE:
+			node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		}
+		return;
+	}
+	SocketConnection * newConnection = new SocketConnection();
+	OutputSocket * fromSocket = this->getConnection()->getFromSocket();
+	newConnection->setToSocket(relinkToSocket);
+	newConnection->setFromSocket(fromSocket);
+	relinkToSocket->setConnection(newConnection);
+	fromSocket->addConnection(newConnection);
+	graph->addSocketConnection(newConnection);
+}
+
+void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNodeInputSocketIndex, ExecutionSystem *graph)
+{
+	if (isConnected()) {
+		relinkConnections(relinkToSocket);
+	} else {
+		Node *node = (Node*)this->getNode();
+		switch (this->getActualDataType()) {
+		case COM_DT_UNKNOWN:
+		case COM_DT_COLOR:
+			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		case COM_DT_VECTOR:
+			node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		case COM_DT_VALUE:
+			node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+			break;
+		}
+	}
 }
 
 const ChannelInfo *InputSocket::getChannelInfo(const int channelnumber)

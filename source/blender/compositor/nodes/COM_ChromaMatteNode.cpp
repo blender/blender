@@ -44,8 +44,8 @@ void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
-	inputSocketImage->relinkConnections(operationRGBToYCC_Image->getInputSocket(0), true, 0, graph);
-	inputSocketKey->relinkConnections(operationRGBToYCC_Key->getInputSocket(0), true, 0, graph);
+	inputSocketImage->relinkConnections(operationRGBToYCC_Image->getInputSocket(0), 0, graph);
+	inputSocketKey->relinkConnections(operationRGBToYCC_Key->getInputSocket(0), 0, graph);
 
 	addLink(graph, operationRGBToYCC_Image->getOutputSocket(), operation->getInputSocket(0));
 	addLink(graph, operationRGBToYCC_Key->getOutputSocket(), operation->getInputSocket(1));

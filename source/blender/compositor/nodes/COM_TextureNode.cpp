@@ -34,8 +34,8 @@ void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	Tex *texture = (Tex*)editorNode->id;
 	TextureOperation *operation = new TextureOperation();
 	this->getOutputSocket(1)->relinkConnections(operation->getOutputSocket());
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, system);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, system);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
+	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, system);
 	operation->setTexture(texture);
 	operation->setScene(context->getScene());
 	system->addOperation(operation);

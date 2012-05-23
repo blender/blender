@@ -50,7 +50,7 @@ void NormalNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	if (outputSocketDotproduct->isConnected()) {
 		DotproductOperation *operation = new DotproductOperation();
 		outputSocketDotproduct->relinkConnections(operation->getOutputSocket(0));
-		inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 		addLink(graph, operationSet->getOutputSocket(0), operation->getInputSocket(1));
 		graph->addOperation(operation);
 	}

@@ -42,9 +42,9 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	case CMP_SCALE_RELATIVE: {
 		ScaleOperation *operation = new ScaleOperation();
 	
-		inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-		inputXSocket->relinkConnections(operation->getInputSocket(1), true, 1, graph);
-		inputYSocket->relinkConnections(operation->getInputSocket(2), true, 2, graph);
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+		inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
+		inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 		outputSocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}
@@ -53,7 +53,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 		SetValueOperation * scaleFactorOperation = new SetValueOperation();
 		scaleFactorOperation->setValue(context->getScene()->r.size/100.0f);
 		ScaleOperation * operation = new ScaleOperation();
-		inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 		addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
 		addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(2));
 		outputSocket->relinkConnections(operation->getOutputSocket(0));
@@ -67,7 +67,7 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 		ScaleFixedSizeOperation * operation = new ScaleFixedSizeOperation();
 		operation->setNewWidth(data->xsch*data->size/100.0f);
 		operation->setNewHeight(data->ysch*data->size/100.0f);
-		inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 		outputSocket->relinkConnections(operation->getOutputSocket(0));
 		operation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);
 		graph->addOperation(operation);
@@ -77,9 +77,9 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	case CMP_SCALE_ABSOLUTE: {
 		ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation(); // TODO: what is the use of this one.... perhaps some issues when the ui was updated....
 	
-		inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-		inputXSocket->relinkConnections(operation->getInputSocket(1), true, 1, graph);
-		inputYSocket->relinkConnections(operation->getInputSocket(2), true, 2, graph);
+		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+		inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
+		inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
 		outputSocket->relinkConnections(operation->getOutputSocket(0));
 		graph->addOperation(operation);
 	}

@@ -64,9 +64,9 @@ void AlphaOverNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	else {
 		convertProg->setResolutionInputSocketIndex(0);
 	}
-	valueSocket->relinkConnections(convertProg->getInputSocket(0), true, 0, graph);
-	color1Socket->relinkConnections(convertProg->getInputSocket(1), true, 1, graph);
-	color2Socket->relinkConnections(convertProg->getInputSocket(2), true, 2, graph);
+	valueSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
+	color1Socket->relinkConnections(convertProg->getInputSocket(1), 1, graph);
+	color2Socket->relinkConnections(convertProg->getInputSocket(2), 2, graph);
 	outputSocket->relinkConnections(convertProg->getOutputSocket(0));
 	graph->addOperation(convertProg);
 }

@@ -50,8 +50,8 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
-		this->getInputSocket(0)->relinkConnections(operationfgb->getInputSocket(0), true, 0, graph);
-		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), true, 1, graph);
+		this->getInputSocket(0)->relinkConnections(operationfgb->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
 		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
 		graph->addOperation(operationfgb);
 		addPreviewOperation(graph, operationfgb->getOutputSocket(), 5);
@@ -60,8 +60,8 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
 		operationx->setData(data);
 		operationx->setQuality(quality);
-		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), true, 0, graph);
-		this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), true, 1, graph);
+		this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
 		graph->addOperation(operationx);
 		GaussianYBlurOperation *operationy = new GaussianYBlurOperation();
 		operationy->setData(data);
@@ -75,8 +75,8 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	else {
 		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
 		operation->setData(data);
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		operation->setQuality(quality);
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
