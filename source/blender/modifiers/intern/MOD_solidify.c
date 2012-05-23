@@ -55,6 +55,14 @@ typedef struct EdgeFaceRef {
 	int f2;
 } EdgeFaceRef;
 
+/* spesific function for solidify - define locally */
+BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
+{
+	r[0] += (float)a[0] * f;
+	r[1] += (float)a[1] * f;
+	r[2] += (float)a[2] * f;
+}
+
 static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 {
 	int i, numVerts, numEdges, numFaces;
@@ -422,7 +430,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
-				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
 		}
 
@@ -437,7 +445,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
-				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
 		}
 
