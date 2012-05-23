@@ -4503,13 +4503,12 @@ static void calcNonProportionalEdgeSlide(TransInfo *t, SlideData *sld, const flo
 			dist = len_squared_v2v2(mval, v_proj);
 			if (dist < min_dist) {
 				min_dist = dist;
-				sld->curr_sv = sv;
 				sld->curr_sv_index = i;
 			}
 		}
 	}
 	else {
-		sld->curr_sv = sv;
+		sld->curr_sv_index = 0;
 	}
 }
 
@@ -4536,7 +4535,6 @@ static int createSlideVerts(TransInfo *t)
 	int numsel, i, j;
 
 	sld->is_proportional = TRUE;
-	sld->curr_sv = NULL;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = FALSE;
 
@@ -5093,25 +5091,11 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 				case EVT_MODAL_MAP: {
 					switch (event->val) {
 						case TFM_WHEEL_DOWN_EVT: {
-							if (sld->curr_sv_index == 0) {
-								sld->curr_sv = sld->sv + (sld->totsv - 1);
-								sld->curr_sv_index = sld->totsv - 1;
-							}
-							else {
-								sld->curr_sv = sld->curr_sv - 1;
-								sld->curr_sv_index = sld->curr_sv_index - 1;
-							}
+							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
 							break;
 						}
 						case TFM_WHEEL_UP_EVT: {
-							if (sld->totsv == sld->curr_sv_index + 1) {
-								sld->curr_sv = sld->sv;
-								sld->curr_sv_index = 0;
-							}
-							else {
-								sld->curr_sv = sld->curr_sv + 1;
-								sld->curr_sv_index = sld->curr_sv_index + 1;
-							}
+							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
 							break;
 						}
 					}
@@ -5134,14 +5118,14 @@ void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 			float marker[3];
 			float v1[3], v2[3];
 			float interp_v;
-			TransDataSlideVert *v = sld->curr_sv;
+			TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
 			const float ctrl_size = UI_GetThemeValuef(TH_FACEDOT_SIZE) + 1.5;
 			const float guide_size = ctrl_size - 0.5f;
 			const float line_size = UI_GetThemeValuef(TH_OUTLINE_WIDTH) + 0.5f;
 			const int alpha_shade = -30;
 
-			add_v3_v3v3(v1, v->origvert.co, v->upvec);
-			add_v3_v3v3(v2, v->origvert.co, v->downvec);
+			add_v3_v3v3(v1, curr_sv->origvert.co, curr_sv->upvec);
+			add_v3_v3v3(v2, curr_sv->origvert.co, curr_sv->downvec);
 
 			interp_v = (sld->perc + 1.0f) / 2.0f;
 			interp_v3_v3v3(marker, v2, v1, interp_v);
@@ -5160,10 +5144,10 @@ void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 			glLineWidth(line_size);
 			UI_ThemeColorShadeAlpha(TH_EDGE_SELECT, 80, alpha_shade);
 			glBegin(GL_LINES);
-			glVertex3fv(v->up->co);
-			glVertex3fv(v->origvert.co);
-			glVertex3fv(v->down->co);
-			glVertex3fv(v->origvert.co);
+			glVertex3fv(curr_sv->up->co);
+			glVertex3fv(curr_sv->origvert.co);
+			glVertex3fv(curr_sv->down->co);
+			glVertex3fv(curr_sv->origvert.co);
 			bglEnd();
 
 
@@ -5171,12 +5155,12 @@ void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 			glPointSize(ctrl_size);
 			if (sld->flipped_vtx) {
 				bglBegin(GL_POINTS);
-				bglVertex3fv(v->down->co);
+				bglVertex3fv(curr_sv->down->co);
 				bglEnd();
 			}
 			else {
 				bglBegin(GL_POINTS);
-				bglVertex3fv(v->up->co);
+				bglVertex3fv(curr_sv->up->co);
 				bglEnd();
 			}
 
@@ -5210,8 +5194,8 @@ static int doEdgeSlide(TransInfo *t, float perc)
 	sv = svlist;
 	for (i=0; i<sld->totsv; i++, sv++) {
 		if (sld->is_proportional == FALSE) {
-			TransDataSlideVert *curr_tsv = sld->curr_sv;
-			float cur_sel = curr_tsv->edge_len;
+			TransDataSlideVert *curr_sv = &sld->sv[sld->curr_sv_index];
+			float cur_sel = curr_sv->edge_len;
 			float cur_sv = sv->edge_len;
 			float extd = 0.0f;
 			float recip_cur_sv = 0.0f;

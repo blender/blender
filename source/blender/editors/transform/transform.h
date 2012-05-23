@@ -218,7 +218,6 @@ typedef struct SlideData {
 	int flipped_vtx;
 
 	int curr_sv_index;
-	struct TransDataSlideVert *curr_sv;
 } SlideData;
 
 typedef struct TransData {
