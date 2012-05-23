@@ -553,7 +553,7 @@ if env['OURPLATFORM']!='darwin':
 
                 source=[os.path.join(dp, f) for f in df if not f.endswith(".pyc")]
                 # To ensure empty dirs are created too
-                if len(source)==0:
+                if len(source)==0 and not os.path.exists(dir):
                     env.Execute(Mkdir(dir))
                 scriptinstall.append(env.Install(dir=dir,source=source))
         if env['WITH_BF_CYCLES']:
