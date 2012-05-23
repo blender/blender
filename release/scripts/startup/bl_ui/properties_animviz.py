@@ -70,8 +70,12 @@ class MotionPathButtonsPanel():
             else:
                 col.operator("object.paths_update", text="Update Paths", icon='OBJECT_DATA')
         else:
-            col.label(text="Not available yet...", icon='ERROR')
-            col.label(text="Calculate Paths first", icon='INFO')
+            sub = col.column(align=True)
+            sub.label(text="Nothing to show yet...", icon='ERROR')
+            if bones:
+                sub.operator("pose.paths_calculate", text="Calculate...", icon='BONE_DATA')
+            else:
+                sub.operator("object.paths_calculate", text="Calculate...", icon='OBJECT_DATA')
 
         # Display Settings
         split = layout.split()
