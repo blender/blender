@@ -4214,7 +4214,7 @@ void RNA_def_scene(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_SELF_CHECK);
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_Scene_set_set", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Background Scene", "Background set scene");
-	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, NULL);
+	RNA_def_property_update(prop, NC_SCENE | NA_EDITED, "rna_Scene_glsl_update");
 
 	prop = RNA_def_property(srna, "world", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
