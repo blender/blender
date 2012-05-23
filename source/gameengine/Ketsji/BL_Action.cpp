@@ -127,7 +127,7 @@ bool BL_Action::Play(const char* name,
 
 	// Only start playing a new action if we're done, or if
 	// the new action has a higher priority
-	if (priority != 0 && !IsDone() && priority >= m_priority)
+	if (!IsDone() && priority > m_priority)
 		return false;
 	m_priority = priority;
 	bAction* prev_action = m_action;
