@@ -4861,7 +4861,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. */
 		if ((sseq->flag & SEQ_MARKER_TRANS) && (canceled == 0)) {
-			/* cant use , TFM_TIME_EXTEND
+			/* cant use TFM_TIME_EXTEND
 			 * for some reason EXTEND is changed into TRANSLATE, so use frame_side instead */
 
 			if (t->mode == TFM_SEQ_SLIDE) {
