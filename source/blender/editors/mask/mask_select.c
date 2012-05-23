@@ -254,7 +254,8 @@ static int select_exec(bContext *C, wmOperator *op)
 			if (!extend)
 				ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-			uw->flag |= SELECT;
+			if (uw)
+				uw->flag |= SELECT;
 
 			maskobj->act_spline = spline;
 			maskobj->act_point = point;
