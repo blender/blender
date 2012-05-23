@@ -28,12 +28,11 @@
 BrightnessNode::BrightnessNode(bNode *editorNode): Node(editorNode)
 {
 }
-/// @todo: add anti alias when not FSA
+
 void BrightnessNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
 {
 	BrightnessOperation *operation = new BrightnessOperation();
-	
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0),true, 0, graph);
 	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1),true, 1, graph);
 	this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2),true, 2, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));

@@ -143,6 +143,16 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 			}
 		}
 		
+		/* copy over the preview buffers to update graduatly */
+		if (node->preview) {
+			bNodePreview *preview = MEM_callocN(sizeof(bNodePreview), "Preview");
+			preview->pad = node->preview->pad;
+			preview->xsize = node->preview->xsize;
+			preview->ysize = node->preview->ysize;
+			preview->rect = MEM_dupallocN(node->preview->rect);
+			node->new_node->preview = preview;
+		}
+		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
 			sock->new_sock->cache= sock->cache;
 			compbuf_set_node(sock->new_sock->cache, node->new_node);
