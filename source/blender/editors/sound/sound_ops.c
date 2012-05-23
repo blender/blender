@@ -362,6 +362,81 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+static EnumPropertyItem container_items[] = {
+#ifdef WITH_FFMPEG
+	{AUD_CONTAINER_AC3, "AC3", 0, "ac3", "Dolby Digital ATRAC 3"},
+#endif
+	{AUD_CONTAINER_FLAC, "FLAC", 0, "flac", "Free Lossless Audio Codec"},
+#ifdef WITH_FFMPEG
+	{AUD_CONTAINER_MATROSKA, "MATROSKA", 0, "mkv", "Matroska"},
+	{AUD_CONTAINER_MP2, "MP2", 0, "mp2", "MPEG-1 Audio Layer II"},
+	{AUD_CONTAINER_MP3, "MP3", 0, "mp3", "MPEG-2 Audio Layer III"},
+#endif
+	{AUD_CONTAINER_OGG, "OGG", 0, "ogg", "Xiph.Org Ogg Container"},
+	{AUD_CONTAINER_WAV, "WAV", 0, "wav", "Waveform Audio File Format"},
+	{0, NULL, 0, NULL, NULL}};
+
+static const char *snd_ext_sound[] = {
+	".ac3",
+	".flac",
+	".mkv",
+	".mp2",
+	".mp3",
+	".ogg",
+	".wav",
+	NULL
+};
+
+static int sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
+{
+	AUD_Container container = RNA_enum_get(op->ptr, "container");
+
+	const char* extension = NULL;
+
+	EnumPropertyItem* item = container_items;
+	while(item->identifier != NULL)
+	{
+		if(item->value == container)
+		{
+			const char** ext = snd_ext_sound;
+			while(*ext != NULL)
+			{
+				if(!strcmp(*ext + 1, item->name))
+				{
+					extension = *ext;
+					break;
+				}
+
+				ext++;
+			}
+		}
+		item++;
+	}
+
+	if (extension) {
+		PropertyRNA *prop;
+		char filepath[FILE_MAX];
+
+		int check;
+
+		prop = RNA_struct_find_property(op->ptr, "filepath");
+		RNA_property_string_get(op->ptr, prop, filepath);
+
+		if(BLI_testextensie_array(filepath, snd_ext_sound))
+			check = BLI_replace_extension(filepath, FILE_MAX, extension);
+		else
+			check = BLI_ensure_extension(filepath, FILE_MAX, extension);
+
+		if(!check)
+			return check;
+
+		RNA_property_string_set(op->ptr, prop, filepath);
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
 static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (RNA_struct_property_is_set(op->ptr, "filepath"))
@@ -544,20 +619,6 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 		{AUD_FORMAT_FLOAT64, "F64", 0, "F64", "64 bit floating point"},
 		{0, NULL, 0, NULL, NULL}};
 
-	static EnumPropertyItem container_items[] = {
-#ifdef WITH_FFMPEG
-		{AUD_CONTAINER_AC3, "AC3", 0, "ac3", "Dolby Digital ATRAC 3"},
-#endif
-		{AUD_CONTAINER_FLAC, "FLAC", 0, "flac", "Free Lossless Audio Codec"},
-#ifdef WITH_FFMPEG
-		{AUD_CONTAINER_MATROSKA, "MATROSKA", 0, "mkv", "Matroska"},
-		{AUD_CONTAINER_MP2, "MP2", 0, "mp2", "MPEG-1 Audio Layer II"},
-		{AUD_CONTAINER_MP3, "MP3", 0, "mp3", "MPEG-2 Audio Layer III"},
-#endif
-		{AUD_CONTAINER_OGG, "OGG", 0, "ogg", "Xiph.Org Ogg Container"},
-		{AUD_CONTAINER_WAV, "WAV", 0, "wav", "Waveform Audio File Format"},
-		{0, NULL, 0, NULL, NULL}};
-
 	static EnumPropertyItem codec_items[] = {
 #ifdef WITH_FFMPEG
 		{AUD_CODEC_AAC, "AAC", 0, "AAC", "Advanced Audio Coding"},
@@ -582,6 +643,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = sound_mixdown_exec;
 	ot->invoke = sound_mixdown_invoke;
+	ot->check = sound_mixdown_check;
 
 #ifdef WITH_AUDASPACE
 	ot->ui = sound_mixdown_draw;
@@ -590,7 +652,7 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER;
 
 	/* properties */
-	WM_operator_properties_filesel(ot, FOLDERFILE|SOUNDFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+	WM_operator_properties_filesel(ot, FOLDERFILE | SOUNDFILE, FILE_SPECIAL, FILE_SAVE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 #ifdef WITH_AUDASPACE
 	RNA_def_int(ot->srna, "accuracy", 1024, 1, 16777216, "Accuracy", "Sample accuracy, important for animation data (the lower the value, the more accurate)", 1, 16777216);
 	RNA_def_enum(ot->srna, "container", container_items, AUD_CONTAINER_FLAC, "Container", "File format");
