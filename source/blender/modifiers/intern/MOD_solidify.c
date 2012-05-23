@@ -32,7 +32,6 @@
  *  \ingroup modifiers
  */
 
-
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -50,7 +49,6 @@
 
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
-
 
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */
@@ -168,7 +166,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		}
 	}
 }
- 
+
 static void initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -176,7 +174,7 @@ static void initData(ModifierData *md)
 	smd->offset_fac = -1.0f;
 	smd->flag = MOD_SOLIDIFY_RIM;
 }
- 
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -366,7 +364,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* if the original has it, get the result so we can update it */
 	face_nors_result = CustomData_get_layer(&result->polyData, CD_NORMAL);
 
-	/*flip normals*/
+	/* flip normals */
 	mp = mpoly + numFaces;
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		MLoop *ml2;
@@ -614,10 +612,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			if (fidx >= numFaces) {
 				fidx -= numFaces;
-				flip = 1;
+				flip = TRUE;
 			}
 			else {
-				flip = 0;
+				flip = FALSE;
 			}
 
 			ed = medge + eidx;
@@ -640,7 +638,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 2, 1);
 			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 3, 1);
 
-			if (flip) {
+			if (flip == FALSE) {
 				ml[j].v = ed->v1;
 				ml[j++].e = eidx;
 				
@@ -782,7 +780,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,
