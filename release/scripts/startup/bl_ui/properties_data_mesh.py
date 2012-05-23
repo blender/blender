@@ -149,7 +149,7 @@ class DATA_PT_vertex_groups(MeshButtonsPanel, Panel):
         col = row.column(align=True)
         col.operator("object.vertex_group_add", icon='ZOOMIN', text="")
         col.operator("object.vertex_group_remove", icon='ZOOMOUT', text="")
-        col.menu("MESH_MT_vertex_group_specials", icon='BLANK1', text="")
+        col.menu("MESH_MT_vertex_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
             col.operator("object.vertex_group_move", icon='TRIA_UP', text="").direction = 'UP'
             col.operator("object.vertex_group_move", icon='TRIA_DOWN', text="").direction = 'DOWN'
@@ -208,7 +208,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
         sub = col.column(align=True)
         sub.operator("object.shape_key_add", icon='ZOOMIN', text="").from_mix = False
         sub.operator("object.shape_key_remove", icon='ZOOMOUT', text="")
-        sub.menu("MESH_MT_shape_key_specials", icon='BLANK1', text="")
+        sub.menu("MESH_MT_shape_key_specials", icon='DOWNARROW_HLT', text="")
 
         if kb:
             col.separator()

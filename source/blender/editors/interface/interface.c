@@ -3356,6 +3356,16 @@ void uiButClearFlag(uiBut *but, int flag)
 	but->flag &= ~flag;
 }
 
+void uiButSetDrawFlag(uiBut *but, int flag)
+{
+	but->drawflag |= flag;
+}
+
+void uiButClearDrawFlag(uiBut *but, int flag)
+{
+	but->drawflag &= ~flag;
+}
+
 int uiButGetRetVal(uiBut *but)
 {
 	return but->retval;

@@ -130,7 +130,7 @@ class TEXTURE_PT_context_texture(TextureButtonsPanel, Panel):
             col = row.column(align=True)
             col.operator("texture.slot_move", text="", icon='TRIA_UP').type = 'UP'
             col.operator("texture.slot_move", text="", icon='TRIA_DOWN').type = 'DOWN'
-            col.menu("TEXTURE_MT_specials", icon='BLANK1', text="")
+            col.menu("TEXTURE_MT_specials", icon='DOWNARROW_HLT', text="")
 
         split = layout.split(percentage=0.65)
         col = split.column()
@@ -511,7 +511,7 @@ class TEXTURE_PT_envmap(TextureTypePanel, Panel):
 
         row = layout.row()
         row.prop(env, "source", expand=True)
-        row.menu("TEXTURE_MT_envmap_specials", icon='BLANK1', text="")
+        row.menu("TEXTURE_MT_envmap_specials", icon='DOWNARROW_HLT', text="")
 
         if env.source == 'IMAGE_FILE':
             layout.template_ID(tex, "image", open="image.open")
