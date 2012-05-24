@@ -1173,9 +1173,9 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 	BLI_assert(split_face->len >= 3);
 
 	/* Extrude the split face */
-	BMO_mesh_flag_disable_all(bm, NULL, BM_FACE, 1);
-	BMO_elem_flag_enable(bm, split_face, 1);
-	BMO_op_initf(bm, &op, "extrude_face_indiv faces=%ff", 1);
+	BM_mesh_elem_hflag_disable_all(bm, BM_FACE, BM_ELEM_TAG, FALSE);
+	BM_elem_flag_enable(split_face, BM_ELEM_TAG);
+	BMO_op_initf(bm, &op, "extrude_face_indiv faces=%hf", BM_ELEM_TAG);
 	BMO_op_exec(bm, &op);
 
 	/* Update split face (should only be one new face created
@@ -1194,10 +1194,12 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 		/* Need at least four ring edges, so subdivide longest edge if
 		 * face is a triangle */
 		longest_edge = BM_face_find_longest_edge(split_face);
-		BMO_mesh_flag_disable_all(bm, NULL, BM_EDGE, 1);
-		BMO_elem_flag_enable(bm, longest_edge, 1);
-		BMO_op_callf(bm, "esubd edges=%fe numcuts=%i quadcornertype=%i",
-		             1, 1, SUBD_STRAIGHT_CUT);
+		
+		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, FALSE);
+		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);
+
+		BMO_op_callf(bm, "esubd edges=%he numcuts=%i quadcornertype=%i",
+		             BM_ELEM_TAG, 1, SUBD_STRAIGHT_CUT);
 	}
 	else if (split_face->len > 4) {
 		/* Maintain a dynamic vert array containing the split_face's
@@ -1209,7 +1211,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
 		/* Get split face's verts */
 		BM_iter_as_array(bm, BM_VERTS_OF_FACE, split_face,
-		                 (void **)verts, split_face->len);
+		                 (void **)vert_buf, split_face->len);
 
 		/* Earlier edge split operations may have turned some quads
 		 * into higher-degree faces */
