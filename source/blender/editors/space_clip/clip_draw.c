@@ -263,7 +263,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
 				}
 			}
 
-			/* if texture buffers aren't efifciently supported or texture is too large to
+			/* if texture buffers aren't efficiently supported or texture is too large to
 			 * be binder fallback to simple draw pixels solution */
 			if (need_fallback) {
 				/* set zoom */

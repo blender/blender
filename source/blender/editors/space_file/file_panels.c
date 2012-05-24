@@ -174,7 +174,7 @@ static void file_panel_operator_header(const bContext *C, Panel *pa)
 	SpaceFile *sfile= CTX_wm_space_file(C);
 	wmOperator *op= sfile->op;
 
-	BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
+	BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
 }
 
 static int file_panel_check_prop(PointerRNA *UNUSED(ptr), PropertyRNA *prop)

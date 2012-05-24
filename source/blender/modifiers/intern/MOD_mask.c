@@ -273,7 +273,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* loop over edges and faces, and do the same thing to 
 	 * ensure that they only reference existing verts 
 	 */
-	for (i = 0; i < maxEdges; i++)  {
+	for (i = 0; i < maxEdges; i++) {
 		MEdge me;
 		dm->getEdge(dm, i, &me);
 		

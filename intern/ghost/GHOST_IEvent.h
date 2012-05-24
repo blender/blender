@@ -77,7 +77,7 @@ public:
 	 * or NULL if it is a 'system' event.
 	 * @return The generating window.
 	 */
-	virtual GHOST_IWindow* getWindow() = 0;
+	virtual GHOST_IWindow *getWindow() = 0;
 	
 	/**
 	 * Returns the event data.
@@ -87,8 +87,12 @@ public:
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_IEvent"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	void *operator new(size_t num_bytes) {
+		return MEM_mallocN(num_bytes, "GHOST:GHOST_IEvent");
+	}
+	void operator delete(void *mem) {
+		MEM_freeN(mem);
+	}
 #endif
 };
 

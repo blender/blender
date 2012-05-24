@@ -241,7 +241,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	result=	WM_border_select_modal(C, op, event);
 
-	if (result==OPERATOR_RUNNING_MODAL)	{
+	if (result == OPERATOR_RUNNING_MODAL) {
 
 		rect.xmin = RNA_int_get(op->ptr, "xmin");
 		rect.ymin = RNA_int_get(op->ptr, "ymin");
@@ -820,8 +820,12 @@ void FILE_OT_parent(struct wmOperatorType *ot)
 static int file_refresh_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
+	struct FSMenu* fsmenu = fsmenu_get(); 
 
 	ED_fileselect_clear(C, sfile);
+
+	/* refresh system directory menu */
+	fsmenu_refresh_system_category(fsmenu);
 
 	WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
 

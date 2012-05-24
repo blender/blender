@@ -250,8 +250,7 @@ int modifier_couldBeCage(struct Scene *scene, ModifierData *md)
 int modifier_sameTopology(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
-	return ELEM3(mti->type, eModifierTypeType_OnlyDeform, eModifierTypeType_Nonconstructive,
-	             eModifierTypeType_NonGeometrical);
+	return ELEM(mti->type, eModifierTypeType_OnlyDeform, eModifierTypeType_NonGeometrical);
 }
 
 int modifier_nonGeometrical(ModifierData *md)

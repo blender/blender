@@ -313,7 +313,7 @@ static int image_view_pan_modal(bContext *C, wmOperator *op, wmEvent *event)
 			image_view_pan_exec(C, op);
 			break;
 		default:
-			if (event->type == vpd->event_type &&  event->val == KM_RELEASE) {
+			if (event->type == vpd->event_type && event->val == KM_RELEASE) {
 				image_view_pan_exit(C, op, 0);
 				return OPERATOR_FINISHED;
 			}
@@ -2210,7 +2210,7 @@ static int image_record_composite_apply(bContext *C, wmOperator *op)
 	
 	BKE_image_all_free_anim_ibufs(scene->r.cfra);
 	ntreeCompositTagAnimated(scene->nodetree);
-	ntreeCompositExecTree(scene->nodetree, &scene->r, scene->r.cfra != rcd->old_cfra);  /* 1 is no previews */
+	ntreeCompositExecTree(scene->nodetree, &scene->r, 0, scene->r.cfra != rcd->old_cfra);  /* 1 is no previews */
 
 	ED_area_tag_redraw(CTX_wm_area(C));
 	

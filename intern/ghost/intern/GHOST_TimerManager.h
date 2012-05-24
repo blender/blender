@@ -64,13 +64,13 @@ public:
 	 * Returns the number of timer tasks.
 	 * @return The number of events on the stack.
 	 */
-	virtual	GHOST_TUns32 getNumTimers();
+	virtual GHOST_TUns32 getNumTimers();
 
 	/**
 	 * Returns whther this timer task ins in our list.
 	 * @return Indication of presence.
 	 */
-	virtual	bool getTimerFound(GHOST_TimerTask* timer);
+	virtual bool getTimerFound(GHOST_TimerTask *timer);
 
 	/**
 	 * Adds a timer task to the list.
@@ -78,7 +78,7 @@ public:
 	 * @param timer The timer task added to the list.
 	 * @return Indication as to whether addition has succeeded.
 	 */
-	virtual GHOST_TSuccess addTimer(GHOST_TimerTask* timer);
+	virtual GHOST_TSuccess addTimer(GHOST_TimerTask *timer);
 
 	/**
 	 * Removes a timer task from the list.
@@ -86,7 +86,7 @@ public:
 	 * @param timer The timer task to be removed from the list.
 	 * @return Indication as to whether removal has succeeded.
 	 */
-	virtual GHOST_TSuccess removeTimer(GHOST_TimerTask* timer);
+	virtual GHOST_TSuccess removeTimer(GHOST_TimerTask *timer);
 
 	/**
 	 * Finds the soonest time the next timer would fire.
@@ -108,7 +108,7 @@ public:
 	 * @param task The timer task to check and optionally fire.
 	 * @return True if the timer fired.
 	 */
-	virtual bool fireTimer(GHOST_TUns64 time, GHOST_TimerTask* task);
+	virtual bool fireTimer(GHOST_TUns64 time, GHOST_TimerTask *task);
 
 protected:
 	/**
@@ -116,7 +116,7 @@ protected:
 	 */
 	void disposeTimers();
 
-	typedef std::vector<GHOST_TimerTask*> TTimerVector;
+	typedef std::vector<GHOST_TimerTask *> TTimerVector;
 	/** The list with event consumers. */
 	TTimerVector m_timers;
 };

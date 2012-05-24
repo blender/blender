@@ -70,13 +70,13 @@ public:
 	 * Returns indication as to whether the window is valid.
 	 * @return The validity of the window.
 	 */
-	virtual	bool getValid() const = 0;
+	virtual bool getValid() const = 0;
 
 	/**
 	 * Returns the associated OS object/handle
 	 * @return The associated OS object/handle
 	 */
-	virtual void* getOSWindow() const = 0;
+	virtual void *getOSWindow() const = 0;
 
 	/**
 	 * Returns the type of drawing context used in this window.
@@ -108,33 +108,33 @@ public:
 	 * These are screen coordinates.
 	 * @param bounds The bounding rectangle of the window.
 	 */
-	virtual	void getWindowBounds(GHOST_Rect& bounds) const = 0;
+	virtual void getWindowBounds(GHOST_Rect& bounds) const = 0;
 	
 	/**
 	 * Returns the client rectangle dimensions.
 	 * The left and top members of the rectangle are always zero.
 	 * @param bounds The bounding rectangle of the client area of the window.
 	 */
-	virtual	void getClientBounds(GHOST_Rect& bounds) const = 0;
+	virtual void getClientBounds(GHOST_Rect& bounds) const = 0;
 
 	/**
 	 * Resizes client rectangle width.
 	 * @param width The new width of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
+	virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width) = 0;
 
 	/**
 	 * Resizes client rectangle height.
 	 * @param height The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
+	virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height) = 0;
 
 	/**
 	 * Resizes client rectangle.
 	 * @param width		The new width of the client area of the window.
 	 * @param height	The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
+	virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height) = 0;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
@@ -143,7 +143,7 @@ public:
 	 * @param outX	The x-coordinate in the client rectangle.
 	 * @param outY	The y-coordinate in the client rectangle.
 	 */
-	virtual	void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
+	virtual void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
@@ -152,7 +152,7 @@ public:
 	 * @param outX	The x-coordinate on the screen.
 	 * @param outY	The y-coordinate on the screen.
 	 */
-	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
+	virtual void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const = 0;
 
 	/**
 	 * Tells if the ongoing drag'n'drop object can be accepted upon mouse drop
@@ -232,14 +232,14 @@ public:
 	 * Returns the tablet data (pressure etc).
 	 * @return The tablet data (pressure etc).
 	 */
-	virtual const GHOST_TabletData* GetTabletData() = 0;
+	virtual const GHOST_TabletData *GetTabletData() = 0;
 	
 	/***************************************************************************************
-	 ** Progress bar functionality
-	 ***************************************************************************************/
+	** Progress bar functionality
+	***************************************************************************************/
 	
 	/**
-     * Sets the progress bar value displayed in the window/application icon
+	 * Sets the progress bar value displayed in the window/application icon
 	 * @param progress The progress %
 	 */
 	virtual GHOST_TSuccess setProgressBar(float progress) = 0;
@@ -250,8 +250,8 @@ public:
 	virtual GHOST_TSuccess endProgressBar() = 0;
 	
 	/***************************************************************************************
-	 ** Cursor management functionality
-	 ***************************************************************************************/
+	** Cursor management functionality
+	***************************************************************************************/
 
 	/**
 	 * Returns the current cursor shape.
@@ -275,15 +275,15 @@ public:
 	 * @return	Indication of success.
 	 */
 	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 bitmap[16][2], 
-												GHOST_TUns8 mask[16][2], 
-												int hotX, 
-												int hotY) = 0;
+	                                            GHOST_TUns8 mask[16][2],
+	                                            int hotX,
+	                                            int hotY) = 0;
 												
 	virtual GHOST_TSuccess setCustomCursorShape(GHOST_TUns8 *bitmap, 
-												GHOST_TUns8 *mask, 
-												int sizex, int sizey, 
-												int hotX, int hotY, 
-												int fg_color, int bg_color) = 0;
+	                                            GHOST_TUns8 *mask,
+	                                            int sizex, int sizey,
+	                                            int hotX, int hotY,
+	                                            int fg_color, int bg_color) = 0;
 
 	/**
 	 * Returns the visibility state of the cursor.

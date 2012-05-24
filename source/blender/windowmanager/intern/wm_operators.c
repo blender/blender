@@ -2189,6 +2189,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->invoke = wm_collada_export_invoke;
 	ot->exec = wm_collada_export_exec;
 	ot->poll = WM_operator_winactive;
+
+	ot->flag |= OPTYPE_PRESET;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
@@ -3216,7 +3218,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		PropertyType prop_type = RNA_property_type(*r_prop);
 
 		if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT)) {
+		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
+		{
 			MEM_freeN(str);
 			BKE_reportf(op->reports, RPT_ERROR,
 			            "Property from path %s is not a float", name);
@@ -4075,7 +4078,7 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*do_free = 1;
+	*do_free = TRUE;
 
 	return item;
 }

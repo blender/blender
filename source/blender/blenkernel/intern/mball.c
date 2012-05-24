@@ -351,7 +351,7 @@ void BKE_mball_texspace_calc(Object *ob)
 	DispList *dl;
 	BoundBox *bb;
 	float *data, min[3], max[3] /*, loc[3], size[3] */;
-	int tot, doit = 0;
+	int tot, do_it = FALSE;
 
 	if (ob->bb == NULL) ob->bb = MEM_callocN(sizeof(BoundBox), "mb boundbox");
 	bb = ob->bb;
@@ -364,7 +364,7 @@ void BKE_mball_texspace_calc(Object *ob)
 	dl = ob->disp.first;
 	while (dl) {
 		tot = dl->nr;
-		if (tot) doit = 1;
+		if (tot) do_it = TRUE;
 		data = dl->verts;
 		while (tot--) {
 			/* Also weird... but longer. From utildefines. */
@@ -374,7 +374,7 @@ void BKE_mball_texspace_calc(Object *ob)
 		dl = dl->next;
 	}
 
-	if (!doit) {
+	if (!do_it) {
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
@@ -1135,11 +1135,11 @@ static int otherface(int edge, int face)
 
 static void makecubetable(void)
 {
-	static int isdone = 0;
+	static int is_done = FALSE;
 	int i, e, c, done[12], pos[8];
 
-	if (isdone) return;
-	isdone = 1;
+	if (is_done) return;
+	is_done = TRUE;
 
 	for (i = 0; i < 256; i++) {
 		for (e = 0; e < 12; e++) done[e] = 0;

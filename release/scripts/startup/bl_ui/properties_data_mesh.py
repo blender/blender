@@ -262,6 +262,7 @@ class DATA_PT_shape_keys(MeshButtonsPanel, Panel):
                     col.prop_search(kb, "relative_key", key, "key_blocks", text="")
 
             else:
+                layout.prop(kb, "interpolation")
                 row = layout.column()
                 row.active = enable_edit_value
                 row.prop(key, "eval_time")

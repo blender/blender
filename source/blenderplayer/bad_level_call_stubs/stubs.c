@@ -74,6 +74,7 @@ struct NodeBlurData;
 struct Nurb;
 struct Object;
 struct PBVHNode;
+struct PyObject;
 struct Render;
 struct RenderEngine;
 struct RenderEngineType;
@@ -121,15 +122,6 @@ void EDBM_mesh_make(struct ToolSettings *ts, struct Scene *scene, struct Object 
 void EDBM_mesh_normals_update(struct BMEditMesh *em) {}
 void *g_system;
 
-struct Heap* BLI_heap_new (void){return NULL;}
-void BLI_heap_free(struct Heap *heap, void *ptrfreefp) {}
-struct HeapNode* BLI_heap_insert (struct Heap *heap, float value, void *ptr){return NULL;}
-void BLI_heap_remove(struct Heap *heap, struct HeapNode *node) {}
-int BLI_heap_empty(struct Heap *heap) {return 0;}
-int BLI_heap_size(struct Heap *heap){return 0;}
-struct HeapNode* BLI_heap_top (struct Heap *heap){return NULL;}
-void* BLI_heap_popmin (struct Heap *heap){return NULL;}
-
 void BLI_smallhash_init(struct SmallHash *hash) {}
 void BLI_smallhash_release(struct SmallHash *hash) {}
 void BLI_smallhash_insert(struct SmallHash *hash, uintptr_t key, void *item) {}
@@ -160,7 +152,7 @@ int multitex_nodes(struct Tex *tex, float *texvec, float *dxt, float *dyt, int o
 struct Material *RE_init_sample_material(struct Material *orig_mat, struct Scene *scene) {return (struct Material *)NULL;}
 void RE_free_sample_material(struct Material *mat) {}
 void RE_sample_material_color(struct Material *mat, float color[3], float *alpha, const float volume_co[3], const float surface_co[3],
-						   int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {}
+                              int face_index, short hit_quad, struct DerivedMesh *orcoDm, struct Object *ob) {}
 
 /* nodes */
 struct RenderResult *RE_GetResult(struct Render *re){return (struct RenderResult *) NULL;}
@@ -507,17 +499,20 @@ void BPY_context_update(struct bContext *C){};
 /* intern/dualcon */
 struct DualConMesh;
 struct DualConMesh *dualcon(const struct DualConMesh *input_mesh,
-			    void *create_mesh,
-			    int flags,
-			    int mode,
-			    float threshold,
-			    float hermite_num,
-			    float scale,
-			    int depth) {return 0;}
+                            void *create_mesh,
+                            int flags,
+                            int mode,
+                            float threshold,
+                            float hermite_num,
+                            float scale,
+                            int depth) {return 0;}
 
 /* intern/cycles */
 struct CCLDeviceInfo;
 struct CCLDeviceInfo *CCL_compute_device_list(int opencl) { return NULL; }
+
+/* compositor */
+void COM_execute(struct bNodeTree *editingtree, int rendering) {}
 
 char blender_path[] = "";
 

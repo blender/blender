@@ -1374,12 +1374,14 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
 		RNA_def_property_ui_text(prop, "Input 2", "Second input for the effect strip");
 	}
 
-	if (count == 3) { /* not used by any effects ...except maybe plugins? */
+	/*
+	if (count == 3) { // not used by any effects ...except maybe plugins? 
 		prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
 		RNA_def_property_pointer_sdna(prop, NULL, "seq3");
 		RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);
 		RNA_def_property_ui_text(prop, "Input 3", "Third input for the effect strip");
 	}
+	*/
 }
 
 static void rna_def_image(BlenderRNA *brna)
@@ -1472,7 +1474,7 @@ static void rna_def_movie(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "stream_index", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "streamindex");
 	RNA_def_property_range(prop, 0, 20);
-	RNA_def_property_ui_text(prop, "Streamindex",
+	RNA_def_property_ui_text(prop, "Stream Index",
 	                         "For files with several movie streams, use the stream with the given index");
 	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update_reopen_files");
 

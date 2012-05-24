@@ -108,7 +108,7 @@ protected:
 	/** Cached number of displays. */
 	CGDisplayCount m_numDisplays;
 	/** Cached display id's for each display. */
-	CGDirectDisplayID* m_displayIDs;
+	CGDirectDisplayID *m_displayIDs;
 };
 
 

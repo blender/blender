@@ -867,7 +867,7 @@ static int index_rebuild_ffmpeg(FFmpegIndexBuilderContext *context,
 
 		if (*progress != next_progress) {
 			*progress = next_progress;
-			*do_update = 1;
+			*do_update = TRUE;
 		}
 
 		if (*stop) {
@@ -1075,7 +1075,7 @@ static void index_rebuild_fallback(FallbackIndexBuilderContext *context,
 
 		if (*progress != next_progress) {
 			*progress = next_progress;
-			*do_update = 1;
+			*do_update = TRUE;
 		}
 		
 		if (*stop) {

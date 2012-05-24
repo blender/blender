@@ -69,9 +69,9 @@ struct GHOST_Buttons {
 	 */
 	virtual void clear();
 
-	GHOST_TUns8 m_ButtonLeft		: 1;
-	GHOST_TUns8 m_ButtonMiddle		: 1;
-	GHOST_TUns8 m_ButtonRight		: 1;
+	GHOST_TUns8 m_ButtonLeft        : 1;
+	GHOST_TUns8 m_ButtonMiddle      : 1;
+	GHOST_TUns8 m_ButtonRight       : 1;
 };
 
 #endif // __GHOST_BUTTONS_H__

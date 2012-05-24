@@ -32,12 +32,12 @@
 
 #ifdef DEBUG_NDOF_MOTION
 // printable version of each GHOST_TProgress value
-static const char* progress_string[] =
-	{"not started","starting","in progress","finishing","finished"};
+static const char *progress_string[] =
+{"not started", "starting", "in progress", "finishing", "finished"};
 #endif
 
 #ifdef DEBUG_NDOF_BUTTONS
-static const char* ndof_button_names[] = {
+static const char *ndof_button_names[] = {
 	// used internally, never sent
 	"NDOF_BUTTON_NONE",
 	// these two are available from any 3Dconnexion device
@@ -309,13 +309,13 @@ void GHOST_NDOFManager::updateRotation(short r[3], GHOST_TUns64 time)
 	m_motionEventPending = true;
 }
 
-void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
+void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_TUns64 time, GHOST_IWindow *window)
 {
 	GHOST_ASSERT(button > NDOF_BUTTON_NONE && button < NDOF_BUTTON_LAST,
-		"rogue button trying to escape NDOF manager");
+	             "rogue button trying to escape NDOF manager");
 
-	GHOST_EventNDOFButton* event = new GHOST_EventNDOFButton(time, window);
-	GHOST_TEventNDOFButtonData* data = (GHOST_TEventNDOFButtonData*) event->getData();
+	GHOST_EventNDOFButton *event = new GHOST_EventNDOFButton(time, window);
+	GHOST_TEventNDOFButtonData *data = (GHOST_TEventNDOFButtonData *) event->getData();
 
 	data->action = press ? GHOST_kPress : GHOST_kRelease;
 	data->button = button;
@@ -327,10 +327,10 @@ void GHOST_NDOFManager::sendButtonEvent(NDOF_ButtonT button, bool press, GHOST_T
 	m_system.pushEvent(event);
 }
 
-void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key, bool press, GHOST_TUns64 time, GHOST_IWindow* window)
+void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key, bool press, GHOST_TUns64 time, GHOST_IWindow *window)
 {
 	GHOST_TEventType type = press ? GHOST_kEventKeyDown : GHOST_kEventKeyUp;
-	GHOST_EventKey* event = new GHOST_EventKey(time, type, window, key);
+	GHOST_EventKey *event = new GHOST_EventKey(time, type, window, key);
 
 #ifdef DEBUG_NDOF_BUTTONS
 	printf("keyboard %s\n", press ? "down" : "up");
@@ -341,7 +341,7 @@ void GHOST_NDOFManager::sendKeyEvent(GHOST_TKey key, bool press, GHOST_TUns64 ti
 
 void GHOST_NDOFManager::updateButton(int button_number, bool press, GHOST_TUns64 time)
 {
-	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+	GHOST_IWindow *window = m_system.getWindowManager()->getActiveWindow();
 
 #ifdef DEBUG_NDOF_BUTTONS
 	printf("ndof: button %d -> ", button_number);
@@ -403,14 +403,14 @@ void GHOST_NDOFManager::setDeadZone(float dz)
 	GHOST_PRINTF("ndof: dead zone set to %.2f\n", dz);
 }
 
-static bool atHomePosition(GHOST_TEventNDOFMotionData* ndof)
+static bool atHomePosition(GHOST_TEventNDOFMotionData *ndof)
 {
 #define HOME(foo) (ndof->foo == 0.f)
 	return HOME(tx) && HOME(ty) && HOME(tz) && HOME(rx) && HOME(ry) && HOME(rz);
 #undef HOME
 }
 
-static bool nearHomePosition(GHOST_TEventNDOFMotionData* ndof, float threshold)
+static bool nearHomePosition(GHOST_TEventNDOFMotionData *ndof, float threshold)
 {
 	if (threshold == 0.f) {
 		return atHomePosition(ndof);
@@ -429,14 +429,14 @@ bool GHOST_NDOFManager::sendMotionEvent()
 
 	m_motionEventPending = false; // any pending motion is handled right now
 
-	GHOST_IWindow* window = m_system.getWindowManager()->getActiveWindow();
+	GHOST_IWindow *window = m_system.getWindowManager()->getActiveWindow();
 
 	if (window == NULL) {
 		return false; // delivery will fail, so don't bother sending
 	}
 
-	GHOST_EventNDOFMotion* event = new GHOST_EventNDOFMotion(m_motionTime, window);
-	GHOST_TEventNDOFMotionData* data = (GHOST_TEventNDOFMotionData*) event->getData();
+	GHOST_EventNDOFMotion *event = new GHOST_EventNDOFMotion(m_motionTime, window);
+	GHOST_TEventNDOFMotionData *data = (GHOST_TEventNDOFMotionData *) event->getData();
 
 	// scale axis values here to normalize them to around +/- 1
 	// they are scaled again for overall sensitivity in the WM based on user prefs

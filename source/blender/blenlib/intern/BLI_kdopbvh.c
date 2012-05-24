@@ -438,7 +438,7 @@ static char get_largest_axis(float *bv)
 	middle_point[0] = (bv[1]) - (bv[0]); // x axis
 	middle_point[1] = (bv[3]) - (bv[2]); // y axis
 	middle_point[2] = (bv[5]) - (bv[4]); // z axis
-	if (middle_point[0] > middle_point[1])  {
+	if (middle_point[0] > middle_point[1]) {
 		if (middle_point[0] > middle_point[2])
 			return 1;  // max x axis
 		else
@@ -464,7 +464,7 @@ static void node_join(BVHTree *tree, BVHNode *node)
 	}
 	
 	for (i = 0; i < tree->tree_type; i++) {
-		if (node->children[i])  {
+		if (node->children[i]) {
 			for (j = tree->start_axis; j < tree->stop_axis; j++) {
 				// update minimum 
 				if (node->children[i]->bv[(2 * j)] < node->bv[(2 * j)]) 

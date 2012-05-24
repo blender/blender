@@ -160,7 +160,11 @@ static void view3d_draw_clipping(RegionView3D *rv3d)
 		                                            {1, 5, 6, 2},
 		                                            {7, 4, 0, 3}};
 
-		UI_ThemeColorShade(TH_BACK, -8);
+		/* fill in zero alpha for rendering & re-projection [#31530] */
+		unsigned char col[4];
+		UI_GetThemeColorShade3ubv(TH_BACK, -8, col);
+		col[3] = 0;
+		glColor4ubv(col);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(3, GL_FLOAT, 0, bb->vec);
@@ -1296,7 +1300,8 @@ static void backdrawview3d(Scene *scene, ARegion *ar, View3D *v3d)
 		/* do nothing */
 	}
 	else if (scene->obedit && v3d->drawtype > OB_WIRE &&
-	         (v3d->flag & V3D_ZBUF_SELECT)) {
+	         (v3d->flag & V3D_ZBUF_SELECT))
+	{
 		/* do nothing */
 	}
 	else {
@@ -1848,7 +1853,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 
 		/* generate displist, test for new object */
 		if (dob_prev && dob_prev->ob != dob->ob) {
-			if (use_displist == 1)
+			if (use_displist == TRUE)
 				glDeleteLists(displist, 1);
 
 			use_displist = -1;
@@ -1870,7 +1875,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 			    !(bb_tmp = BKE_object_boundbox_get(dob->ob)))
 			{
 				// printf("draw_dupli_objects_color: skipping displist for %s\n", dob->ob->id.name+2);
-				use_displist = 0;
+				use_displist = FALSE;
 			}
 			else {
 				// printf("draw_dupli_objects_color: using displist for %s\n", dob->ob->id.name+2);
@@ -1886,7 +1891,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 				draw_object(scene, ar, v3d, &tbase, DRAW_CONSTCOLOR);
 				glEndList();
 
-				use_displist = 1;
+				use_displist = TRUE;
 				BKE_object_boundbox_flag(dob->ob, OB_BB_DISABLED, 0);
 			}
 		}
@@ -2330,6 +2335,9 @@ CustomDataMask ED_view3d_object_datamask(Scene *scene)
 		if (ob->mode & OB_MODE_WEIGHT_PAINT) {
 			mask |= CD_MASK_PREVIEW_MCOL;
 		}
+
+		if (ob->mode & OB_MODE_EDIT)
+			mask |= CD_MASK_MVERT_SKIN;
 	}
 
 	return mask;
@@ -2434,7 +2442,9 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	ar->winrct.ymin = 0;
 	ar->winrct.xmax = winx;
 	ar->winrct.ymax = winy;
-	
+
+	/* set theme */
+	UI_SetTheme(SPACE_VIEW3D, RGN_TYPE_WINDOW);
 	
 	/* set flags */
 	G.f |= G_RENDER_OGL;
@@ -2732,8 +2742,8 @@ static void draw_viewport_fps(Scene *scene, ARegion *ar)
 	}
 #endif
 
-	      /* is this more then half a frame behind? */
-	      if (fps + 0.5f < (float)(FPS)) {
+	/* is this more then half a frame behind? */
+	if (fps + 0.5f < (float)(FPS)) {
 		UI_ThemeColor(TH_REDALERT);
 		BLI_snprintf(printable, sizeof(printable), "fps: %.2f", fps);
 	} 
@@ -3003,7 +3013,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	
 	if (U.uiflag & USER_SHOW_ROTVIEWICON)
 		draw_view_axis(rv3d);
-	else	
+	else
 		draw_view_icon(rv3d);
 	
 	ob = OBACT;

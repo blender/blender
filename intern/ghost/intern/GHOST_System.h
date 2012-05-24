@@ -76,8 +76,8 @@ protected:
 
 public:
 	/***************************************************************************************
-	 ** Time(r) functionality
-	 ***************************************************************************************/
+	** Time(r) functionality
+	***************************************************************************************/
 
 	/**
 	 * Returns the system time.
@@ -97,7 +97,7 @@ public:
 	 * @param userData	Placeholder for user data.
 	 * @return A timer task (0 if timer task installation failed).
 	 */
-	virtual GHOST_ITimerTask* installTimer(GHOST_TUns64 delay,
+	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
 	                                       GHOST_TUns64 interval,
 	                                       GHOST_TimerProcPtr timerProc,
 	                                       GHOST_TUserDataPtr userData = 0);
@@ -107,11 +107,11 @@ public:
 	 * @param timerTask Timer task to be removed.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask* timerTask);
+	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask);
 
 	/***************************************************************************************
-	 ** Display/window management functionality
-	 ***************************************************************************************/
+	** Display/window management functionality
+	***************************************************************************************/
 	
 	/**
 	 * Inherited from GHOST_ISystem but left pure virtual
@@ -126,14 +126,14 @@ public:
 	 * @param	window Pointer to the window to be disposed.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow* window);
+	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window);
 
 	/**
 	 * Returns whether a window is valid.
 	 * @param	window Pointer to the window to be checked.
 	 * @return	Indication of validity.
 	 */
-	virtual bool validWindow(GHOST_IWindow* window);
+	virtual bool validWindow(GHOST_IWindow *window);
 
 	/**
 	 * Begins full screen mode.
@@ -143,8 +143,8 @@ public:
 	 * This window is invalid after full screen has been ended.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
+	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
+	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 		
 	/**
 	 * Updates the resolution while in fullscreen mode.
@@ -153,7 +153,7 @@ public:
 	 *
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window);
+	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window);
 
 	/**
 	 * Ends full screen mode.
@@ -169,13 +169,13 @@ public:
 
 
 	/***************************************************************************************
-	 ** Event management functionality
-	 ***************************************************************************************/
+	** Event management functionality
+	***************************************************************************************/
 
 	/**
 	 * Inherited from GHOST_ISystem but left pure virtual
 	 *
-	 * 	virtual bool processEvents(bool waitForEvent) = 0;
+	 *  virtual bool processEvents(bool waitForEvent) = 0;
 	 */
 
 
@@ -192,18 +192,18 @@ public:
 	 * @param consumer The event consumer to add.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer);
+	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Remove the given event consumer to our list.
 	 * @param consumer The event consumer to remove.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer);
+	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer);
 
 	/***************************************************************************************
-	 ** Cursor management functionality
-	 ***************************************************************************************/
+	** Cursor management functionality
+	***************************************************************************************/
 
 	/** Inherited from GHOST_ISystem but left pure virtual
 	 *	GHOST_TSuccess getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const = 0;	
@@ -211,8 +211,8 @@ public:
 	 */
 
 	/***************************************************************************************
-	 ** Access to mouse button and keyboard states.
-	 ***************************************************************************************/
+	** Access to mouse button and keyboard states.
+	***************************************************************************************/
 
 	/**
 	 * Returns the state of a modifier key (ouside the message queue).
@@ -231,8 +231,8 @@ public:
 	virtual GHOST_TSuccess getButtonState(GHOST_TButtonMask mask, bool& isDown) const;
 	
 	/***************************************************************************************
-	 ** Other (internal) functionality.
-	 ***************************************************************************************/
+	** Other (internal) functionality.
+	***************************************************************************************/
 
 	/**
 	 * Pushes an event on the stack.
@@ -240,32 +240,32 @@ public:
 	 * Do not delete the event!
 	 * @param event	The event to push on the stack.
 	 */
-	virtual GHOST_TSuccess pushEvent(GHOST_IEvent* event);
+	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
 	 * Returns the timer manager.
 	 * @return The timer manager.
 	 */
-	inline virtual GHOST_TimerManager* getTimerManager() const;
+	inline virtual GHOST_TimerManager *getTimerManager() const;
 
 	/**
 	 * Returns a pointer to our event manager.
 	 * @return A pointer to our event manager.
 	 */
-	virtual inline GHOST_EventManager* getEventManager() const;
+	virtual inline GHOST_EventManager *getEventManager() const;
 
 	/**
 	 * Returns a pointer to our window manager.
 	 * @return A pointer to our window manager.
 	 */
-	virtual inline GHOST_WindowManager* getWindowManager() const;
+	virtual inline GHOST_WindowManager *getWindowManager() const;
 
 #ifdef WITH_INPUT_NDOF
 	/**
 	 * Returns a pointer to our n-degree of freedeom manager.
 	 * @return A pointer to our n-degree of freedeom manager.
 	 */
-	virtual inline GHOST_NDOFManager* getNDOFManager() const;
+	virtual inline GHOST_NDOFManager *getNDOFManager() const;
 #endif
 
 	/**
@@ -285,23 +285,23 @@ public:
 	/**
 	 * Returns the selection buffer
 	 * @param selection		Only used on X11
-	 * @return 				Returns the clipboard data
+	 * @return              Returns the clipboard data
 	 *
 	 */
-	virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
+	virtual GHOST_TUns8 *getClipboard(bool selection) const = 0;
 	  
-	  /**
-	   * Put data to the Clipboard
-	   * @param buffer		The buffer to copy to the clipboard
-	   * @param selection	The clipboard to copy too only used on X11
-	   */
-	  virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
+	/**
+	 * Put data to the Clipboard
+	 * @param buffer		The buffer to copy to the clipboard
+	 * @param selection	The clipboard to copy too only used on X11
+	 */
+	virtual void putClipboard(GHOST_TInt8 *buffer, bool selection) const = 0;
 
-	 /**
+	/**
 	 * Confirms quitting he program when there is just one window left open
 	 * in the application
 	 */
-	virtual int confirmQuit(GHOST_IWindow * window) const;
+	virtual int confirmQuit(GHOST_IWindow *window) const;
 
 
 	
@@ -323,52 +323,52 @@ protected:
 	 * @param window The window created.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0);
+	virtual GHOST_TSuccess createFullScreenWindow(GHOST_Window **window,
+	                                              const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0);
 
 	/** The display manager (platform dependant). */
-	GHOST_DisplayManager* m_displayManager;
+	GHOST_DisplayManager *m_displayManager;
 
 	/** The timer manager. */
-	GHOST_TimerManager* m_timerManager;
+	GHOST_TimerManager *m_timerManager;
 
 	/** The window manager. */
-	GHOST_WindowManager* m_windowManager;
+	GHOST_WindowManager *m_windowManager;
 
 	/** The event manager. */
-	GHOST_EventManager* m_eventManager;
+	GHOST_EventManager *m_eventManager;
 
 #ifdef WITH_INPUT_NDOF
 	/** The N-degree of freedom device manager */
-	GHOST_NDOFManager* m_ndofManager;
+	GHOST_NDOFManager *m_ndofManager;
 #endif
 	
 	/** Prints all the events. */
 #ifdef GHOST_DEBUG
-	GHOST_EventPrinter* m_eventPrinter;
+	GHOST_EventPrinter *m_eventPrinter;
 #endif // GHOST_DEBUG
 
 	/** Settings of the display before the display went fullscreen. */
 	GHOST_DisplaySetting m_preFullScreenSetting;
 };
 
-inline GHOST_TimerManager* GHOST_System::getTimerManager() const
+inline GHOST_TimerManager *GHOST_System::getTimerManager() const
 {
 	return m_timerManager;
 }
 
-inline GHOST_EventManager* GHOST_System::getEventManager() const
+inline GHOST_EventManager *GHOST_System::getEventManager() const
 {
 	return m_eventManager;
 }
 
-inline GHOST_WindowManager* GHOST_System::getWindowManager() const
+inline GHOST_WindowManager *GHOST_System::getWindowManager() const
 {
 	return m_windowManager;
 }
 
 #ifdef WITH_INPUT_NDOF
-inline GHOST_NDOFManager* GHOST_System::getNDOFManager() const
+inline GHOST_NDOFManager *GHOST_System::getNDOFManager() const
 {
 	return m_ndofManager;
 }

@@ -96,6 +96,7 @@ class USERPREF_HT_header(Header):
             layout.menu("USERPREF_MT_addons_dev_guides")
         elif userpref.active_section == 'THEMES':
             layout.operator("ui.reset_default_theme")
+            layout.operator("wm.theme_install")
 
 
 class USERPREF_PT_tabs(Panel):

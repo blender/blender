@@ -178,6 +178,11 @@ static void rna_Image_update(Image *image, ReportList *reports)
 	IMB_rect_from_float(ibuf);
 }
 
+static void rna_Image_scale(Image *image, int width, int height)
+{
+	BKE_image_scale(image, width, height);
+}
+
 static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int mag)
 {
 	ImBuf *ibuf;
@@ -215,6 +220,19 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 		glDeleteTextures(1, (GLuint *)bind);
 		image->bindcode = 0;
 	}
+
+	return error;
+}
+
+static int rna_Image_gl_touch(Image *image, ReportList *reports, int filter, int mag)
+{
+	unsigned int *bind = &image->bindcode;
+	int error = GL_NO_ERROR;
+
+	BKE_image_tag_time(image);
+
+	if (*bind == 0)
+		error = rna_Image_gl_load(image, reports, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
 
 	return error;
 }
@@ -261,6 +279,24 @@ void RNA_api_image(StructRNA *srna)
 	func = RNA_def_function(srna, "update", "rna_Image_update");
 	RNA_def_function_ui_description(func, "Update the display image from the floating point buffer");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+
+	func = RNA_def_function(srna, "scale", "rna_Image_scale");
+	RNA_def_function_ui_description(func, "Scale the image in pixels");
+	parm = RNA_def_int(func, "width", 0, 1, 10000, "", "Width", 1, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "height", 0, 1, 10000, "", "Height", 1, 10000);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	func = RNA_def_function(srna, "gl_touch", "rna_Image_gl_touch");
+	RNA_def_function_ui_description(func, "Delay the image from being cleaned from the cache due inactivity");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS);
+	RNA_def_int(func, "filter", GL_LINEAR_MIPMAP_NEAREST, -INT_MAX, INT_MAX, "Filter",
+	            "The texture minifying function to use if the image wan't loaded", -INT_MAX, INT_MAX);
+	RNA_def_int(func, "mag", GL_LINEAR, -INT_MAX, INT_MAX, "Magnification",
+	            "The texture magnification function to use if the image wan't loaded", -INT_MAX, INT_MAX);
+	/* return value */
+	parm = RNA_def_int(func, "error", 0, -INT_MAX, INT_MAX, "Error", "OpenGL error value", -INT_MAX, INT_MAX);
+	RNA_def_function_return(func, parm);
 
 	func = RNA_def_function(srna, "gl_load", "rna_Image_gl_load");
 	RNA_def_function_ui_description(func, "Load the image into OpenGL graphics memory");

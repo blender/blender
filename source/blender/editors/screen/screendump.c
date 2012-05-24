@@ -333,7 +333,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 	sj->stop = stop;
 	sj->do_update = do_update;
 	
-	*do_update = 1; // wait for opengl rect
+	*do_update = TRUE; /* wait for opengl rect */
 	
 	while (*stop == 0) {
 		
@@ -377,7 +377,7 @@ static void screenshot_startjob(void *sjv, short *stop, short *do_update, float 
 			MEM_freeN(sj->dumprect);
 			sj->dumprect = NULL;
 			
-			*do_update = 1;
+			*do_update = TRUE;
 			
 			rd.cfra++;
 

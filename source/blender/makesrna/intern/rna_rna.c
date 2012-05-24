@@ -577,6 +577,12 @@ static int rna_Property_is_enum_flag_get(PointerRNA *ptr)
 	return prop->flag & PROP_ENUM_FLAG ? 1 : 0;
 }
 
+static int rna_Property_is_library_editable_flag_get(PointerRNA *ptr)
+{
+	PropertyRNA *prop = (PropertyRNA *)ptr->data;
+	return prop->flag & PROP_LIB_EXCEPTION ? 1 : 0;
+}
+
 static int rna_Property_array_length_get(PointerRNA *ptr)
 {
 	PropertyRNA *prop = (PropertyRNA *)ptr->data;
@@ -1174,6 +1180,11 @@ static void rna_def_property(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_boolean_funcs(prop, "rna_Property_is_enum_flag_get", NULL);
 	RNA_def_property_ui_text(prop, "Enum Flag", "True when multiple enums ");
+
+	prop = RNA_def_property(srna, "is_library_editable", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_boolean_funcs(prop, "rna_Property_is_library_editable_flag_get", NULL);
+	RNA_def_property_ui_text(prop, "Library Editable", "Property is editable from linked instances (changes not saved)");
 }
 
 static void rna_def_function(BlenderRNA *brna)

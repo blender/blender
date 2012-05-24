@@ -429,10 +429,10 @@ static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 	MFace *mface2 = NULL;
 
 	/* calc faces */
-	for(i = 0; i < numfaces; i++)
-	{
-		if(mface[i].v4)
+	for (i = 0; i < numfaces; i++) {
+		if (mface[i].v4) {
 			quads++;
+		}
 	}
 		
 	result = CDDM_from_template(dm, dm->getNumVerts(dm), 0, numfaces + quads, 0, 0);
@@ -443,8 +443,7 @@ static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 	DM_ensure_tessface(result);
 	mface2 = result->getTessFaceArray(result);
 
-	for(i = 0, j = numfaces; i < numfaces; i++)
-	{
+	for (i = 0, j = numfaces; i < numfaces; i++) {
 		// DG TODO: is this necessary?
 		mface2[i].v1 = mface[i].v1;
 		mface2[i].v2 = mface[i].v2;
@@ -453,8 +452,7 @@ static DerivedMesh *cloth_to_triangles(DerivedMesh *dm)
 		mface2[i].v4 = 0;
 		//test_index_face(&mface2[i], &result->faceData, i, 3);
 
-		if(mface[i].v4)
-		{
+		if (mface[i].v4) {
 			DM_copy_tessface_data(dm, result, i, j, 1);
 
 			mface2[j].v1 = mface[i].v1;

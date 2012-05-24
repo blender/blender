@@ -1507,7 +1507,7 @@ void DirectDrawSurface::printInfo() const
 		printf("\tMisc flag: %u\n", header.header10.miscFlag);
 		printf("\tArray size: %u\n", header.header10.arraySize);
 	}
-	
+
     if (header.reserved[9] == FOURCC_NVTT)
 	{
 		int major = (header.reserved[10] >> 16) & 0xFF;

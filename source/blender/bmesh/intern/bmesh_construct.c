@@ -973,6 +973,7 @@ char BM_edge_flag_from_mflag(const short meflag)
 {
 	return ( ((meflag & SELECT)        ? BM_ELEM_SELECT : 0) |
 	         ((meflag & ME_SEAM)       ? BM_ELEM_SEAM   : 0) |
+	         ((meflag & ME_EDGEDRAW)   ? BM_ELEM_DRAW   : 0) |
 	         ((meflag & ME_SHARP) == 0 ? BM_ELEM_SMOOTH : 0) | /* invert */
 	         ((meflag & ME_HIDE)       ? BM_ELEM_HIDDEN : 0)
 	         );
@@ -994,16 +995,18 @@ char  BM_vert_flag_to_mflag(BMVert *eve)
 	         ((hflag & BM_ELEM_HIDDEN)  ? ME_HIDE : 0)
 	         );
 }
+
 short BM_edge_flag_to_mflag(BMEdge *eed)
 {
 	const char hflag = eed->head.hflag;
 
-	return ( ((hflag & BM_ELEM_SELECT)       ? SELECT    : 0) |
-	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM   : 0) |
-	         ((hflag & BM_ELEM_SMOOTH) == 0  ? ME_SHARP  : 0) |
-	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE   : 0) |
-	         ((BM_edge_is_wire(eed)) ? ME_LOOSEEDGE : 0) | /* not typical */
-	         (ME_EDGEDRAW | ME_EDGERENDER)
+	return ( ((hflag & BM_ELEM_SELECT)       ? SELECT       : 0) |
+	         ((hflag & BM_ELEM_SEAM)         ? ME_SEAM      : 0) |
+	         ((hflag & BM_ELEM_DRAW)         ? ME_EDGEDRAW  : 0) |
+	         ((hflag & BM_ELEM_SMOOTH) == 0  ? ME_SHARP     : 0) |
+	         ((hflag & BM_ELEM_HIDDEN)       ? ME_HIDE      : 0) |
+	         ((BM_edge_is_wire(eed))         ? ME_LOOSEEDGE : 0) | /* not typical */
+	         ME_EDGERENDER
 	         );
 }
 char  BM_face_flag_to_mflag(BMFace *efa)

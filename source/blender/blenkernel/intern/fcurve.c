@@ -505,7 +505,7 @@ void calc_fcurve_bounds(FCurve *fcu, float *xmin, float *xmax, float *ymin, floa
 				BezTriple *bezt;
 				
 				for (bezt = fcu->bezt, i = 0; i < fcu->totvert; bezt++, i++) {
-					if ((do_sel_only == 0) || BEZSELECTED(bezt)) {
+					if ((do_sel_only == FALSE) || BEZSELECTED(bezt)) {
 						if (bezt->vec[1][1] < yminv)
 							yminv = bezt->vec[1][1];
 						if (bezt->vec[1][1] > ymaxv)
@@ -1241,7 +1241,7 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 	bPoseChannel *pchan;
 	float mat[4][4];
 	float oldEul[3] = {0.0f, 0.0f, 0.0f};
-	short useEulers = 0, rotOrder = ROT_MODE_EUL;
+	short use_eulers = FALSE, rot_order = ROT_MODE_EUL;
 	
 	/* check if this target has valid data */
 	if ((ob == NULL) || (GS(ob->id.name) != ID_OB)) {
@@ -1263,8 +1263,8 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		/* bone */
 		if (pchan->rotmode > 0) {
 			copy_v3_v3(oldEul, pchan->eul);
-			rotOrder = pchan->rotmode;
-			useEulers = 1;
+			rot_order = pchan->rotmode;
+			use_eulers = TRUE;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
@@ -1290,8 +1290,8 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		/* object */
 		if (ob->rotmode > 0) {
 			copy_v3_v3(oldEul, ob->rot);
-			rotOrder = ob->rotmode;
-			useEulers = 1;
+			rot_order = ob->rotmode;
+			use_eulers = TRUE;
 		}
 		
 		if (dtar->flag & DTAR_FLAG_LOCALSPACE) {
@@ -1334,9 +1334,9 @@ static float dvar_eval_transChan(ChannelDriver *driver, DriverVar *dvar)
 		 */
 		float eul[3];
 		
-		mat4_to_eulO(eul, rotOrder, mat);
+		mat4_to_eulO(eul, rot_order, mat);
 		
-		if (useEulers) {
+		if (use_eulers) {
 			compatible_eul(eul, oldEul);
 		}
 		

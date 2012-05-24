@@ -480,10 +480,8 @@ static void rna_def_action_group(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Expanded", "Action Group is expanded");
 	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 	
-	prop = RNA_def_property(srna, "custom_color", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "customCol");
-	RNA_def_property_ui_text(prop, "Custom Color", "Index of custom color set");
-	RNA_def_property_update(prop, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
+	/* color set */
+	rna_def_actionbone_group_common(srna, NC_ANIMATION | ND_ANIMCHAN | NA_EDITED, NULL);
 }
 
 /* fcurve.keyframe_points */

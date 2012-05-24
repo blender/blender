@@ -776,12 +776,12 @@ void BM_face_triangulate(BMesh *bm, BMFace *f, float (*projectverts)[3],
 		projectverts[i][2] = 0.0f;
 	}
 
-	done = 0;
+	done = FALSE;
 	while (!done && f->len > 3) {
-		done = 1;
+		done = TRUE;
 		l_iter = find_ear(f, projectverts, nvert, use_beauty);
 		if (l_iter) {
-			done = 0;
+			done = FALSE;
 			/* v = l->v; */ /* UNUSED */
 			f = BM_face_split(bm, l_iter->f, l_iter->prev->v,
 			                  l_iter->next->v,

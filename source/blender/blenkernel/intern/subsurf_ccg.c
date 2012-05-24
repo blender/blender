@@ -610,7 +610,8 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 		 * other parts of code significantly to handle missing faces.
 		 * since this really shouldn't even be possible we just bail.*/
 		if (ccgSubSurf_syncFace(ss, SET_INT_IN_POINTER(i), mp->totloop,
-		                        fVerts, &f) == eCCGError_InvalidValue) {
+		                        fVerts, &f) == eCCGError_InvalidValue)
+		{
 			static int hasGivenError = 0;
 
 			if (!hasGivenError) {
@@ -1788,12 +1789,12 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	int gridFaces = gridSize - 1;
 	int edgeSize = ccgSubSurf_getEdgeSize(ss);
 	DMFlagMat *faceFlags = ccgdm->faceFlags;
-	int a, b, i, doDraw, numVerts, matnr, new_matnr, totface;
+	int a, b, i, do_draw, numVerts, matnr, new_matnr, totface;
 
 	CCG_key_top_level(&key, ss);
 	ccgdm_pbvh_update(ccgdm);
 
-	doDraw = 0;
+	do_draw = 0;
 	matnr = -1;
 
 #define PASSATTRIB(dx, dy, vert) {                                            \
@@ -1837,12 +1838,12 @@ static void ccgDM_drawMappedFacesGLSL(DerivedMesh *dm,
 		}
 
 		if (new_matnr != matnr) {
-			doDraw = setMaterial(matnr = new_matnr, &gattribs);
-			if (doDraw)
+			do_draw = setMaterial(matnr = new_matnr, &gattribs);
+			if (do_draw)
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if (!doDraw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) &&
+		if (!do_draw || (setDrawOptions && (origIndex != ORIGINDEX_NONE) &&
 		                (setDrawOptions(userData, origIndex) == DM_DRAW_OPTION_SKIP)))
 		{
 			a += gridFaces * gridFaces * numVerts;

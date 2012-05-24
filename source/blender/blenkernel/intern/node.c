@@ -336,6 +336,7 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	node->width= ntype->width;
 	node->miniwidth= 42.0f;
 	node->height= ntype->height;
+	node->color[0] = node->color[1] = node->color[2] = 0.608;	/* default theme color */
 	
 	node_add_sockets_from_type(ntree, node, ntype);
 	
@@ -591,40 +592,49 @@ void nodeInternalRelink(bNodeTree *ntree, bNode *node)
 	BLI_freelistN(&intlinks);
 }
 
-/* transforms node location to area coords */
-void nodeSpaceCoords(bNode *node, float *locx, float *locy)
+void nodeToView(bNode *node, float x, float y, float *rx, float *ry)
 {
 	if (node->parent) {
-		nodeSpaceCoords(node->parent, locx, locy);
-		*locx += node->locx;
-		*locy += node->locy;
+		nodeToView(node->parent, x + node->locx, y + node->locy, rx, ry);
 	}
 	else {
-		*locx = node->locx;
-		*locy = node->locy;
+		*rx = x + node->locx;
+		*ry = y + node->locy;
+	}
+}
+
+void nodeFromView(bNode *node, float x, float y, float *rx, float *ry)
+{
+	if (node->parent) {
+		nodeFromView(node->parent, x, y, rx, ry);
+		*rx -= node->locx;
+		*ry -= node->locy;
+	}
+	else {
+		*rx = x - node->locx;
+		*ry = y - node->locy;
 	}
 }
 
 void nodeAttachNode(bNode *node, bNode *parent)
 {
-	float parentx, parenty;
+	float locx, locy;
+	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
 	
 	node->parent = parent;
 	/* transform to parent space */
-	nodeSpaceCoords(parent, &parentx, &parenty);
-	node->locx -= parentx;
-	node->locy -= parenty;
+	nodeFromView(parent, locx, locy, &node->locx, &node->locy);
 }
 
 void nodeDetachNode(struct bNode *node)
 {
-	float parentx, parenty;
+	float locx, locy;
 	
 	if (node->parent) {
-		/* transform to "global" (area) space */
-		nodeSpaceCoords(node->parent, &parentx, &parenty);
-		node->locx += parentx;
-		node->locy += parenty;
+		/* transform to view space */
+		nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+		node->locx = locx;
+		node->locy = locy;
 		node->parent = NULL;
 	}
 }
@@ -1392,7 +1402,7 @@ static int node_get_deplist_recurs(bNode *node, bNode ***nsort)
 	bNodeSocket *sock;
 	int level = 0xFFF;
 	
-	node->done= 1;
+	node->done = TRUE;
 	
 	/* check linked nodes */
 	for (sock= node->inputs.first; sock; sock= sock->next) {
@@ -1431,7 +1441,7 @@ void ntreeGetDependencyList(struct bNodeTree *ntree, struct bNode ***deplist, in
 	
 	/* first clear data */
 	for (node= ntree->nodes.first; node; node= node->next) {
-		node->done= 0;
+		node->done = FALSE;
 		(*totnodes)++;
 	}
 	if (*totnodes==0) {
@@ -1456,7 +1466,7 @@ static void ntree_update_node_level(bNodeTree *ntree)
 	
 	/* first clear tag */
 	for (node= ntree->nodes.first; node; node= node->next) {
-		node->done= 0;
+		node->done = FALSE;
 	}
 	
 	/* recursive check */
@@ -1930,6 +1940,14 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_transform(ttype);
 	register_node_type_cmp_stabilize2d(ttype);
 	register_node_type_cmp_moviedistortion(ttype);
+
+	register_node_type_cmp_colorcorrection(ttype);
+	register_node_type_cmp_boxmask(ttype);
+	register_node_type_cmp_ellipsemask(ttype);
+	register_node_type_cmp_bokehimage(ttype);
+	register_node_type_cmp_bokehblur(ttype);
+	register_node_type_cmp_switch(ttype);
+
 	register_node_type_cmp_mask(ttype);
 }
 
@@ -1971,6 +1989,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_geometry(ttype);
 	register_node_type_sh_light_path(ttype);
 	register_node_type_sh_light_falloff(ttype);
+	register_node_type_sh_object_info(ttype);
 	register_node_type_sh_fresnel(ttype);
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);

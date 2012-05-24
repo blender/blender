@@ -345,19 +345,17 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			}
 		}
 
-		if(result)
-		{
+		if (result) {
 			int i = 0;
 
-			for(i = 0; i < 3; i++)
-			{
-				if(cloth1->verts[collpair->ap1].impulse_count > 0 && ABS(cloth1->verts[collpair->ap1].impulse[i]) < ABS(i1[i]))
+			for (i = 0; i < 3; i++) {
+				if (cloth1->verts[collpair->ap1].impulse_count > 0 && ABS(cloth1->verts[collpair->ap1].impulse[i]) < ABS(i1[i]))
 					cloth1->verts[collpair->ap1].impulse[i] = i1[i];
 
-				if(cloth1->verts[collpair->ap2].impulse_count > 0 && ABS(cloth1->verts[collpair->ap2].impulse[i]) < ABS(i2[i]))
+				if (cloth1->verts[collpair->ap2].impulse_count > 0 && ABS(cloth1->verts[collpair->ap2].impulse[i]) < ABS(i2[i]))
 					cloth1->verts[collpair->ap2].impulse[i] = i2[i];
 
-				if(cloth1->verts[collpair->ap3].impulse_count > 0 && ABS(cloth1->verts[collpair->ap3].impulse[i]) < ABS(i3[i]))
+				if (cloth1->verts[collpair->ap3].impulse_count > 0 && ABS(cloth1->verts[collpair->ap3].impulse[i]) < ABS(i3[i]))
 					cloth1->verts[collpair->ap3].impulse[i] = i3[i];
 			}
 		}
@@ -681,8 +679,9 @@ static int cloth_bvh_objcollisions_resolve ( ClothModifierData * clmd, Collision
 			}
 		}
 
-		if(!result)
+		if (!result) {
 			break;
+		}
 	}
 	return ret;
 }

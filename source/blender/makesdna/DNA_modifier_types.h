@@ -77,6 +77,7 @@ typedef enum ModifierType {
 	eModifierType_Ocean,
 	eModifierType_DynamicPaint,
 	eModifierType_Remesh,
+	eModifierType_Skin,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -745,10 +746,11 @@ typedef struct ScrewModifierData {
 	short	flag;
 } ScrewModifierData;
 
-#define MOD_SCREW_NORMAL_FLIP	(1<<0)
-#define MOD_SCREW_NORMAL_CALC	(1<<1)
-#define MOD_SCREW_OBJECT_OFFSET	(1<<2)
-// #define MOD_SCREW_OBJECT_ANGLE	(1<<4)
+#define MOD_SCREW_NORMAL_FLIP    (1 << 0)
+#define MOD_SCREW_NORMAL_CALC    (1 << 1)
+#define MOD_SCREW_OBJECT_OFFSET  (1 << 2)
+// #define MOD_SCREW_OBJECT_ANGLE	(1 << 4)
+#define MOD_SCREW_SMOOTH_SHADING (1 << 5)
 
 typedef struct OceanModifierData {
 	ModifierData modifier;
@@ -1032,6 +1034,7 @@ typedef struct DynamicPaintModifierData {
 
 typedef enum RemeshModifierFlags {
 	MOD_REMESH_FLOOD_FILL = 1,
+	MOD_REMESH_SMOOTH_SHADING = 2,
 } RemeshModifierFlags;
 
 typedef enum RemeshModifierMode {
@@ -1062,5 +1065,31 @@ typedef struct RemeshModifierData {
 	char mode;
 	char pad;
 } RemeshModifierData;
+
+/* Skin modifier */
+
+typedef struct SkinModifierData {
+	ModifierData modifier;
+
+	float branch_smoothing;
+
+	char flag;
+	
+	char symmetry_axes;
+
+	char pad[2];
+} SkinModifierData;
+
+/* SkinModifierData.symmetry_axes */
+enum {
+	MOD_SKIN_SYMM_X = 1,
+	MOD_SKIN_SYMM_Y = 2,
+	MOD_SKIN_SYMM_Z = 4,
+};
+
+/* SkinModifierData.flag */
+enum {
+	MOD_SKIN_SMOOTH_SHADING = 1
+};
 
 #endif

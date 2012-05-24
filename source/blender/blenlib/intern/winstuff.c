@@ -158,7 +158,7 @@ void RegisterBlendExtension(void)
 		ThumbHandlerDLL = "BlendThumb64.dll";
 	else
 		ThumbHandlerDLL = "BlendThumb.dll";
-#endif	
+#endif
 	snprintf(RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
 	system(RegCmd);
 
@@ -217,7 +217,8 @@ static wchar_t *UNUSED_FUNCTION(BLI_alloc_utf16_from_8) (char *in8, size_t add)
 
 
 
-struct dirent *readdir(DIR *dp){
+struct dirent *readdir(DIR *dp)
+{
 	if (dp->direntry.d_name) {
 		MEM_freeN(dp->direntry.d_name);
 		dp->direntry.d_name = NULL;

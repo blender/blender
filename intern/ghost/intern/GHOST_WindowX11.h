@@ -70,110 +70,110 @@ public:
 	 * @param width		The width the window.
 	 * @param height	The height the window.
 	 * @param state		The state the window is initially opened with.
-	 * @param parentWindow 	Parent (embedder) window
+	 * @param parentWindow  Parent (embedder) window
 	 * @param type		The type of drawing context installed in this window.
 	 * @param stereoVisual	Stereo visual for quad buffered stereo.
 	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowX11(
-		GHOST_SystemX11 *system,
-		Display * display,
-		const STR_String& title, 
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,	
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		const GHOST_TEmbedderWindowID parentWindow,
-		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0
-	);
+	    GHOST_SystemX11 *system,
+	    Display *display,
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 top,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    const GHOST_TEmbedderWindowID parentWindow,
+	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0
+	    );
 
-		bool 
+	bool
 	getValid(
-	) const;
+	    ) const;
 
-		void 
+	void
 	setTitle(const STR_String& title);
 
-		void 
+	void
 	getTitle(
-		STR_String& title
-	) const;
+	    STR_String& title
+	    ) const;
 
-		void 
+	void
 	getWindowBounds(
-		GHOST_Rect& bounds
-	) const;
+	    GHOST_Rect& bounds
+	    ) const;
 	
-		void 
+	void
 	getClientBounds(
-		GHOST_Rect& bounds
-	) const;
+	    GHOST_Rect& bounds
+	    ) const;
 
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setClientWidth(
-		GHOST_TUns32 width
-	);
+	    GHOST_TUns32 width
+	    );
 
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setClientHeight(
-		GHOST_TUns32 height
-	);
+	    GHOST_TUns32 height
+	    );
 
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setClientSize(
-		GHOST_TUns32 width,
-		GHOST_TUns32 height
-	);
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height
+	    );
 
-		void 
+	void
 	screenToClient(
-		GHOST_TInt32 inX,
-		GHOST_TInt32 inY,
-		GHOST_TInt32& outX,
-		GHOST_TInt32& outY
-	) const;
+	    GHOST_TInt32 inX,
+	    GHOST_TInt32 inY,
+	    GHOST_TInt32& outX,
+	    GHOST_TInt32& outY
+	    ) const;
 
-		void 
+	void
 	clientToScreen(
-		GHOST_TInt32 inX,
-		GHOST_TInt32 inY,
-		GHOST_TInt32& outX,
-		GHOST_TInt32& outY
-	) const;
+	    GHOST_TInt32 inX,
+	    GHOST_TInt32 inY,
+	    GHOST_TInt32& outX,
+	    GHOST_TInt32& outY
+	    ) const;
 	
-		GHOST_TWindowState 
+	GHOST_TWindowState
 	getState(
-	) const;
+	    ) const;
 
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setState(
-		GHOST_TWindowState state
-	);
+	    GHOST_TWindowState state
+	    );
 	
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setOrder(
-		GHOST_TWindowOrder order
-	);
+	    GHOST_TWindowOrder order
+	    );
 	
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	swapBuffers(
-	);
+	    );
 	
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	activateDrawingContext(
-	);
-		GHOST_TSuccess 
+	    );
+	GHOST_TSuccess
 	invalidate(
-	);
+	    );
 
 	/**
 	 * Destructor.
 	 * Closes the window and disposes resources allocated.
 	 */
-	 ~GHOST_WindowX11();
+	~GHOST_WindowX11();
 
 	/**
 	 * @section x11specific X11 system specific calls
@@ -185,24 +185,24 @@ public:
 	 * the GHOST event queue.
 	 */
 
-		void
+	void
 	validate(
-	);	
+	    );
 
 	/**	
 	 * Return a handle to the x11 window type.
 	 */
-		Window 
+	Window
 	getXWindow(
-	);	
+	    );
 #ifdef WITH_X11_XINPUT
 	class XTablet
 	{
-	public:
+public:
 		GHOST_TabletData CommonData;
 
-		XDevice* StylusDevice;
-		XDevice* EraserDevice;
+		XDevice *StylusDevice;
+		XDevice *EraserDevice;
 
 		XID StylusID, EraserID;
 
@@ -215,22 +215,32 @@ public:
 	};
 
 	XTablet& GetXTablet()
-	{ return m_xtablet; }
+	{
+		return m_xtablet;
+	}
 
-	const GHOST_TabletData* GetTabletData()
-	{ return &m_xtablet.CommonData; }
+	const GHOST_TabletData *GetTabletData()
+	{
+		return &m_xtablet.CommonData;
+	}
 #else // WITH_X11_XINPUT
-	const GHOST_TabletData* GetTabletData()
-	{ return NULL; }
+	const GHOST_TabletData *GetTabletData()
+	{
+		return NULL;
+	}
 #endif // WITH_X11_XINPUT
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-	XIC getX11_XIC() { return m_xic; }
+	XIC getX11_XIC() {
+		return m_xic;
+	}
 #endif
 
 #ifdef WITH_XDND
-	GHOST_DropTargetX11* getDropTarget()
-	{ return m_dropTarget; }
+	GHOST_DropTargetX11 *getDropTarget()
+	{
+		return m_dropTarget;
+	}
 #endif
 
 	/*
@@ -247,106 +257,106 @@ protected:
 	 * @param type	The type of rendering context installed.
 	 * @return Indication as to whether installation has succeeded.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	installDrawingContext(
-		GHOST_TDrawingContextType type
-	);
+	    GHOST_TDrawingContextType type
+	    );
 
 	/**
 	 * Removes the current drawing context.
 	 * @return Indication as to whether removal has succeeded.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	removeDrawingContext(
-	);
+	    );
 
 	/**
 	 * Sets the cursor visibility on the window using
 	 * native window system calls.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setWindowCursorVisibility(
-		bool visible
-	);
+	    bool visible
+	    );
 	
 	/**
 	 * Sets the cursor grab on the window using
 	 * native window system calls.
 	 * @param warp	Only used when grab is enabled, hides the mouse and allows gragging outside the screen.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setWindowCursorGrab(
-		GHOST_TGrabCursorMode mode
-	);
+	    GHOST_TGrabCursorMode mode
+	    );
 
-		GHOST_TGrabCursorMode
+	GHOST_TGrabCursorMode
 	getWindowCursorGrab() const;
 
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setWindowCursorShape(
-		GHOST_TStandardCursor shape
-	);
+	    GHOST_TStandardCursor shape
+	    );
 
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls.
 	 */
-		GHOST_TSuccess
+	GHOST_TSuccess
 	setWindowCustomCursorShape(
-		GHOST_TUns8 bitmap[16][2], 
-		GHOST_TUns8 mask[16][2], 
-		int hotX, 
-		int hotY
-	);
+	    GHOST_TUns8 bitmap[16][2],
+	    GHOST_TUns8 mask[16][2],
+	    int hotX,
+	    int hotY
+	    );
 	
 	/**
 	 * Sets the cursor shape on the window using
 	 * native window system calls (Arbitrary size/color).
 	 */
-		GHOST_TSuccess
+	GHOST_TSuccess
 	setWindowCustomCursorShape(
-		GHOST_TUns8 *bitmap, 
-		GHOST_TUns8 *mask, 
-		int sizex, 
-		int sizey,
-		int hotX, 
-		int hotY,
-		int fg_color, 
-		int bg_color
-	);
+	    GHOST_TUns8 *bitmap,
+	    GHOST_TUns8 *mask,
+	    int sizex,
+	    int sizey,
+	    int hotX,
+	    int hotY,
+	    int fg_color,
+	    int bg_color
+	    );
 
-private :
+private:
 
 	/// Force use of public constructor.
 	
 	GHOST_WindowX11(
-	);
+	    );
 
 	GHOST_WindowX11(
-		const GHOST_WindowX11 &
-	);
+	    const GHOST_WindowX11 &
+	    );
 
-		Cursor
+	Cursor
 	getStandardCursor(
-		GHOST_TStandardCursor g_cursor
-	);
+	    GHOST_TStandardCursor g_cursor
+	    );
 	
-		Cursor 
+	Cursor
 	getEmptyCursor(
-	);
+	    );
 
 #ifdef WITH_X11_XINPUT
 	void initXInputDevices();
 #endif
 	
-	GLXContext 	m_context;
-	Window 	m_window;
-	Display 	*m_display;
-	XVisualInfo	*m_visual;
+	GLXContext m_context;
+	Window m_window;
+	Display     *m_display;
+	XVisualInfo *m_visual;
 	GHOST_TWindowState m_normal_state;
 
 	/** The first created OpenGL context (for sharing display lists) */
@@ -354,7 +364,7 @@ private :
 
 	/// A pointer to the typed system class.
 	
-	GHOST_SystemX11 * m_system;
+	GHOST_SystemX11 *m_system;
 
 	bool m_valid_setup;
 
@@ -371,7 +381,7 @@ private :
 	std::map<unsigned int, Cursor> m_standard_cursors;
 
 #ifdef WITH_XDND
-	GHOST_DropTargetX11 * m_dropTarget;
+	GHOST_DropTargetX11 *m_dropTarget;
 #endif
 
 #ifdef WITH_X11_XINPUT

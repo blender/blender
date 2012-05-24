@@ -83,8 +83,8 @@ static int count_edge_faces(BMesh *bm, BMEdge *e);
 
 BLI_INLINE BMDiskLink *rs_edge_link_get(BMEdge *e, BMVert *v, EdgeData *e_data)
 {
-	return 	v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
-	                                 &(((EdgeData *)e_data)->v2_disk_link) ;
+	return v == ((BMEdge *)e)->v1 ? &(((EdgeData *)e_data)->v1_disk_link) :
+	                                &(((EdgeData *)e_data)->v2_disk_link) ;
 }
 
 static int rotsys_append_edge(BMEdge *e, BMVert *v,

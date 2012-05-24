@@ -149,7 +149,7 @@ static void userpref_header_listener(ARegion *UNUSED(ar), wmNotifier *UNUSED(wmn
 		default:
 			break;
 	}
-#endif	
+#endif
 }
 
 /* only called once, from space/spacetypes.c */

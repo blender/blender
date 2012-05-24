@@ -49,7 +49,7 @@ GHOST_CallbackEventConsumer::GHOST_CallbackEventConsumer(GHOST_EventCallbackProc
 }
 
 
-bool GHOST_CallbackEventConsumer::processEvent(GHOST_IEvent* event)
+bool GHOST_CallbackEventConsumer::processEvent(GHOST_IEvent *event)
 {
 	return m_eventCallback((GHOST_EventHandle)event, m_userData) != 0;
 }

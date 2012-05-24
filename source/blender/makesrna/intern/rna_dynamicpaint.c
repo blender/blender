@@ -243,7 +243,8 @@ static EnumPropertyItem *rna_DynamicPaint_surface_type_itemf(bContext *C, Pointe
 
 	/* Displace */
 	if (surface->format == MOD_DPAINT_SURFACE_F_VERTEX ||
-	    surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ) {
+	    surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ)
+	{
 		tmp.value = MOD_DPAINT_SURFACE_T_DISPLACE;
 		tmp.identifier = "DISPLACE";
 		tmp.name = "Displace";

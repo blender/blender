@@ -28,7 +28,7 @@ This example script prints the vertices and UV's for each polygon, assumes the a
 import bpy
 
 me = bpy.context.object.data
-uv_layer = me.uv.layers.active.data
+uv_layer = me.uv_layers.active.data
 
 for poly in me.polygons:
     print("Polygon index: %d, length: %d" % (poly.index, poly.loop_total))

@@ -2888,7 +2888,7 @@ static int text_insert_exec(bContext *C, wmOperator *op)
 	SpaceText *st = CTX_wm_space_text(C);
 	Text *text = CTX_data_edit_text(C);
 	char *str;
-	int done = 0;
+	int done = FALSE;
 	size_t i = 0;
 	unsigned int code;
 

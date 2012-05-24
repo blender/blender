@@ -340,7 +340,7 @@ static void image_renderinfo_cb(void *rjv, RenderStats *rs)
 	RE_ReleaseResult(rj->re);
 
 	/* make jobs timer to send notifier */
-	*(rj->do_update) = 1;
+	*(rj->do_update) = TRUE;
 
 }
 
@@ -352,7 +352,7 @@ static void render_progress_update(void *rjv, float progress)
 		*rj->progress = progress;
 
 		/* make jobs timer to send notifier */
-		*(rj->do_update) = 1;
+		*(rj->do_update) = TRUE;
 	}
 }
 
@@ -372,7 +372,7 @@ static void image_rect_update(void *rjv, RenderResult *rr, volatile rcti *renrec
 		image_buffer_rect_update(rj->scene, rr, ibuf, renrect);
 
 		/* make jobs timer to send notifier */
-		*(rj->do_update) = 1;
+		*(rj->do_update) = TRUE;
 	}
 	BKE_image_release_ibuf(ima, lock);
 }

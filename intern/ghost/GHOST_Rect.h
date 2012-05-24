@@ -55,20 +55,23 @@ public:
 	 * @param	r	requested right coordinate of the rectangle
 	 * @param	b	requested bottom coordinate of the rectangle
 	 */
-	GHOST_Rect(GHOST_TInt32 l=0, GHOST_TInt32 t=0, GHOST_TInt32 r=0, GHOST_TInt32 b=0)
-		: m_l(l), m_t(t), m_r(r), m_b(b) {}
+	GHOST_Rect(GHOST_TInt32 l = 0, GHOST_TInt32 t = 0, GHOST_TInt32 r = 0, GHOST_TInt32 b = 0)
+		: m_l(l), m_t(t), m_r(r), m_b(b)
+	{}
 
 	/**
 	 * Copy constructor.
 	 * @param	r	rectangle to copy
 	 */
 	GHOST_Rect(const GHOST_Rect& r)
-		: m_l(r.m_l), m_t(r.m_t), m_r(r.m_r), m_b(r.m_b) {}
+		: m_l(r.m_l), m_t(r.m_t), m_r(r.m_r), m_b(r.m_b)
+	{}
 	
 	/**
 	 * Destructor.
 	 */
-	virtual ~GHOST_Rect() {};
+	virtual ~GHOST_Rect()
+	{};
 
 	/**
 	 * Access to rectangle width.
@@ -155,7 +158,7 @@ public:
 	 * @param	cx	requested center x-coordinate of the rectangle
 	 * @param	cy	requested center y-coordinate of the rectangle
 	 */
-	virtual	void setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy);
+	virtual void setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy);
 
 	/**
 	 * Sets rectangle members.
@@ -166,7 +169,7 @@ public:
 	 * @param	w	requested width of the rectangle
 	 * @param	h	requested height of the rectangle
 	 */
-	virtual	void setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy, GHOST_TInt32 w, GHOST_TInt32 h);
+	virtual void setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy, GHOST_TInt32 w, GHOST_TInt32 h);
 
 	/**
 	 * Clips a rectangle.
@@ -175,7 +178,7 @@ public:
 	 * @param	r	the rectangle to clip
 	 * @return	whether clipping has occurred
 	 */
-	virtual	bool clip(GHOST_Rect& r) const;
+	virtual bool clip(GHOST_Rect& r) const;
 
 	/** Left coordinate of the rectangle */
 	GHOST_TInt32 m_l;
@@ -209,7 +212,7 @@ inline void GHOST_Rect::set(GHOST_TInt32 l, GHOST_TInt32 t, GHOST_TInt32 r, GHOS
 	m_l = l; m_t = t; m_r = r; m_b = b;
 }
 
-inline bool	GHOST_Rect::isEmpty() const
+inline bool GHOST_Rect::isEmpty() const
 {
 	return (getWidth() == 0) || (getHeight() == 0);
 }
@@ -237,18 +240,18 @@ inline void GHOST_Rect::unionPoint(GHOST_TInt32 x, GHOST_TInt32 y)
 #include <stdio.h>
 inline void GHOST_Rect::wrapPoint(GHOST_TInt32 &x, GHOST_TInt32 &y, GHOST_TInt32 ofs)
 {
-	GHOST_TInt32 w= getWidth();
-	GHOST_TInt32 h= getHeight();
+	GHOST_TInt32 w = getWidth();
+	GHOST_TInt32 h = getHeight();
 
 	/* highly unlikely but avoid eternal loop */
-	if (w-ofs*2 <= 0 || h-ofs*2 <= 0) {
+	if (w - ofs * 2 <= 0 || h - ofs * 2 <= 0) {
 		return;
 	}
 
-	while(x-ofs < m_l)		x+= w-(ofs*2);
-	while(y-ofs < m_t)		y+= h-(ofs*2);
-	while(x+ofs > m_r)		x-= w-(ofs*2);
-	while(y+ofs > m_b)		y-= h-(ofs*2);
+	while (x - ofs < m_l) x += w - (ofs * 2);
+	while (y - ofs < m_t) y += h - (ofs * 2);
+	while (x + ofs > m_r) x -= w - (ofs * 2);
+	while (y + ofs > m_b) y -= h - (ofs * 2);
 }
 
 inline bool GHOST_Rect::isInside(GHOST_TInt32 x, GHOST_TInt32 y) const

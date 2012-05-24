@@ -376,6 +376,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
 		                     TIP_(template_id_browse_tip(type)));
+
+		uiButSetDrawFlag(but, UI_BUT_DRAW_ENUM_ARROWS);
+
 		if (type) {
 			but->icon = RNA_struct_ui_icon(type);
 			/* default dragging of icon for id browse buttons */
@@ -2156,11 +2159,11 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			manode = give_node_material(ma);
 			if (manode) {
 				char str[MAX_ID_NAME + 12];
-				BLI_snprintf(str, sizeof(str), "Node %s", manode->id.name + 2);
+				BLI_snprintf(str, sizeof(str), IFACE_("Node %s"), manode->id.name + 2);
 				uiItemL(sub, str, ui_id_icon_get(C, &manode->id, 1));
 			}
 			else if (ma->use_nodes) {
-				uiItemL(sub, "Node <none>", ICON_NONE);
+				uiItemL(sub, IFACE_("Node <none>"), ICON_NONE);
 			}
 		}
 	}
@@ -2194,7 +2197,9 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		uiDefButR(block, OPTION, 0, "", 0, 0, UI_UNIT_X, UI_UNIT_Y, itemptr, "lock_weight", 0, 0, 0, 0, 0,  NULL);
 #else
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED, 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0, "Maintain relative weights while painting");
+		uiDefIconButBitC(block, TOG, DG_LOCK_WEIGHT, 0, (dg->flag & DG_LOCK_WEIGHT) ? ICON_LOCKED : ICON_UNLOCKED,
+		                 0, 0, UI_UNIT_X, UI_UNIT_Y, &dg->flag, 0, 0, 0, 0,
+		                 TIP_("Maintain relative weights while painting"));
 		uiBlockSetEmboss(block, UI_EMBOSS);
 #endif
 	}

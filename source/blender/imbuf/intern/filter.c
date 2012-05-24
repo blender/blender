@@ -339,8 +339,9 @@ static int check_pixel_assigned(const void *buffer, const char *mask, const int 
 		if (mask != NULL) {
 			res = mask[index] != 0 ? 1 : 0;
 		}
-		else if ( (is_float && ((const float *) buffer)[alpha_index] != 0.0f) ||
-		          (!is_float && ((const unsigned char *) buffer)[alpha_index] != 0) ) {
+		else if ((is_float  && ((const float *) buffer)[alpha_index] != 0.0f) ||
+		         (!is_float && ((const unsigned char *) buffer)[alpha_index] != 0) )
+		{
 			res = 1;
 		}
 	}
@@ -407,7 +408,7 @@ void IMB_filter_extend(struct ImBuf *ibuf, char *mask, int filter)
 								if (i != 0 || j != 0) {
 									const int tmpindex = filter_make_index(x + i, y + j, width, height);
 
-									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float))   {
+									if (check_pixel_assigned(srcbuf, srcmask, tmpindex, depth, is_float)) {
 										if (is_float) {
 											for (c = 0; c < depth; c++)
 												tmp[c] = ((const float *) srcbuf)[depth * tmpindex + c];

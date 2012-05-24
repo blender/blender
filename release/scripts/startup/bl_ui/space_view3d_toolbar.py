@@ -873,6 +873,8 @@ class VIEW3D_PT_sculpt_options(Panel, View3DPaintPanel):
         layout.prop(sculpt, "show_brush")
         layout.prop(sculpt, "use_deform_only")
 
+        layout.prop(sculpt, "input_samples")
+
         self.unified_paint_settings(layout, context)
 
 
@@ -984,6 +986,8 @@ class VIEW3D_PT_tools_weightpaint_options(Panel, View3DPaintPanel):
             col.prop(mesh, "use_mirror_x")
             col.prop(mesh, "use_mirror_topology")
 
+        col.prop(wpaint, "input_samples")
+        
         self.unified_paint_settings(col, context)
 
 # Commented out because the Apply button isn't an operator yet, making these settings useless
@@ -1013,6 +1017,8 @@ class VIEW3D_PT_tools_vertexpaint(Panel, View3DPaintPanel):
         col.prop(vpaint, "use_all_faces")
         col.prop(vpaint, "use_normal")
         col.prop(vpaint, "use_spray")
+
+        col.prop(vpaint, "input_samples")
 
         self.unified_paint_settings(col, context)
 

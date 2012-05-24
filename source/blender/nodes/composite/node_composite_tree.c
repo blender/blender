@@ -59,6 +59,7 @@
 
 #include "NOD_composite.h"
 #include "node_composite_util.h"
+#include "COM_compositor.h"
 
 static void foreach_nodetree(Main *main, void *calldata, bNodeTreeCallback func)
 {
@@ -136,10 +137,20 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 		if (ELEM(node->type, CMP_NODE_VIEWER, CMP_NODE_SPLITVIEWER)) {
 			if (node->id) {
 				if (node->flag & NODE_DO_OUTPUT)
-					node->new_node->id= (ID *)BKE_image_copy((Image *)node->id);
+					node->new_node->id= (ID *)node->id;
 				else
 					node->new_node->id= NULL;
 			}
+		}
+		
+		/* copy over the preview buffers to update graduatly */
+		if (node->preview) {
+			bNodePreview *preview = MEM_callocN(sizeof(bNodePreview), "Preview");
+			preview->pad = node->preview->pad;
+			preview->xsize = node->preview->xsize;
+			preview->ysize = node->preview->ysize;
+			preview->rect = MEM_dupallocN(node->preview->rect);
+			node->new_node->preview = preview;
 		}
 		
 		for (sock= node->outputs.first; sock; sock= sock->next) {
@@ -575,19 +586,18 @@ static  void ntree_composite_texnode(bNodeTree *ntree, int init)
 }
 
 /* optimized tree execute test for compositing */
-void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
+/* optimized tree execute test for compositing */
+static void ntreeCompositExecTreeOld(bNodeTree *ntree, RenderData *rd, int do_preview)
 {
 	bNodeExec *nodeexec;
 	bNode *node;
 	ListBase threads;
 	ThreadData thdata;
 	int totnode, curnode, rendering= 1, n;
-	bNodeTreeExec *exec;
-
-	if (ntree==NULL) return;
-
-	exec = ntree->execdata;
-
+	bNodeTreeExec *exec= ntree->execdata;
+	
+	if (ntree == NULL) return;
+	
 	if (do_preview)
 		ntreeInitPreview(ntree, 0, 0);
 	
@@ -666,6 +676,14 @@ void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int do_preview)
 	
 	/* XXX top-level tree uses the ntree->execdata pointer */
 	ntreeCompositEndExecTree(exec, 1);
+}
+
+void ntreeCompositExecTree(bNodeTree *ntree, RenderData *rd, int rendering, int do_preview)
+{
+	if (G.rt == 200)
+		ntreeCompositExecTreeOld(ntree, rd, do_preview);
+	else
+		COM_execute(ntree, rendering);
 }
 
 /* *********************************************** */

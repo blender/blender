@@ -2032,7 +2032,7 @@ static int graphkeys_smooth_exec(bContext *C, wmOperator *UNUSED(op))
 	/* smooth keyframes */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		/* For now, we can only smooth by flattening handles AND smoothing curve values.
-		 * Perhaps the mode argument could be removed, as that functionality is offerred through 
+		 * Perhaps the mode argument could be removed, as that functionality is offered through
 		 * Snap->Flatten Handles anyway.
 		 */
 		smooth_fcurve(ale->key_data);

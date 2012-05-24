@@ -196,7 +196,8 @@ static PyObject *Quaternion_cross(QuaternionObject *self, PyObject *value)
 		return NULL;
 
 	if (mathutils_array_parse(tquat, QUAT_SIZE, QUAT_SIZE, value,
-	                          "Quaternion.cross(other), invalid 'other' arg") == -1) {
+	                          "Quaternion.cross(other), invalid 'other' arg") == -1)
+	{
 		return NULL;
 	}
 

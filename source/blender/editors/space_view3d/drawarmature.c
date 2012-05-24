@@ -1667,7 +1667,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 	GLfloat tmp;
 	float smat[4][4], imat[4][4], bmat[4][4];
 	int index = -1;
-	short do_dashed = 3, draw_wire = 0;
+	short do_dashed = 3, draw_wire = FALSE;
 	int flag;
 	
 	/* being set below */

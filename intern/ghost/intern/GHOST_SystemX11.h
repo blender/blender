@@ -63,7 +63,7 @@ public:
 	 */
 
 	GHOST_SystemX11(
-	);
+	    );
 	
 	/**
 	 * Destructor.
@@ -71,9 +71,9 @@ public:
 	virtual ~GHOST_SystemX11();
 
 
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	init(
-	);
+	    );
 
 
 	/**
@@ -85,28 +85,28 @@ public:
 	 * Returns the number of milliseconds since the start of the system process.
 	 * @return The number of milliseconds.
 	 */
-		GHOST_TUns64 
+	GHOST_TUns64
 	getMilliSeconds(
-	) const;
+	    ) const;
 	
 
 	/**
 	 * Returns the number of displays on this system.
 	 * @return The number of displays.
 	 */
-		GHOST_TUns8 
+	GHOST_TUns8
 	getNumDisplays(
-	) const;
+	    ) const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
 	 * @return The dimension of the main display.
 	 */
-		void 
+	void
 	getMainDisplayDimensions(
-		GHOST_TUns32& width,
-		GHOST_TUns32& height
-	) const;
+	    GHOST_TUns32& width,
+	    GHOST_TUns32& height
+	    ) const;
 
 	/**
 	 * Create a new window.
@@ -120,22 +120,22 @@ public:
 	 * @param	state		The state of the window when opened.
 	 * @param	type		The type of drawing context installed in this window.
 	 * @param       stereoVisual    Create a stereo visual for quad buffered stereo.
-	 * @param	parentWindow 	Parent (embedder) window
+	 * @param	parentWindow    Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
-		GHOST_IWindow* 
+	GHOST_IWindow *
 	createWindow(
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 top,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type,
-		const bool stereoVisual,
-		const GHOST_TUns16 numOfAASamples = 0,
-		const GHOST_TEmbedderWindowID parentWindow = 0 
-	);
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 top,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    GHOST_TDrawingContextType type,
+	    const bool stereoVisual,
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    const GHOST_TEmbedderWindowID parentWindow = 0
+	    );
 
 	/**
 	 * @section Interface Inherited from GHOST_ISystem 
@@ -146,45 +146,45 @@ public:
 	 * @param waitForEvent Flag to wait for an event (or return immediately).
 	 * @return Indication of the presence of events.
 	 */
-		bool 
+	bool
 	processEvents(
-		bool waitForEvent
-	);
+	    bool waitForEvent
+	    );
 
 	/**
 	 * @section Interface Inherited from GHOST_System 
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	getCursorPosition(
-		GHOST_TInt32& x,
-		GHOST_TInt32& y
-	) const;
+	    GHOST_TInt32& x,
+	    GHOST_TInt32& y
+	    ) const;
 	
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	setCursorPosition(
-		GHOST_TInt32 x,
-		GHOST_TInt32 y
-	);
+	    GHOST_TInt32 x,
+	    GHOST_TInt32 y
+	    );
 
 	/**
 	 * Returns the state of all modifier keys.
 	 * @param keys	The state of all modifier keys (true == pressed).
 	 * @return		Indication of success.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	getModifierKeys(
-		GHOST_ModifierKeys& keys
-	) const;
+	    GHOST_ModifierKeys& keys
+	    ) const;
 
 	/**
 	 * Returns the state of the mouse buttons (ouside the message queue).
 	 * @param buttons	The state of the buttons.
 	 * @return			Indication of success.
 	 */
-		GHOST_TSuccess 
+	GHOST_TSuccess
 	getButtons(
-		GHOST_Buttons& buttons
-	) const;
+	    GHOST_Buttons& buttons
+	    ) const;
 
 	/**
 	 * @section Interface Dirty
@@ -192,26 +192,26 @@ public:
 	 * generate a GHOST window update event on a call to processEvents() 
 	 */
 
-		void
+	void
 	addDirtyWindow(
-		GHOST_WindowX11 * bad_wind
-	);
+	    GHOST_WindowX11 *bad_wind
+	    );
   
  
 	/**
 	 * return a pointer to the X11 display structure
 	 */
 
-		Display *
+	Display *
 	getXDisplay(
-	) {
+	        ) {
 		return m_display;
 	}	
 
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
-		XIM
+	XIM
 	getX11_XIM(
-	) {
+	        ) {
 		return m_xim;
 	}
 #endif
@@ -246,13 +246,15 @@ public:
 	 * @param window The window on which the event occurred
 	 * @return Indication whether the event was handled. 
 	 */
-	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_IWindow *window, int mouseX, int mouseY, void *data);
 #endif
 
 	/**
 	 * @see GHOST_ISystem
 	 */
-	int toggleConsole(int action) { return 0; }
+	int toggleConsole(int action) {
+		return 0;
+	}
 
 	/**
 	 * Atom used for ICCCM, WM-spec and Motif.
@@ -282,9 +284,9 @@ public:
 	Atom m_incr;
 	Atom m_utf8_string;
 
-private :
+private:
 
-	Display * m_display;
+	Display *m_display;
 #if defined(WITH_X11_XINPUT) && defined(X_HAVE_UTF8_STRING)
 	XIM m_xim;
 #endif
@@ -307,24 +309,24 @@ private :
 	 * X11 window xwind
 	 */
 
-		GHOST_WindowX11 * 
+	GHOST_WindowX11 *
 	findGhostWindow(
-		Window xwind
-	) const;
+	    Window xwind
+	    ) const;
 
-		void
+	void
 	processEvent(
-		XEvent *xe
-	);
+	    XEvent *xe
+	    );
 
-		Time
+	Time
 	lastEventTime(
-		Time default_time
-	);
+	    Time default_time
+	    );
 
-		bool
+	bool
 	generateWindowExposeEvents(
-	);
+	    );
 };
 
 #endif

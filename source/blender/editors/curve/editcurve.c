@@ -270,7 +270,7 @@ void printknots(Object *obedit)
 	int a, num;
 
 	for (nu = editnurb->first; nu; nu = nu->next) {
-		if (isNurbsel(nu) &&  nu->type == CU_NURBS) {
+		if (isNurbsel(nu) && nu->type == CU_NURBS) {
 			if (nu->knotsu) {
 				num = KNOTSU(nu);
 				for (a = 0; a < num; a++) printf("knotu %d: %f\n", a, nu->knotsu[a]);

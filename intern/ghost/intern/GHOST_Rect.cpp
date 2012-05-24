@@ -97,10 +97,10 @@ GHOST_TVisibility GHOST_Rect::getVisibility(GHOST_Rect& r) const
 
 void GHOST_Rect::setCenter(GHOST_TInt32 cx, GHOST_TInt32 cy)
 {
-	GHOST_TInt32 offset = cx - (m_l + (m_r - m_l)/2);
+	GHOST_TInt32 offset = cx - (m_l + (m_r - m_l) / 2);
 	m_l += offset;
 	m_r += offset;
-	offset = cy - (m_t + (m_b - m_t)/2);
+	offset = cy - (m_t + (m_b - m_t) / 2);
 	m_t += offset;
 	m_b += offset;
 }

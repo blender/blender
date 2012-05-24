@@ -78,12 +78,14 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 		for (; surface; surface = surface->next) {
 			/* tface */
 			if (surface->format == MOD_DPAINT_SURFACE_F_IMAGESEQ || 
-			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE) {
+			    surface->init_color_type == MOD_DPAINT_INITIAL_TEXTURE)
+			{
 				dataMask |= (1 << CD_MTFACE);
 			}
 			/* mcol */
 			if (surface->type == MOD_DPAINT_SURFACE_T_PAINT ||
-			    surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR) {
+			    surface->init_color_type == MOD_DPAINT_INITIAL_VERTEXCOLOR)
+			{
 				dataMask |= (1 << CD_MCOL);
 			}
 			/* CD_MDEFORMVERT */

@@ -142,7 +142,7 @@ typedef struct Object {
 	
 	/* rot en drot have to be together! (transform('r' en 's')) */
 	float loc[3], dloc[3], orig[3];
-	float size[3];              /* scale infact */
+	float size[3];              /* scale in fact */
 	float dsize[3] DNA_DEPRECATED ; /* DEPRECATED, 2.60 and older only */
 	float dscale[3];            /* ack!, changing */
 	float rot[3], drot[3];		/* euler rotation */

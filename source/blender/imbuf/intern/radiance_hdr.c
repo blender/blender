@@ -65,9 +65,9 @@
 #define STR_MAX 540
 typedef unsigned char RGBE[4];
 typedef float fCOLOR[3];
+
 /* copy source -> dest */
-#define copy_rgbe(c1, c2) (c2[RED] = c1[RED], c2[GRN] = c1[GRN], c2[BLU] = c1[BLU], c2[EXP] = c1[EXP])
-#define copy_fcol(f1, f2) (f2[RED] = f1[RED], f2[GRN] = f1[GRN], f2[BLU] = f1[BLU])
+#define COPY_RGBE(c1, c2) (c2[RED] = c1[RED], c2[GRN] = c1[GRN], c2[BLU] = c1[BLU], c2[EXP] = c1[EXP])
 
 /* read routines */
 static unsigned char *oldreadcolrs(RGBE *scan, unsigned char *mem, int xmax)
@@ -80,7 +80,7 @@ static unsigned char *oldreadcolrs(RGBE *scan, unsigned char *mem, int xmax)
 		scan[0][EXP] = *mem++;
 		if (scan[0][RED] == 1 && scan[0][GRN] == 1 && scan[0][BLU] == 1) {
 			for (i = scan[0][EXP] << rshift; i > 0; i--) {
-				copy_rgbe(scan[-1], scan[0]);
+				COPY_RGBE(scan[-1], scan[0]);
 				scan++;
 				len--;
 			}
@@ -272,7 +272,7 @@ static int fwritecolrs(FILE *file, int width, int channels, unsigned char *ibufs
 			fcol[BLU] = (float)((channels >= 3) ? ibufscan[j + 2] : ibufscan[j]) / 255.f;
 		}
 		FLOAT2RGBE(fcol, rgbe);
-		copy_rgbe(rgbe, rgbe_scan[i]);
+		COPY_RGBE(rgbe, rgbe_scan[i]);
 		j += channels;
 	}
 

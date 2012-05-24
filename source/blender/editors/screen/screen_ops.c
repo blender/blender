@@ -37,6 +37,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
@@ -1474,7 +1476,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				
-				CTX_wm_window(C)->screen->do_draw = 1;
+				CTX_wm_window(C)->screen->do_draw = TRUE;
 
 			}
 			
@@ -1543,7 +1545,7 @@ static EnumPropertyItem prop_direction_items[] = {
 
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
-	ot->name = "Split area";
+	ot->name = "Split Area";
 	ot->description = "Split selected area into new windows";
 	ot->idname = "SCREEN_OT_area_split";
 	
@@ -1919,7 +1921,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	ActKeyColumn *ak;
 	float cfra;
 	short next = RNA_boolean_get(op->ptr, "next");
-	short done = 0;
+	short done = FALSE;
 	
 	/* sanity checks */
 	if (scene == NULL)
@@ -1950,7 +1952,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 			if (CFRA != (int)ak->cfra) {
 				/* this changes the frame, so set the frame and we're done */
 				CFRA = (int)ak->cfra;
-				done = 1;
+				done = TRUE;
 			}
 			else {
 				/* make this the new starting point for the search */
@@ -2359,7 +2361,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Join area";
+	ot->name = "Join Area";
 	ot->description = "Join selected areas into new window";
 	ot->idname = "SCREEN_OT_area_join";
 	
@@ -2390,7 +2392,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	if (actedge == NULL) return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	WM_operator_properties_create(&ptr1, "SCREEN_OT_area_join");
@@ -2407,8 +2409,8 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	RNA_int_set(&ptr2, "mouse_x", event->x);
 	RNA_int_set(&ptr2, "mouse_y", event->y);
 	
-	uiItemFullO(layout, "SCREEN_OT_area_split", "Split Area", ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
-	uiItemFullO(layout, "SCREEN_OT_area_join", "Join Area", ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_split", NULL, ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -2507,11 +2509,11 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	if (items == 0)
 		return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--)
-		uiItemIntO(layout, lastop->type->name, ICON_NONE, op->type->idname, "index", i);
+		uiItemIntO(layout, RNA_struct_ui_name(lastop->type->srna), ICON_NONE, op->type->idname, "index", i);
 	
 	uiPupMenuEnd(C, pup);
 	

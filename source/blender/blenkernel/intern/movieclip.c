@@ -195,7 +195,7 @@ static ImBuf *movieclip_load_sequence_file(MovieClip *clip, MovieClipUser *user,
 {
 	struct ImBuf *ibuf;
 	char name[FILE_MAX];
-	int loadflag, use_proxy = 0;
+	int loadflag, use_proxy = FALSE;
 
 	use_proxy = (flag & MCLIP_USE_PROXY) && user->render_size != MCLIP_PROXY_RENDER_SIZE_FULL;
 	if (use_proxy) {
@@ -539,10 +539,6 @@ static void real_ibuf_size(MovieClip *clip, MovieClipUser *user, ImBuf *ibuf, in
 static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *distortion, ImBuf *ibuf)
 {
 	ImBuf *undistibuf;
-
-	/* XXX: because of #27997 do not use float buffers to undistort,
-	 *      otherwise, undistorted proxy can be darker than it should */
-	imb_freerectfloatImBuf(ibuf);
 
 	if (distortion)
 		undistibuf = BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);

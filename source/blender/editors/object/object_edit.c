@@ -764,7 +764,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 	Base *base;
 	Curve *cu, *cu1;
 	Nurb *nu;
-	int do_scene_sort = 0;
+	int do_scene_sort = FALSE;
 	
 	if (scene->id.lib) return;
 
@@ -949,7 +949,7 @@ static void copy_attr(Main *bmain, Scene *scene, View3D *v3d, short event)
 					/* Copy the constraint channels over */
 					copy_constraints(&base->object->constraints, &ob->constraints, TRUE);
 					
-					do_scene_sort = 1;
+					do_scene_sort = TRUE;
 				}
 				else if (event == 23) {
 					base->object->softflag = ob->softflag;
@@ -1284,7 +1284,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	Curve *cu;
 	Nurb *nu;
 	int clear = (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
-	int done = 0;
+	int done = FALSE;
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
@@ -1295,7 +1295,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-			done = 1;
+			done = TRUE;
 		}
 		else if (ELEM(ob->type, OB_SURF, OB_CURVE)) {
 			cu = ob->data;
@@ -1308,7 +1308,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 			WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
-			done = 1;
+			done = TRUE;
 		}
 	}
 	CTX_DATA_END;
@@ -1369,7 +1369,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
 	for (base = FIRSTBASE; base; base = base->next) {
 		if (TESTBASELIB(v3d, base)) {
 			ob = base->object;
-			done = 0;
+			done = FALSE;
 			
 			for (a = 1; a <= ob->totcol; a++) {
 				ma = give_current_material(ob, a);
@@ -1398,7 +1398,7 @@ static void UNUSED_FUNCTION(image_aspect) (Scene * scene, View3D * v3d)
 								if (x > y) ob->size[0] = ob->size[1] * x / y;
 								else ob->size[1] = ob->size[0] * y / x;
 								
-								done = 1;
+								done = TRUE;
 								DAG_id_tag_update(&ob->id, OB_RECALC_OB);								
 							}
 						}

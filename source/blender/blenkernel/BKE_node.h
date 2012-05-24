@@ -145,9 +145,13 @@ typedef struct bNodeType {
 	void (*uifunc)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
 	/// Additional parameters in the side panel.
 	void (*uifuncbut)(struct uiLayout *, struct bContext *C, struct PointerRNA *ptr);
+	/// Additional drawing on backdrop.
+	void (*uibackdropfunc)(struct SpaceNode* snode, struct ImBuf* backdrop, struct bNode* node, int x, int y);
+
 	/// Draw a node socket. Default draws the input value button.
 	NodeSocketButtonFunction drawinputfunc;
 	NodeSocketButtonFunction drawoutputfunc;
+
 	/// Optional custom label function for the node header.
 	const char *(*labelfunc)(struct bNode *);
 	/// Optional custom resize handle polling.
@@ -243,6 +247,12 @@ typedef struct bNodeType {
 /* nodetype->compatibility */
 #define NODE_OLD_SHADING	1
 #define NODE_NEW_SHADING	2
+
+/* node resize directions */
+#define NODE_RESIZE_TOP		1
+#define NODE_RESIZE_BOTTOM	2
+#define NODE_RESIZE_RIGHT	4
+#define NODE_RESIZE_LEFT	8
 
 /* enum values for input/output */
 #define SOCK_IN		1
@@ -344,7 +354,8 @@ void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
 void			nodeRemSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
 void			nodeInternalRelink(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeSpaceCoords(struct bNode *node, float *locx, float *locy);
+void			nodeToView(struct bNode *node, float x, float y, float *rx, float *ry);
+void			nodeFromView(struct bNode *node, float x, float y, float *rx, float *ry);
 void			nodeAttachNode(struct bNode *node, struct bNode *parent);
 void			nodeDetachNode(struct bNode *node);
 
@@ -512,6 +523,7 @@ struct ShadeResult;
 #define SH_NODE_TEX_CHECKER				164
 #define SH_NODE_BRIGHTCONTRAST			165
 #define SH_NODE_LIGHT_FALLOFF			166
+#define SH_NODE_OBJECT_INFO				167
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -648,6 +660,13 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_TONEMAP	302
 #define CMP_NODE_LENSDIST	303
 
+#define CMP_NODE_COLORCORRECTION 312
+#define CMP_NODE_MASK_BOX       313
+#define CMP_NODE_MASK_ELLIPSE   314
+#define CMP_NODE_BOKEHIMAGE     315
+#define CMP_NODE_BOKEHBLUR      316
+#define CMP_NODE_SWITCH         317
+
 /* channel toggles */
 #define CMP_CHAN_RGB		1
 #define CMP_CHAN_A			2
@@ -675,7 +694,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 struct CompBuf;
 struct bNodeTreeExec *ntreeCompositBeginExecTree(struct bNodeTree *ntree, int use_tree_data);
 void ntreeCompositEndExecTree(struct bNodeTreeExec *exec, int use_tree_data);
-void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int do_previews);
+void ntreeCompositExecTree(struct bNodeTree *ntree, struct RenderData *rd, int rendering, int do_previews);
 void ntreeCompositTagRender(struct Scene *sce);
 int ntreeCompositTagAnimated(struct bNodeTree *ntree);
 void ntreeCompositTagGenerators(struct bNodeTree *ntree);

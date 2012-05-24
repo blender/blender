@@ -165,15 +165,15 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		}
 	}
 	else {
-		int do_glob_undo = 0;
+		int do_glob_undo = FALSE;
 		
 		if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname))
-				do_glob_undo = 1;
+				do_glob_undo = TRUE;
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_MESH, step, undoname))
-				do_glob_undo = 1;
+				do_glob_undo = TRUE;
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
 			if (step == 1)
@@ -182,7 +182,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 				PE_redo(CTX_data_scene(C));
 		}
 		else {
-			do_glob_undo = 1;
+			do_glob_undo = TRUE;
 		}
 		
 		if (do_glob_undo) {

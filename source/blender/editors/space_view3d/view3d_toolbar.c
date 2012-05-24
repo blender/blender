@@ -64,7 +64,7 @@
 #include "UI_interface.h"
 #include "UI_resources.h"
 
-#include "view3d_intern.h"  // own include
+#include "view3d_intern.h"  /* own include */
 
 
 /* ******************* view3d space & buttons ************** */
@@ -78,15 +78,17 @@ static void view3d_panel_operator_redo_header(const bContext *C, Panel *pa)
 {
 	wmOperator *op = WM_operator_last_redo(C);
 
-	if (op) BLI_strncpy(pa->drawname, op->type->name, sizeof(pa->drawname));
-	else BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
+	if (op)
+		BLI_strncpy(pa->drawname, RNA_struct_ui_name(op->type->srna), sizeof(pa->drawname));
+	else
+		BLI_strncpy(pa->drawname, IFACE_("Operator"), sizeof(pa->drawname));
 }
 
 static void view3d_panel_operator_redo_operator(const bContext *C, Panel *pa, wmOperator *op)
 {
 	if (op->type->flag & OPTYPE_MACRO) {
 		for (op = op->macro.first; op; op = op->next) {
-			uiItemL(pa->layout, op->type->name, ICON_NONE);
+			uiItemL(pa->layout, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			view3d_panel_operator_redo_operator(C, pa, op);
 		}
 	}

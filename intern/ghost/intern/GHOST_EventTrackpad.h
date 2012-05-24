@@ -51,7 +51,7 @@ public:
 	 * @param y			The y-delta of the pan event.
 	 */
 	GHOST_EventTrackpad(GHOST_TUns64 msec,
-	                    GHOST_IWindow* window,
+	                    GHOST_IWindow *window,
 	                    GHOST_TTrackpadEventSubTypes subtype,
 	                    GHOST_TInt32 x, GHOST_TInt32 y,
 	                    GHOST_TInt32 deltaX, GHOST_TInt32 deltaY)

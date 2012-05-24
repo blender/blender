@@ -129,6 +129,8 @@ static void node_composit_init_viewer(bNodeTree *UNUSED(ntree), bNode* node, bNo
 	iuser->sfra= 1;
 	iuser->fie_ima= 2;
 	iuser->ok= 1;
+	node->custom3 = 0.5f;
+	node->custom4 = 0.5f;
 }
 
 void register_node_type_cmp_viewer(bNodeTreeType *ttype)

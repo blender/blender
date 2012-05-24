@@ -67,20 +67,20 @@ public:
 	 * "unpack and run" path, then look for properly installed path, not including versioning.
 	 * @return Unsigned char string pointing to system dir (eg /usr/share/).
 	 */
-	const GHOST_TUns8* getSystemDir() const;
+	const GHOST_TUns8 *getSystemDir() const;
 
 	/**
 	 * Determine the base dir in which user configuration is stored, not including versioning.
 	 * If needed, it will create the base directory.
 	 * @return Unsigned char string pointing to user dir (eg ~/).
 	 */
-	const GHOST_TUns8* getUserDir() const;
+	const GHOST_TUns8 *getUserDir() const;
 
 	/**
 	 * Determine the directory of the current binary
 	 * @return Unsigned char string pointing to the binary dir
 	 */
-	const GHOST_TUns8* getBinaryDir() const;
+	const GHOST_TUns8 *getBinaryDir() const;
 
 	/**
 	 * Add the file to the operating system most recently used files

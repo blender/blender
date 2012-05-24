@@ -233,7 +233,7 @@ static Material *give_current_material_or_def(Object *ob, int matnr)
 
 static struct TextureDrawState {
 	Object *ob;
-	int islit, istex;
+	int is_lit, is_tex;
 	int color_profile;
 	unsigned char obcol[4];
 } Gtexdraw = {NULL, 0, 0, 0, {0, 0, 0, 0}};
@@ -263,12 +263,12 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 		c_has_texface = -1;
 	}
 	else {
-		textured = gtexdraw.istex;
+		textured = gtexdraw.is_tex;
 		litob = gtexdraw.ob;
 	}
 
 	/* convert number of lights into boolean */
-	if (gtexdraw.islit) lit = 1;
+	if (gtexdraw.is_lit) lit = 1;
 
 	if (ma) {
 		alphablend = ma->game.alpha_blend;
@@ -343,7 +343,7 @@ static int set_draw_settings_cached(int clearcache, MTFace *texface, Material *m
 static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob)
 {
 	unsigned char obcol[4];
-	int istex, solidtex;
+	int is_tex, solidtex;
 
 	// XXX scene->obedit warning
 
@@ -351,27 +351,27 @@ static void draw_textured_begin(Scene *scene, View3D *v3d, RegionView3D *rv3d, O
 	 * with face selection in weight paint is not lit. */
 	if ((v3d->drawtype <= OB_WIRE) && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT))) {
 		solidtex = FALSE;
-		Gtexdraw.islit = 0;
+		Gtexdraw.is_lit = 0;
 	}
 	else if (v3d->drawtype == OB_SOLID || ((ob->mode & OB_MODE_EDIT) && v3d->drawtype != OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
 		solidtex = TRUE;
-		Gtexdraw.islit = -1;
+		Gtexdraw.is_lit = -1;
 	}
 	else {
 		/* draw with lights in the scene otherwise */
 		solidtex = FALSE;
-		Gtexdraw.islit = GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
+		Gtexdraw.is_lit = GPU_scene_object_lights(scene, ob, v3d->lay, rv3d->viewmat, !rv3d->is_persp);
 	}
 	
 	rgba_float_to_uchar(obcol, ob->col);
 
 	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
-	if (solidtex || v3d->drawtype == OB_TEXTURE) istex = 1;
-	else istex = 0;
+	if (solidtex || v3d->drawtype == OB_TEXTURE) is_tex = 1;
+	else is_tex = 0;
 
 	Gtexdraw.ob = ob;
-	Gtexdraw.istex = istex;
+	Gtexdraw.is_tex = is_tex;
 	Gtexdraw.color_profile = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, NULL, NULL, Gtexdraw);

@@ -150,7 +150,7 @@ typedef struct {
 
 struct uiBut {
 	struct uiBut *next, *prev;
-	int flag;
+	int flag, drawflag;
 	short type, pointype, bit, bitnr, retval, strwidth, ofs, pos, selsta, selend, alignnr;
 	short pad1;
 

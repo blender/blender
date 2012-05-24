@@ -153,6 +153,8 @@ typedef struct ARegionType {
 	int keymapflag;
 	/* return without drawing. lock is set by region definition, and copied to do_lock by render. can become flag */
 	short do_lock, lock;
+	/* call cursor function on each move event */
+	short event_cursor;
 } ARegionType;
 
 /* panel types */

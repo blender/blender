@@ -36,6 +36,7 @@ set(INC
 	../render/extern/include
 	../../../intern/guardedalloc
 	../../../intern/raskter
+	../compositor
 )
 
 set(INC_SYS
@@ -109,6 +110,13 @@ set(SRC
 	composite/nodes/node_composite_vecBlur.c
 	composite/nodes/node_composite_viewer.c
 	composite/nodes/node_composite_zcombine.c
+	composite/nodes/node_composite_bokehblur.c
+	composite/nodes/node_composite_bokehimage.c
+	composite/nodes/node_composite_boxmask.c
+	composite/nodes/node_composite_ellipsemask.c
+	composite/nodes/node_composite_switch.c
+	composite/nodes/node_composite_colorcorrection.c
+	
 	composite/node_composite_tree.c
 	composite/node_composite_util.c
 
@@ -152,6 +160,7 @@ set(SRC
 	shader/nodes/node_shader_volume_isotropic.c
 	shader/nodes/node_shader_light_path.c
 	shader/nodes/node_shader_light_falloff.c
+	shader/nodes/node_shader_object_info.c
 	shader/nodes/node_shader_mix_shader.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_output_lamp.c

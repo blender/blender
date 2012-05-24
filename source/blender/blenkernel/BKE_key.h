@@ -55,9 +55,9 @@ struct Key *copy_key_nolib(struct Key *key);
 void BKE_key_make_local(struct Key *key);
 void sort_keys(struct Key *key);
 
-void key_curve_position_weights(float t, float *data, int type);
-void key_curve_tangent_weights(float t, float *data, int type);
-void key_curve_normal_weights(float t, float *data, int type);
+void key_curve_position_weights(float t, float data[4], int type);
+void key_curve_tangent_weights(float t, float data[4], int type);
+void key_curve_normal_weights(float t, float data[4], int type);
 
 float *do_ob_key(struct Scene *scene, struct Object *ob);
 

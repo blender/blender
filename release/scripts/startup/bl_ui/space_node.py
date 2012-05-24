@@ -205,5 +205,43 @@ class NODE_PT_properties(Panel):
         col.prop(snode, "backdrop_y", text="Y")
         col.operator("node.backimage_move", text="Move")
 
+class NODE_PT_quality(bpy.types.Panel):
+    bl_space_type = 'NODE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Quality"
+
+    @classmethod
+    def poll(cls, context):
+        snode = context.space_data
+        return snode.tree_type == 'COMPOSITING' and snode.node_tree is not None
+
+    def draw(self, context):
+        layout = self.layout
+        snode = context.space_data
+        tree = snode.node_tree
+
+        layout.prop(tree, "render_quality", text="Render")
+        layout.prop(tree, "edit_quality", text="Edit")
+        layout.prop(tree, "chunksize")
+        layout.prop(tree, "use_opencl")
+
+        
+class NODE_MT_node_color_presets(Menu):
+    """Predefined node color"""
+    bl_label = "Color Presets"
+    preset_subdir = "node_color"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class NODE_MT_node_color_specials(Menu):
+    bl_label = "Node Color Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator('node.node_copy_color', icon='COPY_ID')
+
+        
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

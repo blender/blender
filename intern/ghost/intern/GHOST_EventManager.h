@@ -64,21 +64,21 @@ public:
 	 * Returns the number of events currently on the stack.
 	 * @return The number of events on the stack.
 	 */
-	virtual	GHOST_TUns32	getNumEvents();
+	virtual GHOST_TUns32 getNumEvents();
 
 	/**
 	 * Returns the number of events of a certain type currently on the stack.
 	 * @param type The type of events to be counted.
 	 * @return The number of events on the stack of this type.
 	 */
-	virtual	GHOST_TUns32	getNumEvents(GHOST_TEventType type);
+	virtual GHOST_TUns32 getNumEvents(GHOST_TEventType type);
 
 	/**
 	 * Return the event at the top of the stack without removal.
 	 * Do not delete the event!
 	 * @return The event at the top of the stack.
 	 */
-	virtual	GHOST_IEvent* peekEvent();
+	virtual GHOST_IEvent *peekEvent();
 
 	/**
 	 * Pushes an event on the stack.
@@ -86,13 +86,13 @@ public:
 	 * Do not delete the event!
 	 * @param event	The event to push on the stack.
 	 */
-	virtual	GHOST_TSuccess pushEvent(GHOST_IEvent* event);
+	virtual GHOST_TSuccess pushEvent(GHOST_IEvent *event);
 
 	/**
 	 * Dispatches the given event directly, bypassing the event stack.
 	 * @return Indication as to whether any of the consumers handled the event.
 	 */
-	virtual bool dispatchEvent(GHOST_IEvent* event);
+	virtual bool dispatchEvent(GHOST_IEvent *event);
 
 	/**
 	 * Dispatches the event at the back of the stack.
@@ -113,23 +113,23 @@ public:
 	 * @param consumer The consumer added to the list.
 	 * @return Indication as to whether addition has succeeded.
 	 */
-	virtual GHOST_TSuccess addConsumer(GHOST_IEventConsumer* consumer);
+	virtual GHOST_TSuccess addConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Removes a consumer from the list of event consumers.
 	 * @param consumer The consumer removed from the list.
 	 * @return Indication as to whether removal has succeeded.
 	 */
-	virtual GHOST_TSuccess removeConsumer(GHOST_IEventConsumer* consumer);
+	virtual GHOST_TSuccess removeConsumer(GHOST_IEventConsumer *consumer);
 
 	/**
 	 * Removes all events for a window from the stack.
 	 * @param	window	The window to remove events for.
 	 */
-		virtual void
+	virtual void
 	removeWindowEvents(
-		GHOST_IWindow* window
-	 );
+	    GHOST_IWindow *window
+	    );
 
 	/**
 	 * Removes all events of a certain type from the stack.
@@ -138,11 +138,11 @@ public:
 	 * @param	type	The type of events to be removed.
 	 * @param	window	The window to remove the events for.
 	 */
-		virtual void
+	virtual void
 	removeTypeEvents(
-		GHOST_TEventType type,
-		GHOST_IWindow* window = 0
-	);
+	    GHOST_TEventType type,
+	    GHOST_IWindow *window = 0
+	    );
 
 protected:
 	/**
@@ -150,7 +150,7 @@ protected:
 	 * Delete the event after use!
 	 * @return The event at the top of the stack.
 	 */
-	virtual	GHOST_IEvent* popEvent();
+	virtual GHOST_IEvent *popEvent();
 
 	/**
 	 * Removes all events from the stack.
@@ -158,13 +158,13 @@ protected:
 	virtual void disposeEvents();
 
 	/** A stack with events. */
-	typedef std::deque<GHOST_IEvent*> TEventStack;
+	typedef std::deque<GHOST_IEvent *> TEventStack;
 	
 	/** The event stack. */
-	std::deque<GHOST_IEvent*> m_events;
+	std::deque<GHOST_IEvent *> m_events;
 
 	/** A vector with event consumers. */
-	typedef std::vector<GHOST_IEventConsumer*> TConsumerVector;
+	typedef std::vector<GHOST_IEventConsumer *> TConsumerVector;
 
 	/** The list with event consumers. */
 	TConsumerVector m_consumers;

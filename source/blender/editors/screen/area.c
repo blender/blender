@@ -145,7 +145,7 @@ void ED_area_do_refresh(bContext *C, ScrArea *sa)
 	if (sa->type && sa->type->refresh) {
 		sa->type->refresh(C, sa);
 	}
-	sa->do_refresh = 0;
+	sa->do_refresh = FALSE;
 }
 
 /* based on screen region draw tags, set draw tags in azones, and future region tabs etc */
@@ -162,7 +162,7 @@ void ED_area_overdraw_flush(ScrArea *sa, ARegion *ar)
 
 		/* test if inside */
 		if (BLI_in_rcti(&ar->winrct, xs, ys)) {
-			az->do_draw = 1;
+			az->do_draw = TRUE;
 		}
 	}
 }
@@ -384,7 +384,7 @@ void ED_area_overdraw(bContext *C)
 					}
 				}
 				
-				az->do_draw = 0;
+				az->do_draw = FALSE;
 			}
 		}
 	}	
@@ -487,7 +487,7 @@ void ED_region_do_draw(bContext *C, ARegion *ar)
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_PIXEL);
 
-	ar->do_draw = 0;
+	ar->do_draw = FALSE;
 	memset(&ar->drawrct, 0, sizeof(ar->drawrct));
 	
 	uiFreeInactiveBlocks(C, &ar->uiblocks);
@@ -559,7 +559,7 @@ void ED_area_tag_redraw_regiontype(ScrArea *sa, int regiontype)
 void ED_area_tag_refresh(ScrArea *sa)
 {
 	if (sa)
-		sa->do_refresh = 1;
+		sa->do_refresh = TRUE;
 }
 
 /* *************************************************************** */

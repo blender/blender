@@ -74,6 +74,7 @@ extern ModifierTypeInfo modifierType_WeightVGMix;
 extern ModifierTypeInfo modifierType_WeightVGProximity;
 extern ModifierTypeInfo modifierType_DynamicPaint;
 extern ModifierTypeInfo modifierType_Remesh;
+extern ModifierTypeInfo modifierType_Skin;
 
 /* MOD_util.c */
 void modifier_type_init(ModifierTypeInfo *types[]);

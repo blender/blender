@@ -87,11 +87,11 @@ static void InputSpringFlip(TransInfo *t, MouseInput *mi, const int mval[2], flo
 
 	/* flip scale */
 	/* values can become really big when zoomed in so use longs [#26598] */
-	if	((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
-		 (long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
-	 {
+	if ((long long int)(mi->center[0] - mval[0]) * (long long int)(mi->center[0] - mi->imval[0]) +
+	    (long long int)(mi->center[1] - mval[1]) * (long long int)(mi->center[1] - mi->imval[1]) < 0)
+	{
 		output[0] *= -1.0f;
-	 }
+	}
 }
 
 static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], float output[3])
@@ -206,10 +206,10 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 			mdx = mval[0] - data[2];
 			mdy = mval[1] - data[3];
 
-			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length: 0.0;
+			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length : 0.0;
 		}
 
-		output[0] = (length != 0.0) ? (double)(distance / length) : 0.0f;
+		output[0] = (length != 0.0) ? (double)(distance / length) : 0.0;
 	}
 }
 

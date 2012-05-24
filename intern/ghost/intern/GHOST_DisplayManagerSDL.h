@@ -68,8 +68,8 @@ public:
 	setCurrentDisplaySetting(GHOST_TUns8 display,
 	                         const GHOST_DisplaySetting& setting);
 
-private :
-	GHOST_SystemSDL * m_system;
+private:
+	GHOST_SystemSDL *m_system;
 	SDL_DisplayMode m_mode;
 };
 

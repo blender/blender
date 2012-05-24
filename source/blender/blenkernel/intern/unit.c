@@ -663,7 +663,7 @@ int bUnit_ReplaceString(char *str, int len_max, const char *str_prev, double sca
 				if (*ch == ' ' || *ch == '\t') {
 					/* do nothing */
 				}
-				else if (ch_is_op(*ch) || *ch == ',') { /* found an op, no need to insert a ,*/
+				else if (ch_is_op(*ch) || *ch == ',') { /* found an op, no need to insert a ',' */
 					op_found = 1;
 					break;
 				}

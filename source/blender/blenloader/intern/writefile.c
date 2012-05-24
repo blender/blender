@@ -780,7 +780,7 @@ static void write_renderinfo(WriteData *wd, Main *mainvar)		/* for renderdeamon 
 	current_screen_compat(mainvar, &curscreen);
 
 	for (sce= mainvar->scene.first; sce; sce= sce->id.next) {
-		if (sce->id.lib==NULL  && ( sce==curscreen->scene || (sce->r.scemode & R_BG_RENDER)) ) {
+		if (sce->id.lib == NULL && (sce == curscreen->scene || (sce->r.scemode & R_BG_RENDER))) {
 			data.sfra = sce->r.sfra;
 			data.efra = sce->r.efra;
 			memset(data.scene_name, 0, sizeof(data.scene_name));
@@ -1663,17 +1663,17 @@ static void write_mdisps(WriteData *wd, int count, MDisps *mdlist, int external)
 
 static void write_grid_paint_mask(WriteData *wd, int count, GridPaintMask *grid_paint_mask)
 {
-	if(grid_paint_mask) {
+	if (grid_paint_mask) {
 		int i;
 		
 		writestruct(wd, DATA, "GridPaintMask", count, grid_paint_mask);
-		for(i = 0; i < count; ++i) {
+		for (i = 0; i < count; ++i) {
 			GridPaintMask *gpm = &grid_paint_mask[i];
-			if(gpm->data) {
+			if (gpm->data) {
 				const int gridsize = ccg_gridsize(gpm->level);
 				writedata(wd, DATA,
-						  sizeof(*gpm->data) * gridsize * gridsize,
-						  gpm->data);
+				          sizeof(*gpm->data) * gridsize * gridsize,
+				          gpm->data);
 			}
 		}
 	}
@@ -2142,7 +2142,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			
 			SEQ_BEGIN (ed, seq)
 			{
-				if (seq->strip) seq->strip->done= 0;
+				if (seq->strip) seq->strip->done = FALSE;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			SEQ_END
@@ -2192,7 +2192,7 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					else if (seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 					
-					strip->done= 1;
+					strip->done = TRUE;
 				}
 			}
 			SEQ_END
@@ -2468,11 +2468,11 @@ static void write_libraries(WriteData *wd, Main *main)
 		a=tot= set_listbasepointers(main, lbarray);
 
 		/* test: is lib being used */
-		foundone= 0;
+		foundone = FALSE;
 		while (tot--) {
 			for (id= lbarray[tot]->first; id; id= id->next) {
 				if (id->us>0 && (id->flag & LIB_EXTERN)) {
-					foundone= 1;
+					foundone = TRUE;
 					break;
 				}
 			}

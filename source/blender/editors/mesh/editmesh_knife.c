@@ -308,7 +308,7 @@ static KnifeVert *get_bm_knife_vert(KnifeTool_OpData *kcd, BMVert *v)
 
 /**
  * get a KnifeEdge wrapper for an existing BMEdge
- * \note #knife_get_face_kedges / #get_bm_knife_edge are called recusively - KEEP STACK MEM USAGE LOW */
+ * \note #knife_get_face_kedges / #get_bm_knife_edge are called recursively - KEEP STACK MEM USAGE LOW */
 static KnifeEdge *get_bm_knife_edge(KnifeTool_OpData *kcd, BMEdge *e)
 {
 	KnifeEdge *kfe = BLI_ghash_lookup(kcd->origedgemap, e);
@@ -365,7 +365,7 @@ static void knife_start_cut(KnifeTool_OpData *kcd)
 }
 
 /**
- * \note #knife_get_face_kedges / #get_bm_knife_edge are called recusively - KEEP STACK MEM USAGE LOW */
+ * \note #knife_get_face_kedges / #get_bm_knife_edge are called recursively - KEEP STACK MEM USAGE LOW */
 static ListBase *knife_get_face_kedges(KnifeTool_OpData *kcd, BMFace *f)
 {
 	ListBase *lst = BLI_ghash_lookup(kcd->kedgefacemap, f);
@@ -889,7 +889,7 @@ static void knifetool_draw_angle_snapping(KnifeTool_OpData *kcd)
 static void knife_init_colors(KnifeColors *colors)
 {
 	/* possible BMESH_TODO: add explicit themes or calculate these by
-	 * figuring out constrasting colors with grid / edges / verts
+	 * figuring out contrasting colors with grid / edges / verts
 	 * a la UI_make_axis_color */
 	UI_GetThemeColor3ubv(TH_NURB_VLINE, colors->line);
 	UI_GetThemeColor3ubv(TH_NURB_ULINE, colors->edge);

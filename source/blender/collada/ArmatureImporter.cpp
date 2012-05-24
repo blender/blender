@@ -289,8 +289,10 @@ void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW:
 		float vec[3] = {x, y, z};
 		copy_v3_v3(leaf.bone->tail, leaf.bone->head);
 		add_v3_v3v3(leaf.bone->tail, leaf.bone->head, vec);
-	}else
+	}
+	else {
 		leaf_bones.push_back(leaf);
+	}
 }
 
 void ArmatureImporter::fix_leaf_bones( )

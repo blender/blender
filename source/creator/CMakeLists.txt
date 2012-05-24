@@ -911,6 +911,8 @@ endif()
 		cycles_kernel
 		cycles_util
 		cycles_subd
+		bf_compositor #added for opencl compositor
+		bf_opencl #added for opencl compositor
 		bf_intern_raskter
 	)
 

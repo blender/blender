@@ -50,6 +50,7 @@
 #include "BLI_math.h"
 #include "BLI_edgehash.h"
 #include "BLI_scanfill.h"
+#include "BLI_array.h"
 
 #include "BKE_animsys.h"
 #include "BKE_main.h"
@@ -70,11 +71,6 @@
 #include "BKE_tessmesh.h"
 #include "BLI_edgehash.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_math.h"
-#include "BLI_array.h"
-#include "BLI_edgehash.h"
-
 #include "bmesh.h"
 
 enum {
@@ -88,7 +84,7 @@ enum {
 	MESHCMP_POLYMISMATCH,
 	MESHCMP_EDGEUNKNOWN,
 	MESHCMP_VERTCOMISMATCH,
-	MESHCMP_CDLAYERS_MISMATCH,
+	MESHCMP_CDLAYERS_MISMATCH
 };
 
 static const char *cmpcode_to_str(int code)
@@ -812,8 +808,8 @@ int test_index_face(MFace *mface, CustomData *fdata, int mfindex, int nr)
 		    mface->v4 == mface->v1 ||
 		    /* across the face */
 		    mface->v1 == mface->v3 ||
-		    mface->v2 == mface->v4
-		    ) {
+		    mface->v2 == mface->v4)
+		{
 			return 0;
 		}
 	}
@@ -2998,6 +2994,18 @@ int poly_get_adj_loops_from_vert(unsigned adj_r[3], const MPoly *poly,
 	}
 
 	return corner;
+}
+
+/* Return the index of the edge vert that is not equal to 'v'. If
+ * neither edge vertex is equal to 'v', returns -1. */
+int BKE_mesh_edge_other_vert(const MEdge *e, int v)
+{
+	if (e->v1 == v)
+		return e->v2;
+	else if (e->v2 == v)
+		return e->v1;
+	else
+		return -1;
 }
 
 /* update the hide flag for edges and faces from the corresponding

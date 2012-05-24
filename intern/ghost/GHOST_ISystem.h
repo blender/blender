@@ -129,12 +129,12 @@ class GHOST_IEventConsumer;
  * There should be only one system class in an application.
  * Therefore, the routines to create and dispose the system are static.
  * Provides:
- * 	-# Time(r) management.
- * 	-# Display/window management (windows are only created on the main display).
- * 	-# Event management.
- * 	-# Cursor shape management (no custom cursors for now).
- * 	-# Access to the state of the mouse buttons and the keyboard.
- * 	-# Menus for windows with events generated when they are accessed (this is
+ *  -# Time(r) management.
+ *  -# Display/window management (windows are only created on the main display).
+ *  -# Event management.
+ *  -# Cursor shape management (no custom cursors for now).
+ *  -# Access to the state of the mouse buttons and the keyboard.
+ *  -# Menus for windows with events generated when they are accessed (this is
  *     work in progress).
  * @author	Maarten Gribnau
  * @date	May 30, 2001
@@ -158,25 +158,27 @@ public:
 	 * Returns a pointer to the one and only system (nil if it hasn't been created).
 	 * @return A pointer to the system.
 	 */
-	static GHOST_ISystem* getSystem();
+	static GHOST_ISystem *getSystem();
 
 protected:
 	/**
 	 * Constructor.
 	 * Protected default constructor to force use of static createSystem member.
 	 */
-	GHOST_ISystem() {}
+	GHOST_ISystem() {
+	}
 
 	/**
 	 * Destructor.
 	 * Protected default constructor to force use of static dispose member.
 	 */
-	virtual ~GHOST_ISystem() {}
+	virtual ~GHOST_ISystem() {
+	}
 
 public:
 	/***************************************************************************************
-	 ** Time(r) functionality
-	 ***************************************************************************************/
+	** Time(r) functionality
+	***************************************************************************************/
 
 	/**
 	 * Returns the system time.
@@ -196,7 +198,7 @@ public:
 	 * @param userData	Placeholder for user data.
 	 * @return A timer task (0 if timer task installation failed).
 	 */
-	virtual GHOST_ITimerTask* installTimer(GHOST_TUns64 delay,
+	virtual GHOST_ITimerTask *installTimer(GHOST_TUns64 delay,
 	                                       GHOST_TUns64 interval,
 	                                       GHOST_TimerProcPtr timerProc,
 	                                       GHOST_TUserDataPtr userData = 0) = 0;
@@ -206,17 +208,17 @@ public:
 	 * @param timerTask Timer task to be removed.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask* timerTask) = 0;
+	virtual GHOST_TSuccess removeTimer(GHOST_ITimerTask *timerTask) = 0;
 
 	/***************************************************************************************
-	 ** Display/window management functionality
-	 ***************************************************************************************/
+	** Display/window management functionality
+	***************************************************************************************/
 
 	/**
 	 * Returns the number of displays on this system.
 	 * @return The number of displays.
 	 */
-	virtual	GHOST_TUns8 getNumDisplays() const = 0;
+	virtual GHOST_TUns8 getNumDisplays() const = 0;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
@@ -237,30 +239,30 @@ public:
 	 * @param	type			The type of drawing context installed in this window.
 	 * @param	stereoVisual	Create a stereo visual for quad buffered stereo.
 	 * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
-	 * @param	parentWindow 	Parent (embedder) window
+	 * @param	parentWindow    Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
-	virtual GHOST_IWindow* createWindow(
-		const STR_String& title,
-		GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
-		GHOST_TWindowState state, GHOST_TDrawingContextType type,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0,
-		const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
+	virtual GHOST_IWindow *createWindow(
+	    const STR_String& title,
+	    GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
+	    GHOST_TWindowState state, GHOST_TDrawingContextType type,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    const GHOST_TEmbedderWindowID parentWindow = 0) = 0;
 
 	/**
 	 * Dispose a window.
 	 * @param	window Pointer to the window to be disposed.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow* window) = 0;
+	virtual GHOST_TSuccess disposeWindow(GHOST_IWindow *window) = 0;
 
 	/**
 	 * Returns whether a window is valid.
 	 * @param	window Pointer to the window to be checked.
 	 * @return	Indication of validity.
 	 */
-	virtual bool validWindow(GHOST_IWindow* window) = 0;
+	virtual bool validWindow(GHOST_IWindow *window) = 0;
 
 	/**
 	 * Begins full screen mode.
@@ -269,8 +271,8 @@ public:
 	 *					This window is invalid after full screen has been ended.
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window,
-		const bool stereoVisual, const GHOST_TUns16 numOfAASamples=0) = 0;
+	virtual GHOST_TSuccess beginFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window,
+	                                       const bool stereoVisual, const GHOST_TUns16 numOfAASamples = 0) = 0;
 	
 	/**
 	 * Updates the resolution while in fullscreen mode.
@@ -279,7 +281,7 @@ public:
 	 *
 	 * @return	Indication of success.
 	 */
-	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow** window) = 0;
+	virtual GHOST_TSuccess updateFullScreen(const GHOST_DisplaySetting& setting, GHOST_IWindow **window) = 0;
 
 	/**
 	 * Ends full screen mode.
@@ -294,8 +296,8 @@ public:
 	virtual bool getFullScreen(void) = 0;
 
 	/***************************************************************************************
-	 ** Event management functionality
-	 ***************************************************************************************/
+	** Event management functionality
+	***************************************************************************************/
 
 	/**
 	 * Retrieves events from the system and stores them in the queue.
@@ -315,18 +317,18 @@ public:
 	 * @param consumer The event consumer to add.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
+	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer *consumer) = 0;
 
 	/**
 	 * Removes the given event consumer to our list.
 	 * @param consumer The event consumer to remove.
 	 * @return Indication of success.
 	 */
-	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer* consumer) = 0;
+	virtual GHOST_TSuccess removeEventConsumer(GHOST_IEventConsumer *consumer) = 0;
 
 	/***************************************************************************************
-	 ** Cursor management functionality
-	 ***************************************************************************************/
+	** Cursor management functionality
+	***************************************************************************************/
 
 	/**
 	 * Returns the current location of the cursor (location in screen coordinates)
@@ -346,8 +348,8 @@ public:
 	virtual GHOST_TSuccess setCursorPosition(GHOST_TInt32 x, GHOST_TInt32 y) = 0;
 
 	/***************************************************************************************
-	 ** Access to mouse button and keyboard states.
-	 ***************************************************************************************/
+	** Access to mouse button and keyboard states.
+	***************************************************************************************/
 
 	/**
 	 * Returns the state of a modifier key (ouside the message queue).
@@ -377,15 +379,15 @@ public:
 	virtual int toggleConsole(int action) = 0;
 	
 	/***************************************************************************************
-	 ** Access to clipboard.
-	 ***************************************************************************************/
+	** Access to clipboard.
+	***************************************************************************************/
 	
 	/**
 	 * Returns the selection buffer
 	 * @return Returns "unsinged char" from X11 XA_CUT_BUFFER0 buffer
 	 *
 	 */
-	virtual GHOST_TUns8* getClipboard(bool selection) const = 0;
+	virtual GHOST_TUns8 *getClipboard(bool selection) const = 0;
 
 	/**
 	 * Put data to the Clipboard
@@ -396,7 +398,7 @@ public:
 	 * Confirms quitting he program when there is just one window left open
 	 * in the application
 	 */
-	virtual int confirmQuit(GHOST_IWindow * window) const = 0;
+	virtual int confirmQuit(GHOST_IWindow *window) const = 0;
 protected:
 	/**
 	 * Initialize the system.
@@ -411,12 +413,16 @@ protected:
 	virtual GHOST_TSuccess exit() = 0;
 
 	/** The one and only system */
-	static GHOST_ISystem* m_system;
+	static GHOST_ISystem *m_system;
 
 #ifdef WITH_CXX_GUARDEDALLOC
 public:
-	void *operator new(size_t num_bytes) { return MEM_mallocN(num_bytes, "GHOST:GHOST_ISystem"); }
-	void operator delete( void *mem ) { MEM_freeN(mem); }
+	void *operator new(size_t num_bytes) {
+		return MEM_mallocN(num_bytes, "GHOST:GHOST_ISystem");
+	}
+	void operator delete(void *mem) {
+		MEM_freeN(mem);
+	}
 #endif
 };
 

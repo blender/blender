@@ -59,7 +59,7 @@ void *avi_converter_from_avi_rgb(AviMovie *movie, int stream, unsigned char *buf
 		unsigned char *to;
 #ifdef __BIG_ENDIAN__
 		unsigned char  *pxla;
-#endif		  
+#endif
 		
 		buf = MEM_mallocN(movie->header->Height * movie->header->Width * 3, "fromavirgbbuf");
 

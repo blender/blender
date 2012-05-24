@@ -4457,6 +4457,9 @@ void param_average(ParamHandle *handle)
 	for (i = 0; i < phandle->ncharts; i++) {
 		PFace *f;
 		chart = phandle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK)
+			continue;
 		
 		chart->u.pack.area = 0.0f; /* 3d area */
 		chart->u.pack.rescale = 0.0f; /* UV area, abusing rescale for tmp storage, oh well :/ */
@@ -4479,6 +4482,10 @@ void param_average(ParamHandle *handle)
 	
 	for (i = 0; i < phandle->ncharts; i++) {
 		chart = phandle->charts[i];
+
+		if (chart->flag & PCHART_NOPACK)
+			continue;
+	
 		if (chart->u.pack.area != 0.0f && chart->u.pack.rescale != 0.0f) {
 			fac = chart->u.pack.area / chart->u.pack.rescale;
 			
