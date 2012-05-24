@@ -114,13 +114,16 @@ static void rna_Mask_object_active_index_set(PointerRNA *ptr, int value)
 	mask->act_maskobj = value;
 }
 
-static void rna_Mask_object_active_index_range(PointerRNA *ptr, int *min, int *max)
+static void rna_Mask_object_active_index_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	Mask *mask = (Mask *)ptr->id.data;
 
 	*min = 0;
 	*max = mask->tot_maskobj - 1;
 	*max = MAX2(0, *max);
+
+	*softmin = *min;
+	*softmax = *max;
 }
 
 static PointerRNA rna_Mask_object_active_get(PointerRNA *ptr)
