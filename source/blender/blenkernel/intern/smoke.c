@@ -1598,8 +1598,8 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, float fps)
 	/* adapt timestep for different framerates, dt = 0.1 is at 25fps */
 	dt *= (25.0f / fps);
 
-	// printf("test maxVel: %f\n", (sds->dx * 1.5) / dt); // gives 0.9
-	maxVel = (sds->dx * 1.5);
+	// maximum timestep/"CFL" constraint: dt < dx * maxVel
+	maxVel = (sds->dx * 1.0);
 
 	for(i = 0; i < size; i++)
 	{
