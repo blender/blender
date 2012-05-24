@@ -35,7 +35,6 @@ set(INC
 	../makesrna
 	../render/extern/include
 	../../../intern/guardedalloc
-	../../../intern/raskter
 	../compositor
 )
 

@@ -110,6 +110,9 @@ struct MaskObjectShape *BKE_mask_object_shape_varify_frame(struct MaskObject *ma
 void BKE_mask_object_shape_unlink(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
 void BKE_mask_object_shape_sort(struct MaskObject *maskobj);
 
+/* rasterization */
+void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer);
+
 #define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
 #define MASKPOINT_DESEL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0

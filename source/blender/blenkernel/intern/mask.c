@@ -55,6 +55,8 @@
 #include "BKE_movieclip.h"
 #include "BKE_utildefines.h"
 
+#include "raskter.h"
+
 /* mask objects */
 
 MaskObject *BKE_mask_object_new(Mask *mask, const char *name)
@@ -1270,4 +1272,47 @@ static int mask_object_shape_sort_cb(void *maskobj_shape_a_ptr, void *maskobj_sh
 void BKE_mask_object_shape_sort(MaskObject *maskobj)
 {
 	BLI_sortlist(&maskobj->splines_shapes, mask_object_shape_sort_cb);
+}
+
+/* rasterization */
+void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
+{
+	MaskObject *maskobj;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
+
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			float *diff_points;
+			int tot_diff_point;
+
+			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
+
+			/* TODO, make this optional! */
+			if (width != height) {
+				float *fp;
+				int i;
+				float asp;
+
+				if (width < height) {
+					fp = &diff_points[0];
+					asp = (float)width / (float)height;
+				}
+				else {
+					fp = &diff_points[1];
+					asp = (float)height / (float)width;
+				}
+
+				for (i = 0; i < tot_diff_point; i++, fp += 2) {
+					(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+				}
+			}
+
+			if (tot_diff_point) {
+				PLX_raskterize(diff_points, tot_diff_point, buffer, width, height);
+
+				MEM_freeN(diff_points);
+			}
+		}
+	}
 }

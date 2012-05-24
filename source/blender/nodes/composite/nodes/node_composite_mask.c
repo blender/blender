@@ -36,8 +36,6 @@
 
 #include "BKE_mask.h"
 
-// XXX: ...
-#include "../../../../intern/raskter/raskter.h"
 #include "node_composite_util.h"
 
 /* **************** Translate  ******************** */
@@ -58,7 +56,6 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		Mask *mask = (Mask *)node->id;
 		CompBuf *stackbuf;
 		RenderData *rd = data;
-		MaskObject *maskobj = mask->maskobjs.first;
 		float *res;
 		int sx, sy;
 
@@ -84,42 +81,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-			MaskSpline *spline;
-
-			for (spline = maskobj->splines.first; spline; spline = spline->next) {
-				float *diff_points;
-				int tot_diff_point;
-
-				diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
-
-				/* TODO, make this optional! */
-				if (sx != sy) {
-					float *fp;
-					int i;
-					float asp;
-
-					if (sx < sy) {
-						fp = &diff_points[0];
-						asp = (float)sx / (float)sy;
-					}
-					else {
-						fp = &diff_points[1];
-						asp = (float)sy / (float)sx;
-					}
-
-					for (i = 0; i < tot_diff_point; i++, fp += 2) {
-						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
-					}
-				}
-
-				if (tot_diff_point) {
-					PLX_raskterize(diff_points, tot_diff_point, res, sx, sy);
-
-					MEM_freeN(diff_points);
-				}
-			}
-		}
+		BKE_mask_rasterize(mask, sx, sy, res);
 
 		/* pass on output and free */
 		out[0]->data = stackbuf;
