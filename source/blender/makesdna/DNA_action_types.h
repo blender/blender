@@ -612,7 +612,7 @@ typedef enum eSAction_Flag {
 		/* show pose-markers (local to action) in Action Editor mode  */
 	SACTION_POSEMARKERS_SHOW = (1<<6),
 		/* don't draw action channels using group colors (where applicable) */
-	SACTION_NODRAWGCOLORS = (1<<7), // XXX depreceated... irrelevant for current groups implementation
+	SACTION_NODRAWGCOLORS = (1<<7),
 		/* don't draw current frame number beside frame indicator */
 	SACTION_NODRAWCFRANUM = (1<<8),
 		/* temporary flag to force channel selections to be synced with main */

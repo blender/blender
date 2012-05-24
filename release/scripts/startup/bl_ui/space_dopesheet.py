@@ -149,6 +149,7 @@ class DOPESHEET_MT_view(Menu):
         layout.prop(st, "use_realtime_update")
         layout.prop(st, "show_frame_indicator")
         layout.prop(st, "show_sliders")
+        layout.prop(st, "show_group_colors")
         layout.prop(st, "use_auto_merge_keyframes")
         layout.prop(st, "use_marker_sync")
 

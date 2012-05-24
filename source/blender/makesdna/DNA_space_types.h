@@ -763,6 +763,8 @@ enum FileSortTypeE {
 #define SIPO_NOREALTIMEUPDATES	(1<<11)
 	/* don't draw curves with AA ("beauty-draw") for performance */
 #define SIPO_BEAUTYDRAW_OFF		(1<<12)
+	/* draw grouped channels with colors set in group */
+#define SIPO_NODRAWGCOLORS		(1<<13)
 
 /* SpaceIpo->mode (Graph Editor Mode) */
 enum {

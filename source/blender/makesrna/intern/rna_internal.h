@@ -193,6 +193,9 @@ void rna_def_mtex_common(struct BlenderRNA *brna, struct StructRNA *srna, const 
                          const char *structname_slots, const char *update);
 void rna_def_render_layer_common(struct StructRNA *srna, int scene);
 
+void rna_def_actionbone_group_common(struct StructRNA *srna, int update_flag, const char *update_cb);
+void rna_ActionGroup_colorset_set(struct PointerRNA *ptr, int value);
+
 void rna_ID_name_get(struct PointerRNA *ptr, char *value);
 int rna_ID_name_length(struct PointerRNA *ptr);
 void rna_ID_name_set(struct PointerRNA *ptr, const char *value);
