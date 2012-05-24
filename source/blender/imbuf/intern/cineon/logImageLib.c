@@ -121,10 +121,11 @@ int
 logImageSetByteConversion(LogImageFile* logImage, const LogImageByteConversionParameters* params)
 {
 	if ((params->gamma >= MIN_GAMMA) &&
-			(params->gamma <= MAX_GAMMA) &&
-			(params->blackPoint >= 0) &&
-			(params->blackPoint < params->whitePoint) &&
-			(params->whitePoint <= 1023)) {
+	    (params->gamma <= MAX_GAMMA) &&
+	    (params->blackPoint >= 0) &&
+	    (params->blackPoint < params->whitePoint) &&
+	    (params->whitePoint <= 1023))
+	{
 		logImage->params.gamma = params->gamma;
 		logImage->params.blackPoint = params->blackPoint;
 		logImage->params.whitePoint = params->whitePoint;

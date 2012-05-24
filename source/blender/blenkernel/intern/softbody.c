@@ -1054,11 +1054,12 @@ static int sb_detect_aabb_collisionCached(float UNUSED(force[3]), unsigned int U
 					a = ccdm->totface;
 #endif
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
-						(aabbmax[1] < ccdm->bbmin[1]) ||
-						(aabbmax[2] < ccdm->bbmin[2]) ||
-						(aabbmin[0] > ccdm->bbmax[0]) ||
-						(aabbmin[1] > ccdm->bbmax[1]) ||
-						(aabbmin[2] > ccdm->bbmax[2]) ) {
+					    (aabbmax[1] < ccdm->bbmin[1]) ||
+					    (aabbmax[2] < ccdm->bbmin[2]) ||
+					    (aabbmin[0] > ccdm->bbmax[0]) ||
+					    (aabbmin[1] > ccdm->bbmax[1]) ||
+					    (aabbmin[2] > ccdm->bbmax[2]) )
+					{
 						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
@@ -1125,11 +1126,12 @@ static int sb_detect_face_pointCached(float face_v1[3], float face_v2[3], float 
 					mprevvert= ccdm->mprevvert;
 					outerfacethickness = ob->pd->pdef_sboft;
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
-						(aabbmax[1] < ccdm->bbmin[1]) ||
-						(aabbmax[2] < ccdm->bbmin[2]) ||
-						(aabbmin[0] > ccdm->bbmax[0]) ||
-						(aabbmin[1] > ccdm->bbmax[1]) ||
-						(aabbmin[2] > ccdm->bbmax[2]) ) {
+					    (aabbmax[1] < ccdm->bbmin[1]) ||
+					    (aabbmax[2] < ccdm->bbmin[2]) ||
+					    (aabbmin[0] > ccdm->bbmax[0]) ||
+					    (aabbmin[1] > ccdm->bbmax[1]) ||
+					    (aabbmin[2] > ccdm->bbmax[2]) )
+					{
 						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
@@ -1220,11 +1222,12 @@ static int sb_detect_face_collisionCached(float face_v1[3], float face_v2[3], fl
 					a = ccdm->totface;
 
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
-						(aabbmax[1] < ccdm->bbmin[1]) ||
-						(aabbmax[2] < ccdm->bbmin[2]) ||
-						(aabbmin[0] > ccdm->bbmax[0]) ||
-						(aabbmin[1] > ccdm->bbmax[1]) ||
-						(aabbmin[2] > ccdm->bbmax[2]) ) {
+					    (aabbmax[1] < ccdm->bbmin[1]) ||
+					    (aabbmax[2] < ccdm->bbmin[2]) ||
+					    (aabbmin[0] > ccdm->bbmax[0]) ||
+					    (aabbmin[1] > ccdm->bbmax[1]) ||
+					    (aabbmin[2] > ccdm->bbmax[2]) )
+					{
 						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
@@ -1447,11 +1450,12 @@ static int sb_detect_edge_collisionCached(float edge_v1[3], float edge_v2[3], fl
 					a = ccdm->totface;
 
 					if ((aabbmax[0] < ccdm->bbmin[0]) ||
-						(aabbmax[1] < ccdm->bbmin[1]) ||
-						(aabbmax[2] < ccdm->bbmin[2]) ||
-						(aabbmin[0] > ccdm->bbmax[0]) ||
-						(aabbmin[1] > ccdm->bbmax[1]) ||
-						(aabbmin[2] > ccdm->bbmax[2]) ) {
+					    (aabbmax[1] < ccdm->bbmin[1]) ||
+					    (aabbmax[2] < ccdm->bbmin[2]) ||
+					    (aabbmin[0] > ccdm->bbmax[0]) ||
+					    (aabbmin[1] > ccdm->bbmax[1]) ||
+					    (aabbmin[2] > ccdm->bbmax[2]) )
+					{
 						/* boxes don't intersect */
 						BLI_ghashIterator_step(ihash);
 						continue;
@@ -1785,14 +1789,15 @@ static int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], 
 					maxz = ccdm->bbmax[2];
 
 					if ((opco[0] < minx) ||
-						(opco[1] < miny) ||
-						(opco[2] < minz) ||
-						(opco[0] > maxx) ||
-						(opco[1] > maxy) ||
-						(opco[2] > maxz) ) {
-							/* outside the padded boundbox --> collision object is too far away */
-												BLI_ghashIterator_step(ihash);
-							continue;
+					    (opco[1] < miny) ||
+					    (opco[2] < minz) ||
+					    (opco[0] > maxx) ||
+					    (opco[1] > maxy) ||
+					    (opco[2] > maxz) )
+					{
+						/* outside the padded boundbox --> collision object is too far away */
+						BLI_ghashIterator_step(ihash);
+						continue;
 					}
 				}
 				else {
