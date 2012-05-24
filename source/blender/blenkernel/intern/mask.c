@@ -1082,6 +1082,24 @@ int BKE_mask_object_shape_totvert(MaskObject *maskobj)
 	return tot;
 }
 
+static void mask_object_shape_from_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
+{
+	copy_v2_v2(&fp[0], bezt->vec[0]);
+	copy_v2_v2(&fp[2], bezt->vec[1]);
+	copy_v2_v2(&fp[4], bezt->vec[2]);
+	fp[6] = bezt->weight;
+	fp[7] = bezt->radius;
+}
+
+static void mask_object_shape_to_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
+{
+	copy_v2_v2(bezt->vec[0], &fp[0]);
+	copy_v2_v2(bezt->vec[1], &fp[2]);
+	copy_v2_v2(bezt->vec[2], &fp[4]);
+	bezt->weight = fp[6];
+	bezt->radius = fp[7];
+}
+
 /* these functions match. copy is swapped */
 void BKE_mask_object_shape_from_mask(MaskObject *maskobj, MaskObjectShape *maskobj_shape)
 {
@@ -1094,13 +1112,8 @@ void BKE_mask_object_shape_from_mask(MaskObject *maskobj, MaskObjectShape *masko
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 			for (i = 0; i < spline->tot_point; i++) {
-				BezTriple *bezt = &spline->points[i].bezt;
-				/* *** BKE_mask_object_shape_to_mask - swapped *** */
-				copy_v2_v2(fp, bezt->vec[0]); fp += 2;
-				copy_v2_v2(fp, bezt->vec[1]); fp += 2;
-				copy_v2_v2(fp, bezt->vec[2]); fp += 2;
-				fp[0] = bezt->weight;
-				fp[1] = bezt->radius;         fp += 2;
+				mask_object_shape_from_mask_point(&spline->points[i].bezt, fp);
+				fp += MASK_OBJECT_SHAPE_ELEM_SIZE;
 			}
 		}
 	}
@@ -1120,13 +1133,8 @@ void BKE_mask_object_shape_to_mask(MaskObject *maskobj, MaskObjectShape *maskobj
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 			for (i = 0; i < spline->tot_point; i++) {
-				BezTriple *bezt = &spline->points[i].bezt;
-				/* *** BKE_mask_object_shape_from_mask - swapped *** */
-				copy_v2_v2(bezt->vec[0], fp); fp += 2;
-				copy_v2_v2(bezt->vec[1], fp); fp += 2;
-				copy_v2_v2(bezt->vec[2], fp); fp += 2;
-				bezt->weight = fp[0];
-				bezt->radius = fp[1];         fp += 2;
+				mask_object_shape_to_mask_point(&spline->points[i].bezt, fp);
+				fp += MASK_OBJECT_SHAPE_ELEM_SIZE;
 			}
 		}
 	}
@@ -1286,6 +1294,96 @@ void BKE_mask_object_shape_sort(MaskObject *maskobj)
 {
 	BLI_sortlist(&maskobj->splines_shapes, mask_object_shape_sort_cb);
 }
+
+int BKE_mask_object_shape_spline_index(MaskObject *maskobj, int index,
+                                       MaskSpline **r_maskobj_shape, int *r_index)
+{
+	MaskSpline *spline;
+
+	for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		if (index < spline->tot_point) {
+			*r_maskobj_shape = spline;
+			*r_index = index;
+			return TRUE;
+		}
+		index -= spline->tot_point;
+	}
+
+	return FALSE;
+}
+
+/* when a now points added - resize all shapekey array  */
+void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
+                                       int do_init, int do_init_interpolate)
+{
+	MaskObjectShape *maskobj_shape;
+
+	for (maskobj_shape = maskobj->splines_shapes.first;
+	     maskobj_shape;
+	     maskobj_shape = maskobj_shape->next)
+	{
+		/* spline index from maskobj */
+		MaskSpline *spline;
+		int         spline_point_index;
+
+		float *data_resized;
+
+		if (BKE_mask_object_shape_spline_index(maskobj, index,
+		                                       &spline, &spline_point_index))
+		{
+			maskobj_shape->tot_vert++;
+			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+			if (index > 0) {
+				memcpy(data_resized,
+				       maskobj_shape->data,
+				       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
+			if (do_init) {
+				if (do_init_interpolate) {
+					/* TODO */
+				}
+				else {
+					mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE]);
+				}
+			}
+			else {
+				memset(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
+				       0,
+				       sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
+			if (index != maskobj_shape->tot_vert - 1) {
+				memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
+				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
+			MEM_freeN(maskobj_shape->data);
+			maskobj_shape->data = data_resized;
+		}
+	}
+}
+
+/* move array to account for removed point */
+#if 0
+void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index)
+{
+	MaskObjectShape *maskobj_shape;
+
+	for (maskobj_shape = maskobj->splines_shapes.first;
+	     maskobj_shape;
+	     maskobj_shape = maskobj_shape->next)
+	{
+		if (frame == maskobj_shape->frame) {
+			return maskobj_shape;
+		}
+		else if (frame < maskobj_shape->frame) {
+			break;
+		}
+	}
+}
+#endif
 
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
