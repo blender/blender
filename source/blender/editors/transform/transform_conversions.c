@@ -3722,9 +3722,9 @@ void flushTransGraphData(TransInfo *t)
 			switch (sipo->autosnap) {
 				case SACTSNAP_FRAME: /* snap to nearest frame (or second if drawing seconds) */
 					if (sipo->flag & SIPO_DRAWTIME)
-						td2d->loc[0] = floorf((td2d->loc[0] / secf) + 0.5) * secf;
+						td2d->loc[0] = floor(((double)td2d->loc[0] / secf) + 0.5) * secf;
 					else
-						td2d->loc[0] = floorf(td2d->loc[0] + 0.5);
+						td2d->loc[0] = floor((double)td2d->loc[0] + 0.5);
 					break;
 				
 				case SACTSNAP_MARKER: /* snap to nearest marker */
@@ -3732,7 +3732,7 @@ void flushTransGraphData(TransInfo *t)
 					break;
 			}
 		}
-		
+
 		/* we need to unapply the nla-mapping from the time in some situations */
 		if (adt)
 			td2d->loc2d[0]= BKE_nla_tweakedit_remap(adt, td2d->loc[0], NLATIME_CONVERT_UNMAP);

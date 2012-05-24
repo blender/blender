@@ -264,7 +264,8 @@ static void drawgrid_draw(ARegion *ar, double wx, double wy, double x, double y,
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-#define GRID_MIN_PX 6.0f
+#define GRID_MIN_PX_D   6.0
+#define GRID_MIN_PX_F 6.0f
 
 static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **grid_unit)
 {
@@ -316,16 +317,16 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			while (i--) {
 				double scalar = bUnit_GetScaler(usys, i);
 
-				dx_scalar = dx * scalar / unit->scale_length;
-				if (dx_scalar < (GRID_MIN_PX * 2.0))
+				dx_scalar = dx * scalar / (double)unit->scale_length;
+				if (dx_scalar < (GRID_MIN_PX_D * 2.0))
 					continue;
 
 				/* Store the smallest drawn grid size units name so users know how big each grid cell is */
 				if (*grid_unit == NULL) {
 					*grid_unit = bUnit_GetNameDisplay(usys, i);
-					rv3d->gridview = (float)((scalar * v3d->grid) / (double)unit->scale_length);
+					rv3d->gridview = (float)((scalar * (double)v3d->grid) / (double)unit->scale_length);
 				}
-				blend_fac = 1.0f - ((GRID_MIN_PX * 2.0f) / (float)dx_scalar);
+				blend_fac = 1.0f - ((GRID_MIN_PX_F * 2.0f) / (float)dx_scalar);
 
 				/* tweak to have the fade a bit nicer */
 				blend_fac = (blend_fac * blend_fac) * 2.0f;
@@ -341,25 +342,25 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 	else {
 		short sublines = v3d->gridsubdiv;
 
-		if (dx < GRID_MIN_PX) {
+		if (dx < GRID_MIN_PX_D) {
 			rv3d->gridview *= sublines;
 			dx *= sublines;
 
-			if (dx < GRID_MIN_PX) {
+			if (dx < GRID_MIN_PX_D) {
 				rv3d->gridview *= sublines;
 				dx *= sublines;
 
-				if (dx < GRID_MIN_PX) {
+				if (dx < GRID_MIN_PX_D) {
 					rv3d->gridview *= sublines;
 					dx *= sublines;
-					if (dx < GRID_MIN_PX) ;
+					if (dx < GRID_MIN_PX_D) ;
 					else {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 				}
 				else {  // start blending out
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 
 					UI_ThemeColor(TH_GRID);
@@ -367,7 +368,7 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 				}
 			}
 			else {  // start blending out (GRID_MIN_PX < dx < (GRID_MIN_PX*10))
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6.0f));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 
 				UI_ThemeColor(TH_GRID);
@@ -375,32 +376,32 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 			}
 		}
 		else {
-			if (dx > (GRID_MIN_PX * 10)) {      // start blending in
+			if (dx > (GRID_MIN_PX_D * 10.0)) {      // start blending in
 				rv3d->gridview /= sublines;
 				dx /= sublines;
-				if (dx > (GRID_MIN_PX * 10)) {      // start blending in
+				if (dx > (GRID_MIN_PX_D * 10.0)) {      // start blending in
 					rv3d->gridview /= sublines;
 					dx /= sublines;
-					if (dx > (GRID_MIN_PX * 10)) {
+					if (dx > (GRID_MIN_PX_D * 10.0)) {
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 					}
 					else {
-						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+						UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 						drawgrid_draw(ar, wx, wy, x, y, dx);
 						UI_ThemeColor(TH_GRID);
 						drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 					}
 				}
 				else {
-					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+					UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 					drawgrid_draw(ar, wx, wy, x, y, dx);
 					UI_ThemeColor(TH_GRID);
 					drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
 				}
 			}
 			else {
-				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX * 6));
+				UI_ThemeColorBlend(TH_BACK, TH_GRID, dx / (GRID_MIN_PX_D * 6.0));
 				drawgrid_draw(ar, wx, wy, x, y, dx);
 				UI_ThemeColor(TH_GRID);
 				drawgrid_draw(ar, wx, wy, x, y, dx * sublines);
