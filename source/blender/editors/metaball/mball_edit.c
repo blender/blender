@@ -415,7 +415,7 @@ void MBALL_OT_reveal_metaelems(wmOperatorType *ot)
 
 /* Select MetaElement with mouse click (user can select radius circle or
  * stiffness circle) */
-int mouse_mball(bContext *C, const int mval[2], int extend)
+int mouse_mball(bContext *C, const int mval[2], int extend, int deselect, int toggle)
 {
 	static MetaElem *startelem = NULL;
 	Object *obedit = CTX_data_edit_object(C);
@@ -467,7 +467,19 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 		/* When some metaelem was found, then it is necessary to select or
 		 * deselect it. */
 		if (act) {
-			if (extend == 0) {
+			if (extend) {
+				act->flag |= SELECT;
+			}
+			else if (deselect) {
+				act->flag &= ~SELECT;
+			}
+			else if (toggle) {
+				if (act->flag & SELECT)
+					act->flag &= ~SELECT;
+				else
+					act->flag |= SELECT;
+			}
+			else {
 				/* Deselect all existing metaelems */
 				ml = mb->editelems->first;
 				while (ml) {
@@ -477,12 +489,7 @@ int mouse_mball(bContext *C, const int mval[2], int extend)
 				/* Select only metaelem clicked on */
 				act->flag |= SELECT;
 			}
-			else {
-				if (act->flag & SELECT)
-					act->flag &= ~SELECT;
-				else
-					act->flag |= SELECT;
-			}
+			
 			mb->lastelem = act;
 			
 			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, mb);

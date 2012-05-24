@@ -1454,7 +1454,7 @@ void MESH_OT_select_shortest_path(wmOperatorType *ot)
 /* ************************************************** */
 /* here actual select happens */
 /* gets called via generic mouse select operator */
-int mouse_mesh(bContext *C, const int mval[2], short extend)
+int mouse_mesh(bContext *C, const int mval[2], short extend, short deselect, short toggle)
 {
 	ViewContext vc;
 	BMVert *eve = NULL;
@@ -1468,39 +1468,86 @@ int mouse_mesh(bContext *C, const int mval[2], short extend)
 	
 	if (unified_findnearest(&vc, &eve, &eed, &efa)) {
 		
-		if (extend == 0) EDBM_flag_disable_all(vc.em, BM_ELEM_SELECT);
+		// Deselect everything
+		if (extend == 0 && deselect == 0 && toggle == 0)
+			EDBM_flag_disable_all(vc.em, BM_ELEM_SELECT);
 		
 		if (efa) {
-			/* set the last selected face */
-			BM_active_face_set(vc.em->bm, efa);
-			
-			if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+			if (extend) {
+				// set the last selected face
+				BM_active_face_set(vc.em->bm, efa);
+				
+				// Work-around: deselect first, so we can guarantee it will
+				// be active even if it was already selected
+				BM_select_history_remove(vc.em->bm, efa);
+				BM_face_select_set(vc.em->bm, efa, FALSE);
 				BM_select_history_store(vc.em->bm, efa);
 				BM_face_select_set(vc.em->bm, efa, TRUE);
 			}
-			else if (extend) {
+			else if (deselect) {
 				BM_select_history_remove(vc.em->bm, efa);
 				BM_face_select_set(vc.em->bm, efa, FALSE);
 			}
+			else {
+				// set the last selected face
+				BM_active_face_set(vc.em->bm, efa);
+			
+				if (!BM_elem_flag_test(efa, BM_ELEM_SELECT)) {
+					BM_select_history_store(vc.em->bm, efa);
+					BM_face_select_set(vc.em->bm, efa, TRUE);
+				}
+				else if (toggle) {
+					BM_select_history_remove(vc.em->bm, efa);
+					BM_face_select_set(vc.em->bm, efa, FALSE);
+				}
+			}
 		}
 		else if (eed) {
-			if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+			if (extend) {
+				// Work-around: deselect first, so we can guarantee it will
+				// be active even if it was already selected
+				BM_select_history_remove(vc.em->bm, eed);
+				BM_edge_select_set(vc.em->bm, eed, FALSE);
 				BM_select_history_store(vc.em->bm, eed);
 				BM_edge_select_set(vc.em->bm, eed, TRUE);
 			}
-			else if (extend) {
+			else if (deselect) {
 				BM_select_history_remove(vc.em->bm, eed);
 				BM_edge_select_set(vc.em->bm, eed, FALSE);
 			}
+			else {
+				if (!BM_elem_flag_test(eed, BM_ELEM_SELECT)) {
+					BM_select_history_store(vc.em->bm, eed);
+					BM_edge_select_set(vc.em->bm, eed, TRUE);
+				}
+				else if (toggle) {
+					BM_select_history_remove(vc.em->bm, eed);
+					BM_edge_select_set(vc.em->bm, eed, FALSE);
+				}
+			}
 		}
 		else if (eve) {
-			if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+			if (extend) {
+				// Work-around: deselect first, so we can guarantee it will
+				// be active even if it was already selected
+				BM_select_history_remove(vc.em->bm, eve);
+				BM_vert_select_set(vc.em->bm, eve, FALSE);
 				BM_select_history_store(vc.em->bm, eve);
 				BM_vert_select_set(vc.em->bm, eve, TRUE);
 			}
-			else if (extend) {
+			else if (deselect) {
 				BM_select_history_remove(vc.em->bm, eve);
 				BM_vert_select_set(vc.em->bm, eve, FALSE);
+			}
+			else {
+				if (!BM_elem_flag_test(eve, BM_ELEM_SELECT)) {
+					BM_select_history_store(vc.em->bm, eve);
+					BM_vert_select_set(vc.em->bm, eve, TRUE);
+				}
+				else if (toggle) {
+					BM_select_history_remove(vc.em->bm, eve);
+					BM_vert_select_set(vc.em->bm, eve, FALSE);
+				}
 			}
 		}
 		

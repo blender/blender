@@ -156,7 +156,7 @@ void EDBM_automerge(struct Scene *scene, struct Object *ob, int update);
 /* editmesh_mods.c */
 extern unsigned int bm_vertoffs, bm_solidoffs, bm_wireoffs;
 
-int         mouse_mesh(struct bContext *C, const int mval[2], short extend);
+int         mouse_mesh(struct bContext *C, const int mval[2], short extend, short deselect, short toggle);
 
 struct BMVert *editbmesh_get_x_mirror_vert(struct Object *ob, struct BMEditMesh *em, struct BMVert *eve, const float co[3], int index);
 int            mesh_get_x_mirror_vert(struct Object *ob, int index);
@@ -184,7 +184,7 @@ void EMBM_project_snap_verts(struct bContext *C, struct ARegion *ar, struct Obje
 
 /* editface.c */
 void paintface_flush_flags(struct Object *ob);
-int paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend);
+int paintface_mouse_select(struct bContext *C, struct Object *ob, const int mval[2], int extend, int deselect, int toggle);
 int do_paintface_box_select(struct ViewContext *vc, struct rcti *rect, int select, int extend);
 void paintface_deselect_all_visible(struct Object *ob, int action, short flush_flags);
 void paintface_select_linked(struct bContext *C, struct Object *ob, int mval[2], int mode);
