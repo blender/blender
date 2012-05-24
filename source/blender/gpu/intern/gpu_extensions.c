@@ -1074,8 +1074,9 @@ GPUShader *GPU_shader_create(const char *vertexcode, const char *fragcode, /*GPU
 	shader->object = glCreateProgramObjectARB();
 
 	if (!shader->object ||
-		(vertexcode && !shader->vertex) ||
-		(fragcode && !shader->fragment)) {
+	    (vertexcode && !shader->vertex) ||
+	    (fragcode && !shader->fragment))
+	{
 		fprintf(stderr, "GPUShader, object creation failed.\n");
 		GPU_shader_free(shader);
 		return NULL;

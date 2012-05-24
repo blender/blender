@@ -218,7 +218,7 @@ void calc_fcurve_range(struct FCurve *fcu, float *min, float *max,
 
 /* get the bounding-box extents for F-Curve */
 void calc_fcurve_bounds(struct FCurve *fcu, float *xmin, float *xmax, float *ymin, float *ymax,
-                        const short do_sel_only);
+                        const short do_sel_only, const short include_handles);
 
 /* .............. */
 

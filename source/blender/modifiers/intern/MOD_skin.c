@@ -716,7 +716,8 @@ static int calc_edge_subdivisions(const MVert *mvert, const MVertSkin *nodes,
 	/* If either end is a branch node marked 'loose', don't subdivide
 	 * the edge (or subdivide just twice if both are branches) */
 	if ((v1_branch && (evs[0]->flag & MVERT_SKIN_LOOSE)) ||
-	    (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE))) {
+	    (v2_branch && (evs[1]->flag & MVERT_SKIN_LOOSE)))
+	{
 		if (v1_branch && v2_branch)
 			return 2;
 		else

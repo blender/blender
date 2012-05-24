@@ -175,7 +175,8 @@ static void node_socket_add_replace(Main *bmain, bNodeTree *ntree, bNode *node_t
 			node_from = NULL;
 
 	if (node_prev && node_prev->type == ntemp->type &&
-		(ntemp->type != NODE_GROUP || node_prev->id == &ntemp->ngroup->id)) {
+	    (ntemp->type != NODE_GROUP || node_prev->id == &ntemp->ngroup->id))
+	{
 		/* keep the previous node if it's the same type */
 		node_from = node_prev;
 	}

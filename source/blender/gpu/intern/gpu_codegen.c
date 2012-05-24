@@ -387,7 +387,8 @@ static void codegen_set_unique_ids(ListBase *nodes)
 
 			/* set texid used for settings texture slot with multitexture */
 			if (codegen_input_has_texture(input) &&
-				((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL))) {
+			    ((input->source == GPU_SOURCE_TEX) || (input->source == GPU_SOURCE_TEX_PIXEL)))
+			{
 				if (input->link) {
 					/* input is texture from buffer, assign only one texid per
 					 * buffer to avoid sampling the same texture twice */

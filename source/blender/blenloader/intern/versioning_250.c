@@ -623,7 +623,7 @@ static void do_version_constraints_radians_degrees_250(ListBase *lb)
 {
 	bConstraint *con;
 
-	for	(con = lb->first; con; con = con->next) {
+	for (con = lb->first; con; con = con->next) {
 		if (con->type == CONSTRAINT_TYPE_RIGIDBODYJOINT) {
 			bRigidBodyJointConstraint *data = con->data;
 			data->axX *= (float)(M_PI / 180.0);
