@@ -362,6 +362,7 @@ static int sound_mixdown_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
+#ifdef WITH_AUDASPACE
 static EnumPropertyItem container_items[] = {
 #ifdef WITH_FFMPEG
 	{AUD_CONTAINER_AC3, "AC3", 0, "ac3", "Dolby Digital ATRAC 3"},
@@ -374,7 +375,8 @@ static EnumPropertyItem container_items[] = {
 #endif
 	{AUD_CONTAINER_OGG, "OGG", 0, "ogg", "Xiph.Org Ogg Container"},
 	{AUD_CONTAINER_WAV, "WAV", 0, "wav", "Waveform Audio File Format"},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
 static const char *snd_ext_sound[] = {
 	".ac3",
@@ -436,6 +438,8 @@ static int sound_mixdown_check(bContext *UNUSED(C), wmOperator *op)
 
 	return FALSE;
 }
+
+#endif // WITH_AUDASPACE
 
 static int sound_mixdown_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
@@ -643,9 +647,9 @@ static void SOUND_OT_mixdown(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = sound_mixdown_exec;
 	ot->invoke = sound_mixdown_invoke;
-	ot->check = sound_mixdown_check;
 
 #ifdef WITH_AUDASPACE
+	ot->check = sound_mixdown_check;
 	ot->ui = sound_mixdown_draw;
 #endif
 	/* flags */
