@@ -80,11 +80,11 @@ typedef struct SmokeDomainSettings {
 	float tempAmb; /* ambient temperature */
 	float alpha;
 	float beta;
+	float scale; /* largest domain size */
 	int res[3]; /* domain resolution */
 	int amplify; /* wavelet amplification */
 	int maxres; /* longest axis on the BB gets this resolution assigned */
 	int flags; /* show up-res or low res, etc */
-	int pad; 
 	int viewsettings;
 	short noise; /* noise type: wave, curl, anisotropic */
 	short diss_percent; 

@@ -6938,7 +6938,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				GPU_create_smoke(smd, 0);
 				draw_volume(ar, smd->domain->tex,
 				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res, smd->domain->dx,
+				            smd->domain->res, smd->domain->dx * smd->domain->scale,
 				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 // #endif
@@ -6991,7 +6991,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				GPU_create_smoke(smd, 1);
 				draw_volume(ar, smd->domain->tex,
 				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res_wt, smd->domain->dx_wt,
+				            smd->domain->res_wt, smd->domain->dx_wt * smd->domain->scale,
 				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}

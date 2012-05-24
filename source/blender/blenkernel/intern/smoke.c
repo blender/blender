@@ -198,8 +198,6 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		// calc other res with max_res provided
 		sub_v3_v3v3(size, max, min);
 
-		// printf("size: %f, %f, %f\n", size[0], size[1], size[2]);
-
 		// prevent crash when initializing a plane as domain
 		if((size[0] < FLT_EPSILON) || (size[1] < FLT_EPSILON) || (size[2] < FLT_EPSILON))
 			return 0;
@@ -209,14 +207,16 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			if(size[0] > size[2])
 			{
 				scale = res / size[0];
-				smd->domain->dx = size[0] / res; // dx is in global coords
+				smd->domain->scale = size[0];
+				smd->domain->dx = 1.0f / res; 
 				smd->domain->res[0] = res;
 				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
 				smd->domain->res[2] = (int)(size[2] * scale + 0.5);
 			}
 			else {
 				scale = res / size[2];
-				smd->domain->dx = size[2] / res; // dx is in global coords
+				smd->domain->scale = size[2];
+				smd->domain->dx = 1.0f / res;
 				smd->domain->res[2] = res;
 				smd->domain->res[0] = (int)(size[0] * scale + 0.5);
 				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
@@ -226,25 +226,24 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			if(size[1] > size[2])
 			{
 				scale = res / size[1];
-				smd->domain->dx = size[1] / res; // dx is in global coords
+				smd->domain->scale = size[1];
+				smd->domain->dx = 1.0f / res; 
 				smd->domain->res[1] = res;
 				smd->domain->res[0] = (int)(size[0] * scale + 0.5);
 				smd->domain->res[2] = (int)(size[2] * scale + 0.5);
 			}
 			else {
 				scale = res / size[2];
-				smd->domain->dx = size[2] / res;
+				smd->domain->scale = size[2];
+				smd->domain->dx = 1.0f / res;
 				smd->domain->res[2] = res;
 				smd->domain->res[0] = (int)(size[0] * scale + 0.5);
 				smd->domain->res[1] = (int)(size[1] * scale + 0.5);
 			}
 		}
 
-		// printf("smd->domain->dx: %f\n", smd->domain->dx);
-
 		// TODO: put in failsafe if res<=0 - dg
 
-		// printf("res[0]: %d, res[1]: %d, res[2]: %d\n", smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 		// dt max is 0.1
 		smd->domain->fluid = smoke_init(smd->domain->res, smd->domain->p0, DT_DEFAULT);
 		smd->time = scene->r.cfra;
@@ -256,8 +255,6 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 			smd->domain->res_wt[1] = smd->domain->res[1] * (smd->domain->amplify + 1);			
 			smd->domain->res_wt[2] = smd->domain->res[2] * (smd->domain->amplify + 1);			
 			smd->domain->dx_wt = smd->domain->dx / (smd->domain->amplify + 1);		
-			// printf("smd->domain->amplify: %d\n",  smd->domain->amplify);
-			// printf("(smd->domain->flags & MOD_SMOKE_HIGHRES)\n");
 		}
 
 		if(!smd->domain->shadow)
@@ -268,7 +265,6 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 		if(smd->domain->wt)	
 		{
 			smoke_initWaveletBlenderRNA(smd->domain->wt, &(smd->domain->strength));
-			// printf("smoke_initWaveletBlenderRNA\n");
 		}
 		return 1;
 	}
@@ -303,8 +299,6 @@ static int smokeModifier_init (SmokeModifierData *smd, Object *ob, Scene *scene,
 
 			DM_ensure_tessface(dm);
 			fill_scs_points(ob, dm, scs);
-
-			// DEBUG printf("scs->dx: %f\n", scs->dx);
 		}
 
 		if(!smd->coll->bvhtree)
@@ -1184,7 +1178,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 				// DG TODO: cap velocity to maxVelMag (or maxvel)
 
 				// oldpos + velocity * dt = newpos
-				get_cell(sds->p0, sds->res, sds->dx, cOldpos /* use current position here instead of "pos" */, cell, 0);
+				get_cell(sds->p0, sds->res, sds->dx*sds->scale, cOldpos /* use current position here instead of "pos" */, cell, 0);
 
 				// check if cell is valid (in the domain boundary)
 				for(j = 0; j < 3; j++)
@@ -1329,7 +1323,7 @@ static void update_flowsfluids(Scene *scene, Object *ob, SmokeDomainSettings *sd
 					// copy_v3_v3(pos, pa->state.co);
 					// mul_m4_v3(ob->imat, pos);
 					// 1. get corresponding cell
-					get_cell(sds->p0, sds->res, sds->dx, state.co, cell, 0);																	
+					get_cell(sds->p0, sds->res, sds->dx*sds->scale, state.co, cell, 0);																	
 					// check if cell is valid (in the domain boundary)									
 					for(i = 0; i < 3; i++)									
 					{										
@@ -1555,9 +1549,9 @@ static void update_effectors(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 			vel[1] = velocity_y[index];
 			vel[2] = velocity_z[index];
 
-			voxelCenter[0] = sds->p0[0] + sds->dx *  x + sds->dx * 0.5;
-			voxelCenter[1] = sds->p0[1] + sds->dx *  y + sds->dx * 0.5;
-			voxelCenter[2] = sds->p0[2] + sds->dx *  z + sds->dx * 0.5;
+			voxelCenter[0] = sds->p0[0] + sds->dx * sds->scale * x + sds->dx * sds->scale * 0.5;
+			voxelCenter[1] = sds->p0[1] + sds->dx * sds->scale * y + sds->dx * sds->scale * 0.5;
+			voxelCenter[2] = sds->p0[2] + sds->dx * sds->scale * z + sds->dx * sds->scale * 0.5;
 
 			pd_point_from_loc(scene, voxelCenter, vel, index, &epoint);
 			pdDoEffectors(effectors, NULL, sds->effector_weights, &epoint, retvel, NULL);
@@ -1667,6 +1661,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			Base *base = scene->base.first;
 			int changed = 0;
 			float dx = FLT_MAX;
+			float scale = 1.0f;
 			int haveDomain = 0;
 
 			for ( ; base; base = base->next) 
@@ -1677,9 +1672,10 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 				{
 					SmokeDomainSettings *sds = smd2->domain;
 
-					if(sds->dx < dx)
+					if(sds->dx * sds->scale < dx)
 					{
 						dx = sds->dx;
+						scale = sds->scale;
 						changed = 1;
 					}
 
@@ -1692,9 +1688,9 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			
 			if(changed)
 			{
-				if(dx != scs->dx)
+				if(dx*scale != scs->dx)
 				{
-					scs->dx = dx;
+					scs->dx = dx*scale;
 					smokeModifier_reset(smd);
 				}
 			}
@@ -1813,7 +1809,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 		if((int)smd->time == startframe && (cache->flag & PTCACHE_OUTDATED || cache->last_exact==0)) {
 			// create shadows straight after domain initialization so we get nice shadows for startframe, too
 			if(get_lamp(scene, light))
-				smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
+				smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx * sds->scale, light, calc_voxel_transp, -7.0*sds->dx * sds->scale);
 
 			if(sds->wt)
 			{
@@ -1844,7 +1840,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 
 		// create shadows before writing cache so they get stored
 		if(get_lamp(scene, light))
-			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx, light, calc_voxel_transp, -7.0*sds->dx);
+			smoke_calc_transparency(sds->shadow, smoke_get_density(sds->fluid), sds->p0, sds->p1, sds->res, sds->dx * sds->scale, light, calc_voxel_transp, -7.0*sds->dx * sds->scale);
 
 		if(sds->wt)
 		{

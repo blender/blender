@@ -6814,7 +6814,7 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 		}
 		
 		/* initialize custom node color */
-		node->color[0] = node->color[1] = node->color[2] = 0.608;	/* default theme color */
+		node->color[0] = node->color[1] = node->color[2] = 0.608f;	/* default theme color */
 	}
 }
 
@@ -7497,6 +7497,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (ntree=main->nodetree.first; ntree; ntree=ntree->id.next)
 			do_versions_nodetree_frame_2_64_6(ntree);
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 7))
+	{
+		Object *ob;
+
+		for (ob = main->object.first; ob; ob = ob->id.next) {
+			ModifierData *md;
+			for (md = ob->modifiers.first; md; md = md->next) {
+				if (md->type == eModifierType_Smoke) {
+					SmokeModifierData *smd = (SmokeModifierData *)md;
+					if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+						int maxres = MAX3(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
+						smd->domain->scale = smd->domain->dx * maxres;
+						smd->domain->dx = 1.0f / smd->domain->scale;
+					}
+				}
+			}
+		}
 	}
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
