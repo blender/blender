@@ -62,18 +62,25 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
 	const int frame = CFRA;
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskObject *maskobj;
+	int change = FALSE;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
 
 		maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
 		BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
+		change = TRUE;
 	}
 
-	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	if (change) {
+		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
+		DAG_id_tag_update(&mask->id, 0);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MASK_OT_shape_key_insert(wmOperatorType *ot)
@@ -97,6 +104,7 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	const int frame = CFRA;
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskObject *maskobj;
+	int change = FALSE;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
@@ -105,13 +113,19 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (maskobj_shape) {
 			BKE_mask_object_shape_unlink(maskobj, maskobj_shape);
+			change = TRUE;
 		}
 	}
 
-	WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
-	DAG_id_tag_update(&mask->id, 0);
+	if (change) {
+		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
+		DAG_id_tag_update(&mask->id, 0);
 
-	return OPERATOR_FINISHED;
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
 }
 
 void MASK_OT_shape_key_clear(wmOperatorType *ot)

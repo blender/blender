@@ -1186,7 +1186,7 @@ MaskObjectShape *BKE_mask_object_shape_find_frame(MaskObject *maskobj, int frame
 		if (frame == maskobj_shape->frame) {
 			return maskobj_shape;
 		}
-		else if (frame > maskobj_shape->frame) {
+		else if (frame < maskobj_shape->frame) {
 			break;
 		}
 	}
@@ -1248,6 +1248,19 @@ MaskObjectShape *BKE_mask_object_shape_varify_frame(MaskObject *maskobj, int fra
 
 		BKE_mask_object_shape_sort(maskobj);
 	}
+
+#if 0
+		{
+			MaskObjectShape *maskobj_shape;
+			int i = 0;
+			for (maskobj_shape = maskobj->splines_shapes.first;
+			     maskobj_shape;
+			     maskobj_shape = maskobj_shape->next)
+			{
+				printf("mask %d, %d\n", i++, maskobj_shape->frame);
+			}
+		}
+#endif
 
 	return maskobj_shape;
 }
