@@ -2771,6 +2771,7 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 
 			for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 				MaskSpline *spline;
+				MaskObjectShape *maskobj_shape;
 
 				writestruct(wd, DATA, "MaskObject", 1, maskobj);
 
@@ -2786,6 +2787,11 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 						if (point->tot_uw)
 							writestruct(wd, DATA, "MaskSplinePointUW", point->tot_uw, point->uw);
 					}
+				}
+
+				for (maskobj_shape = maskobj->splines_shapes.first; maskobj_shape; maskobj_shape = maskobj_shape->next) {
+					writestruct(wd, DATA, "MaskObjectShape", 1, maskobj_shape);
+					writedata(wd, DATA, maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, maskobj_shape->data);
 				}
 			}
 		}

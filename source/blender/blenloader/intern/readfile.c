@@ -6197,11 +6197,11 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
+		MaskObjectShape *maskobj_shape;
 
 		link_list(fd, &maskobj->splines);
 
-		spline = maskobj->splines.first;
-		while (spline) {
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			spline->points = newdataadr(fd, spline->points);
@@ -6212,8 +6212,12 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 				if (point->tot_uw)
 					point->uw = newdataadr(fd, point->uw);
 			}
+		}
 
-			spline = spline->next;
+		link_list(fd, &maskobj->splines_shapes);
+
+		for (maskobj_shape = maskobj->splines_shapes.first; maskobj_shape; maskobj_shape = maskobj_shape->next) {
+			maskobj_shape->data = newdataadr(fd, maskobj_shape->data);
 		}
 
 		maskobj->act_spline = newdataadr(fd, maskobj->act_spline);

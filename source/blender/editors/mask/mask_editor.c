@@ -167,6 +167,10 @@ void ED_operatortypes_mask(void)
 	/* relationships */
 	WM_operatortype_append(MASK_OT_parent_set);
 	WM_operatortype_append(MASK_OT_parent_clear);
+
+	/* shapekeys */
+	WM_operatortype_append(MASK_OT_shape_key_insert);
+	WM_operatortype_append(MASK_OT_shape_key_clear);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
@@ -209,6 +213,10 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_parent_clear", PKEY, KM_PRESS, KM_ALT, 0);
+
+	WM_keymap_add_item(keymap, "MASK_OT_shape_key_insert", IKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_shape_key_clear", IKEY, KM_PRESS, KM_ALT, 0);
+
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_CLIP);
 }

@@ -42,6 +42,7 @@ set(SRC
 	mask_ops.c
 	mask_relationships.c
 	mask_select.c
+	mask_shapekey.c
 
 	mask_intern.h
 )

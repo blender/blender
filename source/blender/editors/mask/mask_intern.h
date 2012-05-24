@@ -88,4 +88,8 @@ void ED_mask_aspect(struct bContext *C, float *aspx, float *aspy);
 void ED_mask_pixelspace_factor(struct bContext *C, float *scalex, float *scaley);
 void ED_mask_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
+/* mask_shapekey.c */
+void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
+void MASK_OT_shape_key_clear(struct wmOperatorType *ot);
+
 #endif /* __MASK_INTERN_H__ */

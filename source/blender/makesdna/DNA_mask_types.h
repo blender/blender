@@ -85,12 +85,23 @@ typedef struct MaskSpline {
 	int weight_interp, pad;  /* weight interpolation */
 } MaskSpline;
 
+/* one per frame */
+typedef struct MaskObjectShape {
+	struct MaskObjectShape *next, *prev;
+
+	float *data;             /* u coordinate along spline segment and weight of this point */
+	int    tot_vert;         /* to ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE) */
+	int    frame;            /* different flags of this point */
+} MaskObjectShape;
+
 typedef struct MaskObject {
 	struct MaskObject *next, *prev;
 
 	char name[64];                     /* name of the mask object (64 = MAD_ID_NAME - 2) */
 
 	ListBase splines;                  /* list of splines which defines this mask object */
+	ListBase splines_shapes;
+
 	struct MaskSpline *act_spline;     /* active spline */
 	struct MaskSplinePoint *act_point; /* active point */
 } MaskObject;
@@ -104,5 +115,7 @@ typedef struct MaskObject {
 /* MaskSpline->weight_interp */
 #define MASK_SPLINE_INTERP_LINEAR   1
 #define MASK_SPLINE_INTERP_EASE     2
+
+#define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
 
 #endif // __DNA_MASK_TYPES_H__

@@ -31,6 +31,7 @@ struct Main;
 struct Mask;
 struct MaskParent;
 struct MaskObject;
+struct MaskObjectShape;
 struct MaskSpline;
 struct MaskSplinePoint;
 struct MaskSplinePointUW;
@@ -83,8 +84,8 @@ void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *u
 
 /* parenting */
 
-void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime);
-void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene);
+void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
+void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene, const int do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_length(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point);
 void BKE_mask_calc_handle_point(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point);
@@ -92,6 +93,22 @@ void BKE_mask_calc_handle_point_auto(struct Mask *mask, struct MaskSpline *splin
 void BKE_mask_get_handle_point_adjacent(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev, struct MaskSplinePoint **r_point_next);
 void BKE_mask_calc_handles(struct Mask *mask);
+
+/* animation */
+int  BKE_mask_object_shape_totvert(struct MaskObject *maskobj);
+void BKE_mask_object_shape_from_mask(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
+void BKE_mask_object_shape_to_mask(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
+void BKE_mask_object_shape_to_mask_interp(struct MaskObject *maskobj,
+                                          struct MaskObjectShape *maskobj_shape_a,
+                                          struct MaskObjectShape *maskobj_shape_b,
+                                          const float fac);
+struct MaskObjectShape *BKE_mask_object_shape_find_frame(struct MaskObject *maskobj, int frame);
+int BKE_mask_object_shape_find_frame_range(struct MaskObject *maskobj, int frame,
+                                           struct MaskObjectShape **r_maskobj_shape_a,
+                                           struct MaskObjectShape **r_maskobj_shape_b);
+struct MaskObjectShape *BKE_mask_object_shape_varify_frame(struct MaskObject *maskobj, int frame);
+void BKE_mask_object_shape_unlink(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
+void BKE_mask_object_shape_sort(struct MaskObject *maskobj);
 
 #define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
