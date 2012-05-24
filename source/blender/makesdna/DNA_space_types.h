@@ -96,13 +96,13 @@ typedef struct SpaceInfo {
 } SpaceInfo;
 
 /* SpaceInfo.rpt_mask */
-enum {
-	INFO_RPT_DEBUG	= 1<<0,
-	INFO_RPT_INFO	= 1<<1,
-	INFO_RPT_OP		= 1<<2,
-	INFO_RPT_WARN	= 1<<3,
-	INFO_RPT_ERR		= 1<<4,
-};
+typedef enum eSpaceInfo_RptMask {
+	INFO_RPT_DEBUG	= (1 << 0),
+	INFO_RPT_INFO	= (1 << 1),
+	INFO_RPT_OP		= (1 << 2),
+	INFO_RPT_WARN	= (1 << 3),
+	INFO_RPT_ERR	= (1 << 4),
+} eSpaceInfo_RptMask;
 
 /* 'Graph' Editor (formerly known as the IPO Editor) */
 typedef struct SpaceIpo {
@@ -120,7 +120,7 @@ typedef struct SpaceIpo {
 	
 	short mode;				/* mode for the Graph editor (eGraphEdit_Mode) */
 	short autosnap;			/* time-transform autosnapping settings for Graph editor (eAnimEdit_AutoSnap in DNA_action_types.h) */
-	int flag;				/* settings for Graph editor */
+	int flag;				/* settings for Graph editor (eGraphEdit_Flag) */
 	
 	float cursorVal;		/* cursor value (y-value, x-value is current frame) */
 	int around;				/* pivot point for transforms */
@@ -414,21 +414,28 @@ typedef struct SpaceNode {
 } SpaceNode;
 
 /* snode->flag */
-#define SNODE_BACKDRAW		2
-#define SNODE_DISPGP		4
-#define SNODE_USE_ALPHA		8
-#define SNODE_SHOW_ALPHA	16
-#define SNODE_AUTO_RENDER	32
+typedef enum eSpaceNode_Flag {
+	SNODE_BACKDRAW     = (1 << 1),
+	SNODE_DISPGP       = (1 << 2), /* XXX: Grease Pencil - deprecated? */
+	SNODE_USE_ALPHA    = (1 << 3),
+	SNODE_SHOW_ALPHA   = (1 << 4),
+	SNODE_AUTO_RENDER  = (1 << 5),
+} eSpaceNode_Flag;
 
 /* snode->texfrom */
-#define SNODE_TEX_OBJECT	0
-#define SNODE_TEX_WORLD		1
-#define SNODE_TEX_BRUSH		2
+typedef enum eSpaceNode_TexFrom {
+	SNODE_TEX_OBJECT   = 0,
+	SNODE_TEX_WORLD,
+	SNODE_TEX_BRUSH,
+} eSpaceNode_TexFrom;
 
 /* snode->shaderfrom */
-#define SNODE_SHADER_OBJECT	0
-#define SNODE_SHADER_WORLD	1
+typedef enum eSpaceNode_ShaderFrom {
+	SNODE_SHADER_OBJECT	= 0,
+	SNODE_SHADER_WORLD,
+} eSpaceNode_ShaderFrom;
 
+/* Logic Editor */
 typedef struct SpaceLogic {
 	SpaceLink *next, *prev;
 	ListBase regionbase;		/* storage of regions for inactive spaces */
@@ -456,12 +463,12 @@ typedef struct ConsoleLine {
 } ConsoleLine;
 
 /* ConsoleLine.type */
-enum {
+typedef enum eConsoleLine_Type {
 	CONSOLE_LINE_OUTPUT=0,
 	CONSOLE_LINE_INPUT,
 	CONSOLE_LINE_INFO, /* autocomp feedback */
 	CONSOLE_LINE_ERROR
-};
+} eConsoleLine_Type;
 
 typedef struct SpaceConsole {
 	SpaceLink *next, *prev;
@@ -491,7 +498,6 @@ typedef struct SpaceUserPref {
 	int pad;
 	
 	char filter[64];		/* search term for filtering in the UI */
-
 } SpaceUserPref;
 
 typedef struct SpaceClip {
@@ -566,20 +572,24 @@ typedef struct SpaceClip {
 #define BUTS_EFFECTS		14
 
 /* buts->mainb new */
-#define BCONTEXT_RENDER				0
-#define BCONTEXT_SCENE				1
-#define BCONTEXT_WORLD				2
-#define BCONTEXT_OBJECT				3
-#define BCONTEXT_DATA				4
-#define BCONTEXT_MATERIAL			5
-#define BCONTEXT_TEXTURE			6
-#define BCONTEXT_PARTICLE			7
-#define BCONTEXT_PHYSICS			8
-#define BCONTEXT_BONE				9
-#define BCONTEXT_MODIFIER			10
-#define BCONTEXT_CONSTRAINT			12
-#define BCONTEXT_BONE_CONSTRAINT	13
-#define BCONTEXT_TOT				14
+typedef enum eSpaceButtons_Context {
+	BCONTEXT_RENDER = 0,
+	BCONTEXT_SCENE,
+	BCONTEXT_WORLD,
+	BCONTEXT_OBJECT,
+	BCONTEXT_DATA,
+	BCONTEXT_MATERIAL,
+	BCONTEXT_TEXTURE,
+	BCONTEXT_PARTICLE,
+	BCONTEXT_PHYSICS,
+	BCONTEXT_BONE,
+	BCONTEXT_MODIFIER,
+	BCONTEXT_CONSTRAINT,
+	BCONTEXT_BONE_CONSTRAINT,
+	
+	/* always as last... */
+	BCONTEXT_TOT
+} eSpaceButtons_Context;
 
 /* sbuts->flag */
 #define SB_PRV_OSA			1
@@ -589,16 +599,20 @@ typedef struct SpaceClip {
 #define SB_SHADING_CONTEXT	16
 
 /* sbuts->texture_context */
-#define SB_TEXC_MAT_OR_LAMP	0
-#define SB_TEXC_WORLD		1
-#define SB_TEXC_BRUSH		2
-#define SB_TEXC_PARTICLES	3
+typedef enum eSpaceButtons_Texture_Context {
+	SB_TEXC_MAT_OR_LAMP = 0,
+	SB_TEXC_WORLD,
+	SB_TEXC_BRUSH,
+	SB_TEXC_PARTICLES,
+} eSpaceButtons_Texture_Context;
 
 /* sbuts->align */
-#define BUT_FREE  		0
-#define BUT_HORIZONTAL  1
-#define BUT_VERTICAL    2
-#define BUT_AUTO		3
+typedef enum eSpaceButtons_Align {
+	BUT_FREE = 0,
+	BUT_HORIZONTAL,
+	BUT_VERTICAL,
+	BUT_AUTO,
+} eSpaceButtons_Align;
 
 /* sbuts->scaflag */		
 #define BUTS_SENS_SEL		1
@@ -647,127 +661,150 @@ enum FileSortTypeE {
 #define FILE_LOADLIB		1
 #define FILE_MAIN			2
 #define FILE_LOADFONT		3
+
 /* filesel op property -> action */
-#define FILE_OPENFILE		0
-#define FILE_SAVE			1
+typedef enum eFileSel_Action {
+	FILE_OPENFILE = 0,
+	FILE_SAVE,
+} eFileSel_Action;
 
 /* sfile->params->flag and simasel->flag */
-#define FILE_SHOWSHORT		(1<<0)
-#define FILE_RELPATH		(1<<1) /* was FILE_STRINGCODE */
-#define FILE_LINK			(1<<2)
-#define FILE_HIDE_DOT		(1<<3)
-#define FILE_AUTOSELECT		(1<<4)
-#define FILE_ACTIVELAY		(1<<5)
-/* #define FILE_ATCURSOR	(1<<6) */ /* deprecated */
-#define FILE_DIRSEL_ONLY	(1<<7)
-#define FILE_FILTER			(1<<8)
-#define FILE_BOOKMARKS		(1<<9)
-#define FILE_GROUP_INSTANCE	(1<<10)
+typedef enum eFileSel_Params_Flag {
+	FILE_SHOWSHORT      = (1 << 0),
+	FILE_RELPATH        = (1 << 1), /* was FILE_STRINGCODE */
+	FILE_LINK           = (1 << 2),
+	FILE_HIDE_DOT       = (1 << 3),
+	FILE_AUTOSELECT     = (1 << 4),
+	FILE_ACTIVELAY      = (1 << 5),
+/* 	FILE_ATCURSOR       = (1 << 6), */ /* deprecated */
+	FILE_DIRSEL_ONLY    = (1 << 7),
+	FILE_FILTER         = (1 << 8),
+	FILE_BOOKMARKS      = (1 << 9),
+	FILE_GROUP_INSTANCE = (1 << 10),
+} eFileSel_Params_Flag;
 
 
 /* files in filesel list: file types */
-#define BLENDERFILE			(1<<2)
-#define BLENDERFILE_BACKUP	(1<<3)
-#define IMAGEFILE			(1<<4)
-#define MOVIEFILE			(1<<5)
-#define PYSCRIPTFILE		(1<<6)
-#define FTFONTFILE			(1<<7)
-#define SOUNDFILE			(1<<8)
-#define TEXTFILE			(1<<9)
-#define MOVIEFILE_ICON		(1<<10) /* movie file that preview can't load */
-#define FOLDERFILE			(1<<11) /* represents folders for filtering */
-#define BTXFILE				(1<<12)
-#define COLLADAFILE			(1<<13)
-#define OPERATORFILE		(1<<14) /* from filter_glob operator property */
-
+typedef enum eFileSel_File_Types {
+	BLENDERFILE         = (1 << 2),
+	BLENDERFILE_BACKUP  = (1 << 3),
+	IMAGEFILE           = (1 << 4),
+	MOVIEFILE           = (1 << 5),
+	PYSCRIPTFILE        = (1 << 6),
+	FTFONTFILE          = (1 << 7),
+	SOUNDFILE           = (1 << 8),
+	TEXTFILE            = (1 << 9),
+	MOVIEFILE_ICON      = (1 << 10), /* movie file that preview can't load */
+	FOLDERFILE          = (1 << 11), /* represents folders for filtering */
+	BTXFILE             = (1 << 12),
+	COLLADAFILE         = (1 << 13),
+	OPERATORFILE        = (1 << 14), /* from filter_glob operator property */
+} eFileSel_File_Types;
 
 /* Selection Flags in filesel: struct direntry, unsigned char selflag */
-/* #define ACTIVE_FILE 		(1<<1) */ /* UNUSED */
-#define HILITED_FILE		(1<<2)
-#define SELECTED_FILE		(1<<3)
-#define EDITING_FILE		(1<<4)
+typedef enum eDirEntry_SelectFlag {
+/* 	ACTIVE_FILE         = (1 << 1), */ /* UNUSED */
+	HILITED_FILE        = (1 << 2),
+	SELECTED_FILE       = (1 << 3),
+	EDITING_FILE        = (1 << 4),
+} eDirEntry_SelectFlag;
 
 /* SpaceImage->dt_uv */
-#define SI_UVDT_OUTLINE	0
-#define SI_UVDT_DASH	1
-#define SI_UVDT_BLACK	2
-#define SI_UVDT_WHITE	3
+typedef enum eSpaceImage_UVDT {
+	SI_UVDT_OUTLINE = 0,
+	SI_UVDT_DASH,
+	SI_UVDT_BLACK,
+	SI_UVDT_WHITE,
+} eSpaceImage_UVDT;
 
 /* SpaceImage->dt_uvstretch */
-#define SI_UVDT_STRETCH_ANGLE	0
-#define SI_UVDT_STRETCH_AREA	1
+typedef enum eSpaceImage_UVDT_Stretch {
+	SI_UVDT_STRETCH_ANGLE = 0,
+	SI_UVDT_STRETCH_AREA,
+} eSpaceImage_UVDT_Stretch;
 
 /* SpaceImage->sticky
  * Note DISABLE should be 0, however would also need to re-arrange icon order,
  * also, sticky loc is the default mode so this means we don't need to 'do_versons' */
-#define SI_STICKY_LOC		0
-#define SI_STICKY_DISABLE	1
-#define SI_STICKY_VERTEX	2
+typedef enum eSpaceImage_Sticky {
+	SI_STICKY_LOC      = 0,
+	SI_STICKY_DISABLE  = 1,
+	SI_STICKY_VERTEX   = 2,
+} eSpaceImage_Sticky;
 
 /* SpaceImage->flag */
-#define SI_BE_SQUARE	(1<<0)
-#define SI_EDITTILE		(1<<1)
-#define SI_CLIP_UV		(1<<2)
-#define SI_DRAWTOOL		(1<<3)
-#define SI_NO_DRAWFACES	(1<<4)
-#define SI_DRAWSHADOW   (1<<5)
-/* #define SI_SELACTFACE   (1<<6) */ /* deprecated */
-#define SI_DEPRECATED2	(1<<7)
-#define SI_DEPRECATED3  (1<<8)	/* stick UV selection to mesh vertex (UVs wont always be touching) */
-#define SI_COORDFLOATS  (1<<9)
-#define SI_PIXELSNAP	(1<<10)
-#define SI_LIVE_UNWRAP	(1<<11)
-#define SI_USE_ALPHA	(1<<12)
-#define SI_SHOW_ALPHA	(1<<13)
-#define SI_SHOW_ZBUF	(1<<14)
-		/* next two for render window dislay */
-#define SI_PREVSPACE	(1<<15)
-#define SI_FULLWINDOW	(1<<16)
-#define SI_DEPRECATED4	(1<<17)
-#define SI_DEPRECATED5	(1<<18)
+typedef enum eSpaceImage_Flag {
+	SI_BE_SQUARE	      = (1 << 0),
+	SI_EDITTILE		      = (1 << 1),
+	SI_CLIP_UV		      = (1 << 2),
+	SI_DRAWTOOL		      = (1 << 3),
+	SI_NO_DRAWFACES	      = (1 << 4),
+	SI_DRAWSHADOW         = (1 << 5),
+/* 	SI_SELACTFACE         = (1 << 6), */ /* deprecated */
+	SI_DEPRECATED2        = (1 << 7),
+	SI_DEPRECATED3        = (1 << 8),	/* stick UV selection to mesh vertex (UVs wont always be touching) */
+	SI_COORDFLOATS        = (1 << 9),
+	SI_PIXELSNAP          = (1 << 10),
+	SI_LIVE_UNWRAP        = (1 << 11),
+	SI_USE_ALPHA          = (1 << 12),
+	SI_SHOW_ALPHA         = (1 << 13),
+	SI_SHOW_ZBUF          = (1 << 14),
+	
+		/* next two for render window display */
+	SI_PREVSPACE          = (1 << 15),
+	SI_FULLWINDOW         = (1 << 16),
+	
+	SI_DEPRECATED4        = (1 << 17),
+	SI_DEPRECATED5        = (1 << 18),
+	
 		/* this means that the image is drawn until it reaches the view edge,
-		 * in the image view, its unrelated to the 'tile' mode for texface */
-#define SI_DRAW_TILE	(1<<19)
-#define SI_SMOOTH_UV	(1<<20)
-#define SI_DRAW_STRETCH	(1<<21)
-#define SI_DISPGP		(1<<22)
-#define SI_DRAW_OTHER	(1<<23)
+		 * in the image view, its unrelated to the 'tile' mode for texface 
+		 */
+	SI_DRAW_TILE          = (1 << 19),
+	SI_SMOOTH_UV          = (1 << 20),
+	SI_DRAW_STRETCH       = (1 << 21),
+	SI_DISPGP             = (1 << 22), /* DEPRECATED */
+	SI_DRAW_OTHER         = (1 << 23),
 
-#define SI_COLOR_CORRECTION	(1<<24)
+	SI_COLOR_CORRECTION   = (1 << 24),
+} eSpaceImage_Flag;
 
 /* SpaceIpo->flag (Graph Editor Settings) */
+typedef enum eGraphEdit_Flag {
 	/* OLD DEPRECEATED SETTING */
-#define SIPO_LOCK_VIEW			(1<<0)
+	/* SIPO_LOCK_VIEW            = (1 << 0), */
+	
 	/* don't merge keyframes on the same frame after a transform */
-#define SIPO_NOTRANSKEYCULL		(1<<1)
+	SIPO_NOTRANSKEYCULL       = (1 << 1),
 	/* don't show any keyframe handles at all */
-#define SIPO_NOHANDLES			(1<<2)
+	SIPO_NOHANDLES            = (1 << 2),
 	/* don't show current frame number beside indicator line */
-#define SIPO_NODRAWCFRANUM		(1<<3)
+	SIPO_NODRAWCFRANUM        = (1 << 3),
 	/* show timing in seconds instead of frames */
-#define SIPO_DRAWTIME			(1<<4)
+	SIPO_DRAWTIME             = (1 << 4),
 	/* only show keyframes for selected F-Curves */
-#define SIPO_SELCUVERTSONLY		(1<<5)
+	SIPO_SELCUVERTSONLY       = (1 << 5),
 	/* draw names of F-Curves beside the respective curves */
 	/* NOTE: currently not used */
-#define SIPO_DRAWNAMES			(1<<6)
+	SIPO_DRAWNAMES            = (1 << 6),
 	/* show sliders in channels list */
-#define SIPO_SLIDERS			(1<<7)
+	SIPO_SLIDERS              = (1 << 7),
 	/* don't show the horizontal component of the cursor */
-#define SIPO_NODRAWCURSOR		(1<<8)
+	SIPO_NODRAWCURSOR         = (1 << 8),
 	/* only show handles of selected keyframes */
-#define SIPO_SELVHANDLESONLY	(1<<9)
+	SIPO_SELVHANDLESONLY      = (1 << 9),
 	/* temporary flag to force channel selections to be synced with main */
-#define SIPO_TEMP_NEEDCHANSYNC	(1<<10)
+	SIPO_TEMP_NEEDCHANSYNC    = (1 << 10),
 	/* don't perform realtime updates */
-#define SIPO_NOREALTIMEUPDATES	(1<<11)
+	SIPO_NOREALTIMEUPDATES    = (1 << 11),
 	/* don't draw curves with AA ("beauty-draw") for performance */
-#define SIPO_BEAUTYDRAW_OFF		(1<<12)
+	SIPO_BEAUTYDRAW_OFF       = (1 << 12),
 	/* draw grouped channels with colors set in group */
-#define SIPO_NODRAWGCOLORS		(1<<13)
+	SIPO_NODRAWGCOLORS        = (1 << 13),
+} eGraphEdit_Flag;
 
 /* SpaceIpo->mode (Graph Editor Mode) */
-enum {
+typedef enum eGraphEdit_Mode {
 		/* all animation curves (from all over Blender) */
 	SIPO_MODE_ANIMATION	= 0,
 		/* drivers only */
@@ -775,50 +812,62 @@ enum {
 } eGraphEdit_Mode;
 
 /* SpaceText flags (moved from DNA_text_types.h) */
-
-#define ST_SCROLL_SELECT        0x0001 // scrollable
-#define ST_CLEAR_NAMESPACE      0x0010 // clear namespace after script
-									   // execution (see BPY_main.c)
-#define	ST_FIND_WRAP			0x0020
-#define	ST_FIND_ALL				0x0040
-#define	ST_SHOW_MARGIN			0x0080
-#define	ST_MATCH_CASE			0x0100
-
+typedef enum eSpaceText_Flags {
+	/* scrollable */
+	ST_SCROLL_SELECT        = (1 << 0),
+	/* clear namespace after script execution (BPY_main.c) */
+	ST_CLEAR_NAMESPACE      = (1 << 4), 
+	
+	ST_FIND_WRAP            = (1 << 5),
+	ST_FIND_ALL             = (1 << 6),
+	ST_SHOW_MARGIN          = (1 << 7),
+	ST_MATCH_CASE           = (1 << 8),
+} eSpaceText_Flags;
 
 /* stext->findstr/replacestr */
 #define ST_MAX_FIND_STR		256
 
+
 /* SpaceOops->flag */
-#define SO_TESTBLOCKS	1
-#define SO_NEWSELECTED	2
-#define SO_HIDE_RESTRICTCOLS		4
-#define SO_HIDE_KEYINGSETINFO		8
+typedef enum eSpaceOutliner_Flag {
+	SO_TESTBLOCKS           = (1 << 0),
+	SO_NEWSELECTED          = (1 << 1),
+	SO_HIDE_RESTRICTCOLS    = (1 << 2),
+	SO_HIDE_KEYINGSETINFO   = (1 << 3),
+} eSpaceOutliner_Flag;
 
 /* SpaceOops->outlinevis */
-#define SO_ALL_SCENES	0
-#define SO_CUR_SCENE	1
-#define SO_VISIBLE		2
-#define SO_SELECTED		3
-#define SO_ACTIVE		4
-#define SO_SAME_TYPE	5
-#define SO_GROUPS		6
-#define SO_LIBRARIES	7
-#define SO_VERSE_SESSION	8
-#define SO_VERSE_MS		9
-#define SO_SEQUENCE		10
-#define SO_DATABLOCKS	11
-#define SO_USERDEF		12
-#define SO_KEYMAP		13
+typedef enum eSpaceOutliner_Mode {
+	SO_ALL_SCENES = 0,
+	SO_CUR_SCENE,
+	SO_VISIBLE,
+	SO_SELECTED,
+	SO_ACTIVE,
+	SO_SAME_TYPE,
+	SO_GROUPS,
+	SO_LIBRARIES,
+	SO_VERSE_SESSION,
+	SO_VERSE_MS,
+	SO_SEQUENCE,
+	SO_DATABLOCKS,
+	SO_USERDEF,
+	SO_KEYMAP,
+} eSpaceOutliner_Mode;
 
 /* SpaceOops->storeflag */
-#define SO_TREESTORE_CLEANUP	1
+typedef enum eSpaceOutliner_StoreFlag {
+		/* rebuild tree */
+	SO_TREESTORE_CLEANUP    = (1 << 0),
 		/* if set, it allows redraws. gets set for some allqueue events */
-#define SO_TREESTORE_REDRAW		2
+	SO_TREESTORE_REDRAW     = (1 << 1),
+} eSpaceOutliner_StoreFlag;
 
 /* outliner search flags (SpaceOops->search_flags) */
-#define SO_FIND_CASE_SENSITIVE		(1<<0)
-#define SO_FIND_COMPLETE			(1<<1)
-#define SO_SEARCH_RECURSIVE		(1<<2)
+typedef enum eSpaceOutliner_Search_Flags {
+	SO_FIND_CASE_SENSITIVE  = (1 << 0),
+	SO_FIND_COMPLETE        = (1 << 1),
+	SO_SEARCH_RECURSIVE     = (1 << 2),
+} eSpaceOutliner_Search_Flags;
 
 /* headerbuttons: 450-499 */
 
@@ -826,115 +875,142 @@ enum {
 #define B_IMASELREMOVEBIP	452
 
 /* nla->flag */
-/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old blenders */
+typedef enum eSpaceNla_Flag {
+	/* flags (1<<0), (1<<1), and (1<<3) are depreceated flags from old verisons */
+
 	/* draw timing in seconds instead of frames */
-#define SNLA_DRAWTIME		(1<<2)
+	SNLA_DRAWTIME          = (1 << 2),
 	/* don't draw frame number beside frame indicator */
-#define SNLA_NODRAWCFRANUM	(1<<4)
+	SNLA_NODRAWCFRANUM     = (1 << 4),
 	/* don't draw influence curves on strips */
-#define SNLA_NOSTRIPCURVES	(1<<5)
+	SNLA_NOSTRIPCURVES     = (1 << 5),
 	/* don't perform realtime updates */
-#define SNLA_NOREALTIMEUPDATES	(1<<6)
+	SNLA_NOREALTIMEUPDATES = (1 << 6),
+} eSpaceNla_Flag;
 
 /* time->flag */
+typedef enum eTimeline_Flag {
 	/* show timing in frames instead of in seconds */
-#define TIME_DRAWFRAMES		1
+	TIME_DRAWFRAMES    = (1 << 0),
 	/* show time indicator box beside the frame number */
-#define TIME_CFRA_NUM		2
+	TIME_CFRA_NUM      = (1 << 1),
 	/* only keyframes from active/selected channels get shown */
-#define TIME_ONLYACTSEL		4
+	TIME_ONLYACTSEL    = (1 << 2),
+} eTimeline_Flag;
 
 /* time->redraws (now screen->redraws_flag) */
-#define TIME_REGION				1
-#define TIME_ALL_3D_WIN			2
-#define TIME_ALL_ANIM_WIN		4
-#define TIME_ALL_BUTS_WIN		8
-#define TIME_WITH_SEQ_AUDIO		16		// deprecated
-#define TIME_SEQ				32
-#define TIME_ALL_IMAGE_WIN		64
-#define TIME_CONTINUE_PHYSICS	128
-#define TIME_NODES				256
-#define TIME_CLIPS				512
+typedef enum eScreen_Redraws_Flag {
+	TIME_REGION            = (1 << 0),
+	TIME_ALL_3D_WIN        = (1 << 1),
+	TIME_ALL_ANIM_WIN      = (1 << 2),
+	TIME_ALL_BUTS_WIN      = (1 << 3),
+	TIME_WITH_SEQ_AUDIO    = (1 << 4), /* DEPRECATED */
+	TIME_SEQ               = (1 << 5),
+	TIME_ALL_IMAGE_WIN     = (1 << 6),
+	TIME_CONTINUE_PHYSICS  = (1 << 7),
+	TIME_NODES             = (1 << 8),
+	TIME_CLIPS             = (1 << 9),
+} eScreen_Redraws_Flag;
 
 /* time->cache */
-#define TIME_CACHE_DISPLAY		1
-#define TIME_CACHE_SOFTBODY		2
-#define TIME_CACHE_PARTICLES	4
-#define TIME_CACHE_CLOTH		8
-#define TIME_CACHE_SMOKE		16
-#define TIME_CACHE_DYNAMICPAINT	32
+typedef enum eTimeline_Cache_Flag {
+	TIME_CACHE_DISPLAY       = (1 << 0),
+	TIME_CACHE_SOFTBODY      = (1 << 1),
+	TIME_CACHE_PARTICLES     = (1 << 2),
+	TIME_CACHE_CLOTH         = (1 << 3),
+	TIME_CACHE_SMOKE         = (1 << 4),
+	TIME_CACHE_DYNAMICPAINT  = (1 << 5),
+} eTimeline_Cache_Flag;
 
 /* sseq->mainb */
-#define SEQ_DRAW_SEQUENCE         0
-#define SEQ_DRAW_IMG_IMBUF        1
-#define SEQ_DRAW_IMG_WAVEFORM     2
-#define SEQ_DRAW_IMG_VECTORSCOPE  3
-#define SEQ_DRAW_IMG_HISTOGRAM    4
+typedef enum eSpaceSeq_RegionType {
+	SEQ_DRAW_SEQUENCE = 0,
+	SEQ_DRAW_IMG_IMBUF,
+	SEQ_DRAW_IMG_WAVEFORM,
+	SEQ_DRAW_IMG_VECTORSCOPE,
+	SEQ_DRAW_IMG_HISTOGRAM,
+} eSpaceSeq_RegionType;
 
 /* sseq->flag */
-#define SEQ_DRAWFRAMES   1
-#define SEQ_MARKER_TRANS 2
-#define SEQ_DRAW_COLOR_SEPARATED     4
-#define SEQ_DRAW_SAFE_MARGINS        8
-#define SEQ_DRAW_GPENCIL			16
-#define SEQ_NO_DRAW_CFRANUM			32
+typedef enum eSpaceSeq_Flag {
+	SEQ_DRAWFRAMES              = (1 << 0),
+	SEQ_MARKER_TRANS            = (1 << 1),
+	SEQ_DRAW_COLOR_SEPARATED    = (1 << 2),
+	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
+	SEQ_DRAW_GPENCIL            = (1 << 4),	/* DEPRECATED */
+	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
+} eSpaceSeq_Flag;
 
 /* sseq->view */
-#define SEQ_VIEW_SEQUENCE			1
-#define SEQ_VIEW_PREVIEW			2
-#define SEQ_VIEW_SEQUENCE_PREVIEW	3
+typedef enum eSpaceSeq_Displays {
+	SEQ_VIEW_SEQUENCE = 1,
+	SEQ_VIEW_PREVIEW,
+	SEQ_VIEW_SEQUENCE_PREVIEW,
+} eSpaceSeq_Dispays;
 
 /* sseq->render_size */
-#define SEQ_PROXY_RENDER_SIZE_NONE      -1
-#define SEQ_PROXY_RENDER_SIZE_SCENE     0
-#define SEQ_PROXY_RENDER_SIZE_25        25
-#define SEQ_PROXY_RENDER_SIZE_50        50
-#define SEQ_PROXY_RENDER_SIZE_75        75
-#define SEQ_PROXY_RENDER_SIZE_100       99
-#define SEQ_PROXY_RENDER_SIZE_FULL      100
+typedef enum eSpaceSeq_Proxy_RenderSize {
+	SEQ_PROXY_RENDER_SIZE_NONE      =  -1,
+	SEQ_PROXY_RENDER_SIZE_SCENE     =   0,
+	SEQ_PROXY_RENDER_SIZE_25        =  25,
+	SEQ_PROXY_RENDER_SIZE_50        =  50,
+	SEQ_PROXY_RENDER_SIZE_75        =  75,
+	SEQ_PROXY_RENDER_SIZE_100       =  99,
+	SEQ_PROXY_RENDER_SIZE_FULL      = 100
+} eSpaceSeq_Proxy_RenderSize;
 
 /* SpaceClip->flag */
-#define SC_SHOW_MARKER_PATTERN	(1<<0)
-#define SC_SHOW_MARKER_SEARCH	(1<<1)
-#define SC_LOCK_SELECTION		(1<<2)
-#define SC_SHOW_TINY_MARKER		(1<<3)
-#define SC_SHOW_TRACK_PATH		(1<<4)
-#define SC_SHOW_BUNDLES			(1<<5)
-#define SC_MUTE_FOOTAGE			(1<<6)
-#define SC_HIDE_DISABLED		(1<<7)
-#define SC_SHOW_NAMES			(1<<8)
-#define SC_SHOW_GRID			(1<<9)
-#define SC_SHOW_STABLE			(1<<10)
-#define SC_MANUAL_CALIBRATION	(1<<11)
-/*#define SC_SHOW_GPENCIL			(1<<12)*/	/* UNUSED */
-#define SC_SHOW_FILTERS			(1<<13)
-#define SC_SHOW_GRAPH_FRAMES	(1<<14)
-#define SC_SHOW_GRAPH_TRACKS	(1<<15)
-/*#define SC_SHOW_PYRAMID_LEVELS	(1<<16) */	/* UNUSED */
-#define SC_LOCK_TIMECURSOR		(1<<17)
-#define SC_SHOW_SECONDS			(1<<18)
+typedef enum eSpaceClip_Flag {
+	SC_SHOW_MARKER_PATTERN = (1 << 0),
+	SC_SHOW_MARKER_SEARCH  = (1 << 1),
+	SC_LOCK_SELECTION      = (1 << 2),
+	SC_SHOW_TINY_MARKER    = (1 << 3),
+	SC_SHOW_TRACK_PATH     = (1 << 4),
+	SC_SHOW_BUNDLES        = (1 << 5),
+	SC_MUTE_FOOTAGE        = (1 << 6),
+	SC_HIDE_DISABLED       = (1 << 7),
+	SC_SHOW_NAMES          = (1 << 8),
+	SC_SHOW_GRID           = (1 << 9),
+	SC_SHOW_STABLE         = (1 << 10),
+	SC_MANUAL_CALIBRATION  = (1 << 11),
+/*	SC_SHOW_GPENCIL        = (1 << 12),*/	/* UNUSED */
+	SC_SHOW_FILTERS        = (1 << 13),
+	SC_SHOW_GRAPH_FRAMES   = (1 << 14),
+	SC_SHOW_GRAPH_TRACKS   = (1 << 15),
+/*	SC_SHOW_PYRAMID_LEVELS = (1 << 16), */	/* UNUSED */
+	SC_LOCK_TIMECURSOR     = (1 << 17),
+	SC_SHOW_SECONDS        = (1 << 18),
+} eSpaceClip_Flag;
 
 /* SpaceClip->mode */
-#define SC_MODE_TRACKING		0
-#define SC_MODE_RECONSTRUCTION	1
-#define SC_MODE_DISTORTION		2
+typedef enum eSpaceClip_Mode {
+	SC_MODE_TRACKING = 0,
+	SC_MODE_RECONSTRUCTION,
+	SC_MODE_DISTORTION,
+} eSpaceClip_Mode;
 
 /* SpaceClip->view */
-#define SC_VIEW_CLIP		0
-#define SC_VIEW_GRAPH		1
-#define SC_VIEW_DOPESHEET	2
+typedef enum eSpaceClip_View {
+	SC_VIEW_CLIP = 0,
+	SC_VIEW_GRAPH,
+	SC_VIEW_DOPESHEET,
+} eSpaceClip_View;
 
 /* SpaceClip->dope_sort */
-#define SC_DOPE_SORT_NAME		0
-#define SC_DOPE_SORT_LONGEST		1
-#define SC_DOPE_SORT_TOTAL		2
+typedef enum eSpaceClip_Dopesheet_Sort {
+	SC_DOPE_SORT_NAME = 0,
+	SC_DOPE_SORT_LONGEST,
+	SC_DOPE_SORT_TOTAL,
+} eSpaceClip_Dopesheet_Sort;
 
 /* SpaceClip->dope_flag */
-#define SC_DOPE_SORT_INVERSE		1
+typedef enum eSpaceClip_Dopesheet_Flag {
+	SC_DOPE_SORT_INVERSE    = (1 << 0),
+} eSpaceClip_Dopesheet_Flag;
 
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
-enum {
+typedef enum eSpace_Type {
 	SPACE_EMPTY,
 	SPACE_VIEW3D,
 	SPACE_IPO,
@@ -956,7 +1032,8 @@ enum {
 	SPACE_CONSOLE,
 	SPACE_USERPREF,
 	SPACE_CLIP,
+	
 	SPACEICONMAX = SPACE_CLIP
-};
+} eSpace_Type;
 
 #endif
