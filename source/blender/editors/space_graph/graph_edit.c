@@ -83,7 +83,8 @@
 
 /* Get the min/max keyframes*/
 /* note: it should return total boundbox, filter for selection only can be argument... */
-void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, const short selOnly)
+void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, float *ymin, float *ymax, 
+                                const short do_sel_only, const short include_handles)
 {
 	ListBase anim_data = {NULL, NULL};
 	bAnimListElem *ale;
@@ -109,7 +110,7 @@ void get_graph_keyframe_extents(bAnimContext *ac, float *xmin, float *xmax, floa
 			float unitFac;
 			
 			/* get range */
-			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax, selOnly);
+			calc_fcurve_bounds(fcu, &txmin, &txmax, &tymin, &tymax, do_sel_only, include_handles);
 			
 			/* apply NLA scaling */
 			if (adt) {
@@ -169,7 +170,7 @@ static int graphkeys_previewrange_exec(bContext *C, wmOperator *UNUSED(op))
 		scene = ac.scene;
 	
 	/* set the range directly */
-	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, FALSE);
+	get_graph_keyframe_extents(&ac, &min, &max, NULL, NULL, FALSE, FALSE);
 	scene->r.flag |= SCER_PRV_RANGE;
 	scene->r.psfra = (int)floor(min + 0.5f);
 	scene->r.pefra = (int)floor(max + 0.5f);
@@ -198,7 +199,7 @@ void GRAPH_OT_previewrange_set(wmOperatorType *ot)
 
 /* ****************** View-All Operator ****************** */
 
-static int graphkeys_viewall(bContext *C, const short selOnly)
+static int graphkeys_viewall(bContext *C, const short do_sel_only, const short include_handles)
 {
 	bAnimContext ac;
 	View2D *v2d;
@@ -210,7 +211,10 @@ static int graphkeys_viewall(bContext *C, const short selOnly)
 	v2d = &ac.ar->v2d;
 
 	/* set the horizontal range, with an extra offset so that the extreme keys will be in view */
-	get_graph_keyframe_extents(&ac, &v2d->cur.xmin, &v2d->cur.xmax, &v2d->cur.ymin, &v2d->cur.ymax, selOnly);
+	get_graph_keyframe_extents(&ac, 
+	                           &v2d->cur.xmin, &v2d->cur.xmax, 
+							   &v2d->cur.ymin, &v2d->cur.ymax, 
+							   do_sel_only, include_handles);
 
 	extra = 0.1f * (v2d->cur.xmax - v2d->cur.xmin);
 	v2d->cur.xmin -= extra;
@@ -231,16 +235,20 @@ static int graphkeys_viewall(bContext *C, const short selOnly)
 
 /* ......... */
 
-static int graphkeys_viewall_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphkeys_viewall_exec(bContext *C, wmOperator *op)
 {
+	short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	
 	/* whole range */
-	return graphkeys_viewall(C, FALSE);
+	return graphkeys_viewall(C, FALSE, include_handles);
 }
  
-static int graphkeys_view_selected_exec(bContext *C, wmOperator *UNUSED(op))
+static int graphkeys_view_selected_exec(bContext *C, wmOperator *op)
 {
+	short include_handles = RNA_boolean_get(op->ptr, "include_handles");
+	
 	/* only selected */
-	return graphkeys_viewall(C, TRUE);
+	return graphkeys_viewall(C, TRUE, include_handles);
 }
 
 void GRAPH_OT_view_all(wmOperatorType *ot)
@@ -256,6 +264,10 @@ void GRAPH_OT_view_all(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	ot->prop = RNA_def_boolean(ot->srna, "include_handles", TRUE, "Include Handles", 
+	                           "Include handles of keyframes when calculating extents");
 }
 
 void GRAPH_OT_view_selected(wmOperatorType *ot)
@@ -271,6 +283,10 @@ void GRAPH_OT_view_selected(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+	
+	/* props */
+	ot->prop = RNA_def_boolean(ot->srna, "include_handles", TRUE, "Include Handles", 
+	                           "Include handles of keyframes when calculating extents");
 }
 
 /* ******************** Create Ghost-Curves Operator *********************** */
