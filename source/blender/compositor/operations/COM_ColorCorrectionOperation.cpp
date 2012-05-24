@@ -98,9 +98,6 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	r = (luma + saturation * (r - luma));
 	g = (luma + saturation * (g - luma));
 	b = (luma + saturation * (b - luma));
-	CLAMP (r, 0.0f, 1.0f);
-	CLAMP (g, 0.0f, 1.0f);
-	CLAMP (b, 0.0f, 1.0f);
 	
 	r = 0.5+((r-0.5)*contrast);
 	g = 0.5+((g-0.5)*contrast);
