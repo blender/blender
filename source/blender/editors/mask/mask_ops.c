@@ -1305,11 +1305,13 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskObject *maskobj;
+	int mask_object_shape_ofs = 0;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
 		while (spline) {
+			const int tot_point_orig = spline->tot_point;
 			int i, count = 0;
 			MaskSpline *next_spline = spline->next;
 
@@ -1322,6 +1324,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 			}
 
 			if (count == 0) {
+
 				/* delete the whole spline */
 				BLI_remlink(&maskobj->splines, spline);
 				BKE_mask_spline_free(spline);
@@ -1330,6 +1333,8 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 					maskobj->act_spline = NULL;
 					maskobj->act_point = NULL;
 				}
+
+				BKE_mask_object_shape_changed_remove(maskobj, mask_object_shape_ofs, tot_point_orig);
 			}
 			else {
 				MaskSplinePoint *new_points;
@@ -1337,7 +1342,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 				new_points = MEM_callocN(count * sizeof(MaskSplinePoint), "deleteMaskPoints");
 
-				for (i = 0, j = 0; i < spline->tot_point; i++) {
+				for (i = 0, j = 0; i < tot_point_orig; i++) {
 					MaskSplinePoint *point = &spline->points[i];
 
 					if (!MASKPOINT_ISSEL(point)) {
@@ -1354,12 +1359,16 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 							maskobj->act_point = NULL;
 
 						BKE_mask_point_free(point);
+						spline->tot_point--;
+
+						BKE_mask_object_shape_changed_remove(maskobj, mask_object_shape_ofs + j, 1);
 					}
 				}
 
+				mask_object_shape_ofs += spline->tot_point;
+
 				MEM_freeN(spline->points);
 				spline->points = new_points;
-				spline->tot_point = j;
 
 				ED_mask_select_flush_all(mask);
 			}

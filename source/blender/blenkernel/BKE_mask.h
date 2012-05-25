@@ -115,6 +115,8 @@ int BKE_mask_object_shape_spline_index(struct MaskObject *maskobj, int index,
 void BKE_mask_object_shape_changed_add(struct MaskObject *maskobj, int index,
                                        int do_init, int do_init_interpolate);
 
+void BKE_mask_object_shape_changed_remove(struct MaskObject *maskobj, int index, int count);
+
 /* rasterization */
 void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer);
 

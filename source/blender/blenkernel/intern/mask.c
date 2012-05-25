@@ -1428,33 +1428,34 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 	}
 }
 
+
 /* move array to account for removed point */
-void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index)
+void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index, int count)
 {
 	MaskObjectShape *maskobj_shape;
 
 	/* the point has already been removed in this array so add one when comparing with the shapes */
-	int tot = BKE_mask_object_shape_totvert(maskobj) + 1;
+	int tot = BKE_mask_object_shape_totvert(maskobj);
 
 	for (maskobj_shape = maskobj->splines_shapes.first;
 	     maskobj_shape;
 	     maskobj_shape = maskobj_shape->next)
 	{
-		if (tot == maskobj_shape->tot_vert) {
+		if (tot == maskobj_shape->tot_vert - count) {
 			float *data_resized;
 
-			maskobj_shape->tot_vert--;
+			maskobj_shape->tot_vert -= count;
 			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 			if (index > 0) {
 				memcpy(data_resized,
 				       maskobj_shape->data,
-				       (index - 1) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
-			if (index != maskobj_shape->tot_vert - 1) {
+			if (index != maskobj_shape->tot_vert) {
 				memcpy(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
-				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
-				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				       maskobj_shape->data + ((index + count) * MASK_OBJECT_SHAPE_ELEM_SIZE),
+				       (maskobj_shape->tot_vert - index) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
 			MEM_freeN(maskobj_shape->data);
@@ -1462,7 +1463,7 @@ void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index)
 		}
 		else {
 			printf("%s: vert mismatch %d != %d (frame %d)\n",
-			       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
+			       __func__, maskobj_shape->tot_vert - count, tot, maskobj_shape->frame);
 		}
 	}
 }
