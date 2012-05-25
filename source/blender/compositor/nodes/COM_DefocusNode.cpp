@@ -52,7 +52,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		SetValueOperation *maxRadius = new SetValueOperation();
 		maxRadius->setValue(data->maxblur);
 		MathMinimumOperation *minimize = new MathMinimumOperation();
-		this->getInputSocket(1)->relinkConnections(multiply->getInputSocket(0), true, 1, graph);
+		this->getInputSocket(1)->relinkConnections(multiply->getInputSocket(0), 1, graph);
 		addLink(graph, multiplier->getOutputSocket(), multiply->getInputSocket(1));
 		addLink(graph, maxRadius->getOutputSocket(), minimize->getInputSocket(1));
 		addLink(graph, multiply->getOutputSocket(), minimize->getInputSocket(0));
@@ -68,7 +68,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		converter->setCameraObject(camob);
 		converter->setfStop(data->fstop);
 		converter->setMaxRadius(data->maxblur);
-		this->getInputSocket(1)->relinkConnections(converter->getInputSocket(0), true, 1, graph);
+		this->getInputSocket(1)->relinkConnections(converter->getInputSocket(0), 1, graph);
 		graph->addOperation(converter);
 		radiusOperation = converter;
 	}
@@ -98,7 +98,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	if (data->gamco) {
 		GammaCorrectOperation * correct = new GammaCorrectOperation();
 		GammaUncorrectOperation * inverse = new GammaUncorrectOperation();
-		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, true, graph);
+		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, graph);
 		addLink(graph, correct->getOutputSocket(), operation->getInputSocket(0));
 		addLink(graph, operation->getOutputSocket(), inverse->getInputSocket(0));
 		this->getOutputSocket()->relinkConnections(inverse->getOutputSocket());
@@ -106,7 +106,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 		graph->addOperation(inverse);
 	}
 	else {
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, true, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getOutputSocket()->relinkConnections(operation->getOutputSocket());
 	}
 	

@@ -540,10 +540,6 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 {
 	ImBuf *undistibuf;
 
-	/* XXX: because of #27997 do not use float buffers to undistort,
-	 *      otherwise, undistorted proxy can be darker than it should */
-	imb_freerectfloatImBuf(ibuf);
-
 	if (distortion)
 		undistibuf = BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else

@@ -79,25 +79,28 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
 	std::list<Object*> child_objects;
 
-	// list child objects
-	Base *b = (Base*) sce->base.first;
-	while (b) {
-		// cob - child object
-		Object *cob = b->object;
 
-		if (cob->parent == ob) {
-			switch (cob->type) {
-				case OB_MESH:
-				case OB_CAMERA:
-				case OB_LAMP:
-				case OB_EMPTY:
-				case OB_ARMATURE:
-					child_objects.push_back(cob);
-					break;
+	if (this->export_settings->include_bone_children) {
+		// list child objects
+		Base *b = (Base*) sce->base.first;
+		while (b) {
+			// cob - child object
+			Object *cob = b->object;
+
+			if (cob->parent == ob) {
+				switch (cob->type) {
+					case OB_MESH:
+					case OB_CAMERA:
+					case OB_LAMP:
+					case OB_EMPTY:
+					case OB_ARMATURE:
+						child_objects.push_back(cob);
+						break;
+				}
 			}
-		}
 
-		b = b->next;
+			b = b->next;
+		}
 	}
 
 

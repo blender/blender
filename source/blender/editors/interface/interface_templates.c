@@ -376,6 +376,9 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	else if (flag & UI_ID_BROWSE) {
 		but = uiDefBlockButN(block, id_search_menu, MEM_dupallocN(template), "", 0, 0, UI_UNIT_X * 1.6, UI_UNIT_Y,
 		                     TIP_(template_id_browse_tip(type)));
+
+		uiButSetDrawFlag(but, UI_BUT_DRAW_ENUM_ARROWS);
+
 		if (type) {
 			but->icon = RNA_struct_ui_icon(type);
 			/* default dragging of icon for id browse buttons */

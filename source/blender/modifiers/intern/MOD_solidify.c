@@ -240,8 +240,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	int *edge_users = NULL;
 	char *edge_order = NULL;
-	int *edge_origIndex;
-	
+
 	float (*vert_nors)[3] = NULL;
 
 	float (*face_nors_result)[3] = NULL;
@@ -570,7 +569,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
-		int *origindex;
 		
 		/* bugger, need to re-calculate the normals for the new edge faces.
 		 * This could be done in many ways, but probably the quickest way
@@ -592,24 +590,26 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned char crease_outer = smd->crease_outer * 255.0f;
 		const unsigned char crease_inner = smd->crease_inner * 255.0f;
 
+		int *origindex_edge;
+		int *orig_ed;
+
 		/* add faces & edges */
-		origindex = result->getEdgeDataArray(result, CD_ORIGINDEX);
-		ed = medge + (numEdges * 2);
-		for (i = 0; i < newEdges; i++, ed++) {
+		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
+		ed = &medge[numEdges * 2];
+		orig_ed = &origindex_edge[numEdges * 2];
+		for (i = 0; i < newEdges; i++, ed++, orig_ed++) {
 			ed->v1 = new_vert_arr[i];
 			ed->v2 = new_vert_arr[i] + numVerts;
 			ed->flag |= ME_EDGEDRAW;
 
-			origindex[numEdges * 2 + i] = ORIGINDEX_NONE;
+			*orig_ed = ORIGINDEX_NONE;
 
-			if (crease_rim)
+			if (crease_rim) {
 				ed->crease = crease_rim;
+			}
 		}
 
 		/* faces */
-		edge_origIndex = origindex;
-		origindex = DM_get_poly_data_layer(result, CD_ORIGINDEX);
-		
 		mp = mpoly + (numFaces * 2);
 		ml = mloop + (numLoops * 2);
 		j = 0;
@@ -673,10 +673,8 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v2];
 			}
 			
-			if (edge_origIndex) {
-				edge_origIndex[ml[j - 3].e] = ORIGINDEX_NONE;
-				edge_origIndex[ml[j - 1].e] = ORIGINDEX_NONE;
-			}
+			origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
+			origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
 
 			/* use the next material index if option enabled */
 			if (mat_ofs_rim) {

@@ -32,6 +32,7 @@ struct ExportSettings
  public:
  bool selected;
  bool apply_modifiers;
+ bool include_bone_children;
  bool second_life;
  char *filepath;
 };

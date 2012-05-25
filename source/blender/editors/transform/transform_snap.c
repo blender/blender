@@ -380,8 +380,9 @@ static void initSnappingMode(TransInfo *t)
 
 	t->tsnap.mode = ts->snap_mode;
 
-	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) && // Only 3D view or UV
-			(t->flag & T_CAMERA) == 0) { // Not with camera selected in camera view
+	if ((t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) &&  /* Only 3D view or UV */
+	    (t->flag & T_CAMERA) == 0)  /* Not with camera selected in camera view */
+	{
 		setSnappingCallback(t);
 
 		/* Edit mode */

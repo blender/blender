@@ -4135,7 +4135,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 					pa->dietime = sim->scene->r.efra + 1;
 					pa->lifetime = sim->scene->r.efra;
 					pa->alive = PARS_ALIVE;
-					//if (a < 25) fprintf(stderr,"FSPARTICLE debug set %s , a%d = %f,%f,%f , life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
+					//if (a < 25) fprintf(stderr,"FSPARTICLE debug set %s, a%d = %f,%f,%f, life=%f\n", filename, a, pa->co[0],pa->co[1],pa->co[2], pa->lifetime );
 				}
 				else {
 					// skip...
@@ -4444,7 +4444,8 @@ static void psys_prepare_physics(ParticleSimulationData *sim)
 static int hair_needs_recalc(ParticleSystem *psys)
 {
 	if (!(psys->flag & PSYS_EDITED) && (!psys->edit || !psys->edit->edited) &&
-		((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET || (psys->part->flag & PART_HAIR_REGROW && !psys->edit))) {
+	    ((psys->flag & PSYS_HAIR_DONE)==0 || psys->recalc & PSYS_RECALC_RESET || (psys->part->flag & PART_HAIR_REGROW && !psys->edit)))
+	{
 		return 1;
 	}
 

@@ -40,7 +40,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		operation->setDistance(editorNode->custom2);
 		operation->setInset(editorNode->custom3);
 		
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	
 		if (editorNode->custom3 < 2.0f) {
 			AntiAliasOperation * antiAlias = new AntiAliasOperation();
@@ -57,14 +57,14 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		if (editorNode->custom2 > 0) {
 			DilateStepOperation * operation = new DilateStepOperation();
 			operation->setIterations(editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}
 		else {
 			ErodeStepOperation * operation = new ErodeStepOperation();
 			operation->setIterations(-editorNode->custom2);
-			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0));
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}

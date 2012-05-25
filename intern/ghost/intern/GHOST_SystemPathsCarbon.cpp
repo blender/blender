@@ -44,21 +44,23 @@ GHOST_SystemPathsCarbon::~GHOST_SystemPathsCarbon()
 {
 }
 
-const GHOST_TUns8 *GHOST_SystemPathsCarbon::getSystemDir() const
+const GHOST_TUns8 *GHOST_SystemPathsCarbon::getSystemDir(int, const char *versionstr) const
 {
-	return (GHOST_TUns8 *)"/Library/Application Support";
+	static char systemPath[1024];
+
+	snprintf(systemPath, sizeof(systemPath), "/Library/Application Support/Blender/%s", versionstr);
+
+	return (GHOST_TUns8*)systemPath;
 }
 
-const GHOST_TUns8 *GHOST_SystemPathsCarbon::getUserDir() const
+const GHOST_TUns8 *GHOST_SystemPathsCarbon::getUserDir(int, const char *versionstr) const
 {
-	static char usrPath[256] = "";
+	static char usrPath[1024];
 	char *env = getenv("HOME");
 	
 	if (env) {
-		strncpy(usrPath, env, 245);
-		usrPath[245] = 0;
-		strcat(usrPath, "/Library/Application Support");
-		return (GHOST_TUns8 *) usrPath;
+		snprintf(usrPath, sizeof(usrPath), "%s/Library/Application Support/Blender/%s", env, versionstr);
+		return (GHOST_TUns8*)usrPath;
 	}
 	else
 		return NULL;

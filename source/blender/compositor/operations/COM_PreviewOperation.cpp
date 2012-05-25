@@ -93,7 +93,6 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 			color[2] = 0.0f;
 			color[3] = 1.0f;
 			input->read(color, rx, ry, COM_PS_NEAREST, memoryBuffers);
-			/// @todo: linear conversion only when scene color management is selected, also check predivide.
 			linearrgb_to_srgb_v4(color, color);
 			F4TOCHAR4(color, outputBuffer+offset);
 			offset +=4;

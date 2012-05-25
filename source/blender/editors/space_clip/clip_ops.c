@@ -36,6 +36,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_scene_types.h"	/* min/max frames */
 
+#include "BLI_path_util.h"
 #include "BLI_utildefines.h"
 #include "BLI_math.h"
 
@@ -123,7 +124,7 @@ static void sclip_zoom_set_factor_exec(bContext *C, wmEvent *event, float factor
 
 static void clip_filesel(bContext *C, wmOperator *op, const char *path)
 {
-	RNA_string_set(op->ptr, "filepath", path);
+	RNA_string_set(op->ptr, "directory", path);
 
 	WM_event_add_fileselect(C, op);
 }
@@ -153,7 +154,28 @@ static int open_exec(bContext *C, wmOperator *op)
 	MovieClip *clip = NULL;
 	char str[FILE_MAX];
 
-	RNA_string_get(op->ptr, "filepath", str);
+	if (RNA_collection_length(op->ptr, "files")) {
+		PointerRNA fileptr;
+		PropertyRNA *prop;
+		char dir_only[FILE_MAX], file_only[FILE_MAX];
+		int relative = RNA_boolean_get(op->ptr, "relative_path");
+
+		RNA_string_get(op->ptr, "directory", dir_only);
+		if (relative)
+			BLI_path_rel(dir_only, G.main->name);
+
+		prop = RNA_struct_find_property(op->ptr, "files");
+		RNA_property_collection_lookup_int(op->ptr, prop, 0, &fileptr);
+		RNA_string_get(&fileptr, "name", file_only);
+
+		BLI_join_dirfile(str, sizeof(str), dir_only, file_only);
+	}
+	else {
+		BKE_reportf(op->reports, RPT_ERROR, "No files selected to be opened");
+
+		return OPERATOR_CANCELLED;
+	}
+
 	/* default to frame 1 if there's no scene in context */
 
 	errno = 0;
@@ -199,14 +221,21 @@ static int open_exec(bContext *C, wmOperator *op)
 static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	char *path = U.textudir;
+	char path[FILE_MAX];
 	MovieClip *clip = NULL;
 
 	if (sc)
 		clip = ED_space_clip(sc);
 
-	if (clip)
-		path = clip->name;
+	if (clip) {
+		strncpy(path, clip->name, sizeof(path));
+
+		BLI_path_abs(path, G.main->name);
+		BLI_parent_dir(path);
+	}
+	else {
+		strncpy(path, U.textudir, sizeof(path));
+	}
 
 	if (!RNA_struct_property_is_set(op->ptr, "relative_path"))
 		RNA_boolean_set(op->ptr, "relative_path", U.flag & USER_RELPATHS);
@@ -238,7 +267,8 @@ void CLIP_OT_open(wmOperatorType *ot)
 
 	/* properties */
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE,
-	                               WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
+	                               WM_FILESEL_RELPATH | WM_FILESEL_FILES | WM_FILESEL_DIRECTORY,
+	                               FILE_DEFAULTDISPLAY);
 }
 
 /******************* reload clip operator *********************/

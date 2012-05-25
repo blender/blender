@@ -55,10 +55,10 @@ void CombineRGBANode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	else {
 		operation->setResolutionInputSocketIndex(3);
 	}
-	inputRSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-	inputGSocket->relinkConnections(operation->getInputSocket(1), true, 1, graph);
-	inputBSocket->relinkConnections(operation->getInputSocket(2), true, 2, graph);
-	inputASocket->relinkConnections(operation->getInputSocket(3), true, 3, graph);
+	inputRSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+	inputGSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
+	inputBSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
+	inputASocket->relinkConnections(operation->getInputSocket(3), 3, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 }

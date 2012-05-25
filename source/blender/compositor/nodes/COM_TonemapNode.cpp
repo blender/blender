@@ -35,7 +35,7 @@ void TonemapNode::convertToOperations(ExecutionSystem *system, CompositorContext
 	TonemapOperation *operation = data->type==1?new PhotoreceptorTonemapOperation():new TonemapOperation();
 
 	operation->setData(data);
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, system);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 	system->addOperation(operation);
 }

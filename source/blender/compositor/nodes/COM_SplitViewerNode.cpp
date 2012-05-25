@@ -43,8 +43,8 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		splitViewerOperation->setActive(this->getbNode()->flag & NODE_DO_OUTPUT);
 		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
 		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
-		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), true, 1, graph);
-		image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), true, 1, graph);
+		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
+		image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
 		addPreviewOperation(graph, splitViewerOperation->getInputSocket(0), 0);
 		graph->addOperation(splitViewerOperation);
 	}

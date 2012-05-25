@@ -3136,10 +3136,10 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 
 				/* no text, with icon */
 				else if (!but->str[0] && but->icon) {
-					if (but->flag & UI_ICON_PREVIEW)
-						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
-					else
+					if (but->drawflag & UI_BUT_DRAW_ENUM_ARROWS)
 						wt = widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
+					else
+						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
 				}
 				/* with menu arrows */
 				else

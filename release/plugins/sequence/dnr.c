@@ -132,8 +132,9 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 		d->last_level = cast->level;
 	}
 
-	if (width != d->last_width || height != d->last_height
-	    || cfra != d->last_cfra + 1) {
+	if (width != d->last_width || height != d->last_height ||
+	    cfra != d->last_cfra + 1)
+	{
 		free(d->last_frame);
 		d->last_frame = (unsigned char*) calloc(width * height, 4);
 		

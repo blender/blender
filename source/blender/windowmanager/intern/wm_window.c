@@ -477,7 +477,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 
 /* uses screen->temp tag to define what to do, currently it limits
  * to only one "temp" window for render out, preferences, filewindow, etc */
-/* type is #define in WM_api.h */
+/* type is defined in WM_api.h */
 
 void WM_window_open_temp(bContext *C, rcti *position, int type)
 {

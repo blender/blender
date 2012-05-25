@@ -2190,8 +2190,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 								BLI_strncpy(num, de->d_name + (strlen(de->d_name) - 15), sizeof(num));
 								frame = atoi(num);
 								
-								if ((mode==PTCACHE_CLEAR_BEFORE && frame < cfra)	|| 
-								(mode==PTCACHE_CLEAR_AFTER && frame > cfra)	) {
+								if ((mode == PTCACHE_CLEAR_BEFORE && frame < cfra) ||
+								    (mode == PTCACHE_CLEAR_AFTER && frame > cfra))
+								{
 									
 									BLI_join_dirfile(path_full, sizeof(path_full), path, de->d_name);
 									BLI_delete(path_full, 0, 0);
@@ -2226,8 +2227,9 @@ void BKE_ptcache_id_clear(PTCacheID *pid, int mode, unsigned int cfra)
 			}
 			else {
 				while (pm) {
-					if ((mode==PTCACHE_CLEAR_BEFORE && pm->frame < cfra)	|| 
-					(mode==PTCACHE_CLEAR_AFTER && pm->frame > cfra)	) {
+					if ((mode == PTCACHE_CLEAR_BEFORE && pm->frame < cfra) ||
+					    (mode == PTCACHE_CLEAR_AFTER && pm->frame > cfra))
+					{
 						link = pm;
 						if (pid->cache->cached_frames && pm->frame >=sta && pm->frame <= end)
 							pid->cache->cached_frames[pm->frame-sta] = 0;

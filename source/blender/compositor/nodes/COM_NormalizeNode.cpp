@@ -31,7 +31,7 @@ void NormalizeNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 {
 	NormalizeOperation *operation = new NormalizeOperation();
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 
 	graph->addOperation(operation);

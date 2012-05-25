@@ -40,17 +40,17 @@
 #include <math.h>
 
 #if defined(WIN32) || defined(__APPLE__)
-	#ifdef WIN32
-		#include <windows.h>
-		#include <atlbase.h>
+#  ifdef WIN32
+#    include <windows.h>
+#    include <atlbase.h>
 
-		#include <GL/gl.h>
-	#else // WIN32
+#    include <GL/gl.h>
+#  else // WIN32
           // __APPLE__ is defined
-		#include <AGL/gl.h>
-	#endif // WIN32
+#    include <AGL/gl.h>
+#  endif // WIN32
 #else // defined(WIN32) || defined(__APPLE__)
-	#include <GL/gl.h>
+#  include <GL/gl.h>
 #endif // defined(WIN32) || defined(__APPLE__)
 
 #include "STR_String.h"

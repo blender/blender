@@ -1842,7 +1842,7 @@ static int ebone_select_flag(EditBone *ebone)
 }
 
 /* context: editmode armature in view3d */
-int mouse_armature(bContext *C, const int mval[2], int extend)
+int mouse_armature(bContext *C, const int mval[2], int extend, int deselect, int toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	bArmature *arm = obedit->data;
@@ -1857,7 +1857,7 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 	nearBone = get_nearest_editbonepoint(&vc, mval, arm->edbo, 1, &selmask);
 	if (nearBone) {
 
-		if (!extend)
+		if (!extend && !deselect && !toggle)
 			ED_armature_deselect_all(obedit, 0);
 		
 		/* by definition the non-root connected bones have no root point drawn,
@@ -1867,6 +1867,18 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 			if (nearBone->parent && (nearBone->flag & BONE_CONNECTED)) {
 				/* click in a chain */
 				if (extend) {
+					/* select this bone */
+					nearBone->flag |= BONE_TIPSEL;
+					nearBone->parent->flag |= BONE_TIPSEL;
+				}
+				else if (deselect) {
+					/* deselect this bone */
+					nearBone->flag &= ~(BONE_TIPSEL | BONE_SELECTED);
+					/* only deselect parent tip if it is not selected */
+					if (!(nearBone->parent->flag & BONE_SELECTED))
+						nearBone->parent->flag &= ~BONE_TIPSEL;
+				}
+				else if (toggle) {
 					/* hold shift inverts this bone's selection */
 					if (nearBone->flag & BONE_SELECTED) {
 						/* deselect this bone */
@@ -1889,17 +1901,28 @@ int mouse_armature(bContext *C, const int mval[2], int extend)
 			}
 			else {
 				if (extend) {
+					nearBone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+				}
+				else if (deselect) {
+					nearBone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
+				}
+				else if (toggle) {
 					/* hold shift inverts this bone's selection */
 					if (nearBone->flag & BONE_SELECTED)
 						nearBone->flag &= ~(BONE_TIPSEL | BONE_ROOTSEL);
 					else
 						nearBone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
 				}
-				else nearBone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
+				else
+					nearBone->flag |= (BONE_TIPSEL | BONE_ROOTSEL);
 			}
 		}
 		else {
-			if (extend && (nearBone->flag & selmask))
+			if (extend)
+				nearBone->flag |= selmask;
+			else if (deselect)
+				nearBone->flag &= ~selmask;
+			else if (toggle && (nearBone->flag & selmask))
 				nearBone->flag &= ~selmask;
 			else
 				nearBone->flag |= selmask;
@@ -4475,7 +4498,7 @@ static int bone_looper(Object *ob, Bone *bone, void *data,
 
 /* called from editview.c, for mode-less pose selection */
 /* assumes scene obact and basact is still on old situation */
-int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend)
+int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, short hits, short extend, short deselect, short toggle)
 {
 	Object *ob = base->object;
 	Bone *nearBone;
@@ -4494,7 +4517,7 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 		 * note, special exception for armature mode so we can do multi-select
 		 * we could check for multi-select explicitly but think its fine to
 		 * always give predictable behavior in weight paint mode - campbell */
-		if (!extend || ((ob_act && (ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0))) {
+		if ((!extend && !deselect && !toggle)|| ((ob_act && (ob_act != ob) && (ob_act->mode & OB_MODE_WEIGHT_PAINT) == 0))) {
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
@@ -4503,25 +4526,34 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
-			if (nearBone->flag & BONE_SELECTED) {
-				/* if not active, we make it active */
-				if (nearBone != arm->act_bone) {
-					arm->act_bone = nearBone;
-				}
-				else {
-					nearBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					
-					// XXX old cruft! use notifiers instead
-					//select_actionchannel_by_name(ob->action, nearBone->name, 0);
-				}
-			}
-			else {
+			if (extend) {
 				nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				arm->act_bone = nearBone;
-				
-				// XXX old cruft! use notifiers instead
-				//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 			}
+			else if (deselect) {
+				nearBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+			}
+			else if (toggle) {
+				if (nearBone->flag & BONE_SELECTED) {
+					/* if not active, we make it active */
+					if (nearBone != arm->act_bone) {
+						arm->act_bone = nearBone;
+					}
+					else {
+						nearBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					
+						// XXX old cruft! use notifiers instead
+						//select_actionchannel_by_name(ob->action, nearBone->name, 0);
+					}
+				}
+				else {
+					nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
+					arm->act_bone = nearBone;
+				
+					// XXX old cruft! use notifiers instead
+					//select_actionchannel_by_name(ob->action, nearBone->name, 1);
+				}
+			}	
 		}
 		
 		/* in weightpaint we select the associated vertex group too */

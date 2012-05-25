@@ -4317,7 +4317,7 @@ typedef struct {
 
 static void edbm_bevel_update_header(wmOperator *op, bContext *C)
 {
-	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RClick), factor: %f, , Use Dist (D): %s: Use Even (E): %s";
+	static char str[] = "Confirm: Enter/LClick, Cancel: (Esc/RMB), factor: %f, Use Dist (D): %s: Use Even (E): %s";
 
 	char msg[HEADER_LENGTH];
 	ScrArea *sa = CTX_wm_area(C);

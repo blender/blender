@@ -49,8 +49,8 @@ void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	operation->setSpillChannel(editorsnode->custom1-1); // Channel for spilling
 	
 
-	inputSocketImage->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-	inputSocketFac->relinkConnections(operation->getInputSocket(1), true, 1, graph);
+	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
+	inputSocketFac->relinkConnections(operation->getInputSocket(1), 1, graph);
 	
 	outputSocketImage->relinkConnections(operation->getOutputSocket());
 	graph->addOperation(operation);

@@ -39,7 +39,7 @@ void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	bNode *editorsnode = getbNode();
 	operationSet->setSettings((NodeChroma*)editorsnode->storage);
 
-	inputSocket->relinkConnections(rgbToYUV->getInputSocket(0), true, 0, graph);
+	inputSocket->relinkConnections(rgbToYUV->getInputSocket(0), 0, graph);
 	addLink(graph, rgbToYUV->getOutputSocket(), operationSet->getInputSocket(0));
 
 	if (outputSocketMatte->isConnected()) {

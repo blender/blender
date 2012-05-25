@@ -11,39 +11,41 @@ Intro
 .. code-block:: python
 
    # Example Uses an L{SCA_MouseSensor}, and two L{KX_ObjectActuator}s to implement MouseLook::
-   # To use a mouse movement sensor "Mouse" and a 
+   # To use a mouse movement sensor "Mouse" and a
    # motion actuator to mouse look:
-   import bge.render
-   import bge.logic
+   import bge
 
    # scale sets the speed of motion
    scale = 1.0, 0.5
-   
+
    co = bge.logic.getCurrentController()
-   obj = co.getOwner()
-   mouse = co.getSensor("Mouse")
-   lmotion = co.getActuator("LMove")
-   wmotion = co.getActuator("WMove")
-   
+   obj = co.owner
+   mouse = co.sensors["Mouse"]
+   lmotion = co.actuators["LMove"]
+   wmotion = co.actuators["WMove"]
+
    # Transform the mouse coordinates to see how far the mouse has moved.
    def mousePos():
-      x = (bge.render.getWindowWidth() / 2 - mouse.getXPosition()) * scale[0]
-      y = (bge.render.getWindowHeight() / 2 - mouse.getYPosition()) * scale[1]
+      x = (bge.render.getWindowWidth() / 2 - mouse.position[0]) * scale[0]
+      y = (bge.render.getWindowHeight() / 2 - mouse.position[1]) * scale[1]
       return (x, y)
-   
+
    pos = mousePos()
-   
+
    # Set the amount of motion: X is applied in world coordinates...
-   lmotion.setTorque(0.0, 0.0, pos[0], False)
+   wmotion.useLocalTorque = False
+   wmotion.torque = ((0.0, 0.0, pos[0]))
+
    # ...Y is applied in local coordinates
-   wmotion.setTorque(-pos[1], 0.0, 0.0, True)
-   
+   lmotion.useLocalTorque = True
+   lmotion.torque = ((-pos[1], 0.0, 0.0))
+
    # Activate both actuators
-   bge.logic.addActiveActuator(lmotion, True)
-   bge.logic.addActiveActuator(wmotion, True)
-   
+   co.activate(lmotion)
+   co.activate(wmotion)
+
    # Centre the mouse
-   bge.render.setMousePosition(bge.render.getWindowWidth() / 2, bge.render.getWindowHeight() / 2)
+   bge.render.setMousePosition(int(bge.render.getWindowWidth() / 2), int(bge.render.getWindowHeight() / 2))
 
 *********
 Constants

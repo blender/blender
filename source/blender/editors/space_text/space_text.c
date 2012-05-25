@@ -128,7 +128,7 @@ static void text_listener(ScrArea *sa, wmNotifier *wmn)
 	switch (wmn->category) {
 		case NC_TEXT:
 			/* check if active text was changed, no need to redraw if text isn't active
-			 * reference==NULL means text was unlinked, should update anyway for this
+			 * (reference == NULL) means text was unlinked, should update anyway for this
 			 * case -- no way to know was text active before unlinking or not */
 			if (wmn->reference && wmn->reference != st->text)
 				break;

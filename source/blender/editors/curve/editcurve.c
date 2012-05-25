@@ -4126,7 +4126,7 @@ void CURVE_OT_make_segment(wmOperatorType *ot)
 
 /***************** pick select from 3d view **********************/
 
-int mouse_nurb(bContext *C, const int mval[2], int extend)
+int mouse_nurb(bContext *C, const int mval[2], int extend, int deselect, int toggle)
 {
 	Object *obedit = CTX_data_edit_object(C);
 	Curve *cu = obedit->data;
@@ -4146,12 +4146,8 @@ int mouse_nurb(bContext *C, const int mval[2], int extend)
 	hand = findnearestNurbvert(&vc, 1, location, &nu, &bezt, &bp);
 
 	if (bezt || bp) {
-		if (extend == 0) {
-		
-			setflagsNurb(editnurb, 0);
-
+		if (extend) {
 			if (bezt) {
-
 				if (hand == 1) {
 					select_beztriple(bezt, SELECT, 1, HIDDEN);
 					cu->lastsel = bezt;
@@ -4167,9 +4163,26 @@ int mouse_nurb(bContext *C, const int mval[2], int extend)
 				cu->lastsel = bp;
 				select_bpoint(bp, SELECT, 1, HIDDEN);
 			}
-
 		}
-		else {
+		else if (deselect) {
+			if (bezt) {
+				if (hand == 1) {
+					select_beztriple(bezt, DESELECT, 1, HIDDEN);
+					if (bezt == cu->lastsel) cu->lastsel = NULL;
+				}
+				else if (hand == 0) {
+					bezt->f1 &= ~SELECT;
+				}
+				else {
+					bezt->f3 &= ~SELECT;
+				}
+			}
+			else {
+				select_bpoint(bp, DESELECT, 1, HIDDEN);
+				if (cu->lastsel == bp) cu->lastsel = NULL;
+			}
+		}
+		else if (toggle) {
 			if (bezt) {
 				if (hand == 1) {
 					if (bezt->f2 & SELECT) {
@@ -4198,7 +4211,27 @@ int mouse_nurb(bContext *C, const int mval[2], int extend)
 					cu->lastsel = bp;
 				}
 			}
+		}
+		else {
+			setflagsNurb(editnurb, 0);
 
+			if (bezt) {
+
+				if (hand == 1) {
+					select_beztriple(bezt, SELECT, 1, HIDDEN);
+					cu->lastsel = bezt;
+				}
+				else {
+					if (hand == 0) bezt->f1 |= SELECT;
+					else bezt->f3 |= SELECT;
+
+					cu->lastsel = NULL;
+				}
+			}
+			else {
+				cu->lastsel = bp;
+				select_bpoint(bp, SELECT, 1, HIDDEN);
+			}
 		}
 
 		if (nu != get_actNurb(obedit))

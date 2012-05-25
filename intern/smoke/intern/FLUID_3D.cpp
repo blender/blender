@@ -249,7 +249,6 @@ void FLUID_3D::step(float dt)
 	// set vorticity from RNA value
 	_vorticityEps = (*_vorticityRNA)/_constantScaling;
 
-
 #if PARALLEL==1
 	int threadval = 1;
 	threadval = omp_get_max_threads();

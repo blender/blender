@@ -45,9 +45,9 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		converter->setCameraObject(camob);
 		operation->setMaxBlur(16);
 		operation->setQuality(context->getQuality());
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);
-		this->getInputSocket(2)->relinkConnections(converter->getInputSocket(0), true, 2, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(2)->relinkConnections(converter->getInputSocket(0), 2, graph);
 		addLink(graph, converter->getOutputSocket(), operation->getInputSocket(2));
 		graph->addOperation(operation);
 		graph->addOperation(converter);
@@ -55,9 +55,9 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	}
 	else {
 		BokehBlurOperation *operation = new BokehBlurOperation();
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);
-		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), true, 3, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
 		operation->setSize(((bNodeSocketValueFloat*)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
 		operation->setQuality(context->getQuality());
 		graph->addOperation(operation);

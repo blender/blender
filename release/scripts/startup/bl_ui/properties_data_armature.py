@@ -130,7 +130,7 @@ class DATA_PT_bone_groups(ArmatureButtonsPanel, Panel):
         col.active = (ob.proxy is None)
         col.operator("pose.group_add", icon='ZOOMIN', text="")
         col.operator("pose.group_remove", icon='ZOOMOUT', text="")
-        col.menu("DATA_PT_bone_group_specials", icon='BLANK1', text="")
+        col.menu("DATA_PT_bone_group_specials", icon='DOWNARROW_HLT', text="")
         if group:
             col.separator()
             col.operator("pose.group_move", icon='TRIA_UP', text="").direction = 'UP'

@@ -47,12 +47,12 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		if (editorInput->groupsock) {
 			if (inputSocket->isConnected()) {
 				SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
-				inputSocket->relinkConnections(proxy->getInputSocket(0), true, index, &system);
+				inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
 				ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 			}
 			else {
 				OutputSocketProxyNode * proxy = new OutputSocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
-				inputSocket->relinkConnections(proxy->getInputSocket(0), true, index, &system);
+				inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
 				ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 			}
 		}

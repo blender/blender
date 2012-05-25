@@ -37,7 +37,7 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	if (data->proj) {
 		ProjectorLensDistortionOperation *operation = new ProjectorLensDistortionOperation();
 
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		operation->setDispertion(this->getInputSocket(2)->getStaticValues()[0]);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 
@@ -48,7 +48,7 @@ void LensDistortionNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	else {
 		ScreenLensDistortionOperation *operation = new ScreenLensDistortionOperation();
 
-		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		operation->setDistortion(this->getInputSocket(1)->getStaticValues()[0]);
 		operation->setDispertion(this->getInputSocket(2)->getStaticValues()[0]);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));

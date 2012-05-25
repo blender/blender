@@ -38,8 +38,8 @@ void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
-	inputSocketImage->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-	inputSocketKey->relinkConnections(operation->getInputSocket(1), true, 1, graph);
+	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
+	inputSocketKey->relinkConnections(operation->getInputSocket(1), 1, graph);
 
 	if (outputSocketMatte->isConnected()) {
 		outputSocketMatte->relinkConnections(operation->getOutputSocket());

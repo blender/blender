@@ -36,7 +36,7 @@ void MapValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext
 	TexMapping *storage =  (TexMapping*)this->getbNode()->storage;
 	MapValueOperation *convertProg = new MapValueOperation();
 	convertProg->setSettings(storage);
-	colourSocket->relinkConnections(convertProg->getInputSocket(0), true, 0, graph);
+	colourSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
 	valueSocket->relinkConnections(convertProg->getOutputSocket(0));
 	graph->addOperation(convertProg);
 }

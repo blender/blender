@@ -110,7 +110,7 @@ class MATERIAL_PT_context_material(MaterialButtonsPanel, Panel):
             col.operator("object.material_slot_add", icon='ZOOMIN', text="")
             col.operator("object.material_slot_remove", icon='ZOOMOUT', text="")
 
-            col.menu("MATERIAL_MT_specials", icon='BLANK1', text="")
+            col.menu("MATERIAL_MT_specials", icon='DOWNARROW_HLT', text="")
 
             if ob.mode == 'EDIT':
                 row = layout.row(align=True)

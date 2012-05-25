@@ -2391,6 +2391,8 @@ class VIEW3D_PT_view3d_display(Panel):
             col.prop(gs, "material_mode", text="")
             col.prop(view, "show_textured_solid")
 
+        col.prop(view, "show_backface_culling")            
+
         layout.separator()
 
         region = view.region_quadview

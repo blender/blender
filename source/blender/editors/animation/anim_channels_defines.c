@@ -146,18 +146,39 @@ static void acf_generic_dataexpand_backdrop(bAnimContext *ac, bAnimListElem *ale
 	glRectf(offset, yminc,  v2d->cur.xmax + EXTRA_SCROLL_PAD, ymaxc);
 }
 
+/* helper method to test if group colors should be drawn */
+static short acf_show_channel_colors(bAnimContext *ac)
+{
+	short showGroupColors = 0;
+	
+	if (ac->sl) {
+		switch (ac->spacetype) {
+			case SPACE_ACTION:
+			{
+				SpaceAction *saction = (SpaceAction *)ac->sl;
+				showGroupColors = !(saction->flag & SACTION_NODRAWGCOLORS);
+			}
+				break;
+			case SPACE_IPO:
+			{
+				SpaceIpo *sipo = (SpaceIpo *)ac->sl;
+				showGroupColors = !(sipo->flag & SIPO_NODRAWGCOLORS);
+			}
+				break;
+		}
+	}
+	
+	return showGroupColors;
+}
+
 /* get backdrop color for generic channels */
 static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
 {
 	bAnimChannelType *acf = ANIM_channel_get_typeinfo(ale);
-	SpaceAction *saction = NULL;
 	bActionGroup *grp = NULL;
 	short indent = (acf->get_indent_level) ? acf->get_indent_level(ac, ale) : 0;
+	short showGroupColors = acf_show_channel_colors(ac);
 	
-	/* get context info needed... */
-	if ((ac->sl) && (ac->spacetype == SPACE_ACTION))
-		saction = (SpaceAction *)ac->sl;
-		
 	if (ale->type == ANIMTYPE_FCURVE) {
 		FCurve *fcu = (FCurve *)ale->data;
 		grp = fcu->grp;
@@ -167,9 +188,7 @@ static void acf_generic_channel_color(bAnimContext *ac, bAnimListElem *ale, floa
 	 *	- use 3 shades of color group/standard color for 3 indention level
 	 *	- only use group colors if allowed to, and if actually feasible
 	 */
-	if ( (saction && !(saction->flag & SACTION_NODRAWGCOLORS)) && 
-	     ((grp) && (grp->customCol)) )
-	{
+	if (showGroupColors && (grp) && (grp->customCol)) {
 		unsigned char cp[3];
 		
 		if (indent == 2) {
@@ -730,13 +749,30 @@ static bAnimChannelType ACF_OBJECT =
 /* Group ------------------------------------------- */
 
 /* get backdrop color for group widget */
-static void acf_group_color(bAnimContext *UNUSED(ac), bAnimListElem *ale, float r_color[3])
+static void acf_group_color(bAnimContext *ac, bAnimListElem *ale, float r_color[3])
 {
-	/* highlight only for action group channels */
-	if (ale->flag & AGRP_ACTIVE)
-		UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, r_color);
-	else
-		UI_GetThemeColorShade3fv(TH_GROUP, 20, r_color);
+	bActionGroup *agrp = (bActionGroup *)ale->data;
+	short showGroupColors = acf_show_channel_colors(ac);
+	
+	if (showGroupColors && agrp->customCol) {
+		unsigned char cp[3];
+		
+		/* highlight only for active */
+		if (ale->flag & AGRP_ACTIVE)
+			copy_v3_v3_char((char *)cp, agrp->cs.active);
+		else
+			copy_v3_v3_char((char *)cp, agrp->cs.solid);
+		
+		/* copy the colors over, transforming from bytes to floats */
+		rgb_uchar_to_float(r_color, cp);
+	}
+	else {
+		/* highlight only for active */
+		if (ale->flag & AGRP_ACTIVE)
+			UI_GetThemeColorShade3fv(TH_GROUP_ACTIVE, 10, r_color);
+		else
+			UI_GetThemeColorShade3fv(TH_GROUP, 20, r_color);
+	}
 }
 
 /* backdrop for group widget */
