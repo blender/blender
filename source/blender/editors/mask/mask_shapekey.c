@@ -142,3 +142,19 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
+
+int ED_mask_object_shape_auto_key_all(Mask *mask, const int frame)
+{
+	MaskObject *maskobj;
+	int change = FALSE;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskObjectShape *maskobj_shape;
+
+		maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
+		BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
+		change = TRUE;
+	}
+
+	return change;
+}

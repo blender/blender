@@ -4913,16 +4913,9 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 
 			/* TODO - dont key all masks... */
 			if (IS_AUTOKEY_ON(t->scene)) {
-				MaskObject *maskobj;
 				Scene *scene = t->scene;
-				int frame = CFRA;
 
-				for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-					MaskObjectShape *maskobj_shape;
-
-					maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
-					BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
-				}
+				ED_mask_object_shape_auto_key_all(mask, CFRA);
 			}
 		}
 	}

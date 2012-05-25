@@ -40,6 +40,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
+#include "DNA_scene_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"  /* SELECT */
 
@@ -49,6 +50,7 @@
 #include "ED_screen.h"
 #include "ED_mask.h"
 #include "ED_clip.h"
+#include "ED_keyframing.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -770,7 +772,13 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
+				Scene *scene = CTX_data_scene(C);
+
 				free_slide_point_data(op->customdata);
+
+				if (IS_AUTOKEY_ON(scene)) {
+					ED_mask_object_shape_auto_key_all(data->mask, CFRA);
+				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 				DAG_id_tag_update(&data->mask->id, 0);

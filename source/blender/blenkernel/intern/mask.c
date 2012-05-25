@@ -1351,6 +1351,7 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 	                                       &spline, &spline_point_index))
 	{
 		/* sanity check */
+		/* the point has already been removed in this array so subtract one when comparing with the shapes */
 		int tot = BKE_mask_object_shape_totvert(maskobj) - 1;
 
 		/* for interpolation */
@@ -1376,8 +1377,8 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 		}
 
 		for (maskobj_shape = maskobj->splines_shapes.first;
-			 maskobj_shape;
-			 maskobj_shape = maskobj_shape->next)
+		     maskobj_shape;
+		     maskobj_shape = maskobj_shape->next)
 		{
 			if (tot == maskobj_shape->tot_vert) {
 				float *data_resized;
@@ -1386,14 +1387,14 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 				data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 				if (index > 0) {
 					memcpy(data_resized,
-						   maskobj_shape->data,
-						   index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+					       maskobj_shape->data,
+					       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
 				if (index != maskobj_shape->tot_vert - 1) {
 					memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
-						   maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
-						   (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+					       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+					       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
 				if (do_init) {
@@ -1404,16 +1405,16 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 					if (do_init_interpolate) {
 						for (i = 0; i < 3; i++) {
 							interp_weights_uv_v2_apply(uv[i],
-													   &fp[i * 2],
-													   &data_resized[(pi_prev_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)],
-													   &data_resized[(pi_next_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)]);
+							                           &fp[i * 2],
+							                           &data_resized[(pi_prev_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)],
+							                           &data_resized[(pi_next_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)]);
 						}
 					}
 				}
 				else {
 					memset(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
-						   0,
-						   sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+					       0,
+					       sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
 				MEM_freeN(maskobj_shape->data);
@@ -1428,24 +1429,43 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 }
 
 /* move array to account for removed point */
-#if 0
 void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index)
 {
 	MaskObjectShape *maskobj_shape;
+
+	/* the point has already been removed in this array so add one when comparing with the shapes */
+	int tot = BKE_mask_object_shape_totvert(maskobj) + 1;
 
 	for (maskobj_shape = maskobj->splines_shapes.first;
 	     maskobj_shape;
 	     maskobj_shape = maskobj_shape->next)
 	{
-		if (frame == maskobj_shape->frame) {
-			return maskobj_shape;
+		if (tot == maskobj_shape->tot_vert) {
+			float *data_resized;
+
+			maskobj_shape->tot_vert--;
+			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+			if (index > 0) {
+				memcpy(data_resized,
+				       maskobj_shape->data,
+				       (index - 1) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
+			if (index != maskobj_shape->tot_vert - 1) {
+				memcpy(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
+				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
+			MEM_freeN(maskobj_shape->data);
+			maskobj_shape->data = data_resized;
 		}
-		else if (frame < maskobj_shape->frame) {
-			break;
+		else {
+			printf("%s: vert mismatch %d != %d (frame %d)\n",
+			       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
 		}
 	}
 }
-#endif
 
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)

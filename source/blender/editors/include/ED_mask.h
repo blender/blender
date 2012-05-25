@@ -41,4 +41,7 @@ void ED_operatormacros_mask(void);
 /* mask_draw.c */
 void ED_mask_draw(const bContext *C);
 
+/* mask_shapekey.c */
+int ED_mask_object_shape_auto_key_all(struct Mask *mask, const int frame);
+
 #endif /* ED_TEXT_H */
