@@ -1039,7 +1039,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = sa->spacedata.first;
-		bScreen *animscreen = ED_screen_animation_playing(C);
+		bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
 		
 		t->view = v3d;
 		t->animtimer= (animscreen)? animscreen->animtimer: NULL;

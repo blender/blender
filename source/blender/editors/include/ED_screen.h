@@ -117,7 +117,7 @@ void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute
 
 void    ED_refresh_viewport_fps(struct bContext *C);
 int		ED_screen_animation_play(struct bContext *C, int sync, int mode);
-bScreen	*ED_screen_animation_playing(const struct bContext *C);
+bScreen	*ED_screen_animation_playing(const struct wmWindowManager *wm);
 
 /* screen keymaps */
 void    ED_operatortypes_screen(void);

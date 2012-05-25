@@ -3039,9 +3039,8 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 /* ****************** anim player, starts or ends timer ***************** */
 
 /* find window that owns the animation timer */
-bScreen *ED_screen_animation_playing(const bContext *C)
+bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
 {
-	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *window;
 
 	for (window = wm->windows.first; window; window = window->next)
@@ -3057,7 +3056,7 @@ int ED_screen_animation_play(bContext *C, int sync, int mode)
 	bScreen *screen = CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (ED_screen_animation_playing(C)) {
+	if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
@@ -3114,7 +3113,7 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
-	bScreen *screen = ED_screen_animation_playing(C);
+	bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
 
 	if (screen) {
 		if (RNA_boolean_get(op->ptr, "restore_frame")) {

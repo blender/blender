@@ -294,6 +294,7 @@ void view3d_apply_mat4(float mat[][4], float *ofs, float *quat, float *dist) {}
 int text_file_modified(struct Text *text) {return 0;}
 void ED_node_shader_default(struct Material *ma) {}
 void ED_screen_animation_timer_update(struct bContext *C, int redraws) {}
+void ED_screen_animation_playing(struct wmWindowManager *wm) {}
 void ED_base_object_select(struct Base *base, short mode) {}
 int ED_object_modifier_remove(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md) {return 0;}
 int ED_object_modifier_add(struct ReportList *reports, struct Scene *scene, struct Object *ob, char *name, int type) {return 0;}

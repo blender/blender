@@ -1961,7 +1961,7 @@ void wm_event_do_handlers(bContext *C)
 					CTX_wm_screen_set(C, win->screen);
 					CTX_data_scene_set(C, scene);
 					
-					if (((playing == 1) && (!ED_screen_animation_playing(C))) || ((playing == 0) && (ED_screen_animation_playing(C)))) {
+					if (((playing == 1) && (!ED_screen_animation_playing(wm))) || ((playing == 0) && (ED_screen_animation_playing(wm)))) {
 						ED_screen_animation_play(C, -1, 1);
 					}
 					

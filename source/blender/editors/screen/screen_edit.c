@@ -1750,7 +1750,7 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
-	bScreen *stopscreen = ED_screen_animation_playing(C);
+	bScreen *stopscreen = ED_screen_animation_playing(wm);
 	
 	if (stopscreen) {
 		WM_event_remove_timer(wm, win, stopscreen->animtimer);

@@ -506,7 +506,7 @@ static int screen_render_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		mainp = CTX_data_main(C);
 
 	/* cancel animation playback */
-	if (ED_screen_animation_playing(C))
+	if (ED_screen_animation_playing(CTX_wm_manager(C)))
 		ED_screen_animation_play(C, 0, 0);
 	
 	/* handle UI stuff */
