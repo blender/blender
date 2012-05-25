@@ -7508,7 +7508,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (md = ob->modifiers.first; md; md = md->next) {
 				if (md->type == eModifierType_Smoke) {
 					SmokeModifierData *smd = (SmokeModifierData *)md;
-					if((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
+					if ((smd->type & MOD_SMOKE_TYPE_DOMAIN) && smd->domain) {
 						int maxres = MAX3(smd->domain->res[0], smd->domain->res[1], smd->domain->res[2]);
 						smd->domain->scale = smd->domain->dx * maxres;
 						smd->domain->dx = 1.0f / smd->domain->scale;

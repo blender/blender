@@ -1696,7 +1696,7 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base, 
 				bone = pchan->bone;
 				if (bone) {
 					/* 1) bone must be visible, 2) for OpenGL select-drawing cannot have unselectable [#27194] 
-					 * NOTE: this is the only case with NO_DEFORM==0 flag, as this is for envelope influence drawing 
+					 * NOTE: this is the only case with (NO_DEFORM == 0) flag, as this is for envelope influence drawing
 					 */
 					if ( (bone->flag & (BONE_HIDDEN_P | BONE_NO_DEFORM | BONE_HIDDEN_PG)) == 0 &&
 					     ((G.f & G_PICKSEL) == 0 || (bone->flag & BONE_UNSELECTABLE) == 0) )

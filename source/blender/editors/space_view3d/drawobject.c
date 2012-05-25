@@ -3949,7 +3949,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	int retval = 0;
 
 	/* backface culling */
-	if(v3d->flag2 & V3D_BACKFACE_CULLING) {
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
 		/* not all displists use same in/out normal direction convention */
 		glEnable(GL_CULL_FACE);
 		glCullFace((ob->type == OB_MBALL) ? GL_BACK : GL_FRONT);
@@ -6592,7 +6592,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	dtx = 0;
 
-	/* faceselect exception: also draw solid when dt==wire, except in editmode */
+	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
 	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
 		if (ob->type == OB_MESH) {
 

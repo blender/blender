@@ -1254,7 +1254,7 @@ int GPU_enable_material(int nr, void *attribs)
 			if (GMS.is_alpha_pass) glDepthMask(1);
 
 			if (GMS.backface_culling) {
-				if(mat->game.flag)
+				if (mat->game.flag)
 					glEnable(GL_CULL_FACE);
 				else
 					glDisable(GL_CULL_FACE);

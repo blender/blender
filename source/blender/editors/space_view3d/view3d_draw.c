@@ -1863,7 +1863,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		/* generate displist */
 		if (use_displist == -1) {
 
-			/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
+			/* note, since this was added, its checked (dob->type == OB_DUPLIGROUP)
 			 * however this is very slow, it was probably needed for the NLA
 			 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
 			 * so for now it should be ok to - campbell */

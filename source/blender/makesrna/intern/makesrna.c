@@ -821,7 +821,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 				if (prop->flag & PROP_ID_SELF_CHECK) {
 					rna_print_id_get(f, dp);
-					fprintf(f, "	if (id==value.data) return;\n\n");
+					fprintf(f, "	if (id == value.data) return;\n\n");
 				}
 
 				if (prop->flag & PROP_ID_REFCOUNT) {
