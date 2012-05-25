@@ -532,8 +532,9 @@ static void read_file_version(FileData *fd, Main *main)
 }
 
 
-static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *filepath, const char *relabase)
+static Main *blo_find_main(FileData *fd, const char *filepath, const char *relabase)
 {
+	ListBase *mainlist = fd->mainlist;
 	Main *m;
 	Library *lib;
 	char name1[FILE_MAX];
@@ -5943,14 +5944,14 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 {
 	Main *newmain;
 	
-	for (newmain = fd->mainlist.first; newmain; newmain = newmain->next) {
+	for (newmain = fd->mainlist->first; newmain; newmain = newmain->next) {
 		if (newmain->curlib) {
 			if (BLI_path_cmp(newmain->curlib->filepath, lib->filepath) == 0) {
 				BKE_reportf_wrap(fd->reports, RPT_WARNING,
 				                 "Library '%s', '%s' had multiple instances, save and reload!",
 				                 lib->name, lib->filepath);
 				
-				change_idid_adr(&fd->mainlist, fd, lib, newmain->curlib);
+				change_idid_adr(fd->mainlist, fd, lib, newmain->curlib);
 //				change_idid_adr_fd(fd, lib, newmain->curlib);
 				
 				BLI_remlink(&main->library, lib);
@@ -5970,7 +5971,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 	
 	/* new main */
 	newmain= MEM_callocN(sizeof(Main), "directlink");
-	BLI_addtail(&fd->mainlist, newmain);
+	BLI_addtail(fd->mainlist, newmain);
 	newmain->curlib = lib;
 	
 	lib->parent = NULL;
@@ -7649,10 +7650,12 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 {
 	BHead *bhead = blo_firstbhead(fd);
 	BlendFileData *bfd;
+	ListBase mainlist = {NULL, NULL};
 	
 	bfd = MEM_callocN(sizeof(BlendFileData), "blendfiledata");
 	bfd->main = MEM_callocN(sizeof(Main), "readfile_Main");
-	BLI_addtail(&fd->mainlist, bfd->main);
+	BLI_addtail(&mainlist, bfd->main);
+	fd->mainlist = &mainlist;
 	
 	bfd->main->versionfile = fd->fileversion;
 	
@@ -7696,7 +7699,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 				/* always adds to the most recently loaded
 				 * ID_LI block, see direct_link_library.
 				 * this is part of the file format definition. */
-				bhead = read_libblock(fd, fd->mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
+				bhead = read_libblock(fd, mainlist.last, bhead, LIB_READ+LIB_EXTERN, NULL);
 			break;
 			
 			/* in 2.50+ files, the file identifier for screens is patched, forward compatibility */
@@ -7712,9 +7715,9 @@ BlendFileData *blo_read_file_internal(FileData *fd, const char *filepath)
 //	if (fd->memfile==NULL) (the mesh shuffle hacks don't work yet? ton)
 		do_versions(fd, NULL, bfd->main);
 	
-	read_libraries(fd, &fd->mainlist);
+	read_libraries(fd, &mainlist);
 	
-	blo_join_main(&fd->mainlist);
+	blo_join_main(&mainlist);
 	
 	lib_link_all(fd, bfd->main);
 	//do_versions_after_linking(fd, NULL, bfd->main); // XXX: not here (or even in this function at all)! this causes crashes on many files - Aligorith (July 04, 2010)
@@ -7832,7 +7835,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			
 			if (bheadlib) {
 				Library *lib = read_struct(fd, bheadlib, "Library");
-				Main *ptr = blo_find_main(fd, &fd->mainlist, lib->name, fd->relabase);
+				Main *ptr = blo_find_main(fd, lib->name, fd->relabase);
 				
 				id = is_yet_read(fd, ptr, bhead);
 				
@@ -8854,12 +8857,14 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 static Main *library_append_begin(Main *mainvar, FileData **fd, const char *filepath)
 {
 	Main *mainl;
+
+	(*fd)->mainlist = MEM_callocN(sizeof(ListBase), "FileData.mainlist");
 	
 	/* make mains */
-	blo_split_main(&(*fd)->mainlist, mainvar);
+	blo_split_main((*fd)->mainlist, mainvar);
 	
 	/* which one do we need? */
-	mainl = blo_find_main(*fd, &(*fd)->mainlist, filepath, G.main->name);
+	mainl = blo_find_main(*fd, filepath, G.main->name);
 	
 	/* needed for do_version */
 	mainl->versionfile = (*fd)->fileversion;
@@ -8885,7 +8890,7 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 	expand_main(*fd, mainl);
 	
 	/* do this when expand found other libs */
-	read_libraries(*fd, &(*fd)->mainlist);
+	read_libraries(*fd, (*fd)->mainlist);
 	
 	curlib = mainl->curlib;
 	
@@ -8898,8 +8903,9 @@ static void library_append_end(const bContext *C, Main *mainl, FileData **fd, in
 		BLI_path_rel(curlib->name, G.main->name);
 	}
 	
-	blo_join_main(&(*fd)->mainlist);
-	mainvar = (*fd)->mainlist.first;
+	blo_join_main((*fd)->mainlist);
+	mainvar = (*fd)->mainlist->first;
+	MEM_freeN((*fd)->mainlist);
 	mainl = NULL; /* blo_join_main free's mainl, cant use anymore */
 	
 	lib_link_all(*fd, mainvar);
@@ -8995,6 +9001,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					                 mainptr->curlib->filepath, mainptr->curlib->name);
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
+
+					/* share the mainlist, so all libraries are added immediately in a
+					 * single list. it used to be that all FileData's had their own list,
+					 * but with indirectly linking this meant we didn't catch duplicate
+					 * libraries properly */
+					fd->mainlist = mainlist;
 					
 					/* allow typing in a new lib path */
 					if (G.rt == -666) {
@@ -9012,6 +9024,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 								cleanup_path(G.main->name, mainptr->curlib->filepath);
 								
 								fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
+								fd->mainlist = mainlist;
 								
 								if (fd) {
 									printf("found: '%s', party on macuno!\n", mainptr->curlib->filepath);
@@ -9071,14 +9084,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					
 					expand_main(fd, mainptr);
-					
-					/* dang FileData... now new libraries need to be appended to original filedata,
-					 * it is not a good replacement for the old global (ton) */
-					while (fd->mainlist.first) {
-						Main *mp = fd->mainlist.first;
-						BLI_remlink(&fd->mainlist, mp);
-						BLI_addtail(&basefd->mainlist, mp);
-					}
 				}
 			}
 			
