@@ -980,22 +980,8 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 
 		setup_vertex_point(C, mask, spline, new_point, co, tangent, NULL, TRUE);
 
-
-		{
-
-			/* this block could be a function */
-			MaskSpline *spline_iter;
-			int i_abs = 0;
-			for (spline_iter = maskobj->splines.first;
-			     spline_iter && spline_iter != spline;
-			     spline_iter = spline_iter->next, i_abs += spline_iter->tot_point)
-			{
-				/* pass */
-			}
-
-			/* TODO - we could pass the spline! */
-			BKE_mask_object_shape_changed_add(maskobj, i_abs + point_index + 1, TRUE, TRUE);
-		}
+		/* TODO - we could pass the spline! */
+		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index + 1, TRUE, TRUE);
 
 		maskobj->act_point = new_point;
 
@@ -1114,6 +1100,13 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 	maskobj->act_point = new_point;
 
 	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
+
+	{
+	//int point_index = (((int)(new_point - spline->points) + 1) % spline->tot_point);
+		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
+		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index, TRUE, TRUE);
+	}
+
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return TRUE;

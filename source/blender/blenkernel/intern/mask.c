@@ -1297,8 +1297,8 @@ void BKE_mask_object_shape_sort(MaskObject *maskobj)
 	BLI_sortlist(&maskobj->splines_shapes, mask_object_shape_sort_cb);
 }
 
-int BKE_mask_object_shape_spline_index(MaskObject *maskobj, int index,
-                                       MaskSpline **r_maskobj_shape, int *r_index)
+int BKE_mask_object_shape_spline_from_index(MaskObject *maskobj, int index,
+                                            MaskSpline **r_maskobj_shape, int *r_index)
 {
 	MaskSpline *spline;
 
@@ -1312,6 +1312,20 @@ int BKE_mask_object_shape_spline_index(MaskObject *maskobj, int index,
 	}
 
 	return FALSE;
+}
+
+int BKE_mask_object_shape_spline_to_index(MaskObject *maskobj, MaskSpline *spline)
+{
+	MaskSpline *spline_iter;
+	int i_abs = 0;
+	for (spline_iter = maskobj->splines.first;
+	     spline_iter && spline_iter != spline;
+	     i_abs += spline_iter->tot_point, spline_iter = spline_iter->next)
+	{
+		/* pass */
+	}
+
+	return i_abs;
 }
 
 /* basic 2D interpolation functions, could make more comprehensive later */
@@ -1347,8 +1361,8 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 	MaskSpline *spline;
 	int         spline_point_index;
 
-	if (BKE_mask_object_shape_spline_index(maskobj, index,
-	                                       &spline, &spline_point_index))
+	if (BKE_mask_object_shape_spline_from_index(maskobj, index,
+	                                            &spline, &spline_point_index))
 	{
 		/* sanity check */
 		/* the point has already been removed in this array so subtract one when comparing with the shapes */
@@ -1402,7 +1416,7 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 
 					mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
 
-					if (do_init_interpolate) {
+					if (do_init_interpolate && spline->tot_point > 2) {
 						for (i = 0; i < 3; i++) {
 							interp_weights_uv_v2_apply(uv[i],
 							                           &fp[i * 2],

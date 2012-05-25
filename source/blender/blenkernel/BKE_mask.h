@@ -110,6 +110,10 @@ struct MaskObjectShape *BKE_mask_object_shape_varify_frame(struct MaskObject *ma
 void BKE_mask_object_shape_unlink(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
 void BKE_mask_object_shape_sort(struct MaskObject *maskobj);
 
+int BKE_mask_object_shape_spline_from_index(struct MaskObject *maskobj, int index,
+                                            struct MaskSpline **r_maskobj_shape, int *r_index);
+int BKE_mask_object_shape_spline_to_index(struct MaskObject *maskobj, struct MaskSpline *spline);
+
 int BKE_mask_object_shape_spline_index(struct MaskObject *maskobj, int index,
                                        struct MaskSpline **r_maskobj_shape, int *r_index);
 void BKE_mask_object_shape_changed_add(struct MaskObject *maskobj, int index,
