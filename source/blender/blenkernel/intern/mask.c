@@ -1157,7 +1157,6 @@ void BKE_mask_object_shape_to_mask_interp(MaskObject *maskobj,
                                           const float fac)
 {
 	int tot = BKE_mask_object_shape_totvert(maskobj);
-	printf("%.6f\n", fac);
 	if (maskobj_shape_a->tot_vert == tot && maskobj_shape_b->tot_vert == tot) {
 		float *fp_a = maskobj_shape_a->data;
 		float *fp_b = maskobj_shape_b->data;
@@ -1312,25 +1311,70 @@ int BKE_mask_object_shape_spline_index(MaskObject *maskobj, int index,
 	return FALSE;
 }
 
+/* basic 2D interpolation functions, could make more comprehensive later */
+static void interp_weights_uv_v2_calc(float r_uv[2], const float pt[2], const float pt_a[2], const float pt_b[2])
+{
+	float pt_on_line[2];
+	r_uv[0] = closest_to_line_v2(pt_on_line, pt, pt_a, pt_b);
+	r_uv[1] = (len_v2v2(pt_on_line, pt) / len_v2v2(pt_a, pt_b)) *
+	          ((line_point_side_v2(pt_a, pt_b, pt) < 0.0f) ? -1.0 : 1.0);  /* this line only sets the sign */
+}
+
+
+static void interp_weights_uv_v2_apply(const float uv[2], float r_pt[2], const float pt_a[2], const float pt_b[2])
+{
+	const float dvec[2] = {pt_b[0] - pt_a[0],
+	                       pt_b[1] - pt_a[1]};
+
+	/* u */
+	madd_v2_v2v2fl(r_pt, pt_a, dvec, uv[0]);
+
+	/* v */
+	r_pt[0] += -dvec[1] * uv[1];
+	r_pt[1] +=  dvec[0] * uv[1];
+}
+
 /* when a now points added - resize all shapekey array  */
 void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
                                        int do_init, int do_init_interpolate)
 {
 	MaskObjectShape *maskobj_shape;
 
-	for (maskobj_shape = maskobj->splines_shapes.first;
-	     maskobj_shape;
-	     maskobj_shape = maskobj_shape->next)
+	/* spline index from maskobj */
+	MaskSpline *spline;
+	int         spline_point_index;
+
+	if (BKE_mask_object_shape_spline_index(maskobj, index,
+	                                       &spline, &spline_point_index))
 	{
-		/* spline index from maskobj */
-		MaskSpline *spline;
-		int         spline_point_index;
+		/* for interpolation */
+		/* TODO - assumes closed curve for now */
+		float uv[3][2]; /* 3x 2D handles */
+		const int pi_curr =   spline_point_index;
+		const int pi_prev = ((spline_point_index - 1) + spline->tot_point) % spline->tot_point;
+		const int pi_next =  (spline_point_index + 1)                      % spline->tot_point;
 
-		float *data_resized;
+		const int index_offset = index - spline_point_index;
+		/* const int pi_curr_abs = index; */
+		const int pi_prev_abs = pi_prev + index_offset;
+		const int pi_next_abs = pi_next + index_offset;
 
-		if (BKE_mask_object_shape_spline_index(maskobj, index,
-		                                       &spline, &spline_point_index))
+		int i;
+		if (do_init_interpolate) {
+			for (i = 0; i < 3; i++) {
+				interp_weights_uv_v2_calc(uv[i],
+				                          spline->points[pi_curr].bezt.vec[i],
+				                          spline->points[pi_prev].bezt.vec[i],
+				                          spline->points[pi_next].bezt.vec[i]);
+			}
+		}
+
+		for (maskobj_shape = maskobj->splines_shapes.first;
+			 maskobj_shape;
+			 maskobj_shape = maskobj_shape->next)
 		{
+			float *data_resized;
+
 			maskobj_shape->tot_vert++;
 			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 			if (index > 0) {
@@ -1339,24 +1383,30 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 				       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
+			if (index != maskobj_shape->tot_vert - 1) {
+				memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
+				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+			}
+
 			if (do_init) {
+				float *fp = &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE];
+
+				mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
+
 				if (do_init_interpolate) {
-					/* TODO */
-				}
-				else {
-					mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE]);
+					for (i = 0; i < 3; i++) {
+						interp_weights_uv_v2_apply(uv[i],
+						                           &fp[i * 2],
+						                           &data_resized[(pi_prev_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)],
+						                           &data_resized[(pi_next_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)]);
+					}
 				}
 			}
 			else {
 				memset(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
 				       0,
 				       sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
-			}
-
-			if (index != maskobj_shape->tot_vert - 1) {
-				memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
-				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
-				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
 			MEM_freeN(maskobj_shape->data);

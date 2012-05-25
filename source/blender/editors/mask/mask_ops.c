@@ -986,7 +986,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 			}
 
 			/* TODO - we could pass the spline! */
-			BKE_mask_object_shape_changed_add(maskobj, i_abs + point_index + 1, TRUE, FALSE);
+			BKE_mask_object_shape_changed_add(maskobj, i_abs + point_index + 1, TRUE, TRUE);
 		}
 
 		maskobj->act_point = new_point;
