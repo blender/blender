@@ -266,6 +266,7 @@ typedef struct View3D {
 #define V3D_SHOW_RECONSTRUCTION		128
 #define V3D_SHOW_CAMERAPATH		256
 #define V3D_SHOW_BUNDLENAME		512
+#define V3D_BACKFACE_CULLING	1024
 
 /* View3D->around */
 #define V3D_CENTER		 0

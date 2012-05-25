@@ -3610,7 +3610,13 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 		else if (ob->modifiers.first || obedit->modifiers.first) {}
 		else drawlinked = 1;
 	}
-	
+
+	/* backface culling */
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+	}
+
 	if (ob == obedit || drawlinked) {
 		DerivedMesh *finalDM, *cageDM;
 		
@@ -3669,6 +3675,9 @@ static int draw_mesh_object(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 			}
 		}
 	}
+
+	if (v3d->flag2 & V3D_BACKFACE_CULLING)
+		glDisable(GL_CULL_FACE);
 	
 	return retval;
 }
@@ -3939,7 +3948,17 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	const short solid = (dt > OB_WIRE);
 	int retval = 0;
 
+	/* backface culling */
+	if(v3d->flag2 & V3D_BACKFACE_CULLING) {
+		/* not all displists use same in/out normal direction convention */
+		glEnable(GL_CULL_FACE);
+		glCullFace((ob->type == OB_MBALL) ? GL_BACK : GL_FRONT);
+	}
+
 	if (drawCurveDerivedMesh(scene, v3d, rv3d, base, dt) == 0) {
+		if (v3d->flag2 & V3D_BACKFACE_CULLING)
+			glDisable(GL_CULL_FACE);
+
 		return 0;
 	}
 
@@ -4045,6 +4064,9 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 			break;
 	}
 	
+	if (v3d->flag2 & V3D_BACKFACE_CULLING)
+		glDisable(GL_CULL_FACE);
+
 	return retval;
 }
 
