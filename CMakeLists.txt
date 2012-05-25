@@ -161,8 +161,6 @@ if(UNIX AND NOT APPLE)
 	option(WITH_X11_XINPUT "Enable X11 Xinput (tablet support and unicode input)"	ON)
 	option(WITH_X11_XF86VMODE "Enable X11 video mode switching"	ON)
 	option(WITH_BUILTIN_GLEW "Use GLEW OpenGL wrapper library bundled with blender" ON)
-	option(WITH_XDG_USER_DIRS    "Build with XDG Base Directory Specification (only config and documents for now)" OFF)
-	mark_as_advanced(WITH_XDG_USER_DIRS)
 
 	# freebsd doesn't seems to support XDND
 	if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD")

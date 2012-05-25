@@ -55,16 +55,16 @@ extern GHOST_TSuccess GHOST_DisposeSystemPaths(void);
 
 /**
  * Determine the base dir in which shared resources are located. It will first try to use
- * "unpack and run" path, then look for properly installed path, not including versioning.
+ * "unpack and run" path, then look for properly installed path, including versioning.
  * @return Unsigned char string pointing to system dir (eg /usr/share/blender/).
  */
-extern const GHOST_TUns8 *GHOST_getSystemDir(void);
+extern const GHOST_TUns8 *GHOST_getSystemDir(int version, const char *versionstr);
 
 /**
- * Determine the base dir in which user configuration is stored, not including versioning.
+ * Determine the base dir in which user configuration is stored, including versioning.
  * @return Unsigned char string pointing to user dir (eg ~).
  */
-extern const GHOST_TUns8 *GHOST_getUserDir(void);
+extern const GHOST_TUns8 *GHOST_getUserDir(int version, const char *versionstr);
 
 
 /**

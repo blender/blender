@@ -77,22 +77,6 @@
 #  endif
 #endif /* WIN32 */
 
-/* standard paths */
-#ifdef WIN32
-#  define BLENDER_USER_FORMAT       "%s\\Blender Foundation\\Blender\\%s"
-#  define BLENDER_SYSTEM_FORMAT     "%s\\Blender Foundation\\Blender\\%s"
-#elif defined(__APPLE__)
-#  define BLENDER_USER_FORMAT           "%s/Blender/%s"
-#  define BLENDER_SYSTEM_FORMAT         "%s/Blender/%s"
-#else /* UNIX */
-#  ifndef WITH_XDG_USER_DIRS /* oldschool unix ~/.blender/ */
-#    define BLENDER_USER_FORMAT         "%s/.blender/%s"
-#  else /* new XDG ~/blender/.config/ */
-#    define BLENDER_USER_FORMAT         "%s/blender/%s"
-#  endif // WITH_XDG_USER_DIRS
-#  define BLENDER_SYSTEM_FORMAT         "%s/blender/%s"
-#endif
-
 /* local */
 #define UNIQUE_NAME_MAX 128
 
@@ -822,16 +806,12 @@ void BLI_getlastdir(const char *dir, char *last, const size_t maxlen)
 const char *BLI_getDefaultDocumentFolder(void)
 {
 #ifndef WIN32
+	const char *xdg_documents_dir= getenv("XDG_DOCUMENTS_DIR");
 
-#ifdef WITH_XDG_USER_DIRS
-	const char *xdg_documents_dir = getenv("XDG_DOCUMENTS_DIR");
-	if (xdg_documents_dir) {
+	if (xdg_documents_dir)
 		return xdg_documents_dir;
-	}
-#endif
 
 	return getenv("HOME");
-
 #else /* Windows */
 	static char documentfolder[MAXPATHLEN];
 	HRESULT hResult;
@@ -969,10 +949,9 @@ static int get_path_user(char *targetpath, const char *folder_name, const char *
 		}
 	}
 
-	user_base_path = (const char *)GHOST_getUserDir();
-	if (user_base_path) {
-		BLI_snprintf(user_path, FILE_MAX, BLENDER_USER_FORMAT, user_base_path, blender_version_decimal(ver));
-	}
+	user_base_path = (const char *)GHOST_getUserDir(ver, blender_version_decimal(ver));
+	if (user_base_path)
+		BLI_strncpy(user_path, user_base_path, FILE_MAX);
 
 	if (!user_path[0])
 		return 0;
@@ -1040,10 +1019,9 @@ static int get_path_system(char *targetpath, const char *folder_name, const char
 		}
 	}
 
-	system_base_path = (const char *)GHOST_getSystemDir();
-	if (system_base_path) {
-		BLI_snprintf(system_path, FILE_MAX, BLENDER_SYSTEM_FORMAT, system_base_path, blender_version_decimal(ver));
-	}
+	system_base_path = (const char *)GHOST_getSystemDir(ver, blender_version_decimal(ver));
+	if (system_base_path)
+		BLI_strncpy(system_path, system_base_path, FILE_MAX);
 	
 	if (!system_path[0])
 		return 0;

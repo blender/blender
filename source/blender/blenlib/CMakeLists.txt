@@ -157,10 +157,6 @@ if(WITH_OPENMP)
 	add_definitions(-DPARALLEL=1)
 endif()
 
-if(WITH_XDG_USER_DIRS)
-	add_definitions(-DWITH_XDG_USER_DIRS)
-endif()
-
 if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv
