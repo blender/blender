@@ -1118,7 +1118,8 @@ void BKE_mask_object_shape_from_mask(MaskObject *maskobj, MaskObjectShape *masko
 		}
 	}
 	else {
-		printf("%s: vert mismatch %d != %d\n", __func__, maskobj_shape->tot_vert, tot);
+		printf("%s: vert mismatch %d != %d (frame %d)\n",
+		       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
 	}
 }
 
@@ -1139,7 +1140,8 @@ void BKE_mask_object_shape_to_mask(MaskObject *maskobj, MaskObjectShape *maskobj
 		}
 	}
 	else {
-		printf("%s: vert mismatch %d != %d\n", __func__, maskobj_shape->tot_vert, tot);
+		printf("%s: vert mismatch %d != %d (frame %d)\n",
+		       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
 	}
 }
 
@@ -1177,8 +1179,9 @@ void BKE_mask_object_shape_to_mask_interp(MaskObject *maskobj,
 		}
 	}
 	else {
-		printf("%s: vert mismatch %d != %d != %d\n",
-		       __func__, maskobj_shape_a->tot_vert, maskobj_shape_b->tot_vert, tot);
+		printf("%s: vert mismatch %d != %d != %d (frame %d - %d)\n",
+		       __func__, maskobj_shape_a->tot_vert, maskobj_shape_b->tot_vert, tot,
+		       maskobj_shape_a->frame, maskobj_shape_b->frame);
 	}
 }
 
@@ -1417,7 +1420,8 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 				maskobj_shape->data = data_resized;
 			}
 			else {
-				printf("%s: vert mismatch %d != %d\n", __func__, maskobj_shape->tot_vert, tot);
+				printf("%s: vert mismatch %d != %d (frame %d)\n",
+				       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
 			}
 		}
 	}
