@@ -152,7 +152,7 @@ void ED_object_constraint_update(struct Object *ob);
 void ED_object_constraint_dependency_update(struct Main *bmain, struct Scene *scene, struct Object *ob);
 
 /* object_lattice.c */
-int  mouse_lattice(struct bContext *C, const int mval[2], int extend);
+int  mouse_lattice(struct bContext *C, const int mval[2], int extend, int deselect, int toggle);
 void undo_push_lattice(struct bContext *C, const char *name);
 
 /* object_lattice.c */

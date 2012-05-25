@@ -335,7 +335,7 @@ static BPoint *findnearestLattvert(ViewContext *vc, const int mval[2], int sel)
 	return data.bp;
 }
 
-int mouse_lattice(bContext *C, const int mval[2], int extend)
+int mouse_lattice(bContext *C, const int mval[2], int extend, int deselect, int toggle)
 {
 	ViewContext vc;
 	BPoint *bp = NULL;
@@ -344,12 +344,20 @@ int mouse_lattice(bContext *C, const int mval[2], int extend)
 	bp = findnearestLattvert(&vc, mval, 1);
 
 	if (bp) {
-		if (extend == 0) {
-			ED_setflagsLatt(vc.obedit, 0);
-			bp->f1 |= SELECT;
+	    if (extend) {
+	        bp->f1 |= SELECT;
+	    }
+	    else if (deselect) {
+	        bp->f1 &= ~SELECT;
+	    }
+		else if (toggle) {
+			bp->f1 ^= SELECT;  /* swap */
 		}
 		else
-			bp->f1 ^= SELECT;  /* swap */
+		{
+		    ED_setflagsLatt(vc.obedit, 0);
+			bp->f1 |= SELECT;
+		}
 
 		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, vc.obedit->data);
 

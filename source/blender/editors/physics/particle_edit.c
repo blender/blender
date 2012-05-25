@@ -1294,6 +1294,26 @@ static void select_keys(PEData *data, int point_index, int UNUSED(key_index))
 	point->flag |= PEP_EDIT_RECALC;
 }
 
+static void extend_key_select(PEData *data, int point_index, int key_index)
+{
+	PTCacheEdit *edit = data->edit;
+	PTCacheEditPoint *point = edit->points + point_index;
+	PTCacheEditKey *key = point->keys + key_index;
+
+	key->flag |= PEK_SELECT;
+	point->flag |= PEP_EDIT_RECALC;
+}
+
+static void deselect_key_select(PEData *data, int point_index, int key_index)
+{
+	PTCacheEdit *edit = data->edit;
+	PTCacheEditPoint *point = edit->points + point_index;
+	PTCacheEditKey *key = point->keys + key_index;
+
+	key->flag &= ~PEK_SELECT;
+	point->flag |= PEP_EDIT_RECALC;
+}
+
 static void toggle_key_select(PEData *data, int point_index, int key_index)
 {
 	PTCacheEdit *edit = data->edit;
@@ -1381,7 +1401,7 @@ void PARTICLE_OT_select_all(wmOperatorType *ot)
 
 /************************ pick select operator ************************/
 
-int PE_mouse_particles(bContext *C, const int mval[2], int extend)
+int PE_mouse_particles(bContext *C, const int mval[2], int extend, int deselect, int toggle)
 {
 	PEData data;
 	Scene *scene= CTX_data_scene(C);
@@ -1392,7 +1412,7 @@ int PE_mouse_particles(bContext *C, const int mval[2], int extend)
 	if (!PE_start_edit(edit))
 		return OPERATOR_CANCELLED;
 
-	if (!extend) {
+	if (!extend && !deselect && !toggle) {
 		LOOP_VISIBLE_POINTS {
 			LOOP_SELECTED_KEYS {
 				key->flag &= ~PEK_SELECT;
@@ -1405,7 +1425,13 @@ int PE_mouse_particles(bContext *C, const int mval[2], int extend)
 	data.mval= mval;
 	data.rad= 75.0f;
 
-	for_mouse_hit_keys(&data, toggle_key_select, 1);  /* nearest only */
+	/* 1 = nearest only */
+	if (extend)
+		for_mouse_hit_keys(&data, extend_key_select, 1);
+	else if (deselect)
+		for_mouse_hit_keys(&data, deselect_key_select, 1);
+	else
+		for_mouse_hit_keys(&data, toggle_key_select, 1);
 
 	PE_update_selection(scene, ob, 1);
 	WM_event_add_notifier(C, NC_OBJECT|ND_PARTICLE|NA_SELECTED, data.ob);

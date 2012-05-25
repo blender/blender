@@ -509,7 +509,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 }
 #endif
 
-int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], int extend, int deselect, int toggle)
 {
 	Mesh *me;
 	MPoly *mpoly, *mpoly_sel;
@@ -530,7 +530,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* clear flags */
 	mpoly = me->mpoly;
 	a = me->totpoly;
-	if (!extend) {
+	if (!extend && !deselect && !toggle) {
 		while (a--) {
 			mpoly->flag &= ~ME_FACE_SEL;
 			mpoly++;
@@ -540,6 +540,12 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	me->act_face = (int)index;
 
 	if (extend) {
+		mpoly_sel->flag |= ME_FACE_SEL;
+	}
+	else if (deselect) {
+		mpoly_sel->flag &= ~ME_FACE_SEL;
+	}
+	else if (toggle) {
 		if (mpoly_sel->flag & ME_FACE_SEL)
 			mpoly_sel->flag &= ~ME_FACE_SEL;
 		else
