@@ -1348,7 +1348,7 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 	                                       &spline, &spline_point_index))
 	{
 		/* sanity check */
-		int tot = BKE_mask_object_shape_totvert(maskobj);
+		int tot = BKE_mask_object_shape_totvert(maskobj) - 1;
 
 		/* for interpolation */
 		/* TODO - assumes closed curve for now */
