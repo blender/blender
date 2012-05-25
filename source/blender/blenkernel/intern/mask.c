@@ -1347,6 +1347,9 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 	if (BKE_mask_object_shape_spline_index(maskobj, index,
 	                                       &spline, &spline_point_index))
 	{
+		/* sanity check */
+		int tot = BKE_mask_object_shape_totvert(maskobj);
+
 		/* for interpolation */
 		/* TODO - assumes closed curve for now */
 		float uv[3][2]; /* 3x 2D handles */
@@ -1373,44 +1376,49 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 			 maskobj_shape;
 			 maskobj_shape = maskobj_shape->next)
 		{
-			float *data_resized;
+			if (tot == maskobj_shape->tot_vert) {
+				float *data_resized;
 
-			maskobj_shape->tot_vert++;
-			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
-			if (index > 0) {
-				memcpy(data_resized,
-				       maskobj_shape->data,
-				       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
-			}
+				maskobj_shape->tot_vert++;
+				data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+				if (index > 0) {
+					memcpy(data_resized,
+						   maskobj_shape->data,
+						   index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				}
 
-			if (index != maskobj_shape->tot_vert - 1) {
-				memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
-				       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
-				       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
-			}
+				if (index != maskobj_shape->tot_vert - 1) {
+					memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
+						   maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+						   (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				}
 
-			if (do_init) {
-				float *fp = &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE];
+				if (do_init) {
+					float *fp = &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE];
 
-				mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
+					mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
 
-				if (do_init_interpolate) {
-					for (i = 0; i < 3; i++) {
-						interp_weights_uv_v2_apply(uv[i],
-						                           &fp[i * 2],
-						                           &data_resized[(pi_prev_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)],
-						                           &data_resized[(pi_next_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)]);
+					if (do_init_interpolate) {
+						for (i = 0; i < 3; i++) {
+							interp_weights_uv_v2_apply(uv[i],
+													   &fp[i * 2],
+													   &data_resized[(pi_prev_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)],
+													   &data_resized[(pi_next_abs * MASK_OBJECT_SHAPE_ELEM_SIZE) + (i * 2)]);
+						}
 					}
 				}
+				else {
+					memset(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
+						   0,
+						   sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				}
+
+				MEM_freeN(maskobj_shape->data);
+				maskobj_shape->data = data_resized;
 			}
 			else {
-				memset(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
-				       0,
-				       sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				printf("%s: vert mismatch %d != %d\n", __func__, maskobj_shape->tot_vert, tot);
 			}
-
-			MEM_freeN(maskobj_shape->data);
-			maskobj_shape->data = data_resized;
 		}
 	}
 }
