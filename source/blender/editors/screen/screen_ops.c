@@ -2905,6 +2905,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		Scene *scene = CTX_data_scene(C);
 		wmTimer *wt = screen->animtimer;
 		ScreenAnimData *sad = wt->customdata;
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *window;
 		ScrArea *sa;
 		int sync;
 		float time;
@@ -2985,22 +2987,24 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(CTX_data_main(C), scene, screen, 1);
-		
-		for (sa = screen->areabase.first; sa; sa = sa->next) {
-			ARegion *ar;
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar == sad->ar)
-					ED_region_tag_redraw(ar);
-				else
-				if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
-					ED_region_tag_redraw(ar);
+		ED_update_for_newframe(CTX_data_main(C), scene, 1);
+
+		for (window = wm->windows.first; window; window = window->next) {
+			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
+				ARegion *ar;
+				for (ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar == sad->ar)
+						ED_region_tag_redraw(ar);
+					else
+					if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+						ED_region_tag_redraw(ar);
+				}
+				
+				if (match_area_with_refresh(sa->spacetype, sad->refresh))
+					ED_area_tag_refresh(sa);
 			}
-			
-			if (match_area_with_refresh(sa->spacetype, sad->refresh))
-				ED_area_tag_refresh(sa);
 		}
-		
+			
 		/* update frame rate info too 
 		 * NOTE: this may not be accurate enough, since we might need this after modifiers/etc. 
 		 * have been calculated instead of just before updates have been done?
@@ -3034,13 +3038,26 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 
 /* ****************** anim player, starts or ends timer ***************** */
 
+/* find window that owns the animation timer */
+bScreen *ED_screen_animation_playing(const bContext *C)
+{
+	wmWindowManager *wm = CTX_wm_manager(C);
+	wmWindow *window;
+
+	for (window = wm->windows.first; window; window = window->next)
+		if (window->screen->animtimer)
+			return window->screen;
+	
+	return NULL;
+}
+
 /* toggle operator */
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
 	bScreen *screen = CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (screen->animtimer) {
+	if (ED_screen_animation_playing(C)) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
@@ -3097,9 +3114,9 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
-	bScreen *screen = CTX_wm_screen(C);
+	bScreen *screen = ED_screen_animation_playing(C);
 
-	if (screen->animtimer) {
+	if (screen) {
 		if (RNA_boolean_get(op->ptr, "restore_frame")) {
 			ScreenAnimData *sad = screen->animtimer->customdata;
 			Scene *scene = CTX_data_scene(C);

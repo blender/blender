@@ -1506,7 +1506,7 @@ void ED_screen_set_scene(bContext *C, bScreen *screen, Scene *scene)
 	BKE_scene_set_background(bmain, scene);
 	
 	ED_render_engine_changed(bmain);
-	ED_update_for_newframe(bmain, scene, screen, 1);
+	ED_update_for_newframe(bmain, scene, 1);
 	
 	/* complete redraw */
 	WM_event_add_notifier(C, NC_WINDOW, NULL);
@@ -1750,10 +1750,12 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 	wmWindowManager *wm = CTX_wm_manager(C);
 	wmWindow *win = CTX_wm_window(C);
 	Scene *scene = CTX_data_scene(C);
+	bScreen *stopscreen = ED_screen_animation_playing(C);
 	
-	if (screen->animtimer)
-		WM_event_remove_timer(wm, win, screen->animtimer);
-	screen->animtimer = NULL;
+	if (stopscreen) {
+		WM_event_remove_timer(wm, win, stopscreen->animtimer);
+		stopscreen->animtimer = NULL;
+	}
 	
 	if (enable) {
 		ScreenAnimData *sad = MEM_callocN(sizeof(ScreenAnimData), "ScreenAnimData");
@@ -1777,8 +1779,9 @@ void ED_screen_animation_timer(bContext *C, int redraws, int refresh, int sync, 
 		screen->animtimer->customdata = sad;
 		
 	}
+
 	/* notifier catched by top header, for button */
-	WM_event_add_notifier(C, NC_SCREEN | ND_ANIMPLAY, screen);
+	WM_event_add_notifier(C, NC_SCREEN | ND_ANIMPLAY, NULL);
 }
 
 /* helper for screen_animation_play() - only to be used for TimeLine */
@@ -1821,8 +1824,12 @@ void ED_screen_animation_timer_update(bScreen *screen, int redraws, int refresh)
 
 /* results in fully updated anim system
  * screen can be NULL */
-void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUSED(mute))
-{	
+void ED_update_for_newframe(Main *bmain, Scene *scene, int UNUSED(mute))
+{
+	wmWindowManager *wm = bmain->wm.first;
+	wmWindow *window;
+	int layers = 0;
+
 #ifdef DURIAN_CAMERA_SWITCH
 	void *camera = BKE_scene_camera_switch_find(scene);
 	if (camera && scene->camera != camera) {
@@ -1843,9 +1850,12 @@ void ED_update_for_newframe(Main *bmain, Scene *scene, bScreen *screen, int UNUS
 
 	ED_clip_update_frame(bmain, scene->r.cfra);
 
+	/* get layers from all windows */
+	for (window = wm->windows.first; window; window = window->next)
+		layers |= BKE_screen_visible_layers(window->screen, scene);
+
 	/* this function applies the changes too */
-	/* XXX future: do all windows */
-	BKE_scene_update_for_newframe(bmain, scene, BKE_screen_visible_layers(screen, scene)); /* BKE_scene.h */
+	BKE_scene_update_for_newframe(bmain, scene, layers); /* BKE_scene.h */
 	
 	//if ( (CFRA>1) && (!mute) && (scene->r.audio.flag & AUDIO_SCRUB)) 
 	//	audiostream_scrub( CFRA );

@@ -1528,7 +1528,7 @@ static void track_markers_freejob(void *tmv)
 
 	tmj->clip->tracking_context = NULL;
 	tmj->scene->r.cfra = tmj->lastfra;
-	ED_update_for_newframe(tmj->main, tmj->scene, tmj->screen, 0);
+	ED_update_for_newframe(tmj->main, tmj->scene, 0);
 
 	BKE_tracking_sync(tmj->context);
 	BKE_tracking_context_free(tmj->context);

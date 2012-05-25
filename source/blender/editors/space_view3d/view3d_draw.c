@@ -2997,7 +2997,6 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	bScreen *screen = CTX_wm_screen(C);
 
 	Object *ob;
 
@@ -3026,7 +3025,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		return;
 	}
 
-	if ((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
+	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(C)) {
 		draw_viewport_fps(scene, ar);
 	}
 	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {

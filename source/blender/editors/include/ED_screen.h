@@ -113,10 +113,11 @@ void    ED_screen_full_restore(struct bContext *C, ScrArea *sa);
 struct ScrArea *ED_screen_full_toggle(struct bContext *C, struct wmWindow *win, struct ScrArea *sa);
 
 /* anim */
-void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, struct bScreen *screen, int mute);
+void    ED_update_for_newframe(struct Main *bmain, struct Scene *scene, int mute);
 
 void    ED_refresh_viewport_fps(struct bContext *C);
-int ED_screen_animation_play(struct bContext *C, int sync, int mode);
+int		ED_screen_animation_play(struct bContext *C, int sync, int mode);
+bScreen	*ED_screen_animation_playing(const struct bContext *C);
 
 /* screen keymaps */
 void    ED_operatortypes_screen(void);
