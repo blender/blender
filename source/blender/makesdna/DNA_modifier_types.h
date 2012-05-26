@@ -728,11 +728,12 @@ typedef struct SolidifyModifierData {
 	short mat_ofs_rim;
 } SolidifyModifierData;
 
-#define MOD_SOLIDIFY_RIM			(1<<0)
-#define MOD_SOLIDIFY_EVEN			(1<<1)
-#define MOD_SOLIDIFY_NORMAL_CALC	(1<<2)
-#define MOD_SOLIDIFY_VGROUP_INV		(1<<3)
-#define MOD_SOLIDIFY_RIM_MATERIAL	(1<<4) /* deprecated, used in do_versions */
+#define MOD_SOLIDIFY_RIM            (1 << 0)
+#define MOD_SOLIDIFY_EVEN           (1 << 1)
+#define MOD_SOLIDIFY_NORMAL_CALC    (1 << 2)
+#define MOD_SOLIDIFY_VGROUP_INV     (1 << 3)
+#define MOD_SOLIDIFY_RIM_MATERIAL   (1 << 4) /* deprecated, used in do_versions */
+#define MOD_SOLIDIFY_FLIP           (1 << 5)
 
 typedef struct ScrewModifierData {
 	ModifierData modifier;

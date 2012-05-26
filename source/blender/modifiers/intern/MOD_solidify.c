@@ -50,18 +50,13 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
+/* *** derived mesh high quality normal calculation function  *** */
+/* could be exposed for other functions to use */
+
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */
 	int f2;
 } EdgeFaceRef;
-
-/* spesific function for solidify - define locally */
-BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
-{
-	r[0] += (float)a[0] * f;
-	r[1] += (float)a[1] * f;
-	r[2] += (float)a[2] * f;
-}
 
 static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 {
@@ -207,6 +202,13 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+/* spesific function for solidify - define locally */
+BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
+{
+	r[0] += (float)a[0] * f;
+	r[1] += (float)a[1] * f;
+	r[2] += (float)a[2] * f;
+}
 
 static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
                                   DerivedMesh *dm,
@@ -249,6 +251,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const float ofs_new  = smd->offset + ofs_orig;
 	const float offset_fac_vg = smd->offset_fac_vg;
 	const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
+	const int   do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
 
 	/* weights */
 	MDeformVert *dvert, *dv = NULL;
@@ -420,7 +423,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_new != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_new / 32767.0f;
-			mv = mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? numVerts : 0);
 			dv = dvert;
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (dv) {
@@ -435,7 +438,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_orig != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_orig / 32767.0f;
-			mv = mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* as above but swapped, intentional use 'ofs_new' */
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts); /* as above but swapped, intentional use 'ofs_new' */
 			dv = dvert;
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (dv) {
@@ -536,7 +539,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		if (ofs_new) {
-			mv = mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? numVerts : 0);
 
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (vert_accum[i]) { /* zero if unselected */
@@ -547,7 +550,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_orig) {
 			/* same as above but swapped, intentional use of 'ofs_new' */
-			mv = mvert + ((ofs_new >= ofs_orig) ? numVerts : 0);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts);
 
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (vert_accum[i]) { /* zero if unselected */
