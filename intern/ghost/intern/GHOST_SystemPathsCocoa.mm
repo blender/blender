@@ -50,9 +50,9 @@ GHOST_SystemPathsCocoa::~GHOST_SystemPathsCocoa()
 
 #pragma mark Base directories retrieval
 
-const GHOST_TUns8* GHOST_SystemPathsCocoa::getSystemDir() const
+const GHOST_TUns8* GHOST_SystemPathsCocoa::getSystemDir(int, const char *versionstr) const
 {
-	static GHOST_TUns8 tempPath[512] = "";
+	static char tempPath[512] = "";
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *basePath;
 	NSArray *paths;
@@ -66,15 +66,15 @@ const GHOST_TUns8* GHOST_SystemPathsCocoa::getSystemDir() const
 		return NULL;
 	}
 	
-	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	snprintf(tempPath, sizeof(tempPath), "%s/Blender/%s", [basePath cStringUsingEncoding:NSASCIIStringEncoding], versionstr);
 	
 	[pool drain];
-	return tempPath;
+	return (GHOST_TUns8*)tempPath;
 }
 
-const GHOST_TUns8* GHOST_SystemPathsCocoa::getUserDir() const
+const GHOST_TUns8* GHOST_SystemPathsCocoa::getUserDir(int, const char *versionstr) const
 {
-	static GHOST_TUns8 tempPath[512] = "";
+	static char tempPath[512] = "";
 	NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 	NSString *basePath;
 	NSArray *paths;
@@ -88,10 +88,10 @@ const GHOST_TUns8* GHOST_SystemPathsCocoa::getUserDir() const
 		return NULL;
 	}
 
-	strcpy((char*)tempPath, [basePath cStringUsingEncoding:NSASCIIStringEncoding]);
+	snprintf(tempPath, sizeof(tempPath), "%s/Blender/%s", [basePath cStringUsingEncoding:NSASCIIStringEncoding], versionstr);
 	
 	[pool drain];
-	return tempPath;
+	return (GHOST_TUns8*)tempPath;
 }
 
 const GHOST_TUns8* GHOST_SystemPathsCocoa::getBinaryDir() const

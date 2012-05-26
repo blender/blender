@@ -46,6 +46,10 @@ set(SRC
 	image_intern.h
 )
 
+if(WITH_INTERNATIONAL)
+	add_definitions(-DWITH_INTERNATIONAL)
+endif()
+
 if(WITH_IMAGE_OPENJPEG)
 	add_definitions(-DWITH_OPENJPEG)
 endif()

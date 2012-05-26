@@ -764,7 +764,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 		float rgb[3];
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rct += 4) {
 			rgb_uchar_to_float(rgb, rct);
-			rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+			rgb_to_hsv_v(rgb, hsv);
 			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb + 1, rgb + 2);
 			rgb_float_to_uchar(rct, rgb);
 		}
@@ -772,7 +772,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 
 	if (rctf) {
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4) {
-			rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv + 1, hsv + 2);
+			rgb_to_hsv_v(rctf, hsv);
 			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf + 1, rctf + 2);
 		}
 	}

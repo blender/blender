@@ -419,7 +419,7 @@ static void fluid_init_all_channels(bContext *C, Object *UNUSED(fsDomain), Fluid
 		/* Modifying the global scene isn't nice, but we can do it in 
 		 * this part of the process before a threaded job is created */
 		scene->r.cfra = (int)eval_time;
-		ED_update_for_newframe(CTX_data_main(C), scene, CTX_wm_screen(C), 1);
+		ED_update_for_newframe(CTX_data_main(C), scene, 1);
 		
 		/* now scene data should be current according to animation system, so we fill the channels */
 		
@@ -967,7 +967,7 @@ static int fluidsimBake(bContext *C, ReportList *reports, Object *fsDomain, shor
 
 	/* reset to original current frame */
 	scene->r.cfra = origFrame;
-	ED_update_for_newframe(CTX_data_main(C), scene, CTX_wm_screen(C), 1);
+	ED_update_for_newframe(CTX_data_main(C), scene, 1);
 		
 	/* ******** init domain object's matrix ******** */
 	copy_m4_m4(domainMat, fsDomain->obmat);

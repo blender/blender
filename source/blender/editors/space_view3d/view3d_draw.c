@@ -1863,7 +1863,7 @@ static void draw_dupli_objects_color(Scene *scene, ARegion *ar, View3D *v3d, Bas
 		/* generate displist */
 		if (use_displist == -1) {
 
-			/* note, since this was added, its checked dob->type==OB_DUPLIGROUP
+			/* note, since this was added, its checked (dob->type == OB_DUPLIGROUP)
 			 * however this is very slow, it was probably needed for the NLA
 			 * offset feature (used in group-duplicate.blend but no longer works in 2.5)
 			 * so for now it should be ok to - campbell */
@@ -2994,10 +2994,10 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 
 static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const char *grid_unit)
 {
+	wmWindowManager *wm = CTX_wm_manager(C);
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
-	bScreen *screen = CTX_wm_screen(C);
 
 	Object *ob;
 
@@ -3026,7 +3026,7 @@ static void view3d_main_area_draw_info(const bContext *C, ARegion *ar, const cha
 		return;
 	}
 
-	if ((U.uiflag & USER_SHOW_FPS) && screen->animtimer) {
+	if ((U.uiflag & USER_SHOW_FPS) && ED_screen_animation_playing(wm)) {
 		draw_viewport_fps(scene, ar);
 	}
 	else if (U.uiflag & USER_SHOW_VIEWPORTNAME) {

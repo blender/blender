@@ -1157,9 +1157,9 @@ static void free_anim_redcode(struct anim *anim)
 
 #endif
 
-/* probeer volgende plaatje te lezen */
-/* Geen plaatje, probeer dan volgende animatie te openen */
-/* gelukt, haal dan eerste plaatje van animatie */
+/* Try next picture to read */
+/* No picture, try to open next animation */
+/* Succeed, remove first image from animation */
 
 static ImBuf *anim_getnew(struct anim *anim)
 {

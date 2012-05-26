@@ -927,11 +927,11 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 		return;
 	
 	BLI_strncpy(from, last_seq->strip->dir, sizeof(from));
-// XXX	if (0==sbutton(from, 0, sizeof(from)-1, "From: "))
+// XXX	if (0 == sbutton(from, 0, sizeof(from)-1, "From: "))
 //		return;
 	
 	BLI_strncpy(to, from, sizeof(to));
-// XXX	if (0==sbutton(to, 0, sizeof(to)-1, "To: "))
+// XXX	if (0 == sbutton(to, 0, sizeof(to)-1, "To: "))
 //		return;
 	
 	if (strcmp(to, from) == 0)
@@ -1989,7 +1989,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks ed==NULL */
+	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks (ed == NULL) */
 
 	if (last_seq == NULL || last_seq->type != SEQ_META)
 		return OPERATOR_CANCELLED;

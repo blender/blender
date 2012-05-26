@@ -500,7 +500,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *UNUSED(nu), BP
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
-				/* can only be beztindex==0 here since handles are hidden */
+				/* can only be (beztindex == 0) here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
 			}
 			else {
@@ -1480,15 +1480,18 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 			if (extend) {
 				ED_base_object_select(basact, BA_SELECT);
 			}
-			else if(deselect) {
+			else if (deselect) {
 				ED_base_object_select(basact, BA_DESELECT);
 			}
-			else if(toggle) {
+			else if (toggle) {
 				if (basact->flag & SELECT) {
-					if (basact == oldbasact)
+					if (basact == oldbasact) {
 						ED_base_object_select(basact, BA_DESELECT);
+					}
 				}
-				else ED_base_object_select(basact, BA_SELECT);
+				else {
+					ED_base_object_select(basact, BA_SELECT);
+				}
 			}
 			else {
 				deselectall_except(scene, basact);
@@ -1549,7 +1552,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *UNUSED(nu), BPoi
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
-				/* can only be beztindex==0 here since handles are hidden */
+				/* can only be (beztindex == 0) here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
 			}
 			else {
@@ -2294,7 +2297,7 @@ static void nurbscurve_circle_doSelect(void *userData, Nurb *UNUSED(nu), BPoint 
 		}
 		else {
 			if (cu->drawflag & CU_HIDE_HANDLES) {
-				/* can only be beztindex==0 here since handles are hidden */
+				/* can only be (beztindex == 0) here since handles are hidden */
 				bezt->f1 = bezt->f2 = bezt->f3 = data->select ? (bezt->f2 | SELECT) : (bezt->f2 & ~SELECT);
 			}
 			else {

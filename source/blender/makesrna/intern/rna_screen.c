@@ -94,8 +94,7 @@ static void rna_Screen_redraw_update(Main *UNUSED(bmain), Scene *UNUSED(scene), 
 
 static int rna_Screen_is_animation_playing_get(PointerRNA *ptr)
 {
-	bScreen *sc = (bScreen *)ptr->data;
-	return (sc->animtimer != NULL);
+	return (ED_screen_animation_playing(G.main->wm.first) != NULL);
 }
 
 static int rna_Screen_fullscreen_get(PointerRNA *ptr)

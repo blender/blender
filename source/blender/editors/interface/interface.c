@@ -1437,15 +1437,15 @@ double ui_get_but_val(uiBut *but)
 		}
 	}
 	else if (but->type == HSVSLI) {
-		float h, s, v, *fp;
+		float *fp, hsv[3];
 		
 		fp = (but->editvec) ? but->editvec : (float *)but->poin;
-		rgb_to_hsv(fp[0], fp[1], fp[2], &h, &s, &v);
+		rgb_to_hsv_v(fp, hsv);
 
 		switch (but->str[0]) {
-			case 'H': value = h; break;
-			case 'S': value = s; break;
-			case 'V': value = v; break;
+			case 'H': value = hsv[0]; break;
+			case 'S': value = hsv[1]; break;
+			case 'V': value = hsv[2]; break;
 		}
 	} 
 	else if (but->pointype == CHA) {
@@ -1513,18 +1513,18 @@ void ui_set_but_val(uiBut *but, double value)
 	}
 	else if (but->pointype == 0) ;
 	else if (but->type == HSVSLI) {
-		float h, s, v, *fp;
+		float *fp, hsv[3];
 		
 		fp = (but->editvec) ? but->editvec : (float *)but->poin;
-		rgb_to_hsv(fp[0], fp[1], fp[2], &h, &s, &v);
+		rgb_to_hsv_v(fp, hsv);
 		
 		switch (but->str[0]) {
-			case 'H': h = value; break;
-			case 'S': s = value; break;
-			case 'V': v = value; break;
+			case 'H': hsv[0] = value; break;
+			case 'S': hsv[1] = value; break;
+			case 'V': hsv[2] = value; break;
 		}
 		
-		hsv_to_rgb(h, s, v, fp, fp + 1, fp + 2);
+		hsv_to_rgb_v(hsv, fp);
 		
 	}
 	else {

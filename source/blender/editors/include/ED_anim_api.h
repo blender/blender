@@ -509,7 +509,7 @@ short ANIM_fmodifiers_paste_from_buf(ListBase *modifiers, short replace);
 int getname_anim_fcurve(char *name, struct ID *id, struct FCurve *fcu);
 
 /* Automatically determine a color for the nth F-Curve */
-void getcolor_fcurve_rainbow(int cur, int tot, float *out);
+void getcolor_fcurve_rainbow(int cur, int tot, float out[3]);
 
 /* ----------------- NLA-Mapping ----------------------- */
 /* anim_draw.c */

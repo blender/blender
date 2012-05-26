@@ -2023,7 +2023,7 @@ static int ocean_bake_exec(bContext *C, wmOperator *op)
 		 * this part of the process before a threaded job is created */
 		
 		//scene->r.cfra = f;
-		//ED_update_for_newframe(CTX_data_main(C), scene, CTX_wm_screen(C), 1);
+		//ED_update_for_newframe(CTX_data_main(C), scene, 1);
 		
 		/* ok, this doesn't work with drivers, but is way faster. 
 		 * let's use this for now and hope nobody wants to drive the time value... */

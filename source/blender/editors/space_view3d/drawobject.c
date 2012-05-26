@@ -3864,7 +3864,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 
-				/* voor polys only one normal needed */
+				/* for polys only one normal needed */
 				if (index3_nors_incr) {
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, dl->nors);
@@ -3949,7 +3949,7 @@ static int drawDispList(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *bas
 	int retval = 0;
 
 	/* backface culling */
-	if(v3d->flag2 & V3D_BACKFACE_CULLING) {
+	if (v3d->flag2 & V3D_BACKFACE_CULLING) {
 		/* not all displists use same in/out normal direction convention */
 		glEnable(GL_CULL_FACE);
 		glCullFace((ob->type == OB_MBALL) ? GL_BACK : GL_FRONT);
@@ -6592,7 +6592,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	if (v3d->zbuf == 0 && dt > OB_WIRE) dt = OB_WIRE;
 	dtx = 0;
 
-	/* faceselect exception: also draw solid when dt==wire, except in editmode */
+	/* faceselect exception: also draw solid when (dt == wire), except in editmode */
 	if (is_obact && (ob->mode & (OB_MODE_VERTEX_PAINT | OB_MODE_WEIGHT_PAINT | OB_MODE_TEXTURE_PAINT))) {
 		if (ob->type == OB_MESH) {
 
@@ -6960,7 +6960,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				GPU_create_smoke(smd, 0);
 				draw_volume(ar, smd->domain->tex,
 				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res, smd->domain->dx * smd->domain->scale,
+				            smd->domain->res, smd->domain->dx,
 				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 // #endif
@@ -7013,7 +7013,7 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 				GPU_create_smoke(smd, 1);
 				draw_volume(ar, smd->domain->tex,
 				            smd->domain->p0, smd->domain->p1,
-				            smd->domain->res_wt, smd->domain->dx_wt * smd->domain->scale,
+				            smd->domain->res_wt, smd->domain->dx_wt,
 				            smd->domain->tex_shadow);
 				GPU_free_smoke(smd);
 			}
