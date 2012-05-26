@@ -27,12 +27,7 @@
 
 /** \file guardedalloc/intern/mallocn.c
  *  \ingroup MEM
- */
-
-
-/**
-
- * Copyright (C) 2001 NaN Technologies B.V.
+ *
  * Guarded memory allocation, and boundary-write detection.
  */
 
@@ -65,7 +60,8 @@
 // #define DEBUG_MEMCOUNTER
 
 #ifdef DEBUG_MEMCOUNTER
-#define DEBUG_MEMCOUNTER_ERROR_VAL 0 /* set this to the value that isn't being freed */
+   /* set this to the value that isn't being freed */
+#  define DEBUG_MEMCOUNTER_ERROR_VAL 0
 static int _mallocn_count = 0;
 
 /* breakpoint here */
@@ -131,7 +127,8 @@ static const char *check_memlist(MemHead *memh);
 #define MEMTAG3 MAKE_ID('O', 'C', 'K', '!')
 #define MEMFREE MAKE_ID('F', 'R', 'E', 'E')
 
-#define MEMNEXT(x) ((MemHead *)(((char *) x) - ((char *) &(((MemHead *)0)->next))))
+#define MEMNEXT(x) \
+	((MemHead *)(((char *) x) - ((char *) &(((MemHead *)0)->next))))
 	
 /* --------------------------------------------------------------------- */
 /* vars                                                                  */
@@ -325,7 +322,8 @@ void *MEM_mallocN(size_t len, const char *str)
 		return (++memh);
 	}
 	mem_unlock_thread();
-	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mem_in_use);
+	print_error("Malloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+	            SIZET_ARG(len), str, mem_in_use);
 	return NULL;
 }
 
@@ -350,7 +348,8 @@ void *MEM_callocN(size_t len, const char *str)
 		return (++memh);
 	}
 	mem_unlock_thread();
-	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mem_in_use);
+	print_error("Calloc returns null: len=" SIZET_FORMAT " in %s, total %u\n",
+	            SIZET_ARG(len), str, mem_in_use);
 	return NULL;
 }
 
@@ -381,7 +380,9 @@ void *MEM_mapallocN(size_t len, const char *str)
 	}
 	else {
 		mem_unlock_thread();
-		print_error("Mapalloc returns null, fallback to regular malloc: len=" SIZET_FORMAT " in %s, total %u\n", SIZET_ARG(len), str, mmap_in_use);
+		print_error("Mapalloc returns null, fallback to regular malloc: "
+		            "len=" SIZET_FORMAT " in %s, total %u\n",
+		            SIZET_ARG(len), str, mmap_in_use);
 		return MEM_callocN(len, str);
 	}
 }
@@ -463,11 +464,14 @@ void MEM_printmemlist_stats(void)
 
 	/* sort by length and print */
 	qsort(printblock, totpb, sizeof(MemPrintBlock), compare_len);
-	printf("\ntotal memory len: %.3f MB\n", (double)mem_in_use / (double)(1024 * 1024));
+	printf("\ntotal memory len: %.3f MB\n",
+	       (double)mem_in_use / (double)(1024 * 1024));
 	printf(" ITEMS TOTAL-MiB AVERAGE-KiB TYPE\n");
-	for (a = 0, pb = printblock; a < totpb; a++, pb++)
-		printf("%6d (%8.3f  %8.3f) %s\n", pb->items, (double)pb->len / (double)(1024 * 1024), (double)pb->len / 1024.0 / (double)pb->items, pb->name);
-
+	for (a = 0, pb = printblock; a < totpb; a++, pb++) {
+		printf("%6d (%8.3f  %8.3f) %s\n",
+		       pb->items, (double)pb->len / (double)(1024 * 1024),
+		       (double)pb->len / 1024.0 / (double)pb->items, pb->name);
+	}
 	free(printblock);
 	
 	mem_unlock_thread();
@@ -476,6 +480,26 @@ void MEM_printmemlist_stats(void)
 	malloc_stats();
 #endif
 }
+
+static const char mem_printmemlist_pydict_script[] =
+"mb_userinfo = {}\n"
+"totmem = 0\n"
+"for mb_item in membase:\n"
+"    mb_item_user_size = mb_userinfo.setdefault(mb_item['name'], [0,0])\n"
+"    mb_item_user_size[0] += 1 # Add a user\n"
+"    mb_item_user_size[1] += mb_item['len'] # Increment the size\n"
+"    totmem += mb_item['len']\n"
+"print('(membase) items:', len(membase), '| unique-names:',\n"
+"      len(mb_userinfo), '| total-mem:', totmem)\n"
+"mb_userinfo_sort = list(mb_userinfo.items())\n"
+"for sort_name, sort_func in (('size', lambda a: -a[1][1]),\n"
+"                             ('users', lambda a: -a[1][0]),\n"
+"                             ('name', lambda a: a[0])):\n"
+"    print('\\nSorting by:', sort_name)\n"
+"    mb_userinfo_sort.sort(key = sort_func)\n"
+"    for item in mb_userinfo_sort:\n"
+"        print('name:%%s, users:%%i, len:%%i' %%\n"
+"              (item[0], item[1][0], item[1][1]))\n";
 
 /* Prints in python syntax for easy */
 static void MEM_printmemlist_internal(int pydict)
@@ -489,17 +513,24 @@ static void MEM_printmemlist_internal(int pydict)
 	
 	if (pydict) {
 		print_error("# membase_debug.py\n");
-		print_error("membase = [\\\n");
+		print_error("membase = [\n");
 	}
 	while (membl) {
 		if (pydict) {
-			fprintf(stderr, "{'len':" SIZET_FORMAT ", 'name':'''%s''', 'pointer':'%p'},\\\n", SIZET_ARG(membl->len), membl->name, (void *)(membl + 1));
+			fprintf(stderr,
+			        "    {'len':" SIZET_FORMAT ", "
+			        "'name':'''%s''', "
+			        "'pointer':'%p'},\n",
+			        SIZET_ARG(membl->len), membl->name, (void *)(membl + 1));
 		}
 		else {
 #ifdef DEBUG_MEMCOUNTER
-			print_error("%s len: " SIZET_FORMAT " %p, count: %d\n", membl->name, SIZET_ARG(membl->len), membl + 1, membl->_count);
+			print_error("%s len: " SIZET_FORMAT " %p, count: %d\n",
+			            membl->name, SIZET_ARG(membl->len), membl + 1,
+			            membl->_count);
 #else
-			print_error("%s len: " SIZET_FORMAT " %p\n", membl->name, SIZET_ARG(membl->len), membl + 1);
+			print_error("%s len: " SIZET_FORMAT " %p\n",
+			            membl->name, SIZET_ARG(membl->len), membl + 1);
 #endif
 		}
 		if (membl->next)
@@ -508,22 +539,7 @@ static void MEM_printmemlist_internal(int pydict)
 	}
 	if (pydict) {
 		fprintf(stderr, "]\n\n");
-		fprintf(stderr,
-		        "mb_userinfo = {}\n"
-		        "totmem = 0\n"
-		        "for mb_item in membase:\n"
-		        "\tmb_item_user_size = mb_userinfo.setdefault(mb_item['name'], [0,0])\n"
-		        "\tmb_item_user_size[0] += 1 # Add a user\n"
-		        "\tmb_item_user_size[1] += mb_item['len'] # Increment the size\n"
-		        "\ttotmem += mb_item['len']\n"
-		        "print '(membase) items:', len(membase), '| unique-names:', len(mb_userinfo), '| total-mem:', totmem\n"
-		        "mb_userinfo_sort = mb_userinfo.items()\n"
-		        "for sort_name, sort_func in (('size', lambda a: -a[1][1]), ('users', lambda a: -a[1][0]), ('name', lambda a: a[0])):\n"
-		        "\tprint '\\nSorting by:', sort_name\n"
-		        "\tmb_userinfo_sort.sort(key = sort_func)\n"
-		        "\tfor item in mb_userinfo_sort:\n"
-		        "\t\tprint 'name:%%s, users:%%i, len:%%i' %% (item[0], item[1][0], item[1][1])\n"
-		        );
+		fprintf(stderr, mem_printmemlist_pydict_script);
 	}
 	
 	mem_unlock_thread();
@@ -612,7 +628,10 @@ short MEM_freeN(void *vmemh)        /* anders compileertie niet meer */
 	}
 
 	mem_lock_thread();
-	if ((memh->tag1 == MEMTAG1) && (memh->tag2 == MEMTAG2) && ((memh->len & 0x3) == 0)) {
+	if ((memh->tag1 == MEMTAG1) &&
+	    (memh->tag2 == MEMTAG2) &&
+	    ((memh->len & 0x3) == 0))
+	{
 		memt = (MemTail *)(((char *) memh) + sizeof(MemHead) + memh->len);
 		if (memt->tag3 == MEMTAG3) {
 			
