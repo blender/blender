@@ -18,11 +18,8 @@
  * The Original Code is Copyright (C) 2005 by the Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Daniel Dunbar
- *                 Ton Roosendaal,
- *                 Ben Batt,
- *                 Brecht Van Lommel,
- *                 Campbell Barton
+ * Contributor(s): Campbell Barton
+ *                 Shinsuke Irie
  *
  * ***** END GPL LICENSE BLOCK *****
  *
@@ -75,7 +72,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	mpoly = dm->getPolyArray(dm);
 	mvert = dm->getVertArray(dm);
 	mloop = dm->getLoopArray(dm);
-	
+
 	/* we don't want to overwrite any referenced layers */
 
 	/* Doesn't work here! */
@@ -107,7 +104,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 			unsigned int ml_v1;
 			unsigned int ml_v2;
 			int j;
-			
+
 			f_no = face_nors[i];
 			if (calc_face_nors)
 				mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
@@ -210,9 +207,9 @@ BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
 	r[2] += (float)a[2] * f;
 }
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
-                                  DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+		DerivedMesh *dm,
+		ModifierApplyFlag UNUSED(flag))
 {
 	int i;
 	DerivedMesh *result;
@@ -227,7 +224,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const int numFaces = dm->getNumPolys(dm);
 	int numLoops = 0, newLoops = 0, newFaces = 0, newEdges = 0;
 	int j;
-	
+
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
 	const short mat_ofs = mat_nr_max ? smd->mat_ofs : 0;
@@ -251,7 +248,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const float ofs_new  = smd->offset + ofs_orig;
 	const float offset_fac_vg = smd->offset_fac_vg;
 	const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
-	const int   do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
+	const int do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
 
 	/* weights */
 	MDeformVert *dvert, *dv = NULL;
@@ -262,7 +259,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	numLoops = dm->numLoopData;
 	newLoops = 0;
-	
+
 	orig_mvert = dm->getVertArray(dm);
 	orig_medge = dm->getEdgeArray(dm);
 	orig_mloop = dm->getLoopArray(dm);
@@ -396,9 +393,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			ml2[j].e = ml2[j + 1].e;
 		}
 		ml2[mp->totloop - 1].e = e;
-		
+
 		mp->loopstart += dm->numLoopData;
-		
+
 		for (j = 0; j < mp->totloop; j++) {
 			ml2[j].e += numEdges;
 			ml2[j].v += numVerts;
@@ -450,7 +447,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
 		}
-
 	}
 	else {
 		/* make a face normal layer if not present */
@@ -572,16 +568,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
-		
+
 		/* bugger, need to re-calculate the normals for the new edge faces.
 		 * This could be done in many ways, but probably the quickest way
 		 * is to calculate the average normals for side faces only.
 		 * Then blend them with the normals of the edge verts.
-		 * 
+		 *
 		 * at the moment its easiest to allocate an entire array for every vertex,
 		 * even though we only need edge verts - campbell
 		 */
-		
+
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
@@ -652,13 +648,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			if (flip == FALSE) {
 				ml[j].v = ed->v1;
 				ml[j++].e = eidx;
-				
+
 				ml[j].v = ed->v2;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v2];
-				
+
 				ml[j].v = ed->v2 + numVerts;
 				ml[j++].e = eidx + numEdges;
-				
+
 				ml[j].v = ed->v1 + numVerts;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v1];
 			}
@@ -675,7 +671,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				ml[j].v = ed->v2 + numVerts;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v2];
 			}
-			
+
 			origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
 			origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
 
@@ -697,7 +693,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				int tcr = *cr + crease_inner;
 				*cr = tcr > 255 ? 255 : tcr;
 			}
-			
+
 #ifdef SOLIDIFY_SIDE_NORMALS
 			normal_quad_v3(nor,
 			               mvert[ml[j - 4].v].co,
@@ -713,17 +709,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 #endif
 		}
-		
+
 #ifdef SOLIDIFY_SIDE_NORMALS
 		ed = medge + (numEdges * 2);
 		for (i = 0; i < newEdges; i++, ed++) {
 			float nor_cpy[3];
 			short *nor_short;
 			int j;
-			
+
 			/* note, only the first vertex (lower half of the index) is calculated */
 			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
-			
+
 			for (j = 0; j < 2; j++) { /* loop over both verts of the edge */
 				nor_short = mvert[*(&ed->v1 + j)].no;
 				normal_short_to_float_v3(nor, nor_short);
@@ -744,7 +740,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
-	
+
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if (dvert) {
 		CDDM_calc_normals(result);
