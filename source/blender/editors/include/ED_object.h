@@ -120,18 +120,19 @@ void ED_object_toggle_modes(struct bContext *C, int mode);
 void ED_object_exit_editmode(struct bContext *C, int flag);
 void ED_object_enter_editmode(struct bContext *C, int flag);
 
-void ED_object_location_from_view(struct bContext *C, float *loc);
-void ED_object_rotation_from_view(struct bContext *C, float *rot);
-void ED_object_base_init_transform(struct bContext *C, struct Base *base, float *loc, float *rot);
-float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob, float *loc, float *rot, float primmat[][4]);
+void ED_object_location_from_view(struct bContext *C, float loc[3]);
+void ED_object_rotation_from_view(struct bContext *C, float rot[3]);
+void ED_object_base_init_transform(struct bContext *C, struct Base *base, const float loc[3], const float rot[3]);
+float ED_object_new_primitive_matrix(struct bContext *C, struct Object *editob,
+                                     const float loc[3], const float rot[3], float primmat[][4]);
 
 void ED_object_add_generic_props(struct wmOperatorType *ot, int do_editmode);
 int ED_object_add_generic_invoke(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
-int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op, 
-                                   float *loc, float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned);
+int ED_object_add_generic_get_opts(struct bContext *C, struct wmOperator *op,  float loc[3], float rot[3],
+                                   int *enter_editmode, unsigned int *layer, int *is_view_aligned);
 
-struct Object *ED_object_add_type(struct bContext *C, int type, float *loc,
-                                  float *rot, int enter_editmode, unsigned int layer);
+struct Object *ED_object_add_type(struct bContext *C, int type, const float loc[3], const float rot[3],
+                                  int enter_editmode, unsigned int layer);
 
 void ED_object_single_users(struct Main *bmain, struct Scene *scene, int full);
 void ED_object_single_user(struct Scene *scene, struct Object *ob);
@@ -165,13 +166,17 @@ enum {
 	MODIFIER_APPLY_SHAPE
 };
 
-struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, const char *name, int type);
-int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
+struct ModifierData *ED_object_modifier_add(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+                                            struct Object *ob, const char *name, int type);
+int ED_object_modifier_remove(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+                              struct Object *ob, struct ModifierData *md);
 void ED_object_modifier_clear(struct Main *bmain, struct Scene *scene, struct Object *ob);
 int ED_object_modifier_move_down(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 int ED_object_modifier_move_up(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene, struct Object *ob, struct ModifierData *md);
-int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene, struct Object *ob, struct ModifierData *md, int mode);
+int ED_object_modifier_convert(struct ReportList *reports, struct Main *bmain, struct Scene *scene,
+                               struct Object *ob, struct ModifierData *md);
+int ED_object_modifier_apply(struct ReportList *reports, struct Scene *scene,
+                             struct Object *ob, struct ModifierData *md, int mode);
 int ED_object_modifier_copy(struct ReportList *reports, struct Object *ob, struct ModifierData *md);
 
 #ifdef __cplusplus

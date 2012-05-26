@@ -734,7 +734,7 @@ static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonem
 }
 
 static float dist_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float vec[3], DualQuat *dq,
-                              float mat[][3], float *co)
+                              float mat[][3], const float co[3])
 {
 	Bone *bone = pchan->bone;
 	float fac, contrib = 0.0;
@@ -781,7 +781,7 @@ static float dist_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, f
 }
 
 static void pchan_bone_deform(bPoseChannel *pchan, bPoseChanDeform *pdef_info, float weight, float vec[3], DualQuat *dq,
-                              float mat[][3], float *co, float *contrib)
+                              float mat[][3], const float co[3], float *contrib)
 {
 	float cop[3], bbonemat[3][3];
 	DualQuat bbonedq;

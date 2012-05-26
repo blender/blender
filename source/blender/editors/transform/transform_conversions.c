@@ -5415,7 +5415,7 @@ typedef struct TransDataTracking {
 
 static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
                                   MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                  int area, float *loc, float *rel, float *off, float aspx, float aspy)
+                                  int area, float loc[2], float rel[2], const float off[2], float aspx, float aspy)
 {
 	int anchor = area == TRACK_AREA_POINT && off;
 

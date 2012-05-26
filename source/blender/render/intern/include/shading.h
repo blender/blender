@@ -96,7 +96,7 @@ ListBase *get_lights(struct ShadeInput *shi);
 float lamp_get_visibility(struct LampRen *lar, const float co[3], float lv[3], float *dist);
 void lamp_get_shadow(struct LampRen *lar, ShadeInput *shi, float inp, float shadfac[4], int do_real);
 
-float	fresnel_fac(float *view, float *vn, float fresnel, float fac);
+float	fresnel_fac(const float view[3], const float vn[3], float fresnel, float fac);
 
 /* rayshade.c */
 extern void shade_ray(struct Isect *is, struct ShadeInput *shi, struct ShadeResult *shr);

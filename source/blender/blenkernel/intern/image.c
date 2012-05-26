@@ -592,10 +592,12 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = (float *)ibuf->rect_float;
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
+		ibuf->profile = IB_PROFILE_SRGB;
 	}
 	
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));

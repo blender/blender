@@ -130,7 +130,7 @@
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
 
-static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
+static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float hasize)
 {
 	HaloRen *har;
 	float hoco[4];
@@ -1324,7 +1324,8 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 
 }
 
-static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed, float *pa_co)
+static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd,
+                           const float loc[3], const float loc1[3], int seed, float *pa_co)
 {
 	HaloRen *har=0;
 

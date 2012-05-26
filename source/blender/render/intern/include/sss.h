@@ -42,13 +42,13 @@ struct ScatterTree;
 typedef struct ScatterTree ScatterTree;
 
 ScatterSettings *scatter_settings_new(float refl, float radius, float ior,
-	float reflfac, float frontweight, float backweight);
+                                      float reflfac, float frontweight, float backweight);
 void scatter_settings_free(ScatterSettings *ss);
 
 ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
-	float (*co)[3], float (*color)[3], float *area, int totpoint);
+                              float (*co)[3], float (*color)[3], float *area, int totpoint);
 void scatter_tree_build(ScatterTree *tree);
-void scatter_tree_sample(ScatterTree *tree, float *co, float *color);
+void scatter_tree_sample(ScatterTree *tree, const float co[3], float color[3]);
 void scatter_tree_free(ScatterTree *tree);
 
 /* Internal renderer API */
@@ -61,7 +61,7 @@ void make_sss_tree(struct Render *re);
 void sss_add_points(Render *re, float (*co)[3], float (*color)[3], float *area, int totpoint);
 void free_sss(struct Render *re);
 
-int sample_sss(struct Render *re, struct Material *mat, float *co, float *col);
+int sample_sss(struct Render *re, struct Material *mat, const float co[3], float color[3]);
 int sss_pass_done(struct Render *re, struct Material *mat);
 
 #endif /*__SSS_H__*/

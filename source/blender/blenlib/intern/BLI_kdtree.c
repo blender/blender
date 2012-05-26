@@ -73,7 +73,7 @@ void BLI_kdtree_free(KDTree *tree)
 	}
 }
 
-void BLI_kdtree_insert(KDTree *tree, int index, float *co, float *nor)
+void BLI_kdtree_insert(KDTree *tree, int index, const float co[3], const float nor[3])
 {
 	KDTreeNode *node = &tree->nodes[tree->totnode++];
 
@@ -132,7 +132,7 @@ void BLI_kdtree_balance(KDTree *tree)
 	tree->root = kdtree_balance(tree->nodes, tree->totnode, 0);
 }
 
-static float squared_distance(const float v2[3], const float v1[3], float *UNUSED(n1), float *n2)
+static float squared_distance(const float v2[3], const float v1[3], const float *UNUSED(n1), const float *n2)
 {
 	float d[3], dist;
 
@@ -258,7 +258,7 @@ static void add_nearest(KDTreeNearest *ptn, int *found, int n, int index, float 
 }
 
 /* finds the nearest n entries in tree to specified coordinates */
-int BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTreeNearest *nearest)
+int BLI_kdtree_find_n_nearest(KDTree *tree, int n, const float co[3], const float nor[3], KDTreeNearest *nearest)
 {
 	KDTreeNode *root, *node = NULL;
 	KDTreeNode **stack, *defaultstack[100];
@@ -373,7 +373,7 @@ static void add_in_range(KDTreeNearest **ptn, int found, int *totfoundstack, int
 	to->dist = sqrt(dist);
 	copy_v3_v3(to->co, co);
 }
-int BLI_kdtree_range_search(KDTree *tree, float range, float *co, float *nor, KDTreeNearest **nearest)
+int BLI_kdtree_range_search(KDTree *tree, float range, const float co[3], const float nor[3], KDTreeNearest **nearest)
 {
 	KDTreeNode *root, *node = NULL;
 	KDTreeNode **stack, *defaultstack[100];

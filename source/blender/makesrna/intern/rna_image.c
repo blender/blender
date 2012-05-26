@@ -53,6 +53,7 @@ static EnumPropertyItem image_source_items[] = {
 
 #ifdef RNA_RUNTIME
 
+#include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
 
 static void rna_Image_animated_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -285,6 +286,15 @@ static int rna_Image_depth_get(PointerRNA *ptr)
 	BKE_image_release_ibuf(im, lock);
 
 	return planes;
+}
+
+static int rna_Image_frame_duration_get(PointerRNA *ptr)
+{
+	Image *im = (Image *)ptr->data;
+
+	if (im->anim)
+		return IMB_anim_get_duration(im->anim, IMB_TC_RECORD_RUN);
+	return 1;
 }
 
 static int rna_Image_pixels_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
@@ -628,6 +638,11 @@ static void rna_def_image(BlenderRNA *brna)
 
 	prop = RNA_def_float_vector(srna, "resolution", 2, NULL, 0, 0, "Resolution", "X/Y pixels per meter", 0, 0);
 	RNA_def_property_float_funcs(prop, "rna_Image_resolution_get", "rna_Image_resolution_set", NULL);
+
+	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_funcs(prop, "rna_Image_frame_duration_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Duration", "Duration (in frames) of the image (1 when not a video/sequence)");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 
 	prop = RNA_def_property(srna, "pixels", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_DYNAMIC);

@@ -814,7 +814,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 }
 
 
-static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -852,7 +852,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 /* ------------------------------------------------------------------------- */
 
 /* mtex argument only for projection switches */
-static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap(MTex *mtex, VlakRen *vlr, const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	int proj[4]={0, ME_PROJXY, ME_PROJXZ, ME_PROJYZ}, ret= 0;
 	
@@ -910,7 +910,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z
 
 /* ------------------------------------------------------------------------- */
 
-static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_ob(Object *ob, const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -944,7 +944,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 
 /* ------------------------------------------------------------------------- */
 
-static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *dxt, float *dyt)
+static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, const float n[3], float *dxt, float *dyt)
 {
 	Tex *tex;
 	Object *ob= NULL;
@@ -2690,7 +2690,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 }
 
 
-void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col, float *val, Render *re)
+void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_r[3], float *val, Render *re)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -2811,17 +2811,17 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 				/* used for emit */
 				if ((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
 					float colemitfac= mtex->colemitfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, colemitfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, colemitfac, mtex->blendtype);
 				}
 				
 				if ((mapto_flag & MAP_REFLECTION_COL) && (mtex->mapto & MAP_REFLECTION_COL)) {
 					float colreflfac= mtex->colreflfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, colreflfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, colreflfac, mtex->blendtype);
 				}
 				
 				if ((mapto_flag & MAP_TRANSMISSION_COL) && (mtex->mapto & MAP_TRANSMISSION_COL)) {
 					float coltransfac= mtex->coltransfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, coltransfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, coltransfac, mtex->blendtype);
 				}
 			}
 			
@@ -3508,7 +3508,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 
 /* A modified part of shadeinput.c -> shade_input_set_uv()
  *  Used for sampling UV mapped texture color */
-static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
+static void textured_face_generate_uv(float *uv, const float normal[3], float *hit, float *v1, float *v2, float *v3)
 {
 
 	float detsh, t00, t10, t01, t11;

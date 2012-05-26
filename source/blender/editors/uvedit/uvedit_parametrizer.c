@@ -3596,7 +3596,7 @@ typedef struct SmoothNode {
 	int axis, ntri;
 } SmoothNode;
 
-static void p_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *b)
+static void p_barycentric_2d(const float v1[2], const float v2[2], const float v3[2], float p[2], float b[2])
 {
 	float a[2], c[2], h[2], div;
 

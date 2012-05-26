@@ -88,6 +88,7 @@
 #include "object_intern.h"
 
 static void modifier_skin_customdata_ensure(struct Object *ob);
+static void modifier_skin_customdata_delete(struct Object *ob);
 
 /******************************** API ****************************/
 
@@ -230,6 +231,21 @@ static int object_modifier_remove(Object *ob, ModifierData *md, int *sort_depsgr
 		if (ok) {
 			multires_customdata_delete(ob->data);
 		}
+	}
+	else if (md->type == eModifierType_Skin) {
+		int ok = 1;
+		ModifierData *tmpmd;
+
+		/* ensure skin CustomData layer isn't used by another skin modifier */
+		for (tmpmd = ob->modifiers.first; tmpmd; tmpmd = tmpmd->next) {
+			if (tmpmd != md && tmpmd->type == eModifierType_Skin) {
+				ok = 0;
+				break;
+			}
+		}
+
+		if (ok)
+			modifier_skin_customdata_delete(ob);
 	}
 
 	if (ELEM(md->type, eModifierType_Softbody, eModifierType_Cloth) &&
@@ -1367,6 +1383,17 @@ static void modifier_skin_customdata_ensure(Object *ob)
 		/* Mark an arbitrary vertex as root */
 		vs->flag |= MVERT_SKIN_ROOT;
 	}
+}
+
+static void modifier_skin_customdata_delete(Object *ob)
+{
+	Mesh *me = ob->data;
+	BMEditMesh *em = me->edit_btmesh;
+	
+	if (em)
+		BM_data_layer_free(em->bm, &em->bm->vdata, CD_MVERT_SKIN);
+	else
+		CustomData_free_layer_active(&me->vdata, CD_MVERT_SKIN, me->totvert);
 }
 
 static int skin_poll(bContext *C)
