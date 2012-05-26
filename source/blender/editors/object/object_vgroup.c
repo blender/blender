@@ -429,7 +429,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 
 	/*create new and overwrite vertex group on destination without data*/
-	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_option == REPLACE_ALL_WEIGHTS){
+	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_option == REPLACE_ALL_WEIGHTS) {
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
@@ -469,7 +469,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			}
 
 			/* loop through the vertices*/
-			for (i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_dst++){
+			for (i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_dst++) {
 
 				/*copy weight*/
 				dw_src = defvert_verify_index(*dv_array_src, index_src);
@@ -483,7 +483,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -515,7 +515,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -531,8 +531,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/*project onto face*/
 				normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co,
-				                       mv_src[mface_src[nearest.index].v2].co,
-				                       mv_src[mface_src[nearest.index].v3].co);
+				              mv_src[mface_src[nearest.index].v2].co,
+				              mv_src[mface_src[nearest.index].v3].co);
 
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
@@ -546,7 +546,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				weight = tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v1], index_src)->weight;
 				weight += tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v2], index_src)->weight;
 				weight += tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v3], index_src)->weight;
-				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0){
+				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) {
 					weight += tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v4], index_src)->weight;
 				}
 
@@ -568,7 +568,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/*loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++){
+			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -591,9 +591,9 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v1;
 				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
 				else index_nearest_vertex = mface_src[index_nearest].v3;
-				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0){
+				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) {
 					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v4].co);
-					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3){
+					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
 						index_nearest_vertex = mface_src[index_nearest].v4;
 					}
 				}
@@ -2962,7 +2962,7 @@ static int vertex_group_copy_to_selected_exec(bContext *C, wmOperator *op)
 	int change = 0;
 	int fail = 0;
 
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		if (obact != ob) {
 			if (ED_vgroup_copy_array(ob, obact)) change++;
@@ -3011,10 +3011,11 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	ReplaceOption replace_option = 1;
 
 	/*Macro to loop through selected objects and perform operation depending on function, option and method*/
-	CTX_DATA_BEGIN(C, Object*, ob_slc, selected_editable_objects) {
+	CTX_DATA_BEGIN(C, Object *, ob_slc, selected_editable_objects)
+	{
 
-		if (ob_act != ob_slc){
-			switch(vertex_group_option){
+		if (ob_act != ob_slc) {
+			switch (vertex_group_option) {
 
 				case REPLACE_SINGLE_VERTEX_GROUP:
 					if (ED_vgroup_transfer_weight(ob_slc, ob_act, BLI_findlink(&ob_act->defbase, ob_act->actdef - 1), method_option, replace_option))
@@ -3023,7 +3024,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
-					for (dg_src = ob_act->defbase.first; dg_src; dg_src = dg_src->next){
+					for (dg_src = ob_act->defbase.first; dg_src; dg_src = dg_src->next) {
 						if (ED_vgroup_transfer_weight(ob_slc, ob_act, dg_src, method_option, replace_option)) change++;
 						else fail++;
 					}
@@ -3034,8 +3035,8 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 	/*Event notifiers for correct display of data*/
 	DAG_id_tag_update(&ob_slc->id, OB_RECALC_DATA);
-	WM_event_add_notifier(C, NC_OBJECT|ND_DRAW, ob_slc);
-	WM_event_add_notifier(C, NC_GEOM|ND_DATA, ob_slc->data);
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_slc);
+	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob_slc->data);
 
 	CTX_DATA_END;
 
@@ -3061,7 +3062,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->exec = vertex_group_transfer_weight_exec;
 
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 static EnumPropertyItem vgroup_items[] = {
