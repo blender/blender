@@ -36,30 +36,30 @@
  * add 1 pixel to into filtered three lines
  * (float vecs to float vec)
  */
-void add_filt_fmask(unsigned int mask, float *col, float *rowbuf, int row_w);
+void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int row_w);
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize);
-void add_filt_fmask_coord(float filt[][3], float *col, float *rowbuf, int row_w, int col_h, int x, int y);
+void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, int row_w, int col_h, int x, int y);
 void mask_array(unsigned int mask, float filt[][3]);
 
 /**
  * Alpha-over blending for floats.
  */
-void addAlphaOverFloat(float *dest, float *source);  
+void addAlphaOverFloat(float dest[4], const float source[4]);
 
 /**
  * Alpha-under blending for floats.
  */
-void addAlphaUnderFloat(float *dest, float *source);  
+void addAlphaUnderFloat(float dest[4], const float source[4]);
 
 
 /**
  * Same for floats
  */
-void addalphaAddfacFloat(float *dest, float *source, char addfac);
+void addalphaAddfacFloat(float dest[4], const float source[4], char addfac);
 
 /**
  * dest = dest + source
  */
-void addalphaAddFloat(float *dest, float *source);
+void addalphaAddFloat(float dest[4], const float source[4]);
 
 #endif /* __PIXELBLENDING_H__ */
