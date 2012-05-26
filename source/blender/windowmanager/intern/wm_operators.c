@@ -2155,7 +2155,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life, apply_modifiers, include_bone_children;
+	int selected, second_life, apply_modifiers, include_bone_children, use_object_instantiation;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2165,11 +2165,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 
 	/* Options panel */
-	selected              = RNA_boolean_get(op->ptr, "selected");
-	apply_modifiers       = RNA_boolean_get(op->ptr, "apply_modifiers");
-    include_bone_children = RNA_boolean_get(op->ptr, "include_bone_children");
-
-	second_life           = RNA_boolean_get(op->ptr, "second_life");
+	selected                 = RNA_boolean_get(op->ptr, "selected");
+	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
+    include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
+    use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
@@ -2180,6 +2180,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		selected,
 		apply_modifiers,
 		include_bone_children,
+		use_object_instantiation,
 		second_life)) {
 		return OPERATOR_FINISHED;
 	}
@@ -2210,6 +2211,9 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "include_bone_children", 0, "Include Bone Children",
 	                "Include all objects attached to bones of selected Armature(s)");
+
+	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
+		            "Instantiate multiple Objects from same Data");
 
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");

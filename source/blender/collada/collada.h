@@ -43,6 +43,7 @@ extern "C" {
 		int selected,
 		int apply_modifiers,
 		int include_bone_children,
+		int use_object_instantiation,
 		int second_life);
 #ifdef __cplusplus
 }
