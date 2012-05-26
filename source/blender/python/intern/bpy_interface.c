@@ -178,7 +178,7 @@ void BPY_modules_update(bContext *C)
 
 	/* refreshes the main struct */
 	BPY_update_rna_module();
-	if(bpy_context_module)
+	if (bpy_context_module)
 		bpy_context_module->ptr.data = (void *)C;
 }
 
@@ -421,9 +421,9 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 
 				fclose(fp);
 
-				pystring = MEM_mallocN(strlen(fn) + 32, "pystring");
+				pystring = MEM_mallocN(strlen(fn) + 36, "pystring");
 				pystring[0] = '\0';
-				sprintf(pystring, "exec(open(r'%s').read())", fn);
+				sprintf(pystring, "f=open(r'%s');exec(f.read());f.close()", fn);
 				py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
 				MEM_freeN(pystring);
 			}
@@ -660,7 +660,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 	PyObject *pyctx = (PyObject *)CTX_py_dict_get(C);
 	PyObject *item = PyDict_GetItemString(pyctx, member);
 	PointerRNA *ptr = NULL;
-	int done = 0;
+	int done = FALSE;
 
 	if (item == NULL) {
 		/* pass */
@@ -673,7 +673,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 
 		//result->ptr = ((BPy_StructRNA *)item)->ptr;
 		CTX_data_pointer_set(result, ptr->id.data, ptr->type, ptr->data);
-		done = 1;
+		done = TRUE;
 	}
 	else if (PySequence_Check(item)) {
 		PyObject *seq_fast = PySequence_Fast(item, "bpy_context_get sequence conversion");
@@ -703,7 +703,7 @@ int BPY_context_member_get(bContext *C, const char *member, bContextDataResult *
 			}
 			Py_DECREF(seq_fast);
 
-			done = 1;
+			done = TRUE;
 		}
 	}
 

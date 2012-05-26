@@ -238,8 +238,8 @@ wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 	BLI_strncpy(win->screenname, win->screen->id.name + 2, sizeof(win->screenname));
 	win->screen->winid = win->winid;
 
-	win->screen->do_refresh = 1;
-	win->screen->do_draw = 1;
+	win->screen->do_refresh = TRUE;
+	win->screen->do_draw = TRUE;
 
 	win->drawmethod = -1;
 	win->drawdata = NULL;
@@ -477,7 +477,7 @@ wmWindow *WM_window_open(bContext *C, rcti *rect)
 
 /* uses screen->temp tag to define what to do, currently it limits
  * to only one "temp" window for render out, preferences, filewindow, etc */
-/* type is #define in WM_api.h */
+/* type is defined in WM_api.h */
 
 void WM_window_open_temp(bContext *C, rcti *position, int type)
 {

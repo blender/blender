@@ -33,7 +33,7 @@ void VectorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 {
 	VectorCurveOperation *operation = new VectorCurveOperation();
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 
 	operation->setCurveMapping((CurveMapping*)this->getbNode()->storage);

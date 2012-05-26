@@ -2916,7 +2916,7 @@ ImBuf *BKE_tracking_distortion_exec(MovieDistortion *distortion, MovieTracking *
 		}
 #endif
 
-		ibuf->userflags |= IB_RECT_INVALID;
+		resibuf->userflags |= IB_RECT_INVALID;
 	}
 	else {
 #ifdef WITH_LIBMV

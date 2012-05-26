@@ -614,7 +614,7 @@ typedef struct ParticleRenderData {
 	float viewmat[4][4], winmat[4][4];
 	int winx, winy;
 
-	int dosimplify;
+	int do_simplify;
 	int timeoffset;
 	ParticleRenderElem *elems;
 	int *origindex;
@@ -821,7 +821,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	if (data->elems)
 		MEM_freeN(data->elems);
 
-	data->dosimplify = 1;
+	data->do_simplify = TRUE;
 	data->elems = elems;
 	data->origindex = origindex;
 
@@ -960,7 +960,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 		return 0;
 	
 	data = psys->renderdata;
-	if (!data->dosimplify)
+	if (!data->do_simplify)
 		return 0;
 	
 	b = (data->origindex) ? data->origindex[cpa->num] : cpa->num;
@@ -3465,7 +3465,7 @@ ModifierData *object_add_particle_system(Scene *scene, Object *ob, const char *n
 
 	md = modifier_new(eModifierType_ParticleSystem);
 
-	if (name) BLI_strncpy(md->name, name, sizeof(md->name));
+	if (name) BLI_strncpy_utf8(md->name, name, sizeof(md->name));
 	else BLI_snprintf(md->name, sizeof(md->name), "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
 	modifier_unique_name(&ob->modifiers, md);
 

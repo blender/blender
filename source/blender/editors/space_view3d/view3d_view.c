@@ -142,7 +142,7 @@ void smooth_view(bContext *C, View3D *v3d, ARegion *ar, Object *oldcamera, Objec
 	sms.to_camera = 0;
 
 	/* note on camera locking, this is a little confusing but works ok.
-	 * we may be changing the view 'as if' there is no active camera, but infact
+	 * we may be changing the view 'as if' there is no active camera, but in fact
 	 * there is an active camera which is locked to the view.
 	 *
 	 * In the case where smooth view is moving _to_ a camera we don't want that

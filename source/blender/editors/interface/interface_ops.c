@@ -368,7 +368,7 @@ static void UI_OT_reset_default_button(wmOperatorType *ot)
 
 static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb, int *use_path)
 {
-	*use_path = 0;
+	*use_path = FALSE;
 
 	if (RNA_struct_is_a(ptr->type, &RNA_EditBone))
 		*lb = CTX_data_collection_get(C, "selected_editable_bones");
@@ -381,7 +381,7 @@ static int copy_to_selected_list(bContext *C, PointerRNA *ptr, ListBase *lb, int
 
 		if (id && GS(id->name) == ID_OB) {
 			*lb = CTX_data_collection_get(C, "selected_editable_objects");
-			*use_path = 1;
+			*use_path = TRUE;
 		}
 		else
 			return 0;

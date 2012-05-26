@@ -136,7 +136,7 @@ void quicktime_exit(void)
 
 
 #ifdef _WIN32
-char *get_valid_qtname(char *name)
+const char *get_valid_qtname(char *name)
 {
 	TCHAR Buffer[MAX_PATH];
 	DWORD dwRet;

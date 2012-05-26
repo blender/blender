@@ -389,7 +389,7 @@ static PyObject *pyop_getrna(PyObject *UNUSED(self), PyObject *value)
 		return NULL;
 	}
 	ot = WM_operatortype_find(opname, TRUE);
-	if (ot  == NULL) {
+	if (ot == NULL) {
 		PyErr_Format(PyExc_KeyError, "_bpy.ops.get_rna(\"%s\") not found", opname);
 		return NULL;
 	}

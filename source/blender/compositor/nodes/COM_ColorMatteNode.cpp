@@ -42,8 +42,8 @@ void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	bNode *editorsnode = getbNode();
 	operation->setSettings((NodeChroma*)editorsnode->storage);
 
-	inputSocketImage->relinkConnections(operationRGBToHSV_Image->getInputSocket(0), true, 0, graph);
-	inputSocketKey->relinkConnections(operationRGBToHSV_Key->getInputSocket(0), true, 1, graph);
+	inputSocketImage->relinkConnections(operationRGBToHSV_Image->getInputSocket(0), 0, graph);
+	inputSocketKey->relinkConnections(operationRGBToHSV_Key->getInputSocket(0), 1, graph);
 
 	addLink(graph, operationRGBToHSV_Image->getOutputSocket(), operation->getInputSocket(0));
 	addLink(graph, operationRGBToHSV_Key->getOutputSocket(), operation->getInputSocket(1));

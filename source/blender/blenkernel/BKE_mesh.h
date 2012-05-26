@@ -111,6 +111,10 @@ int poly_find_loop_from_vert(const struct MPoly *poly,
 int poly_get_adj_loops_from_vert(unsigned adj_r[3], const struct MPoly *poly,
                                  const struct MLoop *mloop, unsigned vert);
 
+/* Return the index of the edge vert that is not equal to 'v'. If
+ * neither edge vertex is equal to 'v', returns -1. */
+int BKE_mesh_edge_other_vert(const struct MEdge *e, int v);
+
 /* update the hide flag for edges and polys from the corresponding
  * flag in verts */
 void BKE_mesh_flush_hidden_from_verts(const struct MVert *mvert,

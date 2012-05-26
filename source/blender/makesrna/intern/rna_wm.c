@@ -1783,7 +1783,7 @@ static void rna_def_keyconfig(BlenderRNA *brna)
 	RNA_def_struct_name_property(srna, prop);
 	RNA_def_property_update(prop, 0, "rna_KeyMapItem_update");
 
-	/* this is infact the operator name, but if the operator can't be found we
+	/* this is in fact the operator name, but if the operator can't be found we
 	 * fallback on the operator ID */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);

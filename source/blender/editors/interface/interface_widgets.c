@@ -127,8 +127,11 @@ typedef struct uiWidgetType {
 
 /* *********************** draw data ************************** */
 
-static float cornervec[WIDGET_CURVE_RESOLU][2] = {{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067}, {0.55, 0.169},
-												  {0.707, 0.293}, {0.831, 0.45}, {0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}};
+static float cornervec[WIDGET_CURVE_RESOLU][2] = {
+	{0.0, 0.0}, {0.195, 0.02}, {0.383, 0.067},
+	{0.55, 0.169}, {0.707, 0.293}, {0.831, 0.45},
+	{0.924, 0.617}, {0.98, 0.805}, {1.0, 1.0}
+};
 
 #define WIDGET_AA_JITTER 8
 static float jit[WIDGET_AA_JITTER][2] = {
@@ -158,10 +161,12 @@ static unsigned int scroll_circle_face[14][3] = {
 	{6, 13, 12}, {6, 12, 7}, {7, 12, 11}, {7, 11, 8}, {8, 11, 10}, {8, 10, 9}
 };
 
-static float menu_tria_vert[6][2] = {
-	{-0.41, 0.16}, {0.41, 0.16}, {0, 0.82},
-	{0, -0.82}, {-0.41, -0.16}, {0.41, -0.16}
-};
+
+static float menu_tria_vert[6][2]= {
+{-0.33, 0.16}, {0.33, 0.16}, {0, 0.82}, 
+{0, -0.82}, {-0.33, -0.16}, {0.33, -0.16}};
+
+
 
 static unsigned int menu_tria_face[2][3] = {{2, 0, 1}, {3, 5, 4}};
 
@@ -1160,11 +1165,13 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 	
 	if (fstyle->kerning == 1)
 		BLF_disable(fstyle->uifont_id, BLF_KERNING_DEFAULT);
-	
-	//	ui_rasterpos_safe(x, y, but->aspect);
-//	if (but->type==IDPOIN) transopts= 0;	// no translation, of course!
-//	else transopts= ui_translate_buttons();
-	
+
+#if 0
+	ui_rasterpos_safe(x, y, but->aspect);
+	if (but->type == IDPOIN) transopts = 0;	// no translation, of course!
+	else transopts = ui_translate_buttons();
+#endif
+
 	/* cut string in 2 parts - only for menu entries */
 	if ((but->block->flag & UI_BLOCK_LOOP)) {
 		if (ELEM5(but->type, SLI, NUM, TEX, NUMSLI, NUMABS) == 0) {
@@ -1878,7 +1885,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 	/* color */
 	ui_get_but_vectorf(but, rgb);
 	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 	copy_v3_v3(hsvo, hsv);
 	
 	/* exception: if 'lock' is set
@@ -1904,7 +1911,7 @@ static void ui_draw_but_HSVCIRCLE(uiBut *but, uiWidgetColors *wcol, rcti *rect)
 		ui_hsvcircle_vals_from_pos(hsv, hsv + 1, rect, centx + co * radius, centy + si * radius);
 		CLAMP(hsv[2], 0.0f, 1.0f); /* for display only */
 
-		hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
+		hsv_to_rgb_v(hsv, col);
 		glColor3fv(col);
 		glVertex2f(centx + co * radius, centy + si * radius);
 	}
@@ -2074,37 +2081,31 @@ void ui_draw_gradient(rcti *rect, const float hsv[3], int type, float alpha)
 
 static void ui_draw_but_HSVCUBE(uiBut *but, rcti *rect)
 {
-	float rgb[3], h, s, v;
+	float rgb[3];
 	float x = 0.0f, y = 0.0f;
 	float *hsv = ui_block_hsv_get(but->block);
-	float hsvn[3];
+	float hsv_n[3];
 	
-	h = hsv[0];
-	s = hsv[1];
-	v = hsv[2];
+	copy_v3_v3(hsv_n, hsv);
 	
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &h, &s, &v);
-
-	hsvn[0] = h;
-	hsvn[1] = s;
-	hsvn[2] = v;
+	rgb_to_hsv_compat_v(rgb, hsv_n);
 	
-	ui_draw_gradient(rect, hsvn, but->a1, 1.f);
+	ui_draw_gradient(rect, hsv_n, but->a1, 1.0f);
 	
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
-			x = v; y = s; break;
+			x = hsv_n[2]; y = hsv_n[1]; break;
 		case UI_GRAD_HV:
-			x = h; y = v; break;
+			x = hsv_n[0]; y = hsv_n[2]; break;
 		case UI_GRAD_HS:
-			x = h; y = s; break;
+			x = hsv_n[0]; y = hsv_n[1]; break;
 		case UI_GRAD_H:
-			x = h; y = 0.5; break;
+			x = hsv_n[0]; y = 0.5; break;
 		case UI_GRAD_S:
-			x = s; y = 0.5; break;
+			x = hsv_n[1]; y = 0.5; break;
 		case UI_GRAD_V:
-			x = v; y = 0.5; break;
+			x = hsv_n[2]; y = 0.5; break;
 	}
 	
 	/* cursor */
@@ -2133,7 +2134,7 @@ static void ui_draw_but_HSV_v(uiBut *but, rcti *rect)
 		color_profile = BLI_PR_NONE;
 
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_v(rgb, hsv);
 	v = hsv[2];
 	
 	if (color_profile)
@@ -3123,10 +3124,18 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 			case MENU:
 			case BLOCK:
 			case ICONTEXTROW:
+				/* new node-link button, not active yet XXX */
 				if (but->flag & UI_BUT_NODE_LINK)
 					wt = widget_type(UI_WTYPE_MENU_NODE_LINK);
-				else if (!but->str[0] && but->icon)
-					wt = widget_type(UI_WTYPE_MENU_ICON_RADIO);
+
+				/* no text, with icon */
+				else if (!but->str[0] && but->icon) {
+					if (but->drawflag & UI_BUT_DRAW_ENUM_ARROWS)
+						wt = widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
+					else
+						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
+				}
+				/* with menu arrows */
 				else
 					wt = widget_type(UI_WTYPE_MENU_RADIO);
 				break;

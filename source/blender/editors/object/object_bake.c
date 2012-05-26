@@ -434,7 +434,7 @@ static void do_multires_bake(MultiresBakeRender *bkr, Image *ima, MPassKnownData
 			bkr->baked_faces++;
 
 			if (bkr->do_update)
-				*bkr->do_update = 1;
+				*bkr->do_update = TRUE;
 
 			if (bkr->progress)
 				*bkr->progress = ((float)bkr->baked_objects + (float)bkr->baked_faces / tot_face) / bkr->tot_obj;
@@ -534,7 +534,7 @@ static void get_ccgdm_data(DerivedMesh *lodm, DerivedMesh *hidm, const int *orig
 		int grid_index = origindex[face_index];
 		int loc_offs = face_index % (1 << (2 * lvl));
 		int cell_index = loc_offs % ((side - 1) * (side - 1));
-		int cell_side = grid_size / (side - 1);
+		int cell_side = (grid_size - 1) / (side - 1);
 		int row = cell_index / (side - 1);
 		int col = cell_index % (side - 1);
 

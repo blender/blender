@@ -225,12 +225,12 @@ enum {
                                  * when temp tagging is handy.
                                  * always assume dirty & clear before use. */
 
-	BM_ELEM_FREESTYLE = (1 << 5), /* used for Freestyle faces and edges */
+	BM_ELEM_DRAW    = (1 << 5), /* edge display */
 
-	/* we have 2 spare flags which is awesome but since we're limited to 8
+	/* we have 1 spare flag which is awesome but since we're limited to 8
 	 * only add new flags with care! - campbell */
-	/* BM_ELEM_SPARE  = (1 << 5), */
 	/* BM_ELEM_SPARE  = (1 << 6), */
+	BM_ELEM_FREESTYLE = (1 << 6), /* used for Freestyle faces and edges */
 
 	BM_ELEM_INTERNAL_TAG = (1 << 7) /* for low level internal API tagging,
                                      * since tools may want to tag verts and

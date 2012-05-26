@@ -169,7 +169,7 @@ void RE_make_stars(Render *re, Scene *scenev3d, void (*initfunc)(void),
 	float vec[4], fx, fy, fz;
 	float fac, starmindist, clipend;
 	float mat[4][4], stargrid, maxrand, maxjit, force, alpha;
-	int x, y, z, sx, sy, sz, ex, ey, ez, done = 0;
+	int x, y, z, sx, sy, sz, ex, ey, ez, done = FALSE;
 	unsigned int totstar= 0;
 	
 	if (initfunc) {
@@ -560,7 +560,7 @@ static void GetTextureCoordinate(const SMikkTSpaceContext * pContext, float fUV[
 	MTFace *tface= RE_vlakren_get_tface(pMesh->obr, vlr, pMesh->obr->actmtface, NULL, 0);
 	const float *coord;
 	
-	if (tface != NULL)	{
+	if (tface != NULL) {
 		coord= tface->uv[vert_index];
 		fUV[0]= coord[0]; fUV[1]= coord[1];
 	}
@@ -586,7 +586,7 @@ static void SetTSpace(const SMikkTSpaceContext * pContext, const float fvTangent
 	SRenderMeshToTangent * pMesh = (SRenderMeshToTangent *) pContext->m_pUserData;
 	VlakRen *vlr= RE_findOrAddVlak(pMesh->obr, face_num);
 	float * ftang= RE_vlakren_get_nmap_tangent(pMesh->obr, vlr, 1);
-	if (ftang!=NULL)	{
+	if (ftang!=NULL) {
 		copy_v3_v3(&ftang[iVert*4+0], fvTangent);
 		ftang[iVert*4+3]=fSign;
 	}
@@ -684,7 +684,7 @@ static void calc_vertexnormals(Render *UNUSED(re), ObjectRen *obr, int do_tangen
 		}
 	}
 
-	if (do_nmap_tangent != 0) {
+	if (do_nmap_tangent != FALSE) {
 		SRenderMeshToTangent mesh2tangent;
 		SMikkTSpaceContext sContext;
 		SMikkTSpaceInterface sInterface;
@@ -1576,7 +1576,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float pa_time, pa_birthtime, pa_dietime;
 	float random, simplify[2], pa_co[3];
 	const float cfra= BKE_scene_frame_get(re->scene);
-	int i, a, k, max_k=0, totpart, dosimplify = 0, dosurfacecache = 0, use_duplimat = 0;
+	int i, a, k, max_k=0, totpart, do_simplify = FALSE, do_surfacecache = FALSE, use_duplimat = FALSE;
 	int totchild=0;
 	int seed, path_nbr=0, orco1=0, num;
 	int totface, *origindex = 0;
@@ -1698,7 +1698,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	if (psys->flag & PSYS_USE_IMAT) {
 		/* psys->imat is the original emitter's inverse matrix, ob->obmat is the duplicated object's matrix */
 		mult_m4_m4m4(duplimat, ob->obmat, psys->imat);
-		use_duplimat = 1;
+		use_duplimat = TRUE;
 	}
 
 /* 2.6 setup strand rendering */
@@ -1745,10 +1745,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			svert= strandbuf->vert;
 
 			if (re->r.mode & R_SPEED)
-				dosurfacecache= 1;
+				do_surfacecache = TRUE;
 			else if ((re->wrld.mode & (WO_AMB_OCC|WO_ENV_LIGHT|WO_INDIRECT_LIGHT)) && (re->wrld.ao_gather_method == WO_AOGATHER_APPROX))
 				if (ma->amb != 0.0f)
-					dosurfacecache= 1;
+					do_surfacecache = TRUE;
 
 			totface= psmd->dm->getNumTessFaces(psmd->dm);
 			origindex= psmd->dm->getTessFaceDataArray(psmd->dm, CD_ORIGINDEX);
@@ -1861,7 +1861,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				get_particle_uvco_mcol(part->from, psmd->dm, parent->fuv, num, &sd);
 			}
 
-			dosimplify = psys_render_simplify_params(psys, cpa, simplify);
+			do_simplify = psys_render_simplify_params(psys, cpa, simplify);
 
 			if (strandbuf) {
 				int orignum= (origindex)? origindex[cpa->num]: cpa->num;
@@ -1893,7 +1893,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strand->vert= svert;
 			copy_v3_v3(strand->orco, sd.orco);
 
-			if (dosimplify) {
+			if (do_simplify) {
 				float *ssimplify= RE_strandren_get_simplify(obr, strand, 1);
 				ssimplify[0]= simplify[0];
 				ssimplify[1]= simplify[1];
@@ -1904,7 +1904,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				copy_v3_v3(snor, sd.surfnor);
 			}
 
-			if (dosurfacecache && num >= 0) {
+			if (do_surfacecache && num >= 0) {
 				int *facenum= RE_strandren_get_face(obr, strand, 1);
 				*facenum= num;
 			}
@@ -2085,7 +2085,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			break;
 	}
 
-	if (dosurfacecache)
+	if (do_surfacecache)
 		strandbuf->surface= cache_strand_surface(re, obr, psmd->dm, mat, timeoffset);
 
 /* 4. clean up */
@@ -3282,8 +3282,8 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 	float *orco=0;
 	int need_orco=0, need_stress=0, need_nmap_tangent=0, need_tangent=0;
 	int a, a1, ok, vertofs;
-	int end, do_autosmooth=0, totvert = 0;
-	int use_original_normals= 0;
+	int end, do_autosmooth = FALSE, totvert = 0;
+	int use_original_normals = FALSE;
 	int recalc_normals = 0;	// false by default
 	int negative_scale;
 
@@ -3358,7 +3358,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 
 	/* attempt to autsmooth on original mesh, only without subsurf */
 	if (do_autosmooth && me->totvert==totvert && me->totface==dm->getNumTessFaces(dm))
-		use_original_normals= 1;
+		use_original_normals= TRUE;
 	
 	ms = (totvert==me->totvert)?me->msticky:NULL;
 	
@@ -3373,7 +3373,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 		for (a=0; a<totvert; a++, mvert++) {
 			ver= RE_findOrAddVert(obr, obr->totvert++);
 			copy_v3_v3(ver->co, mvert->co);
-			if (do_autosmooth==0) {	/* autosmooth on original unrotated data to prevent differences between frames */
+			if (do_autosmooth == FALSE) {	/* autosmooth on original unrotated data to prevent differences between frames */
 				normal_short_to_float_v3(ver->n, mvert->no);
 				mul_m4_v3(mat, ver->co);
 				mul_transposed_m3_v3(imat, ver->n);
@@ -3445,8 +3445,7 @@ static void init_render_mesh(Render *re, ObjectRen *obr, int timeoffset)
 						if ( mface->mat_nr==a1 ) {
 							float len;
 							int edge_mark= 0;
-								
-							int reverse_verts = negative_scale!=0 && do_autosmooth==0;
+							int reverse_verts = (negative_scale != 0 && do_autosmooth == FALSE);
 							int rev_tab[] = {reverse_verts==0 ? 0 : 2, 1, reverse_verts==0 ? 2 : 0, 3};
 							v1= reverse_verts==0 ? mface->v1 : mface->v3;
 							v2= mface->v2;
@@ -3834,7 +3833,8 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		lar->area_sizey= lar->area_size;
 
 		if ((la->sun_effect_type & LA_SUN_EFFECT_SKY) ||
-				(la->sun_effect_type & LA_SUN_EFFECT_AP)) {
+		    (la->sun_effect_type & LA_SUN_EFFECT_AP))
+		{
 			lar->sunsky = (struct SunSky*)MEM_callocN(sizeof(struct SunSky), "sunskyren");
 			lar->sunsky->effect_type = la->sun_effect_type;
 		
@@ -4379,7 +4379,7 @@ static void finalize_render_object(Render *re, ObjectRen *obr, int timeoffset)
 				/* Baking lets us define a quad split order */
 				split_quads(obr, re->r.bake_quad_split);
 			}
-			else if(BKE_object_is_animated(re->scene, ob))
+			else if (BKE_object_is_animated(re->scene, ob))
 				split_quads(obr, 1);
 			else {
 				if ((re->r.mode & R_SIMPLIFY && re->r.simplify_flag & R_SIMPLE_NO_TRIANGULATE) == 0)
@@ -4764,7 +4764,7 @@ void RE_Database_Free(Render *re)
 	free_strand_surface(re);
 	
 	re->totvlak=re->totvert=re->totstrand=re->totlamp=re->tothalo= 0;
-	re->i.convertdone= 0;
+	re->i.convertdone = FALSE;
 
 	re->bakebuf= NULL;
 
@@ -5106,7 +5106,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	re->lampren.first= re->lampren.last= NULL;
 	
 	slurph_opt= 0;
-	re->i.partsdone= 0;	/* signal now in use for previewrender */
+	re->i.partsdone = FALSE;	/* signal now in use for previewrender */
 	
 	/* in localview, lamps are using normal layers, objects only local bits */
 	if (re->lay & 0xFF000000)
@@ -5225,7 +5225,7 @@ void RE_Database_FromScene(Render *re, Main *bmain, Scene *scene, unsigned int l
 	if (re->test_break(re->tbh))
 		RE_Database_Free(re);
 	else
-		re->i.convertdone= 1;
+		re->i.convertdone = TRUE;
 	
 	re->i.infostr= NULL;
 	re->stats_draw(re->sdh, &re->i);
@@ -5712,8 +5712,8 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 				// NT check for fluidsim special treatment
 				fluidmd = (FluidsimModifierData *)modifiers_findByType(obi->ob, eModifierType_Fluidsim);
 				if (fluidmd && fluidmd->fss && (fluidmd->fss->type & OB_FLUIDSIM_DOMAIN)) {
-					// use preloaded per vertex simulation data, only does calculation for step=1
-					// NOTE/FIXME - velocities and meshes loaded unnecessarily often during the database_fromscene_vectors calls...
+					/* use preloaded per vertex simulation data, only does calculation for step=1 */
+					/* NOTE/FIXME - velocities and meshes loaded unnecessarily often during the database_fromscene_vectors calls... */
 					load_fluidsimspeedvectors(re, obi, oldobi->vectors, step);
 				}
 				else {

@@ -234,6 +234,11 @@ static void rna_def_paint(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_low_resolution", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flags", PAINT_FAST_NAVIGATE);
 	RNA_def_property_ui_text(prop, "Fast Navigate", "For multires, show low resolution while navigating the view");
+
+	prop = RNA_def_property(srna, "input_samples", PROP_INT, PROP_UNSIGNED);
+	RNA_def_property_int_sdna(prop, NULL, "num_input_samples");
+	RNA_def_property_ui_range(prop, 1, PAINT_MAX_INPUT_SAMPLES, 0, 0);
+	RNA_def_property_ui_text(prop, "Input Samples", "Average multiple input samples together to smooth the brush stroke");
 }
 
 static void rna_def_sculpt(BlenderRNA  *brna)

@@ -41,7 +41,7 @@ void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		if (socket->isConnected()) {
 			// calculate mean operation
 			CalculateMeanOperation * operation = new CalculateMeanOperation();
-			input->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+			input->relinkConnections(operation->getInputSocket(0), 0, graph);
 			firstOperationConnected = true;
 			operation->setSetting(this->getbNode()->custom1);
 			socket->relinkConnections(operation->getOutputSocket());
@@ -56,7 +56,7 @@ void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				addLink(graph, inputSocket, operation->getInputSocket(0));
 			}
 			else {
-				input->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+				input->relinkConnections(operation->getInputSocket(0), 0, graph);
 			}
 			operation->setSetting(this->getbNode()->custom1);
 			socket->relinkConnections(operation->getOutputSocket());

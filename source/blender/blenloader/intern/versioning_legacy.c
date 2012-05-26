@@ -884,9 +884,9 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 
 		/* let faces have default add factor of 0.0 */
 		while (ma) {
-		  if (!(ma->mode & MA_HALO))
-			  ma->add = 0.0;
-		  ma = ma->id.next;
+			if (!(ma->mode & MA_HALO))
+				ma->add = 0.0;
+			ma = ma->id.next;
 		}
 
 		while (ob) {
@@ -3606,7 +3606,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 				/* check if top parent has compound shape set and if yes, set this object
 				 * to compound shaper as well (was the behavior before, now it's optional) */
 				Object *parent = blo_do_versions_newlibadr(fd, lib, ob->parent);
-				while (parent && parent != ob &&  parent->parent != NULL) {
+				while (parent && parent != ob && parent->parent != NULL) {
 					parent = blo_do_versions_newlibadr(fd, lib, parent->parent);
 				}
 				if (parent) {

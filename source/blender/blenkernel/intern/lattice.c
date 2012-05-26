@@ -658,13 +658,16 @@ void curve_deform_verts(Scene *scene, Object *cuOb, Object *target,
 	 */
 	if (target && target->type == OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
-		if (dm && !dm->getVertData(dm, 0, CD_MDEFORMVERT))
-			use_vgroups = 0;
-		else
-			use_vgroups = 1;
+		if (dm) {
+			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
+		}
+		else {
+			Mesh *me = target->data;
+			use_vgroups = (me->dvert != NULL);
+		}
 	}
 	else {
-		use_vgroups = 0;
+		use_vgroups = FALSE;
 	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {
@@ -801,13 +804,16 @@ void lattice_deform_verts(Object *laOb, Object *target, DerivedMesh *dm,
 	 */
 	if (target && target->type == OB_MESH) {
 		/* if there's derived data without deformverts, don't use vgroups */
-		if (dm && !dm->getVertData(dm, 0, CD_MDEFORMVERT))
-			use_vgroups = 0;
-		else
-			use_vgroups = 1;
+		if (dm) {
+			use_vgroups = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
+		}
+		else {
+			Mesh *me = target->data;
+			use_vgroups = (me->dvert != NULL);
+		}
 	}
 	else {
-		use_vgroups = 0;
+		use_vgroups = FALSE;
 	}
 	
 	if (vgroup && vgroup[0] && use_vgroups) {

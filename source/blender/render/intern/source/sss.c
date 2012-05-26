@@ -652,7 +652,7 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 {
 	ScatterNode *subnode;
 	ScatterPoint **subrefpoints, **tmppoints= tree->tmppoints;
-	int index, nsize[8], noffset[8], i, subco, usednodes, usedi;
+	int index, nsize[8], noffset[8], i, subco, used_nodes, usedi;
 	float submid[3], subsize[3];
 
 	/* stopping condition */
@@ -684,16 +684,16 @@ static void create_octree_node(ScatterTree *tree, ScatterNode *node, float *mid,
 	/* here we check if only one subnode is used. if this is the case, we don't
 	 * create a new node, but rather call this function again, with different
 	 * size and middle position for the same node. */
-	for (usedi=0, usednodes=0, i=0; i<8; i++) {
+	for (usedi=0, used_nodes=0, i=0; i<8; i++) {
 		if (nsize[i]) {
-			usednodes++;
+			used_nodes++;
 			usedi = i;
 		}
 		if (i != 0)
 			noffset[i]= noffset[i-1]+nsize[i-1];
 	}
 	
-	if (usednodes<=1) {
+	if (used_nodes <= 1) {
 		subnode_middle(usedi, mid, subsize, submid);
 		create_octree_node(tree, node, submid, subsize, refpoints, depth+1);
 		return;
@@ -810,12 +810,12 @@ void scatter_tree_build(ScatterTree *tree)
 	sum_radiance(tree, tree->root);
 }
 
-void scatter_tree_sample(ScatterTree *tree, float *co, float *color)
+void scatter_tree_sample(ScatterTree *tree, const float co[3], float color[3])
 {
 	float sco[3];
 
 	copy_v3_v3(sco, co);
-	mul_v3_fl(sco, 1.0f/tree->scale);
+	mul_v3_fl(sco, 1.0f / tree->scale);
 
 	compute_radiance(tree, sco, color);
 }
@@ -874,7 +874,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
 	re->sss_mat= mat;
-	re->i.partsdone= 0;
+	re->i.partsdone = FALSE;
 
 	if (!(re->r.scemode & R_PREVIEWBUTS))
 		re->result= NULL;
@@ -1025,7 +1025,7 @@ void free_sss(Render *re)
 	}
 }
 
-int sample_sss(Render *re, Material *mat, float *co, float *color)
+int sample_sss(Render *re, Material *mat, const float co[3], float color[3])
 {
 	if (re->sss_hash) {
 		SSSData *sss= BLI_ghash_lookup(re->sss_hash, mat);

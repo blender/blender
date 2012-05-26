@@ -38,7 +38,7 @@ void ConvertColourToValueProg::executePixel(float *outputValue, float x, float y
 {
 	float inputColor[4];
 	inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
-	outputValue[0] = ((inputColor[0] + inputColor[1] + inputColor[2])/3.0f)*inputColor[3];
+	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2])/3.0f;
 }
 
 void ConvertColourToValueProg::deinitExecution()

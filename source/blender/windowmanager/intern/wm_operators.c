@@ -2155,7 +2155,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life, apply_modifiers;
+	int selected, second_life, apply_modifiers, include_bone_children;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2165,14 +2165,22 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 
 	/* Options panel */
-	selected        = RNA_boolean_get(op->ptr, "selected");
-	second_life     = RNA_boolean_get(op->ptr, "second_life");
-	apply_modifiers = RNA_boolean_get(op->ptr, "apply_modifiers");
+	selected              = RNA_boolean_get(op->ptr, "selected");
+	apply_modifiers       = RNA_boolean_get(op->ptr, "apply_modifiers");
+    include_bone_children = RNA_boolean_get(op->ptr, "include_bone_children");
+
+	second_life           = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
-	if (collada_export(CTX_data_scene(C), filename, selected, apply_modifiers, second_life)) {
+	if (collada_export(
+		CTX_data_scene(C),
+		filename,
+		selected,
+		apply_modifiers,
+		include_bone_children,
+		second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
@@ -2189,12 +2197,20 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->invoke = wm_collada_export_invoke;
 	ot->exec = wm_collada_export_exec;
 	ot->poll = WM_operator_winactive;
+
+	ot->flag |= OPTYPE_PRESET;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");
+
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
 	                "Apply modifiers (Preview Resolution)");
+
+	RNA_def_boolean(ot->srna, "include_bone_children", 0, "Include Bone Children",
+	                "Include all objects attached to bones of selected Armature(s)");
+
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
 }
@@ -3216,7 +3232,8 @@ static int radial_control_get_path(PointerRNA *ctx_ptr, wmOperator *op,
 		PropertyType prop_type = RNA_property_type(*r_prop);
 
 		if (((flags & RC_PROP_REQUIRE_BOOL) && (prop_type != PROP_BOOLEAN)) ||
-		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT)) {
+		    ((flags & RC_PROP_REQUIRE_FLOAT) && prop_type != PROP_FLOAT))
+		{
 			MEM_freeN(str);
 			BKE_reportf(op->reports, RPT_ERROR,
 			            "Property from path %s is not a float", name);
@@ -4075,7 +4092,7 @@ static EnumPropertyItem *rna_id_itemf(bContext *UNUSED(C), PointerRNA *UNUSED(pt
 	}
 
 	RNA_enum_item_end(&item, &totitem);
-	*do_free = 1;
+	*do_free = TRUE;
 
 	return item;
 }

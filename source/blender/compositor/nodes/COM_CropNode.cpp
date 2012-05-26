@@ -43,7 +43,7 @@ void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	}
 	operation->setCropSettings(cropSettings);
 	operation->setRelative(relative);
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getOutputSocket()->relinkConnections(operation->getOutputSocket());
 	graph->addOperation(operation);
 }

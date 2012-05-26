@@ -41,8 +41,8 @@
 
 
 GHOST_DisplayManager::GHOST_DisplayManager(
-	void)
-: m_settingsInitialized(false)
+    void)
+	: m_settingsInitialized(false)
 {
 }
 
@@ -54,7 +54,7 @@ GHOST_DisplayManager::~GHOST_DisplayManager(void)
 
 GHOST_TSuccess
 GHOST_DisplayManager::initialize(
-	void)
+		void)
 {
 	GHOST_TSuccess success;
 	if (!m_settingsInitialized) {
@@ -70,7 +70,7 @@ GHOST_DisplayManager::initialize(
 
 GHOST_TSuccess
 GHOST_DisplayManager::getNumDisplays(
-	GHOST_TUns8& /*numDisplays*/) const
+		GHOST_TUns8& /*numDisplays*/) const
 {
 	// Don't know if we have a display...
 	return GHOST_kFailure;
@@ -79,8 +79,8 @@ GHOST_DisplayManager::getNumDisplays(
 
 GHOST_TSuccess
 GHOST_DisplayManager::getNumDisplaySettings(
-	GHOST_TUns8 display, 
-	GHOST_TInt32& numSettings) const
+		GHOST_TUns8 display,
+		GHOST_TInt32& numSettings) const
 {
 	GHOST_TSuccess success;
 
@@ -101,9 +101,9 @@ GHOST_DisplayManager::getNumDisplaySettings(
 
 GHOST_TSuccess
 GHOST_DisplayManager::getDisplaySetting(
-	GHOST_TUns8 display, 
-	GHOST_TInt32 index, 
-	GHOST_DisplaySetting& setting) const
+		GHOST_TUns8 display,
+		GHOST_TInt32 index,
+		GHOST_DisplaySetting& setting) const
 {
 	GHOST_TSuccess success;
 
@@ -124,8 +124,8 @@ GHOST_DisplayManager::getDisplaySetting(
 
 GHOST_TSuccess
 GHOST_DisplayManager::getCurrentDisplaySetting(
-	GHOST_TUns8 /*display*/,
-	GHOST_DisplaySetting& /*setting*/) const
+		GHOST_TUns8 /*display*/,
+		GHOST_DisplaySetting& /*setting*/) const
 {
 	return GHOST_kFailure;
 }
@@ -133,8 +133,8 @@ GHOST_DisplayManager::getCurrentDisplaySetting(
 
 GHOST_TSuccess
 GHOST_DisplayManager::setCurrentDisplaySetting(
-	GHOST_TUns8 /*display*/,
-	const GHOST_DisplaySetting& /*setting*/)
+		GHOST_TUns8 /*display*/,
+		const GHOST_DisplaySetting& /*setting*/)
 {
 	return GHOST_kFailure;
 }
@@ -142,18 +142,18 @@ GHOST_DisplayManager::setCurrentDisplaySetting(
 
 GHOST_TSuccess
 GHOST_DisplayManager::findMatch(
-	GHOST_TUns8 display, 
-	const GHOST_DisplaySetting& setting, 
-	GHOST_DisplaySetting& match) const
+		GHOST_TUns8 display,
+		const GHOST_DisplaySetting& setting,
+		GHOST_DisplaySetting& match) const
 {
 	GHOST_TSuccess success = GHOST_kSuccess;
 	GHOST_ASSERT(m_settingsInitialized, "GHOST_DisplayManager::findMatch(): m_settingsInitialized=false");
 
 	int criteria[4] = {
-	    (int)setting.xPixels,
-	    (int)setting.yPixels,
-	    (int)setting.bpp,
-	    (int)setting.frequency
+		(int)setting.xPixels,
+		(int)setting.yPixels,
+		(int)setting.bpp,
+		(int)setting.frequency
 	};
 	int capabilities[4];
 	double field, score;
@@ -195,7 +195,7 @@ GHOST_DisplayManager::findMatch(
 
 GHOST_TSuccess
 GHOST_DisplayManager::initializeSettings(
-	void)
+		void)
 {
 	GHOST_TUns8 numDisplays;
 	GHOST_TSuccess success = getNumDisplays(numDisplays);

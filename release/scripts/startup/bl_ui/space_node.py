@@ -225,5 +225,23 @@ class NODE_PT_quality(bpy.types.Panel):
         layout.prop(tree, "chunksize")
         layout.prop(tree, "use_opencl")
 
+        
+class NODE_MT_node_color_presets(Menu):
+    """Predefined node color"""
+    bl_label = "Color Presets"
+    preset_subdir = "node_color"
+    preset_operator = "script.execute_preset"
+    draw = Menu.draw_preset
+
+
+class NODE_MT_node_color_specials(Menu):
+    bl_label = "Node Color Specials"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator('node.node_copy_color', icon='COPY_ID')
+
+        
 if __name__ == "__main__":  # only for live edit.
     bpy.utils.register_module(__name__)

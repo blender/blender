@@ -2631,7 +2631,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 	ListBase *lbarray[MAX_LIBARRAY];
 	Scene *sce;
 	unsigned int lay;
-	int a, do_flush = 0;
+	int a, do_flush = FALSE;
 
 	dag_current_scene_layers(bmain, &sce, &lay);
 
@@ -2651,7 +2651,7 @@ void DAG_ids_flush_tagged(Main *bmain)
 			for (; id; id = id->next) {
 				if (id->flag & (LIB_ID_RECALC | LIB_ID_RECALC_DATA)) {
 					dag_id_flush_update(sce, id);
-					do_flush = 1;
+					do_flush = TRUE;
 				}
 			}
 		}

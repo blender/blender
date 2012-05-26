@@ -231,7 +231,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 	MLoop *ml;
 	MEdge *med;
 	char *linkflag;
-	int a, b, doit = 1, mark = 0;
+	int a, b, do_it = TRUE, mark = 0;
 
 	ehash = BLI_edgehash_new();
 	seamhash = BLI_edgehash_new();
@@ -259,8 +259,8 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 		}
 	}
 
-	while (doit) {
-		doit = 0;
+	while (do_it) {
+		do_it = FALSE;
 
 		/* expand selection */
 		mp = me->mpoly;
@@ -283,7 +283,7 @@ static void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int ind
 				if (mark) {
 					linkflag[a] = 1;
 					hash_add_face(ehash, mp, me->mloop + mp->loopstart);
-					doit = 1;
+					do_it = TRUE;
 				}
 			}
 		}
@@ -509,7 +509,7 @@ void seam_mark_clear_tface(Scene *scene, short mode)
 }
 #endif
 
-int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], int extend)
+int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], int extend, int deselect, int toggle)
 {
 	Mesh *me;
 	MPoly *mpoly, *mpoly_sel;
@@ -530,7 +530,7 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	/* clear flags */
 	mpoly = me->mpoly;
 	a = me->totpoly;
-	if (!extend) {
+	if (!extend && !deselect && !toggle) {
 		while (a--) {
 			mpoly->flag &= ~ME_FACE_SEL;
 			mpoly++;
@@ -540,6 +540,12 @@ int paintface_mouse_select(struct bContext *C, Object *ob, const int mval[2], in
 	me->act_face = (int)index;
 
 	if (extend) {
+		mpoly_sel->flag |= ME_FACE_SEL;
+	}
+	else if (deselect) {
+		mpoly_sel->flag &= ~ME_FACE_SEL;
+	}
+	else if (toggle) {
 		if (mpoly_sel->flag & ME_FACE_SEL)
 			mpoly_sel->flag &= ~ME_FACE_SEL;
 		else
@@ -860,7 +866,7 @@ void ED_mesh_mirrtopo_init(Mesh *me, const int ob_mode, MirrTopoStore_t *mesh_to
 		}
 
 		if (tot_unique <= tot_unique_prev) {
-			/* Finish searching for unique valus when 1 loop dosnt give a
+			/* Finish searching for unique values when 1 loop dosnt give a
 			 * higher number of unique values compared to the previous loop */
 			break;
 		}

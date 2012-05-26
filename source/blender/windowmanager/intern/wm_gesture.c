@@ -154,7 +154,7 @@ int wm_gesture_evaluate(wmGesture *gesture)
 			if (val == 6) printf("tweak south-west\n");
 			if (val == 7) printf("tweak west\n");
 			if (val == 8) printf("tweak north-west\n");
-#endif			
+#endif
 			return val;
 		}
 	}
@@ -357,7 +357,7 @@ void wm_gesture_tag_redraw(bContext *C)
 	ARegion *ar = CTX_wm_region(C);
 	
 	if (screen)
-		screen->do_draw_gesture = 1;
+		screen->do_draw_gesture = TRUE;
 
 	wm_tag_redraw_overlay(win, ar);
 }

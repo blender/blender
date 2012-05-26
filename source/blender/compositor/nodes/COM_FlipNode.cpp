@@ -49,7 +49,7 @@ void FlipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		break;
 	}
 	
-	inputSocket->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 }

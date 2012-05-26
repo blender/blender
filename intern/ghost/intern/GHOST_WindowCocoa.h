@@ -74,17 +74,17 @@ public:
 	 * @param numOfAASamples	Number of samples used for AA (zero if no AA)
 	 */
 	GHOST_WindowCocoa(
-		GHOST_SystemCocoa *systemCocoa,
-		const STR_String& title,
-		GHOST_TInt32 left,
-		GHOST_TInt32 bottom,
-		GHOST_TUns32 width,
-		GHOST_TUns32 height,
-		GHOST_TWindowState state,
-		GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0
-	);
+	    GHOST_SystemCocoa *systemCocoa,
+	    const STR_String& title,
+	    GHOST_TInt32 left,
+	    GHOST_TInt32 bottom,
+	    GHOST_TUns32 width,
+	    GHOST_TUns32 height,
+	    GHOST_TWindowState state,
+	    GHOST_TDrawingContextType type = GHOST_kDrawingContextTypeNone,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0
+	    );
 
 	/**
 	 * Destructor.
@@ -96,13 +96,13 @@ public:
 	 * Returns indication as to whether the window is valid.
 	 * @return The validity of the window.
 	 */
-	virtual	bool getValid() const;
+	virtual bool getValid() const;
 	
 	/**
 	 * Returns the associated NSWindow object
 	 * @return The associated NSWindow object
 	 */
-	virtual void* getOSWindow() const;
+	virtual void *getOSWindow() const;
 
 	/**
 	 * Sets the title displayed in the title bar.
@@ -121,33 +121,33 @@ public:
 	 * The dimensions are given in screen coordinates that are relative to the upper-left corner of the screen. 
 	 * @param bounds The bounding rectangle of the window.
 	 */
-	virtual	void getWindowBounds(GHOST_Rect& bounds) const;
+	virtual void getWindowBounds(GHOST_Rect& bounds) const;
 	
 	/**
 	 * Returns the client rectangle dimensions.
 	 * The left and top members of the rectangle are always zero.
 	 * @param bounds The bounding rectangle of the cleient area of the window.
 	 */
-	virtual	void getClientBounds(GHOST_Rect& bounds) const;
+	virtual void getClientBounds(GHOST_Rect& bounds) const;
 
 	/**
 	 * Resizes client rectangle width.
 	 * @param width The new width of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
+	virtual GHOST_TSuccess setClientWidth(GHOST_TUns32 width);
 
 	/**
 	 * Resizes client rectangle height.
 	 * @param height The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
+	virtual GHOST_TSuccess setClientHeight(GHOST_TUns32 height);
 
 	/**
 	 * Resizes client rectangle.
 	 * @param width		The new width of the client area of the window.
 	 * @param height	The new height of the client area of the window.
 	 */
-	virtual	GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
+	virtual GHOST_TSuccess setClientSize(GHOST_TUns32 width, GHOST_TUns32 height);
 
 	/**
 	 * Returns the state of the window (normal, minimized, maximized).
@@ -169,7 +169,7 @@ public:
 	 * @param outX	The x-coordinate in the client rectangle.
 	 * @param outY	The y-coordinate in the client rectangle.
 	 */
-	virtual	void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+	virtual void screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
@@ -178,7 +178,7 @@ public:
 	 * @param outX	The x-coordinate on the screen.
 	 * @param outY	The y-coordinate on the screen.
 	 */
-	virtual	void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
+	virtual void clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const;
 
 	/**
 	 * Converts a point in screen coordinates to client rectangle coordinates
@@ -204,7 +204,7 @@ public:
 	 * Gets the screen the window is displayed in
 	 * @return The NSScreen object
 	 */
-	NSScreen* getScreen();
+	NSScreen *getScreen();
 	
 	/**
 	 * Sets the state of the window (normal, minimized, maximized).
@@ -242,11 +242,15 @@ public:
 	virtual void loadCursor(bool visible, GHOST_TStandardCursor cursor) const;
     
 
-	const GHOST_TabletData* GetTabletData()
-	{ return &m_tablet; }
+	const GHOST_TabletData *GetTabletData()
+	{
+		return &m_tablet;
+	}
 
 	GHOST_TabletData& GetCocoaTabletData()
-	{ return m_tablet; }
+	{
+		return m_tablet;
+	}
 	
 	/**
 	 * Sets the progress bar value displayed in the window/application icon
@@ -274,7 +278,7 @@ protected:
     
 	/**
 	 * Invalidates the contents of this window.
-         * @return Indication of success.
+	 * @return Indication of success.
 	 */
 	virtual GHOST_TSuccess invalidate();
 
@@ -301,7 +305,7 @@ protected:
 	 * native window system calls.
 	 */
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 *bitmap, GHOST_TUns8 *mask,
-					int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color);
+	                                                  int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color);
 					
 	virtual GHOST_TSuccess setWindowCustomCursorShape(GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY);
 
@@ -320,7 +324,7 @@ protected:
 	/** The first created OpenGL context (for sharing display lists) */
 	static NSOpenGLContext *s_firstOpenGLcontext;
 	
-	NSCursor*	m_customCursor;
+	NSCursor *m_customCursor;
 
 	GHOST_TabletData m_tablet;
 };

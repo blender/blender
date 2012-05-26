@@ -1077,7 +1077,7 @@ class WM_OT_properties_context_change(Operator):
 
     context = StringProperty(
             name="Context",
-            maxlen=32,
+            maxlen=64,
             )
 
     def execute(self, context):
@@ -1803,7 +1803,7 @@ class WM_OT_addon_remove(Operator):
 
         path, isdir = WM_OT_addon_remove.path_from_addon(self.module)
         if path is None:
-            self.report('WARNING', "Addon path %r could not be found" % path)
+            self.report({'WARNING'}, "Addon path %r could not be found" % path)
             return {'CANCELLED'}
 
         # in case its enabled

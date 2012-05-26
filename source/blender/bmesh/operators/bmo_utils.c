@@ -597,7 +597,7 @@ void bmo_similarfaces_exec(BMesh *bm, BMOperator *op)
 	/* now select the rest (if any) */
 	for (i = 0; i < num_total; i++) {
 		fm = f_ext[i].f;
-		if (!BMO_elem_flag_test(bm, fm, FACE_MARK)  && !BM_elem_flag_test(fm, BM_ELEM_HIDDEN)) {
+		if (!BMO_elem_flag_test(bm, fm, FACE_MARK) && !BM_elem_flag_test(fm, BM_ELEM_HIDDEN)) {
 			int cont = TRUE;
 			for (idx = 0; idx < num_sels && cont == TRUE; idx++) {
 				fs = f_ext[indices[idx]].f;

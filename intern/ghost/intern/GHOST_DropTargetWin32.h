@@ -47,22 +47,22 @@ public:
 	 * inherited, directly or indirectly, from IUnknown. Therefore, the three 
 	 * methods in IUnknown are the first entries in the VTable for every interface. 
 	 */
-	HRESULT __stdcall QueryInterface (REFIID riid, void ** ppvObj);
-	ULONG	__stdcall AddRef (void);
-	ULONG	__stdcall Release (void);
+	HRESULT __stdcall QueryInterface(REFIID riid, void **ppvObj);
+	ULONG __stdcall AddRef(void);
+	ULONG __stdcall Release(void);
 
 	/* IDropTarget implementation
-	 + The IDropTarget interface is one of the interfaces you implement to
-	 provide drag-and-drop operations in your application. It contains methods 
-	 used in any application that can be a target for data during a 
-	 drag-and-drop operation. A drop-target application is responsible for:
+	 * + The IDropTarget interface is one of the interfaces you implement to
+	 *   provide drag-and-drop operations in your application. It contains methods
+	 *   used in any application that can be a target for data during a
+	 *   drag-and-drop operation. A drop-target application is responsible for:
 	 * 
-	 * 	- Determining the effect of the drop on the target application.
-	 * 	- Incorporating any valid dropped data when the drop occurs.
-	 * 	- Communicating target feedback to the source so the source application
+	 *  - Determining the effect of the drop on the target application.
+	 *  - Incorporating any valid dropped data when the drop occurs.
+	 *  - Communicating target feedback to the source so the source application
 	 *	  can provide appropriate visual feedback such as setting the cursor.
-	 * 	- Implementing drag scrolling.
-	 * 	- Registering and revoking its application windows as drop targets.
+	 *  - Implementing drag scrolling.
+	 *  - Registering and revoking its application windows as drop targets.
 	 * 
 	 * The IDropTarget interface contains methods that handle all these 
 	 * responsibilities except registering and revoking the application window 
@@ -70,10 +70,10 @@ public:
 	 * RevokeDragDrop functions.
 	 */
 	
-	HRESULT __stdcall DragEnter (IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect);
-	HRESULT __stdcall DragOver (DWORD grfKeyState, POINTL pt, DWORD * pdwEffect);
-	HRESULT __stdcall DragLeave (void);
-	HRESULT __stdcall Drop (IDataObject * pDataObject, DWORD grfKeyState, POINTL pt, DWORD * pdwEffect);
+	HRESULT __stdcall DragEnter(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+	HRESULT __stdcall DragOver(DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
+	HRESULT __stdcall DragLeave(void);
+	HRESULT __stdcall Drop(IDataObject *pDataObject, DWORD grfKeyState, POINTL pt, DWORD *pdwEffect);
 
 	/**
 	 * Constructor
@@ -83,7 +83,7 @@ public:
 	 * @param window	The window to register as drop target.
 	 * @param system	The associated system.
 	 */
-	GHOST_DropTargetWin32(GHOST_WindowWin32 * window, GHOST_SystemWin32 * system);
+	GHOST_DropTargetWin32(GHOST_WindowWin32 *window, GHOST_SystemWin32 *system);
 
 	/**
 	 * Destructor
@@ -107,7 +107,7 @@ private:
 	 * @param pDataObject Pointer to the DataObject.
 	 * @return GHOST data type.
 	 */
-	GHOST_TDragnDropTypes getGhostType(IDataObject * pDataObject);
+	GHOST_TDragnDropTypes getGhostType(IDataObject *pDataObject);
 
 	/**
 	 * Get data to pass in event.
@@ -115,21 +115,21 @@ private:
 	 * @param pDataObject Pointer to the DataObject.
 	 * @return Pointer to data.
 	 */
-	void * getGhostData(IDataObject * pDataObject);
+	void *getGhostData(IDataObject *pDataObject);
 
 	/**
 	 * Allocate data as file array to pass in event.
 	 * @param pDataObject Pointer to the DataObject.
 	 * @return Pointer to data.
 	 */
-	void * getDropDataAsFilenames(IDataObject * pDataObject);
+	void *getDropDataAsFilenames(IDataObject *pDataObject);
 
 	/**
 	 * Allocate data as string to pass in event.
 	 * @param pDataObject Pointer to the DataObject.
 	 * @return Pointer to data.
 	 */
-	void * getDropDataAsString(IDataObject * pDataObject);
+	void *getDropDataAsString(IDataObject *pDataObject);
 
 	/**
 	 * Convert Unicode to ANSI, replacing unconvertable chars with '?'.
@@ -143,16 +143,15 @@ private:
 
 	/* Private member variables */
 	/* COM reference count. */
-	LONG	m_cRef; 
+	LONG m_cRef;
 	/* Handle of the associated window. */
-	HWND	m_hWnd;
+	HWND m_hWnd;
 	/* The associated GHOST_WindowWin32. */
-	GHOST_WindowWin32 * m_window;
+	GHOST_WindowWin32 *m_window;
 	/* The System. */
-	GHOST_SystemWin32 * m_system;
+	GHOST_SystemWin32 *m_system;
 	/* Data type of the dragged object */
 	GHOST_TDragnDropTypes m_draggedObjectType;
-
 };
 
 #endif  // __GHOST_DROPTARGETWIN32_H__

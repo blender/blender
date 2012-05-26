@@ -300,8 +300,9 @@ FileSelection ED_fileselect_layout_offset_rect(FileLayout* layout, const rcti* r
 	colmax = (rect->xmax)/(layout->tile_w + 2*layout->tile_border_x);
 	rowmax = (rect->ymax)/(layout->tile_h + 2*layout->tile_border_y);
 	
-	if ( is_inside(colmin, rowmin, layout->columns, layout->rows) || 
-		 is_inside(colmax, rowmax, layout->columns, layout->rows) ) {
+	if (is_inside(colmin, rowmin, layout->columns, layout->rows) ||
+	    is_inside(colmax, rowmax, layout->columns, layout->rows) )
+	{
 		CLAMP(colmin, 0, layout->columns-1);
 		CLAMP(rowmin, 0, layout->rows-1);
 		CLAMP(colmax, 0, layout->columns-1);

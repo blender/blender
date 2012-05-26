@@ -2490,7 +2490,8 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				}
 				else if (pinned) {
 					if ((luv->flag & MLOOPUV_PINNED) && 
-					    BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1])) {
+					    BLI_in_rctf(&rectf, luv->uv[0], luv->uv[1]))
+					{
 						if (select) uvedit_uv_select_enable(em, scene, l, FALSE);
 						else uvedit_uv_select_disable(em, scene, l);
 					}

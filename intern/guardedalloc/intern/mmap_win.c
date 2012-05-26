@@ -29,8 +29,7 @@
  *  \ingroup MEM
  */
 
- 
-#if defined(WIN32)
+#ifdef WIN32
 
 #include <windows.h>
 #include <errno.h>
@@ -53,21 +52,19 @@
 #endif
 
 /* --------------------------------------------------------------------- */
-/* local storage definitions                                                    */
+/* local storage definitions                                             */
 /* --------------------------------------------------------------------- */
 /* all memory mapped chunks are put in linked lists */
-typedef struct mmapLink
-{
-	struct mmapLink *next,*prev;
+typedef struct mmapLink {
+	struct mmapLink *next, *prev;
 } mmapLink;
 
-typedef struct mmapListBase 
-{
+typedef struct mmapListBase {
 	void *first, *last;
 } mmapListBase;
 
 typedef struct MemMap {
-	struct MemMap *next,*prev;
+	struct MemMap *next, *prev;
 	void *mmap;
 	HANDLE fhandle;
 	HANDLE maphandle;
@@ -81,8 +78,8 @@ static void mmap_addtail(volatile mmapListBase *listbase, void *vlink);
 static void mmap_remlink(volatile mmapListBase *listbase, void *vlink);
 static void *mmap_findlink(volatile mmapListBase *listbase, void *ptr);
 
-static int mmap_get_prot_flags (int flags);
-static int mmap_get_access_flags (int flags);
+static int mmap_get_prot_flags(int flags);
+static int mmap_get_access_flags(int flags);
 
 /* --------------------------------------------------------------------- */
 /* vars                                                                  */
@@ -105,52 +102,53 @@ void *mmap(void *UNUSED(start), size_t len, int prot, int flags, int fd, off_t o
 	MemMap *mm = NULL;
 	void *ptr = NULL;
 
-	if ( flags & MAP_FIXED ) {
+	if (flags & MAP_FIXED) {
 		return MAP_FAILED;
 	}
 
-	/*
+#if 0
 	if ( fd == -1 ) {
 		_set_errno( EBADF );
 		return MAP_FAILED;
 	}
-	*/
+#endif
 
-	if ( fd != -1 ) {
-		fhandle = (HANDLE) _get_osfhandle (fd);
+	if (fd != -1) {
+		fhandle = (HANDLE) _get_osfhandle(fd);
 	}
-	if ( fhandle == INVALID_HANDLE_VALUE ) {
+	if (fhandle == INVALID_HANDLE_VALUE) {
 		if (!(flags & MAP_ANONYMOUS)) {
 			errno = EBADF;
 			return MAP_FAILED;
 		}
-	} else {
-		if ( !DuplicateHandle( GetCurrentProcess(), fhandle, GetCurrentProcess(),
-		&fhandle, 0, FALSE, DUPLICATE_SAME_ACCESS ) ) {
+	}
+	else {
+		if (!DuplicateHandle(GetCurrentProcess(), fhandle, GetCurrentProcess(),
+		                     &fhandle, 0, FALSE, DUPLICATE_SAME_ACCESS) ) {
 			return MAP_FAILED;
 		}
 	}
 
 	maphandle = CreateFileMapping(fhandle, NULL, prot_flags, 0, len, NULL);
-	if ( maphandle == 0 ) {
+	if (maphandle == 0) {
 		errno = EBADF;
 		return MAP_FAILED;
 	}
 
 	ptr = MapViewOfFile(maphandle, access_flags, 0, offset, 0);
-	if ( ptr == NULL ) {
+	if (ptr == NULL) {
 		DWORD dwLastErr = GetLastError();
-		if ( dwLastErr == ERROR_MAPPED_ALIGNMENT )
-			errno=EINVAL;
+		if (dwLastErr == ERROR_MAPPED_ALIGNMENT)
+			errno = EINVAL;
 		else
-			errno=EACCES;
+			errno = EACCES;
 		CloseHandle(maphandle);
 		return MAP_FAILED;
 	}
 
-	mm= (MemMap *)malloc(sizeof(MemMap));
+	mm = (MemMap *)malloc(sizeof(MemMap));
 	if (!mm) {
-		errno=ENOMEM;
+		errno = ENOMEM;
 	}
 	mm->fhandle = fhandle;
 	mm->maphandle = maphandle;
@@ -165,12 +163,12 @@ intptr_t munmap(void *ptr, intptr_t UNUSED(size))
 {
 	MemMap *mm = mmap_findlink(mmapbase, ptr);
 	if (!mm) {
-		errno=EINVAL;
+		errno = EINVAL;
 		return -1;
 	}
-	UnmapViewOfFile( mm->mmap );
-	CloseHandle( mm->maphandle );
-	CloseHandle( mm->fhandle);
+	UnmapViewOfFile(mm->mmap);
+	CloseHandle(mm->maphandle);
+	CloseHandle(mm->fhandle);
 	mmap_remlink(mmapbase, mm);
 	free(mm);
 	return 0;
@@ -182,7 +180,7 @@ intptr_t munmap(void *ptr, intptr_t UNUSED(size))
 
 static void mmap_addtail(volatile mmapListBase *listbase, void *vlink)
 {
-	struct mmapLink *link= vlink;
+	struct mmapLink *link = vlink;
 
 	if (link == 0) return;
 	if (listbase == 0) return;
@@ -197,7 +195,7 @@ static void mmap_addtail(volatile mmapListBase *listbase, void *vlink)
 
 static void mmap_remlink(volatile mmapListBase *listbase, void *vlink)
 {
-	struct mmapLink *link= vlink;
+	struct mmapLink *link = vlink;
 
 	if (link == 0) return;
 	if (listbase == 0) return;
@@ -226,46 +224,46 @@ static void *mmap_findlink(volatile mmapListBase *listbase, void *ptr)
 	return NULL;
 }
 
-static int mmap_get_prot_flags (int flags)
+static int mmap_get_prot_flags(int flags)
 {
 	int prot = PAGE_NOACCESS;
 
-	if ( ( flags & PROT_READ ) == PROT_READ ) {
-		if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	if ( (flags & PROT_READ) == PROT_READ) {
+		if ( (flags & PROT_WRITE) == PROT_WRITE) {
 			prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READWRITE : PAGE_READWRITE;
-		} else {
+		}
+		else {
 			prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READ : PAGE_READONLY;
 		}
-	} else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	}
+	else if ( (flags & PROT_WRITE) == PROT_WRITE) {
 		prot = (flags & PROT_EXEC) ? PAGE_EXECUTE_READ : PAGE_WRITECOPY;
-	} else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
+	}
+	else if ( (flags & PROT_EXEC) == PROT_EXEC) {
 		prot = PAGE_EXECUTE_READ;
 	}
 	return prot;
 }
 
-static int mmap_get_access_flags (int flags)
+static int mmap_get_access_flags(int flags)
 {
 	int access = 0;
 
-	if ( ( flags & PROT_READ ) == PROT_READ ) {
-		if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	if ( (flags & PROT_READ) == PROT_READ) {
+		if ( (flags & PROT_WRITE) == PROT_WRITE) {
 			access = FILE_MAP_WRITE;
-		} else {
+		}
+		else {
 			access = (flags & PROT_EXEC) ? FILE_MAP_EXECUTE : FILE_MAP_READ;
 		}
-	} else if ( ( flags & PROT_WRITE ) == PROT_WRITE ) {
+	}
+	else if ( (flags & PROT_WRITE) == PROT_WRITE) {
 		access = FILE_MAP_COPY;
-	} else if ( ( flags & PROT_EXEC ) == PROT_EXEC ) {
+	}
+	else if ( (flags & PROT_EXEC) == PROT_EXEC) {
 		access = FILE_MAP_EXECUTE;
 	}
 	return access;
 }
 
-
 #endif // WIN32
-
-
-
-
-

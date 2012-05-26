@@ -49,7 +49,7 @@ public:
 	 * @param event	The event that can be handled or not.
 	 * @return Indication as to whether the event was handled.
 	 */
-	virtual	bool processEvent(GHOST_IEvent* event);
+	virtual bool processEvent(GHOST_IEvent *event);
 
 protected:
 	/**
@@ -57,7 +57,7 @@ protected:
 	 * @param key The GHOST key code to convert.
 	 * @param str The GHOST key code converted to a readable string.
 	 */
-	void	getKeyString(GHOST_TKey key, char str[32]) const;
+	void getKeyString(GHOST_TKey key, char str[32]) const;
 };
 
 #endif // __GHOST_EVENTPRINTER_H__

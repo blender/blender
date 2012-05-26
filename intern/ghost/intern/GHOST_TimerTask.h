@@ -56,11 +56,11 @@ public:
 	                GHOST_TimerProcPtr timerProc,
 	                GHOST_TUserDataPtr userData = 0)
 		: m_start(start),
-	      m_interval(interval),
-	      m_next(start),
-	      m_timerProc(timerProc),
-	      m_userData(userData),
-	      m_auxData(0)
+		m_interval(interval),
+		m_next(start),
+		m_timerProc(timerProc),
+		m_userData(userData),
+		m_auxData(0)
 	{
 	}
 

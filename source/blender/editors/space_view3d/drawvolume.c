@@ -146,7 +146,7 @@ static int intersect_edges(float *points, float a, float b, float c, float d, fl
 	return numpoints;
 }
 
-static int convex(float *p0, float *up, float *a, float *b)
+static int convex(const float p0[3], const float up[3], const float a[3], const float b[3])
 {
 	// Vec3 va = a-p0, vb = b-p0;
 	float va[3], vb[3], tmp[3];
@@ -319,9 +319,9 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 	for (i = 0; i < 8; i++) {
 		float x, y, z;
 
-		x = cv[i][0] - viewnormal[0];
-		y = cv[i][1] - viewnormal[1];
-		z = cv[i][2] - viewnormal[2];
+		x = cv[i][0] - viewnormal[0]*size[0]*0.5f;
+		y = cv[i][1] - viewnormal[1]*size[1]*0.5f;
+		z = cv[i][2] - viewnormal[2]*size[2]*0.5f;
 
 		if ((x >= min[0]) && (x <= max[0]) &&
 		    (y >= min[1]) && (y <= max[1]) &&
@@ -373,7 +373,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 
 	/* d0 = (viewnormal[0]*cv[i][0] + viewnormal[1]*cv[i][1] + viewnormal[2]*cv[i][2]); */ /* UNUSED */
 	ds = (ABS(viewnormal[0]) * size[0] + ABS(viewnormal[1]) * size[1] + ABS(viewnormal[2]) * size[2]);
-	dd = 0.05; // ds/512.0f;
+	dd = ds/96.f;
 	n = 0;
 	good_index = i;
 

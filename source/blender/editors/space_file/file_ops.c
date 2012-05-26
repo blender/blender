@@ -241,7 +241,7 @@ static int file_border_select_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 	result=	WM_border_select_modal(C, op, event);
 
-	if (result==OPERATOR_RUNNING_MODAL)	{
+	if (result == OPERATOR_RUNNING_MODAL) {
 
 		rect.xmin = RNA_int_get(op->ptr, "xmin");
 		rect.ymin = RNA_int_get(op->ptr, "ymin");

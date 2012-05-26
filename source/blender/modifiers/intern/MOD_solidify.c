@@ -18,11 +18,8 @@
  * The Original Code is Copyright (C) 2005 by the Blender Foundation.
  * All rights reserved.
  *
- * Contributor(s): Daniel Dunbar
- *                 Ton Roosendaal,
- *                 Ben Batt,
- *                 Brecht Van Lommel,
- *                 Campbell Barton
+ * Contributor(s): Campbell Barton
+ *                 Shinsuke Irie
  *
  * ***** END GPL LICENSE BLOCK *****
  *
@@ -31,7 +28,6 @@
 /** \file blender/modifiers/intern/MOD_solidify.c
  *  \ingroup modifiers
  */
-
 
 #include "DNA_meshdata_types.h"
 
@@ -51,6 +47,8 @@
 #include "MOD_modifiertypes.h"
 #include "MOD_util.h"
 
+/* *** derived mesh high quality normal calculation function  *** */
+/* could be exposed for other functions to use */
 
 typedef struct EdgeFaceRef {
 	int f1; /* init as -1 */
@@ -74,7 +72,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 	mpoly = dm->getPolyArray(dm);
 	mvert = dm->getVertArray(dm);
 	mloop = dm->getLoopArray(dm);
-	
+
 	/* we don't want to overwrite any referenced layers */
 
 	/* Doesn't work here! */
@@ -101,34 +99,34 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		EdgeFaceRef *edge_ref;
 		float edge_normal[3];
 
-		/* This function adds an edge hash if its not there, and adds the face index */
-#define NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(EDV1, EDV2); \
-			{ \
-				const unsigned int ml_v1 = EDV1; \
-				const unsigned int ml_v2 = EDV2; \
-				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2); \
-				if (!edge_ref) { \
-					edge_ref = &edge_ref_array[edge_ref_count]; edge_ref_count++; \
-					edge_ref->f1 = i; \
-					edge_ref->f2 =- 1; \
-					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref); \
-				} \
-				else { \
-					edge_ref->f2 = i; \
-				} \
-			}
-		/* --- end define --- */
-
+		/* This loop adds an edge hash if its not there, and adds the face index */
 		for (i = 0; i < numFaces; i++, mp++) {
+			unsigned int ml_v1;
+			unsigned int ml_v2;
 			int j;
-			
+
 			f_no = face_nors[i];
 			if (calc_face_nors)
 				mesh_calc_poly_normal(mp, mloop + mp->loopstart, mvert, f_no);
 
 			ml = mloop + mp->loopstart;
-			for (j = 0; j < mp->totloop; j++, ml++) {
-				NOCALC_EDGEWEIGHT_ADD_EDGEREF_FACE(ml->v, ME_POLY_LOOP_NEXT(mloop, mp, j)->v);
+
+			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			     j < mp->totloop;
+			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			{
+				/* --- add edge ref to face --- */
+				edge_ref = (EdgeFaceRef *)BLI_edgehash_lookup(edge_hash, ml_v1, ml_v2);
+				if (!edge_ref) {
+					edge_ref = &edge_ref_array[edge_ref_count++];
+					edge_ref->f1 =  i;
+					edge_ref->f2 = -1;
+					BLI_edgehash_insert(edge_hash, ml_v1, ml_v2, edge_ref);
+				}
+				else {
+					edge_ref->f2 = i;
+				}
+				/* --- done --- */
 			}
 		}
 
@@ -168,7 +166,7 @@ static void dm_calc_normal(DerivedMesh *dm, float (*temp_nors)[3])
 		}
 	}
 }
- 
+
 static void initData(ModifierData *md)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -176,7 +174,7 @@ static void initData(ModifierData *md)
 	smd->offset_fac = -1.0f;
 	smd->flag = MOD_SOLIDIFY_RIM;
 }
- 
+
 static void copyData(ModifierData *md, ModifierData *target)
 {
 	SolidifyModifierData *smd = (SolidifyModifierData *) md;
@@ -201,10 +199,17 @@ static CustomDataMask requiredDataMask(Object *UNUSED(ob), ModifierData *md)
 	return dataMask;
 }
 
+/* spesific function for solidify - define locally */
+BLI_INLINE void madd_v3v3short_fl(float r[3], const short a[3], const float f)
+{
+	r[0] += (float)a[0] * f;
+	r[1] += (float)a[1] * f;
+	r[2] += (float)a[2] * f;
+}
 
-static DerivedMesh *applyModifier(ModifierData *md, Object *ob, 
-                                  DerivedMesh *dm,
-                                  ModifierApplyFlag UNUSED(flag))
+static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
+		DerivedMesh *dm,
+		ModifierApplyFlag UNUSED(flag))
 {
 	int i;
 	DerivedMesh *result;
@@ -219,7 +224,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	const int numFaces = dm->getNumPolys(dm);
 	int numLoops = 0, newLoops = 0, newFaces = 0, newEdges = 0;
 	int j;
-	
+
 	/* only use material offsets if we have 2 or more materials  */
 	const short mat_nr_max = ob->totcol > 1 ? ob->totcol - 1 : 0;
 	const short mat_ofs = mat_nr_max ? smd->mat_ofs : 0;
@@ -234,16 +239,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	int *edge_users = NULL;
 	char *edge_order = NULL;
-	int *edge_origIndex;
-	
+
 	float (*vert_nors)[3] = NULL;
 
 	float (*face_nors_result)[3] = NULL;
 
-	const float ofs_orig =               -(((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
-	const float ofs_new = smd->offset    - (((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	const float ofs_orig = -(((-smd->offset_fac + 1.0f) * 0.5f) * smd->offset);
+	const float ofs_new  = smd->offset + ofs_orig;
 	const float offset_fac_vg = smd->offset_fac_vg;
 	const float offset_fac_vg_inv = 1.0f - smd->offset_fac_vg;
+	const int do_flip = (smd->flag & MOD_SOLIDIFY_FLIP) != 0;
 
 	/* weights */
 	MDeformVert *dvert, *dv = NULL;
@@ -254,7 +259,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	numLoops = dm->numLoopData;
 	newLoops = 0;
-	
+
 	orig_mvert = dm->getVertArray(dm);
 	orig_medge = dm->getEdgeArray(dm);
 	orig_mloop = dm->getLoopArray(dm);
@@ -266,46 +271,48 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		unsigned int v1, v2;
 		int eidx;
 
+#define INVALID_UNUSED -1
+#define INVALID_PAIR -2
+
+		edge_users = MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
+		edge_order = MEM_mallocN(sizeof(char) * numEdges, "solid_mod eorder");
+
 		for (i = 0, mv = orig_mvert; i < numVerts; i++, mv++) {
 			mv->flag &= ~ME_VERT_TMP_TAG;
 		}
 
+		/* save doing 2 loops here... */
+#if 0
+		fill_vn_i(edge_users, numEdges, INVALID_UNUSED);
+#endif
+
 		for (i = 0, ed = orig_medge; i < numEdges; i++, ed++) {
 			BLI_edgehash_insert(edgehash, ed->v1, ed->v2, SET_INT_IN_POINTER(i));
+			edge_users[i] = INVALID_UNUSED;
 		}
 
-#define INVALID_UNUSED -1
-#define INVALID_PAIR -2
-
-#define ADD_EDGE_USER(_v1, _v2, edge_ord) \
-		{ \
-			const unsigned int ml_v1 = _v1; \
-			const unsigned int ml_v2 = _v2; \
-			eidx= GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2)); \
-			if (edge_users[eidx] == INVALID_UNUSED) { \
-				ed= orig_medge + eidx; \
-				edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces); \
-				edge_order[eidx] = edge_ord; \
-			} \
-			else { \
-				edge_users[eidx] = INVALID_PAIR; \
-			} \
-		}
-
-
-		edge_users = MEM_mallocN(sizeof(int) * numEdges, "solid_mod edges");
-		edge_order = MEM_mallocN(sizeof(char) * numEdges, "solid_mod eorder");
-		fill_vn_i(edge_users, numEdges, INVALID_UNUSED);
-		
 		for (i = 0, mp = orig_mpoly; i < numFaces; i++, mp++) {
-			MLoop *ml;
-			
-			for (ml = orig_mloop + mp->loopstart, j = 0; j < mp->totloop; ml++, j++) {
-				ADD_EDGE_USER(ml->v, ME_POLY_LOOP_NEXT(orig_mloop, mp, j)->v, j);
-			}	
+			MLoop *ml = orig_mloop + mp->loopstart;
+			unsigned int ml_v1;
+			unsigned int ml_v2;
+
+			for (j = 0, ml_v1 = ml->v, ml_v2 = ml[mp->totloop - 1].v;
+			     j < mp->totloop;
+			     j++, ml++, ml_v2 = ml_v1, ml_v1 = ml->v)
+			{
+				/* add edge user */
+				eidx = GET_INT_FROM_POINTER(BLI_edgehash_lookup(edgehash, ml_v1, ml_v2));
+				if (edge_users[eidx] == INVALID_UNUSED) {
+					ed = orig_medge + eidx;
+					edge_users[eidx] = (ml_v1 < ml_v2) == (ed->v1 < ed->v2) ? i : (i + numFaces);
+					edge_order[eidx] = j;
+				}
+				else {
+					edge_users[eidx] = INVALID_PAIR;
+				}
+			}
 		}
 
-#undef ADD_EDGE_USER
 #undef INVALID_UNUSED
 #undef INVALID_PAIR
 
@@ -364,7 +371,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	/* if the original has it, get the result so we can update it */
 	face_nors_result = CustomData_get_layer(&result->polyData, CD_NORMAL);
 
-	/*flip normals*/
+	/* flip normals */
 	mp = mpoly + numFaces;
 	for (i = 0; i < dm->numPolyData; i++, mp++) {
 		MLoop *ml2;
@@ -386,9 +393,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			ml2[j].e = ml2[j + 1].e;
 		}
 		ml2[mp->totloop - 1].e = e;
-		
+
 		mp->loopstart += dm->numLoopData;
-		
+
 		for (j = 0; j < mp->totloop; j++) {
 			ml2[j].e += numEdges;
 			ml2[j].v += numVerts;
@@ -413,7 +420,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_new != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_new / 32767.0f;
-			mv = mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? numVerts : 0);
 			dv = dvert;
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (dv) {
@@ -422,13 +429,13 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
-				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
 		}
 
 		if (ofs_orig != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_orig / 32767.0f;
-			mv = mvert + ((ofs_new >= ofs_orig) ? numVerts : 0); /* as above but swapped, intentional use 'ofs_new' */
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts); /* as above but swapped, intentional use 'ofs_new' */
 			dv = dvert;
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (dv) {
@@ -437,10 +444,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 					scalar_short_vgroup = (offset_fac_vg + (scalar_short_vgroup * offset_fac_vg_inv)) * scalar_short;
 					dv++;
 				}
-				VECADDFAC(mv->co, mv->co, mv->no, scalar_short_vgroup);
+				madd_v3v3short_fl(mv->co, mv->no, scalar_short_vgroup);
 			}
 		}
-
 	}
 	else {
 		/* make a face normal layer if not present */
@@ -529,7 +535,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 
 		if (ofs_new) {
-			mv = mvert + ((ofs_new >= ofs_orig) ? 0 : numVerts);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? numVerts : 0);
 
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (vert_accum[i]) { /* zero if unselected */
@@ -540,7 +546,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_orig) {
 			/* same as above but swapped, intentional use of 'ofs_new' */
-			mv = mvert + ((ofs_new >= ofs_orig) ? numVerts : 0);
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts);
 
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (vert_accum[i]) { /* zero if unselected */
@@ -562,17 +568,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	}
 
 	if (smd->flag & MOD_SOLIDIFY_RIM) {
-		int *origindex;
-		
+
 		/* bugger, need to re-calculate the normals for the new edge faces.
 		 * This could be done in many ways, but probably the quickest way
 		 * is to calculate the average normals for side faces only.
 		 * Then blend them with the normals of the edge verts.
-		 * 
+		 *
 		 * at the moment its easiest to allocate an entire array for every vertex,
 		 * even though we only need edge verts - campbell
 		 */
-		
+
 #define SOLIDIFY_SIDE_NORMALS
 
 #ifdef SOLIDIFY_SIDE_NORMALS
@@ -584,24 +589,26 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const unsigned char crease_outer = smd->crease_outer * 255.0f;
 		const unsigned char crease_inner = smd->crease_inner * 255.0f;
 
+		int *origindex_edge;
+		int *orig_ed;
+
 		/* add faces & edges */
-		origindex = result->getEdgeDataArray(result, CD_ORIGINDEX);
-		ed = medge + (numEdges * 2);
-		for (i = 0; i < newEdges; i++, ed++) {
+		origindex_edge = result->getEdgeDataArray(result, CD_ORIGINDEX);
+		ed = &medge[numEdges * 2];
+		orig_ed = &origindex_edge[numEdges * 2];
+		for (i = 0; i < newEdges; i++, ed++, orig_ed++) {
 			ed->v1 = new_vert_arr[i];
 			ed->v2 = new_vert_arr[i] + numVerts;
 			ed->flag |= ME_EDGEDRAW;
 
-			origindex[numEdges * 2 + i] = ORIGINDEX_NONE;
+			*orig_ed = ORIGINDEX_NONE;
 
-			if (crease_rim)
+			if (crease_rim) {
 				ed->crease = crease_rim;
+			}
 		}
 
 		/* faces */
-		edge_origIndex = origindex;
-		origindex = DM_get_poly_data_layer(result, CD_ORIGINDEX);
-		
 		mp = mpoly + (numFaces * 2);
 		ml = mloop + (numLoops * 2);
 		j = 0;
@@ -612,10 +619,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 			if (fidx >= numFaces) {
 				fidx -= numFaces;
-				flip = 1;
+				flip = TRUE;
 			}
 			else {
-				flip = 0;
+				flip = FALSE;
 			}
 
 			ed = medge + eidx;
@@ -638,16 +645,16 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			CustomData_copy_data(&dm->loopData, &result->loopData, k2, numLoops * 2 + j + 2, 1);
 			CustomData_copy_data(&dm->loopData, &result->loopData, k1, numLoops * 2 + j + 3, 1);
 
-			if (flip) {
+			if (flip == FALSE) {
 				ml[j].v = ed->v1;
 				ml[j++].e = eidx;
-				
+
 				ml[j].v = ed->v2;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v2];
-				
+
 				ml[j].v = ed->v2 + numVerts;
 				ml[j++].e = eidx + numEdges;
-				
+
 				ml[j].v = ed->v1 + numVerts;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v1];
 			}
@@ -664,11 +671,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				ml[j].v = ed->v2 + numVerts;
 				ml[j++].e = numEdges * 2 + old_vert_arr[ed->v2];
 			}
-			
-			if (edge_origIndex) {
-				edge_origIndex[ml[j - 3].e] = ORIGINDEX_NONE;
-				edge_origIndex[ml[j - 1].e] = ORIGINDEX_NONE;
-			}
+
+			origindex_edge[ml[j - 3].e] = ORIGINDEX_NONE;
+			origindex_edge[ml[j - 1].e] = ORIGINDEX_NONE;
 
 			/* use the next material index if option enabled */
 			if (mat_ofs_rim) {
@@ -688,7 +693,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				int tcr = *cr + crease_inner;
 				*cr = tcr > 255 ? 255 : tcr;
 			}
-			
+
 #ifdef SOLIDIFY_SIDE_NORMALS
 			normal_quad_v3(nor,
 			               mvert[ml[j - 4].v].co,
@@ -704,17 +709,17 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 #endif
 		}
-		
+
 #ifdef SOLIDIFY_SIDE_NORMALS
 		ed = medge + (numEdges * 2);
 		for (i = 0; i < newEdges; i++, ed++) {
 			float nor_cpy[3];
 			short *nor_short;
 			int j;
-			
+
 			/* note, only the first vertex (lower half of the index) is calculated */
 			normalize_v3_v3(nor_cpy, edge_vert_nos[ed->v1]);
-			
+
 			for (j = 0; j < 2; j++) { /* loop over both verts of the edge */
 				nor_short = mvert[*(&ed->v1 + j)].no;
 				normal_short_to_float_v3(nor, nor_short);
@@ -735,7 +740,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 	if (old_vert_arr)
 		MEM_freeN(old_vert_arr);
-	
+
 	/* must recalculate normals with vgroups since they can displace unevenly [#26888] */
 	if (dvert) {
 		CDDM_calc_normals(result);
@@ -780,7 +785,7 @@ ModifierTypeInfo modifierType_Solidify = {
 	/* isDisabled */        NULL,
 	/* updateDepgraph */    NULL,
 	/* dependsOnTime */     NULL,
-	/* dependsOnNormals */	NULL,
+	/* dependsOnNormals */  NULL,
 	/* foreachObjectLink */ NULL,
 	/* foreachIDLink */     NULL,
 	/* foreachTexLink */    NULL,

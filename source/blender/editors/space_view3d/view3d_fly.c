@@ -547,7 +547,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				time_currwheel = PIL_check_seconds_timer();
 				time_wheel = (float)(time_currwheel - fly->time_lastwheel);
 				fly->time_lastwheel = time_currwheel;
-				/* Mouse wheel delays range from 0.5==slow to 0.01==fast */
+				/* Mouse wheel delays range from (0.5 == slow) to (0.01 == fast) */
 				time_wheel = 1.0f + (10.0f - (20.0f * MIN2(time_wheel, 0.5f))); /* 0-0.5 -> 0-5.0 */
 
 				if (fly->speed < 0.0f) {
@@ -580,7 +580,7 @@ static void flyEvent(FlyInfo *fly, wmEvent *event)
 				fly->pan_view = TRUE;
 				break;
 			case FLY_MODAL_PAN_DISABLE:
-//XXX2.5		warp_pointer(cent_orig[0], cent_orig[1]);
+//XXX2.5				WM_cursor_warp(CTX_wm_window(C), cent_orig[0], cent_orig[1]);
 				fly->pan_view = FALSE;
 				break;
 

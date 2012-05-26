@@ -506,7 +506,7 @@ static short select_grouped_siblings(bContext *C, Object *ob)
 
 	CTX_DATA_BEGIN (C, Base *, base, selectable_bases)
 	{
-		if ((base->object->parent == ob->parent)  && !(base->flag & SELECT)) {
+		if ((base->object->parent == ob->parent) && !(base->flag & SELECT)) {
 			ED_base_object_select(base, BA_SELECT);
 			changed = 1;
 		}

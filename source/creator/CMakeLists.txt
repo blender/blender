@@ -39,7 +39,6 @@ blender_include_dirs(
 	../blender/gpu
 	../blender/freestyle
 	../blender/windowmanager
-	../blender/opencl
 )
 
 if(WIN32)

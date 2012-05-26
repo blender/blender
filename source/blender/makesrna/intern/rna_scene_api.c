@@ -85,9 +85,15 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 /* don't remove this, as COLLADA exporting cannot be done through operators in render() callback. */
 #include "../../collada/collada.h"
 
-static void rna_Scene_collada_export(Scene *scene, const char *filepath, int selected, int apply_modifiers, int second_life)
+static void rna_Scene_collada_export(
+    Scene *scene,
+	const char *filepath,
+	int selected,
+	int apply_modifiers,
+	int include_bone_children,
+	int second_life)
 {
-	collada_export(scene, filepath, selected, apply_modifiers, second_life);
+	collada_export(scene, filepath, selected, apply_modifiers, include_bone_children, second_life);
 }
 
 #endif
@@ -117,6 +123,7 @@ void RNA_api_scene(StructRNA *srna)
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
 	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers (in Preview resolution)");
+	parm = RNA_def_boolean(func, "include_bone_children", 0, "Include Bone Children", "Include all objects attached to bones of selected Armature(s)");
 	parm = RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");
 	RNA_def_function_ui_description(func, "Export to collada file");
 #endif

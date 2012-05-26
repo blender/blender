@@ -350,7 +350,8 @@ static int sculpt_get_redraw_rect(ARegion *ar, RegionView3D *rv3d,
 	                              bb_max,
 	                              ar,
 	                              rv3d,
-	                              ob)) {
+	                              ob))
+	{
 		return 0;
 	}
 
@@ -1884,14 +1885,14 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 	SculptSession *ss = ob->sculpt;
 	Brush *brush = paint_brush(&sd->paint);
 	float bstrength = ss->cache->bstrength;
-	float area_normal[3], offset[3];
+	float offset[3];
 	float lim = brush->height;
 	int n;
 
 	if (bstrength < 0)
 		lim = -lim;
 
-	mul_v3_v3v3(offset, ss->cache->scale, area_normal);
+	mul_v3_v3v3(offset, ss->cache->scale, ss->cache->sculpt_normal_symm);
 
 	#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 	for (n = 0; n < totnode; n++) {
@@ -1917,7 +1918,8 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 		{
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
-				                                            area_normal, vd.no, vd.fno, *vd.mask);
+				                                            ss->cache->sculpt_normal_symm,
+															vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -2775,7 +2777,8 @@ static void do_brush_action(Sculpt *sd, Object *ob, Brush *brush)
 		}
 
 		if (!ELEM(brush->sculpt_tool, SCULPT_TOOL_SMOOTH, SCULPT_TOOL_MASK) &&
-		    brush->autosmooth_factor > 0) {
+		    brush->autosmooth_factor > 0)
+		{
 			if (brush->flag & BRUSH_INVERSE_SMOOTH_PRESSURE) {
 				smooth(sd, ob, nodes, totnode, brush->autosmooth_factor * (1 - ss->cache->pressure), FALSE);
 			}
@@ -2867,7 +2870,7 @@ static void sculpt_update_keyblock(Object *ob)
 	SculptSession *ss = ob->sculpt;
 	float (*vertCos)[3];
 
-	/* Keyblock update happens after hadning deformation caused by modifiers,
+	/* Keyblock update happens after handling deformation caused by modifiers,
 	 * so ss->orig_cos would be updated with new stroke */
 	if (ss->orig_cos) vertCos = ss->orig_cos;
 	else vertCos = BLI_pbvh_get_vertCos(ss->pbvh);
@@ -3195,7 +3198,8 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 
 	for (md = ob->modifiers.first; md; md = md->next) {
 		if (md->type == eModifierType_Mirror &&
-		    (md->mode & eModifierMode_Realtime)) {
+		    (md->mode & eModifierMode_Realtime))
+		{
 			MirrorModifierData *mmd = (MirrorModifierData *)md;
 			
 			if (mmd->flag & MOD_MIR_CLIPPING) {
@@ -3220,7 +3224,7 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 }
 
 /* Initialize the stroke cache invariants from operator properties */
-static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, wmEvent *event)
+static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
 	StrokeCache *cache = MEM_callocN(sizeof(StrokeCache), "stroke cache");
 	Brush *brush = paint_brush(&sd->paint);
@@ -3243,14 +3247,7 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	sculpt_init_mirror_clipping(ob, ss);
 
 	/* Initial mouse location */
-	if (event) {
-		ss->cache->initial_mouse[0] = event->x;
-		ss->cache->initial_mouse[1] = event->y;
-	}
-	else {
-		ss->cache->initial_mouse[0] = 0;
-		ss->cache->initial_mouse[1] = 0;
-	}
+	copy_v2_v2(ss->cache->initial_mouse, mouse);
 
 	mode = RNA_enum_get(op->ptr, "mode");
 	cache->invert = mode == BRUSH_STROKE_INVERT;
@@ -3354,7 +3351,8 @@ static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
 	if (ELEM5(tool,
 	          SCULPT_TOOL_GRAB, SCULPT_TOOL_NUDGE,
 	          SCULPT_TOOL_CLAY_STRIPS, SCULPT_TOOL_SNAKE_HOOK,
-	          SCULPT_TOOL_THUMB)) {
+	          SCULPT_TOOL_THUMB))
+	{
 		float grab_location[3], imat[4][4], delta[3], loc[3];
 
 		if (cache->first_time) {
@@ -3763,18 +3761,18 @@ static int over_mesh(bContext *C, struct wmOperator *UNUSED(op), float x, float 
 }
 
 static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
-                                    wmEvent *event)
+                                    const float mouse[2])
 {
 	/* Don't start the stroke until mouse goes over the mesh.
 	 * note: event will only be null when re-executing the saved stroke. */
-	if (event == NULL || over_mesh(C, op, event->x, event->y)) {
+	if (over_mesh(C, op, mouse[0], mouse[1])) {
 		Object *ob = CTX_data_active_object(C);
 		SculptSession *ss = ob->sculpt;
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 
 		ED_view3d_init_mats_rv3d(ob, CTX_wm_region_view3d(C));
 
-		sculpt_update_cache_invariants(C, sd, ss, op, event);
+		sculpt_update_cache_invariants(C, sd, ss, op, mouse);
 
 		sculpt_undo_push_begin(sculpt_tool_name(sd));
 

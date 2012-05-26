@@ -814,7 +814,7 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 }
 
 
-static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -852,7 +852,7 @@ static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float 
 /* ------------------------------------------------------------------------- */
 
 /* mtex argument only for projection switches */
-static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap(MTex *mtex, VlakRen *vlr, const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	int proj[4]={0, ME_PROJXY, ME_PROJXZ, ME_PROJYZ}, ret= 0;
 	
@@ -910,7 +910,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z
 
 /* ------------------------------------------------------------------------- */
 
-static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_ob(Object *ob, const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
@@ -944,7 +944,7 @@ static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *ad
 
 /* ------------------------------------------------------------------------- */
 
-static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *dxt, float *dyt)
+static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, const float n[3], float *dxt, float *dyt)
 {
 	Tex *tex;
 	Object *ob= NULL;
@@ -1367,7 +1367,7 @@ int multitex_ext_safe(Tex *tex, float *texvec, TexResult *texres)
 {
 	int use_nodes= tex->use_nodes, retval;
 	
-	tex->use_nodes= 0;
+	tex->use_nodes = FALSE;
 	retval= multitex_nodes(tex, texvec, NULL, NULL, 0, texres, 0, 0, NULL, NULL);
 	tex->use_nodes= use_nodes;
 	
@@ -1714,7 +1714,7 @@ static void compatible_bump_uv_derivs(CompatibleBump *compat_bump, ShadeInput *s
 				compat_bump->nn[1] = -shi->vn[1];
 				compat_bump->nn[2] = -shi->vn[2];
 				ortho_basis_v3v3_v3(compat_bump->nu, compat_bump->nv, compat_bump->nn);
-				compat_bump->nunvdone= 1;
+				compat_bump->nunvdone = TRUE;
 			}
 
 			if (tf) {
@@ -1766,7 +1766,7 @@ static int compatible_bump_compute(CompatibleBump *compat_bump, ShadeInput *shi,
 		// render normal is negated
 		negate_v3_v3(compat_bump->nn, shi->vn);
 		ortho_basis_v3v3_v3(compat_bump->nu, compat_bump->nv, compat_bump->nn);
-		compat_bump->nunvdone= 1;
+		compat_bump->nunvdone = TRUE;
 	}
 
 	// two methods, either constant based on main image resolution,
@@ -1946,7 +1946,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 		ntap_bump->fPrevMagnitude = 1.0f;
 		ntap_bump->iPrevBumpSpace = 0;
 		
-		ntap_bump->init_done = 1;
+		ntap_bump->init_done = TRUE;
 	}
 
 	// resolve image dimensions
@@ -2064,7 +2064,7 @@ static int ntap_bump_compute(NTapBump *ntap_bump, ShadeInput *shi, MTex *mtex, T
 	texres->nor = nvec;
 
 	/* replaced newbump with code based on listing 1 and 2 of
-	 * [Mik10] Mikkelsen M. S.: Bump Mapping Unparametrized Surfaces on the GPU.
+	 * [Mik10] Mikkelsen M. S.: Bump Mapping Unparameterized Surfaces on the GPU.
 	 * -> http://jbit.net/~sparky/sfgrad_bump/mm_sfgrad_bump.pdf */
 
 	if ( mtex->texflag & MTEX_BUMP_OBJECTSPACE )
@@ -2171,8 +2171,8 @@ void do_material_tex(ShadeInput *shi, Render *re)
 	float *co = NULL, *dx = NULL, *dy = NULL;
 	float fact, facm, factt, facmm, stencilTin=1.0;
 	float texvec[3], dxt[3], dyt[3], tempvec[3], norvec[3], warpvec[3]={0.0f, 0.0f, 0.0f}, Tnor=1.0;
-	int tex_nr, rgbnor= 0, warpdone=0;
-	int use_compat_bump = 0, use_ntap_bump = 0;
+	int tex_nr, rgbnor= 0, warp_done = FALSE;
+	int use_compat_bump = FALSE, use_ntap_bump = FALSE;
 	int found_nmapping = 0, found_deriv_map = 0;
 	int iFirstTimeNMap=1;
 
@@ -2195,24 +2195,24 @@ void do_material_tex(ShadeInput *shi, Render *re)
 
 			found_deriv_map = (tex->type==TEX_IMAGE) && (tex->imaflag & TEX_DERIVATIVEMAP);
 			use_compat_bump= (mtex->texflag & MTEX_COMPAT_BUMP);
-			use_ntap_bump= ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP))!=0 || found_deriv_map!=0) ? 1 : 0;
+			use_ntap_bump = ((mtex->texflag & (MTEX_3TAP_BUMP|MTEX_5TAP_BUMP|MTEX_BICUBIC_BUMP))!=0 || found_deriv_map!=0) ? TRUE : FALSE;
 
 			/* XXX texture node trees don't work for this yet */
 			if (tex->nodetree && tex->use_nodes) {
-				use_compat_bump = 0;
-				use_ntap_bump = 0;
+				use_compat_bump = FALSE;
+				use_ntap_bump = FALSE;
 			}
 			
 			/* case displacement mapping */
-			if (shi->osatex==0 && use_ntap_bump) {
-				use_ntap_bump = 0;
-				use_compat_bump = 1;
+			if (shi->osatex == 0 && use_ntap_bump) {
+				use_ntap_bump = FALSE;
+				use_compat_bump = TRUE;
 			}
 			
 			/* case ocean */
 			if (tex->type == TEX_OCEAN) {
-				use_ntap_bump = 0;
-				use_compat_bump = 0;
+				use_ntap_bump = FALSE;
+				use_compat_bump = FALSE;
 			}
 
 			/* which coords */
@@ -2322,7 +2322,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			}
 			else texres.nor= NULL;
 			
-			if (warpdone) {
+			if (warp_done) {
 				add_v3_v3v3(tempvec, co, warpvec);
 				co= tempvec;
 			}
@@ -2409,7 +2409,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 					warpvec[0]= mtex->warpfac*warpnor[0];
 					warpvec[1]= mtex->warpfac*warpnor[1];
 					warpvec[2]= mtex->warpfac*warpnor[2];
-					warpdone= 1;
+					warp_done = TRUE;
 				}
 #if 0				
 				if (mtex->texflag & MTEX_VIEWSPACE) {
@@ -2425,7 +2425,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 						}
 					}
 				}
-#endif				
+#endif
 			}
 
 			/* mapping */
@@ -2681,7 +2681,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 			}
 		}
 	}
-	if ((use_compat_bump || use_ntap_bump || found_nmapping) && (shi->mat->mode & MA_TANGENT_V)!=0) {
+	if ((use_compat_bump || use_ntap_bump || found_nmapping) && (shi->mat->mode & MA_TANGENT_V) != 0) {
 		const float fnegdot = -dot_v3v3(shi->vn, shi->tang);
 		// apply Gram-Schmidt projection
 		madd_v3_v3fl(shi->tang,  shi->vn, fnegdot);
@@ -2690,7 +2690,7 @@ void do_material_tex(ShadeInput *shi, Render *re)
 }
 
 
-void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col, float *val, Render *re)
+void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float col_r[3], float *val, Render *re)
 {
 	MTex *mtex;
 	Tex *tex;
@@ -2811,17 +2811,17 @@ void do_volume_tex(ShadeInput *shi, const float *xyz, int mapto_flag, float *col
 				/* used for emit */
 				if ((mapto_flag & MAP_EMISSION_COL) && (mtex->mapto & MAP_EMISSION_COL)) {
 					float colemitfac= mtex->colemitfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, colemitfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, colemitfac, mtex->blendtype);
 				}
 				
 				if ((mapto_flag & MAP_REFLECTION_COL) && (mtex->mapto & MAP_REFLECTION_COL)) {
 					float colreflfac= mtex->colreflfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, colreflfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, colreflfac, mtex->blendtype);
 				}
 				
 				if ((mapto_flag & MAP_TRANSMISSION_COL) && (mtex->mapto & MAP_TRANSMISSION_COL)) {
 					float coltransfac= mtex->coltransfac*stencilTin;
-					texture_rgb_blend(col, tcol, col, texres.tin, coltransfac, mtex->blendtype);
+					texture_rgb_blend(col_r, tcol, col_r, texres.tin, coltransfac, mtex->blendtype);
 				}
 			}
 			
@@ -3508,7 +3508,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 
 /* A modified part of shadeinput.c -> shade_input_set_uv()
  *  Used for sampling UV mapped texture color */
-static void textured_face_generate_uv(float *uv, float *normal, float *hit, float *v1, float *v2, float *v3)
+static void textured_face_generate_uv(float *uv, const float normal[3], float *hit, float *v1, float *v2, float *v3)
 {
 
 	float detsh, t00, t10, t01, t11;

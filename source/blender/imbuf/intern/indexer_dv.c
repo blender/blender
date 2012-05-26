@@ -269,7 +269,8 @@ static void fill_gap(indexer_dv_context *This, int isPAL)
 	}
 
 	while (This->gap_start != This->ref_time_read ||
-	       This->gap_frame != This->curr_frame) {
+	       This->gap_frame != This->curr_frame)
+	{
 		inc_frame(&This->gap_frame, &This->gap_start, isPAL);
 		This->frameno_offset++;
 	}
@@ -320,7 +321,7 @@ static void proc_frame(indexer_dv_context *This,
 				This->gap_frame = -1;
 			}
 		}
-		else if (This->ref_time_read_new  == This->ref_time_read) {
+		else if (This->ref_time_read_new == This->ref_time_read) {
 			// do nothing
 		}
 		else {

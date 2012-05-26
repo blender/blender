@@ -852,24 +852,24 @@ void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int ds
 		BMVert *eve;
 
 		BM_ITER_MESH (eve, &iter, bm, BM_VERTS_OF_MESH) {
-			void *ptr = CustomData_bmesh_get_n(data, eve->head.data, type, dst_n);
-			CustomData_bmesh_set_n(data, eve->head.data, type, src_n, ptr);
+			void *ptr = CustomData_bmesh_get_n(data, eve->head.data, type, src_n);
+			CustomData_bmesh_set_n(data, eve->head.data, type, dst_n, ptr);
 		}
 	}
 	else if (&bm->edata == data) {
 		BMEdge *eed;
 
 		BM_ITER_MESH (eed, &iter, bm, BM_EDGES_OF_MESH) {
-			void *ptr = CustomData_bmesh_get_n(data, eed->head.data, type, dst_n);
-			CustomData_bmesh_set_n(data, eed->head.data, type, src_n, ptr);
+			void *ptr = CustomData_bmesh_get_n(data, eed->head.data, type, src_n);
+			CustomData_bmesh_set_n(data, eed->head.data, type, dst_n, ptr);
 		}
 	}
 	else if (&bm->pdata == data) {
 		BMFace *efa;
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
-			void *ptr = CustomData_bmesh_get_n(data, efa->head.data, type, dst_n);
-			CustomData_bmesh_set_n(data, efa->head.data, type, src_n, ptr);
+			void *ptr = CustomData_bmesh_get_n(data, efa->head.data, type, src_n);
+			CustomData_bmesh_set_n(data, efa->head.data, type, dst_n, ptr);
 		}
 	}
 	else if (&bm->ldata == data) {
@@ -879,8 +879,8 @@ void BM_data_layer_copy(BMesh *bm, CustomData *data, int type, int src_n, int ds
 
 		BM_ITER_MESH (efa, &iter, bm, BM_FACES_OF_MESH) {
 			BM_ITER_ELEM (l, &liter, efa, BM_LOOPS_OF_FACE) {
-				void *ptr = CustomData_bmesh_get_n(data, l->head.data, type, dst_n);
-				CustomData_bmesh_set_n(data, l->head.data, type, src_n, ptr);
+				void *ptr = CustomData_bmesh_get_n(data, l->head.data, type, src_n);
+				CustomData_bmesh_set_n(data, l->head.data, type, dst_n, ptr);
 			}
 		}
 	}

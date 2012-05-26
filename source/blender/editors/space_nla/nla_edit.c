@@ -503,7 +503,7 @@ static int nlaedit_add_transition_exec(bContext *C, wmOperator *op)
 	bAnimListElem *ale;
 	int filter;
 	
-	int done = 0;
+	int done = FALSE;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
@@ -822,7 +822,7 @@ static int nlaedit_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	bAnimListElem *ale;
 	int filter;
 	
-	short done = 0;
+	short done = FALSE;
 	
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)

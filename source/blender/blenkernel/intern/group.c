@@ -306,7 +306,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 {
 	static ListBase nlastrips = {NULL, NULL};
 	static bAction *action = NULL;
-	static int done = 0;
+	static int done = FALSE;
 	bActionStrip *strip, *nstrip;
 	
 	if (mode == 's') {
@@ -320,7 +320,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 					action = target->action;
 					target->action = NULL;
 					target->nlaflag |= OB_NLA_OVERRIDE;
-					done = 1;
+					done = TRUE;
 				}
 				nstrip = MEM_dupallocN(strip);
 				BLI_addtail(&target->nlastrips, nstrip);
@@ -335,7 +335,7 @@ static void group_replaces_nla(Object *parent, Object *target, char mode)
 			
 			nlastrips.first = nlastrips.last = NULL;  /* not needed, but yah... :) */
 			action = NULL;
-			done = 0;
+			done = FALSE;
 		}
 	}
 }

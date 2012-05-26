@@ -99,11 +99,11 @@ public:
 
 	/**
 	 */
-	enum    { 	 
-			RAS_RENDER_3DPOLYGON_TEXT = 64,	/* GEMAT_TEXT */
-			KX_BACKCULL = 16,		/* GEMAT_BACKCULL */
-			KX_TEX = 4096,			/* GEMAT_TEX */
-			KX_LINES = 32768 	 
+	enum {
+		RAS_RENDER_3DPOLYGON_TEXT = 64,	/* GEMAT_TEXT */
+		KX_BACKCULL = 16,		/* GEMAT_BACKCULL */
+		KX_TEX = 4096,			/* GEMAT_TEX */
+		KX_LINES = 32768
 	};
 
 	/**

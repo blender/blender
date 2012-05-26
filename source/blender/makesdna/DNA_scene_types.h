@@ -711,6 +711,8 @@ typedef struct TimeMarker {
 /* *************************************************************** */
 /* Paint Mode/Tool Data */
 
+#define PAINT_MAX_INPUT_SAMPLES 64
+
 /* Paint Tool Base */
 typedef struct Paint {
 	struct Brush *brush;
@@ -719,7 +721,14 @@ typedef struct Paint {
 	void *paint_cursor;
 	unsigned char paint_cursor_col[4];
 
+	/* enum PaintFlags */
 	int flags;
+
+	/* Paint stroke can use up to PAINT_MAX_INPUT_SAMPLES inputs to
+	 * smooth the stroke */
+	int num_input_samples;
+	
+	int pad;
 } Paint;
 
 /* ------------------------------------------- */

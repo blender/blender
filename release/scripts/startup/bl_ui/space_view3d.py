@@ -1916,7 +1916,7 @@ class VIEW3D_MT_edit_mesh_delete(Menu):
 
         layout.operator("mesh.dissolve")
         layout.operator("mesh.edge_collapse")
-        layout.operator("mesh.delete_edgeloop")
+        layout.operator("mesh.delete_edgeloop", text="Edge Loop")
 
 
 class VIEW3D_MT_edit_mesh_dissolve(Menu):
@@ -2400,6 +2400,8 @@ class VIEW3D_PT_view3d_display(Panel):
             col.label(text="Shading:")
             col.prop(gs, "material_mode", text="")
             col.prop(view, "show_textured_solid")
+
+        col.prop(view, "show_backface_culling")            
 
         layout.separator()
 

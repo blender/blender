@@ -53,6 +53,8 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 
+#include "BLF_api.h"
+
 #include "NOD_composite.h"
 #include "NOD_shader.h"
 
@@ -78,6 +80,9 @@
 #include "IMB_imbuf_types.h"
 
 #include "node_intern.h"
+
+// XXX interface.h
+extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
@@ -474,15 +479,21 @@ static int node_resize_area_default(bNode *node, int x, int y)
 		rctf totr= node->totr;
 		/* right part of node */
 		totr.xmin = node->totr.xmax-20.0f;
-		return BLI_in_rctf(&totr, x, y);
+		if (BLI_in_rctf(&totr, x, y))
+			return NODE_RESIZE_RIGHT;
+		else
+			return 0;
 	}
 	else {
-		/* rect we're interested in is just the bottom right corner */
+		const float size = 10.0f;
 		rctf totr= node->totr;
-		/* bottom right corner */
-		totr.xmin = totr.xmax-10.0f;
-		totr.ymax = totr.ymin+10.0f;
-		return BLI_in_rctf(&totr, x, y);
+		int dir = 0;
+		
+		if (x >= totr.xmax-size && x < totr.xmax && y >= totr.ymin && y < totr.ymax)
+			dir |= NODE_RESIZE_RIGHT;
+		if (x >= totr.xmin && x < totr.xmin+size && y >= totr.ymin && y < totr.ymax)
+			dir |= NODE_RESIZE_LEFT;
+		return dir;
 	}
 }
 
@@ -511,7 +522,7 @@ static void node_update_group(const bContext *C, bNodeTree *ntree, bNode *gnode)
 		int dy;
 		
 		/* get "global" coords */
-		nodeSpaceCoords(gnode, &locx, &locy);
+		nodeToView(gnode, 0.0f, 0.0f, &locx, &locy);
 		
 		/* center them, is a bit of abuse of locx and locy though */
 		node_update_nodetree(C, ngroup, locx, locy);
@@ -906,20 +917,166 @@ static void node_common_buts_whileloop(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "max_iterations", 0, NULL, 0);
 }
 
-static void node_update_frame(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree), bNode *node)
+/* XXX Does a bounding box update by iterating over all children.
+ * Not ideal to do this in every draw call, but doing as transform callback doesn't work,
+ * since the child node totr rects are not updated properly at that point.
+ */
+static void node_update_frame(const bContext *UNUSED(C), bNodeTree *ntree, bNode *node)
 {
-	float locx, locy;
+	const float margin = 30.0f;
+	NodeFrame *data = (NodeFrame *)node->storage;
+	int bbinit;
+	bNode *tnode;
+	rctf rect, noderect;
+	float xmax, ymax;
+	
+	/* init rect from current frame size */
+	nodeToView(node, node->offsetx, node->offsety, &rect.xmin, &rect.ymax);
+	nodeToView(node, node->offsetx+node->width, node->offsety-node->height, &rect.xmax, &rect.ymin);
+	
+	/* frame can be resized manually only if shrinking is disabled or no children are attached */
+	data->flag |= NODE_FRAME_RESIZEABLE;
+	/* for shrinking bbox, initialize the rect from first child node */
+	bbinit = (data->flag & NODE_FRAME_SHRINK);
+	/* fit bounding box to all children */
+	for (tnode=ntree->nodes.first; tnode; tnode=tnode->next) {
+		if (tnode->parent!=node)
+			continue;
+		
+		/* add margin to node rect */
+		noderect = tnode->totr;
+		noderect.xmin -= margin;
+		noderect.xmax += margin;
+		noderect.ymin -= margin;
+		noderect.ymax += margin;
+		
+		/* first child initializes frame */
+		if (bbinit) {
+			bbinit = 0;
+			rect = noderect;
+			data->flag &= ~NODE_FRAME_RESIZEABLE;
+		}
+		else
+			BLI_union_rctf(&rect, &noderect);
+	}
+	
+	/* now adjust the frame size from view-space bounding box */
+	nodeFromView(node, rect.xmin, rect.ymax, &node->offsetx, &node->offsety);
+	nodeFromView(node, rect.xmax, rect.ymin, &xmax, &ymax);
+	node->width = xmax - node->offsetx;
+	node->height = -ymax + node->offsety;
+	
+	node->totr = rect;
+}
 
-	/* get "global" coords */
-	nodeSpaceCoords(node, &locx, &locy);
+static void node_draw_frame_label(bNode *node)
+{
+	/* XXX font id is crap design */
+	const int fontid = blf_mono_font;
+	NodeFrame *data = (NodeFrame *)node->storage;
+	rctf *rct= &node->totr;
+	int color_id= node_get_colorid(node);
+	char label[128];
+	/* XXX a bit hacky, should use separate align values for x and y */
+	float width, ascender;
+	float x, y;
+	
+	BLI_strncpy(label, nodeLabel(node), sizeof(label));
+	BLF_size(fontid, data->label_size, U.dpi);
+	
+	/* title color */
+	UI_ThemeColorBlendShade(TH_TEXT, color_id, 0.8f, 10);
 
-	node->prvr.xmin = locx + NODE_DYS;
-	node->prvr.xmax = locx + node->width- NODE_DYS;
+	width = BLF_width(fontid, label);
+	ascender = BLF_ascender(fontid);
+	
+	x = 0.5f*(rct->xmin + rct->xmax) - 0.5f*width;
+	y = rct->ymax - NODE_DYS - ascender;
+	
+	BLF_position(fontid, x, y, 0);
+	BLF_draw(fontid, label, BLF_DRAW_STR_DUMMY_MAX);
+}
 
-	node->totr.xmin = locx;
-	node->totr.xmax = locx + node->width;
-	node->totr.ymax = locy;
-	node->totr.ymin = locy - node->height;
+static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bNodeTree *UNUSED(ntree), bNode *node)
+{
+	rctf *rct= &node->totr;
+	int color_id= node_get_colorid(node);
+	
+	/* skip if out of view */
+	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
+			node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+		
+		uiEndBlock(C, node->block);
+		node->block= NULL;
+		return;
+	}
+	
+	/* shadow */
+	node_draw_shadow(snode, node, BASIS_RAD);
+	
+	/* body */
+	if (node->flag & NODE_CUSTOM_COLOR)
+		glColor3fv(node->color);
+	else
+		UI_ThemeColor4(TH_NODE);
+	glEnable(GL_BLEND);
+	uiSetRoundBox(UI_CNR_ALL);
+	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+	glDisable(GL_BLEND);
+
+	/* outline active and selected emphasis */
+	if ( node->flag & (NODE_ACTIVE|SELECT) ) {
+		glEnable(GL_BLEND);
+		glEnable( GL_LINE_SMOOTH );
+		
+		if (node->flag & NODE_ACTIVE)
+			UI_ThemeColorShadeAlpha(TH_ACTIVE, 0, -40);
+		else
+			UI_ThemeColorShadeAlpha(TH_SELECT, 0, -40);
+		uiSetRoundBox(UI_CNR_ALL);
+		uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);
+		
+		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_BLEND);
+	}
+	
+	/* label */
+	node_draw_frame_label(node);
+	
+	UI_ThemeClearColor(color_id);
+		
+	uiEndBlock(C, node->block);
+	uiDrawBlock(C, node->block);
+	node->block= NULL;
+}
+
+static int node_resize_area_frame(bNode *node, int x, int y)
+{
+	const float size = 10.0f;
+	NodeFrame *data = (NodeFrame *)node->storage;
+	rctf totr= node->totr;
+	int dir = 0;
+	
+	/* shrinking frame size is determined by child nodes */
+	if (!(data->flag & NODE_FRAME_RESIZEABLE))
+		return 0;
+	
+	if (x >= totr.xmax-size && x < totr.xmax && y >= totr.ymin && y < totr.ymax)
+		dir |= NODE_RESIZE_RIGHT;
+	if (x >= totr.xmin && x < totr.xmin+size && y >= totr.ymin && y < totr.ymax)
+		dir |= NODE_RESIZE_LEFT;
+	if (x >= totr.xmin && x < totr.xmax && y >= totr.ymax-size && y < totr.ymax)
+		dir |= NODE_RESIZE_TOP;
+	if (x >= totr.xmin && x < totr.xmax && y >= totr.ymin && y < totr.ymin+size)
+		dir |= NODE_RESIZE_BOTTOM;
+	
+	return dir;
+}
+
+static void node_buts_frame_details(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	uiItemR(layout, ptr, "label_size", 0, "Label Size", ICON_NONE);
+	uiItemR(layout, ptr, "shrink", 0, "Shrink", ICON_NONE);
 }
 
 static void node_common_set_butfunc(bNodeType *ntype)
@@ -941,7 +1098,10 @@ static void node_common_set_butfunc(bNodeType *ntype)
 			ntype->drawupdatefunc= node_update_group;
 			break;
 		case NODE_FRAME:
+			ntype->drawfunc= node_draw_frame;
 			ntype->drawupdatefunc= node_update_frame;
+			ntype->uifuncbut= node_buts_frame_details;
+			ntype->resize_area_func= node_resize_area_frame;
 			break;
 	}
 }
@@ -1136,7 +1296,6 @@ static void node_shader_buts_dynamic(uiLayout *layout, bContext *C, PointerRNA *
 /* only once called */
 static void node_shader_set_butfunc(bNodeType *ntype)
 {
-	ntype->uifuncbut = NULL;
 	switch (ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
@@ -1215,7 +1374,6 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 			ntype->uifunc= node_shader_buts_dynamic;
 			break;
 	}
-		if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
 }
 
 /* ****************** BUTTON CALLBACKS FOR COMPOSITE NODES ***************** */
@@ -1379,7 +1537,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 	uiItemR(layout, ptr, "use_gamma_correction", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(layout, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer")==1);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_zbuffer") == TRUE);
 	uiItemR(col, ptr, "f_stop", 0, NULL, ICON_NONE);
 
 	uiItemR(layout, ptr, "blur_max", 0, NULL, ICON_NONE);
@@ -1394,7 +1552,7 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "use_zbuffer", 0, NULL, ICON_NONE);
 	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer")==0);
+	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_zbuffer") == FALSE);
 	uiItemR(sub, ptr, "z_scale", 0, NULL, ICON_NONE);
 }
 
@@ -1456,7 +1614,7 @@ static void node_composit_buts_lensdist(uiLayout *layout, bContext *UNUSED(C), P
 	uiItemR(col, ptr, "use_projector", 0, NULL, ICON_NONE);
 
 	col = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector")==0);
+	uiLayoutSetActive(col, RNA_boolean_get(ptr, "use_projector") == FALSE);
 	uiItemR(col, ptr, "use_jitter", 0, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_fit", 0, NULL, ICON_NONE);
 }
@@ -1582,7 +1740,11 @@ static void node_composit_buts_hue_sat(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_composit_buts_dilateerode(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
+	uiItemR(layout, ptr, "type", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "distance", 0, NULL, ICON_NONE);
+	if (RNA_enum_get(ptr, "type") == CMP_NODE_DILATEERODE_DISTANCE) {
+		uiItemR(layout, ptr, "edge", 0, NULL, ICON_NONE);
+	}
 }
 
 static void node_composit_buts_diff_matte(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1627,7 +1789,7 @@ static void node_composit_buts_color_spill(uiLayout *layout, bContext *UNUSED(C)
 
 	uiItemR(col, ptr, "ratio", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(col, ptr, "use_unspill", 0, NULL, ICON_NONE);
-	if (RNA_boolean_get(ptr, "use_unspill")== 1) {
+	if (RNA_boolean_get(ptr, "use_unspill") == TRUE) {
 		uiItemR(col, ptr, "unspill_red", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_green", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 		uiItemR(col, ptr, "unspill_blue", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -1818,7 +1980,7 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 			uiItemR(col, &active_input_ptr, "use_node_format", 0, NULL, 0);
 			
 			col= uiLayoutColumn(layout, 0);
-			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format")==0);
+			uiLayoutSetActive(col, RNA_boolean_get(&active_input_ptr, "use_node_format") == FALSE);
 			uiTemplateImageSettings(col, &imfptr);
 		}
 	}
@@ -1980,17 +2142,7 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemR(row, ptr, "blue", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-
-	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "master_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "master_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "master_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "master_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "master_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-
-	row = uiLayoutRow(layout, 0);
+	uiItemL(row, "", 0);
 	uiItemL(row, "Saturation", 0);
 	uiItemL(row, "Contrast", 0);
 	uiItemL(row, "Gamma", 0);
@@ -1998,26 +2150,42 @@ static void node_composit_buts_colorcorrection(uiLayout *layout, bContext *UNUSE
 	uiItemL(row, "Lift", 0);
 
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "highlights_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "highlights_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "highlights_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "highlights_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "highlights_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemL(row, "Master", 0);
+	uiItemR(row, ptr, "master_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "master_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "master_gamma", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "master_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "master_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "midtones_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "midtones_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "midtones_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemL(row, "Highlights", 0);
+	uiItemR(row, ptr, "highlights_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "highlights_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "highlights_gamma", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "highlights_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "highlights_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
 
 	row = uiLayoutRow(layout, 0);
-	uiItemR(row, ptr, "shadows_saturation", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "shadows_contrast", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "shadows_gamma", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
-	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemL(row, "Midtones", 0);
+	uiItemR(row, ptr, "midtones_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "midtones_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "midtones_gamma", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "midtones_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "midtones_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemL(row, "Shadows", 0);
+	uiItemR(row, ptr, "shadows_saturation", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "shadows_contrast", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "shadows_gamma", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "shadows_gain", UI_ITEM_R_SLIDER, "", ICON_NONE);
+	uiItemR(row, ptr, "shadows_lift", UI_ITEM_R_SLIDER, "", ICON_NONE);
+
+	row = uiLayoutRow(layout, 0);
+	uiItemR(row, ptr, "midtones_start", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
+	uiItemR(row, ptr, "midtones_end", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 }
+
 static void node_composit_buts_colorcorrection_but(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr) {
 	uiLayout *row;
 	
@@ -2071,8 +2239,8 @@ static void node_composit_buts_boxmask(uiLayout *layout, bContext *UNUSED(C), Po
 	uiLayout *row;
 	
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "x", 0, "X", ICON_NONE);
-	uiItemR(row, ptr, "y", 0, "Y", ICON_NONE);
+	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
 	
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -2113,22 +2281,22 @@ void node_composit_backdrop_viewer(SpaceNode* snode, ImBuf* backdrop, bNode* nod
 
 void node_composit_backdrop_boxmask(SpaceNode* snode, ImBuf* backdrop, bNode* node, int x, int y)
 {
-	NodeBoxMask * boxmask = node->storage;
+	NodeBoxMask *boxmask = node->storage;
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
 	const float aspect = backdropWidth/backdropHeight;
-	const float rad = DEG2RAD(-boxmask->rotation);
-	const float cosine = cos(rad);
-	const float sine = sin(rad);
-	const float halveBoxWidth = backdropWidth*(boxmask->width/2.0f);
-	const float halveBoxHeight = backdropHeight*(boxmask->height/2.0f)*aspect;
+	const float rad = DEG2RADF(-boxmask->rotation);
+	const float cosine = cosf(rad);
+	const float sine = sinf(rad);
+	const float halveBoxWidth = backdropWidth * (boxmask->width / 2.0f);
+	const float halveBoxHeight = backdropHeight * (boxmask->height / 2.0f) * aspect;
 
 	float cx, cy, x1, x2, x3, x4;
 	float y1, y2, y3, y4;
 
 
 	/* keep this, saves us from a version patch */
-	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+	if (snode->zoom == 0.0f) snode->zoom = 1.0f;
 
 	glColor3f(1.0, 1.0, 1.0);
 
@@ -2157,19 +2325,19 @@ void node_composit_backdrop_ellipsemask(SpaceNode* snode, ImBuf* backdrop, bNode
 	NodeEllipseMask * ellipsemask = node->storage;
 	const float backdropWidth = backdrop->x;
 	const float backdropHeight = backdrop->y;
-	const float aspect = backdropWidth/backdropHeight;
-	const float rad = DEG2RAD(-ellipsemask->rotation);
-	const float cosine = cos(rad);
-	const float sine = sin(rad);
-	const float halveBoxWidth = backdropWidth*(ellipsemask->width/2.0f);
-	const float halveBoxHeight = backdropHeight*(ellipsemask->height/2.0f)*aspect;
+	const float aspect = backdropWidth / backdropHeight;
+	const float rad = DEG2RADF(-ellipsemask->rotation);
+	const float cosine = cosf(rad);
+	const float sine = sinf(rad);
+	const float halveBoxWidth = backdropWidth * (ellipsemask->width / 2.0f);
+	const float halveBoxHeight = backdropHeight * (ellipsemask->height / 2.0f) * aspect;
 
 	float cx, cy, x1, x2, x3, x4;
 	float y1, y2, y3, y4;
 
 
 	/* keep this, saves us from a version patch */
-	if(snode->zoom==0.0f) snode->zoom= 1.0f;
+	if (snode->zoom == 0.0f) snode->zoom = 1.0f;
 
 	glColor3f(1.0, 1.0, 1.0);
 
@@ -2198,8 +2366,8 @@ static void node_composit_buts_ellipsemask(uiLayout *layout, bContext *UNUSED(C)
 {
 	uiLayout *row;
 	row= uiLayoutRow(layout, 1);
-	uiItemR(row, ptr, "x", 0, "X", ICON_NONE);
-	uiItemR(row, ptr, "y", 0, "Y", ICON_NONE);
+	uiItemR(row, ptr, "x", 0, NULL, ICON_NONE);
+	uiItemR(row, ptr, "y", 0, NULL, ICON_NONE);
 	row= uiLayoutRow(layout, 1);
 	uiItemR(row, ptr, "width", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
 	uiItemR(row, ptr, "height", UI_ITEM_R_SLIDER, NULL, ICON_NONE);
@@ -2223,7 +2391,6 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
-	ntype->uifuncbut = NULL;
 	switch (ntype->type) {
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
@@ -2414,8 +2581,6 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		default:
 			ntype->uifunc= NULL;
 	}
-	if (ntype->uifuncbut == NULL) ntype->uifuncbut = ntype->uifunc;
-
 }
 
 /* ****************** BUTTON CALLBACKS FOR TEXTURE NODES ***************** */
@@ -2526,7 +2691,6 @@ static void node_texture_buts_output(uiLayout *layout, bContext *UNUSED(C), Poin
 /* only once called */
 static void node_texture_set_butfunc(bNodeType *ntype)
 {
-	ntype->uifuncbut = NULL;
 	if ( ntype->type >= TEX_NODE_PROC && ntype->type < TEX_NODE_PROC_MAX ) {
 		ntype->uifunc = node_texture_buts_proc;
 	}
@@ -2569,10 +2733,6 @@ static void node_texture_set_butfunc(bNodeType *ntype)
 			ntype->uifunc = node_texture_buts_output;
 			break;
 		}
-	}
-
-	if (ntype->uifuncbut == NULL) {
-		ntype->uifuncbut = ntype->uifunc;
 	}
 }
 
@@ -2976,8 +3136,8 @@ void node_draw_link_straight(View2D *v2d, SpaceNode *snode, bNodeLink *link, int
 /* note; this is used for fake links in groups too */
 void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 {
-	int do_shaded= 0, th_col1= TH_HEADER, th_col2= TH_HEADER;
-	int do_triple= 0, th_col3= TH_WIRE;
+	int do_shaded= FALSE, th_col1= TH_HEADER, th_col2= TH_HEADER;
+	int do_triple= FALSE, th_col3= TH_WIRE;
 	
 	if (link->fromsock==NULL && link->tosock==NULL)
 		return;
@@ -2985,7 +3145,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 	/* new connection */
 	if (!link->fromsock || !link->tosock) {
 		th_col1 = TH_ACTIVE;
-		do_triple = 1;
+		do_triple = TRUE;
 	}
 	else {
 		/* going to give issues once... */
@@ -2997,7 +3157,7 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 		/* a bit ugly... but thats how we detect the internal group links */
 		if (!link->fromnode || !link->tonode) {
 			UI_ThemeColorBlend(TH_BACK, TH_WIRE, 0.5f);
-			do_shaded= 0;
+			do_shaded = FALSE;
 		}
 		else {
 			/* check cyclic */
@@ -3013,8 +3173,8 @@ void node_draw_link(View2D *v2d, SpaceNode *snode, bNodeLink *link)
 					if (link->tonode->flag & SELECT)
 						th_col2= TH_EDGE_SELECT;
 				}
-				do_shaded= 1;
-				do_triple= 1;
+				do_shaded = TRUE;
+				do_triple = TRUE;
 			}				
 			else {
 				th_col1 = TH_REDALERT;

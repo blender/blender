@@ -73,8 +73,8 @@ void FilterNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		break;
 	}
 	
-	inputImageSocket->relinkConnections(operation->getInputSocket(0), true, 1, graph);
-	inputSocket->relinkConnections(operation->getInputSocket(1), true, 0, graph);
+	inputImageSocket->relinkConnections(operation->getInputSocket(0), 1, graph);
+	inputSocket->relinkConnections(operation->getInputSocket(1), 0, graph);
 	outputSocket->relinkConnections(operation->getOutputSocket());
 	addPreviewOperation(graph, operation->getOutputSocket(0), 5);
 	

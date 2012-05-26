@@ -712,8 +712,8 @@ static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
 {
 	float d1, d2, d3, d4;
 	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-	float v1[2] = {min[0], min[1]}, v2[2] = {max[0], min[1]},
-	      v3[2] = {max[0], max[1]}, v4[2] = {min[0], max[1]};
+	float v1[2] = {min[0], min[1]}, v2[2] = {max[0], min[1]};
+	float v3[2] = {max[0], max[1]}, v4[2] = {min[0], max[1]};
 
 	d1 = dist_to_line_segment_v2(p, v1, v2);
 	d2 = dist_to_line_segment_v2(p, v2, v3);
@@ -1528,7 +1528,7 @@ static void track_markers_freejob(void *tmv)
 
 	tmj->clip->tracking_context = NULL;
 	tmj->scene->r.cfra = tmj->lastfra;
-	ED_update_for_newframe(tmj->main, tmj->scene, tmj->screen, 0);
+	ED_update_for_newframe(tmj->main, tmj->scene, 0);
 
 	BKE_tracking_sync(tmj->context);
 	BKE_tracking_context_free(tmj->context);

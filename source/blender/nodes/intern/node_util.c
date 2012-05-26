@@ -57,7 +57,9 @@ void node_free_curves(bNode *node)
 
 void node_free_standard_storage(bNode *node)
 {
-	MEM_freeN(node->storage);
+	if (node->storage) {
+		MEM_freeN(node->storage);
+	}
 }
 
 void node_copy_curves(bNode *orig_node, bNode *new_node)

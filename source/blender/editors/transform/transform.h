@@ -194,6 +194,8 @@ typedef struct TransDataSlideVert {
 	struct BMVert *up, *down;
 	struct BMVert *v;
 
+	float edge_len;
+
 	float upvec[3], downvec[3];
 } TransDataSlideVert;
 
@@ -206,9 +208,16 @@ typedef struct SlideData {
 
 	int start[2], end[2];
 	struct BMEditMesh *em;
-	float perc;
+
 	/* flag that is set when origfaces is initialized */
 	int origfaces_init;
+
+	float perc;
+
+	int is_proportional;
+	int flipped_vtx;
+
+	int curr_sv_index;
 } SlideData;
 
 typedef struct TransData {
@@ -464,6 +473,9 @@ int Shear(TransInfo *t, const int mval[2]);
 void initResize(TransInfo *t);
 int Resize(TransInfo *t, const int mval[2]);
 
+void initSkinResize(TransInfo *t);
+int SkinResize(TransInfo *t, const int mval[2]);
+
 void initTranslation(TransInfo *t);
 int Translation(TransInfo *t, const int mval[2]);
 
@@ -508,6 +520,7 @@ void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, const int mval[2]);
 
 void initEdgeSlide(TransInfo *t);
+int handleEventEdgeSlide(TransInfo *t, struct wmEvent *event);
 int EdgeSlide(TransInfo *t, const int mval[2]);
 
 void initTimeTranslate(TransInfo *t);
@@ -649,6 +662,8 @@ void postTrans (struct bContext *C, TransInfo *t);
 void resetTransRestrictions(TransInfo *t);
 
 void drawLine(TransInfo *t, float *center, float *dir, char axis, short options);
+
+void drawNonPropEdge(const struct bContext *C, TransInfo *t);
 
 /* DRAWLINE options flags */
 #define DRAWLIGHT	1

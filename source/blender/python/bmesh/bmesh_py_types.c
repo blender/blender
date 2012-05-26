@@ -574,7 +574,7 @@ static PyGetSetDef bpy_bmesh_getseters[] = {
 static PyGetSetDef bpy_bmvert_getseters[] = {
     /* generic */
     {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
+    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
@@ -597,7 +597,7 @@ static PyGetSetDef bpy_bmvert_getseters[] = {
 static PyGetSetDef bpy_bmedge_getseters[] = {
     /* generic */
     {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
+    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
@@ -622,7 +622,7 @@ static PyGetSetDef bpy_bmedge_getseters[] = {
 static PyGetSetDef bpy_bmface_getseters[] = {
     /* generic */
     {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
+    {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
@@ -647,7 +647,7 @@ static PyGetSetDef bpy_bmloop_getseters[] = {
     /* generic */
     // flags are available but not used for loops.
     // {(char *)"select", (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_select_doc, (void *)BM_ELEM_SELECT},
-    // {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_SELECT},
+    // {(char *)"hide",   (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_hide_doc,   (void *)BM_ELEM_HIDDEN},
     {(char *)"tag",    (getter)bpy_bm_elem_hflag_get, (setter)bpy_bm_elem_hflag_set, (char *)bpy_bm_elem_tag_doc,    (void *)BM_ELEM_TAG},
     {(char *)"index",  (getter)bpy_bm_elem_index_get, (setter)bpy_bm_elem_index_set, (char *)bpy_bm_elem_index_doc,  NULL},
 
@@ -2065,7 +2065,7 @@ static PyObject *bpy_bmelemseq_index_update(BPy_BMElemSeq *self)
 			int index = 0;
 			const char htype = bm_iter_itype_htype_map[self->itype];
 
-			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+			BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 				BM_elem_index_set(ele, index); /* set_dirty! */
 				index++;
 			}
@@ -2278,7 +2278,7 @@ static Py_ssize_t bpy_bmelemseq_length(BPy_BMElemSeq *self)
 		BMHeader *ele;
 		Py_ssize_t tot = 0;
 
-		BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+		BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 			tot++;
 		}
 		return tot;
@@ -2409,7 +2409,7 @@ static int bpy_bmelemseq_contains(BPy_BMElemSeq *self, PyObject *value)
 		if (value_bm_ele->bm == self->bm) {
 			BMElem *ele, *ele_test = value_bm_ele->ele;
 			BMIter iter;
-			BM_ITER_BPY_BM_SEQ(ele, &iter, self) {
+			BM_ITER_BPY_BM_SEQ (ele, &iter, self) {
 				if (ele == ele_test) {
 					return 1;
 				}
@@ -3115,6 +3115,21 @@ PyObject *BPy_BMElem_CreatePyObject(BMesh *bm, BMHeader *ele)
 int bpy_bm_generic_valid_check(BPy_BMGeneric *self)
 {
 	if (LIKELY(self->bm)) {
+
+		/* far too slow to enable by default but handy
+		 * to uncomment for debugging tricky errors,
+		 * note that this will throw error on entering a
+		 * function where the actual error will be caused by
+		 * the previous action. */
+#if 0
+		if (BM_mesh_validate(self->bm) == FALSE) {
+			PyErr_Format(PyExc_ReferenceError,
+			             "BMesh used by %.200s has become invalid",
+			             Py_TYPE(self)->tp_name);
+			return -1;
+		}
+#endif
+
 		return 0;
 	}
 	else {
@@ -3184,7 +3199,7 @@ void *BPy_BMElem_PySeq_As_Array(BMesh **r_bm, PyObject *seq, Py_ssize_t min, Py_
 			}
 			/* trick so we can ensure all items have the same mesh,
 			 * and allows us to pass the 'bm' as NULL. */
-			else if (do_bm_check && (bm  && bm != item->bm)) {
+			else if (do_bm_check && (bm && bm != item->bm)) {
 				PyErr_Format(PyExc_ValueError,
 				             "%s: %d %s is from another mesh",
 				             error_prefix, i, BPy_BMElem_StringFromHType(htype));

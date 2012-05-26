@@ -50,7 +50,7 @@ public:
 	 * @param x			The x-coordinate of the location the cursor was at at the time of the event.
 	 * @param y			The y-coordinate of the location the cursor was at at the time of the event.
 	 */
-	GHOST_EventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window, GHOST_TInt32 x, GHOST_TInt32 y)
+	GHOST_EventCursor(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window, GHOST_TInt32 x, GHOST_TInt32 y)
 		: GHOST_Event(msec, type, window)
 	{
 		m_cursorEventData.x = x;

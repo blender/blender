@@ -452,6 +452,24 @@ class AddPresetTrackingSettings(AddPresetBase, Operator):
     preset_subdir = "tracking_settings"
 
 
+class AddPresetNodeColor(AddPresetBase, Operator):
+    '''Add a Node Color Preset'''
+    bl_idname = "node.node_color_preset_add"
+    bl_label = "Add Node Color Preset"
+    preset_menu = "NODE_MT_node_color_presets"
+
+    preset_defines = [
+        "node = bpy.context.active_node"
+    ]
+
+    preset_values = [
+        "node.color",
+        "node.use_custom_color"
+    ]
+
+    preset_subdir = "node_color"
+
+
 class AddPresetInterfaceTheme(AddPresetBase, Operator):
     '''Add a theme preset'''
     bl_idname = "wm.interface_theme_preset_add"

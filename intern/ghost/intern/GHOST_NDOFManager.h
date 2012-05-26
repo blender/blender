@@ -44,7 +44,7 @@ typedef enum {
 	NDOF_Spaceball5000,
 	NDOF_SpaceTraveler
 
-	} NDOF_DeviceT;
+} NDOF_DeviceT;
 
 // NDOF device button event types
 typedef enum {
@@ -100,7 +100,7 @@ typedef enum {
 	NDOF_BUTTON_C,
 	// the end
 	NDOF_BUTTON_LAST
-	} NDOF_ButtonT;
+} NDOF_ButtonT;
 
 class GHOST_NDOFManager
 {
@@ -149,13 +149,13 @@ protected:
 	GHOST_System& m_system;
 
 private:
-	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow*);
-	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow*);
+	void sendButtonEvent(NDOF_ButtonT, bool press, GHOST_TUns64 time, GHOST_IWindow *);
+	void sendKeyEvent(GHOST_TKey, bool press, GHOST_TUns64 time, GHOST_IWindow *);
 
 	NDOF_DeviceT m_deviceType;
 	int m_buttonCount;
 	int m_buttonMask;
-	const NDOF_ButtonT* m_hidMap;
+	const NDOF_ButtonT *m_hidMap;
 
 	short m_translation[3];
 	short m_rotation[3];

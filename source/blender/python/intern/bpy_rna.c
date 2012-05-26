@@ -1702,7 +1702,7 @@ static int pyrna_py_to_prop(PointerRNA *ptr, PropertyRNA *prop, void *data, PyOb
 
 				/* this is really nasty!, so we can fake the operator having direct properties eg:
 				 * layout.prop(self, "filepath")
-				 * ... which infact should be
+				 * ... which in fact should be
 				 * layout.prop(self.properties, "filepath")
 				 *
 				 * we need to do this trick.
@@ -6347,7 +6347,7 @@ PyObject *BPY_rna_module(void)
 
 void BPY_update_rna_module(void)
 {
-	if(rna_module_ptr) {
+	if (rna_module_ptr) {
 #if 0
 		RNA_main_pointer_create(G.main, rna_module_ptr);
 #else

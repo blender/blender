@@ -29,6 +29,7 @@
 #include "OCL_opencl.h"
 #include "stdio.h"
 #include "COM_OpenCLKernels.cl.cpp"
+#include "BKE_global.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
 #warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
@@ -235,7 +236,7 @@ void WorkScheduler::initialize()
 		cl_int error;
 		error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
-		printf("%d number of platforms\n", numberOfPlatforms);
+		if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
 		cl_platform_id *platforms = new cl_platform_id[numberOfPlatforms];
 		error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
 		unsigned int indexPlatform;
@@ -280,11 +281,13 @@ void WorkScheduler::initialize()
 			OpenCLDevice *clDevice = new OpenCLDevice(context, device, program);
 			clDevice->initialize(),
 			gpudevices.push_back(clDevice);
-			char resultString[32];
-			error = clGetDeviceInfo(device, CL_DEVICE_NAME, 32, resultString, 0);
-			printf("OPENCL_DEVICE: %s, ", resultString);
-			error = clGetDeviceInfo(device, CL_DEVICE_VENDOR, 32, resultString, 0);
-			printf("%s\n", resultString);
+			if (G.f & G_DEBUG) {
+				char resultString[32];
+				error = clGetDeviceInfo(device, CL_DEVICE_NAME, 32, resultString, 0);
+				printf("OPENCL_DEVICE: %s, ", resultString);
+				error = clGetDeviceInfo(device, CL_DEVICE_VENDOR, 32, resultString, 0);
+				printf("%s\n", resultString);
+			}
 		}
 		delete cldevices;
 		delete platforms;

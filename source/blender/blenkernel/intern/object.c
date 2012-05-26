@@ -1046,6 +1046,10 @@ static void copy_object_pose(Object *obn, Object *ob)
 		
 		chan->flag &= ~(POSE_LOC | POSE_ROT | POSE_SIZE);
 		
+		if (chan->custom) {
+			id_us_plus(&chan->custom->id);
+		}
+		
 		for (con = chan->constraints.first; con; con = con->next) {
 			bConstraintTypeInfo *cti = constraint_get_typeinfo(con);
 			ListBase targets = {NULL, NULL};
@@ -1096,7 +1100,7 @@ Object *BKE_object_pose_armature_get(Object *ob)
 	return NULL;
 }
 
-static void copy_object_transform(Object *ob_tar, Object *ob_src)
+void BKE_object_transform_copy(Object *ob_tar, const Object *ob_src)
 {
 	copy_v3_v3(ob_tar->loc, ob_src->loc);
 	copy_v3_v3(ob_tar->rot, ob_src->rot);
@@ -1371,7 +1375,7 @@ void BKE_object_make_proxy(Object *ob, Object *target, Object *gob)
 		BKE_object_apply_mat4(ob, ob->obmat, FALSE, TRUE);
 	}
 	else {
-		copy_object_transform(ob, target);
+		BKE_object_transform_copy(ob, target);
 		ob->parent = target->parent; /* libdata */
 		copy_m4_m4(ob->parentinv, target->parentinv);
 	}
@@ -2264,8 +2268,15 @@ void BKE_object_minmax(Object *ob, float min_r[3], float max_r[3])
 		{
 			Curve *cu = ob->data;
 
-			if (cu->bb == NULL) BKE_curve_texspace_calc(cu);
-			bb = *(cu->bb);
+			/* Use the object bounding box so that modifier output
+			   gets taken into account */
+			if (ob->bb)
+				bb = *(ob->bb);
+			else {
+				if (cu->bb == NULL)
+					BKE_curve_texspace_calc(cu);
+				bb = *(cu->bb);
+			}
 
 			for (a = 0; a < 8; a++) {
 				mul_m4_v3(ob->obmat, bb.vec[a]);
@@ -2773,11 +2784,11 @@ int BKE_object_obdata_texspace_get(Object *ob, short **r_texflag, float **r_loc,
 int BKE_boundbox_ray_hit_check(struct BoundBox *bb, float ray_start[3], float ray_normal[3])
 {
 	static int triangle_indexes[12][3] = {{0, 1, 2}, {0, 2, 3},
-										  {3, 2, 6}, {3, 6, 7},
-										  {1, 2, 6}, {1, 6, 5}, 
-										  {5, 6, 7}, {4, 5, 7},
-										  {0, 3, 7}, {0, 4, 7},
-										  {0, 1, 5}, {0, 4, 5}};
+	                                      {3, 2, 6}, {3, 6, 7},
+	                                      {1, 2, 6}, {1, 6, 5},
+	                                      {5, 6, 7}, {4, 5, 7},
+	                                      {0, 3, 7}, {0, 4, 7},
+	                                      {0, 1, 5}, {0, 4, 5}};
 	int result = 0;
 	int i;
 	
@@ -3036,10 +3047,12 @@ int BKE_object_is_animated(Scene *scene, Object *ob)
 	ModifierData *md;
 
 	for (md = modifiers_getVirtualModifierList(ob); md; md = md->next)
-		if(modifier_dependsOnTime(md) && 
-			(modifier_isEnabled(scene, md, eModifierMode_Realtime) || 
-			modifier_isEnabled(scene, md, eModifierMode_Render)))
+		if (modifier_dependsOnTime(md) &&
+		    (modifier_isEnabled(scene, md, eModifierMode_Realtime) ||
+		     modifier_isEnabled(scene, md, eModifierMode_Render)))
+		{
 			return 1;
+		}
 	return 0;
 }
 

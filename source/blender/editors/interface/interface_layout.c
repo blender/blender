@@ -2679,7 +2679,7 @@ void ui_layout_add_but(uiLayout *layout, uiBut *but)
 
 	if (layout->context) {
 		but->context = layout->context;
-		but->context->used = 1;
+		but->context->used = TRUE;
 	}
 }
 

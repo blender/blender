@@ -50,6 +50,8 @@
 #include "BLI_utildefines.h"
 #include "BLI_string_cursor_utf8.h"
 
+#include "BLF_translation.h"
+
 #include "PIL_time.h"
 
 #include "BKE_colortools.h"
@@ -1307,7 +1309,7 @@ static void ui_textedit_set_cursor_pos(uiBut *but, uiHandleButtonData *data, sho
 
 			/* check if position is found */
 			if (cdist < x) {
-				/* check is previous location was infact closer */
+				/* check is previous location was in fact closer */
 				if (((float)x - cdist) > (cdist_prev - (float)x)) {
 					but->pos = pos_prev;
 				}
@@ -2951,14 +2953,14 @@ static int ui_do_but_BLOCK(bContext *C, uiBut *but, uiHandleButtonData *data, wm
 				float col[3];
 				
 				ui_get_but_vectorf(but, col);
-				rgb_to_hsv_compat(col[0], col[1], col[2], hsv, hsv + 1, hsv + 2);
+				rgb_to_hsv_compat_v(col, hsv);
 
 				if (event->type == WHEELDOWNMOUSE)
 					hsv[2] = CLAMPIS(hsv[2] - 0.05f, 0.0f, 1.0f);
 				else
 					hsv[2] = CLAMPIS(hsv[2] + 0.05f, 0.0f, 1.0f);
 				
-				hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec + 1, data->vec + 2);
+				hsv_to_rgb_v(hsv, data->vec);
 				ui_set_but_vectorf(but, data->vec);
 				
 				button_activate_state(C, but, BUTTON_STATE_EXIT);
@@ -3104,7 +3106,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 
 	ui_get_but_vectorf(but, rgb);
 
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 
 	/* relative position within box */
 	x = ((float)mx - but->x1) / (but->x2 - but->x1);
@@ -3150,7 +3152,7 @@ static int ui_numedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, int mx, 
 			assert(!"invalid hsv type");
 	}
 
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
+	hsv_to_rgb_v(hsv, rgb);
 	copy_v3_v3(data->vec, rgb);
 
 	data->draglastx = mx;
@@ -3173,7 +3175,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 	}
 
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 	
 	switch ((int)but->a1) {
 		case UI_GRAD_SV:
@@ -3211,7 +3213,7 @@ static void ui_ndofedit_but_HSVCUBE(uiBut *but, uiHandleButtonData *data, wmNDOF
 			assert(!"invalid hsv type");
 	}
 	
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
+	hsv_to_rgb_v(hsv, rgb);
 	copy_v3_v3(data->vec, rgb);
 	ui_set_but_vectorf(but, data->vec);
 }
@@ -3263,12 +3265,15 @@ static int ui_do_but_HSVCUBE(bContext *C, uiBlock *block, uiBut *but, uiHandleBu
 					def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 					
 					RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-					rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv + 1, def_hsv + 2);
+					rgb_to_hsv_v(def, def_hsv);
 					
 					ui_get_but_vectorf(but, rgb);
-					rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+					rgb_to_hsv_compat_v(rgb, hsv);
+
+					def_hsv[0] = hsv[0];
+					def_hsv[1] = hsv[1];
 					
-					hsv_to_rgb(hsv[0], hsv[1], def_hsv[2], rgb, rgb + 1, rgb + 2);
+					hsv_to_rgb_v(def_hsv, rgb);
 					ui_set_but_vectorf(but, rgb);
 					
 					RNA_property_update(C, &but->rnapoin, but->rnaprop);
@@ -3312,7 +3317,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	
 	ui_get_but_vectorf(but, rgb);
 	copy_v3_v3(hsv, ui_block_hsv_get(but->block));
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 	
 	/* exception, when using color wheel in 'locked' value state:
 	 * allow choosing a hue for black values, by giving a tiny increment */
@@ -3332,7 +3337,7 @@ static int ui_numedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, int mx
 	if (but->flag & UI_BUT_COLOR_CUBIC)
 		hsv[1] = 1.0f - sqrt3f(1.0f - hsv[1]);
 
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
+	hsv_to_rgb_v(hsv, rgb);
 
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (rgb[0] || rgb[1] || rgb[2])) {
 		normalize_v3(rgb);
@@ -3355,7 +3360,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 	float sensitivity = (shift ? 0.15f : 0.3f) * ndof->dt;
 	
 	ui_get_but_vectorf(but, rgb);
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 	
 	/* Convert current colour on hue/sat disc to circular coordinates phi, r */
 	phi = fmodf(hsv[0] + 0.25f, 1.0f) * -2.0f * (float)M_PI;
@@ -3389,7 +3394,7 @@ static void ui_ndofedit_but_HSVCIRCLE(uiBut *but, uiHandleButtonData *data, wmND
 		if (hsv[2] == 0.0f) hsv[2] = 0.0001f;
 	}
 	
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], data->vec, data->vec + 1, data->vec + 2);
+	hsv_to_rgb_v(hsv, data->vec);
 	
 	if ((but->flag & UI_BUT_VEC_SIZE_LOCK) && (data->vec[0] || data->vec[1] || data->vec[2])) {
 		normalize_v3(data->vec);
@@ -3445,12 +3450,15 @@ static int ui_do_but_HSVCIRCLE(bContext *C, uiBlock *block, uiBut *but, uiHandle
 				def = MEM_callocN(sizeof(float) * len, "reset_defaults - float");
 				
 				RNA_property_float_get_default_array(&but->rnapoin, but->rnaprop, def);
-				rgb_to_hsv(def[0], def[1], def[2], def_hsv, def_hsv + 1, def_hsv + 2);
+				rgb_to_hsv_v(def, def_hsv);
 				
 				ui_get_but_vectorf(but, rgb);
-				rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+				rgb_to_hsv_compat_v(rgb, hsv);
 				
-				hsv_to_rgb(hsv[0], def_hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
+				def_hsv[0] = hsv[0];
+				def_hsv[2] = hsv[2];
+
+				hsv_to_rgb_v(def_hsv, rgb);
 				ui_set_but_vectorf(but, rgb);
 				
 				RNA_property_update(C, &but->rnapoin, but->rnaprop);
@@ -4401,10 +4409,10 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 	if (but->rnaprop)
 		name = RNA_property_ui_name(but->rnaprop);
-	else if (but->optype)
-		name = but->optype->name;
+	else if (but->optype && but->optype->srna)
+		name = RNA_struct_ui_name(but->optype->srna);
 	else
-		name = "<needs_name>";  // XXX - should never happen.
+		name = IFACE_("<needs_name>");  // XXX - should never happen.
 
 	pup = uiPupMenuBegin(C, name, ICON_NONE);
 	layout = uiPupMenuLayout(pup);
@@ -4424,14 +4432,20 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		if (but->flag & UI_BUT_ANIMATED_KEY) {
 			/* replace/delete keyfraemes */
 			if (length) {
-				uiItemBooleanO(layout, "Replace Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
-				uiItemBooleanO(layout, "Replace Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframes", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Single Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 			else {
-				uiItemBooleanO(layout, "Replace Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
-				uiItemBooleanO(layout, "Delete Keyframe", ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Replace Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_delete_button", "all", 0);
 			}
 			
 			/* keyframe settings */
@@ -4442,11 +4456,14 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		else if (but->flag & UI_BUT_DRIVEN) ;
 		else if (is_anim) {
 			if (length) {
-				uiItemBooleanO(layout, "Insert Keyframes", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
-				uiItemBooleanO(layout, "Insert Single Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframes"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Single Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Insert Keyframe", ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Insert Keyframe"),
+				               ICON_NONE, "ANIM_OT_keyframe_insert_button", "all", 0);
 		}
 		
 		/* Drivers */
@@ -4454,29 +4471,38 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if (length) {
-				uiItemBooleanO(layout, "Delete Drivers", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 1);
-				uiItemBooleanO(layout, "Delete Single Driver", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Drivers"),
+				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Single Driver"),
+				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Delete Driver", ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Delete Driver"),
+				               ICON_NONE, "ANIM_OT_driver_button_remove", "all", 0);
 
-			uiItemO(layout, "Copy Driver", ICON_NONE, "ANIM_OT_copy_driver_button");
+			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Driver"),
+			        ICON_NONE, "ANIM_OT_copy_driver_button");
 			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", ICON_NONE, "ANIM_OT_paste_driver_button");
+				uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+				        ICON_NONE, "ANIM_OT_paste_driver_button");
 		}
 		else if (but->flag & (UI_BUT_ANIMATED_KEY | UI_BUT_ANIMATED)) ;
 		else if (is_anim) {
 			uiItemS(layout);
 
 			if (length) {
-				uiItemBooleanO(layout, "Add Drivers", ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
-				uiItemBooleanO(layout, "Add Single Driver", ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Drivers"),
+				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single Driver"),
+				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
 			}
 			else
-				uiItemBooleanO(layout, "Add Driver", ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Driver"),
+				               ICON_NONE, "ANIM_OT_driver_button_add", "all", 0);
 
 			if (ANIM_driver_can_paste())
-				uiItemO(layout, "Paste Driver", ICON_NONE, "ANIM_OT_paste_driver_button");
+				uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Paste Driver"),
+				        ICON_NONE, "ANIM_OT_paste_driver_button");
 		}
 		
 		/* Keying Sets */
@@ -4485,13 +4511,18 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			uiItemS(layout);
 
 			if (length) {
-				uiItemBooleanO(layout, "Add All to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 1);
-				uiItemBooleanO(layout, "Add Single to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_remove");
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add All to Keying Set"),
+				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 1);
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Single to Keying Set"),
+				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
+				        ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
 			else {
-				uiItemBooleanO(layout, "Add to Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
-				uiItemO(layout, "Remove from Keying Set", ICON_NONE, "ANIM_OT_keyingset_button_remove");
+				uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add to Keying Set"),
+				               ICON_NONE, "ANIM_OT_keyingset_button_add", "all", 0);
+				uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Remove from Keying Set"),
+				        ICON_NONE, "ANIM_OT_keyingset_button_remove");
 			}
 		}
 		
@@ -4503,14 +4534,19 @@ static int ui_but_menu(bContext *C, uiBut *but)
 		//Paste Property Value
 		
 		if (length) {
-			uiItemBooleanO(layout, "Reset All to Default Values", ICON_NONE, "UI_OT_reset_default_button", "all", 1);
-			uiItemBooleanO(layout, "Reset Single to Default Value", ICON_NONE, "UI_OT_reset_default_button", "all", 0);
+			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset All to Default Values"),
+			               ICON_NONE, "UI_OT_reset_default_button", "all", 1);
+			uiItemBooleanO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset Single to Default Value"),
+			               ICON_NONE, "UI_OT_reset_default_button", "all", 0);
 		}
 		else
-			uiItemO(layout, "Reset to Default Value", ICON_NONE, "UI_OT_reset_default_button");
+			uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Reset to Default Value"),
+			        ICON_NONE, "UI_OT_reset_default_button");
 		
-		uiItemO(layout, "Copy Data Path", ICON_NONE, "UI_OT_copy_data_path_button");
-		uiItemO(layout, "Copy To Selected", ICON_NONE, "UI_OT_copy_to_selected_button");
+		uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy Data Path"),
+		        ICON_NONE, "UI_OT_copy_data_path_button");
+		uiItemO(layout, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Copy To Selected"),
+		        ICON_NONE, "UI_OT_copy_to_selected_button");
 
 		uiItemS(layout);
 	}
@@ -4534,15 +4570,18 @@ static int ui_but_menu(bContext *C, uiBut *but)
 			// would rather use a block but, but gets weirdly positioned...
 			//uiDefBlockBut(block, menu_change_shortcut, but, "Change Shortcut", 0, 0, uiLayoutGetWidth(layout), UI_UNIT_Y, "");
 			
-			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Change Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Change Shortcut"),
+			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			uiButSetFunc(but2, popup_change_shortcut_func, but, NULL);
 
-			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Remove Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Remove Shortcut"),
+			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			uiButSetFunc(but2, remove_shortcut_func, but, NULL);
 		}
 		/* only show 'add' if there's a suitable key map for it to go in */
 		else if (WM_keymap_guess_opname(C, but->optype->idname)) {
-			but2 = uiDefIconTextBut(block, BUT, 0, 0, "Add Shortcut", 0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
+			but2 = uiDefIconTextBut(block, BUT, 0, 0, CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Add Shortcut"),
+			                        0, 0, w, UI_UNIT_Y, NULL, 0, 0, 0, 0, "");
 			uiButSetFunc(but2, popup_add_shortcut_func, but, NULL);
 		}
 		
@@ -4560,7 +4599,8 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view", "Python Documentation", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_view", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Python Documentation"),
+			            ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
 			/* XXX inactive option, not for public! */
 #if 0
@@ -4576,19 +4616,22 @@ static int ui_but_menu(bContext *C, uiBut *but)
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_view");
 			RNA_string_set(&ptr_props, "doc_id", buf);
-			uiItemFullO(layout, "WM_OT_doc_view", "Python Documentation", ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_view", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Python Documentation"),
+			            ICON_NONE, ptr_props.data, WM_OP_EXEC_DEFAULT, 0);
 
 
 			WM_operator_properties_create(&ptr_props, "WM_OT_doc_edit");
 			RNA_string_set(&ptr_props, "doc_id", buf);
 			RNA_string_set(&ptr_props, "doc_new", but->optype->description);
 
-			uiItemFullO(layout, "WM_OT_doc_edit", "Submit Description", ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
+			uiItemFullO(layout, "WM_OT_doc_edit", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Submit Description"),
+			            ICON_NONE, ptr_props.data, WM_OP_INVOKE_DEFAULT, 0);
 		}
 	}
 
 	/* perhaps we should move this into (G.debug & G_DEBUG) - campbell */
-	uiItemFullO(layout, "UI_OT_editsource", "Edit Source", ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "UI_OT_editsource", CTX_IFACE_(BLF_I18NCONTEXT_OPERATOR_DEFAULT, "Edit Source"),
+	            ICON_NONE, NULL, WM_OP_INVOKE_DEFAULT, 0);
 
 	uiPupMenuEnd(C, pup);
 
@@ -5185,7 +5228,7 @@ static void button_activate_init(bContext *C, ARegion *ar, uiBut *but, uiButtonA
 			but->block->auto_open = FALSE;
 
 	if (type == BUTTON_ACTIVATE_OVER) {
-		data->used_mouse = 1;
+		data->used_mouse = TRUE;
 	}
 	button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 	
@@ -5714,7 +5757,8 @@ static int ui_handle_list_event(bContext *C, wmEvent *event, ARegion *ar)
 		Panel *pa = but->block->panel;
 
 		if (ELEM(event->type, UPARROWKEY, DOWNARROWKEY) ||
-		    ((ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt))) {
+		    ((ELEM(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE) && event->alt)))
+		{
 			/* activate up/down the list */
 			value = RNA_property_int_get(&but->rnapoin, but->rnaprop);
 
@@ -5808,7 +5852,7 @@ static void ui_handle_button_return_submenu(bContext *C, wmEvent *event, uiBut *
 		else {
 			if (ISKEYBOARD(event->type)) {
 				/* keyboard menu hierarchy navigation, going back to previous level */
-				but->active->used_mouse = 0;
+				but->active->used_mouse = FALSE;
 				button_activate_state(C, but, BUTTON_STATE_HIGHLIGHT);
 			}
 			else {
@@ -6508,6 +6552,18 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 {
 	uiPopupBlockHandle *menu = userdata;
 
+	/* we block all events, this is modal interaction, except for drop events which is described below */
+	int retval = WM_UI_HANDLER_BREAK;
+
+	if (event->type == EVT_DROP) {
+		/* if we're handling drop event we'll want it to be handled by popup callee as well,
+		 * so it'll be possible to perform such operations as opening .blend files by dropping
+		 * them into blender even if there's opened popup like splash screen (sergey)
+		 */
+
+		retval = WM_UI_HANDLER_CONTINUE;
+	}
+
 	ui_handle_menus_recursive(C, event, menu);
 
 	/* free if done, does not free handle itself */
@@ -6536,8 +6592,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 	/* delayed apply callbacks */
 	ui_apply_but_funcs_after(C);
 
-	/* we block all events, this is modal interaction */
-	return WM_UI_HANDLER_BREAK;
+	return retval;
 }
 
 static void ui_handler_remove_popup(bContext *C, void *userdata)

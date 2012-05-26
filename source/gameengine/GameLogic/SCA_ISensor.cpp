@@ -101,8 +101,9 @@ bool SCA_ISensor::IsPositiveTrigger()
 }
 
 void SCA_ISensor::SetPulseMode(bool posmode, 
-							   bool negmode,
-							   int freq) {
+                               bool negmode,
+                               int freq)
+{
 	m_pos_pulsemode = posmode;
 	m_neg_pulsemode = negmode;
 	m_pulse_frequency = freq;

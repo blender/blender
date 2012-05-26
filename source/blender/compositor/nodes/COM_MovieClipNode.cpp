@@ -30,6 +30,7 @@ extern "C" {
 	#include "DNA_movieclip_types.h"
 	#include "BKE_movieclip.h"
 	#include "BKE_tracking.h"
+	#include "IMB_imbuf.h"
 }
 
 MovieClipNode::MovieClipNode(bNode *editorNode): Node(editorNode)
@@ -117,5 +118,9 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		operationSetValue->setValue(angle);
 		angleMovieClip->relinkConnections(operationSetValue->getOutputSocket());
 		graph->addOperation(operationSetValue);
+	}
+
+	if (ibuf) {
+		IMB_freeImBuf(ibuf);
 	}
 }

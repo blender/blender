@@ -38,8 +38,8 @@ void DifferenceMatteNode::convertToOperations(ExecutionSystem *graph, Compositor
 
 	DifferenceMatteOperation * operationSet = new DifferenceMatteOperation();
 	operationSet->setSettings((NodeChroma*)editorNode->storage);
-	inputSocket->relinkConnections(operationSet->getInputSocket(0), true, 0, graph);
-	inputSocket2->relinkConnections(operationSet->getInputSocket(1), true, 1, graph);
+	inputSocket->relinkConnections(operationSet->getInputSocket(0), 0, graph);
+	inputSocket2->relinkConnections(operationSet->getInputSocket(1), 1, graph);
 
 	outputSocketMatte->relinkConnections(operationSet->getOutputSocket(0));
 	graph->addOperation(operationSet);

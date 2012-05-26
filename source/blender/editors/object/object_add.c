@@ -107,6 +107,17 @@
 
 #include "object_intern.h"
 
+/* this is an exact copy of the define in rna_lamp.c
+ * kept here because of linking order */
+EnumPropertyItem lamp_type_items[] = {
+	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
+	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
+	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
+	{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
+	{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 /************************** Exported *****************************/
 
 void ED_object_location_from_view(bContext *C, float *loc)
@@ -735,22 +746,14 @@ static int object_lamp_add_exec(bContext *C, wmOperator *op)
 
 	if (BKE_scene_use_new_shading_nodes(scene)) {
 		ED_node_shader_default(scene, &la->id);
-		la->use_nodes = 1;
+		la->use_nodes = TRUE;
 	}
 	
 	return OPERATOR_FINISHED;
 }
 
 void OBJECT_OT_lamp_add(wmOperatorType *ot)
-{	
-	static EnumPropertyItem lamp_type_items[] = {
-		{LA_LOCAL, "POINT", ICON_LAMP_POINT, "Point", "Omnidirectional point light source"},
-		{LA_SUN, "SUN", ICON_LAMP_SUN, "Sun", "Constant direction parallel ray light source"},
-		{LA_SPOT, "SPOT", ICON_LAMP_SPOT, "Spot", "Directional cone light source"},
-		{LA_HEMI, "HEMI", ICON_LAMP_HEMI, "Hemi", "180 degree constant light source"},
-		{LA_AREA, "AREA", ICON_LAMP_AREA, "Area", "Directional area light source"},
-		{0, NULL, 0, NULL, NULL}};
-
+{
 	/* identifiers */
 	ot->name = "Add Lamp";
 	ot->description = "Add a lamp object to the scene";
@@ -901,7 +904,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
 	const short use_global = RNA_boolean_get(op->ptr, "use_global");
-	/* int islamp= 0; */ /* UNUSED */
+	/* int is_lamp = FALSE; */ /* UNUSED */
 	
 	if (CTX_data_edit_object(C)) 
 		return OPERATOR_CANCELLED;
@@ -909,7 +912,7 @@ static int object_delete_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
 
-		/* if (base->object->type==OB_LAMP) islamp= 1; */
+		/* if (base->object->type==OB_LAMP) is_lamp = TRUE; */
 
 		/* deselect object -- it could be used in other scenes */
 		base->object->flag &= ~SELECT;

@@ -280,8 +280,8 @@ static float haloZtoDist(int z)
  * \param xn The x coordinate of the pixel relaticve to the center of the halo. given in pixels
  * \param yn The y coordinate of the pixel relaticve to the center of the halo. given in pixels
  */
-int shadeHaloFloat(HaloRen *har,  float *col, int zz, 
-					float dist, float xn,  float yn, short flarec)
+int shadeHaloFloat(HaloRen *har, float col[4], int zz,
+                   float dist, float xn,  float yn, short flarec)
 {
 	/* fill in col */
 	float t, zn, radist, ringf=0.0f, linef=0.0f, alpha, si, co;
@@ -566,7 +566,7 @@ void shadeSunView(float col_r[3], const float view[3])
 	GroupObject *go;
 	LampRen *lar;
 	float sview[3];
-	int do_init= 1;
+	int do_init = TRUE;
 	
 	for (go=R.lights.first; go; go= go->next) {
 		lar= go->lampren;
@@ -581,7 +581,7 @@ void shadeSunView(float col_r[3], const float view[3])
 				if (sview[2] < 0.0f)
 					sview[2] = 0.0f;
 				normalize_v3(sview);
-				do_init= 0;
+				do_init = FALSE;
 			}
 			
 			GetSkyXYZRadiancef(lar->sunsky, sview, colorxyz);

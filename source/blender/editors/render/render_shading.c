@@ -383,7 +383,7 @@ static int new_material_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &ma->id);
-			ma->use_nodes = 1;
+			ma->use_nodes = TRUE;
 		}
 	}
 
@@ -483,7 +483,7 @@ static int new_world_exec(bContext *C, wmOperator *UNUSED(op))
 
 		if (BKE_scene_use_new_shading_nodes(scene)) {
 			ED_node_shader_default(scene, &wo->id);
-			wo->use_nodes = 1;
+			wo->use_nodes = TRUE;
 		}
 	}
 

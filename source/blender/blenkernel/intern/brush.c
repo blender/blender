@@ -1329,7 +1329,7 @@ struct ImBuf *BKE_brush_gen_radial_control_imbuf(Brush *br)
 
 	for (i = 0; i < side; ++i) {
 		for (j = 0; j < side; ++j) {
-			float magn = sqrt(pow(i - half, 2) + pow(j - half, 2));
+			float magn = sqrtf(powf(i - half, 2) + powf(j - half, 2));
 			im->rect_float[i * side + j] = BKE_brush_curve_strength_clamp(br, magn, half);
 		}
 	}

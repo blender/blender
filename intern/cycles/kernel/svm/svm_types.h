@@ -92,7 +92,8 @@ typedef enum NodeType {
 	NODE_RGB_RAMP = 5900,
 	NODE_RGB_CURVES = 6000,
 	NODE_MIN_MAX = 6100,
-	NODE_LIGHT_FALLOFF = 6200
+	NODE_LIGHT_FALLOFF = 6200,
+	NODE_OBJECT_INFO = 6300
 } NodeType;
 
 typedef enum NodeAttributeType {
@@ -108,6 +109,13 @@ typedef enum NodeGeometry {
 	NODE_GEOM_Ng,
 	NODE_GEOM_uv
 } NodeGeometry;
+
+typedef enum NodeObjectInfo {
+	NODE_INFO_OB_LOCATION,
+	NODE_INFO_OB_INDEX,
+	NODE_INFO_MAT_INDEX,
+	NODE_INFO_OB_RANDOM
+} NodeObjectInfo;
 
 typedef enum NodeLightPath {
 	NODE_LP_camera = 0,

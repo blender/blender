@@ -205,6 +205,8 @@ static StructRNA *rna_Node_refine(struct PointerRNA *ptr)
 			return &RNA_NodeForLoop;
 		case NODE_WHILELOOP:
 			return &RNA_NodeWhileLoop;
+		case NODE_FRAME:
+			return &RNA_NodeFrame;
 			
 		default:
 			return &RNA_Node;
@@ -1123,8 +1125,20 @@ static void def_whileloop(StructRNA *srna)
 
 static void def_frame(StructRNA *srna)
 {
-/*	PropertyRNA *prop; */
+	PropertyRNA *prop; 
 	
+	RNA_def_struct_sdna_from(srna, "NodeFrame", "storage");
+	
+	prop = RNA_def_property(srna, "shrink", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_FRAME_SHRINK);
+	RNA_def_property_ui_text(prop, "Shrink", "Shrink the frame to minimal bounding box");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "label_size", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "label_size");
+	RNA_def_property_range(prop, 8, 64);
+	RNA_def_property_ui_text(prop, "Label Font Size", "Font size to use for displaying the label");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
 }
 
 static void def_math(StructRNA *srna)
@@ -1962,11 +1976,28 @@ static void def_cmp_output_file(StructRNA *srna)
 static void def_cmp_dilate_erode(StructRNA *srna)
 {
 	PropertyRNA *prop;
+
+	static EnumPropertyItem type_items[] = {
+	    {CMP_NODE_DILATEERODE_STEP,     "STEP",       0, "Step",     ""},
+	    {CMP_NODE_DILATEERODE_DISTANCE, "DISTANCE",   0, "Distance", ""},
+		{0, NULL, 0, NULL, NULL}};
+	
+	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "custom1");
+	RNA_def_property_enum_items(prop, type_items);
+	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "distance", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "custom2");
 	RNA_def_property_range(prop, -100, 100);
 	RNA_def_property_ui_text(prop, "Distance", "Distance to grow/shrink (number of iterations)");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Edge", "Edge to inset");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -2410,7 +2441,7 @@ static void def_cmp_defocus(StructRNA *srna)
 	prop = RNA_def_property(srna, "blur_max", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "maxblur");
 	RNA_def_property_range(prop, 0.0f, 10000.0f);
-	RNA_def_property_ui_text(prop, "Max Blur", "Blur limit, maximum CoC radius, 0=no limit");
+	RNA_def_property_ui_text(prop, "Max Blur", "Blur limit, maximum CoC radius");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "threshold", PROP_FLOAT, PROP_NONE);
@@ -3006,35 +3037,35 @@ static void def_cmp_boxmask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "X position", "X position of the middle of the box");
+	RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Y position", "Y position of the middle of the box");
+	RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
 	RNA_def_property_float_default(prop, 0.3f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Width of the box", "Width of the box");
+	RNA_def_property_ui_text(prop, "Width", "Width of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "height");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Height of the box", "Height of the box");
+	RNA_def_property_ui_text(prop, "Height", "Height of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "rotation");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
-	RNA_def_property_ui_text(prop, "Rotation", "Rotationangle of the box");
+	RNA_def_property_ui_text(prop, "Rotation", "Rotation angle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -3053,28 +3084,28 @@ static void def_cmp_ellipsemask(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "x");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "X position", "X position of the middle of the box");
+	RNA_def_property_ui_text(prop, "X", "X position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "y", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "y");
 	RNA_def_property_float_default(prop, 0.5f);
 	RNA_def_property_range(prop, -1.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Y position", "Y position of the middle of the box");
+	RNA_def_property_ui_text(prop, "Y", "Y position of the middle of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "width", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "width");
 	RNA_def_property_float_default(prop, 0.3f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Width of the box", "Width of the box");
+	RNA_def_property_ui_text(prop, "Width", "Width of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "height", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "height");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0.0f, 2.0f);
-	RNA_def_property_ui_text(prop, "Height of the box", "Height of the box");
+	RNA_def_property_ui_text(prop, "Height", "Height of the box");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "rotation", PROP_FLOAT, PROP_NONE);
@@ -3094,7 +3125,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	prop = RNA_def_property(srna, "angle", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "angle");
 	RNA_def_property_float_default(prop, 0.0f);
-	RNA_def_property_range(prop, -0.0f, 360.0f);
+	RNA_def_property_range(prop, -720.0f, 720.0f);
 	RNA_def_property_ui_text(prop, "Angle", "Angle of the bokeh");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
@@ -3123,7 +3154,7 @@ static void def_cmp_bokehimage(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "lensshift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1.0f, 1.0f);
-	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens.");
+	RNA_def_property_ui_text(prop, "Lens shift", "Shift of the lens components");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 }
@@ -3165,49 +3196,49 @@ static void def_cmp_colorcorrection(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "startmidtones");
 	RNA_def_property_float_default(prop, 0.2f);
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "Start of midtones", "Start of midtones");
+	RNA_def_property_ui_text(prop, "Midtones Start", "Start of midtones");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "midtones_end", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "endmidtones");
 	RNA_def_property_float_default(prop, 0.7f);
 	RNA_def_property_range(prop, 0, 1);
-	RNA_def_property_ui_text(prop, "End of midtones", "end of midtones");
+	RNA_def_property_ui_text(prop, "Midtones End", "End of midtones");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "master.saturation");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Master saturation", "Master saturation");
+	RNA_def_property_ui_text(prop, "Master Saturation", "Master saturation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "master.contrast");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Master contrast", "Master contrast");
+	RNA_def_property_ui_text(prop, "Master Contrast", "Master contrast");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "master.gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Master gamma", "Master gamma");
+	RNA_def_property_ui_text(prop, "Master Gamma", "Master gamma");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "master.gain");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Master gain", "Master gain");
+	RNA_def_property_ui_text(prop, "Master Gain", "Master gain");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "master_lift", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "master.lift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1, 1);
-	RNA_def_property_ui_text(prop, "Master lift", "Master lift");
+	RNA_def_property_ui_text(prop, "Master Lift", "Master lift");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 //
@@ -3215,105 +3246,105 @@ static void def_cmp_colorcorrection(StructRNA *srna)
 	RNA_def_property_float_sdna(prop, NULL, "shadows.saturation");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Shadows saturation", "Shadows saturation");
+	RNA_def_property_ui_text(prop, "Shadows Saturation", "Shadows saturation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "shadows_contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shadows.contrast");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Shadows contrast", "Shadows contrast");
+	RNA_def_property_ui_text(prop, "Shadows Contrast", "Shadows contrast");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "shadows_gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shadows.gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Shadows gamma", "Shadows gamma");
+	RNA_def_property_ui_text(prop, "Shadows Gamma", "Shadows gamma");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "shadows_gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shadows.gain");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Shadows gain", "Shadows gain");
+	RNA_def_property_ui_text(prop, "Shadows Gain", "Shadows gain");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "shadows_lift", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "shadows.lift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1, 1);
-	RNA_def_property_ui_text(prop, "Shadows lift", "Shadows lift");
+	RNA_def_property_ui_text(prop, "Shadows Lift", "Shadows lift");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 //
 	prop = RNA_def_property(srna, "midtones_saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "midtones.saturation");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Midtones saturation", "Midtones saturation");
+	RNA_def_property_ui_text(prop, "Midtones Saturation", "Midtones saturation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "midtones_contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "midtones.contrast");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Midtones contrast", "Midtones contrast");
+	RNA_def_property_ui_text(prop, "Midtones Contrast", "Midtones contrast");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "midtones_gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "midtones.gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Midtones gamma", "Midtones gamma");
+	RNA_def_property_ui_text(prop, "Midtones Gamma", "Midtones gamma");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "midtones_gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "midtones.gain");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Midtones gain", "Midtones gain");
+	RNA_def_property_ui_text(prop, "Midtones Gain", "Midtones gain");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "midtones_lift", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "midtones.lift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1, 1);
-	RNA_def_property_ui_text(prop, "Midtones lift", "Midtones lift");
+	RNA_def_property_ui_text(prop, "Midtones Lift", "Midtones lift");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 //
 	prop = RNA_def_property(srna, "highlights_saturation", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "highlights.saturation");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Highlights saturation", "Highlights saturation");
+	RNA_def_property_ui_text(prop, "Highlights Saturation", "Highlights saturation");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "highlights_contrast", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "highlights.contrast");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Highlights contrast", "Highlights contrast");
+	RNA_def_property_ui_text(prop, "Highlights Contrast", "Highlights contrast");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "highlights_gamma", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "highlights.gamma");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Highlights gamma", "Highlights gamma");
+	RNA_def_property_ui_text(prop, "Highlights Gamma", "Highlights gamma");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "highlights_gain", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "highlights.gain");
 	RNA_def_property_float_default(prop, 1.0f);
 	RNA_def_property_range(prop, 0, 4);
-	RNA_def_property_ui_text(prop, "Highlights gain", "Highlights gain");
+	RNA_def_property_ui_text(prop, "Highlights Gain", "Highlights gain");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 	
 	prop = RNA_def_property(srna, "highlights_lift", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "highlights.lift");
 	RNA_def_property_float_default(prop, 0.0f);
 	RNA_def_property_range(prop, -1, 1);
-	RNA_def_property_ui_text(prop, "Highlights lift", "Highlights lift");
+	RNA_def_property_ui_text(prop, "Highlights Lift", "Highlights lift");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 }
 
@@ -3330,7 +3361,7 @@ static void def_cmp_viewer(StructRNA *srna)
 	prop = RNA_def_property(srna, "tile_order", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, tileorder_items);
-	RNA_def_property_ui_text(prop, "Tile order", "tile order");
+	RNA_def_property_ui_text(prop, "Tile order", "Tile order");
 	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "center_x", PROP_FLOAT, PROP_NONE);
@@ -3640,7 +3671,7 @@ static void rna_def_node_socket_subtype(BlenderRNA *brna, int type, int subtype,
 	PropertyRNA *prop = NULL;
 	PropertySubType propsubtype = PROP_NONE;
 	
-	#define SUBTYPE(socktype, stypename, id, idname)	{ PROP_##id, #socktype "_" #id, 0, #idname, ""},
+	#define SUBTYPE(socktype, stypename, id, idname) { PROP_##id, #socktype "_" #id, 0, #idname, ""},
 	static EnumPropertyItem subtype_items[] = {
 		NODE_DEFINE_SUBTYPES
 		{0, NULL, 0, NULL, NULL}
@@ -3770,6 +3801,18 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Parent", "Parent this node is attached to");
+	
+	prop = RNA_def_property(srna, "use_custom_color", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_CUSTOM_COLOR);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_ui_text(prop, "Custom Color", "Use custom color for the node");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "color", PROP_FLOAT, PROP_COLOR);
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");
+	RNA_def_property_update(prop, NC_NODE|ND_DISPLAY, NULL);
 
 	prop = RNA_def_property(srna, "show_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_TEXTURE);
@@ -3908,16 +3951,16 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	prop= RNA_def_property(srna, "render_quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "render_quality");
 	RNA_def_property_enum_items(prop, node_quality_items);
-	RNA_def_property_ui_text(prop, "Render quality", "Quality when rendering");
+	RNA_def_property_ui_text(prop, "Render Quality", "Quality when rendering");
 
 	prop= RNA_def_property(srna, "edit_quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "edit_quality");
 	RNA_def_property_enum_items(prop, node_quality_items);
-	RNA_def_property_ui_text(prop, "Edit quality", "Quality when editing");
+	RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
 	prop= RNA_def_property(srna, "chunksize", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "chunksize");
-	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a chunk during calculation");
+	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile. Smaller values gives better distribution of multiple threads, but more overhead.");
 	RNA_def_property_range(prop, 32, 1024);
 
 	prop= RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);

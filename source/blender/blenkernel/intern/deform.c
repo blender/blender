@@ -538,7 +538,7 @@ void flip_side_name(char name[MAX_VGROUP_NAME], const char from_name[MAX_VGROUP_
 				break;
 		}
 	}
-	/* case; beginning with r R l L , with separator after it */
+	/* case; beginning with r R l L, with separator after it */
 	else if (is_char_sep(name[1])) {
 		switch (name[0]) {
 			case 'l':

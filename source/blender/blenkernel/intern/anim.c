@@ -452,7 +452,7 @@ void animviz_calc_motionpaths(Scene *scene, ListBase *targets)
 		/* get pointer to animviz settings for each target */
 		if (mpt->pchan)
 			avs = &mpt->ob->pose->avs;
-		else	
+		else
 			avs = &mpt->ob->avs;
 		
 		/* clear the flag requesting recalculation of targets */
@@ -751,14 +751,14 @@ static void group_duplilist(ListBase *lb, Scene *scene, Object *ob, int level, i
 			dob = new_dupli_object(lb, go->ob, mat, ob->lay, 0, OB_DUPLIGROUP, animated);
 
 			/* check the group instance and object layers match, also that the object visible flags are ok. */
-			if (    (dob->origlay & group->layer) == 0 ||
-			        (G.rendering == 0 && dob->ob->restrictflag & OB_RESTRICT_VIEW) ||
-			        (G.rendering && dob->ob->restrictflag & OB_RESTRICT_RENDER)
-			        ) {
-				dob->no_draw = 1;
+			if ((dob->origlay & group->layer) == 0 ||
+			    (G.rendering == 0 && dob->ob->restrictflag & OB_RESTRICT_VIEW) ||
+			    (G.rendering && dob->ob->restrictflag & OB_RESTRICT_RENDER))
+			{
+				dob->no_draw = TRUE;
 			}
 			else {
-				dob->no_draw = 0;
+				dob->no_draw = FALSE;
 			}
 
 			if (go->ob->transflag & OB_DUPLI) {

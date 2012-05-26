@@ -420,7 +420,8 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 		return type;
 
 	switch (parm->type) {
-		case PROP_POINTER:  {
+		case PROP_POINTER:
+		{
 			PointerPropertyRNA *pparm = (PointerPropertyRNA *)parm;
 
 			if (parm->flag & PROP_RNAPTR)
@@ -428,7 +429,8 @@ static const char *rna_parameter_type_name(PropertyRNA *parm)
 			else
 				return rna_find_dna_type((const char *)pparm->type);
 		}
-		case PROP_COLLECTION: {
+		case PROP_COLLECTION:
+		{
 			return "ListBase";
 		}
 		default:
@@ -819,7 +821,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 				if (prop->flag & PROP_ID_SELF_CHECK) {
 					rna_print_id_get(f, dp);
-					fprintf(f, "	if (id==value.data) return;\n\n");
+					fprintf(f, "	if (id == value.data) return;\n\n");
 				}
 
 				if (prop->flag & PROP_ID_REFCOUNT) {

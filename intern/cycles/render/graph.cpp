@@ -325,6 +325,25 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 			
 			removed[proxy->id] = true;
 		}
+
+		/* remove useless mix closures nodes */
+		MixClosureNode *mix = dynamic_cast<MixClosureNode*>(node);
+
+		if(mix) {
+			if(mix->outputs[0]->links.size() && mix->inputs[1]->link == mix->inputs[2]->link) {
+				ShaderOutput *output = mix->inputs[1]->link;
+				vector<ShaderInput*> inputs = mix->outputs[0]->links;
+
+				foreach(ShaderInput *sock, mix->inputs)
+					if(sock->link)
+						disconnect(sock);
+
+				foreach(ShaderInput *input, inputs) {
+					disconnect(input);
+					connect(output, input);
+				}
+			}
+		}
 	}
 }
 

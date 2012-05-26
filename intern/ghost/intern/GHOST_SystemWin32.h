@@ -45,7 +45,7 @@
 #include "GHOST_System.h"
 
 #if defined(__CYGWIN32__)
-#	define __int64 long long
+#   define __int64 long long
 #endif
 
 class GHOST_EventButton;
@@ -93,7 +93,7 @@ public:
 	 * Returns the number of displays on this system.
 	 * @return The number of displays.
 	 */
-	virtual	GHOST_TUns8 getNumDisplays() const;
+	virtual GHOST_TUns8 getNumDisplays() const;
 
 	/**
 	 * Returns the dimensions of the main display on this system.
@@ -114,16 +114,16 @@ public:
 	 * @param	type	The type of drawing context installed in this window.
 	 * @param	stereoVisual	Stereo visual for quad buffered stereo.
 	 * @param	numOfAASamples	Number of samples used for AA (zero if no AA)
-	 * @param	parentWindow 	Parent (embedder) window
+	 * @param	parentWindow    Parent (embedder) window
 	 * @return	The new window (or 0 if creation failed).
 	 */
-	virtual GHOST_IWindow* createWindow(
-		const STR_String& title,
-		GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
-		GHOST_TWindowState state, GHOST_TDrawingContextType type,
-		const bool stereoVisual = false,
-		const GHOST_TUns16 numOfAASamples = 0,
-		const GHOST_TEmbedderWindowID parentWindow = 0 );
+	virtual GHOST_IWindow *createWindow(
+	    const STR_String& title,
+	    GHOST_TInt32 left, GHOST_TInt32 top, GHOST_TUns32 width, GHOST_TUns32 height,
+	    GHOST_TWindowState state, GHOST_TDrawingContextType type,
+	    const bool stereoVisual = false,
+	    const GHOST_TUns16 numOfAASamples = 0,
+	    const GHOST_TEmbedderWindowID parentWindow = 0);
 
 	/***************************************************************************************
 	 ** Event management functionality
@@ -180,7 +180,7 @@ public:
 	 * @param selection		Used by X11 only
 	 * @return				Returns the Clipboard
 	 */
-	virtual GHOST_TUns8* getClipboard(bool selection) const;
+	virtual GHOST_TUns8 *getClipboard(bool selection) const;
 	
 	/**
 	 * Puts buffer to system clipboard
@@ -199,13 +199,13 @@ public:
 	 * @param window The window on which the event occurred
 	 * @return Indication whether the event was handled. 
 	 */
-	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType,GHOST_IWindow* window, int mouseX, int mouseY, void* data);
+	static GHOST_TSuccess pushDragDropEvent(GHOST_TEventType eventType, GHOST_TDragnDropTypes draggedObjectType, GHOST_IWindow *window, int mouseX, int mouseY, void *data);
 	
 /**
  * Confirms quitting he program when there is just one window left open
  * in the application
  */
-	virtual int confirmQuit(GHOST_IWindow * window) const;
+	virtual int confirmQuit(GHOST_IWindow *window) const;
 
 protected:
 	/**
@@ -239,7 +239,7 @@ protected:
 	 * @param vk		Pointer to virtual key
 	 * @return The GHOST key (GHOST_kKeyUnknown if no match).
 	 */
-	virtual GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int * keyDown, char * vk);
+	virtual GHOST_TKey hardKey(GHOST_IWindow *window, RAWINPUT const& raw, int *keyDown, char *vk);
 
 	/**
 	 * Creates modifier key event(s) and updates the key data stored locally (m_modifierKeys).
@@ -248,7 +248,7 @@ protected:
 	 * events generated for both keys.
 	 * @param window	The window receiving the event (the active window).
 	 */
-	GHOST_EventKey* processModifierKeys(GHOST_IWindow *window);
+	GHOST_EventKey *processModifierKeys(GHOST_IWindow *window);
 
 	/**
 	 * Creates mouse button event.
@@ -257,7 +257,7 @@ protected:
 	 * @param mask		The button mask of this event.
 	 * @return The event created.
 	 */
-	static GHOST_EventButton* processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask);
+	static GHOST_EventButton *processButtonEvent(GHOST_TEventType type, GHOST_IWindow *window, GHOST_TButtonMask mask);
 
 	/**
 	 * Creates cursor event.
@@ -265,7 +265,7 @@ protected:
 	 * @param window	The window receiving the event (the active window).
 	 * @return The event created.
 	 */
-	static GHOST_EventCursor* processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow);
+	static GHOST_EventCursor *processCursorEvent(GHOST_TEventType type, GHOST_IWindow *Iwindow);
 
 	/**
 	 * Creates a mouse wheel event.
@@ -273,7 +273,7 @@ protected:
 	 * @param wParam	The wParam from the wndproc
 	 * @param lParam	The lParam from the wndproc
 	 */
-	static GHOST_EventWheel* processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam);
+	static GHOST_EventWheel *processWheelEvent(GHOST_IWindow *window, WPARAM wParam, LPARAM lParam);
 
 	/**
 	 * Creates a key event and updates the key data stored locally (m_modifierKeys).
@@ -282,7 +282,7 @@ protected:
 	 * @param window	The window receiving the event (the active window).
 	 * @param raw		RawInput structure with detailed info about the key event
 	 */
-	static GHOST_EventKey* processKeyEvent(GHOST_IWindow *window, RAWINPUT const& raw);
+	static GHOST_EventKey *processKeyEvent(GHOST_IWindow *window, RAWINPUT const& raw);
 
 	/**
 	 * Process special keys (VK_OEM_*), to see if current key layout
@@ -299,13 +299,13 @@ protected:
 	 * @param window	The window receiving the event (the active window).
 	 * @return The event created.
 	 */
-	static GHOST_Event* processWindowEvent(GHOST_TEventType type, GHOST_IWindow* window);
+	static GHOST_Event *processWindowEvent(GHOST_TEventType type, GHOST_IWindow *window);
 
 	/**
 	 * Handles minimum window size.
 	 * @param minmax	The MINMAXINFO structure.
 	 */
-	static void processMinMaxInfo(MINMAXINFO * minmax);
+	static void processMinMaxInfo(MINMAXINFO *minmax);
 
 #ifdef WITH_INPUT_NDOF
 	/**
@@ -342,14 +342,14 @@ protected:
 	static LRESULT WINAPI s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 	/**
- * Toggles console
- * @action	0 - Hides
- *			1 - Shows
- *			2 - Toggles
- *			3 - Hides if it runs not from  command line
- *			* - Does nothing
- * @return current status (1 -visible, 0 - hidden)
- */
+	 * Toggles console
+	 * @action	0 - Hides
+	 *			1 - Shows
+	 *			2 - Toggles
+	 *			3 - Hides if it runs not from  command line
+	 *			* - Does nothing
+	 * @return current status (1 -visible, 0 - hidden)
+	 */
 	int toggleConsole(int action);
 	
 	/** The current state of the modifier keys. */
@@ -390,12 +390,12 @@ inline void GHOST_SystemWin32::handleKeyboardChange(void)
 	// save the language identifier.
 	m_langId = LOWORD(m_keylayout);
 
-	for(m_hasAltGr = false, i = 32; i < 256; ++i) {
+	for (m_hasAltGr = false, i = 32; i < 256; ++i) {
 		s = VkKeyScanEx((char)i, m_keylayout);
 		// s == -1 means no key that translates passed char code
 		// high byte contains shift state. bit 2 ctrl pressed, bit 4 alt pressed
 		// if both are pressed, we have AltGr keycombo on keylayout
-		if(s!=-1 && (s & 0x600) == 0x600) {
+		if (s != -1 && (s & 0x600) == 0x600) {
 			m_hasAltGr = true;
 			break;
 		}

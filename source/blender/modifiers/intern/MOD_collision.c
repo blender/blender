@@ -71,7 +71,7 @@ static void freeData(ModifierData *md)
 {
 	CollisionModifierData *collmd = (CollisionModifierData *) md;
 	
-	if (collmd)  {
+	if (collmd) {
 		if (collmd->bvhtree)
 			BLI_bvhtree_free(collmd->bvhtree);
 		if (collmd->x)

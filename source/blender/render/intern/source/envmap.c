@@ -505,7 +505,7 @@ static void render_envmap(Render *re, EnvMap *env)
 void make_envmaps(Render *re)
 {
 	Tex *tex;
-	int do_init= 0, depth= 0, trace;
+	int do_init = FALSE, depth= 0, trace;
 	
 	if (!(re->r.mode & R_ENVMAP)) return;
 	
@@ -559,7 +559,7 @@ void make_envmaps(Render *re)
 								if (env->ok==0 && depth==0) env->recalc= 1;
 								
 								if (env->ok==0) {
-									do_init= 1;
+									do_init = TRUE;
 									render_envmap(re, env);
 									
 									if (depth==env->depth) env->recalc= 0;

@@ -37,6 +37,8 @@
 #include "BLI_dlrbTree.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "DNA_armature_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_object_types.h"
@@ -1466,7 +1468,7 @@ static int area_split_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				
-				CTX_wm_window(C)->screen->do_draw = 1;
+				CTX_wm_window(C)->screen->do_draw = TRUE;
 
 			}
 			
@@ -1535,7 +1537,7 @@ static EnumPropertyItem prop_direction_items[] = {
 
 static void SCREEN_OT_area_split(wmOperatorType *ot)
 {
-	ot->name = "Split area";
+	ot->name = "Split Area";
 	ot->description = "Split selected area into new windows";
 	ot->idname = "SCREEN_OT_area_split";
 	
@@ -1911,7 +1913,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	ActKeyColumn *ak;
 	float cfra;
 	short next = RNA_boolean_get(op->ptr, "next");
-	short done = 0;
+	short done = FALSE;
 	
 	/* sanity checks */
 	if (scene == NULL)
@@ -1942,7 +1944,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 			if (CFRA != (int)ak->cfra) {
 				/* this changes the frame, so set the frame and we're done */
 				CFRA = (int)ak->cfra;
-				done = 1;
+				done = TRUE;
 			}
 			else {
 				/* make this the new starting point for the search */
@@ -2351,7 +2353,7 @@ static int area_join_modal(bContext *C, wmOperator *op, wmEvent *event)
 static void SCREEN_OT_area_join(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Join area";
+	ot->name = "Join Area";
 	ot->description = "Join selected areas into new window";
 	ot->idname = "SCREEN_OT_area_join";
 	
@@ -2382,7 +2384,7 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	if (actedge == NULL) return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	WM_operator_properties_create(&ptr1, "SCREEN_OT_area_join");
@@ -2399,8 +2401,8 @@ static int screen_area_options_invoke(bContext *C, wmOperator *op, wmEvent *even
 	RNA_int_set(&ptr2, "mouse_x", event->x);
 	RNA_int_set(&ptr2, "mouse_y", event->y);
 	
-	uiItemFullO(layout, "SCREEN_OT_area_split", "Split Area", ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
-	uiItemFullO(layout, "SCREEN_OT_area_join", "Join Area", ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_split", NULL, ICON_NONE, ptr2.data, WM_OP_INVOKE_DEFAULT, 0);
+	uiItemFullO(layout, "SCREEN_OT_area_join", NULL, ICON_NONE, ptr1.data, WM_OP_INVOKE_DEFAULT, 0);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -2499,11 +2501,11 @@ static int repeat_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	if (items == 0)
 		return OPERATOR_CANCELLED;
 	
-	pup = uiPupMenuBegin(C, op->type->name, ICON_NONE);
+	pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 	layout = uiPupMenuLayout(pup);
 	
 	for (i = items - 1, lastop = wm->operators.last; lastop; lastop = lastop->prev, i--)
-		uiItemIntO(layout, lastop->type->name, ICON_NONE, op->type->idname, "index", i);
+		uiItemIntO(layout, RNA_struct_ui_name(lastop->type->srna), ICON_NONE, op->type->idname, "index", i);
 	
 	uiPupMenuEnd(C, pup);
 	
@@ -2903,6 +2905,8 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 		Scene *scene = CTX_data_scene(C);
 		wmTimer *wt = screen->animtimer;
 		ScreenAnimData *sad = wt->customdata;
+		wmWindowManager *wm = CTX_wm_manager(C);
+		wmWindow *window;
 		ScrArea *sa;
 		int sync;
 		float time;
@@ -2983,22 +2987,24 @@ static int screen_animation_step(bContext *C, wmOperator *UNUSED(op), wmEvent *e
 			sound_seek_scene(bmain, scene);
 		
 		/* since we follow drawflags, we can't send notifier but tag regions ourselves */
-		ED_update_for_newframe(CTX_data_main(C), scene, screen, 1);
-		
-		for (sa = screen->areabase.first; sa; sa = sa->next) {
-			ARegion *ar;
-			for (ar = sa->regionbase.first; ar; ar = ar->next) {
-				if (ar == sad->ar)
-					ED_region_tag_redraw(ar);
-				else
-				if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
-					ED_region_tag_redraw(ar);
+		ED_update_for_newframe(CTX_data_main(C), scene, 1);
+
+		for (window = wm->windows.first; window; window = window->next) {
+			for (sa = window->screen->areabase.first; sa; sa = sa->next) {
+				ARegion *ar;
+				for (ar = sa->regionbase.first; ar; ar = ar->next) {
+					if (ar == sad->ar)
+						ED_region_tag_redraw(ar);
+					else
+					if (match_region_with_redraws(sa->spacetype, ar->regiontype, sad->redraws))
+						ED_region_tag_redraw(ar);
+				}
+				
+				if (match_area_with_refresh(sa->spacetype, sad->refresh))
+					ED_area_tag_refresh(sa);
 			}
-			
-			if (match_area_with_refresh(sa->spacetype, sad->refresh))
-				ED_area_tag_refresh(sa);
 		}
-		
+			
 		/* update frame rate info too 
 		 * NOTE: this may not be accurate enough, since we might need this after modifiers/etc. 
 		 * have been calculated instead of just before updates have been done?
@@ -3032,13 +3038,25 @@ static void SCREEN_OT_animation_step(wmOperatorType *ot)
 
 /* ****************** anim player, starts or ends timer ***************** */
 
+/* find window that owns the animation timer */
+bScreen *ED_screen_animation_playing(const wmWindowManager *wm)
+{
+	wmWindow *window;
+
+	for (window = wm->windows.first; window; window = window->next)
+		if (window->screen->animtimer)
+			return window->screen;
+	
+	return NULL;
+}
+
 /* toggle operator */
 int ED_screen_animation_play(bContext *C, int sync, int mode)
 {
 	bScreen *screen = CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
 
-	if (screen->animtimer) {
+	if (ED_screen_animation_playing(CTX_wm_manager(C))) {
 		/* stop playback now */
 		ED_screen_animation_timer(C, 0, 0, 0, 0);
 		sound_stop_scene(scene);
@@ -3095,9 +3113,9 @@ static void SCREEN_OT_animation_play(wmOperatorType *ot)
 
 static int screen_animation_cancel_exec(bContext *C, wmOperator *op)
 {
-	bScreen *screen = CTX_wm_screen(C);
+	bScreen *screen = ED_screen_animation_playing(CTX_wm_manager(C));
 
-	if (screen->animtimer) {
+	if (screen) {
 		if (RNA_boolean_get(op->ptr, "restore_frame")) {
 			ScreenAnimData *sad = screen->animtimer->customdata;
 			Scene *scene = CTX_data_scene(C);

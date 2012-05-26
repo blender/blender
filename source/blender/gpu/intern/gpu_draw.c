@@ -449,8 +449,8 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 
 	/* if tiling mode or repeat changed, change texture matrix to fit */
 	if (GTS.tilemode!=GTS.curtilemode || GTS.curtileXRep!=GTS.tileXRep ||
-	   GTS.curtileYRep != GTS.tileYRep) {
-
+	    GTS.curtileYRep != GTS.tileYRep)
+	{
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 
@@ -766,8 +766,9 @@ void GPU_paint_update_image(Image *ima, int x, int y, int w, int h, int mipmap)
 	ibuf = BKE_image_get_ibuf(ima, NULL);
 	
 	if (ima->repbind || (gpu_get_mipmap() && mipmap) || !ima->bindcode || !ibuf ||
-		(!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
-		(w == 0) || (h == 0)) {
+	    (!is_power_of_2_i(ibuf->x) || !is_power_of_2_i(ibuf->y)) ||
+	    (w == 0) || (h == 0))
+	{
 		/* these cases require full reload still */
 		GPU_free_image(ima);
 	}
@@ -1016,6 +1017,8 @@ static struct GPUMaterialState {
 	float (*gviewmat)[4];
 	float (*gviewinv)[4];
 
+	int backface_culling;
+
 	GPUBlendMode *alphablend;
 	GPUBlendMode alphablend_fixed[FIXEDMAT];
 	int use_alpha_pass, is_alpha_pass;
@@ -1084,6 +1087,8 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.lastretval = -1;
 	GMS.lastalphablend = GPU_BLEND_SOLID;
 
+	GMS.backface_culling = (v3d->flag2 & V3D_BACKFACE_CULLING);
+
 	GMS.gob = ob;
 	GMS.gscene = scene;
 	GMS.totmat= ob->totcol+1; /* materials start from 1, default material is 0 */
@@ -1099,7 +1104,7 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 	GMS.use_alpha_pass = (do_alpha_after != NULL);
 	GMS.is_alpha_pass = (v3d && v3d->transp);
 	if (GMS.use_alpha_pass)
-		*do_alpha_after = 0;
+		*do_alpha_after = FALSE;
 	
 	if (GMS.totmat > FIXEDMAT) {
 		GMS.matbuf= MEM_callocN(sizeof(GPUMaterialFixed)*GMS.totmat, "GMS.matbuf");
@@ -1156,11 +1161,11 @@ void GPU_begin_object_materials(View3D *v3d, RegionView3D *rv3d, Scene *scene, O
 			}
 		}
 
-		/* setting do_alpha_after = 1 indicates this object needs to be
+		/* setting 'do_alpha_after = TRUE' indicates this object needs to be
 		 * drawn in a second alpha pass for improved blending */
 		if (do_alpha_after && !GMS.is_alpha_pass)
 			if (ELEM3(alphablend, GPU_BLEND_ALPHA, GPU_BLEND_ADD, GPU_BLEND_ALPHA_SORT))
-				*do_alpha_after= 1;
+				*do_alpha_after = TRUE;
 
 		GMS.alphablend[a]= alphablend;
 	}
@@ -1247,6 +1252,13 @@ int GPU_enable_material(int nr, void *attribs)
 				alphablend= mat->game.alpha_blend;
 
 			if (GMS.is_alpha_pass) glDepthMask(1);
+
+			if (GMS.backface_culling) {
+				if (mat->game.flag)
+					glEnable(GL_CULL_FACE);
+				else
+					glDisable(GL_CULL_FACE);
+			}
 		}
 		else {
 			/* or do fixed function opengl material */
@@ -1282,6 +1294,9 @@ void GPU_disable_material(void)
 	GMS.lastretval= 1;
 
 	if (GMS.gboundmat) {
+		if (GMS.backface_culling)
+			glDisable(GL_CULL_FACE);
+
 		if (GMS.is_alpha_pass) glDepthMask(0);
 		GPU_material_unbind(GPU_material_from_blender(GMS.gscene, GMS.gboundmat));
 		GMS.gboundmat= NULL;

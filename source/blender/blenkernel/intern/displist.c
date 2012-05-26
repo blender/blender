@@ -901,7 +901,8 @@ static void curve_calc_modifiers_post(Scene *scene, Object *ob, ListBase *dispba
 			continue;
 
 		if (mti->type == eModifierTypeType_OnlyDeform ||
-		    (mti->type == eModifierTypeType_DeformOrConstruct && !dm)) {
+		    (mti->type == eModifierTypeType_DeformOrConstruct && !dm))
+		{
 			if (editmode)
 				appf |= MOD_APPLY_USECACHE;
 			if (dm) {

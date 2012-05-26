@@ -240,7 +240,7 @@ void BLI_argsPrintArgDoc(struct bArgs *ba, const char *arg)
 
 		internalDocPrint(d);
 
-		d->done = 1;
+		d->done = TRUE;
 	}
 }
 

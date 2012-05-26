@@ -39,8 +39,8 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	if (imageSocket->isConnected()) {
 		bNode *editorNode = this->getbNode();
 		ViewerOperation *viewerOperation = new ViewerOperation();
-		viewerOperation->setColorManagement( context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
-		viewerOperation->setColorPredivide( context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
+		viewerOperation->setColorManagement(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		viewerOperation->setColorPredivide(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 		viewerOperation->setbNodeTree(context->getbNodeTree());
 		viewerOperation->setImage(image);
 		viewerOperation->setImageUser(imageUser);
@@ -48,7 +48,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 		viewerOperation->setCenterX(editorNode->custom3);
 		viewerOperation->setCenterY(editorNode->custom4);
-		imageSocket->relinkConnections(viewerOperation->getInputSocket(0), true, 0, graph);
+		imageSocket->relinkConnections(viewerOperation->getInputSocket(0), 0, graph);
 		alphaSocket->relinkConnections(viewerOperation->getInputSocket(1));
 		graph->addOperation(viewerOperation);
 		addPreviewOperation(graph, viewerOperation->getInputSocket(0), 0);

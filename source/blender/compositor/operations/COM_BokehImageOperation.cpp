@@ -38,7 +38,10 @@ void BokehImageOperation::initExecution()
 	this->circularDistance = getWidth()/2;
 	this->flapRad = (M_PI*2)/this->data->flaps;
 	this->flapRadAdd = (this->data->angle/360.0)*M_PI*2;
-	if (this->flapRadAdd>M_PI) {
+	while (this->flapRadAdd<0.0f) {
+		this->flapRadAdd+=M_PI*2;
+	}
+	while (this->flapRadAdd>M_PI) {
 		this->flapRadAdd-=M_PI*2;
 	}
 }

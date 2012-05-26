@@ -378,7 +378,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 	DispList *dl;
 	BoundBox *bb;
 	float *fp, min[3], max[3];
-	int tot, doit = 0;
+	int tot, do_it = FALSE;
 
 	if (cu->bb == NULL)
 		cu->bb = MEM_callocN(sizeof(BoundBox), "boundbox");
@@ -390,7 +390,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 	while (dl) {
 		tot = ELEM(dl->type, DL_INDEX3, DL_INDEX4) ? dl->nr : dl->nr * dl->parts;
 
-		if (tot) doit = 1;
+		if (tot) do_it = TRUE;
 		fp = dl->verts;
 		while (tot--) {
 			minmax_v3v3_v3(min, max, fp);
@@ -399,7 +399,7 @@ void BKE_curve_texspace_calc(Curve *cu)
 		dl = dl->next;
 	}
 
-	if (!doit) {
+	if (do_it == FALSE) {
 		min[0] = min[1] = min[2] = -1.0f;
 		max[0] = max[1] = max[2] = 1.0f;
 	}
@@ -1272,12 +1272,12 @@ float *BKE_curve_surf_make_orco(Object *ob)
 				for (b = 0; b < sizeu; b++) {
 					int use_b = b;
 					if (b == sizeu - 1 && (nu->flagu & CU_NURB_CYCLIC))
-						use_b = 0;
+						use_b = FALSE;
 
 					for (a = 0; a < sizev; a++) {
 						int use_a = a;
 						if (a == sizev - 1 && (nu->flagv & CU_NURB_CYCLIC))
-							use_a = 0;
+							use_a = FALSE;
 
 						tdata = _tdata + 3 * (use_b * (nu->pntsv * resolv) + use_a);
 
@@ -2216,7 +2216,7 @@ void BKE_curve_bevelList_make(Object *ob)
 		/* check if we will calculate tilt data */
 		do_tilt = CU_DO_TILT(cu, nu);
 		do_radius = CU_DO_RADIUS(cu, nu); /* normal display uses the radius, better just to calculate them */
-		do_weight = 1;
+		do_weight = TRUE;
 
 		/* check we are a single point? also check we are not a surface and that the orderu is sane,
 		 * enforced in the UI but can go wrong possibly */

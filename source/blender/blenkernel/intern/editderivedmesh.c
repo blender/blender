@@ -980,9 +980,9 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 	DMVertexAttribs attribs;
 	GPUVertexAttribs gattribs;
 
-	int i, b, matnr, new_matnr, dodraw;
+	int i, b, matnr, new_matnr, do_draw;
 
-	dodraw = 0;
+	do_draw = FALSE;
 	matnr = -1;
 
 	memset(&attribs, 0, sizeof(attribs));
@@ -1026,12 +1026,12 @@ static void emDM_drawMappedFacesGLSL(DerivedMesh *dm,
 
 		new_matnr = efa->mat_nr + 1;
 		if (new_matnr != matnr) {
-			dodraw = setMaterial(matnr = new_matnr, &gattribs);
-			if (dodraw)
+			do_draw = setMaterial(matnr = new_matnr, &gattribs);
+			if (do_draw)
 				DM_vertex_attributes_from_gpu(dm, &gattribs, &attribs);
 		}
 
-		if (dodraw) {
+		if (do_draw) {
 			glBegin(GL_TRIANGLES);
 			if (!drawSmooth) {
 				if (vertexCos) glNormal3fv(bmdm->polyNos[BM_elem_index_get(efa)]);
@@ -1685,6 +1685,20 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 		BM_ITER_MESH_INDEX (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH, i) {
 			DM_set_vert_data(&bmdm->dm, i, CD_MDEFORMVERT,
 			                 CustomData_bmesh_get(&bm->vdata, eve->head.data, CD_MDEFORMVERT));
+		}
+	}
+
+	if (CustomData_has_layer(&bm->vdata, CD_MVERT_SKIN)) {
+		BMIter iter;
+		BMVert *eve;
+		int i;
+
+		DM_add_vert_layer(&bmdm->dm, CD_MVERT_SKIN, CD_CALLOC, NULL);
+
+		BM_ITER_MESH_INDEX (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH, i) {
+			DM_set_vert_data(&bmdm->dm, i, CD_MVERT_SKIN,
+							 CustomData_bmesh_get(&bm->vdata, eve->head.data,
+												  CD_MVERT_SKIN));
 		}
 	}
 

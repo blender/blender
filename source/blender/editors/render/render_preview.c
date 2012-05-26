@@ -473,7 +473,7 @@ static int ed_preview_draw_rect(ScrArea *sa, Scene *sce, ID *id, int split, int 
 	Render *re;
 	RenderResult rres;
 	char name[32];
-	int do_gamma_correct = 0, do_predivide = 0;
+	int do_gamma_correct = FALSE, do_predivide = FALSE;
 	int offx = 0, newx = rect->xmax - rect->xmin, newy = rect->ymax - rect->ymin;
 
 	if (id && GS(id->name) != ID_TE) {
@@ -583,7 +583,7 @@ static void shader_preview_draw(void *spv, RenderResult *UNUSED(rr), volatile st
 {
 	ShaderPreview *sp = spv;
 	
-	*(sp->do_update) = 1;
+	*(sp->do_update) = TRUE;
 }
 
 /* called by renderer, checks job value */
@@ -737,7 +737,7 @@ static void shader_preview_startjob(void *customdata, short *stop, short *do_upd
 	else
 		shader_preview_render(sp, sp->id, 0, 0);
 
-	*do_update = 1;
+	*do_update = TRUE;
 }
 
 static void shader_preview_free(void *customdata)
@@ -910,7 +910,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 		
 		icon_copy_rect(ibuf, sp->sizex, sp->sizey, sp->pr_rect);
 
-		*do_update = 1;
+		*do_update = TRUE;
 	}
 	else if (idtype == ID_BR) {
 		Brush *br = (Brush *)id;
@@ -924,7 +924,7 @@ static void icon_preview_startjob(void *customdata, short *stop, short *do_updat
 
 		icon_copy_rect(br->icon_imbuf, sp->sizex, sp->sizey, sp->pr_rect);
 
-		*do_update = 1;
+		*do_update = TRUE;
 	}
 	else {
 		/* re-use shader job */

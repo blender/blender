@@ -57,6 +57,6 @@ public:
 	 */
 	void deinitExecution();
 
-	void setAlpha(float alpha){this->alpha = alpha;}
+	void setAlpha(float alpha) { this->alpha = alpha; }
 };
 #endif

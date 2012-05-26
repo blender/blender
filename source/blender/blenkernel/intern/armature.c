@@ -437,7 +437,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1 = 0.0f, roll2;
 	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
 	float data[MAX_BBONE_SUBDIV + 1][4], *fp;
-	int a, doscale = 0;
+	int a, do_scale = 0;
 
 	length = bone->length;
 
@@ -455,7 +455,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 			invert_m4_m4(iscalemat, scalemat);
 
 			length *= scale[1];
-			doscale = 1;
+			do_scale = 1;
 		}
 	}
 
@@ -476,7 +476,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	if (rest) {
 		invert_m4_m4(imat, pchan->bone->arm_mat);
 	}
-	else if (doscale) {
+	else if (do_scale) {
 		copy_m4_m4(posemat, pchan->pose_mat);
 		normalize_m4(posemat);
 		invert_m4_m4(imat, posemat);
@@ -581,7 +581,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		copy_m4_m3(result_array[a].mat, mat3);
 		copy_v3_v3(result_array[a].mat[3], fp);
 
-		if (doscale) {
+		if (do_scale) {
 			/* correct for scaling when this matrix is used in scaled space */
 			mul_serie_m4(result_array[a].mat, iscalemat, result_array[a].mat, scalemat, NULL, NULL, NULL, NULL, NULL);
 		}
@@ -835,7 +835,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	const short invert_vgroup = deformflag & ARM_DEF_INVERT_VGROUP;
 	int defbase_tot = 0;       /* safety for vertexgroup index overflow */
 	int i, target_totvert = 0; /* safety for vertexgroup overflow */
-	int use_dverts = 0;
+	int use_dverts = FALSE;
 	int armature_def_nr;
 	int totchan;
 
@@ -895,11 +895,12 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 	if (deformflag & ARM_DEF_VGROUP) {
 		if (ELEM(target->type, OB_MESH, OB_LATTICE)) {
 			/* if we have a DerivedMesh, only use dverts if it has them */
-			if (dm)
-				if (dm->getVertData(dm, 0, CD_MDEFORMVERT))
-					use_dverts = 1;
-				else use_dverts = 0;
-			else if (dverts) use_dverts = 1;
+			if (dm) {
+				use_dverts = (dm->getVertData(dm, 0, CD_MDEFORMVERT) != NULL);
+			}
+			else if (dverts) {
+				use_dverts = TRUE;
+			}
 
 			if (use_dverts) {
 				defnrToPC = MEM_callocN(sizeof(*defnrToPC) * defbase_tot, "defnrToBone");
@@ -2245,13 +2246,13 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 	int do_modif;
 
 	for (strip = armob->nlastrips.first; strip; strip = strip->next) {
-		do_modif = 0;
+		do_modif = FALSE;
 
 		if (scene_cfra >= strip->start && scene_cfra <= strip->end)
-			do_modif = 1;
+			do_modif = TRUE;
 
 		if ((scene_cfra > strip->end) && (strip->flag & ACTSTRIP_HOLDLASTFRAME)) {
-			do_modif = 1;
+			do_modif = TRUE;
 
 			/* if there are any other strips active, ignore modifiers for this strip -
 			 * 'hold' option should only hold action modifiers if there are
@@ -2261,7 +2262,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 
 				if (scene_cfra >= strip2->start && scene_cfra <= strip2->end) {
 					if (!(strip2->flag & ACTSTRIP_MUTE))
-						do_modif = 0;
+						do_modif = FALSE;
 				}
 			}
 
@@ -2270,7 +2271,7 @@ static void do_strip_modifiers(Scene *scene, Object *armob, Bone *bone, bPoseCha
 			for (strip2 = strip->next; strip2; strip2 = strip2->next) {
 				if (scene_cfra < strip2->start) continue;
 				if ((strip2->flag & ACTSTRIP_HOLDLASTFRAME) && !(strip2->flag & ACTSTRIP_MUTE)) {
-					do_modif = 0;
+					do_modif = FALSE;
 				}
 			}
 		}

@@ -1085,7 +1085,7 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	float val_bf, nval_bf, diff_bf;
 	float val_gf, nval_gf, diff_gf;
 	float val_rf, nval_rf, diff_rf;
-	int x, y, do_rect = 0, do_float = 0;
+	int x, y, do_rect = FALSE, do_float = FALSE;
 
 	val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
 	val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
@@ -1095,12 +1095,12 @@ static ImBuf *scaleupx(struct ImBuf *ibuf, int newx)
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return (ibuf);
 
 	if (ibuf->rect) {
-		do_rect = 1;
+		do_rect = TRUE;
 		_newrect = MEM_mallocN(newx * ibuf->y * sizeof(int), "scaleupx");
 		if (_newrect == NULL) return(ibuf);
 	}
 	if (ibuf->rect_float) {
-		do_float = 1;
+		do_float = TRUE;
 		_newrectf = MEM_mallocN(newx * ibuf->y * sizeof(float) * 4, "scaleupxf");
 		if (_newrectf == NULL) {
 			if (_newrect) MEM_freeN(_newrect);
@@ -1252,7 +1252,7 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 	float val_bf, nval_bf, diff_bf;
 	float val_gf, nval_gf, diff_gf;
 	float val_rf, nval_rf, diff_rf;
-	int x, y, do_rect = 0, do_float = 0, skipx;
+	int x, y, do_rect = FALSE, do_float = FALSE, skipx;
 
 	val_a = nval_a = diff_a = val_b = nval_b = diff_b = 0;
 	val_g = nval_g = diff_g = val_r = nval_r = diff_r = 0;
@@ -1262,12 +1262,12 @@ static ImBuf *scaleupy(struct ImBuf *ibuf, int newy)
 	if (ibuf->rect == NULL && ibuf->rect_float == NULL) return (ibuf);
 
 	if (ibuf->rect) {
-		do_rect = 1;
+		do_rect = TRUE;
 		_newrect = MEM_mallocN(ibuf->x * newy * sizeof(int), "scaleupy");
 		if (_newrect == NULL) return(ibuf);
 	}
 	if (ibuf->rect_float) {
-		do_float = 1;
+		do_float = TRUE;
 		_newrectf = MEM_mallocN(ibuf->x * newy * sizeof(float) * 4, "scaleupyf");
 		if (_newrectf == NULL) {
 			if (_newrect) MEM_freeN(_newrect);
@@ -1481,16 +1481,16 @@ struct ImBuf *IMB_scalefastImBuf(struct ImBuf *ibuf, unsigned int newx, unsigned
 {
 	unsigned int *rect, *_newrect, *newrect;
 	struct imbufRGBA *rectf, *_newrectf, *newrectf;
-	int x, y, do_float = 0, do_rect = 0;
+	int x, y, do_float = FALSE, do_rect = FALSE;
 	int ofsx, ofsy, stepx, stepy;
 
 	rect = NULL; _newrect = NULL; newrect = NULL;
 	rectf = NULL; _newrectf = NULL; newrectf = NULL;
 
 	if (ibuf == NULL) return(NULL);
-	if (ibuf->rect) do_rect = 1;
-	if (ibuf->rect_float) do_float = 1;
-	if (do_rect == 0 && do_float == 0) return(ibuf);
+	if (ibuf->rect) do_rect = TRUE;
+	if (ibuf->rect_float) do_float = TRUE;
+	if (do_rect == FALSE && do_float == FALSE) return(ibuf);
 	
 	if (newx == ibuf->x && newy == ibuf->y) return(ibuf);
 	

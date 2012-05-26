@@ -37,7 +37,7 @@ void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 		operation = new ConvertKeyToPremulOperation();
 	} 
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 
 	graph->addOperation(operation);

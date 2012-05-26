@@ -31,8 +31,8 @@ void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 {
 	MapUVOperation *operation = new MapUVOperation();
 
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), true, 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), true, 1, graph);
+	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	
 	bNode *node = this->getbNode();

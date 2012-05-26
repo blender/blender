@@ -35,7 +35,7 @@ void ColourToBWNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	OutputSocket *valueSocket = this->getOutputSocket(0);
 	
 	ConvertColorToBWOperation *convertProg = new ConvertColorToBWOperation();
-	colourSocket->relinkConnections(convertProg->getInputSocket(0), true, 0, graph);
+	colourSocket->relinkConnections(convertProg->getInputSocket(0), 0, graph);
 	valueSocket->relinkConnections(convertProg->getOutputSocket(0));
 	graph->addOperation(convertProg);
 }

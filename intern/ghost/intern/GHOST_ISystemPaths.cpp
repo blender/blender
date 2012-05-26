@@ -40,21 +40,21 @@
 #include "GHOST_ISystemPaths.h"
 
 #ifdef WIN32
-#	include "GHOST_SystemPathsWin32.h"
+#  include "GHOST_SystemPathsWin32.h"
 #else
-#	ifdef __APPLE__
-#		ifdef GHOST_COCOA
-#			include "GHOST_SystemPathsCocoa.h"
-#		else
-#			include "GHOST_SystemPathsCarbon.h"
-#		endif
-#	else
-#		include "GHOST_SystemPathsX11.h"
-#	endif
+#  ifdef __APPLE__
+#    ifdef GHOST_COCOA
+#      include "GHOST_SystemPathsCocoa.h"
+#    else
+#      include "GHOST_SystemPathsCarbon.h"
+#    endif
+#  else
+#    include "GHOST_SystemPathsX11.h"
+#  endif
 #endif
 
 
-GHOST_ISystemPaths* GHOST_ISystemPaths::m_systemPaths = 0;
+GHOST_ISystemPaths *GHOST_ISystemPaths::m_systemPaths = 0;
 
 
 GHOST_TSuccess GHOST_ISystemPaths::create()
@@ -62,17 +62,17 @@ GHOST_TSuccess GHOST_ISystemPaths::create()
 	GHOST_TSuccess success;
 	if (!m_systemPaths) {
 #ifdef WIN32
-		m_systemPaths = new GHOST_SystemPathsWin32 ();
+		m_systemPaths = new GHOST_SystemPathsWin32();
 #else
-#	ifdef __APPLE__
-#		ifdef GHOST_COCOA
-			m_systemPaths = new GHOST_SystemPathsCocoa ();
-#		else
-			m_systemPaths = new GHOST_SystemPathsCarbon ();
-#		endif
-#	else 
-		m_systemPaths = new GHOST_SystemPathsX11 ();
-#	endif
+#  ifdef __APPLE__
+#    ifdef GHOST_COCOA
+		m_systemPaths = new GHOST_SystemPathsCocoa();
+#    else
+		m_systemPaths = new GHOST_SystemPathsCarbon();
+#    endif
+#  else
+		m_systemPaths = new GHOST_SystemPathsX11();
+#  endif
 #endif 
 		success = m_systemPaths != 0 ? GHOST_kSuccess : GHOST_kFailure;
 	}
@@ -95,7 +95,7 @@ GHOST_TSuccess GHOST_ISystemPaths::dispose()
 	return success;
 }
 
-GHOST_ISystemPaths* GHOST_ISystemPaths::get()
+GHOST_ISystemPaths *GHOST_ISystemPaths::get()
 {
 	if (!m_systemPaths) {
 		create();

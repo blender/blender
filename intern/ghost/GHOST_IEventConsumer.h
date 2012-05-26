@@ -61,7 +61,7 @@ public:
 	 * @param	event	The event that can be handled or ignored.
 	 * @return	Indication as to whether the event was handled.
 	 */
-	virtual	bool processEvent(GHOST_IEvent* event) = 0;
+	virtual bool processEvent(GHOST_IEvent *event) = 0;
 	
 #ifdef WITH_CXX_GUARDEDALLOC
 public:

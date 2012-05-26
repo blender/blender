@@ -65,7 +65,7 @@ void Stabilize2dNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	yAttribute->setFramenumber(context->getFramenumber());
 	yAttribute->setMovieClip(clip);
 	
-	imageInput->relinkConnections(scaleOperation->getInputSocket(0), true, 0, graph);
+	imageInput->relinkConnections(scaleOperation->getInputSocket(0), 0, graph);
 	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(1));
 	addLink(graph, scaleAttribute->getOutputSocket(), scaleOperation->getInputSocket(2));
 	

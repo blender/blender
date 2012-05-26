@@ -254,7 +254,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 		return;
 	}
 
-	if (dest_slot->slottype  == BMO_OP_SLOT_ELEMENT_BUF) {
+	if (dest_slot->slottype == BMO_OP_SLOT_ELEMENT_BUF) {
 		/* do buffer copy */
 		dest_slot->data.buf = NULL;
 		dest_slot->len = source_slot->len;
@@ -264,7 +264,7 @@ void BMO_slot_copy(BMOperator *source_op, BMOperator *dest_op, const char *src, 
 			memcpy(dest_slot->data.buf, source_slot->data.buf, slot_alloc_size);
 		}
 	}
-	else if (dest_slot->slottype  == BMO_OP_SLOT_MAPPING) {
+	else if (dest_slot->slottype == BMO_OP_SLOT_MAPPING) {
 		GHashIterator it;
 		BMOElemMapping *srcmap, *dstmap;
 

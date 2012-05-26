@@ -93,6 +93,7 @@
 #include "ED_view3d.h"
 #include "ED_curve.h" /* for curve_editnurbs */
 #include "ED_clip.h"
+#include "ED_screen.h"
 
 //#include "BDR_unwrapper.h"
 
@@ -1038,9 +1039,10 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 	if (t->spacetype == SPACE_VIEW3D) {
 		View3D *v3d = sa->spacedata.first;
+		bScreen *animscreen = ED_screen_animation_playing(CTX_wm_manager(C));
 		
 		t->view = v3d;
-		t->animtimer= CTX_wm_screen(C)->animtimer;
+		t->animtimer= (animscreen)? animscreen->animtimer: NULL;
 		
 		/* turn manipulator off during transform */
 		// FIXME: but don't do this when USING the manipulator...
@@ -1606,7 +1608,7 @@ void calculatePropRatio(TransInfo *t)
 				td->factor = 0.0f;
 				restoreElement(td);
 			}
-			else if	((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
+			else if ((connected && (td->flag & TD_NOTCONNECTED || td->dist > t->prop_size)) ||
 			         (connected == 0 && td->rdist > t->prop_size))
 			{
 				/*

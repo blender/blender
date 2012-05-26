@@ -191,7 +191,7 @@ static void draw_cfra_number(Scene *scene, View2D *v2d, float cfra, short time)
 	 */
 	if (time)
 		ANIM_timecode_string_from_frame(&numstr[4], scene, 0, time, FRA2TIME(cfra));
-	else	
+	else
 		ANIM_timecode_string_from_frame(&numstr[4], scene, 1, time, cfra);
 	slen = (short)UI_GetStringWidth(numstr) - 1;
 	

@@ -87,7 +87,7 @@ typedef struct FileData {
 	struct bheadsort *bheadmap;
 	int tot_bheadmap;
 	
-	ListBase mainlist;
+	ListBase *mainlist;
 	
 	/* ick ick, used to return
 	 * data through streamglue.

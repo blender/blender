@@ -840,7 +840,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	int done = 0;
+	int done = FALSE;
 
 	/* all strips >= cfra are shifted */
 	
@@ -851,7 +851,7 @@ static int insert_gap(Scene *scene, int gap, int cfra)
 		if (seq->startdisp >= cfra) {
 			seq->start += gap;
 			calc_sequence(scene, seq);
-			done = 1;
+			done = TRUE;
 		}
 	}
 	SEQ_END
@@ -927,11 +927,11 @@ static void UNUSED_FUNCTION(seq_remap_paths) (Scene * scene)
 		return;
 	
 	BLI_strncpy(from, last_seq->strip->dir, sizeof(from));
-// XXX	if (0==sbutton(from, 0, sizeof(from)-1, "From: "))
+// XXX	if (0 == sbutton(from, 0, sizeof(from)-1, "From: "))
 //		return;
 	
 	BLI_strncpy(to, from, sizeof(to));
-// XXX	if (0==sbutton(to, 0, sizeof(to)-1, "To: "))
+// XXX	if (0 == sbutton(to, 0, sizeof(to)-1, "To: "))
 //		return;
 	
 	if (strcmp(to, from) == 0)
@@ -971,7 +971,7 @@ static void UNUSED_FUNCTION(no_gaps) (Scene * scene)
 			if (evaluate_seq_frame(scene, cfra) ) first = 1;
 		}
 		else {
-			done = 1;
+			done = TRUE;
 			while (evaluate_seq_frame(scene, cfra) == 0) {
 				done = insert_gap(scene, -1, cfra);
 				if (done == 0) break;
@@ -1365,8 +1365,8 @@ static int sequencer_reassign_inputs_exec(bContext *C, wmOperator *op)
 	/* see reassigning would create a cycle */
 	if (seq_is_predecessor(seq1, last_seq) ||
 	    seq_is_predecessor(seq2, last_seq) ||
-	    seq_is_predecessor(seq3, last_seq)
-	    ) {
+	    seq_is_predecessor(seq3, last_seq))
+	{
 		BKE_report(op->reports, RPT_ERROR, "Can't reassign inputs: no cycles allowed");
 		return OPERATOR_CANCELLED;
 	}
@@ -1989,7 +1989,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
-	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks ed==NULL */
+	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks (ed == NULL) */
 
 	if (last_seq == NULL || last_seq->type != SEQ_META)
 		return OPERATOR_CANCELLED;
@@ -2109,8 +2109,8 @@ static int sequencer_view_all_preview_exec(bContext *C, wmOperator *UNUSED(op))
 	imgwidth = (int)(imgwidth * (scene->r.xasp / scene->r.yasp));
 
 	if (((imgwidth >= width) || (imgheight >= height)) &&
-	    ((width > 0) && (height > 0))) {
-
+	    ((width > 0) && (height > 0)))
+	{
 		/* Find the zoom value that will fit the image in the image space */
 		zoomX = ((float)width) / ((float)imgwidth);
 		zoomY = ((float)height) / ((float)imgheight);

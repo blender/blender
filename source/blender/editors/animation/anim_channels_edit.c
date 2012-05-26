@@ -844,7 +844,7 @@ static short rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp r
 {
 	ListBase islands = {NULL, NULL};
 	Link *channel, *chanNext = NULL;
-	short done = 0;
+	short done = FALSE;
 	
 	/* don't waste effort on an empty list */
 	if (list->first == NULL)
@@ -870,7 +870,7 @@ static short rearrange_animchannel_islands(ListBase *list, AnimChanRearrangeFp r
 			/* perform rearranging */
 			if (rearrange_func(&islands, island)) {
 				island->flag |= REORDER_ISLAND_MOVED;
-				done = 1;
+				done = TRUE;
 			}
 		}
 	}

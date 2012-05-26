@@ -94,7 +94,7 @@ static void screwvert_iter_step(ScrewVertIter *iter)
 		iter->v_other = iter->v;
 		iter->v = iter->v_poin->v[0];
 	}
-	if (iter->v >= 0)   {
+	if (iter->v >= 0) {
 		iter->v_poin = &iter->v_array[iter->v];
 		iter->e = iter->v_poin->e[(iter->v_poin->e[0] == iter->e)];
 	}

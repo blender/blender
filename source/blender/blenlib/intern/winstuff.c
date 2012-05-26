@@ -158,7 +158,7 @@ void RegisterBlendExtension(void)
 		ThumbHandlerDLL = "BlendThumb64.dll";
 	else
 		ThumbHandlerDLL = "BlendThumb.dll";
-#endif	
+#endif
 	snprintf(RegCmd, MAX_PATH * 2, "%s\\regsvr32 /s \"%s\\%s\"", SysDir, InstallDir, ThumbHandlerDLL);
 	system(RegCmd);
 

@@ -28,6 +28,7 @@
 #include <stdlib.h>
 
 #include "RNA_define.h"
+#include "RNA_enum_types.h"
 
 #include "rna_internal.h"
 
@@ -248,13 +249,6 @@ static void rna_def_lattice(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	static EnumPropertyItem prop_keyblock_type_items[] = {
-		{KEY_LINEAR, "KEY_LINEAR", 0, "Linear", ""},
-		{KEY_CARDINAL, "KEY_CARDINAL", 0, "Cardinal", ""},
-		{KEY_BSPLINE, "KEY_BSPLINE", 0, "BSpline", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-
 	srna = RNA_def_struct(brna, "Lattice", "ID");
 	RNA_def_struct_ui_text(srna, "Lattice", "Lattice datablock defining a grid for deforming other objects");
 	RNA_def_struct_ui_icon(srna, ICON_LATTICE_DATA);
@@ -285,19 +279,19 @@ static void rna_def_lattice(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "interpolation_type_u", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typeu");
-	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
+	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type U", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
 	prop = RNA_def_property(srna, "interpolation_type_v", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typev");
-	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
+	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type V", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 
 	prop = RNA_def_property(srna, "interpolation_type_w", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "typew");
-	RNA_def_property_enum_items(prop, prop_keyblock_type_items);
+	RNA_def_property_enum_items(prop, keyblock_type_items);
 	RNA_def_property_ui_text(prop, "Interpolation Type W", "");
 	RNA_def_property_update(prop, 0, "rna_Lattice_update_data");
 

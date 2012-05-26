@@ -92,19 +92,15 @@ void FLUID_3D::setNeumannX(float* field, Vec3Int res, int zBegin, int zEnd)
 			// left slab
 			index = y * res[0] + z * slabSize;
 			field[index] = field[index + 2];
+			/* only allow outwards flux */
+			if(field[index]>0.) field[index] = 0.;
+			index += 1;
+			if(field[index]>0.) field[index] = 0.;
 
 			// right slab
-			index += res[0] - 1;
+			index = y * res[0] + z * slabSize + res[0] - 1;
 			field[index] = field[index - 2];
-		}
-
-	// fix, force top slab to only allow outwards flux
-	for (int y = 0; y < res[1]; y++)
-		for (int z = zBegin; z < zEnd; z++)
-		{
-			// top slab
-			index = y * res[0] + z * slabSize;
-			index += res[0] - 1;
+			/* only allow outwards flux */
 			if(field[index]<0.) field[index] = 0.;
 			index -= 1;
 			if(field[index]<0.) field[index] = 0.;
@@ -121,27 +117,22 @@ void FLUID_3D::setNeumannY(float* field, Vec3Int res, int zBegin, int zEnd)
 	for (int z = zBegin; z < zEnd; z++)
 		for (int x = 0; x < res[0]; x++)
 		{
-			// bottom slab
+			// front slab
 			index = x + z * slabSize;
 			field[index] = field[index + 2 * res[0]];
+			/* only allow outwards flux */
+			if(field[index]>0.) field[index] = 0.;
+			index += res[0];
+			if(field[index]>0.) field[index] = 0.;
 
-			// top slab
-			index += slabSize - res[0];
+			// back slab
+			index = x + z * slabSize + slabSize - res[0];
 			field[index] = field[index - 2 * res[0]];
-		}
-
-	// fix, force top slab to only allow outwards flux
-	for (int z = zBegin; z < zEnd; z++)
-		for (int x = 0; x < res[0]; x++)
-		{
-			// top slab
-			index = x + z * slabSize;
-			index += slabSize - res[0];
+			/* only allow outwards flux */
 			if(field[index]<0.) field[index] = 0.;
 			index -= res[0];
 			if(field[index]<0.) field[index] = 0.;
 		}
-		
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -154,43 +145,33 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd)
 	const int cellsslab = totalCells - slabSize;
 	int index;
 
-	index = 0;
-	if (zBegin == 0)
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++, index++)
-		{
-			// front slab
-			field[index] = field[index + 2 * slabSize];
-		}
+	if (zBegin == 0) {
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++)
+			{
+				// front slab
+				index = x + y * res[0];
+				field[index] = field[index + 2 * slabSize];
+				/* only allow outwards flux */
+				if(field[index]>0.) field[index] = 0.;
+				index += slabSize;
+				if(field[index]>0.) field[index] = 0.;
+			}
+	}
 
-	if (zEnd == res[2])
-	{
-	index = 0;
-	int indexx = 0;
-
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++, index++)
-		{
-
-			// back slab
-			indexx = index + cellsslab;
-			field[indexx] = field[indexx - 2 * slabSize];
-		}
-	
-
-	// fix, force top slab to only allow outwards flux
-	for (int y = 0; y < res[1]; y++)
-		for (int x = 0; x < res[0]; x++)
-		{
-			// top slab
-			index = x + y * res[0];
-			index += cellsslab;
-			if(field[index]<0.) field[index] = 0.;
-			index -= slabSize;
-			if(field[index]<0.) field[index] = 0.;
-		}
-
-	}	// zEnd == res[2]
+	if (zEnd == res[2]) {
+		for (int y = 0; y < res[1]; y++)
+			for (int x = 0; x < res[0]; x++)
+			{
+				// back slab
+				index = x + y * res[0] + cellsslab;
+				field[index] = field[index - 2 * slabSize];
+				/* only allow outwards flux */
+				if(field[index]<0.) field[index] = 0.;
+				index -= slabSize;
+				if(field[index]<0.) field[index] = 0.;
+			}
+	}
 		
 }
 

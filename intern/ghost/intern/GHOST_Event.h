@@ -50,7 +50,7 @@ public:
 	 * @param type	The type of this event.
 	 * @param window The generating window (or NULL if system event).
 	 */
-	GHOST_Event(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow* window)
+	GHOST_Event(GHOST_TUns64 msec, GHOST_TEventType type, GHOST_IWindow *window)
 		: m_type(type), m_time(msec), m_window(window), m_data(0)
 	{
 	}
@@ -78,7 +78,7 @@ public:
 	 * or NULL if it is a 'system' event.
 	 * @return The generating window.
 	 */
-	virtual GHOST_IWindow* getWindow()
+	virtual GHOST_IWindow *getWindow()
 	{
 		return m_window;
 	}
@@ -98,7 +98,7 @@ protected:
 	/** The time this event was generated. */
 	GHOST_TUns64 m_time;
 	/** Pointer to the generating window. */
-	GHOST_IWindow* m_window;
+	GHOST_IWindow *m_window;
 	/** Pointer to the event data. */
 	GHOST_TEventDataPtr m_data;
 };
