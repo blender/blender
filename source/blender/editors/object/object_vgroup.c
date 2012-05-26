@@ -402,12 +402,15 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 
 		case REPLACE_ALL_WEIGHTS:
 			*weight_dst = weight_src;
+			break;
 
 		case REPLACE_EMPTY_WEIGHTS:
 			if (!weight_dst || weight_dst == 0) *weight_dst = weight_src;
+			break;
 
 		case REPLACE_SELECTED_WEIGHTS:
 			if (mv_dst->flag & SELECT) *weight_dst = weight_src;
+			break;
 	}
 }
 
@@ -426,7 +429,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 
 	/*create new and overwrite vertex group on destination without data*/
-	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_option == (ReplaceOption)REPLACE_ALL_WEIGHTS){
+	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_option == REPLACE_ALL_WEIGHTS){
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
@@ -543,7 +546,9 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				weight = tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v1], index_src)->weight;
 				weight += tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v2], index_src)->weight;
 				weight += tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v3], index_src)->weight;
-				weight += tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v4], index_src)->weight;
+				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0){
+					weight += tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v4], index_src)->weight;
+				}
 
 				/*copy weight*/
 				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
@@ -3020,8 +3025,9 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 				case REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_act->defbase.first; dg_src; dg_src = dg_src->next){
 						if (ED_vgroup_transfer_weight(ob_slc, ob_act, dg_src, method_option, replace_option)) change++;
-						else fail++;break;
+						else fail++;
 					}
+					break;
 			}
 		}
 	}
