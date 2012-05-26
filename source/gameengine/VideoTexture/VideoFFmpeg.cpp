@@ -588,7 +588,7 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	AVInputFormat		*inputFormat;
 	AVFormatParameters	formatParams;
 	AVRational			frameRate;
-	char				*p, filename[28], rateStr[20];
+	char				filename[28], rateStr[20];
 
 	do_init_ffmpeg();
 
@@ -630,6 +630,8 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 		return;
 	if (file && strncmp(file, "/dev", 4) == 0) 
 	{
+		char *p;
+
 		// user does not specify a driver
 		strncpy(filename, file, sizeof(filename));
 		filename[sizeof(filename)-1] = 0;
