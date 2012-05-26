@@ -107,6 +107,17 @@
 
 #include "object_intern.h"
 
+/* this is an exact copy of the define in rna_lamp.c
+ * kept here because of linking order */
+EnumPropertyItem lamp_type_items[] = {
+	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
+	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},
+	{LA_SPOT, "SPOT", 0, "Spot", "Directional cone light source"},
+	{LA_HEMI, "HEMI", 0, "Hemi", "180 degree constant light source"},
+	{LA_AREA, "AREA", 0, "Area", "Directional area light source"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 /************************** Exported *****************************/
 
 void ED_object_location_from_view(bContext *C, float *loc)
