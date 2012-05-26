@@ -116,9 +116,10 @@ static void zbuf_init_span(ZSpan *zspan)
 	zspan->minp1= zspan->maxp1= zspan->minp2= zspan->maxp2= NULL;
 }
 
-static void zbuf_add_to_span(ZSpan *zspan, float *v1, float *v2)
+static void zbuf_add_to_span(ZSpan *zspan, const float *v1, const float *v2)
 {
-	float *minv, *maxv, *span;
+	const float *minv, *maxv;
+	float *span;
 	float xx1, dx0, xs0;
 	int y, my0, my2;
 	
@@ -301,7 +302,8 @@ static APixstr *addpsA(ZSpan *zspan)
 	return zspan->curpstr;
 }
 
-static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr,
+                        const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	APixstr *ap, *apofs, *apn;
 	double zxd, zyd, zy0, zverg;
@@ -427,7 +429,7 @@ static void zbuffillAc4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
 
 
 
-static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
+static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], const float vec2[3])
 {
 	APixstr *ap, *apn;
 	int *rectz, *rectmask;
@@ -584,7 +586,7 @@ static void zbuflineAc(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec
 
 /* *************  NORMAL ZBUFFER ************ */
 
-static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
+static void zbufline(ZSpan *zspan, int obi, int zvlnr, const float vec1[3], const float vec2[3])
 {
 	int *rectz, *rectp, *recto, *rectmask;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -714,7 +716,7 @@ static void zbufline(ZSpan *zspan, int obi, int zvlnr, float *vec1, float *vec2)
 	}
 }
 
-static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *vec1, float *vec2)
+static void zbufline_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), const float vec1[3], const float vec2[3])
 {
 	int *rectz, *rectz1= NULL;
 	int start, end, x, y, oldx, oldy, ofs;
@@ -1039,7 +1041,8 @@ void zbufsinglewire(ZSpan *zspan, int obi, int zvlnr, const float ho1[4], const 
 
 /* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
  * commented below */
-static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr,
+                           const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0, y0, z0;
@@ -1161,7 +1164,8 @@ static void zbuffillGLinv4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v
 
 /* WATCH IT: zbuffillGLinv4 and zbuffillGL4 are identical except for a 2 lines,
  * commented below */
-static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr,
+                        const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0, y0, z0;
@@ -1291,7 +1295,8 @@ static void zbuffillGL4(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, 
  */
 
 /* now: filling two Z values, the closest and 2nd closest */
-static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr), float *v1, float *v2, float *v3, float *v4)
+static void zbuffillGL_onlyZ(ZSpan *zspan, int UNUSED(obi), int UNUSED(zvlnr),
+                             const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	double zxd, zyd, zy0, zverg;
 	float x0, y0, z0;
@@ -2445,7 +2450,8 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 	zbuf_free_span(&zspan);
 }
 
-static void zbuffill_sss(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void zbuffill_sss(ZSpan *zspan, int obi, int zvlnr,
+                         const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	double zxd, zyd, zy0, z;
 	float x0, y0, x1, y1, x2, y2, z0, z1, z2, xx1, *span1, *span2;

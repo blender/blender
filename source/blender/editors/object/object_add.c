@@ -120,7 +120,7 @@ EnumPropertyItem lamp_type_items[] = {
 
 /************************** Exported *****************************/
 
-void ED_object_location_from_view(bContext *C, float *loc)
+void ED_object_location_from_view(bContext *C, float loc[3])
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	Scene *scene = CTX_data_scene(C);
@@ -131,7 +131,7 @@ void ED_object_location_from_view(bContext *C, float *loc)
 	copy_v3_v3(loc, cursor);
 }
 
-void ED_object_rotation_from_view(bContext *C, float *rot)
+void ED_object_rotation_from_view(bContext *C, float rot[3])
 {
 	RegionView3D *rv3d = CTX_wm_region_view3d(C);
 	if (rv3d) {
@@ -145,7 +145,7 @@ void ED_object_rotation_from_view(bContext *C, float *rot)
 	}
 }
 
-void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *rot)
+void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], const float rot[3])
 {
 	Object *ob = base->object;
 	Scene *scene = CTX_data_scene(C);
@@ -163,7 +163,8 @@ void ED_object_base_init_transform(bContext *C, Base *base, float *loc, float *r
 
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
-float ED_object_new_primitive_matrix(bContext *C, Object *obedit, float *loc, float *rot, float primmat[][4])
+float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
+                                     const float loc[3], const float rot[3], float primmat[][4])
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
@@ -260,8 +261,8 @@ int ED_object_add_generic_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 	return op->type->exec(C, op);
 }
 
-int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
-                                   float *rot, int *enter_editmode, unsigned int *layer, int *is_view_aligned)
+int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float loc[3], float rot[3],
+                                   int *enter_editmode, unsigned int *layer, int *is_view_aligned)
 {
 	View3D *v3d = CTX_wm_view3d(C);
 	int a, layer_values[20];
@@ -324,7 +325,7 @@ int ED_object_add_generic_get_opts(bContext *C, wmOperator *op, float *loc,
 
 /* for object add primitive operators */
 /* do not call undo push in this function (users of this function have to) */
-Object *ED_object_add_type(bContext *C, int type, float *loc, float *rot,
+Object *ED_object_add_type(bContext *C, int type, const float loc[3], const float rot[3],
                            int enter_editmode, unsigned int layer)
 {
 	Main *bmain = CTX_data_main(C);

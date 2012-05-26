@@ -55,7 +55,7 @@
 
 /* uses context to figure out transform for primitive */
 /* returns standard diameter */
-static float new_primitive_matrix(bContext *C, float *loc, float *rot, float primmat[][4])
+static float new_primitive_matrix(bContext *C, const float loc[3], const float rot[3], float primmat[][4])
 {
 	Object *obedit = CTX_data_edit_object(C);
 	View3D *v3d = CTX_wm_view3d(C);
@@ -85,7 +85,7 @@ static float new_primitive_matrix(bContext *C, float *loc, float *rot, float pri
 
 static void make_prim_init(bContext *C, const char *idname,
                            float *dia, float mat[][4],
-                           int *state, float *loc, float *rot, unsigned int layer)
+                           int *state, const float loc[3], const float rot[3], const unsigned int layer)
 {
 	Object *obedit = CTX_data_edit_object(C);
 

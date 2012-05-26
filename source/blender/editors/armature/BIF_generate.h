@@ -42,7 +42,7 @@ int nextAdaptativeSubdivision(struct ToolSettings *toolsettings, struct BArcIter
 
 struct EditBone *subdivideArcBy(struct ToolSettings *toolsettings, struct bArmature *arm, ListBase *editbones, struct BArcIterator *iter, float invmat[][4], float tmat[][3], NextSubdivisionFunc next_subdividion);
 
-void setBoneRollFromNormal(struct EditBone *bone, float *no, float invmat[][4], float tmat[][3]);
+void setBoneRollFromNormal(struct EditBone *bone, const float no[3], float invmat[][4], float tmat[][3]);
  
 
 #endif /* __BIF_GENERATE_H__ */

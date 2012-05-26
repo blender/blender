@@ -444,16 +444,16 @@ VlakRen *RE_vlakren_copy(ObjectRen *obr, VlakRen *vlr)
 	return vlr1;
 }
 
-void RE_vlakren_get_normal(Render *UNUSED(re), ObjectInstanceRen *obi, VlakRen *vlr, float *nor)
+void RE_vlakren_get_normal(Render *UNUSED(re), ObjectInstanceRen *obi, VlakRen *vlr, float r_nor[3])
 {
 	float (*nmat)[3]= obi->nmat;
 
 	if (obi->flag & R_TRANSFORMED) {
-		mul_v3_m3v3(nor, nmat, vlr->n);
-		normalize_v3(nor);
+		mul_v3_m3v3(r_nor, nmat, vlr->n);
+		normalize_v3(r_nor);
 	}
 	else {
-		copy_v3_v3(nor, vlr->n);
+		copy_v3_v3(r_nor, vlr->n);
 	}
 }
 
@@ -931,8 +931,9 @@ HaloRen *RE_findOrAddHalo(ObjectRen *obr, int nr)
 
 /* ------------------------------------------------------------------------- */
 
-HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   float *vec1, 
-				  float *orco,   float hasize,   float vectsize, int seed)
+HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,
+                     const float vec[3], const float vec1[3],
+                     const float *orco, float hasize, float vectsize, int seed)
 {
 	HaloRen *har;
 	MTex *mtex;
@@ -1044,8 +1045,9 @@ HaloRen *RE_inithalo(Render *re, ObjectRen *obr, Material *ma,   float *vec,   f
 	return har;
 }
 
-HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma,   float *vec,   float *vec1, 
-				  float *orco, float *uvco, float hasize, float vectsize, int seed, float *pa_co)
+HaloRen *RE_inithalo_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma,
+                              const float vec[3], const float vec1[3],
+                              const float *orco, const float *uvco, float hasize, float vectsize, int seed, const float pa_co[3])
 {
 	HaloRen *har;
 	MTex *mtex;

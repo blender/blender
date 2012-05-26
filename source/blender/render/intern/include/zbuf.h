@@ -91,7 +91,7 @@ typedef struct ZSpan {
 	int rectx, recty;						/* range for clipping */
 	
 	int miny1, maxy1, miny2, maxy2;			/* actual filled in range */
-	float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
+	const float *minp1, *maxp1, *minp2, *maxp2;	/* vertex pointers detect min/max range in */
 	float *span1, *span2;
 	
 	float zmulx, zmuly, zofsx, zofsy;		/* transform from hoco to zbuf co */
@@ -115,23 +115,26 @@ typedef struct ZSpan {
 	void *sss_handle;						/* used by sss */
 	void (*sss_func)(void *, int, int, int, int, int);
 	
-	void (*zbuffunc)(struct ZSpan *, int, int, float *, float *, float *, float *);
-	void (*zbuflinefunc)(struct ZSpan *, int, int, float *, float *);
+	void (*zbuffunc)(struct ZSpan *, int, int, const float *, const float *, const float *, const float *);
+	void (*zbuflinefunc)(struct ZSpan *, int, int, const float *, const float *);
 	
 } ZSpan;
 
 /* exported to shadbuf.c */
-void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4);
+void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4,
+               int c1, int c2, int c3, int c4);
 void zbuf_free_span(struct ZSpan *zspan);
 void freepsA(struct ListBase *lb);
 
 /* to rendercore.c */
-void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) );
+void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, float *v3,
+                       void (*func)(void *, int, int, float, float) );
 
 /* exported to edge render... */
 void zbufclip(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty, float clipcrop);
-void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
+void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec,
+                  float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
 
 /* exported to shadeinput.c */
 void zbuf_make_winmat(Render *re, float winmat[][4]);

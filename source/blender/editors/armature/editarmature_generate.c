@@ -50,7 +50,7 @@
 #include "armature_intern.h"
 #include "BIF_generate.h"
 
-void setBoneRollFromNormal(EditBone *bone, float *no, float UNUSED(invmat[][4]), float tmat[][3])
+void setBoneRollFromNormal(EditBone *bone, const float no[3], float UNUSED(invmat[][4]), float tmat[][3])
 {
 	if (no != NULL && !is_zero_v3(no)) {
 		float normal[3];
