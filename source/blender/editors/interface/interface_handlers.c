@@ -6546,6 +6546,18 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 {
 	uiPopupBlockHandle *menu = userdata;
 
+	/* we block all events, this is modal interaction, except for drop events which is described below */
+	int retval = WM_UI_HANDLER_BREAK;
+
+	if (event->type == EVT_DROP) {
+		/* if we're handling drop event we'll want it to be handled by popup callee as well,
+		 * so it'll be possible to perform such operations as opening .blend files by dropping
+		 * them into blender even if there's opened popup like splash screen (sergey)
+		 */
+
+		retval = WM_UI_HANDLER_CONTINUE;
+	}
+
 	ui_handle_menus_recursive(C, event, menu);
 
 	/* free if done, does not free handle itself */
@@ -6574,17 +6586,7 @@ static int ui_handler_popup(bContext *C, wmEvent *event, void *userdata)
 	/* delayed apply callbacks */
 	ui_apply_but_funcs_after(C);
 
-	if (event->type == EVT_DROP) {
-		/* if we're handling drop event we'll want it to be handled by popup callee as well,
-		 * so it'll be possible to perform such operations as opening .blend files by dropping
-		 * them into blender even if there's opened popup like splash screen (sergey)
-		 */
-
-		return WM_UI_HANDLER_CONTINUE;
-	}
-
-	/* we block all events, this is modal interaction, except for drop events which is described above */
-	return WM_UI_HANDLER_BREAK;
+	return retval;
 }
 
 static void ui_handler_remove_popup(bContext *C, void *userdata)
