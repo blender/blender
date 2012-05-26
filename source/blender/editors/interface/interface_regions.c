@@ -339,13 +339,13 @@ static void rgb_tint(float col[3],
 	float col_hsv_from[3];
 	float col_hsv_to[3];
 
-	rgb_to_hsv(col[0], col[1], col[2],    col_hsv_from + 0, col_hsv_from + 1, col_hsv_from + 2);
+	rgb_to_hsv_v(col, col_hsv_from);
 
 	col_hsv_to[0] = h;
 	col_hsv_to[1] = h_strength;
 	col_hsv_to[2] = (col_hsv_from[2] * (1.0f - v_strength)) + (v * v_strength);
 
-	hsv_to_rgb(col_hsv_to[0], col_hsv_to[1], col_hsv_to[2], col + 0, col + 1, col + 2);
+	hsv_to_rgb_v(col_hsv_to, col);
 }
 
 static void ui_tooltip_region_draw_cb(const bContext *UNUSED(C), ARegion *ar)
@@ -1847,7 +1847,7 @@ void ui_set_but_hsv(uiBut *but)
 	float col[3];
 	float *hsv = ui_block_hsv_get(but->block);
 	
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
+	hsv_to_rgb_v(hsv, col);
 	ui_set_but_vectorf(but, col);
 }
 
@@ -1860,7 +1860,7 @@ static void ui_update_block_buts_rgb(uiBlock *block, const float rgb[3])
 	/* this is to keep the H and S value when V is equal to zero
 	 * and we are working in HSV mode, of course!
 	 */
-	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_compat_v(rgb, hsv);
 	
 	// this updates button strings, is hackish... but button pointers are on stack of caller function
 	for (bt = block->buttons.first; bt; bt = bt->next) {
@@ -1942,7 +1942,7 @@ static void do_hsv_rna_cb(bContext *UNUSED(C), void *bt1, void *UNUSED(arg))
 	float rgb[3];
 	float *hsv = ui_block_hsv_get(but->block);
 	
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], rgb, rgb + 1, rgb + 2);
+	hsv_to_rgb_v(hsv, rgb);
 	
 	ui_update_block_buts_rgb(but->block, rgb);
 	
@@ -2157,7 +2157,7 @@ static void uiBlockPicker(uiBlock *block, float rgba[4], PointerRNA *ptr, Proper
 	uiButSetFunc(bt, do_hex_rna_cb, bt, hexcol);
 	uiDefBut(block, LABEL, 0, IFACE_("(Gamma Corrected)"), 0, -80, butwidth, UI_UNIT_Y, NULL, 0.0, 0.0, 0, 0, "");
 
-	rgb_to_hsv(rgba[0], rgba[1], rgba[2], hsv, hsv + 1, hsv + 2);
+	rgb_to_hsv_v(rgba, hsv);
 
 	picker_new_hide_reveal(block, colormode);
 }
@@ -2178,18 +2178,18 @@ static int ui_picker_small_wheel_cb(const bContext *UNUSED(C), uiBlock *block, w
 		for (but = block->buttons.first; but; but = but->next) {
 			if (but->type == HSVCUBE && but->active == NULL) {
 				uiPopupBlockHandle *popup = block->handle;
-				float col[3];
+				float rgb[3];
 				float *hsv = ui_block_hsv_get(block);
 				
-				ui_get_but_vectorf(but, col);
+				ui_get_but_vectorf(but, rgb);
 				
-				rgb_to_hsv_compat(col[0], col[1], col[2], hsv, hsv + 1, hsv + 2);
+				rgb_to_hsv_compat_v(rgb, hsv);
 				hsv[2] = CLAMPIS(hsv[2] + add, 0.0f, 1.0f);
-				hsv_to_rgb(hsv[0], hsv[1], hsv[2], col, col + 1, col + 2);
+				hsv_to_rgb_v(hsv, rgb);
 
-				ui_set_but_vectorf(but, col);
+				ui_set_but_vectorf(but, rgb);
 				
-				ui_update_block_buts_rgb(block, col);
+				ui_update_block_buts_rgb(block, rgb);
 				if (popup)
 					popup->menuretval = UI_RETURN_UPDATE;
 				

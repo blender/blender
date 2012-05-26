@@ -723,10 +723,10 @@ static int Color_channel_hsv_set(ColorObject *self, PyObject *value, void *type)
 	if (BaseMath_ReadCallback(self) == -1)
 		return -1;
 
-	rgb_to_hsv(self->col[0], self->col[1], self->col[2], &(hsv[0]), &(hsv[1]), &(hsv[2]));
+	rgb_to_hsv_v(self->col, hsv);
 	CLAMP(f, 0.0f, 1.0f);
 	hsv[i] = f;
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &(self->col[0]), &(self->col[1]), &(self->col[2]));
+	hsv_to_rgb_v(hsv, self->col);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return -1;
@@ -764,7 +764,7 @@ static int Color_hsv_set(ColorObject *self, PyObject *value, void *UNUSED(closur
 	CLAMP(hsv[1], 0.0f, 1.0f);
 	CLAMP(hsv[2], 0.0f, 1.0f);
 
-	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &(self->col[0]), &(self->col[1]), &(self->col[2]));
+	hsv_to_rgb_v(hsv, self->col);
 
 	if (BaseMath_WriteCallback(self) == -1)
 		return -1;

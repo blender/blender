@@ -191,9 +191,9 @@ int getname_anim_fcurve(char *name, ID *id, FCurve *fcu)
 
 /* used to determine the color of F-Curves with FCURVE_COLOR_AUTO_RAINBOW set */
 //void fcurve_rainbow (unsigned int cur, unsigned int tot, float *out)
-void getcolor_fcurve_rainbow(int cur, int tot, float *out)
+void getcolor_fcurve_rainbow(int cur, int tot, float out[3])
 {
-	float hue, val, sat, fac;
+	float hsv[3], fac;
 	int grouping;
 	
 	/* we try to divide the color into groupings of n colors,
@@ -203,7 +203,7 @@ void getcolor_fcurve_rainbow(int cur, int tot, float *out)
 	 * so the base color is simply one of the three primary colors
 	 */
 	grouping = (4 - (tot % 2));
-	hue = HSV_BANDWIDTH * (float)(cur % grouping);
+	hsv[0] = HSV_BANDWIDTH * (float)(cur % grouping);
 	
 	/* 'Value' (i.e. darkness) needs to vary so that larger sets of three will be 
 	 * 'darker' (i.e. smaller value), so that they don't look that similar to previous ones.
@@ -213,16 +213,15 @@ void getcolor_fcurve_rainbow(int cur, int tot, float *out)
 	fac = ((float)cur / (float)tot) * 0.7f;
 	
 	/* the base color can get offset a bit so that the colors aren't so identical */
-	hue += fac * HSV_BANDWIDTH; 
-	if (hue > 1.0f) hue = fmod(hue, 1.0f);
+	hsv[0] += fac * HSV_BANDWIDTH;
+	if (hsv[0] > 1.0f) hsv[0] = fmod(hsv[0], 1.0f);
 	
 	/* saturation adjustments for more visible range */
-	if ((hue > 0.5f) && (hue < 0.8f)) sat = 0.5f;
-	else sat = 0.6f;
+	hsv[1] = ((hsv[0] > 0.5f) && (hsv[0] < 0.8f)) ? 0.5f : 0.6f;
 	
 	/* value is fixed at 1.0f, otherwise we cannot clearly see the curves... */
-	val = 1.0f;
+	hsv[2] = 1.0f;
 	
 	/* finally, conver this to RGB colors */
-	hsv_to_rgb(hue, sat, val, out, out + 1, out + 2);
+	hsv_to_rgb_v(hsv, out);
 }

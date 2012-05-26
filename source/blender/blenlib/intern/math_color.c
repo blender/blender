@@ -90,6 +90,12 @@ void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b)
 	}
 }
 
+/* convenience function for now */
+void hsv_to_rgb_v(const float hsv[3], float r_rgb[3])
+{
+	hsv_to_rgb(hsv[0], hsv[1], hsv[2], &r_rgb[0], &r_rgb[1], &r_rgb[2]);
+}
+
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv)
 {
 	float y, u, v;
@@ -252,6 +258,12 @@ void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv)
 	*lv = v;
 }
 
+/* convenience function for now */
+void rgb_to_hsv_v(const float rgb[3], float r_hsv[3])
+{
+	rgb_to_hsv(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
+}
+
 void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv)
 {
 	float orig_h = *lh;
@@ -270,6 +282,12 @@ void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *l
 	if (*lh == 0.0f && orig_h >= 1.0f) {
 		*lh = 1.0f;
 	}
+}
+
+/* convenience function for now */
+void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3])
+{
+	rgb_to_hsv_compat(rgb[0], rgb[1], rgb[2], &r_hsv[0], &r_hsv[1], &r_hsv[2]);
 }
 
 /*http://brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html */
