@@ -743,7 +743,7 @@ static const char *check_memlist(MemHead *memh)
 	if (forw != back) return ("MORE THAN 1 MEMORYBLOCK CORRUPT");
 
 	if (forw == NULL && back == NULL) {
-		/* geen foute headers gevonden dan maar op zoek naar memblock*/
+		/* no wrong headers found then but in search of memblock */
 
 		forw = membase->first;
 		if (forw) forw = MEMNEXT(forw);
@@ -773,7 +773,7 @@ static const char *check_memlist(MemHead *memh)
 	else name = "No name found";
 
 	if (forw == memh) {
-		/* voor alle zekerheid wordt dit block maar uit de lijst gehaald */
+		/* to be sure but this block is removed from the list */
 		if (forwok) {
 			if (backok) {
 				forwok->next = (MemHead *)&backok->next;
@@ -782,7 +782,6 @@ static const char *check_memlist(MemHead *memh)
 			} else{
 				forwok->next = NULL;
 				membase->last = (struct localLink *) &forwok->next;
-/*  				membase->last = (struct Link *) &forwok->next; */
 			}
 		} else{
 			if (backok) {

@@ -3864,7 +3864,7 @@ static void drawDispListsolid(ListBase *lb, Object *ob, int glsl)
 
 				glVertexPointer(3, GL_FLOAT, 0, dl->verts);
 
-				/* voor polys only one normal needed */
+				/* for polys only one normal needed */
 				if (index3_nors_incr) {
 					glEnableClientState(GL_NORMAL_ARRAY);
 					glNormalPointer(GL_FLOAT, 0, dl->nors);
