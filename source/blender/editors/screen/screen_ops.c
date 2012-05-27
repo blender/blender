@@ -304,13 +304,15 @@ int ED_operator_object_active_editable(bContext *C)
 int ED_operator_object_active_editable_mesh(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_MESH && !(((ID *)ob->data)->lib));
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) &&
+	        (ob->type == OB_MESH) && !(((ID *)ob->data)->lib));
 }
 
 int ED_operator_object_active_editable_font(bContext *C)
 {
 	Object *ob = ED_object_active_context(C);
-	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) && ob->type == OB_FONT);
+	return ((ob != NULL) && !(ob->id.lib) && !(ob->restrictflag & OB_RESTRICT_VIEW) &&
+	        (ob->type == OB_FONT));
 }
 
 int ED_operator_editmesh(bContext *C)
@@ -1601,10 +1603,16 @@ static int area_max_regionsize(ScrArea *sa, ARegion *scalear, AZEdge edge)
 		
 		/* case of regions in regions, like operator properties panel */
 		/* these can sit on top of other regions such as headers, so account for this */
-		else if (edge == AE_BOTTOM_TO_TOPLEFT && scalear->alignment & RGN_ALIGN_TOP && ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+		else if (edge == AE_BOTTOM_TO_TOPLEFT && scalear->alignment & RGN_ALIGN_TOP &&
+		         ar->alignment == RGN_ALIGN_TOP && ar->regiontype == RGN_TYPE_HEADER)
+		{
 			dist -= ar->winy;
-		else if (edge == AE_TOP_TO_BOTTOMRIGHT && scalear->alignment & RGN_ALIGN_BOTTOM && ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+		}
+		else if (edge == AE_TOP_TO_BOTTOMRIGHT && scalear->alignment & RGN_ALIGN_BOTTOM &&
+		         ar->alignment == RGN_ALIGN_BOTTOM && ar->regiontype == RGN_TYPE_HEADER)
+		{
 			dist -= ar->winy;
+		}
 	}
 
 	return dist;
@@ -2571,6 +2579,15 @@ static void SCREEN_OT_redo_last(wmOperatorType *ot)
 
 /* ************** region four-split operator ***************************** */
 
+static void view3d_localview_update_rv3d(struct RegionView3D *rv3d)
+{
+	if (rv3d->localvd) {
+		rv3d->localvd->view = rv3d->view;
+		rv3d->localvd->persp = rv3d->persp;
+		copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat);
+	}
+}
+
 /* insert a region in the area region list */
 static int region_quadview_exec(bContext *C, wmOperator *op)
 {
@@ -2627,29 +2644,29 @@ static int region_quadview_exec(bContext *C, wmOperator *op)
 			 * We could avoid manipulating rv3d->localvd here if exiting
 			 * localview with a 4-split would assign these view locks */
 			RegionView3D *rv3d;
-			
+
 			rv3d = ar->regiondata;
 			rv3d->viewlock = RV3D_LOCKED; rv3d->view = RV3D_VIEW_FRONT; rv3d->persp = RV3D_ORTHO;
 			ED_view3d_lock(rv3d);
-			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat); }
+			view3d_localview_update_rv3d(rv3d);
 			
 			ar = ar->next;
 			rv3d = ar->regiondata;
 			rv3d->viewlock = RV3D_LOCKED; rv3d->view = RV3D_VIEW_TOP; rv3d->persp = RV3D_ORTHO;
 			ED_view3d_lock(rv3d);
-			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat); }
+			view3d_localview_update_rv3d(rv3d);
 			
 			ar = ar->next;
 			rv3d = ar->regiondata;
 			rv3d->viewlock = RV3D_LOCKED; rv3d->view = RV3D_VIEW_RIGHT; rv3d->persp = RV3D_ORTHO;
 			ED_view3d_lock(rv3d);
-			if (rv3d->localvd) { rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat); }
+			view3d_localview_update_rv3d(rv3d);
 			
 			ar = ar->next;
 			rv3d = ar->regiondata;
 			rv3d->view = RV3D_VIEW_CAMERA; rv3d->persp = RV3D_CAMOB;
 			ED_view3d_lock(rv3d);
-			if (rv3d->localvd) {rv3d->localvd->view = rv3d->view; rv3d->localvd->persp = rv3d->persp; copy_qt_qt(rv3d->localvd->viewquat, rv3d->viewquat); }
+			view3d_localview_update_rv3d(rv3d);
 		}
 		ED_area_tag_redraw(sa);
 		WM_event_add_notifier(C, NC_SCREEN | NA_EDITED, NULL);

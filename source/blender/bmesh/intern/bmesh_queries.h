@@ -67,9 +67,6 @@ float   BM_vert_calc_edge_angle(BMVert *v);
 float   BM_vert_calc_shell_factor(BMVert *v);
 float   BM_vert_calc_mean_tagged_edge_length(BMVert *v);
 
-BMEdge *BM_face_find_shortest_edge(BMFace *f);
-BMEdge *BM_face_find_longest_edge(BMFace *f);
-
 BMLoop *BM_face_find_shortest_loop(BMFace *f);
 BMLoop *BM_face_find_longest_loop(BMFace *f);
 
