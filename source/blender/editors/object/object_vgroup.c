@@ -441,7 +441,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	Mesh *me_dst;
 	DerivedMesh *dmesh_src;
 	BVHTreeFromMesh tree_mesh_vertices_src, tree_mesh_faces_src = {NULL};
-	MDeformVert **dv_array_src, **dv_array_dst;
+	MDeformVert **dv_array_src, **dv_array_dst, **dv_src, **dv_dst;
 	MVert *mv_dst, *mv_src;
 	MFace *mface_src;
 	BVHTreeNearest nearest;
@@ -490,7 +490,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			}
 
 			/* loop through the vertices*/
-			for (i = 0; i < dv_tot_dst; i++, dv_array_src++, dv_array_dst++, mv_dst++) {
+			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++) {
 
 				/*copy weight*/
 				dw_src = defvert_verify_index(*dv_array_src, index_src);
@@ -503,8 +503,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			/*make node tree*/
 			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, 0.0, 2, 6);
 
-			/* loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
+			/* loop trough vertices*/
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++){
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -536,7 +536,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++) {
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -552,8 +552,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/*project onto face*/
 				normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co,
-				              mv_src[mface_src[nearest.index].v2].co,
-				              mv_src[mface_src[nearest.index].v3].co);
+				              mv_src[mface_src[index_nearest].v2].co,
+				              mv_src[mface_src[index_nearest].v3].co);
 
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
@@ -589,7 +589,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/*loop through the vertices*/
-			for (i = 0; i < me_dst->totvert; i++, mv_dst++, dv_array_dst++) {
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_src++, mv_src++){
 
 				/*reset nearest*/
 				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
@@ -630,10 +630,12 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			break;
 	}
 
-	/*free memory*/
+	/*free memory*//*TODO must free wehn function breaks on return 0 as well, right?*/
 	if (mface_src) MEM_freeN(mface_src);
 	if (dv_array_src) MEM_freeN(dv_array_src);
 	if (dv_array_dst) MEM_freeN(dv_array_dst);
+	if (dv_src) MEM_freeN(dv_src);
+	if (dv_dst) MEM_freeN(dv_dst);
 
 	return 1;
 }
