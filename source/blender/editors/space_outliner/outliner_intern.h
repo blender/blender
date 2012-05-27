@@ -110,7 +110,7 @@ typedef struct TreeElement {
 /* get TreeStoreElem associated with a TreeElement 
  * < a: (TreeElement) tree element to find stored element for
  */
-#define TREESTORE(a) ((a) ? soops->treestore->data + (a)->store_index : NULL)
+#define TREESTORE(a) (soops->treestore->data + (a)->store_index)
 
 /* size constants */
 #define OL_Y_OFFSET 2
