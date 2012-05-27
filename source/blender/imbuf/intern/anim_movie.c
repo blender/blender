@@ -120,14 +120,17 @@ int ismovie(const char *UNUSED(filepath))
 }
 
 /* never called, just keep the linker happy */
-static int startmovie(struct anim *UNUSED(anim)) {
+static int startmovie(struct anim *UNUSED(anim))
+{
 	return 1;
 }
-static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position)) {
+static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position))
+{
 	return NULL;
 }
-static void free_anim_movie(struct anim *UNUSED(anim)) {
-	;
+static void free_anim_movie(struct anim *UNUSED(anim))
+{
+	/* pass */
 }
 
 

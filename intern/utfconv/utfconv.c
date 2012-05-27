@@ -132,7 +132,7 @@ int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8)
 		else if (u < 0xD800 || u >= 0xE000) {
 			if (out8 + 2 >= out8end) break;
 			*out8++ = (0x7 << 5) | (0xF & (u >> 12));
-			*out8++ = (0x1 << 7) | (0x3F & (u >> 6));;
+			*out8++ = (0x1 << 7) | (0x3F & (u >> 6));
 			*out8  = (0x1 << 7) | (0x3F & (u));
 		}
 		else if (u < 0xDC00) {

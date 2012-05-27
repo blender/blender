@@ -34,7 +34,8 @@
 #include "GHOST_C-api.h"
 #include "EventToBuf.h"
 
-char *eventtype_to_string(GHOST_TEventType type) {
+char *eventtype_to_string(GHOST_TEventType type)
+{
 	switch(type) {
 	case GHOST_kEventCursorMove:		return "CursorMove";
 	case GHOST_kEventButtonDown:		return "ButtonDown";
@@ -55,7 +56,8 @@ char *eventtype_to_string(GHOST_TEventType type) {
 	}
 }
 
-static char *keytype_to_string(GHOST_TKey key) {
+static char *keytype_to_string(GHOST_TKey key)
+{
 #define K(key)	case GHOST_k##key:	return #key;
 	switch (key) {
 	K(KeyBackSpace);
@@ -193,7 +195,8 @@ static char *keytype_to_string(GHOST_TKey key) {
 #undef K
 }
 
-void event_to_buf(GHOST_EventHandle evt, char buf[128]) {
+void event_to_buf(GHOST_EventHandle evt, char buf[128])
+{
 	GHOST_TEventType type= GHOST_GetEventType(evt);
 	double time= (double) ((GHOST_TInt64) GHOST_GetEventTime(evt))/1000;
 	GHOST_WindowHandle win= GHOST_GetEventWindow(evt);

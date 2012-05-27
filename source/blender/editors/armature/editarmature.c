@@ -4226,8 +4226,8 @@ static int armature_select_similar_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-void ARMATURE_OT_select_similar(wmOperatorType *ot) {
-
+void ARMATURE_OT_select_similar(wmOperatorType *ot)
+{
 	/* identifiers */
 	ot->name = "Select Similar";
 	ot->idname = "ARMATURE_OT_select_similar";

@@ -673,7 +673,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 				for(int j = 0; j < nverts[i]-2; j++) {
 					int v0 = verts[index_offset];
 					int v1 = verts[index_offset + j + 1];
-					int v2 = verts[index_offset + j + 2];;
+					int v2 = verts[index_offset + j + 2];
 
 					sdmesh.add_face(v0, v1, v2);
 				}
