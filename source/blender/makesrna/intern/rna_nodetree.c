@@ -3993,6 +3993,8 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "Node");
 	RNA_def_property_ui_text(prop, "Nodes", "");
 
+	rna_def_composite_nodetree_api(brna, prop);
+
 	prop = RNA_def_property(srna, "render_quality", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "render_quality");
 	RNA_def_property_enum_items(prop, node_quality_items);
@@ -4011,8 +4013,6 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);
 	RNA_def_property_ui_text(prop, "OpenCL", "Enable GPU calculations");
-
-	rna_def_composite_nodetree_api(brna, prop);
 }
 
 static void rna_def_shader_nodetree(BlenderRNA *brna)
