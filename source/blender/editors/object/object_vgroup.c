@@ -449,32 +449,32 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	int dv_tot_src, dv_tot_dst, i, index_dst, index_src, index_nearest, index_nearest_vertex;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 
-	/*create new and overwrite vertex group on destination without data*/
+	/* create new and overwrite vertex group on destination without data */
 	if (!defgroup_find_name(ob_dst, dg_src->name) || replace_option == REPLACE_ALL_WEIGHTS) {
 		ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_src->name));
 		ED_vgroup_add_name(ob_dst, dg_src->name);
 	}
 
-	/*get destination deformgroup*/
+	/* get destination deformgroup */
 	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
 
-	/*get meshes*/
+	/* get meshes */
 	me_dst = ob_dst->data;
 	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
-	/*get vertex group arrays*/
+	/* get vertex group arrays */
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
 	ED_vgroup_give_parray(ob_dst->data, &dv_array_dst, &dv_tot_dst, FALSE);
 
-	/*get indexes of vertex groups*/
+	/* get indexes of vertex groups */
 	index_src = BLI_findindex(&ob_src->defbase, dg_src);
 	index_dst = BLI_findindex(&ob_dst->defbase, dg_dst);
 
-	/*get vertices*/
+	/* get vertices */
 	mv_dst = me_dst->mvert;
 	mv_src = dmesh_src->getVertArray(dmesh_src);
 
-	/*prepare transformation matrix*/
+	/* prepare transformation matrix */
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
@@ -492,7 +492,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			/* loop through the vertices*/
 			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++) {
 
-				/*copy weight*/
+				/* copy weight */
 				dw_src = defvert_verify_index(*dv_array_src, index_src);
 				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
@@ -500,70 +500,70 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			break;
 
 		case BY_NEAREST_VERTEX:
-			/*make node tree*/
+			/* make node tree */
 			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, 0.0, 2, 6);
 
-			/* loop trough vertices*/
+			/* loop trough vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++){
 
-				/*reset nearest*/
-				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
+				/* reset nearest */
+				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
 				nearest.dist = FLT_MAX;
 
-				/*transform into target space*/
+				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 
-				/*node tree accelerated search for closest vetex*/
+				/* node tree accelerated search for closest vetex */
 				BLI_bvhtree_find_nearest(tree_mesh_vertices_src.tree, tmp_co,
 				                         &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
 
-				/*copy weight*/
+				/* copy weight */
 				dw_src = defvert_verify_index(dv_array_src[nearest.index], index_src);
 				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
 			}
 
-			/*free memory*/
+			/* free memory */
 			free_bvhtree_from_mesh(&tree_mesh_vertices_src);
 			break;
 
 		case BY_NEAREST_FACE:
-			/*get faces*/
+			/* get faces */
 			DM_ensure_tessface(dmesh_src);
 			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
 
-			/*make node tree*/
+			/* make node tree */
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
-			/* loop through the vertices*/
+			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++) {
 
-				/*reset nearest*/
-				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
+				/* reset nearest */
+				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
 				nearest.dist = FLT_MAX;
 
-				/*transform into target space*/
+				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 
-				/*node tree accelerated search for closest face*/
+				/* node tree accelerated search for closest face */
 				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
 				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 				index_nearest = nearest.index;
 
-				/*project onto face*/
+				/* project onto face */
 				normal_tri_v3(normal, mv_src[mface_src[nearest.index].v1].co,
 				              mv_src[mface_src[index_nearest].v2].co,
 				              mv_src[mface_src[index_nearest].v3].co);
 
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
-				/*interpolate weights*/
+				/* interpolate weights */
 				interp_weights_face_v3(tmp_weight, mv_src[mface_src[index_nearest].v1].co,
 				                       mv_src[mface_src[index_nearest].v2].co,
 				                       mv_src[mface_src[index_nearest].v3].co,
 				                       mv_src[mface_src[index_nearest].v4].co, tmp_co);
 
-				/*get weights*/
+				/* get weights */
 				weight = tmp_weight[0] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v1], index_src)->weight;
 				weight += tmp_weight[1] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v2], index_src)->weight;
 				weight += tmp_weight[2] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v3], index_src)->weight;
@@ -571,44 +571,44 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					weight += tmp_weight[3] * defvert_verify_index(dv_array_src[mface_src[index_nearest].v4], index_src)->weight;
 				}
 
-				/*copy weight*/
+				/* copy weight */
 				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_option);
 			}
 
-			/*free memory*/
+			/* free memory */
 			free_bvhtree_from_mesh(&tree_mesh_faces_src);
 			break;
 
 		case BY_NEAREST_VERTEX_IN_FACE:
-			/*get faces*/
+			/* get faces */
 			DM_ensure_tessface(dmesh_src);
 			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
 
-			/*make node tree*/
+			/* make node tree */
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
-			/*loop through the vertices*/
+			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_src++, mv_src++){
 
-				/*reset nearest*/
-				/*nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later*/
+				/* reset nearest */
+				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
 				nearest.dist = FLT_MAX;
 
-				/*transform into target space*/
+				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
 
-				/*node tree accelerated search for closest face*/
+				/* node tree accelerated search for closest face */
 				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
 				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 				index_nearest = nearest.index;
 
-				/*get distances*/
+				/* get distances */
 				dist_v1 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v1].co);
 				dist_v2 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v2].co);
 				dist_v3 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v3].co);
 
-				/*get closest vertex*/
+				/* get closest vertex */
 				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v1;
 				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
 				else index_nearest_vertex = mface_src[index_nearest].v3;
@@ -619,23 +619,21 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					}
 				}
 
-				/*copy weight*/
+				/* copy weight */
 				dw_src = defvert_verify_index(dv_array_src[index_nearest_vertex], index_src);
 				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
 			}
 
-			/*free memory*/
+			/* free memory */
 			free_bvhtree_from_mesh(&tree_mesh_faces_src);
 			break;
 	}
 
-	/*free memory*//*TODO must free wehn function breaks on return 0 as well, right?*/
+	/*free memory*//*TODO must free when function breaks on return 0 as well, right?*/
 	if (mface_src) MEM_freeN(mface_src);
 	if (dv_array_src) MEM_freeN(dv_array_src);
 	if (dv_array_dst) MEM_freeN(dv_array_dst);
-	if (dv_src) MEM_freeN(dv_src);
-	if (dv_dst) MEM_freeN(dv_dst);
 
 	return 1;
 }
@@ -3036,7 +3034,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	MethodOption method_option = RNA_enum_get(op->ptr, "MethodOption");
 	ReplaceOption replace_option = RNA_enum_get(op->ptr, "ReplaceOption");
 
-	/*Macro to loop through selected objects and perform operation depending on function, option and method*/
+	/* Macro to loop through selected objects and perform operation depending on function, option and method */
 	CTX_DATA_BEGIN(C, Object *, ob_slc, selected_editable_objects)
 	{
 
@@ -3059,14 +3057,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		}
 	}
 
-	/*Event notifiers for correct display of data*/
+	/* Event notifiers for correct display of data */
 	DAG_id_tag_update(&ob_slc->id, OB_RECALC_DATA);
 	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob_slc);
 	WM_event_add_notifier(C, NC_GEOM | ND_DATA, ob_slc->data);
 
 	CTX_DATA_END;
 
-	/*Report error when task can not be completed with available functions.*/
+	/* Report error when task can not be completed with available functions. */
 	if ((change == 0 && fail == 0) || fail) {
 		BKE_reportf(op->reports, RPT_ERROR,
 		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
@@ -3075,7 +3073,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-/*transfers weight from active to selected*/
+/* transfers weight from active to selected */
 void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 {
 	/* identifiers */
@@ -3091,8 +3089,8 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "What groups to transfer.");
-	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "How to calculate weight.");
+	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "What groups to transfer");
+	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "How to calculate weight");
 	ot->prop = RNA_def_enum(ot->srna, "ReplaceOption", replace_option_item, 1, "Replace", "What weights to overwrite");
 }
 
