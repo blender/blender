@@ -395,6 +395,27 @@ typedef enum ReplaceOption {
 	REPLACE_SELECTED_WEIGHTS = 3
 } ReplaceOption;
 
+static EnumPropertyItem vertex_group_option_item[] = {
+	{REPLACE_SINGLE_VERTEX_GROUP, "REPLACE_SINGLE_VERTEX_GROUP", 1, "Single", "Transfer single vertex group."},
+	{REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups."},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem method_option_item[] = {
+	{BY_INDEX, "BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
+	{BY_NEAREST_VERTEX, "BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
+	{BY_NEAREST_FACE, "BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
+	{BY_NEAREST_VERTEX_IN_FACE, "BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face."},
+	{0, NULL, 0, NULL, NULL}
+};
+
+static EnumPropertyItem replace_option_item[] = {
+	{REPLACE_ALL_WEIGHTS, "REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
+	{REPLACE_EMPTY_WEIGHTS, "REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
+	{REPLACE_SELECTED_WEIGHTS, "REPLACE_SELECTED_WEIGHTS", 1, "Selected", "Replace selected weights."},
+	{0, NULL, 0, NULL, NULL}
+};
+
 /*copy weight*/
 void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, ReplaceOption replace_option)
 {
@@ -608,6 +629,12 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			free_bvhtree_from_mesh(&tree_mesh_faces_src);
 			break;
 	}
+
+	/*free memory*/
+	if (mface_src) MEM_freeN(mface_src);
+	if (dv_array_src) MEM_freeN(dv_array_src);
+	if (dv_array_dst) MEM_freeN(dv_array_dst);
+
 	return 1;
 }
 
@@ -3002,13 +3029,9 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	int fail = 0;
 	bDeformGroup *dg_src;
 
-	/* TODO: get these parameters from gui.
-	 * For now 1,3,1 is default because GUI doesnt contain more than one button yet:
-	 * Replace all weights in single vertexgroup based on interpolation of nearest face*/
-
-	VertexGroupOption vertex_group_option = 1;
-	MethodOption method_option = 3;
-	ReplaceOption replace_option = 1;
+	VertexGroupOption vertex_group_option = RNA_enum_get(op->ptr, "VertexGroupOption");
+	MethodOption method_option = RNA_enum_get(op->ptr, "MethodOption");
+	ReplaceOption replace_option = RNA_enum_get(op->ptr, "ReplaceOption");
 
 	/*Macro to loop through selected objects and perform operation depending on function, option and method*/
 	CTX_DATA_BEGIN(C, Object *, ob_slc, selected_editable_objects)
@@ -3063,6 +3086,11 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "What groups to transfer.");
+	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "How to calculate weight.");
+	ot->prop = RNA_def_enum(ot->srna, "ReplaceOption", replace_option_item, 1, "Replace", "What weights to overwrite");
 }
 
 static EnumPropertyItem vgroup_items[] = {
