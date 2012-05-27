@@ -92,6 +92,8 @@ typedef struct MaskObjectShape {
 	float *data;             /* u coordinate along spline segment and weight of this point */
 	int    tot_vert;         /* to ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE) */
 	int    frame;            /* different flags of this point */
+	char   flag;
+	char   pad[7];
 } MaskObjectShape;
 
 typedef struct MaskObject {

@@ -60,6 +60,7 @@
 #include "DNA_speaker_types.h"
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_mask_types.h"
 
 #include "BKE_key.h"
 #include "BKE_material.h"
@@ -184,6 +185,50 @@ static void nupdate_ak_gpframe(void *node, void *data)
 	ak->modified += 1;
 }
 
+/* ......... */
+
+/* Comparator callback used for ActKeyColumns and GPencil frame */
+static short compare_ak_maskobjshape(void *node, void *data)
+{
+	ActKeyColumn *ak = (ActKeyColumn *)node;
+	MaskObjectShape *maskobj_shape = (MaskObjectShape *)data;
+
+	if (maskobj_shape->frame < ak->cfra)
+		return -1;
+	else if (maskobj_shape->frame > ak->cfra)
+		return 1;
+	else
+		return 0;
+}
+
+/* New node callback used for building ActKeyColumns from GPencil frames */
+static DLRBT_Node *nalloc_ak_maskobjshape(void *data)
+{
+	ActKeyColumn *ak = MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumnGPF");
+	MaskObjectShape *maskobj_shape = (MaskObjectShape *)data;
+
+	/* store settings based on state of BezTriple */
+	ak->cfra = maskobj_shape->frame;
+	ak->sel = (maskobj_shape->flag & SELECT) ? SELECT : 0;
+
+	/* set 'modified', since this is used to identify long keyframes */
+	ak->modified = 1;
+
+	return (DLRBT_Node *)ak;
+}
+
+/* Node updater callback used for building ActKeyColumns from GPencil frames */
+static void nupdate_ak_maskobjshape(void *node, void *data)
+{
+	ActKeyColumn *ak = (ActKeyColumn *)node;
+	MaskObjectShape *maskobj_shape = (MaskObjectShape *)data;
+
+	/* set selection status and 'touched' status */
+	if (maskobj_shape->flag & SELECT) ak->sel = SELECT;
+	ak->modified += 1;
+}
+
+
 /* --------------- */
 
 /* Add the given BezTriple to the given 'list' of Keyframes */
@@ -202,6 +247,15 @@ static void add_gpframe_to_keycolumns_list(DLRBT_Tree *keys, bGPDframe *gpf)
 		return;
 	else
 		BLI_dlrbTree_add(keys, compare_ak_gpframe, nalloc_ak_gpframe, nupdate_ak_gpframe, gpf);
+}
+
+/* Add the given MaskObjectShape Frame to the given 'list' of Keyframes */
+static void add_maskobj_to_keycolumns_list(DLRBT_Tree *keys, MaskObjectShape *maskobj_shape)
+{
+	if (ELEM(NULL, keys, maskobj_shape))
+		return;
+	else
+		BLI_dlrbTree_add(keys, compare_ak_maskobjshape, nalloc_ak_maskobjshape, nupdate_ak_maskobjshape, maskobj_shape);
 }
 
 /* ActBeztColumns (Helpers for Long Keyframes) ------------------------------ */
@@ -937,6 +991,20 @@ void gpl_to_keylist(bDopeSheet *UNUSED(ads), bGPDlayer *gpl, DLRBT_Tree *keys)
 		/* although the frames should already be in an ordered list, they are not suitable for displaying yet */
 		for (gpf = gpl->frames.first; gpf; gpf = gpf->next)
 			add_gpframe_to_keycolumns_list(keys, gpf);
+	}
+}
+
+void mask_to_keylist(bDopeSheet *UNUSED(ads), MaskObject *maskobj, DLRBT_Tree *keys)
+{
+	MaskObjectShape *maskobj_shape;
+
+	if (maskobj && keys) {
+		for (maskobj_shape = maskobj->splines_shapes.first;
+		     maskobj_shape;
+		     maskobj_shape = maskobj_shape->next)
+		{
+			add_maskobj_to_keycolumns_list(keys, maskobj_shape);
+		}
 	}
 }
 
