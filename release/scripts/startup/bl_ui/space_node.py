@@ -222,7 +222,7 @@ class NODE_PT_quality(bpy.types.Panel):
 
         layout.prop(tree, "render_quality", text="Render")
         layout.prop(tree, "edit_quality", text="Edit")
-        layout.prop(tree, "chunksize")
+        layout.prop(tree, "chunk_size")
         layout.prop(tree, "use_opencl")
 
         
