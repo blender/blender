@@ -631,7 +631,6 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	}
 
 	/*free memory*//*TODO must free when function breaks on return 0 as well, right?*/
-	if (mface_src) MEM_freeN(mface_src);
 	if (dv_array_src) MEM_freeN(dv_array_src);
 	if (dv_array_dst) MEM_freeN(dv_array_dst);
 
@@ -3089,9 +3088,9 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "What groups to transfer");
-	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "How to calculate weight");
-	ot->prop = RNA_def_enum(ot->srna, "ReplaceOption", replace_option_item, 1, "Replace", "What weights to overwrite");
+	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "");
+	ot->prop = RNA_def_enum(ot->srna, "ReplaceOption", replace_option_item, 1, "Replace", "");
 }
 
 static EnumPropertyItem vgroup_items[] = {
