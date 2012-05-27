@@ -293,8 +293,8 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
 		
-		node->locx+= gnode->locx;
-		node->locy+= gnode->locy;
+		node->locx += gnode->locx;
+		node->locy += gnode->locy;
 		
 		node->flag |= NODE_SELECT;
 	}

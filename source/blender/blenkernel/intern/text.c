@@ -813,7 +813,7 @@ void txt_move_up(Text *text, short sel)
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_first(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
-	/* old= *charp; */ /* UNUSED */
+	/* old = *charp; */ /* UNUSED */
 
 	if ((*linep)->prev) {
 		int index = txt_utf8_offset_to_index((*linep)->line, *charp);
@@ -841,7 +841,7 @@ void txt_move_down(Text *text, short sel)
 	if (sel) txt_curs_sel(text, &linep, &charp);
 	else { txt_pop_last(text); txt_curs_cur(text, &linep, &charp); }
 	if (!*linep) return;
-	/* old= *charp; */ /* UNUSED */
+	/* old = *charp; */ /* UNUSED */
 
 	if ((*linep)->next) {
 		int index = txt_utf8_offset_to_index((*linep)->line, *charp);
@@ -3226,8 +3226,8 @@ short txt_clear_marker_region(Text *text, TextLine *line, int start, int end, in
 }
 
 /* Clears all markers in the specified group (if given) with at least the
- * specified flags set. Useful for clearing temporary markers (group=0,
- * flags=TMARK_TEMP) */
+ * specified flags set. Useful for clearing temporary markers (group = 0,
+ * flags = TMARK_TEMP) */
 short txt_clear_markers(Text *text, int group, int flags)
 {
 	TextMarker *marker, *next;
@@ -3276,7 +3276,7 @@ TextMarker *txt_prev_marker(Text *text, TextMarker *marker)
 		if (tmp->group == marker->group)
 			return tmp;
 	}
-	return NULL; /* Only if marker==NULL */
+	return NULL; /* Only if (marker == NULL) */
 }
 
 /* Finds the next marker in the same group. If no other is found, the same
@@ -3290,7 +3290,7 @@ TextMarker *txt_next_marker(Text *text, TextMarker *marker)
 		if (tmp->group == marker->group)
 			return tmp;
 	}
-	return NULL; /* Only if marker==NULL */
+	return NULL; /* Only if (marker == NULL) */
 }
 
 

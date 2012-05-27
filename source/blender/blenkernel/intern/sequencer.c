@@ -612,8 +612,8 @@ void calc_sequence(Scene *scene, Sequence *seq)
 
 		/* we take the largest start and smallest end */
 
-		// seq->start= seq->startdisp= MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
-		// seq->enddisp= MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
+		// seq->start = seq->startdisp = MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
+		// seq->enddisp = MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
 
 		if (seq->seq1) {
 			/* XXX These resets should not be necessary, but users used to be able to

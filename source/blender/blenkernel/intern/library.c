@@ -645,7 +645,7 @@ static ID *alloc_libblock_notest(short type)
 			id = MEM_callocN(sizeof(Text), "text");
 			break;
 		case ID_SCRIPT:
-			//XXX id= MEM_callocN(sizeof(Script), "script");
+			//XXX id = MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SPK:
 			id = MEM_callocN(sizeof(Speaker), "speaker");
@@ -1032,7 +1032,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 
 
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
-/* if nr==NULL no MAX_IDPUP, this for non-header browsing */
+/* if (nr == NULL) no MAX_IDPUP, this for non-header browsing */
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds = BLI_dynstr_new();

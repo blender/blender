@@ -1015,8 +1015,8 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	WM_operator_call(C, data->op);
 
 	/* let execute handle freeing it */
-	//data->free_op= FALSE;
-	//data->op= NULL;
+	//data->free_op = FALSE;
+	//data->op = NULL;
 
 	/* in this case, wm_operator_ui_popup_cancel wont run */
 	MEM_freeN(data);
@@ -1314,7 +1314,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		menu.type = mt;
 		mt->draw(C, &menu);
 
-//		wmWindowManager *wm= CTX_wm_manager(C);
+//		wmWindowManager *wm = CTX_wm_manager(C);
 //		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
 	}
 	

@@ -1265,7 +1265,7 @@ void init_userdef_do_versions(void)
 		if (U.undosteps == 0) U.undosteps = 32;
 		
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
+			/* check for (alpha == 0) is safe, then color was never set */
 			if (btheme->tv3d.edge_seam[3] == 0) {
 				rgba_char_args_set(btheme->tv3d.edge_seam, 230, 150, 50, 255);
 			}
@@ -1290,7 +1290,7 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		/* new space type */
 		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
-			/* check for alpha==0 is safe, then color was never set */
+			/* check for (alpha == 0) is safe, then color was never set */
 			if (btheme->ttime.back[3] == 0) {
 				// copied from ui_theme_init_default
 				btheme->ttime = btheme->tv3d;

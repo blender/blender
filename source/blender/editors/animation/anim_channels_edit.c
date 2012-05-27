@@ -496,7 +496,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 				break;
 			
 			/* store this level as the 'old' level now */
-			// prevLevel= level; // XXX: prevLevel is unused
+			// prevLevel = level; // XXX: prevLevel is unused
 		}
 	}
 }
@@ -2017,7 +2017,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	v2d = &ar->v2d;
 	
 	/* figure out which channel user clicked in 
-	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 * Note: although channels technically start at (y = ACHANNEL_FIRST), we need to adjust by half a channel's height
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
@@ -2330,7 +2330,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 		selectmode = SELECT_REPLACE;
 	
 	/* figure out which channel user clicked in 
-	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 * Note: although channels technically start at (y = ACHANNEL_FIRST), we need to adjust by half a channel's height
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */

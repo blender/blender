@@ -119,8 +119,8 @@ void ED_armature_exit_posemode(bContext *C, Base *base)
 	}	
 }
 
-/* if a selected or active bone is protected, throw error (oonly if warn==1) and return 1 */
-/* only_selected==1 : the active bone is allowed to be protected */
+/* if a selected or active bone is protected, throw error (oonly if warn == 1) and return 1 */
+/* only_selected == 1: the active bone is allowed to be protected */
 #if 0 /* UNUSED 2.5 */
 static short pose_has_protected_selected(Object *ob, short warn)
 {
@@ -571,7 +571,7 @@ static short pose_select_same_group(bContext *C, Object *ob, short extend)
 		
 	/* alloc a small array to keep track of the groups to use 
 	 *  - each cell stores on/off state for whether group should be used
-	 *	- size is numGroups + 1, since index=0 is used for no-group
+	 *	- size is (numGroups + 1), since (index = 0) is used for no-group
 	 */
 	group_flags = MEM_callocN(numGroups + 1, "pose_select_same_group");
 	

@@ -642,7 +642,7 @@ int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
 
 	RNA_PROP_BEGIN(ptr, itemptr, iterprop)
 	{
-		/* PropertyRNA *prop= itemptr.data; */
+		/* PropertyRNA *prop = itemptr.data; */
 		if (prop_test == (PropertyRNA *)itemptr.data) {
 			found = TRUE;
 			break;
@@ -2561,7 +2561,7 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 	BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-	if ((/*idprop=*/ rna_idproperty_check(&prop, ptr))) {
+	if ((/*idprop = */ rna_idproperty_check(&prop, ptr))) {
 		/* not supported */
 		/* rna_idproperty_touch(idprop); */
 	}
@@ -2579,7 +2579,7 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 PointerRNA RNA_property_pointer_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 {
-	/*PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop; */
+	/*PointerPropertyRNA *pprop = (PointerPropertyRNA*)prop; */
 
 	/* BLI_assert(RNA_property_type(prop) == PROP_POINTER); */
 
@@ -2718,7 +2718,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
-/*	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop; */
+/*	CollectionPropertyRNA *cprop = (CollectionPropertyRNA*)prop; */
 
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -2777,7 +2777,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
 	IDProperty *idprop;
-/*	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop; */
+/*	CollectionPropertyRNA *cprop = (CollectionPropertyRNA*)prop; */
 
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 

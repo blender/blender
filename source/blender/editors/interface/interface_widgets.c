@@ -2245,7 +2245,7 @@ void ui_draw_link_bezier(rcti *rect)
 	
 	if (ui_link_bezier_points(rect, coord_array, LINK_RESOL)) {
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
-		// const float dist= 1.0f/(float)LINK_RESOL; // UNUSED
+		// const float dist = 1.0f/(float)LINK_RESOL; // UNUSED
 
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);

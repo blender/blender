@@ -145,7 +145,7 @@ static char **names, *namedata;      /* at address names[a] is string a */
 static char **types, *typedata;      /* at address types[a] is string a */
 static short *typelens;              /* at typelens[a] is de length of type a */
 static short *alphalens;             /* contains sizes as they are calculated on the DEC Alpha (64 bits), in fact any 64bit system */
-static short **structs, *structdata; /* at sp= structs[a] is the first address of a struct definition
+static short **structs, *structdata; /* at sp = structs[a] is the first address of a struct definition
                                       * sp[0] is type number
                                       * sp[1] is amount of elements
                                       * sp[2] sp[3] is typenr,  namenr (etc) */
@@ -909,7 +909,7 @@ void printStructLengths(void)
 	printf("\n\n*** All detected structs:\n");
 
 	while (unknown) {
-		/*lastunknown= unknown;*/ /*UNUSED*/
+		/*lastunknown = unknown;*/ /*UNUSED*/
 		unknown = 0;
 		
 		/* check all structs... */
@@ -1170,7 +1170,7 @@ int main(int argc, char **argv)
 			}
 			else {
 				fprintf(file, "};\n");
-				fprintf(file, "int DNAlen= sizeof(DNAstr);\n");
+				fprintf(file, "int DNAlen = sizeof(DNAstr);\n");
 	
 				fclose(file);
 			}

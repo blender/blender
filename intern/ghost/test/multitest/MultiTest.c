@@ -656,7 +656,8 @@ typedef struct {
 	int size[2];
 } ExtraWindow;
 
-static void extrawindow_do_draw(ExtraWindow *ew) {
+static void extrawindow_do_draw(ExtraWindow *ew)
+{
 	GHOST_ActivateWindowDrawingContext(ew->win);
 
 	glClearColor(1, 1, 1, 1);
@@ -668,7 +669,8 @@ static void extrawindow_do_draw(ExtraWindow *ew) {
 	GHOST_SwapWindowBuffers(ew->win);
 }
 
-static void extrawindow_do_reshape(ExtraWindow *ew) {
+static void extrawindow_do_reshape(ExtraWindow *ew)
+{
 	GHOST_RectangleHandle bounds = GHOST_GetClientBounds(ew->win);
 
 	GHOST_ActivateWindowDrawingContext(ew->win);
@@ -687,7 +689,8 @@ static void extrawindow_do_reshape(ExtraWindow *ew) {
 	glLoadIdentity();
 }
 
-static void extrawindow_do_key(ExtraWindow *ew, GHOST_TKey key, int press) {
+static void extrawindow_do_key(ExtraWindow *ew, GHOST_TKey key, int press)
+{
 	switch (key) {
 		case GHOST_kKeyE:
 			if (press)
@@ -696,7 +699,8 @@ static void extrawindow_do_key(ExtraWindow *ew, GHOST_TKey key, int press) {
 	}
 }
 
-static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time) {
+static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time)
+{
 	GHOST_TUns8 bitmap[16][2];
 	GHOST_TUns8 mask[16][2];
 	double ftime = (double) ((GHOST_TInt64) time) / 1000;
@@ -728,7 +732,8 @@ static void extrawindow_spin_cursor(ExtraWindow *ew, GHOST_TUns64 time) {
 	GHOST_SetCustomCursorShape(ew->win, bitmap, mask, 0, 0);
 }
 
-static void extrawindow_handle(void *priv, GHOST_EventHandle evt) {
+static void extrawindow_handle(void *priv, GHOST_EventHandle evt)
+{
 	ExtraWindow *ew = priv;
 	GHOST_TEventType type = GHOST_GetEventType(evt);
 	char buf[256];
@@ -785,7 +790,8 @@ ExtraWindow *extrawindow_new(MultiTestApp *app) {
 	}
 }
 
-void extrawindow_free(ExtraWindow *ew) {
+void extrawindow_free(ExtraWindow *ew)
+{
 	GHOST_SystemHandle sys = multitestapp_get_system(ew->app);
 
 	windowdata_free(GHOST_GetWindowUserData(ew->win));
@@ -806,7 +812,8 @@ struct _MultiTestApp {
 	int exit;
 };
 
-static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr data) {
+static int multitest_event_handler(GHOST_EventHandle evt, GHOST_TUserDataPtr data)
+{
 	MultiTestApp *app = data;
 	GHOST_WindowHandle win;
 	
@@ -876,12 +883,14 @@ GHOST_SystemHandle multitestapp_get_system(MultiTestApp *app) {
 	return app->sys;
 }
 
-void multitestapp_free_extrawindow(MultiTestApp *app) {
+void multitestapp_free_extrawindow(MultiTestApp *app)
+{
 	extrawindow_free(app->extra);
 	app->extra = NULL;
 }
 
-void multitestapp_toggle_extra_window(MultiTestApp *app) {
+void multitestapp_toggle_extra_window(MultiTestApp *app)
+{
 	if (app->extra) {
 		multitestapp_free_extrawindow(app);
 	}

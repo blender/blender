@@ -350,7 +350,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	idptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	id = idptr.data;
 	idfrom = template->ptr.id.data;
-	// lb= template->idlb;
+	// lb = template->idlb;
 
 	block = uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
@@ -2299,7 +2299,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
 {
-	//Scene *scene= CTX_data_scene(C);
+	//Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;

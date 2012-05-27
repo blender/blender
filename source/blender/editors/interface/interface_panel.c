@@ -932,7 +932,7 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 {
 	Panel *pa;
 
-	/* also called with panel==NULL for clear */
+	/* also called with (panel == NULL) for clear */
 	
 	for (pa = ar->panels.first; pa; pa = pa->next) {
 		pa->flag &= ~PNL_OVERLAP;
@@ -1024,7 +1024,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	else if (block->panel->control & UI_PNL_CLOSE) {
 		/* whole of header can be used to collapse panel (except top-right corner) */
 		if (mx <= block->maxx - 8 - PNL_ICON) button = 2;
-		//else if (mx <= block->minx+10+2*PNL_ICON+2) button= 1;
+		//else if (mx <= block->minx + 10 + 2 * PNL_ICON + 2) button = 1;
 	}
 	else if (mx <= block->maxx - PNL_ICON - 12) {
 		button = 1;

@@ -850,7 +850,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -938,7 +938,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -2483,7 +2483,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -3096,7 +3096,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 	/* get the base icon for the setting */
 	switch (setting) {
 		case ACHANNEL_SETTING_VISIBLE:  /* visibility eyes */
-			//icon= ((enabled)? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
+			//icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
 			icon = ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)
