@@ -57,8 +57,6 @@
 #include "GHOST_NDOFManager.h"
 #include "AssertMacros.h"
 
-#define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
-
 /* blender class and types events */
 enum {
 	kEventClassBlender              = 'blnd'

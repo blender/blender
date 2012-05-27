@@ -389,11 +389,11 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER *)&m_freq) == TRUE;
 	if (m_hasPerformanceCounter) {
-		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n")
+		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n");
 		::QueryPerformanceCounter((LARGE_INTEGER *)&m_start);
 	}
 	else {
-		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer not available\n")
+		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer not available\n");
 	}
 
 	if (success) {
@@ -885,7 +885,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	LRESULT lResult = 0;
 	GHOST_SystemWin32 *system = ((GHOST_SystemWin32 *)getSystem());
-	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
+	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
 	if (hwnd) {
 		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLong(hwnd, GWL_USERDATA);
@@ -917,9 +917,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case RIM_TYPEKEYBOARD:
 							event = processKeyEvent(window, raw);
 							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
+								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ");
+								GHOST_PRINT(msg);
+								GHOST_PRINT(" key ignored\n");
 							}
 							break;
 #ifdef WITH_INPUT_NDOF
@@ -1233,7 +1233,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		}
 		else {
 			// Event found for a window before the pointer to the class has been set.
-			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n")
+			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n");
 			/* These are events we typically miss at this point:
 			   WM_GETMINMAXINFO	0x24
 			   WM_NCCREATE			0x81
@@ -1245,7 +1245,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	else {
 		// Events without valid hwnd
-		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
+		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n");
 	}
 
 	if (event) {

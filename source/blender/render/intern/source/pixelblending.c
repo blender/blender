@@ -306,17 +306,27 @@ void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, in
 	
 	
 	/* loop unroll */
-#define MASKFILT(i, j) 	val= lfilt[i][j]; if (val!=0.0f) {float *fp= fpoin[i][j]; fp[0]+= val*r; fp[1]+= val*g; fp[2]+= val*b; fp[3]+= val*al; }
+#define MASKFILT(i, j)                                                        \
+	val = lfilt[i][j];                                                        \
+	if (val != 0.0f) {                                                        \
+		float *fp = fpoin[i][j];                                              \
+		fp[0] += val * r;                                                     \
+		fp[1] += val * g;                                                     \
+		fp[2] += val * b;                                                     \
+		fp[3] += val * al;                                                    \
+	} (void)0
 	
-	MASKFILT(0, 0)
-	MASKFILT(0, 1)
-	MASKFILT(0, 2)
-	MASKFILT(1, 0)
-	MASKFILT(1, 1)
-	MASKFILT(1, 2)
-	MASKFILT(2, 0)
-	MASKFILT(2, 1)
-	MASKFILT(2, 2)
+	MASKFILT(0, 0);
+	MASKFILT(0, 1);
+	MASKFILT(0, 2);
+	MASKFILT(1, 0);
+	MASKFILT(1, 1);
+	MASKFILT(1, 2);
+	MASKFILT(2, 0);
+	MASKFILT(2, 1);
+	MASKFILT(2, 2);
+
+#undef MASKFILT
 }
 
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize)

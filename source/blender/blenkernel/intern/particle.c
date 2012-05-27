@@ -3751,9 +3751,14 @@ static int get_particle_uv(DerivedMesh *dm, ParticleData *pa, int face_index, co
 	return 1;
 }
 
-#define SET_PARTICLE_TEXTURE(type, pvalue, texfac) if ((event & mtex->mapto) & type) {pvalue = texture_value_blend(def, pvalue, value, texfac, blend); }
-#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue) if (event & type) { if (pvalue < 0.f) pvalue = 1.f + pvalue; CLAMP(pvalue, 0.0f, 1.0f); }
-#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue) if (event & type) { CLAMP(pvalue, -1.0f, 1.0f); }
+#define SET_PARTICLE_TEXTURE(type, pvalue, texfac)  \
+	if ((event & mtex->mapto) & type) {pvalue = texture_value_blend(def, pvalue, value, texfac, blend); } (void)0
+
+#define CLAMP_PARTICLE_TEXTURE_POS(type, pvalue)  \
+	if (event & type) { if (pvalue < 0.0f) pvalue = 1.0f + pvalue; CLAMP(pvalue, 0.0f, 1.0f); } (void)0
+
+#define CLAMP_PARTICLE_TEXTURE_POSNEG(type, pvalue)  \
+	if (event & type) { CLAMP(pvalue, -1.0f, 1.0f); } (void)0
 
 static void get_cpa_texture(DerivedMesh *dm, ParticleSystem *psys, ParticleSettings *part, ParticleData *par, int child_index, int face_index, const float fw[4], float *orco, ParticleTexture *ptex, int event, float cfra)
 {
@@ -3884,26 +3889,26 @@ void psys_get_texture(ParticleSimulationData *sim, ParticleData *pa, ParticleTex
 				else
 					ptex->time = texture_value_blend(def, ptex->time, value, mtex->timefac, blend);
 			}
-			SET_PARTICLE_TEXTURE(PAMAP_LIFE, ptex->life, mtex->lifefac)
-			SET_PARTICLE_TEXTURE(PAMAP_DENS, ptex->exist, mtex->padensfac)
-			SET_PARTICLE_TEXTURE(PAMAP_SIZE, ptex->size, mtex->sizefac)
-			SET_PARTICLE_TEXTURE(PAMAP_IVEL, ptex->ivel, mtex->ivelfac)
-			SET_PARTICLE_TEXTURE(PAMAP_FIELD, ptex->field, mtex->fieldfac)
-			SET_PARTICLE_TEXTURE(PAMAP_GRAVITY, ptex->gravity, mtex->gravityfac)
-			SET_PARTICLE_TEXTURE(PAMAP_DAMP, ptex->damp, mtex->dampfac)
-			SET_PARTICLE_TEXTURE(PAMAP_LENGTH, ptex->length, mtex->lengthfac)
+			SET_PARTICLE_TEXTURE(PAMAP_LIFE, ptex->life, mtex->lifefac);
+			SET_PARTICLE_TEXTURE(PAMAP_DENS, ptex->exist, mtex->padensfac);
+			SET_PARTICLE_TEXTURE(PAMAP_SIZE, ptex->size, mtex->sizefac);
+			SET_PARTICLE_TEXTURE(PAMAP_IVEL, ptex->ivel, mtex->ivelfac);
+			SET_PARTICLE_TEXTURE(PAMAP_FIELD, ptex->field, mtex->fieldfac);
+			SET_PARTICLE_TEXTURE(PAMAP_GRAVITY, ptex->gravity, mtex->gravityfac);
+			SET_PARTICLE_TEXTURE(PAMAP_DAMP, ptex->damp, mtex->dampfac);
+			SET_PARTICLE_TEXTURE(PAMAP_LENGTH, ptex->length, mtex->lengthfac);
 		}
 	}
 
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_TIME, ptex->time)
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LIFE, ptex->life)
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DENS, ptex->exist)
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_SIZE, ptex->size)
-	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_IVEL, ptex->ivel)
-	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_FIELD, ptex->field)
-	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_GRAVITY, ptex->gravity)
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DAMP, ptex->damp)
-	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LENGTH, ptex->length)
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_TIME, ptex->time);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LIFE, ptex->life);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DENS, ptex->exist);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_SIZE, ptex->size);
+	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_IVEL, ptex->ivel);
+	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_FIELD, ptex->field);
+	CLAMP_PARTICLE_TEXTURE_POSNEG(PAMAP_GRAVITY, ptex->gravity);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_DAMP, ptex->damp);
+	CLAMP_PARTICLE_TEXTURE_POS(PAMAP_LENGTH, ptex->length);
 }
 /************************************************/
 /*			Particle State						*/
