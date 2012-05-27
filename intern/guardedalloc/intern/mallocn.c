@@ -545,7 +545,8 @@ static void MEM_printmemlist_internal(int pydict)
 	mem_unlock_thread();
 }
 
-void MEM_callbackmemlist(void (*func)(void *)) {
+void MEM_callbackmemlist(void (*func)(void *))
+{
 	MemHead *membl;
 
 	mem_lock_thread();
@@ -563,7 +564,8 @@ void MEM_callbackmemlist(void (*func)(void *)) {
 	mem_unlock_thread();
 }
 
-short MEM_testN(void *vmemh) {
+short MEM_testN(void *vmemh)
+{
 	MemHead *membl;
 
 	mem_lock_thread();
@@ -588,10 +590,12 @@ short MEM_testN(void *vmemh) {
 	return 0;
 }
 
-void MEM_printmemlist(void) {
+void MEM_printmemlist(void)
+{
 	MEM_printmemlist_internal(0);
 }
-void MEM_printmemlist_pydict(void) {
+void MEM_printmemlist_pydict(void)
+{
 	MEM_printmemlist_internal(1);
 }
 

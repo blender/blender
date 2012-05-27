@@ -1134,15 +1134,18 @@ static float turbulencep(float noisesize, float x, float y, float z, int nr)
 /* Camberra omitted, didn't seem useful */
 
 /* distance squared */
-static float dist_Squared(float x, float y, float z, float e) {
+static float dist_Squared(float x, float y, float z, float e)
+{
 	(void)e; return (x * x + y * y + z * z);
 }
 /* real distance */
-static float dist_Real(float x, float y, float z, float e) {
+static float dist_Real(float x, float y, float z, float e)
+{
 	(void)e; return sqrtf(x * x + y * y + z * z);
 }
 /* manhattan/taxicab/cityblock distance */
-static float dist_Manhattan(float x, float y, float z, float e) {
+static float dist_Manhattan(float x, float y, float z, float e)
+{
 	(void)e; return (fabsf(x) + fabsf(y) + fabsf(z));
 }
 /* Chebychev */

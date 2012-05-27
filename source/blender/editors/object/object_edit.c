@@ -109,8 +109,7 @@ static void waitcursor(int UNUSED(val)) {}
 static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
-static void error_libdata(void) {
-}
+static void error_libdata(void) {}
 
 Object *ED_object_context(bContext *C)
 {

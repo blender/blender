@@ -54,7 +54,7 @@ public:
 
 	static void *run(void *arg)
 	{
-		((thread*)arg)->run_cb();;
+		((thread*)arg)->run_cb();
 		return NULL;
 	}
 

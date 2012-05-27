@@ -417,7 +417,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			break;
 		}
 		case BL::ShaderNode::type_TEX_COORD: {
-			node = new TextureCoordinateNode();;
+			node = new TextureCoordinateNode();
 			break;
 		}
 		case BL::ShaderNode::type_TEX_SKY: {

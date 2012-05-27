@@ -229,8 +229,10 @@ option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install fol
 set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
-option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
-mark_as_advanced(WITH_MINGW64)
+if(MINGW)
+	option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
+	mark_as_advanced(WITH_MINGW64)
+endif()
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)

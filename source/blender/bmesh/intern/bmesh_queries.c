@@ -952,7 +952,7 @@ float BM_vert_calc_mean_tagged_edge_length(BMVert *v)
 
 
 /**
- * Returns the shortest edge in f.
+ * Returns the loop of the shortest edge in f.
  */
 BMLoop *BM_face_find_shortest_loop(BMFace *f)
 {
@@ -976,7 +976,7 @@ BMLoop *BM_face_find_shortest_loop(BMFace *f)
 }
 
 /**
- * Returns the longest edge in f.
+ * Returns the loop of the longest edge in f.
  */
 BMLoop *BM_face_find_longest_loop(BMFace *f)
 {
@@ -997,16 +997,6 @@ BMLoop *BM_face_find_longest_loop(BMFace *f)
 	} while ((l_iter = l_iter->next) != l_first);
 
 	return longest_loop;
-}
-
-BMEdge *BM_face_find_shortest_edge(BMFace *f)
-{
-	return BM_face_find_shortest_loop(f)->e;
-}
-
-BMEdge *BM_face_find_longest_edge(BMFace *f)
-{
-	return BM_face_find_longest_loop(f)->e;
 }
 
 /**
