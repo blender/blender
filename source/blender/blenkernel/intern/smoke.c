@@ -1592,8 +1592,8 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, float fps)
 	/* adapt timestep for different framerates, dt = 0.1 is at 25fps */
 	dt *= (25.0f / fps);
 
-	// maximum timestep/"CFL" constraint: dt < dx * maxVel
-	maxVel = (sds->dx * 1.0);
+	// maximum timestep/"CFL" constraint: dt < 5.0 *dx / maxVel
+	maxVel = (sds->dx * 5.0);
 
 	for(i = 0; i < size; i++)
 	{
@@ -1607,7 +1607,8 @@ static void step(Scene *scene, Object *ob, SmokeModifierData *smd, float fps)
 	totalSubsteps = (totalSubsteps < 1) ? 1 : totalSubsteps;
 	totalSubsteps = (totalSubsteps > maxSubSteps) ? maxSubSteps : totalSubsteps;
 
-	// totalSubsteps = 2.0f; // DEBUG
+	/* Disable substeps for now, since it results in numerical instability */
+	totalSubsteps = 1.0f; 
 
 	dtSubdiv = (float)dt / (float)totalSubsteps;
 

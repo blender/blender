@@ -153,9 +153,13 @@ void FLUID_3D::setNeumannZ(float* field, Vec3Int res, int zBegin, int zEnd)
 				index = x + y * res[0];
 				field[index] = field[index + 2 * slabSize];
 				/* only allow outwards flux */
-				if(field[index]>0.) field[index] = 0.;
-				index += slabSize;
-				if(field[index]>0.) field[index] = 0.;
+
+				// DG: Disable this for z-axis.
+				// The problem is that smoke somehow gets sucked in again
+				// from the TOP slab when this is enabled
+				// if(field[index]>0.) field[index] = 0.;
+				// index += slabSize;
+				// if(field[index]>0.) field[index] = 0.;
 			}
 	}
 
