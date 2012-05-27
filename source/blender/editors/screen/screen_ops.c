@@ -1959,20 +1959,24 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 				cfra = ak->cfra;
 			}
 		}
-	} while ((ak != NULL) && (done == 0));
-	
-	/* any success? */
-	if (done == 0)
-		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
-	
+	} while ((ak != NULL) && (done == FALSE));
+
 	/* free temp stuff */
 	BLI_dlrbTree_free(&keys);
-	
-	sound_seek_scene(bmain, scene);
 
-	WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
-	
-	return OPERATOR_FINISHED;
+	/* any success? */
+	if (done == FALSE) {
+		BKE_report(op->reports, RPT_INFO, "No more keyframes to jump to in this direction");
+
+		return OPERATOR_CANCELLED;
+	}
+	else {
+		sound_seek_scene(bmain, scene);
+
+		WM_event_add_notifier(C, NC_SCENE | ND_FRAME, scene);
+
+		return OPERATOR_FINISHED;
+	}
 }
 
 static void SCREEN_OT_keyframe_jump(wmOperatorType *ot)
