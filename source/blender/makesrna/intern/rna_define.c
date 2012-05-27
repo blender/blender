@@ -64,7 +64,7 @@ BlenderDefRNA DefRNA = {NULL, {NULL, NULL}, {NULL, NULL}, NULL, 0, 0, 0, 1};
 			fprintf(stderr, "%s: '%s' '%s' description ends with a '.' !\n",  \
 			        __func__, id1 ? id1 : "", id2 ? id2 : "");                \
 		}                                                                     \
-	}                                                                         \
+	} (void)0
 
 #else
 #  define DESCR_CHECK(description, id1, id2)

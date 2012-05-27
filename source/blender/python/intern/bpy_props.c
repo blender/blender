@@ -304,7 +304,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 		if (PyErr_Occurred())                                                 \
 			return NULL;                                                      \
 		return bpy_prop_deferred_return(pymeth_##_func, kw);                  \
-	}                                                                         \
+	} (void)0
 
 /* terse macros for error checks shared between all funcs cant use function
  * calls because of static strins passed to pyrna_set_to_enum_bitfield */
@@ -327,10 +327,10 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 	                                         #_func"(options={ ...}):"))      \
 	{                                                                         \
 		return NULL;                                                          \
-	}                                                                         \
+	} (void)0
 
 #define BPY_PROPDEF_SUBTYPE_CHECK(_func, _property_flag_items, _subtype)      \
-	BPY_PROPDEF_CHECK(_func, _property_flag_items)                            \
+	BPY_PROPDEF_CHECK(_func, _property_flag_items);                           \
 	if (pysubtype && RNA_enum_value_from_id(_subtype,                         \
 	                                        pysubtype,                        \
 	                                        &subtype) == 0)                   \
@@ -339,7 +339,7 @@ static int py_long_as_int(PyObject *py_long, int *r_int)
 		             #_func"(subtype='%s'): invalid subtype",                 \
 		             pysubtype);                                              \
 		return NULL;                                                          \
-	}                                                                         \
+	} (void)0
 
 
 #define BPY_PROPDEF_NAME_DOC \
@@ -397,7 +397,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(BoolProperty)
+	BPY_PROPDEF_HEAD(BoolProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -422,7 +422,7 @@ static PyObject *BPy_BoolProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		BPY_PROPDEF_SUBTYPE_CHECK(BoolProperty, property_flag_items, property_subtype_number_items)
+		BPY_PROPDEF_SUBTYPE_CHECK(BoolProperty, property_flag_items, property_subtype_number_items);
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
 			return NULL;
@@ -474,7 +474,7 @@ static PyObject *BPy_BoolVectorProperty(PyObject *self, PyObject *args, PyObject
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(BoolVectorProperty)
+	BPY_PROPDEF_HEAD(BoolVectorProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -561,7 +561,7 @@ static PyObject *BPy_IntProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(IntProperty)
+	BPY_PROPDEF_HEAD(IntProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -643,7 +643,7 @@ static PyObject *BPy_IntVectorProperty(PyObject *self, PyObject *args, PyObject 
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(IntVectorProperty)
+	BPY_PROPDEF_HEAD(IntVectorProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -738,7 +738,7 @@ static PyObject *BPy_FloatProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(FloatProperty)
+	BPY_PROPDEF_HEAD(FloatProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -832,7 +832,7 @@ static PyObject *BPy_FloatVectorProperty(PyObject *self, PyObject *args, PyObjec
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(FloatVectorProperty)
+	BPY_PROPDEF_HEAD(FloatVectorProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -928,7 +928,7 @@ static PyObject *BPy_StringProperty(PyObject *self, PyObject *args, PyObject *kw
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(StringProperty)
+	BPY_PROPDEF_HEAD(StringProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "name", "description", "default",
@@ -1235,7 +1235,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(EnumProperty)
+	BPY_PROPDEF_HEAD(EnumProperty);
 	
 	if (srna) {
 		static const char *kwlist[] = {"attr", "items", "name", "description", "default",
@@ -1262,7 +1262,7 @@ static PyObject *BPy_EnumProperty(PyObject *self, PyObject *args, PyObject *kw)
 			return NULL;
 		}
 
-		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items)
+		BPY_PROPDEF_CHECK(EnumProperty, property_flag_enum_items);
 
 		if (bpy_prop_callback_check(update_cb, 2) == -1) {
 			return NULL;
@@ -1385,7 +1385,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(PointerProperty)
+	BPY_PROPDEF_HEAD(PointerProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", "update", NULL};
@@ -1408,7 +1408,7 @@ static PyObject *BPy_PointerProperty(PyObject *self, PyObject *args, PyObject *k
 			return NULL;
 		}
 
-		BPY_PROPDEF_CHECK(PointerProperty, property_flag_items)
+		BPY_PROPDEF_CHECK(PointerProperty, property_flag_items);
 
 		ptype = pointer_type_from_py(type, "PointerProperty(...):");
 		if (!ptype)
@@ -1450,7 +1450,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 {
 	StructRNA *srna;
 
-	BPY_PROPDEF_HEAD(CollectionProperty)
+	BPY_PROPDEF_HEAD(CollectionProperty);
 
 	if (srna) {
 		static const char *kwlist[] = {"attr", "type", "name", "description", "options", NULL};
@@ -1471,7 +1471,7 @@ static PyObject *BPy_CollectionProperty(PyObject *self, PyObject *args, PyObject
 			return NULL;
 		}
 
-		BPY_PROPDEF_CHECK(CollectionProperty, property_flag_items)
+		BPY_PROPDEF_CHECK(CollectionProperty, property_flag_items);
 
 		ptype = pointer_type_from_py(type, "CollectionProperty(...):");
 		if (!ptype)

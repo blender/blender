@@ -417,7 +417,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				                   bpath_user_data);                           \
 			}                                                                  \
 		}                                                                      \
-	}                                                                          \
+	} (void)0
 
 
 			{

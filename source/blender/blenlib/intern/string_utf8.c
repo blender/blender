@@ -178,14 +178,14 @@ static const size_t utf8_skip_data[256] = {
 			}                                                                 \
 		}                                                                     \
 		*dst= '\0';                                                           \
-	}
+	} (void)0
 
 char *BLI_strncpy_utf8(char *dst, const char *src, size_t maxncpy)
 {
 	char *dst_r= dst;
 
 	/* note: currently we don't attempt to deal with invalid utf8 chars */
-	BLI_STR_UTF8_CPY(dst, src, maxncpy)
+	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
 	return dst_r;
 }
@@ -197,7 +197,7 @@ char *BLI_strncat_utf8(char *dst, const char *src, size_t maxncpy)
 		maxncpy--;
 	}
 
-	BLI_STR_UTF8_CPY(dst, src, maxncpy)
+	BLI_STR_UTF8_CPY(dst, src, maxncpy);
 
 	return dst;
 }
@@ -315,7 +315,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 	}                                                                         \
 	else {                                                                    \
 		Len = -1;                                                             \
-	}
+	} (void)0
 
 /* same as glib define but added an 'Err' arg */
 #define UTF8_GET(Result, Chars, Count, Mask, Len, Err)                        \
@@ -327,7 +327,7 @@ size_t BLI_strncpy_wchar_from_utf8(wchar_t *dst_w, const char *src_c, const size
 		}                                                                     \
 		(Result) <<= 6;                                                       \
 		(Result) |= ((Chars)[(Count)] & 0x3f);                                \
-	}
+	} (void)0
 
 
 /* uses glib functions but not from glib */

@@ -49,7 +49,7 @@
 	{ \
 		if (fcc == 0)       { fcc = mmioFOURCC('N', 'o', 'n', 'e'); } \
 		if (fcc == BI_RLE8) { fcc = mmioFOURCC('R', 'l', 'e', '8'); } \
-	}
+	} (void)0
 
 #endif
 

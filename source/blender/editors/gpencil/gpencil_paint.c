@@ -525,7 +525,7 @@ static void gp_stroke_simplify(tGPsdata *p)
 		co[0] += (float)(old_points[offs].x * sfac); \
 		co[1] += (float)(old_points[offs].y * sfac); \
 		pressure += old_points[offs].pressure * sfac; \
-	}
+	} (void)0
 	
 	for (i = 0, j = 0; i < num_points; i++) {
 		if (i - j == 3) {

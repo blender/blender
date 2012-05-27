@@ -42,11 +42,11 @@
 // #define USE_DEBUG_INDEX_MEMCHECK
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-#define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
-	{                                                      \
-		int undef_idx;                                     \
-		BM_elem_index_set(ele, undef_idx); /* set_ok_invalid */  \
-	}                                                      \
+#define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)                                  \
+	{                                                                         \
+		int undef_idx;                                                        \
+		BM_elem_index_set(ele, undef_idx); /* set_ok_invalid */               \
+	} (void)0
 
 #endif
 

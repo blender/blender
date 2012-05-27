@@ -744,7 +744,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	for (id = first; id; id = id->next) { \
 		AnimData *adt = BKE_animdata_from_id(id); \
 		if (adt) func(id, adt, user_data); \
-	}
+	} (void)0
 	
 	/* "embedded" nodetree cases (i.e. scene/material/texture->nodetree) */
 #define ANIMDATA_NODETREE_IDS_CB(first, NtId_Type) \
@@ -756,7 +756,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 			if (adt2) func(id, adt2, user_data); \
 		} \
 		if (adt) func(id, adt, user_data); \
-	}
+	} (void)0
 	
 	/* nodes */
 	ANIMDATA_IDS_CB(mainptr->nodetree.first);
@@ -828,7 +828,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	for (id = first; id; id = id->next) { \
 		AnimData *adt = BKE_animdata_from_id(id); \
 		BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
-	}
+	} (void)0
 	
 	/* another version of this macro for nodetrees */
 #define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
@@ -840,7 +840,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 			BKE_animdata_fix_paths_rename((ID *)ntp, adt2, ref_id, prefix, oldName, newName, 0, 0, 1); \
 		} \
 		BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
-	}
+	} (void)0
 	
 	/* nodes */
 	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
@@ -2266,7 +2266,8 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 			AnimData *adt = BKE_animdata_from_id(id); \
 			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
-	}
+	} (void)0
+
 	/* another macro for the "embedded" nodetree cases 
 	 *	- this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees" 
 	 *	  (i.e. scene/material/texture->nodetree) which we need a special exception
@@ -2284,7 +2285,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 			} \
 			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
-	}
+	} (void)0
 	
 	/* optimization: 
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 

@@ -3031,7 +3031,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_DOUBLE: var = (dtype)((double*)raw.array)[a]; break;    \
 		default: var = (dtype)0;                                              \
 	}                                                                         \
-}
+} (void)0
 
 #define RAW_SET(dtype, raw, a, var)                                           \
 {                                                                             \
@@ -3043,7 +3043,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break;   \
 		default: break;                                                       \
 	}                                                                         \
-}
+} (void)0
 
 int RNA_raw_type_sizeof(RawPropertyType type)
 {

@@ -701,7 +701,7 @@ static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bCo
 		} \
 		 \
 		BLI_addtail(list, ct); \
-	}
+	} (void)0
 	
 /* This following macro should be used for all standard single-target *_get_tars functions 
  * to save typing and reduce maintenance woes. It does not do the subtarget related operations
@@ -720,7 +720,7 @@ static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bCo
 		if (ct->tar) ct->type = CONSTRAINT_OBTYPE_OBJECT; \
 		 \
 		BLI_addtail(list, ct); \
-	}
+	} (void)0
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
  * to save typing and reduce maintenance woes.
@@ -741,7 +741,7 @@ static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bCo
 			BLI_freelinkN(list, ct); \
 			ct = ctn; \
 		} \
-	}
+	} (void)0
 	
 /* This following macro should be used for all standard single-target *_flush_tars functions
  * to save typing and reduce maintenance woes. It does not do the subtarget related operations.
@@ -761,7 +761,7 @@ static void default_get_tarmat(bConstraint *con, bConstraintOb *UNUSED(cob), bCo
 			BLI_freelinkN(list, ct); \
 			ct = ctn; \
 		} \
-	}
+	} (void)0
  
 /* --------- ChildOf Constraint ------------ */
 
@@ -790,7 +790,7 @@ static int childof_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -805,7 +805,7 @@ static void childof_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -925,7 +925,7 @@ static int trackto_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -940,7 +940,7 @@ static void trackto_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -1108,8 +1108,8 @@ static int kinematic_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints is used twice here */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
-		SINGLETARGET_GET_TARS(con, data->poletar, data->polesubtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
+		SINGLETARGET_GET_TARS(con, data->poletar, data->polesubtarget, ct, list);
 		
 		return 2;
 	}
@@ -1124,8 +1124,8 @@ static void kinematic_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
-		SINGLETARGET_FLUSH_TARS(con, data->poletar, data->polesubtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
+		SINGLETARGET_FLUSH_TARS(con, data->poletar, data->polesubtarget, ct, list, nocopy);
 	}
 }
 
@@ -1197,7 +1197,7 @@ static int followpath_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
-		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 		
 		return 1;
 	}
@@ -1212,7 +1212,7 @@ static void followpath_flush_tars(bConstraint *con, ListBase *list, short nocopy
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy)
+		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy);
 	}
 }
 
@@ -1543,7 +1543,7 @@ static int loclike_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -1558,7 +1558,7 @@ static void loclike_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -1633,7 +1633,7 @@ static int rotlike_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -1648,7 +1648,7 @@ static void rotlike_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -1745,7 +1745,7 @@ static int sizelike_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -1760,7 +1760,7 @@ static void sizelike_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -1834,7 +1834,7 @@ static int translike_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -1849,7 +1849,7 @@ static void translike_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -2093,7 +2093,7 @@ static int actcon_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -2108,7 +2108,7 @@ static void actcon_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -2255,7 +2255,7 @@ static int locktrack_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -2270,7 +2270,7 @@ static void locktrack_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -2565,7 +2565,7 @@ static int distlimit_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -2580,7 +2580,7 @@ static void distlimit_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -2692,7 +2692,7 @@ static int stretchto_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -2707,7 +2707,7 @@ static void stretchto_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -2866,7 +2866,7 @@ static int minmax_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -2881,7 +2881,7 @@ static void minmax_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -3009,7 +3009,7 @@ static int rbj_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
-		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 		
 		return 1;
 	}
@@ -3024,7 +3024,7 @@ static void rbj_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy)
+		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy);
 	}
 }
 
@@ -3060,7 +3060,7 @@ static int clampto_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
-		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 		
 		return 1;
 	}
@@ -3075,7 +3075,7 @@ static void clampto_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy)
+		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy);
 	}
 }
 
@@ -3244,7 +3244,7 @@ static int transform_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -3259,7 +3259,7 @@ static void transform_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -3380,7 +3380,7 @@ static int shrinkwrap_get_tars(bConstraint *con, ListBase *list)
 		bShrinkwrapConstraint *data = con->data;
 		bConstraintTarget *ct;
 		
-		SINGLETARGETNS_GET_TARS(con, data->target, ct, list)
+		SINGLETARGETNS_GET_TARS(con, data->target, ct, list);
 		
 		return 1;
 	}
@@ -3395,7 +3395,7 @@ static void shrinkwrap_flush_tars(bConstraint *con, ListBase *list, short nocopy
 		bShrinkwrapConstraint *data = con->data;
 		bConstraintTarget *ct = list->first;
 		
-		SINGLETARGETNS_FLUSH_TARS(con, data->target, ct, list, nocopy)
+		SINGLETARGETNS_FLUSH_TARS(con, data->target, ct, list, nocopy);
 	}
 }
 
@@ -3545,7 +3545,7 @@ static int damptrack_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -3560,7 +3560,7 @@ static void damptrack_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 
@@ -3690,7 +3690,7 @@ static int splineik_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints without subtargets */
-		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list)
+		SINGLETARGETNS_GET_TARS(con, data->tar, ct, list);
 		
 		return 1;
 	}
@@ -3705,7 +3705,7 @@ static void splineik_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy)
+		SINGLETARGETNS_FLUSH_TARS(con, data->tar, ct, list, nocopy);
 	}
 }
 
@@ -3762,7 +3762,7 @@ static int pivotcon_get_tars(bConstraint *con, ListBase *list)
 		bConstraintTarget *ct;
 		
 		/* standard target-getting macro for single-target constraints */
-		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list)
+		SINGLETARGET_GET_TARS(con, data->tar, data->subtarget, ct, list);
 		
 		return 1;
 	}
@@ -3777,7 +3777,7 @@ static void pivotcon_flush_tars(bConstraint *con, ListBase *list, short nocopy)
 		bConstraintTarget *ct = list->first;
 		
 		/* the following macro is used for all standard single-target constraints */
-		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
+		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy);
 	}
 }
 

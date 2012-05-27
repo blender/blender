@@ -2699,7 +2699,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) |= (sflag); \
 			else (sval) &= ~(sflag); \
 		} \
-	}
+	} (void)0
 
 /* Change value of some setting for a channel 
  *	- setting: eAnimChannel_Settings

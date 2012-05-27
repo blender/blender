@@ -992,7 +992,7 @@ static float g[512 + 2][3] = {
 		b1 = (b0 + 1) & 255;                                                  \
 		r0 = t - floorf(t);                                                   \
 		r1 = r0 - 1.0f;                                                       \
-	}
+	} (void)0
 
 
 static float noise3_perlin(float vec[3])
