@@ -475,8 +475,8 @@ static void NodeDegreeIncrement(ReebGraph *UNUSED(rg), ReebNode *node)
 }
 
 #else
-#define NodeDegreeDecrement(rg, node) {node->degree--; }
-#define NodeDegreeIncrement(rg, node) {node->degree++; }
+#  define NodeDegreeDecrement(rg, node) {node->degree--; } (void)0
+#  define NodeDegreeIncrement(rg, node) {node->degree++; } (void)0
 #endif
 
 void repositionNodes(ReebGraph *rg)

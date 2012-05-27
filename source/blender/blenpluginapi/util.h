@@ -75,7 +75,7 @@
 #define MAX3(x,y,z)		MAX2( MAX2((x),(y)) , (z) )
 #define MAX4(x,y,z,a)		MAX2( MAX2((x),(y)) , MAX2((z),(a)) )
 
-#define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+#define SWAP(type, a, b)	{ type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; } (void)0
 
 #define ABS(x)	((x) < 0 ? -(x) : (x))
 #define FLOOR(x) ((int)(x) - ((x) < 0 && (x) != (int)(x)))

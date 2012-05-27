@@ -1982,7 +1982,7 @@ void zbufclip4(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3
 
 /* ************** ZMASK ******************************** */
 
-#define EXTEND_PIXEL(a)	if (temprectp[a]) {z+= rectz[a]; tot++;}
+#define EXTEND_PIXEL(a)	if (temprectp[a]) { z += rectz[a]; tot++; } (void)0
 
 /* changes the zbuffer to be ready for z-masking: applies an extend-filter, and then clears */
 static void zmask_rect(int *rectz, int *rectp, int xs, int ys, int neg)

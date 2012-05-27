@@ -38,7 +38,7 @@
 #include "BLI_kdtree.h"
 
 #ifndef SWAP
-#  define SWAP(type, a, b) { type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; }
+#  define SWAP(type, a, b) { type sw_ap; sw_ap = (a); (a) = (b); (b) = sw_ap; } (void)0
 #endif
 
 typedef struct KDTreeNode {

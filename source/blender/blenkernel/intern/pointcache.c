@@ -99,8 +99,15 @@
 #  include "BLI_winstuff.h"
 #endif
 
-#define PTCACHE_DATA_FROM(data, type, from)		if (data[type]) { memcpy(data[type], from, ptcache_data_size[type]); }
-#define PTCACHE_DATA_TO(data, type, index, to)	if (data[type]) { memcpy(to, (char*)data[type] + (index ? index * ptcache_data_size[type] : 0), ptcache_data_size[type]); }
+#define PTCACHE_DATA_FROM(data, type, from)  \
+	if (data[type]) { \
+		memcpy(data[type], from, ptcache_data_size[type]); \
+	} (void)0
+
+#define PTCACHE_DATA_TO(data, type, index, to)  \
+	if (data[type]) { \
+		memcpy(to, (char *)(data)[type] + ((index) ? (index) * ptcache_data_size[type] : 0), ptcache_data_size[type]); \
+	} (void)0
 
 /* could be made into a pointcache option */
 #define DURIAN_POINTCACHE_LIB_OK 1

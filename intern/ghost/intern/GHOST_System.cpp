@@ -142,7 +142,7 @@ GHOST_TSuccess GHOST_System::beginFullScreen(const GHOST_DisplaySetting& setting
                                              const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
-	GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager")
+	GHOST_ASSERT(m_windowManager, "GHOST_System::beginFullScreen(): invalid window manager");
 	if (m_displayManager) {
 		if (!m_windowManager->getFullScreen()) {
 			m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, m_preFullScreenSetting);
@@ -184,12 +184,12 @@ GHOST_TSuccess GHOST_System::updateFullScreen(const GHOST_DisplaySetting& settin
 GHOST_TSuccess GHOST_System::endFullScreen(void)
 {
 	GHOST_TSuccess success = GHOST_kFailure;
-	GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager")
+	GHOST_ASSERT(m_windowManager, "GHOST_System::endFullScreen(): invalid window manager");
 	if (m_windowManager->getFullScreen()) {
 		//GHOST_IWindow* window = m_windowManager->getFullScreenWindow();
 		//GHOST_PRINT("GHOST_System::endFullScreen(): leaving window manager full-screen mode\n");
 		success = m_windowManager->endFullScreen();
-		GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager")
+		GHOST_ASSERT(m_displayManager, "GHOST_System::endFullScreen(): invalid display manager");
 		//GHOST_PRINT("GHOST_System::endFullScreen(): leaving full-screen mode\n");
 		success = m_displayManager->setCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, m_preFullScreenSetting);
 	}
@@ -350,7 +350,7 @@ GHOST_TSuccess GHOST_System::exit()
 GHOST_TSuccess GHOST_System::createFullScreenWindow(GHOST_Window **window, const bool stereoVisual, const GHOST_TUns16 numOfAASamples)
 {
 	GHOST_TSuccess success;
-	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager")
+	GHOST_ASSERT(m_displayManager, "GHOST_System::createFullScreenWindow(): invalid display manager");
 	GHOST_DisplaySetting settings;
 
 	success = m_displayManager->getCurrentDisplaySetting(GHOST_DisplayManager::kMainDisplay, settings);
