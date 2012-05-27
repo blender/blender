@@ -435,7 +435,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 	}
 }
 
-int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, MethodOption method_option, ReplaceOption replace_option)
+int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene, MethodOption method_option, ReplaceOption replace_option)
 {
 	bDeformGroup *dg_dst;
 	Mesh *me_dst;
@@ -460,7 +460,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 	/*get meshes*/
 	me_dst = ob_dst->data;
-	dmesh_src = ob_src->derivedDeform;
+	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 
 	/*get vertex group arrays*/
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
@@ -3024,6 +3024,7 @@ void OBJECT_OT_vertex_group_copy_to_selected(wmOperatorType *ot)
 
 static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
 	int change = 0;
 	int fail = 0;
@@ -3041,14 +3042,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_option) {
 
 				case REPLACE_SINGLE_VERTEX_GROUP:
-					if (ED_vgroup_transfer_weight(ob_slc, ob_act, BLI_findlink(&ob_act->defbase, ob_act->actdef - 1), method_option, replace_option))
+					if (ED_vgroup_transfer_weight(ob_slc, ob_act, BLI_findlink(&ob_act->defbase, ob_act->actdef - 1), scene, method_option, replace_option))
 						change++;
 					else fail++;
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_act->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (ED_vgroup_transfer_weight(ob_slc, ob_act, dg_src, method_option, replace_option)) change++;
+						if (ED_vgroup_transfer_weight(ob_slc, ob_act, dg_src, scene, method_option, replace_option)) change++;
 						else fail++;
 					}
 					break;
