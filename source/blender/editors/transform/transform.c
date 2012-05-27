@@ -539,9 +539,6 @@ static void view_editmove(unsigned short UNUSED(event))
 #define TFM_MODAL_EDGESLIDE_UP 24
 #define TFM_MODAL_EDGESLIDE_DOWN 25
 
-#define TFM_WHEEL_DOWN_EVT TFM_MODAL_PROPSIZE_DOWN|TFM_MODAL_EDGESLIDE_DOWN
-#define TFM_WHEEL_UP_EVT TFM_MODAL_PROPSIZE_UP|TFM_MODAL_EDGESLIDE_UP
-
 /* called in transform_ops.c, on each regeneration of keymaps */
 wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 {
@@ -603,8 +600,11 @@ wmKeyMap* transform_modal_keymap(wmKeyConfig *keyconf)
 
 	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
-	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_WHEEL_UP_EVT);
-	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_WHEEL_DOWN_EVT);
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_UP);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, 0, 0, TFM_MODAL_PROPSIZE_DOWN);
+
+	WM_modalkeymap_add_item(keymap, WHEELDOWNMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_UP);
+	WM_modalkeymap_add_item(keymap, WHEELUPMOUSE, KM_PRESS, KM_ALT, 0, TFM_MODAL_EDGESLIDE_DOWN);
 	
 	WM_modalkeymap_add_item(keymap, PAGEUPKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_INC);
 	WM_modalkeymap_add_item(keymap, PAGEDOWNKEY, KM_PRESS, KM_SHIFT, 0, TFM_MODAL_AUTOIK_LEN_DEC);
@@ -869,7 +869,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				removeSnapPoint(t);
 				t->redraw |= TREDRAW_HARD;
 				break;
-			case TFM_WHEEL_UP_EVT:
+			case TFM_MODAL_PROPSIZE_UP:
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size*= 1.1f;
 					if (t->spacetype==SPACE_VIEW3D && t->persp != RV3D_ORTHO)
@@ -878,11 +878,15 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				}
 				t->redraw |= TREDRAW_HARD;
 				break;
-			case TFM_WHEEL_DOWN_EVT:
+			case TFM_MODAL_PROPSIZE_DOWN:
 				if (t->flag & T_PROP_EDIT) {
 					t->prop_size*= 0.90909090f;
 					calculatePropRatio(t);
 				}
+				t->redraw |= TREDRAW_HARD;
+				break;
+			case TFM_MODAL_EDGESLIDE_UP:
+			case TFM_MODAL_EDGESLIDE_DOWN:
 				t->redraw |= TREDRAW_HARD;
 				break;
 			case TFM_MODAL_AUTOIK_LEN_INC:
@@ -5090,11 +5094,11 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 				}
 				case EVT_MODAL_MAP: {
 					switch (event->val) {
-						case TFM_WHEEL_DOWN_EVT: {
+						case TFM_MODAL_EDGESLIDE_DOWN: {
 							sld->curr_sv_index = ((sld->curr_sv_index - 1) + sld->totsv) % sld->totsv;
 							break;
 						}
-						case TFM_WHEEL_UP_EVT: {
+						case TFM_MODAL_EDGESLIDE_UP: {
 							sld->curr_sv_index = (sld->curr_sv_index + 1) % sld->totsv;
 							break;
 						}
