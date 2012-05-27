@@ -203,7 +203,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 		if (maskobj) {
 			MaskObjectShape *maskobj_shape;
 
-			glColor4ub(255, 255, 0, 96);
+			glColor4ub(255, 175, 0, 255);
 			glBegin(GL_LINES);
 
 			for (maskobj_shape = maskobj->splines_shapes.first;
@@ -216,7 +216,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 				/* use a line so we always see the keyframes */
 				glVertex2i((i - sfra) * framelen, 0);
-				glVertex2i((i - sfra) * framelen, 4);
+				glVertex2i((i - sfra) * framelen, (i == CFRA) ? 22 : 10);
 			}
 
 			glEnd();
