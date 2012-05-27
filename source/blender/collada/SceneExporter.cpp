@@ -72,6 +72,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
 	COLLADASW::Node node(mSW);
 	node.setNodeId(translate_id(id_name(ob)));
+	node.setNodeName(translate_id(id_name(ob)));
 	node.setType(COLLADASW::Node::NODE);
 
 	node.start();
