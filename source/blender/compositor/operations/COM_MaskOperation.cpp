@@ -69,9 +69,12 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 	if (this->rasterizedMask == NULL) {
 		int width = this->getWidth();
 		int height = this->getHeight();
+		float *buffer;
 
-		this->rasterizedMask = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, this->rasterizedMask);
+		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
+		BKE_mask_rasterize(mask, width, height, buffer);
+
+		this->rasterizedMask = buffer;
 	}
 	BLI_mutex_unlock(getMutex());
 
