@@ -235,7 +235,7 @@ static int rna_Image_gl_touch(Image *image, ReportList *reports, int filter, int
 	BKE_image_tag_time(image);
 
 	if (*bind == 0)
-		error = rna_Image_gl_load(image, reports, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
+		error = rna_Image_gl_load(image, reports, filter, mag);
 
 	return error;
 }
