@@ -1193,6 +1193,17 @@ static const char *layerType_getName(int type)
 	return LAYERTYPENAMES[type];
 }
 
+void customData_mask_layers__print(CustomDataMask mask)
+{
+	int i;
+
+	printf("mask=0x%lx:\n", mask);
+	for (i = 0; i < CD_NUMTYPES; i++) {
+		if (mask & CD_TYPE_AS_MASK(i))
+			printf("  %s\n", layerType_getName(i));
+	}
+}
+
 /********************* CustomData functions *********************/
 static void customData_update_offsets(CustomData *data);
 
