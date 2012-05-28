@@ -189,10 +189,15 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_delete", XKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_delete", DELKEY, KM_PRESS, 0, 0);
 
-	/* select */
-	WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	/* selection */
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", FALSE);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select", SELECTMOUSE, KM_PRESS, KM_SHIFT, 0);
-	RNA_boolean_set(kmi->ptr, "extend", TRUE);
+	RNA_boolean_set(kmi->ptr, "extend", FALSE);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	RNA_boolean_set(kmi->ptr, "toggle", TRUE);
 
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_all", AKEY, KM_PRESS, 0, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);

@@ -73,7 +73,8 @@ void MASK_OT_select_all(struct wmOperatorType *ot);
 
 int ED_mask_spline_select_check(struct MaskSplinePoint *points, int tot_point);
 int ED_mask_select_check(struct Mask *mask);
-void ED_mask_point_select(struct MaskSplinePoint *point, int action);
+void ED_mask_point_select_set(struct MaskSplinePoint *point, int action);
+void ED_mask_point_select_set_handle(struct MaskSplinePoint *point, int select);
 
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);

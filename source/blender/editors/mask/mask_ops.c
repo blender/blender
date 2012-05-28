@@ -646,7 +646,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		else if (!MASKPOINT_ISSEL(slidedata->point)) {
 			ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-			ED_mask_point_select(slidedata->point, SEL_SELECT);
+			BKE_mask_point_select_set(slidedata->point, TRUE);
 
 			ED_mask_select_flush_all(mask);
 		}

@@ -73,6 +73,9 @@ float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *p
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
+void BKE_mask_point_select_set(struct MaskSplinePoint *point, int select);
+void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, int select);
+
 /* general */
 struct Mask *BKE_mask_new(const char *name);
 
@@ -134,5 +137,6 @@ void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer)
 #define MASKPOINT_HANDLE_ONLY_ISSEL(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
 #define MASKPOINT_HANDLE_ISSEL(p)   ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )
 #define MASKPOINT_HANDLE_SEL(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
+#define MASKPOINT_HANDLE_DESEL(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 
 #endif

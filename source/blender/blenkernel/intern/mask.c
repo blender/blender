@@ -41,6 +41,7 @@
 
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_movieclip_types.h"
@@ -616,6 +617,37 @@ void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 	point->tot_uw++;
 
 	BKE_mask_point_sort_uw(point, &point->uw[point->tot_uw - 1]);
+}
+
+void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
+{
+	int i;
+
+	if (select) {
+		MASKPOINT_SEL(point);
+	}
+	else {
+		MASKPOINT_DESEL(point);
+	}
+
+	for (i = 0; i < point->tot_uw; i++) {
+		if (select) {
+			point->uw[i].flag |= SELECT;
+		}
+		else {
+			point->uw[i].flag &= ~SELECT;
+		}
+	}
+}
+
+void BKE_mask_point_select_set_handle(MaskSplinePoint *point, int select)
+{
+	if (select) {
+		MASKPOINT_HANDLE_SEL(point);
+	}
+	else {
+		MASKPOINT_HANDLE_DESEL(point);
+	}
 }
 
 /* only mask block itself */
