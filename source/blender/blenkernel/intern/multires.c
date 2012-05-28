@@ -685,7 +685,7 @@ static void multires_del_higher(MultiresModifierData *mmd, Object *ob, int lvl)
 	multires_set_tot_level(ob, mmd, lvl);
 }
 
-/* direction=1 for delete higher, direction=0 for lower (not implemented yet) */
+/* (direction = 1) for delete higher, (direction = 0) for lower (not implemented yet) */
 void multiresModifier_del_levels(MultiresModifierData *mmd, Object *ob, int direction)
 {
 	Mesh *me = BKE_mesh_from_object(ob);

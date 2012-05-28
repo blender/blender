@@ -927,7 +927,7 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm,
 					//int actualFace = dm->drawObject->triangle_to_mface[i];
 					int actualFace = next_actualFace;
 					MFace *mface = mf + actualFace;
-					/*int drawSmooth= (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
+					/*int drawSmooth = (flag & DM_DRAW_ALWAYS_SMOOTH) ? 1 : (mface->flag & ME_SMOOTH);*/ /* UNUSED */
 					DMDrawOption draw_option = DM_DRAW_OPTION_NORMAL;
 					int flush = 0;
 
@@ -1208,7 +1208,7 @@ static void cdDM_drawMappedFacesGLSL(DerivedMesh *dm,
 						else {
 							/* if the buffer was set, don't use it again.
 							 * prevdraw was assumed true but didnt run so set to false - [#21036] */
-							/* prevdraw= 0; */ /* UNUSED */
+							/* prevdraw = 0; */ /* UNUSED */
 							buffer = NULL;
 						}
 					}

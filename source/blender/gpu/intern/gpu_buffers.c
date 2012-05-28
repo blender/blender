@@ -1660,7 +1660,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 			glDeleteBuffersARB(1, &(buffer_));                          \
 			(buffer_) = 0;                                              \
 		}                                                               \
-	}
+	} (void)0
 /* end FILL_QUAD_BUFFER */
 
 static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *totquad)

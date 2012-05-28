@@ -607,7 +607,7 @@ Material *give_current_material(Object *ob, short act)
 	
 	if (ob == NULL) return NULL;
 	
-	/* if object cannot have material, totcolp==NULL */
+	/* if object cannot have material, (totcolp == NULL) */
 	totcolp = give_totcolp(ob);
 	if (totcolp == NULL || ob->totcol == 0) return NULL;
 	
@@ -1179,7 +1179,7 @@ int object_remove_material_slot(Object *ob)
 }
 
 
-/* r_col = current value, col = new value, fac==0 is no change */
+/* r_col = current value, col = new value, (fac == 0) is no change */
 void ramp_blend(int type, float r_col[3], const float fac, const float col[3])
 {
 	float tmp, facm = 1.0f - fac;

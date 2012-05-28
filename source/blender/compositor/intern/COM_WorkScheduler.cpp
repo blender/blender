@@ -289,8 +289,8 @@ void WorkScheduler::initialize()
 				printf("%s\n", resultString);
 			}
 		}
-		delete cldevices;
-		delete platforms;
+		delete [] cldevices;
+		delete [] platforms;
 	}
 #endif
 #endif

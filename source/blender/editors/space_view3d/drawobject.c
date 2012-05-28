@@ -2953,7 +2953,7 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 		else                                                                  \
 			BLI_snprintf(numstr, sizeof(numstr), conv_float, area);           \
 		view3d_cached_text_draw_add(vmid, numstr, 0, txt_flag, col);          \
-	}
+	} (void)0
 
 		UI_GetThemeColor3ubv(TH_DRAWEXTRA_FACEAREA, col);
 		

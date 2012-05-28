@@ -176,8 +176,8 @@ void plugin_seq_doit(Cast *cast, float facf0, float facf1, int width,
 					o[l]=CLAMP(i[l],0.f,1.f);
 				o[3]=1.0;
 			}
-			i+=4;
-			o+=4;
+			i += 4;
+			o += 4;
 		}
 	}
 }

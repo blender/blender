@@ -2242,11 +2242,11 @@ static void project_bucket_clip_face(
  *         
  *         i = l
  *         while i < len(me.verts):
- *             ii = i+1
- *             if ii==len(me.verts):
+ *             ii = i + 1
+ *             if ii == len(me.verts):
  *                 ii = l
  *             me.edges.extend([i, ii])
- *             i+=1
+ *             i += 1
  * 
  * if __name__ == '__main__':
  *     main()

@@ -816,7 +816,7 @@ static int totindex, curindex;
 static void accum_mballfaces(int i1, int i2, int i3, int i4)
 {
 	int *newi, *cur;
-	/* static int i=0; I would like to delete altogether, but I don't dare to, yet */
+	/* static int i = 0; I would like to delete altogether, but I don't dare to, yet */
 
 	if (totindex == curindex) {
 		totindex += 256;
@@ -1701,7 +1701,7 @@ static float init_meta(Scene *scene, Object *ob)    /* return totsize */
 	MetaBall *mb;
 	MetaElem *ml;
 	float size, totsize, obinv[4][4], obmat[4][4], vec[3];
-	//float max=0.0;
+	//float max = 0.0f;
 	int a, obnr, zero_size = 0;
 	char obname[MAX_ID_NAME];
 	

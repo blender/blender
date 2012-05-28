@@ -345,7 +345,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->image_offset_x0 = 0;
 	parameters->image_offset_y0 = 0;
 
-	/*Codeblock size= 32*32*/
+	/*Codeblock size = 32 * 32*/
 	parameters->cblockw_init = 32;	
 	parameters->cblockh_init = 32;
 	parameters->csty |= 0x01;

@@ -2046,7 +2046,7 @@ static int pyrna_prop_collection_bool(BPy_PropertyRNA *self)
 			             "bpy_prop_collection[%d]: out of range.", keynum);   \
 			return ret_err;                                                   \
 		}                                                                     \
-	}                                                                         \
+	} (void)0
 
 
 /* internal use only */
@@ -6856,7 +6856,7 @@ static int bpy_class_validate(PointerRNA *dummyptr, void *py_data, int *have_fun
 			}                                                                 \
 		}                                                                     \
 		Py_XDECREF(item);                                                     \
-	}                                                                         \
+	} (void)0
 
 
 			BPY_REPLACEMENT_STRING("bl_idname", "__name__");

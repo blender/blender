@@ -132,7 +132,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 			_g = blf_glyph_add(_font,                                            \
 			                  FT_Get_Char_Index((_font)->face, _c), _c);         \
 		}                                                                        \
-	}                                                                            \
+	} (void)0
 
 
 #define BLF_KERNING_VARS(_font, _has_kerning, _kern_mode)                        \
@@ -155,7 +155,7 @@ static void blf_font_ensure_ascii_table(FontBLF *font)
 			_pen_x += delta.x >> 6;                                              \
 		}                                                                        \
 	}                                                                            \
-}                                                                                \
+} (void)0
 
 void blf_font_draw(FontBLF *font, const char *str, unsigned int len)
 {

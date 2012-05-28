@@ -196,7 +196,7 @@ int add_to_group(Group *group, Object *object, Scene *scene, Base *base)
 	}
 }
 
-/* also used for ob==NULL */
+/* also used for (ob == NULL) */
 static int rem_from_group_internal(Group *group, Object *ob)
 {
 	GroupObject *go, *gon;

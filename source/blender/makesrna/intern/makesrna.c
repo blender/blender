@@ -627,31 +627,31 @@ static char *rna_def_property_get_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 
 					if (dp->dnaarraylength == 1) {
 						if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
-							fprintf(f, "		values[i]= %s((data->%s & (%d<<i)) != 0);\n",
+							fprintf(f, "		values[i] = %s((data->%s & (%d<<i)) != 0);\n",
 							        (dp->booleannegative) ? "!" : "", dp->dnaname, dp->booleanbit);
 						}
 						else {
-							fprintf(f, "		values[i]= (%s)%s((&data->%s)[i]);\n",
+							fprintf(f, "		values[i] = (%s)%s((&data->%s)[i]);\n",
 							        rna_type_type(prop), (dp->booleannegative) ? "!" : "", dp->dnaname);
 						}
 					}
 					else {
 						if (prop->type == PROP_BOOLEAN && dp->booleanbit) {
-							fprintf(f, "		values[i]= %s((data->%s[i] & ", (dp->booleannegative) ? "!" : "",
+							fprintf(f, "		values[i] = %s((data->%s[i] & ", (dp->booleannegative) ? "!" : "",
 							        dp->dnaname);
 							rna_int_print(f, dp->booleanbit);
 							fprintf(f, ") != 0);\n");
 						}
 						else if (rna_color_quantize(prop, dp)) {
-							fprintf(f, "		values[i]= (%s)(data->%s[i]*(1.0f/255.0f));\n",
+							fprintf(f, "		values[i] = (%s)(data->%s[i]*(1.0f/255.0f));\n",
 							        rna_type_type(prop), dp->dnaname);
 						}
 						else if (dp->dnatype) {
-							fprintf(f, "		values[i]= (%s)%s(((%s*)data->%s)[i]);\n",
+							fprintf(f, "		values[i] = (%s)%s(((%s*)data->%s)[i]);\n",
 							        rna_type_type(prop), (dp->booleannegative) ? "!" : "", dp->dnatype, dp->dnaname);
 						}
 						else {
-							fprintf(f, "		values[i]= (%s)%s((data->%s)[i]);\n",
+							fprintf(f, "		values[i] = (%s)%s((data->%s)[i]);\n",
 							        rna_type_type(prop), (dp->booleannegative) ? "!" : "", dp->dnaname);
 						}
 					}
@@ -839,7 +839,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					}
 				}
 
-				fprintf(f, "	data->%s= value.data;\n", dp->dnaname);
+				fprintf(f, "	data->%s = value.data;\n", dp->dnaname);
 
 			}
 			fprintf(f, "}\n\n");
@@ -882,7 +882,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 							fprintf(f, "		else data->%s &= ~(%d<<i);\n", dp->dnaname, dp->booleanbit);
 						}
 						else {
-							fprintf(f, "		(&data->%s)[i]= %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
+							fprintf(f, "		(&data->%s)[i] = %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
 							rna_clamp_value(f, prop, 1);
 						}
 					}
@@ -897,14 +897,14 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 							fprintf(f, ";\n");
 						}
 						else if (rna_color_quantize(prop, dp)) {
-							fprintf(f, "		data->%s[i]= FTOCHAR(values[i]);\n", dp->dnaname);
+							fprintf(f, "		data->%s[i] = FTOCHAR(values[i]);\n", dp->dnaname);
 						}
 						else {
 							if (dp->dnatype)
-								fprintf(f, "		((%s*)data->%s)[i]= %s", dp->dnatype, dp->dnaname,
+								fprintf(f, "		((%s*)data->%s)[i] = %s", dp->dnatype, dp->dnaname,
 								        (dp->booleannegative) ? "!" : "");
 							else
-								fprintf(f, "		(data->%s)[i]= %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
+								fprintf(f, "		(data->%s)[i] = %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
 							rna_clamp_value(f, prop, 1);
 						}
 					}
@@ -937,7 +937,7 @@ static char *rna_def_property_set_func(FILE *f, StructRNA *srna, PropertyRNA *pr
 					}
 					else {
 						rna_clamp_value_range(f, prop);
-						fprintf(f, "	data->%s= %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
+						fprintf(f, "	data->%s = %s", dp->dnaname, (dp->booleannegative) ? "!" : "");
 						rna_clamp_value(f, prop, 0);
 					}
 				}
@@ -1775,7 +1775,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			else {
 				data_str = "_data";
 			}
-			fprintf(f, "\t%s= ", dparm->prop->identifier);
+			fprintf(f, "\t%s = ", dparm->prop->identifier);
 
 			if (!pout)
 				fprintf(f, "%s", valstr);
@@ -1785,13 +1785,13 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 		}
 
 		if (dparm->next)
-			fprintf(f, "\t_data+= %d;\n", rna_parameter_size_alloc(dparm->prop));
+			fprintf(f, "\t_data += %d;\n", rna_parameter_size_alloc(dparm->prop));
 	}
 
 	if (dfunc->call) {
 		fprintf(f, "\t\n");
 		fprintf(f, "\t");
-		if (func->c_ret) fprintf(f, "%s= ", func->c_ret->identifier);
+		if (func->c_ret) fprintf(f, "%s = ", func->c_ret->identifier);
 		fprintf(f, "%s(", dfunc->call);
 
 		first = 1;
@@ -1845,7 +1845,7 @@ static void rna_def_function_funcs(FILE *f, StructDefRNA *dsrna, FunctionDefRNA 
 			dparm = rna_find_parameter_def(func->c_ret);
 			ptrstr = (((dparm->prop->type == PROP_POINTER) && !(dparm->prop->flag & PROP_RNAPTR)) ||
 			          (dparm->prop->arraydimension)) ? "*" : "";
-			fprintf(f, "\t*((%s%s%s*)_retdata)= %s;\n", rna_type_struct(dparm->prop),
+			fprintf(f, "\t*((%s%s%s*)_retdata) = %s;\n", rna_type_struct(dparm->prop),
 			        rna_parameter_type_name(dparm->prop), ptrstr, func->c_ret->identifier);
 		}
 	}

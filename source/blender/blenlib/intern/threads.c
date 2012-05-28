@@ -71,8 +71,8 @@ static void *thread_tls_data;
  * A sample loop can look like this (pseudo c);
  *
  *     ListBase lb;
- *     int maxthreads= 2;
- *     int cont= 1;
+ *     int maxthreads = 2;
+ *     int cont = 1;
  * 
  *     BLI_init_threads(&lb, do_something_func, maxthreads);
  * 
@@ -85,14 +85,14 @@ static void *thread_tls_data;
  *         else PIL_sleep_ms(50);
  *         
  *         // find if a job is ready, this the do_something_func() should write in job somewhere
- *         cont= 0;
+ *         cont = 0;
  *         for (go over all jobs)
  *             if (job is ready) {
  *                 if (job was not removed) {
  *                     BLI_remove_thread(&lb, job);
  *                 }
  *             }
- *             else cont= 1;
+ *             else cont = 1;
  *         }
  *         // conditions to exit loop 
  *         if (if escape loop event) {

@@ -132,6 +132,14 @@ static void outliner_storage_cleanup(SpaceOops *soops)
 	}
 }
 
+/* XXX - THIS FUNCTION IS INCREDIBLY SLOW
+ * ... it can bring blenders tools and viewport to a grinding halt becuase of searching
+ * for duplicate items every times they are added.
+ *
+ * TODO (possible speedups)
+ * - use a hash for duplicate (could even store a hash per type)
+ * - use mempool for TreeElements
+ * */
 static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short type, short nr)
 {
 	TreeStore *ts;
@@ -147,8 +155,8 @@ static void check_persistent(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	/* check if 'te' is in treestore */
 	tselem = ts->data;
 	for (a = 0; a < ts->usedelem; a++, tselem++) {
-		if (tselem->id == id && tselem->used == 0) {
-			if ((type == 0 && tselem->type == 0) || (tselem->type == type && tselem->nr == nr)) {
+		if ((tselem->used == 0) && (tselem->type == type) && (tselem->id == id)) {
+			if ((type == 0) || (tselem->nr == nr)) {
 				te->store_index = a;
 				tselem->used = 1;
 				return;

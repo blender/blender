@@ -179,7 +179,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 			MEM_freeN(texture_path);                                          \
 		}                                                                     \
 	}                                                                         \
-}
+} (void)0
 
 	/* determine the path from the ID-block to the ramp */
 	/* FIXME: this is a very slow way to do it, but it will have to suffice... */

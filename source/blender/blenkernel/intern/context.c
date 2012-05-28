@@ -267,7 +267,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	 * loops requesting data from ourselfs in a context callback */
 
 	/* Ok, this looks evil...
-	 * if (ret) done= -(-ret | -done);
+	 * if (ret) done = -(-ret | -done);
 	 *
 	 * Values in order of importance
 	 * (0, -1, 1) - Where 1 is highest priority

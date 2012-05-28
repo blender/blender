@@ -1236,7 +1236,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, wmE
 			case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
 			case PADPLUSKEY: case PADMINUS: 
 			case MIDDLEMOUSE: case MOUSEMOVE:
-				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				//pld->redraw = PL_PREVIEW_REDRAWHEADER;
 				ret = OPERATOR_PASS_THROUGH;
 				break;
 				
@@ -1365,7 +1365,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, wmE
 		 * even though we still maintain control (as RUNNING_MODAL flag is still set too)
 		 */
 		case MIDDLEMOUSE: case MOUSEMOVE:
-			//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+			//pld->redraw = PL_PREVIEW_REDRAWHEADER;
 			ret = OPERATOR_PASS_THROUGH;
 			break;
 			
@@ -1379,7 +1379,7 @@ static int poselib_preview_handle_event(bContext *UNUSED(C), wmOperator *op, wmE
 			}
 			else {
 				/* view manipulation (see above) */
-				//pld->redraw= PL_PREVIEW_REDRAWHEADER;
+				//pld->redraw = PL_PREVIEW_REDRAWHEADER;
 				ret = OPERATOR_PASS_THROUGH;
 			}
 			break;

@@ -1,4 +1,3 @@
-# -*- mode: cmake; indent-tabs-mode: t; -*-
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -559,7 +558,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		mark_as_advanced(FFMPEG)
-		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
+		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/ffmpeg)
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -1107,7 +1106,7 @@ elseif(WIN32)
 
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
-			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
+			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 			if(WITH_MINGW64)
 				set(FFMPEG_LIBRARIES avcodec.dll avformat.dll avdevice.dll avutil.dll swscale.dll swresample.dll)
 			else()

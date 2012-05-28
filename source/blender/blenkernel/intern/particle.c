@@ -2411,7 +2411,7 @@ static void get_strand_normal(Material *ma, const float surfnor[3], float surfdi
 static int psys_threads_init_path(ParticleThread *threads, Scene *scene, float cfra, int editupdate)
 {
 	ParticleThreadContext *ctx = threads[0].ctx;
-/*	Object *ob= ctx->sim.ob; */
+/*	Object *ob = ctx->sim.ob; */
 	ParticleSystem *psys = ctx->sim.psys;
 	ParticleSettings *part = psys->part;
 /*	ParticleEditSettings *pset = &scene->toolsettings->particle; */

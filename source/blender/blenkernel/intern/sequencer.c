@@ -612,8 +612,8 @@ void calc_sequence(Scene *scene, Sequence *seq)
 
 		/* we take the largest start and smallest end */
 
-		// seq->start= seq->startdisp= MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
-		// seq->enddisp= MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
+		// seq->start = seq->startdisp = MAX2(seq->seq1->startdisp, seq->seq2->startdisp);
+		// seq->enddisp = MIN2(seq->seq1->enddisp, seq->seq2->enddisp);
 
 		if (seq->seq1) {
 			/* XXX These resets should not be necessary, but users used to be able to
@@ -1553,7 +1553,7 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 	for (y = 0; y < 256; y++) {
 		float v = color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
 		CLAMP(v, 0.0f, 1.0f);
-		table[y] = v * 255;
+		table[y] = round(v * 255);
 	}
 }
 

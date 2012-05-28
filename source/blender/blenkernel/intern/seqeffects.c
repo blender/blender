@@ -143,7 +143,7 @@ static void open_plugin_seq(PluginSeq *pis, const char *seqname)
 	BLI_dynlib_get_error_as_string(NULL);
 
 	/* if (pis->handle) BLI_dynlib_close(pis->handle); */
-	/* pis->handle= 0; */
+	/* pis->handle = 0; */
 
 	/* open the needed object */
 	pis->handle = BLI_dynlib_open(pis->name);
@@ -1480,8 +1480,8 @@ static void do_mul_effect_byte(float facf0, float facf1, int x, int y,
 	fac3 = (int)(256.0f * facf1);
 
 	/* formula:
-	 *		fac*(a*b) + (1-fac)*a  => fac*a*(b-1)+axaux= c*px + py*s ;//+centx
-	 *		yaux= -s*px + c*py;//+centy
+	 *		fac * (a * b) + (1-fac)*a  => fac * a * (b - 1) + axaux = c * px + py * s; //+centx
+	 *		yaux = -s * px + c * py; //+centy
 	 */
 
 	while (y--) {
@@ -2339,7 +2339,7 @@ static void RVBlurBitmap2_byte(unsigned char *map, int width, int height,
 
 
 	/*	Swap buffers */
-	swap = temp; temp = map; /* map=swap; */ /* UNUSED */
+	swap = temp; temp = map; /* map = swap; */ /* UNUSED */
 
 	/*	Tidy up	 */
 	MEM_freeN(filter);
@@ -2509,7 +2509,7 @@ static void RVBlurBitmap2_float(float *map, int width, int height,
 
 
 	/*	Swap buffers */
-	swap = temp; temp = map; /* map=swap; */ /* UNUSED */
+	swap = temp; temp = map; /* map = swap; */ /* UNUSED */
 
 	/*	Tidy up	 */
 	MEM_freeN(filter);
