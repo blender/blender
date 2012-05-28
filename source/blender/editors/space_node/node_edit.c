@@ -2399,6 +2399,7 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceNode *snode= CTX_wm_space_node(C);
 	ARegion *ar= CTX_wm_region(C);
 	bNodeLinkDrag *nldrag= op->customdata;
+	bNodeTree *ntree = snode->edittree;
 	bNode *tnode;
 	bNodeSocket *tsock= NULL;
 	bNodeLink *link;
@@ -2429,12 +2430,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						link->tonode = tnode;
 						link->tosock = tsock;
 						/* add it to the node tree temporarily */
-						if (link->prev==NULL && link->next==NULL)
-							BLI_addtail(&snode->edittree->links, link);
+						if (BLI_findindex(&ntree->links, link) < 0)
+							BLI_addtail(&ntree->links, link);
 						
-						snode->edittree->update |= NTREE_UPDATE_LINKS;
+						ntree->update |= NTREE_UPDATE_LINKS;
 					}
-					ntreeUpdateTree(snode->edittree);
+					ntreeUpdateTree(ntree);
 				}
 				else {
 					int do_update = FALSE;
@@ -2442,17 +2443,17 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						link = linkdata->data;
 						
 						if (link->tonode || link->tosock) {
-							BLI_remlink(&snode->edittree->links, link);
+							BLI_remlink(&ntree->links, link);
 							link->prev = link->next = NULL;
 							link->tonode= NULL;
 							link->tosock= NULL;
 							
-							snode->edittree->update |= NTREE_UPDATE_LINKS;
+							ntree->update |= NTREE_UPDATE_LINKS;
 							do_update = TRUE;
 						}
 					}
 					if (do_update) {
-						ntreeUpdateTree(snode->edittree);
+						ntreeUpdateTree(ntree);
 					}
 				}
 			}
@@ -2472,12 +2473,12 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						link->fromnode = tnode;
 						link->fromsock = tsock;
 						/* add it to the node tree temporarily */
-						if (link->prev==NULL && link->next==NULL)
-							BLI_addtail(&snode->edittree->links, link);
+						if (BLI_findindex(&ntree->links, link) < 0)
+							BLI_addtail(&ntree->links, link);
 						
-						snode->edittree->update |= NTREE_UPDATE_LINKS;
+						ntree->update |= NTREE_UPDATE_LINKS;
 					}
-					ntreeUpdateTree(snode->edittree);
+					ntreeUpdateTree(ntree);
 				}
 				else {
 					int do_update = FALSE;
@@ -2485,17 +2486,17 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 						link = linkdata->data;
 						
 						if (link->fromnode || link->fromsock) {
-							BLI_remlink(&snode->edittree->links, link);
+							BLI_remlink(&ntree->links, link);
 							link->prev = link->next = NULL;
 							link->fromnode= NULL;
 							link->fromsock= NULL;
 							
-							snode->edittree->update |= NTREE_UPDATE_LINKS;
+							ntree->update |= NTREE_UPDATE_LINKS;
 							do_update = TRUE;
 						}
 					}
 					if (do_update) {
-						ntreeUpdateTree(snode->edittree);
+						ntreeUpdateTree(ntree);
 					}
 				}
 			}
@@ -2528,27 +2529,27 @@ static int node_link_modal(bContext *C, wmOperator *op, wmEvent *event)
 				else if (outside_group_rect(snode) && (link->tonode || link->fromnode)) {
 					/* automatically add new group socket */
 					if (link->tonode && link->tosock) {
-						link->fromsock = node_group_expose_socket(snode->edittree, link->tosock, SOCK_IN);
+						link->fromsock = node_group_expose_socket(ntree, link->tosock, SOCK_IN);
 						link->fromnode = NULL;
-						if (link->prev==NULL && link->next==NULL)
-							BLI_addtail(&snode->edittree->links, link);
+						if (BLI_findindex(&ntree->links, link) < 0)
+							BLI_addtail(&ntree->links, link);
 						
-						snode->edittree->update |= NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_LINKS;
+						ntree->update |= NTREE_UPDATE_GROUP_IN | NTREE_UPDATE_LINKS;
 					}
 					else if (link->fromnode && link->fromsock) {
-						link->tosock = node_group_expose_socket(snode->edittree, link->fromsock, SOCK_OUT);
+						link->tosock = node_group_expose_socket(ntree, link->fromsock, SOCK_OUT);
 						link->tonode = NULL;
-						if (link->prev==NULL && link->next==NULL)
-							BLI_addtail(&snode->edittree->links, link);
+						if (BLI_findindex(&ntree->links, link) < 0)
+							BLI_addtail(&ntree->links, link);
 						
-						snode->edittree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
+						ntree->update |= NTREE_UPDATE_GROUP_OUT | NTREE_UPDATE_LINKS;
 					}
 				}
 				else
-					nodeRemLink(snode->edittree, link);
+					nodeRemLink(ntree, link);
 			}
 			
-			ntreeUpdateTree(snode->edittree);
+			ntreeUpdateTree(ntree);
 			snode_notify(C, snode);
 			snode_dag_update(C, snode);
 			
@@ -2589,6 +2590,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
 					linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
 					linkdata->data = oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
 					*oplink = *link;
+					oplink->next = oplink->prev = NULL;
 					BLI_addtail(&nldrag->links, linkdata);
 					nodeRemLink(snode->edittree, link);
 				}
@@ -2620,6 +2622,7 @@ static bNodeLinkDrag *node_link_init(SpaceNode *snode, int detach)
 					linkdata = MEM_callocN(sizeof(LinkData), "drag link op link data");
 					linkdata->data = oplink = MEM_callocN(sizeof(bNodeLink), "drag link op link");
 					*oplink = *link;
+					oplink->next = oplink->prev = NULL;
 					BLI_addtail(&nldrag->links, linkdata);
 					nodeRemLink(snode->edittree, link);
 					
