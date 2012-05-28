@@ -166,7 +166,8 @@ BF_CYCLES_CUDA_BINARIES_ARCH = ['sm_13', 'sm_20', 'sm_21']
 
 #Ray trace optimization
 WITH_BF_RAYOPTIMIZATION = True
-BF_RAYOPTIMIZATION_SSE_FLAGS = ['/arch:SSE','/arch:SSE2']
+# No need to manually specify SSE/SSE2 on x64 systems.
+BF_RAYOPTIMIZATION_SSE_FLAGS = ['']
 
 WITH_BF_STATICOPENGL = False
 BF_OPENGL_INC = '${BF_OPENGL}/include'
