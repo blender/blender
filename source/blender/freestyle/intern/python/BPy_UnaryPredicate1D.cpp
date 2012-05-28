@@ -12,6 +12,7 @@
 #include "UnaryPredicate1D/BPy_QuantitativeInvisibilityUP1D.h"
 #include "UnaryPredicate1D/BPy_ShapeUP1D.h"
 #include "UnaryPredicate1D/BPy_TrueUP1D.h"
+#include "UnaryPredicate1D/BPy_WithinImageBoundaryUP1D.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -75,6 +76,11 @@ int UnaryPredicate1D_Init( PyObject *module )
 	Py_INCREF( &TrueUP1D_Type );
 	PyModule_AddObject(module, "TrueUP1D", (PyObject *)&TrueUP1D_Type);
 
+	if( PyType_Ready( &WithinImageBoundaryUP1D_Type ) < 0 )
+		return -1;
+	Py_INCREF( &WithinImageBoundaryUP1D_Type );
+	PyModule_AddObject(module, "WithinImageBoundaryUP1D", (PyObject *)&WithinImageBoundaryUP1D_Type);
+	
 	return 0;
 }
 

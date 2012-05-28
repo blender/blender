@@ -697,27 +697,6 @@ class ObjectNamesUP1D(UnaryPredicate1D):
             return not found
         return found
 
-class WithinImageBorderUP1D(UnaryPredicate1D):
-    def __init__(self, xmin, xmax, ymin, ymax):
-        UnaryPredicate1D.__init__(self)
-        self._xmin = xmin
-        self._xmax = xmax
-        self._ymin = ymin
-        self._ymax = ymax
-    def getName(self):
-        return "WithinImageBorderUP1D"
-    def __call__(self, inter):
-        it = inter.verticesBegin()
-        while not it.isEnd():
-            if self.withinBorder(it.getObject()):
-                return True
-            it.increment()
-        return False
-    def withinBorder(self, vert):
-        x = vert.getProjectedX()
-        y = vert.getProjectedY()
-        return self._xmin <= x <= self._xmax and self._ymin <= y <= self._ymax
-
 # Stroke caps
 
 def iter_stroke_vertices(stroke):
@@ -1108,7 +1087,7 @@ def process(layer_name, lineset_name):
         else:
             xmin, xmax = 0.0, float(w)
             ymin, ymax = 0.0, float(h)
-        upred = WithinImageBorderUP1D(xmin, xmax, ymin, ymax)
+        upred = WithinImageBoundaryUP1D(xmin, ymin, xmax, ymax)
         selection_criteria.append(upred)
     # select feature edges
     upred = join_unary_predicates(selection_criteria, AndUP1D)

@@ -358,6 +358,63 @@ namespace Predicates1D {
     }
   };
   
+  // WithinImageBoundaryUP1D
+  /*! Returns true if the Interface1D is (partly) within the image boundary.
+   */
+  class WithinImageBoundaryUP1D: public UnaryPredicate1D
+  {
+  private:
+    real _xmin, _ymin, _xmax, _ymax;
+  public:
+    /*! Builds the Predicate.
+     *  \param xmin
+     *    The X lower bound of the image boundary.
+     *  \param ymin
+     *    The Y lower bound of the image boundary.
+     *  \param xmax
+     *    The X upper bound of the image boundary.
+     *  \param ymax
+     *    The Y upper bound of the image boundary.
+     */
+	WithinImageBoundaryUP1D(const real xmin, const real ymin, const real xmax, const real ymax) :
+		_xmin(xmin), _ymin(ymin), _xmax(xmax), _ymax(ymax) {}
+    /*! Returns the string "WithinImageBoundaryUP1D"*/
+    string getName() const {
+      return "WithinImageBoundaryUP1D";
+    }
+    /*! The () operator. */
+    int operator()(Interface1D& inter) {
+	  // 1st pass: check if a point is within the image boundary.
+	  Interface0DIterator it = inter.verticesBegin(), itend = inter.verticesEnd();
+	  for (; it != itend; ++it) {
+		real x = (*it).getProjectedX();
+		real y = (*it).getProjectedY();
+		if (_xmin <= x && x <= _xmax && _ymin <= y && y <= _ymax) {
+		  result = true;
+		  return 0;
+		}
+	  }
+	  // 2nd pass: check if a line segment intersects with the image boundary.
+	  it = inter.verticesBegin();
+	  if (it != itend) {
+		Vec2r pmin(_xmin, _ymin);
+		Vec2r pmax(_xmax, _ymax);
+		Vec2r prev((*it).getPoint2D());
+		++it;
+		for (; it != itend; ++it) {
+		  Vec2r p((*it).getPoint2D());
+		  if (GeomUtils::intersect2dSeg2dArea (pmin, pmax, prev, p)) {
+			result = true;
+			return 0;
+		  }
+		  prev = p;
+		}
+	  }
+	  result = false;
+      return 0;
+    }
+  };
+
   //
   //   Binary Predicates definitions
   //
