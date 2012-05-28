@@ -61,7 +61,7 @@ void    PIL_sleep_ms(int ms);
 		double _timeit_##var = PIL_check_seconds_timer();                     \
 		printf("time start (" #var "):  " AT "\n");                           \
 		fflush(stdout);                                                       \
-		{ (void)                                                              \
+		{ (void)0                                                             \
 
 
 #define TIMEIT_VALUE(var) (float)(PIL_check_seconds_timer() - _timeit_##var)
@@ -71,7 +71,7 @@ void    PIL_sleep_ms(int ms);
 	}                                                                         \
 	printf("time end   (" #var "): %.6f" "  " AT "\n",  TIMEIT_VALUE(var));   \
 	fflush(stdout);                                                           \
-} (void)                                                                      \
+} (void)0                                                                     \
 
 #ifdef __cplusplus
 }
