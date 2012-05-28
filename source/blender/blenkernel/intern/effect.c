@@ -929,7 +929,8 @@ static void do_physical_effector(EffectorCache *eff, EffectorData *efd, Effected
 		}
 	}
 
-	zero_v3(point->ave);
+	if (point->ave)
+		zero_v3(point->ave);
 	if (pd->flag & PFIELD_DO_ROTATION && point->ave && point->rot) {
 		float xvec[3] = {1.0f, 0.0f, 0.0f};
 		float dave[3];
