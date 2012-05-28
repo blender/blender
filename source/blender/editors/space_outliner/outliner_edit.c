@@ -1426,7 +1426,8 @@ TreeElement *outliner_dropzone_parent(bContext *C, wmEvent *event, TreeElement *
 		/* name and first icon */
 		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
 			/* always makes active object */
-			if (te->idcode == ID_OB) {
+			if (te->idcode == ID_OB &&
+			    !ELEM4(tselem->type, TSE_MODIFIER_BASE, TSE_MODIFIER, TSE_CONSTRAINT_BASE, TSE_CONSTRAINT)) {
 				return te;
 			}
 			else {
@@ -1635,7 +1636,7 @@ int outliner_dropzone_parent_clear(bContext *C, wmEvent *event, TreeElement *te,
 		if ((fmval[0] < (te->xs + UI_UNIT_X)) || (fmval[0] > te->xend)) {
 			return 1;
 		}
-		else if (te->idcode != ID_OB) {
+		else if (te->idcode != ID_OB || ELEM(tselem->type, TSE_MODIFIER_BASE, TSE_CONSTRAINT_BASE)) {
 			return 1;
 		}
 		
