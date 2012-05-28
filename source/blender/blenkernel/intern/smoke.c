@@ -1868,7 +1868,7 @@ static float calc_voxel_transp(float *result, float *input, int res[3], int *pix
 	
 	if(result[index] < 0.0f)	
 	{
-#pragma omp critical		
+// #pragma omp critical		
 		result[index] = *tRay;	
 	}	
 
@@ -2012,7 +2012,7 @@ static void smoke_calc_transparency(float *result, float *input, float *p0, floa
 	bv[4] = p0[2];
 	bv[5] = p1[2];
 
-#pragma omp parallel for schedule(static,1)
+// #pragma omp parallel for schedule(static,1)
 	for(z = 0; z < res[2]; z++)
 	{
 		size_t index = z*slabsize;
