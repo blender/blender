@@ -26,7 +26,7 @@ private:
 
 public:
 #ifdef USE_BULLET
-	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound);
+	KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool character, bool compound);
 	virtual ~KX_BulletPhysicsController ();
 #endif
 	///////////////////////////////////

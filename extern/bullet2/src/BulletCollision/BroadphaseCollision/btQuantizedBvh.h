@@ -339,7 +339,7 @@ public:
 
 	
 	///***************************************** expert/internal use only *************************
-	void	setQuantizationValues(const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,btScalar quantizationMargin=btScalar(1.0));
+	void	setQuantizationValues(const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,btScalar quantizationMargin=btScalar(1.5));
 	QuantizedNodeArray&	getLeafNodeArray() {			return	m_quantizedLeafNodes;	}
 	///buildInternal is expert use only: assumes that setQuantizationValues and LeafNodeArray are initialized
 	void	buildInternal();

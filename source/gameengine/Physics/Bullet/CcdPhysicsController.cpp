@@ -22,6 +22,7 @@ subject to the following restrictions:
 
 #include "CcdPhysicsController.h"
 #include "btBulletDynamicsCommon.h"
+#include "BulletCollision/CollisionDispatch/btGhostObject.h"
 #include "BulletCollision/CollisionShapes/btScaledBvhTriangleMeshShape.h"
 
 #include "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.h"
@@ -88,7 +89,7 @@ CcdPhysicsController::CcdPhysicsController (const CcdConstructionInfo& ci)
 		m_shapeInfo->AddRef();
 	
 	m_bulletMotionState = 0;
-	
+	m_characterController = 0;
 	
 	CreateRigidbody();
 	
@@ -151,6 +152,24 @@ public:
 
 };
 
+class BlenderBulletCharacterController : public btKinematicCharacterController
+{
+private:
+	btMotionState* m_motionState;
+
+public:
+	BlenderBulletCharacterController(btMotionState *motionState, btPairCachingGhostObject *ghost, btConvexShape* shape, float stepHeight)
+		: btKinematicCharacterController(ghost,shape,stepHeight,2),
+		  m_motionState(motionState)
+	{
+	}
+
+	virtual void updateAction(btCollisionWorld *collisionWorld, btScalar dt)
+	{
+		btKinematicCharacterController::updateAction(collisionWorld,dt);
+		m_motionState->setWorldTransform(getGhostObject()->getWorldTransform());
+	}
+};
 
 btRigidBody* CcdPhysicsController::GetRigidBody()
 {
@@ -163,6 +182,10 @@ btCollisionObject*	CcdPhysicsController::GetCollisionObject()
 btSoftBody* CcdPhysicsController::GetSoftBody()
 {
 	return btSoftBody::upcast(m_object);
+}
+btKinematicCharacterController* CcdPhysicsController::GetCharacterController()
+{
+	return m_characterController;
 }
 
 #include "BulletSoftBody/btSoftBodyHelpers.h"
@@ -425,6 +448,29 @@ bool CcdPhysicsController::CreateSoftbody()
 	return true;
 }
 
+bool CcdPhysicsController::CreateCharacterController()
+{
+	if (!m_cci.m_bCharacter)
+		return false;
+ 
+	m_object = new btPairCachingGhostObject();
+	m_object->setCollisionShape(m_collisionShape);
+	m_object->setCollisionFlags(btCollisionObject::CF_CHARACTER_OBJECT);
+
+	btTransform trans;
+	m_bulletMotionState->getWorldTransform(trans);
+	m_object->setWorldTransform(trans);
+
+	m_characterController = new BlenderBulletCharacterController(m_bulletMotionState,(btPairCachingGhostObject*)m_object,(btConvexShape*)m_collisionShape,m_cci.m_stepHeight);
+
+	PHY__Vector3 gravity;
+	m_cci.m_physicsEnv->getGravity(gravity);
+	m_characterController->setGravity(-gravity.m_vec[2]); // need positive gravity
+	m_characterController->setJumpSpeed(m_cci.m_jumpSpeed);
+	m_characterController->setFallSpeed(m_cci.m_fallSpeed);
+
+	return true;
+}
 
 void CcdPhysicsController::CreateRigidbody()
 {
@@ -433,7 +479,7 @@ void CcdPhysicsController::CreateRigidbody()
 	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
 	///either create a btCollisionObject, btRigidBody or btSoftBody
-	if (CreateSoftbody())
+	if (CreateSoftbody() || CreateCharacterController())
 		// soft body created, done
 		return;
 

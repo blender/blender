@@ -489,7 +489,7 @@ void PyC_SetHomePath(const char *py_path_bundle)
 	/* cmake/MSVC debug build crashes without this, why only
 	 * in this case is unknown.. */
 	{
-		BLI_setenv("PYTHONPATH", py_path_bundle);
+		/*BLI_setenv("PYTHONPATH", py_path_bundle)*/;
 	}
 #endif
 #endif
