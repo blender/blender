@@ -226,7 +226,7 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == 0) {
-				TreeStoreElem *tsep = TREESTORE(te->parent);
+				TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
@@ -866,7 +866,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == type) {
-				TreeStoreElem *tsep = TREESTORE(te->parent);
+				TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
 				operation_cb(te, tselem, tsep, newid);
 			}
 		}
