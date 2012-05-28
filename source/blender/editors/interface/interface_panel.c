@@ -164,6 +164,18 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 
 /****************************** panels ******************************/
 
+static void panels_collapse_all(ScrArea *sa, ARegion *ar)
+{
+	Panel *pa;
+	int align = panel_aligned(sa, ar);
+
+	for (pa= ar->panels.first; pa; pa= pa->next) {
+			if (pa->type && !(pa->type->flag & PNL_NO_HEADER))
+				pa->flag = (align==BUT_HORIZONTAL)? PNL_CLOSEDX: PNL_CLOSEDY;
+	}
+}
+
+
 static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 {
 	/* with respect to sizes... papar is parent */
@@ -1074,6 +1086,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
@@ -1141,6 +1154,8 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				}
 				else if (event->type == LEFTMOUSE) {
 					if (inside_header) {
+						if (event->ctrl)
+							panels_collapse_all(sa, ar);
 						ui_handle_panel_header(C, block, mx, my, 0);
 						break;
 					}
