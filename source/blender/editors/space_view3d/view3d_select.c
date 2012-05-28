@@ -2152,9 +2152,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from selection");
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggles selection");
+	WM_operator_properties_mouse_select(ot);
+
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");
