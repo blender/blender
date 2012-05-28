@@ -4055,7 +4055,7 @@ void NODE_OT_join(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Join Nodes";
-	ot->description = "Attaches selected nodes to a new common frame";
+	ot->description = "Attach selected nodes to a new common frame";
 	ot->idname = "NODE_OT_join";
 
 	/* api callbacks */
@@ -4125,7 +4125,7 @@ void NODE_OT_attach(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Attach Nodes";
-	ot->description = "Attaches active node to a frame";
+	ot->description = "Attach active node to a frame";
 	ot->idname = "NODE_OT_attach";
 
 	/* api callbacks */
@@ -4194,7 +4194,7 @@ void NODE_OT_detach(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Detach Nodes";
-	ot->description = "Detaches selected nodes from parents";
+	ot->description = "Detach selected nodes from parents";
 	ot->idname = "NODE_OT_detach";
 
 	/* api callbacks */

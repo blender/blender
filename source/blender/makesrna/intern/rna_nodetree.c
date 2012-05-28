@@ -4007,7 +4007,8 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "chunk_size", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "chunksize");
-	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile. Smaller values gives better distribution of multiple threads, but more overhead");
+	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile (smaller values gives better distribution "
+	                                            "of multiple threads, but more overhead)");
 	RNA_def_property_range(prop, 32, 1024);
 
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);

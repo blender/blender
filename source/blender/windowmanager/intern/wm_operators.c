@@ -922,7 +922,7 @@ void WM_operator_properties_mouse_select(wmOperatorType *ot)
 {
 	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from selection");
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggles selection");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggle the selection");
 }
 
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
