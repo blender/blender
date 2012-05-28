@@ -356,6 +356,11 @@ static CVKeyIndex *getCVKeyIndex(EditNurb *editnurb, void *cv)
 	return BLI_ghash_lookup(editnurb->keyindex, cv);
 }
 
+static CVKeyIndex *popCVKeyIndex(EditNurb *editnurb, void *cv)
+{
+	return BLI_ghash_pop(editnurb->keyindex, cv, NULL);
+}
+
 static BezTriple *getKeyIndexOrig_bezt(EditNurb *editnurb, BezTriple *bezt)
 {
 	CVKeyIndex *index = getCVKeyIndex(editnurb, bezt);
@@ -459,9 +464,7 @@ static void keyIndex_updateCV(EditNurb *editnurb, char *cv,
 	}
 
 	for (i = 0; i < count; i++) {
-		index = getCVKeyIndex(editnurb, cv);
-
-		BLI_ghash_remove(editnurb->keyindex, cv, NULL, NULL);
+		index = popCVKeyIndex(editnurb, cv);
 
 		if (index) {
 			BLI_ghash_insert(editnurb->keyindex, newcv, index);
@@ -496,11 +499,8 @@ static void keyIndex_updateNurb(EditNurb *editnurb, Nurb *nu, Nurb *newnu)
 
 static void keyIndex_swap(EditNurb *editnurb, void *a, void *b)
 {
-	CVKeyIndex *index1 = getCVKeyIndex(editnurb, a);
-	CVKeyIndex *index2 = getCVKeyIndex(editnurb, b);
-
-	BLI_ghash_remove(editnurb->keyindex, a, NULL, NULL);
-	BLI_ghash_remove(editnurb->keyindex, b, NULL, NULL);
+	CVKeyIndex *index1 = popCVKeyIndex(editnurb, a);
+	CVKeyIndex *index2 = popCVKeyIndex(editnurb, b);
 
 	if (index2) BLI_ghash_insert(editnurb->keyindex, a, index2);
 	if (index1) BLI_ghash_insert(editnurb->keyindex, b, index1);
