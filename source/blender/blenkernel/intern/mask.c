@@ -123,7 +123,7 @@ MaskSpline *BKE_mask_spline_add(MaskObject *maskobj)
 	spline->tot_point = 1;
 
 	/* cyclic shapes are more usually used */
-	spline->flag |= MASK_SPLINE_CYCLIC;
+	// spline->flag |= MASK_SPLINE_CYCLIC; // disable because its not so nice for drawing. could be done differently
 
 	spline->weight_interp = MASK_SPLINE_INTERP_LINEAR;
 
@@ -855,7 +855,9 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *prev
 		next_bezt = &next_point->bezt;
 
 #if 1
-	BKE_nurb_handle_calc(bezt, prev_bezt, next_bezt, 0);
+	if (prev_bezt || next_bezt) {
+		BKE_nurb_handle_calc(bezt, prev_bezt, next_bezt, 0);
+	}
 #else
 	if (handle_type == HD_VECT) {
 		BKE_nurb_handle_calc(bezt, prev_bezt, next_bezt, 0);
@@ -922,6 +924,37 @@ void BKE_mask_get_handle_point_adjacent(Mask *UNUSED(mask), MaskSpline *spline, 
 	*r_point_next = next_point;
 }
 
+/* calculates the tanget of a point by its previous and next
+ * (ignoring handles - as if its a poly line) */
+void BKE_mask_calc_tangent_polyline(Mask *mask, MaskSpline *spline, MaskSplinePoint *point, float t[2])
+{
+	float tvec_a[2], tvec_b[2];
+
+	MaskSplinePoint *prev_point, *next_point;
+
+	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	                                   &prev_point, &next_point);
+
+	if (prev_point) {
+		sub_v2_v2v2(tvec_a, point->bezt.vec[1], prev_point->bezt.vec[1]);
+		normalize_v2(tvec_a);
+	}
+	else {
+		zero_v2(tvec_a);
+	}
+
+	if (next_point) {
+		sub_v2_v2v2(tvec_b, next_point->bezt.vec[1], point->bezt.vec[1]);
+		normalize_v2(tvec_b);
+	}
+	else {
+		zero_v2(tvec_b);
+	}
+
+	add_v2_v2v2(t, tvec_a, tvec_b);
+	normalize_v2(t);
+}
+
 void BKE_mask_calc_handle_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
 {
 	MaskSplinePoint *prev_point, *next_point;
@@ -945,7 +978,7 @@ static void enforce_dist_v2_v2fl(float v1[2], const float v2[2], const float dis
 
 void BKE_mask_calc_handle_adjacent_length(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
 {
-	/* TODO! - make this aspect aware! */
+	/* TODO! - make this interpolate between siblings - not always midpoint! */
 	int   length_tot = 0;
 	float length_average = 0.0f;
 
@@ -977,11 +1010,14 @@ void BKE_mask_calc_handle_adjacent_length(Mask *mask, MaskSpline *spline, MaskSp
  *
  * Useful for giving sane defaults.
  */
-void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
+void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplinePoint *point,
+                                     const short do_recalc_length)
 {
-	/* TODO! - make this aspect aware! */
 	MaskSplinePoint *prev_point, *next_point;
 	const char h_back[2] = {point->bezt.h1, point->bezt.h2};
+	const float length_average = (do_recalc_length) ? 0.0f /* dummy value */ :
+	                                                 (len_v3v3(point->bezt.vec[0], point->bezt.vec[1]) +
+	                                                  len_v3v3(point->bezt.vec[1], point->bezt.vec[2])) / 2.0f;
 
 	BKE_mask_get_handle_point_adjacent(mask, spline, point,
 	                                   &prev_point, &next_point);
@@ -992,6 +1028,12 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 
 	point->bezt.h1 = h_back[0];
 	point->bezt.h2 = h_back[1];
+
+	/* preserve length by applying it back */
+	if (do_recalc_length == FALSE) {
+		enforce_dist_v2_v2fl(point->bezt.vec[0], point->bezt.vec[1], length_average);
+		enforce_dist_v2_v2fl(point->bezt.vec[2], point->bezt.vec[1], length_average);
+	}
 }
 
 void BKE_mask_calc_handles(Mask *mask)

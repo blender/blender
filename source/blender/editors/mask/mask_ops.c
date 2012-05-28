@@ -301,7 +301,7 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 	return FALSE;
 }
 
-static int find_nearest_diff_point(bContext *C, Mask *mask, float normal_co[2], int threshold, int feather,
+static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_co[2], int threshold, int feather,
                                    MaskObject **maskobj_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                    float *u_r, float tangent[2])
 {
@@ -937,7 +937,7 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[0], vec);
 		sub_v2_v2(bezt->vec[2], vec);
 #else
-		BKE_mask_calc_handle_point_auto(mask, spline, new_point);
+		BKE_mask_calc_handle_point_auto(mask, spline, new_point, TRUE);
 		BKE_mask_calc_handle_adjacent_length(mask, spline, new_point);
 
 #endif
@@ -952,7 +952,22 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 
 /* **** add subdivide vertex **** */
 
-static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
+static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
+{
+	MaskSplinePoint *new_point_array;
+
+	new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
+
+	memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * (point_index + 1));
+	memcpy(new_point_array + point_index + 2, spline->points + point_index + 1,
+	       sizeof(MaskSplinePoint) * (spline->tot_point - point_index - 1));
+
+	MEM_freeN(spline->points);
+	spline->points = new_point_array;
+	spline->tot_point++;
+}
+
+static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 {
 	MaskObject *maskobj;
 	MaskSpline *spline;
@@ -961,22 +976,14 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, float co[2])
 	float tangent[2];
 
 	if (find_nearest_diff_point(C, mask, co, threshold, FALSE, &maskobj, &spline, &point, NULL, tangent)) {
-		MaskSplinePoint *new_point_array, *new_point;
+		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
 		ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-		new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
+		mask_spline_add_point_at_index(spline, point_index);
 
-		memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * (point_index + 1));
-		memcpy(new_point_array + point_index + 2, spline->points + point_index + 1,
-		       sizeof(MaskSplinePoint) * (spline->tot_point - point_index - 1));
-
-		MEM_freeN(spline->points);
-		spline->points = new_point_array;
-		spline->tot_point++;
-
-		new_point = &new_point_array[point_index + 1];
+		new_point = &spline->points[point_index + 1];
 
 		setup_vertex_point(C, mask, spline, new_point, co, tangent, NULL, TRUE);
 
@@ -1036,7 +1043,110 @@ static void finSelectedSplinePoint(MaskObject *maskobj, MaskSpline **spline, Mas
 	}
 }
 
-static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
+static int add_vertex_extrude(bContext *C, Mask *mask, const float co[2])
+{
+	MaskObject *maskobj;
+	MaskSpline *spline;
+	MaskSplinePoint *point;
+	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
+
+	/* check on which side we want to add the point */
+	int point_index;
+	float tangent_point[2];
+	float tangent_co[2];
+	int do_cyclic_correct = FALSE;
+	int do_recalc_src = FALSE;  /* when extruding from endpoints only */
+	int do_prev;                /* use prev point rather then next?? */
+
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
+
+	maskobj = BKE_mask_object_active(mask);
+
+	if (!maskobj) {
+		return FALSE;
+	}
+	else {
+		finSelectedSplinePoint(maskobj, &spline, &point, TRUE);
+	}
+
+	point_index = (point - spline->points);
+
+	MASKPOINT_DESEL(point);
+
+	if ((spline->flag & MASK_SPLINE_CYCLIC) ||
+		(point_index > 0 && point_index != spline->tot_point - 1))
+	{
+		BKE_mask_calc_tangent_polyline(mask, spline, point, tangent_point);
+		sub_v2_v2v2(tangent_co, co, point->bezt.vec[1]);
+
+		if (dot_v2v2(tangent_point, tangent_co) < 0.0f) {
+			do_prev = TRUE;
+		}
+		else {
+			do_prev = FALSE;
+		}
+	}
+	else if (((spline->flag & MASK_SPLINE_CYCLIC) == 0) && (point_index == 0)) {
+		do_prev = TRUE;
+		do_recalc_src = TRUE;
+	}
+	else if (((spline->flag & MASK_SPLINE_CYCLIC) == 0) && (point_index == spline->tot_point - 1)) {
+		do_prev = FALSE;
+		do_recalc_src = TRUE;
+	}
+	else {
+		/* should never get here */
+		BLI_assert(0);
+	}
+
+	/* use the point before the active one */
+	if (do_prev) {
+		point_index--;
+		if (point_index < 0) {
+			point_index += spline->tot_point; /* wrap index */
+			if ((spline->flag & MASK_SPLINE_CYCLIC) == 0) {
+				do_cyclic_correct = TRUE;
+				point_index = 0;
+			}
+		}
+	}
+
+//		print_v2("", tangent_point);
+//		printf("%d\n", point_index);
+
+	mask_spline_add_point_at_index(spline, point_index);
+
+	if (do_cyclic_correct) {
+		ref_point = &spline->points[point_index + 1];
+		new_point = &spline->points[point_index];
+		*ref_point = *new_point;
+		memset(new_point, 0, sizeof(*new_point));
+	}
+	else {
+		ref_point = &spline->points[point_index];
+		new_point = &spline->points[point_index + 1];
+	}
+
+	maskobj->act_point = new_point;
+
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
+
+	if (maskobj->splines_shapes.first) {
+		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
+		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index, TRUE, TRUE);
+	}
+
+	if (do_recalc_src) {
+		/* TODO, update keyframes in time */
+		BKE_mask_calc_handle_point_auto(mask, spline, ref_point, FALSE);
+	}
+
+	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+
+	return TRUE;
+}
+
+static int add_vertex_new(bContext *C, Mask *mask, const float co[2])
 {
 	MaskObject *maskobj;
 	MaskSpline *spline;
@@ -1061,48 +1171,16 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 	if (!spline) {
 		/* no selected splines in active maskobj, create new spline */
 		spline = BKE_mask_spline_add(maskobj);
-		maskobj->act_spline = spline;
-		new_point = spline->points;
 	}
 
-	if (!new_point) {
-		MaskSplinePoint *new_point_array;
-
-		if (point == &spline->points[spline->tot_point - 1]) {
-			MASKPOINT_DESEL(point);
-			new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
-			memcpy(new_point_array, spline->points, sizeof(MaskSplinePoint) * spline->tot_point);
-			MEM_freeN(spline->points);
-			spline->points = new_point_array;
-			spline->tot_point++;
-
-			new_point = &spline->points[spline->tot_point - 1];
-			ref_point = &spline->points[spline->tot_point - 2];
-		}
-		else if (point == &spline->points[0]) {
-			MASKPOINT_DESEL(point);
-			new_point_array = MEM_callocN(sizeof(MaskSplinePoint) * (spline->tot_point + 1), "add mask vert points");
-			memcpy(new_point_array + 1, spline->points, sizeof(MaskSplinePoint) * spline->tot_point);
-			MEM_freeN(spline->points);
-			spline->points = new_point_array;
-			spline->tot_point++;
-
-			new_point = &spline->points[0];
-			ref_point = &spline->points[1];
-		}
-		else {
-			spline = BKE_mask_spline_add(maskobj);
-			maskobj->act_spline = spline;
-			new_point = spline->points;
-		}
-	}
+	maskobj->act_spline = spline;
+	new_point = spline->points;
 
 	maskobj->act_point = new_point;
 
 	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
 
 	{
-	//int point_index = (((int)(new_point - spline->points) + 1) % spline->tot_point);
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
 		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index, TRUE, TRUE);
 	}
@@ -1115,13 +1193,55 @@ static int add_vertex_extrude(bContext *C, Mask *mask, float co[2])
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
+	MaskObject *maskobj;
+
 	float co[2];
+
+	maskobj = BKE_mask_object_active(mask);
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	if (!add_vertex_subdivide(C, mask, co)) {
-		if (!add_vertex_extrude(C, mask, co))
-			return OPERATOR_CANCELLED;
+	if (maskobj && maskobj->act_point && MASKPOINT_ISSEL(maskobj->act_point)) {
+
+		/* cheap trick - double click for cyclic */
+		MaskSpline *spline = maskobj->act_spline;
+		MaskSplinePoint *point = maskobj->act_point;
+
+		int is_sta = (point == spline->points);
+		int is_end = (point == &spline->points[spline->tot_point - 1]);
+
+		/* then check are we overlapping the mouse */
+		if ((is_sta || is_end) && equals_v2v2(co, point->bezt.vec[1])) {
+			if (spline->flag & MASK_SPLINE_CYCLIC) {
+				/* nothing to do */
+				return OPERATOR_CANCELLED;
+			}
+			else {
+				/* recalc the connecting point as well to make a nice even curve */
+				MaskSplinePoint *point_other = is_end ? spline->points : &spline->points[spline->tot_point - 1];
+				spline->flag |= MASK_SPLINE_CYCLIC;
+
+				/* TODO, update keyframes in time */
+				BKE_mask_calc_handle_point_auto(mask, spline, point, FALSE);
+				BKE_mask_calc_handle_point_auto(mask, spline, point_other, FALSE);
+
+				WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+				return OPERATOR_FINISHED;
+			}
+		}
+
+		if (!add_vertex_subdivide(C, mask, co)) {
+			if (!add_vertex_extrude(C, mask, co)) {
+				return OPERATOR_CANCELLED;
+			}
+		}
+	}
+	else {
+		if (!add_vertex_subdivide(C, mask, co)) {
+			if (!add_vertex_new(C, mask, co)) {
+				return OPERATOR_CANCELLED;
+			}
+		}
 	}
 
 	return OPERATOR_FINISHED;
