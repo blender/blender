@@ -1197,10 +1197,11 @@ void customData_mask_layers__print(CustomDataMask mask)
 {
 	int i;
 
-	printf("mask=0x%lx:\n", mask);
+	printf("mask=0x%lx:\n", (long unsigned int)mask);
 	for (i = 0; i < CD_NUMTYPES; i++) {
-		if (mask & CD_TYPE_AS_MASK(i))
+		if (mask & CD_TYPE_AS_MASK(i)) {
 			printf("  %s\n", layerType_getName(i));
+		}
 	}
 }
 
