@@ -213,7 +213,9 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, (GLint)mag);
 		glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ibuf->x, ibuf->y, 0, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-		error = (int)glGetError();
+
+		while (error != GL_NO_ERROR)
+			error = (int)glGetError();
 	}
 
 	if (error) {
