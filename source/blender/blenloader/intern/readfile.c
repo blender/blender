@@ -9002,12 +9002,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
-					/* share the mainlist, so all libraries are added immediately in a
-					 * single list. it used to be that all FileData's had their own list,
-					 * but with indirectly linking this meant we didn't catch duplicate
-					 * libraries properly */
-					fd->mainlist = mainlist;
-					
 					/* allow typing in a new lib path */
 					if (G.rt == -666) {
 						while (fd == NULL) {
@@ -9034,6 +9028,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					
 					if (fd) {
+						/* share the mainlist, so all libraries are added immediately in a
+						 * single list. it used to be that all FileData's had their own list,
+						 * but with indirectly linking this meant we didn't catch duplicate
+						 * libraries properly */
+						fd->mainlist = mainlist;
+
 						fd->reports = basefd->reports;
 						
 						if (fd->libmap)
