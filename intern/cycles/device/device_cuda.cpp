@@ -259,7 +259,7 @@ public:
 
 		path_create_directories(cubin);
 
-		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" --use_fast_math "
+		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" "
 			"-o \"%s\" --ptxas-options=\"-v\" --maxrregcount=%d --opencc-options -OPT:Olimit=0 -I\"%s\" -DNVCC",
 			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
 
