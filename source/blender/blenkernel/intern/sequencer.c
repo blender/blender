@@ -1552,8 +1552,7 @@ static void make_cb_table_byte(float lift, float gain, float gamma,
 
 	for (y = 0; y < 256; y++) {
 		float v = color_balance_fl((float)y * (1.0f / 255.0f), lift, gain, gamma, mul);
-		CLAMP(v, 0.0f, 1.0f);
-		table[y] = round(v * 255);
+		table[y] = FTOCHAR(v);
 	}
 }
 
