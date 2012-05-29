@@ -266,6 +266,9 @@ static void draw_maskobjs(Mask *mask)
 		MaskSpline *spline;
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+
+			BKE_mask_spline_ensure_deform(spline);
+
 			/* draw curve itself first... */
 			draw_spline_curve(maskobj, spline);
 
@@ -273,6 +276,17 @@ static void draw_maskobjs(Mask *mask)
 
 			/* ...and then handles over the curve so they're nicely visible */
 			draw_spline_points(maskobj, spline);
+
+			/* show undeform for testing */
+			if (0) {
+				void *back = spline->points_deform;
+
+				spline->points_deform = NULL;
+				draw_spline_curve(maskobj, spline);
+				draw_spline_parents(maskobj, spline);
+				draw_spline_points(maskobj, spline);
+				spline->points_deform = back;
+			}
 		}
 	}
 }

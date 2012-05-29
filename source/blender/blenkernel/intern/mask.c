@@ -893,7 +893,7 @@ int BKE_mask_evaluate_parent_delta(MaskParent *parent, float ctime, float r_delt
 	float parent_co[2];
 
 	if (BKE_mask_evaluate_parent(parent, ctime, parent_co)) {
-		sub_v2_v2v2(r_delta, parent->parent_orig, parent_co);
+		sub_v2_v2v2(r_delta, parent_co, parent->parent_orig);
 		return TRUE;
 	}
 	else {
@@ -1107,6 +1107,11 @@ void BKE_mask_calc_handles(Mask *mask)
 
 			for (i = 0; i < spline->tot_point; i++) {
 				BKE_mask_calc_handle_point(mask, spline, &spline->points[i]);
+
+				/* could be done in a different function... */
+				if (spline->points_deform) {
+					BKE_mask_calc_handle_point(mask, spline, &spline->points[i]);
+				}
 			}
 		}
 	}
@@ -1174,8 +1179,6 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 	MaskObject *maskobj;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline;
-		int i;
 
 		/* animation if available */
 		if (do_newframe) {
@@ -1210,6 +1213,14 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 			}
 		}
 		/* animation done... */
+	}
+
+	BKE_mask_calc_handles(mask);
+
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
+		int i;
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 
@@ -1227,11 +1238,9 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 
 					print_v2("", delta);
 
-					sub_v2_v2(point_deform->bezt.vec[0], delta);
-					sub_v2_v2(point_deform->bezt.vec[1], delta);
+					add_v2_v2(point_deform->bezt.vec[0], delta);
+					add_v2_v2(point_deform->bezt.vec[1], delta);
 					add_v2_v2(point_deform->bezt.vec[2], delta);
-
-					//point_deform->bezt.vec[1][1] += 1;
 				}
 				else {
 					*point_deform = *point;
@@ -1240,8 +1249,6 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 			}
 		}
 	}
-
-	BKE_mask_calc_handles(mask);
 }
 
 void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const int do_newframe)
