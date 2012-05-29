@@ -39,6 +39,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 
@@ -54,10 +55,12 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_sequencer.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -396,13 +399,13 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
-static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(NULL, tselem->id, NULL);
 }
 
-static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	
@@ -410,7 +413,7 @@ static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
 	free_fcurves(&iat->adt->drivers);
 }
 
-static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	FCurve *fcu;
@@ -426,7 +429,7 @@ static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te
 
 /* --------------------------------- */
 
-static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 	
@@ -442,7 +445,7 @@ static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
 }
 
-static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	Bone *bone = (Bone *)te->directdata;
 	
@@ -458,7 +461,7 @@ static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		bone->flag &= ~BONE_HIDDEN_P;
 }
 
-static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	EditBone *ebone = (EditBone *)te->directdata;
 	
@@ -474,16 +477,23 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
-static void sequence_cb(int event, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tselem))
+static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void *scene_ptr)
 {
-//	Sequence *seq= (Sequence*) te->directdata;
+	Sequence *seq = (Sequence *)te->directdata;
 	if (event == 1) {
-// XXX		select_single_seq(seq, 1);
+		Scene *scene = (Scene *)scene_ptr;
+		Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+		if (BLI_findindex(ed->seqbasep, seq) != -1) {
+			ED_sequencer_select_sequence_single(scene, seq, TRUE);
+		}
 	}
+
+	(void)tselem;
 }
 
-static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 
-                                       void (*operation_cb)(int, TreeElement *, TreeStoreElem *))
+static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb,
+                                       void (*operation_cb)(int, TreeElement *, TreeStoreElem *, void *),
+                                       void *arg)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -492,11 +502,11 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == type) {
-				operation_cb(event, te, tselem);
+				operation_cb(event, te, tselem, arg);
 			}
 		}
 		if (TSELEM_OPEN(tselem, soops)) {
-			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
+			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb, arg);
 		}
 	}
 }
@@ -1013,14 +1023,14 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 		
 		case OUTLINER_ANIMOP_CLEAR_ACT:
 			/* clear active action - using standard rules */
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, unlinkact_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, unlinkact_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
 			ED_undo_push(C, "Unlink action");
 			break;
 			
 		case OUTLINER_ANIMOP_REFRESH_DRV:
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
 			//ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
@@ -1028,7 +1038,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 			break;
 			
 		case OUTLINER_ANIMOP_CLEAR_DRV:
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, cleardrivers_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, cleardrivers_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
 			ED_undo_push(C, "Clear Drivers");
@@ -1097,28 +1107,29 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	
 	if (datalevel == TSE_POSE_CHANNEL) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
 		}
 	}
 	else if (datalevel == TSE_BONE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
 		}
 	}
 	else if (datalevel == TSE_EBONE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
 		}
 	}
 	else if (datalevel == TSE_SEQUENCE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb);
+			Scene *scene = CTX_data_scene(C);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
 		}
 	}
 	

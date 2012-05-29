@@ -58,6 +58,7 @@
 
 #include "ED_types.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 
 #include "UI_view2d.h"
 
@@ -161,13 +162,13 @@ void select_surround_from_last(Scene *scene)
 }
 #endif
 
-
-static void UNUSED_FUNCTION(select_single_seq) (Scene * scene, Sequence * seq, int deselect_all) /* BRING BACK */
+void ED_sequencer_select_sequence_single(Scene * scene, Sequence * seq, int deselect_all)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
 	if (deselect_all)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
+
 	BKE_sequencer_active_set(scene, seq);
 
 	if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
@@ -359,7 +360,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (left_right) {
 		/* use different logic for this */
 		float x;
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 
 		SEQP_BEGIN (ed, seq)
@@ -403,7 +404,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		act_orig = ed->act_seq;
 
 		if (extend == 0 && linked_handle == 0)
-			deselect_all_seq(scene);
+			ED_sequencer_deselect_all(scene);
 	
 		if (seq) {
 			BKE_sequencer_active_set(scene, seq);
@@ -442,7 +443,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* On Alt selection, select the strip and bordering handles */
 			if (linked_handle && !ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
-				if (extend == 0) deselect_all_seq(scene);
+				if (extend == 0) ED_sequencer_deselect_all(scene);
 				seq->flag |= SELECT;
 				select_surrounding_handles(scene, seq);
 			}
@@ -458,13 +459,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					switch (sel_side) {
 						case SEQ_SIDE_LEFT:
 							if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
 							}
 							else {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								neighbor->flag |= SELECT;
@@ -475,13 +476,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 							break;
 						case SEQ_SIDE_RIGHT:
 							if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
 							}
 							else {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								neighbor->flag |= SELECT;
@@ -493,7 +494,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				else {
-					if (extend == 0) deselect_all_seq(scene);
+					if (extend == 0) ED_sequencer_deselect_all(scene);
 					select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
 				}
 			}
@@ -686,7 +687,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 		return OPERATOR_FINISHED;  /* user error as with mesh?? */
 	
 	if (extend == 0)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 	
 	mouse_seq->flag |= SELECT;
 	recurs_sel_seq(mouse_seq);

@@ -65,6 +65,7 @@
 /* for menu/popup icons etc etc*/
 
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 
 #include "UI_view2d.h"
 
@@ -246,7 +247,7 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
@@ -345,7 +346,7 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_sort(scene);
 	
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}
@@ -414,7 +415,7 @@ static int sequencer_add_generic_strip_exec(bContext *C, wmOperator *op, SeqLoad
 	seq_load_operator_info(&seq_load, op);
 
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 
 	if (RNA_struct_property_is_set(op->ptr, "files"))
 		tot_files = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
@@ -595,7 +596,7 @@ static int sequencer_add_image_strip_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 
 	if (seq_load.flag & SEQ_LOAD_REPLACE_SEL)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 
 
 	/* main adding function */
@@ -786,7 +787,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	BKE_sequencer_sort(scene); 
 
 	if (RNA_boolean_get(op->ptr, "replace_sel")) {
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 		BKE_sequencer_active_set(scene, seq);
 		seq->flag |= SELECT;
 	}

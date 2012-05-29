@@ -43,6 +43,7 @@
 #include "DNA_world_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 
 #include "BKE_context.h"
 #include "BKE_depsgraph.h"
@@ -52,6 +53,7 @@
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -568,16 +570,34 @@ static int tree_element_active_pose(bContext *C, Scene *scene, TreeElement *UNUS
 	return 0;
 }
 
-static int tree_element_active_sequence(TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
+static int tree_element_active_sequence(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tselem), int set)
 {
 	Sequence *seq = (Sequence *) te->directdata;
+	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 
 	if (set) {
-// XXX		select_single_seq(seq, 1);
+		/* only check on setting */
+		if (BLI_findindex(ed->seqbasep, seq) != -1) {
+			if (set == 2) {
+				BKE_sequencer_active_set(scene, NULL);
+			}
+			ED_sequencer_deselect_all(scene);
+
+			if (set == 2 && seq->flag & SELECT) {
+				seq->flag &= ~SELECT;
+			}
+			else {
+				seq->flag |= SELECT;
+				BKE_sequencer_active_set(scene, seq);
+			}
+		}
+
+		WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER | NA_SELECTED, scene);
 	}
 	else {
-		if (seq->flag & SELECT)
-			return(1);
+		if (ed->act_seq == seq && seq->flag & SELECT) {
+			return 1;
+		}
 	}
 	return(0);
 }
@@ -678,7 +698,7 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeEl
 		case TSE_POSEGRP:
 			return tree_element_active_posegroup(C, scene, te, tselem, set);
 		case TSE_SEQUENCE:
-			return tree_element_active_sequence(te, tselem, set);
+			return tree_element_active_sequence(C, scene, te, tselem, set);
 		case TSE_SEQUENCE_DUP:
 			return tree_element_active_sequence_dup(scene, te, tselem, set);
 		case TSE_KEYMAP_ITEM:

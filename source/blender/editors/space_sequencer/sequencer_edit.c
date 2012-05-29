@@ -454,7 +454,7 @@ static int seq_is_predecessor(Sequence *pred, Sequence *seq)
 	return 0;
 }
 
-void deselect_all_seq(Scene *scene)
+void ED_sequencer_deselect_all(Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -2665,7 +2665,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	int ofs;
 	Sequence *iseq;
 
-	deselect_all_seq(scene);
+	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
 	seqbase_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);
