@@ -1232,22 +1232,52 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 				MaskSplinePoint *point_deform = &spline->points_deform[i];
 				float delta[2];
 
+				*point_deform = *point;
+				point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
+
 				if (BKE_mask_evaluate_parent_delta(&point->parent, ctime, delta)) {
-
-					*point_deform = *point;
-					point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
-
 					add_v2_v2(point_deform->bezt.vec[0], delta);
 					add_v2_v2(point_deform->bezt.vec[1], delta);
 					add_v2_v2(point_deform->bezt.vec[2], delta);
 				}
-				else {
-					*point_deform = *point;
-					point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
-				}
 			}
 		}
 	}
+}
+
+/* the purpose of this function is to ensure spline->points_deform is never out of date.
+ * for now re-evaluate all. eventually this might work differently */
+void BKE_mask_update_display(Mask *mask, float ctime)
+{
+#if 0
+	MaskObject *maskobj;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
+
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			if (spline->points_deform) {
+				int i = 0;
+
+				for (i = 0; i < spline->tot_point; i++) {
+					MaskSplinePoint *point;
+
+					if (spline->points_deform) {
+						point = &spline->points_deform[i];
+						BKE_mask_point_free(point);
+					}
+				}
+				if (spline->points_deform) {
+					MEM_freeN(spline->points_deform);
+				}
+
+				spline->points_deform = NULL;
+			}
+		}
+	}
+#endif
+
+	BKE_mask_evaluate(mask, ctime, FALSE);
 }
 
 void BKE_mask_evaluate_all_masks(Main *bmain, float ctime, const int do_newframe)

@@ -90,6 +90,8 @@ void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *u
 
 /* parenting */
 
+void BKE_mask_update_display(struct Mask *mask, float ctime);
+
 void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene, const int do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
