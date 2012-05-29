@@ -65,6 +65,7 @@ static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
 static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 {
 	int i;
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	if (!spline->tot_point)
 		return;
@@ -76,14 +77,15 @@ static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 	glBegin(GL_LINES);
 
 	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &spline->points[i];
+		MaskSplinePoint *point = &points_array[i];
+		BezTriple *bezt = &point->bezt;
 
 		if (point->parent.flag & MASK_PARENT_ACTIVE) {
-			glVertex2f(point->bezt.vec[1][0],
-			           point->bezt.vec[1][1]);
+			glVertex2f(bezt->vec[1][0],
+			           bezt->vec[1][1]);
 
-			glVertex2f(point->bezt.vec[1][0] - point->parent.offset[0],
-			           point->bezt.vec[1][1] - point->parent.offset[1]);
+			glVertex2f(bezt->vec[1][0] - point->parent.offset[0],
+			           bezt->vec[1][1] - point->parent.offset[1]);
 		}
 	}
 
@@ -95,6 +97,8 @@ static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 /* return non-zero if spline is selected */
 static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 	int i, hsize, tot_feather_point;
 	float *feather_points, *fp;
 
@@ -108,8 +112,11 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 	/* feather points */
 	feather_points = fp = BKE_mask_spline_feather_points(spline, &tot_feather_point);
 	for (i = 0; i < spline->tot_point; i++) {
-		int j;
+
+		/* watch it! this is intentionally not the deform array, only check for sel */
 		MaskSplinePoint *point = &spline->points[i];
+
+		int j;
 
 		for (j = 0; j < point->tot_uw + 1; j++) {
 			int sel = FALSE;
@@ -142,12 +149,17 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 
 	/* control points */
 	for (i = 0; i < spline->tot_point; i++) {
+
+		/* watch it! this is intentionally not the deform array, only check for sel */
 		MaskSplinePoint *point = &spline->points[i];
+		MaskSplinePoint *point_deform = &points_array[i];
+		BezTriple *bezt = &point_deform->bezt;
+
 		float handle[2];
-		float *vert = point->bezt.vec[1];
+		float *vert = bezt->vec[1];
 		int has_handle = BKE_mask_point_has_handle(point);
 
-		BKE_mask_point_handle(point, handle);
+		BKE_mask_point_handle(point_deform, handle);
 
 		/* draw handle segment */
 		if (has_handle) {

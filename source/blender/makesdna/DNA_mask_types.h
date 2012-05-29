@@ -59,6 +59,7 @@ typedef struct MaskParent {
 	                       * in case of parenting to movie tracking data contains name of track */
 	float offset[2];      /* offset from parent position, so object/control point can be parented to a
 	                       * motion track and also be animated (see ZanQdo's request below)  */
+	float parent_orig[2]; /* track location at the moment of parenting */
 } MaskParent;
 
 typedef struct MaskSplinePointUW {
@@ -83,6 +84,8 @@ typedef struct MaskSpline {
 	MaskParent parent;       /* parenting information of the whole spline */
 
 	int weight_interp, pad;  /* weight interpolation */
+
+	MaskSplinePoint *points_deform; /* deformed copy of 'points' BezTriple data - not saved */
 } MaskSpline;
 
 /* one per frame */

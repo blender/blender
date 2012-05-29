@@ -58,6 +58,25 @@
 
 #include "raskter.h"
 
+MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
+{
+	return spline->points_deform ? spline->points_deform : spline->points;
+}
+
+MaskSplinePoint *BKE_mask_spline_point_array_from_point(MaskSpline *spline, MaskSplinePoint *point_ref)
+{
+	if ((point_ref >= spline->points) && (point_ref < &spline->points[spline->tot_point])) {
+		return spline->points;
+	}
+
+	if ((point_ref >= spline->points_deform) && (point_ref < &spline->points_deform[spline->tot_point])) {
+		return spline->points_deform;
+	}
+
+	BLI_assert(!"wrong array");
+	return NULL;
+}
+
 /* mask objects */
 
 MaskObject *BKE_mask_object_new(Mask *mask, const char *name)
@@ -201,6 +220,8 @@ int BKE_mask_spline_feather_resolution(MaskSpline *spline)
 
 float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 	MaskSplinePoint *point, *prev;
 	float *diff_points, *fp;
 	int a, len, resol = BKE_mask_spline_resolution(spline);
@@ -227,7 +248,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 	if (spline->flag & MASK_SPLINE_CYCLIC)
 		a++;
 
-	prev = spline->points;
+	prev = points_array;
 	point = prev + 1;
 
 	while (a--) {
@@ -236,7 +257,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 		int j;
 
 		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC))
-			point = spline->points;
+			point = points_array;
 
 		prevbezt = &prev->bezt;
 		bezt = &point->bezt;
@@ -262,6 +283,8 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 
 float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 	float *feather, *fp;
 	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
 
@@ -269,7 +292,7 @@ float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *to
 	feather = fp = MEM_callocN(2 * tot * sizeof(float), "mask spline feather diff points");
 
 	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &spline->points[i];
+		MaskSplinePoint *point = &points_array[i];
 
 		for (j = 0; j < resol; j++, fp += 2) {
 			float u = (float) j / resol, weight;
@@ -291,12 +314,14 @@ float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *to
 
 float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 	int i, tot = 0;
 	float *feather, *fp;
 
 	/* count */
 	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &spline->points[i];
+		MaskSplinePoint *point = &points_array[i];
 
 		tot += point->tot_uw + 1;
 	}
@@ -305,7 +330,7 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point
 	feather = fp = MEM_callocN(2 * tot * sizeof(float), "mask spline feather points");
 
 	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &spline->points[i];
+		MaskSplinePoint *point = &points_array[i];
 		BezTriple *bezt = &point->bezt;
 		float weight, n[2];
 		int j;
@@ -431,15 +456,17 @@ float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *
 
 float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point, int *tot_diff_point)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
+
 	BezTriple *bezt, *next;
 	float *diff_points, *fp;
 	int j, resol = BKE_mask_spline_resolution(spline);
 
 	bezt = &point->bezt;
 
-	if (point == &spline->points[spline->tot_point - 1]) {
+	if (point == &points_array[spline->tot_point - 1]) {
 		if (spline->flag & MASK_SPLINE_CYCLIC)
-			next = &(spline->points[0].bezt);
+			next = &(points_array[0].bezt);
 		else
 			next = NULL;
 	}
@@ -465,12 +492,14 @@ float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point, i
 
 void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float u, float co[2])
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
+
 	BezTriple *bezt = &point->bezt, *next;
 	float q0[2], q1[2], q2[2], r0[2], r1[2];
 
-	if (point == &spline->points[spline->tot_point - 1]) {
+	if (point == &points_array[spline->tot_point - 1]) {
 		if (spline->flag & MASK_SPLINE_CYCLIC)
-			next = &(spline->points[0].bezt);
+			next = &(points_array[0].bezt);
 		else
 			next = NULL;
 	}
@@ -493,12 +522,14 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
 
 void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, float n[2])
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
+
 	BezTriple *bezt = &point->bezt, *next;
 	float q0[2], q1[2], q2[2], r0[2], r1[2], vec[2];
 
-	if (point == &spline->points[spline->tot_point - 1]) {
+	if (point == &points_array[spline->tot_point - 1]) {
 		if (spline->flag & MASK_SPLINE_CYCLIC)
-			next = &(spline->points[0].bezt);
+			next = &(points_array[0].bezt);
 		else
 			next = NULL;
 	}
@@ -531,13 +562,15 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, 
 
 float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 {
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
+
 	BezTriple *bezt = &point->bezt, *next;
 	float cur_u, cur_w, next_u, next_w, fac;
 	int i;
 
-	if (point == &spline->points[spline->tot_point - 1]) {
+	if (point == &points_array[spline->tot_point - 1]) {
 		if (spline->flag & MASK_SPLINE_CYCLIC)
-			next = &(spline->points[0].bezt);
+			next = &(points_array[0].bezt);
 		else
 			next = NULL;
 	}
@@ -686,12 +719,21 @@ void BKE_mask_spline_free(MaskSpline *spline)
 	int i = 0;
 
 	for (i = 0; i < spline->tot_point; i++) {
-		MaskSplinePoint *point = &spline->points[i];
-
+		MaskSplinePoint *point;
+		point = &spline->points[i];
 		BKE_mask_point_free(point);
+
+		if (spline->points_deform) {
+			point = &spline->points_deform[i];
+			BKE_mask_point_free(point);
+		}
 	}
 
 	MEM_freeN(spline->points);
+
+	if (spline->points_deform) {
+		MEM_freeN(spline->points_deform);
+	}
 
 	MEM_freeN(spline);
 }
@@ -812,7 +854,7 @@ void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_c
 	}
 }
 
-static int evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
+static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[2])
 {
 	if (!parent)
 		return FALSE;
@@ -844,6 +886,19 @@ static int evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
 	}
 
 	return FALSE;
+}
+
+int BKE_mask_evaluate_parent_delta(MaskParent *parent, float ctime, float r_delta[2])
+{
+	float parent_co[2];
+
+	if (BKE_mask_evaluate_parent(parent, ctime, parent_co)) {
+		sub_v2_v2v2(r_delta, parent->parent_orig, parent_co);
+		return TRUE;
+	}
+	else {
+		return FALSE;
+	}
 }
 
 static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *prev_point, MaskSplinePoint *next_point)
@@ -1057,6 +1112,63 @@ void BKE_mask_calc_handles(Mask *mask)
 	}
 }
 
+void BKE_mask_update_deform(Mask *mask)
+{
+	MaskObject *maskobj;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
+
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				const int i_prev = (i - 1) % spline->tot_point;
+				const int i_next = (i + 1) % spline->tot_point;
+
+				BezTriple *bezt_prev = &spline->points[i_prev].bezt;
+				BezTriple *bezt      = &spline->points[i     ].bezt;
+				BezTriple *bezt_next = &spline->points[i_next].bezt;
+
+				BezTriple *bezt_def_prev = &spline->points_deform[i_prev].bezt;
+				BezTriple *bezt_def      = &spline->points_deform[i     ].bezt;
+				BezTriple *bezt_def_next = &spline->points_deform[i_next].bezt;
+
+				float w_src[4];
+				int j;
+
+				for (j = 0; j <= 2; j += 2) { /* (0, 2) */
+					printf("--- %d %d, %d, %d\n", i, j, i_prev, i_next);
+					barycentric_weights_v2(bezt_prev->vec[1], bezt->vec[1], bezt_next->vec[1],
+					                       bezt->vec[j], w_src);
+					interp_v3_v3v3v3(bezt_def->vec[j],
+					                 bezt_def_prev->vec[1], bezt_def->vec[1], bezt_def_next->vec[1], w_src);
+				}
+			}
+		}
+	}
+}
+
+void BKE_mask_spline_ensure_deform(MaskSpline *spline)
+{
+// printf("SPLINE ALLOC %p %d\n", spline->points_deform, (int)(MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)));
+
+	if ((spline->points_deform == NULL) ||
+	    (MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)) != spline->tot_point)
+	{
+		printf("alloc new spline\n");
+
+		if (spline->points_deform) {
+			MEM_freeN(spline->points_deform);
+		}
+
+		spline->points_deform = MEM_mallocN(sizeof(*spline->points_deform) * spline->tot_point, __func__);
+	}
+	else {
+		printf("alloc spline done\n");
+	}
+}
+
 void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 {
 	MaskObject *maskobj;
@@ -1100,20 +1212,30 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 		/* animation done... */
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+
+			BKE_mask_spline_ensure_deform(spline);
+
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
-				float co[2];
+				MaskSplinePoint *point_deform = &spline->points_deform[i];
+				float delta[2];
 
-				if (evaluate_mask_parent(&point->parent, ctime, co)) {
-					BezTriple *bezt = &point->bezt;
-					float delta[2];
+				if (BKE_mask_evaluate_parent_delta(&point->parent, ctime, delta)) {
 
-					copy_v2_v2(co, bezt->vec[1]);
-					sub_v2_v2v2(delta, co, bezt->vec[1]);
+					*point_deform = *point;
+					point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
 
-					add_v2_v2(bezt->vec[0], delta);
-					add_v2_v2(bezt->vec[1], delta);
-					add_v2_v2(bezt->vec[2], delta);
+					print_v2("", delta);
+
+					sub_v2_v2(point_deform->bezt.vec[0], delta);
+					sub_v2_v2(point_deform->bezt.vec[1], delta);
+					add_v2_v2(point_deform->bezt.vec[2], delta);
+
+					//point_deform->bezt.vec[1][1] += 1;
+				}
+				else {
+					*point_deform = *point;
+					point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
 				}
 			}
 		}

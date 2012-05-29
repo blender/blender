@@ -39,6 +39,9 @@ struct MovieClip;
 struct MovieClipUser;
 struct Scene;
 
+struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
+struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(struct MaskSpline *spline, struct MaskSplinePoint *point_ref);
+
 /* mask objects */
 struct MaskObject *BKE_mask_object_new(struct Mask *mask, const char *name);
 struct MaskObject *BKE_mask_object_active(struct Mask *mask);

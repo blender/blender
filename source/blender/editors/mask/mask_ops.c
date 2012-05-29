@@ -144,17 +144,20 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 		MaskSpline *spline;
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *cur_point = &spline->points[i];
+				MaskSplinePoint *cur_point_deform = &points_array[i];
 				float cur_len, vec[2], handle[2];
 
-				vec[0] = cur_point->bezt.vec[1][0] * scalex;
-				vec[1] = cur_point->bezt.vec[1][1] * scaley;
+				vec[0] = cur_point_deform->bezt.vec[1][0] * scalex;
+				vec[1] = cur_point_deform->bezt.vec[1][1] * scaley;
 
 				if (BKE_mask_point_has_handle(cur_point)) {
-					BKE_mask_point_handle(cur_point, handle);
+					BKE_mask_point_handle(cur_point_deform, handle);
 					handle[0] *= scalex;
 					handle[1] *= scaley;
 
@@ -233,6 +236,8 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 		MaskSpline *spline;
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			//MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 			int i, tot_feather_point;
 			float *feather_points, *fp;
 

@@ -151,6 +151,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 					add_v2_v2(bezt->vec[2], tvec);
 
 					negate_v2_v2(point->parent.offset, tvec);
+					copy_v2_v2(point->parent.parent_orig, parmask_pos);
 				}
 			}
 		}

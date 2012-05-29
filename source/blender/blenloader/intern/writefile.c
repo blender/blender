@@ -2778,8 +2778,13 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 				for (spline = maskobj->splines.first; spline; spline = spline->next) {
 					int i;
 
+					void *points_deform = spline->points_deform;
+					spline->points_deform = NULL;
+
 					writestruct(wd, DATA, "MaskSpline", 1, spline);
 					writestruct(wd, DATA, "MaskSplinePoint", spline->tot_point, spline->points);
+
+					spline->points_deform = points_deform;
 
 					for (i = 0; i < spline->tot_point; i++) {
 						MaskSplinePoint *point = &spline->points[i];
