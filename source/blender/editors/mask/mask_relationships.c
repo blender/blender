@@ -112,6 +112,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	MovieTrackingObject *tracking;
 	/* done */
 
+	float marker_pos_ofs[2];
 	float parmask_pos[2];
 
 	if ((NULL == (sc = CTX_wm_space_clip(C))) ||
@@ -123,7 +124,9 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 		return OPERATOR_CANCELLED;
 	}
 
-	BKE_mask_coord_from_movieclip(clip, &sc->user, parmask_pos, marker->pos);
+	add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
+
+	BKE_mask_coord_from_movieclip(clip, &sc->user, parmask_pos, marker_pos_ofs);
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
@@ -134,8 +137,6 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (MASKPOINT_ISSEL(point)) {
-					BezTriple *bezt = &point->bezt;
-
 					point->parent.id_type = ID_MC;
 					point->parent.id = &clip->id;
 					strcpy(point->parent.parent, tracking->name);

@@ -876,7 +876,9 @@ static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[
 
 				if (track) {
 					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
-					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker->pos);
+					float marker_pos_ofs[2];
+					add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
+					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker_pos_ofs);
 
 					return TRUE;
 				}
@@ -1234,8 +1236,6 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 
 					*point_deform = *point;
 					point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
-
-					print_v2("", delta);
 
 					add_v2_v2(point_deform->bezt.vec[0], delta);
 					add_v2_v2(point_deform->bezt.vec[1], delta);
