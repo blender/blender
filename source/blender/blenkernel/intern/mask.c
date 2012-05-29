@@ -812,13 +812,13 @@ void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_c
 	}
 }
 
-static void evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
+static int evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
 {
 	if (!parent)
-		return;
+		return FALSE;
 
 	if ((parent->flag & MASK_PARENT_ACTIVE) == 0)
-		return;
+		return FALSE;
 
 	if (parent->id_type == ID_MC) {
 		if (parent->id) {
@@ -836,10 +836,14 @@ static void evaluate_mask_parent(MaskParent *parent, float ctime, float r_co[2])
 					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
 					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker->pos);
 					add_v2_v2(r_co, parent->offset);
+
+					return TRUE;
 				}
 			}
 		}
 	}
+
+	return FALSE;
 }
 
 static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *prev_point, MaskSplinePoint *next_point)
@@ -979,7 +983,7 @@ static void enforce_dist_v2_v2fl(float v1[2], const float v2[2], const float dis
 void BKE_mask_calc_handle_adjacent_length(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
 {
 	/* TODO! - make this interpolate between siblings - not always midpoint! */
-	int   length_tot = 0;
+	int length_tot = 0;
 	float length_average = 0.0f;
 
 	MaskSplinePoint *prev_point, *next_point;
@@ -1098,16 +1102,19 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
-				BezTriple *bezt = &point->bezt;
-				float co[2], delta[2];
+				float co[2];
 
-				copy_v2_v2(co, bezt->vec[1]);
-				evaluate_mask_parent(&point->parent, ctime, co);
-				sub_v2_v2v2(delta, co, bezt->vec[1]);
+				if (evaluate_mask_parent(&point->parent, ctime, co)) {
+					BezTriple *bezt = &point->bezt;
+					float delta[2];
 
-				add_v2_v2(bezt->vec[0], delta);
-				add_v2_v2(bezt->vec[1], delta);
-				add_v2_v2(bezt->vec[2], delta);
+					copy_v2_v2(co, bezt->vec[1]);
+					sub_v2_v2v2(delta, co, bezt->vec[1]);
+
+					add_v2_v2(bezt->vec[0], delta);
+					add_v2_v2(bezt->vec[1], delta);
+					add_v2_v2(bezt->vec[2], delta);
+				}
 			}
 		}
 	}
@@ -1220,7 +1227,7 @@ void BKE_mask_object_shape_to_mask(MaskObject *maskobj, MaskObjectShape *maskobj
 }
 
 BLI_INLINE void interp_v2_v2v2_flfl(float target[2], const float a[2], const float b[2],
-                              const float t, const float s)
+                                    const float t, const float s)
 {
 	target[0] = s * a[0] + t * b[0];
 	target[1] = s * a[1] + t * b[1];
