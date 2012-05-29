@@ -680,11 +680,11 @@ for tp, tn, tf in os.walk('release/text'):
 textinstall = env.Install(dir=env['BF_INSTALLDIR'], source=textlist)
 
 if  env['OURPLATFORM']=='darwin':
-        allinstall = [blenderinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, textinstall]
 elif env['OURPLATFORM']=='linux':
-        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall, iconinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall, iconinstall]
 else:
-        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, textinstall]
+        allinstall = [blenderinstall, dotblenderinstall, scriptinstall, textinstall]
 
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
     dllsources = []
