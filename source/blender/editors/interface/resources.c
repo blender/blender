@@ -1245,7 +1245,6 @@ void init_userdef_do_versions(void)
 	vDM_ColorBand_store((U.flag & USER_CUSTOM_RANGE) ? (&U.coba_weight) : NULL);
 
 	if (bmain->versionfile <= 191) {
-		BLI_strncpy(U.plugtexdir, U.textudir, sizeof(U.plugtexdir));
 		strcpy(U.sounddir, "/");
 	}
 	

@@ -101,28 +101,6 @@ typedef struct Strip {
 	StripColorBalance *color_balance;
 } Strip;
 
-
-typedef struct PluginSeq {
-	char name[1024]; /* 1024 = FILE_MAX */
-	void *handle;
-
-	char *pname;
-
-	int vars, version;
-
-	void *varstr;
-	float *cfra;
-
-	float data[32];
-
-	void *instance_private_data;
-	void **current_private_data;
-
-	void (*doit)(void);
-
-	void (*callback)(void);
-} PluginSeq;
-
 /* The sequence structure is the basic struct used by any strip. each of the strips uses a different sequence structure.*/
 /* WATCH IT: first part identical to ID (for use in ipo's) */
 
@@ -157,8 +135,6 @@ typedef struct Sequence {
 
 	float effect_fader;
 	float speed_fader;
-
-	PluginSeq *plugin;
 
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;

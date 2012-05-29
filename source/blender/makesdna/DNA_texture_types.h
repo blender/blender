@@ -44,7 +44,6 @@ extern "C" {
 
 struct AnimData;
 struct Ipo;
-struct PluginTex;
 struct ColorBand;
 struct EnvMap;
 struct Object;
@@ -103,30 +102,6 @@ typedef struct MTex {
  */
 typedef unsigned short dna_ushort_fix;
 #endif
-
-typedef struct PluginTex {
-	char name[1024];
-	void *handle;
-	
-	char *pname;
-	char *stnames;
-
-	int stypes;
-	int vars;
-	void *varstr;
-	float *result;
-	float *cfra;
-	
-	float data[32];
-
-	int (*doit)(void);
-	void (*instance_init)(void *);
-
-	/* should be void (*)(unsigned short)... patched */	
-	void (*callback)(dna_ushort_fix);
-	
-	int version, pad;
-} PluginTex;
 
 typedef struct CBData {
 	float r, g, b, a, pos;
@@ -267,7 +242,6 @@ typedef struct Tex {
 	struct bNodeTree *nodetree;
 	struct Ipo *ipo  DNA_DEPRECATED;  /* old animation system, deprecated for 2.5 */
 	struct Image *ima;
-	struct PluginTex *plugin;
 	struct ColorBand *coba;
 	struct EnvMap *env;
 	struct PreviewImage * preview;
