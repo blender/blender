@@ -229,7 +229,7 @@ typedef struct bNodeType {
 #define NODE_CLASS_CONVERTOR		8
 #define NODE_CLASS_MATTE			9
 #define NODE_CLASS_DISTORT			10
-#define NODE_CLASS_OP_DYNAMIC		11
+#define NODE_CLASS_OP_DYNAMIC		11 /* deprecated */
 #define NODE_CLASS_PATTERN			12
 #define NODE_CLASS_TEXTURE			13
 #define NODE_CLASS_EXECUTION		14
@@ -434,8 +434,6 @@ void			node_type_compatibility(struct bNodeType *ntype, short compatibility);
 #define NODE_FORLOOP	3
 #define NODE_WHILELOOP	4
 #define NODE_FRAME		5
-#define NODE_GROUP_MENU		10000
-#define NODE_DYNAMIC_MENU	20000
 
 /* look up a socket on a group node by the internal group socket */
 struct bNodeSocket *node_group_find_input(struct bNode *gnode, struct bNodeSocket *gsock);

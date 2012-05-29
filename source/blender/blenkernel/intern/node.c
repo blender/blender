@@ -135,20 +135,9 @@ void ntreeInitTypes(bNodeTree *ntree)
 	for (node= ntree->nodes.first; node; node= next) {
 		next= node->next;
 		
-		node->typeinfo= node_get_type(ntree, node->type);
-		
-		if (node->type==NODE_DYNAMIC) {
-			/* needed info if the pynode script fails now: */
-			node->storage= ntree;
-			if (node->id!=NULL) { /* not an empty script node */
-				node->custom1 = 0;
-				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ADDEXIST);
-			}
-//			if (node->typeinfo)
-//				node->typeinfo->initfunc(node);
-		}
+		node->typeinfo = node_get_type(ntree, node->type);
 
-		if (node->typeinfo==NULL) {
+		if (node->typeinfo == NULL) {
 			printf("Error: Node type %s doesn't exist anymore, removed\n", node->name);
 			nodeFreeNode(ntree, node);
 		}
@@ -352,26 +341,6 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	ntree->update |= NTREE_UPDATE_NODES;
 	
 	return node;
-}
-
-void nodeMakeDynamicType(bNode *node)
-{
-	/* find SH_DYNAMIC_NODE ntype */
-	bNodeType *ntype= ntreeGetType(NTREE_SHADER)->node_types.first;
-	while (ntype) {
-		if (ntype->type==NODE_DYNAMIC)
-			break;
-		ntype= ntype->next;
-	}
-
-	/* make own type struct to fill */
-	if (ntype) {
-		/*node->typeinfo= MEM_dupallocN(ntype);*/
-		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
-		*newtype= *ntype;
-		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
-		node->typeinfo= newtype;
-	}
 }
 
 /* keep socket listorder identical, for copying links */
@@ -1976,7 +1945,6 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_math(ttype);
 	register_node_type_sh_vect_math(ttype);
 	register_node_type_sh_squeeze(ttype);
-	//register_node_type_sh_dynamic(ttype);
 	register_node_type_sh_material_ext(ttype);
 	register_node_type_sh_invert(ttype);
 	register_node_type_sh_seprgb(ttype);
@@ -2069,30 +2037,12 @@ static void registerTextureNodes(bNodeTreeType *ttype)
 	register_node_type_tex_proc_distnoise(ttype);
 }
 
-static void free_dynamic_typeinfo(bNodeType *ntype)
-{
-	if (ntype->type==NODE_DYNAMIC) {
-		if (ntype->inputs) {
-			MEM_freeN(ntype->inputs);
-		}
-		if (ntype->outputs) {
-			MEM_freeN(ntype->outputs);
-		}
-		if (ntype->name) {
-			MEM_freeN((void *)ntype->name);
-		}
-	}
-}
-
 static void free_typeinfos(ListBase *list)
 {
 	bNodeType *ntype, *next;
 	for (ntype=list->first; ntype; ntype=next) {
 		next = ntype->next;
-		
-		if (ntype->type==NODE_DYNAMIC)
-			free_dynamic_typeinfo(ntype);
-		
+
 		if (ntype->needs_free)
 			MEM_freeN(ntype);
 	}
