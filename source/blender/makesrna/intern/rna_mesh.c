@@ -2152,7 +2152,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 
 	prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", NULL, NULL);
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");
