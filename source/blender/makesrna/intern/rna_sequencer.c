@@ -1374,7 +1374,7 @@ static void rna_def_effect_inputs(StructRNA *srna, int count)
 	}
 
 	/*
-	if (count == 3) { // not used by any effects ...except maybe plugins? 
+	if (count == 3) { // not used by any effects (perhaps one day plugins?)
 		prop = RNA_def_property(srna, "input_3",  PROP_POINTER, PROP_NONE);
 		RNA_def_property_pointer_sdna(prop, NULL, "seq3");
 		RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_NULL);

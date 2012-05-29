@@ -57,7 +57,6 @@
 #include "RNA_access.h"
 
 /* **** XXX **** */
-static void error(const char *UNUSED(error), ...) {}
 
 /* Glow effect */
 enum {

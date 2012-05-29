@@ -667,42 +667,6 @@ if env['OURPLATFORM']=='linuxcross':
 
     scriptinstall.append(env.Install(dir=dir, source=source))
 
-#-- plugins
-pluglist = []
-plugtargetlist = []
-for tp, tn, tf in os.walk('release/plugins'):
-    if '.svn' in tn:
-        tn.remove('.svn')
-    if '_svn' in tn:
-        tn.remove('_svn')
-    df = tp[8:] # remove 'release/'
-    for f in tf:
-        pluglist.append(os.path.join(tp, f))
-        plugtargetlist.append( os.path.join(env['BF_INSTALLDIR'], VERSION, df, f) )
-
-
-# header files for plugins
-pluglist.append('source/blender/blenpluginapi/documentation.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'documentation.h'))
-pluglist.append('source/blender/blenpluginapi/externdef.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'externdef.h'))
-pluglist.append('source/blender/blenpluginapi/floatpatch.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'floatpatch.h'))
-pluglist.append('source/blender/blenpluginapi/iff.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'iff.h'))
-pluglist.append('source/blender/blenpluginapi/plugin.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'plugin.h'))
-pluglist.append('source/blender/blenpluginapi/util.h')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'util.h'))
-pluglist.append('source/blender/blenpluginapi/plugin.DEF')
-plugtargetlist.append(os.path.join(env['BF_INSTALLDIR'], VERSION, 'plugins', 'include', 'plugin.def'))
-
-plugininstall = []
-# plugins in blender 2.5 don't work at the moment.
-#for targetdir,srcfile in zip(plugtargetlist, pluglist):
-#    td, tf = os.path.split(targetdir)
-#    plugininstall.append(env.Install(dir=td, source=srcfile))
-
 textlist = []
 texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
