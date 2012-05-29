@@ -2417,7 +2417,7 @@ static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), Poi
 	bNode *node= ptr->data;
 
 	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
-	uiItemR(layout, ptr, "dispill_factor", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "despill_factor", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "clip_black", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "clip_white", 0, NULL, ICON_NONE);
 	uiItemR(layout, ptr, "dilate_distance", 0, NULL, ICON_NONE);

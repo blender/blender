@@ -26,7 +26,7 @@
 #include "COM_ExecutionSystem.h"
 
 #include "COM_KeyingOperation.h"
-#include "COM_KeyingDispillOperation.h"
+#include "COM_KeyingDespillOperation.h"
 
 #include "COM_SeparateChannelOperation.h"
 #include "COM_CombineChannelsOperation.h"
@@ -135,18 +135,18 @@ OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket 
 	return dilateErodeOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupDispill(ExecutionSystem *graph, OutputSocket *dispillInput, InputSocket *inputScreen, float factor)
+OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, InputSocket *inputScreen, float factor)
 {
-	KeyingDispillOperation *dispillOperation = new KeyingDispillOperation();
+	KeyingDespillOperation *despillOperation = new KeyingDespillOperation();
 
-	dispillOperation->setDispillFactor(factor);
+	despillOperation->setDespillFactor(factor);
 
-	addLink(graph, dispillInput, dispillOperation->getInputSocket(0));
-	inputScreen->relinkConnections(dispillOperation->getInputSocket(1), 1, graph);
+	addLink(graph, despillInput, despillOperation->getInputSocket(0));
+	inputScreen->relinkConnections(despillOperation->getInputSocket(1), 1, graph);
 
-	graph->addOperation(dispillOperation);
+	graph->addOperation(despillOperation);
 
-	return dispillOperation->getOutputSocket(0);
+	return despillOperation->getOutputSocket(0);
 }
 
 void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
@@ -198,9 +198,9 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	postprocessedImage = alphaOperation->getOutputSocket();
 
-	/* dispill output image */
-	if (keying_data->dispill_factor > 0.0f) {
-		postprocessedImage = setupDispill(graph, postprocessedImage, inputScreen, keying_data->dispill_factor);
+	/* despill output image */
+	if (keying_data->despill_factor > 0.0f) {
+		postprocessedImage = setupDespill(graph, postprocessedImage, inputScreen, keying_data->despill_factor);
 	}
 
 	/* connect result to output sockets */

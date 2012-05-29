@@ -21,27 +21,27 @@
  *		Sergey Sharybin
  */
 
-#ifndef _COM_KeyingDispillOperation_h
-#define _COM_KeyingDispillOperation_h
+#ifndef _COM_KeyingDespillOperation_h
+#define _COM_KeyingDespillOperation_h
 
 #include "COM_NodeOperation.h"
 
 /**
-  * Class with implementation of keying dispill node
+  * Class with implementation of keying despill node
   */
-class KeyingDispillOperation : public NodeOperation {
+class KeyingDespillOperation : public NodeOperation {
 protected:
 	SocketReader *pixelReader;
 	SocketReader *screenReader;
-	float dispillFactor;
+	float despillFactor;
 
 public:
-	KeyingDispillOperation();
+	KeyingDespillOperation();
 
 	void initExecution();
 	void deinitExecution();
 
-	void setDispillFactor(float value) {this->dispillFactor = value;}
+	void setDespillFactor(float value) {this->despillFactor = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };

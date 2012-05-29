@@ -97,7 +97,7 @@ static void do_key(bNode *node, float *out, float *pixel, float *screen)
 	NodeKeyingData *data = node->storage;
 
 	float screen_balance = 0.5f;
-	float dispill_factor = data->dispill_factor;
+	float despill_factor = data->despill_factor;
 	float clip_black = data->clip_black;
 	float clip_white = data->clip_white;
 
@@ -109,7 +109,7 @@ static void do_key(bNode *node, float *out, float *pixel, float *screen)
 	if (primary_channel != screen_primary_channel) {
 		/* different main channel means pixel is on foreground,
 		 * but screen color still need to be despilled from it */
-		despil_pixel(out, pixel, screen, dispill_factor);
+		despil_pixel(out, pixel, screen, despill_factor);
 		out[3] = 1.0f;
 	}
 	else if (saturation >= screen_saturation) {
@@ -122,7 +122,7 @@ static void do_key(bNode *node, float *out, float *pixel, float *screen)
 	else {
 		float distance;
 
-		despil_pixel(out, pixel, screen, dispill_factor);
+		despil_pixel(out, pixel, screen, despill_factor);
 
 		distance = 1.0f - saturation / screen_saturation;
 
@@ -196,7 +196,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNo
 
 	data = MEM_callocN(sizeof(NodeKeyingData), "node keying data");
 
-	data->dispill_factor = 1.0f;
+	data->despill_factor = 1.0f;
 	data->clip_black = 0.0f;
 	data->clip_white = 1.0f;
 

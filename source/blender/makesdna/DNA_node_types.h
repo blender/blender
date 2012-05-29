@@ -622,7 +622,7 @@ typedef struct NodeKeyingScreenData {
 } NodeKeyingScreenData;
 
 typedef struct NodeKeyingData {
-	float dispill_factor;
+	float despill_factor;
 	float clip_black, clip_white;
 	int dilate_distance;
 	int blur_pre, blur_post;

@@ -21,7 +21,7 @@
  *		Sergey Sharybin
  */
 
-#include "COM_KeyingDispillOperation.h"
+#include "COM_KeyingDespillOperation.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -40,31 +40,31 @@ static int get_pixel_primary_channel(float *pixel)
 	return 2;
 }
 
-KeyingDispillOperation::KeyingDispillOperation(): NodeOperation()
+KeyingDespillOperation::KeyingDespillOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 
-	this->dispillFactor = 0.5f;
+	this->despillFactor = 0.5f;
 
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
 }
 
-void KeyingDispillOperation::initExecution()
+void KeyingDespillOperation::initExecution()
 {
 	this->pixelReader = this->getInputSocketReader(0);
 	this->screenReader = this->getInputSocketReader(1);
 }
 
-void KeyingDispillOperation::deinitExecution()
+void KeyingDespillOperation::deinitExecution()
 {
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
 }
 
-void KeyingDispillOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void KeyingDespillOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float pixelColor[4];
 	float screenColor[4];
@@ -83,7 +83,7 @@ void KeyingDispillOperation::executePixel(float *color, float x, float y, PixelS
 	color[2] = pixelColor[2];
 	color[3] = pixelColor[3];
 	
-	if (this->dispillFactor * amount > 0) {
-		color[screen_primary_channel] = pixelColor[screen_primary_channel] - this->dispillFactor * amount;
+	if (this->despillFactor * amount > 0) {
+		color[screen_primary_channel] = pixelColor[screen_primary_channel] - this->despillFactor * amount;
 	}
 }
