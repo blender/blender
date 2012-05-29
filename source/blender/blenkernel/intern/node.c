@@ -29,13 +29,6 @@
  *  \ingroup bke
  */
 
-
-#if 0 /* pynodes commented for now */
-#  ifdef WITH_PYTHON
-#    include <Python.h>
-#  endif
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include <stdlib.h>

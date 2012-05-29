@@ -570,9 +570,6 @@ void BKE_text_unlink(Main *bmain, Text *text)
 		if (update)
 			DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
-
-	/* pynodes */
-	// XXX nodeDynamicUnlinkText(&text->id);
 	
 	/* text space */
 	for (scr = bmain->screen.first; scr; scr = scr->id.next) {
