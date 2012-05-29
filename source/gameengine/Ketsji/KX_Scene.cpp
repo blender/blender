@@ -2267,7 +2267,10 @@ KX_PYMETHODDEF_DOC(KX_Scene, addObject,
 			!ConvertPythonToGameObject(pyother, &other, false, "scene.addObject(object, other, time): KX_Scene (second argument)") )
 		return NULL;
 
-
+    if (!m_inactivelist->SearchValue(ob)) {
+        PyErr_Format(PyExc_ValueError, "scene.addObject(object, other, time): KX_Scene (second argument): object does not belong to scene");
+        return NULL;
+    }
 	SCA_IObject* replica = AddReplicaObject((SCA_IObject*)ob, other, time);
 	
 	// release here because AddReplicaObject AddRef's

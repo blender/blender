@@ -23,7 +23,7 @@ elif sys.platform=='darwin':
 
 linearmath_src = env.Glob("LinearMath/*.cpp")
 
-bulletdyn_src = env.Glob("BulletDynamics/Vehicle/*.cpp") + env.Glob("BulletDynamics/ConstraintSolver/*.cpp") + env.Glob("BulletDynamics/Dynamics/*.cpp")
+bulletdyn_src = env.Glob("BulletDynamics/Vehicle/*.cpp") + env.Glob("BulletDynamics/ConstraintSolver/*.cpp") + env.Glob("BulletDynamics/Dynamics/*.cpp") + env.Glob("BulletDynamics/Character/*.cpp")
 
 collision_broadphase_src = env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
 collision_dispatch_src = env.Glob("BulletCollision/CollisionDispatch/*.cpp")

@@ -304,7 +304,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 {
 	/* todo: displacement, subdivision */
-	BL::ID b_ob_data = b_ob.data();
 	size_t size = mesh->verts.size();
 
 	/* skip objects without deforming modifiers. this is not a totally reliable,

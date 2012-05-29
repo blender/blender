@@ -72,6 +72,7 @@ struct KX_ObjectProperties
 	class KX_GameObject*	m_dynamic_parent;
 	bool	m_isactor;
 	bool	m_sensor;
+	bool	m_character;
 	bool	m_concave;
 	bool	m_isdeformable;
 	bool	m_disableSleeping;

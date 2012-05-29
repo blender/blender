@@ -135,7 +135,6 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 
 void BlenderSync::sync_integrator()
 {
-	BL::RenderSettings r = b_scene.render();
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);

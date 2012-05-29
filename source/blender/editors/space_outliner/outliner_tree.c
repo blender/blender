@@ -897,24 +897,16 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		 */
 		te->idcode = seq->type;
 		te->directdata = seq;
+		te->name = seq->name + 2;
 
-		if (seq->type < 7) {
+		if (seq->type < SEQ_EFFECT) {
 			/*
 			 * This work like the sequence.
 			 * If the sequence have a name (not default name)
 			 * show it, in other case put the filename.
 			 */
-			if (strcmp(seq->name, "SQ"))
-				te->name = seq->name;
-			else {
-				if ((seq->strip) && (seq->strip->stripdata))
-					te->name = seq->strip->stripdata->name;
-				else
-					te->name = "SQ None";
-			}
 
 			if (seq->type == SEQ_META) {
-				te->name = "Meta Strip";
 				p = seq->seqbase.first;
 				while (p) {
 					outliner_add_element(soops, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);
@@ -924,8 +916,6 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 			else
 				outliner_add_element(soops, &te->subtree, (void *)seq->strip, te, TSE_SEQ_STRIP, index);
 		}
-		else
-			te->name = "Effect";
 	}
 	else if (type == TSE_SEQ_STRIP) {
 		Strip *strip = (Strip *)idv;

@@ -2974,16 +2974,16 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 			copy_v3_v3(v1, l[0]->v->co);
 			copy_v3_v3(v2, l[1]->v->co);
 			copy_v3_v3(v3, l[2]->v->co);
+			add_v3_v3(vmid, v1);
+			add_v3_v3(vmid, v2);
+			add_v3_v3(vmid, v3);
+			n += 3;
 			if (do_global) {
 				mul_mat3_m4_v3(ob->obmat, v1);
 				mul_mat3_m4_v3(ob->obmat, v2);
 				mul_mat3_m4_v3(ob->obmat, v3);
 			}
 			area += area_tri_v3(v1, v2, v3);
-			add_v3_v3(vmid, v1);
-			add_v3_v3(vmid, v2);
-			add_v3_v3(vmid, v3);
-			n += 3;
 		}
 
 		if (f) {
@@ -3030,16 +3030,15 @@ static void draw_em_measure_stats(View3D *v3d, Object *ob, BMEditMesh *em, UnitS
 							mul_mat3_m4_v3(ob->obmat, v3);
 
 							angle = angle_v3v3v3(v1, v2, v3);
-							interp_v3_v3v3(fvec, vmid, v2, 0.8f);
 							copy_v3_v3(v1, v2);
 							copy_v3_v3(v2, v3);
 						}
 						else {
 							angle = angle_v3v3v3(loop->prev->v->co, loop->v->co, loop->next->v->co);
-							interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
 						}
 
 						BLI_snprintf(numstr, sizeof(numstr), "%.3f", is_rad ? angle : RAD2DEGF(angle));
+						interp_v3_v3v3(fvec, vmid, loop->v->co, 0.8f);
 						view3d_cached_text_draw_add(fvec, numstr, 0, txt_flag, col);
 					}
 				}

@@ -835,6 +835,9 @@ Object *BKE_object_add_only_object(int type, const char *name)
 	/* ob->pad3 == Contact Processing Threshold */
 	ob->m_contactProcessingThreshold = 1.0f;
 	ob->obstacleRad = 1.0f;
+	ob->step_height = 0.15f;
+	ob->jump_speed = 10.0f;
+	ob->fall_speed = 55.0f;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;

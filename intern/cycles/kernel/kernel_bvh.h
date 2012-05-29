@@ -74,10 +74,10 @@ __device_inline void bvh_instance_push(KernelGlobals *kg, int object, const Ray 
 
 __device_inline void bvh_instance_pop(KernelGlobals *kg, int object, const Ray *ray, float3 *P, float3 *idir, float *t, const float tmax)
 {
-	Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_TRANSFORM);
-
-	if(*t != FLT_MAX)
+	if(*t != FLT_MAX) {
+		Transform tfm = object_fetch_transform(kg, object, ray->time, OBJECT_TRANSFORM);
 		*t *= len(transform_direction(&tfm, 1.0f/(*idir)));
+	}
 
 	*P = ray->P;
 	*idir = bvh_inverse_direction(ray->D);

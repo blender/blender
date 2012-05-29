@@ -2100,8 +2100,7 @@ static char *wpaint_make_validmap(Object *ob)
 					if (chan->bone->flag & BONE_NO_DEFORM)
 						continue;
 
-					if (BLI_ghash_haskey(gh, chan->name)) {
-						BLI_ghash_remove(gh, chan->name, NULL, NULL);
+					if (BLI_ghash_remove(gh, chan->name, NULL, NULL)) {
 						BLI_ghash_insert(gh, chan->name, SET_INT_IN_POINTER(1));
 					}
 				}

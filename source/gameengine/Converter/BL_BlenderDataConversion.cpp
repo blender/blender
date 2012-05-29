@@ -1346,6 +1346,11 @@ static PHY_ShapeProps *CreateShapePropsFromBlenderObject(struct Object* blendero
 	shapeProps->m_clamp_vel_min = blenderobject->min_vel;
 	shapeProps->m_clamp_vel_max = blenderobject->max_vel;
 	
+//  Character physics properties
+	shapeProps->m_step_height = blenderobject->step_height;
+	shapeProps->m_jump_speed = blenderobject->jump_speed;
+	shapeProps->m_fall_speed = blenderobject->fall_speed;
+	
 	return shapeProps;
 }
 
@@ -1638,6 +1643,7 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	objprop.m_dyna = (blenderobject->gameflag & OB_DYNAMIC) != 0;
 	objprop.m_softbody = (blenderobject->gameflag & OB_SOFT_BODY) != 0;
 	objprop.m_angular_rigidbody = (blenderobject->gameflag & OB_RIGID_BODY) != 0;
+	objprop.m_character = (blenderobject->gameflag & OB_CHARACTER) != 0;
 	
 	///contact processing threshold is only for rigid bodies and static geometry, not 'dynamic'
 	if (objprop.m_angular_rigidbody || !objprop.m_dyna )
@@ -1752,6 +1758,11 @@ void BL_CreatePhysicsObjectNew(KX_GameObject* gameobj,
 	if ((blenderobject->gameflag & OB_SOFT_BODY) && !(blenderobject->gameflag & OB_BOUNDS))
 	{
 		objprop.m_boundclass = KX_BOUNDMESH;
+	}
+
+	if ((blenderobject->gameflag & OB_CHARACTER) && !(blenderobject->gameflag & OB_BOUNDS))
+	{
+		objprop.m_boundclass = KX_BOUNDSPHERE;
 	}
 
 	KX_BoxBounds bb;

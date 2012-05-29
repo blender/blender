@@ -29,4 +29,10 @@
 
 #define SEQ_ZOOM_FAC(szoom) ((szoom) > 0.0f) ? (szoom) : ((szoom) == 0.0f) ? (1.0f) : (-1.0f / (szoom))
 
+struct Scene;
+struct Sequence;
+
+void ED_sequencer_select_sequence_single(struct Scene *scene, struct Sequence *seq, int deselect_all);
+void ED_sequencer_deselect_all(struct Scene *scene);
+
 #endif /*  __ED_SEQUENCER_H__ */
