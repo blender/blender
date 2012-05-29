@@ -267,7 +267,7 @@ static void draw_maskobjs(Mask *mask)
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 
-			BKE_mask_spline_ensure_deform(spline);
+//			BKE_mask_spline_ensure_deform(spline);
 
 			/* draw curve itself first... */
 			draw_spline_curve(maskobj, spline);
