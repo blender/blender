@@ -126,6 +126,7 @@ void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryB
 	color[0] = color[0]*value[0] + in2[0] * mval;
 	color[1] = color[1]*value[0] + in2[1] * mval;
 	color[2] = color[2]*value[0] + in2[2] * mval;
+	color[3] = color[3]*value[0] + in2[3] * mval;
 }
 
 bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
