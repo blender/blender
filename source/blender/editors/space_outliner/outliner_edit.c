@@ -1453,7 +1453,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	ARegion *ar = CTX_wm_region(C);
 	Main *bmain = CTX_data_main(C);
-	Scene *scene = CTX_data_scene(C);
+	Scene *scene = NULL;
 	TreeElement *te = NULL;
 	TreeElement *te_found = NULL;
 	char childname[MAX_ID_NAME];
@@ -1485,10 +1485,12 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			return OPERATOR_CANCELLED;
 		}
 		
-		/* check dragged object (child) is active */
-		if (ob != CTX_data_active_object(C))
-			ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
-		
+		scene = (Scene *)outliner_search_back(soops, te_found, ID_SCE);
+
+		if(scene == NULL) {
+			return OPERATOR_CANCELLED;
+		}
+
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {
 			if (ED_object_parent_set(op->reports, bmain, scene, ob, par, partype)) {
 				DAG_scene_sort(bmain, scene);
@@ -1654,19 +1656,31 @@ int outliner_dropzone_parent_clear(bContext *C, wmEvent *event, TreeElement *te,
 
 static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 {
-	Scene *scene = CTX_data_scene(C);
+	Main *bmain = CTX_data_main(C);
+	Scene *scene = NULL;
 	Object *ob = NULL;
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te;
 	char obname[MAX_ID_NAME];
 
 	RNA_string_get(op->ptr, "dragged_obj", obname);
 	ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
 
-	/* check dragged object (child) is active */
-	if (ob != CTX_data_active_object(C))
-		ED_base_object_select(BKE_scene_base_find(scene, ob), BA_SELECT);
+	/* search forwards to find the object */
+	te = outliner_find_id(soops, &soops->tree, (ID *)ob);
+	/* then search backwards to get the scene */
+	scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
-	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
+	if(scene == NULL) {
+		return OPERATOR_CANCELLED;
+	}
 
+	ED_object_parent_clear(ob, RNA_enum_get(op->ptr, "type"));
+
+	DAG_scene_sort(bmain, scene);
+	DAG_ids_flush_update(bmain, 0);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
 	return OPERATOR_FINISHED;
 }
 
@@ -1735,8 +1749,12 @@ static int scene_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 		RNA_string_get(op->ptr, "object", obname);
 		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
-		
-		base = ED_object_scene_link(op->reports, scene, ob);
+
+		if (ELEM(NULL, ob, scene) || scene->id.lib != NULL) {
+			return OPERATOR_CANCELLED;
+		}
+
+		base = ED_object_scene_link(scene, ob);
 
 		if (base == NULL) {
 			return OPERATOR_CANCELLED;

@@ -41,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -51,6 +52,9 @@
 #include "BIF_gl.h"
 
 #include "RNA_access.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -91,7 +95,13 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 			for (te = soops->tree.first; te; te = te->next) {
 				TreeElement *te_valid;
 				te_valid = outliner_dropzone_parent(C, event, te, fmval);
-				if (te_valid) return 1;
+				if (te_valid) {
+					/* check that parent/child are both in the same scene */
+					Scene *scene = (Scene *)outliner_search_back(soops, te_valid, ID_SCE);
+					if (BKE_scene_base_find(scene, (Object *)id)) {
+						return 1;
+					}
+				}
 			}
 		}
 	}
@@ -117,7 +127,9 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {
-			//TODO: Check if no parent?
+			if (((Object *)id)->parent == NULL) {
+				return 0;
+			}
 			/* Ensure location under cursor is valid dropzone */
 			for (te = soops->tree.first; te; te = te->next) {
 				if (outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;

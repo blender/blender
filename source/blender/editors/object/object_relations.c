@@ -424,27 +424,35 @@ EnumPropertyItem prop_clear_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-void ED_object_parent_clear(bContext *C, int type)
+void ED_object_parent_clear(Object *ob, int type)
+{
+
+	if (ob->parent == NULL)
+		return;
+		
+	if (type == 0) {
+		ob->parent = NULL;
+	}
+	else if (type == 1) {
+		ob->parent = NULL;
+		BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+	}
+	else if (type == 2)
+		unit_m4(ob->parentinv);
+		
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+}
+
+/* note, poll should check for editable scene */
+static int parent_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	int type = RNA_enum_get(op->ptr, "type");
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (ob->parent == NULL)
-			continue;
-		
-		if (type == 0) {
-			ob->parent = NULL;
-		}
-		else if (type == 1) {
-			ob->parent = NULL;
-			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
-		}
-		else if (type == 2)
-			unit_m4(ob->parentinv);
-		
-		ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+		ED_object_parent_clear(ob, type);
 	}
 	CTX_DATA_END;
 
@@ -452,13 +460,6 @@ void ED_object_parent_clear(bContext *C, int type)
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
-}
-
-/* note, poll should check for editable scene */
-static int parent_clear_exec(bContext *C, wmOperator *op)
-{
-	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
-
 	return OPERATOR_FINISHED;
 }
 
@@ -1195,22 +1196,11 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 }
 #endif
 
-Base *ED_object_scene_link(ReportList *reports, Scene *scene, Object *ob)
+Base *ED_object_scene_link(Scene *scene, Object *ob)
 {
 	Base *base;
 
-	if (ELEM(NULL, ob, scene)) {
-		BKE_report(reports, RPT_ERROR, "Couldn't find scene");
-		return NULL;
-	}
-
 	if (BKE_scene_base_find(scene, ob)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name + 2, scene->id.name + 2);
-		return NULL;
-	}
-
-	if (scene->id.lib) {
-		BKE_report(reports, RPT_ERROR, "Can't link objects into a linked scene");
 		return NULL;
 	}
 
@@ -1225,16 +1215,24 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 	Main *bmain = CTX_data_main(C);
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
+	if (scene_to == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find scene");
+		return OPERATOR_CANCELLED;
+	}
+
 	if (scene_to == CTX_data_scene(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
+	if (scene_to->id.lib) {
+		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
+		return OPERATOR_CANCELLED;
+	}
+
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		if (ED_object_scene_link(op->reports, scene_to, base->object) == NULL) {
-			return OPERATOR_CANCELLED;
-		}
+		ED_object_scene_link(scene_to, base->object);
 	}
 	CTX_DATA_END;
 
