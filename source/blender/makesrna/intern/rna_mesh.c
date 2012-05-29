@@ -1061,7 +1061,7 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 	for (a = 0, dvert = me->dvert; a < me->totvert; a++, dvert++)
 		for (b = 0; b < dvert->totweight; b++)
 			if (dw == &dvert->dw[b])
-				return BLI_sprintfN("verts[%d].groups[%d]", a, b);
+				return BLI_sprintfN("vertices[%d].groups[%d]", a, b);
 
 	return NULL;
 }
