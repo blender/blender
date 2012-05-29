@@ -1195,33 +1195,45 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 }
 #endif
 
+Base *ED_object_scene_link(ReportList *reports, Scene *scene, Object *ob)
+{
+	Base *base;
+
+	if (ELEM(NULL, ob, scene)) {
+		BKE_report(reports, RPT_ERROR, "Couldn't find scene");
+		return NULL;
+	}
+
+	if (BKE_scene_base_find(scene, ob)) {
+		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name + 2, scene->id.name + 2);
+		return NULL;
+	}
+
+	if (scene->id.lib) {
+		BKE_report(reports, RPT_ERROR, "Can't link objects into a linked scene");
+		return NULL;
+	}
+
+	base = BKE_scene_base_add(scene, ob);
+	id_us_plus(&ob->id);
+
+	return base;
+}
+
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
-
-	if (scene_to == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Scene not found");
-		return OPERATOR_CANCELLED;
-	}
 
 	if (scene_to == CTX_data_scene(C)) {
 		BKE_report(op->reports, RPT_ERROR, "Can't link objects into the same scene");
 		return OPERATOR_CANCELLED;
 	}
 
-	if (scene_to->id.lib) {
-		BKE_report(op->reports, RPT_ERROR, "Can't link objects into a linked scene");
-		return OPERATOR_CANCELLED;
-	}
-
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		if (!BKE_scene_base_find(scene_to, base->object)) {
-			Base *nbase = MEM_mallocN(sizeof(Base), "newbase");
-			*nbase = *base;
-			BLI_addhead(&(scene_to->base), nbase);
-			id_us_plus((ID *)base->object);
+		if (ED_object_scene_link(op->reports, scene_to, base->object) == NULL) {
+			return OPERATOR_CANCELLED;
 		}
 	}
 	CTX_DATA_END;

@@ -1426,8 +1426,7 @@ TreeElement *outliner_dropzone_parent(bContext *C, wmEvent *event, TreeElement *
 		/* name and first icon */
 		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
 			/* always makes active object */
-			if (te->idcode == ID_OB &&
-			    !ELEM4(tselem->type, TSE_MODIFIER_BASE, TSE_MODIFIER, TSE_CONSTRAINT_BASE, TSE_CONSTRAINT)) {
+			if (te->idcode == ID_OB && tselem->type == 0) {
 				return te;
 			}
 			else {
@@ -1689,4 +1688,93 @@ void OUTLINER_OT_parent_clear(wmOperatorType *ot)
 	/* properties */
 	RNA_def_string(ot->srna, "dragged_obj", "Object", MAX_ID_NAME, "Child", "Child Object");
 	RNA_def_enum(ot->srna, "type", prop_clear_parent_types, 0, "Type", "");
+}
+
+TreeElement *outliner_dropzone_scene(bContext *C, wmEvent *UNUSED(event), TreeElement *te, float *fmval)
+{
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeStoreElem *tselem = TREESTORE(te);
+
+	if ((fmval[1] > te->ys) && (fmval[1] < (te->ys + UI_UNIT_Y))) {
+		/* name and first icon */
+		if ((fmval[0] > te->xs + UI_UNIT_X) && (fmval[0] < te->xend)) {
+			if (te->idcode == ID_SCE && tselem->type == 0) {
+				return te;
+			}
+		}
+	}
+	return NULL;
+}
+
+static int scene_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Scene *scene = NULL;
+	Object *ob = NULL;
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ARegion *ar = CTX_wm_region(C);
+	Main *bmain = CTX_data_main(C);
+	TreeElement *te = NULL;
+	TreeElement *te_found = NULL;
+	char obname[MAX_ID_NAME];
+	float fmval[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	/* Find object hovered over */
+	for (te = soops->tree.first; te; te = te->next) {
+		te_found = outliner_dropzone_scene(C, event, te, fmval);
+		if (te_found)
+			break;
+	}
+
+	if (te_found) {
+		Base *base;
+
+		RNA_string_set(op->ptr, "scene", te_found->name);
+		scene = (Scene *)BKE_libblock_find_name(ID_SCE, te_found->name);
+
+		RNA_string_get(op->ptr, "object", obname);
+		ob = (Object *)BKE_libblock_find_name(ID_OB, obname);
+		
+		base = ED_object_scene_link(op->reports, scene, ob);
+
+		if (base == NULL) {
+			return OPERATOR_CANCELLED;
+		}
+
+		if (scene == CTX_data_scene(C)) {
+			/* when linking to an inactive scene don't touch the layer */
+			ob->lay = base->lay;
+			ED_base_object_select(base, BA_SELECT);
+		}
+
+		DAG_scene_sort(bmain, scene);
+		DAG_ids_flush_update(bmain, 0);
+
+		WM_main_add_notifier(NC_SCENE | ND_OB_SELECT, scene);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_scene_drop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Drop Object to Scene";
+	ot->description = "Drag object to scene in Outliner";
+	ot->idname = "OUTLINER_OT_scene_drop";
+
+	/* api callbacks */
+	ot->invoke = scene_drop_invoke;
+
+	ot->poll = ED_operator_outliner_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
+	RNA_def_string(ot->srna, "scene", "Scene", MAX_ID_NAME, "Scene", "Target Scene");
 }

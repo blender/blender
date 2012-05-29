@@ -304,6 +304,7 @@ EnumPropertyItem image_color_depth_items[] = {
 #include "ED_mesh.h"
 #include "ED_keyframing.h"
 #include "ED_image.h"
+#include "ED_object.h"
 
 #include "RE_engine.h"
 
@@ -338,24 +339,17 @@ static PointerRNA rna_Scene_objects_get(CollectionPropertyIterator *iter)
 static Base *rna_Scene_object_link(Scene *scene, bContext *C, ReportList *reports, Object *ob)
 {
 	Scene *scene_act = CTX_data_scene(C);
-	Base *base;
+	Base *base = ED_object_scene_link(reports, scene, ob);
 
-	if (BKE_scene_base_find(scene, ob)) {
-		BKE_reportf(reports, RPT_ERROR, "Object \"%s\" is already in scene \"%s\"", ob->id.name + 2, scene->id.name + 2);
+	if (base == NULL) {
 		return NULL;
 	}
-
-	base = BKE_scene_base_add(scene, ob);
-	id_us_plus(&ob->id);
-
-	/* this is similar to what object_add_type and BKE_object_add do */
-	base->lay = scene->lay;
 
 	/* when linking to an inactive scene don't touch the layer */
 	if (scene == scene_act)
 		ob->lay = base->lay;
 
-	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+	/* ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME; */
 
 	/* slows down importers too much, run scene.update() */
 	/* DAG_scene_sort(G.main, scene); */
