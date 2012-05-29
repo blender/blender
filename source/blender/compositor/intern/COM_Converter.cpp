@@ -352,6 +352,7 @@ case CMP_NODE_OUTPUT_FILE:
 		break;
 	case CMP_NODE_MASK:
 		node = new MaskNode(bNode);
+		break;
 	case CMP_NODE_KEYINGSCREEN:
 		node = new KeyingScreenNode(bNode);
 		break;
