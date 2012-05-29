@@ -155,6 +155,7 @@ void composit4_pixel_processor(bNode *node, CompBuf *out, CompBuf *src1_buf, flo
 									  int src1_type, int fac1_type, int src2_type, int fac2_type);
 
 CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel);
+void valbuf_to_rgbabuf(CompBuf *valbuf, CompBuf *cbuf, int channel);
 void generate_preview(void *data, bNode *node, CompBuf *stackbuf);
 
 void do_copy_rgba(bNode *node, float *out, float *in);
@@ -220,6 +221,9 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy);
 #define CMP_SCALE_MAX	12000
 
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type);
+void node_composit_blur_single_image(bNode *node, int filtertype, int sizex, int sizey, CompBuf *new, CompBuf *img, float scale);
+void node_composite_morpho_dilate(CompBuf *cbuf);
+void node_composite_morpho_erode(CompBuf *cbuf);
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc);
 
 #endif

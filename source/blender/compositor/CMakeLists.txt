@@ -331,6 +331,18 @@ set(SRC
 
 	operations/COM_DoubleEdgeMaskOperation.cpp
 	operations/COM_DoubleEdgeMaskOperation.h
+
+	nodes/COM_KeyingNode.cpp
+	nodes/COM_KeyingNode.h
+	nodes/COM_KeyingScreenNode.cpp
+	nodes/COM_KeyingScreenNode.h
+	operations/COM_KeyingOperation.cpp
+	operations/COM_KeyingOperation.h
+	operations/COM_KeyingScreenOperation.cpp
+	operations/COM_KeyingScreenOperation.h
+	operations/COM_KeyingDispillOperation.cpp
+	operations/COM_KeyingDispillOperation.h
+
 operations/COM_ColorSpillOperation.cpp
 operations/COM_ColorSpillOperation.h
 		operations/COM_RenderLayersBaseProg.cpp

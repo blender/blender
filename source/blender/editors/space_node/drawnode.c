@@ -2394,6 +2394,36 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
 }
 
+static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, NULL, NULL);
+
+	if (node->id) {
+		MovieClip *clip = (MovieClip *) node->id;
+		uiLayout *col;
+		PointerRNA tracking_ptr;
+
+		RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
+
+		col = uiLayoutColumn(layout, 1);
+		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+	}
+}
+
+static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "dispill_factor", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "clip_black", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "clip_white", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "dilate_distance", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "blur_post", 0, NULL, ICON_NONE);
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2586,7 +2616,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_MASK:
 			ntype->uifunc= node_composit_buts_mask;
 			break;
-
+		case CMP_NODE_KEYINGSCREEN:
+			ntype->uifunc = node_composit_buts_keyingscreen;
+			break;
+		case CMP_NODE_KEYING:
+			ntype->uifunc = node_composit_buts_keying;
+			break;
 		default:
 			ntype->uifunc = NULL;
 	}

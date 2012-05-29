@@ -85,9 +85,8 @@ static float *make_bloomtab(int rad)
 }
 
 /* both input images of same type, either 4 or 1 channel */
-static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float scale)
+void node_composit_blur_single_image(bNode *node, int filtertype, int sizex, int sizey, CompBuf *new, CompBuf *img, float scale)
 {
-	NodeBlurData *nbd= node->storage;
 	CompBuf *work;
 	register float sum, val;
 	float rval, gval, bval, aval;
@@ -101,17 +100,17 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 	work= alloc_compbuf(imgx, imgy, img->type, 1); /* allocs */
 
 	/* horizontal */
-	if (nbd->sizex == 0) {
+	if (sizex == 0) {
 		memcpy(work->rect, img->rect, sizeof(float) * img->type * imgx * imgy);
 	}
 	else {
-		rad = scale*(float)nbd->sizex;
+		rad = scale*(float)sizex;
 		if (rad>imgx/2)
 			rad= imgx/2;
 		else if (rad<1)
 			rad= 1;
 		
-		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstab= make_gausstab(filtertype, rad);
 		gausstabcent= gausstab+rad;
 		
 		for (y = 0; y < imgy; y++) {
@@ -152,17 +151,17 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 		MEM_freeN(gausstab);
 	}
 	
-	if (nbd->sizey == 0) {
+	if (sizey == 0) {
 		memcpy(new->rect, work->rect, sizeof(float) * img->type * imgx * imgy);
 	}
 	else {
-		rad = scale*(float)nbd->sizey;
+		rad = scale*(float)sizey;
 		if (rad>imgy/2)
 			rad= imgy/2;
 		else if (rad<1)
 			rad= 1;
 	
-		gausstab= make_gausstab(nbd->filtertype, rad);
+		gausstab= make_gausstab(filtertype, rad);
 		gausstabcent= gausstab+rad;
 		
 		bigstep = pix*imgx;
@@ -205,6 +204,13 @@ static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float sca
 	}
 
 	free_compbuf(work);
+}
+
+static void blur_single_image(bNode *node, CompBuf *new, CompBuf *img, float scale)
+{
+	NodeBlurData *nbd = node->storage;
+
+	node_composit_blur_single_image(node, nbd->filtertype, nbd->sizex, nbd->sizey, new, img, scale);
 }
 
 /* reference has to be mapped 0-1, and equal in size */

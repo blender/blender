@@ -112,6 +112,8 @@
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_CropNode.h"
 #include "COM_MaskNode.h"
+#include "COM_KeyingScreenNode.h"
+#include "COM_KeyingNode.h"
 
 Node *Converter::convert(bNode *bNode)
 {
@@ -350,6 +352,11 @@ case CMP_NODE_OUTPUT_FILE:
 		break;
 	case CMP_NODE_MASK:
 		node = new MaskNode(bNode);
+	case CMP_NODE_KEYINGSCREEN:
+		node = new KeyingScreenNode(bNode);
+		break;
+	case CMP_NODE_KEYING:
+		node = new KeyingNode(bNode);
 		break;
 	/* not inplemented yet */
 	default:

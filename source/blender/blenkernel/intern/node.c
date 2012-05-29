@@ -1926,6 +1926,8 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_color_spill(ttype);
 	register_node_type_cmp_luma_matte(ttype);
 	register_node_type_cmp_doubleedgemask(ttype);
+	register_node_type_cmp_keyingscreen(ttype);
+	register_node_type_cmp_keying(ttype);
 
 	register_node_type_cmp_translate(ttype);
 	register_node_type_cmp_rotate(ttype);

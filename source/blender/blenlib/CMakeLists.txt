@@ -89,6 +89,7 @@ set(SRC
 	intern/time.c
 	intern/uvproject.c
 	intern/voxel.c
+	intern/voronoi.c
 	intern/winstuff.c
 
 	BLI_args.h

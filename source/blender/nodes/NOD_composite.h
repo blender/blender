@@ -81,6 +81,7 @@ void register_node_type_cmp_bilateralblur(struct bNodeTreeType *ttype);
 void register_node_type_cmp_vecblur(struct bNodeTreeType *ttype);
 void register_node_type_cmp_dilateerode(struct bNodeTreeType *ttype);
 void register_node_type_cmp_defocus(struct bNodeTreeType *ttype);
+void register_node_type_cmp_denoise(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_valtorgb(struct bNodeTreeType *ttype);
 void register_node_type_cmp_rgbtobw(struct bNodeTreeType *ttype);
@@ -105,6 +106,8 @@ void register_node_type_cmp_channel_matte(struct bNodeTreeType *ttype);
 void register_node_type_cmp_color_spill(struct bNodeTreeType *ttype);
 void register_node_type_cmp_luma_matte(struct bNodeTreeType *ttype); 
 void register_node_type_cmp_doubleedgemask(struct bNodeTreeType *ttype);
+void register_node_type_cmp_keyingscreen(struct bNodeTreeType *ttype);
+void register_node_type_cmp_keying(struct bNodeTreeType *ttype);
 
 void register_node_type_cmp_translate(struct bNodeTreeType *ttype);
 void register_node_type_cmp_rotate(struct bNodeTreeType *ttype);
