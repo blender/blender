@@ -57,8 +57,6 @@ typedef struct MaskParent {
 	                       * in case of parenting to movie tracking data contains name of object */
 	char sub_parent[64];  /* sub-entity of parent to which parenting happened
 	                       * in case of parenting to movie tracking data contains name of track */
-	float offset[2];      /* offset from parent position, so object/control point can be parented to a
-	                       * motion track and also be animated (see ZanQdo's request below)  */
 	float parent_orig[2]; /* track location at the moment of parenting */
 } MaskParent;
 

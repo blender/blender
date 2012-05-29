@@ -135,7 +135,6 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 
 				if (MASKPOINT_ISSEL(point)) {
 					BezTriple *bezt = &point->bezt;
-					float tvec[2];
 
 					point->parent.id_type = ID_MC;
 					point->parent.id = &clip->id;
@@ -144,13 +143,6 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 
 					point->parent.flag |= MASK_PARENT_ACTIVE;
 
-					sub_v2_v2v2(tvec, parmask_pos, bezt->vec[1]);
-
-					add_v2_v2(bezt->vec[0], tvec);
-					add_v2_v2(bezt->vec[1], tvec);
-					add_v2_v2(bezt->vec[2], tvec);
-
-					negate_v2_v2(point->parent.offset, tvec);
 					copy_v2_v2(point->parent.parent_orig, parmask_pos);
 				}
 			}

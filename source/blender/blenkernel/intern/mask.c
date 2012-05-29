@@ -877,7 +877,6 @@ static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[
 				if (track) {
 					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
 					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker->pos);
-					add_v2_v2(r_co, parent->offset);
 
 					return TRUE;
 				}

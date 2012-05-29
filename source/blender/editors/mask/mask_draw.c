@@ -62,6 +62,7 @@ static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
 	}
 }
 
+#if 0
 static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 {
 	int i;
@@ -93,6 +94,7 @@ static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 
 	glDisable(GL_LINE_STIPPLE);
 }
+#endif
 
 /* return non-zero if spline is selected */
 static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
@@ -272,7 +274,7 @@ static void draw_maskobjs(Mask *mask)
 			/* draw curve itself first... */
 			draw_spline_curve(maskobj, spline);
 
-			draw_spline_parents(maskobj, spline);
+//			draw_spline_parents(maskobj, spline);
 
 			/* ...and then handles over the curve so they're nicely visible */
 			draw_spline_points(maskobj, spline);
@@ -283,7 +285,7 @@ static void draw_maskobjs(Mask *mask)
 
 				spline->points_deform = NULL;
 				draw_spline_curve(maskobj, spline);
-				draw_spline_parents(maskobj, spline);
+//				draw_spline_parents(maskobj, spline);
 				draw_spline_points(maskobj, spline);
 				spline->points_deform = back;
 			}
