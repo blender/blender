@@ -89,6 +89,48 @@ void ED_mask_mouse_pos(bContext *C, wmEvent *event, float co[2])
 	}
 }
 
+/* input:  x/y   - mval space
+ * output: xr/yr - mask point space */
+void ED_mask_point_pos(bContext *C, float x, float y, float *xr, float *yr)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	float co[2];
+
+	if (sc) {
+		ED_clip_point_stable_pos(C, x, y, &co[0], &co[1]);
+		BKE_mask_coord_from_movieclip(sc->clip, &sc->user, co, co);
+	}
+	else {
+		/* possible other spaces from which mask editing is available */
+		zero_v2(co);
+	}
+
+	*xr = co[0];
+	*yr = co[1];
+}
+
+void ED_mask_point_pos__reverse(bContext *C, float x, float y, float *xr, float *yr)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	ARegion *ar = CTX_wm_region(C);
+
+	float co[2];
+
+	if (sc && ar) {
+		co[0] = x;
+		co[1] = y;
+		BKE_mask_coord_to_movieclip(sc->clip, &sc->user, co, co);
+		ED_clip_point_stable_pos__reverse(sc, ar, co, co);
+	}
+	else {
+		/* possible other spaces from which mask editing is available */
+		zero_v2(co);
+	}
+
+	*xr = co[0];
+	*yr = co[1];
+}
+
 void ED_mask_size(bContext *C, int *width, int *height)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -158,6 +200,8 @@ void ED_operatortypes_mask(void)
 	/* select */
 	WM_operatortype_append(MASK_OT_select);
 	WM_operatortype_append(MASK_OT_select_all);
+	WM_operatortype_append(MASK_OT_select_border);
+	WM_operatortype_append(MASK_OT_select_lasso);
 
 	/* shape */
 	WM_operatortype_append(MASK_OT_slide_point);
@@ -203,6 +247,13 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	WM_keymap_add_item(keymap, "MASK_OT_select_border", BKEY, KM_PRESS, 0, 0);
+
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	/* select clip while in maker view,
 	 * this matches View3D functionality where you can select an

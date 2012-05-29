@@ -71,6 +71,10 @@ void MASK_OT_parent_clear(struct wmOperatorType *ot);
 void MASK_OT_select(struct wmOperatorType *ot);
 void MASK_OT_select_all(struct wmOperatorType *ot);
 
+void MASK_OT_select_border(struct wmOperatorType *ot);
+void MASK_OT_select_lasso(struct wmOperatorType *ot);
+void MASK_OT_select_circle(struct wmOperatorType *ot);
+
 int ED_mask_spline_select_check(struct MaskSplinePoint *points, int tot_point);
 int ED_mask_select_check(struct Mask *mask);
 
@@ -86,6 +90,9 @@ void ED_mask_aspect(struct bContext *C, float *aspx, float *aspy);
 
 void ED_mask_pixelspace_factor(struct bContext *C, float *scalex, float *scaley);
 void ED_mask_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
+
+void ED_mask_point_pos(struct bContext *C, float x, float y, float *xr, float *yr);
+void ED_mask_point_pos__reverse(struct bContext *C, float x, float y, float *xr, float *yr);
 
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
