@@ -117,7 +117,6 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 		case BL::ShaderNode::type_MATERIAL: break;
 		case BL::ShaderNode::type_MATERIAL_EXT: break;
 		case BL::ShaderNode::type_OUTPUT: break;
-		case BL::ShaderNode::type_SCRIPT: break;
 		case BL::ShaderNode::type_SQUEEZE: break;
 		case BL::ShaderNode::type_TEXTURE: break;
 		/* handled outside this function */

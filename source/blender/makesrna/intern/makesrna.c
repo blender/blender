@@ -3123,7 +3123,7 @@ int main(int argc, char **argv)
 		return_status = 1;
 	}
 	else {
-		fprintf(stderr, "Running makesrna");
+		fprintf(stderr, "Running makesrna\n");
 		makesrna_path = argv[0];
 		return_status = rna_preprocess(argv[1]);
 	}

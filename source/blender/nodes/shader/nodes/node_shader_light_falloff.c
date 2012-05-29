@@ -30,8 +30,8 @@
 /* **************** INPUT ********************* */
 
 static bNodeSocketTemplate sh_node_light_falloff_in[]= {
-	{	SOCK_FLOAT, 0, "Strength",			100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, "Smooth",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, "Strength",			100.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000000.0f},
+	{	SOCK_FLOAT, 0, "Smooth",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 

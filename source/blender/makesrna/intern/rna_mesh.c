@@ -1061,7 +1061,7 @@ static char *rna_VertexGroupElement_path(PointerRNA *ptr)
 	for (a = 0, dvert = me->dvert; a < me->totvert; a++, dvert++)
 		for (b = 0; b < dvert->totweight; b++)
 			if (dw == &dvert->dw[b])
-				return BLI_sprintfN("verts[%d].groups[%d]", a, b);
+				return BLI_sprintfN("vertices[%d].groups[%d]", a, b);
 
 	return NULL;
 }
@@ -1703,6 +1703,12 @@ static void rna_def_mloopuv(BlenderRNA *brna)
 	                                  "rna_iterator_array_end", "rna_iterator_array_get",
 	                                  "rna_MeshUVLoopLayer_data_length", NULL, NULL, NULL);
 
+	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
+	RNA_def_struct_name_property(srna, prop);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Name", "Name of UV map");
+	RNA_def_property_update(prop, 0, "rna_Mesh_update_data");
+
 	srna = RNA_def_struct(brna, "MeshUVLoop", NULL);
 	RNA_def_struct_sdna(srna, "MLoopUV");
 	RNA_def_struct_path_func(srna, "rna_MeshUVLoop_path");
@@ -2152,7 +2158,7 @@ void rna_def_texmat_common(StructRNA *srna, const char *texspace_editable)
 
 	prop = RNA_def_property(srna, "texspace_location", PROP_FLOAT, PROP_TRANSLATION);
 	RNA_def_property_float_sdna(prop, NULL, "loc");
-	RNA_def_property_ui_text(prop, "Texure Space Location", "Texture space location");
+	RNA_def_property_ui_text(prop, "Texture Space Location", "Texture space location");
 	RNA_def_property_float_funcs(prop, "rna_Mesh_texspace_loc_get", NULL, NULL);
 	RNA_def_property_editable_func(prop, texspace_editable);
 	RNA_def_property_update(prop, 0, "rna_Mesh_update_draw");

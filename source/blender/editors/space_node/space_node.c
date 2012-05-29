@@ -226,11 +226,6 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 			}
 			break;
-		case NC_TEXT:
-			/* pynodes */
-			if (wmn->data==ND_SHADING)
-				ED_area_tag_refresh(sa);
-			break;
 		case NC_SPACE:
 			if (wmn->data==ND_SPACE_NODE)
 				ED_area_tag_refresh(sa);

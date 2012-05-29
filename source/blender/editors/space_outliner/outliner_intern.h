@@ -190,7 +190,7 @@ void item_rename_cb(struct bContext *C, struct Scene *scene, TreeElement *te, st
 
 TreeElement *outliner_dropzone_parent(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
 int outliner_dropzone_parent_clear(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
-
+TreeElement *outliner_dropzone_scene(struct bContext *C, struct wmEvent *event, struct TreeElement *te, float *fmval);
 /* ...................................................... */
 
 void OUTLINER_OT_item_activate(struct wmOperatorType *ot);
@@ -220,6 +220,7 @@ void OUTLINER_OT_drivers_delete_selected(struct wmOperatorType *ot);
 
 void OUTLINER_OT_parent_drop(struct wmOperatorType *ot);
 void OUTLINER_OT_parent_clear(struct wmOperatorType *ot);
+void OUTLINER_OT_scene_drop(struct wmOperatorType *ot);
 
 /* outliner_tools.c ---------------------------------------------- */
 

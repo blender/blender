@@ -740,20 +740,7 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	strip->us = 1;
 
-	if (seq->type == SEQ_PLUGIN) {
-		char path[FILE_MAX];
-		RNA_string_get(op->ptr, "filepath", path);
-
-		sh.init_plugin(seq, path);
-
-		if (seq->plugin == NULL) {
-			BLI_remlink(ed->seqbasep, seq);
-			seq_free_sequence(scene, seq);
-			BKE_reportf(op->reports, RPT_ERROR, "Sequencer plugin \"%s\" could not load", path);
-			return OPERATOR_CANCELLED;
-		}
-	}
-	else if (seq->type == SEQ_COLOR) {
+	if (seq->type == SEQ_COLOR) {
 		SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 		RNA_float_get_array(op->ptr, "color", colvars->col);
 		seq->blend_mode = SEQ_CROSS; /* so alpha adjustment fade to the strip below */
@@ -824,14 +811,7 @@ static int sequencer_add_effect_strip_invoke(bContext *C, wmOperator *op, wmEven
 
 	sequencer_generic_invoke_xy__internal(C, op, event, prop_flag);
 
-	if (is_type_set && type == SEQ_PLUGIN) {
-		/* only plugins need the file selector */
-		WM_event_add_fileselect(C, op);
-		return OPERATOR_RUNNING_MODAL;
-	}
-	else {
-		return sequencer_add_effect_strip_exec(C, op);
-	}
+	return sequencer_add_effect_strip_exec(C, op);
 }
 
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)

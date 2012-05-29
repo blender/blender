@@ -237,7 +237,7 @@ typedef struct ThemeSpace {
 	char syntaxv[4], syntaxc[4];
 	
 	char movie[4], movieclip[4], image[4], scene[4], audio[4];		// for sequence editor
-	char effect[4], plugin[4], transition[4], meta[4];
+	char effect[4], hpad0[4], transition[4], meta[4];
 	char editmesh_active[4]; 
 
 	char handle_vertex[4];
@@ -334,8 +334,6 @@ typedef struct UserDef {
 	char fontdir[768];
 	char renderdir[1024]; /* FILE_MAX length */
 	char textudir[768];
-	char plugtexdir[768];
-	char plugseqdir[768];
 	char pythondir[768];
 	char sounddir[768];
 	char image_editor[1024];	/* 1024 = FILE_MAX */

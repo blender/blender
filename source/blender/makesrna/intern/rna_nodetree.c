@@ -1069,15 +1069,7 @@ static void alloc_node_type_items(EnumPropertyItem *items, int category)
 			item++;
 		}
 	}
-	
-	item->value = NODE_DYNAMIC;
-	item->identifier = "SCRIPT";
-	item->icon = 0;
-	item->name = "Script";
-	item->description = "";
-	
-	item++;
-	
+
 	item->value = NODE_GROUP;
 	item->identifier = "GROUP";
 	item->icon = 0;

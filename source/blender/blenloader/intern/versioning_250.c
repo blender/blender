@@ -88,7 +88,7 @@
 #include "BKE_pointcache.h"
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
-#include "BKE_texture.h" // for open_plugin_tex
+#include "BKE_texture.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
 

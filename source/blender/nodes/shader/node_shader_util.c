@@ -88,7 +88,7 @@ void ntreeShaderGetTexcoMode(bNodeTree *ntree, int r_mode, short *texco, int *mo
 		if (node->type==SH_NODE_TEXTURE) {
 			if ((r_mode & R_OSA) && node->id) {
 				Tex *tex= (Tex *)node->id;
-				if (ELEM3(tex->type, TEX_IMAGE, TEX_PLUGIN, TEX_ENVMAP)) {
+				if (ELEM(tex->type, TEX_IMAGE, TEX_ENVMAP)) {
 					*texco |= TEXCO_OSA|NEED_UV;
 				}
 			}

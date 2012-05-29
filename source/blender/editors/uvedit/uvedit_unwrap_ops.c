@@ -98,19 +98,14 @@ static int ED_uvedit_ensure_uvs(bContext *C, Scene *scene, Object *obedit)
 	SpaceLink *slink;
 	SpaceImage *sima;
 
-	if (ED_uvedit_test(obedit)) {
+	if (ED_uvedit_test(obedit))
 		return 1;
-	}
 
-	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY)) {
-		BM_data_layer_add(em->bm, &em->bm->pdata, CD_MTEXPOLY);
-		BM_data_layer_add(em->bm, &em->bm->ldata, CD_MLOOPUV);
-		ED_mesh_uv_loop_reset_ex(C, obedit->data, 0);
-	}
+	if (em && em->bm->totface && !CustomData_has_layer(&em->bm->pdata, CD_MTEXPOLY))
+		ED_mesh_uv_texture_add(C, obedit->data, NULL, TRUE);
 
-	if (!ED_uvedit_test(obedit)) {
+	if (!ED_uvedit_test(obedit))
 		return 0;
-	}
 
 	ima = CTX_data_edit_image(C);
 

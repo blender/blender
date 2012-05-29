@@ -150,8 +150,6 @@ static int print_version(int argc, const char **argv, void *data);
 
 /* for the callbacks: */
 
-extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
-
 #define BLEND_VERSION_STRING_FMT                                              \
 	"Blender %d.%02d (sub %d)\n",                                             \
 	BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION              \
@@ -263,7 +261,6 @@ static int print_help(int UNUSED(argc), const char **UNUSED(argv), void *data)
 	BLI_argsPrintArgDoc(ba, "--env-system-config");
 	BLI_argsPrintArgDoc(ba, "--env-system-datafiles");
 	BLI_argsPrintArgDoc(ba, "--env-system-scripts");
-	BLI_argsPrintArgDoc(ba, "--env-system-plugins");
 	BLI_argsPrintArgDoc(ba, "--env-system-python");
 	printf("\n");
 	BLI_argsPrintArgDoc(ba, "-nojoystick");
@@ -1107,7 +1104,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 #endif
 
 	BLI_argsAdd(ba, 1, "-y", "--enable-autoexec", "\n\tEnable automatic python script execution" PY_ENABLE_AUTO, enable_python, NULL);
-	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers, pyconstraints, pynodes)" PY_DISABLE_AUTO, disable_python, NULL);
+	BLI_argsAdd(ba, 1, "-Y", "--disable-autoexec", "\n\tDisable automatic python script execution (pydrivers & startup scripts)" PY_DISABLE_AUTO, disable_python, NULL);
 
 #undef PY_ENABLE_AUTO
 #undef PY_DISABLE_AUTO
@@ -1138,7 +1135,6 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	/* TODO, add user env vars? */
 	BLI_argsAdd(ba, 1, NULL, "--env-system-datafiles",  "\n\tSet the "STRINGIFY_ARG (BLENDER_SYSTEM_DATAFILES)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-scripts",    "\n\tSet the "STRINGIFY_ARG (BLENDER_SYSTEM_SCRIPTS)" environment variable", set_env, NULL);
-	BLI_argsAdd(ba, 1, NULL, "--env-system-plugins",    "\n\tSet the "STRINGIFY_ARG (BLENDER_SYSTEM_PLUGINS)" environment variable", set_env, NULL);
 	BLI_argsAdd(ba, 1, NULL, "--env-system-python",     "\n\tSet the "STRINGIFY_ARG (BLENDER_SYSTEM_PYTHON)" environment variable", set_env, NULL);
 
 	/* second pass: custom window stuff */
@@ -1256,11 +1252,6 @@ int main(int argc, const char **argv)
 
 	RNA_init();
 	RE_engines_init();
-
-	/* Hack - force inclusion of the plugin api functions,
-	 * see blenpluginapi:pluginapi.c
-	 */
-	pluginapi_force_ref();
 
 	init_nodesystem();
 	

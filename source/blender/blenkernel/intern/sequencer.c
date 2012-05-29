@@ -929,16 +929,6 @@ const char *give_seqname(Sequence *seq)
 		if (seq->type < SEQ_EFFECT) {
 			return seq->strip->dir;
 		}
-		else if (seq->type == SEQ_PLUGIN) {
-			if (!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
-			    seq->plugin && seq->plugin->doit)
-			{
-				return seq->plugin->pname;
-			}
-			else {
-				return "Plugin";
-			}
-		}
 		else {
 			return "Effect";
 		}
