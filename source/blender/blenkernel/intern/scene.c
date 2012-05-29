@@ -516,6 +516,9 @@ Scene *BKE_scene_add(const char *name)
 	sce->gm.maxlogicstep = 5;
 	sce->gm.physubstep = 1;
 	sce->gm.maxphystep = 5;
+	sce->gm.lineardeactthreshold = 0.8f;
+	sce->gm.angulardeactthreshold = 1.0f;
+	sce->gm.deactivationtime = 0.0f;
 
 	sce->gm.flag = GAME_DISPLAY_LISTS;
 	sce->gm.matmode = GAME_MAT_MULTITEX;

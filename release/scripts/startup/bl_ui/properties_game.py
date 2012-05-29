@@ -622,6 +622,14 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             col.prop(gs, "logic_step_max", text="Max")
 
             col = layout.column()
+            col.label(text="Physics Deactivation:")
+            sub = col.row(align=True)
+            sub.prop(gs, "deactivation_linear_threshold", text="Linear Threshold")
+            sub.prop(gs, "deactivation_angular_threshold", text="Angular Threshold")
+            sub = col.row()
+            sub.prop(gs, "deactivation_time", text="Time")
+
+            col = layout.column()
             col.prop(gs, "use_occlusion_culling", text="Occlusion Culling")
             sub = col.column()
             sub.active = gs.use_occlusion_culling

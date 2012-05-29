@@ -201,7 +201,7 @@ typedef struct Object {
 	float rdamping, sizefac;
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
-	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
+	float min_vel; /* clamp the minimum velocity 0.0 is disabled */
 	float m_contactProcessingThreshold;
 	float obstacleRad;
 	

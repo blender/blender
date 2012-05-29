@@ -60,8 +60,8 @@ extern float gDeactivationTime;
 extern bool gDisableDeactivation;
 
 
-float gLinearSleepingTreshold = 0.8f;
-float gAngularSleepingTreshold = 1.0f;
+float gLinearSleepingTreshold;
+float gAngularSleepingTreshold;
 
 
 btVector3 startVel(0,0,0);//-10000);
@@ -519,6 +519,7 @@ void CcdPhysicsController::CreateRigidbody()
 			body->setAngularFactor(0.f);
 		}
 		body->setContactProcessingThreshold(m_cci.m_contactProcessingThreshold);
+		body->setSleepingThresholds(gLinearSleepingTreshold, gAngularSleepingTreshold);
 
 	}
 	if (m_object && m_cci.m_do_anisotropic)
