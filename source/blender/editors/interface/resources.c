@@ -378,8 +378,6 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->audio; break;
 				case TH_SEQ_EFFECT:
 					cp = ts->effect; break;
-				case TH_SEQ_PLUGIN:
-					cp = ts->plugin; break;
 				case TH_SEQ_TRANSITION:
 					cp = ts->transition; break;
 				case TH_SEQ_META:
@@ -775,7 +773,6 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tseq.scene,  78, 152, 62, 255);
 	rgba_char_args_set(btheme->tseq.audio,  46, 143, 143, 255);
 	rgba_char_args_set(btheme->tseq.effect,     169, 84, 124, 255);
-	rgba_char_args_set(btheme->tseq.plugin,     126, 126, 80, 255);
 	rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
 	rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
 	rgba_char_args_set(btheme->tseq.preview_back,   0, 0, 0, 255);
@@ -1369,7 +1366,6 @@ void init_userdef_do_versions(void)
 				rgba_char_args_set(btheme->tseq.scene,  78, 152, 62, 255);
 				rgba_char_args_set(btheme->tseq.audio,  46, 143, 143, 255);
 				rgba_char_args_set(btheme->tseq.effect,     169, 84, 124, 255);
-				rgba_char_args_set(btheme->tseq.plugin,     126, 126, 80, 255);
 				rgba_char_args_set(btheme->tseq.transition, 162, 95, 111, 255);
 				rgba_char_args_set(btheme->tseq.meta,   109, 145, 131, 255);
 			}

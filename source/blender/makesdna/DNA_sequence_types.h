@@ -339,7 +339,7 @@ typedef struct SpeedControlVars {
 #define SEQ_GAMCROSS	13
 #define SEQ_MUL			14
 #define SEQ_OVERDROP	15
-#define SEQ_PLUGIN		24
+// #define SEQ_PLUGIN		24 /* Deprecated */
 #define SEQ_WIPE		25
 #define SEQ_GLOW		26
 #define SEQ_TRANSFORM		27

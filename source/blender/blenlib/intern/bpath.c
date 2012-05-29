@@ -493,11 +493,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_TE:
 		{
 			Tex *tex = (Tex *)id;
-			if (tex->plugin) {
-				/* FIXME: rewrite_path assumes path length of FILE_MAX, but
-				 * tex->plugin->name is 160. ... is this field even a path? */
-				//rewrite_path(tex->plugin->name, visit_cb, bpath_user_data);
-			}
 			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
 				rewrite_path_fixed(tex->vd->source_path, visit_cb, absbase, bpath_user_data);
 			}
@@ -537,9 +532,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							/* simple case */
 							rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, bpath_user_data);
 						}
-					}
-					else if (seq->plugin) {
-						rewrite_path_fixed(seq->plugin->name, visit_cb, absbase, bpath_user_data);
 					}
 
 				}

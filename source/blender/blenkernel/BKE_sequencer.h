@@ -113,9 +113,8 @@ enum {
 
 struct SeqEffectHandle {
 	/* constructors & destructor */
-	/* init & init_plugin are _only_ called on first creation */
+	/* init is _only_ called on first creation */
 	void (*init)(struct Sequence *seq);
-	void (*init_plugin)(struct Sequence *seq, const char *fname);
 	
 	/* number of input strips needed 
 	 * (called directly after construction) */

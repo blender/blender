@@ -138,7 +138,6 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
-#include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
@@ -3164,17 +3163,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 {
 	tex->adt = newdataadr(fd, tex->adt);
 	direct_link_animdata(fd, tex->adt);
-	
-	tex->plugin = newdataadr(fd, tex->plugin);
-	if (tex->plugin) {
-		tex->plugin->handle = NULL;
-		open_plugin_tex(tex->plugin);
-		/* initialize data for this instance, if an initialization
-		 * function exists.
-		 */
-		if (tex->plugin->instance_init)
-			tex->plugin->instance_init((void *)tex->plugin->data);
-	}
+
 	tex->coba = newdataadr(fd, tex->coba);
 	tex->env = newdataadr(fd, tex->env);
 	if (tex->env) {
@@ -4957,7 +4946,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
-			seq->plugin = newdataadr(fd, seq->plugin);
 			seq->effectdata = newdataadr(fd, seq->effectdata);
 			
 			if (seq->type & SEQ_EFFECT)

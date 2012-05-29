@@ -150,8 +150,6 @@ static int print_version(int argc, const char **argv, void *data);
 
 /* for the callbacks: */
 
-extern int pluginapi_force_ref(void);  /* from blenpluginapi:pluginapi.c */
-
 #define BLEND_VERSION_STRING_FMT                                              \
 	"Blender %d.%02d (sub %d)\n",                                             \
 	BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION              \
@@ -1256,11 +1254,6 @@ int main(int argc, const char **argv)
 
 	RNA_init();
 	RE_engines_init();
-
-	/* Hack - force inclusion of the plugin api functions,
-	 * see blenpluginapi:pluginapi.c
-	 */
-	pluginapi_force_ref();
 
 	init_nodesystem();
 	

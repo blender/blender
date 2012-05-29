@@ -201,7 +201,6 @@ set(SRC
 	BKE_packedFile.h
 	BKE_paint.h
 	BKE_particle.h
-	BKE_plugin_types.h
 	BKE_pointcache.h
 	BKE_property.h
 	BKE_report.h

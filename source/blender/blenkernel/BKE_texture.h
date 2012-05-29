@@ -48,7 +48,6 @@ struct Material;
 struct MTex;
 struct OceanTex;
 struct ParticleSettings;
-struct PluginTex;
 struct PointDensity;
 struct Tex;
 struct TexMapping;
@@ -60,10 +59,6 @@ struct World;
 
 
 void BKE_texture_free(struct Tex *t); 
-int test_dlerr(const char *name,  const char *symbol);
-void open_plugin_tex(struct PluginTex *pit);
-struct PluginTex *add_plugin_tex(char *str);
-void free_plugin_tex(struct PluginTex *pit);
 
 void init_colorband(struct ColorBand *coba, int rangetype);
 struct ColorBand *add_colorband(int rangetype);

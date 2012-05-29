@@ -324,7 +324,7 @@ typedef struct ColorMapping {
 #define TEX_STUCCI		6
 #define TEX_NOISE		7
 #define TEX_IMAGE		8
-#define TEX_PLUGIN		9
+//#define TEX_PLUGIN		9 /* Deprecated */
 #define TEX_ENVMAP		10
 #define TEX_MUSGRAVE	11
 #define TEX_VORONOI		12
