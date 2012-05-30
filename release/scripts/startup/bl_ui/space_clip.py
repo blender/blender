@@ -75,8 +75,15 @@ class CLIP_HT_header(Header):
         row.template_ID(sc, "clip", open='clip.open')
 
         if sc.mode == 'MASKEDITING':
+            toolsettings = context.tool_settings
+
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
+            
+            row = layout.row(align=True)
+            row.prop(toolsettings, "use_proportional_edit_mask", text="", icon_only=True)
+            if toolsettings.use_proportional_edit_objects:
+                row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
 
         if clip:
             tracking = clip.tracking

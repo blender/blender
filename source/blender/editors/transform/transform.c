@@ -1517,6 +1517,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		{
 			if (t->obedit)
 				ts->proportional = proportional;
+			else if (t->options & CTX_MASK)
+				ts->proportional_mask = (proportional != PROP_EDIT_OFF);
 			else
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
@@ -1650,13 +1652,8 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		t->draw_handle_cursor = WM_paint_cursor_activate(CTX_wm_manager(C), helpline_poll, drawHelpline, t);
 	}
 	else if (t->spacetype == SPACE_CLIP) {
-		SpaceClip *sc = CTX_wm_space_clip(C);
 		unit_m3(t->spacemtx);
 		t->draw_handle_view = ED_region_draw_cb_activate(t->ar->type, drawTransformView, t, REGION_DRAW_POST_VIEW);
-		if (ED_space_clip_show_trackedit(sc))
-			t->options |= CTX_MOVIECLIP;
-		else if (ED_space_clip_show_maskedit(sc))
-			t->options |= CTX_MASK;
 	}
 	else
 		unit_m3(t->spacemtx);

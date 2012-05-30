@@ -1127,6 +1127,11 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		SpaceClip *sclip = sa->spacedata.first;
 		t->view = &ar->v2d;
 		t->around = sclip->around;
+
+		if (ED_space_clip_show_trackedit(sclip))
+			t->options |= CTX_MOVIECLIP;
+		else if (ED_space_clip_show_maskedit(sclip))
+			t->options |= CTX_MASK;
 	}
 	else {
 		if (ar) {
@@ -1187,6 +1192,15 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 						if (ts->proportional == PROP_EDIT_CONNECTED) {
 							t->flag |= T_PROP_CONNECTED;
+						}
+					}
+					else if (t->options & CTX_MASK) {
+						if (ts->proportional_mask) {
+							t->flag |= T_PROP_EDIT;
+
+							if (ts->proportional == PROP_EDIT_CONNECTED) {
+								t->flag |= T_PROP_CONNECTED;
+							}
 						}
 					}
 					else if (t->obedit == NULL && ts->proportional_objects) {
