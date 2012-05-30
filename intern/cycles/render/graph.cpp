@@ -340,7 +340,8 @@ void ShaderGraph::remove_proxy_nodes(vector<bool>& removed)
 
 				foreach(ShaderInput *input, inputs) {
 					disconnect(input);
-					connect(output, input);
+					if (output)
+						connect(output, input);
 				}
 			}
 		}
