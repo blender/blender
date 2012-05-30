@@ -197,6 +197,9 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 			if (!(base->flag & SELECT)) {
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
+				if (base == BASACT) {
+					ED_base_object_activate(C, NULL);
+				}
 			}
 		}	
 	}
