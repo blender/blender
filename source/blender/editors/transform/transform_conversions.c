@@ -5890,7 +5890,8 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 {
 	BezTriple *bezt = &point->bezt;
 	float aspx, aspy;
-	short is_sel_point = MASKPOINT_ISSEL_ANY(point);
+	short is_sel_point = MASKPOINT_ISSEL_KNOT(point);
+	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
@@ -5920,7 +5921,7 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 			td->ext= NULL;
 			td->val= NULL;
 
-			if (is_sel_point) {
+			if (is_sel_any) {
 				td->flag |= TD_SELECTED;
 			}
 			td->dist= 0.0;
@@ -5955,7 +5956,7 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 		td->ext= NULL;
 		td->val= NULL;
 
-		if (is_sel_point) {
+		if (is_sel_any) {
 			td->flag |= TD_SELECTED;
 		}
 
