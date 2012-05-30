@@ -65,6 +65,9 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 	if (this->rasterizedMask)
 		return this->rasterizedMask;
 
+	if (!this->mask)
+		return NULL;
+
 	BLI_mutex_lock(getMutex());
 	if (this->rasterizedMask == NULL) {
 		int width = this->getWidth();
@@ -101,13 +104,21 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 
 void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float *buffer = (float*) data;
-	int index = (y * this->getWidth() + x);
+	if (!data) {
+		color[0] = 0;
+		color[1] = 0;
+		color[2] = 0;
+		color[3] = 1.0f;
+	}
+	else {
+		float *buffer = (float*) data;
+		int index = (y * this->getWidth() + x);
 
-	color[0] = buffer[index];
-	color[1] = buffer[index];
-	color[2] = buffer[index];
-	color[3] = 1.0f;
+		color[0] = buffer[index];
+		color[1] = buffer[index];
+		color[2] = buffer[index];
+		color[3] = 1.0f;
+	}
 }
 
 
