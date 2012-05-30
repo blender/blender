@@ -45,7 +45,7 @@ MemoryManagerState::~MemoryManagerState()
 			delete buffer;
 		}
 	}
-	delete this->chunkBuffers;
+	delete [] this->chunkBuffers;
 	BLI_mutex_end(&this->mutex);
 }
 
