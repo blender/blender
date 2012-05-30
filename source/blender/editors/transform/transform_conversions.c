@@ -5885,17 +5885,19 @@ typedef struct TransDataMasking{
 	MaskSplinePoint *point;
 } TransDataMasking;
 
-static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransData *td, TransData2D *td2d, TransDataMasking *tdm)
+static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
+                                 TransData *td, TransData2D *td2d, TransDataMasking *tdm, int propmode)
 {
 	BezTriple *bezt = &point->bezt;
 	float aspx, aspy;
+	short is_sel_point = MASKPOINT_ISSEL(point);
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
 
 	ED_space_clip_mask_aspect(sc, &aspx, &aspy);
 
-	if (MASKPOINT_CV_ISSEL(point)) {
+	if (propmode || is_sel_point) {
 		int i;
 		for (i = 0; i < 3; i++) {
 			/* CV coords are scaled by aspects. this is needed for rotations and
@@ -5918,7 +5920,9 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransDat
 			td->ext= NULL;
 			td->val= NULL;
 
-			td->flag |= TD_SELECTED;
+			if (is_sel_point) {
+				td->flag |= TD_SELECTED;
+			}
 			td->dist= 0.0;
 
 			unit_m3(td->mtx);
@@ -5951,7 +5955,10 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point, TransDat
 		td->ext= NULL;
 		td->val= NULL;
 
-		td->flag |= TD_SELECTED;
+		if (is_sel_point) {
+			td->flag |= TD_SELECTED;
+		}
+
 		td->dist= 0.0;
 
 		unit_m3(td->mtx);
@@ -5970,6 +5977,8 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	TransDataMasking *tdm = NULL;
+	int count = 0, countsel = 0;
+	int propmode = t->flag & T_PROP_EDIT;
 
 	/* count */
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
@@ -5987,17 +5996,21 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 
 				if (MASKPOINT_ISSEL(point)) {
 					if (MASKPOINT_CV_ISSEL(point))
-						t->total += 3;
+						countsel += 3;
 					else
-						t->total += 1;
+						countsel += 1;
 				}
+
+				if (propmode)
+					count += 3;
 			}
 		}
 	}
 
-	if (t->total == 0)
-		return;
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel == 0) return;
 
+	t->total = (propmode) ? count: countsel;
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransObData(Mask Editing)");
 	/* for each 2d uv coord a 3d vector is allocated, so that they can be
 	 * treated just as if they were 3d verts */
@@ -6020,10 +6033,10 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
-				if (MASKPOINT_ISSEL(point)) {
-					MaskPointToTransData(sc, point, td, td2d, tdm);
+				if (propmode || MASKPOINT_ISSEL(point)) {
+					MaskPointToTransData(sc, point, td, td2d, tdm, propmode);
 
-					if (MASKPOINT_CV_ISSEL(point)) {
+					if (propmode || MASKPOINT_CV_ISSEL(point)) {
 						td += 3;
 						td2d += 3;
 						tdm += 3;
@@ -6130,8 +6143,15 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_POINTS|T_2D_EDIT;
 		if (t->options & CTX_MOVIECLIP)
 			createTransTrackingData(C, t);
-		else if (t->options & CTX_MASK)
+		else if (t->options & CTX_MASK) {
 			createTransMaskingData(C, t);
+
+			if (t->data && (t->flag & T_PROP_EDIT)) {
+				sort_trans_data(t);	// makes selected become first in array
+				set_prop_dist(t, TRUE);
+				sort_trans_data_dist(t);
+			}
+		}
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

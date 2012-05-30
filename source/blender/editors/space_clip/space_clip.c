@@ -52,6 +52,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "ED_mask.h"
+#include "ED_space_api.h"
 #include "ED_screen.h"
 #include "ED_clip.h"
 #include "ED_transform.h"
@@ -1136,6 +1137,8 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		glMultMatrixf(sc->stabmat);
 
 		ED_mask_draw((bContext *)C);
+
+		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 
 		glPopMatrix();
 	}
