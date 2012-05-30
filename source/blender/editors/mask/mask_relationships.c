@@ -66,7 +66,7 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		MaskSpline *spline;
 		int i;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -136,7 +136,7 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 		MaskSpline *spline;
 		int i;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 

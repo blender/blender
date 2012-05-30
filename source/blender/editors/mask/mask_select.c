@@ -75,6 +75,10 @@ int ED_mask_object_select_check(MaskObject *maskobj)
 {
 	MaskSpline *spline;
 
+	if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		return FALSE;
+	}
+
 	for (spline = maskobj->splines.first; spline; spline = spline->next) {
 		if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
 			return TRUE;
@@ -100,6 +104,12 @@ int ED_mask_select_check(Mask *mask)
 void ED_mask_object_select_set(MaskObject *maskobj, int select)
 {
 	MaskSpline *spline;
+
+	if (maskobj->restrictflag & MASK_RESTRICT_SELECT) {
+		if (select == TRUE) {
+			return;
+		}
+	}
 
 	for (spline = maskobj->splines.first; spline; spline = spline->next) {
 		int i;
@@ -375,7 +385,7 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -447,7 +457,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -573,7 +583,7 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 

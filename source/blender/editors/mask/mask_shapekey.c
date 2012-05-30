@@ -67,7 +67,7 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -113,7 +113,7 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 

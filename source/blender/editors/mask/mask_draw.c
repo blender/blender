@@ -51,7 +51,7 @@
 
 static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
 {
-	if (spline->flag & SELECT) {
+	if ((spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0) {
 		if (maskobj->act_spline == spline)
 			glColor3f(1.0f, 1.0f, 1.0f);
 		else
@@ -246,7 +246,7 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline)
 	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point);
 
 	/* draw feather */
-	if (spline->flag & SELECT)
+	if ((spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0)
 		glColor3f(0.0f, 1.0f, 0.0f);
 	else
 		glColor3f(0.0f, 0.5f, 0.0f);
@@ -278,8 +278,10 @@ static void draw_maskobjs(Mask *mask)
 
 //			draw_spline_parents(maskobj, spline);
 
-			/* ...and then handles over the curve so they're nicely visible */
-			draw_spline_points(maskobj, spline);
+			if (!(maskobj->restrictflag & MASK_RESTRICT_SELECT)) {
+				/* ...and then handles over the curve so they're nicely visible */
+				draw_spline_points(maskobj, spline);
+			}
 
 			/* show undeform for testing */
 			if (0) {

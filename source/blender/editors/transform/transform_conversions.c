@@ -5985,7 +5985,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -6024,7 +6024,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline = maskobj->splines.first;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 

@@ -143,7 +143,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -245,7 +245,7 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 			int i, tot_feather_point;
 			float *feather_points, *fp;
 
-			if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 				continue;
 			}
 
@@ -336,7 +336,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -1060,9 +1060,8 @@ static void finSelectedSplinePoint(MaskObject *maskobj, MaskSpline **spline, Mas
 	}
 }
 
-static int add_vertex_extrude(bContext *C, Mask *mask, const float co[2])
+static int add_vertex_extrude(bContext *C, Mask *mask, MaskObject *maskobj, const float co[2])
 {
-	MaskObject *maskobj;
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
@@ -1076,8 +1075,6 @@ static int add_vertex_extrude(bContext *C, Mask *mask, const float co[2])
 	int do_prev;                /* use prev point rather then next?? */
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
-	maskobj = BKE_mask_object_active(mask);
 
 	if (!maskobj) {
 		return FALSE;
@@ -1163,16 +1160,13 @@ static int add_vertex_extrude(bContext *C, Mask *mask, const float co[2])
 	return TRUE;
 }
 
-static int add_vertex_new(bContext *C, Mask *mask, const float co[2])
+static int add_vertex_new(bContext *C, Mask *mask, MaskObject *maskobj, const float co[2])
 {
-	MaskObject *maskobj;
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
-	maskobj = BKE_mask_object_active(mask);
 
 	if (!maskobj) {
 		/* if there's no maskobj currently operationg on, create new one */
@@ -1216,7 +1210,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	maskobj = BKE_mask_object_active(mask);
 
-	if (maskobj && maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+	if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 		maskobj = NULL;
 	}
 
@@ -1255,14 +1249,14 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!add_vertex_subdivide(C, mask, co)) {
-			if (!add_vertex_extrude(C, mask, co)) {
+			if (!add_vertex_extrude(C, mask, maskobj, co)) {
 				return OPERATOR_CANCELLED;
 			}
 		}
 	}
 	else {
 		if (!add_vertex_subdivide(C, mask, co)) {
-			if (!add_vertex_new(C, mask, co)) {
+			if (!add_vertex_new(C, mask, maskobj, co)) {
 				return OPERATOR_CANCELLED;
 			}
 		}
@@ -1376,7 +1370,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -1454,7 +1448,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -1563,7 +1557,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 		MaskSpline *spline;
 		int i;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
@@ -1664,6 +1658,11 @@ static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 	int changed = FALSE;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+
+		if (maskobj->restrictflag & MASK_RESTRICT_SELECT) {
+			continue;
+		}
+
 		if (!unselected) {
 			if (ED_mask_object_select_check(maskobj)) {
 				ED_mask_object_select_set(maskobj, FALSE);
