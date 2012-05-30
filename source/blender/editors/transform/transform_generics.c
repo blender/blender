@@ -1106,6 +1106,12 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sipo->around;
 	}
+	else if (t->spacetype==SPACE_CLIP) {
+		SpaceClip *sclip = sa->spacedata.first;
+
+		if (ED_space_clip_show_trackedit(sclip))
+			t->options |= CTX_MOVIECLIP;
+	}
 	else {
 		if (ar) {
 			// XXX for now, get View2D  from the active region
