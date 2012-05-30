@@ -4051,7 +4051,16 @@ static void lib_link_object(FileData *fd, Main *main)
 				warn = 1;
 				
 				if (ob->pose) {
+					/* we can't call #BKE_pose_free() here because of library linking
+					 * freeing will recurse down into every pose constraints ID pointers
+					 * which are not always valid, so for now free directly and suffer
+					 * some leaked memory rather then crashing immediately
+					 * while bad this _is_ an exceptional case - campbell */
+#if 0
 					BKE_pose_free(ob->pose);
+#else
+					MEM_freeN(ob->pose);
+#endif
 					ob->pose= NULL;
 					ob->mode &= ~OB_MODE_POSE;
 				}
