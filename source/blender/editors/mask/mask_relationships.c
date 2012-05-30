@@ -66,6 +66,10 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 		MaskSpline *spline;
 		int i;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
@@ -131,6 +135,10 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 		int i;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {

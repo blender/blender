@@ -51,6 +51,9 @@ void MASK_OT_slide_point(struct wmOperatorType *ot);
 
 void MASK_OT_delete(struct wmOperatorType *ot);
 
+void MASK_OT_hide_view_clear(struct wmOperatorType *ot);
+void MASK_OT_hide_view_set(struct wmOperatorType *ot);
+
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
 
 int ED_mask_feather_find_nearest(
@@ -76,8 +79,10 @@ void MASK_OT_select_lasso(struct wmOperatorType *ot);
 void MASK_OT_select_circle(struct wmOperatorType *ot);
 
 int ED_mask_spline_select_check(struct MaskSplinePoint *points, int tot_point);
+int ED_mask_object_select_check(struct MaskObject *maskobj);
 int ED_mask_select_check(struct Mask *mask);
 
+void ED_mask_object_select_set(struct MaskObject *maskobj, int select);
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 

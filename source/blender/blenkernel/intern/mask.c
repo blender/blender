@@ -94,9 +94,12 @@ MaskObject *BKE_mask_object_new(Mask *mask, const char *name)
 
 	mask->tot_maskobj++;
 
+	maskobj->alpha = 1.0f;
+
 	return maskobj;
 }
 
+/* note: may still be hidden, caller needs to check */
 MaskObject *BKE_mask_object_active(Mask *mask)
 {
 	return BLI_findlink(&mask->maskobjs, mask->act_maskobj);
@@ -104,12 +107,7 @@ MaskObject *BKE_mask_object_active(Mask *mask)
 
 void BKE_mask_object_active_set(Mask *mask, MaskObject *maskobj)
 {
-	int index = BLI_findindex(&mask->maskobjs, maskobj);
-
-	if (index >= 0)
-		mask->act_maskobj = index;
-	else
-		mask->act_maskobj = 0;
+	mask->act_maskobj = BLI_findindex(&mask->maskobjs, maskobj);
 }
 
 void BKE_mask_object_remove(Mask *mask, MaskObject *maskobj)
@@ -1171,7 +1169,7 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 		spline->points_deform = MEM_mallocN(sizeof(*spline->points_deform) * spline->tot_point, __func__);
 	}
 	else {
-		printf("alloc spline done\n");
+		// printf("alloc spline done\n");
 	}
 }
 

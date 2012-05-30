@@ -306,6 +306,7 @@ extern StructRNA RNA_MaterialSubsurfaceScattering;
 extern StructRNA RNA_MaterialTextureSlot;
 extern StructRNA RNA_MaterialVolume;
 extern StructRNA RNA_Mask;
+extern StructRNA RNA_MaskObject;
 extern StructRNA RNA_Menu;
 extern StructRNA RNA_Mesh;
 extern StructRNA RNA_MeshColor;

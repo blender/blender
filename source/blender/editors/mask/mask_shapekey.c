@@ -67,6 +67,10 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
 		BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
 		change = TRUE;
@@ -108,6 +112,10 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskObjectShape *maskobj_shape;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
 
 		maskobj_shape = BKE_mask_object_shape_find_frame(maskobj, frame);
 

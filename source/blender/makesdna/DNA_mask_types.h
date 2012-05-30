@@ -44,7 +44,7 @@ typedef struct Mask {
 	ID id;
 	struct AnimData *adt;
 	ListBase maskobjs;   /* mask objects */
-	int act_maskobj;     /* index of active mask object */
+	int act_maskobj;     /* index of active mask object (-1 == None) */
 	int tot_maskobj;     /* total number of mask objects */
 } Mask;
 
@@ -107,12 +107,18 @@ typedef struct MaskObject {
 
 	struct MaskSpline *act_spline;     /* active spline */
 	struct MaskSplinePoint *act_point; /* active point */
+
+	float  alpha;
+	//char   flag;             /* not used yet */
+	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
+	char   pad[3];
 } MaskObject;
 
 /* MaskParent->flag */
 #define MASK_PARENT_ACTIVE  (1 << 0)
 
 /* MaskSpline->flag */
+/* reserve (1 << 0) for SELECT */
 #define MASK_SPLINE_CYCLIC  (1 << 1)
 
 /* MaskSpline->weight_interp */
@@ -120,5 +126,10 @@ typedef struct MaskObject {
 #define MASK_SPLINE_INTERP_EASE     2
 
 #define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
+
+/* ob->restrictflag */
+#define MASK_RESTRICT_VIEW      1
+#define MASK_RESTRICT_SELECT    2
+#define MASK_RESTRICT_RENDER    4
 
 #endif // __DNA_MASK_TYPES_H__

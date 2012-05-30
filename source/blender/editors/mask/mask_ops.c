@@ -143,6 +143,10 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
@@ -241,6 +245,10 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 			int i, tot_feather_point;
 			float *feather_points, *fp;
 
+			if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+				continue;
+			}
+
 			feather_points = fp = BKE_mask_spline_feather_points(spline, &tot_feather_point);
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -327,6 +335,10 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
@@ -1204,6 +1216,10 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	maskobj = BKE_mask_object_active(mask);
 
+	if (maskobj && maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+		maskobj = NULL;
+	}
+
 	RNA_float_get_array(op->ptr, "location", co);
 
 	if (maskobj && maskobj->act_point && MASKPOINT_ISSEL(maskobj->act_point)) {
@@ -1360,6 +1376,10 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
 				spline->flag ^= MASK_SPLINE_CYCLIC;
@@ -1432,7 +1452,13 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 	int mask_object_shape_ofs = 0;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline = maskobj->splines.first;
+		MaskSpline *spline;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
+		spline = maskobj->splines.first;
 
 		while (spline) {
 			const int tot_point_orig = spline->tot_point;
@@ -1537,6 +1563,10 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 		MaskSpline *spline;
 		int i;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
@@ -1580,4 +1610,107 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "type", editcurve_handle_type_items, 1, "Type", "Spline type");
+}
+
+
+/* ********* clear/set restrict view *********/
+static int mask_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskObject *maskobj;
+	int changed = FALSE;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+
+		if (maskobj->restrictflag & OB_RESTRICT_VIEW) {
+			ED_mask_object_select_set(maskobj, TRUE);
+			maskobj->restrictflag &= ~OB_RESTRICT_VIEW;
+			changed = 1;
+		}
+	}
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_hide_view_clear(wmOperatorType *ot)
+{
+
+	/* identifiers */
+	ot->name = "Clear Restrict View";
+	ot->description = "Reveal the object by setting the hide flag";
+	ot->idname = "MASK_OT_hide_view_clear";
+
+	/* api callbacks */
+	ot->exec = mask_hide_view_clear_exec;
+	ot->poll = ED_maskediting_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskObject *maskobj;
+	const int unselected = RNA_boolean_get(op->ptr, "unselected");
+	int changed = FALSE;
+
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		if (!unselected) {
+			if (ED_mask_object_select_check(maskobj)) {
+				ED_mask_object_select_set(maskobj, FALSE);
+
+				maskobj->restrictflag |= OB_RESTRICT_VIEW;
+				changed = 1;
+				if (maskobj == BKE_mask_object_active(mask)) {
+					BKE_mask_object_active_set(mask, NULL);
+				}
+			}
+		}
+		else {
+			if (!ED_mask_object_select_check(maskobj)) {
+				maskobj->restrictflag |= OB_RESTRICT_VIEW;
+				changed = 1;
+				if (maskobj == BKE_mask_object_active(mask)) {
+					BKE_mask_object_active_set(mask, NULL);
+				}
+			}
+		}
+	}
+
+	if (changed) {
+		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_hide_view_set(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Set Restrict View";
+	ot->description = "Hide the object by setting the hide flag";
+	ot->idname = "MASK_OT_hide_view_set";
+
+	/* api callbacks */
+	ot->exec = mask_hide_view_set_exec;
+	ot->poll = ED_maskediting_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+
 }

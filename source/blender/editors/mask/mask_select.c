@@ -71,21 +71,50 @@ int ED_mask_spline_select_check(MaskSplinePoint *points, int tot_point)
 	return FALSE;
 }
 
+int ED_mask_object_select_check(MaskObject *maskobj)
+{
+	MaskSpline *spline;
+
+	for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
+			return TRUE;
+		}
+	}
+
+	return FALSE;
+}
+
 int ED_mask_select_check(Mask *mask)
 {
 	MaskObject *maskobj;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline;
-
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
-			if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
-				return TRUE;
-			}
+		if (ED_mask_object_select_check(maskobj)) {
+			return TRUE;
 		}
 	}
 
 	return FALSE;
+}
+
+void ED_mask_object_select_set(MaskObject *maskobj, int select)
+{
+	MaskSpline *spline;
+
+	for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		int i;
+
+		if (select)
+			spline->flag |= SELECT;
+		else
+			spline->flag &= ~SELECT;
+
+		for (i = 0; i < spline->tot_point; i++) {
+			MaskSplinePoint *point = &spline->points[i];
+
+			BKE_mask_point_select_set(point, select);
+		}
+	}
 }
 
 void ED_mask_select_toggle_all(Mask *mask, int action)
@@ -100,17 +129,12 @@ void ED_mask_select_toggle_all(Mask *mask, int action)
 	}
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
-			int i;
-
-			for (i = 0; i < spline->tot_point; i++) {
-				MaskSplinePoint *point = &spline->points[i];
-
-				BKE_mask_point_select_set(point, (action == SEL_SELECT) ? TRUE : FALSE);
-			}
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
 		}
+
+		ED_mask_object_select_set(maskobj, (action == SEL_SELECT) ? TRUE : FALSE);
 	}
 }
 
@@ -120,6 +144,10 @@ void ED_mask_select_flush_all(Mask *mask)
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;

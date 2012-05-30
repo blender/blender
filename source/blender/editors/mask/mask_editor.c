@@ -203,6 +203,10 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_select_border);
 	WM_operatortype_append(MASK_OT_select_lasso);
 
+	/* hide/reveal */
+	WM_operatortype_append(MASK_OT_hide_view_clear);
+	WM_operatortype_append(MASK_OT_hide_view_set);
+
 	/* shape */
 	WM_operatortype_append(MASK_OT_slide_point);
 	WM_operatortype_append(MASK_OT_cyclic_toggle);
@@ -254,6 +258,14 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_lasso", EVT_TWEAK_A, KM_ANY, KM_CTRL | KM_SHIFT | KM_ALT, 0);
 	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
+
+	/* hide/reveal */
+	WM_keymap_add_item(keymap, "MASK_OT_hide_view_clear", HKEY, KM_PRESS, KM_ALT, 0);
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", FALSE);
+
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_hide_view_set", HKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "unselected", TRUE);
 
 	/* select clip while in maker view,
 	 * this matches View3D functionality where you can select an

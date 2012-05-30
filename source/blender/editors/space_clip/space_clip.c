@@ -369,6 +369,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch(wmn->data) {
 				case ND_SELECT:
 				case ND_DATA:
+				case ND_DRAW:
 					ED_area_tag_redraw(sa);
 					break;
 			}

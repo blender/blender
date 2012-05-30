@@ -2241,6 +2241,18 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiItemL(split, name, ICON_OBJECT_DATA);
 		}
 	}
+	else if (itemptr->type == &RNA_MaskObject) {
+		split = uiLayoutSplit(sub, 0.5f, 0);
+
+		uiItemL(split, name, icon);
+
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		row = uiLayoutRow(split, 1);
+		uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE);
+		uiItemR(row, itemptr, "hide", 0, "", 0);
+
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
 
 	/* There is a last chance to display custom controls (in addition to the name/label):
 	 * If the given item property group features a string property named as prop_list,
