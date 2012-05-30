@@ -64,7 +64,7 @@ int ED_mask_spline_select_check(MaskSplinePoint *points, int tot_point)
 	for (i = 0; i < tot_point; i++) {
 		MaskSplinePoint *point = &points[i];
 
-		if (MASKPOINT_ISSEL(point))
+		if (MASKPOINT_ISSEL_ANY(point))
 			return TRUE;
 	}
 
@@ -159,7 +159,7 @@ void ED_mask_select_flush_all(Mask *mask)
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *cur_point = &spline->points[i];
 
-				if (MASKPOINT_ISSEL(cur_point)) {
+				if (MASKPOINT_ISSEL_ANY(cur_point)) {
 					spline->flag |= SELECT;
 				}
 				else {
@@ -248,7 +248,7 @@ static int select_exec(bContext *C, wmOperator *op)
 				maskobj->act_spline = spline;
 				maskobj->act_point = point;
 
-				if (!MASKPOINT_HANDLE_ISSEL(point)) {
+				if (!MASKPOINT_ISSEL_HANDLE(point)) {
 					BKE_mask_point_select_set_handle(point, TRUE);
 				}
 				else if (toggle) {
@@ -270,7 +270,7 @@ static int select_exec(bContext *C, wmOperator *op)
 				maskobj->act_spline = spline;
 				maskobj->act_point = point;
 
-				if (!MASKPOINT_ISSEL(point)) {
+				if (!MASKPOINT_ISSEL_ANY(point)) {
 					BKE_mask_point_select_set(point, TRUE);
 				}
 				else if (toggle) {

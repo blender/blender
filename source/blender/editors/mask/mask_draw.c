@@ -124,7 +124,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 			int sel = FALSE;
 
 			if (j == 0) {
-				sel = MASKPOINT_ISSEL(point);
+				sel = MASKPOINT_ISSEL_ANY(point);
 			}
 			else {
 				sel = point->uw[j - 1].flag & SELECT;
@@ -174,7 +174,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 		}
 
 		/* draw CV point */
-		if (MASKPOINT_CV_ISSEL(point)) {
+		if (MASKPOINT_ISSEL_KNOT(point)) {
 			if (point == maskobj->act_point)
 				glColor3f(1.0f, 1.0f, 1.0f);
 			else
@@ -189,7 +189,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 
 		/* draw handle points */
 		if (has_handle) {
-			if (MASKPOINT_HANDLE_ISSEL(point)) {
+			if (MASKPOINT_ISSEL_HANDLE(point)) {
 				if (point == maskobj->act_point)
 					glColor3f(1.0f, 1.0f, 1.0f);
 				else

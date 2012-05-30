@@ -135,16 +135,16 @@ void BKE_mask_object_shape_changed_remove(struct MaskObject *maskobj, int index,
 /* rasterization */
 void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer);
 
-#define MASKPOINT_ISSEL(p)  ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
-#define MASKPOINT_SEL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
-#define MASKPOINT_DESEL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
-#define MASKPOINT_INVSEL(p) { (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; } (void)0
+#define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
+#define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)
+#define MASKPOINT_ISSEL_HANDLE_ONLY(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
+#define MASKPOINT_ISSEL_HANDLE(p)       ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )
 
-#define MASKPOINT_CV_ISSEL(p)       ( (p)->bezt.f2 & SELECT)
+#define MASKPOINT_SEL_ALL(p)    { (p)->bezt.f1 |=  SELECT; (p)->bezt.f2 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
+#define MASKPOINT_DESEL_ALL(p)  { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f2 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
+#define MASKPOINT_INVSEL_ALL(p) { (p)->bezt.f1 ^=  SELECT; (p)->bezt.f2 ^=  SELECT; (p)->bezt.f3 ^=  SELECT; } (void)0
 
-#define MASKPOINT_HANDLE_ONLY_ISSEL(p)  ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) && (((p)->bezt.f2 & SELECT) == 0) )
-#define MASKPOINT_HANDLE_ISSEL(p)   ( (((p)->bezt.f1 | (p)->bezt.f2) & SELECT) )
-#define MASKPOINT_HANDLE_SEL(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
-#define MASKPOINT_HANDLE_DESEL(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
+#define MASKPOINT_SEL_HANDLE(p)     { (p)->bezt.f1 |=  SELECT; (p)->bezt.f3 |=  SELECT; } (void)0
+#define MASKPOINT_DESEL_HANDLE(p)   { (p)->bezt.f1 &= ~SELECT; (p)->bezt.f3 &= ~SELECT; } (void)0
 
 #endif

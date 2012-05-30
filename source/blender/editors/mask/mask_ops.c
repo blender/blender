@@ -660,7 +660,7 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 				ED_mask_select_flush_all(mask);
 			}
 		}
-		else if (!MASKPOINT_ISSEL(slidedata->point)) {
+		else if (!MASKPOINT_ISSEL_ANY(slidedata->point)) {
 			ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 			BKE_mask_point_select_set(slidedata->point, TRUE);
@@ -963,7 +963,7 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 	BKE_mask_parent_init(&new_point->parent);
 
 	/* select new point */
-	MASKPOINT_SEL(new_point);
+	MASKPOINT_SEL_ALL(new_point);
 	ED_mask_select_flush_all(mask);
 }
 
@@ -1040,7 +1040,7 @@ static void finSelectedSplinePoint(MaskObject *maskobj, MaskSpline **spline, Mas
 		for (i = 0; i < cur_spline->tot_point; i++) {
 			MaskSplinePoint *cur_point = &cur_spline->points[i];
 
-			if (MASKPOINT_ISSEL(cur_point)) {
+			if (MASKPOINT_ISSEL_ANY(cur_point)) {
 				if (*spline != NULL && *spline != cur_spline) {
 					*spline = NULL;
 					*point = NULL;
@@ -1088,7 +1088,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, const float co[2])
 
 	point_index = (point - spline->points);
 
-	MASKPOINT_DESEL(point);
+	MASKPOINT_DESEL_ALL(point);
 
 	if ((spline->flag & MASK_SPLINE_CYCLIC) ||
 		(point_index > 0 && point_index != spline->tot_point - 1))
@@ -1222,7 +1222,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	if (maskobj && maskobj->act_point && MASKPOINT_ISSEL(maskobj->act_point)) {
+	if (maskobj && maskobj->act_point && MASKPOINT_ISSEL_ANY(maskobj->act_point)) {
 
 		/* cheap trick - double click for cyclic */
 		MaskSpline *spline = maskobj->act_spline;
@@ -1469,7 +1469,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
-				if (!MASKPOINT_ISSEL(point))
+				if (!MASKPOINT_ISSEL_ANY(point))
 					count++;
 			}
 
@@ -1495,7 +1495,7 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 				for (i = 0, j = 0; i < tot_point_orig; i++) {
 					MaskSplinePoint *point = &spline->points[i];
 
-					if (!MASKPOINT_ISSEL(point)) {
+					if (!MASKPOINT_ISSEL_ANY(point)) {
 						if (point == maskobj->act_point)
 							maskobj->act_point = &new_points[j];
 
@@ -1571,7 +1571,7 @@ static int set_handle_type_exec(bContext *C, wmOperator *op)
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
-				if (MASKPOINT_ISSEL(point)) {
+				if (MASKPOINT_ISSEL_ANY(point)) {
 					BezTriple *bezt = &point->bezt;
 
 					bezt->h1 = bezt->h2 = handle_type;

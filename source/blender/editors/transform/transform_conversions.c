@@ -5890,7 +5890,7 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 {
 	BezTriple *bezt = &point->bezt;
 	float aspx, aspy;
-	short is_sel_point = MASKPOINT_ISSEL(point);
+	short is_sel_point = MASKPOINT_ISSEL_ANY(point);
 
 	tdm->point = point;
 	copy_m3_m3(tdm->vec, bezt->vec);
@@ -5994,8 +5994,8 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
-				if (MASKPOINT_ISSEL(point)) {
-					if (MASKPOINT_CV_ISSEL(point))
+				if (MASKPOINT_ISSEL_ANY(point)) {
+					if (MASKPOINT_ISSEL_KNOT(point))
 						countsel += 3;
 					else
 						countsel += 1;
@@ -6033,10 +6033,10 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
-				if (propmode || MASKPOINT_ISSEL(point)) {
+				if (propmode || MASKPOINT_ISSEL_ANY(point)) {
 					MaskPointToTransData(sc, point, td, td2d, tdm, propmode);
 
-					if (propmode || MASKPOINT_CV_ISSEL(point)) {
+					if (propmode || MASKPOINT_ISSEL_KNOT(point)) {
 						td += 3;
 						td2d += 3;
 						tdm += 3;

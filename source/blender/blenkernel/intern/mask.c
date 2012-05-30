@@ -655,10 +655,10 @@ void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
 	int i;
 
 	if (select) {
-		MASKPOINT_SEL(point);
+		MASKPOINT_SEL_ALL(point);
 	}
 	else {
-		MASKPOINT_DESEL(point);
+		MASKPOINT_DESEL_ALL(point);
 	}
 
 	for (i = 0; i < point->tot_uw; i++) {
@@ -674,10 +674,10 @@ void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
 void BKE_mask_point_select_set_handle(MaskSplinePoint *point, int select)
 {
 	if (select) {
-		MASKPOINT_HANDLE_SEL(point);
+		MASKPOINT_SEL_HANDLE(point);
 	}
 	else {
-		MASKPOINT_HANDLE_DESEL(point);
+		MASKPOINT_DESEL_HANDLE(point);
 	}
 }
 
