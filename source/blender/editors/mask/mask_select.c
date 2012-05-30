@@ -145,14 +145,16 @@ void ED_mask_select_flush_all(Mask *mask)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
-			continue;
-		}
-
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			int i;
 
 			spline->flag &= ~SELECT;
+
+			/* intentionally _dont_ do this in the maskobj loop
+			 * so we clear flags on all splines */
+			if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+				continue;
+			}
 
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *cur_point = &spline->points[i];
@@ -373,6 +375,10 @@ static int border_select_exec(bContext *C, wmOperator *op)
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
 
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
+
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
@@ -380,18 +386,16 @@ static int border_select_exec(bContext *C, wmOperator *op)
 				/* TODO: handles? */
 				/* TODO: uw? */
 
-				if (1) { /* can the point be selected? */
-					if (BLI_in_rctf(&rectf, point->bezt.vec[1][0], point->bezt.vec[1][1])) {
-						BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
-						BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
-					}
-					else if (!extend) {
-						BKE_mask_point_select_set(point, FALSE);
-						BKE_mask_point_select_set_handle(point, FALSE);
-					}
-
-					change = TRUE;
+				if (BLI_in_rctf(&rectf, point->bezt.vec[1][0], point->bezt.vec[1][1])) {
+					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 				}
+				else if (!extend) {
+					BKE_mask_point_select_set(point, FALSE);
+					BKE_mask_point_select_set_handle(point, FALSE);
+				}
+
+				change = TRUE;
 			}
 		}
 	}
@@ -442,6 +446,10 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 	/* do actual selection */
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
+		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
@@ -519,28 +527,27 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
-#if 0
 /********************** circle select operator *********************/
 
-static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], float ellipse[2])
+static int mask_spline_point_inside_ellipse(MaskSplinePoint *point, float offset[2], float ellipse[2])
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
 
-	x = (marker->pos[0] - offset[0])*ellipse[0];
-	y = (marker->pos[1] - offset[1])*ellipse[1];
+	x = (point->bezt.vec[1][0] - offset[0]) * ellipse[0];
+	y = (point->bezt.vec[1][1] - offset[1]) * ellipse[1];
 
 	return x*x + y*y < 1.0f;
 }
 
 static int circle_select_exec(bContext *C, wmOperator *op)
 {
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskObject *maskobj;
+	int i;
+
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
 	ARegion *ar = CTX_wm_region(C);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	int x, y, radius, width, height, mode, change = FALSE;
 	float zoomx, zoomy, offset[2], ellipse[2];
 
@@ -551,29 +558,37 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	mode = RNA_int_get(op->ptr, "gesture_mode");
 
+	/* TODO - make generic! - this is SpaceClip only! */
 	/* compute ellipse and position in unified coordinates */
 	ED_space_clip_size(sc, &width, &height);
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	width = height = MAX2(width, height);
 
 	ellipse[0] = width * zoomx / radius;
 	ellipse[1] = height * zoomy / radius;
 
-	ED_clip_point_stable_pos(C, x, y, &offset[0], &offset[1]);
+	ED_mask_point_pos(C, x, y, &offset[0], &offset[1]);
 
-	/* do selection */
-	track = tracksbase->first;
-	while (track) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+	/* do actual selection */
+	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+		MaskSpline *spline;
 
-			if (MARKER_VISIBLE(sc, track, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
-				BKE_tracking_track_flag(track, TRACK_AREA_ALL, SELECT, mode != GESTURE_MODAL_SELECT);
-
-				change = TRUE;
-			}
+		if (maskobj->restrictflag & MASK_RESTRICT_VIEW) {
+			continue;
 		}
 
-		track = track->next;
+		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (mask_spline_point_inside_ellipse(point, offset, ellipse)) {
+					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
+					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
+
+					change = TRUE;
+				}
+			}
+		}
 	}
 
 	if (change) {
@@ -609,5 +624,3 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
 }
-
-#endif

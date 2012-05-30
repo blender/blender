@@ -3853,6 +3853,7 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_select_circle");
 	WM_modalkeymap_assign(keymap, "UV_OT_circle_select");
 	WM_modalkeymap_assign(keymap, "CLIP_OT_select_circle");
+	WM_modalkeymap_assign(keymap, "MASK_OT_select_circle");
 
 }
 
