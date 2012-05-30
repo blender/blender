@@ -49,17 +49,39 @@
 
 #include "mask_intern.h"  /* own include */
 
-static void set_spline_color(MaskObject *maskobj, MaskSpline *spline)
+static void mask_spline_color_get(MaskObject *maskobj, MaskSpline *spline, const int is_sel,
+                                  unsigned char r_rgb[4])
 {
-	if ((spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0) {
-		if (maskobj->act_spline == spline)
-			glColor3f(1.0f, 1.0f, 1.0f);
-		else
-			glColor3f(1.0f, 0.0f, 0.0f);
+	if (is_sel) {
+		if (maskobj->act_spline == spline) {
+			r_rgb[0] = r_rgb[1] = r_rgb[2] = 255;
+		}
+		else {
+			r_rgb[0] = 255;
+			r_rgb[1] = r_rgb[2] = 0;
+		}
 	}
 	else {
-		glColor3f(0.5f, 0.0f, 0.0f);
+		r_rgb[0] = 128;
+		r_rgb[1] = r_rgb[2] = 0;
 	}
+
+	r_rgb[3] = 255;
+}
+
+static void mask_spline_feather_color_get(MaskObject *UNUSED(maskobj), MaskSpline *UNUSED(spline), const int is_sel,
+                                          unsigned char r_rgb[4])
+{
+	if (is_sel) {
+		r_rgb[1] = 255;
+		r_rgb[0] = r_rgb[2] = 0;
+	}
+	else {
+		r_rgb[1] = 128;
+		r_rgb[0] = r_rgb[2] = 0;
+	}
+
+	r_rgb[3] = 255;
 }
 
 #if 0
@@ -99,6 +121,8 @@ static void draw_spline_parents(MaskObject *UNUSED(maskobj), MaskSpline *spline)
 /* return non-zero if spline is selected */
 static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 {
+	const int is_spline_sel = (spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0;
+	unsigned char rgb_spline[4];
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	int i, hsize, tot_feather_point;
@@ -110,6 +134,8 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 	hsize = UI_GetThemeValuef(TH_HANDLE_VERTEX_SIZE);
 
 	glPointSize(hsize);
+
+	mask_spline_color_get(maskobj, spline, is_spline_sel, rgb_spline);
 
 	/* feather points */
 	feather_points = fp = BKE_mask_spline_feather_points(spline, &tot_feather_point);
@@ -165,7 +191,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 
 		/* draw handle segment */
 		if (has_handle) {
-			set_spline_color(maskobj, spline);
+			glColor3ubv(rgb_spline);
 
 			glBegin(GL_LINES);
 			glVertex3fv(vert);
@@ -208,33 +234,43 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 	glPointSize(1.0f);
 }
 
-static void draw_spline_curve_lines(const float *points, int tot_point, int closed)
+/* #define USE_XOR */
+
+static void draw_curve_dashed(MaskSpline *spline, float *points, int tot_point, const unsigned char rgb_sel[4])
 {
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, 0, points);
-	glDrawArrays(closed ? GL_LINE_LOOP : GL_LINE_STRIP, 0, tot_point);
-	glDisableClientState(GL_VERTEX_ARRAY);
-}
+	const int draw_method = (spline->flag & MASK_SPLINE_CYCLIC) ? GL_LINE_LOOP : GL_LINE_STRIP;
 
-static void draw_dashed_curve(MaskSpline *spline, float *points, int tot_point)
-{
-	glEnable(GL_COLOR_LOGIC_OP);
-	glLogicOp(GL_OR);
-
-	draw_spline_curve_lines(points, tot_point, spline->flag & MASK_SPLINE_CYCLIC);
-
-	glDisable(GL_COLOR_LOGIC_OP);
-	glLineStipple(3, 0xaaaa);
 	glEnable(GL_LINE_STIPPLE);
 
-	glColor3f(0.0f, 0.0f, 0.0f);
-	draw_spline_curve_lines(points, tot_point, spline->flag & MASK_SPLINE_CYCLIC);
+#ifdef USE_XOR
+	glEnable(GL_COLOR_LOGIC_OP);
+	glLogicOp(GL_OR);
+#endif
+
+	glColor4ubv(rgb_sel);
+	glLineStipple(3, 0xaaaa);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(2, GL_FLOAT, 0, points);
+	glDrawArrays(draw_method, 0, tot_point);
+
+#ifdef USE_XOR
+	glDisable(GL_COLOR_LOGIC_OP);
+#endif
+
+	glColor4ub(0, 0, 0, 255);
+	glLineStipple(3, 0x5555);
+	glDrawArrays(draw_method, 0, tot_point);
+	glDisableClientState(GL_VERTEX_ARRAY);
 
 	glDisable(GL_LINE_STIPPLE);
 }
 
-static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline)
+static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
+                              const char use_smooth, const char draw_type)
 {
+	unsigned char rgb_tmp[4];
+
+	const int is_spline_sel = (spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	float *diff_points, *feather_points;
 	int tot_diff_point, tot_feather_point;
 
@@ -243,24 +279,34 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline)
 	if (!diff_points)
 		return;
 
+	if (use_smooth) {
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	}
+
 	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point);
 
 	/* draw feather */
-	if ((spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0)
-		glColor3f(0.0f, 1.0f, 0.0f);
-	else
-		glColor3f(0.0f, 0.5f, 0.0f);
-	draw_dashed_curve(spline, feather_points, tot_feather_point);
+	mask_spline_feather_color_get(maskobj, spline, is_spline_sel, rgb_tmp);
+	draw_curve_dashed(spline, feather_points, tot_feather_point, rgb_tmp);
+	MEM_freeN(feather_points);
 
 	/* draw main curve */
-	set_spline_color(maskobj, spline);
-	draw_dashed_curve(spline, diff_points, tot_diff_point);
-
+	mask_spline_color_get(maskobj, spline, is_spline_sel, rgb_tmp);
+	draw_curve_dashed(spline, diff_points, tot_diff_point, rgb_tmp);
 	MEM_freeN(diff_points);
-	MEM_freeN(feather_points);
+
+	if (use_smooth) {
+		glDisable(GL_LINE_SMOOTH);
+		glDisable(GL_BLEND);
+	}
+
+	(void)draw_type;
 }
 
-static void draw_maskobjs(Mask *mask)
+static void draw_maskobjs(Mask *mask,
+                          const char use_smooth, const char draw_type)
 {
 	MaskObject *maskobj;
 
@@ -274,7 +320,7 @@ static void draw_maskobjs(Mask *mask)
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 
 			/* draw curve itself first... */
-			draw_spline_curve(maskobj, spline);
+			draw_spline_curve(maskobj, spline, use_smooth, draw_type);
 
 //			draw_spline_parents(maskobj, spline);
 
@@ -288,7 +334,7 @@ static void draw_maskobjs(Mask *mask)
 				void *back = spline->points_deform;
 
 				spline->points_deform = NULL;
-				draw_spline_curve(maskobj, spline);
+				draw_spline_curve(maskobj, spline, use_smooth, draw_type);
 //				draw_spline_parents(maskobj, spline);
 				draw_spline_points(maskobj, spline);
 				spline->points_deform = back;
@@ -304,5 +350,5 @@ void ED_mask_draw(const bContext *C)
 	if (!mask)
 		return;
 
-	draw_maskobjs(mask);
+	draw_maskobjs(mask, FALSE, 0);
 }
