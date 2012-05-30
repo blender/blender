@@ -34,7 +34,7 @@ class SelectPattern(Operator):
 
     pattern = StringProperty(
             name="Pattern",
-            description="Name filter using '*' and '?' wildcard chars",
+            description="Name filter using '*', '?' and '[abc]' unix style wildcards",
             maxlen=64,
             default="*",
             )

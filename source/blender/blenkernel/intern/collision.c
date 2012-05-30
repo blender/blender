@@ -332,7 +332,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 				// stay on the safe side and clamp repulse
 				float repulse = d*1.0f/spf;
 
-				float impulse = repulse / ( 1.0f + w1*w1 + w2*w2 + w3*w3 ); // original 2.0 / 0.25
+				float impulse = repulse / (3.0f * ( 1.0f + w1*w1 + w2*w2 + w3*w3 )); // original 2.0 / 0.25
 				VECADDMUL ( i1, collpair->normal,  impulse );
 				VECADDMUL ( i2, collpair->normal,  impulse );
 				VECADDMUL ( i3, collpair->normal,  impulse );

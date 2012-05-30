@@ -2577,6 +2577,31 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	                         "higher value give better physics precision");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
+	prop = RNA_def_property(srna, "deactivation_linear_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "lineardeactthreshold");
+	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
+	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_ui_text(prop, "Deactivation Linear Threshold",
+	                         "Linear velocity that an object must be below before the deactivation timer can start");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "deactivation_angular_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "angulardeactthreshold");
+	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
+	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_ui_text(prop, "Deactivation Angular Threshold",
+	                         "Angular velocity that an object must be below before the deactivation timer can start");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "deactivation_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "deactivationtime");
+	RNA_def_property_ui_range(prop, 0.0, 60.0, 1, 1);
+	RNA_def_property_range(prop, 0.0, 60.0);
+	RNA_def_property_ui_text(prop, "Deactivation Time",
+	                         "Amount of time (in seconds) after objects with a velocity less than than a certain "
+	                         "threshold will deactivate. Time 0.0 means deactivation inactive");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
 	/* mode */
 	prop = RNA_def_property(srna, "use_occlusion_culling", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mode", (1 << 5)); /*XXX mode hardcoded  *//* WO_DBVT_CULLING */

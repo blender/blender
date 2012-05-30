@@ -7315,9 +7315,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 263) {
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-		 * try to correct it, if rate is 0.0 that's likely not intentional */
+		try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
-		
+
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for (md = ob->modifiers.first; md; md = md->next) {
@@ -7643,6 +7643,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
+	{
+		/* set new deactivation values for game settings */
+		Scene *sce;
+
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			/* Game Settings */
+			sce->gm.lineardeactthreshold = 0.8f;
+			sce->gm.angulardeactthreshold = 1.0f;
+			sce->gm.deactivationtime = 2.0f;
 		}
 	}
 
