@@ -42,6 +42,7 @@
 
 #include "ED_screen.h"
 #include "ED_mask.h"
+#include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
 #include "ED_transform.h"
 
@@ -231,6 +232,10 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	keymap->poll = ED_maskediting_poll;
 
 	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
+
+	/* mask mode supports PET now */
+	ED_keymap_proportional_cycle(keyconf, keymap);
+	ED_keymap_proportional_maskmode(keyconf, keymap);
 
 	/* geometry */
 	WM_keymap_add_item(keymap, "MASK_OT_add_vertex_slide", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);

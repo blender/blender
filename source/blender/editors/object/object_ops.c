@@ -441,6 +441,14 @@ void ED_keymap_proportional_obmode(struct wmKeyConfig *UNUSED(keyconf), struct w
 	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_edit_objects");
 }
 
+void ED_keymap_proportional_maskmode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap)
+{
+	wmKeyMapItem *kmi;
+
+	kmi = WM_keymap_add_item(keymap, "WM_OT_context_toggle", OKEY, KM_PRESS, 0, 0);
+	RNA_string_set(kmi->ptr, "data_path", "tool_settings.use_proportional_edit_mask");
+}
+
 void ED_keymap_proportional_editmode(struct wmKeyConfig *UNUSED(keyconf), struct wmKeyMap *keymap,
                                      const short do_connected)
 {

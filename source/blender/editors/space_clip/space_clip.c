@@ -1317,6 +1317,26 @@ static void clip_header_area_draw(const bContext *C, ARegion *ar)
 	ED_region_header(C, ar);
 }
 
+static void clip_header_area_listener(ARegion *ar, wmNotifier *wmn)
+{
+	/* context changes */
+	switch (wmn->category) {
+		case NC_SCENE:
+			switch (wmn->data) {
+				/* for proportional editmode only */
+				case ND_TOOLSETTINGS:
+					/* TODO - should do this when in mask mode only but no datas available */
+					// if(sc->mode == SC_MODE_MASKEDITING)
+					{
+						ED_region_tag_redraw(ar);
+					}
+					break;
+			}
+			break;
+	}
+}
+
+
 /****************** tools region ******************/
 
 /* add handlers, stuff you only do once or on area/region changes */
@@ -1478,6 +1498,7 @@ void ED_spacetype_clip(void)
 
 	art->init = clip_header_area_init;
 	art->draw = clip_header_area_draw;
+	art->listener = clip_header_area_listener;
 
 	BLI_addhead(&st->regiontypes, art);
 
