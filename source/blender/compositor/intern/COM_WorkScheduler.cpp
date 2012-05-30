@@ -232,11 +232,10 @@ void WorkScheduler::initialize()
 	context = NULL;
 	program = NULL;
 	if (clCreateContextFromType) {
-		cl_uint numberOfPlatforms;
+		cl_uint numberOfPlatforms = 0;
 		cl_int error;
 		error = clGetPlatformIDs(0, 0, &numberOfPlatforms);
 		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
-		numberOfPlatforms = 0;
 		if (G.f & G_DEBUG) printf("%d number of platforms\n", numberOfPlatforms);
 		cl_platform_id *platforms = new cl_platform_id[numberOfPlatforms];
 		error = clGetPlatformIDs(numberOfPlatforms, platforms, 0);
@@ -265,7 +264,7 @@ void WorkScheduler::initialize()
 			error = clBuildProgram(program, totalNumberOfDevices, cldevices, 0, 0, 0);
 			if (error != CL_SUCCESS) { 
 				cl_int error2;
-				size_t ret_val_size;
+				size_t ret_val_size = 0;
 				printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
 				error2 = clGetProgramBuildInfo(program, cldevices[0], CL_PROGRAM_BUILD_LOG, 0, NULL, &ret_val_size);
 				if (error2 != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
@@ -276,19 +275,20 @@ void WorkScheduler::initialize()
 				printf("%s", build_log);
 				delete build_log;
 				
-			}
-			unsigned int indexDevices;
-			for (indexDevices = 0 ; indexDevices < totalNumberOfDevices ; indexDevices ++) {
-				cl_device_id device = cldevices[indexDevices];
-				OpenCLDevice *clDevice = new OpenCLDevice(context, device, program);
-				clDevice->initialize(),
-				gpudevices.push_back(clDevice);
-				if (G.f & G_DEBUG) {
-					char resultString[32];
-					error = clGetDeviceInfo(device, CL_DEVICE_NAME, 32, resultString, 0);
-					printf("OPENCL_DEVICE: %s, ", resultString);
-					error = clGetDeviceInfo(device, CL_DEVICE_VENDOR, 32, resultString, 0);
-					printf("%s\n", resultString);
+			} else {
+				unsigned int indexDevices;
+				for (indexDevices = 0 ; indexDevices < totalNumberOfDevices ; indexDevices ++) {
+					cl_device_id device = cldevices[indexDevices];
+					OpenCLDevice *clDevice = new OpenCLDevice(context, device, program);
+					clDevice->initialize(),
+					gpudevices.push_back(clDevice);
+					if (G.f & G_DEBUG) {
+						char resultString[32];
+						error = clGetDeviceInfo(device, CL_DEVICE_NAME, 32, resultString, 0);
+						printf("OPENCL_DEVICE: %s, ", resultString);
+						error = clGetDeviceInfo(device, CL_DEVICE_VENDOR, 32, resultString, 0);
+						printf("%s\n", resultString);
+					}
 				}
 			}
 		}
