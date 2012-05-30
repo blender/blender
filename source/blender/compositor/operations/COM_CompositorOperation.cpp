@@ -68,6 +68,10 @@ void CompositorOperation::deinitExecution()
 				MEM_freeN(rr->rectf);
 			}
 			rr->rectf = outputBuffer;
+		} else {
+			if (this->outputBuffer) {
+				MEM_freeN(this->outputBuffer);
+			}
 		}
 		if (re) {
 			RE_ReleaseResult(re);
