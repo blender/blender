@@ -232,7 +232,7 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 	 * TODO: This clips Y to the frame buffer, which should be done in the preprocessor, but for now is done here.
 	 *       Will get changed once DEM code gets in.
 	 */
-	for (y_curr = MAX2(ctx->all_edges->ybeg, 0); (ctx->all_edges || ctx->possible_edges) && (y_curr < ctx->rb.sizey); y_curr++) {
+	for (y_curr = ctx->all_edges->ybeg; (ctx->all_edges || ctx->possible_edges); y_curr++) {
 
 		/*
 		 * Link any edges that start on the current scan line into the list of
@@ -305,12 +305,14 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 			e_curr = e_curr->e_next;
 			mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
-			/* draw the pixels. */
-			for (; cpxl <= mpxl; cpxl++){
-				if(*cpxl < 0.5f){
-					*cpxl = 1.0f;
-				}else{
-					*cpxl = 0.0f;
+			if((y_curr >= 0) && (y_curr < ctx->rb.sizey)){
+				/* draw the pixels. */
+				for (; cpxl <= mpxl; cpxl++){
+					if(*cpxl < 0.5f){
+						*cpxl = 1.0f;
+					}else{
+						*cpxl = 0.0f;
+					}
 				}
 			}
 		}
