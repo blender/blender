@@ -1785,6 +1785,8 @@ static int node_link_viewer(const bContext *C, bNode *tonode)
 		else {
 			link->fromnode= tonode;
 			link->fromsock= sock;
+			/* make sure the dependency sorting is updated */
+			snode->edittree->update |= NTREE_UPDATE_LINKS;
 		}
 		ntreeUpdateTree(snode->edittree);
 		snode_update(snode, node);
