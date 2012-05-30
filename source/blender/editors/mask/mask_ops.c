@@ -1210,7 +1210,7 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 
 	maskobj = BKE_mask_object_active(mask);
 
-	if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+	if (maskobj && maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 		maskobj = NULL;
 	}
 
