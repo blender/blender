@@ -88,14 +88,10 @@ int ED_object_parent_set(struct ReportList *reports, struct Main *bmain, struct 
 void ED_object_parent_clear(struct Object *ob, int type);
 struct Base *ED_object_scene_link(struct Scene *scene, struct Object *ob);
 
-/* generic editmode keys like pet
- * do_pet
- *  0: No
- *  1: Object
- *  2: Edit
- *  3: Edit with connected
- * */
-void ED_object_generic_keymap(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap, int do_pet);
+void ED_keymap_proportional_cycle(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
+void ED_keymap_proportional_obmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap);
+void ED_keymap_proportional_editmode(struct wmKeyConfig *keyconf, struct wmKeyMap *keymap,
+                                     const short do_connected);
 
 /* send your own notifier for select! */
 void ED_base_object_select(struct Base *base, short mode);

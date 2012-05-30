@@ -376,7 +376,9 @@ void ED_keymap_mesh(wmKeyConfig *keyconf)
 		RNA_int_set(kmi->ptr, "level", i);
 	}
 	
-	ED_object_generic_keymap(keyconf, keymap, 3);
+	ED_keymap_proportional_cycle(keyconf, keymap);
+	ED_keymap_proportional_editmode(keyconf, keymap, TRUE);
+
 	knifetool_modal_keymap(keyconf);
 }
 
