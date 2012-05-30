@@ -102,10 +102,13 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	if (!sites_total)
 		return NULL;
 
-	triangulation = (TriangulationData *) MEM_callocN(sizeof(TriangulationData), "keying screen triangulation data");
-
 	BKE_movieclip_user_set_frame(&user, framenumber);
 	ibuf = BKE_movieclip_get_ibuf(movieClip, &user);
+
+	if (!ibuf)
+		return NULL;
+
+	triangulation = (TriangulationData *) MEM_callocN(sizeof(TriangulationData), "keying screen triangulation data");
 
 	sites = (VoronoiSite *) MEM_callocN(sizeof(VoronoiSite) * sites_total, "keyingscreen voronoi sites");
 	track = (MovieTrackingTrack *) tracksbase->first;

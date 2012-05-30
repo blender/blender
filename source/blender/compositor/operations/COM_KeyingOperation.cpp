@@ -47,7 +47,7 @@ static float get_pixel_saturation(float *pixel, float screen_balance)
 	float mid = pixel[0] + pixel[1] + pixel[2] - min - max;
 	float val = (1.0f - screen_balance) * min + screen_balance * mid;
 
-	return max - val;
+	return (max - val) * (1.0f - val) * (1.0f - val);
 }
 
 KeyingOperation::KeyingOperation(): NodeOperation()
@@ -92,7 +92,7 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 	if (primary_channel != screen_primary_channel) {
 		/* different main channel means pixel is on foreground */
 		color[0] = 1.0f;
-        }
+	}
         else if (saturation >= screen_saturation) {
 		/* saturation of main channel is more than screen, definitely a background */
 		color[0] = 0.0f;
@@ -102,7 +102,7 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 
 		distance = 1.0f - saturation / screen_saturation;
 
-		color[0] = distance;
+		color[0] = distance * distance;
 
 		if (color[0] < this->clipBlack)
 			color[0] = 0.0f;
@@ -110,5 +110,5 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 			color[0] = 1.0f;
 		else
 			color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
-        }
+	}
 }
