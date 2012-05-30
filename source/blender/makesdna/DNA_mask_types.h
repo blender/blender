@@ -132,4 +132,16 @@ typedef struct MaskObject {
 #define MASK_RESTRICT_SELECT    2
 #define MASK_RESTRICT_RENDER    4
 
+/* SpaceClip->mask_draw_flag */
+#define MASK_DRAWFLAG_SMOOTH    1
+
+/* copy of eSpaceImage_UVDT */
+/* SpaceClip->mask_draw_type */
+enum {
+	MASK_DT_OUTLINE = 0,
+	MASK_DT_DASH,
+	MASK_DT_BLACK,
+	MASK_DT_WHITE
+};
+
 #endif // __DNA_MASK_TYPES_H__

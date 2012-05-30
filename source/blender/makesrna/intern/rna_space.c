@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_view3d_types.h"
 
 #include "WM_api.h"
@@ -1068,6 +1069,14 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNU
 
 #else
 
+static EnumPropertyItem dt_uv_items[] = {
+	{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
+	{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
+	{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
+	{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 static void rna_def_space(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1096,14 +1105,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		                "Select UVs that are at the same location and share a mesh vertex"},
 		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex",
 		                   "Select UVs that share mesh vertex, irrespective if they are in the same location"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem dt_uv_items[] = {
-		{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
-		{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
-		{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
-		{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3042,6 +3043,19 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
 	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mask drawing */
+	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
+	RNA_def_property_enum_items(prop, dt_uv_items);
+	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
+	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);

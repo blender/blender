@@ -711,6 +711,12 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             col.label(text="Display Aspect Ratio:")
             row = col.row()
             row.prop(clip, "display_aspect", text="")
+        
+        if sc.mode == 'MASKEDITING':
+            col = layout.column()
+            col.prop(sc, "mask_draw_type", text="")
+            col.prop(sc, "show_mask_smooth")
+            
 
 
 class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):

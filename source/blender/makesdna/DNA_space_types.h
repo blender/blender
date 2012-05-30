@@ -1014,6 +1014,10 @@ typedef struct SpaceClip {
 
 	/* **** mask editing **** */
 	struct Mask *mask;
+	/* draw options */
+	char mask_draw_flag;
+	char mask_draw_type;
+	char pad3[6];
 } SpaceClip;
 
 /* SpaceClip->flag */

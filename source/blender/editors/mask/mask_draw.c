@@ -236,41 +236,99 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 
 /* #define USE_XOR */
 
-static void draw_curve_dashed(MaskSpline *spline, float *points, int tot_point, const unsigned char rgb_sel[4])
+static void mask_draw_curve_type(MaskSpline *spline, float *points, int tot_point,
+                                 const short is_feather, const short is_smooth,
+                                 const unsigned char rgb_spline[4], const char draw_type)
 {
 	const int draw_method = (spline->flag & MASK_SPLINE_CYCLIC) ? GL_LINE_LOOP : GL_LINE_STRIP;
+	unsigned char rgb_tmp[4];
 
-	glEnable(GL_LINE_STIPPLE);
-
-#ifdef USE_XOR
-	glEnable(GL_COLOR_LOGIC_OP);
-	glLogicOp(GL_OR);
-#endif
-
-	glColor4ubv(rgb_sel);
-	glLineStipple(3, 0xaaaa);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(2, GL_FLOAT, 0, points);
-	glDrawArrays(draw_method, 0, tot_point);
+
+	switch (draw_type) {
+
+		case MASK_DT_OUTLINE:
+			glLineWidth(3);
+			cpack(0x0);
+
+			glDrawArrays(draw_method, 0, tot_point);
+
+			glLineWidth(1);
+			glColor4ubv(rgb_spline);
+			glDrawArrays(draw_method, 0, tot_point);
+
+			break;
+
+		case MASK_DT_DASH:
+		default:
+			glEnable(GL_LINE_STIPPLE);
 
 #ifdef USE_XOR
-	glDisable(GL_COLOR_LOGIC_OP);
+			glEnable(GL_COLOR_LOGIC_OP);
+			glLogicOp(GL_OR);
 #endif
+			glColor4ubv(rgb_spline);
+			glLineStipple(3, 0xaaaa);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(2, GL_FLOAT, 0, points);
+			glDrawArrays(draw_method, 0, tot_point);
 
-	glColor4ub(0, 0, 0, 255);
-	glLineStipple(3, 0x5555);
-	glDrawArrays(draw_method, 0, tot_point);
+#ifdef USE_XOR
+			glDisable(GL_COLOR_LOGIC_OP);
+#endif
+			glColor4ub(0, 0, 0, 255);
+			glLineStipple(3, 0x5555);
+			glDrawArrays(draw_method, 0, tot_point);
+
+			glDisable(GL_LINE_STIPPLE);
+			break;
+
+
+		case MASK_DT_BLACK:
+		case MASK_DT_WHITE:
+			if (draw_type == MASK_DT_BLACK) { rgb_tmp[0] = rgb_tmp[1] = rgb_tmp[2] = 0;   }
+			else                            { rgb_tmp[0] = rgb_tmp[1] = rgb_tmp[2] = 255; }
+			/* alpha values seem too low but gl draws many points that compensate for it */
+			if (is_feather) { rgb_tmp[3] = 64; }
+			else            { rgb_tmp[3] = 128; }
+
+			if (is_feather) {
+				rgb_tmp[0] = (unsigned char)(((short)rgb_tmp[0] + (short)rgb_spline[0]) / 2);
+				rgb_tmp[1] = (unsigned char)(((short)rgb_tmp[1] + (short)rgb_spline[1]) / 2);
+				rgb_tmp[2] = (unsigned char)(((short)rgb_tmp[2] + (short)rgb_spline[2]) / 2);
+			}
+
+			if (is_smooth == FALSE && is_feather) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			}
+
+			glColor4ubv(rgb_tmp);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(2, GL_FLOAT, 0, points);
+			glDrawArrays(draw_method, 0, tot_point);
+
+			glDrawArrays(draw_method, 0, tot_point);
+
+			if (is_smooth == FALSE && is_feather) {
+				glDisable(GL_BLEND);
+			}
+
+			break;
+	}
+
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	glDisable(GL_LINE_STIPPLE);
 }
 
 static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
-                              const char use_smooth, const char draw_type)
+                              const char draw_flag, const char draw_type)
 {
 	unsigned char rgb_tmp[4];
 
-	const int is_spline_sel = (spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0;
+	const short is_spline_sel = (spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0;
+	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
 	float *diff_points, *feather_points;
 	int tot_diff_point, tot_feather_point;
 
@@ -279,7 +337,7 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 	if (!diff_points)
 		return;
 
-	if (use_smooth) {
+	if (is_smooth) {
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -289,15 +347,19 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 
 	/* draw feather */
 	mask_spline_feather_color_get(maskobj, spline, is_spline_sel, rgb_tmp);
-	draw_curve_dashed(spline, feather_points, tot_feather_point, rgb_tmp);
+	mask_draw_curve_type(spline, feather_points, tot_feather_point,
+	                     TRUE, is_smooth,
+	                     rgb_tmp, draw_type);
 	MEM_freeN(feather_points);
 
 	/* draw main curve */
 	mask_spline_color_get(maskobj, spline, is_spline_sel, rgb_tmp);
-	draw_curve_dashed(spline, diff_points, tot_diff_point, rgb_tmp);
+	mask_draw_curve_type(spline, diff_points, tot_diff_point,
+	                     FALSE, is_smooth,
+	                     rgb_tmp, draw_type);
 	MEM_freeN(diff_points);
 
-	if (use_smooth) {
+	if (draw_flag & MASK_DRAWFLAG_SMOOTH) {
 		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
@@ -306,7 +368,7 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 }
 
 static void draw_maskobjs(Mask *mask,
-                          const char use_smooth, const char draw_type)
+                          const char draw_flag, const char draw_type)
 {
 	MaskObject *maskobj;
 
@@ -320,7 +382,7 @@ static void draw_maskobjs(Mask *mask,
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 
 			/* draw curve itself first... */
-			draw_spline_curve(maskobj, spline, use_smooth, draw_type);
+			draw_spline_curve(maskobj, spline, draw_flag, draw_type);
 
 //			draw_spline_parents(maskobj, spline);
 
@@ -334,7 +396,7 @@ static void draw_maskobjs(Mask *mask,
 				void *back = spline->points_deform;
 
 				spline->points_deform = NULL;
-				draw_spline_curve(maskobj, spline, use_smooth, draw_type);
+				draw_spline_curve(maskobj, spline, draw_flag, draw_type);
 //				draw_spline_parents(maskobj, spline);
 				draw_spline_points(maskobj, spline);
 				spline->points_deform = back;
@@ -343,12 +405,13 @@ static void draw_maskobjs(Mask *mask,
 	}
 }
 
-void ED_mask_draw(const bContext *C)
+void ED_mask_draw(const bContext *C,
+                  const char draw_flag, const char draw_type)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 
 	if (!mask)
 		return;
 
-	draw_maskobjs(mask, FALSE, 0);
+	draw_maskobjs(mask, draw_flag, draw_type);
 }
