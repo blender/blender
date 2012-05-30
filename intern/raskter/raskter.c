@@ -55,8 +55,11 @@ struct r_buffer_stats {
 	int sizey;
 };
 
-static struct e_status *all_edges, *possible_edges;
-static struct r_buffer_stats rb;
+struct r_fill_context {
+	struct e_status *all_edges, *possible_edges;
+	struct r_buffer_stats rb;
+};
+
 /*
  * Sort all the edges of the input polygon by Y, then by X, of the "first" vertex encountered.
  * This will ensure we can scan convert the entire poly in one pass.
@@ -65,7 +68,7 @@ static struct r_buffer_stats rb;
  * just the poly. Since the DEM code could end up being coupled with this, we'll keep it separate
  * for now.
  */
-static void preprocess_all_edges(struct poly_vert *verts, int num_verts, struct e_status *open_edge)
+static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge)
 {
 	int i;
 	int xbeg;
@@ -82,7 +85,7 @@ static void preprocess_all_edges(struct poly_vert *verts, int num_verts, struct 
 	struct poly_vert *v;
 	/* set up pointers */
 	v = verts;
-	all_edges = NULL;
+	ctx->all_edges = NULL;
 	/* loop all verts */
 	for (i = 0; i < num_verts; i++) {
 		/* determine beginnings and endings of edges, linking last vertex to first vertex */
@@ -148,7 +151,7 @@ static void preprocess_all_edges(struct poly_vert *verts, int num_verts, struct 
 				e_new->drift_inc = xdist % dy;
 				e_new->xshift = (xdist / dy) * e_new->xdir;
 			}
-			next_edge_ref = &all_edges;
+			next_edge_ref = &ctx->all_edges;
 			/* link in all the edges, in sorted order */
 			for (;; ) {
 				next_edge = *next_edge_ref;
@@ -168,7 +171,7 @@ static void preprocess_all_edges(struct poly_vert *verts, int num_verts, struct 
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-int rast_scan_fill(struct poly_vert *verts, int num_verts)
+int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts)
 {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
@@ -208,13 +211,13 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 	 * Do some preprocessing on all edges. This constructs a table structure in memory of all
 	 * the edge properties and can "flip" some edges so sorting works correctly.
 	 */
-	preprocess_all_edges(verts, num_verts, edgbuf);
+	preprocess_all_edges(ctx, verts, num_verts, edgbuf);
 
 	/*
 	 * Set the pointer for tracking the edges currently in processing to NULL to make sure
 	 * we don't get some crazy value after initialization.
 	 */
-	possible_edges = NULL;
+	ctx->possible_edges = NULL;
 
 	/*
 	 * Loop through all scan lines to be drawn. Since we sorted by Y values during
@@ -229,7 +232,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 	 * TODO: This clips Y to the frame buffer, which should be done in the preprocessor, but for now is done here.
 	 *       Will get changed once DEM code gets in.
 	 */
-	for (y_curr = MAX2(all_edges->ybeg, 0); (all_edges || possible_edges) && (y_curr < rb.sizey); y_curr++) {
+	for (y_curr = MAX2(ctx->all_edges->ybeg, 0); (ctx->all_edges || ctx->possible_edges) && (y_curr < ctx->rb.sizey); y_curr++) {
 
 		/*
 		 * Link any edges that start on the current scan line into the list of
@@ -246,16 +249,16 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 		 *
 		 * At each iteration, make sure we still have a non-NULL edge.
 		 */
-		for (edgec = &possible_edges; all_edges && (all_edges->ybeg == y_curr); ) {
-			x_curr = all_edges->x;                       /* Set current X position. */
+		for (edgec = &ctx->possible_edges; ctx->all_edges && (ctx->all_edges->ybeg == y_curr); ) {
+			x_curr = ctx->all_edges->x;                  /* Set current X position. */
 			for (;; ) {                                  /* Start looping edges. Will break when edges run out. */
 				e_curr = *edgec;                         /* Set up a current edge pointer. */
 				if (!e_curr || (e_curr->x >= x_curr)) {  /* If we have an no edge, or we need to skip some X-span, */
-					e_temp = all_edges->e_next;          /* set a temp "next" edge to test. */
-					*edgec = all_edges;                  /* Add this edge to the list to be scanned. */
-					all_edges->e_next = e_curr;          /* Set up the next edge. */
-					edgec = &all_edges->e_next;          /* Set our list to the next edge's location in memory. */
-					all_edges = e_temp;                  /* Skip the NULL or bad X edge, set pointer to next edge. */
+					e_temp = ctx->all_edges->e_next;     /* set a temp "next" edge to test. */
+					*edgec = ctx->all_edges;             /* Add this edge to the list to be scanned. */
+					ctx->all_edges->e_next = e_curr;     /* Set up the next edge. */
+					edgec = &ctx->all_edges->e_next;     /* Set our list to the next edge's location in memory. */
+					ctx->all_edges = e_temp;             /* Skip the NULL or bad X edge, set pointer to next edge. */
 					break;                               /* Stop looping edges (since we ran out or hit empty X span. */
 				}
 				else {
@@ -268,11 +271,11 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 		 * Determine the current scan line's offset in the pixel buffer based on its Y position.
 		 * Basically we just multiply the current scan line's Y value by the number of pixels in each line.
 		 */
-		yp = y_curr * rb.sizex;
+		yp = y_curr * ctx->rb.sizex;
 		/*
 		 * Set a "scan line pointer" in memory. The location of the buffer plus the row offset.
 		 */
-		spxl = rb.buf + (yp);
+		spxl = ctx->rb.buf + (yp);
 		/*
 		 * Set up the current edge to the first (in X) edge. The edges which could possibly be in this
 		 * list were determined in the preceeding edge loop above. They were already sorted in X by the
@@ -281,7 +284,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 		 * At each iteration, test for a NULL edge. Since we'll keep cycling edge's to their own "next" edge
 		 * we will eventually hit a NULL when the list runs out.
 		 */
-		for (e_curr = possible_edges; e_curr; e_curr = e_curr->e_next) {
+		for (e_curr = ctx->possible_edges; e_curr; e_curr = e_curr->e_next) {
 			/*
 			 * Calculate a span of pixels to fill on the current scan line.
 			 *
@@ -300,7 +303,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 			/* set up xmin and xmax bounds on this scan line */
 			cpxl = spxl + MAX2(e_curr->x, 0);
 			e_curr = e_curr->e_next;
-			mpxl = spxl + MIN2(e_curr->x, rb.sizex) - 1;
+			mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
 			/* draw the pixels. */
 			for (; cpxl <= mpxl; cpxl++){
@@ -321,7 +324,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 		 * polygons, we dont have fractional positions, so we only move in x-direction
 		 * when needed to get all the way to the next pixel over...
 		 */
-		for (edgec = &possible_edges; (e_curr = *edgec); ) {
+		for (edgec = &ctx->possible_edges; (e_curr = *edgec); ) {
 			if (!(--(e_curr->num))) {
 				*edgec = e_curr->e_next;
 			}
@@ -342,8 +345,8 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 		 * pass, then we know we need to sort by x, so then cycle through edges again and perform
 		 * the sort.-
 		 */
-		if (possible_edges) {
-			for (edgec = &possible_edges; (e_curr = *edgec)->e_next; edgec = &(*edgec)->e_next) {
+		if (ctx->possible_edges) {
+			for (edgec = &ctx->possible_edges; (e_curr = *edgec)->e_next; edgec = &(*edgec)->e_next) {
 				/* if the current edge hits scan line at greater X than the next edge, we need to exchange the edges */
 				if (e_curr->x > e_curr->e_next->x) {
 					*edgec = e_curr->e_next;
@@ -359,7 +362,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 			for (;; ) {
 				/* reset exchange flag so it's only set if we encounter another one */
 				swixd = 0;
-				for (edgec = &possible_edges; (e_curr = *edgec)->e_next; edgec = &(*edgec)->e_next) {
+				for (edgec = &ctx->possible_edges; (e_curr = *edgec)->e_next; edgec = &(*edgec)->e_next) {
 					/* again, if current edge hits scan line at higher X than next edge, exchange the edges and set flag */
 					if (e_curr->x > e_curr->e_next->x) {
 						*edgec = e_curr->e_next;
@@ -386,6 +389,7 @@ int rast_scan_fill(struct poly_vert *verts, int num_verts)
 int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y) {
 	int i;                                       /* i: Loop counter. */
 	struct poly_vert *ply;                       /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
+	struct r_fill_context ctx = {0};
 
 	/*
 	 * Allocate enough memory for our poly_vert list. It'll be the size of the poly_vert
@@ -411,11 +415,11 @@ int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y) {
 		ply[i].y = (verts[(i << 1) + 1] * buf_y) + 0.5f; /* Range expand normalized Y to integer buffer-space Y. */
 	}
 
-	rb.buf = buf;                                /* Set the output buffer pointer. */
-	rb.sizex = buf_x;                            /* Set the output buffer size in X. (width) */
-	rb.sizey = buf_y;                            /* Set the output buffer size in Y. (height) */
+	ctx.rb.buf = buf;                            /* Set the output buffer pointer. */
+	ctx.rb.sizex = buf_x;                        /* Set the output buffer size in X. (width) */
+	ctx.rb.sizey = buf_y;                        /* Set the output buffer size in Y. (height) */
 
-	i = rast_scan_fill(ply, num);                /* Call our rasterizer, passing in the integer coords for each vert. */
+	i = rast_scan_fill(&ctx, ply, num);                /* Call our rasterizer, passing in the integer coords for each vert. */
 	free(ply);                                   /* Free the memory allocated for the integer coordinate table. */
 	return(i);                                   /* Return the value returned by the rasterizer. */
 }
