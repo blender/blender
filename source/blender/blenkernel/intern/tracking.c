@@ -1322,8 +1322,8 @@ static void track_mask_gpencil_layer_rasterize(MovieTracking *tracking, MovieTra
 					fp[0] = stroke_points[i].x * width / ibuf->x - marker->search_min[0];
 					fp[1] = stroke_points[i].y * height * aspy / ibuf->x - marker->search_min[1];
 				}
-
-				PLX_raskterize(mask_points, stroke->totpoints, mask, ibuf->x, ibuf->y);
+				/* TODO: not sure best method to get spline->flag here... to tell if mask is negative color */
+				PLX_raskterize(mask_points, stroke->totpoints, mask, ibuf->x, ibuf->y, /* TODO: this is color */ 1.0f);
 
 				MEM_freeN(mask_points);
 			}

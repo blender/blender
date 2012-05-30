@@ -1754,7 +1754,7 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			}
 
 			if (tot_diff_point) {
-				PLX_raskterize(diff_points, tot_diff_point, buffer, width, height);
+				PLX_raskterize(diff_points, tot_diff_point, buffer, width, height, (spline->flag & MASK_SPLINE_NEGATE)?0.0f:1.0f);
 
 				MEM_freeN(diff_points);
 			}

@@ -171,7 +171,7 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts)
+int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, float fill_color)
 {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
@@ -308,11 +308,7 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 			if((y_curr >= 0) && (y_curr < ctx->rb.sizey)){
 				/* draw the pixels. */
 				for (; cpxl <= mpxl; cpxl++){
-					if(*cpxl < 0.5f){
-						*cpxl = 1.0f;
-					}else{
-						*cpxl = 0.0f;
-					}
+					*cpxl = fill_color;
 				}
 			}
 		}
@@ -388,7 +384,7 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 	return 1;
 }
 
-int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y) {
+int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y, float fill_color) {
 	int i;                                       /* i: Loop counter. */
 	struct poly_vert *ply;                       /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct r_fill_context ctx = {0};
@@ -421,7 +417,7 @@ int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y) {
 	ctx.rb.sizex = buf_x;                        /* Set the output buffer size in X. (width) */
 	ctx.rb.sizey = buf_y;                        /* Set the output buffer size in Y. (height) */
 
-	i = rast_scan_fill(&ctx, ply, num);                /* Call our rasterizer, passing in the integer coords for each vert. */
+	i = rast_scan_fill(&ctx, ply, num, fill_color);                /* Call our rasterizer, passing in the integer coords for each vert. */
 	free(ply);                                   /* Free the memory allocated for the integer coordinate table. */
 	return(i);                                   /* Return the value returned by the rasterizer. */
 }

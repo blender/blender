@@ -618,6 +618,7 @@ class CLIP_PT_active_mask_spline(Panel):
         col = layout.column()
         col.prop(spline, "weight_interpolation")
         col.prop(spline, "use_cyclic")
+        col.prop(spline, "mask_negate")
 
 
 class CLIP_PT_active_mask_point(Panel):
