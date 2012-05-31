@@ -90,6 +90,7 @@ short id_type_can_have_animdata(ID *id)
 		case ID_SPK:
 		case ID_SCE:
 		case ID_MC:
+		case ID_MSK:
 		{
 			return 1;
 		}
@@ -802,10 +803,13 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
+
+	/* masks */
+	ANIMDATA_IDS_CB(mainptr->mask.first);
 	
 	/* worlds */
 	ANIMDATA_IDS_CB(mainptr->world.first);
-	
+
 	/* scenes */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
 }
@@ -886,6 +890,9 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
+
+	/* masks */
+	RENAMEFIX_ANIM_IDS(mainptr->mask.first);
 	
 	/* worlds */
 	RENAMEFIX_ANIM_IDS(mainptr->world.first);
@@ -2350,6 +2357,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	 * linked from other (not-visible) scenes will not need their data calculated.
 	 */
 	EVAL_ANIM_IDS(main->object.first, 0); 
+
+	/* masks */
+	EVAL_ANIM_IDS(main->mask.first, ADT_RECALC_ANIM);
 	
 	/* worlds */
 	EVAL_ANIM_NODETREE_IDS(main->world.first, World, ADT_RECALC_ANIM);
