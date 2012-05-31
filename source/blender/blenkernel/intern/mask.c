@@ -1826,14 +1826,10 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 					PLX_raskterize_feather((float (*)[2])diff_points, tot_diff_point,
 					                       (float (*)[2])diff_feather_points, tot_diff_feather_points,
 					                       buffer_tmp, width, height);
-				}
-
-				if (tot_diff_point) {
-					MEM_freeN(diff_points);
-				}
-				if (tot_diff_feather_points) {
 					MEM_freeN(diff_feather_points);
 				}
+
+				MEM_freeN(diff_points);
 			}
 		}
 
