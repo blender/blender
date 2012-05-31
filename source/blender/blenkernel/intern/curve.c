@@ -3200,7 +3200,8 @@ float (*BKE_curve_vertexCos_get(Curve * UNUSED(cu), ListBase * lb, int *numVerts
 		else {
 			BPoint *bp = nu->bp;
 
-			for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) { copy_v3_v3(co, bp->vec); co += 3;
+			for (i = 0; i < nu->pntsu * nu->pntsv; i++, bp++) {
+				copy_v3_v3(co, bp->vec); co += 3;
 			}
 		}
 	}
