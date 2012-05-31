@@ -1731,30 +1731,47 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			float *diff_points;
 			int tot_diff_point;
 
+			float *diff_feather_points;
+			int tot_diff_feather_points;
+
 			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
+			diff_feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_diff_feather_points);
 
 			/* TODO, make this optional! */
 			if (width != height) {
 				float *fp;
+				float *ffp;
 				int i;
 				float asp;
 
 				if (width < height) {
 					fp = &diff_points[0];
+					ffp = &diff_feather_points[0];
 					asp = (float)width / (float)height;
 				}
 				else {
 					fp = &diff_points[1];
+					ffp = &diff_feather_points[1];
 					asp = (float)height / (float)width;
 				}
 
 				for (i = 0; i < tot_diff_point; i++, fp += 2) {
 					(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
 				}
+				for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+					(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+				}
 			}
 
 			if (tot_diff_point) {
-				PLX_raskterize(diff_points, tot_diff_point, buffer, width, height);
+				PLX_raskterize((float (*)[2])diff_points, tot_diff_point, buffer, width, height);
+
+				if (tot_diff_feather_points) {
+					PLX_raskterize_feather((float (*)[2])diff_points, tot_diff_point,
+					                       (float (*)[2])diff_feather_points, tot_diff_feather_points,
+					                       buffer, width, height);
+					MEM_freeN(diff_feather_points);
+				}
 
 				MEM_freeN(diff_points);
 			}

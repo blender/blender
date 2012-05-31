@@ -48,7 +48,12 @@ struct scan_line_batch {
 extern "C" {
 #endif
 
-int PLX_raskterize(float *verts, int num, float *buf, int buf_x, int buf_y);
+int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
+                   float *buf, int buf_x, int buf_y);
+
+int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,
+                           float (*feather_verts)[2], int num_feather_verts,
+                           float *buf, int buf_x, int buf_y);
 
 #ifdef __cplusplus
 }
