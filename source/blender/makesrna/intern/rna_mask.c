@@ -126,6 +126,11 @@ static void rna_Mask_object_active_index_range(PointerRNA *ptr, int *min, int *m
 	*softmax = *max;
 }
 
+static char *rna_MaskObject_path(PointerRNA *ptr)
+{
+	return BLI_sprintfN("objects[\"%s\"]", ((MaskObject *)ptr->data)->name);
+}
+
 static PointerRNA rna_Mask_object_active_get(PointerRNA *ptr)
 {
 	Mask *mask = (Mask *)ptr->id.data;
@@ -483,7 +488,8 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	static EnumPropertyItem spline_interpolation_items[] = {
 		{MASK_SPLINE_INTERP_LINEAR, "LINEAR", 0, "Linear", ""},
 		{MASK_SPLINE_INTERP_EASE, "EASE", 0, "Ease", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	StructRNA *srna;
 	PropertyRNA *prop;
@@ -510,6 +516,12 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 
 static void rna_def_mask_object(BlenderRNA *brna)
 {
+	static EnumPropertyItem maskobj_blend_mode_items[] = {
+		{MASK_BLEND_ADD, "ADD", 0, "Add", ""},
+		{MASK_BLEND_SUBTRACT, "SUBTRACT", 0, "Subtract", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	StructRNA *srna;
 	PropertyRNA *prop;
 
@@ -518,6 +530,7 @@ static void rna_def_mask_object(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MaskObject", NULL);
 	RNA_def_struct_ui_text(srna, "Mask Object", "Single object used for masking pixels");
+	RNA_def_struct_path_func(srna, "rna_MaskObject_path");
 
 	/* name */
 	prop = RNA_def_property(srna, "name", PROP_STRING, PROP_NONE);
@@ -551,14 +564,28 @@ static void rna_def_mask_object(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "restrictflag", MASK_RESTRICT_RENDER);
 	RNA_def_property_ui_text(prop, "Restrict Render", "Restrict renderability");
 	RNA_def_property_ui_icon(prop, ICON_RESTRICT_RENDER_OFF, 1);
-	RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
 
 	/* render settings */
 	prop = RNA_def_property(srna, "alpha", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "alpha");
 	RNA_def_property_range(prop, 0.0, 1.0f);
 	RNA_def_property_ui_text(prop, "Opacity", "Render Opacity");
-	RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
+	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+
+	/* weight interpolation */
+	prop = RNA_def_property(srna, "blend", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "blend");
+	RNA_def_property_enum_items(prop, maskobj_blend_mode_items);
+	RNA_def_property_ui_text(prop, "Blend", "Method of blending mask objects");
+	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
+	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+
+	prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MASK_BLENDFLAG_INVERT);
+	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
+
 }
 
 static void rna_def_maskobjects(BlenderRNA *brna, PropertyRNA *cprop)
@@ -616,6 +643,9 @@ static void rna_def_mask(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, "rna_Mask_object_active_index_get", "rna_Mask_object_active_index_set", "rna_Mask_object_active_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Index", "Index of active object in list of all mask's objects");
+
+	/* pointers */
+	rna_def_animdata_common(srna);
 }
 
 void RNA_def_mask(BlenderRNA *brna)

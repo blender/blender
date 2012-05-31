@@ -108,10 +108,14 @@ typedef struct MaskObject {
 	struct MaskSpline *act_spline;     /* active spline */
 	struct MaskSplinePoint *act_point; /* active point */
 
+	/* blending options */
 	float  alpha;
+	char   blend;
+	char   blend_flag;
+
 	//char   flag;             /* not used yet */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
-	char   pad[3];
+	char   pad[1];
 } MaskObject;
 
 /* MaskParent->flag */
@@ -143,5 +147,17 @@ enum {
 	MASK_DT_BLACK,
 	MASK_DT_WHITE
 };
+
+/* maskobj->blend */
+enum {
+	MASK_BLEND_ADD      = 0,
+	MASK_BLEND_SUBTRACT = 1
+};
+
+/* maskobj->blend_flag */
+enum {
+	MASK_BLENDFLAG_INVERT = (1 << 0)
+};
+
 
 #endif // __DNA_MASK_TYPES_H__

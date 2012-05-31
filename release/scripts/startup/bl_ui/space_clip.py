@@ -591,6 +591,13 @@ class CLIP_PT_mask_objects(Panel):
         active = mask.objects.active
         if active:
             layout.prop(active, "name")
+            
+            # blending
+            row = layout.row(align=True)
+            row.prop(active, "alpha")
+            row.prop(active, "invert", text="", icon='IMAGE_ALPHA')
+
+            layout.prop(active, "blend")
 
 
 class CLIP_PT_active_mask_spline(Panel):

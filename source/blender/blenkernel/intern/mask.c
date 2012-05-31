@@ -1729,13 +1729,57 @@ void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index, int co
 	}
 }
 
+/* local functions */
+static void invert_vn_vn(float *array, const int size)
+{
+	float *arr = array + (size - 1);
+	int i = size;
+	while (i--) {
+		*(arr) = 1.0f - *(arr);
+		arr--;
+	}
+}
+
+static void m_invert_vn_vn(float *array, const float f, const int size)
+{
+	float *arr = array + (size - 1);
+	int i = size;
+	while (i--) {
+		*(arr) = 1.0f - (*(arr) * f);
+		arr--;
+	}
+}
+
+static void clamp_vn_vn(float *array, const int size)
+{
+	float *arr = array + (size - 1);
+
+	int i = size;
+	while (i--) {
+		if      (*arr < 0.0f) *arr = 0.0f;
+		else if (*arr > 1.0f) *arr = 1.0f;
+		arr--;
+	}
+}
+
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 {
 	MaskObject *maskobj;
 
+	/* temp blending buffer */
+	const int buffer_size = width * height;
+	float *buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
+
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
+		float alpha;
+
+		if (maskobj->restrictflag & MASK_RESTRICT_RENDER) {
+			continue;
+		}
+
+		memset(buffer_tmp, 0, sizeof(float) * buffer_size);
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
 			float (*diff_points)[2];
@@ -1774,17 +1818,67 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			}
 
 			if (tot_diff_point) {
-				PLX_raskterize((float (*)[2])diff_points, tot_diff_point, buffer, width, height);
+				PLX_raskterize((float (*)[2])diff_points, tot_diff_point,
+				               buffer_tmp, width, height);
 
 				if (tot_diff_feather_points) {
 					PLX_raskterize_feather((float (*)[2])diff_points, tot_diff_point,
 					                       (float (*)[2])diff_feather_points, tot_diff_feather_points,
-					                       buffer, width, height);
-					MEM_freeN(diff_feather_points);
+					                       buffer_tmp, width, height);
 				}
 
-				MEM_freeN(diff_points);
+				if (tot_diff_point) {
+					MEM_freeN(diff_points);
+				}
+				if (tot_diff_feather_points) {
+					MEM_freeN(diff_feather_points);
+				}
 			}
 		}
+
+		/* blend with original */
+		if (maskobj->blend_flag & MASK_BLENDFLAG_INVERT) {
+			/* apply alpha multiply before inverting */
+			if (maskobj->alpha != 1.0f) {
+				m_invert_vn_vn(buffer_tmp, maskobj->alpha, buffer_size);
+			}
+			else {
+				invert_vn_vn(buffer_tmp, buffer_size);
+			}
+
+			alpha = 1.0f;
+		}
+		else {
+			alpha = maskobj->alpha;
+		}
+
+		switch (maskobj->blend) {
+			case MASK_BLEND_SUBTRACT:
+			{
+				if (alpha == 1.0f) {
+					sub_vn_vn(buffer, buffer_tmp, buffer_size);
+				}
+				else {
+					msub_vn_vn(buffer, buffer_tmp, alpha, buffer_size);
+				}
+				break;
+			}
+			case MASK_BLEND_ADD:
+			default:
+			{
+				if (alpha == 1.0f) {
+					add_vn_vn(buffer, buffer_tmp, buffer_size);
+				}
+				else {
+					madd_vn_vn(buffer, buffer_tmp, alpha, buffer_size);
+				}
+				break;
+			}
+		}
+
+		/* clamp at the end */
+		clamp_vn_vn(buffer, buffer_size);
 	}
+
+	MEM_freeN(buffer_tmp);
 }

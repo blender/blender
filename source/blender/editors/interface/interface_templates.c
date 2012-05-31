@@ -2251,6 +2251,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		// uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE); // enable when used
 		uiItemR(row, itemptr, "hide", 0, "", 0);
 		uiItemR(row, itemptr, "hide_select", 0, "", 0);
+		uiItemR(row, itemptr, "hide_render", 0, "", 0);
 
 		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
