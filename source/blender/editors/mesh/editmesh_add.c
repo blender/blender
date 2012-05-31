@@ -53,34 +53,6 @@
 
 #include "mesh_intern.h"
 
-/* uses context to figure out transform for primitive */
-/* returns standard diameter */
-static float new_primitive_matrix(bContext *C, const float loc[3], const float rot[3], float primmat[][4])
-{
-	Object *obedit = CTX_data_edit_object(C);
-	View3D *v3d = CTX_wm_view3d(C);
-	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
-	
-	unit_m4(primmat);
-
-	eul_to_mat3(rmat, rot);
-	invert_m3(rmat);
-	
-	/* inverse transform for initial rotation and object */
-	copy_m3_m4(mat, obedit->obmat);
-	mul_m3_m3m3(cmat, rmat, mat);
-	invert_m3_m3(imat, cmat);
-	copy_m4_m3(primmat, imat);
-
-	/* center */
-	copy_v3_v3(primmat[3], loc);
-	sub_v3_v3(primmat[3], obedit->obmat[3]);
-	invert_m3_m3(imat, mat);
-	mul_m3_v3(imat, primmat[3]);
-
-	return v3d ? v3d->grid : 1.0f;
-}
-
 /* ********* add primitive operators ************* */
 
 static void make_prim_init(bContext *C, const char *idname,
@@ -101,7 +73,7 @@ static void make_prim_init(bContext *C, const char *idname,
 		*state = 1;
 	}
 
-	*dia = new_primitive_matrix(C, loc, rot, mat);
+	*dia = ED_object_new_primitive_matrix(C, obedit, loc, rot, mat);
 }
 
 static void make_prim_finish(bContext *C, int *state, int enter_editmode)

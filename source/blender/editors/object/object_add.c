@@ -166,6 +166,7 @@ void ED_object_base_init_transform(bContext *C, Base *base, const float loc[3], 
 float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
                                      const float loc[3], const float rot[3], float primmat[][4])
 {
+	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
 	float mat[3][3], rmat[3][3], cmat[3][3], imat[3][3];
 	
@@ -186,7 +187,9 @@ float ED_object_new_primitive_matrix(bContext *C, Object *obedit,
 	invert_m3_m3(imat, mat);
 	mul_m3_v3(imat, primmat[3]);
 	
-	if (v3d) return v3d->grid;
+	if (v3d)
+		return ED_view3d_grid_scale(scene, v3d, NULL);
+
 	return 1.0f;
 }
 
