@@ -434,8 +434,8 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
  * if it ends up being coupled with this function.
  */
 int rast_scan_feather(struct r_fill_context *ctx,
-                      struct poly_vert *base_verts, int num_base_verts,
-                      struct poly_vert *feather_verts, int num_feather_verts)
+                      float (*base_verts_f)[2], int num_base_verts,
+                      struct poly_vert *feather_verts, float (*feather_verts_f)[2], int num_feather_verts)
 {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
@@ -451,19 +451,19 @@ int rast_scan_feather(struct r_fill_context *ctx,
 
 	/* from dem */
 	int a;                          // a = temporary pixel index buffer loop counter
-	int fsz;                        // size of the frame
+	float fsz;                        // size of the frame
 	unsigned int rsl;               // long used for finding fast 1.0/sqrt
 	float rsf;                      // float used for finding fast 1.0/sqrt
 	const float rsopf = 1.5f;       // constant float used for finding fast 1.0/sqrt
 
 	//unsigned int gradientFillOffset;
-	unsigned int t;
-	unsigned int ud;                // ud = unscaled edge distance
-	unsigned int dmin;              // dmin = minimun edge distance
+	float t;
+	float ud;                // ud = unscaled edge distance
+	float dmin;              // dmin = minimun edge distance
 	float odist;                    // odist = current outer edge distance
 	float idist;                    // idist = current inner edge distance
-	int dx;                         // dx = X-delta (used for distance proportion calculation)
-	int dy;                         // dy = Y-delta (used for distance proportion calculation)
+	float dx;                         // dx = X-delta (used for distance proportion calculation)
+	float dy;                         // dy = Y-delta (used for distance proportion calculation)
 
 
 	/*
@@ -595,41 +595,43 @@ int rast_scan_feather(struct r_fill_context *ctx,
 /*
  * Begin modified code from double edge mask compo node...
  */
-						t = (cpxl - spxl) % ctx->rb.sizex;      // calculate column of pixel
+						t = ((float)((cpxl - spxl) % ctx->rb.sizex) + 0.5f) * (1.0f / (float)(ctx->rb.sizex));      // calculate column of pixel
 
-						fsz = y_curr; // calculate row of pixel
+						fsz = ((float)(y_curr) + 0.5) * (1.0f / (float)(ctx->rb.sizey)); // calculate row of pixel
 
 
-						dmin = 0xffffffff;                        // reset min distance to edge pixel
+						dmin = 2.0f;                        // reset min distance to edge pixel
 						for (a = 0; a < num_feather_verts; a++) { // loop through all outer edge buffer pixels
-							dy = t - feather_verts[a].x;          // set dx to gradient pixel column - outer edge pixel row
-							dx = fsz - feather_verts[a].y;        // set dy to gradient pixel row - outer edge pixel column
+							dy = t - feather_verts_f[a][0];          // set dx to gradient pixel column - outer edge pixel row
+							dx = fsz - feather_verts_f[a][1];        // set dy to gradient pixel row - outer edge pixel column
 							ud = dx * dx + dy * dy;               // compute sum of squares
 							if (ud < dmin) {                      // if our new sum of squares is less than the current minimum
 								dmin = ud;                        // set a new minimum equal to the new lower value
 							}
 						}
-						odist = (float)(dmin);                    // cast outer min to a float
+						odist = dmin;                    // cast outer min to a float
 						rsf = odist * 0.5f;                       //
 						rsl = *(unsigned int *)&odist;            // use some peculiar properties of the way bits are stored
 						rsl = 0x5f3759df - (rsl >> 1);            // in floats vs. unsigned ints to compute an approximate
 						odist = *(float *)&rsl;                   // reciprocal square root
 						odist = odist * (rsopf - (rsf * odist * odist));  // -- ** this line can be iterated for more accuracy ** --
-						dmin = 0xffffffff;                        // reset min distance to edge pixel
+						odist = odist * (rsopf - (rsf * odist * odist));
+						dmin = 2.0f;                        // reset min distance to edge pixel
 						for (a = 0; a < num_base_verts; a++) {    // loop through all inside edge pixels
-							dy = t - base_verts[a].x;             // compute delta in Y from gradient pixel to inside edge pixel
-							dx = fsz - base_verts[a].y;           // compute delta in X from gradient pixel to inside edge pixel
+							dy = t - base_verts_f[a][0];             // compute delta in Y from gradient pixel to inside edge pixel
+							dx = fsz - base_verts_f[a][1];           // compute delta in X from gradient pixel to inside edge pixel
 							ud = dx * dx + dy * dy;   // compute sum of squares
 							if (ud < dmin) {          // if our new sum of squares is less than the current minimum we've found
 								dmin = ud;            // set a new minimum equal to the new lower value
 							}
 						}
-						idist = (float)(dmin);                    // cast inner min to a float
+						idist = dmin;                    // cast inner min to a float
 						rsf = idist * 0.5f;                       //
 						rsl = *(unsigned int *)&idist;            //
 						rsl = 0x5f3759df - (rsl >> 1);            // see notes above
 						idist = *(float *)&rsl;                   //
 						idist = idist * (rsopf - (rsf * idist * idist));  //
+						idist = idist * (rsopf - (rsf * idist * idist));
 						/*
 						 * Note once again that since we are using reciprocals of distance values our
 						 * proportion is already the correct intensity, and does not need to be
@@ -722,7 +724,6 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
                            float *buf, int buf_x, int buf_y)
 {
 	int i;                            /* i: Loop counter. */
-	struct poly_vert *ply;            /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct poly_vert *fe;             /* fe: Pointer to a list of integer buffer-space feather vertex coords. */
 	struct r_fill_context ctx = {0};
 
@@ -737,10 +738,6 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	 * In the event of a failure to allocate the memory, return 0, so this error can
 	 * be distinguished as a memory allocation error.
 	 */
-	if ((ply = (struct poly_vert *)(malloc(sizeof(struct poly_vert) * num_base_verts))) == NULL) {
-		return(0);
-	}
-
 	if ((fe = (struct poly_vert *)(malloc(sizeof(struct poly_vert) * num_feather_verts))) == NULL) {
 		return(0);
 	}
@@ -753,10 +750,6 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	 * It's worth noting that this function ONLY outputs fully white pixels in a mask. Every pixel
 	 * drawn will be 1.0f in value, there is no anti-aliasing.
 	 */
-	for (i = 0; i < num_base_verts; i++) {             /* Loop over all verts. */
-		ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f);  /* Range expand normalized X to integer buffer-space X. */
-		ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f);  /* Range expand normalized Y to integer buffer-space Y. */
-	}
 	for (i = 0; i < num_feather_verts; i++) {            /* Loop over all verts. */
 		fe[i].x = (int)((feather_verts[i][0] * buf_x_f) + 0.5f);  /* Range expand normalized X to integer buffer-space X. */
 		fe[i].y = (int)((feather_verts[i][1] * buf_y_f) + 0.5f);  /* Range expand normalized Y to integer buffer-space Y. */
@@ -767,8 +760,7 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	ctx.rb.sizey = buf_y;                        /* Set the output buffer size in Y. (height) */
 
 	/* Call our rasterizer, passing in the integer coords for each vert. */
-	i = rast_scan_feather(&ctx, ply, num_base_verts, fe, num_feather_verts);
-	free(ply);                                   /* Free the memory allocated for the integer coordinate table. */
+	i = rast_scan_feather(&ctx, base_verts, num_base_verts, fe, feather_verts, num_feather_verts);
 	free(fe);
 	return i;                                   /* Return the value returned by the rasterizer. */
 }
