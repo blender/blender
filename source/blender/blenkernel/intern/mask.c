@@ -240,7 +240,7 @@ float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[
 
 	/* len+1 because of 'forward_diff_bezier' function */
 	*tot_diff_point = len;
-	diff_points = fp = MEM_callocN((len + 1) * sizeof(*diff_points), "mask spline vets");
+	diff_points = fp = MEM_mallocN((len + 1) * sizeof(*diff_points), "mask spline vets");
 
 	a = spline->tot_point - 1;
 	if (spline->flag & MASK_SPLINE_CYCLIC)
@@ -287,7 +287,7 @@ float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *t
 	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
 
 	tot = resol * spline->tot_point;
-	feather = fp = MEM_callocN(tot * sizeof(*feather), "mask spline feather diff points");
+	feather = fp = MEM_mallocN(tot * sizeof(*feather), "mask spline feather diff points");
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &points_array[i];
@@ -326,7 +326,7 @@ float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_poin
 	}
 
 	/* create data */
-	feather = fp = MEM_callocN(tot * sizeof(*feather), "mask spline feather points");
+	feather = fp = MEM_mallocN(tot * sizeof(*feather), "mask spline feather points");
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &points_array[i];
