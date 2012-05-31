@@ -1878,6 +1878,7 @@ static void do_weight_paint_vertex(
 		float oldw;
 		float neww;
 		float testw = 0;
+		float observedChange = 0;
 		float change = 0;
 		float oldChange = 0;
 		int i;
@@ -1889,13 +1890,14 @@ static void do_weight_paint_vertex(
 		                    wpi->brush_alpha_value, wpi->do_flip, do_multipaint_totsel);
 		
 		/* setup multi-paint */
-		if (do_multipaint_totsel) {
+		observedChange = neww - oldw;
+		if (do_multipaint_totsel && observedChange) {
 			dv_copy.dw = MEM_dupallocN(dv->dw);
 			dv_copy.flag = dv->flag;
 			dv_copy.totweight = dv->totweight;
 			tdw = dw;
 			tdw_prev = dw_prev;
-			change = get_mp_change(&wp->wpaint_prev[index], wpi->defbase_tot, wpi->defbase_sel, neww - oldw);
+			change = get_mp_change(&wp->wpaint_prev[index], wpi->defbase_tot, wpi->defbase_sel, observedChange);
 			if (change) {
 				if (!tdw->weight) {
 					i = get_first_selected_nonzero_weight(dv, wpi->defbase_tot, wpi->defbase_sel);
@@ -1911,7 +1913,7 @@ static void do_weight_paint_vertex(
 					if (tdw->weight != tdw_prev->weight) {
 						oldChange = tdw->weight / tdw_prev->weight;
 						testw = tdw_prev->weight * change;
-						if (testw > tdw_prev->weight) {
+						if (observedChange > 0) {
 							if (change > oldChange) {
 								/* reset the weights and use the new change */
 								defvert_reset_to_prev(wp->wpaint_prev + index, dv);
