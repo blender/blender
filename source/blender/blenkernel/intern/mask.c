@@ -1155,18 +1155,24 @@ void BKE_mask_update_deform(Mask *mask)
 
 void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 {
+	int allocated_points = (MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform));
 // printf("SPLINE ALLOC %p %d\n", spline->points_deform, (int)(MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)));
 
-	if ((spline->points_deform == NULL) ||
-	    (MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)) != spline->tot_point)
-	{
+	if (spline->points_deform == NULL || allocated_points != spline->tot_point) {
 		printf("alloc new spline\n");
 
 		if (spline->points_deform) {
+			int i;
+
+			for (i = 0; i < allocated_points; i++) {
+				MaskSplinePoint *point = &spline->points_deform[i];
+				BKE_mask_point_free(point);
+			}
+
 			MEM_freeN(spline->points_deform);
 		}
 
-		spline->points_deform = MEM_mallocN(sizeof(*spline->points_deform) * spline->tot_point, __func__);
+		spline->points_deform = MEM_callocN(sizeof(*spline->points_deform) * spline->tot_point, __func__);
 	}
 	else {
 		// printf("alloc spline done\n");
@@ -1229,6 +1235,8 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 				MaskSplinePoint *point = &spline->points[i];
 				MaskSplinePoint *point_deform = &spline->points_deform[i];
 				float delta[2];
+
+				BKE_mask_point_free(point_deform);
 
 				*point_deform = *point;
 				point_deform->uw = point->uw ? MEM_dupallocN(point->uw) : NULL;
