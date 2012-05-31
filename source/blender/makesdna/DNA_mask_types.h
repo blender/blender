@@ -43,9 +43,9 @@
 typedef struct Mask {
 	ID id;
 	struct AnimData *adt;
-	ListBase maskobjs;   /* mask objects */
-	int act_maskobj;     /* index of active mask object (-1 == None) */
-	int tot_maskobj;     /* total number of mask objects */
+	ListBase masklayers;   /* mask layers */
+	int masklay_act;     /* index of active mask layer (-1 == None) */
+	int masklay_tot;     /* total number of mask layers */
 } Mask;
 
 typedef struct MaskParent {
@@ -54,7 +54,7 @@ typedef struct MaskParent {
 	ID *id;               /* ID block of entity to which mask/spline is parented to
 	                       * in case of parenting to movie tracking data set to MovieClip datablock */
 	char parent[64];      /* entity of parent to which parenting happened
-	                       * in case of parenting to movie tracking data contains name of object */
+	                       * in case of parenting to movie tracking data contains name of layer */
 	char sub_parent[64];  /* sub-entity of parent to which parenting happened
 	                       * in case of parenting to movie tracking data contains name of track */
 	float parent_orig[2]; /* track location at the moment of parenting */
@@ -87,22 +87,22 @@ typedef struct MaskSpline {
 } MaskSpline;
 
 /* one per frame */
-typedef struct MaskObjectShape {
-	struct MaskObjectShape *next, *prev;
+typedef struct MaskLayerShape {
+	struct MaskLayerShape *next, *prev;
 
 	float *data;             /* u coordinate along spline segment and weight of this point */
 	int    tot_vert;         /* to ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE) */
 	int    frame;            /* different flags of this point */
 	char   flag;
 	char   pad[7];
-} MaskObjectShape;
+} MaskLayerShape;
 
-typedef struct MaskObject {
-	struct MaskObject *next, *prev;
+typedef struct MaskLayer {
+	struct MaskLayer *next, *prev;
 
-	char name[64];                     /* name of the mask object (64 = MAD_ID_NAME - 2) */
+	char name[64];                     /* name of the mask layer (64 = MAD_ID_NAME - 2) */
 
-	ListBase splines;                  /* list of splines which defines this mask object */
+	ListBase splines;                  /* list of splines which defines this mask layer */
 	ListBase splines_shapes;
 
 	struct MaskSpline *act_spline;     /* active spline */
@@ -116,7 +116,7 @@ typedef struct MaskObject {
 	//char   flag;             /* not used yet */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
 	char   pad[1];
-} MaskObject;
+} MaskLayer;
 
 /* MaskParent->flag */
 #define MASK_PARENT_ACTIVE  (1 << 0)
@@ -148,13 +148,13 @@ enum {
 	MASK_DT_WHITE
 };
 
-/* maskobj->blend */
+/* masklay->blend */
 enum {
 	MASK_BLEND_ADD      = 0,
 	MASK_BLEND_SUBTRACT = 1
 };
 
-/* maskobj->blend_flag */
+/* masklay->blend_flag */
 enum {
 	MASK_BLENDFLAG_INVERT = (1 << 0)
 };

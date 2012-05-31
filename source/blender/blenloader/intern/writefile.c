@@ -2760,20 +2760,20 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 	mask = idbase->first;
 	while (mask) {
 		if (mask->id.us > 0 || wd->current) {
-			MaskObject *maskobj;
+			MaskLayer *masklay;
 
 			writestruct(wd, ID_MSK, "Mask", 1, mask);
 
 			if (mask->adt)
 				write_animdata(wd, mask->adt);
 
-			for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+			for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 				MaskSpline *spline;
-				MaskObjectShape *maskobj_shape;
+				MaskLayerShape *masklay_shape;
 
-				writestruct(wd, DATA, "MaskObject", 1, maskobj);
+				writestruct(wd, DATA, "MaskLayer", 1, masklay);
 
-				for (spline = maskobj->splines.first; spline; spline = spline->next) {
+				for (spline = masklay->splines.first; spline; spline = spline->next) {
 					int i;
 
 					void *points_deform = spline->points_deform;
@@ -2792,9 +2792,9 @@ static void write_masks(WriteData *wd, ListBase *idbase)
 					}
 				}
 
-				for (maskobj_shape = maskobj->splines_shapes.first; maskobj_shape; maskobj_shape = maskobj_shape->next) {
-					writestruct(wd, DATA, "MaskObjectShape", 1, maskobj_shape);
-					writedata(wd, DATA, maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, maskobj_shape->data);
+				for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+					writestruct(wd, DATA, "MaskLayerShape", 1, masklay_shape);
+					writedata(wd, DATA, masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, masklay_shape->data);
 				}
 			}
 		}

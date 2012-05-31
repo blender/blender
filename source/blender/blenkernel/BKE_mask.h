@@ -30,8 +30,8 @@
 struct Main;
 struct Mask;
 struct MaskParent;
-struct MaskObject;
-struct MaskObjectShape;
+struct MaskLayer;
+struct MaskLayerShape;
 struct MaskSpline;
 struct MaskSplinePoint;
 struct MaskSplinePointUW;
@@ -42,20 +42,20 @@ struct Scene;
 struct MaskSplinePoint *BKE_mask_spline_point_array(struct MaskSpline *spline);
 struct MaskSplinePoint *BKE_mask_spline_point_array_from_point(struct MaskSpline *spline, struct MaskSplinePoint *point_ref);
 
-/* mask objects */
-struct MaskObject *BKE_mask_object_new(struct Mask *mask, const char *name);
-struct MaskObject *BKE_mask_object_active(struct Mask *mask);
-void BKE_mask_object_active_set(struct Mask *mask, struct MaskObject *maskobj);
-void BKE_mask_object_remove(struct Mask *mask, struct MaskObject *maskobj);
+/* mask layers */
+struct MaskLayer *BKE_mask_layer_new(struct Mask *mask, const char *name);
+struct MaskLayer *BKE_mask_layer_active(struct Mask *mask);
+void BKE_mask_layer_active_set(struct Mask *mask, struct MaskLayer *masklay);
+void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
-void BKE_mask_object_free(struct MaskObject *maskobj);
+void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_spline_free(struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
-void BKE_mask_object_unique_name(struct Mask *mask, struct MaskObject *maskobj);
+void BKE_mask_layer_unique_name(struct Mask *mask, struct MaskLayer *masklay);
 
 /* splines */
-struct MaskSpline *BKE_mask_spline_add(struct MaskObject *maskobj);
+struct MaskSpline *BKE_mask_spline_add(struct MaskLayer *masklay);
 int BKE_mask_spline_resolution(struct MaskSpline *spline, float max_seg_len);
 
 float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point, int dynamic_res, float max_dseg_len))[2];
@@ -107,31 +107,31 @@ void BKE_mask_calc_handles(struct Mask *mask);
 void BKE_mask_spline_ensure_deform(struct MaskSpline *spline);
 
 /* animation */
-int  BKE_mask_object_shape_totvert(struct MaskObject *maskobj);
-void BKE_mask_object_shape_from_mask(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
-void BKE_mask_object_shape_to_mask(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
-void BKE_mask_object_shape_to_mask_interp(struct MaskObject *maskobj,
-                                          struct MaskObjectShape *maskobj_shape_a,
-                                          struct MaskObjectShape *maskobj_shape_b,
+int  BKE_mask_layer_shape_totvert(struct MaskLayer *masklay);
+void BKE_mask_layer_shape_from_mask(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
+void BKE_mask_layer_shape_to_mask(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
+void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
+                                          struct MaskLayerShape *masklay_shape_a,
+                                          struct MaskLayerShape *masklay_shape_b,
                                           const float fac);
-struct MaskObjectShape *BKE_mask_object_shape_find_frame(struct MaskObject *maskobj, int frame);
-int BKE_mask_object_shape_find_frame_range(struct MaskObject *maskobj, int frame,
-                                           struct MaskObjectShape **r_maskobj_shape_a,
-                                           struct MaskObjectShape **r_maskobj_shape_b);
-struct MaskObjectShape *BKE_mask_object_shape_varify_frame(struct MaskObject *maskobj, int frame);
-void BKE_mask_object_shape_unlink(struct MaskObject *maskobj, struct MaskObjectShape *maskobj_shape);
-void BKE_mask_object_shape_sort(struct MaskObject *maskobj);
+struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, int frame);
+int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, int frame,
+                                           struct MaskLayerShape **r_masklay_shape_a,
+                                           struct MaskLayerShape **r_masklay_shape_b);
+struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, int frame);
+void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
+void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 
-int BKE_mask_object_shape_spline_from_index(struct MaskObject *maskobj, int index,
-                                            struct MaskSpline **r_maskobj_shape, int *r_index);
-int BKE_mask_object_shape_spline_to_index(struct MaskObject *maskobj, struct MaskSpline *spline);
+int BKE_mask_layer_shape_spline_from_index(struct MaskLayer *masklay, int index,
+                                            struct MaskSpline **r_masklay_shape, int *r_index);
+int BKE_mask_layer_shape_spline_to_index(struct MaskLayer *masklay, struct MaskSpline *spline);
 
-int BKE_mask_object_shape_spline_index(struct MaskObject *maskobj, int index,
-                                       struct MaskSpline **r_maskobj_shape, int *r_index);
-void BKE_mask_object_shape_changed_add(struct MaskObject *maskobj, int index,
+int BKE_mask_layer_shape_spline_index(struct MaskLayer *masklay, int index,
+                                       struct MaskSpline **r_masklay_shape, int *r_index);
+void BKE_mask_layer_shape_changed_add(struct MaskLayer *masklay, int index,
                                        int do_init, int do_init_interpolate);
 
-void BKE_mask_object_shape_changed_remove(struct MaskObject *maskobj, int index, int count);
+void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, int count);
 
 /* rasterization */
 void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer);

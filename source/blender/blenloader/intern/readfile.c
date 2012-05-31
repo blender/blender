@@ -6182,19 +6182,19 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 
 static void direct_link_mask(FileData *fd, Mask *mask)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
 	mask->adt = newdataadr(fd, mask->adt);
 
-	link_list(fd, &mask->maskobjs);
+	link_list(fd, &mask->masklayers);
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
-		MaskObjectShape *maskobj_shape;
+		MaskLayerShape *masklay_shape;
 
-		link_list(fd, &maskobj->splines);
+		link_list(fd, &masklay->splines);
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			spline->points = newdataadr(fd, spline->points);
@@ -6207,14 +6207,14 @@ static void direct_link_mask(FileData *fd, Mask *mask)
 			}
 		}
 
-		link_list(fd, &maskobj->splines_shapes);
+		link_list(fd, &masklay->splines_shapes);
 
-		for (maskobj_shape = maskobj->splines_shapes.first; maskobj_shape; maskobj_shape = maskobj_shape->next) {
-			maskobj_shape->data = newdataadr(fd, maskobj_shape->data);
+		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+			masklay_shape->data = newdataadr(fd, masklay_shape->data);
 		}
 
-		maskobj->act_spline = newdataadr(fd, maskobj->act_spline);
-		maskobj->act_point = newdataadr(fd, maskobj->act_point);
+		masklay->act_spline = newdataadr(fd, masklay->act_spline);
+		masklay->act_point = newdataadr(fd, masklay->act_point);
 	}
 }
 
@@ -6230,15 +6230,15 @@ static void lib_link_mask(FileData *fd, Main *main)
 	mask = main->mask.first;
 	while (mask) {
 		if(mask->id.flag & LIB_NEEDLINK) {
-			MaskObject *maskobj;
+			MaskLayer *masklay;
 
 			if (mask->adt)
 				lib_link_animdata(fd, &mask->id, mask->adt);
 
-			for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+			for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 				MaskSpline *spline;
 
-				spline = maskobj->splines.first;
+				spline = masklay->splines.first;
 				while (spline) {
 					int i;
 

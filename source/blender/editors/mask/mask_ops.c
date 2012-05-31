@@ -122,11 +122,11 @@ static float projection_on_spline(MaskSpline *spline, MaskSplinePoint *point, fl
 }
 
 MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float normal_co[2], int threshold,
-                                            MaskObject **maskobj_r, MaskSpline **spline_r, int *is_handle_r,
+                                            MaskLayer **masklay_r, MaskSpline **spline_r, int *is_handle_r,
                                             float *score)
 {
-	MaskObject *maskobj;
-	MaskObject *point_maskobj = NULL;
+	MaskLayer *masklay;
+	MaskLayer *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
 	float co[2], aspx, aspy;
@@ -140,14 +140,14 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 			int i;
@@ -168,7 +168,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 					cur_len = len_v2v2(co, handle);
 
 					if (cur_len < len) {
-						point_maskobj = maskobj;
+						point_masklay = masklay;
 						point_spline = spline;
 						point = cur_point;
 						len = cur_len;
@@ -180,7 +180,7 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 
 				if (cur_len < len) {
 					point_spline = spline;
-					point_maskobj = maskobj;
+					point_masklay = masklay;
 					point = cur_point;
 					len = cur_len;
 					is_handle = FALSE;
@@ -190,8 +190,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 	}
 
 	if (len < threshold) {
-		if (maskobj_r)
-			*maskobj_r = point_maskobj;
+		if (masklay_r)
+			*masklay_r = point_masklay;
 
 		if (spline_r)
 			*spline_r = point_spline;
@@ -205,8 +205,8 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 		return point;
 	}
 
-	if (maskobj_r)
-		*maskobj_r = NULL;
+	if (masklay_r)
+		*masklay_r = NULL;
 
 	if (spline_r)
 		*spline_r = NULL;
@@ -218,10 +218,10 @@ MaskSplinePoint *ED_mask_point_find_nearest(bContext *C, Mask *mask, float norma
 }
 
 int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], int threshold,
-                                 MaskObject **maskobj_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
+                                 MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                  MaskSplinePointUW **uw_r, float *score)
 {
-	MaskObject *maskobj, *point_maskobj = NULL;
+	MaskLayer *masklay, *point_masklay = NULL;
 	MaskSpline *point_spline = NULL;
 	MaskSplinePoint *point = NULL;
 	MaskSplinePointUW *uw = NULL;
@@ -236,16 +236,16 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			//MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 			int i, tot_feather_point;
 			float (*feather_points)[2], (*fp)[2];
 
-			if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 				continue;
 			}
 
@@ -269,7 +269,7 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 						else
 							uw = &cur_point->uw[j - 1];
 
-						point_maskobj = maskobj;
+						point_masklay = masklay;
 						point_spline = spline;
 						point = cur_point;
 						len = cur_len;
@@ -284,8 +284,8 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 	}
 
 	if (len < threshold) {
-		if (maskobj_r)
-			*maskobj_r = point_maskobj;
+		if (masklay_r)
+			*masklay_r = point_masklay;
 
 		if (spline_r)
 			*spline_r = point_spline;
@@ -302,8 +302,8 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 		return TRUE;
 	}
 
-	if (maskobj_r)
-		*maskobj_r = NULL;
+	if (masklay_r)
+		*masklay_r = NULL;
 
 	if (spline_r)
 		*spline_r = NULL;
@@ -315,10 +315,10 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 }
 
 static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_co[2], int threshold, int feather,
-                                   MaskObject **maskobj_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
+                                   MaskLayer **masklay_r, MaskSpline **spline_r, MaskSplinePoint **point_r,
                                    float *u_r, float tangent[2])
 {
-	MaskObject *maskobj, *point_maskobj;
+	MaskLayer *masklay, *point_masklay;
 	MaskSpline *point_spline;
 	MaskSplinePoint *point = NULL;
 	float dist, co[2];
@@ -333,14 +333,14 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 	co[0] = normal_co[0] * scalex;
 	co[1] = normal_co[1] * scaley;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -381,7 +381,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 							if (tangent)
 								sub_v2_v2v2(tangent, &diff_points[2 * i + 2], &diff_points[2 * i]);
 
-							point_maskobj = maskobj;
+							point_masklay = masklay;
 							point_spline = spline;
 							point = cur_point;
 							dist = cur_dist;
@@ -400,8 +400,8 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 	}
 
 	if (point && dist < threshold) {
-		if (maskobj_r)
-			*maskobj_r = point_maskobj;
+		if (masklay_r)
+			*masklay_r = point_masklay;
 
 		if (spline_r)
 			*spline_r = point_spline;
@@ -418,8 +418,8 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 		return TRUE;
 	}
 
-	if (maskobj_r)
-		*maskobj_r = NULL;
+	if (masklay_r)
+		*masklay_r = NULL;
 
 	if (spline_r)
 		*spline_r = NULL;
@@ -466,50 +466,50 @@ void MASK_OT_new(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask");
 }
 
-/******************** create new maskobj *********************/
+/******************** create new masklay *********************/
 
-static int maskobj_new_exec(bContext *C, wmOperator *op)
+static int masklay_new_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	char name[MAX_ID_NAME - 2];
 
 	RNA_string_get(op->ptr, "name", name);
 
-	BKE_mask_object_new(mask, name);
-	mask->act_maskobj = mask->tot_maskobj - 1;
+	BKE_mask_layer_new(mask, name);
+	mask->masklay_act = mask->masklay_tot - 1;
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
 	return OPERATOR_FINISHED;
 }
 
-void MASK_OT_object_new(wmOperatorType *ot)
+void MASK_OT_layer_new(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Add Mask Object";
-	ot->description = "Add new mask object for masking";
-	ot->idname = "MASK_OT_object_new";
+	ot->name = "Add Mask Layer";
+	ot->description = "Add new mask layer for masking";
+	ot->idname = "MASK_OT_layer_new";
 
 	/* api callbacks */
-	ot->exec = maskobj_new_exec;
+	ot->exec = masklay_new_exec;
 	ot->poll = ED_maskediting_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask object");
+	RNA_def_string(ot->srna, "name", "", MAX_ID_NAME - 2, "Name", "Name of new mask layer");
 }
 
-/******************** remove mask object *********************/
+/******************** remove mask layer *********************/
 
-static int maskobj_remove_exec(bContext *C, wmOperator *UNUSED(op))
+static int masklay_remove_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj = BKE_mask_object_active(mask);
+	MaskLayer *masklay = BKE_mask_layer_active(mask);
 
-	if (maskobj) {
-		BKE_mask_object_remove(mask, maskobj);
+	if (masklay) {
+		BKE_mask_layer_remove(mask, masklay);
 
 		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 	}
@@ -517,15 +517,15 @@ static int maskobj_remove_exec(bContext *C, wmOperator *UNUSED(op))
 	return OPERATOR_FINISHED;
 }
 
-void MASK_OT_object_remove(wmOperatorType *ot)
+void MASK_OT_layer_remove(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Remove Mask Object";
-	ot->description = "Remove mask object";
-	ot->idname = "MASK_OT_object_remove";
+	ot->name = "Remove Mask Layer";
+	ot->description = "Remove mask layer";
+	ot->idname = "MASK_OT_layer_remove";
 
 	/* api callbacks */
-	ot->exec = maskobj_remove_exec;
+	ot->exec = masklay_remove_exec;
 	ot->poll = ED_maskediting_poll;
 
 	/* flags */
@@ -546,7 +546,7 @@ typedef struct SlidePointData {
 	float vec[3][3];
 
 	Mask *mask;
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	MaskSpline *spline;
 	MaskSplinePoint *point;
 	MaskSplinePointUW *uw;
@@ -562,7 +562,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	SlidePointData *customdata = NULL;
-	MaskObject *maskobj, *cv_maskobj, *feather_maskobj;
+	MaskLayer *masklay, *cv_masklay, *feather_masklay;
 	MaskSpline *spline, *cv_spline, *feather_spline;
 	MaskSplinePoint *point, *cv_point, *feather_point;
 	MaskSplinePointUW *uw = NULL;
@@ -574,13 +574,13 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 	ED_mask_mouse_pos(C, event, co);
 	ED_mask_size(C, &width, &height);
 
-	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_maskobj, &cv_spline, &is_handle, &cv_score);
+	cv_point = ED_mask_point_find_nearest(C, mask, co, threshold, &cv_masklay, &cv_spline, &is_handle, &cv_score);
 
-	if (ED_mask_feather_find_nearest(C, mask, co, threshold, &feather_maskobj, &feather_spline, &feather_point, &uw, &feather_score)) {
+	if (ED_mask_feather_find_nearest(C, mask, co, threshold, &feather_masklay, &feather_spline, &feather_point, &uw, &feather_score)) {
 		if (slide_feather || !cv_point || feather_score < cv_score) {
 			action = SLIDE_ACTION_FEATHER;
 
-			maskobj = feather_maskobj;
+			masklay = feather_masklay;
 			spline = feather_spline;
 			point = feather_point;
 		}
@@ -592,7 +592,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		else
 			action = SLIDE_ACTION_POINT;
 
-		maskobj = cv_maskobj;
+		masklay = cv_masklay;
 		spline = cv_spline;
 		point = cv_point;
 	}
@@ -601,7 +601,7 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		customdata = MEM_callocN(sizeof(SlidePointData), "mask slide point data");
 
 		customdata->mask = mask;
-		customdata->maskobj = maskobj;
+		customdata->masklay = masklay;
 		customdata->spline = spline;
 		customdata->point = point;
 		customdata->width = width;
@@ -668,8 +668,8 @@ static int slide_point_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			ED_mask_select_flush_all(mask);
 		}
 
-		slidedata->maskobj->act_spline = slidedata->spline;
-		slidedata->maskobj->act_point = slidedata->point;
+		slidedata->masklay->act_spline = slidedata->spline;
+		slidedata->masklay->act_point = slidedata->point;
 
 		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
 
@@ -794,7 +794,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 				free_slide_point_data(op->customdata);
 
 				if (IS_AUTOKEY_ON(scene)) {
-					ED_mask_object_shape_auto_key_all(data->mask, CFRA);
+					ED_mask_layer_shape_auto_key_all(data->mask, CFRA);
 				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
@@ -986,13 +986,13 @@ static void mask_spline_add_point_at_index(MaskSpline *spline, int point_index)
 
 static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	MaskSpline *spline;
 	MaskSplinePoint *point = NULL;
 	const float threshold = 9;
 	float tangent[2];
 
-	if (find_nearest_diff_point(C, mask, co, threshold, FALSE, &maskobj, &spline, &point, NULL, tangent)) {
+	if (find_nearest_diff_point(C, mask, co, threshold, FALSE, &masklay, &spline, &point, NULL, tangent)) {
 		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
@@ -1005,9 +1005,9 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 		setup_vertex_point(C, mask, spline, new_point, co, tangent, NULL, TRUE);
 
 		/* TODO - we could pass the spline! */
-		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index + 1, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, TRUE, TRUE);
 
-		maskobj->act_point = new_point;
+		masklay->act_point = new_point;
 
 		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
 
@@ -1019,17 +1019,17 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 
 /* **** add extrude vertex **** */
 
-static void finSelectedSplinePoint(MaskObject *maskobj, MaskSpline **spline, MaskSplinePoint **point, short check_active)
+static void finSelectedSplinePoint(MaskLayer *masklay, MaskSpline **spline, MaskSplinePoint **point, short check_active)
 {
-	MaskSpline *cur_spline = maskobj->splines.first;
+	MaskSpline *cur_spline = masklay->splines.first;
 
 	*spline = NULL;
 	*point = NULL;
 
 	if (check_active) {
-		if (maskobj->act_spline && maskobj->act_point) {
-			*spline = maskobj->act_spline;
-			*point = maskobj->act_point;
+		if (masklay->act_spline && masklay->act_point) {
+			*spline = masklay->act_spline;
+			*point = masklay->act_point;
 			return;
 		}
 	}
@@ -1060,7 +1060,7 @@ static void finSelectedSplinePoint(MaskObject *maskobj, MaskSpline **spline, Mas
 	}
 }
 
-static int add_vertex_extrude(bContext *C, Mask *mask, MaskObject *maskobj, const float co[2])
+static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
 	MaskSpline *spline;
 	MaskSplinePoint *point;
@@ -1076,11 +1076,11 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskObject *maskobj, cons
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-	if (!maskobj) {
+	if (!masklay) {
 		return FALSE;
 	}
 	else {
-		finSelectedSplinePoint(maskobj, &spline, &point, TRUE);
+		finSelectedSplinePoint(masklay, &spline, &point, TRUE);
 	}
 
 	point_index = (point - spline->points);
@@ -1141,13 +1141,13 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskObject *maskobj, cons
 		new_point = &spline->points[point_index + 1];
 	}
 
-	maskobj->act_point = new_point;
+	masklay->act_point = new_point;
 
 	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
 
-	if (maskobj->splines_shapes.first) {
+	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
-		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, TRUE, TRUE);
 	}
 
 	if (do_recalc_src) {
@@ -1160,7 +1160,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskObject *maskobj, cons
 	return TRUE;
 }
 
-static int add_vertex_new(bContext *C, Mask *mask, MaskObject *maskobj, const float co[2])
+static int add_vertex_new(bContext *C, Mask *mask, MaskLayer *masklay, const float co[2])
 {
 	MaskSpline *spline;
 	MaskSplinePoint *point;
@@ -1168,32 +1168,32 @@ static int add_vertex_new(bContext *C, Mask *mask, MaskObject *maskobj, const fl
 
 	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-	if (!maskobj) {
-		/* if there's no maskobj currently operationg on, create new one */
-		maskobj = BKE_mask_object_new(mask, "");
-		mask->act_maskobj = mask->tot_maskobj - 1;
+	if (!masklay) {
+		/* if there's no masklay currently operationg on, create new one */
+		masklay = BKE_mask_layer_new(mask, "");
+		mask->masklay_act = mask->masklay_tot - 1;
 		spline = NULL;
 		point = NULL;
 	}
 	else {
-		finSelectedSplinePoint(maskobj, &spline, &point, TRUE);
+		finSelectedSplinePoint(masklay, &spline, &point, TRUE);
 	}
 
 	if (!spline) {
-		/* no selected splines in active maskobj, create new spline */
-		spline = BKE_mask_spline_add(maskobj);
+		/* no selected splines in active masklay, create new spline */
+		spline = BKE_mask_spline_add(masklay);
 	}
 
-	maskobj->act_spline = spline;
+	masklay->act_spline = spline;
 	new_point = spline->points;
 
-	maskobj->act_point = new_point;
+	masklay->act_point = new_point;
 
 	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
-		BKE_mask_object_shape_changed_add(maskobj, BKE_mask_object_shape_spline_to_index(maskobj, spline) + point_index, TRUE, TRUE);
+		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index, TRUE, TRUE);
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
@@ -1204,23 +1204,23 @@ static int add_vertex_new(bContext *C, Mask *mask, MaskObject *maskobj, const fl
 static int add_vertex_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
 	float co[2];
 
-	maskobj = BKE_mask_object_active(mask);
+	masklay = BKE_mask_layer_active(mask);
 
-	if (maskobj && maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
-		maskobj = NULL;
+	if (masklay && masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		masklay = NULL;
 	}
 
 	RNA_float_get_array(op->ptr, "location", co);
 
-	if (maskobj && maskobj->act_point && MASKPOINT_ISSEL_ANY(maskobj->act_point)) {
+	if (masklay && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 
 		/* cheap trick - double click for cyclic */
-		MaskSpline *spline = maskobj->act_spline;
-		MaskSplinePoint *point = maskobj->act_point;
+		MaskSpline *spline = masklay->act_spline;
+		MaskSplinePoint *point = masklay->act_point;
 
 		int is_sta = (point == spline->points);
 		int is_end = (point == &spline->points[spline->tot_point - 1]);
@@ -1249,14 +1249,14 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 		}
 
 		if (!add_vertex_subdivide(C, mask, co)) {
-			if (!add_vertex_extrude(C, mask, maskobj, co)) {
+			if (!add_vertex_extrude(C, mask, masklay, co)) {
 				return OPERATOR_CANCELLED;
 			}
 		}
 	}
 	else {
 		if (!add_vertex_subdivide(C, mask, co)) {
-			if (!add_vertex_new(C, mask, maskobj, co)) {
+			if (!add_vertex_new(C, mask, masklay, co)) {
 				return OPERATOR_CANCELLED;
 			}
 		}
@@ -1304,7 +1304,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	MaskSpline *spline;
 	MaskSplinePoint *point = NULL;
 	const float threshold = 9;
@@ -1316,7 +1316,7 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	if (point)
 		return OPERATOR_FINISHED;
 
-	if (find_nearest_diff_point(C, mask, co, threshold, TRUE, &maskobj, &spline, &point, &u, NULL)) {
+	if (find_nearest_diff_point(C, mask, co, threshold, TRUE, &masklay, &spline, &point, &u, NULL)) {
 		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
 
@@ -1370,16 +1370,16 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
 				spline->flag ^= MASK_SPLINE_CYCLIC;
 			}
@@ -1447,17 +1447,17 @@ static void delete_feather_points(MaskSplinePoint *point)
 static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
-	int mask_object_shape_ofs = 0;
+	MaskLayer *masklay;
+	int mask_layer_shape_ofs = 0;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		spline = maskobj->splines.first;
+		spline = masklay->splines.first;
 
 		while (spline) {
 			const int tot_point_orig = spline->tot_point;
@@ -1475,15 +1475,15 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 			if (count == 0) {
 
 				/* delete the whole spline */
-				BLI_remlink(&maskobj->splines, spline);
+				BLI_remlink(&masklay->splines, spline);
 				BKE_mask_spline_free(spline);
 
-				if (spline == maskobj->act_spline) {
-					maskobj->act_spline = NULL;
-					maskobj->act_point = NULL;
+				if (spline == masklay->act_spline) {
+					masklay->act_spline = NULL;
+					masklay->act_point = NULL;
 				}
 
-				BKE_mask_object_shape_changed_remove(maskobj, mask_object_shape_ofs, tot_point_orig);
+				BKE_mask_layer_shape_changed_remove(masklay, mask_layer_shape_ofs, tot_point_orig);
 			}
 			else {
 				MaskSplinePoint *new_points;
@@ -1495,8 +1495,8 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 					MaskSplinePoint *point = &spline->points[i];
 
 					if (!MASKPOINT_ISSEL_ANY(point)) {
-						if (point == maskobj->act_point)
-							maskobj->act_point = &new_points[j];
+						if (point == masklay->act_point)
+							masklay->act_point = &new_points[j];
 
 						delete_feather_points(point);
 
@@ -1504,17 +1504,17 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 						j++;
 					}
 					else {
-						if (point == maskobj->act_point)
-							maskobj->act_point = NULL;
+						if (point == masklay->act_point)
+							masklay->act_point = NULL;
 
 						BKE_mask_point_free(point);
 						spline->tot_point--;
 
-						BKE_mask_object_shape_changed_remove(maskobj, mask_object_shape_ofs + j, 1);
+						BKE_mask_layer_shape_changed_remove(masklay, mask_layer_shape_ofs + j, 1);
 					}
 				}
 
-				mask_object_shape_ofs += spline->tot_point;
+				mask_layer_shape_ofs += spline->tot_point;
 
 				MEM_freeN(spline->points);
 				spline->points = new_points;
@@ -1555,18 +1555,18 @@ void MASK_OT_delete(wmOperatorType *ot)
 static int set_handle_type_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	int handle_type = RNA_enum_get(op->ptr, "type");
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 		int i;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
 
@@ -1616,14 +1616,14 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 static int mask_hide_view_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	int changed = FALSE;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
-		if (maskobj->restrictflag & OB_RESTRICT_VIEW) {
-			ED_mask_object_select_set(maskobj, TRUE);
-			maskobj->restrictflag &= ~OB_RESTRICT_VIEW;
+		if (masklay->restrictflag & OB_RESTRICT_VIEW) {
+			ED_mask_layer_select_set(masklay, TRUE);
+			masklay->restrictflag &= ~OB_RESTRICT_VIEW;
 			changed = 1;
 		}
 	}
@@ -1644,7 +1644,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 
 	/* identifiers */
 	ot->name = "Clear Restrict View";
-	ot->description = "Reveal the object by setting the hide flag";
+	ot->description = "Reveal the layer by setting the hide flag";
 	ot->idname = "MASK_OT_hide_view_clear";
 
 	/* api callbacks */
@@ -1658,33 +1658,33 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 static int mask_hide_view_set_exec(bContext *C, wmOperator *op)
 {
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 	int changed = FALSE;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
-		if (maskobj->restrictflag & MASK_RESTRICT_SELECT) {
+		if (masklay->restrictflag & MASK_RESTRICT_SELECT) {
 			continue;
 		}
 
 		if (!unselected) {
-			if (ED_mask_object_select_check(maskobj)) {
-				ED_mask_object_select_set(maskobj, FALSE);
+			if (ED_mask_layer_select_check(masklay)) {
+				ED_mask_layer_select_set(masklay, FALSE);
 
-				maskobj->restrictflag |= OB_RESTRICT_VIEW;
+				masklay->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
-				if (maskobj == BKE_mask_object_active(mask)) {
-					BKE_mask_object_active_set(mask, NULL);
+				if (masklay == BKE_mask_layer_active(mask)) {
+					BKE_mask_layer_active_set(mask, NULL);
 				}
 			}
 		}
 		else {
-			if (!ED_mask_object_select_check(maskobj)) {
-				maskobj->restrictflag |= OB_RESTRICT_VIEW;
+			if (!ED_mask_layer_select_check(masklay)) {
+				masklay->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
-				if (maskobj == BKE_mask_object_active(mask)) {
-					BKE_mask_object_active_set(mask, NULL);
+				if (masklay == BKE_mask_layer_active(mask)) {
+					BKE_mask_layer_active_set(mask, NULL);
 				}
 			}
 		}
@@ -1705,7 +1705,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Set Restrict View";
-	ot->description = "Hide the object by setting the hide flag";
+	ot->description = "Hide the layer by setting the hide flag";
 	ot->idname = "MASK_OT_hide_view_set";
 
 	/* api callbacks */
@@ -1715,6 +1715,6 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected objects");
+	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
 
 }

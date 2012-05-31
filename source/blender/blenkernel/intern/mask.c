@@ -77,63 +77,63 @@ MaskSplinePoint *BKE_mask_spline_point_array_from_point(MaskSpline *spline, Mask
 	return NULL;
 }
 
-/* mask objects */
+/* mask layers */
 
-MaskObject *BKE_mask_object_new(Mask *mask, const char *name)
+MaskLayer *BKE_mask_layer_new(Mask *mask, const char *name)
 {
-	MaskObject *maskobj = MEM_callocN(sizeof(MaskObject), "new mask object");
+	MaskLayer *masklay = MEM_callocN(sizeof(MaskLayer), __func__);
 
 	if (name && name[0])
-		BLI_strncpy(maskobj->name, name, sizeof(maskobj->name));
+		BLI_strncpy(masklay->name, name, sizeof(masklay->name));
 	else
-		strcpy(maskobj->name, "MaskObject");
+		strcpy(masklay->name, "MaskLayer");
 
-	BLI_addtail(&mask->maskobjs, maskobj);
+	BLI_addtail(&mask->masklayers, masklay);
 
-	BKE_mask_object_unique_name(mask, maskobj);
+	BKE_mask_layer_unique_name(mask, masklay);
 
-	mask->tot_maskobj++;
+	mask->masklay_tot++;
 
-	maskobj->alpha = 1.0f;
+	masklay->alpha = 1.0f;
 
-	return maskobj;
+	return masklay;
 }
 
 /* note: may still be hidden, caller needs to check */
-MaskObject *BKE_mask_object_active(Mask *mask)
+MaskLayer *BKE_mask_layer_active(Mask *mask)
 {
-	return BLI_findlink(&mask->maskobjs, mask->act_maskobj);
+	return BLI_findlink(&mask->masklayers, mask->masklay_act);
 }
 
-void BKE_mask_object_active_set(Mask *mask, MaskObject *maskobj)
+void BKE_mask_layer_active_set(Mask *mask, MaskLayer *masklay)
 {
-	mask->act_maskobj = BLI_findindex(&mask->maskobjs, maskobj);
+	mask->masklay_act = BLI_findindex(&mask->masklayers, masklay);
 }
 
-void BKE_mask_object_remove(Mask *mask, MaskObject *maskobj)
+void BKE_mask_layer_remove(Mask *mask, MaskLayer *masklay)
 {
-	BLI_remlink(&mask->maskobjs, maskobj);
-	BKE_mask_object_free(maskobj);
+	BLI_remlink(&mask->masklayers, masklay);
+	BKE_mask_layer_free(masklay);
 
-	mask->tot_maskobj--;
+	mask->masklay_tot--;
 
-	if (mask->act_maskobj >= mask->tot_maskobj)
-		mask->act_maskobj = mask->tot_maskobj - 1;
+	if (mask->masklay_act >= mask->masklay_tot)
+		mask->masklay_act = mask->masklay_tot - 1;
 }
 
-void BKE_mask_object_unique_name(Mask *mask, MaskObject *maskobj)
+void BKE_mask_layer_unique_name(Mask *mask, MaskLayer *masklay)
 {
-	BLI_uniquename(&mask->maskobjs, maskobj, "MaskObject", '.', offsetof(MaskObject, name), sizeof(maskobj->name));
+	BLI_uniquename(&mask->masklayers, masklay, "MaskLayer", '.', offsetof(MaskLayer, name), sizeof(masklay->name));
 }
 
 /* splines */
 
-MaskSpline *BKE_mask_spline_add(MaskObject *maskobj)
+MaskSpline *BKE_mask_spline_add(MaskLayer *masklay)
 {
 	MaskSpline *spline;
 
 	spline = MEM_callocN(sizeof(MaskSpline), "new mask spline");
-	BLI_addtail(&maskobj->splines, spline);
+	BLI_addtail(&masklay->splines, spline);
 
 	/* spline shall have one point at least */
 	spline->points = MEM_callocN(sizeof(MaskSplinePoint), "new mask spline point");
@@ -747,54 +747,54 @@ void BKE_mask_spline_free(MaskSpline *spline)
 	MEM_freeN(spline);
 }
 
-void BKE_mask_object_shape_free(MaskObjectShape *maskobj_shape)
+void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
 {
-	MEM_freeN(maskobj_shape->data);
+	MEM_freeN(masklay_shape->data);
 
-	MEM_freeN(maskobj_shape);
+	MEM_freeN(masklay_shape);
 }
 
-void BKE_mask_object_free(MaskObject *maskobj)
+void BKE_mask_layer_free(MaskLayer *masklay)
 {
 	MaskSpline *spline;
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
 	/* free splines */
-	spline = maskobj->splines.first;
+	spline = masklay->splines.first;
 	while (spline) {
 		MaskSpline *next_spline = spline->next;
 
-		BLI_remlink(&maskobj->splines, spline);
+		BLI_remlink(&masklay->splines, spline);
 		BKE_mask_spline_free(spline);
 
 		spline = next_spline;
 	}
 
 	/* free animation data */
-	maskobj_shape = maskobj->splines_shapes.first;
-	while (maskobj_shape) {
-		MaskObjectShape *next_maskobj_shape = maskobj_shape->next;
+	masklay_shape = masklay->splines_shapes.first;
+	while (masklay_shape) {
+		MaskLayerShape *next_masklay_shape = masklay_shape->next;
 
-		BLI_remlink(&maskobj->splines_shapes, maskobj_shape);
-		BKE_mask_object_shape_free(maskobj_shape);
+		BLI_remlink(&masklay->splines_shapes, masklay_shape);
+		BKE_mask_layer_shape_free(masklay_shape);
 
-		maskobj_shape = next_maskobj_shape;
+		masklay_shape = next_masklay_shape;
 	}
 
-	MEM_freeN(maskobj);
+	MEM_freeN(masklay);
 }
 
 void BKE_mask_free(Mask *mask)
 {
-	MaskObject *maskobj = mask->maskobjs.first;
+	MaskLayer *masklay = mask->masklayers.first;
 
-	while (maskobj) {
-		MaskObject *next_maskobj = maskobj->next;
+	while (masklay) {
+		MaskLayer *next_masklay = masklay->next;
 
-		BLI_remlink(&mask->maskobjs, maskobj);
-		BKE_mask_object_free(maskobj);
+		BLI_remlink(&mask->masklayers, masklay);
+		BKE_mask_layer_free(masklay);
 
-		maskobj = next_maskobj;
+		masklay = next_masklay;
 	}
 }
 
@@ -1107,12 +1107,12 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 
 void BKE_mask_calc_handles(Mask *mask)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -1129,12 +1129,12 @@ void BKE_mask_calc_handles(Mask *mask)
 
 void BKE_mask_update_deform(Mask *mask)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -1192,35 +1192,35 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 
 void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 
 		/* animation if available */
 		if (do_newframe) {
-			MaskObjectShape *maskobj_shape_a;
-			MaskObjectShape *maskobj_shape_b;
+			MaskLayerShape *masklay_shape_a;
+			MaskLayerShape *masklay_shape_b;
 			int found;
 
-			if ((found = BKE_mask_object_shape_find_frame_range(maskobj, (int)ctime,
-			                                                    &maskobj_shape_a, &maskobj_shape_b)))
+			if ((found = BKE_mask_layer_shape_find_frame_range(masklay, (int)ctime,
+			                                                    &masklay_shape_a, &masklay_shape_b)))
 			{
 				if (found == 1) {
 #if 0
-					printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_countlist(&maskobj->splines_shapes),
-					       maskobj_shape_a->frame);
+					printf("%s: exact %d %d (%d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+					       masklay_shape_a->frame);
 #endif
 
-					BKE_mask_object_shape_to_mask(maskobj, maskobj_shape_a);
+					BKE_mask_layer_shape_to_mask(masklay, masklay_shape_a);
 				}
 				else if (found == 2) {
-					float w = maskobj_shape_b->frame - maskobj_shape_a->frame;
+					float w = masklay_shape_b->frame - masklay_shape_a->frame;
 #if 0
-					printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_countlist(&maskobj->splines_shapes),
-					       maskobj_shape_a->frame, maskobj_shape_b->frame);
+					printf("%s: tween %d %d (%d %d)\n", __func__, (int)ctime, BLI_countlist(&masklay->splines_shapes),
+					       masklay_shape_a->frame, masklay_shape_b->frame);
 #endif
-					BKE_mask_object_shape_to_mask_interp(maskobj, maskobj_shape_a, maskobj_shape_b,
-					                                     (ctime - maskobj_shape_a->frame) / w);
+					BKE_mask_layer_shape_to_mask_interp(masklay, masklay_shape_a, masklay_shape_b,
+					                                     (ctime - masklay_shape_a->frame) / w);
 				}
 				else {
 					/* always fail, should never happen */
@@ -1234,11 +1234,11 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 	BKE_mask_calc_handles(mask);
 
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 		int i;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 
 			BKE_mask_spline_ensure_deform(spline);
 
@@ -1267,12 +1267,12 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 void BKE_mask_update_display(Mask *mask, float ctime)
 {
 #if 0
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			if (spline->points_deform) {
 				int i = 0;
 
@@ -1324,21 +1324,21 @@ void BKE_mask_parent_init(MaskParent *parent)
 
 
 /* *** own animation/shapekey implimentation ***
- * BKE_mask_object_shape_XXX */
+ * BKE_mask_layer_shape_XXX */
 
-int BKE_mask_object_shape_totvert(MaskObject *maskobj)
+int BKE_mask_layer_shape_totvert(MaskLayer *masklay)
 {
 	int tot = 0;
 	MaskSpline *spline;
 
-	for (spline = maskobj->splines.first; spline; spline = spline->next) {
+	for (spline = masklay->splines.first; spline; spline = spline->next) {
 		tot += spline->tot_point;
 	}
 
 	return tot;
 }
 
-static void mask_object_shape_from_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
+static void mask_layer_shape_from_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
 {
 	copy_v2_v2(&fp[0], bezt->vec[0]);
 	copy_v2_v2(&fp[2], bezt->vec[1]);
@@ -1347,7 +1347,7 @@ static void mask_object_shape_from_mask_point(BezTriple *bezt, float fp[MASK_OBJ
 	fp[7] = bezt->radius;
 }
 
-static void mask_object_shape_to_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
+static void mask_layer_shape_to_mask_point(BezTriple *bezt, float fp[MASK_OBJECT_SHAPE_ELEM_SIZE])
 {
 	copy_v2_v2(bezt->vec[0], &fp[0]);
 	copy_v2_v2(bezt->vec[1], &fp[2]);
@@ -1357,47 +1357,47 @@ static void mask_object_shape_to_mask_point(BezTriple *bezt, float fp[MASK_OBJEC
 }
 
 /* these functions match. copy is swapped */
-void BKE_mask_object_shape_from_mask(MaskObject *maskobj, MaskObjectShape *maskobj_shape)
+void BKE_mask_layer_shape_from_mask(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
-	int tot = BKE_mask_object_shape_totvert(maskobj);
+	int tot = BKE_mask_layer_shape_totvert(masklay);
 
-	if (maskobj_shape->tot_vert == tot) {
-		float *fp = maskobj_shape->data;
+	if (masklay_shape->tot_vert == tot) {
+		float *fp = masklay_shape->data;
 
 		MaskSpline *spline;
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 			for (i = 0; i < spline->tot_point; i++) {
-				mask_object_shape_from_mask_point(&spline->points[i].bezt, fp);
+				mask_layer_shape_from_mask_point(&spline->points[i].bezt, fp);
 				fp += MASK_OBJECT_SHAPE_ELEM_SIZE;
 			}
 		}
 	}
 	else {
 		printf("%s: vert mismatch %d != %d (frame %d)\n",
-		       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
+		       __func__, masklay_shape->tot_vert, tot, masklay_shape->frame);
 	}
 }
 
-void BKE_mask_object_shape_to_mask(MaskObject *maskobj, MaskObjectShape *maskobj_shape)
+void BKE_mask_layer_shape_to_mask(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
-	int tot = BKE_mask_object_shape_totvert(maskobj);
+	int tot = BKE_mask_layer_shape_totvert(masklay);
 
-	if (maskobj_shape->tot_vert == tot) {
-		float *fp = maskobj_shape->data;
+	if (masklay_shape->tot_vert == tot) {
+		float *fp = masklay_shape->data;
 
 		MaskSpline *spline;
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 			for (i = 0; i < spline->tot_point; i++) {
-				mask_object_shape_to_mask_point(&spline->points[i].bezt, fp);
+				mask_layer_shape_to_mask_point(&spline->points[i].bezt, fp);
 				fp += MASK_OBJECT_SHAPE_ELEM_SIZE;
 			}
 		}
 	}
 	else {
 		printf("%s: vert mismatch %d != %d (frame %d)\n",
-		       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
+		       __func__, masklay_shape->tot_vert, tot, masklay_shape->frame);
 	}
 }
 
@@ -1409,23 +1409,23 @@ BLI_INLINE void interp_v2_v2v2_flfl(float target[2], const float a[2], const flo
 }
 
 /* linear interpolation only */
-void BKE_mask_object_shape_to_mask_interp(MaskObject *maskobj,
-                                          MaskObjectShape *maskobj_shape_a,
-                                          MaskObjectShape *maskobj_shape_b,
+void BKE_mask_layer_shape_to_mask_interp(MaskLayer *masklay,
+                                          MaskLayerShape *masklay_shape_a,
+                                          MaskLayerShape *masklay_shape_b,
                                           const float fac)
 {
-	int tot = BKE_mask_object_shape_totvert(maskobj);
-	if (maskobj_shape_a->tot_vert == tot && maskobj_shape_b->tot_vert == tot) {
-		float *fp_a = maskobj_shape_a->data;
-		float *fp_b = maskobj_shape_b->data;
+	int tot = BKE_mask_layer_shape_totvert(masklay);
+	if (masklay_shape_a->tot_vert == tot && masklay_shape_b->tot_vert == tot) {
+		float *fp_a = masklay_shape_a->data;
+		float *fp_b = masklay_shape_b->data;
 		const float ifac = 1.0f - fac;
 
 		MaskSpline *spline;
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 			for (i = 0; i < spline->tot_point; i++) {
 				BezTriple *bezt = &spline->points[i].bezt;
-				/* *** BKE_mask_object_shape_from_mask - swapped *** */
+				/* *** BKE_mask_layer_shape_from_mask - swapped *** */
 				interp_v2_v2v2_flfl(bezt->vec[0], fp_a, fp_b, fac, ifac); fp_a += 2; fp_b += 2;
 				interp_v2_v2v2_flfl(bezt->vec[1], fp_a, fp_b, fac, ifac); fp_a += 2; fp_b += 2;
 				interp_v2_v2v2_flfl(bezt->vec[2], fp_a, fp_b, fac, ifac); fp_a += 2; fp_b += 2;
@@ -1436,23 +1436,23 @@ void BKE_mask_object_shape_to_mask_interp(MaskObject *maskobj,
 	}
 	else {
 		printf("%s: vert mismatch %d != %d != %d (frame %d - %d)\n",
-		       __func__, maskobj_shape_a->tot_vert, maskobj_shape_b->tot_vert, tot,
-		       maskobj_shape_a->frame, maskobj_shape_b->frame);
+		       __func__, masklay_shape_a->tot_vert, masklay_shape_b->tot_vert, tot,
+		       masklay_shape_a->frame, masklay_shape_b->frame);
 	}
 }
 
-MaskObjectShape *BKE_mask_object_shape_find_frame(MaskObject *maskobj, int frame)
+MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, int frame)
 {
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
-	for (maskobj_shape = maskobj->splines_shapes.first;
-	     maskobj_shape;
-	     maskobj_shape = maskobj_shape->next)
+	for (masklay_shape = masklay->splines_shapes.first;
+	     masklay_shape;
+	     masklay_shape = masklay_shape->next)
 	{
-		if (frame == maskobj_shape->frame) {
-			return maskobj_shape;
+		if (frame == masklay_shape->frame) {
+			return masklay_shape;
 		}
-		else if (frame < maskobj_shape->frame) {
+		else if (frame < masklay_shape->frame) {
 			break;
 		}
 	}
@@ -1461,106 +1461,106 @@ MaskObjectShape *BKE_mask_object_shape_find_frame(MaskObject *maskobj, int frame
 }
 
 /* when returning 2 - the frame isnt found but before/after frames are */
-int BKE_mask_object_shape_find_frame_range(MaskObject *maskobj, int frame,
-                                           MaskObjectShape **r_maskobj_shape_a,
-                                           MaskObjectShape **r_maskobj_shape_b)
+int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, int frame,
+                                           MaskLayerShape **r_masklay_shape_a,
+                                           MaskLayerShape **r_masklay_shape_b)
 {
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
-	for (maskobj_shape = maskobj->splines_shapes.first;
-	     maskobj_shape;
-	     maskobj_shape = maskobj_shape->next)
+	for (masklay_shape = masklay->splines_shapes.first;
+	     masklay_shape;
+	     masklay_shape = masklay_shape->next)
 	{
-		if (frame == maskobj_shape->frame) {
-			*r_maskobj_shape_a = maskobj_shape;
-			*r_maskobj_shape_b = NULL;
+		if (frame == masklay_shape->frame) {
+			*r_masklay_shape_a = masklay_shape;
+			*r_masklay_shape_b = NULL;
 			return 1;
 		}
-		else if (frame < maskobj_shape->frame) {
-			if (maskobj_shape->prev) {
-				*r_maskobj_shape_a = maskobj_shape->prev;
-				*r_maskobj_shape_b = maskobj_shape;
+		else if (frame < masklay_shape->frame) {
+			if (masklay_shape->prev) {
+				*r_masklay_shape_a = masklay_shape->prev;
+				*r_masklay_shape_b = masklay_shape;
 				return 2;
 			}
 			else {
-				*r_maskobj_shape_a = maskobj_shape;
-				*r_maskobj_shape_b = NULL;
+				*r_masklay_shape_a = masklay_shape;
+				*r_masklay_shape_b = NULL;
 				return 1;
 			}
 		}
 	}
 
-	*r_maskobj_shape_a = NULL;
-	*r_maskobj_shape_b = NULL;
+	*r_masklay_shape_a = NULL;
+	*r_masklay_shape_b = NULL;
 
 	return 0;
 }
 
-MaskObjectShape *BKE_mask_object_shape_varify_frame(MaskObject *maskobj, int frame)
+MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, int frame)
 {
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
-	maskobj_shape = BKE_mask_object_shape_find_frame(maskobj, frame);
+	masklay_shape = BKE_mask_layer_shape_find_frame(masklay, frame);
 
-	if (maskobj_shape == NULL) {
-		int tot_vert = BKE_mask_object_shape_totvert(maskobj);
+	if (masklay_shape == NULL) {
+		int tot_vert = BKE_mask_layer_shape_totvert(masklay);
 
-		maskobj_shape = MEM_mallocN(sizeof(MaskObjectShape), __func__);
-		maskobj_shape->frame = frame;
-		maskobj_shape->tot_vert = tot_vert;
-		maskobj_shape->data = MEM_mallocN(tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+		masklay_shape = MEM_mallocN(sizeof(MaskLayerShape), __func__);
+		masklay_shape->frame = frame;
+		masklay_shape->tot_vert = tot_vert;
+		masklay_shape->data = MEM_mallocN(tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 
-		BLI_addtail(&maskobj->splines_shapes, maskobj_shape);
+		BLI_addtail(&masklay->splines_shapes, masklay_shape);
 
-		BKE_mask_object_shape_sort(maskobj);
+		BKE_mask_layer_shape_sort(masklay);
 	}
 
 #if 0
 		{
-			MaskObjectShape *maskobj_shape;
+			MaskLayerShape *masklay_shape;
 			int i = 0;
-			for (maskobj_shape = maskobj->splines_shapes.first;
-			     maskobj_shape;
-			     maskobj_shape = maskobj_shape->next)
+			for (masklay_shape = masklay->splines_shapes.first;
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
 			{
-				printf("mask %d, %d\n", i++, maskobj_shape->frame);
+				printf("mask %d, %d\n", i++, masklay_shape->frame);
 			}
 		}
 #endif
 
-	return maskobj_shape;
+	return masklay_shape;
 }
 
-void BKE_mask_object_shape_unlink(MaskObject *maskobj, MaskObjectShape *maskobj_shape)
+void BKE_mask_layer_shape_unlink(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
-	BLI_remlink(&maskobj->splines_shapes, maskobj_shape);
+	BLI_remlink(&masklay->splines_shapes, masklay_shape);
 
-	BKE_mask_object_shape_free(maskobj_shape);
+	BKE_mask_layer_shape_free(masklay_shape);
 }
 
-static int mask_object_shape_sort_cb(void *maskobj_shape_a_ptr, void *maskobj_shape_b_ptr)
+static int mask_layer_shape_sort_cb(void *masklay_shape_a_ptr, void *masklay_shape_b_ptr)
 {
-	MaskObjectShape *maskobj_shape_a = (MaskObjectShape *)maskobj_shape_a_ptr;
-	MaskObjectShape *maskobj_shape_b = (MaskObjectShape *)maskobj_shape_b_ptr;
+	MaskLayerShape *masklay_shape_a = (MaskLayerShape *)masklay_shape_a_ptr;
+	MaskLayerShape *masklay_shape_b = (MaskLayerShape *)masklay_shape_b_ptr;
 
-	if      (maskobj_shape_a->frame < maskobj_shape_b->frame)  return -1;
-	else if (maskobj_shape_a->frame > maskobj_shape_b->frame)  return  1;
+	if      (masklay_shape_a->frame < masklay_shape_b->frame)  return -1;
+	else if (masklay_shape_a->frame > masklay_shape_b->frame)  return  1;
 	else                                                       return  0;
 }
 
-void BKE_mask_object_shape_sort(MaskObject *maskobj)
+void BKE_mask_layer_shape_sort(MaskLayer *masklay)
 {
-	BLI_sortlist(&maskobj->splines_shapes, mask_object_shape_sort_cb);
+	BLI_sortlist(&masklay->splines_shapes, mask_layer_shape_sort_cb);
 }
 
-int BKE_mask_object_shape_spline_from_index(MaskObject *maskobj, int index,
-                                            MaskSpline **r_maskobj_shape, int *r_index)
+int BKE_mask_layer_shape_spline_from_index(MaskLayer *masklay, int index,
+                                            MaskSpline **r_masklay_shape, int *r_index)
 {
 	MaskSpline *spline;
 
-	for (spline = maskobj->splines.first; spline; spline = spline->next) {
+	for (spline = masklay->splines.first; spline; spline = spline->next) {
 		if (index < spline->tot_point) {
-			*r_maskobj_shape = spline;
+			*r_masklay_shape = spline;
 			*r_index = index;
 			return TRUE;
 		}
@@ -1570,11 +1570,11 @@ int BKE_mask_object_shape_spline_from_index(MaskObject *maskobj, int index,
 	return FALSE;
 }
 
-int BKE_mask_object_shape_spline_to_index(MaskObject *maskobj, MaskSpline *spline)
+int BKE_mask_layer_shape_spline_to_index(MaskLayer *masklay, MaskSpline *spline)
 {
 	MaskSpline *spline_iter;
 	int i_abs = 0;
-	for (spline_iter = maskobj->splines.first;
+	for (spline_iter = masklay->splines.first;
 	     spline_iter && spline_iter != spline;
 	     i_abs += spline_iter->tot_point, spline_iter = spline_iter->next)
 	{
@@ -1608,21 +1608,21 @@ static void interp_weights_uv_v2_apply(const float uv[2], float r_pt[2], const f
 }
 
 /* when a now points added - resize all shapekey array  */
-void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
+void BKE_mask_layer_shape_changed_add(MaskLayer *masklay, int index,
                                        int do_init, int do_init_interpolate)
 {
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
-	/* spline index from maskobj */
+	/* spline index from masklay */
 	MaskSpline *spline;
 	int         spline_point_index;
 
-	if (BKE_mask_object_shape_spline_from_index(maskobj, index,
+	if (BKE_mask_layer_shape_spline_from_index(masklay, index,
 	                                            &spline, &spline_point_index))
 	{
 		/* sanity check */
 		/* the point has already been removed in this array so subtract one when comparing with the shapes */
-		int tot = BKE_mask_object_shape_totvert(maskobj) - 1;
+		int tot = BKE_mask_layer_shape_totvert(masklay) - 1;
 
 		/* for interpolation */
 		/* TODO - assumes closed curve for now */
@@ -1646,31 +1646,31 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 			}
 		}
 
-		for (maskobj_shape = maskobj->splines_shapes.first;
-		     maskobj_shape;
-		     maskobj_shape = maskobj_shape->next)
+		for (masklay_shape = masklay->splines_shapes.first;
+		     masklay_shape;
+		     masklay_shape = masklay_shape->next)
 		{
-			if (tot == maskobj_shape->tot_vert) {
+			if (tot == masklay_shape->tot_vert) {
 				float *data_resized;
 
-				maskobj_shape->tot_vert++;
-				data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+				masklay_shape->tot_vert++;
+				data_resized = MEM_mallocN(masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 				if (index > 0) {
 					memcpy(data_resized,
-					       maskobj_shape->data,
+					       masklay_shape->data,
 					       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
-				if (index != maskobj_shape->tot_vert - 1) {
+				if (index != masklay_shape->tot_vert - 1) {
 					memcpy(&data_resized[(index + 1) * MASK_OBJECT_SHAPE_ELEM_SIZE],
-					       maskobj_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
-					       (maskobj_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+					       masklay_shape->data + (index * MASK_OBJECT_SHAPE_ELEM_SIZE),
+					       (masklay_shape->tot_vert - (index + 1)) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
 				if (do_init) {
 					float *fp = &data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE];
 
-					mask_object_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
+					mask_layer_shape_from_mask_point(&spline->points[spline_point_index].bezt, fp);
 
 					if (do_init_interpolate && spline->tot_point > 2) {
 						for (i = 0; i < 3; i++) {
@@ -1687,12 +1687,12 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 					       sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 				}
 
-				MEM_freeN(maskobj_shape->data);
-				maskobj_shape->data = data_resized;
+				MEM_freeN(masklay_shape->data);
+				masklay_shape->data = data_resized;
 			}
 			else {
 				printf("%s: vert mismatch %d != %d (frame %d)\n",
-				       __func__, maskobj_shape->tot_vert, tot, maskobj_shape->frame);
+				       __func__, masklay_shape->tot_vert, tot, masklay_shape->frame);
 			}
 		}
 	}
@@ -1700,40 +1700,40 @@ void BKE_mask_object_shape_changed_add(MaskObject *maskobj, int index,
 
 
 /* move array to account for removed point */
-void BKE_mask_object_shape_changed_remove(MaskObject *maskobj, int index, int count)
+void BKE_mask_layer_shape_changed_remove(MaskLayer *masklay, int index, int count)
 {
-	MaskObjectShape *maskobj_shape;
+	MaskLayerShape *masklay_shape;
 
 	/* the point has already been removed in this array so add one when comparing with the shapes */
-	int tot = BKE_mask_object_shape_totvert(maskobj);
+	int tot = BKE_mask_layer_shape_totvert(masklay);
 
-	for (maskobj_shape = maskobj->splines_shapes.first;
-	     maskobj_shape;
-	     maskobj_shape = maskobj_shape->next)
+	for (masklay_shape = masklay->splines_shapes.first;
+	     masklay_shape;
+	     masklay_shape = masklay_shape->next)
 	{
-		if (tot == maskobj_shape->tot_vert - count) {
+		if (tot == masklay_shape->tot_vert - count) {
 			float *data_resized;
 
-			maskobj_shape->tot_vert -= count;
-			data_resized = MEM_mallocN(maskobj_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+			masklay_shape->tot_vert -= count;
+			data_resized = MEM_mallocN(masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
 			if (index > 0) {
 				memcpy(data_resized,
-				       maskobj_shape->data,
+				       masklay_shape->data,
 				       index * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
-			if (index != maskobj_shape->tot_vert) {
+			if (index != masklay_shape->tot_vert) {
 				memcpy(&data_resized[index * MASK_OBJECT_SHAPE_ELEM_SIZE],
-				       maskobj_shape->data + ((index + count) * MASK_OBJECT_SHAPE_ELEM_SIZE),
-				       (maskobj_shape->tot_vert - index) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
+				       masklay_shape->data + ((index + count) * MASK_OBJECT_SHAPE_ELEM_SIZE),
+				       (masklay_shape->tot_vert - index) * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE);
 			}
 
-			MEM_freeN(maskobj_shape->data);
-			maskobj_shape->data = data_resized;
+			MEM_freeN(masklay_shape->data);
+			masklay_shape->data = data_resized;
 		}
 		else {
 			printf("%s: vert mismatch %d != %d (frame %d)\n",
-			       __func__, maskobj_shape->tot_vert - count, tot, maskobj_shape->frame);
+			       __func__, masklay_shape->tot_vert - count, tot, masklay_shape->frame);
 		}
 	}
 }
@@ -1775,7 +1775,7 @@ static void linear_clamp_vn_vn(float *array, const int size)
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 
 	/* temp blending buffer */
 	const int buffer_size = width * height;
@@ -1789,17 +1789,17 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 	}
 	max_dseg_len = 1.0f / max_dseg_len;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
 		float alpha;
 
-		if (maskobj->restrictflag & MASK_RESTRICT_RENDER) {
+		if (masklay->restrictflag & MASK_RESTRICT_RENDER) {
 			continue;
 		}
 
 		memset(buffer_tmp, 0, sizeof(float) * buffer_size);
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			float (*diff_points)[2];
 			int tot_diff_point;
 
@@ -1853,10 +1853,10 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 		}
 
 		/* blend with original */
-		if (maskobj->blend_flag & MASK_BLENDFLAG_INVERT) {
+		if (masklay->blend_flag & MASK_BLENDFLAG_INVERT) {
 			/* apply alpha multiply before inverting */
-			if (maskobj->alpha != 1.0f) {
-				m_invert_vn_vn(buffer_tmp, maskobj->alpha, buffer_size);
+			if (masklay->alpha != 1.0f) {
+				m_invert_vn_vn(buffer_tmp, masklay->alpha, buffer_size);
 			}
 			else {
 				invert_vn_vn(buffer_tmp, buffer_size);
@@ -1865,10 +1865,10 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			alpha = 1.0f;
 		}
 		else {
-			alpha = maskobj->alpha;
+			alpha = masklay->alpha;
 		}
 
-		switch (maskobj->blend) {
+		switch (masklay->blend) {
 			case MASK_BLEND_SUBTRACT:
 			{
 				if (alpha == 1.0f) {

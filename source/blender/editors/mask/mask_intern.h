@@ -40,8 +40,8 @@ struct wmOperatorType;
 
 /* mask_ops.c */
 void MASK_OT_new(struct wmOperatorType *ot);
-void MASK_OT_object_new(struct wmOperatorType *ot);
-void MASK_OT_object_remove(struct wmOperatorType *ot);
+void MASK_OT_layer_new(struct wmOperatorType *ot);
+void MASK_OT_layer_remove(struct wmOperatorType *ot);
 
 void MASK_OT_add_vertex(struct wmOperatorType *ot);
 void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
@@ -58,12 +58,12 @@ void MASK_OT_handle_type_set(struct wmOperatorType *ot);
 
 int ED_mask_feather_find_nearest(
         struct bContext *C, struct Mask *mask, float normal_co[2], int threshold,
-        struct MaskObject **maskobj_r, struct MaskSpline **spline_r, struct MaskSplinePoint **point_r,
+        struct MaskLayer **masklay_r, struct MaskSpline **spline_r, struct MaskSplinePoint **point_r,
         struct MaskSplinePointUW **uw_r, float *score);
 
 struct MaskSplinePoint *ED_mask_point_find_nearest(
         struct bContext *C, struct Mask *mask, float normal_co[2], int threshold,
-        struct MaskObject **maskobj_r, struct MaskSpline **spline_r, int *is_handle_r,
+        struct MaskLayer **masklay_r, struct MaskSpline **spline_r, int *is_handle_r,
         float *score);
 
 /* mask_relationships.c */
@@ -79,10 +79,10 @@ void MASK_OT_select_lasso(struct wmOperatorType *ot);
 void MASK_OT_select_circle(struct wmOperatorType *ot);
 
 int ED_mask_spline_select_check(struct MaskSplinePoint *points, int tot_point);
-int ED_mask_object_select_check(struct MaskObject *maskobj);
+int ED_mask_layer_select_check(struct MaskLayer *masklay);
 int ED_mask_select_check(struct Mask *mask);
 
-void ED_mask_object_select_set(struct MaskObject *maskobj, int select);
+void ED_mask_layer_select_set(struct MaskLayer *masklay, int select);
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 

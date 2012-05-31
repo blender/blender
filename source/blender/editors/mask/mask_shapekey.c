@@ -61,18 +61,18 @@ static int mask_shape_key_insert_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	const int frame = CFRA;
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	int change = FALSE;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskObjectShape *maskobj_shape;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskLayerShape *masklay_shape;
 
-		if (!ED_mask_object_select_check(maskobj)) {
+		if (!ED_mask_layer_select_check(masklay)) {
 			continue;
 		}
 
-		maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
-		BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
+		masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, frame);
+		BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
 		change = TRUE;
 	}
 
@@ -107,20 +107,20 @@ static int mask_shape_key_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	const int frame = CFRA;
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	int change = FALSE;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskObjectShape *maskobj_shape;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskLayerShape *masklay_shape;
 
-		if (!ED_mask_object_select_check(maskobj)) {
+		if (!ED_mask_layer_select_check(masklay)) {
 			continue;
 		}
 
-		maskobj_shape = BKE_mask_object_shape_find_frame(maskobj, frame);
+		masklay_shape = BKE_mask_layer_shape_find_frame(masklay, frame);
 
-		if (maskobj_shape) {
-			BKE_mask_object_shape_unlink(maskobj, maskobj_shape);
+		if (masklay_shape) {
+			BKE_mask_layer_shape_unlink(masklay, masklay_shape);
 			change = TRUE;
 		}
 	}
@@ -151,16 +151,16 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-int ED_mask_object_shape_auto_key_all(Mask *mask, const int frame)
+int ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
 {
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	int change = FALSE;
 
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskObjectShape *maskobj_shape;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskLayerShape *masklay_shape;
 
-		maskobj_shape = BKE_mask_object_shape_varify_frame(maskobj, frame);
-		BKE_mask_object_shape_from_mask(maskobj, maskobj_shape);
+		masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, frame);
+		BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
 		change = TRUE;
 	}
 

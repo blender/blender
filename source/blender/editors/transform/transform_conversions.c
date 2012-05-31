@@ -4915,7 +4915,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (IS_AUTOKEY_ON(t->scene)) {
 				Scene *scene = t->scene;
 
-				ED_mask_object_shape_auto_key_all(mask, CFRA);
+				ED_mask_layer_shape_auto_key_all(mask, CFRA);
 			}
 		}
 	}
@@ -5974,7 +5974,7 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Mask *mask = CTX_data_edit_mask(C);
-	MaskObject *maskobj;
+	MaskLayer *masklay;
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	TransDataMasking *tdm = NULL;
@@ -5982,14 +5982,14 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 
 	/* count */
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline = masklay->splines.first;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
@@ -6021,14 +6021,14 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	t->flag |= T_FREE_CUSTOMDATA;
 
 	/* create data */
-	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
-		MaskSpline *spline = maskobj->splines.first;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline = masklay->splines.first;
 
-		if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
 		}
 
-		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {

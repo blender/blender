@@ -199,18 +199,18 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 	/* movie clip animation */
 	if ((sc->mode == SC_MODE_MASKEDITING) && sc->mask) {
-		MaskObject *maskobj = BKE_mask_object_active(sc->mask);
-		if (maskobj) {
-			MaskObjectShape *maskobj_shape;
+		MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
+		if (masklay) {
+			MaskLayerShape *masklay_shape;
 
 			glColor4ub(255, 175, 0, 255);
 			glBegin(GL_LINES);
 
-			for (maskobj_shape = maskobj->splines_shapes.first;
-			     maskobj_shape;
-			     maskobj_shape = maskobj_shape->next)
+			for (masklay_shape = masklay->splines_shapes.first;
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
 			{
-				i = maskobj_shape->frame;
+				i = masklay_shape->frame;
 
 				/* glRecti((i - sfra) * framelen, 0, (i - sfra + 1) * framelen, 4); */
 

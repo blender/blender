@@ -2241,7 +2241,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiItemL(split, name, ICON_OBJECT_DATA);
 		}
 	}
-	else if (itemptr->type == &RNA_MaskObject) {
+	else if (itemptr->type == &RNA_MaskLayer) {
 		split = uiLayoutSplit(sub, 0.66f, 0);
 
 		uiItemL(split, name, icon);
