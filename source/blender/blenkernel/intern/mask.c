@@ -149,9 +149,9 @@ MaskSpline *BKE_mask_spline_add(MaskObject *maskobj)
 	return spline;
 }
 
-int BKE_mask_spline_resolution(MaskSpline *spline)
+int BKE_mask_spline_resolution(MaskSpline *spline, float max_seg_len)
 {
-	const float max_segment = 0.01;
+	const float max_segment = max_seg_len;
 	int i, resol = 1;
 
 	for (i = 0; i < spline->tot_point; i++) {
@@ -186,10 +186,10 @@ int BKE_mask_spline_resolution(MaskSpline *spline)
 	return resol;
 }
 
-int BKE_mask_spline_feather_resolution(MaskSpline *spline)
+int BKE_mask_spline_feather_resolution(MaskSpline *spline, float max_seg_len)
 {
 	const float max_segment = 0.005;
-	int resol = BKE_mask_spline_resolution(spline);
+	int resol = BKE_mask_spline_resolution(spline, max_seg_len);
 	float max_jump = 0.0f;
 	int i;
 
@@ -216,13 +216,18 @@ int BKE_mask_spline_feather_resolution(MaskSpline *spline)
 	return resol;
 }
 
-float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[2]
+float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point, int dynamic_res, float max_dseg_len))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	MaskSplinePoint *point, *prev;
 	float (*diff_points)[2], (*fp)[2];
-	int a, len, resol = BKE_mask_spline_resolution(spline);
+	int a, len, resol;
+	if(!dynamic_res){
+		max_dseg_len = 0.01f;
+	}	
+	resol = BKE_mask_spline_resolution(spline, max_dseg_len);
+
 
 	if (spline->tot_point <= 1) {
 		/* nothing to differentiate */
@@ -279,12 +284,16 @@ float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[
 	return diff_points;
 }
 
-float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
+float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point, int dynamic_res, float max_dseg_len))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	float (*feather)[2], (*fp)[2];
-	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
+	int i, j, tot, resol;
+	if(!dynamic_res){
+		max_dseg_len = 0.005f;
+	}
+	resol = BKE_mask_spline_feather_resolution(spline, max_dseg_len);
 
 	tot = resol * spline->tot_point;
 	feather = fp = MEM_mallocN(tot * sizeof(*feather), "mask spline feather diff points");
@@ -429,7 +438,7 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *point, int *tot_feather_point)
 {
 	float *feather, *fp;
-	int i, resol = BKE_mask_spline_feather_resolution(spline);
+	int i, resol = BKE_mask_spline_feather_resolution(spline, 0.005f);
 
 	feather = fp = MEM_callocN(2 * resol * sizeof(float), "mask point spline feather diff points");
 
@@ -456,7 +465,7 @@ float *BKE_mask_point_segment_diff(MaskSpline *spline, MaskSplinePoint *point, i
 
 	BezTriple *bezt, *next;
 	float *diff_points, *fp;
-	int j, resol = BKE_mask_spline_resolution(spline);
+	int j, resol = BKE_mask_spline_resolution(spline, 0.01f);
 
 	bezt = &point->bezt;
 
@@ -1771,6 +1780,14 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 	/* temp blending buffer */
 	const int buffer_size = width * height;
 	float *buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
+	float max_dseg_len = 0.0f;
+
+	if(width >= height){
+		max_dseg_len = (float)(width);
+	}else{
+		max_dseg_len = (float)(height);
+	}
+	max_dseg_len = 1.0f / max_dseg_len;
 
 	for (maskobj = mask->maskobjs.first; maskobj; maskobj = maskobj->next) {
 		MaskSpline *spline;
@@ -1789,9 +1806,9 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			float (*diff_feather_points)[2];
 			int tot_diff_feather_points;
 
-			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
+			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point, 1, max_dseg_len);
 			if(tot_diff_point){
-				diff_feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_diff_feather_points);
+				diff_feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_diff_feather_points, 1, max_dseg_len);
 			}
 
 			/* TODO, make this optional! */

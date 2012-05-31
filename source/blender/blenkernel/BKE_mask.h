@@ -56,10 +56,10 @@ void BKE_mask_object_unique_name(struct Mask *mask, struct MaskObject *maskobj);
 
 /* splines */
 struct MaskSpline *BKE_mask_spline_add(struct MaskObject *maskobj);
-int BKE_mask_spline_resolution(struct MaskSpline *spline);
+int BKE_mask_spline_resolution(struct MaskSpline *spline, float max_seg_len);
 
-float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point))[2];
-float (*BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline, int *tot_feather_point))[2];
+float (*BKE_mask_spline_differentiate(struct MaskSpline *spline, int *tot_diff_point, int dynamic_res, float max_dseg_len))[2];
+float (*BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline, int *tot_feather_point, int dynamic_res, float max_dseg_len))[2];
 float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feather_point))[2];
 
 /* point */

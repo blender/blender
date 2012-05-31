@@ -336,7 +336,7 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 	int tot_feather_point;
 	float (*feather_points)[2];
 
-	diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
+	diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point, 0, 0.0f);
 
 	if (!diff_points)
 		return;
@@ -347,7 +347,7 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point);
+	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point, 0, 0.0f);
 
 	/* draw feather */
 	mask_spline_feather_color_get(maskobj, spline, is_spline_sel, rgb_tmp);
