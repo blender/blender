@@ -1317,11 +1317,16 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 		return OPERATOR_FINISHED;
 
 	if (find_nearest_diff_point(C, mask, co, threshold, TRUE, &maskobj, &spline, &point, &u, NULL)) {
+		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
 
 		BKE_mask_point_add_uw(point, u, w);
 
+		BKE_mask_update_display(mask, scene->r.cfra);
+
 		WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
+
+		DAG_id_tag_update(&mask->id, 0);
 
 		return OPERATOR_FINISHED;
 	}
