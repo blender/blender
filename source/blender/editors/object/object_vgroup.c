@@ -426,7 +426,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 			break;
 
 		case REPLACE_EMPTY_WEIGHTS:
-			if (!weight_dst || weight_dst == 0) *weight_dst = weight_src;
+			if (*weight_dst == 0) *weight_dst = weight_src;
 			break;
 
 		case REPLACE_SELECTED_WEIGHTS:
@@ -493,8 +493,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			for(i = 0, dv_src = dv_array_src, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, dv_src++, mv_src++) {
 
 				/* copy weight */
-				dw_src = defvert_verify_index(*dv_array_src, index_src);
-				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
+				dw_src = defvert_verify_index(*dv_src, index_src);
+				dw_dst = defvert_verify_index(*dv_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
 			}
 			break;
@@ -504,7 +504,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop trough vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++){
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
 
 				/* reset nearest */
 				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
@@ -519,7 +519,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight */
 				dw_src = defvert_verify_index(dv_array_src[nearest.index], index_src);
-				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
+				dw_dst = defvert_verify_index(*dv_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
 			}
 
@@ -536,7 +536,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop through the vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_src++) {
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
 
 				/* reset nearest */
 				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
@@ -572,7 +572,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				}
 
 				/* copy weight */
-				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
+				dw_dst = defvert_verify_index(*dv_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_option);
 			}
 
@@ -589,7 +589,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, 0.0, 2, 6);
 
 			/* loop through the vertices */
-			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_src++, mv_src++){
+			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
 
 				/* reset nearest */
 				/* nearest.index = -1; It is asumed using index of previous search as starting point result in speedup. It will be tested later */
@@ -621,7 +621,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight */
 				dw_src = defvert_verify_index(dv_array_src[index_nearest_vertex], index_src);
-				dw_dst = defvert_verify_index(*dv_array_dst, index_dst);
+				dw_dst = defvert_verify_index(*dv_dst, index_dst);
 				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_option);
 			}
 
