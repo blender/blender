@@ -243,7 +243,7 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 			//MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 			int i, tot_feather_point;
-			float *feather_points, *fp;
+			float (*feather_points)[2], (*fp)[2];
 
 			if (maskobj->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 				continue;
@@ -258,8 +258,8 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 				for (j = 0; j < cur_point->tot_uw + 1; j++) {
 					float cur_len, vec[2];
 
-					vec[0] = fp[0] * scalex;
-					vec[1] = fp[1] * scaley;
+					vec[0] = (*fp)[0] * scalex;
+					vec[1] = (*fp)[1] * scaley;
 
 					cur_len = len_v2v2(vec, co);
 
@@ -275,7 +275,7 @@ int ED_mask_feather_find_nearest(bContext *C, Mask *mask, float normal_co[2], in
 						len = cur_len;
 					}
 
-					fp += 2;
+					fp++;
 				}
 			}
 

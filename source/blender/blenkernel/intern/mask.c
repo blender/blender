@@ -216,12 +216,12 @@ int BKE_mask_spline_feather_resolution(MaskSpline *spline)
 	return resol;
 }
 
-float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
+float (*BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	MaskSplinePoint *point, *prev;
-	float *diff_points, *fp;
+	float (*diff_points)[2], (*fp)[2];
 	int a, len, resol = BKE_mask_spline_resolution(spline);
 
 	if (spline->tot_point <= 1) {
@@ -240,7 +240,7 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 
 	/* len+1 because of 'forward_diff_bezier' function */
 	*tot_diff_point = len;
-	diff_points = fp = MEM_callocN((len + 1) * 2 * sizeof(float), "mask spline vets");
+	diff_points = fp = MEM_callocN((len + 1) * sizeof(*diff_points), "mask spline vets");
 
 	a = spline->tot_point - 1;
 	if (spline->flag & MASK_SPLINE_CYCLIC)
@@ -263,13 +263,13 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 		for (j = 0; j < 2; j++) {
 			BKE_curve_forward_diff_bezier(prevbezt->vec[1][j], prevbezt->vec[2][j],
 			                              bezt->vec[0][j], bezt->vec[1][j],
-			                              fp + j, resol, 2 * sizeof(float));
+			                              &(*fp)[j], resol, 2 * sizeof(float));
 		}
 
-		fp += 2 * resol;
+		fp += resol;
 
 		if (a == 0 && (spline->flag & MASK_SPLINE_CYCLIC) == 0) {
-			copy_v2_v2(fp, bezt->vec[1]);
+			copy_v2_v2(*fp, bezt->vec[1]);
 		}
 
 		prev = point;
@@ -279,29 +279,30 @@ float *BKE_mask_spline_differentiate(MaskSpline *spline, int *tot_diff_point)
 	return diff_points;
 }
 
-float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point)
+float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
-	float *feather, *fp;
+	float (*feather)[2], (*fp)[2];
 	int i, j, tot, resol = BKE_mask_spline_feather_resolution(spline);
 
 	tot = resol * spline->tot_point;
-	feather = fp = MEM_callocN(2 * tot * sizeof(float), "mask spline feather diff points");
+	feather = fp = MEM_callocN(tot * sizeof(*feather), "mask spline feather diff points");
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &points_array[i];
 
-		for (j = 0; j < resol; j++, fp += 2) {
+		for (j = 0; j < resol; j++, fp++) {
 			float u = (float) j / resol, weight;
 			float co[2], n[2];
 
+			/* TODO - these calls all calculate similar things
+			 * could be unified for some speed */
 			BKE_mask_point_segment_co(spline, point, u, co);
 			BKE_mask_point_normal(spline, point, u, n);
 			weight = BKE_mask_point_weight(spline, point, u);
 
-			fp[0] = co[0] + n[0] * weight;
-			fp[1] = co[1] + n[1] * weight;
+			madd_v2_v2v2fl(*fp, co, n, weight);
 		}
 	}
 
@@ -310,12 +311,12 @@ float *BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *to
 	return feather;
 }
 
-float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point)
+float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	int i, tot = 0;
-	float *feather, *fp;
+	float (*feather)[2], (*fp)[2];
 
 	/* count */
 	for (i = 0; i < spline->tot_point; i++) {
@@ -325,7 +326,7 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point
 	}
 
 	/* create data */
-	feather = fp = MEM_callocN(2 * tot * sizeof(float), "mask spline feather points");
+	feather = fp = MEM_callocN(tot * sizeof(*feather), "mask spline feather points");
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &points_array[i];
@@ -336,9 +337,8 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point
 		BKE_mask_point_normal(spline, point, 0.0f, n);
 		weight = BKE_mask_point_weight(spline, point, 0.0f);
 
-		fp[0] = bezt->vec[1][0] + n[0] * weight;
-		fp[1] = bezt->vec[1][1] + n[1] * weight;
-		fp += 2;
+		madd_v2_v2v2fl(*fp, bezt->vec[1], n, weight);
+		fp++;
 
 		for (j = 0; j < point->tot_uw; j++) {
 			float u = point->uw[j].u;
@@ -348,10 +348,8 @@ float *BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point
 			BKE_mask_point_normal(spline, point, u, n);
 			weight = BKE_mask_point_weight(spline, point, u);
 
-			fp[0] = co[0] + n[0] * weight;
-			fp[1] = co[1] + n[1] * weight;
-
-			fp += 2;
+			madd_v2_v2v2fl(*fp, co, n, weight);
+			fp++;
 		}
 	}
 
@@ -562,19 +560,23 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 
-	BezTriple *bezt = &point->bezt, *next;
+	BezTriple *bezt = &point->bezt, *bezt_next;
 	float cur_u, cur_w, next_u, next_w, fac;
 	int i;
 
 	if (point == &points_array[spline->tot_point - 1]) {
-		if (spline->flag & MASK_SPLINE_CYCLIC)
-			next = &(points_array[0].bezt);
-		else
-			next = NULL;
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			bezt_next = &(points_array[0].bezt);
+		}
+		else {
+			bezt_next = NULL;
+		}
 	}
-	else next = &((point + 1))->bezt;
+	else {
+		bezt_next = &((point + 1))->bezt;
+	}
 
-	if (!next)
+	if (!bezt_next)
 		return bezt->weight;
 
 	for (i = 0; i < point->tot_uw + 1; i++) {
@@ -590,7 +592,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 
 		if (i == point->tot_uw) {
 			next_u = 1.0f;
-			next_w = next->weight;
+			next_w = bezt_next->weight;
 		}
 		else {
 			next_u = point->uw[i].u;
@@ -1736,10 +1738,10 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 		MaskSpline *spline;
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
-			float *diff_points;
+			float (*diff_points)[2];
 			int tot_diff_point;
 
-			float *diff_feather_points;
+			float (*diff_feather_points)[2];
 			int tot_diff_feather_points;
 
 			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
@@ -1753,13 +1755,13 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 				float asp;
 
 				if (width < height) {
-					fp = &diff_points[0];
-					ffp = &diff_feather_points[0];
+					fp = &diff_points[0][0];
+					ffp = &diff_feather_points[0][0];
 					asp = (float)width / (float)height;
 				}
 				else {
-					fp = &diff_points[1];
-					ffp = &diff_feather_points[1];
+					fp = &diff_points[0][1];
+					ffp = &diff_feather_points[0][1];
 					asp = (float)height / (float)width;
 				}
 

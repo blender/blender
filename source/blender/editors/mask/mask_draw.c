@@ -126,7 +126,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
 	int i, hsize, tot_feather_point;
-	float *feather_points, *fp;
+	float (*feather_points)[2], (*fp)[2];
 
 	if (!spline->tot_point)
 		return;
@@ -167,10 +167,10 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 			}
 
 			glBegin(GL_POINTS);
-			glVertex2fv(fp);
+			glVertex2fv(*fp);
 			glEnd();
 
-			fp += 2;
+			fp++;
 		}
 	}
 	MEM_freeN(feather_points);
@@ -236,7 +236,7 @@ static void draw_spline_points(MaskObject *maskobj, MaskSpline *spline)
 
 /* #define USE_XOR */
 
-static void mask_draw_curve_type(MaskSpline *spline, float *points, int tot_point,
+static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot_point,
                                  const short is_feather, const short is_smooth,
                                  const unsigned char rgb_spline[4], const char draw_type)
 {
@@ -329,8 +329,12 @@ static void draw_spline_curve(MaskObject *maskobj, MaskSpline *spline,
 
 	const short is_spline_sel = (spline->flag & SELECT) && (maskobj->restrictflag & MASK_RESTRICT_SELECT) == 0;
 	const short is_smooth = (draw_flag & MASK_DRAWFLAG_SMOOTH);
-	float *diff_points, *feather_points;
-	int tot_diff_point, tot_feather_point;
+
+	int tot_diff_point;
+	float (*diff_points)[2];
+
+	int tot_feather_point;
+	float (*feather_points)[2];
 
 	diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
 
