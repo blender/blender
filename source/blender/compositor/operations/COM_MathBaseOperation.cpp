@@ -47,6 +47,22 @@ void MathBaseOperation::deinitExecution()
 	this->inputValue2Operation = NULL;
 }
 
+void MathBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	InputSocket *socket;
+	unsigned int tempPreferredResolution[] = {0,0};
+	unsigned int tempResolution[2];
+
+	socket = this->getInputSocket(0);
+	socket->determineResolution(tempResolution, tempPreferredResolution);
+	if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
+		this->setResolutionInputSocketIndex(0);
+	} else {
+		this->setResolutionInputSocketIndex(1);
+	}
+	NodeOperation::determineResolution(resolution, preferredResolution);
+}
+
 void MathAddOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inputValue1[4];
