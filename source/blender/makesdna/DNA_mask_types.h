@@ -120,7 +120,6 @@ typedef struct MaskObject {
 /* MaskSpline->flag */
 /* reserve (1 << 0) for SELECT */
 #define MASK_SPLINE_CYCLIC  (1 << 1)
-#define MASK_SPLINE_NEGATE  (1 << 2)
 
 /* MaskSpline->weight_interp */
 #define MASK_SPLINE_INTERP_LINEAR   1
