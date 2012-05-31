@@ -1750,7 +1750,7 @@ static void m_invert_vn_vn(float *array, const float f, const int size)
 	}
 }
 
-static void clamp_vn_vn(float *array, const int size)
+static void linear_clamp_vn_vn(float *array, const int size)
 {
 	float *arr = array + (size - 1);
 
@@ -1758,6 +1758,7 @@ static void clamp_vn_vn(float *array, const int size)
 	while (i--) {
 		if      (*arr < 0.0f) *arr = 0.0f;
 		else if (*arr > 1.0f) *arr = 1.0f;
+		else                  *arr = srgb_to_linearrgb(*arr);
 		arr--;
 	}
 }
@@ -1877,7 +1878,7 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 		}
 
 		/* clamp at the end */
-		clamp_vn_vn(buffer, buffer_size);
+		linear_clamp_vn_vn(buffer, buffer_size);
 	}
 
 	MEM_freeN(buffer_tmp);
