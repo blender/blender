@@ -53,6 +53,9 @@
 #ifndef M_SQRT1_2
 #define M_SQRT1_2   0.70710678118654752440
 #endif
+#ifndef M_SQRT3
+#define M_SQRT3   1.7320508075688772
+#endif
 #ifndef M_1_PI
 #define M_1_PI      0.318309886183790671538
 #endif
