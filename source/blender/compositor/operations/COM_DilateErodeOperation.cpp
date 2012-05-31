@@ -23,6 +23,7 @@
 #include "COM_DilateErodeOperation.h"
 #include "BLI_math.h"
 
+// DilateErode Distance Threshold
 DilateErodeDistanceOperation::DilateErodeDistanceOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
@@ -156,6 +157,115 @@ bool DilateErodeDistanceOperation::determineDependingAreaOfInterest(rcti *input,
 	newInput.ymin = input->ymin - scope;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+
+// Dilate Distance
+DilateDistanceOperation::DilateDistanceOperation(): NodeOperation()
+{
+	this->addInputSocket(COM_DT_VALUE);
+	this->addOutputSocket(COM_DT_VALUE);
+	this->setComplex(true);
+	this->inputProgram = NULL;
+	this->distance = 0.0f;
+}
+void DilateDistanceOperation::initExecution()
+{
+	this->inputProgram = this->getInputSocketReader(0);
+	this->scope = distance;
+	if (scope < 3) {
+		scope = 3;
+	}
+}
+
+void *DilateDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
+	return buffer;
+}
+
+void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	const float distance = this->distance;
+	float mindist = distance * distance;
+
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
+	rcti *rect = inputBuffer->getRect();
+	const int minx = max(x - scope, rect->xmin);
+	const int miny = max(y - scope, rect->ymin);
+	const int maxx = min(x + scope, rect->xmax);
+	const int maxy = min(y + scope, rect->ymax);
+	const int bufferWidth = rect->xmax-rect->xmin;
+	int offset;
+	
+	float value = 0.0f;
+
+	for (int yi = miny ; yi<maxy;yi++) {
+		offset = ((yi-rect->ymin)*bufferWidth+(minx-rect->xmin))*4;
+		for (int xi = minx ; xi<maxx;xi++) {
+			const float dx = xi-x;
+			const float dy = yi-y;
+			const float dis = dx*dx+dy*dy;
+			if (dis <= mindist) {
+				value = max(buffer[offset], value);
+			}
+			offset +=4;
+		}
+	}
+	color[0] = value;
+}
+
+void DilateDistanceOperation::deinitExecution()
+{
+	this->inputProgram = NULL;
+}
+
+bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
+	rcti newInput;
+
+	newInput.xmax = input->xmax + scope;
+	newInput.xmin = input->xmin - scope;
+	newInput.ymax = input->ymax + scope;
+	newInput.ymin = input->ymin - scope;
+
+	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}
+// Erode Distance
+ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation() 
+{
+}
+
+void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+{
+	const float distance = this->distance;
+	float mindist = distance * distance;
+
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
+	rcti *rect = inputBuffer->getRect();
+	const int minx = max(x - scope, rect->xmin);
+	const int miny = max(y - scope, rect->ymin);
+	const int maxx = min(x + scope, rect->xmax);
+	const int maxy = min(y + scope, rect->ymax);
+	const int bufferWidth = rect->xmax-rect->xmin;
+	int offset;
+	
+	float value = 1.0f;
+
+	for (int yi = miny ; yi<maxy;yi++) {
+		offset = ((yi-rect->ymin)*bufferWidth+(minx-rect->xmin))*4;
+		for (int xi = minx ; xi<maxx;xi++) {
+			const float dx = xi-x;
+			const float dy = yi-y;
+			const float dis = dx*dx+dy*dy;
+			if (dis <= mindist) {
+				value = min(buffer[offset], value);
+			}
+			offset +=4;
+		}
+	}
+	color[0] = value;
 }
 
 // Dilate step
