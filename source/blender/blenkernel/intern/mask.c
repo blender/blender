@@ -1756,9 +1756,9 @@ static void linear_clamp_vn_vn(float *array, const int size)
 
 	int i = size;
 	while (i--) {
-		if      (*arr < 0.0f) *arr = 0.0f;
-		else if (*arr > 1.0f) *arr = 1.0f;
-		else                  *arr = srgb_to_linearrgb(*arr);
+		if      (*arr <= 0.0f) *arr = 0.0f;
+		else if (*arr >= 1.0f) *arr = 1.0f;
+		else                   *arr = srgb_to_linearrgb(*arr);
 		arr--;
 	}
 }
