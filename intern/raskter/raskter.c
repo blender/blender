@@ -464,8 +464,8 @@ int rast_scan_feather(struct r_fill_context *ctx,
 	float idist;                    // idist = current inner edge distance
 	float dx;                         // dx = X-delta (used for distance proportion calculation)
 	float dy;                         // dy = Y-delta (used for distance proportion calculation)
-	float xpxw;
-	float ypxh;
+	float xpxw = (1.0f / (float)(ctx->rb.sizex));  // xpxw = normalized pixel width
+	float ypxh = (1.0f / (float)(ctx->rb.sizey));  // ypxh = normalized pixel height
 
 	/*
 	 * If the number of verts specified to render as a polygon is less than 3,
@@ -588,8 +588,6 @@ int rast_scan_feather(struct r_fill_context *ctx,
 			mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
 			if ((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
-				xpxw = (1.0f / (float)(ctx->rb.sizex));
-				ypxh = (1.0f / (float)(ctx->rb.sizey));
 				t = ((float)((cpxl - spxl) % ctx->rb.sizex) + 0.5f) * xpxw;
 				fsz = ((float)(y_curr) + 0.5f) * ypxh;
 				/* draw the pixels. */
