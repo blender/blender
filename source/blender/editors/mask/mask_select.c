@@ -390,13 +390,16 @@ static int border_select_exec(bContext *C, wmOperator *op)
 		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
+				MaskSplinePoint *point_deform = &points_array[i];
 
 				/* TODO: handles? */
 				/* TODO: uw? */
 
-				if (BLI_in_rctf(&rectf, point->bezt.vec[1][0], point->bezt.vec[1][1])) {
+				if (BLI_in_rctf(&rectf, point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1])) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 				}
@@ -462,8 +465,11 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
+				MaskSplinePoint *point_deform = &points_array[i];
 
 				/* TODO: handles? */
 				/* TODO: uw? */
@@ -472,7 +478,7 @@ static int do_lasso_select_mask(bContext *C, int mcords[][2], short moves, short
 
 				/* marker in screen coords */
 				ED_mask_point_pos__reverse(C,
-				                           point->bezt.vec[1][0], point->bezt.vec[1][1],
+				                           point_deform->bezt.vec[1][0], point_deform->bezt.vec[1][1],
 				                           &screen_co[0], &screen_co[1]);
 
 				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
@@ -539,15 +545,15 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 
 /********************** circle select operator *********************/
 
-static int mask_spline_point_inside_ellipse(MaskSplinePoint *point, float offset[2], float ellipse[2])
+static int mask_spline_point_inside_ellipse(BezTriple *bezt, float offset[2], float ellipse[2])
 {
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
 
-	x = (point->bezt.vec[1][0] - offset[0]) * ellipse[0];
-	y = (point->bezt.vec[1][1] - offset[1]) * ellipse[1];
+	x = (bezt->vec[1][0] - offset[0]) * ellipse[0];
+	y = (bezt->vec[1][1] - offset[1]) * ellipse[1];
 
-	return x*x + y*y < 1.0f;
+	return x * x + y * y < 1.0f;
 }
 
 static int circle_select_exec(bContext *C, wmOperator *op)
@@ -588,10 +594,13 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 		}
 
 		for (spline = maskobj->splines.first; spline; spline = spline->next) {
+			MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
+
 			for (i = 0; i < spline->tot_point; i++) {
 				MaskSplinePoint *point = &spline->points[i];
+				MaskSplinePoint *point_deform = &points_array[i];
 
-				if (mask_spline_point_inside_ellipse(point, offset, ellipse)) {
+				if (mask_spline_point_inside_ellipse(&point_deform->bezt, offset, ellipse)) {
 					BKE_mask_point_select_set(point, mode == GESTURE_MODAL_SELECT);
 					BKE_mask_point_select_set_handle(point, mode == GESTURE_MODAL_SELECT);
 
