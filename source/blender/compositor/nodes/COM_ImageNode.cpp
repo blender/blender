@@ -66,6 +66,7 @@ void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	ImageUser *imageuser = (ImageUser*)editorNode->storage;
 	int framenumber = context->getFramenumber();
 	int numberOfOutputs = this->getNumberOfOutputSockets();
+	BKE_image_user_frame_calc(imageuser, context->getFramenumber(), 0);
 
 	/* force a load, we assume iuser index will be set OK anyway */
 	if (image && image->type==IMA_TYPE_MULTILAYER) {
