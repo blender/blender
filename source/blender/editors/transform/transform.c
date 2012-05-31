@@ -4528,8 +4528,8 @@ static int createSlideVerts(TransInfo *t)
 	BMBVHTree *btree = BMBVH_NewBVH(em, BMBVH_RESPECT_HIDDEN, NULL, NULL);
 	SmallHash table;
 	SlideData *sld = MEM_callocN(sizeof(*sld), "sld");
-	View3D *v3d = t->sa ? t->sa->spacedata.first : NULL;
-	RegionView3D *rv3d = t->ar ? t->ar->regiondata : NULL; /* background mode support */
+	View3D *v3d = NULL;
+	RegionView3D *rv3d = NULL;
 	ARegion *ar = t->ar;
 	float projectMat[4][4];
 	float mval[2] = {(float)t->mval[0], (float)t->mval[1]};
@@ -4537,11 +4537,17 @@ static int createSlideVerts(TransInfo *t)
 	float vec[3], vec2[3], lastvec[3] /*, size, dis=0.0, z */ /* UNUSED */;
 	int numsel, i, j;
 
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* background mode support */
+		v3d = t->sa ? t->sa->spacedata.first : NULL;
+		rv3d = t->ar ? t->ar->regiondata : NULL;
+	}
+
 	sld->is_proportional = TRUE;
 	sld->curr_sv_index = 0;
 	sld->flipped_vtx = FALSE;
 
-	if (!v3d) {
+	if (!rv3d) {
 		/* ok, let's try to survive this */
 		unit_m4(projectMat);
 	}
@@ -4741,7 +4747,7 @@ static int createSlideVerts(TransInfo *t)
 					if (BM_elem_flag_test(e2, BM_ELEM_SELECT))
 						continue;
 					
-					if (!BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
+					if (v3d && !BMBVH_EdgeVisible(btree, e2, ar, v3d, t->obedit))
 						continue;
 					
 					j = GET_INT_FROM_POINTER(BLI_smallhash_lookup(&table, (uintptr_t)v));
@@ -4804,8 +4810,8 @@ static int createSlideVerts(TransInfo *t)
 		BLI_smallhash_insert(&sld->vhash, (uintptr_t)sv_array->v, sv_array);
 	}
 
-	calcNonProportionalEdgeSlide(t, sld, mval);
-
+	if (rv3d)
+		calcNonProportionalEdgeSlide(t, sld, mval);
 
 	sld->origfaces_init = TRUE;
 	sld->em = em;
