@@ -1790,7 +1790,9 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			int tot_diff_feather_points;
 
 			diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point);
-			diff_feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_diff_feather_points);
+			if(tot_diff_point){
+				diff_feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_diff_feather_points);
+			}
 
 			/* TODO, make this optional! */
 			if (width != height) {
