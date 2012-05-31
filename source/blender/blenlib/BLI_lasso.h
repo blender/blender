@@ -35,7 +35,7 @@
 struct rcti;
 
 void BLI_lasso_boundbox(struct rcti *rect, int mcords[][2], short moves);
-int  BLI_lasso_is_point_inside(int mcords[][2], short moves, int sx, int sy, const int error_value);
+int  BLI_lasso_is_point_inside(int mcords[][2], short moves, const int sx, const int sy, const int error_value);
 int  BLI_lasso_is_edge_inside(int mcords[][2], short moves, int x0, int y0, int x1, int y1, const int error_value);
 
 #endif
