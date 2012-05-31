@@ -597,13 +597,6 @@ int rast_scan_feather(struct r_fill_context *ctx,
 					//do feather check
 					// first check that pixel isn't already full, and only operate if it is not
 					if (*cpxl < 0.9999f) {
-/*
- * Begin modified code from double edge mask compo node...
- */
-						//t = ((float)((cpxl - spxl) % ctx->rb.sizex) + 0.5f) * (1.0f / (float)(ctx->rb.sizex));      // calculate column of pixel
-
-						//fsz = ((float)(y_curr) + 0.5) * (1.0f / (float)(ctx->rb.sizey)); // calculate row of pixel
-
 
 						dmin = 2.0f;                        // reset min distance to edge pixel
 						for (a = 0; a < num_feather_verts; a++) { // loop through all outer edge buffer pixels
@@ -645,9 +638,6 @@ int rast_scan_feather(struct r_fill_context *ctx,
 
 						/* set intensity, do the += so overlapping gradients are additive */
 						*cpxl = (idist / (idist + odist));
-/*
- * End modified code from double edge mask node
- */
 					}
 				}
 			}
