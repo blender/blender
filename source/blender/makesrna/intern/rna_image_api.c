@@ -208,7 +208,7 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 
 	if (!error) {
 		/* clean glError buffer */
-		while (glGetError() != GL_NO_ERROR){};
+		while (glGetError() != GL_NO_ERROR) {}
 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, image->tpageflag & IMA_CLAMP_U ? GL_CLAMP : GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, image->tpageflag & IMA_CLAMP_V ? GL_CLAMP : GL_REPEAT);

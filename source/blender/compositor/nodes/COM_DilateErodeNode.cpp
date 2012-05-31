@@ -52,7 +52,8 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 		}
 		graph->addOperation(operation);
-	} else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
+	}
+	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
 		if (editorNode->custom2 > 0) {
 			DilateDistanceOperation * operation = new DilateDistanceOperation();
 			operation->setDistance(editorNode->custom2);
@@ -67,7 +68,8 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}
-	} else {
+	}
+	else {
 		if (editorNode->custom2 > 0) {
 			DilateStepOperation * operation = new DilateStepOperation();
 			operation->setIterations(editorNode->custom2);
