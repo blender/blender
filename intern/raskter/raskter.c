@@ -388,7 +388,8 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 	return 1;
 }
 
-int PLX_raskterize(float (*base_verts)[2], int num_base_verts, float *buf, int buf_x, int buf_y)
+int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
+                   float *buf, int buf_x, int buf_y)
 {
 	int i;                                       /* i: Loop counter. */
 	struct poly_vert *ply;                       /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
@@ -718,12 +719,16 @@ int rast_scan_feather(struct r_fill_context *ctx,
 }
 
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*feather_verts)[2], int num_feather_verts,
-                    float *buf, int buf_x, int buf_y)
+                           float *buf, int buf_x, int buf_y)
 {
 	int i;                            /* i: Loop counter. */
 	struct poly_vert *ply;            /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct poly_vert *fe;             /* fe: Pointer to a list of integer buffer-space feather vertex coords. */
 	struct r_fill_context ctx = {0};
+
+	/* for faster multiply */
+	const float buf_x_f = (float)buf_x;
+	const float buf_y_f = (float)buf_y;
 
 	/*
 	 * Allocate enough memory for our poly_vert list. It'll be the size of the poly_vert
@@ -749,12 +754,12 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	 * drawn will be 1.0f in value, there is no anti-aliasing.
 	 */
 	for (i = 0; i < num_base_verts; i++) {             /* Loop over all verts. */
-		ply[i].x = (base_verts[i][0] * buf_x) + 0.5f;  /* Range expand normalized X to integer buffer-space X. */
-		ply[i].y = (base_verts[i][1] * buf_y) + 0.5f;  /* Range expand normalized Y to integer buffer-space Y. */
+		ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f);  /* Range expand normalized X to integer buffer-space X. */
+		ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f);  /* Range expand normalized Y to integer buffer-space Y. */
 	}
 	for (i = 0; i < num_feather_verts; i++) {            /* Loop over all verts. */
-		fe[i].x = (feather_verts[i][0] * buf_x) + 0.5f;  /* Range expand normalized X to integer buffer-space X. */
-		fe[i].y = (feather_verts[i][1] * buf_y) + 0.5f;  /* Range expand normalized Y to integer buffer-space Y. */
+		fe[i].x = (int)((feather_verts[i][0] * buf_x_f) + 0.5f);  /* Range expand normalized X to integer buffer-space X. */
+		fe[i].y = (int)((feather_verts[i][1] * buf_y_f) + 0.5f);  /* Range expand normalized Y to integer buffer-space Y. */
 	}
 
 	ctx.rb.buf = buf;                            /* Set the output buffer pointer. */
