@@ -36,7 +36,7 @@ public:
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
-	void IIR_gauss(MemoryBuffer *src, float sigma, int channel, int xy);
+	static void IIR_gauss(MemoryBuffer *src, float sigma, int channel, int xy);
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
 	

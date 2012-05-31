@@ -187,10 +187,6 @@ set(SRC
 	operations/COM_CropOperation.cpp
 	operations/COM_CropOperation.h
 
-	operations/COM_LensGlowOperation.cpp
-	operations/COM_LensGlowOperation.h
-	operations/COM_LensGhostOperation.cpp
-	operations/COM_LensGhostOperation.h
 	nodes/COM_TransformNode.cpp
 	nodes/COM_TransformNode.h
 	nodes/COM_Stabilize2dNode.cpp
@@ -374,16 +370,14 @@ operations/COM_ColorSpillOperation.h
 		operations/COM_RenderLayersCyclesOperation.cpp
 		operations/COM_RenderLayersCyclesOperation.h
 
-operations/COM_ImageOperation.cpp
-operations/COM_ImageOperation.h
-operations/COM_MultilayerImageOperation.cpp
-operations/COM_MultilayerImageOperation.h
-operations/COM_TextureOperation.cpp
-operations/COM_TextureOperation.h
-operations/COM_BokehImageOperation.cpp
-operations/COM_BokehImageOperation.h
-operations/COM_LensGlowImageOperation.cpp
-operations/COM_LensGlowImageOperation.h
+	operations/COM_ImageOperation.cpp
+	operations/COM_ImageOperation.h
+	operations/COM_MultilayerImageOperation.cpp
+	operations/COM_MultilayerImageOperation.h
+	operations/COM_TextureOperation.cpp
+	operations/COM_TextureOperation.h
+	operations/COM_BokehImageOperation.cpp
+	operations/COM_BokehImageOperation.h
 
 
 		operations/COM_SocketProxyOperation.h
@@ -575,6 +569,8 @@ operations/COM_ConvertDepthToRadiusOperation.cpp
 	operations/COM_GlareSimpleStarOperation.h
 	operations/COM_GlareStreaksOperation.cpp
 	operations/COM_GlareStreaksOperation.h
+	operations/COM_GlareGhostOperation.cpp
+	operations/COM_GlareGhostOperation.h
 	operations/COM_SetSamplerOperation.cpp
 	operations/COM_SetSamplerOperation.h
 
