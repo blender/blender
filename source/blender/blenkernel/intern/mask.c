@@ -736,6 +736,26 @@ void BKE_mask_spline_free(MaskSpline *spline)
 	MEM_freeN(spline);
 }
 
+MaskSpline *BKE_mask_spline_copy(MaskSpline *spline)
+{
+	MaskSpline *nspline = MEM_callocN(sizeof(MaskSpline), "new spline");
+	int i;
+
+	*nspline = *spline;
+
+	nspline->points_deform = NULL;
+	nspline->points = MEM_dupallocN(nspline->points);
+
+	for (i = 0; i < nspline->tot_point; i++) {
+		MaskSplinePoint *point = &nspline->points[i];
+
+		if (point->uw)
+			point->uw = MEM_dupallocN(point->uw);
+	}
+
+	return nspline;
+}
+
 void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
 {
 	MEM_freeN(masklay_shape->data);

@@ -50,6 +50,7 @@ void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
 void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_spline_free(struct MaskSpline *spline);
+struct MaskSpline *BKE_mask_spline_copy(struct MaskSpline *spline);
 void BKE_mask_point_free(struct MaskSplinePoint *point);
 
 void BKE_mask_layer_unique_name(struct Mask *mask, struct MaskLayer *masklay);
