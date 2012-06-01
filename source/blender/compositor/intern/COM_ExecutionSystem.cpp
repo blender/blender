@@ -31,7 +31,6 @@
 #include "COM_NodeBase.h"
 #include "COM_WorkScheduler.h"
 #include "COM_ReadBufferOperation.h"
-#include "COM_MemoryManager.h"
 #include "stdio.h"
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
@@ -114,8 +113,6 @@ void ExecutionSystem::execute()
 			order ++;
 		}
 	}
-
-	MemoryManager::initialize();
 	unsigned int index;
 
 	for (index = 0 ; index < this->operations.size() ; index ++) {
@@ -156,7 +153,6 @@ void ExecutionSystem::execute()
 		ExecutionGroup * executionGroup = this->groups[index];
 		executionGroup->deinitExecution();
 	}
-	MemoryManager::clear();
 }
 
 void ExecutionSystem::addOperation(NodeOperation *operation)

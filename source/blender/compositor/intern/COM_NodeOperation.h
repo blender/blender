@@ -33,6 +33,7 @@ class NodeOperation;
 #include "COM_SocketReader.h"
 #include "OCL_opencl.h"
 #include "list"
+#include "BLI_threads.h"
 
 class ReadBufferOperation;
 

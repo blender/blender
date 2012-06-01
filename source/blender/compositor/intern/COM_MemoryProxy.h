@@ -26,7 +26,6 @@ class MemoryProxy;
 #ifndef _COM_MemoryProxy_h
 #define _COM_MemoryProxy_h
 #include "COM_ExecutionGroup.h"
-#include "COM_MemoryManagerState.h"
 
 class ExecutionGroup;
 
@@ -49,12 +48,6 @@ private:
 	ExecutionGroup *executor;
 	
 	/**
-	  * @brief data of the different chunks.
-	  * @note state is part of this class due to optimization in the MemoryManager
-	  */
-	MemoryManagerState * state;
-	
-	/**
 	  * @brief datatype of this MemoryProxy
 	  */
 	DataType datatype;
@@ -63,9 +56,14 @@ private:
 	  * @brief channel information of this buffer
 	  */
 	ChannelInfo channelInfo[COM_NUMBER_OF_CHANNELS];
+
+	/**
+	  * @brief the allocated memory
+	  */
+	MemoryBuffer* buffer;
+
 public:
 	MemoryProxy();
-	~MemoryProxy();
 	
 	/**
 	  * @brief set the ExecutionGroup that can be scheduled to calculate a certain chunk.
@@ -89,18 +87,21 @@ public:
 	  * @return WriteBufferOperation
 	  */
 	WriteBufferOperation *getWriteBufferOperation() {return this->writeBufferOperation;}
-	
+
 	/**
-	  * @brief set the memorymanager state of this MemoryProxy, this is set from the MemoryManager
-	  * @param state the state to set
+	  * @brief allocate memory of size widht x height
 	  */
-	void setState(MemoryManagerState *state) {this->state = state;}
-	
+	void allocate(unsigned int width, unsigned int height);
+
 	/**
-	  * @brief get the state of this MemoryProxy
-	  * @return MemoryManagerState reference to the state of this MemoryProxy.
+	  * @brief free the allocated memory
 	  */
-	MemoryManagerState *getState() {return this->state;}
+	void free();
+
+	/**
+	  * @brief get the allocated memory
+	  */
+	inline MemoryBuffer* getBuffer() {return this->buffer;}
 };
 
 #endif

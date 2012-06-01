@@ -34,7 +34,6 @@
 #include "COM_ViewerOperation.h"
 #include <stdlib.h>
 #include "BLI_math.h"
-#include "COM_MemoryManager.h"
 #include "PIL_time.h"
 #include "COM_ChunkOrder.h"
 #include <algorithm>
@@ -362,7 +361,24 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	delete[] chunkOrder;
 }
 
-MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber)
+MemoryBuffer** ExecutionGroup::getInputBuffersCPU()
+{
+	vector<MemoryProxy*> memoryproxies;
+	unsigned int index;
+
+	this->determineDependingMemoryProxies(&memoryproxies);
+	MemoryBuffer **memoryBuffers = new MemoryBuffer*[this->cachedMaxReadBufferOffset];
+	for (index = 0 ; index < this->cachedMaxReadBufferOffset ; index ++) {
+		memoryBuffers[index] = NULL;
+	}
+	for (index = 0 ; index < this->cachedReadOperations.size(); index ++) {
+		ReadBufferOperation *readOperation = (ReadBufferOperation*)this->cachedReadOperations[index];
+		memoryBuffers[readOperation->getOffset()] = readOperation->getMemoryProxy()->getBuffer();
+	}
+	return memoryBuffers;
+}
+
+MemoryBuffer** ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 {
 	rcti rect;
 	vector<MemoryProxy*> memoryproxies;
@@ -385,6 +401,8 @@ MemoryBuffer** ExecutionGroup::getInputBuffers(int chunkNumber)
 	return memoryBuffers;
 }
 
+// @todo: for opencl the memory buffers size needs to be same as the needed size
+// currently this method is not called, but will be when opencl nodes are created
 MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 {
 	// find all chunks inside the rect
@@ -399,8 +417,7 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 	const int maxychunk = ceil((rect->ymax-1)/chunkSizef);
 
 	if (maxxchunk== minxchunk+1 && maxychunk == minychunk+1) {
-		const int chunkNumber = minxchunk+minychunk*numberOfXChunks;
-		MemoryBuffer *result = MemoryManager::getMemoryBuffer(memoryProxy, chunkNumber);
+		MemoryBuffer *result =memoryProxy->getBuffer();
 		return result;
 	}
 
@@ -420,7 +437,7 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 	for (indexx = max(minxchunk, 0); indexx<min((int)this->numberOfXChunks, maxxchunk) ; indexx++) {
 		for (indexy = max(minychunk, 0); indexy<min((int)this->numberOfYChunks, maxychunk) ; indexy++) {
 			int chunkNumber = indexx+indexy*this->numberOfXChunks;
-			MemoryBuffer *chunkBuffer = MemoryManager::getMemoryBuffer(memoryProxy, chunkNumber);
+			MemoryBuffer *chunkBuffer = memoryProxy->getBuffer();
 			result->copyContentFrom(chunkBuffer);
 		}
 	}
@@ -432,8 +449,6 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer** memo
 {
 	if (this->chunkExecutionStates[chunkNumber] == COM_ES_SCHEDULED)
 		this->chunkExecutionStates[chunkNumber] = COM_ES_EXECUTED;
-	else 
-		throw "Threading inconsistency";
 	
 	this->chunksFinished++;
 	if (memoryBuffers) {
@@ -477,7 +492,7 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
 	NodeOperation * operation = this->getOutputNodeOperation();
 	if (operation->isWriteBufferOperation()) {
 		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;
-		outputBuffer = MemoryManager::allocateMemoryBuffer(writeOperation->getMemoryProxy(), chunkNumber, rect);
+// @todo		outputBuffer = MemoryManager::allocateMemoryBuffer(writeOperation->getMemoryProxy(), chunkNumber, rect);
 	}
 	return outputBuffer;
 }

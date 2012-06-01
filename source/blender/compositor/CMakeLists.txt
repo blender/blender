@@ -79,10 +79,6 @@ set(SRC
 	intern/COM_MemoryProxy.h
 	intern/COM_MemoryBuffer.cpp
 	intern/COM_MemoryBuffer.h
-	intern/COM_MemoryManager.cpp
-	intern/COM_MemoryManager.h
-	intern/COM_MemoryManagerState.cpp
-	intern/COM_MemoryManagerState.h
 	intern/COM_WorkScheduler.cpp
 	intern/COM_WorkScheduler.h
 	intern/COM_WorkPackage.cpp

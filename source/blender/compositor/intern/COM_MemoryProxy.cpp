@@ -25,15 +25,26 @@
 
 MemoryProxy::MemoryProxy()
 {
-	this->state = NULL;
 	this->writeBufferOperation = NULL;
 	this->executor = NULL;
 }
 
-MemoryProxy::~MemoryProxy()
+void MemoryProxy::allocate(unsigned int width, unsigned int height)
 {
-	if (this->state) {
-		delete this->state;
-		this->state = NULL;
+	rcti result;
+	result.xmin = 0;
+	result.xmax = width;
+	result.ymin = 0;
+	result.ymax = height;
+
+	buffer = new MemoryBuffer(this, &result);
+}
+
+void MemoryProxy::free()
+{
+	if (buffer) {
+		delete buffer;
+		buffer = NULL;
 	}
 }
+
