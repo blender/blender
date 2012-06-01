@@ -332,7 +332,7 @@ static int cloth_collision_response_static ( ClothModifierData *clmd, CollisionM
 			// DG: this formula ineeds to be changed for this code since we apply impulses/repulses like this:
 			// v += impulse; x_new = x + v; 
 			// We don't use dt!!
-			float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale;
+			/* float spf = (float)clmd->sim_parms->stepsPerFrame / clmd->sim_parms->timescale; */ /* XXX UNUSED */
 
 			float d = clmd->coll_parms->epsilon*8.0f/9.0f + epsilon2*8.0f/9.0f - collpair->distance;
 			if ( d > ALMOST_ZERO) {
