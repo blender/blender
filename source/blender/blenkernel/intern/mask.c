@@ -1200,7 +1200,7 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 // printf("SPLINE ALLOC %p %d\n", spline->points_deform, (int)(MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)));
 
 	if (spline->points_deform == NULL || allocated_points != spline->tot_point) {
-		printf("alloc new spline\n");
+		printf("alloc new deform spline\n");
 
 		if (spline->points_deform) {
 			int i;
