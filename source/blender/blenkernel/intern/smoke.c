@@ -1172,7 +1172,7 @@ static void update_obstacles(Scene *scene, Object *ob, SmokeDomainSettings *sds,
 
 				sub_v3_v3v3(vel, pos, oldpos);
 				/* Scale velocity to incorperate the object movement during this step */
-				mul_v3_fl(vel, 1.0 / (totalsteps * dt));
+				mul_v3_fl(vel, 1.0 / (totalsteps * dt * sds->scale));
 				// mul_v3_fl(vel, 1.0 / dt);
 
 				// DG TODO: cap velocity to maxVelMag (or maxvel)
