@@ -223,7 +223,8 @@ static int BKE_mask_spline_feather_resolution(MaskSpline *spline, int width, int
 	return resol;
 }
 
-float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height, int *tot_diff_point))[2]
+float (*BKE_mask_spline_differentiate_with_resolution(MaskSpline *spline, int width, int height,
+                                                      int *tot_diff_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
@@ -464,7 +465,8 @@ float *BKE_mask_point_segment_feather_diff(MaskSpline *spline, MaskSplinePoint *
 	return BKE_mask_point_segment_feather_diff_with_resolution(spline, point, 0, 0, tot_feather_point);
 }
 
-float *BKE_mask_point_segment_diff_with_resolution(MaskSpline *spline, MaskSplinePoint *point, int width, int height, int *tot_diff_point)
+float *BKE_mask_point_segment_diff_with_resolution(MaskSpline *spline, MaskSplinePoint *point,
+                                                   int width, int height, int *tot_diff_point)
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 
@@ -1197,7 +1199,7 @@ void BKE_mask_update_deform(Mask *mask)
 void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 {
 	int allocated_points = (MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform));
-// printf("SPLINE ALLOC %p %d\n", spline->points_deform, (int)(MEM_allocN_len(spline->points_deform) / sizeof(*spline->points_deform)));
+	// printf("SPLINE ALLOC %p %d\n", spline->points_deform, allocated_points);
 
 	if (spline->points_deform == NULL || allocated_points != spline->tot_point) {
 		printf("alloc new deform spline\n");
