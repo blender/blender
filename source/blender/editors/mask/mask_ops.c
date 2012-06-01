@@ -1088,7 +1088,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 	MASKPOINT_DESEL_ALL(point);
 
 	if ((spline->flag & MASK_SPLINE_CYCLIC) ||
-		(point_index > 0 && point_index != spline->tot_point - 1))
+	    (point_index > 0 && point_index != spline->tot_point - 1))
 	{
 		BKE_mask_calc_tangent_polyline(mask, spline, point, tangent_point);
 		sub_v2_v2v2(tangent_co, co, point->bezt.vec[1]);

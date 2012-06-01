@@ -305,12 +305,13 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 			e_curr = e_curr->e_next;
 			mpxl = spxl + MIN2(e_curr->x, ctx->rb.sizex) - 1;
 
-			if((y_curr >= 0) && (y_curr < ctx->rb.sizey)){
+			if ((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
 				/* draw the pixels. */
-				for (; cpxl <= mpxl; cpxl++){
-					if(*cpxl < 0.5f){
+				for (; cpxl <= mpxl; cpxl++) {
+					if (*cpxl < 0.5f) {
 						*cpxl = 1.0f;
-					}else{
+					}
+					else {
 						*cpxl = 0.0f;
 					}
 				}
