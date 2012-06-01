@@ -363,6 +363,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->syntaxv; break;
 				case TH_NODE_GROUP:
 					cp = ts->syntaxc; break;
+				case TH_NODE_FRAME:
+					cp = ts->movie; break;
 				case TH_NODE_CURVING:
 					cp = &ts->noodle_curving; break;
 

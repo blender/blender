@@ -82,7 +82,7 @@
 #include "node_intern.h"
 
 // XXX interface.h
-extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
+extern void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int select);
 
 /* ****************** SOCKET BUTTON DRAW FUNCTIONS ***************** */
 
@@ -970,6 +970,11 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 {
 	rctf *rct = &node->totr;
 	int color_id = node_get_colorid(node);
+	unsigned char color[4];
+	float alpha;
+	
+	UI_GetThemeColor4ubv(TH_NODE_FRAME, color);
+	alpha = (float)(color[3])/255.0f;
 	
 	/* skip if out of view */
 	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
@@ -981,13 +986,13 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	}
 	
 	/* shadow */
-	node_draw_shadow(snode, node, BASIS_RAD);
+	node_draw_shadow(snode, node, BASIS_RAD, alpha);
 	
 	/* body */
 	if (node->flag & NODE_CUSTOM_COLOR)
-		glColor3fv(node->color);
+		glColor4f(node->color[0], node->color[1], node->color[2], alpha);
 	else
-		UI_ThemeColor4(TH_NODE);
+		UI_ThemeColor4(TH_NODE_FRAME);
 	glEnable(GL_BLEND);
 	uiSetRoundBox(UI_CNR_ALL);
 	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, BASIS_RAD);

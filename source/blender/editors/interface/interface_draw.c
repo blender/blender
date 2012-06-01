@@ -1663,12 +1663,12 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 }
 
 
-void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
+void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSED(select))
 {
 	int i;
 	float rad;
 	float a;
-	char alpha = 2;
+	float dalpha = alpha * 2.0f/255.0f, calpha;
 	
 	glEnable(GL_BLEND);
 	
@@ -1688,10 +1688,11 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 		a = i * aspect;
 	}
 
+	calpha = dalpha;
 	for (; i--; a -= aspect) {
 		/* alpha ranges from 2 to 20 or so */
-		glColor4ub(0, 0, 0, alpha);
-		alpha += 2;
+		glColor4f(0.0f, 0.0f, 0.0f, calpha);
+		calpha += dalpha;
 		
 		uiDrawBox(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a);
 	}
