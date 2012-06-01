@@ -65,7 +65,6 @@ set(SRC
 	intern/COM_NodeBase.h
 	intern/COM_NodeOperation.cpp
 	intern/COM_NodeOperation.h
-	intern/COM_NodeProgram.h
 	intern/COM_Socket.cpp
 	intern/COM_Socket.h
 	intern/COM_SocketReader.cpp
