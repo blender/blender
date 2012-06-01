@@ -1108,6 +1108,7 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	}
 	else if (t->spacetype==SPACE_CLIP) {
 		SpaceClip *sclip = sa->spacedata.first;
+		t->view = &ar->v2d;
 
 		if (ED_space_clip_show_trackedit(sclip))
 			t->options |= CTX_MOVIECLIP;
