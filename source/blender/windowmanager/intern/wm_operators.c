@@ -3936,7 +3936,6 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 	WM_modalkeymap_assign(keymap, "UV_OT_select_border");
 	WM_modalkeymap_assign(keymap, "CLIP_OT_select_border");
 	WM_modalkeymap_assign(keymap, "CLIP_OT_graph_select_border");
-	WM_modalkeymap_assign(keymap, "MASK_OT_select_border");
 	WM_modalkeymap_assign(keymap, "VIEW2D_OT_zoom_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_clip_border");
 	WM_modalkeymap_assign(keymap, "VIEW3D_OT_render_border");
