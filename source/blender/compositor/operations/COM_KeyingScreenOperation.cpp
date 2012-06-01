@@ -116,7 +116,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	while (track) {
 		VoronoiSite *site = &sites[i];
 		MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenumber);
-		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, 0, TRUE, NULL, NULL);
+		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_color_imbuf(ibuf, track, marker, TRUE);
 		int j;
 
 		zero_v3(site->color);

@@ -1177,7 +1177,8 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 }
 
 static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                             float min[2], float max[2], int margin, int anchored, float pos[2], int origin[2])
+                             float min[2], float max[2], int margin, int anchored,
+							 int grayscale, float pos[2], int origin[2])
 {
 	ImBuf *tmpibuf;
 	int x, y;
@@ -1223,12 +1224,14 @@ static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTracki
 		origin[1] = y1 - margin;
 	}
 
-	if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
-	   (track->flag & TRACK_DISABLE_RED)       ||
-	   (track->flag & TRACK_DISABLE_GREEN)     ||
-	   (track->flag & TRACK_DISABLE_BLUE))
-	{
-		disable_imbuf_channels(tmpibuf, track, TRUE /* grayscale */);
+	if (grayscale) {
+		if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
+		    (track->flag & TRACK_DISABLE_RED)       ||
+		    (track->flag & TRACK_DISABLE_GREEN)     ||
+		    (track->flag & TRACK_DISABLE_BLUE))
+		{
+			disable_imbuf_channels(tmpibuf, track, TRUE /* grayscale */);
+		}
 	}
 
 	return tmpibuf;
@@ -1244,7 +1247,18 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	 */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-	return get_area_imbuf(ibuf, track, marker, pat_min, pat_max, margin, anchored, pos, origin);
+	return get_area_imbuf(ibuf, track, marker, pat_min, pat_max, margin, anchored, TRUE, pos, origin);
+}
+
+ImBuf *BKE_tracking_get_pattern_color_imbuf(ImBuf *ibuf, MovieTrackingTrack *track,
+                                            MovieTrackingMarker *marker, int anchored)
+{
+	float pat_min[2], pat_max[2];
+
+	/* see comment above */
+	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+	return get_area_imbuf(ibuf, track, marker, pat_min, pat_max, 0, anchored, FALSE, NULL, NULL);
 }
 
 ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker)

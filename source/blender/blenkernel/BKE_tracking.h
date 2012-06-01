@@ -74,6 +74,8 @@ void BKE_tracking_free(struct MovieTracking *tracking);
 struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
                                              struct MovieTrackingMarker *marker, int margin, int anchored,
                                              float pos[2], int origin[2]);
+struct ImBuf *BKE_tracking_get_pattern_color_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
+                                                   struct MovieTrackingMarker *marker, int anchored);
 struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
                                             struct MovieTrackingMarker *marker);
 struct ImBuf *BKE_tracking_track_mask_get(struct MovieTracking *tracking, struct MovieTrackingTrack *track,
