@@ -139,31 +139,12 @@ void rna_ActionGroup_colorset_set(PointerRNA *ptr, int value)
 {
 	bActionGroup *grp = ptr->data;
 	
-	/* if valid value, set the new enum value, then copy the relevant colors? */
-	if ((value >= -1) && (value < 21))
+	/* ensure only valid values get set */
+	if ((value >= -1) && (value < 21)) {
 		grp->customCol = value;
-	else
-		return;
 	
-	/* only do color copying if using a custom color (i.e. not default color)  */
-	if (grp->customCol) {
-		if (grp->customCol > 0) {
-			/* copy theme colors on-to group's custom color in case user tries to edit color */
-			bTheme *btheme = U.themes.first;
-			ThemeWireColor *col_set = &btheme->tarm[(grp->customCol - 1)];
-			
-			memcpy(&grp->cs, col_set, sizeof(ThemeWireColor));
-		}
-		else {
-			/* init custom colors with a generic multi-color rgb set, if not initialized already
-			 * (for custom color set) */
-			if (grp->cs.solid[0] == 0) {
-				/* define for setting colors in theme below */
-				rgba_char_args_set(grp->cs.solid, 0xff, 0x00, 0x00, 255);
-				rgba_char_args_set(grp->cs.select, 0x81, 0xe6, 0x14, 255);
-				rgba_char_args_set(grp->cs.active, 0x18, 0xb6, 0xe0, 255);
-			}
-		}
+		/* sync colors stored with theme colors based on the index specified */
+		action_group_colors_sync(grp);
 	}
 }
 

@@ -334,8 +334,16 @@ public:
 	  * @param chunkNumber the chunk to be calculated
 	  * @return MemoryBuffer** the inputbuffers
 	  */
-	MemoryBuffer** getInputBuffers(int chunkNumber);
-	
+	MemoryBuffer** getInputBuffersCPU();
+
+	/**
+	  * @brief get all inputbuffers needed to calculate an chunk
+	  * @note all inputbuffers must be executed
+	  * @param chunkNumber the chunk to be calculated
+	  * @return MemoryBuffer** the inputbuffers
+	  */
+	MemoryBuffer** getInputBuffersOpenCL(int chunkNumber);
+
 	/**
 	  * @brief allocate the outputbuffer of a chunk
 	  * @param chunkNumber the number of the chunk in the ExecutionGroup

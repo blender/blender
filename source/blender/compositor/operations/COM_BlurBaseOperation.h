@@ -39,6 +39,7 @@ protected:
 	float *make_gausstab(int rad);
 	float size;
 	bool deleteData;
+	bool sizeavailable;
 	void updateSize(MemoryBuffer **memoryBuffers);
 public:
 	/**
@@ -54,5 +55,7 @@ public:
 	void setData(NodeBlurData *data) {this->data = data;}
 	
 	void deleteDataWhenFinished() {this->deleteData = true;}
+
+	void setSize(float size) {this->size = size; sizeavailable = true;}
 };
 #endif

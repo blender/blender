@@ -156,6 +156,10 @@ typedef struct bNodeType {
 	const char *(*labelfunc)(struct bNode *);
 	/// Optional custom resize handle polling.
 	int (*resize_area_func)(struct bNode *node, int x, int y);
+	/// Optional selection area polling.
+	int (*select_area_func)(struct bNode *node, int x, int y);
+	/// Optional tweak area polling (for grabbing).
+	int (*tweak_area_func)(struct bNode *node, int x, int y);
 	
 	/// Called when the node is updated in the editor.
 	void (*updatefunc)(struct bNodeTree *ntree, struct bNode *node);
@@ -434,6 +438,7 @@ void			node_type_compatibility(struct bNodeType *ntype, short compatibility);
 #define NODE_FORLOOP	3
 #define NODE_WHILELOOP	4
 #define NODE_FRAME		5
+#define NODE_REROUTE	6
 
 /* look up a socket on a group node by the internal group socket */
 struct bNodeSocket *node_group_find_input(struct bNode *gnode, struct bNodeSocket *gsock);
@@ -449,6 +454,7 @@ int				node_group_ungroup(struct bNodeTree *ntree, struct bNode *gnode);
 
 /* in node_common.c */
 void register_node_type_frame(struct bNodeTreeType *ttype);
+void register_node_type_reroute(struct bNodeTreeType *ttype);
 
 /* ************** SHADER NODES *************** */
 

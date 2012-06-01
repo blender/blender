@@ -35,9 +35,23 @@ GaussianYBlurOperation::GaussianYBlurOperation(): BlurBaseOperation()
 
 void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	updateGauss(memoryBuffers);
+	if (!this->sizeavailable) {
+		updateGauss(memoryBuffers);
+	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	return buffer;
+}
+
+void GaussianYBlurOperation::initExecution()
+{
+	if (this->sizeavailable) {
+		float rad = size*this->data->sizex;
+		if (rad<1)
+			rad = 1;
+
+		this->rad = rad;
+		this->gausstab = BlurBaseOperation::make_gausstab(rad);
+	}
 }
 
 void GaussianYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
@@ -115,17 +129,17 @@ bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 		return true;
 	}
 	else {
-		if (this->gausstab == NULL) {
-			newInput.xmax = this->getWidth();
-			newInput.xmin = 0;
-			newInput.ymax = this->getHeight();
-			newInput.ymin = 0;
-		}
-		else {
+		if (this->sizeavailable && this->gausstab != NULL) {
 			newInput.xmax = input->xmax;
 			newInput.xmin = input->xmin;
 			newInput.ymax = input->ymax + rad;
 			newInput.ymin = input->ymin - rad;
+		}
+		else {
+			newInput.xmax = this->getWidth();
+			newInput.xmin = 0;
+			newInput.ymax = this->getHeight();
+			newInput.ymin = 0;
 		}
 		return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 	}

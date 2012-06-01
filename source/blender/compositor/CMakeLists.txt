@@ -65,7 +65,6 @@ set(SRC
 	intern/COM_NodeBase.h
 	intern/COM_NodeOperation.cpp
 	intern/COM_NodeOperation.h
-	intern/COM_NodeProgram.h
 	intern/COM_Socket.cpp
 	intern/COM_Socket.h
 	intern/COM_SocketReader.cpp
@@ -80,10 +79,6 @@ set(SRC
 	intern/COM_MemoryProxy.h
 	intern/COM_MemoryBuffer.cpp
 	intern/COM_MemoryBuffer.h
-	intern/COM_MemoryManager.cpp
-	intern/COM_MemoryManager.h
-	intern/COM_MemoryManagerState.cpp
-	intern/COM_MemoryManagerState.h
 	intern/COM_WorkScheduler.cpp
 	intern/COM_WorkScheduler.h
 	intern/COM_WorkPackage.cpp

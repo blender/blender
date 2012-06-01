@@ -37,6 +37,7 @@ BlurBaseOperation::BlurBaseOperation(): NodeOperation()
 	this->data = NULL;
 	this->size = 1.0f;
 	this->deleteData = false;
+	this->sizeavailable=false;
 }
 void BlurBaseOperation::initExecution()
 {
