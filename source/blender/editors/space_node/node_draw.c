@@ -46,6 +46,7 @@
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
+#include "BLI_rect.h"
 #include "BLI_threads.h"
 #include "BLI_utildefines.h"
 
@@ -81,7 +82,6 @@
 
 /* width of socket columns in group display */
 #define NODE_GROUP_FRAME		120
-
 // XXX interface.h
 extern void ui_dropshadow(rctf *rct, float radius, float aspect, int select);
 
@@ -496,6 +496,16 @@ void node_update_default(const bContext *C, bNodeTree *ntree, bNode *node)
 		node_update_basis(C, ntree, node);
 }
 
+int node_select_area_default(bNode *node, int x, int y)
+{
+	return BLI_in_rctf(&node->totr, x, y);
+}
+
+int node_tweak_area_default(bNode *node, int x, int y)
+{
+	return BLI_in_rctf(&node->totr, x, y);
+}
+
 int node_get_colorid(bNode *node)
 {
 	if (node->typeinfo->nclass==NODE_CLASS_INPUT)
@@ -585,10 +595,10 @@ static void node_circle_draw(float x, float y, float size, char *col, int highli
 	glLineWidth(1.0f);
 }
 
-void node_socket_circle_draw(bNodeTree *UNUSED(ntree), bNodeSocket *sock, float size)
+void node_socket_circle_draw(bNodeTree *UNUSED(ntree), bNodeSocket *sock, float size, int highlight)
 {
 	bNodeSocketType *stype = ntreeGetSocketType(sock->type);
-	node_circle_draw(sock->locx, sock->locy, size, stype->ui_color, (sock->flag & SELECT));
+	node_circle_draw(sock->locx, sock->locy, size, stype->ui_color, highlight);
 }
 
 /* **************  Socket callbacks *********** */
@@ -819,7 +829,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
-		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
+		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawinputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
 		                              sock->locx+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
@@ -830,7 +840,7 @@ static void node_draw_basis(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 		if (nodeSocketIsHidden(sock))
 			continue;
 		
-		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE);
+		node_socket_circle_draw(ntree, sock, NODE_SOCKSIZE, sock->flag & SELECT);
 		
 		node->typeinfo->drawoutputfunc(C, node->block, ntree, node, sock, IFACE_(sock->name),
 		                               sock->locx-node->width+NODE_DYS, sock->locy-NODE_DYS, node->width-NODE_DY);
@@ -935,16 +945,16 @@ static void node_draw_hidden(const bContext *C, ARegion *ar, SpaceNode *snode, b
 	dx-= snode->aspect;
 	fdrawline(rct->xmax-dx, centy-4.0f, rct->xmax-dx, centy+4.0f);
 	fdrawline(rct->xmax-dx-3.0f*snode->aspect, centy-4.0f, rct->xmax-dx-3.0f*snode->aspect, centy+4.0f);
-	
+
 	/* sockets */
 	for (sock= node->inputs.first; sock; sock= sock->next) {
 		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(snode->nodetree, sock, socket_size);
+			node_socket_circle_draw(snode->nodetree, sock, socket_size, sock->flag & SELECT);
 	}
 	
 	for (sock= node->outputs.first; sock; sock= sock->next) {
 		if (!nodeSocketIsHidden(sock))
-			node_socket_circle_draw(snode->nodetree, sock, socket_size);
+			node_socket_circle_draw(snode->nodetree, sock, socket_size, sock->flag & SELECT);
 	}
 	
 	uiEndBlock(C, node->block);

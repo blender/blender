@@ -1679,7 +1679,7 @@ int node_has_hidden_sockets(bNode *node)
 }
 
 void node_set_hidden_sockets(SpaceNode *snode, bNode *node, int set)
-{	
+{
 	bNodeSocket *sock;
 
 	if (set==0) {
@@ -2749,14 +2749,110 @@ void NODE_OT_link_make(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "replace", 0, "Replace", "Replace socket connections with the new links");
 }
 
-/* ********************** Cut Link operator ***************** */
-
+/* ********************** Add reroute operator ***************** */
 #define LINK_RESOL 12
+static int add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int tot, float result[2])
+{
+	float coord_array[LINK_RESOL+1][2];
+	int i, b;
+
+	if(node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
+
+		for(i=0; i<tot-1; i++)
+			for(b=0; b<LINK_RESOL; b++)
+				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0) {
+					result[0] = (mcoords[i][0]+mcoords[i+1][0])/2.0f;
+					result[1] = (mcoords[i][1]+mcoords[i+1][1])/2.0f;
+					return 1;
+				}
+	}
+	return 0;
+}
+
+static int add_reroute_exec(bContext *C, wmOperator *op)
+{
+	SpaceNode *snode= CTX_wm_space_node(C);
+	ARegion *ar= CTX_wm_region(C);
+	float mcoords[256][2];
+	int i= 0;
+
+	RNA_BEGIN(op->ptr, itemptr, "path") {
+		float loc[2];
+
+		RNA_float_get_array(&itemptr, "loc", loc);
+		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1],
+								 &mcoords[i][0], &mcoords[i][1]);
+		i++;
+		if(i>= 256) break;
+	}
+	RNA_END;
+
+	if(i>1) {
+		bNodeLink *link;
+		float insertPoint[2];
+
+		ED_preview_kill_jobs(C);
+
+		for(link= snode->edittree->links.first; link; link=link->next) {
+			if(add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
+				bNodeTemplate ntemp;
+				bNode *rerouteNode;
+				
+				node_deselect_all(snode);
+				
+				ntemp.type = NODE_REROUTE;
+				rerouteNode = nodeAddNode(snode->edittree, &ntemp);
+				rerouteNode->locx = insertPoint[0];
+				rerouteNode->locy = insertPoint[1];
+				
+				nodeAddLink(snode->edittree, link->fromnode, link->fromsock, rerouteNode, rerouteNode->inputs.first);
+				link->fromnode = rerouteNode;
+				link->fromsock = rerouteNode->outputs.first;
+				
+				break; // add one reroute at the time.
+			}
+		}
+
+		ntreeUpdateTree(snode->edittree);
+		snode_notify(C, snode);
+		snode_dag_update(C, snode);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
+}
+
+void NODE_OT_add_reroute(wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	ot->name= "Add reroute";
+	ot->idname= "NODE_OT_add_reroute";
+
+	ot->invoke= WM_gesture_lines_invoke;
+	ot->modal= WM_gesture_lines_modal;
+	ot->exec= add_reroute_exec;
+	ot->cancel= WM_gesture_lines_cancel;
+
+	ot->poll= ED_operator_node_active;
+
+	/* flags */
+	ot->flag= OPTYPE_REGISTER|OPTYPE_UNDO;
+
+	prop= RNA_def_property(ot->srna, "path", PROP_COLLECTION, PROP_NONE);
+	RNA_def_property_struct_runtime(prop, &RNA_OperatorMousePath);
+	/* internal */
+	RNA_def_int(ot->srna, "cursor", BC_CROSSCURSOR, 0, INT_MAX, "Cursor", "", 0, INT_MAX);
+}
+
+
+/* ********************** Cut Link operator ***************** */
 static int cut_links_intersect(bNodeLink *link, float mcoords[][2], int tot)
 {
 	float coord_array[LINK_RESOL+1][2];
 	int i, b;
-	
+
 	if (node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
 
 		for (i=0; i<tot-1; i++)

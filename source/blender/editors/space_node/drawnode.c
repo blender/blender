@@ -681,9 +681,9 @@ static void draw_group_socket(const bContext *C, SpaceNode *snode, bNodeTree *nt
 	
 	/* node and group socket circles */
 	if (sock)
-		node_socket_circle_draw(ntree, sock, socket_size);
+		node_socket_circle_draw(ntree, sock, socket_size, sock->flag & SELECT);
 	if (gsock)
-		node_socket_circle_draw(ngroup, gsock, socket_size);
+		node_socket_circle_draw(ngroup, gsock, socket_size, gsock->flag & SELECT);
 	
 	/* socket name */
 	offset = (in_out == SOCK_IN ? col1 : cor3);
@@ -1048,6 +1048,105 @@ static void node_buts_frame_details(uiLayout *layout, bContext *UNUSED(C), Point
 	uiItemR(layout, ptr, "shrink", 0, "Shrink", ICON_NONE);
 }
 
+
+#define NODE_REROUTE_SIZE	8.0f
+
+static void node_update_reroute(const bContext *UNUSED(C), bNodeTree *UNUSED(ntree), bNode *node)
+{
+	bNodeSocket *nsock;
+	float locx, locy;
+	float size = NODE_REROUTE_SIZE;
+	
+	/* get "global" coords */
+	nodeToView(node, 0.0f, 0.0f, &locx, &locy);
+	
+	/* reroute node has exactly one input and one output, both in the same place */
+	nsock= node->outputs.first;
+	nsock->locx= locx;
+	nsock->locy= locy;
+
+	nsock= node->inputs.first;
+	nsock->locx= locx;
+	nsock->locy= locy;
+	
+	node->width = size*2;
+	node->totr.xmin= locx - size;
+	node->totr.xmax= locx + size;
+	node->totr.ymax= locy + size;
+	node->totr.ymin= locy - size;
+}
+
+static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(snode),  bNodeTree *ntree, bNode *node)
+{
+	bNodeSocket *sock;
+	#if 0	/* UNUSED */
+	rctf *rct= &node->totr;
+	float size = NODE_REROUTE_SIZE;
+	#endif
+	float socket_size= NODE_SOCKSIZE;
+
+	/* skip if out of view */
+	if (node->totr.xmax < ar->v2d.cur.xmin || node->totr.xmin > ar->v2d.cur.xmax ||
+			node->totr.ymax < ar->v2d.cur.ymin || node->totr.ymin > ar->v2d.cur.ymax) {
+
+		uiEndBlock(C, node->block);
+		node->block= NULL;
+		return;
+	}
+
+	/* XXX only kept for debugging
+	 * selection state is indicated by socket outline below!
+	 */
+	#if 0
+	/* body */
+	uiSetRoundBox(15);
+	UI_ThemeColor4(TH_NODE);
+	glEnable(GL_BLEND);
+	uiRoundBox(rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+	glDisable(GL_BLEND);
+
+	/* outline active and selected emphasis */
+	if( node->flag & (NODE_ACTIVE|SELECT) ) {
+		glEnable(GL_BLEND);
+		glEnable( GL_LINE_SMOOTH );
+			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
+			if( node->flag & NODE_ACTIVE )
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
+			else
+				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
+			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
+
+		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_BLEND);
+	}
+	#endif
+
+	/* only draw input socket. as they all are placed on the same position.
+	 * highlight also if node itself is selected, since we don't display the node body separately!
+	 */
+	for(sock= node->inputs.first; sock; sock= sock->next) {
+		node_socket_circle_draw(ntree, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
+	}
+
+	uiEndBlock(C, node->block);
+	uiDrawBlock(C, node->block);
+	node->block= NULL;
+}
+
+/* Special tweak area for reroute node.
+ * Since this node is quite small, we use a larger tweak area for grabbing than for selection.
+ */
+static int node_tweak_area_reroute(bNode *node, int x, int y)
+{
+	/* square of tweak radius */
+	static const float tweak_radius_sq = 576;	/* 24*24 */
+	
+	bNodeSocket *sock = node->inputs.first;
+	float dx = sock->locx - x;
+	float dy = sock->locy - y;
+	return (dx*dx + dy*dy <= tweak_radius_sq);
+}
+
 static void node_common_set_butfunc(bNodeType *ntype)
 {
 	switch (ntype->type) {
@@ -1071,6 +1170,11 @@ static void node_common_set_butfunc(bNodeType *ntype)
 			ntype->drawupdatefunc = node_update_frame;
 			ntype->uifuncbut = node_buts_frame_details;
 			ntype->resize_area_func = node_resize_area_frame;
+			break;
+		case NODE_REROUTE:
+			ntype->drawfunc= node_draw_reroute;
+			ntype->drawupdatefunc= node_update_reroute;
+			ntype->tweak_area_func= node_tweak_area_reroute;
 			break;
 	}
 }
@@ -2653,6 +2757,8 @@ void ED_init_node_butfuncs(void)
 				/* default ui functions */
 				ntype->drawfunc = node_draw_default;
 				ntype->drawupdatefunc = node_update_default;
+				ntype->select_area_func = node_select_area_default;
+				ntype->tweak_area_func = node_tweak_area_default;
 				ntype->uifunc = NULL;
 				ntype->uifuncbut = NULL;
 				ntype->drawinputfunc = node_draw_input_default;
@@ -2847,36 +2953,61 @@ static void draw_nodespace_back_tex(ScrArea *sa, SpaceNode *snode)
 int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, float coord_array[][2], int resol)
 {
 	float dist, vec[4][2];
-	
+	float deltax, deltay;
+	int toreroute, fromreroute;
 	/* in v0 and v3 we put begin/end points */
 	if (link->fromsock) {
 		vec[0][0] = link->fromsock->locx;
 		vec[0][1] = link->fromsock->locy;
+		fromreroute = (link->fromnode && link->fromnode->type == NODE_REROUTE);
 	}
 	else {
 		if (snode == NULL) return 0;
 		vec[0][0] = snode->mx;
 		vec[0][1] = snode->my;
+		fromreroute = 0;
 	}
 	if (link->tosock) {
 		vec[3][0] = link->tosock->locx;
 		vec[3][1] = link->tosock->locy;
+		toreroute = (link->tonode && link->tonode->type == NODE_REROUTE);
 	}
 	else {
 		if (snode == NULL) return 0;
 		vec[3][0] = snode->mx;
 		vec[3][1] = snode->my;
+		toreroute = 0;
 	}
 
 	dist = UI_GetThemeValue(TH_NODE_CURVING) * 0.10f * ABS(vec[0][0] - vec[3][0]);
-	
+	deltax = vec[3][0] - vec[0][0];
+	deltay = vec[3][1] - vec[0][1];
 	/* check direction later, for top sockets */
-	vec[1][0] = vec[0][0] + dist;
-	vec[1][1] = vec[0][1];
-	
-	vec[2][0] = vec[3][0] - dist;
-	vec[2][1] = vec[3][1];
-	
+	if (fromreroute) {
+		if (ABS(deltax)>ABS(deltay)) {
+			vec[1][1]= vec[0][1];
+			vec[1][0]= vec[0][0]+(deltax>0?dist:-dist);
+		} else {
+			vec[1][0]= vec[0][0];
+			vec[1][1]= vec[0][1]+(deltay>0?dist:-dist);
+		}
+	} else {
+		vec[1][0] = vec[0][0] + dist;
+		vec[1][1] = vec[0][1];
+	}
+	if (toreroute) {
+		if (ABS(deltax)>ABS(deltay)) {
+			vec[2][1]= vec[3][1];
+			vec[2][0]= vec[3][0]+ (deltax>0?-dist:dist);
+		} else {
+			vec[2][0]= vec[3][0];
+			vec[2][1]= vec[3][1]+(deltay>0?-dist:dist);
+		}
+
+	} else {
+		vec[2][0] = vec[3][0] - dist;
+		vec[2][1] = vec[3][1];
+	}
 	if (v2d && MIN4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) > v2d->cur.xmax) ;  /* clipped */
 	else if (v2d && MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < v2d->cur.xmin) ;  /* clipped */
 	else {
@@ -2891,6 +3022,8 @@ int node_link_bezier_points(View2D *v2d, SpaceNode *snode, bNodeLink *link, floa
 }
 
 #define LINK_RESOL  24
+#define LINK_ARROW	12	/* position of arrow on the link, LINK_RESOL/2 */
+#define ARROW_SIZE 7
 void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int th_col1, int do_shaded, int th_col2, int do_triple, int th_col3)
 {
 	float coord_array[LINK_RESOL + 1][2];
@@ -2898,9 +3031,10 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 	if (node_link_bezier_points(v2d, snode, link, coord_array, LINK_RESOL)) {
 		float dist, spline_step = 0.0f;
 		int i;
-		
+		int drawarrow;
 		/* store current linewidth */
 		float linew;
+		float arrow[2], arrow1[2], arrow2[2];
 		glGetFloatv(GL_LINE_WIDTH, &linew);
 		
 		/* we can reuse the dist variable here to increment the GL curve eval amount*/
@@ -2908,6 +3042,22 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 		
 		glEnable(GL_LINE_SMOOTH);
 		
+		drawarrow = (link->tonode && (link->tonode->type == NODE_REROUTE)) && (link->fromnode && (link->fromnode->type == NODE_REROUTE));
+		if (drawarrow) {
+			// draw arrow in line segment LINK_ARROW
+			float dx, dy, len;
+			dx = coord_array[LINK_ARROW][0]-coord_array[LINK_ARROW-1][0];
+			dy = coord_array[LINK_ARROW][1]-coord_array[LINK_ARROW-1][1];
+			len = sqrtf(dx*dx+dy*dy);
+			dx = dx /len*ARROW_SIZE;
+			dy = dy /len*ARROW_SIZE;
+			arrow1[0] = coord_array[LINK_ARROW][0]-dx+dy;
+			arrow1[1] = coord_array[LINK_ARROW][1]-dy-dx;
+			arrow2[0] = coord_array[LINK_ARROW][0]-dx-dy;
+			arrow2[1] = coord_array[LINK_ARROW][1]-dy+dx;
+			arrow[0] = coord_array[LINK_ARROW][0];
+			arrow[1] = coord_array[LINK_ARROW][1];
+		}
 		if (do_triple) {
 			UI_ThemeColorShadeAlpha(th_col3, -80, -120);
 			glLineWidth(4.0f);
@@ -2917,6 +3067,14 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 				glVertex2fv(coord_array[i]);
 			}
 			glEnd();
+			if (drawarrow) {
+				glBegin(GL_LINE_STRIP);
+				glVertex2fv(arrow1);
+				glVertex2fv(arrow);
+				glVertex2fv(arrow);
+				glVertex2fv(arrow2);
+				glEnd();
+			}
 		}
 		
 		/* XXX using GL_LINES for shaded node lines is a workaround
@@ -2943,6 +3101,15 @@ void node_draw_link_bezier(View2D *v2d, SpaceNode *snode, bNodeLink *link, int t
 			for (i = 0; i <= LINK_RESOL; i++) {
 				glVertex2fv(coord_array[i]);
 			}
+			glEnd();
+		}
+		
+		if (drawarrow) {
+			glBegin(GL_LINE_STRIP);
+			glVertex2fv(arrow1);
+			glVertex2fv(arrow);
+			glVertex2fv(arrow);
+			glVertex2fv(arrow2);
 			glEnd();
 		}
 		

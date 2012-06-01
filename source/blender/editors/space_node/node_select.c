@@ -38,6 +38,7 @@
 
 #include "BKE_context.h"
 #include "BKE_main.h"
+#include "BKE_node.h"
 
 #include "BLI_rect.h"
 #include "BLI_utildefines.h"
@@ -58,14 +59,28 @@
 
 /* ****** helpers ****** */
 
-static bNode *node_under_mouse(bNodeTree *ntree, int mx, int my)
+static bNode *node_under_mouse_select(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
 	for (node=ntree->nodes.last; node; node=node->prev) {
-		/* node body (header and scale are in other operators) */
-		if (BLI_in_rctf(&node->totr, mx, my))
-			return node;
+		if (node->typeinfo->select_area_func) {
+			if (node->typeinfo->select_area_func(node, mx, my))
+				return node;
+		}
+	}
+	return NULL;
+}
+
+static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
+{
+	bNode *node;
+	
+	for(node=ntree->nodes.last; node; node=node->prev) {
+		if (node->typeinfo->tweak_area_func) {
+			if (node->typeinfo->tweak_area_func(node, mx, my))
+				return node;
+		}
 	}
 	return NULL;
 }
@@ -350,7 +365,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 		}
 		else {
 			/* find the closest visible node */
-			node = node_under_mouse(snode->edittree, mx, my);
+			node = node_under_mouse_select(snode->edittree, mx, my);
 			
 			if (node) {
 				node_toggle(node);
@@ -363,7 +378,7 @@ static int node_mouse_select(Main *bmain, SpaceNode *snode, ARegion *ar, const i
 	else {	/* extend==0 */
 		
 		/* find the closest visible node */
-		node = node_under_mouse(snode->edittree, mx, my);
+		node = node_under_mouse_select(snode->edittree, mx, my);
 		
 		if (node) {
 			for (tnode=snode->edittree->nodes.first; tnode; tnode=tnode->next)
@@ -490,7 +505,7 @@ static int node_border_select_invoke(bContext *C, wmOperator *op, wmEvent *event
 
 		UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &mx, &my);
 		
-		if (node_under_mouse(snode->edittree, mx, my))
+		if (node_under_mouse_tweak(snode->edittree, mx, my))
 			return OPERATOR_CANCELLED|OPERATOR_PASS_THROUGH;
 	}
 	

@@ -79,6 +79,7 @@ void node_operatortypes(void)
 	WM_operatortype_append(NODE_OT_link_make);
 	WM_operatortype_append(NODE_OT_links_cut);
 	WM_operatortype_append(NODE_OT_links_detach);
+	WM_operatortype_append(NODE_OT_add_reroute);
 
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
@@ -218,6 +219,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 		RNA_boolean_set(kmi->ptr, "detach", TRUE);
 	WM_keymap_add_item(keymap, "NODE_OT_resize", LEFTMOUSE, KM_PRESS, 0, 0);
 	
+	WM_keymap_add_item(keymap, "NODE_OT_add_reroute", LEFTMOUSE, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_links_cut", LEFTMOUSE, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_select_link_viewer", LEFTMOUSE, KM_PRESS, KM_SHIFT|KM_CTRL, 0);
 	

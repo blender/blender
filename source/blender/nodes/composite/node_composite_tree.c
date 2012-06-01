@@ -162,11 +162,11 @@ static void localize(bNodeTree *localtree, bNodeTree *ntree)
 		}
 	}
 	
-	/* replace muted nodes by internal links */
+	/* replace muted nodes and reroute nodes by internal links */
 	for (node= localtree->nodes.first; node; node= node_next) {
 		node_next = node->next;
 		
-		if (node->flag & NODE_MUTED) {
+		if (node->flag & NODE_MUTED || node->type == NODE_REROUTE) {
 			/* make sure the update tag isn't lost when removing the muted node.
 			 * propagate this to all downstream nodes.
 			 */
