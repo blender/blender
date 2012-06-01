@@ -205,7 +205,8 @@ static void do_item_rename(ARegion *ar, TreeElement *te, TreeStoreElem *tselem, 
 	}
 }
 
-void item_rename_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void item_rename_cb(bContext *C, Scene *UNUSED(scene), TreeElement *te,
+                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	ARegion *ar = CTX_wm_region(C);
 	ReportList *reports = CTX_wm_reports(C); // XXX
@@ -340,7 +341,8 @@ int common_restrict_check(bContext *C, Object *ob)
 
 /* Toggle Visibility ---------------------------------------- */
 
-void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te,
+                                 TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	Object *ob = (Object *)tselem->id;
@@ -355,7 +357,8 @@ void object_toggle_visibility_cb(bContext *C, Scene *scene, TreeElement *te, Tre
 	}
 }
 
-void group_toggle_visibility_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void group_toggle_visibility_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
+                                TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_VIEW);
@@ -391,7 +394,8 @@ void OUTLINER_OT_visibility_toggle(wmOperatorType *ot)
 
 /* Toggle Selectability ---------------------------------------- */
 
-void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -401,7 +405,8 @@ void object_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 	}
 }
 
-void group_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void group_toggle_selectability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
+                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_SELECT);
@@ -437,7 +442,8 @@ void OUTLINER_OT_selectability_toggle(wmOperatorType *ot)
 
 /* Toggle Renderability ---------------------------------------- */
 
-void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                                    TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -447,7 +453,8 @@ void object_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeEleme
 	}
 }
 
-void group_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+void group_toggle_renderability_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
+                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	restrictbutton_gr_restrict_flag(scene, group, OB_RESTRICT_RENDER);
@@ -674,7 +681,8 @@ static void outliner_set_coordinates(ARegion *ar, SpaceOops *soops)
 }
 
 /* find next element that has this name */
-static TreeElement *outliner_find_name(SpaceOops *soops, ListBase *lb, char *name, int flags, TreeElement *prev, int *prevFound)
+static TreeElement *outliner_find_name(SpaceOops *soops, ListBase *lb, char *name, int flags,
+                                       TreeElement *prev, int *prevFound)
 {
 	TreeElement *te, *tes;
 	
@@ -961,7 +969,8 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 		BLI_addhead(&hierarchy, ld);
 	}
 	
-	/* step 2: step down hierarchy building the path (NOTE: addhead in previous loop was needed so that we can loop like this) */
+	/* step 2: step down hierarchy building the path
+	 * (NOTE: addhead in previous loop was needed so that we can loop like this) */
 	for (ld = hierarchy.first; ld; ld = ld->next) {
 		/* get data */
 		tem = (TreeElement *)ld->data;
@@ -972,7 +981,7 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 		/* check if we're looking for first ID, or appending to path */
 		if (*id) {
 			/* just 'append' property to path 
-			 *	- to prevent memory leaks, we must write to newpath not path, then free old path + swap them
+			 * - to prevent memory leaks, we must write to newpath not path, then free old path + swap them
 			 */
 			if (tse->type == TSE_RNA_PROPERTY) {
 				if (RNA_property_type(prop) == PROP_POINTER) {
@@ -1019,7 +1028,8 @@ static void tree_element_to_path(SpaceOops *soops, TreeElement *te, TreeStoreEle
 		else {
 			/* no ID, so check if entry is RNA-struct, and if that RNA-struct is an ID datablock to extract info from */
 			if (tse->type == TSE_RNA_STRUCT) {
-				/* ptr->data not ptr->id.data seems to be the one we want, since ptr->data is sometimes the owner of this ID? */
+				/* ptr->data not ptr->id.data seems to be the one we want,
+				 * since ptr->data is sometimes the owner of this ID? */
 				if (RNA_struct_is_ID(ptr->type)) {
 					*id = (ID *)ptr->data;
 					
@@ -1090,7 +1100,9 @@ static void do_outliner_drivers_editop(SpaceOops *soops, ListBase *tree, ReportL
 			short groupmode = KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animatable prop */
-			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
+			    RNA_property_animateable(&te->rnaptr, te->directdata))
+			{
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 				                     &id, &path, &array_index, &flag, &groupmode);
@@ -1269,7 +1281,9 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 			short groupmode = KSP_GROUP_KSNAME;
 			
 			/* check if RNA-property described by this selected element is an animatable prop */
-			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) && RNA_property_animateable(&te->rnaptr, te->directdata)) {
+			if (ELEM(tselem->type, TSE_RNA_PROPERTY, TSE_RNA_ARRAY_ELEM) &&
+			    RNA_property_animateable(&te->rnaptr, te->directdata))
+			{
 				/* get id + path + index info from the selected element */
 				tree_element_to_path(soops, te, tselem, 
 				                     &id, &path, &array_index, &flag, &groupmode);
@@ -1282,7 +1296,8 @@ static void do_outliner_keyingset_editop(SpaceOops *soops, KeyingSet *ks, ListBa
 					case KEYINGSET_EDITMODE_ADD:
 					{
 						/* add a new path with the information obtained (only if valid) */
-						// TODO: what do we do with group name? for now, we don't supply one, and just let this use the KeyingSet name
+						/* TODO: what do we do with group name?
+						 * for now, we don't supply one, and just let this use the KeyingSet name */
 						BKE_keyingset_add_path(ks, id, NULL, path, array_index, flag, groupmode);
 						ks->active_path = BLI_countlist(&ks->paths);
 					}
@@ -1487,7 +1502,7 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		
 		scene = (Scene *)outliner_search_back(soops, te_found, ID_SCE);
 
-		if(scene == NULL) {
+		if (scene == NULL) {
 			return OPERATOR_CANCELLED;
 		}
 
@@ -1671,7 +1686,7 @@ static int parent_clear_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	/* then search backwards to get the scene */
 	scene = (Scene *)outliner_search_back(soops, te, ID_SCE);
 
-	if(scene == NULL) {
+	if (scene == NULL) {
 		return OPERATOR_CANCELLED;
 	}
 

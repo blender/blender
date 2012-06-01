@@ -275,7 +275,8 @@ void WorkScheduler::initialize()
 				printf("%s", build_log);
 				delete build_log;
 				
-			} else {
+			}
+			else {
 				unsigned int indexDevices;
 				for (indexDevices = 0 ; indexDevices < totalNumberOfDevices ; indexDevices ++) {
 					cl_device_id device = cldevices[indexDevices];

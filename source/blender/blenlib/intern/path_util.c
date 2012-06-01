@@ -98,7 +98,7 @@ int BLI_stringdec(const char *string, char *head, char *tail, unsigned short *nu
 	if (lslash)
 		lenlslash = (int)(lslash - string);
 
-	while (len > lenlslash && string[--len] != '.') {};
+	while (len > lenlslash && string[--len] != '.') {}
 	if (len == lenlslash && string[len] != '.') len = len2;
 
 	for (i = len - 1; i >= lenlslash; i--) {

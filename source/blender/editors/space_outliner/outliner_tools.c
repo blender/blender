@@ -125,13 +125,15 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
-static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                             TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, NULL);
 }
 
-static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te,
+                               TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	Material **matar = NULL;
 	int a, totcol = 0;
@@ -165,7 +167,8 @@ static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEl
 	}
 }
 
-static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te,
+                              TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	MTex **mtex = NULL;
 	int a;
@@ -194,7 +197,8 @@ static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEle
 	}
 }
 
-static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                            TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	
@@ -209,7 +213,8 @@ static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 	}
 }
 
-static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                            TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Scene *parscene = (Scene *)tsep->id;
 	World *wo = (World *)tselem->id;
@@ -220,7 +225,8 @@ static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 }
 
 static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
-                                          void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
+                                          void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
+                                                               TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -241,7 +247,8 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 
 /* */
 
-static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                             TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -252,7 +259,8 @@ static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
 	}
 }
 
-static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                               TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -263,7 +271,8 @@ static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *t
 	}
 }
 
-static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te,
+                             TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -280,7 +289,8 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	}
 }
 
-static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
 		/* if the ID type has no special local function,
@@ -292,7 +302,8 @@ static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(t
 	}
 }
 
-static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -302,7 +313,8 @@ static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeE
 	}
 }
 
-static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                  TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -312,7 +324,8 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 	}
 }
 
-static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                 TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -328,7 +341,8 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 	}
 }
 
-static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -345,7 +359,8 @@ static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *
 	}
 }
 
-static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
+                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
@@ -371,7 +386,8 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 }
 
 void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb, 
-                                  void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
+                                  void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
+                                                       TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -399,13 +415,15 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
-static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
+static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                  TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(NULL, tselem->id, NULL);
 }
 
-static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
+static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                     TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	
@@ -413,7 +431,8 @@ static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
 	free_fcurves(&iat->adt->drivers);
 }
 
-static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem, void *UNUSED(arg))
+static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                       TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	FCurve *fcu;
@@ -713,7 +732,8 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
-	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User", "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
+	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
+     "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -928,7 +948,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+		            "Action '%s' does not specify what datablocks it can be used on. "
+		            "Try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "for this Action to avoid future problems",
 		            act->id.name + 2);
 	}
 	
@@ -1158,7 +1180,8 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 /* ******************** */
 
 
-static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, wmEvent *event, const float mval[2])
+static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
+                                       TreeElement *te, wmEvent *event, const float mval[2])
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
 	

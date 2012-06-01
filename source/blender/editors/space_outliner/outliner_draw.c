@@ -300,7 +300,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				BLI_strncpy(expanded, lib->name, sizeof(expanded));
 				BLI_path_abs(expanded, G.main->name);
 				if (!BLI_exists(expanded)) {
-					BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Library path '%s' does not exist, correct this before saving", expanded);
+					BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
+					            "Library path '%s' does not exist, correct this before saving", expanded);
 				}
 			}
 		}
@@ -570,7 +571,8 @@ static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *ar
 		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
 }
 
-static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi), const char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi),
+                               const char *str, uiSearchItems *items)
 {
 	GHashIterator *iter = WM_operatortype_iter();
 
@@ -1192,7 +1194,11 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 
 				uiSetRoundBox(UI_CNR_ALL);
 				glColor4ub(255, 255, 255, 100);
-				uiRoundBox((float) *offsx - 0.5f * ufac, (float)ys - 1.0f * ufac, (float)*offsx + UI_UNIT_Y - 3.0f * ufac, (float)ys + UI_UNIT_Y - 3.0f * ufac, UI_UNIT_Y / 2.0f - 2.0f * ufac);
+				uiRoundBox((float) *offsx - 0.5f * ufac,
+				           (float)ys - 1.0f * ufac,
+				           (float)*offsx + UI_UNIT_Y - 3.0f * ufac,
+				           (float)ys + UI_UNIT_Y - 3.0f * ufac,
+				           (float)UI_UNIT_Y / 2.0f - 2.0f * ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1324,7 +1330,11 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox((float)startx + UI_UNIT_Y - 1.5f * ufac, (float)*starty + 2.0f * ufac, (float)startx + 2.0f * UI_UNIT_Y - 4.0f * ufac, (float)*starty + UI_UNIT_Y - 1.0f * ufac, UI_UNIT_Y / 2.0f - 2.0f * ufac);
+			uiRoundBox((float)startx + UI_UNIT_Y - 1.5f * ufac,
+			           (float)*starty + 2.0f * ufac,
+			           (float)startx + 2.0f * UI_UNIT_Y - 4.0f * ufac,
+			           (float)*starty + UI_UNIT_Y - 1.0f * ufac,
+			           UI_UNIT_Y / 2.0f - 2.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
@@ -1549,7 +1559,10 @@ static void outliner_draw_restrictcols(ARegion *ar)
 	
 	/* background underneath */
 	UI_ThemeColor(TH_BACK);
-	glRecti((int)ar->v2d.cur.xmax - OL_TOGW, (int)ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT - 1, (int)ar->v2d.cur.xmax + V2D_SCROLL_WIDTH, (int)ar->v2d.cur.ymax);
+	glRecti((int)ar->v2d.cur.xmax - OL_TOGW,
+	        (int)ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT - 1,
+	        (int)ar->v2d.cur.xmax + V2D_SCROLL_WIDTH,
+	        (int)ar->v2d.cur.ymax);
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart = (int)ar->v2d.tot.ymax;

@@ -58,6 +58,10 @@ public:
 	  */
 	void deinitExecution();
 
+	/**
+	  * Determine resolution
+	  */
+	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 };
 
 class MathAddOperation: public MathBaseOperation {

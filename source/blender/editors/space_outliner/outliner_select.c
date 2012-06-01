@@ -670,7 +670,8 @@ int tree_element_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement
 
 /* generic call for non-id data to make/check active in UI */
 /* Context can be NULL when set==0 */
-int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeElement *te, TreeStoreElem *tselem, int set)
+int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops,
+                             TreeElement *te, TreeStoreElem *tselem, int set)
 {
 	switch (tselem->type) {
 		case TSE_DEFGROUP:
@@ -710,7 +711,8 @@ int tree_element_type_active(bContext *C, Scene *scene, SpaceOops *soops, TreeEl
 
 /* ================================================ */
 
-static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, int extend, const float mval[2])
+static int do_outliner_item_activate(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
+                                     TreeElement *te, int extend, const float mval[2])
 {
 	
 	if (mval[1] > te->ys && mval[1] < te->ys + UI_UNIT_Y) {

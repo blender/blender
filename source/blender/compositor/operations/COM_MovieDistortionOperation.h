@@ -81,10 +81,11 @@ public:
 		if (x<0 || x >= this->width || y <0 || y >= this->height) {
 			*u = x;
 			*v = y;
-		} else {
-
+		}
+		else {
 			int offset = y * this->width + x;
-			int offset2 = offset*2;
+			int offset2 = offset * 2;
+
 			if (!bufferCalculated[offset]) {
 				//float overscan = 0.0f;
 				float w = (float)this->width/* / (1 + overscan) */;
@@ -99,7 +100,8 @@ public:
 
 				if (inverted) {
 					BKE_tracking_invert_intrinsics(trackingData, in, out);
-				} else {
+				}
+				else {
 					BKE_tracking_apply_intrinsics(trackingData, in, out);
 				}
 
