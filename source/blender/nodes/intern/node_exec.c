@@ -46,7 +46,9 @@
 /* for a given socket, find the actual stack entry */
 bNodeStack *node_get_socket_stack(bNodeStack *stack, bNodeSocket *sock)
 {
-	return stack + sock->stack_index;
+	if (stack && sock)
+		return stack + sock->stack_index;
+	return NULL;
 }
 
 void node_get_stack(bNode *node, bNodeStack *stack, bNodeStack **in, bNodeStack **out)
