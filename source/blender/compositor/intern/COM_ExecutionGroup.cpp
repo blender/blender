@@ -436,7 +436,7 @@ MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *mem
 
 	for (indexx = max(minxchunk, 0); indexx<min((int)this->numberOfXChunks, maxxchunk) ; indexx++) {
 		for (indexy = max(minychunk, 0); indexy<min((int)this->numberOfYChunks, maxychunk) ; indexy++) {
-			int chunkNumber = indexx+indexy*this->numberOfXChunks;
+			/* int chunkNumber = indexx+indexy*this->numberOfXChunks; */ /* UNUSED */
 			MemoryBuffer *chunkBuffer = memoryProxy->getBuffer();
 			result->copyContentFrom(chunkBuffer);
 		}
@@ -491,7 +491,7 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
 	// output allocation is only valid when our outputoperation is a memorywriter
 	NodeOperation * operation = this->getOutputNodeOperation();
 	if (operation->isWriteBufferOperation()) {
-		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;
+/*		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation; */ /* UNUSED */
 // @todo		outputBuffer = MemoryManager::allocateMemoryBuffer(writeOperation->getMemoryProxy(), chunkNumber, rect);
 	}
 	return outputBuffer;
