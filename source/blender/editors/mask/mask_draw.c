@@ -323,7 +323,8 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 }
 
 static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
-                              const char draw_flag, const char draw_type)
+                              const char draw_flag, const char draw_type,
+                              int width, int height)
 {
 	unsigned char rgb_tmp[4];
 
@@ -336,7 +337,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	int tot_feather_point;
 	float (*feather_points)[2];
 
-	diff_points = BKE_mask_spline_differentiate(spline, &tot_diff_point, 0, 0.0f);
+	diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height, &tot_diff_point);
 
 	if (!diff_points)
 		return;
@@ -347,7 +348,7 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
-	feather_points = BKE_mask_spline_feather_differentiated_points(spline, &tot_feather_point, 0, 0.0f);
+	feather_points = BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height, &tot_feather_point);
 
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
@@ -371,8 +372,8 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	(void)draw_type;
 }
 
-static void draw_masklays(Mask *mask,
-                          const char draw_flag, const char draw_type)
+static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type,
+                          int width, int height)
 {
 	MaskLayer *masklay;
 
@@ -386,7 +387,7 @@ static void draw_masklays(Mask *mask,
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 
 			/* draw curve itself first... */
-			draw_spline_curve(masklay, spline, draw_flag, draw_type);
+			draw_spline_curve(masklay, spline, draw_flag, draw_type, width, height);
 
 //			draw_spline_parents(masklay, spline);
 
@@ -400,7 +401,7 @@ static void draw_masklays(Mask *mask,
 				void *back = spline->points_deform;
 
 				spline->points_deform = NULL;
-				draw_spline_curve(masklay, spline, draw_flag, draw_type);
+				draw_spline_curve(masklay, spline, draw_flag, draw_type, width, height);
 //				draw_spline_parents(masklay, spline);
 				draw_spline_points(masklay, spline);
 				spline->points_deform = back;
@@ -413,9 +414,15 @@ void ED_mask_draw(const bContext *C,
                   const char draw_flag, const char draw_type)
 {
 	Mask *mask = CTX_data_edit_mask(C);
+	int width, height;
 
 	if (!mask)
 		return;
 
-	draw_masklays(mask, draw_flag, draw_type);
+	/* TODO: for now, in the future better to make sure all utility functions
+	 *       are using const specifier for non-changing pointers
+	 */
+	ED_mask_size((bContext *)C, &width, &height);
+
+	draw_masklays(mask, draw_flag, draw_type, width, height);
 }

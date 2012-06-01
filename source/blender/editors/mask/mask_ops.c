@@ -348,14 +348,16 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 				float *diff_points;
 				int tot_diff_point;
 
-				diff_points = BKE_mask_point_segment_diff(spline, cur_point, &tot_diff_point);
+				diff_points = BKE_mask_point_segment_diff_with_resolution(spline, cur_point, width, height,
+				                                                          &tot_diff_point);
 
 				if (diff_points) {
 					int i, tot_feather_point, tot_point;
 					float *feather_points = NULL, *points;
 
 					if (feather) {
-						feather_points = BKE_mask_point_segment_feather_diff(spline, cur_point,
+						feather_points = BKE_mask_point_segment_feather_diff_with_resolution(spline, cur_point,
+						                                                     width, height,
 						                                                     &tot_feather_point);
 
 						points = feather_points;
