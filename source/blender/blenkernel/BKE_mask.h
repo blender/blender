@@ -66,7 +66,7 @@ float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feath
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
 void BKE_mask_point_handle(struct MaskSplinePoint *point, float handle[2]);
 void BKE_mask_point_set_handle(struct MaskSplinePoint *point, float loc[2], int keep_direction,
-                               float aspx, float aspy, float orig_handle[2], float orig_vec[3][3]);
+                               float orig_handle[2], float orig_vec[3][3]);
 float *BKE_mask_point_segment_diff(struct MaskSpline *spline, struct MaskSplinePoint *point, int *tot_diff_point);
 float *BKE_mask_point_segment_feather_diff(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                            int *tot_feather_point);

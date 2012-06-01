@@ -6071,7 +6071,7 @@ void flushTransMasking(TransInfo *t)
 		td->loc2d[1]= td->loc[1]*invy;
 
 		if (tdm->is_handle)
-			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, aspx, aspy, tdm->orig_handle, tdm->vec);
+			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);
 	}
 }
 

@@ -386,7 +386,7 @@ void BKE_mask_point_handle(MaskSplinePoint *point, float handle[2])
 	handle[1] = (point->bezt.vec[1][1] - vec[0]);
 }
 
-void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_direction, float aspx, float aspy,
+void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_direction,
                                float orig_handle[2], float orig_vec[3][3])
 {
 	BezTriple *bezt = &point->bezt;
@@ -396,11 +396,6 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 		sub_v2_v2v2(v1, loc, orig_vec[1]);
 		sub_v2_v2v2(v2, orig_handle, orig_vec[1]);
 
-		v1[0] *= aspx;
-		v1[1] *= aspy;
-		v2[0] *= aspx;
-		v2[1] *= aspx;
-
 		project_v2_v2v2(vec, v1, v2);
 
 		if (dot_v2v2(v2, vec) > 0) {
@@ -408,13 +403,7 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 
 			sub_v2_v2v2(v1, orig_vec[0], orig_vec[1]);
 
-			v1[0] *= aspx;
-			v1[1] *= aspy;
-
 			mul_v2_fl(v1, len / len_v2(v1));
-
-			v1[0] /= aspx;
-			v1[1] /= aspy;
 
 			add_v2_v2v2(bezt->vec[0], bezt->vec[1], v1);
 			sub_v2_v2v2(bezt->vec[2], bezt->vec[1], v1);
@@ -427,8 +416,8 @@ void BKE_mask_point_set_handle(MaskSplinePoint *point, float loc[2], int keep_di
 	else {
 		sub_v2_v2v2(v1, loc, bezt->vec[1]);
 
-		v2[0] = -v1[1] * aspy / aspx;
-		v2[1] =  v1[0] * aspx / aspy;
+		v2[0] = -v1[1];
+		v2[1] =  v1[0];
 
 		add_v2_v2v2(bezt->vec[0], bezt->vec[1], v2);
 		sub_v2_v2v2(bezt->vec[2], bezt->vec[1], v2);

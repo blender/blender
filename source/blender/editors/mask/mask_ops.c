@@ -551,7 +551,6 @@ typedef struct SlidePointData {
 	MaskSplinePoint *point;
 	MaskSplinePointUW *uw;
 	float handle[2], no[2], feather[2];
-	float aspx, aspy;
 	int width, height;
 	float weight;
 
@@ -608,8 +607,6 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 		customdata->height = height;
 		customdata->action = action;
 		customdata->uw = uw;
-
-		ED_mask_aspect(C, &customdata->aspx, &customdata->aspy);
 
 		if (uw) {
 			float co[2];
@@ -732,7 +729,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 				add_v2_v2(offco, data->co);
 				add_v2_v2(offco, delta);
 
-				BKE_mask_point_set_handle(data->point, offco, data->curvature_only, data->aspx, data->aspy, data->handle, data->vec);
+				BKE_mask_point_set_handle(data->point, offco, data->curvature_only, data->handle, data->vec);
 			}
 			else if (data->action == SLIDE_ACTION_POINT) {
 				float delta[2];
@@ -747,20 +744,21 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			}
 			else if (data->action == SLIDE_ACTION_FEATHER) {
 				float vec[2], no[2], p[2], c[2], w, offco[2];
-				float *weight;
+				float *weight = NULL;
 
 				add_v2_v2v2(offco, data->feather, dco);
 
 				if (data->uw) {
 					float u = projection_on_spline(data->spline, data->point, data->uw->u, offco);
 
-					if (u > 0.0f && u < 1.0f)
+					if (u > 0.0f && u < 1.0f) {
 						data->uw->u = u;
 
-					data->uw = BKE_mask_point_sort_uw(data->point, data->uw);
-					weight = &data->uw->w;
-					BKE_mask_point_normal(data->spline, data->point, data->uw->u, no);
-					BKE_mask_point_segment_co(data->spline, data->point, data->uw->u, p);
+						data->uw = BKE_mask_point_sort_uw(data->point, data->uw);
+						weight = &data->uw->w;
+						BKE_mask_point_normal(data->spline, data->point, data->uw->u, no);
+						BKE_mask_point_segment_co(data->spline, data->point, data->uw->u, p);
+					}
 				}
 				else {
 					weight = &bezt->weight;
@@ -768,18 +766,17 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 					copy_v2_v2(p, bezt->vec[1]);
 				}
 
-				sub_v2_v2v2(c, offco, p);
-				project_v2_v2v2(vec, c, no);
+				if (weight) {
+					sub_v2_v2v2(c, offco, p);
+					project_v2_v2v2(vec, c, no);
 
-				vec[0] *= data->aspx;
-				vec[1] *= data->aspy;
+					w = len_v2(vec);
 
-				w = len_v2(vec);
+					if (dot_v2v2(no, vec) <= 0.0f)
+						w = 0.0f;
 
-				if (dot_v2v2(no, vec) > 0.0f)
 					*weight = w;
-				else
-					*weight = 0;
+				}
 			}
 
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
