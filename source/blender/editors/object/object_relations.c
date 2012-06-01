@@ -542,7 +542,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			if (partype == PAR_FOLLOW) {
 				/* get or create F-Curve */
 				bAction *act = verify_adt_action(&cu->id, 1);
-				FCurve *fcu = verify_fcurve(act, NULL, "eval_time", 0, 1);
+				FCurve *fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
 				
 				/* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
 				if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first)
