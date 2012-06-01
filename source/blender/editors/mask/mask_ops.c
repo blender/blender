@@ -852,11 +852,13 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 					w = len_v2(vec);
 
-					if (dot_v2v2(no, vec) <= 0.0f)
-						w = 0.0f;
-
 					if (overall_feather) {
-						float delta = w - data->weight;
+						float delta;
+
+						if (dot_v2v2(no, vec) <= 0.0f)
+							w = -w;
+
+						delta = w - data->weight;
 
 						if (data->orig_spline == NULL) {
 							/* restore weight for currently sliding point, so orig_spline would be created
@@ -870,6 +872,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 						slide_point_delta_all_feather(data, delta);
 					}
 					else {
+						if (dot_v2v2(no, vec) <= 0.0f)
+							w = 0.0f;
+
 						if (data->orig_spline) {
 							/* restore possible overall feather changes */
 							slide_point_restore_spline(data);
