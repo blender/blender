@@ -46,7 +46,7 @@ float noise(point p, string basis, float distortion, float detail)
 	*/
 }
 
-shader node_distorted_noise_texture(
+shader node_noise_texture(
 	string Basis = "Perlin",
 	float Distortion = 0.0,
 	float Scale = 5.0,
@@ -54,7 +54,6 @@ shader node_distorted_noise_texture(
 	point Vector = P,
 	output float Fac = 0.0)
 {
-	float scale = nonzero(Scale, 1e-5);
-	Fac = noise(Vector*scale, Basis, Distortion, Detail);
+	Fac = noise(Vector*Scale, Basis, Distortion, Detail);
 }
 

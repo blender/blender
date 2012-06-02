@@ -54,7 +54,6 @@ shader node_wave_texture(
 	point Vector = P,
 	output float Fac = 0.0)
 {
-	float scale = nonzero(Scale, 1e-5);
-	Fac = wave(Vector, scale, Type, detail, distortion, dscale);
+	Fac = wave(Vector, Scale, Type, detail, distortion, dscale);
 }
 
