@@ -30,7 +30,6 @@ set(SRC_OSL
 	node_light_path.osl
 	node_magic_texture.osl
 	node_mapping.osl
-	node_marble_texture.osl
 	node_math.osl
 	node_mix.osl
 	node_mix_closure.osl
@@ -51,7 +50,7 @@ set(SRC_OSL
 	node_velvet_bsdf.osl
 	node_voronoi_texture.osl
 	node_ward_bsdf.osl
-	node_wood_texture.osl
+	node_wave_texture.osl
 )
 
 set(SRC_OSL_HEADERS
