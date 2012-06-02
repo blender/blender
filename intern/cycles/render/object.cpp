@@ -164,7 +164,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		float uniform_scale;
 		float surface_area = 0.0f;
 		float pass_id = ob->pass_id;
-		float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF);
+		float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF)+0.5f;
 		
 		if(transform_uniform_scale(tfm, uniform_scale)) {
 			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
