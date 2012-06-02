@@ -19,18 +19,42 @@
 #include "stdosl.h"
 #include "node_texture.h"
 
-shader node_noise_texture(
+/* Noise */
+
+float noise(point p, string basis, float distortion, float detail)
+{
+	point r;
+	int hard = 0;
+	float fac = 0.0;
+	
+	if(distortion != 0.0( {
+		r[0] = noise_basis(p + point(13.5), basis) * distortion;
+		r[1] = noise_basis(p, basis) * distortion;
+		r[2] = noise_basis(p - point(13.5), basis) * distortion;
+		
+		p += r;
+	}
+
+	fac = noise_turbulence(p, basis, detail, hard);
+	
+	return fac;
+    
+	/*
+	Color[0] = Fac;
+	Color[1] = noise_turbulence(point(p[1], p[0], p[2]), basis, detail, hard);
+	Color[2] = noise_turbulence(point(p[1], p[2], p[0]), basis, detail, hard);
+	*/
+}
+
+shader node_distorted_noise_texture(
+	string Basis = "Perlin",
+	float Distortion = 0.0,
+	float Scale = 5.0,
+	float Detail = 2.0,
 	point Vector = P,
-	output color Color = color(0.0, 0.0, 0.0),
 	output float Fac = 0.0)
 {
-	point p = Vector*1e8;
-
-	float r = cellnoise(p);
-	float g = cellnoise(point(p[1], p[0], p[2]));
-	float b = cellnoise(point(p[1], p[2], p[0]));
-
-	Fac = r;
-	Color = color(r, g, b);
+	float scale = nonzero(Scale, 1e-5);
+	Fac = noise(Vector*scale, Basis, Distortion, Detail);
 }
 

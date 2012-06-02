@@ -7,14 +7,12 @@ set(SRC_OSL
 	node_background.osl
 	node_bump.osl
 	node_camera.osl
-	node_clouds_texture.osl
 	node_convert_from_color.osl
 	node_convert_from_float.osl
 	node_convert_from_normal.osl
 	node_convert_from_point.osl
 	node_convert_from_vector.osl
 	node_diffuse_bsdf.osl
-	node_distorted_noise_texture.osl
 	node_emission.osl
 	node_environment_texture.osl
 	node_fresnel.osl

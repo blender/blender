@@ -27,7 +27,8 @@ float wave(point p, float scale, string type, float detail, float distortion, fl
 	float y = p[1] * scale;
 	float z = p[2] * scale;
 
-	float result, n = 0.0;
+	float result = 0.0;
+	float n = 0.0;
 
 	if(type == "Bands") {
 		n = (x + y + z)*10.0);

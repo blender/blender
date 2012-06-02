@@ -755,7 +755,7 @@ void WaveTextureNode::compile(OSLCompiler& compiler)
 {
 	compiler.parameter("Type", type);
 
-	compiler.add(this, "node_marble_texture");
+	compiler.add(this, "node_wave_texture");
 }
 
 /* Magic Texture */
