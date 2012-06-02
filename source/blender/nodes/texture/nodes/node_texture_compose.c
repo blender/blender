@@ -34,14 +34,14 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_FLOAT, 1, "Red",   0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, "Green", 0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, "Blue",  0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, "Alpha", 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Red"),   0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Green"), 0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Blue"),  0.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Alpha"), 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_UNSIGNED },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_RGBA, 0, "Color" },
+	{ SOCK_RGBA, 0, N_("Color") },
 	{ -1, 0, "" }
 };
 

@@ -30,13 +30,13 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_volume_isotropic_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Density",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Density"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_volume_isotropic_out[]= {
-	{	SOCK_SHADER, 0, "Volume"},
+	{	SOCK_SHADER, 0, N_("Volume")},
 	{	-1, 0, ""	}
 };
 

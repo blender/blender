@@ -36,14 +36,14 @@
 
 /* **************** VECTOR MATH ******************** */ 
 static bNodeSocketTemplate sh_node_vect_math_in[]= { 
-        { SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
-        { SOCK_VECTOR, 1, "Vector", 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+        { SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
+        { SOCK_VECTOR, 1, N_("Vector"), 0.5f, 0.5f, 0.5f, 1.0f, -10000.0f, 10000.0f, PROP_NONE},
 	{ -1, 0, "" } 
 };
 
 static bNodeSocketTemplate sh_node_vect_math_out[]= {
-	{ SOCK_VECTOR, 0, "Vector"}, 
-	{ SOCK_FLOAT, 0, "Value"},
+	{ SOCK_VECTOR, 0, N_("Vector")}, 
+	{ SOCK_FLOAT, 0, N_("Value")},
 	{ -1, 0, "" } 
 };
 

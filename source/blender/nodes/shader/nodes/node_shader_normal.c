@@ -34,13 +34,13 @@
 
 /* **************** NORMAL  ******************** */
 static bNodeSocketTemplate sh_node_normal_in[]= {
-	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_normal_out[]= {
-	{	SOCK_VECTOR, 0, "Normal"},
-	{	SOCK_FLOAT, 0, "Dot"},
+	{	SOCK_VECTOR, 0, N_("Normal")},
+	{	SOCK_FLOAT, 0, N_("Dot")},
 	{	-1, 0, ""	}
 };
 

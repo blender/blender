@@ -34,7 +34,7 @@
 
 /* **************** RGB ******************** */
 static bNodeSocketTemplate sh_node_rgb_out[]= {
-	{	SOCK_RGBA, 0, "Color"},
+	{	SOCK_RGBA, 0, N_("Color")},
 	{	-1, 0, ""	}
 };
 
