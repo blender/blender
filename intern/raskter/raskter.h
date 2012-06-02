@@ -50,7 +50,6 @@ extern "C" {
 
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y);
-int PLX_add_feather(float *base_verts, int num_base_verts, float *feather_verts, int num_feather_verts, float *buf, int buf_x, int buf_y, int negaive);
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,
                            float (*feather_verts)[2], int num_feather_verts,
                            float *buf, int buf_x, int buf_y);
