@@ -143,6 +143,14 @@ Vector& Vector::operator -=(const Vector & arg)
     return *this;
 }
 
+Vector& Vector::operator *=(double arg)
+{
+	data[0] *= arg;
+	data[1] *= arg;
+	data[2] *= arg;
+	return *this;
+}
+
 Vector Vector::Zero()
 {
     return Vector(0,0,0);
