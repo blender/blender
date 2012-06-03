@@ -503,13 +503,14 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 		case BY_NEAREST_VERTEX:
 			/* make node tree */
-			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, FLT_EPSILON, 10, 6);
+			bvhtree_from_mesh_verts(&tree_mesh_vertices_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop trough vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
+				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
@@ -534,13 +535,14 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
 
 			/* make node tree */
-			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 10, 6);
+			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++) {
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
+				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
@@ -586,13 +588,14 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			mface_src = dmesh_src->getTessFaceArray(dmesh_src);
 
 			/* make node tree */
-			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 10, 6);
+			bvhtree_from_mesh_faces(&tree_mesh_faces_src, dmesh_src, FLT_EPSILON, 2, 6);
 
 			/* loop through the vertices */
 			for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++, mv_dst++){
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
+				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
