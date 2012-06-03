@@ -138,7 +138,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 	
 	/* if mode is to use selected armature bones, aggregate the bone groups */
 	if (mmd->mode == MOD_MASK_MODE_ARM) { /* --- using selected bones --- */
-		GHash *vgroupHash;
 		Object *oba = mmd->ob_arm;
 		bPoseChannel *pchan;
 		bDeformGroup *def;
@@ -147,9 +146,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		const int defbase_tot = BLI_countlist(&ob->defbase);
 		
 		/* check that there is armature object with bones to use, otherwise return original mesh */
-		if (ELEM3(NULL, mmd->ob_arm, mmd->ob_arm->pose, ob->defbase.first))
+		if (ELEM3(NULL, oba, oba->pose, ob->defbase.first))
 			return derivedData;
 		
+		/* determine whether each vertexgroup is associated with a selected bone or not */
 		bone_select_array = MEM_mallocN(defbase_tot * sizeof(char), "mask array");
 		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
@@ -162,46 +162,40 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 				bone_select_array[i] = FALSE;
 			}
 		}
-
-		/* hashes for finding mapping of:
-		 * - vgroups to indices -> vgroupHash  (string, int)
-		 * - bones to vgroup indices -> boneHash (index of vgroup, dummy)
-		 */
-		vgroupHash = BLI_ghash_str_new("mask vgroup gh");
-		
-		/* build mapping of names of vertex groups to indices */
-		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) 
-			BLI_ghash_insert(vgroupHash, def->name, SET_INT_IN_POINTER(i));
 		
 		/* if no bones selected, free hashes and return original mesh */
 		if (bone_select_tot == 0) {
-			BLI_ghash_free(vgroupHash, NULL, NULL);
 			MEM_freeN(bone_select_array);
-			
 			return derivedData;
 		}
 		
 		/* repeat the previous check, but for dverts */
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		if (dvert == NULL) {
-			BLI_ghash_free(vgroupHash, NULL, NULL);
 			MEM_freeN(bone_select_array);
-			
 			return derivedData;
 		}
 		
-		/* hashes for quickly providing a mapping from old to new - use key=oldindex, value=newindex */
+		/* verthash gives mapping from original vertex indicies to the new indices (including selected matches only)
+		 * 	key=oldindex, value=newindex 
+		 */
 		vertHash = BLI_ghash_int_new("mask vert gh");
 		
-		/* add vertices which exist in vertexgroups into vertHash for filtering */
+		/* add vertices which exist in vertexgroups into vertHash for filtering 
+		 * - dv = for each vertex, what vertexgroups does it belong to
+		 * - dw = weight that vertex was assigned to a vertexgroup it belongs to
+		 */
 		for (i = 0, dv = dvert; i < maxVerts; i++, dv++) {
 			MDeformWeight *dw = dv->dw;
+			short found = 0;
 			int j;
 			
-			for (j = dv->totweight; j > 0; j--, dw++) {
+			/* check the groups that vertex is assigned to, and see if it was any use */
+			for (j = 0; j < dv->totweight; j++, dw++) {
 				if (dw->def_nr < defbase_tot) {
 					if (bone_select_array[dw->def_nr]) {
 						if (dw->weight != 0.0f) {
+							found = TRUE;
 							break;
 						}
 					}
@@ -211,11 +205,11 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			/* check if include vert in vertHash */
 			if (mmd->flag & MOD_MASK_INV) {
 				/* if this vert is in the vgroup, don't include it in vertHash */
-				if (dw) continue;
+				if (found) continue;
 			}
 			else {
 				/* if this vert isn't in the vgroup, don't include it in vertHash */
-				if (!dw) continue;
+				if (!found) continue;
 			}
 			
 			/* add to ghash for verts (numVerts acts as counter for mapping) */
@@ -224,7 +218,6 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		}
 		
 		/* free temp hashes */
-		BLI_ghash_free(vgroupHash, NULL, NULL);
 		MEM_freeN(bone_select_array);
 	}
 	else {  /* --- Using Nominated VertexGroup only --- */
