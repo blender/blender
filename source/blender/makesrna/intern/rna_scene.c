@@ -2598,8 +2598,8 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_range(prop, 0.0, 60.0, 1, 1);
 	RNA_def_property_range(prop, 0.0, 60.0);
 	RNA_def_property_ui_text(prop, "Deactivation Time",
-	                         "Amount of time (in seconds) after objects with a velocity less than than a certain "
-	                         "threshold will deactivate. Time 0.0 means deactivation inactive");
+	                         "Amount of time (in seconds) after which objects with a velocity less than the given "
+	                         "threshold will deactivate (0.0 means no deactivation)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* mode */
