@@ -915,7 +915,7 @@ bool GHOST_SystemCocoa::processEvents(bool waitForEvent)
 				case NSFlagsChanged:
 					handleKeyEvent(event);
 					
-					/* Support system-wide keyboard shortcuts, like Expos√©, ...) =>included in always NSApp sendEvent */
+					/* Support system-wide keyboard shortcuts, like Exposé, ...) =>included in always NSApp sendEvent */
 					/*		if (([event modifierFlags] & NSCommandKeyMask) || [event type] == NSFlagsChanged) {
 					 [NSApp sendEvent:event];
 					 }*/
