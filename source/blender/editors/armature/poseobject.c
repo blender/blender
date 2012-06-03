@@ -391,6 +391,7 @@ void POSE_OT_paths_clear(wmOperatorType *ot)
 static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bArmature *arm = (bArmature *)ob->data;
 	bConstraint *con;
 	int found = 0;
 	
@@ -422,12 +423,18 @@ static int pose_select_constraint_target_exec(bContext *C, wmOperator *UNUSED(op
 		}
 	}
 	CTX_DATA_END;
-
+	
 	if (!found)
 		return OPERATOR_CANCELLED;
-
+	
+	/* updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -477,7 +484,6 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 					}
 				} 
 				else { /* direction == BONE_SELECT_CHILD */
-
 					/* the child member is only assigned to connected bones, see [#30340] */
 #if 0
 					if (pchan->child == NULL) continue;
@@ -518,9 +524,15 @@ static int pose_select_hierarchy_exec(bContext *C, wmOperator *op)
 
 	if (found == 0)
 		return OPERATOR_CANCELLED;
-
+	
+	/* updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
+	
 	return OPERATOR_FINISHED;
 }
 
@@ -547,7 +559,6 @@ void POSE_OT_select_hierarchy(wmOperatorType *ot)
 	/* props */
 	ot->prop = RNA_def_enum(ot->srna, "direction", direction_items, BONE_SELECT_PARENT, "Direction", "");
 	RNA_def_boolean(ot->srna, "extend", 0, "Add to Selection", "");
-	
 }
 
 /* ******************* select grouped operator ************* */
@@ -711,6 +722,7 @@ static int pose_select_same_keyingset(bContext *C, Object *ob, short extend)
 static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bArmature *arm = (bArmature *)ob->data;
 	short extend = RNA_boolean_get(op->ptr, "extend");
 	short changed = 0;
 	
@@ -735,6 +747,11 @@ static int pose_select_grouped_exec(bContext *C, wmOperator *op)
 	
 	/* notifiers for updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_POSE, ob);
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
 	
 	/* report done status */
 	if (changed)

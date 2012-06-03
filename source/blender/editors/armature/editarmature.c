@@ -1418,7 +1418,8 @@ static void selectconnected_posebonechildren(Object *ob, Bone *bone, int extend)
 /* previously known as "selectconnected_posearmature" */
 static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Object *ob = CTX_data_edit_object(C);
+	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bArmature *arm = (bArmature *)ob->data;
 	Bone *bone, *curBone, *next = NULL;
 	int extend = RNA_boolean_get(op->ptr, "extend");
 
@@ -1457,14 +1458,20 @@ static int pose_select_connected_invoke(bContext *C, wmOperator *op, wmEvent *ev
 	for (curBone = bone->childbase.first; curBone; curBone = next)
 		selectconnected_posebonechildren(ob, curBone, extend);
 	
+	/* updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
 
 	return OPERATOR_FINISHED;
 }
 
 static int pose_select_linked_poll(bContext *C)
 {
-	return (ED_operator_view3d_active(C) && ED_operator_posemode(C) );
+	return (ED_operator_view3d_active(C) && ED_operator_posemode(C));
 }
 
 void POSE_OT_select_linked(wmOperatorType *ot)
@@ -4556,14 +4563,21 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 			}	
 		}
 		
-		/* in weightpaint we select the associated vertex group too */
-		if (ob_act && ob_act->mode & OB_MODE_WEIGHT_PAINT) {
-			if (nearBone == arm->act_bone) {
-				ED_vgroup_select_by_name(OBACT, nearBone->name);
-				DAG_id_tag_update(&OBACT->id, OB_RECALC_DATA);
+		if (ob_act) {
+			/* in weightpaint we select the associated vertex group too */
+			if (ob_act->mode & OB_MODE_WEIGHT_PAINT) {
+				if (nearBone == arm->act_bone) {
+					ED_vgroup_select_by_name(ob_act, nearBone->name);
+					DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
+				}
+			}
+			/* if there are some dependencies for visualising armature state 
+			 * (e.g. Mask Modifier in 'Armature' mode), force update 
+			 */
+			else if (arm->flag & ARM_HAS_VIZ_DEPS) {
+				DAG_id_tag_update(&ob_act->id, OB_RECALC_DATA);
 			}
 		}
-		
 	}
 	
 	return nearBone != NULL;
@@ -5265,6 +5279,8 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 	int action = RNA_enum_get(op->ptr, "action");
 	
 	Scene *scene = CTX_data_scene(C);
+	Object *ob = ED_object_context(C);
+	bArmature *arm = ob->data;
 	int multipaint = scene->toolsettings->multipaint;
 
 	if (action == SEL_TOGGLE) {
@@ -5297,8 +5313,8 @@ static int pose_de_select_all_exec(bContext *C, wmOperator *op)
 
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, NULL);
 	
-	if (multipaint) {
-		Object *ob = ED_object_context(C);
+	/* weightpaint or mask modifiers need depsgraph updates */
+	if (multipaint || (arm->flag & ARM_HAS_VIZ_DEPS)) {
 		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 
@@ -5325,12 +5341,12 @@ void POSE_OT_select_all(wmOperatorType *ot)
 static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = BKE_object_pose_armature_get(CTX_data_active_object(C));
+	bArmature *arm = (bArmature *)ob->data;
 	bPoseChannel *pchan, *parent;
 
-	/*	Determine if there is an active bone */
+	/* Determine if there is an active bone */
 	pchan = CTX_data_active_pose_bone(C);
 	if (pchan) {
-		bArmature *arm = ob->data;
 		parent = pchan->parent;
 		if ((parent) && !(parent->bone->flag & (BONE_HIDDEN_P | BONE_UNSELECTABLE))) {
 			parent->bone->flag |= BONE_SELECTED;
@@ -5343,8 +5359,14 @@ static int pose_select_parent_exec(bContext *C, wmOperator *UNUSED(op))
 	else {
 		return OPERATOR_CANCELLED;
 	}
-
+	
+	/* updates */
 	WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+	}
 	
 	return OPERATOR_FINISHED;
 }

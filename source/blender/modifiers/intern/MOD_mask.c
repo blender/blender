@@ -86,9 +86,12 @@ static void updateDepgraph(ModifierData *md, DagForest *forest,
 	MaskModifierData *mmd = (MaskModifierData *)md;
 
 	if (mmd->ob_arm) {
+		bArmature *arm = (bArmature *)mmd->ob_arm->data;
 		DagNode *armNode = dag_get_node(forest, mmd->ob_arm);
 		
+		/* tag relationship in depsgraph, but also on the armature */
 		dag_add_relation(forest, armNode, obNode, DAG_RL_DATA_DATA | DAG_RL_OB_DATA, "Mask Modifier");
+		arm->flag |= ARM_HAS_VIZ_DEPS;
 	}
 }
 
@@ -149,7 +152,10 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 		if (ELEM3(NULL, oba, oba->pose, ob->defbase.first))
 			return derivedData;
 		
-		/* determine whether each vertexgroup is associated with a selected bone or not */
+		/* determine whether each vertexgroup is associated with a selected bone or not 
+		 * - each cell is a boolean saying whether bone corresponding to the ith group is selected
+		 * - groups that don't match a bone are treated as not existing (along with the corresponding ungrouped verts)
+		 */
 		bone_select_array = MEM_mallocN(defbase_tot * sizeof(char), "mask array");
 		
 		for (i = 0, def = ob->defbase.first; def; def = def->next, i++) {
@@ -163,13 +169,9 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 			}
 		}
 		
-		/* if no bones selected, free hashes and return original mesh */
-		if (bone_select_tot == 0) {
-			MEM_freeN(bone_select_array);
-			return derivedData;
-		}
-		
-		/* repeat the previous check, but for dverts */
+		/* if no dverts (i.e. no data for vertex groups exists), we've got an
+		 * inconsistent situation, so free hashes and return oirginal mesh
+		 */
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 		if (dvert == NULL) {
 			MEM_freeN(bone_select_array);
