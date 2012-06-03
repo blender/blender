@@ -845,10 +845,13 @@ class WM_OT_doc_view_manual(Operator):
 
     @staticmethod
     def _find_reference(rna_id, url_mapping):
+        print("online manual check for: '%s' ... " % rna_id, end="")
         from re import match
         for pattern, url_suffix in url_mapping:
             if match(pattern, rna_id):
+                print("match found:", pattern)
                 return url_suffix
+        print("match not found")
         return None
 
     def execute(self, context):

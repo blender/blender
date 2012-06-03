@@ -1877,7 +1877,7 @@ static void do_weight_paint_vertex(
 		/* use locks and/or multipaint */
 		float oldw;
 		float neww;
-		float testw = 0;
+		/* float testw = 0; */ /* UNUSED */
 		float observedChange = 0;
 		float change = 0;
 		float oldChange = 0;
@@ -1912,7 +1912,7 @@ static void do_weight_paint_vertex(
 				if (change && tdw_prev->weight && tdw_prev->weight * change) {
 					if (tdw->weight != tdw_prev->weight) {
 						oldChange = tdw->weight / tdw_prev->weight;
-						testw = tdw_prev->weight * change;
+						/* testw = tdw_prev->weight * change; */ /* UNUSED */
 						if (observedChange > 0) {
 							if (change > oldChange) {
 								/* reset the weights and use the new change */
