@@ -510,7 +510,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
-				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
+				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
@@ -542,7 +543,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
-				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
+				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
@@ -595,7 +597,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* reset nearest */
 				nearest.dist = FLT_MAX;
-				/* nearest.index = -1; when this is commented out, the next search is initiated by the index of the previous. */
+				/* With current binary tree its marginally faster to start searching at the top, as opposed to previous search. */
+				nearest.index = -1;
 
 				/* transform into target space */
 				mul_v3_m4v3(tmp_co, tmp_mat, mv_dst->co);
