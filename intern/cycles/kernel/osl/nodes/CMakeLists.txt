@@ -7,6 +7,7 @@ set(SRC_OSL
 	node_background.osl
 	node_bump.osl
 	node_camera.osl
+	node_checker_texture.osl
 	node_convert_from_color.osl
 	node_convert_from_float.osl
 	node_convert_from_normal.osl
