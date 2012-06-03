@@ -486,6 +486,8 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			    dv_array_src == NULL || dv_array_dst == NULL)
 			{
 				ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
+				if (dv_array_src) MEM_freeN(dv_array_src);
+				if (dv_array_dst) MEM_freeN(dv_array_dst);
 				return 0;
 			}
 
@@ -627,7 +629,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 			break;
 	}
 
-	/*free memory*//*TODO must free when function breaks on return 0 as well, right?*/
+	/*free memory*/
 	if (dv_array_src) MEM_freeN(dv_array_src);
 	if (dv_array_dst) MEM_freeN(dv_array_dst);
 
