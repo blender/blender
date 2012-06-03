@@ -45,7 +45,7 @@ void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 void GaussianYBlurOperation::initExecution()
 {
 	if (this->sizeavailable) {
-		float rad = size*this->data->sizex;
+		float rad = size*this->data->sizey;
 		if (rad<1)
 			rad = 1;
 
