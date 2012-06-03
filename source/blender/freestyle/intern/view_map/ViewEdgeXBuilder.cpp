@@ -174,6 +174,8 @@ ViewEdge * ViewEdgeXBuilder::BuildSmoothViewEdge(const OWXFaceLayer& iFaceLayer)
   fl!=flend;
   ++fl){
     fe = BuildSmoothFEdge(feprevious, (*fl));
+    if (feprevious && fe == feprevious)
+      continue;
     fe->setViewEdge(newVEdge);
     if(!fefirst)
       fefirst = fe;
@@ -468,6 +470,9 @@ FEdge * ViewEdgeXBuilder::BuildSmoothFEdge(FEdge *feprevious, const OWXFaceLayer
   Vec3r B1(woeb->GetaVertex()->GetVertex());
   Vec3r B2(woeb->GetbVertex()->GetVertex());
   Vec3r B(B1+tb*(B2-B1));
+
+  if (feprevious && (B - va->point3D()).norm() < 1e-6)
+	return feprevious;
 
   vb = MakeSVertex(B, false);
   // Set normal:
