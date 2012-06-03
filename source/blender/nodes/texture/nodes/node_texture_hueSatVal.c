@@ -35,15 +35,15 @@
 
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_FLOAT, 1, "Hue",        0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, PROP_NONE },
-	{ SOCK_FLOAT, 1, "Saturation", 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
-	{ SOCK_FLOAT, 1, "Value",      1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
-	{ SOCK_FLOAT, 1, "Factor",     1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_FACTOR },
-	{ SOCK_RGBA,  1, "Color",      0.8f, 0.8f, 0.8f, 1.0f },
+	{ SOCK_FLOAT, 1, N_("Hue"),        0.0f, 0.0f, 0.0f, 0.0f, -0.5f, 0.5f, PROP_NONE },
+	{ SOCK_FLOAT, 1, N_("Saturation"), 1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
+	{ SOCK_FLOAT, 1, N_("Value"),      1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 2.0f, PROP_FACTOR },
+	{ SOCK_FLOAT, 1, N_("Factor"),     1.0f, 0.0f, 0.0f, 0.0f,  0.0f, 1.0f, PROP_FACTOR },
+	{ SOCK_RGBA,  1, N_("Color"),      0.8f, 0.8f, 0.8f, 1.0f },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_RGBA, 0, "Color" },
+	{ SOCK_RGBA, 0, N_("Color") },
 	{ -1, 0, "" }
 };
 

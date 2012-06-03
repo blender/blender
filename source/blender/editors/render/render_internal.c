@@ -407,8 +407,12 @@ static void render_endjob(void *rjv)
 		free_main(rj->main);
 
 	/* else the frame will not update for the original value */
-	if (!(rj->scene->r.scemode & R_NO_FRAME_UPDATE))
-		ED_update_for_newframe(G.main, rj->scene, 1);
+	if (!(rj->scene->r.scemode & R_NO_FRAME_UPDATE)) {
+		/* possible this fails of loading new file while rendering */
+		if (G.main->wm.first) {
+			ED_update_for_newframe(G.main, rj->scene, 1);
+		}
+	}
 	
 	/* XXX above function sets all tags in nodes */
 	ntreeCompositClearTags(rj->scene->nodetree);

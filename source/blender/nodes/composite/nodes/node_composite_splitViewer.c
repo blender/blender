@@ -34,8 +34,8 @@
 
 /* **************** SPLIT VIEWER ******************** */
 static bNodeSocketTemplate cmp_node_splitviewer_in[]= {
-	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 1, "Image",		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Image"),		0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

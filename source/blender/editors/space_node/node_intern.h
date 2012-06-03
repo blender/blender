@@ -72,7 +72,7 @@ void node_menus_register(void);
 int node_get_colorid(struct bNode *node);
 void node_socket_circle_draw(struct bNodeTree *ntree, struct bNodeSocket *sock, float size, int highlight);
 int node_get_resize_cursor(int directions);
-void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius);
+void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
 void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *node);
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
 int node_select_area_default(struct bNode *node, int x, int y);

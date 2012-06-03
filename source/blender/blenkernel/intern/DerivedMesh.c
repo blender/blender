@@ -426,7 +426,7 @@ void DM_update_tessface_data(DerivedMesh *dm)
 
 		/* Find out loop indices. */
 		/* XXX Is there a better way to do this? */
-		/* NOTE: This assumes tessface are valid and in sync with loop/poly… Else, most likely, segfault! */
+		/* NOTE: This assumes tessface are valid and in sync with loop/poly... Else, most likely, segfault! */
 		for (i = mp[polyindex[mf_idx]].loopstart, not_done = mf_len; not_done; i++) {
 			MLoop *tml = &ml[i];
 			if (tml->v == mf->v1) {

@@ -1040,7 +1040,7 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_LINKED_MAT:
 				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
 			case TSE_POSEGRP_BASE:
-				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
+				UI_icon_draw(x, y, ICON_GROUP_BONE); break;
 			case TSE_SEQUENCE:
 				if (te->idcode == SEQ_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);

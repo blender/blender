@@ -16,31 +16,6 @@
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-/*
- *	An implementation of Oren-Nayar reflectance model, public domain
- *		http://www1.cs.columbia.edu/CAVE/publications/pdfs/Oren_SIGGRAPH94.pdf
- *
- *	NOTE:
- *		BSDF = A + B * cos() * sin() * tan()
- *
- *		The parameter sigma means different from original.
- *		A and B are calculated by the following formula:
- *			0 <= sigma <= 1
- *			A =     1 / ((1 + sigma / 2) * pi);
- *			B = sigma / ((1 + sigma / 2) * pi);
- *
- *		This formula is derived as following:
- *
- *		0. Normalize A-term and B-term of BSDF *individually*.
- *		   B-term is normalized at maximum point: dot(L, N) = 0.
- *			A = (1/pi) * A'
- *			B = (2/pi) * B'
- *
- *		1. Solve the following equation:
- *			A' + B' = 1
- *			B / A = sigma
- */
-
 #include <OpenImageIO/fmath.h>
 #include <OSL/genclosure.h>
 #include "osl_closures.h"
@@ -60,8 +35,11 @@ public:
 
 	void setup() {
 		m_sigma = clamp(m_sigma, 0.0f, 1.0f);
-		m_a =    1.0f / ((1.0f + 0.5f * m_sigma) * M_PI);
-		m_b = m_sigma / ((1.0f + 0.5f * m_sigma) * M_PI);
+		
+		float div = 1.0f / (M_PI + ((3.0f * M_PI - 4.0f) / 6.0f) * m_sigma);
+
+		m_a =    1.0f * div;
+		m_b = m_sigma * div;
 	}
 
 	bool mergeable(const ClosurePrimitive* other) const {
@@ -137,27 +115,12 @@ private:
 	float get_intensity(Vec3 const& n, Vec3 const& v, Vec3 const& l) const {
 		float nl = max(n.dot(l), 0.0f);
 		float nv = max(n.dot(v), 0.0f);
-
-		Vec3 al = l - nl * n;
-		al.normalize();
-		Vec3 av = v - nv * n;
-		av.normalize();
-		float t = max(al.dot(av), 0.0f);
-
-		float cos_a, cos_b;
-		if (nl < nv) {
-			cos_a = nl;
-			cos_b = nv;
+		float t = l.dot(v) - nl * nv;
+		
+		if(t > 0.0f) {
+			t /= max(nl, vl) + 1e-8f;
 		}
-		else {
-			cos_a = nv;
-			cos_b = nl;
-		}
-
-		float sin_a = sqrtf(1.0f - cos_a * cos_a);
-		float tan_b = sqrtf(1.0f - cos_b * cos_b) / (cos_b + FLT_MIN);
-
-		return nl * (m_a + m_b * t * sin_a * tan_b);
+		return nl * (m_a + m_b * t);
 	}
 };
 

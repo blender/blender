@@ -124,10 +124,10 @@ public:
 		this->state = COM_MB_AVAILABLE;
 	}
 	
-	void read(float *result, int x, int y);
-	void writePixel(int x, int y, float color[4]);
-	void readCubic(float *result, float x, float y);
-	void readEWA(float *result, float fx, float fy, float dx, float dy);
+	void read(float result[4], int x, int y);
+	void writePixel(int x, int y, const float color[4]);
+	void readCubic(float result[4], float x, float y);
+	void readEWA(float result[4], float fx, float fy, float dx, float dy);
 	
 	/**
 	  * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)

@@ -176,6 +176,8 @@ struct IK_Scene
 	KDL::JntArray		jointArray;	// buffer for storing temporary joint array
 	iTaSC::Solver*		solver;
 	Object*				blArmature;
+	float				blScale;	// scale of the Armature object (assume uniform scaling)
+	float				blInvScale;	// inverse of Armature object scale
 	struct bConstraint*	polarConstraint;
 	std::vector<IK_Target*>		targets;
 
@@ -188,6 +190,7 @@ struct IK_Scene
 		scene = NULL;
 		base = NULL;
 		solver = NULL;
+		blScale = blInvScale = 1.0f;
 		blArmature = NULL;
 		numchan = 0;
 		numjoint = 0;
@@ -594,9 +597,10 @@ static bool base_callback(const iTaSC::Timestamp& timestamp, const iTaSC::Frame&
 		float chanmat[4][4];
 		copy_m4_m4(chanmat, pchan->pose_mat);
 		copy_v3_v3(chanmat[3], pchan->pose_tail);
-		// save the base as a frame too so that we can compute deformation
-		// after simulation
+		// save the base as a frame too so that we can compute deformation after simulation
 		ikscene->baseFrame.setValue(&chanmat[0][0]);
+		// iTaSC armature is scaled to object scale, scale the base frame too
+		ikscene->baseFrame.p *= ikscene->blScale;
 		mult_m4_m4m4(rootmat, ikscene->blArmature->obmat, chanmat);
 	} 
 	else {
@@ -1116,14 +1120,15 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		return NULL;
 	}
 	ikscene->blArmature = ob;
+	// assume uniform scaling and take Y scale as general scale for the armature
+	ikscene->blScale = len_v3(ob->obmat[1]);
+	ikscene->blInvScale = (ikscene->blScale < KDL::epsilon) ? 0.0f : 1.0f/ikscene->blScale;
 
 	std::string  joint;
 	std::string  root("root");
 	std::string  parent;
 	std::vector<double> weights;
 	double weight[3];
-	// assume uniform scaling and take Y scale as general scale for the armature
-	float scale = len_v3(ob->obmat[1]);
 	// build the array of joints corresponding to the IK chain
 	convert_channels(ikscene, tree);
 	if (ingame) {
@@ -1147,11 +1152,11 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 						   fl[0][1], fl[1][1], fl[2][1],
 						   fl[0][2], fl[1][2], fl[2][2]);
 		KDL::Vector bpos(bone->head[0], bone->head[1], bone->head[2]);
-		bpos = bpos*scale;
+		bpos *= ikscene->blScale;
 		KDL::Frame head(brot, bpos);
 		
 		// rest pose length of the bone taking scaling into account
-		length= bone->length*scale;
+		length= bone->length*ikscene->blScale;
 		parent = (a > 0) ? ikscene->channels[tree->parent[a]].tail : root;
 		// first the fixed segment to the bone head
 		if (head.p.Norm() > KDL::epsilon || head.M.GetRot().Norm() > KDL::epsilon) {
@@ -1420,7 +1425,7 @@ static IK_Scene* convert_tree(Scene *blscene, Object *ob, bPoseChannel *pchan)
 		// add the end effector
 		// estimate the average bone length, used to clamp feedback error
 		for (bonecnt=0, bonelen=0.f, a=iktarget->channel; a>=0; a=tree->parent[a], bonecnt++)
-			bonelen += scale*tree->pchan[a]->bone->length;
+			bonelen += ikscene->blScale*tree->pchan[a]->bone->length;
 		bonelen /= bonecnt;		
 
 		// store the rest pose of the end effector to compute enforce target
@@ -1527,15 +1532,23 @@ static void create_scene(Scene *scene, Object *ob)
 	}
 }
 
-static void init_scene(Object *ob)
+/* returns 1 if scaling has changed and tree must be reinitialized */
+static int init_scene(Object *ob)
 {
+	// check also if scaling has changed
+	float scale = len_v3(ob->obmat[1]);
+	IK_Scene* scene;
+
 	if (ob->pose->ikdata) {
-		for (IK_Scene* scene = ((IK_Data*)ob->pose->ikdata)->first;
+		for (scene = ((IK_Data*)ob->pose->ikdata)->first;
 			scene != NULL;
 			scene = scene->next) {
+			if (fabs(scene->blScale - scale) > KDL::epsilon)
+				return 1;
 			scene->channels[0].pchan->flag |= POSE_IKTREE;
 		}
 	}
+	return 0;
 }
 
 static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, float ctime, float frtime)
@@ -1682,6 +1695,10 @@ static void execute_scene(Scene* blscene, IK_Scene* ikscene, bItasc* ikparam, fl
 		pchan = ikchan->pchan;
 		// tail mat
 		ikchan->frame.getValue(&pchan->pose_mat[0][0]);
+		// the scale of the object was included in the ik scene, take it out now
+		// because the pose channels are relative to the object
+		mul_v3_fl(pchan->pose_mat[3], ikscene->blInvScale);
+		length *= ikscene->blInvScale;
 		copy_v3_v3(pchan->pose_tail, pchan->pose_mat[3]);
 		// shift to head
 		copy_v3_v3(yaxis, pchan->pose_mat[1]);
@@ -1708,8 +1725,8 @@ void itasc_initialize_tree(struct Scene *scene, Object *ob, float ctime)
 	int count = 0;
 
 	if (ob->pose->ikdata != NULL && !(ob->pose->flag & POSE_WAS_REBUILT)) {
-		init_scene(ob);
-		return;
+		if (!init_scene(ob))
+			return;
 	}
 	// first remove old scene
 	itasc_clear_data(ob->pose);

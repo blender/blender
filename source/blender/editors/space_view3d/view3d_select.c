@@ -64,6 +64,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_armature.h"
+#include "BKE_depsgraph.h"
 #include "BKE_tessmesh.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
@@ -333,7 +334,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 	int sco1[2], sco2[2];
 	bArmature *arm = ob->data;
 	
-	if (ob->type != OB_ARMATURE || ob->pose == NULL) return;
+	if ((ob->type != OB_ARMATURE) || (ob->pose == NULL)) return;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
@@ -347,6 +348,11 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 				else pchan->bone->flag &= ~BONE_SELECTED;
 			}
 		}
+	}
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
@@ -1899,12 +1905,19 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 			}
 			
 			if (bone_selected) {
-				WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
+				Object *ob = base->object;
+				bArmature *arm = ob->data;
+				
+				WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+				
+				if (arm->flag & ARM_HAS_VIZ_DEPS) {
+					/* mask modifier ('armature' mode), etc. */
+					DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				}
 			}
 		}
-
+		
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
-
 	}
 	MEM_freeN(vbuffer);
 

@@ -201,6 +201,9 @@ public:
      //! Adds a vector from the Vector object itself
      inline Vector& operator +=(const Vector& arg);
 
+     //! Multiply by a scalar
+     inline Vector& operator *=(double arg);
+
      //! Scalar multiplication is defined
      inline friend Vector operator*(const Vector& lhs,double rhs);
      //! Scalar multiplication is defined

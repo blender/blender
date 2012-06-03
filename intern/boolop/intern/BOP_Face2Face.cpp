@@ -534,7 +534,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 		invertB = false;
 		if (face[1] == 1) {
 
-			// invertAø?
+			// invertA?
 			for(i=0;i<size;i++) {
 				if (position[i] == 1) {
 					invertA = true;
@@ -543,7 +543,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 				else if (position[i] == 0) break;
 			}
 
-			// invertBø?
+			// invertB?
 			if (size == 4) {
 				for(i=0;i<size;i++) {
 					if (position[i] == 3) {
@@ -555,7 +555,7 @@ void BOP_mergeSort(MT_Point3 *points, unsigned int *face, unsigned int &size, bo
 			}
 		}
 		else if (face[1] == 2) {
-			// invertBø?
+			// invertB?
 			for(i=0;i<size;i++) {
 				if (position[i] == 2) {
 					invertB = true;

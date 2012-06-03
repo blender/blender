@@ -34,7 +34,7 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_VECTOR, 0, "Coordinates" },
+	{ SOCK_VECTOR, 0, N_("Coordinates") },
 	{ -1, 0, "" }
 };
 

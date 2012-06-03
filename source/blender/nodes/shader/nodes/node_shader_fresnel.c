@@ -29,12 +29,12 @@
 
 /* **************** Fresnel ******************** */
 static bNodeSocketTemplate sh_node_fresnel_in[]= {
-	{	SOCK_FLOAT, 1, "IOR",	1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("IOR"),	1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_fresnel_out[]= {
-	{	SOCK_FLOAT, 0, "Fac",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Fac"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

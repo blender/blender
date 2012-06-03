@@ -36,11 +36,11 @@
 /* **************** Dilate/Erode ******************** */
 
 static bNodeSocketTemplate cmp_node_dilateerode_in[]= {
-	{	SOCK_FLOAT, 1, "Mask",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Mask"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_dilateerode_out[]= {
-	{	SOCK_FLOAT, 0, "Mask"},
+	{	SOCK_FLOAT, 0, N_("Mask")},
 	{	-1, 0, ""	}
 };
 

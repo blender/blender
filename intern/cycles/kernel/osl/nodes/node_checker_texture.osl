@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2012, Blender Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,24 +19,40 @@
 #include "stdosl.h"
 #include "node_texture.h"
 
-/* Turbulence */
+/* Checker */
 
-shader node_clouds_texture(
-	string Basis = "Perlin",
-	int Hard = 0,
-	int Depth = 2,
-	float Size = 0.25,
+float checker(point p)
+{
+	p[0] = (p[0] + 0.00001)*0.9999);
+	p[1] = (p[1] + 0.00001)*0.9999);
+	p[2] = (p[2] + 0.00001)*0.9999);
+	
+	int xi = fabs(floor(p[0]));
+	int yi = fabs(floor(p[1]));
+	int zi = fabs(floor(p[2]));
+
+	if((xi % 2 == yi % 2) == (zi % 2)) {
+		return 1.0;
+	}
+	else {
+		return 0.0;
+	}
+}
+
+shader node_checker_texture(
+	float Scale = 5.0,
 	point Vector = P,
-	output float Fac = 0.0,
+	color Color1 = color(0.8, 0.8, 0.8);
+	color Color2 = color(0.2, 0.2, 0.2);
+	output float Fac = 0.0)
 	output color Color = color(0.0, 0.0, 0.0))
 {
-	float size = nonzero(Size, 1e-5);
-	point p = Vector/size;
-
-	Fac = noise_turbulence(p, Basis, Depth, Hard);
-
-	Color[0] = Fac;
-	Color[1] = noise_turbulence(point(p[1], p[0], p[2]), Basis, Depth, Hard);
-	Color[2] = noise_turbulence(point(p[1], p[2], p[0]), Basis, Depth, Hard);
+	Fac = checker(Vector*Scale);
+	if(Fac == 1.0) {
+		Color = color(Color1, Color1, Color1);
+	}
+	else {
+		Color = color(Color2, Color2, Color2);
+	}
 }
 

@@ -934,6 +934,52 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 }
 
+/******************** Match movie length operator ********************/
+static int image_match_len_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Image *ima = CTX_data_pointer_get_type(C, "edit_image", &RNA_Image).data;
+	ImageUser *iuser = CTX_data_pointer_get_type(C, "edit_image_user", &RNA_ImageUser).data;
+
+	if (!ima || !iuser) {
+		/* Try to get a Texture, or a SpaceImage from context... */
+		SpaceImage *sima = CTX_wm_space_image(C);
+		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if (tex && tex->type == TEX_IMAGE) {
+			ima = tex->ima;
+			iuser = &tex->iuser;
+		}
+		else if (sima) {
+			ima = sima->image;
+			iuser = &sima->iuser;
+		}
+		
+	}
+
+	if (!ima || !iuser || !ima->anim)
+		return OPERATOR_CANCELLED;
+
+	iuser->frames = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
+	BKE_image_user_frame_calc(iuser, scene->r.cfra, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+/* called by other space types too */
+void IMAGE_OT_match_movie_length(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Match Movie Length";
+	ot->description = "Set image's users length to the one of this video";
+	ot->idname = "IMAGE_OT_match_movie_length";
+	
+	/* api callbacks */
+	ot->exec = image_match_len_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER /* | OPTYPE_UNDO */; /* Don't think we need undo for that. */
+}
+
 /******************** replace image operator ********************/
 
 static int image_replace_exec(bContext *C, wmOperator *op)
