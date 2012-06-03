@@ -162,14 +162,14 @@ static AdrBit2Path ma_mode_bits[] = {
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
 	/* Object layers */
-	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) 
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY))
 		RET_ABP(ob_layer_bits)
-		else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
-			RET_ABP(ma_mode_bits)
-			// XXX TODO: add other types...
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
+		RET_ABP(ma_mode_bits)
+	// XXX TODO: add other types...
 	
-			/* Normal curve */
-			return NULL;
+	/* Normal curve */
+	return NULL;
 }
 
 /* *************************************************** */

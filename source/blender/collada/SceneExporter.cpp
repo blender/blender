@@ -72,6 +72,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
 	COLLADASW::Node node(mSW);
 	node.setNodeId(translate_id(id_name(ob)));
+	node.setNodeName(translate_id(id_name(ob)));
 	node.setType(COLLADASW::Node::NODE);
 
 	node.start();
@@ -117,7 +118,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		}
 		else {
 			COLLADASW::InstanceGeometry instGeom(mSW);
-			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
+			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, this->export_settings->use_object_instantiation)));
 
 			InstanceWriter::add_material_bindings(instGeom.getBindMaterial(), ob);
 

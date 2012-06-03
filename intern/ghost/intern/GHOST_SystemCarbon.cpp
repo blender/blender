@@ -57,8 +57,6 @@
 #include "GHOST_NDOFManager.h"
 #include "AssertMacros.h"
 
-#define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
-
 /* blender class and types events */
 enum {
 	kEventClassBlender              = 'blnd'
@@ -1027,7 +1025,7 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
 			if (::TrackGoAway(window, mousePos))
 			{
-				// todo: add option-close, because itÿs in the HIG
+				// todo: add option-close, because it's in the HIG
 				// if (event.modifiers & optionKey) {
 				// Close the clean documents, others will be confirmed one by one.
 				//}

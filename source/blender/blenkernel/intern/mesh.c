@@ -1823,7 +1823,7 @@ void BKE_mesh_calc_normals_mapping_ex(MVert *mverts, int numVerts,
 	}
 
 	if (origIndexFace &&
-	    /* fnors==faceNors_r */ /* NO NEED TO ALLOC YET */
+	    /* fnors == faceNors_r */ /* NO NEED TO ALLOC YET */
 	    fnors != NULL &&
 	    numFaces)
 	{
@@ -2004,7 +2004,7 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		if (corners == 0) {
 			/* Empty MDisp layers appear in at least one of the sintel.blend files.
 			 * Not sure why this happens, but it seems fine to just ignore them here.
-			 * If corners==0 for a non-empty layer though, something went wrong. */
+			 * If (corners == 0) for a non-empty layer though, something went wrong. */
 			BLI_assert(fd->totdisp == 0);
 		}
 		else {

@@ -594,7 +594,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm,
 		float (*vertexCos)[3] = bmdm->vertexCos;
 		float (*vertexNos)[3] = bmdm->vertexNos;
 		float (*polyNos)[3]   = bmdm->polyNos;
-		// int *triPolyMap= bmdm->triPolyMap;
+		// int *triPolyMap = bmdm->triPolyMap;
 
 		BM_mesh_elem_index_ensure(bmdm->tc->bm, BM_VERT | BM_FACE);
 
@@ -802,7 +802,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp = has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
 			MTFace mtf = {{{0}}};
-			/*unsigned char *cp= NULL;*/ /*UNUSED*/
+			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);
 			DMDrawOption draw_option;
 
@@ -874,7 +874,7 @@ static void emDM_drawFacesTex_common(DerivedMesh *dm,
 			BMLoop **ls = em->looptris[i];
 			MTexPoly *tp = has_uv ? CustomData_bmesh_get(&bm->pdata, ls[0]->f->head.data, CD_MTEXPOLY) : NULL;
 			MTFace mtf = {{{0}}};
-			/*unsigned char *cp= NULL;*/ /*UNUSED*/
+			/*unsigned char *cp = NULL;*/ /*UNUSED*/
 			int drawSmooth = BM_elem_flag_test(ls[0]->f, BM_ELEM_SMOOTH);
 			DMDrawOption draw_option;
 

@@ -33,13 +33,13 @@
 
 /* **************** BILATERALBLUR ******************** */
 static bNodeSocketTemplate cmp_node_bilateralblur_in[]= {
-	{ SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f}, 
-	{ SOCK_RGBA, 1, "Determinator", 1.0f, 1.0f, 1.0f, 1.0f}, 
+	{ SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f}, 
+	{ SOCK_RGBA, 1, N_("Determinator"), 1.0f, 1.0f, 1.0f, 1.0f}, 
 	{ -1, 0, "" } 
 };
 
 static bNodeSocketTemplate cmp_node_bilateralblur_out[]= { 
-	{ SOCK_RGBA, 0, "Image"}, 
+	{ SOCK_RGBA, 0, N_("Image")}, 
 	{ -1, 0, "" } 
 };
 

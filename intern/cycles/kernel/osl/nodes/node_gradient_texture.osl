@@ -19,9 +19,9 @@
 #include "stdosl.h"
 #include "node_texture.h"
 
-/* Blend */
+/* Gradient */
 
-float blend(point p, string progression, string axis)
+float gradient(point p, string progression, string axis)
 {
 	float x, y;
 
@@ -67,12 +67,12 @@ float blend(point p, string progression, string axis)
 	return result;
 }
 
-shader node_blend_texture(
+shader node_gradient_texture(
 	string Progression = "Linear",
 	string Axis = "Horizontal",
 	point Vector = P,
 	output float Fac = 0.0)
 {
-	Fac = blend(Vector, Progression, Axis);
+	Fac = gradient(Vector, Progression, Axis);
 }
 

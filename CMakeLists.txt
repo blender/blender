@@ -1,4 +1,3 @@
-# -*- mode: cmake; indent-tabs-mode: t; -*-
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -229,19 +228,16 @@ option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install fol
 set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
-option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
-mark_as_advanced(WITH_MINGW64)
+if(MINGW)
+	option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
+	mark_as_advanced(WITH_MINGW64)
+endif()
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
-if(WIN32 AND NOT CMAKE_CL_64 AND NOT WITH_MINGW64)
-	set(PLATFORM_DEFAULT sm_20 sm_21)
-else()
-	set(PLATFORM_DEFAULT sm_13 sm_20 sm_21)
-endif()
-set(CYCLES_CUDA_BINARIES_ARCH ${PLATFORM_DEFAULT} CACHE STRING "CUDA architectures to build binaries for")
+set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 
@@ -557,7 +553,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		mark_as_advanced(FFMPEG)
-		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
+		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/ffmpeg)
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -1105,7 +1101,7 @@ elseif(WIN32)
 
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
-			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
+			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 			if(WITH_MINGW64)
 				set(FFMPEG_LIBRARIES avcodec.dll avformat.dll avdevice.dll avutil.dll swscale.dll swresample.dll)
 			else()

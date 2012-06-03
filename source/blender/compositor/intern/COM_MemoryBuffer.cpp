@@ -44,7 +44,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, unsigned int chunkNumber, 
 	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->memoryProxy = memoryProxy;
 	this->chunkNumber = chunkNumber;
-	this->buffer = (float*)MEM_mallocN(sizeof(float)*determineBufferSize()*4, "COM_MemoryBuffer");
+	this->buffer = (float*)MEM_mallocN(sizeof(float)*determineBufferSize()*COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
 	this->state = COM_MB_ALLOCATED;
 	this->datatype = COM_DT_COLOR;
 	this->chunkWidth = this->rect.xmax - this->rect.xmin;
@@ -55,7 +55,7 @@ MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, rcti *rect)
 	BLI_init_rcti(&this->rect, rect->xmin, rect->xmax, rect->ymin, rect->ymax);
 	this->memoryProxy = memoryProxy;
 	this->chunkNumber = -1;
-	this->buffer = (float*)MEM_mallocN(sizeof(float)*determineBufferSize()*4, "COM_MemoryBuffer");
+	this->buffer = (float*)MEM_mallocN(sizeof(float)*determineBufferSize()*COM_NUMBER_OF_CHANNELS, "COM_MemoryBuffer");
 	this->state = COM_MB_TEMPORARILY;
 	this->datatype = COM_DT_COLOR;
 	this->chunkWidth = this->rect.xmax - this->rect.xmin;
@@ -63,22 +63,26 @@ MemoryBuffer::MemoryBuffer(MemoryProxy * memoryProxy, rcti *rect)
 MemoryBuffer *MemoryBuffer::duplicate()
 {
 	MemoryBuffer *result = new MemoryBuffer(this->memoryProxy, &this->rect);
-	memcpy(result->buffer, this->buffer, this->determineBufferSize()*4*sizeof(float));
+	memcpy(result->buffer, this->buffer, this->determineBufferSize()*COM_NUMBER_OF_CHANNELS*sizeof(float));
 	return result;
 }
 void MemoryBuffer::clear()
 {
-	memset(this->buffer, 0, this->determineBufferSize()*4*sizeof(float));
+	memset(this->buffer, 0, this->determineBufferSize()*COM_NUMBER_OF_CHANNELS*sizeof(float));
 }
 
 float *MemoryBuffer::convertToValueBuffer()
 {
-	int size = this->determineBufferSize();
-	int i;
-	int offset4;
+	const unsigned int size = this->determineBufferSize();
+	unsigned int i;
+
 	float *result = new float[size];
-	for (i = 0, offset4 = 0 ; i < size ; i ++, offset4 +=4) {
-		result[i] = this->buffer[offset4];
+
+	const float *fp_src = this->buffer;
+	float       *fp_dst = result;
+
+	for (i = 0; i < size ; i++, fp_dst++, fp_src += COM_NUMBER_OF_CHANNELS) {
+		*fp_dst = *fp_src;
 	}
 
 	return result;
@@ -107,44 +111,37 @@ void MemoryBuffer::copyContentFrom(MemoryBuffer *otherBuffer)
 
 
 	for (otherY = minY ; otherY<maxY ; otherY ++) {
-		otherOffset = ((otherY-otherBuffer->rect.ymin) * otherBuffer->chunkWidth + minX-otherBuffer->rect.xmin)*4;
-		offset = ((otherY - this->rect.ymin) * this->chunkWidth + minX-this->rect.xmin)*4;
-		memcpy(&this->buffer[offset], &otherBuffer->buffer[otherOffset], (maxX-minX) * 4*sizeof(float));
+		otherOffset = ((otherY-otherBuffer->rect.ymin) * otherBuffer->chunkWidth + minX-otherBuffer->rect.xmin)*COM_NUMBER_OF_CHANNELS;
+		offset = ((otherY - this->rect.ymin) * this->chunkWidth + minX-this->rect.xmin)*COM_NUMBER_OF_CHANNELS;
+		memcpy(&this->buffer[offset], &otherBuffer->buffer[otherOffset], (maxX-minX) * COM_NUMBER_OF_CHANNELS*sizeof(float));
 	}
 }
 
-void MemoryBuffer::read(float *result, int x, int y)
+void MemoryBuffer::read(float result[4], int x, int y)
 {
 	if (x>=this->rect.xmin && x < this->rect.xmax &&
-			y>=this->rect.ymin && y < this->rect.ymax) {
-		int dx = x-this->rect.xmin;
-		int dy = y-this->rect.ymin;
-		int offset = (this->chunkWidth*dy+dx)*4;
-		result[0] = this->buffer[offset];
-		result[1] = this->buffer[offset+1];
-		result[2] = this->buffer[offset+2];
-		result[3] = this->buffer[offset+3];
+	    y>=this->rect.ymin && y < this->rect.ymax)
+	{
+		const int dx = x - this->rect.xmin;
+		const int dy = y - this->rect.ymin;
+		const int offset = (this->chunkWidth * dy + dx) * COM_NUMBER_OF_CHANNELS;
+		copy_v4_v4(result, &this->buffer[offset]);
 	}
 	else {
-		result[0] = 0.0f;
-		result[1] = 0.0f;
-		result[2] = 0.0f;
-		result[3] = 0.0f;
+		zero_v4(result);
 	}
 }
-void MemoryBuffer::writePixel(int x, int y, float color[4])
+void MemoryBuffer::writePixel(int x, int y, const float color[4])
 {
-	if (x>=this->rect.xmin && x < this->rect.xmax &&
-			y>=this->rect.ymin && y < this->rect.ymax) {
-		int offset = (this->chunkWidth*y+x)*4;
-		this->buffer[offset] = color[0];
-		this->buffer[offset+1] = color[1];
-		this->buffer[offset+2] = color[2];
-		this->buffer[offset+3] = color[3];
+	if (x >= this->rect.xmin && x < this->rect.xmax &&
+	    y >= this->rect.ymin && y < this->rect.ymax)
+	{
+		const int offset = (this->chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		copy_v4_v4(&this->buffer[offset], color);
 	}
 }
 
-void MemoryBuffer::readCubic(float *result, float x, float y)
+void MemoryBuffer::readCubic(float result[4], float x, float y)
 {
 	int x1 = floor(x);
 	int x2 = x1 + 1;
@@ -266,9 +263,9 @@ float clipuv(float x, float limit)
 	return x;
 }
 
-void MemoryBuffer::readEWA(float *result, float fx, float fy, float dx, float dy)
+void MemoryBuffer::readEWA(float result[4], float fx, float fy, float dx, float dy)
 {
-	int width = this->getWidth(), height = this->getHeight();
+	const int width = this->getWidth(), height = this->getHeight();
 	
 	// scaling dxt/dyt by full resolution can cause overflow because of huge A/B/C and esp. F values,
 	// scaling by aspect ratio alone does the opposite, so try something in between instead...

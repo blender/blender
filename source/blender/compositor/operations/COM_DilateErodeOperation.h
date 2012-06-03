@@ -68,6 +68,47 @@ public:
 
 };
 
+class DilateDistanceOperation : public NodeOperation {
+private:
+	/**
+	  * Cached reference to the inputProgram
+	  */
+	SocketReader * inputProgram;
+protected:
+	float distance;
+	int scope;
+public:
+	DilateDistanceOperation();
+	
+	/**
+	  * the inner loop of this program
+	  */
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	
+	/**
+	  * Initialize the execution
+	  */
+	void initExecution();
+	
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	/**
+	  * Deinitialize the execution
+	  */
+	void deinitExecution();
+	
+	void setDistance(float distance) {this->distance = distance;}
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+};
+class ErodeDistanceOperation : public DilateDistanceOperation {
+public:
+	ErodeDistanceOperation();
+	
+	/**
+	  * the inner loop of this program
+	  */
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+};
+
 class DilateStepOperation : public NodeOperation {
 protected:
 	/**

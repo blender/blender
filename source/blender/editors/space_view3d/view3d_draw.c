@@ -437,16 +437,9 @@ static void drawgrid(UnitSettings *unit, ARegion *ar, View3D *v3d, const char **
 }
 #undef GRID_MIN_PX
 
-static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
+float ED_view3d_grid_scale(Scene *scene, View3D *v3d, const char **grid_unit)
 {
-	float grid, grid_scale;
-	unsigned char col_grid[3];
-	const int gridlines = v3d->gridlines / 2;
-
-	if (v3d->gridlines < 3) return;
-	
-	grid_scale = v3d->grid;
-	/* use 'grid_scale' instead of 'v3d->grid' from now on */
+	float grid_scale = v3d->grid;
 
 	/* apply units */
 	if (scene->unit.system) {
@@ -457,11 +450,25 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 
 		if (usys) {
 			int i = bUnit_GetBaseUnit(usys);
-			*grid_unit = bUnit_GetNameDisplay(usys, i);
+			if (grid_unit)
+				*grid_unit = bUnit_GetNameDisplay(usys, i);
 			grid_scale = (grid_scale * (float)bUnit_GetScaler(usys, i)) / scene->unit.scale_length;
 		}
 	}
 
+	return grid_scale;
+}
+
+static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
+{
+	float grid, grid_scale;
+	unsigned char col_grid[3];
+	const int gridlines = v3d->gridlines / 2;
+
+	if (v3d->gridlines < 3) return;
+	
+	/* use 'grid_scale' instead of 'v3d->grid' from now on */
+	grid_scale = ED_view3d_grid_scale(scene, v3d, grid_unit);
 	grid = gridlines * grid_scale;
 
 	if (v3d->zbuf && scene->obedit) glDepthMask(0);  // for zbuffer-select

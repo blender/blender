@@ -54,7 +54,6 @@
 #include "BKE_colortools.h"
 #include "BKE_image.h"
 #include "BKE_node.h"
-#include "BKE_plugin_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_DerivedMesh.h"
@@ -103,13 +102,6 @@ static void init_render_texture(Render *re, Tex *tex)
 		BKE_image_user_frame_calc(&tex->iuser, cfra, re?re->flag & R_SEC_FIELD:0);
 	}
 	
-	if (tex->type==TEX_PLUGIN) {
-		if (tex->plugin && tex->plugin->doit) {
-			if (tex->plugin->cfra) {
-				*(tex->plugin->cfra)= (float)cfra; //BKE_scene_frame_get(re->scene); // XXX old animsys - timing stuff to be fixed 
-			}
-		}
-	}
 	else if (tex->type==TEX_ENVMAP) {
 		/* just in case */
 		tex->imaflag |= TEX_INTERPOL | TEX_MIPMAP;
@@ -747,73 +739,6 @@ static int texnoise(Tex *tex, TexResult *texres)
 
 /* ------------------------------------------------------------------------- */
 
-static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, TexResult *texres)
-{
-	PluginTex *pit;
-	int rgbnor=0;
-	float result[8]= {0.0f};
-
-	texres->tin= 0.0;
-
-	pit= tex->plugin;
-	if (pit && pit->doit) {
-		if (texres->nor) {
-			if (pit->version < 6) {
-				copy_v3_v3(pit->result+5, texres->nor);
-			}
-			else {
-				copy_v3_v3(result+5, texres->nor);
-			}
-		}
-		if (pit->version < 6) {
-			if (osatex) rgbnor= ((TexDoitold)pit->doit)(tex->stype,
-				pit->data, texvec, dxt, dyt);
-			else rgbnor= ((TexDoitold)pit->doit)(tex->stype, 
-				pit->data, texvec, NULL, NULL);
-		}
-		else {
-			if (osatex) rgbnor= ((TexDoit)pit->doit)(tex->stype,
-				pit->data, texvec, dxt, dyt, result);
-			else rgbnor= ((TexDoit)pit->doit)(tex->stype, 
-				pit->data, texvec, NULL, NULL, result);
-		}
-
-		if (pit->version < 6) {
-			texres->tin = pit->result[0];
-		}
-		else {
-			texres->tin = result[0]; /* XXX, assigning garbage value, fixme! */
-		}
-
-		if (rgbnor & TEX_NOR) {
-			if (texres->nor) {
-				if (pit->version < 6) {
-					copy_v3_v3(texres->nor, pit->result+5);
-				}
-				else {
-					copy_v3_v3(texres->nor, result+5);
-				}
-			}
-		}
-		
-		if (rgbnor & TEX_RGB) {
-			if (pit->version < 6) {
-				copy_v4_v4(&texres->tr, pit->result + 1);
-			}
-			else {
-				copy_v4_v4(&texres->tr, result + 1);
-			}
-
-			BRICONTRGB;
-		}
-		
-		BRICONT;
-	}
-
-	return rgbnor;
-}
-
-
 static int cubemap_glob(const float n[3], float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
@@ -1209,9 +1134,6 @@ static int multitex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex,
 		if (osatex) retval= imagewraposa(tex, tex->ima, NULL, texvec, dxt, dyt, texres);
 		else retval= imagewrap(tex, tex->ima, NULL, texvec, texres); 
 		BKE_image_tag_time(tex->ima); /* tag image as having being used */
-		break;
-	case TEX_PLUGIN:
-		retval= plugintex(tex, texvec, dxt, dyt, osatex, texres);
 		break;
 	case TEX_ENVMAP:
 		retval= envmaptex(tex, texvec, dxt, dyt, osatex, texres);

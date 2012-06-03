@@ -30,13 +30,13 @@
 /* **************** Layer Weight ******************** */
 
 static bNodeSocketTemplate sh_node_layer_weight_in[]= {
-	{	SOCK_FLOAT, 1, "Blend",		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Blend"),		0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_layer_weight_out[]= {
-	{	SOCK_FLOAT, 0, "Fresnel",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, "Facing",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Fresnel"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Facing"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

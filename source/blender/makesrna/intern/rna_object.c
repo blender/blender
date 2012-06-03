@@ -891,6 +891,9 @@ static int rna_GameObjectSettings_physics_type_get(PointerRNA *ptr)
 			ob->body_type = OB_BODY_TYPE_NO_COLLISION;
 		}
 	}
+	else if (ob->gameflag & OB_CHARACTER) {
+		ob->body_type = OB_BODY_TYPE_CHARACTER;
+	}
 	else if (ob->gameflag & OB_SENSOR) {
 		ob->body_type = OB_BODY_TYPE_SENSOR;
 	}
@@ -922,16 +925,16 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 	switch (ob->body_type) {
 		case OB_BODY_TYPE_SENSOR:
 			ob->gameflag |= OB_SENSOR | OB_COLLISION | OB_GHOST;
-			ob->gameflag &= ~(OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
+			ob->gameflag &= ~(OB_OCCLUDER | OB_CHARACTER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR |
 			                  OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
 			break;
 		case OB_BODY_TYPE_OCCLUDER:
 			ob->gameflag |= OB_OCCLUDER;
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_DYNAMIC | OB_NAVMESH);
+			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_DYNAMIC | OB_NAVMESH);
 			break;
 		case OB_BODY_TYPE_NAVMESH:
 			ob->gameflag |= OB_NAVMESH;
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_DYNAMIC | OB_OCCLUDER);
+			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_DYNAMIC | OB_OCCLUDER);
 
 			if (ob->type == OB_MESH) {
 				/* could be moved into mesh UI but for now ensure mesh data layer */
@@ -940,24 +943,29 @@ static void rna_GameObjectSettings_physics_type_set(PointerRNA *ptr, int value)
 
 			break;
 		case OB_BODY_TYPE_NO_COLLISION:
-			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH);
+			ob->gameflag &= ~(OB_SENSOR | OB_RIGID_BODY | OB_SOFT_BODY | OB_COLLISION | OB_CHARACTER | OB_OCCLUDER | OB_DYNAMIC | OB_NAVMESH);
 			break;
+		case OB_BODY_TYPE_CHARACTER:
+			ob->gameflag |= OB_COLLISION | OB_GHOST | OB_CHARACTER;
+			ob->gameflag &= ~(OB_SENSOR | OB_OCCLUDER | OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_ACTOR
+		                     | OB_ANISOTROPIC_FRICTION | OB_DO_FH | OB_ROT_FH | OB_COLLISION_RESPONSE | OB_NAVMESH);
+		break;
 		case OB_BODY_TYPE_STATIC:
 			ob->gameflag |= OB_COLLISION;
-			ob->gameflag &= ~(OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_SENSOR | OB_NAVMESH);
+			ob->gameflag &= ~(OB_DYNAMIC | OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
 			break;
 		case OB_BODY_TYPE_DYNAMIC:
 			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_ACTOR;
-			ob->gameflag &= ~(OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_SENSOR | OB_NAVMESH);
+			ob->gameflag &= ~(OB_RIGID_BODY | OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
 			break;
 		case OB_BODY_TYPE_RIGID:
 			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_RIGID_BODY | OB_ACTOR;
-			ob->gameflag &= ~(OB_SOFT_BODY | OB_OCCLUDER | OB_SENSOR | OB_NAVMESH);
+			ob->gameflag &= ~(OB_SOFT_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
 			break;
 		default:
 		case OB_BODY_TYPE_SOFT:
 			ob->gameflag |= OB_COLLISION | OB_DYNAMIC | OB_SOFT_BODY | OB_ACTOR;
-			ob->gameflag &= ~(OB_RIGID_BODY | OB_OCCLUDER | OB_SENSOR | OB_NAVMESH);
+			ob->gameflag &= ~(OB_RIGID_BODY | OB_OCCLUDER | OB_CHARACTER | OB_SENSOR | OB_NAVMESH);
 
 			/* assume triangle mesh, if no bounds chosen for soft body */
 			if ((ob->gameflag & OB_BOUNDS) && (ob->boundtype < OB_BOUND_TRIANGLE_MESH)) {
@@ -1436,6 +1444,7 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 		                      "Collision Sensor, detects static and dynamic objects but not the other "
 		                      "collision sensor objects"},
 		{OB_BODY_TYPE_NAVMESH, "NAVMESH", 0, "Navigation Mesh", "Navigation mesh"},
+		{OB_BODY_TYPE_CHARACTER, "CHARACTER", 0, "Character", "Simple kinematic physics appropiate for game characters"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1529,6 +1538,22 @@ static void rna_def_object_game_settings(BlenderRNA *brna)
 	RNA_def_property_float_sdna(prop, NULL, "max_vel");
 	RNA_def_property_range(prop, 0.0, 1000.0);
 	RNA_def_property_ui_text(prop, "Velocity Max", "Clamp velocity to this maximum speed");
+	
+	prop= RNA_def_property(srna, "step_height", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "step_height");
+	RNA_def_property_range(prop, 0.0, 1.0);
+	RNA_def_property_ui_text(prop, "Step Height", "Maximum height of steps the character can run over");
+
+	prop= RNA_def_property(srna, "jump_speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "jump_speed");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Jump Force", "Upward velocity applied to the character when jumping (with the Motion actuator)");
+
+	prop= RNA_def_property(srna, "fall_speed", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "fall_speed");
+	RNA_def_property_range(prop, 0.0, 1000.0);
+	RNA_def_property_ui_text(prop, "Fall Speed Max", "Maximum speed at which the character will fall");
+
 
 	/* lock position */
 	prop = RNA_def_property(srna, "lock_location_x", PROP_BOOLEAN, PROP_NONE);

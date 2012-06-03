@@ -328,21 +328,15 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
 			MovieTrackingTrack *track = channel->track;
-			uiBut *but;
+			const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
 			PointerRNA ptr;
-			int icon;
 
 			RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, &ptr);
 
-			if (track->flag & TRACK_LOCKED)
-				icon = ICON_LOCKED;
-			else
-				icon = ICON_UNLOCKED;
-
 			uiBlockSetEmboss(block, UI_EMBOSSN);
-			but = uiDefIconButR(block, ICONTOG, 1, icon,
-				v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
-				UI_UNIT_X, UI_UNIT_Y, &ptr, "lock", 0, 0, 0, 0, 0, NULL);
+			uiDefIconButR(block, ICONTOG, 1, icon,
+			              v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
+			              UI_UNIT_X, UI_UNIT_Y, &ptr, "lock", 0, 0, 0, 0, 0, NULL);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 		}
 

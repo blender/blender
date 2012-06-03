@@ -42,11 +42,11 @@
 // #define USE_DEBUG_INDEX_MEMCHECK
 
 #ifdef USE_DEBUG_INDEX_MEMCHECK
-#define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)               \
-	{                                                      \
-		int undef_idx;                                     \
-		BM_elem_index_set(ele, undef_idx); /* set_ok_invalid */  \
-	}                                                      \
+#define DEBUG_MEMCHECK_INDEX_INVALIDATE(ele)                                  \
+	{                                                                         \
+		int undef_idx;                                                        \
+		BM_elem_index_set(ele, undef_idx); /* set_ok_invalid */               \
+	} (void)0
 
 #endif
 
@@ -92,7 +92,7 @@ BMVert *BM_vert_create(BMesh *bm, const float co[3], const BMVert *example)
  * \brief Main function for creating a new edge.
  *
  * \note Duplicate edges are supported by the API however users should _never_ see them.
- * so unless you need a unique edge or know the edge won't exist, you should call wih \a nodouble=TRUE
+ * so unless you need a unique edge or know the edge won't exist, you should call wih \a nodouble = TRUE
  */
 BMEdge *BM_edge_create(BMesh *bm, BMVert *v1, BMVert *v2, const BMEdge *example, int nodouble)
 {

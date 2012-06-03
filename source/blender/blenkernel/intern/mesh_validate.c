@@ -103,11 +103,11 @@ int BKE_mesh_validate_arrays(Mesh *mesh,
                              MDeformVert *dverts, /* assume totvert length */
                              const short do_verbose, const short do_fixes)
 {
-#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = TRUE; }
+#   define REMOVE_EDGE_TAG(_me) { _me->v2 = _me->v1; do_edge_free = TRUE; } (void)0
 #   define IS_REMOVED_EDGE(_me) (_me->v2 == _me->v1)
 
-#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; do_polyloop_free = TRUE; }
-#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; do_polyloop_free = TRUE; }
+#   define REMOVE_LOOP_TAG(_ml) { _ml->e = INVALID_LOOP_EDGE_MARKER; do_polyloop_free = TRUE; } (void)0
+#   define REMOVE_POLY_TAG(_mp) { _mp->totloop *= -1; do_polyloop_free = TRUE; } (void)0
 
 	MVert *mv = mverts;
 	MEdge *me;

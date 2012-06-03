@@ -92,16 +92,20 @@ void GeometryExporter::operator()(Object *ob)
 	DerivedMesh *dm = mesh_get_derived_final(mScene, ob, CD_MASK_BAREMESH);
 #endif
 
+	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me = get_mesh(ob, this->export_settings->apply_modifiers);
 
-	std::string geom_id = get_geometry_id(ob);
-	std::string geom_name = id_name(ob->data);
+	std::string geom_id = get_geometry_id(ob, use_instantiation);
 	std::vector<Normal> nor;
 	std::vector<Face> norind;
 
 	// Skip if linked geometry was already exported from another reference
-	if (exportedGeometry.find(geom_id) != exportedGeometry.end())
+	if (use_instantiation && 
+		exportedGeometry.find(geom_id) != exportedGeometry.end())
 		return;
+
+	std::string geom_name = (use_instantiation) ? id_name(ob->data) : id_name(ob);
+
 	exportedGeometry.insert(geom_id);
 
 	bool has_color = (bool)CustomData_has_layer(&me->fdata, CD_MCOL);

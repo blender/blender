@@ -29,6 +29,7 @@
 #include "COM_SetValueOperation.h"
 #include "COM_MixBlendOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
+#include "COM_GlareGhostOperation.h"
 
 GlareNode::GlareNode(bNode *editorNode): Node(editorNode)
 {
@@ -42,6 +43,30 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 	switch (glare->type) {
 	
 	default:
+	case 3:
+		{
+			GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();
+			GlareGhostOperation * glareoperation = new GlareGhostOperation();
+			SetValueOperation * mixvalueoperation = new SetValueOperation();
+			MixBlendOperation * mixoperation = new MixBlendOperation();
+	
+			this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
+			addLink(system, thresholdOperation->getOutputSocket(), glareoperation->getInputSocket(0));
+			addLink(system, mixvalueoperation->getOutputSocket(), mixoperation->getInputSocket(0));
+			addLink(system, glareoperation->getOutputSocket(), mixoperation->getInputSocket(2));
+			addLink(system, thresholdOperation->getInputSocket(0)->getConnection()->getFromSocket(), mixoperation->getInputSocket(1));
+			this->getOutputSocket()->relinkConnections(mixoperation->getOutputSocket());
+	
+			thresholdOperation->setThreshold(glare->threshold);
+			glareoperation->setGlareSettings(glare);
+			mixvalueoperation->setValue(0.5f+glare->mix*0.5f);
+			mixoperation->setResolutionInputSocketIndex(1);
+	
+			system->addOperation(glareoperation);
+			system->addOperation(thresholdOperation);
+			system->addOperation(mixvalueoperation);
+			system->addOperation(mixoperation);
+		}
 	case 2: // streaks
 		{
 			GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();

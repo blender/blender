@@ -451,10 +451,18 @@ static float area_lamp_energy(float (*area)[3], const float co[3], const float v
 	Normalize_d(vec[3]);
 
 	/* cross product */
+#define CROSS(dest, a, b) \
+	{ dest[0]= a[1] * b[2] - a[2] * b[1]; \
+	  dest[1]= a[2] * b[0] - a[0] * b[2]; \
+	  dest[2]= a[0] * b[1] - a[1] * b[0]; \
+	} (void)0
+
 	CROSS(cross[0], vec[0], vec[1]);
 	CROSS(cross[1], vec[1], vec[2]);
 	CROSS(cross[2], vec[2], vec[3]);
 	CROSS(cross[3], vec[3], vec[0]);
+
+#undef CROSS
 
 	Normalize_d(cross[0]);
 	Normalize_d(cross[1]);

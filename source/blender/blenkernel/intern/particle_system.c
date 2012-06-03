@@ -2673,6 +2673,9 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 		force[1] += (BLI_frand()-0.5f) * part->brownfac;
 		force[2] += (BLI_frand()-0.5f) * part->brownfac;
 	}
+
+	if(part->flag & PART_ROT_DYN && epoint.ave)
+		copy_v3_v3(pa->state.ave, epoint.ave);
 }
 /* gathers all forces that effect particles and calculates a new state for the particle */
 static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, float cfra)
@@ -2730,7 +2733,7 @@ static void basic_integrate(ParticleSimulationData *sim, int p, float dfra, floa
 }
 static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, float timestep)
 {
-	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep;
+	float rotfac, rot1[4], rot2[4]={1.0,0.0,0.0,0.0}, dtime=dfra*timestep, extrotfac;
 
 	if ((part->flag & PART_ROTATIONS)==0) {
 		pa->state.rot[0]=1.0f;
@@ -2738,7 +2741,9 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 		return;
 	}
 
-	if ((part->flag & PART_ROT_DYN)==0 && ELEM3(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
+	extrotfac = len_v3(pa->state.ave);
+
+	if ((part->flag & PART_ROT_DYN) && ELEM3(part->avemode, PART_AVE_VELOCITY, PART_AVE_HORIZONTAL, PART_AVE_VERTICAL)) {
 		float angle;
 		float len1 = len_v3(pa->prev_state.vel);
 		float len2 = len_v3(pa->state.vel);
@@ -2758,7 +2763,7 @@ static void basic_rotate(ParticleSettings *part, ParticleData *pa, float dfra, f
 	}
 
 	rotfac = len_v3(pa->state.ave);
-	if (rotfac == 0.0f) { /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
+	if (rotfac == 0.0f || (part->flag & PART_ROT_DYN)==0 || extrotfac == 0.0f) { /* unit_qt(in VecRotToQuat) doesn't give unit quat [1,0,0,0]?? */
 		rot1[0]=1.0f;
 		rot1[1]=rot1[2]=rot1[3]=0;
 	}

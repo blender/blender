@@ -39,10 +39,10 @@
 #include <errno.h>
 
 #ifdef WIN32
-#  include <io.h>		// read, open
+#  include <io.h>       // read, open
 #  include "BLI_winstuff.h"
 #else // ! WIN32
-#  include <unistd.h>		// read
+#  include <unistd.h>       // read
 #endif
 
 #include "BLO_readfile.h"
@@ -63,33 +63,33 @@ static int handle_read_msb_int(int handle)
 	if (read(handle, buf, 4) != 4)
 		return -1;
 
-	return (buf[0]<<24) + (buf[1]<<16) + (buf[2]<<8) + (buf[3]<<0);
+	return (buf[0] << 24) + (buf[1] << 16) + (buf[2] << 8) + (buf[3] << 0);
 }
 
 int BLO_is_a_runtime(const char *path)
 {
-	int res= 0, fd= BLI_open(path, O_BINARY|O_RDONLY, 0);
+	int res = 0, fd = BLI_open(path, O_BINARY | O_RDONLY, 0);
 	int datastart;
 	char buf[8];
 
-	if (fd==-1)
+	if (fd == -1)
 		goto cleanup;
 	
 	lseek(fd, -12, SEEK_END);
 	
-	datastart= handle_read_msb_int(fd);
+	datastart = handle_read_msb_int(fd);
 
-	if (datastart==-1)
+	if (datastart == -1)
 		goto cleanup;
-	else if (read(fd, buf, 8)!=8)
+	else if (read(fd, buf, 8) != 8)
 		goto cleanup;
-	else if (memcmp(buf, "BRUNTIME", 8)!=0)
+	else if (memcmp(buf, "BRUNTIME", 8) != 0)
 		goto cleanup;
 	else
-		res= 1;
+		res = 1;
 
 cleanup:
-	if (fd!=-1)
+	if (fd != -1)
 		close(fd);
 
 	return res;	
@@ -97,45 +97,45 @@ cleanup:
 
 BlendFileData *BLO_read_runtime(const char *path, ReportList *reports)
 {
-	BlendFileData *bfd= NULL;
+	BlendFileData *bfd = NULL;
 	size_t actualsize;
 	int fd, datastart;
 	char buf[8];
 
-	fd= BLI_open(path, O_BINARY|O_RDONLY, 0);
+	fd = BLI_open(path, O_BINARY | O_RDONLY, 0);
 
-	if (fd==-1) {
+	if (fd == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to open \"%s\": %s.", path, strerror(errno));
 		goto cleanup;
 	}
 	
-	actualsize= BLI_file_descriptor_size(fd);
+	actualsize = BLI_file_descriptor_size(fd);
 
 	lseek(fd, -12, SEEK_END);
 
-	datastart= handle_read_msb_int(fd);
+	datastart = handle_read_msb_int(fd);
 
-	if (datastart==-1) {
+	if (datastart == -1) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (problem seeking)", path);
 		goto cleanup;
 	}
-	else if (read(fd, buf, 8)!=8) {
+	else if (read(fd, buf, 8) != 8) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (truncated header)", path);
 		goto cleanup;
 	}
-	else if (memcmp(buf, "BRUNTIME", 8)!=0) {
+	else if (memcmp(buf, "BRUNTIME", 8) != 0) {
 		BKE_reportf(reports, RPT_ERROR, "Unable to read  \"%s\" (not a blend file)", path);
 		goto cleanup;
 	}
 	else {	
 		//printf("starting to read runtime from %s at datastart %d\n", path, datastart);
 		lseek(fd, datastart, SEEK_SET);
-		bfd = blo_read_blendafterruntime(fd, path, actualsize-datastart, reports);
-		fd= -1;	// file was closed in blo_read_blendafterruntime()
+		bfd = blo_read_blendafterruntime(fd, path, actualsize - datastart, reports);
+		fd = -1; // file was closed in blo_read_blendafterruntime()
 	}
 	
 cleanup:
-	if (fd!=-1)
+	if (fd != -1)
 		close(fd);
 	
 	return bfd;

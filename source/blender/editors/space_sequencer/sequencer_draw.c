@@ -153,10 +153,6 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 				col[0] = col[1] = col[2] = 128;
 			}
 			break;
-		
-		case SEQ_PLUGIN:
-			UI_GetThemeColor3ubv(TH_SEQ_PLUGIN, col);
-			break;
 
 		case SEQ_SOUND:
 			UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
@@ -563,22 +559,8 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		             seq->len, name, seq->strip->dir, seq->strip->stripdata->name);
 	}
 	else if (seq->type & SEQ_EFFECT) {
-		int can_float = (seq->type != SEQ_PLUGIN) || (seq->plugin && seq->plugin->version >= 4);
-
-		if (seq->seq3 != seq->seq2 && seq->seq1 != seq->seq3) {
-			BLI_snprintf(str, sizeof(str), "%d | %s: %d>%d (use %d)%s",
-			             seq->len, name, seq->seq1->machine, seq->seq2->machine, seq->seq3->machine,
-			             can_float ? "" : " No float, upgrade plugin!");
-		}
-		else if (seq->seq1 && seq->seq2) {
-			BLI_snprintf(str, sizeof(str), "%d | %s: %d>%d%s",
-			             seq->len, name, seq->seq1->machine, seq->seq2->machine,
-			             can_float ? "" : " No float, upgrade plugin!");
-		}
-		else {
-			BLI_snprintf(str, sizeof(str), "%d | %s",
+		BLI_snprintf(str, sizeof(str), "%d | %s",
 			             seq->len, name);
-		}
 	}
 	else if (seq->type == SEQ_SOUND) {
 		if (seq->sound)

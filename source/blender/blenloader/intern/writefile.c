@@ -716,7 +716,7 @@ static void write_nodetree(WriteData *wd, bNodeTree *ntree)
 			write_node_socket(wd, sock);
 
 		
-		if (node->storage && node->type!=NODE_DYNAMIC) {
+		if (node->storage) {
 			/* could be handlerized at some point, now only 1 exception still */
 			if (ntree->type==NTREE_SHADER && (node->type==SH_NODE_CURVE_VEC || node->type==SH_NODE_CURVE_RGB))
 				write_curvemapping(wd, node->storage);
@@ -1958,7 +1958,6 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if (tex->adt) write_animdata(wd, tex->adt);
 
 			/* direct data */
-			if (tex->type == TEX_PLUGIN && tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if (tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if (tex->type == TEX_ENVMAP && tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
 			if (tex->type == TEX_POINTDENSITY && tex->pd) {
@@ -2154,7 +2153,6 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 				if (seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 					
-					if (seq->plugin) writestruct(wd, DATA, "PluginSeq", 1, seq->plugin);
 					if (seq->effectdata) {
 						switch (seq->type) {
 						case SEQ_COLOR:

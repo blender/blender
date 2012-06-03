@@ -36,9 +36,22 @@ inline void addFilter(float *result, float*input, float value)
 void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	float in1[4],in2[4], res1[4], res2[4];
+
+	int x1 = x - 1;
+	int x2 = x;
+	int x3 = x + 1;
+	int y1 = y - 1;
+	int y2 = y;
+	int y3 = y + 1;
+	CLAMP(x1, 0, getWidth()-1);
+	CLAMP(x2, 0, getWidth()-1);
+	CLAMP(x3, 0, getWidth()-1);
+	CLAMP(y1, 0, getHeight()-1);
+	CLAMP(y2, 0, getHeight()-1);
+	CLAMP(y3, 0, getHeight()-1);
 	
 	float value[4];
-	this->inputValueOperation->read(value, x, y, inputBuffers, NULL);
+	this->inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
 	float mval = 1.0f - value[0];
 	
 	res1[0] = 0.0f;
@@ -50,39 +63,39 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, Mem
 	res2[2] = 0.0f;
 	res2[3] = 0.0f;
 	
-	this->inputOperation->read(in1, x-1, y-1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x1, y1, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[0]);
 	addFilter(res2, in1, this->filter[0]);
 	
-	this->inputOperation->read(in1, x, y-1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x2, y1, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[1]);
 	addFilter(res2, in1, this->filter[3]);
 	
-	this->inputOperation->read(in1, x+1, y-1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x3, y1, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[2]);
 	addFilter(res2, in1, this->filter[6]);
 	
-	this->inputOperation->read(in1, x-1, y, inputBuffers, NULL);
+	this->inputOperation->read(in1, x1, y2, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[3]);
 	addFilter(res2, in1, this->filter[1]);
 	
-	this->inputOperation->read(in2, x, y, inputBuffers, NULL);
+	this->inputOperation->read(in2, x2, y2, inputBuffers, NULL);
 	addFilter(res1, in2, this->filter[4]);
 	addFilter(res2, in2, this->filter[4]);
 	
-	this->inputOperation->read(in1, x+1, y, inputBuffers, NULL);
+	this->inputOperation->read(in1, x3, y2, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[5]);
 	addFilter(res2, in1, this->filter[7]);
 	
-	this->inputOperation->read(in1, x-1, y+1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x1, y3, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[6]);
 	addFilter(res2, in1, this->filter[2]);
 	
-	this->inputOperation->read(in1, x, y+1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x2, y3, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[7]);
 	addFilter(res2, in1, this->filter[5]);
 	
-	this->inputOperation->read(in1, x+1, y+1, inputBuffers, NULL);
+	this->inputOperation->read(in1, x3, y3, inputBuffers, NULL);
 	addFilter(res1, in1, this->filter[8]);
 	addFilter(res2, in1, this->filter[8]);
 	

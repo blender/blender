@@ -1034,7 +1034,7 @@ static BMFace *collapse_face_corners(BMesh *bm, BMFace *f, int n,
 		BMIter iter;
 		int i;
 
-		shortest_edge = BM_face_find_shortest_edge(f);
+		shortest_edge = BM_face_find_shortest_loop(f)->e;
 		BMO_op_initf(bm, &op, "weldverts");
 
 		/* Note: could probably calculate merges in one go to be
@@ -1193,7 +1193,7 @@ static void skin_fix_hole_no_good_verts(BMesh *bm, Frame *frame, BMFace *split_f
 
 		/* Need at least four ring edges, so subdivide longest edge if
 		 * face is a triangle */
-		longest_edge = BM_face_find_longest_edge(split_face);
+		longest_edge = BM_face_find_longest_loop(split_face)->e;
 		
 		BM_mesh_elem_hflag_disable_all(bm, BM_EDGE, BM_ELEM_TAG, FALSE);
 		BM_elem_flag_enable(longest_edge, BM_ELEM_TAG);

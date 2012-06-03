@@ -112,6 +112,9 @@ struct bActionGroup *get_active_actiongroup(struct bAction *act);
 /* Make the given Action Group the active one */
 void set_active_action_group(struct bAction *act, struct bActionGroup *agrp, short select);
 
+/* Sync colors used for action/bone group with theme settings */
+void action_group_colors_sync(struct bActionGroup *grp);
+
 /* Add a new action group with the given name to the action */
 struct bActionGroup *action_groups_add_new(struct bAction *act, const char name[]);
 

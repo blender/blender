@@ -1304,16 +1304,16 @@ static void ui_block_position(wmWindow *window, ARegion *butregion, uiBut *but, 
 		}
 	}
 	
-	/*aspect= (float)(block->maxx - block->minx + 4);*/ /*UNUSED*/
+	/* aspect = (float)(block->maxx - block->minx + 4);*/ /*UNUSED*/
 	ui_block_to_window_fl(butregion, but->block, &block->minx, &block->miny);
 	ui_block_to_window_fl(butregion, but->block, &block->maxx, &block->maxy);
 
-	//block->minx-= 2.0; block->miny-= 2.0;
-	//block->maxx+= 2.0; block->maxy+= 2.0;
+	//block->minx -= 2.0; block->miny -= 2.0;
+	//block->maxx += 2.0; block->maxy += 2.0;
 	
 	xsize = block->maxx - block->minx + 4; // 4 for shadow
 	ysize = block->maxy - block->miny + 4;
-	/*aspect/= (float)xsize;*/ /*UNUSED*/
+	/* aspect /= (float)xsize;*/ /*UNUSED*/
 
 	{
 		int left = 0, right = 0, top = 0, down = 0;
@@ -2706,7 +2706,7 @@ void uiPupBlockEx(bContext *C, uiBlockCreateFunc func, uiBlockHandleFunc popup_f
 	handle->popup_arg = arg;
 	handle->popup_func = popup_func;
 	handle->cancel_func = cancel_func;
-	// handle->opcontext= opcontext;
+	// handle->opcontext = opcontext;
 	
 	UI_add_popup_handlers(C, &window->modalhandlers, handle);
 	WM_event_add_mousemove(C);

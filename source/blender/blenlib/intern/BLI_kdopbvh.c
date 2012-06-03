@@ -139,7 +139,7 @@ static float KDOP_AXES[13][3] = {
 			else break;                                                       \
 		}                                                                     \
 		heap[child] = element;                                                \
-	}
+	} (void)0
 
 #define POP_HEAP_BODY(HEAP_TYPE, PRIORITY, heap, heap_size)                   \
 	{                                                                         \
@@ -158,7 +158,7 @@ static float KDOP_AXES[13][3] = {
 			parent = child2;                                                  \
 		}                                                                     \
 		heap[parent] = element;                                               \
-	}
+	} (void)0
 
 #if 0
 static int ADJUST_MEMORY(void *local_memblock, void **memblock, int new_size, int *max_size, int size_per_item)

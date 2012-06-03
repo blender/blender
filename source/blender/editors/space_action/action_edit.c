@@ -445,9 +445,16 @@ static short paste_action_keys(bAnimContext *ac,
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok = 0;
 	
-	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	/* filter data 
+	 * - First time we try to filter more strictly, allowing only selected channels 
+	 *   to allow copying animation between channels
+	 * - Second time, we loosen things up if nothing was found the first time, allowing
+	 *   users to just paste keyframes back into the original curve again [#31670]
+	 */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	
+	if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0)
+		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
 	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);

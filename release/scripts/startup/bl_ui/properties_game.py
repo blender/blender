@@ -49,7 +49,12 @@ class PHYSICS_PT_game_physics(PhysicsButtonsPanel, Panel):
 
         physics_type = game.physics_type
 
-        if physics_type in {'DYNAMIC', 'RIGID_BODY'}:
+        if physics_type == 'CHARACTER':
+            layout.prop(game, "step_height", slider=True)
+            layout.prop(game, "jump_speed")
+            layout.prop(game, "fall_speed")
+
+        elif physics_type in {'DYNAMIC', 'RIGID_BODY'}:
             split = layout.split()
 
             col = split.column()
@@ -192,7 +197,7 @@ class PHYSICS_PT_game_collision_bounds(PhysicsButtonsPanel, Panel):
     def poll(cls, context):
         game = context.object.game
         rd = context.scene.render
-        return (game.physics_type in {'DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC'}) and (rd.engine in cls.COMPAT_ENGINES)
+        return (game.physics_type in {'DYNAMIC', 'RIGID_BODY', 'SENSOR', 'SOFT_BODY', 'STATIC', 'CHARACTER'}) and (rd.engine in cls.COMPAT_ENGINES)
 
     def draw_header(self, context):
         game = context.active_object.game
@@ -615,6 +620,14 @@ class WORLD_PT_game_physics(WorldButtonsPanel, Panel):
             col = split.column()
             col.label(text="Logic Steps:")
             col.prop(gs, "logic_step_max", text="Max")
+
+            col = layout.column()
+            col.label(text="Physics Deactivation:")
+            sub = col.row(align=True)
+            sub.prop(gs, "deactivation_linear_threshold", text="Linear Threshold")
+            sub.prop(gs, "deactivation_angular_threshold", text="Angular Threshold")
+            sub = col.row()
+            sub.prop(gs, "deactivation_time", text="Time")
 
             col = layout.column()
             col.prop(gs, "use_occlusion_culling", text="Occlusion Culling")

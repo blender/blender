@@ -39,6 +39,11 @@ public:
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
+	  *@brief initialize the execution
+	  */
+	void initExecution();
+
+	/**
 	  * Deinitialize the execution
 	  */
 	void deinitExecution();

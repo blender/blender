@@ -61,16 +61,20 @@ __device_inline float3 transform_perspective(const Transform *t, const float3 a)
 
 __device_inline float3 transform_point(const Transform *t, const float3 a)
 {
-	float4 b = make_float4(a.x, a.y, a.z, 1.0f);
-	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
+	float3 c = make_float3(
+		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z + t->x.w,
+		a.x*t->y.x + a.y*t->y.y + a.z*t->y.z + t->y.w,
+		a.x*t->z.x + a.y*t->z.y + a.z*t->z.z + t->z.w);
 
 	return c;
 }
 
 __device_inline float3 transform_direction(const Transform *t, const float3 a)
 {
-	float4 b = make_float4(a.x, a.y, a.z, 0.0f);
-	float3 c = make_float3(dot(t->x, b), dot(t->y, b), dot(t->z, b));
+	float3 c = make_float3(
+		a.x*t->x.x + a.y*t->x.y + a.z*t->x.z,
+		a.x*t->y.x + a.y*t->y.y + a.z*t->y.z,
+		a.x*t->z.x + a.y*t->z.y + a.z*t->z.z);
 
 	return c;
 }

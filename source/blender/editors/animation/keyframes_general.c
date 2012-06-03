@@ -671,7 +671,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 	BezTriple *bezt;
 	int i;
 
-	/* First de-select existing FCuvre */
+	/* First de-select existing FCurve's keyframes */
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		bezt->f2 &= ~SELECT;
 	}

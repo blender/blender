@@ -49,6 +49,7 @@
 #include "DNA_action_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 #include "BLI_utildefines.h"
 #include "BKE_armature.h"
 #include "BKE_action.h"
@@ -66,6 +67,23 @@ extern "C"{
 #define __NLA_DEFNORMALS
 //#undef __NLA_DEFNORMALS
 
+short get_deformflags(struct Object *bmeshobj)
+{
+	short flags = ARM_DEF_VGROUP;
+
+	ModifierData *md;
+	for (md = (ModifierData*)bmeshobj->modifiers.first; md; md = (ModifierData*)md->next)
+	{
+		if (md->type == eModifierType_Armature)
+		{
+			flags |= ((ArmatureModifierData*)md)->deformflag;
+			break;
+		}
+	}
+
+	return flags;
+}
+
 BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 								struct Object *bmeshobj, 
 								class RAS_MeshObject *mesh,
@@ -82,6 +100,7 @@ BL_SkinDeformer::BL_SkinDeformer(BL_DeformableGameObject *gameobj,
 							m_dfnrToPC(NULL)
 {
 	copy_m4_m4(m_obmat, bmeshobj->obmat);
+	m_deformflags = get_deformflags(bmeshobj);
 };
 
 BL_SkinDeformer::BL_SkinDeformer(
@@ -107,6 +126,7 @@ BL_SkinDeformer::BL_SkinDeformer(
 		// in the calculation, so we must use the matrix of the original object to
 		// simulate a pure replacement of the mesh.
 		copy_m4_m4(m_obmat, bmeshobj_new->obmat);
+		m_deformflags = get_deformflags(bmeshobj_new);
 	}
 
 BL_SkinDeformer::~BL_SkinDeformer()
@@ -201,7 +221,7 @@ void BL_SkinDeformer::BlenderDeformVerts()
 	// set reference matrix
 	copy_m4_m4(m_objMesh->obmat, m_obmat);
 
-	armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL, NULL );
+	armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, m_deformflags, NULL, NULL );
 		
 	// restore matrix 
 	copy_m4_m4(m_objMesh->obmat, obmat);

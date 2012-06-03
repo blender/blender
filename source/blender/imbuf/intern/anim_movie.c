@@ -49,7 +49,7 @@
 	{ \
 		if (fcc == 0)       { fcc = mmioFOURCC('N', 'o', 'n', 'e'); } \
 		if (fcc == BI_RLE8) { fcc = mmioFOURCC('R', 'l', 'e', '8'); } \
-	}
+	} (void)0
 
 #endif
 
@@ -120,14 +120,17 @@ int ismovie(const char *UNUSED(filepath))
 }
 
 /* never called, just keep the linker happy */
-static int startmovie(struct anim *UNUSED(anim)) {
+static int startmovie(struct anim *UNUSED(anim))
+{
 	return 1;
 }
-static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position)) {
+static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position))
+{
 	return NULL;
 }
-static void free_anim_movie(struct anim *UNUSED(anim)) {
-	;
+static void free_anim_movie(struct anim *UNUSED(anim))
+{
+	/* pass */
 }
 
 

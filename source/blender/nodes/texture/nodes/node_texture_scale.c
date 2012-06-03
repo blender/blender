@@ -34,13 +34,13 @@
 #include "node_texture_util.h"
 
 static bNodeSocketTemplate inputs[]= { 
-	{ SOCK_RGBA,   1, "Color", 0.0f, 0.0f, 0.0f, 1.0f },
-	{ SOCK_VECTOR, 1, "Scale", 1.0f, 1.0f, 1.0f, 0.0f,  -10.0f, 10.0f, PROP_XYZ },
+	{ SOCK_RGBA,   1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f },
+	{ SOCK_VECTOR, 1, N_("Scale"), 1.0f, 1.0f, 1.0f, 0.0f,  -10.0f, 10.0f, PROP_XYZ },
 	{ -1, 0, "" } 
 };
 
 static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_RGBA, 0, "Color"}, 
+	{ SOCK_RGBA, 0, N_("Color")}, 
 	{ -1, 0, "" } 
 };
 

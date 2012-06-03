@@ -22,10 +22,8 @@
 
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
-#include "COM_MemoryManager.h"
 #include <stdio.h>
 
-/// @TODO: writebuffers don't have an actual data type set.
 WriteBufferOperation::WriteBufferOperation() :NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -46,20 +44,23 @@ void WriteBufferOperation::executePixel(float *color, float x, float y, PixelSam
 {
 	input->read(color, x, y, sampler, inputBuffers);
 }
+
 void WriteBufferOperation::initExecution()
 {
-		this->input = this->getInputOperation(0);
-	MemoryManager::addMemoryProxy(this->memoryProxy);
+	this->input = this->getInputOperation(0);
+	this->memoryProxy->allocate(this->width, this->height);
 }
+
 void WriteBufferOperation::deinitExecution()
 {
 	this->input = NULL;
+	this->memoryProxy->free();
 }
-
 
 void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
 {
-	MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
+	//MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
+	MemoryBuffer *memoryBuffer = this->memoryProxy->getBuffer();
 	float *buffer = memoryBuffer->getBuffer();
 	if (this->input->isComplex()) {
 		void *data = this->input->initializeTileData(rect, memoryBuffers);
@@ -67,14 +68,14 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
 		int y2 = rect->ymax;
-		int offset4 = 0;
 		int x;
 		int y;
 		bool breaked = false;
 		for (y = y1 ; y < y2 && (!breaked) ; y++) {
+			int offset4 = (y*memoryBuffer->getWidth()+x1)*COM_NUMBER_OF_CHANNELS;
 			for (x = x1 ; x < x2; x++) {
 				input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
-				offset4 +=4;
+				offset4 +=COM_NUMBER_OF_CHANNELS;
 
 			}
 			if (tree->test_break && tree->test_break(tree->tbh)) {
@@ -92,14 +93,15 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		int y1 = rect->ymin;
 		int x2 = rect->xmax;
 		int y2 = rect->ymax;
-		int offset4 = 0;
+
 		int x;
 		int y;
 		bool breaked = false;
 		for (y = y1 ; y < y2 && (!breaked) ; y++) {
+			int offset4 = (y*memoryBuffer->getWidth()+x1)*COM_NUMBER_OF_CHANNELS;
 			for (x = x1 ; x < x2 ; x++) {
 				input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
-				offset4 +=4;
+				offset4 +=COM_NUMBER_OF_CHANNELS;
 			}
 			if (tree->test_break && tree->test_break(tree->tbh)) {
 				breaked = true;
@@ -111,7 +113,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 
 void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** inputMemoryBuffers)
 {
-	MemoryBuffer *outputMemoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), chunkNumber);
+	MemoryBuffer *outputMemoryBuffer = this->getMemoryProxy()->getBuffer();// @todo wrong implementation needs revision
 	float *outputFloatBuffer = outputMemoryBuffer->getBuffer();
 	cl_int error;
 	/*

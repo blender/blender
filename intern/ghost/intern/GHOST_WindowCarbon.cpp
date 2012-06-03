@@ -221,7 +221,7 @@ bool GHOST_WindowCarbon::getValid() const
 
 void GHOST_WindowCarbon::setTitle(const STR_String& title)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setTitle(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setTitle(): window invalid");
 	Str255 title255;
 	gen2mac(title, title255);
 	::SetWTitle(m_windowRef, title255);
@@ -230,7 +230,7 @@ void GHOST_WindowCarbon::setTitle(const STR_String& title)
 
 void GHOST_WindowCarbon::getTitle(STR_String& title) const
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getTitle(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getTitle(): window invalid");
 	Str255 title255;
 	::GetWTitle(m_windowRef, title255);
 	mac2gen(title255, title);
@@ -241,7 +241,7 @@ void GHOST_WindowCarbon::getWindowBounds(GHOST_Rect& bounds) const
 {
 	OSStatus success;
 	Rect rect;
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getWindowBounds(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getWindowBounds(): window invalid");
 	success = ::GetWindowBounds(m_windowRef, kWindowStructureRgn, &rect);
 	bounds.m_b = rect.bottom;
 	bounds.m_l = rect.left;
@@ -253,7 +253,7 @@ void GHOST_WindowCarbon::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 {
 	Rect rect;
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getClientBounds(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getClientBounds(): window invalid");
 	//::GetPortBounds(m_grafPtr, &rect);
 	::GetWindowBounds(m_windowRef, kWindowContentRgn, &rect);
 
@@ -277,7 +277,7 @@ void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 
 GHOST_TSuccess GHOST_WindowCarbon::setClientWidth(GHOST_TUns32 width)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientWidth(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientWidth(): window invalid");
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 	if (((GHOST_TUns32)cBnds.getWidth()) != width) {
@@ -289,7 +289,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setClientWidth(GHOST_TUns32 width)
 
 GHOST_TSuccess GHOST_WindowCarbon::setClientHeight(GHOST_TUns32 height)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientHeight(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientHeight(): window invalid");
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 #ifdef GHOST_DRAW_CARBON_GUTTER
@@ -307,7 +307,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setClientHeight(GHOST_TUns32 height)
 
 GHOST_TSuccess GHOST_WindowCarbon::setClientSize(GHOST_TUns32 width, GHOST_TUns32 height)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientSize(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setClientSize(): window invalid");
 	GHOST_Rect cBnds, wBnds;
 	getClientBounds(cBnds);
 #ifdef GHOST_DRAW_CARBON_GUTTER
@@ -328,7 +328,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setClientSize(GHOST_TUns32 width, GHOST_TUns3
 
 GHOST_TWindowState GHOST_WindowCarbon::getState() const
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getState(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getState(): window invalid");
 	GHOST_TWindowState state;
 	if (::IsWindowVisible(m_windowRef) == false) {
 		state = GHOST_kWindowStateMinimized;
@@ -345,7 +345,7 @@ GHOST_TWindowState GHOST_WindowCarbon::getState() const
 
 void GHOST_WindowCarbon::screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::screenToClient(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::screenToClient(): window invalid");
 	Point point;
 	point.h = inX;
 	point.v = inY;
@@ -361,7 +361,7 @@ void GHOST_WindowCarbon::screenToClient(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOS
 
 void GHOST_WindowCarbon::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY) const
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::clientToScreen(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::clientToScreen(): window invalid");
 	Point point;
 	point.h = inX;
 	point.v = inY;
@@ -377,7 +377,7 @@ void GHOST_WindowCarbon::clientToScreen(GHOST_TInt32 inX, GHOST_TInt32 inY, GHOS
 
 GHOST_TSuccess GHOST_WindowCarbon::setState(GHOST_TWindowState state)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setState(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setState(): window invalid");
 	switch (state) {
 		case GHOST_kWindowStateMinimized:
 			::HideWindow(m_windowRef);
@@ -400,7 +400,7 @@ GHOST_TSuccess GHOST_WindowCarbon::setState(GHOST_TWindowState state)
 
 GHOST_TSuccess GHOST_WindowCarbon::setOrder(GHOST_TWindowOrder order)
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setOrder(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::setOrder(): window invalid");
 	if (order == GHOST_kWindowOrderTop) {
 		//::BringToFront(m_windowRef); is wrong, front window should be active for input too
 		::SelectWindow(m_windowRef);
@@ -555,7 +555,7 @@ GHOST_TSuccess GHOST_WindowCarbon::removeDrawingContext()
 
 GHOST_TSuccess GHOST_WindowCarbon::invalidate()
 {
-	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::invalidate(): window invalid")
+	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::invalidate(): window invalid");
 	if (!m_fullScreen) {
 		Rect rect;
 		::GetPortBounds(m_grafPtr, &rect);

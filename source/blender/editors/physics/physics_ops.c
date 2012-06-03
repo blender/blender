@@ -136,7 +136,8 @@ static void keymap_particle(wmKeyConfig *keyconf)
 	
 	WM_keymap_add_item(keymap, "PARTICLE_OT_weight_set", KKEY, KM_PRESS, KM_SHIFT, 0);
 
-	ED_object_generic_keymap(keyconf, keymap, 2);
+	ED_keymap_proportional_cycle(keyconf, keymap);
+	ED_keymap_proportional_editmode(keyconf, keymap, FALSE);
 }
 
 /******************************* boids *************************************/

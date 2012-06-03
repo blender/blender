@@ -586,7 +586,7 @@ void make_envmaps(Render *re)
 
 /* ------------------------------------------------------------------------- */
 
-static int envcube_isect(EnvMap *env, float *vec, float *answ)
+static int envcube_isect(EnvMap *env, const float vec[3], float answ[2])
 {
 	float labda;
 	int face;

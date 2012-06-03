@@ -27,7 +27,7 @@ AlphaOverMixedOperation::AlphaOverMixedOperation(): MixBaseOperation()
 	this->x = 0.0f;
 }
 
-void AlphaOverMixedOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inputColor1[4];
 	float inputOverColor[4];

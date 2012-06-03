@@ -18,7 +18,7 @@
 
 CCL_NAMESPACE_BEGIN
 
-/* Clouds */
+/* Noise */
 
 __device_inline void svm_noise(float3 p, float scale, float detail, float distortion, float *fac, float3 *color)
 {

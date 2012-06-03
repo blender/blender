@@ -138,20 +138,20 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 		return ED_undo_gpencil_step(C, step, undoname);
 	}
 
-	if (sa && sa->spacetype == SPACE_IMAGE) {
+	if (sa && (sa->spacetype == SPACE_IMAGE)) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
 			if (!ED_undo_paint_step(C, UNDO_PAINT_IMAGE, step, undoname) && undoname)
 				if (U.uiflag & USER_GLOBALUNDO)
 					BKE_undo_name(C, undoname);
-
+			
 			WM_event_add_notifier(C, NC_WINDOW, NULL);
 			return OPERATOR_FINISHED;
 		}
 	}
 
-	if (sa && sa->spacetype == SPACE_TEXT) {
+	if (sa && (sa->spacetype == SPACE_TEXT)) {
 		ED_text_undo_step(C, step);
 	}
 	else if (obedit) {
@@ -160,7 +160,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 				undo_editmode_name(C, undoname);
 			else
 				undo_editmode_step(C, step);
-
+			
 			WM_event_add_notifier(C, NC_GEOM | ND_DATA, NULL);
 		}
 	}
@@ -195,7 +195,7 @@ static int ed_undo_step(bContext *C, int step, const char *undoname)
 					BKE_undo_name(C, undoname);
 				else
 					BKE_undo_step(C, step);
-
+				
 				WM_event_add_notifier(C, NC_SCENE | ND_LAYER_CONTENT, CTX_data_scene(C));
 			}
 			
@@ -238,12 +238,12 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 	if (sa && sa->spacetype == SPACE_IMAGE) {
 		SpaceImage *sima = (SpaceImage *)sa->spacedata.first;
 		
-		if ((obact && obact->mode & OB_MODE_TEXTURE_PAINT) || sima->flag & SI_DRAWTOOL) {
+		if ((obact && (obact->mode & OB_MODE_TEXTURE_PAINT)) || (sima->flag & SI_DRAWTOOL)) {
 			return 1;
 		}
 	}
 	
-	if (sa && sa->spacetype == SPACE_TEXT) {
+	if (sa && (sa->spacetype == SPACE_TEXT)) {
 		return 1;
 	}
 	else if (obedit) {
@@ -256,11 +256,11 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 		/* if below tests fail, global undo gets executed */
 		
 		if (obact && obact->mode & OB_MODE_TEXTURE_PAINT) {
-			if (ED_undo_paint_valid(UNDO_PAINT_IMAGE, undoname) )
+			if (ED_undo_paint_valid(UNDO_PAINT_IMAGE, undoname))
 				return 1;
 		}
 		else if (obact && obact->mode & OB_MODE_SCULPT) {
-			if (ED_undo_paint_valid(UNDO_PAINT_MESH, undoname) )
+			if (ED_undo_paint_valid(UNDO_PAINT_MESH, undoname))
 				return 1;
 		}
 		else if (obact && obact->mode & OB_MODE_PARTICLE_EDIT) {
@@ -276,7 +276,7 @@ int ED_undo_valid(const bContext *C, const char *undoname)
 
 static int ed_undo_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	/* "last operator" should disappear, later we can tie ths with undo stack nicer */
+	/* "last operator" should disappear, later we can tie this with undo stack nicer */
 	WM_operator_stack_clear(CTX_wm_manager(C));
 	return ed_undo_step(C, 1, NULL);
 }

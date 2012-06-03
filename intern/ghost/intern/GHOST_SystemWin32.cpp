@@ -27,18 +27,12 @@
 
 /** \file ghost/intern/GHOST_SystemWin32.cpp
  *  \ingroup GHOST
+ *
+ * \author	Maarten Gribnau
  */
 
-
-/**
-
- * Copyright (C) 2001 NaN Technologies B.V.
- * @author	Maarten Gribnau
- * @date	May 7, 2001
- */
-
-#ifdef BF_GHOST_DEBUG
-#include <iostream>
+#ifdef WITH_GHOST_DEBUG
+#  include <iostream>
 #endif
 
 #include <stdio.h> // [mce] temporary debug, remove soon!
@@ -47,17 +41,18 @@
 #include "GHOST_EventDragnDrop.h"
 
 #ifndef _WIN32_IE
-#define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
+#  define _WIN32_IE 0x0501 /* shipped before XP, so doesn't impose additional requirements */
 #endif
+
 #include <shlobj.h>
 #include <tlhelp32.h>
 
 // win64 doesn't define GWL_USERDATA
 #ifdef WIN32
-#ifndef GWL_USERDATA
-#define GWL_USERDATA GWLP_USERDATA
-#define GWL_WNDPROC GWLP_WNDPROC 
-#endif
+#  ifndef GWL_USERDATA
+#    define GWL_USERDATA GWLP_USERDATA
+#    define GWL_WNDPROC GWLP_WNDPROC
+#  endif
 #endif
 
 #include "utfconv.h"
@@ -389,11 +384,11 @@ GHOST_TSuccess GHOST_SystemWin32::init()
 	// Determine whether this system has a high frequency performance counter. */
 	m_hasPerformanceCounter = ::QueryPerformanceFrequency((LARGE_INTEGER *)&m_freq) == TRUE;
 	if (m_hasPerformanceCounter) {
-		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n")
+		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer available\n");
 		::QueryPerformanceCounter((LARGE_INTEGER *)&m_start);
 	}
 	else {
-		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer not available\n")
+		GHOST_PRINT("GHOST_SystemWin32::init: High Frequency Performance Timer not available\n");
 	}
 
 	if (success) {
@@ -885,7 +880,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 
 	LRESULT lResult = 0;
 	GHOST_SystemWin32 *system = ((GHOST_SystemWin32 *)getSystem());
-	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized")
+	GHOST_ASSERT(system, "GHOST_SystemWin32::s_wndProc(): system not initialized");
 
 	if (hwnd) {
 		GHOST_WindowWin32 *window = (GHOST_WindowWin32 *)::GetWindowLong(hwnd, GWL_USERDATA);
@@ -917,9 +912,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 						case RIM_TYPEKEYBOARD:
 							event = processKeyEvent(window, raw);
 							if (!event) {
-								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ")
-								GHOST_PRINT(msg)
-								GHOST_PRINT(" key ignored\n")
+								GHOST_PRINT("GHOST_SystemWin32::wndProc: key event ");
+								GHOST_PRINT(msg);
+								GHOST_PRINT(" key ignored\n");
 							}
 							break;
 #ifdef WITH_INPUT_NDOF
@@ -1233,7 +1228,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 		}
 		else {
 			// Event found for a window before the pointer to the class has been set.
-			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n")
+			GHOST_PRINT("GHOST_SystemWin32::wndProc: GHOST window event before creation\n");
 			/* These are events we typically miss at this point:
 			   WM_GETMINMAXINFO	0x24
 			   WM_NCCREATE			0x81
@@ -1245,7 +1240,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 	}
 	else {
 		// Events without valid hwnd
-		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n")
+		GHOST_PRINT("GHOST_SystemWin32::wndProc: event without window\n");
 	}
 
 	if (event) {

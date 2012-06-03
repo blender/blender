@@ -918,6 +918,13 @@ void WM_operator_properties_gesture_border(wmOperatorType *ot, int extend)
 		RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
 }
 
+void WM_operator_properties_mouse_select(wmOperatorType *ot)
+{
+	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from selection");
+	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggle the selection");
+}
+
 void WM_operator_properties_gesture_straightline(wmOperatorType *ot, int cursor)
 {
 	RNA_def_int(ot->srna, "xstart", 0, INT_MIN, INT_MAX, "X Start", "", INT_MIN, INT_MAX);
@@ -1015,8 +1022,8 @@ static void dialog_exec_cb(bContext *C, void *arg1, void *arg2)
 	WM_operator_call(C, data->op);
 
 	/* let execute handle freeing it */
-	//data->free_op= FALSE;
-	//data->op= NULL;
+	//data->free_op = FALSE;
+	//data->op = NULL;
 
 	/* in this case, wm_operator_ui_popup_cancel wont run */
 	MEM_freeN(data);
@@ -1314,7 +1321,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 		menu.type = mt;
 		mt->draw(C, &menu);
 
-//		wmWindowManager *wm= CTX_wm_manager(C);
+//		wmWindowManager *wm = CTX_wm_manager(C);
 //		uiItemM(layout, C, "USERPREF_MT_keyconfigs", U.keyconfigstr, ICON_NONE);
 	}
 	
@@ -2155,7 +2162,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life, apply_modifiers, include_bone_children;
+	int selected, second_life, apply_modifiers, include_bone_children, use_object_instantiation;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2165,11 +2172,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	RNA_string_get(op->ptr, "filepath", filename);
 
 	/* Options panel */
-	selected              = RNA_boolean_get(op->ptr, "selected");
-	apply_modifiers       = RNA_boolean_get(op->ptr, "apply_modifiers");
-    include_bone_children = RNA_boolean_get(op->ptr, "include_bone_children");
-
-	second_life           = RNA_boolean_get(op->ptr, "second_life");
+	selected                 = RNA_boolean_get(op->ptr, "selected");
+	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
+    include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
+    use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
@@ -2180,6 +2187,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		selected,
 		apply_modifiers,
 		include_bone_children,
+		use_object_instantiation,
 		second_life)) {
 		return OPERATOR_FINISHED;
 	}
@@ -2210,6 +2218,9 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "include_bone_children", 0, "Include Bone Children",
 	                "Include all objects attached to bones of selected Armature(s)");
+
+	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
+		            "Instantiate multiple Objects from same Data");
 
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");

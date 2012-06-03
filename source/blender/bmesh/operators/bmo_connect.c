@@ -178,7 +178,7 @@ static int clamp_index(const int x, const int len)
 			BLI_array_append(arr2, arr_tmp[i]);                               \
 		}                                                                     \
 		BLI_array_free(arr_tmp);                                              \
-	}
+	} (void)0
 
 /* get the 2 loops matching 2 verts.
  * first attempt to get the face corners that use the edge defined by v1 & v2,

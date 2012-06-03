@@ -34,9 +34,18 @@ GaussianBokehBlurOperation::GaussianBokehBlurOperation(): BlurBaseOperation()
 
 void *GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	updateGauss(memoryBuffers);
+	if (!sizeavailable) {
+		updateGauss(memoryBuffers);
+	}
 	void *buffer = getInputOperation(0)->initializeTileData(NULL, memoryBuffers);
 	return buffer;
+}
+
+void GaussianBokehBlurOperation::initExecution()
+{
+	if (this->sizeavailable) {
+		updateGauss(NULL);
+	}
 }
 
 void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
@@ -51,8 +60,9 @@ void GaussianBokehBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 		int j, i;
 		const float width = this->getWidth();
 		const float height = this->getHeight();
-		updateSize(memoryBuffers);
-		
+		if (!sizeavailable) {
+			updateSize(memoryBuffers);
+		}
 		radxf = size*(float)this->data->sizex;
 		if (radxf>width/2.0f)
 			radxf = width/2.0f;
@@ -163,19 +173,20 @@ bool GaussianBokehBlurOperation::determineDependingAreaOfInterest(rcti *input, R
 		return true;
 	}
 	else {
-		if (this->gausstab) {
+		if (this->sizeavailable && this->gausstab != NULL) {
+			newInput.xmin = 0;
+			newInput.ymin = 0;
+			newInput.xmax = this->getWidth();
+			newInput.ymax = this->getHeight();
+		}
+		else {
 			int addx = radx;
 			int addy = rady;
 			newInput.xmax = input->xmax + addx;
 			newInput.xmin = input->xmin - addx;
 			newInput.ymax = input->ymax + addy;
 			newInput.ymin = input->ymin - addy;
-		}
-		else {
-			newInput.xmin = 0;
-			newInput.ymin = 0;
-			newInput.xmax = this->getWidth();
-			newInput.ymax = this->getHeight();
+
 		}
 		return BlurBaseOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 	}

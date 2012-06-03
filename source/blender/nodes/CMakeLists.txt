@@ -121,7 +121,6 @@ set(SRC
 	shader/nodes/node_shader_camera.c
 	shader/nodes/node_shader_common.c
 	shader/nodes/node_shader_curves.c
-	shader/nodes/node_shader_dynamic.c
 	shader/nodes/node_shader_gamma.c
 	shader/nodes/node_shader_brightness.c
 	shader/nodes/node_shader_geom.c

@@ -84,7 +84,7 @@ public:
 		} else
 		{
 			///need to transform normal into worldspace
-			hitNormalWorld = m_hitCollisionObject->getWorldTransform().getBasis()*convexResult.m_hitNormalLocal;
+			hitNormalWorld = convexResult.m_hitCollisionObject->getWorldTransform().getBasis()*convexResult.m_hitNormalLocal;
 		}
 
 		btScalar dotUp = m_up.dot(hitNormalWorld);

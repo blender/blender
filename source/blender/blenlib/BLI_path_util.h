@@ -54,13 +54,11 @@ char *BLI_get_folder_version(const int id, const int ver, const int do_check);
 #define BLENDER_USER_CONFIG         31
 #define BLENDER_USER_DATAFILES      32
 #define BLENDER_USER_SCRIPTS        33
-#define BLENDER_USER_PLUGINS        34
-#define BLENDER_USER_AUTOSAVE       35
+#define BLENDER_USER_AUTOSAVE       34
 
 /* system */
 #define BLENDER_SYSTEM_DATAFILES    52
 #define BLENDER_SYSTEM_SCRIPTS      53
-#define BLENDER_SYSTEM_PLUGINS      54
 #define BLENDER_SYSTEM_PYTHON       54
 
 /* for BLI_get_folder_version only */

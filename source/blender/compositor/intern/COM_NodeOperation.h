@@ -20,8 +20,8 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_NodeProgram_h
-#define _COM_NodeProgram_h
+#ifndef _COM_NodeOperation_h
+#define _COM_NodeOperation_h
 
 class NodeOperation;
 
@@ -33,6 +33,7 @@ class NodeOperation;
 #include "COM_SocketReader.h"
 #include "OCL_opencl.h"
 #include "list"
+#include "BLI_threads.h"
 
 class ReadBufferOperation;
 

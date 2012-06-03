@@ -43,7 +43,7 @@ __device_inline float3 svm_world_to_ndc(KernelGlobals *kg, ShaderData *sd, float
 		else
 			P = normalize(transform_direction(&tfm, P));
 
-		float2 uv = direction_to_panorama(kg, P);;
+		float2 uv = direction_to_panorama(kg, P);
 
 		return make_float3(uv.x, uv.y, 0.0f);
 	}

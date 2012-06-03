@@ -622,7 +622,7 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 	wmWindowManager *wm = CTX_wm_manager(C);
 
 	if (win != wm->windrawable && win->ghostwin) {
-//		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
+//		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
 		
 		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {

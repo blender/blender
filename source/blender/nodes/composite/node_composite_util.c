@@ -1349,7 +1349,7 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy)
 	Y[L-3] = cf[0]*W[L-3] + cf[1]*Y[L-2] + cf[2]*Y[L-1] + cf[3]*tsv[0];       \
 	for (i=L-4; i>=0; i--)                                                    \
 		Y[i] = cf[0]*W[i] + cf[1]*Y[i+1] + cf[2]*Y[i+2] + cf[3]*Y[i+3];       \
-}
+} (void)0
 
 	// intermediate buffers
 	sz = MAX2(src->x, src->y);

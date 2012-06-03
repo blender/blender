@@ -482,7 +482,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 	i=0;
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
 	
-	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+	// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object's flushBuffer
 	// needed for 'Draw Overlap' drawing method
 	pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore; 
 	
@@ -525,7 +525,7 @@ GHOST_WindowCocoa::GHOST_WindowCocoa(
 		i=0;
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFADoubleBuffer;
 		
-		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object’s flushBuffer
+		// Guarantees the back buffer contents to be valid after a call to NSOpenGLContext object's flushBuffer
 		// needed for 'Draw Overlap' drawing method
 		pixelFormatAttrsWindow[i++] = NSOpenGLPFABackingStore;
 		

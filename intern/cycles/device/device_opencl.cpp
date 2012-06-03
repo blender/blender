@@ -407,7 +407,7 @@ public:
 		string device_md5 = device_md5_hash();
 
 		/* try to use cache binary */
-		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());;
+		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
 		clbin = path_user_get(path_join("cache", clbin));
 
 		if(path_exists(clbin)) {

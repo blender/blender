@@ -251,6 +251,13 @@ std::string get_geometry_id(Object *ob)
 	return translate_id(id_name(ob->data)) + "-mesh";
 }
 
+std::string get_geometry_id(Object *ob, bool use_instantiation)
+{
+	std::string geom_name = (use_instantiation) ? id_name(ob->data) : id_name(ob);
+
+	return translate_id(geom_name) + "-mesh";
+}
+
 std::string get_light_id(Object *ob)
 {
 	return translate_id(id_name(ob)) + "-light";

@@ -293,8 +293,8 @@ int node_group_ungroup(bNodeTree *ntree, bNode *gnode)
 		BLI_remlink(&wgroup->nodes, node);
 		BLI_addtail(&ntree->nodes, node);
 		
-		node->locx+= gnode->locx;
-		node->locy+= gnode->locy;
+		node->locx += gnode->locx;
+		node->locy += gnode->locy;
 		
 		node->flag |= NODE_SELECT;
 	}
@@ -831,6 +831,55 @@ void register_node_type_frame(bNodeTreeType *ttype)
 	node_type_storage(ntype, "NodeFrame", node_free_standard_storage, node_copy_standard_storage);
 	node_type_size(ntype, 150, 100, 0);
 	node_type_compatibility(ntype, NODE_OLD_SHADING|NODE_NEW_SHADING);
+	
+	ntype->needs_free = 1;
+	nodeRegisterType(ttype, ntype);
+}
+
+
+/* **************** REROUTE ******************** */
+
+static bNodeSocketTemplate node_reroute_in[]= {
+	{	SOCK_RGBA, 1, "Input",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+static bNodeSocketTemplate node_reroute_out[]= {
+	{	SOCK_RGBA, 0, "Output",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* simple, only a single input and output here */
+ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
+{
+	bNodeLink *link;
+	ListBase ret;
+
+	ret.first = ret.last = NULL;
+
+	/* Security check! */
+	if(!ntree)
+		return ret;
+
+	link = MEM_callocN(sizeof(bNodeLink), "internal node link");
+	link->fromnode = node;
+	link->fromsock = node->inputs.first;
+	link->tonode = node;
+	link->tosock = node->outputs.first;
+	/* internal link is always valid */
+	link->flag |= NODE_LINK_VALID;
+	BLI_addtail(&ret, link);
+
+	return ret;
+}
+
+void register_node_type_reroute(bNodeTreeType *ttype)
+{
+	/* frame type is used for all tree types, needs dynamic allocation */
+	bNodeType *ntype= MEM_callocN(sizeof(bNodeType), "frame node type");
+	
+	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
+	node_type_socket_templates(ntype, node_reroute_in, node_reroute_out);
+	node_type_internal_connect(ntype, node_reroute_internal_connect);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ttype, ntype);

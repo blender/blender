@@ -4065,9 +4065,9 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 		}
 	}
 
-/*	printf("%d vertices: %d to be affected…\n", totelem[0], affected[0]);*/
-/*	printf("%d edges: %d to be affected…\n", totelem[1], affected[1]);*/
-/*	printf("%d faces: %d to be affected…\n", totelem[2], affected[2]);*/
+/*	printf("%d vertices: %d to be affected...\n", totelem[0], affected[0]);*/
+/*	printf("%d edges: %d to be affected...\n", totelem[1], affected[1]);*/
+/*	printf("%d faces: %d to be affected...\n", totelem[2], affected[2]);*/
 	if (affected[0] == 0 && affected[1] == 0 && affected[2] == 0) {
 		for (j = 3; j--; ) {
 			if (pblock[j])

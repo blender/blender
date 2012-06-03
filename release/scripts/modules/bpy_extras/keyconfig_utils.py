@@ -145,7 +145,7 @@ def _export_properties(prefix, properties, lines=None):
         return result
 
     for pname in properties.bl_rna.properties.keys():
-        if pname != "rna_type" and not properties.is_property_hidden(pname):
+        if pname != "rna_type":
             value = getattr(properties, pname)
             if isinstance(value, OperatorProperties):
                 _export_properties(prefix + "." + pname, value, lines)

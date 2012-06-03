@@ -109,8 +109,7 @@ static void waitcursor(int UNUSED(val)) {}
 static int pupmenu(const char *UNUSED(msg)) {return 0;}
 
 /* port over here */
-static void error_libdata(void) {
-}
+static void error_libdata(void) {}
 
 Object *ED_object_context(bContext *C)
 {
@@ -198,6 +197,9 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 			if (!(base->flag & SELECT)) {
 				base->object->restrictflag |= OB_RESTRICT_VIEW;
 				changed = 1;
+				if (base == BASACT) {
+					ED_base_object_activate(C, NULL);
+				}
 			}
 		}	
 	}

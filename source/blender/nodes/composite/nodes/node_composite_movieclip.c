@@ -34,11 +34,11 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate cmp_node_movieclip_out[] = {
-	{	SOCK_RGBA,		0,	"Image"},
-	{	SOCK_FLOAT,		1,	"Offset X"},
-	{	SOCK_FLOAT,		1,	"Offset Y"},
-	{	SOCK_FLOAT,		1,	"Scale"},
-	{	SOCK_FLOAT,		1,	"Angle"},
+	{	SOCK_RGBA,		0,	N_("Image")},
+	{	SOCK_FLOAT,		1,	N_("Offset X")},
+	{	SOCK_FLOAT,		1,	N_("Offset Y")},
+	{	SOCK_FLOAT,		1,	N_("Scale")},
+	{	SOCK_FLOAT,		1,	N_("Angle")},
 	{	-1, 0, ""	}
 };
 

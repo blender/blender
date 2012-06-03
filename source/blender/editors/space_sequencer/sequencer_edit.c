@@ -231,27 +231,6 @@ void seq_rectf(Sequence *seq, rctf *rectf)
 	rectf->ymax = seq->machine + SEQ_STRIP_OFSTOP;
 }
 
-static void UNUSED_FUNCTION(change_plugin_seq) (Scene * scene, char *str) /* called from fileselect */
-{
-	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
-	struct SeqEffectHandle sh;
-	Sequence *last_seq = BKE_sequencer_active_get(scene);
-
-	if (last_seq == NULL || last_seq->type != SEQ_PLUGIN) return;
-
-	sh = get_sequence_effect(last_seq);
-	sh.free(last_seq);
-	sh.init_plugin(last_seq, str);
-
-	last_seq->machine = MAX3(last_seq->seq1->machine,
-	                         last_seq->seq2->machine,
-	                         last_seq->seq3->machine);
-
-	if (seq_test_overlap(ed->seqbasep, last_seq) ) shuffle_seq(ed->seqbasep, last_seq, scene);
-	
-}
-
-
 void boundbox_seq(Scene *scene, rctf *rect)
 {
 	Sequence *seq;
@@ -454,7 +433,7 @@ static int seq_is_predecessor(Sequence *pred, Sequence *seq)
 	return 0;
 }
 
-void deselect_all_seq(Scene *scene)
+void ED_sequencer_deselect_all(Scene *scene)
 {
 	Sequence *seq;
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
@@ -2665,7 +2644,7 @@ static int sequencer_paste_exec(bContext *C, wmOperator *UNUSED(op))
 	int ofs;
 	Sequence *iseq;
 
-	deselect_all_seq(scene);
+	ED_sequencer_deselect_all(scene);
 	ofs = scene->r.cfra - seqbase_clipboard_frame;
 
 	seqbase_dupli_recursive(scene, NULL, &nseqbase, &seqbase_clipboard, SEQ_DUPE_UNIQUE_NAME);

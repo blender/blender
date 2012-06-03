@@ -29,6 +29,7 @@
 #include "blender_util.h"
 
 #include "util_foreach.h"
+#include "util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -245,17 +246,20 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	/* object sync */
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
-		object->instance_id = b_index;
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
 		object->motion.pre = tfm;
 		object->motion.post = tfm;
 		object->use_motion = false;
 
+		object->random_id = hash_int_2d(hash_string(object->name.c_str()), b_index);
+
 		/* visibility flags for both parent */
 		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;
-		if(b_parent.ptr.data != b_ob.ptr.data)
+		if(b_parent.ptr.data != b_ob.ptr.data) {
 			object->visibility &= object_ray_visibility(b_parent);
+			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
+		}
 
 		/* camera flag is not actually used, instead is tested
 		   against render layer flags */

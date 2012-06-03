@@ -831,7 +831,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		return WM_operator_poll(C, ot);
 
 	if (WM_operator_poll(C, ot)) {
-		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
+		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports == NULL, they'll be initialized */
 		const short is_nested_call = (wm->op_undo_depth != 0);
 		
 		/* initialize setting from previous run */

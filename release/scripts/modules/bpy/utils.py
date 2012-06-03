@@ -391,6 +391,11 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
     Returns an SMPTE formatted string from the frame: "HH:MM:SS:FF".
 
     If *fps* and *fps_base* are not given the current scene is used.
+
+    :arg time: time in seconds.
+    :type time: number or timedelta object
+    :return: the frame.
+    :rtype: float
     """
 
     if fps is None:
@@ -400,6 +405,56 @@ def smpte_from_frame(frame, fps=None, fps_base=None):
         fps_base = _bpy.context.scene.render.fps_base
 
     return smpte_from_seconds((frame * fps_base) / fps, fps)
+
+
+def time_from_frame(frame, fps=None, fps_base=None):
+    """
+    Returns the time from a frame number .
+
+    If *fps* and *fps_base* are not given the current scene is used.
+
+    :arg frame: number.
+    :type frame: the frame number
+    :return: the time in seconds.
+    :rtype: timedate.timedelta
+    """
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    if fps_base is None:
+        fps_base = _bpy.context.scene.render.fps_base
+
+    from datetime import timedelta
+
+    return timedelta((frame * fps_base) / fps)
+
+
+def time_to_frame(time, fps=None, fps_base=None):
+    """
+    Returns a float frame number from a time given in seconds or
+    as a timedate.timedelta object.
+
+    If *fps* and *fps_base* are not given the current scene is used.
+
+    :arg time: time in seconds.
+    :type time: number or a timedate.timedelta object
+    :return: the frame.
+    :rtype: float
+    """
+
+    if fps is None:
+        fps = _bpy.context.scene.render.fps
+
+    if fps_base is None:
+        fps_base = _bpy.context.scene.render.fps_base
+
+    from datetime import timedelta
+
+    if isinstance(time, timedelta):
+        time = time.total_seconds()
+
+    return (time / fps_base) * fps
 
 
 def preset_find(name, preset_path, display_name=False, ext=".py"):

@@ -424,18 +424,6 @@ static char *pass_menu(RenderLayer *rl, short *curpass)
 	return str;
 }
 
-static void set_frames_cb(bContext *C, void *ima_v, void *iuser_v)
-{
-	Scene *scene = CTX_data_scene(C);
-	Image *ima = ima_v;
-	ImageUser *iuser = iuser_v;
-	
-	if (ima->anim) {
-		iuser->frames = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
-		BKE_image_user_frame_calc(iuser, scene->r.cfra, 0);
-	}
-}
-
 /* 5 layer button callbacks... */
 static void image_multi_cb(bContext *C, void *rr_v, void *iuser_v) 
 {
@@ -624,7 +612,6 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	Scene *scene = CTX_data_scene(C);
 	uiLayout *row, *split, *col;
 	uiBlock *block;
-	uiBut *but;
 	char str[128];
 	void *lock;
 
@@ -656,6 +643,7 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	cb->iuser = iuser;
 
 	uiLayoutSetContextPointer(layout, "edit_image", &imaptr);
+	uiLayoutSetContextPointer(layout, "edit_image_user", userptr);
 
 	if (!compact)
 		uiTemplateID(layout, C, ptr, propname, "IMAGE_OT_new", "IMAGE_OT_open", NULL);
@@ -746,7 +734,18 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 					split = uiLayoutSplit(layout, 0, 0);
 
 					col = uiLayoutColumn(split, 0);
-					uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
+					/* XXX Why only display fields_per_frame only for video image types?
+					 *     And why allow fields for non-video image types at all??? */
+					if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+						uiLayout *subsplit = uiLayoutSplit(col, 0, 0);
+						uiLayout *subcol = uiLayoutColumn(subsplit, 0);
+						uiItemR(subcol, &imaptr, "use_fields", 0, NULL, ICON_NONE);
+						subcol = uiLayoutColumn(subsplit, 0);
+						uiLayoutSetActive(subcol, RNA_boolean_get(&imaptr, "use_fields"));
+						uiItemR(subcol, userptr, "fields_per_frame", 0, IFACE_("Fields"), ICON_NONE);
+					}
+					else
+						uiItemR(col, &imaptr, "use_fields", 0, NULL, ICON_NONE);
 					row = uiLayoutRow(col, 0);
 					uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
 					uiItemR(row, &imaptr, "field_order", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
@@ -759,27 +758,18 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 
 			if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 				uiItemS(layout);
-				
+
 				split = uiLayoutSplit(layout, 0, 0);
 
 				col = uiLayoutColumn(split, 0);
-				 
+
 				BLI_snprintf(str, sizeof(str), IFACE_("(%d) Frames"), iuser->framenr);
 				uiItemR(col, userptr, "frame_duration", 0, str, ICON_NONE);
-				if (ima->anim) {
-					block = uiLayoutGetBlock(col);
-					but = uiDefBut(block, BUT, 0, IFACE_("Match Movie Length"), 0, 0, UI_UNIT_X * 2, UI_UNIT_Y,
-					               NULL, 0, 0, 0, 0, TIP_("Set the number of frames to match the movie or sequence"));
-					uiButSetFunc(but, set_frames_cb, ima, iuser);
-				}
-
 				uiItemR(col, userptr, "frame_start", 0, IFACE_("Start"), ICON_NONE);
 				uiItemR(col, userptr, "frame_offset", 0, NULL, ICON_NONE);
 
 				col = uiLayoutColumn(split, 0);
-				row = uiLayoutRow(col, 0);
-				uiLayoutSetActive(row, RNA_boolean_get(&imaptr, "use_fields"));
-				uiItemR(row, userptr, "fields_per_frame", 0, IFACE_("Fields"), ICON_NONE);
+				uiItemO(col, NULL, ICON_NONE, "IMAGE_OT_match_movie_length");
 				uiItemR(col, userptr, "use_auto_refresh", 0, NULL, ICON_NONE);
 				uiItemR(col, userptr, "use_cyclic", 0, NULL, ICON_NONE);
 			}

@@ -290,7 +290,7 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 		else
 			ibuf->flags &= ~IB_cm_predivide;
 
-		/* this function accepts link==NULL */
+		/* this function accepts (link == NULL) */
 		BLI_insertlinkbefore(&ima->ibufs, link, ibuf);
 
 		/* now we don't want copies? */
@@ -802,7 +802,7 @@ void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
 	Image *ima;
-	/* unsigned int totsize= 0; */
+	/* unsigned int totsize = 0; */
 	
 	for (ima = G.main->image.first; ima; ima = ima->id.next)
 		ima->id.flag &= ~LIB_DOIT;

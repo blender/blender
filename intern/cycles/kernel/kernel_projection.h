@@ -69,20 +69,20 @@ __device float3 equirectangular_to_direction(float u, float v)
 	float theta = M_PI_F*(1.0f - v);
 
 	return make_float3(
-		sin(theta)*cos(phi),
-		sin(theta)*sin(phi),
-		cos(theta));
+		sinf(theta)*cosf(phi),
+		sinf(theta)*sinf(phi),
+		cosf(theta));
 }
 
 /* Fisheye <-> Cartesian direction */
 
 __device float2 direction_to_fisheye(float3 dir, float fov)
 {
-	float r = atan2f(sqrt(dir.y*dir.y +  dir.z*dir.z), dir.x) / fov;
-	float phi = atan2(dir.z, dir.y);
+	float r = atan2f(sqrtf(dir.y*dir.y +  dir.z*dir.z), dir.x) / fov;
+	float phi = atan2f(dir.z, dir.y);
 
-	float u = r * cos(phi) + 0.5f;
-	float v = r * sin(phi) + 0.5f;
+	float u = r * cosf(phi) + 0.5f;
+	float v = r * sinf(phi) + 0.5f;
 
 	return make_float2(u, v);
 }
@@ -92,7 +92,7 @@ __device float3 fisheye_to_direction(float u, float v, float fov)
 	u = (u - 0.5f) * 2.0f;
 	v = (v - 0.5f) * 2.0f;
 
-	float r = sqrt(u*u + v*v);
+	float r = sqrtf(u*u + v*v);
 
 	if(r > 1.0f)
 		return make_float3(0.0f, 0.0f, 0.0f);
@@ -127,7 +127,7 @@ __device float3 fisheye_equisolid_to_direction(float u, float v, float lens, flo
 	v = (v - 0.5f) * height;
 
 	float rmax = 2.0f * lens * sinf(fov * 0.25f);
-	float r = sqrt(u*u + v*v);
+	float r = sqrtf(u*u + v*v);
 
 	if(r > rmax)
 		return make_float3(0.0f, 0.0f, 0.0f);
@@ -153,7 +153,7 @@ __device float3 mirrorball_to_direction(float u, float v)
 
 	dir.x = 2.0f*u - 1.0f;
 	dir.z = 2.0f*v - 1.0f;
-	dir.y = -sqrt(max(1.0f - dir.x*dir.x - dir.z*dir.z, 0.0f));
+	dir.y = -sqrtf(max(1.0f - dir.x*dir.x - dir.z*dir.z, 0.0f));
 
 	/* reflection */
 	float3 I = make_float3(0.0f, -1.0f, 0.0f);
@@ -166,7 +166,7 @@ __device float2 direction_to_mirrorball(float3 dir)
 	/* inverse of mirrorball_to_direction */
 	dir.y -= 1.0f;
 
-	float div = 2.0f*sqrt(max(-0.5f*dir.y, 0.0f));
+	float div = 2.0f*sqrtf(max(-0.5f*dir.y, 0.0f));
 	if(div > 0.0f)
 		dir /= div;
 

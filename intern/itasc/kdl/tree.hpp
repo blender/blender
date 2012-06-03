@@ -43,7 +43,7 @@ namespace KDL
 #endif
     class TreeElement
     {
-    private:
+    public:
         TreeElement():q_nr(0)
         {};
     public:

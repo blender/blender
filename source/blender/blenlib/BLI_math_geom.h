@@ -191,6 +191,9 @@ void barycentric_transform(float pt_tar[3], float const pt_src[3],
 void barycentric_weights_v2(const float v1[2], const float v2[2], const float v3[2],
                             const float co[2], float w[3]);
 
+int barycentric_coords_v2(const float v1[2], const float v2[2], const float v3[2], const float co[2], float w[3]);
+int barycentric_inside_triangle_v2(const float w[3]);
+
 void resolve_tri_uv(float r_uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2]);
 void resolve_quad_uv(float uv[2], const float st[2], const float st0[2], const float st1[2], const float st2[2], const float st3[2]);
 

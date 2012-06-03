@@ -34,12 +34,17 @@ public:
 	GaussianXBlurOperation();
 
 	/**
-	  * the inner loop of this program
+	  *@brief the inner loop of this program
 	  */
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 	
 	/**
-	  * Deinitialize the execution
+	  *@brief initialize the execution
+	  */
+	void initExecution();
+
+	/**
+	  *@brief Deinitialize the execution
 	  */
 	void deinitExecution();
 	

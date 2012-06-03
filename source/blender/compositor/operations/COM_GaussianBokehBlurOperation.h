@@ -34,7 +34,7 @@ private:
 
 public:
 	GaussianBokehBlurOperation();
-
+	void initExecution();
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
 	  * the inner loop of this program

@@ -413,7 +413,6 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
 		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
 		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-		// {SEQ_PLUGIN, "PLUGIN", 0, "Plugin", ""},
 		{SEQ_WIPE, "WIPE", 0, "Wipe", ""},
 		{SEQ_GLOW, "GLOW", 0, "Glow", ""},
 		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""},

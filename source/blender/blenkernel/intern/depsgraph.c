@@ -2938,7 +2938,7 @@ void DAG_pose_sort(Object *ob)
 	queue_delete(nqueue);
 	
 //	printf("\nordered\n");
-//	for (pchan = pose->chanbase.first; pchan; pchan= pchan->next) {
+//	for (pchan = pose->chanbase.first; pchan; pchan = pchan->next) {
 //		printf(" %s\n", pchan->name);
 //	}
 	

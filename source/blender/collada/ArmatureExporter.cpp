@@ -324,6 +324,7 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	} MDeformWeight;
 	*/
 
+	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me = (Mesh*)ob->data;
 	if (!me->dvert) return;
 
@@ -331,7 +332,7 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	std::string controller_id = get_controller_id(ob_arm, ob);
 
 	openSkin(controller_id, controller_name,
-	         COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob)));
+	         COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, use_instantiation)));
 
 	add_bind_shape_mat(ob);
 

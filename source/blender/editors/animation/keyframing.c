@@ -150,9 +150,10 @@ bAction *verify_adt_action(ID *id, short add)
 /* Get (or add relevant data to be able to do so) F-Curve from the Active Action, 
  * for the given Animation Data block. This assumes that all the destinations are valid.
  */
-FCurve *verify_fcurve(bAction *act, const char group[], const char rna_path[], const int array_index, short add)
+FCurve *verify_fcurve(bAction *act, const char group[], PointerRNA *ptr, 
+                      const char rna_path[], const int array_index, short add)
 {
-	bActionGroup *grp;
+	bActionGroup *agrp;
 	FCurve *fcu;
 	
 	/* sanity checks */
@@ -183,14 +184,30 @@ FCurve *verify_fcurve(bAction *act, const char group[], const char rna_path[], c
 		/* if a group name has been provided, try to add or find a group, then add F-Curve to it */
 		if (group) {
 			/* try to find group */
-			grp = BKE_action_group_find_name(act, group);
+			agrp = BKE_action_group_find_name(act, group);
 			
 			/* no matching groups, so add one */
-			if (grp == NULL)
-				grp = action_groups_add_new(act, group);
+			if (agrp == NULL) {
+				agrp = action_groups_add_new(act, group);
+				
+				/* sync bone group colors if applicable */
+				if (ptr && (ptr->type == &RNA_PoseBone)) {
+					Object *ob = (Object *)ptr->id.data;
+					bPoseChannel *pchan = (bPoseChannel *)ptr->data;
+					bPose *pose = ob->pose;
+					bActionGroup *grp;
+					
+					/* find bone group (if present), and use the color from that */
+					grp = (bActionGroup *)BLI_findlink(&pose->agroups, (pchan->agrp_index - 1));
+					if (grp) {
+						agrp->customCol = grp->customCol;
+						action_group_colors_sync(agrp);
+					}
+				}
+			}
 			
 			/* add F-Curve to group */
-			action_groups_add_channel(act, grp, fcu);
+			action_groups_add_channel(act, agrp, fcu);
 		}
 		else {
 			/* just add F-Curve to end of Action's list */
@@ -939,7 +956,7 @@ short insert_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 		 *	- if we're replacing keyframes only, DO NOT create new F-Curves if they do not exist yet
 		 *	  but still try to get the F-Curve if it exists...
 		 */
-		fcu = verify_fcurve(act, group, rna_path, array_index, (flag & INSERTKEY_REPLACE) == 0);
+		fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, (flag & INSERTKEY_REPLACE) == 0);
 		
 		/* we may not have a F-Curve when we're replacing only... */
 		if (fcu) {
@@ -1027,7 +1044,7 @@ short delete_keyframe(ReportList *reports, ID *id, bAction *act, const char grou
 	
 	/* will only loop once unless the array index was -1 */
 	for (; array_index < array_index_max; array_index++) {
-		FCurve *fcu = verify_fcurve(act, group, rna_path, array_index, 0);
+		FCurve *fcu = verify_fcurve(act, group, &ptr, rna_path, array_index, 0);
 		short found = -1;
 		int i;
 		
