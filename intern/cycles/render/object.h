@@ -41,7 +41,7 @@ public:
 	Transform tfm;
 	BoundBox bounds;
 	ustring name;
-	int random_id;
+	uint random_id;
 	int pass_id;
 	vector<ParamValue> attributes;
 	uint visibility;
