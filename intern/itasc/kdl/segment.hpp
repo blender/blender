@@ -46,8 +46,8 @@ namespace KDL {
     class Segment {
         friend class Chain;
     private:
-        Joint joint;
         Inertia M;
+        Joint joint;
         Frame f_tip;
 
     public:
