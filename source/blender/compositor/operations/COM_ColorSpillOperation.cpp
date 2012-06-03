@@ -40,40 +40,40 @@ void ColorSpillOperation::initExecution()
 	this->inputImageReader = this->getInputSocketReader(0);
 	this->inputFacReader = this->getInputSocketReader(1);
 	if (spillChannel == 0) {
-		rmut = -1.0f;
-		gmut = 1.0f;
-		bmut = 1.0f;
+		this->rmut = -1.0f;
+		this->gmut = 1.0f;
+		this->bmut = 1.0f;
 		this->channel2 = 1;
 		this->channel3 = 2;
-		if (settings->unspill == 0) {
-			settings->uspillr = 1.0f;
-			settings->uspillg = 0.0f;
-			settings->uspillb = 0.0f;
+		if (this->settings->unspill == 0) {
+			this->settings->uspillr = 1.0f;
+			this->settings->uspillg = 0.0f;
+			this->settings->uspillb = 0.0f;
 		}
 	}
 	else if (spillChannel == 1) {
-		rmut = 1.0f;
-		gmut = -1.0f;
-		bmut = 1.0f;
+		this->rmut = 1.0f;
+		this->gmut = -1.0f;
+		this->bmut = 1.0f;
 		this->channel2 = 0;
 		this->channel3 = 2;
-		if (settings->unspill == 0) {
-			settings->uspillr = 0.0f;
-			settings->uspillg = 1.0f;
-			settings->uspillb = 0.0f;
+		if (this->settings->unspill == 0) {
+			this->settings->uspillr = 0.0f;
+			this->settings->uspillg = 1.0f;
+			this->settings->uspillb = 0.0f;
 		}
 	}
 	else {
-		rmut = 1.0f;
-		gmut = 1.0f;
-		bmut = -1.0f;
+		this->rmut = 1.0f;
+		this->gmut = 1.0f;
+		this->bmut = -1.0f;
 		
 		this->channel2 = 0;
 		this->channel3 = 1;
-		if (settings->unspill == 0) {
-			settings->uspillr = 0.0f;
-			settings->uspillg = 0.0f;
-			settings->uspillb = 1.0f;
+		if (this->settings->unspill == 0) {
+			this->settings->uspillr = 0.0f;
+			this->settings->uspillg = 0.0f;
+			this->settings->uspillb = 1.0f;
 		}
 	}
 }
@@ -88,27 +88,23 @@ void ColorSpillOperation::executePixel(float *outputValue, float x, float y, Pix
 {
 	float fac[4];
 	float input[4];
-	float map;	
 	this->inputFacReader->read(fac, x, y, sampler, inputBuffers);
 	this->inputImageReader->read(input, x, y, sampler, inputBuffers);
 	float rfac = min(1.0f, fac[0]);
-	map = calculateMapValue(rfac, input);
-	if (map>0) {
-		outputValue[0]=input[0]+rmut*(settings->uspillr*map);
-		outputValue[1]=input[1]+gmut*(settings->uspillg*map);
-		outputValue[2]=input[2]+bmut*(settings->uspillb*map);
-		outputValue[3]=input[3];
+	float map = calculateMapValue(rfac, input);
+	if (map > 0.0f) {
+		outputValue[0] = input[0] + this->rmut * (this->settings->uspillr * map);
+		outputValue[1] = input[1] + this->gmut * (this->settings->uspillg * map);
+		outputValue[2] = input[2] + this->bmut * (this->settings->uspillb * map);
+		outputValue[3] = input[3];
 	}
 	else {
-		outputValue[0]=input[0];
-		outputValue[1]=input[1];
-		outputValue[2]=input[2];
-		outputValue[3]=input[3];
+		copy_v4_v4(outputValue, input);
 	}	
 }
 float ColorSpillOperation::calculateMapValue(float fac, float *input)
 {
-	return fac * (input[this->spillChannel]-(this->settings->limscale*input[settings->limchan]));
+	return fac * (input[this->spillChannel]-(this->settings->limscale*input[this->settings->limchan]));
 }
 
 
