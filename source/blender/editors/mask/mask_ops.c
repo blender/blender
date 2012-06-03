@@ -946,7 +946,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 /******************** add vertex *********************/
 
 static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, MaskSplinePoint *new_point,
-                               const float point_co[2], const float tangent[2],
+                               const float point_co[2], const float tangent[2], const float u,
                                MaskSplinePoint *reference_point, const short reference_adjacent)
 {
 	MaskSplinePoint *prev_point = NULL;
@@ -1008,7 +1008,7 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[2], vec);
 
 		if (reference_adjacent) {
-			BKE_mask_calc_handle_adjacent_length(mask, spline, new_point);
+			BKE_mask_calc_handle_adjacent_interp(mask, spline, new_point, u);
 		}
 	}
 	else {
@@ -1061,7 +1061,7 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		sub_v2_v2(bezt->vec[2], vec);
 #else
 		BKE_mask_calc_handle_point_auto(mask, spline, new_point, TRUE);
-		BKE_mask_calc_handle_adjacent_length(mask, spline, new_point);
+		BKE_mask_calc_handle_adjacent_interp(mask, spline, new_point, u);
 
 #endif
 	}
@@ -1097,8 +1097,9 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 	MaskSplinePoint *point = NULL;
 	const float threshold = 9;
 	float tangent[2];
+	float u;
 
-	if (find_nearest_diff_point(C, mask, co, threshold, FALSE, &masklay, &spline, &point, NULL, tangent)) {
+	if (find_nearest_diff_point(C, mask, co, threshold, FALSE, &masklay, &spline, &point, &u, tangent)) {
 		MaskSplinePoint *new_point;
 		int point_index = point - spline->points;
 
@@ -1108,7 +1109,7 @@ static int add_vertex_subdivide(bContext *C, Mask *mask, const float co[2])
 
 		new_point = &spline->points[point_index + 1];
 
-		setup_vertex_point(C, mask, spline, new_point, co, tangent, NULL, TRUE);
+		setup_vertex_point(C, mask, spline, new_point, co, tangent, u, NULL, TRUE);
 
 		/* TODO - we could pass the spline! */
 		BKE_mask_layer_shape_changed_add(masklay, BKE_mask_layer_shape_spline_to_index(masklay, spline) + point_index + 1, TRUE, TRUE);
@@ -1249,7 +1250,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE);
 
 	if (masklay->splines_shapes.first) {
 		point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
@@ -1295,7 +1296,7 @@ static int add_vertex_new(bContext *C, Mask *mask, MaskLayer *masklay, const flo
 
 	masklay->act_point = new_point;
 
-	setup_vertex_point(C, mask, spline, new_point, co, NULL, ref_point, FALSE);
+	setup_vertex_point(C, mask, spline, new_point, co, NULL, 0.5f, ref_point, FALSE);
 
 	{
 		int point_index = (((int)(new_point - spline->points) + 0) % spline->tot_point);
