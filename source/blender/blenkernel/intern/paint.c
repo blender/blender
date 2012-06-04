@@ -41,6 +41,7 @@
 #include "BLI_utildefines.h"
 
 #include "BKE_brush.h"
+#include "BKE_context.h"
 #include "BKE_library.h"
 #include "BKE_paint.h"
 #include "BKE_subsurf.h"
@@ -78,6 +79,53 @@ Paint *paint_get_active(Scene *sce)
 
 		/* default to image paint */
 		return &ts->imapaint.paint;
+	}
+
+	return NULL;
+}
+
+Paint *paint_get_active_from_context(const bContext *C)
+{
+	Scene *sce = CTX_data_scene(C);
+
+	if (sce) {
+		ToolSettings *ts = sce->toolsettings;
+		Object *obact = NULL;
+
+		if (sce->basact && sce->basact->object)
+			obact = sce->basact->object;
+
+		if (CTX_wm_space_image(C) != NULL) {
+			if (obact->mode == OB_MODE_EDIT) {
+				if (ts->use_uv_sculpt)
+					return &ts->uvsculpt->paint;
+				else
+					return &ts->imapaint.paint;
+			}
+			else {
+				return &ts->imapaint.paint;
+			}
+		}
+		else {
+			switch (obact->mode) {
+				case OB_MODE_SCULPT:
+					return &ts->sculpt->paint;
+				case OB_MODE_VERTEX_PAINT:
+					return &ts->vpaint->paint;
+				case OB_MODE_WEIGHT_PAINT:
+					return &ts->wpaint->paint;
+				case OB_MODE_TEXTURE_PAINT:
+					return &ts->imapaint.paint;
+				case OB_MODE_EDIT:
+					if (ts->use_uv_sculpt)
+						return &ts->uvsculpt->paint;
+					else
+						return &ts->imapaint.paint;
+			}
+
+			/* default to image paint */
+			return &ts->imapaint.paint;
+		}
 	}
 
 	return NULL;
