@@ -76,7 +76,7 @@ static bNode *node_under_mouse_tweak(bNodeTree *ntree, int mx, int my)
 {
 	bNode *node;
 	
-	for(node=ntree->nodes.last; node; node=node->prev) {
+	for (node=ntree->nodes.last; node; node=node->prev) {
 		if (node->typeinfo->tweak_area_func) {
 			if (node->typeinfo->tweak_area_func(node, mx, my))
 				return node;

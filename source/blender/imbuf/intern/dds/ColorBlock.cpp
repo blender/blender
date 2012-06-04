@@ -176,7 +176,7 @@ bool ColorBlock::isSingleColorNoAlpha() const
 	int i;
 	for (i = 0; i < 16; i++)
 	{
-        if (m_color[i].a != 0) c = m_color[i];
+		if (m_color[i].a != 0) c = m_color[i];
 	}
 
 	Color32 mask(0xFF, 0xFF, 0xFF, 0x00);

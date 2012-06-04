@@ -98,7 +98,7 @@
  *
  *  static
  *      MEM_RefCountPtr<RcUsefullClass>
- *  New(...){
+ *  New(...) {
  *       return MEM_RefCountPtr<RcUsefullClass> output(
  *           new UsefullClass(...)
  *       );

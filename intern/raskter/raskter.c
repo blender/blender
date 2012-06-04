@@ -306,7 +306,7 @@ int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_
 
 			if ((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
 				/* draw the pixels. */
-                for (; cpxl <= mpxl; *cpxl++ = 1.0f);
+				for (; cpxl <= mpxl; *cpxl++ = 1.0f);
 			}
 		}
 

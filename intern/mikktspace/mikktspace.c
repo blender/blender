@@ -258,7 +258,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 	{
 		const int verts = pContext->m_pInterface->m_getNumVerticesOfFace(pContext, f);
 		if (verts==3) ++iNrTrianglesIn;
-		else if(verts==4) iNrTrianglesIn += 2;
+		else if (verts==4) iNrTrianglesIn += 2;
 	}
 	if (iNrTrianglesIn<=0) return TFALSE;
 
@@ -470,11 +470,11 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SM
 
 		const SVec3 vP = GetPosition(pContext, index);
 		if (vMin.x > vP.x) vMin.x = vP.x;
-		else if(vMax.x < vP.x) vMax.x = vP.x;
+		else if (vMax.x < vP.x) vMax.x = vP.x;
 		if (vMin.y > vP.y) vMin.y = vP.y;
-		else if(vMax.y < vP.y) vMax.y = vP.y;
+		else if (vMax.y < vP.y) vMax.y = vP.y;
 		if (vMin.z > vP.z) vMin.z = vP.z;
-		else if(vMax.z < vP.z) vMax.z = vP.z;
+		else if (vMax.z < vP.z) vMax.z = vP.z;
 	}
 
 	vDim = vsub(vMax,vMin);
@@ -485,7 +485,7 @@ static void GenerateSharedVerticesIndexList(int piTriList_in_and_out[], const SM
 		iChannel=1;
 		fMin = vMin.y, fMax=vMax.y;
 	}
-	else if(vDim.z>vDim.x)
+	else if (vDim.z>vDim.x)
 	{
 		iChannel=2;
 		fMin = vMin.z, fMax=vMax.z;
@@ -590,7 +590,7 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 	for (l=(iL_in+1); l<=iR_in; l++)
 		for (c=0; c<3; c++)
 			if (fvMin[c]>pTmpVert[l].vert[c]) fvMin[c]=pTmpVert[l].vert[c];
-			else if(fvMax[c]<pTmpVert[l].vert[c]) fvMax[c]=pTmpVert[l].vert[c];
+			else if (fvMax[c]<pTmpVert[l].vert[c]) fvMax[c]=pTmpVert[l].vert[c];
 
 	dx = fvMax[0]-fvMin[0];
 	dy = fvMax[1]-fvMin[1];
@@ -598,7 +598,7 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 
 	channel = 0;
 	if (dy>dx && dy>dz) channel=1;
-	else if(dz>dx) channel=2;
+	else if (dz>dx) channel=2;
 
 	fSep = 0.5f*(fvMax[channel]+fvMin[channel]);
 
@@ -626,7 +626,7 @@ static void MergeVertsFast(int piTriList_in_and_out[], STmpVert pTmpVert[], cons
 				const SVec3 vT2 = GetTexCoord(pContext, index2);
 				i2rec=i2;
 
-				//if(vP==vP2 && vN==vN2 && vT==vT2)
+				//if (vP==vP2 && vN==vN2 && vT==vT2)
 				if (vP.x==vP2.x && vP.y==vP2.y && vP.z==vP2.z &&
 					vN.x==vN2.x && vN.y==vN2.y && vN.z==vN2.z &&
 					vT.x==vT2.x && vT.y==vT2.y && vT.z==vT2.z)
@@ -812,7 +812,7 @@ static int GenerateInitialVerticesIndexList(STriInfo pTriInfos[], int piTriList_
 				tbool bQuadDiagIs_02;
 				if (distSQ_02<distSQ_13)
 					bQuadDiagIs_02 = TTRUE;
-				else if(distSQ_13<distSQ_02)
+				else if (distSQ_13<distSQ_02)
 					bQuadDiagIs_02 = TFALSE;
 				else
 				{
@@ -1027,7 +1027,7 @@ static void InitTriInfo(STriInfo pTriInfos[], const int piTriListIn[], const SMi
 					//printf("found quad with bad mapping\n");
 					tbool bChooseOrientFirstTri = TFALSE;
 					if ((pTriInfos[t+1].iFlag&GROUP_WITH_ANY)!=0) bChooseOrientFirstTri = TTRUE;
-					else if( CalcTexArea(pContext, &piTriListIn[t*3+0]) >= CalcTexArea(pContext, &piTriListIn[(t+1)*3+0]) )
+					else if ( CalcTexArea(pContext, &piTriListIn[t*3+0]) >= CalcTexArea(pContext, &piTriListIn[(t+1)*3+0]) )
 						bChooseOrientFirstTri = TTRUE;
 
 					// force match
@@ -1142,13 +1142,13 @@ static tbool AssignRecur(const int piTriListIn[], STriInfo psTriInfos[],
 	const int * pVerts = &piTriListIn[3*iMyTriIndex+0];
 	int i=-1;
 	if (pVerts[0]==iVertRep) i=0;
-	else if(pVerts[1]==iVertRep) i=1;
-	else if(pVerts[2]==iVertRep) i=2;
+	else if (pVerts[1]==iVertRep) i=1;
+	else if (pVerts[2]==iVertRep) i=2;
 	assert(i>=0 && i<3);
 
 	// early out
 	if (pMyTriInfo->AssignedGroup[i] == pGroup) return TTRUE;
-	else if(pMyTriInfo->AssignedGroup[i]!=NULL) return TFALSE;
+	else if (pMyTriInfo->AssignedGroup[i]!=NULL) return TFALSE;
 	if ((pMyTriInfo->iFlag&GROUP_WITH_ANY)!=0)
 	{
 		// first to group with a group-with-anything triangle
@@ -1232,8 +1232,8 @@ static tbool GenerateTSpaces(STSpace psTspace[], const STriInfo pTriInfos[], con
 			tbool bFound;
 			SVec3 n, vOs, vOt;
 			if (pTriInfos[f].AssignedGroup[0]==pGroup) index=0;
-			else if(pTriInfos[f].AssignedGroup[1]==pGroup) index=1;
-			else if(pTriInfos[f].AssignedGroup[2]==pGroup) index=2;
+			else if (pTriInfos[f].AssignedGroup[1]==pGroup) index=1;
+			else if (pTriInfos[f].AssignedGroup[2]==pGroup) index=2;
 			assert(index>=0 && index<3);
 
 			iVertIndex = piTriListIn[f*3+index];
@@ -1381,8 +1381,8 @@ static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriL
 			float fCos, fAngle, fMagS, fMagT;
 			int i=-1, index=-1, i0=-1, i1=-1, i2=-1;
 			if (piTriListIn[3*f+0]==iVertexRepresentitive) i=0;
-			else if(piTriListIn[3*f+1]==iVertexRepresentitive) i=1;
-			else if(piTriListIn[3*f+2]==iVertexRepresentitive) i=2;
+			else if (piTriListIn[3*f+1]==iVertexRepresentitive) i=1;
+			else if (piTriListIn[3*f+2]==iVertexRepresentitive) i=2;
 			assert(i>=0 && i<3);
 
 			// project
@@ -1404,8 +1404,8 @@ static STSpace EvalTspace(int face_indices[], const int iFaces, const int piTriL
 			v2 = vsub(p2,p1);
 
 			// project
-			v1 = vsub(v1, vscale(vdot(n,v1),n)); if( VNotZero(v1) ) v1 = Normalize(v1);
-			v2 = vsub(v2, vscale(vdot(n,v2),n)); if( VNotZero(v2) ) v2 = Normalize(v2);
+			v1 = vsub(v1, vscale(vdot(n,v1),n)); if ( VNotZero(v1) ) v1 = Normalize(v1);
+			v2 = vsub(v2, vscale(vdot(n,v2),n)); if ( VNotZero(v2) ) v2 = Normalize(v2);
 
 			// weight contribution by the angle
 			// between the two edge vectors
@@ -1647,7 +1647,7 @@ static void QuickSortEdges(SEdge * pSortBuffer, int iLeft, int iRight, const int
 	SEdge sTmp;
 	const int iElems = iRight-iLeft+1;
 	if (iElems<2) return;
-	else if(iElems==2)
+	else if (iElems==2)
 	{
 		if (pSortBuffer[iLeft].array[channel] > pSortBuffer[iRight].array[channel])
 		{
@@ -1868,8 +1868,8 @@ static void DegenEpilogue(STSpace psTspace[], STriInfo pTriInfos[], int piTriLis
 			int iFlag = (1<<pV[0]) | (1<<pV[1]) | (1<<pV[2]);
 			int iMissingIndex = 0;
 			if ((iFlag&2)==0) iMissingIndex=1;
-			else if((iFlag&4)==0) iMissingIndex=2;
-			else if((iFlag&8)==0) iMissingIndex=3;
+			else if ((iFlag&4)==0) iMissingIndex=2;
+			else if ((iFlag&8)==0) iMissingIndex=3;
 
 			iOrgF = pTriInfos[t].iOrgFaceNumber;
 			vDstP = GetPosition(pContext, MakeIndex(iOrgF, iMissingIndex));

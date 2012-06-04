@@ -205,12 +205,12 @@ static MFace *get_dface(DerivedMesh *dm, DerivedMesh *split, int cur, int i, MFa
 	return df;
 }
 
-#define SET_VERTS(a, b, c, d) \
-    v[0] = mf->v##a; uv[0] = a - 1; \
-    v[1] = mf->v##b; uv[1] = b - 1; \
-    v[2] = mf->v##c; uv[2] = c - 1; \
-    v[3] = mf->v##d; uv[3] = d - 1; \
-    (void)0
+#define SET_VERTS(a, b, c, d)  {        \
+        v[0] = mf->v##a; uv[0] = a - 1; \
+        v[1] = mf->v##b; uv[1] = b - 1; \
+        v[2] = mf->v##c; uv[2] = c - 1; \
+        v[3] = mf->v##d; uv[3] = d - 1; \
+    } (void)0
 
 #define GET_ES(v1, v2) edgecut_get(eh, v1, v2)
 #define INT_UV(uvf, c0, c1) interp_v2_v2v2(uvf, mf->uv[c0], mf->uv[c1], 0.5f)

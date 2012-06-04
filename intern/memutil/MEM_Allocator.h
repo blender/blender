@@ -72,7 +72,7 @@ struct MEM_Allocator
 	}
 
 	// __p is not permitted to be a null pointer.
-	void deallocate(pointer __p, size_type){ 
+	void deallocate(pointer __p, size_type) {
 		MEM_freeN(__p);
 	}
 

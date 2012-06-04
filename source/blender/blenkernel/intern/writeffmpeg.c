@@ -1003,9 +1003,11 @@ void BKE_ffmpeg_end(void)
 	
 	fprintf(stderr, "Closing ffmpeg...\n");
 
-/*	if (audio_stream) { SEE UPPER
-        write_audio_frames();
-    }*/
+#if 0
+	if (audio_stream) { /* SEE UPPER */
+		write_audio_frames();
+	}
+#endif
 
 #ifdef WITH_AUDASPACE
 	if (audio_mixdown_device) {

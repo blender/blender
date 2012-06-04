@@ -435,7 +435,7 @@ static DerivedMesh *applyModifier(ModifierData *md, Object *ob,
 
 		if (ofs_orig != 0.0f) {
 			scalar_short = scalar_short_vgroup = ofs_orig / 32767.0f;
-			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts); /* as above but swapped, intentional use 'ofs_new' */
+			mv = mvert + (((ofs_new >= ofs_orig) == do_flip) ? 0 : numVerts); /* as above but swapped */
 			dv = dvert;
 			for (i = 0; i < numVerts; i++, mv++) {
 				if (dv) {

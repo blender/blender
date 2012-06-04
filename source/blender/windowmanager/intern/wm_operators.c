@@ -2174,8 +2174,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	/* Options panel */
 	selected                 = RNA_boolean_get(op->ptr, "selected");
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
-    include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
-    use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
+	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */

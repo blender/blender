@@ -166,13 +166,14 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 
 static void panels_collapse_all(ScrArea *sa, ARegion *ar)
 {
-    Panel *pa;
-    int flag = ((panel_aligned(sa, ar)==BUT_HORIZONTAL)? PNL_CLOSEDX: PNL_CLOSEDY);
+	Panel *pa;
+	int flag = ((panel_aligned(sa, ar)==BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
 
-    for (pa= ar->panels.first; pa; pa= pa->next) {
-        if (pa->type && !(pa->type->flag & PNL_NO_HEADER))
-            pa->flag = flag;
-    }
+	for (pa= ar->panels.first; pa; pa= pa->next) {
+		if (pa->type && !(pa->type->flag & PNL_NO_HEADER)) {
+			pa->flag = flag;
+		}
+	}
 }
 
 

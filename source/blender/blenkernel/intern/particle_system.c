@@ -2674,7 +2674,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 		force[2] += (BLI_frand()-0.5f) * part->brownfac;
 	}
 
-	if(part->flag & PART_ROT_DYN && epoint.ave)
+	if (part->flag & PART_ROT_DYN && epoint.ave)
 		copy_v3_v3(pa->state.ave, epoint.ave);
 }
 /* gathers all forces that effect particles and calculates a new state for the particle */

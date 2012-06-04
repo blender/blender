@@ -6035,7 +6035,7 @@ void flushTransMasking(TransInfo *t)
 	invy = 1.0f/aspy;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for(a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
+	for (a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 

@@ -1114,7 +1114,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable( GL_LINE_SMOOTH );
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
@@ -1132,7 +1132,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
+	for (sock= node->inputs.first; sock; sock= sock->next) {
 		node_socket_circle_draw(ntree, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 

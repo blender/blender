@@ -6227,7 +6227,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 
 	mask = main->mask.first;
 	while (mask) {
-		if(mask->id.flag & LIB_NEEDLINK) {
+		if (mask->id.flag & LIB_NEEDLINK) {
 			MaskLayer *masklay;
 
 			if (mask->adt)
