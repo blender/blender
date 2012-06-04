@@ -325,12 +325,12 @@ float (*BKE_mask_spline_feather_differentiated_points_with_resolution(MaskSpline
 	return feather;
 }
 
-float (*BKE_mask_spline_feather_differentiated_points(MaskSpline * spline, int *tot_feather_point))[2]
+float (*BKE_mask_spline_feather_differentiated_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
 	return BKE_mask_spline_feather_differentiated_points_with_resolution(spline, 0, 0, tot_feather_point);
 }
 
-float (*BKE_mask_spline_feather_points(MaskSpline * spline, int *tot_feather_point))[2]
+float (*BKE_mask_spline_feather_points(MaskSpline *spline, int *tot_feather_point))[2]
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array(spline);
 
@@ -1939,8 +1939,8 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height, &tot_diff_point);
 			if (tot_diff_point) {
 				diff_feather_points =
-					BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
-					                                                              &tot_diff_feather_points);
+				        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
+				                                                                      &tot_diff_feather_points);
 			}
 
 			/* TODO, make this optional! */

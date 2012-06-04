@@ -357,8 +357,8 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 
 					if (feather) {
 						feather_points = BKE_mask_point_segment_feather_diff_with_resolution(spline, cur_point,
-						                                                     width, height,
-						                                                     &tot_feather_point);
+						                                                                     width, height,
+						                                                                     &tot_feather_point);
 
 						points = feather_points;
 						tot_point = tot_feather_point;
