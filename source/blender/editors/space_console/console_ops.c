@@ -429,7 +429,7 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
-static int console_indent_exec(bContext *C, wmOperator *op)
+static int console_indent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -471,7 +471,7 @@ void CONSOLE_OT_indent(wmOperatorType *ot)
 	ot->poll = ED_operator_console_active;
 }
 
-static int console_unindent_exec(bContext *C, wmOperator *op)
+static int console_unindent_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	SpaceConsole *sc = CTX_wm_space_console(C);
 	ARegion *ar = CTX_wm_region(C);
