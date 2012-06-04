@@ -44,137 +44,141 @@ using namespace OSL;
 
 class DiffuseClosure : public BSDFClosure {
 public:
-    Vec3 m_N;
+	Vec3 m_N;
 
-    DiffuseClosure() : BSDFClosure(Labels::DIFFUSE) { }
+	DiffuseClosure() : BSDFClosure(Labels::DIFFUSE) {}
 
-    void setup() {};
+	void setup() {};
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const DiffuseClosure *comp = (const DiffuseClosure *)other;
-        return m_N == comp->m_N && BSDFClosure::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const DiffuseClosure *comp = (const DiffuseClosure *)other;
+		return m_N == comp->m_N && BSDFClosure::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "diffuse"; }
+	const char *name() const { return "diffuse"; }
 
-    void print_on (std::ostream &out) const
-    {
-        out << name() << " ((" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
-    }
+	void print_on(std::ostream &out) const
+	{
+		out << name() << " ((" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
+	}
 
-    float albedo (const Vec3 &omega_out) const
-    {
-        return 1.0f;
-    }
+	float albedo(const Vec3 &omega_out) const
+	{
+		return 1.0f;
+	}
 
-    Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        float cos_pi = max(m_N.dot(omega_in),0.0f) * (float) M_1_PI;
-        pdf = cos_pi;
-        return Color3 (cos_pi, cos_pi, cos_pi);
-    }
+	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		float cos_pi = max(m_N.dot(omega_in), 0.0f) * (float) M_1_PI;
+		pdf = cos_pi;
+		return Color3(cos_pi, cos_pi, cos_pi);
+	}
 
-    Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    ustring sample (const Vec3 &Ng,
-                 const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-                 float randu, float randv,
-                 Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-                 float &pdf, Color3 &eval) const
-    {
-        // we are viewing the surface from the right side - send a ray out with cosine
-        // distribution over the hemisphere
-        sample_cos_hemisphere (m_N, omega_out, randu, randv, omega_in, pdf);
-        if (Ng.dot(omega_in) > 0) {
-            eval.setValue(pdf, pdf, pdf);
-            // TODO: find a better approximation for the diffuse bounce
-            domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
-            domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
-            domega_in_dx *= 125;
-            domega_in_dy *= 125;
-        } else
-            pdf = 0;
-        return Labels::REFLECT;
-    }
+	ustring sample(const Vec3 &Ng,
+	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
+	               float randu, float randv,
+	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
+	               float &pdf, Color3 &eval) const
+	{
+		// we are viewing the surface from the right side - send a ray out with cosine
+		// distribution over the hemisphere
+		sample_cos_hemisphere(m_N, omega_out, randu, randv, omega_in, pdf);
+		if (Ng.dot(omega_in) > 0) {
+			eval.setValue(pdf, pdf, pdf);
+			// TODO: find a better approximation for the diffuse bounce
+			domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
+			domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
+			domega_in_dx *= 125;
+			domega_in_dy *= 125;
+		}
+		else
+			pdf = 0;
+		return Labels::REFLECT;
+	}
 };
 
 
 
 class TranslucentClosure : public BSDFClosure {
 public:
-    Vec3 m_N;
+	Vec3 m_N;
 
-    TranslucentClosure() : BSDFClosure(Labels::DIFFUSE, Back) { }
+	TranslucentClosure() : BSDFClosure(Labels::DIFFUSE, Back) {}
 
-    void setup() {};
+	void setup() {};
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const TranslucentClosure *comp = (const TranslucentClosure *)other;
-        return m_N == comp->m_N && BSDFClosure::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const TranslucentClosure *comp = (const TranslucentClosure *)other;
+		return m_N == comp->m_N && BSDFClosure::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "translucent"; }
+	const char *name() const { return "translucent"; }
 
-    void print_on (std::ostream &out) const
-    {
-        out << name() << " ((" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
-    }
+	void print_on(std::ostream &out) const
+	{
+		out << name() << " ((" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
+	}
 
-    Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    float albedo (const Vec3 &omega_out) const
-    {
-        return 1.0f;
-    }
+	float albedo(const Vec3 &omega_out) const
+	{
+		return 1.0f;
+	}
 
-    Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        float cos_pi = max(-m_N.dot(omega_in), 0.0f) * (float) M_1_PI;
-        pdf = cos_pi;
-        return Color3 (cos_pi, cos_pi, cos_pi);
-    }
+	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		float cos_pi = max(-m_N.dot(omega_in), 0.0f) * (float) M_1_PI;
+		pdf = cos_pi;
+		return Color3(cos_pi, cos_pi, cos_pi);
+	}
 
-    ustring sample (const Vec3 &Ng,
-                 const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-                 float randu, float randv,
-                 Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-                 float &pdf, Color3 &eval) const
-    {
-        // we are viewing the surface from the right side - send a ray out with cosine
-        // distribution over the hemisphere
-        sample_cos_hemisphere (-m_N, omega_out, randu, randv, omega_in, pdf);
-        if (Ng.dot(omega_in) < 0) {
-            eval.setValue(pdf, pdf, pdf);
-            // TODO: find a better approximation for the diffuse bounce
-            domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
-            domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
-            domega_in_dx *= -125;
-            domega_in_dy *= -125;
-        } else
-            pdf = 0;
-        return Labels::TRANSMIT;
-    }
+	ustring sample(const Vec3 &Ng,
+	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
+	               float randu, float randv,
+	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
+	               float &pdf, Color3 &eval) const
+	{
+		// we are viewing the surface from the right side - send a ray out with cosine
+		// distribution over the hemisphere
+		sample_cos_hemisphere(-m_N, omega_out, randu, randv, omega_in, pdf);
+		if (Ng.dot(omega_in) < 0) {
+			eval.setValue(pdf, pdf, pdf);
+			// TODO: find a better approximation for the diffuse bounce
+			domega_in_dx = (2 * m_N.dot(domega_out_dx)) * m_N - domega_out_dx;
+			domega_in_dy = (2 * m_N.dot(domega_out_dy)) * m_N - domega_out_dy;
+			domega_in_dx *= -125;
+			domega_in_dy *= -125;
+		}
+		else
+			pdf = 0;
+		return Labels::TRANSMIT;
+	}
 };
 
 ClosureParam bsdf_diffuse_params[] = {
-    CLOSURE_VECTOR_PARAM   (DiffuseClosure, m_N),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM   (DiffuseClosure) };
+	CLOSURE_VECTOR_PARAM(DiffuseClosure, m_N),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(DiffuseClosure)
+};
 
 ClosureParam bsdf_translucent_params[] = {
-    CLOSURE_VECTOR_PARAM   (TranslucentClosure, m_N),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM   (TranslucentClosure) };
+	CLOSURE_VECTOR_PARAM(TranslucentClosure, m_N),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(TranslucentClosure)
+};
 
 CLOSURE_PREPARE(bsdf_diffuse_prepare, DiffuseClosure)
 CLOSURE_PREPARE(bsdf_translucent_prepare, TranslucentClosure)

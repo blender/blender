@@ -163,241 +163,246 @@ vector normalize (vector v) BUILTIN;
 vector faceforward (vector N, vector I, vector Nref) BUILTIN;
 vector faceforward (vector N, vector I) BUILTIN;
 vector reflect (vector I, vector N) { return I - 2*dot(N,I)*N; }
-vector refract (vector I, vector N, float eta) {
-    float IdotN = dot (I, N);
-    float k = 1 - eta*eta * (1 - IdotN*IdotN);
-    return (k < 0) ? vector(0,0,0) : (eta*I - N * (eta*IdotN + sqrt(k)));
+vector refract(vector I, vector N, float eta) {
+	float IdotN = dot(I, N);
+	float k = 1 - eta * eta * (1 - IdotN * IdotN);
+	return (k < 0) ? vector(0, 0, 0) : (eta * I - N * (eta * IdotN + sqrt(k)));
 }
-void fresnel (vector I, normal N, float eta,
-              output float Kr, output float Kt,
-              output vector R, output vector T)
+void fresnel(vector I, normal N, float eta,
+             output float Kr, output float Kt,
+             output vector R, output vector T)
 {
-    float sqr(float x) { return x*x; }
-    float c = dot(I, N);
-    if (c < 0)
-        c = -c;
-    R = reflect(I, N);
-    float g = 1.0 / sqr(eta) - 1.0 + c * c;
-    if (g >= 0.0) {
-        g = sqrt (g);
-        float beta = g - c;
-        float F = (c * (g+c) - 1.0) / (c * beta + 1.0);
-        F = 0.5 * (1.0 + sqr(F));
-        F *= sqr (beta / (g+c));
-        Kr = F;
-        Kt = (1.0 - Kr) * eta*eta;
-        // OPT: the following recomputes some of the above values, but it 
-        // gives us the same result as if the shader-writer called refract()
-        T = refract(I, N, eta);
-    } else {
-        // total internal reflection
-        Kr = 1.0;
-        Kt = 0.0;
-        T = vector (0,0,0);
-    }
+	float sqr(float x) {
+		return x * x;
+	}
+	float c = dot(I, N);
+	if (c < 0)
+		c = -c;
+	R = reflect(I, N);
+	float g = 1.0 / sqr(eta) - 1.0 + c * c;
+	if (g >= 0.0) {
+		g = sqrt(g);
+		float beta = g - c;
+		float F = (c * (g + c) - 1.0) / (c * beta + 1.0);
+		F = 0.5 * (1.0 + sqr(F));
+		F *= sqr(beta / (g + c));
+		Kr = F;
+		Kt = (1.0 - Kr) * eta * eta;
+		// OPT: the following recomputes some of the above values, but it
+		// gives us the same result as if the shader-writer called refract()
+		T = refract(I, N, eta);
+	}
+	else {
+		// total internal reflection
+		Kr = 1.0;
+		Kt = 0.0;
+		T = vector(0, 0, 0);
+	}
 #undef sqr
 }
 
-void fresnel (vector I, normal N, float eta,
-              output float Kr, output float Kt)
+void fresnel(vector I, normal N, float eta,
+             output float Kr, output float Kt)
 {
-    vector R, T;
-    fresnel(I, N, eta, Kr, Kt, R, T);
+	vector R, T;
+	fresnel(I, N, eta, Kr, Kt, R, T);
 }
 
-point rotate (point q, float angle, point a, point b) BUILTIN;
+point rotate(point q, float angle, point a, point b) BUILTIN;
 
-normal transform (matrix Mto, normal p) BUILTIN;
-vector transform (matrix Mto, vector p) BUILTIN;
-point transform (matrix Mto, point p) BUILTIN;
+normal transform(matrix Mto, normal p) BUILTIN;
+vector transform(matrix Mto, vector p) BUILTIN;
+point transform(matrix Mto, point p) BUILTIN;
 
 // Implementation of transform-with-named-space in terms of matrices:
 
-point transform (string tospace, point x)
+point transform(string tospace, point x)
 {
-    return transform (matrix ("common", tospace), x);
+	return transform(matrix("common", tospace), x);
 }
 
-point transform (string fromspace, string tospace, point x)
+point transform(string fromspace, string tospace, point x)
 {
-    return transform (matrix (fromspace, tospace), x);
-}
-
-
-vector transform (string tospace, vector x)
-{
-    return transform (matrix ("common", tospace), x);
-}
-
-vector transform (string fromspace, string tospace, vector x)
-{
-    return transform (matrix (fromspace, tospace), x);
+	return transform(matrix(fromspace, tospace), x);
 }
 
 
-normal transform (string tospace, normal x)
+vector transform(string tospace, vector x)
 {
-    return transform (matrix ("common", tospace), x);
+	return transform(matrix("common", tospace), x);
 }
 
-normal transform (string fromspace, string tospace, normal x)
+vector transform(string fromspace, string tospace, vector x)
 {
-    return transform (matrix (fromspace, tospace), x);
+	return transform(matrix(fromspace, tospace), x);
 }
 
-float transformu (string tounits, float x) BUILTIN;
-float transformu (string fromunits, string tounits, float x) BUILTIN;
+
+normal transform(string tospace, normal x)
+{
+	return transform(matrix("common", tospace), x);
+}
+
+normal transform(string fromspace, string tospace, normal x)
+{
+	return transform(matrix(fromspace, tospace), x);
+}
+
+float transformu(string tounits, float x) BUILTIN;
+float transformu(string fromunits, string tounits, float x) BUILTIN;
 
 
 // Color functions
 
-float luminance (color c) {
-    return dot ((vector)c, vector(0.2126, 0.7152, 0.0722));
+float luminance(color c) {
+	return dot((vector)c, vector(0.2126, 0.7152, 0.0722));
 }
 
 
 
-color transformc (string to, color x)
+color transformc(string to, color x)
 {
-    color rgb_to_hsv (color rgb) {  // See Foley & van Dam
-        float r = rgb[0], g = rgb[1], b = rgb[2];
-        float mincomp = min (r, min (g, b));
-        float maxcomp = max (r, max (g, b));
-        float delta = maxcomp - mincomp;  // chroma
-        float h, s, v;
-        v = maxcomp;
-        if (maxcomp > 0)
-            s = delta / maxcomp;
-        else s = 0;
-        if (s <= 0)
-            h = 0;
-        else {
-            if      (r >= maxcomp) h = (g-b) / delta;
-            else if (g >= maxcomp) h = 2 + (b-r) / delta;
-            else                   h = 4 + (r-g) / delta;
-            h /= 6;
-            if (h < 0)
-                h += 1;
-        }
-        return color (h, s, v);
-    }
+	color rgb_to_hsv(color rgb) {   // See Foley & van Dam
+		float r = rgb[0], g = rgb[1], b = rgb[2];
+		float mincomp = min(r, min(g, b));
+		float maxcomp = max(r, max(g, b));
+		float delta = maxcomp - mincomp;  // chroma
+		float h, s, v;
+		v = maxcomp;
+		if (maxcomp > 0)
+			s = delta / maxcomp;
+		else s = 0;
+		if (s <= 0)
+			h = 0;
+		else {
+			if      (r >= maxcomp) h = (g - b) / delta;
+			else if (g >= maxcomp) h = 2 + (b - r) / delta;
+			else h = 4 + (r - g) / delta;
+			h /= 6;
+			if (h < 0)
+				h += 1;
+		}
+		return color(h, s, v);
+	}
 
-    color rgb_to_hsl (color rgb) {  // See Foley & van Dam
-        // First convert rgb to hsv, then to hsl
-        float minval = min (rgb[0], min (rgb[1], rgb[2]));
-        color hsv = rgb_to_hsv (rgb);
-        float maxval = hsv[2];   // v == maxval
-        float h = hsv[0], s, l = (minval+maxval) / 2;
-        if (minval == maxval)
-            s = 0;  // special 'achromatic' case, hue is 0
-        else if (l <= 0.5)
-            s = (maxval - minval) / (maxval + minval);
-        else
-            s = (maxval - minval) / (2 - maxval - minval);
-        return color (h, s, l);
-    }
+	color rgb_to_hsl(color rgb) {   // See Foley & van Dam
+		// First convert rgb to hsv, then to hsl
+		float minval = min(rgb[0], min(rgb[1], rgb[2]));
+		color hsv = rgb_to_hsv(rgb);
+		float maxval = hsv[2];   // v == maxval
+		float h = hsv[0], s, l = (minval + maxval) / 2;
+		if (minval == maxval)
+			s = 0;  // special 'achromatic' case, hue is 0
+		else if (l <= 0.5)
+			s = (maxval - minval) / (maxval + minval);
+		else
+			s = (maxval - minval) / (2 - maxval - minval);
+		return color(h, s, l);
+	}
 
-    color r;
-    if (to == "rgb" || to == "RGB")
-        r = x;
-    else if (to == "hsv")
-        r = rgb_to_hsv (x);
-    else if (to == "hsl")
-        r = rgb_to_hsl (x);
-    else if (to == "YIQ")
-        r = color (dot (vector(0.299,  0.587,  0.114), (vector)x),
-                   dot (vector(0.596, -0.275, -0.321), (vector)x),
-                   dot (vector(0.212, -0.523,  0.311), (vector)x));
-    else if (to == "xyz")
-        r = color (dot (vector(0.412453, 0.357580, 0.180423), (vector)x),
-                   dot (vector(0.212671, 0.715160, 0.072169), (vector)x),
-                   dot (vector(0.019334, 0.119193, 0.950227), (vector)x));
-    else {
-        error ("Unknown color space \"%s\"", to);
-        r = x;
-    }
-    return r;
+	color r;
+	if (to == "rgb" || to == "RGB")
+		r = x;
+	else if (to == "hsv")
+		r = rgb_to_hsv(x);
+	else if (to == "hsl")
+		r = rgb_to_hsl(x);
+	else if (to == "YIQ")
+		r = color(dot(vector(0.299,  0.587,  0.114), (vector)x),
+		          dot(vector(0.596, -0.275, -0.321), (vector)x),
+		          dot(vector(0.212, -0.523,  0.311), (vector)x));
+	else if (to == "xyz")
+		r = color(dot(vector(0.412453, 0.357580, 0.180423), (vector)x),
+		          dot(vector(0.212671, 0.715160, 0.072169), (vector)x),
+		          dot(vector(0.019334, 0.119193, 0.950227), (vector)x));
+	else {
+		error("Unknown color space \"%s\"", to);
+		r = x;
+	}
+	return r;
 }
 
 
-color transformc (string from, string to, color x)
+color transformc(string from, string to, color x)
 {
-    color hsv_to_rgb (color c) { // Reference: Foley & van Dam
-        float h = c[0], s = c[1], v = c[2];
-        color r;
-        if (s < 0.0001) {
-            r = v;
-        } else {
-            h = 6 * (h - floor(h));  // expand to [0..6)
-            int hi = (int)h;
-            float f = h - hi;
-            float p = v * (1-s);
-            float q = v * (1-s*f);
-            float t = v * (1-s*(1-f));
-            if      (hi == 0) r = color (v, t, p);
-            else if (hi == 1) r = color (q, v, p);
-            else if (hi == 2) r = color (p, v, t);
-            else if (hi == 3) r = color (p, q, v);
-            else if (hi == 4) r = color (t, p, v);
-            else              r = color (v, p, q);
-        }
-        return r;
-    }
+	color hsv_to_rgb(color c) {  // Reference: Foley & van Dam
+		float h = c[0], s = c[1], v = c[2];
+		color r;
+		if (s < 0.0001) {
+			r = v;
+		}
+		else {
+			h = 6 * (h - floor(h));  // expand to [0..6)
+			int hi = (int)h;
+			float f = h - hi;
+			float p = v * (1 - s);
+			float q = v * (1 - s * f);
+			float t = v * (1 - s * (1 - f));
+			if      (hi == 0) r = color(v, t, p);
+			else if (hi == 1) r = color(q, v, p);
+			else if (hi == 2) r = color(p, v, t);
+			else if (hi == 3) r = color(p, q, v);
+			else if (hi == 4) r = color(t, p, v);
+			else r = color(v, p, q);
+		}
+		return r;
+	}
 
-    color hsl_to_rgb (color c) {
-        float h = c[0], s = c[1], l = c[2];
-        // Easiest to convert hsl -> hsv, then hsv -> RGB (per Foley & van Dam)
-        float v = (l <= 0.5) ? (l * (1 + s)) : (l * (1 - s) + s);
-        color r;
-        if (v <= 0) {
-            r = 0;
-        } else {
-            float min = 2 * l - v;
-            s = (v - min) / v;
-            r = hsv_to_rgb (color (h, s, v));
-        }
-        return r;
-    }
+	color hsl_to_rgb(color c) {
+		float h = c[0], s = c[1], l = c[2];
+		// Easiest to convert hsl -> hsv, then hsv -> RGB (per Foley & van Dam)
+		float v = (l <= 0.5) ? (l * (1 + s)) : (l * (1 - s) + s);
+		color r;
+		if (v <= 0) {
+			r = 0;
+		}
+		else {
+			float min = 2 * l - v;
+			s = (v - min) / v;
+			r = hsv_to_rgb(color(h, s, v));
+		}
+		return r;
+	}
 
-    color r;
-    if (from == "rgb" || from == "RGB")
-        r = x;
-    else if (from == "hsv")
-        r = hsv_to_rgb (x);
-    else if (from == "hsl")
-        r = hsl_to_rgb (x);
-    else if (from == "YIQ")
-        r = color (dot (vector(1,  0.9557,  0.6199), (vector)x),
-                   dot (vector(1, -0.2716, -0.6469), (vector)x),
-                   dot (vector(1, -1.1082,  1.7051), (vector)x));
-    else if (from == "xyz")
-        r = color (dot (vector( 3.240479, -1.537150, -0.498535), (vector)x),
-                   dot (vector(-0.969256,  1.875991,  0.041556), (vector)x),
-                   dot (vector( 0.055648, -0.204043,  1.057311), (vector)x));
-    else {
-        error ("Unknown color space \"%s\"", to);
-        r = x;
-    }
-    return transformc (to, r);
+	color r;
+	if (from == "rgb" || from == "RGB")
+		r = x;
+	else if (from == "hsv")
+		r = hsv_to_rgb(x);
+	else if (from == "hsl")
+		r = hsl_to_rgb(x);
+	else if (from == "YIQ")
+		r = color(dot(vector(1,  0.9557,  0.6199), (vector)x),
+		          dot(vector(1, -0.2716, -0.6469), (vector)x),
+		          dot(vector(1, -1.1082,  1.7051), (vector)x));
+	else if (from == "xyz")
+		r = color(dot(vector(3.240479, -1.537150, -0.498535), (vector)x),
+		          dot(vector(-0.969256,  1.875991,  0.041556), (vector)x),
+		          dot(vector(0.055648, -0.204043,  1.057311), (vector)x));
+	else {
+		error("Unknown color space \"%s\"", to);
+		r = x;
+	}
+	return transformc(to, r);
 }
 
  
 
 // Matrix functions
 
-float determinant (matrix m) BUILTIN;
-matrix transpose (matrix m) BUILTIN;
+float determinant(matrix m) BUILTIN;
+matrix transpose(matrix m) BUILTIN;
 
 
 
 // Pattern generation
 
-float step (float edge, float x) BUILTIN;
-color step (color edge, color x) BUILTIN;
-point step (point edge, point x) BUILTIN;
-vector step (vector edge, vector x) BUILTIN;
-normal step (normal edge, normal x) BUILTIN;
-float smoothstep (float edge0, float edge1, float x) BUILTIN;
+float step(float edge, float x) BUILTIN;
+color step(color edge, color x) BUILTIN;
+point step(point edge, point x) BUILTIN;
+vector step(vector edge, vector x) BUILTIN;
+normal step(normal edge, normal x) BUILTIN;
+float smoothstep(float edge0, float edge1, float x) BUILTIN;
 
 
 // Derivatives and area operators
@@ -408,24 +413,26 @@ float smoothstep (float edge0, float edge1, float x) BUILTIN;
 
 // String functions
 
-int strlen (string s) BUILTIN;
-int startswith (string s, string prefix) BUILTIN;
-int endswith (string s, string suffix) BUILTIN;
-string substr (string s, int start, int len) BUILTIN;
-string substr (string s, int start) { return substr (s, start, strlen(s)); }
+int strlen(string s) BUILTIN;
+int startswith(string s, string prefix) BUILTIN;
+int endswith(string s, string suffix) BUILTIN;
+string substr(string s, int start, int len) BUILTIN;
+string substr(string s, int start) {
+	return substr(s, start, strlen(s));
+}
 
 // Define concat in terms of shorter concat
-string concat (string a, string b, string c) {
-    return concat(concat(a,b), c);
+string concat(string a, string b, string c) {
+	return concat(concat(a, b), c);
 }
-string concat (string a, string b, string c, string d) {
-    return concat(concat(a,b,c), d);
+string concat(string a, string b, string c, string d) {
+	return concat(concat(a, b, c), d);
 }
-string concat (string a, string b, string c, string d, string e) {
-    return concat(concat(a,b,c,d), e);
+string concat(string a, string b, string c, string d, string e) {
+	return concat(concat(a, b, c, d), e);
 }
-string concat (string a, string b, string c, string d, string e, string f) {
-    return concat(concat(a,b,c,d,e), f);
+string concat(string a, string b, string c, string d, string e, string f) {
+	return concat(concat(a, b, c, d, e), f);
 }
 
 
@@ -438,7 +445,7 @@ closure color diffuse(normal N) BUILTIN;
 closure color oren_nayar(normal N, float sigma) BUILTIN;
 closure color translucent(normal N) BUILTIN;
 closure color reflection(normal N, float eta) BUILTIN;
-closure color reflection(normal N) { return reflection (N, 0.0); }
+closure color reflection(normal N) { return reflection(N, 0.0); }
 closure color refraction(normal N, float eta) BUILTIN;
 closure color dielectric(normal N, float eta) BUILTIN;
 closure color transparent() BUILTIN;
@@ -446,7 +453,7 @@ closure color microfacet_ggx(normal N, float ag) BUILTIN;
 closure color microfacet_ggx_refraction(normal N, float ag, float eta) BUILTIN;
 closure color microfacet_beckmann(normal N, float ab) BUILTIN;
 closure color microfacet_beckmann_refraction(normal N, float ab, float eta) BUILTIN;
-closure color ward(normal N, vector T,float ax, float ay) BUILTIN;
+closure color ward(normal N, vector T, float ax, float ay) BUILTIN;
 closure color ashikhmin_velvet(normal N, float sigma) BUILTIN;
 closure color westin_backscatter(normal N, float roughness) BUILTIN;
 closure color westin_sheen(normal N, float edginess) BUILTIN;
@@ -460,7 +467,7 @@ closure color holdout() BUILTIN;
 closure color subsurface(float eta, float g, float mfp, float albedo) BUILTIN;
 
 // Renderer state
-int raytype (string typename) BUILTIN;
+int raytype(string typename) BUILTIN;
 
 #undef BUILTIN
 #undef BUILTIN_DERIV

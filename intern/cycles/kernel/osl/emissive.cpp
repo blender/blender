@@ -49,57 +49,58 @@ using namespace OSL;
 ///
 class GenericEmissiveClosure : public EmissiveClosure {
 public:
-    GenericEmissiveClosure() { }
+	GenericEmissiveClosure() { }
 
-    void setup() { }
+	void setup() {}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "emission"; }
+	const char *name() const { return "emission"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << "()";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << "()";
+	}
 
-    Color3 eval (const Vec3 &Ng, const Vec3 &omega_out) const
-    {
-        float cosNO = fabsf(Ng.dot(omega_out));
-        float res = cosNO > 0 ? 1.0f: 0.0f;
-        return Color3(res, res, res);
-    }
+	Color3 eval(const Vec3 &Ng, const Vec3 &omega_out) const
+	{
+		float cosNO = fabsf(Ng.dot(omega_out));
+		float res = cosNO > 0 ? 1.0f : 0.0f;
+		return Color3(res, res, res);
+	}
 
-    void sample (const Vec3 &Ng, float randu, float randv,
-                 Vec3 &omega_out, float &pdf) const
-    {
-        // We don't do anything sophisticated here for the step
-        // We just sample the whole cone uniformly to the cosine
-        Vec3 T, B;
-        make_orthonormals(Ng, T, B);
-        float phi = 2 * (float) M_PI * randu;
-        float cosTheta = sqrtf(1.0f - 1.0f * randv);
-        float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
-        omega_out = (cosf(phi) * sinTheta) * T +
-                    (sinf(phi) * sinTheta) * B +
-                                 cosTheta  * Ng;
-        pdf = 1.0f / float(M_PI);
-    }
+	void sample(const Vec3 &Ng, float randu, float randv,
+	            Vec3 &omega_out, float &pdf) const
+	{
+		// We don't do anything sophisticated here for the step
+		// We just sample the whole cone uniformly to the cosine
+		Vec3 T, B;
+		make_orthonormals(Ng, T, B);
+		float phi = 2 * (float) M_PI * randu;
+		float cosTheta = sqrtf(1.0f - 1.0f * randv);
+		float sinTheta = sqrtf(1.0f - cosTheta * cosTheta);
+		omega_out = (cosf(phi) * sinTheta) * T +
+		            (sinf(phi) * sinTheta) * B +
+		            cosTheta  * Ng;
+		pdf = 1.0f / float(M_PI);
+	}
 
-    /// Return the probability distribution function in the direction omega_out,
-    /// given the parameters and the light's surface normal.  This MUST match
-    /// the PDF computed by sample().
-    float pdf (const Vec3 &Ng,
-               const Vec3 &omega_out) const
-    {
-        float cosNO = Ng.dot(omega_out);
-        return cosNO > 0 ? 1.0f: 0.0f;
-    }
+	/// Return the probability distribution function in the direction omega_out,
+	/// given the parameters and the light's surface normal.  This MUST match
+	/// the PDF computed by sample().
+	float pdf(const Vec3 &Ng,
+	          const Vec3 &omega_out) const
+	{
+		float cosNO = Ng.dot(omega_out);
+		return cosNO > 0 ? 1.0f : 0.0f;
+	}
 };
 
 
 
 ClosureParam closure_emission_params[] = {
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(GenericEmissiveClosure) };
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(GenericEmissiveClosure)
+};
 
 CLOSURE_PREPARE(closure_emission_prepare, GenericEmissiveClosure)
 
