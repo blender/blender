@@ -240,9 +240,10 @@ static int select_exec(bContext *C, wmOperator *op)
 
 	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
 
+	if (extend == 0 && deselect == 0 && toggle == 0)
+		ED_mask_select_toggle_all(mask, SEL_DESELECT);
+
 	if (point) {
-		if (extend == 0 && deselect == 0 && toggle == 0)
-			ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 		if (is_handle) {
 			if (extend) {
@@ -302,14 +303,29 @@ static int select_exec(bContext *C, wmOperator *op)
 		MaskSplinePointUW *uw;
 
 		if (ED_mask_feather_find_nearest(C, mask, co, threshold, &masklay, &spline, &point, &uw, NULL)) {
-			if (!extend)
-				ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
-			if (uw)
-				uw->flag |= SELECT;
+			if (extend) {
+				masklay->act_spline = spline;
+				masklay->act_point = point;
 
-			masklay->act_spline = spline;
-			masklay->act_point = point;
+				if (uw) uw->flag |= SELECT;
+			}
+			else if (deselect) {
+				if (uw) uw->flag &= ~SELECT;
+			}
+			else {
+				masklay->act_spline = spline;
+				masklay->act_point = point;
+
+				if (uw) {
+					if (!(uw->flag & SELECT)) {
+						uw->flag |= SELECT;
+					}
+					else if (toggle) {
+						uw->flag &= ~SELECT;
+					}
+				}
+			}
 
 			ED_mask_select_flush_all(mask);
 
