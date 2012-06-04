@@ -106,7 +106,7 @@ Paint *paint_get_active_from_context(const bContext *C)
 				return &ts->imapaint.paint;
 			}
 		}
-		else {
+		else if (obact) {
 			switch (obact->mode) {
 				case OB_MODE_SCULPT:
 					return &ts->sculpt->paint;
@@ -122,7 +122,8 @@ Paint *paint_get_active_from_context(const bContext *C)
 					else
 						return &ts->imapaint.paint;
 			}
-
+		}
+		else {
 			/* default to image paint */
 			return &ts->imapaint.paint;
 		}
