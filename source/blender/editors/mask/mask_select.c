@@ -57,12 +57,13 @@
 
 #include "mask_intern.h"  /* own include */
 
-int ED_mask_spline_select_check(MaskSplinePoint *points, int tot_point)
+/* 'check' select */
+int ED_mask_spline_select_check(MaskSpline *spline)
 {
 	int i;
 
-	for (i = 0; i < tot_point; i++) {
-		MaskSplinePoint *point = &points[i];
+	for (i = 0; i < spline->tot_point; i++) {
+		MaskSplinePoint *point = &spline->points[i];
 
 		if (MASKPOINT_ISSEL_ANY(point))
 			return TRUE;
@@ -80,7 +81,7 @@ int ED_mask_layer_select_check(MaskLayer *masklay)
 	}
 
 	for (spline = masklay->splines.first; spline; spline = spline->next) {
-		if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
+		if (ED_mask_spline_select_check(spline)) {
 			return TRUE;
 		}
 	}
@@ -101,29 +102,35 @@ int ED_mask_select_check(Mask *mask)
 	return FALSE;
 }
 
-void ED_mask_layer_select_set(MaskLayer *masklay, int select)
+/* 'sel' select  */
+void ED_mask_spline_select_set(MaskSpline *spline, const short do_select)
+{
+	int i;
+
+	if (do_select)
+		spline->flag |= SELECT;
+	else
+		spline->flag &= ~SELECT;
+
+	for (i = 0; i < spline->tot_point; i++) {
+		MaskSplinePoint *point = &spline->points[i];
+
+		BKE_mask_point_select_set(point, do_select);
+	}
+}
+
+void ED_mask_layer_select_set(MaskLayer *masklay, const short do_select)
 {
 	MaskSpline *spline;
 
 	if (masklay->restrictflag & MASK_RESTRICT_SELECT) {
-		if (select == TRUE) {
+		if (do_select == TRUE) {
 			return;
 		}
 	}
 
 	for (spline = masklay->splines.first; spline; spline = spline->next) {
-		int i;
-
-		if (select)
-			spline->flag |= SELECT;
-		else
-			spline->flag &= ~SELECT;
-
-		for (i = 0; i < spline->tot_point; i++) {
-			MaskSplinePoint *point = &spline->points[i];
-
-			BKE_mask_point_select_set(point, select);
-		}
+		ED_mask_spline_select_set(spline, do_select);
 	}
 }
 
@@ -658,4 +665,106 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
 	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
+}
+
+static int mask_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	MaskSpline *spline;
+	MaskSplinePoint *point = NULL;
+	float co[2];
+	int do_select = !RNA_boolean_get(op->ptr, "deselect");
+
+	int is_handle = 0;
+	const float threshold = 19;
+	int change = FALSE;
+
+	ED_mask_mouse_pos(C, event, co);
+
+	point = ED_mask_point_find_nearest(C, mask, co, threshold, &masklay, &spline, &is_handle, NULL);
+
+	if (point) {
+		ED_mask_spline_select_set(spline, do_select);
+		masklay->act_spline = spline;
+		masklay->act_point = point;
+
+		change = TRUE;
+	}
+
+	if (change) {
+		ED_mask_select_flush_all(mask);
+
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void MASK_OT_select_linked_pick(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked";
+	ot->idname = "MASK_OT_select_linked_pick";
+	ot->description = "(De)select all points linked to the curve under the mouse cursor";
+
+	/* api callbacks */
+	ot->invoke = mask_select_linked_pick_invoke;
+	ot->poll = ED_maskediting_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "");
+}
+
+static int mask_select_linked_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+
+	int change = FALSE;
+
+	/* do actual selection */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			if (ED_mask_spline_select_check(spline)) {
+				ED_mask_spline_select_set(spline, TRUE);
+				change = TRUE;
+			}
+		}
+	}
+
+	if (change) {
+		ED_mask_select_flush_all(mask);
+
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void MASK_OT_select_linked(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Select Linked All";
+	ot->idname = "MASK_OT_select_linked";
+	ot->description = "Select all vertices linked to the active mesh";
+
+	/* api callbacks */
+	ot->exec = mask_select_linked_exec;
+	ot->poll = ED_maskediting_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

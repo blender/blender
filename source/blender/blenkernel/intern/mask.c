@@ -673,11 +673,11 @@ void BKE_mask_point_add_uw(MaskSplinePoint *point, float u, float w)
 	BKE_mask_point_sort_uw(point, &point->uw[point->tot_uw - 1]);
 }
 
-void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
+void BKE_mask_point_select_set(MaskSplinePoint *point, const short do_select)
 {
 	int i;
 
-	if (select) {
+	if (do_select) {
 		MASKPOINT_SEL_ALL(point);
 	}
 	else {
@@ -685,7 +685,7 @@ void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
 	}
 
 	for (i = 0; i < point->tot_uw; i++) {
-		if (select) {
+		if (do_select) {
 			point->uw[i].flag |= SELECT;
 		}
 		else {
@@ -694,9 +694,9 @@ void BKE_mask_point_select_set(MaskSplinePoint *point, int select)
 	}
 }
 
-void BKE_mask_point_select_set_handle(MaskSplinePoint *point, int select)
+void BKE_mask_point_select_set_handle(MaskSplinePoint *point, const short do_select)
 {
-	if (select) {
+	if (do_select) {
 		MASKPOINT_SEL_HANDLE(point);
 	}
 	else {

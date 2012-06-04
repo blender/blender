@@ -1487,7 +1487,7 @@ static int cyclic_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 		}
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			if (ED_mask_spline_select_check(spline->points, spline->tot_point)) {
+			if (ED_mask_spline_select_check(spline)) {
 				spline->flag ^= MASK_SPLINE_CYCLIC;
 			}
 		}

@@ -91,8 +91,8 @@ float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *p
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
-void BKE_mask_point_select_set(struct MaskSplinePoint *point, int select);
-void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, int select);
+void BKE_mask_point_select_set(struct MaskSplinePoint *point, const short do_select);
+void BKE_mask_point_select_set_handle(struct MaskSplinePoint *point, const short do_select);
 
 /* general */
 struct Mask *BKE_mask_new(const char *name);

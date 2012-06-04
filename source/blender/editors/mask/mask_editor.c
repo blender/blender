@@ -204,6 +204,8 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_select_border);
 	WM_operatortype_append(MASK_OT_select_lasso);
 	WM_operatortype_append(MASK_OT_select_circle);
+	WM_operatortype_append(MASK_OT_select_linked_pick);
+	WM_operatortype_append(MASK_OT_select_linked);
 
 	/* hide/reveal */
 	WM_operatortype_append(MASK_OT_hide_view_clear);
@@ -257,6 +259,12 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+
+	WM_keymap_add_item(keymap, "MASK_OT_select_linked", LKEY, KM_PRESS, KM_CTRL, 0);
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, 0, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", FALSE);
+	kmi = WM_keymap_add_item(keymap, "MASK_OT_select_linked_pick", LKEY, KM_PRESS, KM_SHIFT, 0);
+	RNA_boolean_set(kmi->ptr, "deselect", TRUE);
 
 	WM_keymap_add_item(keymap, "MASK_OT_select_border", BKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_select_circle", CKEY, KM_PRESS, 0, 0);

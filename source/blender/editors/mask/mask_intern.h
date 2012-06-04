@@ -77,12 +77,15 @@ void MASK_OT_select_all(struct wmOperatorType *ot);
 void MASK_OT_select_border(struct wmOperatorType *ot);
 void MASK_OT_select_lasso(struct wmOperatorType *ot);
 void MASK_OT_select_circle(struct wmOperatorType *ot);
+void MASK_OT_select_linked_pick(struct wmOperatorType *ot);
+void MASK_OT_select_linked(struct wmOperatorType *ot);
 
-int ED_mask_spline_select_check(struct MaskSplinePoint *points, int tot_point);
+int ED_mask_spline_select_check(struct MaskSpline *spline);
 int ED_mask_layer_select_check(struct MaskLayer *masklay);
 int ED_mask_select_check(struct Mask *mask);
 
-void ED_mask_layer_select_set(struct MaskLayer *masklay, int select);
+void ED_mask_spline_select_set(struct MaskSpline *spline, const short do_select);
+void ED_mask_layer_select_set(struct MaskLayer *masklay, const short do_select);
 void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
