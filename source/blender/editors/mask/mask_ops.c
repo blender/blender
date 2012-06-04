@@ -759,7 +759,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide slide feather instead of vertex");
+	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide feather instead of vertex");
 }
 
 /******************** toggle cyclic *********************/

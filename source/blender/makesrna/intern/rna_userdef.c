@@ -1992,27 +1992,27 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "meta_strips", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "nla_meta");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Meta Strips", "Meta Strip - Unselected. For grouping related strips");
+	RNA_def_property_ui_text(prop, "Meta Strips", "Meta Strip - Unselected (for grouping related strips)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "meta_strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "nla_meta_sel");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Meta Strips Selected", "Meta Strip - Selected. For grouping related strips");
+	RNA_def_property_ui_text(prop, "Meta Strips Selected", "Meta Strip - Selected (for grouping related strips)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "sound_strips", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "nla_sound");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Sound Strips", 
-	                         "Sound Strip - Unselected. For timing speaker sounds");
+	                         "Sound Strip - Unselected (for timing speaker sounds)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "sound_strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "nla_sound_sel");
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "Sound Strips Selected", 
-	                         "Sound Strip - Selected. For timing speaker sounds");
+	                         "Sound Strip - Selected (for timing speaker sounds)");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
 	prop = RNA_def_property(srna, "tweak", PROP_FLOAT, PROP_COLOR_GAMMA);
