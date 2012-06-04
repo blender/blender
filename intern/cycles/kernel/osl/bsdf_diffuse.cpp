@@ -36,6 +36,8 @@
 
 #include "osl_closures.h"
 
+#include "util_math.h"
+
 CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
@@ -69,7 +71,7 @@ public:
 
     Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
     {
-        float cos_pi = std::max(m_N.dot(omega_in),0.0f) * (float) M_1_PI;
+        float cos_pi = max(m_N.dot(omega_in),0.0f) * (float) M_1_PI;
         pdf = cos_pi;
         return Color3 (cos_pi, cos_pi, cos_pi);
     }
@@ -137,7 +139,7 @@ public:
 
     Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
     {
-        float cos_pi = std::max(-m_N.dot(omega_in), 0.0f) * (float) M_1_PI;
+        float cos_pi = max(-m_N.dot(omega_in), 0.0f) * (float) M_1_PI;
         pdf = cos_pi;
         return Color3 (cos_pi, cos_pi, cos_pi);
     }

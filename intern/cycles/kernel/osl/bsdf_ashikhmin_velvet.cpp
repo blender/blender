@@ -36,6 +36,8 @@
 
 #include "osl_closures.h"
 
+#include "util_math.h"
+
 CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
@@ -50,7 +52,7 @@ public:
 
     void setup()
     {
-        m_sigma = std::max(m_sigma, 0.01f);
+        m_sigma = max(m_sigma, 0.01f);
         m_invsigma2 = 1.0f/(m_sigma * m_sigma);
     }
 
@@ -89,7 +91,7 @@ public:
             float cosHO = fabsf(omega_out.dot(H));
 
             float cosNHdivHO = cosNH / cosHO;
-            cosNHdivHO = std::max(cosNHdivHO, 0.00001f);
+            cosNHdivHO = max(cosNHdivHO, 0.00001f);
 
             float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
             float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
@@ -99,7 +101,7 @@ public:
             float cotangent2 =  (cosNH * cosNH) / sinNH2; 
 
             float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * float(M_1_PI) / sinNH4;
-            float G = std::min(1.0f, std::min(fac1, fac2)); // TODO: derive G from D analytically
+            float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
             float out = 0.25f * (D * G) / cosNO;
 
@@ -133,7 +135,7 @@ public:
             float cosHO = fabsf(omega_out.dot(H));
 
             float cosNHdivHO = cosNH / cosHO;
-            cosNHdivHO = std::max(cosNHdivHO, 0.00001f);
+            cosNHdivHO = max(cosNHdivHO, 0.00001f);
 
             float fac1 = 2 * fabsf(cosNHdivHO * cosNO);
             float fac2 = 2 * fabsf(cosNHdivHO * cosNI);
@@ -143,7 +145,7 @@ public:
             float cotangent2 =  (cosNH * cosNH) / sinNH2; 
 
             float D = expf(-cotangent2 * m_invsigma2) * m_invsigma2 * float(M_1_PI) / sinNH4;
-            float G = std::min(1.0f, std::min(fac1, fac2)); // TODO: derive G from D analytically
+            float G = min(1.0f, min(fac1, fac2)); // TODO: derive G from D analytically
 
             float power = 0.25f * (D * G) / cosNO;
 

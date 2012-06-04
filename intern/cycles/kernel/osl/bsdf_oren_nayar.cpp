@@ -19,6 +19,7 @@
 #include <OpenImageIO/fmath.h>
 #include <OSL/genclosure.h>
 #include "osl_closures.h"
+#include "util_math.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -118,7 +119,7 @@ private:
 		float t = l.dot(v) - nl * nv;
 		
 		if(t > 0.0f) {
-			t /= max(nl, vl) + 1e-8f;
+			t /= max(nl, nv) + 1e-8f;
 		}
 		return nl * (m_a + m_b * t);
 	}

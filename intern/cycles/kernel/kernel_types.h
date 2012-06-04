@@ -39,6 +39,9 @@ CCL_NAMESPACE_BEGIN
 #ifdef __KERNEL_CPU__
 #define __KERNEL_SHADING__
 #define __KERNEL_ADV_SHADING__
+#ifdef WITH_OSL
+#define __OSL__
+#endif
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -107,7 +110,6 @@ CCL_NAMESPACE_BEGIN
 #endif
 
 //#define __MULTI_LIGHT__
-//#define __OSL__
 //#define __SOBOL_FULL_SCREEN__
 //#define __QBVH__
 
