@@ -43,6 +43,8 @@ void *GaussianBokehBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **
 
 void GaussianBokehBlurOperation::initExecution()
 {
+	BlurBaseOperation::initExecution();
+
 	if (this->sizeavailable) {
 		updateGauss(NULL);
 	}
