@@ -1946,8 +1946,8 @@ void BKE_mesh_calc_normals_tessface(MVert *mverts, int numVerts, MFace *mfaces, 
 		MEM_freeN(fnors);
 }
 
-
-static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex, int numCol)
+static void bm_corners_to_loops_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
+                                   MFace *mface, int totloop, int findex, int loopstart, int numTex, int numCol)
 {
 	MTFace *texface;
 	MTexPoly *texpoly;
@@ -1957,15 +1957,15 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 	MFace *mf;
 	int i;
 
-	mf = me->mface + findex;
+	mf = mface + findex;
 
 	for (i = 0; i < numTex; i++) {
-		texface = CustomData_get_n(&me->fdata, CD_MTFACE, findex, i);
-		texpoly = CustomData_get_n(&me->pdata, CD_MTEXPOLY, findex, i); 
-		
+		texface = CustomData_get_n(fdata, CD_MTFACE, findex, i);
+		texpoly = CustomData_get_n(pdata, CD_MTEXPOLY, findex, i);
+
 		ME_MTEXFACE_CPY(texpoly, texface);
-	
-		mloopuv = CustomData_get_n(&me->ldata, CD_MLOOPUV, loopstart, i);
+
+		mloopuv = CustomData_get_n(ldata, CD_MLOOPUV, loopstart, i);
 		copy_v2_v2(mloopuv->uv, texface->uv[0]); mloopuv++;
 		copy_v2_v2(mloopuv->uv, texface->uv[1]); mloopuv++;
 		copy_v2_v2(mloopuv->uv, texface->uv[2]); mloopuv++;
@@ -1976,8 +1976,8 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 	}
 
 	for (i = 0; i < numCol; i++) {
-		mloopcol = CustomData_get_n(&me->ldata, CD_MLOOPCOL, loopstart, i);
-		mcol = CustomData_get_n(&me->fdata, CD_MCOL, findex, i);
+		mloopcol = CustomData_get_n(ldata, CD_MLOOPCOL, loopstart, i);
+		mcol = CustomData_get_n(fdata, CD_MCOL, findex, i);
 
 		MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[0]); mloopcol++;
 		MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[1]); mloopcol++;
@@ -1986,21 +1986,23 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 			MESH_MLOOPCOL_FROM_MCOL(mloopcol, &mcol[3]); mloopcol++;
 		}
 	}
-	
-	if (CustomData_has_layer(&me->fdata, CD_MDISPS)) {
-		MDisps *ld = CustomData_get(&me->ldata, loopstart, CD_MDISPS);
-		MDisps *fd = CustomData_get(&me->fdata, findex, CD_MDISPS);
+
+	if (CustomData_has_layer(fdata, CD_MDISPS)) {
+		MDisps *ld = CustomData_get(ldata, loopstart, CD_MDISPS);
+		MDisps *fd = CustomData_get(fdata, findex, CD_MDISPS);
 		float (*disps)[3] = fd->disps;
 		int i, tot = mf->v4 ? 4 : 3;
 		int side, corners;
 
-		if (CustomData_external_test(&me->fdata, CD_MDISPS)) {
-			CustomData_external_add(&me->ldata, &me->id, CD_MDISPS,
-			                        me->totloop, me->fdata.external->filename);
+		if (CustomData_external_test(fdata, CD_MDISPS)) {
+			if (id) {
+				CustomData_external_add(ldata, id, CD_MDISPS,
+				                        totloop, fdata->external->filename);
+			}
 		}
-		
+
 		corners = multires_mdisp_corners(fd);
-		
+
 		if (corners == 0) {
 			/* Empty MDisp layers appear in at least one of the sintel.blend files.
 			 * Not sure why this happens, but it seems fine to just ignore them here.
@@ -2009,14 +2011,14 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 		}
 		else {
 			side = sqrt(fd->totdisp / corners);
-		
+
 			for (i = 0; i < tot; i++, disps += side * side, ld++) {
 				ld->totdisp = side * side;
 				ld->level = (int)(logf(side - 1.0f) / (float)M_LN2) + 1;
-			
+
 				if (ld->disps)
 					MEM_freeN(ld->disps);
-			
+
 				ld->disps = MEM_callocN(sizeof(float) * 3 * side * side, "converted loop mdisps");
 				if (fd->disps) {
 					memcpy(ld->disps, disps, sizeof(float) * 3 * side * side);
@@ -2028,70 +2030,87 @@ static void bm_corners_to_loops(Mesh *me, int findex, int loopstart, int numTex,
 
 void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 {
+	BKE_mesh_convert_mfaces_to_mpolys_ex(&mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
+	                                     mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
+	                                     mesh->medge, mesh->mface,
+	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
+
+	mesh_update_customdata_pointers(mesh, TRUE);
+}
+
+void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
+                                          int totedge_i, int totface_i, int totloop_i, int totpoly_i,
+                                          MEdge *medge, MFace *mface,
+										  int *totloop_r, int *totpoly_r,
+										  MLoop **mloop_r, MPoly **mpoly_r)
+{
 	MFace *mf;
-	MLoop *ml;
-	MPoly *mp;
+	MLoop *ml, *mloop;
+	MPoly *mp, *mpoly;
 	MEdge *me;
 	EdgeHash *eh;
 	int numTex, numCol;
-	int i, j, totloop;
+	int i, j, totloop, totpoly, *polyindex;
 
 	/* just in case some of these layers are filled in (can happen with python created meshes) */
-	CustomData_free(&mesh->ldata, mesh->totloop);
-	CustomData_free(&mesh->pdata, mesh->totpoly);
-	memset(&mesh->ldata, 0, sizeof(mesh->ldata));
-	memset(&mesh->pdata, 0, sizeof(mesh->pdata));
+	CustomData_free(ldata, totloop_i);
+	CustomData_free(pdata, totpoly_i);
+	memset(ldata, 0, sizeof(*ldata));
+	memset(pdata, 0, sizeof(*pdata));
 
-	mesh->totpoly = mesh->totface;
-	mesh->mpoly = MEM_callocN(sizeof(MPoly) * mesh->totpoly, "mpoly converted");
-	CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
+	totpoly = totface_i;
+	mpoly = MEM_callocN(sizeof(MPoly) * totpoly, "mpoly converted");
+	CustomData_add_layer(pdata, CD_MPOLY, CD_ASSIGN, mpoly, totpoly);
 
-	numTex = CustomData_number_of_layers(&mesh->fdata, CD_MTFACE);
-	numCol = CustomData_number_of_layers(&mesh->fdata, CD_MCOL);
-	
+	numTex = CustomData_number_of_layers(fdata, CD_MTFACE);
+	numCol = CustomData_number_of_layers(fdata, CD_MCOL);
+
 	totloop = 0;
-	mf = mesh->mface;
-	for (i = 0; i < mesh->totface; i++, mf++) {
+	mf = mface;
+	for (i = 0; i < totface_i; i++, mf++) {
 		totloop += mf->v4 ? 4 : 3;
 	}
-	
-	mesh->totloop = totloop;
-	mesh->mloop = MEM_callocN(sizeof(MLoop) * mesh->totloop, "mloop converted");
 
-	CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, totloop);
-	CustomData_to_bmeshpoly(&mesh->fdata, &mesh->pdata, &mesh->ldata,
-	                        mesh->totloop, mesh->totpoly);
+	mloop = MEM_callocN(sizeof(MLoop) * totloop, "mloop converted");
 
-	/* ensure external data is transferred */
-	CustomData_external_read(&mesh->fdata, &mesh->id, CD_MASK_MDISPS, mesh->totface);
+	CustomData_add_layer(ldata, CD_MLOOP, CD_ASSIGN, mloop, totloop);
+
+	CustomData_to_bmeshpoly(fdata, pdata, ldata, totloop, totpoly);
+
+	if (id) {
+		/* ensure external data is transferred */
+		CustomData_external_read(fdata, id, CD_MASK_MDISPS, totface_i);
+	}
 
 	eh = BLI_edgehash_new();
 
-	/*build edge hash*/
-	me = mesh->medge;
-	for (i = 0; i < mesh->totedge; i++, me++) {
+	/* build edge hash */
+	me = medge;
+	for (i = 0; i < totedge_i; i++, me++) {
 		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
 
 		/* unrelated but avoid having the FGON flag enabled, so we can reuse it later for something else */
 		me->flag &= ~ME_FGON;
 	}
 
-	j = 0; /*current loop index*/
-	ml = mesh->mloop;
-	mf = mesh->mface;
-	mp = mesh->mpoly;
-	for (i = 0; i < mesh->totface; i++, mf++, mp++) {
+	polyindex = CustomData_get_layer(fdata, CD_POLYINDEX);
+
+	j = 0; /* current loop index */
+	ml = mloop;
+	mf = mface;
+	mp = mpoly;
+	for (i = 0; i < totface_i; i++, mf++, mp++) {
 		mp->loopstart = j;
-		
+
 		mp->totloop = mf->v4 ? 4 : 3;
 
 		mp->mat_nr = mf->mat_nr;
 		mp->flag = mf->flag;
-		
+
 #       define ML(v1, v2) { \
 			ml->v = mf->v1; ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2)); ml++; j++; \
 		} (void)0
-		
+
 		ML(v1, v2);
 		ML(v2, v3);
 		if (mf->v4) {
@@ -2101,18 +2120,26 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 		else {
 			ML(v3, v1);
 		}
-		
+
 #       undef ML
 
-		bm_corners_to_loops(mesh, i, mp->loopstart, numTex, numCol);
+		bm_corners_to_loops_ex(id, fdata, ldata, pdata, mface, totloop, i, mp->loopstart, numTex, numCol);
+
+		if (polyindex) {
+			*polyindex = i;
+			polyindex++;
+		}
 	}
 
 	/* note, we don't convert FGons at all, these are not even real ngons,
 	 * they have their own UV's, colors etc - its more an editing feature. */
 
-	mesh_update_customdata_pointers(mesh, TRUE);
-
 	BLI_edgehash_free(eh, NULL);
+
+	*totpoly_r = totpoly;
+	*totloop_r = totloop;
+	*mpoly_r = mpoly;
+	*mloop_r = mloop;
 }
 
 float (*mesh_getVertexCos(Mesh * me, int *numVerts_r))[3]
