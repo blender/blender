@@ -1870,7 +1870,6 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 		for (base = vc->scene->base.first; base && hits; base = base->next) {
 			if (BASE_SELECTABLE(vc->v3d, base)) {
 				while (base->selcol == (*col & 0xFFFF)) {   /* we got an object */
-					
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
 						bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
 						if (bone) {
@@ -1897,7 +1896,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 						else
 							ED_base_object_select(base, BA_DESELECT);
 					}
-
+					
 					col += 4; /* next color */
 					hits--;
 					if (hits == 0) break;
@@ -1906,13 +1905,16 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 			
 			if (bone_selected) {
 				Object *ob = base->object;
-				bArmature *arm = ob->data;
 				
-				WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
-				
-				if (arm->flag & ARM_HAS_VIZ_DEPS) {
-					/* mask modifier ('armature' mode), etc. */
-					DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+				if (ob && (ob->type == OB_ARMATURE)) {
+					bArmature *arm = ob->data;
+					
+					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+					
+					if (arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
+						/* mask modifier ('armature' mode), etc. */
+						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+					}
 				}
 			}
 		}
