@@ -29,30 +29,19 @@
  *  \ingroup edmask
  */
 
-#include "MEM_guardedalloc.h"
-
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h"  /* SELECT */
 
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_mask.h"
-#include "ED_clip.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "ED_mask.h"  /* own include */
 
 #include "mask_intern.h"  /* own include */
 

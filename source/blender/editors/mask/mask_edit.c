@@ -29,9 +29,7 @@
  *  \ingroup edmask
  */
 
-#include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -41,7 +39,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_mask.h"
+#include "ED_mask.h"  /* own include */
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
 #include "ED_transform.h"

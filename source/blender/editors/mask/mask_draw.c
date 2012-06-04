@@ -32,7 +32,6 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
 #include "BKE_mask.h"
@@ -40,10 +39,8 @@
 #include "DNA_mask_types.h"
 #include "DNA_object_types.h"   /* SELECT */
 
-#include "ED_mask.h"
-
+#include "ED_mask.h"  /* own include */
 #include "BIF_gl.h"
-#include "BIF_glutil.h"
 
 #include "UI_resources.h"
 

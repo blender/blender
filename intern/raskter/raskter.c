@@ -28,8 +28,7 @@
  *  \ingroup RASKTER
  */
 
-#include <stdio.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include "raskter.h"
 
 /* from BLI_utildefines.h */
