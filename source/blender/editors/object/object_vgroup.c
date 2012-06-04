@@ -3046,14 +3046,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_option) {
 
 				case REPLACE_SINGLE_VERTEX_GROUP:
-					if (ED_vgroup_transfer_weight(ob_slc, ob_act, BLI_findlink(&ob_act->defbase, ob_act->actdef - 1), scene, method_option, replace_option))
+					if (ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option))
 						change++;
 					else fail++;
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
-					for (dg_src = ob_act->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (ED_vgroup_transfer_weight(ob_slc, ob_act, dg_src, scene, method_option, replace_option)) change++;
+					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
+						if (ED_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method_option, replace_option)) change++;
 						else fail++;
 					}
 					break;
