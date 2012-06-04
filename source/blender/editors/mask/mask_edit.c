@@ -233,7 +233,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap = WM_keymap_find(keyconf, "Mask Editor", 0, 0);
+	keymap = WM_keymap_find(keyconf, "Mask Editing", 0, 0);
 	keymap->poll = ED_maskediting_poll;
 
 	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
