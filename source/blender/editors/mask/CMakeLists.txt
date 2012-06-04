@@ -38,7 +38,7 @@ set(INC_SYS
 
 set(SRC
 	mask_draw.c
-	mask_editor.c
+	mask_edit.c
 	mask_ops.c
 	mask_relationships.c
 	mask_select.c
