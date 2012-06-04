@@ -288,11 +288,12 @@ static void make_renderinfo_string(RenderStats *rs, Scene *scene, char *str)
 	else if (scene->r.scemode & R_SINGLE_LAYER)
 		spos += sprintf(spos, "Single Layer | ");
 
+	spos += sprintf(spos, "Frame:%d ", (scene->r.cfra));
+
 	if (rs->statstr) {
-		spos += sprintf(spos, "%s ", rs->statstr);
+		spos += sprintf(spos, "| %s ", rs->statstr);
 	}
 	else {
-		spos += sprintf(spos, "Fra:%d  ", (scene->r.cfra));
 		if (rs->totvert) spos += sprintf(spos, "Ve:%d ", rs->totvert);
 		if (rs->totface) spos += sprintf(spos, "Fa:%d ", rs->totface);
 		if (rs->tothalo) spos += sprintf(spos, "Ha:%d ", rs->tothalo);

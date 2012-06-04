@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+//#define __KERNEL_SSE__
+
 #include <stdlib.h>
 
 #include "bvh_binning.h"

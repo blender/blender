@@ -1210,7 +1210,6 @@ static void change_idid_adr_fd(FileData *fd, void *old, void *new)
 		if (old==entry->newp && entry->nr==ID_ID) {
 			entry->newp = new;
 			if (new) entry->nr = GS( ((ID *)new)->name );
-			break;
 		}
 	}
 }
@@ -7593,9 +7592,36 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
+	{
+		/* set new deactivation values for game settings */
+		Scene *sce;
+
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			/* Game Settings */
+			sce->gm.lineardeactthreshold = 0.8f;
+			sce->gm.angulardeactthreshold = 1.0f;
+			sce->gm.deactivationtime = 2.0f;
+		}
+	}
+
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+	{
+		Scene *scene;
+		// composite redesign
+		for (scene=main->scene.first; scene; scene=scene->id.next) {
+			if (scene->nodetree) {
+				if (scene->nodetree->chunksize == 0) {
+					scene->nodetree->chunksize = 256;
+				}
+			}
+		}
+	}
+
 	{
 		MovieClip *clip;
-		bScreen *sc;
 
 		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 			MovieTrackingTrack *track;
@@ -7632,6 +7658,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				track = track->next;
 			}
 		}
+	}
+
+	{
+		bScreen *sc;
 
 		for (sc = main->screen.first; sc; sc = sc->id.next) {
 			ScrArea *sa;
@@ -7652,33 +7682,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
-	{
-		/* set new deactivation values for game settings */
-		Scene *sce;
-
-		for (sce = main->scene.first; sce; sce = sce->id.next) {
-			/* Game Settings */
-			sce->gm.lineardeactthreshold = 0.8f;
-			sce->gm.angulardeactthreshold = 1.0f;
-			sce->gm.deactivationtime = 2.0f;
-		}
-	}
-
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
-	{
-		Scene *scene;
-		// composite redesign
-		for (scene=main->scene.first; scene; scene=scene->id.next) {
-			if (scene->nodetree) {
-				if (scene->nodetree->chunksize == 0) {
-					scene->nodetree->chunksize = 256;
-				}
-			}
-		}
-	}
-	
 	/* don't forget to set version number in blender.c! */
 }
 
