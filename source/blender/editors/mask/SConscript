@@ -1,0 +1,9 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.c')
+defs = []
+incs = '../include ../../blenkernel ../../blenloader ../../blenlib ../../windowmanager ../../makesdna'
+incs += ' ../../makesrna #/extern/glew/include #/intern/guardedalloc'
+
+env.BlenderLib ( 'bf_editors_mask', sources, Split(incs), defs, libtype=['core'], priority=[100] )
