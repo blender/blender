@@ -473,6 +473,39 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 				case TH_SKIN_ROOT:
 					cp = ts->skin_root;
 					break;
+					
+				case TH_ANIM_ACTIVE:
+					cp = ts->anim_active;
+					break;
+				case TH_ANIM_INACTIVE:
+					cp = ts->anim_non_active;
+					break;
+				
+				case TH_NLA_TWEAK:
+					cp = ts->nla_tweaking;
+					break;
+				case TH_NLA_TWEAK_DUPLI:
+					cp = ts->nla_tweakdupli;
+					break;
+				
+				case TH_NLA_TRANSITION:
+					cp = ts->nla_transition;
+					break;
+				case TH_NLA_TRANSITION_SEL:
+					cp = ts->nla_transition_sel;
+					break;
+				case TH_NLA_META:
+					cp = ts->nla_meta;
+					break;
+				case TH_NLA_META_SEL:
+					cp = ts->nla_meta_sel;
+					break;
+				case TH_NLA_SOUND:
+					cp = ts->nla_sound;
+					break;
+				case TH_NLA_SOUND_SEL:
+					cp = ts->nla_sound_sel;
+					break;
 			}
 		}
 	}
@@ -735,18 +768,33 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tipo.handle_sel_auto_clamped, 0xf0, 0xaf, 0x90, 255);
 	btheme->tipo.handle_vertex_size = 4;
 	
-	rgba_char_args_set(btheme->tipo.ds_channel,     82, 96, 110, 255);
+	rgba_char_args_set(btheme->tipo.ds_channel,      82, 96, 110, 255);
 	rgba_char_args_set(btheme->tipo.ds_subchannel,  124, 137, 150, 255);
-	rgba_char_args_set(btheme->tipo.group, 79, 101, 73, 255);
-	rgba_char_args_set(btheme->tipo.group_active, 135, 177, 125, 255);
+	rgba_char_args_set(btheme->tipo.group,           79, 101, 73, 255);
+	rgba_char_args_set(btheme->tipo.group_active,   135, 177, 125, 255);
 
 	/* dopesheet */
 	btheme->tact = btheme->tipo;
 	rgba_char_args_set(btheme->tact.strip,          12, 10, 10, 128);
 	rgba_char_args_set(btheme->tact.strip_select,   255, 140, 0, 255);
 	
+	rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102);
+	
 	/* space nla */
 	btheme->tnla = btheme->tact;
+	
+	rgba_char_args_set(btheme->tnla.anim_active,    204, 112, 26, 102); /* same as for dopesheet; duplicate here for easier reference */
+	rgba_char_args_set(btheme->tnla.anim_non_active,153, 135, 97, 77);
+	
+	rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
+	rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);
+	
+	rgba_char_args_set(btheme->tnla.nla_transition,     28, 38, 48, 255);
+	rgba_char_args_set(btheme->tnla.nla_transition_sel, 46, 117, 219, 255);
+	rgba_char_args_set(btheme->tnla.nla_meta,           51, 38, 66, 255);
+	rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
+	rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
+	rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
 	
 	/* space file */
 	/* to have something initialized */
@@ -1041,6 +1089,17 @@ void UI_GetThemeColor3fv(int colorid, float col[3])
 	col[0] = ((float)cp[0]) / 255.0f;
 	col[1] = ((float)cp[1]) / 255.0f;
 	col[2] = ((float)cp[2]) / 255.0f;
+}
+
+void UI_GetThemeColor4fv(int colorid, float col[4])
+{
+	const unsigned char *cp;
+	
+	cp = UI_ThemeGetColorPtr(theme_active, theme_spacetype, colorid);
+	col[0] = ((float)cp[0]) / 255.0f;
+	col[1] = ((float)cp[1]) / 255.0f;
+	col[2] = ((float)cp[2]) / 255.0f;
+	col[3] = ((float)cp[3]) / 255.0f;
 }
 
 // get the color, range 0.0-1.0, complete with shading offset
@@ -1815,6 +1874,29 @@ void init_userdef_do_versions(void)
 		bTheme *btheme;
 		for (btheme = U.themes.first; btheme; btheme = btheme->next)
 			rgba_char_args_set(btheme->tv3d.skin_root, 180, 77, 77, 255);
+	}
+	
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 7)) {
+		bTheme *btheme;
+		
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			/* DopeSheet Summary */
+			rgba_char_args_set(btheme->tact.anim_active,    204, 112, 26, 102); 
+			
+			/* NLA Colors */
+			rgba_char_args_set(btheme->tnla.anim_active,    204, 112, 26, 102); /* same as dopesheet above */
+			rgba_char_args_set(btheme->tnla.anim_non_active,153, 135, 97, 77);
+			
+			rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
+			rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);
+			
+			rgba_char_args_set(btheme->tnla.nla_transition,     28, 38, 48, 255);
+			rgba_char_args_set(btheme->tnla.nla_transition_sel, 46, 117, 219, 255);
+			rgba_char_args_set(btheme->tnla.nla_meta,           51, 38, 66, 255);
+			rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
+			rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
+			rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
+		}
 	}
 
 	/* GL Texture Garbage Collection (variable abused above!) */

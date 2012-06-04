@@ -395,11 +395,8 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 /* get backdrop color for summary widget */
 static void acf_summary_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
 {
-	// FIXME: hardcoded color - same as the 'action' line in NLA
-	// reddish color
-	r_color[0] = 0.8f;
-	r_color[1] = 0.2f;
-	r_color[2] = 0.0f;
+	/* reddish color - same as the 'action' line in NLA */
+	UI_GetThemeColor3fv(TH_ANIM_ACTIVE, r_color);
 }
 
 /* backdrop for summary widget */

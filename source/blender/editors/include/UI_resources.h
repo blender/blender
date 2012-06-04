@@ -200,7 +200,20 @@ enum {
 	TH_MATCH,           /* highlight color for search matches */
 	TH_SELECT_HIGHLIGHT, /* highlight color for selected outliner item */
 
-	TH_SKIN_ROOT
+	TH_SKIN_ROOT,
+	
+	TH_ANIM_ACTIVE,   /* active action */
+	TH_ANIM_INACTIVE, /* no active action */
+	
+	TH_NLA_TWEAK,        /* 'tweaking' track in NLA */
+	TH_NLA_TWEAK_DUPLI,  /* error/warning flag for other strips referencing dupli strip */
+	
+	TH_NLA_TRANSITION,
+	TH_NLA_TRANSITION_SEL,
+	TH_NLA_META,
+	TH_NLA_META_SEL,
+	TH_NLA_SOUND,
+	TH_NLA_SOUND_SEL
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
@@ -238,6 +251,9 @@ void    UI_GetThemeColor3fv(int colorid, float col[3]);
 // get the color, range 0.0-1.0, complete with shading offset
 void    UI_GetThemeColorShade3fv(int colorid, int offset, float col[3]);
 void    UI_GetThemeColorShade3ubv(int colorid, int offset, unsigned char col[3]);
+
+// get four color values, scaled to 0.0-1.0 range
+void    UI_GetThemeColor4fv(int colorid, float col[4]);
 
 // get the 3 or 4 byte values
 void UI_GetThemeColor3ubv(int colorid, unsigned char col[3]);
