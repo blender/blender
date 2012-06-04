@@ -1657,6 +1657,58 @@ void MASK_OT_delete(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
+/* *** switch direction *** */
+static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+
+	int change = FALSE;
+
+	/* do actual selection */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			if (ED_mask_spline_select_check(spline)) {
+				BKE_mask_spline_direction_switch(masklay, spline);
+				change = TRUE;
+			}
+		}
+	}
+
+	if (change) {
+		/* TODO: only update this spline */
+		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void MASK_OT_switch_direction(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Switch Direction";
+	ot->description = "Switch direction of selected splines";
+	ot->idname = "MASK_OT_switch_direction";
+
+	/* api callbacks */
+	ot->exec = mask_switch_direction_exec;
+	ot->poll = ED_maskediting_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
 /******************** set handle type *********************/
 
 static int set_handle_type_exec(bContext *C, wmOperator *op)

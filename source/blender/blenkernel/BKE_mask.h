@@ -63,9 +63,12 @@ float (*BKE_mask_spline_feather_differentiated_points(struct MaskSpline *spline,
 
 float (*BKE_mask_spline_differentiate_with_resolution(struct MaskSpline *spline, int width, int height, int *tot_diff_point))[2];
 float (*BKE_mask_spline_feather_differentiated_points_with_resolution(struct MaskSpline *spline,
-			 int width, int height, int *tot_feather_point))[2];
+                                                                      int width, int height, int *tot_feather_point))[2];
 
 float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feather_point))[2];
+
+void BKE_mask_point_direction_switch(struct MaskSplinePoint *point);
+void BKE_mask_spline_direction_switch(struct MaskLayer *masklay, struct MaskSpline *spline);
 
 /* point */
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);

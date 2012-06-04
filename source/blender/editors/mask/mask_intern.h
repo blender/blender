@@ -53,6 +53,7 @@ void MASK_OT_delete(struct wmOperatorType *ot);
 
 void MASK_OT_hide_view_clear(struct wmOperatorType *ot);
 void MASK_OT_hide_view_set(struct wmOperatorType *ot);
+void MASK_OT_switch_direction(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
 

@@ -394,6 +394,7 @@ class CLIP_PT_tools_mask(CLIP_PT_mask_view_panel, Panel):
         col.label(text="Spline:")
         col.operator("mask.delete")
         col.operator("mask.cyclic_toggle")
+        col.operator("mask.switch_direction")
 
         col = layout.column(align=True)
         col.label(text="Parenting:")
@@ -1196,6 +1197,7 @@ class CLIP_MT_mask(Menu):
 
         layout.separator()
         layout.operator("mask.cyclic_toggle")
+        layout.operator("mask.switch_direction")
 
         layout.separator()
         layout.operator("mask.parent_clear")

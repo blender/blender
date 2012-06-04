@@ -196,6 +196,7 @@ void ED_operatortypes_mask(void)
 	/* geometry */
 	WM_operatortype_append(MASK_OT_add_vertex);
 	WM_operatortype_append(MASK_OT_add_feather_vertex);
+	WM_operatortype_append(MASK_OT_switch_direction);
 	WM_operatortype_append(MASK_OT_delete);
 
 	/* select */

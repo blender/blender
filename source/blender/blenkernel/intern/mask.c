@@ -377,6 +377,84 @@ float (*BKE_mask_spline_feather_points(MaskSpline * spline, int *tot_feather_poi
 	return feather;
 }
 
+void BKE_mask_point_direction_switch(MaskSplinePoint *point)
+{
+	const int tot_uw = point->tot_uw;
+	const int tot_uw_half = tot_uw / 2;
+	int i;
+
+	if (tot_uw < 2) {
+		return;
+	}
+
+	/* count */
+	for (i = 0; i < tot_uw_half; i++) {
+		MaskSplinePointUW *uw_a = &point->uw[i];
+		MaskSplinePointUW *uw_b = &point->uw[tot_uw - (i + 1)];
+		SWAP(MaskSplinePointUW, *uw_a, *uw_b);
+	}
+	for (i = 0; i < tot_uw; i++) {
+		MaskSplinePointUW *uw = &point->uw[i];
+		uw->u = 1.0f - uw->u;
+	}
+}
+
+//typedef (float)[MASK_OBJECT_SHAPE_ELEM_SIZE] MaskLayerShapeElem;
+
+typedef struct MaskLayerShapeElem {
+	float value[MASK_OBJECT_SHAPE_ELEM_SIZE];
+} MaskLayerShapeElem;
+
+void BKE_mask_spline_direction_switch(MaskLayer *masklay, MaskSpline *spline)
+{
+	const int tot_point = spline->tot_point;
+	const int tot_point_half = tot_point / 2;
+	int i, i_prev;
+
+	if (tot_point < 2) {
+		return;
+	}
+
+	/* count */
+	for (i = 0; i < tot_point_half; i++) {
+		MaskSplinePoint *point_a = &spline->points[i];
+		MaskSplinePoint *point_b = &spline->points[tot_point - (i + 1)];
+		SWAP(MaskSplinePoint, *point_a, *point_b);
+	}
+
+	/* correct UW's */
+	i_prev = tot_point - 1;
+	for (i = 0; i < tot_point; i++) {
+
+		BKE_mask_point_direction_switch(&spline->points[i]);
+
+		SWAP(MaskSplinePointUW *, spline->points[i].uw,     spline->points[i_prev].uw);
+		SWAP(int,                 spline->points[i].tot_uw, spline->points[i_prev].tot_uw);
+
+		i_prev = i;
+	}
+
+	/* correct animation */
+	if (masklay->splines_shapes.first) {
+		MaskLayerShape *masklay_shape;
+
+		const int spline_index = BKE_mask_layer_shape_spline_to_index(masklay, spline);
+
+		for (masklay_shape = masklay->splines_shapes.first;
+		     masklay_shape;
+		     masklay_shape = masklay_shape->next)
+		{
+			MaskLayerShapeElem *fp_arr = (MaskLayerShapeElem *)masklay_shape->data;
+
+			for (i = 0; i < tot_point_half; i++) {
+				MaskLayerShapeElem *fp_a = &fp_arr[spline_index +              (i)     ];
+				MaskLayerShapeElem *fp_b = &fp_arr[spline_index + (tot_point - (i + 1))];
+				SWAP(MaskLayerShapeElem, *fp_a, *fp_b);
+			}
+		}
+	}
+}
+
 /* point */
 
 int BKE_mask_point_has_handle(MaskSplinePoint *point)
