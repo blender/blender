@@ -2297,7 +2297,7 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 	
 	ED_armature_deselect_all(obedit, 0);
 	
-	/*	Create a bone	*/
+	/* Create a bone */
 	bone = ED_armature_edit_bone_add(arm, "Bone");
 
 	arm->act_edbone = bone;
@@ -2308,7 +2308,6 @@ void add_primitive_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d)
 		add_v3_v3v3(bone->tail, bone->head, imat[1]);   // bone with unit length 1
 	else
 		add_v3_v3v3(bone->tail, bone->head, imat[2]);   // bone with unit length 1, pointing up Z
-	
 }
 
 
@@ -4528,9 +4527,6 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 			ED_pose_deselectall(ob, 0);
 			nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 			arm->act_bone = nearBone;
-			
-			// XXX old cruft! use notifiers instead
-			//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 		}
 		else {
 			if (extend) {
@@ -4548,17 +4544,11 @@ int ED_do_pose_selectbuffer(Scene *scene, Base *base, unsigned int *buffer, shor
 					}
 					else {
 						nearBone->flag &= ~(BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
-					
-						// XXX old cruft! use notifiers instead
-						//select_actionchannel_by_name(ob->action, nearBone->name, 0);
 					}
 				}
 				else {
 					nearBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 					arm->act_bone = nearBone;
-				
-					// XXX old cruft! use notifiers instead
-					//select_actionchannel_by_name(ob->action, nearBone->name, 1);
 				}
 			}	
 		}
