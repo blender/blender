@@ -37,7 +37,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	Image *image = (Image*)this->getbNode()->id;
 	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
 	bNode *editorNode = this->getbNode();
-	if (imageSocket->isConnected() && (editorNode->flag & NODE_DO_OUTPUT)) {
+	if (imageSocket->isConnected()) {
 		ViewerOperation *viewerOperation = new ViewerOperation();
 		viewerOperation->setColorManagement(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 		viewerOperation->setColorPredivide(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);

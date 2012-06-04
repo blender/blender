@@ -50,8 +50,9 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 
 void ViewerBaseOperation::initExecution()
 {
-	// When initializing the tree during initial load the width and height can be zero.
-	initImage();
+	if (isActiveViewerOutput()) {
+		initImage();
+	}
 }
 
 void ViewerBaseOperation::initImage()
@@ -79,7 +80,6 @@ void ViewerBaseOperation::initImage()
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
-	/// @todo: introduce new event to update smaller area
 	WM_main_add_notifier(NC_WINDOW|ND_DRAW, NULL);
 }
 
