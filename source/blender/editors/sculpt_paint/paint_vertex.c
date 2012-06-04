@@ -2461,6 +2461,8 @@ static void wpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	}
 	
 	DAG_id_tag_update(ob->data, 0);
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 }
 
 
@@ -2954,6 +2956,8 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 {
 	ToolSettings *ts = CTX_data_tool_settings(C);
 	struct VPaintData *vpd = paint_stroke_mode_data(stroke);
+	ViewContext *vc = &vpd->vc;
+	Object *ob = vc->obact;
 	
 	if (vpd->vertexcosnos)
 		MEM_freeN(vpd->vertexcosnos);
@@ -2965,6 +2969,8 @@ static void vpaint_stroke_done(const bContext *C, struct PaintStroke *stroke)
 	if (vpd->polyfacemap_arena) {
 		BLI_memarena_free(vpd->polyfacemap_arena);
 	}
+
+	WM_event_add_notifier(C, NC_OBJECT | ND_DRAW, ob);
 
 	MEM_freeN(vpd);
 }
