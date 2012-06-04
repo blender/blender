@@ -2084,8 +2084,7 @@ static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 {
 	struct ImBuf *ibuf;
-	unsigned short numlen;
-	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
+	char name[FILE_MAX];
 	int flag;
 	
 	/* XXX temp stuff? */
@@ -2093,11 +2092,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		ima->tpageflag |= IMA_TPAGE_REFRESH;
 
 	ima->lastframe = frame;
-	BLI_strncpy(name, ima->name, sizeof(name));
-	BLI_stringdec(name, head, tail, &numlen);
-	BLI_stringenc(name, head, tail, numlen, frame);
-
-	BLI_path_abs(name, ID_BLEND_PATH(G.main, &ima->id));
+	BKE_image_user_file_path(iuser, ima, frame, name);
 	
 	flag = IB_rect | IB_multilayer;
 	if (ima->flag & IMA_DO_PREMUL)
@@ -2209,8 +2204,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	if (ima->anim == NULL) {
 		char str[FILE_MAX];
 		
-		BLI_strncpy(str, ima->name, FILE_MAX);
-		BLI_path_abs(str, ID_BLEND_PATH(G.main, &ima->id));
+		BKE_image_user_file_path(iuser, ima, frame, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
 		ima->anim = openanim(str, IB_rect, 0);
@@ -2273,8 +2267,7 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			flag |= IB_premul;
 			
 		/* get the right string */
-		BLI_strncpy(str, ima->name, sizeof(str));
-		BLI_path_abs(str, ID_BLEND_PATH(G.main, &ima->id));
+		BKE_image_user_file_path(iuser, ima, cfra, str);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);
@@ -2746,6 +2739,29 @@ void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 
 		iuser->flag &= ~IMA_NEED_FRAME_RECALC;
 	}
+}
+
+void BKE_image_user_file_path(ImageUser *iuser, Image *ima, int cfra, char *filepath)
+{
+	BLI_strncpy(filepath, ima->name, FILE_MAX);
+
+	if (ima->source == IMA_SRC_SEQUENCE) {
+		char head[FILE_MAX], tail[FILE_MAX];
+		unsigned short numlen;
+		int frame;
+
+		if(iuser) {
+			BKE_image_user_frame_calc(iuser, cfra, 0);
+			frame = iuser->framenr;
+		}
+		else {
+		}
+
+		BLI_stringdec(filepath, head, tail, &numlen);
+		BLI_stringenc(filepath, head, tail, numlen, frame);
+	}
+
+	BLI_path_abs(filepath, ID_BLEND_PATH(G.main, &ima->id));
 }
 
 int BKE_image_has_alpha(struct Image *image)

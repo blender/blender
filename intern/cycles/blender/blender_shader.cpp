@@ -106,7 +106,7 @@ static void get_tex_mapping(TextureMapping *mapping, BL::ShaderNodeMapping b_map
 		mapping->max = get_float3(b_mapping.max());
 }
 
-static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNode b_node)
+static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNode b_node)
 {
 	ShaderNode *node = NULL;
 
@@ -343,7 +343,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			ImageTextureNode *image = new ImageTextureNode();
 			/* todo: handle generated/builtin images */
 			if(b_image)
-				image->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
+				image->filename = image_user_file_path(b_image_node.image_user(), b_image, b_scene.frame_current());
 			image->color_space = ImageTextureNode::color_space_enum[(int)b_image_node.color_space()];
 			get_tex_mapping(&image->tex_mapping, b_image_node.texture_mapping());
 			node = image;
@@ -354,7 +354,7 @@ static ShaderNode *add_node(BL::BlendData b_data, ShaderGraph *graph, BL::Shader
 			BL::Image b_image(b_env_node.image());
 			EnvironmentTextureNode *env = new EnvironmentTextureNode();
 			if(b_image)
-				env->filename = blender_absolute_path(b_data, b_image, b_image.filepath());
+				env->filename = image_user_file_path(b_env_node.image_user(), b_image, b_scene.frame_current());
 			env->color_space = EnvironmentTextureNode::color_space_enum[(int)b_env_node.color_space()];
 			env->projection = EnvironmentTextureNode::projection_enum[(int)b_env_node.projection()];
 			get_tex_mapping(&env->tex_mapping, b_env_node.texture_mapping());
@@ -530,7 +530,7 @@ static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
 	}
 }
 
-static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)
+static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)
 {
 	/* add nodes */
 	BL::ShaderNodeTree::nodes_iterator b_node;
@@ -578,10 +578,10 @@ static void add_nodes(BL::BlendData b_data, ShaderGraph *graph, BL::ShaderNodeTr
 				set_default_value(proxy->inputs[0], b_output->group_socket());
 			}
 			
-			add_nodes(b_data, graph, b_group_ntree, group_sockmap);
+			add_nodes(b_data, b_scene, graph, b_group_ntree, group_sockmap);
 		}
 		else {
-			ShaderNode *node = add_node(b_data, graph, BL::ShaderNode(*b_node));
+			ShaderNode *node = add_node(b_data, b_scene, graph, BL::ShaderNode(*b_node));
 			
 			if(node) {
 				BL::Node::inputs_iterator b_input;
@@ -671,7 +671,7 @@ void BlenderSync::sync_materials()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_mat->node_tree());
 
-				add_nodes(b_data, graph, b_ntree, sock_to_node);
+				add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;
@@ -712,7 +712,7 @@ void BlenderSync::sync_world()
 			PtrSockMap sock_to_node;
 			BL::ShaderNodeTree b_ntree(b_world.node_tree());
 
-			add_nodes(b_data, graph, b_ntree, sock_to_node);
+			add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
 		}
 		else if(b_world) {
 			ShaderNode *closure, *out;
@@ -771,7 +771,7 @@ void BlenderSync::sync_lamps()
 				PtrSockMap sock_to_node;
 				BL::ShaderNodeTree b_ntree(b_lamp->node_tree());
 
-				add_nodes(b_data, graph, b_ntree, sock_to_node);
+				add_nodes(b_data, b_scene, graph, b_ntree, sock_to_node);
 			}
 			else {
 				ShaderNode *closure, *out;

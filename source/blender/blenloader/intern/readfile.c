@@ -6897,6 +6897,22 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 	}
 }
 
+static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+			NodeTexImage *tex = node->storage;
+
+			tex->iuser.frames= 1;
+			tex->iuser.sfra= 1;
+			tex->iuser.fie_ima= 2;
+			tex->iuser.ok= 1;
+		}
+	}
+}
+
 static void do_versions(FileData *fd, Library *lib, Main *main)
 {
 	/* WATCH IT!!!: pointers from libdata have not been converted */
@@ -7606,6 +7622,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.angulardeactthreshold = 1.0f;
 			sce->gm.deactivationtime = 2.0f;
 		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 9)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+		
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_image_user_264);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

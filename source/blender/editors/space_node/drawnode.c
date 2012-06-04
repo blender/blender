@@ -1188,6 +1188,47 @@ static void node_common_set_butfunc(bNodeType *ntype)
 }
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
+
+static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imaptr, PointerRNA *iuserptr)
+{
+	uiLayout *col;
+	int source;
+
+	if(!imaptr->data)
+		return;
+
+	col = uiLayoutColumn(layout, 0);
+	
+	uiItemR(col, imaptr, "source", 0, "", ICON_NONE);
+	
+	source = RNA_enum_get(imaptr, "source");
+
+	if (source == IMA_SRC_SEQUENCE) {
+		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
+		Scene *scene = CTX_data_scene(C);
+		ImageUser *iuser = iuserptr->data;
+		char numstr[32];
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
+		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
+		uiItemL(layout, numstr, ICON_NONE);
+	}
+
+	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		col = uiLayoutColumn(layout, 1);
+		uiItemR(col, iuserptr, "frame_duration", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "frame_start", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "frame_offset", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "use_cyclic", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
+	}
+
+	col = uiLayoutColumn(layout, 0);
+
+	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER)
+		uiItemR(col, iuserptr, "layer", 0, NULL, ICON_NONE);
+
+}
+
 static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -1259,16 +1300,25 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
+
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
-}
 
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
+}
 
 static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
+
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1391,11 +1441,9 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 
 static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiLayout *col;
 	bNode *node = ptr->data;
 	PointerRNA imaptr;
 	PropertyRNA *prop;
-	int source;
 	
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
@@ -1405,35 +1453,7 @@ static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *
 	if (!prop || RNA_property_type(prop) != PROP_POINTER) return;
 	imaptr = RNA_property_pointer_get(ptr, prop);
 	
-	col = uiLayoutColumn(layout, 0);
-	
-	uiItemR(col, &imaptr, "source", 0, NULL, ICON_NONE);
-	
-	source = RNA_enum_get(&imaptr, "source");
-
-	if (source == IMA_SRC_SEQUENCE) {
-		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
-		Scene *scene = CTX_data_scene(C);
-		ImageUser *iuser = node->storage;
-		char numstr[32];
-		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
-		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
-		uiItemL(layout, numstr, ICON_NONE);
-	}
-
-	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-		col = uiLayoutColumn(layout, 1);
-		uiItemR(col, ptr, "frame_duration", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "frame_start", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "frame_offset", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "use_cyclic", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
-	}
-
-	col = uiLayoutColumn(layout, 0);
-
-	if (RNA_enum_get(&imaptr, "type") == IMA_TYPE_MULTILAYER)
-		uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
+	node_buts_image_user(layout, C, &imaptr, ptr);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)

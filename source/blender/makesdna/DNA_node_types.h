@@ -563,6 +563,7 @@ typedef struct NodeTexSky {
 
 typedef struct NodeTexImage {
 	NodeTexBase base;
+	ImageUser iuser;
 	int color_space, pad;
 } NodeTexImage;
 
@@ -572,6 +573,7 @@ typedef struct NodeTexChecker {
 
 typedef struct NodeTexEnvironment {
 	NodeTexBase base;
+	ImageUser iuser;
 	int color_space, projection;
 } NodeTexEnvironment;
 
