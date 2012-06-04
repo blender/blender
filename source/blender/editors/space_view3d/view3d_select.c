@@ -1877,16 +1877,13 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 								if ((bone->flag & BONE_UNSELECTABLE) == 0) {
 									bone->flag |= BONE_SELECTED;
 									bone_selected = 1;
-// XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 							}
 							else {
 								bArmature *arm = base->object->data;
 								bone->flag &= ~BONE_SELECTED;
-// XXX									select_actionchannel_by_name(base->object->action, bone->name, 0);
 								if (arm->act_bone == bone)
 									arm->act_bone = NULL;
-								
 							}
 						}
 					}
