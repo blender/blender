@@ -364,9 +364,8 @@ static int console_insert_exec(bContext *C, wmOperator *op)
 	char *str = RNA_string_get_alloc(op->ptr, "text", NULL, 0);
 	int len;
 
-	// XXX, alligned tab key hack
 	if (str[0] == '\t' && str[1] == '\0') {
-		len = TAB_LENGTH - (ci->cursor % TAB_LENGTH);
+		len = TAB_LENGTH;
 		MEM_freeN(str);
 		str = MEM_mallocN(len + 1, "insert_exec");
 		memset(str, ' ', len);
@@ -430,6 +429,95 @@ void CONSOLE_OT_insert(wmOperatorType *ot)
 	RNA_def_property_flag(prop, PROP_SKIP_SAVE);
 }
 
+static int console_indent_exec(bContext *C, wmOperator *op)
+{
+	SpaceConsole *sc = CTX_wm_space_console(C);
+	ARegion *ar = CTX_wm_region(C);
+	ConsoleLine *ci = console_history_verify(C);
+	int spaces;
+	int len;
+
+	for (spaces = 0; spaces < ci->len; spaces++) {
+		if (ci->line[spaces] != ' ')
+			break;
+	}
+
+	len = TAB_LENGTH - spaces % TAB_LENGTH;
+
+	console_line_verify_length(ci, ci->len + len);
+
+	memmove(ci->line + len, ci->line, ci->len);
+	memset(ci->line, ' ', len);
+	ci->len += len;
+	console_line_cursor_set(ci, ci->cursor + len);
+
+	console_textview_update_rect(sc, ar);
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	console_scroll_bottom(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_indent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Indent";
+	ot->description = "Add 4 spaces at line beginning";
+	ot->idname = "CONSOLE_OT_indent";
+
+	/* api callbacks */
+	ot->exec = console_indent_exec;
+	ot->poll = ED_operator_console_active;
+}
+
+static int console_unindent_exec(bContext *C, wmOperator *op)
+{
+	SpaceConsole *sc = CTX_wm_space_console(C);
+	ARegion *ar = CTX_wm_region(C);
+	ConsoleLine *ci = console_history_verify(C);
+	int spaces;
+	int len;
+
+	for (spaces = 0; spaces < ci->len; spaces++) {
+		if (ci->line[spaces] != ' ')
+			break;
+	}
+
+	if (spaces == 0)
+		return OPERATOR_CANCELLED;
+
+	len = spaces % TAB_LENGTH;
+	if (len == 0)
+		len = TAB_LENGTH;
+
+	console_line_verify_length(ci, ci->len - len);
+
+	memmove(ci->line, ci->line + len, (ci->len - len) + 1);
+	ci->len -= len;
+	console_line_cursor_set(ci, ci->cursor - len);
+
+	//console_select_offset(sc, -4);
+
+	console_textview_update_rect(sc, ar);
+	ED_area_tag_redraw(CTX_wm_area(C));
+
+	console_scroll_bottom(ar);
+
+	return OPERATOR_FINISHED;
+}
+
+void CONSOLE_OT_unindent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Unindent";
+	ot->description = "Delete 4 spaces from line beginning";
+	ot->idname = "CONSOLE_OT_unindent";
+
+	/* api callbacks */
+	ot->exec = console_unindent_exec;
+	ot->poll = ED_operator_console_active;
+}
 
 static EnumPropertyItem console_delete_type_items[] = {
 	{DEL_NEXT_CHAR, "NEXT_CHARACTER", 0, "Next Character", ""},
@@ -757,7 +845,8 @@ void CONSOLE_OT_scrollback_append(wmOperatorType *ot)
 		{CONSOLE_LINE_INPUT,    "INPUT", 0, "Input", ""},
 		{CONSOLE_LINE_INFO,     "INFO", 0, "Information", ""},
 		{CONSOLE_LINE_ERROR,    "ERROR", 0, "Error", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Scrollback Append";
