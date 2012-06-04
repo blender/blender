@@ -231,7 +231,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 			float spot_angle = data2.y;
 			float spot_smooth = data2.z;
 
-			float eval_fac = fabsf(dot(dir, I));
+			float eval_fac = dot(dir, I);
 
 			if(eval_fac <= spot_angle) {
 				eval_fac = 0.0f;
