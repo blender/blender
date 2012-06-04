@@ -317,7 +317,7 @@ static void finSelectedSplinePoint(MaskLayer *masklay, MaskSpline **spline, Mask
 	*point = NULL;
 
 	if (check_active) {
-		if (masklay->act_spline && masklay->act_point) {
+		if (masklay->act_spline && masklay->act_point && MASKPOINT_ISSEL_ANY(masklay->act_point)) {
 			*spline = masklay->act_spline;
 			*point = masklay->act_point;
 			return;
@@ -415,14 +415,14 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 	int do_recalc_src = FALSE;  /* when extruding from endpoints only */
 	int do_prev;                /* use prev point rather then next?? */
 
-	ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
 	if (!masklay) {
 		return FALSE;
 	}
 	else {
 		finSelectedSplinePoint(masklay, &spline, &point, TRUE);
 	}
+
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 	point_index = (point - spline->points);
 
@@ -507,8 +507,6 @@ static int add_vertex_new(bContext *C, Mask *mask, MaskLayer *masklay, const flo
 	MaskSplinePoint *point;
 	MaskSplinePoint *new_point = NULL, *ref_point = NULL;
 
-	ED_mask_select_toggle_all(mask, SEL_DESELECT);
-
 	if (!masklay) {
 		/* if there's no masklay currently operationg on, create new one */
 		masklay = BKE_mask_layer_new(mask, "");
@@ -519,6 +517,8 @@ static int add_vertex_new(bContext *C, Mask *mask, MaskLayer *masklay, const flo
 	else {
 		finSelectedSplinePoint(masklay, &spline, &point, TRUE);
 	}
+
+	ED_mask_select_toggle_all(mask, SEL_DESELECT);
 
 	if (!spline) {
 		/* no selected splines in active masklay, create new spline */
