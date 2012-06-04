@@ -1919,6 +1919,12 @@ static void rna_def_userdef_theme_space_action(BlenderRNA *brna)
 	RNA_def_property_array(prop, 3);
 	RNA_def_property_ui_text(prop, "DopeSheet Sub-Channel", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "summary", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "anim_active");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Summary", "Color of summary channel");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
 }
 
 static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
@@ -1947,28 +1953,79 @@ static void rna_def_userdef_theme_space_nla(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "View Sliders", "");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 	
-	prop = RNA_def_property(srna, "bars", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "shade2");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Bars", "");
+	prop = RNA_def_property(srna, "active_action", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "anim_active");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "Active Action", "Animation data block has active action");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
-	prop = RNA_def_property(srna, "bars_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
-	RNA_def_property_float_sdna(prop, NULL, "hilite");
-	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Bars Selected", "");
+	
+	prop = RNA_def_property(srna, "active_action_unset", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "anim_non_active");
+	RNA_def_property_array(prop, 4);
+	RNA_def_property_ui_text(prop, "No Active Action", "Animation data block doesn't have active action");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
+	
 	prop = RNA_def_property(srna, "strips", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "strip");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Strips", "");
+	RNA_def_property_ui_text(prop, "Strips", "Action-Clip Strip - Unselected");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
-
+	
 	prop = RNA_def_property(srna, "strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
 	RNA_def_property_float_sdna(prop, NULL, "strip_select");
 	RNA_def_property_array(prop, 3);
-	RNA_def_property_ui_text(prop, "Strips Selected", "");
+	RNA_def_property_ui_text(prop, "Strips Selected", "Action-Clip Strip - Selected");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "transition_strips", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_transition");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Transitions", "Transition Strip - Unselected");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "transition_strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_transition_sel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Transitions Selected", "Transition Strip - Selected");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "meta_strips", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_meta");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Meta Strips", "Meta Strip - Unselected. For grouping related strips");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "meta_strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_meta_sel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Meta Strips Selected", "Meta Strip - Selected. For grouping related strips");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "sound_strips", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_sound");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Sound Strips", 
+	                         "Sound Strip - Unselected. For timing speaker sounds");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "sound_strips_selected", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_sound_sel");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Sound Strips Selected", 
+	                         "Sound Strip - Selected. For timing speaker sounds");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "tweak", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_tweaking");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Tweak", "Color for strip/action being 'tweaked' or edited");
+	RNA_def_property_update(prop, 0, "rna_userdef_update");
+	
+	prop = RNA_def_property(srna, "tweak_duplicate", PROP_FLOAT, PROP_COLOR_GAMMA);
+	RNA_def_property_float_sdna(prop, NULL, "nla_tweakdupli");
+	RNA_def_property_array(prop, 3);
+	RNA_def_property_ui_text(prop, "Tweak Duplicate Flag", 
+	                         "Warning/error indicator color for strips referencing the strip being tweaked");
 	RNA_def_property_update(prop, 0, "rna_userdef_update");
 
 	prop = RNA_def_property(srna, "frame_current", PROP_FLOAT, PROP_COLOR_GAMMA);

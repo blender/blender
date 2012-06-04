@@ -100,10 +100,11 @@ typedef struct PaintStroke {
 /*** Cursor ***/
 static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata) 
 {
-	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Paint *paint = paint_get_active_from_context(C);
+	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = customdata;
 
-	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
+	glColor4ubv(paint->paint_cursor_col);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
@@ -141,7 +142,7 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
-	Paint *paint = paint_get_active(scene);
+	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse[3];
@@ -281,7 +282,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
-	stroke->brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	stroke->brush = paint_brush(paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
 	view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
@@ -394,7 +395,7 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Paint *p = paint_get_active(CTX_data_scene(C));
+	Paint *p = paint_get_active_from_context(C);
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
@@ -518,7 +519,7 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
 
 int paint_poll(bContext *C)
 {
-	Paint *p = paint_get_active(CTX_data_scene(C));
+	Paint *p = paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);
 
 	return p && ob && paint_brush(p) &&

@@ -263,8 +263,19 @@ typedef struct ThemeSpace {
 	char selected_highlight[4];	/* outliner - selected item */
 
 	char skin_root[4]; /* Skin modifier root color */
-
+	
 	int pad4;
+	
+	/* NLA */
+	char anim_active[4];	 /* Active Action + Summary Channel */
+	char anim_non_active[4]; /* Active Action = NULL */
+	
+	char nla_tweaking[4];   /* NLA 'Tweaking' action/strip */
+	char nla_tweakdupli[4]; /* NLA - warning color for duplicate instances of tweaking strip */
+	
+	char nla_transition[4], nla_transition_sel[4]; /* NLA "Transition" strips */
+	char nla_meta[4], nla_meta_sel[4];             /* NLA "Meta" strips */
+	char nla_sound[4], nla_sound_sel[4];           /* NLA "Sound" strips */
 } ThemeSpace;
 
 

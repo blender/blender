@@ -41,8 +41,16 @@ class CONSOLE_MT_console(Menu):
     def draw(self, context):
         layout = self.layout
 
+        layout.operator("console.indent")
+        layout.operator("console.unindent")
+
+        layout.separator()
+
         layout.operator("console.clear")
         layout.operator("console.clear_line")
+
+        layout.separator()
+
         layout.operator("console.copy")
         layout.operator("console.paste")
         layout.menu("CONSOLE_MT_language")

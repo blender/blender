@@ -498,7 +498,7 @@ static void viewops_data_create(bContext *C, wmOperator *op, wmEvent *event)
 static void viewops_data_free(bContext *C, wmOperator *op)
 {
 	ARegion *ar;
-	Paint *p = paint_get_active(CTX_data_scene(C));
+	Paint *p = paint_get_active_from_context(C);
 
 	if (op->customdata) {
 		ViewOpsData *vod = op->customdata;

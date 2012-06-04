@@ -45,6 +45,8 @@ void *GaussianXBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 
 void GaussianXBlurOperation::initExecution()
 {
+	BlurBaseOperation::initExecution();
+
 	if (this->sizeavailable) {
 		float rad = size*this->data->sizex;
 		if (rad<1)

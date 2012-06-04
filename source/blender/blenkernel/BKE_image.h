@@ -44,6 +44,7 @@ struct anim;
 struct Scene;
 struct Object;
 struct ImageFormatData;
+struct Main;
 
 /* call from library */
 void    BKE_image_free(struct Image *me);
@@ -143,6 +144,9 @@ struct Image *BKE_image_add_from_imbuf(struct ImBuf *ibuf);
 /* for reload, refresh, pack */
 void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);
 
+void BKE_image_walk_all_users(const struct Main *mainp, void *customdata,
+                              void callback(struct Image *ima, struct ImageUser *iuser, void *customdata));
+
 /* ensures an Image exists for viewing nodes or render */
 struct Image *BKE_image_verify_viewer(int type, const char *name);
 
@@ -151,6 +155,7 @@ void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 
 /* called on frame change or before render */
 void BKE_image_user_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
+void BKE_image_user_check_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
 int  BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, int fieldnr);
 
 /* sets index offset for multilayer files */

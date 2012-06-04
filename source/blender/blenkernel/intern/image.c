@@ -91,6 +91,14 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+/* for image user iteration */
+#include "DNA_node_types.h"
+#include "DNA_space_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
+
+#include "WM_api.h"
+
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX    0x7FEFEFEF
 
@@ -1814,6 +1822,65 @@ void BKE_image_assign_ibuf(Image *ima, ImBuf *ibuf)
 	image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 }
 
+void BKE_image_walk_all_users(const Main *mainp, void *customdata,
+                              void callback(Image *ima, ImageUser *iuser, void *customdata))
+{
+	wmWindowManager *wm;
+	wmWindow *win;
+	Tex *tex;
+
+	/* texture users */
+	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
+		if (tex->type == TEX_IMAGE && tex->ima) {
+			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				callback(tex->ima, &tex->iuser, customdata);
+			}
+		}
+	}
+
+	/* image window, compo node users */
+	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+		for (win = wm->windows.first; win; win = win->next) {
+			ScrArea *sa;
+			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+				if (sa->spacetype == SPACE_VIEW3D) {
+					View3D *v3d = sa->spacedata.first;
+					BGpic *bgpic;
+					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+						callback(bgpic->ima, &bgpic->iuser, customdata);
+					}
+				}
+				else if (sa->spacetype == SPACE_IMAGE) {
+					SpaceImage *sima = sa->spacedata.first;
+					callback(sima->image, &sima->iuser, customdata);
+				}
+				else if (sa->spacetype == SPACE_NODE) {
+					SpaceNode *snode = sa->spacedata.first;
+					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
+						bNode *node;
+						for (node = snode->nodetree->nodes.first; node; node = node->next) {
+							if (node->id && node->type == CMP_NODE_IMAGE) {
+								Image *ima = (Image *)node->id;
+								ImageUser *iuser = node->storage;
+								callback(ima, iuser, customdata);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+static void image_tag_frame_recalc(Image *ima, ImageUser *iuser, void *customdata)
+{
+	Image *changed_image = customdata;
+
+	if (ima == changed_image) {
+		iuser->flag |= IMA_NEED_FRAME_RECALC;
+	}
+}
+
 void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 {
 	if (ima == NULL)
@@ -1847,6 +1914,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			ima->ok = 1;
 			if (iuser)
 				iuser->ok = 1;
+
+			BKE_image_walk_all_users(G.main, ima, image_tag_frame_recalc);
+
 			break;
 
 		case IMA_SIGNAL_RELOAD:
@@ -2669,6 +2739,15 @@ void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 	if (iuser->ok == 0) iuser->ok = 1;
 }
 
+void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
+{
+	if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
+		BKE_image_user_frame_calc(iuser, cfra, fieldnr);
+
+		iuser->flag &= ~IMA_NEED_FRAME_RECALC;
+	}
+}
+
 int BKE_image_has_alpha(struct Image *image)
 {
 	ImBuf *ibuf;
@@ -2684,4 +2763,3 @@ int BKE_image_has_alpha(struct Image *image)
 	else
 		return 0;
 }
-

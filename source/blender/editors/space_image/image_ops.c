@@ -2443,56 +2443,15 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
 
+static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
+{
+	int cfra = *(int*)customdata;
+
+	BKE_image_user_check_frame_calc(iuser, cfra, 0);
+}
+
 void ED_image_update_frame(const Main *mainp, int cfra)
 {
-	wmWindowManager *wm;
-	wmWindow *win;
-	Tex *tex;
-	
-	/* texture users */
-	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
-		if (tex->type == TEX_IMAGE && tex->ima) {
-			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_frame_calc(&tex->iuser, cfra, 0);
-			}
-		}
-	}
-	
-	/* image window, compo node users */
-	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
-		for (win = wm->windows.first; win; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = sa->spacedata.first;
-					BGpic *bgpic;
-					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
-						if (bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_frame_calc(&bgpic->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_IMAGE) {
-					SpaceImage *sima = sa->spacedata.first;
-					if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_frame_calc(&sima->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_NODE) {
-					SpaceNode *snode = sa->spacedata.first;
-					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
-						bNode *node;
-						for (node = snode->nodetree->nodes.first; node; node = node->next) {
-							if (node->id && node->type == CMP_NODE_IMAGE) {
-								Image *ima = (Image *)node->id;
-								ImageUser *iuser = node->storage;
-								if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-									if (iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_frame_calc(iuser, cfra, 0);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	BKE_image_walk_all_users(mainp, &cfra, image_update_frame);
 }
 

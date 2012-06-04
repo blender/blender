@@ -236,8 +236,8 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					switch (ale->type) {
 						case ANIMTYPE_SUMMARY:
 						{
-							// FIXME: hardcoded colors - reddish color from NLA
-							glColor4f(0.8f, 0.2f, 0.0f, 0.4f);
+							/* reddish color from NLA */
+							UI_ThemeColor4(TH_ANIM_ACTIVE);
 						}
 						break;
 						
