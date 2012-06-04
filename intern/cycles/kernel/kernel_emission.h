@@ -104,13 +104,8 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 		float mis_weight = power_heuristic(pdf, bsdf_pdf);
 		light_eval *= mis_weight;
 	}
-	/* todo: clean up these weights */
-	else if(ls.shader & SHADER_AREA_LIGHT)
-		light_eval *= 0.25f; /* area lamp */
-	else if(ls.t != FLT_MAX)
-		light_eval *= 0.25f*M_1_PI_F; /* point lamp */
 	
-	bsdf_eval_mul(eval, light_eval/pdf);
+	bsdf_eval_mul(eval, light_eval*(ls.eval_fac/pdf));
 
 	if(bsdf_eval_is_zero(eval))
 		return false;

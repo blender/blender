@@ -34,14 +34,6 @@ CCL_NAMESPACE_BEGIN
 
 /* EMISSION CLOSURE */
 
-__device float3 emissive_eval(const float3 Ng, const float3 I)
-{
-	float cosNO = fabsf(dot(Ng, I));
-	float res = (cosNO > 0.0f)? 1.0f: 0.0f;
-	
-	return make_float3(res, res, res);
-}
-
 /// Return the probability distribution function in the direction I,
 /// given the parameters and the light's surface normal.  This MUST match
 /// the PDF computed by sample().
@@ -49,6 +41,13 @@ __device float emissive_pdf(const float3 Ng, const float3 I)
 {
 	float cosNO = fabsf(dot(Ng, I));
 	return (cosNO > 0.0f)? 1.0f: 0.0f;
+}
+
+__device float3 emissive_eval(const float3 Ng, const float3 I)
+{
+	float res = emissive_pdf(Ng, I);
+	
+	return make_float3(res, res, res);
 }
 
 __device float3 svm_emissive_eval(ShaderData *sd, ShaderClosure *sc)

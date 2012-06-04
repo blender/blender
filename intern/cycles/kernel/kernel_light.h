@@ -23,6 +23,7 @@ typedef struct LightSample {
 	float3 D;
 	float3 Ng;
 	float t;
+	float eval_fac;
 	int object;
 	int prim;
 	int shader;
@@ -189,6 +190,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 		ls->Ng = D;
 		ls->D = -D;
 		ls->t = FLT_MAX;
+		ls->eval_fac = 1.0f;
 	}
 #ifdef __BACKGROUND_MIS__
 	else if(type == LIGHT_BACKGROUND) {
@@ -199,6 +201,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 		ls->Ng = D;
 		ls->D = -D;
 		ls->t = FLT_MAX;
+		ls->eval_fac = 1.0f;
 	}
 #endif
 	else {
@@ -212,6 +215,36 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 				ls->P += sphere_light_sample(P, ls->P, size, randu, randv);
 
 			ls->Ng = normalize(P - ls->P);
+			ls->eval_fac = 0.25f*M_1_PI_F;
+		}
+		else if(type == LIGHT_SPOT) {
+			float4 data2 = kernel_tex_fetch(__light_data, point*LIGHT_SIZE + 2);
+			float size = data1.y;
+
+			/* spot light */
+			if(size > 0.0f)
+				ls->P += sphere_light_sample(P, ls->P, size, randu, randv);
+
+			float3 dir = make_float3(data1.z, data1.w, data2.x);
+			float3 I = normalize(P - ls->P);
+
+			float spot_angle = data2.y;
+			float spot_smooth = data2.z;
+
+			float eval_fac = fabsf(dot(dir, I));
+
+			if(eval_fac <= spot_angle) {
+				eval_fac = 0.0f;
+			}
+			else {
+				float t = eval_fac - spot_angle;
+
+				if(t < spot_smooth && spot_smooth != 0.0f)
+					eval_fac *= smoothstepf(t/spot_smooth);
+			}
+
+			ls->Ng = I;
+			ls->eval_fac = eval_fac*0.25f*M_1_PI_F;
 		}
 		else {
 			/* area light */
@@ -224,6 +257,7 @@ __device void regular_light_sample(KernelGlobals *kg, int point,
 
 			ls->P += area_light_sample(axisu, axisv, randu, randv);
 			ls->Ng = D;
+			ls->eval_fac = 0.25f;
 		}
 
 		ls->t = 0.0f;
@@ -262,6 +296,7 @@ __device void triangle_light_sample(KernelGlobals *kg, int prim, int object,
 	ls->prim = prim;
 	ls->t = 0.0f;
 	ls->type = LIGHT_AREA;
+	ls->eval_fac = 1.0f;
 
 #ifdef __INSTANCING__
 	/* instance transform */

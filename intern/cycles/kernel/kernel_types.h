@@ -283,7 +283,8 @@ typedef enum LightType {
 	LIGHT_DISTANT,
 	LIGHT_BACKGROUND,
 	LIGHT_AREA,
-	LIGHT_AO
+	LIGHT_AO,
+	LIGHT_SPOT
 } LightType;
 
 /* Camera Type */

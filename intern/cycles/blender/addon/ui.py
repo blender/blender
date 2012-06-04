@@ -488,9 +488,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
         col = split.column()
         col.prop(clamp, "cast_shadow")
 
-        if lamp.type == 'SPOT':
-            layout.label(text="Not supported, interpreted as point lamp.")
-        elif lamp.type == 'HEMI':
+        if lamp.type == 'HEMI':
             layout.label(text="Not supported, interpreted as sun lamp.")
 
 
@@ -509,6 +507,29 @@ class CyclesLamp_PT_nodes(CyclesButtonsPanel, Panel):
         if not panel_node_draw(layout, lamp, 'OUTPUT_LAMP', 'Surface'):
             layout.prop(lamp, "color")
 
+class CyclesLamp_PT_spot(CyclesButtonsPanel, Panel):
+    bl_label = "Spot Shape"
+    bl_context = "data"
+
+    @classmethod
+    def poll(cls, context):
+        lamp = context.lamp
+        return (lamp and lamp.type == 'SPOT') and CyclesButtonsPanel.poll(context)
+
+    def draw(self, context):
+        layout = self.layout
+
+        lamp = context.lamp
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column()
+        sub.prop(lamp, "spot_size", text="Size")
+        sub.prop(lamp, "spot_blend", text="Blend", slider=True)
+
+        col = split.column()
+        col.prop(lamp, "show_cone")
 
 class CyclesWorld_PT_surface(CyclesButtonsPanel, Panel):
     bl_label = "Surface"

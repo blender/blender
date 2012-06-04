@@ -106,7 +106,9 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 		case BL::Lamp::type_SPOT: {
 			BL::SpotLamp b_spot_lamp(b_lamp);
 			light->size = b_spot_lamp.shadow_soft_size();
-			light->type = LIGHT_POINT;
+			light->type = LIGHT_SPOT;
+			light->spot_angle = b_spot_lamp.spot_size();
+			light->spot_smooth = b_spot_lamp.spot_blend();
 			break;
 		}
 		case BL::Lamp::type_HEMI: {
