@@ -53,12 +53,13 @@ int FixedObject::addEndEffector(const std::string& name)
 	return -1;
 }
 
-void FixedObject::finalize()
+bool FixedObject::finalize()
 {
 	if (m_finalized)
-		return;
+		return true;
 	initialize(0, m_nframe);
 	m_finalized = true;
+	return true;
 }
 
 const Frame& FixedObject::getPose(const unsigned int frameIndex)

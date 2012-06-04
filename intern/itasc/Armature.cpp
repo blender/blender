@@ -369,11 +369,13 @@ int Armature::addEndEffector(const std::string& name)
 	return m_neffector++;
 }
 
-void Armature::finalize()
+bool Armature::finalize()
 {
 	unsigned int i, j, c;
 	if (m_finalized)
-		return;
+		return true;
+	if (m_njoint == 0)
+		return false;
 	initialize(m_njoint, m_noutput, m_neffector);
 	for (i=c=0; i<m_nconstraint; i++) {
 		JointConstraint_struct* pConstraint = m_constraints[i];
@@ -410,6 +412,7 @@ void Armature::finalize()
 	if (m_armlength < KDL::epsilon)
 		m_armlength = KDL::epsilon;
 	m_finalized = true;
+	return true;
 }
 
 void Armature::pushCache(const Timestamp& timestamp)
