@@ -38,13 +38,14 @@ struct wmOperatorType;
 
 /* internal exports only */
 
+/* mask_add.c */
+void MASK_OT_add_vertex(struct wmOperatorType *ot);
+void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
+
 /* mask_ops.c */
 void MASK_OT_new(struct wmOperatorType *ot);
 void MASK_OT_layer_new(struct wmOperatorType *ot);
 void MASK_OT_layer_remove(struct wmOperatorType *ot);
-
-void MASK_OT_add_vertex(struct wmOperatorType *ot);
-void MASK_OT_add_feather_vertex(struct wmOperatorType *ot);
 void MASK_OT_cyclic_toggle(struct wmOperatorType *ot);
 
 void MASK_OT_slide_point(struct wmOperatorType *ot);

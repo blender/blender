@@ -455,6 +455,69 @@ void BKE_mask_spline_direction_switch(MaskLayer *masklay, MaskSpline *spline)
 	}
 }
 
+
+float BKE_mask_spline_project_co(MaskSpline *spline, MaskSplinePoint *point, float start_u, const float co[2])
+{
+	const float proj_eps         = 1e-3;
+	const float proj_eps_squared = proj_eps * proj_eps;
+	const int N = 1000;
+	float u = -1.0f, du = 1.0f / N, u1 = start_u, u2 = start_u;
+	float ang = -1.0f;
+
+	while (u1 > 0.0f || u2 < 1.0f) {
+		float n1[2], n2[2], co1[2], co2[2];
+		float v1[2], v2[2];
+		float ang1, ang2;
+
+		if (u1 >= 0.0f) {
+			BKE_mask_point_segment_co(spline, point, u1, co1);
+			BKE_mask_point_normal(spline, point, u1, n1);
+			sub_v2_v2v2(v1, co, co1);
+
+			if (len_squared_v2(v1) > proj_eps_squared) {
+				ang1 = angle_v2v2(v1, n1);
+				if (ang1 > M_PI / 2.0f)
+					ang1 = M_PI  - ang1;
+
+				if (ang < 0.0f || ang1 < ang) {
+					ang = ang1;
+					u = u1;
+				}
+			}
+			else {
+				u = u1;
+				break;
+			}
+		}
+
+		if (u2 <= 1.0f) {
+			BKE_mask_point_segment_co(spline, point, u2, co2);
+			BKE_mask_point_normal(spline, point, u2, n2);
+			sub_v2_v2v2(v2, co, co2);
+
+			if (len_squared_v2(v2) > proj_eps_squared) {
+				ang2 = angle_v2v2(v2, n2);
+				if (ang2 > M_PI / 2.0f)
+					ang2 = M_PI  - ang2;
+
+				if (ang2 < ang) {
+					ang = ang2;
+					u = u2;
+				}
+			}
+			else {
+				u = u2;
+				break;
+			}
+		}
+
+		u1 -= du;
+		u2 += du;
+	}
+
+	return u;
+}
+
 /* point */
 
 int BKE_mask_point_has_handle(MaskSplinePoint *point)
