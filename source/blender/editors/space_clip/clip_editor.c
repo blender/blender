@@ -129,7 +129,7 @@ int ED_space_clip_tracking_frame_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_maskediting_poll(bContext *C)
+int ED_space_clip_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -140,9 +140,9 @@ int ED_space_clip_maskediting_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_maskediting_mask_poll(bContext *C)
+int ED_space_clip_maskedit_mask_poll(bContext *C)
 {
-	if (ED_space_clip_maskediting_poll(C)) {
+	if (ED_space_clip_maskedit_poll(C)) {
 		MovieClip *clip = CTX_data_edit_movieclip(C);
 
 		if (clip) {
@@ -681,7 +681,7 @@ int ED_space_clip_show_trackedit(SpaceClip *sc)
 int ED_space_clip_show_maskedit(SpaceClip *sc)
 {
 	if (sc) {
-		return sc->mode == SC_MODE_MASKEDITING;
+		return sc->mode == SC_MODE_MASKEDIT;
 	}
 
 	return FALSE;

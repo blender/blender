@@ -313,7 +313,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = masklay_new_exec;
-	ot->poll = ED_maskediting_poll;
+	ot->poll = ED_maskedit_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -347,7 +347,7 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = masklay_remove_exec;
-	ot->poll = ED_maskediting_poll;
+	ot->poll = ED_maskedit_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -754,7 +754,7 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = slide_point_invoke;
 	ot->modal = slide_point_modal;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -797,7 +797,7 @@ void MASK_OT_cyclic_toggle(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = cyclic_toggle_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -941,7 +941,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -992,7 +992,7 @@ void MASK_OT_switch_direction(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_switch_direction_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1051,7 +1051,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = set_handle_type_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1098,7 +1098,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_hide_view_clear_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1159,7 +1159,7 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_hide_view_set_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

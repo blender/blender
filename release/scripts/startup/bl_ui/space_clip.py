@@ -45,13 +45,13 @@ class CLIP_HT_header(Header):
                 sub.menu("CLIP_MT_clip")
 
                 if clip:
-                    if sc.mode == 'MASKEDITING':
+                    if sc.mode == 'MASKEDIT':
                         sub.menu("CLIP_MT_mask")
                     else:
                         sub.menu("CLIP_MT_track")
                         sub.menu("CLIP_MT_reconstruction")
 
-        if sc.mode != 'MASKEDITING':
+        if sc.mode != 'MASKEDIT':
             layout.prop(sc, "view", text="", expand=True)
 
         if clip:
@@ -59,7 +59,7 @@ class CLIP_HT_header(Header):
                 layout.prop(sc, "mode", text="")
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-                if sc.mode == 'MASKEDITING':
+                if sc.mode == 'MASKEDIT':
                     toolsettings = context.tool_settings
 
                     row = layout.row(align=True)
@@ -85,7 +85,7 @@ class CLIP_HT_header(Header):
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
 
-        if sc.mode == 'MASKEDITING':
+        if sc.mode == 'MASKEDIT':
             row = layout.row()
             row.template_ID(sc, "mask", new="mask.new")
 
@@ -127,7 +127,7 @@ class CLIP_PT_mask_view_panel:
         sc = context.space_data
         clip = sc.clip
 
-        return clip and sc.view == 'CLIP' and sc.mode == 'MASKEDITING'
+        return clip and sc.view == 'CLIP' and sc.mode == 'MASKEDIT'
 
 
 class CLIP_PT_tracking_panel:
@@ -428,7 +428,7 @@ class CLIP_PT_tools_grease_pencil(Panel):
 
         if sc.mode == 'DISTORTION':
             return sc.view == 'CLIP'
-        elif sc.mode == 'MASKEDITING':
+        elif sc.mode == 'MASKEDIT':
             return True
 
         return False
@@ -619,7 +619,7 @@ class CLIP_PT_tracking_camera(Panel):
         col.prop(clip.tracking.camera, "k3")
 
 
-class CLIP_PT_mask_objects(Panel):
+class CLIP_PT_mask_layers(Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'
     bl_label = "Mask Layers"
@@ -628,7 +628,7 @@ class CLIP_PT_mask_objects(Panel):
     def poll(cls, context):
         sc = context.space_data
 
-        return sc.mask and sc.mode == 'MASKEDITING'
+        return sc.mask and sc.mode == 'MASKEDIT'
 
     def draw(self, context):
         layout = self.layout
@@ -667,7 +667,7 @@ class CLIP_PT_active_mask_spline(Panel):
         sc = context.space_data
         mask = sc.mask
 
-        if mask and sc.mode == 'MASKEDITING':
+        if mask and sc.mode == 'MASKEDIT':
             return mask.layers.active and mask.layers.active.splines.active
 
         return False
@@ -694,7 +694,7 @@ class CLIP_PT_active_mask_point(Panel):
         sc = context.space_data
         mask = sc.mask
 
-        if mask and sc.mode == 'MASKEDITING':
+        if mask and sc.mode == 'MASKEDIT':
             return mask.layers.active and mask.layers.active.splines.active_point
 
         return False
@@ -776,7 +776,7 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             row = col.row()
             row.prop(clip, "display_aspect", text="")
 
-        if sc.mode == 'MASKEDITING':
+        if sc.mode == 'MASKEDIT':
             col = layout.column()
             col.prop(sc, "mask_draw_type", text="")
             col.prop(sc, "show_mask_smooth")
@@ -791,7 +791,7 @@ class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     def poll(cls, context):
         sc = context.space_data
 
-        return sc.mode != 'MASKEDITING'
+        return sc.mode != 'MASKEDIT'
 
     def draw(self, context):
         layout = self.layout
@@ -1138,7 +1138,7 @@ class CLIP_MT_select(Menu):
         layout = self.layout
         sc = context.space_data
 
-        if sc.mode == 'MASKEDITING':
+        if sc.mode == 'MASKEDIT':
             layout.operator("mask.select_border")
             layout.operator("mask.select_circle")
 

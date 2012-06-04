@@ -50,23 +50,23 @@
 
 /********************** generic poll functions *********************/
 
-int ED_maskediting_poll(bContext *C)
+int ED_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		return ED_space_clip_maskediting_poll(C);
+		return ED_space_clip_maskedit_poll(C);
 	}
 
 	return FALSE;
 }
 
-int ED_maskediting_mask_poll(bContext *C)
+int ED_maskedit_mask_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		return ED_space_clip_maskediting_mask_poll(C);
+		return ED_space_clip_maskedit_mask_poll(C);
 	}
 
 	return FALSE;
@@ -232,7 +232,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	wmKeyMapItem *kmi;
 
 	keymap = WM_keymap_find(keyconf, "Mask Editing", 0, 0);
-	keymap->poll = ED_maskediting_poll;
+	keymap->poll = ED_maskedit_poll;
 
 	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 

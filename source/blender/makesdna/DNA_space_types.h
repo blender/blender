@@ -1045,7 +1045,7 @@ typedef enum eSpaceClip_Mode {
 	SC_MODE_TRACKING = 0,
 	SC_MODE_RECONSTRUCTION,
 	SC_MODE_DISTORTION,
-	SC_MODE_MASKEDITING,
+	SC_MODE_MASKEDIT,
 } eSpaceClip_Mode;
 
 /* SpaceClip->view */

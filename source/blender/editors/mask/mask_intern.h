@@ -92,8 +92,8 @@ void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
 /* mask_editor.c */
-int ED_maskediting_poll(struct bContext *C);
-int ED_maskediting_mask_poll(struct bContext *C);
+int ED_maskedit_poll(struct bContext *C);
+int ED_maskedit_mask_poll(struct bContext *C);
 
 void ED_mask_size(struct bContext *C, int *width, int *height);
 void ED_mask_aspect(struct bContext *C, float *aspx, float *aspy);

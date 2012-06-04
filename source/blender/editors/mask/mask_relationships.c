@@ -88,7 +88,7 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = mask_parent_clear_exec;
 
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -167,7 +167,7 @@ void MASK_OT_parent_set(wmOperatorType *ot)
 	//ot->invoke = mask_parent_set_invoke;
 	ot->exec = mask_parent_set_exec;
 
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

@@ -1951,7 +1951,7 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 	{
 		SpaceClip *sc = CTX_wm_space_clip(C);
 		if (sc) {
-			if ((sc->mode == SC_MODE_MASKEDITING) && sc->mask) {
+			if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask) {
 				MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
 				mask_to_keylist(&ads, masklay, &keys);
 			}

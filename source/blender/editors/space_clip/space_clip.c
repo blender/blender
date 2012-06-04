@@ -1097,7 +1097,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* Grease Pencil */
 	clip_draw_grease_pencil((bContext *)C, 1);
 
-	if(sc->mode == SC_MODE_MASKEDITING) {
+	if(sc->mode == SC_MODE_MASKEDIT) {
 		int x, y;
 		int width, height;
 		float zoomx, zoomy, aspx, aspy;
@@ -1323,7 +1323,7 @@ static void clip_header_area_listener(ARegion *ar, wmNotifier *wmn)
 				/* for proportional editmode only */
 				case ND_TOOLSETTINGS:
 					/* TODO - should do this when in mask mode only but no datas available */
-					// if(sc->mode == SC_MODE_MASKEDITING)
+					// if(sc->mode == SC_MODE_MASKEDIT)
 					{
 						ED_region_tag_redraw(ar);
 					}

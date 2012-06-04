@@ -624,7 +624,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
 	ot->invoke = add_vertex_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -690,7 +690,7 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_feather_vertex_exec;
 	ot->invoke = add_feather_vertex_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

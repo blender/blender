@@ -49,8 +49,8 @@ int ED_space_clip_view_clip_poll(struct bContext *C);
 int ED_space_clip_tracking_poll(struct bContext *C);
 int ED_space_clip_tracking_size_poll(struct bContext *C);
 int ED_space_clip_tracking_frame_poll(struct bContext *C);
-int ED_space_clip_maskediting_poll(struct bContext *C);
-int ED_space_clip_maskediting_mask_poll(bContext *C);
+int ED_space_clip_maskedit_poll(struct bContext *C);
+int ED_space_clip_maskedit_mask_poll(bContext *C);
 
 void ED_space_clip_set(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
