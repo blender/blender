@@ -568,6 +568,22 @@ CompBuf *valbuf_from_rgbabuf(CompBuf *cbuf, int channel)
 	return valbuf;
 }
 
+void valbuf_to_rgbabuf(CompBuf *valbuf, CompBuf *cbuf, int channel)
+{
+	float *valf, *rectf;
+	int tot;
+
+	valf= valbuf->rect;
+
+	/* defaults to returning alpha channel */
+	if ((channel < CHAN_R) || (channel > CHAN_A)) channel = CHAN_A;
+
+	rectf = cbuf->rect + channel;
+
+	for (tot= cbuf->x*cbuf->y; tot>0; tot--, valf++, rectf+=4)
+		*rectf = *valf;
+}
+
 static CompBuf *generate_procedural_preview(CompBuf *cbuf, int newx, int newy)
 {
 	CompBuf *outbuf;

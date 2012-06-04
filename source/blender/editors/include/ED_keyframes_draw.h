@@ -42,6 +42,7 @@ struct bActionGroup;
 struct Object;
 struct ListBase;
 struct bGPDlayer;
+struct MaskLayer;
 struct Scene;
 struct View2D;
 struct DLRBT_Tree;
@@ -139,6 +140,9 @@ void summary_to_keylist(struct bAnimContext *ac, struct DLRBT_Tree *keys, struct
 /* Grease Pencil Layer */
 // XXX not restored
 void gpl_to_keylist(struct bDopeSheet *ads, struct bGPDlayer *gpl, struct DLRBT_Tree *keys);
+/* Mask */
+// XXX not restored
+void mask_to_keylist(struct bDopeSheet *UNUSED(ads), struct MaskLayer *masklay, struct DLRBT_Tree *keys);
 
 /* ActKeyColumn API ---------------- */
 /* Comparator callback used for ActKeyColumns and cframe float-value pointer */

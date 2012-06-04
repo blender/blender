@@ -96,6 +96,7 @@ enum {
 #define CTX_BMESH           64
 #define CTX_NDOF            128
 #define CTX_MOVIECLIP       256
+#define CTX_MASK            512
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)

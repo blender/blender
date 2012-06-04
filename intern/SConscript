@@ -14,7 +14,8 @@ SConscript(['audaspace/SConscript',
             'boolop/SConscript',
             'opennl/SConscript',
             'mikktspace/SConscript',
-            'smoke/SConscript'])
+            'smoke/SConscript',
+            'raskter/SConscript'])
 
 if env ['WITH_BF_REMESH']:
     SConscript(['dualcon/SConscript'])

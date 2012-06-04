@@ -66,6 +66,7 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -108,6 +109,7 @@
 #include "BKE_speaker.h"
 #include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
+#include "BKE_mask.h"
 
 #include "RNA_access.h"
 
@@ -486,6 +488,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->gpencil);
 		case ID_MC:
 			return &(mainlib->movieclip);
+		case ID_MSK:
+			return &(mainlib->mask);
 	}
 	return NULL;
 }
@@ -569,6 +573,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->library);
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
+	lb[a++] = &(main->mask);
 	
 	lb[a] = NULL;
 
@@ -679,6 +684,9 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_MC:
 			id = MEM_callocN(sizeof(MovieClip), "Movie Clip");
+			break;
+		case ID_MSK:
+			id = MEM_callocN(sizeof(Mask), "Mask");
 			break;
 	}
 	return id;
@@ -887,6 +895,9 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 			break;
 		case ID_MC:
 			BKE_movieclip_free((MovieClip *)id);
+			break;
+		case ID_MSK:
+			BKE_mask_free((Mask *)id);
 			break;
 	}
 

@@ -579,8 +579,10 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	row = uiLayoutRow(layout, 1);
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
-	if (text)
-		uiItemL(row, text, ICON_NONE);
+	if (text) {
+		if (text[0])
+			uiItemL(row, text, ICON_NONE);
+	}
 	else
 		uiItemL(row, "ID-Block:", ICON_NONE);
 	
@@ -2238,6 +2240,20 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 		else {
 			uiItemL(split, name, ICON_OBJECT_DATA);
 		}
+	}
+	else if (itemptr->type == &RNA_MaskLayer) {
+		split = uiLayoutSplit(sub, 0.66f, 0);
+
+		uiItemL(split, name, icon);
+
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		row = uiLayoutRow(split, 1);
+		// uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE); // enable when used
+		uiItemR(row, itemptr, "hide", 0, "", 0);
+		uiItemR(row, itemptr, "hide_select", 0, "", 0);
+		uiItemR(row, itemptr, "hide_render", 0, "", 0);
+
+		uiBlockSetEmboss(block, UI_EMBOSS);
 	}
 
 	/* There is a last chance to display custom controls (in addition to the name/label):

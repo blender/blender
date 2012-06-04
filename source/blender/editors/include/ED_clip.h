@@ -36,6 +36,7 @@ struct bContext;
 struct bScreen;
 struct ImBuf;
 struct Main;
+struct Mask;
 struct MovieClip;
 struct SpaceClip;
 struct wmEvent;
@@ -48,12 +49,19 @@ int ED_space_clip_view_clip_poll(struct bContext *C);
 int ED_space_clip_tracking_poll(struct bContext *C);
 int ED_space_clip_tracking_size_poll(struct bContext *C);
 int ED_space_clip_tracking_frame_poll(struct bContext *C);
+int ED_space_clip_maskediting_poll(struct bContext *C);
+int ED_space_clip_maskediting_mask_poll(bContext *C);
 
 void ED_space_clip_set(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
+struct Mask *ED_space_clip_mask(struct SpaceClip *sc);
 void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
+void ED_space_clip_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
+
+void ED_space_clip_mask_size(struct SpaceClip *sc, int *width, int *height);
+void ED_space_clip_mask_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
 struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
 struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
@@ -72,6 +80,8 @@ void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
 void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
 
 int ED_space_clip_show_trackedit(struct SpaceClip *sc);
+int ED_space_clip_show_maskedit(struct SpaceClip *sc);
+void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

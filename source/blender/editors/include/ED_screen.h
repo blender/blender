@@ -170,6 +170,7 @@ int     ED_operator_editmball(struct bContext *C);
 int     ED_operator_uvedit(struct bContext *C);
 int     ED_operator_uvmap(struct bContext *C);
 int     ED_operator_posemode(struct bContext *C);
+int     ED_operator_mask(struct bContext *C);
 
 
 /* default keymaps, bitflags */

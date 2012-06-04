@@ -260,6 +260,7 @@ struct Image *CTX_data_edit_image(const bContext *C);
 
 struct Text *CTX_data_edit_text(const bContext *C);
 struct MovieClip *CTX_data_edit_movieclip(const bContext *C);
+struct Mask *CTX_data_edit_mask(const bContext *C);
 
 int CTX_data_selected_nodes(const bContext *C, ListBase *list);
 

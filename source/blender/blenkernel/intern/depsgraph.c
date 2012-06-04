@@ -2611,6 +2611,18 @@ static void dag_id_flush_update(Scene *sce, ID *id)
 			}
 		}
 
+		if (idtype == ID_MSK) {
+			if (sce->nodetree) {
+				bNode *node;
+
+				for (node = sce->nodetree->nodes.first; node; node = node->next) {
+					if (node->id == id) {
+						nodeUpdate(sce->nodetree, node);
+					}
+				}
+			}
+		}
+
 		/* camera's matrix is used to orient reconstructed stuff,
 		 * so it should happen tracking-related constraints recalculation
 		 * when camera is changing (sergey) */

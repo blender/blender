@@ -43,6 +43,7 @@ set(INC
 	../../../intern/memutil
 	../../../intern/mikktspace
 	../../../intern/opennl/extern
+	../../../intern/raskter
 
 	# XXX - BAD LEVEL CALL WM_api.h
 	../windowmanager
@@ -100,6 +101,7 @@ set(SRC
 	intern/lamp.c
 	intern/lattice.c
 	intern/library.c
+	intern/mask.c
 	intern/material.c
 	intern/mball.c
 	intern/mesh.c
@@ -187,6 +189,7 @@ set(SRC
 	BKE_lamp.h
 	BKE_lattice.h
 	BKE_library.h
+	BKE_mask.h
 	BKE_main.h
 	BKE_material.h
 	BKE_mball.h

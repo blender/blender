@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_view3d_types.h"
 
 #include "WM_api.h"
@@ -120,6 +121,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -1037,6 +1039,13 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_clip_set(NULL, screen, sc, (MovieClip *)value.data);
 }
 
+static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceClip *sc= (SpaceClip*)(ptr->data);
+
+	ED_space_clip_set_mask(NULL, sc, (Mask*)value.data);
+}
+
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceClip *sc = (SpaceClip *)(ptr->data);
@@ -1059,6 +1068,14 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNU
 }
 
 #else
+
+static EnumPropertyItem dt_uv_items[] = {
+	{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
+	{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
+	{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
+	{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 static void rna_def_space(BlenderRNA *brna)
 {
@@ -1088,14 +1105,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		                "Select UVs that are at the same location and share a mesh vertex"},
 		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex",
 		                   "Select UVs that share mesh vertex, irrespective if they are in the same location"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem dt_uv_items[] = {
-		{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
-		{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
-		{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
-		{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2974,6 +2983,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 		                         "Show tracking/reconstruction tools"},
 		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+		{SC_MODE_MASKEDITING, "MASKEDITING", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2988,6 +2998,16 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
 		{SC_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
 		{SC_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
+		             "Pivot around bounding box center of selected object(s)"},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
+		            "Individual Origins", "Pivot around each object's own origin"},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point",
+		               "Pivot around the median point of selected objects"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3010,6 +3030,26 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Movie Clip User",
 	                         "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* mask */
+	prop= RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	/* mask drawing */
+	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
+	RNA_def_property_enum_items(prop, dt_uv_items);
+	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
+	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -3169,6 +3209,13 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_SECONDS);
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+
+	/* pivot point */
+	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* ** dopesheet ** */
 

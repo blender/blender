@@ -63,6 +63,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -1004,6 +1005,9 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 
 	/* update sound system animation */
 	sound_update_scene(scene);
+
+	/* update masking curves */
+	BKE_mask_update_scene(bmain, scene, FALSE);
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
@@ -1073,6 +1077,8 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* Following 2 functions are recursive
 	 * so don't call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
+
+	BKE_mask_evaluate_all_masks(bmain, ctime, TRUE);
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that

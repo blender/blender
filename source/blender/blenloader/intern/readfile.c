@@ -95,6 +95,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -5353,9 +5354,10 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
-						
+
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
-						
+						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
+
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
 						sclip->scopes.ok = 0;
@@ -5616,9 +5618,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				}
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
-					
+
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
-					
+					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
+
 					sclip->scopes.ok = 0;
 				}
 			}
@@ -6173,6 +6176,88 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	}
 }
 
+/* ***************** READ MOVIECLIP *************** */
+
+static void direct_link_mask(FileData *fd, Mask *mask)
+{
+	MaskLayer *masklay;
+
+	mask->adt = newdataadr(fd, mask->adt);
+
+	link_list(fd, &mask->masklayers);
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+		MaskLayerShape *masklay_shape;
+
+		link_list(fd, &masklay->splines);
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+
+			spline->points = newdataadr(fd, spline->points);
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (point->tot_uw)
+					point->uw = newdataadr(fd, point->uw);
+			}
+		}
+
+		link_list(fd, &masklay->splines_shapes);
+
+		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+			masklay_shape->data = newdataadr(fd, masklay_shape->data);
+		}
+
+		masklay->act_spline = newdataadr(fd, masklay->act_spline);
+		masklay->act_point = newdataadr(fd, masklay->act_point);
+	}
+}
+
+static void lib_link_mask_parent(FileData *fd, Mask *mask, MaskParent *parent)
+{
+	parent->id = newlibadr_us(fd, mask->id.lib, parent->id);
+}
+
+static void lib_link_mask(FileData *fd, Main *main)
+{
+	Mask *mask;
+
+	mask = main->mask.first;
+	while (mask) {
+		if(mask->id.flag & LIB_NEEDLINK) {
+			MaskLayer *masklay;
+
+			if (mask->adt)
+				lib_link_animdata(fd, &mask->id, mask->adt);
+
+			for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+				MaskSpline *spline;
+
+				spline = masklay->splines.first;
+				while (spline) {
+					int i;
+
+					for (i = 0; i < spline->tot_point; i++) {
+						MaskSplinePoint *point = &spline->points[i];
+
+						lib_link_mask_parent(fd, mask, &point->parent);
+					}
+
+					lib_link_mask_parent(fd, mask, &spline->parent);
+
+					spline = spline->next;
+				}
+			}
+
+			mask->id.flag -= LIB_NEEDLINK;
+		}
+		mask = mask->id.next;
+	}
+}
+
 /* ************** GENERAL & MAIN ******************** */
 
 
@@ -6377,6 +6462,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_MC:
 			direct_link_movieclip(fd, (MovieClip *)id);
+			break;
+		case ID_MSK:
+			direct_link_mask(fd, (Mask *)id);
 			break;
 	}
 	
@@ -7506,7 +7594,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
+
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
 	{
 		/* set new deactivation values for game settings */
@@ -7533,7 +7621,29 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
+
+	{
+		bScreen *sc;
+
+		for (sc = main->screen.first; sc; sc = sc->id.next) {
+			ScrArea *sa;
+
+			for (sa = sc->areabase.first; sa; sa = sa->next) {
+				SpaceLink *sl;
+
+				for (sl = sa->spacedata.first; sl; sl = sl->next) {
+					if (sl->spacetype == SPACE_CLIP) {
+						SpaceClip *sclip = (SpaceClip *)sl;
+
+						if (sclip->around == 0) {
+							sclip->around = V3D_CENTROID;
+						}
+					}
+				}
+			}
+		}
+	}
+
 	/* don't forget to set version number in blender.c! */
 }
 
@@ -7576,7 +7686,8 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
-	
+	lib_link_mask(fd, main);
+
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 	
 	lib_link_library(fd, main);		/* only init users */

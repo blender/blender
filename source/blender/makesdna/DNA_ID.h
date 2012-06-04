@@ -206,6 +206,7 @@ typedef struct PreviewImage {
 #define ID_GD		MAKE_ID2('G', 'D') /* GreasePencil */
 #define ID_WM		MAKE_ID2('W', 'M') /* WindowManager */
 #define ID_MC		MAKE_ID2('M', 'C') /* MovieClip */
+#define ID_MSK		MAKE_ID2('M', 'S') /* Mask */
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')

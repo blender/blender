@@ -1910,6 +1910,8 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_bokehimage(ttype);
 	register_node_type_cmp_bokehblur(ttype);
 	register_node_type_cmp_switch(ttype);
+
+	register_node_type_cmp_mask(ttype);
 }
 
 static void registerShaderNodes(bNodeTreeType *ttype) 

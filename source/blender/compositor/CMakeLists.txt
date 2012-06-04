@@ -129,6 +129,8 @@ set(SRC
 	nodes/COM_MovieClipNode.h
 	nodes/COM_OutputFileNode.cpp
 	nodes/COM_OutputFileNode.h
+	nodes/COM_MaskNode.cpp
+	nodes/COM_MaskNode.h
 
 # output nodes
 	nodes/COM_CompositorNode.cpp
@@ -594,6 +596,9 @@ operations/COM_ConvertDepthToRadiusOperation.cpp
 
 	operations/COM_AntiAliasOperation.cpp
 	operations/COM_AntiAliasOperation.h
+
+	operations/COM_MaskOperation.cpp
+	operations/COM_MaskOperation.h
 )
 
 blender_add_lib(bf_compositor "${SRC}" "${INC}" "${INC_SYS}")

@@ -2681,6 +2681,7 @@ static RNAProcessItem PROCESS_ITEMS[] = {
 	{"rna_world.c", NULL, RNA_def_world},
 	{"rna_movieclip.c", NULL, RNA_def_movieclip},
 	{"rna_tracking.c", NULL, RNA_def_tracking},
+	{"rna_mask.c", NULL, RNA_def_mask},
 	{NULL, NULL}
 };
 

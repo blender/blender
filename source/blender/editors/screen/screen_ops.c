@@ -46,6 +46,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -59,6 +60,7 @@
 #include "BKE_screen.h"
 #include "BKE_tessmesh.h"
 #include "BKE_sound.h"
+#include "BKE_mask.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -71,6 +73,7 @@
 #include "ED_screen_types.h"
 #include "ED_keyframes_draw.h"
 #include "ED_view3d.h"
+#include "ED_clip.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -451,6 +454,13 @@ int ED_operator_editmball(bContext *C)
 	if (obedit && obedit->type == OB_MBALL)
 		return NULL != ((MetaBall *)obedit->data)->editelems;
 	return 0;
+}
+
+int ED_operator_mask(bContext *C)
+{
+	SpaceClip *sc= CTX_wm_space_clip(C);
+
+	return ED_space_clip_show_maskedit(sc);
 }
 
 /* *************************** action zone operator ************************** */
@@ -1937,7 +1947,17 @@ static int keyframe_jump_exec(bContext *C, wmOperator *op)
 
 	if (ob)
 		ob_to_keylist(&ads, ob, &keys, NULL);
-	
+
+	{
+		SpaceClip *sc = CTX_wm_space_clip(C);
+		if (sc) {
+			if ((sc->mode == SC_MODE_MASKEDITING) && sc->mask) {
+				MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
+				mask_to_keylist(&ads, masklay, &keys);
+			}
+		}
+	}
+
 	/* build linked-list for searching */
 	BLI_dlrbTree_linkedlist_sync(&keys);
 	

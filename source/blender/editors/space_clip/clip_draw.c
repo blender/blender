@@ -33,12 +33,14 @@
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"	/* SELECT */
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BKE_context.h"
 #include "BKE_movieclip.h"
 #include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -194,6 +196,32 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	glRecti(x, 0, x + framelen, 8);
 
 	clip_draw_curfra_label(sc, x, 8.0f);
+
+	/* movie clip animation */
+	if ((sc->mode == SC_MODE_MASKEDITING) && sc->mask) {
+		MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
+		if (masklay) {
+			MaskLayerShape *masklay_shape;
+
+			glColor4ub(255, 175, 0, 255);
+			glBegin(GL_LINES);
+
+			for (masklay_shape = masklay->splines_shapes.first;
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
+			{
+				i = masklay_shape->frame;
+
+				/* glRecti((i - sfra) * framelen, 0, (i - sfra + 1) * framelen, 4); */
+
+				/* use a line so we always see the keyframes */
+				glVertex2i((i - sfra) * framelen, 0);
+				glVertex2i((i - sfra) * framelen, (i == CFRA) ? 22 : 10);
+			}
+
+			glEnd();
+		}
+	}
 }
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)

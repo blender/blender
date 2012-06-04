@@ -49,6 +49,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "BLI_math.h"
 #include "BLI_blenlib.h"
@@ -638,33 +639,42 @@ static void recalcData_spaceclip(TransInfo *t)
 {
 	SpaceClip *sc = t->sa->spacedata.first;
 
-	MovieClip *clip = ED_space_clip(sc);
-	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
-	MovieTrackingTrack *track;
+	if (ED_space_clip_show_trackedit(sc)) {
+		MovieClip *clip = ED_space_clip(sc);
+		ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+		MovieTrackingTrack *track;
 
-	flushTransTracking(t);
+		flushTransTracking(t);
 
-	track = tracksbase->first;
-	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
-			if (t->mode == TFM_TRANSLATION) {
-				if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-					BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
-				if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-					BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
+		track = tracksbase->first;
+		while (track) {
+			if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED)==0) {
+				if (t->mode == TFM_TRANSLATION) {
+					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_POS);
+					if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_POS);
+				}
+				else if (t->mode == TFM_RESIZE) {
+					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
+						BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
+					if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
+						BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
+				}
 			}
-			else if (t->mode == TFM_RESIZE) {
-				if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-					BKE_tracking_clamp_track(track, CLAMP_PAT_DIM);
-				if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-					BKE_tracking_clamp_track(track, CLAMP_SEARCH_DIM);
-			}
+
+			track = track->next;
 		}
 
-		track = track->next;
+		DAG_id_tag_update(&clip->id, 0);
 	}
+	else if (ED_space_clip_show_maskedit(sc)) {
+		Mask *mask = ED_space_clip_mask(sc);
 
-	DAG_id_tag_update(&clip->id, 0);
+		flushTransMasking(t);
+
+		DAG_id_tag_update(&mask->id, 0);
+	}
 }
 
 /* helper for recalcData() - for 3d-view transforms */
@@ -1109,9 +1119,12 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 	else if (t->spacetype==SPACE_CLIP) {
 		SpaceClip *sclip = sa->spacedata.first;
 		t->view = &ar->v2d;
+		t->around = sclip->around;
 
 		if (ED_space_clip_show_trackedit(sclip))
 			t->options |= CTX_MOVIECLIP;
+		else if (ED_space_clip_show_maskedit(sclip))
+			t->options |= CTX_MASK;
 	}
 	else {
 		if (ar) {
@@ -1172,6 +1185,15 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 
 						if (ts->proportional == PROP_EDIT_CONNECTED) {
 							t->flag |= T_PROP_CONNECTED;
+						}
+					}
+					else if (t->options & CTX_MASK) {
+						if (ts->proportional_mask) {
+							t->flag |= T_PROP_EDIT;
+
+							if (ts->proportional == PROP_EDIT_CONNECTED) {
+								t->flag |= T_PROP_CONNECTED;
+							}
 						}
 					}
 					else if (t->obedit == NULL && ts->proportional_objects) {

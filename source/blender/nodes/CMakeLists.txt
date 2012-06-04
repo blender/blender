@@ -82,6 +82,7 @@ set(SRC
 	composite/nodes/node_composite_mapUV.c
 	composite/nodes/node_composite_mapValue.c
 	composite/nodes/node_composite_math.c
+	composite/nodes/node_composite_mask.c
 	composite/nodes/node_composite_mixrgb.c
 	composite/nodes/node_composite_movieclip.c
 	composite/nodes/node_composite_moviedistortion.c
