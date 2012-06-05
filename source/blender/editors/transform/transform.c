@@ -3915,8 +3915,9 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			continue;
 
 		if (td->val) {
-			// *td->val= ratio;
 			*td->val= td->ival*ratio;
+			/* apply PET */
+			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
 			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}
@@ -3985,7 +3986,6 @@ int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			*td->val = td->ival * ratio;
 			/* apply PET */
 			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
-
 			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}
