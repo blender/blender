@@ -91,9 +91,9 @@ protected:
 	/// calculate one color component
 	unsigned char calcColor (unsigned int val, short idx)
 	{
-		return (((m_matrix[idx][0]  * (VT_R(val)) + m_matrix[idx][1] * (VT_G(val))
-			+ m_matrix[idx][2] * (VT_B(val)) + m_matrix[idx][3] * (VT_A(val))
-			+ m_matrix[idx][4]) >> 8) & 0xFF);
+		return (((m_matrix[idx][0]  * (VT_R(val)) + m_matrix[idx][1] * (VT_G(val)) +
+		          m_matrix[idx][2] * (VT_B(val)) + m_matrix[idx][3] * (VT_A(val)) +
+		          m_matrix[idx][4]) >> 8) & 0xFF);
 	}
 
 	/// filter pixel template, source int buffer

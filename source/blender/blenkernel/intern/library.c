@@ -1142,7 +1142,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
  * Normally the ID that's being check is already in the ListBase, so ID *id
  * points at the new entry.  The Python Library module needs to know what
  * the name of a datablock will be before it is appended; in this case ID *id
- * id is NULL;
+ * id is NULL
  */
 
 static int check_for_dupid(ListBase *lb, ID *id, char *name)
