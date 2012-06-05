@@ -58,6 +58,68 @@
 
 #include "raskter.h"
 
+static MaskSplinePoint *mask_spline_point_next(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
+{
+	if (point == &points_array[spline->tot_point - 1]) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			return &points_array[0];
+		}
+		else  {
+			return NULL;
+		}
+	}
+	else {
+		return point + 1;
+	}
+}
+
+static MaskSplinePoint *mask_spline_point_prev(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
+{
+	if (point == points_array) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			return &points_array[spline->tot_point - 1];
+		}
+		else  {
+			return NULL;
+		}
+	}
+	else {
+		return point - 1;
+	}
+}
+
+static BezTriple *mask_spline_point_next_bezt(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
+{
+	if (point == &points_array[spline->tot_point - 1]) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			return &(points_array[0].bezt);
+		}
+		else  {
+			return NULL;
+		}
+	}
+	else {
+		return &((point + 1))->bezt;
+	}
+}
+
+#if 0
+static BezTriple *mask_spline_point_prev_bezt(MaskSpline *spline, MaskSplinePoint *points_array, MaskSplinePoint *point)
+{
+	if (point == points_array) {
+		if (spline->flag & MASK_SPLINE_CYCLIC) {
+			return &(points_array[0].bezt);
+		}
+		else  {
+			return NULL;
+		}
+	}
+	else {
+		return &((point - 1))->bezt;
+	}
+}
+#endif
+
 MaskSplinePoint *BKE_mask_spline_point_array(MaskSpline *spline)
 {
 	return spline->points_deform ? spline->points_deform : spline->points;
@@ -163,22 +225,16 @@ static int BKE_mask_spline_resolution(MaskSpline *spline, int width, int height)
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &spline->points[i];
-		MaskSplinePoint *point_next;
 		BezTriple *bezt, *bezt_next;
 		float a, b, c, len;
 		int cur_resol;
 
-		if (i == spline->tot_point - 1) {
-			if (spline->flag & MASK_SPLINE_CYCLIC)
-				point_next = &spline->points[0];
-			else
-				break;
-		}
-		else
-			point_next = &spline->points[i + 1];
-
 		bezt = &point->bezt;
-		bezt_next = &point_next->bezt;
+		bezt_next = mask_spline_point_next_bezt(spline, spline->points, point);
+
+		if (bezt_next == NULL) {
+			break;
+		}
 
 		a = len_v3v3(bezt->vec[1], bezt->vec[2]);
 		b = len_v3v3(bezt->vec[2], bezt_next->vec[0]);
@@ -640,14 +696,7 @@ float *BKE_mask_point_segment_diff_with_resolution(MaskSpline *spline, MaskSplin
 	int j, resol = BKE_mask_spline_resolution(spline, width, height);
 
 	bezt = &point->bezt;
-
-	if (point == &points_array[spline->tot_point - 1]) {
-		if (spline->flag & MASK_SPLINE_CYCLIC)
-			bezt_next = &(points_array[0].bezt);
-		else
-			bezt_next = NULL;
-	}
-	else bezt_next = &((point + 1))->bezt;
+	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
 
 	if (!bezt_next)
 		return NULL;
@@ -679,13 +728,7 @@ void BKE_mask_point_segment_co(MaskSpline *spline, MaskSplinePoint *point, float
 	BezTriple *bezt = &point->bezt, *bezt_next;
 	float q0[2], q1[2], q2[2], r0[2], r1[2];
 
-	if (point == &points_array[spline->tot_point - 1]) {
-		if (spline->flag & MASK_SPLINE_CYCLIC)
-			bezt_next = &(points_array[0].bezt);
-		else
-			bezt_next = NULL;
-	}
-	else bezt_next = &((point + 1))->bezt;
+	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
 
 	if (!bezt_next) {
 		copy_v2_v2(co, bezt->vec[1]);
@@ -709,15 +752,7 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, 
 	BezTriple *bezt = &point->bezt, *bezt_next;
 	float q0[2], q1[2], q2[2], r0[2], r1[2], vec[2];
 
-	if (point == &points_array[spline->tot_point - 1]) {
-		if (spline->flag & MASK_SPLINE_CYCLIC)
-			bezt_next = &(points_array[0].bezt);
-		else
-			bezt_next = NULL;
-	}
-	else {
-		bezt_next = &((point + 1))->bezt;
-	}
+	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
 
 	if (!bezt_next) {
 		BKE_mask_point_handle(point, vec);
@@ -750,17 +785,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 	float cur_u, cur_w, next_u, next_w, fac;
 	int i;
 
-	if (point == &points_array[spline->tot_point - 1]) {
-		if (spline->flag & MASK_SPLINE_CYCLIC) {
-			bezt_next = &(points_array[0].bezt);
-		}
-		else {
-			bezt_next = NULL;
-		}
-	}
-	else {
-		bezt_next = &((point + 1))->bezt;
-	}
+	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
 
 	if (!bezt_next)
 		return bezt->weight;
@@ -1157,37 +1182,12 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *poin
 void BKE_mask_get_handle_point_adjacent(Mask *UNUSED(mask), MaskSpline *spline, MaskSplinePoint *point,
                                         MaskSplinePoint **r_point_prev, MaskSplinePoint **r_point_next)
 {
-	MaskSplinePoint *point_prev, *point_next;
 	int i = (int)(point - spline->points);
-
 	BLI_assert(i >= i && i < spline->tot_point);
+	(void)i; /* quiet release builds */
 
-	if (i == 0) {
-		if (spline->flag & MASK_SPLINE_CYCLIC) {
-			point_prev = &spline->points[spline->tot_point - 1];
-		}
-		else {
-			point_prev = NULL;
-		}
-	}
-	else {
-		point_prev = point - 1;
-	}
-
-	if (i == spline->tot_point - 1) {
-		if (spline->flag & MASK_SPLINE_CYCLIC) {
-			point_next = &spline->points[0];
-		}
-		else {
-			point_next = NULL;
-		}
-	}
-	else {
-		point_next = point + 1;
-	}
-
-	*r_point_prev = point_prev;
-	*r_point_next = point_next;
+	*r_point_prev = mask_spline_point_prev(spline, spline->points, point);
+	*r_point_next = mask_spline_point_next(spline, spline->points, point);
 }
 
 /* calculates the tanget of a point by its previous and next
