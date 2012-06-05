@@ -1972,15 +1972,6 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 	/* temp blending buffer */
 	const int buffer_size = width * height;
 	float *buffer_tmp = MEM_mallocN(sizeof(float) * buffer_size, __func__);
-	float max_dseg_len = 0.0f;
-
-	if (width >= height) {
-		max_dseg_len = (float)(width);
-	}
-	else {
-		max_dseg_len = (float)(height);
-	}
-	max_dseg_len = 1.0f / max_dseg_len;
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
@@ -1999,51 +1990,56 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 			float (*diff_feather_points)[2];
 			int tot_diff_feather_points;
 
-			diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height, &tot_diff_point);
+			diff_points = BKE_mask_spline_differentiate_with_resolution(spline, width, height,
+			                                                            &tot_diff_point);
+
 			if (tot_diff_point) {
 				diff_feather_points =
 				        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
 				                                                                      &tot_diff_feather_points);
-			}
 
-			/* TODO, make this optional! */
-			if (width != height) {
-				float *fp;
-				float *ffp;
-				int i;
-				float asp;
+				/* TODO, make this optional! */
+				if (width != height) {
+					float *fp;
+					float *ffp;
+					int i;
+					float asp;
 
-				if (width < height) {
-					fp = &diff_points[0][0];
-					ffp = &diff_feather_points[0][0];
-					asp = (float)width / (float)height;
-				}
-				else {
-					fp = &diff_points[0][1];
-					ffp = &diff_feather_points[0][1];
-					asp = (float)height / (float)width;
-				}
+					if (width < height) {
+						fp = &diff_points[0][0];
+						ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+						asp = (float)width / (float)height;
+					}
+					else {
+						fp = &diff_points[0][1];
+						ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+						asp = (float)height / (float)width;
+					}
 
-				for (i = 0; i < tot_diff_point; i++, fp += 2) {
-					(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
-				}
-				for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
-					(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
-				}
-			}
+					for (i = 0; i < tot_diff_point; i++, fp += 2) {
+						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+					}
 
-			if (tot_diff_point) {
-				PLX_raskterize((float (*)[2])diff_points, tot_diff_point,
-				               buffer_tmp, width, height);
-
-				if (tot_diff_feather_points) {
-					PLX_raskterize_feather((float (*)[2])diff_points, tot_diff_point,
-					                       (float (*)[2])diff_feather_points, tot_diff_feather_points,
-					                       buffer_tmp, width, height);
-					MEM_freeN(diff_feather_points);
+					if (tot_diff_feather_points) {
+						for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+							(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+						}
+					}
 				}
 
-				MEM_freeN(diff_points);
+				if (tot_diff_point) {
+					PLX_raskterize(diff_points, tot_diff_point,
+					               buffer_tmp, width, height);
+
+					if (tot_diff_feather_points) {
+						PLX_raskterize_feather(diff_points, tot_diff_point,
+						                       diff_feather_points, tot_diff_feather_points,
+						                       buffer_tmp, width, height);
+						MEM_freeN(diff_feather_points);
+					}
+
+					MEM_freeN(diff_points);
+				}
 			}
 		}
 
