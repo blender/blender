@@ -780,47 +780,57 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, 
 float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
-
 	BezTriple *bezt = &point->bezt, *bezt_next;
-	float cur_u, cur_w, next_u, next_w, fac;
-	int i;
 
 	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
 
-	if (!bezt_next)
+	if (!bezt_next) {
 		return bezt->weight;
+	}
+	else if (u <= 0.0) {
+		return bezt->weight;
+	}
+	else if (u >= 1.0f) {
+		return bezt_next->weight;
+	}
+	else {
+		float cur_u, cur_w, next_u, next_w, fac;
+		int i;
 
-	for (i = 0; i < point->tot_uw + 1; i++) {
+		for (i = 0; i < point->tot_uw + 1; i++) {
 
-		if (i == 0) {
-			cur_u = 0.0f;
-			cur_w = bezt->weight;
+			if (i == 0) {
+				cur_u = 0.0f;
+				cur_w = bezt->weight;
+			}
+			else {
+				cur_u = point->uw[i - 1].u;
+				cur_w = point->uw[i - 1].w;
+			}
+
+			if (i == point->tot_uw) {
+				next_u = 1.0f;
+				next_w = bezt_next->weight;
+			}
+			else {
+				next_u = point->uw[i].u;
+				next_w = point->uw[i].w;
+			}
+
+			if (u >= cur_u && u <= next_u) {
+				break;
+			}
+		}
+
+		fac = (u - cur_u) / (next_u - cur_u);
+
+		if (spline->weight_interp == MASK_SPLINE_INTERP_EASE) {
+			return cur_w + (next_w - cur_w) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
 		}
 		else {
-			cur_u = point->uw[i - 1].u;
-			cur_w = point->uw[i - 1].w;
-		}
-
-		if (i == point->tot_uw) {
-			next_u = 1.0f;
-			next_w = bezt_next->weight;
-		}
-		else {
-			next_u = point->uw[i].u;
-			next_w = point->uw[i].w;
-		}
-
-		if (u >= cur_u && u <= next_u) {
-			break;
+			return (1.0f - fac) * cur_w + fac * next_w;
 		}
 	}
-
-	fac = (u - cur_u) / (next_u - cur_u);
-
-	if (spline->weight_interp == MASK_SPLINE_INTERP_EASE)
-		return cur_w + (next_w - cur_w) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
-	else
-		return (1.0f - fac) * cur_w + fac * next_w;
 }
 
 MaskSplinePointUW *BKE_mask_point_sort_uw(MaskSplinePoint *point, MaskSplinePointUW *uw)
