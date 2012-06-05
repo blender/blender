@@ -5950,6 +5950,11 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	int count = 0, countsel = 0;
 	int propmode = t->flag & T_PROP_EDIT;
 
+	t->total = 0;
+
+	if (!mask)
+		return;
+
 	/* count */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline = masklay->splines.first;
