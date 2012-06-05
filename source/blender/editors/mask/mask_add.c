@@ -654,6 +654,11 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	if (find_nearest_diff_point(C, mask, co, threshold, TRUE, &masklay, &spline, &point, &u, NULL)) {
 		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
+		float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);
+
+		if (weight_scalar != 0.0f) {
+			w = w / weight_scalar;
+		}
 
 		BKE_mask_point_add_uw(point, u, w);
 

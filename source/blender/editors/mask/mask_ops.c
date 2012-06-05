@@ -387,15 +387,18 @@ static int slide_point_check_initial_feather(MaskSpline *spline)
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &spline->points[i];
-		int j;
 
 		if (point->bezt.weight != 0.0f)
 			return FALSE;
 
+		/* comment for now. if all bezt weights are zero - this is as good-as initial */
+#if 0
+		int j;
 		for (j = 0; j < point->tot_uw; j++) {
 			if (point->uw[j].w != 0.0f)
 				return FALSE;
 		}
+#endif
 	}
 
 	return TRUE;
@@ -454,25 +457,21 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (uw) {
 			float co[2];
-
-			customdata->weight = point->bezt.weight;
+			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
 			BKE_mask_point_segment_co(spline, point, uw->u, co);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
-			customdata->feather[0] = co[0] + customdata->no[0] * uw->w;
-			customdata->feather[1] = co[1] + customdata->no[1] * uw->w;
+			madd_v2_v2v2fl(customdata->feather, co, customdata->no, uw->w * weight_scalar);
 		}
 		else {
 			BezTriple *bezt = &point->bezt;
 
+			customdata->weight = bezt->weight;
 			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
-			customdata->feather[0] = bezt->vec[1][0] + customdata->no[0] * bezt->weight;
-			customdata->feather[1] = bezt->vec[1][1] + customdata->no[1] * bezt->weight;
-
-			customdata->weight = bezt->weight;
+			madd_v2_v2v2fl(customdata->feather, bezt->vec[1], customdata->no, bezt->weight);
 		}
 
 		if (customdata->action == SLIDE_ACTION_FEATHER)
@@ -533,17 +532,20 @@ static void slide_point_delta_all_feather(SlidePointData *data, float delta)
 	for (i = 0; i < data->spline->tot_point; i++) {
 		MaskSplinePoint *point = &data->spline->points[i];
 		MaskSplinePoint *orig_point = &data->orig_spline->points[i];
-		int j;
 
 		point->bezt.weight = orig_point->bezt.weight + delta;
 		if (point->bezt.weight < 0.0f)
 			point->bezt.weight = 0.0f;
 
+		/* not needed anymore */
+#if 0
+		int j;
 		for (j = 0; j < point->tot_uw; j++) {
 			point->uw[j].w = orig_point->uw[j].w + delta;
 			if (point->uw[j].w < 0.0f)
 				point->uw[j].w = 0.0f;
 		}
+#endif
 	}
 }
 
@@ -645,6 +647,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (data->action == SLIDE_ACTION_FEATHER) {
 				float vec[2], no[2], p[2], c[2], w, offco[2];
 				float *weight = NULL;
+				float weight_scalar = 1.0f;
 				int overall_feather = data->overall_feather || data->initial_feather;
 
 				add_v2_v2v2(offco, data->feather, dco);
@@ -679,12 +682,18 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 						data->uw = BKE_mask_point_sort_uw(data->point, data->uw);
 						weight = &data->uw->w;
+						weight_scalar = BKE_mask_point_weight_scalar(data->spline, data->point, u);
+						if (weight_scalar != 0.0f) {
+							weight_scalar = 1.0f / weight_scalar;
+						}
+
 						BKE_mask_point_normal(data->spline, data->point, data->uw->u, no);
 						BKE_mask_point_segment_co(data->spline, data->point, data->uw->u, p);
 					}
 				}
 				else {
 					weight = &bezt->weight;
+					/* weight_scalar = 1.0f; keep as is */
 					copy_v2_v2(no, data->no);
 					copy_v2_v2(p, bezt->vec[1]);
 				}
@@ -707,7 +716,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 							/* restore weight for currently sliding point, so orig_spline would be created
 							 * with original weights used
 							 */
-							*weight = data->weight;
+							*weight = data->weight * weight_scalar;
 
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}
@@ -726,7 +735,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 							data->orig_spline = NULL;
 						}
 
-						*weight = w;
+						if (weight_scalar != 0.0f) {
+							*weight = w * weight_scalar;
+						}
 					}
 				}
 			}

@@ -782,7 +782,28 @@ static float mask_point_interp_weight(BezTriple *bezt, BezTriple *bezt_next, con
 	return (bezt->weight * (1.0f - u)) + (bezt_next->weight * u);
 }
 
-float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
+float BKE_mask_point_weight_scalar(MaskSpline *spline, MaskSplinePoint *point, const float u)
+{
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
+	BezTriple *bezt = &point->bezt, *bezt_next;
+
+	bezt_next = mask_spline_point_next_bezt(spline, points_array, point);
+
+	if (!bezt_next) {
+		return bezt->weight;
+	}
+	else if (u <= 0.0) {
+		return bezt->weight;
+	}
+	else if (u >= 1.0f) {
+		return bezt_next->weight;
+	}
+	else {
+		return mask_point_interp_weight(bezt, bezt_next, u);
+	}
+}
+
+float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const float u)
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 	BezTriple *bezt = &point->bezt, *bezt_next;
