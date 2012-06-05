@@ -494,6 +494,9 @@ int Tilt(TransInfo *t, const int mval[2]);
 void initCurveShrinkFatten(TransInfo *t);
 int CurveShrinkFatten(TransInfo *t, const int mval[2]);
 
+void initMaskShrinkFatten(TransInfo *t);
+int MaskShrinkFatten(TransInfo *t, const int mval[2]);
+
 void initTrackball(TransInfo *t);
 int Trackball(TransInfo *t, const int mval[2]);
 

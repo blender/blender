@@ -403,6 +403,8 @@ class CLIP_PT_tools_mask(CLIP_PT_mask_view_panel, Panel):
         col.operator("transform.translate")
         col.operator("transform.rotate")
         col.operator("transform.resize", text="Scale")
+        props = col.operator("transform.transform", text="Shrink/Fatten")
+        props.mode = 'MASK_SHRINKFATTEN'
 
         col = layout.column(align=True)
         col.label(text="Spline:")
@@ -1253,6 +1255,8 @@ class CLIP_MT_mask_transform(Menu):
         layout.operator("transform.translate")
         layout.operator("transform.rotate")
         layout.operator("transform.resize")
+        props = layout.operator("transform.transform", text="Shrink/Fatten")
+        props.mode = 'MASK_SHRINKFATTEN'
 
 
 class CLIP_MT_camera_presets(Menu):

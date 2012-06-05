@@ -1720,6 +1720,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 	case TFM_CURVE_SHRINKFATTEN:
 		initCurveShrinkFatten(t);
 		break;
+	case TFM_MASK_SHRINKFATTEN:
+		initMaskShrinkFatten(t);
+		break;
 	case TFM_TRACKBALL:
 		initTrackball(t);
 		break;
@@ -3914,6 +3917,75 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 		if (td->val) {
 			// *td->val= ratio;
 			*td->val= td->ival*ratio;
+			if (*td->val <= 0.0f) *td->val = 0.001f;
+		}
+	}
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+
+	return 1;
+}
+
+
+void initMaskShrinkFatten(TransInfo *t)
+{
+	t->mode = TFM_MASK_SHRINKFATTEN;
+	t->transform = MaskShrinkFatten;
+
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
+
+	t->flag |= T_NO_ZERO;
+	t->num.flag |= NUM_NO_ZERO;
+
+	t->flag |= T_NO_CONSTRAINT;
+}
+
+int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[50];
+
+	ratio = t->values[0];
+
+	snapGrid(t, &ratio);
+
+	applyNumInput(&t->num, &ratio);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+		sprintf(str, "Shrink/Fatten: %s", c);
+	}
+	else {
+		sprintf(str, "Shrink/Fatten: %3f", ratio);
+	}
+
+	for (i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		if (td->val) {
+			*td->val = td->ival * ratio;
+			/* apply PET */
+			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+
 			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}

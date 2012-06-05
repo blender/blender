@@ -296,7 +296,9 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
-	WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	/* ... matches curve editmode */
+	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", TFM_MASK_SHRINKFATTEN);
 
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);

@@ -5887,8 +5887,16 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 			memset(td->axismtx, 0, sizeof(td->axismtx));
 			td->axismtx[2][2] = 1.0f;
 
-			td->ext= NULL;
-			td->val= NULL;
+			td->ext = NULL;
+
+			if (i == 1) {
+				/* scaling weights */
+				td->val = &bezt->weight;
+				td->ival = *td->val;
+			}
+			else {
+				td->val = NULL;
+			}
 
 			if (is_sel_any) {
 				td->flag |= TD_SELECTED;
