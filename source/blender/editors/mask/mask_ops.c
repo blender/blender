@@ -355,10 +355,12 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
 
 /******************** slide *********************/
 
-#define SLIDE_ACTION_NONE       0
-#define SLIDE_ACTION_POINT      1
-#define SLIDE_ACTION_HANDLE     2
-#define SLIDE_ACTION_FEATHER    3
+enum {
+	SLIDE_ACTION_NONE    = 0,
+	SLIDE_ACTION_POINT   = 1,
+	SLIDE_ACTION_HANDLE  = 2,
+	SLIDE_ACTION_FEATHER = 3
+};
 
 typedef struct SlidePointData {
 	int action;
@@ -648,7 +650,29 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 				add_v2_v2v2(offco, data->feather, dco);
 
 				if (data->uw) {
-					float u = BKE_mask_spline_project_co(data->spline, data->point, data->uw->u, offco);
+					/* project on both sides and find the closest one,
+					 * prevents flickering when projecting onto both sides can happen */
+					const float u_pos = BKE_mask_spline_project_co(data->spline, data->point,
+					                                               data->uw->u, offco, MASK_PROJ_NEG);
+					const float u_neg = BKE_mask_spline_project_co(data->spline, data->point,
+					                                               data->uw->u, offco, MASK_PROJ_POS);
+					float dist_pos = FLT_MAX;
+					float dist_neg = FLT_MAX;
+					float co_pos[2];
+					float co_neg[2];
+					float u;
+
+					if (u_pos > 0.0f && u_pos < 1.0f) {
+						BKE_mask_point_segment_co(data->spline, data->point, u_pos, co_pos);
+						dist_pos = len_squared_v2v2(offco, co_pos);
+					}
+
+					if (u_neg > 0.0f && u_neg < 1.0f) {
+						BKE_mask_point_segment_co(data->spline, data->point, u_neg, co_neg);
+						dist_neg = len_squared_v2v2(offco, co_neg);
+					}
+
+					u = dist_pos < dist_neg ? u_pos : u_neg;
 
 					if (u > 0.0f && u < 1.0f) {
 						data->uw->u = u;
@@ -1165,5 +1189,61 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
+}
 
+
+static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	int changed = FALSE;
+	int i;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_SELECT | MASK_RESTRICT_VIEW)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL_ANY(point)) {
+					BezTriple *bezt = &point->bezt;
+					bezt->weight = 0.0f;
+					changed = TRUE;
+				}
+			}
+		}
+	}
+
+	if (changed) {
+		/* TODO: only update edited splines */
+		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+
+		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_feather_weight_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Feather Weight";
+	ot->description = "Reset the feather weight to zero";
+	ot->idname = "MASK_OT_feather_weight_clear";
+
+	/* api callbacks */
+	ot->exec = mask_feather_weight_clear_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

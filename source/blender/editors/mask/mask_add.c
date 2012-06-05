@@ -150,7 +150,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 			*point_r = point;
 
 		if (u_r) {
-			u = BKE_mask_spline_project_co(point_spline, point, u, normal_co);
+			u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
 
 			*u_r = u;
 		}

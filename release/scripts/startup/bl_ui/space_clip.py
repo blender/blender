@@ -63,9 +63,11 @@ class CLIP_HT_header(Header):
                     toolsettings = context.tool_settings
 
                     row = layout.row(align=True)
-                    row.prop(toolsettings, "use_proportional_edit_mask", text="", icon_only=True)
+                    row.prop(toolsettings, "use_proportional_edit_mask",
+                             text="", icon_only=True)
                     if toolsettings.use_proportional_edit_objects:
-                        row.prop(toolsettings, "proportional_edit_falloff", text="", icon_only=True)
+                        row.prop(toolsettings, "proportional_edit_falloff",
+                                 text="", icon_only=True)
             elif sc.view == 'GRAPH':
                 row = layout.row(align=True)
 
@@ -289,7 +291,8 @@ class CLIP_PT_tools_solve(CLIP_PT_tracking_panel, Panel):
         col.prop(settings, "keyframe_b")
 
         col = layout.column(align=True)
-        col.active = tracking_object.is_camera and not settings.use_tripod_solver
+        col.active = (tracking_object.is_camera and
+                      not settings.use_tripod_solver)
         col.label(text="Refine:")
         col.prop(settings, "refine_intrinsics", text="")
 
@@ -723,13 +726,16 @@ class CLIP_PT_active_mask_point(Panel):
                 clip = parent.id
                 tracking = clip.tracking
 
-                col.prop_search(parent, "parent", tracking, "objects", icon='OBJECT_DATA', text="Object:")
+                col.prop_search(parent, "parent", tracking,
+                                "objects", icon='OBJECT_DATA', text="Object:")
 
                 if parent.parent and parent.parent in tracking.objects:
-                    object = clip.tracking.objects[parent.parent]
-                    col.prop_search(parent, "sub_parent", object, "tracks", icon='ANIM_DATA', text="Track:")
+                    object = tracking.objects[parent.parent]
+                    col.prop_search(parent, "sub_parent", object,
+                                    "tracks", icon='ANIM_DATA', text="Track:")
                 else:
-                    col.prop_search(parent, "sub_parent", clip.tracking, "tracks", icon='ANIM_DATA', text="Track:")
+                    col.prop_search(parent, "sub_parent", tracking,
+                                    "tracks", icon='ANIM_DATA', text="Track:")
 
 
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
@@ -1210,6 +1216,7 @@ class CLIP_MT_mask(Menu):
         layout.separator()
         layout.operator("mask.cyclic_toggle")
         layout.operator("mask.switch_direction")
+        layout.operator("mask.feather_weight_clear")  # TODO, better place?
 
         layout.separator()
         layout.operator("mask.parent_clear")

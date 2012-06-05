@@ -69,7 +69,14 @@ float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feath
 
 void BKE_mask_point_direction_switch(struct MaskSplinePoint *point);
 void BKE_mask_spline_direction_switch(struct MaskLayer *masklay, struct MaskSpline *spline);
-float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float start_u, const float co[2]);
+
+typedef enum {
+	MASK_PROJ_NEG = -1,
+	MASK_PROJ_ANY = 0,
+	MASK_PROJ_POS = 1
+} eMaskSign;
+float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoint *point,
+                                 float start_u, const float co[2], const eMaskSign sign);
 
 /* point */
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
