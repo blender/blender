@@ -72,7 +72,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, OBJECT_TRANSFORM);
+			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_TRANSFORM);
 			tfm = transform_transpose(tfm);
 			result = TO_MATRIX44(tfm);
 
@@ -93,7 +93,7 @@ bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::Transform
 		int object = sd->object;
 
 		if (object != ~0) {
-			Transform tfm = object_fetch_transform(kg, object, OBJECT_INVERSE_TRANSFORM);
+			Transform tfm = object_fetch_transform(kg, object, time, OBJECT_INVERSE_TRANSFORM);
 			tfm = transform_transpose(tfm);
 			result = TO_MATRIX44(tfm);
 
