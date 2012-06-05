@@ -27,7 +27,6 @@
 #include "util_foreach.h"
 
 #include <OSL/oslexec.h>
-#include <oslexec_pvt.h>
 
 CCL_NAMESPACE_BEGIN
 
@@ -111,7 +110,7 @@ static void shaderdata_to_shaderglobals(KernelGlobals *kg, ShaderData *sd,
 static void flatten_surface_closure_tree(ShaderData *sd, bool no_glossy,
                                          const OSL::ClosureColor *closure, float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
-	/* OSL gives use a closure tree, we flatten it into arrays per
+	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
 	if (closure->type == OSL::ClosureColor::COMPONENT) {
@@ -235,7 +234,7 @@ void OSLShader::eval_surface(KernelGlobals *kg, ShaderData *sd, float randb, int
 
 static float3 flatten_background_closure_tree(const OSL::ClosureColor *closure)
 {
-	/* OSL gives use a closure tree, if we are shading for background there
+	/* OSL gives us a closure tree, if we are shading for background there
 	 * is only one supported closure type at the moment, which has no evaluation
 	 * functions, so we just sum the weights */
 
@@ -289,7 +288,7 @@ float3 OSLShader::eval_background(KernelGlobals *kg, ShaderData *sd, int path_fl
 static void flatten_volume_closure_tree(ShaderData *sd,
                                         const OSL::ClosureColor *closure, float3 weight = make_float3(1.0f, 1.0f, 1.0f))
 {
-	/* OSL gives use a closure tree, we flatten it into arrays per
+	/* OSL gives us a closure tree, we flatten it into arrays per
 	 * closure type, for evaluation, sampling, etc later on. */
 
 	if (closure->type == OSL::ClosureColor::COMPONENT) {
