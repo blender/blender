@@ -383,16 +383,27 @@ void BKE_mask_point_direction_switch(MaskSplinePoint *point)
 	const int tot_uw_half = tot_uw / 2;
 	int i;
 
-	if (tot_uw < 2) {
-		return;
+	float co_tmp[2];
+
+	/* swap handles */
+	copy_v2_v2(co_tmp, point->bezt.vec[0]);
+	copy_v2_v2(point->bezt.vec[0], point->bezt.vec[2]);
+	copy_v2_v2(point->bezt.vec[2], co_tmp);
+	/* in this case the flags are unlikely to be different but swap anyway */
+	SWAP(char, point->bezt.f1, point->bezt.f3);
+	SWAP(char, point->bezt.h1, point->bezt.h2);
+
+
+	/* swap UW's */
+	if (tot_uw > 1) {
+		/* count */
+		for (i = 0; i < tot_uw_half; i++) {
+			MaskSplinePointUW *uw_a = &point->uw[i];
+			MaskSplinePointUW *uw_b = &point->uw[tot_uw - (i + 1)];
+			SWAP(MaskSplinePointUW, *uw_a, *uw_b);
+		}
 	}
 
-	/* count */
-	for (i = 0; i < tot_uw_half; i++) {
-		MaskSplinePointUW *uw_a = &point->uw[i];
-		MaskSplinePointUW *uw_b = &point->uw[tot_uw - (i + 1)];
-		SWAP(MaskSplinePointUW, *uw_a, *uw_b);
-	}
 	for (i = 0; i < tot_uw; i++) {
 		MaskSplinePointUW *uw = &point->uw[i];
 		uw->u = 1.0f - uw->u;
