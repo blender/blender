@@ -396,8 +396,8 @@ typedef enum ReplaceOption {
 } ReplaceOption;
 
 static EnumPropertyItem vertex_group_option_item[] = {
-	{REPLACE_SINGLE_VERTEX_GROUP, "REPLACE_SINGLE_VERTEX_GROUP", 1, "Single", "Transfer single vertex group."},
-	{REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups."},
+	{REPLACE_SINGLE_VERTEX_GROUP, "REPLACE_SINGLE_VERTEX_GROUP", 1, "Single", "Transfer single vertex group from selected to active mesh."},
+	{REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -3042,12 +3042,12 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	CTX_DATA_BEGIN(C, Object *, ob_slc, selected_editable_objects)
 	{
 
-		if (ob_act != ob_slc) {
+		if (ob_act != ob_slc && ob_slc->defbase.first) {
 			switch (vertex_group_option) {
 
 				case REPLACE_SINGLE_VERTEX_GROUP:
-					if (ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option))
-						change++;
+					if (ED_vgroup_transfer_weight(ob_act, ob_slc,
+												  BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option)) change++;
 					else fail++;
 					break;
 
@@ -3059,6 +3059,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 					break;
 			}
 		}
+		else change++;
 	}
 
 	/* Event notifiers for correct display of data */
@@ -3081,9 +3082,9 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Transfer weight to selected";
+	ot->name = "Transfer weight";
 	ot->idname = "OBJECT_OT_vertex_group_transfer_weight";
-	ot->description = "Transfers weight from active to selected depending on options";
+	ot->description = "Transfer weight paint to active from selected mesh";
 
 	/* api callbacks */
 	ot->poll = vertex_group_poll;
