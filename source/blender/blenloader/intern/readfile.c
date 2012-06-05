@@ -6724,6 +6724,11 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			char basepath[FILE_MAXDIR];
 			char filename[FILE_MAXFILE];
 			
+			/* ugly, need to remove the old inputs list to avoid bad pointer checks when adding new sockets.
+			 * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
+			 */
+			node->inputs.first = node->inputs.last = NULL;
+			
 			node->storage = nimf;
 			
 			/* split off filename from the old path, to be used as socket sub-path */
