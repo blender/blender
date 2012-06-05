@@ -958,11 +958,11 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         sc = context.space_data
         clip = sc.clip
 
-        if clip:
-            layout.template_movieclip(sc, "clip", compact=True)
-        else:
-            layout.operator("clip.open", icon='FILESEL')
-
+        col = layout.column()
+        col.template_movieclip(sc, "clip", compact=True)
+        col.prop(clip, "use_custom_start_frame")
+        if clip.use_custom_start_frame:
+            col.prop(clip, "start_frame")
 
 
 class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):

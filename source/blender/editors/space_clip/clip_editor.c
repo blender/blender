@@ -544,7 +544,10 @@ typedef struct SpaceClipDrawContext {
 	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
 	int image_width, image_height;	/* image width and height for which texture was created */
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
-	int framenr;
+
+	/* fields to check if cache is still valid */
+	int framenr, start_frame;
+	short custom_start_frame;
 } SpaceClipDrawContext;
 
 int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
@@ -574,6 +577,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	SpaceClipDrawContext *context = sc->draw_context;
 	MovieClip *clip = ED_space_clip(sc);
 	int need_rebind = 0;
+	short custom_start_frame = FALSE;
 
 	context->last_texture = glaGetOneInteger(GL_TEXTURE_2D);
 
@@ -582,6 +586,14 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
 	need_rebind |= context->framenr != sc->user.framenr;
+
+	if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
+		need_rebind |= context->custom_start_frame != TRUE;
+		need_rebind |= context->start_frame != clip->start_frame;
+	}
+	else {
+		need_rebind |= context->custom_start_frame != FALSE;
+	}
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -636,6 +648,8 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
+		context->start_frame = clip->start_frame;
+		context->custom_start_frame = (clip->flag & MCLIP_CUSTOM_START_FRAME) ? TRUE : FALSE;
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

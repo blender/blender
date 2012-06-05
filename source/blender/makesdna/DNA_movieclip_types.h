@@ -85,6 +85,8 @@ typedef struct MovieClip {
 	int flag;
 
 	int len;	/* length of movie */
+
+	int start_frame, pad;
 } MovieClip;
 
 typedef struct MovieClipScopes {
@@ -121,6 +123,7 @@ typedef struct MovieClipScopes {
 /* MovieClip->flag */
 #define MCLIP_USE_PROXY					(1<<0)
 #define MCLIP_USE_PROXY_CUSTOM_DIR		(1<<1)
+#define MCLIP_CUSTOM_START_FRAME		(1<<2)
 
 #define MCLIP_TIMECODE_FLAGS			(MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR)
 
