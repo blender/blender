@@ -783,8 +783,8 @@ void ui_theme_init_default(void)
 	/* space nla */
 	btheme->tnla = btheme->tact;
 	
-	rgba_char_args_set(btheme->tnla.anim_active,    204, 112, 26, 102); /* same as for dopesheet; duplicate here for easier reference */
-	rgba_char_args_set(btheme->tnla.anim_non_active,153, 135, 97, 77);
+	rgba_char_args_set(btheme->tnla.anim_active,     204, 112, 26, 102); /* same as for dopesheet; duplicate here for easier reference */
+	rgba_char_args_set(btheme->tnla.anim_non_active, 153, 135, 97, 77);
 	
 	rgba_char_args_set(btheme->tnla.nla_tweaking,   77, 243, 26, 77);
 	rgba_char_args_set(btheme->tnla.nla_tweakdupli, 217, 0, 0, 255);

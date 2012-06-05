@@ -577,7 +577,6 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	SpaceClipDrawContext *context = sc->draw_context;
 	MovieClip *clip = ED_space_clip(sc);
 	int need_rebind = 0;
-	short custom_start_frame = FALSE;
 
 	context->last_texture = glaGetOneInteger(GL_TEXTURE_2D);
 
