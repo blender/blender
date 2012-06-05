@@ -3030,8 +3030,6 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 {
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
-	int change = 0;
-	int fail = 0;
 	bDeformGroup *dg_src;
 
 	VertexGroupOption vertex_group_option = RNA_enum_get(op->ptr, "VertexGroupOption");
@@ -3046,20 +3044,16 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_option) {
 
 				case REPLACE_SINGLE_VERTEX_GROUP:
-					if (ED_vgroup_transfer_weight(ob_act, ob_slc,
-												  BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option)) change++;
-					else fail++;
+					ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option);
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						if (ED_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method_option, replace_option)) change++;
-						else fail++;
+						ED_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method_option, replace_option);
 					}
 					break;
 			}
 		}
-		else change++;
 	}
 
 	/* Event notifiers for correct display of data */
@@ -3069,12 +3063,6 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_END;
 
-	/* Report error when task can not be completed with available functions. */
-	if ((change == 0 && fail == 0) || fail) {
-		BKE_reportf(op->reports, RPT_ERROR,
-		            "Copy to VGroups to Selected warning done %d, failed %d, object data must have matching indices",
-		            change, fail);
-	}
 	return OPERATOR_FINISHED;
 }
 
