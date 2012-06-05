@@ -51,6 +51,8 @@
 #include "BKE_depsgraph.h"
 #include "BKE_particle.h"
 
+#include "smoke_API.h"
+
 
 static void rna_Smoke_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
@@ -109,6 +111,35 @@ static char *rna_SmokeCollSettings_path(PointerRNA *ptr)
 	ModifierData *md = (ModifierData *)settings->smd;
 
 	return BLI_sprintfN("modifiers[\"%s\"].coll_settings", md->name);
+}
+
+static int rna_SmokeModifier_density_get_length(PointerRNA *ptr, int length[RNA_MAX_ARRAY_DIMENSION])
+{
+	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
+
+	if (settings->fluid)
+	{
+		float *density = smoke_get_density(settings->fluid);
+		unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
+
+		if(density)
+			length[0] = size;
+		else
+			length[0] = 0;
+	}
+	else
+		length[0] = 0; // No smoke domain created yet
+
+	return length[0];
+}
+
+static void rna_SmokeModifier_density_get(PointerRNA *ptr, float *values)
+{
+	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
+	float *density = smoke_get_density(settings->fluid);
+	unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
+
+	memcpy(values, density, size * sizeof(float));
 }
 
 #else
@@ -282,6 +313,33 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Vorticity", "Amount of turbulence/rotation in fluid");
 	RNA_def_property_update(prop, NC_OBJECT | ND_MODIFIER, "rna_Smoke_reset");
 
+	prop = RNA_def_property(srna, "density", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_array(prop, 32);
+	RNA_def_property_flag(prop, PROP_DYNAMIC);
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_dynamic_array_funcs(prop, "rna_SmokeModifier_density_get_length");
+	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_get", NULL, NULL);
+	RNA_def_property_ui_text(prop, "Density", "Smoke density");
+
+	prop = RNA_def_property(srna, "dx", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "dx");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "dx", "Cell Size");
+
+	prop = RNA_def_property(srna, "p0", PROP_FLOAT, PROP_XYZ);
+	RNA_def_property_float_sdna(prop, NULL, "p0");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "p0", "Start point");
+
+	prop = RNA_def_property(srna, "scale", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "scale");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "scale", "Domain scale factor");
+
+	prop = RNA_def_property(srna, "res", PROP_INT, PROP_XYZ);
+	RNA_def_property_int_sdna(prop, NULL, "res");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "res", "Smoke Grid Resolution");
 }
 
 static void rna_def_smoke_flow_settings(BlenderRNA *brna)
