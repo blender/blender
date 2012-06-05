@@ -141,11 +141,13 @@ void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
                                          struct MaskLayerShape *masklay_shape_a,
                                          struct MaskLayerShape *masklay_shape_b,
                                          const float fac);
-struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, int frame);
-int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, int frame,
+struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, const int frame);
+int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, const int frame,
                                           struct MaskLayerShape **r_masklay_shape_a,
                                           struct MaskLayerShape **r_masklay_shape_b);
-struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);
+void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
+struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, const int frame);
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 

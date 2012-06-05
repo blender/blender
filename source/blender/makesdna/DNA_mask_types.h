@@ -97,6 +97,15 @@ typedef struct MaskLayerShape {
 	char   pad[7];
 } MaskLayerShape;
 
+/* cast to this for convenience, not saved */
+#define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
+
+#
+#
+typedef struct MaskLayerShapeElem {
+	float value[MASK_OBJECT_SHAPE_ELEM_SIZE];
+} MaskLayerShapeElem;
+
 typedef struct MaskLayer {
 	struct MaskLayer *next, *prev;
 
@@ -128,8 +137,6 @@ typedef struct MaskLayer {
 /* MaskSpline->weight_interp */
 #define MASK_SPLINE_INTERP_LINEAR   1
 #define MASK_SPLINE_INTERP_EASE     2
-
-#define MASK_OBJECT_SHAPE_ELEM_SIZE 8 /* 3x 2D points + weight + radius == 8 */
 
 /* ob->restrictflag */
 #define MASK_RESTRICT_VIEW      1

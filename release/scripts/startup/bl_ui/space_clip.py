@@ -1225,12 +1225,9 @@ class CLIP_MT_mask(Menu):
         layout.operator("mask.parent_set")
 
         layout.separator()
-        layout.operator("mask.shape_key_clear")
-        layout.operator("mask.shape_key_insert")
-
-        layout.separator()
         layout.menu("CLIP_MT_mask_visibility")
         layout.menu("CLIP_MT_mask_transform")
+        layout.menu("CLIP_MT_mask_animation")
 
 
 class CLIP_MT_mask_visibility(Menu):
@@ -1257,6 +1254,17 @@ class CLIP_MT_mask_transform(Menu):
         layout.operator("transform.resize")
         props = layout.operator("transform.transform", text="Shrink/Fatten")
         props.mode = 'MASK_SHRINKFATTEN'
+
+
+class CLIP_MT_mask_animation(Menu):
+    bl_label = "Animation"
+
+    def draw(self, context):
+        layout = self.layout
+
+        layout.operator("mask.shape_key_clear")
+        layout.operator("mask.shape_key_insert")
+        layout.operator("mask.shape_key_feather_reset")
 
 
 class CLIP_MT_camera_presets(Menu):

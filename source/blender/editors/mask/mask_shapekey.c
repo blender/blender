@@ -35,6 +35,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
+#include "DNA_object_types.h"
 #include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 
@@ -154,4 +155,97 @@ int ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
 	}
 
 	return change;
+}
+
+
+static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	const int frame = CFRA;
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	int change = FALSE;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		if (masklay->splines_shapes.first) {
+			MaskLayerShape *masklay_shape_reset;
+			MaskLayerShape *masklay_shape;
+
+			/* get the shapekey of the current state */
+			masklay_shape_reset = BKE_mask_layer_shape_alloc(masklay, frame);
+			/* initialize from mask - as if inseting a keyframe */
+			BKE_mask_layer_shape_from_mask(masklay, masklay_shape_reset);
+
+			for (masklay_shape = masklay->splines_shapes.first;
+			     masklay_shape;
+			     masklay_shape = masklay_shape->next)
+			{
+
+				if (masklay_shape_reset->tot_vert == masklay_shape->tot_vert) {
+					int i_abs = 0;
+					int i;
+					MaskSpline *spline;
+					MaskLayerShapeElem *shape_ele_src;
+					MaskLayerShapeElem *shape_ele_dst;
+
+					shape_ele_src = (MaskLayerShapeElem *)masklay_shape_reset->data;
+					shape_ele_dst = (MaskLayerShapeElem *)masklay_shape->data;
+
+					for (spline = masklay->splines.first; spline; spline = spline->next) {
+						for (i = 0; i < spline->tot_point; i++) {
+							MaskSplinePoint *point = &spline->points[i];
+
+							if (MASKPOINT_ISSEL_ANY(point)) {
+								/* TODO - nicer access here */
+								shape_ele_dst->value[6] = shape_ele_src->value[6];
+							}
+
+							shape_ele_src++;
+							shape_ele_dst++;
+
+							i_abs++;
+						}
+					}
+
+				}
+				else {
+					// printf("%s: skipping\n", __func__);
+				}
+
+				change = TRUE;
+			}
+
+			BKE_mask_layer_shape_free(masklay_shape_reset);
+		}
+	}
+
+	if (change) {
+		WM_event_add_notifier(C, NC_MASK | ND_DATA, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Feather Reset Animation";
+	ot->description = "Resets fearther weights on all selected points animation values";
+	ot->idname = "MASK_OT_shape_key_feather_reset";
+
+	/* api callbacks */
+	ot->exec = mask_shape_key_feather_reset_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

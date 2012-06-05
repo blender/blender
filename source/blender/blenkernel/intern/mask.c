@@ -466,10 +466,6 @@ void BKE_mask_point_direction_switch(MaskSplinePoint *point)
 	}
 }
 
-typedef struct MaskLayerShapeElem {
-	float value[MASK_OBJECT_SHAPE_ELEM_SIZE];
-} MaskLayerShapeElem;
-
 void BKE_mask_spline_direction_switch(MaskLayer *masklay, MaskSpline *spline)
 {
 	const int tot_point = spline->tot_point;
@@ -1006,6 +1002,20 @@ MaskSpline *BKE_mask_spline_copy(MaskSpline *spline)
 	}
 
 	return nspline;
+}
+
+/* note: does NOT add to the list */
+MaskLayerShape *BKE_mask_layer_shape_alloc(MaskLayer *masklay, const int frame)
+{
+	MaskLayerShape *masklay_shape;
+	int tot_vert = BKE_mask_layer_shape_totvert(masklay);
+
+	masklay_shape = MEM_mallocN(sizeof(MaskLayerShape), __func__);
+	masklay_shape->frame = frame;
+	masklay_shape->tot_vert = tot_vert;
+	masklay_shape->data = MEM_mallocN(tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
+
+	return masklay_shape;
 }
 
 void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
@@ -1696,7 +1706,7 @@ void BKE_mask_layer_shape_to_mask_interp(MaskLayer *masklay,
 	}
 }
 
-MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, int frame)
+MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, const int frame)
 {
 	MaskLayerShape *masklay_shape;
 
@@ -1716,7 +1726,7 @@ MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, int frame)
 }
 
 /* when returning 2 - the frame isnt found but before/after frames are */
-int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, int frame,
+int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const int frame,
                                           MaskLayerShape **r_masklay_shape_a,
                                           MaskLayerShape **r_masklay_shape_b)
 {
@@ -1751,22 +1761,15 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, int frame,
 	return 0;
 }
 
-MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, int frame)
+MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, const int frame)
 {
 	MaskLayerShape *masklay_shape;
 
 	masklay_shape = BKE_mask_layer_shape_find_frame(masklay, frame);
 
 	if (masklay_shape == NULL) {
-		int tot_vert = BKE_mask_layer_shape_totvert(masklay);
-
-		masklay_shape = MEM_mallocN(sizeof(MaskLayerShape), __func__);
-		masklay_shape->frame = frame;
-		masklay_shape->tot_vert = tot_vert;
-		masklay_shape->data = MEM_mallocN(tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, __func__);
-
+		masklay_shape = BKE_mask_layer_shape_alloc(masklay, frame);
 		BLI_addtail(&masklay->splines_shapes, masklay_shape);
-
 		BKE_mask_layer_shape_sort(masklay);
 	}
 
