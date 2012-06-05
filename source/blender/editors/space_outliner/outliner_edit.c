@@ -1503,7 +1503,12 @@ static int parent_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		scene = (Scene *)outliner_search_back(soops, te_found, ID_SCE);
 
 		if (scene == NULL) {
-			return OPERATOR_CANCELLED;
+			/* currently outlier organized in a way, that if there's no parent scene
+			 * element for object it means that all displayed objects belong to
+			 * active scene and parenting them is allowed (sergey)
+			 */
+
+			scene = CTX_data_scene(C);
 		}
 
 		if ((par->type != OB_ARMATURE) && (par->type != OB_CURVE) && (par->type != OB_LATTICE)) {

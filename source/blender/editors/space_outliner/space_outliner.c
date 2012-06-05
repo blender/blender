@@ -98,7 +98,16 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 				if (te_valid) {
 					/* check that parent/child are both in the same scene */
 					Scene *scene = (Scene *)outliner_search_back(soops, te_valid, ID_SCE);
-					if (BKE_scene_base_find(scene, (Object *)id)) {
+
+					if (!scene) {
+						/* currently outlier organized in a way, that if there's no parent scene
+						 * element for object it means that all displayed objects belong to
+						 * active scene and parenting them is allowed (sergey)
+						 */
+						return 1;
+					}
+
+					if (scene && BKE_scene_base_find(scene, (Object *)id)) {
 						return 1;
 					}
 				}
