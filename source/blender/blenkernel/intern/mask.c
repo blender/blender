@@ -777,6 +777,11 @@ void BKE_mask_point_normal(MaskSpline *spline, MaskSplinePoint *point, float u, 
 	normalize_v2(n);
 }
 
+static float mask_point_interp_weight(BezTriple *bezt, BezTriple *bezt_next, const float u)
+{
+	return (bezt->weight * (1.0f - u)) + (bezt_next->weight * u);
+}
+
 float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 {
 	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
@@ -801,7 +806,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 
 			if (i == 0) {
 				cur_u = 0.0f;
-				cur_w = bezt->weight;
+				cur_w = 1.0f; /* mask_point_interp_weight will scale it */
 			}
 			else {
 				cur_u = point->uw[i - 1].u;
@@ -810,7 +815,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 
 			if (i == point->tot_uw) {
 				next_u = 1.0f;
-				next_w = bezt_next->weight;
+				next_w = 1.0f; /* mask_point_interp_weight will scale it */
 			}
 			else {
 				next_u = point->uw[i].u;
@@ -823,6 +828,9 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, float u)
 		}
 
 		fac = (u - cur_u) / (next_u - cur_u);
+
+		cur_w  *= mask_point_interp_weight(bezt, bezt_next, cur_u);
+		next_w *= mask_point_interp_weight(bezt, bezt_next, next_u);
 
 		if (spline->weight_interp == MASK_SPLINE_INTERP_EASE) {
 			return cur_w + (next_w - cur_w) * (3.0f * fac * fac - 2.0f * fac * fac * fac);
