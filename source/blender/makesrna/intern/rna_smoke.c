@@ -321,12 +321,12 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_float_funcs(prop, "rna_SmokeModifier_density_get", NULL, NULL);
 	RNA_def_property_ui_text(prop, "Density", "Smoke density");
 
-	prop = RNA_def_property(srna, "dx", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "cell_size", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "dx");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "dx", "Cell Size");
 
-	prop = RNA_def_property(srna, "p0", PROP_FLOAT, PROP_XYZ);
+	prop = RNA_def_property(srna, "start_point", PROP_FLOAT, PROP_XYZ);
 	RNA_def_property_float_sdna(prop, NULL, "p0");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "p0", "Start point");
@@ -336,7 +336,7 @@ static void rna_def_smoke_domain_settings(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "scale", "Domain scale factor");
 
-	prop = RNA_def_property(srna, "res", PROP_INT, PROP_XYZ);
+	prop = RNA_def_property(srna, "domain_resolution", PROP_INT, PROP_XYZ);
 	RNA_def_property_int_sdna(prop, NULL, "res");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "res", "Smoke Grid Resolution");
