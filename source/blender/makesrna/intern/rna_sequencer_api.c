@@ -327,7 +327,12 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 		return;
 	}
 
-	if (seq->len <= index) {
+	/* python style negative indexing */
+	if (index < 0) {
+		index += seq->len;
+	}
+
+	if (seq->len <= index || index < 0) {
 		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: index out of range");
 		return;
 	}
@@ -335,6 +340,7 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 	new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
 	seq->len--;
 
+	/* TODO - simply use 2 memcpy calls */
 	for (i = 0, se = seq->strip->stripdata; i < seq->len; i++, se++) {
 		if (i == index)
 			se++;
@@ -394,7 +400,7 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "pop", "rna_SequenceElements_pop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Pop an image off the collection");
-	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of image to remove", 0, INT_MAX);
+	parm = RNA_def_int(func, "index", -1, INT_MIN, INT_MAX, "", "Index of image to remove", INT_MIN, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
