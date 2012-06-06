@@ -378,7 +378,7 @@ int ED_vgroup_copy_array(Object *ob, Object *ob_from)
 /***********************Start transfer weight*********************************/
 
 typedef enum VertexGroupOption {
-	REPLACE_SINGLE_VERTEX_GROUP = 1,
+	REPLACE_ACTIVE_VERTEX_GROUP = 1,
 	REPLACE_ALL_VERTEX_GROUPS = 2
 } VertexGroupOption;
 
@@ -396,7 +396,7 @@ typedef enum ReplaceOption {
 } ReplaceOption;
 
 static EnumPropertyItem vertex_group_option_item[] = {
-	{REPLACE_SINGLE_VERTEX_GROUP, "REPLACE_SINGLE_VERTEX_GROUP", 1, "Single", "Transfer single vertex group from selected to active mesh."},
+	{REPLACE_ACTIVE_VERTEX_GROUP, "REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh."},
 	{REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
 	{0, NULL, 0, NULL, NULL}
 };
@@ -3043,7 +3043,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 		if (ob_act != ob_slc && ob_slc->defbase.first) {
 			switch (vertex_group_option) {
 
-				case REPLACE_SINGLE_VERTEX_GROUP:
+				case REPLACE_ACTIVE_VERTEX_GROUP:
 					ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_option, replace_option);
 					break;
 
