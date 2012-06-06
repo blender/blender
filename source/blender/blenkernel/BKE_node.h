@@ -266,8 +266,7 @@ struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
 typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
-typedef struct bNodeTreeType
-{
+typedef struct bNodeTreeType {
 	int type;						/* type identifier */
 	char idname[64];				/* id name for RNA identification */
 	

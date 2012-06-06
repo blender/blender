@@ -152,7 +152,7 @@ bool system_cpu_support_optimized()
 		/*__cpuid(result, 0x80000000);
 		num_ex = result[0];*/
 
-		if(num >= 1){
+		if(num >= 1) {
 			__cpuid(result, 0x00000001);
 			caps.mmx = (result[3] & ((int)1 << 23)) != 0;
 			caps.sse = (result[3] & ((int)1 << 25)) != 0;
@@ -167,7 +167,7 @@ bool system_cpu_support_optimized()
 			caps.fma3 = (result[2] & ((int)1 << 12)) != 0;
 		}
 
-		/*if(num_ex >= 0x80000001){
+		/*if(num_ex >= 0x80000001) {
 			__cpuid(result, 0x80000001);
 			caps.x64 = (result[3] & ((int)1 << 29)) != 0;
 			caps.sse4a = (result[2] & ((int)1 <<  6)) != 0;

@@ -527,7 +527,7 @@ typedef struct KX_PYATTRIBUTE_DEF {
 /*------------------------------
  * PyObjectPlus
 ------------------------------*/
-typedef PyTypeObject * PyParentObject;				// Define the PyParent Object
+typedef PyTypeObject *PyParentObject;  /* Define the PyParent Object */
 
 #else // WITH_PYTHON
 

@@ -26,14 +26,12 @@
  *  \ingroup bke
  */
 
-typedef enum SK_PType
-{
+typedef enum SK_PType {
 	PT_CONTINUOUS,
 	PT_EXACT,
 } SK_PType;
 
-typedef enum SK_PMode
-{
+typedef enum SK_PMode {
 	PT_SNAP,
 	PT_PROJECT,
 } SK_PMode;

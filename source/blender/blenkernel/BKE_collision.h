@@ -59,8 +59,7 @@ struct LinkNode;
 ////////////////////////////////////////
 
 /* COLLISION FLAGS */
-typedef enum
-{
+typedef enum {
 	COLLISION_IN_FUTURE =       (1 << 1),
 #ifdef WITH_ELTOPO
 	COLLISION_USE_COLLFACE =    (1 << 2),

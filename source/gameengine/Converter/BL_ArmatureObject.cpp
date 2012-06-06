@@ -529,7 +529,7 @@ bool BL_ArmatureObject::SetActiveAction(BL_ActionActuator *act, short priority, 
 		
 			return true;
 		}
-		else{
+		else {
 			act->SetBlendTime(0.0);
 			return false;
 		}

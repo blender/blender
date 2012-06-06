@@ -150,8 +150,7 @@ private:
 	int m_curreye;
 
 	/** Categories for profiling display. */
-	typedef enum
-	{
+	typedef enum {
 		tc_first = 0,
 		tc_physics = 0,
 		tc_logic,

@@ -65,16 +65,14 @@ struct Main;
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
 
-typedef struct SampleTables
-{
+typedef struct SampleTables {
 	float centLut[16];
 	float *fmask1[9], *fmask2[9];
 	char cmask[256], *centmask;
 	
 } SampleTables;
 
-typedef struct QMCSampler
-{
+typedef struct QMCSampler {
 	struct QMCSampler *next, *prev;
 	int type;
 	int tot;
@@ -88,8 +86,7 @@ typedef struct QMCSampler
 #define SAMP_TYPE_HAMMERSLEY	2
 
 /* this is handed over to threaded hiding/passes/shading engine */
-typedef struct RenderPart
-{
+typedef struct RenderPart {
 	struct RenderPart *next, *prev;
 	
 	RenderResult *result;			/* result of part rendering */
@@ -347,8 +344,7 @@ typedef struct ObjectInstanceRen {
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct VertRen
-{
+typedef struct VertRen {
 	float co[3];
 	float n[3];
 	float *orco;
@@ -384,8 +380,7 @@ typedef struct VlakRen {
 	int index;
 } VlakRen;
 
-typedef struct HaloRen
-{	
+typedef struct HaloRen {
 	short miny, maxy;
 	float alfa, xs, ys, rad, radsq, sin, cos, co[3], no[3];
 	float hard, b, g, r;
@@ -456,8 +451,7 @@ typedef struct StrandRen {
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct VolumeOb
-{
+typedef struct VolumeOb {
 	struct VolumeOb *next, *prev;
 	struct Material *ma;
 	struct ObjectRen *obr;
@@ -469,8 +463,7 @@ typedef struct MatInside {
 	struct ObjectInstanceRen *obi;
 } MatInside;
 
-typedef struct VolPrecachePart
-{
+typedef struct VolPrecachePart {
 	struct VolPrecachePart *next, *prev;
 	struct RayObject *tree;
 	struct ShadeInput *shi;
@@ -486,8 +479,7 @@ typedef struct VolPrecachePart
 	struct Render *re;
 } VolPrecachePart;
 
-typedef struct VolumePrecache
-{
+typedef struct VolumePrecache {
 	int res[3];
 	float *bbmin, *bbmax;
 	float *data_r;

@@ -695,8 +695,7 @@ DO_INLINE void subadd_bfmatrixS_bfmatrixS( fmatrix3x3 *to, fmatrix3x3 *from, flo
 ///////////////////////////////////////////////////////////////////
 // simulator start
 ///////////////////////////////////////////////////////////////////
-typedef struct Implicit_Data 
-{
+typedef struct Implicit_Data  {
 	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI, *M; 
 } Implicit_Data;

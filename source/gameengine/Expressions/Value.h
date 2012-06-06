@@ -158,7 +158,7 @@ class CAction
 public:
 	CAction() {
 	};
-	virtual ~CAction(){
+	virtual ~CAction() {
 	};
 	virtual void Execute() const =0;
 	

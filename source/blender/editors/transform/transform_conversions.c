@@ -5847,7 +5847,7 @@ void flushTransTracking(TransInfo *t)
 
 /* * masking * */
 
-typedef struct TransDataMasking{
+typedef struct TransDataMasking {
 	int   is_handle;
 
 	float handle[2], orig_handle[2];

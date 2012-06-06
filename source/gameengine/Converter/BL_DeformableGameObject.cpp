@@ -76,7 +76,7 @@ bool BL_DeformableGameObject::SetActiveAction(BL_ShapeActionActuator *act, short
 	
 		return true;
 	}
-	else{
+	else {
 		act->SetBlendTime(0.0f);
 		return false;
 	}
