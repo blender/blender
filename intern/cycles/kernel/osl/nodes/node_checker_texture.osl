@@ -23,13 +23,13 @@
 
 float checker(point p)
 {
-	p[0] = (p[0] + 0.00001)*0.9999);
-	p[1] = (p[1] + 0.00001)*0.9999);
-	p[2] = (p[2] + 0.00001)*0.9999);
+	p[0] = (p[0] + 0.00001)*0.9999;
+	p[1] = (p[1] + 0.00001)*0.9999;
+	p[2] = (p[2] + 0.00001)*0.9999;
 	
-	int xi = fabs(floor(p[0]));
-	int yi = fabs(floor(p[1]));
-	int zi = fabs(floor(p[2]));
+	int xi = (int)fabs(floor(p[0]));
+	int yi = (int)fabs(floor(p[1]));
+	int zi = (int)fabs(floor(p[2]));
 
 	if((xi % 2 == yi % 2) == (zi % 2)) {
 		return 1.0;
