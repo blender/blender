@@ -1127,7 +1127,7 @@ static void drawviewborder(Scene *scene, ARegion *ar, View3D *v3d)
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if (view3d_camera_border_hack_test == TRUE) {
-		glColor4fv(view3d_camera_border_hack_col);
+		glColor3ubv(view3d_camera_border_hack_col);
 		glRectf(x1i + 1, y1i + 1, x2i - 1, y2i - 1);
 		view3d_camera_border_hack_test = FALSE;
 	}

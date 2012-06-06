@@ -128,7 +128,9 @@ void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, fl
 #define V3D_CACHE_TEXT_LOCALCLIP    (1 << 4)
 
 /* drawarmature.c */
-int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base, int dt, int flag, const short is_outline);
+int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
+                  int dt, int flag, const unsigned char ob_wire_col[4],
+                  const short is_outline);
 
 /* drawmesh.c */
 void draw_mesh_textured(Scene *scene, View3D *v3d, RegionView3D *rv3d,
@@ -211,7 +213,7 @@ void draw_volume(struct ARegion *ar, struct GPUTexture *tex, float min[3], float
  * any direction it starts to fail */
 #define VIEW3D_CAMERA_BORDER_HACK
 #ifdef VIEW3D_CAMERA_BORDER_HACK
-extern float view3d_camera_border_hack_col[4];
+extern unsigned char view3d_camera_border_hack_col[3];
 extern short view3d_camera_border_hack_test;
 #endif
 
