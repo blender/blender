@@ -69,6 +69,9 @@
 
 #include "outliner_intern.h"
 
+/* disable - this is far too slow - campbell */
+// #define USE_GROUP_SELECT
+
 /* ****************************************************** */
 /* Tree Size Functions */
 
@@ -207,6 +210,7 @@ static int group_restrict_flag(Group *gr, int flag)
 	return 1;
 }
 
+#ifdef USE_GROUP_SELECT
 static int group_select_flag(Group *gr)
 {
 	GroupObject *gob;
@@ -217,6 +221,7 @@ static int group_select_flag(Group *gr)
 
 	return 0;
 }
+#endif
 
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 {	
@@ -422,16 +427,26 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				gr = (Group *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				
+
+#ifndef USE_GROUP_SELECT
+				restrict_bool = FALSE;
+#endif
+
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_VIEW);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
 
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
-	
+
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
@@ -1274,8 +1289,8 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				}
 			}
 			else if (te->idcode == ID_GR) {
+#ifdef USE_GROUP_SELECT
 				Group *gr = (Group *)tselem->id;
-				
 				if (group_select_flag(gr)) {
 					char col[4];
 					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
@@ -1284,6 +1299,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					
 					active = 2;
 				}
+#endif
 			}
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
