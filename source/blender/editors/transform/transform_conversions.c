@@ -1336,7 +1336,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	TransData *td = NULL;
-	  Nurb *nu;
+	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1889,7 +1889,7 @@ static void get_edge_center(float cent_r[3], BMVert *eve)
 
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
-							 BMEditMesh *em, BMVert *eve, float *bweight)
+                             BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
 	//if (key)
@@ -4915,7 +4915,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (IS_AUTOKEY_ON(t->scene)) {
 				Scene *scene = t->scene;
 
-				ED_mask_layer_shape_auto_key_all(mask, CFRA);
+				ED_mask_layer_shape_auto_key_select(mask, CFRA);
 			}
 		}
 	}
@@ -5478,7 +5478,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
                              TransDataTracking *tdt, MovieTrackingTrack *track, float aspx, float aspy)
 {
-	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
+	int framenr = ED_space_clip_clip_framenr(sc);
+	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, framenr);
 
 	tdt->flag = marker->flag;
 	marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
@@ -5531,7 +5532,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
-	int framenr = sc->user.framenr;
+	int framenr = ED_space_clip_clip_framenr(sc);
 	float aspx, aspy;
 
 	/* count */
@@ -5759,7 +5760,7 @@ static void cancelTransTracking(TransInfo *t)
 	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
-	int a, framenr = sc->user.framenr;
+	int a, framenr = ED_space_clip_clip_framenr(sc);
 
 	if (tdt->mode == transDataTracking_ModeTracks) {
 		track = tracksbase->first;

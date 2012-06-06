@@ -753,8 +753,11 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 				free_slide_point_data(op->customdata);
 
-				if (IS_AUTOKEY_ON(scene)) {
-					ED_mask_layer_shape_auto_key_all(data->mask, CFRA);
+				/* dont key sliding feather uw's */
+				if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == FALSE) {
+					if (IS_AUTOKEY_ON(scene)) {
+						ED_mask_layer_shape_auto_key(data->masklay, CFRA);
+					}
 				}
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
@@ -880,10 +883,10 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
-	int mask_layer_shape_ofs = 0;
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
+		int mask_layer_shape_ofs = 0;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;

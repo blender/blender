@@ -32,6 +32,7 @@
 #define __ED_MASK_H__
 
 struct wmKeyConfig;
+struct MaskLayer;
 
 /* mask_editor.c */
 void ED_operatortypes_mask(void);
@@ -42,6 +43,8 @@ void ED_operatormacros_mask(void);
 void ED_mask_draw(const bContext *C, const char draw_flag, const char draw_type);
 
 /* mask_shapekey.c */
+void ED_mask_layer_shape_auto_key(struct MaskLayer *masklay, const int frame);
 int ED_mask_layer_shape_auto_key_all(struct Mask *mask, const int frame);
+int ED_mask_layer_shape_auto_key_select(struct Mask *mask, const int frame);
 
 #endif /* ED_TEXT_H */

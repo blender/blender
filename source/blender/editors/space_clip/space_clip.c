@@ -392,7 +392,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
-		 case NC_SCREEN:
+		case NC_SCREEN:
 			 switch (wmn->data) {
 				case ND_ANIMPLAY:
 				case ND_GPENCIL:

@@ -614,7 +614,7 @@ font driver produces such outlines.
    #               \
 					#
 
-	 Two "on" points
+     Two "on" points
    and two "cubic" point
 	  between them
 

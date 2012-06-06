@@ -11,11 +11,14 @@ incs += ' ../windowmanager ../editors/include ../gpu ../imbuf ../ikplugin ../ble
 incs += ' ../render/extern/include #/intern/cycles/blender'
 incs += ' ../nodes'
 incs += ' #/extern/glew/include'
+incs += ' #/intern/smoke/extern'
 
 incs += ' ../bmesh'
 
-
 defs = []
+
+if env['WITH_BF_SMOKE']:
+    defs.append('WITH_SMOKE')
 
 if env['WITH_BF_OPENEXR']:
     defs.append('WITH_OPENEXR')

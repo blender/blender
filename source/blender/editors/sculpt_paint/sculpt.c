@@ -981,8 +981,8 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 
 /* Calculate primary direction of movement for many brushes */
 static void calc_sculpt_normal(Sculpt *sd, Object *ob,
-							   PBVHNode **nodes, int totnode,
-							   float an[3])
+                               PBVHNode **nodes, int totnode,
+                               float an[3])
 {
 	const Brush *brush = paint_brush(&sd->paint);
 	const SculptSession *ss = ob->sculpt;
@@ -990,8 +990,8 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 	switch (brush->sculpt_plane) {
 		case SCULPT_DISP_DIR_VIEW:
 			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
-									   ss->cache->vc->rv3d->twmat[3],
-									   an);
+			                           ss->cache->vc->rv3d->twmat[3],
+			        an);
 			break;
 
 		case SCULPT_DISP_DIR_X:
@@ -1021,7 +1021,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 }
 
 static void update_sculpt_normal(Sculpt *sd, Object *ob,
-								 PBVHNode **nodes, int totnode)
+                                 PBVHNode **nodes, int totnode)
 {
 	const Brush *brush = paint_brush(&sd->paint);
 	StrokeCache *cache = ob->sculpt->cache;
@@ -1056,7 +1056,7 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
 }
 
 static void calc_brush_local_mat(const Brush *brush, Object *ob,
-								 float local_mat[4][4])
+                                 float local_mat[4][4])
 {
 	const StrokeCache *cache = ob->sculpt->cache;
 	float tmat[4][4];
@@ -1105,10 +1105,10 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 	StrokeCache *cache = ob->sculpt->cache;
 
 	if (cache->mirror_symmetry_pass == 0 &&
-		cache->radial_symmetry_pass == 0)
+	    cache->radial_symmetry_pass == 0)
 	{
 		calc_brush_local_mat(paint_brush(&sd->paint), ob,
-							 cache->brush_local_mat);
+		                     cache->brush_local_mat);
 	}
 }
 

@@ -215,4 +215,11 @@ MINLINE void rgba_char_args_test_set(char col[4], const char r, const char g, co
 	}
 }
 
+MINLINE void cpack_cpy_3ub(unsigned char r_col[3], const unsigned int pack)
+{
+	r_col[0] = ((pack) >>  0) & 0xFF;
+	r_col[1] = ((pack) >>  8) & 0xFF;
+	r_col[2] = ((pack) >> 16) & 0xFF;
+}
+
 #endif /* __MATH_COLOR_INLINE_C__ */

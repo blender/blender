@@ -61,16 +61,16 @@
 #include <stdlib.h>
 
 static void mask_flood_fill_set_elem(float *elem,
-									 PaintMaskFloodMode mode,
-									 float value)
+                                     PaintMaskFloodMode mode,
+                                     float value)
 {
 	switch (mode) {
-	case PAINT_MASK_FLOOD_VALUE:
-		(*elem) = value;
-		break;
-	case PAINT_MASK_INVERT:
-		(*elem) = 1.0f - (*elem);
-		break;
+		case PAINT_MASK_FLOOD_VALUE:
+			(*elem) = value;
+			break;
+		case PAINT_MASK_INVERT:
+			(*elem) = 1.0f - (*elem);
+			break;
 	}
 }
 

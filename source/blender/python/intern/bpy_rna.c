@@ -591,7 +591,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_
 /* note that PROP_NONE is included as a vector subtype. this is because its handy to
  * have x/y access to fcurve keyframes and other fixed size float arrays of length 2-4. */
 #define PROP_ALL_VECTOR_SUBTYPES                                              \
-		 PROP_COORDS:                                                         \
+	     PROP_COORDS:                                                         \
 	case PROP_TRANSLATION:                                                    \
 	case PROP_DIRECTION:                                                      \
 	case PROP_VELOCITY:                                                       \
