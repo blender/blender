@@ -1528,7 +1528,8 @@ exit:
 
 /* ************************************************************* */
 
-static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
+static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
+                              const short do_forground, const short do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	BGpic *bgpic;
@@ -1537,7 +1538,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 	ImBuf *ibuf = NULL, *freeibuf;
 	float vec[4], fac, asp, zoomx, zoomy;
 	float x1, y1, x2, y2, cx, cy;
-	int fg_flag = foreground ? V3D_BGPIC_FOREGROUND : 0;
+	int fg_flag = do_forground ? V3D_BGPIC_FOREGROUND : 0;
 
 	for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
 
@@ -1560,7 +1561,7 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 				BKE_image_user_frame_calc(&bgpic->iuser, CFRA, 0);
 				ibuf = BKE_image_get_ibuf(ima, &bgpic->iuser);
 			}
-			else {
+			else if (bgpic->source == V3D_BGPIC_MOVIE) {
 				clip = NULL;
 
 				if (bgpic->flag & V3D_BGPIC_CAMERACLIP) {
@@ -1595,14 +1596,21 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 				IMB_rect_from_float(ibuf);
 
 			if (rv3d->persp == RV3D_CAMOB) {
-				rctf vb;
 
-				ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
-
-				x1 = vb.xmin;
-				y1 = vb.ymin;
-				x2 = vb.xmax;
-				y2 = vb.ymax;
+				if (do_camera_frame) {
+					rctf vb;
+					ED_view3d_calc_camera_border(scene, ar, v3d, rv3d, &vb, FALSE);
+					x1 = vb.xmin;
+					y1 = vb.ymin;
+					x2 = vb.xmax;
+					y2 = vb.ymax;
+				}
+				else {
+					 x1 = ar->winrct.xmin;
+					 y1 = ar->winrct.ymin;
+					 x2 = ar->winrct.xmax;
+					 y2 = ar->winrct.ymax;
+				}
 			}
 			else {
 				float sco[2];
@@ -1696,7 +1704,8 @@ static void draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 	}
 }
 
-static void draw_bgpics(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
+static void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
+                                   const short do_forground, const short do_camera_frame)
 {
 	RegionView3D *rv3d = ar->regiondata;
 
@@ -1708,11 +1717,11 @@ static void draw_bgpics(Scene *scene, ARegion *ar, View3D *v3d, int foreground)
 
 	if ((rv3d->view == RV3D_VIEW_USER) || (rv3d->persp != RV3D_ORTHO)) {
 		if (rv3d->persp == RV3D_CAMOB) {
-			draw_bgpic(scene, ar, v3d, foreground);
+			view3d_draw_bgpic(scene, ar, v3d, do_forground, do_camera_frame);
 		}
 	}
 	else {
-		draw_bgpic(scene, ar, v3d, foreground);
+		view3d_draw_bgpic(scene, ar, v3d, do_forground, do_camera_frame);
 	}
 }
 
@@ -2428,14 +2437,13 @@ static void view3d_main_area_setup_view(Scene *scene, View3D *v3d, ARegion *ar, 
 
 void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
                               int winx, int winy, float viewmat[][4], float winmat[][4],
-                              int draw_background)
+                              int do_bgpic)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Base *base;
 	float backcol[3];
 	int bwinx, bwiny;
 	rcti brect;
-	ImBuf *bg_ibuf = NULL;
 
 	glPushMatrix();
 
@@ -2465,66 +2473,21 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	if (draw_glsl_material(scene, NULL, v3d, v3d->drawtype))
 		gpu_update_lamps_shadows(scene, v3d);
 
-	/* if scene has got active clip, use it for render backdrop */
-	if (draw_background && scene->clip && rv3d->persp == RV3D_CAMOB && v3d->camera) {
-		MovieClipUser user = {0};
-
-		BKE_movieclip_user_set_frame(&user, CFRA);
-		bg_ibuf = BKE_movieclip_get_ibuf(scene->clip, &user);
+	/* set background color, fallback on the view background color
+	 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
+	if (scene->world) {
+		if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
+			linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
+		else
+			copy_v3_v3(backcol, &scene->world->horr);
+		glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
+	}
+	else {
+		UI_ThemeClearColor(TH_BACK);
 	}
 
-	if (!bg_ibuf) {
-		/* set background color, fallback on the view background color
-		 * (if active clip is set but frame is failed to load fallback to horizon color as background) */
-		if (scene->world) {
-			if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-				linearrgb_to_srgb_v3_v3(backcol, &scene->world->horr);
-			else
-				copy_v3_v3(backcol, &scene->world->horr);
-			glClearColor(backcol[0], backcol[1], backcol[2], 0.0);
-		}
-		else {
-			UI_ThemeClearColor(TH_BACK);
-		}
-	}
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	if (bg_ibuf) {
-		unsigned char *pixels, *cp, *dst_cp;
-		int i;
-
-		if (bg_ibuf->rect_float && !bg_ibuf->rect)
-			IMB_rect_from_float(bg_ibuf);
-
-		dst_cp = pixels = MEM_callocN(4 * sizeof(unsigned char) * bg_ibuf->x * bg_ibuf->y, "draw offscreen clip pixels");
-		cp = (unsigned char *)bg_ibuf->rect;
-		for (i = 0; i < bg_ibuf->x * bg_ibuf->y; i++, cp += 4, dst_cp += 4) {
-			dst_cp[0] = cp[0];
-			dst_cp[1] = cp[1];
-			dst_cp[2] = cp[2];
-			dst_cp[3] = 255;
-		}
-
-		glMatrixMode(GL_PROJECTION);
-		glPushMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPushMatrix();
-		ED_region_pixelspace(ar);
-
-		glPixelZoom((float)winx / bg_ibuf->x, (float)winy / bg_ibuf->y);
-		glaDrawPixelsTex(0, 0, bg_ibuf->x, bg_ibuf->y, GL_UNSIGNED_BYTE, pixels);
-
-		glPixelZoom(1.0, 1.0);
-
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
-		glMatrixMode(GL_MODELVIEW);
-		glPopMatrix();
-
-		IMB_freeImBuf(bg_ibuf);
-		MEM_freeN(pixels);
-	}
 
 	/* setup view matrices */
 	view3d_main_area_setup_view(scene, v3d, ar, viewmat, winmat);
@@ -2539,6 +2502,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 	}
 	else
 		v3d->zbuf = FALSE;
+
+	/* important to do before clipping */
+	if (do_bgpic) {
+		view3d_draw_bgpic_test(scene, ar, v3d, FALSE, FALSE);
+	}
 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(rv3d);
@@ -2580,6 +2548,11 @@ void ED_view3d_draw_offscreen(Scene *scene, View3D *v3d, ARegion *ar,
 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
+
+	/* important to do after clipping */
+	if (do_bgpic) {
+		view3d_draw_bgpic_test(scene, ar, v3d, TRUE, FALSE);
+	}
 
 	/* cleanup */
 	if (v3d->zbuf) {
@@ -2792,7 +2765,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 
 	/* render result draw */
 	if (v3d->flag & V3D_DISPBGPICS)
-		draw_bgpic(scene, ar, v3d, FALSE);
+		view3d_draw_bgpic(scene, ar, v3d, FALSE, TRUE);
 	else
 		fdrawcheckerboard(0, 0, ar->winx, ar->winy);
 
@@ -2800,7 +2773,7 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar)
 	type->view_draw(rv3d->render_engine, C);
 
 	if (v3d->flag & V3D_DISPBGPICS)
-		draw_bgpic(scene, ar, v3d, TRUE);
+		view3d_draw_bgpic(scene, ar, v3d, TRUE, TRUE);
 
 	return 1;
 }
@@ -2896,7 +2869,7 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		}
 	}
 
-	draw_bgpics(scene, ar, v3d, FALSE);
+	view3d_draw_bgpic_test(scene, ar, v3d, FALSE, TRUE);
 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_set(rv3d);
@@ -2955,8 +2928,6 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 		}
 	}
 
-	draw_bgpics(scene, ar, v3d, TRUE);
-
 //	REEB_draw();
 
 	if ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
@@ -2976,6 +2947,9 @@ static void view3d_main_area_draw_objects(const bContext *C, ARegion *ar, const 
 	if (rv3d->rflag & RV3D_CLIPPING)
 		ED_view3d_clipping_disable();
 	
+	/* important to do after clipping */
+	view3d_draw_bgpic_test(scene, ar, v3d, TRUE, TRUE);
+
 	BIF_draw_manipulator(C);
 
 #if 0

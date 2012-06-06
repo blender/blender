@@ -1016,7 +1016,7 @@ static void space_view3d_listener(struct ScrArea *sa, struct wmNotifier *wmn)
 			break;
 	}
 
-	// removed since BKE_image_user_frame_calc is now called in draw_bgpic because screen_ops doesnt call the notifier.
+	// removed since BKE_image_user_frame_calc is now called in view3d_draw_bgpic because screen_ops doesnt call the notifier.
 #if 0
 	if (wmn->category == NC_SCENE && wmn->data == ND_FRAME) {
 		View3D *v3d = area->spacedata.first;
