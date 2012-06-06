@@ -27,6 +27,7 @@
 
 #include "util_foreach.h"
 #include "util_function.h"
+#include "util_opengl.h"
 #include "util_task.h"
 #include "util_time.h"
 

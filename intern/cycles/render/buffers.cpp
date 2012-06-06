@@ -311,8 +311,14 @@ void DisplayBuffer::draw_set(int width, int height)
 
 void DisplayBuffer::draw(Device *device)
 {
-	if(draw_width != 0 && draw_height != 0)
+	if(draw_width != 0 && draw_height != 0) {
+		glPushMatrix();
+		glTranslatef(params.full_x, params.full_y, 0.0f);
+
 		device->draw_pixels(rgba, 0, draw_width, draw_height, 0, params.width, params.height, transparent);
+
+		glPopMatrix();
+	}
 }
 
 bool DisplayBuffer::draw_ready()

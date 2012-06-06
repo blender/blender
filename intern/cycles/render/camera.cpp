@@ -58,6 +58,11 @@ Camera::Camera()
 	bottom = -1.0f;
 	top = 1.0f;
 
+	border_left = 0.0f;
+	border_right = 1.0f;
+	border_bottom = 0.0f;
+	border_top = 1.0f;
+
 	screentoworld = transform_identity();
 	rastertoworld = transform_identity();
 	ndctoworld = transform_identity();
@@ -248,6 +253,10 @@ bool Camera::modified(const Camera& cam)
 		(right == cam.right) &&
 		(bottom == cam.bottom) &&
 		(top == cam.top) &&
+		(border_left == cam.border_left) &&
+		(border_right == cam.border_right) &&
+		(border_bottom == cam.border_bottom) &&
+		(border_top == cam.border_top) &&
 		(matrix == cam.matrix) &&
 		(motion == cam.motion) &&
 		(use_motion == cam.use_motion) &&
