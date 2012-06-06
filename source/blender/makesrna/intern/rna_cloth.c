@@ -155,6 +155,25 @@ static void rna_ClothSettings_bend_vgroup_set(PointerRNA *ptr, const char *value
 	rna_object_vgroup_name_index_set(ptr, value, &sim->vgroup_bend);
 }
 
+
+static void rna_CollSettings_selfcol_vgroup_get(PointerRNA *ptr, char *value)
+{
+	ClothCollSettings *coll = (ClothCollSettings *)ptr->data;
+	rna_object_vgroup_name_index_get(ptr, value, coll->vgroup_selfcol);
+}
+
+static int rna_CollSettings_selfcol_vgroup_length(PointerRNA *ptr)
+{
+	ClothCollSettings *coll = (ClothCollSettings *)ptr->data;
+	return rna_object_vgroup_name_index_length(ptr, coll->vgroup_selfcol);
+}
+
+static void rna_CollSettings_selfcol_vgroup_set(PointerRNA *ptr, const char *value)
+{
+	ClothCollSettings *coll = (ClothCollSettings *)ptr->data;
+	rna_object_vgroup_name_index_set(ptr, value, &coll->vgroup_selfcol);
+}
+
 static PointerRNA rna_ClothSettings_rest_shape_key_get(PointerRNA *ptr)
 {
 	Object *ob = (Object *)ptr->id.data;
@@ -522,6 +541,13 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "group", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Collision Group", "Limit colliders to this Group");
+	RNA_def_property_update(prop, 0, "rna_cloth_update");
+
+	prop = RNA_def_property(srna, "vertex_group_self_collisions", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_funcs(prop, "rna_CollSettings_selfcol_vgroup_get", "rna_CollSettings_selfcol_vgroup_length",
+	                              "rna_CollSettings_selfcol_vgroup_set");
+	RNA_def_property_ui_text(prop, "Selfcollision Vertex Group",
+	                         "Vertex group to define vertices which are not used during self collisions.");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 }
 
