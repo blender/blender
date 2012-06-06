@@ -54,6 +54,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "BKE_animsys.h"
 #include "BKE_action.h"
@@ -2469,6 +2470,15 @@ void DAG_on_visible_update(Main *bmain, const short do_time)
 
 	/* hack to get objects updating on layer changes */
 	DAG_id_type_tag(bmain, ID_OB);
+
+	/* so masks update on load */
+	if (bmain->mask.first) {
+		Mask *mask;
+
+		for (mask = bmain->mask.first; mask; mask = mask->id.next) {
+			DAG_id_tag_update(&mask->id, 0);
+		}
+	}
 }
 
 static void dag_id_flush_update__isDependentTexture(void *userData, Object *UNUSED(ob), ID **idpoin)
