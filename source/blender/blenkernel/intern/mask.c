@@ -1231,12 +1231,11 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *poin
 void BKE_mask_get_handle_point_adjacent(MaskSpline *spline, MaskSplinePoint *point,
                                         MaskSplinePoint **r_point_prev, MaskSplinePoint **r_point_next)
 {
-	int i = (int)(point - spline->points);
-	BLI_assert(i >= i && i < spline->tot_point);
-	(void)i; /* quiet release builds */
+	/* TODO, could avoid calling this at such low level */
+	MaskSplinePoint *points_array = BKE_mask_spline_point_array_from_point(spline, point);
 
-	*r_point_prev = mask_spline_point_prev(spline, spline->points, point);
-	*r_point_next = mask_spline_point_next(spline, spline->points, point);
+	*r_point_prev = mask_spline_point_prev(spline, points_array, point);
+	*r_point_next = mask_spline_point_next(spline, points_array, point);
 }
 
 /* calculates the tanget of a point by its previous and next
@@ -1370,25 +1369,41 @@ void BKE_mask_calc_handle_point_auto(MaskSpline *spline, MaskSplinePoint *point,
 	}
 }
 
+void BKE_mask_layer_calc_handles(MaskLayer *masklay)
+{
+	MaskSpline *spline;
+	for (spline = masklay->splines.first; spline; spline = spline->next) {
+		int i;
+		for (i = 0; i < spline->tot_point; i++) {
+			BKE_mask_calc_handle_point(spline, &spline->points[i]);
+		}
+	}
+}
+
+void BKE_mask_layer_calc_handles_deform(MaskLayer *masklay)
+{
+	MaskSpline *spline;
+	for (spline = masklay->splines.first; spline; spline = spline->next) {
+		int i;
+		for (i = 0; i < spline->tot_point; i++) {
+			BKE_mask_calc_handle_point(spline, &spline->points_deform[i]);
+		}
+	}
+}
+
 void BKE_mask_calc_handles(Mask *mask)
 {
 	MaskLayer *masklay;
-
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskSpline *spline;
+		BKE_mask_layer_calc_handles(masklay);
+	}
+}
 
-		for (spline = masklay->splines.first; spline; spline = spline->next) {
-			int i;
-
-			for (i = 0; i < spline->tot_point; i++) {
-				BKE_mask_calc_handle_point(spline, &spline->points[i]);
-
-				/* could be done in a different function... */
-				if (spline->points_deform) {
-					BKE_mask_calc_handle_point(spline, &spline->points[i]);
-				}
-			}
-		}
+void BKE_mask_calc_handles_deform(Mask *mask)
+{
+	MaskLayer *masklay;
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		BKE_mask_layer_calc_handles_deform(masklay);
 	}
 }
 
@@ -1525,6 +1540,9 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 			}
 		}
 	}
+
+	/* TODO, move into loop above and only run if there are auto-handles */
+	BKE_mask_calc_handles_deform(mask);
 }
 
 /* the purpose of this function is to ensure spline->points_deform is never out of date.

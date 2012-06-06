@@ -129,7 +129,10 @@ void BKE_mask_calc_handle_point_auto(struct MaskSpline *spline, struct MaskSplin
                                      const short do_recalc_length);
 void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev, struct MaskSplinePoint **r_point_next);
+void BKE_mask_layer_calc_handles(struct MaskLayer *masklay);
+void BKE_mask_layer_calc_handles_deform(struct MaskLayer *masklay);
 void BKE_mask_calc_handles(struct Mask *mask);
+void BKE_mask_calc_handles_deform(struct Mask *mask);
 void BKE_mask_spline_ensure_deform(struct MaskSpline *spline);
 
 /* animation */
