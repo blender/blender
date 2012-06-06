@@ -365,7 +365,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 #ifdef __MULTI_LIGHT__
 				/* index -1 means randomly sample from distribution */
-				int i = (kernel_data.integrator.num_distribution)? -1: 0;
+				int i = (kernel_data.integrator.num_all_lights)? 0: -1;
 
 				for(; i < kernel_data.integrator.num_all_lights; i++) {
 #else
