@@ -122,13 +122,12 @@ void BKE_mask_update_display(struct Mask *mask, float ctime);
 void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene, const int do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
-void BKE_mask_calc_handle_adjacent_interp(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
-                                          const float u);
-void BKE_mask_calc_tangent_polyline(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point, float t[2]);
-void BKE_mask_calc_handle_point(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point);
-void BKE_mask_calc_handle_point_auto(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
+void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
+void BKE_mask_calc_tangent_polyline(struct MaskSpline *spline, struct MaskSplinePoint *point, float t[2]);
+void BKE_mask_calc_handle_point(struct MaskSpline *spline, struct MaskSplinePoint *point);
+void BKE_mask_calc_handle_point_auto(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                      const short do_recalc_length);
-void BKE_mask_get_handle_point_adjacent(struct Mask *mask, struct MaskSpline *spline, struct MaskSplinePoint *point,
+void BKE_mask_get_handle_point_adjacent(struct MaskSpline *spline, struct MaskSplinePoint *point,
                                         struct MaskSplinePoint **r_point_prev, struct MaskSplinePoint **r_point_next);
 void BKE_mask_calc_handles(struct Mask *mask);
 void BKE_mask_spline_ensure_deform(struct MaskSpline *spline);

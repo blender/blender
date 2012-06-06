@@ -1228,7 +1228,7 @@ static void mask_calc_point_handle(MaskSplinePoint *point, MaskSplinePoint *poin
 #endif
 }
 
-void BKE_mask_get_handle_point_adjacent(Mask *UNUSED(mask), MaskSpline *spline, MaskSplinePoint *point,
+void BKE_mask_get_handle_point_adjacent(MaskSpline *spline, MaskSplinePoint *point,
                                         MaskSplinePoint **r_point_prev, MaskSplinePoint **r_point_next)
 {
 	int i = (int)(point - spline->points);
@@ -1241,13 +1241,13 @@ void BKE_mask_get_handle_point_adjacent(Mask *UNUSED(mask), MaskSpline *spline, 
 
 /* calculates the tanget of a point by its previous and next
  * (ignoring handles - as if its a poly line) */
-void BKE_mask_calc_tangent_polyline(Mask *mask, MaskSpline *spline, MaskSplinePoint *point, float t[2])
+void BKE_mask_calc_tangent_polyline(MaskSpline *spline, MaskSplinePoint *point, float t[2])
 {
 	float tvec_a[2], tvec_b[2];
 
 	MaskSplinePoint *point_prev, *point_next;
 
-	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	BKE_mask_get_handle_point_adjacent(spline, point,
 	                                   &point_prev, &point_next);
 
 	if (point_prev) {
@@ -1270,11 +1270,11 @@ void BKE_mask_calc_tangent_polyline(Mask *mask, MaskSpline *spline, MaskSplinePo
 	normalize_v2(t);
 }
 
-void BKE_mask_calc_handle_point(Mask *mask, MaskSpline *spline, MaskSplinePoint *point)
+void BKE_mask_calc_handle_point(MaskSpline *spline, MaskSplinePoint *point)
 {
 	MaskSplinePoint *point_prev, *point_next;
 
-	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	BKE_mask_get_handle_point_adjacent(spline, point,
 	                                   &point_prev, &point_next);
 
 	mask_calc_point_handle(point, point_prev, point_next);
@@ -1291,7 +1291,7 @@ static void enforce_dist_v2_v2fl(float v1[2], const float v2[2], const float dis
 	}
 }
 
-void BKE_mask_calc_handle_adjacent_interp(Mask *mask, MaskSpline *spline, MaskSplinePoint *point, const float u)
+void BKE_mask_calc_handle_adjacent_interp(MaskSpline *spline, MaskSplinePoint *point, const float u)
 {
 	/* TODO! - make this interpolate between siblings - not always midpoint! */
 	int length_tot = 0;
@@ -1303,7 +1303,7 @@ void BKE_mask_calc_handle_adjacent_interp(Mask *mask, MaskSpline *spline, MaskSp
 
 	BLI_assert(u >= 0.0f && u <= 1.0f);
 
-	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	BKE_mask_get_handle_point_adjacent(spline, point,
 	                                   &point_prev, &point_next);
 
 	if (point_prev && point_next) {
@@ -1344,7 +1344,7 @@ void BKE_mask_calc_handle_adjacent_interp(Mask *mask, MaskSpline *spline, MaskSp
  *
  * Useful for giving sane defaults.
  */
-void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplinePoint *point,
+void BKE_mask_calc_handle_point_auto(MaskSpline *spline, MaskSplinePoint *point,
                                      const short do_recalc_length)
 {
 	MaskSplinePoint *point_prev, *point_next;
@@ -1353,7 +1353,7 @@ void BKE_mask_calc_handle_point_auto(Mask *mask, MaskSpline *spline, MaskSplineP
 	                             (len_v3v3(point->bezt.vec[0], point->bezt.vec[1]) +
 	                              len_v3v3(point->bezt.vec[1], point->bezt.vec[2])) / 2.0f;
 
-	BKE_mask_get_handle_point_adjacent(mask, spline, point,
+	BKE_mask_get_handle_point_adjacent(spline, point,
 	                                   &point_prev, &point_next);
 
 	point->bezt.h1 = HD_AUTO;
@@ -1381,11 +1381,11 @@ void BKE_mask_calc_handles(Mask *mask)
 			int i;
 
 			for (i = 0; i < spline->tot_point; i++) {
-				BKE_mask_calc_handle_point(mask, spline, &spline->points[i]);
+				BKE_mask_calc_handle_point(spline, &spline->points[i]);
 
 				/* could be done in a different function... */
 				if (spline->points_deform) {
-					BKE_mask_calc_handle_point(mask, spline, &spline->points[i]);
+					BKE_mask_calc_handle_point(spline, &spline->points[i]);
 				}
 			}
 		}
