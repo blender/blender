@@ -31,7 +31,6 @@
 #include "kernel_compat_cpu.h"
 #include "kernel_globals.h"
 #include "kernel_object.h"
-#include "kernel_passes.h"
 #include "kernel_triangle.h"
 
 CCL_NAMESPACE_BEGIN
