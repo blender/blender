@@ -4915,7 +4915,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 			if (IS_AUTOKEY_ON(t->scene)) {
 				Scene *scene = t->scene;
 
-				ED_mask_layer_shape_auto_key_all(mask, CFRA);
+				ED_mask_layer_shape_auto_key_select(mask, CFRA);
 			}
 		}
 	}

@@ -141,23 +141,6 @@ void MASK_OT_shape_key_clear(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
-int ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
-{
-	MaskLayer *masklay;
-	int change = FALSE;
-
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		MaskLayerShape *masklay_shape;
-
-		masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, frame);
-		BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
-		change = TRUE;
-	}
-
-	return change;
-}
-
-
 static int mask_shape_key_feather_reset_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Scene *scene = CTX_data_scene(C);
@@ -248,4 +231,46 @@ void MASK_OT_shape_key_feather_reset(wmOperatorType *ot)
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
+/* *** Shape Key Utils *** */
+
+void ED_mask_layer_shape_auto_key(MaskLayer *masklay, const int frame)
+{
+	MaskLayerShape *masklay_shape;
+
+	masklay_shape = BKE_mask_layer_shape_varify_frame(masklay, frame);
+	BKE_mask_layer_shape_from_mask(masklay, masklay_shape);
+}
+
+int ED_mask_layer_shape_auto_key_all(Mask *mask, const int frame)
+{
+	MaskLayer *masklay;
+	int change = FALSE;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		ED_mask_layer_shape_auto_key(masklay, frame);
+		change = TRUE;
+	}
+
+	return change;
+}
+
+int ED_mask_layer_shape_auto_key_select(Mask *mask, const int frame)
+{
+	MaskLayer *masklay;
+	int change = FALSE;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+
+		if (!ED_mask_layer_select_check(masklay)) {
+			continue;
+		}
+
+		ED_mask_layer_shape_auto_key(masklay, frame);
+		change = TRUE;
+	}
+
+	return change;
 }

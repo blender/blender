@@ -508,8 +508,7 @@ static void drawfloor(Scene *scene, View3D *v3d, const char **grid_unit)
 			}
 
 			/* set variable axis */
-			vert[0][1] = vert[1][1] =
-			vert[2][0] = vert[3][0] = line;
+			vert[0][1] = vert[1][1] = vert[2][0] = vert[3][0] = line;
 
 			glDrawArrays(GL_LINES, 0, 4);
 		}
@@ -1606,10 +1605,10 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					y2 = vb.ymax;
 				}
 				else {
-					 x1 = ar->winrct.xmin;
-					 y1 = ar->winrct.ymin;
-					 x2 = ar->winrct.xmax;
-					 y2 = ar->winrct.ymax;
+					x1 = ar->winrct.xmin;
+					y1 = ar->winrct.ymin;
+					x2 = ar->winrct.xmax;
+					y2 = ar->winrct.ymax;
 				}
 			}
 			else {
