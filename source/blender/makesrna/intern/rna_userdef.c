@@ -2984,7 +2984,7 @@ static void rna_def_userdef_system(BlenderRNA *brna)
 		{10, "CATALAN", 0, "Catalan (Català)", "ca_AD"},
 		{16, "CROATIAN", 0, "Croatian (Hrvatski)", "hr_HR"},
 		{11, "CZECH", 0, "Czech (Český)", "cs_CZ"},
-/*		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"}, */ /* XXX No po's yet. */
+		{ 3, "DUTCH", 0, "Dutch (Nederlandse taal)", "nl_NL"},
 		{ 6, "FINNISH", 0, "Finnish (Suomi)", "fi_FI"},
 		{ 5, "GERMAN", 0, "German (Deutsch)", "de_DE"},
 		{23, "GREEK", 0, "Greek (Ελληνικά)", "el_GR"},
