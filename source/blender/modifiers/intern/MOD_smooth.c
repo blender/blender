@@ -244,6 +244,7 @@ ModifierTypeInfo modifierType_Smooth = {
 	/* structSize */        sizeof(SmoothModifierData),
 	/* type */              eModifierTypeType_OnlyDeform,
 	/* flags */             eModifierTypeFlag_AcceptsMesh |
+							eModifierTypeFlag_AcceptsCVs |
 	                        eModifierTypeFlag_SupportsEditmode,
 
 	/* copyData */          copyData,
