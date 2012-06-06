@@ -1697,8 +1697,8 @@ DerivedMesh *getEditDerivedBMesh(BMEditMesh *em,
 
 		BM_ITER_MESH_INDEX (eve, &iter, bmdm->tc->bm, BM_VERTS_OF_MESH, i) {
 			DM_set_vert_data(&bmdm->dm, i, CD_MVERT_SKIN,
-							 CustomData_bmesh_get(&bm->vdata, eve->head.data,
-												  CD_MVERT_SKIN));
+			                 CustomData_bmesh_get(&bm->vdata, eve->head.data,
+			                                      CD_MVERT_SKIN));
 		}
 	}
 

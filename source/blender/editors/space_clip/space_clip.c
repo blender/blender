@@ -392,7 +392,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
-		 case NC_SCREEN:
+		case NC_SCREEN:
 			if (wmn->data == ND_ANIMPLAY) {
 				ED_area_tag_redraw(sa);
 			}

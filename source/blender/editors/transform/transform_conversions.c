@@ -1336,7 +1336,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	TransData *td = NULL;
-	  Nurb *nu;
+	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1889,7 +1889,7 @@ static void get_edge_center(float cent_r[3], BMVert *eve)
 
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
-							 BMEditMesh *em, BMVert *eve, float *bweight)
+                             BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
 	//if (key)

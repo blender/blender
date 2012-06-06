@@ -3978,7 +3978,7 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 /* ************ READ OBJECT ***************** */
 
 static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
-											  ID **idpoin)
+                                              ID **idpoin)
 {
 	FileData *fd = userData;
 
@@ -8441,7 +8441,7 @@ static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
 }
 
 static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
-											  ID **idpoin)
+                                          ID **idpoin)
 {
 	struct { FileData *fd; Main *mainvar; } *data= userData;
 	

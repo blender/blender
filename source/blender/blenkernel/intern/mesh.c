@@ -2041,8 +2041,8 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
                                           int totedge_i, int totface_i, int totloop_i, int totpoly_i,
                                           MEdge *medge, MFace *mface,
-										  int *totloop_r, int *totpoly_r,
-										  MLoop **mloop_r, MPoly **mpoly_r)
+                                          int *totloop_r, int *totpoly_r,
+                                          MLoop **mloop_r, MPoly **mpoly_r)
 {
 	MFace *mf;
 	MLoop *ml, *mloop;

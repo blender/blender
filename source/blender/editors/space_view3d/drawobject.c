@@ -2451,7 +2451,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, const float co[3],
 }
 
 static void draw_dm_verts(BMEditMesh *em, DerivedMesh *dm, int sel, BMVert *eve_act,
-						  RegionView3D *rv3d)
+                          RegionView3D *rv3d)
 {
 	drawDMVerts_userData data;
 	data.sel = sel;

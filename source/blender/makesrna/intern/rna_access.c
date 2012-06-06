@@ -1519,7 +1519,7 @@ void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, Proper
  *
  * The cache is structured with a dual-layer structure
  * - L1 = PointerRNA used as key; id.data is used (it should always be defined,
- *		 and most updates end up using just that anyways)
+ *        and most updates end up using just that anyways)
  * - L2 = Update functions to be called on those PointerRNA's
  */
 

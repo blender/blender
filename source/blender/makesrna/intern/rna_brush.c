@@ -173,8 +173,8 @@ static int rna_SculptCapabilities_has_random_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return (ELEM(br->mtex.brush_map_mode,
-				 MTEX_MAP_MODE_VIEW,
-				 MTEX_MAP_MODE_AREA) &&
+	             MTEX_MAP_MODE_VIEW,
+	             MTEX_MAP_MODE_AREA) &&
 	        !(br->flag & BRUSH_ANCHORED) &&
 	        !ELEM4(br->sculpt_tool,
 	               SCULPT_TOOL_GRAB, SCULPT_TOOL_ROTATE,
@@ -236,17 +236,17 @@ static int rna_SculptCapabilities_has_texture_angle_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return ELEM3(br->mtex.brush_map_mode,
-				 MTEX_MAP_MODE_VIEW,
-				 MTEX_MAP_MODE_AREA,
-				 MTEX_MAP_MODE_TILED);
+	             MTEX_MAP_MODE_VIEW,
+	             MTEX_MAP_MODE_AREA,
+	             MTEX_MAP_MODE_TILED);
 }
 
 static int rna_SculptCapabilities_has_texture_angle_source_get(PointerRNA *ptr)
 {
 	Brush *br = (Brush *)ptr->data;
 	return ELEM(br->mtex.brush_map_mode,
-				MTEX_MAP_MODE_VIEW,
-				MTEX_MAP_MODE_AREA);
+	            MTEX_MAP_MODE_VIEW,
+	            MTEX_MAP_MODE_AREA);
 }
 
 static PointerRNA rna_Brush_sculpt_capabilities_get(PointerRNA *ptr)

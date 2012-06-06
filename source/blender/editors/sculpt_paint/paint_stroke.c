@@ -203,10 +203,10 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
 	    !ELEM4(stroke->brush->sculpt_tool,
-			   SCULPT_TOOL_GRAB,
-			   SCULPT_TOOL_THUMB,
-			   SCULPT_TOOL_ROTATE,
-			   SCULPT_TOOL_SNAKE_HOOK) &&
+	           SCULPT_TOOL_GRAB,
+	           SCULPT_TOOL_THUMB,
+	           SCULPT_TOOL_ROTATE,
+	           SCULPT_TOOL_SNAKE_HOOK) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
@@ -359,12 +359,12 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 }
 
 static void paint_stroke_add_sample(const Paint *paint,
-									PaintStroke *stroke,
-									float x, float y)
+                                    PaintStroke *stroke,
+                                    float x, float y)
 {
 	PaintSample *sample = &stroke->samples[stroke->cur_sample];
 	int max_samples = MIN2(PAINT_MAX_INPUT_SAMPLES,
-						   MAX2(paint->num_input_samples, 1));
+	                       MAX2(paint->num_input_samples, 1));
 
 	sample->mouse[0] = x;
 	sample->mouse[1] = y;
@@ -377,7 +377,7 @@ static void paint_stroke_add_sample(const Paint *paint,
 }
 
 static void paint_stroke_sample_average(const PaintStroke *stroke,
-										PaintSample *average)
+                                        PaintSample *average)
 {
 	int i;
 	

@@ -713,7 +713,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 				}
 				else {
 					short orientation = (t->current_orientation != V3D_MANIP_GLOBAL ?
-										 t->current_orientation : V3D_MANIP_LOCAL);
+					                     t->current_orientation : V3D_MANIP_LOCAL);
 					if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
 						setUserConstraint(t, orientation, constraint_axis, msg2);
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
