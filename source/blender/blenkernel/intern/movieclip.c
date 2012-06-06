@@ -153,18 +153,13 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	BLI_strncpy(name, clip->name, sizeof(clip->name));
 	BLI_stringdec(name, head, tail, &numlen);
 
-	if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
-		offset = clip->start_frame;
-	}
-	else {
-		/* movieclips always points to first image from sequence,
-		 * autoguess offset for now. could be something smarter in the future
-		 */
-		offset = sequence_guess_offset(clip->name, strlen(head), numlen);
-	}
+	/* movieclips always points to first image from sequence,
+	 * autoguess offset for now. could be something smarter in the future
+	 */
+	offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen)
-		BLI_stringenc(name, head, tail, numlen, offset + framenr - 1);
+		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame);
 	else
 		BLI_strncpy(name, clip->name, sizeof(clip->name));
 
@@ -176,6 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 {
 	int size = rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
+	int proxynr = framenr - clip->start_frame + 1;
 
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
@@ -187,9 +183,9 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 	}
 
 	if (undistorted)
-		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, framenr);
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, proxynr);
 	else
-		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, framenr);
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, proxynr);
 
 	BLI_path_abs(name, G.main->name);
 	BLI_path_frame(name, 1, 0);
@@ -254,11 +250,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		int fra;
 
 		dur = IMB_anim_get_duration(clip->anim, tc);
-		fra = framenr - 1;
-
-		if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
-			fra += clip->start_frame - 1;
-		}
+		fra = framenr - clip->start_frame;
 
 		if (fra < 0)
 			fra = 0;
@@ -1038,7 +1030,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 		if (act_track) {
 			MovieTrackingTrack *track = act_track;
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, user->framenr);
+			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
 
 			if (marker->flag & MARKER_DISABLED) {
 				scopes->track_disabled = TRUE;
@@ -1229,4 +1222,14 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 	}
 
 	clip->id.us = 0;
+}
+
+int BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, int framenr)
+{
+	return framenr - clip->start_frame + 1;
+}
+
+int BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, int framenr)
+{
+	return framenr + clip->start_frame - 1;
 }

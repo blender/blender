@@ -155,7 +155,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 				else
 					glColor4ub(255, 255, 0, 96);
 
-				glRecti((i - sfra) * framelen, 0, (i - sfra + 1)*framelen, 4);
+				glRecti((i - sfra + clip->start_frame - 1) * framelen, 0, (i - sfra + clip->start_frame) * framelen, 4);
 			}
 		}
 	}
@@ -183,7 +183,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 			}
 
 			if (!ok)
-				glRecti((i - sfra) * framelen, 0, (i - sfra + 1) * framelen, 8);
+				glRecti((i - sfra + clip->start_frame - 1) * framelen, 0, (i - sfra + clip->start_frame) * framelen, 8);
 		}
 	}
 
@@ -338,17 +338,17 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	int count = sc->path_length;
 	int i, a, b, curindex = -1;
 	float path[102][2];
-	int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr;
+	int tiny = sc->flag & SC_SHOW_TINY_MARKER, framenr, start_frame;
 	MovieTrackingMarker *marker;
 
 	if (count == 0)
 		return;
 
-	marker = BKE_tracking_get_marker(track, sc->user.framenr);
-	if (marker->framenr != sc->user.framenr || marker->flag & MARKER_DISABLED)
-		return;
+	start_frame = framenr = ED_space_clip_clip_framenr(sc);
 
-	framenr = marker->framenr;
+	marker = BKE_tracking_get_marker(track, framenr);
+	if (marker->framenr != framenr || marker->flag & MARKER_DISABLED)
+		return;
 
 	a = count;
 	i = framenr - 1;
@@ -362,7 +362,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 			add_v2_v2v2(path[--a], marker->pos, track->offset);
 			ED_clip_point_undistorted_pos(sc, path[a], path[a]);
 
-			if (marker->framenr == sc->user.framenr)
+			if (marker->framenr == start_frame)
 				curindex = a;
 		}
 		else {
@@ -381,7 +381,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 			break;
 
 		if (marker->framenr == i) {
-			if (marker->framenr == sc->user.framenr)
+			if (marker->framenr == start_frame)
 				curindex = b;
 
 			add_v2_v2v2(path[b++], marker->pos, track->offset);
@@ -924,7 +924,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	if (marker->flag & MARKER_DISABLED)
 		strcpy(state, "disabled");
-	else if (marker->framenr != sc->user.framenr)
+	else if (marker->framenr != ED_space_clip_clip_framenr(sc))
 		strcpy(state, "estimated");
 	else if (marker->flag & MARKER_TRACKED)
 		strcpy(state, "tracked");
@@ -972,7 +972,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track, *act_track;
 	MovieTrackingMarker *marker;
-	int framenr = sc->user.framenr;
+	int framenr = ED_space_clip_clip_framenr(sc);
 	int undistort = sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 	float *marker_pos = NULL, *fp, *active_pos = NULL, cur_pos[2];
 

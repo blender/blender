@@ -960,9 +960,7 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
 
         col = layout.column()
         col.template_movieclip(sc, "clip", compact=True)
-        col.prop(clip, "use_custom_start_frame")
-        if clip.use_custom_start_frame:
-            col.prop(clip, "start_frame")
+        col.prop(clip, "start_frame")
 
 
 class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):

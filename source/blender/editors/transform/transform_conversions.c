@@ -5474,7 +5474,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
                              TransDataTracking *tdt, MovieTrackingTrack *track)
 {
-	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
+	int framenr = ED_space_clip_clip_framenr(sc);
+	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, framenr);
 
 	tdt->flag = marker->flag;
 	marker->flag &= ~(MARKER_DISABLED|MARKER_TRACKED);
@@ -5517,7 +5518,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
-	int framenr = sc->user.framenr;
+	int framenr = ED_space_clip_clip_framenr(sc);
 
 	/* count */
 	t->total = 0;
@@ -5747,7 +5748,7 @@ static void cancelTransTracking(TransInfo *t)
 	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
-	int a, framenr = sc->user.framenr;
+	int a, framenr = ED_space_clip_clip_framenr(sc);
 
 	if (tdt->mode == transDataTracking_ModeTracks) {
 		track = tracksbase->first;

@@ -7636,41 +7636,52 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_image_user_264);
 	}
 
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
-	{
-		Scene *scene;
-		// composite redesign
-		for (scene=main->scene.first; scene; scene=scene->id.next) {
-			if (scene->nodetree) {
-				if (scene->nodetree->chunksize == 0) {
-					scene->nodetree->chunksize = 256;
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 10)) {
+		{
+			Scene *scene;
+			// composite redesign
+			for (scene=main->scene.first; scene; scene=scene->id.next) {
+				if (scene->nodetree) {
+					if (scene->nodetree->chunksize == 0) {
+						scene->nodetree->chunksize = 256;
+					}
 				}
 			}
 		}
-	}
 
-	{
-		bScreen *sc;
+		{
+			bScreen *sc;
 
-		for (sc = main->screen.first; sc; sc = sc->id.next) {
-			ScrArea *sa;
+			for (sc = main->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
 
-			for (sa = sc->areabase.first; sa; sa = sa->next) {
-				SpaceLink *sl;
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
 
-				for (sl = sa->spacedata.first; sl; sl = sl->next) {
-					if (sl->spacetype == SPACE_CLIP) {
-						SpaceClip *sclip = (SpaceClip *)sl;
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_CLIP) {
+							SpaceClip *sclip = (SpaceClip *)sl;
 
-						if (sclip->around == 0) {
-							sclip->around = V3D_CENTROID;
+							if (sclip->around == 0) {
+								sclip->around = V3D_CENTROID;
+							}
 						}
 					}
 				}
 			}
 		}
+
+		{
+			MovieClip *clip;
+
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				clip->start_frame = 1;
+			}
+		}
 	}
+
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
 	/* don't forget to set version number in blender.c! */
 }

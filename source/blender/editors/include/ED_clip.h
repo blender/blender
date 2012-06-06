@@ -60,6 +60,8 @@ void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 void ED_space_clip_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
 
+int ED_space_clip_clip_framenr(struct SpaceClip *sc);
+
 void ED_space_clip_mask_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_mask_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
