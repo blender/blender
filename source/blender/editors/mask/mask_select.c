@@ -32,14 +32,10 @@
 #include "MEM_guardedalloc.h"
 
 #include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_rect.h"
 #include "BLI_lasso.h"
-#include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
-#include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
 #include "DNA_mask_types.h"
@@ -49,8 +45,8 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_mask.h"
 #include "ED_clip.h"
+#include "ED_mask.h"  /* own include */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -212,13 +208,13 @@ static int select_all_exec(bContext *C, wmOperator *op)
 void MASK_OT_select_all(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Select or Deselect All";
+	ot->name = "(De)select All";
 	ot->description = "Change selection of all curve points";
 	ot->idname = "MASK_OT_select_all";
 
 	/* api callbacks */
 	ot->exec = select_all_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -366,7 +362,7 @@ void MASK_OT_select(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = select_exec;
 	ot->invoke = select_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -458,7 +454,7 @@ void MASK_OT_select_border(wmOperatorType *ot)
 	ot->invoke = WM_border_select_invoke;
 	ot->exec = border_select_exec;
 	ot->modal = WM_border_select_modal;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_UNDO;
@@ -554,7 +550,7 @@ void MASK_OT_select_lasso(wmOperatorType *ot)
 	ot->invoke = WM_gesture_lasso_invoke;
 	ot->modal = WM_gesture_lasso_modal;
 	ot->exec = clip_lasso_select_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 	ot->cancel = WM_gesture_lasso_cancel;
 
 	/* flags */
@@ -655,7 +651,7 @@ void MASK_OT_select_circle(wmOperatorType *ot)
 	ot->invoke = WM_gesture_circle_invoke;
 	ot->modal = WM_gesture_circle_modal;
 	ot->exec = circle_select_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -712,7 +708,7 @@ void MASK_OT_select_linked_pick(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->invoke = mask_select_linked_pick_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -763,7 +759,7 @@ void MASK_OT_select_linked(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_select_linked_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

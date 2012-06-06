@@ -1105,7 +1105,7 @@ void mtex_normal(vec3 texco, sampler2D ima, out vec3 normal)
 	// It needs to be done because in Blender
 	// the normal used points inward.
 	// Should this ever change this negate must be removed.
-    vec4 color = texture2D(ima, texco.xy);
+	vec4 color = texture2D(ima, texco.xy);
 	normal = 2.0*(vec3(-color.r, color.g, color.b) - vec3(-0.5, 0.5, 0.5));
 }
 
@@ -1190,7 +1190,7 @@ void mtex_bump_init_viewspace( vec3 surf_pos, vec3 surf_norm,
 }
 
 void mtex_bump_tap3( vec3 texco, sampler2D ima, float hScale, 
-                     out float dBs, out float dBt ) 
+                     out float dBs, out float dBt )
 {
 	vec2 STll = texco.xy;
 	vec2 STlr = texco.xy + dFdx(texco.xy) ;
@@ -1945,22 +1945,23 @@ void shade_alpha_obcolor(vec4 col, vec4 obcol, out vec4 outcol)
 
 float fresnel_dielectric(vec3 Incoming, vec3 Normal, float eta)
 {
-    /* compute fresnel reflectance without explicitly computing
-       the refracted direction */
-    float c = abs(dot(Incoming, Normal));
-    float g = eta * eta - 1.0 + c * c;
-    float result;
+	/* compute fresnel reflectance without explicitly computing
+	 * the refracted direction */
+	float c = abs(dot(Incoming, Normal));
+	float g = eta * eta - 1.0 + c * c;
+	float result;
 
-    if(g > 0.0) {
-        g = sqrt(g);
-        float A =(g - c)/(g + c);
-        float B =(c *(g + c)- 1.0)/(c *(g - c)+ 1.0);
-        result = 0.5 * A * A *(1.0 + B * B);
-    }
-    else
-        result = 1.0;  /* TIR (no refracted component) */
+	if(g > 0.0) {
+		g = sqrt(g);
+		float A =(g - c)/(g + c);
+		float B =(c *(g + c)- 1.0)/(c *(g - c)+ 1.0);
+		result = 0.5 * A * A *(1.0 + B * B);
+	}
+	else {
+		result = 1.0;  /* TIR (no refracted component) */
+	}
 
-    return result;
+	return result;
 }
 
 float hypot(float x, float y)
@@ -2135,13 +2136,13 @@ void node_tex_environment_empty(vec3 co, out vec4 color)
 void node_tex_image(vec3 co, sampler2D ima, out vec4 color, out float alpha)
 {
 	color = texture2D(ima, co.xy);
-    alpha = color.a;
+	alpha = color.a;
 }
 
 void node_tex_image_empty(vec3 co, out vec4 color, out float alpha)
 {
 	color = vec4(0.0);
-    alpha = 0.0;
+	alpha = 0.0;
 }
 
 void node_tex_magic(vec3 p, float scale, float distortion, out vec4 color, out float fac)

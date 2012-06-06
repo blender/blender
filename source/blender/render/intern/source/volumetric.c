@@ -71,7 +71,7 @@ extern struct Render R;
 /* luminance rec. 709 */
 BLI_INLINE float luminance(const float col[3])
 {
-	return (0.212671f*col[0] + 0.71516f*col[1] + 0.072169f*col[2]);
+	return (0.212671f * col[0] + 0.71516f * col[1] + 0.072169f * col[2]);
 }
 
 /* tracing */
@@ -80,7 +80,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 	float visibility = 1.f;
 	
 	if (lar->shb) {
-		float dxco[3]={0.f, 0.f, 0.f}, dyco[3]={0.f, 0.f, 0.f};
+		float dxco[3] = {0.f, 0.f, 0.f}, dyco[3] = {0.f, 0.f, 0.f};
 		
 		visibility = testshadowbuf(&R, lar->shb, co, dxco, dyco, 1.0, 0.0);		
 	}
@@ -89,7 +89,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		Isect is;
 		
 		copy_v3_v3(is.start, co);
-		if (lar->type==LA_SUN || lar->type==LA_HEMI) {
+		if (lar->type == LA_SUN || lar->type == LA_HEMI) {
 			is.dir[0] = -lar->vec[0];
 			is.dir[1] = -lar->vec[1];
 			is.dir[2] = -lar->vec[2];
@@ -97,17 +97,17 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 		}
 		else {
 			sub_v3_v3v3(is.dir, lar->co, is.start);
-			is.dist = normalize_v3(is.dir );
+			is.dist = normalize_v3(is.dir);
 		}
 
 		is.mode = RE_RAY_MIRROR;
 		is.check = RE_CHECK_VLR_NON_SOLID_MATERIAL;
 		is.skip = 0;
 		
-		if (lar->mode & (LA_LAYER|LA_LAYER_SHADOW))
-			is.lay= lar->lay;	
+		if (lar->mode & (LA_LAYER | LA_LAYER_SHADOW))
+			is.lay = lar->lay;
 		else
-			is.lay= -1;
+			is.lay = -1;
 			
 		is.orig.ob = NULL;
 		is.orig.face = NULL;
@@ -117,7 +117,7 @@ static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 			visibility = 0.f;
 		}
 		
-		lar->last_hit[shi->thread]= is.last_hit;
+		lar->last_hit[shi->thread] = is.last_hit;
 	}
 	return visibility;
 }
@@ -128,26 +128,26 @@ static int vol_get_bounds(ShadeInput *shi, const float co[3], const float vec[3]
 	copy_v3_v3(isect->start, co);
 	copy_v3_v3(isect->dir, vec);
 	isect->dist = FLT_MAX;
-	isect->mode= RE_RAY_MIRROR;
+	isect->mode = RE_RAY_MIRROR;
 	isect->last_hit = NULL;
-	isect->lay= -1;
-	isect->check= RE_CHECK_VLR_NONE;
+	isect->lay = -1;
+	isect->check = RE_CHECK_VLR_NONE;
 	
 	if (intersect_type == VOL_BOUNDS_DEPTH) {
 		isect->skip = RE_SKIP_VLR_NEIGHBOUR;
-		isect->orig.face = (void*)shi->vlr;
-		isect->orig.ob = (void*)shi->obi;
+		isect->orig.face = (void *)shi->vlr;
+		isect->orig.ob = (void *)shi->obi;
 	}
 	else { // if (intersect_type == VOL_BOUNDS_SS) {
-		isect->skip= 0;
-		isect->orig.face= NULL;
+		isect->skip = 0;
+		isect->orig.face = NULL;
 		isect->orig.ob = NULL;
 	}
 	
 	if (RE_rayobject_raycast(R.raytree, isect)) {
-		hitco[0] = isect->start[0] + isect->dist*isect->dir[0];
-		hitco[1] = isect->start[1] + isect->dist*isect->dir[1];
-		hitco[2] = isect->start[2] + isect->dist*isect->dir[2];
+		hitco[0] = isect->start[0] + isect->dist * isect->dir[0];
+		hitco[1] = isect->start[1] + isect->dist * isect->dir[1];
+		hitco[2] = isect->start[2] + isect->dist * isect->dir[2];
 		return 1;
 	}
 	else {
@@ -162,18 +162,18 @@ static void shade_intersection(ShadeInput *shi, float col_r[4], Isect *is)
 	
 	memset(&shi_new, 0, sizeof(ShadeInput)); 
 	
-	shi_new.mask= shi->mask;
-	shi_new.osatex= shi->osatex;
-	shi_new.thread= shi->thread;
+	shi_new.mask = shi->mask;
+	shi_new.osatex = shi->osatex;
+	shi_new.thread = shi->thread;
 	shi_new.depth = shi->depth + 1;
-	shi_new.volume_depth= shi->volume_depth + 1;
-	shi_new.xs= shi->xs;
-	shi_new.ys= shi->ys;
-	shi_new.lay= shi->lay;
-	shi_new.passflag= SCE_PASS_COMBINED; /* result of tracing needs no pass info */
-	shi_new.combinedflag= 0xFFFFFF;		 /* ray trace does all options */
-	shi_new.light_override= shi->light_override;
-	shi_new.mat_override= shi->mat_override;
+	shi_new.volume_depth = shi->volume_depth + 1;
+	shi_new.xs = shi->xs;
+	shi_new.ys = shi->ys;
+	shi_new.lay = shi->lay;
+	shi_new.passflag = SCE_PASS_COMBINED; /* result of tracing needs no pass info */
+	shi_new.combinedflag = 0xFFFFFF;      /* ray trace does all options */
+	shi_new.light_override = shi->light_override;
+	shi_new.mat_override = shi->mat_override;
 	
 	copy_v3_v3(shi_new.camera_co, is->start);
 	
@@ -196,13 +196,13 @@ static void vol_trace_behind(ShadeInput *shi, VlakRen *vlr, const float co[3], f
 	copy_v3_v3(isect.dir, shi->view);
 	isect.dist = FLT_MAX;
 	
-	isect.mode= RE_RAY_MIRROR;
+	isect.mode = RE_RAY_MIRROR;
 	isect.check = RE_CHECK_VLR_NONE;
 	isect.skip = RE_SKIP_VLR_NEIGHBOUR;
-	isect.orig.ob = (void*) shi->obi;
-	isect.orig.face = (void*)vlr;
+	isect.orig.ob = (void *) shi->obi;
+	isect.orig.face = (void *)vlr;
 	isect.last_hit = NULL;
-	isect.lay= -1;
+	isect.lay = -1;
 	
 	/* check to see if there's anything behind the volume, otherwise shade the sky */
 	if (RE_rayobject_raycast(R.raytree, &isect)) {
@@ -241,11 +241,11 @@ static void vol_get_precached_scattering(Render *re, ShadeInput *shi, float scat
 
 /* Meta object density, brute force for now 
  * (might be good enough anyway, don't need huge number of metaobs to model volumetric objects */
-static float metadensity(Object* ob, const float co[3])
+static float metadensity(Object *ob, const float co[3])
 {
 	float mat[4][4], imat[4][4], dens = 0.f;
-	MetaBall* mb = (MetaBall*)ob->data;
-	MetaElem* ml;
+	MetaBall *mb = (MetaBall *)ob->data;
+	MetaElem *ml;
 	
 	/* transform co to meta-element */
 	float tco[3] = {co[0], co[1], co[2]};
@@ -253,13 +253,13 @@ static float metadensity(Object* ob, const float co[3])
 	invert_m4_m4(imat, mat);
 	mul_m4_v3(imat, tco);
 	
-	for (ml = mb->elems.first; ml; ml=ml->next) {
+	for (ml = mb->elems.first; ml; ml = ml->next) {
 		float bmat[3][3], dist2;
 		
 		/* element rotation transform */
 		float tp[3] = {ml->x - tco[0], ml->y - tco[1], ml->z - tco[2]};
 		quat_to_mat3(bmat, ml->quat);
-		transpose_m3(bmat);	// rot.only, so inverse == transpose
+		transpose_m3(bmat); // rot.only, so inverse == transpose
 		mul_m3_v3(bmat, tp);
 		
 		/* MB_BALL default */
@@ -269,10 +269,10 @@ static float metadensity(Object* ob, const float co[3])
 				break;
 			case MB_CUBE:
 				tp[2] = (tp[2] > ml->expz) ? (tp[2] - ml->expz) : ((tp[2] < -ml->expz) ? (tp[2] + ml->expz) : 0.f);
-				// no break, xy as plane
+			// no break, xy as plane
 			case MB_PLANE:
 				tp[1] = (tp[1] > ml->expy) ? (tp[1] - ml->expy) : ((tp[1] < -ml->expy) ? (tp[1] + ml->expy) : 0.f);
-				// no break, x as tube
+			// no break, x as tube
 			case MB_TUBE:
 				tp[0] = (tp[0] > ml->expx) ? (tp[0] - ml->expx) : ((tp[0] < -ml->expx) ? (tp[0] + ml->expx) : 0.f);
 		}
@@ -280,7 +280,7 @@ static float metadensity(Object* ob, const float co[3])
 		/* ml->rad2 is not set */
 		dist2 = 1.0f - (dot_v3v3(tp, tp) / (ml->rad * ml->rad));
 		if (dist2 > 0.f)
-			dens += (ml->flag & MB_NEGATIVE) ? -ml->s*dist2*dist2*dist2 : ml->s*dist2*dist2*dist2;
+			dens += (ml->flag & MB_NEGATIVE) ? -ml->s * dist2 * dist2 * dist2 : ml->s * dist2 * dist2 * dist2;
 	}
 	
 	dens -= mb->thresh;
@@ -299,7 +299,7 @@ float vol_get_density(struct ShadeInput *shi, const float co[3])
 	if (shi->obi->obr->ob->type == OB_MBALL) {
 		const float md = metadensity(shi->obi->obr->ob, co);
 		if (md < 1.f) density *= md;
-	 }
+	}
 	
 	return density * density_scale;
 }
@@ -311,11 +311,11 @@ float vol_get_density(struct ShadeInput *shi, const float co[3])
 static void vol_get_reflection_color(ShadeInput *shi, float ref_col[3], const float co[3])
 {
 	float scatter = shi->mat->vol.scattering;
-	float reflection= shi->mat->vol.reflection;
+	float reflection = shi->mat->vol.reflection;
 	copy_v3_v3(ref_col, shi->mat->vol.reflection_col);
 	
-	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_REFLECTION_COL))
-		do_volume_tex(shi, co, MAP_SCATTERING+MAP_REFLECTION_COL, ref_col, &scatter, &R);
+	if (shi->mat->mapto_textured & (MAP_SCATTERING + MAP_REFLECTION_COL))
+		do_volume_tex(shi, co, MAP_SCATTERING + MAP_REFLECTION_COL, ref_col, &scatter, &R);
 	
 	/* only one single float parameter at a time... :s */
 	if (shi->mat->mapto_textured & (MAP_REFLECTION))
@@ -333,8 +333,8 @@ static void vol_get_emission(ShadeInput *shi, float emission_col[3], const float
 	float emission = shi->mat->vol.emission;
 	copy_v3_v3(emission_col, shi->mat->vol.emission_col);
 	
-	if (shi->mat->mapto_textured & (MAP_EMISSION+MAP_EMISSION_COL))
-		do_volume_tex(shi, co, MAP_EMISSION+MAP_EMISSION_COL, emission_col, &emission, &R);
+	if (shi->mat->mapto_textured & (MAP_EMISSION + MAP_EMISSION_COL))
+		do_volume_tex(shi, co, MAP_EMISSION + MAP_EMISSION_COL, emission_col, &emission, &R);
 	
 	emission_col[0] = emission_col[0] * emission;
 	emission_col[1] = emission_col[1] * emission;
@@ -353,8 +353,8 @@ static void vol_get_sigma_t(ShadeInput *shi, float sigma_t[3], const float co[3]
 	float transmission_col[3] = {shi->mat->vol.transmission_col[0], shi->mat->vol.transmission_col[1], shi->mat->vol.transmission_col[2]};
 	float scattering = shi->mat->vol.scattering;
 	
-	if (shi->mat->mapto_textured & (MAP_SCATTERING+MAP_TRANSMISSION_COL))
-		do_volume_tex(shi, co, MAP_SCATTERING+MAP_TRANSMISSION_COL, transmission_col, &scattering, &R);
+	if (shi->mat->mapto_textured & (MAP_SCATTERING + MAP_TRANSMISSION_COL))
+		do_volume_tex(shi, co, MAP_SCATTERING + MAP_TRANSMISSION_COL, transmission_col, &scattering, &R);
 	
 	sigma_t[0] = (1.0f - transmission_col[0]) + scattering;
 	sigma_t[1] = (1.0f - transmission_col[1]) + scattering;
@@ -378,13 +378,13 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 	 * until Blender's shading system supports this better. --matt
 	 */
 	
-	if (g == 0.f) {	/* isotropic */
+	if (g == 0.f) { /* isotropic */
 		return normalize * 1.f;
 	}
-	else {		/* schlick */
+	else {      /* schlick */
 		const float k = 1.55f * g - .55f * g * g * g;
 		const float kcostheta = k * dot_v3v3(w, wp);
-		return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
+		return normalize * (1.f - k * k) / ((1.f - kcostheta) * (1.f - kcostheta));
 	}
 	
 	/* not used, but here for reference: */
@@ -395,14 +395,14 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 		case MA_VOL_PH_MIEMURKY:
 			return normalize * (0.5f + 16.5f * powf(0.5 * (1.f + costheta), 32.f));
 		case MA_VOL_PH_RAYLEIGH:
-			return normalize * 3.f/4.f * (1 + costheta * costheta);
+			return normalize * 3.f / 4.f * (1 + costheta * costheta);
 		case MA_VOL_PH_HG:
 			return normalize * (1.f - g * g) / powf(1.f + g * g - 2.f * g * costheta, 1.5f);
 		case MA_VOL_PH_SCHLICK:
 		{
 			const float k = 1.55f * g - .55f * g * g * g;
 			const float kcostheta = k * costheta;
-			return normalize * (1.f - k*k) / ((1.f - kcostheta) * (1.f - kcostheta));
+			return normalize * (1.f - k * k) / ((1.f - kcostheta) * (1.f - kcostheta));
 		}
 		case MA_VOL_PH_ISOTROPIC:
 		default:
@@ -471,20 +471,20 @@ static void vol_get_transmittance(ShadeInput *shi, float tr[3], const float co[3
 static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const float view[3], LampRen *lar, float lacol[3])
 {
 	float visifac, lv[3], lampdist;
-	float tr[3]={1.0, 1.0, 1.0};
+	float tr[3] = {1.0, 1.0, 1.0};
 	float hitco[3], *atten_co;
 	float p, ref_col[3];
 	
-	if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay)==0) return;
-	if ((lar->lay & shi->lay)==0) return;
+	if (lar->mode & LA_LAYER) if ((lar->lay & shi->obi->lay) == 0) return;
+	if ((lar->lay & shi->lay) == 0) return;
 	if (lar->energy == 0.0f) return;
 	
-	if ((visifac= lamp_get_visibility(lar, co, lv, &lampdist)) == 0.f) return;
+	if ((visifac = lamp_get_visibility(lar, co, lv, &lampdist)) == 0.f) return;
 	
 	copy_v3_v3(lacol, &lar->r);
 	
 	if (lar->mode & LA_TEXTURE) {
-		shi->osatex= 0;
+		shi->osatex = 0;
 		do_lamp_tex(lar, lv, shi, lacol, LA_TEXTURE);
 	}
 
@@ -519,7 +519,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 			if (ELEM(lar->type, LA_SUN, LA_HEMI))
 				/* infinite lights, can never be inside volume */
 				atten_co = hitco;
-			else if ( lampdist < dist ) {
+			else if (lampdist < dist) {
 				atten_co = lar->co;
 			}
 			else
@@ -558,10 +558,10 @@ void vol_get_scattering(ShadeInput *shi, float scatter_col[3], const float co[3]
 
 	zero_v3(scatter_col);
 
-	lights= get_lights(shi);
-	for (go=lights->first; go; go= go->next) {
+	lights = get_lights(shi);
+	for (go = lights->first; go; go = go->next) {
 		float lacol[3] = {0.f, 0.f, 0.f};
-		lar= go->lampren;
+		lar = go->lampren;
 		
 		if (lar) {
 			vol_shade_one_lamp(shi, co, view, lar, lacol);
@@ -598,7 +598,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 	
 	float t0 = 0.f;
 	float pt0 = t0;
-	float t1 = normalize_v3(step_vec);	/* returns vector length */
+	float t1 = normalize_v3(step_vec);  /* returns vector length */
 	
 	t0 += stepsize * ((shi->mat->vol.stepsize_type == MA_VOL_STEP_CONSTANT) ? 0.5f : BLI_thread_frand(shi->thread));
 	p[0] += t0 * step_vec[0];
@@ -656,7 +656,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	float hitco[3], col[4] = {0.f, 0.f, 0.f, 0.f};
 	float *startco, *endco;
 	int trace_behind = 1;
-	const int ztransp= ((shi->depth==0) && (shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_ZTRANSP));
+	const int ztransp = ((shi->depth == 0) && (shi->mat->mode & MA_TRANSP) && (shi->mat->mode & MA_ZTRANSP));
 	Isect is;
 
 	/* check for shading an internal face a volume object directly */
@@ -669,7 +669,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	
 	if (ztransp && inside_volume == VOL_SHADE_INSIDE) {
 		MatInside *mi;
-		int render_this=0;
+		int render_this = 0;
 		
 		/* don't render the backfaces of ztransp volume materials.
 		 *
@@ -683,9 +683,9 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 		 * which would otherwise render the volume in between the camera and the backface
 		 * --matt */
 		
-		for (mi=R.render_volumes_inside.first; mi; mi=mi->next) {
+		for (mi = R.render_volumes_inside.first; mi; mi = mi->next) {
 			/* weak... */
-			if (mi->ma == shi->mat) render_this=1;
+			if (mi->ma == shi->mat) render_this = 1;
 		}
 		if (!render_this) return;
 	}
@@ -733,7 +733,7 @@ static void volume_trace(struct ShadeInput *shi, struct ShadeResult *shr, int in
 	}
 	
 	if (ztransp)
-		col[3] = col[3]>1.f?1.f:col[3];
+		col[3] = col[3] > 1.f ? 1.f : col[3];
 	else
 		col[3] = 1.f;
 	
@@ -749,7 +749,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 {
 	float hitco[3];
 	float tr[3] = {1.0, 1.0, 1.0};
-	Isect is= {{0}};
+	Isect is = {{0}};
 	float *startco, *endco;
 
 	memset(shr, 0, sizeof(ShadeResult));
@@ -825,5 +825,3 @@ void shade_volume_inside(ShadeInput *shi, ShadeResult *shr)
 	shi->obi = obi_backup;
 	shi->obr = obi_backup->obr;
 }
-
-

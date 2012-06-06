@@ -48,7 +48,7 @@ static void generic_closure_setup(OSL::RendererServices *, int id, void *data)
 	prim->setup();
 }
 
-static bool generic_closure_mergeable(int id, const void *dataA, const void *dataB)
+static bool generic_closure_compare(int id, const void *dataA, const void *dataB)
 {
 	assert(dataA && dataB);
 
@@ -59,11 +59,7 @@ static bool generic_closure_mergeable(int id, const void *dataA, const void *dat
 
 static void register_closure(OSL::ShadingSystem *ss, const char *name, int id, OSL::ClosureParam *params, OSL::PrepareClosureFunc prepare)
 {
-	int j;
-	for(j = 0; params[j].type != TypeDesc(); ++j) {}
-	int size = params[j].offset;
-
-	ss->register_closure(name, id, params, size, prepare, generic_closure_setup, generic_closure_mergeable);
+	ss->register_closure(name, id, params, prepare, generic_closure_setup, generic_closure_compare);
 }
 
 void OSLShader::register_closures(OSL::ShadingSystem *ss)

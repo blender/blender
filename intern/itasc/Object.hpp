@@ -33,7 +33,7 @@ public:
     virtual ~Object(){};
 
 	virtual int addEndEffector(const std::string& name){return 0;};
-	virtual void finalize(){};
+	virtual bool finalize(){return true;};
 	virtual const KDL::Frame& getPose(const unsigned int end_effector=0){return m_internalPose;};
     virtual const ObjectType getType(){return m_type;};
     virtual const unsigned int getNrOfCoordinates(){return 0;};

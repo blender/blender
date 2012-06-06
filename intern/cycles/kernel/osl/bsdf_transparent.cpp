@@ -42,54 +42,55 @@ using namespace OSL;
 
 class TransparentClosure : public BSDFClosure {
 public:
-    TransparentClosure() : BSDFClosure(Labels::STRAIGHT, Back) { }
+	TransparentClosure() : BSDFClosure(Labels::STRAIGHT, Back) {}
 
-    void setup() {}
+	void setup() {}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "transparent"; }
+	const char *name() const { return "transparent"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " ()";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " ()";
+	}
 
-    float albedo (const Vec3 &omega_out) const
-    {
-        return 1.0f;
-    }
+	float albedo(const Vec3 &omega_out) const
+	{
+		return 1.0f;
+	}
 
-    Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    ustring sample (const Vec3 &Ng,
-                 const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-                 float randu, float randv,
-                 Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-                 float &pdf, Color3 &eval) const
-    {
-        // only one direction is possible
-        omega_in = -omega_out;
-        domega_in_dx = -domega_out_dx;
-        domega_in_dy = -domega_out_dy;
-        pdf = 1;
-        eval.setValue(1, 1, 1);
-        return Labels::TRANSMIT;
-    }
+	ustring sample(const Vec3 &Ng,
+	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
+	               float randu, float randv,
+	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
+	               float &pdf, Color3 &eval) const
+	{
+		// only one direction is possible
+		omega_in = -omega_out;
+		domega_in_dx = -domega_out_dx;
+		domega_in_dy = -domega_out_dy;
+		pdf = 1;
+		eval.setValue(1, 1, 1);
+		return Labels::TRANSMIT;
+	}
 };
 
 
 
 ClosureParam bsdf_transparent_params[] = {
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(TransparentClosure) };
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(TransparentClosure)
+};
 
 CLOSURE_PREPARE(bsdf_transparent_prepare, TransparentClosure)
 

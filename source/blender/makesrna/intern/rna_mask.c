@@ -324,7 +324,7 @@ static void rna_def_maskParent(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}};
 
 	srna = RNA_def_struct(brna, "MaskParent", NULL);
-	RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for maskign element");
+	RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for masking element");
 
 	/* use_parent */
 	prop = RNA_def_property(srna, "use_parent", PROP_BOOLEAN, PROP_NONE);
@@ -497,7 +497,7 @@ static void rna_def_maskSpline(BlenderRNA *brna)
 	rna_def_maskSplinePoint(brna);
 
 	srna = RNA_def_struct(brna, "MaskSpline", NULL);
-	RNA_def_struct_ui_text(srna, "Mask spline", "Single spline used for defining mash shape");
+	RNA_def_struct_ui_text(srna, "Mask spline", "Single spline used for defining mask shape");
 
 	/* weight interpolation */
 	prop = RNA_def_property(srna, "weight_interpolation", PROP_ENUM, PROP_NONE);
@@ -583,7 +583,7 @@ static void rna_def_mask_layer(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "invert", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "blend_flag", MASK_BLENDFLAG_INVERT);
-	RNA_def_property_ui_text(prop, "Restrict View", "Restrict visibility in the viewport");
+	RNA_def_property_ui_text(prop, "Restrict View", "Invert the mask black/white");
 	RNA_def_property_update(prop, NC_MASK | NA_EDITED, NULL);
 
 }

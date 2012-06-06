@@ -31,12 +31,9 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
@@ -47,10 +44,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "ED_screen.h"
-#include "ED_mask.h"
-#include "ED_clip.h"
-#include "ED_keyframing.h"
+#include "ED_mask.h"  /* own include */
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -156,7 +150,7 @@ static int find_nearest_diff_point(bContext *C, Mask *mask, const float normal_c
 			*point_r = point;
 
 		if (u_r) {
-			u = BKE_mask_spline_project_co(point_spline, point, u, normal_co);
+			u = BKE_mask_spline_project_co(point_spline, point, u, normal_co, MASK_PROJ_ANY);
 
 			*u_r = u;
 		}
@@ -630,7 +624,7 @@ void MASK_OT_add_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_vertex_exec;
 	ot->invoke = add_vertex_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -660,6 +654,11 @@ static int add_feather_vertex_exec(bContext *C, wmOperator *op)
 	if (find_nearest_diff_point(C, mask, co, threshold, TRUE, &masklay, &spline, &point, &u, NULL)) {
 		Scene *scene = CTX_data_scene(C);
 		float w = BKE_mask_point_weight(spline, point, u);
+		float weight_scalar = BKE_mask_point_weight_scalar(spline, point, u);
+
+		if (weight_scalar != 0.0f) {
+			w = w / weight_scalar;
+		}
 
 		BKE_mask_point_add_uw(point, u, w);
 
@@ -696,7 +695,7 @@ void MASK_OT_add_feather_vertex(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = add_feather_vertex_exec;
 	ot->invoke = add_feather_vertex_invoke;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

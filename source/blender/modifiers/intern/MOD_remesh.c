@@ -87,6 +87,7 @@ static void init_dualcon_mesh(DualConInput *mesh, DerivedMesh *dm)
 	mesh->face_stride = sizeof(MFace);
 	mesh->totface = dm->getNumTessFaces(dm);
 
+	INIT_MINMAX(mesh->min, mesh->max);
 	dm->getMinMax(dm, mesh->min, mesh->max);
 }
 

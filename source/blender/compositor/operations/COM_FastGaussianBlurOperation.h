@@ -30,7 +30,7 @@ class FastGaussianBlurOperation: public BlurBaseOperation {
 private:
 	float sx;
 	float sy;
-	bool iirgaus;
+	MemoryBuffer* iirgaus;
 public:
 	FastGaussianBlurOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -38,7 +38,8 @@ public:
 	
 	static void IIR_gauss(MemoryBuffer *src, float sigma, int channel, int xy);
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data);
+	void deinitExecution();
+	void initExecution();
 	
 };
 #endif

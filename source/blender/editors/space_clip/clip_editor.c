@@ -129,7 +129,7 @@ int ED_space_clip_tracking_frame_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_maskediting_poll(bContext *C)
+int ED_space_clip_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
@@ -140,9 +140,9 @@ int ED_space_clip_maskediting_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_maskediting_mask_poll(bContext *C)
+int ED_space_clip_maskedit_mask_poll(bContext *C)
 {
-	if (ED_space_clip_maskediting_poll(C)) {
+	if (ED_space_clip_maskedit_poll(C)) {
 		MovieClip *clip = CTX_data_edit_movieclip(C);
 
 		if (clip) {
@@ -282,7 +282,7 @@ void ED_space_clip_mask_aspect(SpaceClip *sc, float *aspx, float *aspy)
 	*aspy *= (float)h;
 #endif
 
-	if(*aspx < *aspy) {
+	if (*aspx < *aspy) {
 		*aspy= *aspy / *aspx;
 		*aspx= 1.0f;
 	}
@@ -329,7 +329,7 @@ void ED_space_clip_aspect_dimension_aware(SpaceClip *sc, float *aspx, float *asp
 	*aspx *= (float)w;
 	*aspy *= (float)h;
 
-	if(*aspx < *aspy) {
+	if (*aspx < *aspy) {
 		*aspy= *aspy / *aspx;
 		*aspx= 1.0f;
 	}
@@ -544,7 +544,10 @@ typedef struct SpaceClipDrawContext {
 	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
 	int image_width, image_height;	/* image width and height for which texture was created */
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
-	int framenr;
+
+	/* fields to check if cache is still valid */
+	int framenr, start_frame;
+	short custom_start_frame;
 } SpaceClipDrawContext;
 
 int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
@@ -582,6 +585,14 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
 	need_rebind |= context->framenr != sc->user.framenr;
+
+	if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
+		need_rebind |= context->custom_start_frame != TRUE;
+		need_rebind |= context->start_frame != clip->start_frame;
+	}
+	else {
+		need_rebind |= context->custom_start_frame != FALSE;
+	}
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -636,6 +647,8 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
+		context->start_frame = clip->start_frame;
+		context->custom_start_frame = (clip->flag & MCLIP_CUSTOM_START_FRAME) ? TRUE : FALSE;
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,
@@ -681,7 +694,7 @@ int ED_space_clip_show_trackedit(SpaceClip *sc)
 int ED_space_clip_show_maskedit(SpaceClip *sc)
 {
 	if (sc) {
-		return sc->mode == SC_MODE_MASKEDITING;
+		return sc->mode == SC_MODE_MASKEDIT;
 	}
 
 	return FALSE;
@@ -691,9 +704,11 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
 	sc->mask = mask;
 
-	if(sc->mask && sc->mask->id.us==0)
+	if (sc->mask && sc->mask->id.us==0) {
 		sc->clip->id.us = 1;
+	}
 
-	if(C)
+	if (C) {
 		WM_event_add_notifier(C, NC_MASK|NA_SELECTED, mask);
+	}
 }

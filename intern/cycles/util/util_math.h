@@ -162,6 +162,12 @@ __device_inline float nonzerof(float f, float eps)
 		return f;
 }
 
+__device_inline float smoothstepf(float f)
+{
+	float ff = f*f;
+	return (3.0f*ff - 2.0f*ff*f);
+}
+
 /* Float2 Vector */
 
 #ifndef __KERNEL_OPENCL__

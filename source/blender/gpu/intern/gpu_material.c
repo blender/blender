@@ -772,7 +772,7 @@ static void shade_one_light(GPUShadeInput *shi, GPUShadeResult *shr, GPULamp *la
 			GPU_link(mat, "mtex_value_invert", shadfac, &shadfac);
 			GPU_link(mat, "mix_mult",  shadfac, rgb, GPU_uniform(lamp->shadow_color), &rgb);
 			GPU_link(mat, "mtex_value_invert", shadfac, &shadfac);
-            add_to_diffuse(mat, ma, shi, is, rgb, &shr->diff);
+			add_to_diffuse(mat, ma, shi, is, rgb, &shr->diff);
 		}
 	}
 

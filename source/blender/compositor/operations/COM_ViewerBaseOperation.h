@@ -42,7 +42,7 @@ protected:
 	bool doColorPredivide;
 
 public:
-	bool isOutputOperation(bool rendering) const {return true;}
+	bool isOutputOperation(bool rendering) const {return isActiveViewerOutput();}
 	void initExecution();
 	void deinitExecution();
 	void setImage(Image *image) {this->image = image;}

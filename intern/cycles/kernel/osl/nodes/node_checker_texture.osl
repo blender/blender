@@ -42,9 +42,9 @@ float checker(point p)
 shader node_checker_texture(
 	float Scale = 5.0,
 	point Vector = P,
-	color Color1 = color(0.8, 0.8, 0.8);
-	color Color2 = color(0.2, 0.2, 0.2);
-	output float Fac = 0.0)
+	color Color1 = color(0.8, 0.8, 0.8),
+	color Color2 = color(0.2, 0.2, 0.2),
+	output float Fac = 0.0,
 	output color Color = color(0.0, 0.0, 0.0))
 {
 	Fac = checker(Vector*Scale);

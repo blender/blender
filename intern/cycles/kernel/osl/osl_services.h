@@ -57,19 +57,19 @@ public:
 	bool get_inverse_matrix(OSL::Matrix44 &result, ustring to, float time);
 
 	bool get_array_attribute(void *renderstate, bool derivatives, 
-		ustring object, TypeDesc type, ustring name,
-		int index, void *val);
+	                         ustring object, TypeDesc type, ustring name,
+	                         int index, void *val);
 	bool get_attribute(void *renderstate, bool derivatives, ustring object,
-		TypeDesc type, ustring name, void *val);
+	                   TypeDesc type, ustring name, void *val);
 
 	bool get_userdata(bool derivatives, ustring name, TypeDesc type, 
-		void *renderstate, void *val);
+	                  void *renderstate, void *val);
 	bool has_userdata(ustring name, TypeDesc type, void *renderstate);
 
 	void *get_pointcloud_attr_query(ustring *attr_names,
-		TypeDesc *attr_types, int nattrs);
+	                                TypeDesc *attr_types, int nattrs);
 	int pointcloud(ustring filename, const OSL::Vec3 &center, float radius,
-		int max_points, void *attr_query, void **attr_outdata);
+	               int max_points, void *attr_query, void **attr_outdata);
 
 private:
 	KernelGlobals *kernel_globals;
@@ -79,8 +79,7 @@ private:
 	   right now it only caches the types already converted to
 	   Partio constants. this is what get_pointcloud_attr_query
 	   returns */
-	struct AttrQuery
-	{
+	struct AttrQuery {
 		/* names of the attributes to query */
 		std::vector<ustring> attr_names;
 		/* types as (enum Partio::ParticleAttributeType) of the

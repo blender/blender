@@ -42,62 +42,63 @@ using namespace OSL;
 
 class BSSRDFCubicClosure : public BSSRDFClosure {
 public:
-    Color3 m_radius;
-    Color3 m_scale;
-    float  m_max_radius;
+	Color3 m_radius;
+	Color3 m_scale;
+	float m_max_radius;
 
-    template <typename T>
-    static inline T pow3 (const T &x) { return x * x * x; }
+	template <typename T>
+	static inline T pow3(const T &x) { return x * x * x; }
 
-    template <typename T>
-    static inline T pow5 (const T &x) { T x2 = x * x; return x2 * x2 * x; }
+	template <typename T>
+	static inline T pow5(const T &x) { T x2 = x * x; return x2 * x2 * x; }
 
-    BSSRDFCubicClosure() { }
+	BSSRDFCubicClosure() {}
 
-    void setup()
-    {
-        // pre-compute some terms
-        m_max_radius = 0;
-        for (int i = 0; i < 3; i++) {
-            m_scale[i] = m_radius[i] > 0 ? 4 / pow5 (m_radius[i]) : 0;
-            m_max_radius = std::max (m_max_radius, m_radius[i]);
-        }
-    }
+	void setup()
+	{
+		// pre-compute some terms
+		m_max_radius = 0;
+		for (int i = 0; i < 3; i++) {
+			m_scale[i] = m_radius[i] > 0 ? 4 / pow5(m_radius[i]) : 0;
+			m_max_radius = std::max(m_max_radius, m_radius[i]);
+		}
+	}
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const BSSRDFCubicClosure *comp = (const BSSRDFCubicClosure *)other;
-        return m_radius == comp->m_radius && BSSRDFClosure::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const BSSRDFCubicClosure *comp = (const BSSRDFCubicClosure *)other;
+		return m_radius == comp->m_radius && BSSRDFClosure::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "bssrdf_cubic"; }
+	const char *name() const { return "bssrdf_cubic"; }
 
-    void print_on (std::ostream &out) const
-    {
-        out << name() << " ((" << m_radius[0] << ", " << m_radius[1] << ", " << m_radius[2] << "), ("
-            << m_scale[0] << ", " << m_scale[1] << ", " << m_scale[2] << "))";
-    }
+	void print_on(std::ostream &out) const
+	{
+		out << name() << " ((" << m_radius[0] << ", " << m_radius[1] << ", " << m_radius[2] << "), ("
+		    << m_scale[0] << ", " << m_scale[1] << ", " << m_scale[2] << "))";
+	}
 
-    Color3 eval (float r) const
-    {
-        return Color3 ((r < m_radius.x) ? pow3 (m_radius.x - r) * m_scale.x : 0,
-                       (r < m_radius.y) ? pow3 (m_radius.y - r) * m_scale.y : 0,
-                       (r < m_radius.z) ? pow3 (m_radius.z - r) * m_scale.z : 0);
-    }
+	Color3 eval(float r) const
+	{
+		return Color3((r < m_radius.x) ? pow3(m_radius.x - r) * m_scale.x : 0,
+		              (r < m_radius.y) ? pow3(m_radius.y - r) * m_scale.y : 0,
+		              (r < m_radius.z) ? pow3(m_radius.z - r) * m_scale.z : 0);
+	}
 
-    float max_radius() const
-    {
-        return m_max_radius;
-    }
+	float max_radius() const
+	{
+		return m_max_radius;
+	}
 };
 
 
 
 ClosureParam closure_bssrdf_cubic_params[] = {
-    CLOSURE_COLOR_PARAM (BSSRDFCubicClosure, m_radius),
-    CLOSURE_STRING_KEYPARAM ("label"),
-    CLOSURE_FINISH_PARAM(BSSRDFCubicClosure) };
+	CLOSURE_COLOR_PARAM(BSSRDFCubicClosure, m_radius),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(BSSRDFCubicClosure)
+};
 
 CLOSURE_PREPARE(closure_bssrdf_cubic_prepare, BSSRDFCubicClosure)
 

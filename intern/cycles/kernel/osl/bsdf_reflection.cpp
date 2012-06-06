@@ -42,65 +42,66 @@ using namespace OSL;
 
 class ReflectionClosure : public BSDFClosure {
 public:
-    Vec3  m_N;    // shading normal
-    ReflectionClosure() : BSDFClosure(Labels::SINGULAR) { }
+	Vec3 m_N;     // shading normal
+	ReflectionClosure() : BSDFClosure(Labels::SINGULAR) {}
 
-    void setup() {};
+	void setup() {};
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const ReflectionClosure *comp = (const ReflectionClosure *)other;
-        return m_N == comp->m_N && BSDFClosure::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const ReflectionClosure *comp = (const ReflectionClosure *)other;
+		return m_N == comp->m_N && BSDFClosure::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "reflection"; }
+	const char *name() const { return "reflection"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " (";
-        out << "(" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " (";
+		out << "(" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "))";
+	}
 
-    float albedo (const Vec3 &omega_out) const
-    {
-        return 1.0f;
-    }
+	float albedo(const Vec3 &omega_out) const
+	{
+		return 1.0f;
+	}
 
-    Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    ustring sample (const Vec3 &Ng,
-                 const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-                 float randu, float randv,
-                 Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-                 float &pdf, Color3 &eval) const
-    {
-        // only one direction is possible
-        float cosNO = m_N.dot(omega_out);
-        if (cosNO > 0) {
-            omega_in = (2 * cosNO) * m_N - omega_out;
-            if (Ng.dot(omega_in) > 0) {
-                domega_in_dx = 2 * m_N.dot(domega_out_dx) * m_N - domega_out_dx;
-                domega_in_dy = 2 * m_N.dot(domega_out_dy) * m_N - domega_out_dy;
-                pdf = 1;
-                eval.setValue(1, 1, 1);
-            }
-        }
-        return Labels::REFLECT;
-    }
+	ustring sample(const Vec3 &Ng,
+	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
+	               float randu, float randv,
+	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
+	               float &pdf, Color3 &eval) const
+	{
+		// only one direction is possible
+		float cosNO = m_N.dot(omega_out);
+		if (cosNO > 0) {
+			omega_in = (2 * cosNO) * m_N - omega_out;
+			if (Ng.dot(omega_in) > 0) {
+				domega_in_dx = 2 * m_N.dot(domega_out_dx) * m_N - domega_out_dx;
+				domega_in_dy = 2 * m_N.dot(domega_out_dy) * m_N - domega_out_dy;
+				pdf = 1;
+				eval.setValue(1, 1, 1);
+			}
+		}
+		return Labels::REFLECT;
+	}
 };
 
 ClosureParam bsdf_reflection_params[] = {
-    CLOSURE_VECTOR_PARAM(ReflectionClosure, m_N),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(ReflectionClosure) };
+	CLOSURE_VECTOR_PARAM(ReflectionClosure, m_N),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(ReflectionClosure)
+};
 
 CLOSURE_PREPARE(bsdf_reflection_prepare, ReflectionClosure)
 

@@ -153,9 +153,15 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	BLI_strncpy(name, clip->name, sizeof(clip->name));
 	BLI_stringdec(name, head, tail, &numlen);
 
-	/* movieclips always points to first image from sequence,
-	 * autoguess offset for now. could be something smarter in the future */
-	offset = sequence_guess_offset(clip->name, strlen(head), numlen);
+	if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
+		offset = clip->start_frame;
+	}
+	else {
+		/* movieclips always points to first image from sequence,
+		 * autoguess offset for now. could be something smarter in the future
+		 */
+		offset = sequence_guess_offset(clip->name, strlen(head), numlen);
+	}
 
 	if (numlen)
 		BLI_stringenc(name, head, tail, numlen, offset + framenr - 1);
@@ -249,6 +255,10 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 
 		dur = IMB_anim_get_duration(clip->anim, tc);
 		fra = framenr - 1;
+
+		if (clip->flag & MCLIP_CUSTOM_START_FRAME) {
+			fra += clip->start_frame - 1;
+		}
 
 		if (fra < 0)
 			fra = 0;
@@ -442,6 +452,8 @@ static MovieClip *movieclip_alloc(const char *name)
 	                            IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN |
 	                            IMB_TC_RECORD_RUN_NO_GAPS;
 	clip->proxy.quality = 90;
+
+	clip->start_frame = 1;
 
 	return clip;
 }

@@ -28,7 +28,7 @@ public:
 	virtual void updateKinematics(const Timestamp& timestamp);
     virtual void pushCache(const Timestamp& timestamp);
 	virtual void initCache(Cache *_cache);
-	virtual void finalize();
+	virtual bool finalize();
 protected:
 	virtual void updateJacobian();
 

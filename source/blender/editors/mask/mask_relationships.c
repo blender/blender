@@ -29,31 +29,22 @@
  *  \ingroup edmask
  */
 
-#include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
-#include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 #include "BKE_tracking.h"
 
 #include "DNA_mask_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_object_types.h"  /* SELECT */
 
 #include "WM_api.h"
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_mask.h"
-#include "ED_clip.h"
-
-#include "RNA_access.h"
-#include "RNA_define.h"
+#include "ED_mask.h"  /* own include */
 
 #include "mask_intern.h"  /* own include */
 
@@ -91,13 +82,13 @@ void MASK_OT_parent_clear(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Clear Parent";
-	ot->description = "Clear the masks parenting";
+	ot->description = "Clear the mask's parenting";
 	ot->idname = "MASK_OT_parent_clear";
 
 	/* api callbacks */
 	ot->exec = mask_parent_clear_exec;
 
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -169,14 +160,14 @@ void MASK_OT_parent_set(wmOperatorType *ot)
 {
 	/* identifiers */
 	ot->name = "Make Parent";
-	ot->description = "Set the masks parenting";
+	ot->description = "Set the mask's parenting";
 	ot->idname = "MASK_OT_parent_set";
 
 	/* api callbacks */
 	//ot->invoke = mask_parent_set_invoke;
 	ot->exec = mask_parent_set_exec;
 
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

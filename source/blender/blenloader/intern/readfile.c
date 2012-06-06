@@ -6228,7 +6228,7 @@ static void lib_link_mask(FileData *fd, Main *main)
 
 	mask = main->mask.first;
 	while (mask) {
-		if(mask->id.flag & LIB_NEEDLINK) {
+		if (mask->id.flag & LIB_NEEDLINK) {
 			MaskLayer *masklay;
 
 			if (mask->adt)
@@ -6725,6 +6725,11 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			char basepath[FILE_MAXDIR];
 			char filename[FILE_MAXFILE];
 			
+			/* ugly, need to remove the old inputs list to avoid bad pointer checks when adding new sockets.
+			 * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
+			 */
+			node->inputs.first = node->inputs.last = NULL;
+			
 			node->storage = nimf;
 			
 			/* split off filename from the old path, to be used as socket sub-path */
@@ -6895,6 +6900,22 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 		
 		/* initialize custom node color */
 		node->color[0] = node->color[1] = node->color[2] = 0.608f;	/* default theme color */
+	}
+}
+
+static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+			NodeTexImage *tex = node->storage;
+
+			tex->iuser.frames= 1;
+			tex->iuser.sfra= 1;
+			tex->iuser.fie_ima= 2;
+			tex->iuser.ok= 1;
+		}
 	}
 }
 
@@ -7604,6 +7625,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->gm.angulardeactthreshold = 1.0f;
 			sce->gm.deactivationtime = 2.0f;
 		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 9)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+		
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_image_user_264);
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

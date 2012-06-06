@@ -23,7 +23,7 @@ public:
 
 	virtual void updateCoordinates(const Timestamp& timestamp) {};
 	virtual int addEndEffector(const std::string& name);
-	virtual void finalize();
+	virtual bool finalize();
 	virtual const Frame& getPose(const unsigned int frameIndex);
 	virtual void updateKinematics(const Timestamp& timestamp) {};
 	virtual void pushCache(const Timestamp& timestamp) {};

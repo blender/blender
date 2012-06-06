@@ -31,12 +31,10 @@
 
 #include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
-#include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_mask.h"
 
@@ -315,7 +313,7 @@ void MASK_OT_layer_new(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = masklay_new_exec;
-	ot->poll = ED_maskediting_poll;
+	ot->poll = ED_maskedit_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -349,7 +347,7 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = masklay_remove_exec;
-	ot->poll = ED_maskediting_poll;
+	ot->poll = ED_maskedit_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -357,10 +355,12 @@ void MASK_OT_layer_remove(wmOperatorType *ot)
 
 /******************** slide *********************/
 
-#define SLIDE_ACTION_NONE       0
-#define SLIDE_ACTION_POINT      1
-#define SLIDE_ACTION_HANDLE     2
-#define SLIDE_ACTION_FEATHER    3
+enum {
+	SLIDE_ACTION_NONE    = 0,
+	SLIDE_ACTION_POINT   = 1,
+	SLIDE_ACTION_HANDLE  = 2,
+	SLIDE_ACTION_FEATHER = 3
+};
 
 typedef struct SlidePointData {
 	int action;
@@ -387,15 +387,18 @@ static int slide_point_check_initial_feather(MaskSpline *spline)
 
 	for (i = 0; i < spline->tot_point; i++) {
 		MaskSplinePoint *point = &spline->points[i];
-		int j;
 
 		if (point->bezt.weight != 0.0f)
 			return FALSE;
 
+		/* comment for now. if all bezt weights are zero - this is as good-as initial */
+#if 0
+		int j;
 		for (j = 0; j < point->tot_uw; j++) {
 			if (point->uw[j].w != 0.0f)
 				return FALSE;
 		}
+#endif
 	}
 
 	return TRUE;
@@ -454,25 +457,21 @@ static void *slide_point_customdata(bContext *C, wmOperator *op, wmEvent *event)
 
 		if (uw) {
 			float co[2];
-
-			customdata->weight = point->bezt.weight;
+			float weight_scalar = BKE_mask_point_weight_scalar(spline, point, uw->u);
 
 			customdata->weight = uw->w;
 			BKE_mask_point_segment_co(spline, point, uw->u, co);
 			BKE_mask_point_normal(spline, point, uw->u, customdata->no);
 
-			customdata->feather[0] = co[0] + customdata->no[0] * uw->w;
-			customdata->feather[1] = co[1] + customdata->no[1] * uw->w;
+			madd_v2_v2v2fl(customdata->feather, co, customdata->no, uw->w * weight_scalar);
 		}
 		else {
 			BezTriple *bezt = &point->bezt;
 
+			customdata->weight = bezt->weight;
 			BKE_mask_point_normal(spline, point, 0.0f, customdata->no);
 
-			customdata->feather[0] = bezt->vec[1][0] + customdata->no[0] * bezt->weight;
-			customdata->feather[1] = bezt->vec[1][1] + customdata->no[1] * bezt->weight;
-
-			customdata->weight = bezt->weight;
+			madd_v2_v2v2fl(customdata->feather, bezt->vec[1], customdata->no, bezt->weight);
 		}
 
 		if (customdata->action == SLIDE_ACTION_FEATHER)
@@ -533,17 +532,20 @@ static void slide_point_delta_all_feather(SlidePointData *data, float delta)
 	for (i = 0; i < data->spline->tot_point; i++) {
 		MaskSplinePoint *point = &data->spline->points[i];
 		MaskSplinePoint *orig_point = &data->orig_spline->points[i];
-		int j;
 
 		point->bezt.weight = orig_point->bezt.weight + delta;
 		if (point->bezt.weight < 0.0f)
 			point->bezt.weight = 0.0f;
 
+		/* not needed anymore */
+#if 0
+		int j;
 		for (j = 0; j < point->tot_uw; j++) {
 			point->uw[j].w = orig_point->uw[j].w + delta;
 			if (point->uw[j].w < 0.0f)
 				point->uw[j].w = 0.0f;
 		}
+#endif
 	}
 }
 
@@ -645,24 +647,53 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			else if (data->action == SLIDE_ACTION_FEATHER) {
 				float vec[2], no[2], p[2], c[2], w, offco[2];
 				float *weight = NULL;
+				float weight_scalar = 1.0f;
 				int overall_feather = data->overall_feather || data->initial_feather;
 
 				add_v2_v2v2(offco, data->feather, dco);
 
 				if (data->uw) {
-					float u = BKE_mask_spline_project_co(data->spline, data->point, data->uw->u, offco);
+					/* project on both sides and find the closest one,
+					 * prevents flickering when projecting onto both sides can happen */
+					const float u_pos = BKE_mask_spline_project_co(data->spline, data->point,
+					                                               data->uw->u, offco, MASK_PROJ_NEG);
+					const float u_neg = BKE_mask_spline_project_co(data->spline, data->point,
+					                                               data->uw->u, offco, MASK_PROJ_POS);
+					float dist_pos = FLT_MAX;
+					float dist_neg = FLT_MAX;
+					float co_pos[2];
+					float co_neg[2];
+					float u;
+
+					if (u_pos > 0.0f && u_pos < 1.0f) {
+						BKE_mask_point_segment_co(data->spline, data->point, u_pos, co_pos);
+						dist_pos = len_squared_v2v2(offco, co_pos);
+					}
+
+					if (u_neg > 0.0f && u_neg < 1.0f) {
+						BKE_mask_point_segment_co(data->spline, data->point, u_neg, co_neg);
+						dist_neg = len_squared_v2v2(offco, co_neg);
+					}
+
+					u = dist_pos < dist_neg ? u_pos : u_neg;
 
 					if (u > 0.0f && u < 1.0f) {
 						data->uw->u = u;
 
 						data->uw = BKE_mask_point_sort_uw(data->point, data->uw);
 						weight = &data->uw->w;
+						weight_scalar = BKE_mask_point_weight_scalar(data->spline, data->point, u);
+						if (weight_scalar != 0.0f) {
+							weight_scalar = 1.0f / weight_scalar;
+						}
+
 						BKE_mask_point_normal(data->spline, data->point, data->uw->u, no);
 						BKE_mask_point_segment_co(data->spline, data->point, data->uw->u, p);
 					}
 				}
 				else {
 					weight = &bezt->weight;
+					/* weight_scalar = 1.0f; keep as is */
 					copy_v2_v2(no, data->no);
 					copy_v2_v2(p, bezt->vec[1]);
 				}
@@ -685,7 +716,7 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 							/* restore weight for currently sliding point, so orig_spline would be created
 							 * with original weights used
 							 */
-							*weight = data->weight;
+							*weight = data->weight * weight_scalar;
 
 							data->orig_spline = BKE_mask_spline_copy(data->spline);
 						}
@@ -704,7 +735,9 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 							data->orig_spline = NULL;
 						}
 
-						*weight = w;
+						if (weight_scalar != 0.0f) {
+							*weight = w * weight_scalar;
+						}
 					}
 				}
 			}
@@ -756,12 +789,12 @@ void MASK_OT_slide_point(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = slide_point_invoke;
 	ot->modal = slide_point_modal;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide slide feather instead of vertex");
+	RNA_def_boolean(ot->srna, "slide_feather", 0, "Slide Feather", "First try to slide feather instead of vertex");
 }
 
 /******************** toggle cyclic *********************/
@@ -799,7 +832,7 @@ void MASK_OT_cyclic_toggle(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = cyclic_toggle_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -943,7 +976,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_operator_confirm;
 	ot->exec = delete_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -994,7 +1027,7 @@ void MASK_OT_switch_direction(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_switch_direction_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1053,7 +1086,7 @@ void MASK_OT_handle_type_set(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = WM_menu_invoke;
 	ot->exec = set_handle_type_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1100,7 +1133,7 @@ void MASK_OT_hide_view_clear(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_hide_view_clear_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1161,11 +1194,67 @@ void MASK_OT_hide_view_set(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_hide_view_set_exec;
-	ot->poll = ED_maskediting_mask_poll;
+	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	RNA_def_boolean(ot->srna, "unselected", 0, "Unselected", "Hide unselected rather than selected layers");
+}
 
+
+static int mask_feather_weight_clear_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	int changed = FALSE;
+	int i;
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_SELECT | MASK_RESTRICT_VIEW)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL_ANY(point)) {
+					BezTriple *bezt = &point->bezt;
+					bezt->weight = 0.0f;
+					changed = TRUE;
+				}
+			}
+		}
+	}
+
+	if (changed) {
+		/* TODO: only update edited splines */
+		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+
+		WM_event_add_notifier(C, NC_MASK | ND_DRAW, mask);
+		DAG_id_tag_update(&mask->id, 0);
+
+		return OPERATOR_FINISHED;
+	}
+	else {
+		return OPERATOR_CANCELLED;
+	}
+}
+
+void MASK_OT_feather_weight_clear(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Clear Feather Weight";
+	ot->description = "Reset the feather weight to zero";
+	ot->idname = "MASK_OT_feather_weight_clear";
+
+	/* api callbacks */
+	ot->exec = mask_feather_weight_clear_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }

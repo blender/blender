@@ -804,7 +804,7 @@ void AnimationImporter::translate_Animations ( COLLADAFW::Node * node,
 
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	COLLADAFW::Node *root = root_map.find(node->getUniqueId()) == root_map.end() ? node : root_map[node->getUniqueId()];
-    Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map.find(node->getUniqueId())->second;
+	Object *ob = is_joint ? armature_importer->get_armature_for_joint(root) : object_map.find(node->getUniqueId())->second;
 	if (!ob) {
 		fprintf(stderr, "cannot find Object for Node with id=\"%s\"\n", node->getOriginalId().c_str());
 		return;

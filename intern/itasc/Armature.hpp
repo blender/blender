@@ -31,7 +31,7 @@ public:
 	bool getSegment(const std::string& segment_name, const unsigned int q_size, const Joint* &p_joint, double &q_rest, double &q, const Frame* &p_tip);
 	bool getRelativeFrame(Frame& result, const std::string& segment_name, const std::string& base_name=m_root);
 
-	virtual void finalize();
+	virtual bool finalize();
 
 	virtual int addEndEffector(const std::string& name);
 	virtual const Frame& getPose(const unsigned int end_effector);

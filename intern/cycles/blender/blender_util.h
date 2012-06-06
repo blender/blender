@@ -53,6 +53,7 @@ int rna_Object_is_deform_modified(void *ob, void *scene, int settings);
 void BLI_timestr(double _time, char *str);
 void rna_ColorRamp_eval(void *coba, float position, float color[4]);
 void rna_Scene_frame_set(void *scene, int frame, float subframe);
+void BKE_image_user_file_path(void *iuser, void *ima, int cfra, char *path);
 
 }
 
@@ -99,6 +100,13 @@ static inline bool BKE_object_is_modified(BL::Object self, BL::Scene scene, bool
 static inline bool BKE_object_is_deform_modified(BL::Object self, BL::Scene scene, bool preview)
 {
 	return rna_Object_is_deform_modified(self.ptr.data, scene.ptr.data, (preview)? (1<<0): (1<<1))? true: false;
+}
+
+static inline string image_user_file_path(BL::ImageUser iuser, BL::Image ima, int cfra)
+{
+	char filepath[1024];
+	BKE_image_user_file_path(iuser.ptr.data, ima.ptr.data, cfra, filepath);
+	return string(filepath);
 }
 
 static inline void scene_frame_set(BL::Scene scene, int frame)

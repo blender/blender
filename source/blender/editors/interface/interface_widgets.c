@@ -162,9 +162,10 @@ static unsigned int scroll_circle_face[14][3] = {
 };
 
 
-static float menu_tria_vert[6][2]= {
-{-0.33, 0.16}, {0.33, 0.16}, {0, 0.82}, 
-{0, -0.82}, {-0.33, -0.16}, {0.33, -0.16}};
+static float menu_tria_vert[6][2] = {
+	{-0.33, 0.16}, {0.33, 0.16}, {0, 0.82},
+	{0, -0.82}, {-0.33, -0.16}, {0.33, -0.16}
+};
 
 
 
@@ -1168,7 +1169,7 @@ static void widget_draw_text(uiFontStyle *fstyle, uiWidgetColors *wcol, uiBut *b
 
 #if 0
 	ui_rasterpos_safe(x, y, but->aspect);
-	if (but->type == IDPOIN) transopts = 0;	// no translation, of course!
+	if (but->type == IDPOIN) transopts = 0;  // no translation, of course!
 	else transopts = ui_translate_buttons();
 #endif
 
@@ -3133,7 +3134,7 @@ void ui_draw_but(const bContext *C, ARegion *ar, uiStyle *style, uiBut *but, rct
 					if (but->drawflag & UI_BUT_DRAW_ENUM_ARROWS)
 						wt = widget_type(UI_WTYPE_MENU_RADIO);  /* with arrows */
 					else
-						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO); /* no arrows */
+						wt = widget_type(UI_WTYPE_MENU_ICON_RADIO);  /* no arrows */
 				}
 				/* with menu arrows */
 				else

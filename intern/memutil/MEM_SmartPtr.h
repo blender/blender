@@ -119,7 +119,7 @@ public :
 
 	MEM_SmartPtr(
 		const MEM_SmartPtr &rhs
-	){
+	) {
 		m_val = rhs.Release();
 	}
 

@@ -198,7 +198,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	clip_draw_curfra_label(sc, x, 8.0f);
 
 	/* movie clip animation */
-	if ((sc->mode == SC_MODE_MASKEDITING) && sc->mask) {
+	if ((sc->mode == SC_MODE_MASKEDIT) && sc->mask) {
 		MaskLayer *masklay = BKE_mask_layer_active(sc->mask);
 		if (masklay) {
 			MaskLayerShape *masklay_shape;

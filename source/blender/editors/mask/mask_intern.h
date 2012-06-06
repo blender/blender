@@ -54,6 +54,7 @@ void MASK_OT_delete(struct wmOperatorType *ot);
 
 void MASK_OT_hide_view_clear(struct wmOperatorType *ot);
 void MASK_OT_hide_view_set(struct wmOperatorType *ot);
+void MASK_OT_feather_weight_clear(struct wmOperatorType *ot);
 void MASK_OT_switch_direction(struct wmOperatorType *ot);
 
 void MASK_OT_handle_type_set(struct wmOperatorType *ot);
@@ -92,8 +93,8 @@ void ED_mask_select_toggle_all(struct Mask *mask, int action);
 void ED_mask_select_flush_all(struct Mask *mask);
 
 /* mask_editor.c */
-int ED_maskediting_poll(struct bContext *C);
-int ED_maskediting_mask_poll(struct bContext *C);
+int ED_maskedit_poll(struct bContext *C);
+int ED_maskedit_mask_poll(struct bContext *C);
 
 void ED_mask_size(struct bContext *C, int *width, int *height);
 void ED_mask_aspect(struct bContext *C, float *aspx, float *aspy);
@@ -107,5 +108,6 @@ void ED_mask_point_pos__reverse(struct bContext *C, float x, float y, float *xr,
 /* mask_shapekey.c */
 void MASK_OT_shape_key_insert(struct wmOperatorType *ot);
 void MASK_OT_shape_key_clear(struct wmOperatorType *ot);
+void MASK_OT_shape_key_feather_reset(struct wmOperatorType *ot);
 
 #endif /* __MASK_INTERN_H__ */

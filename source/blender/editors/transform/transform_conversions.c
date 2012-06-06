@@ -5918,8 +5918,16 @@ static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
 			memset(td->axismtx, 0, sizeof(td->axismtx));
 			td->axismtx[2][2] = 1.0f;
 
-			td->ext= NULL;
-			td->val= NULL;
+			td->ext = NULL;
+
+			if (i == 1) {
+				/* scaling weights */
+				td->val = &bezt->weight;
+				td->ival = *td->val;
+			}
+			else {
+				td->val = NULL;
+			}
 
 			if (is_sel_any) {
 				td->flag |= TD_SELECTED;
@@ -5980,6 +5988,11 @@ static void createTransMaskingData(bContext *C, TransInfo *t)
 	TransDataMasking *tdm = NULL;
 	int count = 0, countsel = 0;
 	int propmode = t->flag & T_PROP_EDIT;
+
+	t->total = 0;
+
+	if (!mask)
+		return;
 
 	/* count */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
@@ -6066,7 +6079,7 @@ void flushTransMasking(TransInfo *t)
 	invy = 1.0f/aspy;
 
 	/* flush to 2d vector from internally used 3d vector */
-	for(a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
+	for (a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
 		td->loc2d[0]= td->loc[0]*invx;
 		td->loc2d[1]= td->loc[1]*invy;
 

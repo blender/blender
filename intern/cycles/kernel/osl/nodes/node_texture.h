@@ -20,20 +20,20 @@ float voronoi_distance(string distance_metric, vector d, float e)
 {
 	float result = 0.0;
 
-	if(distance_metric == "Distance Squared")
+	if (distance_metric == "Distance Squared")
 		result = dot(d, d);
-	if(distance_metric == "Actual Distance")
+	if (distance_metric == "Actual Distance")
 		result = length(d);
-	if(distance_metric == "Manhattan")
+	if (distance_metric == "Manhattan")
 		result = fabs(d[0]) + fabs(d[1]) + fabs(d[2]);
-	if(distance_metric == "Chebychev")
+	if (distance_metric == "Chebychev")
 		result = max(fabs(d[0]), max(fabs(d[1]), fabs(d[2])));
-	if(distance_metric == "Minkovsky 1/2")
+	if (distance_metric == "Minkovsky 1/2")
 		result = sqrt(fabs(d[0])) + sqrt(fabs(d[1])) + sqrt(fabs(d[1]));
-	if(distance_metric == "Minkovsky 4")
-		result = sqrt(sqrt(dot(d*d, d*d)));
-	if(distance_metric == "Minkovsky")
-		result = pow(pow(fabs(d[0]), e) + pow(fabs(d[1]), e) + pow(fabs(d[2]), e), 1.0/e);
+	if (distance_metric == "Minkovsky 4")
+		result = sqrt(sqrt(dot(d * d, d * d)));
+	if (distance_metric == "Minkovsky")
+		result = pow(pow(fabs(d[0]), e) + pow(fabs(d[1]), e) + pow(fabs(d[2]), e), 1.0 / e);
 	
 	return result;
 }
@@ -63,9 +63,9 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 	da[2] = 1e10;
 	da[3] = 1e10;
 
-	for(xx = xi-1; xx <= xi+1; xx++) {
-		for(yy = yi-1; yy <= yi+1; yy++) {
-			for(zz = zi-1; zz <= zi+1; zz++) {
+	for (xx = xi - 1; xx <= xi + 1; xx++) {
+		for (yy = yi - 1; yy <= yi + 1; yy++) {
+			for (zz = zi - 1; zz <= zi + 1; zz++) {
 				point ip = point(xx, yy, zz);
 				point vp = (point)cellnoise_color(ip);
 				point pd = p - (vp + ip);
@@ -73,7 +73,7 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 
 				vp += point(xx, yy, zz);
 
-				if(d < da[0]) {
+				if (d < da[0]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = da[0];
@@ -84,7 +84,7 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 					pa[1] = pa[0];
 					pa[0] = vp;
 				}
-				else if(d < da[1]) {
+				else if (d < da[1]) {
 					da[3] = da[2];
 					da[2] = da[1];
 					da[1] = d;
@@ -93,14 +93,14 @@ void voronoi(point p, string distance_metric, float e, float da[4], point pa[4])
 					pa[2] = pa[1];
 					pa[1] = vp;
 				}
-				else if(d < da[2]) {
+				else if (d < da[2]) {
 					da[3] = da[2];
 					da[2] = d;
 
 					pa[3] = pa[2];
 					pa[2] = vp;
 				}
-				else if(d < da[3]) {
+				else if (d < da[3]) {
 					da[3] = d;
 					pa[3] = vp;
 				}
@@ -138,16 +138,16 @@ float voronoi_F1F2(point p) { return voronoi_FnFn(p, 0, 1); }
 float voronoi_Cr(point p)
 {
 	/* crackle type pattern, just a scale/clamp of F2-F1 */
-	float t = 10.0*voronoi_F1F2(p);
-	return (t > 1.0)? 1.0: t;
+	float t = 10.0 * voronoi_F1F2(p);
+	return (t > 1.0) ? 1.0 : t;
 }
 
-float voronoi_F1S(point p) { return 2.0*voronoi_F1(p) - 1.0; }
-float voronoi_F2S(point p) { return 2.0*voronoi_F2(p) - 1.0; }
-float voronoi_F3S(point p) { return 2.0*voronoi_F3(p) - 1.0; }
-float voronoi_F4S(point p) { return 2.0*voronoi_F4(p) - 1.0; }
-float voronoi_F1F2S(point p) { return 2.0*voronoi_F1F2(p) - 1.0; }
-float voronoi_CrS(point p) { return 2.0*voronoi_Cr(p) - 1.0; }
+float voronoi_F1S(point p) { return 2.0 * voronoi_F1(p) - 1.0; }
+float voronoi_F2S(point p) { return 2.0 * voronoi_F2(p) - 1.0; }
+float voronoi_F3S(point p) { return 2.0 * voronoi_F3(p) - 1.0; }
+float voronoi_F4S(point p) { return 2.0 * voronoi_F4(p) - 1.0; }
+float voronoi_F1F2S(point p) { return 2.0 * voronoi_F1F2(p) - 1.0; }
+float voronoi_CrS(point p) { return 2.0 * voronoi_Cr(p) - 1.0; }
 
 /* Noise Bases */
 
@@ -155,21 +155,21 @@ float noise_basis(point p, string basis)
 {
 	float result = 0.0;
 
-	if(basis == "Perlin")
+	if (basis == "Perlin")
 		result = noise(p);
-	if(basis == "Voronoi F1")
+	if (basis == "Voronoi F1")
 		result = voronoi_F1S(p);
-	if(basis == "Voronoi F2")
+	if (basis == "Voronoi F2")
 		result = voronoi_F2S(p);
-	if(basis == "Voronoi F3")
+	if (basis == "Voronoi F3")
 		result = voronoi_F3S(p);
-	if(basis == "Voronoi F4")
+	if (basis == "Voronoi F4")
 		result = voronoi_F4S(p);
-	if(basis == "Voronoi F2-F1")
+	if (basis == "Voronoi F2-F1")
 		result = voronoi_F1F2S(p);
-	if(basis == "Voronoi Crackle")
+	if (basis == "Voronoi Crackle")
 		result = voronoi_CrS(p);
-	if(basis == "Cell Noise")
+	if (basis == "Cell Noise")
 		result = cellnoise(p);
 	
 	return result;
@@ -180,7 +180,7 @@ float noise_basis(point p, string basis)
 float noise_basis_hard(point p, string basis, int hard)
 {
 	float t = noise_basis(p, basis);
-	return (hard)? fabs(2.0*t - 1.0): t;
+	return (hard) ? fabs(2.0 * t - 1.0) : t;
 }
 
 /* Waves */
@@ -189,22 +189,22 @@ float noise_wave(string wave, float a)
 {
 	float result = 0.0;
 
-	if(wave == "Sine") {
-		result = 0.5 + 0.5*sin(a);
+	if (wave == "Sine") {
+		result = 0.5 + 0.5 * sin(a);
 	}
-	else if(wave == "Saw") {
-		float b = 2*M_PI;
+	else if (wave == "Saw") {
+		float b = 2 * M_PI;
 		int n = (int)(a / b);
-		a -= n*b;
-		if(a < 0) a += b;
+		a -= n * b;
+		if (a < 0) a += b;
 
 		result = a / b;
 	}
-	else if(wave == "Tri") {
-		float b = 2*M_PI;
+	else if (wave == "Tri") {
+		float b = 2 * M_PI;
 		float rmax = 1.0;
 
-		result = rmax - 2.0*fabs(floor((a*(1.0/b))+0.5) - (a*(1.0/b)));
+		result = rmax - 2.0 * fabs(floor((a * (1.0 / b)) + 0.5) - (a * (1.0 / b)));
 	}
 
 	return result;
@@ -219,18 +219,18 @@ float noise_turbulence(point p, string basis, int octaves, int hard)
 	float sum = 0.0;
 	int i;
 
-	for(i = 0; i <= octaves; i++) {
-		float t = noise_basis(fscale*p, basis);
+	for (i = 0; i <= octaves; i++) {
+		float t = noise_basis(fscale * p, basis);
 
-		if(hard)
-			t = fabs(2.0*t - 1.0);
+		if (hard)
+			t = fabs(2.0 * t - 1.0);
 
-		sum += t*amp;
+		sum += t * amp;
 		amp *= 0.5;
 		fscale *= 2.0;
 	}
 
-	sum *= ((float)(1 << octaves)/(float)((1 << (octaves+1)) - 1));
+	sum *= ((float)(1 << octaves) / (float)((1 << (octaves + 1)) - 1));
 
 	return sum;
 }
@@ -241,8 +241,8 @@ float nonzero(float f, float eps)
 {
 	float r;
 
-	if(abs(f) < eps)
-		r = sign(f)*eps;
+	if (abs(f) < eps)
+		r = sign(f) * eps;
 	else
 		r = f;
 	

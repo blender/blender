@@ -29,9 +29,7 @@
  *  \ingroup edmask
  */
 
-#include "MEM_guardedalloc.h"
 
-#include "BLI_utildefines.h"
 #include "BLI_math.h"
 
 #include "BKE_context.h"
@@ -41,7 +39,7 @@
 #include "WM_types.h"
 
 #include "ED_screen.h"
-#include "ED_mask.h"
+#include "ED_mask.h"  /* own include */
 #include "ED_object.h" /* ED_keymap_proportional_maskmode only */
 #include "ED_clip.h"
 #include "ED_transform.h"
@@ -52,23 +50,23 @@
 
 /********************** generic poll functions *********************/
 
-int ED_maskediting_poll(bContext *C)
+int ED_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		return ED_space_clip_maskediting_poll(C);
+		return ED_space_clip_maskedit_poll(C);
 	}
 
 	return FALSE;
 }
 
-int ED_maskediting_mask_poll(bContext *C)
+int ED_maskedit_mask_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		return ED_space_clip_maskediting_mask_poll(C);
+		return ED_space_clip_maskedit_mask_poll(C);
 	}
 
 	return FALSE;
@@ -214,6 +212,9 @@ void ED_operatortypes_mask(void)
 	WM_operatortype_append(MASK_OT_hide_view_clear);
 	WM_operatortype_append(MASK_OT_hide_view_set);
 
+	/* feather */
+	WM_operatortype_append(MASK_OT_feather_weight_clear);
+
 	/* shape */
 	WM_operatortype_append(MASK_OT_slide_point);
 	WM_operatortype_append(MASK_OT_cyclic_toggle);
@@ -226,6 +227,7 @@ void ED_operatortypes_mask(void)
 	/* shapekeys */
 	WM_operatortype_append(MASK_OT_shape_key_insert);
 	WM_operatortype_append(MASK_OT_shape_key_clear);
+	WM_operatortype_append(MASK_OT_shape_key_feather_reset);
 }
 
 void ED_keymap_mask(wmKeyConfig *keyconf)
@@ -233,8 +235,8 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	wmKeyMap *keymap;
 	wmKeyMapItem *kmi;
 
-	keymap = WM_keymap_find(keyconf, "Mask Editor", 0, 0);
-	keymap->poll = ED_maskediting_poll;
+	keymap = WM_keymap_find(keyconf, "Mask Editing", 0, 0);
+	keymap->poll = ED_maskedit_poll;
 
 	WM_keymap_add_item(keymap, "MASK_OT_new", NKEY, KM_PRESS, KM_ALT, 0);
 
@@ -295,6 +297,9 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
+	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
+	/* ... matches curve editmode */
+	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", TFM_MASK_SHRINKFATTEN);
 
 	/* relationships */
 	WM_keymap_add_item(keymap, "MASK_OT_parent_set", PKEY, KM_PRESS, KM_CTRL, 0);

@@ -69,7 +69,14 @@ float (*BKE_mask_spline_feather_points(struct MaskSpline *spline, int *tot_feath
 
 void BKE_mask_point_direction_switch(struct MaskSplinePoint *point);
 void BKE_mask_spline_direction_switch(struct MaskLayer *masklay, struct MaskSpline *spline);
-float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float start_u, const float co[2]);
+
+typedef enum {
+	MASK_PROJ_NEG = -1,
+	MASK_PROJ_ANY = 0,
+	MASK_PROJ_POS = 1
+} eMaskSign;
+float BKE_mask_spline_project_co(struct MaskSpline *spline, struct MaskSplinePoint *point,
+                                 float start_u, const float co[2], const eMaskSign sign);
 
 /* point */
 int BKE_mask_point_has_handle(struct MaskSplinePoint *point);
@@ -91,6 +98,7 @@ float *BKE_mask_point_segment_feather_diff_with_resolution(struct MaskSpline *sp
 void BKE_mask_point_segment_co(struct MaskSpline *spline, struct MaskSplinePoint *point, float u, float co[2]);
 void BKE_mask_point_normal(struct MaskSpline *spline, struct MaskSplinePoint *point,
                            float u, float n[2]);
+float BKE_mask_point_weight_scalar(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
 float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, float u);
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
@@ -133,11 +141,13 @@ void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
                                          struct MaskLayerShape *masklay_shape_a,
                                          struct MaskLayerShape *masklay_shape_b,
                                          const float fac);
-struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, int frame);
-int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, int frame,
+struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, const int frame);
+int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, const int frame,
                                           struct MaskLayerShape **r_masklay_shape_a,
                                           struct MaskLayerShape **r_masklay_shape_b);
-struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);
+void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
+struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, const int frame);
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 
