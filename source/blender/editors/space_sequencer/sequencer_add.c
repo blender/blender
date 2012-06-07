@@ -46,6 +46,7 @@
 #include "BLI_utildefines.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BKE_context.h"
@@ -54,6 +55,8 @@
 #include "BKE_main.h"
 #include "BKE_sequencer.h"
 #include "BKE_movieclip.h"
+#include "BKE_sequencer.h"
+#include "BKE_mask.h"
 #include "BKE_report.h"
 
 #include "WM_api.h"
@@ -360,7 +363,6 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	return OPERATOR_FINISHED;
 }
 
-
 static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	if (!ED_operator_sequencer_active(C)) {
@@ -377,11 +379,10 @@ static int sequencer_add_movieclip_strip_invoke(bContext *C, wmOperator *op, wmE
 	// return WM_menu_invoke(C, op, event);
 }
 
-
 void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 {
 	PropertyRNA *prop;
-	
+
 	/* identifiers */
 	ot->name = "Add MovieClip Strip";
 	ot->idname = "SEQUENCER_OT_movieclip_strip_add";
@@ -392,13 +393,110 @@ void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot)
 	ot->exec = sequencer_add_movieclip_strip_exec;
 
 	ot->poll = ED_operator_scene_editable;
-	
+
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-	
+
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
 	prop = RNA_def_enum(ot->srna, "clip", DummyRNA_NULL_items, 0, "Clip", "");
 	RNA_def_enum_funcs(prop, RNA_movieclip_itemf);
+	ot->prop = prop;
+}
+
+static int sequencer_add_mask_strip_exec(bContext *C, wmOperator *op)
+{
+	Scene *scene = CTX_data_scene(C);
+	Editing *ed = BKE_sequencer_editing_get(scene, TRUE);
+
+	Mask *mask;
+
+	Sequence *seq;  /* generic strip vars */
+	Strip *strip;
+
+	int start_frame, channel; /* operator props */
+
+	start_frame = RNA_int_get(op->ptr, "frame_start");
+	channel = RNA_int_get(op->ptr, "channel");
+
+	mask = BLI_findlink(&CTX_data_main(C)->mask, RNA_enum_get(op->ptr, "mask"));
+
+	if (mask == NULL) {
+		BKE_report(op->reports, RPT_ERROR, "Mask not found");
+		return OPERATOR_CANCELLED;
+	}
+
+	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
+	seq->type = SEQ_TYPE_MASK;
+	seq->blend_mode = SEQ_TYPE_CROSS;
+	seq->mask = mask;
+
+	if (seq->mask->id.us == 0)
+		seq->mask->id.us = 1;
+
+	/* basic defaults */
+	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
+	seq->len = BKE_mask_get_duration(mask);
+	strip->us = 1;
+
+	BLI_strncpy(seq->name + 2, mask->id.name + 2, sizeof(seq->name) - 2);
+	seqbase_unique_name_recursive(&ed->seqbase, seq);
+
+	calc_sequence_disp(scene, seq);
+	BKE_sequencer_sort(scene);
+
+	if (RNA_boolean_get(op->ptr, "replace_sel")) {
+		ED_sequencer_deselect_all(scene);
+		BKE_sequencer_active_set(scene, seq);
+		seq->flag |= SELECT;
+	}
+
+	if (RNA_boolean_get(op->ptr, "overlap") == FALSE) {
+		if (seq_test_overlap(ed->seqbasep, seq)) shuffle_seq(ed->seqbasep, seq, scene);
+	}
+
+	WM_event_add_notifier(C, NC_SCENE | ND_SEQUENCER, scene);
+
+	return OPERATOR_FINISHED;
+}
+
+static int sequencer_add_mask_strip_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	if (!ED_operator_sequencer_active(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Sequencer area not active");
+		return OPERATOR_CANCELLED;
+	}
+
+	if (!RNA_struct_property_is_set(op->ptr, "mask"))
+		return WM_enum_search_invoke(C, op, event);
+
+	sequencer_generic_invoke_xy__internal(C, op, event, 0);
+	return sequencer_add_mask_strip_exec(C, op);
+	// needs a menu
+	// return WM_menu_invoke(C, op, event);
+}
+
+
+void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot)
+{
+	PropertyRNA *prop;
+
+	/* identifiers */
+	ot->name = "Add Mask Strip";
+	ot->idname = "SEQUENCER_OT_mask_strip_add";
+	ot->description = "Add a mask strip to the sequencer";
+
+	/* api callbacks */
+	ot->invoke = sequencer_add_mask_strip_invoke;
+	ot->exec = sequencer_add_mask_strip_exec;
+
+	ot->poll = ED_operator_scene_editable;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME);
+	prop = RNA_def_enum(ot->srna, "mask", DummyRNA_NULL_items, 0, "Mask", "");
+	RNA_def_enum_funcs(prop, RNA_mask_itemf);
 	ot->prop = prop;
 }
 

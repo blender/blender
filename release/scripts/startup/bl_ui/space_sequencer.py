@@ -198,6 +198,12 @@ class SEQUENCER_MT_add(Menu):
         else:
             layout.operator_menu_enum("sequencer.movieclip_strip_add", "clip", text="Clip...")
 
+        if len(bpy.data.masks) > 10:
+            layout.operator_context = 'INVOKE_DEFAULT'
+            layout.operator("sequencer.mask_strip_add", text="Masks...")
+        else:
+            layout.operator_menu_enum("sequencer.mask_strip_add", "mask", text="Mask...")
+
         layout.operator("sequencer.movie_strip_add", text="Movie")
         layout.operator("sequencer.image_strip_add", text="Image")
         layout.operator("sequencer.sound_strip_add", text="Sound")
@@ -670,6 +676,35 @@ class SEQUENCER_PT_scene(SequencerButtonsPanel, Panel):
             layout.label(text="Original frame range" + ": %d-%d (%d)" % (sta, end, end - sta + 1))
 
 
+class SEQUENCER_PT_mask(SequencerButtonsPanel, Panel):
+    bl_label = "Mask"
+
+    @classmethod
+    def poll(cls, context):
+        if not cls.has_sequencer(context):
+            return False
+
+        strip = act_strip(context)
+        if not strip:
+            return False
+
+        return (strip.type == 'MASK')
+
+    def draw(self, context):
+        layout = self.layout
+
+        strip = act_strip(context)
+
+        layout.template_ID(strip, "mask")
+
+        mask = strip.mask
+
+        if mask:
+            sta = mask.frame_start
+            end = mask.frame_end
+            layout.label(text="Original frame range" + ": %d-%d (%d)" % (sta, end, end - sta + 1))
+
+
 class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
     bl_label = "Filter"
 
@@ -682,10 +717,10 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
         if not strip:
             return False
 
-        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'META',
-                              'ADD', 'SUBTRACT', 'ALPHA_OVER', 'ALPHA_UNDER',
-                              'CROSS', 'GAMMA_CROSS', 'MULTIPLY', 'OVER_DROP',
-                              'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
+        return strip.type in {'MOVIE', 'IMAGE', 'SCENE', 'MOVIECLIP', 'MASK',
+                              'META', 'ADD', 'SUBTRACT', 'ALPHA_OVER',
+                              'ALPHA_UNDER', 'CROSS', 'GAMMA_CROSS', 'MULTIPLY',
+                              'OVER_DROP', 'WIPE', 'GLOW', 'TRANSFORM', 'COLOR',
                               'MULTICAM', 'SPEED', 'ADJUSTMENT'}
 
     def draw(self, context):

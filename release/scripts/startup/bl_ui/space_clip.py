@@ -790,6 +790,24 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             col.prop(sc, "show_mask_smooth")
 
 
+# TODO, move into its own file
+class CLIP_PT_mask(CLIP_PT_mask_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Mask Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        mask = sc.mask
+
+        col = layout.column(align=True)
+        col.prop(mask, "frame_start")
+        col.prop(mask, "frame_end")
+
+
 class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'UI'

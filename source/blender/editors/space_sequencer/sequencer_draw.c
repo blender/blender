@@ -40,6 +40,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "DNA_scene_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
@@ -97,7 +98,11 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 		case SEQ_TYPE_MOVIECLIP:
 			UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, col);
 			break;
-		
+
+		case SEQ_TYPE_MASK:
+			UI_GetThemeColor3ubv(TH_SEQ_MASK, col); /* TODO */
+			break;
+
 		case SEQ_TYPE_SCENE:
 			UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
 		
@@ -544,6 +549,16 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 		if (seq->clip && strcmp(name, seq->clip->id.name + 2) != 0) {
 			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
 			             seq->len, name, seq->clip->id.name + 2);
+		}
+		else {
+			BLI_snprintf(str, sizeof(str), "%d | %s",
+			             seq->len, name);
+		}
+	}
+	else if (seq->type == SEQ_TYPE_MASK) {
+		if (seq->mask && strcmp(name, seq->mask->id.name + 2) != 0) {
+			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
+			             seq->len, name, seq->mask->id.name + 2);
 		}
 		else {
 			BLI_snprintf(str, sizeof(str), "%d | %s",

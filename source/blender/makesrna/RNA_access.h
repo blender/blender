@@ -295,6 +295,7 @@ extern StructRNA RNA_Macro;
 extern StructRNA RNA_MagicTexture;
 extern StructRNA RNA_MarbleTexture;
 extern StructRNA RNA_MaskModifier;
+extern StructRNA RNA_MaskSequence;
 extern StructRNA RNA_Material;
 extern StructRNA RNA_MaterialHalo;
 extern StructRNA RNA_MaterialPhysics;

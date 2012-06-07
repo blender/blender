@@ -46,6 +46,8 @@ typedef struct Mask {
 	ListBase masklayers;  /* mask layers */
 	int masklay_act;      /* index of active mask layer (-1 == None) */
 	int masklay_tot;      /* total number of mask layers */
+
+	int sfra, efra;       /* frames, used by the sequencer */
 } Mask;
 
 typedef struct MaskParent {

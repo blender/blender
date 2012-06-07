@@ -951,6 +951,10 @@ Mask *BKE_mask_new(const char *name)
 
 	mask = mask_alloc(mask_name);
 
+	/* arbitrary defaults */
+	mask->sfra = 1;
+	mask->efra = 100;
+
 	return mask;
 }
 
@@ -2040,7 +2044,7 @@ static void m_invert_vn_vn(float *array, const float f, const int size)
 	}
 }
 
-static void linear_clamp_vn_vn(float *array, const int size)
+static void clamp_vn_vn_linear(float *array, const int size)
 {
 	float *arr = array + (size - 1);
 
@@ -2053,8 +2057,26 @@ static void linear_clamp_vn_vn(float *array, const int size)
 	}
 }
 
+static void clamp_vn_vn(float *array, const int size)
+{
+	float *arr = array + (size - 1);
+
+	int i = size;
+	while (i--) {
+		if      (*arr < 0.0f) *arr = 0.0f;
+		else if (*arr > 1.0f) *arr = 1.0f;
+		arr--;
+	}
+}
+
+int BKE_mask_get_duration(Mask *mask)
+{
+	return MAX2(1, mask->efra - mask->sfra);
+}
+
 /* rasterization */
-void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
+void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
+                        const short do_aspect_correct, const short do_linear)
 {
 	MaskLayer *masklay;
 
@@ -2087,31 +2109,32 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 				        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
 				                                                                      &tot_diff_feather_points);
 
-				/* TODO, make this optional! */
-				if (width != height) {
-					float *fp;
-					float *ffp;
-					int i;
-					float asp;
+				if (do_aspect_correct) {
+					if (width != height) {
+						float *fp;
+						float *ffp;
+						int i;
+						float asp;
 
-					if (width < height) {
-						fp = &diff_points[0][0];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
-						asp = (float)width / (float)height;
-					}
-					else {
-						fp = &diff_points[0][1];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
-						asp = (float)height / (float)width;
-					}
+						if (width < height) {
+							fp = &diff_points[0][0];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+							asp = (float)width / (float)height;
+						}
+						else {
+							fp = &diff_points[0][1];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+							asp = (float)height / (float)width;
+						}
 
-					for (i = 0; i < tot_diff_point; i++, fp += 2) {
-						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
-					}
+						for (i = 0; i < tot_diff_point; i++, fp += 2) {
+							(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+						}
 
-					if (tot_diff_feather_points) {
-						for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
-							(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+						if (tot_diff_feather_points) {
+							for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+								(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+							}
 						}
 					}
 				}
@@ -2173,7 +2196,12 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 		}
 
 		/* clamp at the end */
-		linear_clamp_vn_vn(buffer, buffer_size);
+		if (do_linear) {
+			clamp_vn_vn_linear(buffer, buffer_size);
+		}
+		else {
+			clamp_vn_vn(buffer, buffer_size);
+		}
 	}
 
 	MEM_freeN(buffer_tmp);

@@ -45,6 +45,7 @@ extern EnumPropertyItem blend_mode_items[];
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_sound_types.h"
 
 #include "BLI_path_util.h" /* BLI_split_dirfile */
@@ -52,6 +53,7 @@ extern EnumPropertyItem blend_mode_items[];
 #include "BKE_image.h"
 #include "BKE_library.h" /* id_us_plus */
 #include "BKE_movieclip.h"
+#include "BKE_mask.h"
 
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -108,6 +110,25 @@ static Sequence *rna_Sequences_new_clip(ID *id, Editing *ed, ReportList *reports
 	seq->clip = clip;
 	seq->len =  BKE_movieclip_get_duration(clip);
 	id_us_plus((ID *)clip);
+
+	calc_sequence_disp(scene, seq);
+
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+
+	return seq;
+}
+
+static Sequence *rna_Sequences_new_mask(ID *id, Editing *ed, ReportList *reports,
+                                        const char *name, Mask *mask, int channel,
+                                        int start_frame)
+{
+	Scene *scene = (Scene *)id;
+	Sequence *seq;
+
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MASK, mask->id.name);
+	seq->mask = mask;
+	seq->len = BKE_mask_get_duration(mask);
+	id_us_plus((ID *)mask);
 
 	calc_sequence_disp(scene, seq);
 
@@ -440,6 +461,23 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_int(func, "channel", 0, 0, MAXSEQ - 1, "Channel",
+	                   "The channel for the new sequence", 0, MAXSEQ - 1);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "start_frame", 0, -MAXFRAME, MAXFRAME, "",
+	                   "The start frame for the new sequence", -MAXFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_int(func, "channel", 0, 0, MAXSEQ - 1, "Channel",
 	                   "The channel for the new sequence", 0, MAXSEQ - 1);

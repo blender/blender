@@ -482,6 +482,12 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 					break;
 			}
 			break;
+
+		case NC_MASK:
+			if (wmn->action == NA_EDITED) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
 	}
 }
 

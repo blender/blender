@@ -372,6 +372,8 @@ const unsigned char *UI_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colo
 					cp = ts->movie; break;
 				case TH_SEQ_MOVIECLIP:
 					cp = ts->movieclip; break;
+				case TH_SEQ_MASK:
+					cp = ts->mask; break;
 				case TH_SEQ_IMAGE:
 					cp = ts->image; break;
 				case TH_SEQ_SCENE:
@@ -819,6 +821,7 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tseq.back,   116, 116, 116, 255);
 	rgba_char_args_set(btheme->tseq.movie,  81, 105, 135, 255);
 	rgba_char_args_set(btheme->tseq.movieclip,  32, 32, 143, 255);
+	rgba_char_args_set(btheme->tseq.mask,   152, 78, 62, 255);
 	rgba_char_args_set(btheme->tseq.image,  109, 88, 129, 255);
 	rgba_char_args_set(btheme->tseq.scene,  78, 152, 62, 255);
 	rgba_char_args_set(btheme->tseq.audio,  46, 143, 143, 255);
@@ -1896,6 +1899,15 @@ void init_userdef_do_versions(void)
 			rgba_char_args_set(btheme->tnla.nla_meta_sel,       105, 33, 150, 255);
 			rgba_char_args_set(btheme->tnla.nla_sound,          43, 61, 61, 255);
 			rgba_char_args_set(btheme->tnla.nla_sound_sel,      31, 122, 122, 255);
+		}
+	}
+
+	if (bmain->versionfile < 263 || (bmain->versionfile == 263 && bmain->subversionfile < 11)) {
+		bTheme *btheme;
+		for (btheme = U.themes.first; btheme; btheme = btheme->next) {
+			if (btheme->tseq.movieclip[0] == 0) {
+				rgba_char_args_set(btheme->tseq.mask,  152, 78, 62, 255);
+			}
 		}
 	}
 

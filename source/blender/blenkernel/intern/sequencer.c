@@ -29,7 +29,6 @@
  *  \ingroup bke
  */
 
-
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,6 +39,7 @@
 
 #include "DNA_sequence_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
@@ -61,6 +61,7 @@
 #include "BKE_movieclip.h"
 #include "BKE_fcurve.h"
 #include "BKE_scene.h"
+#include "BKE_mask.h"
 #include "BKE_utildefines.h"
 
 #include "RNA_access.h"
@@ -669,9 +670,9 @@ void reload_sequence_new_file(Scene *scene, Sequence *seq, int lock_range)
 	int prev_startdisp = 0, prev_enddisp = 0;
 	/* note: don't rename the strip, will break animation curves */
 
-	if (ELEM6(seq->type,
+	if (ELEM7(seq->type,
 	          SEQ_TYPE_MOVIE, SEQ_TYPE_IMAGE, SEQ_TYPE_SOUND_RAM,
-	          SEQ_TYPE_SCENE, SEQ_TYPE_META, SEQ_TYPE_MOVIECLIP) == 0)
+	          SEQ_TYPE_SCENE, SEQ_TYPE_META, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) == 0)
 	{
 		return;
 	}
@@ -724,6 +725,15 @@ void reload_sequence_new_file(Scene *scene, Sequence *seq, int lock_range)
 			break;
 		case SEQ_TYPE_MOVIECLIP:
 			seq->len = BKE_movieclip_get_duration(seq->clip);
+
+			seq->len -= seq->anim_startofs;
+			seq->len -= seq->anim_endofs;
+			if (seq->len < 0) {
+				seq->len = 0;
+			}
+			break;
+		case SEQ_TYPE_MASK:
+			seq->len = BKE_mask_get_duration(seq->mask);
 
 			seq->len -= seq->anim_startofs;
 			seq->len -= seq->anim_endofs;
@@ -903,7 +913,8 @@ static const char *give_seqname_by_type(int type)
 		case SEQ_TYPE_SCENE:      return "Scene";
 		case SEQ_TYPE_MOVIE:      return "Movie";
 		case SEQ_TYPE_MOVIECLIP:  return "Clip";
-		case SEQ_TYPE_SOUND_RAM:      return "Audio";
+		case SEQ_TYPE_MASK:       return "Mask";
+		case SEQ_TYPE_SOUND_RAM:  return "Audio";
 		case SEQ_TYPE_CROSS:      return "Cross";
 		case SEQ_TYPE_GAMCROSS:   return "Gamma Cross";
 		case SEQ_TYPE_ADD:        return "Add";
@@ -2044,6 +2055,75 @@ static ImBuf *seq_render_movieclip_strip(
 	return ibuf;
 }
 
+
+static ImBuf *seq_render_mask_strip(
+        SeqRenderData context, Sequence *seq, float nr)
+{
+	/* TODO - add option to rasterize to alpha imbuf? */
+	ImBuf *ibuf = NULL;
+	float *maskbuf;
+	int i;
+
+	if (!seq->mask) {
+		return NULL;
+	}
+
+	BKE_mask_evaluate(seq->mask, (int)(seq->mask->sfra + nr), TRUE);
+
+	maskbuf = MEM_callocN(sizeof(float) * context.rectx * context.recty, __func__);
+
+	if (seq->flag & SEQ_MAKE_FLOAT) {
+		/* pixels */
+		float *fp_src;
+		float *fp_dst;
+
+		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rectfloat);
+
+		BKE_mask_rasterize(seq->mask,
+		                   context.rectx, context.recty,
+		                   maskbuf,
+		                   TRUE, FALSE);
+
+		fp_src = maskbuf;
+		fp_dst = ibuf->rect_float;
+		i = context.rectx * context.recty;
+		while(--i) {
+			fp_dst[0] = fp_dst[1] = fp_dst[2] = *fp_src;
+			fp_dst[3] = 1.0f;
+
+			fp_src += 1;
+			fp_dst += 4;
+		}
+	}
+	else {
+		/* pixels */
+		float *fp_src;
+		unsigned char *ub_dst;
+
+		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
+
+		BKE_mask_rasterize(seq->mask,
+		                   context.rectx, context.recty,
+		                   maskbuf,
+		                   TRUE, FALSE);
+
+		fp_src = maskbuf;
+		ub_dst = (unsigned char *)ibuf->rect;
+		i = context.rectx * context.recty;
+		while(--i) {
+			ub_dst[0] = ub_dst[1] = ub_dst[2] = (unsigned char)(*fp_src * 255.0f); /* already clamped */
+			ub_dst[3] = 255;
+
+			fp_src += 1;
+			ub_dst += 4;
+		}
+	}
+
+	MEM_freeN(maskbuf);
+
+	return ibuf;
+}
+
 static ImBuf *seq_render_scene_strip(
         SeqRenderData context, Sequence *seq, float nr)
 {
@@ -2359,6 +2439,14 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 				copy_to_ibuf_still(context, seq, nr, ibuf);
 				break;
 			}
+		case SEQ_TYPE_MASK:
+		{
+			/* ibuf is alwats new */
+			ibuf = seq_render_mask_strip(context, seq, nr);
+
+			copy_to_ibuf_still(context, seq, nr, ibuf);
+			break;
+		}
 		}
 
 	if (ibuf == NULL)

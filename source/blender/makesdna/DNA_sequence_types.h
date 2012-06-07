@@ -132,6 +132,7 @@ typedef struct Sequence {
 
 	struct anim *anim;      /* for MOVIE strips */
 	struct MovieClip *clip; /* for MOVIECLIP strips */
+	struct Mask *mask;      /* for MASK strips */
 
 	float effect_fader;
 	float speed_fader;
@@ -305,6 +306,7 @@ enum {
 	SEQ_TYPE_SOUND_RAM   = 4,
 	SEQ_TYPE_SOUND_HD    = 5,
 	SEQ_TYPE_MOVIECLIP   = 6,
+	SEQ_TYPE_MASK        = 7,
 
 	SEQ_TYPE_EFFECT      = 8,
 	SEQ_TYPE_CROSS       = 8,

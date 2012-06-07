@@ -236,7 +236,7 @@ typedef struct ThemeSpace {
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
 	
-	char movie[4], movieclip[4], image[4], scene[4], audio[4];		// for sequence editor
+	char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], hpad0[4], transition[4], meta[4];
 	char editmesh_active[4]; 
 
@@ -249,7 +249,7 @@ typedef struct ThemeSpace {
 	char bundle_solid[4];
 	char path_before[4], path_after[4];
 	char camera_path[4];
-	char hpad[7];
+	char hpad[3];
 	
 	char preview_back[4];
 	char preview_stitch_face[4];
