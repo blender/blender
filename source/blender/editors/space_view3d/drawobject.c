@@ -1744,7 +1744,9 @@ static void draw_viewport_reconstruction(Scene *scene, Base *base, View3D *v3d, 
 	glDisable(GL_COLOR_MATERIAL);
 	glDisable(GL_LIGHTING);
 
-	glColor3ubv(ob_wire_col);
+	if ((flag & DRAW_CONSTCOLOR) == 0) {
+		glColor3ubv(ob_wire_col);
+	}
 
 	if (flag & DRAW_PICKING)
 		glLoadName(base->selcol);
