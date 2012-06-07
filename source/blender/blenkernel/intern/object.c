@@ -1927,11 +1927,6 @@ static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[
 void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 {
 	float slowmat[4][4] = MAT4_UNITY;
-	float stime = ctime;
-	
-	/* new version: correct parent+vertexparent and track+parent */
-	/* this one only calculates direct attached parent and track */
-	/* is faster, but should keep track of timeoffs */
 	
 	if (ob == NULL) return;
 	
@@ -1941,21 +1936,8 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 	if (ob->parent) {
 		Object *par = ob->parent;
 		
-		/* hurms, code below conflicts with depgraph... (ton) */
-		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		if (stime != par->ctime) {
-			// only for ipo systems? 
-			Object tmp = *par;
-			
-			if (par->proxy_from) ;  // was a copied matrix, no where_is! bad...
-			else BKE_object_where_is_calc_time(scene, par, ctime);
-			
-			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-			
-			*par = tmp;
-		}
-		else
-			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+		/* calculate parent matrix */
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
 		
 		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
 		 * An old-fashioned hack which probably doesn't really cut it anymore
@@ -1974,10 +1956,7 @@ void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
 		bConstraintOb *cob;
 		
 		cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		
-		/* constraints need ctime, not stime. Some call BKE_object_where_is_calc_time and bsystem_time */
 		solve_constraints(&ob->constraints, cob, ctime);
-		
 		constraints_clear_evalob(cob);
 	}
 	

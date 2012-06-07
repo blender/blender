@@ -6578,9 +6578,6 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	/* no return after this point, otherwise leaks */
 	view3d_cached_text_draw_begin();
 	
-	/* patch? children objects with a timeoffs change the parents. How to solve! */
-	/* if ( ((int)ob->ctime) != F_(scene->r.cfra)) BKE_object_where_is_calc(scene, ob); */
-	
 	/* draw motion paths (in view space) */
 	if (ob->mpath && (v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) {
 		bAnimVizSettings *avs = &ob->avs;
