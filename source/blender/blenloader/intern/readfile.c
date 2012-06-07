@@ -3684,7 +3684,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				Main *gmain = G.main;
 				G.main = main;
 				
-				BKE_mesh_convert_mfaces_to_mpolys(me);
+				BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
 				
 				G.main = gmain;
 			}

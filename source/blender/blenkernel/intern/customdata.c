@@ -2219,6 +2219,48 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata,
 	}
 }
 
+/* update active indices for active/render/clone/stencil custom data layers
+ * based on indices from fdata layers
+ * used by do_versions in readfile.c when creating pdata and ldata for pre-bmesh
+ * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files
+ */
+void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+{
+	int act;
+
+	if (CustomData_has_layer(fdata, CD_MTFACE)) {
+		act = CustomData_get_active_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_active(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_render_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_render(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_clone_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_clone(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_stencil_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_stencil(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
+	}
+
+	if (CustomData_has_layer(fdata, CD_MCOL)) {
+		act = CustomData_get_active_layer(fdata, CD_MCOL);
+		CustomData_set_layer_active(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_render_layer(fdata, CD_MCOL);
+		CustomData_set_layer_render(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_clone_layer(fdata, CD_MCOL);
+		CustomData_set_layer_clone(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_stencil_layer(fdata, CD_MCOL);
+		CustomData_set_layer_stencil(ldata, CD_MLOOPCOL, act);
+	}
+}
+
 void CustomData_bmesh_init_pool(CustomData *data, int totelem, const char htype)
 {
 	int chunksize;
