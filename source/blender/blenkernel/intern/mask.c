@@ -816,7 +816,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const fl
 		return bezt_next->weight;
 	}
 	else {
-		float cur_u, cur_w, next_u, next_w, fac;
+		float cur_u = 0.0f, cur_w = 0.0f, next_u = 0.0f, next_w = 0.0f, fac; /* Quite warnings */
 		int i;
 
 		for (i = 0; i < point->tot_uw + 1; i++) {

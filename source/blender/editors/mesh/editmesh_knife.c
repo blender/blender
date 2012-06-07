@@ -2247,7 +2247,7 @@ static int find_hole_chains(KnifeTool_OpData *kcd, ListBase *hole, BMFace *f, Li
 	ListBase *chain;
 	BMVert *v;
 	BMIter iter;
-	int nh, nf, i, j, k, m, ax, ay, ok, sep, bestsep;
+	int nh, nf, i, j, k, m, ax, ay, ok, sep = 0 /* Quite warnings */, bestsep;
 	int besti[2], bestj[2];
 	float d, bestd;
 

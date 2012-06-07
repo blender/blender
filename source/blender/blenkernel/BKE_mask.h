@@ -99,7 +99,7 @@ void BKE_mask_point_segment_co(struct MaskSpline *spline, struct MaskSplinePoint
 void BKE_mask_point_normal(struct MaskSpline *spline, struct MaskSplinePoint *point,
                            float u, float n[2]);
 float BKE_mask_point_weight_scalar(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
-float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, float u);
+float BKE_mask_point_weight(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
 struct MaskSplinePointUW *BKE_mask_point_sort_uw(struct MaskSplinePoint *point, struct MaskSplinePointUW *uw);
 void BKE_mask_point_add_uw(struct MaskSplinePoint *point, float u, float w);
 
