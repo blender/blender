@@ -1985,11 +1985,17 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDisable(GL_CULL_FACE);
 	
 	/* draw DoFs */
-	if (arm->flag & ARM_POSEMODE)
-		draw_pose_dofs(ob);
+	if (arm->flag & ARM_POSEMODE) {
+		if (((base->flag & OB_FROMDUPLI) == 0)) {
+			draw_pose_dofs(ob);
+		}
+	}
 
 	/* finally names and axes */
-	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) && (is_outline == 0)) {
+	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) &&
+	    (is_outline == 0) &&
+	    ((base->flag & OB_FROMDUPLI) == 0))
+	{
 		/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
