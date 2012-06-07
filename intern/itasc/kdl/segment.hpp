@@ -73,7 +73,7 @@ namespace KDL {
          *
          * @return pose from the root to the tip of the segment
          */
-        Frame pose(const double& q)const;
+        Frame pose(const double* q)const;
         /**
          * Request the 6D-velocity of the tip of the segment, given
          * the joint position q and the joint velocity qdot.
@@ -85,7 +85,7 @@ namespace KDL {
          *in the base-frame of the segment(root) and with the tip of
          *the segment as reference point.
          */
-        Twist twist(const double& q,const double& qdot, int dof=0)const;
+        Twist twist(const double* q,const double& qdot, int dof=0)const;
 
         /**
          * Request the 6D-velocity at a given point p, relative to base frame of the segment

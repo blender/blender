@@ -107,24 +107,30 @@ class MyTask : public RTT::TaskContext
 		
         JntArray& operator = ( const JntArray& arg);
         /**
-         * get_item operator for the joint array, if a second value is
-         * given it should be zero, since a JntArray resembles a column.
+         * get_item operator for the joint array
          *
          *
          * @return the joint value at position i, starting from 0
          * @pre 0 != size (ie non-default constructor or resize() called)
          */
-        double operator()(unsigned int i,unsigned int j=0)const;
+        double operator[](unsigned int i) const;
         /**
-         * set_item operator, again if a second value is given it
-         *should be zero.
+         * set_item operator
          *
          * @return reference to the joint value at position i,starting
          *from zero.
          * @pre 0 != size (ie non-default constructor or resize() called)
          */
-        double& operator()(unsigned int i,unsigned int j=0);
+        double& operator[](unsigned int i);
         /**
+         * access operator for the joint array. Use pointer here to allow
+		 * access to sequential joint angles (required for ndof joints)
+         * 
+         *
+         * @return the joint value at position i, NULL if i is outside the valid range
+         */
+        double* operator()(unsigned int i);
+		/**
          * Returns the number of rows (size) of the array
          *
          */

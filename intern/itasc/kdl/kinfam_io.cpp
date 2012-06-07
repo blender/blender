@@ -76,7 +76,7 @@ std::istream& operator >>(std::istream& is, Tree& tree) {
 std::ostream& operator <<(std::ostream& os, const JntArray& array) {
 	os << "[";
 	for (unsigned int i = 0; i < array.rows(); i++)
-		os << std::setw(KDL_FRAME_WIDTH) << array(i);
+		os << std::setw(KDL_FRAME_WIDTH) << array[i];
 	os << "]";
 	return os;
 }
