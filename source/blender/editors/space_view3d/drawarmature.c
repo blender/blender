@@ -1658,7 +1658,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 /* assumes object is Armature with pose */
 static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
                             int dt, const unsigned char ob_wire_col[4],
-                            const short is_ghost, const short is_outline)
+                            const short do_const_color, const short is_outline)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = base->object;
@@ -1828,10 +1828,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 							}
 							
 							/* prepare colors */
-							if (is_ghost) {
+							if (do_const_color) {
 								/* 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith) */
 							}
-							else if (arm->flag & ARM_POSEMODE)	
+							else if (arm->flag & ARM_POSEMODE)
 								set_pchan_colorset(ob, pchan);
 							else {
 								glColor3ubv(ob_wire_col);
@@ -1993,12 +1993,22 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 		/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
-			
+
 			unsigned char col[4];
-			col[0] = ob_wire_col[0];
-			col[1] = ob_wire_col[1];
-			col[2] = ob_wire_col[2];
-			col[3] = 255;
+
+			if (do_const_color) {
+				/* so we can draw bone names in current const color */
+				float tcol[4];
+				glGetFloatv(GL_CURRENT_COLOR, tcol);
+				rgb_float_to_uchar(col, tcol);
+				col[3] = 255;
+			}
+			else {
+				col[0] = ob_wire_col[0];
+				col[1] = ob_wire_col[1];
+				col[2] = ob_wire_col[2];
+				col[3] = 255;
+			}
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
@@ -2602,7 +2612,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					}
 				}	
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, FALSE, is_outline);
+			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (flag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if (ob->mode & OB_MODE_POSE)

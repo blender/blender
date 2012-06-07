@@ -1231,19 +1231,23 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 
 	/* lamp center */
 	copy_v3_v3(vec, ob->obmat[3]);
-	
-	/* for AA effects */
-	curcol[0] = ob_wire_col[0];
-	curcol[1] = ob_wire_col[1];
-	curcol[2] = ob_wire_col[2];
-	curcol[3] = 154;
-	glColor4ubv(curcol);
+
+	if ((flag & DRAW_CONSTCOLOR) == 0) {
+		/* for AA effects */
+		curcol[0] = ob_wire_col[0];
+		curcol[1] = ob_wire_col[1];
+		curcol[2] = ob_wire_col[2];
+		curcol[3] = 154;
+		glColor4ubv(curcol);
+	}
 
 	if (lampsize > 0.0f) {
 
-		if (ob->id.us > 1) {
-			if (ob == OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
-			else glColor4ub(0x77, 0xCC, 0xCC, 155);
+		if ((flag & DRAW_CONSTCOLOR) == 0) {
+			if (ob->id.us > 1) {
+				if (ob == OBACT || (ob->flag & SELECT)) glColor4ub(0x88, 0xFF, 0xFF, 155);
+				else glColor4ub(0x77, 0xCC, 0xCC, 155);
+			}
 		}
 		
 		/* Inner Circle */
@@ -1253,8 +1257,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 		drawcircball(GL_POLYGON, vec, lampsize, imat);
 		
 		/* restore */
-		if (ob->id.us > 1)
-			glColor4ubv(curcol);
+		if ((flag & DRAW_CONSTCOLOR) == 0) {
+			if (ob->id.us > 1)
+				glColor4ubv(curcol);
+		}
 
 		/* Outer circle */
 		circrad = 3.0f * lampsize;
@@ -1486,9 +1492,10 @@ static void drawlamp(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base,
 	
 	glDisable(GL_BLEND);
 	
-	/* restore for drawing extra stuff */
-	glColor3ubv(ob_wire_col);
-
+	if ((flag & DRAW_CONSTCOLOR) == 0) {
+		/* restore for drawing extra stuff */
+		glColor3ubv(ob_wire_col);
+	}
 }
 
 static void draw_limit_line(float sta, float end, unsigned int col)
@@ -6540,7 +6547,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 	RegionView3D *rv3d = ar->regiondata;
 	float vec1[3], vec2[3];
 	unsigned int col = 0;
-	unsigned char ob_wire_col[4];
+	unsigned char _ob_wire_col[4];      /* dont initialize this */
+	unsigned char *ob_wire_col = NULL;  /* dont initialize this, use NULL crashes as a way to find invalid use */
 	int i, selstart, selend, empty_object = 0;
 	short dt, dtx, zbufoff = 0;
 	const short is_obact = (ob == OBACT);
@@ -6601,7 +6609,8 @@ void draw_object(Scene *scene, ARegion *ar, View3D *v3d, Base *base, int flag)
 
 		project_short(ar, ob->obmat[3], &base->sx);
 
-		draw_object_wire_color(scene, base, ob_wire_col, warning_recursive);
+		draw_object_wire_color(scene, base, _ob_wire_col, warning_recursive);
+		ob_wire_col = _ob_wire_col;
 
 		glColor3ubv(ob_wire_col);
 	}
