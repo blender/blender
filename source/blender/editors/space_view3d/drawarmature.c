@@ -1753,8 +1753,13 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					if (bone == arm->act_bone)
 						flag |= BONE_DRAW_ACTIVE;
 					
-					/* set color-set to use */
-					set_pchan_colorset(ob, pchan);
+					if (do_const_color) {
+						/* keep color */
+					}
+					else {
+						/* set color-set to use */
+						set_pchan_colorset(ob, pchan);
+					}
 					
 					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
@@ -1950,7 +1955,12 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					/* extra draw service for pose mode */
 
 					/* set color-set to use */
-					set_pchan_colorset(ob, pchan);
+					if (do_const_color) {
+						/* keep color */
+					}
+					else {
+						set_pchan_colorset(ob, pchan);
+					}
 					
 					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
 						/* custom bone shapes should not be drawn here! */
@@ -2001,7 +2011,6 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 			float vec[3];
 
 			unsigned char col[4];
-
 			if (do_const_color) {
 				/* so we can draw bone names in current const color */
 				float tcol[4];
@@ -2562,11 +2571,8 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	
 	if (dt > OB_WIRE && !ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* we use color for solid lighting */
-		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3ub(255, 255, 255);    // clear spec
-		glDisable(GL_COLOR_MATERIAL);
-		
+		const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW); // only for lighting...
 	}

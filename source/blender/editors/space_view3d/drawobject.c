@@ -3434,6 +3434,8 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				dm->drawFacesSolid(dm, NULL, 0, GPU_enable_material);
 			}
 			else {
+				const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
+
 				/* draw outline */
 				if ( (v3d->flag & V3D_SELECT_OUTLINE) &&
 				     ((v3d->flag2 & V3D_RENDER_OVERRIDE) == 0) &&
@@ -3451,9 +3453,7 @@ static void draw_mesh_fancy(Scene *scene, ARegion *ar, View3D *v3d, RegionView3D
 				
 				/* set default spec */
 				glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-				glEnable(GL_COLOR_MATERIAL);    /* according manpages needed */
-				glColor3ub(120, 120, 120);
-				glDisable(GL_COLOR_MATERIAL);
+				glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
 				/* diffuse */
 				glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 				glEnable(GL_LIGHTING);
