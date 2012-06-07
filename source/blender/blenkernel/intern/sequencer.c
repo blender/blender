@@ -1919,8 +1919,7 @@ static ImBuf *seq_render_effect_strip_impl(
 	input[0] = seq->seq1; input[1] = seq->seq2; input[2] = seq->seq3;
 
 	if (!sh.execute) { /* effect not supported in this version... */
-		out = IMB_allocImBuf((short)context.rectx, 
-		                     (short)context.recty, 32, IB_rect);
+		out = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
 		return out;
 	}
 
@@ -1997,7 +1996,7 @@ static ImBuf *seq_render_effect_strip_impl(
 	}
 
 	if (out == NULL) {
-		out = IMB_allocImBuf((short)context.rectx, (short)context.recty, 32, IB_rect);
+		out = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
 	}
 
 	return out;
@@ -2450,7 +2449,7 @@ static ImBuf *seq_render_strip(SeqRenderData context, Sequence *seq, float cfra)
 		}
 
 	if (ibuf == NULL)
-		ibuf = IMB_allocImBuf((short)context.rectx, (short)context.recty, 32, IB_rect);
+		ibuf = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
 
 	if (ibuf->x != context.rectx || ibuf->y != context.recty)
 		use_preprocess = TRUE;
@@ -2565,7 +2564,7 @@ static ImBuf *seq_render_strip_stack(
 				break;
 			case EARLY_USE_INPUT_1:
 				if (i == 0) {
-					out = IMB_allocImBuf((short)context.rectx, (short)context.recty, 32, IB_rect);
+					out = IMB_allocImBuf(context.rectx, context.recty, 32, IB_rect);
 				}
 				break;
 			case EARLY_DO_EFFECT:
