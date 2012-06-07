@@ -9,8 +9,5 @@ incs = '. ../../extern/Eigen3'
 
 defs = []
 
-if env['PLATFORM'] == 'win32':
-    defs.append('EIGEN_DONT_ALIGN_STATICALLY')
-
 env.BlenderLib ('bf_intern_itasc', sources, Split(incs), defs, libtype=['intern','player'], priority=[20,100] )
 
