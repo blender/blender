@@ -48,12 +48,12 @@ namespace KDL {
     {
     }
 
-    Frame Segment::pose(const double& q)const
+    Frame Segment::pose(const double* q)const
     {
         return joint.pose(q)*f_tip;
     }
 
-    Twist Segment::twist(const double& q, const double& qdot, int dof)const
+    Twist Segment::twist(const double* q, const double& qdot, int dof)const
     {
         return joint.twist(qdot, dof).RefPoint(pose(q).p);
     }

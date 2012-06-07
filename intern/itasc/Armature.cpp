@@ -158,7 +158,7 @@ void Armature::pushQ(CacheTS timestamp)
 {
 	if (m_qCCh >= 0) {
 		// try to keep the cache if the joints are the same
-		m_cache->addCacheVectorIfDifferent(this, m_qCCh, timestamp, &m_qKdl(0), m_qKdl.rows(), KDL::epsilon);
+		m_cache->addCacheVectorIfDifferent(this, m_qCCh, timestamp, m_qKdl(0), m_qKdl.rows(), KDL::epsilon);
 		m_qCTs = timestamp;
 	}
 }
@@ -170,8 +170,8 @@ bool Armature::popQ(CacheTS timestamp)
 		double* item;
 		item = (double*)m_cache->getPreviousCacheItem(this, m_qCCh, &timestamp);
 		if (item && m_qCTs != timestamp) {
-			double& q = m_qKdl(0);
-			memcpy(&q, item, m_qKdl.rows()*sizeof(q));
+			double* q = m_qKdl(0);
+			memcpy(q, item, m_qKdl.rows()*sizeof(double));
 			m_qCTs = timestamp;
 			// changing the joint => recompute the jacobian
 			updateJacobian();
@@ -255,7 +255,7 @@ bool Armature::getSegment(const std::string& name, const unsigned int q_size, co
 	p_tip = &sit->second.segment.getFrameToTip();
 	for (unsigned int dof=0; dof<p_joint->getNDof(); dof++) {
 		(&q_rest)[dof] = m_joints[sit->second.q_nr+dof].rest;
-		(&q)[dof] = m_qKdl(sit->second.q_nr+dof);
+		(&q)[dof] = m_qKdl[sit->second.q_nr+dof];
 	}
 	return true;
 }
@@ -267,7 +267,7 @@ double Armature::getMaxJointChange()
 	double maxJoint = 0.0;
 	for (unsigned int i=0; i<m_njoint; i++) {
 		// this is a very rough calculation, it doesn't work well for spherical joint
-		double joint = fabs(m_oldqKdl(i)-m_qKdl(i));
+		double joint = fabs(m_oldqKdl[i]-m_qKdl[i]);
 		if (maxJoint < joint)
 			maxJoint = joint;
 	}
@@ -392,7 +392,7 @@ bool Armature::finalize()
 	m_newqKdl.resize(m_njoint);
 	m_qdotKdl.resize(m_njoint);
 	for (i=0; i<m_njoint; i++) {
-		m_newqKdl(i) = m_oldqKdl(i) = m_qKdl(i) = m_joints[i].rest;
+		m_newqKdl[i] = m_oldqKdl[i] = m_qKdl[i] = m_joints[i].rest;
 	}
 	updateJacobian();
 	// estimate the maximum size of the robot arms
@@ -447,15 +447,15 @@ bool Armature::updateJoint(const Timestamp& timestamp, JointLockCallback& callba
 	// integration and joint limit
 	// for spherical joint we must use a more sophisticated method
 	unsigned int q_nr;
-	double* qdot=&m_qdotKdl(0);
-	double* q=&m_qKdl(0);
-	double* newq=&m_newqKdl(0);
+	double* qdot=m_qdotKdl(0);
+	double* q=m_qKdl(0);
+	double* newq=m_newqKdl(0);
 	double norm, qx, qz, CX, CZ, sx, sz;
 	bool locked = false;
 	int unlocked = 0;
 
 	for (q_nr=0; q_nr<m_nq; ++q_nr)
-		m_qdotKdl(q_nr)=m_qdot(q_nr);
+		qdot[q_nr]=m_qdot[q_nr];
 
 	for (q_nr=0; q_nr<m_nq; ) {
 		Joint_struct* joint = &m_joints[q_nr];
@@ -624,7 +624,7 @@ void Armature::updateKinematics(const Timestamp& timestamp){
 		return;
 
 	// the new joint value have been computed already, just copy
-	memcpy(&m_qKdl(0), &m_newqKdl(0), sizeof(double)*m_qKdl.rows());
+	memcpy(m_qKdl(0), m_newqKdl(0), sizeof(double)*m_qKdl.rows());
 	pushCache(timestamp);
 	updateJacobian();
 	// here update the desired output.
@@ -677,7 +677,7 @@ void Armature::updateControlOutput(const Timestamp& timestamp)
 
 	if (!timestamp.substep) {
 		// save previous joint state for getMaxJointChange()
-		memcpy(&m_oldqKdl(0), &m_qKdl(0), sizeof(double)*m_qKdl.rows());
+		memcpy(m_oldqKdl(0), m_qKdl(0), sizeof(double)*m_qKdl.rows());
 		for (unsigned int i=0; i<m_neffector; i++) {
 			m_effectors[i].oldpose = m_effectors[i].pose;
 		}
@@ -696,8 +696,8 @@ void Armature::updateControlOutput(const Timestamp& timestamp)
 		JointConstraint_struct* pConstraint = *it;
 		unsigned int nr, i;
 		for (i=0, nr = pConstraint->segment->second.q_nr; i<pConstraint->v_nr; i++, nr++) {
-			*(double*)&pConstraint->value[i].y = m_qKdl(nr);
-			*(double*)&pConstraint->value[i].ydot = m_qdotKdl(nr);
+			*(double*)&pConstraint->value[i].y = m_qKdl[nr];
+			*(double*)&pConstraint->value[i].ydot = m_qdotKdl[nr];
 		}
 		if (pConstraint->function && (pConstraint->substep || (!timestamp.reiterate && !timestamp.substep))) {
 			(*pConstraint->function)(timestamp, pConstraint->values, pConstraint->v_nr, pConstraint->param);

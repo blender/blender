@@ -235,7 +235,7 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[2], vec);
 
 		if (reference_adjacent) {
-			BKE_mask_calc_handle_adjacent_interp(mask, spline, new_point, u);
+			BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
 		}
 	}
 	else {
@@ -287,8 +287,8 @@ static void setup_vertex_point(bContext *C, Mask *mask, MaskSpline *spline, Mask
 		add_v2_v2(bezt->vec[0], vec);
 		sub_v2_v2(bezt->vec[2], vec);
 #else
-		BKE_mask_calc_handle_point_auto(mask, spline, new_point, TRUE);
-		BKE_mask_calc_handle_adjacent_interp(mask, spline, new_point, u);
+		BKE_mask_calc_handle_point_auto(spline, new_point, TRUE);
+		BKE_mask_calc_handle_adjacent_interp(spline, new_point, u);
 
 #endif
 	}
@@ -425,7 +425,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 	if ((spline->flag & MASK_SPLINE_CYCLIC) ||
 	    (point_index > 0 && point_index != spline->tot_point - 1))
 	{
-		BKE_mask_calc_tangent_polyline(mask, spline, point, tangent_point);
+		BKE_mask_calc_tangent_polyline(spline, point, tangent_point);
 		sub_v2_v2v2(tangent_co, co, point->bezt.vec[1]);
 
 		if (dot_v2v2(tangent_point, tangent_co) < 0.0f) {
@@ -487,7 +487,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 
 	if (do_recalc_src) {
 		/* TODO, update keyframes in time */
-		BKE_mask_calc_handle_point_auto(mask, spline, ref_point, FALSE);
+		BKE_mask_calc_handle_point_auto(spline, ref_point, FALSE);
 	}
 
 	WM_event_add_notifier(C, NC_MASK | NA_EDITED, mask);
@@ -572,8 +572,8 @@ static int add_vertex_exec(bContext *C, wmOperator *op)
 				spline->flag |= MASK_SPLINE_CYCLIC;
 
 				/* TODO, update keyframes in time */
-				BKE_mask_calc_handle_point_auto(mask, spline, point, FALSE);
-				BKE_mask_calc_handle_point_auto(mask, spline, point_other, FALSE);
+				BKE_mask_calc_handle_point_auto(spline, point, FALSE);
+				BKE_mask_calc_handle_point_auto(spline, point_other, FALSE);
 
 				/* TODO: only update this spline */
 				BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);

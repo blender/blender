@@ -69,8 +69,7 @@ struct CollisionTree;
  * own connectivity of the mesh based on the actual edges in the mesh.
  *
  */
-typedef struct Cloth
-{
+typedef struct Cloth {
 	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
 	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
 	unsigned int		numverts;		/* The number of verts == m * n. */
@@ -91,8 +90,7 @@ typedef struct Cloth
 /**
  * The definition of a cloth vertex.
  */
-typedef struct ClothVertex
-{
+typedef struct ClothVertex {
 	int	flags;		/* General flags per vertex.		*/
 	float	v[3];		/* The velocity of the point.		*/
 	float	xconst[3];	/* constrained position			*/
@@ -117,8 +115,7 @@ ClothVertex;
 /**
  * The definition of a spring.
  */
-typedef struct ClothSpring
-{
+typedef struct ClothSpring {
 	int	ij;		/* Pij from the paper, one end of the spring.	*/
 	int	kl;		/* Pkl from the paper, one end of the spring.	*/
 	float	restlen;	/* The original length of the spring.	*/
@@ -149,8 +146,7 @@ ClothSpring;
 
 /* SIMULATION FLAGS: goal flags,.. */
 /* These are the bits used in SimSettings.flags. */
-typedef enum
-{
+typedef enum {
 	CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ),// object is only collision object, no cloth simulation is done
 	CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 	// we have goals enabled
 	CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ),// true if tearing is enabled
@@ -160,15 +156,13 @@ typedef enum
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* COLLISION FLAGS */
-typedef enum
-{
+typedef enum {
 	CLOTH_COLLSETTINGS_FLAG_ENABLED = ( 1 << 1 ), /* enables cloth - object collisions */
 	CLOTH_COLLSETTINGS_FLAG_SELF = ( 1 << 2 ), /* enables selfcollisions */
 } CLOTH_COLLISIONSETTINGS_FLAGS;
 
 /* Spring types as defined in the paper.*/
-typedef enum
-{
+typedef enum {
 	CLOTH_SPRING_TYPE_STRUCTURAL  = (1 << 1),
 	CLOTH_SPRING_TYPE_SHEAR       = (1 << 2),
 	CLOTH_SPRING_TYPE_BENDING     = (1 << 3),
@@ -176,8 +170,7 @@ typedef enum
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */
-typedef enum
-{
+typedef enum {
 	CLOTH_SPRING_FLAG_DEACTIVATE = ( 1 << 1 ),
 	CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
 } CLOTH_SPRINGS_FLAGS;
@@ -230,16 +223,14 @@ int cloth_add_spring (struct ClothModifierData *clmd, unsigned int indexA, unsig
 
 /* This enum provides the IDs for our solvers. */
 // only one available in the moment
-typedef enum
-{
+typedef enum {
 	CM_IMPLICIT = 0,
 } CM_SOLVER_ID;
 
 
 /* This structure defines how to call the solver.
  */
-typedef struct
-{
+typedef struct {
 	const char		*name;
 	CM_SOLVER_ID	id;
 	int	( *init ) (struct Object *ob, struct ClothModifierData *clmd );

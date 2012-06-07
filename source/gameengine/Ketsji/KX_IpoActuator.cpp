@@ -297,7 +297,7 @@ bool KX_IpoActuator::Update(double curtime, bool frame)
 			{
 				SetLocalTime(curtime);
 			}
-			else{
+			else {
 				if (!m_bNegativeEvent) {
 					/* Perform wraparound */
 					SetLocalTime(curtime);

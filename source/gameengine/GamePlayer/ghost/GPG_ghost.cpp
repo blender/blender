@@ -118,8 +118,7 @@ static void mem_error_cb(const char *errorStr)
 }
 
 #ifdef WIN32
-typedef enum 
-{
+typedef enum {
   SCREEN_SAVER_MODE_NONE = 0,
   SCREEN_SAVER_MODE_PREVIEW,
   SCREEN_SAVER_MODE_SAVER,

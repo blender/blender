@@ -106,7 +106,7 @@ void BlenderSession::create_session()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* set buffer parameters */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
 	session->reset(buffer_params, session_params.samples);
 }
 
@@ -181,7 +181,7 @@ void BlenderSession::render()
 {
 	/* get buffer parameters */
 	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
 	int w = buffer_params.width, h = buffer_params.height;
 
 	/* create render result */
@@ -326,7 +326,7 @@ void BlenderSession::synchronize()
 
 	/* reset if needed */
 	if(scene->need_reset()) {
-		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+		BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
 		session->reset(buffer_params, session_params.samples);
 	}
 }
@@ -364,7 +364,7 @@ bool BlenderSession::draw(int w, int h)
 		/* reset if requested */
 		if(reset) {
 			SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
-			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+			BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, w, h);
 
 			session->reset(buffer_params, session_params.samples);
 		}
@@ -374,7 +374,7 @@ bool BlenderSession::draw(int w, int h)
 	update_status_progress();
 
 	/* draw */
-	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, b_rv3d, width, height);
+	BufferParams buffer_params = BlenderSync::get_buffer_params(b_scene, scene->camera, width, height);
 
 	return !session->draw(buffer_params);
 }

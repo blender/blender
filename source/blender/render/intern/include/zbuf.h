@@ -80,8 +80,7 @@ typedef struct APixstrand {
 	struct APixstrand *next;
 } APixstrand;
 
-typedef struct APixstrMain
-{
+typedef struct APixstrMain {
 	struct APixstrMain *next, *prev;
 	void *ps;
 } APixstrMain;

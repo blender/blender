@@ -1261,8 +1261,8 @@ void mtex_bump_bicubic( vec3 texco, sampler2D ima, float hScale,
 
 		mat4 H;
 		
-		for(int i = 0; i < 4; i++){
-			for(int j = 0; j < 4; j++){
+		for(int i = 0; i < 4; i++) {
+			for(int j = 0; j < 4; j++) {
 				ivec2 iTexTmp = iTexLocMod + ivec2(i,j);
 				
 				// wrap texture coordinates manually for texelFetch to work on uvs oitside the 0,1 range.

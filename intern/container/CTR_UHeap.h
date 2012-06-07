@@ -56,7 +56,7 @@ class CTR_UHeapable {
 public :
 		int &
 	HeapPos(
-	){
+	) {
 		return m_ind;
 	};
 		float &
@@ -93,7 +93,7 @@ protected :
 	};
 
 	~CTR_UHeapable(
-	){
+	) {
 	};
 };
 	
@@ -214,7 +214,7 @@ private:
 		HeapType *base,
 		int i, 
 		int j
-	){
+	) {
 		std::swap(m_vector[i],m_vector[j]);
 		
 		CTR_UHeapable *heap_i = base + m_vector[i];

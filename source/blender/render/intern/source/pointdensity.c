@@ -325,8 +325,7 @@ void free_pointdensities(Render *re)
 	}
 }
 
-typedef struct PointDensityRangeData
-{
+typedef struct PointDensityRangeData {
 	float *density;
 	float squared_radius;
 	float *point_data;

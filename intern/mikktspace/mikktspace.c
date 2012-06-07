@@ -40,8 +40,7 @@
 #define INTERNAL_RND_SORT_SEED		39871946
 
 // internal structure
-typedef struct
-{
+typedef struct {
 	float x, y, z;
 } SVec3;
 
@@ -119,14 +118,12 @@ static tbool VNotZero(const SVec3 v)
 
 
 
-typedef struct
-{
+typedef struct {
 	int iNrFaces;
 	int * pTriMembers;
 } SSubGroup;
 
-typedef struct
-{
+typedef struct {
 	int iNrFaces;
 	int * pFaceIndices;
 	int iVertexRepresentitive;
@@ -141,8 +138,7 @@ typedef struct
 
 
 
-typedef struct
-{
+typedef struct {
 	int FaceNeighbors[3];
 	SGroup * AssignedGroup[3];
 	
@@ -156,8 +152,7 @@ typedef struct
 	unsigned char vert_num[4];
 } STriInfo;
 
-typedef struct
-{
+typedef struct {
 	SVec3 vOs;
 	float fMagS;
 	SVec3 vOt;
@@ -426,8 +421,7 @@ tbool genTangSpace(const SMikkTSpaceContext * pContext, const float fAngularThre
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef struct
-{
+typedef struct {
 	float vert[3];
 	int index;
 } STmpVert;
@@ -911,8 +905,7 @@ static SVec3 GetTexCoord(const SMikkTSpaceContext * pContext, const int index)
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////
 
-typedef union
-{
+typedef union {
 	struct
 	{
 		int i0, i1, f;

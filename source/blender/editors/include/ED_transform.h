@@ -168,8 +168,7 @@ typedef struct DepthPeel {
 
 struct ListBase;
 
-typedef enum SnapMode
-{
+typedef enum SnapMode {
 	SNAP_ALL = 0,
 	SNAP_NOT_SELECTED = 1,
 	SNAP_NOT_OBEDIT = 2

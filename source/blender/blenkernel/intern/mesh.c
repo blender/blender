@@ -2038,6 +2038,28 @@ void BKE_mesh_convert_mfaces_to_mpolys(Mesh *mesh)
 	mesh_update_customdata_pointers(mesh, TRUE);
 }
 
+/* the same as BKE_mesh_convert_mfaces_to_mpolys but oriented to be used in do_versions from readfile.c
+ * the difference is how active/render/clone/stencil indices are handled here
+ *
+ * normally thay're being set from pdata which totally makes sense for meshes which are already
+ * converted to bmesh structures, but when loading older files indices shall be updated in other
+ * way around, so newly added pdata and ldata would have this indices set based on fdata layer
+ *
+ * this is normally only needed when reading older files, in all other cases BKE_mesh_convert_mfaces_to_mpolys
+ * shall be always used
+ */
+void BKE_mesh_do_versions_convert_mfaces_to_mpolys(Mesh *mesh)
+{
+	BKE_mesh_convert_mfaces_to_mpolys_ex(&mesh->id, &mesh->fdata, &mesh->ldata, &mesh->pdata,
+	                                     mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly,
+	                                     mesh->medge, mesh->mface,
+	                                     &mesh->totloop, &mesh->totpoly, &mesh->mloop, &mesh->mpoly);
+
+	CustomData_bmesh_do_versions_update_active_layers(&mesh->fdata, &mesh->pdata, &mesh->ldata);
+
+	mesh_update_customdata_pointers(mesh, TRUE);
+}
+
 void BKE_mesh_convert_mfaces_to_mpolys_ex(ID *id, CustomData *fdata, CustomData *ldata, CustomData *pdata,
                                           int totedge_i, int totface_i, int totloop_i, int totpoly_i,
                                           MEdge *medge, MFace *mface,

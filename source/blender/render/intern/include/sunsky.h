@@ -31,8 +31,7 @@
 #define SPECTRUM_START              350.0
 #define SPECTRUM_END                800.0
 
-typedef struct SunSky
-{
+typedef struct SunSky {
 	short effect_type, skyblendtype, sky_colorspace;
 	float turbidity;
 	float theta, phi;

@@ -99,7 +99,7 @@ class SCA_Joystick
 	void OnButtonDown(SDL_Event *sdl_event);
 	void OnNothing(SDL_Event *sdl_event);
 #if 0 /* not used yet */
-	void OnBallMotion(SDL_Event *sdl_event){}
+	void OnBallMotion(SDL_Event *sdl_event) {}
 #endif
 		
 #endif /* WITH_SDL */
@@ -156,27 +156,27 @@ public:
 
 	void cSetPrecision(int val);
 
-	int GetAxisPosition(int index){
+	int GetAxisPosition(int index) {
 		return m_axis_array[index];
 	}
 
-	int GetHat(int index){
+	int GetHat(int index) {
 		return m_hat_array[index];
 	}
 
-	int GetThreshold(void){
+	int GetThreshold(void) {
 		return m_prec;
 	}
 
-	bool IsTrigAxis(void){
+	bool IsTrigAxis(void) {
 		return m_istrig_axis;
 	}
 	
-	bool IsTrigButton(void){
+	bool IsTrigButton(void) {
 		return m_istrig_button;
 	}
 	
-	bool IsTrigHat(void){
+	bool IsTrigHat(void) {
 		return m_istrig_hat;
 	}
 

@@ -44,8 +44,7 @@
  * variables with different names to minimize confusion.
  */
 
-typedef struct ClothSimSettings
-{
+typedef struct ClothSimSettings {
 	struct	LinkNode *cache; /* UNUSED atm */	
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
@@ -89,8 +88,7 @@ typedef struct ClothSimSettings
 } ClothSimSettings;
 
 
-typedef struct ClothCollSettings
-{
+typedef struct ClothCollSettings {
 	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact. */

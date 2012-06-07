@@ -137,7 +137,8 @@ bool SCA_JoystickSensor::Evaluate()
 				if (js->aAxisPairIsPositive(m_axis-1)) { /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
-				}else{
+				}
+				else {
 					if (m_istrig) {
 						m_istrig = 0;
 						result = true;
@@ -148,7 +149,8 @@ bool SCA_JoystickSensor::Evaluate()
 				if (js->aAxisPairDirectionIsPositive(m_axis-1, m_axisf)) { /* use zero based axis index internally */
 					m_istrig = 1;
 					result = true;
-				}else{
+				}
+				else {
 					if (m_istrig) {
 						m_istrig = 0;
 						result = true;
@@ -168,7 +170,8 @@ bool SCA_JoystickSensor::Evaluate()
 			if (js->aAxisIsPositive(m_axis-1)) { /* use zero based axis index internally */
 				m_istrig = 1;
 				result = true;
-			}else{
+			}
+			else {
 				if (m_istrig) {
 					m_istrig = 0;
 					result = true;
@@ -209,7 +212,8 @@ bool SCA_JoystickSensor::Evaluate()
 			if ((m_bAllEvents && js->GetHat(m_hat-1)) || js->aHatIsPositive(m_hat-1, m_hatf)) {
 				m_istrig = 1;
 				result = true;
-			}else{
+			}
+			else {
 				if (m_istrig) {
 					m_istrig = 0;
 					result = true;

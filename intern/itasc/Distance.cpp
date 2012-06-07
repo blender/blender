@@ -189,7 +189,7 @@ void Distance::updateKinematics(const Timestamp& timestamp)
 void Distance::updateJacobian()
 {
     for(unsigned int i=0;i<6;i++)
-        m_chiKdl(i)=m_chi(i);
+        m_chiKdl[i]=m_chi[i];
 
     m_fksolver->JntToCart(m_chiKdl,m_internalPose);
     m_jacsolver->JntToJac(m_chiKdl,m_jac);

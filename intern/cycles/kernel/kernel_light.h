@@ -391,6 +391,10 @@ __device float light_sample_pdf(KernelGlobals *kg, LightSample *ls, float3 I, fl
 __device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls, float *pdf)
 {
 	regular_light_sample(kg, index, randu, randv, P, ls, pdf);
+
+	/* compute incoming direction and distance */
+	if(ls->t != FLT_MAX)
+		ls->D = normalize_len(ls->P - P, &ls->t);
 }
 
 __device float light_select_pdf(KernelGlobals *kg, LightSample *ls, float3 I, float t)

@@ -38,8 +38,7 @@
 
 #include "IMB_moviecache.h"
 
-typedef struct seqCacheKey 
-{
+typedef struct seqCacheKey {
 	struct Sequence * seq;
 	SeqRenderData context;
 	float cfra;

@@ -76,8 +76,7 @@ public :
 
 	virtual 
 	~SG_ParentRelation(
-	){
-	};
+	) {};
 
 	/** 
 	 * You must provide a way of duplicating an

@@ -56,8 +56,7 @@ typedef unsigned long long GHOST_TUns64;
 
 typedef void *GHOST_TUserDataPtr;
 
-typedef enum
-{
+typedef enum {
 	GHOST_kFailure = 0,
 	GHOST_kSuccess
 } GHOST_TSuccess;

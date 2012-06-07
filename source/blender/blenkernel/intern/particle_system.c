@@ -2363,13 +2363,12 @@ static EdgeHash *sph_springhash_build(ParticleSystem *psys)
 }
 
 #define SPH_NEIGHBORS 512
-typedef struct SPHNeighbor
-{
+typedef struct SPHNeighbor {
 	ParticleSystem *psys;
 	int index;
 } SPHNeighbor;
-typedef struct SPHRangeData
-{
+
+typedef struct SPHRangeData {
 	SPHNeighbor neighbors[SPH_NEIGHBORS];
 	int tot_neighbors;
 
@@ -2641,8 +2640,7 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 /************************************************/
 /*			Basic physics						*/
 /************************************************/
-typedef struct EfData
-{
+typedef struct EfData {
 	ParticleTexture ptex;
 	ParticleSimulationData *sim;
 	ParticleData *pa;

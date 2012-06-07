@@ -27,6 +27,10 @@
 #include <cassert>
 #include <cmath>
 
+#ifdef NDEBUG
+#undef assert
+#define assert(e) ((void)0)
+#endif
 
 /////////////////////////////////////////////////////////////
 // configurable options for the frames library.

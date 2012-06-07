@@ -610,8 +610,6 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 		/* not too nice... for recovering objects with lost data */
 		//if (ob->pose == NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag = base->flag;
-		
-		ob->ctime = -1234567.0;  /* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 }

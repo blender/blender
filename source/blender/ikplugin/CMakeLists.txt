@@ -57,8 +57,5 @@ if(WITH_IK_ITASC)
 	)
 endif()
 
-if(WIN32)
-	add_definitions(-DEIGEN_DONT_ALIGN_STATICALLY)
-endif()
 
 blender_add_lib(bf_ikplugin "${SRC}" "${INC}" "${INC_SYS}")

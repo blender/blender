@@ -385,7 +385,7 @@ typedef struct wmTabletData {
 	float Ytilt;		/* as above */
 } wmTabletData;
 
-typedef enum { // motion progress, for modal handlers
+typedef enum {  /* motion progress, for modal handlers */
 	P_NOT_STARTED,
 	P_STARTING,    // <--
 	P_IN_PROGRESS, // <-- only these are sent for NDOF motion

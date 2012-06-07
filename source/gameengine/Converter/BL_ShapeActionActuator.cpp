@@ -316,7 +316,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 			m_localtime += (length/m_stridelength) * deltapos.length();
 			m_lastpos = newpos;
 		}
-		else{
+		else {
 			SetLocalTime(curtime);
 		}
 	}
@@ -466,7 +466,7 @@ bool BL_ShapeActionActuator::Update(double curtime, bool frame)
 				BLI_freelistN(&tchanbase);
 			}
 		}
-		else{
+		else {
 			m_blendframe = 0.0f;
 		}
 	}

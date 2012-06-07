@@ -36,7 +36,7 @@
 
 struct RAS_LightObject
 {
-	enum LightType{
+	enum LightType {
 		LIGHT_SPOT,
 		LIGHT_SUN,
 		LIGHT_NORMAL

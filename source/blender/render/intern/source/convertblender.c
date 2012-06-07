@@ -520,8 +520,7 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
  ************ tangent space generation interface ****************
  ****************************************************************/
 
-typedef struct
-{
+typedef struct {
 	ObjectRen *obr;
 
 } SRenderMeshToTangent;
@@ -1011,8 +1010,7 @@ static Material *give_render_material(Render *re, Object *ob, short nr)
 /* ------------------------------------------------------------------------- */
 /* Particles                                                                 */
 /* ------------------------------------------------------------------------- */
-typedef struct ParticleStrandData
-{
+typedef struct ParticleStrandData {
 	struct MCol *mcol;
 	float *orco, *uvco, *surfnor;
 	float time, adapt_angle, adapt_pix, size;

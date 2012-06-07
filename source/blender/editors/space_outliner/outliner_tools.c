@@ -385,6 +385,18 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 	}
 }
 
+static void group_instance_cb(bContext *C, Scene *scene, TreeElement *UNUSED(te),
+                              TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	Group *group = (Group *)tselem->id;
+
+	Object *ob = ED_object_add_type(C, OB_EMPTY, scene->cursor, NULL, FALSE, scene->layact);
+	rename_id(&ob->id, group->id.name + 2);
+	ob->dup_group = group;
+	ob->transflag |= OB_DUPLIGROUP;
+	id_lib_extern(&group->id);
+}
+
 void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb, 
                                   void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
                                                        TreeStoreElem *, TreeStoreElem *))
@@ -636,13 +648,14 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 /* **************************************** */
 
 static EnumPropertyItem prop_group_op_types[] = {
-	{1, "UNLINK", 0, "Unlink", ""},
-	{2, "LOCAL", 0, "Make Local", ""},
-	{3, "LINK", 0, "Link Group Objects to Scene", ""},
-	{4, "TOGVIS", 0, "Toggle Visible", ""},
-	{5, "TOGSEL", 0, "Toggle Selectable", ""},
-	{6, "TOGREN", 0, "Toggle Renderable", ""},
-	{7, "RENAME", 0, "Rename", ""},
+	{0, "UNLINK",   0, "Unlink Group", ""},
+	{1, "LOCAL",    0, "Make Local Group", ""},
+	{2, "LINK",     0, "Link Group Objects to Scene", ""},
+	{3, "INSTANCE", 0, "Instance Group in Scene", ""},
+	{4, "TOGVIS",   0, "Toggle Visible Group", ""},
+	{5, "TOGSEL",   0, "Toggle Selectable", ""},
+	{6, "TOGREN",   0, "Toggle Renderable", ""},
+	{7, "RENAME",   0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -651,45 +664,36 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	int event;
-	const char *str = NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
 		return OPERATOR_CANCELLED;
 	
 	event = RNA_enum_get(op->ptr, "type");
-	
-	if (event == 1) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
-		str = "Unlink group";
-	}
-	else if (event == 2) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
-		str = "Localized Data";
-	}
-	else if (event == 3) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
-		str = "Link Group Objects to Scene";
-	}
-	else if (event == 4) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
-		str = "Toggle Visibility";
-	}
-	else if (event == 5) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
-		str = "Toggle Selectability";
-	}
-	else if (event == 6) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
-		str = "Toggle Renderability";
-	}
-	else if (event == 7) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
-		str = "Rename";
+
+	switch (event) {
+		case 0: outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb); break;
+		case 1: outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb); break;
+		case 2: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb); break;
+		case 3: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_instance_cb); break;
+		case 4: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb); break;
+		case 5: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb); break;
+		case 6: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb); break;
+		case 7: outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb); break;
+		default:
+			BLI_assert(0);
+			return OPERATOR_CANCELLED;
 	}
 	
+
+	if (event == 3) { /* instance */
+		Main *bmain = CTX_data_main(C);
+
+		/* works without this except if you try render right after, see: 22027 */
+		DAG_scene_sort(bmain, scene);
+	}
 	
-	ED_undo_push(C, str);
+	ED_undo_push(C, prop_group_op_types[event].name);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 	
 	return OPERATOR_FINISHED;

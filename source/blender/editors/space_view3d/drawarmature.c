@@ -1658,7 +1658,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 /* assumes object is Armature with pose */
 static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
                             int dt, const unsigned char ob_wire_col[4],
-                            const short is_ghost, const short is_outline)
+                            const short do_const_color, const short is_outline)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	Object *ob = base->object;
@@ -1753,8 +1753,13 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					if (bone == arm->act_bone)
 						flag |= BONE_DRAW_ACTIVE;
 					
-					/* set color-set to use */
-					set_pchan_colorset(ob, pchan);
+					if (do_const_color) {
+						/* keep color */
+					}
+					else {
+						/* set color-set to use */
+						set_pchan_colorset(ob, pchan);
+					}
 					
 					if (use_custom) {
 						/* if drawwire, don't try to draw in solid */
@@ -1828,10 +1833,10 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 							}
 							
 							/* prepare colors */
-							if (is_ghost) {
+							if (do_const_color) {
 								/* 13 October 2009, Disabled this to make ghosting show the right colors (Aligorith) */
 							}
-							else if (arm->flag & ARM_POSEMODE)	
+							else if (arm->flag & ARM_POSEMODE)
 								set_pchan_colorset(ob, pchan);
 							else {
 								glColor3ubv(ob_wire_col);
@@ -1950,7 +1955,12 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					/* extra draw service for pose mode */
 
 					/* set color-set to use */
-					set_pchan_colorset(ob, pchan);
+					if (do_const_color) {
+						/* keep color */
+					}
+					else {
+						set_pchan_colorset(ob, pchan);
+					}
 					
 					if ((pchan->custom) && !(arm->flag & ARM_NO_CUSTOM)) {
 						/* custom bone shapes should not be drawn here! */
@@ -1985,20 +1995,35 @@ static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	glDisable(GL_CULL_FACE);
 	
 	/* draw DoFs */
-	if (arm->flag & ARM_POSEMODE)
-		draw_pose_dofs(ob);
+	if (arm->flag & ARM_POSEMODE) {
+		if (((base->flag & OB_FROMDUPLI) == 0)) {
+			draw_pose_dofs(ob);
+		}
+	}
 
 	/* finally names and axes */
-	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) && (is_outline == 0)) {
+	if ((arm->flag & (ARM_DRAWNAMES | ARM_DRAWAXES)) &&
+	    (is_outline == 0) &&
+	    ((base->flag & OB_FROMDUPLI) == 0))
+	{
 		/* patch for several 3d cards (IBM mostly) that crash on GL_SELECT with text drawing */
 		if ((G.f & G_PICKSEL) == 0) {
 			float vec[3];
-			
+
 			unsigned char col[4];
-			col[0] = ob_wire_col[0];
-			col[1] = ob_wire_col[1];
-			col[2] = ob_wire_col[2];
-			col[3] = 255;
+			if (do_const_color) {
+				/* so we can draw bone names in current const color */
+				float tcol[4];
+				glGetFloatv(GL_CURRENT_COLOR, tcol);
+				rgb_float_to_uchar(col, tcol);
+				col[3] = 255;
+			}
+			else {
+				col[0] = ob_wire_col[0];
+				col[1] = ob_wire_col[1];
+				col[2] = ob_wire_col[2];
+				col[3] = 255;
+			}
 			
 			if (v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			
@@ -2546,11 +2571,8 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 	
 	if (dt > OB_WIRE && !ELEM(arm->drawtype, ARM_LINE, ARM_WIRE)) {
 		/* we use color for solid lighting */
-		glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-		glEnable(GL_COLOR_MATERIAL);
-		glColor3ub(255, 255, 255);    // clear spec
-		glDisable(GL_COLOR_MATERIAL);
-		
+		const float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, white);
 		glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
 		glFrontFace((ob->transflag & OB_NEG_SCALE) ? GL_CW : GL_CCW); // only for lighting...
 	}
@@ -2602,7 +2624,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					}
 				}	
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, FALSE, is_outline);
+			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (flag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if (ob->mode & OB_MODE_POSE)

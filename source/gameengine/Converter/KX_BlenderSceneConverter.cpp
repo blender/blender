@@ -930,13 +930,34 @@ bool KX_BlenderSceneConverter::LinkBlendFilePath(const char *path, char *group, 
 	return LinkBlendFile(bpy_openlib, path, group, scene_merge, err_str, options);
 }
 
+static void load_datablocks(Main *main_newlib, BlendHandle *bpy_openlib, const char *path, int idcode)
+{
+	Main *main_tmp= NULL; /* created only for linking, then freed */
+	LinkNode *names = NULL;
+	short flag= 0; /* don't need any special options */
+
+	/* here appending/linking starts */
+	main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
+
+	int totnames_dummy;
+	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode, &totnames_dummy);
+	
+	int i=0;
+	LinkNode *n= names;
+	while(n) {
+		BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
+		n= (LinkNode *)n->next;
+		i++;
+	}
+	BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
+	
+	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
+}
+
 bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const char *path, char *group, KX_Scene *scene_merge, char **err_str, short options)
 {
 	Main *main_newlib; /* stored as a dynamic 'main' until we free it */
-	Main *main_tmp= NULL; /* created only for linking, then freed */
-	LinkNode *names = NULL;
 	int idcode= BKE_idcode_from_name(group);
-	short flag= 0; /* don't need any special options */
 	ReportList reports;
 	static char err_local[255];
 	
@@ -964,40 +985,11 @@ bool KX_BlenderSceneConverter::LinkBlendFile(BlendHandle *bpy_openlib, const cha
 	main_newlib= (Main *)MEM_callocN( sizeof(Main), "BgeMain");
 	BKE_reports_init(&reports, RPT_STORE);	
 
-	/* here appending/linking starts */
-	main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
-
-	int totnames_dummy;
-	names = BLO_blendhandle_get_datablock_names( bpy_openlib, idcode, &totnames_dummy);
-	
-	int i=0;
-	LinkNode *n= names;
-	while(n) {
-		BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, idcode);
-		n= (LinkNode *)n->next;
-		i++;
-	}
-	BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
-	
-	BLO_library_append_end(NULL, main_tmp, &bpy_openlib, idcode, flag);
+	load_datablocks(main_newlib, bpy_openlib, path, idcode);
 
 	/* now do another round of linking for Scenes so all actions are properly loaded */
 	if (idcode==ID_SCE && options & LIB_LOAD_LOAD_ACTIONS) {
-		main_tmp = BLO_library_append_begin(main_newlib, &bpy_openlib, (char *)path);
-
-		int totnames_dummy;
-		names = BLO_blendhandle_get_datablock_names( bpy_openlib, ID_AC, &totnames_dummy);
-	
-		int i=0;
-		LinkNode *n= names;
-		while(n) {
-			BLO_library_append_named_part(main_tmp, &bpy_openlib, (char *)n->link, ID_AC);
-			n= (LinkNode *)n->next;
-			i++;
-		}
-		BLI_linklist_free(names, free);	/* free linklist *and* each node's data */
-	
-		BLO_library_append_end(NULL, main_tmp, &bpy_openlib, ID_AC, flag);
+		load_datablocks(main_newlib, bpy_openlib, path, ID_AC);
 	}
 	
 	BLO_blendhandle_close(bpy_openlib);

@@ -5216,7 +5216,7 @@ void initEdgeSlide(TransInfo *t)
 
 int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 {
-	if (t->flag & TFM_EDGE_SLIDE) {
+	if (t->mode == TFM_EDGE_SLIDE) {
 		SlideData *sld = t->customData;
 
 		if (sld) {
@@ -5258,7 +5258,7 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 
 void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 {
-	if (t->flag & TFM_EDGE_SLIDE) {
+	if (t->mode == TFM_EDGE_SLIDE) {
 		SlideData *sld = (SlideData *)t->customData;
 		/* Non-Prop mode */
 		if (sld && sld->is_proportional == FALSE) {
