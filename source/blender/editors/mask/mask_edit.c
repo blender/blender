@@ -35,6 +35,8 @@
 #include "BKE_context.h"
 #include "BKE_mask.h"
 
+#include "DNA_scene_types.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -132,16 +134,24 @@ void ED_mask_point_pos__reverse(bContext *C, float x, float y, float *xr, float 
 
 void ED_mask_size(bContext *C, int *width, int *height)
 {
-	SpaceClip *sc = CTX_wm_space_clip(C);
+	ScrArea *sa = CTX_wm_area(C);
+	if (sa && sa->spacedata.first) {
+		if (sa->spacetype == SPACE_CLIP) {
+			SpaceClip *sc = sa->spacedata.first;
+			ED_space_clip_mask_size(sc, width, height);
+			return;
+		}
+		else if (sa->spacetype == SPACE_SEQ) {
+			Scene *scene = CTX_data_scene(C);
+			*width = (scene->r.size * scene->r.xsch) / 100;
+			*height = (scene->r.size * scene->r.ysch) / 100;
+			return;
+		}
+	}
 
-	if (sc) {
-		ED_space_clip_mask_size(sc, width, height);
-	}
-	else {
-		/* possible other spaces from which mask editing is available */
-		*width = 0;
-		*height = 0;
-	}
+	/* possible other spaces from which mask editing is available */
+	*width = 0;
+	*height = 0;
 }
 
 void ED_mask_aspect(bContext *C, float *aspx, float *aspy)

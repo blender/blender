@@ -59,7 +59,9 @@
 
 #include "ED_anim_api.h"
 #include "ED_markers.h"
+#include "ED_mask.h"
 #include "ED_types.h"
+#include "ED_space_api.h"
 
 #include "UI_interface.h"
 #include "UI_resources.h"
@@ -984,6 +986,59 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);
+
+	//if (sc->mode == SC_MODE_MASKEDIT) {
+	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
+		Sequence *seq_act = BKE_sequencer_active_get(scene);
+
+		if (seq_act && seq_act->type == SEQ_TYPE_MASK && seq_act->mask) {
+			int x, y;
+			int width, height;
+			float zoomx, zoomy;
+
+			/* frame image */
+			float maxdim;
+			float xofs, yofs;
+
+			/* find window pixel coordinates of origin */
+			UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
+
+			width = v2d->tot.xmax - v2d->tot.xmin;
+			height = v2d->tot.ymax - v2d->tot.ymin;
+
+			zoomx = (float)(ar->winrct.xmax - ar->winrct.xmin + 1) / (float)((ar->v2d.cur.xmax - ar->v2d.cur.xmin));
+			zoomy = (float)(ar->winrct.ymax - ar->winrct.ymin + 1) / (float)((ar->v2d.cur.ymax - ar->v2d.cur.ymin));
+
+			x += v2d->tot.xmin * zoomx;
+			y += v2d->tot.ymin * zoomy;
+
+			/* frame the image */
+			maxdim = maxf(width, height);
+			if (width == height) {
+				xofs = yofs = 0;
+			}
+			else if (width < height) {
+				xofs = ((height - width) / -2.0f) * zoomx;
+				yofs = 0.0f;
+			}
+			else { /* (width > height) */
+				xofs = 0.0f;
+				yofs = ((width - height) / -2.0f) * zoomy;
+			}
+
+			/* apply transformation so mask editing tools will assume drawing from the origin in normalized space */
+			glPushMatrix();
+			glTranslatef(x + xofs, y + yofs, 0);
+			glScalef(maxdim * zoomx, maxdim * zoomy, 0);
+
+			ED_mask_draw((bContext *)C, 0, 0); // sc->mask_draw_flag, sc->mask_draw_type
+
+			ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
+
+			glPopMatrix();
+		}
+	}
+
 }
 
 #if 0
