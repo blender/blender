@@ -32,8 +32,10 @@
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 
+#include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
 
 #include "BLI_math.h"
@@ -42,7 +44,12 @@
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_object.h"
+#include "BKE_mesh.h"
 #include "BKE_scene.h"
+
+extern "C" {
+#include "BKE_DerivedMesh.h"
+}
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
@@ -123,5 +130,37 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
 
 	return ob;
+}
+
+Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob)
+{
+	Mesh *tmpmesh;
+	CustomDataMask mask = CD_MASK_MESH;
+	DerivedMesh *dm     = mesh_create_derived_view(scene, ob, mask);
+	tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
+	DM_to_mesh(dm, tmpmesh, ob);
+	dm->release(dm);
+	return tmpmesh;
+}
+
+Object *bc_get_assigned_armature(Object *ob)
+{
+	Object *ob_arm = NULL;
+
+	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
+		ob_arm = ob->parent;
+	}
+	else {
+		ModifierData *mod = (ModifierData*)ob->modifiers.first;
+		while (mod) {
+			if (mod->type == eModifierType_Armature) {
+				ob_arm = ((ArmatureModifierData*)mod)->object;
+			}
+
+			mod = mod->next;
+		}
+	}
+
+	return ob_arm;
 }
 

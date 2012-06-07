@@ -25,6 +25,7 @@
  */
 
 #include "SceneExporter.h"
+#include "collada_utils.h"
 
 SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings)
 	: COLLADASW::LibraryVisualScenes(sw), arm_exporter(arm), export_settings(export_settings)
@@ -40,19 +41,36 @@ void SceneExporter::exportScene(Scene *sce)
 	closeLibrary();
 }
 
+// Returns true if the parent chain does not contain any selected object
+// Otherwise return false (ob has selected predecessor)
+bool is_exported_base_node(Object *ob, bool selection_only) {
+
+	if (selection_only && ob->flag & SELECT) {
+		// Move up towards root object,
+		// stop at first selected predecessor's child,
+		// or at root, if no parent was selected
+		while (ob->parent && (ob->parent->type==OB_ARMATURE || !(ob->parent->flag & SELECT)))
+		{
+			ob = ob->parent;
+		}
+	}
+
+	return !ob->parent;
+}
+
 void SceneExporter::exportHierarchy(Scene *sce)
 {
 	Base *base= (Base*) sce->base.first;
 	while (base) {
 		Object *ob = base->object;
 
-		if (!ob->parent) {
+		bool is_export_base_node = is_exported_base_node(ob, this->export_settings->selected);
+		if (is_export_base_node) {
 			if (sce->lay & ob->lay) {
 				switch (ob->type) {
 					case OB_MESH:
 					case OB_CAMERA:
 					case OB_LAMP:
-					case OB_ARMATURE:
 					case OB_EMPTY:
 						if (this->export_settings->selected && !(ob->flag & SELECT)) {
 							break;
@@ -70,6 +88,14 @@ void SceneExporter::exportHierarchy(Scene *sce)
 
 void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
+
+	// Add associated armature first if available
+	if (this->export_settings->include_armatures) {
+		Object *ob_arm = bc_get_assigned_armature(ob);
+		if(ob_arm != NULL)
+			writeNodes(ob_arm, sce);
+	}
+
 	COLLADASW::Node node(mSW);
 	node.setNodeId(translate_id(id_name(ob)));
 	node.setNodeName(translate_id(id_name(ob)));
@@ -80,8 +106,19 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
 	std::list<Object*> child_objects;
 
+	// XXX Not sure about this.
+	// For me this looks more like a very special case for a very special purpose.
+	// Wouldn't it be better to have only one option here ?
+	//
+	// - include children
+	//
+	// Instead of "include_bone_children" ?
+	// then we could just ask:
+	// if (this->export_settings->include_children)
+	//    ...
+	if (this->export_settings->include_armatures
+		&& this->export_settings->include_bone_children) {
 
-	if (this->export_settings->include_bone_children) {
 		// list child objects
 		Base *b = (Base*) sce->base.first;
 		while (b) {
@@ -105,7 +142,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	}
 
 
-	if (ob->type == OB_MESH && is_skinned_mesh)
+	if (ob->type == OB_MESH && this->export_settings->include_armatures && is_skinned_mesh)
 		// for skinned mesh we write obmat in <bind_shape_matrix>
 		TransformWriter::add_node_transform_identity(node);
 	else
@@ -113,10 +150,11 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	// <instance_geometry>
 	if (ob->type == OB_MESH) {
-		if (is_skinned_mesh) {
-			arm_exporter->add_instance_controller(ob);
+		bool instance_controller_created = false;
+		if (this->export_settings->include_armatures && is_skinned_mesh) {
+			instance_controller_created = arm_exporter->add_instance_controller(ob);
 		}
-		else {
+		if (!instance_controller_created){
 			COLLADASW::InstanceGeometry instGeom(mSW);
 			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, this->export_settings->use_object_instantiation)));
 

@@ -36,6 +36,7 @@
 #include <map>
 
 #include "DNA_object_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_texture_types.h"
 #include "BKE_context.h"
@@ -50,5 +51,7 @@ extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_sp
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
 extern Object *bc_add_object(Scene *scene, int type, const char *name);
+extern Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob);
+extern Object *bc_get_assigned_armature(Object *ob);
 
 #endif

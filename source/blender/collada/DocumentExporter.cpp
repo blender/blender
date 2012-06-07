@@ -262,8 +262,10 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw, this->export_settings);
-	if (has_object_type(sce, OB_ARMATURE)) {
-		arm_exporter.export_controllers(sce);
+	if (this->export_settings->include_armatures) {
+		if (has_object_type(sce, OB_ARMATURE)) {
+			arm_exporter.export_controllers(sce);
+		}
 	}
 
 	// <library_visual_scenes>
