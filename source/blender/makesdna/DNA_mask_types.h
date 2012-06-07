@@ -43,9 +43,9 @@
 typedef struct Mask {
 	ID id;
 	struct AnimData *adt;
-	ListBase masklayers;   /* mask layers */
-	int masklay_act;     /* index of active mask layer (-1 == None) */
-	int masklay_tot;     /* total number of mask layers */
+	ListBase masklayers;  /* mask layers */
+	int masklay_act;      /* index of active mask layer (-1 == None) */
+	int masklay_tot;      /* total number of mask layers */
 } Mask;
 
 typedef struct MaskParent {
@@ -165,6 +165,5 @@ enum {
 enum {
 	MASK_BLENDFLAG_INVERT = (1 << 0)
 };
-
 
 #endif // __DNA_MASK_TYPES_H__

@@ -1399,14 +1399,6 @@ void BKE_mask_calc_handles(Mask *mask)
 	}
 }
 
-void BKE_mask_calc_handles_deform(Mask *mask)
-{
-	MaskLayer *masklay;
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
-		BKE_mask_layer_calc_handles_deform(masklay);
-	}
-}
-
 void BKE_mask_update_deform(Mask *mask)
 {
 	MaskLayer *masklay;
@@ -1516,9 +1508,10 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
-		int i;
 
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+			int has_auto = FALSE;
 
 			BKE_mask_spline_ensure_deform(spline);
 
@@ -1537,12 +1530,24 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 					add_v2_v2(point_deform->bezt.vec[1], delta);
 					add_v2_v2(point_deform->bezt.vec[2], delta);
 				}
+
+				if (point->bezt.h1 == HD_AUTO) {
+					has_auto = TRUE;
+				}
 			}
+
+			/* if the spline has auto handles, these need to be recalculated after deformation */
+			if (has_auto) {
+				for (i = 0; i < spline->tot_point; i++) {
+					MaskSplinePoint *point_deform = &spline->points_deform[i];
+					if (point_deform->bezt.h1 == HD_AUTO) {
+						BKE_mask_calc_handle_point(spline, point_deform);
+					}
+				}
+			}
+			/* end extra calc handles loop */
 		}
 	}
-
-	/* TODO, move into loop above and only run if there are auto-handles */
-	BKE_mask_calc_handles_deform(mask);
 }
 
 /* the purpose of this function is to ensure spline->points_deform is never out of date.
