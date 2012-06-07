@@ -228,8 +228,8 @@ static int sequencer_add_scene_strip_exec(bContext *C, wmOperator *op)
 	}
 	
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	seq->type = SEQ_SCENE;
-	seq->blend_mode = SEQ_CROSS; /* so alpha adjustment fade to the strip below */
+	seq->type = SEQ_TYPE_SCENE;
+	seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
 	seq->scene = sce_seq;
 	
@@ -327,8 +327,8 @@ static int sequencer_add_movieclip_strip_exec(bContext *C, wmOperator *op)
 	}
 	
 	seq = alloc_sequence(ed->seqbasep, start_frame, channel);
-	seq->type = SEQ_MOVIECLIP;
-	seq->blend_mode = SEQ_CROSS;
+	seq->type = SEQ_TYPE_MOVIECLIP;
+	seq->blend_mode = SEQ_TYPE_CROSS;
 	seq->clip = clip;
 
 	if (seq->clip->id.us == 0)
@@ -740,14 +740,14 @@ static int sequencer_add_effect_strip_exec(bContext *C, wmOperator *op)
 	seq->strip = strip = MEM_callocN(sizeof(Strip), "strip");
 	strip->us = 1;
 
-	if (seq->type == SEQ_COLOR) {
+	if (seq->type == SEQ_TYPE_COLOR) {
 		SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 		RNA_float_get_array(op->ptr, "color", colvars->col);
-		seq->blend_mode = SEQ_CROSS; /* so alpha adjustment fade to the strip below */
+		seq->blend_mode = SEQ_TYPE_CROSS; /* so alpha adjustment fade to the strip below */
 
 	}
-	else if (seq->type == SEQ_ADJUSTMENT) {
-		seq->blend_mode = SEQ_CROSS;
+	else if (seq->type == SEQ_TYPE_ADJUSTMENT) {
+		seq->blend_mode = SEQ_TYPE_CROSS;
 	}
 
 	/* an unset channel is a special case where we automatically go above
@@ -832,6 +832,6 @@ void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, 0, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 	sequencer_generic_props__internal(ot, SEQPROP_STARTFRAME | SEQPROP_ENDFRAME);
-	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
+	RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_TYPE_CROSS, "Type", "Sequencer effect type");
 	RNA_def_float_vector(ot->srna, "color", 3, NULL, 0.0f, 1.0f, "Color", "Initialize the strip with this color (only used when type='COLOR')", 0.0f, 1.0f);
 }

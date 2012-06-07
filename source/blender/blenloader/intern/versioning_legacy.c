@@ -1842,7 +1842,7 @@ void blo_do_versions_pre250(FileData *fd, Library *lib, Main *main)
 			if (ed) {
 				SEQ_BEGIN (sce->ed, seq)
 				{
-					if (seq->type == SEQ_IMAGE || seq->type == SEQ_MOVIE)
+					if (seq->type == SEQ_TYPE_IMAGE || seq->type == SEQ_TYPE_MOVIE)
 						seq->flag |= SEQ_MAKE_PREMUL;
 				}
 				SEQ_END

@@ -4831,8 +4831,8 @@ static void lib_link_scene(FileData *fd, Main *main)
 				if (seq->scene_camera) seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if (seq->sound) {
 					seq->scene_sound = NULL;
-					if (seq->type == SEQ_HD_SOUND)
-						seq->type = SEQ_SOUND;
+					if (seq->type == SEQ_TYPE_SOUND_HD)
+						seq->type = SEQ_TYPE_SOUND_RAM;
 					else
 						seq->sound = newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
@@ -4957,10 +4957,10 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			
 			seq->effectdata = newdataadr(fd, seq->effectdata);
 			
-			if (seq->type & SEQ_EFFECT)
+			if (seq->type & SEQ_TYPE_EFFECT)
 				seq->flag |= SEQ_EFFECT_NOT_LOADED;
 			
-			if (seq->type == SEQ_SPEED) {
+			if (seq->type == SEQ_TYPE_SPEED) {
 				SpeedControlVars *s = seq->effectdata;
 				s->frameMap = NULL;
 			}
@@ -4969,7 +4969,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if (seq->strip && seq->strip->done==0) {
 				seq->strip->done = TRUE;
 				
-				if (ELEM4(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_RAM_SOUND, SEQ_HD_SOUND)) {
+				if (ELEM4(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
 					seq->strip->stripdata = newdataadr(fd, seq->strip->stripdata);
 				}
 				else {

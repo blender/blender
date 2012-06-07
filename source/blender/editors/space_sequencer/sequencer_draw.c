@@ -82,23 +82,23 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 	SolidColorVars *colvars = (SolidColorVars *)seq->effectdata;
 
 	switch (seq->type) {
-		case SEQ_IMAGE:
+		case SEQ_TYPE_IMAGE:
 			UI_GetThemeColor3ubv(TH_SEQ_IMAGE, col);
 			break;
 
-		case SEQ_META:
+		case SEQ_TYPE_META:
 			UI_GetThemeColor3ubv(TH_SEQ_META, col);
 			break;
 
-		case SEQ_MOVIE:
+		case SEQ_TYPE_MOVIE:
 			UI_GetThemeColor3ubv(TH_SEQ_MOVIE, col);
 			break;
 
-		case SEQ_MOVIECLIP:
+		case SEQ_TYPE_MOVIECLIP:
 			UI_GetThemeColor3ubv(TH_SEQ_MOVIECLIP, col);
 			break;
 		
-		case SEQ_SCENE:
+		case SEQ_TYPE_SCENE:
 			UI_GetThemeColor3ubv(TH_SEQ_SCENE, col);
 		
 			if (seq->scene == curscene) {
@@ -107,45 +107,45 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 			break;
 		
 		/* transitions */
-		case SEQ_CROSS:
-		case SEQ_GAMCROSS:
-		case SEQ_WIPE:
+		case SEQ_TYPE_CROSS:
+		case SEQ_TYPE_GAMCROSS:
+		case SEQ_TYPE_WIPE:
 			UI_GetThemeColor3ubv(TH_SEQ_TRANSITION, col);
 
 			/* slightly offset hue to distinguish different effects */
-			if (seq->type == SEQ_CROSS)    rgb_byte_set_hue_float_offset(col, 0.04);
-			if (seq->type == SEQ_GAMCROSS) rgb_byte_set_hue_float_offset(col, 0.08);
-			if (seq->type == SEQ_WIPE)     rgb_byte_set_hue_float_offset(col, 0.12);
+			if (seq->type == SEQ_TYPE_CROSS)    rgb_byte_set_hue_float_offset(col, 0.04);
+			if (seq->type == SEQ_TYPE_GAMCROSS) rgb_byte_set_hue_float_offset(col, 0.08);
+			if (seq->type == SEQ_TYPE_WIPE)     rgb_byte_set_hue_float_offset(col, 0.12);
 			break;
 
 		/* effects */
-		case SEQ_TRANSFORM:
-		case SEQ_SPEED:
-		case SEQ_ADD:
-		case SEQ_SUB:
-		case SEQ_MUL:
-		case SEQ_ALPHAOVER:
-		case SEQ_ALPHAUNDER:
-		case SEQ_OVERDROP:
-		case SEQ_GLOW:
-		case SEQ_MULTICAM:
-		case SEQ_ADJUSTMENT:
+		case SEQ_TYPE_TRANSFORM:
+		case SEQ_TYPE_SPEED:
+		case SEQ_TYPE_ADD:
+		case SEQ_TYPE_SUB:
+		case SEQ_TYPE_MUL:
+		case SEQ_TYPE_ALPHAOVER:
+		case SEQ_TYPE_ALPHAUNDER:
+		case SEQ_TYPE_OVERDROP:
+		case SEQ_TYPE_GLOW:
+		case SEQ_TYPE_MULTICAM:
+		case SEQ_TYPE_ADJUSTMENT:
 			UI_GetThemeColor3ubv(TH_SEQ_EFFECT, col);
 
 			/* slightly offset hue to distinguish different effects */
-			if      (seq->type == SEQ_ADD)        rgb_byte_set_hue_float_offset(col, 0.04);
-			else if (seq->type == SEQ_SUB)        rgb_byte_set_hue_float_offset(col, 0.08);
-			else if (seq->type == SEQ_MUL)        rgb_byte_set_hue_float_offset(col, 0.12);
-			else if (seq->type == SEQ_ALPHAOVER)  rgb_byte_set_hue_float_offset(col, 0.16);
-			else if (seq->type == SEQ_ALPHAUNDER) rgb_byte_set_hue_float_offset(col, 0.20);
-			else if (seq->type == SEQ_OVERDROP)   rgb_byte_set_hue_float_offset(col, 0.24);
-			else if (seq->type == SEQ_GLOW)       rgb_byte_set_hue_float_offset(col, 0.28);
-			else if (seq->type == SEQ_TRANSFORM)  rgb_byte_set_hue_float_offset(col, 0.36);
-			else if (seq->type == SEQ_MULTICAM)   rgb_byte_set_hue_float_offset(col, 0.32);
-			else if (seq->type == SEQ_ADJUSTMENT) rgb_byte_set_hue_float_offset(col, 0.40);
+			if      (seq->type == SEQ_TYPE_ADD)        rgb_byte_set_hue_float_offset(col, 0.04);
+			else if (seq->type == SEQ_TYPE_SUB)        rgb_byte_set_hue_float_offset(col, 0.08);
+			else if (seq->type == SEQ_TYPE_MUL)        rgb_byte_set_hue_float_offset(col, 0.12);
+			else if (seq->type == SEQ_TYPE_ALPHAOVER)  rgb_byte_set_hue_float_offset(col, 0.16);
+			else if (seq->type == SEQ_TYPE_ALPHAUNDER) rgb_byte_set_hue_float_offset(col, 0.20);
+			else if (seq->type == SEQ_TYPE_OVERDROP)   rgb_byte_set_hue_float_offset(col, 0.24);
+			else if (seq->type == SEQ_TYPE_GLOW)       rgb_byte_set_hue_float_offset(col, 0.28);
+			else if (seq->type == SEQ_TYPE_TRANSFORM)  rgb_byte_set_hue_float_offset(col, 0.36);
+			else if (seq->type == SEQ_TYPE_MULTICAM)   rgb_byte_set_hue_float_offset(col, 0.32);
+			else if (seq->type == SEQ_TYPE_ADJUSTMENT) rgb_byte_set_hue_float_offset(col, 0.40);
 			break;
 
-		case SEQ_COLOR:
+		case SEQ_TYPE_COLOR:
 			if (colvars->col) {
 				rgb_float_to_uchar(col, colvars->col);
 			}
@@ -154,7 +154,7 @@ static void get_seq_color3ubv(Scene *curscene, Sequence *seq, unsigned char col[
 			}
 			break;
 
-		case SEQ_SOUND:
+		case SEQ_TYPE_SOUND_RAM:
 			UI_GetThemeColor3ubv(TH_SEQ_AUDIO, col);
 			blendcol[0] = blendcol[1] = blendcol[2] = 128;
 			if (seq->flag & SEQ_MUTE) UI_GetColorPtrBlendShade3ubv(col, blendcol, col, 0.5, 20);
@@ -362,7 +362,7 @@ static void draw_seq_handle(View2D *v2d, Sequence *seq, float pixelx, short dire
 	}
 	
 	/* draw! */
-	if (seq->type < SEQ_EFFECT || 
+	if (seq->type < SEQ_TYPE_EFFECT || 
 	    get_sequence_effect_num_inputs(seq->type) == 0)
 	{
 		glEnable(GL_BLEND);
@@ -409,7 +409,7 @@ static void draw_seq_extensions(Scene *scene, ARegion *ar, Sequence *seq)
 	unsigned char col[3], blendcol[3];
 	View2D *v2d = &ar->v2d;
 	
-	if (seq->type >= SEQ_EFFECT) return;
+	if (seq->type >= SEQ_TYPE_EFFECT) return;
 
 	x1 = seq->startdisp;
 	x2 = seq->enddisp;
@@ -521,10 +521,10 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 	if (name[0] == '\0')
 		name = give_seqname(seq);
 
-	if (seq->type == SEQ_META || seq->type == SEQ_ADJUSTMENT) {
+	if (seq->type == SEQ_TYPE_META || seq->type == SEQ_TYPE_ADJUSTMENT) {
 		BLI_snprintf(str, sizeof(str), "%d | %s", seq->len, name);
 	}
-	else if (seq->type == SEQ_SCENE) {
+	else if (seq->type == SEQ_TYPE_SCENE) {
 		if (seq->scene) {
 			if (seq->scene_camera) {
 				BLI_snprintf(str, sizeof(str), "%d | %s: %s (%s)",
@@ -540,7 +540,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			             seq->len, name);
 		}
 	}
-	else if (seq->type == SEQ_MOVIECLIP) {
+	else if (seq->type == SEQ_TYPE_MOVIECLIP) {
 		if (seq->clip && strcmp(name, seq->clip->id.name + 2) != 0) {
 			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
 			             seq->len, name, seq->clip->id.name + 2);
@@ -550,19 +550,19 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			             seq->len, name);
 		}
 	}
-	else if (seq->type == SEQ_MULTICAM) {
+	else if (seq->type == SEQ_TYPE_MULTICAM) {
 		BLI_snprintf(str, sizeof(str), "Cam | %s: %d",
 		             name, seq->multicam_source);
 	}
-	else if (seq->type == SEQ_IMAGE) {
+	else if (seq->type == SEQ_TYPE_IMAGE) {
 		BLI_snprintf(str, sizeof(str), "%d | %s: %s%s",
 		             seq->len, name, seq->strip->dir, seq->strip->stripdata->name);
 	}
-	else if (seq->type & SEQ_EFFECT) {
+	else if (seq->type & SEQ_TYPE_EFFECT) {
 		BLI_snprintf(str, sizeof(str), "%d | %s",
 			             seq->len, name);
 	}
-	else if (seq->type == SEQ_SOUND) {
+	else if (seq->type == SEQ_TYPE_SOUND_RAM) {
 		if (seq->sound)
 			BLI_snprintf(str, sizeof(str), "%d | %s: %s",
 			             seq->len, name, seq->sound->name);
@@ -570,7 +570,7 @@ static void draw_seq_text(View2D *v2d, Sequence *seq, float x1, float x2, float 
 			BLI_snprintf(str, sizeof(str), "%d | %s",
 			             seq->len, name);
 	}
-	else if (seq->type == SEQ_MOVIE) {
+	else if (seq->type == SEQ_TYPE_MOVIE) {
 		BLI_snprintf(str, sizeof(str), "%d | %s: %s%s",
 		             seq->len, name, seq->strip->dir, seq->strip->stripdata->name);
 	}
@@ -696,7 +696,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 	x2 = seq->enddisp;
 	
 	/* draw sound wave */
-	if (seq->type == SEQ_SOUND) {
+	if (seq->type == SEQ_TYPE_SOUND_RAM) {
 		drawseqwave(scene, seq, x1, y1, x2, y2, (ar->v2d.cur.xmax - ar->v2d.cur.xmin) / ar->winx);
 	}
 
@@ -743,7 +743,7 @@ static void draw_seq_strip(Scene *scene, ARegion *ar, Sequence *seq, int outline
 		glDisable(GL_LINE_STIPPLE);
 	}
 	
-	if (seq->type == SEQ_META) {
+	if (seq->type == SEQ_TYPE_META) {
 		drawmeta_contents(scene, seq, x1, y1, x2, y2);
 	}
 	

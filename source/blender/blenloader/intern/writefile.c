@@ -2153,19 +2153,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					
 					if (seq->effectdata) {
 						switch (seq->type) {
-						case SEQ_COLOR:
+						case SEQ_TYPE_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
-						case SEQ_SPEED:
+						case SEQ_TYPE_SPEED:
 							writestruct(wd, DATA, "SpeedControlVars", 1, seq->effectdata);
 							break;
-						case SEQ_WIPE:
+						case SEQ_TYPE_WIPE:
 							writestruct(wd, DATA, "WipeVars", 1, seq->effectdata);
 							break;
-						case SEQ_GLOW:
+						case SEQ_TYPE_GLOW:
 							writestruct(wd, DATA, "GlowVars", 1, seq->effectdata);
 							break;
-						case SEQ_TRANSFORM:
+						case SEQ_TYPE_TRANSFORM:
 							writestruct(wd, DATA, "TransformVars", 1, seq->effectdata);
 							break;
 						}
@@ -2185,9 +2185,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					if (seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
 						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
 					}
-					if (seq->type==SEQ_IMAGE)
+					if (seq->type==SEQ_TYPE_IMAGE)
 						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
-					else if (seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
+					else if (seq->type==SEQ_TYPE_MOVIE || seq->type==SEQ_TYPE_SOUND_RAM || seq->type == SEQ_TYPE_SOUND_HD)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 					
 					strip->done = TRUE;

@@ -744,7 +744,7 @@ void blo_do_versions_250(FileData *fd, Library *lib, Main *main)
 			if (scene->ed && scene->ed->seqbasep) {
 				SEQ_BEGIN (scene->ed, seq)
 				{
-					if (seq->type == SEQ_HD_SOUND) {
+					if (seq->type == SEQ_TYPE_SOUND_HD) {
 						char str[FILE_MAX];
 						BLI_join_dirfile(str, sizeof(str), seq->strip->dir, seq->strip->stripdata->name);
 						BLI_path_abs(str, main->name);

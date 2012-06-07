@@ -104,7 +104,7 @@ static Sequence *rna_Sequences_new_clip(ID *id, Editing *ed, ReportList *reports
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_MOVIECLIP, clip->name);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MOVIECLIP, clip->name);
 	seq->clip = clip;
 	seq->len =  BKE_movieclip_get_duration(clip);
 	id_us_plus((ID *)clip);
@@ -123,7 +123,7 @@ static Sequence *rna_Sequences_new_scene(ID *id, Editing *ed, ReportList *report
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SCENE, NULL);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_SCENE, NULL);
 	seq->scene = sce_seq;
 	seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
@@ -143,7 +143,7 @@ static Sequence *rna_Sequences_new_image(ID *id, Editing *ed, ReportList *report
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_IMAGE, file);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_IMAGE, file);
 	seq->len = 1;
 
 	if (seq->strip->stripdata->name[0] == '\0') {
@@ -174,7 +174,7 @@ static Sequence *rna_Sequences_new_movie(ID *id, Editing *ed, ReportList *report
 		return NULL;
 	}
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_MOVIE, file);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MOVIE, file);
 	seq->anim = an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
@@ -200,7 +200,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 		return NULL;
 	}
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SOUND, sound->name);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_SOUND_RAM, sound->name);
 	seq->sound = sound;
 	seq->len = ceil((double)sound_get_length(sound) * FPS);
 
@@ -411,21 +411,21 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 
 	static EnumPropertyItem seq_effect_items[] = {
-		{SEQ_CROSS, "CROSS", 0, "Cross", ""},
-		{SEQ_ADD, "ADD", 0, "Add", ""},
-		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
-		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-		{SEQ_WIPE, "WIPE", 0, "Wipe", ""},
-		{SEQ_GLOW, "GLOW", 0, "Glow", ""},
-		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
-		{SEQ_COLOR, "COLOR", 0, "Color", ""},
-		{SEQ_SPEED, "SPEED", 0, "Speed", ""},
-		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+		{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+		{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+		{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+		{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+		{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+		{SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+		{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+		{SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
+		{SEQ_TYPE_GLOW, "GLOW", 0, "Glow", ""},
+		{SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
+		{SEQ_TYPE_COLOR, "COLOR", 0, "Color", ""},
+		{SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
+		{SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+		{SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
