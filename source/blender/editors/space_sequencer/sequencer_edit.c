@@ -79,21 +79,21 @@
 /* XXX */
 /* RNA Enums, used in multiple files */
 EnumPropertyItem sequencer_prop_effect_types[] = {
-	{SEQ_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
-	{SEQ_ADD, "ADD", 0, "Add", "Add effect strip type"},
-	{SEQ_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
-	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
-	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
-	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
-	{SEQ_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
-	{SEQ_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
-	{SEQ_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
-	{SEQ_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
-	{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
-	{SEQ_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
-	{SEQ_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
-	{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-	{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+	{SEQ_TYPE_CROSS, "CROSS", 0, "Crossfade", "Crossfade effect strip type"},
+	{SEQ_TYPE_ADD, "ADD", 0, "Add", "Add effect strip type"},
+	{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", "Subtract effect strip type"},
+	{SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", "Alpha Over effect strip type"},
+	{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", "Alpha Under effect strip type"},
+	{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", "Gamma Cross effect strip type"},
+	{SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", "Multiply effect strip type"},
+	{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Alpha Over Drop", "Alpha Over Drop effect strip type"},
+	{SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", "Wipe effect strip type"},
+	{SEQ_TYPE_GLOW, "GLOW", 0, "Glow", "Glow effect strip type"},
+	{SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", "Transform effect strip type"},
+	{SEQ_TYPE_COLOR, "COLOR", 0, "Color", "Color effect strip type"},
+	{SEQ_TYPE_SPEED, "SPEED", 0, "Speed", "Color effect strip type"},
+	{SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+	{SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -478,7 +478,7 @@ int seq_effect_find_selected(Scene *scene, Sequence *activeseq, int type, Sequen
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
 		if (seq->flag & SELECT) {
-			if (seq->type == SEQ_SOUND && get_sequence_effect_num_inputs(type) != 0) {
+			if (seq->type == SEQ_TYPE_SOUND_RAM && get_sequence_effect_num_inputs(type) != 0) {
 				*error_str = "Can't apply effects to audio sequence strips";
 				return 0;
 			}
@@ -543,7 +543,7 @@ static Sequence *del_seq_find_replace_recurs(Scene *scene, Sequence *seq)
 
 	if (!seq)
 		return NULL;
-	else if (!(seq->type & SEQ_EFFECT))
+	else if (!(seq->type & SEQ_TYPE_EFFECT))
 		return ((seq->flag & SELECT) ? NULL : seq);
 	else if (!(seq->flag & SELECT)) {
 		/* try to find replacement for effect inputs */
@@ -584,7 +584,7 @@ static void recurs_del_seq_flag(Scene *scene, ListBase *lb, short flag, short de
 		if ((seq->flag & flag) || deleteall) {
 			BLI_remlink(lb, seq);
 			if (seq == last_seq) BKE_sequencer_active_set(scene, NULL);
-			if (seq->type == SEQ_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
+			if (seq->type == SEQ_TYPE_META) recurs_del_seq_flag(scene, &seq->seqbase, flag, 1);
 			seq_free_sequence(scene, seq);
 		}
 		seq = seqn;
@@ -616,7 +616,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 	
 	if ((seq->startstill) && (cutframe < seq->start)) {
 		/* don't do funny things with METAs ... */
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_TYPE_META) {
 			skip_dup = TRUE;
 			seq->startstill = seq->start - cutframe;
 		}
@@ -637,7 +637,7 @@ static Sequence *cut_seq_hard(Scene *scene, Sequence *seq, int cutframe)
 	else if (((seq->start + seq->len) < cutframe) && (seq->endstill)) {
 		seq->endstill -= seq->enddisp - cutframe;
 		/* don't do funny things with METAs ... */
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_TYPE_META) {
 			skip_dup = TRUE;
 		}
 	}
@@ -712,7 +712,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 	
 	if ((seq->startstill) && (cutframe < seq->start)) {
 		/* don't do funny things with METAs ... */
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_TYPE_META) {
 			skip_dup = TRUE;
 			seq->startstill = seq->start - cutframe;
 		}
@@ -731,7 +731,7 @@ static Sequence *cut_seq_soft(Scene *scene, Sequence *seq, int cutframe)
 	else if (((seq->start + seq->len) < cutframe) && (seq->endstill)) {
 		seq->endstill -= seq->enddisp - cutframe;
 		/* don't do funny things with METAs ... */
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_TYPE_META) {
 			skip_dup = TRUE;
 		}
 	}
@@ -855,7 +855,7 @@ static void UNUSED_FUNCTION(touch_seq_files) (Scene * scene)
 	SEQP_BEGIN (ed, seq)
 	{
 		if (seq->flag & SELECT) {
-			if (seq->type == SEQ_MOVIE) {
+			if (seq->type == SEQ_TYPE_MOVIE) {
 				if (seq->strip && seq->strip->stripdata) {
 					BLI_make_file_string(G.main->name, str, seq->strip->dir, seq->strip->stripdata->name);
 					BLI_file_touch(seq->name);
@@ -883,7 +883,7 @@ static void set_filter_seq(Scene *scene)
 	SEQP_BEGIN (ed, seq)
 	{
 		if (seq->flag & SELECT) {
-			if (seq->type == SEQ_MOVIE) {
+			if (seq->type == SEQ_TYPE_MOVIE) {
 				seq->flag |= SEQ_FILTERY;
 				reload_sequence_new_file(scene, seq, FALSE);
 				calc_sequence(scene, seq);
@@ -1052,7 +1052,7 @@ static int sequencer_snap_exec(bContext *C, wmOperator *op)
 				shuffle_seq(ed->seqbasep, seq, scene);
 			}
 		}
-		else if (seq->type & SEQ_EFFECT) {
+		else if (seq->type & SEQ_TYPE_EFFECT) {
 			if (seq->seq1 && (seq->seq1->flag & SELECT)) 
 				calc_sequence(scene, seq);
 			else if (seq->seq2 && (seq->seq2->flag & SELECT)) 
@@ -1368,7 +1368,7 @@ static int sequencer_effect_poll(bContext *C)
 
 	if (ed) {
 		Sequence *last_seq = BKE_sequencer_active_get(scene);
-		if (last_seq && (last_seq->type & SEQ_EFFECT)) {
+		if (last_seq && (last_seq->type & SEQ_TYPE_EFFECT)) {
 			return 1;
 		}
 	}
@@ -1626,7 +1626,7 @@ static int sequencer_delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* for effects, try to find a replacement input */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next)
-		if ((seq->type & SEQ_EFFECT) && !(seq->flag & SELECT))
+		if ((seq->type & SEQ_TYPE_EFFECT) && !(seq->flag & SELECT))
 			del_seq_find_replace_recurs(scene, seq);
 
 	/* delete all selected strips */
@@ -1679,7 +1679,7 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* for effects, try to find a replacement input */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if ((seq->type & SEQ_EFFECT) == 0 && (seq->flag & SELECT)) {
+		if ((seq->type & SEQ_TYPE_EFFECT) == 0 && (seq->flag & SELECT)) {
 			seq->startofs = seq->endofs = seq->startstill = seq->endstill = 0;
 		}
 	}
@@ -1692,7 +1692,7 @@ static int sequencer_offset_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	}
 
 	for (seq = ed->seqbasep->first; seq; seq = seq->next) {
-		if ((seq->type & SEQ_EFFECT) == 0 && (seq->flag & SELECT)) {
+		if ((seq->type & SEQ_TYPE_EFFECT) == 0 && (seq->flag & SELECT)) {
 			if (seq_test_overlap(ed->seqbasep, seq)) {
 				shuffle_seq(ed->seqbasep, seq, scene);
 			}
@@ -1737,7 +1737,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 	seq = ed->seqbasep->first; /* poll checks this is valid */
 
 	while (seq) {
-		if ((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
+		if ((seq->flag & SELECT) && (seq->type == SEQ_TYPE_IMAGE) && (seq->len > 1)) {
 			/* remove seq so overlap tests don't conflict,
 			 * see seq_free_sequence below for the real free'ing */
 			BLI_remlink(ed->seqbasep, seq);
@@ -1755,7 +1755,7 @@ static int sequencer_separate_images_exec(bContext *C, wmOperator *op)
 				BLI_addtail(ed->seqbasep, seq_new);
 
 				seq_new->start = start_ofs;
-				seq_new->type = SEQ_IMAGE;
+				seq_new->type = SEQ_TYPE_IMAGE;
 				seq_new->len = 1;
 				seq_new->endstill = step - 1;
 
@@ -1826,7 +1826,7 @@ static int sequencer_meta_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 	Sequence *last_seq = BKE_sequencer_active_get(scene);
 	MetaStack *ms;
 
-	if (last_seq && last_seq->type == SEQ_META && last_seq->flag & SELECT) {
+	if (last_seq && last_seq->type == SEQ_TYPE_META && last_seq->flag & SELECT) {
 		/* Enter Metastrip */
 		ms = MEM_mallocN(sizeof(MetaStack), "metastack");
 		BLI_addtail(&ed->metastack, ms);
@@ -1904,7 +1904,7 @@ static int sequencer_meta_make_exec(bContext *C, wmOperator *op)
 
 	seqm = alloc_sequence(ed->seqbasep, 1, 1); /* channel number set later */
 	strcpy(seqm->name + 2, "MetaStrip");
-	seqm->type = SEQ_META;
+	seqm->type = SEQ_TYPE_META;
 	seqm->flag = SELECT;
 
 	seq = ed->seqbasep->first;
@@ -1970,7 +1970,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	Sequence *seq, *last_seq = BKE_sequencer_active_get(scene); /* last_seq checks (ed == NULL) */
 
-	if (last_seq == NULL || last_seq->type != SEQ_META)
+	if (last_seq == NULL || last_seq->type != SEQ_TYPE_META)
 		return OPERATOR_CANCELLED;
 
 	BLI_movelisttolist(ed->seqbasep, &last_seq->seqbase);
@@ -1983,7 +1983,7 @@ static int sequencer_meta_separate_exec(bContext *C, wmOperator *UNUSED(op))
 
 	/* emtpy meta strip, delete all effects depending on it */
 	for (seq = ed->seqbasep->first; seq; seq = seq->next)
-		if ((seq->type & SEQ_EFFECT) && seq_depends_on_meta(seq, last_seq))
+		if ((seq->type & SEQ_TYPE_EFFECT) && seq_depends_on_meta(seq, last_seq))
 			seq->flag |= SEQ_FLAG_DELETE;
 
 	recurs_del_seq_flag(scene, ed->seqbasep, SEQ_FLAG_DELETE, 0);
@@ -2454,14 +2454,14 @@ static int sequencer_swap_exec(bContext *C, wmOperator *op)
 
 		// XXX - should be a generic function
 		for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
-			if ((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
+			if ((iseq->type & SEQ_TYPE_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
 				calc_sequence(scene, iseq);
 			}
 		}
 
 		/* do this in a new loop since both effects need to be calculated first */
 		for (iseq = scene->ed->seqbasep->first; iseq; iseq = iseq->next) {
-			if ((iseq->type & SEQ_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
+			if ((iseq->type & SEQ_TYPE_EFFECT) && (seq_is_parent(iseq, active_seq) || seq_is_parent(iseq, seq))) {
 				/* this may now overlap */
 				if (seq_test_overlap(ed->seqbasep, iseq) ) {
 					shuffle_seq(ed->seqbasep, iseq, scene);
@@ -2512,16 +2512,16 @@ static int sequencer_rendersize_exec(bContext *C, wmOperator *UNUSED(op))
 
 	if (active_seq->strip) {
 		switch (active_seq->type) {
-			case SEQ_IMAGE:
+			case SEQ_TYPE_IMAGE:
 				se = give_stripelem(active_seq, scene->r.cfra);
 				break;
-			case SEQ_MOVIE:
+			case SEQ_TYPE_MOVIE:
 				se = active_seq->strip->stripdata;
 				break;
-			case SEQ_SCENE:
-			case SEQ_META:
-			case SEQ_RAM_SOUND:
-			case SEQ_HD_SOUND:
+			case SEQ_TYPE_SCENE:
+			case SEQ_TYPE_META:
+			case SEQ_TYPE_SOUND_RAM:
+			case SEQ_TYPE_SOUND_HD:
 			default:
 				break;
 		}
@@ -2559,7 +2559,7 @@ void SEQUENCER_OT_rendersize(wmOperatorType *ot)
 
 static void seq_copy_del_sound(Scene *scene, Sequence *seq)
 {
-	if (seq->type == SEQ_META) {
+	if (seq->type == SEQ_TYPE_META) {
 		Sequence *iseq;
 		for (iseq = seq->seqbase.first; iseq; iseq = iseq->next) {
 			seq_copy_del_sound(scene, iseq);
@@ -2900,7 +2900,7 @@ static int sequencer_change_effect_type_exec(bContext *C, wmOperator *op)
 	/* free previous effect and init new effect */
 	struct SeqEffectHandle sh;
 
-	if ((seq->type & SEQ_EFFECT) == 0) {
+	if ((seq->type & SEQ_TYPE_EFFECT) == 0) {
 		return OPERATOR_CANCELLED;
 	}
 
@@ -2947,7 +2947,7 @@ void SEQUENCER_OT_change_effect_type(struct wmOperatorType *ot)
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
-	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_CROSS, "Type", "Sequencer effect type");
+	ot->prop = RNA_def_enum(ot->srna, "type", sequencer_prop_effect_types, SEQ_TYPE_CROSS, "Type", "Sequencer effect type");
 }
 
 static int sequencer_change_path_exec(bContext *C, wmOperator *op)
@@ -2958,7 +2958,7 @@ static int sequencer_change_path_exec(bContext *C, wmOperator *op)
 	Sequence *seq = BKE_sequencer_active_get(scene);
 	const int is_relative_path = RNA_boolean_get(op->ptr, "relative_path");
 
-	if (seq->type == SEQ_IMAGE) {
+	if (seq->type == SEQ_TYPE_IMAGE) {
 		char directory[FILE_MAX];
 		const int len = RNA_property_collection_length(op->ptr, RNA_struct_find_property(op->ptr, "files"));
 		StripElem *se;
@@ -3028,7 +3028,7 @@ static int sequencer_change_path_invoke(bContext *C, wmOperator *op, wmEvent *UN
 	RNA_string_set(op->ptr, "directory", seq->strip->dir);
 
 	/* set default display depending on seq type */
-	if (seq->type == SEQ_IMAGE) {
+	if (seq->type == SEQ_TYPE_IMAGE) {
 		RNA_boolean_set(op->ptr, "filter_movie", FALSE);
 	}
 	else {

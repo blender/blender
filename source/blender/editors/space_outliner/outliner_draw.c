@@ -1057,15 +1057,15 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_POSEGRP_BASE:
 				UI_icon_draw(x, y, ICON_GROUP_BONE); break;
 			case TSE_SEQUENCE:
-				if (te->idcode == SEQ_MOVIE)
+				if (te->idcode == SEQ_TYPE_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);
-				else if (te->idcode == SEQ_META)
+				else if (te->idcode == SEQ_TYPE_META)
 					UI_icon_draw(x, y, ICON_DOT);
-				else if (te->idcode == SEQ_SCENE)
+				else if (te->idcode == SEQ_TYPE_SCENE)
 					UI_icon_draw(x, y, ICON_SCENE);
-				else if (te->idcode == SEQ_SOUND)
+				else if (te->idcode == SEQ_TYPE_SOUND_RAM)
 					UI_icon_draw(x, y, ICON_SOUND);
-				else if (te->idcode == SEQ_IMAGE)
+				else if (te->idcode == SEQ_TYPE_IMAGE)
 					UI_icon_draw(x, y, ICON_IMAGE_COL);
 				else
 					UI_icon_draw(x, y, ICON_PARTICLES);

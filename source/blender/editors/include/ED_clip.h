@@ -47,8 +47,6 @@ int ED_space_clip_poll(struct bContext *C);
 int ED_space_clip_view_clip_poll(struct bContext *C);
 
 int ED_space_clip_tracking_poll(struct bContext *C);
-int ED_space_clip_tracking_size_poll(struct bContext *C);
-int ED_space_clip_tracking_frame_poll(struct bContext *C);
 int ED_space_clip_maskedit_poll(struct bContext *C);
 int ED_space_clip_maskedit_mask_poll(bContext *C);
 

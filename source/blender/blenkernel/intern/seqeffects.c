@@ -2987,12 +2987,12 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 	rval.copy = NULL;
 
 	switch (sequence_type) {
-		case SEQ_CROSS:
+		case SEQ_TYPE_CROSS:
 			rval.execute = do_cross_effect;
 			rval.early_out = early_out_fade;
 			rval.get_default_fac = get_default_fac_fade;
 			break;
-		case SEQ_GAMCROSS:
+		case SEQ_TYPE_GAMCROSS:
 			rval.init = init_gammacross;
 			rval.load = load_gammacross;
 			rval.free = free_gammacross;
@@ -3000,30 +3000,30 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.get_default_fac = get_default_fac_fade;
 			rval.execute = do_gammacross_effect;
 			break;
-		case SEQ_ADD:
+		case SEQ_TYPE_ADD:
 			rval.execute = do_add_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
-		case SEQ_SUB:
+		case SEQ_TYPE_SUB:
 			rval.execute = do_sub_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
-		case SEQ_MUL:
+		case SEQ_TYPE_MUL:
 			rval.execute = do_mul_effect;
 			rval.early_out = early_out_mul_input2;
 			break;
-		case SEQ_ALPHAOVER:
+		case SEQ_TYPE_ALPHAOVER:
 			rval.init = init_alpha_over_or_under;
 			rval.execute = do_alphaover_effect;
 			break;
-		case SEQ_OVERDROP:
+		case SEQ_TYPE_OVERDROP:
 			rval.execute = do_overdrop_effect;
 			break;
-		case SEQ_ALPHAUNDER:
+		case SEQ_TYPE_ALPHAUNDER:
 			rval.init = init_alpha_over_or_under;
 			rval.execute = do_alphaunder_effect;
 			break;
-		case SEQ_WIPE:
+		case SEQ_TYPE_WIPE:
 			rval.init = init_wipe_effect;
 			rval.num_inputs = num_inputs_wipe;
 			rval.free = free_wipe_effect;
@@ -3032,21 +3032,21 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.get_default_fac = get_default_fac_fade;
 			rval.execute = do_wipe_effect;
 			break;
-		case SEQ_GLOW:
+		case SEQ_TYPE_GLOW:
 			rval.init = init_glow_effect;
 			rval.num_inputs = num_inputs_glow;
 			rval.free = free_glow_effect;
 			rval.copy = copy_glow_effect;
 			rval.execute = do_glow_effect;
 			break;
-		case SEQ_TRANSFORM:
+		case SEQ_TYPE_TRANSFORM:
 			rval.init = init_transform_effect;
 			rval.num_inputs = num_inputs_transform;
 			rval.free = free_transform_effect;
 			rval.copy = copy_transform_effect;
 			rval.execute = do_transform_effect;
 			break;
-		case SEQ_SPEED:
+		case SEQ_TYPE_SPEED:
 			rval.init = init_speed_effect;
 			rval.num_inputs = num_inputs_speed;
 			rval.load = load_speed_effect;
@@ -3056,7 +3056,7 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.early_out = early_out_speed;
 			rval.store_icu_yrange = store_icu_yrange_speed;
 			break;
-		case SEQ_COLOR:
+		case SEQ_TYPE_COLOR:
 			rval.init = init_solid_color;
 			rval.num_inputs = num_inputs_color;
 			rval.early_out = early_out_color;
@@ -3064,12 +3064,12 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 			rval.copy = copy_solid_color;
 			rval.execute = do_solid_color;
 			break;
-		case SEQ_MULTICAM:
+		case SEQ_TYPE_MULTICAM:
 			rval.num_inputs = num_inputs_multicam;
 			rval.early_out = early_out_multicam;
 			rval.execute = do_multicam;
 			break;
-		case SEQ_ADJUSTMENT:
+		case SEQ_TYPE_ADJUSTMENT:
 			rval.num_inputs = num_inputs_adjustment;
 			rval.early_out = early_out_adjustment;
 			rval.execute = do_adjustment;
@@ -3084,7 +3084,7 @@ struct SeqEffectHandle get_sequence_effect(Sequence *seq)
 {
 	struct SeqEffectHandle rval = {NULL};
 
-	if (seq->type & SEQ_EFFECT) {
+	if (seq->type & SEQ_TYPE_EFFECT) {
 		rval = get_sequence_effect_impl(seq->type);
 		if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
 			rval.load(seq);

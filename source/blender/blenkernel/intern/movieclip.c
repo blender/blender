@@ -916,7 +916,17 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
+#if 0
+	/* originally was needed to support image sequences with different image dimensions,
+	 * which might be useful for such things as reconstruction of unordered image sequence,
+	 * or painting/rotoscoping of non-equal-sized images, but this ended up in unneeded
+	 * cache lookups and even unwanted non-proxied files loading when doing mask parenting,
+	 * so let's disable this for now and assume image sequence consists of images with
+	 * equal sizes (sergey)
+	 */
 	if (user->framenr == clip->lastframe) {
+#endif
+	if (clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
 		*width = clip->lastsize[0];
 		*height = clip->lastsize[1];
 	}

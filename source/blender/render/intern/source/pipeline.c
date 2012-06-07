@@ -1636,7 +1636,7 @@ int RE_seq_render_active(Scene *scene, RenderData *rd)
 		return 0;
 	
 	for (seq= ed->seqbase.first; seq; seq= seq->next) {
-		if (seq->type != SEQ_SOUND)
+		if (seq->type != SEQ_TYPE_SOUND_RAM)
 			return 1;
 	}
 	
@@ -1761,7 +1761,7 @@ static int check_valid_camera(Scene *scene, Object *camera_override)
 			check_comp= 0;
 
 			while (seq) {
-				if (seq->type == SEQ_SCENE && seq->scene) {
+				if (seq->type == SEQ_TYPE_SCENE && seq->scene) {
 					if (!seq->scene_camera) {
 						if (!seq->scene->camera && !BKE_scene_camera_find(seq->scene)) {
 							if (seq->scene == scene) {

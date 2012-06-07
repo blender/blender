@@ -76,7 +76,7 @@ void ED_operatortypes_gpencil(void);
 /* ------------ Grease-Pencil Drawing API ------------------ */
 /* drawgpencil.c */
 
-void draw_gpencil_2dimage(struct bContext *C, struct ImBuf *ibuf);
+void draw_gpencil_2dimage(struct bContext *C /* , struct ImBuf *ibuf */);
 void draw_gpencil_view2d(struct bContext *C, short onlyv2d);
 void draw_gpencil_view3d(struct Scene *scene, struct View3D *v3d, struct ARegion *ar, short only3d);
 

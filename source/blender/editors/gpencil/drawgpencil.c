@@ -669,7 +669,7 @@ static void gp_draw_data(bGPdata *gpd, int offsx, int offsy, int winx, int winy,
 // ............................
 
 /* draw grease-pencil sketches to specified 2d-view that uses ibuf corrections */
-void draw_gpencil_2dimage(bContext *C, ImBuf *ibuf)
+void draw_gpencil_2dimage(bContext *C /* , ImBuf *ibuf */)
 {
 	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
@@ -678,8 +678,6 @@ void draw_gpencil_2dimage(bContext *C, ImBuf *ibuf)
 	int offsx, offsy, sizex, sizey;
 	int dflag = GP_DRAWDATA_NOSTATUS;
 	
-	/* check that we have grease-pencil stuff to draw */
-	if (ELEM(NULL, sa, ibuf)) return;
 	gpd = gpencil_data_get_active(C); // XXX
 	if (gpd == NULL) return;
 	
@@ -706,7 +704,10 @@ void draw_gpencil_2dimage(bContext *C, ImBuf *ibuf)
 		{
 			SpaceSeq *sseq = (SpaceSeq *)sa->spacedata.first;
 			float zoom, zoomx, zoomy;
-			
+
+			/* check that we have grease-pencil stuff to draw */
+			if (ELEM(NULL, sa, ibuf)) return;
+
 			/* calculate accessory values */
 			zoom = (float)(SEQ_ZOOM_FAC(sseq->zoom));
 			if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {

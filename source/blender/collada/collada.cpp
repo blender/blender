@@ -54,14 +54,18 @@ extern "C"
 		const char *filepath,
 		int selected,
 		int apply_modifiers,
+
+		int include_armatures,
 		int include_bone_children,
+
 		int use_object_instantiation,
-		int second_life)
+		int second_life )
 	{
 		ExportSettings export_settings;
 		
 		export_settings.selected                 = selected != 0;
 		export_settings.apply_modifiers          = apply_modifiers != 0;
+		export_settings.include_armatures        = include_armatures != 0;
 		export_settings.include_bone_children    = include_bone_children != 0;
 		export_settings.second_life              = second_life != 0;
 		export_settings.use_object_instantiation = use_object_instantiation != 0;

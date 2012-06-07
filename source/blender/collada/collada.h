@@ -38,13 +38,17 @@ extern "C" {
 	 */
 	int collada_import(bContext *C, const char *filepath);
 	int collada_export(
-		Scene *sce,
+		Scene *sce, 
 		const char *filepath,
 		int selected,
 		int apply_modifiers,
+
+		int include_armatures,
 		int include_bone_children,
+
 		int use_object_instantiation,
 		int second_life);
+
 #ifdef __cplusplus
 }
 #endif

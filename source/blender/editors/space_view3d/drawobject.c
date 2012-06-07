@@ -1774,9 +1774,16 @@ static void drawcamera(Scene *scene, View3D *v3d, RegionView3D *rv3d, Base *base
 
 #ifdef VIEW3D_CAMERA_BORDER_HACK
 	if (is_view && !(G.f & G_PICKSEL)) {
-		view3d_camera_border_hack_col[0] = ob_wire_col[0];
-		view3d_camera_border_hack_col[1] = ob_wire_col[1];
-		view3d_camera_border_hack_col[2] = ob_wire_col[2];
+		if ((flag & DRAW_CONSTCOLOR) == 0) {
+			view3d_camera_border_hack_col[0] = ob_wire_col[0];
+			view3d_camera_border_hack_col[1] = ob_wire_col[1];
+			view3d_camera_border_hack_col[2] = ob_wire_col[2];
+		}
+		else {
+			float col[4];
+			glGetFloatv(GL_CURRENT_COLOR, col);
+			rgb_float_to_uchar(view3d_camera_border_hack_col, col);
+		}
 		view3d_camera_border_hack_test = TRUE;
 		return;
 	}

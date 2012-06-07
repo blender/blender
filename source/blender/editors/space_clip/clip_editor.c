@@ -96,39 +96,6 @@ int ED_space_clip_tracking_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_tracking_size_poll(bContext *C)
-{
-	if (ED_space_clip_tracking_poll(C)) {
-		MovieClip *clip = CTX_data_edit_movieclip(C);
-
-		if (clip) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
-			int width, height;
-
-			BKE_movieclip_get_size(clip, &sc->user, &width, &height);
-
-			return width > 0 && height > 0;
-		}
-	}
-
-	return FALSE;
-}
-
-int ED_space_clip_tracking_frame_poll(bContext *C)
-{
-	if (ED_space_clip_tracking_poll(C)) {
-		MovieClip *clip = CTX_data_edit_movieclip(C);
-
-		if (clip) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
-
-			return BKE_movieclip_has_frame(clip, &sc->user);
-		}
-	}
-
-	return FALSE;
-}
-
 int ED_space_clip_maskedit_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);

@@ -109,6 +109,7 @@ static int add_marker_exec(bContext *C, wmOperator *op)
 	int width, height;
 
 	ED_space_clip_size(sc, &width, &height);
+
 	if (!width || !height)
 		return OPERATOR_CANCELLED;
 
@@ -146,7 +147,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 	/* api callbacks */
 	ot->invoke = add_marker_invoke;
 	ot->exec = add_marker_exec;
-	ot->poll = ED_space_clip_tracking_size_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -797,7 +798,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	ot->idname = "CLIP_OT_slide_marker";
 
 	/* api callbacks */
-	ot->poll = ED_space_clip_tracking_size_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 	ot->invoke = slide_marker_invoke;
 	ot->modal = slide_marker_modal;
 
@@ -1493,7 +1494,7 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = select_groped_exec;
-	ot->poll = ED_space_clip_tracking_size_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -1878,7 +1879,7 @@ void CLIP_OT_track_markers(wmOperatorType *ot)
 	/* api callbacks */
 	ot->exec = track_markers_exec;
 	ot->invoke = track_markers_invoke;
-	ot->poll = ED_space_clip_tracking_frame_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 	ot->modal = track_markers_modal;
 
 	/* flags */
@@ -2319,19 +2320,17 @@ static Object *get_orientation_object(bContext *C)
 
 static int set_orientation_poll(bContext *C)
 {
-	if (ED_space_clip_tracking_size_poll(C)) {
-		Scene *scene = CTX_data_scene(C);
-		SpaceClip *sc = CTX_wm_space_clip(C);
-		MovieClip *clip = ED_space_clip(sc);
-		MovieTracking *tracking = &clip->tracking;
-		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
+	Scene *scene = CTX_data_scene(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-			return TRUE;
-		}
-		else {
-			return OBACT != NULL;
-		}
+	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+		return TRUE;
+	}
+	else {
+		return OBACT != NULL;
 	}
 
 	return FALSE;
@@ -2929,16 +2928,12 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 static int set_solution_scale_poll(bContext *C)
 {
-	if (ED_space_clip_tracking_size_poll(C)) {
-		SpaceClip *sc = CTX_wm_space_clip(C);
-		MovieClip *clip = ED_space_clip(sc);
-		MovieTracking *tracking = &clip->tracking;
-		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-		return (tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0;
-	}
-
-	return 0;
+	return (tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0;
 }
 
 static int set_solution_scale_exec(bContext *C, wmOperator *op)
@@ -3148,6 +3143,11 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	int framenr = ED_space_clip_clip_framenr(sc);
 	bGPDlayer *layer = NULL;
 
+	if (!ibuf) {
+		BKE_report(op->reports, RPT_ERROR, "Feature detection requires valid clip frame");
+		return OPERATOR_CANCELLED;
+	}
+
 	if (placement != 0) {
 		layer = detect_get_layer(clip);
 		place_outside_layer = placement == 2;
@@ -3188,7 +3188,7 @@ void CLIP_OT_detect_features(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = detect_features_exec;
-	ot->poll = ED_space_clip_tracking_frame_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -3341,7 +3341,7 @@ void CLIP_OT_join_tracks(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = join_tracks_exec;
-	ot->poll = ED_space_clip_tracking_size_poll;
+	ot->poll = ED_space_clip_tracking_poll;
 
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

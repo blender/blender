@@ -64,7 +64,7 @@ static void meta_tmp_ref(Sequence *seq_par, Sequence *seq)
 {
 	for (; seq; seq = seq->next) {
 		seq->tmp = seq_par;
-		if (seq->type == SEQ_META) {
+		if (seq->type == SEQ_TYPE_META) {
 			meta_tmp_ref(seq, seq->seqbase.first);
 		}
 	}
@@ -396,47 +396,47 @@ static StructRNA *rna_Sequence_refine(struct PointerRNA *ptr)
 	Sequence *seq = (Sequence *)ptr->data;
 
 	switch (seq->type) {
-		case SEQ_IMAGE:
+		case SEQ_TYPE_IMAGE:
 			return &RNA_ImageSequence;
-		case SEQ_META:
+		case SEQ_TYPE_META:
 			return &RNA_MetaSequence;
-		case SEQ_SCENE:
+		case SEQ_TYPE_SCENE:
 			return &RNA_SceneSequence;
-		case SEQ_MOVIE:
+		case SEQ_TYPE_MOVIE:
 			return &RNA_MovieSequence;
-		case SEQ_MOVIECLIP:
+		case SEQ_TYPE_MOVIECLIP:
 			return &RNA_MovieClipSequence;
-		case SEQ_SOUND:
+		case SEQ_TYPE_SOUND_RAM:
 			return &RNA_SoundSequence;
-		case SEQ_CROSS:
+		case SEQ_TYPE_CROSS:
 			return &RNA_CrossSequence;
-		case SEQ_ADD:
+		case SEQ_TYPE_ADD:
 			return &RNA_AddSequence;
-		case SEQ_SUB:
+		case SEQ_TYPE_SUB:
 			return &RNA_SubtractSequence;
-		case SEQ_ALPHAOVER:
+		case SEQ_TYPE_ALPHAOVER:
 			return &RNA_AlphaOverSequence;
-		case SEQ_ALPHAUNDER:
+		case SEQ_TYPE_ALPHAUNDER:
 			return &RNA_AlphaUnderSequence;
-		case SEQ_GAMCROSS:
+		case SEQ_TYPE_GAMCROSS:
 			return &RNA_GammaCrossSequence;
-		case SEQ_MUL:
+		case SEQ_TYPE_MUL:
 			return &RNA_MultiplySequence;
-		case SEQ_OVERDROP:
+		case SEQ_TYPE_OVERDROP:
 			return &RNA_OverDropSequence;
-		case SEQ_MULTICAM:
+		case SEQ_TYPE_MULTICAM:
 			return &RNA_MulticamSequence;
-		case SEQ_ADJUSTMENT:
+		case SEQ_TYPE_ADJUSTMENT:
 			return &RNA_AdjustmentSequence;
-		case SEQ_WIPE:
+		case SEQ_TYPE_WIPE:
 			return &RNA_WipeSequence;
-		case SEQ_GLOW:
+		case SEQ_TYPE_GLOW:
 			return &RNA_GlowSequence;
-		case SEQ_TRANSFORM:
+		case SEQ_TYPE_TRANSFORM:
 			return &RNA_TransformSequence;
-		case SEQ_COLOR:
+		case SEQ_TYPE_COLOR:
 			return &RNA_ColorSequence;
-		case SEQ_SPEED:
+		case SEQ_TYPE_SPEED:
 			return &RNA_SpeedControlSequence;
 		default:
 			return &RNA_Sequence;
@@ -469,7 +469,7 @@ static void rna_Sequence_filepath_set(PointerRNA *ptr, const char *value)
 {
 	Sequence *seq = (Sequence *)(ptr->data);
 
-	if (seq->type == SEQ_SOUND && seq->sound) {
+	if (seq->type == SEQ_TYPE_SOUND_RAM && seq->sound) {
 		/* for sound strips we need to update the sound as well.
 		 * arguably, this could load in a new sound rather than modify an existing one.
 		 * but while using the sequencer its most likely your not using the sound in the game engine too.
@@ -967,14 +967,14 @@ static void rna_def_strip_color_balance(BlenderRNA *brna)
 
 EnumPropertyItem blend_mode_items[] = {
 	{SEQ_BLEND_REPLACE, "REPLACE", 0, "Replace", ""},
-	{SEQ_CROSS, "CROSS", 0, "Cross", ""},
-	{SEQ_ADD, "ADD", 0, "Add", ""},
-	{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
-	{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-	{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-	{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-	{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
-	{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+	{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+	{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+	{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+	{SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+	{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+	{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+	{SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+	{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -984,27 +984,27 @@ static void rna_def_sequence(BlenderRNA *brna)
 	PropertyRNA *prop;
 
 	static const EnumPropertyItem seq_type_items[] = {
-		{SEQ_IMAGE, "IMAGE", 0, "Image", ""},
-		{SEQ_META, "META", 0, "Meta", ""},
-		{SEQ_SCENE, "SCENE", 0, "Scene", ""},
-		{SEQ_MOVIE, "MOVIE", 0, "Movie", ""},
-		{SEQ_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
-		{SEQ_SOUND, "SOUND", 0, "Sound", ""},
-		{SEQ_CROSS, "CROSS", 0, "Cross", ""},
-		{SEQ_ADD, "ADD", 0, "Add", ""},
-		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
-		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-		{SEQ_WIPE, "WIPE", 0, "Wipe", ""},
-		{SEQ_GLOW, "GLOW", 0, "Glow", ""},
-		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
-		{SEQ_COLOR, "COLOR", 0, "Color", ""},
-		{SEQ_SPEED, "SPEED", 0, "Speed", ""},
-		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+		{SEQ_TYPE_IMAGE, "IMAGE", 0, "Image", ""},
+		{SEQ_TYPE_META, "META", 0, "Meta", ""},
+		{SEQ_TYPE_SCENE, "SCENE", 0, "Scene", ""},
+		{SEQ_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
+		{SEQ_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
+		{SEQ_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
+		{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+		{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+		{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+		{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+		{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+		{SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+		{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+		{SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
+		{SEQ_TYPE_GLOW, "GLOW", 0, "Glow", ""},
+		{SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
+		{SEQ_TYPE_COLOR, "COLOR", 0, "Color", ""},
+		{SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
+		{SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+		{SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	

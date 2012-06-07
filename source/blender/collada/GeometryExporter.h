@@ -105,7 +105,7 @@ private:
 	
 	const ExportSettings *export_settings;
 
-	Mesh * get_mesh(Object *ob, int apply_modifiers);
+	Mesh * get_mesh(Scene *sce, Object *ob, int apply_modifiers);
 };
 
 struct GeometryFunctor {
