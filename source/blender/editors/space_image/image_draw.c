@@ -564,16 +564,9 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 {
 	/* draw in View2D space? */
 	if (onlyv2d) {
-		/* assume that UI_view2d_ortho(C) has been called... */
-		SpaceImage *sima = (SpaceImage *)CTX_wm_space_data(C);
-		void *lock;
-		ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
-		
 		/* draw grease-pencil ('image' strokes) */
 		//if (sima->flag & SI_DISPGP)
-		draw_gpencil_2dimage(C, ibuf);
-
-		ED_space_image_release_buffer(sima, lock);
+		draw_gpencil_2dimage(C);
 	}
 	else {
 		/* assume that UI_view2d_restore(C) has been called... */

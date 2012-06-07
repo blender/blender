@@ -1457,7 +1457,6 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
-	ImBuf *ibuf;
 
 	if (!clip)
 		return;
@@ -1466,16 +1465,11 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 		/* if manual calibration is used then grease pencil data is already
 		 * drawed in draw_distortion */
 		if ((sc->flag & SC_MANUAL_CALIBRATION) == 0 || sc->mode != SC_MODE_DISTORTION) {
-			ibuf = ED_space_clip_get_buffer(sc);
+			glPushMatrix();
+			glMultMatrixf(sc->unistabmat);
+			draw_gpencil_2dimage(C);
 
-			if (ibuf) {
-				glPushMatrix();
-				glMultMatrixf(sc->unistabmat);
-				draw_gpencil_2dimage(C, ibuf);
-
-				IMB_freeImBuf(ibuf);
-				glPopMatrix();
-			}
+			glPopMatrix();
 		}
 	}
 	else {
