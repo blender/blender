@@ -547,7 +547,7 @@ static void rna_def_cloth_collision_settings(BlenderRNA *brna)
 	RNA_def_property_string_funcs(prop, "rna_CollSettings_selfcol_vgroup_get", "rna_CollSettings_selfcol_vgroup_length",
 	                              "rna_CollSettings_selfcol_vgroup_set");
 	RNA_def_property_ui_text(prop, "Selfcollision Vertex Group",
-	                         "Vertex group to define vertices which are not used during self collisions.");
+	                         "Vertex group to define vertices which are not used during self collisions");
 	RNA_def_property_update(prop, 0, "rna_cloth_update");
 }
 
