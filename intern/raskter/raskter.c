@@ -170,7 +170,7 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts)
+static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts)
 {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
@@ -426,9 +426,9 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-int rast_scan_feather(struct r_fill_context *ctx,
-                      float (*base_verts_f)[2], int num_base_verts,
-                      struct poly_vert *feather_verts, float (*feather_verts_f)[2], int num_feather_verts)
+static int rast_scan_feather(struct r_fill_context *ctx,
+                             float (*base_verts_f)[2], int num_base_verts,
+                             struct poly_vert *feather_verts, float (*feather_verts_f)[2], int num_feather_verts)
 {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */

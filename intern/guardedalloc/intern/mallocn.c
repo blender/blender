@@ -290,7 +290,9 @@ static void make_memhead_header(MemHead *memh, size_t len, const char *str)
 	memt->tag3 = MEMTAG3;
 	
 	addtail(membase, &memh->next);
-	if (memh->next) memh->nextname = MEMNEXT(memh->next)->name;
+	if (memh->next) {
+		memh->nextname = MEMNEXT(memh->next)->name;
+	}
 	
 	totblock++;
 	mem_in_use += len;
@@ -681,8 +683,12 @@ static void addtail(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link = vlink;
 
+	/* for a generic API general error checks here is fine but
+	 * the use here they will never be NULL */
+#if 0
 	if (link == NULL) return;
 	if (listbase == NULL) return;
+#endif
 
 	link->next = NULL;
 	link->prev = listbase->last;
@@ -696,8 +702,12 @@ static void remlink(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link = vlink;
 
+	/* for a generic API general error checks here is fine but
+	 * the use here they will never be NULL */
+#if 0
 	if (link == NULL) return;
 	if (listbase == NULL) return;
+#endif
 
 	if (link->next) link->next->prev = link->prev;
 	if (link->prev) link->prev->next = link->next;

@@ -411,7 +411,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 	float tangent_co[2];
 	int do_cyclic_correct = FALSE;
 	int do_recalc_src = FALSE;  /* when extruding from endpoints only */
-	int do_prev = FALSE;        /* use prev point rather then next?? */
+	int do_prev;                /* use prev point rather then next?? */
 
 	if (!masklay) {
 		return FALSE;
@@ -448,6 +448,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 		do_recalc_src = TRUE;
 	}
 	else {
+		do_prev = FALSE;  /* quiet warning */
 		/* should never get here */
 		BLI_assert(0);
 	}
