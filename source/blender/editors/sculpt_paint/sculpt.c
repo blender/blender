@@ -753,8 +753,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 	else if (ss->texcache) {
 		float rotation = -mtex->rot;
 		float symm_point[3], point_2d[2];
-		float x, y;
-		float radius;
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float radius = 1.0f; /* Quite warnings */
 
 		/* if the active area is being applied for symmetry, flip it
 		 * across the symmetry axis and rotate it back to the original

@@ -25,7 +25,7 @@ from bpy.types import Panel, Header, Menu
 class CLIP_HT_header(Header):
     bl_space_type = 'CLIP_EDITOR'
 
-    def draw(self, context):
+    def _draw_tracking(self, context):
         layout = self.layout
 
         sc = context.space_data
@@ -41,39 +41,37 @@ class CLIP_HT_header(Header):
             if sc.view == 'CLIP':
                 if clip:
                     sub.menu("CLIP_MT_select")
+                    sub.menu("CLIP_MT_clip")
+                    sub.menu("CLIP_MT_track")
+                    sub.menu("CLIP_MT_reconstruction")
+                else:
+                    sub.menu("CLIP_MT_clip")
 
-                sub.menu("CLIP_MT_clip")
-
-                if clip:
-                    if sc.mode == 'MASKEDIT':
-                        sub.menu("CLIP_MT_mask")
-                    else:
-                        sub.menu("CLIP_MT_track")
-                        sub.menu("CLIP_MT_reconstruction")
-
-        if sc.mode != 'MASKEDIT':
-            layout.prop(sc, "view", text="", expand=True)
+        row = layout.row()
+        row.template_ID(sc, "clip", open='clip.open')
 
         if clip:
+            tracking = clip.tracking
+            active_object = tracking.objects.active
+
             if sc.view == 'CLIP':
                 layout.prop(sc, "mode", text="")
+                layout.prop(sc, "view", text="", expand=True)
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-                if sc.mode == 'MASKEDIT':
-                    toolsettings = context.tool_settings
+                r = active_object.reconstruction
 
-                    row = layout.row(align=True)
-                    row.prop(toolsettings, "use_proportional_edit_mask",
-                             text="", icon_only=True)
-                    if toolsettings.use_proportional_edit_objects:
-                        row.prop(toolsettings, "proportional_edit_falloff",
-                                 text="", icon_only=True)
+                if r.is_valid and sc.view == 'CLIP':
+                    layout.label(text="Average solve error: %.4f" %
+                                 (r.average_error))
             elif sc.view == 'GRAPH':
+                layout.prop(sc, "view", text="", expand=True)
+
                 row = layout.row(align=True)
 
                 if sc.show_filters:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN',
-                        text="Filters")
+                             text="Filters")
 
                     sub = row.column()
                     sub.active = clip.tracking.reconstruction.is_valid
@@ -82,32 +80,63 @@ class CLIP_HT_header(Header):
                     row.prop(sc, "show_graph_tracks", icon='ANIM', text="")
                 else:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
-                        text="Filters")
+                             text="Filters")
+            elif sc.view == 'DOPESHEET':
+                layout.prop(sc, "view", text="", expand=True)
+
+                layout.label(text="Sort by:")
+                layout.prop(sc, "dopesheet_sort_method", text="")
+                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+        else:
+            layout.prop(sc, "view", text="", expand=True)
+
+    def _draw_masking(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings
+        sc = context.space_data
+        clip = sc.clip
+
+        row = layout.row(align=True)
+        row.template_header()
+
+        if context.area.show_menus:
+            sub = row.row(align=True)
+            sub.menu("CLIP_MT_view")
+
+            if clip:
+                sub.menu("CLIP_MT_select")
+                sub.menu("CLIP_MT_clip")
+                sub.menu("CLIP_MT_mask")
+            else:
+                sub.menu("CLIP_MT_clip")
 
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
 
-        if sc.mode == 'MASKEDIT':
-            row = layout.row()
-            row.template_ID(sc, "mask", new="mask.new")
+        layout.prop(sc, "mode", text="")
 
-        if clip:
-            tracking = clip.tracking
-            active = tracking.objects.active
+        row = layout.row()
+        row.template_ID(sc, "mask", new="mask.new")
 
-            if active and not active.is_camera:
-                r = active.reconstruction
-            else:
-                r = tracking.reconstruction
+        layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-            if r.is_valid and sc.view == 'CLIP':
-                layout.label(text="Average solve error: %.4f" %
-                    (r.average_error))
+        row = layout.row(align=True)
+        row.prop(toolsettings, "use_proportional_edit_mask",
+                 text="", icon_only=True)
+        if toolsettings.use_proportional_edit_mask:
+            row.prop(toolsettings, "proportional_edit_falloff",
+                     text="", icon_only=True)
 
-            if sc.view == 'DOPESHEET':
-                layout.label(text="Sort by:")
-                layout.prop(sc, "dopesheet_sort_method", text="")
-                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+
+        if sc.mode in {'TRACKING', 'RECONSTRUCTION', 'DISTORTION'}:
+            self._draw_tracking(context)
+        else:
+            self._draw_masking(context)
 
         layout.template_running_jobs()
 
@@ -704,28 +733,27 @@ class CLIP_PT_active_mask_point(Panel):
         col.prop(point, "handle_type")
 
         col = layout.column()
-        col.prop(parent, "use_parent", text="Parent")
-        if parent.use_parent:
-            # Currently only parenting yo movie clip is allowed, so do not
-            # ver-oplicate things for now and use single template_ID
-            #col.template_any_ID(parent, "id", "id_type", text="")
+        # Currently only parenting yo movie clip is allowed, so do not
+        # ver-oplicate things for now and use single template_ID
+        #col.template_any_ID(parent, "id", "id_type", text="")
 
-            col.template_ID(parent, "id")
+        col.label("Parent:")
+        col.prop(parent, "id", text="")
 
-            if parent.id_type == 'MOVIECLIP' and parent.id:
-                clip = parent.id
-                tracking = clip.tracking
+        if parent.id_type == 'MOVIECLIP' and parent.id:
+            clip = parent.id
+            tracking = clip.tracking
 
-                col.prop_search(parent, "parent", tracking,
-                                "objects", icon='OBJECT_DATA', text="Object:")
+            col.prop_search(parent, "parent", tracking,
+                            "objects", icon='OBJECT_DATA', text="Object:")
 
-                if parent.parent and parent.parent in tracking.objects:
-                    object = tracking.objects[parent.parent]
-                    col.prop_search(parent, "sub_parent", object,
-                                    "tracks", icon='ANIM_DATA', text="Track:")
-                else:
-                    col.prop_search(parent, "sub_parent", tracking,
-                                    "tracks", icon='ANIM_DATA', text="Track:")
+            if parent.parent in tracking.objects:
+                object = tracking.objects[parent.parent]
+                col.prop_search(parent, "sub_parent", object,
+                                "tracks", icon='ANIM_DATA', text="Track:")
+            else:
+                col.prop_search(parent, "sub_parent", tracking,
+                                "tracks", icon='ANIM_DATA', text="Track:")
 
 
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
@@ -776,6 +804,24 @@ class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):
             col = layout.column()
             col.prop(sc, "mask_draw_type", text="")
             col.prop(sc, "show_mask_smooth")
+
+
+# TODO, move into its own file
+class CLIP_PT_mask(CLIP_PT_mask_view_panel, Panel):
+    bl_space_type = 'CLIP_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "Mask Settings"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+        mask = sc.mask
+
+        col = layout.column(align=True)
+        col.prop(mask, "frame_start")
+        col.prop(mask, "frame_end")
 
 
 class CLIP_PT_marker_display(CLIP_PT_clip_view_panel, Panel):

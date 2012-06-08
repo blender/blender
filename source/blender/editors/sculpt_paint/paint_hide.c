@@ -265,7 +265,7 @@ static void get_pbvh_nodes(PBVH *pbvh,
                            float clip_planes[4][4],
                            PartialVisArea mode)
 {
-	BLI_pbvh_SearchCallback cb;
+	BLI_pbvh_SearchCallback cb = NULL;
 
 	/* select search callback */
 	switch (mode) {
@@ -277,7 +277,6 @@ static void get_pbvh_nodes(PBVH *pbvh,
 			break;
 		case PARTIALVIS_ALL:
 		case PARTIALVIS_MASKED:
-			cb = NULL;
 			break;
 	}
 	

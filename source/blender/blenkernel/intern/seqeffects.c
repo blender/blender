@@ -77,7 +77,7 @@ static ImBuf *prepare_effect_imbufs(
 
 	if (!ibuf1 && !ibuf2 && !ibuf3) {
 		/* hmmm, global float option ? */
-		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect);
+		out = IMB_allocImBuf(x, y, 32, IB_rect);
 	}
 	else if ((ibuf1 && ibuf1->rect_float) ||
 	         (ibuf2 && ibuf2->rect_float) ||
@@ -85,10 +85,10 @@ static ImBuf *prepare_effect_imbufs(
 	{
 		/* if any inputs are rectfloat, output is float too */
 
-		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rectfloat);
+		out = IMB_allocImBuf(x, y, 32, IB_rectfloat);
 	}
 	else {
-		out = IMB_allocImBuf((short)x, (short)y, 32, IB_rect);
+		out = IMB_allocImBuf(x, y, 32, IB_rect);
 	}
 	
 	if (ibuf1 && !ibuf1->rect_float && out->rect_float) {

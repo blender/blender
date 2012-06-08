@@ -59,7 +59,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				input->relinkConnections(outputOperation->getInputSocket(i));
 			}
 		}
-		if (hasConnections) addPreviewOperation(graph, outputOperation->getInputSocket(0), 5);
+		if (hasConnections) addPreviewOperation(graph, outputOperation->getInputSocket(0));
 		
 		graph->addOperation(outputOperation);
 	}
@@ -81,7 +81,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				input->relinkConnections(outputOperation->getInputSocket(0));
 				graph->addOperation(outputOperation);
 				if (!previewAdded) {
-					addPreviewOperation(graph, outputOperation->getInputSocket(0), 5);
+					addPreviewOperation(graph, outputOperation->getInputSocket(0));
 					previewAdded = true;
 				}
 			}

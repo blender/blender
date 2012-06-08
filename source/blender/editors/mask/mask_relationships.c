@@ -66,7 +66,7 @@ static int mask_parent_clear_exec(bContext *C, wmOperator *UNUSED(op))
 				MaskSplinePoint *point = &spline->points[i];
 
 				if (MASKPOINT_ISSEL_ANY(point)) {
-					point->parent.flag &= ~MASK_PARENT_ACTIVE;
+					point->parent.id = NULL;
 				}
 			}
 		}
@@ -140,8 +140,6 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 					point->parent.id = &clip->id;
 					strcpy(point->parent.parent, tracking->name);
 					strcpy(point->parent.sub_parent, track->name);
-
-					point->parent.flag |= MASK_PARENT_ACTIVE;
 
 					copy_v2_v2(point->parent.parent_orig, parmask_pos);
 				}

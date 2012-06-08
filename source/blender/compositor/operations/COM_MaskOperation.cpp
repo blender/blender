@@ -75,7 +75,7 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, buffer);
+		BKE_mask_rasterize(mask, width, height, buffer, TRUE, TRUE);
 
 		this->rasterizedMask = buffer;
 	}

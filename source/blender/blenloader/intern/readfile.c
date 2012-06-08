@@ -4828,6 +4828,10 @@ static void lib_link_scene(FileData *fd, Main *main)
 					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
 					seq->clip->id.us++;
 				}
+				if (seq->mask) {
+					seq->mask = newlibadr(fd, sce->id.lib, seq->mask);
+					seq->mask->id.us++;
+				}
 				if (seq->scene_camera) seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if (seq->sound) {
 					seq->scene_sound = NULL;

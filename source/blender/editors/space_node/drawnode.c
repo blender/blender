@@ -2294,7 +2294,7 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
 void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 //	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
-	if (node->custom1 == 0) { /// @todo: why did we need this one?
+	if (node->custom1 == 0) {
 		const float backdropWidth = backdrop->x;
 		const float backdropHeight = backdrop->y;
 		const float cx  = x + snode->zoom * backdropWidth * node->custom3;

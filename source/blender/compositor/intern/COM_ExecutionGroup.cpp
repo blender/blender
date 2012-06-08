@@ -57,7 +57,7 @@ ExecutionGroup::ExecutionGroup()
 	this->chunksFinished = 0;
 }
 
-int ExecutionGroup::getRenderPriotrity()
+CompositorPriority ExecutionGroup::getRenderPriotrity()
 {
 	return this->getOutputNodeOperation()->getRenderPriority();
 }
@@ -401,47 +401,11 @@ MemoryBuffer** ExecutionGroup::getInputBuffersOpenCL(int chunkNumber)
 	return memoryBuffers;
 }
 
-// @todo: for opencl the memory buffers size needs to be same as the needed size
-// currently this method is not called, but will be when opencl nodes are created
 MemoryBuffer *ExecutionGroup::constructConsolidatedMemoryBuffer(MemoryProxy *memoryProxy, rcti *rect)
 {
-	// find all chunks inside the rect
-	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
-	float chunkSizef = this->chunkSize;
-
-	int indexx, indexy;
-
-	const int minxchunk = floor(rect->xmin/chunkSizef);
-	const int maxxchunk = ceil((rect->xmax-1)/chunkSizef);
-	const int minychunk = floor(rect->ymin/chunkSizef);
-	const int maxychunk = ceil((rect->ymax-1)/chunkSizef);
-
-	if (maxxchunk== minxchunk+1 && maxychunk == minychunk+1) {
-		MemoryBuffer *result =memoryProxy->getBuffer();
-		return result;
-	}
-
-	rcti chunkRect;
-	chunkRect.xmin = minxchunk*this->chunkSize;
-	chunkRect.xmax = maxxchunk*this->chunkSize;
-	chunkRect.ymin = minychunk*this->chunkSize;
-	chunkRect.ymax = maxychunk*this->chunkSize;
-
-	CLAMP(chunkRect.xmin, 0, (int)this->width);
-	CLAMP(chunkRect.xmax, 0, (int)this->width);
-	CLAMP(chunkRect.ymin, 0, (int)this->height);
-	CLAMP(chunkRect.ymax, 0, (int)this->height);
-
-	MemoryBuffer *result = new MemoryBuffer(memoryProxy, &chunkRect);
-
-	for (indexx = max(minxchunk, 0); indexx<min((int)this->numberOfXChunks, maxxchunk) ; indexx++) {
-		for (indexy = max(minychunk, 0); indexy<min((int)this->numberOfYChunks, maxychunk) ; indexy++) {
-			/* int chunkNumber = indexx+indexy*this->numberOfXChunks; */ /* UNUSED */
-			MemoryBuffer *chunkBuffer = memoryProxy->getBuffer();
-			result->copyContentFrom(chunkBuffer);
-		}
-	}
-
+	MemoryBuffer* imageBuffer = memoryProxy->getBuffer();
+	MemoryBuffer* result = new MemoryBuffer(memoryProxy, rect);
+	result->copyContentFrom(imageBuffer);
 	return result;
 }
 
@@ -487,14 +451,14 @@ void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumb
 
 MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
 {
-	MemoryBuffer *outputBuffer = NULL;
-	// output allocation is only valid when our outputoperation is a memorywriter
+	// we asume that this method is only called from complex execution groups.
 	NodeOperation * operation = this->getOutputNodeOperation();
 	if (operation->isWriteBufferOperation()) {
-/*		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation; */ /* UNUSED */
-// @todo		outputBuffer = MemoryManager::allocateMemoryBuffer(writeOperation->getMemoryProxy(), chunkNumber, rect);
+		WriteBufferOperation *writeOperation = (WriteBufferOperation*)operation;
+		MemoryBuffer *buffer = new MemoryBuffer(writeOperation->getMemoryProxy(), rect);
+		return buffer;
 	}
-	return outputBuffer;
+	return NULL;
 }
 
 
@@ -598,11 +562,6 @@ void ExecutionGroup::determineDependingMemoryProxies(vector<MemoryProxy*> *memor
 		ReadBufferOperation * readOperation = (ReadBufferOperation*) this->cachedReadOperations[index];
 		memoryProxies->push_back(readOperation->getMemoryProxy());
 	}
-}
-
-bool ExecutionGroup::operator ==(const ExecutionGroup & executionGroup) const
-{
-	return this->getOutputNodeOperation() == executionGroup.getOutputNodeOperation();
 }
 
 bool ExecutionGroup::isOpenCL()

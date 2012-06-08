@@ -312,6 +312,29 @@ static void rna_MaskLayer_spline_add(ID *id, MaskLayer *masklay, int number)
 	WM_main_add_notifier(NC_MASK|NA_EDITED, mask);
 }
 
+static void rna_Mask_start_frame_set(PointerRNA *ptr, int value)
+{
+	Mask *data = (Mask *)ptr->data;
+	/* MINFRAME not MINAFRAME, since some output formats can't taken negative frames */
+	CLAMP(value, MINFRAME, MAXFRAME);
+	data->sfra = value;
+
+	if (data->sfra >= data->efra) {
+		data->efra = MIN2(data->sfra, MAXFRAME);
+	}
+}
+
+static void rna_Mask_end_frame_set(PointerRNA *ptr, int value)
+{
+	Mask *data = (Mask *)ptr->data;
+	CLAMP(value, MINFRAME, MAXFRAME);
+	data->efra = value;
+
+	if (data->sfra >= data->efra) {
+		data->sfra = MAX2(data->efra, MINFRAME);
+	}
+}
+
 #else
 
 static void rna_def_maskParent(BlenderRNA *brna)
@@ -325,13 +348,6 @@ static void rna_def_maskParent(BlenderRNA *brna)
 
 	srna = RNA_def_struct(brna, "MaskParent", NULL);
 	RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for masking element");
-
-	/* use_parent */
-	prop = RNA_def_property(srna, "use_parent", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_PARENT_ACTIVE);
-	RNA_def_property_ui_text(prop, "Use Parent", "Use parenting for this layer");
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
 
 	/* Target Properties - ID-block to Drive */
 	prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
@@ -643,6 +659,23 @@ static void rna_def_mask(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, "rna_Mask_layer_active_index_get", "rna_Mask_layer_active_index_set", "rna_Mask_layer_active_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Index", "Index of active layer in list of all mask's layers");
+
+	/* frame range */
+	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "sfra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Mask_start_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "Start Frame", "First frame of the mask (used for sequencer)");
+	RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
+
+	prop = RNA_def_property(srna, "frame_end", PROP_INT, PROP_TIME);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
+	RNA_def_property_int_sdna(prop, NULL, "efra");
+	RNA_def_property_int_funcs(prop, NULL, "rna_Mask_end_frame_set", NULL);
+	RNA_def_property_range(prop, MINFRAME, MAXFRAME);
+	RNA_def_property_ui_text(prop, "End Frame", "Final frame of the mask (used for sequencer)");
+	RNA_def_property_update(prop, NC_SCENE | ND_FRAME_RANGE, NULL);
 
 	/* pointers */
 	rna_def_animdata_common(srna);

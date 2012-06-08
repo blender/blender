@@ -81,7 +81,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		BKE_mask_rasterize(mask, sx, sy, res);
+		BKE_mask_rasterize(mask, sx, sy, res, TRUE, TRUE);
 
 		/* pass on output and free */
 		out[0]->data = stackbuf;

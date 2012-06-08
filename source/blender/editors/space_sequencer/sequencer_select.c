@@ -934,7 +934,7 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 
 #define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_TYPE_EFFECT)
 
-#define SEQ_USE_DATA(_seq) (ELEM(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP) || SEQ_HAS_PATH(_seq))
+#define SEQ_USE_DATA(_seq) (ELEM3(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
 static short select_grouped_type(Editing *ed, Sequence *actseq)
 {
@@ -1024,6 +1024,17 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		SEQP_BEGIN (ed, seq)
 		{
 			if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip) {
+				seq->flag |= SELECT;
+				changed = TRUE;
+			}
+		}
+		SEQ_END;
+	}
+	else if (actseq->type == SEQ_TYPE_MASK) {
+		struct Mask *mask = actseq->mask;
+		SEQP_BEGIN (ed, seq)
+		{
+			if (seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
 				seq->flag |= SELECT;
 				changed = TRUE;
 			}

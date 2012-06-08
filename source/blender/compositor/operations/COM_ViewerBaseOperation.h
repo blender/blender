@@ -56,7 +56,7 @@ public:
 	float getCenterX() { return this->centerX; }
 	float getCenterY() { return this->centerY; }
 	OrderOfChunks getChunkOrder() { return this->chunkOrder; }
-	const int getRenderPriority() const;
+	const CompositorPriority getRenderPriority() const;
 	void setColorManagement(bool doColorManagement) {this->doColorManagement = doColorManagement;}
 	void setColorPredivide(bool doColorPredivide) {this->doColorPredivide = doColorPredivide;}
 	bool isViewerOperation() {return true;}

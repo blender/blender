@@ -448,6 +448,7 @@ static int add_vertex_extrude(bContext *C, Mask *mask, MaskLayer *masklay, const
 		do_recalc_src = TRUE;
 	}
 	else {
+		do_prev = FALSE;  /* quiet warning */
 		/* should never get here */
 		BLI_assert(0);
 	}

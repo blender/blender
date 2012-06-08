@@ -100,7 +100,7 @@ static void draw_spline_parents(MaskLayer *UNUSED(masklay), MaskSpline *spline)
 		MaskSplinePoint *point = &points_array[i];
 		BezTriple *bezt = &point->bezt;
 
-		if (point->parent.flag & MASK_PARENT_ACTIVE) {
+		if (point->parent.id) {
 			glVertex2f(bezt->vec[1][0],
 			           bezt->vec[1][1]);
 

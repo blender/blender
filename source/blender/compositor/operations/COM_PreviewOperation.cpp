@@ -46,7 +46,6 @@ PreviewOperation::PreviewOperation() : NodeOperation()
 	this->input = NULL;
 	this->divider = 1.0f;
 	this->node = NULL;
-	this->priority = 0;
 }
 
 void PreviewOperation::initExecution()
@@ -129,7 +128,7 @@ void PreviewOperation::determineResolution(unsigned int resolution[], unsigned i
 	resolution[1] = height;
 }
 
-const int PreviewOperation::getRenderPriority() const
+const CompositorPriority PreviewOperation::getRenderPriority() const
 {
-	return this->priority;
+	return COM_PRIORITY_LOW;
 }

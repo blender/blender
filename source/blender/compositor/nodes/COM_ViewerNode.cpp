@@ -51,6 +51,6 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		imageSocket->relinkConnections(viewerOperation->getInputSocket(0), 0, graph);
 		alphaSocket->relinkConnections(viewerOperation->getInputSocket(1));
 		graph->addOperation(viewerOperation);
-		addPreviewOperation(graph, viewerOperation->getInputSocket(0), 0);
+		addPreviewOperation(graph, viewerOperation->getInputSocket(0));
 	}
 }

@@ -406,6 +406,8 @@ static StructRNA *rna_Sequence_refine(struct PointerRNA *ptr)
 			return &RNA_MovieSequence;
 		case SEQ_TYPE_MOVIECLIP:
 			return &RNA_MovieClipSequence;
+		case SEQ_TYPE_MASK:
+			return &RNA_MaskSequence;
 		case SEQ_TYPE_SOUND_RAM:
 			return &RNA_SoundSequence;
 		case SEQ_TYPE_CROSS:
@@ -989,6 +991,7 @@ static void rna_def_sequence(BlenderRNA *brna)
 		{SEQ_TYPE_SCENE, "SCENE", 0, "Scene", ""},
 		{SEQ_TYPE_MOVIE, "MOVIE", 0, "Movie", ""},
 		{SEQ_TYPE_MOVIECLIP, "MOVIECLIP", 0, "Clip", ""},
+		{SEQ_TYPE_MASK, "MASK", 0, "Mask", ""},
 		{SEQ_TYPE_SOUND_RAM, "SOUND", 0, "Sound", ""},
 		{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
 		{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
@@ -1505,6 +1508,8 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "MovieClip Sequence", "Sequence strip to load a video from the clip editor");
 	RNA_def_struct_sdna(srna, "Sequence");
 
+	/* TODO - add clip property? */
+
 	prop = RNA_def_property(srna, "undistort", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "clip_flag", SEQ_MOVIECLIP_RENDER_UNDISTORTED);
 	RNA_def_property_ui_text(prop, "Undistort Clip", "Use the undistorted version of the clip");
@@ -1519,6 +1524,23 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	rna_def_input(srna);
 }
 
+static void rna_def_mask(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	srna = RNA_def_struct(brna, "MaskSequence", "Sequence");
+	RNA_def_struct_ui_text(srna, "Mask Sequence", "Sequence strip to load a video from a mask");
+	RNA_def_struct_sdna(srna, "Sequence");
+
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask that this sequence uses");
+	RNA_def_property_update(prop, NC_SCENE | ND_SEQUENCER, "rna_Sequence_update");
+
+	rna_def_filter_video(srna);
+	rna_def_input(srna);
+}
 
 static void rna_def_sound(BlenderRNA *brna)
 {
@@ -1883,6 +1905,7 @@ void RNA_def_sequencer(BlenderRNA *brna)
 	rna_def_scene(brna);
 	rna_def_movie(brna);
 	rna_def_movieclip(brna);
+	rna_def_mask(brna);
 	rna_def_sound(brna);
 	rna_def_effect(brna);
 	rna_def_effects(brna);

@@ -816,7 +816,7 @@ float BKE_mask_point_weight(MaskSpline *spline, MaskSplinePoint *point, const fl
 		return bezt_next->weight;
 	}
 	else {
-		float cur_u, cur_w, next_u, next_w, fac;
+		float cur_u = 0.0f, cur_w = 0.0f, next_u = 0.0f, next_w = 0.0f, fac; /* Quite warnings */
 		int i;
 
 		for (i = 0; i < point->tot_uw + 1; i++) {
@@ -950,6 +950,10 @@ Mask *BKE_mask_new(const char *name)
 		strcpy(mask_name, "Mask");
 
 	mask = mask_alloc(mask_name);
+
+	/* arbitrary defaults */
+	mask->sfra = 1;
+	mask->efra = 100;
 
 	return mask;
 }
@@ -1137,9 +1141,6 @@ void BKE_mask_coord_to_movieclip(MovieClip *clip, MovieClipUser *user, float r_c
 static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[2])
 {
 	if (!parent)
-		return FALSE;
-
-	if ((parent->flag & MASK_PARENT_ACTIVE) == 0)
 		return FALSE;
 
 	if (parent->id_type == ID_MC) {
@@ -1778,10 +1779,17 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const int frame,
 		}
 	}
 
-	*r_masklay_shape_a = NULL;
-	*r_masklay_shape_b = NULL;
+	if ((masklay_shape = masklay->splines_shapes.last)) {
+		*r_masklay_shape_a = masklay_shape;
+		*r_masklay_shape_b = NULL;
+		return 1;
+	}
+	else {
+		*r_masklay_shape_a = NULL;
+		*r_masklay_shape_b = NULL;
 
-	return 0;
+		return 0;
+	}
 }
 
 MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, const int frame)
@@ -2040,7 +2048,7 @@ static void m_invert_vn_vn(float *array, const float f, const int size)
 	}
 }
 
-static void linear_clamp_vn_vn(float *array, const int size)
+static void clamp_vn_vn_linear(float *array, const int size)
 {
 	float *arr = array + (size - 1);
 
@@ -2053,8 +2061,26 @@ static void linear_clamp_vn_vn(float *array, const int size)
 	}
 }
 
+static void clamp_vn_vn(float *array, const int size)
+{
+	float *arr = array + (size - 1);
+
+	int i = size;
+	while (i--) {
+		if      (*arr < 0.0f) *arr = 0.0f;
+		else if (*arr > 1.0f) *arr = 1.0f;
+		arr--;
+	}
+}
+
+int BKE_mask_get_duration(Mask *mask)
+{
+	return MAX2(1, mask->efra - mask->sfra);
+}
+
 /* rasterization */
-void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
+void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
+                        const short do_aspect_correct, const short do_linear)
 {
 	MaskLayer *masklay;
 
@@ -2087,31 +2113,32 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 				        BKE_mask_spline_feather_differentiated_points_with_resolution(spline, width, height,
 				                                                                      &tot_diff_feather_points);
 
-				/* TODO, make this optional! */
-				if (width != height) {
-					float *fp;
-					float *ffp;
-					int i;
-					float asp;
+				if (do_aspect_correct) {
+					if (width != height) {
+						float *fp;
+						float *ffp;
+						int i;
+						float asp;
 
-					if (width < height) {
-						fp = &diff_points[0][0];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
-						asp = (float)width / (float)height;
-					}
-					else {
-						fp = &diff_points[0][1];
-						ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
-						asp = (float)height / (float)width;
-					}
+						if (width < height) {
+							fp = &diff_points[0][0];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][0] : NULL;
+							asp = (float)width / (float)height;
+						}
+						else {
+							fp = &diff_points[0][1];
+							ffp = tot_diff_feather_points ? &diff_feather_points[0][1] : NULL;
+							asp = (float)height / (float)width;
+						}
 
-					for (i = 0; i < tot_diff_point; i++, fp += 2) {
-						(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
-					}
+						for (i = 0; i < tot_diff_point; i++, fp += 2) {
+							(*fp) = (((*fp) - 0.5f) / asp) + 0.5f;
+						}
 
-					if (tot_diff_feather_points) {
-						for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
-							(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+						if (tot_diff_feather_points) {
+							for (i = 0; i < tot_diff_feather_points; i++, ffp += 2) {
+								(*ffp) = (((*ffp) - 0.5f) / asp) + 0.5f;
+							}
 						}
 					}
 				}
@@ -2173,7 +2200,12 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer)
 		}
 
 		/* clamp at the end */
-		linear_clamp_vn_vn(buffer, buffer_size);
+		if (do_linear) {
+			clamp_vn_vn_linear(buffer, buffer_size);
+		}
+		else {
+			clamp_vn_vn(buffer, buffer_size);
+		}
 	}
 
 	MEM_freeN(buffer_tmp);

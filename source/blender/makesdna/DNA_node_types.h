@@ -241,6 +241,14 @@ typedef struct bNodeLink {
 #define NTREE_QUALITY_MEDIUM  1
 #define NTREE_QUALITY_LOW     2
 
+/* tree->chunksize */
+#define NTREE_CHUNCKSIZE_32 32
+#define NTREE_CHUNCKSIZE_64 64
+#define NTREE_CHUNCKSIZE_128 128
+#define NTREE_CHUNCKSIZE_256 256
+#define NTREE_CHUNCKSIZE_512 512
+#define NTREE_CHUNCKSIZE_1024 1024
+
 /* the basis for a Node tree, all links and nodes reside internal here */
 /* only re-usable node trees are in the library though, materials and textures allocate own tree struct */
 typedef struct bNodeTree {

@@ -49,7 +49,7 @@ public:
 	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
-	const int getRenderPriority() const {return 7;}
+	const CompositorPriority getRenderPriority() const {return COM_PRIORITY_LOW;}
 };
 
 /* extra info for OpenEXR layers */
@@ -83,7 +83,7 @@ public:
 	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
-	const int getRenderPriority() const {return 7;}
+	const CompositorPriority getRenderPriority() const {return COM_PRIORITY_LOW;}
 };
 
 #endif
