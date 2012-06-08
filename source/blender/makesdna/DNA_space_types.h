@@ -1060,6 +1060,7 @@ typedef enum eSpaceClip_Dopesheet_Sort {
 	SC_DOPE_SORT_NAME = 0,
 	SC_DOPE_SORT_LONGEST,
 	SC_DOPE_SORT_TOTAL,
+	SC_DOPE_SORT_AVERAGE_ERROR,
 } eSpaceClip_Dopesheet_Sort;
 
 /* SpaceClip->dope_flag */

@@ -3115,6 +3115,17 @@ static int channels_longest_segment_sort(void *a, void *b)
 		return 0;
 }
 
+static int channels_average_error_sort(void *a, void *b)
+{
+	MovieTrackingDopesheetChannel *channel_a = a;
+	MovieTrackingDopesheetChannel *channel_b = b;
+
+	if (channel_a->track->error > channel_b->track->error)
+		return 1;
+	else
+		return 0;
+}
+
 static int channels_alpha_inverse_sort(void *a, void *b)
 {
 	if (channels_alpha_sort(a, b))
@@ -3137,6 +3148,17 @@ static int channels_longest_segment_inverse_sort(void *a, void *b)
 		return 0;
 	else
 		return 1;
+}
+
+static int channels_average_error_inverse_sort(void *a, void *b)
+{
+	MovieTrackingDopesheetChannel *channel_a = a;
+	MovieTrackingDopesheetChannel *channel_b = b;
+
+	if (channel_a->track->error < channel_b->track->error)
+		return 1;
+	else
+		return 0;
 }
 
 static void channels_segments_calc(MovieTrackingDopesheetChannel *channel)
@@ -3234,6 +3256,9 @@ static void  tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, i
 		else if (sort_method == TRACK_SORT_TOTAL) {
 			BLI_sortlist(&dopesheet->channels, channels_total_track_inverse_sort);
 		}
+		else if (sort_method == TRACK_SORT_AVERAGE_ERROR) {
+			BLI_sortlist(&dopesheet->channels, channels_average_error_inverse_sort);
+		}
 	}
 	else {
 		if (sort_method == TRACK_SORT_NAME) {
@@ -3244,6 +3269,9 @@ static void  tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, i
 		}
 		else if (sort_method == TRACK_SORT_TOTAL) {
 			BLI_sortlist(&dopesheet->channels, channels_total_track_sort);
+		}
+		else if (sort_method == TRACK_SORT_AVERAGE_ERROR) {
+			BLI_sortlist(&dopesheet->channels, channels_average_error_sort);
 		}
 	}
 

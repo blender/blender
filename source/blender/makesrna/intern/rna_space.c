@@ -2999,6 +2999,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
 		{SC_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
 		{SC_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
+		{SC_DOPE_SORT_AVERAGE_ERROR, "AVERAGE_ERROR", 0, "Average Error", "Sort channels by average reprojection error of tracks after solve"},
 		{0, NULL, 0, NULL, NULL}
 	};
 

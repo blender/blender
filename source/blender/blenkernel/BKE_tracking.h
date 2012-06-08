@@ -202,5 +202,6 @@ void BKE_tracking_dopesheet_update(struct MovieTracking *tracking, int sort_meth
 #define TRACK_SORT_NAME		0
 #define TRACK_SORT_LONGEST	1
 #define TRACK_SORT_TOTAL	2
+#define TRACK_SORT_AVERAGE_ERROR	3
 
 #endif
