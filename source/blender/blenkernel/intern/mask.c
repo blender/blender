@@ -1779,10 +1779,17 @@ int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const int frame,
 		}
 	}
 
-	*r_masklay_shape_a = NULL;
-	*r_masklay_shape_b = NULL;
+	if ((masklay_shape = masklay->splines_shapes.last)) {
+		*r_masklay_shape_a = masklay_shape;
+		*r_masklay_shape_b = NULL;
+		return 1;
+	}
+	else {
+		*r_masklay_shape_a = NULL;
+		*r_masklay_shape_b = NULL;
 
-	return 0;
+		return 0;
+	}
 }
 
 MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, const int frame)
