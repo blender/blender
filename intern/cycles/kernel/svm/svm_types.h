@@ -221,11 +221,11 @@ typedef enum NodeNoiseBasis {
 	NODE_NOISE_CELL_NOISE
 } NodeNoiseBasis;
 
-typedef enum NodeWaveType {
+typedef enum NodeWaveBasis {
 	NODE_WAVE_SINE,
 	NODE_WAVE_SAW,
 	NODE_WAVE_TRI
-} NodeWaveType;
+} NodeWaveBasis;
 
 typedef enum NodeMusgraveType {
 	NODE_MUSGRAVE_MULTIFRACTAL,
@@ -235,12 +235,12 @@ typedef enum NodeMusgraveType {
 	NODE_MUSGRAVE_HETERO_TERRAIN
 } NodeMusgraveType;
 
-typedef enum NodeWoodType {
+typedef enum NodeWaveType {
 	NODE_WAVE_BANDS,
 	NODE_WAVE_RINGS
-} NodeWoodType;
+} NodeWaveType;
 
-typedef enum NodeBlendType {
+typedef enum NodeGradientType {
 	NODE_BLEND_LINEAR,
 	NODE_BLEND_QUADRATIC,
 	NODE_BLEND_EASING,
@@ -248,24 +248,7 @@ typedef enum NodeBlendType {
 	NODE_BLEND_RADIAL,
 	NODE_BLEND_QUADRATIC_SPHERE,
 	NODE_BLEND_SPHERICAL
-} NodeBlendType;
-
-typedef enum NodeBlendAxis {
-	NODE_BLEND_HORIZONTAL,
-	NODE_BLEND_VERTICAL
-} NodeBlendAxis;
-
-typedef enum NodeMarbleType {
-	NODE_MARBLE_SOFT,
-	NODE_MARBLE_SHARP,
-	NODE_MARBLE_SHARPER
-} NodeMarbleType;
-
-typedef enum NodeStucciType {
-	NODE_STUCCI_PLASTIC,
-	NODE_STUCCI_WALL_IN,
-	NODE_STUCCI_WALL_OUT
-} NodeStucciType;
+} NodeGradientType;
 
 typedef enum NodeVoronoiColoring {
 	NODE_VORONOI_INTENSITY,

@@ -188,7 +188,7 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 
 /* Waves */
 
-__device float noise_wave(NodeWaveType wave, float a)
+__device float noise_wave(NodeWaveBasis wave, float a)
 {
 	if(wave == NODE_WAVE_SINE) {
 		return 0.5f + 0.5f*sin(a);

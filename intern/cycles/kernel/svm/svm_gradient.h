@@ -20,7 +20,7 @@ CCL_NAMESPACE_BEGIN
 
 /* Gradient */
 
-__device float svm_gradient(float3 p, NodeBlendType type)
+__device float svm_gradient(float3 p, NodeGradientType type)
 {
 	float x, y, z;
 
@@ -67,7 +67,7 @@ __device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
 
 	float3 co = stack_load_float3(stack, co_offset);
 
-	float f = svm_gradient(co, (NodeBlendType)type);
+	float f = svm_gradient(co, (NodeGradientType)type);
 	f = clamp(f, 0.0f, 1.0f);
 
 	if(stack_valid(fac_offset))
