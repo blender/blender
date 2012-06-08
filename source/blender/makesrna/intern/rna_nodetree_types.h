@@ -163,6 +163,7 @@ DefNode( CompositorNode, CMP_NODE_MOVIEDISTORTION,def_cmp_moviedistortion,"MOVIE
 DefNode( CompositorNode, CMP_NODE_MASK_BOX,       def_cmp_boxmask,        "BOXMASK"        ,BoxMask,          "Box mask",          ""              )
 DefNode( CompositorNode, CMP_NODE_MASK_ELLIPSE,   def_cmp_ellipsemask,    "ELLIPSEMASK"    ,EllipseMask,      "Ellipse mask",      ""              )
 DefNode( CompositorNode, CMP_NODE_BOKEHIMAGE,     def_cmp_bokehimage,     "BOKEHIMAGE"     ,BokehImage,       "Bokeh image",       ""              )
+DefNode( CompositorNode, CMP_NODE_BOKEHBLUR,      def_cmp_bokehblur,      "BOKEHBLUR"      ,BokehBlur,        "Bokeh Blur",        ""              )
 DefNode( CompositorNode, CMP_NODE_SWITCH,         def_cmp_switch,         "SWITCH"         ,Switch,           "Switch",            ""              )
 DefNode( CompositorNode, CMP_NODE_COLORCORRECTION,def_cmp_colorcorrection,"COLORCORRECTION",ColorCorrection,  "ColorCorrection",   ""              )
 DefNode( CompositorNode, CMP_NODE_MASK,           def_cmp_mask,           "MASK",           Mask,             "Mask",              ""              )

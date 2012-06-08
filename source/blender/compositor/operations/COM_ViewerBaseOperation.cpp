@@ -88,12 +88,12 @@ void ViewerBaseOperation::deinitExecution()
 	this->outputBuffer = NULL;
 }
 
-const int ViewerBaseOperation::getRenderPriority() const
+const CompositorPriority ViewerBaseOperation::getRenderPriority() const
 {
 	if (this->isActiveViewerOutput()) {
-		return 8;
+		return COM_PRIORITY_HIGH;
 	}
 	else {
-		return 0;
+		return COM_PRIORITY_LOW;
 	}
 }

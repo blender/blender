@@ -71,6 +71,16 @@ EnumPropertyItem node_quality_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem node_chunksize_items[] = {
+    {NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
+    {NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
+    {NTREE_CHUNCKSIZE_128,   "128",     0,    "128x128",     "Chunksize of 128x128"},
+    {NTREE_CHUNCKSIZE_256,   "256",     0,    "256x256",     "Chunksize of 256x256"},
+    {NTREE_CHUNCKSIZE_512,   "512",     0,    "512x512",     "Chunksize of 512x512"},
+    {NTREE_CHUNCKSIZE_1024,   "1024",     0,    "1024x1024",     "Chunksize of 1024x1024"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
 	{SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
@@ -3184,6 +3194,25 @@ static void def_cmp_ellipsemask(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_bokehblur(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, 0.0f, 128.0f);
+	RNA_def_property_ui_text(prop, "fStop",
+	                         "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
+	                         "the blur radius");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "blur_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom4");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Max Blur", "Blur limit, maximum CoC radius");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
+}
+
 static void def_cmp_bokehimage(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -4029,11 +4058,11 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, node_quality_items);
 	RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
-	prop = RNA_def_property(srna, "chunk_size", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "chunksize");
+	prop = RNA_def_property(srna, "chunk_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "chunksize");
+	RNA_def_property_enum_items(prop, node_chunksize_items);
 	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile (smaller values gives better distribution "
 	                                            "of multiple threads, but more overhead)");
-	RNA_def_property_range(prop, 32, 1024);
 
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);

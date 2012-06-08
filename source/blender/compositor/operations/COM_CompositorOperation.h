@@ -63,7 +63,7 @@ public:
 	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
-	const int getRenderPriority() const {return 7;}
+	const CompositorPriority getRenderPriority() const {return COM_PRIORITY_MEDIUM;}
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 };
 #endif

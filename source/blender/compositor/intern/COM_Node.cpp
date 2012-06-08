@@ -83,23 +83,20 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 	graph->addOperation(operation);
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket, int priority)
+void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
 {
-#ifdef COM_PREVIEW_ENABLED
 	PreviewOperation *operation = new PreviewOperation();
 	system->addOperation(operation);
 	operation->setbNode(this->getbNode());
 	operation->setbNodeTree(system->getContext().getbNodeTree());
-	operation->setPriority(priority);
 	this->addLink(system, outputSocket, operation->getInputSocket(0));
-#endif
 }
 
-void Node::addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket, int priority)
+void Node::addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket)
 {
 	if (inputSocket->isConnected()) {
 		OutputSocket *outputsocket = inputSocket->getConnection()->getFromSocket();
-		this->addPreviewOperation(system, outputsocket, priority);
+		this->addPreviewOperation(system, outputsocket);
 	}
 }
 

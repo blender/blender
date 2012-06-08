@@ -31,16 +31,32 @@ ColorCurveNode::ColorCurveNode(bNode *editorNode): Node(editorNode)
 
 void ColorCurveNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
 {
-	ColorCurveOperation *operation = new ColorCurveOperation();
-
-	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
-	this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
-	this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
-	this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, graph);
-
-	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-
-	operation->setCurveMapping((CurveMapping*)this->getbNode()->storage);
-
-	graph->addOperation(operation);
+	if (this->getInputSocket(2)->isConnected() || this->getInputSocket(3)->isConnected()) {
+		ColorCurveOperation *operation = new ColorCurveOperation();
+	
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		this->getInputSocket(2)->relinkConnections(operation->getInputSocket(2), 2, graph);
+		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(3), 3, graph);
+	
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+	
+		operation->setCurveMapping((CurveMapping*)this->getbNode()->storage);
+	
+		graph->addOperation(operation);
+	} else {
+		ConstantLevelColorCurveOperation *operation = new ConstantLevelColorCurveOperation();
+	
+		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
+		bNodeSocketValueRGBA *val = (bNodeSocketValueRGBA*)this->getInputSocket(2)->getbNodeSocket()->default_value;
+		operation->setBlackLevel(val->value);
+		val = (bNodeSocketValueRGBA*)this->getInputSocket(3)->getbNodeSocket()->default_value;
+		operation->setWhiteLevel(val->value);
+		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
+	
+		operation->setCurveMapping((CurveMapping*)this->getbNode()->storage);
+	
+		graph->addOperation(operation);
+	}
 }

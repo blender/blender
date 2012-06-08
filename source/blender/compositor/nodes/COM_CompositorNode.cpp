@@ -39,6 +39,6 @@ void CompositorNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		imageSocket->relinkConnections(colourAlphaProg->getInputSocket(0));
 		alphaSocket->relinkConnections(colourAlphaProg->getInputSocket(1));
 		graph->addOperation(colourAlphaProg);
-		addPreviewOperation(graph, colourAlphaProg->getInputSocket(0), 5);
+		addPreviewOperation(graph, colourAlphaProg->getInputSocket(0));
 	}
 }

@@ -28,7 +28,7 @@
 #include "COM_OpenCLDevice.h"
 #include "OCL_opencl.h"
 #include "stdio.h"
-#include "COM_OpenCLKernels.cl.cpp"
+#include "COM_OpenCLKernels.cl.h"
 #include "BKE_global.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
@@ -260,7 +260,7 @@ void WorkScheduler::initialize()
 		if (totalNumberOfDevices > 0) {
 			context = clCreateContext(NULL, totalNumberOfDevices, cldevices, clContextError, NULL, &error);
 			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
-			program = clCreateProgramWithSource(context, 1, &sourcecode, 0, &error);
+			program = clCreateProgramWithSource(context, 1, &clkernelstoh_COM_OpenCLKernels_cl, 0, &error);
 			error = clBuildProgram(program, totalNumberOfDevices, cldevices, 0, 0, 0);
 			if (error != CL_SUCCESS) { 
 				cl_int error2;

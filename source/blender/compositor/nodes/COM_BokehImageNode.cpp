@@ -35,5 +35,5 @@ void BokehImageNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 	graph->addOperation(operation);
 	operation->setData((NodeBokehImage*)this->getbNode()->storage);
-	addPreviewOperation(graph, operation->getOutputSocket(0), 9);
+	addPreviewOperation(graph, operation->getOutputSocket(0));
 }

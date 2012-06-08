@@ -49,5 +49,5 @@ void DifferenceMatteNode::convertToOperations(ExecutionSystem *graph, Compositor
 	addLink(graph, operationSet->getOutputSocket(), operation->getInputSocket(1));
 	outputSocketImage->relinkConnections(operation->getOutputSocket());
 	graph->addOperation(operation);
-	addPreviewOperation(graph, operation->getOutputSocket(), 5);
+	addPreviewOperation(graph, operation->getOutputSocket());
 }

@@ -53,4 +53,37 @@ public:
 	  */
 	void deinitExecution();
 };
+
+class ConstantLevelColorCurveOperation : public CurveBaseOperation {
+private:
+	/**
+	  * Cached reference to the inputProgram
+	  */
+	SocketReader * inputFacProgram;
+	SocketReader * inputImageProgram;
+	float black[3];
+	float white[3];
+	
+public:
+	ConstantLevelColorCurveOperation();
+	
+	/**
+	  * the inner loop of this program
+	  */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	
+	/**
+	  * Initialize the execution
+	  */
+	void initExecution();
+	
+	/**
+	  * Deinitialize the execution
+	  */
+	void deinitExecution();
+	
+	void setBlackLevel(float black[3]) {this->black[0] =black[0];this->black[1] =black[1];this->black[2] =black[2]; }
+	void setWhiteLevel(float white[3]) {this->white[0] =white[0];this->white[1] =white[1];this->white[2] =white[2]; }
+};
+
 #endif

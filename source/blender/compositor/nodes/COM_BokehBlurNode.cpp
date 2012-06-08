@@ -41,9 +41,9 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	if (this->getInputSocket(2)->isConnected()) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 		ConvertDepthToRadiusOperation *converter = new ConvertDepthToRadiusOperation();
-		converter->setfStop(4.0f);
+		converter->setfStop(this->getbNode()->custom3);
 		converter->setCameraObject(camob);
-		operation->setMaxBlur(16);
+		operation->setMaxBlur((int)this->getbNode()->custom4);
 		operation->setQuality(context->getQuality());
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
