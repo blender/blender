@@ -708,10 +708,11 @@ void OBJECT_OT_select_grouped(wmOperatorType *ot)
 static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 {
 	unsigned int layernum;
-	short extend;
+	short extend, match;
 	
 	extend = RNA_boolean_get(op->ptr, "extend");
 	layernum = RNA_int_get(op->ptr, "layers");
+	match = RNA_enum_get(op->ptr, "match");
 	
 	if (extend == 0) {
 		CTX_DATA_BEGIN (C, Base *, base, visible_bases)
@@ -723,7 +724,14 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 		
 	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
 	{
-		if (base->lay == (1 << (layernum - 1)))
+		int ok = 0;
+
+		if (match == 1) /* exact */
+			ok = (base->lay == (1 << (layernum - 1)));
+		else /* shared layers */
+			ok = (base->lay & (1 << (layernum - 1)));
+
+		if (ok)
 			ED_base_object_select(base, BA_SELECT);
 	}
 	CTX_DATA_END;
@@ -736,6 +744,12 @@ static int object_select_by_layer_exec(bContext *C, wmOperator *op)
 
 void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 {
+	static EnumPropertyItem match_items[] = {
+		{1, "EXACT", 0, "Exact Match", ""},
+		{2, "SHARED", 0, "Shared Layers", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	/* identifiers */
 	ot->name = "Select by Layer";
 	ot->description = "Select all visible objects on a layer";
@@ -750,6 +764,7 @@ void OBJECT_OT_select_by_layer(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 	
 	/* properties */
+	RNA_def_enum(ot->srna, "match", match_items, 0, "Match", "");
 	RNA_def_boolean(ot->srna, "extend", FALSE, "Extend", "Extend selection instead of deselecting everything first");
 	RNA_def_int(ot->srna, "layers", 1, 1, 20, "Layer", "", 1, 20);
 }
