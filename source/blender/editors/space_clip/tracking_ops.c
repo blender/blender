@@ -2135,17 +2135,20 @@ static Object *get_orientation_object(bContext *C)
 
 static int set_orientation_poll(bContext *C)
 {
-	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-	if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
-		return TRUE;
-	}
-	else {
-		return OBACT != NULL;
+	if (sc) {
+		Scene *scene = CTX_data_scene(C);
+		MovieClip *clip = ED_space_clip(sc);
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
+
+		if (tracking_object->flag & TRACKING_OBJECT_CAMERA) {
+			return TRUE;
+		}
+		else {
+			return OBACT != NULL;
+		}
 	}
 
 	return FALSE;
@@ -2744,11 +2747,16 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 static int set_solution_scale_poll(bContext *C)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
 
-	return (tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0;
+	if (sc) {
+		MovieClip *clip = ED_space_clip(sc);
+		MovieTracking *tracking = &clip->tracking;
+		MovieTrackingObject *tracking_object = BKE_tracking_active_object(tracking);
+
+		return (tracking_object->flag & TRACKING_OBJECT_CAMERA) == 0;
+	}
+
+	return FALSE;
 }
 
 static int set_solution_scale_exec(bContext *C, wmOperator *op)
