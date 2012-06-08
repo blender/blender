@@ -62,7 +62,7 @@
 /* Generics - Loopers */
 
 /* Loops over the gp-frames for a gp-layer, and applies the given callback */
-short gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
+short ED_gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDframe *, Scene *))
 {
 	bGPDframe *gpf;
 	
@@ -85,7 +85,7 @@ short gplayer_frames_looper(bGPDlayer *gpl, Scene *scene, short (*gpf_cb)(bGPDfr
 /* Data Conversion Tools */
 
 /* make a listing all the gp-frames in a layer as cfraelems */
-void gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, short onlysel)
+void ED_gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, short onlysel)
 {
 	bGPDframe *gpf;
 	CfraElem *ce;
@@ -111,7 +111,7 @@ void gplayer_make_cfra_list(bGPDlayer *gpl, ListBase *elems, short onlysel)
 /* Selection Tools */
 
 /* check if one of the frames in this layer is selected */
-short is_gplayer_frame_selected(bGPDlayer *gpl)
+short ED_gplayer_frame_select_check(bGPDlayer *gpl)
 {
 	bGPDframe *gpf;
 	
@@ -149,7 +149,7 @@ static void gpframe_select(bGPDframe *gpf, short select_mode)
 }
 
 /* set all/none/invert select (like above, but with SELECT_* modes) */
-void select_gpencil_frames(bGPDlayer *gpl, short select_mode)
+void ED_gpencil_select_frames(bGPDlayer *gpl, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -164,18 +164,18 @@ void select_gpencil_frames(bGPDlayer *gpl, short select_mode)
 }
 
 /* set all/none/invert select */
-void set_gplayer_frame_selection(bGPDlayer *gpl, short mode)
+void ED_gplayer_frame_select_set(bGPDlayer *gpl, short mode)
 {
 	/* error checking */
 	if (gpl == NULL) 
 		return;
 	
 	/* now call the standard function */
-	select_gpencil_frames(gpl, mode);
+	ED_gpencil_select_frames(gpl, mode);
 }
 
 /* select the frame in this layer that occurs on this frame (there should only be one at most) */
-void select_gpencil_frame(bGPDlayer *gpl, int selx, short select_mode)
+void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -193,7 +193,7 @@ void select_gpencil_frame(bGPDlayer *gpl, int selx, short select_mode)
 }
 
 /* select the frames in this layer that occur within the bounds specified */
-void borderselect_gplayer_frames(bGPDlayer *gpl, float min, float max, short select_mode)
+void ED_gplayer_frames_select_border(bGPDlayer *gpl, float min, float max, short select_mode)
 {
 	bGPDframe *gpf;
 	
@@ -211,7 +211,7 @@ void borderselect_gplayer_frames(bGPDlayer *gpl, float min, float max, short sel
 /* Frame Editing Tools */
 
 /* Delete selected frames */
-void delete_gplayer_frames(bGPDlayer *gpl)
+void ED_gplayer_frames_delete(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	
@@ -229,7 +229,7 @@ void delete_gplayer_frames(bGPDlayer *gpl)
 }
 
 /* Duplicate selected frames from given gp-layer */
-void duplicate_gplayer_frames(bGPDlayer *gpl)
+void ED_gplayer_frames_duplicate(bGPDlayer *gpl)
 {
 	bGPDframe *gpf, *gpfn;
 	
@@ -502,19 +502,19 @@ void snap_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
 		case 1: /* snap to nearest frame */
-			gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
+			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
 			break;
 		case 2: /* snap to current frame */
-			gplayer_frames_looper(gpl, scene, snap_gpf_cframe);
+			ED_gplayer_frames_looper(gpl, scene, snap_gpf_cframe);
 			break;
 		case 3: /* snap to nearest marker */
-			gplayer_frames_looper(gpl, scene, snap_gpf_nearmarker);
+			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearmarker);
 			break;
 		case 4: /* snap to nearest second */
-			gplayer_frames_looper(gpl, scene, snap_gpf_nearestsec);
+			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearestsec);
 			break;
 		default: /* just in case */
-			gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
+			ED_gplayer_frames_looper(gpl, scene, snap_gpf_nearest);
 			break;
 	}
 }
@@ -604,21 +604,21 @@ void mirror_gplayer_frames(bGPDlayer *gpl, Scene *scene, short mode)
 {
 	switch (mode) {
 		case 1: /* mirror over current frame */
-			gplayer_frames_looper(gpl, scene, mirror_gpf_cframe);
+			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_cframe);
 			break;
 		case 2: /* mirror over frame 0 */
-			gplayer_frames_looper(gpl, scene, mirror_gpf_yaxis);
+			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_yaxis);
 			break;
 		case 3: /* mirror over value 0 */
-			gplayer_frames_looper(gpl, scene, mirror_gpf_xaxis);
+			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_xaxis);
 			break;
 		case 4: /* mirror over marker */
 			mirror_gpf_marker(NULL, NULL);
-			gplayer_frames_looper(gpl, scene, mirror_gpf_marker);
+			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_marker);
 			mirror_gpf_marker(NULL, NULL);
 			break;
 		default: /* just in case */
-			gplayer_frames_looper(gpl, scene, mirror_gpf_yaxis);
+			ED_gplayer_frames_looper(gpl, scene, mirror_gpf_yaxis);
 			break;
 	}
 }

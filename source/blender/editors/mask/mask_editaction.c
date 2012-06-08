@@ -59,7 +59,7 @@
 /* Generics - Loopers */
 
 /* Loops over the gp-frames for a gp-layer, and applies the given callback */
-short masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*masklay_shape_cb)(MaskLayerShape *, Scene *))
+short ED_masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*masklay_shape_cb)(MaskLayerShape *, Scene *))
 {
 	MaskLayerShape *masklay_shape;
 
@@ -82,7 +82,7 @@ short masklayer_frames_looper(MaskLayer *masklay, Scene *scene, short (*masklay_
 /* Data Conversion Tools */
 
 /* make a listing all the gp-frames in a layer as cfraelems */
-void masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short onlysel)
+void ED_masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short onlysel)
 {
 	MaskLayerShape *masklay_shape;
 	CfraElem *ce;
@@ -108,7 +108,7 @@ void masklayer_make_cfra_list(MaskLayer *masklay, ListBase *elems, short onlysel
 /* Selection Tools */
 
 /* check if one of the frames in this layer is selected */
-short is_masklayer_frame_selected(MaskLayer *masklay)
+short ED_masklayer_frame_select_check(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape;
 
@@ -146,7 +146,7 @@ static void masklayshape_select(MaskLayerShape *masklay_shape, short select_mode
 }
 
 /* set all/none/invert select (like above, but with SELECT_* modes) */
-void select_mask_frames(MaskLayer *masklay, short select_mode)
+void ED_mask_select_frames(MaskLayer *masklay, short select_mode)
 {
 	MaskLayerShape *masklay_shape;
 
@@ -161,18 +161,18 @@ void select_mask_frames(MaskLayer *masklay, short select_mode)
 }
 
 /* set all/none/invert select */
-void set_masklayer_frame_selection(MaskLayer *masklay, short mode)
+void ED_masklayer_frame_select_set(MaskLayer *masklay, short mode)
 {
 	/* error checking */
 	if (masklay == NULL)
 		return;
 
 	/* now call the standard function */
-	select_mask_frames(masklay, mode);
+	ED_mask_select_frames(masklay, mode);
 }
 
 /* select the frame in this layer that occurs on this frame (there should only be one at most) */
-void select_mask_frame(MaskLayer *masklay, int selx, short select_mode)
+void ED_mask_select_frame(MaskLayer *masklay, int selx, short select_mode)
 {
 	MaskLayerShape *masklay_shape;
 
@@ -190,7 +190,7 @@ void select_mask_frame(MaskLayer *masklay, int selx, short select_mode)
 }
 
 /* select the frames in this layer that occur within the bounds specified */
-void borderselect_masklayer_frames(MaskLayer *masklay, float min, float max, short select_mode)
+void ED_masklayer_frames_select_border(MaskLayer *masklay, float min, float max, short select_mode)
 {
 	MaskLayerShape *masklay_shape;
 
@@ -208,7 +208,7 @@ void borderselect_masklayer_frames(MaskLayer *masklay, float min, float max, sho
 /* Frame Editing Tools */
 
 /* Delete selected frames */
-void delete_masklayer_frames(MaskLayer *masklay)
+void ED_masklayer_frames_delete(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *masklay_shape_next;
 
@@ -226,7 +226,7 @@ void delete_masklayer_frames(MaskLayer *masklay)
 }
 
 /* Duplicate selected frames from given gp-layer */
-void duplicate_masklayer_frames(MaskLayer *masklay)
+void ED_masklayer_frames_duplicate(MaskLayer *masklay)
 {
 	MaskLayerShape *masklay_shape, *gpfn;
 

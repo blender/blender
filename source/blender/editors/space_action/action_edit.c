@@ -702,9 +702,9 @@ static void duplicate_action_keys(bAnimContext *ac)
 		if (ale->type == ANIMTYPE_FCURVE)
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
 		else if (ale->type == ANIMTYPE_GPLAYER)
-			duplicate_gplayer_frames((bGPDlayer *)ale->data);
+			ED_gplayer_frames_duplicate((bGPDlayer *)ale->data);
 		else if (ale->type == ANIMTYPE_MASKLAYER)
-			duplicate_masklayer_frames((MaskLayer *)ale->data);
+			ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
 		else
 			BLI_assert(0);
 	}
@@ -777,10 +777,10 @@ static void delete_action_keys(bAnimContext *ac)
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER) {
-			delete_gplayer_frames((bGPDlayer *)ale->data);
+			ED_gplayer_frames_delete((bGPDlayer *)ale->data);
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			delete_masklayer_frames((MaskLayer *)ale->data);
+			ED_masklayer_frames_delete((MaskLayer *)ale->data);
 		}
 		else {
 			FCurve *fcu = (FCurve *)ale->key_data;
