@@ -25,7 +25,7 @@ from bpy.types import Panel, Header, Menu
 class CLIP_HT_header(Header):
     bl_space_type = 'CLIP_EDITOR'
 
-    def draw(self, context):
+    def _draw_tracking(self, context):
         layout = self.layout
 
         sc = context.space_data
@@ -41,39 +41,37 @@ class CLIP_HT_header(Header):
             if sc.view == 'CLIP':
                 if clip:
                     sub.menu("CLIP_MT_select")
+                    sub.menu("CLIP_MT_clip")
+                    sub.menu("CLIP_MT_track")
+                    sub.menu("CLIP_MT_reconstruction")
+                else:
+                    sub.menu("CLIP_MT_clip")
 
-                sub.menu("CLIP_MT_clip")
-
-                if clip:
-                    if sc.mode == 'MASKEDIT':
-                        sub.menu("CLIP_MT_mask")
-                    else:
-                        sub.menu("CLIP_MT_track")
-                        sub.menu("CLIP_MT_reconstruction")
-
-        if sc.mode != 'MASKEDIT':
-            layout.prop(sc, "view", text="", expand=True)
+        row = layout.row()
+        row.template_ID(sc, "clip", open='clip.open')
 
         if clip:
+            tracking = clip.tracking
+            active_object = tracking.objects.active
+
             if sc.view == 'CLIP':
                 layout.prop(sc, "mode", text="")
+                layout.prop(sc, "view", text="", expand=True)
                 layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-                if sc.mode == 'MASKEDIT':
-                    toolsettings = context.tool_settings
+                r = active_object.reconstruction
 
-                    row = layout.row(align=True)
-                    row.prop(toolsettings, "use_proportional_edit_mask",
-                             text="", icon_only=True)
-                    if toolsettings.use_proportional_edit_objects:
-                        row.prop(toolsettings, "proportional_edit_falloff",
-                                 text="", icon_only=True)
+                if r.is_valid and sc.view == 'CLIP':
+                    layout.label(text="Average solve error: %.4f" %
+                                 (r.average_error))
             elif sc.view == 'GRAPH':
+                layout.prop(sc, "view", text="", expand=True)
+
                 row = layout.row(align=True)
 
                 if sc.show_filters:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN',
-                        text="Filters")
+                             text="Filters")
 
                     sub = row.column()
                     sub.active = clip.tracking.reconstruction.is_valid
@@ -82,32 +80,63 @@ class CLIP_HT_header(Header):
                     row.prop(sc, "show_graph_tracks", icon='ANIM', text="")
                 else:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
-                        text="Filters")
+                             text="Filters")
+            elif sc.view == 'DOPESHEET':
+                layout.prop(sc, "view", text="", expand=True)
+
+                layout.label(text="Sort by:")
+                layout.prop(sc, "dopesheet_sort_method", text="")
+                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+        else:
+            layout.prop(sc, "view", text="", expand=True)
+
+    def _draw_masking(self, context):
+        layout = self.layout
+
+        toolsettings = context.tool_settings
+        sc = context.space_data
+        clip = sc.clip
+
+        row = layout.row(align=True)
+        row.template_header()
+
+        if context.area.show_menus:
+            sub = row.row(align=True)
+            sub.menu("CLIP_MT_view")
+
+            if clip:
+                sub.menu("CLIP_MT_select")
+                sub.menu("CLIP_MT_clip")
+                sub.menu("CLIP_MT_mask")
+            else:
+                sub.menu("CLIP_MT_clip")
 
         row = layout.row()
         row.template_ID(sc, "clip", open='clip.open')
 
-        if sc.mode == 'MASKEDIT':
-            row = layout.row()
-            row.template_ID(sc, "mask", new="mask.new")
+        layout.prop(sc, "mode", text="")
 
-        if clip:
-            tracking = clip.tracking
-            active = tracking.objects.active
+        row = layout.row()
+        row.template_ID(sc, "mask", new="mask.new")
 
-            if active and not active.is_camera:
-                r = active.reconstruction
-            else:
-                r = tracking.reconstruction
+        layout.prop(sc, "pivot_point", text="", icon_only=True)
 
-            if r.is_valid and sc.view == 'CLIP':
-                layout.label(text="Average solve error: %.4f" %
-                    (r.average_error))
+        row = layout.row(align=True)
+        row.prop(toolsettings, "use_proportional_edit_mask",
+                 text="", icon_only=True)
+        if toolsettings.use_proportional_edit_mask:
+            row.prop(toolsettings, "proportional_edit_falloff",
+                     text="", icon_only=True)
 
-            if sc.view == 'DOPESHEET':
-                layout.label(text="Sort by:")
-                layout.prop(sc, "dopesheet_sort_method", text="")
-                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+    def draw(self, context):
+        layout = self.layout
+
+        sc = context.space_data
+
+        if sc.mode in {'TRACKING', 'RECONSTRUCTION', 'DISTORTION'}:
+            self._draw_tracking(context)
+        else:
+            self._draw_masking(context)
 
         layout.template_running_jobs()
 
