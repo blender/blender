@@ -695,7 +695,7 @@ static ShaderEnum wave_type_init()
 ShaderEnum WaveTextureNode::type_enum = wave_type_init();
 
 WaveTextureNode::WaveTextureNode()
-: TextureNode("marble_texture")
+: TextureNode("wave_texture")
 {
 	type = ustring("Bands");
 

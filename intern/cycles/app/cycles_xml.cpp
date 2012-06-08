@@ -392,9 +392,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = dist;
 		}
 		else if(string_iequals(node.name(), "wave_texture")) {
-			WaveTextureNode *wood = new WaveTextureNode();
-			xml_read_enum(&wood->type, WaveTextureNode::type_enum, node, "type");
-			snode = wood;
+			WaveTextureNode *wave = new WaveTextureNode();
+			xml_read_enum(&wave->type, WaveTextureNode::type_enum, node, "type");
+			snode = wave;
 		}
 		else if(string_iequals(node.name(), "normal")) {
 			snode = new NormalNode();
