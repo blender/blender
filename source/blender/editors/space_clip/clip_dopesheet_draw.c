@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_graph_draw.c
+/** \file blender/editors/space_clip/clip_dopesheet_draw.c
  *  \ingroup spclip
  */
 

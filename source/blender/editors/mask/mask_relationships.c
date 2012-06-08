@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mask/mask_relationshops.c
+/** \file blender/editors/mask/mask_relationships.c
  *  \ingroup edmask
  */
 
