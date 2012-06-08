@@ -118,7 +118,7 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	if (ob->type == OB_MESH) {
+	if (dm->getNumVerts(dm) == numVerts) {
 		medges = dm->getEdgeArray(dm);
 		numDMEdges = dm->getNumEdges(dm);
 	}
