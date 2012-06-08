@@ -642,8 +642,10 @@ int ED_object_modifier_apply(ReportList *reports, Scene *scene, Object *ob, Modi
 	BLI_remlink(&ob->modifiers, md);
 	modifier_free(md);
 
-	/* ensure mesh paint mask layer remains after applying */
-	ED_sculpt_mask_layers_ensure(ob, NULL);
+	if (ob->type == OB_MESH) {
+		/* ensure mesh paint mask layer remains after applying */
+		ED_sculpt_mask_layers_ensure(ob, NULL);
+	}
 
 	return 1;
 }

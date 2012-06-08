@@ -118,8 +118,14 @@ static void smoothModifier_do(
 	fac = smd->fac;
 	facm = 1 - fac;
 
-	medges = dm->getEdgeArray(dm);
-	numDMEdges = dm->getNumEdges(dm);
+	if (ob->type == OB_MESH) {
+		medges = dm->getEdgeArray(dm);
+		numDMEdges = dm->getNumEdges(dm);
+	}
+	else {
+		medges = NULL;
+		numDMEdges = 0;
+	}
 
 	modifier_get_vgroup(ob, dm, smd->defgrp_name, &dvert, &defgrp_index);
 
