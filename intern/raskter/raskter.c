@@ -189,7 +189,8 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 	 * If the number of verts specified to render as a polygon is less than 3,
 	 * return immediately. Obviously we cant render a poly with sides < 3. The
 	 * return for this we set to 1, simply so it can be distinguished from the
-	 * next place we could return, /home/guest/blender-svn/soc-2011-tomato/intern/raskter/raskter.cwhich is a failure to allocate memory.
+	 * next place we could return, /home/guest/blender-svn/soc-2011-tomato/intern/raskter/raskter.
+	 * which is a failure to allocate memory.
 	 */
 	if (num_verts < 3) {
 		return(1);
@@ -384,8 +385,8 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
                    float *buf, int buf_x, int buf_y)
 {
-	int i;                                       /* i: Loop counter. */
-	struct poly_vert *ply;                       /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
+	int i;                                   /* i: Loop counter. */
+	struct poly_vert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct r_fill_context ctx = {0};
 
 	/*

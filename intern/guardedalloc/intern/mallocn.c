@@ -683,8 +683,8 @@ static void addtail(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link = vlink;
 
-	/* for a generic API general error checks here is fine but
-	 * the use here they will never be NULL */
+	/* for a generic API error checks here is fine but
+	 * the limited use here they will never be NULL */
 #if 0
 	if (link == NULL) return;
 	if (listbase == NULL) return;
@@ -702,8 +702,8 @@ static void remlink(volatile localListBase *listbase, void *vlink)
 {
 	struct localLink *link = vlink;
 
-	/* for a generic API general error checks here is fine but
-	 * the use here they will never be NULL */
+	/* for a generic API error checks here is fine but
+	 * the limited use here they will never be NULL */
 #if 0
 	if (link == NULL) return;
 	if (listbase == NULL) return;

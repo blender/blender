@@ -651,7 +651,7 @@ static EnumPropertyItem prop_group_op_types[] = {
 	{0, "UNLINK",   0, "Unlink Group", ""},
 	{1, "LOCAL",    0, "Make Local Group", ""},
 	{2, "LINK",     0, "Link Group Objects to Scene", ""},
-	{3, "INSTANCE", 0, "Instance Group in Scene", ""},
+	{3, "INSTANCE", 0, "Instance Groups in Scene", ""},
 	{4, "TOGVIS",   0, "Toggle Visible Group", ""},
 	{5, "TOGSEL",   0, "Toggle Selectable", ""},
 	{6, "TOGREN",   0, "Toggle Renderable", ""},
