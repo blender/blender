@@ -89,15 +89,15 @@ typedef struct bAnimContext {
 
 /* Main Data container types */
 typedef enum eAnimCont_Types {
-	ANIMCONT_NONE = 0,      /* invalid or no data */
-	ANIMCONT_ACTION,        /* action (bAction) */
-	ANIMCONT_SHAPEKEY,      /* shapekey (Key) */
-	ANIMCONT_GPENCIL,       /* grease pencil (screen) */
-	ANIMCONT_DOPESHEET,     /* dopesheet (bDopesheet) */
-	ANIMCONT_FCURVES,       /* animation F-Curves (bDopesheet) */
-	ANIMCONT_DRIVERS,       /* drivers (bDopesheet) */
-	ANIMCONT_NLA,           /* nla (bDopesheet) */
-	ANIMCONT_CHANNEL        /* animation channel (bAnimListElem) */
+	ANIMCONT_NONE      = 0, /* invalid or no data */
+	ANIMCONT_ACTION    = 1, /* action (bAction) */
+	ANIMCONT_SHAPEKEY  = 2, /* shapekey (Key) */
+	ANIMCONT_GPENCIL   = 3, /* grease pencil (screen) */
+	ANIMCONT_DOPESHEET = 4, /* dopesheet (bDopesheet) */
+	ANIMCONT_FCURVES   = 5, /* animation F-Curves (bDopesheet) */
+	ANIMCONT_DRIVERS   = 6, /* drivers (bDopesheet) */
+	ANIMCONT_NLA       = 7, /* nla (bDopesheet) */
+	ANIMCONT_CHANNEL   = 8  /* animation channel (bAnimListElem) */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -341,20 +341,20 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* flag-setting behavior */
 typedef enum eAnimChannels_SetFlag {
-	ACHANNEL_SETFLAG_CLEAR = 0,     /* turn off */
-	ACHANNEL_SETFLAG_ADD,           /* turn on */
-	ACHANNEL_SETFLAG_INVERT,        /* on->off, off->on */
-	ACHANNEL_SETFLAG_TOGGLE         /* some on -> all off // all on */
+	ACHANNEL_SETFLAG_CLEAR  = 0,     /* turn off */
+	ACHANNEL_SETFLAG_ADD    = 1,     /* turn on */
+	ACHANNEL_SETFLAG_INVERT = 2,     /* on->off, off->on */
+	ACHANNEL_SETFLAG_TOGGLE = 3      /* some on -> all off // all on */
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
-	ACHANNEL_SETTING_SELECT = 0,
-	ACHANNEL_SETTING_PROTECT,           // warning: for drawing UI's, need to check if this is off (maybe inverse this later)
-	ACHANNEL_SETTING_MUTE,
-	ACHANNEL_SETTING_EXPAND,
-	ACHANNEL_SETTING_VISIBLE,           /* only for Graph Editor */
-	ACHANNEL_SETTING_SOLO               /* only for NLA Tracks */
+	ACHANNEL_SETTING_SELECT   = 0,
+	ACHANNEL_SETTING_PROTECT  = 1, /* warning: for drawing UI's, need to check if this is off (maybe inverse this later) */
+	ACHANNEL_SETTING_MUTE     = 2,
+	ACHANNEL_SETTING_EXPAND   = 3,
+	ACHANNEL_SETTING_VISIBLE  = 4,  /* only for Graph Editor */
+	ACHANNEL_SETTING_SOLO     = 5   /* only for NLA Tracks */
 } eAnimChannel_Settings;
 
 
