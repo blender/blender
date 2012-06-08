@@ -1463,7 +1463,7 @@ void BKE_mask_spline_ensure_deform(MaskSpline *spline)
 	}
 }
 
-void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
+void BKE_mask_evaluate(Mask *mask, const float ctime, const int do_newframe)
 {
 	MaskLayer *masklay;
 
@@ -1475,7 +1475,7 @@ void BKE_mask_evaluate(Mask *mask, float ctime, const int do_newframe)
 			MaskLayerShape *masklay_shape_b;
 			int found;
 
-			if ((found = BKE_mask_layer_shape_find_frame_range(masklay, (int)ctime,
+			if ((found = BKE_mask_layer_shape_find_frame_range(masklay, ctime,
 			                                                   &masklay_shape_a, &masklay_shape_b)))
 			{
 				if (found == 1) {
@@ -1750,7 +1750,7 @@ MaskLayerShape *BKE_mask_layer_shape_find_frame(MaskLayer *masklay, const int fr
 }
 
 /* when returning 2 - the frame isnt found but before/after frames are */
-int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const int frame,
+int BKE_mask_layer_shape_find_frame_range(MaskLayer *masklay, const float frame,
                                           MaskLayerShape **r_masklay_shape_a,
                                           MaskLayerShape **r_masklay_shape_b)
 {

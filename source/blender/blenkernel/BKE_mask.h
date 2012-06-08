@@ -120,7 +120,7 @@ void BKE_mask_coord_to_movieclip(struct MovieClip *clip, struct MovieClipUser *u
 void BKE_mask_update_display(struct Mask *mask, float ctime);
 
 void BKE_mask_evaluate_all_masks(struct Main *bmain, float ctime, const int do_newframe);
-void BKE_mask_evaluate(struct Mask *mask, float ctime, const int do_newframe);
+void BKE_mask_evaluate(struct Mask *mask, const float ctime, const int do_newframe);
 void BKE_mask_update_scene(struct Main *bmain, struct Scene *scene, const int do_newframe);
 void BKE_mask_parent_init(struct MaskParent *parent);
 void BKE_mask_calc_handle_adjacent_interp(struct MaskSpline *spline, struct MaskSplinePoint *point, const float u);
@@ -145,7 +145,7 @@ void BKE_mask_layer_shape_to_mask_interp(struct MaskLayer *masklay,
                                          struct MaskLayerShape *masklay_shape_b,
                                          const float fac);
 struct MaskLayerShape *BKE_mask_layer_shape_find_frame(struct MaskLayer *masklay, const int frame);
-int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, const int frame,
+int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, const float frame,
                                           struct MaskLayerShape **r_masklay_shape_a,
                                           struct MaskLayerShape **r_masklay_shape_b);
 struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);

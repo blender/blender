@@ -2067,7 +2067,7 @@ static ImBuf *seq_render_mask_strip(
 		return NULL;
 	}
 
-	BKE_mask_evaluate(seq->mask, (int)(seq->mask->sfra + nr), TRUE);
+	BKE_mask_evaluate(seq->mask, seq->mask->sfra + nr, TRUE);
 
 	maskbuf = MEM_callocN(sizeof(float) * context.rectx * context.recty, __func__);
 
