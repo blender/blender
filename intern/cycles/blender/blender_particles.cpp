@@ -86,6 +86,10 @@ bool BlenderSync::object_use_particles(BL::Object b_ob)
 			}
 			break;
 		}
+		
+		default:
+			/* avoid compiler warning */
+			break;
 		}
 	}
 	
