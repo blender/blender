@@ -40,6 +40,7 @@ set(SRC
 	mask_add.c
 	mask_draw.c
 	mask_edit.c
+	mask_editaction.c
 	mask_ops.c
 	mask_relationships.c
 	mask_select.c

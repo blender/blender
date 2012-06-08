@@ -2229,6 +2229,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Action Editor"},
 		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "ShapeKey Editor"},
 		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Grease Pencil"},
+		{SACTCONT_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask Editor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 		

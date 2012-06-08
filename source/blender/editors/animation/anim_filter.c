@@ -56,6 +56,7 @@
 #include "DNA_lamp_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_key_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
@@ -86,6 +87,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_node.h"
+#include "BKE_mask.h"
 #include "BKE_sequencer.h"
 #include "BKE_utildefines.h"
 
@@ -173,6 +175,22 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			ac->mode = saction->mode;
 			return 1;
 			
+		case SACTCONT_MASK: /* Grease Pencil */ // XXX review how this mode is handled...
+			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
+{
+			// TODO, other methods to get the mask
+			// Sequence *seq = BKE_sequencer_active_get(ac->scene);
+			//MovieClip *clip = ac->scene->clip;
+//			struct Mask *mask = seq ? seq->mask : NULL;
+
+			saction->ads.source = (ID *)ac->scene;;
+
+			ac->datatype = ANIMCONT_MASK;
+			ac->data = &saction->ads;
+
+			ac->mode = saction->mode;
+			return 1;
+}
 		case SACTCONT_DOPESHEET: /* DopeSheet */
 			/* update scene-pointer (no need to check for pinning yet, as not implemented) */
 			saction->ads.source = (ID *)ac->scene;
@@ -807,7 +825,18 @@ static bAnimListElem *make_new_animlistelem(void *data, short datatype, ID *owne
 				ale->datatype = ALE_GPFRAME;
 			}
 			break;
-				
+
+			case ANIMTYPE_MASKLAYER:
+			{
+				MaskLayer *masklay = (MaskLayer *)data;
+
+				ale->flag = masklay->flag;
+
+				ale->key_data = NULL;
+				ale->datatype = ALE_MASKLAY;
+			}
+			break;
+
 			case ANIMTYPE_NLATRACK:
 			{
 				NlaTrack *nlt = (NlaTrack *)data;
@@ -1349,6 +1378,83 @@ static size_t animdata_filter_gpencil(ListBase *anim_data, void *UNUSED(data), i
 		}
 	}
 	
+	/* return the number of items added to the list */
+	return items;
+}
+
+static size_t animdata_filter_mask_data(ListBase *anim_data, Mask *mask, const int filter_mode)
+{
+	MaskLayer *masklay_act = BKE_mask_layer_active(mask);
+	MaskLayer *masklay;
+	size_t items = 0;
+
+	/* loop over layers as the conditions are acceptable */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		/* only if selected */
+		if (ANIMCHANNEL_SELOK(SEL_MASKLAY(masklay)) ) {
+			/* only if editable */
+//			if (!(filter_mode & ANIMFILTER_FOREDIT) || EDITABLE_GPL(gpl)) {
+				/* active... */
+				if (!(filter_mode & ANIMFILTER_ACTIVE) || (masklay_act == masklay)) {
+					/* add to list */
+					ANIMCHANNEL_NEW_CHANNEL(masklay, ANIMTYPE_MASKLAYER, mask);
+
+
+//					if (filter_mode & ANIMFILTER_TMP_PEEK)
+//						return 1;
+//					else {
+//						bAnimListElem *ale = make_new_animlistelem(masklay, channel_type, (ID *)owner_id);
+//						if (ale) {
+//							BLI_addtail(anim_data, ale);
+//							items ++;
+//						}
+//					}
+
+				}
+//			}
+		}
+	}
+
+	return items;
+}
+
+static size_t animdata_filter_mask(ListBase *anim_data, void *UNUSED(data), int filter_mode)
+{
+	Mask *mask;
+	size_t items = 0;
+
+	/* for now, grab grease pencil datablocks directly from main */
+	// XXX: this is not good...
+	for (mask = G.main->mask.first; mask; mask = mask->id.next) {
+		ListBase tmp_data = {NULL, NULL};
+		size_t tmp_items = 0;
+
+		/* only show if gpd is used by something... */
+		if (ID_REAL_USERS(mask) < 1)
+			continue;
+
+		/* add gpencil animation channels */
+		BEGIN_ANIMFILTER_SUBCHANNELS(EXPANDED_MASK(mask))
+		{
+			tmp_items += animdata_filter_mask_data(&tmp_data, mask, filter_mode);
+		}
+		END_ANIMFILTER_SUBCHANNELS;
+
+		/* did we find anything? */
+		if (tmp_items) {
+			/* include data-expand widget first */
+			if (filter_mode & ANIMFILTER_LIST_CHANNELS) {
+				/* add gpd as channel too (if for drawing, and it has layers) */
+				ANIMCHANNEL_NEW_CHANNEL(mask, ANIMTYPE_MASKDATABLOCK, NULL);
+			}
+
+			/* now add the list of collected channels */
+			BLI_movelisttolist(anim_data, &tmp_data);
+			BLI_assert((tmp_data.first == tmp_data.last) && (tmp_data.first == NULL));
+			items += tmp_items;
+		}
+	}
+
 	/* return the number of items added to the list */
 	return items;
 }
@@ -2280,7 +2386,7 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 					items += animfilter_action(ac, anim_data, ads, data, filter_mode, (ID *)obact);
 			}
 			break;
-				
+
 			case ANIMCONT_SHAPEKEY: /* 'ShapeKey Editor' */
 			{
 				/* the check for the DopeSheet summary is included here since the summary works here too */
@@ -2294,7 +2400,13 @@ size_t ANIM_animdata_filter(bAnimContext *ac, ListBase *anim_data, int filter_mo
 				items = animdata_filter_gpencil(anim_data, data, filter_mode);
 			}
 			break;
-				
+
+			case ANIMCONT_MASK:
+			{
+				items = animdata_filter_mask(anim_data, data, filter_mode);
+			}
+			break;
+
 			case ANIMCONT_DOPESHEET: /* 'DopeSheet Editor' */
 			{
 				/* the DopeSheet editor is the primary place where the DopeSheet summaries are useful */

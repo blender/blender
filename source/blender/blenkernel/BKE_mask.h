@@ -151,6 +151,7 @@ int BKE_mask_layer_shape_find_frame_range(struct MaskLayer *masklay, const float
 struct MaskLayerShape *BKE_mask_layer_shape_alloc(struct MaskLayer *masklay, const int frame);
 void BKE_mask_layer_shape_free(struct MaskLayerShape *masklay_shape);
 struct MaskLayerShape *BKE_mask_layer_shape_varify_frame(struct MaskLayer *masklay, const int frame);
+struct MaskLayerShape *BKE_mask_layer_shape_duplicate(struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_unlink(struct MaskLayer *masklay, struct MaskLayerShape *masklay_shape);
 void BKE_mask_layer_shape_sort(struct MaskLayer *masklay);
 

@@ -83,7 +83,8 @@ void draw_gpencil_view3d(struct Scene *scene, struct View3D *v3d, struct ARegion
 void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
-short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene, short (*gpf_cb)(struct bGPDframe *, struct Scene *));
+short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene,
+                            short (*gpf_cb)(struct bGPDframe *, struct Scene *));
 void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
 
 short is_gplayer_frame_selected(struct bGPDlayer *gpl);

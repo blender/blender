@@ -1820,6 +1820,19 @@ MaskLayerShape *BKE_mask_layer_shape_varify_frame(MaskLayer *masklay, const int 
 	return masklay_shape;
 }
 
+MaskLayerShape *BKE_mask_layer_shape_duplicate(MaskLayerShape *masklay_shape)
+{
+	MaskLayerShape *masklay_shape_copy;
+
+	masklay_shape_copy = MEM_dupallocN(masklay_shape);
+
+	if (LIKELY(masklay_shape_copy->data)) {
+		masklay_shape_copy->data = MEM_dupallocN(masklay_shape_copy->data);
+	}
+
+	return masklay_shape_copy;
+}
+
 void BKE_mask_layer_shape_unlink(MaskLayer *masklay, MaskLayerShape *masklay_shape)
 {
 	BLI_remlink(&masklay->splines_shapes, masklay_shape);

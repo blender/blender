@@ -48,6 +48,9 @@ typedef struct Mask {
 	int masklay_tot;      /* total number of mask layers */
 
 	int sfra, efra;       /* frames, used by the sequencer */
+
+	int flag;  /* for anim info */
+	int pad;
 } Mask;
 
 typedef struct MaskParent {
@@ -96,7 +99,7 @@ typedef struct MaskLayerShape {
 	float *data;             /* u coordinate along spline segment and weight of this point */
 	int    tot_vert;         /* to ensure no buffer overruns's: alloc size is (tot_vert * MASK_OBJECT_SHAPE_ELEM_SIZE) */
 	int    frame;            /* different flags of this point */
-	char   flag;
+	char   flag;             /* animation flag */
 	char   pad[7];
 } MaskLayerShape;
 
@@ -125,9 +128,8 @@ typedef struct MaskLayer {
 	char   blend;
 	char   blend_flag;
 
-	//char   flag;             /* not used yet */
+	char   flag;             /* for animation */
 	char   restrictflag;     /* matching 'Object' flag of the same name - eventually use in the outliner  */
-	char   pad[1];
 } MaskLayer;
 
 /* MaskParent->flag */
@@ -167,6 +169,23 @@ enum {
 /* masklay->blend_flag */
 enum {
 	MASK_BLENDFLAG_INVERT = (1 << 0)
+};
+
+/* masklay->flag */
+enum {
+	MASK_LAYERFLAG_LOCKED = (1 << 4),
+	MASK_LAYERFLAG_SELECT = (1 << 5)
+};
+
+/* masklay_shape->flag */
+enum {
+	MASK_SHAPE_SELECT = (1 << 0)
+};
+
+
+/* mask->flag */
+enum {
+	MASK_ANIMF_EXPAND = (1 << 4)
 };
 
 #endif // __DNA_MASK_TYPES_H__

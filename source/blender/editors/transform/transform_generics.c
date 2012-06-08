@@ -350,9 +350,9 @@ static void recalcData_actedit(TransInfo *t)
 	ANIM_animdata_context_getdata(&ac);
 	
 	/* perform flush */
-	if (ac.datatype == ANIMCONT_GPENCIL) {
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		/* flush transform values back to actual coordinates */
-		flushTransGPactionData(t);
+		flushTransIntFrameActionData(t);
 	}
 	else {
 		/* get animdata blocks visible in editor, assuming that these will be the ones where things changed */

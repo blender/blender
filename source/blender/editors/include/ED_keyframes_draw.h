@@ -123,6 +123,8 @@ void draw_summary_channel(struct View2D *v2d, struct bAnimContext *ac, float ypo
 /* Grease Pencil Layer */ 
 // XXX not restored 
 void draw_gpl_channel(struct View2D *v2d, struct bDopeSheet *ads, struct bGPDlayer *gpl, float ypos);
+/* Mask Layer */
+void draw_masklay_channel(struct View2D *v2d, struct bDopeSheet *ads, struct MaskLayer *masklay, float ypos);
 
 /* Keydata Generation --------------- */
 /* F-Curve */

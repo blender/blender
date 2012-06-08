@@ -290,6 +290,18 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 					else glColor4ub(col2[0], col2[1], col2[2], 0x44);
 					glRectf(v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF, v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF);
 				}
+				else if (ac->datatype == ANIMCONT_MASK) {
+					/* TODO --- this is a copy of gpencil */
+					/* frames less than one get less saturated background */
+					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+					glRectf(0.0f, (float)y - ACHANNEL_HEIGHT_HALF, v2d->cur.xmin, (float)y + ACHANNEL_HEIGHT_HALF);
+
+					/* frames one and higher get a saturated background */
+					if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x44);
+					else glColor4ub(col2[0], col2[1], col2[2], 0x44);
+					glRectf(v2d->cur.xmin, (float)y - ACHANNEL_HEIGHT_HALF, v2d->cur.xmax + EXTRA_SCROLL_PAD,  (float)y + ACHANNEL_HEIGHT_HALF);
+				}
 			}
 		}
 		
@@ -339,6 +351,9 @@ void draw_channel_strips(bAnimContext *ac, SpaceAction *saction, ARegion *ar)
 						break;
 					case ALE_GPFRAME:
 						draw_gpl_channel(v2d, ads, ale->data, y);
+						break;
+					case ALE_MASKLAY:
+						draw_masklay_channel(v2d, ads, ale->data, y);
 						break;
 				}
 			}

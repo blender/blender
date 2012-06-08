@@ -2797,6 +2797,99 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 	}
 }
 
+
+/* Called by special_aftertrans_update to make sure selected gp-frames replace
+ * any other gp-frames which may reside on that frame (that are not selected).
+ * It also makes sure sorted are still stored in chronological order after
+ * transform.
+ */
+static void posttrans_mask_clean(Mask *mask)
+{
+	MaskLayer *masklay;
+
+	for (masklay = mask->masklayers.first; masklay; masklay= masklay->next) {
+		ListBase sel_buffer = {NULL, NULL};
+		MaskLayerShape *masklay_shape, *masklay_shape_new;
+		MaskLayerShape *masklay_shape_sort, *masklay_shape_sort_new;
+
+		/* loop 1: loop through and isolate selected gp-frames to buffer
+		 * (these need to be sorted as they are isolated)
+		 */
+		for (masklay_shape= masklay->splines_shapes.first; masklay_shape; masklay_shape= masklay_shape_new) {
+			short added= 0;
+			masklay_shape_new= masklay_shape->next;
+
+			if (masklay_shape->flag & GP_FRAME_SELECT) {
+				BLI_remlink(&masklay->splines_shapes, masklay_shape);
+
+				/* find place to add them in buffer
+				 * - go backwards as most frames will still be in order,
+				 *   so doing it this way will be faster
+				 */
+				for (masklay_shape_sort= sel_buffer.last; masklay_shape_sort; masklay_shape_sort= masklay_shape_sort->prev) {
+					/* if current (masklay_shape) occurs after this one in buffer, add! */
+					if (masklay_shape_sort->frame < masklay_shape->frame) {
+						BLI_insertlinkafter(&sel_buffer, masklay_shape_sort, masklay_shape);
+						added= 1;
+						break;
+					}
+				}
+				if (added == 0)
+					BLI_addhead(&sel_buffer, masklay_shape);
+			}
+		}
+
+		/* error checking: it is unlikely, but may be possible to have none selected */
+		if (sel_buffer.first == NULL)
+			continue;
+
+		/* if all were selected (i.e. masklay->splines_shapes is empty), then just transfer sel-buf over */
+		if (masklay->splines_shapes.first == NULL) {
+			masklay->splines_shapes.first= sel_buffer.first;
+			masklay->splines_shapes.last= sel_buffer.last;
+
+			continue;
+		}
+
+		/* loop 2: remove duplicates of splines_shapes in buffers */
+		for (masklay_shape= masklay->splines_shapes.first; masklay_shape && sel_buffer.first; masklay_shape= masklay_shape_new) {
+			masklay_shape_new= masklay_shape->next;
+
+			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
+			for (masklay_shape_sort= sel_buffer.first; masklay_shape_sort && masklay_shape; masklay_shape_sort= masklay_shape_sort_new) {
+				masklay_shape_sort_new= masklay_shape_sort->next;
+
+				/* if this buffer frame needs to go before current, add it! */
+				if (masklay_shape_sort->frame < masklay_shape->frame) {
+					/* transfer buffer frame to splines_shapes list (before current) */
+					BLI_remlink(&sel_buffer, masklay_shape_sort);
+					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
+				}
+				/* if this buffer frame is on same frame, replace current with it and stop */
+				else if (masklay_shape_sort->frame == masklay_shape->frame) {
+					/* transfer buffer frame to splines_shapes list (before current) */
+					BLI_remlink(&sel_buffer, masklay_shape_sort);
+					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
+
+					/* get rid of current frame */
+					BKE_mask_layer_shape_unlink(masklay, masklay_shape);
+				}
+			}
+		}
+
+		/* if anything is still in buffer, append to end */
+		for (masklay_shape_sort= sel_buffer.first; masklay_shape_sort; masklay_shape_sort= masklay_shape_sort_new) {
+			masklay_shape_sort_new= masklay_shape_sort->next;
+
+			BLI_remlink(&sel_buffer, masklay_shape_sort);
+			BLI_addtail(&masklay->splines_shapes, masklay_shape_sort);
+		}
+
+		/* NOTE: this is the only difference to grease pencil code above */
+		BKE_mask_layer_shape_sort(masklay);
+	}
+}
+
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
@@ -2936,6 +3029,27 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 	return count;
 }
 
+/* fully select selected beztriples, but only include if it's on the right side of cfra */
+static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra)
+{
+	MaskLayerShape *masklayer_shape;
+	int count = 0;
+
+	if (masklay == NULL)
+		return count;
+
+	/* only include points that occur on the right side of cfra */
+	for (masklayer_shape= masklay->splines_shapes.first; masklayer_shape; masklayer_shape= masklayer_shape->next) {
+		if (masklayer_shape->flag & MASK_SHAPE_SELECT) {
+			if (FrameOnMouseSide(side, (float)masklayer_shape->frame, cfra))
+				count++;
+		}
+	}
+
+	return count;
+}
+
+
 /* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, AnimData *adt)
 {
@@ -2998,7 +3112,7 @@ typedef struct tGPFtransdata {
 } tGPFtransdata;
 
 /* This function helps flush transdata written to tempdata into the gp-frames  */
-void flushTransGPactionData(TransInfo *t)
+void flushTransIntFrameActionData(TransInfo *t)
 {
 	tGPFtransdata *tfd;
 	int i;
@@ -3049,6 +3163,35 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 	return count;
 }
 
+/* refer to comment above #GPLayerToTransData, this is the same but for masks */
+static int MaskLayerToTransData(TransData *td, tGPFtransdata *tfd, MaskLayer *masklay, char side, float cfra)
+{
+	MaskLayerShape *masklay_shape;
+	int count= 0;
+
+	/* check for select frames on right side of current frame */
+	for (masklay_shape= masklay->splines_shapes.first; masklay_shape; masklay_shape= masklay_shape->next) {
+		if (masklay_shape->flag & MASK_SHAPE_SELECT) {
+			if (FrameOnMouseSide(side, (float)masklay_shape->frame, cfra)) {
+				/* memory is calloc'ed, so that should zero everything nicely for us */
+				td->val= &tfd->val;
+				td->ival= (float)masklay_shape->frame;
+
+				tfd->val= (float)masklay_shape->frame;
+				tfd->sdata= &masklay_shape->frame;
+
+				/* advance td now */
+				td++;
+				tfd++;
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
+
+
 static void createTransActionData(bContext *C, TransInfo *t)
 {
 	Scene *scene= t->scene;
@@ -3069,7 +3212,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
@@ -3102,8 +3245,12 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		
 		if (ale->type == ANIMTYPE_FCURVE)
 			count += count_fcurve_keys(ale->key_data, t->frame_side, cfra);
-		else
+		else if (ale->type == ANIMTYPE_GPLAYER)
 			count += count_gplayer_frames(ale->data, t->frame_side, cfra);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			count += count_masklayer_frames(ale->data, t->frame_side, cfra);
+		else
+			BLI_assert(0);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3121,7 +3268,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d = t->data2d;
 	
-	if (ac.datatype == ANIMCONT_GPENCIL) {
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
 			tfd= (tGPFtransdata *)((float *)(t->customData) + 2);
@@ -3141,6 +3288,14 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			int i;
 			
 			i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra);
+			td += i;
+			tfd += i;
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			MaskLayer *masklay = (MaskLayer *)ale->data;
+			int i;
+
+			i = MaskLayerToTransData(td, tfd, masklay, t->frame_side, cfra);
 			td += i;
 			tfd += i;
 		}
@@ -5004,6 +5159,26 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				}
 			}
 		}
+		else if (ac.datatype == ANIMCONT_MASK) {
+			/* remove duplicate frames and also make sure points are in order! */
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
+				 */
+			if ((saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				((canceled == 0) || (duplicate)))
+			{
+				Mask *mask;
+
+				// XXX: BAD! this get gpencil datablocks directly from main db...
+				// but that's how this currently works :/
+				for (mask = G.main->mask.first; mask; mask = mask->id.next) {
+					if (ID_REAL_USERS(mask))
+						posttrans_mask_clean(mask);
+				}
+			}
+		}
 		
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. 
@@ -5027,7 +5202,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 		
 		/* make sure all F-Curves are set correctly */
-		if (ac.datatype != ANIMCONT_GPENCIL)
+		if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 			ANIM_editkeyframes_refresh(&ac);
 		
 		/* clear flag that was set for time-slide drawing */
