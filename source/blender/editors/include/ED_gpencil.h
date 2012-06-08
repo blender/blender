@@ -94,7 +94,7 @@ void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
 
 void delete_gplayer_frames(struct bGPDlayer *gpl);
-void duplicate_gplayer_frames(struct bGPDlayer *gpd);
+void duplicate_gplayer_frames(struct bGPDlayer *gpl);
 
 void free_gpcopybuf(void);
 void copy_gpdata(void);
