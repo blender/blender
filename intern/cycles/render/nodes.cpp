@@ -1789,6 +1789,47 @@ void ObjectInfoNode::compile(OSLCompiler& compiler)
 	compiler.add(this, "node_object_info");
 }
 
+/* Particle Info */
+
+ParticleInfoNode::ParticleInfoNode()
+: ShaderNode("particle_info")
+{
+	add_output("Age", SHADER_SOCKET_FLOAT);
+	add_output("Lifetime", SHADER_SOCKET_FLOAT);
+}
+
+void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
+{
+	if(!output("Age")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Lifetime")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+
+	ShaderNode::attributes(attributes);
+}
+
+void ParticleInfoNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *out;
+	
+	out = output("Age");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_AGE, out->stack_offset);
+	}
+	
+	out = output("Lifetime");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LIFETIME, out->stack_offset);
+	}
+}
+
+void ParticleInfoNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_particle_info");
+}
+
 /* Value */
 
 ValueNode::ValueNode()

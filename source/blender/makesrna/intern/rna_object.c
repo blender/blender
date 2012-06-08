@@ -2545,6 +2545,16 @@ static void rna_def_dupli_object(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Hide", "Don't show dupli object in viewport or render");
 
+	prop = RNA_def_property(srna, "index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "index");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Index", "Index in the lowest-level dupli list");
+	
+	prop = RNA_def_property(srna, "particle_index", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "particle_index");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE | PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Particle Index", "Index in the lowest-level particle dupli list");
+
 	/* TODO: DupliObject has more properties that can be wrapped */
 }
 

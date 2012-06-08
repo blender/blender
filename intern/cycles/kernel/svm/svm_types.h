@@ -93,7 +93,8 @@ typedef enum NodeType {
 	NODE_RGB_CURVES = 6000,
 	NODE_MIN_MAX = 6100,
 	NODE_LIGHT_FALLOFF = 6200,
-	NODE_OBJECT_INFO = 6300
+	NODE_OBJECT_INFO = 6300,
+	NODE_PARTICLE_INFO = 6400
 } NodeType;
 
 typedef enum NodeAttributeType {
@@ -116,6 +117,11 @@ typedef enum NodeObjectInfo {
 	NODE_INFO_MAT_INDEX,
 	NODE_INFO_OB_RANDOM
 } NodeObjectInfo;
+
+typedef enum NodeParticleInfo {
+	NODE_INFO_PAR_AGE,
+	NODE_INFO_PAR_LIFETIME
+} NodeParticleInfo;
 
 typedef enum NodeLightPath {
 	NODE_LP_camera = 0,

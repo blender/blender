@@ -1956,6 +1956,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_fresnel(ttype);
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);
+	register_node_type_sh_particle_info(ttype);
 
 	register_node_type_sh_background(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
