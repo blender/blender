@@ -43,6 +43,10 @@
 
 namespace libmv {
 
+using ceres::Jet;
+using ceres::JetOps;
+using ceres::Chain;
+
 TrackRegionOptions::TrackRegionOptions()
     : mode(TRANSLATION),
       minimum_correlation(0),
@@ -77,70 +81,30 @@ bool AllInBounds(const FloatImage &image,
   return true;
 }
 
-// Because C++03 doesn't support partial template specializations for
-// functions, but at the same time member function specializations are not
-// supported, the sample function must be inside a template-specialized class
-// with a non-templated static member.
-
 // The "AutoDiff::Sample()" function allows sampling an image at an x, y
 // position such that if x and y are jets, then the derivative information is
 // correctly propagated.
-
-// Empty default template.
 template<typename T>
-struct AutoDiff {
-  // Sample only the image when the coordinates are scalars.
-  static T Sample(const FloatImage &image_and_gradient,
-                  const T &x, const T &y) {
-    return SampleLinear(image_and_gradient, y, x, 0);
-  }
+static T SampleWithDerivative(const FloatImage &image_and_gradient,
+                              const T &x,
+                              const T &y) {
+  float scalar_x = JetOps<T>::GetScalar(x);
+  float scalar_y = JetOps<T>::GetScalar(y);
 
-  static void SetScalarPart(double scalar, T *value) {
-    *value = scalar;
+  // Note that sample[1] and sample[2] will be uninitialized in the scalar
+  // case, but that is not an issue because the Chain::Rule below will not read
+  // the uninitialized values.
+  float sample[3];
+  if (JetOps<T>::IsScalar()) {
+    // For the scalar case, only sample the image.
+    sample[0] = SampleLinear(image_and_gradient, scalar_y, scalar_x, 0);
+  } else {
+    // For the derivative case, sample the gradient as well.
+    SampleLinear(image_and_gradient, scalar_y, scalar_x, sample);
   }
-  static void ScaleDerivative(double scale_by, T *value) {
-    // For double, there is no derivative to scale.
-  }
-};
-
-// Sample the image and gradient when the coordinates are jets, applying the
-// jacobian appropriately to propagate the derivatives from the coordinates.
-template<typename T, int N>
-struct AutoDiff<ceres::Jet<T, N> > {
-  static ceres::Jet<T, N> Sample(const FloatImage &image_and_gradient,
-                                 const ceres::Jet<T, N> &x,
-                                 const ceres::Jet<T, N> &y) {
-    // Sample the image and its derivatives in x and y. One way to think of
-    // this is that the image is a scalar function with a single vector
-    // argument, xy, of dimension 2. Call this s(xy).
-    const T s    = SampleLinear(image_and_gradient, y.a, x.a, 0);
-    const T dsdx = SampleLinear(image_and_gradient, y.a, x.a, 1);
-    const T dsdy = SampleLinear(image_and_gradient, y.a, x.a, 2);
-
-    // However, xy is itself a function of another variable ("z"); xy(z) =
-    // [x(z), y(z)]^T. What this function needs to return is "s", but with the
-    // derivative with respect to z attached to the jet. So combine the
-    // derivative part of x and y's jets to form a Jacobian matrix between x, y
-    // and z (i.e. dxy/dz).
-    Eigen::Matrix<T, 2, N> dxydz;
-    dxydz.row(0) = x.v.transpose();
-    dxydz.row(1) = y.v.transpose();
-
-    // Now apply the chain rule to obtain ds/dz. Combine the derivative with
-    // the scalar part to obtain s with full derivative information.
-    ceres::Jet<T, N> jet_s;
-    jet_s.a = s;
-    jet_s.v = Matrix<T, 1, 2>(dsdx, dsdy) * dxydz;
-    return jet_s;
-  }
-
-  static void SetScalarPart(double scalar, ceres::Jet<T, N> *value) {
-    value->a = scalar;
-  }
-  static void ScaleDerivative(double scale_by, ceres::Jet<T, N> *value) {
-    value->v *= scale_by;
-  }
-};
+  T xy[2] = { x, y };
+  return Chain<float, 2, T>::Rule(sample[0], sample + 1, xy);
+}
 
 template<typename Warp>
 class BoundaryCheckingCallback : public ceres::IterationCallback {
@@ -188,36 +152,73 @@ class WarpCostFunctor {
         canonical_to_image1_(canonical_to_image1),
         num_samples_x_(num_samples_x),
         num_samples_y_(num_samples_y),
-        warp_(warp) {}
+        warp_(warp),
+        pattern_and_gradient_(num_samples_y_, num_samples_x_, 3),
+        pattern_positions_(num_samples_y_, num_samples_x_, 2),
+        pattern_mask_(num_samples_y_, num_samples_x_, 1) {
+    ComputeCanonicalPatchAndNormalizer();
+  }
+
+  void ComputeCanonicalPatchAndNormalizer() {
+    src_mean_ = 0.0;
+    double num_samples = 0.0;
+    for (int r = 0; r < num_samples_y_; ++r) {
+      for (int c = 0; c < num_samples_x_; ++c) {
+        // Compute the position; cache it.
+        Vec3 image_position = canonical_to_image1_ * Vec3(c, r, 1);
+        image_position /= image_position(2);
+        pattern_positions_(r, c, 0) = image_position(0);
+        pattern_positions_(r, c, 1) = image_position(1);
+
+        // Sample the pattern and gradients.
+        SampleLinear(image_and_gradient1_,
+                     image_position(1),  // Sample is r, c.
+                     image_position(0),
+                     &pattern_and_gradient_(r, c, 0));
+
+        // Sample sample the mask.
+        double mask_value = 1.0;
+        if (options_.image1_mask != NULL) {
+          SampleLinear(*options_.image1_mask,
+                       image_position(1),
+                       image_position(0),
+                       &pattern_mask_(r, c, 0));
+          mask_value = pattern_mask_(r, c);
+        }
+        src_mean_ += pattern_and_gradient_(r, c, 0) * mask_value;
+        num_samples += mask_value;
+      }
+    }
+    src_mean_ /= num_samples;
+  }
 
   template<typename T>
   bool operator()(const T *warp_parameters, T *residuals) const {
+    if (options_.image1_mask != NULL) {
+      VLOG(2) << "Using a mask.";
+    }
     for (int i = 0; i < Warp::NUM_PARAMETERS; ++i) {
       VLOG(2) << "warp_parameters[" << i << "]: " << warp_parameters[i];
     }
 
-    T src_mean = T(1.0);
     T dst_mean = T(1.0);
     if (options_.use_normalized_intensities) {
-      ComputeNormalizingCoefficients(warp_parameters,
-                                     &src_mean,
-                                     &dst_mean);
+      ComputeNormalizingCoefficient(warp_parameters,
+                                    &dst_mean);
     }
 
     int cursor = 0;
     for (int r = 0; r < num_samples_y_; ++r) {
       for (int c = 0; c < num_samples_x_; ++c) {
-        // Compute the location of the source pixel (via homography).
-        Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
-        image1_position /= image1_position(2);
-        
+        // Use the pre-computed image1 position.
+        Vec2 image1_position(pattern_positions_(r, c, 0),
+                             pattern_positions_(r, c, 1));
+
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
-          mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
-                                                image1_position[0],
-                                                image1_position[1]);
+          mask_value = pattern_mask_(r, c);
           if (mask_value == 0.0) {
             residuals[cursor++] = T(0.0);
             continue;
@@ -233,54 +234,61 @@ class WarpCostFunctor {
                       &image2_position[1]);
 
         // Sample the destination, propagating derivatives.
-        T dst_sample = AutoDiff<T>::Sample(image_and_gradient2_,
-                                           image2_position[0],
-                                           image2_position[1]);
+        T dst_sample = SampleWithDerivative(image_and_gradient2_,
+                                            image2_position[0],
+                                            image2_position[1]);
 
         // Sample the source. This is made complicated by ESM mode.
         T src_sample;
-        if (options_.use_esm) {
+        if (0 && options_.use_esm && !JetOps<T>::IsScalar()) {
           // In ESM mode, the derivative of the source is also taken into
           // account. This changes the linearization in a way that causes
           // better convergence. Copy the derivative of the warp parameters
           // onto the jets for the image1 position. This is the ESM hack.
-          T image1_position_x = image2_position[0];
-          T image1_position_y = image2_position[1];
-          AutoDiff<T>::SetScalarPart(image1_position[0], &image1_position_x);
-          AutoDiff<T>::SetScalarPart(image1_position[1], &image1_position_y);
-          src_sample = AutoDiff<T>::Sample(image_and_gradient1_,
-                                           image1_position_x,
-                                           image1_position_y);
+          T image1_position_jet[2] = {
+            image2_position[0],  // Order is x, y. This matches the
+            image2_position[1]   // derivative order in the patch.
+          };
+          JetOps<T>::SetScalar(image1_position[0], image1_position_jet + 0);
+          JetOps<T>::SetScalar(image1_position[1], image1_position_jet + 1);
+
+          // Now that the image1 positions have the jets applied from the
+          // image2 position (the ESM hack), chain the image gradients to
+          // obtain a sample with the derivative with respect to the warp
+          // parameters attached.
+          src_sample = Chain<float, 2, T>::Rule(pattern_and_gradient_(r, c),
+                                                &pattern_and_gradient_(r, c, 1),
+                                                image1_position_jet);
 
           // The jacobians for these should be averaged. Due to the subtraction
           // below, flip the sign of the src derivative so that the effect
           // after subtraction of the jets is that they are averaged.
-          AutoDiff<T>::ScaleDerivative(-0.5, &src_sample);
-          AutoDiff<T>::ScaleDerivative(0.5, &dst_sample);
+          JetOps<T>::ScaleDerivative(-0.5, &src_sample);
+          JetOps<T>::ScaleDerivative(0.5, &dst_sample);
         } else {
           // This is the traditional, forward-mode KLT solution.
-          src_sample = T(AutoDiff<double>::Sample(image_and_gradient1_,
-                                                  image1_position[0],
-                                                  image1_position[1]));
+          src_sample = T(pattern_and_gradient_(r, c));
         }
+
+        //LG << "src_sample: " << src_sample;
 
         // Normalize the samples by the mean values of each signal. The typical
         // light model assumes multiplicative intensity changes with changing
         // light, so this is a reasonable choice. Note that dst_mean has
         // derivative information attached thanks to autodiff.
         if (options_.use_normalized_intensities) {
-          src_sample /= src_mean;
+          src_sample /= T(src_mean_);
           dst_sample /= dst_mean;
         }
+
+        //LG << "dst_sample: " << dst_sample;
 
         // The difference is the error.
         T error = src_sample - dst_sample;
 
         // Weight the error by the mask, if one is present.
         if (options_.image1_mask != NULL) {
-          error *= T(AutoDiff<double>::Sample(*options_.image1_mask,
-                                              image1_position[0],
-                                              image1_position[1]));
+          error *= T(mask_value);
         }
         residuals[cursor++] = error;
       }
@@ -290,26 +298,22 @@ class WarpCostFunctor {
 
   // For normalized matching, the average and 
   template<typename T>
-  void ComputeNormalizingCoefficients(const T *warp_parameters,
-                                      T *src_mean,
-                                      T *dst_mean) const {
+  void ComputeNormalizingCoefficient(const T *warp_parameters,
+                                     T *dst_mean) const {
 
-    *src_mean = T(0.0);
     *dst_mean = T(0.0);
     double num_samples = 0.0;
     for (int r = 0; r < num_samples_y_; ++r) {
       for (int c = 0; c < num_samples_x_; ++c) {
-        // Compute the location of the source pixel (via homography).
-        Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
-        image1_position /= image1_position(2);
+        // Use the pre-computed image1 position.
+        Vec2 image1_position(pattern_positions_(r, c, 0),
+                             pattern_positions_(r, c, 1));
         
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
-          mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
-                                                image1_position[0],
-                                                image1_position[1]);
+          mask_value = pattern_mask_(r, c);
           if (mask_value == 0.0) {
             continue;
           }
@@ -328,31 +332,20 @@ class WarpCostFunctor {
         // TODO(keir): This accumulation can, surprisingly, be done as a
         // pre-pass by using integral images. This is complicated by the need
         // to store the jets in the integral image, but it is possible.
-        T dst_sample = AutoDiff<T>::Sample(image_and_gradient2_,
-                                           image2_position[0],
-                                           image2_position[1]);
-
-        // Sample the source.
-        // TODO(keir): There is no reason to do this inside the loop;
-        // precompute this and reuse it.
-        T src_sample = T(AutoDiff<double>::Sample(image_and_gradient1_,
-                                                  image1_position[0],
-                                                  image1_position[1]));
+        T dst_sample = SampleWithDerivative(image_and_gradient2_,
+                                            image2_position[0],
+                                            image2_position[1]);
 
         // Weight the sample by the mask, if one is present.
         if (options_.image1_mask != NULL) {
-          src_sample *= T(mask_value);
           dst_sample *= T(mask_value);
         }
 
-        *src_mean += src_sample;
         *dst_mean += dst_sample;
         num_samples += mask_value;
       }
     }
-    *src_mean /= T(num_samples);
     *dst_mean /= T(num_samples);
-    LG << "Normalization for src:" << *src_mean;
     LG << "Normalization for dst:" << *dst_mean;
   }
 
@@ -369,16 +362,23 @@ class WarpCostFunctor {
    double sX = 0, sY = 0, sXX = 0, sYY = 0, sXY = 0;
 
    // Due to masking, it's important to account for fractional samples.
-   // Samples with a 50% mask get counted as a half sample.
+   // For example, samples with a 50% mask are counted as a half sample.
    double num_samples = 0;
 
    for (int r = 0; r < num_samples_y_; ++r) {
      for (int c = 0; c < num_samples_x_; ++c) {
-        // Compute the location of the source pixel (via homography).
-        // TODO(keir): Cache these projections.
-        Vec3 image1_position = canonical_to_image1_ * Vec3(c, r, 1);
-        image1_position /= image1_position(2);
+        // Use the pre-computed image1 position.
+        Vec2 image1_position(pattern_positions_(r, c, 0),
+                             pattern_positions_(r, c, 1));
         
+        double mask_value = 1.0;
+        if (options_.image1_mask != NULL) {
+          mask_value = pattern_mask_(r, c);
+          if (mask_value == 0.0) {
+            continue;
+          }
+        }
+
         // Compute the location of the destination pixel.
         double image2_position[2];
         warp_.Forward(warp_parameters,
@@ -387,19 +387,13 @@ class WarpCostFunctor {
                       &image2_position[0],
                       &image2_position[1]);
 
-        double x = AutoDiff<double>::Sample(image_and_gradient2_,
-                                            image2_position[0],
-                                            image2_position[1]);
-
-        double y = AutoDiff<double>::Sample(image_and_gradient1_,
-                                            image1_position[0],
-                                            image1_position[1]);
+        double x = pattern_and_gradient_(r, c);
+        double y = SampleLinear(image_and_gradient2_,
+                                image2_position[0],
+                                image2_position[1]);
 
         // Weight the signals by the mask, if one is present.
         if (options_.image1_mask != NULL) {
-          double mask_value = AutoDiff<double>::Sample(*options_.image1_mask,
-                                                       image1_position[0],
-                                                       image1_position[1]);
           x *= mask_value;
           y *= mask_value;
           num_samples += mask_value;
@@ -439,6 +433,15 @@ class WarpCostFunctor {
   int num_samples_x_;
   int num_samples_y_;
   const Warp &warp_;
+  double src_mean_;
+  FloatImage pattern_and_gradient_;
+
+  // This contains the position from where the cached pattern samples were
+  // taken from. This is also used to warp from src to dest without going from
+  // canonical pixels to src first.
+  FloatImage pattern_positions_;
+
+  FloatImage pattern_mask_;
 };
 
 // Compute the warp from rectangular coordinates, where one corner is the
@@ -1073,6 +1076,9 @@ void TemplatedTrackRegion(const FloatImage &image1,
        << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
        << (y2[i] - y1[i]) << ").";
   }
+  if (options.use_normalized_intensities) {
+    LG << "Using normalized intensities.";
+  }
 
   // Bail early if the points are already outside.
   if (!AllInBounds(image1, x1, y1)) {
@@ -1232,7 +1238,6 @@ void TrackRegion(const FloatImage &image1,
                                     result); \
     return; \
   }
-
   HANDLE_MODE(TRANSLATION,                TranslationWarp);
   HANDLE_MODE(TRANSLATION_SCALE,          TranslationScaleWarp);
   HANDLE_MODE(TRANSLATION_ROTATION,       TranslationRotationWarp);
@@ -1240,6 +1245,38 @@ void TrackRegion(const FloatImage &image1,
   HANDLE_MODE(AFFINE,                     AffineWarp);
   HANDLE_MODE(HOMOGRAPHY,                 HomographyWarp);
 #undef HANDLE_MODE
+}
+
+bool SamplePlanarPatch(const FloatImage &image,
+                       const double *xs, const double *ys,
+                       int num_samples_x, int num_samples_y,
+                       FloatImage *patch) {
+  // Bail early if the points are outside the image.
+  if (!AllInBounds(image, xs, ys)) {
+    LG << "Can't sample patch: out of bounds.";
+    return false;
+  }
+
+  // Make the patch have the appropriate size, and match the depth of image.
+  patch->Resize(num_samples_y, num_samples_x, image.Depth());
+
+  // Compute the warp from rectangular coordinates.
+  Mat3 canonical_homography = ComputeCanonicalHomography(xs, ys,
+                                                         num_samples_x,
+                                                         num_samples_y);
+
+  // Walk over the coordinates in the canonical space, sampling from the image
+  // in the original space and copying the result into the patch.
+  for (int r = 0; r < num_samples_y; ++r) {
+    for (int c = 0; c < num_samples_x; ++c) {
+      Vec3 image_position = canonical_homography * Vec3(c, r, 1);
+      image_position /= image_position(2);
+      SampleLinear(image, image_position(1),
+                   image_position(0),
+                   &(*patch)(r, c, 0));
+    }
+  }
+  return true;
 }
 
 }  // namespace libmv

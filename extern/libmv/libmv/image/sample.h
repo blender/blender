@@ -37,15 +37,15 @@ inline T SampleNearest(const Array3D<T> &image,
 static inline void LinearInitAxis(float fx, int width,
                                   int *x1, int *x2,
                                   float *dx1, float *dx2) {
-  const int ix = int(fx);
+  const int ix = static_cast<int>(fx);
   if (ix < 0) {
     *x1 = 0;
     *x2 = 0;
     *dx1 = 1;
     *dx2 = 0;
-  } else if (ix > width-2) {
-    *x1 = width-1;
-    *x2 = width-1;
+  } else if (ix > width - 2) {
+    *x1 = width - 1;
+    *x2 = width - 1;
     *dx1 = 1;
     *dx2 = 0;
   } else {
@@ -72,6 +72,27 @@ inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
 
   return T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
            dy2 * ( dx1 * im21 + dx2 * im22 ));
+}
+
+/// Linear interpolation, of all channels. The sample is assumed to have the
+/// same size as the number of channels in image.
+template<typename T>
+inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
+  int x1, y1, x2, y2;
+  float dx1, dy1, dx2, dy2;
+
+  LinearInitAxis(y, image.Height(), &y1, &y2, &dy1, &dy2);
+  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx1, &dx2);
+
+  for (int i = 0; i < image.Depth(); ++i) {
+    const T im11 = image(y1, x1, i);
+    const T im12 = image(y1, x2, i);
+    const T im21 = image(y2, x1, i);
+    const T im22 = image(y2, x2, i);
+
+    sample[i] = T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
+                  dy2 * ( dx1 * im21 + dx2 * im22 ));
+  }
 }
 
 // Downsample all channels by 2. If the image has odd width or height, the last
