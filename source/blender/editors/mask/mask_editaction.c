@@ -179,13 +179,10 @@ void ED_mask_select_frame(MaskLayer *masklay, int selx, short select_mode)
 	if (masklay == NULL)
 		return;
 
-	/* search through frames for a match */
-	for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
-		/* there should only be one frame with this frame-number */
-		if (masklay_shape->frame == selx) {
-			masklayshape_select(masklay_shape, select_mode);
-			break;
-		}
+	masklay_shape = BKE_mask_layer_shape_find_frame(masklay, selx);
+
+	if (masklay_shape) {
+		masklayshape_select(masklay_shape, select_mode);
 	}
 }
 

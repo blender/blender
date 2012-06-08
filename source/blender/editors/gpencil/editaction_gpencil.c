@@ -181,14 +181,11 @@ void ED_gpencil_select_frame(bGPDlayer *gpl, int selx, short select_mode)
 	
 	if (gpl == NULL) 
 		return;
-	
-	/* search through frames for a match */
-	for (gpf = gpl->frames.first; gpf; gpf = gpf->next) {
-		/* there should only be one frame with this frame-number */
-		if (gpf->framenum == selx) {
-			gpframe_select(gpf, select_mode);
-			break;
-		}
+
+	gpf = BKE_gpencil_layer_find_frame(gpl, selx);
+
+	if (gpf) {
+		gpframe_select(gpf, select_mode);
 	}
 }
 
