@@ -632,7 +632,9 @@ typedef enum eAnimEdit_Context {
 	/* editing of gpencil data */
 	SACTCONT_GPENCIL = 2,
 	/* dopesheet (default) */
-	SACTCONT_DOPESHEET = 3
+	SACTCONT_DOPESHEET = 3,
+	/* mask */
+	SACTCONT_MASK = 4
 } eAnimEdit_Context;
 
 /* SpaceAction AutoSnap Settings (also used by other Animation Editors) */

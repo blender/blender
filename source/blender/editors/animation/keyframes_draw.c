@@ -209,7 +209,7 @@ static DLRBT_Node *nalloc_ak_masklayshape(void *data)
 
 	/* store settings based on state of BezTriple */
 	ak->cfra = masklay_shape->frame;
-	ak->sel = (masklay_shape->flag & SELECT) ? SELECT : 0;
+	ak->sel = (masklay_shape->flag & MASK_SHAPE_SELECT) ? SELECT : 0;
 
 	/* set 'modified', since this is used to identify long keyframes */
 	ak->modified = 1;
@@ -224,7 +224,7 @@ static void nupdate_ak_masklayshape(void *node, void *data)
 	MaskLayerShape *masklay_shape = (MaskLayerShape *)data;
 
 	/* set selection status and 'touched' status */
-	if (masklay_shape->flag & SELECT) ak->sel = SELECT;
+	if (masklay_shape->flag & MASK_SHAPE_SELECT) ak->sel = SELECT;
 	ak->modified += 1;
 }
 
@@ -815,6 +815,21 @@ void draw_gpl_channel(View2D *v2d, bDopeSheet *ads, bGPDlayer *gpl, float ypos)
 	
 	draw_keylist(v2d, &keys, NULL, ypos, (gpl->flag & GP_LAYER_LOCKED));
 	
+	BLI_dlrbTree_free(&keys);
+}
+
+void draw_masklay_channel(View2D *v2d, bDopeSheet *ads, MaskLayer *masklay, float ypos)
+{
+	DLRBT_Tree keys;
+
+	BLI_dlrbTree_init(&keys);
+
+	mask_to_keylist(ads, masklay, &keys);
+
+	BLI_dlrbTree_linkedlist_sync(&keys);
+
+	draw_keylist(v2d, &keys, NULL, ypos, (masklay->flag & MASK_LAYERFLAG_LOCKED));
+
 	BLI_dlrbTree_free(&keys);
 }
 

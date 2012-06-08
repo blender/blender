@@ -97,7 +97,8 @@ typedef enum eAnimCont_Types {
 	ANIMCONT_FCURVES   = 5, /* animation F-Curves (bDopesheet) */
 	ANIMCONT_DRIVERS   = 6, /* drivers (bDopesheet) */
 	ANIMCONT_NLA       = 7, /* nla (bDopesheet) */
-	ANIMCONT_CHANNEL   = 8  /* animation channel (bAnimListElem) */
+	ANIMCONT_CHANNEL   = 8, /* animation channel (bAnimListElem) */
+	ANIMCONT_MASK      = 9  /* mask dopesheet */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -160,6 +161,9 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
+
+	ANIMTYPE_MASKDATABLOCK,
+	ANIMTYPE_MASKLAYER,
 	
 	ANIMTYPE_NLATRACK,
 	ANIMTYPE_NLAACTION,
@@ -173,6 +177,7 @@ typedef enum eAnim_KeyType {
 	ALE_NONE = 0,       /* no keyframe data */
 	ALE_FCURVE,         /* F-Curve */
 	ALE_GPFRAME,        /* Grease Pencil Frames */
+	ALE_MASKLAY,           /* Mask */
 	ALE_NLASTRIP,       /* NLA Strips */
 
 	ALE_ALL,            /* All channels summary */
@@ -278,6 +283,15 @@ typedef enum eAnimFilter_Flags {
 /* Grease Pencil Layer settings */
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED) == 0)
 #define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
+
+/* Mask Only */
+/* Grease Pencil datablock settings */
+#define EXPANDED_MASK(mask) (mask->flag & MASK_ANIMF_EXPAND)
+/* Grease Pencil Layer settings */
+#define EDITABLE_MASK(masklay) ((masklay->flag & MASK_LAYERFLAG_LOCKED) == 0)
+#define SEL_MASKLAY(masklay) (masklay->flag & SELECT)
+
+
 
 /* NLA only */
 #define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)

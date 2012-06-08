@@ -751,14 +751,14 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (event->val == KM_RELEASE) {
 				Scene *scene = CTX_data_scene(C);
 
-				free_slide_point_data(op->customdata);
-
 				/* dont key sliding feather uw's */
 				if ((data->action == SLIDE_ACTION_FEATHER && data->uw) == FALSE) {
 					if (IS_AUTOKEY_ON(scene)) {
 						ED_mask_layer_shape_auto_key(data->masklay, CFRA);
 					}
 				}
+
+				free_slide_point_data(op->customdata);
 
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 				DAG_id_tag_update(&data->mask->id, 0);

@@ -361,7 +361,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCREEN:
 			if (wmn->data == ND_GPENCIL) {
 				/* only handle this event in GPencil mode for performance considerations */
-				if (saction->mode == SACTCONT_GPENCIL)	
+				if (saction->mode == SACTCONT_GPENCIL)
 					ED_area_tag_redraw(sa);
 			}
 			break;
@@ -403,6 +403,18 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 				default: /* just redrawing the view will do */
 					ED_area_tag_redraw(sa);
 					break;
+			}
+			break;
+		case NC_MASK:
+			if (saction->mode == SACTCONT_MASK) {
+				switch (wmn->data) {
+					case ND_DATA:
+						ED_area_tag_refresh(sa);
+						break;
+					default: /* just redrawing the view will do */
+						ED_area_tag_redraw(sa);
+						break;
+				}
 			}
 			break;
 		case NC_NODE:

@@ -555,7 +555,7 @@ struct wmKeyMap *transform_modal_keymap(struct wmKeyConfig *keyconf);
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 
-void flushTransGPactionData(TransInfo *t);
+void flushTransIntFrameActionData(TransInfo *t);
 void flushTransGraphData(TransInfo *t);
 void remake_graph_transdata(TransInfo *t, struct ListBase *anim_data);
 void flushTransUVs(TransInfo *t);

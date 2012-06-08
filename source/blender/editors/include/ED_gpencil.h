@@ -83,7 +83,8 @@ void draw_gpencil_view3d(struct Scene *scene, struct View3D *v3d, struct ARegion
 void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
-short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene, short (*gpf_cb)(struct bGPDframe *, struct Scene *));
+short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene,
+                            short (*gpf_cb)(struct bGPDframe *, struct Scene *));
 void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
 
 short is_gplayer_frame_selected(struct bGPDlayer *gpl);
@@ -93,7 +94,7 @@ void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
 
 void delete_gplayer_frames(struct bGPDlayer *gpl);
-void duplicate_gplayer_frames(struct bGPDlayer *gpd);
+void duplicate_gplayer_frames(struct bGPDlayer *gpl);
 
 void free_gpcopybuf(void);
 void copy_gpdata(void);

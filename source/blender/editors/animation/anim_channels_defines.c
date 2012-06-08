@@ -54,6 +54,7 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_speaker_types.h"
+#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 
@@ -2516,6 +2517,172 @@ static bAnimChannelType ACF_GPL =
 	acf_gpl_setting_ptr             /* pointer for setting */
 };
 
+
+/* Mask Datablock ------------------------------------------- */
+
+/* get backdrop color for mask datablock widget */
+static void acf_mask_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+{
+	/* these are ID-blocks, but not exactly standalone... */
+	UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+}
+
+// TODO: just get this from RNA?
+static int acf_mask_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_GREASEPENCIL; // MASK_TODO - need real icon
+}
+
+/* check if some setting exists for this channel */
+static short acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+{
+	switch (setting) {
+		/* only select and expand supported */
+		case ACHANNEL_SETTING_SELECT:
+		case ACHANNEL_SETTING_EXPAND:
+			return 1;
+
+		default:
+			return 0;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg = 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return AGRP_SELECTED;
+
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return MASK_ANIMF_EXPAND;
+	}
+
+	/* this shouldn't happen */
+	return 0;
+}
+
+/* get pointer to the setting */
+static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+{
+	Mask *mask = (Mask *)ale->data;
+
+	/* all flags are just in mask->flag for now... */
+	return GET_ACF_FLAG_PTR(mask->flag, type);
+}
+
+/* mask datablock type define */
+static bAnimChannelType ACF_MASKDATA =
+{
+	"Mask Datablock",            /* type name */
+
+	acf_mask_color,                  /* backdrop color */
+	acf_group_backdrop,             /* backdrop */
+	acf_generic_indention_0,        /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_generic_idblock_name,       /* name */
+	acf_generic_idfill_nameprop,    /* name prop */
+	acf_mask_icon,                   /* icon */
+
+	acf_mask_setting_valid,          /* has setting */
+	acf_mask_setting_flag,           /* flag for setting */
+	acf_mask_setting_ptr             /* pointer for setting */
+};
+
+/* Mask Layer ------------------------------------------- */
+
+/* name for grease pencil layer entries */
+static void acf_masklay_name(bAnimListElem *ale, char *name)
+{
+	MaskLayer *masklay = (MaskLayer *)ale->data;
+
+	if (masklay && name)
+		BLI_strncpy(name, masklay->name, ANIM_CHAN_NAME_SIZE);
+}
+
+/* name property for grease pencil layer entries */
+static short acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	if (ale->data) {
+		RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+
+		return (*prop != NULL);
+	}
+
+	return 0;
+}
+
+/* check if some setting exists for this channel */
+static short acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+{
+	switch (setting) {
+		/* unsupported */
+		case ACHANNEL_SETTING_EXPAND: /* mask layers are more like F-Curves than groups */
+		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
+			return 0;
+
+		/* always available */
+		default:
+			return 1;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg = 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return MASK_LAYERFLAG_SELECT;
+
+//		case ACHANNEL_SETTING_MUTE: /* muted */
+//			return GP_LAYER_HIDE;
+
+		case ACHANNEL_SETTING_PROTECT: /* protected */
+			// *neg = 1; - if we change this to edtiability
+			return MASK_LAYERFLAG_LOCKED;
+
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_masklay_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+{
+	MaskLayer *masklay = (MaskLayer *)ale->data;
+
+	/* all flags are just in agrp->flag for now... */
+	return GET_ACF_FLAG_PTR(masklay->flag, type);
+}
+
+/* grease pencil layer type define */
+static bAnimChannelType ACF_MASKLAYER =
+{
+	"Mask Layer",                /* type name */
+
+	acf_generic_channel_color,      /* backdrop color */
+	acf_generic_channel_backdrop,   /* backdrop */
+	acf_generic_indention_flexible, /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_masklay_name,                   /* name */
+	acf_masklay_name_prop,              /* name prop */
+	NULL,                           /* icon */
+
+	acf_masklay_setting_valid,          /* has setting */
+	acf_masklay_setting_flag,           /* flag for setting */
+	acf_masklay_setting_ptr             /* pointer for setting */
+};
+
+
 /* *********************************************** */
 /* Type Registration and General Access */
 
@@ -2565,6 +2732,9 @@ static void ANIM_init_channel_typeinfo_data(void)
 
 		animchannelTypeInfo[type++] = &ACF_GPD;          /* Grease Pencil Datablock */
 		animchannelTypeInfo[type++] = &ACF_GPL;          /* Grease Pencil Layer */
+
+		animchannelTypeInfo[type++] = &ACF_MASKDATA;     /* Mask Datablock */
+		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
 
 		// TODO: these types still need to be implemented!!!
 		// probably need a few extra flags for these special cases...
