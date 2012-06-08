@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef COMPOUND_COLLISION_ALGORITHM_H
-#define COMPOUND_COLLISION_ALGORITHM_H
+#ifndef BT_COMPOUND_COLLISION_ALGORITHM_H
+#define BT_COMPOUND_COLLISION_ALGORITHM_H
 
 #include "btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btDispatcher.h"
@@ -83,4 +83,4 @@ public:
 
 };
 
-#endif //COMPOUND_COLLISION_ALGORITHM_H
+#endif //BT_COMPOUND_COLLISION_ALGORITHM_H

@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef STRIDING_MESHINTERFACE_H
-#define STRIDING_MESHINTERFACE_H
+#ifndef BT_STRIDING_MESHINTERFACE_H
+#define BT_STRIDING_MESHINTERFACE_H
 
 #include "LinearMath/btVector3.h"
 #include "btTriangleCallback.h"
@@ -159,4 +159,4 @@ SIMD_FORCE_INLINE	int	btStridingMeshInterface::calculateSerializeBufferSize() co
 
 
 
-#endif //STRIDING_MESHINTERFACE_H
+#endif //BT_STRIDING_MESHINTERFACE_H

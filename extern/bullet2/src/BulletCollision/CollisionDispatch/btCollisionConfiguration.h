@@ -15,6 +15,7 @@ subject to the following restrictions:
 
 #ifndef BT_COLLISION_CONFIGURATION
 #define BT_COLLISION_CONFIGURATION
+
 struct btCollisionAlgorithmCreateFunc;
 
 class btStackAlloc;

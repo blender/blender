@@ -58,7 +58,7 @@ class CONTACT_KEY_TOKEN_COMP
 {
 	public:
 
-		bool operator() ( const CONTACT_KEY_TOKEN& a, const CONTACT_KEY_TOKEN& b )
+		bool operator() ( const CONTACT_KEY_TOKEN& a, const CONTACT_KEY_TOKEN& b ) const
 		{
 			return ( a < b );
 		}

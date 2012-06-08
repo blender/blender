@@ -301,6 +301,15 @@ typedef struct DupliObject {
 
 	short type; /* from Object.transflag */
 	char no_draw, animated;
+
+	/* Lowest-level particle index.
+	 * Note: This is needed for particle info in shaders.
+	 * Otherwise dupli groups in particle systems would override the
+	 * index value from higher dupli levels. Would be nice to have full generic access
+	 * to all dupli levels somehow, but for now this should cover most use-cases.
+	 */
+	int particle_index;
+	int pad;
 } DupliObject;
 
 /* **************** OBJECT ********************* */

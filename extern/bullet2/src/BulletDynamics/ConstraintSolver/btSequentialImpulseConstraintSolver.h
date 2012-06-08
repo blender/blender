@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
-#define SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
+#ifndef BT_SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
+#define BT_SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
 
 #include "btConstraintSolver.h"
 class btIDebugDraw;
@@ -33,8 +33,10 @@ protected:
 	btConstraintArray			m_tmpSolverNonContactConstraintPool;
 	btConstraintArray			m_tmpSolverContactFrictionConstraintPool;
 	btAlignedObjectArray<int>	m_orderTmpConstraintPool;
+	btAlignedObjectArray<int>	m_orderNonContactConstraintPool;
 	btAlignedObjectArray<int>	m_orderFrictionConstraintPool;
 	btAlignedObjectArray<btTypedConstraint::btConstraintInfo1> m_tmpConstraintSizesPool;
+	int							m_maxOverrideNumSolverIterations;
 
 	void setupFrictionConstraint(	btSolverConstraint& solverConstraint, const btVector3& normalAxis,btRigidBody* solverBodyA,btRigidBody* solverBodyIdB,
 									btManifoldPoint& cp,const btVector3& rel_pos1,const btVector3& rel_pos2,
@@ -124,5 +126,5 @@ typedef btSequentialImpulseConstraintSolver btSequentialImpulseConstraintSolverP
 #endif
 
 
-#endif //SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
+#endif //BT_SEQUENTIAL_IMPULSE_CONSTRAINT_SOLVER_H
 

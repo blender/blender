@@ -52,6 +52,9 @@ KERNEL_TEX(float4, texture_float4, __light_data)
 KERNEL_TEX(float2, texture_float2, __light_background_marginal_cdf)
 KERNEL_TEX(float2, texture_float2, __light_background_conditional_cdf)
 
+/* particles */
+KERNEL_TEX(float4, texture_float4, __particles)
+
 /* shaders */
 KERNEL_TEX(uint4, texture_uint4, __svm_nodes)
 KERNEL_TEX(uint, texture_uint, __shader_flag)

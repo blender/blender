@@ -80,17 +80,20 @@ private:
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion);
+	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
 	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);
 	void sync_camera_motion(BL::Object b_ob, int motion);
+	void sync_particles(Object *ob, BL::Object b_ob);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
+	bool object_use_particles(BL::Object b_ob);
+	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
 	BL::BlendData b_data;

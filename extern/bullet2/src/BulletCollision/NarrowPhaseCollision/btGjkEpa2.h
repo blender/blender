@@ -22,8 +22,9 @@ misrepresented as being the original software.
 /*
 GJK-EPA collision solver by Nathanael Presson, 2008
 */
-#ifndef _68DA1F85_90B7_4bb0_A705_83B4040A75C6_
-#define _68DA1F85_90B7_4bb0_A705_83B4040A75C6_
+#ifndef BT_GJK_EPA2_H
+#define BT_GJK_EPA2_H
+
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
 
 ///btGjkEpaSolver contributed under zlib by Nathanael Presson
@@ -70,4 +71,5 @@ static bool		SignedDistance(	const btConvexShape* shape0,const btTransform& wtrs
 
 };
 
-#endif
+#endif //BT_GJK_EPA2_H
+

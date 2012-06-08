@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef QUANTIZED_BVH_H
-#define QUANTIZED_BVH_H
+#ifndef BT_QUANTIZED_BVH_H
+#define BT_QUANTIZED_BVH_H
 
 class btSerializer;
 
@@ -109,9 +109,9 @@ ATTRIBUTE_ALIGNED16 (struct) btOptimizedBvhNode
 	//for child nodes
 	int	m_subPart;
 	int	m_triangleIndex;
-	int	m_padding[5];//bad, due to alignment
 
-
+//pad the size to 64 bytes
+	char	m_padding[20];
 };
 
 
@@ -339,7 +339,7 @@ public:
 
 	
 	///***************************************** expert/internal use only *************************
-	void	setQuantizationValues(const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,btScalar quantizationMargin=btScalar(1.5));
+	void	setQuantizationValues(const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,btScalar quantizationMargin=btScalar(1.0));
 	QuantizedNodeArray&	getLeafNodeArray() {			return	m_quantizedLeafNodes;	}
 	///buildInternal is expert use only: assumes that setQuantizationValues and LeafNodeArray are initialized
 	void	buildInternal();
@@ -578,4 +578,4 @@ SIMD_FORCE_INLINE	int	btQuantizedBvh::calculateSerializeBufferSizeNew() const
 
 
 
-#endif //QUANTIZED_BVH_H
+#endif //BT_QUANTIZED_BVH_H

@@ -95,7 +95,7 @@ void btSoftBodyTriangleCallback::processTriangle(btVector3* triangle,int partId,
 	ci.m_dispatcher1 = m_dispatcher;
 
 	///debug drawing of the overlapping triangles
-	if (m_dispatchInfoPtr && m_dispatchInfoPtr->m_debugDraw && m_dispatchInfoPtr->m_debugDraw->getDebugMode() &btIDebugDraw::DBG_DrawWireframe)
+	if (m_dispatchInfoPtr && m_dispatchInfoPtr->m_debugDraw && (m_dispatchInfoPtr->m_debugDraw->getDebugMode() &btIDebugDraw::DBG_DrawWireframe))
 	{
 		btVector3 color(1,1,0);
 		btTransform& tr = ob->getWorldTransform();

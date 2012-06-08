@@ -259,6 +259,7 @@ struct	btDbvt
 
 	
 	btAlignedObjectArray<sStkNN>	m_stkStack;
+	mutable btAlignedObjectArray<const btDbvtNode*>	m_rayTestStack;
 
 
 	// Methods
@@ -955,7 +956,7 @@ inline void		btDbvt::rayTestInternal(	const btDbvtNode* root,
 
 		int								depth=1;
 		int								treshold=DOUBLE_STACKSIZE-2;
-		btAlignedObjectArray<const btDbvtNode*>	stack;
+		btAlignedObjectArray<const btDbvtNode*>&	stack = m_rayTestStack;
 		stack.resize(DOUBLE_STACKSIZE);
 		stack[0]=root;
 		btVector3 bounds[2];

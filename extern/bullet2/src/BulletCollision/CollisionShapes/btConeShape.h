@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONE_MINKOWSKI_H
-#define CONE_MINKOWSKI_H
+#ifndef BT_CONE_MINKOWSKI_H
+#define BT_CONE_MINKOWSKI_H
 
 #include "btConvexInternalShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
@@ -99,5 +99,5 @@ class btConeShapeZ : public btConeShape
 	public:
 		btConeShapeZ(btScalar radius,btScalar height);
 };
-#endif //CONE_MINKOWSKI_H
+#endif //BT_CONE_MINKOWSKI_H
 

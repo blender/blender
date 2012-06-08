@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef TYPED_CONSTRAINT_H
-#define TYPED_CONSTRAINT_H
+#ifndef BT_TYPED_CONSTRAINT_H
+#define BT_TYPED_CONSTRAINT_H
 
 class btRigidBody;
 #include "LinearMath/btScalar.h"
@@ -62,7 +62,11 @@ class btTypedConstraint : public btTypedObject
 		void* m_userConstraintPtr;
 	};
 
-	bool m_needsFeedback;
+	btScalar	m_breakingImpulseThreshold;
+	bool		m_isEnabled;
+	bool		m_needsFeedback;
+	int			m_overrideNumSolverIterations;
+
 
 	btTypedConstraint&	operator=(btTypedConstraint&	other)
 	{
@@ -80,7 +84,6 @@ protected:
 	///internal method used by the constraint solver, don't use them directly
 	btScalar getMotorFactor(btScalar pos, btScalar lowLim, btScalar uppLim, btScalar vel, btScalar timeFact);
 	
-	static btRigidBody& getFixedBody();
 
 public:
 
@@ -91,6 +94,8 @@ public:
 	struct btConstraintInfo1 {
 		int m_numConstraintRows,nub;
 	};
+
+	static btRigidBody& getFixedBody();
 
 	struct btConstraintInfo2 {
 		// integrator parameters: frames per second (1/stepsize), default error
@@ -126,6 +131,18 @@ public:
 		btScalar	m_damping;
 	};
 
+	int	getOverrideNumSolverIterations() const
+	{
+		return m_overrideNumSolverIterations;
+	}
+
+	///override the number of constraint solver iterations used to solve this constraint
+	///-1 will use the default number of iterations, as specified in SolverInfo.m_numIterations
+	void setOverrideNumSolverIterations(int overideNumIterations)
+	{
+		m_overrideNumSolverIterations = overideNumIterations;
+	}
+
 	///internal method used by the constraint solver, don't use them directly
 	virtual void	buildJacobian() {};
 
@@ -154,6 +171,28 @@ public:
 	{
 		return m_appliedImpulse;
 	}
+
+
+	btScalar	getBreakingImpulseThreshold() const
+	{
+		return 	m_breakingImpulseThreshold;
+	}
+
+	void	setBreakingImpulseThreshold(btScalar threshold)
+	{
+		m_breakingImpulseThreshold = threshold;
+	}
+
+	bool	isEnabled() const
+	{
+		return m_isEnabled;
+	}
+
+	void	setEnabled(bool enabled)
+	{
+		m_isEnabled=enabled;
+	}
+
 
 	///internal method used by the constraint solver, don't use them directly
 	virtual	void	solveConstraintObsolete(btRigidBody& /*bodyA*/,btRigidBody& /*bodyB*/,btScalar	/*timeStep*/) {};
@@ -302,7 +341,10 @@ struct	btTypedConstraintData
 	float	m_dbgDrawSize;
 
 	int	m_disableCollisionsBetweenLinkedBodies;
-	char	m_pad4[4];
+	int	m_overrideNumSolverIterations;
+
+	float	m_breakingImpulseThreshold;
+	int		m_isEnabled;
 	
 };
 
@@ -407,4 +449,4 @@ public:
 
 
 
-#endif //TYPED_CONSTRAINT_H
+#endif //BT_TYPED_CONSTRAINT_H

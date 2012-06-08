@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CYLINDER_MINKOWSKI_H
-#define CYLINDER_MINKOWSKI_H
+#ifndef BT_CYLINDER_MINKOWSKI_H
+#define BT_CYLINDER_MINKOWSKI_H
 
 #include "btBoxShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
@@ -196,5 +196,5 @@ SIMD_FORCE_INLINE	const char*	btCylinderShape::serialize(void* dataBuffer, btSer
 
 
 
-#endif //CYLINDER_MINKOWSKI_H
+#endif //BT_CYLINDER_MINKOWSKI_H
 

@@ -117,10 +117,6 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Cache"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        return context.cloth
-
     def draw(self, context):
         md = context.cloth
         point_cache_ui(self, context, md.point_cache, cloth_panel_enabled(md), 'CLOTH')
@@ -129,10 +125,6 @@ class PHYSICS_PT_cloth_cache(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_collision(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Collision"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return context.cloth
 
     def draw_header(self, context):
         cloth = context.cloth.collision_settings
@@ -173,10 +165,6 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Stiffness Scaling"
     bl_options = {'DEFAULT_CLOSED'}
 
-    @classmethod
-    def poll(cls, context):
-        return context.cloth
-
     def draw_header(self, context):
         cloth = context.cloth.settings
 
@@ -208,10 +196,6 @@ class PHYSICS_PT_cloth_stiffness(PhysicButtonsPanel, Panel):
 class PHYSICS_PT_cloth_field_weights(PhysicButtonsPanel, Panel):
     bl_label = "Cloth Field Weights"
     bl_options = {'DEFAULT_CLOSED'}
-
-    @classmethod
-    def poll(cls, context):
-        return (context.cloth)
 
     def draw(self, context):
         cloth = context.cloth.settings

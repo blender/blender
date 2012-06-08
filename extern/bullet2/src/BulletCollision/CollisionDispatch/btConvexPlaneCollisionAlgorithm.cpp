@@ -96,23 +96,41 @@ void btConvexPlaneCollisionAlgorithm::processCollision (btCollisionObject* body0
 	if (!m_manifoldPtr)
 		return;
 
-    btCollisionObject* convexObj = m_isSwapped? body1 : body0;
+	btCollisionObject* convexObj = m_isSwapped? body1 : body0;
 	btCollisionObject* planeObj = m_isSwapped? body0: body1;
 
 	btConvexShape* convexShape = (btConvexShape*) convexObj->getCollisionShape();
 	btStaticPlaneShape* planeShape = (btStaticPlaneShape*) planeObj->getCollisionShape();
 
-    
+	bool hasCollision = false;
 	const btVector3& planeNormal = planeShape->getPlaneNormal();
-	//const btScalar& planeConstant = planeShape->getPlaneConstant();
+	const btScalar& planeConstant = planeShape->getPlaneConstant();
+	btTransform planeInConvex;
+	planeInConvex= convexObj->getWorldTransform().inverse() * planeObj->getWorldTransform();
+	btTransform convexInPlaneTrans;
+	convexInPlaneTrans= planeObj->getWorldTransform().inverse() * convexObj->getWorldTransform();
 
-	//first perform a collision query with the non-perturbated collision objects
+	btVector3 vtx = convexShape->localGetSupportingVertex(planeInConvex.getBasis()*-planeNormal);
+	btVector3 vtxInPlane = convexInPlaneTrans(vtx);
+	btScalar distance = (planeNormal.dot(vtxInPlane) - planeConstant);
+
+	btVector3 vtxInPlaneProjected = vtxInPlane - distance*planeNormal;
+	btVector3 vtxInPlaneWorld = planeObj->getWorldTransform() * vtxInPlaneProjected;
+
+	hasCollision = distance < m_manifoldPtr->getContactBreakingThreshold();
+	resultOut->setPersistentManifold(m_manifoldPtr);
+	if (hasCollision)
 	{
-		btQuaternion rotq(0,0,0,1);
-		collideSingleContact(rotq,body0,body1,dispatchInfo,resultOut);
+		/// report a contact. internally this will be kept persistent, and contact reduction is done
+		btVector3 normalOnSurfaceB = planeObj->getWorldTransform().getBasis() * planeNormal;
+		btVector3 pOnB = vtxInPlaneWorld;
+		resultOut->addContactPoint(normalOnSurfaceB,pOnB,distance);
 	}
 
-	if (resultOut->getPersistentManifold()->getNumContacts()<m_minimumPointsPerturbationThreshold)
+	//the perturbation algorithm doesn't work well with implicit surfaces such as spheres, cylinder and cones:
+	//they keep on rolling forever because of the additional off-center contact points
+	//so only enable the feature for polyhedral shapes (btBoxShape, btConvexHullShape etc)
+	if (convexShape->isPolyhedral() && resultOut->getPersistentManifold()->getNumContacts()<m_minimumPointsPerturbationThreshold)
 	{
 		btVector3 v0,v1;
 		btPlaneSpace1(planeNormal,v0,v1);

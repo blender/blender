@@ -23,7 +23,7 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 
 ///The btSimpleDynamicsWorld serves as unit-test and to verify more complicated and optimized dynamics worlds.
-///Please use btDiscreteDynamicsWorld instead (or btContinuousDynamicsWorld once it is finished).
+///Please use btDiscreteDynamicsWorld instead
 class btSimpleDynamicsWorld : public btDynamicsWorld
 {
 protected:

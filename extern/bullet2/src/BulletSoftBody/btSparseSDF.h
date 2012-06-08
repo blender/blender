@@ -14,8 +14,8 @@ subject to the following restrictions:
 */
 ///btSparseSdf implementation by Nathanael Presson
 
-#ifndef _14F9D17F_EAE8_4aba_B41C_292DB2AA70F3_
-#define _14F9D17F_EAE8_4aba_B41C_292DB2AA70F3_
+#ifndef BT_SPARSE_SDF_H
+#define BT_SPARSE_SDF_H
 
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpa2.h"
@@ -303,4 +303,4 @@ struct	btSparseSdf
 };
 
 
-#endif
+#endif //BT_SPARSE_SDF_H

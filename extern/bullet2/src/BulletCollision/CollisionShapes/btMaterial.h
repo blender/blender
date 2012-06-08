@@ -15,8 +15,8 @@ subject to the following restrictions:
 
 /// This file was created by Alex Silverman
 
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#ifndef BT_MATERIAL_H
+#define BT_MATERIAL_H
 
 // Material class to be used by btMultimaterialTriangleMeshShape to store triangle properties
 class btMaterial
@@ -31,5 +31,5 @@ public:
     btMaterial(btScalar fric, btScalar rest) { m_friction = fric; m_restitution = rest; }
 };
 
-#endif // MATERIAL_H
+#endif // BT_MATERIAL_H
 

@@ -25,6 +25,7 @@
 #include "util_foreach.h"
 #include "util_map.h"
 #include "util_progress.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -38,6 +39,7 @@ Object::Object()
 	visibility = ~0;
 	random_id = 0;
 	pass_id = 0;
+	particle_id = 0;
 	bounds = BoundBox::empty;
 	motion.pre = transform_identity();
 	motion.post = transform_identity();
@@ -200,7 +202,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
 		memcpy(&objects[offset+3], &itfm, sizeof(float4)*3);
-		objects[offset+6] = make_float4(surface_area, pass_id, random_number, 0.0f);
+		objects[offset+6] = make_float4(surface_area, pass_id, random_number, __int_as_float(ob->particle_id));
 
 		if(need_motion == Scene::MOTION_PASS) {
 			/* motion transformations, is world/object space depending if mesh
@@ -246,6 +248,38 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
+void ObjectManager::device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+{
+	/* count particles.
+	 * adds one dummy particle at the beginning to avoid invalid lookups,
+	 * in case a shader uses particle info without actual particle data.
+	 */
+	int num_particles = 1;
+	foreach(Object *ob, scene->objects)
+		num_particles += ob->particles.size();
+	
+	float4 *particles = dscene->particles.resize(PARTICLE_SIZE*num_particles);
+	
+	/* dummy particle */
+	particles[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	int i = 1;
+	foreach(Object *ob, scene->objects) {
+		foreach(Particle &pa, ob->particles) {
+			/* pack in texture */
+			int offset = i*PARTICLE_SIZE;
+			
+			particles[offset] = make_float4(pa.age, pa.lifetime, 0.0f, 0.0f);
+			
+			i++;
+			
+			if(progress.get_cancel()) return;
+		}
+	}
+	
+	device->tex_alloc("__particles", dscene->particles);
+}
+
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	if(!need_update)
@@ -271,6 +305,11 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	if(progress.get_cancel()) return;
 
+	progress.set_status("Updating Objects", "Copying Particles to device");
+	device_update_particles(device, dscene, scene, progress);
+	
+	if(progress.get_cancel()) return;
+	
 	need_update = false;
 }
 
@@ -281,6 +320,9 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 
 	device->tex_free(dscene->object_flag);
 	dscene->object_flag.clear();
+	
+	device->tex_free(dscene->particles);
+	dscene->particles.clear();
 }
 
 void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)

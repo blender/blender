@@ -16,8 +16,8 @@
 //
 // 3. This notice may not be removed or altered from any source distribution.
 
-#ifndef AXIS_SWEEP_3_H
-#define AXIS_SWEEP_3_H
+#ifndef BT_AXIS_SWEEP_3_H
+#define BT_AXIS_SWEEP_3_H
 
 #include "LinearMath/btVector3.h"
 #include "btOverlappingPairCache.h"
@@ -1026,7 +1026,7 @@ void btAxisSweep3Internal<BP_FP_INT_TYPE>::sortMaxUp(int axis, BP_FP_INT_TYPE ed
 
 
 /// The btAxisSweep3 is an efficient implementation of the 3d axis sweep and prune broadphase.
-/// It uses arrays rather than lists for storage of the 3 axis. Also it operates using 16 bit integer coordinates instead of floats.
+/// It uses arrays rather then lists for storage of the 3 axis. Also it operates using 16 bit integer coordinates instead of floats.
 /// For large worlds and many objects, use bt32BitAxisSweep3 or btDbvtBroadphase instead. bt32BitAxisSweep3 has higher precision and allows more then 16384 objects at the cost of more memory and bit of performance.
 class btAxisSweep3 : public btAxisSweep3Internal<unsigned short int>
 {
@@ -1038,7 +1038,7 @@ public:
 
 /// The bt32BitAxisSweep3 allows higher precision quantization and more objects compared to the btAxisSweep3 sweep and prune.
 /// This comes at the cost of more memory per handle, and a bit slower performance.
-/// It uses arrays rather than lists for storage of the 3 axis.
+/// It uses arrays rather then lists for storage of the 3 axis.
 class bt32BitAxisSweep3 : public btAxisSweep3Internal<unsigned int>
 {
 public:

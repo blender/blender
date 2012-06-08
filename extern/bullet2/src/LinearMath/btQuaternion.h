@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef SIMD__QUATERNION_H_
-#define SIMD__QUATERNION_H_
+#ifndef BT_SIMD__QUATERNION_H_
+#define BT_SIMD__QUATERNION_H_
 
 
 #include "btVector3.h"
@@ -212,11 +212,12 @@ public:
 	/**@brief Return the axis of the rotation represented by this quaternion */
 	btVector3 getAxis() const
 	{
-		btScalar s_squared = btScalar(1.) - btPow(m_floats[3], btScalar(2.));
+		btScalar s_squared = 1.f-m_floats[3]*m_floats[3];
+		
 		if (s_squared < btScalar(10.) * SIMD_EPSILON) //Check for divide by zero
 			return btVector3(1.0, 0.0, 0.0);  // Arbitrary
-		btScalar s = btSqrt(s_squared);
-		return btVector3(m_floats[0] / s, m_floats[1] / s, m_floats[2] / s);
+		btScalar s = 1.f/btSqrt(s_squared);
+		return btVector3(m_floats[0] * s, m_floats[1] * s, m_floats[2] * s);
 	}
 
 	/**@brief Return the inverse of this quaternion */
@@ -279,23 +280,25 @@ public:
    * Slerp interpolates assuming constant velocity.  */
 	btQuaternion slerp(const btQuaternion& q, const btScalar& t) const
 	{
-		btScalar theta = angle(q);
-		if (theta != btScalar(0.0))
+	  btScalar magnitude = btSqrt(length2() * q.length2()); 
+	  btAssert(magnitude > btScalar(0));
+
+    btScalar product = dot(q) / magnitude;
+    if (btFabs(product) != btScalar(1))
 		{
-			btScalar d = btScalar(1.0) / btSin(theta);
-			btScalar s0 = btSin((btScalar(1.0) - t) * theta);
-			btScalar s1 = btSin(t * theta);   
-                        if (dot(q) < 0) // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
-                          return btQuaternion((m_floats[0] * s0 + -q.x() * s1) * d,
-                                              (m_floats[1] * s0 + -q.y() * s1) * d,
-                                              (m_floats[2] * s0 + -q.z() * s1) * d,
-                                              (m_floats[3] * s0 + -q.m_floats[3] * s1) * d);
-                        else
-                          return btQuaternion((m_floats[0] * s0 + q.x() * s1) * d,
-                                              (m_floats[1] * s0 + q.y() * s1) * d,
-                                              (m_floats[2] * s0 + q.z() * s1) * d,
-                                              (m_floats[3] * s0 + q.m_floats[3] * s1) * d);
-                        
+      // Take care of long angle case see http://en.wikipedia.org/wiki/Slerp
+      const btScalar sign = (product < 0) ? btScalar(-1) : btScalar(1);
+
+      const btScalar theta = btAcos(sign * product);
+      const btScalar s1 = btSin(sign * t * theta);   
+      const btScalar d = btScalar(1.0) / btSin(theta);
+      const btScalar s0 = btSin((btScalar(1.0) - t) * theta);
+
+      return btQuaternion(
+          (m_floats[0] * s0 + q.x() * s1) * d,
+          (m_floats[1] * s0 + q.y() * s1) * d,
+          (m_floats[2] * s0 + q.z() * s1) * d,
+          (m_floats[3] * s0 + q.m_floats[3] * s1) * d);
 		}
 		else
 		{
@@ -315,12 +318,6 @@ public:
 };
 
 
-/**@brief Return the negative of a quaternion */
-SIMD_FORCE_INLINE btQuaternion
-operator-(const btQuaternion& q)
-{
-	return btQuaternion(-q.x(), -q.y(), -q.z(), -q.w());
-}
 
 
 
@@ -426,7 +423,7 @@ shortestArcQuatNormalize2(btVector3& v0,btVector3& v1)
 	return shortestArcQuat(v0,v1);
 }
 
-#endif
+#endif //BT_SIMD__QUATERNION_H_
 
 
 

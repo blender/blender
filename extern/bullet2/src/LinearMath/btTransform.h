@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef btTransform_H
-#define btTransform_H
+#ifndef BT_TRANSFORM_H
+#define BT_TRANSFORM_H
 
 
 #include "btMatrix3x3.h"
@@ -298,7 +298,7 @@ SIMD_FORCE_INLINE	void	btTransform::deSerializeDouble(const btTransformDoubleDat
 }
 
 
-#endif
+#endif //BT_TRANSFORM_H
 
 
 

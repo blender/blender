@@ -290,6 +290,12 @@ public:
 	SHADER_NODE_CLASS(ObjectInfoNode)
 };
 
+class ParticleInfoNode : public ShaderNode {
+public:
+	SHADER_NODE_CLASS(ParticleInfoNode)
+	void attributes(AttributeRequestSet *attributes);
+};
+
 class ValueNode : public ShaderNode {
 public:
 	SHADER_NODE_CLASS(ValueNode)

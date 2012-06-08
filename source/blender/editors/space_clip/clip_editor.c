@@ -522,6 +522,7 @@ typedef struct SpaceClipDrawContext {
 
 	/* fields to check if cache is still valid */
 	int framenr, start_frame;
+	short render_size, render_flag;
 } SpaceClipDrawContext;
 
 int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
@@ -559,6 +560,8 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
 	need_rebind |= context->framenr != sc->user.framenr;
+	need_rebind |= context->render_size != sc->user.render_size;
+	need_rebind |= context->render_flag != sc->user.render_flag;
 	need_rebind |= context->start_frame != clip->start_frame;
 
 	if (need_rebind) {
@@ -614,6 +617,8 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
+		context->render_size = sc->user.render_size;
+		context->render_flag = sc->user.render_flag;
 		context->start_frame = clip->start_frame;
 	}
 	else {

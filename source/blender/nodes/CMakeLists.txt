@@ -161,6 +161,7 @@ set(SRC
 	shader/nodes/node_shader_light_path.c
 	shader/nodes/node_shader_light_falloff.c
 	shader/nodes/node_shader_object_info.c
+	shader/nodes/node_shader_particle_info.c
 	shader/nodes/node_shader_mix_shader.c
 	shader/nodes/node_shader_add_shader.c
 	shader/nodes/node_shader_output_lamp.c

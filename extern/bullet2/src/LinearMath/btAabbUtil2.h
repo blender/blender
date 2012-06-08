@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef AABB_UTIL2
-#define AABB_UTIL2
+#ifndef BT_AABB_UTIL2
+#define BT_AABB_UTIL2
 
 #include "btTransform.h"
 #include "btVector3.h"
@@ -231,6 +231,6 @@ SIMD_FORCE_INLINE	void btTransformAabb(const btVector3& localAabbMin,const btVec
 	}
 #endif //USE_BANCHLESS
 
-#endif
+#endif //BT_AABB_UTIL2
 
 

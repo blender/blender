@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SPHERE_SPHERE_COLLISION_ALGORITHM_H
-#define SPHERE_SPHERE_COLLISION_ALGORITHM_H
+#ifndef BT_SPHERE_SPHERE_COLLISION_ALGORITHM_H
+#define BT_SPHERE_SPHERE_COLLISION_ALGORITHM_H
 
 #include "btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
@@ -62,5 +62,5 @@ public:
 
 };
 
-#endif //SPHERE_SPHERE_COLLISION_ALGORITHM_H
+#endif //BT_SPHERE_SPHERE_COLLISION_ALGORITHM_H
 

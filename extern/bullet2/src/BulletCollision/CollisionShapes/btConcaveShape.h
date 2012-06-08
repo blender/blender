@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONCAVE_SHAPE_H
-#define CONCAVE_SHAPE_H
+#ifndef BT_CONCAVE_SHAPE_H
+#define BT_CONCAVE_SHAPE_H
 
 #include "btCollisionShape.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
@@ -57,4 +57,4 @@ public:
 
 };
 
-#endif //CONCAVE_SHAPE_H
+#endif //BT_CONCAVE_SHAPE_H

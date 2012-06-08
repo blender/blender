@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef JACOBIAN_ENTRY_H
-#define JACOBIAN_ENTRY_H
+#ifndef BT_JACOBIAN_ENTRY_H
+#define BT_JACOBIAN_ENTRY_H
 
 #include "LinearMath/btVector3.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
@@ -153,4 +153,4 @@ public:
 
 };
 
-#endif //JACOBIAN_ENTRY_H
+#endif //BT_JACOBIAN_ENTRY_H
