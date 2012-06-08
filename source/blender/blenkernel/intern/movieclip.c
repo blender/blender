@@ -314,7 +314,7 @@ typedef struct MovieClipCache {
 		/* cache for undistorted shot */
 		float principal[2];
 		float k1, k2, k3;
-		short undistoriton_used;
+		short undistortion_used;
 
 		int proxy;
 		short render_flag;
@@ -627,7 +627,7 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
-	else if (cache->postprocessed.undistoriton_used)
+	else if (cache->postprocessed.undistortion_used)
 		return NULL;
 
 	IMB_refImBuf(cache->postprocessed.ibuf);
@@ -660,11 +660,11 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	if (need_undistortion_postprocess(user, flag)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
-		cache->postprocessed.undistoriton_used = TRUE;
+		cache->postprocessed.undistortion_used = TRUE;
 		postproc_ibuf = get_undistorted_ibuf(clip, NULL, ibuf);
 	}
 	else {
-		cache->postprocessed.undistoriton_used = FALSE;
+		cache->postprocessed.undistortion_used = FALSE;
 	}
 
 	if (postprocess_flag) {
