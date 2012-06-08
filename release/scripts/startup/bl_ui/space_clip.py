@@ -716,28 +716,27 @@ class CLIP_PT_active_mask_point(Panel):
         col.prop(point, "handle_type")
 
         col = layout.column()
-        col.prop(parent, "use_parent", text="Parent")
-        if parent.use_parent:
-            # Currently only parenting yo movie clip is allowed, so do not
-            # ver-oplicate things for now and use single template_ID
-            #col.template_any_ID(parent, "id", "id_type", text="")
+        # Currently only parenting yo movie clip is allowed, so do not
+        # ver-oplicate things for now and use single template_ID
+        #col.template_any_ID(parent, "id", "id_type", text="")
 
-            col.template_ID(parent, "id")
+        col.label("Parent:")
+        col.prop(parent, "id", text="")
 
-            if parent.id_type == 'MOVIECLIP' and parent.id:
-                clip = parent.id
-                tracking = clip.tracking
+        if parent.id_type == 'MOVIECLIP' and parent.id:
+            clip = parent.id
+            tracking = clip.tracking
 
-                col.prop_search(parent, "parent", tracking,
-                                "objects", icon='OBJECT_DATA', text="Object:")
+            col.prop_search(parent, "parent", tracking,
+                            "objects", icon='OBJECT_DATA', text="Object:")
 
-                if parent.parent and parent.parent in tracking.objects:
-                    object = tracking.objects[parent.parent]
-                    col.prop_search(parent, "sub_parent", object,
-                                    "tracks", icon='ANIM_DATA', text="Track:")
-                else:
-                    col.prop_search(parent, "sub_parent", tracking,
-                                    "tracks", icon='ANIM_DATA', text="Track:")
+            if parent.parent in tracking.objects:
+                object = tracking.objects[parent.parent]
+                col.prop_search(parent, "sub_parent", object,
+                                "tracks", icon='ANIM_DATA', text="Track:")
+            else:
+                col.prop_search(parent, "sub_parent", tracking,
+                                "tracks", icon='ANIM_DATA', text="Track:")
 
 
 class CLIP_PT_display(CLIP_PT_clip_view_panel, Panel):

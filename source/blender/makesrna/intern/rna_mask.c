@@ -349,13 +349,6 @@ static void rna_def_maskParent(BlenderRNA *brna)
 	srna = RNA_def_struct(brna, "MaskParent", NULL);
 	RNA_def_struct_ui_text(srna, "Mask Parent", "Parenting settings for masking element");
 
-	/* use_parent */
-	prop = RNA_def_property(srna, "use_parent", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", MASK_PARENT_ACTIVE);
-	RNA_def_property_ui_text(prop, "Use Parent", "Use parenting for this layer");
-	RNA_def_property_update(prop, 0, "rna_Mask_update_data");
-
 	/* Target Properties - ID-block to Drive */
 	prop = RNA_def_property(srna, "id", PROP_POINTER, PROP_NONE);
 	RNA_def_property_struct_type(prop, "ID");

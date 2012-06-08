@@ -51,7 +51,8 @@ typedef struct Mask {
 } Mask;
 
 typedef struct MaskParent {
-	int flag;             /* parenting flags */
+	// int flag;             /* parenting flags */ /* not used */
+	int pad;
 	int id_type;          /* type of parenting */
 	ID *id;               /* ID block of entity to which mask/spline is parented to
 	                       * in case of parenting to movie tracking data set to MovieClip datablock */
@@ -130,7 +131,7 @@ typedef struct MaskLayer {
 } MaskLayer;
 
 /* MaskParent->flag */
-#define MASK_PARENT_ACTIVE  (1 << 0)
+/* #define MASK_PARENT_ACTIVE  (1 << 0) */ /* UNUSED */
 
 /* MaskSpline->flag */
 /* reserve (1 << 0) for SELECT */

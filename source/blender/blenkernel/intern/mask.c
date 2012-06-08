@@ -1143,9 +1143,6 @@ static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[
 	if (!parent)
 		return FALSE;
 
-	if ((parent->flag & MASK_PARENT_ACTIVE) == 0)
-		return FALSE;
-
 	if (parent->id_type == ID_MC) {
 		if (parent->id) {
 			MovieClip *clip = (MovieClip *) parent->id;
