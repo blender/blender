@@ -165,7 +165,7 @@ void	btSoftRigidDynamicsWorld::debugDrawWorld()
 		for (  i=0;i<this->m_softBodies.size();i++)
 		{
 			btSoftBody*	psb=(btSoftBody*)this->m_softBodies[i];
-			if (getDebugDrawer() && getDebugDrawer()->getDebugMode() & (btIDebugDraw::DBG_DrawWireframe))
+			if (getDebugDrawer() && (getDebugDrawer()->getDebugMode() & (btIDebugDraw::DBG_DrawWireframe)))
 			{
 				btSoftBodyHelpers::DrawFrame(psb,m_debugDrawer);
 				btSoftBodyHelpers::Draw(psb,m_debugDrawer,m_drawFlags);
@@ -300,12 +300,19 @@ void	btSoftRigidDynamicsWorld::rayTestSingle(const btTransform& rayFromTrans,con
 					shapeInfo.m_shapePart = 0;
 					shapeInfo.m_triangleIndex = softResult.index;
 					// get the normal
-					btVector3 normal = softBody->m_faces[softResult.index].m_normal;
 					btVector3 rayDir = rayToTrans.getOrigin() - rayFromTrans.getOrigin();
-					if (normal.dot(rayDir) > 0) {
-						// normal always point toward origin of the ray
-						normal = -normal;
+					btVector3 normal=-rayDir;
+					normal.normalize();
+
+					if (softResult.feature == btSoftBody::eFeature::Face)
+					{
+						normal = softBody->m_faces[softResult.index].m_normal;
+						if (normal.dot(rayDir) > 0) {
+							// normal always point toward origin of the ray
+							normal = -normal;
+						}
 					}
+	
 					btCollisionWorld::LocalRayResult rayResult
 						(collisionObject,
 						 &shapeInfo,

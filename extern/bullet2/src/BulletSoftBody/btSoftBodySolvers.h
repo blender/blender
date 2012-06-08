@@ -73,7 +73,7 @@ public:
 	virtual void optimize( btAlignedObjectArray< btSoftBody * > &softBodies , bool forceUpdate=false) = 0;
 
 	/** Copy necessary data back to the original soft body source objects. */
-	virtual void copyBackToSoftBodies() = 0;
+	virtual void copyBackToSoftBodies(bool bMove = true) = 0;
 
 	/** Predict motion of soft bodies into next timestep */
 	virtual void predictMotion( float solverdt ) = 0;

@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef SIMD___SCALAR_H
-#define SIMD___SCALAR_H
+#ifndef BT_SCALAR_H
+#define BT_SCALAR_H
 
 #ifdef BT_MANAGED_CODE
 //Aligned data types not supported in managed code
@@ -25,12 +25,10 @@ subject to the following restrictions:
 
 #include <math.h>
 #include <stdlib.h>//size_t for MSVC 6.0
-#include <cstdlib>
-#include <cfloat>
 #include <float.h>
 
-/* SVN $Revision: 35500 $ on $Date: 2011-03-12 21:34:17 +0100 (Sat, 12 Mar 2011) $ from http://bullet.googlecode.com*/
-#define BT_BULLET_VERSION 278
+/* SVN $Revision$ on $Date$ from http://bullet.googlecode.com*/
+#define BT_BULLET_VERSION 280
 
 inline int	btGetVersion()
 {
@@ -521,4 +519,29 @@ struct btTypedObject
 		return m_objectType;
 	}
 };
-#endif //SIMD___SCALAR_H
+
+
+  
+///align a pointer to the provided alignment, upwards
+template <typename T>T* btAlignPointer(T* unalignedPtr, size_t alignment)
+{
+		
+	struct btConvertPointerSizeT
+	{
+		union 
+		{
+				T* ptr;
+				size_t integer;
+		};
+	};
+    btConvertPointerSizeT converter;
+    
+    
+	const size_t bit_mask = ~(alignment - 1);
+    converter.ptr = unalignedPtr;
+	converter.integer += alignment-1;
+	converter.integer &= bit_mask;
+	return converter.ptr;
+}
+
+#endif //BT_SCALAR_H

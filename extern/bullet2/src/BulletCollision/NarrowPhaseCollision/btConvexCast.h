@@ -14,8 +14,8 @@ subject to the following restrictions:
 */
 
 
-#ifndef CONVEX_CAST_H
-#define CONVEX_CAST_H
+#ifndef BT_CONVEX_CAST_H
+#define BT_CONVEX_CAST_H
 
 #include "LinearMath/btTransform.h"
 #include "LinearMath/btVector3.h"
@@ -39,7 +39,7 @@ public:
 				
 		virtual void	DebugDraw(btScalar	fraction) {(void)fraction;}
 		virtual void	drawCoordSystem(const btTransform& trans) {(void)trans;}
-
+		virtual void	reportFailure(int errNo, int numIterations) {(void)errNo;(void)numIterations;}
 		CastResult()
 			:m_fraction(btScalar(BT_LARGE_FLOAT)),
 			m_debugDrawer(0),
@@ -70,4 +70,4 @@ public:
 					CastResult& result) = 0;
 };
 
-#endif //CONVEX_CAST_H
+#endif //BT_CONVEX_CAST_H

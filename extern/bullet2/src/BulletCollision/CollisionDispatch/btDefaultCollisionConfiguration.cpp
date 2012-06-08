@@ -296,3 +296,14 @@ void btDefaultCollisionConfiguration::setConvexConvexMultipointIterations(int nu
 	convexConvex->m_numPerturbationIterations = numPerturbationIterations;
 	convexConvex->m_minimumPointsPerturbationThreshold = minimumPointsPerturbationThreshold;
 }
+
+void	btDefaultCollisionConfiguration::setPlaneConvexMultipointIterations(int numPerturbationIterations, int minimumPointsPerturbationThreshold)
+{
+	btConvexPlaneCollisionAlgorithm::CreateFunc* cpCF = (btConvexPlaneCollisionAlgorithm::CreateFunc*)m_convexPlaneCF;
+	cpCF->m_numPerturbationIterations = numPerturbationIterations;
+	cpCF->m_minimumPointsPerturbationThreshold = minimumPointsPerturbationThreshold;
+	
+	btConvexPlaneCollisionAlgorithm::CreateFunc* pcCF = (btConvexPlaneCollisionAlgorithm::CreateFunc*)m_planeConvexCF;
+	pcCF->m_numPerturbationIterations = numPerturbationIterations;
+	pcCF->m_minimumPointsPerturbationThreshold = minimumPointsPerturbationThreshold;
+}

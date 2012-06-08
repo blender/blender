@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef COMPOUND_SHAPE_H
-#define COMPOUND_SHAPE_H
+#ifndef BT_COMPOUND_SHAPE_H
+#define BT_COMPOUND_SHAPE_H
 
 #include "btCollisionShape.h"
 
@@ -209,4 +209,4 @@ SIMD_FORCE_INLINE	int	btCompoundShape::calculateSerializeBufferSize() const
 
 
 
-#endif //COMPOUND_SHAPE_H
+#endif //BT_COMPOUND_SHAPE_H

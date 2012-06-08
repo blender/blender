@@ -29,9 +29,11 @@ ATTRIBUTE_ALIGNED16( struct)	btIndexedMesh
 
    int                     m_numTriangles;
    const unsigned char *   m_triangleIndexBase;
+   // Size in byte of the indices for one triangle (3*sizeof(index_type) if the indices are tightly packed)
    int                     m_triangleIndexStride;
    int                     m_numVertices;
    const unsigned char *   m_vertexBase;
+   // Size of a vertex, in bytes
    int                     m_vertexStride;
 
    // The index type is set when adding an indexed mesh to the

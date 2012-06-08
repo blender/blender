@@ -21,25 +21,18 @@ elif sys.platform=='darwin':
     defs += ' NDEBUG'
     cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
-linearmath_src = env.Glob("LinearMath/*.cpp")
-
-bulletdyn_src = env.Glob("BulletDynamics/Vehicle/*.cpp") + env.Glob("BulletDynamics/ConstraintSolver/*.cpp") + env.Glob("BulletDynamics/Dynamics/*.cpp") + env.Glob("BulletDynamics/Character/*.cpp")
-
-collision_broadphase_src = env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
-collision_dispatch_src = env.Glob("BulletCollision/CollisionDispatch/*.cpp")
-collision_gimpact_src = env.Glob("BulletCollision/Gimpact/*.cpp")
-collision_shapes_src =  env.Glob("BulletCollision/CollisionShapes/*.cpp")
-collision_narrowphase_src =  env.Glob("BulletCollision/NarrowPhaseCollision/*.cpp")
-
-softbody_src = env.Glob("BulletSoftBody/*.cpp")
+bullet2_src = env.Glob("LinearMath/*.cpp")
+bullet2_src += env.Glob("BulletCollision/BroadphaseCollision/*.cpp")
+bullet2_src += env.Glob("BulletCollision/CollisionDispatch/*.cpp")
+bullet2_src += env.Glob("BulletCollision/Gimpact/*.cpp")
+bullet2_src += env.Glob("BulletCollision/CollisionShapes/*.cpp")
+bullet2_src += env.Glob("BulletCollision/NarrowPhaseCollision/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/Vehicle/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/ConstraintSolver/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/Dynamics/*.cpp")
+bullet2_src += env.Glob("BulletDynamics/Character/*.cpp")
+bullet2_src += env.Glob("BulletSoftBody/*.cpp")
 
 incs = '. BulletCollision BulletDynamics LinearMath BulletSoftBody'
 
-env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[19,136], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_broadphase', sources=collision_broadphase_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[25,145], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_dispatch', sources=collision_dispatch_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_gimpact', sources=collision_gimpact_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_shapes', sources=collision_shapes_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision_narrowphase', sources=collision_narrowphase_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,138], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2softbody', sources=softbody_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[30,135], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2', sources=bullet2_src, includes=Split(incs), defines=Split(defs), libtype=['extern','player'], priority=[20,137], compileflags=cflags )

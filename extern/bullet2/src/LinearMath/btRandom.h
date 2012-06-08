@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef GEN_RANDOM_H
-#define GEN_RANDOM_H
+#ifndef BT_GEN_RANDOM_H
+#define BT_GEN_RANDOM_H
 
 #ifdef MT19937
 
@@ -38,5 +38,5 @@ SIMD_FORCE_INLINE unsigned int GEN_rand()                   { return rand(); }
 
 #endif
 
-#endif
+#endif //BT_GEN_RANDOM_H
 

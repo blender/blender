@@ -14,8 +14,18 @@ subject to the following restrictions:
 */
 #include "btBoxShape.h"
 
+btBoxShape::btBoxShape( const btVector3& boxHalfExtents) 
+: btPolyhedralConvexShape()
+{
+	m_shapeType = BOX_SHAPE_PROXYTYPE;
 
-//{ 
+	setSafeMargin(boxHalfExtents);
+
+	btVector3 margin(getMargin(),getMargin(),getMargin());
+	m_implicitShapeDimensions = (boxHalfExtents * m_localScaling) - margin;
+};
+
+
 
 
 void btBoxShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const

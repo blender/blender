@@ -20,7 +20,6 @@ subject to the following restrictions:
 #include "btBulletCollisionCommon.h"
 
 #include "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.h"
-#include "BulletDynamics/Dynamics/btContinuousDynamicsWorld.h"
 
 #include "BulletDynamics/Dynamics/btSimpleDynamicsWorld.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"

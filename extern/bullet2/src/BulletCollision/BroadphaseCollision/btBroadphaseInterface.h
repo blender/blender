@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef		BROADPHASE_INTERFACE_H
-#define 	BROADPHASE_INTERFACE_H
+#ifndef		BT_BROADPHASE_INTERFACE_H
+#define 	BT_BROADPHASE_INTERFACE_H
 
 
 
@@ -79,4 +79,4 @@ public:
 
 };
 
-#endif //BROADPHASE_INTERFACE_H
+#endif //BT_BROADPHASE_INTERFACE_H

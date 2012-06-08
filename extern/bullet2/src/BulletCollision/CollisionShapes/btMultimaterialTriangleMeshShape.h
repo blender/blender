@@ -15,8 +15,8 @@ subject to the following restrictions:
 
 /// This file was created by Alex Silverman
 
-#ifndef BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H
-#define BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H
+#ifndef BT_BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H
+#define BT_BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H
 
 #include "btBvhTriangleMeshShape.h"
 #include "btMaterial.h"
@@ -117,4 +117,4 @@ public:
 }
 ;
 
-#endif //BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H
+#endif //BT_BVH_TRIANGLE_MATERIAL_MESH_SHAPE_H

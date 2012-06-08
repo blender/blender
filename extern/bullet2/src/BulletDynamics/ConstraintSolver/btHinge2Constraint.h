@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef HINGE2_CONSTRAINT_H
-#define HINGE2_CONSTRAINT_H
+#ifndef BT_HINGE2_CONSTRAINT_H
+#define BT_HINGE2_CONSTRAINT_H
 
 
 
@@ -54,5 +54,5 @@ public:
 
 
 
-#endif // HINGE2_CONSTRAINT_H
+#endif // BT_HINGE2_CONSTRAINT_H
 

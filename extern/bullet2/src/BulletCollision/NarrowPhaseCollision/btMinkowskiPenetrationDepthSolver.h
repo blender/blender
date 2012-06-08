@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
-#define MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
+#ifndef BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
+#define BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
 
 #include "btConvexPenetrationDepthSolver.h"
 
@@ -36,5 +36,5 @@ public:
 			);
 };
 
-#endif //MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
+#endif //BT_MINKOWSKI_PENETRATION_DEPTH_SOLVER_H
 

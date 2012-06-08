@@ -37,15 +37,15 @@ subject to the following restrictions:
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB,
 									 const btVector3& axisInA,const btVector3& axisInB, bool useReferenceFrameA)
 									 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA,rbB),
+#ifdef _BT_USE_CENTER_LIMIT_
+									 m_limit(),
+#endif
 									 m_angularOnly(false),
 									 m_enableAngularMotor(false),
 									 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 									 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 									 m_useReferenceFrameA(useReferenceFrameA),
 									 m_flags(0)
-#ifdef _BT_USE_CENTER_LIMIT_
-									,m_limit()
-#endif
 {
 	m_rbAFrame.getOrigin() = pivotInA;
 	
@@ -93,14 +93,15 @@ btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const bt
 
 
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,const btVector3& axisInA, bool useReferenceFrameA)
-:btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA), m_angularOnly(false), m_enableAngularMotor(false), 
+:btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
+m_angularOnly(false), m_enableAngularMotor(false), 
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 
 	// since no frame is given, assume this to be zero angle and just pick rb transform axis
@@ -142,15 +143,15 @@ m_flags(0)
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, 
 								     const btTransform& rbAFrame, const btTransform& rbBFrame, bool useReferenceFrameA)
 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
 m_angularOnly(false),
 m_enableAngularMotor(false),
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 #ifndef	_BT_USE_CENTER_LIMIT_
 	//start with free
@@ -168,15 +169,15 @@ m_flags(0)
 
 btHingeConstraint::btHingeConstraint(btRigidBody& rbA, const btTransform& rbAFrame, bool useReferenceFrameA)
 :btTypedConstraint(HINGE_CONSTRAINT_TYPE, rbA),m_rbAFrame(rbAFrame),m_rbBFrame(rbAFrame),
+#ifdef _BT_USE_CENTER_LIMIT_
+m_limit(),
+#endif
 m_angularOnly(false),
 m_enableAngularMotor(false),
 m_useSolveConstraintObsolete(HINGE_USE_OBSOLETE_SOLVER),
 m_useOffsetForConstraintFrame(HINGE_USE_FRAME_OFFSET),
 m_useReferenceFrameA(useReferenceFrameA),
 m_flags(0)
-#ifdef	_BT_USE_CENTER_LIMIT_
-,m_limit()
-#endif
 {
 	///not providing rigidbody B means implicitly using worldspace for body B
 
@@ -663,7 +664,7 @@ void btHingeConstraint::setMotorTarget(const btQuaternion& qAinB, btScalar dt)
 	btScalar targetAngle = qHinge.getAngle();
 	if (targetAngle > SIMD_PI) // long way around. flip quat and recalculate.
 	{
-		qHinge = operator-(qHinge);
+		qHinge = -(qHinge);
 		targetAngle = qHinge.getAngle();
 	}
 	if (qHinge.getZ() < 0)

@@ -80,11 +80,13 @@ public:
 
 	///eAeroModel 
 	struct eAeroModel { enum _ {
-		V_Point,	///Vertex normals are oriented toward velocity
-		V_TwoSided,	///Vertex normals are fliped to match velocity	
-		V_OneSided,	///Vertex normals are taken as it is	
-		F_TwoSided,	///Face normals are fliped to match velocity
-		F_OneSided,	///Face normals are taken as it is
+		V_Point,			///Vertex normals are oriented toward velocity
+		V_TwoSided,			///Vertex normals are flipped to match velocity	
+		V_TwoSidedLiftDrag, ///Vertex normals are flipped to match velocity and lift and drag forces are applied
+		V_OneSided,			///Vertex normals are taken as it is	
+		F_TwoSided,			///Face normals are flipped to match velocity
+		F_TwoSidedLiftDrag,	///Face normals are flipped to match velocity and lift and drag forces are applied 
+		F_OneSided,			///Face normals are taken as it is		
 		END
 	};};
 
@@ -117,6 +119,7 @@ public:
 		Node,
 		Link,
 		Face,
+		Tetra,
 		END
 	};};
 
@@ -282,6 +285,7 @@ public:
 		Node*					m_node;			// Node pointer
 		btVector3				m_local;		// Anchor position in body space
 		btRigidBody*			m_body;			// Body
+		btScalar				m_influence;
 		btMatrix3x3				m_c0;			// Impulse matrix
 		btVector3				m_c1;			// Relative anchor
 		btScalar				m_c2;			// ima*dt
@@ -752,8 +756,8 @@ public:
 
 	/* Append anchor														*/ 
 	void				appendAnchor(	int node,
-		btRigidBody* body, bool disableCollisionBetweenLinkedBodies=false);
-	void			appendAnchor(int node,btRigidBody* body, const btVector3& localPivot,bool disableCollisionBetweenLinkedBodies=false);
+		btRigidBody* body, bool disableCollisionBetweenLinkedBodies=false,btScalar influence = 1);
+	void			appendAnchor(int node,btRigidBody* body, const btVector3& localPivot,bool disableCollisionBetweenLinkedBodies=false,btScalar influence = 1);
 	/* Append linear joint													*/ 
 	void				appendLinearJoint(const LJoint::Specs& specs,Cluster* body0,Body body1);
 	void				appendLinearJoint(const LJoint::Specs& specs,Body body=Body());
@@ -767,6 +771,12 @@ public:
 	/* Add force (or gravity) to a node of the body							*/ 
 	void				addForce(		const btVector3& force,
 		int node);
+	/* Add aero force to a node of the body */
+	void			    addAeroForceToNode(const btVector3& windVelocity,int nodeIndex);
+
+	/* Add aero force to a face of the body */
+	void			    addAeroForceToFace(const btVector3& windVelocity,int faceIndex);
+
 	/* Add velocity to the entire body										*/ 
 	void				addVelocity(	const btVector3& velocity);
 

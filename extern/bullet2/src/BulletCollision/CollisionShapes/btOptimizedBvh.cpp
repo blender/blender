@@ -43,7 +43,7 @@ void btOptimizedBvh::build(btStridingMeshInterface* triangles, bool useQuantized
 
 		NodeTriangleCallback& operator=(NodeTriangleCallback& other)
 		{
-			m_triangleNodes = other.m_triangleNodes;
+			m_triangleNodes.copyFromArray(other.m_triangleNodes);
 			return *this;
 		}
 		
@@ -84,7 +84,7 @@ void btOptimizedBvh::build(btStridingMeshInterface* triangles, bool useQuantized
 
 		QuantizedNodeTriangleCallback& operator=(QuantizedNodeTriangleCallback& other)
 		{
-			m_triangleNodes = other.m_triangleNodes;
+			m_triangleNodes.copyFromArray(other.m_triangleNodes);
 			m_optimizedTree = other.m_optimizedTree;
 			return *this;
 		}

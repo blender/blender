@@ -68,9 +68,53 @@ void	btContactConstraint::buildJacobian()
 #include "LinearMath/btMinMax.h"
 #include "BulletCollision/NarrowPhaseCollision/btManifoldPoint.h"
 
-#define ASSERT2 btAssert
 
-#define USE_INTERNAL_APPLY_IMPULSE 1
+
+//response  between two dynamic objects without friction, assuming 0 penetration depth
+btScalar resolveSingleCollision(
+        btRigidBody* body1,
+        btCollisionObject* colObj2,
+		const btVector3& contactPositionWorld,
+		const btVector3& contactNormalOnB,
+        const btContactSolverInfo& solverInfo,
+		btScalar distance)
+{
+	btRigidBody* body2 = btRigidBody::upcast(colObj2);
+    
+	
+    const btVector3& normal = contactNormalOnB;
+
+    btVector3 rel_pos1 = contactPositionWorld - body1->getWorldTransform().getOrigin(); 
+    btVector3 rel_pos2 = contactPositionWorld - colObj2->getWorldTransform().getOrigin();
+    
+    btVector3 vel1 = body1->getVelocityInLocalPoint(rel_pos1);
+	btVector3 vel2 = body2? body2->getVelocityInLocalPoint(rel_pos2) : btVector3(0,0,0);
+    btVector3 vel = vel1 - vel2;
+    btScalar rel_vel;
+    rel_vel = normal.dot(vel);
+    
+    btScalar combinedRestitution = body1->getRestitution() * colObj2->getRestitution();
+    btScalar restitution = combinedRestitution* -rel_vel;
+
+    btScalar positionalError = solverInfo.m_erp *-distance /solverInfo.m_timeStep ;
+    btScalar velocityError = -(1.0f + restitution) * rel_vel;// * damping;
+	btScalar denom0 = body1->computeImpulseDenominator(contactPositionWorld,normal);
+	btScalar denom1 = body2? body2->computeImpulseDenominator(contactPositionWorld,normal) : 0.f;
+	btScalar relaxation = 1.f;
+	btScalar jacDiagABInv = relaxation/(denom0+denom1);
+
+    btScalar penetrationImpulse = positionalError * jacDiagABInv;
+    btScalar velocityImpulse = velocityError * jacDiagABInv;
+
+    btScalar normalImpulse = penetrationImpulse+velocityImpulse;
+    normalImpulse = 0.f > normalImpulse ? 0.f: normalImpulse;
+
+	body1->applyImpulse(normal*(normalImpulse), rel_pos1);
+    if (body2)
+		body2->applyImpulse(-normal*(normalImpulse), rel_pos2);
+    
+    return normalImpulse;
+}
 
 
 //bilateral constraint between two dynamic objects
@@ -83,7 +127,7 @@ void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
 
 
 	btScalar normalLenSqr = normal.length2();
-	ASSERT2(btFabs(normalLenSqr) < btScalar(1.1));
+	btAssert(btFabs(normalLenSqr) < btScalar(1.1));
 	if (normalLenSqr > btScalar(1.1))
 	{
 		impulse = btScalar(0.);

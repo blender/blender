@@ -25,7 +25,10 @@ btTypedConstraint::btTypedConstraint(btTypedConstraintType type, btRigidBody& rb
 :btTypedObject(type),
 m_userConstraintType(-1),
 m_userConstraintId(-1),
+m_breakingImpulseThreshold(SIMD_INFINITY),
+m_isEnabled(true),
 m_needsFeedback(false),
+m_overrideNumSolverIterations(-1),
 m_rbA(rbA),
 m_rbB(getFixedBody()),
 m_appliedImpulse(btScalar(0.)),
@@ -38,7 +41,10 @@ btTypedConstraint::btTypedConstraint(btTypedConstraintType type, btRigidBody& rb
 :btTypedObject(type),
 m_userConstraintType(-1),
 m_userConstraintId(-1),
+m_breakingImpulseThreshold(SIMD_INFINITY),
+m_isEnabled(true),
 m_needsFeedback(false),
+m_overrideNumSolverIterations(-1),
 m_rbA(rbA),
 m_rbB(rbB),
 m_appliedImpulse(btScalar(0.)),
@@ -114,6 +120,10 @@ const char*	btTypedConstraint::serialize(void* dataBuffer, btSerializer* seriali
 
 	tcd->m_objectType = m_objectType;
 	tcd->m_needsFeedback = m_needsFeedback;
+	tcd->m_overrideNumSolverIterations = m_overrideNumSolverIterations;
+	tcd->m_breakingImpulseThreshold = float(m_breakingImpulseThreshold);
+	tcd->m_isEnabled = m_isEnabled? 1: 0;
+	
 	tcd->m_userConstraintId =m_userConstraintId;
 	tcd->m_userConstraintType =m_userConstraintType;
 

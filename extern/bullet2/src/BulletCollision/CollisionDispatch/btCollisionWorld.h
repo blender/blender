@@ -62,8 +62,8 @@ subject to the following restrictions:
  
  
 
-#ifndef COLLISION_WORLD_H
-#define COLLISION_WORLD_H
+#ifndef BT_COLLISION_WORLD_H
+#define BT_COLLISION_WORLD_H
 
 class btStackAlloc;
 class btCollisionShape;
@@ -506,4 +506,4 @@ public:
 };
 
 
-#endif //COLLISION_WORLD_H
+#endif //BT_COLLISION_WORLD_H

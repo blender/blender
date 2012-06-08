@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef OBB_TRIANGLE_MINKOWSKI_H
-#define OBB_TRIANGLE_MINKOWSKI_H
+#ifndef BT_OBB_TRIANGLE_MINKOWSKI_H
+#define BT_OBB_TRIANGLE_MINKOWSKI_H
 
 #include "btConvexShape.h"
 #include "btBoxShape.h"
@@ -178,5 +178,5 @@ public:
 
 };
 
-#endif //OBB_TRIANGLE_MINKOWSKI_H
+#endif //BT_OBB_TRIANGLE_MINKOWSKI_H
 

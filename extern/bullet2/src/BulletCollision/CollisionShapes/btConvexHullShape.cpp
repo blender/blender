@@ -208,4 +208,48 @@ const char*	btConvexHullShape::serialize(void* dataBuffer, btSerializer* seriali
 	return "btConvexHullShapeData";
 }
 
+void btConvexHullShape::project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const
+{
+#if 1
+	min = FLT_MAX;
+	max = -FLT_MAX;
+	btVector3 witnesPtMin;
+	btVector3 witnesPtMax;
+
+	int numVerts = m_unscaledPoints.size();
+	for(int i=0;i<numVerts;i++)
+	{
+		btVector3 vtx = m_unscaledPoints[i] * m_localScaling;
+		btVector3 pt = trans * vtx;
+		btScalar dp = pt.dot(dir);
+		if(dp < min)	
+		{
+			min = dp;
+			witnesPtMin = pt;
+		}
+		if(dp > max)	
+		{
+			max = dp;
+			witnesPtMax=pt;
+		}
+	}
+#else
+	btVector3 localAxis = dir*trans.getBasis();
+	btVector3 vtx1 = trans(localGetSupportingVertex(localAxis));
+	btVector3 vtx2 = trans(localGetSupportingVertex(-localAxis));
+
+	min = vtx1.dot(dir);
+	max = vtx2.dot(dir);
+#endif
+
+	if(min>max)
+	{
+		btScalar tmp = min;
+		min = max;
+		max = tmp;
+	}
+
+
+}
+
 
