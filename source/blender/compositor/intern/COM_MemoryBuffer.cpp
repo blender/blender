@@ -150,8 +150,8 @@ void MemoryBuffer::readCubic(float result[4], float x, float y)
 	
 	float valuex = x - x1;
 	float valuey = y - y1;
-	float mvaluex = 1.0 - valuex;
-	float mvaluey = 1.0 - valuey;
+	float mvaluex = 1.0f - valuex;
+	float mvaluey = 1.0f - valuey;
 	
 	float color1[4];
 	float color2[4];

@@ -51,17 +51,17 @@ void DirectionalBlurOperation::initExecution()
 	const float height = getHeight();
 
 	const float a = angle;
-	const float itsc = 1.f / pow(2.f, (float)iterations);
+	const float itsc = 1.0f / powf(2.0f, (float)iterations);
 	float D;
 
 	D = distance * sqrtf(width*width + height*height);
 	center_x_pix = center_x * width;
 	center_y_pix = center_y * height;
 
-	tx=  itsc * D * cos(a);
-	ty= -itsc * D * sin(a);
-	sc=  itsc * zoom;
-	rot = itsc * spin;
+	tx  =  itsc * D * cosf(a);
+	ty  = -itsc * D * sinf(a);
+	sc  =  itsc * zoom;
+	rot =  itsc * spin;
 
 }
 

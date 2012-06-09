@@ -43,7 +43,7 @@ void RotateOperation::initExecution()
 	this->degreeSocket->read(degree, 0, 0, COM_PS_NEAREST, NULL);
 	double rad;
 	if (this->doDegree2RadConversion) {
-		rad = DEG2RAD(degree[0]);
+		rad = DEG2RAD((double)degree[0]);
 	}
 	else {
 		rad = degree[0];

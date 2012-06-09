@@ -77,7 +77,7 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	tempColor[1] = 0;
 	tempColor[2] = 0;
 	tempColor[3] = 0;
-	float overallmultiplyer = 0;
+	float overallmultiplyer = 0.0f;
 	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
@@ -106,11 +106,11 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 		overallmultiplyer += multiplyer;
 		bufferindex +=offsetadd;
 	}
-	float divider = 1.0/overallmultiplyer;
-	color[0] = tempColor[0]*divider;
-	color[1] = tempColor[1]*divider;
-	color[2] = tempColor[2]*divider;
-	color[3] = tempColor[3]*divider;
+	float divider = 1.0f / overallmultiplyer;
+	color[0] = tempColor[0] * divider;
+	color[1] = tempColor[1] * divider;
+	color[2] = tempColor[2] * divider;
+	color[3] = tempColor[3] * divider;
 }
 
 void GaussianXBlurOperation::deinitExecution()

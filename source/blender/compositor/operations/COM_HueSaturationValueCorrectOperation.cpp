@@ -63,8 +63,8 @@ void HueSaturationValueCorrectOperation::executePixel(float *output, float x, fl
 	f = curvemapping_evaluateF(this->curveMapping, 2, hsv[0]);
 	hsv[2] *= (f * 2.f);
 
-	hsv[0] = hsv[0] - floor(hsv[0]);  /* mod 1.0 */
-	CLAMP(hsv[1], 0.f, 1.f);
+	hsv[0] = hsv[0] - floorf(hsv[0]);  /* mod 1.0 */
+	CLAMP(hsv[1], 0.0f, 1.0f);
 
 	output[0] = hsv[0];
 	output[1] = hsv[1];

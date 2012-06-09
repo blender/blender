@@ -76,19 +76,19 @@ void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSamp
 	this->inputFacProgram->read(fac, x, y, sampler, inputBuffers);
 	this->inputImageProgram->read(image, x, y, sampler, inputBuffers);
 
-	if (fac[0] >= 1.0)
+	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(workingCopy, color, image);
-	else if (*fac<=0.0) {
+	else if (*fac <= 0.0f) {
 		color[0] = image[0];
 		color[1] = image[1];
 		color[2] = image[2];
 	}
 	else {
-		float col[4], mfac = 1.0f-*fac;
+		float col[4], mfac = 1.0f - *fac;
 		curvemapping_evaluate_premulRGBF(workingCopy, col, image);
-		color[0] = mfac*image[0] + *fac*col[0];
-		color[1] = mfac*image[1] + *fac*col[1];
-		color[2] = mfac*image[2] + *fac*col[2];
+		color[0] = mfac * image[0] + *fac * col[0];
+		color[1] = mfac * image[1] + *fac * col[1];
+		color[2] = mfac * image[2] + *fac * col[2];
 	}
 	color[3] = image[3];
 	MEM_freeN(workingCopy);
@@ -137,19 +137,19 @@ void ConstantLevelColorCurveOperation::executePixel(float *color, float x, float
 	this->inputFacProgram->read(fac, x, y, sampler, inputBuffers);
 	this->inputImageProgram->read(image, x, y, sampler, inputBuffers);
 
-	if (fac[0] >= 1.0)
+	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(this->curveMapping, color, image);
-	else if (*fac<=0.0) {
+	else if (*fac <= 0.0f) {
 		color[0] = image[0];
 		color[1] = image[1];
 		color[2] = image[2];
 	}
 	else {
-		float col[4], mfac = 1.0f-*fac;
+		float col[4], mfac = 1.0f - *fac;
 		curvemapping_evaluate_premulRGBF(this->curveMapping, col, image);
-		color[0] = mfac*image[0] + *fac*col[0];
-		color[1] = mfac*image[1] + *fac*col[1];
-		color[2] = mfac*image[2] + *fac*col[2];
+		color[0] = mfac * image[0] + *fac * col[0];
+		color[1] = mfac * image[1] + *fac * col[1];
+		color[2] = mfac * image[2] + *fac * col[2];
 	}
 	color[3] = image[3];
 }

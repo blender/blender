@@ -57,16 +57,16 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	this->inputImage1Program->read(inColor1, x, y, sampler, inputBuffers);
 	this->inputImage2Program->read(inColor2, x, y, sampler, inputBuffers);
 
-	difference = (fabs(inColor2[0] - inColor1[0]) +
-	              fabs(inColor2[1] - inColor1[1]) +
-	              fabs(inColor2[2] - inColor1[2]));
+	difference = (fabsf(inColor2[0] - inColor1[0]) +
+	              fabsf(inColor2[1] - inColor1[1]) +
+	              fabsf(inColor2[2] - inColor1[2]));
 
-	/*average together the distances*/
-	difference=difference/3.0;
+	/* average together the distances */
+	difference = difference / 3.0f;
 
 	/*make 100% transparent*/
 	if (difference < tolerence) {
-		outputValue[0]=0.0;
+		outputValue[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
 	else if (difference < falloff+tolerence) {

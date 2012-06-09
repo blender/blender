@@ -37,7 +37,7 @@ void FogGlowImageOperation::executePixel(float *color, float x, float y, PixelSa
 	u = 2.f*(x / (float)512) - 1.f;
 	r = (u*u + v*v)*256;
 	d = -sqrtf(sqrtf(sqrtf(r)));
-	w = (0.5f + 0.5f*cos((double)u*M_PI))*(0.5f + 0.5f*cos((double)v*M_PI));
+	w = (0.5f + 0.5f * cosf(u * (float)M_PI)) * (0.5f + 0.5f * cosf(v * (float)M_PI));
 	color[0] = expf(d*cs_r) * w;
 	color[1] = expf(d*cs_g) * w;
 	color[2] = expf(d*cs_b) * w;

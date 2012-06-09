@@ -121,9 +121,9 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 				bufferindex +=offsetadd;
 			}
 		}
-		color[0] = tempColor[0]*(1.0/overallmultiplyerr);
-		color[1] = tempColor[1]*(1.0/overallmultiplyerg);
-		color[2] = tempColor[2]*(1.0/overallmultiplyerb);
+		color[0] = tempColor[0] * (1.0f / overallmultiplyerr);
+		color[1] = tempColor[1] * (1.0f / overallmultiplyerg);
+		color[2] = tempColor[2] * (1.0f / overallmultiplyerb);
 		color[3] = 1.0f;
 	}
 	else {

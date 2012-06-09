@@ -26,24 +26,24 @@
 
 set(INC
 	.
+	intern
+	nodes
+	operations
 	../blenkernel
 	../blenlib
-	../makesdna
-	../render/extern/include
-	../render/intern/include
-	../makesrna
-	../blenloader
 	../blenlib
-	../windowmanager
+	../blenloader
 	../imbuf
-	../../../intern/guardedalloc
-	nodes
-	../nodes/
+	../makesdna
+	../makesrna
+	../opencl
+	../windowmanager
+	../nodes
 	../nodes/composite
 	../nodes/intern
-	intern
-	operations
-	../opencl
+	../render/extern/include
+	../render/intern/include
+	../../../intern/guardedalloc
 )
 
 set(SRC
@@ -100,7 +100,7 @@ set(SRC
 	operations/COM_QualityStepHelper.h
 	operations/COM_QualityStepHelper.cpp
 
-# Internal nodes
+	# Internal nodes
 	nodes/COM_MuteNode.cpp
 	nodes/COM_MuteNode.h
 	nodes/COM_GroupNode.cpp
@@ -108,7 +108,7 @@ set(SRC
 	nodes/COM_SocketProxyNode.cpp
 	nodes/COM_SocketProxyNode.h
 
-# input nodes
+	# input nodes
 	nodes/COM_RenderLayersNode.cpp
 	nodes/COM_RenderLayersNode.h
 	nodes/COM_ImageNode.cpp
@@ -132,7 +132,7 @@ set(SRC
 	nodes/COM_MaskNode.cpp
 	nodes/COM_MaskNode.h
 
-# output nodes
+	# output nodes
 	nodes/COM_CompositorNode.cpp
 	nodes/COM_CompositorNode.h
 	nodes/COM_ViewerNode.cpp
@@ -146,7 +146,7 @@ set(SRC
 	operations/COM_CalculateMeanOperation.cpp
 	operations/COM_CalculateMeanOperation.h
 
-# distort nodes
+	# distort nodes
 	nodes/COM_TranslateNode.cpp
 	nodes/COM_TranslateNode.h
 	nodes/COM_ScaleNode.cpp
@@ -193,27 +193,27 @@ set(SRC
 	nodes/COM_DefocusNode.cpp
 	nodes/COM_DefocusNode.h
 
-# color nodes
-		nodes/COM_VectorCurveNode.cpp
-		nodes/COM_VectorCurveNode.h
-		nodes/COM_ColorCurveNode.cpp
-		nodes/COM_ColorCurveNode.h
-		nodes/COM_ColorToBWNode.cpp
-		nodes/COM_ColorToBWNode.h
-		nodes/COM_ColorRampNode.cpp
-		nodes/COM_ColorRampNode.h
-		nodes/COM_MixNode.cpp
-		nodes/COM_MixNode.h
-		nodes/COM_AlphaOverNode.cpp
-		nodes/COM_AlphaOverNode.h
-		nodes/COM_ZCombineNode.cpp
-		nodes/COM_ZCombineNode.h
-		nodes/COM_BrightnessNode.cpp
-		nodes/COM_BrightnessNode.h
-		nodes/COM_ColorBalanceNode.cpp
-		nodes/COM_ColorBalanceNode.h
-		nodes/COM_InvertNode.cpp
-		nodes/COM_InvertNode.h
+	# color nodes
+	nodes/COM_VectorCurveNode.cpp
+	nodes/COM_VectorCurveNode.h
+	nodes/COM_ColorCurveNode.cpp
+	nodes/COM_ColorCurveNode.h
+	nodes/COM_ColorToBWNode.cpp
+	nodes/COM_ColorToBWNode.h
+	nodes/COM_ColorRampNode.cpp
+	nodes/COM_ColorRampNode.h
+	nodes/COM_MixNode.cpp
+	nodes/COM_MixNode.h
+	nodes/COM_AlphaOverNode.cpp
+	nodes/COM_AlphaOverNode.h
+	nodes/COM_ZCombineNode.cpp
+	nodes/COM_ZCombineNode.h
+	nodes/COM_BrightnessNode.cpp
+	nodes/COM_BrightnessNode.h
+	nodes/COM_ColorBalanceNode.cpp
+	nodes/COM_ColorBalanceNode.h
+	nodes/COM_InvertNode.cpp
+	nodes/COM_InvertNode.h
 	nodes/COM_GammaNode.cpp
 	nodes/COM_GammaNode.h
 	nodes/COM_SetAlphaNode.cpp
@@ -233,25 +233,25 @@ set(SRC
 	operations/COM_TonemapOperation.cpp
 	operations/COM_TonemapOperation.h
 
-# converter nodes
-		nodes/COM_IDMaskNode.cpp
-		nodes/COM_IDMaskNode.h
-		nodes/COM_SeparateRGBANode.cpp
-		nodes/COM_SeparateRGBANode.h
-		nodes/COM_CombineRGBANode.cpp
-		nodes/COM_CombineRGBANode.h
-		nodes/COM_SeparateHSVANode.cpp
-		nodes/COM_SeparateHSVANode.h
-		nodes/COM_CombineHSVANode.cpp
-		nodes/COM_CombineHSVANode.h
-		nodes/COM_SeparateYUVANode.cpp
-		nodes/COM_SeparateYUVANode.h
-		nodes/COM_CombineYUVANode.cpp
-		nodes/COM_CombineYUVANode.h
-		nodes/COM_SeparateYCCANode.cpp
-		nodes/COM_SeparateYCCANode.h
-		nodes/COM_CombineYCCANode.cpp
-		nodes/COM_CombineYCCANode.h
+	# converter nodes
+	nodes/COM_IDMaskNode.cpp
+	nodes/COM_IDMaskNode.h
+	nodes/COM_SeparateRGBANode.cpp
+	nodes/COM_SeparateRGBANode.h
+	nodes/COM_CombineRGBANode.cpp
+	nodes/COM_CombineRGBANode.h
+	nodes/COM_SeparateHSVANode.cpp
+	nodes/COM_SeparateHSVANode.h
+	nodes/COM_CombineHSVANode.cpp
+	nodes/COM_CombineHSVANode.h
+	nodes/COM_SeparateYUVANode.cpp
+	nodes/COM_SeparateYUVANode.h
+	nodes/COM_CombineYUVANode.cpp
+	nodes/COM_CombineYUVANode.h
+	nodes/COM_SeparateYCCANode.cpp
+	nodes/COM_SeparateYCCANode.h
+	nodes/COM_CombineYCCANode.cpp
+	nodes/COM_CombineYCCANode.h
 
 	nodes/COM_NormalNode.cpp
 	nodes/COM_NormalNode.h
@@ -265,7 +265,7 @@ set(SRC
 	operations/COM_NormalizeOperation.cpp
 	operations/COM_NormalizeOperation.h
 
-# Filter nodes
+	# Filter nodes
 	nodes/COM_BilateralBlurNode.cpp
 	nodes/COM_BilateralBlurNode.h
 	operations/COM_BilateralBlurOperation.cpp
@@ -275,12 +275,10 @@ set(SRC
 	operations/COM_VectorBlurOperation.cpp
 	operations/COM_VectorBlurOperation.h
 
-
-
-		nodes/COM_FilterNode.cpp
-		nodes/COM_FilterNode.h
-		nodes/COM_DilateErodeNode.cpp
-		nodes/COM_DilateErodeNode.h
+	nodes/COM_FilterNode.cpp
+	nodes/COM_FilterNode.h
+	nodes/COM_DilateErodeNode.cpp
+	nodes/COM_DilateErodeNode.h
 	nodes/COM_BlurNode.cpp
 	nodes/COM_BlurNode.h
 	nodes/COM_BokehBlurNode.cpp
@@ -310,7 +308,7 @@ set(SRC
 	operations/COM_GammaCorrectOperation.h
 	operations/COM_GammaCorrectOperation.cpp
 
-# Matte nodes
+	# Matte nodes
 	nodes/COM_BoxMaskNode.cpp
 	nodes/COM_BoxMaskNode.h
 	nodes/COM_EllipseMaskNode.cpp
@@ -322,50 +320,50 @@ set(SRC
 
 	operations/COM_DoubleEdgeMaskOperation.cpp
 	operations/COM_DoubleEdgeMaskOperation.h
-operations/COM_ColorSpillOperation.cpp
-operations/COM_ColorSpillOperation.h
-		operations/COM_RenderLayersBaseProg.cpp
-		operations/COM_RenderLayersBaseProg.h
-		operations/COM_RenderLayersImageProg.cpp
-		operations/COM_RenderLayersImageProg.h
-		operations/COM_RenderLayersAlphaProg.cpp
-		operations/COM_RenderLayersAlphaProg.h
-		operations/COM_RenderLayersDepthProg.cpp
-		operations/COM_RenderLayersDepthProg.h
-		operations/COM_RenderLayersNormalOperation.cpp
-		operations/COM_RenderLayersNormalOperation.h
-		operations/COM_RenderLayersSpeedOperation.cpp
-		operations/COM_RenderLayersSpeedOperation.h
-		operations/COM_RenderLayersColorOperation.cpp
-		operations/COM_RenderLayersColorOperation.h
-		operations/COM_RenderLayersUVOperation.cpp
-		operations/COM_RenderLayersUVOperation.h
-		operations/COM_RenderLayersMistOperation.cpp
-		operations/COM_RenderLayersMistOperation.h
-		operations/COM_RenderLayersObjectIndexOperation.cpp
-		operations/COM_RenderLayersObjectIndexOperation.h
-		operations/COM_RenderLayersMaterialIndexOperation.cpp
-		operations/COM_RenderLayersMaterialIndexOperation.h
-		operations/COM_RenderLayersDiffuseOperation.cpp
-		operations/COM_RenderLayersDiffuseOperation.h
-		operations/COM_RenderLayersSpecularOperation.cpp
-		operations/COM_RenderLayersSpecularOperation.h
-		operations/COM_RenderLayersShadowOperation.cpp
-		operations/COM_RenderLayersShadowOperation.h
-		operations/COM_RenderLayersAOOperation.cpp
-		operations/COM_RenderLayersAOOperation.h
-		operations/COM_RenderLayersEmitOperation.cpp
-		operations/COM_RenderLayersEmitOperation.h
-		operations/COM_RenderLayersReflectionOperation.cpp
-		operations/COM_RenderLayersReflectionOperation.h
-		operations/COM_RenderLayersRefractionOperation.cpp
-		operations/COM_RenderLayersRefractionOperation.h
-		operations/COM_RenderLayersEnvironmentOperation.cpp
-		operations/COM_RenderLayersEnvironmentOperation.h
-		operations/COM_RenderLayersIndirectOperation.cpp
-		operations/COM_RenderLayersIndirectOperation.h
-		operations/COM_RenderLayersCyclesOperation.cpp
-		operations/COM_RenderLayersCyclesOperation.h
+	operations/COM_ColorSpillOperation.cpp
+	operations/COM_ColorSpillOperation.h
+	operations/COM_RenderLayersBaseProg.cpp
+	operations/COM_RenderLayersBaseProg.h
+	operations/COM_RenderLayersImageProg.cpp
+	operations/COM_RenderLayersImageProg.h
+	operations/COM_RenderLayersAlphaProg.cpp
+	operations/COM_RenderLayersAlphaProg.h
+	operations/COM_RenderLayersDepthProg.cpp
+	operations/COM_RenderLayersDepthProg.h
+	operations/COM_RenderLayersNormalOperation.cpp
+	operations/COM_RenderLayersNormalOperation.h
+	operations/COM_RenderLayersSpeedOperation.cpp
+	operations/COM_RenderLayersSpeedOperation.h
+	operations/COM_RenderLayersColorOperation.cpp
+	operations/COM_RenderLayersColorOperation.h
+	operations/COM_RenderLayersUVOperation.cpp
+	operations/COM_RenderLayersUVOperation.h
+	operations/COM_RenderLayersMistOperation.cpp
+	operations/COM_RenderLayersMistOperation.h
+	operations/COM_RenderLayersObjectIndexOperation.cpp
+	operations/COM_RenderLayersObjectIndexOperation.h
+	operations/COM_RenderLayersMaterialIndexOperation.cpp
+	operations/COM_RenderLayersMaterialIndexOperation.h
+	operations/COM_RenderLayersDiffuseOperation.cpp
+	operations/COM_RenderLayersDiffuseOperation.h
+	operations/COM_RenderLayersSpecularOperation.cpp
+	operations/COM_RenderLayersSpecularOperation.h
+	operations/COM_RenderLayersShadowOperation.cpp
+	operations/COM_RenderLayersShadowOperation.h
+	operations/COM_RenderLayersAOOperation.cpp
+	operations/COM_RenderLayersAOOperation.h
+	operations/COM_RenderLayersEmitOperation.cpp
+	operations/COM_RenderLayersEmitOperation.h
+	operations/COM_RenderLayersReflectionOperation.cpp
+	operations/COM_RenderLayersReflectionOperation.h
+	operations/COM_RenderLayersRefractionOperation.cpp
+	operations/COM_RenderLayersRefractionOperation.h
+	operations/COM_RenderLayersEnvironmentOperation.cpp
+	operations/COM_RenderLayersEnvironmentOperation.h
+	operations/COM_RenderLayersIndirectOperation.cpp
+	operations/COM_RenderLayersIndirectOperation.h
+	operations/COM_RenderLayersCyclesOperation.cpp
+	operations/COM_RenderLayersCyclesOperation.h
 
 	operations/COM_ImageOperation.cpp
 	operations/COM_ImageOperation.h
@@ -377,39 +375,39 @@ operations/COM_ColorSpillOperation.h
 	operations/COM_BokehImageOperation.h
 
 
-		operations/COM_SocketProxyOperation.h
-		operations/COM_SocketProxyOperation.cpp
+	operations/COM_SocketProxyOperation.h
+	operations/COM_SocketProxyOperation.cpp
 
-		operations/COM_CompositorOperation.h
-		operations/COM_CompositorOperation.cpp
+	operations/COM_CompositorOperation.h
+	operations/COM_CompositorOperation.cpp
 	operations/COM_OutputFileOperation.h
 	operations/COM_OutputFileOperation.cpp
-		operations/COM_ViewerBaseOperation.h
-		operations/COM_ViewerBaseOperation.cpp
-		operations/COM_ViewerOperation.h
-		operations/COM_ViewerOperation.cpp
-		operations/COM_PreviewOperation.h
-		operations/COM_PreviewOperation.cpp
-		operations/COM_SplitViewerOperation.h
-		operations/COM_SplitViewerOperation.cpp
-		operations/COM_ConvertValueToColourProg.h
-		operations/COM_ConvertValueToColourProg.cpp
-		operations/COM_ConvertColourToValueProg.h
-		operations/COM_ConvertColourToValueProg.cpp
-		operations/COM_ConvertColorToBWOperation.h
-		operations/COM_ConvertColorToBWOperation.cpp
-		operations/COM_ConvertColorToVectorOperation.h
-		operations/COM_ConvertColorToVectorOperation.cpp
-		operations/COM_ConvertValueToVectorOperation.h
-		operations/COM_ConvertValueToVectorOperation.cpp
-		operations/COM_ConvertVectorToColorOperation.h
-		operations/COM_ConvertVectorToColorOperation.cpp
-		operations/COM_ConvertVectorToValueOperation.h
-		operations/COM_ConvertVectorToValueOperation.cpp
-operations/COM_ConvertDepthToRadiusOperation.h
-operations/COM_ConvertDepthToRadiusOperation.cpp
-		operations/COM_ZCombineOperation.cpp
-		operations/COM_ZCombineOperation.h
+	operations/COM_ViewerBaseOperation.h
+	operations/COM_ViewerBaseOperation.cpp
+	operations/COM_ViewerOperation.h
+	operations/COM_ViewerOperation.cpp
+	operations/COM_PreviewOperation.h
+	operations/COM_PreviewOperation.cpp
+	operations/COM_SplitViewerOperation.h
+	operations/COM_SplitViewerOperation.cpp
+	operations/COM_ConvertValueToColourProg.h
+	operations/COM_ConvertValueToColourProg.cpp
+	operations/COM_ConvertColourToValueProg.h
+	operations/COM_ConvertColourToValueProg.cpp
+	operations/COM_ConvertColorToBWOperation.h
+	operations/COM_ConvertColorToBWOperation.cpp
+	operations/COM_ConvertColorToVectorOperation.h
+	operations/COM_ConvertColorToVectorOperation.cpp
+	operations/COM_ConvertValueToVectorOperation.h
+	operations/COM_ConvertValueToVectorOperation.cpp
+	operations/COM_ConvertVectorToColorOperation.h
+	operations/COM_ConvertVectorToColorOperation.cpp
+	operations/COM_ConvertVectorToValueOperation.h
+	operations/COM_ConvertVectorToValueOperation.cpp
+	operations/COM_ConvertDepthToRadiusOperation.h
+	operations/COM_ConvertDepthToRadiusOperation.cpp
+	operations/COM_ZCombineOperation.cpp
+	operations/COM_ZCombineOperation.h
 
 	operations/COM_ConvertRGBToYCCOperation.h
 	operations/COM_ConvertRGBToYCCOperation.cpp
@@ -470,86 +468,86 @@ operations/COM_ConvertDepthToRadiusOperation.cpp
 	operations/COM_GammaOperation.h
 	operations/COM_ColorCorrectionOperation.cpp
 	operations/COM_ColorCorrectionOperation.h
-		operations/COM_SetValueOperation.h
-		operations/COM_SetValueOperation.cpp
-		operations/COM_SetColorOperation.h
-		operations/COM_SetColorOperation.cpp
-		operations/COM_SetVectorOperation.h
-		operations/COM_SetVectorOperation.cpp
+	operations/COM_SetValueOperation.h
+	operations/COM_SetValueOperation.cpp
+	operations/COM_SetColorOperation.h
+	operations/COM_SetColorOperation.cpp
+	operations/COM_SetVectorOperation.h
+	operations/COM_SetVectorOperation.cpp
 
-		operations/COM_MixBurnOperation.h
-		operations/COM_MixBurnOperation.cpp
-		operations/COM_MixColorOperation.h
-		operations/COM_MixColorOperation.cpp
-		operations/COM_MixDarkenOperation.h
-		operations/COM_MixDarkenOperation.cpp
-		operations/COM_MixDodgeOperation.h
-		operations/COM_MixDodgeOperation.cpp
-		operations/COM_MixDifferenceOperation.h
-		operations/COM_MixDifferenceOperation.cpp
-		operations/COM_MixDivideOperation.h
-		operations/COM_MixDivideOperation.cpp
-		operations/COM_MixHueOperation.h
-		operations/COM_MixHueOperation.cpp
-		operations/COM_MixLightenOperation.h
-		operations/COM_MixLightenOperation.cpp
-		operations/COM_MixLinearLightOperation.h
-		operations/COM_MixLinearLightOperation.cpp
-		operations/COM_MixOverlayOperation.h
-		operations/COM_MixOverlayOperation.cpp
-		operations/COM_MixSaturationOperation.h
-		operations/COM_MixSaturationOperation.cpp
-		operations/COM_MixScreenOperation.h
-		operations/COM_MixScreenOperation.cpp
-		operations/COM_MixSoftLightOperation.h
-		operations/COM_MixSoftLightOperation.cpp
-		operations/COM_MixValueOperation.h
-		operations/COM_MixValueOperation.cpp
-		operations/COM_MixSubtractOperation.h
-		operations/COM_MixSubtractOperation.cpp
+	operations/COM_MixBurnOperation.h
+	operations/COM_MixBurnOperation.cpp
+	operations/COM_MixColorOperation.h
+	operations/COM_MixColorOperation.cpp
+	operations/COM_MixDarkenOperation.h
+	operations/COM_MixDarkenOperation.cpp
+	operations/COM_MixDodgeOperation.h
+	operations/COM_MixDodgeOperation.cpp
+	operations/COM_MixDifferenceOperation.h
+	operations/COM_MixDifferenceOperation.cpp
+	operations/COM_MixDivideOperation.h
+	operations/COM_MixDivideOperation.cpp
+	operations/COM_MixHueOperation.h
+	operations/COM_MixHueOperation.cpp
+	operations/COM_MixLightenOperation.h
+	operations/COM_MixLightenOperation.cpp
+	operations/COM_MixLinearLightOperation.h
+	operations/COM_MixLinearLightOperation.cpp
+	operations/COM_MixOverlayOperation.h
+	operations/COM_MixOverlayOperation.cpp
+	operations/COM_MixSaturationOperation.h
+	operations/COM_MixSaturationOperation.cpp
+	operations/COM_MixScreenOperation.h
+	operations/COM_MixScreenOperation.cpp
+	operations/COM_MixSoftLightOperation.h
+	operations/COM_MixSoftLightOperation.cpp
+	operations/COM_MixValueOperation.h
+	operations/COM_MixValueOperation.cpp
+	operations/COM_MixSubtractOperation.h
+	operations/COM_MixSubtractOperation.cpp
 
 	operations/COM_MathBaseOperation.h
 	operations/COM_MathBaseOperation.cpp
 
-		operations/COM_AlphaOverMixedOperation.h
-		operations/COM_AlphaOverMixedOperation.cpp
-		operations/COM_AlphaOverPremultiplyOperation.h
-		operations/COM_AlphaOverPremultiplyOperation.cpp
-		operations/COM_AlphaOverKeyOperation.h
-		operations/COM_AlphaOverKeyOperation.cpp
+	operations/COM_AlphaOverMixedOperation.h
+	operations/COM_AlphaOverMixedOperation.cpp
+	operations/COM_AlphaOverPremultiplyOperation.h
+	operations/COM_AlphaOverPremultiplyOperation.cpp
+	operations/COM_AlphaOverKeyOperation.h
+	operations/COM_AlphaOverKeyOperation.cpp
 
-		operations/COM_ColorBalanceLGGOperation.h
-		operations/COM_ColorBalanceLGGOperation.cpp
-		operations/COM_ColorBalanceASCCDLOperation.h
-		operations/COM_ColorBalanceASCCDLOperation.cpp
-		operations/COM_InvertOperation.cpp
-		operations/COM_InvertOperation.h
+	operations/COM_ColorBalanceLGGOperation.h
+	operations/COM_ColorBalanceLGGOperation.cpp
+	operations/COM_ColorBalanceASCCDLOperation.h
+	operations/COM_ColorBalanceASCCDLOperation.cpp
+	operations/COM_InvertOperation.cpp
+	operations/COM_InvertOperation.h
 	operations/COM_SetAlphaOperation.cpp
 	operations/COM_SetAlphaOperation.h
 	operations/COM_MapValueOperation.cpp
 	operations/COM_MapValueOperation.h
 
-# Distort operation
-		operations/COM_TranslateOperation.h
-		operations/COM_TranslateOperation.cpp
-		operations/COM_RotateOperation.h
-		operations/COM_RotateOperation.cpp
-		operations/COM_ScaleOperation.h
-		operations/COM_ScaleOperation.cpp
-		operations/COM_MapUVOperation.h
-		operations/COM_MapUVOperation.cpp
-		operations/COM_DisplaceOperation.h
-		operations/COM_DisplaceOperation.cpp
-		operations/COM_DisplaceSimpleOperation.h
-		operations/COM_DisplaceSimpleOperation.cpp
-		operations/COM_FlipOperation.h
-		operations/COM_FlipOperation.cpp
-		operations/COM_ProjectorLensDistortionOperation.cpp
-		operations/COM_ProjectorLensDistortionOperation.h
-		operations/COM_ScreenLensDistortionOperation.cpp
-		operations/COM_ScreenLensDistortionOperation.h
+	# Distort operation
+	operations/COM_TranslateOperation.h
+	operations/COM_TranslateOperation.cpp
+	operations/COM_RotateOperation.h
+	operations/COM_RotateOperation.cpp
+	operations/COM_ScaleOperation.h
+	operations/COM_ScaleOperation.cpp
+	operations/COM_MapUVOperation.h
+	operations/COM_MapUVOperation.cpp
+	operations/COM_DisplaceOperation.h
+	operations/COM_DisplaceOperation.cpp
+	operations/COM_DisplaceSimpleOperation.h
+	operations/COM_DisplaceSimpleOperation.cpp
+	operations/COM_FlipOperation.h
+	operations/COM_FlipOperation.cpp
+	operations/COM_ProjectorLensDistortionOperation.cpp
+	operations/COM_ProjectorLensDistortionOperation.h
+	operations/COM_ScreenLensDistortionOperation.cpp
+	operations/COM_ScreenLensDistortionOperation.h
 
-#Filter operations
+	#Filter operations
 	operations/COM_ConvolutionFilterOperation.h
 	operations/COM_ConvolutionFilterOperation.cpp
 	operations/COM_ConvolutionEdgeFilterOperation.h
@@ -572,7 +570,7 @@ operations/COM_ConvertDepthToRadiusOperation.cpp
 	operations/COM_SetSamplerOperation.h
 
 
-#Convert operations
+	#Convert operations
 	operations/COM_IDMaskOperation.cpp
 	operations/COM_IDMaskOperation.h
 
@@ -583,7 +581,8 @@ operations/COM_ConvertDepthToRadiusOperation.cpp
 
 	operations/COM_DotproductOperation.cpp
 	operations/COM_DotproductOperation.h
-# Matte operation
+
+	# Matte operation
 	operations/COM_BoxMaskOperation.h
 	operations/COM_BoxMaskOperation.cpp
 	operations/COM_EllipseMaskOperation.h

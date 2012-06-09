@@ -38,7 +38,7 @@ void BoxMaskOperation::initExecution()
 {
 	this->inputMask = this->getInputSocketReader(0);
 	this->inputValue = this->getInputSocketReader(1);
-	const double rad = DEG2RAD(this->data->rotation);
+	const double rad = DEG2RAD((double)this->data->rotation);
 	this->cosine = cos(rad);
 	this->sine = sin(rad);
 	this->aspectRatio = ((float)this->getWidth())/this->getHeight();
@@ -60,12 +60,12 @@ void BoxMaskOperation::executePixel(float *color, float x, float y, PixelSampler
 	this->inputMask->read(inputMask, x, y, sampler, inputBuffers);
 	this->inputValue->read(inputValue, x, y, sampler, inputBuffers);
 	
-	float halfHeight = (this->data->height)/2.0f;
-	float halfWidth = this->data->width/2.0f;
-	bool inside = rx > this->data->x-halfWidth
-			&& rx < this->data->x+halfWidth
-			&& ry > this->data->y-halfHeight
-			&& ry < this->data->y+halfHeight;
+	float halfHeight = this->data->height / 2.0f;
+	float halfWidth = this->data->width / 2.0f;
+	bool inside = (rx > this->data->x - halfWidth &&
+	               rx < this->data->x + halfWidth &&
+	               ry > this->data->y - halfHeight &&
+	               ry < this->data->y + halfHeight);
 	
 	switch (this->maskType) {
 		case CMP_NODE_MASKTYPE_ADD:
