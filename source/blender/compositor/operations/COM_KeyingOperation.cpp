@@ -49,12 +49,7 @@ static float get_pixel_saturation(float pixelColor[4], float screen_balance, int
 	float max = MAX2(pixelColor[other_1], pixelColor[other_2]);
 	float val = screen_balance * min + (1.0f - screen_balance) * max;
 
-	// original formula, also used by brecht
-	// works a bit crappy in areas with values > 1.0
-	// return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
-
-	// sergey's test formula
-	return pixelColor[1] - (pixelColor[0] + pixelColor[1]) * 0.5f;
+	return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
 }
 
 KeyingOperation::KeyingOperation(): NodeOperation()
