@@ -1246,7 +1246,7 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 
 ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
                                          ImBuf *search_ibuf, MovieTrackingMarker *marker,
-										 int num_samples_x, int num_samples_y, float pos[2])
+                                         int num_samples_x, int num_samples_y, float pos[2])
 {
 	ImBuf *pattern_ibuf;
 	double src_pixel_x[5], src_pixel_y[5];

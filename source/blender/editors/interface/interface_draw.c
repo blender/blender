@@ -1513,8 +1513,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		ok = 1;
 	}
-	else if ((!scopes->track_preview) ||
-             (scopes->track_preview->x != width || scopes->track_preview->y != height))
+	else if ((scopes->track_search) &&
+	         ((!scopes->track_preview) ||
+	         (scopes->track_preview->x != width || scopes->track_preview->y != height)))
 	{
 		ImBuf *tmpibuf;
 
