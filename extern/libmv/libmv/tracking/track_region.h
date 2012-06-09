@@ -121,7 +121,8 @@ void TrackRegion(const FloatImage &image1,
 bool SamplePlanarPatch(const FloatImage &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,
-                       FloatImage *patch);
+                       FloatImage *patch,
+                       double *warped_position_x, double *warped_position_y);
 
 }  // namespace libmv
 

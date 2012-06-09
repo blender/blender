@@ -1032,6 +1032,11 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 		scopes->track_preview = NULL;
 	}
 
+	if (scopes->track_search) {
+		IMB_freeImBuf(scopes->track_search);
+		scopes->track_search = NULL;
+	}
+
 	scopes->marker = NULL;
 	scopes->track = NULL;
 
@@ -1052,7 +1057,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				scopes->track_disabled = FALSE;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
-					ImBuf *tmpibuf;
+					ImBuf *search_ibuf;
 					MovieTrackingMarker undist_marker = *marker;
 
 					if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
@@ -1070,17 +1075,18 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[1] /= height * aspy;
 					}
 
-					/* NOTE: margin should be kept in sync with value from ui_draw_but_TRACKPREVIEW */
-					tmpibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 3 /* margin */,
-					                                         1 /* anchor */, scopes->track_pos, NULL);
+					search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, &undist_marker, TRUE, TRUE);
 
-					if (tmpibuf->rect_float)
-						IMB_rect_from_float(tmpibuf);
+					if (!search_ibuf->rect_float) {
+						/* sampling happens in float buffer */
+						IMB_float_from_rect(search_ibuf);
+					}
 
-					if (tmpibuf->rect)
-						scopes->track_preview = tmpibuf;
-					else
-						IMB_freeImBuf(tmpibuf);
+					scopes->undist_marker = undist_marker;
+					scopes->track_search = search_ibuf;
+
+					scopes->frame_width = ibuf->x;
+					scopes->frame_height = ibuf->y;
 				}
 
 				IMB_freeImBuf(ibuf);

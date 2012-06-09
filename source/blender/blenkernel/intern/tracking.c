@@ -84,10 +84,11 @@ static struct {
  * window relative coordinates in pixels, and "frame_unified" are unified 0..1
  * coordinates relative to the entire frame.
  */
-static void unified_to_pixel(const ImBuf *ibuf, const float unified_coords[2], float pixel_coords[2])
+static void unified_to_pixel(int frame_width, int frame_height,
+                             const float unified_coords[2], float pixel_coords[2])
 {
-	pixel_coords[0] = unified_coords[0] * ibuf->x;
-	pixel_coords[1] = unified_coords[1] * ibuf->y;
+	pixel_coords[0] = unified_coords[0] * frame_width;
+	pixel_coords[1] = unified_coords[1] * frame_height;
 }
 
 static void marker_to_frame_unified(const MovieTrackingMarker *marker, const float marker_unified_coords[2],
@@ -97,51 +98,116 @@ static void marker_to_frame_unified(const MovieTrackingMarker *marker, const flo
 	frame_unified_coords[1] = marker_unified_coords[1] + marker->pos[1];
 }
 
-static void marker_unified_to_frame_pixel_coordinates(const ImBuf *ibuf, const MovieTrackingMarker *marker,
+static void marker_unified_to_frame_pixel_coordinates(int frame_width, int frame_height,
+                                                      const MovieTrackingMarker *marker,
                                                       const float marker_unified_coords[2], float frame_pixel_coords[2])
 {
 	marker_to_frame_unified(marker, marker_unified_coords, frame_pixel_coords);
-	unified_to_pixel(ibuf, frame_pixel_coords, frame_pixel_coords);
+	unified_to_pixel(frame_width, frame_height, frame_pixel_coords, frame_pixel_coords);
 }
 
-static void get_search_origin_frame_pixel(const ImBuf *ibuf, const MovieTrackingMarker *marker, float frame_pixel[2])
+static void get_search_origin_frame_pixel(int frame_width, int frame_height,
+                                          const MovieTrackingMarker *marker, float frame_pixel[2])
 {
 	/* Get the lower left coordinate of the search window and snap to pixel coordinates */
-	marker_unified_to_frame_pixel_coordinates(ibuf, marker, marker->search_min, frame_pixel);
+	marker_unified_to_frame_pixel_coordinates(frame_width, frame_height, marker, marker->search_min, frame_pixel);
 	frame_pixel[0] = (int)frame_pixel[0];
 	frame_pixel[1] = (int)frame_pixel[1];
 }
 
 #ifdef WITH_LIBMV
-static void pixel_to_unified(const ImBuf *ibuf, const float pixel_coords[2], float unified_coords[2])
+static void pixel_to_unified(int frame_width, int frame_height, const float pixel_coords[2], float unified_coords[2])
 {
-	unified_coords[0] = pixel_coords[0] / ibuf->x;
-	unified_coords[1] = pixel_coords[1] / ibuf->y;
+	unified_coords[0] = pixel_coords[0] / frame_width;
+	unified_coords[1] = pixel_coords[1] / frame_height;
 }
 
-static void marker_unified_to_search_pixel(const ImBuf *ibuf, const MovieTrackingMarker *marker,
+static void marker_unified_to_search_pixel(int frame_width, int frame_height,
+                                           const MovieTrackingMarker *marker,
                                            const float marker_unified[2], float search_pixel[2])
 {
 	float frame_pixel[2];
 	float search_origin_frame_pixel[2];
 
-	marker_unified_to_frame_pixel_coordinates(ibuf, marker, marker_unified, frame_pixel);
-	get_search_origin_frame_pixel(ibuf, marker, search_origin_frame_pixel);
+	marker_unified_to_frame_pixel_coordinates(frame_width, frame_height, marker, marker_unified, frame_pixel);
+	get_search_origin_frame_pixel(frame_width, frame_height, marker, search_origin_frame_pixel);
 	sub_v2_v2v2(search_pixel, frame_pixel, search_origin_frame_pixel);
 }
 
-static void search_pixel_to_marker_unified(const ImBuf *ibuf, const MovieTrackingMarker *marker,
+static void search_pixel_to_marker_unified(int frame_width, int frame_height,
+                                           const MovieTrackingMarker *marker,
                                            const float search_pixel[2], float marker_unified[2])
 {
 	float frame_unified[2];
 	float search_origin_frame_pixel[2];
 
-	get_search_origin_frame_pixel(ibuf, marker, search_origin_frame_pixel);
+	get_search_origin_frame_pixel(frame_width, frame_height, marker, search_origin_frame_pixel);
 	add_v2_v2v2(frame_unified, search_pixel, search_origin_frame_pixel);
-	pixel_to_unified(ibuf, frame_unified, frame_unified);
+	pixel_to_unified(frame_width, frame_height, frame_unified, frame_unified);
 
 	/* marker pos is in frame unified */
 	sub_v2_v2v2(marker_unified, frame_unified, marker->pos);
+}
+
+/* Each marker has 5 coordinates associated with it that get warped with
+ * tracking: the four corners ("pattern_corners"), and the cernter ("pos").
+ * This function puts those 5 points into the appropriate frame for tracking
+ * (the "search" coordinate frame).
+ */
+static void get_marker_coords_for_tracking(int frame_width, int frame_height,
+                                           const MovieTrackingMarker *marker,
+                                           double search_pixel_x[5], double search_pixel_y[5])
+{
+	int i;
+	float unified_coords[2];
+	float pixel_coords[2];
+
+	/* Convert the corners into search space coordinates. */
+	for (i = 0; i < 4; i++) {
+		marker_unified_to_search_pixel(frame_width, frame_height, marker, marker->pattern_corners[i], pixel_coords);
+		search_pixel_x[i] = pixel_coords[0];
+		search_pixel_y[i] = pixel_coords[1];
+	}
+	/* Convert the center position (aka "pos"); this is the origin */
+	unified_coords[0] = 0.0;
+	unified_coords[1] = 0.0;
+	marker_unified_to_search_pixel(frame_width, frame_height, marker, unified_coords, pixel_coords);
+
+	search_pixel_x[4] = pixel_coords[0];
+	search_pixel_y[4] = pixel_coords[1];
+}
+
+/* Inverse of above. */
+static void set_marker_coords_from_tracking(int frame_width, int frame_height, MovieTrackingMarker *marker,
+                                            const double search_pixel_x[5], const double search_pixel_y[5])
+{
+	int i;
+	float marker_unified[2];
+	float search_pixel[2];
+
+	/* Convert the corners into search space coordinates. */
+	for (i = 0; i < 4; i++) {
+		search_pixel[0] = search_pixel_x[i];
+		search_pixel[1] = search_pixel_y[i];
+		search_pixel_to_marker_unified(frame_width, frame_height, marker, search_pixel, marker->pattern_corners[i]);
+	}
+
+	/* Convert the center position (aka "pos"); this is the origin */
+	search_pixel[0] = search_pixel_x[4];
+	search_pixel[1] = search_pixel_y[4];
+	search_pixel_to_marker_unified(frame_width, frame_height, marker, search_pixel, marker_unified);
+
+	/* If the tracker tracked nothing, then "marker_unified" would be zero.
+	 * Otherwise, the entire patch shifted, and that delta should be applied to
+	 * all the coordinates.
+	 */
+	for (i = 0; i < 4; i++) {
+		marker->pattern_corners[i][0] -= marker_unified[0];
+		marker->pattern_corners[i][1] -= marker_unified[1];
+	}
+
+	marker->pos[0] += marker_unified[0];
+	marker->pos[1] += marker_unified[1];
 }
 #endif
 
@@ -1178,101 +1244,74 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 			track->flag & TRACK_DISABLE_GREEN, track->flag & TRACK_DISABLE_BLUE, grayscale);
 }
 
-static ImBuf *get_area_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                             float min[2], float max[2], int margin, int anchored,
-							 int grayscale, float pos[2], int origin[2])
+ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
+                                         ImBuf *search_ibuf, MovieTrackingMarker *marker,
+										 int num_samples_x, int num_samples_y, float pos[2])
 {
-	ImBuf *tmpibuf;
-	int x, y;
-	int x1, y1, w, h;
-	float mpos[2];
+	ImBuf *pattern_ibuf;
+	double src_pixel_x[5], src_pixel_y[5];
+	double warped_position_x, warped_position_y;
 
-	copy_v2_v2(mpos, marker->pos);
-	if (anchored)
-		add_v2_v2(mpos, track->offset);
+	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
+	pattern_ibuf->profile = IB_PROFILE_LINEAR_RGB;
 
-	if (pos)
-		zero_v2(pos);
-
-	x = mpos[0]*ibuf->x;
-	y = mpos[1]*ibuf->y;
-
-	w = (max[0] - min[0]) * ibuf->x;
-	h = (max[1] - min[1]) * ibuf->y;
-
-	/* dimensions should be odd */
-	w = w | 1;
-	h = h | 1;
-
-	x1 = x - (int)(w * (-min[0] / (max[0] - min[0])));
-	y1 = y - (int)(h * (-min[1] / (max[1] - min[1])));
-
-	if (ibuf->rect_float)
-		tmpibuf = IMB_allocImBuf(w + margin * 2, h + margin * 2, 32, IB_rectfloat);
-	else
-		tmpibuf = IMB_allocImBuf(w + margin * 2, h + margin * 2, 32, IB_rect);
-
-	tmpibuf->profile = ibuf->profile;
-
-	IMB_rectcpy(tmpibuf, ibuf, 0, 0, x1 - margin, y1 - margin, w + margin * 2, h + margin * 2);
-
-	if (pos != NULL) {
-		pos[0] = mpos[0] * ibuf->x - x1 + margin;
-		pos[1] = mpos[1] * ibuf->y - y1 + margin;
+	if (!search_ibuf->rect_float) {
+		IMB_float_from_rect(search_ibuf);
 	}
 
-	if (origin != NULL) {
-		origin[0] = x1 - margin;
-		origin[1] = y1 - margin;
+	get_marker_coords_for_tracking(frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
+
+	libmv_samplePlanarPatch(search_ibuf->rect_float, search_ibuf->x, search_ibuf->y, 4,
+	                        src_pixel_x, src_pixel_y, num_samples_x,
+	                        num_samples_y, pattern_ibuf->rect_float,
+	                        &warped_position_x, &warped_position_y);
+
+	if (pos) {
+		pos[0] = warped_position_x;
+		pos[1] = warped_position_y;
 	}
 
-	if (grayscale) {
-		if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
-		    (track->flag & TRACK_DISABLE_RED)       ||
-		    (track->flag & TRACK_DISABLE_GREEN)     ||
-		    (track->flag & TRACK_DISABLE_BLUE))
-		{
-			disable_imbuf_channels(tmpibuf, track, TRUE /* grayscale */);
-		}
-	}
-
-	return tmpibuf;
+	return pattern_ibuf;
 }
 
 ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                      int margin, int anchored, float pos[2], int origin[2])
+									  int anchored, int disable_channels)
 {
+	ImBuf *pattern_ibuf, *search_ibuf;
 	float pat_min[2], pat_max[2];
+	int num_samples_x, num_samples_y;
 
-	/* XXX: need to do real quad sampling here, but currently just assume
-	 *      corners represents quad pattern
-	 */
 	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
 
-	return get_area_imbuf(ibuf, track, marker, pat_min, pat_max, margin, anchored, TRUE, pos, origin);
+	num_samples_x = (pat_max[0] - pat_min[0]) * ibuf->x;
+	num_samples_y = (pat_max[1] - pat_min[1]) * ibuf->y;
+
+	search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, anchored, disable_channels);
+
+	pattern_ibuf = BKE_tracking_sample_pattern_imbuf(ibuf->x, ibuf->y, search_ibuf, marker,
+	                                                 num_samples_x, num_samples_y, NULL);
+
+	IMB_freeImBuf(search_ibuf);
+
+	return pattern_ibuf;
 }
 
-ImBuf *BKE_tracking_get_pattern_color_imbuf(ImBuf *ibuf, MovieTrackingTrack *track,
-                                            MovieTrackingMarker *marker, int anchored)
-{
-	float pat_min[2], pat_max[2];
-
-	/* see comment above */
-	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
-
-	return get_area_imbuf(ibuf, track, marker, pat_min, pat_max, 0, anchored, FALSE, NULL, NULL);
-}
-
-ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker)
+ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                     int anchored, int disable_channels)
 {
 	ImBuf *searchibuf;
 	int x, y, w, h;
 	float search_origin[2];
 
-	get_search_origin_frame_pixel(ibuf, marker, search_origin);
+	get_search_origin_frame_pixel(ibuf->x, ibuf->y, marker, search_origin);
 
 	x = search_origin[0];
 	y = search_origin[1];
+
+	if (anchored) {
+		x += track->offset[0] * ibuf->x;
+		y += track->offset[1] * ibuf->y;
+	}
 
 	w = (marker->search_max[0] - marker->search_min[0]) * ibuf->x;
 	h = (marker->search_max[1] - marker->search_min[1]) * ibuf->y;
@@ -1282,12 +1321,14 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
 
 	IMB_rectcpy(searchibuf, ibuf, 0, 0, x, y, w, h);
 
-	if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
-	    (track->flag & TRACK_DISABLE_RED)       ||
-	    (track->flag & TRACK_DISABLE_GREEN)     ||
-	    (track->flag & TRACK_DISABLE_BLUE))
-	{
-		disable_imbuf_channels(searchibuf, track, FALSE);
+	if (disable_channels) {
+		if ((track->flag & TRACK_PREVIEW_GRAYSCALE) ||
+		    (track->flag & TRACK_DISABLE_RED)       ||
+		    (track->flag & TRACK_DISABLE_GREEN)     ||
+		    (track->flag & TRACK_DISABLE_BLUE))
+		{
+			disable_imbuf_channels(searchibuf, track, TRUE);
+		}
 	}
 
 	return searchibuf;
@@ -1424,7 +1465,7 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	float *gray_pixels;
 	int width, height;
 
-	searchibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker);
+	searchibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, FALSE, TRUE);
 
 	width = searchibuf->x;
 	height = searchibuf->y;
@@ -1446,66 +1487,6 @@ static float *get_search_floatbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieT
 	IMB_freeImBuf(searchibuf);
 
 	return gray_pixels;
-}
-
-/* Each marker has 5 coordinates associated with it that get warped with
- * tracking: the four corners ("pattern_corners"), and the cernter ("pos").
- * This function puts those 5 points into the appropriate frame for tracking
- * (the "search" coordinate frame).
- */
-static void get_marker_coords_for_tracking(const ImBuf *ibuf, const MovieTrackingMarker *marker,
-                                           double search_pixel_x[5], double search_pixel_y[5])
-{
-	int i;
-	float unified_coords[2];
-	float pixel_coords[2];
-
-	/* Convert the corners into search space coordinates. */
-	for (i = 0; i < 4; i++) {
-		marker_unified_to_search_pixel(ibuf, marker, marker->pattern_corners[i], pixel_coords);
-		search_pixel_x[i] = pixel_coords[0];
-		search_pixel_y[i] = pixel_coords[1];
-	}
-	/* Convert the center position (aka "pos"); this is the origin */
-	unified_coords[0] = 0.0;
-	unified_coords[1] = 0.0;
-	marker_unified_to_search_pixel(ibuf, marker, unified_coords, pixel_coords);
-
-	search_pixel_x[4] = pixel_coords[0];
-	search_pixel_y[4] = pixel_coords[1];
-}
-
-/* Inverse of above. */
-static void set_marker_coords_from_tracking(const ImBuf *ibuf, MovieTrackingMarker *marker,
-                                            const double search_pixel_x[5], const double search_pixel_y[5])
-{
-	int i;
-	float marker_unified[2];
-	float search_pixel[2];
-
-	/* Convert the corners into search space coordinates. */
-	for (i = 0; i < 4; i++) {
-		search_pixel[0] = search_pixel_x[i];
-		search_pixel[1] = search_pixel_y[i];
-		search_pixel_to_marker_unified(ibuf, marker, search_pixel, marker->pattern_corners[i]);
-	}
-
-	/* Convert the center position (aka "pos"); this is the origin */
-	search_pixel[0] = search_pixel_x[4];
-	search_pixel[1] = search_pixel_y[4];
-	search_pixel_to_marker_unified(ibuf, marker, search_pixel, marker_unified);
-
-	/* If the tracker tracked nothing, then "marker_unified" would be zero.
-	 * Otherwise, the entire patch shifted, and that delta should be applied to
-	 * all the coordinates.
-	 */
-	for (i = 0; i < 4; i++) {
-		marker->pattern_corners[i][0] -= marker_unified[0];
-		marker->pattern_corners[i][1] -= marker_unified[1];
-	}
-
-	marker->pos[0] += marker_unified[0];
-	marker->pos[1] += marker_unified[1];
 }
 
 static unsigned char *get_ucharbuf(ImBuf *ibuf)
@@ -1633,6 +1614,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	int curfra =  BKE_movieclip_remap_scene_to_clip_frame(context->clip, context->user.framenr);
 	int a, ok = FALSE, map_size;
 
+	int frame_width, frame_height;
+
 	map_size = tracks_map_size(context->tracks_map);
 
 	/* nothing to track, avoid unneeded frames reading to save time and memory */
@@ -1648,6 +1631,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	                                               context->clip_flag, MOVIECLIP_CACHE_SKIP);
 	if (!destination_ibuf)
 		return FALSE;
+
+	frame_width = destination_ibuf->x;
+	frame_height = destination_ibuf->y;
 
 	#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size>1)
 	for (a = 0; a < map_size; a++) {
@@ -1739,8 +1725,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				options.sigma = 0.9;
 
 				/* Convert the marker corners and center into pixel coordinates in the search/destination images. */
-				get_marker_coords_for_tracking(destination_ibuf, &track_context->marker, src_pixel_x, src_pixel_y);
-				get_marker_coords_for_tracking(destination_ibuf, marker, dst_pixel_x, dst_pixel_y);
+				get_marker_coords_for_tracking(frame_width, frame_height, &track_context->marker, src_pixel_x, src_pixel_y);
+				get_marker_coords_for_tracking(frame_width, frame_height, marker, dst_pixel_x, dst_pixel_y);
 
 				/* Run the tracker! */
 				tracked = libmv_trackRegion(&options,
@@ -1755,7 +1741,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 			if (tracked && !onbound) {
 				memset(&marker_new, 0, sizeof(marker_new));
 				marker_new = *marker;
-				set_marker_coords_from_tracking(destination_ibuf, &marker_new, dst_pixel_x, dst_pixel_y);
+				set_marker_coords_from_tracking(frame_width, frame_height, &marker_new, dst_pixel_x, dst_pixel_y);
 				marker_new.flag |= MARKER_TRACKED;
 				marker_new.framenr = nextfra;
 

@@ -92,6 +92,9 @@ typedef struct MovieClip {
 typedef struct MovieClipScopes {
 	int ok;							/* 1 means scopes are ok and recalculation is unneeded */
 	int track_preview_height;		/* height of track preview widget */
+	int frame_width, frame_height;		/* width and height of frame for which scopes are calculated */
+	struct MovieTrackingMarker undist_marker;	/* undistorted position of marker used for pattern sampling */
+	struct ImBuf *track_search;	/* search area of a track */
 	struct ImBuf *track_preview;	/* ImBuf displayed in track preview */
 	float track_pos[2];				/* sub-pizel position of marker in track ImBuf */
 	short track_disabled;			/* active track is disabled, special notifier should be drawn */

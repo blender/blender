@@ -71,13 +71,13 @@ void BKE_tracking_clear_path(struct MovieTrackingTrack *track, int ref_frame, in
 void BKE_tracking_join_tracks(struct MovieTrackingTrack *dst_track, struct MovieTrackingTrack *src_track);
 void BKE_tracking_free(struct MovieTracking *tracking);
 
+struct ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
+                                                struct ImBuf *struct_ibuf, struct MovieTrackingMarker *marker,
+                                                int num_samples_x, int num_samples_y, float pos[2]);
 struct ImBuf *BKE_tracking_get_pattern_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
-                                             struct MovieTrackingMarker *marker, int margin, int anchored,
-                                             float pos[2], int origin[2]);
-struct ImBuf *BKE_tracking_get_pattern_color_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
-                                                   struct MovieTrackingMarker *marker, int anchored);
+                                             struct MovieTrackingMarker *marker, int anchored, int disable_channels);
 struct ImBuf *BKE_tracking_get_search_imbuf(struct ImBuf *ibuf, struct MovieTrackingTrack *track,
-                                            struct MovieTrackingMarker *marker);
+                                            struct MovieTrackingMarker *marker, int anchored, int disable_channels);
 struct ImBuf *BKE_tracking_track_mask_get(struct MovieTracking *tracking, struct MovieTrackingTrack *track,
                                           struct MovieTrackingMarker *marker, int width, int height);
 

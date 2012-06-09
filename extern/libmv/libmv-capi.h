@@ -71,6 +71,11 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
                       struct libmv_trackRegionResult *result,
                       double *x2, double *y2);
 
+void libmv_samplePlanarPatch(const float *image, int width, int height,
+                             int channels, const double *xs, const double *ys,
+                             int num_samples_x, int num_samples_y, float *patch,
+                             double *warped_position_x, double *warped_position_y);
+
 /* Tracks */
 struct libmv_Tracks *libmv_tracksNew(void);
 void libmv_tracksInsert(struct libmv_Tracks *libmv_tracks, int image, int track, double x, double y);

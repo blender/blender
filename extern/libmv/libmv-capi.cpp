@@ -163,15 +163,30 @@ libmv_RegionTracker *libmv_bruteRegionTrackerNew(int half_window_size, double mi
 	return (libmv_RegionTracker *)brute_region_tracker;
 }
 
-static void floatBufToImage(const float *buf, int width, int height, libmv::FloatImage *image)
+static void floatBufToImage(const float *buf, int width, int height, int channels, libmv::FloatImage *image)
 {
-	int x, y, a = 0;
+	int x, y, k, a = 0;
 
-	image->resize(height, width);
+	image->Resize(height, width, channels);
 
 	for (y = 0; y < height; y++) {
 		for (x = 0; x < width; x++) {
-			(*image)(y, x, 0) = buf[a++];
+			for (k = 0; k < channels; k++) {
+				(*image)(y, x, k) = buf[a++];
+			}
+		}
+	}
+}
+
+static void imageToFloatBuf(const libmv::FloatImage *image, int channels, float *buf)
+{
+	int x, y, k, a = 0;
+
+	for (y = 0; y < image->Height(); y++) {
+		for (x = 0; x < image->Width(); x++) {
+			for (k = 0; k < channels; k++) {
+				buf[a++] = (*image)(y, x, k);
+			}
 		}
 	}
 }
@@ -307,8 +322,8 @@ int libmv_regionTrackerTrack(libmv_RegionTracker *libmv_tracker, const float *im
 	libmv::RegionTracker *region_tracker = (libmv::RegionTracker *)libmv_tracker;
 	libmv::FloatImage old_patch, new_patch;
 
-	floatBufToImage(ima1, width, height, &old_patch);
-	floatBufToImage(ima2, width, height, &new_patch);
+	floatBufToImage(ima1, width, height, 1, &old_patch);
+	floatBufToImage(ima2, width, height, 1, &new_patch);
 
 #if !defined(DUMP_FAILURE) && !defined(DUMP_ALWAYS)
 	return region_tracker->Track(old_patch, new_patch, x1, y1, x2, y2);
@@ -385,8 +400,8 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 
 	/* Convert from raw float buffers to libmv's FloatImage. */
 	libmv::FloatImage old_patch, new_patch;
-	floatBufToImage(image1, width, height, &old_patch);
-	floatBufToImage(image2, width, height, &new_patch);
+	floatBufToImage(image1, width, height, 1, &old_patch);
+	floatBufToImage(image2, width, height, 1, &new_patch);
 
 	libmv::TrackRegionResult track_region_result;
 	libmv::TrackRegion(old_patch, new_patch, xx1, yy1, track_region_options, xx2, yy2, &track_region_result);
@@ -418,6 +433,21 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 #endif
 
 	return tracking_result;
+}
+
+void libmv_samplePlanarPatch(const float *image, int width, int height,
+                             int channels, const double *xs, const double *ys,
+                             int num_samples_x, int num_samples_y, float *patch,
+                             double *warped_position_x, double *warped_position_y)
+{
+	libmv::FloatImage libmv_image, libmv_patch;
+
+	floatBufToImage(image, width, height, channels, &libmv_image);
+
+	libmv::SamplePlanarPatch(libmv_image, xs, ys, num_samples_x, num_samples_y,
+	                         &libmv_patch, warped_position_x, warped_position_y);
+
+	imageToFloatBuf(&libmv_patch, channels, patch);
 }
 
 /* ************ Tracks ************ */

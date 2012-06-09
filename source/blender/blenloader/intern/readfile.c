@@ -5362,6 +5362,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
 						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
 
+						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
 						sclip->scopes.ok = 0;
