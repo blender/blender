@@ -44,7 +44,7 @@ public:
 	float3 min, max;
 	bool use_minmax;
 
-	enum Mapping { NONE=0, X=1, Y=2, Z=3 };
+	enum Mapping { NONE = 0, X = 1, Y = 2, Z = 3 };
 	Mapping x_mapping, y_mapping, z_mapping;
 
 	enum Projection { FLAT, CUBE, TUBE, SPHERE };

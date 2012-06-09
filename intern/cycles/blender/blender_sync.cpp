@@ -105,10 +105,13 @@ bool BlenderSync::sync_recalc()
 
 	BL::BlendData::worlds_iterator b_world;
 
-	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world)
+	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world) {
 		if(world_map == b_world->ptr.data &&
-			(b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
+		   (b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
+		{
 			world_recalc = true;
+		}
+	}
 
 	bool recalc =
 		shader_map.has_recalc() ||

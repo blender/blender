@@ -145,7 +145,7 @@ void BlenderSync::sync_particles(Object *ob, BL::Object b_ob)
 	for(b_ob.particle_systems.begin(b_psys); b_psys != b_ob.particle_systems.end(); ++b_psys) {
 		if (use_particle_system(*b_psys)) {
 			BL::ParticleSystem::particles_iterator b_pa;
-			for(b_psys->particles.begin(b_pa), index=0; b_pa != b_psys->particles.end(); ++b_pa, ++index) {
+			for(b_psys->particles.begin(b_pa), index = 0; b_pa != b_psys->particles.end(); ++b_pa, ++index) {
 				if(use_particle(*b_pa)) {
 					Particle pa;
 					

@@ -172,8 +172,8 @@ static void display()
 
 static void resize(int width, int height)
 {
-	options.width= width;
-	options.height= height;
+	options.width = width;
+	options.height = height;
 
 	if(options.session)
 		options.session->reset(session_buffer_params(), options.session_params.samples);
@@ -197,8 +197,8 @@ static int files_parse(int argc, const char *argv[])
 
 static void options_parse(int argc, const char **argv)
 {
-	options.width= 0;
-	options.height= 0;
+	options.width = 0;
+	options.height = 0;
 	options.filepath = "";
 	options.session = NULL;
 	options.quiet = false;

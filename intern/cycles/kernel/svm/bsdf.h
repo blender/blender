@@ -47,7 +47,7 @@ __device float fresnel_dielectric(float eta, const float3 N,
 	float cos = dot(N, I), neta;
 	float3 Nn;
 	// compute reflection
-	*R =(2 * cos)* N - I;
+	*R = (2 * cos)* N - I;
 #ifdef __RAY_DIFFERENTIALS__
 	*dRdx = (2 * dot(N, dIdx)) * N - dIdx;
 	*dRdy = (2 * dot(N, dIdy)) * N - dIdy;
@@ -65,18 +65,18 @@ __device float fresnel_dielectric(float eta, const float3 N,
 		Nn   = -N;
 		*is_inside = true;
 	}
-	*R =(2 * cos)* Nn - I;
+	*R = (2 * cos)* Nn - I;
 	float arg = 1 -(neta * neta *(1 -(cos * cos)));
 	if(arg < 0) {
-		*T= make_float3(0.0f, 0.0f, 0.0f);
+		*T = make_float3(0.0f, 0.0f, 0.0f);
 #ifdef __RAY_DIFFERENTIALS__
-		*dTdx= make_float3(0.0f, 0.0f, 0.0f);
-		*dTdy= make_float3(0.0f, 0.0f, 0.0f);
+		*dTdx = make_float3(0.0f, 0.0f, 0.0f);
+		*dTdy = make_float3(0.0f, 0.0f, 0.0f);
 #endif
 		return 1; // total internal reflection
 	} else {
 		float dnp = sqrtf(arg);
-		float nK =(neta * cos)- dnp;
+		float nK = (neta * cos)- dnp;
 		*T = -(neta * I)+(nK * Nn);
 #ifdef __RAY_DIFFERENTIALS__
 		*dTdx = -(neta * dIdx) + ((neta - neta * neta * cos / dnp) * dot(dIdx, Nn)) * Nn;
@@ -85,8 +85,8 @@ __device float fresnel_dielectric(float eta, const float3 N,
 		// compute Fresnel terms
 		float cosTheta1 = cos; // N.R
 		float cosTheta2 = -dot(Nn, *T);
-		float pPara =(cosTheta1 - eta * cosTheta2)/(cosTheta1 + eta * cosTheta2);
-		float pPerp =(eta * cosTheta1 - cosTheta2)/(eta * cosTheta1 + cosTheta2);
+		float pPara = (cosTheta1 - eta * cosTheta2)/(cosTheta1 + eta * cosTheta2);
+		float pPerp = (eta * cosTheta1 - cosTheta2)/(eta * cosTheta1 + cosTheta2);
 		return 0.5f * (pPara * pPara + pPerp * pPerp);
 	}
 }
@@ -99,8 +99,8 @@ __device float fresnel_dielectric_cos(float cosi, float eta)
 	float g = eta * eta - 1 + c * c;
 	if(g > 0) {
 		g = sqrtf(g);
-		float A =(g - c)/(g + c);
-		float B =(c *(g + c)- 1)/(c *(g - c)+ 1);
+		float A = (g - c)/(g + c);
+		float B = (c *(g + c)- 1)/(c *(g - c)+ 1);
 		return 0.5f * A * A *(1 + B * B);
 	}
 	return 1.0f; // TIR(no refracted component)
@@ -110,10 +110,10 @@ __device float fresnel_conductor(float cosi, float eta, float k)
 {
 	float tmp_f = eta * eta + k * k;
 	float tmp = tmp_f * cosi * cosi;
-	float Rparl2 =(tmp -(2.0f * eta * cosi)+ 1)/
-				 (tmp +(2.0f * eta * cosi)+ 1);
-	float Rperp2 =(tmp_f -(2.0f * eta * cosi)+ cosi * cosi)/
-				 (tmp_f +(2.0f * eta * cosi)+ cosi * cosi);
+	float Rparl2 = (tmp - (2.0f * eta * cosi) + 1)/
+	               (tmp + (2.0f * eta * cosi) + 1);
+	float Rperp2 = (tmp_f - (2.0f * eta * cosi) + cosi * cosi)/
+	               (tmp_f + (2.0f * eta * cosi) + cosi * cosi);
 	return(Rparl2 + Rperp2) * 0.5f;
 }
 

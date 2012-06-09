@@ -784,7 +784,9 @@ void BlenderSync::sync_lamps()
 				if(b_lamp->type() == BL::Lamp::type_POINT ||
 				   b_lamp->type() == BL::Lamp::type_SPOT ||
 				   b_lamp->type() == BL::Lamp::type_AREA)
+				{
 					strength = 100.0f;
+				}
 
 				closure = graph->add(new EmissionNode());
 				closure->input("Color")->value = get_float3(b_lamp->color());

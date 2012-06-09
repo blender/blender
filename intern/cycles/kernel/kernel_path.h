@@ -137,9 +137,12 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
 		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
+		{
 			return 0.0f;
-		else if(state->bounce <= kernel_data.integrator.min_bounce)
+		}
+		else if(state->bounce <= kernel_data.integrator.min_bounce) {
 			return 1.0f;
+		}
 	}
 
 	/* probalistic termination */

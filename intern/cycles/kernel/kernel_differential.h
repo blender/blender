@@ -49,9 +49,9 @@ __device void differential_dudv(differential *du, differential *dv, float3 dPdu,
 	 * mainly used for differentials of arbitrary mesh attributes. */
 
 	/* find most stable axis to project to 2D */
-	float xn= fabsf(Ng.x);
-	float yn= fabsf(Ng.y);
-	float zn= fabsf(Ng.z);
+	float xn = fabsf(Ng.x);
+	float yn = fabsf(Ng.y);
+	float zn = fabsf(Ng.z);
 
 	if(zn < xn || zn < yn) {
 		if(yn < xn || yn < zn) {

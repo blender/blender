@@ -221,7 +221,7 @@ __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float o
 	int i, n;
 
 	octaves = clamp(octaves, 0.0f, 16.0f);
-	n= (int)octaves;
+	n = (int)octaves;
 
 	for(i = 0; i <= n; i++) {
 		float t = noise_basis(fscale*p, basis);

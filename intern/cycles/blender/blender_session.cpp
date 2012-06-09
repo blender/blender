@@ -83,8 +83,8 @@ void BlenderSession::create_session()
 	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	/* reset status/progress */
-	last_status= "";
-	last_progress= -1.0f;
+	last_status = "";
+	last_progress = -1.0f;
 
 	/* create scene */
 	scene = new Scene(scene_params);
@@ -292,7 +292,8 @@ void BlenderSession::synchronize()
 	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	if(session->params.modified(session_params) ||
-	   scene->params.modified(scene_params)) {
+	   scene->params.modified(scene_params))
+	{
 		free_session();
 		create_session();
 		session->start();

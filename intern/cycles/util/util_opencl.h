@@ -339,8 +339,8 @@ typedef cl_uint             cl_command_type;
 typedef cl_uint             cl_profiling_info;
 
 typedef struct _cl_image_format {
-    cl_channel_order        image_channel_order;
-    cl_channel_type         image_channel_data_type;
+	cl_channel_order        image_channel_order;
+	cl_channel_type         image_channel_data_type;
 } cl_image_format;
 
 

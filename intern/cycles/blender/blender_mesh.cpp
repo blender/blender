@@ -46,7 +46,7 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	float3 *N = attr_N->data_float3();
 
 	for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v, ++N)
-		*N= get_float3(v->normal());
+		*N = get_float3(v->normal());
 
 	/* create faces */
 	BL::Mesh::tessfaces_iterator f;
@@ -175,7 +175,7 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 	for(b_mesh.tessfaces.begin(f); f != b_mesh.tessfaces.end(); ++f) {
 		int4 vi = get_int4(f->vertices_raw());
-		int n= (vi[3] == 0)? 3: 4;
+		int n = (vi[3] == 0) ? 3: 4;
 		//int shader = used_shaders[f->material_index()];
 
 		if(n == 4)

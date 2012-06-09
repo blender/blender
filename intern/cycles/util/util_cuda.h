@@ -56,225 +56,225 @@ typedef struct CUstream_st *CUstream;
 typedef struct CUgraphicsResource_st *CUgraphicsResource;
 
 typedef struct CUuuid_st {
-    char bytes[16];
+	char bytes[16];
 } CUuuid;
 
 typedef enum CUctx_flags_enum {
-    CU_CTX_SCHED_AUTO  = 0,
-    CU_CTX_SCHED_SPIN  = 1,
-    CU_CTX_SCHED_YIELD = 2,
-    CU_CTX_SCHED_MASK  = 0x3,
-    CU_CTX_BLOCKING_SYNC = 4,
-    CU_CTX_MAP_HOST = 8,
-    CU_CTX_LMEM_RESIZE_TO_MAX = 16,
-    CU_CTX_FLAGS_MASK  = 0x1f
+	CU_CTX_SCHED_AUTO  = 0,
+	CU_CTX_SCHED_SPIN  = 1,
+	CU_CTX_SCHED_YIELD = 2,
+	CU_CTX_SCHED_MASK  = 0x3,
+	CU_CTX_BLOCKING_SYNC = 4,
+	CU_CTX_MAP_HOST = 8,
+	CU_CTX_LMEM_RESIZE_TO_MAX = 16,
+	CU_CTX_FLAGS_MASK  = 0x1f
 } CUctx_flags;
 
 typedef enum CUevent_flags_enum {
-    CU_EVENT_DEFAULT        = 0,
-    CU_EVENT_BLOCKING_SYNC  = 1,
-    CU_EVENT_DISABLE_TIMING = 2
+	CU_EVENT_DEFAULT        = 0,
+	CU_EVENT_BLOCKING_SYNC  = 1,
+	CU_EVENT_DISABLE_TIMING = 2
 } CUevent_flags;
 
 typedef enum CUarray_format_enum {
-    CU_AD_FORMAT_UNSIGNED_INT8  = 0x01,
-    CU_AD_FORMAT_UNSIGNED_INT16 = 0x02,
-    CU_AD_FORMAT_UNSIGNED_INT32 = 0x03,
-    CU_AD_FORMAT_SIGNED_INT8    = 0x08,
-    CU_AD_FORMAT_SIGNED_INT16   = 0x09,
-    CU_AD_FORMAT_SIGNED_INT32   = 0x0a,
-    CU_AD_FORMAT_HALF           = 0x10,
-    CU_AD_FORMAT_FLOAT          = 0x20
+	CU_AD_FORMAT_UNSIGNED_INT8  = 0x01,
+	CU_AD_FORMAT_UNSIGNED_INT16 = 0x02,
+	CU_AD_FORMAT_UNSIGNED_INT32 = 0x03,
+	CU_AD_FORMAT_SIGNED_INT8    = 0x08,
+	CU_AD_FORMAT_SIGNED_INT16   = 0x09,
+	CU_AD_FORMAT_SIGNED_INT32   = 0x0a,
+	CU_AD_FORMAT_HALF           = 0x10,
+	CU_AD_FORMAT_FLOAT          = 0x20
 } CUarray_format;
 
 typedef enum CUaddress_mode_enum {
-    CU_TR_ADDRESS_MODE_WRAP   = 0,
-    CU_TR_ADDRESS_MODE_CLAMP  = 1,
-    CU_TR_ADDRESS_MODE_MIRROR = 2,
-    CU_TR_ADDRESS_MODE_BORDER = 3
+	CU_TR_ADDRESS_MODE_WRAP   = 0,
+	CU_TR_ADDRESS_MODE_CLAMP  = 1,
+	CU_TR_ADDRESS_MODE_MIRROR = 2,
+	CU_TR_ADDRESS_MODE_BORDER = 3
 } CUaddress_mode;
 
 typedef enum CUfilter_mode_enum {
-    CU_TR_FILTER_MODE_POINT  = 0,
-    CU_TR_FILTER_MODE_LINEAR = 1
+	CU_TR_FILTER_MODE_POINT  = 0,
+	CU_TR_FILTER_MODE_LINEAR = 1
 } CUfilter_mode;
 
 typedef enum CUdevice_attribute_enum {
-    CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1,
-    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X = 2,
-    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y = 3,
-    CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z = 4,
-    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X = 5,
-    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y = 6,
-    CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z = 7,
-    CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8,
-    CU_DEVICE_ATTRIBUTE_SHARED_MEMORY_PER_BLOCK = 8,
-    CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY = 9,
-    CU_DEVICE_ATTRIBUTE_WARP_SIZE = 10,
-    CU_DEVICE_ATTRIBUTE_MAX_PITCH = 11,
-    CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK = 12,
-    CU_DEVICE_ATTRIBUTE_REGISTERS_PER_BLOCK = 12,
-    CU_DEVICE_ATTRIBUTE_CLOCK_RATE = 13,
-    CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT = 14,
-    CU_DEVICE_ATTRIBUTE_GPU_OVERLAP = 15,
-    CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT = 16,
-    CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT = 17,
-    CU_DEVICE_ATTRIBUTE_INTEGRATED = 18,
-    CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY = 19,
-    CU_DEVICE_ATTRIBUTE_COMPUTE_MODE = 20,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_WIDTH = 21,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_WIDTH = 22,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_HEIGHT = 23,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_WIDTH = 24,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_HEIGHT = 25,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_DEPTH = 26,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_WIDTH = 27,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_HEIGHT = 28,
-    CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_NUMSLICES = 29,
-    CU_DEVICE_ATTRIBUTE_SURFACE_ALIGNMENT = 30,
-    CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS = 31,
-    CU_DEVICE_ATTRIBUTE_ECC_ENABLED = 32,
-    CU_DEVICE_ATTRIBUTE_PCI_BUS_ID = 33,
-    CU_DEVICE_ATTRIBUTE_PCI_DEVICE_ID = 34,
-    CU_DEVICE_ATTRIBUTE_TCC_DRIVER = 35
+	CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 1,
+	CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_X = 2,
+	CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Y = 3,
+	CU_DEVICE_ATTRIBUTE_MAX_BLOCK_DIM_Z = 4,
+	CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_X = 5,
+	CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Y = 6,
+	CU_DEVICE_ATTRIBUTE_MAX_GRID_DIM_Z = 7,
+	CU_DEVICE_ATTRIBUTE_MAX_SHARED_MEMORY_PER_BLOCK = 8,
+	CU_DEVICE_ATTRIBUTE_SHARED_MEMORY_PER_BLOCK = 8,
+	CU_DEVICE_ATTRIBUTE_TOTAL_CONSTANT_MEMORY = 9,
+	CU_DEVICE_ATTRIBUTE_WARP_SIZE = 10,
+	CU_DEVICE_ATTRIBUTE_MAX_PITCH = 11,
+	CU_DEVICE_ATTRIBUTE_MAX_REGISTERS_PER_BLOCK = 12,
+	CU_DEVICE_ATTRIBUTE_REGISTERS_PER_BLOCK = 12,
+	CU_DEVICE_ATTRIBUTE_CLOCK_RATE = 13,
+	CU_DEVICE_ATTRIBUTE_TEXTURE_ALIGNMENT = 14,
+	CU_DEVICE_ATTRIBUTE_GPU_OVERLAP = 15,
+	CU_DEVICE_ATTRIBUTE_MULTIPROCESSOR_COUNT = 16,
+	CU_DEVICE_ATTRIBUTE_KERNEL_EXEC_TIMEOUT = 17,
+	CU_DEVICE_ATTRIBUTE_INTEGRATED = 18,
+	CU_DEVICE_ATTRIBUTE_CAN_MAP_HOST_MEMORY = 19,
+	CU_DEVICE_ATTRIBUTE_COMPUTE_MODE = 20,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE1D_WIDTH = 21,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_WIDTH = 22,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_HEIGHT = 23,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_WIDTH = 24,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_HEIGHT = 25,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE3D_DEPTH = 26,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_WIDTH = 27,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_HEIGHT = 28,
+	CU_DEVICE_ATTRIBUTE_MAXIMUM_TEXTURE2D_ARRAY_NUMSLICES = 29,
+	CU_DEVICE_ATTRIBUTE_SURFACE_ALIGNMENT = 30,
+	CU_DEVICE_ATTRIBUTE_CONCURRENT_KERNELS = 31,
+	CU_DEVICE_ATTRIBUTE_ECC_ENABLED = 32,
+	CU_DEVICE_ATTRIBUTE_PCI_BUS_ID = 33,
+	CU_DEVICE_ATTRIBUTE_PCI_DEVICE_ID = 34,
+	CU_DEVICE_ATTRIBUTE_TCC_DRIVER = 35
 } CUdevice_attribute;
 
 typedef struct CUdevprop_st {
-    int maxThreadsPerBlock;
-    int maxThreadsDim[3];
-    int maxGridSize[3];
-    int sharedMemPerBlock;
-    int totalConstantMemory;
-    int SIMDWidth;
-    int memPitch;
-    int regsPerBlock;
-    int clockRate;
-    int textureAlign;
+	int maxThreadsPerBlock;
+	int maxThreadsDim[3];
+	int maxGridSize[3];
+	int sharedMemPerBlock;
+	int totalConstantMemory;
+	int SIMDWidth;
+	int memPitch;
+	int regsPerBlock;
+	int clockRate;
+	int textureAlign;
 } CUdevprop;
 
 typedef enum CUfunction_attribute_enum {
-    CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 0,
-    CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES = 1,
-    CU_FUNC_ATTRIBUTE_CONST_SIZE_BYTES = 2,
-    CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES = 3,
-    CU_FUNC_ATTRIBUTE_NUM_REGS = 4,
-    CU_FUNC_ATTRIBUTE_PTX_VERSION = 5,
-    CU_FUNC_ATTRIBUTE_BINARY_VERSION = 6,
-    CU_FUNC_ATTRIBUTE_MAX
+	CU_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK = 0,
+	CU_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES = 1,
+	CU_FUNC_ATTRIBUTE_CONST_SIZE_BYTES = 2,
+	CU_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES = 3,
+	CU_FUNC_ATTRIBUTE_NUM_REGS = 4,
+	CU_FUNC_ATTRIBUTE_PTX_VERSION = 5,
+	CU_FUNC_ATTRIBUTE_BINARY_VERSION = 6,
+	CU_FUNC_ATTRIBUTE_MAX
 } CUfunction_attribute;
 
 typedef enum CUfunc_cache_enum {
-    CU_FUNC_CACHE_PREFER_NONE    = 0x00,
-    CU_FUNC_CACHE_PREFER_SHARED  = 0x01,
-    CU_FUNC_CACHE_PREFER_L1      = 0x02
+	CU_FUNC_CACHE_PREFER_NONE    = 0x00,
+	CU_FUNC_CACHE_PREFER_SHARED  = 0x01,
+	CU_FUNC_CACHE_PREFER_L1      = 0x02
 } CUfunc_cache;
 
 typedef enum CUmemorytype_enum {
-    CU_MEMORYTYPE_HOST   = 0x01,
-    CU_MEMORYTYPE_DEVICE = 0x02,
-    CU_MEMORYTYPE_ARRAY  = 0x03
+	CU_MEMORYTYPE_HOST   = 0x01,
+	CU_MEMORYTYPE_DEVICE = 0x02,
+	CU_MEMORYTYPE_ARRAY  = 0x03
 } CUmemorytype;
 
 typedef enum CUcomputemode_enum {
-    CU_COMPUTEMODE_DEFAULT    = 0,
-    CU_COMPUTEMODE_EXCLUSIVE  = 1,
-    CU_COMPUTEMODE_PROHIBITED = 2
+	CU_COMPUTEMODE_DEFAULT    = 0,
+	CU_COMPUTEMODE_EXCLUSIVE  = 1,
+	CU_COMPUTEMODE_PROHIBITED = 2
 } CUcomputemode;
 
 typedef enum CUjit_option_enum
 {
-    CU_JIT_MAX_REGISTERS = 0,
-    CU_JIT_THREADS_PER_BLOCK,
-    CU_JIT_WALL_TIME,
-    CU_JIT_INFO_LOG_BUFFER,
-    CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
-    CU_JIT_ERROR_LOG_BUFFER,
-    CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
-    CU_JIT_OPTIMIZATION_LEVEL,
-    CU_JIT_TARGET_FROM_CUCONTEXT,
-    CU_JIT_TARGET,
-    CU_JIT_FALLBACK_STRATEGY
+	CU_JIT_MAX_REGISTERS = 0,
+	CU_JIT_THREADS_PER_BLOCK,
+	CU_JIT_WALL_TIME,
+	CU_JIT_INFO_LOG_BUFFER,
+	CU_JIT_INFO_LOG_BUFFER_SIZE_BYTES,
+	CU_JIT_ERROR_LOG_BUFFER,
+	CU_JIT_ERROR_LOG_BUFFER_SIZE_BYTES,
+	CU_JIT_OPTIMIZATION_LEVEL,
+	CU_JIT_TARGET_FROM_CUCONTEXT,
+	CU_JIT_TARGET,
+	CU_JIT_FALLBACK_STRATEGY
 
 } CUjit_option;
 
 typedef enum CUjit_target_enum
 {
-    CU_TARGET_COMPUTE_10 = 0,
-    CU_TARGET_COMPUTE_11,
-    CU_TARGET_COMPUTE_12,
-    CU_TARGET_COMPUTE_13,
-    CU_TARGET_COMPUTE_20,
-    CU_TARGET_COMPUTE_21,
-    CU_TARGET_COMPUTE_30
+	CU_TARGET_COMPUTE_10 = 0,
+	CU_TARGET_COMPUTE_11,
+	CU_TARGET_COMPUTE_12,
+	CU_TARGET_COMPUTE_13,
+	CU_TARGET_COMPUTE_20,
+	CU_TARGET_COMPUTE_21,
+	CU_TARGET_COMPUTE_30
 } CUjit_target;
 
 typedef enum CUjit_fallback_enum
 {
-    CU_PREFER_PTX = 0,
-    CU_PREFER_BINARY
+	CU_PREFER_PTX = 0,
+	CU_PREFER_BINARY
 
 } CUjit_fallback;
 
 typedef enum CUgraphicsRegisterFlags_enum {
-    CU_GRAPHICS_REGISTER_FLAGS_NONE  = 0x00
+	CU_GRAPHICS_REGISTER_FLAGS_NONE  = 0x00
 } CUgraphicsRegisterFlags;
 
 typedef enum CUgraphicsMapResourceFlags_enum {
-    CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE          = 0x00,
-    CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY     = 0x01,
-    CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 0x02
+	CU_GRAPHICS_MAP_RESOURCE_FLAGS_NONE          = 0x00,
+	CU_GRAPHICS_MAP_RESOURCE_FLAGS_READ_ONLY     = 0x01,
+	CU_GRAPHICS_MAP_RESOURCE_FLAGS_WRITE_DISCARD = 0x02
 } CUgraphicsMapResourceFlags;
 
 typedef enum CUarray_cubemap_face_enum {
-    CU_CUBEMAP_FACE_POSITIVE_X  = 0x00,
-    CU_CUBEMAP_FACE_NEGATIVE_X  = 0x01,
-    CU_CUBEMAP_FACE_POSITIVE_Y  = 0x02,
-    CU_CUBEMAP_FACE_NEGATIVE_Y  = 0x03,
-    CU_CUBEMAP_FACE_POSITIVE_Z  = 0x04,
-    CU_CUBEMAP_FACE_NEGATIVE_Z  = 0x05
+	CU_CUBEMAP_FACE_POSITIVE_X  = 0x00,
+	CU_CUBEMAP_FACE_NEGATIVE_X  = 0x01,
+	CU_CUBEMAP_FACE_POSITIVE_Y  = 0x02,
+	CU_CUBEMAP_FACE_NEGATIVE_Y  = 0x03,
+	CU_CUBEMAP_FACE_POSITIVE_Z  = 0x04,
+	CU_CUBEMAP_FACE_NEGATIVE_Z  = 0x05
 } CUarray_cubemap_face;
 
 typedef enum CUlimit_enum {
-    CU_LIMIT_STACK_SIZE        = 0x00,
-    CU_LIMIT_PRINTF_FIFO_SIZE  = 0x01,
-    CU_LIMIT_MALLOC_HEAP_SIZE  = 0x02
+	CU_LIMIT_STACK_SIZE        = 0x00,
+	CU_LIMIT_PRINTF_FIFO_SIZE  = 0x01,
+	CU_LIMIT_MALLOC_HEAP_SIZE  = 0x02
 } CUlimit;
 
 typedef enum cudaError_enum {
-    CUDA_SUCCESS                              = 0,
-    CUDA_ERROR_INVALID_VALUE                  = 1,
-    CUDA_ERROR_OUT_OF_MEMORY                  = 2,
-    CUDA_ERROR_NOT_INITIALIZED                = 3,
-    CUDA_ERROR_DEINITIALIZED                  = 4,
-    CUDA_ERROR_NO_DEVICE                      = 100,
-    CUDA_ERROR_INVALID_DEVICE                 = 101,
-    CUDA_ERROR_INVALID_IMAGE                  = 200,
-    CUDA_ERROR_INVALID_CONTEXT                = 201,
-    CUDA_ERROR_CONTEXT_ALREADY_CURRENT        = 202,
-    CUDA_ERROR_MAP_FAILED                     = 205,
-    CUDA_ERROR_UNMAP_FAILED                   = 206,
-    CUDA_ERROR_ARRAY_IS_MAPPED                = 207,
-    CUDA_ERROR_ALREADY_MAPPED                 = 208,
-    CUDA_ERROR_NO_BINARY_FOR_GPU              = 209,
-    CUDA_ERROR_ALREADY_ACQUIRED               = 210,
-    CUDA_ERROR_NOT_MAPPED                     = 211,
-    CUDA_ERROR_NOT_MAPPED_AS_ARRAY            = 212,
-    CUDA_ERROR_NOT_MAPPED_AS_POINTER          = 213,
-    CUDA_ERROR_ECC_UNCORRECTABLE              = 214,
-    CUDA_ERROR_UNSUPPORTED_LIMIT              = 215,
-    CUDA_ERROR_INVALID_SOURCE                 = 300,
-    CUDA_ERROR_FILE_NOT_FOUND                 = 301,
-    CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND = 302,
-    CUDA_ERROR_SHARED_OBJECT_INIT_FAILED      = 303,
-    CUDA_ERROR_OPERATING_SYSTEM               = 304,
-    CUDA_ERROR_INVALID_HANDLE                 = 400,
-    CUDA_ERROR_NOT_FOUND                      = 500,
-    CUDA_ERROR_NOT_READY                      = 600,
-    CUDA_ERROR_LAUNCH_FAILED                  = 700,
-    CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES        = 701,
-    CUDA_ERROR_LAUNCH_TIMEOUT                 = 702,
-    CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING  = 703,
-    CUDA_ERROR_UNKNOWN                        = 999
+	CUDA_SUCCESS                              = 0,
+	CUDA_ERROR_INVALID_VALUE                  = 1,
+	CUDA_ERROR_OUT_OF_MEMORY                  = 2,
+	CUDA_ERROR_NOT_INITIALIZED                = 3,
+	CUDA_ERROR_DEINITIALIZED                  = 4,
+	CUDA_ERROR_NO_DEVICE                      = 100,
+	CUDA_ERROR_INVALID_DEVICE                 = 101,
+	CUDA_ERROR_INVALID_IMAGE                  = 200,
+	CUDA_ERROR_INVALID_CONTEXT                = 201,
+	CUDA_ERROR_CONTEXT_ALREADY_CURRENT        = 202,
+	CUDA_ERROR_MAP_FAILED                     = 205,
+	CUDA_ERROR_UNMAP_FAILED                   = 206,
+	CUDA_ERROR_ARRAY_IS_MAPPED                = 207,
+	CUDA_ERROR_ALREADY_MAPPED                 = 208,
+	CUDA_ERROR_NO_BINARY_FOR_GPU              = 209,
+	CUDA_ERROR_ALREADY_ACQUIRED               = 210,
+	CUDA_ERROR_NOT_MAPPED                     = 211,
+	CUDA_ERROR_NOT_MAPPED_AS_ARRAY            = 212,
+	CUDA_ERROR_NOT_MAPPED_AS_POINTER          = 213,
+	CUDA_ERROR_ECC_UNCORRECTABLE              = 214,
+	CUDA_ERROR_UNSUPPORTED_LIMIT              = 215,
+	CUDA_ERROR_INVALID_SOURCE                 = 300,
+	CUDA_ERROR_FILE_NOT_FOUND                 = 301,
+	CUDA_ERROR_SHARED_OBJECT_SYMBOL_NOT_FOUND = 302,
+	CUDA_ERROR_SHARED_OBJECT_INIT_FAILED      = 303,
+	CUDA_ERROR_OPERATING_SYSTEM               = 304,
+	CUDA_ERROR_INVALID_HANDLE                 = 400,
+	CUDA_ERROR_NOT_FOUND                      = 500,
+	CUDA_ERROR_NOT_READY                      = 600,
+	CUDA_ERROR_LAUNCH_FAILED                  = 700,
+	CUDA_ERROR_LAUNCH_OUT_OF_RESOURCES        = 701,
+	CUDA_ERROR_LAUNCH_TIMEOUT                 = 702,
+	CUDA_ERROR_LAUNCH_INCOMPATIBLE_TEXTURING  = 703,
+	CUDA_ERROR_UNKNOWN                        = 999
 } CUresult;
 
 #define CU_MEMHOSTALLOC_PORTABLE        0x01
@@ -282,76 +282,76 @@ typedef enum cudaError_enum {
 #define CU_MEMHOSTALLOC_WRITECOMBINED   0x04
 
 typedef struct CUDA_MEMCPY2D_st {
-    size_t srcXInBytes;
-    size_t srcY;
+	size_t srcXInBytes;
+	size_t srcY;
 
-    CUmemorytype srcMemoryType;
-    const void *srcHost;
-    CUdeviceptr srcDevice;
-    CUarray srcArray;
-    size_t srcPitch;
+	CUmemorytype srcMemoryType;
+	const void *srcHost;
+	CUdeviceptr srcDevice;
+	CUarray srcArray;
+	size_t srcPitch;
 
-    size_t dstXInBytes;
-    size_t dstY;
+	size_t dstXInBytes;
+	size_t dstY;
 
-    CUmemorytype dstMemoryType;
-    void *dstHost;
-    CUdeviceptr dstDevice;
-    CUarray dstArray;
-    size_t dstPitch;
+	CUmemorytype dstMemoryType;
+	void *dstHost;
+	CUdeviceptr dstDevice;
+	CUarray dstArray;
+	size_t dstPitch;
 
-    size_t WidthInBytes;
-    size_t Height;
+	size_t WidthInBytes;
+	size_t Height;
 } CUDA_MEMCPY2D;
 
 typedef struct CUDA_MEMCPY3D_st {
-    size_t srcXInBytes;
-    size_t srcY;
-    size_t srcZ;
-    size_t srcLOD;
-    CUmemorytype srcMemoryType;
-    const void *srcHost;
-    CUdeviceptr srcDevice;
-    CUarray srcArray;
-    void *reserved0;
-    size_t srcPitch;
-    size_t srcHeight;
+	size_t srcXInBytes;
+	size_t srcY;
+	size_t srcZ;
+	size_t srcLOD;
+	CUmemorytype srcMemoryType;
+	const void *srcHost;
+	CUdeviceptr srcDevice;
+	CUarray srcArray;
+	void *reserved0;
+	size_t srcPitch;
+	size_t srcHeight;
 
-    size_t dstXInBytes;
-    size_t dstY;
-    size_t dstZ;
-    size_t dstLOD;
-    CUmemorytype dstMemoryType;
-    void *dstHost;
-    CUdeviceptr dstDevice;
-    CUarray dstArray;
-    void *reserved1;
-    size_t dstPitch;
-    size_t dstHeight;
+	size_t dstXInBytes;
+	size_t dstY;
+	size_t dstZ;
+	size_t dstLOD;
+	CUmemorytype dstMemoryType;
+	void *dstHost;
+	CUdeviceptr dstDevice;
+	CUarray dstArray;
+	void *reserved1;
+	size_t dstPitch;
+	size_t dstHeight;
 
-    size_t WidthInBytes;
-    size_t Height;
-    size_t Depth;
+	size_t WidthInBytes;
+	size_t Height;
+	size_t Depth;
 } CUDA_MEMCPY3D;
 
 typedef struct CUDA_ARRAY_DESCRIPTOR_st
 {
-    size_t Width;
-    size_t Height;
+	size_t Width;
+	size_t Height;
 
-    CUarray_format Format;
-    unsigned int NumChannels;
+	CUarray_format Format;
+	unsigned int NumChannels;
 } CUDA_ARRAY_DESCRIPTOR;
 
 typedef struct CUDA_ARRAY3D_DESCRIPTOR_st
 {
-    size_t Width;
-    size_t Height;
-    size_t Depth;
+	size_t Width;
+	size_t Height;
+	size_t Depth;
 
-    CUarray_format Format;
-    unsigned int NumChannels;
-    unsigned int Flags;
+	CUarray_format Format;
+	unsigned int NumChannels;
+	unsigned int Flags;
 } CUDA_ARRAY3D_DESCRIPTOR;
 
 #define CUDA_ARRAY3D_2DARRAY        0x01

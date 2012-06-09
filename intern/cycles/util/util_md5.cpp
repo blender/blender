@@ -365,7 +365,7 @@ string MD5Hash::get_hex()
 
 	finish(digest);
 
-	for(int i=0; i<16; i++)
+	for(int i = 0; i < 16; i++)
 		sprintf(buf + i*2, "%02X", digest[i]);
 	buf[sizeof(buf)-1] = '\0';
 	

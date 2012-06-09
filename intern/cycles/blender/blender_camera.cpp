@@ -222,14 +222,14 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 	}
 
 	if(horizontal_fit) {
-		*aspectratio= xratio/yratio;
-		xaspect= *aspectratio;
-		yaspect= 1.0f;
+		*aspectratio = xratio/yratio;
+		xaspect = *aspectratio;
+		yaspect = 1.0f;
 	}
 	else {
-		*aspectratio= yratio/xratio;
-		xaspect= 1.0f;
-		yaspect= *aspectratio;
+		*aspectratio = yratio/xratio;
+		xaspect = 1.0f;
+		yaspect = *aspectratio;
 	}
 
 	/* modify aspect for orthographic scale */

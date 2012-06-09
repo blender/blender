@@ -24,9 +24,9 @@ __device float svm_gradient(float3 p, NodeGradientType type)
 {
 	float x, y, z;
 
-	x= p.x;
-	y= p.y;
-	z= p.z;
+	x = p.x;
+	y = p.y;
+	z = p.z;
 
 	if(type == NODE_BLEND_LINEAR) {
 		return x;
