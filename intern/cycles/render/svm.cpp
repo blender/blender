@@ -597,10 +597,10 @@ void SVMCompiler::compile_type(Shader *shader, ShaderGraph *graph, ShaderType ty
 	memset(&active_stack, 0, sizeof(active_stack));
 	svm_nodes.clear();
 
-	foreach(ShaderNode *node, graph->nodes) {
-		foreach(ShaderInput *input, node->inputs)
+	foreach(ShaderNode *node_iter, graph->nodes) {
+		foreach(ShaderInput *input, node_iter->inputs)
 			input->stack_offset = SVM_STACK_INVALID;
-		foreach(ShaderOutput *output, node->outputs)
+		foreach(ShaderOutput *output, node_iter->outputs)
 			output->stack_offset = SVM_STACK_INVALID;
 	}
 

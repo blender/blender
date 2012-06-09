@@ -680,8 +680,6 @@ public:
 		else
 			tasks.push_back(maintask);
 
-		DeviceTask task;
-
 		foreach(DeviceTask& task, tasks) {
 			if(task.type == DeviceTask::TONEMAP)
 				tonemap(task);

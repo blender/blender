@@ -388,13 +388,13 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 	for(m = M-2; m > 0; m -= 2) {
 		vector<int> inner_u, inner_v, inner_w;
 
-		float t = m/(float)M;
+		const float t0 = m / (float)M;
 		float2 center = make_float2(1.0f/3.0f, 1.0f/3.0f);
 
 		/* 3 corner vertices */
-		float2 p_u = interp(center, make_float2(1.0f, 0.0f), t);
-		float2 p_v = interp(center, make_float2(0.0f, 1.0f), t);
-		float2 p_w = interp(center, make_float2(0.0f, 0.0f), t);
+		float2 p_u = interp(center, make_float2(1.0f, 0.0f), t0);
+		float2 p_v = interp(center, make_float2(0.0f, 1.0f), t0);
+		float2 p_w = interp(center, make_float2(0.0f, 0.0f), t0);
 
 		int corner_u = add_vert(sub, p_u);
 		int corner_v = add_vert(sub, p_v);
@@ -407,11 +407,11 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 
 		for(int i = 1; i < m; i++) {
 			/* add vertices between corners */
-			float t = i/(float)m;
+			const float t1 = i / (float)m;
 
-			inner_u.push_back(add_vert(sub, interp(p_v, p_w, t)));
-			inner_v.push_back(add_vert(sub, interp(p_w, p_u, t)));
-			inner_w.push_back(add_vert(sub, interp(p_u, p_v, t)));
+			inner_u.push_back(add_vert(sub, interp(p_v, p_w, t1)));
+			inner_v.push_back(add_vert(sub, interp(p_w, p_u, t1)));
+			inner_w.push_back(add_vert(sub, interp(p_u, p_v, t1)));
 		}
 
 		inner_u.push_back(corner_w);

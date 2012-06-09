@@ -55,7 +55,7 @@ public:
 
 class TextureNode : public ShaderNode {
 public:
-	TextureNode(const char *name) : ShaderNode(name) {}
+	TextureNode(const char *name_) : ShaderNode(name_) {}
 	TextureMapping tex_mapping;
 };
 

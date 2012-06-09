@@ -82,7 +82,6 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 		loc = loc*size - make_float3(0.5f, 0.5f, 0.5f);
 
 		float3 *fdata = attr->data_float3();
-		BL::Mesh::vertices_iterator v;
 		size_t i = 0;
 
 		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end(); ++v)
@@ -212,8 +211,6 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 
 	BL::Object::material_slots_iterator slot;
 	for(b_ob.material_slots.begin(slot); slot != b_ob.material_slots.end(); ++slot) {
-		BL::Material material_override = render_layer.material_override;
-
 		if(material_override)
 			find_shader(material_override, used_shaders, scene->default_surface);
 		else
@@ -321,7 +318,7 @@ void BlenderSync::sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion)
 		AttributeStandard std = (motion == -1)? ATTR_STD_MOTION_PRE: ATTR_STD_MOTION_POST;
 		Attribute *attr_M = mesh->attributes.add(std);
 		float3 *M = attr_M->data_float3();
-		size_t i = 0, size = mesh->verts.size();
+		size_t i = 0;
 
 		for(b_mesh.vertices.begin(v); v != b_mesh.vertices.end() && i < size; ++v, M++, i++)
 			*M = get_float3(v->co());
