@@ -114,10 +114,10 @@ void TrackRegion(const FloatImage &image1,
                  TrackRegionResult *result);
 
 // Sample a "canonical" version of the passed planar patch, using bilinear
-// sampling. The passed corners must be within the image, possibly with a small
-// amount of slop, perhaps 2 pixels, around the edges (so e.g. a corner of the
-// patch cannot lie directly on the edge of the image). Four corners are always
-// required. All channels are interpolated.
+// sampling. The passed corners must be within the image, and have at least two
+// pixels of border around them. (so e.g. a corner of the patch cannot lie
+// directly on the edge of the image). Four corners are always required. All
+// channels are interpolated.
 bool SamplePlanarPatch(const FloatImage &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,

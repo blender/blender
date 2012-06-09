@@ -81,9 +81,9 @@ bool AllInBounds(const FloatImage &image,
   return true;
 }
 
-// The "AutoDiff::Sample()" function allows sampling an image at an x, y
-// position such that if x and y are jets, then the derivative information is
-// correctly propagated.
+// Sample the image at position (x, y) but use the gradient, if present, to
+// propagate derivatives from x and y. This is needed to integrate the numeric
+// image gradients with Ceres's autodiff framework.
 template<typename T>
 static T SampleWithDerivative(const FloatImage &image_and_gradient,
                               const T &x,
@@ -172,7 +172,7 @@ class WarpCostFunctor {
 
         // Sample the pattern and gradients.
         SampleLinear(image_and_gradient1_,
-                     image_position(1),  // Sample is r, c.
+                     image_position(1),  // SampleLinear is r, c.
                      image_position(0),
                      &pattern_and_gradient_(r, c, 0));
 
@@ -180,7 +180,7 @@ class WarpCostFunctor {
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
           SampleLinear(*options_.image1_mask,
-                       image_position(1),
+                       image_position(1),  // SampleLinear is r, c.
                        image_position(0),
                        &pattern_mask_(r, c, 0));
           mask_value = pattern_mask_(r, c);
@@ -216,6 +216,16 @@ class WarpCostFunctor {
 
         // Sample the mask early; if it's zero, this pixel has no effect. This
         // allows early bailout from the expensive sampling that happens below.
+        //
+        // Note that partial masks are not short circuited. To see why short
+        // circuiting produces bitwise-exact same results, consider that the
+        // residual for each pixel is 
+        //
+        //    residual = mask * (src - dst)  ,
+        //
+        // and for jets, multiplying by a scalar multiplies the derivative
+        // components by the scalar as well. Therefore, if the mask is exactly
+        // zero, then so too will the final residual and derivatives.
         double mask_value = 1.0;
         if (options_.image1_mask != NULL) {
           mask_value = pattern_mask_(r, c);
@@ -240,7 +250,7 @@ class WarpCostFunctor {
 
         // Sample the source. This is made complicated by ESM mode.
         T src_sample;
-        if (0 && options_.use_esm && !JetOps<T>::IsScalar()) {
+        if (options_.use_esm && !JetOps<T>::IsScalar()) {
           // In ESM mode, the derivative of the source is also taken into
           // account. This changes the linearization in a way that causes
           // better convergence. Copy the derivative of the warp parameters
@@ -270,8 +280,6 @@ class WarpCostFunctor {
           src_sample = T(pattern_and_gradient_(r, c));
         }
 
-        //LG << "src_sample: " << src_sample;
-
         // Normalize the samples by the mean values of each signal. The typical
         // light model assumes multiplicative intensity changes with changing
         // light, so this is a reasonable choice. Note that dst_mean has
@@ -280,8 +288,6 @@ class WarpCostFunctor {
           src_sample /= T(src_mean_);
           dst_sample /= dst_mean;
         }
-
-        //LG << "dst_sample: " << dst_sample;
 
         // The difference is the error.
         T error = src_sample - dst_sample;
@@ -389,8 +395,8 @@ class WarpCostFunctor {
 
         double x = pattern_and_gradient_(r, c);
         double y = SampleLinear(image_and_gradient2_,
-                                image2_position[0],
-                                image2_position[1]);
+                                image2_position[1],  // SampleLinear is r, c.
+                                image2_position[0]);
 
         // Weight the signals by the mask, if one is present.
         if (options_.image1_mask != NULL) {
@@ -1111,13 +1117,14 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                          x1, y1, x2, y2);
     for (int i = 0; i < 4; ++i) {
       LG << "P" << i << ": (" << x1[i] << ", " << y1[i] << "); brute ("
-         << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i]) << ", "
-         << (y2[i] - y1[i]) << ").";
+         << x2[i] << ", " << y2[i] << "); (dx, dy): (" << (x2[i] - x1[i])
+         << ", " << (y2[i] - y1[i]) << ").";
     }
   }
 
   // Prepare the initial warp parameters from the four correspondences.
-  // Note: This must happen after the brute initialization runs.
+  // Note: This must happen after the brute initialization runs, since the
+  // brute initialization mutates x2 and y2 in place.
   Warp warp(x1, y1, x2, y2);
 
   // Decide how many samples to use in the x and y dimensions.
@@ -1125,22 +1132,6 @@ void TemplatedTrackRegion(const FloatImage &image1,
   int num_samples_y;
   PickSampling(x1, y1, x2, y2, &num_samples_x, &num_samples_y);
 
-  ceres::Solver::Options solver_options;
-  solver_options.linear_solver_type = ceres::DENSE_QR;
-  solver_options.max_num_iterations = options.max_iterations;
-  solver_options.update_state_every_iteration = true;
-  solver_options.parameter_tolerance = 1e-16;
-  solver_options.function_tolerance = 1e-16;
-
-  // TODO(keir): Consider removing these options before committing.
-  solver_options.numeric_derivative_relative_step_size = 1e-3;
-  solver_options.check_gradients = false;
-  solver_options.gradient_check_relative_precision = 1e-10;
-  solver_options.minimizer_progress_to_stdout = false;
-
-  // Prevent the corners from going outside the destination image.
-  BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
-  solver_options.callbacks.push_back(&callback);
 
   // Compute the warp from rectangular coordinates.
   Mat3 canonical_homography = ComputeCanonicalHomography(x1, y1,
@@ -1158,9 +1149,7 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                 warp);
 
   // Construct the problem with a single residual.
-  ceres::Problem::Options problem_options;
-  problem_options.cost_function_ownership = ceres::DO_NOT_TAKE_OWNERSHIP;
-  ceres::Problem problem(problem_options);
+  ceres::Problem problem;
   problem.AddResidualBlock(
       new ceres::AutoDiffCostFunction<
           WarpCostFunctor<Warp>,
@@ -1170,6 +1159,19 @@ void TemplatedTrackRegion(const FloatImage &image1,
       NULL,
       warp.parameters);
 
+  // Configure the solve.
+  ceres::Solver::Options solver_options;
+  solver_options.linear_solver_type = ceres::DENSE_QR;
+  solver_options.max_num_iterations = options.max_iterations;
+  solver_options.update_state_every_iteration = true;
+  solver_options.parameter_tolerance = 1e-16;
+  solver_options.function_tolerance = 1e-16;
+
+  // Prevent the corners from going outside the destination image.
+  BoundaryCheckingCallback<Warp> callback(image2, warp, x1, y1);
+  solver_options.callbacks.push_back(&callback);
+
+  // Run the solve.
   ceres::Solver::Summary summary;
   ceres::Solve(solver_options, &problem, &summary);
 
