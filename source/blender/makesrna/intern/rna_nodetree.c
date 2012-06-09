@@ -3095,7 +3095,7 @@ static void def_cmp_keying(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "NodeKeyingData", "storage");
 
-	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_NONE);
+	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "despill_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Despill", "");

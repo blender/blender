@@ -37,6 +37,7 @@ protected:
 	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size);
 	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
 	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, InputSocket *inputSrceen, float factor);
+	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, float clipBlack, float clipWhite);
 public:
 	KeyingNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);

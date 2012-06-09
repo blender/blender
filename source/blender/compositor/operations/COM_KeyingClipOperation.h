@@ -21,30 +21,28 @@
  *		Sergey Sharybin
  */
 
-
-#ifndef _COM_KeyingOperation_h
-#define _COM_KeyingOperation_h
-
-#include <string.h>
+#ifndef _COM_KeyingClipOperation_h
+#define _COM_KeyingClipOperation_h
 
 #include "COM_NodeOperation.h"
 
-#include "BLI_listbase.h"
-
 /**
-  * Class with implementation of keying node
+  * Class with implementation of black/white clipping for keying node
   */
-class KeyingOperation : public NodeOperation {
+class KeyingClipOperation : public NodeOperation {
 protected:
 	SocketReader *pixelReader;
-	SocketReader *screenReader;
-	float screenBalance;
+	float clipBlack;
+	float clipWhite;
 
 public:
-	KeyingOperation();
+	KeyingClipOperation();
 
 	void initExecution();
 	void deinitExecution();
+
+	void setClipBlack(float value) {this->clipBlack = value;}
+	void setClipWhite(float value) {this->clipWhite = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };

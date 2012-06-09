@@ -27,12 +27,13 @@
 
 #include "COM_KeyingOperation.h"
 #include "COM_KeyingDespillOperation.h"
+#include "COM_KeyingClipOperation.h"
 
 #include "COM_SeparateChannelOperation.h"
 #include "COM_CombineChannelsOperation.h"
 #include "COM_ConvertRGBToYCCOperation.h"
 #include "COM_ConvertYCCToRGBOperation.h"
-#include "COM_FastGaussianBlurOperation.h"
+#include "COM_GaussianBokehBlurOperation.h"
 #include "COM_SetValueOperation.h"
 
 #include "COM_DilateErodeOperation.h"
@@ -72,8 +73,9 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 			setValueOperation->setValue(1.0f);
 			graph->addOperation(setValueOperation);
 
-			FastGaussianBlurOperation *blurOperation = new FastGaussianBlurOperation();
+			GaussianBokehBlurOperation *blurOperation = new GaussianBokehBlurOperation();
 			blurOperation->setData(&preBlurData);
+			blurOperation->setQuality(COM_QUALITY_HIGH);
 
 			addLink(graph, separateOperation->getOutputSocket(0), blurOperation->getInputSocket(0));
 			addLink(graph, setValueOperation->getOutputSocket(0), blurOperation->getInputSocket(1));
@@ -104,8 +106,9 @@ OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *po
 	setValueOperation->setValue(1.0f);
 	graph->addOperation(setValueOperation);
 
-	FastGaussianBlurOperation *blurOperation = new FastGaussianBlurOperation();
+	GaussianBokehBlurOperation *blurOperation = new GaussianBokehBlurOperation();
 	blurOperation->setData(&postBlurData);
+	blurOperation->setQuality(COM_QUALITY_HIGH);
 
 	addLink(graph, postBLurInput, blurOperation->getInputSocket(0));
 	addLink(graph, setValueOperation->getOutputSocket(0), blurOperation->getInputSocket(1));
@@ -149,6 +152,20 @@ OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *des
 	return despillOperation->getOutputSocket(0);
 }
 
+OutputSocket *KeyingNode::setupClip(ExecutionSystem *graph, OutputSocket *clipInput, float clipBlack, float clipWhite)
+{
+	KeyingClipOperation *clipOperation = new KeyingClipOperation();
+
+	clipOperation->setClipBlack(clipBlack);
+	clipOperation->setClipWhite(clipWhite);
+
+	addLink(graph, clipInput, clipOperation->getInputSocket(0));
+
+	graph->addOperation(clipOperation);
+
+	return clipOperation->getOutputSocket(0);
+}
+
 void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *inputImage = this->getInputSocket(0);
@@ -162,9 +179,6 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	/* keying operation */
 	KeyingOperation *keyingOperation = new KeyingOperation();
-
-	keyingOperation->setClipBlack(keying_data->clip_black);
-	keyingOperation->setClipWhite(keying_data->clip_white);
 
 	inputScreen->relinkConnections(keyingOperation->getInputSocket(1), 1, graph);
 
@@ -180,11 +194,14 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	graph->addOperation(keyingOperation);
 
+	postprocessedMatte = keyingOperation->getOutputSocket();
+
+	if (keying_data->clip_black > 0.0f || keying_data->clip_white< 1.0f)
+		postprocessedMatte = setupClip(graph, postprocessedMatte, keying_data->clip_black, keying_data->clip_white);
+
 	/* apply blur on matte if needed */
 	if (keying_data->blur_post)
-		postprocessedMatte = setupPostBlur(graph, keyingOperation->getOutputSocket(), keying_data->blur_post);
-	else
-		postprocessedMatte = keyingOperation->getOutputSocket();
+		postprocessedMatte = setupPostBlur(graph, postprocessedMatte, keying_data->blur_post);
 
 	/* matte dilate/erode */
 	if (keying_data->dilate_distance != 0) {

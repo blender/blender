@@ -28,26 +28,33 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-static int get_pixel_primary_channel(float *pixel)
+static int get_pixel_primary_channel(float pixelColor[4])
 {
-	float max_value = MAX3(pixel[0], pixel[1], pixel[2]);
+	float max_value = MAX3(pixelColor[0], pixelColor[1], pixelColor[2]);
 
-	if (max_value == pixel[0])
+	if (max_value == pixelColor[0])
 		return 0;
-	else if (max_value == pixel[1])
+	else if (max_value == pixelColor[1])
 		return 1;
 
 	return 2;
 }
 
-static float get_pixel_saturation(float *pixel, float screen_balance)
+static float get_pixel_saturation(float pixelColor[4], float screen_balance, int primary_channel)
 {
-	float min = MIN3(pixel[0], pixel[1], pixel[2]);
-	float max = MAX3(pixel[0], pixel[1], pixel[2]);
-	float mid = pixel[0] + pixel[1] + pixel[2] - min - max;
-	float val = (1.0f - screen_balance) * min + screen_balance * mid;
+	int other_1 = (primary_channel + 1) % 3;
+	int other_2 = (primary_channel + 2) % 3;
 
-	return (max - val) * (1.0f - val) * (1.0f - val);
+	float min = MIN2(pixelColor[other_1], pixelColor[other_2]);
+	float max = MAX2(pixelColor[other_1], pixelColor[other_2]);
+	float val = screen_balance * min + (1.0f - screen_balance) * max;
+
+	// original formula, also used by brecht
+	// works a bit crappy in areas with values > 1.0
+	// return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
+
+	// sergey's test formula
+	return pixelColor[1] - (pixelColor[0] + pixelColor[1]) * 0.5f;
 }
 
 KeyingOperation::KeyingOperation(): NodeOperation()
@@ -57,8 +64,6 @@ KeyingOperation::KeyingOperation(): NodeOperation()
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->screenBalance = 0.5f;
-	this->clipBlack = 0.0f;
-	this->clipWhite = 1.0f;
 
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
@@ -84,31 +89,20 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 	this->pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
 	this->screenReader->read(screenColor, x, y, sampler, inputBuffers);
 
-	float saturation = get_pixel_saturation(pixelColor, this->screenBalance);
-	float screen_saturation = get_pixel_saturation(screenColor, this->screenBalance);
-	int primary_channel = get_pixel_primary_channel(pixelColor);
-	int screen_primary_channel = get_pixel_primary_channel(screenColor);
+	int primary_channel = get_pixel_primary_channel(screenColor);
 
-	if (primary_channel != screen_primary_channel) {
-		/* different main channel means pixel is on foreground */
+	float saturation = get_pixel_saturation(pixelColor, this->screenBalance, primary_channel);
+	float screen_saturation = get_pixel_saturation(screenColor, this->screenBalance, primary_channel);
+
+	if (saturation < 0) {
 		color[0] = 1.0f;
 	}
-        else if (saturation >= screen_saturation) {
-		/* saturation of main channel is more than screen, definitely a background */
+	else if (saturation >= screen_saturation) {
 		color[0] = 0.0f;
 	}
 	else {
-		float distance;
+		float distance = 1.0f - saturation / screen_saturation;
 
-		distance = 1.0f - saturation / screen_saturation;
-
-		color[0] = distance * distance;
-
-		if (color[0] < this->clipBlack)
-			color[0] = 0.0f;
-		else if (color[0] >= this->clipWhite)
-			color[0] = 1.0f;
-		else
-			color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
+		color[0] = distance;
 	}
 }

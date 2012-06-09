@@ -333,6 +333,8 @@ set(SRC
 	operations/COM_KeyingScreenOperation.h
 	operations/COM_KeyingDespillOperation.cpp
 	operations/COM_KeyingDespillOperation.h
+	operations/COM_KeyingClipOperation.cpp
+	operations/COM_KeyingClipOperation.h
 
 operations/COM_ColorSpillOperation.cpp
 operations/COM_ColorSpillOperation.h
