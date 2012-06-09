@@ -433,7 +433,7 @@ void BlenderSession::tag_redraw()
 		update_status_progress();
 
 		/* offline render, redraw if timeout passed */
-		if(time_dt() - last_redraw_time > 1.0f) {
+		if(time_dt() - last_redraw_time > 1.0) {
 			write_render_result();
 			engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
 			last_redraw_time = time_dt();

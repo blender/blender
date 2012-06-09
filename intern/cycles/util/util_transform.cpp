@@ -160,15 +160,15 @@ static float4 transform_to_quat(const Transform& tfm)
 	double trace = tfm[0][0] + tfm[1][1] + tfm[2][2];
 	float4 qt;
 
-	if(trace > 0.0f) {
+	if(trace > 0.0) {
 		double s = sqrt(trace + 1.0);
 
 		qt.w = (float)(s/2.0);
 		s = 0.5/s;
 
-		qt.x = (float)((tfm[2][1] - tfm[1][2]) * s);
-		qt.y = (float)((tfm[0][2] - tfm[2][0]) * s);
-		qt.z = (float)((tfm[1][0] - tfm[0][1]) * s);
+		qt.x = (float)((double)(tfm[2][1] - tfm[1][2]) * s);
+		qt.y = (float)((double)(tfm[0][2] - tfm[2][0]) * s);
+		qt.z = (float)((double)(tfm[1][0] - tfm[0][1]) * s);
 	}
 	else {
 		int i = 0;
@@ -181,16 +181,16 @@ static float4 transform_to_quat(const Transform& tfm)
 		int j = (i + 1)%3;
 		int k = (j + 1)%3;
 
-		double s = sqrt((tfm[i][i] - (tfm[j][j] + tfm[k][k])) + 1.0);
+		double s = sqrt((double)(tfm[i][i] - (tfm[j][j] + tfm[k][k])) + 1.0);
 
 		double q[3];
 		q[i] = s * 0.5;
 		if(s != 0.0)
 			s = 0.5/s;
 
-		double w = (tfm[k][j] - tfm[j][k]) * s;
-		q[j] = (tfm[j][i] + tfm[i][j]) * s;
-		q[k] = (tfm[k][i] + tfm[i][k]) * s;
+		double w = (double)(tfm[k][j] - tfm[j][k]) * s;
+		q[j] = (double)(tfm[j][i] + tfm[i][j]) * s;
+		q[k] = (double)(tfm[k][i] + tfm[i][k]) * s;
 
 		qt.x = (float)q[0];
 		qt.y = (float)q[1];

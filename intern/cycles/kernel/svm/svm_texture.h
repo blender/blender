@@ -191,7 +191,7 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 __device float noise_wave(NodeWaveBasis wave, float a)
 {
 	if(wave == NODE_WAVE_SINE) {
-		return 0.5f + 0.5f*sin(a);
+		return 0.5f + 0.5f * sinf(a);
 	}
 	else if(wave == NODE_WAVE_SAW) {
 		float b = 2.0f*M_PI_F;
@@ -234,7 +234,7 @@ __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float o
 		fscale *= 2.0f;
 	}
 
-	float rmd = octaves - floor(octaves);
+	float rmd = octaves - floorf(octaves);
 
 	if(rmd != 0.0f) {
 		float t = noise_basis(fscale*p, basis);

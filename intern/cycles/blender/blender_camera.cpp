@@ -297,7 +297,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->fisheye_lens = bcam->fisheye_lens;
 
 	/* perspective */
-	cam->fov = 2.0f*atan((0.5f*sensor_size)/bcam->lens/aspectratio);
+	cam->fov = 2.0f * atanf((0.5f * sensor_size) / bcam->lens / aspectratio);
 	cam->focaldistance = bcam->focaldistance;
 	cam->aperturesize = bcam->aperturesize;
 	cam->blades = bcam->apertureblades;
@@ -405,7 +405,7 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 	}
 	else if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_ORTHO) {
 		/* orthographic view */
-		bcam->farclip *= 0.5;
+		bcam->farclip *= 0.5f;
 		bcam->nearclip = -bcam->farclip;
 
 		bcam->type = CAMERA_ORTHOGRAPHIC;

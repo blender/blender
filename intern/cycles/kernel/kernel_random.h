@@ -119,7 +119,7 @@ __device_inline float path_rng(KernelGlobals *kg, RNG *rng, int sample, int dime
 	else
 		shift = (*rng & 0xFFFF)/((float)0xFFFF);
 
-	return r + shift - floor(r + shift);
+	return r + shift - floorf(r + shift);
 #endif
 }
 
