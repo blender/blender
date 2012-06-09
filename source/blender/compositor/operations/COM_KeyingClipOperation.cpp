@@ -83,13 +83,11 @@ void KeyingClipOperation::executePixel(float *color, float x, float y, PixelSamp
 	color[0] = pixelColor[0];
 
 	if (count_black >= 22 || count_white >= 22) {
-		if (count_black >= 4 || count_white >= 4) {
-			if (color[0] < this->clipBlack)
-				color[0] = 0.0f;
-			else if (color[0] >= this->clipWhite)
-				color[0] = 1.0f;
-			else
-				color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
-		}
+		if (color[0] < this->clipBlack)
+			color[0] = 0.0f;
+		else if (color[0] >= this->clipWhite)
+			color[0] = 1.0f;
+		else
+			color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
 	}
 }
