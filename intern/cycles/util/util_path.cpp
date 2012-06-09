@@ -179,8 +179,8 @@ static bool path_read_text(const string& path, string& text)
 string path_source_replace_includes(const string& source_, const string& path)
 {
 	/* our own little c preprocessor that replaces #includes with the file
-	   contents, to work around issue of opencl drivers not supporting
-	   include paths with spaces in them */
+	 * contents, to work around issue of opencl drivers not supporting
+	 * include paths with spaces in them */
 	string source = source_;
 	const string include = "#include \"";
 	size_t n, pos = 0;

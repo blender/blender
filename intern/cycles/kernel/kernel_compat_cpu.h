@@ -28,13 +28,13 @@
 CCL_NAMESPACE_BEGIN
 
 /* Assertions inside the kernel only work for the CPU device, so we wrap it in
-   a macro which is empty for other devices */
+ * a macro which is empty for other devices */
 
 #define kernel_assert(cond) assert(cond)
 
 /* Texture types to be compatible with CUDA textures. These are really just
-   simple arrays and after inlining fetch hopefully revert to being a simple
-   pointer lookup. */
+ * simple arrays and after inlining fetch hopefully revert to being a simple
+ * pointer lookup. */
 
 template<typename T> struct texture  {
 	T fetch(int index)
@@ -43,7 +43,8 @@ template<typename T> struct texture  {
 		return data[index];
 	}
 
-	/*__m128 fetch_m128(int index)
+#if 0
+	__m128 fetch_m128(int index)
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128*)data)[index];
@@ -53,7 +54,8 @@ template<typename T> struct texture  {
 	{
 		kernel_assert(index >= 0 && index < width);
 		return ((__m128i*)data)[index];
-	}*/
+	}
+#endif
 
 	float interp(float x, int size)
 	{

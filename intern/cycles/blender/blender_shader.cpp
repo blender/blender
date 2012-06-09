@@ -641,7 +641,7 @@ static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *grap
 			to_pair = sockets_map[b_to_sock.ptr.data];
 
 		/* either node may be NULL when the node was not exported, typically
-		   because the node type is not supported */
+		 * because the node type is not supported */
 		if(from_pair.first && to_pair.first) {
 			ShaderOutput *output = from_pair.first->output(from_pair.second.c_str());
 			ShaderInput *input = to_pair.first->input(to_pair.second.c_str());

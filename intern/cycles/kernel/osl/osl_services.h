@@ -76,14 +76,14 @@ private:
 
 #ifdef WITH_PARTIO
 	/* OSL gets pointers to this but its definition is private.
-	   right now it only caches the types already converted to
-	   Partio constants. this is what get_pointcloud_attr_query
-	   returns */
+	 * right now it only caches the types already converted to
+	 * Partio constants. this is what get_pointcloud_attr_query
+	 * returns */
 	struct AttrQuery {
 		/* names of the attributes to query */
 		std::vector<ustring> attr_names;
 		/* types as (enum Partio::ParticleAttributeType) of the
-		   attributes in the query */
+		 * attributes in the query */
 		std::vector<int> attr_partio_types;
 		/* for sanity checks, capacity of the output arrays */
 		int capacity;

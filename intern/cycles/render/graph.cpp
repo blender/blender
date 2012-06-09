@@ -375,8 +375,8 @@ void ShaderGraph::break_cycles(ShaderNode *node, vector<bool>& visited, vector<b
 void ShaderGraph::clean()
 {
 	/* we do two things here: find cycles and break them, and remove unused
-	   nodes that don't feed into the output. how cycles are broken is
-	   undefined, they are invalid input, the important thing is to not crash */
+	 * nodes that don't feed into the output. how cycles are broken is
+	 * undefined, they are invalid input, the important thing is to not crash */
 
 	vector<bool> removed(nodes.size(), false);
 	vector<bool> visited(nodes.size(), false);
@@ -495,7 +495,7 @@ void ShaderGraph::bump_from_displacement()
 	copy_nodes(nodes_displace, nodes_dy);
 
 	/* mark nodes to indicate they are use for bump computation, so
-	   that any texture coordinates are shifted by dx/dy when sampling */
+	 * that any texture coordinates are shifted by dx/dy when sampling */
 	foreach(NodePair& pair, nodes_center)
 		pair.second->bump = SHADER_BUMP_CENTER;
 	foreach(NodePair& pair, nodes_dx)
@@ -516,15 +516,15 @@ void ShaderGraph::bump_from_displacement()
 	connect(out_dy, bump->input("SampleY"));
 
 	/* connect bump output to normal input nodes that aren't set yet. actually
-	   this will only set the normal input to the geometry node that we created
-	   and connected to all other normal inputs already. */
+	 * this will only set the normal input to the geometry node that we created
+	 * and connected to all other normal inputs already. */
 	foreach(ShaderNode *node, nodes)
 		foreach(ShaderInput *input, node->inputs)
 			if(!input->link && input->default_value == ShaderInput::NORMAL)
 				connect(bump->output("Normal"), input);
 	
 	/* finally, add the copied nodes to the graph. we can't do this earlier
-	   because we would create dependency cycles in the above loop */
+	 * because we would create dependency cycles in the above loop */
 	foreach(NodePair& pair, nodes_center)
 		add(pair.second);
 	foreach(NodePair& pair, nodes_dx)

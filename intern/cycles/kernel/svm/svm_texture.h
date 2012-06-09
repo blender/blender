@@ -152,7 +152,7 @@ __device float voronoi_CrS(float3 p) { return 2.0f*voronoi_Cr(p) - 1.0f; }
 __device float noise_basis(float3 p, NodeNoiseBasis basis)
 {
 	/* Only Perlin enabled for now, others break CUDA compile by making kernel
-	   too big, with compile using > 4GB, due to everything being inlined. */
+	 * too big, with compile using > 4GB, due to everything being inlined. */
 
 #if 0
 	if(basis == NODE_NOISE_PERLIN)

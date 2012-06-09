@@ -64,8 +64,8 @@ __device float3 area_light_sample(float3 axisu, float3 axisv, float randu, float
 __device float3 background_light_sample(KernelGlobals *kg, float randu, float randv, float *pdf)
 {
 	/* for the following, the CDF values are actually a pair of floats, with the
-	   function value as X and the actual CDF as Y.  The last entry's function
-	   value is the CDF total. */
+	 * function value as X and the actual CDF as Y.  The last entry's function
+	 * value is the CDF total. */
 	int res = kernel_data.integrator.pdf_background_res;
 	int cdf_count = res + 1;
 
@@ -326,9 +326,9 @@ __device float triangle_light_pdf(KernelGlobals *kg,
 __device int light_distribution_sample(KernelGlobals *kg, float randt)
 {
 	/* this is basically std::upper_bound as used by pbrt, to find a point light or
-	   triangle to emit from, proportional to area. a good improvement would be to
-	   also sample proportional to power, though it's not so well defined with
-	   OSL shaders. */
+	 * triangle to emit from, proportional to area. a good improvement would be to
+	 * also sample proportional to power, though it's not so well defined with
+	 * OSL shaders. */
 	int first = 0;
 	int len = kernel_data.integrator.num_distribution + 1;
 

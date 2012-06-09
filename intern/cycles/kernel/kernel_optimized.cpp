@@ -17,8 +17,8 @@
  */
 
 /* Optimized CPU kernel entry points. This file is compiled with SSE3
-   optimization flags and nearly all functions inlined, while kernel.cpp
-   is compiled without for other CPU's. */
+ * optimization flags and nearly all functions inlined, while kernel.cpp
+ * is compiled without for other CPU's. */
 
 #ifdef WITH_OPTIMIZED_KERNEL
 

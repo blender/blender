@@ -68,8 +68,8 @@ static void create_mesh(Scene *scene, Mesh *mesh, BL::Mesh b_mesh, const vector<
 	}
 
 	/* create generated coordinates. todo: we should actually get the orco
-	   coordinates from modifiers, for now we use texspace loc/size which
-	   is available in the api. */
+	 * coordinates from modifiers, for now we use texspace loc/size which
+	 * is available in the api. */
 	if(mesh->need_attribute(scene, ATTR_STD_GENERATED)) {
 		Attribute *attr = mesh->attributes.add(ATTR_STD_GENERATED);
 		float3 loc = get_float3(b_mesh.texspace_location());
@@ -181,8 +181,10 @@ static void create_subd_mesh(Mesh *mesh, BL::Mesh b_mesh, PointerRNA *cmesh, con
 
 		if(n == 4)
 			sdmesh.add_face(vi[0], vi[1], vi[2], vi[3]);
-		/*else
-			sdmesh.add_face(vi[0], vi[1], vi[2]);*/
+#if 0
+		else
+			sdmesh.add_face(vi[0], vi[1], vi[2]);
+#endif
 	}
 
 	/* finalize subd mesh */
@@ -232,7 +234,7 @@ Mesh *BlenderSync::sync_mesh(BL::Object b_ob, bool object_updated)
 		/* if transform was applied to mesh, need full update */
 		if(object_updated && mesh->transform_applied);
 		/* test if shaders changed, these can be object level so mesh
-		   does not get tagged for recalc */
+		 * does not get tagged for recalc */
 		else if(mesh->used_shaders != used_shaders);
 		else {
 			/* even if not tagged for recalc, we may need to sync anyway

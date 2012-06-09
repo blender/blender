@@ -17,7 +17,7 @@
 float fresnel_dielectric(vector Incoming, normal Normal, float eta)
 {
 	/* compute fresnel reflectance without explicitly computing
-	   the refracted direction */
+	 * the refracted direction */
 	float c = fabs(dot(Incoming, Normal));
 	float g = eta * eta - 1 + c * c;
 	float result;

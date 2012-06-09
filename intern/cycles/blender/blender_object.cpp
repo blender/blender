@@ -264,7 +264,7 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 		}
 
 		/* camera flag is not actually used, instead is tested
-		   against render layer flags */
+		 * against render layer flags */
 		if(object->visibility & PATH_RAY_CAMERA) {
 			object->visibility |= layer_flag << PATH_RAY_LAYER_SHIFT;
 			object->visibility &= ~PATH_RAY_CAMERA;

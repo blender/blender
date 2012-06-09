@@ -29,9 +29,9 @@
 CCL_NAMESPACE_BEGIN
 
 /* On the CPU, we pass along the struct KernelGlobals to nearly everywhere in
-   the kernel, to access constant data. These are all stored as "textures", but
-   these are really just standard arrays. We can't use actually globals because
-   multiple renders may be running inside the same process. */
+ * the kernel, to access constant data. These are all stored as "textures", but
+ * these are really just standard arrays. We can't use actually globals because
+ * multiple renders may be running inside the same process. */
 
 #ifdef __KERNEL_CPU__
 
@@ -45,7 +45,7 @@ typedef struct KernelGlobals {
 
 #ifdef __OSL__
 	/* On the CPU, we also have the OSL globals here. Most data structures are shared
-	   with SVM, the difference is in the shaders and object/mesh attributes. */
+	 * with SVM, the difference is in the shaders and object/mesh attributes. */
 	OSLGlobals osl;
 #endif
 
@@ -54,9 +54,9 @@ typedef struct KernelGlobals {
 #endif
 
 /* For CUDA, constant memory textures must be globals, so we can't put them
-   into a struct. As a result we don't actually use this struct and use actual
-   globals and simply pass along a NULL pointer everywhere, which we hope gets
-   optimized out. */
+ * into a struct. As a result we don't actually use this struct and use actual
+ * globals and simply pass along a NULL pointer everywhere, which we hope gets
+ * optimized out. */
 
 #ifdef __KERNEL_CUDA__
 

@@ -89,7 +89,7 @@ void Object::apply_transform()
 	Transform ntfm = transform_transpose(transform_inverse(tfm));
 
 	/* we keep normals pointing in same direction on negative scale, notify
-	   mesh about this in it (re)calculates normals */
+	 * mesh about this in it (re)calculates normals */
 	if(transform_negative_scale(tfm))
 		mesh->transform_negative_scaled = true;
 
@@ -161,7 +161,7 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		Transform itfm = transform_inverse(tfm);
 
 		/* compute surface area. for uniform scale we can do avoid the many
-		   transform calls and share computation for instances */
+		 * transform calls and share computation for instances */
 		/* todo: correct for displacement, and move to a better place */
 		float uniform_scale;
 		float surface_area = 0.0f;
@@ -206,8 +206,8 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		if(need_motion == Scene::MOTION_PASS) {
 			/* motion transformations, is world/object space depending if mesh
-			   comes with deformed position in object space, or if we transform
-			   the shading point in world space */
+			 * comes with deformed position in object space, or if we transform
+			 * the shading point in world space */
 			Transform mtfm_pre = ob->motion.pre;
 			Transform mtfm_post = ob->motion.post;
 

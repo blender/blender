@@ -82,8 +82,8 @@ int SubdFaceRing::vert_index(SubdVert *vertex)
 void SubdFaceRing::evaluate_stencils(float3 *P, StencilMask *mask, int num)
 {
 	/* first we sort verts by id. this way verts will always be added
-	   in the same order to ensure the exact same float ops happen for control
-	   points of other patches, so we get water-tight patches */
+	 * in the same order to ensure the exact same float ops happen for control
+	 * points of other patches, so we get water-tight patches */
 	int num_verts = m_verts.size();
 
 	vector<int> vmap(num_verts);
@@ -161,8 +161,8 @@ bool SubdFaceRing::is_quad(SubdFace *face)
 bool SubdFaceRing::is_boundary(SubdFace *face)
 {
 	/* note that face->is_boundary() returns a different result. That function
-	   returns true when any of the *edges* are on the boundary. however, this
-	   function returns true if any of the face *verts* are on the boundary.  */
+	 * returns true when any of the *edges* are on the boundary. however, this
+	 * function returns true if any of the face *verts* are on the boundary.  */
 
 	for(SubdFace::EdgeIterator it(face->edges()); !it.isDone(); it.advance()) {
 		SubdEdge *edge = it.current();

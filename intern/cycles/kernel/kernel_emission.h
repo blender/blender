@@ -44,7 +44,7 @@ __device float3 direct_emissive_eval(KernelGlobals *kg, float rando,
 		ls->Ng = sd.Ng;
 
 		/* no path flag, we're evaluating this for all closures. that's weak but
-		   we'd have to do multiple evaluations otherwise */
+		 * we'd have to do multiple evaluations otherwise */
 		shader_eval_surface(kg, &sd, rando, 0);
 
 		/* evaluate emissive closure */
@@ -145,7 +145,7 @@ __device float3 indirect_emission(KernelGlobals *kg, ShaderData *sd, float t, in
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP) && (sd->flag & SD_SAMPLE_AS_LIGHT)) {
 		/* multiple importance sampling, get triangle light pdf,
-		   and compute weight with respect to BSDF pdf */
+		 * and compute weight with respect to BSDF pdf */
 		float pdf = triangle_light_pdf(kg, sd->Ng, sd->I, t);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);
 
@@ -172,7 +172,7 @@ __device float3 indirect_background(KernelGlobals *kg, Ray *ray, int path_flag, 
 
 	if(!(path_flag & PATH_RAY_MIS_SKIP) && res) {
 		/* multiple importance sampling, get background light pdf for ray
-		   direction, and compute weight with respect to BSDF pdf */
+		 * direction, and compute weight with respect to BSDF pdf */
 		float pdf = background_light_pdf(kg, ray->D);
 		float mis_weight = power_heuristic(bsdf_pdf, pdf);
 

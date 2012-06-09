@@ -82,7 +82,7 @@ static float pseudoValence(SubdVert *vert)
 
 	if(vert->is_boundary()) {
 		/* we treat boundary verts as being half a closed mesh. corners are
-		   special case. n = 4 for corners and n = 2*(n-1) for boundaries. */
+		 * special case. n = 4 for corners and n = 2*(n-1) for boundaries. */
 		if(valence == 2) return 4;
 		return (valence - 1)*2;
 	}
@@ -481,10 +481,11 @@ void SubdAccBuilder::computeInteriorStencil(SubdFaceRing *ring, GregoryAccStenci
 			}
 
 			/* this change makes the triangle boundaries smoother, but distorts the quads next to them */
-			/*if(ring->is_triangle() || SubdFaceRing::is_triangle(edge->pair->face))
-			{
+#if 0
+			if(ring->is_triangle() || SubdFaceRing::is_triangle(edge->pair->face)) {
 				y *= 4.0f / 3.0f;
-			}*/
+			}
+#endif
 
 			stencil->get(interior1Indices[primitiveOffset+v]) = stencil->get(edge1Indices[primitiveOffset+v]);
 			stencil->get(interior1Indices[primitiveOffset+v]) += x;
@@ -539,8 +540,10 @@ void SubdAccBuilder::computeInteriorStencil(SubdFaceRing *ring, GregoryAccStenci
 			}
 
 			/* this change makes the triangle boundaries smoother, but distorts the quads next to them. */
-			/*if(ring->is_triangle() || SubdFaceRing::is_triangle(edge->pair->face))
-				y *= 4.0f / 3.0f;*/
+#if 0
+			if(ring->is_triangle() || SubdFaceRing::is_triangle(edge->pair->face))
+				y *= 4.0f / 3.0f;
+#endif
 
 			stencil->get(interior2Indices[primitiveOffset+v]) = stencil->get(edge2Indices[primitiveOffset+v]);
 			stencil->get(interior2Indices[primitiveOffset+v]) += x;

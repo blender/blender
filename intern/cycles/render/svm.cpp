@@ -251,11 +251,11 @@ void SVMCompiler::stack_link(ShaderInput *input, ShaderOutput *output)
 void SVMCompiler::stack_clear_users(ShaderNode *node, set<ShaderNode*>& done)
 {
 	/* optimization we should add:
-	   find and lower user counts for outputs for which all inputs are done.
-	   this is done before the node is compiled, under the assumption that the
-	   node will first load all inputs from the stack and then writes its
-	   outputs. this used to work, but was disabled because it gave trouble
-	   with inputs getting stack positions assigned */
+	 * find and lower user counts for outputs for which all inputs are done.
+	 * this is done before the node is compiled, under the assumption that the
+	 * node will first load all inputs from the stack and then writes its
+	 * outputs. this used to work, but was disabled because it gave trouble
+	 * with inputs getting stack positions assigned */
 
 	foreach(ShaderInput *input, node->inputs) {
 		ShaderOutput *output = input->link;
@@ -418,8 +418,8 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 			add_node(NODE_ADD_CLOSURE, 0, 0, 0);
 
 		/* generate code for closure 1
-		   note we backup all compiler state and restore it afterwards, so one
-		   closure choice doesn't influence the other*/
+		 * note we backup all compiler state and restore it afterwards, so one
+		 * closure choice doesn't influence the other*/
 		if(cl1in->link) {
 			StackBackup backup;
 			stack_backup(backup, done);
@@ -448,7 +448,7 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 			add_node(NODE_END, 0, 0, 0);
 
 		/* set jump for mix node, -1 because offset is already
-		   incremented when this jump is added to it */
+		 * incremented when this jump is added to it */
 		svm_nodes[mix_offset].z = cl2_offset - mix_offset - 1;
 
 		done.insert(node);
@@ -482,9 +482,9 @@ void SVMCompiler::generate_closure(ShaderNode *node, set<ShaderNode*>& done)
 void SVMCompiler::generate_multi_closure(ShaderNode *node, set<ShaderNode*>& done, uint in_offset)
 {
 	/* todo: the weaks point here is that unlike the single closure sampling 
-	   we will evaluate all nodes even if they are used as input for closures
-	   that are unused. it's not clear what would be the best way to skip such
-	   nodes at runtime, especially if they are tangled up  */
+	 * we will evaluate all nodes even if they are used as input for closures
+	 * that are unused. it's not clear what would be the best way to skip such
+	 * nodes at runtime, especially if they are tangled up  */
 
 	if(node->name == ustring("mix_closure") || node->name == ustring("add_closure")) {
 		ShaderInput *fin = node->input("Fac");

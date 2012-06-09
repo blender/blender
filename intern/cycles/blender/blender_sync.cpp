@@ -63,7 +63,7 @@ BlenderSync::~BlenderSync()
 bool BlenderSync::sync_recalc()
 {
 	/* sync recalc flags from blender to cycles. actual update is done separate,
-	   so we can do it later on if doing it immediate is not suitable */
+	 * so we can do it later on if doing it immediate is not suitable */
 
 	BL::BlendData::materials_iterator b_mat;
 

@@ -23,8 +23,8 @@ typedef uint RNG;
 #ifdef __SOBOL__
 
 /* skip initial numbers that are not as well distributed, especially the
-   first sequence is just 0 everywhere, which can be problematic for e.g.
-   path termination */
+ * first sequence is just 0 everywhere, which can be problematic for e.g.
+ * path termination */
 #define SOBOL_SKIP 64
 
 /* High Dimensional Sobol */
@@ -66,7 +66,7 @@ __device uint sobol_inverse(uint i)
 }
 
 /* multidimensional sobol with generator matrices
-   dimension 0 and 1 are equal to van_der_corput() and sobol() respectively */
+ * dimension 0 and 1 are equal to van_der_corput() and sobol() respectively */
 __device uint sobol_dimension(KernelGlobals *kg, int index, int dimension)
 {
 	uint result = 0;

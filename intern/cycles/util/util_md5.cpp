@@ -148,7 +148,7 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 
 	/* Round 1. */
 	/* Let [abcd k s i] denote the operation
-	   a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s). */
+	 * a = b + ((a + F(b,c,d) + X[k] + T[i]) <<< s). */
 #define F(x, y, z) (((x) & (y)) | (~(x) & (z)))
 #define SET(a, b, c, d, k, s, Ti)\
   t = a + F(b,c,d) + X[k] + Ti;\
@@ -172,9 +172,9 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 	SET(b, c, d, a, 15, 22, T16);
 #undef SET
 
-	 /* Round 2. */
-	 /* Let [abcd k s i] denote the operation
-		  a = b + ((a + G(b,c,d) + X[k] + T[i]) <<< s). */
+	/* Round 2. */
+	/* Let [abcd k s i] denote the operation
+	 * a = b + ((a + G(b,c,d) + X[k] + T[i]) <<< s). */
 #define G(x, y, z) (((x) & (z)) | ((y) & ~(z)))
 #define SET(a, b, c, d, k, s, Ti)\
   t = a + G(b,c,d) + X[k] + Ti;\
@@ -198,9 +198,9 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 	SET(b, c, d, a, 12, 20, T32);
 #undef SET
 
-	 /* Round 3. */
-	 /* Let [abcd k s t] denote the operation
-		  a = b + ((a + H(b,c,d) + X[k] + T[i]) <<< s). */
+	/* Round 3. */
+	/* Let [abcd k s t] denote the operation
+	 * a = b + ((a + H(b,c,d) + X[k] + T[i]) <<< s). */
 #define H(x, y, z) ((x) ^ (y) ^ (z))
 #define SET(a, b, c, d, k, s, Ti)\
   t = a + H(b,c,d) + X[k] + Ti;\
@@ -224,9 +224,9 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 	SET(b, c, d, a,  2, 23, T48);
 #undef SET
 
-	 /* Round 4. */
-	 /* Let [abcd k s t] denote the operation
-		  a = b + ((a + I(b,c,d) + X[k] + T[i]) <<< s). */
+	/* Round 4. */
+	/* Let [abcd k s t] denote the operation
+	 * a = b + ((a + I(b,c,d) + X[k] + T[i]) <<< s). */
 #define I(x, y, z) ((y) ^ ((x) | ~(z)))
 #define SET(a, b, c, d, k, s, Ti)\
   t = a + I(b,c,d) + X[k] + Ti;\
@@ -250,9 +250,9 @@ void MD5Hash::process(const uint8_t *data /*[64]*/)
 	SET(b, c, d, a,  9, 21, T64);
 #undef SET
 
-	 /* Then perform the following additions. (That is increment each
-		of the four registers by the value it had before this block
-		was started.) */
+	/* Then perform the following additions. (That is increment each
+	 * of the four registers by the value it had before this block
+	 * was started.) */
 	abcd[0] += a;
 	abcd[1] += b;
 	abcd[2] += c;

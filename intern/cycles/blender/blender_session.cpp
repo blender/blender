@@ -304,7 +304,7 @@ void BlenderSession::synchronize()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
-	   synchronization at a later time to not block on running updates */
+	 * synchronization at a later time to not block on running updates */
 	sync->sync_recalc();
 
 	/* try to acquire mutex. if we don't want to or can't, come back later */
@@ -334,7 +334,7 @@ void BlenderSession::synchronize()
 bool BlenderSession::draw(int w, int h)
 {
 	/* before drawing, we verify camera and viewport size changes, because
-	   we do not get update callbacks for those, we must detect them here */
+	 * we do not get update callbacks for those, we must detect them here */
 	if(session->ready_to_reset()) {
 		bool reset = false;
 
@@ -429,7 +429,7 @@ void BlenderSession::tag_redraw()
 {
 	if(background) {
 		/* update stats and progress, only for background here because
-		   in 3d view we do it in draw for thread safety reasons */
+		 * in 3d view we do it in draw for thread safety reasons */
 		update_status_progress();
 
 		/* offline render, redraw if timeout passed */

@@ -139,7 +139,7 @@ Transform transform_inverse(const Transform& tfm)
 
 	if(!transform_matrix4_gj_inverse(R, M)) {
 		/* matrix is degenerate (e.g. 0 scale on some axis), ideally we should
-		   never be in this situation, but try to invert it anyway with tweak */
+		 * never be in this situation, but try to invert it anyway with tweak */
 		M[0][0] += 1e-8f;
 		M[1][1] += 1e-8f;
 		M[2][2] += 1e-8f;

@@ -27,7 +27,7 @@
 #include "util_vector.h"
 
 /* Hacks to hook into Blender API
-   todo: clean this up ... */
+ * todo: clean this up ... */
 
 extern "C" {
 
@@ -121,7 +121,7 @@ static inline Transform get_transform(BL::Array<float, 16> array)
 	Transform tfm;
 
 	/* we assume both types to be just 16 floats, and transpose because blender
-	   use column major matrix order while we use row major */
+	 * use column major matrix order while we use row major */
 	memcpy(&tfm, &array, sizeof(float)*16);
 	tfm = transform_transpose(tfm);
 
@@ -164,12 +164,14 @@ static inline uint get_layer(BL::Array<int, 20> array)
 	return layer;
 }
 
-/*static inline float3 get_float3(PointerRNA& ptr, const char *name)
+#if 0
+static inline float3 get_float3(PointerRNA& ptr, const char *name)
 {
 	float3 f;
 	RNA_float_get_array(&ptr, name, &f.x);
 	return f;
-}*/
+}
+#endif
 
 static inline bool get_boolean(PointerRNA& ptr, const char *name)
 {

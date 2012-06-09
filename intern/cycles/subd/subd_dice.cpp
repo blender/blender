@@ -81,9 +81,9 @@ void EdgeDice::stitch_triangles(vector<int>& outer, vector<int>& inner)
 		return; // XXX avoid crashes for Mu or Mv == 1, missing polygons
 
 	/* stitch together two arrays of verts with triangles. at each step,
-	   we compare using the next verts on both sides, to find the split
-	   direction with the smallest diagonal, and use that in order to keep
-	   the triangle shape reasonable. */
+	 * we compare using the next verts on both sides, to find the split
+	 * direction with the smallest diagonal, and use that in order to keep
+	 * the triangle shape reasonable. */
 	for(size_t i = 0, j = 0; i+1 < inner.size() || j+1 < outer.size();) {
 		int v0, v1, v2;
 
@@ -354,8 +354,8 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 	// XXX normals are flipped, why?
 
 	/* grid is constructed starting from the outside edges, and adding
-	   progressively smaller inner triangles that connected to the outer
-	   one, until M = 1 or 2, the we fill up the last part. */
+	 * progressively smaller inner triangles that connected to the outer
+	 * one, until M = 1 or 2, the we fill up the last part. */
 	vector<int> outer_u, outer_v, outer_w;
 	int m;
 
