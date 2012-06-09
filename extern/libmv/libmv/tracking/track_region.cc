@@ -56,6 +56,7 @@ TrackRegionOptions::TrackRegionOptions()
       use_normalized_intensities(false),
       sigma(0.9),
       num_extra_points(0),
+      regularization_coefficient(0.0),
       image1_mask(NULL) {
 }
 
@@ -137,9 +138,9 @@ class BoundaryCheckingCallback : public ceres::IterationCallback {
 };
 
 template<typename Warp>
-class WarpCostFunctor {
+class PixelDifferenceCostFunctor {
  public:
-  WarpCostFunctor(const TrackRegionOptions &options,
+  PixelDifferenceCostFunctor(const TrackRegionOptions &options,
                   const FloatImage &image_and_gradient1,
                   const FloatImage &image_and_gradient2,
                   const Mat3 &canonical_to_image1,
@@ -448,6 +449,79 @@ class WarpCostFunctor {
   FloatImage pattern_positions_;
 
   FloatImage pattern_mask_;
+};
+
+template<typename Warp>
+class WarpRegularizingCostFunctor {
+ public:
+  WarpRegularizingCostFunctor(const TrackRegionOptions &options,
+                              const double *x1,
+                              const double *y1,
+                              const double *x2_original,
+                              const double *y2_original,
+                              const Warp &warp)
+      : options_(options),
+        x1_(x1),
+        y1_(y1),
+        x2_original_(x2_original),
+        y2_original_(y2_original),
+        warp_(warp) {
+    // Compute the centroid of the first guess quad.
+    // TODO(keir): Use Quad class here.
+    original_centroid_[0] = 0.0;
+    original_centroid_[1] = 0.0;
+    for (int i = 0; i < 4; ++i) {
+      original_centroid_[0] += x2_original[i];
+      original_centroid_[1] += y2_original[i];
+    }
+    original_centroid_[0] /= 4;
+    original_centroid_[1] /= 4;
+  }
+
+  template<typename T>
+  bool operator()(const T *warp_parameters, T *residuals) const {
+    T dst_centroid[2] = { T(0.0), T(0.0) };
+    for (int i = 0; i < 4; ++i) {
+      T image1_position[2] = { T(x1_[i]), T(y1_[i]) };
+      T image2_position[2];
+      warp_.Forward(warp_parameters,
+                    T(x1_[i]),
+                    T(y1_[i]),
+                    &image2_position[0],
+                    &image2_position[1]);
+
+      // Subtract the positions. Note that this ignores the centroids.
+      residuals[2 * i + 0] = image2_position[0] - image1_position[0];
+      residuals[2 * i + 1] = image2_position[1] - image1_position[1];
+
+      // Accumulate the dst centroid.
+      dst_centroid[0] += image2_position[0];
+      dst_centroid[1] += image2_position[1];
+    }
+    dst_centroid[0] /= T(4.0);
+    dst_centroid[1] /= T(4.0);
+
+    // Adjust for the centroids.
+    for (int i = 0; i < 4; ++i) {
+      residuals[2 * i + 0] += T(original_centroid_[0]) - dst_centroid[0];
+      residuals[2 * i + 1] += T(original_centroid_[1]) - dst_centroid[1];
+    }
+
+    // Reweight the residuals.
+    for (int i = 0; i < 8; ++i) {
+      residuals[i] *= T(options_.regularization_coefficient);
+    }
+
+    return true;
+  }
+
+  const TrackRegionOptions &options_;
+  const double *x1_;
+  const double *y1_;
+  const double *x2_original_;
+  const double *y2_original_;
+  double original_centroid_[2];
+  const Warp &warp_;
 };
 
 // Compute the warp from rectangular coordinates, where one corner is the
@@ -1097,6 +1171,14 @@ void TemplatedTrackRegion(const FloatImage &image1,
   }
   // TODO(keir): Check quads to ensure there is some area.
 
+  // Keep a copy of the "original" guess for regularization.
+  double x2_original[4];
+  double y2_original[4];
+  for (int i = 0; i < 4; ++i) {
+    x2_original[i] = x2[i];
+    y2_original[i] = y2[i];
+  }
+
   // Prepare the image and gradient.
   Array3Df image_and_gradient1;
   Array3Df image_and_gradient2;
@@ -1138,26 +1220,43 @@ void TemplatedTrackRegion(const FloatImage &image1,
                                                          num_samples_x,
                                                          num_samples_y);
 
-  // Construct the warp cost function. AutoDiffCostFunction takes ownership.
-  WarpCostFunctor<Warp> *warp_cost_function =
-      new WarpCostFunctor<Warp>(options,
-                                image_and_gradient1,
-                                image_and_gradient2,
-                                canonical_homography,
-                                num_samples_x,
-                                num_samples_y,
-                                warp);
-
-  // Construct the problem with a single residual.
   ceres::Problem problem;
-  problem.AddResidualBlock(
-      new ceres::AutoDiffCostFunction<
-          WarpCostFunctor<Warp>,
-          ceres::DYNAMIC,
-          Warp::NUM_PARAMETERS>(warp_cost_function,
-                                num_samples_x * num_samples_y),
-      NULL,
-      warp.parameters);
+
+  // Construct the warp cost function. AutoDiffCostFunction takes ownership.
+  PixelDifferenceCostFunctor<Warp> *pixel_difference_cost_function =
+      new PixelDifferenceCostFunctor<Warp>(options,
+                                           image_and_gradient1,
+                                           image_and_gradient2,
+                                           canonical_homography,
+                                           num_samples_x,
+                                           num_samples_y,
+                                           warp);
+   problem.AddResidualBlock(
+       new ceres::AutoDiffCostFunction<
+           PixelDifferenceCostFunctor<Warp>,
+           ceres::DYNAMIC,
+           Warp::NUM_PARAMETERS>(pixel_difference_cost_function,
+                                 num_samples_x * num_samples_y),
+       NULL,
+       warp.parameters);
+
+  // Construct the regularizing cost function
+  if (options.regularization_coefficient != 0.0) {
+    WarpRegularizingCostFunctor<Warp> *regularizing_warp_cost_function =
+        new WarpRegularizingCostFunctor<Warp>(options,
+                                              x1, y2,
+                                              x2_original,
+                                              y2_original,
+                                              warp);
+
+    problem.AddResidualBlock(
+        new ceres::AutoDiffCostFunction<
+            WarpRegularizingCostFunctor<Warp>,
+            8 /* num_residuals */,
+            Warp::NUM_PARAMETERS>(regularizing_warp_cost_function),
+        NULL,
+        warp.parameters);
+  }
 
   // Configure the solve.
   ceres::Solver::Options solver_options;
@@ -1208,8 +1307,8 @@ void TemplatedTrackRegion(const FloatImage &image1,
 
   // Otherwise, run a final correlation check.
   if (options.minimum_correlation > 0.0) {
-    result->correlation = warp_cost_function->
-          PearsonProductMomentCorrelationCoefficient(warp.parameters);
+    result->correlation = pixel_difference_cost_function->
+        PearsonProductMomentCorrelationCoefficient(warp.parameters);
     if (result->correlation < options.minimum_correlation) {
       LG << "Failing with insufficient correlation.";
       result->termination = TrackRegionResult::INSUFFICIENT_CORRELATION;

@@ -73,6 +73,23 @@ struct TrackRegionOptions {
   // because the actual warp parameters are not exposed.
   int num_extra_points;
 
+  // For motion models other than translation, the optimizer sometimes has
+  // trouble deciding what to do around flat areas in the cost function. This
+  // leads to the optimizer picking poor solutions near the minimum. Visually,
+  // the effect is that the quad corners jiggle around, even though the center
+  // of the patch is well estimated. regularization_coefficient controls a term
+  // in the sum of squared error cost that makes it expensive for the optimizer
+  // to pick a warp that changes the shape of the patch dramatically (e.g.
+  // rotating, scaling, skewing, etc).
+  //
+  // In particular it adds an 8-residual cost function to the optimization,
+  // where each corner induces 2 residuals: the difference between the warped
+  // and the initial guess. However, the patch centroids are subtracted so that
+  // only patch distortions are penalized.
+  //
+  // If zero, no regularization is used.
+  double regularization_coefficient;
+
   // If non-null, this is used as the pattern mask. It should match the size of
   // image1, even though only values inside the image1 quad are examined. The
   // values must be in the range 0.0 to 0.1.
