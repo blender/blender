@@ -59,6 +59,10 @@ inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
   int x1, y1, x2, y2;
   float dx, dy;
 
+  // Take the upper left corner as integer pixel positions.
+  x -= 0.5;
+  y -= 0.5;
+
   LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
   LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
 
@@ -77,6 +81,10 @@ template<typename T>
 inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
   int x1, y1, x2, y2;
   float dx, dy;
+
+  // Take the upper left corner as integer pixel positions.
+  x -= 0.5;
+  y -= 0.5;
 
   LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
   LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
