@@ -88,9 +88,9 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 }
 
 static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack *UNUSED(track),
-			MovieTrackingMarker *marker, int UNUSED(coord), float val)
+			MovieTrackingMarker *UNUSED(marker), int UNUSED(coord), int scene_framenr, float val)
 {
-	glVertex2f(marker->framenr, val);
+	glVertex2f(scene_framenr, val);
 }
 
 void tracking_segment_start_cb(void *userdata, MovieTrackingTrack *track, int coord)
@@ -123,7 +123,7 @@ void tracking_segment_end_cb(void *UNUSED(userdata))
 }
 
 static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, int coord, float val)
+			MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
 	int sel = 0, sel_flag;
@@ -140,7 +140,7 @@ static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
 		else
 			UI_ThemeColor(TH_HANDLE_VERTEX);
 
-		draw_curve_knot(marker->framenr, val, data->xscale, data->yscale, data->hsize);
+		draw_curve_knot(scene_framenr, val, data->xscale, data->yscale, data->hsize);
 	}
 }
 

@@ -126,7 +126,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 	if (act_track) {
 		MovieTrackingTrack *track = act_track;
 
-		for (i = sfra, a = 0; i <= efra; i++) {
+		for (i = sfra - clip->start_frame + 1, a = 0; i <= efra - clip->start_frame + 1; i++) {
 			int framenr;
 			MovieTrackingMarker *marker;
 

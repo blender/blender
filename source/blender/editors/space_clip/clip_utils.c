@@ -64,7 +64,7 @@
 #include "clip_intern.h"	// own include
 
 void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack *track, void *userdata,
-			void (*func) (void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, float val),
+			void (*func) (void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
 			void (*segment_start) (void *userdata, MovieTrackingTrack *track, int coord),
 			void (*segment_end) (void *userdata))
 {
@@ -104,8 +104,11 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 			val = (marker->pos[coord] - prevval) * ((coord == 0) ? (width) : (height));
 			val /= marker->framenr - prevfra;
 
-			if (func)
-				func(userdata, track, marker, coord, val);
+			if (func) {
+				int scene_framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
+
+				func(userdata, track, marker, coord, scene_framenr, val);
+			}
 
 			prevval = marker->pos[coord];
 			prevfra = marker->framenr;
@@ -119,7 +122,7 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 }
 
 void clip_graph_tracking_values_iterate(SpaceClip *sc, void *userdata,
-			void (*func) (void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, float val),
+			void (*func) (void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
 			void (*segment_start) (void *userdata, MovieTrackingTrack *track, int coord),
 			void (*segment_end) (void *userdata))
 {

@@ -109,10 +109,11 @@ typedef struct {
 } MouseSelectUserData;
 
 static void find_nearest_tracking_segment_cb(void *userdata, MovieTrackingTrack *track,
-                                             MovieTrackingMarker *marker, int coord, float val)
+                                             MovieTrackingMarker *UNUSED(marker),
+                                             int coord, int scene_framenr, float val)
 {
 	MouseSelectUserData *data = userdata;
-	float co[2] = {marker->framenr, val};
+	float co[2] = {scene_framenr, val};
 
 	if (data->has_prev) {
 		float d = dist_to_line_segment_v2(data->mouse_co, data->prev_co, co);
@@ -137,14 +138,14 @@ void find_nearest_tracking_segment_end_cb(void *userdata)
 }
 
 static void find_nearest_tracking_knot_cb(void *userdata, MovieTrackingTrack *track,
-                                          MovieTrackingMarker *marker, int coord, float val)
+                                          MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
 	MouseSelectUserData *data = userdata;
-	float dx = marker->framenr - data->mouse_co[0], dy = val - data->mouse_co[1];
+	float dx = scene_framenr - data->mouse_co[0], dy = val - data->mouse_co[1];
 	float d = dx * dx + dy * dy;
 
 	if (data->marker == NULL || d < data->min_dist) {
-		float co[2] = {marker->framenr, val};
+		float co[2] = {scene_framenr, val};
 
 		data->track = track;
 		data->marker = marker;
@@ -308,11 +309,11 @@ typedef struct BorderSelectuserData {
 } BorderSelectuserData;
 
 static void border_select_cb(void *userdata, MovieTrackingTrack *UNUSED(track),
-                             MovieTrackingMarker *marker, int coord, float val)
+                             MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
 	BorderSelectuserData *data = (BorderSelectuserData *) userdata;
 
-	if (BLI_in_rctf(&data->rect, marker->framenr, val)) {
+	if (BLI_in_rctf(&data->rect, scene_framenr, val)) {
 		int flag = 0;
 
 		if (coord == 0)
@@ -532,7 +533,7 @@ typedef struct {
 } ViewAllUserData;
 
 static void view_all_cb(void *userdata, MovieTrackingTrack *UNUSED(track), MovieTrackingMarker *UNUSED(marker),
-                        int UNUSED(coord), float val)
+                        int UNUSED(coord), int UNUSED(scene_framenr), float val)
 {
 	ViewAllUserData *data = (ViewAllUserData *) userdata;
 
