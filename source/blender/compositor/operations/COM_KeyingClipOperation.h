@@ -31,20 +31,18 @@
   */
 class KeyingClipOperation : public NodeOperation {
 protected:
-	SocketReader *pixelReader;
 	float clipBlack;
 	float clipWhite;
 
 public:
 	KeyingClipOperation();
 
-	void initExecution();
-	void deinitExecution();
-
 	void setClipBlack(float value) {this->clipBlack = value;}
 	void setClipWhite(float value) {this->clipWhite = value;}
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 };
 
 #endif

@@ -36,29 +36,30 @@ KeyingClipOperation::KeyingClipOperation(): NodeOperation()
 	this->clipBlack = 0.0f;
 	this->clipWhite = 1.0f;
 
-	this->pixelReader = NULL;
+	this->setComplex(true);
 }
 
-void KeyingClipOperation::initExecution()
+void *KeyingClipOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	this->pixelReader = this->getInputSocketReader(0);
+	void *buffer = getInputOperation(0)->initializeTileData(rect, memoryBuffers);
+
+	return buffer;
 }
 
-void KeyingClipOperation::deinitExecution()
-{
-	this->pixelReader = NULL;
-}
-
-void KeyingClipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	const int delta = 3;
 
-	float pixelColor[4];
-	int width = this->getWidth(), height = this->getHeight();
+	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	float *buffer = inputBuffer->getBuffer();
+
+	int bufferWidth = inputBuffer->getWidth();
+	int bufferHeight = inputBuffer->getHeight();
+
 	int count_black = 0, count_white = 0;
 	int i, j;
 
-	this->pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
+	int srcIndex = (y * bufferWidth + x) * 4;
 
 	for (i = -delta + 1; i < delta; i++) {
 		for (j = -delta + 1; j < delta; j++) {
@@ -67,20 +68,18 @@ void KeyingClipOperation::executePixel(float *color, float x, float y, PixelSamp
 			if (i == 0 && j == 0)
 				continue;
 
-			if (cx >= 0 && cx < width && cy >= 0 && cy < height) {
-				float value[4];
+			if (cx >= 0 && cx < bufferWidth && cy >= 0 && cy < bufferHeight) {
+				int bufferIndex = (cy * bufferWidth + cx) * 4;
 
-				this->pixelReader->read(value, cx, cy, sampler, inputBuffers);
-
-				if (value[0] < 0.4f)
+				if (buffer[bufferIndex] < 0.4f)
 					count_black++;
-				else if (value[0] > 0.6f)
+				else if (buffer[bufferIndex] > 0.6f)
 					count_white++;
 			}
 		}
 	}
 
-	color[0] = pixelColor[0];
+	color[0] = buffer[srcIndex];
 
 	if (count_black >= 22 || count_white >= 22) {
 		if (color[0] < this->clipBlack)
