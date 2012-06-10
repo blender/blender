@@ -511,7 +511,7 @@ void WTURBULENCE::computeEnergy(float *_energy, float* xvel, float* yvel, float*
         if (obstacles[index])
           obstacles[index] = 1; // DG TODO ? animated obstacle flag?
 
-  free(obstacles);
+  delete [] obstacles;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
