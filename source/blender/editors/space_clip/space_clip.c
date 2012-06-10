@@ -393,8 +393,11 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			}
 			break;
 		case NC_SCREEN:
-			if (wmn->data == ND_ANIMPLAY) {
-				ED_area_tag_redraw(sa);
+			 switch (wmn->data) {
+				case ND_ANIMPLAY:
+				case ND_GPENCIL:
+					ED_area_tag_redraw(sa);
+					break;
 			}
 			break;
 		case NC_SPACE:

@@ -39,6 +39,7 @@
 
 /* match-moving data */
 
+struct bGPdata;
 struct ImBuf;
 struct MovieReconstructedCamera;
 struct MovieTrackingCamera;
@@ -107,6 +108,8 @@ typedef struct MovieTrackingTrack {
 
 	/* ** SAD tracker settings ** */
 	float minimum_correlation;			/* minimal correlation which is still treated as successful tracking */
+
+	struct bGPdata *gpd;            /* grease-pencil data */
 } MovieTrackingTrack;
 
 typedef struct MovieTrackingSettings {

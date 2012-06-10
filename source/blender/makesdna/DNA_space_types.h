@@ -999,7 +999,10 @@ typedef struct SpaceClip {
 	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
-	int postproc_flag, pad2;
+	int postproc_flag;
+
+	/* grease pencil */
+	short gpencil_src, pad2;
 
 	void *draw_context;
 
@@ -1067,6 +1070,12 @@ typedef enum eSpaceClip_Dopesheet_Sort {
 typedef enum eSpaceClip_Dopesheet_Flag {
 	SC_DOPE_SORT_INVERSE    = (1 << 0),
 } eSpaceClip_Dopesheet_Flag;
+
+/* SpaceClip->gpencil_src */
+typedef enum eSpaceClip_GPencil_Source {
+	SC_GPENCIL_SRC_CLIP = 0,
+	SC_GPENCIL_SRC_TRACK = 1,
+} eSpaceClip_GPencil_Source;
 
 /* **************** SPACE DEFINES ********************* */
 

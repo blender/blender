@@ -284,6 +284,7 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this movie clip");
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* frame offset */
 	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
