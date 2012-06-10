@@ -200,8 +200,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 				/* tracked segments */
 				for (i = 0; i < channel->tot_segment; i++) {
-					int start_frame = channel->segments[2 * i];
-					int end_frame = channel->segments[2 * i + 1];
+					int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i]);
+					int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i + 1]);
 
 					if (sel)
 						glColor4fv(selected_strip);
@@ -224,8 +224,11 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 				while (i < track->markersnr) {
 					MovieTrackingMarker *marker = &track->markers[i];
 
-					if ((marker->flag & (MARKER_DISABLED | MARKER_TRACKED)) == 0)
-						draw_keyframe_shape(marker->framenr, y, xscale, yscale, sel, alpha);
+					if ((marker->flag & (MARKER_DISABLED | MARKER_TRACKED)) == 0) {
+						int framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
+
+						draw_keyframe_shape(framenr, y, xscale, yscale, sel, alpha);
+					}
 
 					i++;
 				}
