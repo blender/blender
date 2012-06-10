@@ -754,6 +754,7 @@ void BM_edge_ordered_verts_ex(BMEdge *edge, BMVert **r_v1, BMVert **r_v2,
                               BMLoop *edge_loop)
 {
 	BLI_assert(edge_loop->e == edge);
+	(void)edge; /* quiet warning in release build */
 	*r_v1 = edge_loop->v;
 	*r_v2 = edge_loop->next->v;
 }
