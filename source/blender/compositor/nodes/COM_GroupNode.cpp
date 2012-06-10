@@ -45,23 +45,16 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		InputSocket * inputSocket = inputsockets[index];
 		bNodeSocket *editorInput = inputSocket->getbNodeSocket();
 		if (editorInput->groupsock) {
-			if (inputSocket->isConnected()) {
-				SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
-				inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
-				ExecutionSystemHelper::addNode(system.getNodes(), proxy);
-			}
-			else {
-				OutputSocketProxyNode * proxy = new OutputSocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
-				inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
-				ExecutionSystemHelper::addNode(system.getNodes(), proxy);
-			}
+			SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
+			inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
+			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}
 	}
 
 	for (index = 0 ; index < outputsockets.size();index ++) {
 		OutputSocket * outputSocket = outputsockets[index];
 		bNodeSocket *editorOutput = outputSocket->getbNodeSocket();
-		if (outputSocket->isConnected() && editorOutput->groupsock) {
+		if (editorOutput->groupsock) {
 			SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorOutput->groupsock, editorOutput);
 			outputSocket->relinkConnections(proxy->getOutputSocket(0));
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
