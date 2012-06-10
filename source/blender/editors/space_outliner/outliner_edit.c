@@ -35,6 +35,7 @@
 #include "DNA_group_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_object_types.h"
+#include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
@@ -48,6 +49,7 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_material.h"
 
 #include "ED_object.h"
 #include "ED_screen.h"
@@ -1816,3 +1818,68 @@ void OUTLINER_OT_scene_drop(wmOperatorType *ot)
 	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
 	RNA_def_string(ot->srna, "scene", "Scene", MAX_ID_NAME, "Scene", "Target Scene");
 }
+
+static int material_drop_invoke(bContext *C, wmOperator *op, wmEvent *event)
+{
+	Main *bmain = CTX_data_main(C);
+	Material *ma = NULL;
+	Object *ob = NULL;
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	ARegion *ar = CTX_wm_region(C);
+	TreeElement *te = NULL;
+	TreeElement *te_found = NULL;
+	char mat_name[MAX_ID_NAME - 2];
+	float fmval[2];
+
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	/* Find object hovered over */
+	for (te = soops->tree.first; te; te = te->next) {
+		te_found = outliner_dropzone_parent(C, event, te, fmval);
+		if (te_found)
+			break;
+	}
+
+	if (te_found) {
+		RNA_string_set(op->ptr, "object", te_found->name);
+		ob = (Object *)BKE_libblock_find_name(ID_OB, te_found->name);
+
+		RNA_string_get(op->ptr, "material", mat_name);
+		ma = (Material *)BKE_libblock_find_name(ID_MA, mat_name);
+
+		if (ELEM(NULL, ob, ma)) {
+			return OPERATOR_CANCELLED;
+		}
+
+		assign_material(ob, ma, ob->totcol + 1);
+
+		DAG_ids_flush_update(bmain, 0);
+		WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));		
+		WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+void OUTLINER_OT_material_drop(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Drop Material on Object";
+	ot->description = "Drag material to object in Outliner";
+	ot->idname = "OUTLINER_OT_material_drop";
+
+	/* api callbacks */
+	ot->invoke = material_drop_invoke;
+
+	ot->poll = ED_operator_outliner_active;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+
+	/* properties */
+	RNA_def_string(ot->srna, "object", "Object", MAX_ID_NAME, "Object", "Target Object");
+	RNA_def_string(ot->srna, "material", "Material", MAX_ID_NAME, "Material", "Target Material");
+}
+
