@@ -1,0 +1,15 @@
+diff --git a/internal/ceres/residual_block_utils.cc b/internal/ceres/residual_block_utils.cc
+index ed3499b..28e0313 100644
+--- a/internal/ceres/residual_block_utils.cc
++++ b/internal/ceres/residual_block_utils.cc
+@@ -40,6 +40,10 @@
+ #include "ceres/internal/eigen.h"
+ #include "ceres/internal/port.h"
+ 
++#ifdef _MSC_VER
++#  define isfinite _finite
++#endif
++
+ namespace ceres {
+ namespace internal {
+ 

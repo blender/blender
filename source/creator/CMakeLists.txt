@@ -900,6 +900,7 @@ endif()
 
 	if(WITH_LIBMV)
 		list(APPEND BLENDER_SORTED_LIBS extern_libmv)
+		list(APPEND BLENDER_SORTED_LIBS extern_ceres)
 	endif()
 
 	if(WITH_MOD_CLOTH_ELTOPO)

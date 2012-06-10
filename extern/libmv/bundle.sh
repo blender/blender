@@ -25,7 +25,9 @@ for p in `cat ./patches/series`; do
 done
 
 find libmv -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
-find third_party -type f -not -iwholename '*.svn*' -exec rm -rf {} \;
+find third_party -type f -not -iwholename '*.svn*' -not -iwholename '*third_party/ceres*' \
+    -not -iwholename '*third_party/SConscript*' -not -iwholename '*third_party/CMakeLists.txt*' \
+    -exec rm -rf {} \;
 
 cat "files.txt" | while read f; do
   mkdir -p `dirname $f`
@@ -39,14 +41,14 @@ chmod 664 ./third_party/glog/src/windows/*.cc ./third_party/glog/src/windows/*.h
 sources=`find ./libmv -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | sort -d`
 headers=`find ./libmv -type f -iname '*.h' | sed -r 's/^\.\//\t/' | sort -d`
 
-third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | sed -r 's/^\.\//\t/' | sort -d`
-third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | sed -r 's/^\.\//\t/' | sort -d`
+third_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t/' | sort -d`
+third_headers=`find ./third_party -type f -iname '*.h' | grep -v glog | grep -v ceres | sed -r 's/^\.\//\t/' | sort -d`
 
 third_glog_sources=`find ./third_party -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
 third_glog_headers=`find ./third_party -type f -iname '*.h' | grep glog | grep -v windows | sed -r 's/^\.\//\t\t/' | sort -d`
 
 src_dir=`find ./libmv -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort -d | uniq`
-src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/'  | sort -d | uniq`
+src_third_dir=`find ./third_party -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \;  | grep -v ceres | sed -r 's/^\.\//\t/'  | sort -d | uniq`
 src=""
 win_src=""
 for x in $src_dir $src_third_dir; do
@@ -126,6 +128,7 @@ set(INC
 	third_party/ssba
 	third_party/ldl/Include
 	../colamd/Include
+	third_party/ceres/include
 )
 
 set(INC_SYS
@@ -220,6 +223,8 @@ add_definitions(
 )
 
 blender_add_lib(extern_libmv "\${SRC}" "\${INC}" "\${INC_SYS}")
+
+add_subdirectory(third_party)
 EOF
 
 cat > SConscript << EOF
@@ -246,7 +251,7 @@ defs.append('GOOGLE_GLOG_DLL_DECL=')
 src = env.Glob("*.cpp")
 $src
 
-incs = '. ../Eigen3'
+incs = '. ../Eigen3 third_party/ceres/include'
 incs += ' ' + env['BF_PNG_INC']
 incs += ' ' + env['BF_ZLIB_INC']
 
@@ -281,4 +286,6 @@ else:
 incs += ' ./third_party/ssba ./third_party/ldl/Include ../colamd/Include'
 
 env.BlenderLib ( libname = 'extern_libmv', sources=src, includes=Split(incs), defines=defs, libtype=['extern', 'player'], priority=[20,137], compileflags=cflags_libmv, cc_compileflags=ccflags_libmv, cxx_compileflags=cxxflags_libmv )
+
+SConscript(['third_party/SConscript'])
 EOF
