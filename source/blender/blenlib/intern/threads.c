@@ -520,8 +520,10 @@ void BLI_insert_work(ThreadedWorker *worker, void *param)
 struct ThreadQueue {
 	GSQueue *queue;
 	pthread_mutex_t mutex;
-	pthread_cond_t cond;
-	int nowait;
+	pthread_cond_t push_cond;
+	pthread_cond_t finish_cond;
+	volatile int nowait;
+	volatile int cancelled;
 };
 
 ThreadQueue *BLI_thread_queue_init(void)
@@ -532,14 +534,17 @@ ThreadQueue *BLI_thread_queue_init(void)
 	queue->queue = BLI_gsqueue_new(sizeof(void *));
 
 	pthread_mutex_init(&queue->mutex, NULL);
-	pthread_cond_init(&queue->cond, NULL);
+	pthread_cond_init(&queue->push_cond, NULL);
+	pthread_cond_init(&queue->finish_cond, NULL);
 
 	return queue;
 }
 
 void BLI_thread_queue_free(ThreadQueue *queue)
 {
-	pthread_cond_destroy(&queue->cond);
+	/* destroy everything, assumes no one is using queue anymore */
+	pthread_cond_destroy(&queue->finish_cond);
+	pthread_cond_destroy(&queue->push_cond);
 	pthread_mutex_destroy(&queue->mutex);
 
 	BLI_gsqueue_free(queue->queue);
@@ -554,7 +559,7 @@ void BLI_thread_queue_push(ThreadQueue *queue, void *work)
 	BLI_gsqueue_push(queue->queue, &work);
 
 	/* signal threads waiting to pop */
-	pthread_cond_signal(&queue->cond);
+	pthread_cond_signal(&queue->push_cond);
 	pthread_mutex_unlock(&queue->mutex);
 }
 
@@ -565,11 +570,15 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
 	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait)
-		pthread_cond_wait(&queue->cond, &queue->mutex);
-
+		pthread_cond_wait(&queue->push_cond, &queue->mutex);
+	
 	/* if we have something, pop it */
-	if (!BLI_gsqueue_is_empty(queue->queue))
+	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
+		
+		if(BLI_gsqueue_is_empty(queue->queue))
+			pthread_cond_broadcast(&queue->finish_cond);
+	}
 
 	pthread_mutex_unlock(&queue->mutex);
 
@@ -623,16 +632,20 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	/* wait until there is work */
 	pthread_mutex_lock(&queue->mutex);
 	while (BLI_gsqueue_is_empty(queue->queue) && !queue->nowait) {
-		if (pthread_cond_timedwait(&queue->cond, &queue->mutex, &timeout) == ETIMEDOUT)
+		if (pthread_cond_timedwait(&queue->push_cond, &queue->mutex, &timeout) == ETIMEDOUT)
 			break;
 		else if (PIL_check_seconds_timer() - t >= ms * 0.001)
 			break;
 	}
 
 	/* if we have something, pop it */
-	if (!BLI_gsqueue_is_empty(queue->queue))
+	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
-
+		
+		if(BLI_gsqueue_is_empty(queue->queue))
+			pthread_cond_broadcast(&queue->finish_cond);
+	}
+	
 	pthread_mutex_unlock(&queue->mutex);
 
 	return work;
@@ -656,9 +669,22 @@ void BLI_thread_queue_nowait(ThreadQueue *queue)
 	queue->nowait = 1;
 
 	/* signal threads waiting to pop */
-	pthread_cond_signal(&queue->cond);
+	pthread_cond_broadcast(&queue->push_cond);
 	pthread_mutex_unlock(&queue->mutex);
 }
+
+void BLI_thread_queue_wait_finish(ThreadQueue *queue)
+{
+	/* wait for finish condition */
+	pthread_mutex_lock(&queue->mutex);
+
+    while(!BLI_gsqueue_is_empty(queue->queue))
+		pthread_cond_wait(&queue->finish_cond, &queue->mutex);
+
+	pthread_mutex_unlock(&queue->mutex);
+}
+
+/* ************************************************ */
 
 void BLI_begin_threaded_malloc(void)
 {
@@ -674,3 +700,4 @@ void BLI_end_threaded_malloc(void)
 	if (thread_levels == 0)
 		MEM_set_lock_callback(NULL, NULL);
 }
+
