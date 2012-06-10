@@ -351,7 +351,8 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 				startIndex = index+1;
 			}
 		}
-		PIL_sleep_ms(10);
+
+		WorkScheduler::finish();
 
 		if (bTree->test_break && bTree->test_break(bTree->tbh)) {
 			breaked = true;
