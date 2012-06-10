@@ -75,16 +75,16 @@ void BIF_clearTransformOrientation(bContext *C)
 	
 	// Need to loop over all view3d
 	if (v3d && v3d->twmode >= V3D_MANIP_CUSTOM) {
-		v3d->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+		v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
 	}
 }
 
-static TransformOrientation* findOrientationName(ListBase *lb, const char *name)
+static TransformOrientation *findOrientationName(ListBase *lb, const char *name)
 {
-	TransformOrientation *ts= NULL;
+	TransformOrientation *ts = NULL;
 
-	for (ts= lb->first; ts; ts = ts->next) {
-		if (strncmp(ts->name, name, sizeof(ts->name)-1) == 0) {
+	for (ts = lb->first; ts; ts = ts->next) {
+		if (strncmp(ts->name, name, sizeof(ts->name) - 1) == 0) {
 			return ts;
 		}
 	}
@@ -115,7 +115,7 @@ void BIF_createTransformOrientation(bContext *C, ReportList *reports, char *name
 			ts = createBoneSpace(C, reports, name, overwrite);
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-			ts = createBoneSpace(C, reports, name, overwrite);
+		ts = createBoneSpace(C, reports, name, overwrite);
 	}
 	else {
 		ts = createObjectSpace(C, reports, name, overwrite);
@@ -143,7 +143,7 @@ TransformOrientation *createObjectSpace(bContext *C, ReportList *UNUSED(reports)
 
 	/* use object name if no name is given */
 	if (name[0] == 0) {
-		strncpy(name, ob->id.name+2, MAX_ID_NAME-2);
+		strncpy(name, ob->id.name + 2, MAX_ID_NAME - 2);
 	}
 
 	return addMatrixSpace(C, mat, name, overwrite);	
@@ -262,7 +262,7 @@ int createSpaceNormalTangent(float mat[3][3], float normal[3], float tangent[3])
 	return 1;
 }
 
-TransformOrientation* addMatrixSpace(bContext *C, float mat[3][3], char name[], int overwrite)
+TransformOrientation *addMatrixSpace(bContext *C, float mat[3][3], char name[], int overwrite)
 {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts = NULL;
@@ -301,7 +301,7 @@ void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target)
 				
 				// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
 				if (selected_index == i) {
-					v3d->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+					v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
 				}
 				else if (selected_index > i) {
 					v3d->twmode--;
@@ -318,7 +318,7 @@ void BIF_removeTransformOrientation(bContext *C, TransformOrientation *target)
 void BIF_removeTransformOrientationIndex(bContext *C, int index)
 {
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
-	TransformOrientation *ts= BLI_findlink(transform_spaces, index);
+	TransformOrientation *ts = BLI_findlink(transform_spaces, index);
 
 	if (ts) {
 		View3D *v3d = CTX_wm_view3d(C);
@@ -327,7 +327,7 @@ void BIF_removeTransformOrientationIndex(bContext *C, int index)
 			
 			// Transform_fix_me NEED TO DO THIS FOR ALL VIEW3D
 			if (selected_index == index) {
-				v3d->twmode = V3D_MANIP_GLOBAL;	/* fallback to global	*/
+				v3d->twmode = V3D_MANIP_GLOBAL; /* fallback to global	*/
 			}
 			else if (selected_index > index) {
 				v3d->twmode--;
@@ -365,15 +365,15 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 {
 	Scene *scene;
 	ListBase *transform_spaces;
-	TransformOrientation *ts= NULL;
+	TransformOrientation *ts = NULL;
 
-	EnumPropertyItem global	= {V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""};
+	EnumPropertyItem global = {V3D_MANIP_GLOBAL, "GLOBAL", 0, "Global", ""};
 	EnumPropertyItem normal = {V3D_MANIP_NORMAL, "NORMAL", 0, "Normal", ""};
 	EnumPropertyItem local = {V3D_MANIP_LOCAL, "LOCAL", 0, "Local", ""};
 	EnumPropertyItem view = {V3D_MANIP_VIEW, "VIEW", 0, "View", ""};
 	EnumPropertyItem tmp = {0, "", 0, "", ""};
-	EnumPropertyItem *item= NULL;
-	int i = V3D_MANIP_CUSTOM, totitem= 0;
+	EnumPropertyItem *item = NULL;
+	int i = V3D_MANIP_CUSTOM, totitem = 0;
 
 	RNA_enum_item_add(&item, &totitem, &global);
 	RNA_enum_item_add(&item, &totitem, &normal);
@@ -381,7 +381,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	RNA_enum_item_add(&item, &totitem, &view);
 
 	if (C) {
-		scene= CTX_data_scene(C);
+		scene = CTX_data_scene(C);
 
 		if (scene) {
 			transform_spaces = &scene->transform_spaces;
@@ -394,7 +394,7 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 
 	for (; ts; ts = ts->next) {
 		tmp.identifier = "CUSTOM";
-		tmp.name= ts->name;
+		tmp.name = ts->name;
 		tmp.value = i++;
 		RNA_enum_item_add(&item, &totitem, &tmp);
 	}
@@ -404,9 +404,9 @@ EnumPropertyItem *BIF_enumTransformOrientation(bContext *C)
 	return item;
 }
 
-const char * BIF_menustringTransformOrientation(const bContext *C, const char *title)
+const char *BIF_menustringTransformOrientation(const bContext *C, const char *title)
 {
-	const char* menu = IFACE_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
+	const char *menu = IFACE_("%t|Global%x0|Local%x1|Gimbal%x4|Normal%x2|View%x3");
 	ListBase *transform_spaces = &CTX_data_scene(C)->transform_spaces;
 	TransformOrientation *ts;
 	int i = V3D_MANIP_CUSTOM;
@@ -459,7 +459,7 @@ void applyTransformOrientation(const bContext *C, float mat[3][3], char *name)
 				break;
 			}
 		}
-	  }
+	}
 }
 
 static int count_bone_select(bArmature *arm, ListBase *lb, int do_it) 
@@ -468,7 +468,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 	int do_next;
 	int total = 0;
 	
-	for (bone= lb->first; bone; bone= bone->next) {
+	for (bone = lb->first; bone; bone = bone->next) {
 		bone->flag &= ~BONE_TRANSFORM;
 		do_next = do_it;
 		if (do_it) {
@@ -476,7 +476,7 @@ static int count_bone_select(bArmature *arm, ListBase *lb, int do_it)
 				if (bone->flag & BONE_SELECTED) {
 					bone->flag |= BONE_TRANSFORM;
 					total++;
-					do_next = FALSE;	// no transform on children if one parent bone is selected
+					do_next = FALSE;    // no transform on children if one parent bone is selected
 				}
 			}
 		}
@@ -493,55 +493,55 @@ void initTransformOrientation(bContext *C, TransInfo *t)
 	Object *obedit = CTX_data_active_object(C);
 
 	switch (t->current_orientation) {
-	case V3D_MANIP_GLOBAL:
-		unit_m3(t->spacemtx);
-		strcpy(t->spacename, "global");
-		break;
-
-	case V3D_MANIP_GIMBAL:
-		unit_m3(t->spacemtx);
-		if (gimbal_axis(ob, t->spacemtx)) {
-			strcpy(t->spacename, "gimbal");
+		case V3D_MANIP_GLOBAL:
+			unit_m3(t->spacemtx);
+			strcpy(t->spacename, "global");
 			break;
-		}
+
+		case V3D_MANIP_GIMBAL:
+			unit_m3(t->spacemtx);
+			if (gimbal_axis(ob, t->spacemtx)) {
+				strcpy(t->spacename, "gimbal");
+				break;
+			}
 		/* no gimbal fallthrough to normal */
-	case V3D_MANIP_NORMAL:
-		if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
-			strcpy(t->spacename, "normal");
-			ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
-			break;
-		}
+		case V3D_MANIP_NORMAL:
+			if (obedit || (ob && ob->mode & OB_MODE_POSE)) {
+				strcpy(t->spacename, "normal");
+				ED_getTransformOrientationMatrix(C, t->spacemtx, (v3d->around == V3D_ACTIVE));
+				break;
+			}
 		/* no break we define 'normal' as 'local' in Object mode */
-	case V3D_MANIP_LOCAL:
-		strcpy(t->spacename, "local");
+		case V3D_MANIP_LOCAL:
+			strcpy(t->spacename, "local");
 		
-		if (ob) {
-			copy_m3_m4(t->spacemtx, ob->obmat);
-			normalize_m3(t->spacemtx);
-		}
-		else {
-			unit_m3(t->spacemtx);
-		}
+			if (ob) {
+				copy_m3_m4(t->spacemtx, ob->obmat);
+				normalize_m3(t->spacemtx);
+			}
+			else {
+				unit_m3(t->spacemtx);
+			}
 		
-		break;
+			break;
 		
-	case V3D_MANIP_VIEW:
-		if (t->ar->regiontype == RGN_TYPE_WINDOW) {
-			RegionView3D *rv3d = t->ar->regiondata;
-			float mat[3][3];
+		case V3D_MANIP_VIEW:
+			if (t->ar->regiontype == RGN_TYPE_WINDOW) {
+				RegionView3D *rv3d = t->ar->regiondata;
+				float mat[3][3];
 
-			strcpy(t->spacename, "view");
-			copy_m3_m4(mat, rv3d->viewinv);
-			normalize_m3(mat);
-			copy_m3_m3(t->spacemtx, mat);
-		}
-		else {
-			unit_m3(t->spacemtx);
-		}
-		break;
-	default: /* V3D_MANIP_CUSTOM */
-		applyTransformOrientation(C, t->spacemtx, t->spacename);
-		break;
+				strcpy(t->spacename, "view");
+				copy_m3_m4(mat, rv3d->viewinv);
+				normalize_m3(mat);
+				copy_m3_m3(t->spacemtx, mat);
+			}
+			else {
+				unit_m3(t->spacemtx);
+			}
+			break;
+		default: /* V3D_MANIP_CUSTOM */
+			applyTransformOrientation(C, t->spacemtx, t->spacename);
+			break;
 	}
 }
 
@@ -549,7 +549,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 {
 	Scene *scene = CTX_data_scene(C);
 	View3D *v3d = CTX_wm_view3d(C);
-	Object *obedit= CTX_data_edit_object(C);
+	Object *obedit = CTX_data_edit_object(C);
 	Base *base;
 	Object *ob = OBACT;
 	int result = ORIENTATION_NONE;
@@ -566,14 +566,14 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		invert_m3_m3(mat, imat);
 		transpose_m3(mat);
 
-		ob= obedit;
+		ob = obedit;
 
-		if (ob->type==OB_MESH) {
-			Mesh *me= ob->data;
+		if (ob->type == OB_MESH) {
+			Mesh *me = ob->data;
 			BMEditMesh *em = me->edit_btmesh;
 			BMVert *eve;
 			BMEditSelection ese;
-			float vec[3]= {0, 0, 0};
+			float vec[3] = {0, 0, 0};
 			
 			/* USE LAST SELECTED WITH ACTIVE */
 			if (activeOnly && BM_select_history_active_get(em->bm, &ese)) {
@@ -711,17 +711,17 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			}
 		} /* end editmesh */
 		else if (ELEM(obedit->type, OB_CURVE, OB_SURF)) {
-			Curve *cu= obedit->data;
+			Curve *cu = obedit->data;
 			Nurb *nu;
 			BezTriple *bezt;
 			int a;
-			ListBase *nurbs= BKE_curve_editNurbs_get(cu);
+			ListBase *nurbs = BKE_curve_editNurbs_get(cu);
 
 			for (nu = nurbs->first; nu; nu = nu->next) {
 				/* only bezier has a normal */
 				if (nu->type == CU_BEZIER) {
-					bezt= nu->bezt;
-					a= nu->pntsu;
+					bezt = nu->bezt;
+					a = nu->pntsu;
 					while (a--) {
 						/* exception */
 						if ((bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT) {
@@ -747,7 +747,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 				result = ORIENTATION_NORMAL;
 			}
 		}
-		else if (obedit->type==OB_MBALL) {
+		else if (obedit->type == OB_MBALL) {
 #if 0 // XXX
 			/* editmball.c */
 			MetaElem *ml, *ml_sel = NULL;
@@ -784,7 +784,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			bArmature *arm = obedit->data;
 			EditBone *ebone;
 			
-			for (ebone = arm->edbo->first; ebone; ebone=ebone->next) {
+			for (ebone = arm->edbo->first; ebone; ebone = ebone->next) {
 				if (arm->layer & ebone->layer) {
 					if (ebone->flag & BONE_SELECTED) {
 						float tmat[3][3];
@@ -819,7 +819,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		}
 	}
 	else if (ob && (ob->mode & OB_MODE_POSE)) {
-		bArmature *arm= ob->data;
+		bArmature *arm = ob->data;
 		bPoseChannel *pchan;
 		int totsel;
 		
@@ -828,7 +828,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			float imat[3][3], mat[3][3];
 
 			/* use channels to get stats */
-			for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 				if (pchan->bone && pchan->bone->flag & BONE_TRANSFORM) {
 					add_v3_v3(normal, pchan->pose_mat[2]);
 					add_v3_v3(plane, pchan->pose_mat[1]);
@@ -847,7 +847,7 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 			result = ORIENTATION_EDGE;
 		}
 	}
-	else if (ob && (ob->mode & (OB_MODE_ALL_PAINT|OB_MODE_PARTICLE_EDIT))) {
+	else if (ob && (ob->mode & (OB_MODE_ALL_PAINT | OB_MODE_PARTICLE_EDIT))) {
 		/* pass */
 	}
 	else {
@@ -855,10 +855,10 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 		ob = OBACT;
 		if (ob && !(ob->flag & SELECT)) ob = NULL;
 		
-		for (base= scene->base.first; base; base= base->next) {
+		for (base = scene->base.first; base; base = base->next) {
 			if (TESTBASELIB(v3d, base)) {
 				if (ob == NULL) {
-					ob= base->object;
+					ob = base->object;
 					break;
 				}
 			}
@@ -876,8 +876,8 @@ int getTransformOrientation(const bContext *C, float normal[3], float plane[3], 
 
 void ED_getTransformOrientationMatrix(const bContext *C, float orientation_mat[][3], int activeOnly)
 {
-	float normal[3]={0.0, 0.0, 0.0};
-	float plane[3]={0.0, 0.0, 0.0};
+	float normal[3] = {0.0, 0.0, 0.0};
+	float plane[3] = {0.0, 0.0, 0.0};
 
 	int type;
 
