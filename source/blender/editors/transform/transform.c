@@ -1178,10 +1178,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *cent2d)
+int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int cent2d[2])
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
-	int success = 1;
+	int success;
 
 	t->state = TRANS_RUNNING;
 
@@ -1196,10 +1196,10 @@ int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *ce
 	t->around = centerMode; 			// override userdefined mode
 
 	if (t->total == 0) {
-		success = 0;
+		success = FALSE;
 	}
 	else {
-		success = 1;
+		success = TRUE;
 
 		calculateCenter(t);
 
