@@ -6117,7 +6117,7 @@ static void direct_link_movieReconstruction(FileData *fd, MovieTrackingReconstru
 	reconstruction->cameras = newdataadr(fd, reconstruction->cameras);
 }
 
-static void direct_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 {
 	MovieTrackingTrack *track;
 	
@@ -6125,7 +6125,6 @@ static void direct_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tra
 
 	for (track = tracksbase->first; track; track = track->next) {
 		track->markers = newdataadr(fd, track->markers);
-		track->gpd = newlibadr_us(fd, clip->id.lib, track->gpd);
 	}
 }
 
@@ -6142,7 +6141,7 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	if (fd->movieclipmap) clip->tracking.camera.intrinsics = newmclipadr(fd, clip->tracking.camera.intrinsics);
 	else clip->tracking.camera.intrinsics = NULL;
 
-	direct_link_movieTracks(fd, clip, &tracking->tracks);
+	direct_link_movieTracks(fd, &tracking->tracks);
 	direct_link_movieReconstruction(fd, &tracking->reconstruction);
 
 	clip->tracking.act_track = newdataadr(fd, clip->tracking.act_track);
@@ -6161,8 +6160,17 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	link_list(fd, &tracking->objects);
 	
 	for (object = tracking->objects.first; object; object = object->next) {
-		direct_link_movieTracks(fd, clip, &object->tracks);
+		direct_link_movieTracks(fd, &object->tracks);
 		direct_link_movieReconstruction(fd, &object->reconstruction);
+	}
+}
+
+static void lib_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+{
+	MovieTrackingTrack *track;
+
+	for (track = tracksbase->first; track; track = track->next) {
+		track->gpd = newlibadr_us(fd, clip->id.lib, track->gpd);
 	}
 }
 
@@ -6172,11 +6180,20 @@ static void lib_link_movieclip(FileData *fd, Main *main)
 	
 	for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 		if (clip->id.flag & LIB_NEEDLINK) {
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *object;
+
 			if (clip->adt)
 				lib_link_animdata(fd, &clip->id, clip->adt);
 			
 			clip->gpd = newlibadr_us(fd, clip->id.lib, clip->gpd);
 			
+			lib_link_movieTracks(fd, clip, &tracking->tracks);
+
+			for (object = tracking->objects.first; object; object = object->next) {
+				lib_link_movieTracks(fd, clip, &object->tracks);
+			}
+
 			clip->id.flag -= LIB_NEEDLINK;
 		}
 	}
@@ -7683,7 +7700,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 11)) {
 		MovieClip *clip;
 
 		for (clip = main->movieclip.first; clip; clip = clip->id.next) {

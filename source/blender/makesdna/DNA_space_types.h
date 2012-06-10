@@ -1071,7 +1071,7 @@ typedef enum eSpaceClip_Dopesheet_Flag {
 	SC_DOPE_SORT_INVERSE    = (1 << 0),
 } eSpaceClip_Dopesheet_Flag;
 
-/* SPaceClip->gpencil_src */
+/* SpaceClip->gpencil_src */
 typedef enum eSpaceClip_GPencil_Source {
 	SC_GPENCIL_SRC_CLIP = 0,
 	SC_GPENCIL_SRC_TRACK = 1,

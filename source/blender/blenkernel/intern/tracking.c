@@ -1248,6 +1248,7 @@ ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
                                          ImBuf *search_ibuf, MovieTrackingMarker *marker,
                                          int num_samples_x, int num_samples_y, float pos[2])
 {
+#ifdef WITH_LIBMV
 	ImBuf *pattern_ibuf;
 	double src_pixel_x[5], src_pixel_y[5];
 	double warped_position_x, warped_position_y;
@@ -1272,6 +1273,27 @@ ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
 	}
 
 	return pattern_ibuf;
+#else
+	ImBuf *pattern_ibuf;
+
+	/* real sampling requires libmv, but areas are supposing pattern would be
+	 * sampled if search area does exists, so we'll need to create empty
+	 * pattern area here to prevent adding NULL-checks all over just to deal
+	 * with situation when lubmv is disabled
+	 */
+
+	(void) frame_width;
+	(void) frame_height;
+	(void) search_ibuf;
+	(void) marker;
+
+	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
+
+	pos[0] = num_samples_x / 2.0f;
+	pos[1] = num_samples_y / 2.0f;
+
+	return pattern_ibuf;
+#endif
 }
 
 ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, MovieTrackingMarker *marker,
