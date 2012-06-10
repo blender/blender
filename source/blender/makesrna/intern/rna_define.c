@@ -29,6 +29,7 @@
 #include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stddef.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -38,6 +39,7 @@
 #include "DNA_sdna_types.h"
 
 #include "BLI_utildefines.h"
+#include "BLI_listbase.h"
 #include "BLI_ghash.h"
 
 #include "RNA_define.h"
@@ -2630,6 +2632,11 @@ FunctionRNA *RNA_def_function(StructRNA *srna, const char *identifier, const cha
 {
 	FunctionRNA *func;
 	FunctionDefRNA *dfunc;
+
+	if (BLI_findstring_ptr(&srna->functions, identifier, offsetof(FunctionRNA, identifier))) {
+		fprintf(stderr, "%s: %s.%s already defined.\n", __func__, srna->identifier, identifier);
+		return NULL;
+	}
 
 	func = rna_def_function(srna, identifier);
 

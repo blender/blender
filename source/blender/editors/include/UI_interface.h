@@ -195,7 +195,8 @@ typedef struct uiLayout uiLayout;
 /*#define FUN	192*/ /*UNUSED*/
 #define BIT 256
 
-#define BUTPOIN (128 + 64 + 32)
+/* button reqyires a pointer */
+#define BUTPOIN (FLO | SHO | CHA)
 
 #define BUT (1 << 9)
 #define ROW (2 << 9)

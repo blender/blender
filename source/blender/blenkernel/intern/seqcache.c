@@ -29,7 +29,7 @@
 
 #include <stddef.h>
 
-#include "BLO_sys_types.h"	/* for intptr_t */
+#include "BLO_sys_types.h"  /* for intptr_t */
 
 #include "MEM_guardedalloc.h"
 
@@ -38,21 +38,21 @@
 
 #include "IMB_moviecache.h"
 
-typedef struct seqCacheKey {
-	struct Sequence * seq;
+typedef struct SeqCacheKey {
+	struct Sequence *seq;
 	SeqRenderData context;
 	float cfra;
 	seq_stripelem_ibuf_t type;
-} seqCacheKey;
+} SeqCacheKey;
 
 static struct MovieCache *moviecache = NULL;
 
 static unsigned int seqcache_hashhash(const void *key_)
 {
-	const seqCacheKey *key = (seqCacheKey*) key_;
+	const SeqCacheKey *key = (SeqCacheKey *) key_;
 	unsigned int rval = seq_hash_render_data(&key->context);
 
-	rval ^= *(unsigned int*) &key->cfra;
+	rval ^= *(unsigned int *) &key->cfra;
 	rval += key->type;
 	rval ^= ((intptr_t) key->seq) << 6;
 
@@ -61,11 +61,11 @@ static unsigned int seqcache_hashhash(const void *key_)
 
 static int seqcache_hashcmp(const void *a_, const void *b_)
 {
-	const seqCacheKey * a = (seqCacheKey*) a_;
-	const seqCacheKey * b = (seqCacheKey*) b_;
+	const SeqCacheKey *a = (SeqCacheKey *) a_;
+	const SeqCacheKey *b = (SeqCacheKey *) b_;
 
 	if (a->seq < b->seq) {
-		return -1;		
+		return -1;
 	}
 	if (a->seq > b->seq) {
 		return 1;
@@ -98,18 +98,18 @@ void seq_stripelem_cache_cleanup(void)
 {
 	if (moviecache) {
 		IMB_moviecache_free(moviecache);
-		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
-				seqcache_hashcmp, NULL);
+		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), seqcache_hashhash,
+		                                   seqcache_hashcmp, NULL);
 	}
 }
 
-struct ImBuf * seq_stripelem_cache_get(
-	SeqRenderData context, struct Sequence * seq, 
-	float cfra, seq_stripelem_ibuf_t type)
+struct ImBuf *seq_stripelem_cache_get(
+        SeqRenderData context, struct Sequence *seq,
+        float cfra, seq_stripelem_ibuf_t type)
 {
 
 	if (moviecache && seq) {
-		seqCacheKey key;
+		SeqCacheKey key;
 
 		key.seq = seq;
 		key.context = context;
@@ -123,18 +123,18 @@ struct ImBuf * seq_stripelem_cache_get(
 }
 
 void seq_stripelem_cache_put(
-	SeqRenderData context, struct Sequence * seq, 
-	float cfra, seq_stripelem_ibuf_t type, struct ImBuf * i)
+        SeqRenderData context, struct Sequence *seq,
+        float cfra, seq_stripelem_ibuf_t type, struct ImBuf *i)
 {
-	seqCacheKey key;
+	SeqCacheKey key;
 
 	if (!i) {
 		return;
 	}
 
 	if (!moviecache) {
-		moviecache = IMB_moviecache_create(sizeof(seqCacheKey), seqcache_hashhash,
-				seqcache_hashcmp, NULL);
+		moviecache = IMB_moviecache_create(sizeof(SeqCacheKey), seqcache_hashhash,
+		                                   seqcache_hashcmp, NULL);
 	}
 
 	key.seq = seq;

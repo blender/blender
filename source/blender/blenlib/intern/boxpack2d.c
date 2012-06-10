@@ -33,7 +33,7 @@
  * 
  * The defined Below are for internal use only */
 
-typedef struct boxVert {
+typedef struct BoxVert {
 	float x;
 	float y;
 	short free;
@@ -48,7 +48,7 @@ typedef struct boxVert {
 	struct BoxPack *isect_cache[4];
 
 	int index;
-} boxVert;
+} BoxVert;
 
 /* free vert flags */
 #define EPSILON 0.0000001f
@@ -121,11 +121,11 @@ static int box_areasort(const void *p1, const void *p2)
  * */
 static float box_width;
 static float box_height;
-static boxVert *vertarray;
+static BoxVert *vertarray;
 
 static int vertex_sort(const void *p1, const void *p2)
 {
-	boxVert *v1, *v2;
+	BoxVert *v1, *v2;
 	float a1, a2;
 
 	v1 = vertarray + ((int *)p1)[0];
@@ -154,7 +154,7 @@ static int vertex_sort(const void *p1, const void *p2)
  *  */
 void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height)
 {
-	boxVert *vert; /* the current vert */
+	BoxVert *vert; /* the current vert */
 	int box_index, verts_pack_len, i, j, k, isect;
 	int quad_flags[4] = {BLF, TRF, TLF, BRF}; /* use for looping */
 	BoxPack *box, *box_test; /*current box and another for intersection tests*/
@@ -170,38 +170,38 @@ void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *
 	qsort(boxarray, len, sizeof(BoxPack), box_areasort);
 
 	/* add verts to the boxes, these are only used internally  */
-	vert = vertarray = MEM_mallocN(len * 4 * sizeof(boxVert), "BoxPack Verts");
+	vert = vertarray = MEM_mallocN(len * 4 * sizeof(BoxVert), "BoxPack Verts");
 	vertex_pack_indices = MEM_mallocN(len * 3 * sizeof(int), "BoxPack Indices");
 
 	for (box = boxarray, box_index = 0, i = 0; box_index < len; box_index++, box++) {
 
 		vert->blb = vert->brb = vert->tlb =
-		        vert->isect_cache[0] = vert->isect_cache[1] =
-		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		            vert->isect_cache[0] = vert->isect_cache[1] =
+		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~TRF;
 		vert->trb = box;
 		vert->index = i; i++;
 		box->v[BL] = vert; vert++;
 		
 		vert->trb = vert->brb = vert->tlb =
-		        vert->isect_cache[0] = vert->isect_cache[1] =
-		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		            vert->isect_cache[0] = vert->isect_cache[1] =
+		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~BLF;
 		vert->blb = box;
 		vert->index = i; i++;
 		box->v[TR] = vert; vert++;
 		
 		vert->trb = vert->blb = vert->tlb =
-		        vert->isect_cache[0] = vert->isect_cache[1] =
-		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		            vert->isect_cache[0] = vert->isect_cache[1] =
+		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~BRF;
 		vert->brb = box;
 		vert->index = i; i++;
 		box->v[TL] = vert; vert++;
 		
 		vert->trb = vert->blb = vert->brb =
-		        vert->isect_cache[0] = vert->isect_cache[1] =
-		        vert->isect_cache[2] = vert->isect_cache[3] = NULL;
+		            vert->isect_cache[0] = vert->isect_cache[1] =
+		            vert->isect_cache[2] = vert->isect_cache[3] = NULL;
 		vert->free = CORNERFLAGS & ~TLF;
 		vert->tlb = box; 
 		vert->index = i; i++;

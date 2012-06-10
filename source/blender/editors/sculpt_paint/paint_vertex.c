@@ -2624,10 +2624,10 @@ void PAINT_OT_vertex_paint_toggle(wmOperatorType *ot)
  * - revise whether op->customdata should be added in object, in set_vpaint
  */
 
-typedef struct polyfacemap_e {
-	struct polyfacemap_e *next, *prev;
+typedef struct PolyFaceMap {
+	struct PolyFaceMap *next, *prev;
 	int facenr;
-} polyfacemap_e;
+} PolyFaceMap;
 
 typedef struct VPaintData {
 	ViewContext vc;
@@ -2648,7 +2648,7 @@ typedef struct VPaintData {
 static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 {
 	MFace *mf;
-	polyfacemap_e *e;
+	PolyFaceMap *e;
 	int *origIndex;
 	int i;
 
@@ -2667,7 +2667,7 @@ static void vpaint_build_poly_facemap(struct VPaintData *vd, Mesh *me)
 		if (*origIndex == ORIGINDEX_NONE)
 			continue;
 
-		e = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(polyfacemap_e));
+		e = BLI_memarena_alloc(vd->polyfacemap_arena, sizeof(PolyFaceMap));
 		e->facenr = i;
 		
 		BLI_addtail(&vd->polyfacemap[*origIndex], e);
@@ -2784,7 +2784,7 @@ static void vpaint_paint_poly(VPaint *vp, VPaintData *vpd, Object *ob,
 	MCol *mc;
 	MLoop *ml;
 	MLoopCol *mlc;
-	polyfacemap_e *e;
+	PolyFaceMap *e;
 	unsigned int *lcol = ((unsigned int *)me->mloopcol) + mpoly->loopstart;
 	unsigned int *lcolorig = ((unsigned int *)vp->vpaint_prev) + mpoly->loopstart;
 	float alpha;

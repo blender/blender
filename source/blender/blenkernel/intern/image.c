@@ -2722,15 +2722,17 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 
 void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
-	const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr);
-
-	/* allows image users to handle redraws */
-	if (iuser->flag & IMA_ANIM_ALWAYS)
-		if (framenr != iuser->framenr)
-			iuser->flag |= IMA_ANIM_REFRESHED;
-
-	iuser->framenr = framenr;
-	if (iuser->ok == 0) iuser->ok = 1;
+	if (iuser) {
+		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr);
+		
+		/* allows image users to handle redraws */
+		if (iuser->flag & IMA_ANIM_ALWAYS)
+			if (framenr != iuser->framenr)
+				iuser->flag |= IMA_ANIM_REFRESHED;
+		
+		iuser->framenr = framenr;
+		if (iuser->ok == 0) iuser->ok = 1;
+	}
 }
 
 void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
