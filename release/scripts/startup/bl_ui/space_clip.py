@@ -181,16 +181,6 @@ class CLIP_PT_reconstruction_panel:
         return clip and sc.mode == 'RECONSTRUCTION' and sc.view == 'CLIP'
 
 
-class CLIP_PT_distortion_panel:
-
-    @classmethod
-    def poll(cls, context):
-        sc = context.space_data
-        clip = sc.clip
-
-        return clip and sc.mode == 'DISTORTION' and sc.view == 'CLIP'
-
-
 class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
     bl_space_type = 'CLIP_EDITOR'
     bl_region_type = 'TOOLS'
