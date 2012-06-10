@@ -664,12 +664,12 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 	return BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
 
-FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
+FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 {
 #if 1
 	FunctionRNA *func;
 	StructRNA *type;
-	for (type = ptr->type; type; type = type->base) {
+	for (type = srna; type; type = type->base) {
 		func = (FunctionRNA *)BLI_findstring_ptr(&type->functions, identifier, offsetof(FunctionRNA, identifier));
 		if (func) {
 			return func;
@@ -683,7 +683,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
 
-	RNA_pointer_create(NULL, &RNA_Struct, ptr->type, &tptr);
+	RNA_pointer_create(NULL, &RNA_Struct, srna, &tptr);
 	iterprop = RNA_struct_find_property(&tptr, "functions");
 
 	func = NULL;
@@ -5132,7 +5132,7 @@ int RNA_function_call_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, 
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func)
 		return RNA_function_call(C, reports, ptr, func, parms);
@@ -5160,7 +5160,7 @@ int RNA_function_call_direct_lookup(bContext *C, ReportList *reports, PointerRNA
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func) {
 		va_list args;
@@ -5535,7 +5535,7 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func)
 		return RNA_function_call_direct_va(C, reports, ptr, func, format, args);

@@ -675,7 +675,7 @@ int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test);
 const struct ListBase *RNA_struct_type_properties(StructRNA *srna);
 PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifier);
 
-FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier);
+FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier);
 const struct ListBase *RNA_struct_type_functions(StructRNA *srna);
 
 char *RNA_struct_name_get_alloc(PointerRNA *ptr, char *fixedbuf, int fixedlen, int *r_len);
