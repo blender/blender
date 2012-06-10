@@ -502,9 +502,12 @@ class IMAGE_PT_view_histogram(Panel):
         layout = self.layout
 
         sima = context.space_data
+        hist = sima.scopes.histogram
 
         layout.template_histogram(sima.scopes, "histogram")
-        layout.prop(sima.scopes.histogram, "mode", icon_only=True)
+        row = layout.row(align=True)
+        row.prop(hist, "mode", icon_only=True, expand=True)
+        row.prop(hist, "show_line", text="")
 
 
 class IMAGE_PT_view_waveform(Panel):
@@ -560,10 +563,13 @@ class IMAGE_PT_sample_line(Panel):
         layout = self.layout
 
         sima = context.space_data
+        hist = sima.sample_histogram
 
         layout.operator("image.sample_line")
         layout.template_histogram(sima, "sample_histogram")
-        layout.prop(sima.sample_histogram, "mode")
+        row = layout.row(align=True)
+        row.prop(hist, "mode", expand=True)
+        row.prop(hist, "show_line", text="")
 
 
 class IMAGE_PT_scope_sample(Panel):

@@ -658,37 +658,59 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 }
 
 static void histogram_draw_one(float r, float g, float b, float alpha,
-                               float x, float y, float w, float h, float *data, int res)
+                               float x, float y, float w, float h, float *data, int res, const short is_line)
 {
 	int i;
 	
-	/* under the curve */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glColor4f(r, g, b, alpha);
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUAD_STRIP);
-	glVertex2f(x, y);
-	glVertex2f(x, y + (data[0] * h));
-	for (i = 1; i < res; i++) {
-		float x2 = x + i * (w / (float)res);
-		glVertex2f(x2, y + (data[i] * h));
-		glVertex2f(x2, y);
+	if (is_line) {
+
+		glLineWidth(1.5);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glColor4f(r, g, b, alpha);
+
+		/* curve outline */
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glEnable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_STRIP);
+		for (i = 0; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
+
+		glLineWidth(1.0);
 	}
-	glEnd();
-	
-	/* curve outline */
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_LINE_SMOOTH);
-	glBegin(GL_LINE_STRIP);
-	for (i = 0; i < res; i++) {
-		float x2 = x + i * (w / (float)res);
-		glVertex2f(x2, y + (data[i] * h));
+	else {
+		/* under the curve */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glColor4f(r, g, b, alpha);
+
+		glShadeModel(GL_FLAT);
+		glBegin(GL_QUAD_STRIP);
+		glVertex2f(x, y);
+		glVertex2f(x, y + (data[0] * h));
+		for (i = 1; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+			glVertex2f(x2, y);
+		}
+		glEnd();
+
+		/* curve outline */
+		glColor4f(0.f, 0.f, 0.f, 0.25f);
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_STRIP);
+		for (i = 0; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
 	}
-	glEnd();
-	glDisable(GL_LINE_SMOOTH);
 }
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
@@ -698,6 +720,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rctf rect;
 	int i;
 	float w, h;
+	const short is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
 	//float alpha;
 	GLint scissor[4];
 	
@@ -731,14 +754,14 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	}
 	
 	if (hist->mode == HISTO_MODE_LUMA)
-		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res);
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res, is_line);
 	else {
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
-			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res);
+			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G)
-			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res);
+			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
-			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res);
+			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line);
 	}
 	
 	/* outline, scale gripper */

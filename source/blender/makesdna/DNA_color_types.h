@@ -102,6 +102,11 @@ typedef enum CurveMappingPreset {
 #define HISTO_MODE_G	3
 #define HISTO_MODE_B	4
 
+enum {
+	HISTO_FLAG_LINE        = (1 << 0),
+	HISTO_FLAG_SAMPLELINE  = (1 << 1)
+};
+
 typedef struct Histogram {
 	int channels;
 	int x_resolution;
@@ -110,8 +115,13 @@ typedef struct Histogram {
 	float data_b[256];
 	float data_luma[256];
 	float xmax, ymax;
-	int mode;
+	short mode;
+	short flag;
 	int height;
+
+	/* sample line only */
+	/* image coords src -> est */
+	float co[2][2];
 } Histogram;
 
 struct ImBuf;
