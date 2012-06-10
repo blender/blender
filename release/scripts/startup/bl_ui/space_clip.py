@@ -230,10 +230,9 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
             sub.prop(settings, "default_search_size")
 
             col.label(text="Tracker:")
-            col.prop(settings, "default_tracker", text="")
-
-            if settings.default_tracker == 'KLT':
-                col.prop(settings, "default_pyramid_levels")
+            col.prop(settings, "default_motion_model")
+            col.prop(settings, "default_use_brute")
+            col.prop(settings, "default_use_normalization")
             col.prop(settings, "default_correlation_min")
 
             col.separator()
@@ -575,10 +574,9 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
 
         active = clip.tracking.tracks.active
         if active:
-            col.prop(active, "tracker")
-
-            if active.tracker == 'KLT':
-                col.prop(active, "pyramid_levels")
+            col.prop(active, "motion_model")
+            col.prop(active, "use_brute")
+            col.prop(active, "use_normalization")
             col.prop(active, "correlation_min")
 
             col.separator()

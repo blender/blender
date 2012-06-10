@@ -5362,6 +5362,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
 						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
 
+						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
 						sclip->scopes.ok = 0;
@@ -7084,12 +7085,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 				track = clip->tracking.tracks.first;
 				while (track) {
-					if (track->pyramid_levels == 0)
-						track->pyramid_levels = 2;
-					
 					if (track->minimum_correlation == 0.0f)
 						track->minimum_correlation = 0.75f;
-					
+
 					track = track->next;
 				}
 			}
@@ -7107,10 +7105,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
 			MovieTrackingSettings *settings= &clip->tracking.settings;
-			
-			if (settings->default_pyramid_levels == 0) {
-				settings->default_tracker= TRACKER_KLT;
-				settings->default_pyramid_levels = 2;
+
+			if (settings->default_pattern_size == 0.0f) {
+				settings->default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
 				settings->default_minimum_correlation = 0.75;
 				settings->default_pattern_size = 11;
 				settings->default_search_size = 51;
@@ -7638,6 +7635,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
 	{
 		/* set new deactivation values for game settings */
@@ -7698,6 +7696,46 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 				clip->start_frame = 1;
+			}
+		}
+	}
+
+	{
+		MovieClip *clip;
+
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTrackingTrack *track;
+
+			track = clip->tracking.tracks.first;
+			while (track) {
+				int i;
+
+				for (i = 0; i < track->markersnr; i++) {
+					MovieTrackingMarker *marker = &track->markers[i];
+
+					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
+					    is_zero_v2(marker->pattern_corners[3]) && is_zero_v2(marker->pattern_corners[3]))
+					{
+						marker->pattern_corners[0][0] = track->pat_min[0];
+						marker->pattern_corners[0][1] = track->pat_min[1];
+
+						marker->pattern_corners[1][0] = track->pat_max[0];
+						marker->pattern_corners[1][1] = track->pat_min[1];
+
+						marker->pattern_corners[2][0] = track->pat_max[0];
+						marker->pattern_corners[2][1] = track->pat_max[1];
+
+						marker->pattern_corners[3][0] = track->pat_min[0];
+						marker->pattern_corners[3][1] = track->pat_max[1];
+					}
+
+					if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
+						copy_v2_v2(marker->search_min, track->search_min);
+						copy_v2_v2(marker->search_max, track->search_max);
+					}
+				}
+
+				track = track->next;
 			}
 		}
 	}

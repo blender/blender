@@ -43,6 +43,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 
 
 #include "IMB_imbuf.h"
@@ -1507,36 +1508,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
-static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float track_pos[2], int width, float height, int margin)
-{
-	ImBuf *scaleibuf;
-	const float scalex = ((float)ibuf->x - 2 * margin) / width;
-	const float scaley = ((float)ibuf->y - 2 * margin) / height;
-	/* NOTE: 1.0f = 0.5f for integer coordinate coorrection (center of pixel vs. left bottom corner of bixel)
-	 *       and 0.5f for centering image in preview (cross is draving at exact center of widget so image
-	 *       should be shifted by half of pixel for correct centering) - sergey */
-	float off_x = (int)track_pos[0] - track_pos[0] + 1.0f;
-	float off_y = (int)track_pos[1] - track_pos[1] + 1.0f;
-	int x, y;
-
-	scaleibuf = IMB_allocImBuf(width, height, 32, IB_rect);
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			float src_x = scalex * (x) + margin - off_x;
-			float src_y = scaley * (y) + margin - off_y;
-
-			bicubic_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
-		}
-	}
-
-	return scaleibuf;
-}
-
 void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	rctf rect;
-	int ok = 0;
+	int ok = 0, width, height;
 	GLint scissor[4];
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 
@@ -1544,6 +1519,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	rect.xmax = (float)recti->xmax - 1;
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
+
+	width = rect.xmax - rect.xmin + 1;
+	height = rect.ymax - rect.ymin;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1562,40 +1540,53 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		ok = 1;
 	}
-	else if (scopes->track_preview) {
-		/* additional margin around image */
-		/* NOTE: should be kept in sync with value from BKE_movieclip_update_scopes */
-		const int margin = 3;
-		float zoomx, zoomy, track_pos[2], off_x, off_y;
-		int a, width, height;
+	else if ((scopes->track_search) &&
+	         ((!scopes->track_preview) ||
+	         (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+	{
+		ImBuf *tmpibuf;
+
+		if (scopes->track_preview)
+			IMB_freeImBuf(scopes->track_preview);
+
+		tmpibuf = BKE_tracking_sample_pattern_imbuf(scopes->frame_width, scopes->frame_height,
+		                                            scopes->track_search, &scopes->undist_marker,
+		                                            width, height, scopes->track_pos);
+
+		if (tmpibuf->rect_float)
+			IMB_rect_from_float(tmpibuf);
+
+		// XXX: for debug only
+		// tmpibuf->ftype = PNG;
+		// IMB_saveiff(tmpibuf, "sample.png", IB_rect);
+
+		if (tmpibuf->rect)
+			scopes->track_preview = tmpibuf;
+		else
+			IMB_freeImBuf(tmpibuf);
+	}
+
+	if (!ok && scopes->track_preview) {
+		float track_pos[2];
+		int a;
 		ImBuf *drawibuf;
 
 		glPushMatrix();
 
-		track_pos[0] = scopes->track_pos[0] - margin;
-		track_pos[1] = scopes->track_pos[1] - margin;
+		track_pos[0] = scopes->track_pos[0];
+		track_pos[1] = scopes->track_pos[1];
 
 		/* draw content of pattern area */
 		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin, scissor[2], scissor[3]);
 
-		width = rect.xmax - rect.xmin + 1;
-		height = rect.ymax - rect.ymin;
-
 		if (width > 0 && height > 0) {
-			zoomx = (float)width / (scopes->track_preview->x - 2 * margin);
-			zoomy = (float)height / (scopes->track_preview->y - 2 * margin);
-
-			off_x = ((int)track_pos[0] - track_pos[0] + 0.5f) * zoomx;
-			off_y = ((int)track_pos[1] - track_pos[1] + 0.5f) * zoomy;
-
-			drawibuf = scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
+			drawibuf = scopes->track_preview;
 
 			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
 			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
-			IMB_freeImBuf(drawibuf);
 
 			/* draw cross for pizel position */
-			glTranslatef(off_x + rect.xmin + track_pos[0] * zoomx, off_y + rect.ymin + track_pos[1] * zoomy, 0.f);
+			glTranslatef(rect.xmin + track_pos[0], rect.ymin + track_pos[1], 0.f);
 			glScissor(ar->winrct.xmin + rect.xmin,
 			          ar->winrct.ymin + rect.ymin,
 			          rect.xmax - rect.xmin,

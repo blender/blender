@@ -29,6 +29,7 @@
 #include "libmv/image/correlation.h"
 #include "libmv/image/sample.h"
 #include "libmv/numeric/numeric.h"
+#include "libmv/tracking/track_region.h"
 
 namespace libmv {
 
@@ -72,6 +73,44 @@ bool EsmRegionTracker::Track(const FloatImage &image1,
     return false;
   }
   
+  // XXX
+  // TODO(keir): Delete the block between the XXX's once the planar tracker is
+  // integrated into blender.
+  //
+  // For now, to test, replace the ESM tracker with the Ceres tracker in
+  // translation mode. In the future, this should get removed and alloed to
+  // co-exist, since Ceres is not as fast as the ESM implementation since it
+  // specializes for translation.
+  double xx1[4], yy1[4];
+  double xx2[4], yy2[4];
+  // Clockwise winding, starting from the "origin" (top-left).
+  xx1[0] = xx2[0] = x1 - half_window_size;
+  yy1[0] = yy2[0] = y1 - half_window_size;
+
+  xx1[1] = xx2[1] = x1 + half_window_size;
+  yy1[1] = yy2[1] = y1 - half_window_size;
+
+  xx1[2] = xx2[2] = x1 + half_window_size;
+  yy1[2] = yy2[2] = y1 + half_window_size;
+
+  xx1[3] = xx2[3] = x1 - half_window_size;
+  yy1[3] = yy2[3] = y1 + half_window_size;
+
+  TrackRegionOptions options;
+  options.mode = TrackRegionOptions::TRANSLATION;
+  options.max_iterations = 20;
+  options.sigma = sigma;
+  options.use_esm = true;
+  
+  TrackRegionResult result;
+  TrackRegion(image1, image2, xx1, yy1, options, xx2, yy2, &result);
+
+  *x2 = xx2[0] + half_window_size;
+  *y2 = yy2[0] + half_window_size;
+
+  return true;
+
+  // XXX
   int width = 2 * half_window_size + 1;
 
   // TODO(keir): Avoid recomputing gradients for e.g. the pyramid tracker.

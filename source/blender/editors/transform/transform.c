@@ -815,6 +815,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
 				}
+				else if (t->mode == TFM_RESIZE) {
+					if (t->options & CTX_MOVIECLIP) {
+						restoreTransObjects(t);
+
+						t->flag ^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+					}
+				}
 				break;
 				
 			case TFM_MODAL_SNAP_INV_ON:
@@ -2730,6 +2738,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	{
 		copy_v3_v3(center, td->center);
 	}
+	else if (t->options & CTX_MOVIECLIP) {
+		copy_v3_v3(center, td->center);
+	}
 	else {
 		copy_v3_v3(center, t->center);
 	}
@@ -3101,6 +3112,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	            (t->settings->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) ||
 		        (t->obedit && t->obedit->type == OB_ARMATURE))
 		{
+			center = td->center;
+		}
+
+		if (t->options & CTX_MOVIECLIP) {
 			center = td->center;
 		}
 	}

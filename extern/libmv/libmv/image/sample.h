@@ -34,25 +34,22 @@ inline T SampleNearest(const Array3D<T> &image,
   return image(i, j, v);
 }
 
-static inline void LinearInitAxis(float fx, int width,
-                                  int *x1, int *x2,
-                                  float *dx1, float *dx2) {
-  const int ix = int(fx);
+inline void LinearInitAxis(float x, int size,
+                           int *x1, int *x2,
+                           float *dx) {
+  const int ix = static_cast<int>(x);
   if (ix < 0) {
     *x1 = 0;
     *x2 = 0;
-    *dx1 = 1;
-    *dx2 = 0;
-  } else if (ix > width-2) {
-    *x1 = width-1;
-    *x2 = width-1;
-    *dx1 = 1;
-    *dx2 = 0;
+    *dx = 1.0;
+  } else if (ix > size - 2) {
+    *x1 = size - 1;
+    *x2 = size - 1;
+    *dx = 1.0;
   } else {
     *x1 = ix;
-    *x2 = *x1 + 1;
-    *dx1 = *x2 - fx;
-    *dx2 = 1 - *dx1;
+    *x2 = ix + 1;
+    *dx = *x2 - x;
   }
 }
 
@@ -60,18 +57,47 @@ static inline void LinearInitAxis(float fx, int width,
 template<typename T>
 inline T SampleLinear(const Array3D<T> &image, float y, float x, int v = 0) {
   int x1, y1, x2, y2;
-  float dx1, dy1, dx2, dy2;
+  float dx, dy;
 
-  LinearInitAxis(y, image.Height(), &y1, &y2, &dy1, &dy2);
-  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx1, &dx2);
+  // Take the upper left corner as integer pixel positions.
+  x -= 0.5;
+  y -= 0.5;
+
+  LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
+  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
 
   const T im11 = image(y1, x1, v);
   const T im12 = image(y1, x2, v);
   const T im21 = image(y2, x1, v);
   const T im22 = image(y2, x2, v);
 
-  return T(dy1 * ( dx1 * im11 + dx2 * im12 ) +
-           dy2 * ( dx1 * im21 + dx2 * im22 ));
+  return T(     dy  * ( dx * im11 + (1.0 - dx) * im12 ) +
+           (1 - dy) * ( dx * im21 + (1.0 - dx) * im22 ));
+}
+
+/// Linear interpolation, of all channels. The sample is assumed to have the
+/// same size as the number of channels in image.
+template<typename T>
+inline void SampleLinear(const Array3D<T> &image, float y, float x, T *sample) {
+  int x1, y1, x2, y2;
+  float dx, dy;
+
+  // Take the upper left corner as integer pixel positions.
+  x -= 0.5;
+  y -= 0.5;
+
+  LinearInitAxis(y, image.Height(), &y1, &y2, &dy);
+  LinearInitAxis(x, image.Width(),  &x1, &x2, &dx);
+
+  for (int i = 0; i < image.Depth(); ++i) {
+    const T im11 = image(y1, x1, i);
+    const T im12 = image(y1, x2, i);
+    const T im21 = image(y2, x1, i);
+    const T im22 = image(y2, x2, i);
+
+    sample[i] = T(     dy  * ( dx * im11 + (1.0 - dx) * im12 ) +
+                  (1 - dy) * ( dx * im21 + (1.0 - dx) * im22 ));
+  }
 }
 
 // Downsample all channels by 2. If the image has odd width or height, the last

@@ -306,6 +306,9 @@ static void clip_free(SpaceLink *sl)
 	if (sc->scopes.track_preview)
 		IMB_freeImBuf(sc->scopes.track_preview);
 
+	if (sc->scopes.track_search)
+		IMB_freeImBuf(sc->scopes.track_search);
+
 	ED_space_clip_free_texture_buffer(sc);
 }
 
@@ -323,6 +326,7 @@ static SpaceLink *clip_duplicate(SpaceLink *sl)
 	SpaceClip *scn = MEM_dupallocN(sl);
 
 	/* clear or remove stuff from old */
+	scn->scopes.track_search = NULL;
 	scn->scopes.track_preview = NULL;
 	scn->scopes.ok = FALSE;
 	scn->draw_context = NULL;

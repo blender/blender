@@ -5588,23 +5588,24 @@ typedef struct TransDataTracking {
 	short coord;
 } TransDataTracking;
 
-static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt, MovieTrackingTrack *track,
-                                  int area, float loc[2], float rel[2], const float off[2])
+static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
+                                  MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                  int area, float loc[2], float rel[2], const float off[2], float aspx, float aspy)
 {
 	int anchor = area == TRACK_AREA_POINT && off;
 
 	tdt->mode = transDataTracking_ModeTracks;
 
 	if (anchor) {
-		td2d->loc[0] = rel[0]; /* hold original location */
-		td2d->loc[1] = rel[1];
+		td2d->loc[0] = rel[0] * aspx; /* hold original location */
+		td2d->loc[1] = rel[1] * aspy;
 
 		tdt->loc= loc;
 		td2d->loc2d = loc; /* current location */
 	}
 	else {
-		td2d->loc[0] = loc[0]; /* hold original location */
-		td2d->loc[1] = loc[1];
+		td2d->loc[0] = loc[0] * aspx; /* hold original location */
+		td2d->loc[1] = loc[1] * aspy;
 
 		td2d->loc2d = loc; /* current location */
 	}
@@ -5618,8 +5619,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 
 	if (rel) {
 		if (!anchor) {
-			td2d->loc[0] += rel[0];
-			td2d->loc[1] += rel[1];
+			td2d->loc[0] += rel[0] * aspx;
+			td2d->loc[1] += rel[1] * aspy;
 		}
 
 		copy_v2_v2(tdt->srelative, rel);
@@ -5630,8 +5631,11 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	copy_v3_v3(td->center, td->loc);
 	copy_v3_v3(td->iloc, td->loc);
+
+	//copy_v3_v3(td->center, td->loc);
+	td->center[0] = marker->pos[0] * aspx;
+	td->center[1] = marker->pos[1] * aspy;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -5647,27 +5651,37 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 }
 
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
-                             TransDataTracking *tdt, MovieTrackingTrack *track)
+                             TransDataTracking *tdt, MovieTrackingTrack *track, float aspx, float aspy)
 {
 	int framenr = ED_space_clip_clip_framenr(sc);
 	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, framenr);
 
 	tdt->flag = marker->flag;
-	marker->flag &= ~(MARKER_DISABLED|MARKER_TRACKED);
+	marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
 
-	markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
+	markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT,
+	                      track->offset, marker->pos, track->offset, aspx, aspy);
 
-	if (track->flag & SELECT)
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, marker->pos, NULL, NULL);
+	if (track->flag & SELECT) {
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT,
+		                      marker->pos, NULL, NULL, aspx, aspy);
+	}
 
 	if (track->pat_flag & SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
+		int a;
+
+		for (a = 0; a < 4; a++) {
+			markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_PAT,
+			                      marker->pattern_corners[a], marker->pos, NULL, aspx, aspy);
+		}
 	}
 
 	if (track->search_flag & SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_SEARCH,
+		                      marker->search_min, marker->pos, NULL, aspx, aspy);
+
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_SEARCH,
+		                      marker->search_max, marker->pos, NULL, aspx, aspy);
 	}
 }
 
@@ -5694,6 +5708,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
 	int framenr = ED_space_clip_clip_framenr(sc);
+	float aspx, aspy;
 
 	/* count */
 	t->total = 0;
@@ -5709,7 +5724,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				t->total++;
 
 			if (track->pat_flag & SELECT)
-				t->total+= 2;
+				t->total+= 4;
 
 			if (track->search_flag & SELECT)
 				t->total+= 2;
@@ -5720,6 +5735,8 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
 	if (t->total == 0)
 		return;
+
+	ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
@@ -5733,25 +5750,23 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			trackToTransData(sc, td, td2d, tdt, track);
+			trackToTransData(sc, td, td2d, tdt, track, aspx, aspy);
 
 			/* offset */
 			td++;
 			td2d++;
 			tdt++;
 
-			if ((marker->flag & MARKER_DISABLED) == 0) {
-				if (track->flag & SELECT) {
-					td++;
-					td2d++;
-					tdt++;
-				}
+			if (track->flag & SELECT) {
+				td++;
+				td2d++;
+				tdt++;
+			}
 
-				if (track->pat_flag & SELECT) {
-					td += 2;
-					td2d += 2;
-					tdt +=2;
-				}
+			if (track->pat_flag & SELECT) {
+				td += 4;
+				td2d += 4;
+				tdt += 4;
 			}
 
 			if (track->search_flag & SELECT) {
@@ -5903,9 +5918,6 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	if (!clip || width == 0 || height == 0)
 		return;
 
-	if (!ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION))
-		return;
-
 	if (ar->regiontype == RGN_TYPE_PREVIEW) {
 		/* transformation was called from graph editor */
 		createTransTrackingCurvesData(C, t);
@@ -5973,10 +5985,14 @@ static void cancelTransTracking(TransInfo *t)
 
 void flushTransTracking(TransInfo *t)
 {
+	SpaceClip *sc = t->sa->spacedata.first;
 	TransData *td;
 	TransData2D *td2d;
 	TransDataTracking *tdt;
 	int a;
+	float aspx, aspy;
+
+	ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	if (t->state == TRANS_CANCEL)
 		cancelTransTracking(t);
@@ -5984,31 +6000,46 @@ void flushTransTracking(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d= t->data2d, tdt= t->customData; a<t->total; a++, td2d++, td++, tdt++) {
 		if (tdt->mode == transDataTracking_ModeTracks) {
+			float loc2d[2];
+
+			if (t->mode == TFM_ROTATION && tdt->area == TRACK_AREA_SEARCH) {
+				continue;
+			}
+
+			loc2d[0] = td2d->loc[0] / aspx;
+			loc2d[1] = td2d->loc[1] / aspy;
+
 			if (t->flag & T_ALT_TRANSFORM) {
-				if (tdt->area == TRACK_AREA_POINT && tdt->relative) {
-					float d[2], d2[2];
+				if (t->mode == TFM_RESIZE) {
+					if (tdt->area != TRACK_AREA_PAT)
+						continue;
+				}
+				else if (t->mode == TFM_TRANSLATION) {
+					if (tdt->area == TRACK_AREA_POINT && tdt->relative) {
+						float d[2], d2[2];
 
-					if (!tdt->smarkers) {
-						tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
-						for (a = 0; a < tdt->markersnr; a++)
-							copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
+						if (!tdt->smarkers) {
+							tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
+							for (a = 0; a < tdt->markersnr; a++)
+								copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
+						}
+
+						sub_v2_v2v2(d, loc2d, tdt->soffset);
+						sub_v2_v2(d, tdt->srelative);
+
+						sub_v2_v2v2(d2, loc2d, tdt->srelative);
+
+						for (a= 0; a<tdt->markersnr; a++)
+							add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
+
+						negate_v2_v2(td2d->loc2d, d);
 					}
-
-					sub_v2_v2v2(d, td2d->loc, tdt->soffset);
-					sub_v2_v2(d, tdt->srelative);
-
-					sub_v2_v2v2(d2, td2d->loc, tdt->srelative);
-
-					for (a= 0; a<tdt->markersnr; a++)
-						add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
-
-					negate_v2_v2(td2d->loc2d, d);
 				}
 			}
 
 			if (tdt->area!=TRACK_AREA_POINT || tdt->relative==0) {
-				td2d->loc2d[0] = td2d->loc[0];
-				td2d->loc2d[1] = td2d->loc[1];
+				td2d->loc2d[0] = loc2d[0];
+				td2d->loc2d[1] = loc2d[1];
 
 				if (tdt->relative)
 					sub_v2_v2(td2d->loc2d, tdt->relative);
