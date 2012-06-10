@@ -180,6 +180,8 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* keying operation */
 	KeyingOperation *keyingOperation = new KeyingOperation();
 
+	keyingOperation->setScreenBalance(keying_data->screen_balance);
+
 	inputScreen->relinkConnections(keyingOperation->getInputSocket(1), 1, graph);
 
 	if (keying_data->blur_pre) {

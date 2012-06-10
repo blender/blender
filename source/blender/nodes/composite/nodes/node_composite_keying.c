@@ -196,6 +196,7 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNo
 
 	data = MEM_callocN(sizeof(NodeKeyingData), "node keying data");
 
+	data->screen_balance = 0.5f;
 	data->despill_factor = 1.0f;
 	data->clip_black = 0.0f;
 	data->clip_white = 1.0f;

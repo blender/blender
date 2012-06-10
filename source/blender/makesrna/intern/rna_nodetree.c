@@ -3095,6 +3095,12 @@ static void def_cmp_keying(StructRNA *srna)
 
 	RNA_def_struct_sdna_from(srna, "NodeKeyingData", "storage");
 
+	prop = RNA_def_property(srna, "screen_balance", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "screen_balance");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Screen Balance", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
 	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
 	RNA_def_property_float_sdna(prop, NULL, "despill_factor");
 	RNA_def_property_range(prop, 0.0f, 1.0f);

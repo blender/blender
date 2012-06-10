@@ -46,6 +46,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 
+	void setScreenBalance(float value) {this->screenBalance = value;}
+
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
 };
 
