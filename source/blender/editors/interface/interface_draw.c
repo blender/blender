@@ -753,8 +753,12 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 		fdrawline(rect.xmin + (i / 4.f) * w, rect.ymin, rect.xmin + (i / 4.f) * w, rect.ymax);
 	}
 	
-	if (hist->mode == HISTO_MODE_LUMA)
+	if (hist->mode == HISTO_MODE_LUMA) {
 		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res, is_line);
+	}
+	else if (hist->mode == HISTO_MODE_ALPHA) {
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line);
+	}
 	else {
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
 			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line);

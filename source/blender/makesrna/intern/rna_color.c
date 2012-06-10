@@ -575,9 +575,10 @@ static void rna_def_histogram(BlenderRNA *brna)
 		{HISTO_MODE_R, "R", 0, "R", "Red"},
 		{HISTO_MODE_G, "G", 0, "G", "Green"},
 		{HISTO_MODE_B, "B", 0, "B", "Blue"},
+		{HISTO_MODE_ALPHA, "A", 0, "A", "Alpha"},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
 	srna = RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
 	
