@@ -37,6 +37,14 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+
+extern "C" {
+#include "BKE_main.h"
+#include "BKE_mesh.h"
+#include "BKE_global.h"
+#include "BKE_library.h"
+}
+
 #include "ED_armature.h"
 
 #include "BLI_listbase.h"
@@ -44,6 +52,8 @@
 #include "GeometryExporter.h"
 #include "ArmatureExporter.h"
 #include "SceneExporter.h"
+
+#include "collada_utils.h"
 
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
@@ -66,18 +76,21 @@ void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene* sce,
 
 bool ArmatureExporter::is_skinned_mesh(Object *ob)
 {
-	return get_assigned_armature(ob) != NULL;
+	return bc_get_assigned_armature(ob) != NULL;
 }
 
-void ArmatureExporter::add_instance_controller(Object *ob)
+bool ArmatureExporter::add_instance_controller(Object *ob)
 {
-	Object *ob_arm = get_assigned_armature(ob);
+	Object *ob_arm = bc_get_assigned_armature(ob);
 	bArmature *arm = (bArmature*)ob_arm->data;
 
 	const std::string& controller_id = get_controller_id(ob_arm, ob);
 
 	COLLADASW::InstanceController ins(mSW);
 	ins.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, controller_id));
+
+	Mesh *me = (Mesh *)ob->data;
+	if (!me->dvert) return false;
 
 	// write root bone URLs
 	Bone *bone;
@@ -89,6 +102,7 @@ void ArmatureExporter::add_instance_controller(Object *ob)
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob);
 		
 	ins.add();
+	return true;
 }
 
 void ArmatureExporter::export_controllers(Scene *sce)
@@ -105,7 +119,7 @@ void ArmatureExporter::export_controllers(Scene *sce)
 
 void ArmatureExporter::operator()(Object *ob)
 {
-	Object *ob_arm = get_assigned_armature(ob);
+	Object *ob_arm = bc_get_assigned_armature(ob);
 
 	if (ob_arm /*&& !already_written(ob_arm)*/)
 		export_controller(ob, ob_arm);
@@ -138,27 +152,6 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 	}
 }
 #endif
-
-Object *ArmatureExporter::get_assigned_armature(Object *ob)
-{
-	Object *ob_arm = NULL;
-
-	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
-		ob_arm = ob->parent;
-	}
-	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
-			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
-			}
-
-			mod = mod->next;
-		}
-	}
-
-	return ob_arm;
-}
 
 std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 {
@@ -325,7 +318,16 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	*/
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	Mesh *me = (Mesh*)ob->data;
+	Mesh *me;
+
+	if ( this->export_settings->apply_modifiers ) {
+		me = bc_to_mesh_apply_modifiers(scene, ob);
+	} 
+	else {
+		me = (Mesh*)ob->data;
+	}
+	BKE_mesh_tessface_ensure(me);
+
 	if (!me->dvert) return;
 
 	std::string controller_name = id_name(ob_arm);
@@ -393,6 +395,10 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	add_joints_element(&ob->defbase, joints_source_id, inv_bind_mat_source_id);
 	add_vertex_weights_element(weights_source_id, joints_source_id, vcounts, joints);
 
+	if (this->export_settings->apply_modifiers)
+	{
+		BKE_libblock_free_us(&(G.main->mesh), me);
+	}
 	closeSkin();
 	closeController();
 }

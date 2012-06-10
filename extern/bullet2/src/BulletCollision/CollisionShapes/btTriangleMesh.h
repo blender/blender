@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef TRIANGLE_MESH_H
-#define TRIANGLE_MESH_H
+#ifndef BT_TRIANGLE_MESH_H
+#define BT_TRIANGLE_MESH_H
 
 #include "btTriangleIndexVertexArray.h"
 #include "LinearMath/btVector3.h"
@@ -65,5 +65,5 @@ class btTriangleMesh : public btTriangleIndexVertexArray
 		
 };
 
-#endif //TRIANGLE_MESH_H
+#endif //BT_TRIANGLE_MESH_H
 

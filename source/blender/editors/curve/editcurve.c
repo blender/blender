@@ -3530,7 +3530,8 @@ void CURVE_OT_spline_type_set(wmOperatorType *ot)
 //		{CU_CARDINAL, "CARDINAL", 0, "Cardinal", ""},
 //		{CU_BSPLINE, "B_SPLINE", 0, "B-Spline", ""},
 		{CU_NURBS, "NURBS", 0, "NURBS", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Set Spline Type";
@@ -3573,7 +3574,8 @@ void CURVE_OT_handle_type_set(wmOperatorType *ot)
 		{5, "ALIGNED", 0, "Aligned", ""},
 		{6, "FREE_ALIGN", 0, "Free", ""},
 		{3, "TOGGLE_FREE_ALIGN", 0, "Toggle Free/Align", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Set Handle Type";
@@ -4886,7 +4888,8 @@ void CURVE_OT_cyclic_toggle(wmOperatorType *ot)
 	static EnumPropertyItem direction_items[] = {
 		{0, "CYCLIC_U", 0, "Cyclic U", ""},
 		{1, "CYCLIC_V", 0, "Cyclic V", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Toggle Cyclic";
@@ -6007,7 +6010,8 @@ void CURVE_OT_delete(wmOperatorType *ot)
 		{0, "SELECTED", 0, "Select", ""},
 		{1, "SEGMENT", 0, "Segment", ""},
 		{2, "ALL", 0, "All", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	/* identifiers */
 	ot->name = "Delete";
@@ -6101,7 +6105,7 @@ int join_curve_exec(bContext *C, wmOperator *UNUSED(op))
 	/* trasnform all selected curves inverse in obact */
 	invert_m4_m4(imat, ob->obmat);
 	
-	CTX_DATA_BEGIN (C, Base *, base, selected_editable_bases)
+	CTX_DATA_BEGIN(C, Base *, base, selected_editable_bases)
 	{
 		if (base->object->type == ob->type) {
 			if (base->object != ob) {

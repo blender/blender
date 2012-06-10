@@ -332,7 +332,7 @@ static void sky_texture_precompute(KernelSunSky *ksunsky, float3 dir, float turb
 	float T2 = T * T;
 
 	float chi = (4.0f / 9.0f - T / 120.0f) * (M_PI_F - 2.0f * theta);
-	ksunsky->zenith_Y = (4.0453f * T - 4.9710f) * tan(chi) - 0.2155f * T + 2.4192f;
+	ksunsky->zenith_Y = (4.0453f * T - 4.9710f) * tanf(chi) - 0.2155f * T + 2.4192f;
 	ksunsky->zenith_Y *= 0.06f;
 
 	ksunsky->zenith_x =
@@ -695,7 +695,7 @@ static ShaderEnum wave_type_init()
 ShaderEnum WaveTextureNode::type_enum = wave_type_init();
 
 WaveTextureNode::WaveTextureNode()
-: TextureNode("marble_texture")
+: TextureNode("wave_texture")
 {
 	type = ustring("Bands");
 
@@ -1787,6 +1787,47 @@ void ObjectInfoNode::compile(SVMCompiler& compiler)
 void ObjectInfoNode::compile(OSLCompiler& compiler)
 {
 	compiler.add(this, "node_object_info");
+}
+
+/* Particle Info */
+
+ParticleInfoNode::ParticleInfoNode()
+: ShaderNode("particle_info")
+{
+	add_output("Age", SHADER_SOCKET_FLOAT);
+	add_output("Lifetime", SHADER_SOCKET_FLOAT);
+}
+
+void ParticleInfoNode::attributes(AttributeRequestSet *attributes)
+{
+	if(!output("Age")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+	if(!output("Lifetime")->links.empty())
+		attributes->add(ATTR_STD_PARTICLE);
+
+	ShaderNode::attributes(attributes);
+}
+
+void ParticleInfoNode::compile(SVMCompiler& compiler)
+{
+	ShaderOutput *out;
+	
+	out = output("Age");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_AGE, out->stack_offset);
+	}
+	
+	out = output("Lifetime");
+	if(!out->links.empty()) {
+		compiler.stack_assign(out);
+		compiler.add_node(NODE_PARTICLE_INFO, NODE_INFO_PAR_LIFETIME, out->stack_offset);
+	}
+}
+
+void ParticleInfoNode::compile(OSLCompiler& compiler)
+{
+	compiler.add(this, "node_particle_info");
 }
 
 /* Value */

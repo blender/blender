@@ -2756,11 +2756,11 @@ static int add_reroute_intersect_check(bNodeLink *link, float mcoords[][2], int 
 	float coord_array[LINK_RESOL+1][2];
 	int i, b;
 
-	if(node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
+	if (node_link_bezier_points(NULL, NULL, link, coord_array, LINK_RESOL)) {
 
-		for(i=0; i<tot-1; i++)
-			for(b=0; b<LINK_RESOL; b++)
-				if(isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0) {
+		for (i=0; i<tot-1; i++)
+			for (b=0; b<LINK_RESOL; b++)
+				if (isect_line_line_v2(mcoords[i], mcoords[i+1], coord_array[b], coord_array[b+1]) > 0) {
 					result[0] = (mcoords[i][0]+mcoords[i+1][0])/2.0f;
 					result[1] = (mcoords[i][1]+mcoords[i+1][1])/2.0f;
 					return 1;
@@ -2783,18 +2783,18 @@ static int add_reroute_exec(bContext *C, wmOperator *op)
 		UI_view2d_region_to_view(&ar->v2d, (short)loc[0], (short)loc[1],
 								 &mcoords[i][0], &mcoords[i][1]);
 		i++;
-		if(i>= 256) break;
+		if (i>= 256) break;
 	}
 	RNA_END;
 
-	if(i>1) {
+	if (i>1) {
 		bNodeLink *link;
 		float insertPoint[2];
 
 		ED_preview_kill_jobs(C);
 
-		for(link= snode->edittree->links.first; link; link=link->next) {
-			if(add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
+		for (link= snode->edittree->links.first; link; link=link->next) {
+			if (add_reroute_intersect_check(link, mcoords, i, insertPoint)) {
 				bNodeTemplate ntemp;
 				bNode *rerouteNode;
 				

@@ -154,11 +154,12 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	BLI_stringdec(name, head, tail, &numlen);
 
 	/* movieclips always points to first image from sequence,
-	 * autoguess offset for now. could be something smarter in the future */
+	 * autoguess offset for now. could be something smarter in the future
+	 */
 	offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen)
-		BLI_stringenc(name, head, tail, numlen, offset + framenr - 1);
+		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame);
 	else
 		BLI_strncpy(name, clip->name, sizeof(clip->name));
 
@@ -170,6 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 {
 	int size = rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
+	int proxynr = framenr - clip->start_frame + 1;
 
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
@@ -181,9 +183,9 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 	}
 
 	if (undistorted)
-		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, framenr);
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d_undistorted/%08d", dir, clipfile, size, proxynr);
 	else
-		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, framenr);
+		BLI_snprintf(name, FILE_MAX, "%s/%s/proxy_%d/%08d", dir, clipfile, size, proxynr);
 
 	BLI_path_abs(name, G.main->name);
 	BLI_path_frame(name, 1, 0);
@@ -248,7 +250,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		int fra;
 
 		dur = IMB_anim_get_duration(clip->anim, tc);
-		fra = framenr - 1;
+		fra = framenr - clip->start_frame;
 
 		if (fra < 0)
 			fra = 0;
@@ -312,7 +314,7 @@ typedef struct MovieClipCache {
 		/* cache for undistorted shot */
 		float principal[2];
 		float k1, k2, k3;
-		short undistoriton_used;
+		short undistortion_used;
 
 		int proxy;
 		short render_flag;
@@ -442,6 +444,8 @@ static MovieClip *movieclip_alloc(const char *name)
 	                            IMB_TC_INTERPOLATED_REC_DATE_FREE_RUN |
 	                            IMB_TC_RECORD_RUN_NO_GAPS;
 	clip->proxy.quality = 90;
+
+	clip->start_frame = 1;
 
 	return clip;
 }
@@ -623,7 +627,7 @@ static ImBuf *get_postprocessed_cached_frame(MovieClip *clip, MovieClipUser *use
 		if (!check_undistortion_cache_flags(clip))
 			return NULL;
 	}
-	else if (cache->postprocessed.undistoriton_used)
+	else if (cache->postprocessed.undistortion_used)
 		return NULL;
 
 	IMB_refImBuf(cache->postprocessed.ibuf);
@@ -656,11 +660,11 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 	if (need_undistortion_postprocess(user, flag)) {
 		copy_v2_v2(cache->postprocessed.principal, camera->principal);
 		copy_v3_v3(&cache->postprocessed.k1, &camera->k1);
-		cache->postprocessed.undistoriton_used = TRUE;
+		cache->postprocessed.undistortion_used = TRUE;
 		postproc_ibuf = get_undistorted_ibuf(clip, NULL, ibuf);
 	}
 	else {
-		cache->postprocessed.undistoriton_used = FALSE;
+		cache->postprocessed.undistortion_used = FALSE;
 	}
 
 	if (postprocess_flag) {
@@ -912,7 +916,17 @@ int BKE_movieclip_has_frame(MovieClip *clip, MovieClipUser *user)
 
 void BKE_movieclip_get_size(MovieClip *clip, MovieClipUser *user, int *width, int *height)
 {
+#if 0
+	/* originally was needed to support image sequences with different image dimensions,
+	 * which might be useful for such things as reconstruction of unordered image sequence,
+	 * or painting/rotoscoping of non-equal-sized images, but this ended up in unneeded
+	 * cache lookups and even unwanted non-proxied files loading when doing mask parenting,
+	 * so let's disable this for now and assume image sequence consists of images with
+	 * equal sizes (sergey)
+	 */
 	if (user->framenr == clip->lastframe) {
+#endif
+	if (clip->lastsize[0] != 0 && clip->lastsize[1] != 0) {
 		*width = clip->lastsize[0];
 		*height = clip->lastsize[1];
 	}
@@ -1018,6 +1032,11 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 		scopes->track_preview = NULL;
 	}
 
+	if (scopes->track_search) {
+		IMB_freeImBuf(scopes->track_search);
+		scopes->track_search = NULL;
+	}
+
 	scopes->marker = NULL;
 	scopes->track = NULL;
 
@@ -1026,7 +1045,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 		if (act_track) {
 			MovieTrackingTrack *track = act_track;
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, user->framenr);
+			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
+			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
 
 			if (marker->flag & MARKER_DISABLED) {
 				scopes->track_disabled = TRUE;
@@ -1037,7 +1057,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				scopes->track_disabled = FALSE;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
-					ImBuf *tmpibuf;
+					ImBuf *search_ibuf;
 					MovieTrackingMarker undist_marker = *marker;
 
 					if (user->render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
@@ -1055,27 +1075,36 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[1] /= height * aspy;
 					}
 
-					/* NOTE: margin should be kept in sync with value from ui_draw_but_TRACKPREVIEW */
-					tmpibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, &undist_marker, 3 /* margin */,
-					                                         1 /* anchor */, scopes->track_pos, NULL);
+					search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, &undist_marker, TRUE, TRUE);
 
-					if (tmpibuf->rect_float)
-						IMB_rect_from_float(tmpibuf);
+					if (!search_ibuf->rect_float) {
+						/* sampling happens in float buffer */
+						IMB_float_from_rect(search_ibuf);
+					}
 
-					if (tmpibuf->rect)
-						scopes->track_preview = tmpibuf;
-					else
-						IMB_freeImBuf(tmpibuf);
+					scopes->undist_marker = undist_marker;
+					scopes->track_search = search_ibuf;
+
+					scopes->frame_width = ibuf->x;
+					scopes->frame_height = ibuf->y;
 				}
 
 				IMB_freeImBuf(ibuf);
 			}
 
 			if ((track->flag & TRACK_LOCKED) == 0) {
+				float pat_min[2], pat_max[2];
+
 				scopes->marker = marker;
 				scopes->track = track;
-				scopes->slide_scale[0] = track->pat_max[0] - track->pat_min[0];
-				scopes->slide_scale[1] = track->pat_max[1] - track->pat_min[1];
+
+				/* XXX: would work fine with non-transformed patterns, but would likely fail
+				 *      with transformed patterns, but that would be easier to debug when
+				 *      we'll have real pattern sampling (at least to test) */
+				BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+				scopes->slide_scale[0] = pat_max[0] - pat_min[0];
+				scopes->slide_scale[1] = pat_max[1] - pat_min[1];
 			}
 		}
 	}
@@ -1217,4 +1246,14 @@ void BKE_movieclip_unlink(Main *bmain, MovieClip *clip)
 	}
 
 	clip->id.us = 0;
+}
+
+int BKE_movieclip_remap_scene_to_clip_frame(MovieClip *clip, int framenr)
+{
+	return framenr - clip->start_frame + 1;
+}
+
+int BKE_movieclip_remap_clip_to_scene_frame(MovieClip *clip, int framenr)
+{
+	return framenr + clip->start_frame - 1;
 }

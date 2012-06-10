@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef HEIGHTFIELD_TERRAIN_SHAPE_H
-#define HEIGHTFIELD_TERRAIN_SHAPE_H
+#ifndef BT_HEIGHTFIELD_TERRAIN_SHAPE_H
+#define BT_HEIGHTFIELD_TERRAIN_SHAPE_H
 
 #include "btConcaveShape.h"
 
@@ -85,10 +85,10 @@ protected:
 	btScalar m_heightScale;
 	union
 	{
-		unsigned char*	m_heightfieldDataUnsignedChar;
-		short*		m_heightfieldDataShort;
-		btScalar*			m_heightfieldDataFloat;
-		void*			m_heightfieldDataUnknown;
+		const unsigned char*	m_heightfieldDataUnsignedChar;
+		const short*		m_heightfieldDataShort;
+		const btScalar*			m_heightfieldDataFloat;
+		const void*	m_heightfieldDataUnknown;
 	};
 
 	PHY_ScalarType	m_heightDataType;	
@@ -111,7 +111,7 @@ protected:
 	  backwards-compatible without a lot of copy/paste.
 	 */
 	void initialize(int heightStickWidth, int heightStickLength,
-	                void* heightfieldData, btScalar heightScale,
+	                const void* heightfieldData, btScalar heightScale,
 	                btScalar minHeight, btScalar maxHeight, int upAxis,
 	                PHY_ScalarType heightDataType, bool flipQuadEdges);
 
@@ -123,7 +123,7 @@ public:
 	  heightScale is needed for any integer-based heightfield data types.
 	 */
 	btHeightfieldTerrainShape(int heightStickWidth,int heightStickLength,
-	                          void* heightfieldData, btScalar heightScale,
+	                          const void* heightfieldData, btScalar heightScale,
 	                          btScalar minHeight, btScalar maxHeight,
 	                          int upAxis, PHY_ScalarType heightDataType,
 	                          bool flipQuadEdges);
@@ -135,7 +135,7 @@ public:
 	  compatibility reasons, heightScale is calculated as maxHeight / 65535 
 	  (and is only used when useFloatData = false).
  	 */
-	btHeightfieldTerrainShape(int heightStickWidth,int heightStickLength,void* heightfieldData, btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges);
+	btHeightfieldTerrainShape(int heightStickWidth,int heightStickLength,const void* heightfieldData, btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges);
 
 	virtual ~btHeightfieldTerrainShape();
 
@@ -158,4 +158,4 @@ public:
 
 };
 
-#endif //HEIGHTFIELD_TERRAIN_SHAPE_H
+#endif //BT_HEIGHTFIELD_TERRAIN_SHAPE_H

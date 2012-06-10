@@ -55,7 +55,7 @@ static void view_display_text(int x, int y, const char *text)
 
 	glRasterPos3f(x, y, 0);
 
-	for(c=text; *c != '\0'; c++)
+	for(c = text; *c != '\0'; c++)
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, *c);
 }
 

@@ -2594,94 +2594,15 @@ MPoly *CDDM_get_polys(DerivedMesh *dm)
 
 void CDDM_tessfaces_to_faces(DerivedMesh *dm)
 {
-	/*converts mfaces to mpolys/mloops*/
+	/* converts mfaces to mpolys/mloops */
 	CDDerivedMesh *cddm = (CDDerivedMesh *)dm;
-	MFace *mf;
-	MEdge *me;
-	EdgeHash *eh = BLI_edgehash_new();
-	int i, totloop;
 
-	/* ... on second thaughts, better comment this and assume caller knows edge state. */
-#if 0
-	/* ensure we have all the edges we need */
-	CDDM_calc_edges_tessface(dm);
-#else
-#  ifndef NDEBUG
-	{
-		/* ensure we have correct edges on non release builds */
-		i = cddm->dm.numEdgeData;
-		CDDM_calc_edges_tessface(dm);
-		BLI_assert(cddm->dm.numEdgeData == i);
-	}
-#  endif
-#endif
-
-	/*build edge hash*/
-	me = cddm->medge;
-	for (i = 0; i < cddm->dm.numEdgeData; i++, me++) {
-		BLI_edgehash_insert(eh, me->v1, me->v2, SET_INT_IN_POINTER(i));
-	}
-
-	mf = cddm->mface;
-	totloop = 0;
-	for (i = 0; i < cddm->dm.numTessFaceData; i++, mf++) {
-		totloop += mf->v4 ? 4 : 3;
-	}
-
-	CustomData_free(&cddm->dm.polyData, cddm->dm.numPolyData);
-	CustomData_free(&cddm->dm.loopData, cddm->dm.numLoopData);
-	
-	cddm->dm.numLoopData = totloop;
-	cddm->dm.numPolyData = cddm->dm.numTessFaceData;
-
-	if (totloop) {
-		MLoop *ml;
-		MPoly *mp;
-		int l, *polyindex;
-
-		cddm->mloop = MEM_callocN(sizeof(MLoop) * totloop, "cddm->mloop in CDDM_tessfaces_to_faces");
-		cddm->mpoly = MEM_callocN(sizeof(MPoly) * cddm->dm.numTessFaceData, "cddm->mpoly in CDDM_tessfaces_to_faces");
-
-		CustomData_add_layer(&cddm->dm.loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, totloop);
-		CustomData_add_layer(&cddm->dm.polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, cddm->dm.numPolyData);
-		CustomData_merge(&cddm->dm.faceData, &cddm->dm.polyData,
-		                 CD_MASK_ORIGINDEX, CD_DUPLICATE, cddm->dm.numTessFaceData);
-
-		polyindex = CustomData_get_layer(&cddm->dm.faceData, CD_POLYINDEX);
-
-		mf = cddm->mface;
-		mp = cddm->mpoly;
-		ml = cddm->mloop;
-		l = 0;
-		for (i = 0; i < cddm->dm.numTessFaceData; i++, mf++, mp++, polyindex++) {
-			mp->flag = mf->flag;
-			mp->loopstart = l;
-			mp->mat_nr = mf->mat_nr;
-			mp->totloop = mf->v4 ? 4 : 3;
-
-			ml->v = mf->v1;
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v1, mf->v2));
-			ml++, l++;
-
-			ml->v = mf->v2;
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v2, mf->v3));
-			ml++, l++;
-
-			ml->v = mf->v3;
-			ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v3, mf->v4 ? mf->v4 : mf->v1));
-			ml++, l++;
-
-			if (mf->v4) {
-				ml->v = mf->v4;
-				ml->e = GET_INT_FROM_POINTER(BLI_edgehash_lookup(eh, mf->v4, mf->v1));
-				ml++, l++;
-			}
-
-			*polyindex = i;
-		}
-	}
-
-	BLI_edgehash_free(eh, NULL);
+	BKE_mesh_convert_mfaces_to_mpolys_ex(NULL, &cddm->dm.faceData, &cddm->dm.loopData, &cddm->dm.polyData,
+	                                     cddm->dm.numEdgeData, cddm->dm.numTessFaceData,
+	                                     cddm->dm.numLoopData, cddm->dm.numPolyData,
+	                                     cddm->medge, cddm->mface,
+	                                     &cddm->dm.numLoopData, &cddm->dm.numPolyData,
+	                                     &cddm->mloop, &cddm->mpoly);
 }
 
 void CDDM_set_mvert(DerivedMesh *dm, MVert *mvert)

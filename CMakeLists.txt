@@ -236,6 +236,7 @@ endif()
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
+option(WITH_CYCLES_OSL				"Build Cycles with OSL support" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
 set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
@@ -646,9 +647,16 @@ if(UNIX AND NOT APPLE)
 
 		find_package(OpenImageIO)
 
-		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
+		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 		set(OPENIMAGEIO_DEFINITIONS)
+
+		if(WITH_IMAGE_TIFF)
+			list(APPEND OPENIMAGEIO_LIBRARIES "${TIFF_LIBRARY}")
+		endif()
+		if(WITH_IMAGE_OPENEXR)
+			list(APPEND OPENIMAGEIO_LIBRARIES "${OPENEXR_LIBRARIES}")
+		endif()
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)

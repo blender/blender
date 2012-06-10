@@ -71,18 +71,23 @@ namespace KDL
         SetToZero(*this);
     }
 
-    double JntArray::operator()(unsigned int i,unsigned int j)const
+    double JntArray::operator[](unsigned int i)const
     {
-        assert(i<size&&j==0);
-        assert(0 != size);  // found JntArray containing no data
+        assert(i<size);
         return data[i];
     }
 
-    double& JntArray::operator()(unsigned int i,unsigned int j)
+    double& JntArray::operator[](unsigned int i)
     {
-        assert(i<size&&j==0);
-        assert(0 != size);  // found JntArray containing no data
+        assert(i<size);
         return data[i];
+    }
+
+    double* JntArray::operator()(unsigned int i)
+    {
+        if (i>=size)
+			return NULL;
+        return &data[i];
     }
 
     unsigned int JntArray::rows()const

@@ -374,16 +374,16 @@ void smooth_fcurve(FCurve *fcu)
 /* ---------------- */
 
 /* little cache for values... */
-typedef struct tempFrameValCache {
+typedef struct TempFrameValCache {
 	float frame, val;
-} tempFrameValCache;
+} TempFrameValCache;
 
 
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
 void sample_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt, *start = NULL, *end = NULL;
-	tempFrameValCache *value_cache, *fp;
+	TempFrameValCache *value_cache, *fp;
 	int sfra, range;
 	int i, n, nIndex;
 
@@ -406,7 +406,7 @@ void sample_fcurve(FCurve *fcu)
 				sfra = (int)(floor(start->vec[1][0]) );
 				
 				if (range) {
-					value_cache = MEM_callocN(sizeof(tempFrameValCache) * range, "IcuFrameValCache");
+					value_cache = MEM_callocN(sizeof(TempFrameValCache) * range, "IcuFrameValCache");
 					
 					/*  sample values   */
 					for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {

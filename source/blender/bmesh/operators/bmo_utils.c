@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmo_subdivide.c
+/** \file blender/bmesh/operators/bmo_utils.c
  *  \ingroup bmesh
  *
  * utility bmesh operators, e.g. transform,

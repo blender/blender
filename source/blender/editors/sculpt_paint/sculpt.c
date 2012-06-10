@@ -753,8 +753,8 @@ static float tex_strength(SculptSession *ss, Brush *br, float point[3],
 	else if (ss->texcache) {
 		float rotation = -mtex->rot;
 		float symm_point[3], point_2d[2];
-		float x, y;
-		float radius;
+		float x = 0.0f, y = 0.0f; /* Quite warnings */
+		float radius = 1.0f; /* Quite warnings */
 
 		/* if the active area is being applied for symmetry, flip it
 		 * across the symmetry axis and rotate it back to the original
@@ -981,8 +981,8 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 
 /* Calculate primary direction of movement for many brushes */
 static void calc_sculpt_normal(Sculpt *sd, Object *ob,
-							   PBVHNode **nodes, int totnode,
-							   float an[3])
+                               PBVHNode **nodes, int totnode,
+                               float an[3])
 {
 	const Brush *brush = paint_brush(&sd->paint);
 	const SculptSession *ss = ob->sculpt;
@@ -990,8 +990,8 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 	switch (brush->sculpt_plane) {
 		case SCULPT_DISP_DIR_VIEW:
 			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
-									   ss->cache->vc->rv3d->twmat[3],
-									   an);
+			                           ss->cache->vc->rv3d->twmat[3],
+			        an);
 			break;
 
 		case SCULPT_DISP_DIR_X:
@@ -1021,7 +1021,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 }
 
 static void update_sculpt_normal(Sculpt *sd, Object *ob,
-								 PBVHNode **nodes, int totnode)
+                                 PBVHNode **nodes, int totnode)
 {
 	const Brush *brush = paint_brush(&sd->paint);
 	StrokeCache *cache = ob->sculpt->cache;
@@ -1056,7 +1056,7 @@ static void calc_local_y(ViewContext *vc, const float center[3], float y[3])
 }
 
 static void calc_brush_local_mat(const Brush *brush, Object *ob,
-								 float local_mat[4][4])
+                                 float local_mat[4][4])
 {
 	const StrokeCache *cache = ob->sculpt->cache;
 	float tmat[4][4];
@@ -1105,10 +1105,10 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 	StrokeCache *cache = ob->sculpt->cache;
 
 	if (cache->mirror_symmetry_pass == 0 &&
-		cache->radial_symmetry_pass == 0)
+	    cache->radial_symmetry_pass == 0)
 	{
 		calc_brush_local_mat(paint_brush(&sd->paint), ob,
-							 cache->brush_local_mat);
+		                     cache->brush_local_mat);
 	}
 }
 
@@ -1413,6 +1413,7 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 	SculptSession *ss = ob->sculpt;
 	const int max_iterations = 4;
 	const float fract = 1.0f / max_iterations;
+	PBVHType type = BLI_pbvh_type(ss->pbvh);
 	int iteration, n, count;
 	float last;
 
@@ -1421,16 +1422,25 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 	count = (int)(bstrength * max_iterations);
 	last  = max_iterations * (bstrength - count * fract);
 
+	if (type == PBVH_FACES && !ss->pmap) {
+		BLI_assert(!"sculpt smooth: pmap missing");
+		return;
+	}
+
 	for (iteration = 0; iteration <= count; ++iteration) {
+		float strength = (iteration != count) ? 1.0f : last;
+
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
-			if (ss->multires) {
-				do_multires_smooth_brush(sd, ss, nodes[n],
-				                         iteration != count ? 1.0f : last, smooth_mask);
-			}
-			else if (ss->pmap) {
-				do_mesh_smooth_brush(sd, ss, nodes[n],
-				                     iteration != count ? 1.0f : last, smooth_mask);
+			switch(type) {
+				case PBVH_GRIDS:
+					do_multires_smooth_brush(sd, ss, nodes[n], strength,
+										     smooth_mask);
+					break;
+				case PBVH_FACES:
+					do_mesh_smooth_brush(sd, ss, nodes[n], strength,
+			                             smooth_mask);
+					break;
 			}
 		}
 
@@ -3571,6 +3581,21 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sd->special_rotation = cache->special_rotation;
 }
 
+/* Returns true iff any of the smoothing modes are active (currently
+   one of smooth brush, autosmooth, mask smooth, or shift-key
+   smooth) */
+static int sculpt_any_smooth_mode(const Brush *brush,
+								  StrokeCache *cache,
+								  int stroke_mode)
+{
+	return ((stroke_mode == BRUSH_STROKE_SMOOTH) ||
+			(cache && cache->alt_smooth) ||
+			(brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
+			(brush->autosmooth_factor > 0) ||
+			((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
+			 (brush->mask_tool == BRUSH_MASK_SMOOTH)));
+}
+
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
@@ -3579,7 +3604,8 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
+									sculpt_any_smooth_mode(brush, ss->cache, 0));
 	}
 }
 
@@ -3689,11 +3715,7 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(scene, sd, ss);
 
-	is_smooth |= mode == BRUSH_STROKE_SMOOTH;
-	is_smooth |= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;
-	is_smooth |= ((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
-	              (brush->mask_tool == BRUSH_MASK_SMOOTH));
-
+	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
 
 	return 1;

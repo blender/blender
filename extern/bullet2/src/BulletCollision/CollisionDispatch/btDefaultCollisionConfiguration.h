@@ -129,6 +129,8 @@ public:
 	///@todo we could add a per-object setting of those parameters, for level-of-detail collision detection.
 	void	setConvexConvexMultipointIterations(int numPerturbationIterations=3, int minimumPointsPerturbationThreshold = 3);
 
+	void	setPlaneConvexMultipointIterations(int numPerturbationIterations=3, int minimumPointsPerturbationThreshold = 3);
+
 };
 
 #endif //BT_DEFAULT_COLLISION_CONFIGURATION

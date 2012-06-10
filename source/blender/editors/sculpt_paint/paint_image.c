@@ -5215,7 +5215,7 @@ static void brush_drawcursor(bContext *C, int x, int y, void *UNUSED(customdata)
 
 	Scene *scene = CTX_data_scene(C);
 	//Brush *brush= image_paint_brush(C);
-	Paint *paint = paint_get_active(scene);
+	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 
 	if (paint && brush && paint->flags & PAINT_SHOW_BRUSH) {
@@ -5420,13 +5420,12 @@ void PAINT_OT_grab_clone(wmOperatorType *ot)
 
 static int sample_color_exec(bContext *C, wmOperator *op)
 {
-	Scene *scene = CTX_data_scene(C);
 	Brush *brush = image_paint_brush(C);
 	ARegion *ar = CTX_wm_region(C);
 	int location[2];
 
 	RNA_int_get_array(op->ptr, "location", location);
-	paint_sample_color(scene, ar, location[0], location[1]);
+	paint_sample_color(C, ar, location[0], location[1]);
 
 	WM_event_add_notifier(C, NC_BRUSH | NA_EDITED, brush);
 	

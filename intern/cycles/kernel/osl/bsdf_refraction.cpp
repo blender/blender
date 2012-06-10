@@ -42,77 +42,78 @@ using namespace OSL;
 
 class RefractionClosure : public BSDFClosure {
 public:
-    Vec3  m_N;     // shading normal
-    float m_eta;   // ratio of indices of refraction (inside / outside)
-    RefractionClosure() : BSDFClosure(Labels::SINGULAR, Back) { }
+	Vec3 m_N;      // shading normal
+	float m_eta;   // ratio of indices of refraction (inside / outside)
+	RefractionClosure() : BSDFClosure(Labels::SINGULAR, Back) {}
 
-    void setup() {}
+	void setup() {}
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const RefractionClosure *comp = (const RefractionClosure *)other;
-        return m_N == comp->m_N && m_eta == comp->m_eta &&
-            BSDFClosure::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const RefractionClosure *comp = (const RefractionClosure *)other;
+		return m_N == comp->m_N && m_eta == comp->m_eta &&
+		       BSDFClosure::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "refraction"; }
+	const char *name() const { return "refraction"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " (";
-        out << "(" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "), ";
-        out << m_eta;
-        out << ")";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " (";
+		out << "(" << m_N[0] << ", " << m_N[1] << ", " << m_N[2] << "), ";
+		out << m_eta;
+		out << ")";
+	}
 
-    Color3 eval_reflect (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_reflect(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    Color3 eval_transmit (const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
-    {
-        return Color3 (0, 0, 0);
-    }
+	Color3 eval_transmit(const Vec3 &omega_out, const Vec3 &omega_in, float& pdf) const
+	{
+		return Color3(0, 0, 0);
+	}
 
-    float albedo (const Vec3 &omega_out) const
-    {
+	float albedo(const Vec3 &omega_out) const
+	{
 		return 1.0f;
-    }
+	}
 
-    ustring sample (const Vec3 &Ng,
-                 const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
-                 float randu, float randv,
-                 Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
-                 float &pdf, Color3 &eval) const
-    {
-        Vec3 R, dRdx, dRdy;
-        Vec3 T, dTdx, dTdy;
-        bool inside;
+	ustring sample(const Vec3 &Ng,
+	               const Vec3 &omega_out, const Vec3 &domega_out_dx, const Vec3 &domega_out_dy,
+	               float randu, float randv,
+	               Vec3 &omega_in, Vec3 &domega_in_dx, Vec3 &domega_in_dy,
+	               float &pdf, Color3 &eval) const
+	{
+		Vec3 R, dRdx, dRdy;
+		Vec3 T, dTdx, dTdy;
+		bool inside;
 
-        fresnel_dielectric(m_eta, m_N,
-                           omega_out, domega_out_dx, domega_out_dy,
-                           R, dRdx, dRdy,
-                           T, dTdx, dTdy,
-                           inside);
+		fresnel_dielectric(m_eta, m_N,
+		                   omega_out, domega_out_dx, domega_out_dy,
+		                   R, dRdx, dRdy,
+		                   T, dTdx, dTdy,
+		                   inside);
 
-        if (!inside) {
-            pdf = 1;
-            eval.setValue(1.0f, 1.0f, 1.0f);
-            omega_in = T;
-            domega_in_dx = dTdx;
-            domega_in_dy = dTdy;
-        }
+		if (!inside) {
+			pdf = 1;
+			eval.setValue(1.0f, 1.0f, 1.0f);
+			omega_in = T;
+			domega_in_dx = dTdx;
+			domega_in_dy = dTdy;
+		}
 
-        return Labels::TRANSMIT;
-    }
+		return Labels::TRANSMIT;
+	}
 };
 
 ClosureParam bsdf_refraction_params[] = {
-    CLOSURE_VECTOR_PARAM(RefractionClosure, m_N),
-    CLOSURE_FLOAT_PARAM (RefractionClosure, m_eta),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(RefractionClosure) };
+	CLOSURE_VECTOR_PARAM(RefractionClosure, m_N),
+	CLOSURE_FLOAT_PARAM(RefractionClosure, m_eta),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(RefractionClosure)
+};
 
 CLOSURE_PREPARE(bsdf_refraction_prepare, RefractionClosure)
 

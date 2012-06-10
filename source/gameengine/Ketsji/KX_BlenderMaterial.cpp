@@ -175,8 +175,8 @@ void KX_BlenderMaterial::OnConstruction(int layer)
 				spit("unable to initialize image("<<i<<") in "<< 
 						 mMaterial->matname<< ", image will not be available");
 		} 
-	
-		else {
+		// If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
+		else if (!mMaterial->glslmat) {
 			if ( mMaterial->img[i] ) {
 				if ( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
 					spit("unable to initialize image("<<i<<") in "<< 

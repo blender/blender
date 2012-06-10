@@ -91,10 +91,10 @@ void SCA_PropertySensor::PrecalculateRangeExpression()
 		//The context is needed to retrieve the property at runtime but it creates
 		//loop of references
 		pars.SetContext(this->AddRef());
-		STR_String checkstr = "(" + m_checkpropval + " <= " 
-							+ m_checkpropname + ") && ( " 
-							+ m_checkpropname + " <= " 
-							+ m_checkpropmaxval + ")";
+		STR_String checkstr = ("(" + m_checkpropval + " <= "  +
+		                       m_checkpropname + ") && ( " +
+		                       m_checkpropname + " <= " +
+		                       m_checkpropmaxval + ")");
 
 		m_range_expr = pars.ProcessText(checkstr);
 }

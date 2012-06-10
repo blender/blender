@@ -1015,14 +1015,14 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d, Object *ob, DerivedMesh *d
 	if (ob && ob->mode & OB_MODE_WEIGHT_PAINT) {
 
 		if (do_light) {
+			const float spec[4] = {0.47f, 0.47f, 0.47f, 0.47f};
+
 			/* enforce default material settings */
 			GPU_enable_material(0, NULL);
 		
 			/* but set default spec */
 			glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
-			glEnable(GL_COLOR_MATERIAL);    /* according manpages needed */
-			glColor3ub(120, 120, 120);
-			glDisable(GL_COLOR_MATERIAL);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, spec);
 
 			/* diffuse */
 			glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);

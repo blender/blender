@@ -167,13 +167,7 @@ private:
 	  * @param operation the operation to be added
 	  */
 	bool canContainOperation(NodeOperation *operation);
-	
-	/**
-	  * @brief get the Render priority of this ExecutionGroup
-	  * @see ExecutionSystem.execute
-	  */
-	int getRenderPriotrity();
-	
+		
 	/**
 	  * @brief calculate the actual chunk size of this execution group.
 	  * @note A chunk size is an unsigned int that is both the height and width of a chunk.
@@ -396,17 +390,21 @@ public:
 	  * @see determineChunkSize()
 	  */
 	void determineChunkRect(rcti *rect, const unsigned int chunkNumber) const;
-	
-	
-		bool operator ==(const ExecutionGroup &executionGroup) const;
-	
-		/**
+
+	/**
 	  * @brief can this ExecutionGroup be scheduled on an OpenCLDevice
 	  * @see WorkScheduler.schedule
 	  */
 	bool isOpenCL();
-	
+
 	void setChunksize(int chunksize) {this->chunkSize = chunksize;}
+
+	/**
+	  * @brief get the Render priority of this ExecutionGroup
+	  * @see ExecutionSystem.execute
+	  */
+	CompositorPriority getRenderPriotrity();
+	
 };
 
 #endif

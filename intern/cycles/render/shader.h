@@ -53,8 +53,8 @@ public:
 	ShaderGraph *graph;
 
 	/* shader graph with auto bump mapping included, we compile two shaders,
-	   with and without bump,  because the displacement method is a mesh
-	   level setting, so we need to handle both */
+	 * with and without bump,  because the displacement method is a mesh
+	 * level setting, so we need to handle both */
 	ShaderGraph *graph_bump;
 
 	/* sampling */
@@ -109,7 +109,7 @@ public:
 	int get_shader_id(uint shader, Mesh *mesh = NULL, bool smooth = false);
 
 	/* add default shaders to scene, to use as default for things that don't
-	   have any shader assigned explicitly */
+	 * have any shader assigned explicitly */
 	static void add_default(Scene *scene);
 
 protected:

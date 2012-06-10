@@ -49,6 +49,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"		/* PET modes			*/
 
@@ -162,13 +163,35 @@ void convertViewVec(TransInfo *t, float r_vec[3], int dx, int dy)
 	else if (t->spacetype==SPACE_CLIP) {
 		View2D *v2d = t->view;
 		float divx, divy;
+		float mulx, muly;
+		float aspx = 1.0f, aspy = 1.0f;
 
 		divx = v2d->mask.xmax-v2d->mask.xmin;
 		divy = v2d->mask.ymax-v2d->mask.ymin;
 
-		r_vec[0] = (v2d->cur.xmax-v2d->cur.xmin)*(dx)/divx;
-		r_vec[1] = (v2d->cur.ymax-v2d->cur.ymin)*(dy)/divy;
+		mulx = (v2d->cur.xmax-v2d->cur.xmin);
+		muly = (v2d->cur.ymax-v2d->cur.ymin);
+
+		if (t->options & CTX_MASK) {
+			/* clamp w/h, mask only */
+			divx = divy = maxf(divx, divy);
+			mulx = muly = minf(mulx, muly);
+		}
+
+		r_vec[0] = mulx * (dx) / divx;
+		r_vec[1] = muly * (dy) / divy;
 		r_vec[2] = 0.0f;
+
+		if (t->options & CTX_MOVIECLIP) {
+			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+		}
+		else if (t->options & CTX_MASK) {
+			/* TODO - NOT WORKING, this isnt so bad since its only display aspect */
+			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+		}
+
+		r_vec[0] *= aspx;
+		r_vec[1] *= aspy;
 	}
 	else {
 		printf("%s: called in an invalid context\n", __func__);
@@ -226,8 +249,17 @@ void projectIntView(TransInfo *t, const float vec[3], int adr[2])
 	}
 	else if (t->spacetype==SPACE_CLIP) {
 		float v[2];
+		float aspx = 1.0f, aspy = 1.0f;
 
 		copy_v2_v2(v, vec);
+
+		if (t->options & CTX_MOVIECLIP)
+			ED_space_clip_aspect_dimension_aware(t->sa->spacedata.first, &aspx, &aspy);
+		else if (t->options & CTX_MASK)
+			ED_space_clip_mask_aspect(t->sa->spacedata.first, &aspx, &aspy);
+
+		v[0] /= aspx;
+		v[1] /= aspy;
 
 		UI_view2d_to_region_no_clip(t->view, v[0], v[1], adr, adr+1);
 	}
@@ -279,16 +311,23 @@ void applyAspectRatio(TransInfo *t, float vec[2])
 		vec[1] /= aspy;
 	}
 	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
-		if (t->options & CTX_MOVIECLIP) {
+		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 			SpaceClip *sc = t->sa->spacedata.first;
 			float aspx, aspy;
-			int width, height;
 
-			ED_space_clip_size(sc, &width, &height);
-			ED_space_clip_aspect(sc, &aspx, &aspy);
 
-			vec[0] *= width / aspx;
-			vec[1] *= height / aspy;
+			if (t->options & CTX_MOVIECLIP) {
+				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+
+				vec[0] /= aspx;
+				vec[1] /= aspy;
+			}
+			else if (t->options & CTX_MASK) {
+				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+
+				vec[0] /= aspx;
+				vec[1] /= aspy;
+			}
 		}
 	}
 }
@@ -312,16 +351,19 @@ void removeAspectRatio(TransInfo *t, float vec[2])
 		vec[1] *= aspy;
 	}
 	else if ((t->spacetype==SPACE_CLIP) && (t->mode==TFM_TRANSLATION)) {
-		if (t->options & CTX_MOVIECLIP) {
+		if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 			SpaceClip *sc = t->sa->spacedata.first;
-			float aspx, aspy;
-			int width, height;
+			float aspx = 1.0f, aspy = 1.0f;
 
-			ED_space_clip_size(sc, &width, &height);
-			ED_space_clip_aspect(sc, &aspx, &aspy);
+			if (t->options & CTX_MOVIECLIP) {
+				ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
+			}
+			else if (t->options & CTX_MASK) {
+				ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+			}
 
-			vec[0] *= aspx / width;
-			vec[1] *= aspy / height;
+			vec[0] *= aspx;
+			vec[1] *= aspy;
 		}
 	}
 }
@@ -367,12 +409,20 @@ static void viewRedrawForce(const bContext *C, TransInfo *t)
 	}
 	else if (t->spacetype==SPACE_CLIP) {
 		SpaceClip *sc = (SpaceClip*)t->sa->spacedata.first;
-		MovieClip *clip = ED_space_clip(sc);
 
-		/* objects could be parented to tracking data, so send this for viewport refresh */
-		WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+		if (ED_space_clip_show_trackedit(sc)) {
+			MovieClip *clip = ED_space_clip(sc);
 
-		WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+			/* objects could be parented to tracking data, so send this for viewport refresh */
+			WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+
+			WM_event_add_notifier(C, NC_MOVIECLIP|NA_EDITED, clip);
+		}
+		else if (ED_space_clip_show_maskedit(sc)) {
+			Mask *mask = ED_space_clip_mask(sc);
+
+			WM_event_add_notifier(C, NC_MASK|NA_EDITED, mask);
+		}
 	}
 }
 
@@ -663,7 +713,7 @@ static void transform_event_xyz_constraint(TransInfo *t, short key_type, char cm
 				}
 				else {
 					short orientation = (t->current_orientation != V3D_MANIP_GLOBAL ?
-										 t->current_orientation : V3D_MANIP_LOCAL);
+					                     t->current_orientation : V3D_MANIP_LOCAL);
 					if (!(t->modifiers & MOD_CONSTRAINT_PLANE))
 						setUserConstraint(t, orientation, constraint_axis, msg2);
 					else if (t->modifiers & MOD_CONSTRAINT_PLANE)
@@ -725,7 +775,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					t->redraw |= TREDRAW_HARD;
 				}
 				else if (t->mode == TFM_TRANSLATION) {
-					if (t->options & CTX_MOVIECLIP) {
+					if (t->options & (CTX_MOVIECLIP | CTX_MASK)) {
 						restoreTransObjects(t);
 
 						t->flag ^= T_ALT_TRANSFORM;
@@ -735,7 +785,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 				break;
 			case TFM_MODAL_ROTATE:
 				/* only switch when... */
-				if (!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
+				if (!(t->options & CTX_TEXTURE) && !(t->options & (CTX_MOVIECLIP | CTX_MASK))) {
 					if ( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 						
 						resetTransRestrictions(t);
@@ -761,6 +811,14 @@ int transformEvent(TransInfo *t, wmEvent *event)
 					initResize(t);
 					initSnapping(t, NULL); // need to reinit after mode change
 					t->redraw |= TREDRAW_HARD;
+				}
+				else if (t->mode == TFM_RESIZE) {
+					if (t->options & CTX_MOVIECLIP) {
+						restoreTransObjects(t);
+
+						t->flag ^= T_ALT_TRANSFORM;
+						t->redraw |= TREDRAW_HARD;
+					}
 				}
 				break;
 				
@@ -994,7 +1052,7 @@ int transformEvent(TransInfo *t, wmEvent *event)
 			break;
 		case RKEY:
 			/* only switch when... */
-			if (!(t->options & CTX_TEXTURE) && !(t->options & CTX_MOVIECLIP)) {
+			if (!(t->options & CTX_TEXTURE)) {
 				if ( ELEM4(t->mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL, TFM_TRANSLATION) ) {
 
 					resetTransRestrictions(t);
@@ -1125,10 +1183,10 @@ int transformEvent(TransInfo *t, wmEvent *event)
 		return OPERATOR_PASS_THROUGH;
 }
 
-int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *cent2d)
+int calculateTransformCenter(bContext *C, int centerMode, float cent3d[3], int cent2d[2])
 {
 	TransInfo *t = MEM_callocN(sizeof(TransInfo), "TransInfo data");
-	int success = 1;
+	int success;
 
 	t->state = TRANS_RUNNING;
 
@@ -1143,10 +1201,10 @@ int calculateTransformCenter(bContext *C, int centerMode, float *cent3d, int *ce
 	t->around = centerMode; 			// override userdefined mode
 
 	if (t->total == 0) {
-		success = 0;
+		success = FALSE;
 	}
 	else {
-		success = 1;
+		success = TRUE;
 
 		calculateCenter(t);
 
@@ -1456,6 +1514,8 @@ void saveTransform(bContext *C, TransInfo *t, wmOperator *op)
 		{
 			if (t->obedit)
 				ts->proportional = proportional;
+			else if (t->options & CTX_MASK)
+				ts->proportional_mask = (proportional != PROP_EDIT_OFF);
 			else
 				ts->proportional_objects = (proportional != PROP_EDIT_OFF);
 		}
@@ -1664,6 +1724,9 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 		break;
 	case TFM_CURVE_SHRINKFATTEN:
 		initCurveShrinkFatten(t);
+		break;
+	case TFM_MASK_SHRINKFATTEN:
+		initMaskShrinkFatten(t);
 		break;
 	case TFM_TRACKBALL:
 		initTrackball(t);
@@ -2675,6 +2738,9 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3])
 	{
 		copy_v3_v3(center, td->center);
 	}
+	else if (t->options & CTX_MOVIECLIP) {
+		copy_v3_v3(center, td->center);
+	}
 	else {
 		copy_v3_v3(center, t->center);
 	}
@@ -3046,6 +3112,10 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3], short 
 	            (t->settings->selectmode & (SCE_SELECT_EDGE|SCE_SELECT_FACE)) ||
 		        (t->obedit && t->obedit->type == OB_ARMATURE))
 		{
+			center = td->center;
+		}
+
+		if (t->options & CTX_MOVIECLIP) {
 			center = td->center;
 		}
 	}
@@ -3860,8 +3930,77 @@ int CurveShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
 			continue;
 
 		if (td->val) {
-			// *td->val= ratio;
 			*td->val= td->ival*ratio;
+			/* apply PET */
+			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
+			if (*td->val <= 0.0f) *td->val = 0.001f;
+		}
+	}
+
+	recalcData(t);
+
+	ED_area_headerprint(t->sa, str);
+
+	return 1;
+}
+
+
+void initMaskShrinkFatten(TransInfo *t)
+{
+	t->mode = TFM_MASK_SHRINKFATTEN;
+	t->transform = MaskShrinkFatten;
+
+	initMouseInputMode(t, &t->mouse, INPUT_SPRING);
+
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
+	t->num.increment = t->snap[1];
+
+	t->flag |= T_NO_ZERO;
+	t->num.flag |= NUM_NO_ZERO;
+
+	t->flag |= T_NO_CONSTRAINT;
+}
+
+int MaskShrinkFatten(TransInfo *t, const int UNUSED(mval[2]))
+{
+	TransData *td = t->data;
+	float ratio;
+	int i;
+	char str[50];
+
+	ratio = t->values[0];
+
+	snapGrid(t, &ratio);
+
+	applyNumInput(&t->num, &ratio);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+		sprintf(str, "Shrink/Fatten: %s", c);
+	}
+	else {
+		sprintf(str, "Shrink/Fatten: %3f", ratio);
+	}
+
+	for (i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		if (td->val) {
+			*td->val = td->ival * ratio;
+			/* apply PET */
+			*td->val = (*td->val * td->factor) + ((1.0f - td->factor) * td->ival);
 			if (*td->val <= 0.0f) *td->val = 0.001f;
 		}
 	}
@@ -5077,7 +5216,7 @@ void initEdgeSlide(TransInfo *t)
 
 int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 {
-	if (t->flag & TFM_EDGE_SLIDE) {
+	if (t->mode == TFM_EDGE_SLIDE) {
 		SlideData *sld = t->customData;
 
 		if (sld) {
@@ -5119,7 +5258,7 @@ int handleEventEdgeSlide(struct TransInfo *t, struct wmEvent *event)
 
 void drawNonPropEdge(const struct bContext *C, TransInfo *t)
 {
-	if (t->flag & TFM_EDGE_SLIDE) {
+	if (t->mode == TFM_EDGE_SLIDE) {
 		SlideData *sld = (SlideData *)t->customData;
 		/* Non-Prop mode */
 		if (sld && sld->is_proportional == FALSE) {

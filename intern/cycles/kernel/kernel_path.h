@@ -59,7 +59,7 @@ __device_inline void path_state_init(PathState *state)
 __device_inline void path_state_next(KernelGlobals *kg, PathState *state, int label)
 {
 	/* ray through transparent keeps same flags from previous ray and is
-	   not counted as a regular bounce, transparent has separate max */
+	 * not counted as a regular bounce, transparent has separate max */
 	if(label & LABEL_TRANSPARENT) {
 		state->flag |= PATH_RAY_TRANSPARENT;
 		state->transparent_bounce++;
@@ -137,9 +137,12 @@ __device_inline float path_state_terminate_probability(KernelGlobals *kg, PathSt
 		   (state->diffuse_bounce >= kernel_data.integrator.max_diffuse_bounce) ||
 		   (state->glossy_bounce >= kernel_data.integrator.max_glossy_bounce) ||
 		   (state->transmission_bounce >= kernel_data.integrator.max_transmission_bounce))
+		{
 			return 0.0f;
-		else if(state->bounce <= kernel_data.integrator.min_bounce)
+		}
+		else if(state->bounce <= kernel_data.integrator.min_bounce) {
 			return 1.0f;
+		}
 	}
 
 	/* probalistic termination */
@@ -159,13 +162,13 @@ __device_inline bool shadow_blocked(KernelGlobals *kg, PathState *state, Ray *ra
 #ifdef __TRANSPARENT_SHADOWS__
 	if(result && kernel_data.integrator.transparent_shadows) {
 		/* transparent shadows work in such a way to try to minimize overhead
-		   in cases where we don't need them. after a regular shadow ray is
-		   cast we check if the hit primitive was potentially transparent, and
-		   only in that case start marching. this gives on extra ray cast for
-		   the cases were we do want transparency.
-		   
-		   also note that for this to work correct, multi close sampling must
-		   be used, since we don't pass a random number to shader_eval_surface */
+		 * in cases where we don't need them. after a regular shadow ray is
+		 * cast we check if the hit primitive was potentially transparent, and
+		 * only in that case start marching. this gives on extra ray cast for
+		 * the cases were we do want transparency.
+		 *
+		 * also note that for this to work correct, multi close sampling must
+		 * be used, since we don't pass a random number to shader_eval_surface */
 		if(shader_transparent_shadow(kg, &isect)) {
 			float3 throughput = make_float3(1.0f, 1.0f, 1.0f);
 			float3 Pend = ray->P + ray->D*ray->t;
@@ -266,7 +269,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 		kernel_write_data_passes(kg, buffer, &L, &sd, sample, state.flag, throughput);
 
 		/* blurring of bsdf after bounces, for rays that have a small likelihood
-		   of following this particular path (diffuse, rough glossy) */
+		 * of following this particular path (diffuse, rough glossy) */
 		if(kernel_data.integrator.filter_glossy != FLT_MAX) {
 			float blur_pdf = kernel_data.integrator.filter_glossy*min_ray_pdf;
 
@@ -305,8 +308,8 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 #endif
 
 		/* path termination. this is a strange place to put the termination, it's
-		   mainly due to the mixed in MIS that we use. gives too many unneeded
-		   shader evaluations, only need emission if we are going to terminate */
+		 * mainly due to the mixed in MIS that we use. gives too many unneeded
+		 * shader evaluations, only need emission if we are going to terminate */
 		float probability = path_state_terminate_probability(kg, &state, throughput);
 		float terminate = path_rng(kg, rng, sample, rng_offset + PRNG_TERMINATE);
 
@@ -365,7 +368,7 @@ __device float4 kernel_path_integrate(KernelGlobals *kg, RNG *rng, int sample, R
 
 #ifdef __MULTI_LIGHT__
 				/* index -1 means randomly sample from distribution */
-				int i = (kernel_data.integrator.num_distribution)? -1: 0;
+				int i = (kernel_data.integrator.num_all_lights)? 0: -1;
 
 				for(; i < kernel_data.integrator.num_all_lights; i++) {
 #else

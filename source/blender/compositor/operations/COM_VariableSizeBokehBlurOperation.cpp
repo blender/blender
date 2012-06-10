@@ -89,7 +89,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 					if (nx == x && ny == y) {
 						/* pass */
 					}
-					else if (size>=  fabs(dx) && size >= fabs(dy)) {
+					else if (size >= fabsf(dx) && size >= fabsf(dy)) {
 						float u = 256 + dx*256/size;
 						float v = 256 + dy*256/size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
@@ -104,9 +104,9 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 				}
 			}
 		}
-		color[0] = tempColor[0]*(1.0/overallmultiplyerr);
-		color[1] = tempColor[1]*(1.0/overallmultiplyerg);
-		color[2] = tempColor[2]*(1.0/overallmultiplyerb);
+		color[0] = tempColor[0] * (1.0f / overallmultiplyerr);
+		color[1] = tempColor[1] * (1.0f / overallmultiplyerg);
+		color[2] = tempColor[2] * (1.0f / overallmultiplyerb);
 		color[3] = 1.0f;
 	}
 

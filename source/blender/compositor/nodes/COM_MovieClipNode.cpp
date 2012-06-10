@@ -62,7 +62,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		converter->setFromColorProfile(IB_PROFILE_LINEAR_RGB);
 		converter->setToColorProfile(IB_PROFILE_SRGB);
 		addLink(graph, operation->getOutputSocket(), converter->getInputSocket(0));
-		addPreviewOperation(graph, converter->getOutputSocket(), 9);
+		addPreviewOperation(graph, converter->getOutputSocket());
 		if (outputMovieClip->isConnected()) {
 			outputMovieClip->relinkConnections(converter->getOutputSocket());
 		}
@@ -72,7 +72,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		}
 	}
 	else {
-		addPreviewOperation(graph, operation->getOutputSocket(), 9);
+		addPreviewOperation(graph, operation->getOutputSocket());
 		if (outputMovieClip->isConnected()) {
 			outputMovieClip->relinkConnections(operation->getOutputSocket());
 		}

@@ -44,6 +44,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_report.h"
+#include "BKE_tracking.h"
 
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -1125,6 +1126,15 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->custom_color[1] = 0.0f;
 			p->custom_color[2] = 0.5f;
 			p->custom_color[3] = 0.9f;
+
+			if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+				int framenr = sc->user.framenr;
+				MovieTrackingTrack *track = BKE_tracking_active_track(&sc->clip->tracking);
+				MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
+
+				p->imat[3][0] -= marker->pos[0];
+				p->imat[3][1] -= marker->pos[1];
+			}
 		}
 		break;
 

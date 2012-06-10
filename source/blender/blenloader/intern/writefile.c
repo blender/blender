@@ -134,6 +134,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "DNA_world_types.h"
 #include "DNA_windowmanager_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_bitmap.h"
@@ -2155,19 +2156,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					
 					if (seq->effectdata) {
 						switch (seq->type) {
-						case SEQ_COLOR:
+						case SEQ_TYPE_COLOR:
 							writestruct(wd, DATA, "SolidColorVars", 1, seq->effectdata);
 							break;
-						case SEQ_SPEED:
+						case SEQ_TYPE_SPEED:
 							writestruct(wd, DATA, "SpeedControlVars", 1, seq->effectdata);
 							break;
-						case SEQ_WIPE:
+						case SEQ_TYPE_WIPE:
 							writestruct(wd, DATA, "WipeVars", 1, seq->effectdata);
 							break;
-						case SEQ_GLOW:
+						case SEQ_TYPE_GLOW:
 							writestruct(wd, DATA, "GlowVars", 1, seq->effectdata);
 							break;
-						case SEQ_TRANSFORM:
+						case SEQ_TYPE_TRANSFORM:
 							writestruct(wd, DATA, "TransformVars", 1, seq->effectdata);
 							break;
 						}
@@ -2187,9 +2188,9 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 					if (seq->flag & SEQ_USE_COLOR_BALANCE && strip->color_balance) {
 						writestruct(wd, DATA, "StripColorBalance", 1, strip->color_balance);
 					}
-					if (seq->type==SEQ_IMAGE)
+					if (seq->type==SEQ_TYPE_IMAGE)
 						writestruct(wd, DATA, "StripElem", MEM_allocN_len(strip->stripdata) / sizeof(struct StripElem), strip->stripdata);
-					else if (seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
+					else if (seq->type==SEQ_TYPE_MOVIE || seq->type==SEQ_TYPE_SOUND_RAM || seq->type == SEQ_TYPE_SOUND_HD)
 						writestruct(wd, DATA, "StripElem", 1, strip->stripdata);
 					
 					strip->done = TRUE;
@@ -2765,6 +2766,59 @@ static void write_movieclips(WriteData *wd, ListBase *idbase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_masks(WriteData *wd, ListBase *idbase)
+{
+	Mask *mask;
+
+	mask = idbase->first;
+	while (mask) {
+		if (mask->id.us > 0 || wd->current) {
+			MaskLayer *masklay;
+
+			writestruct(wd, ID_MSK, "Mask", 1, mask);
+
+			if (mask->adt)
+				write_animdata(wd, mask->adt);
+
+			for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+				MaskSpline *spline;
+				MaskLayerShape *masklay_shape;
+
+				writestruct(wd, DATA, "MaskLayer", 1, masklay);
+
+				for (spline = masklay->splines.first; spline; spline = spline->next) {
+					int i;
+
+					void *points_deform = spline->points_deform;
+					spline->points_deform = NULL;
+
+					writestruct(wd, DATA, "MaskSpline", 1, spline);
+					writestruct(wd, DATA, "MaskSplinePoint", spline->tot_point, spline->points);
+
+					spline->points_deform = points_deform;
+
+					for (i = 0; i < spline->tot_point; i++) {
+						MaskSplinePoint *point = &spline->points[i];
+
+						if (point->tot_uw)
+							writestruct(wd, DATA, "MaskSplinePointUW", point->tot_uw, point->uw);
+					}
+				}
+
+				for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+					writestruct(wd, DATA, "MaskLayerShape", 1, masklay_shape);
+					writedata(wd, DATA, masklay_shape->tot_vert * sizeof(float) * MASK_OBJECT_SHAPE_ELEM_SIZE, masklay_shape->data);
+				}
+			}
+		}
+
+		mask = mask->id.next;
+	}
+
+	/* flush helps the compression for undo-save */
+	mywrite(wd, MYWRITE_FLUSH, 0);
+}
+
 static void write_linestyle_color_modifiers(WriteData *wd, ListBase *modifiers)
 {
 	LineStyleModifier *m;
@@ -3048,6 +3102,7 @@ static int write_file_handle(Main *mainvar, int handle, MemFile *compare, MemFil
 		write_screens  (wd, &mainvar->screen);
 	}
 	write_movieclips (wd, &mainvar->movieclip);
+	write_masks    (wd, &mainvar->mask);
 	write_scenes   (wd, &mainvar->scene);
 	write_curves   (wd, &mainvar->curve);
 	write_mballs   (wd, &mainvar->mball);

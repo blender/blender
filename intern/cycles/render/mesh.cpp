@@ -474,7 +474,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 		AttributeRequestSet& attributes = mesh_attributes[i];
 
 		/* todo: we now store std and name attributes from requests even if
-		   they actually refer to the same mesh attributes, optimize */
+		 * they actually refer to the same mesh attributes, optimize */
 		foreach(AttributeRequest& req, attributes.requests) {
 			Attribute *mattr = mesh->attributes.find(req);
 
@@ -493,7 +493,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			}
 
 			/* we abuse AttributeRequest to pass on info like element and
-			   offset, it doesn't really make sense but is convenient */
+			 * offset, it doesn't really make sense but is convenient */
 
 			/* store element and type */
 			if(mattr->element == Attribute::VERTEX)
@@ -528,7 +528,7 @@ void MeshManager::device_update_attributes(Device *device, DeviceScene *dscene, 
 			}
 
 			/* mesh vertex/triangle index is global, not per object, so we sneak
-			   a correction for that in here */
+			 * a correction for that in here */
 			if(req.element == ATTR_ELEMENT_VERTEX)
 				req.offset -= mesh->vert_offset;
 			else if(mattr->element == Attribute::FACE)

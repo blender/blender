@@ -85,11 +85,16 @@ typedef struct MovieClip {
 	int flag;
 
 	int len;	/* length of movie */
+
+	int start_frame, pad;
 } MovieClip;
 
 typedef struct MovieClipScopes {
 	int ok;							/* 1 means scopes are ok and recalculation is unneeded */
 	int track_preview_height;		/* height of track preview widget */
+	int frame_width, frame_height;		/* width and height of frame for which scopes are calculated */
+	struct MovieTrackingMarker undist_marker;	/* undistorted position of marker used for pattern sampling */
+	struct ImBuf *track_search;	/* search area of a track */
 	struct ImBuf *track_preview;	/* ImBuf displayed in track preview */
 	float track_pos[2];				/* sub-pizel position of marker in track ImBuf */
 	short track_disabled;			/* active track is disabled, special notifier should be drawn */
@@ -121,6 +126,7 @@ typedef struct MovieClipScopes {
 /* MovieClip->flag */
 #define MCLIP_USE_PROXY					(1<<0)
 #define MCLIP_USE_PROXY_CUSTOM_DIR		(1<<1)
+/*#define MCLIP_CUSTOM_START_FRAME		(1<<2)*/ /* UNUSED */
 
 #define MCLIP_TIMECODE_FLAGS			(MCLIP_USE_PROXY|MCLIP_USE_PROXY_CUSTOM_DIR)
 

@@ -326,8 +326,8 @@ bool cuLibraryInit()
 	CUDA_LIBRARY_FIND(cuCtxGetLimit);
 
 	/* functions which changed 3.1 -> 3.2 for 64 bit stuff, the cuda library
-	   has both the old ones for compatibility and new ones with _v2 postfix,
-	   we load the _v2 ones here. */
+	 * has both the old ones for compatibility and new ones with _v2 postfix,
+	 * we load the _v2 ones here. */
 	CUDA_LIBRARY_FIND_V2(cuDeviceTotalMem);
 	CUDA_LIBRARY_FIND_V2(cuCtxCreate);
 	CUDA_LIBRARY_FIND_V2(cuModuleGetGlobal);

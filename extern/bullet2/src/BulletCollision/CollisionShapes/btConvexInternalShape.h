@@ -21,6 +21,11 @@ subject to the following restrictions:
 
 
 ///The btConvexInternalShape is an internal base class, shared by most convex shape implementations.
+///The btConvexInternalShape uses a default collision margin set to CONVEX_DISTANCE_MARGIN.
+///This collision margin used by Gjk and some other algorithms, see also btCollisionMargin.h
+///Note that when creating small shapes (derived from btConvexInternalShape), 
+///you need to make sure to set a smaller collision margin, using the 'setMargin' API
+///There is a automatic mechanism 'setSafeMargin' used by btBoxShape and btCylinderShape
 class btConvexInternalShape : public btConvexShape
 {
 
@@ -60,6 +65,23 @@ public:
 	void	setImplicitShapeDimensions(const btVector3& dimensions)
 	{
 		m_implicitShapeDimensions = dimensions;
+	}
+
+	void	setSafeMargin(btScalar minDimension, btScalar defaultMarginMultiplier = 0.1f)
+	{
+		btScalar safeMargin = defaultMarginMultiplier*minDimension;
+		if (safeMargin < getMargin())
+		{
+			setMargin(safeMargin);
+		}
+	}
+	void	setSafeMargin(const btVector3& halfExtents, btScalar defaultMarginMultiplier = 0.1f)
+	{
+		//see http://code.google.com/p/bullet/issues/detail?id=349
+		//this margin check could could be added to other collision shapes too,
+		//or add some assert/warning somewhere
+		btScalar minDimension=halfExtents[halfExtents.minAxis()]; 		
+		setSafeMargin(minDimension, defaultMarginMultiplier);
 	}
 
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version

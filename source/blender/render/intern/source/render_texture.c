@@ -3534,8 +3534,7 @@ Material *RE_init_sample_material(Material *orig_mat, Scene *scene)
 
 			/* update image sequences and movies */
 			if (tex->ima && ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_frame_calc(&tex->iuser, (int)scene->r.cfra, 0);
+				BKE_image_user_check_frame_calc(&tex->iuser, (int)scene->r.cfra, 0);
 			}
 		}
 	}

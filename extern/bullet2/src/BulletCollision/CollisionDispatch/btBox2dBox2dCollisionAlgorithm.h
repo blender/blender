@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
-#define BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
+#ifndef BT_BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
+#define BT_BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
 
 #include "BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
@@ -62,5 +62,5 @@ public:
 
 };
 
-#endif //BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
+#endif //BT_BOX_2D_BOX_2D__COLLISION_ALGORITHM_H
 

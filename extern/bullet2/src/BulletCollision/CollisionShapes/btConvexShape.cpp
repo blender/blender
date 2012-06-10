@@ -43,6 +43,23 @@ btConvexShape::~btConvexShape()
 }
 
 
+void btConvexShape::project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const
+{
+	btVector3 localAxis = dir*trans.getBasis();
+	btVector3 vtx1 = trans(localGetSupportingVertex(localAxis));
+	btVector3 vtx2 = trans(localGetSupportingVertex(-localAxis));
+
+	min = vtx1.dot(dir);
+	max = vtx2.dot(dir);
+
+	if(min>max)
+	{
+		btScalar tmp = min;
+		min = max;
+		max = tmp;
+	}
+}
+
 
 static btVector3 convexHullSupport (const btVector3& localDirOrg, const btVector3* points, int numPoints, const btVector3& localScaling)
 {	
@@ -227,7 +244,7 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual (const btV
 			pos[capsuleUpAxis] = halfHeight;
 
 			//vtx = pos +vec*(radius);
-			vtx = pos +vec*capsuleShape->getLocalScalingNV()*(radius) - vec * capsuleShape->getMarginNV();
+			vtx = pos +vec*(radius) - vec * capsuleShape->getMarginNV();
 			newDot = vec.dot(vtx);
 			
 
@@ -242,7 +259,7 @@ btVector3 btConvexShape::localGetSupportVertexWithoutMarginNonVirtual (const btV
 			pos[capsuleUpAxis] = -halfHeight;
 
 			//vtx = pos +vec*(radius);
-			vtx = pos +vec*capsuleShape->getLocalScalingNV()*(radius) - vec * capsuleShape->getMarginNV();
+			vtx = pos +vec*(radius) - vec * capsuleShape->getMarginNV();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
 			{

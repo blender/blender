@@ -904,8 +904,7 @@ static ExrHandle *imb_exr_begin_read_mem(InputFile *file, int width, int height)
 
 /* ********************************************************* */
 
-typedef struct RGBA
-{
+typedef struct RGBA {
 	float r;
 	float g;
 	float b;

@@ -1114,7 +1114,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if( node->flag & (NODE_ACTIVE|SELECT) ) {
+	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable( GL_LINE_SMOOTH );
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
@@ -1132,7 +1132,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
 	 */
-	for(sock= node->inputs.first; sock; sock= sock->next) {
+	for (sock= node->inputs.first; sock; sock= sock->next) {
 		node_socket_circle_draw(ntree, sock, socket_size, (sock->flag & SELECT) || (node->flag & SELECT));
 	}
 
@@ -1188,6 +1188,47 @@ static void node_common_set_butfunc(bNodeType *ntype)
 }
 
 /* ****************** BUTTON CALLBACKS FOR SHADER NODES ***************** */
+
+static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imaptr, PointerRNA *iuserptr)
+{
+	uiLayout *col;
+	int source;
+
+	if(!imaptr->data)
+		return;
+
+	col = uiLayoutColumn(layout, 0);
+	
+	uiItemR(col, imaptr, "source", 0, "", ICON_NONE);
+	
+	source = RNA_enum_get(imaptr, "source");
+
+	if (source == IMA_SRC_SEQUENCE) {
+		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
+		Scene *scene = CTX_data_scene(C);
+		ImageUser *iuser = iuserptr->data;
+		char numstr[32];
+		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
+		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
+		uiItemL(layout, numstr, ICON_NONE);
+	}
+
+	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
+		col = uiLayoutColumn(layout, 1);
+		uiItemR(col, iuserptr, "frame_duration", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "frame_start", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "frame_offset", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "use_cyclic", 0, NULL, ICON_NONE);
+		uiItemR(col, iuserptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
+	}
+
+	col = uiLayoutColumn(layout, 0);
+
+	if (RNA_enum_get(imaptr, "type") == IMA_TYPE_MULTILAYER)
+		uiItemR(col, iuserptr, "layer", 0, NULL, ICON_NONE);
+
+}
+
 static void node_shader_buts_material(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
@@ -1259,16 +1300,25 @@ static void node_shader_buts_attribute(uiLayout *layout, bContext *UNUSED(C), Po
 
 static void node_shader_buts_tex_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
+
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
-}
 
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
+}
 
 static void node_shader_buts_tex_environment(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
+	PointerRNA imaptr = RNA_pointer_get(ptr, "image");
+	PointerRNA iuserptr = RNA_pointer_get(ptr, "image_user");
+
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	uiItemR(layout, ptr, "color_space", 0, "", ICON_NONE);
 	uiItemR(layout, ptr, "projection", 0, "", ICON_NONE);
+
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
 }
 
 static void node_shader_buts_tex_sky(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -1391,49 +1441,17 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 
 static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
-	uiLayout *col;
 	bNode *node = ptr->data;
-	PointerRNA imaptr;
-	PropertyRNA *prop;
-	int source;
+	PointerRNA imaptr, iuserptr;
 	
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
 	if (!node->id) return;
 	
-	prop = RNA_struct_find_property(ptr, "image");
-	if (!prop || RNA_property_type(prop) != PROP_POINTER) return;
-	imaptr = RNA_property_pointer_get(ptr, prop);
+	imaptr = RNA_pointer_get(ptr, "image");
+	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
 	
-	col = uiLayoutColumn(layout, 0);
-	
-	uiItemR(col, &imaptr, "source", 0, NULL, ICON_NONE);
-	
-	source = RNA_enum_get(&imaptr, "source");
-
-	if (source == IMA_SRC_SEQUENCE) {
-		/* don't use iuser->framenr directly because it may not be updated if auto-refresh is off */
-		Scene *scene = CTX_data_scene(C);
-		ImageUser *iuser = node->storage;
-		char numstr[32];
-		const int framenr = BKE_image_user_frame_get(iuser, CFRA, 0);
-		BLI_snprintf(numstr, sizeof(numstr), IFACE_("Frame: %d"), framenr);
-		uiItemL(layout, numstr, ICON_NONE);
-	}
-
-	if (ELEM(source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE)) {
-		col = uiLayoutColumn(layout, 1);
-		uiItemR(col, ptr, "frame_duration", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "frame_start", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "frame_offset", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "use_cyclic", 0, NULL, ICON_NONE);
-		uiItemR(col, ptr, "use_auto_refresh", UI_ITEM_R_ICON_ONLY, NULL, ICON_NONE);
-	}
-
-	col = uiLayoutColumn(layout, 0);
-
-	if (RNA_enum_get(&imaptr, "type") == IMA_TYPE_MULTILAYER)
-		uiItemR(col, ptr, "layer", 0, NULL, ICON_NONE);
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)
@@ -2274,7 +2292,7 @@ static void node_composit_buts_bokehimage(uiLayout *layout, bContext *UNUSED(C),
 void node_composit_backdrop_viewer(SpaceNode *snode, ImBuf *backdrop, bNode *node, int x, int y)
 {
 //	node_composit_backdrop_canvas(snode, backdrop, node, x, y);
-	if (node->custom1 == 0) { /// @todo: why did we need this one?
+	if (node->custom1 == 0) {
 		const float backdropWidth = backdrop->x;
 		const float backdropHeight = backdrop->y;
 		const float cx  = x + snode->zoom * backdropWidth * node->custom3;
@@ -2398,6 +2416,11 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 		uiItemR(col, ptr, "center_x", 0, NULL, ICON_NONE);
 		uiItemR(col, ptr, "center_y", 0, NULL, ICON_NONE);
 	}
+}
+
+static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
 }
 
 /* only once called */
@@ -2589,7 +2612,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->uifuncbut = node_composit_buts_viewer_but;
 			ntype->uibackdropfunc = node_composit_backdrop_viewer;
 			break;
-
+		case CMP_NODE_MASK:
+			ntype->uifunc= node_composit_buts_mask;
+			break;
 		default:
 			ntype->uifunc = NULL;
 	}

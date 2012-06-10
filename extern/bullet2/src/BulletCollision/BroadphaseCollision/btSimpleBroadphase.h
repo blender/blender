@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SIMPLE_BROADPHASE_H
-#define SIMPLE_BROADPHASE_H
+#ifndef BT_SIMPLE_BROADPHASE_H
+#define BT_SIMPLE_BROADPHASE_H
 
 
 #include "btOverlappingPairCache.h"
@@ -167,5 +167,5 @@ public:
 
 
 
-#endif //SIMPLE_BROADPHASE_H
+#endif //BT_SIMPLE_BROADPHASE_H
 

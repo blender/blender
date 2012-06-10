@@ -117,7 +117,7 @@ public:
 	virtual bool IsPositiveTrigger();
 	virtual void Init();
 	
-	short int GetJoyIndex(void){
+	short int GetJoyIndex(void) {
 		return m_joyindex;
 	}
 

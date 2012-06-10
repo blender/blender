@@ -344,18 +344,17 @@ int mouse_lattice(bContext *C, const int mval[2], int extend, int deselect, int 
 	bp = findnearestLattvert(&vc, mval, 1);
 
 	if (bp) {
-	    if (extend) {
-	        bp->f1 |= SELECT;
-	    }
-	    else if (deselect) {
-	        bp->f1 &= ~SELECT;
-	    }
+		if (extend) {
+			bp->f1 |= SELECT;
+		}
+		else if (deselect) {
+			bp->f1 &= ~SELECT;
+		}
 		else if (toggle) {
 			bp->f1 ^= SELECT;  /* swap */
 		}
-		else
-		{
-		    ED_setflagsLatt(vc.obedit, 0);
+		else {
+			ED_setflagsLatt(vc.obedit, 0);
 			bp->f1 |= SELECT;
 		}
 

@@ -2363,13 +2363,12 @@ static EdgeHash *sph_springhash_build(ParticleSystem *psys)
 }
 
 #define SPH_NEIGHBORS 512
-typedef struct SPHNeighbor
-{
+typedef struct SPHNeighbor {
 	ParticleSystem *psys;
 	int index;
 } SPHNeighbor;
-typedef struct SPHRangeData
-{
+
+typedef struct SPHRangeData {
 	SPHNeighbor neighbors[SPH_NEIGHBORS];
 	int tot_neighbors;
 
@@ -2641,8 +2640,7 @@ static void sph_integrate(ParticleSimulationData *sim, ParticleData *pa, float d
 /************************************************/
 /*			Basic physics						*/
 /************************************************/
-typedef struct EfData
-{
+typedef struct EfData {
 	ParticleTexture ptex;
 	ParticleSimulationData *sim;
 	ParticleData *pa;
@@ -2674,7 +2672,7 @@ static void basic_force_cb(void *efdata_v, ParticleKey *state, float *force, flo
 		force[2] += (BLI_frand()-0.5f) * part->brownfac;
 	}
 
-	if(part->flag & PART_ROT_DYN && epoint.ave)
+	if (part->flag & PART_ROT_DYN && epoint.ave)
 		copy_v3_v3(pa->state.ave, epoint.ave);
 }
 /* gathers all forces that effect particles and calculates a new state for the particle */

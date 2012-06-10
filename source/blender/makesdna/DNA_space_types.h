@@ -67,6 +67,7 @@ struct wmOperator;
 struct wmTimer;
 struct MovieClip;
 struct MovieClipScopes;
+struct Mask;
 
 
 /* SpaceLink (Base) ==================================== */
@@ -998,7 +999,10 @@ typedef struct SpaceClip {
 	                                         * defined when drawing and used for mouse position calculation */
 
 	/* movie postprocessing */
-	int postproc_flag, pad2;
+	int postproc_flag;
+
+	/* grease pencil */
+	short gpencil_src, pad2;
 
 	void *draw_context;
 
@@ -1006,7 +1010,14 @@ typedef struct SpaceClip {
 	short dope_sort;		/* sort order in dopesheet view */
 	short dope_flag;		/* dopsheet view flags */
 
-	int pad3;
+	int around;			/* pivot point for transforms */
+
+	/* **** mask editing **** */
+	struct Mask *mask;
+	/* draw options */
+	char mask_draw_flag;
+	char mask_draw_type;
+	char pad3[6];
 } SpaceClip;
 
 /* SpaceClip->flag */
@@ -1037,6 +1048,7 @@ typedef enum eSpaceClip_Mode {
 	SC_MODE_TRACKING = 0,
 	SC_MODE_RECONSTRUCTION,
 	SC_MODE_DISTORTION,
+	SC_MODE_MASKEDIT,
 } eSpaceClip_Mode;
 
 /* SpaceClip->view */
@@ -1051,12 +1063,19 @@ typedef enum eSpaceClip_Dopesheet_Sort {
 	SC_DOPE_SORT_NAME = 0,
 	SC_DOPE_SORT_LONGEST,
 	SC_DOPE_SORT_TOTAL,
+	SC_DOPE_SORT_AVERAGE_ERROR,
 } eSpaceClip_Dopesheet_Sort;
 
 /* SpaceClip->dope_flag */
 typedef enum eSpaceClip_Dopesheet_Flag {
 	SC_DOPE_SORT_INVERSE    = (1 << 0),
 } eSpaceClip_Dopesheet_Flag;
+
+/* SpaceClip->gpencil_src */
+typedef enum eSpaceClip_GPencil_Source {
+	SC_GPENCIL_SRC_CLIP = 0,
+	SC_GPENCIL_SRC_TRACK = 1,
+} eSpaceClip_GPencil_Source;
 
 /* **************** SPACE DEFINES ********************* */
 

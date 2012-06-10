@@ -33,118 +33,95 @@
 #include "CTR_List.h"
 
 
-CTR_Link::
-CTR_Link(
-) : 
+CTR_Link::CTR_Link() :
 	m_next(0), 
 	m_prev(0) 
 {
 }
 
-CTR_Link::
-CTR_Link(
-	CTR_Link *next,
-	CTR_Link *prev
-) : 
+CTR_Link::CTR_Link(CTR_Link *next, CTR_Link *prev) :
 	m_next(next), 
 	m_prev(prev) 
 {
 }
 
-	CTR_Link *
-CTR_Link::
-getNext(
-) const {
+CTR_Link *
+CTR_Link::getNext() const
+{
 	return m_next; 
 }
 
-	CTR_Link *
-CTR_Link::
-getPrev(
-) const { 
+CTR_Link *
+CTR_Link::getPrev() const
+{
 	return m_prev; 
 }  
 
-	bool 
-CTR_Link::
-isHead(
-) const { 
+bool
+CTR_Link::isHead() const
+{
 	return m_prev == 0; 
 }
 
-	bool 
-CTR_Link::
-isTail(
-) const { 
+bool
+CTR_Link::isTail() const
+{
 	return m_next == 0; 
 }
 
-	void 
-CTR_Link::
-insertBefore(
-	CTR_Link *link
-) {
-    m_next         = link;
-    m_prev         = link->m_prev;
-    m_next->m_prev = this;
-    m_prev->m_next = this;
+void
+CTR_Link::insertBefore(CTR_Link *link)
+{
+	m_next = link;
+	m_prev = link->m_prev;
+	m_next->m_prev = this;
+	m_prev->m_next = this;
 } 
 
-	void 
-CTR_Link::
-insertAfter(
-	CTR_Link *link
-) {
-    m_next         = link->m_next;
-    m_prev         = link;
-    m_next->m_prev = this;
-    m_prev->m_next = this;
+void
+CTR_Link::insertAfter(CTR_Link *link)
+{
+	m_next = link->m_next;
+	m_prev = link;
+	m_next->m_prev = this;
+	m_prev->m_next = this;
 } 
 
-	void 
-CTR_Link::
-remove(
-) { 
-    m_next->m_prev = m_prev; 
-    m_prev->m_next = m_next;
+void
+CTR_Link::remove()
+{
+	m_next->m_prev = m_prev;
+	m_prev->m_next = m_next;
 }
 
 
-CTR_List::
-CTR_List(
-) : 
+CTR_List::CTR_List() :
 	m_head(&m_tail, 0), 
 	m_tail(0, &m_head) 
 {
 }
 
-	CTR_Link *
-CTR_List::
-getHead(
-) const { 
+CTR_Link *
+CTR_List:: getHead() const
+{
 	return m_head.getNext(); 
 }
 
-	CTR_Link *
-CTR_List::
-getTail(
-) const { 
+CTR_Link *
+CTR_List::getTail() const
+{
 	return m_tail.getPrev();
 } 
 
-	void 
-CTR_List::
-addHead(
-	CTR_Link *link
-) { 
+void
+CTR_List::addHead(CTR_Link *link)
+{
 	link->insertAfter(&m_head); 
 }
 
-	void 
-CTR_List::
-addTail(
-	CTR_Link *link
-) { 
+void
+CTR_List::addTail(CTR_Link *link)
+{
 	link->insertBefore(&m_tail); 
 }
 

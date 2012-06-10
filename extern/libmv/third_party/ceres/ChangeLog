@@ -1,0 +1,324 @@
+commit ca72152362ae1f4b9928c012e74b4d49d094a4ca
+Merge: d297f8d 0a04199
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 9 13:10:59 2012 -0700
+
+    Merge branch 'master' into windows
+
+commit 0a04199ef279cc9ea97f665fed8e7fae717813c3
+Merge: fdeb577 f2571f1
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 9 12:54:56 2012 -0700
+
+    Merge branch 'master' of https://code.google.com/p/ceres-solver
+
+commit fdeb5772cc5eeebca4d776d220d80cc91b6d0f74
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 9 07:38:07 2012 -0700
+
+    Support varying numbers of residuals in autodiff.
+    
+    This commit modifies the only function in autodiff that takes a
+    templated number of outputs (i.e. residuals) and makes that
+    template parameter a normal parameter. With that change, it
+    is a trivial matter to support a dynamic number of residuals.
+    
+    The API for dynamic residuals is to pass a fake number of
+    residuals as the second template argument to
+    AutoDiffCostFunction, and to pass the real number of
+    parameters as a second constructor argument.
+
+commit da3e0563cc12e08e7b3e0fbf11d9cc8cfe9658aa
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed May 9 11:57:47 2012 -0700
+
+    Typo corrections in the documentation from Bing
+
+commit aa9526d8e8fb34c23d63e3af5bf9239b0c4ea603
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue May 8 21:22:09 2012 -0700
+
+    Share search paths across various library searches.
+    Fix typos in glog search.
+    Split the error messages for include and lib.
+    Enable building of tests by default.
+    Made building on homebrew installations a bit better.
+    Remove temporary variables for glog and gflags.
+
+commit f2571f186850ed3dd316236ac4be488979df7d30
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed May 9 11:57:47 2012 -0700
+
+    Typo corrections in the documentation from Bing
+
+commit 8f7f11ff7d07737435428a2620c52419cf99f98e
+Merge: e6c17c4 eaccbb3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed May 9 11:34:15 2012 -0700
+
+    Merge branch 'master' of https://code.google.com/p/ceres-solver
+
+commit e6c17c4c9d9307218f6f739cea39bc2d87733d4d
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue May 8 21:22:09 2012 -0700
+
+    Share search paths across various library searches.
+    Fix typos in glog search.
+    Split the error messages for include and lib.
+    Enable building of tests by default.
+    Made building on homebrew installations a bit better.
+    Remove temporary variables for glog and gflags.
+
+commit eaccbb345614c0d24c5e21fa931f470cfda874df
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Wed May 9 05:31:29 2012 -0700
+
+    Remove unused template parameter from VariadicEvaluate.
+
+commit 82f4b88c34b0b2cf85064e5fc20e374e978b2e3b
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 21:05:28 2012 -0700
+
+    Extend support writing linear least squares problems to disk.
+    
+    1. Make the mechanism for writing problems to disk, generic and
+    controllable using an enum DumpType visible in the API.
+    
+    2. Instead of single file containing protocol buffers, now matrices can
+    be written in a matlab/octave friendly format. This is now the default.
+    
+    3. The support for writing problems to disk is moved into
+    linear_least_squares_problem.cc/h
+    
+    4. SparseMatrix now has a ToTextFile virtual method which is
+    implemented by each of its subclasses to write a (i,j,s) triplets.
+    
+    5. Minor changes to simple_bundle_adjuster to enable logging at startup.
+
+commit d297f8d3d3f5025c24752f0f4c1ec2469a769f99
+Merge: 7e74d81 f8bd7fa
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 8 05:39:56 2012 -0700
+
+    Merge branch 'master' into windows
+
+commit f8bd7fa9aa9dbf64b6165606630287cf8cf21194
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 8 05:39:32 2012 -0700
+
+    Small tweaks to the block jacobi preconditioner.
+
+commit 7e74d81ad57a159f14110eb5348b3bc7990b8bd4
+Merge: ecd7c8d e2a6cdc
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 7 07:02:49 2012 -0700
+
+    Merge branch 'master' into windows
+
+commit e2a6cdc0816af9d0c77933f5017f137da3d52a35
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 7 06:39:56 2012 -0700
+
+    Address some of the comments on CGNR patch
+    
+    - Rename BlockDiagonalPreconditioner to BlockJacobiPreconditioner
+    - Include the diagonal in the block jacobi preconditioner.
+    - Better flag help for eta.
+    - Enable test for CGNR
+    - Rename CONJUGATE_GRADIENTS to CGNR.
+    - etc.
+
+commit 1b95dc580aa5d89be021c0915e26df83f18013bb
+Merge: 211812a 7646039
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 7 04:34:10 2012 -0700
+
+    Merge branch 'master' of https://code.google.com/p/ceres-solver
+
+commit 211812a57360d2011cbcfd115cd55e0eb73600db
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon May 7 04:33:50 2012 -0700
+
+    Better error handling in bundle_adjuster.cc
+
+commit 7646039ad9672b267495f5b31925473ad3022ac8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 22:02:19 2012 -0700
+
+    Kashif's corrections to the docs
+
+commit 0d2d34148d10c5c7e924b3ca82ad2b237573ef64
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 21:16:03 2012 -0700
+
+    glog minimum version requirements
+    
+    Building Ceres requires version 0.3.1 or better of glog.
+    Fedora 16 ships with a busted version 0.3.
+    
+    issue 15 contains the gory details.
+    
+    Added a note to the build documentation to this effect.
+
+commit 39efc5ec4b64b8f5a2c5a3dbacdbc45421221547
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun May 6 16:09:52 2012 -0700
+
+    Fix tests broken by the CGNR change.
+
+commit 3faa08b7f7c4ac73661c6a15a6824c12080dfcb1
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 16:08:22 2012 -0700
+
+    Formatting fixed based on Keir's comments and extended the tests
+
+commit 4f21c68409bc478c431a9b6aedf9e5cfdf11d2f3
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 15:33:47 2012 -0700
+
+    Fix the struct weak ordering used by independent set ordering, tests for it
+
+commit 887b156b917ccd4c172484452b059d33ea45f4f0
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Sun May 6 15:14:47 2012 -0700
+
+    fix he degree ordering routine
+
+commit ecd7c8df2af19404dc394b36bbe96e9db3bce840
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sun May 6 00:09:41 2012 -0700
+
+    First step towards windows compatibilty
+    
+    This adds some small changes to Ceres to make it mostly
+    compile on Windows. There are still issues with the
+    hash map use in schur_ordering.cc but I will fix those
+    shortly.
+
+commit f7898fba1b92f0e996571b5bfa22a37f5e3644de
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat May 5 20:55:08 2012 -0700
+
+    Add a general sparse iterative solver: CGNR
+    
+    This adds a new LinearOperator which implements symmetric
+    products of a matrix, and a new CGNR solver to leverage
+    CG to directly solve the normal equations. This also
+    includes a block diagonal preconditioner. In experiments
+    on problem-16, the non-preconditioned version is about
+    1/5 the speed of SPARSE_SCHUR, and the preconditioned
+    version using block cholesky is about 20% slower than
+    SPARSE_SCHUR.
+
+commit 0a359d6198d257776a8831c3eb98f64ee91cf836
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat May 5 20:33:46 2012 -0700
+
+    Comment formatting.
+
+commit db4ec9312bb2f1ca7b2337812f6bad6cdd75b227
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Sat May 5 20:33:16 2012 -0700
+
+    Comment formatting
+
+commit f10163aaf3e57f52551bcd60bbdae873890a49dd
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 4 21:33:53 2012 -0700
+
+    Warn about disabled schur specializations.
+    
+    This commit brought to you from 30,000ft.
+
+commit ad7b2b4aaf3ccc51f2b854febd53a9df54686cfe
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Fri May 4 20:15:28 2012 -0700
+
+    Add vim swapfiles to .gitignore
+
+commit 6447219826bf6e47b0c99d9ff0eaf5e2ba573d79
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 21:53:07 2012 -0700
+
+    1. Changes the tutorial to refer to BriefReport.
+    2. Some of the enums have commas at the end.
+    3. Fix a bug in the default value of circle_fit.cc in the examples.
+
+commit 30c5f93c7f88dec49f76168663372772e06f17f5
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 10:44:43 2012 -0700
+
+    Rework the glog and gtest path checking to be consistent with the rest of the file and disable the dashboard support enabled by the earlier ctesting related patch.
+
+commit f10b033eb4aca77919987bc551d16d8a88b10110
+Merge: cc38774 e0a52a9
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 08:45:20 2012 -0700
+
+    Merge branch 'ctest'
+
+commit e0a52a993394e73bc7f7db8d520728926feab83e
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 08:43:34 2012 -0700
+
+    Arnaus Gelas' patch to add better path searching for gflags and glog
+
+commit a9b8e815e1c026599734510399b10f4cf014c9cd
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 08:41:52 2012 -0700
+
+    Arnaus Gelas' patch to add .gitignore
+
+commit a0cefc3347c32b2065053bbaff4f34d11529d931
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Thu May 3 08:38:33 2012 -0700
+
+    Arnaus Gelas' patch to move to Ctest
+
+commit cc38774d74e287704915282425fbd16818a72ec3
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Thu May 3 01:27:50 2012 -0700
+
+    Clarify ProgramEvaluator comments.
+
+commit 017c9530df557863f78212fb5ccd02814baa9fa8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Wed May 2 08:21:59 2012 -0700
+
+    Mac OS X build instructions are much simpler, as homebrew takes care of gflags when glog is brought in. Also CMAKE does not need any flags to do the default thing
+
+commit 92d5ab5f8ae6fe355c30b606a5f230415ee0494b
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 1 18:33:08 2012 -0700
+
+    Link BLAS explicitly on non-Mac platforms
+    
+    Fixes issue #3.
+
+commit df3e54eb4a6b001b7f0560a2da73a5bd7f18615e
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 1 18:22:51 2012 -0700
+
+    Fix link order of CHOLMOD
+    
+    This was working by accident due to dynamic linking. Fixes issue #2.
+
+commit f477a3835329e2b48eb20c34c631a480b0f0d5bf
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Tue May 1 18:10:48 2012 -0700
+
+    Fix Eigen search paths
+    
+    Fixes issue #1 on http://code.google.com/p/ceres-solver.
+
+commit 17fbc8ebb894c1d22bb3b0b02ea1394b580120f8
+Author: Sameer Agarwal <sameeragarwal@google.com>
+Date:   Tue May 1 00:21:19 2012 -0700
+
+    Minor changes to the documentation. Formatting, and typos.
+
+commit 8ebb0730388045570f22b89fe8672c860cd2ad1b
+Author: Keir Mierle <mierle@gmail.com>
+Date:   Mon Apr 30 23:09:08 2012 -0700
+
+    Initial commit of Ceres Solver.

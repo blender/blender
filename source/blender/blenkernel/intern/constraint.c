@@ -1460,7 +1460,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 	rotlimit_evaluate /* evaluate */
 };
 
-/* --------- Limit Scaling --------- */
+/* --------- Limit Scale --------- */
 
 
 static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -1507,7 +1507,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 static bConstraintTypeInfo CTI_SIZELIMIT = {
 	CONSTRAINT_TYPE_SIZELIMIT, /* type */
 	sizeof(bSizeLimitConstraint), /* size */
-	"Limit Scaling", /* name */
+	"Limit Scale", /* name */
 	"bSizeLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* id looper */
@@ -1721,7 +1721,7 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 	rotlike_evaluate /* evaluate */
 };
 
-/* ---------- Copy Scaling ---------- */
+/* ---------- Copy Scale ---------- */
 
 static void sizelike_new_data(void *cdata)
 {
@@ -3352,7 +3352,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 static bConstraintTypeInfo CTI_TRANSFORM = {
 	CONSTRAINT_TYPE_TRANSFORM, /* type */
 	sizeof(bTransformConstraint), /* size */
-	"Transform", /* name */
+	"Transformation", /* name */
 	"bTransformConstraint", /* struct name */
 	NULL, /* free data */
 	transform_id_looper, /* id looper */
@@ -3897,6 +3897,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	MovieTrackingTrack *track;
 	MovieTrackingObject *tracking_object;
 	Object *camob = data->camera ? data->camera : scene->camera;
+	int framenr;
 
 	if (data->flag & FOLLOWTRACK_ACTIVECLIP)
 		clip = scene->clip;
@@ -3919,6 +3920,8 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	if (!track)
 		return;
 
+	framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
+
 	if (data->flag & FOLLOWTRACK_USE_3D_POSITION) {
 		if (track->flag & TRACK_HAS_BUNDLE) {
 			float obmat[4][4], mat[4][4];
@@ -3930,7 +3933,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 				copy_m4_m4(mat, camob->obmat);
 
-				BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, imat);
+				BKE_tracking_get_interpolated_camera(tracking, tracking_object, framenr, imat);
 				invert_m4(imat);
 
 				mul_serie_m4(cob->matrix, obmat, mat, imat, NULL, NULL, NULL, NULL, NULL);
@@ -3969,7 +3972,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			CameraParams params;
 			float pos[2], rmat[4][4];
 
-			marker = BKE_tracking_get_marker(track, scene->r.cfra);
+			marker = BKE_tracking_get_marker(track, framenr);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -4092,8 +4095,9 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		float mat[4][4], obmat[4][4];
 		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object = BKE_tracking_get_camera_object(tracking);
+		int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
 
-		BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
+		BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
 
 		copy_m4_m4(obmat, cob->matrix);
 
@@ -4156,10 +4160,11 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
+			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
 
 			BKE_object_where_is_calc_mat4(scene, camob, cammat);
 
-			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, mat);
+			BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
 
 			invert_m4_m4(camimat, cammat);
 			mult_m4_m4m4(parmat, cammat, data->invmat);
@@ -4208,10 +4213,10 @@ static void constraints_init_typeinfo(void)
 	constraintsTypeInfo[4] =  &CTI_FOLLOWPATH;       /* Follow-Path Constraint */
 	constraintsTypeInfo[5] =  &CTI_ROTLIMIT;         /* Limit Rotation Constraint */
 	constraintsTypeInfo[6] =  &CTI_LOCLIMIT;         /* Limit Location Constraint */
-	constraintsTypeInfo[7] =  &CTI_SIZELIMIT;        /* Limit Scaling Constraint */
+	constraintsTypeInfo[7] =  &CTI_SIZELIMIT;        /* Limit Scale Constraint */
 	constraintsTypeInfo[8] =  &CTI_ROTLIKE;          /* Copy Rotation Constraint */
 	constraintsTypeInfo[9] =  &CTI_LOCLIKE;          /* Copy Location Constraint */
-	constraintsTypeInfo[10] = &CTI_SIZELIKE;         /* Copy Scaling Constraint */
+	constraintsTypeInfo[10] = &CTI_SIZELIKE;         /* Copy Scale Constraint */
 	constraintsTypeInfo[11] = &CTI_PYTHON;           /* Python/Script Constraint */
 	constraintsTypeInfo[12] = &CTI_ACTION;           /* Action Constraint */
 	constraintsTypeInfo[13] = &CTI_LOCKTRACK;        /* Locked-Track Constraint */

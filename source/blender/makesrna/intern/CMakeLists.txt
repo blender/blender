@@ -56,6 +56,7 @@ set(DEFSRC
 	rna_lattice.c
 	rna_linestyle.c
 	rna_main.c
+	rna_mask.c
 	rna_material.c
 	rna_mesh.c
 	rna_meta.c
@@ -209,6 +210,10 @@ if(WITH_FFTW3)
 	add_definitions(-DWITH_FFTW3)
 endif()
 
+if(WITH_MOD_SMOKE)
+	add_definitions(-DWITH_SMOKE)
+endif()
+
 if(WITH_MOD_OCEANSIM)
 	add_definitions(-DWITH_OCEANSIM)
 endif()
@@ -254,6 +259,7 @@ blender_include_dirs(
 	../../../../intern/cycles/blender
 	../../../../intern/guardedalloc
 	../../../../intern/memutil
+	../../../../intern/smoke/extern
 )
 
 blender_include_dirs_sys(

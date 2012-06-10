@@ -51,8 +51,7 @@
 
 #include "transform.h"
 
-typedef struct TransformModeItem
-{
+typedef struct TransformModeItem {
 	char *idname;
 	int		mode;
 	void (*opfunc)(wmOperatorType*);
@@ -135,6 +134,7 @@ EnumPropertyItem transform_mode_types[] =
 	{TFM_BONESIZE, "BONE_SIZE", 0, "Bonesize", ""},
 	{TFM_BONE_ENVELOPE, "BONE_ENVELOPE", 0, "Bone_Envelope", ""},
 	{TFM_CURVE_SHRINKFATTEN, "CURVE_SHRINKFATTEN", 0, "Curve_Shrinkfatten", ""},
+	{TFM_MASK_SHRINKFATTEN, "MASK_SHRINKFATTEN", 0, "Mask_Shrinkfatten", ""},
 	{TFM_BONE_ROLL, "BONE_ROLL", 0, "Bone_Roll", ""},
 	{TFM_TIME_TRANSLATE, "TIME_TRANSLATE", 0, "Time_Translate", ""},
 	{TFM_TIME_SLIDE, "TIME_SLIDE", 0, "Time_Slide", ""},
@@ -1025,6 +1025,7 @@ void transform_keymap_for_space(wmKeyConfig *keyconf, wmKeyMap *keymap, int spac
 			WM_keymap_add_item(keymap, OP_TRANSLATION, GKEY, KM_PRESS, 0, 0);
 			WM_keymap_add_item(keymap, OP_TRANSLATION, EVT_TWEAK_S, KM_ANY, 0, 0);
 			WM_keymap_add_item(keymap, OP_RESIZE, SKEY, KM_PRESS, 0, 0);
+			WM_keymap_add_item(keymap, OP_ROTATION, RKEY, KM_PRESS, 0, 0);
 			break;
 		default:
 			break;

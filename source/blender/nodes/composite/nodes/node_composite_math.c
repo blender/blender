@@ -180,12 +180,12 @@ static void node_composit_exec_math(void *UNUSED(data), bNode *node, bNodeStack 
 		return;
 	}
 
-	/*create output based on first input */
+	/* create output based on first input */
 	if (cbuf) {
 		stackbuf=alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1);
 	}
 	/* and if it doesn't exist use the second input since we 
-	 know that one of them must exist at this point*/
+	 * know that one of them must exist at this point*/
 	else {
 		stackbuf=alloc_compbuf(cbuf2->x, cbuf2->y, CB_VAL, 1);
 	}

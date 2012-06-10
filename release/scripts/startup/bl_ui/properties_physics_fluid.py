@@ -192,13 +192,14 @@ class PHYSICS_PT_fluid(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
-    bl_label = "Domain World"
+    bl_label = "Fluid World"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        return md and md.settings and (md.settings.type == 'DOMAIN')
+        rd = context.scene.render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
 
     def draw(self, context):
         layout = self.layout
@@ -244,13 +245,14 @@ class PHYSICS_PT_domain_gravity(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
-    bl_label = "Domain Boundary"
+    bl_label = "Fluid Boundary"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        return md and md.settings and (md.settings.type == 'DOMAIN')
+        rd = context.scene.render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
 
     def draw(self, context):
         layout = self.layout
@@ -273,13 +275,14 @@ class PHYSICS_PT_domain_boundary(PhysicButtonsPanel, Panel):
 
 
 class PHYSICS_PT_domain_particles(PhysicButtonsPanel, Panel):
-    bl_label = "Domain Particles"
+    bl_label = "Fluid Particles"
     bl_options = {'DEFAULT_CLOSED'}
 
     @classmethod
     def poll(cls, context):
         md = context.fluid
-        return md and md.settings and (md.settings.type == 'DOMAIN')
+        rd = context.scene.render
+        return md and md.settings and (md.settings.type == 'DOMAIN') and (not rd.use_game_engine)
 
     def draw(self, context):
         layout = self.layout

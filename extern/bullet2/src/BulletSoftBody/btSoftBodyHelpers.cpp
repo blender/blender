@@ -19,6 +19,8 @@ subject to the following restrictions:
 #include <string.h>
 #include "btSoftBodyHelpers.h"
 #include "LinearMath/btConvexHull.h"
+#include "LinearMath/btConvexHullComputer.h"
+
 
 //
 static void				drawVertex(	btIDebugDraw* idraw,
@@ -183,6 +185,35 @@ void			btSoftBodyHelpers::Draw(	btSoftBody* psb,
 				{				
 					vertices[j]=psb->m_clusters[i]->m_nodes[j]->m_x;
 				}
+#define USE_NEW_CONVEX_HULL_COMPUTER
+#ifdef USE_NEW_CONVEX_HULL_COMPUTER
+				btConvexHullComputer	computer;
+				int stride = sizeof(btVector3);
+				int count = vertices.size();
+				btScalar shrink=0.f;
+				btScalar shrinkClamp=0.f;
+				computer.compute(&vertices[0].getX(),stride,count,shrink,shrinkClamp);
+				for (int i=0;i<computer.faces.size();i++)
+				{
+
+					int face = computer.faces[i];
+					//printf("face=%d\n",face);
+					const btConvexHullComputer::Edge*  firstEdge = &computer.edges[face];
+					const btConvexHullComputer::Edge*  edge = firstEdge->getNextEdgeOfFace();
+
+					int v0 = firstEdge->getSourceVertex();
+					int v1 = firstEdge->getTargetVertex();
+					while (edge!=firstEdge)
+					{
+						int v2 = edge->getTargetVertex();
+						idraw->drawTriangle(computer.vertices[v0],computer.vertices[v1],computer.vertices[v2],color,1);
+						edge = edge->getNextEdgeOfFace();
+						v0=v1;
+						v1=v2;
+					};
+				}
+#else
+
 				HullDesc		hdsc(QF_TRIANGLES,vertices.size(),&vertices[0]);
 				HullResult		hres;
 				HullLibrary		hlib;
@@ -201,6 +232,8 @@ void			btSoftBodyHelpers::Draw(	btSoftBody* psb,
 						color,1);
 				}
 				hlib.ReleaseResult(hres);
+#endif
+
 			}
 			/* Velocities	*/ 
 #if 0
@@ -296,7 +329,7 @@ void			btSoftBodyHelpers::Draw(	btSoftBody* psb,
 	{
 		const btScalar	scl=(btScalar)0.8;
 		const btScalar	alp=(btScalar)1;
-		const btVector3	col((btScalar)0.7,(btScalar)0.7,(btScalar)0.7);
+		const btVector3	col((btScalar)0.3,(btScalar)0.3,(btScalar)0.7);
 		for(int i=0;i<psb->m_tetras.size();++i)
 		{
 			const btSoftBody::Tetra&	t=psb->m_tetras[i];

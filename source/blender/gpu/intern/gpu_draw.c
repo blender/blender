@@ -230,11 +230,12 @@ static struct GPUTextureState {
 	Image *ima, *curima;
 
 	int domipmap, linearmipmap;
+	int texpaint; /* store this so that new images created while texture painting won't be set to mipmapped */
 
 	int alphablend;
 	float anisotropic;
 	MTFace *lasttface;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, -1, 1.f, NULL};
+} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.f, NULL};
 
 /* Mipmap settings */
 
@@ -256,7 +257,7 @@ void GPU_set_linear_mipmap(int linear)
 
 static int gpu_get_mipmap(void)
 {
-	return GTS.domipmap;
+	return GTS.domipmap && !GTS.texpaint;
 }
 
 static GLenum gpu_get_mipmap_filter(int mag)
@@ -729,6 +730,8 @@ void GPU_paint_set_mipmap(int mipmap)
 	
 	if (!GTS.domipmap)
 		return;
+
+	GTS.texpaint = !mipmap;
 
 	if (mipmap) {
 		for (ima=G.main->image.first; ima; ima=ima->id.next) {

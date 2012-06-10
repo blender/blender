@@ -857,7 +857,7 @@ ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	ret.first = ret.last = NULL;
 
 	/* Security check! */
-	if(!ntree)
+	if (!ntree)
 		return ret;
 
 	link = MEM_callocN(sizeof(bNodeLink), "internal node link");

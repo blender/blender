@@ -109,6 +109,9 @@ Light::Light()
 
 	map_resolution = 512;
 
+	spot_angle = M_PI_F/4.0f;
+	spot_smooth = 0.0f;
+
 	cast_shadow = true;
 	shader = 0;
 }
@@ -359,7 +362,7 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
 
 		/* stuff the total into the brightness value for the last entry, because
-		   we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
+		 * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
 		cond_cdf[i * cdf_count + res].x = cdf_total;
 
 		if(cdf_total > 0.0f)
@@ -450,6 +453,17 @@ void LightManager::device_update_points(Device *device, DeviceScene *dscene, Sce
 			light_data[i*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), axisu.x, axisu.y, axisu.z);
 			light_data[i*LIGHT_SIZE + 2] = make_float4(0.0f, axisv.x, axisv.y, axisv.z);
 			light_data[i*LIGHT_SIZE + 3] = make_float4(0.0f, dir.x, dir.y, dir.z);
+		}
+		else if(light->type == LIGHT_SPOT) {
+			shader_id &= ~SHADER_AREA_LIGHT;
+
+			float spot_angle = cosf(light->spot_angle*0.5f);
+			float spot_smooth = (1.0f - spot_angle)*light->spot_smooth;
+
+			light_data[i*LIGHT_SIZE + 0] = make_float4(__int_as_float(light->type), co.x, co.y, co.z);
+			light_data[i*LIGHT_SIZE + 1] = make_float4(__int_as_float(shader_id), light->size, dir.x, dir.y);
+			light_data[i*LIGHT_SIZE + 2] = make_float4(dir.z, spot_angle, spot_smooth, 0.0f);
+			light_data[i*LIGHT_SIZE + 3] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
 		}
 	}
 	

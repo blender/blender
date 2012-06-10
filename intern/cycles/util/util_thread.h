@@ -34,7 +34,7 @@ typedef boost::mutex::scoped_lock thread_scoped_lock;
 typedef boost::condition_variable thread_condition_variable;
 
 /* own pthread based implementation, to avoid boost version conflicts with
-   dynamically loaded blender plugins */
+ * dynamically loaded blender plugins */
 
 class thread {
 public:

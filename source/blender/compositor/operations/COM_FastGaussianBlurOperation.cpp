@@ -26,13 +26,12 @@
 
 FastGaussianBlurOperation::FastGaussianBlurOperation(): BlurBaseOperation()
 {
-	this->iirgaus = false;
+	this->iirgaus = NULL;
 }
 
 void FastGaussianBlurOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	MemoryBuffer *newData = (MemoryBuffer*)data;
-	
 	newData->read(color, x, y);	
 }
 
@@ -51,10 +50,7 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 	}
 	else {
 		if (this->iirgaus) {
-			newInput.xmax = input->xmax + (sx);
-			newInput.xmin = input->xmin - (sx);
-			newInput.ymax = input->ymax + (sy);
-			newInput.ymin = input->ymin - (sy);
+			return false;
 		}
 		else {
 			newInput.xmin = 0;
@@ -66,38 +62,51 @@ bool FastGaussianBlurOperation::determineDependingAreaOfInterest(rcti *input, Re
 	}
 }
 
-void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void FastGaussianBlurOperation::initExecution()
 {
-	MemoryBuffer *newBuf = (MemoryBuffer*)this->inputProgram->initializeTileData(rect, memoryBuffers);
-	MemoryBuffer *copy = newBuf->duplicate();
-	updateSize(memoryBuffers);
-	
-	int c;
-	sx = data->sizex * this->size/2.0f;
-	sy = data->sizey * this->size/2.0f;	
-	this->iirgaus = true;
-	
-	if ((sx == sy) && (sx > 0.f)) {
-		for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
-			IIR_gauss(copy, sx, c, 3);
-	}
-	else {
-		if (sx > 0.f) {
-			for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
-				IIR_gauss(copy, sx, c, 1);
-		}
-		if (sy > 0.f) {
-			for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
-				IIR_gauss(copy, sy, c, 2);
-		}
-	}
-	return copy;
+	BlurBaseOperation::initExecution();
+	BlurBaseOperation::initMutex();
 }
 
-void FastGaussianBlurOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
+void FastGaussianBlurOperation::deinitExecution() 
 {
-	MemoryBuffer *newData = (MemoryBuffer*)data;
-	delete newData;
+	if (this->iirgaus) {
+		delete this->iirgaus;
+		this->iirgaus = NULL;
+	}
+	BlurBaseOperation::deinitMutex();	
+}
+
+void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+{
+	BLI_mutex_lock(this->getMutex());
+	if (!iirgaus) {
+		MemoryBuffer *newBuf = (MemoryBuffer*)this->inputProgram->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *copy = newBuf->duplicate();
+		updateSize(memoryBuffers);
+		
+		int c;
+		sx = data->sizex * this->size/2.0f;
+		sy = data->sizey * this->size/2.0f;	
+		
+		if ((sx == sy) && (sx > 0.f)) {
+			for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
+				IIR_gauss(copy, sx, c, 3);
+		}
+		else {
+			if (sx > 0.f) {
+				for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
+					IIR_gauss(copy, sx, c, 1);
+			}
+			if (sy > 0.f) {
+				for (c=0; c<COM_NUMBER_OF_CHANNELS; ++c)
+					IIR_gauss(copy, sy, c, 2);
+			}
+		}
+		this->iirgaus = copy;
+	}
+	BLI_mutex_unlock(this->getMutex());
+	return iirgaus;
 }
 
 void FastGaussianBlurOperation::IIR_gauss(MemoryBuffer *src, float sigma, int chan, int xy)

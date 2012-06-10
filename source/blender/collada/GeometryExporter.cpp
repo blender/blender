@@ -49,6 +49,7 @@ extern "C" {
 #include "BKE_material.h"
 #include "BKE_mesh.h"
 #include "collada_internal.h"
+#include "collada_utils.h"
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
 GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings) {}
@@ -65,25 +66,6 @@ void GeometryExporter::exportGeom(Scene *sce)
 	closeLibrary();
 }
 
-Mesh * GeometryExporter::get_mesh(Object *ob, int apply_modifiers)
-{
-	Mesh *tmpmesh;
-	if (!apply_modifiers)
-	{
-		tmpmesh = (Mesh*)ob->data;
-	}
-	else
-	{
-		CustomDataMask mask = CD_MASK_MESH;
-		DerivedMesh *dm     = mesh_create_derived_view(mScene, ob, mask);
-		tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
-		DM_to_mesh(dm, tmpmesh, ob);
-		dm->release(dm);
-	}
-	BKE_mesh_tessface_ensure(tmpmesh);
-	return tmpmesh;
-}
-
 void GeometryExporter::operator()(Object *ob)
 {
 	// XXX don't use DerivedMesh, Mesh instead?
@@ -93,7 +75,14 @@ void GeometryExporter::operator()(Object *ob)
 #endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
-	Mesh *me = get_mesh(ob, this->export_settings->apply_modifiers);
+	Mesh *me;
+	if ( this->export_settings->apply_modifiers ) {
+		me = bc_to_mesh_apply_modifiers(mScene, ob);
+	} 
+	else {
+		me = (Mesh*)ob->data;
+	}
+	BKE_mesh_tessface_ensure(me);
 
 	std::string geom_id = get_geometry_id(ob, use_instantiation);
 	std::vector<Normal> nor;

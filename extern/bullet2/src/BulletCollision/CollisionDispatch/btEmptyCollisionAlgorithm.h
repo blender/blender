@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef EMPTY_ALGORITH
-#define EMPTY_ALGORITH
+#ifndef BT_EMPTY_ALGORITH
+#define BT_EMPTY_ALGORITH
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "btCollisionCreateFunc.h"
 #include "btCollisionDispatcher.h"
@@ -51,4 +51,4 @@ public:
 
 } ATTRIBUTE_ALIGNED(16);
 
-#endif //EMPTY_ALGORITH
+#endif //BT_EMPTY_ALGORITH

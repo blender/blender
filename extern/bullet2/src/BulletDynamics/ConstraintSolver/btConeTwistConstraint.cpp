@@ -638,6 +638,11 @@ void btConeTwistConstraint::calcAngleInfo2(const btTransform& transA, const btTr
 		btTransform trDeltaAB = trB * trPose * trA.inverse();
 		btQuaternion qDeltaAB = trDeltaAB.getRotation();
 		btVector3 swingAxis = 	btVector3(qDeltaAB.x(), qDeltaAB.y(), qDeltaAB.z());
+		float swingAxisLen2 = swingAxis.length2();
+		if(btFuzzyZero(swingAxisLen2))
+		{
+		   return;
+		}
 		m_swingAxis = swingAxis;
 		m_swingAxis.normalize();
 		m_swingCorrection = qDeltaAB.getAngle();
@@ -918,7 +923,7 @@ void btConeTwistConstraint::computeTwistLimitInfo(const btQuaternion& qTwist,
 
 	if (twistAngle > SIMD_PI) // long way around. flip quat and recalculate.
 	{
-		qMinTwist = operator-(qTwist);
+		qMinTwist = -(qTwist);
 		twistAngle = qMinTwist.getAngle();
 	}
 	if (twistAngle < 0)

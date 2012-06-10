@@ -477,6 +477,15 @@ static void rna_WeightVGModifier_mask_uvlayer_set(PointerRNA *ptr, const char *v
 	}
 }
 
+static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
+{
+	Object *ob = (Object *)ptr->id.data;
+	MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
+
+	multires_force_update(ob);
+	mmd->simple = value;
+}
+
 static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
@@ -739,7 +748,7 @@ static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
 
 #else
 
-static void rna_def_property_subdivision_common(StructRNA *srna, const char type[])
+static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static EnumPropertyItem prop_subdivision_type_items[] = {
 		{0, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
@@ -752,6 +761,8 @@ static void rna_def_property_subdivision_common(StructRNA *srna, const char type
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Select type of subdivision algorithm");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	return prop;
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
@@ -901,7 +912,8 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MultiresModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MULTIRES);
 
-	rna_def_property_subdivision_common(srna, "simple");
+	prop = rna_def_property_subdivision_common(srna, "simple");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_MultiresModifier_type_set", NULL);
 
 	prop = RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");

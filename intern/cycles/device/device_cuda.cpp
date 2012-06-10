@@ -771,7 +771,7 @@ public:
 			cuda_push_context();
 
 			/* for multi devices, this assumes the ineffecient method that we allocate
-			   all pixels on the device even though we only render to a subset */
+			 * all pixels on the device even though we only render to a subset */
 			size_t offset = sizeof(uint8_t)*4*y*w;
 
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pmem.cuPBO);

@@ -60,27 +60,27 @@ public:
 	}
 
 protected:
-	GHOST_TSuccess installDrawingContext( GHOST_TDrawingContextType type ){ return GHOST_kSuccess; }
-	GHOST_TSuccess removeDrawingContext( ){ return GHOST_kSuccess; }
-	GHOST_TSuccess setWindowCursorGrab( GHOST_TGrabCursorMode mode ){ return GHOST_kSuccess; }
-	GHOST_TSuccess setWindowCursorShape( GHOST_TStandardCursor shape ){ return GHOST_kSuccess; }
+	GHOST_TSuccess installDrawingContext( GHOST_TDrawingContextType type ) { return GHOST_kSuccess; }
+	GHOST_TSuccess removeDrawingContext( ) { return GHOST_kSuccess; }
+	GHOST_TSuccess setWindowCursorGrab( GHOST_TGrabCursorMode mode ) { return GHOST_kSuccess; }
+	GHOST_TSuccess setWindowCursorShape( GHOST_TStandardCursor shape ) { return GHOST_kSuccess; }
 	GHOST_TSuccess setWindowCustomCursorShape( GHOST_TUns8 bitmap[16][2], GHOST_TUns8 mask[16][2], int hotX, int hotY ) { return GHOST_kSuccess; }
-	GHOST_TSuccess setWindowCustomCursorShape( GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color ){ return GHOST_kSuccess; }
+	GHOST_TSuccess setWindowCustomCursorShape( GHOST_TUns8 *bitmap, GHOST_TUns8 *mask, int sizex, int sizey, int hotX, int hotY, int fg_color, int bg_color ) { return GHOST_kSuccess; }
 
 	bool getValid( ) const { return true; }
-	void setTitle( const STR_String& title ){ /* nothing */ }
+	void setTitle( const STR_String& title ) { /* nothing */ }
 	void getTitle( STR_String& title ) const { title= "untitled"; }
 	void getWindowBounds( GHOST_Rect& bounds ) const { getClientBounds(bounds); }
 	void getClientBounds( GHOST_Rect& bounds ) const { /* nothing */ }
-	GHOST_TSuccess setClientWidth( GHOST_TUns32 width ){ return GHOST_kFailure; }
-	GHOST_TSuccess setClientHeight( GHOST_TUns32 height ){ return GHOST_kFailure;  }
-	GHOST_TSuccess setClientSize( GHOST_TUns32 width, GHOST_TUns32 height ){ return GHOST_kFailure;  }
+	GHOST_TSuccess setClientWidth( GHOST_TUns32 width ) { return GHOST_kFailure; }
+	GHOST_TSuccess setClientHeight( GHOST_TUns32 height ) { return GHOST_kFailure;  }
+	GHOST_TSuccess setClientSize( GHOST_TUns32 width, GHOST_TUns32 height ) { return GHOST_kFailure;  }
 	void screenToClient( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const { outX = inX; outY = inY; }
 	void clientToScreen( GHOST_TInt32 inX, GHOST_TInt32 inY, GHOST_TInt32& outX, GHOST_TInt32& outY ) const { outX = inX; outY = inY; }
-	GHOST_TSuccess swapBuffers( ){ return GHOST_kFailure; }
-	GHOST_TSuccess activateDrawingContext( ){ return GHOST_kFailure; }
-	~GHOST_WindowNULL( ){ /* nothing */ }
-	GHOST_TSuccess setWindowCursorVisibility( bool visible ){ return GHOST_kSuccess; }
+	GHOST_TSuccess swapBuffers( ) { return GHOST_kFailure; }
+	GHOST_TSuccess activateDrawingContext( ) { return GHOST_kFailure; }
+	~GHOST_WindowNULL( ) { /* nothing */ }
+	GHOST_TSuccess setWindowCursorVisibility( bool visible ) { return GHOST_kSuccess; }
 	GHOST_TSuccess setState(GHOST_TWindowState state)  { return GHOST_kSuccess; }
 	GHOST_TWindowState getState() const	{ return GHOST_kWindowStateNormal; }
 	GHOST_TSuccess invalidate()  { return GHOST_kSuccess; }

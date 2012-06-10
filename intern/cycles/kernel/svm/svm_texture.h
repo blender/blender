@@ -152,7 +152,7 @@ __device float voronoi_CrS(float3 p) { return 2.0f*voronoi_Cr(p) - 1.0f; }
 __device float noise_basis(float3 p, NodeNoiseBasis basis)
 {
 	/* Only Perlin enabled for now, others break CUDA compile by making kernel
-	   too big, with compile using > 4GB, due to everything being inlined. */
+	 * too big, with compile using > 4GB, due to everything being inlined. */
 
 #if 0
 	if(basis == NODE_NOISE_PERLIN)
@@ -188,10 +188,10 @@ __device float noise_basis_hard(float3 p, NodeNoiseBasis basis, int hard)
 
 /* Waves */
 
-__device float noise_wave(NodeWaveType wave, float a)
+__device float noise_wave(NodeWaveBasis wave, float a)
 {
 	if(wave == NODE_WAVE_SINE) {
-		return 0.5f + 0.5f*sin(a);
+		return 0.5f + 0.5f * sinf(a);
 	}
 	else if(wave == NODE_WAVE_SAW) {
 		float b = 2.0f*M_PI_F;
@@ -221,7 +221,7 @@ __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float o
 	int i, n;
 
 	octaves = clamp(octaves, 0.0f, 16.0f);
-	n= (int)octaves;
+	n = (int)octaves;
 
 	for(i = 0; i <= n; i++) {
 		float t = noise_basis(fscale*p, basis);
@@ -234,7 +234,7 @@ __device_noinline float noise_turbulence(float3 p, NodeNoiseBasis basis, float o
 		fscale *= 2.0f;
 	}
 
-	float rmd = octaves - floor(octaves);
+	float rmd = octaves - floorf(octaves);
 
 	if(rmd != 0.0f) {
 		float t = noise_basis(fscale*p, basis);

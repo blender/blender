@@ -28,7 +28,7 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+ */
 
 CCL_NAMESPACE_BEGIN
 
@@ -84,9 +84,9 @@ __device uint phash(int kx, int ky, int kz, int3 p)
 
 __device float floorfrac(float x, int* i)
 {
-    float f = floorf(x);
-    *i = (int)f;
-    return x - f;
+	float f = floorf(x);
+	*i = (int)f;
+	return x - f;
 }
 
 __device float fade(float t)
@@ -96,7 +96,7 @@ __device float fade(float t)
 
 __device float nerp(float t, float a, float b)
 {
-    return (1.0f - t) * a + t * b;
+	return (1.0f - t) * a + t * b;
 }
 
 __device float grad(int hash, float x, float y, float z)

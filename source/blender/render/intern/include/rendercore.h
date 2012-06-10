@@ -46,16 +46,14 @@ struct RayObject;
 
 /* ------------------------------------------------------------------------- */
 
-typedef struct PixStr
-{
+typedef struct PixStr {
 	struct PixStr *next;
 	int obi, facenr, z, maskz;
 	unsigned short mask;
 	short shadfac;
 } PixStr;
 
-typedef struct PixStrMain
-{
+typedef struct PixStrMain {
 	struct PixStrMain *next, *prev;
 	struct PixStr *ps;
 	int counter;

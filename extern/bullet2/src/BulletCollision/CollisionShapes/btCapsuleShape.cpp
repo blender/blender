@@ -55,7 +55,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height) : btConvexInter
 		btVector3 pos(0,0,0);
 		pos[getUpAxis()] = getHalfHeight();
 
-		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+		vtx = pos +vec*(radius) - vec * getMargin();
 		newDot = vec.dot(vtx);
 		if (newDot > maxDot)
 		{
@@ -67,7 +67,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height) : btConvexInter
 		btVector3 pos(0,0,0);
 		pos[getUpAxis()] = -getHalfHeight();
 
-		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+		vtx = pos +vec*(radius) - vec * getMargin();
 		newDot = vec.dot(vtx);
 		if (newDot > maxDot)
 		{
@@ -96,7 +96,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height) : btConvexInter
 		{
 			btVector3 pos(0,0,0);
 			pos[getUpAxis()] = getHalfHeight();
-			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+			vtx = pos +vec*(radius) - vec * getMargin();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
 			{
@@ -107,7 +107,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height) : btConvexInter
 		{
 			btVector3 pos(0,0,0);
 			pos[getUpAxis()] = -getHalfHeight();
-			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+			vtx = pos +vec*(radius) - vec * getMargin();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
 			{

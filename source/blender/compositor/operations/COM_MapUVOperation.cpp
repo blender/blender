@@ -61,16 +61,16 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 	/* adaptive sampling, red (U) channel */
 	this->inputUVProgram->read(uv_a, x-1, y, COM_PS_NEAREST, inputBuffers);
 	this->inputUVProgram->read(uv_b, x+1, y, COM_PS_NEAREST, inputBuffers);
-	uv_l = uv_a[2]!=0.f? fabs(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2]!=0.f? fabs(inputUV[0] - uv_b[0]) : 0.f;
+	uv_l = uv_a[2]!=0.f? fabsf(inputUV[0] - uv_a[0]) : 0.f;
+	uv_r = uv_b[2]!=0.f? fabsf(inputUV[0] - uv_b[0]) : 0.f;
 
 	dx = 0.5f * (uv_l + uv_r);
 
 	/* adaptive sampling, green (V) channel */
 	this->inputUVProgram->read(uv_a, x, y-1, COM_PS_NEAREST, inputBuffers);
 	this->inputUVProgram->read(uv_b, x, y+1, COM_PS_NEAREST, inputBuffers);
-	uv_u = uv_a[2]!=0.f? fabs(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2]!=0.f? fabs(inputUV[1] - uv_b[1]) : 0.f;
+	uv_u = uv_a[2]!=0.f? fabsf(inputUV[1] - uv_a[1]) : 0.f;
+	uv_d = uv_b[2]!=0.f? fabsf(inputUV[1] - uv_b[1]) : 0.f;
 
 	dy = 0.5f * (uv_u + uv_d);
 

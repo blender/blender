@@ -1929,6 +1929,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
 	
 	return OPERATOR_FINISHED;
 }

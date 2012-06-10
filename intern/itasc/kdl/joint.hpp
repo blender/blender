@@ -70,7 +70,7 @@ namespace KDL {
          *
          * @return the resulting 6D-pose
          */
-        Frame pose(const double& q)const;
+        Frame pose(const double* q)const;
         /**
          * Request the resulting 6D-velocity with a joint velocity qdot
          *

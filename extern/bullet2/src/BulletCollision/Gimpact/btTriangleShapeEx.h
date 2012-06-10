@@ -22,8 +22,8 @@ subject to the following restrictions:
 */
 
 
-#ifndef TRIANGLE_SHAPE_EX_H
-#define TRIANGLE_SHAPE_EX_H
+#ifndef GIMPACT_TRIANGLE_SHAPE_EX_H
+#define GIMPACT_TRIANGLE_SHAPE_EX_H
 
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
 #include "BulletCollision/CollisionShapes/btTriangleShape.h"
@@ -177,4 +177,4 @@ public:
 };
 
 
-#endif //TRIANGLE_MESH_SHAPE_H
+#endif //GIMPACT_TRIANGLE_MESH_SHAPE_H

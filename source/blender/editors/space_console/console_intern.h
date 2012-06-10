@@ -54,6 +54,9 @@ void CONSOLE_OT_move(struct wmOperatorType *ot);
 void CONSOLE_OT_delete(struct wmOperatorType *ot);
 void CONSOLE_OT_insert(struct wmOperatorType *ot);
 
+void CONSOLE_OT_indent(struct wmOperatorType *ot);
+void CONSOLE_OT_unindent(struct wmOperatorType *ot);
+
 void CONSOLE_OT_history_append(struct wmOperatorType *ot);
 void CONSOLE_OT_scrollback_append(struct wmOperatorType *ot);
 

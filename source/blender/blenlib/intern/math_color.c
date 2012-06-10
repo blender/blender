@@ -285,8 +285,8 @@ void rgb_to_hsl(float r, float g, float b, float *lh, float *ls, float *ll)
 		else {
 			h = (r - g) / d + 4.0f;
 		}
-        }
-        h /= 6.0f;
+	}
+	h /= 6.0f;
 
 	*lh = h;
 	*ls = s;
@@ -634,23 +634,23 @@ void BLI_init_srgb_conversion(void)
 }
 static float inverse_srgb_companding(float v)
 {
-    if (v > 0.04045f) {
-        return powf((v + 0.055f) / 1.055f, 2.4);
-    }
-    else {
-        return v / 12.92f;
-    }
+	if (v > 0.04045f) {
+		return powf((v + 0.055f) / 1.055f, 2.4);
+	}
+	else {
+		return v / 12.92f;
+	}
 }
 
 void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z)
 {
-    r = inverse_srgb_companding(r) * 100.0f;
-    g = inverse_srgb_companding(g) * 100.0f;
-    b = inverse_srgb_companding(b) * 100.0f;
+	r = inverse_srgb_companding(r) * 100.0f;
+	g = inverse_srgb_companding(g) * 100.0f;
+	b = inverse_srgb_companding(b) * 100.0f;
 
-    *x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-    *y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-    *z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+	*x = r * 0.4124 + g * 0.3576 + b * 0.1805;
+	*y = r * 0.2126 + g * 0.7152 + b * 0.0722;
+	*z = r * 0.0193 + g * 0.1192 + b * 0.9505;
 }
 
 static float xyz_to_lab_component(float v)

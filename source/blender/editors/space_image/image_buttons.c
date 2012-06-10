@@ -637,6 +637,8 @@ void uiTemplateImage(uiLayout *layout, bContext *C, PointerRNA *ptr, const char 
 	ima = imaptr.data;
 	iuser = userptr->data;
 
+	BKE_image_user_check_frame_calc(iuser, (int)scene->r.cfra, 0);
+
 	cb = MEM_callocN(sizeof(RNAUpdateCb), "RNAUpdateCb");
 	cb->ptr = *ptr;
 	cb->prop = prop;

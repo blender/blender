@@ -141,6 +141,11 @@ private: //methods
 	/**
 	  * find all execution group with output nodes
 	  */
+	void findOutputExecutionGroup(vector<ExecutionGroup*> *result, CompositorPriority priority) const;
+	
+	/**
+	  * find all execution group with output nodes
+	  */
 	void findOutputExecutionGroup(vector<ExecutionGroup*> *result) const;
 
 public:
@@ -224,6 +229,8 @@ private:
 	  * @param nodes list of nodes or operations to do the data type determination
 	  */
 	void determineActualSocketDataTypes(vector<NodeBase*> &nodes);
+	
+	void executeGroups(CompositorPriority priority);
 
 };
 #endif

@@ -34,14 +34,14 @@ static inline uint hash_int_2d(uint kx, uint ky)
 	b += ky;
 
 	c ^= b; c -= rot(b,14);
-    a ^= c; a -= rot(c,11);
-    b ^= a; b -= rot(a,25);
-    c ^= b; c -= rot(b,16);
-    a ^= c; a -= rot(c,4);
-    b ^= a; b -= rot(a,14);
-    c ^= b; c -= rot(b,24);
+	a ^= c; a -= rot(c,11);
+	b ^= a; b -= rot(a,25);
+	c ^= b; c -= rot(b,16);
+	a ^= c; a -= rot(c,4);
+	b ^= a; b -= rot(a,14);
+	c ^= b; c -= rot(b,24);
 
-    return c;
+	return c;
 
 	#undef rot
 }

@@ -40,6 +40,7 @@
 
 #include "DNA_gpencil_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 
 #include "BKE_context.h"
 #include "BKE_global.h"
@@ -236,6 +237,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
 	uiLayout *col, *row;
+	SpaceClip *sc= CTX_wm_space_clip(C);
 	short v3d_stroke_opts = STROKE_OPTS_NORMAL;
 	const short is_v3d = CTX_wm_view3d(C) != NULL;
 	
@@ -244,6 +246,16 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	
 	/* draw gpd settings first ------------------------------------- */
 	col = uiLayoutColumn(layout, 0);
+
+	if (sc) {
+		bScreen *screen = CTX_wm_screen(C);
+		PointerRNA sc_ptr;
+
+		RNA_pointer_create(&screen->id, &RNA_SpaceClipEditor, sc, &sc_ptr);
+		row = uiLayoutRow(col, 1);
+		uiItemR(row, &sc_ptr, "grease_pencil_source", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
+
 	/* current Grease Pencil block */
 	/* TODO: show some info about who owns this? */
 	uiTemplateID(col, C, ctx_ptr, "grease_pencil", "GPENCIL_OT_data_add", NULL, "GPENCIL_OT_data_unlink");
@@ -281,14 +293,17 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	row = uiLayoutRow(col, 1);
 	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "VIEW", NULL, ICON_NONE);
 	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "CURSOR", NULL, ICON_NONE);
-	row = uiLayoutRow(col, 1);
-	uiLayoutSetActive(row, v3d_stroke_opts);
-	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, ICON_NONE);
-	uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, ICON_NONE);
 
-	row = uiLayoutRow(col, 0);
-	uiLayoutSetActive(row, v3d_stroke_opts == STROKE_OPTS_V3D_ON);
-	uiItemR(row, &gpd_ptr, "use_stroke_endpoints", 0, NULL, ICON_NONE);
+	if (sc == NULL) {
+		row = uiLayoutRow(col, 1);
+		uiLayoutSetActive(row, v3d_stroke_opts);
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "SURFACE", NULL, ICON_NONE);
+		uiItemEnumR_string(row, &gpd_ptr, "draw_mode", "STROKE", NULL, ICON_NONE);
+
+		row = uiLayoutRow(col, 0);
+		uiLayoutSetActive(row, v3d_stroke_opts == STROKE_OPTS_V3D_ON);
+		uiItemR(row, &gpd_ptr, "use_stroke_endpoints", 0, NULL, ICON_NONE);
+	}
 }
 
 

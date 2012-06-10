@@ -35,8 +35,7 @@
 struct Render;
 struct TexResult;
 
-typedef struct VoxelDataHeader
-{
+typedef struct VoxelDataHeader {
 	int resolX, resolY, resolZ;
 	int frames;
 } VoxelDataHeader;

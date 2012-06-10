@@ -111,6 +111,7 @@
 #include "COM_DefocusNode.h"
 #include "COM_DoubleEdgeMaskNode.h"
 #include "COM_CropNode.h"
+#include "COM_MaskNode.h"
 
 Node *Converter::convert(bNode *bNode)
 {
@@ -346,6 +347,9 @@ case CMP_NODE_OUTPUT_FILE:
 		break;
 	case CMP_NODE_CROP:
 		node = new CropNode(bNode);
+		break;
+	case CMP_NODE_MASK:
+		node = new MaskNode(bNode);
 		break;
 	/* not inplemented yet */
 	default:

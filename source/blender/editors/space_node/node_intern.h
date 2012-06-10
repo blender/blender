@@ -50,8 +50,7 @@ struct bNodeLink;
 struct Main;
 
 /* temp data to pass on to modal */
-typedef struct bNodeLinkDrag
-{
+typedef struct bNodeLinkDrag {
 	struct bNodeLinkDrag *next, *prev;
 	
 	/* List of links dragged by the operator.

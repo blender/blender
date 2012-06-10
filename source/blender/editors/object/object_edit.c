@@ -180,7 +180,7 @@ static int object_hide_view_set_exec(bContext *C, wmOperator *op)
 	short changed = 0;
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 	
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
 		if (!unselected) {
 			if (base->flag & SELECT) {
@@ -240,7 +240,7 @@ static int object_hide_render_clear_exec(bContext *C, wmOperator *UNUSED(op))
 	short changed = 0;
 
 	/* XXX need a context loop to handle such cases */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			ob->restrictflag &= ~OB_RESTRICT_RENDER;
@@ -275,7 +275,7 @@ static int object_hide_render_set_exec(bContext *C, wmOperator *op)
 {
 	const int unselected = RNA_boolean_get(op->ptr, "unselected");
 
-	CTX_DATA_BEGIN (C, Base *, base, visible_bases)
+	CTX_DATA_BEGIN(C, Base *, base, visible_bases)
 	{
 		if (!unselected) {
 			if (base->flag & SELECT) {
@@ -1114,7 +1114,7 @@ void ED_objects_recalculate_paths(bContext *C, Scene *scene)
 	ListBase targets = {NULL, NULL};
 	
 	/* loop over objects in scene */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		/* set flag to force recalc, then grab path(s) from object */
 		ob->avs.recalc |= ANIMVIZ_RECALC_PATHS;
@@ -1157,7 +1157,7 @@ static int object_calculate_paths_exec(bContext *C, wmOperator *op)
 	int end = RNA_int_get(op->ptr, "end_frame");
 	
 	/* set up path data for bones being calculated */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		bAnimVizSettings *avs = &ob->avs;
 		
@@ -1196,9 +1196,9 @@ void OBJECT_OT_paths_calculate(wmOperatorType *ot)
 	
 	/* properties */
 	RNA_def_int(ot->srna, "start_frame", 1, MINAFRAME, MAXFRAME, "Start", 
-	            "First frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
+	            "First frame to calculate object paths on", MINFRAME, MAXFRAME / 2.0);
 	RNA_def_int(ot->srna, "end_frame", 250, MINAFRAME, MAXFRAME, "End", 
-	            "Last frame to calculate object paths on", MINFRAME, MAXFRAME/2.0);
+	            "Last frame to calculate object paths on", MINFRAME, MAXFRAME / 2.0);
 }
 
 /* --------- */
@@ -1231,7 +1231,7 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
 	ot->poll = ED_operator_object_active_editable; /* TODO: this should probably check for existing paths */
 	
 	/* flags */
-	ot->flag = OPTYPE_REGISTER|OPTYPE_UNDO;
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 }
 
 /* --------- */
@@ -1240,7 +1240,7 @@ void OBJECT_OT_paths_update(wmOperatorType *ot)
 void ED_objects_clear_paths(bContext *C)
 {
 	/* loop over objects in scene */
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 		if (ob->mpath) {
 			animviz_free_motionpath(ob->mpath);
@@ -1288,7 +1288,7 @@ static int shade_smooth_exec(bContext *C, wmOperator *op)
 	int clear = (strcmp(op->idname, "OBJECT_OT_shade_flat") == 0);
 	int done = FALSE;
 
-	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob, selected_editable_objects)
 	{
 
 		if (ob->type == OB_MESH) {
@@ -1666,10 +1666,12 @@ static EnumPropertyItem game_properties_copy_operations[] = {
 	{COPY_PROPERTIES_REPLACE, "REPLACE", 0, "Replace Properties", ""},
 	{COPY_PROPERTIES_MERGE, "MERGE", 0, "Merge Properties", ""},
 	{COPY_PROPERTIES_COPY, "COPY", 0, "Copy a Property", ""},
-	{0, NULL, 0, NULL, NULL}};
+	{0, NULL, 0, NULL, NULL}
+};
 
-static EnumPropertyItem gameprops_items[]= {
-	{0, NULL, 0, NULL, NULL}};
+static EnumPropertyItem gameprops_items[] = {
+	{0, NULL, 0, NULL, NULL}
+};
 
 static EnumPropertyItem *gameprops_itemf(bContext *C, PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop), int *free)
 {	
@@ -1706,7 +1708,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 		prop = BLI_findlink(&ob->prop, propid - 1);
 		
 		if (prop) {
-			CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+			CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 			{
 				if (ob != ob_iter)
 					set_ob_property(ob_iter, prop);
@@ -1715,7 +1717,7 @@ static int game_property_copy_exec(bContext *C, wmOperator *op)
 	}
 
 	else {
-		CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+		CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 		{
 			if (ob != ob_iter) {
 				if (type == COPY_PROPERTIES_REPLACE)
@@ -1756,7 +1758,7 @@ void OBJECT_OT_game_property_copy(wmOperatorType *ot)
 
 static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 {
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
 		free_properties(&ob_iter->prop);
 	}
@@ -1786,7 +1788,7 @@ static int logicbricks_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_active_context(C);
 
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
 		if (ob != ob_iter) {
 			/* first: free all logic */
@@ -1843,7 +1845,7 @@ static int game_physics_copy_exec(bContext *C, wmOperator *UNUSED(op))
 {
 	Object *ob = ED_object_active_context(C);
 	
-	CTX_DATA_BEGIN (C, Object *, ob_iter, selected_editable_objects)
+	CTX_DATA_BEGIN(C, Object *, ob_iter, selected_editable_objects)
 	{
 		if (ob != ob_iter) {
 			ob_iter->gameflag = ob->gameflag;

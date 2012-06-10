@@ -321,6 +321,7 @@ void CustomData_to_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata,
                              struct CustomData *ldata, int totloop, int totpoly);
 void CustomData_from_bmeshpoly(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata, int total);
 void CustomData_bmesh_update_active_layers(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
+void CustomData_bmesh_do_versions_update_active_layers(struct CustomData *fdata, struct CustomData *pdata, struct CustomData *ldata);
 void CustomData_bmesh_init_pool(struct CustomData *data, int totelem, const char htype);
 
 /* External file storage */

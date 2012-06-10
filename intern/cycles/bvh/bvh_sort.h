@@ -1,4 +1,4 @@
- /*
+/*
  * Adapted from code copyright 2009-2010 NVIDIA Corporation
  * Modifications Copyright 2011, Blender Foundation.
  *

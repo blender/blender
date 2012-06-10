@@ -1137,17 +1137,21 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 
 		if (node->flag & PBVH_RebuildDrawBuffers) {
 			GPU_free_buffers(node->draw_buffers);
-			if (bvh->grids) {
-				node->draw_buffers =
-				    GPU_build_grid_buffers(node->prim_indices,
-				                           node->totprim, bvh->grid_hidden, bvh->gridkey.grid_size);
-			}
-			else {
-				node->draw_buffers =
-				    GPU_build_mesh_buffers(node->face_vert_indices,
-				                           bvh->faces, bvh->verts,
-				                           node->prim_indices,
-				                           node->totprim);
+			switch (bvh->type) {
+				case PBVH_GRIDS:
+					node->draw_buffers =
+						GPU_build_grid_buffers(node->prim_indices,
+											   node->totprim,
+											   bvh->grid_hidden,
+											   bvh->gridkey.grid_size);
+					break;
+				case PBVH_FACES:
+					node->draw_buffers =
+						GPU_build_mesh_buffers(node->face_vert_indices,
+											   bvh->faces, bvh->verts,
+											   node->prim_indices,
+											   node->totprim);
+					break;
 			}
  
 			node->flag &= ~PBVH_RebuildDrawBuffers;
@@ -1473,7 +1477,8 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 }
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
-                      float ray_start[3], float ray_normal[3], int original)
+                      const float ray_start[3], const float ray_normal[3],
+					  int original)
 {
 	RaycastData rcd;
 
@@ -1489,8 +1494,10 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 	BLI_pbvh_search_callback_occluded(bvh, ray_aabb_intersect, &rcd, cb, data);
 }
 
-static int ray_face_intersection(float ray_start[3], float ray_normal[3],
-                                 float *t0, float *t1, float *t2, float *t3,
+static int ray_face_intersection(const float ray_start[3],
+								 const float ray_normal[3],
+                                 const float *t0, const float *t1,
+								 const float *t2, const float *t3,
                                  float *fdist)
 {
 	float dist;
@@ -1506,91 +1513,114 @@ static int ray_face_intersection(float ray_start[3], float ray_normal[3],
 	}
 }
 
-int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
-                          float ray_start[3], float ray_normal[3], float *dist)
+static int pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
+								   float (*origco)[3],
+								   const float ray_start[3],
+								   const float ray_normal[3], float *dist)
 {
-	MVert *vert;
-	BLI_bitmap gh;
-	int *faces, totface, gridsize, totgrid;
+	const MVert *vert = bvh->verts;
+	const int *faces = node->prim_indices;
+	int i, hit = 0, totface = node->totprim;
+
+	for (i = 0; i < totface; ++i) {
+		const MFace *f = bvh->faces + faces[i];
+		const int *face_verts = node->face_vert_indices[i];
+
+		if (paint_is_face_hidden(f, vert))
+			continue;
+
+		if (origco) {
+			/* intersect with backuped original coordinates */
+			hit |= ray_face_intersection(ray_start, ray_normal,
+										 origco[face_verts[0]],
+										 origco[face_verts[1]],
+										 origco[face_verts[2]],
+										 f->v4 ? origco[face_verts[3]] : NULL,
+										 dist);
+		}
+		else {
+			/* intersect with current coordinates */
+			hit |= ray_face_intersection(ray_start, ray_normal,
+										 vert[f->v1].co,
+										 vert[f->v2].co,
+										 vert[f->v3].co,
+										 f->v4 ? vert[f->v4].co : NULL,
+										 dist);
+		}
+	}
+
+	return hit;
+}
+
+static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
+								   float (*origco)[3],
+								   const float ray_start[3],
+								   const float ray_normal[3], float *dist)
+{
+	int totgrid = node->totprim;
+	int gridsize = bvh->gridkey.grid_size;
 	int i, x, y, hit = 0;
+
+	for (i = 0; i < totgrid; ++i) {
+		CCGElem *grid = bvh->grids[node->prim_indices[i]];
+		BLI_bitmap gh;
+
+		if (!grid)
+			continue;
+
+		gh = bvh->grid_hidden[node->prim_indices[i]];
+
+		for (y = 0; y < gridsize - 1; ++y) {
+			for (x = 0; x < gridsize - 1; ++x) {
+				/* check if grid face is hidden */
+				if (gh) {
+					if (paint_is_grid_face_hidden(gh, gridsize, x, y))
+						continue;
+				}
+
+				if (origco) {
+					hit |= ray_face_intersection(ray_start, ray_normal,
+												 origco[y * gridsize + x],
+												 origco[y * gridsize + x + 1],
+												 origco[(y + 1) * gridsize + x + 1],
+												 origco[(y + 1) * gridsize + x],
+												 dist);
+				}
+				else {
+					hit |= ray_face_intersection(ray_start, ray_normal,
+												 CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
+												 CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
+												 CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
+												 CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
+												 dist);
+				}
+			}
+		}
+
+		if (origco)
+			origco += gridsize * gridsize;
+	}
+
+	return hit;
+}
+
+int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
+                          const float ray_start[3], const float ray_normal[3],
+						  float *dist)
+{
+	int hit = 0;
 
 	if (node->flag & PBVH_FullyHidden)
 		return 0;
 
 	switch (bvh->type) {
 		case PBVH_FACES:
-			vert = bvh->verts;
-			faces = node->prim_indices;
-			totface = node->totprim;
-
-			for (i = 0; i < totface; ++i) {
-				const MFace *f = bvh->faces + faces[i];
-				int *face_verts = node->face_vert_indices[i];
-
-				if (paint_is_face_hidden(f, vert))
-					continue;
-
-				if (origco) {
-					/* intersect with backuped original coordinates */
-					hit |= ray_face_intersection(ray_start, ray_normal,
-					                             origco[face_verts[0]],
-					                             origco[face_verts[1]],
-					                             origco[face_verts[2]],
-					                             f->v4 ? origco[face_verts[3]] : NULL,
-					                             dist);
-				}
-				else {
-					/* intersect with current coordinates */
-					hit |= ray_face_intersection(ray_start, ray_normal,
-					                             vert[f->v1].co,
-					                             vert[f->v2].co,
-					                             vert[f->v3].co,
-					                             f->v4 ? vert[f->v4].co : NULL,
-					                             dist);
-				}
-			}
+			hit |= pbvh_faces_node_raycast(bvh, node, origco,
+										   ray_start, ray_normal, dist);
 			break;
 		case PBVH_GRIDS:
-			totgrid = node->totprim;
-			gridsize = bvh->gridkey.grid_size;
-
-			for (i = 0; i < totgrid; ++i) {
-				CCGElem *grid = bvh->grids[node->prim_indices[i]];
-				if (!grid)
-					continue;
-
-				gh = bvh->grid_hidden[node->prim_indices[i]];
-
-				for (y = 0; y < gridsize - 1; ++y) {
-					for (x = 0; x < gridsize - 1; ++x) {
-						/* check if grid face is hidden */
-						if (gh) {
-							if (paint_is_grid_face_hidden(gh, gridsize, x, y))
-								continue;
-						}
-
-						if (origco) {
-							hit |= ray_face_intersection(ray_start, ray_normal,
-							                             origco[y * gridsize + x],
-							                             origco[y * gridsize + x + 1],
-							                             origco[(y + 1) * gridsize + x + 1],
-							                             origco[(y + 1) * gridsize + x],
-							                             dist);
-						}
-						else {
-							hit |= ray_face_intersection(ray_start, ray_normal,
-							                             CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
-							                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
-							                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
-							                             CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
-							                             dist);
-						}
-					}
-				}
-
-				if (origco)
-					origco += gridsize * gridsize;
-			}
+			hit |= pbvh_grids_node_raycast(bvh, node, origco,
+										   ray_start, ray_normal, dist);
 			break;
 	}
 
@@ -1787,11 +1817,7 @@ PBVHProxyNode *BLI_pbvh_node_add_proxy(PBVH *bvh, PBVHNode *node)
 		else
 			node->proxies = MEM_mallocN(sizeof(PBVHProxyNode), "PBVHNodeProxy");
 
-		if (bvh->grids)
-			totverts = node->totprim * bvh->gridkey.grid_area;
-		else
-			totverts = node->uniq_verts;
-
+		BLI_pbvh_node_num_verts(bvh, node, &totverts, NULL);
 		node->proxies[index].co = MEM_callocN(sizeof(float[3]) * totverts, "PBVHNodeProxy.co");
 	}
 

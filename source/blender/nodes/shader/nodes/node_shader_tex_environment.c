@@ -46,6 +46,10 @@ static void node_shader_init_tex_environment(bNodeTree *UNUSED(ntree), bNode* no
 	default_color_mapping(&tex->base.color_mapping);
 	tex->color_space = SHD_COLORSPACE_COLOR;
 	tex->projection = SHD_PROJ_EQUIRECTANGULAR;
+	tex->iuser.frames= 1;
+	tex->iuser.sfra= 1;
+	tex->iuser.fie_ima= 2;
+	tex->iuser.ok= 1;
 
 	node->storage = tex;
 }

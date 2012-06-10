@@ -196,8 +196,8 @@ void MathPowerOperation::executePixel(float *outputValue, float x, float y, Pixe
 	else {
 		float y_mod_1 = fmod(inputValue2[0], 1);
 		/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
-		if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
-			outputValue[0] = pow(inputValue1[0], (float)floor(inputValue2[0] + 0.5));
+		if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
+			outputValue[0] = pow(inputValue1[0], floorf(inputValue2[0] + 0.5f));
 		}
 		else {
 			outputValue[0] = 0.0;

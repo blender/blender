@@ -910,7 +910,7 @@ DO_INLINE int get_bin_float(float f)
 	return bin;
 }
 
-DO_INLINE void save_sample_line(Scopes *scopes, const int idx, const float fx, const float rgb[3], const float ycc[3])
+static void save_sample_line(Scopes *scopes, const int idx, const float fx, const float rgb[3], const float ycc[3])
 {
 	float yuv[3];
 
@@ -953,9 +953,9 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	double div, divl;
 	float *rf = NULL;
 	unsigned char *rc = NULL;
-	unsigned int *bin_r, *bin_g, *bin_b, *bin_lum;
+	unsigned int *bin_lum, *bin_r, *bin_g, *bin_b, *bin_a;
 	int savedlines, saveline;
-	float rgb[3], ycc[3], luma;
+	float rgba[4], ycc[3], luma;
 	int ycc_mode = -1;
 	const short is_float = (ibuf->rect_float != NULL);
 
@@ -987,11 +987,12 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 			break;
 	}
 
-	/* temp table to count pix value for histo */
-	bin_r = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
-	bin_g = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
-	bin_b = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
-	bin_lum = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	/* temp table to count pix value for histogram */
+	bin_r     = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_g     = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_b     = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_a = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
+	bin_lum   = MEM_callocN(256 * sizeof(unsigned int), "temp historgram bins");
 
 	/* convert to number of lines with logarithmic scale */
 	scopes->sample_lines = (scopes->accuracy * 0.01f) * (scopes->accuracy * 0.01f) * ibuf->y;
@@ -1038,27 +1039,28 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 
 			if (is_float) {
 				if (use_color_management)
-					linearrgb_to_srgb_v3_v3(rgb, rf);
+					linearrgb_to_srgb_v3_v3(rgba, rf);
 				else
-					copy_v3_v3(rgb, rf);
+					copy_v3_v3(rgba, rf);
+				rgba[3] = rf[3];
 			}
 			else {
-				for (c = 0; c < 3; c++)
-					rgb[c] = rc[c] * INV_255;
+				for (c = 0; c < 4; c++)
+					rgba[c] = rc[c] * INV_255;
 			}
 
 			/* we still need luma for histogram */
-			luma = rgb_to_luma(rgb);
+			luma = rgb_to_luma(rgba);
 
 			/* check for min max */
 			if (ycc_mode == -1) {
 				for (c = 0; c < 3; c++) {
-					if (rgb[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = rgb[c];
-					if (rgb[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = rgb[c];
+					if (rgba[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = rgba[c];
+					if (rgba[c] > scopes->minmax[c][1]) scopes->minmax[c][1] = rgba[c];
 				}
 			}
 			else {
-				rgb_to_ycc(rgb[0], rgb[1], rgb[2], &ycc[0], &ycc[1], &ycc[2], ycc_mode);
+				rgb_to_ycc(rgba[0], rgba[1], rgba[2], &ycc[0], &ycc[1], &ycc[2], ycc_mode);
 				for (c = 0; c < 3; c++) {
 					ycc[c] *= INV_255;
 					if (ycc[c] < scopes->minmax[c][0]) scopes->minmax[c][0] = ycc[c];
@@ -1066,16 +1068,17 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 				}
 			}
 			/* increment count for histo*/
-			bin_r[get_bin_float(rgb[0])] += 1;
-			bin_g[get_bin_float(rgb[1])] += 1;
-			bin_b[get_bin_float(rgb[2])] += 1;
 			bin_lum[get_bin_float(luma)] += 1;
+			bin_r[get_bin_float(rgba[0])] += 1;
+			bin_g[get_bin_float(rgba[1])] += 1;
+			bin_b[get_bin_float(rgba[2])] += 1;
+			bin_a[get_bin_float(rgba[3])] += 1;
 
 			/* save sample if needed */
 			if (saveline) {
 				const float fx = (float)x / (float)ibuf->x;
 				const int idx = 2 * (ibuf->x * savedlines + x);
-				save_sample_line(scopes, idx, fx, rgb, ycc);
+				save_sample_line(scopes, idx, fx, rgba, ycc);
 			}
 
 			rf += ibuf->channels;
@@ -1089,27 +1092,26 @@ void scopes_update(Scopes *scopes, ImBuf *ibuf, int use_color_management)
 	n = 0;
 	nl = 0;
 	for (x = 0; x < 256; x++) {
-		if (bin_r[x] > n)
-			n = bin_r[x];
-		if (bin_g[x] > n)
-			n = bin_g[x];
-		if (bin_b[x] > n)
-			n = bin_b[x];
-		if (bin_lum[x] > nl)
-			nl = bin_lum[x];
+		if (bin_lum[x] > nl) nl = bin_lum[x];
+		if (bin_r[x]   > n) n = bin_r[x];
+		if (bin_g[x]   > n) n = bin_g[x];
+		if (bin_b[x]   > n) n = bin_b[x];
+		if (bin_a[x]   > n) n = bin_a[x];
 	}
 	div = 1.0 / (double)n;
 	divl = 1.0 / (double)nl;
 	for (x = 0; x < 256; x++) {
+		scopes->hist.data_luma[x] = bin_lum[x] * divl;
 		scopes->hist.data_r[x] = bin_r[x] * div;
 		scopes->hist.data_g[x] = bin_g[x] * div;
 		scopes->hist.data_b[x] = bin_b[x] * div;
-		scopes->hist.data_luma[x] = bin_lum[x] * divl;
+		scopes->hist.data_a[x] = bin_a[x] * div;
 	}
+	MEM_freeN(bin_lum);
 	MEM_freeN(bin_r);
 	MEM_freeN(bin_g);
 	MEM_freeN(bin_b);
-	MEM_freeN(bin_lum);
+	MEM_freeN(bin_a);
 
 	scopes->ok = 1;
 }

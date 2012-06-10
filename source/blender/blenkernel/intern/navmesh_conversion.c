@@ -307,15 +307,15 @@ struct SortContext
 static int compareByData(void *ctx, const void * a, const void * b)
 {
 	return (((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)a]] -
-			((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)b]] );
+	        ((struct SortContext *)ctx)->recastData[((struct SortContext *)ctx)->trisToFacesMap[*(int*)b]] );
 }
 
 int buildNavMeshData(const int nverts, const float* verts, 
-							 const int ntris, const unsigned short *tris, 
-							 const int* recastData, const int* trisToFacesMap,
-							 int *ndtris_r, unsigned short **dtris_r,
-							 int *npolys_r, unsigned short **dmeshes_r, unsigned short **polys_r,
-							 int *vertsPerPoly_r, int **dtrisToPolysMap_r, int **dtrisToTrisMap_r)
+                     const int ntris, const unsigned short *tris,
+                     const int* recastData, const int* trisToFacesMap,
+                     int *ndtris_r, unsigned short **dtris_r,
+                     int *npolys_r, unsigned short **dmeshes_r, unsigned short **polys_r,
+                     int *vertsPerPoly_r, int **dtrisToPolysMap_r, int **dtrisToTrisMap_r)
 
 {
 	int *trisMapping;

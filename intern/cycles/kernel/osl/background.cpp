@@ -48,17 +48,17 @@ using namespace OSL;
 ///
 class GenericBackgroundClosure : public BackgroundClosure {
 public:
-    GenericBackgroundClosure() { }
+	GenericBackgroundClosure() {}
 
-    void setup() {};
+	void setup() {};
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "background"; }
+	const char *name() const { return "background"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " ()";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " ()";
+	}
 
 };
 
@@ -72,27 +72,29 @@ public:
 ///
 class HoldoutClosure : ClosurePrimitive {
 public:
-    HoldoutClosure () : ClosurePrimitive (Holdout) { }
+	HoldoutClosure () : ClosurePrimitive(Holdout) {}
 
-    void setup() {};
+	void setup() {};
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "holdout"; }
+	const char *name() const { return "holdout"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " ()";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " ()";
+	}
 };
 
 ClosureParam closure_background_params[] = {
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(GenericBackgroundClosure) };
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(GenericBackgroundClosure)
+};
 
 CLOSURE_PREPARE(closure_background_prepare, GenericBackgroundClosure)
 
 ClosureParam closure_holdout_params[] = {
-    CLOSURE_FINISH_PARAM(HoldoutClosure) };
+	CLOSURE_FINISH_PARAM(HoldoutClosure)
+};
 
 CLOSURE_PREPARE(closure_holdout_prepare, HoldoutClosure)
 

@@ -15,8 +15,8 @@ subject to the following restrictions:
 
 ///btShapeHull implemented by John McCutchan.
 
-#ifndef _SHAPE_HULL_H
-#define _SHAPE_HULL_H
+#ifndef BT_SHAPE_HULL_H
+#define BT_SHAPE_HULL_H
 
 #include "LinearMath/btAlignedObjectArray.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
@@ -56,4 +56,4 @@ public:
 	}
 };
 
-#endif //_SHAPE_HULL_H
+#endif //BT_SHAPE_HULL_H

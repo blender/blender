@@ -591,7 +591,7 @@ static short pyrna_rotation_euler_order_get(PointerRNA *ptr, PropertyRNA **prop_
 /* note that PROP_NONE is included as a vector subtype. this is because its handy to
  * have x/y access to fcurve keyframes and other fixed size float arrays of length 2-4. */
 #define PROP_ALL_VECTOR_SUBTYPES                                              \
-		 PROP_COORDS:                                                         \
+	     PROP_COORDS:                                                         \
 	case PROP_TRANSLATION:                                                    \
 	case PROP_DIRECTION:                                                      \
 	case PROP_VELOCITY:                                                       \
@@ -3467,7 +3467,7 @@ static PyObject *pyrna_struct_getattro(BPy_StructRNA *self, PyObject *pyname)
 		ret = pyrna_prop_to_py(&self->ptr, prop);
 	}
 	/* RNA function only if callback is declared (no optional functions) */
-	else if ((func = RNA_struct_find_function(&self->ptr, name)) && RNA_function_defined(func)) {
+	else if ((func = RNA_struct_find_function(self->ptr.type, name)) && RNA_function_defined(func)) {
 		ret = pyrna_func_to_py(&self->ptr, func);
 	}
 	else if (self->ptr.type == &RNA_Context) {
@@ -3780,7 +3780,7 @@ static PyObject *pyrna_prop_collection_getattro(BPy_PropertyRNA *self, PyObject 
 
 				return ret;
 			}
-			else if ((func = RNA_struct_find_function(&r_ptr, name))) {
+			else if ((func = RNA_struct_find_function(r_ptr.type, name))) {
 				PyObject *self_collection = pyrna_struct_CreatePyObject(&r_ptr);
 				ret = pyrna_func_to_py(&((BPy_DummyPointerRNA *)self_collection)->ptr, func);
 				Py_DECREF(self_collection);

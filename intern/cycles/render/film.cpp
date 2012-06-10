@@ -142,7 +142,7 @@ void Pass::add(PassType type, vector<Pass>& passes)
 	passes.push_back(pass);
 
 	/* order from by components, to ensure alignment so passes with size 4
-	   come first and then passes with size 1 */
+	 * come first and then passes with size 1 */
 	sort(passes.begin(), passes.end(), compare_pass_order);
 
 	if(pass.divide_type != PASS_NONE)

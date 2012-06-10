@@ -180,6 +180,7 @@ void RNA_def_wm(struct BlenderRNA *brna);
 void RNA_def_world(struct BlenderRNA *brna);
 void RNA_def_movieclip(struct BlenderRNA *brna);
 void RNA_def_tracking(struct BlenderRNA *brna);
+void RNA_def_mask(struct BlenderRNA *brna);
 
 /* Common Define functions */
 
@@ -302,6 +303,7 @@ void RNA_def_main_actions(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_particles(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_gpencil(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop);
+void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop);
 void RNA_def_main_linestyles(BlenderRNA *brna, PropertyRNA *cprop);
 
 /* ID Properties */

@@ -141,14 +141,14 @@ void ED_operatormacros_curve(void)
 	wmOperatorTypeMacro *otmacro;
 
 	ot = WM_operatortype_append_macro("CURVE_OT_duplicate_move", "Add Duplicate", "Duplicate curve and move",
-	                                  OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "CURVE_OT_duplicate");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
 	RNA_boolean_set(otmacro->ptr, "mirror", FALSE);
 
 	ot = WM_operatortype_append_macro("CURVE_OT_extrude_move", "Extrude Curve and Move",
-	                                  "Extrude curve and move result", OPTYPE_UNDO|OPTYPE_REGISTER);
+	                                  "Extrude curve and move result", OPTYPE_UNDO | OPTYPE_REGISTER);
 	WM_operatortype_macro_define(ot, "CURVE_OT_extrude");
 	otmacro = WM_operatortype_macro_define(ot, "TRANSFORM_OT_translate");
 	RNA_enum_set(otmacro->ptr, "proportional", 0);
@@ -189,8 +189,8 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", ENDKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", LINE_END);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_CHAR);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_CHAR);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", PREV_WORD);
-	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT|KM_CTRL, 0)->ptr, "type", NEXT_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", LEFTARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "type", PREV_WORD);
+	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", RIGHTARROWKEY, KM_PRESS, KM_SHIFT | KM_CTRL, 0)->ptr, "type", NEXT_WORD);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", UPARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_LINE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", DOWNARROWKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", NEXT_LINE);
 	RNA_enum_set(WM_keymap_add_item(keymap, "FONT_OT_move_select", PAGEUPKEY, KM_PRESS, KM_SHIFT, 0)->ptr, "type", PREV_PAGE);
@@ -224,9 +224,9 @@ void ED_keymap_curve(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "CURVE_OT_vertex_add", LEFTMOUSE, KM_CLICK, KM_CTRL, 0);
 
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_select_all", AKEY, KM_PRESS, 0, 0);
-		RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
+	RNA_enum_set(kmi->ptr, "action", SEL_TOGGLE);
 	kmi = WM_keymap_add_item(keymap, "CURVE_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
-		RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
+	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
 	WM_keymap_add_item(keymap, "CURVE_OT_select_row", RKEY, KM_PRESS, KM_SHIFT, 0);
 	WM_keymap_add_item(keymap, "CURVE_OT_select_more", PADPLUSKEY, KM_PRESS, KM_CTRL, 0);

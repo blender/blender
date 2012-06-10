@@ -170,18 +170,18 @@ static PyTypeObject bpy_lib_Type = {
 };
 
 PyDoc_STRVAR(bpy_lib_load_doc,
-             ".. method:: load(filepath, link=False, relative=False)\n"
-             "\n"
-             "   Returns a context manager which exposes 2 library objects on entering.\n"
-             "   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
-             "\n"
-             "   :arg filepath: The path to a blend file.\n"
-             "   :type filepath: string\n"
-             "   :arg link: When False reference to the original file is lost.\n"
-             "   :type link: bool\n"
-             "   :arg relative: When True the path is stored relative to the open blend file.\n"
-             "   :type relative: bool\n"
-             );
+".. method:: load(filepath, link=False, relative=False)\n"
+"\n"
+"   Returns a context manager which exposes 2 library objects on entering.\n"
+"   Each object has attributes matching bpy.data which are lists of strings to be linked.\n"
+"\n"
+"   :arg filepath: The path to a blend file.\n"
+"   :type filepath: string\n"
+"   :arg link: When False reference to the original file is lost.\n"
+"   :type link: bool\n"
+"   :arg relative: When True the path is stored relative to the open blend file.\n"
+"   :type relative: bool\n"
+);
 static PyObject *bpy_lib_load(PyObject *UNUSED(self), PyObject *args, PyObject *kwds)
 {
 	static const char *kwlist[] = {"filepath", "link", "relative", NULL};

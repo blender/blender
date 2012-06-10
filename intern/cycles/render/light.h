@@ -48,6 +48,9 @@ public:
 
 	int map_resolution;
 
+	float spot_angle;
+	float spot_smooth;
+
 	bool cast_shadow;
 
 	int shader;

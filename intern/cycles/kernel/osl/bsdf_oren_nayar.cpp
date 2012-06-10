@@ -19,19 +19,20 @@
 #include <OpenImageIO/fmath.h>
 #include <OSL/genclosure.h>
 #include "osl_closures.h"
+#include "util_math.h"
 
 CCL_NAMESPACE_BEGIN
 
 using namespace OSL;
 
 
-class OrenNayarClosure: public BSDFClosure {
+class OrenNayarClosure : public BSDFClosure {
 public:
 	Vec3 m_N;
 	float m_sigma;
 	float m_a, m_b;
 
-	OrenNayarClosure(): BSDFClosure(Labels::DIFFUSE) {}
+	OrenNayarClosure() : BSDFClosure(Labels::DIFFUSE) {}
 
 	void setup() {
 		m_sigma = clamp(m_sigma, 0.0f, 1.0f);
@@ -42,19 +43,19 @@ public:
 		m_b = m_sigma * div;
 	}
 
-	bool mergeable(const ClosurePrimitive* other) const {
-		const OrenNayarClosure* comp = static_cast<const OrenNayarClosure*>(other);
+	bool mergeable(const ClosurePrimitive *other) const {
+		const OrenNayarClosure *comp = static_cast<const OrenNayarClosure *>(other);
 		return
-			m_N == comp->m_N &&
-			m_sigma == comp->m_sigma &&
-			BSDFClosure::mergeable(other);
+		    m_N == comp->m_N &&
+		    m_sigma == comp->m_sigma &&
+		    BSDFClosure::mergeable(other);
 	}
 
 	size_t memsize() const {
 		return sizeof(*this);
 	}
 
-	const char* name() const {
+	const char *name() const {
 		return "oren_nayar";
 	}
 
@@ -86,13 +87,13 @@ public:
 	}
 
 	ustring sample(
-		const Vec3& Ng,
-		const Vec3& omega_out, const Vec3& domega_out_dx, const Vec3& domega_out_dy,
-		float randu, float randv,
-		Vec3& omega_in, Vec3& domega_in_dx, Vec3& domega_in_dy,
-		float& pdf, Color3& eval
-	) const {
-		sample_uniform_hemisphere (m_N, omega_out, randu, randv, omega_in, pdf);
+	    const Vec3& Ng,
+	    const Vec3& omega_out, const Vec3& domega_out_dx, const Vec3& domega_out_dy,
+	    float randu, float randv,
+	    Vec3& omega_in, Vec3& domega_in_dx, Vec3& domega_in_dy,
+	    float& pdf, Color3& eval
+	    ) const {
+		sample_uniform_hemisphere(m_N, omega_out, randu, randv, omega_in, pdf);
 
 		if (Ng.dot(omega_in) > 0.0f) {
 			float is = get_intensity(m_N, omega_out, omega_in);
@@ -117,18 +118,18 @@ private:
 		float nv = max(n.dot(v), 0.0f);
 		float t = l.dot(v) - nl * nv;
 		
-		if(t > 0.0f) {
-			t /= max(nl, vl) + 1e-8f;
+		if (t > 0.0f) {
+			t /= max(nl, nv) + 1e-8f;
 		}
 		return nl * (m_a + m_b * t);
 	}
 };
 
 ClosureParam bsdf_oren_nayar_params[] = {
-	CLOSURE_VECTOR_PARAM	(OrenNayarClosure, m_N),
-	CLOSURE_FLOAT_PARAM		(OrenNayarClosure, m_sigma),
-	CLOSURE_STRING_KEYPARAM ("label"),
-	CLOSURE_FINISH_PARAM	(OrenNayarClosure)
+	CLOSURE_VECTOR_PARAM(OrenNayarClosure, m_N),
+	CLOSURE_FLOAT_PARAM(OrenNayarClosure, m_sigma),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(OrenNayarClosure)
 };
 
 CLOSURE_PREPARE(bsdf_oren_nayar_prepare, OrenNayarClosure)

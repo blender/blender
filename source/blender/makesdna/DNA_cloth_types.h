@@ -44,8 +44,7 @@
  * variables with different names to minimize confusion.
  */
 
-typedef struct ClothSimSettings
-{
+typedef struct ClothSimSettings {
 	struct	LinkNode *cache; /* UNUSED atm */	
 	float 	mingoal; 	/* see SB */
 	float	Cdis;		/* Mechanical damping of springs.		*/
@@ -83,14 +82,13 @@ typedef struct ClothSimSettings
 	short	shapekey_rest;  /* vertex group for scaling structural stiffness */
 	short	presets; /* used for presets on GUI */
 	short 	reset;
-	short	pad;
+	short pad;
 
 	struct EffectorWeights *effector_weights;
 } ClothSimSettings;
 
 
-typedef struct ClothCollSettings
-{
+typedef struct ClothCollSettings {
 	struct	LinkNode *collision_list; /* e.g. pointer to temp memory for collisions */
 	float	epsilon;		/* min distance for collisions.		*/
 	float	self_friction;		/* Fiction/damping with self contact. */
@@ -101,6 +99,9 @@ typedef struct ClothCollSettings
 	short	self_loop_count;	/* How many iterations for the selfcollision loop	*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	struct Group *group;	/* Only use colliders from this group of objects */
+	short	vgroup_selfcol; /* vgroup to paint which vertices are used for self collisions */
+	short pad;
+	int pad2;
 } ClothCollSettings;
 
 

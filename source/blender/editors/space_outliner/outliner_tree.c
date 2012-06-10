@@ -899,14 +899,14 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 		te->directdata = seq;
 		te->name = seq->name + 2;
 
-		if (seq->type < SEQ_EFFECT) {
+		if (seq->type < SEQ_TYPE_EFFECT) {
 			/*
 			 * This work like the sequence.
 			 * If the sequence have a name (not default name)
 			 * show it, in other case put the filename.
 			 */
 
-			if (seq->type == SEQ_META) {
+			if (seq->type == SEQ_TYPE_META) {
 				p = seq->seqbase.first;
 				while (p) {
 					outliner_add_element(soops, &te->subtree, (void *)p, te, TSE_SEQUENCE, index);

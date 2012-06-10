@@ -37,20 +37,18 @@ protected:
 	const bNodeTree *tree;
 	SocketReader *input;
 	float divider;
-	int priority;
 
 public:
 	PreviewOperation();
 	bool isOutputOperation(bool rendering) const {return true;}
 	void initExecution();
 	void deinitExecution();
-	const int getRenderPriority() const;
+	const CompositorPriority getRenderPriority() const;
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	void setbNode(bNode *node) { this->node = node;}
 	void setbNodeTree(const bNodeTree *tree) { this->tree = tree;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void setPriority(int priority) { this->priority = priority; }
 };
 #endif

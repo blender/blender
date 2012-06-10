@@ -520,7 +520,7 @@ __device float3 shader_emissive_eval(KernelGlobals *kg, ShaderData *sd)
 
 		if(CLOSURE_IS_EMISSION(sc->type)) {
 #ifdef __OSL__
-			eval += OSLShader::emissive_eval(sd)*sc->weight;
+			eval += OSLShader::emissive_eval(sd, sc)*sc->weight;
 #else
 			eval += svm_emissive_eval(sd, sc)*sc->weight;
 #endif
@@ -624,7 +624,7 @@ __device float3 shader_volume_eval_phase(KernelGlobals *kg, ShaderData *sd,
 
 		if(CLOSURE_IS_VOLUME(sc->type)) {
 #ifdef __OSL__
-			eval += OSLShader::volume_eval_phase(sd, omega_in, omega_out);
+			eval += OSLShader::volume_eval_phase(sd, sc, omega_in, omega_out);
 #else
 			eval += volume_eval_phase(sd, sc, omega_in, omega_out);
 #endif

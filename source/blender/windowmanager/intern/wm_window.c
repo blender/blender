@@ -577,12 +577,11 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 /* ************ events *************** */
 
-typedef enum
-{
-	SHIFT = 's',
-	CONTROL = 'c',
-	ALT = 'a',
-	OS = 'C'
+typedef enum {
+	SHIFT    = 's',
+	CONTROL  = 'c',
+	ALT      = 'a',
+	OS       = 'C'
 } modifierKeyType;
 
 /* check if specified modifier key type is pressed */

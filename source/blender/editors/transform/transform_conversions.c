@@ -53,6 +53,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -87,6 +88,7 @@
 #include "BKE_sequencer.h"
 #include "BKE_tessmesh.h"
 #include "BKE_tracking.h"
+#include "BKE_mask.h"
 
 
 #include "ED_anim_api.h"
@@ -102,6 +104,7 @@
 #include "ED_types.h"
 #include "ED_uvedit.h"
 #include "ED_clip.h"
+#include "ED_mask.h"
 #include "ED_util.h"  /* for crazyspace correction */
 
 #include "WM_api.h"		/* for WM_event_add_notifier to deal with stabilization nodes */
@@ -1333,7 +1336,7 @@ static void createTransCurveVerts(bContext *C, TransInfo *t)
 	Object *obedit= CTX_data_edit_object(C);
 	Curve *cu= obedit->data;
 	TransData *td = NULL;
-	  Nurb *nu;
+	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	float mtx[3][3], smtx[3][3];
@@ -1886,7 +1889,7 @@ static void get_edge_center(float cent_r[3], BMVert *eve)
 
 /* way to overwrite what data is edited with transform */
 static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx,
-							 BMEditMesh *em, BMVert *eve, float *bweight)
+                             BMEditMesh *em, BMVert *eve, float *bweight)
 {
 	td->flag = 0;
 	//if (key)
@@ -2236,7 +2239,7 @@ void flushTransSeq(TransInfo *t)
 			if ((seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 #else
-			if (seq->type != SEQ_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
+			if (seq->type != SEQ_TYPE_META && (seq->depth != 0 || seq_tx_test(seq))) /* for meta's, their children move */
 				seq->start= new_frame - tdsq->start_offset;
 #endif
 			if (seq->depth==0) {
@@ -2279,7 +2282,7 @@ void flushTransSeq(TransInfo *t)
 
 		/* calc all meta's then effects [#27953] */
 		for (seq = seqbasep->first; seq; seq = seq->next) {
-			if (seq->type == SEQ_META && seq->flag & SELECT) {
+			if (seq->type == SEQ_TYPE_META && seq->flag & SELECT) {
 				calc_sequence(t->scene, seq);
 			}
 		}
@@ -2794,6 +2797,99 @@ static void posttrans_gpd_clean (bGPdata *gpd)
 	}
 }
 
+
+/* Called by special_aftertrans_update to make sure selected gp-frames replace
+ * any other gp-frames which may reside on that frame (that are not selected).
+ * It also makes sure sorted are still stored in chronological order after
+ * transform.
+ */
+static void posttrans_mask_clean(Mask *mask)
+{
+	MaskLayer *masklay;
+
+	for (masklay = mask->masklayers.first; masklay; masklay= masklay->next) {
+		ListBase sel_buffer = {NULL, NULL};
+		MaskLayerShape *masklay_shape, *masklay_shape_new;
+		MaskLayerShape *masklay_shape_sort, *masklay_shape_sort_new;
+
+		/* loop 1: loop through and isolate selected gp-frames to buffer
+		 * (these need to be sorted as they are isolated)
+		 */
+		for (masklay_shape= masklay->splines_shapes.first; masklay_shape; masklay_shape= masklay_shape_new) {
+			short added= 0;
+			masklay_shape_new= masklay_shape->next;
+
+			if (masklay_shape->flag & GP_FRAME_SELECT) {
+				BLI_remlink(&masklay->splines_shapes, masklay_shape);
+
+				/* find place to add them in buffer
+				 * - go backwards as most frames will still be in order,
+				 *   so doing it this way will be faster
+				 */
+				for (masklay_shape_sort= sel_buffer.last; masklay_shape_sort; masklay_shape_sort= masklay_shape_sort->prev) {
+					/* if current (masklay_shape) occurs after this one in buffer, add! */
+					if (masklay_shape_sort->frame < masklay_shape->frame) {
+						BLI_insertlinkafter(&sel_buffer, masklay_shape_sort, masklay_shape);
+						added= 1;
+						break;
+					}
+				}
+				if (added == 0)
+					BLI_addhead(&sel_buffer, masklay_shape);
+			}
+		}
+
+		/* error checking: it is unlikely, but may be possible to have none selected */
+		if (sel_buffer.first == NULL)
+			continue;
+
+		/* if all were selected (i.e. masklay->splines_shapes is empty), then just transfer sel-buf over */
+		if (masklay->splines_shapes.first == NULL) {
+			masklay->splines_shapes.first= sel_buffer.first;
+			masklay->splines_shapes.last= sel_buffer.last;
+
+			continue;
+		}
+
+		/* loop 2: remove duplicates of splines_shapes in buffers */
+		for (masklay_shape= masklay->splines_shapes.first; masklay_shape && sel_buffer.first; masklay_shape= masklay_shape_new) {
+			masklay_shape_new= masklay_shape->next;
+
+			/* loop through sel_buffer, emptying stuff from front of buffer if ok */
+			for (masklay_shape_sort= sel_buffer.first; masklay_shape_sort && masklay_shape; masklay_shape_sort= masklay_shape_sort_new) {
+				masklay_shape_sort_new= masklay_shape_sort->next;
+
+				/* if this buffer frame needs to go before current, add it! */
+				if (masklay_shape_sort->frame < masklay_shape->frame) {
+					/* transfer buffer frame to splines_shapes list (before current) */
+					BLI_remlink(&sel_buffer, masklay_shape_sort);
+					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
+				}
+				/* if this buffer frame is on same frame, replace current with it and stop */
+				else if (masklay_shape_sort->frame == masklay_shape->frame) {
+					/* transfer buffer frame to splines_shapes list (before current) */
+					BLI_remlink(&sel_buffer, masklay_shape_sort);
+					BLI_insertlinkbefore(&masklay->splines_shapes, masklay_shape, masklay_shape_sort);
+
+					/* get rid of current frame */
+					BKE_mask_layer_shape_unlink(masklay, masklay_shape);
+				}
+			}
+		}
+
+		/* if anything is still in buffer, append to end */
+		for (masklay_shape_sort= sel_buffer.first; masklay_shape_sort; masklay_shape_sort= masklay_shape_sort_new) {
+			masklay_shape_sort_new= masklay_shape_sort->next;
+
+			BLI_remlink(&sel_buffer, masklay_shape_sort);
+			BLI_addtail(&masklay->splines_shapes, masklay_shape_sort);
+		}
+
+		/* NOTE: this is the only difference to grease pencil code above */
+		BKE_mask_layer_shape_sort(masklay);
+	}
+}
+
 /* Called during special_aftertrans_update to make sure selected keyframes replace
  * any other keyframes which may reside on that frame (that is not selected).
  */
@@ -2933,6 +3029,27 @@ static int count_gplayer_frames(bGPDlayer *gpl, char side, float cfra)
 	return count;
 }
 
+/* fully select selected beztriples, but only include if it's on the right side of cfra */
+static int count_masklayer_frames(MaskLayer *masklay, char side, float cfra)
+{
+	MaskLayerShape *masklayer_shape;
+	int count = 0;
+
+	if (masklay == NULL)
+		return count;
+
+	/* only include points that occur on the right side of cfra */
+	for (masklayer_shape= masklay->splines_shapes.first; masklayer_shape; masklayer_shape= masklayer_shape->next) {
+		if (masklayer_shape->flag & MASK_SHAPE_SELECT) {
+			if (FrameOnMouseSide(side, (float)masklayer_shape->frame, cfra))
+				count++;
+		}
+	}
+
+	return count;
+}
+
+
 /* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, AnimData *adt)
 {
@@ -2995,7 +3112,7 @@ typedef struct tGPFtransdata {
 } tGPFtransdata;
 
 /* This function helps flush transdata written to tempdata into the gp-frames  */
-void flushTransGPactionData(TransInfo *t)
+void flushTransIntFrameActionData(TransInfo *t)
 {
 	tGPFtransdata *tfd;
 	int i;
@@ -3046,6 +3163,35 @@ static int GPLayerToTransData (TransData *td, tGPFtransdata *tfd, bGPDlayer *gpl
 	return count;
 }
 
+/* refer to comment above #GPLayerToTransData, this is the same but for masks */
+static int MaskLayerToTransData(TransData *td, tGPFtransdata *tfd, MaskLayer *masklay, char side, float cfra)
+{
+	MaskLayerShape *masklay_shape;
+	int count= 0;
+
+	/* check for select frames on right side of current frame */
+	for (masklay_shape= masklay->splines_shapes.first; masklay_shape; masklay_shape= masklay_shape->next) {
+		if (masklay_shape->flag & MASK_SHAPE_SELECT) {
+			if (FrameOnMouseSide(side, (float)masklay_shape->frame, cfra)) {
+				/* memory is calloc'ed, so that should zero everything nicely for us */
+				td->val= &tfd->val;
+				td->ival= (float)masklay_shape->frame;
+
+				tfd->val= (float)masklay_shape->frame;
+				tfd->sdata= &masklay_shape->frame;
+
+				/* advance td now */
+				td++;
+				tfd++;
+				count++;
+			}
+		}
+	}
+
+	return count;
+}
+
+
 static void createTransActionData(bContext *C, TransInfo *t)
 {
 	Scene *scene= t->scene;
@@ -3066,7 +3212,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		return;
 	
 	/* filter data */
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter= (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/);
@@ -3099,8 +3245,12 @@ static void createTransActionData(bContext *C, TransInfo *t)
 		
 		if (ale->type == ANIMTYPE_FCURVE)
 			count += count_fcurve_keys(ale->key_data, t->frame_side, cfra);
-		else
+		else if (ale->type == ANIMTYPE_GPLAYER)
 			count += count_gplayer_frames(ale->data, t->frame_side, cfra);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			count += count_masklayer_frames(ale->data, t->frame_side, cfra);
+		else
+			BLI_assert(0);
 	}
 	
 	/* stop if trying to build list if nothing selected */
@@ -3118,7 +3268,7 @@ static void createTransActionData(bContext *C, TransInfo *t)
 	td= t->data;
 	td2d = t->data2d;
 	
-	if (ac.datatype == ANIMCONT_GPENCIL) {
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		if (t->mode == TFM_TIME_SLIDE) {
 			t->customData= MEM_callocN((sizeof(float)*2)+(sizeof(tGPFtransdata)*count), "TimeSlide + tGPFtransdata");
 			tfd= (tGPFtransdata *)((float *)(t->customData) + 2);
@@ -3138,6 +3288,14 @@ static void createTransActionData(bContext *C, TransInfo *t)
 			int i;
 			
 			i = GPLayerToTransData(td, tfd, gpl, t->frame_side, cfra);
+			td += i;
+			tfd += i;
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			MaskLayer *masklay = (MaskLayer *)ale->data;
+			int i;
+
+			i = MaskLayerToTransData(td, tfd, masklay, t->frame_side, cfra);
 			td += i;
 			tfd += i;
 		}
@@ -3784,7 +3942,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 			*count = 0;
 			*flag = 0;
 		}
-		else if (seq->type == SEQ_META) {
+		else if (seq->type == SEQ_TYPE_META) {
 
 			/* for meta's we only ever need to extend their children, no matter what depth
 			 * just check the meta's are in the bounds */
@@ -3841,7 +3999,7 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 
 				/* Recursive */
 
-				if ((seq->type == SEQ_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
+				if ((seq->type == SEQ_TYPE_META) && ((seq->flag & (SEQ_LEFTSEL|SEQ_RIGHTSEL)) == 0)) {
 					/* if any handles are selected, don't recurse */
 					*recursive = TRUE;
 				}
@@ -3856,9 +4014,9 @@ static void SeqTransInfo(TransInfo *t, Sequence *seq, int *recursive, int *count
 #ifdef SEQ_TX_NESTED_METAS
 			*flag = (seq->flag | SELECT) & ~(SEQ_LEFTSEL|SEQ_RIGHTSEL);
 			*count = 1; /* ignore the selection for nested */
-			*recursive = (seq->type == SEQ_META);
+			*recursive = (seq->type == SEQ_TYPE_META);
 #else
-			if (seq->type == SEQ_META) {
+			if (seq->type == SEQ_TYPE_META) {
 				/* Meta's can only directly be moved between channels since they
 				 * don't have their start and length set directly (children affect that)
 				 * since this Meta is nested we don't need any of its data in fact.
@@ -4061,7 +4219,7 @@ static void freeSeqData(TransInfo *t)
 						seq= ((TransDataSeq *)td->extra)->seq;
 						if ((seq != seq_prev)) {
 							/* check effects strips, we cant change their time */
-							if ((seq->type & SEQ_EFFECT) && seq->seq1) {
+							if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
 								has_effect= TRUE;
 							}
 							else {
@@ -4120,7 +4278,7 @@ static void freeSeqData(TransInfo *t)
 						for (a=0; a<t->total; a++, td++) {
 							seq= ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
-								if ((seq->type & SEQ_EFFECT) && seq->seq1) {
+								if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
 									calc_sequence(t->scene, seq);
 								}
 							}
@@ -4132,7 +4290,7 @@ static void freeSeqData(TransInfo *t)
 						for (a=0; a<t->total; a++, td++) {
 							seq= ((TransDataSeq *)td->extra)->seq;
 							if ((seq != seq_prev)) {
-								if ((seq->type & SEQ_EFFECT) && seq->seq1) {
+								if ((seq->type & SEQ_TYPE_EFFECT) && seq->seq1) {
 									if (seq_test_overlap(seqbasep, seq)) {
 										shuffle_seq(seqbasep, seq, t->scene);
 									}
@@ -4147,7 +4305,7 @@ static void freeSeqData(TransInfo *t)
 
 			for (seq= seqbasep->first; seq; seq= seq->next) {
 				/* We might want to build a list of effects that need to be updated during transform */
-				if (seq->type & SEQ_EFFECT) {
+				if (seq->type & SEQ_TYPE_EFFECT) {
 					if      (seq->seq1 && seq->seq1->flag & SELECT) calc_sequence(t->scene, seq);
 					else if (seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(t->scene, seq);
 					else if (seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(t->scene, seq);
@@ -4216,7 +4374,7 @@ static void createTransSeqData(bContext *C, TransInfo *t)
 		Sequence *seq;
 		for (seq= ed->seqbasep->first; seq; seq= seq->next) {
 			/* hack */
-			if ((seq->flag & SELECT)==0 && seq->type & SEQ_EFFECT) {
+			if ((seq->flag & SELECT)==0 && seq->type & SEQ_TYPE_EFFECT) {
 				Sequence *seq_user;
 				int i;
 				for (i=0; i<3; i++) {
@@ -4897,6 +5055,24 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
 			}
 		}
+		else if (t->options & CTX_MASK) {
+			SpaceClip *sc = t->sa->spacedata.first;
+			Mask *mask = ED_space_clip_mask(sc);
+
+			if (t->scene->nodetree) {
+				/* tracks can be used for stabilization nodes,
+				 * flush update for such nodes */
+				nodeUpdateID(t->scene->nodetree, &mask->id);
+				WM_event_add_notifier(C, NC_SCENE|ND_NODES, NULL);
+			}
+
+			/* TODO - dont key all masks... */
+			if (IS_AUTOKEY_ON(t->scene)) {
+				Scene *scene = t->scene;
+
+				ED_mask_layer_shape_auto_key_select(mask, CFRA);
+			}
+		}
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		SpaceAction *saction= (SpaceAction *)t->sa->spacedata.first;
@@ -4983,6 +5159,26 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 				}
 			}
 		}
+		else if (ac.datatype == ANIMCONT_MASK) {
+			/* remove duplicate frames and also make sure points are in order! */
+				/* 3 cases here for curve cleanups:
+				 * 1) NOTRANSKEYCULL on     -> cleanup of duplicates shouldn't be done
+				 * 2) canceled == 0        -> user confirmed the transform, so duplicates should be removed
+				 * 3) canceled + duplicate -> user canceled the transform, but we made duplicates, so get rid of these
+				 */
+			if ((saction->flag & SACTION_NOTRANSKEYCULL)==0 &&
+				((canceled == 0) || (duplicate)))
+			{
+				Mask *mask;
+
+				// XXX: BAD! this get gpencil datablocks directly from main db...
+				// but that's how this currently works :/
+				for (mask = G.main->mask.first; mask; mask = mask->id.next) {
+					if (ID_REAL_USERS(mask))
+						posttrans_mask_clean(mask);
+				}
+			}
+		}
 		
 		/* marker transform, not especially nice but we may want to move markers
 		 * at the same time as keyframes in the dope sheet. 
@@ -5006,7 +5202,7 @@ void special_aftertrans_update(bContext *C, TransInfo *t)
 		}
 		
 		/* make sure all F-Curves are set correctly */
-		if (ac.datatype != ANIMCONT_GPENCIL)
+		if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 			ANIM_editkeyframes_refresh(&ac);
 		
 		/* clear flag that was set for time-slide drawing */
@@ -5392,23 +5588,24 @@ typedef struct TransDataTracking {
 	short coord;
 } TransDataTracking;
 
-static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt, MovieTrackingTrack *track,
-                                  int area, float loc[2], float rel[2], const float off[2])
+static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTracking *tdt,
+                                  MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                  int area, float loc[2], float rel[2], const float off[2], float aspx, float aspy)
 {
 	int anchor = area == TRACK_AREA_POINT && off;
 
 	tdt->mode = transDataTracking_ModeTracks;
 
 	if (anchor) {
-		td2d->loc[0] = rel[0]; /* hold original location */
-		td2d->loc[1] = rel[1];
+		td2d->loc[0] = rel[0] * aspx; /* hold original location */
+		td2d->loc[1] = rel[1] * aspy;
 
 		tdt->loc= loc;
 		td2d->loc2d = loc; /* current location */
 	}
 	else {
-		td2d->loc[0] = loc[0]; /* hold original location */
-		td2d->loc[1] = loc[1];
+		td2d->loc[0] = loc[0] * aspx; /* hold original location */
+		td2d->loc[1] = loc[1] * aspy;
 
 		td2d->loc2d = loc; /* current location */
 	}
@@ -5422,8 +5619,8 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 
 	if (rel) {
 		if (!anchor) {
-			td2d->loc[0] += rel[0];
-			td2d->loc[1] += rel[1];
+			td2d->loc[0] += rel[0] * aspx;
+			td2d->loc[1] += rel[1] * aspy;
 		}
 
 		copy_v2_v2(tdt->srelative, rel);
@@ -5434,8 +5631,11 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 
 	td->flag = 0;
 	td->loc = td2d->loc;
-	copy_v3_v3(td->center, td->loc);
 	copy_v3_v3(td->iloc, td->loc);
+
+	//copy_v3_v3(td->center, td->loc);
+	td->center[0] = marker->pos[0] * aspx;
+	td->center[1] = marker->pos[1] * aspy;
 
 	memset(td->axismtx, 0, sizeof(td->axismtx));
 	td->axismtx[2][2] = 1.0f;
@@ -5451,26 +5651,37 @@ static void markerToTransDataInit(TransData *td, TransData2D *td2d, TransDataTra
 }
 
 static void trackToTransData(SpaceClip *sc, TransData *td, TransData2D *td2d,
-                             TransDataTracking *tdt, MovieTrackingTrack *track)
+                             TransDataTracking *tdt, MovieTrackingTrack *track, float aspx, float aspy)
 {
-	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, sc->user.framenr);
+	int framenr = ED_space_clip_clip_framenr(sc);
+	MovieTrackingMarker *marker = BKE_tracking_ensure_marker(track, framenr);
 
 	tdt->flag = marker->flag;
-	marker->flag &= ~(MARKER_DISABLED|MARKER_TRACKED);
+	marker->flag &= ~(MARKER_DISABLED | MARKER_TRACKED);
 
-	markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, track->offset, marker->pos, track->offset);
+	markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT,
+	                      track->offset, marker->pos, track->offset, aspx, aspy);
 
-	if (track->flag & SELECT)
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_POINT, marker->pos, NULL, NULL);
+	if (track->flag & SELECT) {
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_POINT,
+		                      marker->pos, NULL, NULL, aspx, aspy);
+	}
 
 	if (track->pat_flag & SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_PAT, track->pat_max, marker->pos, NULL);
+		int a;
+
+		for (a = 0; a < 4; a++) {
+			markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_PAT,
+			                      marker->pattern_corners[a], marker->pos, NULL, aspx, aspy);
+		}
 	}
 
 	if (track->search_flag & SELECT) {
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_min, marker->pos, NULL);
-		markerToTransDataInit(td++, td2d++, tdt++, track, TRACK_AREA_SEARCH, track->search_max, marker->pos, NULL);
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_SEARCH,
+		                      marker->search_min, marker->pos, NULL, aspx, aspy);
+
+		markerToTransDataInit(td++, td2d++, tdt++, track, marker, TRACK_AREA_SEARCH,
+		                      marker->search_max, marker->pos, NULL, aspx, aspy);
 	}
 }
 
@@ -5496,7 +5707,8 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 	TransDataTracking *tdt;
-	int framenr = sc->user.framenr;
+	int framenr = ED_space_clip_clip_framenr(sc);
+	float aspx, aspy;
 
 	/* count */
 	t->total = 0;
@@ -5512,7 +5724,7 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 				t->total++;
 
 			if (track->pat_flag & SELECT)
-				t->total+= 2;
+				t->total+= 4;
 
 			if (track->search_flag & SELECT)
 				t->total+= 2;
@@ -5523,6 +5735,8 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 
 	if (t->total == 0)
 		return;
+
+	ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransTracking TransData");
 	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransTracking TransData2D");
@@ -5536,25 +5750,23 @@ static void createTransTrackingTracksData(bContext *C, TransInfo *t)
 		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
 			marker = BKE_tracking_get_marker(track, framenr);
 
-			trackToTransData(sc, td, td2d, tdt, track);
+			trackToTransData(sc, td, td2d, tdt, track, aspx, aspy);
 
 			/* offset */
 			td++;
 			td2d++;
 			tdt++;
 
-			if ((marker->flag & MARKER_DISABLED) == 0) {
-				if (track->flag & SELECT) {
-					td++;
-					td2d++;
-					tdt++;
-				}
+			if (track->flag & SELECT) {
+				td++;
+				td2d++;
+				tdt++;
+			}
 
-				if (track->pat_flag & SELECT) {
-					td += 2;
-					td2d += 2;
-					tdt +=2;
-				}
+			if (track->pat_flag & SELECT) {
+				td += 4;
+				td2d += 4;
+				tdt += 4;
 			}
 
 			if (track->search_flag & SELECT) {
@@ -5706,9 +5918,6 @@ static void createTransTrackingData(bContext *C, TransInfo *t)
 	if (!clip || width == 0 || height == 0)
 		return;
 
-	if (!ELEM(t->mode, TFM_RESIZE, TFM_TRANSLATION))
-		return;
-
 	if (ar->regiontype == RGN_TYPE_PREVIEW) {
 		/* transformation was called from graph editor */
 		createTransTrackingCurvesData(C, t);
@@ -5726,7 +5935,7 @@ static void cancelTransTracking(TransInfo *t)
 	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
-	int a, framenr = sc->user.framenr;
+	int a, framenr = ED_space_clip_clip_framenr(sc);
 
 	if (tdt->mode == transDataTracking_ModeTracks) {
 		track = tracksbase->first;
@@ -5776,10 +5985,14 @@ static void cancelTransTracking(TransInfo *t)
 
 void flushTransTracking(TransInfo *t)
 {
+	SpaceClip *sc = t->sa->spacedata.first;
 	TransData *td;
 	TransData2D *td2d;
 	TransDataTracking *tdt;
 	int a;
+	float aspx, aspy;
+
+	ED_space_clip_aspect_dimension_aware(sc, &aspx, &aspy);
 
 	if (t->state == TRANS_CANCEL)
 		cancelTransTracking(t);
@@ -5787,31 +6000,46 @@ void flushTransTracking(TransInfo *t)
 	/* flush to 2d vector from internally used 3d vector */
 	for (a=0, td= t->data, td2d= t->data2d, tdt= t->customData; a<t->total; a++, td2d++, td++, tdt++) {
 		if (tdt->mode == transDataTracking_ModeTracks) {
+			float loc2d[2];
+
+			if (t->mode == TFM_ROTATION && tdt->area == TRACK_AREA_SEARCH) {
+				continue;
+			}
+
+			loc2d[0] = td2d->loc[0] / aspx;
+			loc2d[1] = td2d->loc[1] / aspy;
+
 			if (t->flag & T_ALT_TRANSFORM) {
-				if (tdt->area == TRACK_AREA_POINT && tdt->relative) {
-					float d[2], d2[2];
+				if (t->mode == TFM_RESIZE) {
+					if (tdt->area != TRACK_AREA_PAT)
+						continue;
+				}
+				else if (t->mode == TFM_TRANSLATION) {
+					if (tdt->area == TRACK_AREA_POINT && tdt->relative) {
+						float d[2], d2[2];
 
-					if (!tdt->smarkers) {
-						tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
-						for (a = 0; a < tdt->markersnr; a++)
-							copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
+						if (!tdt->smarkers) {
+							tdt->smarkers = MEM_callocN(sizeof(*tdt->smarkers)*tdt->markersnr, "flushTransTracking markers");
+							for (a = 0; a < tdt->markersnr; a++)
+								copy_v2_v2(tdt->smarkers[a], tdt->markers[a].pos);
+						}
+
+						sub_v2_v2v2(d, loc2d, tdt->soffset);
+						sub_v2_v2(d, tdt->srelative);
+
+						sub_v2_v2v2(d2, loc2d, tdt->srelative);
+
+						for (a= 0; a<tdt->markersnr; a++)
+							add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
+
+						negate_v2_v2(td2d->loc2d, d);
 					}
-
-					sub_v2_v2v2(d, td2d->loc, tdt->soffset);
-					sub_v2_v2(d, tdt->srelative);
-
-					sub_v2_v2v2(d2, td2d->loc, tdt->srelative);
-
-					for (a= 0; a<tdt->markersnr; a++)
-						add_v2_v2v2(tdt->markers[a].pos, tdt->smarkers[a], d2);
-
-					negate_v2_v2(td2d->loc2d, d);
 				}
 			}
 
 			if (tdt->area!=TRACK_AREA_POINT || tdt->relative==0) {
-				td2d->loc2d[0] = td2d->loc[0];
-				td2d->loc2d[1] = td2d->loc[1];
+				td2d->loc2d[0] = loc2d[0];
+				td2d->loc2d[1] = loc2d[1];
 
 				if (tdt->relative)
 					sub_v2_v2(td2d->loc2d, tdt->relative);
@@ -5820,6 +6048,219 @@ void flushTransTracking(TransInfo *t)
 		else if (tdt->mode == transDataTracking_ModeCurves) {
 			td2d->loc2d[tdt->coord] = tdt->prev_pos[tdt->coord] + td2d->loc[1] * tdt->scale;
 		}
+	}
+}
+
+/* * masking * */
+
+typedef struct TransDataMasking {
+	int   is_handle;
+
+	float handle[2], orig_handle[2];
+	float vec[3][3];
+	MaskSplinePoint *point;
+} TransDataMasking;
+
+static void MaskPointToTransData(SpaceClip *sc, MaskSplinePoint *point,
+                                 TransData *td, TransData2D *td2d, TransDataMasking *tdm, int propmode)
+{
+	BezTriple *bezt = &point->bezt;
+	float aspx, aspy;
+	short is_sel_point = MASKPOINT_ISSEL_KNOT(point);
+	short is_sel_any = MASKPOINT_ISSEL_ANY(point);
+
+	tdm->point = point;
+	copy_m3_m3(tdm->vec, bezt->vec);
+
+	ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+
+	if (propmode || is_sel_point) {
+		int i;
+		for (i = 0; i < 3; i++) {
+			/* CV coords are scaled by aspects. this is needed for rotations and
+			 * proportional editing to be consistent with the stretched CV coords
+			 * that are displayed. this also means that for display and numinput,
+			 * and when the the CV coords are flushed, these are converted each time */
+			td2d->loc[0] = bezt->vec[i][0]*aspx;
+			td2d->loc[1] = bezt->vec[i][1]*aspy;
+			td2d->loc[2] = 0.0f;
+			td2d->loc2d = bezt->vec[i];
+
+			td->flag = 0;
+			td->loc = td2d->loc;
+			copy_v3_v3(td->center, td->loc);
+			copy_v3_v3(td->iloc, td->loc);
+
+			memset(td->axismtx, 0, sizeof(td->axismtx));
+			td->axismtx[2][2] = 1.0f;
+
+			td->ext = NULL;
+
+			if (i == 1) {
+				/* scaling weights */
+				td->val = &bezt->weight;
+				td->ival = *td->val;
+			}
+			else {
+				td->val = NULL;
+			}
+
+			if (is_sel_any) {
+				td->flag |= TD_SELECTED;
+			}
+			td->dist= 0.0;
+
+			unit_m3(td->mtx);
+			unit_m3(td->smtx);
+
+			td++;
+			td2d++;
+		}
+	}
+	else {
+		tdm->is_handle = TRUE;
+
+		BKE_mask_point_handle(point, tdm->handle);
+
+		copy_v2_v2(tdm->orig_handle, tdm->handle);
+
+		td2d->loc[0] = tdm->handle[0]*aspx;
+		td2d->loc[1] = tdm->handle[1]*aspy;
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = tdm->handle;
+
+		td->flag = 0;
+		td->loc = td2d->loc;
+		copy_v3_v3(td->center, td->loc);
+		copy_v3_v3(td->iloc, td->loc);
+
+		memset(td->axismtx, 0, sizeof(td->axismtx));
+		td->axismtx[2][2] = 1.0f;
+
+		td->ext= NULL;
+		td->val= NULL;
+
+		if (is_sel_any) {
+			td->flag |= TD_SELECTED;
+		}
+
+		td->dist= 0.0;
+
+		unit_m3(td->mtx);
+		unit_m3(td->smtx);
+
+		td++;
+		td2d++;
+	}
+}
+
+static void createTransMaskingData(bContext *C, TransInfo *t)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	TransData *td = NULL;
+	TransData2D *td2d = NULL;
+	TransDataMasking *tdm = NULL;
+	int count = 0, countsel = 0;
+	int propmode = t->flag & T_PROP_EDIT;
+
+	t->total = 0;
+
+	if (!mask)
+		return;
+
+	/* count */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline = masklay->splines.first;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL_ANY(point)) {
+					if (MASKPOINT_ISSEL_KNOT(point))
+						countsel += 3;
+					else
+						countsel += 1;
+				}
+
+				if (propmode)
+					count += 3;
+			}
+		}
+	}
+
+	/* note: in prop mode we need at least 1 selected */
+	if (countsel == 0) return;
+
+	t->total = (propmode) ? count: countsel;
+	td = t->data = MEM_callocN(t->total*sizeof(TransData), "TransObData(Mask Editing)");
+	/* for each 2d uv coord a 3d vector is allocated, so that they can be
+	 * treated just as if they were 3d verts */
+	td2d = t->data2d = MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(Mask Editing)");
+	tdm = t->customData = MEM_callocN(t->total*sizeof(TransDataMasking), "TransDataMasking(Mask Editing)");
+
+	t->flag |= T_FREE_CUSTOMDATA;
+
+	/* create data */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline = masklay->splines.first;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (propmode || MASKPOINT_ISSEL_ANY(point)) {
+					MaskPointToTransData(sc, point, td, td2d, tdm, propmode);
+
+					if (propmode || MASKPOINT_ISSEL_KNOT(point)) {
+						td += 3;
+						td2d += 3;
+						tdm += 3;
+					}
+					else {
+						td++;
+						td2d++;
+						tdm++;
+					}
+				}
+			}
+		}
+	}
+}
+
+void flushTransMasking(TransInfo *t)
+{
+	SpaceClip *sc = t->sa->spacedata.first;
+	TransData2D *td;
+	TransDataMasking *tdm;
+	int a;
+	float aspx, aspy, invx, invy;
+
+	ED_space_clip_mask_aspect(sc, &aspx, &aspy);
+	invx = 1.0f/aspx;
+	invy = 1.0f/aspy;
+
+	/* flush to 2d vector from internally used 3d vector */
+	for (a=0, td = t->data2d, tdm = t->customData; a<t->total; a++, td++, tdm++) {
+		td->loc2d[0]= td->loc[0]*invx;
+		td->loc2d[1]= td->loc[1]*invy;
+
+		if (tdm->is_handle)
+			BKE_mask_point_set_handle(tdm->point, td->loc2d, t->flag & T_ALT_TRANSFORM, tdm->orig_handle, tdm->vec);
 	}
 }
 
@@ -5892,6 +6333,15 @@ void createTransData(bContext *C, TransInfo *t)
 		t->flag |= T_POINTS|T_2D_EDIT;
 		if (t->options & CTX_MOVIECLIP)
 			createTransTrackingData(C, t);
+		else if (t->options & CTX_MASK) {
+			createTransMaskingData(C, t);
+
+			if (t->data && (t->flag & T_PROP_EDIT)) {
+				sort_trans_data(t);	// makes selected become first in array
+				set_prop_dist(t, TRUE);
+				sort_trans_data_dist(t);
+			}
+		}
 	}
 	else if (t->obedit) {
 		t->ext = NULL;

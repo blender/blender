@@ -196,14 +196,14 @@ BVHNode* BVHBuild::run()
 
 void BVHBuild::progress_update()
 {
-	if(time_dt() - progress_start_time < 0.25f)
+	if(time_dt() - progress_start_time < 0.25)
 		return;
 	
 	double progress_start = (double)progress_count/(double)progress_total;
 	double duplicates = (double)(progress_total - progress_original_total)/(double)progress_total;
 
 	string msg = string_printf("Building BVH %.0f%%, duplicates %.0f%%",
-		progress_start*100.0f, duplicates*100.0f);
+	                           progress_start * 100.0, duplicates * 100.0);
 
 	progress.set_substatus(msg);
 	progress_start_time = time_dt(); 

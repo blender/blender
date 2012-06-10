@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_graph_ops.c
+/** \file blender/editors/space_clip/clip_dopesheet_ops.c
  *  \ingroup spclip
  */
 
@@ -93,6 +93,10 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 				track->flag ^= TRACK_DOPE_SEL;
 			else
 				track->flag |= TRACK_DOPE_SEL;
+
+			if (track->flag & TRACK_DOPE_SEL) {
+				tracking->act_track = track;
+			}
 		}
 		else if (!extend)
 			track->flag &= ~TRACK_DOPE_SEL;

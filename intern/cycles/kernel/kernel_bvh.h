@@ -34,8 +34,8 @@ CCL_NAMESPACE_BEGIN
 #define TRI_NODE_SIZE 3
 
 /* silly workaround for float extended precision that happens when compiling
-   without sse support on x86, it results in different results for float ops
-   that you would otherwise expect to compare correctly */
+ * without sse support on x86, it results in different results for float ops
+ * that you would otherwise expect to compare correctly */
 #if !defined(__i386__) || defined(__SSE__)
 #define NO_EXTENDED_PRECISION
 #else
@@ -160,7 +160,7 @@ __device_inline void bvh_triangle_intersect(KernelGlobals *kg, Intersection *ise
 			if(v >= 0.0f && u + v <= 1.0f) {
 #ifdef __VISIBILITY_FLAG__
 				/* visibility flag test. we do it here under the assumption
-				   that most triangles are culled by node flags */
+				 * that most triangles are culled by node flags */
 				if(kernel_tex_fetch(__prim_visibility, triAddr) & visibility)
 #endif
 				{

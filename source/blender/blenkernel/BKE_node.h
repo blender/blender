@@ -266,8 +266,7 @@ struct bNodeTreeExec;
 
 typedef void (*bNodeTreeCallback)(void *calldata, struct ID *owner_id, struct bNodeTree *ntree);
 typedef void (*bNodeClassCallback)(void *calldata, int nclass, const char *name);
-typedef struct bNodeTreeType
-{
+typedef struct bNodeTreeType {
 	int type;						/* type identifier */
 	char idname[64];				/* id name for RNA identification */
 	
@@ -528,6 +527,7 @@ struct ShadeResult;
 #define SH_NODE_BRIGHTCONTRAST			165
 #define SH_NODE_LIGHT_FALLOFF			166
 #define SH_NODE_OBJECT_INFO				167
+#define SH_NODE_PARTICLE_INFO           168
 
 /* custom defines options for Material node */
 #define SH_NODE_MAT_DIFF   1
@@ -658,6 +658,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_MOVIEDISTORTION	265
 #define CMP_NODE_DOUBLEEDGEMASK    266
 #define CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED	267	/* DEPRECATED multi file node has been merged into regular CMP_NODE_OUTPUT_FILE */
+#define CMP_NODE_MASK		268
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

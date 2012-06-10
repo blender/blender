@@ -2137,13 +2137,20 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
 	hist->ymax = 1.0f;
-	
+
+	/* persistent draw */
+	hist->co[0][0] = x1f;
+	hist->co[0][1] = y1f;
+	hist->co[1][0] = x2f;
+	hist->co[1][1] = y2f;
+	hist->flag |= HISTO_FLAG_SAMPLELINE; /* keep drawing the flag after */
+
 	for (i = 0; i < 256; i++) {
 		x = (int)(0.5f + x1 + (float)i * (x2 - x1) / 255.0f);
 		y = (int)(0.5f + y1 + (float)i * (y2 - y1) / 255.0f);
 		
 		if (x < 0 || y < 0 || x >= ibuf->x || y >= ibuf->y) {
-			hist->data_luma[i] = hist->data_r[i] = hist->data_g[i] = hist->data_b[i] = 0.0f;
+			hist->data_luma[i] = hist->data_r[i] = hist->data_g[i] = hist->data_b[i] = hist->data_a[i] = 0.0f;
 		}
 		else {
 			if (ibuf->rect_float) {
@@ -2154,17 +2161,19 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 				else
 					copy_v3_v3(rgb, fp);
 
-				hist->data_r[i] = rgb[0];
-				hist->data_g[i] = rgb[1];
-				hist->data_b[i] = rgb[2];
-				hist->data_luma[i] = rgb_to_luma(rgb);
+				hist->data_luma[i]  = rgb_to_luma(rgb);
+				hist->data_r[i]     = rgb[0];
+				hist->data_g[i]     = rgb[1];
+				hist->data_b[i]     = rgb[2];
+				hist->data_a[i]     = fp[3];
 			}
 			else if (ibuf->rect) {
 				cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
-				hist->data_r[i] = (float)cp[0] / 255.0f;
-				hist->data_g[i] = (float)cp[1] / 255.0f;
-				hist->data_b[i] = (float)cp[2] / 255.0f;
-				hist->data_luma[i] = (float)rgb_to_luma_byte(cp) / 255.0f;
+				hist->data_luma[i]  = (float)rgb_to_luma_byte(cp) / 255.0f;
+				hist->data_r[i]     = (float)cp[0] / 255.0f;
+				hist->data_g[i]     = (float)cp[1] / 255.0f;
+				hist->data_b[i]     = (float)cp[2] / 255.0f;
+				hist->data_a[i]     = (float)cp[3] / 255.0f;
 			}
 		}
 	}
@@ -2179,7 +2188,10 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 static int image_sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	
+
+	Histogram *hist = &sima->sample_line_hist;
+	hist->flag &= ~HISTO_FLAG_SAMPLELINE;
+
 	if (!ED_space_image_has_buffer(sima))
 		return OPERATOR_CANCELLED;
 	
@@ -2443,56 +2455,15 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
 
+static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
+{
+	int cfra = *(int*)customdata;
+
+	BKE_image_user_check_frame_calc(iuser, cfra, 0);
+}
+
 void ED_image_update_frame(const Main *mainp, int cfra)
 {
-	wmWindowManager *wm;
-	wmWindow *win;
-	Tex *tex;
-	
-	/* texture users */
-	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
-		if (tex->type == TEX_IMAGE && tex->ima) {
-			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_frame_calc(&tex->iuser, cfra, 0);
-			}
-		}
-	}
-	
-	/* image window, compo node users */
-	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
-		for (win = wm->windows.first; win; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = sa->spacedata.first;
-					BGpic *bgpic;
-					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
-						if (bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_frame_calc(&bgpic->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_IMAGE) {
-					SpaceImage *sima = sa->spacedata.first;
-					if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_frame_calc(&sima->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_NODE) {
-					SpaceNode *snode = sa->spacedata.first;
-					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
-						bNode *node;
-						for (node = snode->nodetree->nodes.first; node; node = node->next) {
-							if (node->id && node->type == CMP_NODE_IMAGE) {
-								Image *ima = (Image *)node->id;
-								ImageUser *iuser = node->storage;
-								if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-									if (iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_frame_calc(iuser, cfra, 0);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	BKE_image_walk_all_users(mainp, &cfra, image_update_frame);
 }
 

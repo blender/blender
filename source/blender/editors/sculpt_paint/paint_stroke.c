@@ -100,10 +100,11 @@ typedef struct PaintStroke {
 /*** Cursor ***/
 static void paint_draw_smooth_stroke(bContext *C, int x, int y, void *customdata) 
 {
-	Brush *brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Paint *paint = paint_get_active_from_context(C);
+	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = customdata;
 
-	glColor4ubv(paint_get_active(CTX_data_scene(C))->paint_cursor_col);
+	glColor4ubv(paint->paint_cursor_col);
 	glEnable(GL_LINE_SMOOTH);
 	glEnable(GL_BLEND);
 
@@ -141,7 +142,7 @@ static float event_tablet_data(wmEvent *event, int *pen_flip)
 static void paint_brush_stroke_add_step(bContext *C, wmOperator *op, wmEvent *event, float mouse_in[2])
 {
 	Scene *scene = CTX_data_scene(C);
-	Paint *paint = paint_get_active(scene);
+	Paint *paint = paint_get_active_from_context(C);
 	Brush *brush = paint_brush(paint);
 	PaintStroke *stroke = op->customdata;
 	float mouse[3];
@@ -202,10 +203,10 @@ static int paint_smooth_stroke(PaintStroke *stroke, float output[2],
 
 	if ((stroke->brush->flag & BRUSH_SMOOTH_STROKE) &&  
 	    !ELEM4(stroke->brush->sculpt_tool,
-			   SCULPT_TOOL_GRAB,
-			   SCULPT_TOOL_THUMB,
-			   SCULPT_TOOL_ROTATE,
-			   SCULPT_TOOL_SNAKE_HOOK) &&
+	           SCULPT_TOOL_GRAB,
+	           SCULPT_TOOL_THUMB,
+	           SCULPT_TOOL_ROTATE,
+	           SCULPT_TOOL_SNAKE_HOOK) &&
 	    !(stroke->brush->flag & BRUSH_ANCHORED) &&
 	    !(stroke->brush->flag & BRUSH_RESTORE_MESH))
 	{
@@ -281,7 +282,7 @@ PaintStroke *paint_stroke_new(bContext *C,
 {
 	PaintStroke *stroke = MEM_callocN(sizeof(PaintStroke), "PaintStroke");
 
-	stroke->brush = paint_brush(paint_get_active(CTX_data_scene(C)));
+	stroke->brush = paint_brush(paint_get_active_from_context(C));
 	view3d_set_viewcontext(C, &stroke->vc);
 	view3d_get_transformation(stroke->vc.ar, stroke->vc.rv3d, stroke->vc.obact, &stroke->mats);
 
@@ -358,12 +359,12 @@ struct wmKeyMap *paint_stroke_modal_keymap(struct wmKeyConfig *keyconf)
 }
 
 static void paint_stroke_add_sample(const Paint *paint,
-									PaintStroke *stroke,
-									float x, float y)
+                                    PaintStroke *stroke,
+                                    float x, float y)
 {
 	PaintSample *sample = &stroke->samples[stroke->cur_sample];
 	int max_samples = MIN2(PAINT_MAX_INPUT_SAMPLES,
-						   MAX2(paint->num_input_samples, 1));
+	                       MAX2(paint->num_input_samples, 1));
 
 	sample->mouse[0] = x;
 	sample->mouse[1] = y;
@@ -376,7 +377,7 @@ static void paint_stroke_add_sample(const Paint *paint,
 }
 
 static void paint_stroke_sample_average(const PaintStroke *stroke,
-										PaintSample *average)
+                                        PaintSample *average)
 {
 	int i;
 	
@@ -394,7 +395,7 @@ static void paint_stroke_sample_average(const PaintStroke *stroke,
 
 int paint_stroke_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
-	Paint *p = paint_get_active(CTX_data_scene(C));
+	Paint *p = paint_get_active_from_context(C);
 	PaintStroke *stroke = op->customdata;
 	PaintSample sample_average;
 	float mouse[2];
@@ -518,7 +519,7 @@ void paint_stroke_set_mode_data(PaintStroke *stroke, void *mode_data)
 
 int paint_poll(bContext *C)
 {
-	Paint *p = paint_get_active(CTX_data_scene(C));
+	Paint *p = paint_get_active_from_context(C);
 	Object *ob = CTX_data_active_object(C);
 
 	return p && ob && paint_brush(p) &&

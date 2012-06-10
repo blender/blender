@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef STATIC_PLANE_SHAPE_H
-#define STATIC_PLANE_SHAPE_H
+#ifndef BT_STATIC_PLANE_SHAPE_H
+#define BT_STATIC_PLANE_SHAPE_H
 
 #include "btConcaveShape.h"
 
@@ -97,7 +97,7 @@ SIMD_FORCE_INLINE	const char*	btStaticPlaneShape::serialize(void* dataBuffer, bt
 }
 
 
-#endif //STATIC_PLANE_SHAPE_H
+#endif //BT_STATIC_PLANE_SHAPE_H
 
 
 

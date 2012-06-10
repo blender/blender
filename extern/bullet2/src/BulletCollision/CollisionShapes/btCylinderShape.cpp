@@ -19,6 +19,8 @@ btCylinderShape::btCylinderShape (const btVector3& halfExtents)
 :btConvexInternalShape(),
 m_upAxis(1)
 {
+	setSafeMargin(halfExtents);
+
 	btVector3 margin(getMargin(),getMargin(),getMargin());
 	m_implicitShapeDimensions = (halfExtents * m_localScaling) - margin;
 	m_shapeType = CYLINDER_SHAPE_PROXYTYPE;

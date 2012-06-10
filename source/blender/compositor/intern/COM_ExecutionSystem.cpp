@@ -127,20 +127,9 @@ void ExecutionSystem::execute()
 
 	WorkScheduler::start(this->context);
 
-
-	vector<ExecutionGroup*> executionGroups;
-	this->findOutputExecutionGroup(&executionGroups);
-
-	/* start execution of the ExecutionGroups based on priority of their output node */
-	for (int priority = 9 ; priority>=0 ; priority--) {
-		for (index = 0 ; index < executionGroups.size(); index ++) {
-			ExecutionGroup *group = executionGroups[index];
-			NodeOperation *output = group->getOutputNodeOperation();
-			if (output->getRenderPriority() == priority) {
-				group->execute(this);
-			}
-		}
-	}
+	executeGroups(COM_PRIORITY_HIGH);
+	executeGroups(COM_PRIORITY_MEDIUM);
+	executeGroups(COM_PRIORITY_LOW);
 
 	WorkScheduler::finish();
 	WorkScheduler::stop();
@@ -152,6 +141,18 @@ void ExecutionSystem::execute()
 	for (index = 0 ; index < this->groups.size() ; index ++) {
 		ExecutionGroup * executionGroup = this->groups[index];
 		executionGroup->deinitExecution();
+	}
+}
+
+void ExecutionSystem::executeGroups(CompositorPriority priority)
+{
+	int index;
+	vector<ExecutionGroup*> executionGroups;
+	this->findOutputExecutionGroup(&executionGroups, priority);
+
+	for (index = 0 ; index < executionGroups.size(); index ++) {
+		ExecutionGroup *group = executionGroups[index];
+		group->execute(this);
 	}
 }
 
@@ -300,6 +301,17 @@ void ExecutionSystem::determineActualSocketDataTypes(vector<NodeBase*> &nodes)
 		NodeBase *node = nodes[index];
 		if (!node->isInputNode()) {
 			node->determineActualSocketDataTypes();
+		}
+	}
+}
+
+void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup*> *result, CompositorPriority priority) const
+{
+	unsigned int index;
+	for (index = 0 ; index < this->groups.size() ; index ++) {
+		ExecutionGroup *group = this->groups[index];
+		if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
+			result->push_back(group);
 		}
 	}
 }

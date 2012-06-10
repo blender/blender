@@ -31,19 +31,6 @@ extern "C" {
 #include "COM_defines.h"
 #include "COM_Device.h"
 
-// STATES
-/** @brief states of the WorkScheduler
-  * @ingroup execution
-  */
-typedef enum WorkSchedulerState {
-	COM_WSS_UNKNOWN = -1,
-	COM_WSS_INITIALIZED = 0,
-	COM_WSS_STARTED = 1,
-	COM_WSS_STOPPING = 2,
-	COM_WSS_STOPPED = 3,
-	COM_WSS_DEINITIALIZED = 4
-} WorkSchedulerState;
-
 /** @brief the workscheduler
   * @ingroup execution
   */

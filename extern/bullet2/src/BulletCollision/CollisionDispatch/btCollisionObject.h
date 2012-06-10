@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef COLLISION_OBJECT_H
-#define COLLISION_OBJECT_H
+#ifndef BT_COLLISION_OBJECT_H
+#define BT_COLLISION_OBJECT_H
 
 #include "LinearMath/btTransform.h"
 
@@ -521,4 +521,4 @@ SIMD_FORCE_INLINE	int	btCollisionObject::calculateSerializeBufferSize() const
 
 
 
-#endif //COLLISION_OBJECT_H
+#endif //BT_COLLISION_OBJECT_H

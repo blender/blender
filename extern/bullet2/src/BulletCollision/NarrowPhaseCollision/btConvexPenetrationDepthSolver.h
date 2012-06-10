@@ -14,8 +14,8 @@ subject to the following restrictions:
 */
 
 
-#ifndef __CONVEX_PENETRATION_DEPTH_H
-#define __CONVEX_PENETRATION_DEPTH_H
+#ifndef BT_CONVEX_PENETRATION_DEPTH_H
+#define BT_CONVEX_PENETRATION_DEPTH_H
 
 class btStackAlloc;
 class btVector3;
@@ -38,5 +38,5 @@ public:
 
 
 };
-#endif //CONVEX_PENETRATION_DEPTH_H
+#endif //BT_CONVEX_PENETRATION_DEPTH_H
 

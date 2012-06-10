@@ -321,6 +321,19 @@ void gpencil_frame_delete_laststroke(bGPDlayer *gpl, bGPDframe *gpf)
 
 /* -------- GP-Layer API ---------- */
 
+bGPDframe *BKE_gpencil_layer_find_frame(bGPDlayer *gpl, int cframe)
+{
+	bGPDframe *gpf;
+
+	for (gpf = gpl->frames.last; gpf; gpf = gpf->prev) {
+		if (gpf->framenum == cframe) {
+			return gpf;
+		}
+	}
+
+	return NULL;
+}
+
 /* get the appropriate gp-frame from a given layer
  *	- this sets the layer's actframe var (if allowed to)
  *	- extension beyond range (if first gp-frame is after all frame in interest and cannot add)

@@ -99,8 +99,8 @@ void BaseImageOperation::determineResolution(unsigned int resolution[], unsigned
 {
 	ImBuf *stackbuf = getImBuf();
 
-        resolution[0] = 0;
-        resolution[1] = 0;
+	resolution[0] = 0;
+	resolution[1] = 0;
 
 	if (stackbuf) {
 		resolution[0] = stackbuf->x;

@@ -141,8 +141,7 @@ bool SCA_RandomActuator::Update()
 		int res; 
 		/* The [0, 1] interval is projected onto the [min, max+1] domain,    */
 		/* and then rounded.                                                 */
-		res = (int) floor( ((m_parameter2 - m_parameter1 + 1) * m_base->DrawFloat())
-						   + m_parameter1);
+		res = (int)floor( ((m_parameter2 - m_parameter1 + 1) * m_base->DrawFloat()) + m_parameter1);
 		tmpval = new CIntValue(res);
 	}
 	break;
@@ -172,8 +171,7 @@ bool SCA_RandomActuator::Update()
 	}
 	break;
 	case KX_RANDOMACT_FLOAT_UNIFORM: {
-		float res = ((m_parameter2 - m_parameter1) * m_base->DrawFloat())
-			+ m_parameter1;
+		float res = ((m_parameter2 - m_parameter1) * m_base->DrawFloat()) + m_parameter1;
 		tmpval = new CFloatValue(res);
 	}
 	break;
@@ -239,8 +237,7 @@ bool SCA_RandomActuator::Update()
 		/* controlling parameter. Using the 'normal' exponent is not very     */
 		/* intuitive...                                                       */
 		/* tmpval = new CFloatValue( (1.0 / m_parameter1)                     */
-		tmpval = new CFloatValue( (m_parameter1) 
-								  * (-log(1.0 - m_base->DrawFloat())) );
+		tmpval = new CFloatValue((m_parameter1)  * (-log(1.0 - m_base->DrawFloat())));
 
 	}
 	break;

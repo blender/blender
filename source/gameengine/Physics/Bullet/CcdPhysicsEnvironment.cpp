@@ -719,8 +719,8 @@ void	CcdPhysicsEnvironment::processFhSprings(double curTime,float interval)
 					{
 						if (ctrl->getConstructionInfo().m_do_fh) 
 						{
-							btVector3 lspot = cl_object->getCenterOfMassPosition()
-								+ rayDirLocal * resultCallback.m_closestHitFraction;
+							btVector3 lspot = cl_object->getCenterOfMassPosition() +
+							        rayDirLocal * resultCallback.m_closestHitFraction;
 
 
 								

@@ -45,8 +45,7 @@ typedef struct TexResult {
 } TexResult;
 
 /* localized shade result data */
-typedef struct ShadeResult 
-{
+typedef struct ShadeResult {
 	float combined[4];
 	float col[4];
 	float alpha, mist, z;
@@ -95,8 +94,7 @@ typedef struct ShadeInputCol {
 } ShadeInputCol;
 
 /* localized renderloop data */
-typedef struct ShadeInput
-{
+typedef struct ShadeInput {
 	/* copy from face, also to extract tria from quad */
 	/* note it mirrors a struct above for quick copy */
 	

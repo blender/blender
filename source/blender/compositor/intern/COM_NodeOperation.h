@@ -139,8 +139,10 @@ public:
 	  * @param rect the rectangle of the chunk (location and size)
 	  * @param chunkNumber the chunkNumber to be calculated
 	  * @param memoryBuffers all input MemoryBuffer's needed
+	  * @param outputBuffer the outputbuffer to write to
 	  */
-	virtual void executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** memoryBuffers) {}
+	virtual void executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, 
+	                                 unsigned int chunkNumber, MemoryBuffer** memoryBuffers, MemoryBuffer* outputBuffer) {}
 
 	/**
 	  * @brief custom handle to add new tasks to the OpenCL command queue in order to execute a chunk on an GPUDevice
@@ -207,9 +209,9 @@ public:
 	/**
 	  * @brief get the render priority of this node.
 	  * @note only applicable for output operations like ViewerOperation
-	  * @return [0:9] 9 is highest priority
+	  * @return CompositorPriority
 	  */
-	virtual const int getRenderPriority() const {return 0;}
+	virtual const CompositorPriority getRenderPriority() const {return COM_PRIORITY_LOW;}
 
 	/**
 	  * @brief can this NodeOperation be scheduled on an OpenCLDevice
@@ -242,6 +244,13 @@ protected:
 	  */
 	void setOpenCL(bool openCL) {this->openCL = openCL;}
 
+	static cl_mem COM_clAttachMemoryBufferToKernelParameter(cl_context context, cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader* reader);
+	static void COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel kernel, int offsetIndex, MemoryBuffer *memoryBuffers);
+	static void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
+	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex);
+	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer* outputMemoryBuffer);
+	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex);
+	cl_kernel COM_clCreateKernel(cl_program program, const char* kernelname, list<cl_kernel> *clKernelsToCleanUp);
 
 };
 

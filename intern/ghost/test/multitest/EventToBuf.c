@@ -36,7 +36,7 @@
 
 char *eventtype_to_string(GHOST_TEventType type)
 {
-	switch(type) {
+	switch (type) {
 	case GHOST_kEventCursorMove:		return "CursorMove";
 	case GHOST_kEventButtonDown:		return "ButtonDown";
 	case GHOST_kEventButtonUp:			return "ButtonUp";

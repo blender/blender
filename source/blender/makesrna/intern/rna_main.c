@@ -253,6 +253,12 @@ static void rna_Main_movieclips_begin(CollectionPropertyIterator *iter, PointerR
 	rna_iterator_listbase_begin(iter, &bmain->movieclip, NULL);
 }
 
+static void rna_Main_masks_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
+{
+	Main *bmain= (Main*)ptr->data;
+	rna_iterator_listbase_begin(iter, &bmain->mask, NULL);
+}
+
 static void rna_Main_linestyle_begin(CollectionPropertyIterator *iter, PointerRNA *ptr)
 {
 	Main *bmain= (Main*)ptr->data;
@@ -322,6 +328,7 @@ void RNA_def_main(BlenderRNA *brna)
 		{"particles", "ParticleSettings", "rna_Main_particle_begin", "Particles", "Particle datablocks", RNA_def_main_particles},
 		{"grease_pencil", "GreasePencil", "rna_Main_gpencil_begin", "Grease Pencil", "Grease Pencil datablocks", RNA_def_main_gpencil},
 		{"movieclips", "MovieClip", "rna_Main_movieclips_begin", "Movie Clips", "Movie Clip datablocks", RNA_def_main_movieclips},
+		{"masks", "Mask", "rna_Main_masks_begin", "Masks", "Masks datablocks", RNA_def_main_masks},
 		{"linestyles", "FreestyleLineStyle", "rna_Main_linestyle_begin", "Line Styles", "Line Style datablocks", RNA_def_main_linestyles},
 		{NULL, NULL, NULL, NULL, NULL, NULL}
 	};

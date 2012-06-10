@@ -52,12 +52,25 @@ typedef enum CompositorQuality {
 	COM_QUALITY_LOW    = 2
 } CompositorQuality;
 
+/**
+  * @brief Possible priority settings
+  * @ingroup Execution
+  */
+typedef enum CompositorPriority {
+	/** @brief High quality setting */
+	COM_PRIORITY_HIGH   = 2 ,
+	/** @brief Medium quality setting */
+	COM_PRIORITY_MEDIUM = 1,
+	/** @brief Low quality setting */
+	COM_PRIORITY_LOW    = 0
+} CompositorPriority;
+
 // configurable items
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-#define COM_OPENCL_ENABLED
-#define COM_PREVIEW_ENABLED
+//#define COM_OPENCL_ENABLED
+
 // workscheduler threading models
 /**
   * COM_TM_QUEUE is a multithreaded model, which uses the BLI_thread_queue pattern. This is the default option.

@@ -120,8 +120,8 @@ protected:
 	
 	Node();
 	
-	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket, int priority);
-	void addPreviewOperation(ExecutionSystem *system, OutputSocket *inputSocket, int priority);
+	void addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket);
+	void addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket);
 	
 	bNodeSocket *getEditorInputSocket(int editorNodeInputSocketIndex);
 	bNodeSocket *getEditorOutputSocket(int editorNodeOutputSocketIndex);

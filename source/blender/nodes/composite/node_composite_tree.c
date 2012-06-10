@@ -890,6 +890,10 @@ int ntreeCompositTagAnimated(bNodeTree *ntree)
 			nodeUpdate(ntree, node);
 			tagged= 1;
 		}
+		else if (node->type==CMP_NODE_MASK) {
+			nodeUpdate(ntree, node);
+			tagged= 1;
+		}
 	}
 	
 	return tagged;

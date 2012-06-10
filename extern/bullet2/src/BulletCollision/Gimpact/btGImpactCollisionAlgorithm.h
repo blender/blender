@@ -21,8 +21,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BVH_CONCAVE_COLLISION_ALGORITHM_H
-#define BVH_CONCAVE_COLLISION_ALGORITHM_H
+#ifndef BT_GIMPACT_BVH_CONCAVE_COLLISION_ALGORITHM_H
+#define BT_GIMPACT_BVH_CONCAVE_COLLISION_ALGORITHM_H
 
 #include "BulletCollision/CollisionDispatch/btActivatingCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btDispatcher.h"
@@ -303,4 +303,4 @@ public:
 
 
 
-#endif //BVH_CONCAVE_COLLISION_ALGORITHM_H
+#endif //BT_GIMPACT_BVH_CONCAVE_COLLISION_ALGORITHM_H

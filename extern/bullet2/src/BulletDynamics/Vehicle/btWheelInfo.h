@@ -8,8 +8,8 @@
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
 */
-#ifndef WHEEL_INFO_H
-#define WHEEL_INFO_H
+#ifndef BT_WHEEL_INFO_H
+#define BT_WHEEL_INFO_H
 
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransform.h"
@@ -115,5 +115,5 @@ struct btWheelInfo
 
 };
 
-#endif //WHEEL_INFO_H
+#endif //BT_WHEEL_INFO_H
 

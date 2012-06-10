@@ -89,15 +89,16 @@ typedef struct bAnimContext {
 
 /* Main Data container types */
 typedef enum eAnimCont_Types {
-	ANIMCONT_NONE = 0,      /* invalid or no data */
-	ANIMCONT_ACTION,        /* action (bAction) */
-	ANIMCONT_SHAPEKEY,      /* shapekey (Key) */
-	ANIMCONT_GPENCIL,       /* grease pencil (screen) */
-	ANIMCONT_DOPESHEET,     /* dopesheet (bDopesheet) */
-	ANIMCONT_FCURVES,       /* animation F-Curves (bDopesheet) */
-	ANIMCONT_DRIVERS,       /* drivers (bDopesheet) */
-	ANIMCONT_NLA,           /* nla (bDopesheet) */
-	ANIMCONT_CHANNEL        /* animation channel (bAnimListElem) */
+	ANIMCONT_NONE      = 0, /* invalid or no data */
+	ANIMCONT_ACTION    = 1, /* action (bAction) */
+	ANIMCONT_SHAPEKEY  = 2, /* shapekey (Key) */
+	ANIMCONT_GPENCIL   = 3, /* grease pencil (screen) */
+	ANIMCONT_DOPESHEET = 4, /* dopesheet (bDopesheet) */
+	ANIMCONT_FCURVES   = 5, /* animation F-Curves (bDopesheet) */
+	ANIMCONT_DRIVERS   = 6, /* drivers (bDopesheet) */
+	ANIMCONT_NLA       = 7, /* nla (bDopesheet) */
+	ANIMCONT_CHANNEL   = 8, /* animation channel (bAnimListElem) */
+	ANIMCONT_MASK      = 9  /* mask dopesheet */
 } eAnimCont_Types;
 
 /* --------------- Channels -------------------- */
@@ -161,6 +162,9 @@ typedef enum eAnim_ChannelType {
 	
 	ANIMTYPE_GPDATABLOCK,
 	ANIMTYPE_GPLAYER,
+
+	ANIMTYPE_MASKDATABLOCK,
+	ANIMTYPE_MASKLAYER,
 	
 	ANIMTYPE_NLATRACK,
 	ANIMTYPE_NLAACTION,
@@ -174,6 +178,7 @@ typedef enum eAnim_KeyType {
 	ALE_NONE = 0,       /* no keyframe data */
 	ALE_FCURVE,         /* F-Curve */
 	ALE_GPFRAME,        /* Grease Pencil Frames */
+	ALE_MASKLAY,           /* Mask */
 	ALE_NLASTRIP,       /* NLA Strips */
 
 	ALE_ALL,            /* All channels summary */
@@ -281,6 +286,15 @@ typedef enum eAnimFilter_Flags {
 #define EDITABLE_GPL(gpl) ((gpl->flag & GP_LAYER_LOCKED) == 0)
 #define SEL_GPL(gpl) (gpl->flag & GP_LAYER_SELECT)
 
+/* Mask Only */
+/* Grease Pencil datablock settings */
+#define EXPANDED_MASK(mask) (mask->flag & MASK_ANIMF_EXPAND)
+/* Grease Pencil Layer settings */
+#define EDITABLE_MASK(masklay) ((masklay->flag & MASK_LAYERFLAG_LOCKED) == 0)
+#define SEL_MASKLAY(masklay) (masklay->flag & SELECT)
+
+
+
 /* NLA only */
 #define SEL_NLT(nlt) (nlt->flag & NLATRACK_SELECTED)
 #define EDITABLE_NLT(nlt) ((nlt->flag & NLATRACK_PROTECTED) == 0)
@@ -343,20 +357,20 @@ short ANIM_animdata_context_getdata(bAnimContext *ac);
 
 /* flag-setting behavior */
 typedef enum eAnimChannels_SetFlag {
-	ACHANNEL_SETFLAG_CLEAR = 0,     /* turn off */
-	ACHANNEL_SETFLAG_ADD,           /* turn on */
-	ACHANNEL_SETFLAG_INVERT,        /* on->off, off->on */
-	ACHANNEL_SETFLAG_TOGGLE         /* some on -> all off // all on */
+	ACHANNEL_SETFLAG_CLEAR  = 0,     /* turn off */
+	ACHANNEL_SETFLAG_ADD    = 1,     /* turn on */
+	ACHANNEL_SETFLAG_INVERT = 2,     /* on->off, off->on */
+	ACHANNEL_SETFLAG_TOGGLE = 3      /* some on -> all off // all on */
 } eAnimChannels_SetFlag;
 
 /* types of settings for AnimChannels */
 typedef enum eAnimChannel_Settings {
-	ACHANNEL_SETTING_SELECT = 0,
-	ACHANNEL_SETTING_PROTECT,           // warning: for drawing UI's, need to check if this is off (maybe inverse this later)
-	ACHANNEL_SETTING_MUTE,
-	ACHANNEL_SETTING_EXPAND,
-	ACHANNEL_SETTING_VISIBLE,           /* only for Graph Editor */
-	ACHANNEL_SETTING_SOLO               /* only for NLA Tracks */
+	ACHANNEL_SETTING_SELECT   = 0,
+	ACHANNEL_SETTING_PROTECT  = 1, /* warning: for drawing UI's, need to check if this is off (maybe inverse this later) */
+	ACHANNEL_SETTING_MUTE     = 2,
+	ACHANNEL_SETTING_EXPAND   = 3,
+	ACHANNEL_SETTING_VISIBLE  = 4,  /* only for Graph Editor */
+	ACHANNEL_SETTING_SOLO     = 5   /* only for NLA Tracks */
 } eAnimChannel_Settings;
 
 

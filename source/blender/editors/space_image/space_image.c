@@ -590,8 +590,7 @@ static void image_refresh(const bContext *C, ScrArea *UNUSED(sa))
 
 	ima = ED_space_image(sima);
 
-	if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-		BKE_image_user_frame_calc(&sima->iuser, scene->r.cfra, 0);
+	BKE_image_user_check_frame_calc(&sima->iuser, scene->r.cfra, 0);
 	
 	/* check if we have to set the image from the editmesh */
 	if (ima && (ima->source == IMA_SRC_VIEWER || sima->pin)) ;
@@ -825,15 +824,18 @@ static void image_main_area_draw(const bContext *C, ARegion *ar)
 	draw_uvedit_main(sima, ar, scene, obedit, obact);
 
 	ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
-		
+
 	/* Grease Pencil too (in addition to UV's) */
 	draw_image_grease_pencil((bContext *)C, 1); 
+
+	/* sample line */
+	draw_image_sample_line(sima);
 
 	UI_view2d_view_restore(C);
 
 	/* draw Grease Pencil - screen space only */
 	draw_image_grease_pencil((bContext *)C, 0);
-	
+
 	/* scrollers? */
 #if 0
 	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_UNIT_VALUES, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

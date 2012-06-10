@@ -42,7 +42,7 @@ protected:
 	bool doColorPredivide;
 
 public:
-	bool isOutputOperation(bool rendering) const {return true;}
+	bool isOutputOperation(bool rendering) const {return isActiveViewerOutput();}
 	void initExecution();
 	void deinitExecution();
 	void setImage(Image *image) {this->image = image;}
@@ -56,7 +56,7 @@ public:
 	float getCenterX() { return this->centerX; }
 	float getCenterY() { return this->centerY; }
 	OrderOfChunks getChunkOrder() { return this->chunkOrder; }
-	const int getRenderPriority() const;
+	const CompositorPriority getRenderPriority() const;
 	void setColorManagement(bool doColorManagement) {this->doColorManagement = doColorManagement;}
 	void setColorPredivide(bool doColorPredivide) {this->doColorPredivide = doColorPredivide;}
 	bool isViewerOperation() {return true;}

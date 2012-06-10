@@ -445,7 +445,8 @@ void KX_Dome::GLDrawWarpQuads(void)
 			}
 		}
 		glEnd();
-	} else{
+	}
+	else {
 		printf("Dome Error: Warp Mode %d unsupported. Try 1 for Polar Mesh or 2 for Fisheye.\n", warp.mode);
 	}
 }
@@ -502,7 +503,8 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 	if ((int)lines.size() < 2 + (warp.n_width * warp.n_height)) {
 		printf("Dome Error: Warp Mesh File with insufficient data!\n");
 		return false;
-	}else{
+	}
+	else {
 		warp.nodes = vector<vector<WarpMeshNode> > (warp.n_height, vector<WarpMeshNode>(warp.n_width));
 
 		for (i=2; i-2 < (warp.n_width*warp.n_height); i++) {
@@ -520,7 +522,7 @@ bool KX_Dome::ParseWarpMesh(STR_String text)
 				warp.nodes[nodeY][nodeX].v = atof(columns[3]);
 				warp.nodes[nodeY][nodeX].i = atof(columns[4]);
 			}
-			else{
+			else {
 				warp.nodes.clear();
 				printf("Dome Error: Warp Mesh File with wrong number of fields. You should use 5: x y u v i.\n");
 				return false;
@@ -1671,7 +1673,8 @@ void KX_Dome::DrawEnvMap(void)
 		if (can_width/3 <= can_height/2) {
 			ortho_width = 1.0;
 			ortho_height = (float)can_height/can_width;
-		}else{
+		}
+		else {
 			ortho_height = 2.0f / 3;
 			ortho_width = (float)can_width/can_height * ortho_height;
 		}
@@ -1801,7 +1804,8 @@ void KX_Dome::DrawDomeFisheye(void)
 			if (can_width < can_height) {
 				ortho_width = 1.0;
 				ortho_height = (float)can_height/can_width;
-			}else{
+			}
+			else {
 				ortho_width = (float)can_width/can_height;
 				ortho_height = 1.0;
 			}
@@ -1897,7 +1901,8 @@ void KX_Dome::DrawPanorama(void)
 		if ((can_width / 2) <= (can_height)) {
 			ortho_width = 1.0;
 			ortho_height = (float)can_height/can_width;
-		}else{
+		}
+		else {
 			ortho_width = (float)can_width/can_height * 0.5;
 			ortho_height = 0.5;
 		}
@@ -1995,7 +2000,7 @@ void KX_Dome::DrawDomeWarped(void)
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
 		glCallList(dlistId + m_numfaces);
 	}
-	else{
+	else {
 		glBindTexture(GL_TEXTURE_2D, domefacesId[m_numfaces]);
 		GLDrawWarpQuads();
 	}

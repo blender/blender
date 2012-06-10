@@ -47,6 +47,8 @@ void btSimulationIslandManager::findUnions(btDispatcher* /* dispatcher */,btColl
 	{
 		btOverlappingPairCache* pairCachePtr = colWorld->getPairCache();
 		const int numOverlappingPairs = pairCachePtr->getNumOverlappingPairs();
+		if (numOverlappingPairs)
+		{
 		btBroadphasePair* pairPtr = pairCachePtr->getOverlappingPairArrayPtr();
 		
 		for (int i=0;i<numOverlappingPairs;i++)
@@ -62,6 +64,7 @@ void btSimulationIslandManager::findUnions(btDispatcher* /* dispatcher */,btColl
 				m_unionFind.unite((colObj0)->getIslandTag(),
 					(colObj1)->getIslandTag());
 			}
+		}
 		}
 	}
 }
@@ -190,7 +193,7 @@ class btPersistentManifoldSortPredicate
 {
 	public:
 
-		SIMD_FORCE_INLINE bool operator() ( const btPersistentManifold* lhs, const btPersistentManifold* rhs )
+		SIMD_FORCE_INLINE bool operator() ( const btPersistentManifold* lhs, const btPersistentManifold* rhs ) const
 		{
 			return getIslandId(lhs) < getIslandId(rhs);
 		}
@@ -327,11 +330,13 @@ void btSimulationIslandManager::buildIslands(btDispatcher* dispatcher,btCollisio
 			//kinematic objects don't merge islands, but wake up all connected objects
 			if (colObj0->isKinematicObject() && colObj0->getActivationState() != ISLAND_SLEEPING)
 			{
-				colObj1->activate();
+				if (colObj0->hasContactResponse())
+					colObj1->activate();
 			}
 			if (colObj1->isKinematicObject() && colObj1->getActivationState() != ISLAND_SLEEPING)
 			{
-				colObj0->activate();
+				if (colObj1->hasContactResponse())
+					colObj0->activate();
 			}
 			if(m_splitIslands)
 			{ 
@@ -362,7 +367,7 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 	{
 		btPersistentManifold** manifold = dispatcher->getInternalManifoldPointer();
 		int maxNumManifolds = dispatcher->getNumManifolds();
-		callback->ProcessIsland(&collisionObjects[0],collisionObjects.size(),manifold,maxNumManifolds, -1);
+		callback->processIsland(&collisionObjects[0],collisionObjects.size(),manifold,maxNumManifolds, -1);
 	}
 	else
 	{
@@ -372,8 +377,10 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 
 		int numManifolds = int (m_islandmanifold.size());
 
-		//we should do radix sort, it it much faster (O(n) instead of O (n log2(n))
+		//tried a radix sort, but quicksort/heapsort seems still faster
+		//@todo rewrite island management
 		m_islandmanifold.quickSort(btPersistentManifoldSortPredicate());
+		//m_islandmanifold.heapSort(btPersistentManifoldSortPredicate());
 
 		//now process all active islands (sets of manifolds for now)
 
@@ -427,7 +434,7 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 
 			if (!islandSleeping)
 			{
-				callback->ProcessIsland(&m_islandBodies[0],m_islandBodies.size(),startManifold,numIslandManifolds, islandId);
+				callback->processIsland(&m_islandBodies[0],m_islandBodies.size(),startManifold,numIslandManifolds, islandId);
 	//			printf("Island callback of size:%d bodies, %d manifolds\n",islandBodies.size(),numIslandManifolds);
 			}
 			

@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONVEX_SHAPE_INTERFACE1
-#define CONVEX_SHAPE_INTERFACE1
+#ifndef BT_CONVEX_SHAPE_INTERFACE1
+#define BT_CONVEX_SHAPE_INTERFACE1
 
 #include "btCollisionShape.h"
 
@@ -52,6 +52,8 @@ public:
 	btScalar getMarginNonVirtual () const;
 	void getAabbNonVirtual (const btTransform& t, btVector3& aabbMin, btVector3& aabbMax) const;
 
+	virtual void project(const btTransform& trans, const btVector3& dir, btScalar& min, btScalar& max) const;
+
 	
 	//notice that the vectors should be unit length
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const= 0;
@@ -79,4 +81,4 @@ public:
 
 
 
-#endif //CONVEX_SHAPE_INTERFACE1
+#endif //BT_CONVEX_SHAPE_INTERFACE1

@@ -71,6 +71,16 @@ EnumPropertyItem node_quality_items[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
+EnumPropertyItem node_chunksize_items[] = {
+    {NTREE_CHUNCKSIZE_32,   "32",     0,    "32x32",     "Chunksize of 32x32"},
+    {NTREE_CHUNCKSIZE_64,   "64",     0,    "64x64",     "Chunksize of 64x64"},
+    {NTREE_CHUNCKSIZE_128,   "128",     0,    "128x128",     "Chunksize of 128x128"},
+    {NTREE_CHUNCKSIZE_256,   "256",     0,    "256x256",     "Chunksize of 256x256"},
+    {NTREE_CHUNCKSIZE_512,   "512",     0,    "512x512",     "Chunksize of 512x512"},
+    {NTREE_CHUNCKSIZE_1024,   "1024",     0,    "1024x1024",     "Chunksize of 1024x1024"},
+	{0, NULL, 0, NULL, NULL}
+};
+
 EnumPropertyItem node_socket_type_items[] = {
 	{SOCK_FLOAT,   "VALUE",     0,    "Value",     ""},
 	{SOCK_VECTOR,  "VECTOR",    0,    "Vector",    ""},
@@ -1429,6 +1439,12 @@ static void def_sh_tex_environment(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Projection", "Projection of the input image");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 
+	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User",
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
 static void def_sh_tex_image(StructRNA *srna)
@@ -1457,6 +1473,13 @@ static void def_sh_tex_image(StructRNA *srna)
 	prop = RNA_def_property(srna, "color_space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_items(prop, prop_color_space_items);
 	RNA_def_property_ui_text(prop, "Color Space", "Image file color space");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "image_user", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_NEVER_NULL);
+	RNA_def_property_pointer_sdna(prop, NULL, "iuser");
+	RNA_def_property_ui_text(prop, "Image User",
+	                         "Parameters defining which layer, pass and frame of the image is displayed");
 	RNA_def_property_update(prop, 0, "rna_Node_update");
 }
 
@@ -1830,29 +1853,10 @@ static void def_cmp_levels(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
-static void def_cmp_image(StructRNA *srna)
+static void def_node_image_user(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
-#if 0
-	static EnumPropertyItem type_items[] = {
-		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
-		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
-		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
-		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
-		{0, NULL, 0, NULL, NULL}
-	};
-#endif
-	
-	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "Image");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Image", "");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
-	
+
 	prop = RNA_def_property(srna, "frame_duration", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "frames");
 	RNA_def_property_range(prop, 0, MAXFRAMEF);
@@ -1891,6 +1895,31 @@ static void def_cmp_image(StructRNA *srna)
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Node_image_layer_itemf");
 	RNA_def_property_ui_text(prop, "Layer", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_image_layer_update");
+}
+
+static void def_cmp_image(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	
+#if 0
+	static EnumPropertyItem type_items[] = {
+		{IMA_SRC_FILE,      "IMAGE",     0, "Image",     ""},
+		{IMA_SRC_MOVIE,     "MOVIE",     "Movie",     ""},
+		{IMA_SRC_SEQUENCE,  "SEQUENCE",  "Sequence",  ""},
+		{IMA_SRC_GENERATED, "GENERATED", "Generated", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+#endif
+	
+	prop = RNA_def_property(srna, "image", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Image");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Image", "");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
+	RNA_def_struct_sdna_from(srna, "ImageUser", "storage");
+	def_node_image_user(srna);
 }
 
 static void def_cmp_render_layers(StructRNA *srna)
@@ -3030,6 +3059,18 @@ static void def_cmp_moviedistortion(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_mask(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "Mask");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "");
+}
+
+
 static void dev_cmd_transform(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -3151,6 +3192,25 @@ static void def_cmp_ellipsemask(StructRNA *srna)
 	RNA_def_property_range(prop, -1000.0f, 1000.0f);
 	RNA_def_property_ui_text(prop, "Rotation", "Rotationangle of the box");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_bokehblur(StructRNA *srna)
+{
+	PropertyRNA *prop;
+	prop = RNA_def_property(srna, "f_stop", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_range(prop, 0.0f, 128.0f);
+	RNA_def_property_ui_text(prop, "fStop",
+	                         "Amount of focal blur, 128=infinity=perfect focus, half the value doubles "
+	                         "the blur radius");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
+	prop = RNA_def_property(srna, "blur_max", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom4");
+	RNA_def_property_range(prop, 0.0f, 10000.0f);
+	RNA_def_property_ui_text(prop, "Max Blur", "Blur limit, maximum CoC radius");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	
 }
 
 static void def_cmp_bokehimage(StructRNA *srna)
@@ -3442,7 +3502,7 @@ static void def_tex_image(StructRNA *srna)
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Image", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
+
 	/* is this supposed to be exposed? not sure.. */
 #if 0
 	prop = RNA_def_property(srna, "settings", PROP_POINTER, PROP_NONE);
@@ -3998,11 +4058,11 @@ static void rna_def_composite_nodetree(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, node_quality_items);
 	RNA_def_property_ui_text(prop, "Edit Quality", "Quality when editing");
 
-	prop = RNA_def_property(srna, "chunk_size", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "chunksize");
+	prop = RNA_def_property(srna, "chunk_size", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "chunksize");
+	RNA_def_property_enum_items(prop, node_chunksize_items);
 	RNA_def_property_ui_text(prop, "Chunksize", "Max size of a tile (smaller values gives better distribution "
 	                                            "of multiple threads, but more overhead)");
-	RNA_def_property_range(prop, 32, 1024);
 
 	prop = RNA_def_property(srna, "use_opencl", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NTREE_COM_OPENCL);
