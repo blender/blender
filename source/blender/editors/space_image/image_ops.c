@@ -2137,7 +2137,14 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	hist->x_resolution = 256;
 	hist->xmax = 1.0f;
 	hist->ymax = 1.0f;
-	
+
+	/* persistent draw */
+	hist->co[0][0] = x1f;
+	hist->co[0][1] = y1f;
+	hist->co[1][0] = x2f;
+	hist->co[1][1] = y2f;
+	hist->flag |= HISTO_FLAG_SAMPLELINE; /* keep drawing the flag after */
+
 	for (i = 0; i < 256; i++) {
 		x = (int)(0.5f + x1 + (float)i * (x2 - x1) / 255.0f);
 		y = (int)(0.5f + y1 + (float)i * (y2 - y1) / 255.0f);
@@ -2179,7 +2186,10 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 static int image_sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	
+
+	Histogram *hist = &sima->sample_line_hist;
+	hist->flag &= ~HISTO_FLAG_SAMPLELINE;
+
 	if (!ED_space_image_has_buffer(sima))
 		return OPERATOR_CANCELLED;
 	

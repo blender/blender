@@ -578,6 +578,28 @@ void draw_image_grease_pencil(bContext *C, short onlyv2d)
 	}
 }
 
+void draw_image_sample_line(SpaceImage *sima)
+{
+	if (sima->sample_line_hist.flag & HISTO_FLAG_SAMPLELINE) {
+		Histogram *hist = &sima->sample_line_hist;
+
+		glBegin(GL_LINES);
+		glColor3ub(0, 0, 0);
+		glVertex2fv(hist->co[0]);
+		glVertex2fv(hist->co[1]);
+		glEnd();
+
+		setlinestyle(1);
+		glBegin(GL_LINES);
+		glColor3ub(255, 255, 255);
+		glVertex2fv(hist->co[0]);
+		glVertex2fv(hist->co[1]);
+		glEnd();
+		setlinestyle(0);
+
+	}
+}
+
 /* XXX becomes WM paint cursor */
 #if 0
 static void draw_image_view_tool(Scene *scene)
