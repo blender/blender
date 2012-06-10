@@ -7700,7 +7700,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
-	{
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 11)) {
 		MovieClip *clip;
 
 		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
