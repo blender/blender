@@ -49,7 +49,7 @@ extern "C" {
 
 /* used by packaging tools */
 /* can be left blank, otherwise a,b,c... etc with no quotes */
-#define BLENDER_VERSION_CHAR	a
+#define BLENDER_VERSION_CHAR    a
 /* alpha/beta/rc/release, docs use this */
 #define BLENDER_VERSION_CYCLE   alpha
 

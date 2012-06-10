@@ -843,14 +843,14 @@ int RNA_property_reset(PointerRNA *ptr, PropertyRNA *prop, int index);
  * UI code or Actions, though efficiency is a concern. */
 
 char *RNA_path_append(const char *path, PointerRNA *ptr, PropertyRNA *prop,
-	int intkey, const char *strkey);
+                      int intkey, const char *strkey);
 char *RNA_path_back(const char *path);
 
 int RNA_path_resolve(PointerRNA *ptr, const char *path,
-		PointerRNA *r_ptr, PropertyRNA **r_prop);
+                     PointerRNA *r_ptr, PropertyRNA **r_prop);
 
 int RNA_path_resolve_full(PointerRNA *ptr, const char *path,
-		PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
+                          PointerRNA *r_ptr, PropertyRNA **r_prop, int *index);
 
 char *RNA_path_from_ID_to_struct(PointerRNA *ptr);
 char *RNA_path_from_ID_to_property(PointerRNA *ptr, PropertyRNA *prop);
@@ -967,7 +967,7 @@ char *RNA_pointer_as_string_keywords_ex(struct bContext *C, PointerRNA *ptr, Poi
 char *RNA_pointer_as_string_keywords(struct bContext *C, PointerRNA *ptr, PointerRNA *ptr_default,
                                      const short skip_optional_value, const short all_args);
 char *RNA_function_as_string_keywords(struct bContext *C, FunctionRNA *func, PointerRNA *ptr_default,
-                                     const short as_function, const short all_args);
+                                      const short as_function, const short all_args);
 
 /* Function */
 
@@ -1006,12 +1006,12 @@ int RNA_function_call_lookup(struct bContext *C, struct ReportList *reports, Poi
 
 int RNA_function_call_direct(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 5, 6)))
+__attribute__ ((format(printf, 5, 6)))
 #endif
 ;
 int RNA_function_call_direct_lookup(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, const char *identifier, const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 5, 6)))
+__attribute__ ((format(printf, 5, 6)))
 #endif
 ;
 int RNA_function_call_direct_va(struct bContext *C, struct ReportList *reports, PointerRNA *ptr, FunctionRNA *func, const char *format, va_list args);
@@ -1025,14 +1025,14 @@ StructRNA *ID_code_to_RNA_type(short idcode);
 
 /* macro which inserts the function name */
 #if defined __GNUC__ || defined __sun
-#  define RNA_warning(format, args...) _RNA_warning("%s: " format "\n", __func__, ##args)
+#  define RNA_warning(format, args ...) _RNA_warning("%s: " format "\n", __func__, ##args)
 #else
 #  define RNA_warning(format, ...) _RNA_warning("%s: " format "\n", __FUNCTION__, __VA_ARGS__)
 #endif
 
 void _RNA_warning(const char *format, ...)
 #ifdef __GNUC__
-__attribute__ ((format (printf, 1, 2)))
+__attribute__ ((format(printf, 1, 2)))
 #endif
 ;
 

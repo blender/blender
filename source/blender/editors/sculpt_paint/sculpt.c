@@ -919,7 +919,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 	/* Grab brush requires to test on original data (see r33888 and
 	 * bug #25371) */
 	original = (paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
-				TRUE : ss->cache->original);
+	            TRUE : ss->cache->original);
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -991,7 +991,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 		case SCULPT_DISP_DIR_VIEW:
 			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
 			                           ss->cache->vc->rv3d->twmat[3],
-			        an);
+			                           an);
 			break;
 
 		case SCULPT_DISP_DIR_X:
@@ -1117,21 +1117,21 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 static int brush_needs_sculpt_normal(const Brush *brush)
 {
 	return ((ELEM(brush->sculpt_tool,
-				  SCULPT_TOOL_GRAB,
-				  SCULPT_TOOL_SNAKE_HOOK) &&
-			 ((brush->normal_weight > 0) ||
-			  (brush->flag & BRUSH_FRONTFACE))) ||
+	              SCULPT_TOOL_GRAB,
+	              SCULPT_TOOL_SNAKE_HOOK) &&
+	         ((brush->normal_weight > 0) ||
+	          (brush->flag & BRUSH_FRONTFACE))) ||
 
-			ELEM7(brush->sculpt_tool,
-				  SCULPT_TOOL_BLOB,
-				  SCULPT_TOOL_CREASE,
-				  SCULPT_TOOL_DRAW,
-				  SCULPT_TOOL_LAYER,
-				  SCULPT_TOOL_NUDGE,
-				  SCULPT_TOOL_ROTATE,
-				  SCULPT_TOOL_THUMB) ||
+	        ELEM7(brush->sculpt_tool,
+	              SCULPT_TOOL_BLOB,
+	              SCULPT_TOOL_CREASE,
+	              SCULPT_TOOL_DRAW,
+	              SCULPT_TOOL_LAYER,
+	              SCULPT_TOOL_NUDGE,
+	              SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_THUMB) ||
 
-			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
+	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
@@ -1432,14 +1432,14 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
-			switch(type) {
+			switch (type) {
 				case PBVH_GRIDS:
 					do_multires_smooth_brush(sd, ss, nodes[n], strength,
-										     smooth_mask);
+					                         smooth_mask);
 					break;
 				case PBVH_FACES:
 					do_mesh_smooth_brush(sd, ss, nodes[n], strength,
-			                             smooth_mask);
+					                     smooth_mask);
 					break;
 			}
 		}
@@ -1532,7 +1532,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                          ss->cache->sculpt_normal_symm, vd.no,
-										  vd.fno, *vd.mask);
+				                          vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1588,7 +1588,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				/* offset vertex */
 				const float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                                ss->cache->sculpt_normal_symm,
-												vd.no, vd.fno, *vd.mask);
+				                                vd.no, vd.fno, *vd.mask);
 				float val1[3];
 				float val2[3];
 
@@ -1726,7 +1726,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1775,7 +1775,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-														    vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1823,7 +1823,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1876,7 +1876,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-														    origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
@@ -1929,7 +1929,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -3585,15 +3585,15 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
    one of smooth brush, autosmooth, mask smooth, or shift-key
    smooth) */
 static int sculpt_any_smooth_mode(const Brush *brush,
-								  StrokeCache *cache,
-								  int stroke_mode)
+                                  StrokeCache *cache,
+                                  int stroke_mode)
 {
 	return ((stroke_mode == BRUSH_STROKE_SMOOTH) ||
-			(cache && cache->alt_smooth) ||
-			(brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
-			(brush->autosmooth_factor > 0) ||
-			((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
-			 (brush->mask_tool == BRUSH_MASK_SMOOTH)));
+	        (cache && cache->alt_smooth) ||
+	        (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
+	        (brush->autosmooth_factor > 0) ||
+	        ((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
+	         (brush->mask_tool == BRUSH_MASK_SMOOTH)));
 }
 
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
@@ -3605,7 +3605,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Brush *brush = paint_brush(&sd->paint);
 
 		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
-									sculpt_any_smooth_mode(brush, ss->cache, 0));
+		                            sculpt_any_smooth_mode(brush, ss->cache, 0));
 	}
 }
 

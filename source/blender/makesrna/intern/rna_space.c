@@ -1041,9 +1041,9 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 
 static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)
 {
-	SpaceClip *sc= (SpaceClip*)(ptr->data);
+	SpaceClip *sc = (SpaceClip *)(ptr->data);
 
-	ED_space_clip_set_mask(NULL, sc, (Mask*)value.data);
+	ED_space_clip_set_mask(NULL, sc, (Mask *)value.data);
 }
 
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
@@ -3040,23 +3040,23 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* mask */
-	prop= RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
 	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	/* mask drawing */
 	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
 	RNA_def_property_enum_items(prop, dt_uv_items);
 	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
 	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
-	RNA_def_property_update(prop, NC_SPACE|ND_SPACE_CLIP, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
 
 	/* mode */
