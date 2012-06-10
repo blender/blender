@@ -840,7 +840,7 @@ static void frames_duplilist(ListBase *lb, Scene *scene, Object *ob, int par_ind
 	*ob = copyob;
 }
 
-typedef struct vertexDupliData {
+typedef struct VertexDupliData {
 	ID *id; /* scene or group, for recursive loops */
 	int level;
 	int animated;
@@ -851,7 +851,7 @@ typedef struct vertexDupliData {
 	Object *ob, *par;
 	float (*orco)[3];
 	int par_index;
-} vertexDupliData;
+} VertexDupliData;
 
 /* ------------- */
 
@@ -859,7 +859,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, const float co[3],
                                   const float no_f[3], const short no_s[3])
 {
 	DupliObject *dob;
-	vertexDupliData *vdd = userData;
+	VertexDupliData *vdd = userData;
 	float vec[3], q2[4], mat[3][3], tmat[4][4], obmat[4][4];
 	int origlay;
 	
@@ -910,7 +910,7 @@ static void vertex_duplilist(ListBase *lb, ID *id, Scene *scene, Object *par, fl
 	Mesh *me = par->data;
 	Base *base = NULL;
 	DerivedMesh *dm;
-	vertexDupliData vdd;
+	VertexDupliData vdd;
 	Scene *sce = NULL;
 	Group *group = NULL;
 	GroupObject *go = NULL;

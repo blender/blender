@@ -86,7 +86,7 @@
 /* ringsel operator */
 
 /* struct for properties used while drawing */
-typedef struct tringselOpData {
+typedef struct RingSelOpData {
 	ARegion *ar;        /* region that ringsel was activated in */
 	void *draw_handle;  /* for drawing preview loop */
 	
@@ -102,13 +102,13 @@ typedef struct tringselOpData {
 
 	int extend;
 	int do_cut;
-} tringselOpData;
+} RingSelOpData;
 
 /* modal loop selection drawing callback */
 static void ringsel_draw(const bContext *C, ARegion *UNUSED(ar), void *arg)
 {
 	View3D *v3d = CTX_wm_view3d(C);
-	tringselOpData *lcd = arg;
+	RingSelOpData *lcd = arg;
 	int i;
 	
 	if (lcd->totedge > 0) {
@@ -176,7 +176,7 @@ static void edgering_find_order(BMEdge *lasteed, BMEdge *eed,
 	}
 }
 
-static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
+static void edgering_sel(RingSelOpData *lcd, int previewlines, int select)
 {
 	BMEditMesh *em = lcd->em;
 	BMEdge *startedge = lcd->eed;
@@ -290,7 +290,7 @@ static void edgering_sel(tringselOpData *lcd, int previewlines, int select)
 	lcd->totedge = tot;
 }
 
-static void ringsel_find_edge(tringselOpData *lcd, int cuts)
+static void ringsel_find_edge(RingSelOpData *lcd, int cuts)
 {
 	if (lcd->eed) {
 		edgering_sel(lcd, cuts, 0);
@@ -304,7 +304,7 @@ static void ringsel_find_edge(tringselOpData *lcd, int cuts)
 
 static void ringsel_finish(bContext *C, wmOperator *op)
 {
-	tringselOpData *lcd = op->customdata;
+	RingSelOpData *lcd = op->customdata;
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
 
 	if (lcd->eed) {
@@ -350,7 +350,7 @@ static void ringsel_finish(bContext *C, wmOperator *op)
 /* called when modal loop selection is done... */
 static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 {
-	tringselOpData *lcd = op->customdata;
+	RingSelOpData *lcd = op->customdata;
 
 	/* deactivate the extra drawing stuff in 3D-View */
 	ED_region_draw_cb_exit(lcd->ar->type, lcd->draw_handle);
@@ -368,10 +368,10 @@ static void ringsel_exit(bContext *UNUSED(C), wmOperator *op)
 /* called when modal loop selection gets set up... */
 static int ringsel_init(bContext *C, wmOperator *op, int do_cut)
 {
-	tringselOpData *lcd;
+	RingSelOpData *lcd;
 	
 	/* alloc new customdata */
-	lcd = op->customdata = MEM_callocN(sizeof(tringselOpData), "ringsel Modal Op Data");
+	lcd = op->customdata = MEM_callocN(sizeof(RingSelOpData), "ringsel Modal Op Data");
 	
 	/* assign the drawing handle for drawing preview line... */
 	lcd->ar = CTX_wm_region(C);
@@ -402,7 +402,7 @@ static int ringcut_cancel(bContext *C, wmOperator *op)
 static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 {
 	Object *obedit = CTX_data_edit_object(C);
-	tringselOpData *lcd;
+	RingSelOpData *lcd;
 	BMEdge *edge;
 	int dist = 75;
 
@@ -434,7 +434,7 @@ static int ringcut_invoke(bContext *C, wmOperator *op, wmEvent *evt)
 static int loopcut_modal(bContext *C, wmOperator *op, wmEvent *event)
 {
 	int cuts = RNA_int_get(op->ptr, "number_cuts");
-	tringselOpData *lcd = op->customdata;
+	RingSelOpData *lcd = op->customdata;
 	int show_cuts = 0;
 
 	view3d_operator_needs_opengl(C);

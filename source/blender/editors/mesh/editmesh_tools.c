@@ -3676,14 +3676,14 @@ enum {
 	SRT_REVERSE,         /* Reverse current order of selected elements. */
 };
 
-typedef struct bmelemsort {
+typedef struct BMElemSort {
 	float srt; /* Sort factor */
 	int org_idx; /* Original index of this element _in its mempool_ */
-} bmelemsort;
+} BMElemSort;
 
 static int bmelemsort_comp(const void *v1, const void *v2)
 {
-	const bmelemsort *x1 = v1, *x2 = v2;
+	const BMElemSort *x1 = v1, *x2 = v2;
 
 	return (x1->srt > x2->srt) - (x1->srt < x2->srt);
 }
@@ -3704,7 +3704,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	/* In all five elements below, 0 = vertices, 1 = edges, 2 = faces. */
 	/* Just to mark protected elements. */
 	char *pblock[3] = {NULL, NULL, NULL}, *pb;
-	bmelemsort *sblock[3] = {NULL, NULL, NULL}, *sb;
+	BMElemSort *sblock[3] = {NULL, NULL, NULL}, *sb;
 	int *map[3] = {NULL, NULL, NULL}, *mp;
 	int totelem[3] = {0, 0, 0}, tot;
 	int affected[3] = {0, 0, 0}, aff;
@@ -3733,7 +3733,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[0]) {
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
-			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+			sb = sblock[0] = MEM_callocN(sizeof(BMElemSort) * totelem[0], "sort_bmelem vert sblock");
 
 			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(ve, flag)) {
@@ -3752,7 +3752,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[1]) {
 			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
-			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+			sb = sblock[1] = MEM_callocN(sizeof(BMElemSort) * totelem[1], "sort_bmelem edge sblock");
 
 			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
 				if (BM_elem_flag_test(ed, flag)) {
@@ -3772,7 +3772,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[2]) {
 			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
-			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+			sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
@@ -3806,7 +3806,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[0]) {
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
-			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+			sb = sblock[0] = MEM_callocN(sizeof(BMElemSort) * totelem[0], "sort_bmelem vert sblock");
 
 			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(ve, flag)) {
@@ -3822,7 +3822,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[1]) {
 			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
-			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+			sb = sblock[1] = MEM_callocN(sizeof(BMElemSort) * totelem[1], "sort_bmelem edge sblock");
 
 			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
 				if (BM_elem_flag_test(ed, flag)) {
@@ -3841,7 +3841,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[2]) {
 			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
-			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+			sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
@@ -3862,7 +3862,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	/* Faces only! */
 	else if (action == SRT_MATERIAL && totelem[2]) {
 		pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
-		sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+		sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
 		BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 			if (BM_elem_flag_test(fa, flag)) {
@@ -3966,7 +3966,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 			 * enabling/disabling an element type. */
 			BLI_srandom(seed);
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
-			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+			sb = sblock[0] = MEM_callocN(sizeof(BMElemSort) * totelem[0], "sort_bmelem vert sblock");
 
 			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(ve, flag)) {
@@ -3983,7 +3983,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 		if (totelem[1]) {
 			BLI_srandom(seed);
 			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
-			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+			sb = sblock[1] = MEM_callocN(sizeof(BMElemSort) * totelem[1], "sort_bmelem edge sblock");
 
 			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
 				if (BM_elem_flag_test(ed, flag)) {
@@ -4000,7 +4000,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 		if (totelem[2]) {
 			BLI_srandom(seed);
 			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
-			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+			sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
@@ -4018,7 +4018,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 	else if (action == SRT_REVERSE) {
 		if (totelem[0]) {
 			pb = pblock[0] = MEM_callocN(sizeof(char) * totelem[0], "sort_bmelem vert pblock");
-			sb = sblock[0] = MEM_callocN(sizeof(bmelemsort) * totelem[0], "sort_bmelem vert sblock");
+			sb = sblock[0] = MEM_callocN(sizeof(BMElemSort) * totelem[0], "sort_bmelem vert sblock");
 
 			BM_ITER_MESH_INDEX (ve, &iter, em->bm, BM_VERTS_OF_MESH, i) {
 				if (BM_elem_flag_test(ve, flag)) {
@@ -4034,7 +4034,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[1]) {
 			pb = pblock[1] = MEM_callocN(sizeof(char) * totelem[1], "sort_bmelem edge pblock");
-			sb = sblock[1] = MEM_callocN(sizeof(bmelemsort) * totelem[1], "sort_bmelem edge sblock");
+			sb = sblock[1] = MEM_callocN(sizeof(BMElemSort) * totelem[1], "sort_bmelem edge sblock");
 
 			BM_ITER_MESH_INDEX (ed, &iter, em->bm, BM_EDGES_OF_MESH, i) {
 				if (BM_elem_flag_test(ed, flag)) {
@@ -4050,7 +4050,7 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 
 		if (totelem[2]) {
 			pb = pblock[2] = MEM_callocN(sizeof(char) * totelem[2], "sort_bmelem face pblock");
-			sb = sblock[2] = MEM_callocN(sizeof(bmelemsort) * totelem[2], "sort_bmelem face sblock");
+			sb = sblock[2] = MEM_callocN(sizeof(BMElemSort) * totelem[2], "sort_bmelem face sblock");
 
 			BM_ITER_MESH_INDEX (fa, &iter, em->bm, BM_FACES_OF_MESH, i) {
 				if (BM_elem_flag_test(fa, flag)) {
@@ -4086,11 +4086,11 @@ static void sort_bmelem_flag(bContext *C, const int types, const int flag, const
 		sb = sblock[j];
 		if (pb && sb && !map[j]) {
 			char *p_blk;
-			bmelemsort *s_blk;
+			BMElemSort *s_blk;
 			tot = totelem[j];
 			aff = affected[j];
 
-			qsort(sb, aff, sizeof(bmelemsort), bmelemsort_comp);
+			qsort(sb, aff, sizeof(BMElemSort), bmelemsort_comp);
 
 			mp = map[j] = MEM_mallocN(sizeof(int) * tot, "sort_bmelem map");
 			p_blk = pb + tot - 1;
