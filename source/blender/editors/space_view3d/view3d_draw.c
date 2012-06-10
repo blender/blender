@@ -1728,17 +1728,17 @@ static void view3d_draw_bgpic_test(Scene *scene, ARegion *ar, View3D *v3d,
 typedef struct View3DAfter {
 	struct View3DAfter *next, *prev;
 	struct Base *base;
-	int flag;
+	short dflag;
 } View3DAfter;
 
 /* temp storage of Objects that need to be drawn as last */
-void add_view3d_after(ListBase *lb, Base *base, int flag)
+void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag)
 {
 	View3DAfter *v3da = MEM_callocN(sizeof(View3DAfter), "View 3d after");
 	BLI_assert((base->flag & OB_FROMDUPLI) == 0);
 	BLI_addtail(lb, v3da);
 	v3da->base = base;
-	v3da->flag = flag;
+	v3da->dflag = dflag;
 }
 
 /* disables write in zbuffer and draws it over */
@@ -1751,7 +1751,7 @@ static void view3d_draw_transp(Scene *scene, ARegion *ar, View3D *v3d)
 	
 	for (v3da = v3d->afterdraw_transp.first; v3da; v3da = next) {
 		next = v3da->next;
-		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
 		BLI_remlink(&v3d->afterdraw_transp, v3da);
 		MEM_freeN(v3da);
 	}
@@ -1772,7 +1772,7 @@ static void view3d_draw_xray(Scene *scene, ARegion *ar, View3D *v3d, int clear)
 	v3d->xray = TRUE;
 	for (v3da = v3d->afterdraw_xray.first; v3da; v3da = next) {
 		next = v3da->next;
-		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
 		BLI_remlink(&v3d->afterdraw_xray, v3da);
 		MEM_freeN(v3da);
 	}
@@ -1793,7 +1793,7 @@ static void view3d_draw_xraytransp(Scene *scene, ARegion *ar, View3D *v3d, int c
 	
 	for (v3da = v3d->afterdraw_xraytransp.first; v3da; v3da = next) {
 		next = v3da->next;
-		draw_object(scene, ar, v3d, v3da->base, v3da->flag);
+		draw_object(scene, ar, v3d, v3da->base, v3da->dflag);
 		BLI_remlink(&v3d->afterdraw_xraytransp, v3da);
 		MEM_freeN(v3da);
 	}
