@@ -1413,6 +1413,7 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 	SculptSession *ss = ob->sculpt;
 	const int max_iterations = 4;
 	const float fract = 1.0f / max_iterations;
+	PBVHType type = BLI_pbvh_type(ss->pbvh);
 	int iteration, n, count;
 	float last;
 
@@ -1421,16 +1422,25 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 	count = (int)(bstrength * max_iterations);
 	last  = max_iterations * (bstrength - count * fract);
 
+	if (type == PBVH_FACES && !ss->pmap) {
+		BLI_assert(!"sculpt smooth: pmap missing");
+		return;
+	}
+
 	for (iteration = 0; iteration <= count; ++iteration) {
+		float strength = (iteration != count) ? 1.0f : last;
+
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
-			if (ss->multires) {
-				do_multires_smooth_brush(sd, ss, nodes[n],
-				                         iteration != count ? 1.0f : last, smooth_mask);
-			}
-			else if (ss->pmap) {
-				do_mesh_smooth_brush(sd, ss, nodes[n],
-				                     iteration != count ? 1.0f : last, smooth_mask);
+			switch(type) {
+				case PBVH_GRIDS:
+					do_multires_smooth_brush(sd, ss, nodes[n], strength,
+										     smooth_mask);
+					break;
+				case PBVH_FACES:
+					do_mesh_smooth_brush(sd, ss, nodes[n], strength,
+			                             smooth_mask);
+					break;
 			}
 		}
 
@@ -3571,6 +3581,21 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
 	sd->special_rotation = cache->special_rotation;
 }
 
+/* Returns true iff any of the smoothing modes are active (currently
+   one of smooth brush, autosmooth, mask smooth, or shift-key
+   smooth) */
+static int sculpt_any_smooth_mode(const Brush *brush,
+								  StrokeCache *cache,
+								  int stroke_mode)
+{
+	return ((stroke_mode == BRUSH_STROKE_SMOOTH) ||
+			(cache && cache->alt_smooth) ||
+			(brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
+			(brush->autosmooth_factor > 0) ||
+			((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
+			 (brush->mask_tool == BRUSH_MASK_SMOOTH)));
+}
+
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 {
 	SculptSession *ss = ob->sculpt;
@@ -3579,7 +3604,8 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
 		Brush *brush = paint_brush(&sd->paint);
 
-		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob, brush->sculpt_tool == SCULPT_TOOL_SMOOTH);
+		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
+									sculpt_any_smooth_mode(brush, ss->cache, 0));
 	}
 }
 
@@ -3689,11 +3715,7 @@ static int sculpt_brush_stroke_init(bContext *C, wmOperator *op)
 	view3d_operator_needs_opengl(C);
 	sculpt_brush_init_tex(scene, sd, ss);
 
-	is_smooth |= mode == BRUSH_STROKE_SMOOTH;
-	is_smooth |= brush->sculpt_tool == SCULPT_TOOL_SMOOTH;
-	is_smooth |= ((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
-	              (brush->mask_tool == BRUSH_MASK_SMOOTH));
-
+	is_smooth = sculpt_any_smooth_mode(brush, NULL, mode);
 	sculpt_update_mesh_elements(scene, sd, ob, is_smooth);
 
 	return 1;
