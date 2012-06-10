@@ -1542,7 +1542,7 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	}
 	else if ((scopes->track_search) &&
 	         ((!scopes->track_preview) ||
-	         (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+	          (scopes->track_preview->x != width || scopes->track_preview->y != height)))
 	{
 		ImBuf *tmpibuf;
 
@@ -1686,7 +1686,7 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSE
 	int i;
 	float rad;
 	float a;
-	float dalpha = alpha * 2.0f/255.0f, calpha;
+	float dalpha = alpha * 2.0f / 255.0f, calpha;
 	
 	glEnable(GL_BLEND);
 	

@@ -31,7 +31,7 @@
 
 #include "DNA_movieclip_types.h"
 #include "DNA_scene_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"   /* SELECT */
 
 #include "MEM_guardedalloc.h"
 
@@ -57,7 +57,7 @@
 
 #include "BLF_api.h"
 
-#include "clip_intern.h"	// own include
+#include "clip_intern.h"    // own include
 
 static void draw_curve_knot(float x, float y, float xscale, float yscale, float hsize)
 {
@@ -88,7 +88,7 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 }
 
 static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack *UNUSED(track),
-			MovieTrackingMarker *UNUSED(marker), int UNUSED(coord), int scene_framenr, float val)
+                                      MovieTrackingMarker *UNUSED(marker), int UNUSED(coord), int scene_framenr, float val)
 {
 	glVertex2f(scene_framenr, val);
 }
@@ -123,7 +123,7 @@ void tracking_segment_end_cb(void *UNUSED(userdata))
 }
 
 static void tracking_segment_knot_cb(void *userdata, MovieTrackingTrack *track,
-			MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
+                                     MovieTrackingMarker *marker, int coord, int scene_framenr, float val)
 {
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } *data = userdata;
 	int sel = 0, sel_flag;
@@ -167,7 +167,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 	/* draw graph lines */
 	glEnable(GL_BLEND);
 	clip_graph_tracking_values_iterate(sc, act_track, tracking_segment_point_cb,
-                                       tracking_segment_start_cb, tracking_segment_end_cb);
+	                                   tracking_segment_start_cb, tracking_segment_end_cb);
 	glDisable(GL_BLEND);
 
 	/* selected knot handles on top of curves */

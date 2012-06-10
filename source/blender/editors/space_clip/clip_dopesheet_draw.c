@@ -30,7 +30,7 @@
  */
 
 #include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"   /* SELECT */
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -61,7 +61,7 @@
 
 #include "RNA_access.h"
 
-#include "clip_intern.h"	// own include
+#include "clip_intern.h"  /* own include */
 
 static void track_channel_color(MovieTrackingTrack *track, float default_color[3], float color[3])
 {
@@ -83,10 +83,10 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 {
 	/* coordinates for diamond shape */
 	static const float _unit_diamond_shape[4][2] = {
-		{0.0f, 1.0f},	/* top vert */
-		{1.0f, 0.0f},	/* mid-right */
-		{0.0f, -1.0f},	/* bottom vert */
-		{-1.0f, 0.0f}	/* mid-left */
+		{0.0f, 1.0f},   /* top vert */
+		{1.0f, 0.0f},   /* mid-right */
+		{0.0f, -1.0f},  /* bottom vert */
+		{-1.0f, 0.0f}   /* mid-left */
 	};
 	static GLuint displist1 = 0;
 	static GLuint displist2 = 0;
@@ -95,26 +95,26 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 	/* initialize 2 display lists for diamond shape - one empty, one filled */
 	if (displist1 == 0) {
 		displist1 = glGenLists(1);
-			glNewList(displist1, GL_COMPILE);
+		glNewList(displist1, GL_COMPILE);
 
-			glBegin(GL_LINE_LOOP);
-				glVertex2fv(_unit_diamond_shape[0]);
-				glVertex2fv(_unit_diamond_shape[1]);
-				glVertex2fv(_unit_diamond_shape[2]);
-				glVertex2fv(_unit_diamond_shape[3]);
-			glEnd();
+		glBegin(GL_LINE_LOOP);
+		glVertex2fv(_unit_diamond_shape[0]);
+		glVertex2fv(_unit_diamond_shape[1]);
+		glVertex2fv(_unit_diamond_shape[2]);
+		glVertex2fv(_unit_diamond_shape[3]);
+		glEnd();
 		glEndList();
 	}
 	if (displist2 == 0) {
 		displist2 = glGenLists(1);
-			glNewList(displist2, GL_COMPILE);
+		glNewList(displist2, GL_COMPILE);
 
-			glBegin(GL_QUADS);
-				glVertex2fv(_unit_diamond_shape[0]);
-				glVertex2fv(_unit_diamond_shape[1]);
-				glVertex2fv(_unit_diamond_shape[2]);
-				glVertex2fv(_unit_diamond_shape[3]);
-			glEnd();
+		glBegin(GL_QUADS);
+		glVertex2fv(_unit_diamond_shape[0]);
+		glVertex2fv(_unit_diamond_shape[1]);
+		glVertex2fv(_unit_diamond_shape[2]);
+		glVertex2fv(_unit_diamond_shape[3]);
+		glEnd();
 		glEndList();
 	}
 
@@ -210,7 +210,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 					if (start_frame != end_frame) {
 						glRectf(start_frame, (float) y - STRIP_HEIGHT_HALF,
-								end_frame, (float) y + STRIP_HEIGHT_HALF);
+						        end_frame, (float) y + STRIP_HEIGHT_HALF);
 						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
 						draw_keyframe_shape(end_frame, y, xscale, yscale, sel, alpha);
 					}
@@ -309,7 +309,7 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 
 			font_height = BLF_height(fontid, track->name);
 			BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD,
-			                     y - font_height / 2.0f, 0.0f);
+			             y - font_height / 2.0f, 0.0f);
 			BLF_draw(fontid, track->name, strlen(track->name));
 		}
 

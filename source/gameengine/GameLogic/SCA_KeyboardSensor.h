@@ -94,7 +94,8 @@ public:
 					   bool bAllKeys,
 					   const STR_String& targetProp,
 					   const STR_String& toggleProp,
-					   SCA_IObject* gameobj);
+					   SCA_IObject* gameobj,
+					   short int exitKey);
 	virtual ~SCA_KeyboardSensor();
 	virtual CValue* GetReplica();
 	virtual void Init();

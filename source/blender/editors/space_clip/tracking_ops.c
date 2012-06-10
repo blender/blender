@@ -35,7 +35,7 @@
 #include "DNA_constraint_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"   /* SELECT */
 #include "DNA_scene_types.h"
 
 #include "BLI_utildefines.h"
@@ -77,7 +77,7 @@
 
 #include "UI_view2d.h"
 
-#include "clip_intern.h"	// own include
+#include "clip_intern.h"    // own include
 
 static float dist_to_crns(float co[2], float pos[2], float crns[4][2]);
 
@@ -154,7 +154,7 @@ void CLIP_OT_add_marker(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MIN, FLT_MAX,
-		"Location", "Location of marker on frame", -1.0f, 1.0f);
+	                     "Location", "Location of marker on frame", -1.0f, 1.0f);
 }
 
 /********************** delete track operator *********************/
@@ -251,9 +251,9 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 
 /********************** slide marker operator *********************/
 
-#define SLIDE_ACTION_POS	0
-#define SLIDE_ACTION_SIZE	1
-#define SLIDE_ACTION_OFFSET	2
+#define SLIDE_ACTION_POS    0
+#define SLIDE_ACTION_SIZE   1
+#define SLIDE_ACTION_OFFSET 2
 
 typedef struct {
 	int area, action;
@@ -271,7 +271,7 @@ typedef struct {
 
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
                                                  MovieTrackingMarker *marker, wmEvent *event,
-												 int area, int corner, int action, int width, int height)
+                                                 int area, int corner, int action, int width, int height)
 {
 	SlideMarkerData *data = MEM_callocN(sizeof(SlideMarkerData), "slide marker data");
 	int framenr = ED_space_clip_clip_framenr(sc);
@@ -301,7 +301,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 
 			copy_v2_v2(data->soff, track->offset);
 
-			data->smarkers = MEM_callocN(sizeof(*data->smarkers)*track->markersnr, "slide marekrs");
+			data->smarkers = MEM_callocN(sizeof(*data->smarkers) * track->markersnr, "slide marekrs");
 			for (a = 0; a < track->markersnr; a++)
 				copy_v2_v2(data->smarkers[a], track->markers[a].pos);
 		}
@@ -318,7 +318,7 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	}
 
 	if ((area == TRACK_AREA_SEARCH) ||
-		(area == TRACK_AREA_PAT && action != SLIDE_ACTION_OFFSET))
+	    (area == TRACK_AREA_PAT && action != SLIDE_ACTION_OFFSET))
 	{
 		if (data->corners) {
 			memcpy(data->scorners, data->corners, sizeof(data->scorners));
@@ -647,7 +647,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 			if (ELEM(event->type, LEFTSHIFTKEY, RIGHTSHIFTKEY))
 				data->accurate = event->val == KM_PRESS;
 
-			/* no break! update area size */
+		/* no break! update area size */
 
 		case MOUSEMOVE:
 			mdelta[0] = event->mval[0] - data->mval[0];
@@ -807,7 +807,7 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
+	                     "Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
 }
 
 /********************** mouse select operator *********************/
@@ -901,8 +901,8 @@ static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
 {
 	float d1, d2, d3, d4;
 	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-	float *v1 = crns[0], *v2 = crns[1],
-	      *v3 = crns[2], *v4 = crns[3];
+	float *v1 = crns[0], *v2 = crns[1];
+	float *v3 = crns[2], *v4 = crns[3];
 
 	d1 = dist_to_line_segment_v2(p, v1, v2);
 	d2 = dist_to_line_segment_v2(p, v2, v3);
@@ -927,7 +927,7 @@ static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbas
 
 			/* distance to marker point */
 			d1 = sqrtf((co[0] - marker->pos[0] - cur->offset[0]) * (co[0] - marker->pos[0] - cur->offset[0]) +
-					   (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
+			           (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
 
 			/* distance to pattern boundbox */
 			if (sc->flag & SC_SHOW_MARKER_PATTERN)
@@ -959,7 +959,7 @@ static int mouse_select(bContext *C, float co[2], int extend)
 	MovieTracking *tracking = &clip->tracking;
 	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
-	MovieTrackingTrack *track = NULL;	/* selected marker */
+	MovieTrackingTrack *track = NULL;   /* selected marker */
 
 	track = find_nearest_track(sc, tracksbase, co);
 
@@ -1053,9 +1053,9 @@ void CLIP_OT_select(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_boolean(ot->srna, "extend", 0,
-		"Extend", "Extend selection rather than clearing the existing selection");
+	                "Extend", "Extend selection rather than clearing the existing selection");
 	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-		"Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
+	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
 }
 
 /********************** border select operator *********************/
@@ -1234,10 +1234,10 @@ static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], f
 	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
 	float x, y;
 
-	x = (marker->pos[0] - offset[0])*ellipse[0];
-	y = (marker->pos[1] - offset[1])*ellipse[1];
+	x = (marker->pos[0] - offset[0]) * ellipse[0];
+	y = (marker->pos[1] - offset[1]) * ellipse[1];
 
-	return x*x + y*y < 1.0f;
+	return x * x + y * y < 1.0f;
 }
 
 static int circle_select_exec(bContext *C, wmOperator *op)
@@ -1325,7 +1325,7 @@ static int select_all_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track = NULL;	/* selected track */
+	MovieTrackingTrack *track = NULL;   /* selected track */
 	MovieTrackingMarker *marker;
 	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	int action = RNA_enum_get(op->ptr, "action");
@@ -1477,14 +1477,14 @@ static int select_groped_exec(bContext *C, wmOperator *op)
 void CLIP_OT_select_grouped(wmOperatorType *ot)
 {
 	static EnumPropertyItem select_group_items[] = {
-			{0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
-			{1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
-			{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
-			{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
-			{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
-			{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as active track"},
-			{6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
+		{1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
+		{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
+		{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
+		{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
+		{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as active track"},
+		{6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -1506,11 +1506,11 @@ void CLIP_OT_select_grouped(wmOperatorType *ot)
 /********************** track operator *********************/
 
 typedef struct TrackMarkersJob {
-	struct MovieTrackingContext *context;	/* tracking context */
-	int sfra, efra, lastfra;	/* Start, end and recently tracked frames */
-	int backwards;				/* Backwards tracking flag */
-	MovieClip *clip;			/* Clip which is tracking */
-	float delay;				/* Delay in milliseconds to allow tracking at fixed FPS */
+	struct MovieTrackingContext *context;   /* tracking context */
+	int sfra, efra, lastfra;    /* Start, end and recently tracked frames */
+	int backwards;              /* Backwards tracking flag */
+	MovieClip *clip;            /* Clip which is tracking */
+	float delay;                /* Delay in milliseconds to allow tracking at fixed FPS */
 
 	struct Main *main;
 	struct Scene *scene;
@@ -1693,7 +1693,7 @@ static void track_markers_startjob(void *tmv, short *stop, short *do_update, flo
 				PIL_sleep_ms(tmj->delay - (float)exec_time);
 		}
 		else if (!BKE_tracking_next(tmj->context))
-				break;
+			break;
 
 		*do_update = TRUE;
 		*progress = (float)(framenr - tmj->sfra) / (tmj->efra - tmj->sfra);
@@ -1926,7 +1926,7 @@ static int solve_camera_initjob(bContext *C, SolveCameraJob *scj, wmOperator *op
 	scj->user = sc->user;
 
 	scj->context = BKE_tracking_reconstruction_context_new(tracking, object,
-			settings->keyframe1, settings->keyframe2, width, height);
+	                                                       settings->keyframe1, settings->keyframe2, width, height);
 
 	tracking->stats = MEM_callocN(sizeof(MovieTrackingStats), "solve camera stats");
 
@@ -1946,7 +1946,7 @@ static void solve_camera_startjob(void *scv, short *stop, short *do_update, floa
 	SolveCameraJob *scj = (SolveCameraJob *)scv;
 
 	BKE_tracking_solve_reconstruction(scj->context, stop, do_update, progress,
-			scj->stats_message, sizeof(scj->stats_message));
+	                                  scj->stats_message, sizeof(scj->stats_message));
 }
 
 static void solve_camera_freejob(void *scv)
@@ -1979,7 +1979,7 @@ static void solve_camera_freejob(void *scv)
 
 	/* set blender camera focal length so result would look fine there */
 	if (scene->camera) {
-		Camera *camera = (Camera*)scene->camera->data;
+		Camera *camera = (Camera *)scene->camera->data;
 		int width, height;
 
 		BKE_movieclip_get_size(clip, &scj->user, &width, &height);
@@ -2190,10 +2190,10 @@ static int clear_track_path_exec(bContext *C, wmOperator *op)
 void CLIP_OT_clear_track_path(wmOperatorType *ot)
 {
 	static EnumPropertyItem clear_path_actions[] = {
-			{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
-			{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remaining frames (after current)"},
-			{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
-			{0, NULL, 0, NULL, NULL}
+		{TRACK_CLEAR_UPTO, "UPTO", 0, "Clear up-to", "Clear path up to current frame"},
+		{TRACK_CLEAR_REMAINED, "REMAINED", 0, "Clear remained", "Clear path at remaining frames (after current)"},
+		{TRACK_CLEAR_ALL, "ALL", 0, "Clear all", "Clear the whole path"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -2249,10 +2249,10 @@ static int disable_markers_exec(bContext *C, wmOperator *op)
 void CLIP_OT_disable_markers(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-			{0, "DISABLE", 0, "Disable", "Disable selected markers"},
-			{1, "ENABLE", 0, "Enable", "Enable selected markers"},
-			{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "DISABLE", 0, "Disable", "Disable selected markers"},
+		{1, "ENABLE", 0, "Enable", "Enable selected markers"},
+		{2, "TOGGLE", 0, "Toggle", "Toggle disabled flag for selected markers"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -2498,11 +2498,11 @@ void CLIP_OT_set_origin(wmOperatorType *ot)
 /********************** set floor operator *********************/
 
 static void set_axis(Scene *scene,  Object *ob, MovieClip *clip, MovieTrackingObject *tracking_object,
-			MovieTrackingTrack *track, char axis)
+                     MovieTrackingTrack *track, char axis)
 {
 	Object *camera = get_camera_with_movieclip(scene, clip);
 	int is_camera = tracking_object->flag & TRACKING_OBJECT_CAMERA;
-	int  flip = FALSE;
+	int flip = FALSE;
 	float mat[4][4], vec[3], obmat[4][4], dvec[3];
 
 	BKE_object_to_mat4(ob, obmat);
@@ -2625,7 +2625,7 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 	float rot[4][4] = {{0.0f, 0.0f, -1.0f, 0.0f},
 	                   {0.0f, 1.0f, 0.0f, 0.0f},
 	                   {1.0f, 0.0f, 0.0f, 0.0f},
-	                   {0.0f, 0.0f, 0.0f, 1.0f}};	/* 90 degrees Y-axis rotation matrix */
+	                   {0.0f, 0.0f, 0.0f, 1.0f}};  /* 90 degrees Y-axis rotation matrix */
 
 	if (count_selected_bundles(C) != 3) {
 		BKE_report(op->reports, RPT_ERROR, "Three tracks with bundles are needed to orient the floor");
@@ -2723,9 +2723,9 @@ static int set_plane_exec(bContext *C, wmOperator *op)
 void CLIP_OT_set_plane(wmOperatorType *ot)
 {
 	static EnumPropertyItem plane_items[] = {
-			{0, "FLOOR", 0, "Floor", "Set floor plane"},
-			{1, "WALL", 0, "Wall", "Set wall plane"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "FLOOR", 0, "Floor", "Set floor plane"},
+		{1, "WALL", 0, "Wall", "Set wall plane"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -2795,9 +2795,9 @@ static int set_axis_exec(bContext *C, wmOperator *op)
 void CLIP_OT_set_axis(wmOperatorType *ot)
 {
 	static EnumPropertyItem axis_actions[] = {
-			{0, "X", 0, "X", "Align bundle align X axis"},
-			{1, "Y", 0, "Y", "Align bundle align Y axis"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "X", 0, "X", "Align bundle align X axis"},
+		{1, "Y", 0, "Y", "Align bundle align Y axis"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -2927,7 +2927,7 @@ void CLIP_OT_set_scale(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
-		"Distance", "Distance between selected tracks", -100.0f, 100.0f);
+	              "Distance", "Distance between selected tracks", -100.0f, 100.0f);
 }
 
 /********************** set solution scale operator *********************/
@@ -2983,7 +2983,7 @@ void CLIP_OT_set_solution_scale(wmOperatorType *ot)
 
 	/* properties */
 	RNA_def_float(ot->srna, "distance", 0.0f, -FLT_MAX, FLT_MAX,
-		"Distance", "Distance between selected tracks", -100.0f, 100.0f);
+	              "Distance", "Distance between selected tracks", -100.0f, 100.0f);
 }
 
 /********************** set principal center operator *********************/
@@ -3177,7 +3177,7 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 	}
 
 	BKE_tracking_detect_fast(tracking, tracksbase, ibuf, framenr, margin,
-				min_trackability, min_distance, layer, place_outside_layer);
+	                         min_trackability, min_distance, layer, place_outside_layer);
 
 	IMB_freeImBuf(ibuf);
 
@@ -3189,10 +3189,10 @@ static int detect_features_exec(bContext *C, wmOperator *op)
 void CLIP_OT_detect_features(wmOperatorType *ot)
 {
 	static EnumPropertyItem placement_items[] = {
-			{0, "FRAME",			0, "Whole Frame",			"Place markers across the whole frame"},
-			{1, "INSIDE_GPENCIL",	0, "Inside grease pencil",	"Place markers only inside areas outlined with grease pencil"},
-			{2, "OUTSIDE_GPENCIL",	0, "Outside grease pencil",	"Place markers only outside areas outlined with grease pencil"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "FRAME",            0, "Whole Frame",           "Place markers across the whole frame"},
+		{1, "INSIDE_GPENCIL",   0, "Inside grease pencil",  "Place markers only inside areas outlined with grease pencil"},
+		{2, "OUTSIDE_GPENCIL",  0, "Outside grease pencil", "Place markers only outside areas outlined with grease pencil"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -3225,7 +3225,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 	int pos = RNA_enum_get(op->ptr, "position");
 	int delta;
 
-	if (pos <= 1) {	/* jump to path */
+	if (pos <= 1) { /* jump to path */
 		track = BKE_tracking_active_track(&clip->tracking);
 
 		if (!track)
@@ -3243,7 +3243,7 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 			sc->user.framenr += delta;
 		}
 	}
-	else {	/* to to failed frame */
+	else {  /* to to failed frame */
 		if (clip->tracking.reconstruction.flag & TRACKING_RECONSTRUCTED) {
 			int a = ED_space_clip_clip_framenr(sc);
 			MovieTracking *tracking = &clip->tracking;
@@ -3284,11 +3284,11 @@ static int frame_jump_exec(bContext *C, wmOperator *op)
 void CLIP_OT_frame_jump(wmOperatorType *ot)
 {
 	static EnumPropertyItem position_items[] = {
-			{0, "PATHSTART",	0, "Path Start",		"Jump to start of current path"},
-			{1, "PATHEND",		0, "Path End",			"Jump to end of current path"},
-			{2, "FAILEDPREV",	0, "Previous Failed",	"Jump to previous failed frame"},
-			{2, "FAILNEXT",		0, "Next Failed",		"Jump to next failed frame"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "PATHSTART",    0, "Path Start",        "Jump to start of current path"},
+		{1, "PATHEND",      0, "Path End",          "Jump to end of current path"},
+		{2, "FAILEDPREV",   0, "Previous Failed",   "Jump to previous failed frame"},
+		{2, "FAILNEXT",     0, "Next Failed",       "Jump to next failed frame"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -3392,10 +3392,10 @@ static int lock_tracks_exec(bContext *C, wmOperator *op)
 void CLIP_OT_lock_tracks(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-			{0, "LOCK", 0, "Lock", "Lock selected tracks"},
-			{1, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
-			{2, "TOGGLE", 0, "Toggle", "Toggle locked flag for selected tracks"},
-			{0, NULL, 0, NULL, NULL}
+		{0, "LOCK", 0, "Lock", "Lock selected tracks"},
+		{1, "UNLOCK", 0, "Unlock", "Unlock selected tracks"},
+		{2, "TOGGLE", 0, "Toggle", "Toggle locked flag for selected tracks"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */
@@ -3660,7 +3660,7 @@ static int is_track_clean(MovieTrackingTrack *track, int frames, int del)
 	int markersnr = track->markersnr;
 
 	if (del)
-		new_markers = MEM_callocN(markersnr*sizeof(MovieTrackingMarker), "track cleaned markers");
+		new_markers = MEM_callocN(markersnr * sizeof(MovieTrackingMarker), "track cleaned markers");
 
 	for (a = 0; a < markersnr; a++) {
 		int end = 0;
@@ -3767,7 +3767,7 @@ static int clean_tracks_exec(bContext *C, wmOperator *op)
 			int ok = 1;
 
 			ok = (is_track_clean(track, frames, action == TRACKING_CLEAN_DELETE_SEGMENT)) &&
-			    (error == 0.0f || (track->flag & TRACK_HAS_BUNDLE) == 0  || track->error < error);
+			     (error == 0.0f || (track->flag & TRACK_HAS_BUNDLE) == 0  || track->error < error);
 
 			if (!ok) {
 				if (action == TRACKING_CLEAN_SELECT) {
@@ -3821,10 +3821,10 @@ static int clean_tracks_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 void CLIP_OT_clean_tracks(wmOperatorType *ot)
 {
 	static EnumPropertyItem actions_items[] = {
-			{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
-			{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
-			{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
-			{0, NULL, 0, NULL, NULL}
+		{TRACKING_CLEAN_SELECT, "SELECT", 0, "Select", "Select unclean tracks"},
+		{TRACKING_CLEAN_DELETE_TRACK, "DELETE_TRACK", 0, "Delete Track", "Delete unclean tracks"},
+		{TRACKING_CLEAN_DELETE_SEGMENT, "DELETE_SEGMENTS", 0, "Delete Segments", "Delete unclean segments of tracks"},
+		{0, NULL, 0, NULL, NULL}
 	};
 
 	/* identifiers */

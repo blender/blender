@@ -237,7 +237,7 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	PointerRNA gpd_ptr;
 	bGPDlayer *gpl;
 	uiLayout *col, *row;
-	SpaceClip *sc= CTX_wm_space_clip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 	short v3d_stroke_opts = STROKE_OPTS_NORMAL;
 	const short is_v3d = CTX_wm_view3d(C) != NULL;
 	

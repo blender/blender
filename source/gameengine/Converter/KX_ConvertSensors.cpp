@@ -302,7 +302,8 @@ void BL_ConvertSensors(struct Object* blenderobject,
 						(blenderkeybdsensor->type == SENS_ALL_KEYS),
 						blenderkeybdsensor->targetName,
 						blenderkeybdsensor->toggleName,
-						gameobj); //			blenderkeybdsensor->pad);
+						gameobj,
+						KX_KetsjiEngine::GetExitKey()); //			blenderkeybdsensor->pad);
 					
 				} 
 				

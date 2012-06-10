@@ -59,7 +59,7 @@
 #include "WM_api.h"
 #include "WM_types.h"
 
-#include "clip_intern.h"	// own include
+#include "clip_intern.h"  /* own include */
 
 /* Panels */
 
@@ -165,7 +165,7 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	block = uiLayoutAbsoluteBlock(layout);
 
-	scopes->track_preview_height = (scopes->track_preview_height <= UI_UNIT_Y)?UI_UNIT_Y : scopes->track_preview_height;
+	scopes->track_preview_height = (scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
 
 	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin,
 	         scopes->track_preview_height, scopes, 0, 0, 0, 0, "");
@@ -173,27 +173,27 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 /********************* Marker Template ************************/
 
-#define B_MARKER_POS			3
-#define B_MARKER_OFFSET			4
-#define B_MARKER_PAT_DIM		5
-#define B_MARKER_SEARCH_POS		6
-#define B_MARKER_SEARCH_DIM		7
-#define B_MARKER_FLAG			8
+#define B_MARKER_POS            3
+#define B_MARKER_OFFSET         4
+#define B_MARKER_PAT_DIM        5
+#define B_MARKER_SEARCH_POS     6
+#define B_MARKER_SEARCH_DIM     7
+#define B_MARKER_FLAG           8
 
 typedef struct {
-	int compact;								/* compact mode */
+	int compact;                                /* compact mode */
 
 	MovieClip *clip;
-	MovieClipUser *user;						/* user of clip */
+	MovieClipUser *user;                        /* user of clip */
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 
-	int framenr;								/* current frame number */
-	float marker_pos[2];						/* position of marker in pixel coords */
-	float marker_pat[2];							/* position and dimensions of marker pattern in pixel coords */
-	float track_offset[2];						/* offset of "parenting" point */
-	float marker_search_pos[2], marker_search[2];	/* position and dimensions of marker search in pixel coords */
-	int marker_flag;							/* marker's flags */
+	int framenr;                                    /* current frame number */
+	float marker_pos[2];                            /* position of marker in pixel coords */
+	float marker_pat[2];                            /* position and dimensions of marker pattern in pixel coords */
+	float track_offset[2];                          /* offset of "parenting" point */
+	float marker_search_pos[2], marker_search[2];   /* position and dimensions of marker search in pixel coords */
+	int marker_flag;                                /* marker's flags */
 } MarkerUpdateCb;
 
 static void to_pixel_space(float r[2], float a[2], int width, int height)
@@ -205,7 +205,7 @@ static void to_pixel_space(float r[2], float a[2], int width, int height)
 
 static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 {
-	MarkerUpdateCb *cb = (MarkerUpdateCb*) arg_cb;
+	MarkerUpdateCb *cb = (MarkerUpdateCb *) arg_cb;
 	MovieTrackingMarker *marker;
 
 	if (!cb->compact)
@@ -220,7 +220,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 
 static void marker_block_handler(bContext *C, void *arg_cb, int event)
 {
-	MarkerUpdateCb *cb = (MarkerUpdateCb*) arg_cb;
+	MarkerUpdateCb *cb = (MarkerUpdateCb *) arg_cb;
 	MovieTrackingMarker *marker;
 	int width, height, ok = FALSE;
 
@@ -431,7 +431,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 			tip = "Marker is enabled at current frame";
 
 		uiDefButBitI(block, OPTIONN, MARKER_DISABLED, B_MARKER_FLAG,  "Enabled", 10, 190, 145, 19, &cb->marker_flag,
-			0, 0, 0, 0, tip);
+		             0, 0, 0, 0, tip);
 
 		col = uiLayoutColumn(layout, 1);
 		uiLayoutSetActive(col, (cb->marker_flag & MARKER_DISABLED) == 0);
@@ -441,31 +441,31 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 
 		uiDefBut(block, LABEL, 0, "Position:", 0, 190, 300, 19, NULL, 0, 0, 0, 0, "");
 		uiDefButF(block, NUM, B_MARKER_POS, "X:", 10, 171, 145, 19, &cb->marker_pos[0],
-			-10*width, 10.0*width, step, digits, "X-position of marker at frame in screen coordinates");
+		          -10 * width, 10.0 * width, step, digits, "X-position of marker at frame in screen coordinates");
 		uiDefButF(block, NUM, B_MARKER_POS, "Y:", 165, 171, 145, 19, &cb->marker_pos[1],
-			-10*height, 10.0*height, step, digits, "Y-position of marker at frame in screen coordinates");
+		          -10 * height, 10.0 * height, step, digits, "Y-position of marker at frame in screen coordinates");
 
 		uiDefBut(block, LABEL, 0, "Offset:", 0, 152, 300, 19, NULL, 0, 0, 0, 0, "");
 		uiDefButF(block, NUM, B_MARKER_OFFSET, "X:", 10, 133, 145, 19, &cb->track_offset[0],
-			-10*width, 10.0*width, step, digits, "X-offset to parenting point");
+		          -10 * width, 10.0 * width, step, digits, "X-offset to parenting point");
 		uiDefButF(block, NUM, B_MARKER_OFFSET, "Y:", 165, 133, 145, 19, &cb->track_offset[1],
-			-10*height, 10.0*height, step, digits, "Y-offset to parenting point");
+		          -10 * height, 10.0 * height, step, digits, "Y-offset to parenting point");
 
 		uiDefBut(block, LABEL, 0, "Pattern Area:", 0, 114, 300, 19, NULL, 0, 0, 0, 0, "");
 		uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Width:", 10, 95, 300, 19, &cb->marker_pat[0], 3.0f,
-			10.0*width, step, digits, "Width of marker's pattern in screen coordinates");
+		          10.0 * width, step, digits, "Width of marker's pattern in screen coordinates");
 		uiDefButF(block, NUM, B_MARKER_PAT_DIM, "Height:", 10, 76, 300, 19, &cb->marker_pat[1], 3.0f,
-			10.0*height, step, digits, "Height of marker's pattern in screen coordinates");
+		          10.0 * height, step, digits, "Height of marker's pattern in screen coordinates");
 
 		uiDefBut(block, LABEL, 0, "Search Area:", 0, 57, 300, 19, NULL, 0, 0, 0, 0, "");
 		uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "X:", 10, 38, 145, 19, &cb->marker_search_pos[0],
-			-width, width, step, digits, "X-position of search at frame relative to marker's position");
+		          -width, width, step, digits, "X-position of search at frame relative to marker's position");
 		uiDefButF(block, NUM, B_MARKER_SEARCH_POS, "Y:", 165, 38, 145, 19, &cb->marker_search_pos[1],
-			-height, height, step, digits, "X-position of search at frame relative to marker's position");
+		          -height, height, step, digits, "X-position of search at frame relative to marker's position");
 		uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Width:", 10, 19, 300, 19, &cb->marker_search[0], 3.0f,
-			10.0*width, step, digits, "Width of marker's search in screen soordinates");
+		          10.0 * width, step, digits, "Width of marker's search in screen soordinates");
 		uiDefButF(block, NUM, B_MARKER_SEARCH_DIM, "Height:", 10, 0, 300, 19, &cb->marker_search[1], 3.0f,
-			10.0*height, step, digits, "Height of marker's search in screen soordinates");
+		          10.0 * height, step, digits, "Height of marker's search in screen soordinates");
 
 		uiBlockEndAlign(block);
 	}
