@@ -28,7 +28,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/nodes/intern/CMP_nodes/CMP_blur.c
+/** \file blender/nodes/composite/nodes/node_composite_bokehblur.c
  *  \ingroup cmpnodes
  */
 

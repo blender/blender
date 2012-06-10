@@ -362,7 +362,7 @@ void LightManager::device_update_background(Device *device, DeviceScene *dscene,
 		float cdf_total = cond_cdf[i * cdf_count + res - 1].y + cond_cdf[i * cdf_count + res - 1].x / res;
 
 		/* stuff the total into the brightness value for the last entry, because
-		   we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
+		 * we are going to normalize the CDFs to 0.0 to 1.0 afterwards */
 		cond_cdf[i * cdf_count + res].x = cdf_total;
 
 		if(cdf_total > 0.0f)

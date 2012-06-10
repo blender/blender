@@ -53,14 +53,14 @@ void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *in
 	float dr = output[0] + this->data->offset;
 	float dg = output[1] + this->data->offset;
 	float db = output[2] + this->data->offset;
-	output[0] /= ((dr == 0.f) ? 1.f : dr);
-	output[1] /= ((dg == 0.f) ? 1.f : dg);
-	output[2] /= ((db == 0.f) ? 1.f : db);
+	output[0] /= ((dr == 0.f) ? 1.0f : dr);
+	output[1] /= ((dg == 0.f) ? 1.0f : dg);
+	output[2] /= ((db == 0.f) ? 1.0f : db);
 	const float igm = avg->igm;
-	if (igm != 0.f) {
-		output[0] = pow((double)MAX2(output[0], 0.), (double)igm);
-		output[1] = pow((double)MAX2(output[1], 0.), (double)igm);
-		output[2] = pow((double)MAX2(output[2], 0.), (double)igm);
+	if (igm != 0.0f) {
+		output[0] = powf(MAX2(output[0], 0.0f), igm);
+		output[1] = powf(MAX2(output[1], 0.0f), igm);
+		output[2] = powf(MAX2(output[2], 0.0f), igm);
 	}
 
 	color[0] = output[0];
@@ -68,31 +68,31 @@ void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *in
 	color[2] = output[2];
 	color[3] = output[3];
 }
-void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	AvgLogLum * avg = (AvgLogLum*)data;
+	AvgLogLum *avg = (AvgLogLum *)data;
 	NodeTonemap *ntm = this->data;
 
-	const float f = exp((double)-this->data->f);
-	const float m = (ntm->m > 0.f) ? ntm->m : (0.3f + 0.7f*pow((double)avg->auto_key, 1.4));
-	const float ic = 1.f - ntm->c, ia = 1.f - ntm->a;
+	const float f = expf(-this->data->f);
+	const float m = (ntm->m > 0.0f) ? ntm->m : (0.3f + 0.7f * powf(avg->auto_key, 1.4f));
+	const float ic = 1.0f - ntm->c, ia = 1.0f - ntm->a;
 
 	float output[4];
 	this->imageReader->read(output, x, y, inputBuffers, NULL);
 
-	const float L = 0.212671f*output[0] + 0.71516f*output[1] + 0.072169f*output[2];
-	float I_l = output[0] + ic*(L - output[0]);
-	float I_g = avg->cav[0] + ic*(avg->lav - avg->cav[0]);
-	float I_a = I_l + ia*(I_g - I_l);
-	output[0] /= (output[0] + pow((double)f*I_a, (double)m));
-	I_l = output[1] + ic*(L - output[1]);
-	I_g = avg->cav[1] + ic*(avg->lav - avg->cav[1]);
-	I_a = I_l + ia*(I_g - I_l);
-	output[1] /= (output[1] + pow((double)f*I_a,(double)m));
-	I_l = output[2] + ic*(L - output[2]);
-	I_g = avg->cav[2] + ic*(avg->lav - avg->cav[2]);
-	I_a = I_l + ia*(I_g - I_l);
-	output[2] /= (output[2] + pow((double)f*I_a, (double)m));
+	const float L = 0.212671f * output[0] + 0.71516f * output[1] + 0.072169f * output[2];
+	float I_l = output[0] + ic * (L - output[0]);
+	float I_g = avg->cav[0] + ic * (avg->lav - avg->cav[0]);
+	float I_a = I_l + ia * (I_g - I_l);
+	output[0] /= (output[0] + powf(f * I_a, m));
+	I_l = output[1] + ic * (L - output[1]);
+	I_g = avg->cav[1] + ic * (avg->lav - avg->cav[1]);
+	I_a = I_l + ia * (I_g - I_l);
+	output[1] /= (output[1] + powf(f * I_a, m));
+	I_l = output[2] + ic * (L - output[2]);
+	I_g = avg->cav[2] + ic * (avg->lav - avg->cav[2]);
+	I_a = I_l + ia * (I_g - I_l);
+	output[2] /= (output[2] + powf(f * I_a, m));
 
 	color[0] = output[0];
 	color[1] = output[1];
@@ -133,20 +133,20 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 
 		float * buffer = tile->getBuffer();
 
-		float lsum = 0;
+		float lsum = 0.0f;
 		int p = tile->getWidth() * tile->getHeight();
 		float *bc = buffer;
 		float avl, maxl = -1e10f, minl = 1e10f;
-		const float sc = 1.f/(p);
+		const float sc = 1.0f / p;
 		float Lav = 0.f;
 		float cav[4] = {0.0f,0.0f,0.0f,0.0f};
 		while (p--) {
-			float L = 0.212671f*bc[0] + 0.71516f*bc[1] + 0.072169f*bc[2];
+			float L = 0.212671f * bc[0] + 0.71516f * bc[1] + 0.072169f * bc[2];
 			Lav += L;
 			cav[0] += bc[0];
 			cav[1] += bc[1];
 			cav[2] += bc[2];
-			lsum += (float)log((double)MAX2(L, 0.0) + 1e-5);
+			lsum += logf(MAX2(L, 0.0f) + 1e-5f);
 			maxl = (L > maxl) ? L : maxl;
 			minl = (L < minl) ? L : minl;
 			bc+=4;
@@ -155,7 +155,7 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 		data->cav[0] = cav[0]*sc;
 		data->cav[1] = cav[1]*sc;
 		data->cav[2] = cav[2]*sc;
-		maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5f); avl = lsum*sc;
+		maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5); avl = lsum * sc;
 		data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
 		float al = exp((double)avl);
 		data->al = (al == 0.f) ? 0.f : (this->data->key / al);

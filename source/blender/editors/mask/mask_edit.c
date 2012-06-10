@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/mask/mask_ops.c
+/** \file blender/editors/mask/mask_edit.c
  *  \ingroup edmask
  */
 

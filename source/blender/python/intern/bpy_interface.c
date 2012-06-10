@@ -537,7 +537,12 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 			val = 0.0;
 
 			for (i = 0; i < PyTuple_GET_SIZE(retval); i++) {
-				val += PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+				const double val_item = PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+				if (val_item == -1 && PyErr_Occurred()) {
+					val = -1;
+					break;
+				}
+				val += val_item;
 			}
 		}
 		else {

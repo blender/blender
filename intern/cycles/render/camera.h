@@ -78,7 +78,7 @@ public:
 	bool use_motion;
 
 	/* computed camera parameters */
-    Transform screentoworld;
+	Transform screentoworld;
 	Transform rastertoworld;
 	Transform ndctoworld;
 	Transform rastertocamera;

@@ -83,8 +83,8 @@ void BlenderSession::create_session()
 	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	/* reset status/progress */
-	last_status= "";
-	last_progress= -1.0f;
+	last_status = "";
+	last_progress = -1.0f;
 
 	/* create scene */
 	scene = new Scene(scene_params);
@@ -292,7 +292,8 @@ void BlenderSession::synchronize()
 	SessionParams session_params = BlenderSync::get_session_params(b_userpref, b_scene, background);
 
 	if(session->params.modified(session_params) ||
-	   scene->params.modified(scene_params)) {
+	   scene->params.modified(scene_params))
+	{
 		free_session();
 		create_session();
 		session->start();
@@ -304,7 +305,7 @@ void BlenderSession::synchronize()
 	session->set_pause(BlenderSync::get_session_pause(b_scene, background));
 
 	/* copy recalc flags, outside of mutex so we can decide to do the real
-	   synchronization at a later time to not block on running updates */
+	 * synchronization at a later time to not block on running updates */
 	sync->sync_recalc();
 
 	/* try to acquire mutex. if we don't want to or can't, come back later */
@@ -334,7 +335,7 @@ void BlenderSession::synchronize()
 bool BlenderSession::draw(int w, int h)
 {
 	/* before drawing, we verify camera and viewport size changes, because
-	   we do not get update callbacks for those, we must detect them here */
+	 * we do not get update callbacks for those, we must detect them here */
 	if(session->ready_to_reset()) {
 		bool reset = false;
 
@@ -429,11 +430,11 @@ void BlenderSession::tag_redraw()
 {
 	if(background) {
 		/* update stats and progress, only for background here because
-		   in 3d view we do it in draw for thread safety reasons */
+		 * in 3d view we do it in draw for thread safety reasons */
 		update_status_progress();
 
 		/* offline render, redraw if timeout passed */
-		if(time_dt() - last_redraw_time > 1.0f) {
+		if(time_dt() - last_redraw_time > 1.0) {
 			write_render_result();
 			engine_tag_redraw((RenderEngine*)b_engine.ptr.data);
 			last_redraw_time = time_dt();

@@ -83,25 +83,27 @@ void draw_gpencil_view3d(struct Scene *scene, struct View3D *v3d, struct ARegion
 void gpencil_panel_standard(const struct bContext *C, struct Panel *pa);
 
 /* ----------- Grease-Pencil AnimEdit API ------------------ */
-short gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene,
-                            short (*gpf_cb)(struct bGPDframe *, struct Scene *));
-void gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
+short ED_gplayer_frames_looper(struct bGPDlayer *gpl, struct Scene *scene,
+                               short (*gpf_cb)(struct bGPDframe *, struct Scene *));
+void ED_gplayer_make_cfra_list(struct bGPDlayer *gpl, ListBase *elems, short onlysel);
 
-short is_gplayer_frame_selected(struct bGPDlayer *gpl);
-void set_gplayer_frame_selection(struct bGPDlayer *gpl, short mode);
-void select_gpencil_frames(struct bGPDlayer *gpl, short select_mode);
-void select_gpencil_frame(struct bGPDlayer *gpl, int selx, short select_mode);
-void borderselect_gplayer_frames(struct bGPDlayer *gpl, float min, float max, short select_mode);
+short ED_gplayer_frame_select_check(struct bGPDlayer *gpl);
+void  ED_gplayer_frame_select_set(struct bGPDlayer *gpl, short mode);
+void  ED_gplayer_frames_select_border(struct bGPDlayer *gpl, float min, float max, short select_mode);
+void  ED_gpencil_select_frames(struct bGPDlayer *gpl, short select_mode);
+void  ED_gpencil_select_frame(struct bGPDlayer *gpl, int selx, short select_mode);
 
-void delete_gplayer_frames(struct bGPDlayer *gpl);
-void duplicate_gplayer_frames(struct bGPDlayer *gpl);
+void  ED_gplayer_frames_delete(struct bGPDlayer *gpl);
+void  ED_gplayer_frames_duplicate(struct bGPDlayer *gpl);
 
+#if 0
 void free_gpcopybuf(void);
 void copy_gpdata(void);
 void paste_gpdata(void);
 
 void snap_gplayer_frames(struct bGPDlayer *gpl, short mode);
 void mirror_gplayer_frames(struct bGPDlayer *gpl, short mode);
+#endif
 
 /* ------------ Grease-Pencil Undo System ------------------ */
 int ED_gpencil_session_active(void);

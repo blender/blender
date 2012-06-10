@@ -34,39 +34,39 @@ __device_noinline float3 svm_magic(float3 p, int n, float distortion)
 		y *= distortion;
 
 		if(n > 1) {
-			x= cosf(x-y-z);
+			x = cosf(x-y-z);
 			x *= distortion;
 
 			if(n > 2) {
-				z= sinf(-x-y-z);
+				z = sinf(-x-y-z);
 				z *= distortion;
 
 				if(n > 3) {
-					x= -cosf(-x+y-z);
+					x = -cosf(-x+y-z);
 					x *= distortion;
 
 					if(n > 4) {
-						y= -sinf(-x+y+z);
+						y = -sinf(-x+y+z);
 						y *= distortion;
 
 						if(n > 5) {
-							y= -cosf(-x+y+z);
+							y = -cosf(-x+y+z);
 							y *= distortion;
 
 							if(n > 6) {
-								x= cosf(x+y+z);
+								x = cosf(x+y+z);
 								x *= distortion;
 
 								if(n > 7) {
-									z= sinf(x+y-z);
+									z = sinf(x+y-z);
 									z *= distortion;
 
 									if(n > 8) {
-										x= -cosf(-x-y+z);
+										x = -cosf(-x-y+z);
 										x *= distortion;
 
 										if(n > 9) {
-											y= -sinf(x-y+z);
+											y = -sinf(x-y+z);
 											y *= distortion;
 										}
 									}

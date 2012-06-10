@@ -167,7 +167,7 @@ string OSLCompiler::compatible_name(const char *name)
 bool OSLCompiler::node_skip_input(ShaderNode *node, ShaderInput *input)
 {
 	/* exception for output node, only one input is actually used
-	   depending on the current shader type */
+	 * depending on the current shader type */
 
 	if(node->name == ustring("output")) {
 		if(strcmp(input->name, "Surface") == 0 && current_type != SHADER_TYPE_SURFACE)

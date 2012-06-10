@@ -2961,12 +2961,12 @@ static void rna_generate_header_cpp(BlenderRNA *brna, FILE *f)
 
 		fprintf(f, "class %s : public %s {\n", srna->identifier, (srna->base) ? srna->base->identifier : "Pointer");
 		fprintf(f, "public:\n");
-		fprintf(f, "\t%s(const PointerRNA& ptr) :\n\t\t%s(ptr)", srna->identifier,
+		fprintf(f, "\t%s(const PointerRNA& ptr_arg) :\n\t\t%s(ptr_arg)", srna->identifier,
 		        (srna->base) ? srna->base->identifier : "Pointer");
 		for (dp = ds->cont.properties.first; dp; dp = dp->next)
 			if (!(dp->prop->flag & (PROP_IDPROPERTY | PROP_BUILTIN)))
 				if (dp->prop->type == PROP_COLLECTION)
-					fprintf(f, ",\n\t\t%s(ptr)", dp->prop->identifier);
+					fprintf(f, ",\n\t\t%s(ptr_arg)", dp->prop->identifier);
 		fprintf(f, "\n\t\t{}\n\n");
 
 		for (dp = ds->cont.properties.first; dp; dp = dp->next)

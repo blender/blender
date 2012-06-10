@@ -334,7 +334,7 @@ __device_inline float2 as_float2(const float4 a)
 
 __device_inline void print_float2(const char *label, const float2& a)
 {
-	printf("%s: %.8f %.8f\n", label, a.x, a.y);
+	printf("%s: %.8f %.8f\n", label, (double)a.x, (double)a.y);
 }
 
 #endif
@@ -532,7 +532,7 @@ __device_inline float4 float3_to_float4(const float3 a)
 
 __device_inline void print_float3(const char *label, const float3& a)
 {
-	printf("%s: %.8f %.8f %.8f\n", label, a.x, a.y, a.z);
+	printf("%s: %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z);
 }
 
 __device_inline float3 rcp(const float3& a)
@@ -844,7 +844,7 @@ __device_inline float4 reduce_add(const float4& a)
 
 __device_inline void print_float4(const char *label, const float4& a)
 {
-	printf("%s: %.8f %.8f %.8f %.8f\n", label, a.x, a.y, a.z, a.w);
+	printf("%s: %.8f %.8f %.8f %.8f\n", label, (double)a.x, (double)a.y, (double)a.z, (double)a.w);
 }
 
 #endif

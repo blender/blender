@@ -208,7 +208,7 @@ __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 		motion_post = triangle_attribute_float3(kg, sd, ATTR_ELEMENT_VERTEX, offset_post, NULL, NULL);
 
 	/* object motion. note that depending on the mesh having motion vectors, this
-	   transformation was set match the world/object space of motion_pre/post */
+	 * transformation was set match the world/object space of motion_pre/post */
 	Transform tfm;
 	
 	tfm = object_fetch_transform(kg, sd->object, TIME_INVALID, OBJECT_TRANSFORM_MOTION_PRE);
@@ -220,7 +220,7 @@ __device float4 triangle_motion_vector(KernelGlobals *kg, ShaderData *sd)
 	float3 P;
 
 	/* camera motion, for perspective/orthographic motion.pre/post will be a
-	   world-to-raster matrix, for panorama it's world-to-camera */
+	 * world-to-raster matrix, for panorama it's world-to-camera */
 	if (kernel_data.cam.type != CAMERA_PANORAMA) {
 		tfm = kernel_data.cam.worldtoraster;
 		P = transform_perspective(&tfm, sd->P);

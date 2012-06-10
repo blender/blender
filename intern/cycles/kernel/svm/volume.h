@@ -19,7 +19,7 @@
 CCL_NAMESPACE_BEGIN
 
 /* note: the interfaces here are just as an example, need to figure
-   out the right functions and parameters to use */
+ * out the right functions and parameters to use */
 
 /* ISOTROPIC VOLUME CLOSURE */
 

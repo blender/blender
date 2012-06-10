@@ -2092,7 +2092,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		ima->tpageflag |= IMA_TPAGE_REFRESH;
 
 	ima->lastframe = frame;
-	BKE_image_user_file_path(iuser, ima, frame, name);
+	BKE_image_user_file_path(iuser, ima, name);
 	
 	flag = IB_rect | IB_multilayer;
 	if (ima->flag & IMA_DO_PREMUL)
@@ -2204,7 +2204,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	if (ima->anim == NULL) {
 		char str[FILE_MAX];
 		
-		BKE_image_user_file_path(iuser, ima, frame, str);
+		BKE_image_user_file_path(iuser, ima, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
 		ima->anim = openanim(str, IB_rect, 0);
@@ -2267,7 +2267,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			flag |= IB_premul;
 			
 		/* get the right string */
-		BKE_image_user_file_path(iuser, ima, cfra, str);
+		BKE_image_user_frame_calc(iuser, cfra, 0);
+		BKE_image_user_file_path(iuser, ima, str);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);
@@ -2741,21 +2742,14 @@ void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 	}
 }
 
-void BKE_image_user_file_path(ImageUser *iuser, Image *ima, int cfra, char *filepath)
+void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
 {
 	BLI_strncpy(filepath, ima->name, FILE_MAX);
 
 	if (ima->source == IMA_SRC_SEQUENCE) {
 		char head[FILE_MAX], tail[FILE_MAX];
 		unsigned short numlen;
-		int frame;
-
-		if(iuser) {
-			BKE_image_user_frame_calc(iuser, cfra, 0);
-			frame = iuser->framenr;
-		}
-		else {
-		}
+		int frame = iuser->framenr;
 
 		BLI_stringdec(filepath, head, tail, &numlen);
 		BLI_stringenc(filepath, head, tail, numlen, frame);

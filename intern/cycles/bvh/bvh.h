@@ -46,7 +46,7 @@ class Progress;
 
 struct PackedBVH {
 	/* BVH nodes storage, one node is 4x int4, and contains two bounding boxes,
-	   and child, triangle or object indexes dependening on the node type */
+	 * and child, triangle or object indexes dependening on the node type */
 	array<int4> nodes; 
 	/* object index to BVH node index mapping for instances */
 	array<int> object_node; 
@@ -55,12 +55,12 @@ struct PackedBVH {
 	/* visibility visibilitys for primitives */
 	array<uint> prim_visibility;
 	/* mapping from BVH primitive index to true primitive index, as primitives
-	   may be duplicated due to spatial splits. -1 for instances. */
+	 * may be duplicated due to spatial splits. -1 for instances. */
 	array<int> prim_index;
 	/* mapping from BVH primitive index, to the object id of that primitive. */
 	array<int> prim_object;
 	/* quick array to lookup if a node is a leaf, not used for traversal, only
-	   for instance BVH merging  */
+	 * for instance BVH merging  */
 	array<int> is_leaf;
 
 	/* index of the root node. */

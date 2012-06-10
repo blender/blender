@@ -1442,18 +1442,16 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 static void node_composit_buts_image(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	bNode *node = ptr->data;
-	PointerRNA imaptr;
-	PropertyRNA *prop;
+	PointerRNA imaptr, iuserptr;
 	
 	uiTemplateID(layout, C, ptr, "image", NULL, "IMAGE_OT_open", NULL);
 	
 	if (!node->id) return;
 	
-	prop = RNA_struct_find_property(ptr, "image");
-	if (!prop || RNA_property_type(prop) != PROP_POINTER) return;
-	imaptr = RNA_property_pointer_get(ptr, prop);
+	imaptr = RNA_pointer_get(ptr, "image");
+	RNA_pointer_create((ID *)ptr->id.data, &RNA_ImageUser, node->storage, &iuserptr);
 	
-	node_buts_image_user(layout, C, &imaptr, ptr);
+	node_buts_image_user(layout, C, &imaptr, &iuserptr);
 }
 
 static void node_composit_buts_renderlayers(uiLayout *layout, bContext *C, PointerRNA *ptr)

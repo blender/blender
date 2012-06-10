@@ -52,7 +52,7 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 	}
 
 	if(!is_leaf())
-		for(int i=0;i<num_children();i++)
+		for(int i = 0; i < num_children(); i++)
 			cnt += get_child(i)->getSubtreeSize(stat);
 
 	return cnt;
@@ -60,7 +60,7 @@ int BVHNode::getSubtreeSize(BVH_STAT stat) const
 
 void BVHNode::deleteSubtree()
 {
-	for(int i=0;i<num_children();i++)
+	for(int i = 0; i < num_children(); i++)
 		if(get_child(i))
 			get_child(i)->deleteSubtree();
 
@@ -71,7 +71,7 @@ float BVHNode::computeSubtreeSAHCost(const BVHParams& p, float probability) cons
 {
 	float SAH = probability * p.cost(num_children(), num_triangles());
 
-	for(int i=0;i<num_children();i++) {
+	for(int i = 0; i < num_children(); i++) {
 		BVHNode *child = get_child(i);
 		SAH += child->computeSubtreeSAHCost(p, probability * child->m_bounds.safe_area()/m_bounds.safe_area());
 	}

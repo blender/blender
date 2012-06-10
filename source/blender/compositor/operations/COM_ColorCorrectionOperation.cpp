@@ -62,21 +62,21 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	float levelShadows = 0.0;
 	float levelMidtones = 0.0;
 	float levelHighlights = 0.0;
-#define MARGIN 0.10
-#define MARGIN_DIV (0.5/MARGIN)
-	if (level < this->data->startmidtones-MARGIN) {
+#define MARGIN 0.10f
+#define MARGIN_DIV (0.5f / MARGIN)
+	if (level < this->data->startmidtones - MARGIN) {
 		levelShadows = 1.0f;
 	}
-	else if (level < this->data->startmidtones+MARGIN) {
-		levelMidtones = ((level-this->data->startmidtones)*MARGIN_DIV)+0.5;
-		levelShadows = 1.0 - levelMidtones;
+	else if (level < this->data->startmidtones + MARGIN) {
+		levelMidtones = ((level - this->data->startmidtones) * MARGIN_DIV) + 0.5f;
+		levelShadows = 1.0f - levelMidtones;
 	}
-	else if (level < this->data->endmidtones-MARGIN) {
+	else if (level < this->data->endmidtones - MARGIN) {
 		levelMidtones = 1.0f;
 	}
-	else if (level < this->data->endmidtones+MARGIN) {
-		levelHighlights = ((level-this->data->endmidtones)*MARGIN_DIV)+0.5;
-		levelMidtones = 1.0 - levelHighlights;
+	else if (level < this->data->endmidtones + MARGIN) {
+		levelHighlights = ((level - this->data->endmidtones) * MARGIN_DIV) + 0.5f;
+		levelMidtones = 1.0f - levelHighlights;
 	}
 	else {
 		levelHighlights = 1.0f;
@@ -93,15 +93,15 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	g = inputImageColor[1];
 	b = inputImageColor[2];
 	
-	float invgamma = 1.0f/gamma;
-	float luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+	float invgamma = 1.0f / gamma;
+	float luma = 0.2126f * r + 0.7152f * g + 0.0722f * b;
 	r = (luma + saturation * (r - luma));
 	g = (luma + saturation * (g - luma));
 	b = (luma + saturation * (b - luma));
 	
-	r = 0.5+((r-0.5)*contrast);
-	g = 0.5+((g-0.5)*contrast);
-	b = 0.5+((b-0.5)*contrast);
+	r = 0.5f + ((r - 0.5f) * contrast);
+	g = 0.5f + ((g - 0.5f) * contrast);
+	b = 0.5f + ((b - 0.5f) * contrast);
 	
 	r = powf(r*gain+lift, invgamma);
 	g = powf(g*gain+lift, invgamma);

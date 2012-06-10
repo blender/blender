@@ -44,6 +44,7 @@
 #include "ED_object.h"
 #include "WM_types.h"
 
+/* please keep the names in sync with constraint.c */
 EnumPropertyItem constraint_type_items[] = {
 	{0, "", 0, N_("Motion Tracking"), ""},
 	{CONSTRAINT_TYPE_CAMERASOLVER, "CAMERA_SOLVER", ICON_CONSTRAINT_DATA, "Camera Solver", ""},

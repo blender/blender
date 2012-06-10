@@ -20,7 +20,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/bmesh/operators/bmesh_mesh_conv.c
+/** \file blender/bmesh/operators/bmo_mesh_conv.c
  *  \ingroup bmesh
  *
  * This file contains functions

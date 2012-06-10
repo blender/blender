@@ -35,7 +35,7 @@ class Device;
 struct float4;
 
 /* Buffer Parameters
-   Size of render buffer and how it fits in the full image (border render). */
+ * Size of render buffer and how it fits in the full image (border render). */
 
 class BufferParams {
 public:
@@ -98,8 +98,8 @@ public:
 	/* buffer parameters */
 	BufferParams params;
 	/* dimensions for how much of the buffer is actually ready for display.
-	   with progressive render we can be using only a subset of the buffer.
-	   if these are zero, it means nothing can be drawn yet */
+	 * with progressive render we can be using only a subset of the buffer.
+	 * if these are zero, it means nothing can be drawn yet */
 	int draw_width, draw_height;
 	/* draw alpha channel? */
 	bool transparent;

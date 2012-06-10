@@ -109,13 +109,13 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	if (test) {
 		for (ale = anim_data.first; ale; ale = ale->next) {
 			if (ale->type == ANIMTYPE_GPLAYER) {
-				if (is_gplayer_frame_selected(ale->data)) {
+				if (ED_gplayer_frame_select_check(ale->data)) {
 					sel = SELECT_SUBTRACT;
 					break;
 				}
 			}
 			else if (ale->type == ANIMTYPE_MASKLAYER) {
-				if (is_masklayer_frame_selected(ale->data)) {
+				if (ED_masklayer_frame_select_check(ale->data)) {
 					sel = SELECT_SUBTRACT;
 					break;
 				}
@@ -135,9 +135,9 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	/* Now set the flags */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER)
-			set_gplayer_frame_selection(ale->data, sel);
+			ED_gplayer_frame_select_set(ale->data, sel);
 		else if (ale->type == ANIMTYPE_MASKLAYER)
-			set_masklayer_frame_selection(ale->data, sel);
+			ED_masklayer_frame_select_set(ale->data, sel);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL); 
 	}
@@ -259,9 +259,9 @@ static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short s
 		{
 			/* loop over data selecting */
 			if (ale->type == ANIMTYPE_GPLAYER)
-				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+				ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			else if (ale->type == ANIMTYPE_MASKLAYER)
-				borderselect_masklayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+				ED_masklayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			else
 				ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 		}
@@ -410,10 +410,10 @@ static void markers_selectkeys_between(bAnimContext *ac)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+			ED_gplayer_frames_select_border(ale->data, min, max, SELECT_ADD);
 		}
 		else if (ale->type == ANIMTYPE_MASKLAYER) {
-			borderselect_masklayer_frames(ale->data, min, max, SELECT_ADD);
+			ED_masklayer_frames_select_border(ale->data, min, max, SELECT_ADD);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
@@ -447,7 +447,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale = anim_data.first; ale; ale = ale->next)
-					gplayer_make_cfra_list(ale->data, &ked.list, 1);
+					ED_gplayer_make_cfra_list(ale->data, &ked.list, 1);
 			}
 			else {
 				filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
@@ -503,9 +503,9 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 			
 			/* select elements with frame number matching cfraelem */
 			if (ale->type == ANIMTYPE_GPLAYER)
-				select_gpencil_frame(ale->data, ce->cfra, SELECT_ADD);
+				ED_gpencil_select_frame(ale->data, ce->cfra, SELECT_ADD);
 			else if (ale->type == ANIMTYPE_MASKLAYER)
-				select_mask_frame(ale->data, ce->cfra, SELECT_ADD);
+				ED_mask_select_frame(ale->data, ce->cfra, SELECT_ADD);
 			else
 				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
@@ -788,9 +788,9 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER)	
-			borderselect_gplayer_frames(ale->data, ked.f1, ked.f2, select_mode);
+			ED_gplayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
 		else if (ale->type == ANIMTYPE_MASKLAYER)
-			borderselect_masklayer_frames(ale->data, ked.f1, ked.f2, select_mode);
+			ED_masklayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
@@ -927,9 +927,9 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	
 	/* select the nominated keyframe on the given frame */
 	if (ale->type == ANIMTYPE_GPLAYER)
-		select_gpencil_frame(ale->data, selx, select_mode);
+		ED_gpencil_select_frame(ale->data, selx, select_mode);
 	else if (ale->type == ANIMTYPE_MASKLAYER)
-		select_mask_frame(ale->data, selx, select_mode);
+		ED_mask_select_frame(ale->data, selx, select_mode);
 	else
 		ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 }
@@ -971,9 +971,9 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 		
 		/* select elements with frame number matching cfra */
 		if (ale->type == ANIMTYPE_GPLAYER)
-			select_gpencil_frame(ale->key_data, selx, select_mode);
+			ED_gpencil_select_frame(ale->key_data, selx, select_mode);
 		else if (ale->type == ANIMTYPE_MASKLAYER)
-			select_mask_frame(ale->key_data, selx, select_mode);
+			ED_mask_select_frame(ale->key_data, selx, select_mode);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}

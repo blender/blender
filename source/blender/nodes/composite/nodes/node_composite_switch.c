@@ -27,7 +27,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/nodes/intern/CMP_nodes/CMP_switch.c
+/** \file blender/nodes/composite/nodes/node_composite_switch.c
  *  \ingroup cmpnodes
  */
 

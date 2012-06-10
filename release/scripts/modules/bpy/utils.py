@@ -345,8 +345,7 @@ def preset_paths(subdir):
             dirs.append(directory)
 
     # Find addons preset paths
-    import addon_utils
-    for path in addon_utils.paths():
+    for path in _addon_utils.paths():
         directory = _os.path.join(path, "presets", subdir)
         if _os.path.isdir(directory):
             dirs.append(directory)

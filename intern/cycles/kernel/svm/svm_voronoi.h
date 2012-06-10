@@ -38,7 +38,7 @@ __device_noinline float4 svm_voronoi(NodeVoronoiColoring coloring, float scale, 
 	}
 	else {
 		color = cellnoise_color(pa[0]);
-        fac= average(color);
+		fac = average(color);
 	}
 
 	return make_float4(color.x, color.y, color.z, fac);

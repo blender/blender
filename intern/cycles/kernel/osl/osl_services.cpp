@@ -65,7 +65,7 @@ void OSLRenderServices::thread_init(KernelGlobals *kernel_globals_)
 bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time)
 {
 	/* this is only used for shader and object space, we don't really have
-	   a concept of shader space, so we just use object space for both. */
+	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
 		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
@@ -86,7 +86,7 @@ bool OSLRenderServices::get_matrix(OSL::Matrix44 &result, OSL::TransformationPtr
 bool OSLRenderServices::get_inverse_matrix(OSL::Matrix44 &result, OSL::TransformationPtr xform, float time)
 {
 	/* this is only used for shader and object space, we don't really have
-	   a concept of shader space, so we just use object space for both. */
+	 * a concept of shader space, so we just use object space for both. */
 	if (xform) {
 		KernelGlobals *kg = kernel_globals;
 		const ShaderData *sd = (const ShaderData *)xform;
@@ -305,11 +305,11 @@ void *OSLRenderServices::get_pointcloud_attr_query(ustring *attr_names,
 	AttrQuery &query = m_attr_queries.back();
 
 	/* make space for what we need. the only reason to use
-	   std::vector is to skip the delete */
+	 * std::vector is to skip the delete */
 	query.attr_names.resize(nattrs);
 	query.attr_partio_types.resize(nattrs);
 	/* capacity will keep the length of the smallest array passed
-	   to the query. Just to prevent buffer overruns */
+	 * to the query. Just to prevent buffer overruns */
 	query.capacity = -1;
 
 	for (int i = 0; i < nattrs; ++i) {
@@ -323,7 +323,7 @@ void *OSLRenderServices::get_pointcloud_attr_query(ustring *attr_names,
 			query.capacity = min(query.capacity, (int)attr_types[i].numelements());
 
 		/* convert the OSL (OIIO) type to the equivalent Partio type so
-		   we can do a fast check at query time. */
+		 * we can do a fast check at query time. */
 		if (element_type == TypeDesc::TypeFloat) {
 			query.attr_partio_types[i] = Partio::FLOAT;
 		}
@@ -359,7 +359,7 @@ int OSLRenderServices::pointcloud(ustring filename, const OSL::Vec3 &center, flo
                                   int max_points, void *_attr_query, void **attr_outdata)
 {
 	/* todo: this code has never been tested, and most likely does not
-	   work. it's based on the example code in OSL */
+	 * work. it's based on the example code in OSL */
 
 #ifdef WITH_PARTIO
 	/* query Partio for this pointcloud lookup using cached attr_query */
@@ -374,7 +374,7 @@ int OSLRenderServices::pointcloud(ustring filename, const OSL::Vec3 &center, flo
 	Partio::ParticlesData *cloud = get_pointcloud(filename);
 
 	/* now we have to look up all the attributes in the file. we can't do this
-	   before hand cause we never know what we are going to load. */
+	 * before hand cause we never know what we are going to load. */
 	int nattrs = attr_query->attr_names.size();
 	Partio::ParticleAttribute *attr = (Partio::ParticleAttribute *)alloca(sizeof(Partio::ParticleAttribute) * nattrs);
 
@@ -414,8 +414,8 @@ int OSLRenderServices::pointcloud(ustring filename, const OSL::Vec3 &center, flo
 		}
 		else {
 			/* note we make a single call per attribute, we don't loop over the
-			   points. Partio does it, so it is there that we have to care about
-			   performance */
+			 * points. Partio does it, so it is there that we have to care about
+			 * performance */
 			cloud->data(attr[j], count, &indices[0], true, attr_outdata[j]);
 		}
 	}

@@ -380,7 +380,7 @@ typedef struct bRotLimitConstraint {
 	short		flag2;
 } bRotLimitConstraint;
 
-/* Limit Scaling Constraint */
+/* Limit Scale Constraint */
 typedef struct bSizeLimitConstraint {
 	float 		xmin, xmax;
 	float		ymin, ymax;

@@ -255,7 +255,7 @@ Transform transform_inverse(const Transform& a);
 __device_inline bool transform_uniform_scale(const Transform& tfm, float& scale)
 {
 	/* the epsilon here is quite arbitrary, but this function is only used for
-	   surface area and bump, where we except it to not be so sensitive */
+	 * surface area and bump, where we except it to not be so sensitive */
 	Transform ttfm = transform_transpose(tfm);
 	float eps = 1e-6f; 
 	

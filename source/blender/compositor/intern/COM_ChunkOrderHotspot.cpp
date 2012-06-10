@@ -35,6 +35,6 @@ double ChunkOrderHotspot::determineDistance(int x, int y)
 	int dx = x-this->x;
 	int dy = y-this->y;
 	double result = sqrt((double)(dx*dx+dy*dy));
-	result += this->addition;
+	result += (double)this->addition;
 	return result;
 }

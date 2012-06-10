@@ -49,24 +49,26 @@ int ED_mask_layer_shape_auto_key_all(struct Mask *mask, const int frame);
 int ED_mask_layer_shape_auto_key_select(struct Mask *mask, const int frame);
 
 /* ----------- Mask AnimEdit API ------------------ */
-short masklayer_frames_looper(struct MaskLayer *masklay, struct Scene *scene,
-                              short (*masklay_shape_cb)(struct MaskLayerShape *, struct Scene *));
-void masklayer_make_cfra_list(struct MaskLayer *masklay, ListBase *elems, short onlysel);
+short ED_masklayer_frames_looper(struct MaskLayer *masklay, struct Scene *scene,
+                                 short (*masklay_shape_cb)(struct MaskLayerShape *, struct Scene *));
+void ED_masklayer_make_cfra_list(struct MaskLayer *masklay, ListBase *elems, short onlysel);
 
-short is_masklayer_frame_selected(struct MaskLayer *masklay);
-void set_masklayer_frame_selection(struct MaskLayer *masklay, short mode);
-void select_mask_frames(struct MaskLayer *masklay, short select_mode);
-void select_mask_frame(struct MaskLayer *masklay, int selx, short select_mode);
-void borderselect_masklayer_frames(struct MaskLayer *masklay, float min, float max, short select_mode);
+short ED_masklayer_frame_select_check(struct MaskLayer *masklay);
+void  ED_masklayer_frame_select_set(struct MaskLayer *masklay, short mode);
+void  ED_masklayer_frames_select_border(struct MaskLayer *masklay, float min, float max, short select_mode);
+void  ED_mask_select_frames(struct MaskLayer *masklay, short select_mode);
+void  ED_mask_select_frame(struct MaskLayer *masklay, int selx, short select_mode);
 
-void delete_masklayer_frames(struct MaskLayer *masklay);
-void duplicate_masklayer_frames(struct MaskLayer *masklay);
+void ED_masklayer_frames_delete(struct MaskLayer *masklay);
+void ED_masklayer_frames_duplicate(struct MaskLayer *masklay);
 
-//void free_gpcopybuf(void);
-//void copy_gpdata(void);
-//void paste_gpdata(void);
+#if 0
+void free_gpcopybuf(void);
+void copy_gpdata(void);
+void paste_gpdata(void);
 
-void snap_masklayer_frames(struct MaskLayer *masklay, short mode);
-void mirror_masklayer_frames(struct MaskLayer *masklay, short mode);
+ void snap_masklayer_frames(struct MaskLayer *masklay, short mode);
+ void mirror_masklayer_frames(struct MaskLayer *masklay, short mode);
+#endif
 
 #endif /* __ED_MASK_H__ */

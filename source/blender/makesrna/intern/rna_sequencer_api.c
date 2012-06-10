@@ -339,7 +339,6 @@ static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *f
 
 static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
-	int i;
 	Scene *scene = (Scene *)id;
 	StripElem *new_seq, *se;
 
@@ -361,12 +360,12 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 	new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
 	seq->len--;
 
-	/* TODO - simply use 2 memcpy calls */
-	for (i = 0, se = seq->strip->stripdata; i < seq->len; i++, se++) {
-		if (i == index)
-			se++;
-		BLI_strncpy(new_seq[i].name, se->name, sizeof(se->name));
-	}
+	se = seq->strip->stripdata;
+	if (index > 0)
+		memcpy(new_seq, se, sizeof(StripElem) * index);
+
+	if (index < seq->len)
+		memcpy(&new_seq[index], &se[index + 1], sizeof(StripElem) * (seq->len - index));
 
 	MEM_freeN(seq->strip->stripdata);
 	seq->strip->stripdata = new_seq;

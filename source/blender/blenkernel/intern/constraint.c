@@ -1460,7 +1460,7 @@ static bConstraintTypeInfo CTI_ROTLIMIT = {
 	rotlimit_evaluate /* evaluate */
 };
 
-/* --------- Limit Scaling --------- */
+/* --------- Limit Scale --------- */
 
 
 static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *UNUSED(targets))
@@ -1507,7 +1507,7 @@ static void sizelimit_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *U
 static bConstraintTypeInfo CTI_SIZELIMIT = {
 	CONSTRAINT_TYPE_SIZELIMIT, /* type */
 	sizeof(bSizeLimitConstraint), /* size */
-	"Limit Scaling", /* name */
+	"Limit Scale", /* name */
 	"bSizeLimitConstraint", /* struct name */
 	NULL, /* free data */
 	NULL, /* id looper */
@@ -1721,7 +1721,7 @@ static bConstraintTypeInfo CTI_ROTLIKE = {
 	rotlike_evaluate /* evaluate */
 };
 
-/* ---------- Copy Scaling ---------- */
+/* ---------- Copy Scale ---------- */
 
 static void sizelike_new_data(void *cdata)
 {
@@ -3352,7 +3352,7 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 static bConstraintTypeInfo CTI_TRANSFORM = {
 	CONSTRAINT_TYPE_TRANSFORM, /* type */
 	sizeof(bTransformConstraint), /* size */
-	"Transform", /* name */
+	"Transformation", /* name */
 	"bTransformConstraint", /* struct name */
 	NULL, /* free data */
 	transform_id_looper, /* id looper */
@@ -4213,10 +4213,10 @@ static void constraints_init_typeinfo(void)
 	constraintsTypeInfo[4] =  &CTI_FOLLOWPATH;       /* Follow-Path Constraint */
 	constraintsTypeInfo[5] =  &CTI_ROTLIMIT;         /* Limit Rotation Constraint */
 	constraintsTypeInfo[6] =  &CTI_LOCLIMIT;         /* Limit Location Constraint */
-	constraintsTypeInfo[7] =  &CTI_SIZELIMIT;        /* Limit Scaling Constraint */
+	constraintsTypeInfo[7] =  &CTI_SIZELIMIT;        /* Limit Scale Constraint */
 	constraintsTypeInfo[8] =  &CTI_ROTLIKE;          /* Copy Rotation Constraint */
 	constraintsTypeInfo[9] =  &CTI_LOCLIKE;          /* Copy Location Constraint */
-	constraintsTypeInfo[10] = &CTI_SIZELIKE;         /* Copy Scaling Constraint */
+	constraintsTypeInfo[10] = &CTI_SIZELIKE;         /* Copy Scale Constraint */
 	constraintsTypeInfo[11] = &CTI_PYTHON;           /* Python/Script Constraint */
 	constraintsTypeInfo[12] = &CTI_ACTION;           /* Action Constraint */
 	constraintsTypeInfo[13] = &CTI_LOCKTRACK;        /* Locked-Track Constraint */

@@ -141,7 +141,7 @@ static void blender_camera_from_object(BlenderCamera *bcam, BL::Object b_ob)
 		bcam->lens = b_camera.lens();
 
 		/* allow f/stop number to change aperture_size but still
-		   give manual control over aperture radius */
+		 * give manual control over aperture radius */
 		int aperture_type = RNA_enum_get(&ccamera, "aperture_type");
 
 		if(aperture_type == 1) {
@@ -179,8 +179,8 @@ static Transform blender_camera_matrix(const Transform& tfm, CameraType type)
 
 	if(type == CAMERA_PANORAMA) {
 		/* make it so environment camera needs to be pointed in the direction
-		   of the positive x-axis to match an environment texture, this way
-		   it is looking at the center of the texture */
+		 * of the positive x-axis to match an environment texture, this way
+		 * it is looking at the center of the texture */
 		result = tfm *
 			make_transform( 0.0f, -1.0f, 0.0f, 0.0f,
 			                0.0f,  0.0f, 1.0f, 0.0f,
@@ -222,14 +222,14 @@ static void blender_camera_viewplane(BlenderCamera *bcam, int width, int height,
 	}
 
 	if(horizontal_fit) {
-		*aspectratio= xratio/yratio;
-		xaspect= *aspectratio;
-		yaspect= 1.0f;
+		*aspectratio = xratio/yratio;
+		xaspect = *aspectratio;
+		yaspect = 1.0f;
 	}
 	else {
-		*aspectratio= yratio/xratio;
-		xaspect= 1.0f;
-		yaspect= *aspectratio;
+		*aspectratio = yratio/xratio;
+		xaspect = 1.0f;
+		yaspect = *aspectratio;
 	}
 
 	/* modify aspect for orthographic scale */
@@ -297,7 +297,7 @@ static void blender_camera_sync(Camera *cam, BlenderCamera *bcam, int width, int
 	cam->fisheye_lens = bcam->fisheye_lens;
 
 	/* perspective */
-	cam->fov = 2.0f*atan((0.5f*sensor_size)/bcam->lens/aspectratio);
+	cam->fov = 2.0f * atanf((0.5f * sensor_size) / bcam->lens / aspectratio);
 	cam->focaldistance = bcam->focaldistance;
 	cam->aperturesize = bcam->aperturesize;
 	cam->blades = bcam->apertureblades;
@@ -405,7 +405,7 @@ static void blender_camera_from_view(BlenderCamera *bcam, BL::Scene b_scene, BL:
 	}
 	else if(b_rv3d.view_perspective() == BL::RegionView3D::view_perspective_ORTHO) {
 		/* orthographic view */
-		bcam->farclip *= 0.5;
+		bcam->farclip *= 0.5f;
 		bcam->nearclip = -bcam->farclip;
 
 		bcam->type = CAMERA_ORTHOGRAPHIC;

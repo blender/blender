@@ -248,8 +248,8 @@ __device float3 svm_mix_soft(float t, float3 col1, float3 col2)
 {
 	float tm = 1.0f - t;
 
-	float3 one= make_float3(1.0f, 1.0f, 1.0f);
-	float3 scr= one - (one - col2)*(one - col1);
+	float3 one = make_float3(1.0f, 1.0f, 1.0f);
+	float3 scr = one - (one - col2)*(one - col1);
 
 	return tm*col1 + t*((one - col1)*col2*col1 + col1*scr);
 }
@@ -259,19 +259,19 @@ __device float3 svm_mix_linear(float t, float3 col1, float3 col2)
 	float3 outcol = col1;
 
 	if(col2.x > 0.5f)
-		outcol.x= col1.x + t*(2.0f*(col2.x - 0.5f));
+		outcol.x = col1.x + t*(2.0f*(col2.x - 0.5f));
 	else
-		outcol.x= col1.x + t*(2.0f*(col2.x) - 1.0f);
+		outcol.x = col1.x + t*(2.0f*(col2.x) - 1.0f);
 
 	if(col2.y > 0.5f)
-		outcol.y= col1.y + t*(2.0f*(col2.y - 0.5f));
+		outcol.y = col1.y + t*(2.0f*(col2.y - 0.5f));
 	else
-		outcol.y= col1.y + t*(2.0f*(col2.y) - 1.0f);
+		outcol.y = col1.y + t*(2.0f*(col2.y) - 1.0f);
 
 	if(col2.z > 0.5f)
-		outcol.z= col1.z + t*(2.0f*(col2.z - 0.5f));
+		outcol.z = col1.z + t*(2.0f*(col2.z - 0.5f));
 	else
-		outcol.z= col1.z + t*(2.0f*(col2.z) - 1.0f);
+		outcol.z = col1.z + t*(2.0f*(col2.z) - 1.0f);
 	
 	return outcol;
 }

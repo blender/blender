@@ -4498,13 +4498,18 @@ static int edbm_bevel_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	BevelData *opdata;
 	float mlen[2];
 
-	if (!edbm_bevel_init(C, op, TRUE))
+	if (!edbm_bevel_init(C, op, TRUE)) {
 		return OPERATOR_CANCELLED;
+	}
 
-	/* initialize mouse values */
 	opdata = op->customdata;
 
-	calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter);
+	/* initialize mouse values */
+	if (!calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter)) {
+		/* in this case the tool will likely do nothing,
+		 * ideally this will never happen and should be checked for above */
+		opdata->mcenter[0] = opdata->mcenter[1] = 0;
+	}
 	mlen[0] = opdata->mcenter[0] - event->mval[0];
 	mlen[1] = opdata->mcenter[1] - event->mval[1];
 	opdata->initial_length = len_v2(mlen);
@@ -4795,8 +4800,12 @@ static int edbm_inset_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 	opdata = op->customdata;
 
-	calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter);
 	/* initialize mouse values */
+	if (!calculateTransformCenter(C, V3D_CENTROID, NULL, opdata->mcenter)) {
+		/* in this case the tool will likely do nothing,
+		 * ideally this will never happen and should be checked for above */
+		opdata->mcenter[0] = opdata->mcenter[1] = 0;
+	}
 	mlen[0] = opdata->mcenter[0] - event->mval[0];
 	mlen[1] = opdata->mcenter[1] - event->mval[1];
 	opdata->initial_length = len_v2(mlen);

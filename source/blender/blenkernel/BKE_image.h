@@ -157,7 +157,7 @@ void BKE_image_assign_ibuf(struct Image *ima, struct ImBuf *ibuf);
 void BKE_image_user_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
 void BKE_image_user_check_frame_calc(struct ImageUser *iuser, int cfra, int fieldnr);
 int  BKE_image_user_frame_get(const struct ImageUser *iuser, int cfra, int fieldnr);
-void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, int cfra, char *path); 
+void BKE_image_user_file_path(struct ImageUser *iuser, struct Image *ima, char *path); 
 
 /* sets index offset for multilayer files */
 struct RenderPass *BKE_image_multilayer_index(struct RenderResult *rr, struct ImageUser *iuser);
