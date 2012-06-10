@@ -53,13 +53,17 @@ struct wmWindowManager;
 #define BL_NEAR_CLIP 0.001
 
 /* drawing flags: */
-#define DRAW_PICKING    1
-#define DRAW_CONSTCOLOR 2
-#define DRAW_SCENESET   4
+enum {
+	DRAW_PICKING     = (1 << 0),
+	DRAW_CONSTCOLOR  = (1 << 1),
+	DRAW_SCENESET    = (1 << 2)
+};
 
 /* draw_mesh_fancy/draw_mesh_textured draw_flags */
-#define DRAW_MODIFIERS_PREVIEW 1
-#define DRAW_FACE_SELECT 2
+enum {
+	DRAW_MODIFIERS_PREVIEW  = (1 << 0),
+	DRAW_FACE_SELECT        = (1 << 1)
+};
 
 /* view3d_header.c */
 void VIEW3D_OT_layers(struct wmOperatorType *ot);
@@ -112,24 +116,27 @@ void draw_motion_paths_cleanup(View3D *v3d);
 
 
 /* drawobject.c */
-void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, int flag);
-int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, int dt);
-void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, int dt, int outline);
+void draw_object(Scene *scene, struct ARegion *ar, View3D *v3d, Base *base, const short dflag);
+int draw_glsl_material(Scene *scene, struct Object *ob, View3D *v3d, const short dt);
+void draw_object_instance(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob, const short dt, int outline);
 void draw_object_backbufsel(Scene *scene, View3D *v3d, RegionView3D *rv3d, struct Object *ob);
 void drawaxes(float size, char drawtype);
 
 void view3d_cached_text_draw_begin(void);
 void view3d_cached_text_draw_add(const float co[3], const char *str, short xoffs, short flag, const unsigned char col[4]);
 void view3d_cached_text_draw_end(View3D * v3d, ARegion * ar, int depth_write, float mat[][4]);
-#define V3D_CACHE_TEXT_ZBUF         (1 << 0)
-#define V3D_CACHE_TEXT_WORLDSPACE   (1 << 1)
-#define V3D_CACHE_TEXT_ASCII        (1 << 2)
-#define V3D_CACHE_TEXT_GLOBALSPACE  (1 << 3)
-#define V3D_CACHE_TEXT_LOCALCLIP    (1 << 4)
+
+enum {
+	V3D_CACHE_TEXT_ZBUF         = (1 << 0),
+	V3D_CACHE_TEXT_WORLDSPACE   = (1 << 1),
+	V3D_CACHE_TEXT_ASCII        = (1 << 2),
+	V3D_CACHE_TEXT_GLOBALSPACE  = (1 << 3),
+	V3D_CACHE_TEXT_LOCALCLIP    = (1 << 4)
+};
 
 /* drawarmature.c */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
-                  int dt, int flag, const unsigned char ob_wire_col[4],
+                  const short dt, const short dflag, const unsigned char ob_wire_col[4],
                   const short is_outline);
 
 /* drawmesh.c */
@@ -142,7 +149,7 @@ void draw_mesh_paint(View3D *v3d, RegionView3D *rv3d,
 void view3d_main_area_draw(const struct bContext *C, struct ARegion *ar);
 void draw_depth(Scene *scene, struct ARegion *ar, View3D *v3d, int (*func)(void *));
 void draw_depth_gpencil(Scene *scene, ARegion *ar, View3D *v3d);
-void add_view3d_after(ListBase *lb, Base *base, int flag);
+void ED_view3d_after_add(ListBase *lb, Base *base, const short dflag);
 
 void circf(float x, float y, float rad);
 void circ(float x, float y, float rad);

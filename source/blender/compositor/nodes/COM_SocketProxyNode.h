@@ -37,10 +37,4 @@ public:
 	virtual bool isProxyNode() const { return true; }
 };
 
-class OutputSocketProxyNode: public SocketProxyNode {
-public:
-	OutputSocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput): SocketProxyNode(editorNode, editorInput, editorOutput) {}
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
-};
-
 #endif

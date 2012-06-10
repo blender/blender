@@ -557,7 +557,7 @@ static void draw_bone_solid_octahedral(void)
 /* *************** Armature drawing, bones ******************* */
 
 
-static void draw_bone_points(int dt, int armflag, unsigned int boneflag, int id)
+static void draw_bone_points(const short dt, int armflag, unsigned int boneflag, int id)
 {
 	/*	Draw root point if we are not connected */
 	if ((boneflag & BONE_CONNECTED) == 0) {
@@ -862,7 +862,7 @@ static void draw_sphere_bone_wire(float smat[][4], float imat[][4],
 }
 
 /* does wire only for outline selecting */
-static void draw_sphere_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+static void draw_sphere_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                              bPoseChannel *pchan, EditBone *ebone)
 {
 	GLUquadricObj *qobj;
@@ -1100,7 +1100,7 @@ static void draw_line_bone(int armflag, int boneflag, short constflag, unsigned 
 	glPopMatrix();
 }
 
-static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float length, float zwidth)
+static void draw_b_bone_boxes(const short dt, bPoseChannel *pchan, float xwidth, float length, float zwidth)
 {
 	int segments = 0;
 	
@@ -1128,7 +1128,7 @@ static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float l
 	}
 }
 
-static void draw_b_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+static void draw_b_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                         bPoseChannel *pchan, EditBone *ebone)
 {
 	float xwidth, length, zwidth;
@@ -1242,7 +1242,7 @@ static void draw_wire_bone_segments(bPoseChannel *pchan, Mat4 *bbones, float len
 	}
 }
 
-static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id,
+static void draw_wire_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id,
                            bPoseChannel *pchan, EditBone *ebone)
 {
 	Mat4 *bbones = NULL;
@@ -1293,7 +1293,7 @@ static void draw_wire_bone(int dt, int armflag, int boneflag, short constflag, u
 	draw_wire_bone_segments(pchan, bbones, length, segments);
 }
 
-static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsigned int id, float length)
+static void draw_bone(const short dt, int armflag, int boneflag, short constflag, unsigned int id, float length)
 {
 	
 	/* Draw a 3d octahedral bone, we use normalized space based on length,
@@ -1364,7 +1364,7 @@ static void draw_bone(int dt, int armflag, int boneflag, short constflag, unsign
 }
 
 static void draw_custom_bone(Scene *scene, View3D *v3d, RegionView3D *rv3d, Object *ob,
-                             int dt, int armflag, int boneflag, unsigned int id, float length)
+                             const short dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	if (ob == NULL) return;
 	
@@ -1657,7 +1657,7 @@ static void bone_matrix_translate_y(float mat[][4], float y)
 
 /* assumes object is Armature with pose */
 static void draw_pose_bones(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
-                            int dt, const unsigned char ob_wire_col[4],
+                            const short dt, const unsigned char ob_wire_col[4],
                             const short do_const_color, const short is_outline)
 {
 	RegionView3D *rv3d = ar->regiondata;
@@ -2082,7 +2082,7 @@ static void get_matrix_editbone(EditBone *eBone, float bmat[][4])
 	add_v3_v3(bmat[3], eBone->head);
 }
 
-static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, int dt)
+static void draw_ebones(View3D *v3d, ARegion *ar, Object *ob, const short dt)
 {
 	RegionView3D *rv3d = ar->regiondata;
 	EditBone *eBone;
@@ -2559,7 +2559,7 @@ static void draw_ghost_poses(Scene *scene, View3D *v3d, ARegion *ar, Base *base)
 /* called from drawobject.c, return 1 if nothing was drawn
  * (ob_wire_col == NULL) when drawing ghost */
 int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
-                  int dt, int flag, const unsigned char ob_wire_col[4],
+                  const short dt, const short dflag, const unsigned char ob_wire_col[4],
                   const short is_outline)
 {
 	Object *ob = base->object;
@@ -2613,7 +2613,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 						if (arm->ghostep)
 							draw_ghost_poses(scene, v3d, ar, base);
 					}
-					if ((flag & DRAW_SCENESET) == 0) {
+					if ((dflag & DRAW_SCENESET) == 0) {
 						if (ob == OBACT)
 							arm->flag |= ARM_POSEMODE;
 						else if (OBACT && (OBACT->mode & OB_MODE_WEIGHT_PAINT)) {
@@ -2624,7 +2624,7 @@ int draw_armature(Scene *scene, View3D *v3d, ARegion *ar, Base *base,
 					}
 				}	
 			}
-			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (flag & DRAW_CONSTCOLOR), is_outline);
+			draw_pose_bones(scene, v3d, ar, base, dt, ob_wire_col, (dflag & DRAW_CONSTCOLOR), is_outline);
 			arm->flag &= ~ARM_POSEMODE; 
 			
 			if (ob->mode & OB_MODE_POSE)
