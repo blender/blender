@@ -54,7 +54,8 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 									   bool bAllKeys,
 									   const STR_String& targetProp,
 									   const STR_String& toggleProp,
-									   SCA_IObject* gameobj)
+									   SCA_IObject* gameobj,
+									   short int exitKey)
 	:SCA_ISensor(gameobj,keybdmgr),
 	 m_hotkey(hotkey),
 	 m_qual(qual),
@@ -63,7 +64,7 @@ SCA_KeyboardSensor::SCA_KeyboardSensor(SCA_KeyboardManager* keybdmgr,
 	 m_targetprop(targetProp),
 	 m_toggleprop(toggleProp)
 {
-	if (hotkey == SCA_IInputDevice::KX_ESCKEY)
+	if (hotkey == exitKey)
 		keybdmgr->GetInputDevice()->HookEscape();
 //	SetDrawColor(0xff0000ff);
 	Init();
