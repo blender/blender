@@ -261,6 +261,7 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
 
         props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
         props.backwards = True
+        props.sequence = False
         props = row.operator("clip.track_markers", text="",
                              icon='PLAY_REVERSE')
         props.backwards = True
@@ -268,7 +269,9 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         props = row.operator("clip.track_markers", text="", icon='PLAY')
         props.backwards = False
         props.sequence = True
-        row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props = row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props.backwards = False
+        props.sequence = False
 
         col = layout.column(align=True)
         props = col.operator("clip.clear_track_path", text="Clear After")
