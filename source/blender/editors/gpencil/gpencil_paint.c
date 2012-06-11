@@ -1329,6 +1329,10 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 		if (p->paintmode == GP_PAINTMODE_ERASER) {
 			/* turn off radial brush cursor */
 			gpencil_draw_toggle_eraser_cursor(C, p, FALSE);
+			
+			/* if successful, store the new eraser size to be used again next time */
+			if (p->status == GP_STATUS_DONE)
+				U.gp_eraser = p->radius;
 		}
 		
 		/* cleanup */
@@ -1804,8 +1808,37 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 				estate = OPERATOR_RUNNING_MODAL;
 			}
 		}
+		/* eraser size */
+		else if ((p->paintmode == GP_PAINTMODE_ERASER) &&
+		         ELEM4(event->type, WHEELUPMOUSE, WHEELDOWNMOUSE, PADPLUSKEY, PADMINUS))
+		{
+			/* just resize the brush (local version)
+			 * TODO: fix the hardcoded size jumps (set to make a visible difference) and hardcoded keys
+			 */
+			//printf("\t\tGP - resize eraser\n");
+			switch (event->type) {
+				case WHEELUPMOUSE: /* larger */
+				case PADPLUSKEY:
+					p->radius += 5;
+					break;
+					
+				case WHEELDOWNMOUSE: /* smaller */
+				case PADMINUS:
+					p->radius -= 5;
+					
+					if (p->radius < 0) 
+						p->radius = 0;
+					break;
+			}
+			
+			/* force refresh */
+			ED_region_tag_redraw(p->ar); /* just active area for now, since doing whole screen is too slow */
+			
+			/* event handled, so just tag as running modal */
+			estate = OPERATOR_RUNNING_MODAL;
+		}
 		/* there shouldn't be any other events, but just in case there are, let's swallow them 
-		 * (i.e. to prevent problems with with undo)
+		 * (i.e. to prevent problems with undo)
 		 */
 		else {
 			/* swallow event to save ourselves trouble */
