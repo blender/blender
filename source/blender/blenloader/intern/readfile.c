@@ -5551,6 +5551,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					if (saction->ads.filter_grp)
 						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+						
+					
+					/* force recalc of list of channels, potentially updating the active action 
+					 * while we're at it (as it can only be updated that way) [#28962] 
+					 */
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 				}
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
