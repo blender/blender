@@ -3912,6 +3912,27 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
 
+	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SELECT);
+	RNA_def_property_ui_text(prop, "Select", "");
+
+	prop = RNA_def_property(srna, "show_options", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_OPTIONS);
+	RNA_def_property_ui_text(prop, "Show Options", "");
+
+	prop = RNA_def_property(srna, "show_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_PREVIEW);
+	RNA_def_property_ui_text(prop, "Show Preview", "");
+
+	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_HIDDEN);
+	RNA_def_property_ui_text(prop, "Hide", "");
+
+	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_MUTED);
+	RNA_def_property_ui_text(prop, "Mute", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
+
 	prop = RNA_def_property(srna, "show_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_TEXTURE);
 	RNA_def_property_ui_text(prop, "Show Texture", "Draw node in viewport textured draw mode");
