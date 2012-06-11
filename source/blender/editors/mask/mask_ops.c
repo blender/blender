@@ -758,11 +758,10 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 
-				free_slide_point_data(op->customdata);
-
 				WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 				DAG_id_tag_update(&data->mask->id, 0);
 
+				free_slide_point_data(op->customdata); /* keep this last! */
 				return OPERATOR_FINISHED;
 			}
 
@@ -771,11 +770,10 @@ static int slide_point_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case ESCKEY:
 			cancel_slide_point(op->customdata);
 
-			free_slide_point_data(op->customdata);
-
 			WM_event_add_notifier(C, NC_MASK | NA_EDITED, data->mask);
 			DAG_id_tag_update(&data->mask->id, 0);
 
+			free_slide_point_data(op->customdata); /* keep this last! */
 			return OPERATOR_CANCELLED;
 	}
 
