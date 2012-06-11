@@ -44,37 +44,38 @@ void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output)
 		}
 	}
 	
-	NodeOperation * operation;
+	NodeOperation *operation;
 	switch (output->getDataType()) {
-	case COM_DT_VALUE:
-	{
-		SetValueOperation *valueoperation = new SetValueOperation();
-		valueoperation->setValue(0.0f);
-		operation = valueoperation;
-		break;
-	}
-	case COM_DT_VECTOR:
-	{
-		SetVectorOperation *vectoroperation = new SetVectorOperation();
-		vectoroperation->setX(0.0f);
-		vectoroperation->setY(0.0f);
-		vectoroperation->setW(0.0f);
-		operation = vectoroperation;
-		break;
-	}
-	case COM_DT_COLOR:
-	{
-		SetColorOperation *coloroperation = new SetColorOperation();
-		coloroperation->setChannel1(0.0f);
-		coloroperation->setChannel2(0.0f);
-		coloroperation->setChannel3(0.0f);
-		coloroperation->setChannel4(0.0f);
-		operation = coloroperation;
-		break;
-	}
-		/* quiet warnings */
-	case COM_DT_UNKNOWN:
-		break;
+		case COM_DT_VALUE:
+		{
+			SetValueOperation *valueoperation = new SetValueOperation();
+			valueoperation->setValue(0.0f);
+			operation = valueoperation;
+			break;
+		}
+		case COM_DT_VECTOR:
+		{
+			SetVectorOperation *vectoroperation = new SetVectorOperation();
+			vectoroperation->setX(0.0f);
+			vectoroperation->setY(0.0f);
+			vectoroperation->setW(0.0f);
+			operation = vectoroperation;
+			break;
+		}
+		case COM_DT_COLOR:
+		{
+			SetColorOperation *coloroperation = new SetColorOperation();
+			coloroperation->setChannel1(0.0f);
+			coloroperation->setChannel2(0.0f);
+			coloroperation->setChannel3(0.0f);
+			coloroperation->setChannel4(0.0f);
+			operation = coloroperation;
+			break;
+		}
+			/* quiet warnings */
+		case COM_DT_UNKNOWN:
+			operation = NULL;
+			break;
 	}
 
 	if (operation) {

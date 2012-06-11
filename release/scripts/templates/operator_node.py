@@ -1,5 +1,6 @@
 import bpy
 
+
 def main(operator, context):
     space = context.space_data
     node_tree = space.node_tree
@@ -14,7 +15,7 @@ def main(operator, context):
         return
 
     node_other, = node_selected
-    
+
     # now we have 2 nodes to operate on
     if not node_active.inputs:
         operator.report({'ERROR'}, "Active node has no inputs")

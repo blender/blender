@@ -61,7 +61,7 @@ if $DO_OUT_HTML ; then
 
 	# annoying bug in sphinx makes it very slow unless we do this. should report.
 	cd $SPHINXBASE
-	sphinx-build -n -b html sphinx-in sphinx-out
+	sphinx-build -b html sphinx-in sphinx-out
 
 	# XXX, saves space on upload and zip, should move HTML outside
 	# and zip up there, for now this is OK
