@@ -3278,6 +3278,15 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		switch (data->from) {
 			case 2: /* scale */
 				mat4_to_size(dvec, ct->matrix);
+				
+				if (is_negative_m4(ct->matrix)) {
+					/* Bugfix [#27886] 
+					 * We can't be sure which axis/axes are negative, though we know that something is negative.
+					 * Assume we don't care about negativity of separate axes. <--- This is a limitation that
+					 * riggers will have to live with for now.
+					 */
+					negate_v3(dvec);
+				}
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
