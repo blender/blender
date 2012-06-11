@@ -41,7 +41,7 @@
 
 #include "COM_SetAlphaOperation.h"
 
-// #define USE_GAUSSIAN_BLUR
+#define USE_GAUSSIAN_BLUR
 
 KeyingNode::KeyingNode(bNode *editorNode): Node(editorNode)
 {
