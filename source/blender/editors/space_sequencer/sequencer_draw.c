@@ -58,6 +58,7 @@
 #include "BIF_glutil.h"
 
 #include "ED_anim_api.h"
+#include "ED_gpencil.h"
 #include "ED_markers.h"
 #include "ED_mask.h"
 #include "ED_types.h"
@@ -976,16 +977,16 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	
 	/* draw grease-pencil (image aligned) */
 //	if (sseq->flag & SEQ_DRAW_GPENCIL)
-// XXX		draw_gpencil_2dimage(sa, ibuf);
+	draw_gpencil_2dimage(C);
 
 	IMB_freeImBuf(ibuf);
 	
-	/* draw grease-pencil (screen aligned) */
-//	if (sseq->flag & SEQ_DRAW_GPENCIL)
-// XXX		draw_gpencil_view2d(sa, 0);
-	
 	/* ortho at pixel level */
 	UI_view2d_view_restore(C);
+	
+	/* draw grease-pencil (screen aligned) */
+//	if (sseq->flag & SEQ_DRAW_GPENCIL)
+	draw_gpencil_view2d(C, 0);
 
 	//if (sc->mode == SC_MODE_MASKEDIT) {
 	if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {

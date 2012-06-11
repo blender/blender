@@ -1970,10 +1970,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
+#if 0 // XXX: unused - old stuff which may not be restored
 	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DISPGP);
 	RNA_def_property_ui_text(prop, "Use Grease Pencil",
 	                         "Display and edit the grease pencil freehand annotations overlay");
+#endif
 
 	/* update */
 	prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
@@ -2050,7 +2052,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Mode", "View mode to use for displaying sequencer output");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 		
-	/* flag's */
+	/* flags */
 	prop = RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_NO_DRAW_CFRANUM);
 	RNA_def_property_ui_text(prop, "Show Frame Number Indicator",
@@ -2077,22 +2079,9 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Safe Margin", "Draw title safe margins in preview");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 	
-	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Use Grease Pencil",
-	                         "Display and edit the grease pencil freehand annotations overlay");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-	
 	prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_DRAWFRAMES);
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-
-	/* grease pencil */
-	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
-	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 	
 	prop = RNA_def_property(srna, "display_channel", PROP_INT, PROP_NONE);
@@ -2113,6 +2102,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, proxy_render_size_items);
 	RNA_def_property_ui_text(prop, "Proxy render size",
 	                         "Draw preview using full resolution or different proxy resolutions");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+	
+	/* grease pencil */
+	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 

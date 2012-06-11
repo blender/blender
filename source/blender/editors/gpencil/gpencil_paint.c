@@ -79,15 +79,6 @@ typedef struct tGPsdata {
 	rctf *subrect;      /* for using the camera rect within the 3d view */
 	rctf subrect_data;
 	
-	
-#if 0 // XXX review this 2d image stuff...
-	ImBuf *ibuf;        /* needed for GP_STROKE_2DIMAGE */
-	struct IBufViewSettings {
-		int offsx, offsy;           /* offsets */
-		int sizex, sizey;           /* dimensions to use as scale-factor */
-	} im2d_settings;    /* needed for GP_STROKE_2DIMAGE */
-#endif
-	
 	PointerRNA ownerPtr; /* pointer to owner of gp-datablock */
 	bGPdata *gpd;       /* gp-datablock layer comes from */
 	bGPDlayer *gpl;     /* layer we're working on */
@@ -269,7 +260,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			int mval_prj[2];
 			float rvec[3], dvec[3];
 			float mval_f[2];
-
+			
 			/* Current method just converts each point in screen-coordinates to
 			 * 3D-coordinates using the 3D-cursor as reference. In general, this
 			 * works OK, but it could of course be improved.
@@ -283,7 +274,7 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 			
 			/* method taken from editview.c - mouse_cursor() */
 			project_int_noclip(p->ar, rvec, mval_prj);
-
+			
 			VECSUB2D(mval_f, mval_prj, mval);
 			ED_view3d_win_to_delta(p->ar, mval_f, dvec);
 			sub_v3_v3v3(out, rvec, dvec);
@@ -295,25 +286,6 @@ static void gp_stroke_convertcoords(tGPsdata *p, const int mval[2], float out[3]
 		UI_view2d_region_to_view(p->v2d, mval[0], mval[1], &out[0], &out[1]);
 		mul_v3_m4v3(out, p->imat, out);
 	}
-	
-#if 0
-	/* 2d - on image 'canvas' (assume that p->v2d is set) */
-	else if (gpd->sbuffer_sflag & GP_STROKE_2DIMAGE) {
-		int sizex, sizey, offsx, offsy;
-		
-		/* get stored settings 
-		 *	- assume that these have been set already (there are checks that set sane 'defaults' just in case)
-		 */
-		sizex = p->im2d_settings.sizex;
-		sizey = p->im2d_settings.sizey;
-		offsx = p->im2d_settings.offsx;
-		offsy = p->im2d_settings.offsy;
-		
-		/* calculate new points */
-		out[0] = (float)(mval[0] - offsx) / (float)sizex;
-		out[1] = (float)(mval[1] - offsy) / (float)sizey;
-	}
-#endif
 	
 	/* 2d - relative to screen (viewport area) */
 	else {
@@ -393,11 +365,11 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* get pointer to destination point */
 		pt = (tGPspoint *)(gpd->sbuffer);
-
+		
 		/* store settings */
 		copy_v2_v2_int(&pt->x, mval);
 		pt->pressure = pressure;
-
+		
 		/* if there's stroke for this poly line session add (or replace last) point
 		 * to stroke. This allows to draw lines more interactively (see new segment
 		 * during mouse slide, i.e.) 
@@ -405,36 +377,36 @@ static short gp_stroke_addpoint(tGPsdata *p, const int mval[2], float pressure)
 		if (gp_stroke_added_check(p)) {
 			bGPDstroke *gps = p->gpf->strokes.last;
 			bGPDspoint *pts;
-
+			
 			/* first time point is adding to temporary buffer -- need to allocate new point in stroke */
 			if (gpd->sbuffer_size == 0) {
 				gps->points = MEM_reallocN(gps->points, sizeof(bGPDspoint) * (gps->totpoints + 1));
 				gps->totpoints++;
 			}
-
+			
 			pts = &gps->points[gps->totpoints - 1];
-
+			
 			/* special case for poly lines: normally, depth is needed only when creating new stroke from buffer,
 			 * but poly lines are converting to stroke instantly, so initialize depth buffer before converting coordinates 
 			 */
 			if (gpencil_project_check(p)) {
 				View3D *v3d = p->sa->spacedata.first;
-
+				
 				view3d_region_operator_needs_opengl(p->win, p->ar);
 				ED_view3d_autodist_init(p->scene, p->ar, v3d, (p->gpd->flag & GP_DATA_DEPTH_STROKE) ? 1 : 0);
 			}
-
+			
 			/* convert screen-coordinates to appropriate coordinates (and store them) */
 			gp_stroke_convertcoords(p, &pt->x, &pts->x, NULL);
-
+			
 			/* copy pressure */
 			pts->pressure = pt->pressure;
 		}
-
+		
 		/* increment counters */
 		if (gpd->sbuffer_size == 0)
 			gpd->sbuffer_size++;
-
+		
 		return GP_STROKEADD_NORMAL;
 	}
 	
@@ -482,7 +454,7 @@ static void gp_stroke_smooth(tGPsdata *p)
 	/* second pass: apply smoothed coordinates */
 	for (i = 0, spc = smoothArray; i < gpd->sbuffer_size; i++, spc++) {
 		tGPspoint *pc = (((tGPspoint *)gpd->sbuffer) + i);
-
+		
 		copy_v2_v2_int(&pc->x, &spc->x);
 	}
 	
@@ -639,10 +611,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 	else if (p->paintmode == GP_PAINTMODE_DRAW_POLY) {
 		/* first point */
 		ptc = gpd->sbuffer;
-
+		
 		/* convert screen-coordinates to appropriate coordinates (and store them) */
 		gp_stroke_convertcoords(p, &ptc->x, &pt->x, NULL);
-
+		
 		/* copy pressure */
 		pt->pressure = ptc->pressure;
 	}
@@ -656,10 +628,10 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 			int found_depth = 0;
 			
 			depth_arr = MEM_mallocN(sizeof(float) * gpd->sbuffer_size, "depth_points");
-
+			
 			for (i = 0, ptc = gpd->sbuffer; i < gpd->sbuffer_size; i++, ptc++, pt++) {
 				copy_v2_v2_int(mval, &ptc->x);
-
+				
 				if ((ED_view3d_autodist_depth(p->ar, mval, depth_margin, depth_arr + i) == 0) &&
 				    (i && (ED_view3d_autodist_depth_seg(p->ar, mval, mval_prev, depth_margin + 1, depth_arr + i) == 0)))
 				{
@@ -668,7 +640,7 @@ static void gp_stroke_newfrombuffer(tGPsdata *p)
 				else {
 					found_depth = TRUE;
 				}
-
+				
 				copy_v2_v2_int(mval_prev, mval);
 			}
 			
@@ -835,21 +807,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 		else if (gps->flag & GP_STROKE_2DSPACE) {			
 			UI_view2d_view_to_region(p->v2d, gps->points->x, gps->points->y, &x0, &y0);
 		}
-#if 0
-		else if (gps->flag & GP_STROKE_2DIMAGE) {			
-			int offsx, offsy, sizex, sizey;
-			
-			/* get stored settings */
-			sizex = p->im2d_settings.sizex;
-			sizey = p->im2d_settings.sizey;
-			offsx = p->im2d_settings.offsx;
-			offsy = p->im2d_settings.offsy;
-			
-			/* calculate new points */
-			x0 = (int)((gps->points->x * sizex) + offsx);
-			y0 = (int)((gps->points->y * sizey) + offsy);
-		}
-#endif
 		else {
 			if (p->subrect == NULL) { /* normal 3D view */
 				x0 = (int)(gps->points->x / 100 * p->ar->winx);
@@ -895,24 +852,6 @@ static void gp_stroke_eraser_dostroke(tGPsdata *p, int mval[], int mvalo[], shor
 				
 				UI_view2d_view_to_region(p->v2d, pt2->x, pt2->y, &x1, &y1);
 			}
-#if 0
-			else if (gps->flag & GP_STROKE_2DIMAGE) {
-				int offsx, offsy, sizex, sizey;
-				
-				/* get stored settings */
-				sizex = p->im2d_settings.sizex;
-				sizey = p->im2d_settings.sizey;
-				offsx = p->im2d_settings.offsx;
-				offsy = p->im2d_settings.offsy;
-				
-				/* calculate new points */
-				x0 = (int)((pt1->x * sizex) + offsx);
-				y0 = (int)((pt1->y * sizey) + offsy);
-				
-				x1 = (int)((pt2->x * sizex) + offsx);
-				y1 = (int)((pt2->y * sizey) + offsy);
-			}
-#endif
 			else {
 				if (p->subrect == NULL) { /* normal 3D view */
 					x0 = (int)(pt1->x / 100 * p->ar->winx);
@@ -1062,7 +1001,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 #endif
 		}
 		break;
-#if 0 // XXX these other spaces will come over time...
 		case SPACE_SEQ:
 		{
 			SpaceSeq *sseq = curarea->spacedata.first;
@@ -1079,15 +1017,16 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
 				return 0;
 			}
+#if 0 // XXX will this sort of antiquated stuff be restored?
 			if ((sseq->flag & SEQ_DRAW_GPENCIL) == 0) {
 				p->status = GP_STATUS_ERROR;
 				if (G.debug & G_DEBUG)
 					printf("Error: In active view, Grease Pencil not shown\n");
 				return 0;
 			}
+#endif
 		}
 		break;
-#endif
 		case SPACE_IMAGE:
 		{
 			//SpaceImage *sima= curarea->spacedata.first;
@@ -1173,12 +1112,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 	/* clear out buffer (stored in gp-data), in case something contaminated it */
 	gp_session_validatebuffer(p);
 	
-#if 0
-	/* set 'default' im2d_settings just in case something that uses this doesn't set it */
-	p->im2d_settings.sizex = 1;
-	p->im2d_settings.sizey = 1;
-#endif
-
 	return 1;
 }
 
@@ -1260,7 +1193,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 		if (p->sa->spacetype == SPACE_VIEW3D) {
 			View3D *v3d = p->sa->spacedata.first;
 			RegionView3D *rv3d = p->ar->regiondata;
-
+			
 			/* for camera view set the subrect */
 			if (rv3d->persp == RV3D_CAMOB) {
 				ED_view3d_calc_camera_border(p->scene, p->ar, v3d, rv3d, &p->subrect_data, TRUE); /* no shift */
@@ -1290,41 +1223,13 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 			break;
-#if 0 // XXX other spacetypes to be restored in due course
+			
 			case SPACE_SEQ:
 			{
-				SpaceSeq *sseq = (SpaceSeq *)p->sa->spacedata.first;
-				int rectx, recty;
-				float zoom, zoomx, zoomy;
-				
-				/* set draw 2d-stroke flag */
-				p->gpd->sbuffer_sflag |= GP_STROKE_2DIMAGE;
-				
-				/* calculate zoom factor */
-				zoom = (float)(SEQ_ZOOM_FAC(sseq->zoom));
-				if (sseq->mainb == SEQ_DRAW_IMG_IMBUF) {
-					zoomx = zoom * (p->scene->r.xasp / p->scene->r.yasp);
-					zoomy = zoom;
-				} 
-				else
-					zoomx = zoomy = zoom;
-				
-				/* calculate rect size to use to calculate the size of the drawing area
-				 *	- We use the size of the output image not the size of the ibuf being shown
-				 *	  as it is too messy getting the ibuf (and could be too slow). This should be
-				 *	  a reasonable for most cases anyway.
-				 */
-				rectx = (p->scene->r.size * p->scene->r.xsch) / 100;
-				recty = (p->scene->r.size * p->scene->r.ysch) / 100;
-				
-				/* set offset and scale values for opertations to use */
-				p->im2d_settings.sizex = (int)(zoomx * rectx);
-				p->im2d_settings.sizey = (int)(zoomy * recty);
-				p->im2d_settings.offsx = (int)((p->sa->winx - p->im2d_settings.sizex) / 2 + sseq->xof);
-				p->im2d_settings.offsy = (int)((p->sa->winy - p->im2d_settings.sizey) / 2 + sseq->yof);
+				p->gpd->sbuffer_sflag |= GP_STROKE_2DSPACE;
 			}
 			break;
-#endif
+			
 			case SPACE_IMAGE:
 			{
 				SpaceImage *sima = (SpaceImage *)p->sa->spacedata.first;
@@ -1743,13 +1648,13 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 }
 
 /* gpencil modal operator stores area, which can be removed while using it (like fullscreen) */
-static int gpencil_area_exists(bContext *C, ScrArea *satest)
+static int gpencil_area_exists(bContext *C, ScrArea *sa_test)
 {
 	bScreen *sc = CTX_wm_screen(C);
 	ScrArea *sa;
 	
 	for (sa = sc->areabase.first; sa; sa = sa->next) {
-		if (sa == satest)
+		if (sa == sa_test)
 			return 1;
 	}
 	
@@ -1839,7 +1744,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 			sketch |= GPENCIL_SKETCH_SESSIONS_ON(p->scene);
 			/* polyline drawing is also 'sketching' -- all knots should be added during one session */
 			sketch |= p->paintmode == GP_PAINTMODE_DRAW_POLY;
-
+			
 			if (sketch) {
 				/* end stroke only, and then wait to resume painting soon */
 				//printf("\t\tGP - end stroke only\n");
@@ -1847,7 +1752,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 				
 				/* we've just entered idling state, so this event was processed (but no others yet) */
 				estate = OPERATOR_RUNNING_MODAL;
-
+				
 				/* stroke could be smoothed, send notifier to refresh screen */
 				WM_event_add_notifier(C, NC_SCREEN | ND_GPENCIL | NA_EDITED, NULL);
 			}
@@ -1860,7 +1765,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 		else if (event->val == KM_PRESS) {
 			/* not painting, so start stroke (this should be mouse-button down) */
 			p = gpencil_stroke_begin(C, op);
-
+			
 			if (p->status == GP_STATUS_ERROR) {
 				estate = OPERATOR_CANCELLED;
 			}
@@ -1916,7 +1821,7 @@ static int gpencil_draw_modal(bContext *C, wmOperator *op, wmEvent *event)
 		case OPERATOR_CANCELLED:
 			gpencil_draw_exit(C, op);
 			break;
-
+		
 		case OPERATOR_RUNNING_MODAL | OPERATOR_PASS_THROUGH:
 			/* event doesn't need to be handled */
 			//printf("unhandled event -> %d (mmb? = %d | mmv? = %d)\n", event->type, event->type == MIDDLEMOUSE, event->type==MOUSEMOVE);

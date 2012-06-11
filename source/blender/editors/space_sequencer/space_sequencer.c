@@ -485,6 +485,11 @@ static void sequencer_preview_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data == ND_GPENCIL) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
@@ -534,6 +539,11 @@ static void sequencer_buttons_area_listener(ARegion *ar, wmNotifier *wmn)
 {
 	/* context changes */
 	switch (wmn->category) {
+		case NC_SCREEN:
+			if (wmn->data == ND_GPENCIL) {
+				ED_region_tag_redraw(ar);
+			}
+			break;
 		case NC_SCENE:
 			switch (wmn->data) {
 				case ND_FRAME:
@@ -590,7 +600,7 @@ void ED_spacetype_sequencer(void)
 	art->init = sequencer_preview_area_init;
 	art->draw = sequencer_preview_area_draw;
 	art->listener = sequencer_preview_area_listener;
-	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_ANIMATION;
+	art->keymapflag = ED_KEYMAP_VIEW2D | ED_KEYMAP_FRAMES | ED_KEYMAP_GPENCIL;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: listview/buttons */
@@ -602,6 +612,8 @@ void ED_spacetype_sequencer(void)
 	art->init = sequencer_buttons_area_init;
 	art->draw = sequencer_buttons_area_draw;
 	BLI_addhead(&st->regiontypes, art);
+	
+	sequencer_buttons_register(art);
 
 	/* regions: header */
 	art = MEM_callocN(sizeof(ARegionType), "spacetype sequencer region");
