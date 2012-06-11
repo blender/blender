@@ -40,7 +40,7 @@ NodeGroup* BlenderFileLoader::Load()
 
 	int id = 0;
 	for(obi= (ObjectInstanceRen *) _re->instancetable.first; obi; obi=obi->next) {
-		if (!(obi->lay & _re->scene->lay & _srl->lay))
+		if (!(obi->lay & _srl->lay))
 			continue;
 		char *name = obi->ob->id.name;
 		//cout << name[0] << name[1] << ":" << (name+2) <<;
