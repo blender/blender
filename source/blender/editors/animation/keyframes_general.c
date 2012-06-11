@@ -184,7 +184,7 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	int totCount, i;
 	
 	/* check if any points  */
-	if ((fcu == NULL) || (fcu->totvert <= 1)) 
+	if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert <= 1))
 		return;
 	
 	/* make a copy of the old BezTriples, and clear IPO curve */
@@ -286,7 +286,11 @@ void smooth_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
-	
+
+	if (fcu->bezt == NULL) {
+		return;
+	}
+
 	/* first loop through - count how many verts are selected */
 	bezt = fcu->bezt;
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
