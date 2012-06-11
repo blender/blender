@@ -1101,9 +1101,6 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 	clip_draw_main(sc, ar, scene);
 
-	/* Grease Pencil */
-	clip_draw_grease_pencil((bContext *)C, 1);
-
 	if (sc->mode == SC_MODE_MASKEDIT) {
 		int x, y;
 		int width, height;
@@ -1146,6 +1143,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 
 		glPopMatrix();
 	}
+
+	/* Grease Pencil */
+	clip_draw_grease_pencil((bContext *)C, 1);
 
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
