@@ -469,17 +469,17 @@ void rna_trackingMarkers_delete_frame(MovieTrackingTrack *track, int framenr)
 
 static EnumPropertyItem tracker_motion_model[] = {
 	{TRACK_MOTION_MODEL_HOMOGRAPHY, "Perspective", 0, "Perspective",
-	              "Search for markers that are perspectively deformed (homography) between frames."},
+	              "Search for markers that are perspectively deformed (homography) between frames"},
 	{TRACK_MOTION_MODEL_AFFINE, "Affine", 0, "Affine",
-	              "Search for markers that are affine-deformed (t, r, k, and skew) between frames."},
+	              "Search for markers that are affine-deformed (t, r, k, and skew) between frames"},
 	{TRACK_MOTION_MODEL_TRANSLATION_ROTATION_SCALE, "LocRotScale", 0, "LocRotScale",
-	              "Search for markers that are translated, rotated, and scaled between frames."},
+	              "Search for markers that are translated, rotated, and scaled between frames"},
 	{TRACK_MOTION_MODEL_TRANSLATION_SCALE, "LocScale", 0, "LocScale",
-	              "Search for markers that are translated and scaled between frames."},
+	              "Search for markers that are translated and scaled between frames"},
 	{TRACK_MOTION_MODEL_TRANSLATION_ROTATION, "LocRot", 0, "LocRot",
-	              "Search for markers that are translated and rotated between frames."},
+	              "Search for markers that are translated and rotated between frames"},
 	{TRACK_MOTION_MODEL_TRANSLATION, "Loc", 0, "Loc",
-	              "Search for markers that are translated between frames."},
+	              "Search for markers that are translated between frames"},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -646,7 +646,7 @@ static void rna_def_trackingSettings(BlenderRNA *brna)
 	/* default use_normalization */
 	prop = RNA_def_property(srna, "default_use_normalization", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "default_algorithm_flag", TRACK_ALGORITHM_FLAG_USE_NORMALIZATION);
-	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking. Slower");
+	RNA_def_property_ui_text(prop, "Normalize", "Normalize light intensities while tracking (slower)");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
 	/* default minmal correlation */
@@ -831,8 +831,8 @@ static void rna_def_trackingMarker(BlenderRNA *brna)
 	RNA_def_property_multi_array(prop, 2, rna_matrix_dimsize_4x2);
 	RNA_def_property_ui_range(prop, -FLT_MAX, FLT_MAX, 1, RNA_TRANSLATION_PREC_DEFAULT);
 	RNA_def_property_ui_text(prop, "Pattern Corners",
-	                         "Array of coordinates which represents patter's corners in "
-	                         " normalized coordinates relative to marker position");
+	                         "Array of coordinates which represents pattern's corners in "
+	                         "normalized coordinates relative to marker position");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_markerPattern_update");
 
 	/* search */
