@@ -45,9 +45,6 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	
 	CompositorQuality quality = context->getQuality();
 	
-	if (data->filtertype == R_FILTER_MITCH || data->filtertype == R_FILTER_CATROM) {
-		quality = COM_QUALITY_HIGH;
-	}
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);

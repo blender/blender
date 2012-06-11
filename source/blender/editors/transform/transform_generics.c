@@ -828,7 +828,7 @@ static void recalcData_view3d(TransInfo *t)
 			DAG_id_tag_update(t->obedit->data, 0);  /* sets recalc flags */
 		}
 	}
-	else if ( (t->flag & T_POSE) && t->poseobj) {
+	else if ((t->flag & T_POSE) && t->poseobj) {
 		Object *ob = t->poseobj;
 		bArmature *arm = ob->data;
 		

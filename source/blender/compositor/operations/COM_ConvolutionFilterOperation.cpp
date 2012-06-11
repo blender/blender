@@ -61,7 +61,7 @@ void ConvolutionFilterOperation::deinitExecution()
 	this->inputOperation = NULL;
 	this->inputValueOperation = NULL;
 	if (this->filter) {
-		delete this->filter;
+		delete [] this->filter;
 		this->filter = NULL;
 	}
 }

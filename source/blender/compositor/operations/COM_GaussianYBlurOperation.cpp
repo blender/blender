@@ -91,10 +91,11 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
 	int step = getStep();
-	int index = 0;
+	int index;
 	for (int ny = miny ; ny < maxy ; ny +=step) {
+		index = (ny-y)+this->rad;
 		int bufferindex = ((minx - bufferstartx)*4)+((ny-bufferstarty)*4*bufferwidth);
-		float multiplyer = gausstab[index++];
+		float multiplyer = gausstab[index];
 		tempColor[0] += multiplyer * buffer[bufferindex];
 		tempColor[1] += multiplyer * buffer[bufferindex+1];
 		tempColor[2] += multiplyer * buffer[bufferindex+2];

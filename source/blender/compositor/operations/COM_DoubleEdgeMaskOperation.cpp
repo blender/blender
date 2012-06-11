@@ -1220,7 +1220,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 		do_createEdgeLocationBuffer(t,rw,lres,res,gbuf,&innerEdgeOffset,&outerEdgeOffset,isz,gsz);
 		do_fillGradientBuffer(rw,res,gbuf,isz,osz,gsz,innerEdgeOffset,outerEdgeOffset);
 		
-		delete gbuf;          // free the gradient index buffer
+		delete [] gbuf;          // free the gradient index buffer
 	}
 }
 

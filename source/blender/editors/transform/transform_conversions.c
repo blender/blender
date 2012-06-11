@@ -1909,7 +1909,7 @@ static void VertsToTransData(TransInfo *t, TransData *td, TransDataExtension *tx
 
 	// Setting normals
 	copy_v3_v3(td->axismtx[2], eve->no);
-	td->axismtx[0][0]		=
+	td->axismtx[0][0]        =
 	    td->axismtx[0][1]    =
 	    td->axismtx[0][2]    =
 	    td->axismtx[1][0]    =

@@ -1607,7 +1607,7 @@ int initTransform(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event, int
 
 	t->state = TRANS_STARTING;
 
-	if ( (prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop)) {
+	if ((prop = RNA_struct_find_property(op->ptr, "texture_space")) && RNA_property_is_set(op->ptr, prop)) {
 		if (RNA_property_boolean_get(op->ptr, prop)) {
 			options |= CTX_TEXTURE;
 		}
@@ -2071,7 +2071,9 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		mul_qt_fl(quat, qlen);
 		
 		/* quaternions flip w sign to accumulate rotations correctly */
-		if ( (nquat[0] < 0.0f && quat[0] > 0.0f) || (nquat[0] > 0.0f && quat[0] < 0.0f) ) {
+		if ((nquat[0] < 0.0f && quat[0] > 0.0f) ||
+		    (nquat[0] > 0.0f && quat[0] < 0.0f))
+		{
 			mul_qt_fl(quat, -1.0f);
 		}
 	}
@@ -2818,9 +2820,9 @@ int Resize(TransInfo *t, const int mval[2])
 	float ratio;
 	int i;
 	char str[200];
-	
+
 	/* for manipulator, center handle, the scaling can't be done relative to center */
-	if ( (t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
+	if ((t->flag & T_USES_MANIPULATOR) && t->con.mode == 0) {
 		ratio = 1.0f - ((t->imval[0] - mval[0]) + (t->imval[1] - mval[1])) / 100.0f;
 	}
 	else {

@@ -1138,15 +1138,15 @@ void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d)
 	glDisable(GL_BLEND);
 	
 	/* draw grease-pencil ('canvas' strokes) */
-	if (/*(snode->flag & SNODE_DISPGP) &&*/ (snode->nodetree))
-		draw_gpencil_view2d((bContext*)C, 1);
+	if (snode->nodetree)
+		draw_gpencil_view2d(C, 1);
 	
 	/* reset view matrix */
 	UI_view2d_view_restore(C);
 	
 	/* draw grease-pencil (screen strokes, and also paintbuffer) */
-	if (/*(snode->flag & SNODE_DISPGP) && */(snode->nodetree))
-		draw_gpencil_view2d((bContext*)C, 0);
+	if (snode->nodetree)
+		draw_gpencil_view2d(C, 0);
 	
 	/* scrollers */
 	scrollers= UI_view2d_scrollers_calc(C, v2d, 10, V2D_GRID_CLAMP, V2D_ARG_DUMMY, V2D_ARG_DUMMY);

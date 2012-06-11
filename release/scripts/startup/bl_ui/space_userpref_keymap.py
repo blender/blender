@@ -217,7 +217,9 @@ class InputKeyMapPanel:
             km = km.active()
             layout.context_pointer_set("keymap", km)
 
-            filtered_items = [kmi for kmi in km.keymap_items if filter_text in kmi.name.lower()]
+            filtered_items = [kmi for kmi in km.keymap_items
+                              if filter_text in kmi.idname.lower() or
+                                 filter_text in kmi.name.lower()]
 
             if filtered_items:
                 col = layout.column()

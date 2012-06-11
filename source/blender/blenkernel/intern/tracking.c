@@ -1767,24 +1767,20 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				marker_new.flag |= MARKER_TRACKED;
 				marker_new.framenr = nextfra;
 
-				if (context->first_time) {
-					#pragma omp critical
-					{
+				#pragma omp critical
+				{
+					if (context->first_time) {
 						/* check if there's no keyframe/tracked markers before tracking marker.
 						 * if so -- create disabled marker before currently tracking "segment"
 						 */
+
 						put_disabled_marker(track, &marker_new, !context->backwards, 0);
 					}
-				}
 
-				#pragma omp critical
-				{
+					/* insert currently tracked marker */
 					BKE_tracking_insert_marker(track, &marker_new);
-				}
 
-				/* make currently tracked segment be finished with disabled marker */
-				#pragma omp critical
-				{
+					/* make currently tracked segment be finished with disabled marker */
 					put_disabled_marker(track, &marker_new, context->backwards, 0);
 				}
 			}
