@@ -644,8 +644,9 @@ static PointerRNA rna_NodeTree_active_node_get(PointerRNA *ptr)
 static void rna_NodeTree_active_node_set(PointerRNA *ptr, PointerRNA value)
 {
 	bNodeTree *ntree = (bNodeTree *)ptr->data;
-	if (value.data)
-		nodeSetActive(ntree, (bNode *)value.data);
+	bNode *node = (bNode *)value.data;
+	if (node && BLI_findindex(&ntree->nodes, node) != -1)
+		nodeSetActive(ntree, node);
 	else
 		nodeClearActive(ntree);
 }
