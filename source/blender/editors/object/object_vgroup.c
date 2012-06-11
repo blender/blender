@@ -459,8 +459,11 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	dg_dst = defgroup_find_name(ob_dst, dg_src->name);
 
 	/* get meshes */
-	me_dst = ob_dst->data;
 	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
+	me_dst = ob_dst->data;
+
+	/* create data in memory when nothing there */
+	if (!me_dst->dvert) ED_vgroup_data_create(ob_dst->data);
 
 	/* get vertex group arrays */
 	ED_vgroup_give_parray(ob_src->data, &dv_array_src, &dv_tot_src, FALSE);
