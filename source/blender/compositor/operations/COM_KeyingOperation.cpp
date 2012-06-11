@@ -101,3 +101,15 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 		color[0] = distance;
 	}
 }
+
+bool KeyingOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+{
+	rcti newInput;
+
+	newInput.xmin = 0;
+	newInput.ymin = 0;
+	newInput.xmax = this->getWidth();
+	newInput.ymax = this->getHeight();
+
+	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
+}

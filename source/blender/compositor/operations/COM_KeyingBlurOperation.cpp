@@ -21,77 +21,61 @@
  *		Sergey Sharybin
  */
 
-#include "COM_KeyingClipOperation.h"
+#include "COM_KeyingBlurOperation.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-KeyingClipOperation::KeyingClipOperation(): NodeOperation()
+KeyingBlurOperation::KeyingBlurOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
-	this->clipBlack = 0.0f;
-	this->clipWhite = 1.0f;
+	this->size = 0.0f;
 
 	this->setComplex(true);
 }
 
-void *KeyingClipOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *KeyingBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	void *buffer = getInputOperation(0)->initializeTileData(rect, memoryBuffers);
 
 	return buffer;
 }
 
-void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	const int delta = 3;
-
 	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
 	float *buffer = inputBuffer->getBuffer();
 
 	int bufferWidth = inputBuffer->getWidth();
 	int bufferHeight = inputBuffer->getHeight();
 
-	int count_black = 0, count_white = 0;
-	int i, j;
+	int i, j, count = 0;
 
-	int srcIndex = (y * bufferWidth + x) * 4;
+	float average = 0.0f;
 
-	for (i = -delta + 1; i < delta; i++) {
-		for (j = -delta + 1; j < delta; j++) {
+	for (i = -this->size + 1; i < this->size; i++) {
+		for (j = -this->size + 1; j < this->size; j++) {
 			int cx = x + j, cy = y + i;
-
-			if (i == 0 && j == 0)
-				continue;
 
 			if (cx >= 0 && cx < bufferWidth && cy >= 0 && cy < bufferHeight) {
 				int bufferIndex = (cy * bufferWidth + cx) * 4;
 
-				if (buffer[bufferIndex] < 0.4f)
-					count_black++;
-				else if (buffer[bufferIndex] > 0.6f)
-					count_white++;
+				average += buffer[bufferIndex];
+				count++;
 			}
 		}
 	}
 
-	color[0] = buffer[srcIndex];
+	average /= (float) count;
 
-	if (count_black >= 22 || count_white >= 22) {
-		if (color[0] < this->clipBlack)
-			color[0] = 0.0f;
-		else if (color[0] >= this->clipWhite)
-			color[0] = 1.0f;
-		else
-			color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
-	}
+	color[0] = average;
 }
 
-bool KeyingClipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool KeyingBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 

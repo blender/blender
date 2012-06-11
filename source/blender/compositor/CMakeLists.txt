@@ -328,6 +328,8 @@ set(SRC
 	nodes/COM_KeyingScreenNode.h
 	operations/COM_KeyingOperation.cpp
 	operations/COM_KeyingOperation.h
+	operations/COM_KeyingBlurOperation.cpp
+	operations/COM_KeyingBlurOperation.h
 	operations/COM_KeyingScreenOperation.cpp
 	operations/COM_KeyingScreenOperation.h
 	operations/COM_KeyingDespillOperation.cpp

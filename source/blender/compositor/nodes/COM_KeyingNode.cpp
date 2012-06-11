@@ -26,6 +26,7 @@
 #include "COM_ExecutionSystem.h"
 
 #include "COM_KeyingOperation.h"
+#include "COM_KeyingBlurOperation.h"
 #include "COM_KeyingDespillOperation.h"
 #include "COM_KeyingClipOperation.h"
 
@@ -39,6 +40,8 @@
 #include "COM_DilateErodeOperation.h"
 
 #include "COM_SetAlphaOperation.h"
+
+// #define USE_GAUSSIAN_BLUR
 
 KeyingNode::KeyingNode(bNode *editorNode): Node(editorNode)
 {
@@ -69,6 +72,7 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 			addLink(graph, separateOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 		}
 		else {
+#ifdef USE_GAUSSIAN_BLUR
 			SetValueOperation *setValueOperation = new SetValueOperation();
 			setValueOperation->setValue(1.0f);
 			graph->addOperation(setValueOperation);
@@ -81,6 +85,15 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 			addLink(graph, setValueOperation->getOutputSocket(0), blurOperation->getInputSocket(1));
 			addLink(graph, blurOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
 			graph->addOperation(blurOperation);
+#else
+			KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+
+			blurOperation->setSize(size);
+
+			addLink(graph, separateOperation->getOutputSocket(0), blurOperation->getInputSocket(0));
+			addLink(graph, blurOperation->getOutputSocket(0), combineOperation->getInputSocket(channel));
+			graph->addOperation(blurOperation);
+#endif
 		}
 	}
 
@@ -96,6 +109,7 @@ OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inpu
 
 OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size)
 {
+#ifdef USE_GAUSSIAN_BLUR
 	memset(&postBlurData, 0, sizeof(postBlurData));
 
 	postBlurData.sizex = size;
@@ -116,6 +130,17 @@ OutputSocket *KeyingNode::setupPostBlur(ExecutionSystem *graph, OutputSocket *po
 	graph->addOperation(blurOperation);
 
 	return blurOperation->getOutputSocket();
+#else
+	KeyingBlurOperation *blurOperation = new KeyingBlurOperation();
+
+	blurOperation->setSize(size);
+
+	addLink(graph, postBLurInput, blurOperation->getInputSocket(0));
+
+	graph->addOperation(blurOperation);
+
+	return blurOperation->getOutputSocket();
+#endif
 }
 
 OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance)

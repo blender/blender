@@ -43,6 +43,8 @@ public:
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 
 #endif

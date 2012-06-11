@@ -21,34 +21,26 @@
  *		Sergey Sharybin
  */
 
-
-#ifndef _COM_KeyingOperation_h
-#define _COM_KeyingOperation_h
-
-#include <string.h>
+#ifndef _COM_KeyingBlurOperation_h
+#define _COM_KeyingBlurOperation_h
 
 #include "COM_NodeOperation.h"
 
-#include "BLI_listbase.h"
-
 /**
-  * Class with implementation of keying node
+  * Class with implementation of bluring for keying node
   */
-class KeyingOperation : public NodeOperation {
+class KeyingBlurOperation : public NodeOperation {
 protected:
-	SocketReader *pixelReader;
-	SocketReader *screenReader;
-	float screenBalance;
+	int size;
 
 public:
-	KeyingOperation();
+	KeyingBlurOperation();
 
-	void initExecution();
-	void deinitExecution();
+	void setSize(float value) {this->size = value;}
 
-	void setScreenBalance(float value) {this->screenBalance = value;}
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
