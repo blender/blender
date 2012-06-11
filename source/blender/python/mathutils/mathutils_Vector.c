@@ -2268,6 +2268,11 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 	axis_from = 0;
 	swizzleClosure = GET_INT_FROM_POINTER(closure);
 
+	/* We must first copy current vec into tvec, else some org values may be lost.
+	 * See [#31760].
+	 * Assuming self->size can't be higher than MAX_DIMENSIONS! */
+	memcpy(tvec, self->vec, self->size * sizeof(float));
+
 	while (swizzleClosure & SWIZZLE_VALID_AXIS) {
 		axis_to = swizzleClosure & SWIZZLE_AXIS;
 		tvec[axis_to] = vec_assign[axis_from];
@@ -2275,7 +2280,9 @@ static int Vector_swizzle_set(VectorObject *self, PyObject *value, void *closure
 		axis_from++;
 	}
 
-	memcpy(self->vec, tvec, axis_from * sizeof(float));
+	/* We must copy back the whole tvec into vec, else some changes may be lost (e.g. xz...).
+	 * See [#31760]. */
+	memcpy(self->vec, tvec, self->size * sizeof(float));
 	/* continue with BaseMathObject_WriteCallback at the end */
 
 	if (BaseMath_WriteCallback(self) == -1)
