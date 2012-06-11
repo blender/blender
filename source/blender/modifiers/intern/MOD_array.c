@@ -220,9 +220,12 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
                                   const char *dupe_slot_name,
                                   BMOperator *weld_op)
 {
-	BMVert *v, *v2;
+	BMVert *v, *v2, *v3;
 	BMIter iter;
 
+	/* Add the DerivedMesh's elements to the BMesh. The pre-existing
+	   elements were already tagged, so the new elements can be
+	   identified by not having the BM_ELEM_TAG flag set. */
 	DM_to_bmesh_ex(dm, bm);
 
 	if (amd->flags & MOD_ARR_MERGE) {
@@ -252,6 +255,11 @@ static void bm_merge_dm_transform(BMesh *bm, DerivedMesh *dm, float mat[4][4],
 		/* add new merge targets to weld operator */
 		BMO_ITER (v, &oiter, bm, &find_op, "targetmapout", 0) {
 			v2 = BMO_iter_map_value_p(&oiter);
+			/* check in case the target vertex (v2) is already marked
+			 * for merging */
+			while ((v3 = BMO_slot_map_ptr_get(bm, weld_op, "targetmap", v2))) {
+				v2 = v3;
+			}
 			BMO_slot_map_ptr_insert(bm, weld_op, "targetmap", v, v2);
 		}
 

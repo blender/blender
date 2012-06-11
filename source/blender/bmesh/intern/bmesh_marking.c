@@ -458,7 +458,7 @@ static int bm_mesh_flag_count(BMesh *bm, const char htype, const char hflag,
 	BMIter iter;
 	int tot = 0;
 
-	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
+	BLI_assert(ELEM(test_for_enabled, TRUE, FALSE));
 
 	if (htype & BM_VERT) {
 		for (ele = BM_iter_new(&iter, bm, BM_VERTS_OF_MESH, NULL); ele; ele = BM_iter_step(&iter)) {

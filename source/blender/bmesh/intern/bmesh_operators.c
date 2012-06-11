@@ -698,7 +698,7 @@ static void bmo_slot_buffer_from_hflag(BMesh *bm, BMOperator *op, const char *sl
 	BMOpSlot *output = BMO_slot_get(op, slotname);
 	int totelement = 0, i = 0;
 
-	BLI_assert(ELEM(TRUE, FALSE, test_for_enabled));
+	BLI_assert(ELEM(test_for_enabled, TRUE, FALSE));
 
 	if (test_for_enabled)
 		totelement = BM_mesh_elem_hflag_count_enabled(bm, htype, hflag, TRUE);
