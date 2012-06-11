@@ -34,11 +34,20 @@ protected:
 	float clipBlack;
 	float clipWhite;
 
+	int kernelRadius;
+	float kernelTolerance;
+
+	bool isEdgeMatte;
 public:
 	KeyingClipOperation();
 
 	void setClipBlack(float value) {this->clipBlack = value;}
 	void setClipWhite(float value) {this->clipWhite = value;}
+
+	void setKernelRadius(int value) {this->kernelRadius = value;}
+	void setKernelTolerance(float value) {this->kernelTolerance = value;}
+
+	void setIsEdgeMatte(bool value) {this->isEdgeMatte = value;}
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 

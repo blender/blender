@@ -54,6 +54,7 @@ static bNodeSocketTemplate cmp_node_keying_in[] = {
 static bNodeSocketTemplate cmp_node_keying_out[] = {
 	{	SOCK_RGBA,  0, "Image"},
 	{	SOCK_FLOAT, 0, "Matte"},
+	{	SOCK_FLOAT, 0, "Edges"},
 	{	-1, 0, ""	}
 };
 
@@ -198,6 +199,9 @@ static void node_composit_init_keying(bNodeTree *UNUSED(ntree), bNode* node, bNo
 
 	data->screen_balance = 0.5f;
 	data->despill_factor = 1.0f;
+	data->edge_kernel_radius = 3;
+	data->edge_kernel_tolerance = 0.1f;
+	data->clip_white = 1.0f;
 	data->clip_black = 0.0f;
 	data->clip_white = 1.0f;
 

@@ -33,8 +33,13 @@ KeyingClipOperation::KeyingClipOperation(): NodeOperation()
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
+	this->kernelRadius = 3;
+	this->kernelTolerance = 0.1f;
+
 	this->clipBlack = 0.0f;
 	this->clipWhite = 1.0f;
+
+	this->isEdgeMatte = false;
 
 	this->setComplex(true);
 }
@@ -48,7 +53,8 @@ void *KeyingClipOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 
 void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	const int delta = 3;
+	const int delta = this->kernelRadius;
+	const float tolerance = this->kernelTolerance;
 
 	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
 	float *buffer = inputBuffer->getBuffer();
@@ -56,10 +62,11 @@ void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 	int bufferWidth = inputBuffer->getWidth();
 	int bufferHeight = inputBuffer->getHeight();
 
-	int count_black = 0, count_white = 0;
-	int i, j;
+	int i, j, count = 0, totalCount = 0;
 
-	int srcIndex = (y * bufferWidth + x) * 4;
+	float value = buffer[(y * bufferWidth + x) * 4];
+
+	bool ok = false;
 
 	for (i = -delta + 1; i < delta; i++) {
 		for (j = -delta + 1; j < delta; j++) {
@@ -70,24 +77,36 @@ void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 
 			if (cx >= 0 && cx < bufferWidth && cy >= 0 && cy < bufferHeight) {
 				int bufferIndex = (cy * bufferWidth + cx) * 4;
+				float currentValue = buffer[bufferIndex];
 
-				if (buffer[bufferIndex] < 0.4f)
-					count_black++;
-				else if (buffer[bufferIndex] > 0.6f)
-					count_white++;
+				if (fabsf(currentValue - value) < tolerance) {
+					count++;
+				}
+
+				totalCount++;
 			}
 		}
 	}
 
-	color[0] = buffer[srcIndex];
+	ok = count >= (float) totalCount * 0.9f;
 
-	if (count_black >= 22 || count_white >= 22) {
-		if (color[0] < this->clipBlack)
+	if (this->isEdgeMatte) {
+		if (ok)
 			color[0] = 0.0f;
-		else if (color[0] >= this->clipWhite)
-			color[0] = 1.0f;
 		else
-			color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
+			color[0] = 1.0f;
+	}
+	else {
+		color[0] = value;
+
+		if (ok) {
+			if (color[0] < this->clipBlack)
+				color[0] = 0.0f;
+			else if (color[0] >= this->clipWhite)
+				color[0] = 1.0f;
+			else
+				color[0] = (color[0] - this->clipBlack) / (this->clipWhite - this->clipBlack);
+		}
 	}
 }
 

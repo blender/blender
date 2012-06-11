@@ -22,7 +22,6 @@
  */
 
 #include "COM_Node.h"
-#include "DNA_node_types.h"
 
 /**
   * @brief KeyingNode
@@ -30,14 +29,12 @@
   */
 class KeyingNode : public Node {
 protected:
-	NodeBlurData preBlurData;
-	NodeBlurData postBlurData;
-
 	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
 	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size);
 	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
 	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, InputSocket *inputSrceen, float factor);
-	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, float clipBlack, float clipWhite);
+	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,
+	                        float clipBlack, float clipWhite, bool edgeMatte);
 public:
 	KeyingNode(bNode *editorNode);
 	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
