@@ -65,8 +65,8 @@ struct libmv_trackRegionResult {
   double correlation;
 };
 int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
-                      const float *image1, const float *image2,
-                      int width, int height, 
+                      const float *image1, int image1_width, int image1_height,
+                      const float *image2, int image2_width, int image2_height,
                       const double *x1, const double *y1,
                       struct libmv_trackRegionResult *result,
                       double *x2, double *y2);

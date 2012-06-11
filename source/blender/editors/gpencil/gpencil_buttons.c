@@ -231,6 +231,23 @@ typedef enum eGP_Stroke_Ops {
 	STROKE_OPTS_V3D_ON,
 } eGP_Stroke_Ops;
 
+static void draw_gpencil_space_specials(const bContext *C, uiLayout *layout)
+{
+	uiLayout *col, *row;
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	col = uiLayoutColumn(layout, 0);
+
+	if (sc) {
+		bScreen *screen = CTX_wm_screen(C);
+		PointerRNA sc_ptr;
+
+		RNA_pointer_create(&screen->id, &RNA_SpaceClipEditor, sc, &sc_ptr);
+		row = uiLayoutRow(col, 1);
+		uiItemR(row, &sc_ptr, "grease_pencil_source", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
+}
+
 /* Draw the contents for a grease-pencil panel*/
 static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, PointerRNA *ctx_ptr)
 {
@@ -246,15 +263,6 @@ static void draw_gpencil_panel(bContext *C, uiLayout *layout, bGPdata *gpd, Poin
 	
 	/* draw gpd settings first ------------------------------------- */
 	col = uiLayoutColumn(layout, 0);
-
-	if (sc) {
-		bScreen *screen = CTX_wm_screen(C);
-		PointerRNA sc_ptr;
-
-		RNA_pointer_create(&screen->id, &RNA_SpaceClipEditor, sc, &sc_ptr);
-		row = uiLayoutRow(col, 1);
-		uiItemR(row, &sc_ptr, "grease_pencil_source", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
-	}
 
 	/* current Grease Pencil block */
 	/* TODO: show some info about who owns this? */
@@ -314,6 +322,8 @@ void gpencil_panel_standard(const bContext *C, Panel *pa)
 	PointerRNA ptr;
 	
 	/* if (v3d->flag2 & V3D_DISPGP)... etc. */
+	
+	draw_gpencil_space_specials(C, pa->layout);
 	
 	/* get pointer to Grease Pencil Data */
 	gpd_ptr = gpencil_data_get_pointers((bContext *)C, &ptr);

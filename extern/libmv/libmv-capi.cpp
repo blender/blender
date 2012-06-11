@@ -357,8 +357,8 @@ void libmv_regionTrackerDestroy(libmv_RegionTracker *libmv_tracker)
 
 /* TrackRegion (new planar tracker) */
 int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
-                      const float *image1, const float *image2,
-                      int width, int height, 
+                      const float *image1, int image1_width, int image1_height,
+                      const float *image2, int image2_width, int image2_height,
                       const double *x1, const double *y1,
                       struct libmv_trackRegionResult *result,
                       double *x2, double *y2)
@@ -400,8 +400,8 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 
 	/* Convert from raw float buffers to libmv's FloatImage. */
 	libmv::FloatImage old_patch, new_patch;
-	floatBufToImage(image1, width, height, 1, &old_patch);
-	floatBufToImage(image2, width, height, 1, &new_patch);
+	floatBufToImage(image1, image1_width, image1_height, 1, &old_patch);
+	floatBufToImage(image2, image2_width, image2_height, 1, &new_patch);
 
 	libmv::TrackRegionResult track_region_result;
 	libmv::TrackRegion(old_patch, new_patch, xx1, yy1, track_region_options, xx2, yy2, &track_region_result);

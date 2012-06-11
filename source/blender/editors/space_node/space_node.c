@@ -468,7 +468,7 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-const char *node_context_dir[] = {"selected_nodes", NULL};
+const char *node_context_dir[] = {"selected_nodes", "active_node", NULL};
 
 static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {

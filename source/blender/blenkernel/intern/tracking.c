@@ -440,7 +440,7 @@ void BKE_tracking_delete_marker(MovieTrackingTrack *track, int framenr)
 	}
 }
 
-void BKE_tracking_marker_pattern_minmax(MovieTrackingMarker *marker, float min[2], float max[2])
+void BKE_tracking_marker_pattern_minmax(const MovieTrackingMarker *marker, float min[2], float max[2])
 {
 	INIT_MINMAX2(min, max);
 
@@ -1606,6 +1606,25 @@ static ImBuf *get_adjust_ibuf(MovieTrackingContext *context, MovieTrackingTrack 
 	return ibuf;
 }
 
+static void marker_search_scale_after_tracking(const MovieTrackingMarker *old_marker, MovieTrackingMarker *new_marker)
+{
+	float old_pat_min[2], old_pat_max[2];
+	float new_pat_min[2], new_pat_max[2];
+	float scale_x, scale_y;
+
+	BKE_tracking_marker_pattern_minmax(old_marker, old_pat_min, old_pat_max);
+	BKE_tracking_marker_pattern_minmax(new_marker, new_pat_min, new_pat_max);
+
+	scale_x = (new_pat_max[0] - new_pat_min[0]) / (old_pat_max[0] - old_pat_min[0]);
+	scale_y = (new_pat_max[1] - new_pat_min[1]) / (old_pat_max[1] - old_pat_min[1]);
+
+	new_marker->search_min[0] *= scale_x;
+	new_marker->search_min[1] *= scale_y;
+
+	new_marker->search_max[0] *= scale_x;
+	new_marker->search_max[1] *= scale_y;
+}
+
 #endif
 
 void BKE_tracking_sync(MovieTrackingContext *context)
@@ -1752,8 +1771,10 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				/* Run the tracker! */
 				tracked = libmv_trackRegion(&options,
-				                            track_context->search_area, patch_new,
-				                            width, height,
+				                            track_context->search_area,
+											track_context->search_area_width,
+											track_context->search_area_height,
+											patch_new, width, height,
 				                            src_pixel_x, src_pixel_y,
 				                            &result,
 				                            dst_pixel_x, dst_pixel_y);
@@ -1766,6 +1787,8 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				set_marker_coords_from_tracking(frame_width, frame_height, &marker_new, dst_pixel_x, dst_pixel_y);
 				marker_new.flag |= MARKER_TRACKED;
 				marker_new.framenr = nextfra;
+
+				marker_search_scale_after_tracking(marker, &marker_new);
 
 				#pragma omp critical
 				{

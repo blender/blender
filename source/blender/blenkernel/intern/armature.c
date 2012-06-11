@@ -986,7 +986,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm, float
 
 			for (j = dvert->totweight; j != 0; j--, dw++) {
 				const int index = dw->def_nr;
-				if (index < defbase_tot && (pchan = defnrToPC[index])) {
+				if (index >= 0 && index < defbase_tot && (pchan = defnrToPC[index])) {
 					float weight = dw->weight;
 					Bone *bone = pchan->bone;
 					pdef_info = pdef_info_array + defnrToPCIndex[index];

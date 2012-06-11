@@ -934,6 +934,8 @@ def pycontext2sphinx(basepath):
         "image_context_dir",
         "node_context_dir",
         "text_context_dir",
+        "clip_context_dir",
+        "sequencer_context_dir",
     )
 
     # Changes in blender will force errors here
@@ -943,6 +945,7 @@ def pycontext2sphinx(basepath):
         "active_object": ("Object", False),
         "active_operator": ("Operator", False),
         "active_pose_bone": ("PoseBone", False),
+        "active_node": ("Node", False),
         "armature": ("Armature", False),
         "bone": ("Bone", False),
         "brush": ("Brush", False),
@@ -953,6 +956,8 @@ def pycontext2sphinx(basepath):
         "dynamic_paint": ("DynamicPaintModifier", False),
         "edit_bone": ("EditBone", False),
         "edit_image": ("Image", False),
+        "edit_mask": ("Mask", False),
+        "edit_movieclip": ("MovieClip", False),
         "edit_object": ("Object", False),
         "edit_text": ("Text", False),
         "editable_bones": ("EditBone", True),

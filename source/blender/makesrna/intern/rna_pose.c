@@ -746,6 +746,7 @@ static void rna_def_pose_channel(BlenderRNA *brna)
 	RNA_def_struct_ui_text(srna, "Pose Bone", "Channel defining pose data for a bone in a Pose");
 	RNA_def_struct_path_func(srna, "rna_PoseBone_path");
 	RNA_def_struct_idprops_func(srna, "rna_PoseBone_idprops");
+	RNA_def_struct_ui_icon(srna, ICON_BONE_DATA);
 	
 	/* Bone Constraints */
 	prop = RNA_def_property(srna, "constraints", PROP_COLLECTION, PROP_NONE);
