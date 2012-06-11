@@ -434,6 +434,7 @@ class USERPREF_PT_system(Panel):
         col.label(text="OpenGL:")
         col.prop(system, "gl_clip_alpha", slider=True)
         col.prop(system, "use_mipmaps")
+        col.prop(system, "use_gpu_mipmap")
         col.prop(system, "use_16bit_textures")
         col.label(text="Anisotropic Filtering")
         col.prop(system, "anisotropic_filter", text="")

@@ -412,7 +412,7 @@ typedef struct UserDef {
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
-	short use_16bit_textures, pad8;
+	short use_16bit_textures, use_gpu_mipmap;
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	int ndof_flag;			/* flags for 3D mouse */

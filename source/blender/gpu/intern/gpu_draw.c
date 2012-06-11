@@ -234,10 +234,22 @@ static struct GPUTextureState {
 
 	int alphablend;
 	float anisotropic;
+	int gpu_mipmap;
 	MTFace *lasttface;
-} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.f, NULL};
+} GTS = {0, 0, 0, 0, 0, 0, 0, 0, NULL, NULL, 1, 0, 0, -1, 1.f, 0, NULL};
 
 /* Mipmap settings */
+
+void GPU_set_gpu_mipmapping(int gpu_mipmap){
+	int old_value = GTS.gpu_mipmap;
+
+	/* only actually enable if it's supported */
+	GTS.gpu_mipmap = gpu_mipmap && GLEW_EXT_framebuffer_object;
+
+	if(old_value != GTS.gpu_mipmap) {
+		GPU_free_images();
+	}
+}
 
 void GPU_set_mipmap(int mipmap)
 {
@@ -632,10 +644,19 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
 	else {
-		if (use_high_bit_depth)
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA16, rectw, recth, GL_RGBA, GL_FLOAT, frect);
-		else
-			gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		if(GTS.gpu_mipmap) {
+			if (use_high_bit_depth)
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
+			else
+				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA,  rectw, recth, 0, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+
+			glGenerateMipmapEXT(GL_TEXTURE_2D);
+		} else {
+			if (use_high_bit_depth)
+				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA16, rectw, recth, GL_RGBA, GL_FLOAT, frect);
+			else
+				gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, rectw, recth, GL_RGBA, GL_UNSIGNED_BYTE, rect);
+		}
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gpu_get_mipmap_filter(0));
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 
