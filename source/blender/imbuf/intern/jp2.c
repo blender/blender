@@ -43,6 +43,7 @@
 static char JP2_HEAD[] = {0x0, 0x0, 0x0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A};
 
 /* We only need this because of how the presets are set */
+/* this typedef is copied from 'openjpeg-1.5.0/applications/codec/image_to_j2k.c' */
 typedef struct img_folder {
 	/** The directory path of the folder containing input images*/
 	char *imgdirpath;
@@ -515,7 +516,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	
 	
 	/* initialize image components */
-	memset(&cmptparm[0], 0, 4 * sizeof(opj_image_cmptparm_t));
+	memset(&cmptparm, 0, 4 * sizeof(opj_image_cmptparm_t));
 	for (i = 0; i < numcomps; i++) {
 		cmptparm[i].prec = prec;
 		cmptparm[i].bpp = prec;
@@ -535,9 +536,9 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	/* set image offset and reference grid */
 	image->x0 = parameters->image_offset_x0;
 	image->y0 = parameters->image_offset_y0;
-	image->x1 = parameters->image_offset_x0 + (w - 1) * subsampling_dx + 1;
-	image->y1 = parameters->image_offset_y0 + (h - 1) * subsampling_dy + 1;
-	
+	image->x1 = image->x0 + (w - 1) * subsampling_dx + 1 + image->x0;
+	image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
+
 	/* set image data */
 	rect = (unsigned char *) ibuf->rect;
 	rect_float = ibuf->rect_float;
@@ -720,7 +721,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		opj_cinfo_t *cinfo = opj_create_compress(CODEC_JP2);
 
 		/* catch events using our callbacks and give a local context */
-		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);			
+		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);
 
 		/* setup the encoder parameters using the current image and using user parameters */
 		opj_setup_encoder(cinfo, &parameters, image);
