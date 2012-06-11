@@ -548,13 +548,6 @@ static void multires_reallocate_mdisps(int totloop, MDisps *mdisps, int lvl)
 	}
 }
 
-static void column_vectors_to_mat3(float mat[][3], float v1[3], float v2[3], float v3[3])
-{
-	copy_v3_v3(mat[0], v1);
-	copy_v3_v3(mat[1], v2);
-	copy_v3_v3(mat[2], v3);
-}
-
 static void multires_copy_grid(float (*gridA)[3], float (*gridB)[3], int sizeA, int sizeB)
 {
 	int x, y, j, skip;
@@ -962,7 +955,7 @@ void multiresModifier_subdivide(MultiresModifierData *mmd, Object *ob, int updat
 	multires_subdivide(mmd, ob, mmd->totlvl + 1, updateblock, simple);
 }
 
-void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
+static void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, float t[3])
 {
 	if (axis == 0) {
 		if (x == key->grid_size - 1) {
@@ -984,6 +977,19 @@ void grid_tangent(const CCGKey *key, int x, int y, int axis, CCGElem *grid, floa
 		else
 			sub_v3_v3v3(t, CCG_grid_elem_co(key, grid, x, (y + 1)), CCG_grid_elem_co(key, grid, x, y));
 	}
+}
+
+/* Construct 3x3 tangent-space matrix in 'mat' */
+static void grid_tangent_matrix(float mat[3][3], const CCGKey *key,
+								int x, int y, CCGElem *grid)
+{
+	grid_tangent(key, x, y, 0, grid, mat[0]);
+	normalize_v3(mat[0]);
+
+	grid_tangent(key, x, y, 1, grid, mat[1]);
+	normalize_v3(mat[1]);
+
+	copy_v3_v3(mat[2], CCG_grid_elem_no(key, grid, x, y));
 }
 
 static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm2, DispOp op, CCGElem **oldGridData, int totlvl)
@@ -1067,22 +1073,11 @@ static void multiresModifier_disp_run(DerivedMesh *dm, Mesh *me, DerivedMesh *dm
 				for (x = 0; x < gridSize; x++) {
 					float *co = CCG_grid_elem_co(&key, grid, x, y);
 					float *sco = CCG_grid_elem_co(&key, subgrid, x, y);
-					float *no = CCG_grid_elem_no(&key, subgrid, x, y);
 					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-					float mat[3][3], tx[3], ty[3], disp[3], d[3], mask;
+					float mat[3][3], disp[3], d[3], mask;
 
 					/* construct tangent space matrix */
-					grid_tangent(&key, x, y, 0, subGridData[gIndex], tx);
-					normalize_v3(tx);
-
-					grid_tangent(&key, x, y, 1, subGridData[gIndex], ty);
-					normalize_v3(ty);
-
-					//mul_v3_fl(tx, 1.0f/(gridSize-1));
-					//mul_v3_fl(ty, 1.0f/(gridSize-1));
-					//cross_v3_v3v3(no, tx, ty);
-
-					column_vectors_to_mat3(mat, tx, ty, no);
+					grid_tangent_matrix(mat, &key, x, y, subgrid);
 
 					switch (op) {
 						case APPLY_DISPLACEMENTS:
@@ -1344,17 +1339,11 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
 					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-					float *no = CCG_grid_elem_no(&key, subgrid, x, y);
 					float *co = CCG_grid_elem_co(&key, subgrid, x, y);
-					float mat[3][3], tx[3], ty[3], dco[3];
+					float mat[3][3], dco[3];
 					
 					/* construct tangent space matrix */
-					grid_tangent(&key, x, y, 0, subGridData[gIndex], tx);
-					normalize_v3(tx);
-
-					grid_tangent(&key, x, y, 1, subGridData[gIndex], ty);
-					normalize_v3(ty);
-					column_vectors_to_mat3(mat, tx, ty, no);
+					grid_tangent_matrix(mat, &key, x, y, subgrid);
 
 					/* convert to absolute coordinates in space */
 					if (from == MULTIRES_SPACE_TANGENT) {
@@ -1368,8 +1357,6 @@ void multires_set_space(DerivedMesh *dm, Object *ob, int from, int to)
 						copy_v3_v3(dco, data);
 					}
 					
-					column_vectors_to_mat3(mat, tx, ty, no);
-
 					/*now, convert to desired displacement type*/
 					if (to == MULTIRES_SPACE_TANGENT) {
 						invert_m3(mat);
@@ -2142,7 +2129,7 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 {
 	DerivedMesh *dm = NULL, *cddm = NULL, *subdm = NULL;
 	CCGElem **gridData, **subGridData;
-	CCGKey key;
+	CCGKey dm_key, subdm_key;
 	Mesh *me = (Mesh *)ob->data;
 	MPoly *mpoly = me->mpoly;
 	/* MLoop *mloop = me->mloop; */ /* UNUSED */
@@ -2180,12 +2167,12 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 	dm = subsurf_dm_create_local(ob, cddm, high_mmd.totlvl, high_mmd.simple, 0, mmd->flags & eMultiresModifierFlag_PlainUv, 0);
 	cddm->release(cddm);
 
-	/*numGrids = dm->getNumGrids(dm);*/ /*UNUSED*/
 	gridSize = dm->getGridSize(dm);
 	gridData = dm->getGridData(dm);
 	gridOffset = dm->getGridOffset(dm);
-	dm->getGridKey(dm, &key);
+	dm->getGridKey(dm, &dm_key);
 	subGridData = subdm->getGridData(subdm);
+	subdm->getGridKey(subdm, &subdm_key);
 
 	dGridSize = multires_side_tot[high_mmd.totlvl];
 	dSkip = (dGridSize - 1) / (gridSize - 1);
@@ -2203,20 +2190,13 @@ static void multires_apply_smat(Scene *scene, Object *ob, float smat[3][3])
 
 			for (y = 0; y < gridSize; y++) {
 				for (x = 0; x < gridSize; x++) {
-					float *co = CCG_grid_elem_co(&key, grid, x, y);
-					float *sco = CCG_grid_elem_co(&key, subgrid, x, y);
-					float *no = CCG_grid_elem_no(&key, grid, x, y);
+					float *co = CCG_grid_elem_co(&dm_key, grid, x, y);
+					float *sco = CCG_grid_elem_co(&subdm_key, subgrid, x, y);
 					float *data = dispgrid[dGridSize * y * dSkip + x * dSkip];
-					float mat[3][3], tx[3], ty[3], disp[3];
+					float mat[3][3], disp[3];
 
 					/* construct tangent space matrix */
-					grid_tangent(&key, x, y, 0, gridData[gIndex], tx);
-					normalize_v3(tx);
-
-					grid_tangent(&key, x, y, 1, gridData[gIndex], ty);
-					normalize_v3(ty);
-
-					column_vectors_to_mat3(mat, tx, ty, no);
+					grid_tangent_matrix(mat, &dm_key, x, y, grid);
 
 					/* scale subgrid coord and calculate displacement */
 					mul_m3_v3(smat, sco);
