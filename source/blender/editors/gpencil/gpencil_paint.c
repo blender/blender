@@ -57,9 +57,12 @@
 #include "ED_screen.h"
 #include "ED_view3d.h"
 
-#include "RNA_access.h"
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 
+#include "RNA_access.h"
 #include "RNA_define.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 
@@ -98,8 +101,10 @@ typedef struct tGPsdata {
 
 	float imat[4][4];   /* inverted transformation matrix applying when converting coords from screen-space
 	                     * to region space */
-
-	float custom_color[4]; /* custom color for (?) */
+	
+	float custom_color[4]; /* custom color - hack for enforcing a particular color for track/mask editing */
+	
+	void *erasercursor; /* radial cursor data for drawing eraser */
 } tGPsdata;
 
 /* values for tGPsdata->status */
@@ -1265,6 +1270,49 @@ static void gp_paint_cleanup(tGPsdata *p)
 
 /* ------------------------------- */
 
+/* Helper callback for drawing the cursor itself */
+static void gpencil_draw_eraser(bContext *C, int x, int y, void *p_ptr)
+{
+	tGPsdata *p = (tGPsdata *)p_ptr;
+	
+	if (p->paintmode == GP_PAINTMODE_ERASER) {
+		glPushMatrix();
+		
+		glTranslatef((float)x, (float)y, 0.0f);
+		
+		glColor4ub(255, 255, 255, 128);
+		
+		glEnable(GL_LINE_SMOOTH);
+		glEnable(GL_BLEND);
+		
+		glutil_draw_lined_arc(0.0, M_PI*2.0, p->radius, 40);
+		
+		glDisable(GL_BLEND);
+		glDisable(GL_LINE_SMOOTH);
+		
+		glPopMatrix();
+	}
+}
+
+/* Turn brush cursor in 3D view on/off */
+static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short enable)
+{
+	if (p->erasercursor && !enable) {
+		/* clear cursor */
+		WM_paint_cursor_end(CTX_wm_manager(C), p->erasercursor);
+		p->erasercursor = NULL;
+	}
+	else if (enable) {
+		/* enable cursor */
+		p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C), 
+								NULL, // XXX
+								gpencil_draw_eraser, p);
+	}
+}
+
+/* ------------------------------- */
+
+
 static void gpencil_draw_exit(bContext *C, wmOperator *op)
 {
 	tGPsdata *p = op->customdata;
@@ -1279,8 +1327,8 @@ static void gpencil_draw_exit(bContext *C, wmOperator *op)
 	if (p) {
 		/* check size of buffer before cleanup, to determine if anything happened here */
 		if (p->paintmode == GP_PAINTMODE_ERASER) {
-			// TODO clear radial cursor thing
-			// XXX draw_sel_circle(NULL, p.mvalo, 0, p.radius, 0);
+			/* turn off radial brush cursor */
+			gpencil_draw_toggle_eraser_cursor(C, p, FALSE);
 		}
 		
 		/* cleanup */
@@ -1330,6 +1378,7 @@ static int gpencil_draw_init(bContext *C, wmOperator *op)
 	/* everything is now setup ok */
 	return 1;
 }
+
 
 /* ------------------------------- */
 
@@ -1576,7 +1625,7 @@ static int gpencil_draw_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	
 	/* if eraser is on, draw radial aid */
 	if (p->paintmode == GP_PAINTMODE_ERASER) {
-		// TODO: this involves mucking around with radial control, so we leave this for now..
+		gpencil_draw_toggle_eraser_cursor(C, p, TRUE);
 	}
 	
 	/* set cursor */
