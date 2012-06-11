@@ -1271,7 +1271,7 @@ static void gp_paint_cleanup(tGPsdata *p)
 /* ------------------------------- */
 
 /* Helper callback for drawing the cursor itself */
-static void gpencil_draw_eraser(bContext *C, int x, int y, void *p_ptr)
+static void gpencil_draw_eraser(bContext *UNUSED(C), int x, int y, void *p_ptr)
 {
 	tGPsdata *p = (tGPsdata *)p_ptr;
 	
@@ -1285,7 +1285,7 @@ static void gpencil_draw_eraser(bContext *C, int x, int y, void *p_ptr)
 		glEnable(GL_LINE_SMOOTH);
 		glEnable(GL_BLEND);
 		
-		glutil_draw_lined_arc(0.0, M_PI*2.0, p->radius, 40);
+		glutil_draw_lined_arc(0.0, M_PI * 2.0, p->radius, 40);
 		
 		glDisable(GL_BLEND);
 		glDisable(GL_LINE_SMOOTH);
@@ -1305,8 +1305,8 @@ static void gpencil_draw_toggle_eraser_cursor(bContext *C, tGPsdata *p, short en
 	else if (enable) {
 		/* enable cursor */
 		p->erasercursor = WM_paint_cursor_activate(CTX_wm_manager(C), 
-								NULL, // XXX
-								gpencil_draw_eraser, p);
+		                                           NULL, // XXX
+		                                           gpencil_draw_eraser, p);
 	}
 }
 
