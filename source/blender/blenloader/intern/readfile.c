@@ -5623,10 +5623,10 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				}
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
-
+					
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
 					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
-
+					
 					sclip->scopes.ok = 0;
 				}
 			}
@@ -8068,7 +8068,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					
 					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
 					 * inserted in the map to be found! */
-
+					
 					/* Update: previously it was checking for id->flag & LIB_PRE_EXISTING, however that does not affect file
 					 * reading. For file reading we may need to insert it into the libmap as well, because you might have
 					 * two files indirectly linking the same datablock, and in that case we need this in the libmap for the
@@ -8477,6 +8477,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	}
 }
 
+#if 0 /* Disabled as it doesn't actually do anything except recurse... */
 static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 {
 	Bone *curBone;
@@ -8485,6 +8486,7 @@ static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 		expand_bones(fd, mainvar, curBone);
 	}
 }
+#endif
 
 static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 {
@@ -8500,15 +8502,19 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 }
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
-{
-	Bone *curBone;
-	
+{	
 	if (arm->adt)
 		expand_animdata(fd, mainvar, arm->adt);
 	
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
-		expand_bones(fd, mainvar, curBone);
+#if 0 /* Disabled as this currently only recurses down the chain doing nothing */
+	{
+		Bone *curBone;
+		
+		for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
+			expand_bones(fd, mainvar, curBone);
+		}
 	}
+#endif
 }
 
 static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
@@ -8718,7 +8724,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 #ifdef DURIAN_CAMERA_SWITCH
 	{
 		TimeMarker *marker;
-
+		
 		for (marker = sce->markers.first; marker; marker = marker->next) {
 			if (marker->camera) {
 				expand_doit(fd, mainvar, marker->camera);
