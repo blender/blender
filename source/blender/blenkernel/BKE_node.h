@@ -372,6 +372,7 @@ void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
+void			nodeClearActive(struct bNodeTree *ntree);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode	*nodeGetActiveTexture(struct bNodeTree *ntree);
 
