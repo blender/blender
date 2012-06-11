@@ -438,7 +438,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene, MethodOption method_option, ReplaceOption replace_option)
 {
 	bDeformGroup *dg_dst;
-	Mesh *me_dst;
+	Mesh *me_dst, *me_src;
 	DerivedMesh *dmesh_src;
 	BVHTreeFromMesh tree_mesh_vertices_src, tree_mesh_faces_src = {NULL};
 	MDeformVert **dv_array_src, **dv_array_dst, **dv_src, **dv_dst;
@@ -461,6 +461,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	/* get meshes */
 	dmesh_src = mesh_get_derived_deform(scene, ob_src, CD_MASK_BAREMESH | CD_MASK_ORIGINDEX);
 	me_dst = ob_dst->data;
+	me_src = ob_src->data;
+
+	/* sanity check */
+	if (!me_src->dvert) return 0;
 
 	/* create data in memory when nothing there */
 	if (!me_dst->dvert) ED_vgroup_data_create(ob_dst->data);
@@ -491,6 +495,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				ED_vgroup_delete(ob_dst, defgroup_find_name(ob_dst, dg_dst->name));
 				if (dv_array_src) MEM_freeN(dv_array_src);
 				if (dv_array_dst) MEM_freeN(dv_array_dst);
+				dmesh_src->release(dmesh_src);
 				return 0;
 			}
 
@@ -641,6 +646,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	/*free memory*/
 	if (dv_array_src) MEM_freeN(dv_array_src);
 	if (dv_array_dst) MEM_freeN(dv_array_dst);
+	dmesh_src->release(dmesh_src);
 
 	return 1;
 }
