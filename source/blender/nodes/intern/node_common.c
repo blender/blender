@@ -176,6 +176,10 @@ bNode *node_group_make_from_selected(bNodeTree *ntree)
 					BLI_addtail(&anim_basepaths, BLI_genericNodeN(path));
 			}
 			
+			/* ensure valid parent pointers, detach if parent stays outside the group */
+			if (node->parent && !(node->parent->flag & NODE_SELECT))
+				nodeDetachNode(node);
+			
 			/* change node-collection membership */
 			BLI_remlink(&ntree->nodes, node);
 			BLI_addtail(&ngroup->nodes, node);
