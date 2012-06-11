@@ -3035,9 +3035,9 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	Object *ob_act = CTX_data_active_object(C);
 	bDeformGroup *dg_src;
 
-	VertexGroupOption vertex_group_option = RNA_enum_get(op->ptr, "VertexGroupOption");
-	MethodOption method_option = RNA_enum_get(op->ptr, "MethodOption");
-	ReplaceOption replace_option = RNA_enum_get(op->ptr, "ReplaceOption");
+	VertexGroupOption vertex_group_option = RNA_enum_get(op->ptr, "vertex_group_option");
+	MethodOption method_option = RNA_enum_get(op->ptr, "method_option");
+	ReplaceOption replace_option = RNA_enum_get(op->ptr, "replace_option");
 
 	/* Macro to loop through selected objects and perform operation depending on function, option and method */
 	CTX_DATA_BEGIN(C, Object *, ob_slc, selected_editable_objects)
@@ -3085,9 +3085,9 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
 
 	/* properties */
-	ot->prop = RNA_def_enum(ot->srna, "VertexGroupOption", vertex_group_option_item, 1, "Group", "");
-	ot->prop = RNA_def_enum(ot->srna, "MethodOption", method_option_item, 3, "Method", "");
-	ot->prop = RNA_def_enum(ot->srna, "ReplaceOption", replace_option_item, 1, "Replace", "");
+	ot->prop = RNA_def_enum(ot->srna, "vertex_group_option", vertex_group_option_item, 1, "Group", "");
+	ot->prop = RNA_def_enum(ot->srna, "method_option", method_option_item, 3, "Method", "");
+	ot->prop = RNA_def_enum(ot->srna, "replace_option", replace_option_item, 1, "Replace", "");
 }
 
 static EnumPropertyItem vgroup_items[] = {
