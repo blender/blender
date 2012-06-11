@@ -491,7 +491,7 @@ typedef enum eSpaceSeq_Flag {
 	SEQ_MARKER_TRANS            = (1 << 1),
 	SEQ_DRAW_COLOR_SEPARATED    = (1 << 2),
 	SEQ_DRAW_SAFE_MARGINS       = (1 << 3),
-	SEQ_DRAW_GPENCIL            = (1 << 4), /* DEPRECATED */
+/*  SEQ_DRAW_GPENCIL            = (1 << 4), */ /* DEPRECATED */
 	SEQ_NO_DRAW_CFRANUM         = (1 << 5),
 } eSpaceSeq_Flag;
 
@@ -746,7 +746,7 @@ typedef enum eSpaceImage_Flag {
 	SI_DRAW_TILE          = (1 << 19),
 	SI_SMOOTH_UV          = (1 << 20),
 	SI_DRAW_STRETCH       = (1 << 21),
-	SI_DISPGP             = (1 << 22), /* DEPRECATED */
+/*  SI_DISPGP             = (1 << 22), */ /* DEPRECATED */
 	SI_DRAW_OTHER         = (1 << 23),
 
 	SI_COLOR_CORRECTION   = (1 << 24),
@@ -876,7 +876,7 @@ typedef struct SpaceNode {
 /* snode->flag */
 typedef enum eSpaceNode_Flag {
 	SNODE_BACKDRAW     = (1 << 1),
-	SNODE_DISPGP       = (1 << 2), /* XXX: Grease Pencil - deprecated? */
+/*  SNODE_DISPGP       = (1 << 2), */ /* XXX: Grease Pencil - deprecated? */
 	SNODE_USE_ALPHA    = (1 << 3),
 	SNODE_SHOW_ALPHA   = (1 << 4),
 	SNODE_AUTO_RENDER  = (1 << 5),

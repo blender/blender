@@ -1969,14 +1969,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-#if 0 // XXX: unused - old stuff which may not be restored
-	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DISPGP);
-	RNA_def_property_ui_text(prop, "Use Grease Pencil",
-	                         "Display and edit the grease pencil freehand annotations overlay");
-#endif
-
+	
 	/* update */
 	prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lock", 0);

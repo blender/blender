@@ -78,7 +78,7 @@
 /* Context Wrangling... */
 
 /* Get pointer to active Grease Pencil datablock, and an RNA-pointer to trace back to whatever owns it */
-bGPdata **gpencil_data_get_pointers(bContext *C, PointerRNA *ptr)
+bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 {
 	ID *screen_id = (ID *)CTX_wm_screen(C);
 	Scene *scene = CTX_data_scene(C);
@@ -181,7 +181,7 @@ bGPdata **gpencil_data_get_pointers(bContext *C, PointerRNA *ptr)
 }
 
 /* Get the active Grease Pencil datablock */
-bGPdata *gpencil_data_get_active(bContext *C)
+bGPdata *gpencil_data_get_active(const bContext *C)
 {
 	bGPdata **gpd_ptr = gpencil_data_get_pointers(C, NULL);
 	return (gpd_ptr) ? *(gpd_ptr) : NULL;

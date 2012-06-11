@@ -968,16 +968,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: 3D-View active region doesn't have any region data, so cannot be drawable\n");
 				return 0;
 			}
-
-#if 0 // XXX will this sort of antiquated stuff be restored?
-			/* check that gpencil data is allowed to be drawn */
-			if ((v3d->flag2 & V3D_DISPGP) == 0) {
-				p->status = GP_STATUS_ERROR;
-				if (G.debug & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown\n");
-				return 0;
-			}
-#endif
 		}
 		break;
 
@@ -989,16 +979,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
-			
-#if 0 // XXX will this sort of antiquated stuff be restored?
-			/* check that gpencil data is allowed to be drawn */
-			if ((snode->flag & SNODE_DISPGP) == 0) {
-				p->status = GP_STATUS_ERROR;
-				if (G.debug & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown\n");
-				return 0;
-			}
-#endif
 		}
 		break;
 		case SPACE_SEQ:
@@ -1017,14 +997,6 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 					printf("Error: In active view (sequencer), active mode doesn't support Grease Pencil\n");
 				return 0;
 			}
-#if 0 // XXX will this sort of antiquated stuff be restored?
-			if ((sseq->flag & SEQ_DRAW_GPENCIL) == 0) {
-				p->status = GP_STATUS_ERROR;
-				if (G.debug & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown\n");
-				return 0;
-			}
-#endif
 		}
 		break;
 		case SPACE_IMAGE:
@@ -1035,48 +1007,36 @@ static int gp_session_initdata(bContext *C, tGPsdata *p)
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
-			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-			
-#if 0 // XXX disabled for now
-			/* check that gpencil data is allowed to be drawn */
-			if ((sima->flag & SI_DISPGP) == 0) {
-				p->status = GP_STATUS_ERROR;
-				if (G.debug & G_DEBUG)
-					printf("Error: In active view, Grease Pencil not shown\n");
-				return 0;
-			}
-#endif
 		}
 		break;
 		case SPACE_CLIP:
 		{
 			SpaceClip *sc = curarea->spacedata.first;
-
+			
 			/* set the current area */
 			p->sa = curarea;
 			p->ar = ar;
 			p->v2d = &ar->v2d;
-			//p->ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-
+			
 			invert_m4_m4(p->imat, sc->unistabmat);
-
+			
 			/* custom color for new layer */
 			p->custom_color[0] = 1.0f;
 			p->custom_color[1] = 0.0f;
 			p->custom_color[2] = 0.5f;
 			p->custom_color[3] = 0.9f;
-
+			
 			if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
 				int framenr = sc->user.framenr;
 				MovieTrackingTrack *track = BKE_tracking_active_track(&sc->clip->tracking);
 				MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
-
+				
 				p->imat[3][0] -= marker->pos[0];
 				p->imat[3][1] -= marker->pos[1];
 			}
 		}
 		break;
-
+		
 		/* unsupported views */
 		default:
 		{
@@ -1157,7 +1117,7 @@ static void gp_paint_initstroke(tGPsdata *p, short paintmode)
 	p->gpl = gpencil_layer_getactive(p->gpd);
 	if (p->gpl == NULL) {
 		p->gpl = gpencil_layer_addnew(p->gpd);
-
+		
 		if (p->custom_color[3])
 			copy_v3_v3(p->gpl->color, p->custom_color);
 	}
@@ -1465,8 +1425,9 @@ static void gpencil_draw_apply_event(wmOperator *op, wmEvent *event)
 	float mousef[2];
 	int tablet = 0;
 
-	/* convert from window-space to area-space mouse coordintes */
-	// NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding...
+	/* convert from window-space to area-space mouse coordintes 
+	 * NOTE: float to ints conversions, +1 factor is probably used to ensure a bit more accurate rounding... 
+	 */
 	p->mval[0] = event->mval[0] + 1;
 	p->mval[1] = event->mval[1] + 1;
 

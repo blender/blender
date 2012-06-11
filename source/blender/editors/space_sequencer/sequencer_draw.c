@@ -976,7 +976,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	}
 	
 	/* draw grease-pencil (image aligned) */
-//	if (sseq->flag & SEQ_DRAW_GPENCIL)
 	draw_gpencil_2dimage(C);
 
 	IMB_freeImBuf(ibuf);
@@ -985,7 +984,6 @@ void draw_image_seq(const bContext *C, Scene *scene, ARegion *ar, SpaceSeq *sseq
 	UI_view2d_view_restore(C);
 	
 	/* draw grease-pencil (screen aligned) */
-//	if (sseq->flag & SEQ_DRAW_GPENCIL)
 	draw_gpencil_view2d(C, 0);
 
 	//if (sc->mode == SC_MODE_MASKEDIT) {
