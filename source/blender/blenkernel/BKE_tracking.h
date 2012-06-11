@@ -57,7 +57,7 @@ struct MovieTrackingMarker *BKE_tracking_insert_marker(struct MovieTrackingTrack
                                                        struct MovieTrackingMarker *marker);
 void BKE_tracking_delete_marker(struct MovieTrackingTrack *track, int framenr);
 
-void BKE_tracking_marker_pattern_minmax(struct MovieTrackingMarker *marker, float min[2], float max[2]);
+void BKE_tracking_marker_pattern_minmax(const struct MovieTrackingMarker *marker, float min[2], float max[2]);
 struct MovieTrackingMarker *BKE_tracking_get_marker(struct MovieTrackingTrack *track, int framenr);
 struct MovieTrackingMarker *BKE_tracking_ensure_marker(struct MovieTrackingTrack *track, int framenr);
 struct MovieTrackingMarker *BKE_tracking_exact_marker(struct MovieTrackingTrack *track, int framenr);
