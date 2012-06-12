@@ -3590,6 +3590,8 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
 	short sort_method = dopesheet->sort_method;
 	short inverse = dopesheet->flag & TRACKING_DOPE_SORT_INVERSE;
+	short sel_only = dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY;
+	short show_hidden = dopesheet->flag & TRACKING_DOPE_SHOW_HIDDEN;
 
 	if (dopesheet->ok)
 		return;
@@ -3597,17 +3599,21 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 	tracking_dopesheet_free(dopesheet);
 
 	for (track = tracksbase->first; track; track = track->next) {
-		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingDopesheetChannel *channel;
+		MovieTrackingDopesheetChannel *channel;
 
-			channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
-			channel->track = track;
+		if (!show_hidden && (track->flag & TRACK_HIDDEN) != 0)
+			continue;
 
-			channels_segments_calc(channel);
+		if (sel_only && !TRACK_SELECTED(track))
+			continue;
 
-			BLI_addtail(&dopesheet->channels, channel);
-			dopesheet->tot_channel++;
-		}
+		channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
+		channel->track = track;
+
+		channels_segments_calc(channel);
+
+		BLI_addtail(&dopesheet->channels, channel);
+		dopesheet->tot_channel++;
 	}
 
 	tracking_dopesheet_sort(tracking, sort_method, inverse);

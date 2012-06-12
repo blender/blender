@@ -358,5 +358,7 @@ enum {
 
 /* MovieTrackingDopesheet->flag */
 #define TRACKING_DOPE_SORT_INVERSE    (1 << 0)
+#define TRACKING_DOPE_SELECTED_ONLY   (1 << 1)
+#define TRACKING_DOPE_SHOW_HIDDEN     (1 << 2)
 
 #endif

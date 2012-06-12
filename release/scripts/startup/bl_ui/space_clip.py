@@ -85,6 +85,10 @@ class CLIP_HT_header(Header):
                 dopesheet = tracking.dopesheet
                 layout.prop(sc, "view", text="", expand=True)
 
+                row = layout.row(align=True)
+                row.prop(dopesheet, "show_only_selected", text="")
+                row.prop(dopesheet, "show_hidden", text="")
+
                 layout.label(text="Sort by:")
                 layout.prop(dopesheet, "sort_method", text="")
                 layout.prop(dopesheet, "use_invert_sort", text="Invert")
