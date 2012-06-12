@@ -50,7 +50,8 @@ static const char *bc_get_joint_name(T *node)
 }
 
 ArmatureImporter::ArmatureImporter(UnitConverter *conv, MeshImporterBase *mesh, AnimationImporterBase *anim, Scene *sce) :
-	TransformReader(conv), scene(sce), empty(NULL), mesh_importer(mesh), anim_importer(anim) {}
+	TransformReader(conv), scene(sce), empty(NULL), mesh_importer(mesh), anim_importer(anim) {
+}
 
 ArmatureImporter::~ArmatureImporter()
 {
@@ -68,7 +69,7 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 
 	if (joint_id_to_joint_index_map.find(joint_id) == joint_id_to_joint_index_map.end()) {
 		fprintf(stderr, "Cannot find a joint index by joint id for %s.\n",
-				node->getOriginalId().c_str());
+		        node->getOriginalId().c_str());
 		return NULL;
 	}
 
@@ -77,12 +78,12 @@ JointData *ArmatureImporter::get_joint_data(COLLADAFW::Node *node);
 	return &joint_index_to_joint_info_map[joint_index];
 }
 #endif
-void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *parent, int totchild,
-				 float parent_mat[][4], Object * ob_arm)
+void ArmatureImporter::create_unskinned_bone(COLLADAFW::Node *node, EditBone *parent, int totchild,
+                                             float parent_mat[][4], Object *ob_arm)
 {
-	std::vector<COLLADAFW::Node*>::iterator it;
+	std::vector<COLLADAFW::Node *>::iterator it;
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
-	if ( it != finished_joints.end()) return; 
+	if (it != finished_joints.end()) return;
 
 	float mat[4][4];
 	float obmat[4][4];
@@ -90,7 +91,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 	// object-space
 	get_node_mat(obmat, node, NULL, NULL);
 
-	EditBone *bone = ED_armature_edit_bone_add((bArmature*)ob_arm->data, (char*)bc_get_joint_name(node));
+	EditBone *bone = ED_armature_edit_bone_add((bArmature *)ob_arm->data, (char *)bc_get_joint_name(node));
 	totbone++;
 	
 	if (parent) bone->parent = parent;
@@ -107,9 +108,9 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	}
 	float loc[3], size[3], rot[3][3];
-	mat4_to_loc_rot_size( loc, rot, size, obmat);
-	mat3_to_vec_roll(rot, NULL, &angle );
-	bone->roll=angle;
+	mat4_to_loc_rot_size(loc, rot, size, obmat);
+	mat3_to_vec_roll(rot, NULL, &angle);
+	bone->roll = angle;
 	// set head
 	copy_v3_v3(bone->head, mat[3]);
 
@@ -142,7 +143,7 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 
 	COLLADAFW::NodePointerArray& children = node->getChildNodes();
 	for (unsigned int i = 0; i < children.getCount(); i++) {
-		create_unskinned_bone( children[i], bone, children.getCount(), mat, ob_arm);
+		create_unskinned_bone(children[i], bone, children.getCount(), mat, ob_arm);
 	}
 
 	// in second case it's not a leaf bone, but we handle it the same way
@@ -155,12 +156,12 @@ void ArmatureImporter::create_unskinned_bone( COLLADAFW::Node *node, EditBone *p
 }
 
 void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBone *parent, int totchild,
-				 float parent_mat[][4], bArmature *arm)
+                                   float parent_mat[][4], bArmature *arm)
 {
 	//Checking if bone is already made.
-	std::vector<COLLADAFW::Node*>::iterator it;
+	std::vector<COLLADAFW::Node *>::iterator it;
 	it = std::find(finished_joints.begin(), finished_joints.end(), node);
-	if ( it != finished_joints.end()) return; 
+	if (it != finished_joints.end()) return;
 
 	float joint_inv_bind_mat[4][4];
 
@@ -169,7 +170,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 	float mat[4][4];
 
 	// TODO rename from Node "name" attrs later
-	EditBone *bone = ED_armature_edit_bone_add(arm, (char*)bc_get_joint_name(node));
+	EditBone *bone = ED_armature_edit_bone_add(arm, (char *)bc_get_joint_name(node));
 	totbone++;
 
 	if (skin.get_joint_inv_bind_matrix(joint_inv_bind_mat, node)) {
@@ -190,9 +191,9 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 			copy_m4_m4(mat, obmat);
 
 		float loc[3], size[3], rot[3][3], angle;
-		mat4_to_loc_rot_size( loc, rot, size, obmat);
-		mat3_to_vec_roll(rot, NULL, &angle );
-		bone->roll=angle;
+		mat4_to_loc_rot_size(loc, rot, size, obmat);
+		mat3_to_vec_roll(rot, NULL, &angle);
+		bone->roll = angle;
 	}
 
 	
@@ -267,7 +268,7 @@ void ArmatureImporter::create_bone(SkinInfo& skin, COLLADAFW::Node *node, EditBo
 	finished_joints.push_back(node);
 }
 
-void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW::Node * node)
+void ArmatureImporter::add_leaf_bone(float mat[][4], EditBone *bone,  COLLADAFW::Node *node)
 {
 	LeafBone leaf;
 
@@ -337,7 +338,7 @@ void ArmatureImporter::set_euler_rotmode()
 {
 	// just set rotmode = ROT_MODE_EUL on pose channel for each joint
 
-	std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>::iterator it;
+	std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>::iterator it;
 
 	for (it = joint_by_uid.begin(); it != joint_by_uid.end(); it++) {
 
@@ -378,7 +379,7 @@ Object *ArmatureImporter::get_empty_for_leaves()
 #if 0
 Object *ArmatureImporter::find_armature(COLLADAFW::Node *node)
 {
-	JointData* jd = get_joint_data(node);
+	JointData *jd = get_joint_data(node);
 	if (jd) return jd->ob_arm;
 
 	COLLADAFW::NodePointerArray& children = node->getChildNodes();
@@ -408,10 +409,10 @@ ArmatureJoints& ArmatureImporter::get_armature_joints(Object *ob_arm)
 #endif
 void ArmatureImporter::create_armature_bones( )
 {
-	std::vector<COLLADAFW::Node*>::iterator ri;
+	std::vector<COLLADAFW::Node *>::iterator ri;
 	//if there is an armature created for root_joint next root_joint
 	for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
-		if ( get_armature_for_joint(*ri) != NULL ) continue;
+		if (get_armature_for_joint(*ri) != NULL) continue;
 		
 		//add armature object for current joint
 		//Object *ob_arm = bc_add_object(scene, OB_ARMATURE, NULL);
@@ -428,9 +429,9 @@ void ArmatureImporter::create_armature_bones( )
 
 		// create unskinned bones
 		/*
-		  TODO:
-		  check if bones have already been created for a given joint
-		*/
+		 * TODO:
+		 * check if bones have already been created for a given joint
+		 */
 		leaf_bone_length = FLT_MAX;
 		create_unskinned_bone(*ri, NULL, (*ri)->getChildNodes().getCount(), NULL, ob_arm);
 
@@ -442,10 +443,10 @@ void ArmatureImporter::create_armature_bones( )
 
 		ED_armature_from_edit(ob_arm);
 
-		set_pose(ob_arm, *ri, NULL, NULL );
+		set_pose(ob_arm, *ri, NULL, NULL);
 
 		ED_armature_edit_free(ob_arm);
-		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
+		DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 	}
 
 	
@@ -496,7 +497,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 
 	SkinInfo *a = &skin;
 	Object *shared = NULL;
-	std::vector<COLLADAFW::Node*> skin_root_joints;
+	std::vector<COLLADAFW::Node *> skin_root_joints;
 
 	std::map<COLLADAFW::UniqueId, SkinInfo>::iterator it;
 	for (it = skin_by_data_uid.begin(); it != skin_by_data_uid.end(); it++) {
@@ -508,7 +509,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 
 		b->find_root_joints(root_joints, joint_by_uid, skin_root_joints);
 
-		std::vector<COLLADAFW::Node*>::iterator ri;
+		std::vector<COLLADAFW::Node *>::iterator ri;
 		for (ri = skin_root_joints.begin(); ri != skin_root_joints.end(); ri++) {
 			if (a->uses_joint_or_descendant(*ri)) {
 				shared = b->BKE_armature_from_object();
@@ -523,7 +524,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	if (shared)
 		ob_arm = skin.set_armature(shared);
 	else
-		ob_arm = skin.create_armature(scene); //once for every armature
+		ob_arm = skin.create_armature(scene);  //once for every armature
 
 	// enter armature edit mode
 	ED_armature_to_edit(ob_arm);
@@ -538,9 +539,9 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	/*
 	   TODO:
 	   check if bones have already been created for a given joint
-	*/
+	 */
 
-	std::vector<COLLADAFW::Node*>::iterator ri;
+	std::vector<COLLADAFW::Node *>::iterator ri;
 	for (ri = root_joints.begin(); ri != root_joints.end(); ri++) {
 		// for shared armature check if bone tree is already created
 		if (shared && std::find(skin_root_joints.begin(), skin_root_joints.end(), *ri) != skin_root_joints.end())
@@ -548,7 +549,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 
 		// since root_joints may contain joints for multiple controllers, we need to filter
 		if (skin.uses_joint_or_descendant(*ri)) {
-			create_bone(skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature*)ob_arm->data);
+			create_bone(skin, *ri, NULL, (*ri)->getChildNodes().getCount(), NULL, (bArmature *)ob_arm->data);
 
 			if (joint_parent_map.find((*ri)->getUniqueId()) != joint_parent_map.end() && !skin.get_parent())
 				skin.set_parent(joint_parent_map[(*ri)->getUniqueId()]);
@@ -560,7 +561,7 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 	// exit armature edit mode
 	ED_armature_from_edit(ob_arm);
 	ED_armature_edit_free(ob_arm);
-	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB|OB_RECALC_DATA);
+	DAG_id_tag_update(&ob_arm->id, OB_RECALC_OB | OB_RECALC_DATA);
 
 	// set_leaf_bone_shapes(ob_arm);
 	// set_euler_rotmode();
@@ -571,9 +572,9 @@ void ArmatureImporter::create_armature_bones(SkinInfo& skin)
 // is a child of a node (not joint), root should be true since
 // this is where we build armature bones from
 
-void ArmatureImporter::set_pose(Object * ob_arm,  COLLADAFW::Node * root_node, const char *parentname, float parent_mat[][4])
+void ArmatureImporter::set_pose(Object *ob_arm,  COLLADAFW::Node *root_node, const char *parentname, float parent_mat[][4])
 { 
-	char * bone_name = (char *) bc_get_joint_name ( root_node);
+	char *bone_name = (char *) bc_get_joint_name(root_node);
 	float mat[4][4];
 	float obmat[4][4];
 
@@ -584,7 +585,7 @@ void ArmatureImporter::set_pose(Object * ob_arm,  COLLADAFW::Node * root_node, c
 	get_node_mat(obmat, root_node, NULL, NULL);
 
 	//if (*edbone)
-	bPoseChannel * pchan  = BKE_pose_channel_find_name(ob_arm -> pose, bone_name);
+	bPoseChannel *pchan  = BKE_pose_channel_find_name(ob_arm->pose, bone_name);
 	//else fprintf ( "",
 
 	// get world-space
@@ -592,7 +593,7 @@ void ArmatureImporter::set_pose(Object * ob_arm,  COLLADAFW::Node * root_node, c
 		mult_m4_m4m4(mat, parent_mat, obmat);
 		bPoseChannel *parchan = BKE_pose_channel_find_name(ob_arm->pose, parentname);
 
-		mult_m4_m4m4(pchan->pose_mat, parchan->pose_mat, mat );
+		mult_m4_m4m4(pchan->pose_mat, parchan->pose_mat, mat);
 
 	}
 	else {
@@ -631,7 +632,7 @@ void ArmatureImporter::add_root_joint(COLLADAFW::Node *node)
 {
 	// root_joints.push_back(node);
 	Object *ob_arm = find_armature(node);
-	if (ob_arm)	{
+	if (ob_arm) {
 		get_armature_joints(ob_arm).root_joints.push_back(node);
 	}
 #ifdef COLLADA_DEBUG
@@ -694,7 +695,7 @@ void ArmatureImporter::link_armature(Object *ob_arm, const COLLADAFW::UniqueId& 
 }
 #endif
 
-bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControllerData* data)
+bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControllerData *data)
 {
 	// at this stage we get vertex influence info that should go into me->verts and ob->defbase
 	// there's no info to which object this should be long so we associate it with skin controller data UID
@@ -719,14 +720,14 @@ bool ArmatureImporter::write_skin_controller_data(const COLLADAFW::SkinControlle
 	return true;
 }
 
-bool ArmatureImporter::write_controller(const COLLADAFW::Controller* controller)
+bool ArmatureImporter::write_controller(const COLLADAFW::Controller *controller)
 {
 	// - create and store armature object
 
 	const COLLADAFW::UniqueId& skin_id = controller->getUniqueId();
 
 	if (controller->getControllerType() == COLLADAFW::Controller::CONTROLLER_TYPE_SKIN) {
-		COLLADAFW::SkinController *co = (COLLADAFW::SkinController*)controller;
+		COLLADAFW::SkinController *co = (COLLADAFW::SkinController *)controller;
 		// to be able to find geom id by controller id
 		geom_uid_by_controller_uid[skin_id] = co->getSource();
 
@@ -766,7 +767,7 @@ Object *ArmatureImporter::get_armature_for_joint(COLLADAFW::Node *node)
 			return skin.BKE_armature_from_object();
 	}
 
-	std::map<COLLADAFW::UniqueId, Object*>::iterator arm;
+	std::map<COLLADAFW::UniqueId, Object *>::iterator arm;
 	for (arm = unskinned_armature_map.begin(); arm != unskinned_armature_map.end(); arm++) {
 		if (arm->first == node->getUniqueId() )
 			return arm->second;
@@ -799,6 +800,3 @@ bool ArmatureImporter::get_joint_bind_mat(float m[][4], COLLADAFW::Node *joint)
 
 	return found;
 }
-
-
-

@@ -43,8 +43,8 @@
 
 void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_material, Object *ob)
 {
-	for (int a = 0; a < ob->totcol; a++)	{
-		Material *ma = give_current_material(ob, a+1);
+	for (int a = 0; a < ob->totcol; a++) {
+		Material *ma = give_current_material(ob, a + 1);
 			
 		COLLADASW::InstanceMaterialList& iml = bind_material.getInstanceMaterialList();
 
@@ -56,7 +56,7 @@ void InstanceWriter::add_material_bindings(COLLADASW::BindMaterial& bind_materia
 			COLLADASW::InstanceMaterial im(ostr.str(), COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, matid));
 			
 			// create <bind_vertex_input> for each uv map
-			Mesh *me = (Mesh*)ob->data;
+			Mesh *me = (Mesh *)ob->data;
 			int totlayer = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 			
 			for (int b = 0; b < totlayer; b++) {

@@ -41,58 +41,60 @@ extern "C"
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
 
-	int collada_import(bContext *C, const char *filepath)
-	{
-		DocumentImporter imp (C, filepath);
-		if (imp.import()) return 1;
+int collada_import(bContext *C, const char *filepath)
+{
+	DocumentImporter imp(C, filepath);
+	if (imp.import()) return 1;
 
-		return 0;
-	}
+	return 0;
+}
 
-	int collada_export(
-		Scene *sce, 
-		const char *filepath,
-		int selected,
-		int apply_modifiers,
+int collada_export(
+    Scene *sce,
+    const char *filepath,
+    int selected,
+    int apply_modifiers,
 
-		int include_armatures,
-		int include_children,
+    int include_armatures,
+    int include_children,
 
-		int use_object_instantiation,
-		int second_life )
-	{
-		ExportSettings export_settings;
+    int use_object_instantiation,
+    int second_life)
+{
+	ExportSettings export_settings;
 
-		/* annoying, collada crashes if file cant be created! [#27162] */
-		if (!BLI_exists(filepath)) {
-			BLI_make_existing_file(filepath); /* makes the dir if its not there */
-			if (BLI_file_touch(filepath) == 0) {
-				return 0;
-			}
+	/* annoying, collada crashes if file cant be created! [#27162] */
+	if (!BLI_exists(filepath)) {
+		BLI_make_existing_file(filepath);     /* makes the dir if its not there */
+		if (BLI_file_touch(filepath) == 0) {
+			return 0;
 		}
-		/* end! */
-
-
-		export_settings.selected                 = selected != 0;
-		export_settings.apply_modifiers          = apply_modifiers != 0;
-		export_settings.include_armatures        = include_armatures != 0;
-		export_settings.include_children         = include_children != 0;
-		export_settings.second_life              = second_life != 0;
-		export_settings.use_object_instantiation = use_object_instantiation != 0;
-		export_settings.filepath                 = (char *)filepath;
-
-		int includeFilter = OB_REL_NONE;
-		if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
-		if (export_settings.include_children)  includeFilter |= OB_REL_CHILDREN_RECURSIVE;
-
-		eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
-		export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
-
-		DocumentExporter exporter(&export_settings);
-		exporter.exportCurrentScene(sce);
-
-		BLI_linklist_free(export_settings.export_set, NULL);
-
-		return 1;
 	}
+	/* end! */
+
+
+	export_settings.selected                 = selected != 0;
+	export_settings.apply_modifiers          = apply_modifiers != 0;
+	export_settings.include_armatures        = include_armatures != 0;
+	export_settings.include_children         = include_children != 0;
+	export_settings.second_life              = second_life != 0;
+	export_settings.use_object_instantiation = use_object_instantiation != 0;
+	export_settings.filepath                 = (char *)filepath;
+
+	int includeFilter = OB_REL_NONE;
+	if (export_settings.include_armatures) includeFilter |= OB_REL_MOD_ARMATURE;
+	if (export_settings.include_children) includeFilter |= OB_REL_CHILDREN_RECURSIVE;
+
+	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
+	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
+
+	DocumentExporter exporter(&export_settings);
+	exporter.exportCurrentScene(sce);
+
+	BLI_linklist_free(export_settings.export_set, NULL);
+
+	return 1;
+}
+
+/* end extern C */
 }

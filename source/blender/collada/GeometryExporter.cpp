@@ -38,7 +38,7 @@
 #include "DNA_meshdata_types.h"
 
 extern "C" {
-    #include "BKE_DerivedMesh.h"
+	#include "BKE_DerivedMesh.h"
 	#include "BKE_main.h"
 	#include "BKE_global.h"
 	#include "BKE_library.h"
@@ -52,7 +52,8 @@ extern "C" {
 #include "collada_utils.h"
 
 // TODO: optimize UV sets by making indexed list with duplicates removed
-GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings) {}
+GeometryExporter::GeometryExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryGeometries(sw), export_settings(export_settings) {
+}
 
 
 void GeometryExporter::exportGeom(Scene *sce)
@@ -76,11 +77,11 @@ void GeometryExporter::operator()(Object *ob)
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
-	if ( this->export_settings->apply_modifiers ) {
+	if (this->export_settings->apply_modifiers) {
 		me = bc_to_mesh_apply_modifiers(mScene, ob);
 	} 
 	else {
-		me = (Mesh*)ob->data;
+		me = (Mesh *)ob->data;
 	}
 	BKE_mesh_tessface_ensure(me);
 
@@ -90,8 +91,10 @@ void GeometryExporter::operator()(Object *ob)
 
 	// Skip if linked geometry was already exported from another reference
 	if (use_instantiation && 
-		exportedGeometry.find(geom_id) != exportedGeometry.end())
+	    exportedGeometry.find(geom_id) != exportedGeometry.end())
+	{
 		return;
+	}
 
 	std::string geom_name = (use_instantiation) ? id_name(ob->data) : id_name(ob);
 
@@ -132,7 +135,7 @@ void GeometryExporter::operator()(Object *ob)
 
 	// XXX slow		
 	if (ob->totcol) {
-		for (int a = 0; a < ob->totcol; a++)	{
+		for (int a = 0; a < ob->totcol; a++)    {
 			createPolylist(a, has_uvs, has_color, ob, me, geom_id, norind);
 		}
 	}
@@ -161,9 +164,9 @@ void GeometryExporter::operator()(Object *ob)
 
 
 void GeometryExporter::createLooseEdgeList(Object *ob,
-					     Mesh   *me,
-					     std::string& geom_id,
-					     std::vector<Face>& norind)
+                                           Mesh   *me,
+                                           std::string& geom_id,
+                                           std::vector<Face>& norind)
 {
 
 	MEdge *medges = me->medge;
@@ -204,8 +207,8 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 
 		for (index = 0; index < edges_in_linelist; index++) 
 		{
-			lines.appendValues(edge_list[2*index+1]);
-			lines.appendValues(edge_list[2*index]);
+			lines.appendValues(edge_list[2 * index + 1]);
+			lines.appendValues(edge_list[2 * index]);
 		}
 		lines.finish();
 	}
@@ -214,12 +217,12 @@ void GeometryExporter::createLooseEdgeList(Object *ob,
 
 // powerful because it handles both cases when there is material and when there's not
 void GeometryExporter::createPolylist(short material_index,
-					bool has_uvs,
-					bool has_color,
-					Object *ob,
-					Mesh *me,
-					std::string& geom_id,
-					std::vector<Face>& norind)
+                                      bool has_uvs,
+                                      bool has_color,
+                                      Object *ob,
+                                      Mesh *me,
+                                      std::string& geom_id,
+                                      std::vector<Face>& norind)
 {
 	MFace *mfaces = me->mface;
 	int totfaces = me->totface;
@@ -280,10 +283,10 @@ void GeometryExporter::createPolylist(short material_index,
 	for (i = 0; i < num_layers; i++) {
 		// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, i);
 		COLLADASW::Input input3(COLLADASW::InputSemantic::TEXCOORD,
-								makeUrl(makeTexcoordSourceId(geom_id, i)),
-								2, // offset always 2, this is only until we have optimized UV sets
-								i  // set number equals UV map index
-								);
+		                        makeUrl(makeTexcoordSourceId(geom_id, i)),
+		                        2, // offset always 2, this is only until we have optimized UV sets
+		                        i  // set number equals UV map index
+		                        );
 		til.push_back(input3);
 	}
 
@@ -342,7 +345,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION));
 	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::POSITION) +
-					  ARRAY_ID_SUFFIX);
+	                  ARRAY_ID_SUFFIX);
 	source.setAccessorCount(totverts);
 	source.setAccessorStride(3);
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -350,7 +353,7 @@ void GeometryExporter::createVertsSource(std::string geom_id, Mesh *me)
 	param.push_back("Y");
 	param.push_back("Z");
 	/*main function, it creates <source id = "">, <float_array id = ""
-	  count = ""> */
+	   count = ""> */
 	source.prepareToAppendValues();
 	//appends data to <float_array>
 	int i = 0;
@@ -388,7 +391,7 @@ void GeometryExporter::createVertexColorSource(std::string geom_id, Mesh *me)
 
 	int index = CustomData_get_active_layer_index(&me->fdata, CD_MCOL);
 
-	MCol *mcol = (MCol*)me->fdata.layers[index].data;
+	MCol *mcol = (MCol *)me->fdata.layers[index].data;
 	MCol *c = mcol;
 
 	for (i = 0, f = me->mface; i < me->totface; i++, c += 4, f++)
@@ -422,10 +425,10 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 	for (i = 0; i < totfaces; i++) {
 		MFace *f = &mfaces[i];
 		if (f->v4 == 0) {
-			totuv+=3;
+			totuv += 3;
 		}
 		else {
-			totuv+=4;
+			totuv += 4;
 		}
 	}
 
@@ -434,7 +437,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 	// write <source> for each layer
 	// each <source> will get id like meshName + "map-channel-1"
 	for (int a = 0; a < num_layers; a++) {
-		MTFace *tface = (MTFace*)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
+		MTFace *tface = (MTFace *)CustomData_get_layer_n(&me->fdata, CD_MTFACE, a);
 		// char *name = CustomData_get_layer_name(&me->fdata, CD_MTFACE, a);
 		
 		COLLADASW::FloatSourceF source(mSW);
@@ -455,7 +458,7 @@ void GeometryExporter::createTexcoordsSource(std::string geom_id, Mesh *me)
 			
 			for (int j = 0; j < (f->v4 == 0 ? 3 : 4); j++) {
 				source.appendValues(tface[i].uv[j][0],
-									tface[i].uv[j][1]);
+				                    tface[i].uv[j][1]);
 			}
 		}
 		
@@ -475,7 +478,7 @@ void GeometryExporter::createNormalsSource(std::string geom_id, Mesh *me, std::v
 	COLLADASW::FloatSourceF source(mSW);
 	source.setId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL));
 	source.setArrayId(getIdBySemantics(geom_id, COLLADASW::InputSemantic::NORMAL) +
-					  ARRAY_ID_SUFFIX);
+	                  ARRAY_ID_SUFFIX);
 	source.setAccessorCount((unsigned long)nor.size());
 	source.setAccessorStride(3);
 	COLLADASW::SourceBase::ParameterNameList &param = source.getParameterNameList();
@@ -563,8 +566,9 @@ COLLADASW::URI GeometryExporter::makeUrl(std::string id)
 	return COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, id);
 }
 
-
-/* int GeometryExporter::getTriCount(MFace *faces, int totface) {
+#if 0
+int GeometryExporter::getTriCount(MFace *faces, int totface)
+{
 	int i;
 	int tris = 0;
 	for (i = 0; i < totface; i++) {
@@ -576,4 +580,5 @@ COLLADASW::URI GeometryExporter::makeUrl(std::string id)
 	}
 
 	return tris;
-	}*/
+}
+#endif

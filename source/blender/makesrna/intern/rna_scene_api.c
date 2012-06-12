@@ -87,17 +87,17 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 
 static void rna_Scene_collada_export(
     Scene *scene,
-	const char *filepath,
-	int selected,
-	int apply_modifiers,
-	int include_armatures,
-	int include_children,
-	int use_object_instantiation,
-	int second_life)
+    const char *filepath,
+    int selected,
+    int apply_modifiers,
+    int include_armatures,
+    int include_children,
+    int use_object_instantiation,
+    int second_life)
 {
 	collada_export(scene, filepath, selected, apply_modifiers, 
-		include_armatures, include_children, 
-		use_object_instantiation, second_life);
+	               include_armatures, include_children,
+	               use_object_instantiation, second_life);
 }
 
 #endif

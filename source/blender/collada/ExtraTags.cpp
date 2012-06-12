@@ -32,7 +32,7 @@
 
 #include "ExtraTags.h"
 
-ExtraTags::ExtraTags( std::string profile)
+ExtraTags::ExtraTags(std::string profile)
 {
 	this->profile = profile;
 	this->tags = std::map<std::string, std::string>();
@@ -42,19 +42,19 @@ ExtraTags::~ExtraTags()
 {
 }
 
-bool ExtraTags::isProfile( std::string profile)
+bool ExtraTags::isProfile(std::string profile)
 {
 	return this->profile == profile;
 }
 
-bool ExtraTags::addTag( std::string tag,  std::string data)
+bool ExtraTags::addTag(std::string tag,  std::string data)
 {
 	tags[tag] = data;
 	
 	return true;
 }
 
-int ExtraTags::asInt( std::string tag, bool *ok)
+int ExtraTags::asInt(std::string tag, bool *ok)
 {
 	if (tags.find(tag) == tags.end()) {
 		*ok = false;
@@ -64,7 +64,7 @@ int ExtraTags::asInt( std::string tag, bool *ok)
 	return atoi(tags[tag].c_str());
 }
 
-float ExtraTags::asFloat( std::string tag, bool *ok)
+float ExtraTags::asFloat(std::string tag, bool *ok)
 {
 	if (tags.find(tag) == tags.end()) {
 		*ok = false;
@@ -74,7 +74,7 @@ float ExtraTags::asFloat( std::string tag, bool *ok)
 	return (float)atof(tags[tag].c_str());
 }
 
-std::string ExtraTags::asString( std::string tag, bool *ok)
+std::string ExtraTags::asString(std::string tag, bool *ok)
 {
 	if (tags.find(tag) == tags.end()) {
 		*ok = false;
