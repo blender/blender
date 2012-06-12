@@ -190,7 +190,9 @@ static int mouse_select_knot(bContext *C, float co[2], int extend)
 				if (!extend) {
 					SelectUserData selectdata = {SEL_DESELECT};
 
-					clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
+					clip_graph_tracking_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
+					                            sc->flag & SC_SHOW_GRAPH_HIDDEN, &selectdata,
+					                            toggle_selection_cb);
 				}
 
 				if (userdata.coord == 0)
@@ -215,7 +217,8 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 	MouseSelectUserData userdata;
 
 	mouse_select_init_data(&userdata, co);
-	clip_graph_tracking_values_iterate(sc, &userdata, find_nearest_tracking_segment_cb,
+	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,
+	                                   &userdata, find_nearest_tracking_segment_cb,
 	                                   NULL, find_nearest_tracking_segment_end_cb);
 
 	if (userdata.track) {
@@ -227,11 +230,16 @@ static int mouse_select_curve(bContext *C, float co[2], int extend)
 		}
 		else if (act_track != userdata.track) {
 			SelectUserData selectdata = {SEL_DESELECT};
+			MovieTrackingObject *object = BKE_tracking_active_object(tracking);
+			ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
 
 			tracking->act_track = userdata.track;
+			BKE_tracking_select_track(tracksbase, userdata.track, TRACK_AREA_ALL, TRUE);
 
 			/* deselect all knots on newly selected curve */
-			clip_graph_tracking_iterate(sc, &selectdata, toggle_selection_cb);
+			clip_graph_tracking_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
+			                            sc->flag & SC_SHOW_GRAPH_HIDDEN, &selectdata,
+			                            toggle_selection_cb);
 		}
 
 		return TRUE;
@@ -556,7 +564,9 @@ static int view_all_exec(bContext *C, wmOperator *UNUSED(op))
 	userdata.max = -FLT_MAX;
 	userdata.min = FLT_MAX;
 
-	clip_graph_tracking_values_iterate(sc, &userdata, view_all_cb, NULL, NULL);
+	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY,
+	                                   sc->flag & SC_SHOW_GRAPH_HIDDEN, &userdata,
+	                                   view_all_cb, NULL, NULL);
 
 	/* set extents of view to start/end frames */
 	v2d->cur.xmin = (float) SFRA;

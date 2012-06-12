@@ -1233,7 +1233,7 @@ static void dopesheet_area_draw(const bContext *C, ARegion *ar)
 	short unit = 0;
 
 	if (clip)
-		BKE_tracking_dopesheet_update(&clip->tracking, sc->dope_sort, sc->dope_flag & SC_DOPE_SORT_INVERSE);
+		BKE_tracking_dopesheet_update(&clip->tracking);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);
@@ -1294,7 +1294,7 @@ static void clip_channels_area_draw(const bContext *C, ARegion *ar)
 	View2DScrollers *scrollers;
 
 	if (clip)
-		BKE_tracking_dopesheet_update(&clip->tracking, sc->dope_sort, sc->dope_flag & SC_DOPE_SORT_INVERSE);
+		BKE_tracking_dopesheet_update(&clip->tracking);
 
 	/* clear and setup matrix */
 	UI_ThemeClearColor(TH_BACK);

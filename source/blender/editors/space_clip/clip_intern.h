@@ -114,12 +114,12 @@ void clip_graph_tracking_values_iterate_track(struct SpaceClip *sc, struct Movie
                                               void (*segment_start)(void *userdata, struct MovieTrackingTrack *track, int coord),
                                               void (*segment_end)(void *userdata));
 
-void clip_graph_tracking_values_iterate(struct SpaceClip *sc, void *userdata,
+void clip_graph_tracking_values_iterate(struct SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                         void (*func)(void *userdata, struct MovieTrackingTrack *track, struct MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
                                         void (*segment_start)(void *userdata, struct MovieTrackingTrack *track, int coord),
                                         void (*segment_end)(void *userdata));
 
-void clip_graph_tracking_iterate(struct SpaceClip *sc, void *userdata,
+void clip_graph_tracking_iterate(struct SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                  void (*func)(void *userdata, struct MovieTrackingMarker *marker));
 
 void clip_delete_track(struct bContext *C, struct MovieClip *clip, struct ListBase *tracksbase, struct MovieTrackingTrack *track);

@@ -561,11 +561,11 @@ typedef enum eSameVolume_Modes {
 	SAMEVOL_Z
 } eSameVolume_Modes;
 
-/* bActionConstraint.flag
- * WARNING: bitwise! */
-typedef enum eAction_flags {
-	BONE_USE_OBJECT_ACTION = 1 << 0, /* Bones use "object" part of target action, instead of "same bone name" part. */
-} eAction_flags;
+/* bActionConstraint.flag */
+typedef enum eActionConstraint_Flags {
+	/* Bones use "object" part of target action, instead of "same bone name" part */
+	ACTCON_BONE_USE_OBJECT_ACTION = (1 << 0), 
+} eActionConstraint_Flags;
 
 /* Locked-Axis Values (Locked Track) */
 typedef enum eLockAxis_Modes {

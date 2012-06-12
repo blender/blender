@@ -162,17 +162,20 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 	userdata.sel = FALSE;
 	userdata.act_track = act_track;
 	UI_view2d_getscale(v2d, &userdata.xscale, &userdata.yscale);
-	clip_graph_tracking_values_iterate(sc, &userdata, tracking_segment_knot_cb, NULL, NULL);
+	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,
+	                                   &userdata, tracking_segment_knot_cb, NULL, NULL);
 
 	/* draw graph lines */
 	glEnable(GL_BLEND);
-	clip_graph_tracking_values_iterate(sc, act_track, tracking_segment_point_cb,
-	                                   tracking_segment_start_cb, tracking_segment_end_cb);
+	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,
+	                                   act_track, tracking_segment_point_cb, tracking_segment_start_cb,
+	                                   tracking_segment_end_cb);
 	glDisable(GL_BLEND);
 
 	/* selected knot handles on top of curves */
 	userdata.sel = TRUE;
-	clip_graph_tracking_values_iterate(sc, &userdata, tracking_segment_knot_cb, NULL, NULL);
+	clip_graph_tracking_values_iterate(sc, sc->flag & SC_SHOW_GRAPH_SEL_ONLY, sc->flag & SC_SHOW_GRAPH_HIDDEN,
+	                                   &userdata, tracking_segment_knot_cb, NULL, NULL);
 }
 
 static void draw_frame_curves(SpaceClip *sc)

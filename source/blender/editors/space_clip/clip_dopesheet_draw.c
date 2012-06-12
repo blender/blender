@@ -158,6 +158,12 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		MovieTrackingDopesheetChannel *channel;
 		float y, xscale, yscale;
 		float strip[4], selected_strip[4];
+		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
+
+		/* don't use totrect set, as the width stays the same
+		 * (NOTE: this is ok here, the configuration is pretty straightforward)
+		 */
+		v2d->tot.ymin = (float)(-height);
 
 		y = (float) CHANNEL_FIRST;
 
@@ -307,10 +313,10 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			font_height = BLF_height(fontid, track->name);
+			font_height = BLF_height(fontid, channel->name);
 			BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD,
 			             y - font_height / 2.0f, 0.0f);
-			BLF_draw(fontid, track->name, strlen(track->name));
+			BLF_draw(fontid, channel->name, strlen(channel->name));
 		}
 
 		/* adjust y-position for next one */

@@ -212,6 +212,11 @@ typedef struct StrokeCache {
 	float clip_tolerance[3];
 	float initial_mouse[2];
 
+	/* Pre-allocated temporary storage used during smoothing */
+	int num_threads;
+	float (**tmpgrid_co)[3], (**tmprow_co)[3];
+	float **tmpgrid_mask, **tmprow_mask;
+
 	/* Variants */
 	float radius;
 	float radius_squared;
@@ -1257,6 +1262,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	float (*tmpgrid_co)[3], (*tmprow_co)[3];
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
+	int thread_num;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
 	sculpt_brush_test_init(ss, &test);
@@ -1267,17 +1273,15 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	                        NULL, &gridsize, &griddata, &gridadj);
 	BLI_pbvh_get_grid_key(ss->pbvh, &key);
 
-	#pragma omp critical
-	{
-		if (smooth_mask) {
-			tmpgrid_mask = MEM_mallocN(sizeof(float) * gridsize * gridsize, "tmpgrid_mask");
-			tmprow_mask = MEM_mallocN(sizeof(float) * gridsize, "tmprow_mask");
-		}
-		else {
-			tmpgrid_co = MEM_mallocN(sizeof(float) * 3 * gridsize * gridsize, "tmpgrid_co");
-			tmprow_co = MEM_mallocN(sizeof(float) * 3 * gridsize, "tmprow_co");
-		}
-	}
+	thread_num = 0;
+#ifdef _OPENMP
+	if (sd->flags & SCULPT_USE_OPENMP)
+		thread_num = omp_get_thread_num();
+#endif
+	tmpgrid_co = ss->cache->tmpgrid_co[thread_num];
+	tmprow_co = ss->cache->tmprow_co[thread_num];
+	tmpgrid_mask = ss->cache->tmpgrid_mask[thread_num];
+	tmprow_mask = ss->cache->tmprow_mask[thread_num];
 
 	for (i = 0; i < totgrid; ++i) {
 		data = griddata[grid_indices[i]];
@@ -1391,18 +1395,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 					}
 				}
 			}
-		}
-	}
-
-	#pragma omp critical
-	{
-		if (smooth_mask) {
-			MEM_freeN(tmpgrid_mask);
-			MEM_freeN(tmprow_mask);
-		}
-		else {
-			MEM_freeN(tmpgrid_co);
-			MEM_freeN(tmprow_co);
 		}
 	}
 }
@@ -3233,6 +3225,69 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 	}
 }
 
+static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
+{
+	StrokeCache *cache = ss->cache;
+
+#ifdef _OPENMP
+	/* If using OpenMP then create a number of threads two times the
+	 * number of processor cores.
+	 * Justification: Empirically I've found that two threads per
+	 * processor gives higher throughput. */
+	if (sd->flags & SCULPT_USE_OPENMP) {
+		cache->num_threads = 2 * omp_get_num_procs();
+		omp_set_num_threads(cache->num_threads);
+	}
+	else
+#endif
+	{
+		(void)sd;
+		cache->num_threads = 1;
+	}
+
+	if (ss->multires) {
+		int i, gridsize, array_mem_size;
+		BLI_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
+								&gridsize, NULL, NULL);
+
+		array_mem_size = cache->num_threads * sizeof(void*);
+
+		cache->tmpgrid_co = MEM_mallocN(array_mem_size, "tmpgrid_co array");
+		cache->tmprow_co = MEM_mallocN(array_mem_size, "tmprow_co array");
+		cache->tmpgrid_mask = MEM_mallocN(array_mem_size, "tmpgrid_mask array");
+		cache->tmprow_mask = MEM_mallocN(array_mem_size, "tmprow_mask array");
+
+		for (i = 0; i < cache->num_threads; i++) {
+			const size_t row_size = sizeof(float) * gridsize;
+			const size_t co_row_size = 3 * row_size;
+
+			cache->tmprow_co[i] = MEM_mallocN(co_row_size, "tmprow_co");
+			cache->tmpgrid_co[i] = MEM_mallocN(co_row_size * gridsize, "tmpgrid_co");
+			cache->tmprow_mask[i] = MEM_mallocN(row_size, "tmprow_mask");
+			cache->tmpgrid_mask[i] = MEM_mallocN(row_size * gridsize, "tmpgrid_mask");
+		}
+	}
+}
+
+static void sculpt_omp_done(SculptSession *ss)
+{
+	if (ss->multires) {
+		int i;
+
+		for (i = 0; i < ss->cache->num_threads; i++) {
+			MEM_freeN(ss->cache->tmpgrid_co[i]);
+			MEM_freeN(ss->cache->tmprow_co[i]);
+			MEM_freeN(ss->cache->tmpgrid_mask[i]);
+			MEM_freeN(ss->cache->tmprow_mask[i]);
+		}
+
+		MEM_freeN(ss->cache->tmpgrid_co);
+		MEM_freeN(ss->cache->tmprow_co);
+		MEM_freeN(ss->cache->tmpgrid_mask);
+		MEM_freeN(ss->cache->tmprow_mask);
+	}
+}
+
 /* Initialize the stroke cache invariants from operator properties */
 static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
@@ -3346,6 +3401,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->first_time = 1;
 
 	cache->vertex_rotation = 0;
+
+	sculpt_omp_start(sd, ss);
 }
 
 static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
@@ -3798,19 +3855,6 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 
 		sculpt_undo_push_begin(sculpt_tool_name(sd));
 
-#ifdef _OPENMP
-		/* If using OpenMP then create a number of threads two times the
-		 * number of processor cores.
-		 * Justification: Empirically I've found that two threads per
-		 * processor gives higher throughput. */
-		if (sd->flags & SCULPT_USE_OPENMP) {
-			int num_procs;
-
-			num_procs = omp_get_num_procs();
-			omp_set_num_threads(2 * num_procs);
-		}
-#endif
-
 		return 1;
 	}
 	else
@@ -3846,6 +3890,8 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	sculpt_omp_done(ss);
 
 	/* reset values used to draw brush after completing the stroke */
 	sd->draw_anchored = 0;

@@ -3545,40 +3545,34 @@ static void  tracking_dopesheet_sort(MovieTracking *tracking, int sort_method, i
 {
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 
-	if (dopesheet->sort_method == sort_method && dopesheet->sort_inverse == inverse)
-		return;
-
 	if (inverse) {
-		if (sort_method == TRACK_SORT_NAME) {
+		if (sort_method == TRACKING_DOPE_SORT_NAME) {
 			BLI_sortlist(&dopesheet->channels, channels_alpha_inverse_sort);
 		}
-		else if (sort_method == TRACK_SORT_LONGEST) {
+		else if (sort_method == TRACKING_DOPE_SORT_LONGEST) {
 			BLI_sortlist(&dopesheet->channels, channels_longest_segment_inverse_sort);
 		}
-		else if (sort_method == TRACK_SORT_TOTAL) {
+		else if (sort_method == TRACKING_DOPE_SORT_TOTAL) {
 			BLI_sortlist(&dopesheet->channels, channels_total_track_inverse_sort);
 		}
-		else if (sort_method == TRACK_SORT_AVERAGE_ERROR) {
+		else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
 			BLI_sortlist(&dopesheet->channels, channels_average_error_inverse_sort);
 		}
 	}
 	else {
-		if (sort_method == TRACK_SORT_NAME) {
+		if (sort_method == TRACKING_DOPE_SORT_NAME) {
 			BLI_sortlist(&dopesheet->channels, channels_alpha_sort);
 		}
-		else if (sort_method == TRACK_SORT_LONGEST) {
+		else if (sort_method == TRACKING_DOPE_SORT_LONGEST) {
 			BLI_sortlist(&dopesheet->channels, channels_longest_segment_sort);
 		}
-		else if (sort_method == TRACK_SORT_TOTAL) {
+		else if (sort_method == TRACKING_DOPE_SORT_TOTAL) {
 			BLI_sortlist(&dopesheet->channels, channels_total_track_sort);
 		}
-		else if (sort_method == TRACK_SORT_AVERAGE_ERROR) {
+		else if (sort_method == TRACKING_DOPE_SORT_AVERAGE_ERROR) {
 			BLI_sortlist(&dopesheet->channels, channels_average_error_sort);
 		}
 	}
-
-	dopesheet->sort_method = sort_method;
-	dopesheet->sort_inverse = inverse;
 }
 
 void BKE_tracking_dopesheet_tag_update(MovieTracking *tracking)
@@ -3588,35 +3582,50 @@ void BKE_tracking_dopesheet_tag_update(MovieTracking *tracking)
 	dopesheet->ok = FALSE;
 }
 
-void BKE_tracking_dopesheet_update(MovieTracking *tracking, int sort_method, int inverse)
+void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 {
 	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingTrack *track;
+	MovieTrackingReconstruction *reconstruction;
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
 
-	if (dopesheet->ok) {
-		tracking_dopesheet_sort(tracking, sort_method, inverse);
+	short sort_method = dopesheet->sort_method;
+	short inverse = dopesheet->flag & TRACKING_DOPE_SORT_INVERSE;
+	short sel_only = dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY;
+	short show_hidden = dopesheet->flag & TRACKING_DOPE_SHOW_HIDDEN;
+
+	if (dopesheet->ok)
 		return;
-	}
 
 	tracking_dopesheet_free(dopesheet);
 
+	reconstruction = BKE_tracking_object_reconstruction(tracking, object);
+
 	for (track = tracksbase->first; track; track = track->next) {
-		if (TRACK_SELECTED(track) && (track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingDopesheetChannel *channel;
+		MovieTrackingDopesheetChannel *channel;
 
-			channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
-			channel->track = track;
+		if (!show_hidden && (track->flag & TRACK_HIDDEN) != 0)
+			continue;
 
-			channels_segments_calc(channel);
+		if (sel_only && !TRACK_SELECTED(track))
+			continue;
 
-			BLI_addtail(&dopesheet->channels, channel);
-			dopesheet->tot_channel++;
+		channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
+		channel->track = track;
+
+		if (reconstruction->flag & TRACKING_RECONSTRUCTED) {
+			BLI_snprintf(channel->name, sizeof(channel->name), "%s (%.4f)", track->name, track->error);
 		}
-	}
+		else {
+			BLI_strncpy(channel->name, track->name, sizeof(channel->name));
+		}
 
-	dopesheet->sort_method = TRACK_SORT_NONE;
+		channels_segments_calc(channel);
+
+		BLI_addtail(&dopesheet->channels, channel);
+		dopesheet->tot_channel++;
+	}
 
 	tracking_dopesheet_sort(tracking, sort_method, inverse);
 
