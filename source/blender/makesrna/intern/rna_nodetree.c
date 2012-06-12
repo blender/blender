@@ -1058,6 +1058,7 @@ static void init(void)
 	reg_node(NODE_FORLOOP, Category_LoopNode, "FORLOOP", "NodeForLoop", "Node", "ForLoop", "");
 	reg_node(NODE_WHILELOOP, Category_LoopNode, "WHILELOOP", "NodeWhileLoop", "Node", "WhileLoop", "");
 	reg_node(NODE_FRAME, Category_LayoutNode, "FRAME", "NodeFrame", "Node", "Frame", "");
+	reg_node(NODE_REROUTE, Category_LayoutNode, "REROUTE", "NodeReroute", "Node", "Reroute", "");
 }
 
 static StructRNA *def_node(BlenderRNA *brna, int node_id)
@@ -1075,7 +1076,7 @@ static StructRNA *def_node(BlenderRNA *brna, int node_id)
 static void alloc_node_type_items(EnumPropertyItem *items, int category)
 {
 	int i;
-	int count = 3;
+	int count = 4;
 	EnumPropertyItem *item  = items;
 	
 	for (i = 0; i < MaxNodes; i++)
@@ -1101,6 +1102,14 @@ static void alloc_node_type_items(EnumPropertyItem *items, int category)
 	item->identifier = "GROUP";
 	item->icon = 0;
 	item->name = "Group";
+	item->description = "";
+	
+	item++;
+	
+	item->value = NODE_REROUTE;
+	item->identifier = "REROUTE";
+	item->icon = 0;
+	item->name = "Reroute";
 	item->description = "";
 	
 	item++;
@@ -4208,6 +4217,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, NODE_FORLOOP, def_forloop);
 	define_specific_node(brna, NODE_WHILELOOP, def_whileloop);
 	define_specific_node(brna, NODE_FRAME, def_frame);
+	define_specific_node(brna, NODE_REROUTE, 0);
 	
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);
