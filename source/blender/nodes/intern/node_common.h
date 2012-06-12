@@ -37,8 +37,6 @@
 
 struct bNodeTree;
 
-struct bNodeSocket *node_group_add_extern_socket(struct bNodeTree *ntree, ListBase *lb, int in_out, struct bNodeSocket *gsock);
-
 void node_group_init(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp);
 void node_forloop_init(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp);
 void node_whileloop_init(struct bNodeTree *ntree, struct bNode *node, struct bNodeTemplate *ntemp);
