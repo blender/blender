@@ -90,7 +90,8 @@ typedef struct MovieClip {
 } MovieClip;
 
 typedef struct MovieClipScopes {
-	int ok;                         /* 1 means scopes are ok and recalculation is unneeded */
+	short ok;                       /* 1 means scopes are ok and recalculation is unneeded */
+	short use_track_mask;           /* whether track's mask should be applied on preview */
 	int track_preview_height;       /* height of track preview widget */
 	int frame_width, frame_height;  /* width and height of frame for which scopes are calculated */
 	struct MovieTrackingMarker undist_marker;   /* undistorted position of marker used for pattern sampling */
@@ -98,7 +99,7 @@ typedef struct MovieClipScopes {
 	struct ImBuf *track_preview;    /* ImBuf displayed in track preview */
 	float track_pos[2];             /* sub-pizel position of marker in track ImBuf */
 	short track_disabled;           /* active track is disabled, special notifier should be drawn */
-	char pad[2];
+	short track_locked;             /* active track is locked, no transformation should be allowed */
 	int framenr;                    /* frame number scopes are created for */
 	struct MovieTrackingTrack *track;   /* track scopes are created for */
 	struct MovieTrackingMarker *marker; /* marker scopes are created for */

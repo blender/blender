@@ -215,6 +215,15 @@ static void clip_scopes_tag_refresh(ScrArea *sa)
 	sc->scopes.ok = FALSE;
 }
 
+static void clip_scopes_check_gpencil_change(ScrArea *sa)
+{
+	SpaceClip *sc = (SpaceClip *)sa->spacedata.first;
+
+	if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
+		clip_scopes_tag_refresh(sa);
+	}
+}
+
 static void clip_stabilization_tag_refresh(ScrArea *sa)
 {
 	SpaceClip *sc = (SpaceClip *) sa->spacedata.first;
@@ -400,6 +409,7 @@ static void clip_listener(ScrArea *sa, wmNotifier *wmn)
 			switch (wmn->data) {
 				case ND_ANIMPLAY:
 				case ND_GPENCIL:
+					clip_scopes_check_gpencil_change(sa);
 					ED_area_tag_redraw(sa);
 					break;
 			}

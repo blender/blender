@@ -287,6 +287,7 @@ enum {
 #define TRACK_USE_2D_STAB   (1 << 8)
 #define TRACK_PREVIEW_GRAYSCALE (1 << 9)
 #define TRACK_DOPE_SEL      (1 << 10)
+#define TRACK_PREVIEW_ALPHA (1 << 11)
 
 /* MovieTrackingTrack->motion_model */
 #define TRACK_MOTION_MODEL_TRANSLATION                 0
@@ -297,8 +298,9 @@ enum {
 #define TRACK_MOTION_MODEL_HOMOGRAPHY                  5
 
 /* MovieTrackingTrack->algorithm_flag */
-#define TRACK_ALGORITHM_FLAG_USE_BRUTE 1
-#define TRACK_ALGORITHM_FLAG_USE_NORMALIZATION 2
+#define TRACK_ALGORITHM_FLAG_USE_BRUTE			(1 << 0)
+#define TRACK_ALGORITHM_FLAG_USE_NORMALIZATION	(1 << 2)
+#define TRACK_ALGORITHM_FLAG_USE_MASK			(1 << 3)
 
 /* MovieTrackingTrack->adjframes */
 #define TRACK_MATCH_KEYFRAME        0

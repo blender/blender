@@ -52,18 +52,21 @@ void libmv_regionTrackerDestroy(struct libmv_RegionTracker *libmv_tracker);
 
 /* TrackRegion (new planar tracker) */
 struct libmv_trackRegionOptions {
-  int motion_model;
-  int num_iterations;
-  int use_brute;
-  int use_normalization;
-  double minimum_correlation;
-  double sigma;
+	int motion_model;
+	int num_iterations;
+	int use_brute;
+	int use_normalization;
+	double minimum_correlation;
+	double sigma;
+	float *image1_mask;
 };
+
 struct libmv_trackRegionResult {
-  int termination;
-  const char *termination_reason;
-  double correlation;
+	int termination;
+	const char *termination_reason;
+	double correlation;
 };
+
 int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
                       const float *image1, int image1_width, int image1_height,
                       const float *image2, int image2_width, int image2_height,
@@ -73,7 +76,8 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 
 void libmv_samplePlanarPatch(const float *image, int width, int height,
                              int channels, const double *xs, const double *ys,
-                             int num_samples_x, int num_samples_y, float *patch,
+                             int num_samples_x, int num_samples_y,
+                             const float *mask, float *patch,
                              double *warped_position_x, double *warped_position_y);
 
 /* Tracks */

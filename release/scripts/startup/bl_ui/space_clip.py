@@ -233,6 +233,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
             col.prop(settings, "default_motion_model")
             col.prop(settings, "default_use_brute")
             col.prop(settings, "default_use_normalization")
+            col.prop(settings, "default_use_mask")
             col.prop(settings, "default_correlation_min")
 
             col.separator()
@@ -541,6 +542,10 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         sub = row.row()
         sub.prop(act_track, "use_grayscale_preview", text="B/W", toggle=True)
 
+        row.separator()
+        sub = row.row()
+        sub.prop(act_track, "use_alpha_preview", text="", toggle=True, icon='IMAGE_ALPHA')
+
         layout.separator()
 
         row = layout.row(align=True)
@@ -580,6 +585,7 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
             col.prop(active, "motion_model")
             col.prop(active, "use_brute")
             col.prop(active, "use_normalization")
+            col.prop(active, "use_mask")
             col.prop(active, "correlation_min")
 
             col.separator()
