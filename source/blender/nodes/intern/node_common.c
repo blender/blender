@@ -853,7 +853,7 @@ static bNodeSocketTemplate node_reroute_out[]= {
 };
 
 /* simple, only a single input and output here */
-ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
+static ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link;
 	ListBase ret;
@@ -876,6 +876,23 @@ ListBase node_reroute_internal_connect(bNodeTree *ntree, bNode *node)
 	return ret;
 }
 
+static void node_reroute_update(bNodeTree *UNUSED(ntree), bNode *node)
+{
+	bNodeSocket *input = node->inputs.first;
+	bNodeSocket *output = node->outputs.first;
+	int type = SOCK_FLOAT;
+	
+	/* determine socket type from unambiguous input/output connection if possible */
+	if (input->limit==1 && input->link)
+		type = input->link->fromsock->type;
+	else if (output->limit==1 && output->link)
+			type = output->link->tosock->type;
+	
+	/* same type for input/output */
+	nodeSocketSetType(input, type);
+	nodeSocketSetType(output, type);
+}
+
 void register_node_type_reroute(bNodeTreeType *ttype)
 {
 	/* frame type is used for all tree types, needs dynamic allocation */
@@ -884,6 +901,7 @@ void register_node_type_reroute(bNodeTreeType *ttype)
 	node_type_base(ttype, ntype, NODE_REROUTE, "Reroute", NODE_CLASS_LAYOUT, 0);
 	node_type_socket_templates(ntype, node_reroute_in, node_reroute_out);
 	node_type_internal_connect(ntype, node_reroute_internal_connect);
+	node_type_update(ntype, node_reroute_update, NULL);
 	
 	ntype->needs_free = 1;
 	nodeRegisterType(ttype, ntype);
