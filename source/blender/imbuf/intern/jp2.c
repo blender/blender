@@ -93,26 +93,35 @@ static void info_callback(const char *msg, void *client_data)
 	fprintf(stdout, "[INFO] %s", msg);
 }
 
+#   define PIXEL_LOOPER_BEGIN(_rect)                                          \
+	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
+		for (i = y * w, i_next = (y + 1) * w;                                 \
+		     i < i_next;                                                      \
+		     i++, _rect += 4)                                                 \
+		{                                                                     \
 
+#   define PIXEL_LOOPER_END \
+	} \
+	} (void)0 \
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags){
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
+{
 	struct ImBuf *ibuf = NULL;
 	int use_float = FALSE; /* for precision higher then 8 use float */
+	int use_alpha = FALSE;
 	
 	long signed_offsets[4] = {0, 0, 0, 0};
 	int float_divs[4] = {1, 1, 1, 1};
 
-	int index;
-	
-	int w, h, planes;
+	unsigned int i, i_next, w, h, planes;
+	unsigned int y;
+	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	
 	opj_dparameters_t parameters;   /* decompression parameters */
 	
 	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
-	
-	int i;
-	
+
 	opj_dinfo_t *dinfo = NULL;  /* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
@@ -169,9 +178,11 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags){
 		case 1: /* Greyscale */
 		case 3: /* Color */
 			planes = 24;
+			use_alpha = FALSE;
 			break;
 		default: /* 2 or 4 - Greyscale or Color + alpha */
 			planes = 32; /* greyscale + alpha */
+			use_alpha = TRUE;
 			break;
 	}
 	
@@ -206,64 +217,102 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags){
 		float *rect_float = ibuf->rect_float;
 
 		if (image->numcomps < 3) {
+			r = image->comps[0].data;
+			a = (use_alpha) ? image->comps[1].data : NULL;
+
 			/* greyscale 12bits+ */
-			for (i = 0; i < w * h; i++, rect_float += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect_float[0] = rect_float[1] = rect_float[2] = (float)(image->comps[0].data[index] + signed_offsets[0]) / float_divs[0];
-				
-				if (image->numcomps == 2)
-					rect_float[3] = (image->comps[1].data[index] + signed_offsets[1]) / float_divs[1];
-				else
+			if (use_alpha) {
+				a = image->comps[1].data;
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[3] = (a[i] + signed_offsets[1]) / float_divs[1];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
 					rect_float[3] = 1.0f;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		else {
+			r = image->comps[0].data;
+			g = image->comps[1].data;
+			b = image->comps[2].data;
+
 			/* rgb or rgba 12bits+ */
-			for (i = 0; i < w * h; i++, rect_float += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect_float[0] = (float)(image->comps[0].data[index] + signed_offsets[0]) / float_divs[0];
-				rect_float[1] = (float)(image->comps[1].data[index] + signed_offsets[1]) / float_divs[1];
-				rect_float[2] = (float)(image->comps[2].data[index] + signed_offsets[2]) / float_divs[2];
-				
-				if (image->numcomps >= 4)
-					rect_float[3] = (float)(image->comps[3].data[index] + signed_offsets[3]) / float_divs[3];
-				else
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
+					rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
+					rect_float[3] = (float)(a[i] + signed_offsets[3]) / float_divs[3];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
+					rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
 					rect_float[3] = 1.0f;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		
 	}
 	else {
-		unsigned char *rect = (unsigned char *)ibuf->rect;
+		unsigned char *rect_uchar = (unsigned char *)ibuf->rect;
 
 		if (image->numcomps < 3) {
+			r = image->comps[0].data;
+			a = (use_alpha) ? image->comps[1].data : NULL;
+
 			/* greyscale */
-			for (i = 0; i < w * h; i++, rect += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect[0] = rect[1] = rect[2] = (image->comps[0].data[index] + signed_offsets[0]);
-				
-				if (image->numcomps == 2)
-					rect[3] = image->comps[1].data[index] + signed_offsets[1];
-				else
-					rect[3] = 255;
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = rect_uchar[1] = rect_uchar[2] = (r[i] + signed_offsets[0]);
+					rect_uchar[3] = a[i] + signed_offsets[1];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = rect_uchar[1] = rect_uchar[2] = (r[i] + signed_offsets[0]);
+					rect_uchar[3] = 255;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		else {
+			r = image->comps[0].data;
+			g = image->comps[1].data;
+			b = image->comps[2].data;
+
 			/* 8bit rgb or rgba */
-			for (i = 0; i < w * h; i++, rect += 4) {
-				int index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect[0] = image->comps[0].data[index] + signed_offsets[0];
-				rect[1] = image->comps[1].data[index] + signed_offsets[1];
-				rect[2] = image->comps[2].data[index] + signed_offsets[2];
-				
-				if (image->numcomps >= 4)
-					rect[3] = image->comps[3].data[index] + signed_offsets[3];
-				else
-					rect[3] = 255;
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = r[i] + signed_offsets[0];
+					rect_uchar[1] = g[i] + signed_offsets[1];
+					rect_uchar[2] = b[i] + signed_offsets[2];
+					rect_uchar[3] = a[i] + signed_offsets[3];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = r[i] + signed_offsets[0];
+					rect_uchar[1] = g[i] + signed_offsets[1];
+					rect_uchar[2] = b[i] + signed_offsets[2];
+					rect_uchar[3] = 255;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 	}
@@ -482,7 +531,7 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 
 static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 {
-	unsigned char *rect;
+	unsigned char *rect_uchar;
 	float *rect_float;
 	
 	unsigned int subsampling_dx = parameters->subsampling_dx;
@@ -564,7 +613,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
 
 	/* set image data */
-	rect = (unsigned char *) ibuf->rect;
+	rect_uchar = (unsigned char *) ibuf->rect;
 	rect_float = ibuf->rect_float;
 	
 	/* set the destination channels */
@@ -573,21 +622,10 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	b = image->comps[2].data;
 	a = (numcomps == 4) ? image->comps[3].data : NULL;
 
-	if (rect_float && rect && prec == 8) {
+	if (rect_float && rect_uchar && prec == 8) {
 		/* No need to use the floating point buffer, just write the 8 bits from the char buffer */
 		rect_float = NULL;
 	}
-	
-#   define PIXEL_LOOPER_BEGIN(_rect)                                          \
-	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
-		for (i = y * w, i_next = (y + 1) * w;                                 \
-		     i < i_next;                                                      \
-		     i++, _rect += 4)                                                 \
-		{                                                                     \
-
-#   define PIXEL_LOOPER_END \
-	} \
-	} (void)0 \
 	
 	if (rect_float) {
 		switch (prec) {
@@ -732,21 +770,21 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		switch (prec) {
 			case 8:
 				if (numcomps == 4) {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = rect[0];
-						g[i] = rect[1];
-						b[i] = rect[2];
-						a[i] = rect[3];
+						r[i] = rect_uchar[0];
+						g[i] = rect_uchar[1];
+						b[i] = rect_uchar[2];
+						a[i] = rect_uchar[3];
 					}
 					PIXEL_LOOPER_END;
 				}
 				else {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = rect[0];
-						g[i] = rect[1];
-						b[i] = rect[2];
+						r[i] = rect_uchar[0];
+						g[i] = rect_uchar[1];
+						b[i] = rect_uchar[2];
 					}
 					PIXEL_LOOPER_END;
 				}
@@ -754,21 +792,21 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 			
 			case 12: /* Up Sampling, a bit pointless but best write the bit depth requested */
 				if (numcomps == 4) {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = UPSAMPLE_8_TO_12(rect[0]);
-						g[i] = UPSAMPLE_8_TO_12(rect[1]);
-						b[i] = UPSAMPLE_8_TO_12(rect[2]);
-						a[i] = UPSAMPLE_8_TO_12(rect[3]);
+						r[i] = UPSAMPLE_8_TO_12(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect_uchar[2]);
+						a[i] = UPSAMPLE_8_TO_12(rect_uchar[3]);
 					}
 					PIXEL_LOOPER_END;
 				}
 				else {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = UPSAMPLE_8_TO_12(rect[0]);
-						g[i] = UPSAMPLE_8_TO_12(rect[1]);
-						b[i] = UPSAMPLE_8_TO_12(rect[2]);
+						r[i] = UPSAMPLE_8_TO_12(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect_uchar[2]);
 					}
 					PIXEL_LOOPER_END;
 				}
@@ -776,21 +814,21 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 
 			case 16:
 				if (numcomps == 4) {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = UPSAMPLE_8_TO_16(rect[0]);
-						g[i] = UPSAMPLE_8_TO_16(rect[1]);
-						b[i] = UPSAMPLE_8_TO_16(rect[2]);
-						a[i] = UPSAMPLE_8_TO_16(rect[3]);
+						r[i] = UPSAMPLE_8_TO_16(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect_uchar[2]);
+						a[i] = UPSAMPLE_8_TO_16(rect_uchar[3]);
 					}
 					PIXEL_LOOPER_END;
 				}
 				else {
-					PIXEL_LOOPER_BEGIN(rect)
+					PIXEL_LOOPER_BEGIN(rect_uchar)
 					{
-						r[i] = UPSAMPLE_8_TO_16(rect[0]);
-						g[i] = UPSAMPLE_8_TO_16(rect[1]);
-						b[i] = UPSAMPLE_8_TO_16(rect[2]);
+						r[i] = UPSAMPLE_8_TO_16(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect_uchar[2]);
 					}
 					PIXEL_LOOPER_END;
 				}
