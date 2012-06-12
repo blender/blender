@@ -27,54 +27,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <vector>
+#include <algorithm> // std::find
 
-extern "C" 
-{
-#include "DNA_scene_types.h"
-#include "DNA_object_types.h"
-#include "DNA_group_types.h"
-#include "DNA_meshdata_types.h"
-#include "DNA_mesh_types.h"
-#include "DNA_image_types.h"
-#include "DNA_material_types.h"
-#include "DNA_texture_types.h"
-#include "DNA_anim_types.h"
-#include "DNA_action_types.h"
-#include "DNA_curve_types.h"
-#include "DNA_armature_types.h"
-#include "DNA_modifier_types.h"
-#include "DNA_userdef_types.h"
-
-#include "BKE_DerivedMesh.h"
-#include "BKE_fcurve.h"
-#include "BKE_animsys.h"
-#include "BLI_path_util.h"
-#include "BLI_fileops.h"
-#include "ED_keyframing.h"
-#ifdef WITH_BUILDINFO
-extern char build_rev[];
-#endif
-}
-
-#include "MEM_guardedalloc.h"
-
-#include "BKE_blender.h" // version info
-#include "BKE_scene.h"
-#include "BKE_global.h"
-#include "BKE_main.h"
-#include "BKE_material.h"
-#include "BKE_action.h" // pose functions
-#include "BKE_armature.h"
-#include "BKE_image.h"
-#include "BKE_utildefines.h"
-#include "BKE_object.h"
-
-#include "BLI_math.h"
-#include "BLI_string.h"
-#include "BLI_listbase.h"
-
-#include "RNA_access.h"
-
+#include "COLLADASWCamera.h"
 #include "COLLADASWAsset.h"
 #include "COLLADASWLibraryVisualScenes.h"
 #include "COLLADASWNode.h"
@@ -106,6 +62,53 @@ extern char build_rev[];
 #include "COLLADASWInstanceNode.h"
 #include "COLLADASWBaseInputElement.h"
 
+extern "C" 
+{
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
+#include "DNA_group_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_mesh_types.h"
+#include "DNA_image_types.h"
+#include "DNA_material_types.h"
+#include "DNA_texture_types.h"
+#include "DNA_anim_types.h"
+#include "DNA_action_types.h"
+#include "DNA_curve_types.h"
+#include "DNA_armature_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_userdef_types.h"
+
+#include "BKE_DerivedMesh.h"
+#include "BKE_fcurve.h"
+#include "BKE_animsys.h"
+#include "BLI_path_util.h"
+#include "BLI_fileops.h"
+#include "ED_keyframing.h"
+#ifdef WITH_BUILDINFO
+extern char build_rev[];
+#endif
+
+#include "MEM_guardedalloc.h"
+
+#include "BKE_blender.h" // version info
+#include "BKE_scene.h"
+#include "BKE_global.h"
+#include "BKE_main.h"
+#include "BKE_material.h"
+#include "BKE_action.h" // pose functions
+#include "BKE_armature.h"
+#include "BKE_image.h"
+#include "BKE_utildefines.h"
+#include "BKE_object.h"
+
+#include "BLI_math.h"
+#include "BLI_string.h"
+#include "BLI_listbase.h"
+
+#include "RNA_access.h"
+}
+
 #include "collada_internal.h"
 #include "DocumentExporter.h"
 #include "ExportSettings.h"
@@ -124,8 +127,6 @@ extern char build_rev[];
 #include "LightExporter.h"
 #include "MaterialExporter.h"
 
-#include <vector>
-#include <algorithm> // std::find
 
 char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int n)
 {
