@@ -286,10 +286,16 @@ static void rna_def_movieclip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this movie clip");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
-	/* frame offset */
+	/* start_frame */
 	prop = RNA_def_property(srna, "start_frame", PROP_INT, PROP_NONE);
 	RNA_def_property_int_sdna(prop, NULL, "start_frame");
-	RNA_def_property_ui_text(prop, "Start Frame", "Global scene frame number at which this movie starts playing");
+	RNA_def_property_ui_text(prop, "Start Frame", "Global scene frame number at which this movie starts playing. Affects all data associated with a clip");
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
+
+	/* frame_offset */
+	prop = RNA_def_property(srna, "frame_offset", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "frame_offset");
+	RNA_def_property_ui_text(prop, "Frame Offset", "Offset of footage first frame relative to it's file name. Affects only how footage is loaing, not changes data associated with a clip");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, "rna_MovieClip_reload_update");
 }
 

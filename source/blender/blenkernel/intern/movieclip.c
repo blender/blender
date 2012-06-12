@@ -159,7 +159,7 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen)
-		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame);
+		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame + clip->frame_offset);
 	else
 		BLI_strncpy(name, clip->name, sizeof(clip->name));
 
@@ -171,7 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 {
 	int size = rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
-	int proxynr = framenr - clip->start_frame + 1;
+	int proxynr = framenr - clip->start_frame + 1 + clip->frame_offset;
 
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
@@ -250,7 +250,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		int fra;
 
 		dur = IMB_anim_get_duration(clip->anim, tc);
-		fra = framenr - clip->start_frame;
+		fra = framenr - clip->start_frame + clip->frame_offset;
 
 		if (fra < 0)
 			fra = 0;
@@ -446,6 +446,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->proxy.quality = 90;
 
 	clip->start_frame = 1;
+	clip->frame_offset = 1;
 
 	return clip;
 }
