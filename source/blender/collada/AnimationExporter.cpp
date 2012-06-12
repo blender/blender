@@ -1110,13 +1110,12 @@ void AnimationExporter::enable_fcurves(bAction *act, char *bone_name)
 	}
 }
 
-/* TODO - only check NodeLink objects that are exported */
 bool AnimationExporter::hasAnimations(Scene *sce)
 {
-	Base *base = (Base *) sce->base.first;
+	LinkNode *node;
 
-	while (base) {
-		Object *ob = base->object;
+	for(node=this->export_settings->export_set; node; node=node->next) {
+		Object *ob = (Object *)node->link;
 
 		FCurve *fcu = 0;
 		//Check for object transform animations
@@ -1140,7 +1139,6 @@ bool AnimationExporter::hasAnimations(Scene *sce)
 
 		if (fcu)
 			return true;
-		base = base->next;
 	}
 	return false;
 }

@@ -45,13 +45,12 @@ ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw, const ExportSettings
 {
 }
 
-/* TODO - shouldn't this use the objects LinkNode's ? */
 bool ImagesExporter::hasImages(Scene *sce)
 {
-	Base *base = (Base *)sce->base.first;
+	LinkNode *node;
 	
-	while (base) {
-		Object *ob = base->object;
+	for (node=this->export_settings->export_set; node; node=node->next) {
+		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a + 1);
@@ -65,7 +64,6 @@ bool ImagesExporter::hasImages(Scene *sce)
 			}
 
 		}
-		base = base->next;
 	}
 	return false;
 }

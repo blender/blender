@@ -46,13 +46,11 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 	}
 }
 
-/* TODO - shouldn't this use the scenes object LinkNode's ? */
 bool MaterialsExporter::hasMaterials(Scene *sce)
 {
-	Base *base = (Base *)sce->base.first;
-	
-	while (base) {
-		Object *ob = base->object;
+	LinkNode *node;
+	for(node=this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
 			Material *ma = give_current_material(ob, a + 1);
@@ -62,7 +60,6 @@ bool MaterialsExporter::hasMaterials(Scene *sce)
 
 			return true;
 		}
-		base = base->next;
 	}
 	return false;
 }
