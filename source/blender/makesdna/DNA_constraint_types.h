@@ -247,7 +247,7 @@ typedef struct bActionConstraint {
 	int			end;
 	float		min;
 	float		max;
-	int         pad;
+	int			flag;
 	struct bAction	*act;
 	char		subtarget[64];	/* MAX_ID_NAME-2 */
 } bActionConstraint;
@@ -560,6 +560,12 @@ typedef enum eSameVolume_Modes {
 	SAMEVOL_Y,
 	SAMEVOL_Z
 } eSameVolume_Modes;
+
+/* bActionConstraint.flag
+ * WARNING: bitwise! */
+typedef enum eAction_flags {
+	BONE_USE_OBJECT_ACTION = 1 << 0, /* Bones use "object" part of target action, instead of "same bone name" part. */
+} eAction_flags;
 
 /* Locked-Axis Values (Locked Track) */
 typedef enum eLockAxis_Modes {

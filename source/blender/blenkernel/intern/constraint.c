@@ -2159,7 +2159,15 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			printf("do Action Constraint %s - Ob %s Pchan %s\n", con->name, cob->ob->id.name + 2, (cob->pchan) ? cob->pchan->name : NULL);
 		
 		/* Get the appropriate information from the action */
-		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+		if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & BONE_USE_OBJECT_ACTION)) {
+			Object workob;
+			
+			/* evaluate using workob */
+			// FIXME: we don't have any consistent standards on limiting effects on object...
+			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
+			BKE_object_to_mat4(&workob, ct->matrix);
+		}
+		else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
 			bPose *pose;
 			bPoseChannel *pchan, *tchan;
@@ -2184,14 +2192,6 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			
 			/* Clean up */
 			BKE_pose_free(pose);
-		}
-		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
-			Object workob;
-			
-			/* evaluate using workob */
-			// FIXME: we don't have any consistent standards on limiting effects on object...
-			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
-			BKE_object_to_mat4(&workob, ct->matrix);
 		}
 		else {
 			/* behavior undefined... */

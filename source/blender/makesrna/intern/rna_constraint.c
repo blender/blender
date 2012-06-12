@@ -1111,6 +1111,13 @@ static void rna_def_constraint_action(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_ID_REFCOUNT);
 	RNA_def_property_update(prop, NC_OBJECT | ND_CONSTRAINT, "rna_Constraint_update");
 
+	prop = RNA_def_property(srna, "use_bone_object_action", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_USE_OBJECT_ACTION);
+	RNA_def_property_ui_text(prop, "Object Action",
+	                         "Bones only: apply the object's transformation channels of the action "
+	                         "to the constrained bone, instead of bone's channels");
+	RNA_def_property_update(prop, NC_OBJECT|ND_CONSTRAINT, "rna_Constraint_update");
+
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);
 	RNA_def_property_int_sdna(prop, NULL, "start");
 	RNA_def_property_range(prop, MINAFRAME, MAXFRAME);
