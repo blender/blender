@@ -32,7 +32,7 @@ protected:
 	OutputSocket *setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage);
 	OutputSocket *setupPostBlur(ExecutionSystem *graph, OutputSocket *postBLurInput, int size);
 	OutputSocket *setupDilateErode(ExecutionSystem *graph, OutputSocket *dilateErodeInput, int distance);
-	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, InputSocket *inputSrceen, float factor);
+	OutputSocket *setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputSrceen, float factor);
 	OutputSocket *setupClip(ExecutionSystem *graph, OutputSocket *clipInput, int kernelRadius, float kernelTolerance,
 	                        float clipBlack, float clipWhite, bool edgeMatte);
 public:

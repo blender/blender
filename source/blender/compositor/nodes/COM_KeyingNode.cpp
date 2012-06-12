@@ -119,14 +119,14 @@ OutputSocket *KeyingNode::setupDilateErode(ExecutionSystem *graph, OutputSocket 
 	return dilateErodeOperation->getOutputSocket(0);
 }
 
-OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, InputSocket *inputScreen, float factor)
+OutputSocket *KeyingNode::setupDespill(ExecutionSystem *graph, OutputSocket *despillInput, OutputSocket *inputScreen, float factor)
 {
 	KeyingDespillOperation *despillOperation = new KeyingDespillOperation();
 
 	despillOperation->setDespillFactor(factor);
 
 	addLink(graph, despillInput, despillOperation->getInputSocket(0));
-	inputScreen->relinkConnections(despillOperation->getInputSocket(1), 1, graph);
+	addLink(graph, inputScreen, despillOperation->getInputSocket(1));
 
 	graph->addOperation(despillOperation);
 
@@ -213,7 +213,9 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	/* despill output image */
 	if (keying_data->despill_factor > 0.0f) {
-		postprocessedImage = setupDespill(graph, postprocessedImage, inputScreen, keying_data->despill_factor);
+		postprocessedImage = setupDespill(graph, postprocessedImage,
+		                                  keyingOperation->getInputSocket(0)->getConnection()->getFromSocket(),
+		                                  keying_data->despill_factor);
 	}
 
 	/* connect result to output sockets */
