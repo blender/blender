@@ -31,6 +31,7 @@
 #include "COLLADASWEffectProfile.h"
 
 #include "EffectExporter.h"
+#include "DocumentExporter.h"
 #include "MaterialExporter.h"
 
 #include "DNA_mesh_types.h"
@@ -82,7 +83,7 @@ void EffectsExporter::exportEffects(Scene *sce)
 		this->scene = sce;
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<EffectsExporter>(sce, *this, this->export_settings->selected);
+		mf.forEachMaterialInExportSet<EffectsExporter>(sce, *this, this->export_settings->export_set);
 
 		closeLibrary();
 	}

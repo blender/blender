@@ -40,18 +40,35 @@
 #include "DNA_customdata_types.h"
 #include "DNA_texture_types.h"
 #include "BKE_context.h"
+#include "BKE_object.h"
+
 #include "DNA_scene_types.h"
+
+extern "C" {
+#include "BKE_DerivedMesh.h"
+#include "BLI_linklist.h"
+}
+
+#include "ExportSettings.h"
 
 typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index);
-
 extern int bc_test_parent_loop(Object *par, Object *ob);
 extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space=true);
-extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
-extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
 extern Object *bc_add_object(Scene *scene, int type, const char *name);
 extern Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob);
+
 extern Object *bc_get_assigned_armature(Object *ob);
+extern Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob);
+extern bool bc_is_base_node(LinkNode *export_set, Object *ob);
+extern bool bc_is_in_Export_set(LinkNode *export_set, Object *ob);
+extern bool bc_has_object_type(LinkNode *export_set, short obtype);
+
+extern int bc_is_marked(Object *ob);
+extern void bc_remove_mark(Object *ob);
+
+extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
+extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
 
 #endif

@@ -112,7 +112,7 @@ void ArmatureExporter::export_controllers(Scene *sce)
 	openLibrary();
 
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<ArmatureExporter>(sce, *this, this->export_settings->selected);
+	gf.forEachMeshObjectInExportSet<ArmatureExporter>(sce, *this, this->export_settings->export_set);
 
 	closeLibrary();
 }

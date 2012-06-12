@@ -111,7 +111,8 @@ extern char build_rev[];
 
 #include "collada_internal.h"
 #include "DocumentExporter.h"
-#include "ExportSettings.h"
+
+extern bool bc_has_object_type(LinkNode *export_set, short obtype);
 
 // can probably go after refactor is complete
 #include "InstanceWriter.h"
@@ -227,14 +228,15 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	asset.getContributor().mAuthoringTool = version_buf;
 	asset.add();
 	
+	LinkNode *export_set = this->export_settings->export_set;
 	// <library_cameras>
-	if (has_object_type(sce, OB_CAMERA)) {
+	if (bc_has_object_type(export_set, OB_CAMERA)) {
 		CamerasExporter ce(&sw, this->export_settings);
 		ce.exportCameras(sce);
 	}
 	
 	// <library_lights>
-	if (has_object_type(sce, OB_LAMP)) {
+	if (bc_has_object_type(export_set, OB_LAMP)) {
 		LightsExporter le(&sw, this->export_settings);
 		le.exportLights(sce);
 	}
@@ -252,7 +254,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	me.exportMaterials(sce);
 
 	// <library_geometries>
-	if (has_object_type(sce, OB_MESH)) {
+	if (bc_has_object_type(export_set, OB_MESH)) {
 		GeometryExporter ge(&sw, this->export_settings);
 		ge.exportGeom(sce);
 	}
@@ -263,10 +265,8 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 	// <library_controllers>
 	ArmatureExporter arm_exporter(&sw, this->export_settings);
-	if (this->export_settings->include_armatures) {
-		if (has_object_type(sce, OB_ARMATURE)) {
-			arm_exporter.export_controllers(sce);
-		}
+	if (bc_has_object_type(export_set, OB_ARMATURE)) {
+		arm_exporter.export_controllers(sce);
 	}
 
 	// <library_visual_scenes>

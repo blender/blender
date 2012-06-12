@@ -89,11 +89,11 @@ struct MaterialFunctor {
 	// f should have
 	// void operator()(Material* ma)
 	template<class Functor>
-	void forEachMaterialInScene(Scene *sce, Functor &f, bool export_selected)
+	void forEachMaterialInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 	{
 		ForEachMaterialFunctor<Functor> matfunc(&f);
 		GeometryFunctor gf;
-		gf.forEachMeshObjectInScene<ForEachMaterialFunctor<Functor> >(sce, matfunc, export_selected);
+		gf.forEachMeshObjectInExportSet<ForEachMaterialFunctor<Functor> >(sce, matfunc, export_set);
 	}
 };
 

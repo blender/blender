@@ -73,7 +73,7 @@ void ImagesExporter::exportImages(Scene *sce)
 	if (hasImages(sce)) {
 		openLibrary();
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<ImagesExporter>(sce, *this, this->export_settings->selected);
+		mf.forEachMaterialInExportSet<ImagesExporter>(sce, *this, this->export_settings->export_set);
 
 		closeLibrary();
 	}

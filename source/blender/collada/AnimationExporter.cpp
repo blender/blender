@@ -25,16 +25,12 @@
 #include "MaterialExporter.h"
 
 template<class Functor>
-void forEachObjectInScene(Scene *sce, Functor &f)
+void forEachObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 {
-	Base *base= (Base*) sce->base.first;
-
-	while (base) {
-		Object *ob = base->object;
-
+	LinkNode *node;
+	for(node=export_set; node; node=node->next) {
+		Object *ob = (Object *)node->link;
 		f(ob);
-
-		base= base->next;
 	}
 }
 
@@ -45,7 +41,7 @@ void AnimationExporter::exportAnimations(Scene *sce)
 
 		openLibrary();
 
-		forEachObjectInScene(sce, *this);
+		forEachObjectInExportSet(sce, *this, this->export_settings->export_set);
 
 		closeLibrary();
 	}

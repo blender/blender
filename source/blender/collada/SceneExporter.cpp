@@ -26,6 +26,7 @@
 
 #include "SceneExporter.h"
 #include "collada_utils.h"
+#include "BKE_object.h"
 
 SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings)
 	: COLLADASW::LibraryVisualScenes(sw), arm_exporter(arm), export_settings(export_settings)
@@ -41,112 +42,89 @@ void SceneExporter::exportScene(Scene *sce)
 	closeLibrary();
 }
 
-// Returns true if the parent chain does not contain any selected object
-// Otherwise return false (ob has selected predecessor)
-bool is_exported_base_node(Object *ob, bool selection_only) {
+void SceneExporter::exportHierarchy(Scene *sce)
+{	
+	LinkNode *node;
+	std::vector<Object *> base_objects;
 
-	if (selection_only && ob->flag & SELECT) {
-		// Move up towards root object,
-		// stop at first selected predecessor's child,
-		// or at root, if no parent was selected
-		while (ob->parent && (ob->parent->type==OB_ARMATURE || !(ob->parent->flag & SELECT)))
+	// Ensure all objects in the export_set are marked
+	for(node = this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object*) node->link;
+		ob->id.flag |= LIB_DOIT;
+	}
+	
+	// Now find all exportable base ojects (highest in export hierarchy)
+	for(node = this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object*) node->link;
+		if (bc_is_base_node(this->export_settings->export_set, ob)) 
 		{
-			ob = ob->parent;
+			switch (ob->type) {
+				case OB_MESH:
+				case OB_CAMERA:
+				case OB_LAMP:
+				case OB_EMPTY:
+				case OB_ARMATURE:
+					base_objects.push_back(ob);
+					break;
+			}
 		}
 	}
 
-	return !ob->parent;
-}
-
-void SceneExporter::exportHierarchy(Scene *sce)
-{
-	Base *base= (Base*) sce->base.first;
-	while (base) {
-		Object *ob = base->object;
-
-		bool is_export_base_node = is_exported_base_node(ob, this->export_settings->selected);
-		if (is_export_base_node) {
-			if (sce->lay & ob->lay) {
-				switch (ob->type) {
-					case OB_MESH:
-					case OB_CAMERA:
-					case OB_LAMP:
-					case OB_EMPTY:
-						if (this->export_settings->selected && !(ob->flag & SELECT)) {
-							break;
-						}
-						// write nodes....
-						writeNodes(ob, sce);
-						break;
-				}
-			}
+	// And now export the base objects:
+	for(int index=0; index < base_objects.size(); index++) {
+		Object *ob = base_objects[index];
+		if (bc_is_marked(ob)) {
+			bc_remove_mark(ob);
+			writeNodes(ob, sce);
 		}
-
-		base= base->next;
 	}
 }
 
 void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
-
 	// Add associated armature first if available
-	if (this->export_settings->include_armatures) {
-		Object *ob_arm = bc_get_assigned_armature(ob);
-		if(ob_arm != NULL)
-			writeNodes(ob_arm, sce);
+	Object *ob_arm = bc_get_assigned_armature(ob);
+	if(ob_arm != NULL && bc_is_marked(ob_arm)) {
+		bc_remove_mark(ob_arm);
+		writeNodes(ob_arm, sce);
 	}
 
-	COLLADASW::Node node(mSW);
-	node.setNodeId(translate_id(id_name(ob)));
-	node.setNodeName(translate_id(id_name(ob)));
-	node.setType(COLLADASW::Node::NODE);
+	COLLADASW::Node colladaNode(mSW);
+	colladaNode.setNodeId(translate_id(id_name(ob)));
+	colladaNode.setNodeName(translate_id(id_name(ob)));
+	colladaNode.setType(COLLADASW::Node::NODE);
 
-	node.start();
+	colladaNode.start();
 
 	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
 	std::list<Object*> child_objects;
 
-	// XXX Not sure about this.
-	// For me this looks more like a very special case for a very special purpose.
-	// Wouldn't it be better to have only one option here ?
-	//
-	// - include children
-	//
-	// Instead of "include_bone_children" ?
-	// then we could just ask:
-	// if (this->export_settings->include_children)
-	//    ...
-	if (this->export_settings->include_armatures
-		&& this->export_settings->include_bone_children) {
+	// list child objects
+	LinkNode *node = this->export_settings->export_set ;
+	while (node) {
+		// cob - child object
+		Object *cob = (Object *)node->link;
 
-		// list child objects
-		Base *b = (Base*) sce->base.first;
-		while (b) {
-			// cob - child object
-			Object *cob = b->object;
-
-			if (cob->parent == ob) {
-				switch (cob->type) {
-					case OB_MESH:
-					case OB_CAMERA:
-					case OB_LAMP:
-					case OB_EMPTY:
-					case OB_ARMATURE:
+		if (cob->parent == ob) {
+			switch (cob->type) {
+				case OB_MESH:
+				case OB_CAMERA:
+				case OB_LAMP:
+				case OB_EMPTY:
+				case OB_ARMATURE:
+					if (bc_is_marked(cob))
 						child_objects.push_back(cob);
-						break;
-				}
+					break;
 			}
-
-			b = b->next;
 		}
+		node = node->next;
 	}
-
 
 	if (ob->type == OB_MESH && this->export_settings->include_armatures && is_skinned_mesh)
 		// for skinned mesh we write obmat in <bind_shape_matrix>
-		TransformWriter::add_node_transform_identity(node);
+		TransformWriter::add_node_transform_identity(colladaNode);
 	else
-		TransformWriter::add_node_transform_ob(node, ob);
+		TransformWriter::add_node_transform_ob(colladaNode, ob);
 
 	// <instance_geometry>
 	if (ob->type == OB_MESH) {
@@ -167,9 +145,6 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	// <instance_controller>
 	else if (ob->type == OB_ARMATURE) {
 		arm_exporter->add_armature_bones(ob, sce, this, child_objects);
-
-		// XXX this looks unstable...
-		node.end();
 	}
 
 	// <instance_camera>
@@ -196,12 +171,19 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		}
 	}
 
-	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i) {
-		writeNodes(*i, sce);
+	if (ob->type == OB_ARMATURE) {
+		colladaNode.end();
 	}
 
+	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i) {
+		if(bc_is_marked(*i)) {
+			bc_remove_mark(*i);
+			writeNodes(*i, sce);
+		}
+	}
 
-	if (ob->type != OB_ARMATURE)
-		node.end();
+	if (ob->type != OB_ARMATURE) {
+		colladaNode.end();
+	}
 }
 

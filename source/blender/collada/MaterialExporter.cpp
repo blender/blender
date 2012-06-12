@@ -39,7 +39,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 		openLibrary();
 
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<MaterialsExporter>(sce, *this, this->export_settings->selected);
+		mf.forEachMaterialInExportSet<MaterialsExporter>(sce, *this, this->export_settings->export_set);
 
 		closeLibrary();
 	}
