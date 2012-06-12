@@ -339,7 +339,7 @@ struct bNodeSocket *nodeInsertSocket(struct bNodeTree *ntree, struct bNode *node
 void nodeRemoveSocket(struct bNodeTree *ntree, struct bNode *node, struct bNodeSocket *sock);
 void nodeRemoveAllSockets(struct bNodeTree *ntree, struct bNode *node);
 
-void			nodeAddToPreview(struct bNode *, float *, int, int, int);
+void			nodeAddToPreview(struct bNode *node, float col[4], int x, int y, int do_manage);
 
 struct bNode	*nodeAddNode(struct bNodeTree *ntree, struct bNodeTemplate *ntemp);
 void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);

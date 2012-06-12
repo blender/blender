@@ -706,7 +706,7 @@ static void p_face_restore_uvs(PFace *f)
 
 /* Construction (use only during construction, relies on u.key being set */
 
-static PVert *p_vert_add(PHandle *handle, PHashKey key, float *co, PEdge *e)
+static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge *e)
 {
 	PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof *v);
 	copy_v3_v3(v->co, co);
@@ -719,7 +719,7 @@ static PVert *p_vert_add(PHandle *handle, PHashKey key, float *co, PEdge *e)
 	return v;
 }
 
-static PVert *p_vert_lookup(PHandle *handle, PHashKey key, float *co, PEdge *e)
+static PVert *p_vert_lookup(PHandle *handle, PHashKey key, const float co[3], PEdge *e)
 {
 	PVert *v = (PVert *)phash_lookup(handle->hash_verts, key);
 

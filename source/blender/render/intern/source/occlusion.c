@@ -1197,7 +1197,8 @@ static float occ_form_factor(OccFace *face, float *p, float *n)
 	return contrib;
 }
 
-static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude, float *pp, float *pn, float *occ, float rad[3], float bentn[3])
+static void occ_lookup(OcclusionTree *tree, int thread, OccFace *exclude,
+                       const float pp[3], const float pn[3], float *occ, float rad[3], float bentn[3])
 {
 	OccNode *node, **stack;
 	OccFace *face;
@@ -1391,7 +1392,9 @@ static void occ_compute_passes(Render *re, OcclusionTree *tree, int totpass)
 	MEM_freeN(occ);
 }
 
-static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, float *co, float *n, int thread, int onlyshadow, float *ao, float *env, float *indirect)
+static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude,
+                            const float co[3], const float n[3], int thread, int onlyshadow,
+                            float *ao, float *env, float *indirect)
 {
 	float nn[3], bn[3], fac, occ, occlusion, correction, rad[3];
 	int envcolor;
@@ -1415,9 +1418,9 @@ static void sample_occ_tree(Render *re, OcclusionTree *tree, OccFace *exclude, f
 		/* sky shading using bent normal */
 		if (ELEM(envcolor, WO_AOSKYCOL, WO_AOSKYTEX)) {
 			fac= 0.5f * (1.0f + dot_v3v3(bn, re->grvec));
-			env[0]= (1.0f-fac)*re->wrld.horr + fac*re->wrld.zenr;
-			env[1]= (1.0f-fac)*re->wrld.horg + fac*re->wrld.zeng;
-			env[2]= (1.0f-fac)*re->wrld.horb + fac*re->wrld.zenb;
+			env[0] = (1.0f - fac) * re->wrld.horr + fac * re->wrld.zenr;
+			env[1] = (1.0f - fac) * re->wrld.horg + fac * re->wrld.zeng;
+			env[2] = (1.0f - fac) * re->wrld.horb + fac * re->wrld.zenb;
 
 			mul_v3_fl(env, occlusion);
 		}

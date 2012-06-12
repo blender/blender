@@ -308,7 +308,7 @@ static void vertsearchcallback(void *userdata, int index, const float *UNUSED(co
 	}
 }
 
-BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, float *co, float maxdist)
+BMVert *BMBVH_FindClosestVert(BMBVHTree *tree, const float co[3], float maxdist)
 {
 	BVHTreeNearest hit;
 
@@ -370,7 +370,7 @@ int BMBVH_VertVisible(BMBVHTree *tree, BMEdge *e, RegionView3D *r3d)
 }
 #endif
 
-static BMFace *edge_ray_cast(BMBVHTree *tree, float *co, float *dir, float *hitout, BMEdge *e)
+static BMFace *edge_ray_cast(BMBVHTree *tree, const float co[3], const float dir[3], float *hitout, BMEdge *e)
 {
 	BMFace *f = BMBVH_RayCast(tree, co, dir, hitout, NULL);
 	
