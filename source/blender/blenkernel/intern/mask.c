@@ -2061,19 +2061,6 @@ static void m_invert_vn_vn(float *array, const float f, const int size)
 	}
 }
 
-static void clamp_vn_vn_linear(float *array, const int size)
-{
-	float *arr = array + (size - 1);
-
-	int i = size;
-	while (i--) {
-		if      (*arr <= 0.0f) *arr = 0.0f;
-		else if (*arr >= 1.0f) *arr = 1.0f;
-		else *arr = srgb_to_linearrgb(*arr);
-		arr--;
-	}
-}
-
 static void clamp_vn_vn(float *array, const int size)
 {
 	float *arr = array + (size - 1);
@@ -2093,7 +2080,7 @@ int BKE_mask_get_duration(Mask *mask)
 
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct, const short do_linear)
+                        const short do_aspect_correct)
 {
 	MaskLayer *masklay;
 
@@ -2213,12 +2200,7 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 		}
 
 		/* clamp at the end */
-		if (do_linear) {
-			clamp_vn_vn_linear(buffer, buffer_size);
-		}
-		else {
-			clamp_vn_vn(buffer, buffer_size);
-		}
+		clamp_vn_vn(buffer, buffer_size);
 	}
 
 	MEM_freeN(buffer_tmp);

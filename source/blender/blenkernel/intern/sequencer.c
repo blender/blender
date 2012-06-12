@@ -2081,7 +2081,7 @@ static ImBuf *seq_render_mask_strip(
 		BKE_mask_rasterize(seq->mask,
 		                   context.rectx, context.recty,
 		                   maskbuf,
-		                   TRUE, FALSE);
+		                   TRUE);
 
 		fp_src = maskbuf;
 		fp_dst = ibuf->rect_float;
@@ -2104,7 +2104,7 @@ static ImBuf *seq_render_mask_strip(
 		BKE_mask_rasterize(seq->mask,
 		                   context.rectx, context.recty,
 		                   maskbuf,
-		                   TRUE, FALSE);
+		                   TRUE);
 
 		fp_src = maskbuf;
 		ub_dst = (unsigned char *)ibuf->rect;
