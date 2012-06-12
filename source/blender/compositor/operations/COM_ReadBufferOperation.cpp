@@ -75,3 +75,11 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti * input, ReadBuf
 	}
 	return false;
 }
+
+void ReadBufferOperation::readResolutionFromWriteBuffer() {
+	if (this->memoryProxy != NULL) {
+		WriteBufferOperation * operation = memoryProxy->getWriteBufferOperation();
+		this->setWidth(operation->getWidth());
+		this->setHeight(operation->getHeight());
+	}
+}

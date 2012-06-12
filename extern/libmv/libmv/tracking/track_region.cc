@@ -1351,7 +1351,7 @@ void TrackRegion(const FloatImage &image1,
 bool SamplePlanarPatch(const FloatImage &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,
-                       FloatImage *patch,
+                       FloatImage *mask, FloatImage *patch,
                        double *warped_position_x, double *warped_position_y) {
   // Bail early if the points are outside the image.
   if (!AllInBounds(image, xs, ys)) {
@@ -1376,6 +1376,13 @@ bool SamplePlanarPatch(const FloatImage &image,
       SampleLinear(image, image_position(1),
                    image_position(0),
                    &(*patch)(r, c, 0));
+      if (mask) {
+        float maskValue = SampleLinear(*mask, image_position(1),
+                                       image_position(0), 0);
+
+        for (int d = 0; d < image.Depth(); d++)
+          (*patch)(r, c, d) *= maskValue;
+      }
     }
   }
 

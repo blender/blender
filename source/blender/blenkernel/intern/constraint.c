@@ -822,12 +822,12 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		if (data->flag == CHILDOF_ALL) {
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, data->invmat);
 			
 			/* now multiply the parent matrix by the owner matrix to get the 
-			 * the effect of this constraint (i.e.  owner is 'parented' to parent)
+			 * the effect of this constraint (i.e. owner is 'parented' to parent)
 			 */
 			mult_m4_m4m4(cob->matrix, parmat, cob->matrix);
 		}
@@ -864,7 +864,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 			loc_eulO_size_to_mat4(invmat, loco, eulo, sizo, cob->rotOrder);
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, invmat);
 			
@@ -1620,7 +1620,7 @@ static void rotlike_new_data(void *cdata)
 
 static void rotlike_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bChildOfConstraint *data = con->data;
+	bRotateLikeConstraint *data = con->data;
 	
 	/* target only */
 	func(con, (ID **)&data->tar, FALSE, userdata);
@@ -2159,7 +2159,15 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			printf("do Action Constraint %s - Ob %s Pchan %s\n", con->name, cob->ob->id.name + 2, (cob->pchan) ? cob->pchan->name : NULL);
 		
 		/* Get the appropriate information from the action */
-		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+		if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & BONE_USE_OBJECT_ACTION)) {
+			Object workob;
+			
+			/* evaluate using workob */
+			// FIXME: we don't have any consistent standards on limiting effects on object...
+			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
+			BKE_object_to_mat4(&workob, ct->matrix);
+		}
+		else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
 			bPose *pose;
 			bPoseChannel *pchan, *tchan;
@@ -2184,14 +2192,6 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			
 			/* Clean up */
 			BKE_pose_free(pose);
-		}
-		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
-			Object workob;
-			
-			/* evaluate using workob */
-			// FIXME: we don't have any consistent standards on limiting effects on object...
-			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
-			BKE_object_to_mat4(&workob, ct->matrix);
 		}
 		else {
 			/* behavior undefined... */

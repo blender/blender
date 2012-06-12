@@ -372,6 +372,7 @@ void			nodeSetActive(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeGetActive(struct bNodeTree *ntree);
 struct bNode	*nodeGetActiveID(struct bNodeTree *ntree, short idtype);
 int				nodeSetActiveID(struct bNodeTree *ntree, short idtype, struct ID *id);
+void			nodeClearActive(struct bNodeTree *ntree);
 void			nodeClearActiveID(struct bNodeTree *ntree, short idtype);
 struct bNode	*nodeGetActiveTexture(struct bNodeTree *ntree);
 
@@ -447,9 +448,7 @@ struct bNodeSocket *node_group_add_socket(struct bNodeTree *ngroup, const char *
 struct bNodeSocket *node_group_expose_socket(struct bNodeTree *ngroup, struct bNodeSocket *sock, int in_out);
 void node_group_expose_all_sockets(struct bNodeTree *ngroup);
 void node_group_remove_socket(struct bNodeTree *ngroup, struct bNodeSocket *gsock, int in_out);
-
-struct bNode	*node_group_make_from_selected(struct bNodeTree *ntree);
-int				node_group_ungroup(struct bNodeTree *ntree, struct bNode *gnode);
+struct bNodeSocket *node_group_add_extern_socket(struct bNodeTree *ntree, ListBase *lb, int in_out, struct bNodeSocket *gsock);
 
 /* in node_common.c */
 void register_node_type_frame(struct bNodeTreeType *ttype);

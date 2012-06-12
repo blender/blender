@@ -1039,6 +1039,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 	scopes->marker = NULL;
 	scopes->track = NULL;
+	scopes->track_locked = TRUE;
 
 	if (clip) {
 		MovieTrackingTrack *act_track = BKE_tracking_active_track(&clip->tracking);
@@ -1055,6 +1056,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
 				scopes->track_disabled = FALSE;
+				scopes->marker = marker;
+				scopes->track = track;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 					ImBuf *search_ibuf;
@@ -1087,6 +1090,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 					scopes->frame_width = ibuf->x;
 					scopes->frame_height = ibuf->y;
+
+					scopes->use_track_mask = track->flag & TRACK_PREVIEW_ALPHA;
 				}
 
 				IMB_freeImBuf(ibuf);
@@ -1095,8 +1100,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 			if ((track->flag & TRACK_LOCKED) == 0) {
 				float pat_min[2], pat_max[2];
 
-				scopes->marker = marker;
-				scopes->track = track;
+				scopes->track_locked = FALSE;
 
 				/* XXX: would work fine with non-transformed patterns, but would likely fail
 				 *      with transformed patterns, but that would be easier to debug when

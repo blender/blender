@@ -1550,7 +1550,8 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 			IMB_freeImBuf(scopes->track_preview);
 
 		tmpibuf = BKE_tracking_sample_pattern_imbuf(scopes->frame_width, scopes->frame_height,
-		                                            scopes->track_search, &scopes->undist_marker,
+		                                            scopes->track_search, scopes->track,
+		                                            &scopes->undist_marker, scopes->use_track_mask,
 		                                            width, height, scopes->track_pos);
 
 		if (tmpibuf->rect_float)
@@ -1581,6 +1582,12 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		if (width > 0 && height > 0) {
 			drawibuf = scopes->track_preview;
+
+			if (scopes->use_track_mask) {
+				glColor4f(0.0f, 0.0f, 0.0f, 0.3f);
+				uiSetRoundBox(15);
+				uiDrawBox(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
+			}
 
 			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
 			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);

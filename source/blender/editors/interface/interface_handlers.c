@@ -4201,7 +4201,7 @@ static int ui_numedit_but_TRACKPREVIEW(bContext *C, uiBut *but, uiHandleButtonDa
 		scopes->track_preview_height = (but->y2 - but->y1) + (data->dragstarty - my);
 	}
 	else {
-		if (scopes->marker) {
+		if (!scopes->track_locked) {
 			if (scopes->marker->framenr != scopes->framenr)
 				scopes->marker = BKE_tracking_ensure_marker(scopes->track, scopes->framenr);
 

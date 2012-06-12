@@ -85,16 +85,18 @@ void Node::addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket
 
 void Node::addPreviewOperation(ExecutionSystem *system, OutputSocket *outputSocket)
 {
-	PreviewOperation *operation = new PreviewOperation();
-	system->addOperation(operation);
-	operation->setbNode(this->getbNode());
-	operation->setbNodeTree(system->getContext().getbNodeTree());
-	this->addLink(system, outputSocket, operation->getInputSocket(0));
+	if (this->isInActiveGroup()) {
+		PreviewOperation *operation = new PreviewOperation();
+		system->addOperation(operation);
+		operation->setbNode(this->getbNode());
+		operation->setbNodeTree(system->getContext().getbNodeTree());
+		this->addLink(system, outputSocket, operation->getInputSocket(0));
+	}
 }
 
 void Node::addPreviewOperation(ExecutionSystem *system, InputSocket *inputSocket)
 {
-	if (inputSocket->isConnected()) {
+	if (inputSocket->isConnected() && this->isInActiveGroup()) {
 		OutputSocket *outputsocket = inputSocket->getConnection()->getFromSocket();
 		this->addPreviewOperation(system, outputsocket);
 	}

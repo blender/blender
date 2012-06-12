@@ -1052,6 +1052,8 @@ typedef struct TrackContext {
 	int search_area_height;
 	int search_area_width;
 	int framenr;
+
+	float *mask;
 #else
 	int pad;
 #endif
@@ -1158,6 +1160,9 @@ static void track_context_free(void *customdata)
 	if (track_context->search_area)
 		MEM_freeN(track_context->search_area);
 
+	if (track_context->mask)
+		MEM_freeN(track_context->mask);
+
 #else
 	(void)track_context;
 #endif
@@ -1244,14 +1249,16 @@ static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int g
 	                                    track->flag & TRACK_DISABLE_GREEN, track->flag & TRACK_DISABLE_BLUE, grayscale);
 }
 
-ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
-                                         ImBuf *search_ibuf, MovieTrackingMarker *marker,
-                                         int num_samples_x, int num_samples_y, float pos[2])
+ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height, ImBuf *search_ibuf,
+                                         MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                         int use_mask, int num_samples_x, int num_samples_y,
+                                         float pos[2])
 {
 #ifdef WITH_LIBMV
 	ImBuf *pattern_ibuf;
 	double src_pixel_x[5], src_pixel_y[5];
 	double warped_position_x, warped_position_y;
+	float *mask = NULL;
 
 	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
 	pattern_ibuf->profile = IB_PROFILE_LINEAR_RGB;
@@ -1262,14 +1269,22 @@ ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height,
 
 	get_marker_coords_for_tracking(frame_width, frame_height, marker, src_pixel_x, src_pixel_y);
 
+	if (use_mask) {
+		mask = BKE_tracking_track_mask_get(frame_width, frame_height, track, marker);
+	}
+
 	libmv_samplePlanarPatch(search_ibuf->rect_float, search_ibuf->x, search_ibuf->y, 4,
 	                        src_pixel_x, src_pixel_y, num_samples_x,
-	                        num_samples_y, pattern_ibuf->rect_float,
+	                        num_samples_y, mask, pattern_ibuf->rect_float,
 	                        &warped_position_x, &warped_position_y);
 
 	if (pos) {
 		pos[0] = warped_position_x;
 		pos[1] = warped_position_y;
+	}
+
+	if (mask) {
+		MEM_freeN(mask);
 	}
 
 	return pattern_ibuf;
@@ -1310,8 +1325,8 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 
 	search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, anchored, disable_channels);
 
-	pattern_ibuf = BKE_tracking_sample_pattern_imbuf(ibuf->x, ibuf->y, search_ibuf, marker,
-	                                                 num_samples_x, num_samples_y, NULL);
+	pattern_ibuf = BKE_tracking_sample_pattern_imbuf(ibuf->x, ibuf->y, search_ibuf, track, marker,
+	                                                 FALSE, num_samples_x, num_samples_y, NULL);
 
 	IMB_freeImBuf(search_ibuf);
 
@@ -1366,8 +1381,21 @@ static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
 	layer = track->gpd->layers.first;
 
 	while (layer) {
-		if (layer->flag & GP_LAYER_ACTIVE)
-			return layer;
+		if (layer->flag & GP_LAYER_ACTIVE) {
+			bGPDframe *frame = layer->frames.first;
+			int ok = FALSE;
+
+			while (frame) {
+				if (frame->strokes.first) {
+					ok = TRUE;
+				}
+
+				frame = frame->next;
+			}
+
+			if (ok)
+				return layer;
+		}
 
 		layer = layer->next;
 	}
@@ -1375,15 +1403,11 @@ static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
 	return NULL;
 }
 
-static void track_mask_gpencil_layer_rasterize(MovieTracking *tracking, MovieTrackingMarker *marker,
-                                               bGPDlayer *layer, ImBuf *ibuf, int width, int height)
+static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height,
+											   MovieTrackingMarker *marker, bGPDlayer *layer,
+                                               float *mask, int mask_width, int mask_height)
 {
 	bGPDframe *frame = layer->frames.first;
-	float *mask;
-	int x, y;
-	float aspy = 1.0f / tracking->camera.pixel_aspect;
-
-	mask = MEM_callocN(ibuf->x * ibuf->y * sizeof(float), "track mask");
 
 	while (frame) {
 		bGPDstroke *stroke = frame->strokes.first;
@@ -1398,11 +1422,11 @@ static void track_mask_gpencil_layer_rasterize(MovieTracking *tracking, MovieTra
 				                               "track mask rasterization points");
 
 				for (i = 0; i < stroke->totpoints; i++, fp += 2) {
-					fp[0] = stroke_points[i].x * width / ibuf->x - marker->search_min[0];
-					fp[1] = stroke_points[i].y * height * aspy / ibuf->x - marker->search_min[1];
+					fp[0] = (stroke_points[i].x - marker->search_min[0]) * frame_width / mask_width;
+					fp[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height / mask_height;
 				}
 
-				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, ibuf->x, ibuf->y);
+				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, mask_width, mask_height);
 
 				MEM_freeN(mask_points);
 			}
@@ -1412,45 +1436,26 @@ static void track_mask_gpencil_layer_rasterize(MovieTracking *tracking, MovieTra
 
 		frame = frame->next;
 	}
-
-	for (y = 0; y < ibuf->y; y++) {
-		for (x = 0; x < ibuf->x; x++) {
-			float *pixel = &ibuf->rect_float[4 * (y * ibuf->x + x)];
-			float val = mask[y * ibuf->x + x];
-
-			pixel[0] = val;
-			pixel[1] = val;
-			pixel[2] = val;
-			pixel[3] = 1.0f;
-		}
-	}
-
-	MEM_freeN(mask);
-
-	IMB_rect_from_float(ibuf);
 }
 
-ImBuf *BKE_tracking_track_mask_get(MovieTracking *tracking, MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                   int width, int height)
+float *BKE_tracking_track_mask_get(int frame_width, int frame_height,
+                                   MovieTrackingTrack *track, MovieTrackingMarker *marker)
 {
-	ImBuf *ibuf;
+	float *mask = NULL;
 	bGPDlayer *layer = track_mask_gpencil_layer_get(track);
 	int mask_width, mask_height;
 
-	mask_width = (marker->search_max[0] - marker->search_min[0]) * width;
-	mask_height = (marker->search_max[1] - marker->search_min[1]) * height;
-
-	ibuf = IMB_allocImBuf(mask_width, mask_height, 32, IB_rect | IB_rectfloat);
+	mask_width = (marker->search_max[0] - marker->search_min[0]) * frame_width;
+	mask_height = (marker->search_max[1] - marker->search_min[1]) * frame_height;
 
 	if (layer) {
-		track_mask_gpencil_layer_rasterize(tracking, marker, layer, ibuf, width, height);
-	}
-	else {
-		float white[4] = {1.0f, 1.0f, 1.0f, 1.0f};
-		IMB_rectfill(ibuf, white);
+		mask = MEM_callocN(mask_width * mask_height * sizeof(float), "track mask");
+
+		track_mask_gpencil_layer_rasterize(frame_width, frame_height, marker, layer,
+		                                   mask, mask_width, mask_height);
 	}
 
-	return ibuf;
+	return mask;
 }
 
 #ifdef WITH_LIBMV
@@ -1676,7 +1681,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 	frame_width = destination_ibuf->x;
 	frame_height = destination_ibuf->y;
 
-	#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size>1)
+	//#pragma omp parallel for private(a) shared(destination_ibuf, ok) if (map_size>1)
 	for (a = 0; a < map_size; a++) {
 		TrackContext *track_context = NULL;
 		MovieTrackingTrack *track;
@@ -1724,7 +1729,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				double src_pixel_y[5];
 
 				/* settings for the tracker */
-				struct libmv_trackRegionOptions options;
+				struct libmv_trackRegionOptions options = {0};
 				struct libmv_trackRegionResult result;
 
 				float *patch_new;
@@ -1744,6 +1749,14 @@ int BKE_tracking_next(MovieTrackingContext *context)
 					track_context->search_area_width = width;
 
 					IMB_freeImBuf(reference_ibuf);
+
+					if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0) {
+						if (track_context->mask)
+							MEM_freeN(track_context->mask);
+
+						track_context->mask = BKE_tracking_track_mask_get(frame_width, frame_height,
+						                                                  track, marker);
+					}
 				}
 
 				/* for now track to the same search area dimension as marker has got for current frame
@@ -1764,6 +1777,9 @@ int BKE_tracking_next(MovieTrackingContext *context)
 				options.num_iterations = 50;
 				options.minimum_correlation = track->minimum_correlation;
 				options.sigma = 0.9;
+
+				if ((track->algorithm_flag & TRACK_ALGORITHM_FLAG_USE_MASK) != 0)
+					options.image1_mask = track_context->mask;
 
 				/* Convert the marker corners and center into pixel coordinates in the search/destination images. */
 				get_marker_coords_for_tracking(frame_width, frame_height, &track_context->marker, src_pixel_x, src_pixel_y);
@@ -1790,7 +1806,7 @@ int BKE_tracking_next(MovieTrackingContext *context)
 
 				marker_search_scale_after_tracking(marker, &marker_new);
 
-				#pragma omp critical
+				//#pragma omp critical
 				{
 					if (context->first_time) {
 						/* check if there's no keyframe/tracked markers before tracking marker.

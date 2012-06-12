@@ -48,7 +48,7 @@ public:
 	  * @param tree bNodeTree to add
 	  * @return Node representing the "Compositor node" of the maintree. or NULL when a subtree is added
 	  */
-	static Node *addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree * tree);
+	static Node *addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree* tree, bNode *groupnode);
 	
 	/**
 	  * @brief add an editor node to the system.
@@ -58,7 +58,7 @@ public:
 	  * @param bNode node to add
 	  * @return Node that represents the bNode or null when not able to convert.
 	  */
-	static Node *addNode(vector<Node*>& nodes, bNode *bNode);
+	static Node *addNode(vector<Node*>& nodes, bNode *bNode, bool isInActiveGroup);
 	
 	/**
 	  * @brief Add a Node to a list

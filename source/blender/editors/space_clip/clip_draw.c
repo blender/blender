@@ -1467,9 +1467,11 @@ void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 
 				if (track) {
 					int framenr = sc->user.framenr;
-					MovieTrackingMarker *marker = BKE_tracking_exact_marker(track, framenr);
-
-					glTranslatef(marker->pos[0], marker->pos[1], 0.0f);
+					/* don't get the exact marker since it may not exist for the frame */
+					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
+					if (marker) {
+						glTranslatef(marker->pos[0], marker->pos[1], 0.0f);
+					}
 				}
 			}
 

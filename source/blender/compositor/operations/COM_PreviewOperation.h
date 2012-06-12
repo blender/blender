@@ -50,5 +50,7 @@ public:
 	void setbNode(bNode *node) { this->node = node;}
 	void setbNodeTree(const bNodeTree *tree) { this->tree = tree;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	bool isPreviewOperation() {return true;}
+	
 };
 #endif

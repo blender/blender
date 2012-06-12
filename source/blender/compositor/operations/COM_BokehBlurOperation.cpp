@@ -86,6 +86,7 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 		float overallmultiplyerr = 0;
 		float overallmultiplyerg = 0;
 		float overallmultiplyerb = 0;
+		float overallmultiplyera = 0;
 		MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
 		float *buffer = inputBuffer->getBuffer();
 		int bufferwidth = inputBuffer->getWidth();
@@ -115,16 +116,18 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 				tempColor[0] += bokeh[0] * buffer[bufferindex];
 				tempColor[1] += bokeh[1] * buffer[bufferindex+1];
 				tempColor[2] += bokeh[2]* buffer[bufferindex+2];
+				tempColor[3] += bokeh[3]* buffer[bufferindex+3];
 				overallmultiplyerr += bokeh[0];
 				overallmultiplyerg += bokeh[1];
 				overallmultiplyerb += bokeh[2];
+				overallmultiplyera += bokeh[3];
 				bufferindex +=offsetadd;
 			}
 		}
 		color[0] = tempColor[0] * (1.0f / overallmultiplyerr);
 		color[1] = tempColor[1] * (1.0f / overallmultiplyerg);
 		color[2] = tempColor[2] * (1.0f / overallmultiplyerb);
-		color[3] = 1.0f;
+		color[3] = tempColor[3] * (1.0f / overallmultiplyera);
 	}
 	else {
 		inputProgram->read(color, x, y, COM_PS_NEAREST, inputBuffers);

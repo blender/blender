@@ -243,7 +243,7 @@ void savePNGImage(png_bytep *row_pointers, int width, int height, int depth, int
 	fclose(fp);
 }
 
-static void saveImage(char *prefix, libmv::FloatImage image, int x0, int y0)
+static void saveImage(const char *prefix, libmv::FloatImage image, int x0, int y0)
 {
 	int x, y;
 	png_bytep *row_pointers;
@@ -283,7 +283,7 @@ static void saveImage(char *prefix, libmv::FloatImage image, int x0, int y0)
 	free(row_pointers);
 }
 
-static void saveBytesImage(char *prefix, unsigned char *data, int width, int height)
+static void saveBytesImage(const char *prefix, unsigned char *data, int width, int height)
 {
 	int x, y;
 	png_bytep *row_pointers;
@@ -376,6 +376,8 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 	}
 
 	libmv::TrackRegionOptions track_region_options;
+	libmv::FloatImage image1_mask;
+
 	switch (options->motion_model) {
 #define LIBMV_CONVERT(the_model) \
     case libmv::TrackRegionOptions::the_model: \
@@ -397,6 +399,12 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 	track_region_options.image1_mask = NULL;
 	track_region_options.use_brute_initialization = options->use_brute;
 	track_region_options.use_normalized_intensities = options->use_normalization;
+
+	if (options->image1_mask) {
+		floatBufToImage(options->image1_mask, image1_width, image1_height, 1, &image1_mask);
+
+		track_region_options.image1_mask = &image1_mask;
+	}
 
 	/* Convert from raw float buffers to libmv's FloatImage. */
 	libmv::FloatImage old_patch, new_patch;
@@ -437,15 +445,24 @@ int libmv_trackRegion(const struct libmv_trackRegionOptions *options,
 
 void libmv_samplePlanarPatch(const float *image, int width, int height,
                              int channels, const double *xs, const double *ys,
-                             int num_samples_x, int num_samples_y, float *patch,
+                             int num_samples_x, int num_samples_y,
+                             const float *mask, float *patch,
                              double *warped_position_x, double *warped_position_y)
 {
-	libmv::FloatImage libmv_image, libmv_patch;
+	libmv::FloatImage libmv_image, libmv_patch, libmv_mask;
+	libmv::FloatImage *libmv_mask_for_sample = NULL;
 
 	floatBufToImage(image, width, height, channels, &libmv_image);
 
+	if (mask) {
+		floatBufToImage(mask, width, height, 1, &libmv_mask);
+
+		libmv_mask_for_sample = &libmv_mask;
+	}
+
 	libmv::SamplePlanarPatch(libmv_image, xs, ys, num_samples_x, num_samples_y,
-	                         &libmv_patch, warped_position_x, warped_position_y);
+	                         libmv_mask_for_sample, &libmv_patch,
+	                         warped_position_x, warped_position_y);
 
 	imageToFloatBuf(&libmv_patch, channels, patch);
 }

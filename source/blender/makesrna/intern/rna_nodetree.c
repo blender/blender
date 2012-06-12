@@ -634,6 +634,23 @@ static EnumPropertyItem *rna_Node_channel_itemf(bContext *UNUSED(C), PointerRNA 
 	return item;
 }
 
+static PointerRNA rna_NodeTree_active_node_get(PointerRNA *ptr)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->data;
+	bNode *node = nodeGetActive(ntree);
+	return rna_pointer_inherit_refine(ptr, &RNA_Node, node);
+}
+
+static void rna_NodeTree_active_node_set(PointerRNA *ptr, PointerRNA value)
+{
+	bNodeTree *ntree = (bNodeTree *)ptr->data;
+	bNode *node = (bNode *)value.data;
+	if (node && BLI_findindex(&ntree->nodes, node) != -1)
+		nodeSetActive(ntree, node);
+	else
+		nodeClearActive(ntree);
+}
+
 static bNode *rna_NodeTree_node_new(bNodeTree *ntree, bContext *C, ReportList *reports,
                                     int type, bNodeTree *group)
 {
@@ -1041,6 +1058,7 @@ static void init(void)
 	reg_node(NODE_FORLOOP, Category_LoopNode, "FORLOOP", "NodeForLoop", "Node", "ForLoop", "");
 	reg_node(NODE_WHILELOOP, Category_LoopNode, "WHILELOOP", "NodeWhileLoop", "Node", "WhileLoop", "");
 	reg_node(NODE_FRAME, Category_LayoutNode, "FRAME", "NodeFrame", "Node", "Frame", "");
+	reg_node(NODE_REROUTE, Category_LayoutNode, "REROUTE", "NodeReroute", "Node", "Reroute", "");
 }
 
 static StructRNA *def_node(BlenderRNA *brna, int node_id)
@@ -1058,7 +1076,7 @@ static StructRNA *def_node(BlenderRNA *brna, int node_id)
 static void alloc_node_type_items(EnumPropertyItem *items, int category)
 {
 	int i;
-	int count = 3;
+	int count = 4;
 	EnumPropertyItem *item  = items;
 	
 	for (i = 0; i < MaxNodes; i++)
@@ -1084,6 +1102,14 @@ static void alloc_node_type_items(EnumPropertyItem *items, int category)
 	item->identifier = "GROUP";
 	item->icon = 0;
 	item->name = "Group";
+	item->description = "";
+	
+	item++;
+	
+	item->value = NODE_REROUTE;
+	item->identifier = "REROUTE";
+	item->icon = 0;
+	item->name = "Reroute";
 	item->description = "";
 	
 	item++;
@@ -3711,6 +3737,19 @@ static void rna_def_nodetree_link_api(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_function_ui_description(func, "remove all node links from the node tree");
 }
 
+/* shared between all note tree types*/
+static void rna_def_nodetree_active_api(StructRNA *srna, PropertyRNA *cprop)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "active", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "Node");
+	RNA_def_property_pointer_funcs(prop, "rna_NodeTree_active_node_get", "rna_NodeTree_active_node_set", NULL, NULL);
+	RNA_def_property_flag(prop, PROP_EDITABLE | PROP_NEVER_UNLINK);
+	RNA_def_property_ui_text(prop, "Active Node", "Active node in this tree");
+	RNA_def_property_update(prop, NC_SCENE | ND_OB_ACTIVE, NULL);
+}
+
 static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 {
 	StructRNA *srna;
@@ -3740,6 +3779,8 @@ static void rna_def_composite_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
+
+	rna_def_nodetree_active_api(srna, cprop);
 }
 
 static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
@@ -3771,6 +3812,8 @@ static void rna_def_shader_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
+
+	rna_def_nodetree_active_api(srna, cprop);
 }
 
 static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
@@ -3802,6 +3845,8 @@ static void rna_def_texture_nodetree_api(BlenderRNA *brna, PropertyRNA *cprop)
 
 	func = RNA_def_function(srna, "clear", "rna_NodeTree_node_clear");
 	RNA_def_function_ui_description(func, "Remove all nodes from this node tree");
+
+	rna_def_nodetree_active_api(srna, cprop);
 }
 
 static void rna_def_node_socket(BlenderRNA *brna)
@@ -3990,6 +4035,27 @@ static void rna_def_node(BlenderRNA *brna)
 	RNA_def_property_range(prop, 0.0f, 1.0f);
 	RNA_def_property_ui_text(prop, "Color", "Custom color of the node body");
 	RNA_def_property_update(prop, NC_NODE | ND_DISPLAY, NULL);
+
+	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_SELECT);
+	RNA_def_property_ui_text(prop, "Select", "");
+
+	prop = RNA_def_property(srna, "show_options", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_OPTIONS);
+	RNA_def_property_ui_text(prop, "Show Options", "");
+
+	prop = RNA_def_property(srna, "show_preview", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_PREVIEW);
+	RNA_def_property_ui_text(prop, "Show Preview", "");
+
+	prop = RNA_def_property(srna, "hide", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_HIDDEN);
+	RNA_def_property_ui_text(prop, "Hide", "");
+
+	prop = RNA_def_property(srna, "mute", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_MUTED);
+	RNA_def_property_ui_text(prop, "Mute", "");
+	RNA_def_property_update(prop, 0, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "show_texture", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", NODE_ACTIVE_TEXTURE);
@@ -4230,6 +4296,7 @@ void RNA_def_nodetree(BlenderRNA *brna)
 	define_specific_node(brna, NODE_FORLOOP, def_forloop);
 	define_specific_node(brna, NODE_WHILELOOP, def_whileloop);
 	define_specific_node(brna, NODE_FRAME, def_frame);
+	define_specific_node(brna, NODE_REROUTE, 0);
 	
 	/* special socket types */
 	rna_def_cmp_output_file_slot_file(brna);

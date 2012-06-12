@@ -44,7 +44,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		viewerOperation->setbNodeTree(context->getbNodeTree());
 		viewerOperation->setImage(image);
 		viewerOperation->setImageUser(imageUser);
-		viewerOperation->setActive(editorNode->flag & NODE_DO_OUTPUT);
+		viewerOperation->setActive((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 		viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 		viewerOperation->setCenterX(editorNode->custom3);
 		viewerOperation->setCenterY(editorNode->custom4);

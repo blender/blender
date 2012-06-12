@@ -32,6 +32,7 @@ RotateOperation::RotateOperation() : NodeOperation()
 	this->imageSocket = NULL;
 	this->degreeSocket =  NULL;
 	this->doDegree2RadConversion = false;
+	this->isDegreeSet = false;
 }
 void RotateOperation::initExecution()
 {
@@ -39,17 +40,6 @@ void RotateOperation::initExecution()
 	this->degreeSocket = this->getInputSocketReader(1);
 	this->centerX = this->getWidth()/2.0;
 	this->centerY = this->getHeight()/2.0;
-	float degree[4];
-	this->degreeSocket->read(degree, 0, 0, COM_PS_NEAREST, NULL);
-	double rad;
-	if (this->doDegree2RadConversion) {
-		rad = DEG2RAD((double)degree[0]);
-	}
-	else {
-		rad = degree[0];
-	}
-	this->cosine = cos(rad);
-	this->sine = sin(rad);
 }
 
 void RotateOperation::deinitExecution()
@@ -58,9 +48,28 @@ void RotateOperation::deinitExecution()
 	this->degreeSocket = NULL;
 }
 
+inline void RotateOperation::ensureDegree() {
+	if (!isDegreeSet) {
+		float degree[4];
+		this->degreeSocket->read(degree, 0, 0, COM_PS_NEAREST, NULL);
+		double rad;
+		if (this->doDegree2RadConversion) {
+		   rad = DEG2RAD((double)degree[0]);
+		}
+		else {
+		   rad = degree[0];
+		}
+		this->cosine = cos(rad);
+		this->sine = sin(rad);
+		
+		isDegreeSet = true;
+	}
+}
+
 
 void RotateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+	ensureDegree();
 	const float dy = y - this->centerY;
 	const float dx = x - this->centerX;
 	const float nx = this->centerX+(this->cosine*dx + this->sine*dy);
@@ -70,6 +79,7 @@ void RotateOperation::executePixel(float *color,float x, float y, PixelSampler s
 
 bool RotateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
+	ensureDegree();
 	rcti newInput;
 	
 	const float dxmin = input->xmin - this->centerX;

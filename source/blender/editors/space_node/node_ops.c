@@ -83,6 +83,7 @@ void node_operatortypes(void)
 
 	WM_operatortype_append(NODE_OT_group_make);
 	WM_operatortype_append(NODE_OT_group_ungroup);
+	WM_operatortype_append(NODE_OT_group_separate);
 	WM_operatortype_append(NODE_OT_group_edit);
 	WM_operatortype_append(NODE_OT_group_socket_add);
 	WM_operatortype_append(NODE_OT_group_socket_remove);
@@ -269,6 +270,7 @@ void node_keymap(struct wmKeyConfig *keyconf)
 
 	WM_keymap_add_item(keymap, "NODE_OT_group_make", GKEY, KM_PRESS, KM_CTRL, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_group_ungroup", GKEY, KM_PRESS, KM_ALT, 0);
+	WM_keymap_add_item(keymap, "NODE_OT_group_separate", PKEY, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "NODE_OT_group_edit", TABKEY, KM_PRESS, 0, 0);
 	
 	WM_keymap_add_item(keymap, "NODE_OT_read_renderlayers", RKEY, KM_PRESS, KM_CTRL, 0);

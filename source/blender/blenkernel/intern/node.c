@@ -1313,6 +1313,17 @@ void nodeClearActiveID(bNodeTree *ntree, short idtype)
 			node->flag &= ~NODE_ACTIVE_ID;
 }
 
+void nodeClearActive(bNodeTree *ntree)
+{
+	bNode *node;
+
+	if (ntree==NULL) return;
+
+	for (node= ntree->nodes.first; node; node= node->next)
+		node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_ID);
+}
+
+
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeSetActive(bNodeTree *ntree, bNode *node)
 {

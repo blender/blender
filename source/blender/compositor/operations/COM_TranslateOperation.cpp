@@ -32,6 +32,7 @@ TranslateOperation::TranslateOperation() : NodeOperation()
 	this->inputOperation = NULL;
 	this->inputXOperation = NULL;
 	this->inputYOperation = NULL;
+	this->isDeltaSet = false;
 }
 void TranslateOperation::initExecution()
 {
@@ -39,11 +40,6 @@ void TranslateOperation::initExecution()
 	this->inputXOperation = this->getInputSocketReader(1);
 	this->inputYOperation = this->getInputSocketReader(2);
 
-	float tempDelta[4];
-	this->inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
-	this->deltaX = tempDelta[0];
-	this->inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
-	this->deltaY = tempDelta[0];
 }
 
 void TranslateOperation::deinitExecution()
@@ -56,11 +52,13 @@ void TranslateOperation::deinitExecution()
 
 void TranslateOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+	ensureDelta();
 	this->inputOperation->read(color, x-this->getDeltaX(), y-this->getDeltaY(), sampler, inputBuffers);
 }
 
 bool TranslateOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
+	ensureDelta();
 	rcti newInput;
 	
 	newInput.xmax = input->xmax - this->getDeltaX();

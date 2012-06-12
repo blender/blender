@@ -64,6 +64,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	float overallmultiplyerr = 0;
 	float overallmultiplyerg = 0;
 	float overallmultiplyerb = 0;
+	float overallmultiplyera = 0;
 
 	int miny = y - maxBlur;
 	int maxy = y + maxBlur;
@@ -74,16 +75,18 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 		tempColor[0] += readColor[0];
 		tempColor[1] += readColor[1];
 		tempColor[2] += readColor[2];
+		tempColor[3] += readColor[3];
 		overallmultiplyerr += 1;
 		overallmultiplyerg += 1;
 		overallmultiplyerb += 1;
+		overallmultiplyera += 1;
 		
 		for (int ny = miny ; ny < maxy ; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx ; nx < maxx ; nx += QualityStepHelper::getStep()) {
 				if (nx >=0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
 					inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
 					float size = tempSize[0];
-					size += this->threshold;
+//					size += this->threshold;
 					float dx = nx - x;
 					float dy = ny - y;
 					if (nx == x && ny == y) {
@@ -94,20 +97,22 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 						float v = 256 + dy*256/size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-						tempColor[0] += bokeh[0] * readColor[0];
-						tempColor[1] += bokeh[1] * readColor[1];
-						tempColor[2] += bokeh[2]* readColor[2];
+						tempColor[0] += bokeh[1]*readColor[0];
+						tempColor[1] += bokeh[2]*readColor[1];
+						tempColor[2] += bokeh[2]*readColor[2];
+						tempColor[3] += bokeh[3]*readColor[3];
 						overallmultiplyerr += bokeh[0];
 						overallmultiplyerg += bokeh[1];
 						overallmultiplyerb += bokeh[2];
+						overallmultiplyera += bokeh[3];
 					}
 				}
 			}
 		}
-		color[0] = tempColor[0] * (1.0f / overallmultiplyerr);
-		color[1] = tempColor[1] * (1.0f / overallmultiplyerg);
-		color[2] = tempColor[2] * (1.0f / overallmultiplyerb);
-		color[3] = 1.0f;
+		color[0] = tempColor[0] / overallmultiplyerr;
+		color[1] = tempColor[1] / overallmultiplyerg;
+		color[2] = tempColor[2] / overallmultiplyerb;
+		color[3] = tempColor[3] / overallmultiplyera;
 	}
 
 }

@@ -35,16 +35,20 @@
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
+#include "COM_ViewerBaseOperation.h"
 
-Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree)
+Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree * tree, bNode *groupnode)
 {
 	vector<Node*>& nodes = system.getNodes();
 	vector<SocketConnection*>& links = system.getConnections();
 	Node *mainnode = NULL;
+	const bNode * activeGroupNode = system.getContext().getActivegNode();
+	bool isActiveGroup = activeGroupNode == groupnode;
+	
 	/* add all nodes of the tree to the node list */
 	bNode *node = (bNode*)tree->nodes.first;
 	while (node != NULL) {
-		Node *execnode = addNode(nodes, node);
+		Node *execnode = addNode(nodes, node, isActiveGroup);
 		if (node->type == CMP_NODE_COMPOSITE) {
 			mainnode = execnode;
 		}
@@ -77,11 +81,12 @@ void ExecutionSystemHelper::addNode(vector<Node*>& nodes, Node *node)
 	nodes.push_back(node);
 }
 
-Node *ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode)
+Node *ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode, bool inActiveGroup)
 {
 	Converter converter;
 	Node * node;
 	node = converter.convert(bNode);
+	node->setIsInActiveGroup(inActiveGroup);
 	if (node != NULL) {
 		addNode(nodes, node);
 		return node;
@@ -232,7 +237,12 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 			printf("|");
 		}
 		if (operation->isViewerOperation()) {
-			printf("Viewer");
+			ViewerBaseOperation * viewer = (ViewerBaseOperation*)operation;
+			if (viewer->isActiveViewerOutput()) {
+				printf("Active viewer");
+			} else {
+				printf("Viewer");
+			}
 		}
 		else if (operation->isOutputOperation(system->getContext().isRendering())) {
 			printf("Output");
@@ -249,6 +259,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 		else {
 			printf("O_%p", operation);
 		}
+		printf(" (%d,%d)", operation->getWidth(), operation->getHeight());
 		tot2 = operation->getNumberOfOutputSockets();
 		if (tot2 != 0) {
 			printf("|");

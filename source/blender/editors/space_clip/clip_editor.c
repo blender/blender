@@ -425,9 +425,9 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	return TRUE;
 }
 
-void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
+void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[2])
 {
-	copy_v2_v2(nco, co);
+	copy_v2_v2(r_co, co);
 
 	if (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
 		MovieClip *clip = ED_space_clip(sc);
@@ -436,13 +436,13 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
 
 		ED_space_clip_size(sc, &width, &height);
 
-		nco[0] *= width;
-		nco[1] *= height * aspy;
+		r_co[0] *= width;
+		r_co[1] *= height * aspy;
 
-		BKE_tracking_invert_intrinsics(&clip->tracking, nco, nco);
+		BKE_tracking_invert_intrinsics(&clip->tracking, r_co, r_co);
 
-		nco[0] /= width;
-		nco[1] /= height * aspy;
+		r_co[0] /= width;
+		r_co[1] /= height * aspy;
 	}
 }
 
@@ -451,7 +451,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	int sx, sy, width, height;
-	float zoomx, zoomy, pos[3] = {0.0f, 0.0f, 0.0f}, imat[4][4];
+	float zoomx, zoomy, pos[3], imat[4][4];
 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 	ED_space_clip_size(sc, &width, &height);
@@ -460,6 +460,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 
 	pos[0] = (x - sx) / zoomx;
 	pos[1] = (y - sy) / zoomy;
+	pos[2] = 0.0f;
 
 	invert_m4_m4(imat, sc->stabmat);
 	mul_v3_m4v3(pos, imat, pos);
@@ -484,7 +485,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
  * \brief the reverse of ED_clip_point_stable_pos(), gets the marker region coords.
  * better name here? view_to_track / track_to_view or so?
  */
-void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], float nco[2])
+void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float co[2], float r_co[2])
 {
 	float zoomx, zoomy;
 	float pos[3];
@@ -496,12 +497,13 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	ED_clip_point_undistorted_pos(sc, co, pos);
+	pos[2] = 0.0f;
 
 	/* untested */
 	mul_v3_m4v3(pos, sc->stabmat, pos);
 
-	nco[0] = (pos[0] * width  * zoomx) + (float)sx;
-	nco[1] = (pos[1] * height * zoomy) + (float)sy;
+	r_co[0] = (pos[0] * width  * zoomx) + (float)sx;
+	r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
 void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])

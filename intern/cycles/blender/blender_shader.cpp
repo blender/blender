@@ -75,6 +75,52 @@ static float get_node_output_value(BL::Node b_node, const string& name)
 	return sock.default_value();
 }
 
+static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
+{
+	switch (b_type) {
+	case BL::NodeSocket::type_VALUE:
+		return SHADER_SOCKET_FLOAT;
+	case BL::NodeSocket::type_VECTOR:
+		return SHADER_SOCKET_VECTOR;
+	case BL::NodeSocket::type_RGBA:
+		return SHADER_SOCKET_COLOR;
+	case BL::NodeSocket::type_SHADER:
+		return SHADER_SOCKET_CLOSURE;
+	
+	case BL::NodeSocket::type_BOOLEAN:
+	case BL::NodeSocket::type_MESH:
+	case BL::NodeSocket::type_INT:
+	default:
+		return SHADER_SOCKET_FLOAT;
+	}
+}
+
+static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
+{
+	/* copy values for non linked inputs */
+	switch(input->type) {
+	case SHADER_SOCKET_FLOAT: {
+		BL::NodeSocketFloatNone value_sock(sock);
+		input->set(value_sock.default_value());
+		break;
+	}
+	case SHADER_SOCKET_COLOR: {
+		BL::NodeSocketRGBA rgba_sock(sock);
+		input->set(get_float3(rgba_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_NORMAL:
+	case SHADER_SOCKET_POINT:
+	case SHADER_SOCKET_VECTOR: {
+		BL::NodeSocketVectorNone vec_sock(sock);
+		input->set(get_float3(vec_sock.default_value()));
+		break;
+	}
+	case SHADER_SOCKET_CLOSURE:
+		break;
+	}
+}
+
 static void get_tex_mapping(TextureMapping *mapping, BL::TexMapping b_mapping)
 {
 	if(!b_mapping)
@@ -122,10 +168,18 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 		/* handled outside this function */
 		case BL::ShaderNode::type_GROUP: break;
 		/* existing blender nodes */
+		case BL::ShaderNode::type_REROUTE: {
+			BL::Node::inputs_iterator b_input;
+			b_node.inputs.begin(b_input);
+			BL::Node::outputs_iterator b_output;
+			b_node.outputs.begin(b_output);
+			ProxyNode *proxy = new ProxyNode(convert_socket_type(b_input->type()), convert_socket_type(b_output->type()));
+			node = proxy;
+			break;
+		}
 		case BL::ShaderNode::type_CURVE_RGB: {
 			RGBCurvesNode *ramp = new RGBCurvesNode();
 			node = ramp;
-			break;
 		}
 		case BL::ShaderNode::type_VALTORGB: {
 			RGBRampNode *ramp = new RGBRampNode();
@@ -486,52 +540,6 @@ static SocketPair node_socket_map_pair(PtrNodeMap& node_map, BL::Node b_node, BL
 		name = string_printf("%s%d", name.c_str(), counter);
 
 	return SocketPair(node_map[b_node.ptr.data], name);
-}
-
-static ShaderSocketType convert_socket_type(BL::NodeSocket::type_enum b_type)
-{
-	switch (b_type) {
-	case BL::NodeSocket::type_VALUE:
-		return SHADER_SOCKET_FLOAT;
-	case BL::NodeSocket::type_VECTOR:
-		return SHADER_SOCKET_VECTOR;
-	case BL::NodeSocket::type_RGBA:
-		return SHADER_SOCKET_COLOR;
-	case BL::NodeSocket::type_SHADER:
-		return SHADER_SOCKET_CLOSURE;
-	
-	case BL::NodeSocket::type_BOOLEAN:
-	case BL::NodeSocket::type_MESH:
-	case BL::NodeSocket::type_INT:
-	default:
-		return SHADER_SOCKET_FLOAT;
-	}
-}
-
-static void set_default_value(ShaderInput *input, BL::NodeSocket sock)
-{
-	/* copy values for non linked inputs */
-	switch(input->type) {
-	case SHADER_SOCKET_FLOAT: {
-		BL::NodeSocketFloatNone value_sock(sock);
-		input->set(value_sock.default_value());
-		break;
-	}
-	case SHADER_SOCKET_COLOR: {
-		BL::NodeSocketRGBA rgba_sock(sock);
-		input->set(get_float3(rgba_sock.default_value()));
-		break;
-	}
-	case SHADER_SOCKET_NORMAL:
-	case SHADER_SOCKET_POINT:
-	case SHADER_SOCKET_VECTOR: {
-		BL::NodeSocketVectorNone vec_sock(sock);
-		input->set(get_float3(vec_sock.default_value()));
-		break;
-	}
-	case SHADER_SOCKET_CLOSURE:
-		break;
-	}
 }
 
 static void add_nodes(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph *graph, BL::ShaderNodeTree b_ntree, PtrSockMap& sockets_map)

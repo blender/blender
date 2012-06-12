@@ -34,6 +34,7 @@ private:
 	float cosine;
 	float sine;
 	bool doDegree2RadConversion;
+	bool isDegreeSet;
 public:
 	RotateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -41,6 +42,8 @@ public:
 	void initExecution();
 	void deinitExecution();
 	void setDoDegree2RadConversion(bool abool) {this->doDegree2RadConversion = abool;}
+	
+	void ensureDegree();
 };
 
 #endif

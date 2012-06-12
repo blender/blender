@@ -105,7 +105,7 @@ void BokehImageOperation::executePixel(float *color, float x, float y, PixelSamp
 		color[1] = insideBokehMed;
 		color[2] = insideBokehMax;
 	}
-	color[3] = 1.0f;
+	color[3] = (insideBokehMax+insideBokehMed+insideBokehMin)/3.0f;
 }
 
 void BokehImageOperation::deinitExecution()

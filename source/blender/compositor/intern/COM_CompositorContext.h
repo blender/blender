@@ -63,6 +63,11 @@ private:
 	  * @see ExecutionSystem
 	  */
 	bNodeTree *bnodetree;
+	
+	/**
+	 * @brief activegNode the group node that is currently being edited.
+	 */
+	bNode *activegNode;
 
 	/**
 	  * @brief does this system have active opencl devices?
@@ -99,6 +104,16 @@ public:
 	  * @brief get the bnodetree of the context
 	  */
 	const bNodeTree * getbNodeTree() const {return this->bnodetree;}
+
+	/**
+	  * @brief set the active groupnode of the context
+	  */
+	void setActivegNode(bNode *gnode) {this->activegNode = gnode;}
+
+	/**
+	  * @brief get the active groupnode of the context
+	  */
+	const bNode * getActivegNode() const {return this->activegNode;}
 
 	/**
 	  * @brief get the scene of the context

@@ -70,6 +70,7 @@ typedef enum CompositorPriority {
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
 //#define COM_OPENCL_ENABLED
+//#define COM_DEBUG
 
 // workscheduler threading models
 /**
@@ -105,8 +106,5 @@ typedef enum OrderOfChunks {
 #define COM_RULE_OF_THIRDS_DIVIDER 100.0f
 
 #define COM_NUMBER_OF_CHANNELS 4
-
-#define COM_DEFAULT_RESOLUTION_WIDTH 640
-#define COM_DEFAULT_RESOLUTION_HEIGHT 480
 
 #endif
