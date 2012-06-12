@@ -2162,10 +2162,10 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filename[FILE_MAX];
-	int selected, second_life, 
-	int include_armatures,
-	int apply_modifiers,
-	int include_children,
+	int selected, second_life; 
+	int include_armatures;
+	int apply_modifiers;
+	int include_children;
 	int use_object_instantiation;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
