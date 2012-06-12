@@ -36,8 +36,7 @@ extern "C" {
 
 MaskOperation::MaskOperation(): NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->addOutputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_VALUE);
 	this->mask = NULL;
 	this->maskWidth = 0;
 	this->maskHeight = 0;
@@ -75,7 +74,7 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, buffer, TRUE, TRUE);
+		BKE_mask_rasterize(mask, width, height, buffer, TRUE);
 
 		this->rasterizedMask = buffer;
 	}
@@ -105,20 +104,12 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	if (!data) {
-		color[0] = 0;
-		color[1] = 0;
-		color[2] = 0;
-		color[3] = 1.0f;
+		color[0] = 0.0f;
 	}
 	else {
 		float *buffer = (float*) data;
 		int index = (y * this->getWidth() + x);
 
 		color[0] = buffer[index];
-		color[1] = buffer[index];
-		color[2] = buffer[index];
-		color[3] = 1.0f;
 	}
 }
-
-

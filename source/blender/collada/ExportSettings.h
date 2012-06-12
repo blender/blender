@@ -24,6 +24,10 @@
  *  \ingroup collada
  */
 
+extern "C" {
+#include "BLI_linklist.h"
+}
+
 #ifndef __EXPORTSETTINGS_H__
 #define __EXPORTSETTINGS_H__
 
@@ -33,10 +37,11 @@ struct ExportSettings
  bool selected;
  bool apply_modifiers;
  bool include_armatures;
- bool include_bone_children;
+ bool include_children;
  bool use_object_instantiation;
  bool second_life;
  char *filepath;
+ LinkNode *export_set;
 };
 
 #endif

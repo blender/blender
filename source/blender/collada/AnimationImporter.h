@@ -41,11 +41,13 @@
 #include "COLLADAFWEffect.h"
 #include "COLLADAFWInstanceGeometry.h"
 
+extern "C" {
 #include "DNA_anim_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_camera_types.h"
+}
 
 //#include "ArmatureImporter.h"
 #include "TransformReader.h"

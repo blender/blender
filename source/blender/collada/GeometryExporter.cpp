@@ -61,7 +61,7 @@ void GeometryExporter::exportGeom(Scene *sce)
 
 	mScene = sce;
 	GeometryFunctor gf;
-	gf.forEachMeshObjectInScene<GeometryExporter>(sce, *this, this->export_settings->selected);
+	gf.forEachMeshObjectInExportSet<GeometryExporter>(sce, *this, this->export_settings->export_set);
 
 	closeLibrary();
 }

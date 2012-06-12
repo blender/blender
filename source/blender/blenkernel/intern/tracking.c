@@ -1301,6 +1301,8 @@ ImBuf *BKE_tracking_sample_pattern_imbuf(int frame_width, int frame_height, ImBu
 	(void) frame_height;
 	(void) search_ibuf;
 	(void) marker;
+	(void) track;
+	(void) use_mask;
 
 	pattern_ibuf = IMB_allocImBuf(num_samples_x, num_samples_y, 32, IB_rectfloat);
 

@@ -2165,7 +2165,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int selected, second_life, 
 		include_armatures,
 		apply_modifiers, 
-		include_bone_children,
+		include_children,
 		use_object_instantiation;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
@@ -2179,7 +2179,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	selected                 = RNA_boolean_get(op->ptr, "selected");
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
-	include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
+	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
@@ -2192,7 +2192,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		selected,
 		apply_modifiers,
 		include_armatures,
-		include_bone_children,
+		include_children,
 		use_object_instantiation,
 		second_life)) {
 		return OPERATOR_FINISHED;
@@ -2225,8 +2225,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
 	                "Include armature(s) used by the exported objects");
 
-	RNA_def_boolean(ot->srna, "include_bone_children", 0, "Include Bone Children",
-	                "Include all objects attached to bones of selected Armature(s)");
+	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
+	                "Include all children even if not selected");
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
 		            "Instantiate multiple Objects from same Data");

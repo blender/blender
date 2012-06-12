@@ -40,17 +40,12 @@
 
 /* **************** Translate  ******************** */
 
-static bNodeSocketTemplate cmp_node_mask_in[] = {
-	{   SOCK_RGBA, 1, "Image",          0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{   -1, 0, ""   }
-};
-
 static bNodeSocketTemplate cmp_node_mask_out[] = {
-	{   SOCK_RGBA, 0, "Image"},
+	{   SOCK_FLOAT, 0, "Mask"},
 	{   -1, 0, ""   }
 };
 
-static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
+static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **out)
 {
 	if (node->id) {
 		Mask *mask = (Mask *)node->id;
@@ -66,22 +61,14 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 			return;
 		}
 
-		if (in[0]->hasinput && in[0]->data) {
-			CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
-
-			sx = cbuf->x;
-			sy = cbuf->y;
-		}
-		else {
-			sx = (rd->size * rd->xsch) / 100;
-			sy = (rd->size * rd->ysch) / 100;
-		}
+		sx = (rd->size * rd->xsch) / 100;
+		sy = (rd->size * rd->ysch) / 100;
 
 		/* allocate the output buffer */
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		BKE_mask_rasterize(mask, sx, sy, res, TRUE, TRUE);
+		BKE_mask_rasterize(mask, sx, sy, res, TRUE);
 
 		/* pass on output and free */
 		out[0]->data = stackbuf;
@@ -93,7 +80,7 @@ void register_node_type_cmp_mask(bNodeTreeType *ttype)
 	static bNodeType ntype;
 
 	node_type_base(ttype, &ntype, CMP_NODE_MASK, "Mask", NODE_CLASS_INPUT, NODE_OPTIONS);
-	node_type_socket_templates(&ntype, cmp_node_mask_in, cmp_node_mask_out);
+	node_type_socket_templates(&ntype, NULL, cmp_node_mask_out);
 	node_type_size(&ntype, 140, 100, 320);
 	node_type_exec(&ntype, exec);
 

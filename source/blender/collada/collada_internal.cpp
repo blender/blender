@@ -27,8 +27,9 @@
 
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
-
 #include "collada_internal.h"
+
+#include "BLI_linklist.h"
 
 UnitConverter::UnitConverter() : unit(), up_axis(COLLADAFW::FileInfo::Z_UP) {}
 
@@ -276,18 +277,4 @@ std::string get_camera_id(Object *ob)
 std::string get_material_id(Material *mat)
 {
 	return translate_id(id_name(mat)) + "-material";
-}
-
-bool has_object_type(Scene *sce, short obtype)
-{
-	Base *base= (Base*) sce->base.first;
-	while (base) {
-		Object *ob = base->object;
-			
-		if (ob->type == obtype && ob->data) {
-			return true;
-		}
-		base= base->next;
-	}
-	return false;
 }

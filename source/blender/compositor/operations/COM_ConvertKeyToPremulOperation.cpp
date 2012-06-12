@@ -43,9 +43,7 @@ void ConvertKeyToPremulOperation::executePixel(float *outputValue, float x, floa
 	this->inputColor->read(inputValue, x, y, sampler, inputBuffers);
 	alpha = inputValue[3];
 
-	outputValue[0] = inputValue[0] * alpha;
-	outputValue[1] = inputValue[1] * alpha;
-	outputValue[2] = inputValue[2] * alpha;
+	mul_v3_v3fl(outputValue, inputValue, alpha);
 
 	/* never touches the alpha */
 	outputValue[3] = alpha;

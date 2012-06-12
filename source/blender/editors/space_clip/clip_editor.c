@@ -523,7 +523,7 @@ typedef struct SpaceClipDrawContext {
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
 
 	/* fields to check if cache is still valid */
-	int framenr, start_frame;
+	int framenr, start_frame, frame_offset;
 	short render_size, render_flag;
 } SpaceClipDrawContext;
 
@@ -565,6 +565,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	need_rebind |= context->render_size != sc->user.render_size;
 	need_rebind |= context->render_flag != sc->user.render_flag;
 	need_rebind |= context->start_frame != clip->start_frame;
+	need_rebind |= context->frame_offset != clip->frame_offset;
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -622,6 +623,7 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->render_size = sc->user.render_size;
 		context->render_flag = sc->user.render_flag;
 		context->start_frame = clip->start_frame;
+		context->frame_offset = clip->frame_offset;
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,

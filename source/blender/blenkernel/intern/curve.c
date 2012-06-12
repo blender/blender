@@ -1002,9 +1002,7 @@ void BKE_nurb_makeFaces(Nurb *nu, float *coord_array, int rowstride, int resolu,
 						bp++;
 
 					if (*fp != 0.0f) {
-						in[0] += (*fp) * bp->vec[0];
-						in[1] += (*fp) * bp->vec[1];
-						in[2] += (*fp) * bp->vec[2];
+						madd_v3_v3fl(in, bp->vec, *fp);
 					}
 				}
 			}
@@ -1106,9 +1104,7 @@ void BKE_nurb_makeCurve(Nurb *nu, float *coord_array, float *tilt_array, float *
 				bp++;
 
 			if (*fp != 0.0f) {
-				coord_fp[0] += (*fp) * bp->vec[0];
-				coord_fp[1] += (*fp) * bp->vec[1];
-				coord_fp[2] += (*fp) * bp->vec[2];
+				madd_v3_v3fl(coord_fp, bp->vec, *fp);
 
 				if (tilt_fp)
 					(*tilt_fp) += (*fp) * bp->alfa;

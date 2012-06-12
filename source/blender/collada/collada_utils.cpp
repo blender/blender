@@ -32,6 +32,8 @@
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 
+#include "collada_utils.h"
+
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -49,6 +51,7 @@
 
 extern "C" {
 #include "BKE_DerivedMesh.h"
+#include "BLI_linklist.h"
 }
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
@@ -164,3 +167,64 @@ Object *bc_get_assigned_armature(Object *ob)
 	return ob_arm;
 }
 
+// Returns the highest selected ancestor
+// returns NULL if no ancestor is selected
+// IMPORTANT: This function expects that
+// all exported objects have set:
+// ob->id.flag & LIB_DOIT
+Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob) 
+{
+	Object *ancestor = ob;
+	while (ob->parent && bc_is_marked(ob->parent))
+	{
+		ob = ob->parent;
+		ancestor = ob;
+	}
+	return ancestor;
+}
+
+bool bc_is_base_node(LinkNode *export_set, Object *ob)
+{
+	Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
+	return (root == ob);
+}
+
+bool bc_is_in_Export_set(LinkNode *export_set, Object *ob)
+{
+	LinkNode *node = export_set;
+	
+	while (node) {
+		Object *element = (Object *)node->link;
+	
+		if (element == ob)
+			return true;
+		
+		node= node->next;
+	}
+	return false;
+}
+
+bool bc_has_object_type(LinkNode *export_set, short obtype)
+{
+	LinkNode *node = export_set;
+	
+	while (node) {
+		Object *ob = (Object *)node->link;
+			
+		if (ob->type == obtype && ob->data) {
+			return true;
+		}
+		node= node->next;
+	}
+	return false;
+}
+
+int bc_is_marked(Object *ob)
+{
+	return ob && (ob->id.flag & LIB_DOIT);
+}
+
+void bc_remove_mark(Object *ob)
+{
+	ob->id.flag &= ~LIB_DOIT;
+}

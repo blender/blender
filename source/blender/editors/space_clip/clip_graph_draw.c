@@ -189,6 +189,7 @@ static void draw_frame_curves(SpaceClip *sc)
 
 	for (i = 0; i < reconstruction->camnr; i++) {
 		MovieReconstructedCamera *camera = &reconstruction->cameras[i];
+		int framenr;
 
 		if (lines && camera->framenr != prevfra + 1) {
 			glEnd();
@@ -200,7 +201,8 @@ static void draw_frame_curves(SpaceClip *sc)
 			lines = 1;
 		}
 
-		glVertex2f(camera->framenr, camera->error);
+		framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, camera->framenr);
+		glVertex2f(framenr, camera->error);
 
 		prevfra = camera->framenr;
 	}

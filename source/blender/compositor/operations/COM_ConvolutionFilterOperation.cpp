@@ -69,10 +69,6 @@ void ConvolutionFilterOperation::deinitExecution()
 
 void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	color[0] = 0.0;
-	color[1] = 0.0;
-	color[2] = 0.0;
-	color[3] = 0.0;
 	float in1[4];
 	float in2[4];
 	int x1 = x - 1;
@@ -89,57 +85,32 @@ void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryB
 	CLAMP(y3, 0, getHeight()-1);
 	float value[4];
 	this->inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
-	float mval = 1.0f - value[0];
+	const float mval = 1.0f - value[0];
+
+	zero_v4(color);
 	this->inputOperation->read(in1, x1, y1, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[0];
-	color[1] += in1[1] * this->filter[0];
-	color[2] += in1[2] * this->filter[0];
-	color[3] += in1[3] * this->filter[0];
+	madd_v4_v4fl(color, in1, this->filter[0]);
 	this->inputOperation->read(in1, x2, y1, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[1];
-	color[1] += in1[1] * this->filter[1];
-	color[2] += in1[2] * this->filter[1];
-	color[3] += in1[3] * this->filter[1];
+	madd_v4_v4fl(color, in1, this->filter[1]);
 	this->inputOperation->read(in1, x3, y1, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[2];
-	color[1] += in1[1] * this->filter[2];
-	color[2] += in1[2] * this->filter[2];
-	color[3] += in1[3] * this->filter[2];
+	madd_v4_v4fl(color, in1, this->filter[2]);
 	this->inputOperation->read(in1, x1, y2, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[3];
-	color[1] += in1[1] * this->filter[3];
-	color[2] += in1[2] * this->filter[3];
-	color[3] += in1[3] * this->filter[3];
+	madd_v4_v4fl(color, in1, this->filter[3]);
 	this->inputOperation->read(in2, x2, y2, inputBuffers, NULL);
-	color[0] += in2[0] * this->filter[4];
-	color[1] += in2[1] * this->filter[4];
-	color[2] += in2[2] * this->filter[4];
-	color[3] += in2[3] * this->filter[4];
+	madd_v4_v4fl(color, in2, this->filter[4]);
 	this->inputOperation->read(in1, x3, y2, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[5];
-	color[1] += in1[1] * this->filter[5];
-	color[2] += in1[2] * this->filter[5];
-	color[3] += in1[3] * this->filter[5];
+	madd_v4_v4fl(color, in1, this->filter[5]);
 	this->inputOperation->read(in1, x1, y3, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[6];
-	color[1] += in1[1] * this->filter[6];
-	color[2] += in1[2] * this->filter[6];
-	color[3] += in1[3] * this->filter[6];
+	madd_v4_v4fl(color, in1, this->filter[6]);
 	this->inputOperation->read(in1, x2, y3, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[7];
-	color[1] += in1[1] * this->filter[7];
-	color[2] += in1[2] * this->filter[7];
-	color[3] += in1[3] * this->filter[7];
+	madd_v4_v4fl(color, in1, this->filter[7]);
 	this->inputOperation->read(in1, x3, y3, inputBuffers, NULL);
-	color[0] += in1[0] * this->filter[8];
-	color[1] += in1[1] * this->filter[8];
-	color[2] += in1[2] * this->filter[8];
-	color[3] += in1[3] * this->filter[8];
+	madd_v4_v4fl(color, in1, this->filter[8]);
 	
-	color[0] = color[0]*value[0] + in2[0] * mval;
-	color[1] = color[1]*value[0] + in2[1] * mval;
-	color[2] = color[2]*value[0] + in2[2] * mval;
-	color[3] = color[3]*value[0] + in2[3] * mval;
+	color[0] = color[0] * value[0] + in2[0] * mval;
+	color[1] = color[1] * value[0] + in2[1] * mval;
+	color[2] = color[2] * value[0] + in2[2] * mval;
+	color[3] = color[3] * value[0] + in2[3] * mval;
 }
 
 bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

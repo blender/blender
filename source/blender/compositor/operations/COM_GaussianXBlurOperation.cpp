@@ -99,19 +99,12 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	int bufferindex = ((minx - bufferstartx)*4)+((miny-bufferstarty)*4*bufferwidth);
 	for (int nx = minx ; nx < maxx ; nx +=step) {
 		index = (nx-x)+this->rad;
-		float multiplyer = gausstab[index];
-		tempColor[0] += multiplyer * buffer[bufferindex];
-		tempColor[1] += multiplyer * buffer[bufferindex+1];
-		tempColor[2] += multiplyer * buffer[bufferindex+2];
-		tempColor[3] += multiplyer * buffer[bufferindex+3];
+		const float multiplyer = gausstab[index];
+		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
 		overallmultiplyer += multiplyer;
-		bufferindex +=offsetadd;
+		bufferindex += offsetadd;
 	}
-	float divider = 1.0f / overallmultiplyer;
-	color[0] = tempColor[0] * divider;
-	color[1] = tempColor[1] * divider;
-	color[2] = tempColor[2] * divider;
-	color[3] = tempColor[3] * divider;
+	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
 }
 
 void GaussianXBlurOperation::deinitExecution()

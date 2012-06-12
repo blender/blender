@@ -180,6 +180,7 @@ static ShaderNode *add_node(BL::BlendData b_data, BL::Scene b_scene, ShaderGraph
 		case BL::ShaderNode::type_CURVE_RGB: {
 			RGBCurvesNode *ramp = new RGBCurvesNode();
 			node = ramp;
+			break;
 		}
 		case BL::ShaderNode::type_VALTORGB: {
 			RGBRampNode *ramp = new RGBRampNode();

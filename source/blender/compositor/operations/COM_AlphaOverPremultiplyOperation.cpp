@@ -38,16 +38,10 @@ void AlphaOverPremultiplyOperation::executePixel(float *outputValue, float x, fl
 	
 	/* Zero alpha values should still permit an add of RGB data */
 	if (inputOverColor[3]<0.0f) {
-		outputValue[0] = inputColor1[0];
-		outputValue[1] = inputColor1[1];
-		outputValue[2] = inputColor1[2];
-		outputValue[3] = inputColor1[3];
+		copy_v4_v4(outputValue, inputColor1);
 	}
 	else if (value[0] == 1.0f && inputOverColor[3] >= 1.0f) {
-		outputValue[0] = inputOverColor[0];
-		outputValue[1] = inputOverColor[1];
-		outputValue[2] = inputOverColor[2];
-		outputValue[3] = inputOverColor[3];
+		copy_v4_v4(outputValue, inputOverColor);
 	}
 	else {
 		float mul = 1.0f - value[0]*inputOverColor[3];

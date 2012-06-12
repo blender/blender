@@ -49,6 +49,7 @@
 #include "COLLADASaxFWLLoader.h"
 #include "COLLADASaxFWLIExtraDataCallbackHandler.h"
 
+extern "C" {
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 #include "BLI_string.h"
@@ -74,6 +75,8 @@
 #include "RNA_access.h"
 
 #include "MEM_guardedalloc.h"
+
+}
 
 #include "ExtraHandler.h"
 #include "ErrorHandler.h"

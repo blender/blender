@@ -86,7 +86,14 @@ typedef struct MovieClip {
 
 	int len;    /* length of movie */
 
-	int start_frame, pad;
+	int start_frame;    /* scene frame number footage starts playing at */
+	                    /* affects all data which is associated with a clip */
+	                    /* such as motion tracking, camera reconstruciton and so */
+
+	int frame_offset;   /* offset which is adding to a file number when reading frame */
+	                    /* from a file. affects only a way how scene frame is mapping */
+	                    /* to a file name and not touches other data associated with */
+	                    /* a clip */
 } MovieClip;
 
 typedef struct MovieClipScopes {

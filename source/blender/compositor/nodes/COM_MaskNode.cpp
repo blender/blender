@@ -37,7 +37,6 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 {
 	const RenderData *data = &context->getScene()->r;
 
-	InputSocket *inputImage = this->getInputSocket(0);
 	OutputSocket *outputMask = this->getOutputSocket(0);
 
 	bNode *editorNode = this->getbNode();
@@ -46,13 +45,8 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 	// always connect the output image
 	MaskOperation *operation = new MaskOperation();
 
-	if (inputImage->isConnected()) {
-		inputImage->relinkConnections(operation->getInputSocket(0), 0, graph);
-	}
-	else {
-		operation->setMaskWidth(data->xsch * data->size / 100.0f);
-		operation->setMaskHeight(data->ysch * data->size / 100.0f);
-	}
+	operation->setMaskWidth(data->xsch * data->size / 100.0f);
+	operation->setMaskHeight(data->ysch * data->size / 100.0f);
 
 	if (outputMask->isConnected()) {
 		outputMask->relinkConnections(operation->getOutputSocket());

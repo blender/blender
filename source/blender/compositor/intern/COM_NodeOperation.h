@@ -35,6 +35,9 @@ class NodeOperation;
 #include "list"
 #include "BLI_threads.h"
 
+#include "BLI_math_color.h"
+#include "BLI_math_vector.h"
+
 class ReadBufferOperation;
 
 /**

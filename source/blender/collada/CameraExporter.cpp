@@ -29,10 +29,10 @@
 #include <string>
 
 #include "COLLADASWCamera.h"
-#include "COLLADASWCameraOptic.h"
 
+extern "C" {
 #include "DNA_camera_types.h"
-
+}
 #include "CameraExporter.h"
 
 #include "collada_internal.h"
@@ -40,16 +40,15 @@
 CamerasExporter::CamerasExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings): COLLADASW::LibraryCameras(sw), export_settings(export_settings) {}
 
 template<class Functor>
-void forEachCameraObjectInScene(Scene *sce, Functor &f, bool export_selected)
+void forEachCameraObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 {
-	Base *base = (Base*) sce->base.first;
-	while (base) {
-		Object *ob = base->object;
+	LinkNode *node;
+	for(node=export_set; node; node = node->next) {
+		Object *ob = (Object *)node->link;
 
-		if (ob->type == OB_CAMERA && ob->data && !(export_selected && !(ob->flag & SELECT))) {
+		if (ob->type == OB_CAMERA && ob->data) {
 			f(ob, sce);
 		}
-		base = base->next;
 	}
 }
 
@@ -57,7 +56,7 @@ void CamerasExporter::exportCameras(Scene *sce)
 {
 	openLibrary();
 	
-	forEachCameraObjectInScene(sce, *this, this->export_settings->selected);
+	forEachCameraObjectInExportSet(sce, *this, this->export_settings->export_set);
 	
 	closeLibrary();
 }

@@ -79,9 +79,7 @@ void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSamp
 	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(workingCopy, color, image);
 	else if (*fac <= 0.0f) {
-		color[0] = image[0];
-		color[1] = image[1];
-		color[2] = image[2];
+		copy_v3_v3(color, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;
@@ -140,9 +138,7 @@ void ConstantLevelColorCurveOperation::executePixel(float *color, float x, float
 	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(this->curveMapping, color, image);
 	else if (*fac <= 0.0f) {
-		color[0] = image[0];
-		color[1] = image[1];
-		color[2] = image[2];
+		copy_v3_v3(color, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;
