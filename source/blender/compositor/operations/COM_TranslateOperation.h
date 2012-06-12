@@ -32,6 +32,7 @@ private:
 	SocketReader*inputYOperation;
 	float deltaX;
 	float deltaY;
+	float isDeltaSet;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -42,6 +43,17 @@ public:
 
 	float getDeltaX() {return this->deltaX;}
 	float getDeltaY() {return this->deltaY;}
+	
+	inline void ensureDelta() {
+		if (!isDeltaSet) {
+			float tempDelta[4];
+			this->inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->deltaX = tempDelta[0];
+			this->inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->deltaY = tempDelta[0];
+			this->isDeltaSet = true;
+		}
+	}
 };
 
 #endif

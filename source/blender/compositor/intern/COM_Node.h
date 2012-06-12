@@ -52,6 +52,11 @@ private:
 	  */
 	bNode *editorNode;
 
+	/**
+	 * @brief Is this node part of the active group
+	 */
+	bool inActiveGroup;
+
 public:
 	Node(bNode *editorNode, bool create_sockets=true);
 	
@@ -59,6 +64,20 @@ public:
 	  * @brief get the reference to the SDNA bNode struct
 	  */
 	bNode *getbNode();
+	
+	/**
+	 * @brief Is this node in the active group (the group that is being edited)
+	 * @param isInActiveGroup
+	 */
+	void setIsInActiveGroup(bool isInActiveGroup) {this->inActiveGroup = isInActiveGroup; }
+	
+	/**
+	 * @brief Is this node part of the active group
+	 * the active group is the group that is currently being edited. When no group is edited, 
+	 * the active group will be the main tree (all nodes that are not part of a group will be active)
+	 * @return bool [false:true]
+	 */
+	inline bool isInActiveGroup() {return this->inActiveGroup;}
 	
 	/**
 	  * @brief convert node to operation

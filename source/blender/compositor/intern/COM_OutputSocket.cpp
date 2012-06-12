@@ -47,8 +47,13 @@ void OutputSocket::determineResolution(unsigned int resolution[], unsigned int p
 	NodeBase *node = this->getNode();
 	if (node->isOperation()) {
 		NodeOperation *operation = (NodeOperation*)node;
-		operation->determineResolution(resolution, preferredResolution);
-		operation->setResolution(resolution);
+		if (operation->isResolutionSet()) {
+			resolution[0] = operation->getWidth();
+			resolution[1] = operation->getHeight();
+		} else {
+			operation->determineResolution(resolution, preferredResolution);
+			operation->setResolution(resolution);
+		}
 	}
 }
 

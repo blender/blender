@@ -160,11 +160,22 @@ public:
 	virtual void deinitExecution();
 	void deinitMutex();
 
+	bool isResolutionSet() {
+		return this->width != 0 && height != 0;
+	}
+
 	/**
 	  * @brief set the resolution
 	  * @param resolution the resolution to set
 	  */
-	void setResolution(unsigned int resolution[]) {this->width = resolution[0];this->height = resolution[1];}
+	void setResolution(unsigned int resolution[]) {
+		if (!isResolutionSet()) {
+			this->width = resolution[0];
+			this->height = resolution[1];
+		}
+	}
+	
+
 	void getConnectedInputSockets(vector<InputSocket*> *sockets);
 
 	/**
@@ -221,6 +232,7 @@ public:
 	bool isOpenCL() { return this->openCL; }
 	
 	virtual bool isViewerOperation() {return false;}
+	virtual bool isPreviewOperation() {return false;}
 protected:
 	NodeOperation();
 

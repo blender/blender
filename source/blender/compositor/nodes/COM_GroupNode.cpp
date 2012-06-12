@@ -34,6 +34,7 @@ void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 
 void GroupNode::ungroup(ExecutionSystem &system)
 {
+	bNode * bnode = this->getbNode();
 	vector<InputSocket*> &inputsockets = this->getInputSockets();
 	vector<OutputSocket*> &outputsockets = this->getOutputSockets();
 	unsigned int index;
@@ -45,7 +46,7 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		InputSocket * inputSocket = inputsockets[index];
 		bNodeSocket *editorInput = inputSocket->getbNodeSocket();
 		if (editorInput->groupsock) {
-			SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorInput, editorInput->groupsock);
+			SocketProxyNode * proxy = new SocketProxyNode(bnode, editorInput, editorInput->groupsock);
 			inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}
@@ -55,12 +56,12 @@ void GroupNode::ungroup(ExecutionSystem &system)
 		OutputSocket * outputSocket = outputsockets[index];
 		bNodeSocket *editorOutput = outputSocket->getbNodeSocket();
 		if (editorOutput->groupsock) {
-			SocketProxyNode * proxy = new SocketProxyNode(this->getbNode(), editorOutput->groupsock, editorOutput);
+			SocketProxyNode * proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput);
 			outputSocket->relinkConnections(proxy->getOutputSocket(0));
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}
 	}
 
-	bNodeTree *subtree = (bNodeTree*)this->getbNode()->id;
-	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree);
+	bNodeTree *subtree = (bNodeTree*)bnode->id;
+	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree, bnode);
 }

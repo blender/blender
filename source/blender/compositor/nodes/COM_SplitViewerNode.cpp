@@ -40,7 +40,7 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();
 		splitViewerOperation->setImage(image);
 		splitViewerOperation->setImageUser(imageUser);
-		splitViewerOperation->setActive(this->getbNode()->flag & NODE_DO_OUTPUT);
+		splitViewerOperation->setActive((this->getbNode()->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
 		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);

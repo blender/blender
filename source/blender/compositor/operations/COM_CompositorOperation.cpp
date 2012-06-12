@@ -102,7 +102,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1*this->getWidth() + x1 ) * 4;
+	int offset = (y1*this->getWidth() + x1 ) * COM_NUMBER_OF_CHANNELS;
 	int x;
 	int y;
 	bool breaked = false;
@@ -117,12 +117,12 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 			buffer[offset+1] = color[1];
 			buffer[offset+2] = color[2];
 			buffer[offset+3] = color[3];
-			offset +=4;
+			offset +=COM_NUMBER_OF_CHANNELS;
 			if (tree->test_break && tree->test_break(tree->tbh)) {
 				breaked = true;
 			}
 		}
-		offset += (this->getWidth()-(x2-x1))*4;
+		offset += (this->getWidth()-(x2-x1))*COM_NUMBER_OF_CHANNELS;
 	}
 }
 
@@ -130,6 +130,19 @@ void CompositorOperation::determineResolution(unsigned int resolution[], unsigne
 {
 	int width = this->scene->r.xsch*this->scene->r.size/100;
 	int height = this->scene->r.ysch*this->scene->r.size/100;
+	
+	// check actual render resolution with cropping it may differ with cropped border.rendering
+	// FIX for: [31777] Border Crop gives black (easy)
+	Render *re= RE_GetRender(this->scene->id.name);
+	if (re) {
+		RenderResult *rr= RE_AcquireResultRead(re);
+		if (rr) {
+			width = rr->rectx;
+			height = rr->recty;
+		}
+		RE_ReleaseResult(re);
+	}
+	
 	preferredResolution[0] = width;
 	preferredResolution[1] = height;
 	

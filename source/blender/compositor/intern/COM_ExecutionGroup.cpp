@@ -184,11 +184,8 @@ void ExecutionGroup::deinitExecution()
 void ExecutionGroup::determineResolution(unsigned int resolution[])
 {
 	NodeOperation *operation = this->getOutputNodeOperation();
-	unsigned int preferredResolution[2];
-	preferredResolution[0] = 0;
-	preferredResolution[1] = 0;
-	operation->determineResolution(resolution, preferredResolution);
-	operation->setResolution(resolution);
+	resolution[0] = operation->getWidth();
+	resolution[1] = operation->getHeight();
 	this->setResolution(resolution);
 }
 

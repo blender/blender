@@ -45,7 +45,7 @@ public:
 	unsigned int getOffset() {return this->offset;}
 	bool determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output);
 	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer** memoryBuffers) {return memoryBuffers[offset];}
-	
+	void readResolutionFromWriteBuffer();
 };
 
 #endif
