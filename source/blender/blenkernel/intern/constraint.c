@@ -2159,7 +2159,7 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			printf("do Action Constraint %s - Ob %s Pchan %s\n", con->name, cob->ob->id.name + 2, (cob->pchan) ? cob->pchan->name : NULL);
 		
 		/* Get the appropriate information from the action */
-		if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & BONE_USE_OBJECT_ACTION)) {
+		if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & ACTCON_BONE_USE_OBJECT_ACTION)) {
 			Object workob;
 			
 			/* evaluate using workob */
