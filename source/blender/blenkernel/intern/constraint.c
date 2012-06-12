@@ -822,12 +822,12 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		if (data->flag == CHILDOF_ALL) {
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, data->invmat);
 			
 			/* now multiply the parent matrix by the owner matrix to get the 
-			 * the effect of this constraint (i.e.  owner is 'parented' to parent)
+			 * the effect of this constraint (i.e. owner is 'parented' to parent)
 			 */
 			mult_m4_m4m4(cob->matrix, parmat, cob->matrix);
 		}
@@ -864,7 +864,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 			loc_eulO_size_to_mat4(invmat, loco, eulo, sizo, cob->rotOrder);
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, invmat);
 			
@@ -1620,7 +1620,7 @@ static void rotlike_new_data(void *cdata)
 
 static void rotlike_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bChildOfConstraint *data = con->data;
+	bRotateLikeConstraint *data = con->data;
 	
 	/* target only */
 	func(con, (ID **)&data->tar, FALSE, userdata);
