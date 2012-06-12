@@ -95,8 +95,7 @@ static void info_callback(const char *msg, void *client_data)
 
 
 
-struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
-{
+struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags){
 	struct ImBuf *ibuf = NULL;
 	int use_float = FALSE; /* for precision higher then 8 use float */
 	
@@ -287,13 +286,38 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 //static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp) {
 /* prec can be 8, 12, 16 */
 
+/* use inline because the float passed can be a function call that would end up being called many times */
+#if 0
 #define UPSAMPLE_8_TO_12(_val) ((_val << 4) | (_val & ((1 << 4) - 1)))
 #define UPSAMPLE_8_TO_16(_val) ((_val << 8) + _val)
 
 #define DOWNSAMPLE_FLOAT_TO_8BIT(_val)  (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)))
 #define DOWNSAMPLE_FLOAT_TO_12BIT(_val) (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)))
 #define DOWNSAMPLE_FLOAT_TO_16BIT(_val) (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)))
+#else
 
+BLI_INLINE int UPSAMPLE_8_TO_12(const unsigned char _val)
+{
+	return (_val << 4) | (_val & ((1 << 4) - 1));
+}
+BLI_INLINE int UPSAMPLE_8_TO_16(const unsigned char _val)
+{
+	return (_val << 8) + _val;
+}
+
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_8BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)));
+}
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_12BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)));
+}
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)));
+}
+#endif
 
 /*
  * 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
@@ -461,12 +485,12 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	unsigned char *rect;
 	float *rect_float;
 	
-	int subsampling_dx = parameters->subsampling_dx;
-	int subsampling_dy = parameters->subsampling_dy;
+	unsigned int subsampling_dx = parameters->subsampling_dx;
+	unsigned int subsampling_dy = parameters->subsampling_dy;
 	
-
-	int i, numcomps, w, h, prec;
-	int x, y, y_row;
+	unsigned int i, i_next, numcomps, w, h, prec;
+	unsigned int y;
+	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	OPJ_COLOR_SPACE color_space;
 	opj_image_cmptparm_t cmptparm[4];   /* maximum of 4 components */
 	opj_image_t *image = NULL;
@@ -543,71 +567,161 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	rect = (unsigned char *) ibuf->rect;
 	rect_float = ibuf->rect_float;
 	
+	/* set the destination channels */
+	r = image->comps[0].data;
+	g = image->comps[1].data;
+	b = image->comps[2].data;
+	a = (numcomps == 4) ? image->comps[3].data : NULL;
+
 	if (rect_float && rect && prec == 8) {
 		/* No need to use the floating point buffer, just write the 8 bits from the char buffer */
 		rect_float = NULL;
 	}
 	
+#   define PIXEL_LOOPER_BEGIN(_rect)                                          \
+	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
+		for (i = y * w, i_next = (y + 1) * w;                                 \
+		     i < i_next;                                                      \
+		     i++, _rect += 4)                                                 \
+		{                                                                     \
+
+#   define PIXEL_LOOPER_END \
+	} \
+	} (void)0 \
 	
 	if (rect_float) {
-		float rgb[3];
-		
 		switch (prec) {
 			case 8: /* Convert blenders float color channels to 8, 12 or 16bit ints */
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
 			
 			case 12:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
+
 			case 16:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
@@ -617,46 +731,68 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		/* just use rect*/
 		switch (prec) {
 			case 8:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
-
-						image->comps[0].data[i] = rect[0];
-						image->comps[1].data[i] = rect[1];
-						image->comps[2].data[i] = rect[2];
-						if (numcomps > 3)
-							image->comps[3].data[i] = rect[3];
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = rect[0];
+						g[i] = rect[1];
+						b[i] = rect[2];
+						a[i] = rect[3];
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = rect[0];
+						g[i] = rect[1];
+						b[i] = rect[2];
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
 			
 			case 12: /* Up Sampling, a bit pointless but best write the bit depth requested */
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
-
-						image->comps[0].data[i] = UPSAMPLE_8_TO_12(rect[0]);
-						image->comps[1].data[i] = UPSAMPLE_8_TO_12(rect[1]);
-						image->comps[2].data[i] = UPSAMPLE_8_TO_12(rect[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = UPSAMPLE_8_TO_12(rect[3]);
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = UPSAMPLE_8_TO_12(rect[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect[2]);
+						a[i] = UPSAMPLE_8_TO_12(rect[3]);
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = UPSAMPLE_8_TO_12(rect[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect[2]);
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
-			case 16:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
 
-						image->comps[0].data[i] = UPSAMPLE_8_TO_16(rect[0]);
-						image->comps[1].data[i] = UPSAMPLE_8_TO_16(rect[1]);
-						image->comps[2].data[i] = UPSAMPLE_8_TO_16(rect[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = UPSAMPLE_8_TO_16(rect[3]);
+			case 16:
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = UPSAMPLE_8_TO_16(rect[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect[2]);
+						a[i] = UPSAMPLE_8_TO_16(rect[3]);
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect)
+					{
+						r[i] = UPSAMPLE_8_TO_16(rect[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect[2]);
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
 		}
