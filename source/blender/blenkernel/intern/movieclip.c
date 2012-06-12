@@ -446,7 +446,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->proxy.quality = 90;
 
 	clip->start_frame = 1;
-	clip->frame_offset = 1;
+	clip->frame_offset = 0;
 
 	return clip;
 }
