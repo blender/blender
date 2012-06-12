@@ -1037,6 +1037,8 @@ typedef enum eSpaceClip_Flag {
 /*	SC_SHOW_PYRAMID_LEVELS = (1 << 16), */	/* UNUSED */
 	SC_LOCK_TIMECURSOR     = (1 << 17),
 	SC_SHOW_SECONDS        = (1 << 18),
+	SC_SHOW_GRAPH_SEL_ONLY = (1 << 19),
+	SC_SHOW_GRAPH_HIDDEN   = (1 << 20),
 } eSpaceClip_Flag;
 
 /* SpaceClip->mode */

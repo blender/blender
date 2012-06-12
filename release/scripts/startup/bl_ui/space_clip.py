@@ -68,6 +68,10 @@ class CLIP_HT_header(Header):
                 layout.prop(sc, "view", text="", expand=True)
 
                 row = layout.row(align=True)
+                row.prop(sc, "show_graph_only_selected", text="")
+                row.prop(sc, "show_graph_hidden", text="")
+
+                row = layout.row(align=True)
 
                 if sc.show_filters:
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_DOWN',

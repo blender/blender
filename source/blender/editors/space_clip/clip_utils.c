@@ -121,7 +121,7 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 	}
 }
 
-void clip_graph_tracking_values_iterate(SpaceClip *sc, void *userdata,
+void clip_graph_tracking_values_iterate(SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                         void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
                                         void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
                                         void (*segment_end)(void *userdata))
@@ -131,17 +131,18 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, void *userdata,
 	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
 
-	track = tracksbase->first;
-	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track)) {
-			clip_graph_tracking_values_iterate_track(sc, track, userdata, func, segment_start, segment_end);
-		}
+	for (track = tracksbase->first; track; track = track->next) {
+		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
+			continue;
 
-		track = track->next;
+		if (selected_only && !TRACK_SELECTED(track))
+			continue;
+
+		clip_graph_tracking_values_iterate_track(sc, track, userdata, func, segment_start, segment_end);
 	}
 }
 
-void clip_graph_tracking_iterate(SpaceClip *sc, void *userdata,
+void clip_graph_tracking_iterate(SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
                                  void (*func)(void *userdata, MovieTrackingMarker *marker))
 {
 	MovieClip *clip = ED_space_clip(sc);
@@ -149,23 +150,24 @@ void clip_graph_tracking_iterate(SpaceClip *sc, void *userdata,
 	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
 	MovieTrackingTrack *track;
 
-	track = tracksbase->first;
-	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track)) {
-			int i;
+	for (track = tracksbase->first; track; track = track->next) {
+		int i;
 
-			for (i = 0; i < track->markersnr; i++) {
-				MovieTrackingMarker *marker = &track->markers[i];
+		if (!include_hidden && (track->flag & TRACK_HIDDEN) != 0)
+			continue;
 
-				if (marker->flag & MARKER_DISABLED)
-					continue;
+		if (selected_only && !TRACK_SELECTED(track))
+			continue;
 
-				if (func)
-					func(userdata, marker);
-			}
+		for (i = 0; i < track->markersnr; i++) {
+			MovieTrackingMarker *marker = &track->markers[i];
+
+			if (marker->flag & MARKER_DISABLED)
+				continue;
+
+			if (func)
+				func(userdata, marker);
 		}
-
-		track = track->next;
 	}
 }
 
