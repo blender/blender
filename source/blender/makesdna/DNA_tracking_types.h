@@ -238,13 +238,16 @@ typedef struct MovieTrackingDopesheetChannel {
 } MovieTrackingDopesheetChannel;
 
 typedef struct MovieTrackingDopesheet {
-	int ok, pad;                /* flag if dopesheet information is still relevant */
+	int ok;                     /* flag if dopesheet information is still relevant */
 
+	short sort_method;          /* method to be used to sort tracks */
+	short flag;                 /* dopesheet building flag such as inverted order of sort */
+
+	/* runtime stuff */
 	ListBase channels;
 	int tot_channel;
 
-	short sort_method;          /* method to be used to sort tracks */
-	short sort_inverse;         /* order of tracks is inverted */
+	int pad;
 } MovieTrackingDopesheet;
 
 typedef struct MovieTracking {
@@ -346,5 +349,14 @@ enum {
 #define TRACKING_CLEAN_SELECT           0
 #define TRACKING_CLEAN_DELETE_TRACK     1
 #define TRACKING_CLEAN_DELETE_SEGMENT   2
+
+/* MovieTrackingDopesheet->sort_method */
+#define TRACKING_DOPE_SORT_NAME          0
+#define TRACKING_DOPE_SORT_LONGEST       1
+#define TRACKING_DOPE_SORT_TOTAL         2
+#define TRACKING_DOPE_SORT_AVERAGE_ERROR 3
+
+/* MovieTrackingDopesheet->flag */
+#define TRACKING_DOPE_SORT_INVERSE    (1 << 0)
 
 #endif

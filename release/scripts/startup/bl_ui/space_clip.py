@@ -82,11 +82,12 @@ class CLIP_HT_header(Header):
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
                              text="Filters")
             elif sc.view == 'DOPESHEET':
+                dopesheet = tracking.dopesheet
                 layout.prop(sc, "view", text="", expand=True)
 
                 layout.label(text="Sort by:")
-                layout.prop(sc, "dopesheet_sort_method", text="")
-                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+                layout.prop(dopesheet, "sort_method", text="")
+                layout.prop(dopesheet, "use_invert_sort", text="Invert")
         else:
             layout.prop(sc, "view", text="", expand=True)
 

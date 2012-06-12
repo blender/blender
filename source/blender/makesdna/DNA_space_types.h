@@ -1006,11 +1006,7 @@ typedef struct SpaceClip {
 
 	void *draw_context;
 
-	/* dopesheet */
-	short dope_sort;        /* sort order in dopesheet view */
-	short dope_flag;        /* dopsheet view flags */
-
-	int around;             /* pivot point for transforms */
+	int around, pad4;             /* pivot point for transforms */
 
 	/* **** mask editing **** */
 	struct Mask *mask;
@@ -1057,19 +1053,6 @@ typedef enum eSpaceClip_View {
 	SC_VIEW_GRAPH,
 	SC_VIEW_DOPESHEET,
 } eSpaceClip_View;
-
-/* SpaceClip->dope_sort */
-typedef enum eSpaceClip_Dopesheet_Sort {
-	SC_DOPE_SORT_NAME = 0,
-	SC_DOPE_SORT_LONGEST,
-	SC_DOPE_SORT_TOTAL,
-	SC_DOPE_SORT_AVERAGE_ERROR,
-} eSpaceClip_Dopesheet_Sort;
-
-/* SpaceClip->dope_flag */
-typedef enum eSpaceClip_Dopesheet_Flag {
-	SC_DOPE_SORT_INVERSE    = (1 << 0),
-} eSpaceClip_Dopesheet_Flag;
 
 /* SpaceClip->gpencil_src */
 typedef enum eSpaceClip_GPencil_Source {

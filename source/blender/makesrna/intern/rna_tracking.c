@@ -382,6 +382,14 @@ static void rna_tracking_markerSearch_update(Main *UNUSED(bmain), Scene *UNUSED(
 	BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_DIM);
 }
 
+static void rna_trackingDopesheet_tagUpdate(Main *UNUSED(bmain), Scene *scene, PointerRNA *ptr)
+{
+	MovieClip *clip = (MovieClip *)ptr->id.data;
+	MovieTrackingDopesheet *dopesheet = &clip->tracking.dopesheet;
+
+	dopesheet->ok = 0;
+}
+
 /* API */
 
 static void add_tracks_to_base(MovieClip *clip, MovieTracking *tracking, ListBase *tracksbase, int frame, int number)
@@ -1396,6 +1404,36 @@ static void rna_def_trackingObjects(BlenderRNA *brna, PropertyRNA *cprop)
 	RNA_def_property_ui_text(prop, "Active Object", "Active object in this tracking data object");
 }
 
+static void rna_def_trackingDopesheet(BlenderRNA *brna)
+{
+	StructRNA *srna;
+	PropertyRNA *prop;
+
+	static EnumPropertyItem sort_items[] = {
+		{TRACKING_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
+		{TRACKING_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
+		{TRACKING_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
+		{TRACKING_DOPE_SORT_AVERAGE_ERROR, "AVERAGE_ERROR", 0, "Average Error", "Sort channels by average reprojection error of tracks after solve"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	srna = RNA_def_struct(brna, "MovieTrackingDopesheet", NULL);
+	RNA_def_struct_ui_text(srna, "Movie Tracking Dopesheet", "Match-moving dopesheet data");
+
+	/* dopesheet sort */
+	prop = RNA_def_property(srna, "sort_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "sort_method");
+	RNA_def_property_enum_items(prop, sort_items);
+	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Method to be used to sort channels in dopesheet view");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_trackingDopesheet_tagUpdate");
+
+	/* invert_dopesheet_sort */
+	prop = RNA_def_property(srna, "use_invert_sort", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", TRACKING_DOPE_SORT_INVERSE);
+	RNA_def_property_ui_text(prop, "Invert Dopesheet Sort", "Invert sort order of dopesheet channels");
+	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_trackingDopesheet_tagUpdate");
+}
+
 static void rna_def_tracking(BlenderRNA *brna)
 {
 	StructRNA *srna;
@@ -1409,6 +1447,7 @@ static void rna_def_tracking(BlenderRNA *brna)
 	rna_def_trackingStabilization(brna);
 	rna_def_trackingReconstruction(brna);
 	rna_def_trackingObject(brna);
+	rna_def_trackingDopesheet(brna);
 
 	srna = RNA_def_struct(brna, "MovieTracking", NULL);
 	RNA_def_struct_path_func(srna, "rna_tracking_path");
@@ -1456,6 +1495,10 @@ static void rna_def_tracking(BlenderRNA *brna)
 	                           "rna_tracking_active_object_index_range");
 	RNA_def_property_ui_text(prop, "Active Object Index", "Index of active object");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
+
+	/* dopesheet */
+	prop = RNA_def_property(srna, "dopesheet", PROP_POINTER, PROP_NONE);
+	RNA_def_property_struct_type(prop, "MovieTrackingDopesheet");
 }
 
 void RNA_def_tracking(BlenderRNA *brna)
