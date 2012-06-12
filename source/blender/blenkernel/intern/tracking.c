@@ -3587,7 +3587,9 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 	MovieTrackingObject *object = BKE_tracking_active_object(tracking);
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingTrack *track;
+	MovieTrackingReconstruction *reconstruction;
 	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+
 	short sort_method = dopesheet->sort_method;
 	short inverse = dopesheet->flag & TRACKING_DOPE_SORT_INVERSE;
 	short sel_only = dopesheet->flag & TRACKING_DOPE_SELECTED_ONLY;
@@ -3597,6 +3599,8 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 		return;
 
 	tracking_dopesheet_free(dopesheet);
+
+	reconstruction = BKE_tracking_object_reconstruction(tracking, object);
 
 	for (track = tracksbase->first; track; track = track->next) {
 		MovieTrackingDopesheetChannel *channel;
@@ -3609,6 +3613,13 @@ void BKE_tracking_dopesheet_update(MovieTracking *tracking)
 
 		channel = MEM_callocN(sizeof(MovieTrackingDopesheetChannel), "tracking dopesheet channel");
 		channel->track = track;
+
+		if (reconstruction->flag & TRACKING_RECONSTRUCTED) {
+			BLI_snprintf(channel->name, sizeof(channel->name), "%s (%.4f)", track->name, track->error);
+		}
+		else {
+			BLI_strncpy(channel->name, track->name, sizeof(channel->name));
+		}
 
 		channels_segments_calc(channel);
 
