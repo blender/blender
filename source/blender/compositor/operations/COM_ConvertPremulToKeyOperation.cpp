@@ -44,14 +44,10 @@ void ConvertPremulToKeyOperation::executePixel(float *outputValue, float x, floa
 	alpha = inputValue[3];
 
 	if (fabsf(alpha) < 1e-5f) {
-		outputValue[0] = 0.f;
-		outputValue[1] = 0.f;
-		outputValue[2] = 0.f;
+		zero_v3(outputValue);
 	}
 	else {
-		outputValue[0] = inputValue[0] / alpha;
-		outputValue[1] = inputValue[1] / alpha;
-		outputValue[2] = inputValue[2] / alpha;
+		mul_v3_v3fl(outputValue, inputValue, 1.0f / alpha);
 	}
 
 	/* never touches the alpha */

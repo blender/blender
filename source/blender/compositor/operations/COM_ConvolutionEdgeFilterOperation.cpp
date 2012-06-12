@@ -26,12 +26,6 @@
 ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFilterOperation()
 {
 }
-inline void addFilter(float *result, float*input, float value)
-{
-	result[0] += input[0] * value;
-	result[1] += input[1] * value;
-	result[2] += input[2] * value;
-}
 
 void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
@@ -64,48 +58,48 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, Mem
 	res2[3] = 0.0f;
 	
 	this->inputOperation->read(in1, x1, y1, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[0]);
-	addFilter(res2, in1, this->filter[0]);
+	madd_v3_v3fl(res1, in1, this->filter[0]);
+	madd_v3_v3fl(res2, in1, this->filter[0]);
 	
 	this->inputOperation->read(in1, x2, y1, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[1]);
-	addFilter(res2, in1, this->filter[3]);
+	madd_v3_v3fl(res1, in1, this->filter[1]);
+	madd_v3_v3fl(res2, in1, this->filter[3]);
 	
 	this->inputOperation->read(in1, x3, y1, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[2]);
-	addFilter(res2, in1, this->filter[6]);
+	madd_v3_v3fl(res1, in1, this->filter[2]);
+	madd_v3_v3fl(res2, in1, this->filter[6]);
 	
 	this->inputOperation->read(in1, x1, y2, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[3]);
-	addFilter(res2, in1, this->filter[1]);
+	madd_v3_v3fl(res1, in1, this->filter[3]);
+	madd_v3_v3fl(res2, in1, this->filter[1]);
 	
 	this->inputOperation->read(in2, x2, y2, inputBuffers, NULL);
-	addFilter(res1, in2, this->filter[4]);
-	addFilter(res2, in2, this->filter[4]);
+	madd_v3_v3fl(res1, in2, this->filter[4]);
+	madd_v3_v3fl(res2, in2, this->filter[4]);
 	
 	this->inputOperation->read(in1, x3, y2, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[5]);
-	addFilter(res2, in1, this->filter[7]);
+	madd_v3_v3fl(res1, in1, this->filter[5]);
+	madd_v3_v3fl(res2, in1, this->filter[7]);
 	
 	this->inputOperation->read(in1, x1, y3, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[6]);
-	addFilter(res2, in1, this->filter[2]);
+	madd_v3_v3fl(res1, in1, this->filter[6]);
+	madd_v3_v3fl(res2, in1, this->filter[2]);
 	
 	this->inputOperation->read(in1, x2, y3, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[7]);
-	addFilter(res2, in1, this->filter[5]);
+	madd_v3_v3fl(res1, in1, this->filter[7]);
+	madd_v3_v3fl(res2, in1, this->filter[5]);
 	
 	this->inputOperation->read(in1, x3, y3, inputBuffers, NULL);
-	addFilter(res1, in1, this->filter[8]);
-	addFilter(res2, in1, this->filter[8]);
+	madd_v3_v3fl(res1, in1, this->filter[8]);
+	madd_v3_v3fl(res2, in1, this->filter[8]);
 	
-	color[0] = sqrt(res1[0]*res1[0]+res2[0]*res2[0]);
-	color[1] = sqrt(res1[1]*res1[1]+res2[1]*res2[1]);
-	color[2] = sqrt(res1[2]*res1[2]+res2[2]*res2[2]);
+	color[0] = sqrt(res1[0] * res1[0] + res2[0] * res2[0]);
+	color[1] = sqrt(res1[1] * res1[1] + res2[1] * res2[1]);
+	color[2] = sqrt(res1[2] * res1[2] + res2[2] * res2[2]);
 	
-	color[0] = color[0]*value[0] + in2[0] * mval;
-	color[1] = color[1]*value[0] + in2[1] * mval;
-	color[2] = color[2]*value[0] + in2[2] * mval;
+	color[0] = color[0] * value[0] + in2[0] * mval;
+	color[1] = color[1] * value[0] + in2[1] * mval;
+	color[2] = color[2] * value[0] + in2[2] * mval;
 	
 	color[3] = in2[3];
 }

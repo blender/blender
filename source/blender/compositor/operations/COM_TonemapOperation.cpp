@@ -47,9 +47,7 @@ void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *in
 
 	float output[4];
 	this->imageReader->read(output, x, y, inputBuffers, NULL);
-	output[0] *= avg->al;
-	output[1] *= avg->al;
-	output[2] *= avg->al;
+	mul_v3_fl(output, avg->al);
 	float dr = output[0] + this->data->offset;
 	float dg = output[1] + this->data->offset;
 	float db = output[2] + this->data->offset;
@@ -63,10 +61,7 @@ void TonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *in
 		output[2] = powf(MAX2(output[2], 0.0f), igm);
 	}
 
-	color[0] = output[0];
-	color[1] = output[1];
-	color[2] = output[2];
-	color[3] = output[3];
+	copy_v4_v4(color, output);
 }
 void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
@@ -94,10 +89,7 @@ void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, Mem
 	I_a = I_l + ia * (I_g - I_l);
 	output[2] /= (output[2] + powf(f * I_a, m));
 
-	color[0] = output[0];
-	color[1] = output[1];
-	color[2] = output[2];
-	color[3] = output[3];
+	copy_v4_v4(color, output);
 }
 
 void TonemapOperation::deinitExecution()
@@ -143,18 +135,14 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 		while (p--) {
 			float L = 0.212671f * bc[0] + 0.71516f * bc[1] + 0.072169f * bc[2];
 			Lav += L;
-			cav[0] += bc[0];
-			cav[1] += bc[1];
-			cav[2] += bc[2];
+			add_v3_v3(cav, bc);
 			lsum += logf(MAX2(L, 0.0f) + 1e-5f);
 			maxl = (L > maxl) ? L : maxl;
 			minl = (L < minl) ? L : minl;
 			bc+=4;
 		}
 		data->lav = Lav * sc;
-		data->cav[0] = cav[0]*sc;
-		data->cav[1] = cav[1]*sc;
-		data->cav[2] = cav[2]*sc;
+		mul_v3_v3fl(data->cav, cav, sc);
 		maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5); avl = lsum * sc;
 		data->auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
 		float al = exp((double)avl);

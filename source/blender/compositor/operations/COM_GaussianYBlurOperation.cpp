@@ -95,18 +95,11 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	for (int ny = miny ; ny < maxy ; ny +=step) {
 		index = (ny-y)+this->rad;
 		int bufferindex = ((minx - bufferstartx)*4)+((ny-bufferstarty)*4*bufferwidth);
-		float multiplyer = gausstab[index];
-		tempColor[0] += multiplyer * buffer[bufferindex];
-		tempColor[1] += multiplyer * buffer[bufferindex+1];
-		tempColor[2] += multiplyer * buffer[bufferindex+2];
-		tempColor[3] += multiplyer * buffer[bufferindex+3];
+		const float multiplyer = gausstab[index];
+		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
 		overallmultiplyer += multiplyer;
 	}
-	float divider = 1.0f / overallmultiplyer;
-	color[0] = tempColor[0] * divider;
-	color[1] = tempColor[1] * divider;
-	color[2] = tempColor[2] * divider;
-	color[3] = tempColor[3] * divider;
+	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
 }
 
 void GaussianYBlurOperation::deinitExecution()

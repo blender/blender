@@ -61,10 +61,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float tempSize[4];
-	float overallmultiplyerr = 0;
-	float overallmultiplyerg = 0;
-	float overallmultiplyerb = 0;
-	float overallmultiplyera = 0;
+	float overallmultiplyer[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	int miny = y - maxBlur;
 	int maxy = y + maxBlur;
@@ -76,10 +73,8 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 		tempColor[1] += readColor[1];
 		tempColor[2] += readColor[2];
 		tempColor[3] += readColor[3];
-		overallmultiplyerr += 1;
-		overallmultiplyerg += 1;
-		overallmultiplyerb += 1;
-		overallmultiplyera += 1;
+		add_v4_v4(tempColor, readColor);
+		add_v3_fl(overallmultiplyer, 1.0f);
 		
 		for (int ny = miny ; ny < maxy ; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx ; nx < maxx ; nx += QualityStepHelper::getStep()) {
@@ -97,22 +92,17 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 						float v = 256 + dy*256/size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-						tempColor[0] += bokeh[1]*readColor[0];
-						tempColor[1] += bokeh[2]*readColor[1];
-						tempColor[2] += bokeh[2]*readColor[2];
-						tempColor[3] += bokeh[3]*readColor[3];
-						overallmultiplyerr += bokeh[0];
-						overallmultiplyerg += bokeh[1];
-						overallmultiplyerb += bokeh[2];
-						overallmultiplyera += bokeh[3];
+						madd_v4_v4v4(tempColor, bokeh, readColor);
+						add_v4_v4(overallmultiplyer, bokeh);
 					}
 				}
 			}
 		}
-		color[0] = tempColor[0] / overallmultiplyerr;
-		color[1] = tempColor[1] / overallmultiplyerg;
-		color[2] = tempColor[2] / overallmultiplyerb;
-		color[3] = tempColor[3] / overallmultiplyera;
+
+		color[0] = tempColor[0] * (1.0f / overallmultiplyer[0]);
+		color[1] = tempColor[1] * (1.0f / overallmultiplyer[1]);
+		color[2] = tempColor[2] * (1.0f / overallmultiplyer[2]);
+		color[3] = tempColor[3] * (1.0f / overallmultiplyer[3]);
 	}
 
 }

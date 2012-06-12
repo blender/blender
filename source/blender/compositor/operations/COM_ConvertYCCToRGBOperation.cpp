@@ -57,9 +57,8 @@ void ConvertYCCToRGBOperation::executePixel(float *outputValue, float x, float y
 	inputOperation->read(inputColor, x, y, sampler, inputBuffers);
 
 	/* need to un-normalize the data */
-	inputColor[0] *= 255.f; /* Y */
-	inputColor[1] *= 255.f; /* Cb*/
-	inputColor[2] *= 255.f; /* Cr*/
+	/* R,G,B --> Y,Cb,Cr */
+	mul_v3_fl(inputColor, 255.0f);
 
 	ycc_to_rgb(inputColor[0], inputColor[1], inputColor[2], &outputValue[0], &outputValue[1], &outputValue[2], this->mode);
 	outputValue[3] = inputColor[3];

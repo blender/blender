@@ -55,9 +55,7 @@ void InvertOperation::executePixel(float *out, float x, float y, PixelSampler sa
 		out[2] = (1.0f - inputColor[2])*value + inputColor[2]*invertedValue;
 	}
 	else {
-		out[0] = inputColor[0];
-		out[1] = inputColor[1];
-		out[2] = inputColor[2];
+		copy_v3_v3(out, inputColor);
 	}
 	
 	if (alpha)

@@ -60,9 +60,8 @@ void ConvertRGBToYCCOperation::executePixel(float *outputValue, float x, float y
 	rgb_to_ycc(inputColor[0], inputColor[1], inputColor[2], &color[0], &color[1], &color[2], this->mode);
 
 	/* divided by 255 to normalize for viewing in */
-	outputValue[0] = color[0]/255.f; /* Y */
-	outputValue[1] = color[1]/255.f; /* Cb*/
-	outputValue[2] = color[2]/255.f; /* Cr*/
+	/* R,G,B --> Y,Cb,Cr */
+	mul_v3_v3fl(outputValue, color, 1.0f / 255.0f);
 	outputValue[3] = inputColor[3];
 }
 

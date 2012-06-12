@@ -85,10 +85,7 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 
 		this->inputProgram->read(col, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, COM_PS_NEAREST, inputBuffers);
 
-		col2[0] += col[0];
-		col2[1] += col[1];
-		col2[2] += col[2];
-		col2[3] += col[3];
+		add_v4_v4(col2, col);
 
 		/* double transformations */
 		ltx += tx;
@@ -96,10 +93,8 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 		lrot += rot;
 		lsc += sc;
 	}
-	color[0] = col2[0]/iterations;
-	color[1] = col2[1]/iterations;
-	color[2] = col2[2]/iterations;
-	color[3] = col2[3]/iterations;
+
+	mul_v4_v4fl(color, col2, 1.0f / iterations);
 }
 
 void DirectionalBlurOperation::deinitExecution()
