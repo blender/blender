@@ -233,11 +233,26 @@ static void draw_spline_points(MaskLayer *masklay, MaskSpline *spline)
 
 /* #define USE_XOR */
 
+static void mask_color_active_tint(unsigned char r_rgb[4], const unsigned char rgb[4], const short is_active)
+{
+	if (!is_active) {
+		r_rgb[0] = (unsigned char)((((int)(rgb[0])) + 128) / 2);
+		r_rgb[1] = (unsigned char)((((int)(rgb[1])) + 128) / 2);
+		r_rgb[2] = (unsigned char)((((int)(rgb[2])) + 128) / 2);
+		r_rgb[3] = rgb[3];
+	}
+	else {
+		*(unsigned int *)r_rgb = *(const unsigned int *)rgb;
+	}
+}
+
 static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot_point,
-                                 const short is_feather, const short is_smooth,
+                                 const short is_feather, const short is_smooth, const short is_active,
                                  const unsigned char rgb_spline[4], const char draw_type)
 {
 	const int draw_method = (spline->flag & MASK_SPLINE_CYCLIC) ? GL_LINE_LOOP : GL_LINE_STRIP;
+	const unsigned char rgb_black[4] = {0x00, 0x00, 0x00, 0xff};
+//	const unsigned char rgb_white[4] = {0xff, 0xff, 0xff, 0xff};
 	unsigned char rgb_tmp[4];
 
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -247,12 +262,15 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 
 		case MASK_DT_OUTLINE:
 			glLineWidth(3);
-			cpack(0x0);
+
+			mask_color_active_tint(rgb_tmp, rgb_black, is_active);
+			glColor4ubv(rgb_tmp);
 
 			glDrawArrays(draw_method, 0, tot_point);
 
 			glLineWidth(1);
-			glColor4ubv(rgb_spline);
+			mask_color_active_tint(rgb_tmp, rgb_spline, is_active);
+			glColor4ubv(rgb_tmp);
 			glDrawArrays(draw_method, 0, tot_point);
 
 			break;
@@ -265,7 +283,8 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 			glEnable(GL_COLOR_LOGIC_OP);
 			glLogicOp(GL_OR);
 #endif
-			glColor4ubv(rgb_spline);
+			mask_color_active_tint(rgb_tmp, rgb_spline, is_active);
+			glColor4ubv(rgb_tmp);
 			glLineStipple(3, 0xaaaa);
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(2, GL_FLOAT, 0, points);
@@ -274,7 +293,8 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 #ifdef USE_XOR
 			glDisable(GL_COLOR_LOGIC_OP);
 #endif
-			glColor4ub(0, 0, 0, 255);
+			mask_color_active_tint(rgb_tmp, rgb_black, is_active);
+			glColor4ubv(rgb_tmp);
 			glLineStipple(3, 0x5555);
 			glDrawArrays(draw_method, 0, tot_point);
 
@@ -301,7 +321,9 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 			}
 
+			mask_color_active_tint(rgb_tmp, rgb_tmp, is_active);
 			glColor4ubv(rgb_tmp);
+
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(2, GL_FLOAT, 0, points);
 			glDrawArrays(draw_method, 0, tot_point);
@@ -321,6 +343,7 @@ static void mask_draw_curve_type(MaskSpline *spline, float (*points)[2], int tot
 
 static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
                               const char draw_flag, const char draw_type,
+                              const short is_active,
                               int width, int height)
 {
 	unsigned char rgb_tmp[4];
@@ -350,14 +373,14 @@ static void draw_spline_curve(MaskLayer *masklay, MaskSpline *spline,
 	/* draw feather */
 	mask_spline_feather_color_get(masklay, spline, is_spline_sel, rgb_tmp);
 	mask_draw_curve_type(spline, feather_points, tot_feather_point,
-	                     TRUE, is_smooth,
+	                     TRUE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 	MEM_freeN(feather_points);
 
 	/* draw main curve */
 	mask_spline_color_get(masklay, spline, is_spline_sel, rgb_tmp);
 	mask_draw_curve_type(spline, diff_points, tot_diff_point,
-	                     FALSE, is_smooth,
+	                     FALSE, is_smooth, is_active,
 	                     rgb_tmp, draw_type);
 	MEM_freeN(diff_points);
 
@@ -373,9 +396,11 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
                           int width, int height)
 {
 	MaskLayer *masklay;
+	int i;
 
-	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+	for (masklay = mask->masklayers.first, i = 0; masklay; masklay = masklay->next, i++) {
 		MaskSpline *spline;
+		const short is_active = (i == mask->masklay_act);
 
 		if (masklay->restrictflag & MASK_RESTRICT_VIEW) {
 			continue;
@@ -384,7 +409,7 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 		for (spline = masklay->splines.first; spline; spline = spline->next) {
 
 			/* draw curve itself first... */
-			draw_spline_curve(masklay, spline, draw_flag, draw_type, width, height);
+			draw_spline_curve(masklay, spline, draw_flag, draw_type, is_active, width, height);
 
 //			draw_spline_parents(masklay, spline);
 
@@ -398,7 +423,7 @@ static void draw_masklays(Mask *mask, const char draw_flag, const char draw_type
 				void *back = spline->points_deform;
 
 				spline->points_deform = NULL;
-				draw_spline_curve(masklay, spline, draw_flag, draw_type, width, height);
+				draw_spline_curve(masklay, spline, draw_flag, draw_type, is_active, width, height);
 //				draw_spline_parents(masklay, spline);
 				draw_spline_points(masklay, spline);
 				spline->points_deform = back;
