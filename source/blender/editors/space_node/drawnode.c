@@ -2421,6 +2421,8 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
+    uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
+
 }
 
 /* only once called */

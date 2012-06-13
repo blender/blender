@@ -34,7 +34,7 @@
 /* from BLI_utildefines.h */
 #define MIN2(x, y)               ( (x) < (y) ? (x) : (y) )
 #define MAX2(x, y)               ( (x) > (y) ? (x) : (y) )
-
+#define ABS(a)          ( (a) < 0 ? (-(a)) : (a) )
 
 struct e_status {
 	int x;
@@ -67,8 +67,7 @@ struct r_fill_context {
  * just the poly. Since the DEM code could end up being coupled with this, we'll keep it separate
  * for now.
  */
-static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge)
-{
+static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, struct e_status *open_edge) {
 	int i;
 	int xbeg;
 	int ybeg;
@@ -94,8 +93,7 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			/* we're not at the last vert, so end of the edge is the previous vertex */
 			xend = v[i - 1].x;
 			yend = v[i - 1].y;
-		}
-		else {
+		} else {
 			/* we're at the first vertex, so the "end" of this edge is the last vertex */
 			xend = v[num_verts - 1].x;
 			yend = v[num_verts - 1].y;
@@ -124,8 +122,7 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			if (dx > 0) {
 				e_new->xdir = 1;
 				xdist = dx;
-			}
-			else {
+			} else {
 				e_new->xdir = -1;
 				xdist = -dx;
 			}
@@ -138,15 +135,13 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
 			/* calculate deltas for incremental drawing */
 			if (dx >= 0) {
 				e_new->drift = 0;
-			}
-			else {
+			} else {
 				e_new->drift = -dy + 1;
 			}
 			if (dy >= xdist) {
 				e_new->drift_inc = xdist;
 				e_new->xshift = 0;
-			}
-			else {
+			} else {
 				e_new->drift_inc = xdist % dy;
 				e_new->xshift = (xdist / dy) * e_new->xdir;
 			}
@@ -170,8 +165,7 @@ static void preprocess_all_edges(struct r_fill_context *ctx, struct poly_vert *v
  * for speed, but waiting on final design choices for curve-data before eliminating data the DEM code will need
  * if it ends up being coupled with this function.
  */
-static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts)
-{
+static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, int num_verts, float intensity) {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
 	int yp;                     /* y-pixel's position in frame buffer */
@@ -260,8 +254,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 					edgec = &ctx->all_edges->e_next;     /* Set our list to the next edge's location in memory. */
 					ctx->all_edges = e_temp;             /* Skip the NULL or bad X edge, set pointer to next edge. */
 					break;                               /* Stop looping edges (since we ran out or hit empty X span. */
-				}
-				else {
+				} else {
 					edgec = &e_curr->e_next;             /* Set the pointer to the edge list the "next" edge. */
 				}
 			}
@@ -307,7 +300,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 
 			if ((y_curr >= 0) && (y_curr < ctx->rb.sizey)) {
 				/* draw the pixels. */
-				for (; cpxl <= mpxl; *cpxl++ = 1.0f);
+				for(; cpxl <= mpxl; *cpxl++ += intensity);
 			}
 		}
 
@@ -323,8 +316,7 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 		for (edgec = &ctx->possible_edges; (e_curr = *edgec); ) {
 			if (!(--(e_curr->num))) {
 				*edgec = e_curr->e_next;
-			}
-			else {
+			} else {
 				e_curr->x += e_curr->xshift;
 				if ((e_curr->drift += e_curr->drift_inc) > 0) {
 					e_curr->x += e_curr->xdir;
@@ -383,12 +375,17 @@ static int rast_scan_fill(struct r_fill_context *ctx, struct poly_vert *verts, i
 }
 
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
-                   float *buf, int buf_x, int buf_y)
-{
+				   float *buf, int buf_x, int buf_y, int do_mask_AA) {
+	int subdiv_AA = (do_mask_AA != 0)? 8:0;
 	int i;                                   /* i: Loop counter. */
+	int sAx;
+	int sAy;
 	struct poly_vert *ply;                   /* ply: Pointer to a list of integer buffer-space vertex coordinates. */
 	struct r_fill_context ctx = {0};
-
+	const float buf_x_f = (float)(buf_x);
+	const float buf_y_f = (float)(buf_y);
+	float div_offset=(1.0f / (float)(subdiv_AA));
+	float div_offset_static = 0.5f * (float)(subdiv_AA) * div_offset;
 	/*
 	 * Allocate enough memory for our poly_vert list. It'll be the size of the poly_vert
 	 * data structure multiplied by the number of base_verts.
@@ -400,6 +397,9 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
 		return(0);
 	}
 
+	ctx.rb.buf = buf;                            /* Set the output buffer pointer. */
+	ctx.rb.sizex = buf_x;                        /* Set the output buffer size in X. (width) */
+	ctx.rb.sizey = buf_y;                        /* Set the output buffer size in Y. (height) */
 	/*
 	 * Loop over all verts passed in to be rasterized. Each vertex's X and Y coordinates are
 	 * then converted from normalized screen space (0.0 <= POS <= 1.0) to integer coordinates
@@ -408,16 +408,25 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
 	 * It's worth noting that this function ONLY outputs fully white pixels in a mask. Every pixel
 	 * drawn will be 1.0f in value, there is no anti-aliasing.
 	 */
+
+	if(!subdiv_AA) {
 	for (i = 0; i < num_base_verts; i++) {                          /* Loop over all base_verts. */
-		ply[i].x = (base_verts[i][0] * buf_x) + 0.5f;       /* Range expand normalized X to integer buffer-space X. */
-		ply[i].y = (base_verts[i][1] * buf_y) + 0.5f; /* Range expand normalized Y to integer buffer-space Y. */
+			ply[i].x = (int)((base_verts[i][0] * buf_x_f) + 0.5f);       /* Range expand normalized X to integer buffer-space X. */
+			ply[i].y = (int)((base_verts[i][1] * buf_y_f) + 0.5f); /* Range expand normalized Y to integer buffer-space Y. */
 	}
 
-	ctx.rb.buf = buf;                            /* Set the output buffer pointer. */
-	ctx.rb.sizex = buf_x;                        /* Set the output buffer size in X. (width) */
-	ctx.rb.sizey = buf_y;                        /* Set the output buffer size in Y. (height) */
-
-	i = rast_scan_fill(&ctx, ply, num_base_verts);  /* Call our rasterizer, passing in the integer coords for each vert. */
+		i = rast_scan_fill(&ctx, ply, num_base_verts,1.0f);  /* Call our rasterizer, passing in the integer coords for each vert. */
+	} else {
+		for(sAx=0; sAx < subdiv_AA; sAx++) {
+			for(sAy=0; sAy < subdiv_AA; sAy++) {
+				for(i=0; i < num_base_verts; i++) {
+					ply[i].x = (int)((base_verts[i][0]*buf_x_f)+0.5f - div_offset_static + (div_offset*(float)(sAx)));
+					ply[i].y = (int)((base_verts[i][1]*buf_y_f)+0.5f - div_offset_static + (div_offset*(float)(sAy)));
+				}
+				i = rast_scan_fill(&ctx, ply, num_base_verts,(1.0f / (float)(subdiv_AA*subdiv_AA)));
+			}
+		}
+	}
 	free(ply);                                      /* Free the memory allocated for the integer coordinate table. */
 	return(i);                                      /* Return the value returned by the rasterizer. */
 }
@@ -429,8 +438,7 @@ int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
  */
 static int rast_scan_feather(struct r_fill_context *ctx,
                              float (*base_verts_f)[2], int num_base_verts,
-                             struct poly_vert *feather_verts, float (*feather_verts_f)[2], int num_feather_verts)
-{
+							 struct poly_vert *feather_verts, float(*feather_verts_f)[2], int num_feather_verts) {
 	int x_curr;                 /* current pixel position in X */
 	int y_curr;                 /* current scan line being drawn */
 	int yp;                     /* y-pixel's position in frame buffer */
@@ -536,8 +544,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 					edgec = &ctx->all_edges->e_next;     /* Set our list to the next edge's location in memory. */
 					ctx->all_edges = e_temp;             /* Skip the NULL or bad X edge, set pointer to next edge. */
 					break;                               /* Stop looping edges (since we ran out or hit empty X span. */
-				}
-				else {
+				} else {
 					edgec = &e_curr->e_next;             /* Set the pointer to the edge list the "next" edge. */
 				}
 			}
@@ -647,8 +654,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 		for (edgec = &ctx->possible_edges; (e_curr = *edgec); ) {
 			if (!(--(e_curr->num))) {
 				*edgec = e_curr->e_next;
-			}
-			else {
+			} else {
 				e_curr->x += e_curr->xshift;
 				if ((e_curr->drift += e_curr->drift_inc) > 0) {
 					e_curr->x += e_curr->xdir;
@@ -708,8 +714,7 @@ static int rast_scan_feather(struct r_fill_context *ctx,
 }
 
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*feather_verts)[2], int num_feather_verts,
-                           float *buf, int buf_x, int buf_y)
-{
+						   float *buf, int buf_x, int buf_y) {
 	int i;                            /* i: Loop counter. */
 	struct poly_vert *fe;             /* fe: Pointer to a list of integer buffer-space feather vertex coords. */
 	struct r_fill_context ctx = {0};
@@ -751,3 +756,569 @@ int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts, float (*f
 	free(fe);
 	return i;                                   /* Return the value returned by the rasterizer. */
 }
+
+int get_range_expanded_pixel_coord(float normalized_value, int max_value) {
+	return (int)((normalized_value * (float)(max_value)) + 0.5f);
+}
+
+float get_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y) {
+	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
+		return 0.0f;
+	}
+	return buf[(pos_y * buf_y) + buf_x];
+}
+
+float get_pixel_intensity_bilinear(float *buf, int buf_x, int buf_y, float u, float v) {
+	int a;
+	int b;
+	int a_plus_1;
+	int b_plus_1;
+	float prop_u;
+	float prop_v;
+	float inv_prop_u;
+	float inv_prop_v;
+	if(u<0.0f || u>1.0f || v<0.0f || v>1.0f) {
+		return 0.0f;
+	}
+	u = u * (float)(buf_x) - 0.5f;
+	v = v * (float)(buf_y) - 0.5f;
+	a = (int)(u);
+	b = (int)(v);
+	prop_u = u - (float)(a);
+	prop_v = v - (float)(b);
+	inv_prop_u = 1.0f - prop_u;
+	inv_prop_v = 1.0f - prop_v;
+	a_plus_1 = MIN2((buf_x-1),a+1);
+	b_plus_1 = MIN2((buf_y-1),b+1);
+	return (buf[(b * buf_y) + a] * inv_prop_u + buf[(b*buf_y)+(a_plus_1)] * prop_u)*inv_prop_v+(buf[((b_plus_1) * buf_y)+a] * inv_prop_u + buf[((b_plus_1)*buf_y)+(a_plus_1)] * prop_u) * prop_v;
+
+}
+
+void set_pixel_intensity(float *buf, int buf_x, int buf_y, int pos_x, int pos_y, float intensity) {
+	if(pos_x < 0 || pos_x >= buf_x || pos_y < 0 || pos_y >= buf_y) {
+		return;
+	}
+	buf[(pos_y * buf_y) + buf_x] = intensity;
+}
+#define __PLX__FAKE_AA__
+int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
+#ifdef __PLX__FAKE_AA__
+#ifdef __PLX_GREY_AA__
+	int i=0;
+	int sz = buf_x * buf_y;
+	for(i=0; i<sz; i++) {
+		buf[i] *= 0.5f;
+	}
+#endif
+	return 1;
+#else
+	/*XXX - TODO: THIS IS NOT FINAL CODE - IT DOES NOT WORK - DO NOT ENABLE IT */
+	const float p0 = 1.0f;
+	const float p1 = 1.0f;
+	const float p2 = 1.0f;
+	const float p3 = 1.0f;
+	const float p4 = 1.0f;
+	const float p5 = 1.5f;
+	const float p6 = 2.0f;
+	const float p7 = 2.0f;
+	const float p8 = 2.0f;
+	const float p9 = 2.0f;
+	const float p10 = 4.0f;
+	const float p11 = 8.0f;
+
+	const float edge_threshold = 0.063f;
+	const float edge_threshold_min = 0.0312f;
+	const float quality_subpix = 1.0f;
+//	int px_x;
+//	int px_y;
+
+	float posM_x,posM_y;
+	float posB_x,posB_y;
+	float posN_x,posN_y;
+	float posP_x,posP_y;
+	float offNP_x,offNP_y;
+	float lumaM;
+	float lumaS;
+	float lumaE;
+	float lumaN;
+	float lumaW;
+	float lumaNW;
+	float lumaSE;
+	float lumaNE;
+	float lumaSW;
+	float lumaNS;
+	float lumaWE;
+	float lumaNESE;
+	float lumaNWNE;
+	float lumaNWSW;
+	float lumaSWSE;
+	float lumaNN;
+	float lumaSS;
+	float lumaEndN;
+	float lumaEndP;
+	float lumaMM;
+	float lumaMLTZero;
+	float subpixNWSWNESE;
+	float subpixRcpRange;
+	float subpixNSWE;
+	float maxSM;
+	float minSM;
+	float maxESM;
+	float minESM;
+	float maxWN;
+	float minWN;
+	float rangeMax;
+	float rangeMin;
+	float rangeMaxScaled;
+	float range;
+	float rangeMaxClamped;
+	float edgeHorz;
+	float edgeVert;
+	float edgeHorz1;
+	float edgeVert1;
+	float edgeHorz2;
+	float edgeVert2;
+	float edgeHorz3;
+	float edgeVert3;
+	float edgeHorz4;
+	float edgeVert4;
+	float lengthSign;
+	float subpixA;
+	float subpixB;
+	float subpixC;
+	float subpixD;
+	float subpixE;
+	float subpixF;
+	float subpixG;
+	float subpixH;
+	float gradientN;
+	float gradientS;
+	float gradient;
+	float gradientScaled;
+	float dstN;
+	float dstP;
+	float dst;
+	float spanLength;
+	float spanLengthRcp;
+	float pixelOffset;
+	float pixelOffsetGood;
+	float pixelOffsetSubpix;
+	int directionN;
+	int goodSpan;
+	int goodSpanN;
+	int goodSpanP;
+	int horzSpan;
+	int earlyExit;
+	int pairN;
+	int doneN;
+	int doneP;
+	int doneNP;
+	int curr_x=0;
+	int curr_y=0;
+	for(curr_y=0; curr_y < buf_y; curr_y++) {
+		for(curr_x=0; curr_x < buf_x; curr_x++) {
+			posM_x = ((float)(curr_x) + 0.5f) * (1.0f/(float)(buf_x));
+			posM_y = ((float)(curr_y) + 0.5f) * (1.0f/(float)(buf_y));
+
+			lumaM = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y);
+			lumaS = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y - 1);
+			lumaE = get_pixel_intensity(buf, buf_x, buf_y, curr_x + 1, curr_y);
+			lumaN = get_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y + 1);
+			lumaW = get_pixel_intensity(buf, buf_x, buf_y, curr_x - 1, curr_y);
+
+			maxSM = MAX2(lumaS, lumaM);
+			minSM = MIN2(lumaS, lumaM);
+			maxESM = MAX2(lumaE, maxSM);
+			minESM = MIN2(lumaE, minSM);
+			maxWN = MAX2(lumaN, lumaW);
+			minWN = MIN2(lumaN, lumaW);
+			rangeMax = MAX2(maxWN, maxESM);
+			rangeMin = MIN2(minWN, minESM);
+			rangeMaxScaled = rangeMax * edge_threshold;
+			range = rangeMax - rangeMin;
+			rangeMaxClamped = MAX2(edge_threshold_min, rangeMaxScaled);
+
+			earlyExit = range < rangeMaxClamped ? 1:0;
+			if(earlyExit) {
+				set_pixel_intensity(buf, buf_x, buf_y, curr_x, curr_y, lumaM);
+			}
+
+			lumaNW = get_pixel_intensity(buf, buf_x, buf_y, curr_x + 1, curr_y - 1);
+			lumaSE = get_pixel_intensity(buf, buf_x, buf_y, curr_x - 1, curr_y + 1);
+			lumaNE = get_pixel_intensity(buf, buf_x, buf_y, curr_x + 1, curr_y + 1);
+			lumaSW = get_pixel_intensity(buf, buf_x, buf_y, curr_x - 1, curr_y - 1);
+
+			lumaNS = lumaN + lumaS;
+			lumaWE = lumaW + lumaE;
+			subpixRcpRange = 1.0f/range;
+			subpixNSWE = lumaNS + lumaWE;
+			edgeHorz1 = (-2.0f * lumaM) + lumaNS;
+			edgeVert1 = (-2.0f * lumaM) + lumaWE;
+
+			lumaNESE = lumaNE + lumaSE;
+			lumaNWNE = lumaNW + lumaNE;
+			edgeHorz2 = (-2.0f * lumaE) + lumaNESE;
+			edgeVert2 = (-2.0f * lumaN) + lumaNWNE;
+
+			lumaNWSW = lumaNW + lumaSW;
+			lumaSWSE = lumaSW + lumaSE;
+			edgeHorz4 = (ABS(edgeHorz1) * 2.0f) + ABS(edgeHorz2);
+			edgeVert4 = (ABS(edgeVert1) * 2.0f) + ABS(edgeVert2);
+			edgeHorz3 = (-2.0f * lumaW) + lumaNWSW;
+			edgeVert3 = (-2.0f * lumaS) + lumaSWSE;
+			edgeHorz = ABS(edgeHorz3) + edgeHorz4;
+			edgeVert = ABS(edgeVert3) + edgeVert4;
+
+			subpixNWSWNESE = lumaNWSW + lumaNESE;
+			lengthSign = 1.0f / (float)(buf_x);
+			horzSpan = edgeHorz >= edgeVert ? 1:0;
+			subpixA = subpixNSWE * 2.0f + subpixNWSWNESE;
+
+			if(!horzSpan) {
+				lumaN = lumaW;
+				lumaS = lumaE;
+			} else {
+				lengthSign = 1.0f / (float)(buf_y);
+			}
+			subpixB = (subpixA * (1.0f/12.0f)) - lumaM;
+
+			gradientN = lumaN - lumaM;
+			gradientS = lumaS - lumaM;
+			lumaNN = lumaN + lumaM;
+			lumaSS = lumaS + lumaM;
+			pairN = (ABS(gradientN)) >= (ABS(gradientS)) ? 1:0;
+			gradient = MAX2(ABS(gradientN), ABS(gradientS));
+			if(pairN) {
+				lengthSign = -lengthSign;
+			}
+			subpixC = MAX2(MIN2(ABS(subpixB) * subpixRcpRange,1.0f),0.0f);
+
+			posB_x = posM_x;
+			posB_y = posM_y;
+			offNP_x = (!horzSpan) ? 0.0f:(1.0f / (float)(buf_x));
+			offNP_y = (horzSpan) ? 0.0f:(1.0f / (float)(buf_y));
+			if(!horzSpan) {
+				posB_x += lengthSign * 0.5f;
+			} else {
+				posB_y += lengthSign * 0.5f;
+			}
+
+			posN_x = posB_x - offNP_x * p0;
+			posN_y = posB_y - offNP_y * p0;
+			posP_x = posB_x + offNP_x * p0;
+			posP_y = posB_y + offNP_y * p0;
+			subpixD = ((-2.0f)*subpixC) + 3.0f;
+			//may need bilinear filtered get_pixel_intensity() here...done
+			lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+			subpixE = subpixC * subpixC;
+			//may need bilinear filtered get_pixel_intensity() here...done
+			lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+
+			if(!pairN) {
+				lumaNN = lumaSS;
+			}
+			gradientScaled = gradient * 1.0f/4.0f;
+			lumaMM =lumaM - lumaNN * 0.5f;
+			subpixF = subpixD * subpixE;
+			lumaMLTZero = lumaMM < 0.0f ? 1:0;
+
+			lumaEndN -= lumaNN * 0.5f;
+			lumaEndP -= lumaNN * 0.5f;
+			doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+			doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+			if(!doneN) {
+				posN_x -= offNP_x * p1;
+				posN_y -= offNP_y * p1;
+			}
+			doneNP = (!doneN) || (!doneP) ? 1:0;
+			if(!doneP) {
+				posP_x += offNP_x * p1;
+				posP_y += offNP_y * p1;
+			}
+
+			if(doneNP) {
+				if(!doneN) {
+					lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posN_x,posN_y);
+				}
+				if(!doneP) {
+					lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x, posP_y);
+				}
+				if(!doneN) {
+					lumaEndN = lumaEndN - lumaNN * 0.5;
+				}
+				if(!doneP) {
+					lumaEndP = lumaEndP - lumaNN * 0.5;
+				}
+				doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+				doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+				if(!doneN) {
+					posN_x -= offNP_x * p2;
+					posN_y -= offNP_y * p2;
+				}
+				doneNP = (!doneN) || (!doneP) ? 1:0;
+				if(!doneP) {
+					posP_x += offNP_x * p2;
+					posP_y += offNP_y * p2;
+				}
+				if(doneNP) {
+					if(!doneN) {
+						lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+					}
+					if(!doneP) {
+						lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+					}
+					if(!doneN) {
+						lumaEndN = lumaEndN - lumaNN * 0.5;
+					}
+					if(!doneP) {
+						lumaEndP = lumaEndP - lumaNN * 0.5;
+					}
+					doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+					doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+					if(!doneN) {
+						posN_x -= offNP_x * p3;
+						posN_y -= offNP_y * p3;
+					}
+					doneNP = (!doneN) || (!doneP) ? 1:0;
+					if(!doneP) {
+						posP_x += offNP_x * p3;
+						posP_y += offNP_y * p3;
+					}
+					if(doneNP) {
+						if(!doneN) {
+							lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+						}
+						if(!doneP) {
+							lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+						}
+						if(!doneN) {
+							lumaEndN = lumaEndN - lumaNN * 0.5;
+						}
+						if(!doneP) {
+							lumaEndP = lumaEndP - lumaNN * 0.5;
+						}
+						doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+						doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+						if(!doneN) {
+							posN_x -= offNP_x * p4;
+							posN_y -= offNP_y * p4;
+						}
+						doneNP = (!doneN) || (!doneP) ? 1:0;
+						if(!doneP) {
+							posP_x += offNP_x * p4;
+							posP_y += offNP_y * p4;
+						}
+						if(doneNP) {
+							if(!doneN) {
+								lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+							}
+							if(!doneP) {
+								lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+							}
+							if(!doneN) {
+								lumaEndN = lumaEndN - lumaNN * 0.5;
+							}
+							if(!doneP) {
+								lumaEndP = lumaEndP - lumaNN * 0.5;
+							}
+							doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+							doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+							if(!doneN) {
+								posN_x -= offNP_x * p5;
+								posN_y -= offNP_y * p5;
+							}
+							doneNP = (!doneN) || (!doneP) ? 1:0;
+							if(!doneP) {
+								posP_x += offNP_x * p5;
+								posP_y += offNP_y * p5;
+							}
+							if(doneNP) {
+								if(!doneN) {
+									lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+								}
+								if(!doneP) {
+									lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+								}
+								if(!doneN) {
+									lumaEndN = lumaEndN - lumaNN * 0.5;
+								}
+								if(!doneP) {
+									lumaEndP = lumaEndP - lumaNN * 0.5;
+								}
+								doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+								doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+								if(!doneN) {
+									posN_x -= offNP_x * p6;
+									posN_y -= offNP_y * p6;
+								}
+								doneNP = (!doneN) || (!doneP) ? 1:0;
+								if(!doneP) {
+									posP_x += offNP_x * p6;
+									posP_y += offNP_y * p6;
+								}
+								if(doneNP) {
+									if(!doneN) {
+										lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+									}
+									if(!doneP) {
+										lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+									}
+									if(!doneN) {
+										lumaEndN = lumaEndN - lumaNN * 0.5;
+									}
+									if(!doneP) {
+										lumaEndP = lumaEndP - lumaNN * 0.5;
+									}
+									doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+									doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+									if(!doneN) {
+										posN_x -= offNP_x * p7;
+										posN_y -= offNP_y * p7;
+									}
+									doneNP = (!doneN) || (!doneP) ? 1:0;
+									if(!doneP) {
+										posP_x += offNP_x * p7;
+										posP_y += offNP_y * p7;
+									}
+									if(doneNP) {
+										if(!doneN) {
+											lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+										}
+										if(!doneP) {
+											lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+										}
+										if(!doneN) {
+											lumaEndN = lumaEndN - lumaNN * 0.5;
+										}
+										if(!doneP) {
+											lumaEndP = lumaEndP - lumaNN * 0.5;
+										}
+										doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+										doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+										if(!doneN) {
+											posN_x -= offNP_x * p8;
+											posN_y -= offNP_y * p8;
+										}
+										doneNP = (!doneN) || (!doneP) ? 1:0;
+										if(!doneP) {
+											posP_x += offNP_x * p8;
+											posP_y += offNP_y * p8;
+										}
+										if(doneNP) {
+											if(!doneN) {
+												lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+											}
+											if(!doneP) {
+												lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+											}
+											if(!doneN) {
+												lumaEndN = lumaEndN - lumaNN * 0.5;
+											}
+											if(!doneP) {
+												lumaEndP = lumaEndP - lumaNN * 0.5;
+											}
+											doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+											doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+											if(!doneN) {
+												posN_x -= offNP_x * p9;
+												posN_y -= offNP_y * p9;
+											}
+											doneNP = (!doneN) || (!doneP) ? 1:0;
+											if(!doneP) {
+												posP_x += offNP_x * p9;
+												posP_y += offNP_y * p9;
+											}
+											if(doneNP) {
+												if(!doneN) {
+													lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+												}
+												if(!doneP) {
+													lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+												}
+												if(!doneN) {
+													lumaEndN = lumaEndN - lumaNN * 0.5;
+												}
+												if(!doneP) {
+													lumaEndP = lumaEndP - lumaNN * 0.5;
+												}
+												doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+												doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+												if(!doneN) {
+													posN_x -= offNP_x * p10;
+													posN_y -= offNP_y * p10;
+												}
+												doneNP = (!doneN) || (!doneP) ? 1:0;
+												if(!doneP) {
+													posP_x += offNP_x * p10;
+													posP_y += offNP_y * p10;
+												}
+												if(doneNP) {
+													if(!doneN) {
+														lumaEndN = get_pixel_intensity_bilinear(buf, buf_x, buf_y,posN_x,posN_y);
+													}
+													if(!doneP) {
+														lumaEndP = get_pixel_intensity_bilinear(buf, buf_x, buf_y, posP_x,posP_y);
+													}
+													if(!doneN) {
+														lumaEndN = lumaEndN - lumaNN * 0.5;
+													}
+													if(!doneP) {
+														lumaEndP = lumaEndP - lumaNN * 0.5;
+													}
+													doneN = (ABS(lumaEndN)) >= gradientScaled ? 1:0;
+													doneP = (ABS(lumaEndP)) >= gradientScaled ? 1:0;
+													if(!doneN) {
+														posN_x -= offNP_x * p11;
+														posN_y -= offNP_y * p11;
+													}
+													doneNP = (!doneN) || (!doneP) ? 1:0;
+													if(!doneP) {
+														posP_x += offNP_x * p11;
+														posP_y += offNP_y * p11;
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+			dstN = posM_x - posN_x;
+			dstP = posP_x - posM_x;
+			if(!horzSpan) {
+				dstN = posM_y - posN_y;
+				dstP = posP_y - posM_y;
+			}
+
+			goodSpanN = ((lumaEndN < 0.0f) ? 1:0) != lumaMLTZero ? 1:0;
+			spanLength = (dstP + dstN);
+			goodSpanP = ((lumaEndP < 0.0f) ? 1:0) != lumaMLTZero ? 1:0;
+			spanLengthRcp = 1.0f/spanLength;
+
+			directionN = dstN < dstP ? 1:0;
+			dst = MIN2(dstN, dstP);
+			goodSpan = (directionN==1) ? goodSpanN:goodSpanP;
+			subpixG = subpixF * subpixF;
+			pixelOffset = (dst * (-spanLengthRcp)) + 0.5f;
+			subpixH = subpixG * quality_subpix;
+
+			pixelOffsetGood = (goodSpan==1) ? pixelOffset : 0.0f;
+			pixelOffsetSubpix = MAX2(pixelOffsetGood, subpixH);
+			if(!horzSpan) {
+				posM_x += pixelOffsetSubpix * lengthSign;
+			} else {
+				posM_y += pixelOffsetSubpix * lengthSign;
+			}
+			//may need bilinear filtered get_pixel_intensity() here...
+			set_pixel_intensity(buf,buf_x,buf_y,curr_x,curr_y,get_pixel_intensity_bilinear(buf, buf_x, buf_y, posM_x,posM_y)* lumaM);
+
+		}
+	}
+	return 1;
+
+#endif
+}
+

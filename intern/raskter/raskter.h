@@ -49,11 +49,11 @@ extern "C" {
 #endif
 
 int PLX_raskterize(float (*base_verts)[2], int num_base_verts,
-                   float *buf, int buf_x, int buf_y);
+                   float *buf, int buf_x, int buf_y, int do_mask_AA);
 int PLX_raskterize_feather(float (*base_verts)[2], int num_base_verts,
                            float (*feather_verts)[2], int num_feather_verts,
                            float *buf, int buf_x, int buf_y);
-
+int PLX_antialias_buffer(float *buf, int buf_x, int buf_y);
 #ifdef __cplusplus
 }
 #endif

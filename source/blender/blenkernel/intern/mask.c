@@ -2089,7 +2089,7 @@ int BKE_mask_get_duration(Mask *mask)
 
 /* rasterization */
 void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct)
+                        const short do_aspect_correct, int do_mask_aa)
 {
 	MaskLayer *masklay;
 
@@ -2154,7 +2154,7 @@ void BKE_mask_rasterize(Mask *mask, int width, int height, float *buffer,
 
 				if (tot_diff_point) {
 					PLX_raskterize(diff_points, tot_diff_point,
-					               buffer_tmp, width, height);
+					               buffer_tmp, width, height, do_mask_aa);
 
 					if (tot_diff_feather_points) {
 						PLX_raskterize_feather(diff_points, tot_diff_point,

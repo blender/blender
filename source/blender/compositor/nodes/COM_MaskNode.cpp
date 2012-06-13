@@ -54,6 +54,7 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 
 	operation->setMask(mask);
 	operation->setFramenumber(context->getFramenumber());
+    operation->setSmooth((bool)editorNode->custom1);
 
 	graph->addOperation(operation);
 }

@@ -3089,6 +3089,11 @@ static void def_cmp_mask(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
+    prop = RNA_def_property(srna, "smooth_mask", PROP_BOOLEAN, PROP_NONE);
+    RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
+    RNA_def_property_ui_text(prop, "Anti-Alias", "Apply an anti-aliasing filter to the mask");
+    RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");
 	RNA_def_property_struct_type(prop, "Mask");
