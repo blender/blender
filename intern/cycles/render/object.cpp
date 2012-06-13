@@ -147,7 +147,7 @@ ObjectManager::~ObjectManager()
 void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
-	uint *object_flag = dscene->object_flag.resize(OBJECT_SIZE*scene->objects.size());
+	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
 	Scene::MotionType need_motion = scene->need_motion();
