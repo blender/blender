@@ -850,7 +850,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 #endif
 
 				kernel_path_indirect(kg, rng, sample*num_samples, ray, buffer,
-					tp*num_samples_inv, min_ray_pdf, ray_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
+					tp*num_samples_inv, min_ray_pdf, bsdf_pdf, ps, rng_offset+PRNG_BOUNCE_NUM, &L);
 			}
 		}
 
