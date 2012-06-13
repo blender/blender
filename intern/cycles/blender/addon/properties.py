@@ -94,7 +94,7 @@ class CyclesRenderSettings(bpy.types.PropertyGroup):
                 )
         cls.preview_aa_samples = IntProperty(
                 name="AA Samples",
-                description="Number of antialiasing samples to in viewport, unlimited if 0",
+                description="Number of antialiasing samples to render in the viewport, unlimited if 0",
                 min=1, max=10000,
                 default=4,
                 )
