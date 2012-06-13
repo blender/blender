@@ -59,7 +59,7 @@ void CompositorOperation::initExecution()
 
 void CompositorOperation::deinitExecution()
 {
-	if (isBreaked()) {
+	if (!isBreaked()) {
 		const Scene *scene = this->scene;
 		Render *re = RE_GetRender(scene->id.name);
 		RenderResult *rr = RE_AcquireResultWrite(re);
@@ -74,11 +74,13 @@ void CompositorOperation::deinitExecution()
 				MEM_freeN(this->outputBuffer);
 			}
 		}
+
+		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
+
 		if (re) {
 			RE_ReleaseResult(re);
 			re = NULL;
 		}
-		BKE_image_signal(BKE_image_verify_viewer(IMA_TYPE_R_RESULT, "Render Result"), NULL, IMA_SIGNAL_FREE);
 	}
 	else {
 		if (this->outputBuffer) {
