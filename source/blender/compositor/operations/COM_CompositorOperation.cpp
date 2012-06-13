@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -53,14 +53,14 @@ void CompositorOperation::initExecution()
 	this->imageInput = getInputSocketReader(0);
 	this->alphaInput = getInputSocketReader(1);
 	if (this->getWidth() * this->getHeight() != 0) {
-		this->outputBuffer=(float*) MEM_callocN(this->getWidth()*this->getHeight()*4*sizeof(float), "CompositorOperation");
+		this->outputBuffer = (float *) MEM_callocN(this->getWidth() * this->getHeight() * 4 * sizeof(float), "CompositorOperation");
 	}
 }
 
 void CompositorOperation::deinitExecution()
 {
 	if (isBreaked()) {
-		const Scene * scene = this->scene;
+		const Scene *scene = this->scene;
 		Render *re = RE_GetRender(scene->id.name);
 		RenderResult *rr = RE_AcquireResultWrite(re);
 		if (rr) {
@@ -85,14 +85,14 @@ void CompositorOperation::deinitExecution()
 			MEM_freeN(this->outputBuffer);
 		}
 	}
-	
+
 	this->outputBuffer = NULL;
 	this->imageInput = NULL;
 	this->alphaInput = NULL;
 }
 
 
-void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	float color[8]; // 7 is enough
 	float *buffer = this->outputBuffer;
@@ -102,50 +102,47 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1*this->getWidth() + x1 ) * COM_NUMBER_OF_CHANNELS;
+	int offset = (y1 * this->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
 	int x;
 	int y;
 	bool breaked = false;
 
-	for (y = y1 ; y < y2 && (!breaked); y++) {
-		for (x = x1 ; x < x2 && (!breaked) ; x++) {
+	for (y = y1; y < y2 && (!breaked); y++) {
+		for (x = x1; x < x2 && (!breaked); x++) {
 			imageInput->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
 			if (alphaInput != NULL) {
 				alphaInput->read(&(color[3]), x, y, COM_PS_NEAREST, memoryBuffers);
 			}
-			buffer[offset] = color[0];
-			buffer[offset+1] = color[1];
-			buffer[offset+2] = color[2];
-			buffer[offset+3] = color[3];
-			offset +=COM_NUMBER_OF_CHANNELS;
+			copy_v4_v4(buffer + offset, color);
+			offset += COM_NUMBER_OF_CHANNELS;
 			if (isBreaked()) {
 				breaked = true;
 			}
 		}
-		offset += (this->getWidth()-(x2-x1))*COM_NUMBER_OF_CHANNELS;
+		offset += (this->getWidth() - (x2 - x1)) * COM_NUMBER_OF_CHANNELS;
 	}
 }
 
 void CompositorOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	int width = this->scene->r.xsch*this->scene->r.size/100;
-	int height = this->scene->r.ysch*this->scene->r.size/100;
-	
+	int width = this->scene->r.xsch * this->scene->r.size / 100;
+	int height = this->scene->r.ysch * this->scene->r.size / 100;
+
 	// check actual render resolution with cropping it may differ with cropped border.rendering
 	// FIX for: [31777] Border Crop gives black (easy)
-	Render *re= RE_GetRender(this->scene->id.name);
+	Render *re = RE_GetRender(this->scene->id.name);
 	if (re) {
-		RenderResult *rr= RE_AcquireResultRead(re);
+		RenderResult *rr = RE_AcquireResultRead(re);
 		if (rr) {
 			width = rr->rectx;
 			height = rr->recty;
 		}
 		RE_ReleaseResult(re);
 	}
-	
+
 	preferredResolution[0] = width;
 	preferredResolution[1] = height;
-	
+
 	NodeOperation::determineResolution(resolution, preferredResolution);
 
 	resolution[0] = width;
