@@ -957,6 +957,12 @@ static int delete_exec(bContext *C, wmOperator *UNUSED(op))
 
 			spline = next_spline;
 		}
+
+		/* not essential but confuses users when there are keys with no data!
+		 * assume if they delete all data from the layer they also dont care about keys */
+		if (masklay->splines.first == NULL) {
+			BKE_mask_layer_free_shapes(masklay);
+		}
 	}
 
 	/* TODO: only update edited splines */

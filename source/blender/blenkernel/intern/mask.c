@@ -1029,10 +1029,27 @@ void BKE_mask_layer_shape_free(MaskLayerShape *masklay_shape)
 	MEM_freeN(masklay_shape);
 }
 
+/** \brief Free all animation keys for a mask layer
+ */
+void BKE_mask_layer_free_shapes(MaskLayer *masklay)
+{
+	MaskLayerShape *masklay_shape;
+
+	/* free animation data */
+	masklay_shape = masklay->splines_shapes.first;
+	while (masklay_shape) {
+		MaskLayerShape *next_masklay_shape = masklay_shape->next;
+
+		BLI_remlink(&masklay->splines_shapes, masklay_shape);
+		BKE_mask_layer_shape_free(masklay_shape);
+
+		masklay_shape = next_masklay_shape;
+	}
+}
+
 void BKE_mask_layer_free(MaskLayer *masklay)
 {
 	MaskSpline *spline;
-	MaskLayerShape *masklay_shape;
 
 	/* free splines */
 	spline = masklay->splines.first;
@@ -1046,15 +1063,7 @@ void BKE_mask_layer_free(MaskLayer *masklay)
 	}
 
 	/* free animation data */
-	masklay_shape = masklay->splines_shapes.first;
-	while (masklay_shape) {
-		MaskLayerShape *next_masklay_shape = masklay_shape->next;
-
-		BLI_remlink(&masklay->splines_shapes, masklay_shape);
-		BKE_mask_layer_shape_free(masklay_shape);
-
-		masklay_shape = next_masklay_shape;
-	}
+	BKE_mask_layer_free_shapes(masklay);
 
 	MEM_freeN(masklay);
 }
