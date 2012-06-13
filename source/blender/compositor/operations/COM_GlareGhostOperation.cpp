@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -27,11 +27,15 @@
 static float smoothMask(float x, float y)
 {
 	float t;
-	x = 2.f * x - 1.f, y = 2.f * y - 1.f;
-	if ((t = 1.f - sqrtf(x * x + y * y)) <= 0.f) return 0.f;
-	return t;
+	x = 2.0f * x - 1.0f;
+	y = 2.0f * y - 1.0f;
+	if ((t = 1.0f - sqrtf(x * x + y * y)) > 0.0f) {
+		return t;
+	}
+	else {
+		return 0.0f;
+	}
 }
-
 
 void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
 {

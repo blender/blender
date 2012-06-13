@@ -15,15 +15,15 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
 #include "COM_GlareThresholdOperation.h"
 #include "BLI_math.h"
 
-GlareThresholdOperation::GlareThresholdOperation(): NodeOperation()
+GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -37,13 +37,15 @@ void GlareThresholdOperation::initExecution()
 void GlareThresholdOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	this->inputProgram->read(color, x, y, sampler, inputBuffers);
-	if ((0.212671f*color[0] + 0.71516f*color[1] + 0.072169f*color[2]) >= threshold) {
+	if ((0.212671f * color[0] + 0.71516f * color[1] + 0.072169f * color[2]) >= threshold) {
 		color[0] -= threshold, color[1] -= threshold, color[2] -= threshold;
-		color[0] = MAX2(color[0], 0.f);
-		color[1] = MAX2(color[1], 0.f);
-		color[2] = MAX2(color[2], 0.f);
+		color[0] = MAX2(color[0], 0.0f);
+		color[1] = MAX2(color[1], 0.0f);
+		color[2] = MAX2(color[2], 0.0f);
 	}
-	else color[0] = color[1] = color[2] = 0.f;
+	else {
+		zero_v3(color);
+	}
 }
 
 void GlareThresholdOperation::deinitExecution()

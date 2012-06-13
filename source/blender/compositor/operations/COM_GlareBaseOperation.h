@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -59,34 +59,36 @@ typedef float fRGB[4];
 class GlareBaseOperation : public SingleThreadedNodeOperation {
 private:
 	/**
-	  * @brief Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
-	
+	 * @brief Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
+
 	/**
-	  * @brief settings of the glare node.
-	  */
-	NodeGlare * settings;
+	 * @brief settings of the glare node.
+	 */
+	NodeGlare *settings;
 public:
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
-	
+
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 
-	void setGlareSettings(NodeGlare * settings) {this->settings = settings;}
+	void setGlareSettings(NodeGlare *settings) {
+		this->settings = settings;
+	}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	
+
 protected:
 	GlareBaseOperation();
-	
+
 	virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
-	
+
 	MemoryBuffer *createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers);
-	
+
 };
 #endif
