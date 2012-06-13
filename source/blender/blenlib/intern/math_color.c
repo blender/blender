@@ -381,15 +381,9 @@ unsigned int rgb_to_cpack(float r, float g, float b)
 
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 {
-
-	*r = (float)((col) & 0xFF);
-	*r /= 255.0f;
-
-	*g = (float)(((col) >> 8) & 0xFF);
-	*g /= 255.0f;
-
-	*b = (float)(((col) >> 16) & 0xFF);
-	*b /= 255.0f;
+	*r = ((float)(((col)      ) & 0xFF)) * (1.0f / 255.0f);
+	*g = ((float)(((col) >>  8) & 0xFF)) * (1.0f / 255.0f);
+	*b = ((float)(((col) >> 16) & 0xFF)) * (1.0f / 255.0f);
 }
 
 void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3])
