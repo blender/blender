@@ -74,7 +74,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
 	sc = 2.13;
 	isc = -0.97;
-	for (y = 0; y < gbuf->getHeight() & (!breaked); y++) {
+	for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
 		v = (float)(y + 0.5f) / (float)gbuf->getHeight();
 		for (x = 0; x < gbuf->getWidth(); x++) {
 			u = (float)(x + 0.5f) / (float)gbuf->getWidth();
@@ -94,8 +94,8 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	}
 
 	memset(tbuf1->getBuffer(), 0, tbuf1->getWidth() * tbuf1->getHeight() * COM_NUMBER_OF_CHANNELS * sizeof(float));
-	for (n = 1; n < settings->iter & (!breaked); n++) {
-		for (y = 0; y < gbuf->getHeight() & (!breaked); y++) {
+	for (n = 1; n < settings->iter && (!breaked); n++) {
+		for (y = 0; y < gbuf->getHeight() && (!breaked); y++) {
 			v = (float)(y + 0.5f) / (float)gbuf->getHeight();
 			for (x = 0; x < gbuf->getWidth(); x++) {
 				u = (float)(x + 0.5f) / (float)gbuf->getWidth();
