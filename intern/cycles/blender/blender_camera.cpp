@@ -485,10 +485,10 @@ static void blender_camera_border(BlenderCamera *bcam, BL::Scene b_scene, BL::Sp
 	bcam->border_top = tmp_bottom + bcam->border_top*(tmp_top - tmp_bottom);
 
 	/* clamp */
-	bcam->border_left = max(bcam->border_left, 0.0f);
-	bcam->border_right = min(bcam->border_right, 1.0f);
-	bcam->border_bottom = max(bcam->border_bottom, 0.0f);
-	bcam->border_top = min(bcam->border_top, 1.0f);
+	bcam->border_left = clamp(bcam->border_left, 0.0f, 1.0f);
+	bcam->border_right = clamp(bcam->border_right, 0.0f, 1.0f);
+	bcam->border_bottom = clamp(bcam->border_bottom, 0.0f, 1.0f);
+	bcam->border_top = clamp(bcam->border_top, 0.0f, 1.0f);
 }
 
 void BlenderSync::sync_view(BL::SpaceView3D b_v3d, BL::RegionView3D b_rv3d, int width, int height)
@@ -514,6 +514,10 @@ BufferParams BlenderSync::get_buffer_params(BL::Scene b_scene, Camera *cam, int 
 		params.full_y = cam->border_bottom*height;
 		params.width = (int)(cam->border_right*width) - params.full_x;
 		params.height = (int)(cam->border_top*height) - params.full_y;
+
+		/* survive in case border goes out of view or becomes too small */
+		params.width = max(params.width, 1);
+		params.height = max(params.height, 1);
 	}
 	else {
 		params.width = width;
