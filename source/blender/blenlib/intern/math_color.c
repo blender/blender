@@ -496,37 +496,6 @@ int constrain_rgb(float *r, float *g, float *b)
 	return 0; /* Color within RGB gamut */
 }
 
-float rgb_to_grayscale(const float rgb[3])
-{
-	return 0.3f * rgb[0] + 0.58f * rgb[1] + 0.12f * rgb[2];
-}
-
-unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
-{
-	return (76 * (unsigned short) rgb[0] + 148 * (unsigned short) rgb[1] + 31 * (unsigned short) rgb[2]) / 255;
-}
-
-float rgb_to_luma(const float rgb[3])
-{
-	return 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
-}
-
-unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
-{
-	return (76 * (unsigned short) rgb[0] + 150 * (unsigned short) rgb[1] + 29 * (unsigned short) rgb[2]) / 255;
-}
-
-/* gamma-corrected RGB --> CIE XYZ
- * for this function we only get the Y component
- * see: http://software.intel.com/sites/products/documentation/hpc/ipp/ippi/ippi_ch6/ch6_color_models.html
- *
- * also known as:
- * luminance rec. 709 */
-float rgb_to_luma_y(const float rgb[3])
-{
-	return 0.212671f * rgb[0] + 0.71516f * rgb[1] + 0.072169f * rgb[2];
-}
-
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)

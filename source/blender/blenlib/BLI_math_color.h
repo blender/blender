@@ -74,12 +74,7 @@ void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
-float rgb_to_grayscale(const float rgb[3]);
-unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
-float rgb_to_luma(const float rgb[3]);
-unsigned char rgb_to_luma_byte(const unsigned char rgb[3]);
-float rgb_to_luma_y(const float rgb[3]);
-float rgb_to_luma_rec709_byte(const unsigned char rgb[3]);
+/* rgb_to_grayscale & rgb_to_luma functions moved to math_color_inline.c */
 
 /**************** Profile Transformations *****************/
 
