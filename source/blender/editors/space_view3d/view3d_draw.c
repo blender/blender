@@ -1618,6 +1618,19 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					y2 = ar->winrct.ymax;
 				}
 
+				/* apply offset last - camera offset is different to offset in blender units */
+				/* so this has some sane way of working - this matches camera's shift _exactly_ */
+				{
+					const float max_dim = maxf(x2 - x1, y2 - y1);
+					const float xof_scale = bgpic->xof * max_dim;
+					const float yof_scale = bgpic->yof * max_dim;
+
+					x1 += xof_scale;
+					y1 += yof_scale;
+					x2 += xof_scale;
+					y2 += yof_scale;
+				}
+
 				/* aspect correction */
 				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT)
 				{

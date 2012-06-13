@@ -2586,9 +2586,10 @@ class VIEW3D_PT_background_image(Panel):
 
                     if bg.view_axis != 'CAMERA':
                         col.prop(bg, "size")
-                        row = col.row(align=True)
-                        row.prop(bg, "offset_x", text="X")
-                        row.prop(bg, "offset_y", text="Y")
+
+                    row = col.row(align=True)
+                    row.prop(bg, "offset_x", text="X")
+                    row.prop(bg, "offset_y", text="Y")
 
 
 class VIEW3D_PT_transform_orientations(Panel):
