@@ -810,6 +810,9 @@ int PLX_antialias_buffer(float *buf, int buf_x, int buf_y) {
 		buf[i] *= 0.5f;
 	}
 #endif
+	buf_x = buf_x;
+	buf_y = buf_y;
+	buf[0] = buf[0];
 	return 1;
 #else
 	/*XXX - TODO: THIS IS NOT FINAL CODE - IT DOES NOT WORK - DO NOT ENABLE IT */
