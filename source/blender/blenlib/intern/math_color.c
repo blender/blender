@@ -516,6 +516,17 @@ unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
 	return (76 * (unsigned short) rgb[0] + 150 * (unsigned short) rgb[1] + 29 * (unsigned short) rgb[2]) / 255;
 }
 
+/* gamma-corrected RGB --> CIE XYZ
+ * for this function we only get the Y component
+ * see: http://software.intel.com/sites/products/documentation/hpc/ipp/ippi/ippi_ch6/ch6_color_models.html
+ *
+ * also known as:
+ * luminance rec. 709 */
+float rgb_to_luma_y(const float rgb[3])
+{
+	return 0.212671f * rgb[0] + 0.71516f * rgb[1] + 0.072169f * rgb[2];
+}
+
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
 
 void lift_gamma_gain_to_asc_cdl(float *lift, float *gamma, float *gain, float *offset, float *slope, float *power)
@@ -648,9 +659,9 @@ void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z)
 	g = inverse_srgb_companding(g) * 100.0f;
 	b = inverse_srgb_companding(b) * 100.0f;
 
-	*x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-	*y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-	*z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+	*x = r * 0.412453f + g * 0.357580f + b * 0.180423f;
+	*y = r * 0.212671f + g * 0.715160f + b * 0.072169f;
+	*z = r * 0.019334f + g * 0.119193f + b * 0.950227f;
 }
 
 static float xyz_to_lab_component(float v)

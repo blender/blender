@@ -68,12 +68,6 @@
 extern struct Render R;
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
-/* luminance rec. 709 */
-BLI_INLINE float luminance(const float col[3])
-{
-	return (0.212671f * col[0] + 0.71516f * col[1] + 0.072169f * col[2]);
-}
-
 /* tracing */
 static float vol_get_shadow(ShadeInput *shi, LampRen *lar, const float co[3])
 {
@@ -502,7 +496,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 		
 		if (shi->mat->vol.shadeflag & MA_VOL_RECV_EXT_SHADOW) {
 			mul_v3_fl(lacol, vol_get_shadow(shi, lar, co));
-			if (luminance(lacol) < 0.001f) return;
+			if (rgb_to_luma_y(lacol) < 0.001f) return;
 		}
 		
 		/* find minimum of volume bounds, or lamp coord */
@@ -536,7 +530,7 @@ static void vol_shade_one_lamp(struct ShadeInput *shi, const float co[3], const 
 		}
 	}
 	
-	if (luminance(lacol) < 0.001f) return;
+	if (rgb_to_luma_y(lacol) < 0.001f) return;
 	
 	normalize_v3(lv);
 	p = vol_get_phasefunc(shi, shi->mat->vol.asymmetry, view, lv);
@@ -618,7 +612,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 			
 			if (t0 > t1 * 0.25f) {
 				/* only use depth cutoff after we've traced a little way into the volume */
-				if (luminance(tr) < shi->mat->vol.depth_cutoff) break;
+				if (rgb_to_luma_y(tr) < shi->mat->vol.depth_cutoff) break;
 			}
 			
 			vol_get_emission(shi, emit_col, p);
@@ -647,7 +641,7 @@ static void volumeintegrate(struct ShadeInput *shi, float col[4], const float co
 	add_v3_v3(col, radiance);
 	
 	/* alpha <-- transmission luminance */
-	col[3] = 1.0f - luminance(tr);
+	col[3] = 1.0f - rgb_to_luma_y(tr);
 }
 
 /* the main entry point for volume shading */
@@ -787,7 +781,7 @@ void shade_volume_shadow(struct ShadeInput *shi, struct ShadeResult *shr, struct
 
 	
 	copy_v3_v3(shr->combined, tr);
-	shr->combined[3] = 1.0f - luminance(tr);
+	shr->combined[3] = 1.0f - rgb_to_luma_y(tr);
 	shr->alpha = shr->combined[3];
 }
 

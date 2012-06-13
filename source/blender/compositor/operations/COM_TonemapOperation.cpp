@@ -75,7 +75,7 @@ void PhotoreceptorTonemapOperation::executePixel(float *color, int x, int y, Mem
 	float output[4];
 	this->imageReader->read(output, x, y, inputBuffers, NULL);
 
-	const float L = 0.212671f * output[0] + 0.71516f * output[1] + 0.072169f * output[2];
+	const float L = rgb_to_luma_y(output);
 	float I_l = output[0] + ic * (L - output[0]);
 	float I_g = avg->cav[0] + ic * (avg->lav - avg->cav[0]);
 	float I_a = I_l + ia * (I_g - I_l);
@@ -133,7 +133,7 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 		float Lav = 0.f;
 		float cav[4] = {0.0f,0.0f,0.0f,0.0f};
 		while (p--) {
-			float L = 0.212671f * bc[0] + 0.71516f * bc[1] + 0.072169f * bc[2];
+			float L = rgb_to_luma_y(bc);
 			Lav += L;
 			add_v3_v3(cav, bc);
 			lsum += logf(MAX2(L, 0.0f) + 1e-5f);

@@ -37,7 +37,7 @@ void GlareThresholdOperation::initExecution()
 void GlareThresholdOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	this->inputProgram->read(color, x, y, sampler, inputBuffers);
-	if ((0.212671f * color[0] + 0.71516f * color[1] + 0.072169f * color[2]) >= threshold) {
+	if (rgb_to_luma_y(color) >= threshold) {
 		color[0] -= threshold, color[1] -= threshold, color[2] -= threshold;
 		color[0] = MAX2(color[0], 0.0f);
 		color[1] = MAX2(color[1], 0.0f);
