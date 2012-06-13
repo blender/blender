@@ -2161,7 +2161,7 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
+	char filepath[FILE_MAX];
 	int selected, second_life; 
 	int include_armatures;
 	int apply_modifiers;
@@ -2173,7 +2173,8 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_string_get(op->ptr, "filepath", filename);
+	RNA_string_get(op->ptr, "filepath", filepath);
+	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
 
 	/* Options panel */
 	selected                 = RNA_boolean_get(op->ptr, "selected");
@@ -2188,7 +2189,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	if (collada_export(
 	        CTX_data_scene(C),
-	        filename,
+	        filepath,
 	        selected,
 	        apply_modifiers,
 	        include_armatures,
