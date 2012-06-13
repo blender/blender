@@ -1547,6 +1547,8 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 		    (bgpic->view & (1 << rv3d->view)) || /* check agaist flags */
 		    (rv3d->persp == RV3D_CAMOB && bgpic->view == (1 << RV3D_VIEW_CAMERA)))
 		{
+			float image_aspect[2];
+
 			/* disable individual images */
 			if ((bgpic->flag & V3D_BGPIC_DISABLED))
 				continue;
@@ -1558,6 +1560,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					continue;
 				BKE_image_user_frame_calc(&bgpic->iuser, CFRA, 0);
 				ibuf = BKE_image_get_ibuf(ima, &bgpic->iuser);
+
+				image_aspect[0] = ima->aspx;
+				image_aspect[1] = ima->aspx;
 			}
 			else if (bgpic->source == V3D_BGPIC_MOVIE) {
 				clip = NULL;
@@ -1573,6 +1578,9 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 
 				BKE_movieclip_user_set_frame(&bgpic->cuser, CFRA);
 				ibuf = BKE_movieclip_get_ibuf(clip, &bgpic->cuser);
+
+				image_aspect[0] = clip->aspx;
+				image_aspect[1] = clip->aspx;
 
 				/* working with ibuf from image and clip has got different workflow now.
 				 * ibuf acquired from clip is referenced by cache system and should
@@ -1608,6 +1616,38 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 					y1 = ar->winrct.ymin;
 					x2 = ar->winrct.xmax;
 					y2 = ar->winrct.ymax;
+				}
+
+				/* aspect correction */
+				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT)
+				{
+					/* apply aspect from clip */
+					const float w_src = ibuf->x * image_aspect[0];
+					const float h_src = ibuf->y * image_aspect[1];
+
+					/* destination aspect is already applied from the camera frame */
+					const float w_dst = x1 - x2;
+					const float h_dst = y1 - y2;
+
+					const float asp_src = w_src / h_src;
+					const float asp_dst = w_dst / h_dst;
+
+					if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
+						if ((asp_src > asp_dst) == ((bgpic->flag & V3D_BGPIC_CAMERA_CROP) != 0)) {
+							/* fit X */
+							const float div = asp_src / asp_dst;
+							const float cent = (x1 + x2) / 2.0f;
+							x1 = ((x1 - cent) * div) + cent;
+							x2 = ((x2 - cent) * div) + cent;
+						}
+						else {
+							/* fit Y */
+							const float div = asp_dst / asp_src;
+							const float cent = (y1 + y2) / 2.0f;
+							y1 = ((y1 - cent) * div) + cent;
+							y2 = ((y2 - cent) * div) + cent;
+						}
+					}
 				}
 			}
 			else {

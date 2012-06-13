@@ -2575,8 +2575,15 @@ class VIEW3D_PT_background_image(Panel):
 
                 if has_bg:
                     col = box.column()
-                    col.prop(bg, "show_on_foreground")
                     col.prop(bg, "opacity", slider=True)
+
+                    rowsub = col.row()
+                    rowsub.prop(bg, "draw_depth", expand=True)
+
+                    if bg.view_axis in {'CAMERA', 'ALL'}:
+                        rowsub = col.row()
+                        rowsub.prop(bg, "frame_method", expand=True)
+
                     if bg.view_axis != 'CAMERA':
                         col.prop(bg, "size")
                         row = col.row(align=True)
