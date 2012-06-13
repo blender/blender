@@ -25,9 +25,9 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief MaskNode
-  * @ingroup Node
-  */
+ * @brief MaskNode
+ * @ingroup Node
+ */
 class MaskNode : public Node {
 
 

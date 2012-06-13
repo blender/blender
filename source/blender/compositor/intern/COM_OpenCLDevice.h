@@ -31,57 +31,57 @@ class OpenCLDevice;
 
 
 /**
-  * @brief device representing an GPU OpenCL device.
-  * an instance of this class represents a single cl_device
-  */
-class OpenCLDevice: public Device {
+ * @brief device representing an GPU OpenCL device.
+ * an instance of this class represents a single cl_device
+ */
+class OpenCLDevice : public Device {
 private:
 	/**
-	  *@brief opencl context
-	  */
+	   *@brief opencl context
+	 */
 	cl_context context;
 	
 	/**
-	  *@brief opencl device
-	  */
+	   *@brief opencl device
+	 */
 	cl_device_id device;
 	
 	/**
-	  *@brief opencl program
-	  */
+	   *@brief opencl program
+	 */
 	cl_program program;
 	
 	/**
-	  *@brief opencl command queue
-	  */
+	   *@brief opencl command queue
+	 */
 	cl_command_queue queue;
 public:
 	/**
-	  *@brief constructor with opencl device
-	  *@param context
-	  *@param device
-	  */
+	   *@brief constructor with opencl device
+	   *@param context
+	   *@param device
+	 */
 	OpenCLDevice(cl_context context, cl_device_id device, cl_program program);
 	
 	
 	/**
-	  * @brief initialize the device
-	  * During initialization the OpenCL cl_command_queue is created
-	  * the command queue is stored in the field queue.
-	  * @see queue 
-	  */
+	 * @brief initialize the device
+	 * During initialization the OpenCL cl_command_queue is created
+	 * the command queue is stored in the field queue.
+	 * @see queue
+	 */
 	bool initialize();
 	
 	/**
-	  * @brief deinitialize the device
-	  * During deintiialization the command queue is cleared
-	  */
+	 * @brief deinitialize the device
+	 * During deintiialization the command queue is cleared
+	 */
 	void deinitialize();
 	
 	/**
-	  * @brief execute a WorkPackage
-	  * @param work the WorkPackage to execute
-	  */
+	 * @brief execute a WorkPackage
+	 * @param work the WorkPackage to execute
+	 */
 	void execute(WorkPackage *work);
 };
 

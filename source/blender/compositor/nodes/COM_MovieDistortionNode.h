@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief MovieDistortionNode
-  * @ingroup Node
-  */
-class MovieDistortionNode: public Node {
+ * @brief MovieDistortionNode
+ * @ingroup Node
+ */
+class MovieDistortionNode : public Node {
 public:
 	MovieDistortionNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

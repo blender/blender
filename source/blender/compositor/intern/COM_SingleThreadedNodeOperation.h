@@ -37,24 +37,24 @@ public:
 	SingleThreadedNodeOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
-	virtual MemoryBuffer* createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers) = 0;
+	virtual MemoryBuffer *createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers) = 0;
 	
-	int isSingleThreaded() {return true;}
+	int isSingleThreaded() { return true; }
 };
 #endif

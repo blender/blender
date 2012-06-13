@@ -30,8 +30,8 @@ class ViewerBaseOperation : public NodeOperation {
 protected:
 	float *outputBuffer;
 	unsigned char *outputBufferDisplay;
-	Image * image;
-	ImageUser * imageUser;
+	Image *image;
+	ImageUser *imageUser;
 	void *lock;
 	bool active;
 	float centerX;
@@ -41,27 +41,27 @@ protected:
 	bool doColorPredivide;
 
 public:
-	bool isOutputOperation(bool rendering) const {return isActiveViewerOutput();}
+	bool isOutputOperation(bool rendering) const { return isActiveViewerOutput(); }
 	void initExecution();
 	void deinitExecution();
-	void setImage(Image *image) {this->image = image;}
-	void setImageUser(ImageUser *imageUser) {this->imageUser = imageUser;}
-	const bool isActiveViewerOutput() const {return active;}
-	void setActive(bool active) {this->active = active;}
-	void setCenterX(float centerX) {this->centerX = centerX;}
-	void setCenterY(float centerY) {this->centerY = centerY;}
-	void setChunkOrder(OrderOfChunks tileOrder) {this->chunkOrder = tileOrder;}
+	void setImage(Image *image) { this->image = image; }
+	void setImageUser(ImageUser *imageUser) { this->imageUser = imageUser; }
+	const bool isActiveViewerOutput() const { return active; }
+	void setActive(bool active) { this->active = active; }
+	void setCenterX(float centerX) { this->centerX = centerX;}
+	void setCenterY(float centerY) { this->centerY = centerY;}
+	void setChunkOrder(OrderOfChunks tileOrder) { this->chunkOrder = tileOrder; }
 	float getCenterX() { return this->centerX; }
 	float getCenterY() { return this->centerY; }
 	OrderOfChunks getChunkOrder() { return this->chunkOrder; }
 	const CompositorPriority getRenderPriority() const;
-	void setColorManagement(bool doColorManagement) {this->doColorManagement = doColorManagement;}
-	void setColorPredivide(bool doColorPredivide) {this->doColorPredivide = doColorPredivide;}
-	bool isViewerOperation() {return true;}
+	void setColorManagement(bool doColorManagement) { this->doColorManagement = doColorManagement; }
+	void setColorPredivide(bool doColorPredivide) { this->doColorPredivide = doColorPredivide; }
+	bool isViewerOperation() { return true; }
 		
 protected:
 	ViewerBaseOperation();
-	void updateImage(rcti*rect);
+	void updateImage(rcti *rect);
 
 private:
 	void initImage();

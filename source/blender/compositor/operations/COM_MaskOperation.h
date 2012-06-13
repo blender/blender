@@ -32,20 +32,20 @@
 #include "IMB_imbuf_types.h"
 
 /**
-  * Class with implementation of mask rasterization
-  */
+ * Class with implementation of mask rasterization
+ */
 class MaskOperation : public NodeOperation {
 protected:
 	Mask *mask;
 	int maskWidth;
 	int maskHeight;
 	int framenumber;
-    bool smooth;
+	bool smooth;
 	float *rasterizedMask;
 
 	/**
-	  * Determine the output resolution. The resolution is retrieved from the Renderer
-	  */
+	 * Determine the output resolution. The resolution is retrieved from the Renderer
+	 */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
 public:
@@ -56,11 +56,11 @@ public:
 
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 
-	void setMask(Mask *mask) {this->mask = mask;}
-	void setMaskWidth(int width) {this->maskWidth = width;}
-	void setMaskHeight(int height) {this->maskHeight = height;}
-	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
-    void setSmooth(bool smooth) {this->smooth = smooth;}
+	void setMask(Mask *mask) { this->mask = mask; }
+	void setMaskWidth(int width) { this->maskWidth = width; }
+	void setMaskHeight(int height) { this->maskHeight = height; }
+	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
+	void setSmooth(bool smooth) { this->smooth = smooth; }
 
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
 };

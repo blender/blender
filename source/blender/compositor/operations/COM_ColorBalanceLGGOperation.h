@@ -26,16 +26,16 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class ColorBalanceLGGOperation : public NodeOperation {
 protected:
 	/**
-	  * Prefetched reference to the inputProgram
-	  */
-	SocketReader * inputValueOperation;
-	SocketReader * inputColorOperation;
+	 * Prefetched reference to the inputProgram
+	 */
+	SocketReader *inputValueOperation;
+	SocketReader *inputColorOperation;
 	
 	float gain[3];
 	float lift[3];
@@ -43,23 +43,23 @@ protected:
 
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	ColorBalanceLGGOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
 	void setGain(float gain[3]) {

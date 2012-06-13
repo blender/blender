@@ -38,18 +38,18 @@ class Node;
 class NodeOperation;
 class ExecutionSystem;
 
-typedef vector<Node*> NodeList;
+typedef vector<Node *> NodeList;
 typedef NodeList::iterator NodeIterator;
 typedef pair<NodeIterator, NodeIterator> NodeRange;
 
 /**
-  * My node documentation.
-  */
-class Node:public NodeBase {
+ * My node documentation.
+ */
+class Node : public NodeBase {
 private:
 	/**
-	  * @brief stores the reference to the SDNA bNode struct
-	  */
+	 * @brief stores the reference to the SDNA bNode struct
+	 */
 	bNode *editorNode;
 
 	/**
@@ -58,18 +58,18 @@ private:
 	bool inActiveGroup;
 
 public:
-	Node(bNode *editorNode, bool create_sockets=true);
+	Node(bNode *editorNode, bool create_sockets = true);
 	
 	/**
-	  * @brief get the reference to the SDNA bNode struct
-	  */
+	 * @brief get the reference to the SDNA bNode struct
+	 */
 	bNode *getbNode();
 	
 	/**
 	 * @brief Is this node in the active group (the group that is being edited)
 	 * @param isInActiveGroup
 	 */
-	void setIsInActiveGroup(bool isInActiveGroup) {this->inActiveGroup = isInActiveGroup; }
+	void setIsInActiveGroup(bool isInActiveGroup) { this->inActiveGroup = isInActiveGroup; }
 	
 	/**
 	 * @brief Is this node part of the active group
@@ -77,63 +77,63 @@ public:
 	 * the active group will be the main tree (all nodes that are not part of a group will be active)
 	 * @return bool [false:true]
 	 */
-	inline bool isInActiveGroup() {return this->inActiveGroup;}
+	inline bool isInActiveGroup() { return this->inActiveGroup; }
+
+	/**
+	 * @brief convert node to operation
+	 *
+	 * @todo this must be described furter
+	 *
+	 * @param system the ExecutionSystem where the operations need to be added
+	 * @param context reference to the CompositorContext
+	 */
+	virtual void convertToOperations(ExecutionSystem *system, CompositorContext *context) = 0;
 	
 	/**
-	  * @brief convert node to operation
-	  *
-	  * @todo this must be described furter
-	  *
-	  * @param system the ExecutionSystem where the operations need to be added
-	  * @param context reference to the CompositorContext
-	  */
-	virtual void convertToOperations(ExecutionSystem *system, CompositorContext * context) =0;
-	
-	/**
-	  * this method adds a SetValueOperation as input of the input socket.
-	  * This can only be used from the convertToOperation method. all other usages are not allowed
-	  */
+	 * this method adds a SetValueOperation as input of the input socket.
+	 * This can only be used from the convertToOperation method. all other usages are not allowed
+	 */
 	void addSetValueOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
-	  * this method adds a SetColorOperation as input of the input socket.
-	  * This can only be used from the convertToOperation method. all other usages are not allowed
-	  */
+	 * this method adds a SetColorOperation as input of the input socket.
+	 * This can only be used from the convertToOperation method. all other usages are not allowed
+	 */
 	void addSetColorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
-	  * this method adds a SetVectorOperation as input of the input socket.
-	  * This can only be used from the convertToOperation method. all other usages are not allowed
-	  */
+	 * this method adds a SetVectorOperation as input of the input socket.
+	 * This can only be used from the convertToOperation method. all other usages are not allowed
+	 */
 	void addSetVectorOperation(ExecutionSystem *graph, InputSocket *inputsocket, int editorNodeInputSocketIndex);
 	
 	/**
-	  * Creates a new link between an outputSocket and inputSocket and registrates the link to the graph
-	  * @return the new created link
-	  */
+	 * Creates a new link between an outputSocket and inputSocket and registrates the link to the graph
+	 * @return the new created link
+	 */
 	SocketConnection *addLink(ExecutionSystem *graph, OutputSocket *outputSocket, InputSocket *inputsocket);
 	
 	/**
-	  * is this node a group node.
-	  */
+	 * is this node a group node.
+	 */
 	virtual bool isGroupNode() const { return false; }
 	/**
-	  * is this node a proxy node.
-	  */
+	 * is this node a proxy node.
+	 */
 	virtual bool isProxyNode() const { return false; }
 	
 	/**
-	  * @brief find the InputSocket by bNodeSocket
-	  *
-	  * @param socket
-	  */
+	 * @brief find the InputSocket by bNodeSocket
+	 *
+	 * @param socket
+	 */
 	InputSocket *findInputSocketBybNodeSocket(bNodeSocket *socket);
 	
 	/**
-	  * @brief find the OutputSocket by bNodeSocket
-	  *
-	  * @param socket
-	  */
+	 * @brief find the OutputSocket by bNodeSocket
+	 *
+	 * @param socket
+	 */
 	OutputSocket *findOutputSocketBybNodeSocket(bNodeSocket *socket);
 protected:
 	

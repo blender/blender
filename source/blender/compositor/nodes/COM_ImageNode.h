@@ -30,15 +30,15 @@ extern "C" {
 }
 
 /**
-  * @brief ImageNode
-  * @ingroup Node
-  */
+ * @brief ImageNode
+ * @ingroup Node
+ */
 class ImageNode : public Node {
 
 private:
 	NodeOperation *doMultilayerCheck(ExecutionSystem *system, RenderLayer *rl, Image *image, ImageUser *user, int framenumber, int outputsocketIndex, int pass, DataType datatype);
 public:
 	ImageNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 
 };

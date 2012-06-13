@@ -27,9 +27,9 @@
 #include "COM_SeparateRGBANode.h"
 
 /**
-  * @brief SeparateYCCANode
-  * @ingroup Node
-  */
+ * @brief SeparateYCCANode
+ * @ingroup Node
+ */
 class SeparateYCCANode : public SeparateRGBANode {
 public:
 	SeparateYCCANode(bNode *editorNode);

@@ -38,14 +38,14 @@ public:
 	MapUVOperation();
 
 	/**
-	* we need a 3x3 differential filter for UV Input and full buffer for the image
-	*/	
+	 * we need a 3x3 differential filter for UV Input and full buffer for the image
+	 */
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
 	 * Initialize the execution

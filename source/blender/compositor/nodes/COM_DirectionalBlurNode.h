@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief DirectionalBlurNode
-  * @ingroup Node
-  */
-class DirectionalBlurNode: public Node {
+ * @brief DirectionalBlurNode
+ * @ingroup Node
+ */
+class DirectionalBlurNode : public Node {
 public:
 	DirectionalBlurNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

@@ -36,10 +36,10 @@ extern "C" {
 }
 
 /**
-  * Base class for all renderlayeroperations
-  *
-  * @todo: rename to operation.
-  */
+ * Base class for all renderlayeroperations
+ *
+ * @todo: rename to operation.
+ */
 class TextureBaseOperation : public NodeOperation {
 private:
 	Tex *texture;
@@ -50,33 +50,33 @@ private:
 protected:
 
 	/**
-	  * Determine the output resolution. The resolution is retrieved from the Renderer
-	  */
+	 * Determine the output resolution. The resolution is retrieved from the Renderer
+	 */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
 	/**
-	  * Constructor
-	  */
+	 * Constructor
+	 */
 	TextureBaseOperation();
 
 public:
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
-	void setTexture(Tex *texture) {this->texture = texture;}
+	void setTexture(Tex *texture) { this->texture = texture; }
 	void initExecution();
 	void deinitExecution();
-	void setScene(const Scene *scene) {this->scene = scene;}
+	void setScene(const Scene *scene) { this->scene = scene; }
 };
 
-class TextureOperation:public TextureBaseOperation {
+class TextureOperation : public TextureBaseOperation {
 public:
 	TextureOperation();
 
 };
-class TextureAlphaOperation:public TextureBaseOperation {
+class TextureAlphaOperation : public TextureBaseOperation {
 public:
 	TextureAlphaOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 };
 

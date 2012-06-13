@@ -25,27 +25,27 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class LuminanceMatteOperation : public NodeOperation {
 private:
 	NodeChroma *settings;
 	SocketReader *inputImageProgram;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	LuminanceMatteOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
 	
-	void setSettings(NodeChroma *nodeChroma) {this->settings = nodeChroma;}
+	void setSettings(NodeChroma *nodeChroma) { this->settings = nodeChroma; }
 };
 #endif

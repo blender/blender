@@ -70,8 +70,8 @@ public:
 
 	void initExecution();
 	void deinitExecution();
-	void setNewWidth(int width) {this->newWidth = width;}
-	void setNewHeight(int height) {this->newHeight = height;}
+	void setNewWidth(int width) { this->newWidth = width; }
+	void setNewHeight(int height) { this->newHeight = height; }
 };
 
 #endif

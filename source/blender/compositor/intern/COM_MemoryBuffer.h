@@ -34,9 +34,9 @@ extern "C" {
 #include <vector>
 
 /**
-  * @brief state of a memory buffer
-  * @ingroup Memory
-  */
+ * @brief state of a memory buffer
+ * @ingroup Memory
+ */
 typedef enum MemoryBufferState {
 	/** @brief memory has been allocated on creator device and CPU machine, but kernel has not been executed */
 	COM_MB_ALLOCATED = 1,
@@ -49,77 +49,77 @@ typedef enum MemoryBufferState {
 class MemoryProxy;
 
 /**
-  * @brief a MemoryBuffer contains access to the data of a chunk
-  */
+ * @brief a MemoryBuffer contains access to the data of a chunk
+ */
 class MemoryBuffer {
 private:
 	/**
-	  * @brief proxy of the memory (same for all chunks in the same buffer)
-	  */
-	MemoryProxy * memoryProxy;
+	 * @brief proxy of the memory (same for all chunks in the same buffer)
+	 */
+	MemoryProxy *memoryProxy;
 	
 	/**
-	  * @brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
-	  */
+	 * @brief the type of buffer COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR
+	 */
 	DataType datatype;
 	
 	
 	/**
-	  * @brief region of this buffer inside reative to the MemoryProxy
-	  */
+	 * @brief region of this buffer inside reative to the MemoryProxy
+	 */
 	rcti rect;
 	
 	/**
-	  * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
-	  * @see memoryProxy
-	  */
+	 * brief refers to the chunknumber within the executiongroup where related to the MemoryProxy
+	 * @see memoryProxy
+	 */
 	unsigned int chunkNumber;
 	
 	/**
-	  * @brief width of the chunk
-	  */
+	 * @brief width of the chunk
+	 */
 	unsigned int chunkWidth;
 	
 	/**
-	  * @brief state of the buffer
-	  */
+	 * @brief state of the buffer
+	 */
 	MemoryBufferState state;
 	
 	/**
-	  * @brief the actual float buffer/data
-	  */
+	 * @brief the actual float buffer/data
+	 */
 	float *buffer;
 
 public:
 	/**
-	  * @brief construct new MemoryBuffer for a chunk
-	  */
+	 * @brief construct new MemoryBuffer for a chunk
+	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, unsigned int chunkNumber, rcti *rect);
 	
 	/**
-	  * @brief construct new temporarily MemoryBuffer for an area
-	  */
+	 * @brief construct new temporarily MemoryBuffer for an area
+	 */
 	MemoryBuffer(MemoryProxy *memoryProxy, rcti *rect);
 	
 	/**
-	  * @brief destructor
-	  */
+	 * @brief destructor
+	 */
 	~MemoryBuffer();
 	
 	/**
-	  * @brief read the ChunkNumber of this MemoryBuffer
-	  */
-	unsigned int getChunkNumber() {return this->chunkNumber;}
+	 * @brief read the ChunkNumber of this MemoryBuffer
+	 */
+	unsigned int getChunkNumber() { return this->chunkNumber; }
 	
 	/**
-	  * @brief get the data of this MemoryBuffer
-	  * @note buffer should already be available in memory
-	  */
-	float *getBuffer() {return this->buffer;}
+	 * @brief get the data of this MemoryBuffer
+	 * @note buffer should already be available in memory
+	 */
+	float *getBuffer() { return this->buffer; }
 	
 	/**
-	  * @brief after execution the state will be set to available by calling this method
-	  */
+	 * @brief after execution the state will be set to available by calling this method
+	 */
 	void setCreatedState() {
 		this->state = COM_MB_AVAILABLE;
 	}
@@ -130,34 +130,34 @@ public:
 	void readEWA(float result[4], float fx, float fy, float dx, float dy);
 	
 	/**
-	  * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
-	  */
-	inline const bool isTemporarily() const {return this->state == COM_MB_TEMPORARILY;}
+	 * @brief is this MemoryBuffer a temporarily buffer (based on an area, not on a chunk)
+	 */
+	inline const bool isTemporarily() const { return this->state == COM_MB_TEMPORARILY; }
 	
 	/**
-	  * @brief add the content from otherBuffer to this MemoryBuffer
-	  * @param otherBuffer source buffer
-	  */
+	 * @brief add the content from otherBuffer to this MemoryBuffer
+	 * @param otherBuffer source buffer
+	 */
 	void copyContentFrom(MemoryBuffer *otherBuffer);
 	
 	/**
-	  * @brief get the rect of this MemoryBuffer
-	  */
-	rcti *getRect() {return &this->rect;}
+	 * @brief get the rect of this MemoryBuffer
+	 */
+	rcti *getRect() { return &this->rect; }
 	
 	/**
-	  * @brief get the width of this MemoryBuffer
-	  */
+	 * @brief get the width of this MemoryBuffer
+	 */
 	int getWidth() const;
 	
 	/**
-	  * @brief get the height of this MemoryBuffer
-	  */
+	 * @brief get the height of this MemoryBuffer
+	 */
 	int getHeight() const;
 	
 	/**
-	  * @brief clear the buffer. Make all pixels black transparant.
-	  */
+	 * @brief clear the buffer. Make all pixels black transparant.
+	 */
 	void clear();
 	
 	MemoryBuffer *duplicate();

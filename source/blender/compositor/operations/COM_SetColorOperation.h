@@ -26,9 +26,9 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class SetColorOperation : public NodeOperation {
 private:
 	float channel1;
@@ -38,8 +38,8 @@ private:
 
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	SetColorOperation();
 
 	const float getChannel1() {return this->channel1;}
@@ -53,12 +53,12 @@ public:
 	void setChannels(float value[4]) {this->channel1 = value[0];this->channel2 = value[1];this->channel3 = value[2];this->channel4 = value[3];}
 
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	const bool isSetOperation() const {return true;}
+	const bool isSetOperation() const { return true; }
 
 };
 #endif

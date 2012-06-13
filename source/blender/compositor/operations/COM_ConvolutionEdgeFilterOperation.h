@@ -25,10 +25,10 @@
 
 #include "COM_ConvolutionFilterOperation.h"
 
-class ConvolutionEdgeFilterOperation: public ConvolutionFilterOperation {
+class ConvolutionEdgeFilterOperation : public ConvolutionFilterOperation {
 public:
 	ConvolutionEdgeFilterOperation();
-	void executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 };
 
 #endif

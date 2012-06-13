@@ -31,24 +31,24 @@ protected:
 	unsigned char *outputBuffer;
 
 	/**
-	  * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
-	  */
+	 * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
+	 */
 	bNode *node;
 	SocketReader *input;
 	float divider;
 
 public:
 	PreviewOperation();
-	bool isOutputOperation(bool rendering) const {return true;}
+	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
 	const CompositorPriority getRenderPriority() const;
 	
 	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	void setbNode(bNode *node) { this->node = node;}
+	void setbNode(bNode *node) { this->node = node; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	bool isPreviewOperation() {return true;}
+	bool isPreviewOperation() { return true; }
 	
 };
 #endif

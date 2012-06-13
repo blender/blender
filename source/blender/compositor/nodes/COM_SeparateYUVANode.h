@@ -27,9 +27,9 @@
 #include "COM_SeparateRGBANode.h"
 
 /**
-  * @brief SeparateYUVANode
-  * @ingroup Node
-  */
+ * @brief SeparateYUVANode
+ * @ingroup Node
+ */
 class SeparateYUVANode : public SeparateRGBANode {
 public:
 	SeparateYUVANode(bNode *editorNode);

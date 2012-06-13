@@ -28,41 +28,41 @@
 class DilateErodeThresholdOperation : public NodeOperation {
 private:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
 	
 	float distance;
 	float _switch;
 	float inset;
 	
 	/**
-	  * determines the area of interest to track pixels
-	  * keep this one as small as possible for speed gain.
-	  */
+	 * determines the area of interest to track pixels
+	 * keep this one as small as possible for speed gain.
+	 */
 	int scope;
 public:
 	DilateErodeThresholdOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setDistance(float distance) {this->distance = distance;}
-	void setSwitch(float sw) {this->_switch = sw;}
-	void setInset(float inset) {this->inset = inset;}
+	void setDistance(float distance) { this->distance = distance; }
+	void setSwitch(float sw) { this->_switch = sw; }
+	void setInset(float inset) { this->inset = inset; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
@@ -72,46 +72,46 @@ class DilateDistanceOperation : public NodeOperation {
 private:
 protected:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
 	float distance;
 	int scope;
 public:
 	DilateDistanceOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setDistance(float distance) {this->distance = distance;}
+	void setDistance(float distance) { this->distance = distance; }
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
 	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
-                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
-                       list<cl_kernel> *clKernelsToCleanUp);
+	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp,
+	                   list<cl_kernel> *clKernelsToCleanUp);
 };
 class ErodeDistanceOperation : public DilateDistanceOperation {
 public:
 	ErodeDistanceOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 
 	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
 	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
@@ -122,9 +122,9 @@ public:
 class DilateStepOperation : public NodeOperation {
 protected:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
 	
 	int iterations;
 	
@@ -133,22 +133,22 @@ public:
 	DilateStepOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setIterations(int iterations) {this->iterations = iterations;}
+	void setIterations(int iterations) { this->iterations = iterations; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };

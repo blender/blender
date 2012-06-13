@@ -32,30 +32,30 @@ typedef enum MovieClipAttribute {
 	MCA_ANGLE
 } MovieClipAttribute;
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class MovieClipAttributeOperation : public NodeOperation {
 private:
-	MovieClip * clip;
+	MovieClip *clip;
 	float value;
 	bool valueSet;
 	int framenumber;
 	MovieClipAttribute attribute;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	MovieClipAttributeOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 
-	void setMovieClip(MovieClip *clip) {this->clip = clip;}
-	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
-	void setAttribute(MovieClipAttribute attribute) {this->attribute = attribute;}
+	void setMovieClip(MovieClip *clip) { this->clip = clip; }
+	void setFramenumber(int framenumber) { this->framenumber = framenumber; }
+	void setAttribute(MovieClipAttribute attribute) { this->attribute = attribute; }
 };
 #endif

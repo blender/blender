@@ -27,7 +27,7 @@
 
 #include "COM_ImageOperation.h"
 
-class MultilayerBaseOperation: public BaseImageOperation {
+class MultilayerBaseOperation : public BaseImageOperation {
 private:
 	int passId;
 	RenderLayer *renderlayer;
@@ -35,34 +35,34 @@ protected:
 	ImBuf *getImBuf();
 public:
 	/**
-	  * Constructor
-	  */
+	 * Constructor
+	 */
 	MultilayerBaseOperation(int pass);
-	void setRenderLayer(RenderLayer *renderlayer) {this->renderlayer = renderlayer;}
+	void setRenderLayer(RenderLayer *renderlayer) { this->renderlayer = renderlayer; }
 };
 
-class MultilayerColorOperation: public MultilayerBaseOperation {
+class MultilayerColorOperation : public MultilayerBaseOperation {
 public:
-	MultilayerColorOperation(int pass): MultilayerBaseOperation(pass) {
+	MultilayerColorOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_COLOR);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 };
 
-class MultilayerValueOperation: public MultilayerBaseOperation {
+class MultilayerValueOperation : public MultilayerBaseOperation {
 public:
-	MultilayerValueOperation(int pass): MultilayerBaseOperation(pass) {
+	MultilayerValueOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_VALUE);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 };
 
-class MultilayerVectorOperation: public MultilayerBaseOperation {
+class MultilayerVectorOperation : public MultilayerBaseOperation {
 public:
-	MultilayerVectorOperation(int pass): MultilayerBaseOperation(pass) {
+	MultilayerVectorOperation(int pass) : MultilayerBaseOperation(pass) {
 		this->addOutputSocket(COM_DT_VECTOR);
 	}
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 };
 
 #endif
