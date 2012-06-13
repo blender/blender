@@ -54,6 +54,7 @@ public:
 	bool cast_shadow;
 
 	int shader;
+	int samples;
 
 	void tag_update(Scene *scene);
 };

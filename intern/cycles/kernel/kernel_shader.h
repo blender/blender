@@ -407,6 +407,25 @@ __device int shader_bsdf_sample(KernelGlobals *kg, const ShaderData *sd,
 #endif
 }
 
+__device int shader_bsdf_sample_closure(KernelGlobals *kg, const ShaderData *sd,
+	const ShaderClosure *sc, float randu, float randv, BsdfEval *bsdf_eval,
+	float3 *omega_in, differential3 *domega_in, float *pdf)
+{
+	int label;
+	float3 eval;
+
+	*pdf = 0.0f;
+#ifdef __OSL__
+	label = OSLShader::bsdf_sample(sd, sc, randu, randv, eval, *omega_in, *domega_in, *pdf);
+#else
+	label = svm_bsdf_sample(sd, sc, randu, randv, &eval, omega_in, domega_in, pdf);
+#endif
+	if(*pdf != 0.0f)
+		bsdf_eval_init(bsdf_eval, sc->type, eval*sc->weight, kernel_data.film.use_light_pass);
+
+	return label;
+}
+
 __device void shader_bsdf_blur(KernelGlobals *kg, ShaderData *sd, float roughness)
 {
 #ifndef __OSL__
@@ -676,6 +695,35 @@ __device bool shader_transparent_shadow(KernelGlobals *kg, Intersection *isect)
 	int flag = kernel_tex_fetch(__shader_flag, (shader & SHADER_MASK)*2);
 
 	return (flag & SD_HAS_SURFACE_TRANSPARENT) != 0;
+}
+#endif
+
+/* Merging */
+
+#ifdef __NON_PROGRESSIVE__
+__device void shader_merge_closures(KernelGlobals *kg, ShaderData *sd)
+{
+#ifndef __OSL__
+	/* merge identical closures, better when we sample a single closure at a time */
+	for(int i = 0; i < sd->num_closure; i++) {
+		ShaderClosure *sci = &sd->closure[i];
+
+		for(int j = i + 1; j < sd->num_closure; j++) {
+			ShaderClosure *scj = &sd->closure[j];
+
+			if(sci->type == scj->type && sci->data0 == scj->data0 && sci->data1 == scj->data1) {
+				sci->weight += scj->weight;
+				sci->sample_weight += scj->sample_weight;
+
+				int size = sd->num_closure - (j+1);
+				if(size > 0)
+					memmove(scj, scj+1, size*sizeof(ShaderClosure));
+
+				sd->num_closure--;
+			}
+		}
+	}
+#endif
 }
 #endif
 

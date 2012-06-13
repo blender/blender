@@ -44,8 +44,48 @@ class CyclesButtonsPanel():
         return rd.engine == 'CYCLES'
 
 
-class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
-    bl_label = "Integrator"
+class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
+    bl_label = "Sampling"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+
+        scene = context.scene
+        cscene = scene.cycles
+
+        split = layout.split()
+
+        col = split.column()
+        sub = col.column(align=True)
+        sub.active = cscene.device == 'CPU'
+        sub.prop(cscene, "progressive")
+
+        sub = col.column(align=True)
+        sub.prop(cscene, "seed")
+        sub.prop(cscene, "sample_clamp")
+
+        if cscene.progressive or cscene.device != 'CPU':
+            col = split.column(align=True)
+            col.label(text="Samples:")
+            col.prop(cscene, "samples", text="Render")
+            col.prop(cscene, "preview_samples", text="Preview")
+        else:
+            sub = col.column(align=True)
+            sub.label(text="AA Samples:")
+            sub.prop(cscene, "aa_samples", text="Render")
+            sub.prop(cscene, "preview_aa_samples", text="Preview")
+
+            col = split.column(align=True)
+            col.label(text="Samples:")
+            col.prop(cscene, "diffuse_samples", text="Diffuse")
+            col.prop(cscene, "glossy_samples", text="Glossy")
+            col.prop(cscene, "transmission_samples", text="Transmission")
+            col.prop(cscene, "ao_samples", text="AO")
+            col.prop(cscene, "mesh_light_samples", text="Mesh Light")
+
+class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
+    bl_label = "Light Paths"
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -62,18 +102,17 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        sub = col.column(align=True)
-        sub.label(text="Samples:")
-        sub.prop(cscene, "samples", text="Render")
-        sub.prop(cscene, "preview_samples", text="Preview")
-        sub.prop(cscene, "seed")
-        sub.prop(cscene, "sample_clamp")
 
         sub = col.column(align=True)
         sub.label("Transparency:")
         sub.prop(cscene, "transparent_max_bounces", text="Max")
         sub.prop(cscene, "transparent_min_bounces", text="Min")
         sub.prop(cscene, "use_transparent_shadows", text="Shadows")
+
+        col.separator()
+
+        col.prop(cscene, "no_caustics")
+        col.prop(cscene, "blur_glossy")
 
         col = split.column()
 
@@ -83,15 +122,9 @@ class CyclesRender_PT_integrator(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "min_bounces", text="Min")
 
         sub = col.column(align=True)
-        sub.label(text="Light Paths:")
         sub.prop(cscene, "diffuse_bounces", text="Diffuse")
         sub.prop(cscene, "glossy_bounces", text="Glossy")
         sub.prop(cscene, "transmission_bounces", text="Transmission")
-
-        col.separator()
-
-        col.prop(cscene, "no_caustics")
-        col.prop(cscene, "blur_glossy")
 
 
 class CyclesRender_PT_motion_blur(CyclesButtonsPanel, Panel):
@@ -467,6 +500,7 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
 
         lamp = context.lamp
         clamp = lamp.cycles
+        cscene = context.scene.cycles
 
         layout.prop(lamp, "type", expand=True)
 
@@ -484,6 +518,9 @@ class CyclesLamp_PT_lamp(CyclesButtonsPanel, Panel):
             elif lamp.shape == 'RECTANGLE':
                 sub.prop(lamp, "size", text="Size X")
                 sub.prop(lamp, "size_y", text="Size Y")
+
+        if not cscene.progressive and cscene.device == 'CPU':
+            col.prop(clamp, "samples")
 
         col = split.column()
         col.prop(clamp, "cast_shadow")
@@ -604,13 +641,16 @@ class CyclesWorld_PT_settings(CyclesButtonsPanel, Panel):
 
         world = context.world
         cworld = world.cycles
+        cscene = context.scene.cycles
 
         col = layout.column()
 
         col.prop(cworld, "sample_as_light")
-        row = col.row()
-        row.active = cworld.sample_as_light
-        row.prop(cworld, "sample_map_resolution")
+        sub = col.row(align=True)
+        sub.active = cworld.sample_as_light
+        sub.prop(cworld, "sample_map_resolution")
+        if not cscene.progressive and cscene.device == 'CPU':
+            sub.prop(cworld, "samples")
 
 
 class CyclesMaterial_PT_surface(CyclesButtonsPanel, Panel):

@@ -154,6 +154,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 	/* shadow */
 	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
 	light->cast_shadow = get_boolean(clamp, "cast_shadow");
+	light->samples = get_int(clamp, "samples");
 
 	/* tag */
 	light->tag_update(scene);
@@ -178,6 +179,7 @@ void BlenderSync::sync_background_light()
 			{
 				light->type = LIGHT_BACKGROUND;
 				light->map_resolution  = get_int(cworld, "sample_map_resolution");
+				light->samples  = get_int(cworld, "samples");
 				light->shader = scene->default_background;
 
 				light->tag_update(scene);

@@ -388,6 +388,12 @@ __device float light_sample_pdf(KernelGlobals *kg, LightSample *ls, float3 I, fl
 	return pdf;
 }
 
+__device int light_select_num_samples(KernelGlobals *kg, int index)
+{
+	float4 data3 = kernel_tex_fetch(__light_data, index*LIGHT_SIZE + 3);
+	return __float_as_int(data3.x);
+}
+
 __device void light_select(KernelGlobals *kg, int index, float randu, float randv, float3 P, LightSample *ls, float *pdf)
 {
 	regular_light_sample(kg, index, randu, randv, P, ls, pdf);
