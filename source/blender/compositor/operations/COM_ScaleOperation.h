@@ -25,7 +25,7 @@
 
 #include "COM_NodeOperation.h"
 
-class ScaleOperation: public NodeOperation {
+class ScaleOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
 	SocketReader *inputXOperation;
@@ -35,13 +35,13 @@ private:
 public:
 	ScaleOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 };
 
-class ScaleAbsoluteOperation: public NodeOperation {
+class ScaleAbsoluteOperation : public NodeOperation {
 	SocketReader *inputOperation;
 	SocketReader *inputXOperation;
 	SocketReader *inputYOperation;
@@ -50,13 +50,13 @@ class ScaleAbsoluteOperation: public NodeOperation {
 public:
 	ScaleAbsoluteOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 };
 
-class ScaleFixedSizeOperation: public NodeOperation {
+class ScaleFixedSizeOperation : public NodeOperation {
 	SocketReader *inputOperation;
 	int newWidth;
 	int newHeight;
@@ -66,7 +66,7 @@ public:
 	ScaleFixedSizeOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
