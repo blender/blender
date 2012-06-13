@@ -1269,6 +1269,7 @@ class CLIP_MT_mask(Menu):
         layout.separator()
         layout.operator("mask.cyclic_toggle")
         layout.operator("mask.switch_direction")
+        layout.operator("mask.normals_make_consistent")
         layout.operator("mask.feather_weight_clear")  # TODO, better place?
 
         layout.separator()

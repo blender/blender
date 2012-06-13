@@ -992,6 +992,7 @@ void MASK_OT_delete(wmOperatorType *ot)
 /* *** switch direction *** */
 static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 {
+	Scene *scene = CTX_data_scene(C);
 	Mask *mask = CTX_data_edit_mask(C);
 	MaskLayer *masklay;
 
@@ -1000,6 +1001,7 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 	/* do actual selection */
 	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
 		MaskSpline *spline;
+		int change_layer = FALSE;
 
 		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
 			continue;
@@ -1009,6 +1011,13 @@ static int mask_switch_direction_exec(bContext *C, wmOperator *UNUSED(op))
 			if (ED_mask_spline_select_check(spline)) {
 				BKE_mask_spline_direction_switch(masklay, spline);
 				change = TRUE;
+				change_layer = TRUE;
+			}
+		}
+
+		if (change_layer) {
+			if (IS_AUTOKEY_ON(scene)) {
+				ED_mask_layer_shape_auto_key(masklay, CFRA);
 			}
 		}
 	}
@@ -1034,6 +1043,73 @@ void MASK_OT_switch_direction(wmOperatorType *ot)
 
 	/* api callbacks */
 	ot->exec = mask_switch_direction_exec;
+	ot->poll = ED_maskedit_mask_poll;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
+}
+
+
+/* *** recalc normals *** */
+static int mask_normals_make_consistent_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Mask *mask = CTX_data_edit_mask(C);
+	MaskLayer *masklay;
+	int i;
+
+	int change = FALSE;
+
+	/* do actual selection */
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+		int change_layer = FALSE;
+
+		if (masklay->restrictflag & (MASK_RESTRICT_VIEW | MASK_RESTRICT_SELECT)) {
+			continue;
+		}
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (MASKPOINT_ISSEL_ANY(point)) {
+					BKE_mask_calc_handle_point_auto(spline, point, FALSE);
+					change = TRUE;
+					change_layer = TRUE;
+				}
+			}
+		}
+
+		if (change_layer) {
+			if (IS_AUTOKEY_ON(scene)) {
+				ED_mask_layer_shape_auto_key(masklay, CFRA);
+			}
+		}
+	}
+
+	if (change) {
+		/* TODO: only update this spline */
+		BKE_mask_update_display(mask, CTX_data_scene(C)->r.cfra);
+
+		WM_event_add_notifier(C, NC_MASK | ND_SELECT, mask);
+
+		return OPERATOR_FINISHED;
+	}
+
+	return OPERATOR_CANCELLED;
+}
+
+/* named to match mesh recalc normals */
+void MASK_OT_normals_make_consistent(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Recalc Normals";
+	ot->description = "Re-calculate the direction of selected handles";
+	ot->idname = "MASK_OT_normals_make_consistent";
+
+	/* api callbacks */
+	ot->exec = mask_normals_make_consistent_exec;
 	ot->poll = ED_maskedit_mask_poll;
 
 	/* flags */
