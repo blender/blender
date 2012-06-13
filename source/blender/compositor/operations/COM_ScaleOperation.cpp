@@ -22,6 +22,10 @@
 
 #include "COM_ScaleOperation.h"
 
+#define USE_FORCE_BICUBIC
+/* XXX - ignore input and use default from old compositor,
+ * could become an option like the transform node - campbell */
+
 ScaleOperation::ScaleOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
@@ -52,6 +56,10 @@ void ScaleOperation::deinitExecution()
 
 void ScaleOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+#ifdef USE_FORCE_BICUBIC
+	sampler = COM_PS_BICUBIC;
+#endif
+
 	float scaleX[4];
 	float scaleY[4];
 
@@ -118,6 +126,10 @@ void ScaleAbsoluteOperation::deinitExecution()
 
 void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+#ifdef USE_FORCE_BICUBIC
+	sampler = COM_PS_BICUBIC;
+#endif
+
 	float scaleX[4];
 	float scaleY[4];
 
@@ -186,6 +198,10 @@ void ScaleFixedSizeOperation::deinitExecution()
 
 void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+#ifdef USE_FORCE_BICUBIC
+	sampler = COM_PS_BICUBIC;
+#endif
+
 	this->inputOperation->read(color, x * relX, y * relY, sampler, inputBuffers);
 }
 
