@@ -22,7 +22,8 @@
 
 #ifndef _COM_GlareBaseOperation_h
 #define _COM_GlareBaseOperation_h
-#include "COM_NodeOperation.h"
+
+#include "COM_SingleThreadedNodeOperation.h"
 #include "DNA_node_types.h"
 
 
@@ -55,7 +56,7 @@ typedef float fRGB[4];
                           } (void)0
 
 
-class GlareBaseOperation : public NodeOperation {
+class GlareBaseOperation : public SingleThreadedNodeOperation {
 private:
 	/**
 	  * @brief Cached reference to the inputProgram
@@ -66,16 +67,7 @@ private:
 	  * @brief settings of the glare node.
 	  */
 	NodeGlare * settings;
-	
-	float *cachedInstance;
-
 public:
-	
-	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
-	
 	/**
 	  * Initialize the execution
 	  */
@@ -86,15 +78,15 @@ public:
 	  */
 	void deinitExecution();
 
-	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-
 	void setGlareSettings(NodeGlare * settings) {this->settings = settings;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	
 protected:
 	GlareBaseOperation();
 	
 	virtual void generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings) = 0;
 	
+	MemoryBuffer *createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers);
 	
 };
 #endif

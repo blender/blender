@@ -30,7 +30,6 @@ WriteBufferOperation::WriteBufferOperation() :NodeOperation()
 	this->memoryProxy = new MemoryProxy();
 	this->memoryProxy->setWriteBufferOperation(this);
 	this->memoryProxy->setExecutor(NULL);
-	this->tree = NULL;
 }
 WriteBufferOperation::~WriteBufferOperation()
 {
@@ -78,7 +77,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 				offset4 +=COM_NUMBER_OF_CHANNELS;
 
 			}
-			if (tree->test_break && tree->test_break(tree->tbh)) {
+			if (isBreaked()) {
 				breaked = true;
 			}
 
@@ -103,7 +102,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 				input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
 				offset4 +=COM_NUMBER_OF_CHANNELS;
 			}
-			if (tree->test_break && tree->test_break(tree->tbh)) {
+			if (isBreaked()) {
 				breaked = true;
 			}
 		}

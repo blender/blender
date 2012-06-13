@@ -59,7 +59,7 @@ void CompositorOperation::initExecution()
 
 void CompositorOperation::deinitExecution()
 {
-	if (tree->test_break && !tree->test_break(tree->tbh)) {
+	if (isBreaked()) {
 		const Scene * scene = this->scene;
 		Render *re = RE_GetRender(scene->id.name);
 		RenderResult *rr = RE_AcquireResultWrite(re);
@@ -118,7 +118,7 @@ void CompositorOperation::executeRegion(rcti *rect, unsigned int tileNumber, Mem
 			buffer[offset+2] = color[2];
 			buffer[offset+3] = color[3];
 			offset +=COM_NUMBER_OF_CHANNELS;
-			if (tree->test_break && tree->test_break(tree->tbh)) {
+			if (isBreaked()) {
 				breaked = true;
 			}
 		}

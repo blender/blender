@@ -67,7 +67,7 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 	if (!this->mask)
 		return NULL;
 
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->rasterizedMask == NULL) {
 		int width = this->getWidth();
 		int height = this->getHeight();
@@ -78,8 +78,7 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 
 		this->rasterizedMask = buffer;
 	}
-	BLI_mutex_unlock(getMutex());
-
+	unlockMutex();
 	return this->rasterizedMask;
 }
 

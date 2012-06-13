@@ -76,8 +76,7 @@ bool NormalizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 
 void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
-
+	lockMutex();
 	if (this->cachedInstance == NULL) {
 		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		/* using generic two floats struct to store x: min  y: mult */
@@ -105,7 +104,7 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 		this->cachedInstance = minmult;
 	}
 
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cachedInstance;
 }
 

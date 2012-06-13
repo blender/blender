@@ -97,6 +97,9 @@ set(SRC
 	intern/COM_CompositorContext.h
 	intern/COM_ChannelInfo.cpp
 	intern/COM_ChannelInfo.h
+	intern/COM_SingleThreadedNodeOperation.cpp
+	intern/COM_SingleThreadedNodeOperation.h
+
 	operations/COM_QualityStepHelper.h
 	operations/COM_QualityStepHelper.cpp
 

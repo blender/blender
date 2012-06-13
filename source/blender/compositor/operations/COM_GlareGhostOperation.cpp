@@ -45,15 +45,21 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 	MemoryBuffer *gbuf = inputTile->duplicate();
 	MemoryBuffer *tbuf1 = inputTile->duplicate();
 
+	bool breaked = false;
+	
 	FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 0, 3);
-	FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 1, 3);
-	FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 2, 3);
+	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 1, 3);
+	if (isBreaked()) breaked = true;
+	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf1, s1, 2, 3);
 	
 	MemoryBuffer *tbuf2 = tbuf1->duplicate();
 	
-	FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 0, 3);
-	FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 1, 3);
-	FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 2, 3);
+	if (isBreaked()) breaked = true;
+	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 0, 3);
+	if (isBreaked()) breaked = true;
+	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 1, 3);
+	if (isBreaked()) breaked = true;
+	if (!breaked) FastGaussianBlurOperation::IIR_gauss(tbuf2, s2, 2, 3);
 	
 	if (settings->iter & 1) ofs = 0.5f; else ofs = 0.f;
 	for (x=0; x<(settings->iter*4); x++) {
@@ -68,7 +74,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 
 	sc = 2.13;
 	isc = -0.97;
-	for (y=0; y<gbuf->getHeight(); y++) {
+	for (y=0; y<gbuf->getHeight() &(!breaked); y++) {
 		v = (float)(y+0.5f) / (float)gbuf->getHeight();
 		for (x=0; x<gbuf->getWidth(); x++) {
 			u = (float)(x+0.5f) / (float)gbuf->getWidth();
@@ -83,11 +89,13 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 			
 			gbuf->writePixel(x, y, c);
 		}
+		if (isBreaked()) breaked = true;
+		
 	}
 
 	memset(tbuf1->getBuffer(), 0, tbuf1->getWidth()*tbuf1->getHeight()*COM_NUMBER_OF_CHANNELS*sizeof(float));
-	for (n=1; n<settings->iter; n++) {
-		for (y=0; y<gbuf->getHeight(); y++) {
+	for (n=1; n<settings->iter &(!breaked); n++) {
+		for (y=0; y<gbuf->getHeight()&(!breaked); y++) {
 			v = (float)(y+0.5f) / (float)gbuf->getHeight();
 			for (x=0; x<gbuf->getWidth(); x++) {
 				u = (float)(x+0.5f) / (float)gbuf->getWidth();
@@ -103,6 +111,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 				}
 				tbuf1->writePixel(x, y, tc);
 			}
+			if (isBreaked()) breaked = true;
 		}
 		memcpy(gbuf->getBuffer(), tbuf1->getBuffer(), tbuf1->getWidth()*tbuf1->getHeight()*COM_NUMBER_OF_CHANNELS*sizeof(float));
 	}

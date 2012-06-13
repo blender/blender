@@ -20,35 +20,41 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_PreviewOperation_h
-#define _COM_PreviewOperation_h
+#ifndef _COM_SingleThreadedNodeOperation_h
+#define _COM_SingleThreadedNodeOperation_h
 #include "COM_NodeOperation.h"
-#include "DNA_image_types.h"
-#include "BLI_rect.h"
 
-class PreviewOperation : public NodeOperation {
+class SingleThreadedNodeOperation : public NodeOperation {
+private:
+	MemoryBuffer *cachedInstance;
+	
 protected:
-	unsigned char *outputBuffer;
-
-	/**
-	  * @brief holds reference to the SDNA bNode, where this nodes will render the preview image for
-	  */
-	bNode *node;
-	SocketReader *input;
-	float divider;
+	inline bool isCached() {
+		return cachedInstance != NULL;
+	}
 
 public:
-	PreviewOperation();
-	bool isOutputOperation(bool rendering) const {return true;}
+	SingleThreadedNodeOperation();
+	
+	/**
+	  * the inner loop of this program
+	  */
+	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	
+	/**
+	  * Initialize the execution
+	  */
 	void initExecution();
+	
+	/**
+	  * Deinitialize the execution
+	  */
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const;
+
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+
+	virtual MemoryBuffer* createMemoryBuffer(rcti *rect, MemoryBuffer **memoryBuffers) = 0;
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	void setbNode(bNode *node) { this->node = node;}
-	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	bool isPreviewOperation() {return true;}
-	
+	int isSingleThreaded() {return true;}
 };
 #endif

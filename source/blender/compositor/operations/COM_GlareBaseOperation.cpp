@@ -23,56 +23,41 @@
 #include "COM_GlareBaseOperation.h"
 #include "BLI_math.h"
 
-GlareBaseOperation::GlareBaseOperation(): NodeOperation()
+GlareBaseOperation::GlareBaseOperation(): SingleThreadedNodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->settings = NULL;
-	this->cachedInstance = NULL;
-	setComplex(true);
 }
 void GlareBaseOperation::initExecution()
 {
-	initMutex();
+	SingleThreadedNodeOperation::initExecution();
 	this->inputProgram = getInputSocketReader(0);
-	this->cachedInstance = NULL;
-}
-
-void GlareBaseOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)\
-{
-	float *buffer = (float*) data;
-	int index = (y*this->getWidth() + x) * COM_NUMBER_OF_CHANNELS;
-	color[0] = buffer[index];
-	color[1] = buffer[index+1];
-	color[2] = buffer[index+2];
-	color[3] = buffer[index+3];
 }
 
 void GlareBaseOperation::deinitExecution()
 {
-	deinitMutex();
 	this->inputProgram = NULL;
-	if (this->cachedInstance) {
-		delete cachedInstance;
-		this->cachedInstance = NULL;
-	}
+	SingleThreadedNodeOperation::deinitExecution();
 }
-void *GlareBaseOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+
+MemoryBuffer *GlareBaseOperation::createMemoryBuffer(rcti *rect2, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
-	if (this->cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer*)inputProgram->initializeTileData(rect, memoryBuffers);
-		float *data = new float[this->getWidth()*this->getHeight()*COM_NUMBER_OF_CHANNELS];
-		this->generateGlare(data, tile, this->settings);
-		this->cachedInstance = data;
-	}
-	BLI_mutex_unlock(getMutex());
-	return this->cachedInstance;
+	MemoryBuffer *tile = (MemoryBuffer*)inputProgram->initializeTileData(rect2, memoryBuffers);
+	rcti rect;
+	rect.xmin = 0;
+	rect.ymin = 0;
+	rect.xmax = getWidth();
+	rect.ymax = getHeight();
+	MemoryBuffer *result = new MemoryBuffer(NULL, &rect);
+	float *data = result->getBuffer();
+	this->generateGlare(data, tile, this->settings);
+	return result;
 }
 
 bool GlareBaseOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this->cachedInstance != NULL) {
+	if (isCached()) {
 		return false;
 	}
 	else {

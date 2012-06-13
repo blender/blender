@@ -118,7 +118,7 @@ bool TonemapOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 
 void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cachedInstance == NULL) {
 		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		AvgLogLum *data = new AvgLogLum();
@@ -150,7 +150,7 @@ void *TonemapOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuff
 		data->igm = (this->data->gamma==0.f) ? 1 : (1.f / this->data->gamma);
 		this->cachedInstance = data;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cachedInstance;
 }
 

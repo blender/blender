@@ -24,7 +24,7 @@
 #include "BLI_math.h"
 
 // DilateErode Distance Threshold
-DilateErodeDistanceOperation::DilateErodeDistanceOperation(): NodeOperation()
+DilateErodeThresholdOperation::DilateErodeThresholdOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -34,7 +34,7 @@ DilateErodeDistanceOperation::DilateErodeDistanceOperation(): NodeOperation()
 	this->_switch = 0.5f;
 	this->distance = 0.0f;
 }
-void DilateErodeDistanceOperation::initExecution()
+void DilateErodeThresholdOperation::initExecution()
 {
 	this->inputProgram = this->getInputSocketReader(0);
 	if (this->distance < 0.0f) {
@@ -53,13 +53,13 @@ void DilateErodeDistanceOperation::initExecution()
 	}
 }
 
-void *DilateErodeDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *DilateErodeThresholdOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	void *buffer = inputProgram->initializeTileData(NULL, memoryBuffers);
 	return buffer;
 }
 
-void DilateErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	float inputValue[4];
 	const float sw = this->_switch;
@@ -142,12 +142,12 @@ void DilateErodeDistanceOperation::executePixel(float *color, int x, int y, Memo
 	}
 }
 
-void DilateErodeDistanceOperation::deinitExecution()
+void DilateErodeThresholdOperation::deinitExecution()
 {
 	this->inputProgram = NULL;
 }
 
-bool DilateErodeDistanceOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool DilateErodeThresholdOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 
@@ -167,6 +167,7 @@ DilateDistanceOperation::DilateDistanceOperation(): NodeOperation()
 	this->setComplex(true);
 	this->inputProgram = NULL;
 	this->distance = 0.0f;
+	this->setOpenCL(true);
 }
 void DilateDistanceOperation::initExecution()
 {
@@ -231,6 +232,28 @@ bool DilateDistanceOperation::determineDependingAreaOfInterest(rcti *input, Read
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
+
+static cl_kernel dilateKernel = 0;
+void DilateDistanceOperation::executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                                       list<cl_kernel> *clKernelsToCleanUp) 
+{
+	if (!dilateKernel) {
+		dilateKernel = COM_clCreateKernel(program, "dilateKernel", NULL);
+	}
+	cl_int distanceSquared = this->distance*this->distance;
+	cl_int scope = this->scope;
+	
+	COM_clAttachMemoryBufferToKernelParameter(context, dilateKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
+	COM_clAttachOutputMemoryBufferToKernelParameter(dilateKernel, 1, clOutputBuffer);
+	COM_clAttachMemoryBufferOffsetToKernelParameter(dilateKernel, 3, outputMemoryBuffer);
+	clSetKernelArg(dilateKernel, 4, sizeof(cl_int), &scope);
+	clSetKernelArg(dilateKernel, 5, sizeof(cl_int), &distanceSquared);
+	COM_clAttachSizeToKernelParameter(dilateKernel, 6);
+	COM_clEnqueueRange(queue, dilateKernel, outputMemoryBuffer, 7);
+}
+
 // Erode Distance
 ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation() 
 {
@@ -268,6 +291,27 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 	color[0] = value;
 }
 
+static cl_kernel erodeKernel = 0;
+void ErodeDistanceOperation::executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+                                       MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+                                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                                       list<cl_kernel> *clKernelsToCleanUp) 
+{
+	if (!erodeKernel) {
+		erodeKernel = COM_clCreateKernel(program, "erodeKernel", NULL);
+	}
+	cl_int distanceSquared = this->distance*this->distance;
+	cl_int scope = this->scope;
+	
+	COM_clAttachMemoryBufferToKernelParameter(context, erodeKernel, 0,  2, clMemToCleanUp, inputMemoryBuffers, this->inputProgram);
+	COM_clAttachOutputMemoryBufferToKernelParameter(erodeKernel, 1, clOutputBuffer);
+	COM_clAttachMemoryBufferOffsetToKernelParameter(erodeKernel, 3, outputMemoryBuffer);
+	clSetKernelArg(erodeKernel, 4, sizeof(cl_int), &scope);
+	clSetKernelArg(erodeKernel, 5, sizeof(cl_int), &distanceSquared);
+	COM_clAttachSizeToKernelParameter(erodeKernel, 6);
+	COM_clEnqueueRange(queue, erodeKernel, outputMemoryBuffer, 7);
+}
+
 // Dilate step
 DilateStepOperation::DilateStepOperation(): NodeOperation()
 {
@@ -288,7 +332,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 	if (this->cached_buffer != NULL) {
 		return this->cached_buffer;
 	}
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cached_buffer == NULL) {
 		MemoryBuffer *buffer = (MemoryBuffer*)inputProgram->initializeTileData(NULL, memoryBuffers);
 		float *rectf = buffer->convertToValueBuffer();
@@ -327,7 +371,7 @@ void *DilateStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 		}
 		this->cached_buffer = rectf;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cached_buffer;
 }
 
@@ -374,7 +418,7 @@ void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 	if (this->cached_buffer != NULL) {
 		return this->cached_buffer;
 	}
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cached_buffer == NULL) {
 		MemoryBuffer *buffer = (MemoryBuffer*)inputProgram->initializeTileData(NULL, memoryBuffers);
 		float *rectf = buffer->convertToValueBuffer();
@@ -413,6 +457,6 @@ void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 		}
 		this->cached_buffer = rectf;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cached_buffer;
 }

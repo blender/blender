@@ -54,6 +54,7 @@ ExecutionGroup::ExecutionGroup()
 	this->numberOfChunks = 0;
 	this->initialized = false;
 	this->openCL = false;
+	this->singleThreaded = false;
 	this->chunksFinished = 0;
 }
 
@@ -100,6 +101,7 @@ void ExecutionGroup::addOperation(ExecutionSystem *system, NodeOperation *operat
 		if (!operation->isBufferOperation()) {
 			this->complex = operation->isComplex();
 			this->openCL = operation->isOpenCL();
+			this->singleThreaded = operation->isSingleThreaded();
 			this->initialized = true;
 		}
 		this->operations.push_back(operation);
@@ -191,10 +193,17 @@ void ExecutionGroup::determineResolution(unsigned int resolution[])
 
 void ExecutionGroup::determineNumberOfChunks()
 {
-	const float chunkSizef = this->chunkSize;
-	this->numberOfXChunks = ceil(this->width / chunkSizef);
-	this->numberOfYChunks = ceil(this->height / chunkSizef);
-	this->numberOfChunks = this->numberOfXChunks * this->numberOfYChunks;
+	if (singleThreaded) {
+		this->numberOfXChunks = 1;
+		this->numberOfYChunks = 1;
+		this->numberOfChunks = 1;
+	} 
+	else {
+		const float chunkSizef = this->chunkSize;
+		this->numberOfXChunks = ceil(this->width / chunkSizef);
+		this->numberOfYChunks = ceil(this->height / chunkSizef);
+		this->numberOfChunks = this->numberOfXChunks * this->numberOfYChunks;
+	}
 }
 
 /**
@@ -435,9 +444,14 @@ void ExecutionGroup::finalizeChunkExecution(int chunkNumber, MemoryBuffer** memo
 
 inline void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int xChunk, const unsigned int yChunk ) const
 {
-	const unsigned int minx = xChunk * chunkSize;
-	const unsigned int miny = yChunk * chunkSize;
-	BLI_init_rcti(rect, minx, min(minx + this->chunkSize, this->width), miny, min(miny + this->chunkSize, this->height));
+	if (singleThreaded) {
+		BLI_init_rcti(rect, 0, this->width, 0, this->height);
+	}
+	else {
+		const unsigned int minx = xChunk * chunkSize;
+		const unsigned int miny = yChunk * chunkSize;
+		BLI_init_rcti(rect, minx, min(minx + this->chunkSize, this->width), miny, min(miny + this->chunkSize, this->height));
+	}
 }
 
 void ExecutionGroup::determineChunkRect(rcti *rect, const unsigned int chunkNumber) const
@@ -462,6 +476,9 @@ MemoryBuffer *ExecutionGroup::allocateOutputBuffer(int chunkNumber, rcti *rect)
 
 bool ExecutionGroup::scheduleAreaWhenPossible(ExecutionSystem * graph, rcti *area)
 {
+	if (singleThreaded) {
+		return scheduleChunkWhenPossible(graph, 0, 0);
+	}
 	// find all chunks inside the rect
 	// determine minxchunk, minychunk, maxxchunk, maxychunk where x and y are chunknumbers
 

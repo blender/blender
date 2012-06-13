@@ -77,6 +77,11 @@ private:
 	  * @see NodeOperation.getMutex retrieve a pointer to this mutex.
 	  */
 	ThreadMutex mutex;
+	
+	/**
+	 * @brief reference to the editing bNodeTree only used for break callback
+	 */
+	const bNodeTree *btree;
 
 public:
 	/**
@@ -119,9 +124,10 @@ public:
 	  * for all other operations this will result in false.
 	  */
 	virtual int isBufferOperation() {return false;}
+	virtual int isSingleThreaded() {return false;}
 
+	void setbNodeTree(const bNodeTree * tree) {this->btree = tree;}
 	virtual void initExecution();
-	void initMutex();
 	
 	/**
 	  * @brief when a chunk is executed by a CPUDevice, this method is called
@@ -161,7 +167,6 @@ public:
 	  */
 	virtual void executeOpenCL(cl_context context,cl_program program, cl_command_queue queue, MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, MemoryBuffer** inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, list<cl_kernel> *clKernelsToCleanUp) {}
 	virtual void deinitExecution();
-	void deinitMutex();
 
 	bool isResolutionSet() {
 		return this->width != 0 && height != 0;
@@ -236,6 +241,11 @@ public:
 	
 	virtual bool isViewerOperation() {return false;}
 	virtual bool isPreviewOperation() {return false;}
+	
+	inline bool isBreaked() {
+		return btree->test_break(btree->tbh);
+	}
+
 protected:
 	NodeOperation();
 
@@ -244,7 +254,11 @@ protected:
 	SocketReader *getInputSocketReader(unsigned int inputSocketindex);
 	NodeOperation *getInputOperation(unsigned int inputSocketindex);
 
-	inline ThreadMutex *getMutex() {return &this->mutex;}
+	void deinitMutex();
+	void initMutex();
+	void lockMutex();
+	void unlockMutex();
+	
 
 	/**
 	  * @brief set whether this operation is complex
@@ -264,7 +278,7 @@ protected:
 	static void COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel kernel, int parameterIndex, cl_mem clOutputMemoryBuffer);
 	void COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offsetIndex);
 	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer* outputMemoryBuffer);
-	static void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex);
+	void COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex);
 	cl_kernel COM_clCreateKernel(cl_program program, const char* kernelname, list<cl_kernel> *clKernelsToCleanUp);
 
 };

@@ -72,13 +72,13 @@ bool CalculateMeanOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 
 void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (!this->iscalculated) {
 		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		calculateMean(tile);
 		this->iscalculated = true;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return NULL;
 }
 

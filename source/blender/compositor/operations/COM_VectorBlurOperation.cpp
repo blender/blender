@@ -77,7 +77,7 @@ void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 {
 	if (this->cachedInstance) return this->cachedInstance;
 	
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cachedInstance == NULL) {
 		MemoryBuffer *tile = (MemoryBuffer*)inputImageProgram->initializeTileData(rect, memoryBuffers);
 		MemoryBuffer *speed = (MemoryBuffer*)inputSpeedProgram->initializeTileData(rect, memoryBuffers);
@@ -87,7 +87,7 @@ void *VectorBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 		this->generateVectorBlur(data, tile, speed, z);
 		this->cachedInstance = data;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cachedInstance;
 }
 

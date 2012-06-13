@@ -25,7 +25,7 @@
 #include "COM_NodeOperation.h"
 
 
-class DilateErodeDistanceOperation : public NodeOperation {
+class DilateErodeThresholdOperation : public NodeOperation {
 private:
 	/**
 	  * Cached reference to the inputProgram
@@ -42,7 +42,7 @@ private:
 	  */
 	int scope;
 public:
-	DilateErodeDistanceOperation();
+	DilateErodeThresholdOperation();
 	
 	/**
 	  * the inner loop of this program
@@ -70,11 +70,11 @@ public:
 
 class DilateDistanceOperation : public NodeOperation {
 private:
+protected:
 	/**
 	  * Cached reference to the inputProgram
 	  */
 	SocketReader * inputProgram;
-protected:
 	float distance;
 	int scope;
 public:
@@ -98,6 +98,11 @@ public:
 	
 	void setDistance(float distance) {this->distance = distance;}
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	
+	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+                       MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+                       list<cl_kernel> *clKernelsToCleanUp);
 };
 class ErodeDistanceOperation : public DilateDistanceOperation {
 public:
@@ -107,6 +112,11 @@ public:
 	  * the inner loop of this program
 	  */
 	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+
+	void executeOpenCL(cl_context context, cl_program program, cl_command_queue queue, 
+	                   MemoryBuffer *outputMemoryBuffer, cl_mem clOutputBuffer, 
+	                   MemoryBuffer **inputMemoryBuffers, list<cl_mem> *clMemToCleanUp, 
+	                   list<cl_kernel> *clKernelsToCleanUp);
 };
 
 class DilateStepOperation : public NodeOperation {

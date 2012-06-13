@@ -33,22 +33,23 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	int size = inputTile->getWidth()*inputTile->getHeight();
 	int size4 = size*4;
 
+	bool breaked = false;
 	
 	MemoryBuffer *tsrc = inputTile->duplicate();
 	MemoryBuffer *tdst = new MemoryBuffer(NULL, inputTile->getRect());
 	tdst->clear();
 	memset(data, 0, size4*sizeof(float));
 	
-	for (a=0.f; a<DEG2RADF(360.0f); a+=ang) {
+	for (a=0.f; a<DEG2RADF(360.0f) && (!breaked); a+=ang) {
 		const float an = a + settings->angle_ofs;
 		const float vx = cos((double)an), vy = sin((double)an);
-		for (n=0; n<settings->iter; ++n) {
+		for (n=0; n<settings->iter && (!breaked); ++n) {
 			const float p4 = pow(4.0, (double)n);
 			const float vxp = vx*p4, vyp = vy*p4;
 			const float wt = pow((double)settings->fade, (double)p4);
 			const float cmo = 1.f - (float)pow((double)settings->colmod, (double)n+1);	// colormodulation amount relative to current pass
 			float *tdstcol = tdst->getBuffer();
-			for (y=0; y<tsrc->getHeight(); ++y) {
+			for (y=0; y<tsrc->getHeight() && (!breaked); ++y) {
 				for (x=0; x<tsrc->getWidth(); ++x, tdstcol+=4) {
 					// first pass no offset, always same for every pass, exact copy,
 					// otherwise results in uneven brightness, only need once
@@ -71,11 +72,13 @@ void GlareStreaksOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 					tdstcol[2] = 0.5f*(tdstcol[2] + c1[2] + wt*(c2[2] + wt*(c3[2] + wt*c4[2])));
 					tdstcol[3] = 1.0f;
 				}
+				if (isBreaked()) {
+					breaked = true;
+				}
 			}
 			memcpy(tsrc->getBuffer(), tdst->getBuffer(), sizeof(float)*size4);
 		}
 
-//		addImage(sbuf, tsrc, 1.f/(float)(6 - ndg->iter)); // add result to data @todo
 		float *sourcebuffer = tsrc->getBuffer();
 		float factor = 1.f/(float)(6 - settings->iter);
 		for (int i = 0 ; i < size4; i ++) {

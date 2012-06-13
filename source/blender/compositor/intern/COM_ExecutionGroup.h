@@ -63,10 +63,6 @@ class Device;
 class ExecutionGroup {
 private:
 	// fields
-	/**
-	  * @brief unique identifier of this node.
-	  */
-	string id;
 	
 	/**
 	  * @brief list of operations in this ExecutionGroup
@@ -119,6 +115,11 @@ private:
 	  * @brief can this ExecutionGroup be scheduled on an OpenCLDevice
 	  */
 	bool openCL;
+	
+	/**
+	 * @brief Is this Execution group SingleThreaded
+	 */
+	bool singleThreaded;
 	
 	/**
 	  * @brief what is the maximum number field of all ReadBufferOperation in this ExecutionGroup.
@@ -233,18 +234,7 @@ private:
 public:
 	// constructors
 	ExecutionGroup();
-	
-	/**
-	  * @brief set the id of this ExecutionGroup
-	  * @param id
-	  */
-	void setId(string id) {this->id = id;}
-	
-	/**
-	  * @brief return the id of this ExecutionGroup
-	  */
-	const string getId() const {return this->id;}
-	
+		
 	// methods
 	/**
 	  * @brief check to see if a NodeOperation is already inside this execution group

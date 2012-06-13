@@ -32,10 +32,11 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 	MemoryBuffer *tbuf1 = inputTile->duplicate();
 	MemoryBuffer *tbuf2 = inputTile->duplicate();
 
-	for (i=0; i<settings->iter; i++) {
+	bool breaked = false;
+	for (i=0; i<settings->iter && (!breaked); i++) {
 //		// (x || x-1, y-1) to (x || x+1, y+1)
 //		// F
-		for (y=0; y<this->getHeight(); y++) {
+		for (y=0; y<this->getHeight() && (!breaked); y++) {
 			ym = y - i;
 			yp = y + i;
 			for (x=0; x<this->getWidth(); x++) {
@@ -58,11 +59,13 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);
-
+			}
+			if (isBreaked()) {
+				breaked = true;
 			}
 		}
 //		// B
-		for (y=tbuf1->getHeight()-1; y>=0; y--) {
+		for (y=tbuf1->getHeight()-1 && (!breaked); y>=0; y--) {
 			ym = y - i;
 			yp = y + i;
 			for (x=tbuf1->getWidth()-1; x>=0; x--) {
@@ -85,6 +88,9 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);
+			}
+			if (isBreaked()) {
+				breaked = true;
 			}
 		}
 	}

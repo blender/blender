@@ -79,7 +79,7 @@ void FastGaussianBlurOperation::deinitExecution()
 
 void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(this->getMutex());
+	lockMutex();
 	if (!iirgaus) {
 		MemoryBuffer *newBuf = (MemoryBuffer*)this->inputProgram->initializeTileData(rect, memoryBuffers);
 		MemoryBuffer *copy = newBuf->duplicate();
@@ -105,7 +105,7 @@ void *FastGaussianBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **m
 		}
 		this->iirgaus = copy;
 	}
-	BLI_mutex_unlock(this->getMutex());
+	unlockMutex();
 	return iirgaus;
 }
 
