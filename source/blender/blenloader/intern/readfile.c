@@ -6155,7 +6155,7 @@ static void direct_link_movieTracks(FileData *fd, ListBase *tracksbase)
 	MovieTrackingTrack *track;
 	
 	link_list(fd, tracksbase);
-
+	
 	for (track = tracksbase->first; track; track = track->next) {
 		track->markers = newdataadr(fd, track->markers);
 	}

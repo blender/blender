@@ -223,9 +223,6 @@ void IIR_gauss(CompBuf* src, float sigma, int chan, int xy);
 #define CMP_SCALE_MAX	12000
 
 CompBuf* node_composit_transform(CompBuf *cbuf, float x, float y, float angle, float scale, int filter_type);
-void node_composit_blur_single_image(bNode *node, int filtertype, int sizex, int sizey, CompBuf *new, CompBuf *img, float scale);
-void node_composite_morpho_dilate(CompBuf *cbuf);
-void node_composite_morpho_erode(CompBuf *cbuf);
 float *node_composit_get_float_buffer(RenderData *rd, ImBuf *ibuf, int *alloc);
 
 #endif

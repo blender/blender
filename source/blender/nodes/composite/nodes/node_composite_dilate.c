@@ -44,7 +44,7 @@ static bNodeSocketTemplate cmp_node_dilateerode_out[]= {
 	{	-1, 0, ""	}
 };
 
-void node_composite_morpho_dilate(CompBuf *cbuf)
+static void morpho_dilate(CompBuf *cbuf)
 {
 	int x, y;
 	float *p, *rectf = cbuf->rect;
@@ -78,7 +78,7 @@ void node_composite_morpho_dilate(CompBuf *cbuf)
 	}
 }
 
-void node_composite_morpho_erode(CompBuf *cbuf)
+static void morpho_erode(CompBuf *cbuf)
 {
 	int x, y;
 	float *p, *rectf = cbuf->rect;
@@ -133,11 +133,11 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 		
 		if (node->custom2 > 0) { // positive, dilate
 			for (i = 0; i < node->custom2; i++)
-				node_composite_morpho_dilate(stackbuf);
+				morpho_dilate(stackbuf);
 		}
 		else if (node->custom2 < 0) { // negative, erode
 			for (i = 0; i > node->custom2; i--)
-				node_composite_morpho_erode(stackbuf);
+				morpho_erode(stackbuf);
 		}
 		
 		if (cbuf!=in[0]->data)
