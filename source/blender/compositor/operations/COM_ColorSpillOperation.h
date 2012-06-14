@@ -25,9 +25,9 @@
 #include "COM_NodeOperation.h"
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class ColorSpillOperation : public NodeOperation {
 protected:
 	NodeColorspill *settings;
@@ -39,25 +39,25 @@ protected:
 	float rmut, gmut, bmut;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	ColorSpillOperation();
 
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 
-	void setSettings(NodeColorspill *nodeColorSpill) {this->settings = nodeColorSpill;}
-	void setSpillChannel(int channel) {this->spillChannel = channel;}
+	void setSettings(NodeColorspill *nodeColorSpill) { this->settings = nodeColorSpill; }
+	void setSpillChannel(int channel) { this->spillChannel = channel; }
 	
 	float calculateMapValue(float fac, float *input);
 };
 
-class ColorSpillAverageOperation: public ColorSpillOperation {
+class ColorSpillAverageOperation : public ColorSpillOperation {
 public:
 	float calculateMapValue(float fac, float *input);
 };

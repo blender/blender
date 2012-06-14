@@ -207,6 +207,7 @@ void ED_operatortypes_mask(void)
 
 	/* geometry */
 	WM_operatortype_append(MASK_OT_switch_direction);
+	WM_operatortype_append(MASK_OT_normals_make_consistent);
 	WM_operatortype_append(MASK_OT_delete);
 
 	/* select */
@@ -307,6 +308,7 @@ void ED_keymap_mask(wmKeyConfig *keyconf)
 	WM_keymap_add_item(keymap, "MASK_OT_cyclic_toggle", CKEY, KM_PRESS, KM_ALT, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_slide_point", LEFTMOUSE, KM_PRESS, 0, 0);
 	WM_keymap_add_item(keymap, "MASK_OT_handle_type_set", VKEY, KM_PRESS, 0, 0);
+	WM_keymap_add_item(keymap, "MASK_OT_normals_make_consistent", NKEY, KM_PRESS, KM_CTRL, 0);
 	// WM_keymap_add_item(keymap, "MASK_OT_feather_weight_clear", SKEY, KM_PRESS, KM_ALT, 0);
 	/* ... matches curve editmode */
 	RNA_enum_set(WM_keymap_add_item(keymap, "TRANSFORM_OT_transform", SKEY, KM_PRESS, KM_ALT, 0)->ptr, "mode", TFM_MASK_SHRINKFATTEN);

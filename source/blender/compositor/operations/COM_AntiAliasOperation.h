@@ -26,35 +26,35 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief AntiAlias operations
-  * it only supports anti aliasing on BW buffers.
-  * @ingroup operation
-  */
+ * @brief AntiAlias operations
+ * it only supports anti aliasing on BW buffers.
+ * @ingroup operation
+ */
 class AntiAliasOperation : public NodeOperation {
 protected:
 	/**
-	  * @brief Cached reference to the reader
-	  */
-	SocketReader * valueReader;
+	 * @brief Cached reference to the reader
+	 */
+	SocketReader *valueReader;
 	char *buffer;
 public:
 	AntiAliasOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };

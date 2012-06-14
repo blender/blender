@@ -26,25 +26,25 @@
 #include "COM_NodeOperation.h"
 #include "COM_MemoryProxy.h"
 
-class ReadBufferOperation: public NodeOperation {
+class ReadBufferOperation : public NodeOperation {
 private:
 	MemoryProxy *memoryProxy;
 	unsigned int offset;
 public:
 	ReadBufferOperation();
-	int isBufferOperation() {return true;}
-	void setMemoryProxy(MemoryProxy *memoryProxy) {this->memoryProxy = memoryProxy;}
-	MemoryProxy *getMemoryProxy() {return this->memoryProxy;}
+	int isBufferOperation() { return true; }
+	void setMemoryProxy(MemoryProxy *memoryProxy) { this->memoryProxy = memoryProxy; }
+	MemoryProxy *getMemoryProxy() { return this->memoryProxy; }
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
-	void executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer *inputBuffers[]);
-	const bool isReadBufferOperation() const {return true;}
-	void setOffset(unsigned int offset) {this->offset = offset;}
-	unsigned int getOffset() {return this->offset;}
-	bool determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output);
-	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer** memoryBuffers) {return memoryBuffers[offset];}
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+	void executePixel(float *color, float x, float y, float dx, float dy, MemoryBuffer * inputBuffers[]);
+	const bool isReadBufferOperation() const { return true; }
+	void setOffset(unsigned int offset) { this->offset = offset; }
+	unsigned int getOffset() { return this->offset; }
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+	MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return memoryBuffers[offset]; }
 	void readResolutionFromWriteBuffer();
 };
 

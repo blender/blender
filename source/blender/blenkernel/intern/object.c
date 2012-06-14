@@ -3090,13 +3090,11 @@ static Object *obrel_armature_find(Object *ob)
 		ob_arm = ob->parent;
 	}
 	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
+		ModifierData *mod;
+		for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
 			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
+				ob_arm = ((ArmatureModifierData *)mod)->object;
 			}
-
-			mod = mod->next;
 		}
 	}
 
@@ -3104,11 +3102,11 @@ static Object *obrel_armature_find(Object *ob)
 }
 
 static int obrel_is_recursive_child(Object *ob, Object *child) {
-	Object *ancestor = child->parent;
-	while (ancestor)
-	{
-		if(ancestor == ob) return TRUE;
-		ancestor = ancestor->parent;
+	Object *par;
+	for (par = child->parent; par; par = par->parent) {
+		if (par == ob) {
+			return TRUE;
+		}
 	}
 	return FALSE;
 }
@@ -3151,16 +3149,16 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 			obrel_list_add(&links, ob);
 		}
 		else {
-			if ( (objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(((View3D *)NULL), scene, base))
-			||   (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(((View3D *)NULL), scene, base))
-				) {
+			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(((View3D *)NULL), scene, base)) ||
+			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(((View3D *)NULL), scene, base)))
+			{
 				Object *ob = base->object;
 
 				if (obrel_list_test(ob))
 					obrel_list_add(&links, ob);
 
 				/* parent relationship */
-				if (includeFilter & ( OB_REL_PARENT | OB_REL_PARENT_RECURSIVE )) {
+				if (includeFilter & (OB_REL_PARENT | OB_REL_PARENT_RECURSIVE)) {
 					Object *parent = ob->parent;
 					if (obrel_list_test(parent)) {
 
@@ -3169,7 +3167,7 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 						/* recursive parent relationship */
 						if (includeFilter & OB_REL_PARENT_RECURSIVE) {
 							parent = parent->parent;
-							while (obrel_list_test(parent)){
+							while (obrel_list_test(parent)) {
 
 								obrel_list_add(&links, parent);
 								parent = parent->parent;
@@ -3179,15 +3177,16 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 				}
 
 				/* child relationship */
-				if (includeFilter & ( OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE )) {
+				if (includeFilter & (OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE)) {
 					Base *local_base;
 					for (local_base = scene->base.first; local_base; local_base = local_base->next) {
 						if (BASE_EDITABLE_BGMODE(((View3D *)NULL), scene, local_base)) {
 
 							Object *child = local_base->object;
 							if (obrel_list_test(child)) {
-								if ((includeFilter & OB_REL_CHILDREN_RECURSIVE && obrel_is_recursive_child(ob,child))
-								||  (includeFilter & OB_REL_CHILDREN && child->parent && child->parent == ob )) {
+								if ((includeFilter & OB_REL_CHILDREN_RECURSIVE && obrel_is_recursive_child(ob, child)) ||
+								    (includeFilter & OB_REL_CHILDREN && child->parent && child->parent == ob))
+								{
 									obrel_list_add(&links, child);
 								}
 							}
@@ -3206,7 +3205,7 @@ struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet 
 
 			}
 		}
-	} // end for
+	}
 
 	return links;
 }

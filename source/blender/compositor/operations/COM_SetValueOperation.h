@@ -26,29 +26,29 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class SetValueOperation : public NodeOperation {
 private:
 	float value;
 
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	SetValueOperation();
 	
-	const float getValue() {return this->value;}
-	void setValue(float value) {this->value = value;}
+	const float getValue() { return this->value; }
+	void setValue(float value) { this->value = value; }
 	
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
-	const bool isSetOperation() const {return true;}
+	const bool isSetOperation() const { return true; }
 };
 #endif

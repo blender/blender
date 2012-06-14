@@ -34,6 +34,7 @@ NodeOperation::NodeOperation()
 	this->width = 0;
 	this->height = 0;
 	this->openCL = false;
+	this->btree = NULL;
 }
 
 void NodeOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
@@ -74,10 +75,22 @@ void NodeOperation::initMutex()
 {
 	BLI_mutex_init(&mutex);
 }
+
+void NodeOperation::lockMutex()
+{
+	BLI_mutex_lock(&mutex);
+}
+
+void NodeOperation::unlockMutex()
+{
+	BLI_mutex_unlock(&mutex);
+}
+
 void NodeOperation::deinitMutex()
 {
 	BLI_mutex_end(&mutex);
 }
+
 void NodeOperation::deinitExecution()
 {
 }
@@ -196,14 +209,15 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 	size_t size[2];
 	cl_int2 offset;
 	
-	for (offsety = 0 ; offsety < height; offsety+=localSize) {
+	bool breaked = false;
+	for (offsety = 0 ; offsety < height && (!breaked); offsety+=localSize) {
 		offset[1] = offsety;
 		if (offsety+localSize < height) {
 			size[1] = localSize;
 		} else {
 			size[1] = height - offsety;
 		}
-		for (offsetx = 0 ; offsetx < width ; offsetx+=localSize) {
+		for (offsetx = 0 ; offsetx < width && (!breaked) ; offsetx+=localSize) {
 			if (offsetx+localSize < width) {
 				size[0] = localSize;
 			} else {
@@ -216,6 +230,9 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 			error = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, size, 0, 0, 0, NULL);
 			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
 			clFlush(queue);
+			if (isBreaked()) {
+				breaked = false;
+			}
 		}
 	}
 }

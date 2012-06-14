@@ -38,6 +38,8 @@
 
 #include "node_composite_util.h"
 
+#include "../../../../intern/raskter/raskter.h"
+
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_mask_out[] = {
@@ -68,8 +70,11 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 		stackbuf = alloc_compbuf(sx, sy, CB_VAL, TRUE);
 		res = stackbuf->rect;
 
-		BKE_mask_rasterize(mask, sx, sy, res, TRUE);
+		BKE_mask_rasterize(mask, sx, sy, res, TRUE, node->custom1);
 
+		if(node->custom1){
+			PLX_antialias_buffer(res,sx,sy);
+		}
 		/* pass on output and free */
 		out[0]->data = stackbuf;
 	}

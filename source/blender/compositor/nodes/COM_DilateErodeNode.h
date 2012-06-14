@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief DilateErodeNode
-  * @ingroup Node
-  */
-class DilateErodeNode: public Node {
+ * @brief DilateErodeNode
+ * @ingroup Node
+ */
+class DilateErodeNode : public Node {
 public:
 	DilateErodeNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

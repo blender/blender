@@ -6,8 +6,8 @@ const sampler_t SAMPLER_NEAREST      = CLK_NORMALIZED_COORDS_FALSE | CLK_ADDRESS
 __constant const int2 zero = {0,0};
 
 // KERNEL --- BOKEH BLUR ---
-__kernel void bokehBlurKernel(__global __read_only image2d_t boundingBox, __global __read_only image2d_t inputImage, 
-                              __global __read_only image2d_t bokehImage, __global __write_only image2d_t output, 
+__kernel void bokehBlurKernel(__read_only image2d_t boundingBox, __read_only image2d_t inputImage, 
+                              __read_only image2d_t bokehImage, __write_only image2d_t output, 
                               int2 offsetInput, int2 offsetOutput, int radius, int step, int2 dimension, int2 offset) 
 {
 	int2 coords = {get_global_id(0), get_global_id(1)}; 
@@ -48,5 +48,67 @@ __kernel void bokehBlurKernel(__global __read_only image2d_t boundingBox, __glob
 		color = read_imagef(inputImage, SAMPLER_NEAREST, imageCoordinates);
 	}
 	
+	write_imagef(output, coords, color);
+}
+
+// KERNEL --- DILATE ---
+__kernel void dilateKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,
+                           int2 offsetInput, int2 offsetOutput, int scope, int distanceSquared, int2 dimension, 
+                           int2 offset)
+{
+	int2 coords = {get_global_id(0), get_global_id(1)}; 
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+
+	const int2 minXY = max(realCoordinate - scope, zero);
+	const int2 maxXY = min(realCoordinate + scope, dimension);
+	
+	float value = 0.0f;
+	int nx, ny;
+	int2 inputXy;
+	
+	for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny ++, inputXy.y++) {
+		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {
+			const float deltaX = (realCoordinate.x - nx);
+			const float deltaY = (realCoordinate.y - ny);
+			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;
+			if (measuredDistance <= distanceSquared) {
+				value = max(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
+			}
+		}
+	}
+
+	float4 color = {value,0.0f,0.0f,0.0f};
+	write_imagef(output, coords, color);
+}
+
+// KERNEL --- DILATE ---
+__kernel void erodeKernel(__read_only image2d_t inputImage,  __write_only image2d_t output,
+                           int2 offsetInput, int2 offsetOutput, int scope, int distanceSquared, int2 dimension, 
+                           int2 offset)
+{
+	int2 coords = {get_global_id(0), get_global_id(1)}; 
+	coords += offset;
+	const int2 realCoordinate = coords + offsetOutput;
+
+	const int2 minXY = max(realCoordinate - scope, zero);
+	const int2 maxXY = min(realCoordinate + scope, dimension);
+	
+	float value = 1.0f;
+	int nx, ny;
+	int2 inputXy;
+	
+	for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny ++, inputXy.y++) {
+		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {
+			const float deltaX = (realCoordinate.x - nx);
+			const float deltaY = (realCoordinate.y - ny);
+			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;
+			if (measuredDistance <= distanceSquared) {
+				value = min(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);
+			}
+		}
+	}
+
+	float4 color = {value,0.0f,0.0f,0.0f};
 	write_imagef(output, coords, color);
 }

@@ -89,12 +89,13 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	gain *= (levelShadows*this->data->shadows.gain)+(levelMidtones*this->data->midtones.gain)+(levelHighlights*this->data->highlights.gain);
 	lift += (levelShadows*this->data->shadows.lift)+(levelMidtones*this->data->midtones.lift)+(levelHighlights*this->data->highlights.lift);
 	
+	float invgamma = 1.0f / gamma;
+	float luma = rgb_to_luma_y(inputImageColor);
+
 	r = inputImageColor[0];
 	g = inputImageColor[1];
 	b = inputImageColor[2];
-	
-	float invgamma = 1.0f / gamma;
-	float luma = 0.2126f * r + 0.7152f * g + 0.0722f * b;
+
 	r = (luma + saturation * (r - luma));
 	g = (luma + saturation * (g - luma));
 	b = (luma + saturation * (b - luma));

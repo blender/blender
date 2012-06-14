@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief SocketProxyNode
-  * @ingroup Node
-  */
-class SocketProxyNode: public Node {
+ * @brief SocketProxyNode
+ * @ingroup Node
+ */
+class SocketProxyNode : public Node {
 public:
 	SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 
 	virtual bool isProxyNode() const { return true; }
 };

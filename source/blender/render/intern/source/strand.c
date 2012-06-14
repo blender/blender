@@ -400,7 +400,7 @@ void strand_shade_segment(Render *re, StrandShadeCache *cache, StrandSegment *ss
 	interpolate_shade_result(&shr1, &shr2, t, ssamp->shr, addpassflag);
 
 	/* apply alpha along width */
-	if (sseg->buffer->widthfade != 0.0f) {
+	if (sseg->buffer->widthfade != -1.0f) {
 		s = 1.0f - powf(fabsf(s), sseg->buffer->widthfade);
 
 		strand_apply_shaderesult_alpha(ssamp->shr, s);

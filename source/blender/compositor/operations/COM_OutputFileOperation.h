@@ -45,18 +45,18 @@ private:
 public:
 	OutputSingleLayerOperation(const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path);
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
-	bool isOutputOperation(bool rendering) const {return true;}
+	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const {return COM_PRIORITY_LOW;}
+	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
 };
 
 /* extra info for OpenEXR layers */
 struct OutputOpenExrLayer {
 	OutputOpenExrLayer(const char *name, DataType datatype);
 	
-	char name[EXR_TOT_MAXNAME-2];
+	char name[EXR_TOT_MAXNAME - 2];
 	float *outputBuffer;
 	DataType datatype;
 	SocketReader *imageInput;
@@ -79,11 +79,11 @@ public:
 	
 	void add_layer(const char *name, DataType datatype);
 	
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
-	bool isOutputOperation(bool rendering) const {return true;}
+	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
+	bool isOutputOperation(bool rendering) const { return true; }
 	void initExecution();
 	void deinitExecution();
-	const CompositorPriority getRenderPriority() const {return COM_PRIORITY_LOW;}
+	const CompositorPriority getRenderPriority() const { return COM_PRIORITY_LOW; }
 };
 
 #endif

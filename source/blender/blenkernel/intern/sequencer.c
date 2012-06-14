@@ -2081,7 +2081,8 @@ static ImBuf *seq_render_mask_strip(
 		BKE_mask_rasterize(seq->mask,
 		                   context.rectx, context.recty,
 		                   maskbuf,
-		                   TRUE);
+		                   TRUE,
+				   FALSE /*XXX- TODO: make on/off for anti-aliasing*/);
 
 		fp_src = maskbuf;
 		fp_dst = ibuf->rect_float;
@@ -2104,7 +2105,8 @@ static ImBuf *seq_render_mask_strip(
 		BKE_mask_rasterize(seq->mask,
 		                   context.rectx, context.recty,
 		                   maskbuf,
-		                   TRUE);
+		                   TRUE,
+				   FALSE /*XXX- TODO: mask on/off for anti-aliasing*/);
 
 		fp_src = maskbuf;
 		ub_dst = (unsigned char *)ibuf->rect;

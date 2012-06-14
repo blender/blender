@@ -108,7 +108,7 @@
 #define MAN_MOVECOL 2
 
 /* transform widget center calc helper for below */
-static void calc_tw_center(Scene *scene, float *co)
+static void calc_tw_center(Scene *scene, const float co[3])
 {
 	float *twcent = scene->twcent;
 	float *min = scene->twmin;

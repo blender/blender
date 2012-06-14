@@ -25,7 +25,7 @@
 
 #include "COM_NodeOperation.h"
 
-class RotateOperation: public NodeOperation {
+class RotateOperation : public NodeOperation {
 private:
 	SocketReader *imageSocket;
 	SocketReader *degreeSocket;
@@ -38,10 +38,10 @@ private:
 public:
 	RotateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	void initExecution();
 	void deinitExecution();
-	void setDoDegree2RadConversion(bool abool) {this->doDegree2RadConversion = abool;}
+	void setDoDegree2RadConversion(bool abool) { this->doDegree2RadConversion = abool; }
 	
 	void ensureDegree();
 };

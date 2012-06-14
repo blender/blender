@@ -23,6 +23,7 @@
 #include "COM_DoubleEdgeMaskOperation.h"
 #include "BLI_math.h"
 #include "DNA_node_types.h"
+#include "MEM_guardedalloc.h"
 
 // this part has been copied from the double edge mask
 // Contributor(s): Peter Larabell.
@@ -1215,12 +1216,12 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 		gsz=rsize[2];                  // by the do_*EdgeDetection() function.
 		
 		fsz=gsz+isz+osz;                                   // calculate size of pixel index buffer needed
-		gbuf = new unsigned short[fsz*2];     // allocate edge/gradient pixel index buffer
+		gbuf = (unsigned short*)MEM_callocN(sizeof (unsigned short)*fsz*2, "DEM"); // allocate edge/gradient pixel index buffer
 		
 		do_createEdgeLocationBuffer(t,rw,lres,res,gbuf,&innerEdgeOffset,&outerEdgeOffset,isz,gsz);
 		do_fillGradientBuffer(rw,res,gbuf,isz,osz,gsz,innerEdgeOffset,outerEdgeOffset);
 		
-		delete [] gbuf;          // free the gradient index buffer
+		MEM_freeN(gbuf);          // free the gradient index buffer
 	}
 }
 
@@ -1263,7 +1264,7 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **mem
 {
 	if (this->cachedInstance) return this->cachedInstance;
 	
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cachedInstance == NULL) {
 		MemoryBuffer *innerMask = (MemoryBuffer*)inputInnerMask->initializeTileData(rect, memoryBuffers);
 		MemoryBuffer *outerMask = (MemoryBuffer*)inputOuterMask->initializeTileData(rect, memoryBuffers);
@@ -1275,7 +1276,7 @@ void *DoubleEdgeMaskOperation::initializeTileData(rcti *rect, MemoryBuffer **mem
 		delete omask;
 		this->cachedInstance = data;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->cachedInstance;
 }
 void DoubleEdgeMaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)

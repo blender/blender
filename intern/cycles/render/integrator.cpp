@@ -18,9 +18,11 @@
 
 #include "device.h"
 #include "integrator.h"
+#include "light.h"
 #include "scene.h"
 #include "sobol.h"
 
+#include "util_foreach.h"
 #include "util_hash.h"
 
 CCL_NAMESPACE_BEGIN
@@ -47,6 +49,13 @@ Integrator::Integrator()
 	sample_clamp = 0.0f;
 	motion_blur = false;
 
+	diffuse_samples = 1;
+	glossy_samples = 1;
+	transmission_samples = 1;
+	ao_samples = 1;
+	mesh_light_samples = 1;
+	progressive = true;
+
 	need_update = true;
 }
 
@@ -54,7 +63,7 @@ Integrator::~Integrator()
 {
 }
 
-void Integrator::device_update(Device *device, DeviceScene *dscene)
+void Integrator::device_update(Device *device, DeviceScene *dscene, Scene *scene)
 {
 	if(!need_update)
 		return;
@@ -93,8 +102,27 @@ void Integrator::device_update(Device *device, DeviceScene *dscene)
 	
 	kintegrator->sample_clamp = (sample_clamp == 0.0f)? FLT_MAX: sample_clamp*3.0f;
 
+	kintegrator->progressive = progressive;
+	kintegrator->diffuse_samples = diffuse_samples;
+	kintegrator->glossy_samples = glossy_samples;
+	kintegrator->transmission_samples = transmission_samples;
+	kintegrator->ao_samples = ao_samples;
+	kintegrator->mesh_light_samples = mesh_light_samples;
+
 	/* sobol directions table */
-	int dimensions = PRNG_BASE_NUM + (max_bounce + transparent_max_bounce + 2)*PRNG_BOUNCE_NUM;
+	int max_samples = 1;
+
+	if(!progressive) {
+		foreach(Light *light, scene->lights)
+			max_samples = max(max_samples, light->samples);
+
+		max_samples = max(max_samples, max(diffuse_samples, max(glossy_samples, transmission_samples)));
+		max_samples = max(max_samples, max(ao_samples, mesh_light_samples));
+	}
+
+	max_samples *= (max_bounce + transparent_max_bounce + 2);
+
+	int dimensions = PRNG_BASE_NUM + max_samples*PRNG_BOUNCE_NUM;
 	uint *directions = dscene->sobol_directions.resize(SOBOL_BITS*dimensions);
 
 	sobol_generate_direction_vectors((uint(*)[SOBOL_BITS])directions, dimensions);
@@ -127,6 +155,12 @@ bool Integrator::modified(const Integrator& integrator)
 		layer_flag == integrator.layer_flag &&
 		seed == integrator.seed &&
 		sample_clamp == integrator.sample_clamp &&
+		progressive == integrator.progressive &&
+		diffuse_samples == integrator.diffuse_samples &&
+		glossy_samples == integrator.glossy_samples &&
+		transmission_samples == integrator.transmission_samples &&
+		ao_samples == integrator.ao_samples &&
+		mesh_light_samples == integrator.mesh_light_samples &&
 		motion_blur == integrator.motion_blur);
 }
 

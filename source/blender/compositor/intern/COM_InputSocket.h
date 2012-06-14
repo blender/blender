@@ -36,10 +36,10 @@ class ChannelInfo;
 class NodeOperation;
 
 /**
-  * @brief Resize modes of inputsockets
-  * How are the input and working resolutions matched
-  * @ingroup Model
-  */
+ * @brief Resize modes of inputsockets
+ * How are the input and working resolutions matched
+ * @ingroup Model
+ */
 typedef enum InputSocketResizeMode {
 	/** @brief Center the input image to the center of the working area of the node, no resizing occurs */
 	COM_SC_CENTER = NS_CR_CENTER,
@@ -56,34 +56,34 @@ typedef enum InputSocketResizeMode {
 } InputSocketResizeMode;
 
 /**
-  * @brief InputSocket are sockets that can receive data/input
-  * @ingroup Model
-  */
+ * @brief InputSocket are sockets that can receive data/input
+ * @ingroup Model
+ */
 class InputSocket : public Socket {
 private:
 	/**
-	  * @brief connection connected to this InputSocket.
-	  * An input socket can only have a single connection
-	  */
+	 * @brief connection connected to this InputSocket.
+	 * An input socket can only have a single connection
+	 */
 	SocketConnection *connection;
 	
 	/**
-	  * @brief resize mode of this socket
-	  */
+	 * @brief resize mode of this socket
+	 */
 	InputSocketResizeMode resizeMode;
 	
 	
 	/**
-	  * @brief convert a data type to a by the socket supported data type.
-	  *
-	  * @param datatype the datatype that needs to be checked
-	  * @section data-conversion
-	  */
+	 * @brief convert a data type to a by the socket supported data type.
+	 *
+	 * @param datatype the datatype that needs to be checked
+	 * @section data-conversion
+	 */
 	DataType convertToSupportedDataType(DataType datatype);
 	
 	/**
-	  * @brief called when the ActualDataType is set. notifies other parties
-	  */
+	 * @brief called when the ActualDataType is set. notifies other parties
+	 */
 	void fireActualDataTypeSet();
 
 public:
@@ -98,55 +98,59 @@ public:
 	int isInputSocket() const;
 	
 	/**
-	  * @brief determine the resolution of this data going through this socket
-	  * @param resolution the result of this operation
-	  * @param preferredResolution the preferrable resolution as no resolution could be determined
-	  */
-	void determineResolution(unsigned int resolution[],unsigned int preferredResolution[]);
+	 * @brief determine the resolution of this data going through this socket
+	 * @param resolution the result of this operation
+	 * @param preferredResolution the preferrable resolution as no resolution could be determined
+	 */
+	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 	
 	void determineActualDataType();
 	
 	/**
-	  * @brief Notifies the Input of the data type (via a SocketConnection)
-	  * @param datatype the datatype to evaluate
-	  */
+	 * @brief Notifies the Input of the data type (via a SocketConnection)
+	 * @param datatype the datatype to evaluate
+	 */
 	void notifyActualInputType(DataType datatype);
 	
 	/**
-	  * @brief move all connections of this input socket to another socket
-	  * only use this method when already checked the availability of a SocketConnection
-	  * @param relinkToSocket the socket to move to connections to
-	  */
+	 * @brief move all connections of this input socket to another socket
+	 * only use this method when already checked the availability of a SocketConnection
+	 * @param relinkToSocket the socket to move to connections to
+	 */
 	void relinkConnections(InputSocket *relinkToSocket);
 	
 	/**
-	  * @brief move all connections of this input socket to another socket
-	  * @param relinkToSocket the socket to move to connections to
-	  * @param autoconnect will a set operation be added when no connections exist
-	  * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
-	  * @param system ExecutionSystem to update to
-	  */
+	 * @brief move all connections of this input socket to another socket
+	 * @param relinkToSocket the socket to move to connections to
+	 * @param autoconnect will a set operation be added when no connections exist
+	 * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
+	 * @param system ExecutionSystem to update to
+	 */
 	void relinkConnections(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *system);
 	
 	/**
-	  * @brief move all connections of this input socket to another socket
-	  * @param relinkToSocket the socket to move to connections to
-	  * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
-	  * @param system ExecutionSystem to update to
-	  */
+	 * @brief move all connections of this input socket to another socket
+	 * @param relinkToSocket the socket to move to connections to
+	 * @param editorNodeInputSocketIndex index of the socket number of the bNode (used to retrieve the value for autoconnection)
+	 * @param system ExecutionSystem to update to
+	 */
 	void relinkConnectionsDuplicate(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *system);
 	
 	/**
-	  * @brief set the resize mode
-	  * @param resizeMode the new resize mode.
-	  */
-	void setResizeMode(InputSocketResizeMode resizeMode) {this->resizeMode = resizeMode;}
+	 * @brief set the resize mode
+	 * @param resizeMode the new resize mode.
+	 */
+	void setResizeMode(InputSocketResizeMode resizeMode) {
+		this->resizeMode = resizeMode;
+	}
 	
 	/**
-	  * @brief get the resize mode of this socket
-	  * @return InputSocketResizeMode
-	  */
-	InputSocketResizeMode getResizeMode() const {return this->resizeMode;}
+	 * @brief get the resize mode of this socket
+	 * @return InputSocketResizeMode
+	 */
+	InputSocketResizeMode getResizeMode() const {
+		return this->resizeMode;
+	}
 	
 	const ChannelInfo *getChannelInfo(const int channelnumber);
 	

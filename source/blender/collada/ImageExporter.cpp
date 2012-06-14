@@ -42,17 +42,18 @@
 #include "BLI_string.h"
 
 ImagesExporter::ImagesExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryImages(sw), export_settings(export_settings)
-{}
+{
+}
 
 bool ImagesExporter::hasImages(Scene *sce)
 {
-	Base *base = (Base *)sce->base.first;
+	LinkNode *node;
 	
-	while (base) {
-		Object *ob= base->object;
+	for (node=this->export_settings->export_set; node; node=node->next) {
+		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
-			Material *ma = give_current_material(ob, a+1);
+			Material *ma = give_current_material(ob, a + 1);
 
 			// no material, but check all of the slots
 			if (!ma) continue;
@@ -63,7 +64,6 @@ bool ImagesExporter::hasImages(Scene *sce)
 			}
 
 		}
-		base= base->next;
 	}
 	return false;
 }

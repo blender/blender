@@ -40,6 +40,7 @@
 #include "BKE_context.h"
 #include "BKE_global.h"
 #include "BKE_armature.h"
+#include "BKE_report.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -281,6 +282,11 @@ static int create_orientation_exec(bContext *C, wmOperator *op)
 	int overwrite = RNA_boolean_get(op->ptr, "overwrite");
 	
 	RNA_string_get(op->ptr, "name", name);
+
+	if (use && !CTX_wm_view3d(C)) {
+		BKE_report(op->reports, RPT_ERROR, "Create Orientation \"use\" parameter only valid in a 3dView context");
+		return OPERATOR_CANCELLED;
+	}
 
 	BIF_createTransformOrientation(C, op->reports, name, use, overwrite);
 

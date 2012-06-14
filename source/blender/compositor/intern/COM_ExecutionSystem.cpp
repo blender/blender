@@ -124,6 +124,7 @@ void ExecutionSystem::execute()
 
 	for (index = 0 ; index < this->operations.size() ; index ++) {
 		NodeOperation * operation = this->operations[index];
+		operation->setbNodeTree(this->context.getbNodeTree());
 		operation->initExecution();
 	}
 	for (index = 0 ; index < this->groups.size() ; index ++) {
@@ -153,7 +154,7 @@ void ExecutionSystem::execute()
 
 void ExecutionSystem::executeGroups(CompositorPriority priority)
 {
-	int index;
+	unsigned int index;
 	vector<ExecutionGroup*> executionGroups;
 	this->findOutputExecutionGroup(&executionGroups, priority);
 
@@ -166,6 +167,7 @@ void ExecutionSystem::executeGroups(CompositorPriority priority)
 void ExecutionSystem::addOperation(NodeOperation *operation)
 {
 	ExecutionSystemHelper::addOperation(this->operations, operation);
+//	operation->setBTree
 }
 
 void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)

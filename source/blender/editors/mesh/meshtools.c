@@ -690,7 +690,8 @@ static void mesh_octree_free_node(MocNode **bt)
 /* temporal define, just to make nicer code below */
 #define MOC_INDEX(vx, vy, vz)  (((vx) * MOC_RES * MOC_RES) + (vy) * MOC_RES + (vz))
 
-static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, float *div, intptr_t index)
+static void mesh_octree_add_nodes(MocNode **basetable, const float co[3], const float offs[3],
+                                  const float div[3], intptr_t index)
 {
 	float fx, fy, fz;
 	int vx, vy, vz;

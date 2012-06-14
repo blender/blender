@@ -37,7 +37,7 @@ void CalculateStandardDeviationOperation::executePixel(float *color, int x, int 
 
 void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (!this->iscalculated) {
 		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
 		CalculateMeanOperation::calculateMean(tile);
@@ -92,6 +92,6 @@ void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, Memory
 		this->standardDeviation = sqrt(sum / (float)(pixels-1));
 		this->iscalculated = true;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return NULL;
 }

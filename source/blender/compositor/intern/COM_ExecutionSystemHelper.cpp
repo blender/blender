@@ -65,7 +65,7 @@ Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 	}
 
 	/* Expand group nodes */
-	for (int i=nodes_start; i < nodes.size(); ++i) {
+	for (unsigned int i=nodes_start; i < nodes.size(); ++i) {
 		Node *execnode = nodes[i];
 		if (execnode->isGroupNode()) {
 			GroupNode * groupNode = (GroupNode*)execnode;

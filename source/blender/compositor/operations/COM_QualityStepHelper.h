@@ -37,17 +37,17 @@ private:
 
 protected:
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution(QualityHelper helper);
 
-	inline int getStep() const {return this->step;}
-	inline int getOffsetAdd() const {return this->offsetadd;}
+	inline int getStep() const { return this->step; }
+	inline int getOffsetAdd() const { return this->offsetadd; }
 
 public:
 	QualityStepHelper();
 
 
-	void setQuality(CompositorQuality quality) {this->quality = quality;}
+	void setQuality(CompositorQuality quality) { this->quality = quality; }
 };
 #endif

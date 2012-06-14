@@ -25,18 +25,18 @@
 
 #include "COM_NodeOperation.h"
 
-class SeparateChannelOperation: public NodeOperation {
+class SeparateChannelOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
 	int channel;
 public:
 	SeparateChannelOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
 	
-	void setChannel(int channel) {this->channel = channel;}
+	void setChannel(int channel) { this->channel = channel; }
 };
 
 #endif

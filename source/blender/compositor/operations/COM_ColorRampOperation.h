@@ -28,29 +28,31 @@
 class ColorRampOperation : public NodeOperation {
 private:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
 	ColorBand *colorBand;
 public:
 	ColorRampOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setColorBand(ColorBand *colorBand) {this->colorBand = colorBand;}
+	void setColorBand(ColorBand *colorBand) {
+		this->colorBand = colorBand;
+	}
 
 
 };

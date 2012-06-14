@@ -36,7 +36,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	
 	bNode *editorNode = this->getbNode();
 	if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_THRESH) {
-		DilateErodeDistanceOperation *operation = new DilateErodeDistanceOperation();
+		DilateErodeThresholdOperation *operation = new DilateErodeThresholdOperation();
 		operation->setDistance(editorNode->custom2);
 		operation->setInset(editorNode->custom3);
 		

@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief DoubleEdgeMaskNode
-  * @ingroup Node
-  */
-class DoubleEdgeMaskNode: public Node {
+ * @brief DoubleEdgeMaskNode
+ * @ingroup Node
+ */
+class DoubleEdgeMaskNode : public Node {
 public:
 	DoubleEdgeMaskNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

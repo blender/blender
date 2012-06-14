@@ -26,11 +26,11 @@
 #include "COM_BlurBaseOperation.h"
 #include "DNA_node_types.h"
 
-class FastGaussianBlurOperation: public BlurBaseOperation {
+class FastGaussianBlurOperation : public BlurBaseOperation {
 private:
 	float sx;
 	float sy;
-	MemoryBuffer* iirgaus;
+	MemoryBuffer *iirgaus;
 public:
 	FastGaussianBlurOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);

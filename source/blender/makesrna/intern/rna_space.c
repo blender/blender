@@ -1297,6 +1297,19 @@ static void rna_def_background_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem bgpic_camera_frame_items[] = {
+		{0, "STRETCH", 0, "Stretch", ""},
+		{V3D_BGPIC_CAMERA_ASPECT, "FIT", 0, "Fit", ""},
+		{V3D_BGPIC_CAMERA_ASPECT | V3D_BGPIC_CAMERA_CROP, "CROP", 0, "Crop", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static const EnumPropertyItem bgpic_draw_depth_items[] = {
+		{0, "BACK", 0, "Back", ""},
+		{V3D_BGPIC_FOREGROUND, "FRONT", 0, "Front", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
 	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
@@ -1380,6 +1393,20 @@ static void rna_def_background_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_on_foreground", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FOREGROUND);
 	RNA_def_property_ui_text(prop, "Show On Foreground", "Show this image in front of objects in viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* expose 1 flag as a enum of 2 items */
+	prop = RNA_def_property(srna, "draw_depth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, bgpic_draw_depth_items);
+	RNA_def_property_ui_text(prop, "Depth", "Draw under or over everything");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* expose 2 flags as a enum of 3 items */
+	prop = RNA_def_property(srna, "frame_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, bgpic_camera_frame_items);
+	RNA_def_property_ui_text(prop, "Frame Method", "How the image fits in the camera frame");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 

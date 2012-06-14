@@ -48,6 +48,7 @@ struct MaskLayer *BKE_mask_layer_active(struct Mask *mask);
 void BKE_mask_layer_active_set(struct Mask *mask, struct MaskLayer *masklay);
 void BKE_mask_layer_remove(struct Mask *mask, struct MaskLayer *masklay);
 
+void BKE_mask_layer_free_shapes(struct MaskLayer *masklay);
 void BKE_mask_layer_free(struct MaskLayer *masklay);
 void BKE_mask_spline_free(struct MaskSpline *spline);
 struct MaskSpline *BKE_mask_spline_copy(struct MaskSpline *spline);
@@ -169,7 +170,7 @@ void BKE_mask_layer_shape_changed_remove(struct MaskLayer *masklay, int index, i
 /* rasterization */
 int BKE_mask_get_duration(struct Mask *mask);
 void BKE_mask_rasterize(struct Mask *mask, int width, int height, float *buffer,
-                        const short do_aspect_correct);
+                        const short do_aspect_correct, int do_mask_aa);
 
 #define MASKPOINT_ISSEL_ANY(p)          ( ((p)->bezt.f1 | (p)->bezt.f2 | (p)->bezt.f2) & SELECT)
 #define MASKPOINT_ISSEL_KNOT(p)         ( (p)->bezt.f2 & SELECT)

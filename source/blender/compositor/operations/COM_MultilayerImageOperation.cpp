@@ -47,7 +47,7 @@ void MultilayerColorOperation::executePixel(float *color, float x, float y, Pixe
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
+	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 		color[1] = 0.0f;
 		color[2] = 0.0f;
@@ -80,7 +80,7 @@ void MultilayerValueOperation::executePixel(float *color, float x, float y, Pixe
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
+	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 	}
 	else {
@@ -93,7 +93,7 @@ void MultilayerVectorOperation::executePixel(float *color, float x, float y, Pix
 {
 	int yi = y;
 	int xi = x;
-	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || xi >= this->getWidth() || yi >= this->getHeight() ) {
+	if (this->imageBuffer == NULL || xi < 0 || yi < 0 || (unsigned int)xi >= this->getWidth() || (unsigned int)yi >= this->getHeight() ) {
 		color[0] = 0.0f;
 	}
 	else {

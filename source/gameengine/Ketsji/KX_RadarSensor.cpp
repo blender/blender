@@ -212,9 +212,19 @@ PyAttributeDef KX_RadarSensor::Attributes[] = {
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("coneOrigin", KX_RadarSensor, m_cone_origin, 3),
 	KX_PYATTRIBUTE_FLOAT_ARRAY_RO("coneTarget", KX_RadarSensor, m_cone_target, 3),
 	KX_PYATTRIBUTE_FLOAT_RO("distance", KX_RadarSensor, m_coneheight),
-	KX_PYATTRIBUTE_FLOAT_RW("angle", 0, 360, KX_RadarSensor, m_coneradius),
+	KX_PYATTRIBUTE_RO_FUNCTION("angle", KX_RadarSensor, pyattr_get_angle),
 	KX_PYATTRIBUTE_INT_RW("axis", 0, 5, true, KX_RadarSensor, m_axis),
 	{NULL} //Sentinel
 };
+
+PyObject* KX_RadarSensor::pyattr_get_angle(void *self_v, const KX_PYATTRIBUTE_DEF *attrdef)
+{
+	KX_RadarSensor* self= static_cast<KX_RadarSensor*>(self_v);
+
+	// The original angle from the gui was converted, so we recalculate the value here to maintain
+	// consistency between Python and the gui
+	return PyFloat_FromDouble(MT_degrees(atan(self->m_coneradius / self->m_coneheight)) * 2);
+	
+}
 
 #endif // WITH_PYTHON

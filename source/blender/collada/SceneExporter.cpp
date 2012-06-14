@@ -30,7 +30,8 @@
 
 SceneExporter::SceneExporter(COLLADASW::StreamWriter *sw, ArmatureExporter *arm, const ExportSettings *export_settings)
 	: COLLADASW::LibraryVisualScenes(sw), arm_exporter(arm), export_settings(export_settings)
-{}
+{
+}
 	
 void SceneExporter::exportScene(Scene *sce)
 {
@@ -48,14 +49,14 @@ void SceneExporter::exportHierarchy(Scene *sce)
 	std::vector<Object *> base_objects;
 
 	// Ensure all objects in the export_set are marked
-	for(node = this->export_settings->export_set; node; node = node->next) {
-		Object *ob = (Object*) node->link;
+	for (node = this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object *) node->link;
 		ob->id.flag |= LIB_DOIT;
 	}
 	
 	// Now find all exportable base ojects (highest in export hierarchy)
-	for(node = this->export_settings->export_set; node; node = node->next) {
-		Object *ob = (Object*) node->link;
+	for (node = this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object *) node->link;
 		if (bc_is_base_node(this->export_settings->export_set, ob)) 
 		{
 			switch (ob->type) {
@@ -71,7 +72,7 @@ void SceneExporter::exportHierarchy(Scene *sce)
 	}
 
 	// And now export the base objects:
-	for(int index=0; index < base_objects.size(); index++) {
+	for (int index = 0; index < base_objects.size(); index++) {
 		Object *ob = base_objects[index];
 		if (bc_is_marked(ob)) {
 			bc_remove_mark(ob);
@@ -84,7 +85,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
 	// Add associated armature first if available
 	Object *ob_arm = bc_get_assigned_armature(ob);
-	if(ob_arm != NULL && bc_is_marked(ob_arm)) {
+	if (ob_arm != NULL && bc_is_marked(ob_arm)) {
 		bc_remove_mark(ob_arm);
 		writeNodes(ob_arm, sce);
 	}
@@ -97,10 +98,10 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	colladaNode.start();
 
 	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
-	std::list<Object*> child_objects;
+	std::list<Object *> child_objects;
 
 	// list child objects
-	LinkNode *node = this->export_settings->export_set ;
+	LinkNode *node = this->export_settings->export_set;
 	while (node) {
 		// cob - child object
 		Object *cob = (Object *)node->link;
@@ -132,7 +133,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		if (this->export_settings->include_armatures && is_skinned_mesh) {
 			instance_controller_created = arm_exporter->add_instance_controller(ob);
 		}
-		if (!instance_controller_created){
+		if (!instance_controller_created) {
 			COLLADASW::InstanceGeometry instGeom(mSW);
 			instGeom.setUrl(COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, get_geometry_id(ob, this->export_settings->use_object_instantiation)));
 
@@ -165,7 +166,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 			GroupObject *go = NULL;
 			Group *gr = ob->dup_group;
 			/* printf("group detected '%s'\n", gr->id.name+2); */
-			for (go = (GroupObject*)(gr->gobject.first); go; go=go->next) {
+			for (go = (GroupObject *)(gr->gobject.first); go; go = go->next) {
 				printf("\t%s\n", go->ob->id.name);
 			}
 		}
@@ -175,8 +176,8 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 		colladaNode.end();
 	}
 
-	for (std::list<Object*>::iterator i= child_objects.begin(); i != child_objects.end(); ++i) {
-		if(bc_is_marked(*i)) {
+	for (std::list<Object *>::iterator i = child_objects.begin(); i != child_objects.end(); ++i) {
+		if (bc_is_marked(*i)) {
 			bc_remove_mark(*i);
 			writeNodes(*i, sce);
 		}

@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief BrightnessNode
-  * @ingroup Node
-  */
-class BrightnessNode: public Node {
+ * @brief BrightnessNode
+ * @ingroup Node
+ */
+class BrightnessNode : public Node {
 public:
 	BrightnessNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

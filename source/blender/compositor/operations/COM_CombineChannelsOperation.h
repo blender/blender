@@ -25,7 +25,7 @@
 
 #include "COM_NodeOperation.h"
 
-class CombineChannelsOperation: public NodeOperation {
+class CombineChannelsOperation : public NodeOperation {
 private:
 	SocketReader *inputChannel1Operation;
 	SocketReader *inputChannel2Operation;
@@ -33,7 +33,7 @@ private:
 	SocketReader *inputChannel4Operation;
 public:
 	CombineChannelsOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();

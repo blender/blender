@@ -107,7 +107,7 @@ static CompBuf* BTP(CompBuf* src, float threshold, int scaledown)
 	float* cr = bsrc->rect;
 	for (y=0; y<bsrc->y; ++y)
 		for (x=0; x<bsrc->x; ++x, cr+=4) {
-			if ((0.212671f*cr[0] + 0.71516f*cr[1] + 0.072169f*cr[2]) >= threshold) {
+			if (rgb_to_luma_y(cr) >= threshold) {
 				cr[0] -= threshold, cr[1] -= threshold, cr[2] -= threshold;
 				cr[0] = MAX2(cr[0], 0.f);
 				cr[1] = MAX2(cr[1], 0.f);

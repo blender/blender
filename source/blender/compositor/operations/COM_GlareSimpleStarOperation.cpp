@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -25,20 +25,21 @@
 void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTile, NodeGlare *settings)
 {
 	int i, x, y, ym, yp, xm, xp;
-	float c[4] = {0,0,0,0}, tc[4] = {0,0,0,0};
-	const float f1 = 1.f - settings->fade, f2 = (1.f - f1)*0.5f;
-
+	float c[4] = {0, 0, 0, 0}, tc[4] = {0, 0, 0, 0};
+	const float f1 = 1.0f - settings->fade;
+	const float f2 = (1.0f - f1) * 0.5f;
 
 	MemoryBuffer *tbuf1 = inputTile->duplicate();
 	MemoryBuffer *tbuf2 = inputTile->duplicate();
 
-	for (i=0; i<settings->iter; i++) {
+	bool breaked = false;
+	for (i = 0; i < settings->iter && (!breaked); i++) {
 //		// (x || x-1, y-1) to (x || x+1, y+1)
 //		// F
-		for (y=0; y<this->getHeight(); y++) {
+		for (y = 0; y < this->getHeight() && (!breaked); y++) {
 			ym = y - i;
 			yp = y + i;
-			for (x=0; x<this->getWidth(); x++) {
+			for (x = 0; x < this->getWidth(); x++) {
 				xm = x - i;
 				xp = x + i;
 				tbuf1->read(c, x, y);
@@ -58,14 +59,16 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);
-
+			}
+			if (isBreaked()) {
+				breaked = true;
 			}
 		}
 //		// B
-		for (y=tbuf1->getHeight()-1; y>=0; y--) {
+		for (y = tbuf1->getHeight() - 1 && (!breaked); y >= 0; y--) {
 			ym = y - i;
 			yp = y + i;
-			for (x=tbuf1->getWidth()-1; x>=0; x--) {
+			for (x = tbuf1->getWidth() - 1; x >= 0; x--) {
 				xm = x - i;
 				xp = x + i;
 				tbuf1->read(c, x, y);
@@ -85,11 +88,14 @@ void GlareSimpleStarOperation::generateGlare(float *data, MemoryBuffer *inputTil
 				madd_v3_v3fl(c, tc, f2);
 				c[3] = 1.0f;
 				tbuf2->writePixel(x, y, c);
+			}
+			if (isBreaked()) {
+				breaked = true;
 			}
 		}
 	}
 
-	for (i = 0 ; i < this->getWidth()*this->getHeight()*4 ; i++) {
+	for (i = 0; i < this->getWidth() * this->getHeight() * 4; i++) {
 		data[i] = tbuf1->getBuffer()[i] + tbuf2->getBuffer()[i];
 	}
 

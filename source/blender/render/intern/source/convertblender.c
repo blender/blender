@@ -1729,7 +1729,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strandbuf->minwidth= ma->strand_min;
 
 			if (ma->strand_widthfade == 0.0f)
-				strandbuf->widthfade= 0.0f;
+				strandbuf->widthfade= -1.0f;
 			else if (ma->strand_widthfade >= 1.0f)
 				strandbuf->widthfade= 2.0f - ma->strand_widthfade;
 			else

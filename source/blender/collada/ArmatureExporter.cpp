@@ -58,16 +58,17 @@ extern "C" {
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
-ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryControllers(sw), export_settings(export_settings) {}
+ArmatureExporter::ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryControllers(sw), export_settings(export_settings) {
+}
 
 // write bone nodes
-void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene* sce,
-										  SceneExporter* se,
-										  std::list<Object*>& child_objects)
+void ArmatureExporter::add_armature_bones(Object *ob_arm, Scene *sce,
+                                          SceneExporter *se,
+                                          std::list<Object *>& child_objects)
 {
 	// write bone nodes
-	bArmature *arm = (bArmature*)ob_arm->data;
-	for (Bone *bone = (Bone*)arm->bonebase.first; bone; bone = bone->next) {
+	bArmature *arm = (bArmature *)ob_arm->data;
+	for (Bone *bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
 		// start from root bones
 		if (!bone->parent)
 			add_bone_node(bone, ob_arm, sce, se, child_objects);
@@ -82,7 +83,7 @@ bool ArmatureExporter::is_skinned_mesh(Object *ob)
 bool ArmatureExporter::add_instance_controller(Object *ob)
 {
 	Object *ob_arm = bc_get_assigned_armature(ob);
-	bArmature *arm = (bArmature*)ob_arm->data;
+	bArmature *arm = (bArmature *)ob_arm->data;
 
 	const std::string& controller_id = get_controller_id(ob_arm, ob);
 
@@ -94,7 +95,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 
 	// write root bone URLs
 	Bone *bone;
-	for (bone = (Bone*)arm->bonebase.first; bone; bone = bone->next) {
+	for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
 		if (!bone->parent)
 			ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
 	}
@@ -140,7 +141,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 {
 	objects.clear();
 
-	Base *base= (Base*) sce->base.first;
+	Base *base = (Base *) sce->base.first;
 	while (base) {
 		Object *ob = base->object;
 		
@@ -148,7 +149,7 @@ void ArmatureExporter::find_objects_using_armature(Object *ob_arm, std::vector<O
 			objects.push_back(ob);
 		}
 
-		base= base->next;
+		base = base->next;
 	}
 }
 #endif
@@ -159,9 +160,9 @@ std::string ArmatureExporter::get_joint_sid(Bone *bone, Object *ob_arm)
 }
 
 // parent_mat is armature-space
-void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
-									 SceneExporter* se,
-									 std::list<Object*>& child_objects)
+void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
+                                     SceneExporter *se,
+                                     std::list<Object *>& child_objects)
 {
 	std::string node_id = get_joint_id(bone, ob_arm);
 	std::string node_name = std::string(bone->name);
@@ -175,14 +176,14 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 	node.setNodeSid(node_sid);
 
 	/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
-		add_blender_leaf_bone( bone, ob_arm , node );
-	else{*/
+	    add_blender_leaf_bone( bone, ob_arm , node );
+	   else{*/
 	node.start();
 
 	add_bone_transform(ob_arm, bone, node);
 
 	// Write nodes of childobjects, remove written objects from list
-	std::list<Object*>::iterator i = child_objects.begin();
+	std::list<Object *>::iterator i = child_objects.begin();
 
 	while (i != child_objects.end()) {
 		if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name))) {
@@ -219,29 +220,32 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene* sce,
 		else i++;
 	}
 
-	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
+	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 		add_bone_node(child, ob_arm, sce, se, child_objects);
 	}
 	node.end();
 	//}
 }
 
-/*void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
+#if 0
+void ArmatureExporter::add_blender_leaf_bone(Bone *bone, Object *ob_arm, COLLADASW::Node& node)
 {
 	node.start();
 	
 	add_bone_transform(ob_arm, bone, node);
 	
-	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0] );
-	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1] );
-	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2] );
+	node.addExtraTechniqueParameter("blender", "tip_x", bone->tail[0]);
+	node.addExtraTechniqueParameter("blender", "tip_y", bone->tail[1]);
+	node.addExtraTechniqueParameter("blender", "tip_z", bone->tail[2]);
 	
-	for (Bone *child = (Bone*)bone->childbase.first; child; child = child->next) {
+	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
 		add_bone_node(child, ob_arm, sce, se, child_objects);
 	}
 	node.end();
 	
-}*/
+}
+#endif
+
 void ArmatureExporter::add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node)
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, bone->name);
@@ -292,7 +296,7 @@ std::string ArmatureExporter::get_controller_id(Object *ob_arm, Object *ob)
 
 // ob should be of type OB_MESH
 // both args are required
-void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
+void ArmatureExporter::export_controller(Object *ob, Object *ob_arm)
 {
 	// joint names
 	// joint inverse bind matrices
@@ -302,29 +306,29 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 	// joint names: ob -> vertex group names
 	// vertex group weights: me->dvert -> groups -> index, weight
 
-	/*
-	me->dvert:
+#if 0
+	me->dvert :
 
 	typedef struct MDeformVert {
 		struct MDeformWeight *dw;
 		int totweight;
-		int flag;	// flag only in use for weightpaint now
+		int flag;   // flag only in use for weightpaint now
 	} MDeformVert;
 
 	typedef struct MDeformWeight {
-		int				def_nr;
-		float			weight;
+		int def_nr;
+		float weight;
 	} MDeformWeight;
-	*/
+#endif
 
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 
-	if ( this->export_settings->apply_modifiers ) {
+	if (this->export_settings->apply_modifiers) {
 		me = bc_to_mesh_apply_modifiers(scene, ob);
 	} 
 	else {
-		me = (Mesh*)ob->data;
+		me = (Mesh *)ob->data;
 	}
 	BKE_mesh_tessface_ensure(me);
 
@@ -352,7 +356,7 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 		std::vector<int> joint_index_by_def_index;
 		bDeformGroup *def;
 
-		for (def = (bDeformGroup*)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
+		for (def = (bDeformGroup *)ob->defbase.first, i = 0, j = 0; def; def = def->next, i++) {
 			if (is_bone_defgroup(ob_arm, def))
 				joint_index_by_def_index.push_back(j++);
 			else
@@ -375,18 +379,20 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 			}
 
 			if (sumw > 0.0f) {
-				float invsumw = 1.0f/sumw;
+				float invsumw = 1.0f / sumw;
 				vcounts.push_back(jw.size());
 				for (std::map<int, float>::iterator m = jw.begin(); m != jw.end(); ++m) {
 					joints.push_back((*m).first);
-					weights.push_back(invsumw*(*m).second);
+					weights.push_back(invsumw * (*m).second);
 				}
 			}
 			else {
 				vcounts.push_back(0);
-				/*vcounts.push_back(1);
+#if 0
+				vcounts.push_back(1);
 				joints.push_back(-1);
-				weights.push_back(1.0f);*/
+				weights.push_back(1.0f);
+#endif
 			}
 		}
 	}
@@ -404,15 +410,15 @@ void ArmatureExporter::export_controller(Object* ob, Object *ob_arm)
 }
 
 void ArmatureExporter::add_joints_element(ListBase *defbase,
-						const std::string& joints_source_id, const std::string& inv_bind_mat_source_id)
+                                          const std::string& joints_source_id, const std::string& inv_bind_mat_source_id)
 {
 	COLLADASW::JointsElement joints(mSW);
 	COLLADASW::InputList &input = joints.getInputList();
 
 	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::JOINT, // constant declared in COLLADASWInputList.h
-							   COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id)));
+	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id)));
 	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::BINDMATRIX,
-							   COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, inv_bind_mat_source_id)));
+	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, inv_bind_mat_source_id)));
 	joints.add();
 }
 
@@ -431,7 +437,7 @@ std::string ArmatureExporter::add_joints_source(Object *ob_arm, ListBase *defbas
 
 	int totjoint = 0;
 	bDeformGroup *def;
-	for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
+	for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def))
 			totjoint++;
 	}
@@ -447,7 +453,7 @@ std::string ArmatureExporter::add_joints_source(Object *ob_arm, ListBase *defbas
 
 	source.prepareToAppendValues();
 
-	for (def = (bDeformGroup*)defbase->first; def; def = def->next) {
+	for (def = (bDeformGroup *)defbase->first; def; def = def->next) {
 		Bone *bone = get_bone_from_defgroup(ob_arm, def);
 		if (bone)
 			source.appendValues(get_joint_sid(bone, ob_arm));
@@ -463,7 +469,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	std::string source_id = controller_id + BIND_POSES_SOURCE_ID_SUFFIX;
 
 	int totjoint = 0;
-	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
+	for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def))
 			totjoint++;
 	}
@@ -481,7 +487,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	source.prepareToAppendValues();
 
 	bPose *pose = ob_arm->pose;
-	bArmature *arm = (bArmature*)ob_arm->data;
+	bArmature *arm = (bArmature *)ob_arm->data;
 
 	int flag = arm->flag;
 
@@ -491,7 +497,7 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 		BKE_pose_where_is(scene, ob_arm);
 	}
 
-	for (bDeformGroup *def = (bDeformGroup*)defbase->first; def; def = def->next) {
+	for (bDeformGroup *def = (bDeformGroup *)defbase->first; def; def = def->next) {
 		if (is_bone_defgroup(ob_arm, def)) {
 			bPoseChannel *pchan = BKE_pose_channel_find_name(pose, def->name);
 
@@ -530,13 +536,13 @@ std::string ArmatureExporter::add_inv_bind_mats_source(Object *ob_arm, ListBase 
 	return source_id;
 }
 
-Bone *ArmatureExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup* def)
+Bone *ArmatureExporter::get_bone_from_defgroup(Object *ob_arm, bDeformGroup *def)
 {
 	bPoseChannel *pchan = BKE_pose_channel_find_name(ob_arm->pose, def->name);
 	return pchan ? pchan->bone : NULL;
 }
 
-bool ArmatureExporter::is_bone_defgroup(Object *ob_arm, bDeformGroup* def)
+bool ArmatureExporter::is_bone_defgroup(Object *ob_arm, bDeformGroup *def)
 {
 	return get_bone_from_defgroup(ob_arm, def) != NULL;
 }
@@ -566,17 +572,17 @@ std::string ArmatureExporter::add_weights_source(Mesh *me, const std::string& co
 }
 
 void ArmatureExporter::add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id,
-												  const std::list<int>& vcounts,
-												  const std::list<int>& joints)
+                                                  const std::list<int>& vcounts,
+                                                  const std::list<int>& joints)
 {
 	COLLADASW::VertexWeightsElement weightselem(mSW);
 	COLLADASW::InputList &input = weightselem.getInputList();
 
 	int offset = 0;
 	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::JOINT, // constant declared in COLLADASWInputList.h
-									 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id), offset++));
+	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, joints_source_id), offset++));
 	input.push_back(COLLADASW::Input(COLLADASW::InputSemantic::WEIGHT,
-									 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, weights_source_id), offset++));
+	                                 COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING, weights_source_id), offset++));
 
 	weightselem.setCount(vcounts.size());
 

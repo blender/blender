@@ -31,7 +31,7 @@ ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputXSocket = this->getInputSocket(1);
@@ -39,50 +39,50 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext * 
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	bNode *bnode = this->getbNode();
 	switch (bnode->custom1) {
-	case CMP_SCALE_RELATIVE: {
-		ScaleOperation *operation = new ScaleOperation();
-	
-		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-		inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
-		inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
-		outputSocket->relinkConnections(operation->getOutputSocket(0));
-		graph->addOperation(operation);
-	}
+		case CMP_SCALE_RELATIVE: {
+			ScaleOperation *operation = new ScaleOperation();
+
+			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+			inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
+			inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
+			outputSocket->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(operation);
+		}
 		break;
-	case CMP_SCALE_SCENEPERCENT: {
-		SetValueOperation * scaleFactorOperation = new SetValueOperation();
-		scaleFactorOperation->setValue(context->getScene()->r.size/100.0f);
-		ScaleOperation * operation = new ScaleOperation();
-		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-		addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
-		addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(2));
-		outputSocket->relinkConnections(operation->getOutputSocket(0));
-		graph->addOperation(scaleFactorOperation);
-		graph->addOperation(operation);
-	}
+		case CMP_SCALE_SCENEPERCENT: {
+			SetValueOperation *scaleFactorOperation = new SetValueOperation();
+			scaleFactorOperation->setValue(context->getScene()->r.size / 100.0f);
+			ScaleOperation *operation = new ScaleOperation();
+			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+			addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(1));
+			addLink(graph, scaleFactorOperation->getOutputSocket(), operation->getInputSocket(2));
+			outputSocket->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(scaleFactorOperation);
+			graph->addOperation(operation);
+		}
 		break;
-		
-	case CMP_SCALE_RENDERPERCENT: {
-		const RenderData *data = &context->getScene()->r;
-		ScaleFixedSizeOperation * operation = new ScaleFixedSizeOperation();
-		operation->setNewWidth(data->xsch*data->size/100.0f);
-		operation->setNewHeight(data->ysch*data->size/100.0f);
-		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-		outputSocket->relinkConnections(operation->getOutputSocket(0));
-		operation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);
-		graph->addOperation(operation);
-	}
+
+		case CMP_SCALE_RENDERPERCENT: {
+			const RenderData *data = &context->getScene()->r;
+			ScaleFixedSizeOperation *operation = new ScaleFixedSizeOperation();
+			operation->setNewWidth(data->xsch * data->size / 100.0f);
+			operation->setNewHeight(data->ysch * data->size / 100.0f);
+			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+			outputSocket->relinkConnections(operation->getOutputSocket(0));
+			operation->getInputSocket(0)->getConnection()->setIgnoreResizeCheck(true);
+			graph->addOperation(operation);
+		}
 		break;
-		
-	case CMP_SCALE_ABSOLUTE: {
-		ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation(); // TODO: what is the use of this one.... perhaps some issues when the ui was updated....
-	
-		inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
-		inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
-		inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
-		outputSocket->relinkConnections(operation->getOutputSocket(0));
-		graph->addOperation(operation);
-	}
+
+		case CMP_SCALE_ABSOLUTE: {
+			ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation(); // TODO: what is the use of this one.... perhaps some issues when the ui was updated....
+
+			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
+			inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
+			inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);
+			outputSocket->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(operation);
+		}
 		break;
 	}
 }

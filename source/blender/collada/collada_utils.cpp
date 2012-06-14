@@ -117,7 +117,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 
 	DAG_scene_sort(bmain, sce);
 	DAG_ids_flush_update(bmain, 0);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	return true;
 }
@@ -126,9 +126,9 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 {
 	Object *ob = BKE_object_add_only_object(type, name);
 
-	ob->data= BKE_object_obdata_add_from_type(type);
-	ob->lay= scene->lay;
-	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+	ob->data = BKE_object_obdata_add_from_type(type);
+	ob->lay = scene->lay;
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 
 	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
 
@@ -154,13 +154,11 @@ Object *bc_get_assigned_armature(Object *ob)
 		ob_arm = ob->parent;
 	}
 	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
+		ModifierData *mod;
+		for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
 			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
+				ob_arm = ((ArmatureModifierData *)mod)->object;
 			}
-
-			mod = mod->next;
 		}
 	}
 

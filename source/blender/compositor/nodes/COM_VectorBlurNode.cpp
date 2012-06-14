@@ -22,11 +22,7 @@
 
 #include "COM_VectorBlurNode.h"
 #include "DNA_node_types.h"
-#include "COM_FogGlowImageOperation.h"
-#include "COM_BokehBlurOperation.h"
 #include "COM_VectorBlurOperation.h"
-#include "COM_SetValueOperation.h"
-#include "COM_MixBlendOperation.h"
 
 VectorBlurNode::VectorBlurNode(bNode *editorNode): Node(editorNode)
 {

@@ -381,15 +381,9 @@ unsigned int rgb_to_cpack(float r, float g, float b)
 
 void cpack_to_rgb(unsigned int col, float *r, float *g, float *b)
 {
-
-	*r = (float)((col) & 0xFF);
-	*r /= 255.0f;
-
-	*g = (float)(((col) >> 8) & 0xFF);
-	*g /= 255.0f;
-
-	*b = (float)(((col) >> 16) & 0xFF);
-	*b /= 255.0f;
+	*r = ((float)(((col)      ) & 0xFF)) * (1.0f / 255.0f);
+	*g = ((float)(((col) >>  8) & 0xFF)) * (1.0f / 255.0f);
+	*b = ((float)(((col) >> 16) & 0xFF)) * (1.0f / 255.0f);
 }
 
 void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3])
@@ -494,26 +488,6 @@ int constrain_rgb(float *r, float *g, float *b)
 	}
 
 	return 0; /* Color within RGB gamut */
-}
-
-float rgb_to_grayscale(const float rgb[3])
-{
-	return 0.3f * rgb[0] + 0.58f * rgb[1] + 0.12f * rgb[2];
-}
-
-unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3])
-{
-	return (76 * (unsigned short) rgb[0] + 148 * (unsigned short) rgb[1] + 31 * (unsigned short) rgb[2]) / 255;
-}
-
-float rgb_to_luma(const float rgb[3])
-{
-	return 0.299f * rgb[0] + 0.587f * rgb[1] + 0.114f * rgb[2];
-}
-
-unsigned char rgb_to_luma_byte(const unsigned char rgb[3])
-{
-	return (76 * (unsigned short) rgb[0] + 150 * (unsigned short) rgb[1] + 29 * (unsigned short) rgb[2]) / 255;
 }
 
 /* ********************************* lift/gamma/gain / ASC-CDL conversion ********************************* */
@@ -648,9 +622,9 @@ void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z)
 	g = inverse_srgb_companding(g) * 100.0f;
 	b = inverse_srgb_companding(b) * 100.0f;
 
-	*x = r * 0.4124 + g * 0.3576 + b * 0.1805;
-	*y = r * 0.2126 + g * 0.7152 + b * 0.0722;
-	*z = r * 0.0193 + g * 0.1192 + b * 0.9505;
+	*x = r * 0.412453f + g * 0.357580f + b * 0.180423f;
+	*y = r * 0.212671f + g * 0.715160f + b * 0.072169f;
+	*z = r * 0.019334f + g * 0.119193f + b * 0.950227f;
 }
 
 static float xyz_to_lab_component(float v)

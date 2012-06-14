@@ -26,14 +26,14 @@
 #include "COM_Node.h"
 
 /**
-  * @brief DefocusNode
-  * @ingroup Node
-  */
+ * @brief DefocusNode
+ * @ingroup Node
+ */
 
-class DefocusNode: public Node {
+class DefocusNode : public Node {
 public:
 	DefocusNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

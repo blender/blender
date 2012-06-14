@@ -161,13 +161,13 @@ struct MovieClip *BKE_object_movieclip_get(struct Scene *scene, struct Object *o
 /* this function returns a superset of the scenes selection based on relationships */
 
 typedef enum eObRelationTypes {
-	OB_REL_NONE               = 0,      /* just the selection as is */
-	OB_REL_PARENT             = (1<<0), /* immediate parent */
-	OB_REL_PARENT_RECURSIVE   = (1<<1), /* parents up to root of selection tree*/
-	OB_REL_CHILDREN           = (1<<2), /* immediate children */
-	OB_REL_CHILDREN_RECURSIVE = (1<<3), /* All children */
-	OB_REL_MOD_ARMATURE       = (1<<4), /* Armatures related to the selected objects */
-	OB_REL_SCENE_CAMERA       = (1<<5), /* you might want the scene camera too even if unselected? */
+	OB_REL_NONE               = 0,        /* just the selection as is */
+	OB_REL_PARENT             = (1 << 0), /* immediate parent */
+	OB_REL_PARENT_RECURSIVE   = (1 << 1), /* parents up to root of selection tree*/
+	OB_REL_CHILDREN           = (1 << 2), /* immediate children */
+	OB_REL_CHILDREN_RECURSIVE = (1 << 3), /* All children */
+	OB_REL_MOD_ARMATURE       = (1 << 4), /* Armatures related to the selected objects */
+	OB_REL_SCENE_CAMERA       = (1 << 5), /* you might want the scene camera too even if unselected? */
 } eObRelationTypes;
 
 typedef enum eObjectSet {

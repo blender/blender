@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief BokehImageNode
-  * @ingroup Node
-  */
-class BokehImageNode: public Node {
+ * @brief BokehImageNode
+ * @ingroup Node
+ */
+class BokehImageNode : public Node {
 public:
 	BokehImageNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

@@ -141,6 +141,16 @@ void MemoryBuffer::writePixel(int x, int y, const float color[4])
 	}
 }
 
+void MemoryBuffer::addPixel(int x, int y, const float color[4])
+{
+	if (x >= this->rect.xmin && x < this->rect.xmax &&
+	    y >= this->rect.ymin && y < this->rect.ymax)
+	{
+		const int offset = (this->chunkWidth * y + x) * COM_NUMBER_OF_CHANNELS;
+		add_v4_v4(&this->buffer[offset], color);
+	}
+}
+
 void MemoryBuffer::readCubic(float result[4], float x, float y)
 {
 	int x1 = floor(x);

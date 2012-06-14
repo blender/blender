@@ -26,41 +26,41 @@
 #include "DNA_texture_types.h"
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class MapValueOperation : public NodeOperation {
 private:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputOperation;
-	TexMapping * settings;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputOperation;
+	TexMapping *settings;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	MapValueOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
 	/**
-	  * @brief set the TexMapping settings
-	  */
-	void setSettings(TexMapping *settings) {this->settings = settings;}
+	 * @brief set the TexMapping settings
+	 */
+	void setSettings(TexMapping *settings) { this->settings = settings; }
 	
 };
 #endif

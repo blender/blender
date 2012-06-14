@@ -504,7 +504,9 @@ void bmo_spin_exec(BMesh *bm, BMOperator *op)
 			BMO_op_finish(bm, &extop);
 		}
 
-		if (usedvec)
+		if (usedvec) {
+			mul_m3_v3(rmat, dvec);
 			BMO_op_callf(bm, "translate vec=%v verts=%s", dvec, op, "lastout");
+		}
 	}
 }

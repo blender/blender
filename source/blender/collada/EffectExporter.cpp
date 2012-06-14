@@ -46,7 +46,7 @@
 // OB_MESH is assumed
 static std::string getActiveUVLayerName(Object *ob)
 {
-	Mesh *me = (Mesh*)ob->data;
+	Mesh *me = (Mesh *)ob->data;
 
 	int num_layers = CustomData_number_of_layers(&me->fdata, CD_MTFACE);
 	if (num_layers)
@@ -55,24 +55,25 @@ static std::string getActiveUVLayerName(Object *ob)
 	return "";
 }
 
-EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryEffects(sw), export_settings(export_settings) {}
+EffectsExporter::EffectsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryEffects(sw), export_settings(export_settings) {
+}
 
 bool EffectsExporter::hasEffects(Scene *sce)
 {
 	Base *base = (Base *)sce->base.first;
 	
 	while (base) {
-		Object *ob= base->object;
+		Object *ob = base->object;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
-			Material *ma = give_current_material(ob, a+1);
+			Material *ma = give_current_material(ob, a + 1);
 
 			// no material, but check all of the slots
 			if (!ma) continue;
 
 			return true;
 		}
-		base= base->next;
+		base = base->next;
 	}
 	return false;
 }
@@ -97,7 +98,7 @@ void EffectsExporter::writeBlinn(COLLADASW::EffectProfile &ep, Material *ma)
 	ep.setShininess(ma->har, false, "shininess");
 	// specular
 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	ep.setSpecular(cot, false, "specular" );
+	ep.setSpecular(cot, false, "specular");
 }
 
 void EffectsExporter::writeLambert(COLLADASW::EffectProfile &ep, Material *ma)
@@ -111,10 +112,10 @@ void EffectsExporter::writePhong(COLLADASW::EffectProfile &ep, Material *ma)
 	COLLADASW::ColorOrTexture cot;
 	ep.setShaderType(COLLADASW::EffectProfile::PHONG);
 	// shininess
-	ep.setShininess(ma->har, false, "shininess" );
+	ep.setShininess(ma->har, false, "shininess");
 	// specular
 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	ep.setSpecular(cot, false, "specular" );
+	ep.setSpecular(cot, false, "specular");
 }
 
 void EffectsExporter::operator()(Material *ma, Object *ob)
@@ -129,7 +130,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.setProfileType(COLLADASW::EffectProfile::COMMON);
 	ep.openProfile();
 	// set shader type - one of three blinn, phong or lambert
-	if (ma->spec>0.0f) {
+	if (ma->spec > 0.0f) {
 		if (ma->spec_shader == MA_SPEC_BLINN) {
 			writeBlinn(ep, ma);
 		}
@@ -144,8 +145,8 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			writeLambert(ep, ma);
 		}
 		else {
-		// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
-		writePhong(ep, ma);
+			// \todo figure out handling of all spec+diff shader combos blender has, for now write phong
+			writePhong(ep, ma);
 		}
 	}
 	
@@ -168,7 +169,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	}
 
 	// emission
-	cot=getcol(ma->emit, ma->emit, ma->emit, 1.0f);
+	cot = getcol(ma->emit, ma->emit, ma->emit, 1.0f);
 	ep.setEmission(cot, false, "emission");
 
 	// diffuse multiplied by diffuse intensity
@@ -178,7 +179,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	// ambient
 	/* ma->ambX is calculated only on render, so lets do it here manually and not rely on ma->ambX. */
 	if (this->scene->world)
-		cot = getcol(this->scene->world->ambr*ma->amb, this->scene->world->ambg*ma->amb, this->scene->world->ambb*ma->amb, 1.0f);
+		cot = getcol(this->scene->world->ambr * ma->amb, this->scene->world->ambg * ma->amb, this->scene->world->ambb * ma->amb, 1.0f);
 	else
 		cot = getcol(ma->amb, ma->amb, ma->amb, 1.0f);
 
@@ -191,9 +192,9 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		ep.setReflectivity(ma->ray_mirror);
 	}
 	// else {
-	// 	cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
-	// 	ep.setReflective(cot);
-	// 	ep.setReflectivity(ma->spec);
+	//  cot = getcol(ma->specr, ma->specg, ma->specb, 1.0f);
+	//  ep.setReflective(cot);
+	//  ep.setReflectivity(ma->spec);
 	// }
 
 	// specular
@@ -229,7 +230,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		if (im_samp_map.find(key) == im_samp_map.end()) {
 			// //<newparam> <surface> <init_from>
 			// COLLADASW::Surface surface(COLLADASW::Surface::SURFACE_TYPE_2D,
-			// 						   key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
+			//                         key + COLLADASW::Surface::SURFACE_SID_SUFFIX);
 			// COLLADASW::SurfaceInitOption sio(COLLADASW::SurfaceInitOption::INIT_FROM);
 			// sio.setImageReference(key);
 			// surface.setInitOption(sio);
@@ -239,8 +240,8 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 			
 			//<newparam> <sampler> <source>
 			COLLADASW::Sampler sampler(COLLADASW::Sampler::SAMPLER_TYPE_2D,
-									   key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
-									   key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
+			                           key + COLLADASW::Sampler::SAMPLER_SID_SUFFIX,
+			                           key + COLLADASW::Sampler::SURFACE_SID_SUFFIX);
 			sampler.setImageId(key);
 			// copy values to arrays since they will live longer
 			samplers[a] = sampler;
@@ -273,7 +274,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 		std::string key(id_name(ima));
 		key = translate_id(key);
 		int i = im_samp_map[key];
-		COLLADASW::Sampler *sampler = (COLLADASW::Sampler*)samp_surf[i][0];
+		COLLADASW::Sampler *sampler = (COLLADASW::Sampler *)samp_surf[i][0];
 		//COLLADASW::Surface *surface = (COLLADASW::Surface*)samp_surf[i][1];
 
 		std::string uvname = strlen(t->uvname) ? t->uvname : active_uv;
@@ -320,7 +321,7 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 	ep.addProfileElements();
 	bool twoSided = false;
 	if (ob->type == OB_MESH && ob->data) {
-		Mesh *me = (Mesh*)ob->data;
+		Mesh *me = (Mesh *)ob->data;
 		if (me->flag & ME_TWOSIDED)
 			twoSided = true;
 	}
@@ -335,9 +336,9 @@ void EffectsExporter::operator()(Material *ma, Object *ob)
 }
 
 COLLADASW::ColorOrTexture EffectsExporter::createTexture(Image *ima,
-										std::string& uv_layer_name,
-										COLLADASW::Sampler *sampler
-										/*COLLADASW::Surface *surface*/)
+                                                         std::string& uv_layer_name,
+                                                         COLLADASW::Sampler *sampler
+                                                         /*COLLADASW::Surface *surface*/)
 {
 	
 	COLLADASW::Texture texture(translate_id(id_name(ima)));

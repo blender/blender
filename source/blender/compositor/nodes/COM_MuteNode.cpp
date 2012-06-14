@@ -44,7 +44,7 @@ void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output)
 		}
 	}
 	
-	NodeOperation *operation;
+	NodeOperation *operation = NULL;
 	switch (output->getDataType()) {
 		case COM_DT_VALUE:
 		{
@@ -74,7 +74,6 @@ void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output)
 		}
 			/* quiet warnings */
 		case COM_DT_UNKNOWN:
-			operation = NULL;
 			break;
 	}
 

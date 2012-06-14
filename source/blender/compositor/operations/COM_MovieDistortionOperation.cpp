@@ -52,7 +52,7 @@ void MovieDistortionOperation::initExecution()
 		BKE_movieclip_user_set_frame(&clipUser, this->framenumber);
 		BKE_movieclip_get_size(this->movieClip, &clipUser, &calibration_width, &calibration_height);
 
-		for (int i = 0 ; i < s_cache.size() ; i ++) {
+		for (unsigned int i = 0 ; i < s_cache.size() ; i ++) {
 			DistortionCache *c = (DistortionCache*)s_cache[i];
 			if (c->isCacheFor(this->movieClip, this->width, this->height,
 			                  calibration_width, calibration_height, this->distortion))

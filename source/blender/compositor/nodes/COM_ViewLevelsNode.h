@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief ViewLevelsNode
-  * @ingroup Node
-  */
-class ViewLevelsNode: public Node {
+ * @brief ViewLevelsNode
+ * @ingroup Node
+ */
+class ViewLevelsNode : public Node {
 public:
 	ViewLevelsNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

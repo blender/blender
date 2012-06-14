@@ -25,12 +25,12 @@
 
 #include "COM_NodeOperation.h"
 
-class SocketProxyOperation: public NodeOperation {
+class SocketProxyOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
 public:
 	SocketProxyOperation();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();

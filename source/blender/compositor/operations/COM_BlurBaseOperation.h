@@ -30,11 +30,11 @@ private:
 
 protected:
 	/**
-	  * Cached reference to the inputProgram
-	  */
+	 * Cached reference to the inputProgram
+	 */
 	SocketReader *inputProgram;
 	SocketReader *inputSize;
-	NodeBlurData * data;
+	NodeBlurData *data;
 	BlurBaseOperation();
 	float *make_gausstab(int rad);
 	float size;
@@ -43,19 +43,19 @@ protected:
 	void updateSize(MemoryBuffer **memoryBuffers);
 public:
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setData(NodeBlurData *data) {this->data = data;}
-	
-	void deleteDataWhenFinished() {this->deleteData = true;}
+	void setData(NodeBlurData *data) { this->data = data; }
 
-	void setSize(float size) {this->size = size; sizeavailable = true;}
+	void deleteDataWhenFinished() { this->deleteData = true; }
+
+	void setSize(float size) { this->size = size; sizeavailable = true; }
 };
 #endif

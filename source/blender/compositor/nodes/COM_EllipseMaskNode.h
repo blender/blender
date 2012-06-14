@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief EllipseMaskNode
-  * @ingroup Node
-  */
-class EllipseMaskNode: public Node {
+ * @brief EllipseMaskNode
+ * @ingroup Node
+ */
+class EllipseMaskNode : public Node {
 public:
 	EllipseMaskNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

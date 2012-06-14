@@ -42,6 +42,7 @@
                    object_selected="#ff8500"
                    outline_width="1"
                    panel="#a5a5a57f"
+                   skin_root="#000000"
                    speaker="#000000"
                    transform="#ffffff"
                    handle_vect="#409030"
@@ -80,7 +81,9 @@
                        marker_outline="#000000"
                        path_after="#0000ff"
                        path_before="#ff0000"
-                       selected_marker="#ffff00">
+                       selected_marker="#ffff00"
+                       strips="#0c0a0a"
+                       strips_selected="#ff8c00">
         <space>
           <ThemeSpaceGeneric header="#313131"
                              header_text="#000000"
@@ -95,6 +98,13 @@
                              back="#393939">
           </ThemeSpaceGeneric>
         </space>
+        <space_list>
+          <ThemeSpaceListGeneric list="#666666"
+                                 list_text="#000000"
+                                 list_text_hi="#ffffff"
+                                 list_title="#000000">
+          </ThemeSpaceListGeneric>
+        </space_list>
       </ThemeClipEditor>
     </clip_editor>
     <console>
@@ -130,6 +140,7 @@
                       grid="#585858"
                       long_key="#0c0a0a"
                       long_key_selected="#ff8c00"
+                      summary="#00000000"
                       value_sliders="#000000"
                       view_sliders="#969696">
         <space>
@@ -304,12 +315,20 @@
       </ThemeLogicEditor>
     </logic_editor>
     <nla_editor>
-      <ThemeNLAEditor bars="#707070"
-                      bars_selected="#60c040"
+      <ThemeNLAEditor active_action="#00000000"
                       frame_current="#60c040"
                       grid="#585858"
+                      meta_strips="#000000"
+                      meta_strips_selected="#000000"
+                      active_action_unset="#00000000"
+                      sound_strips="#000000"
+                      sound_strips_selected="#000000"
                       strips="#0c0a0a"
                       strips_selected="#ff8c00"
+                      transition_strips="#000000"
+                      transition_strips_selected="#000000"
+                      tweak="#000000"
+                      tweak_duplicate="#000000"
                       view_sliders="#969696">
         <space>
           <ThemeSpaceGeneric header="#3b3b3b"
@@ -335,10 +354,13 @@
       </ThemeNLAEditor>
     </nla_editor>
     <node_editor>
-      <ThemeNodeEditor converter_node="#575675"
+      <ThemeNodeEditor node_active="#ffffff"
+                       converter_node="#575675"
+                       frame_node="#9a9b9ba0"
                        group_node="#1e7524"
                        in_out_node="#e08706"
                        node_backdrop="#9b9b9ba0"
+                       node_selected="#ffffff"
                        noodle_curving="5"
                        operator_node="#2c6f6f"
                        selected_text="#7f7070"
@@ -415,7 +437,6 @@
                            keyframe="#ff8500"
                            meta_strip="#6d9183"
                            movie_strip="#516987"
-                           plugin_strip="#7e7e50"
                            preview_back="#000000"
                            scene_strip="#4e983e"
                            transition_strip="#a25f6f"

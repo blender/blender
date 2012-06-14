@@ -104,7 +104,7 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryB
 
 			offset +=4;
 		}
-		if (tree->test_break && tree->test_break(tree->tbh)) {
+		if (isBreaked()) {
 			breaked = true;
 		}
 

@@ -168,6 +168,13 @@ void BlenderSync::sync_integrator()
 	integrator->motion_blur = (!preview && r.use_motion_blur());
 #endif
 
+	integrator->diffuse_samples = get_int(cscene, "diffuse_samples");
+	integrator->glossy_samples = get_int(cscene, "glossy_samples");
+	integrator->transmission_samples = get_int(cscene, "transmission_samples");
+	integrator->ao_samples = get_int(cscene, "ao_samples");
+	integrator->mesh_light_samples = get_int(cscene, "mesh_light_samples");
+	integrator->progressive = get_boolean(cscene, "progressive");
+
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
 }
@@ -308,15 +315,27 @@ SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL
 
 	/* Background */
 	params.background = background;
-			
+
 	/* samples */
-	if(background) {
-		params.samples = get_int(cscene, "samples");
+	if(get_boolean(cscene, "progressive")) {
+		if(background) {
+			params.samples = get_int(cscene, "samples");
+		}
+		else {
+			params.samples = get_int(cscene, "preview_samples");
+			if(params.samples == 0)
+				params.samples = INT_MAX;
+		}
 	}
 	else {
-		params.samples = get_int(cscene, "preview_samples");
-		if(params.samples == 0)
-			params.samples = INT_MAX;
+		if(background) {
+			params.samples = get_int(cscene, "aa_samples");
+		}
+		else {
+			params.samples = get_int(cscene, "preview_aa_samples");
+			if(params.samples == 0)
+				params.samples = INT_MAX;
+		}
 	}
 
 	/* other parameters */

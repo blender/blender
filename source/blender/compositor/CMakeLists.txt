@@ -97,6 +97,9 @@ set(SRC
 	intern/COM_CompositorContext.h
 	intern/COM_ChannelInfo.cpp
 	intern/COM_ChannelInfo.h
+	intern/COM_SingleThreadedNodeOperation.cpp
+	intern/COM_SingleThreadedNodeOperation.h
+
 	operations/COM_QualityStepHelper.h
 	operations/COM_QualityStepHelper.cpp
 
@@ -475,6 +478,8 @@ set(SRC
 	operations/COM_MixBaseOperation.cpp
 	operations/COM_MixBlendOperation.cpp
 	operations/COM_MixBlendOperation.h
+	operations/COM_MixGlareOperation.cpp
+	operations/COM_MixGlareOperation.h
 	operations/COM_MixAddOperation.h
 	operations/COM_MixAddOperation.cpp
 	operations/COM_MixMultiplyOperation.h
@@ -571,8 +576,6 @@ set(SRC
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
-	operations/COM_FogGlowImageOperation.cpp
-	operations/COM_FogGlowImageOperation.h
 	operations/COM_GlareThresholdOperation.cpp
 	operations/COM_GlareThresholdOperation.h
 	operations/COM_GlareBaseOperation.cpp
@@ -583,6 +586,8 @@ set(SRC
 	operations/COM_GlareStreaksOperation.h
 	operations/COM_GlareGhostOperation.cpp
 	operations/COM_GlareGhostOperation.h
+	operations/COM_GlareFogGlowOperation.cpp
+	operations/COM_GlareFogGlowOperation.h
 	operations/COM_SetSamplerOperation.cpp
 	operations/COM_SetSamplerOperation.h
 

@@ -88,8 +88,8 @@ extern "C" {
 
 
 /*
-  COLLADA Importer limitations:
-  - no multiple scene import, all objects are added to active scene
+   COLLADA Importer limitations:
+   - no multiple scene import, all objects are added to active scene
  */
 
 // #define COLLADA_DEBUG
@@ -103,13 +103,14 @@ DocumentImporter::DocumentImporter(bContext *C, const char *filename) :
 	armature_importer(&unit_converter, &mesh_importer, &anim_importer, CTX_data_scene(C)),
 	mesh_importer(&unit_converter, &armature_importer, CTX_data_scene(C)),
 	anim_importer(&unit_converter, &armature_importer, CTX_data_scene(C))
-{}
+{
+}
 
 DocumentImporter::~DocumentImporter()
 {
 	TagsMap::iterator etit;
 	etit = uid_tags_map.begin();
-	while (etit!=uid_tags_map.end()) {
+	while (etit != uid_tags_map.end()) {
 		delete etit->second;
 		etit++;
 	}
@@ -171,11 +172,11 @@ void DocumentImporter::start()
 
 void DocumentImporter::finish()
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return;
 		
 	/** TODO Break up and put into 2-pass parsing of DAE */
-	std::vector<const COLLADAFW::VisualScene*>::iterator it;
+	std::vector<const COLLADAFW::VisualScene *>::iterator it;
 	for (it = vscenes.begin(); it != vscenes.end(); it++) {
 		PointerRNA sceneptr, unit_settings;
 		PropertyRNA *system, *scale;
@@ -214,7 +215,7 @@ void DocumentImporter::finish()
 	armature_importer.fix_animation();
 #endif
 
-	for (std::vector<const COLLADAFW::VisualScene*>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
+	for (std::vector<const COLLADAFW::VisualScene *>::iterator it = vscenes.begin(); it != vscenes.end(); it++) {
 		const COLLADAFW::NodePointerArray& roots = (*it)->getRootNodes();
 
 		for (unsigned int i = 0; i < roots.getCount(); i++)
@@ -226,7 +227,7 @@ void DocumentImporter::finish()
 
 		fprintf(stderr, "got %d library nodes to free\n", (int)libnode_ob.size());
 		// free all library_nodes
-		std::vector<Object*>::iterator it;
+		std::vector<Object *>::iterator it;
 		for (it = libnode_ob.begin(); it != libnode_ob.end(); it++) {
 			Object *ob = *it;
 
@@ -234,8 +235,8 @@ void DocumentImporter::finish()
 			if (base) {
 				BLI_remlink(&sce->base, base);
 				BKE_libblock_free_us(&G.main->object, base->object);
-				if (sce->basact==base)
-					sce->basact= NULL;
+				if (sce->basact == base)
+					sce->basact = NULL;
 				MEM_freeN(base);
 			}
 		}
@@ -265,18 +266,20 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 			root_map[node->getUniqueId()] = root_map[par->getUniqueId()];
 	}
 
-	/*COLLADAFW::Transformation::TransformationType types[] = {
+#if 0
+	COLLADAFW::Transformation::TransformationType types[] = {
 		COLLADAFW::Transformation::ROTATE,
 		COLLADAFW::Transformation::SCALE,
 		COLLADAFW::Transformation::TRANSLATE,
 		COLLADAFW::Transformation::MATRIX
 	};
 
-	Object *ob;*/
+	Object *ob;
+#endif
 	unsigned int i;
 
 	//for (i = 0; i < 4; i++)
-		//ob = 
+	//    ob =
 	anim_importer.translate_Animations(node, root_map, object_map, FW_object_map);
 
 	COLLADAFW::NodePointerArray &children = node->getChildNodes();
@@ -286,8 +289,8 @@ void DocumentImporter::translate_anim_recursive(COLLADAFW::Node *node, COLLADAFW
 }
 
 /** When this method is called, the writer must write the global document asset.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeGlobalAsset(const COLLADAFW::FileInfo *asset)
 {
 	unit_converter.read_asset(asset);
 
@@ -295,13 +298,13 @@ bool DocumentImporter::writeGlobalAsset ( const COLLADAFW::FileInfo* asset )
 }
 
 /** When this method is called, the writer must write the scene.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeScene ( const COLLADAFW::Scene* scene ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeScene(const COLLADAFW::Scene *scene)
 {
 	// XXX could store the scene id, but do nothing for now
 	return true;
 }
-Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera, Scene *sce)
+Object *DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera, Scene *sce)
 {
 	const COLLADAFW::UniqueId& cam_uid = camera->getInstanciatedObjectId();
 	if (uid_camera_map.find(cam_uid) == uid_camera_map.end()) {	
@@ -311,7 +314,7 @@ Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 
 	Object *ob = bc_add_object(sce, OB_CAMERA, NULL);
 	Camera *cam = uid_camera_map[cam_uid];
-	Camera *old_cam = (Camera*)ob->data;
+	Camera *old_cam = (Camera *)ob->data;
 	ob->data = cam;
 	old_cam->id.us--;
 	if (old_cam->id.us == 0)
@@ -319,7 +322,7 @@ Object* DocumentImporter::create_camera_object(COLLADAFW::InstanceCamera *camera
 	return ob;
 }
 
-Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
+Object *DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Scene *sce)
 {
 	const COLLADAFW::UniqueId& lamp_uid = lamp->getInstanciatedObjectId();
 	if (uid_lamp_map.find(lamp_uid) == uid_lamp_map.end()) {	
@@ -329,7 +332,7 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 
 	Object *ob = bc_add_object(sce, OB_LAMP, NULL);
 	Lamp *la = uid_lamp_map[lamp_uid];
-	Lamp *old_lamp = (Lamp*)ob->data;
+	Lamp *old_lamp = (Lamp *)ob->data;
 	ob->data = la;
 	old_lamp->id.us--;
 	if (old_lamp->id.us == 0)
@@ -337,12 +340,12 @@ Object* DocumentImporter::create_lamp_object(COLLADAFW::InstanceLight *lamp, Sce
 	return ob;
 }
 
-Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
+Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Node *source_node, COLLADAFW::Node *instance_node, Scene *sce, bool is_library_node)
 {
 	fprintf(stderr, "create <instance_node> under node id=%s from node id=%s\n", instance_node ? instance_node->getOriginalId().c_str() : NULL, source_node ? source_node->getOriginalId().c_str() : NULL);
 
 	Object *obn = BKE_object_copy(source_ob);
-	obn->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+	obn->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 	BKE_scene_base_add(sce, obn);
 
 	if (instance_node) {
@@ -399,21 +402,21 @@ Object* DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 	return obn;
 }
 
-void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
+void DocumentImporter::write_node(COLLADAFW::Node *node, COLLADAFW::Node *parent_node, Scene *sce, Object *par, bool is_library_node)
 {
 	Object *ob = NULL;
 	bool is_joint = node->getType() == COLLADAFW::Node::JOINT;
 	bool read_transform = true;
 
-	std::vector<Object*> * objects_done = new std::vector<Object *>();
+	std::vector<Object *> *objects_done = new std::vector<Object *>();
 
 	if (is_joint) {
-		if ( par ) {
-		Object * empty = par;
-		par = bc_add_object(sce, OB_ARMATURE, NULL);
-		bc_set_parent(par, empty->parent, mContext);
-		//remove empty : todo
-		object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(), par));
+		if (par) {
+			Object *empty = par;
+			par = bc_add_object(sce, OB_ARMATURE, NULL);
+			bc_set_parent(par, empty->parent, mContext);
+			//remove empty : todo
+			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(parent_node->getUniqueId(), par));
 		}
 		armature_importer.add_joint(node, parent_node == NULL || parent_node->getType() != COLLADAFW::Node::JOINT, par, sce);
 	}
@@ -434,7 +437,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		// <instance_geometry>
 		while (geom_done < geom.getCount()) {
 			ob = mesh_importer.create_mesh_object(node, geom[geom_done], false, uid_material_map,
-												  material_texture_mapping_map);
+			                                      material_texture_mapping_map);
 			objects_done->push_back(ob);
 			++geom_done;
 		}
@@ -449,7 +452,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 			++lamp_done;
 		}
 		while (controller_done < controller.getCount()) {
-			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry*)controller[controller_done];
+			COLLADAFW::InstanceGeometry *geom = (COLLADAFW::InstanceGeometry *)controller[controller_done];
 			ob = mesh_importer.create_mesh_object(node, geom, true, uid_material_map, material_texture_mapping_map);
 			objects_done->push_back(ob);
 			++controller_done;
@@ -487,7 +490,7 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 		for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
 			ob = *it;
 			std::string nodename = node->getName().size() ? node->getName() : node->getOriginalId();
-			rename_id(&ob->id, (char*)nodename.c_str());
+			rename_id(&ob->id, (char *)nodename.c_str());
 			object_map.insert(std::make_pair<COLLADAFW::UniqueId, Object *>(node->getUniqueId(), ob));
 			node_map[node->getUniqueId()] = node;
 
@@ -498,10 +501,10 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 	}
 
 	for (std::vector<Object *>::iterator it = objects_done->begin(); it != objects_done->end(); ++it) {
-		ob =*it;
+		ob = *it;
 
 		if (read_transform)
-			anim_importer.read_node_transform(node, ob); // overwrites location set earlier
+			anim_importer.read_node_transform(node, ob);  // overwrites location set earlier
 
 		if (!is_joint) {
 			// if par was given make this object child of the previous
@@ -517,10 +520,10 @@ void DocumentImporter::write_node (COLLADAFW::Node *node, COLLADAFW::Node *paren
 }
 
 /** When this method is called, the writer must write the entire visual scene.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualScene ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeVisualScene(const COLLADAFW::VisualScene *visualScene)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	// this method called on post process after writeGeometry, writeMaterial, etc.
@@ -539,11 +542,11 @@ bool DocumentImporter::writeVisualScene ( const COLLADAFW::VisualScene* visualSc
 }
 
 /** When this method is called, the writer must handle all nodes contained in the 
-	library nodes.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* libraryNodes ) 
+* library nodes.
+* \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeLibraryNodes(const COLLADAFW::LibraryNodes *libraryNodes)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	Scene *sce = CTX_data_scene(mContext);
@@ -558,24 +561,24 @@ bool DocumentImporter::writeLibraryNodes ( const COLLADAFW::LibraryNodes* librar
 }
 
 /** When this method is called, the writer must write the geometry.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeGeometry ( const COLLADAFW::Geometry* geom ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeGeometry(const COLLADAFW::Geometry *geom)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	return mesh_importer.write_geometry(geom);
 }
 
 /** When this method is called, the writer must write the material.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeMaterial(const COLLADAFW::Material *cmat)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	const std::string& str_mat_id = cmat->getName().size() ? cmat->getName() : cmat->getOriginalId();
-	Material *ma = BKE_material_add((char*)str_mat_id.c_str());
+	Material *ma = BKE_material_add((char *)str_mat_id.c_str());
 	
 	this->uid_effect_map[cmat->getInstantiatedEffect()] = ma;
 	this->uid_material_map[cmat->getUniqueId()] = ma;
@@ -584,8 +587,8 @@ bool DocumentImporter::writeMaterial( const COLLADAFW::Material* cmat )
 }
 
 // create mtex, create texture, set texture image
-MTex* DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma,
-					 int i, TexIndexTextureArrayMap &texindex_texarray_map)
+MTex *DocumentImporter::create_texture(COLLADAFW::EffectCommon *ef, COLLADAFW::Texture &ctex, Material *ma,
+                                       int i, TexIndexTextureArrayMap &texindex_texarray_map)
 {
 	COLLADAFW::SamplerPointerArray& samp_array = ef->getSamplerPointerArray();
 	COLLADAFW::Sampler *sampler = samp_array[ctex.getSamplerId()];
@@ -735,32 +738,34 @@ void DocumentImporter::write_profile_COMMON(COLLADAFW::EffectCommon *ef, Materia
 			mtex->tex->imaflag |= TEX_USEALPHA;
 			i++;
 			ma->spectra = ma->alpha = 0;
-			ma->mode |= MA_ZTRANSP|MA_TRANSP;
+			ma->mode |= MA_ZTRANSP | MA_TRANSP;
 		}
 	}
 	// TRANSPARENT
 	// color
-// 	if (ef->getOpacity().isColor()) {
-// 			// XXX don't know what to do here
-// 		}
-// 		// texture
-// 		else if (ef->getOpacity().isTexture()) {
-// 			ctex = ef->getOpacity().getTexture();
-// 			if (mtex != NULL) mtex->mapto &= MAP_ALPHA;
-// 			else {
-// 				mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
-// 				if (mtex != NULL) mtex->mapto = MAP_ALPHA;
-// 			}
-// 		}
+#if 0
+	if (ef->getOpacity().isColor()) {
+		// XXX don't know what to do here
+	}
+	// texture
+	else if (ef->getOpacity().isTexture()) {
+		ctex = ef->getOpacity().getTexture();
+		if (mtex != NULL) mtex->mapto &= MAP_ALPHA;
+		else {
+			mtex = create_texture(ef, ctex, ma, i, texindex_texarray_map);
+			if (mtex != NULL) mtex->mapto = MAP_ALPHA;
+		}
+	}
+#endif
 	material_texture_mapping_map[ma] = texindex_texarray_map;
 }
 
 /** When this method is called, the writer must write the effect.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
 
-bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect ) 
+bool DocumentImporter::writeEffect(const COLLADAFW::Effect *effect)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 	
 	const COLLADAFW::UniqueId& uid = effect->getUniqueId();
@@ -771,9 +776,9 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 	}
 	
 	Material *ma = uid_effect_map[uid];
-	std::map<COLLADAFW::UniqueId, Material*>::iterator  iter;
-	for (iter = uid_material_map.begin(); iter != uid_material_map.end() ; iter++ ) {
-		if ( iter->second == ma ) {
+	std::map<COLLADAFW::UniqueId, Material *>::iterator iter;
+	for (iter = uid_material_map.begin(); iter != uid_material_map.end(); iter++) {
+		if (iter->second == ma) {
 			this->FW_object_map[iter->first] = effect;
 			break;
 		}
@@ -794,10 +799,10 @@ bool DocumentImporter::writeEffect( const COLLADAFW::Effect* effect )
 
 
 /** When this method is called, the writer must write the camera.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeCamera(const COLLADAFW::Camera *camera)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	Camera *cam = NULL;
@@ -805,8 +810,8 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	
 	cam_id = camera->getOriginalId();
 	cam_name = camera->getName();
-	if (cam_name.size()) cam = (Camera *)BKE_camera_add((char*)cam_name.c_str());
-	else cam = (Camera *)BKE_camera_add((char*)cam_id.c_str());
+	if (cam_name.size()) cam = (Camera *)BKE_camera_add((char *)cam_name.c_str());
+	else cam = (Camera *)BKE_camera_add((char *)cam_id.c_str());
 	
 	if (!cam) {
 		fprintf(stderr, "Cannot create camera.\n");
@@ -817,17 +822,17 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	
 	COLLADAFW::Camera::CameraType type = camera->getCameraType();
 	switch (type) {
-	case COLLADAFW::Camera::ORTHOGRAPHIC:
+		case COLLADAFW::Camera::ORTHOGRAPHIC:
 		{
 			cam->type = CAM_ORTHO;
 		}
 		break;
-	case COLLADAFW::Camera::PERSPECTIVE:
+		case COLLADAFW::Camera::PERSPECTIVE:
 		{
 			cam->type = CAM_PERSP;
 		}
 		break;
-	case COLLADAFW::Camera::UNDEFINED_CAMERATYPE:
+		case COLLADAFW::Camera::UNDEFINED_CAMERATYPE:
 		{
 			fprintf(stderr, "Current camera type is not supported.\n");
 			cam->type = CAM_PERSP;
@@ -836,35 +841,35 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 	}
 	
 	switch (camera->getDescriptionType()) {
-	case COLLADAFW::Camera::ASPECTRATIO_AND_Y:
+		case COLLADAFW::Camera::ASPECTRATIO_AND_Y:
 		{
 			switch (cam->type) {
 				case CAM_ORTHO:
-					{
-						double ymag = camera->getYMag().getValue();
-						double aspect = camera->getAspectRatio().getValue();
-						double xmag = aspect*ymag;
-						cam->ortho_scale = (float)xmag;
-					}
-					break;
+				{
+					double ymag = camera->getYMag().getValue();
+					double aspect = camera->getAspectRatio().getValue();
+					double xmag = aspect * ymag;
+					cam->ortho_scale = (float)xmag;
+				}
+				break;
 				case CAM_PERSP:
 				default:
-					{
-						double yfov = camera->getYFov().getValue();
-						double aspect = camera->getAspectRatio().getValue();
-						double xfov = aspect*yfov;
-						// xfov is in degrees, cam->lens is in millimiters
-						cam->lens = fov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
-					}
-					break;
+				{
+					double yfov = camera->getYFov().getValue();
+					double aspect = camera->getAspectRatio().getValue();
+					double xfov = aspect * yfov;
+					// xfov is in degrees, cam->lens is in millimiters
+					cam->lens = fov_to_focallength(DEG2RADF(xfov), cam->sensor_x);
+				}
+				break;
 			}
 		}
 		break;
-	/* XXX correct way to do following four is probably to get also render
-	   size and determine proper settings from that somehow */
-	case COLLADAFW::Camera::ASPECTRATIO_AND_X:
-	case COLLADAFW::Camera::SINGLE_X:
-	case COLLADAFW::Camera::X_AND_Y:
+		/* XXX correct way to do following four is probably to get also render
+		   size and determine proper settings from that somehow */
+		case COLLADAFW::Camera::ASPECTRATIO_AND_X:
+		case COLLADAFW::Camera::SINGLE_X:
+		case COLLADAFW::Camera::X_AND_Y:
 		{
 			switch (cam->type) {
 				case CAM_ORTHO:
@@ -872,16 +877,16 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					break;
 				case CAM_PERSP:
 				default:
-					{
-						double x = camera->getXFov().getValue();
-						// x is in degrees, cam->lens is in millimiters
-						cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
-					}
-					break;
+				{
+					double x = camera->getXFov().getValue();
+					// x is in degrees, cam->lens is in millimiters
+					cam->lens = fov_to_focallength(DEG2RADF(x), cam->sensor_x);
+				}
+				break;
 			}
 		}
 		break;
-	case COLLADAFW::Camera::SINGLE_Y:
+		case COLLADAFW::Camera::SINGLE_Y:
 		{
 			switch (cam->type) {
 				case CAM_ORTHO:
@@ -889,18 +894,18 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 					break;
 				case CAM_PERSP:
 				default:
-					{
+				{
 					double yfov = camera->getYFov().getValue();
 					// yfov is in degrees, cam->lens is in millimiters
 					cam->lens = fov_to_focallength(DEG2RADF(yfov), cam->sensor_x);
-					}
-					break;
+				}
+				break;
 			}
 		}
 		break;
-	case COLLADAFW::Camera::UNDEFINED:
-		// read nothing, use blender defaults.
-		break;
+		case COLLADAFW::Camera::UNDEFINED:
+			// read nothing, use blender defaults.
+			break;
 	}
 	
 	this->uid_camera_map[camera->getUniqueId()] = cam;
@@ -910,15 +915,15 @@ bool DocumentImporter::writeCamera( const COLLADAFW::Camera* camera )
 }
 
 /** When this method is called, the writer must write the image.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeImage( const COLLADAFW::Image* image ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeImage(const COLLADAFW::Image *image)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	// XXX maybe it is necessary to check if the path is absolute or relative
 	const std::string& filepath = image->getImageURI().toNativePath();
-	const char *filename = (const char*)mFilename.c_str();
+	const char *filename = (const char *)mFilename.c_str();
 	char dir[FILE_MAX];
 	char full_path[FILE_MAX];
 	
@@ -935,10 +940,10 @@ bool DocumentImporter::writeImage( const COLLADAFW::Image* image )
 }
 
 /** When this method is called, the writer must write the light.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeLight( const COLLADAFW::Light* light ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeLight(const COLLADAFW::Light *light)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 
 	Lamp *lamp = NULL;
@@ -952,8 +957,8 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 
 	la_id = light->getOriginalId();
 	la_name = light->getName();
-	if (la_name.size()) lamp = (Lamp*)BKE_lamp_add((char*)la_name.c_str());
-	else lamp = (Lamp*)BKE_lamp_add((char*)la_id.c_str());
+	if (la_name.size()) lamp = (Lamp *)BKE_lamp_add((char *)la_name.c_str());
+	else lamp = (Lamp *)BKE_lamp_add((char *)la_id.c_str());
 
 	if (!lamp) {
 		fprintf(stderr, "Cannot create lamp.\n");
@@ -1036,12 +1041,12 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 
 		if (IS_EQ(linatt, 0.0f) && quadatt > 0.0f) {
 			att2 = quadatt;
-			d = sqrt(1.0f/quadatt);
+			d = sqrt(1.0f / quadatt);
 		}
 		// linear light
 		else if (IS_EQ(quadatt, 0.0f) && linatt > 0.0f) {
 			att1 = linatt;
-			d = (1.0f/linatt);
+			d = (1.0f / linatt);
 		}
 		else if (IS_EQ(constatt, 1.0f)) {
 			att1 = 1.0f;
@@ -1051,7 +1056,7 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 			att1 = 1.0f;
 		}
 		
-		d *= ( 1.0f / unit_converter.getLinearMeter());
+		d *= (1.0f / unit_converter.getLinearMeter());
 
 		lamp->energy = e;
 		lamp->dist = d;
@@ -1059,47 +1064,47 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 		COLLADAFW::Light::LightType type = light->getLightType();
 		switch (type) {
 			case COLLADAFW::Light::AMBIENT_LIGHT:
-				{
-					lamp->type = LA_HEMI;
-				}
-				break;
+			{
+				lamp->type = LA_HEMI;
+			}
+			break;
 			case COLLADAFW::Light::SPOT_LIGHT:
-				{
-					lamp->type = LA_SPOT;
-					lamp->att1 = att1;
-					lamp->att2 = att2;
-					if (IS_EQ(att1, 0.0f) && att2 > 0)
-						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if (IS_EQ(att2, 0.0f) && att1 > 0)
-						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
-					lamp->spotsize = light->getFallOffAngle().getValue();
-					lamp->spotblend = light->getFallOffExponent().getValue();
-				}
-				break;
+			{
+				lamp->type = LA_SPOT;
+				lamp->att1 = att1;
+				lamp->att2 = att2;
+				if (IS_EQ(att1, 0.0f) && att2 > 0)
+					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+				if (IS_EQ(att2, 0.0f) && att1 > 0)
+					lamp->falloff_type = LA_FALLOFF_INVLINEAR;
+				lamp->spotsize = light->getFallOffAngle().getValue();
+				lamp->spotblend = light->getFallOffExponent().getValue();
+			}
+			break;
 			case COLLADAFW::Light::DIRECTIONAL_LIGHT:
-				{
-					/* our sun is very strong, so pick a smaller energy level */
-					lamp->type = LA_SUN;
-					lamp->mode |= LA_NO_SPEC;
-				}
-				break;
+			{
+				/* our sun is very strong, so pick a smaller energy level */
+				lamp->type = LA_SUN;
+				lamp->mode |= LA_NO_SPEC;
+			}
+			break;
 			case COLLADAFW::Light::POINT_LIGHT:
-				{
-					lamp->type = LA_LOCAL;
-					lamp->att1 = att1;
-					lamp->att2 = att2;
-					if (IS_EQ(att1, 0.0f) && att2 > 0)
-						lamp->falloff_type = LA_FALLOFF_INVSQUARE;
-					if (IS_EQ(att2, 0.0f) && att1 > 0)
-						lamp->falloff_type = LA_FALLOFF_INVLINEAR;
-				}
-				break;
+			{
+				lamp->type = LA_LOCAL;
+				lamp->att1 = att1;
+				lamp->att2 = att2;
+				if (IS_EQ(att1, 0.0f) && att2 > 0)
+					lamp->falloff_type = LA_FALLOFF_INVSQUARE;
+				if (IS_EQ(att2, 0.0f) && att1 > 0)
+					lamp->falloff_type = LA_FALLOFF_INVLINEAR;
+			}
+			break;
 			case COLLADAFW::Light::UNDEFINED:
-				{
-					fprintf(stderr, "Current lamp type is not supported.\n");
-					lamp->type = LA_LOCAL;
-				}
-				break;
+			{
+				fprintf(stderr, "Current lamp type is not supported.\n");
+				lamp->type = LA_LOCAL;
+			}
+			break;
 		}
 	}
 
@@ -1109,9 +1114,9 @@ bool DocumentImporter::writeLight( const COLLADAFW::Light* light )
 }
 
 // this function is called only for animations that pass COLLADAFW::validate
-bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim ) 
+bool DocumentImporter::writeAnimation(const COLLADAFW::Animation *anim)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	// return true;
@@ -1119,9 +1124,9 @@ bool DocumentImporter::writeAnimation( const COLLADAFW::Animation* anim )
 }
 
 // called on post-process stage after writeVisualScenes
-bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* animationList ) 
+bool DocumentImporter::writeAnimationList(const COLLADAFW::AnimationList *animationList)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	// return true;
@@ -1129,40 +1134,40 @@ bool DocumentImporter::writeAnimationList( const COLLADAFW::AnimationList* anima
 }
 
 /** When this method is called, the writer must write the skin controller data.
-	\return The writer should return true, if writing succeeded, false otherwise.*/
-bool DocumentImporter::writeSkinControllerData( const COLLADAFW::SkinControllerData* skin ) 
+ * \return The writer should return true, if writing succeeded, false otherwise.*/
+bool DocumentImporter::writeSkinControllerData(const COLLADAFW::SkinControllerData *skin)
 {
 	return armature_importer.write_skin_controller_data(skin);
 }
 
 // this is called on postprocess, before writeVisualScenes
-bool DocumentImporter::writeController( const COLLADAFW::Controller* controller ) 
+bool DocumentImporter::writeController(const COLLADAFW::Controller *controller)
 {
-	if (mImportStage!=General)
+	if (mImportStage != General)
 		return true;
 		
 	return armature_importer.write_controller(controller);
 }
 
-bool DocumentImporter::writeFormulas( const COLLADAFW::Formulas* formulas )
+bool DocumentImporter::writeFormulas(const COLLADAFW::Formulas *formulas)
 {
 	return true;
 }
 
-bool DocumentImporter::writeKinematicsScene( const COLLADAFW::KinematicsScene* kinematicsScene )
+bool DocumentImporter::writeKinematicsScene(const COLLADAFW::KinematicsScene *kinematicsScene)
 {
 	return true;
 }
 
-ExtraTags* DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
+ExtraTags *DocumentImporter::getExtraTags(const COLLADAFW::UniqueId &uid)
 {
-	if (uid_tags_map.find(uid.toAscii())==uid_tags_map.end()) {
+	if (uid_tags_map.find(uid.toAscii()) == uid_tags_map.end()) {
 		return NULL;
 	}
 	return uid_tags_map[uid.toAscii()];
 }
 
-bool DocumentImporter::addExtraTags( const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags)
+bool DocumentImporter::addExtraTags(const COLLADAFW::UniqueId &uid, ExtraTags *extra_tags)
 {
 	uid_tags_map[uid.toAscii()] = extra_tags;
 	return true;

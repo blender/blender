@@ -35,9 +35,10 @@ ExtraHandler::ExtraHandler(DocumentImporter *dimp, AnimationImporter *aimp) : cu
 	this->aimp = aimp;
 }
 
-ExtraHandler::~ExtraHandler() {}
+ExtraHandler::~ExtraHandler() {
+}
 
-bool ExtraHandler::elementBegin( const char* elementName, const char** attributes)
+bool ExtraHandler::elementBegin(const char *elementName, const char **attributes)
 {
 	// \todo attribute handling for profile tags
 	currentElement = std::string(elementName);
@@ -45,37 +46,38 @@ bool ExtraHandler::elementBegin( const char* elementName, const char** attribute
 	return true;
 }
 
-bool ExtraHandler::elementEnd(const char* elementName )
+bool ExtraHandler::elementEnd(const char *elementName)
 {
 	return true;
 }
 
-bool ExtraHandler::textData(const char* text, size_t textLength)
+bool ExtraHandler::textData(const char *text, size_t textLength)
 {
 	char buf[1024];
 	
 	if (currentElement.length() == 0 || currentExtraTags == 0) return false;
 	
-	BLI_snprintf(buf, textLength+1, "%s", text);
+	BLI_snprintf(buf, textLength + 1, "%s", text);
 	currentExtraTags->addTag(currentElement, std::string(buf));
 	return true;
 }
 
-bool ExtraHandler::parseElement ( 
-	const char* profileName, 
-	const unsigned long& elementHash, 
-	const COLLADAFW::UniqueId& uniqueId ) {
-		if (BLI_strcaseeq(profileName, "blender")) {
-			//printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
-			currentUid = uniqueId;
-			ExtraTags *et = dimp->getExtraTags(uniqueId);
-			if (!et) {
-				et = new ExtraTags(std::string(profileName));
-				dimp->addExtraTags(uniqueId, et);
-			}
-			currentExtraTags = et;
-			return true;
+bool ExtraHandler::parseElement(
+        const char *profileName,
+        const unsigned long& elementHash,
+        const COLLADAFW::UniqueId& uniqueId)
+{
+	if (BLI_strcaseeq(profileName, "blender")) {
+		//printf("In parseElement for supported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
+		currentUid = uniqueId;
+		ExtraTags *et = dimp->getExtraTags(uniqueId);
+		if (!et) {
+			et = new ExtraTags(std::string(profileName));
+			dimp->addExtraTags(uniqueId, et);
 		}
-		//printf("In parseElement for unsupported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
-		return false;
+		currentExtraTags = et;
+		return true;
+	}
+	//printf("In parseElement for unsupported profile %s for id %s\n", profileName, uniqueId.toAscii().c_str());
+	return false;
 }

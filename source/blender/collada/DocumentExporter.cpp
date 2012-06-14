@@ -134,7 +134,7 @@ char *bc_CustomData_get_layer_name(const struct CustomData *data, int type, int 
 	int layer_index = CustomData_get_layer_index(data, type);
 	if (layer_index < 0) return NULL;
 
-	return data->layers[layer_index+n].name;
+	return data->layers[layer_index + n].name;
 }
 
 char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
@@ -146,7 +146,8 @@ char *bc_CustomData_get_active_layer_name(const CustomData *data, int type)
 	return data->layers[layer_index].name;
 }
 
-DocumentExporter::DocumentExporter(const ExportSettings *export_settings) : export_settings(export_settings) {}
+DocumentExporter::DocumentExporter(const ExportSettings *export_settings) : export_settings(export_settings) {
+}
 
 // TODO: it would be better to instantiate animations rather than create a new one per object
 // COLLADA allows this through multiple <channel>s in <animation>.
@@ -160,7 +161,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	clear_global_id_map();
 	
 	COLLADABU::NativeString native_filename =
-		COLLADABU::NativeString(std::string(this->export_settings->filepath));
+	    COLLADABU::NativeString(std::string(this->export_settings->filepath));
 	COLLADASW::StreamWriter sw(native_filename);
 
 	// open <collada>
@@ -221,9 +222,9 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	}
 	char version_buf[128];
 #ifdef WITH_BUILDINFO
-	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION, build_rev);
+	sprintf(version_buf, "Blender %d.%02d.%d r%s", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION, build_rev);
 #else
-	sprintf(version_buf, "Blender %d.%02d.%d", BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION);
+	sprintf(version_buf, "Blender %d.%02d.%d", BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION);
 #endif
 	asset.getContributor().mAuthoringTool = version_buf;
 	asset.add();
@@ -276,7 +277,7 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 	// <scene>
 	std::string scene_name(translate_id(id_name(sce)));
 	COLLADASW::Scene scene(&sw, COLLADASW::URI(COLLADABU::Utils::EMPTY_STRING,
-											   scene_name));
+	                                           scene_name));
 	scene.add();
 	
 	// close <Collada>
@@ -284,14 +285,13 @@ void DocumentExporter::exportCurrentScene(Scene *sce)
 
 }
 
-void DocumentExporter::exportScenes(const char* filename)
+void DocumentExporter::exportScenes(const char *filename)
 {
 }
 
 /*
-
-NOTES:
-
-* AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a user
-
+ * NOTES:
+ *
+ * AnimationExporter::sample_animation enables all curves on armature, this is undesirable for a user
+ *
  */

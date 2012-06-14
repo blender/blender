@@ -802,7 +802,7 @@ void ntreeClearPreview(bNodeTree *ntree)
 /* hack warning! this function is only used for shader previews, and 
  * since it gets called multiple times per pixel for Ztransp we only
  * add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
+void nodeAddToPreview(bNode *node, float col[4], int x, int y, int do_manage)
 {
 	bNodePreview *preview= node->preview;
 	if (preview) {

@@ -177,7 +177,7 @@ void OutputOpenExrMultiLayerOperation::add_layer(const char *name, DataType data
 
 void OutputOpenExrMultiLayerOperation::initExecution()
 {
-	for (int i=0; i < layers.size(); ++i) {
+	for (unsigned int i=0; i < layers.size(); ++i) {
 		layers[i].imageInput = getInputSocketReader(i);
 		layers[i].outputBuffer = init_buffer(this->getWidth(), this->getHeight(), layers[i].datatype);
 	}
@@ -185,7 +185,7 @@ void OutputOpenExrMultiLayerOperation::initExecution()
 
 void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
 {
-	for (int i=0; i < layers.size(); ++i) {
+	for (unsigned int i=0; i < layers.size(); ++i) {
 		write_buffer_rect(rect, memoryBuffers, this->tree, layers[i].imageInput, layers[i].outputBuffer, this->getWidth(), layers[i].datatype);
 	}
 }
@@ -203,7 +203,7 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		                  (this->scene->r.scemode & R_EXTENSION), true);
 		BLI_make_existing_file(filename);
 		
-		for (int i=0; i < layers.size(); ++i) {
+		for (unsigned int i=0; i < layers.size(); ++i) {
 			char channelname[EXR_TOT_MAXNAME];
 			BLI_strncpy(channelname, layers[i].name, sizeof(channelname)-2);
 			char *channelname_ext = channelname + strlen(channelname);
@@ -251,7 +251,7 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		}
 		
 		IMB_exr_close(exrhandle);
-		for (int i=0; i < layers.size(); ++i) {
+		for (unsigned int i=0; i < layers.size(); ++i) {
 			if (layers[i].outputBuffer) {
 				MEM_freeN(layers[i].outputBuffer);
 				layers[i].outputBuffer = NULL;

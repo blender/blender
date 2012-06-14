@@ -44,7 +44,7 @@ void AntiAliasOperation::initExecution()
 
 void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
 {
-	if (y < 0 || y >= this->height || x < 0 || x >= this->width) {
+	if (y < 0 || (unsigned int)y >= this->height || x < 0 || (unsigned int)x >= this->width) {
 		color[0] = 0.0f;
 	}
 	else {
@@ -85,7 +85,7 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	if (this->buffer) {return buffer;}
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->buffer == NULL) {
 		MemoryBuffer *tile = (MemoryBuffer*)valueReader->initializeTileData(rect, memoryBuffers);
 		int size = tile->getHeight()*tile->getWidth();
@@ -100,6 +100,6 @@ void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);
 		this->buffer = valuebuffer;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return this->buffer;
 }

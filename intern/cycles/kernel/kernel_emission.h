@@ -67,7 +67,7 @@ __device bool direct_emission(KernelGlobals *kg, ShaderData *sd, int lindex,
 
 	float pdf = -1.0f;
 
-#ifdef __MULTI_LIGHT__
+#ifdef __NON_PROGRESSIVE__
 	if(lindex != -1) {
 		/* sample position on a specified light */
 		light_select(kg, lindex, randu, randv, sd->P, &ls, &pdf);
