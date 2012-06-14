@@ -945,11 +945,14 @@ static const char *exr_rgba_channelname(InputFile *file, const char *chan)
 	return chan;
 }
 
-
-
 static int exr_has_zbuffer(InputFile *file)
 {
 	return !(file->header().channels().findChannel("Z") == NULL);
+}
+
+static int exr_has_alpha(InputFile *file)
+{
+	return !(file->header().channels().findChannel("A") == NULL);
 }
 
 static int exr_is_multilayer(InputFile *file)
@@ -966,7 +969,8 @@ static int exr_is_multilayer(InputFile *file)
 	return 0;
 }
 
-struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags){
+struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags)
+{
 	struct ImBuf *ibuf = NULL;
 	InputFile *file = NULL;
 
@@ -979,8 +983,8 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags){
 		file = new InputFile(*membuf);
 
 		Box2i dw = file->header().dataWindow();
-		int width  = dw.max.x - dw.min.x + 1;
-		int height = dw.max.y - dw.min.y + 1;
+		const int width  = dw.max.x - dw.min.x + 1;
+		const int height = dw.max.y - dw.min.y + 1;
 
 		//printf("OpenEXR-load: image data window %d %d %d %d\n",
 		//	   dw.min.x, dw.min.y, dw.max.x, dw.max.y);
@@ -995,8 +999,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags){
 			printf("Error: can't process EXR multilayer file\n");
 		}
 		else {
+			const int is_alpha = exr_has_alpha(file);
 
-			ibuf = IMB_allocImBuf(width, height, 32, 0);
+			ibuf = IMB_allocImBuf(width, height, is_alpha ? 32 : 24, 0);
 			ibuf->ftype = OPENEXR;
 
 			/* openEXR is linear as per EXR spec */
@@ -1031,8 +1036,9 @@ struct ImBuf *imb_load_openexr(unsigned char *mem, size_t size, int flags){
 					frameBuffer.insert(exr_rgba_channelname(file, "B"),
 					                   Slice(Imf::FLOAT,  (char *) (first + 2), xstride, ystride));
 
+					/* 1.0 is fill value, this still neesd to be assigned even when (is_alpha == 0) */
 					frameBuffer.insert(exr_rgba_channelname(file, "A"),
-					                   Slice(Imf::FLOAT,  (char *) (first + 3), xstride, ystride, 1, 1, 1.0f)); /* 1.0 is fill value */
+					                   Slice(Imf::FLOAT,  (char *) (first + 3), xstride, ystride, 1, 1, 1.0f));
 
 					if (exr_has_zbuffer(file)) {
 						float *firstz;
