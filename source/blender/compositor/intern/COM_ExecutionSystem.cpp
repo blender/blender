@@ -229,19 +229,15 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 void ExecutionSystem::convertToOperations()
 {
 	unsigned int index;
-	// first determine data types of the nodes, this can be used by the node to convert to a different operation system
-	this->determineActualSocketDataTypes((vector<NodeBase*>&)this->nodes);
 	for (index = 0; index < this->nodes.size(); index++) {
 		Node *node = (Node*)this->nodes[index];
 		node->convertToOperations(this, &this->context);
 	}
 
-	// update the socket types of the operations. this will be used to add conversion operations in the system
-	this->determineActualSocketDataTypes((vector<NodeBase*>&)this->operations);
 	for (index = 0 ; index < this->connections.size(); index ++) {
 		SocketConnection *connection = this->connections[index];
 		if (connection->isValid()) {
-			if (connection->getFromSocket()->getActualDataType() != connection->getToSocket()->getActualDataType()) {
+			if (connection->getFromSocket()->getDataType() != connection->getToSocket()->getDataType()) {
 				Converter::convertDataType(connection, this);
 			}
 		}
@@ -306,26 +302,6 @@ void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 	this->connections.push_back(connection);
 }
 
-
-void ExecutionSystem::determineActualSocketDataTypes(vector<NodeBase*> &nodes)
-{
-	unsigned int index;
-	/* first do all input nodes */
-	for (index = 0; index < nodes.size(); index++) {
-		NodeBase *node = nodes[index];
-		if (node->isInputNode()) {
-			node->determineActualSocketDataTypes();
-		}
-	}
-
-	/* then all other nodes */
-	for (index = 0; index < nodes.size(); index++) {
-		NodeBase *node = nodes[index];
-		if (!node->isInputNode()) {
-			node->determineActualSocketDataTypes();
-		}
-	}
-}
 
 void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup*> *result, CompositorPriority priority) const
 {

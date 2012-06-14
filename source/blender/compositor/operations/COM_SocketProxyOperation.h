@@ -29,7 +29,7 @@ class SocketProxyOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
 public:
-	SocketProxyOperation();
+	SocketProxyOperation(DataType type);
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();

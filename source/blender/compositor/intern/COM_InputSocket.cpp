@@ -64,68 +64,6 @@ void InputSocket::determineResolution(unsigned int resolution[],unsigned int pre
 	}
 }
 
-DataType InputSocket::convertToSupportedDataType(DataType datatype)
-{
-	int supportedDataTypes = getDataType();
-	if (supportedDataTypes&datatype) {
-		return datatype;
-	}
-	bool candoValue = supportedDataTypes&COM_DT_VALUE;
-	bool candoVector = supportedDataTypes&COM_DT_VECTOR;
-	bool candoColor = supportedDataTypes&COM_DT_COLOR;
-	
-	if (datatype == COM_DT_VALUE) {
-		if (candoColor) {
-			return COM_DT_COLOR;
-		}
-		else if (candoVector) {
-			return COM_DT_VECTOR;
-		}
-	}
-	else if (datatype == COM_DT_VECTOR) {
-		if (candoColor) {
-			return COM_DT_COLOR;
-		}
-		else if (candoValue) {
-			return COM_DT_VALUE;
-		}
-	}
-	else if (datatype == COM_DT_COLOR) {
-		if (candoVector) {
-			return COM_DT_VECTOR;
-		}
-		else if (candoValue) {
-			return COM_DT_VALUE;
-		}
-	}
-	return this->getDataType();
-}
-
-void InputSocket::determineActualDataType()
-{
-	/// @note: this method is only called for inputsocket that are not connected.
-	/// @note: passes COM_DT_COLOR, the convertToSupportedDataType converts this to a capable DataType
-	this->setActualDataType(this->convertToSupportedDataType(COM_DT_COLOR));
-	#if 0	// XXX TODO check for proxy node and use output data type?
-	if (this->getGroupOutputSocket()) {
-		if (!this->isInsideOfGroupNode()) {
-			this->getGroupOutputSocket()->determineActualDataType();
-		}
-	}
-	#endif
-}
-
-void InputSocket::notifyActualInputType(DataType datatype)
-{
-	DataType supportedDataType = convertToSupportedDataType(datatype);
-	this->setActualDataType(supportedDataType);
-	this->fireActualDataTypeSet();
-}
-
-void InputSocket::fireActualDataTypeSet()
-{
-	this->getNode()->notifyActualDataTypeSet(this, this->getActualDataType());
-}
 void InputSocket::relinkConnections(InputSocket *relinkToSocket)
 {
 	if (!isConnected()) {
@@ -141,8 +79,7 @@ void InputSocket::relinkConnectionsDuplicate(InputSocket *relinkToSocket, int ed
 {
 	if (!this->isConnected()) {
 		Node *node = (Node*)this->getNode();
-		switch (this->getActualDataType()) {
-		case COM_DT_UNKNOWN:
+		switch (this->getDataType()) {
 		case COM_DT_COLOR:
 			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
 			break;
@@ -171,8 +108,7 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNode
 	}
 	else {
 		Node *node = (Node*)this->getNode();
-		switch (this->getActualDataType()) {
-		case COM_DT_UNKNOWN:
+		switch (this->getDataType()) {
 		case COM_DT_COLOR:
 			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
 			break;
@@ -183,16 +119,6 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNode
 			node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
 			break;
 		}
-	}
-}
-
-const ChannelInfo *InputSocket::getChannelInfo(const int channelnumber)
-{
-	if (this->isConnected() && this->connection->getFromSocket()) {
-		return this->connection->getFromSocket()->getChannelInfo(channelnumber);
-	}
-	else {
-		return NULL;
 	}
 }
 

@@ -31,7 +31,7 @@ SwitchNode::SwitchNode(bNode *editorNode): Node(editorNode)
 
 void SwitchNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
 {
-	SocketProxyOperation * operation = new SocketProxyOperation();
+	SocketProxyOperation * operation = new SocketProxyOperation(COM_DT_COLOR);
 	int switchFrame = this->getbNode()->custom1;
 
 	if (!switchFrame) {

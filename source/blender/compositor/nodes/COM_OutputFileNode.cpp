@@ -77,7 +77,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 				
 				OutputSingleLayerOperation *outputOperation = new OutputSingleLayerOperation(
-						context->getScene(), context->getbNodeTree(), input->getActualDataType(), format, path);
+						context->getScene(), context->getbNodeTree(), input->getDataType(), format, path);
 				input->relinkConnections(outputOperation->getInputSocket(0));
 				graph->addOperation(outputOperation);
 				if (!previewAdded) {

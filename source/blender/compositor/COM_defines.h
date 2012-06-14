@@ -28,8 +28,6 @@
  * @ingroup Model
  */
 typedef enum DataType {
-	/** @brief Unknown data type (or not yet known) */
-	COM_DT_UNKNOWN = 0,
 	/** @brief Value data type */
 	COM_DT_VALUE   = 1,
 	/** @brief Vector data type */
@@ -69,8 +67,8 @@ typedef enum CompositorPriority {
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-//#define COM_OPENCL_ENABLED
-//#define COM_DEBUG
+#define COM_OPENCL_ENABLED
+#define COM_DEBUG
 
 // workscheduler threading models
 /**

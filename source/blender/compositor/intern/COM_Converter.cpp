@@ -362,8 +362,8 @@ void Converter::convertDataType(SocketConnection *connection, ExecutionSystem *s
 {
 	OutputSocket *outputSocket = connection->getFromSocket();
 	InputSocket *inputSocket = connection->getToSocket();
-	DataType fromDatatype = outputSocket->getActualDataType();
-	DataType toDatatype = inputSocket->getActualDataType();
+	DataType fromDatatype = outputSocket->getDataType();
+	DataType toDatatype = inputSocket->getDataType();
 	NodeOperation * converter = NULL;
 	if (fromDatatype == COM_DT_VALUE && toDatatype == COM_DT_COLOR) {
 		converter = new ConvertValueToColourProg();

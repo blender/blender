@@ -218,7 +218,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 					printf("|");
 				}
 				printf("<IN_%p>", socket);
-				switch (socket->getActualDataType()) {
+				switch (socket->getDataType()) {
 				case COM_DT_VALUE:
 					printf("Value");
 					break;
@@ -227,9 +227,6 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 					break;
 				case COM_DT_COLOR:
 					printf("Color");
-					break;
-				case COM_DT_UNKNOWN:
-					printf("Unknown");
 					break;
 				}
 			}
@@ -270,7 +267,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 					printf("|");
 				}
 				printf("<OUT_%p>", socket);
-				switch (socket->getActualDataType()) {
+				switch (socket->getDataType()) {
 				case COM_DT_VALUE:
 					printf("Value");
 					break;
@@ -279,9 +276,6 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 					break;
 				case COM_DT_COLOR:
 					printf("Color");
-					break;
-				case COM_DT_UNKNOWN:
-					printf("Unknown");
 					break;
 				}
 			}
@@ -317,7 +311,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 			printf(" [color=red]");
 		}
 		else {
-			switch (connection->getFromSocket()->getActualDataType()) {
+			switch (connection->getFromSocket()->getDataType()) {
 			case COM_DT_VALUE:
 				printf(" [color=grey]");
 				break;
@@ -326,9 +320,6 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 				break;
 			case COM_DT_COLOR:
 				printf(" [color=orange]");
-				break;
-			case COM_DT_UNKNOWN:
-				printf(" [color=black]");
 				break;
 			}
 		}

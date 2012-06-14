@@ -72,9 +72,6 @@ void MuteNode::reconnect(ExecutionSystem * graph, OutputSocket * output)
 			operation = coloroperation;
 			break;
 		}
-			/* quiet warnings */
-		case COM_DT_UNKNOWN:
-			break;
 	}
 
 	if (operation) {

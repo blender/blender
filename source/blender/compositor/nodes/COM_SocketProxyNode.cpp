@@ -49,14 +49,14 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	InputSocket * inputsocket = this->getInputSocket(0);
 	if (outputsocket->isConnected()) {
 		if (inputsocket->isConnected()) {
-			SocketProxyOperation *operation = new SocketProxyOperation();
+			SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
 			inputsocket->relinkConnections(operation->getInputSocket(0));
 			outputsocket->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}
 		else {
 			/* If input is not connected, add a constant value operation instead */
-			switch (outputsocket->getActualDataType()) {
+			switch (outputsocket->getDataType()) {
 			case COM_DT_VALUE:
 			{
 				SetValueOperation *operation = new SetValueOperation();
@@ -84,9 +84,6 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 				graph->addOperation(operation);
 				break;
 			}
-				/* quiet warnings */
-			case COM_DT_UNKNOWN:
-				break;
 			}
 		}
 	}

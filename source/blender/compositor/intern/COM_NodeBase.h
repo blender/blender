@@ -74,24 +74,6 @@ public:
 	virtual ~NodeBase();
 	
 	/**
-	 * @brief determine the actual socket data types that will go through the system
-	 */
-	virtual void determineActualSocketDataTypes();
-	
-	/**
-	 * @brief determine the actual socket data types of a specific outputsocket
-	 *
-	 * @param outputsocket
-	 * a reference to the actual outputsocket where the datatype must be determined from
-	 *
-	 * @return
-	 * COM_DT_VALUE if it is a value (1 float buffer)
-	 * COM_DT_COLOR if it is a value (4 float buffer)
-	 * COM_DT_VECTOR if it is a value (3 float buffer)
-	 */
-	virtual DataType determineActualDataType(OutputSocket *outputsocket);
-	
-	/**
 	 * @brief is this node an operation?
 	 * This is true when the instance is of the subclass NodeOperation.
 	 * @return [true:false]
@@ -116,16 +98,6 @@ public:
 	 */
 	const unsigned int getNumberOfOutputSockets() const { return this->outputsockets.size(); }
 
-	/**
-	 * after the data has been determined of an outputsocket that has a connection with an inputsocket this method is called on the
-	 * node that contains the inputsocket.
-	 * @param socket
-	 * the reference of the inputsocket where connected data type is found
-	 * @param actualType [COM_DT_VALUE, COM_DT_VECTOR, COM_DT_COLOR]
-	 * the actual data type that is coming from the connected output socket
-	 */
-	virtual void notifyActualDataTypeSet(InputSocket *socket, const DataType actualType);
-	
 	/**
 	 * get the reference to a certain outputsocket
 	 * @param index
