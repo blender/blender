@@ -53,16 +53,16 @@ static void mixImages(CompBuf *dst, CompBuf *src, float mix)
 			dcolp = (fRGB*)&dst->rect[y*dst->x*dst->type];
 			scolp = (fRGB*)&src->rect[y*dst->x*dst->type];
 			for (x=0; x<dst->x; x++) {
-				fRGB_copy(c1, dcolp[x]);
-				fRGB_copy(c2, scolp[x]);
+				copy_v3_v3(c1, dcolp[x]);
+				copy_v3_v3(c2, scolp[x]);
 				c1[0] += mix*(c2[0] - c1[0]);
 				c1[1] += mix*(c2[1] - c1[1]);
 				c1[2] += mix*(c2[2] - c1[2]);
 				if (c1[0] < 0.f) c1[0] = 0.f;
 				if (c1[1] < 0.f) c1[1] = 0.f;
 				if (c1[2] < 0.f) c1[2] = 0.f;
-				fRGB_mult(c1, mf);
-				fRGB_copy(dcolp[x], c1);
+				mul_v3_fl(c1, mf);
+				copy_v3_v3(dcolp[x], c1);
 			}
 		}
 	}
@@ -72,7 +72,7 @@ static void mixImages(CompBuf *dst, CompBuf *src, float mix)
 		for (y=0; y<dst->y; y++) {
 			dcolp = (fRGB*)&dst->rect[y*dst->x*dst->type];
 			for (x=0; x<dst->x; x++) {
-				fRGB_copy(c1, dcolp[x]);
+				copy_v3_v3(c1, dcolp[x]);
 				qd_getPixelLerp(src, (x + 0.5f)*xr - 0.5f, (y + 0.5f)*yr - 0.5f, c2);
 				c1[0] += mix*(c2[0] - c1[0]);
 				c1[1] += mix*(c2[1] - c1[1]);
@@ -80,8 +80,8 @@ static void mixImages(CompBuf *dst, CompBuf *src, float mix)
 				if (c1[0] < 0.f) c1[0] = 0.f;
 				if (c1[1] < 0.f) c1[1] = 0.f;
 				if (c1[2] < 0.f) c1[2] = 0.f;
-				fRGB_mult(c1, mf);
-				fRGB_copy(dcolp[x], c1);
+				mul_v3_fl(c1, mf);
+				copy_v3_v3(dcolp[x], c1);
 			}
 		}
 	}
@@ -146,11 +146,11 @@ static void star4(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 				xm = x - i;
 				xp = x + i;
 				qd_getPixel(tbuf1, x, y, c);
-				fRGB_mult(c, f1);
+				mul_v3_fl(c, f1);
 				qd_getPixel(tbuf1, (ndg->angle ? xm : x), ym, tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_getPixel(tbuf1, (ndg->angle ? xp : x), yp, tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_setPixel(tbuf1, x, y, c);
 			}
 		}
@@ -162,11 +162,11 @@ static void star4(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 				xm = x - i;
 				xp = x + i;
 				qd_getPixel(tbuf1, x, y, c);
-				fRGB_mult(c, f1);
+				mul_v3_fl(c, f1);
 				qd_getPixel(tbuf1, (ndg->angle ? xm : x), ym, tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_getPixel(tbuf1, (ndg->angle ? xp : x), yp, tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_setPixel(tbuf1, x, y, c);
 			}
 		}
@@ -179,11 +179,11 @@ static void star4(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 				xm = x - i;
 				xp = x + i;
 				qd_getPixel(tbuf2, x, y, c);
-				fRGB_mult(c, f1);
+				mul_v3_fl(c, f1);
 				qd_getPixel(tbuf2, xm, (ndg->angle ? yp : y), tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_getPixel(tbuf2, xp, (ndg->angle ? ym : y), tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_setPixel(tbuf2, x, y, c);
 			}
 		}
@@ -195,11 +195,11 @@ static void star4(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 				xm = x - i;
 				xp = x + i;
 				qd_getPixel(tbuf2, x, y, c);
-				fRGB_mult(c, f1);
+				mul_v3_fl(c, f1);
 				qd_getPixel(tbuf2, xm, (ndg->angle ? yp : y), tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_getPixel(tbuf2, xp, (ndg->angle ? ym : y), tc);
-				fRGB_madd(c, tc, f2);
+				madd_v3_v3fl(c, tc, f2);
 				qd_setPixel(tbuf2, x, y, c);
 			}
 		}
@@ -342,11 +342,11 @@ static void ghosts(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 			s = (u-0.5f)*sc + 0.5f, t = (v-0.5f)*sc + 0.5f;
 			qd_getPixelLerp(tbuf1, s*gbuf->x, t*gbuf->y, c);
 			sm = smoothMask(s, t);
-			fRGB_mult(c, sm);
+			mul_v3_fl(c, sm);
 			s = (u-0.5f)*isc + 0.5f, t = (v-0.5f)*isc + 0.5f;
 			qd_getPixelLerp(tbuf2, s*gbuf->x - 0.5f, t*gbuf->y - 0.5f, tc);
 			sm = smoothMask(s, t);
-			fRGB_madd(c, tc, sm);
+			madd_v3_v3fl(c, tc, sm);
 			qd_setPixel(gbuf, x, y, c);
 		}
 	}
@@ -363,9 +363,9 @@ static void ghosts(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 					s = (u-0.5f)*scalef[np] + 0.5f;
 					t = (v-0.5f)*scalef[np] + 0.5f;
 					qd_getPixelLerp(gbuf, s*gbuf->x - 0.5f, t*gbuf->y - 0.5f, c);
-					fRGB_colormult(c, cm[np]);
+					mul_v3_v3(c, cm[np]);
 					sm = smoothMask(s, t)*0.25f;
-					fRGB_madd(tc, c, sm);
+					madd_v3_v3fl(tc, c, sm);
 				}
 				p = (x + y*tbuf1->x)*tbuf1->type;
 				tbuf1->rect[p] += tc[0];
@@ -413,7 +413,7 @@ static void fglow(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 			//w = (1.f-fabs(u))*(1.f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower
 			w = (0.5f + 0.5f*cos((double)u*M_PI))*(0.5f + 0.5f*cos((double)v*M_PI));
-			fRGB_mult(fcol, w);
+			mul_v3_fl(fcol, w);
 			qd_setPixel(ckrn, x, y, fcol);
 		}
 	}
