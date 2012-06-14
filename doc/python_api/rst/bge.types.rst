@@ -2692,7 +2692,7 @@ Game Types (bge.types)
 
       The angle of the cone (in degrees) with which to test.
 
-      :type: float from 0 to 360
+      :type: float
 
    .. attribute:: axis
 
