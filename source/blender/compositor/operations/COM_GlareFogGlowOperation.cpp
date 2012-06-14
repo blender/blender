@@ -382,14 +382,14 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	BLI_init_rcti(&kernelRect, 0, sz, 0, sz);
 	ckrn = new MemoryBuffer(NULL, &kernelRect);
 
-	scale = 0.25f * sqrtf((float)sz * sz);
+	scale = 0.25f * sqrtf((float)(sz * sz));
 
 	for (y = 0; y < sz; ++y) {
-		v = 2.f * (y / (float)sz) - 1.f;
+		v = 2.f * (y / (float)sz) - 1.0f;
 		for (x = 0; x < sz; ++x) {
-			u = 2.f * (x / (float)sz) - 1.f;
+			u = 2.f * (x / (float)sz) - 1.0f;
 			r = (u * u + v * v) * scale;
-			d = -sqrtf(sqrtf(sqrtf(r))) * 9.f;
+			d = -sqrtf(sqrtf(sqrtf(r))) * 9.0f;
 			fcol[0] = expf(d * cs_r), fcol[1] = expf(d * cs_g), fcol[2] = expf(d * cs_b);
 			// linear window good enough here, visual result counts, not scientific analysis
 			//w = (1.f-fabs(u))*(1.f-fabs(v));
