@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011, Glareer Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -15,49 +15,31 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor:
- *		Jeroen Bakker
+ * Contributor: 
+ *		Jeroen Bakker 
  *		Monique Dewanchand
  */
 
-#ifndef _COM_GlareScaleOperation_h
-#define _COM_GlareScaleOperation_h
-#include "COM_NodeOperation.h"
-#include "DNA_lamp_types.h"
+#ifndef _COM_MixGlareOperation_h
+#define _COM_MixGlareOperation_h
+#include "COM_MixBaseOperation.h"
 
-class GlareThresholdOperation : public NodeOperation {
-private:
-	/**
-	 * @brief Cached reference to the inputProgram
-	 */
-	SocketReader *inputProgram;
 
-	/**
-	 * @brief settings of the glare node.
-	 */
-	NodeGlare *settings;
+/**
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
+class MixGlareOperation : public MixBaseOperation {
 public:
-	GlareThresholdOperation();
-
+	/**
+	 * Default constructor
+	 */
+	MixGlareOperation();
+	
 	/**
 	 * the inner loop of this program
 	 */
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
-	/**
-	 * Initialize the execution
-	 */
-	void initExecution();
-
-	/**
-	 * Deinitialize the execution
-	 */
-	void deinitExecution();
-
-	void setGlareSettings(NodeGlare *settings) {
-		this->settings = settings;
-	}
-	
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 };
 #endif

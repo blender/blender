@@ -25,10 +25,18 @@
 
 GlareThresholdOperation::GlareThresholdOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_COLOR, COM_SC_FIT);
 	this->addOutputSocket(COM_DT_COLOR);
 	this->inputProgram = NULL;
 }
+
+void GlareThresholdOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	NodeOperation::determineResolution(resolution, preferredResolution);
+	resolution[0] = resolution[0] / (1 << settings->quality);
+	resolution[1] = resolution[1] / (1 << settings->quality);
+}
+
 void GlareThresholdOperation::initExecution()
 {
 	this->inputProgram = this->getInputSocketReader(0);
@@ -36,6 +44,8 @@ void GlareThresholdOperation::initExecution()
 
 void GlareThresholdOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
+	const float threshold = settings->threshold;
+	
 	this->inputProgram->read(color, x, y, sampler, inputBuffers);
 	if (rgb_to_luma_y(color) >= threshold) {
 		color[0] -= threshold, color[1] -= threshold, color[2] -= threshold;

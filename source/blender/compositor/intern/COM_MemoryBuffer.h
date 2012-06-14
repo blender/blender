@@ -126,6 +126,7 @@ public:
 	
 	void read(float result[4], int x, int y);
 	void writePixel(int x, int y, const float color[4]);
+	void addPixel(int x, int y, const float color[4]);
 	void readCubic(float result[4], float x, float y);
 	void readEWA(float result[4], float fx, float fy, float dx, float dy);
 	

@@ -322,7 +322,7 @@ void convolve(float* dst, MemoryBuffer* in1, MemoryBuffer* in2)
 				memset(data2, 0, w2*h2*sizeof(fREAL));
 				for (y=0; y<ybsz; y++) {
 					int yy = ybl*ybsz + y;
-					if (yy >= kernelHeight) continue;
+					if (yy >= imageHeight) continue;
 					fp = &data2[y*w2];
 					colp = (fRGB*)&imageBuffer[yy*imageWidth*COM_NUMBER_OF_CHANNELS];
 					for (x=0; x<xbsz; x++) {

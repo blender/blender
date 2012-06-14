@@ -113,7 +113,7 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 					sm = smoothMask(s, t) * 0.25f;
 					fRGB_madd(tc, c, sm);
 				}
-				tbuf1->writePixel(x, y, tc);
+				tbuf1->addPixel(x, y, tc);
 			}
 			if (isBreaked()) breaked = true;
 		}

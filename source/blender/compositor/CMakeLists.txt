@@ -461,6 +461,8 @@ set(SRC
 	operations/COM_MixBaseOperation.cpp
 	operations/COM_MixBlendOperation.cpp
 	operations/COM_MixBlendOperation.h
+	operations/COM_MixGlareOperation.cpp
+	operations/COM_MixGlareOperation.h
 	operations/COM_MixAddOperation.h
 	operations/COM_MixAddOperation.cpp
 	operations/COM_MixMultiplyOperation.h
