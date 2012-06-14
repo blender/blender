@@ -628,6 +628,10 @@ typedef struct TexNodeOutput {
 	char name[64];
 } TexNodeOutput;
 
+typedef struct NodeKeyingScreenData {
+	char tracking_object[64];
+} NodeKeyingScreenData;
+
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */

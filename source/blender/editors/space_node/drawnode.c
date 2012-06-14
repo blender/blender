@@ -2425,6 +2425,24 @@ static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *p
 
 }
 
+static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, NULL, NULL);
+
+	if (node->id) {
+		MovieClip *clip = (MovieClip *) node->id;
+		uiLayout *col;
+		PointerRNA tracking_ptr;
+
+		RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
+
+		col = uiLayoutColumn(layout, 1);
+		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+	}
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -2616,6 +2634,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MASK:
 			ntype->uifunc= node_composit_buts_mask;
+			break;
+		case CMP_NODE_KEYINGSCREEN:
+			ntype->uifunc = node_composit_buts_keyingscreen;
 			break;
 		default:
 			ntype->uifunc = NULL;
