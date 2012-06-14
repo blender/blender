@@ -165,11 +165,11 @@ void *KeyingScreenOperation::initializeTileData(rcti *rect, MemoryBuffer **memor
 	if (this->cachedTriangulation)
 		return this->cachedTriangulation;
 
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->cachedTriangulation == NULL) {
 		this->cachedTriangulation = buildVoronoiTriangulation();
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 
 	return this->cachedTriangulation;
 }
