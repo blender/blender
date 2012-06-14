@@ -214,7 +214,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	/* despill output image */
 	if (keying_data->despill_factor > 0.0f) {
 		postprocessedImage = setupDespill(graph, postprocessedImage,
-		                                  keyingOperation->getInputSocket(0)->getConnection()->getFromSocket(),
+		                                  keyingOperation->getInputSocket(1)->getConnection()->getFromSocket(),
 		                                  keying_data->despill_factor);
 	}
 
