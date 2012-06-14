@@ -57,7 +57,7 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         split = layout.split()
 
         col = split.column()
-        sub = col.column(align=True)
+        sub = col.column()
         sub.active = cscene.device == 'CPU'
         sub.prop(cscene, "progressive")
 
@@ -66,23 +66,24 @@ class CyclesRender_PT_sampling(CyclesButtonsPanel, Panel):
         sub.prop(cscene, "sample_clamp")
 
         if cscene.progressive or cscene.device != 'CPU':
-            col = split.column(align=True)
+            col = split.column()
             col.label(text="Samples:")
-            col.prop(cscene, "samples", text="Render")
-            col.prop(cscene, "preview_samples", text="Preview")
-        else:
             sub = col.column(align=True)
+            sub.prop(cscene, "samples", text="Render")
+            sub.prop(cscene, "preview_samples", text="Preview")
+        else:
             sub.label(text="AA Samples:")
             sub.prop(cscene, "aa_samples", text="Render")
             sub.prop(cscene, "preview_aa_samples", text="Preview")
 
-            col = split.column(align=True)
+            col = split.column()
             col.label(text="Samples:")
-            col.prop(cscene, "diffuse_samples", text="Diffuse")
-            col.prop(cscene, "glossy_samples", text="Glossy")
-            col.prop(cscene, "transmission_samples", text="Transmission")
-            col.prop(cscene, "ao_samples", text="AO")
-            col.prop(cscene, "mesh_light_samples", text="Mesh Light")
+            sub = col.column(align=True)
+            sub.prop(cscene, "diffuse_samples", text="Diffuse")
+            sub.prop(cscene, "glossy_samples", text="Glossy")
+            sub.prop(cscene, "transmission_samples", text="Transmission")
+            sub.prop(cscene, "ao_samples", text="AO")
+            sub.prop(cscene, "mesh_light_samples", text="Mesh Light")
 
 class CyclesRender_PT_light_paths(CyclesButtonsPanel, Panel):
     bl_label = "Light Paths"
