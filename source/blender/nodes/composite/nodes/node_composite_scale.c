@@ -4,7 +4,7 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. 
+ * of the License, or (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -34,82 +34,82 @@
 
 /* **************** Scale  ******************** */
 
-static bNodeSocketTemplate cmp_node_scale_in[]= {
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("X"),				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, N_("Y"),				1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_scale_in[] = {
+	{   SOCK_RGBA, 1, N_("Image"),          1.0f, 1.0f, 1.0f, 1.0f},
+	{   SOCK_FLOAT, 1, N_("X"),             1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
+	{   SOCK_FLOAT, 1, N_("Y"),             1.0f, 0.0f, 0.0f, 0.0f, 0.0001f, CMP_SCALE_MAX, PROP_FACTOR},
+	{   -1, 0, ""   }
 };
-static bNodeSocketTemplate cmp_node_scale_out[]= {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_scale_out[] = {
+	{   SOCK_RGBA, 0, N_("Image")},
+	{   -1, 0, ""   }
 };
 
 /* only supports RGBA nodes now */
 /* node->custom1 stores if input values are absolute or relative scale */
 static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	if (out[0]->hasoutput==0)
+	if (out[0]->hasoutput == 0)
 		return;
-	
+
 	if (in[0]->data) {
 		RenderData *rd = data;
-		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
+		CompBuf *stackbuf, *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
 		ImBuf *ibuf;
 		int newx, newy;
-		
-		if (node->custom1==CMP_SCALE_RELATIVE) {
-			newx= MAX2((int)(in[1]->vec[0]*cbuf->x), 1);
-			newy= MAX2((int)(in[2]->vec[0]*cbuf->y), 1);
+
+		if (node->custom1 == CMP_SCALE_RELATIVE) {
+			newx = MAX2((int)(in[1]->vec[0] * cbuf->x), 1);
+			newy = MAX2((int)(in[2]->vec[0] * cbuf->y), 1);
 		}
-		else if (node->custom1==CMP_SCALE_SCENEPERCENT) {
+		else if (node->custom1 == CMP_SCALE_SCENEPERCENT) {
 			newx = cbuf->x * (rd->size / 100.0f);
 			newy = cbuf->y * (rd->size / 100.0f);
 		}
-		else if (node->custom1==CMP_SCALE_RENDERPERCENT) {
-			newx= (rd->xsch * rd->size)/100;
-			newy= (rd->ysch * rd->size)/100;
+		else if (node->custom1 == CMP_SCALE_RENDERPERCENT) {
+			newx = (rd->xsch * rd->size) / 100;
+			newy = (rd->ysch * rd->size) / 100;
 		}
-		else {	/* CMP_SCALE_ABSOLUTE */
-			newx= MAX2((int)in[1]->vec[0], 1);
-			newy= MAX2((int)in[2]->vec[0], 1);
+		else {  /* CMP_SCALE_ABSOLUTE */
+			newx = MAX2((int)in[1]->vec[0], 1);
+			newy = MAX2((int)in[2]->vec[0], 1);
 		}
-		newx= MIN2(newx, CMP_SCALE_MAX);
-		newy= MIN2(newy, CMP_SCALE_MAX);
+		newx = MIN2(newx, CMP_SCALE_MAX);
+		newy = MIN2(newy, CMP_SCALE_MAX);
 
-		ibuf= IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
+		ibuf = IMB_allocImBuf(cbuf->x, cbuf->y, 32, 0);
 		if (ibuf) {
-			ibuf->rect_float= cbuf->rect;
+			ibuf->rect_float = cbuf->rect;
 			IMB_scaleImBuf(ibuf, newx, newy);
-			
+
 			if (ibuf->rect_float == cbuf->rect) {
 				/* no scaling happened. */
-				stackbuf= pass_on_compbuf(in[0]->data);
+				stackbuf = pass_on_compbuf(in[0]->data);
 			}
 			else {
-				stackbuf= alloc_compbuf(newx, newy, CB_RGBA, 0);
-				stackbuf->rect= ibuf->rect_float;
-				stackbuf->malloc= 1;
+				stackbuf = alloc_compbuf(newx, newy, CB_RGBA, 0);
+				stackbuf->rect = ibuf->rect_float;
+				stackbuf->malloc = 1;
 			}
 
-			ibuf->rect_float= NULL;
+			ibuf->rect_float = NULL;
 			ibuf->mall &= ~IB_rectfloat;
 			IMB_freeImBuf(ibuf);
-			
+
 			/* also do the translation vector */
-			stackbuf->xof = (int)(((float)newx/(float)cbuf->x) * (float)cbuf->xof);
-			stackbuf->yof = (int)(((float)newy/(float)cbuf->y) * (float)cbuf->yof);
+			stackbuf->xof = (int)(((float)newx / (float)cbuf->x) * (float)cbuf->xof);
+			stackbuf->yof = (int)(((float)newy / (float)cbuf->y) * (float)cbuf->yof);
 		}
 		else {
-			stackbuf= dupalloc_compbuf(cbuf);
+			stackbuf = dupalloc_compbuf(cbuf);
 			printf("Scaling to %dx%d failed\n", newx, newy);
 		}
-		
-		out[0]->data= stackbuf;
-		if (cbuf!=in[0]->data)
+
+		out[0]->data = stackbuf;
+		if (cbuf != in[0]->data)
 			free_compbuf(cbuf);
 	}
-	else if (node->custom1==CMP_SCALE_ABSOLUTE) {
+	else if (node->custom1 == CMP_SCALE_ABSOLUTE) {
 		CompBuf *stackbuf;
 		int a, x, y;
 		float *fp;
@@ -126,7 +126,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			fp += 4;
 		}
 
-		out[0]->data= stackbuf;
+		out[0]->data = stackbuf;
 	}
 }
 
