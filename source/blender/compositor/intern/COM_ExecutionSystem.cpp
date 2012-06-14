@@ -212,7 +212,9 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 		writeOperation = new WriteBufferOperation();
 		writeOperation->setbNodeTree(this->getContext().getbNodeTree());
 		this->addOperation(writeOperation);
-		for (index = 0 ; index < outputsocket->getNumberOfConnections();index ++) {
+		ExecutionSystemHelper::addLink(this->getConnections(), outputsocket, writeOperation->getInputSocket(0));
+		writeOperation->readResolutionFromInputSocket();
+		for (index = 0 ; index < outputsocket->getNumberOfConnections()-1;index ++) {
 			SocketConnection * connection = outputsocket->getConnection(index);
 			ReadBufferOperation *readoperation = new ReadBufferOperation();
 			readoperation->setMemoryProxy(writeOperation->getMemoryProxy());
@@ -221,8 +223,6 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 			readoperation->readResolutionFromWriteBuffer();
 			this->addOperation(readoperation);
 		}
-		ExecutionSystemHelper::addLink(this->getConnections(), outputsocket, writeOperation->getInputSocket(0));
-		writeOperation->readResolutionFromInputSocket();
 	}
 }
 
