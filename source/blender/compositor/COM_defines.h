@@ -67,8 +67,8 @@ typedef enum CompositorPriority {
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-#define COM_OPENCL_ENABLED
-#define COM_DEBUG
+//#define COM_OPENCL_ENABLED
+//#define COM_DEBUG
 
 // workscheduler threading models
 /**
