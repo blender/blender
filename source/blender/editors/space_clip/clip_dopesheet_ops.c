@@ -59,6 +59,23 @@
 
 #include "clip_intern.h"	// own include
 
+#if 0
+static int ED_space_clip_dopesheet_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc && sc->clip) {
+		if (sc->view == SC_VIEW_DOPESHEET) {
+			ARegion *ar = CTX_wm_region(C);
+
+			return ar->regiontype == RGN_TYPE_PREVIEW;
+		}
+	}
+
+	return FALSE;
+}
+#endif
+
 /********************** select channel operator *********************/
 
 static int dopesheet_select_channel_poll(bContext *C)

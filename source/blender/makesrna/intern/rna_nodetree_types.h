@@ -169,6 +169,7 @@ DefNode( CompositorNode, CMP_NODE_SWITCH,         def_cmp_switch,         "SWITC
 DefNode( CompositorNode, CMP_NODE_COLORCORRECTION,def_cmp_colorcorrection,"COLORCORRECTION",ColorCorrection,  "ColorCorrection",   ""              )
 DefNode( CompositorNode, CMP_NODE_MASK,           def_cmp_mask,           "MASK",           Mask,             "Mask",              ""              )
 DefNode( CompositorNode, CMP_NODE_KEYINGSCREEN,   def_cmp_keyingscreen,   "KEYINGSCREEN",   KeyingScreen,     "KeyingScreen",      ""              )
+DefNode( CompositorNode, CMP_NODE_KEYING,         def_cmp_keying,         "KEYING",         Keying,           "Keying",            ""              )
                                                                                                                                                    
 DefNode( TextureNode,    TEX_NODE_OUTPUT,         def_tex_output,         "OUTPUT",         Output,           "Output",            ""              )
 DefNode( TextureNode,    TEX_NODE_CHECKER,        0,                      "CHECKER",        Checker,          "Checker",           ""              )

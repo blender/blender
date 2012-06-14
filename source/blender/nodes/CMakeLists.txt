@@ -77,6 +77,7 @@ set(SRC
 	composite/nodes/node_composite_image.c
 	composite/nodes/node_composite_invert.c
 	composite/nodes/node_composite_keyingscreen.c
+	composite/nodes/node_composite_keying.c
 	composite/nodes/node_composite_lensdist.c
 	composite/nodes/node_composite_levels.c
 	composite/nodes/node_composite_lummaMatte.c

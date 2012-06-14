@@ -3101,25 +3101,6 @@ static void def_cmp_mask(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Mask", "");
 }
 
-static void def_cmp_keyingscreen(StructRNA *srna)
-{
-	PropertyRNA *prop;
-
-	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "id");
-	RNA_def_property_struct_type(prop, "MovieClip");
-	RNA_def_property_flag(prop, PROP_EDITABLE);
-	RNA_def_property_ui_text(prop, "Movie Clip", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-
-	RNA_def_struct_sdna_from(srna, "NodeKeyingScreenData", "storage");
-
-	prop = RNA_def_property(srna, "tracking_object", PROP_STRING, PROP_NONE);
-	RNA_def_property_string_sdna(prop, NULL, "tracking_object");
-	RNA_def_property_ui_text(prop, "Tracking Object", "");
-	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
-}
-
 static void dev_cmd_transform(StructRNA *srna)
 {
 	PropertyRNA *prop;
@@ -3526,6 +3507,85 @@ static void def_cmp_viewer(StructRNA *srna)
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
+static void def_cmp_keyingscreen(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	prop = RNA_def_property(srna, "clip", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "id");
+	RNA_def_property_struct_type(prop, "MovieClip");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Movie Clip", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	RNA_def_struct_sdna_from(srna, "NodeKeyingScreenData", "storage");
+
+	prop = RNA_def_property(srna, "tracking_object", PROP_STRING, PROP_NONE);
+	RNA_def_property_string_sdna(prop, NULL, "tracking_object");
+	RNA_def_property_ui_text(prop, "Tracking Object", "");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
+
+static void def_cmp_keying(StructRNA *srna)
+{
+	PropertyRNA *prop;
+
+	RNA_def_struct_sdna_from(srna, "NodeKeyingData", "storage");
+
+	prop = RNA_def_property(srna, "screen_balance", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "screen_balance");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Screen Balance", "Balance between two non-primary channels primary channel is comparing against");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "despill_factor", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "despill_factor");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Despill", "Factor of despilling screen color from image");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "clip_black", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "clip_black");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Clip Black", "Value of on-scaled matte pixel which considers as fully background pixel");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "clip_white", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "clip_white");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Clip White", "Value of on-scaled matte pixel which considers as fully foreground pixel");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "blur_pre", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "blur_pre");
+	RNA_def_property_range(prop, 0, 2048);
+	RNA_def_property_ui_text(prop, "Pre Blur", "Chroma pre-blur size which applies before running keyer");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "blur_post", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "blur_post");
+	RNA_def_property_range(prop, 0, 2048);
+	RNA_def_property_ui_text(prop, "Post Blur", "Matte blur size which applies after clipping and dilate/eroding");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "dilate_distance", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "dilate_distance");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Dilate/Erode", "Matte dilate/erode side");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge_kernel_radius", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "edge_kernel_radius");
+	RNA_def_property_range(prop, -100, 100);
+	RNA_def_property_ui_text(prop, "Edge Kernel Radius", "Radius of kernel used to detect whether pixel belongs to edge");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "edge_kernel_tolerance", PROP_FLOAT, PROP_FACTOR);
+	RNA_def_property_float_sdna(prop, NULL, "edge_kernel_tolerance");
+	RNA_def_property_range(prop, 0.0f, 1.0f);
+	RNA_def_property_ui_text(prop, "Edge Kernel Tolerance", "Tolerance to pixels inside kernel which are treating as belonging to the same plane");
+	RNA_def_property_update(prop, NC_NODE|NA_EDITED, "rna_Node_update");
+}
 
 /* -- Texture Nodes --------------------------------------------------------- */
 

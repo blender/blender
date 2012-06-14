@@ -659,6 +659,7 @@ void			ntreeGPUMaterialNodes(struct bNodeTree *ntree, struct GPUMaterial *mat);
 #define CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED	267	/* DEPRECATED multi file node has been merged into regular CMP_NODE_OUTPUT_FILE */
 #define CMP_NODE_MASK		268
 #define CMP_NODE_KEYINGSCREEN		269
+#define CMP_NODE_KEYING			270
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

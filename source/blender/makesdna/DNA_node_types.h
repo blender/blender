@@ -632,6 +632,16 @@ typedef struct NodeKeyingScreenData {
 	char tracking_object[64];
 } NodeKeyingScreenData;
 
+typedef struct NodeKeyingData {
+	float screen_balance;
+	float despill_factor;
+	int edge_kernel_radius;
+	float edge_kernel_tolerance;
+	float clip_black, clip_white;
+	int dilate_distance;
+	int blur_pre, blur_post;
+} NodeKeyingData;
+
 /* frame node flags */
 #define NODE_FRAME_SHRINK		1	/* keep the bounding box minimal */
 #define NODE_FRAME_RESIZEABLE	2	/* test flag, if frame can be resized by user */
