@@ -37,9 +37,6 @@
 /* XXX, temp feature - campbell */
 #define DURIAN_CAMERA_SWITCH
 
-/* XXX - We cant agree on this and it might get deprecated - campbell */
-#define USE_SCENE_COMPO_SCALE
-
 #ifdef __cplusplus
 extern "C" {
 #endif

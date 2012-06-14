@@ -77,11 +77,6 @@ void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *c
 		case CMP_SCALE_ABSOLUTE: {
 			ScaleAbsoluteOperation *operation = new ScaleAbsoluteOperation(); // TODO: what is the use of this one.... perhaps some issues when the ui was updated....
 
-#ifdef USE_SCENE_COMPO_SCALE
-			const RenderData *data = &context->getScene()->r;
-			operation->setRenderPercentage(data->size / 100.0f);
-#endif
-
 			inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 			inputXSocket->relinkConnections(operation->getInputSocket(1), 1, graph);
 			inputYSocket->relinkConnections(operation->getInputSocket(2), 2, graph);

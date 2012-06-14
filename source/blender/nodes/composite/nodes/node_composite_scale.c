@@ -49,12 +49,11 @@ static bNodeSocketTemplate cmp_node_scale_out[]= {
 /* node->custom1 stores if input values are absolute or relative scale */
 static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	RenderData *rd = data;
-
 	if (out[0]->hasoutput==0)
 		return;
 	
 	if (in[0]->data) {
+		RenderData *rd = data;
 		CompBuf *stackbuf, *cbuf= typecheck_compbuf(in[0]->data, CB_RGBA);
 		ImBuf *ibuf;
 		int newx, newy;
@@ -115,13 +114,9 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		int a, x, y;
 		float *fp;
 
-#ifdef USE_SCENE_COMPO_SCALE
-		x = MAX2((int)in[1]->vec[0], 1) * (rd->size / 100.0f);
-		y = MAX2((int)in[2]->vec[0], 1) * (rd->size / 100.0f);
-#else
 		x = MAX2((int)in[1]->vec[0], 1);
 		y = MAX2((int)in[2]->vec[0], 1);
-#endif
+
 		stackbuf = alloc_compbuf(x, y, CB_RGBA, 1);
 		fp = stackbuf->rect;
 
