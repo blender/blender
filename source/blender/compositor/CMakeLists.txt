@@ -557,8 +557,6 @@ set(SRC
 	operations/COM_ConvolutionEdgeFilterOperation.cpp
 	operations/COM_DilateErodeOperation.cpp
 	operations/COM_DilateErodeOperation.h
-	operations/COM_FogGlowImageOperation.cpp
-	operations/COM_FogGlowImageOperation.h
 	operations/COM_GlareThresholdOperation.cpp
 	operations/COM_GlareThresholdOperation.h
 	operations/COM_GlareBaseOperation.cpp
@@ -569,6 +567,8 @@ set(SRC
 	operations/COM_GlareStreaksOperation.h
 	operations/COM_GlareGhostOperation.cpp
 	operations/COM_GlareGhostOperation.h
+	operations/COM_GlareFogGlowOperation.cpp
+	operations/COM_GlareFogGlowOperation.h
 	operations/COM_SetSamplerOperation.cpp
 	operations/COM_SetSamplerOperation.h
 
