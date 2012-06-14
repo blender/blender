@@ -47,6 +47,12 @@ class ScaleAbsoluteOperation : public NodeOperation {
 	SocketReader *inputYOperation;
 	float centerX;
 	float centerY;
+
+#ifdef USE_SCENE_COMPO_SCALE
+	/* scene->r.size / 100.0f */ /* added after 2.63, this may be done differently/better */
+	float render_perc;
+#endif
+
 public:
 	ScaleAbsoluteOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -54,6 +60,10 @@ public:
 
 	void initExecution();
 	void deinitExecution();
+
+#ifdef USE_SCENE_COMPO_SCALE
+	void setRenderPercentage(float render_perc) { this->render_perc = render_perc; }
+#endif
 };
 
 class ScaleFixedSizeOperation : public NodeOperation {

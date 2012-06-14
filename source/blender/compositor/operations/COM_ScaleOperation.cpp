@@ -136,8 +136,14 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 	this->inputXOperation->read(scaleX, x, y, sampler, inputBuffers);
 	this->inputYOperation->read(scaleY, x, y, sampler, inputBuffers);
 
+#ifdef USE_SCENE_COMPO_SCALE
+	const float scx = scaleX[0] * this->render_perc; // target absolute scale * render_percentage
+	const float scy = scaleY[0] * this->render_perc; // target absolute scale * render_percentage
+#else
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
+#endif
+
 	const float width = this->getWidth();
 	const float height = this->getHeight();
 	//div
@@ -146,6 +152,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 
 	float nx = this->centerX + (x - this->centerX) / relativeXScale;
 	float ny = this->centerY + (y - this->centerY) / relativeYScale;
+
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
 
