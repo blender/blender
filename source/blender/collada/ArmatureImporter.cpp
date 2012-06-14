@@ -654,11 +654,17 @@ void ArmatureImporter::make_armatures(bContext *C)
 		create_armature_bones(skin);
 
 		// link armature with a mesh object
-		Object *ob = mesh_importer->get_object_by_geom_uid(*get_geometry_uid(skin.get_controller_uid()));
-		if (ob)
-			skin.link_armature(C, ob, joint_by_uid, this);
+		const COLLADAFW::UniqueId &uid = skin.get_controller_uid();
+		const COLLADAFW::UniqueId *guid = get_geometry_uid(uid);
+		if (guid != NULL) {
+			Object *ob = mesh_importer->get_object_by_geom_uid(*guid);
+			if (ob)
+				skin.link_armature(C, ob, joint_by_uid, this);
+			else
+				fprintf(stderr, "Cannot find object to link armature with.\n");
+		}
 		else
-			fprintf(stderr, "Cannot find object to link armature with.\n");
+			fprintf(stderr, "Cannot find geometry to link armature with.\n");
 
 		// set armature parent if any
 		Object *par = skin.get_parent();
