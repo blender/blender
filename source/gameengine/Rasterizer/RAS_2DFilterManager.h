@@ -57,14 +57,14 @@ private:
  
 	float			canvascoord[4];
 	float			textureoffsets[18];
-	float			view[4];
+	/* float			view[4]; */ /* UNUSED */
 	/* texname[0] contains render to texture, texname[1] contains depth texture,  texname[2] contains luminance texture*/
 	unsigned int	texname[3]; 
 	int				texturewidth;
 	int				textureheight;
 	int				canvaswidth;
 	int				canvasheight;
-	int				numberoffilters;
+	/* int				numberoffilters; */ /* UNUSED */
 	/* bit 0: enable/disable depth texture
 	 * bit 1: enable/disable luminance texture*/
 	short			texflag[MAX_RENDER_PASS];

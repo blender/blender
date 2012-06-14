@@ -57,7 +57,7 @@ class RAS_Deformer;
 class RAS_MeshObject
 {
 private:
-	unsigned int				m_debugcolor;
+	/* unsigned int				m_debugcolor; */ /* UNUSED */
 
 	bool						m_bModified;
 	bool						m_bMeshModified;

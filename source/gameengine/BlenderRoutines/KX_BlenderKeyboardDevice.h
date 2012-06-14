@@ -51,7 +51,7 @@ public:
 	virtual void	NextFrame();
 	virtual void	HookEscape();
 private:
-	short		m_exit_key;
+	/* short		m_exit_key; */ /* UNUSED */
 
 
 #ifdef WITH_CXX_GUARDEDALLOC
