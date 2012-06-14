@@ -194,10 +194,11 @@ static void openexr_header_metadata(Header *header, struct ImBuf *ibuf)
 
 static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags)
 {
-	int channels = ibuf->channels;
-	int width = ibuf->x;
-	int height = ibuf->y;
-	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
+	const int channels = ibuf->channels;
+	const int is_alpha = (channels >= 4) && (ibuf->planes == 32);
+	const int is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
+	const int width = ibuf->x;
+	const int height = ibuf->y;
 
 	try
 	{
@@ -209,9 +210,9 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		header.channels().insert("R", Channel(HALF));
 		header.channels().insert("G", Channel(HALF));
 		header.channels().insert("B", Channel(HALF));
-		if (ibuf->planes == 32 && channels >= 4)
+		if (is_alpha)
 			header.channels().insert("A", Channel(HALF));
-		if (write_zbuf)     // z we do as float always
+		if (is_zbuf)     // z we do as float always
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
@@ -220,16 +221,16 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 		/* we store first everything in half array */
 		RGBAZ *pixels = new RGBAZ[height * width];
 		RGBAZ *to = pixels;
-		int xstride = sizeof (RGBAZ);
+		int xstride = sizeof(RGBAZ);
 		int ystride = xstride * width;
 
 		/* indicate used buffers */
 		frameBuffer.insert("R", Slice(HALF,  (char *) &pixels[0].r, xstride, ystride));
 		frameBuffer.insert("G", Slice(HALF,  (char *) &pixels[0].g, xstride, ystride));
 		frameBuffer.insert("B", Slice(HALF,  (char *) &pixels[0].b, xstride, ystride));
-		if (ibuf->planes == 32 && channels >= 4)
+		if (is_alpha)
 			frameBuffer.insert("A", Slice(HALF, (char *) &pixels[0].a, xstride, ystride));
-		if (write_zbuf)
+		if (is_zbuf)
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *)(ibuf->zbuf_float + (height - 1) * width),
 			                              sizeof(float), sizeof(float) * -width));
 		if (ibuf->rect_float) {
@@ -298,10 +299,11 @@ static int imb_save_openexr_half(struct ImBuf *ibuf, const char *name, int flags
 
 static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flags)
 {
-	int channels = ibuf->channels;
-	int width = ibuf->x;
-	int height = ibuf->y;
-	int write_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL;   // summarize
+	const int channels = ibuf->channels;
+	const int is_alpha = (channels >= 4) && (ibuf->planes == 32);
+	const int is_zbuf = (flags & IB_zbuffloat) && ibuf->zbuf_float != NULL; /* summarize */
+	const int width = ibuf->x;
+	const int height = ibuf->y;
 
 	try
 	{
@@ -313,9 +315,9 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		header.channels().insert("R", Channel(Imf::FLOAT));
 		header.channels().insert("G", Channel(Imf::FLOAT));
 		header.channels().insert("B", Channel(Imf::FLOAT));
-		if (ibuf->planes == 32 && channels >= 4)
+		if (is_alpha)
 			header.channels().insert("A", Channel(Imf::FLOAT));
-		if (write_zbuf)
+		if (is_zbuf)
 			header.channels().insert("Z", Channel(Imf::FLOAT));
 
 		FrameBuffer frameBuffer;
@@ -333,9 +335,9 @@ static int imb_save_openexr_float(struct ImBuf *ibuf, const char *name, int flag
 		frameBuffer.insert("R", Slice(Imf::FLOAT,  (char *)rect[0], xstride, ystride));
 		frameBuffer.insert("G", Slice(Imf::FLOAT,  (char *)rect[1], xstride, ystride));
 		frameBuffer.insert("B", Slice(Imf::FLOAT,  (char *)rect[2], xstride, ystride));
-		if (ibuf->planes == 32 && channels >= 4)
+		if (is_alpha)
 			frameBuffer.insert("A", Slice(Imf::FLOAT,  (char *)rect[3], xstride, ystride));
-		if (write_zbuf)
+		if (is_zbuf)
 			frameBuffer.insert("Z", Slice(Imf::FLOAT, (char *) (ibuf->zbuf_float + (height - 1) * width),
 			                              sizeof(float), sizeof(float) * -width));
 		file->setFrameBuffer(frameBuffer);
