@@ -2167,6 +2167,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	int apply_modifiers;
 	int include_children;
 	int use_object_instantiation;
+	int sort_by_name;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
@@ -2182,6 +2183,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
@@ -2195,6 +2197,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	        include_armatures,
 	        include_children,
 	        use_object_instantiation,
+			sort_by_name,
 	        second_life)) {
 		return OPERATOR_FINISHED;
 	}
@@ -2231,6 +2234,9 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
 	                "Instantiate multiple Objects from same Data");
+
+	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
+	                "Sort exported data by Object name");
 
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
