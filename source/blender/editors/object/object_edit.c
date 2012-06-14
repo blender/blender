@@ -1770,7 +1770,7 @@ static int game_property_clear_exec(bContext *C, wmOperator *UNUSED(op))
 void OBJECT_OT_game_property_clear(wmOperatorType *ot)
 {
 	/* identifiers */
-	ot->name = "Clear Game Property";
+	ot->name = "Clear Game Properties";
 	ot->idname = "OBJECT_OT_game_property_clear";
 	ot->description = "Remove all game properties from all selected objects";
 
