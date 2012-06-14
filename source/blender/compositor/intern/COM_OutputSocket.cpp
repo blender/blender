@@ -27,16 +27,6 @@
 
 OutputSocket::OutputSocket(DataType datatype) :Socket(datatype)
 {
-	this->inputSocketDataTypeDeterminatorIndex = -1;
-}
-OutputSocket::OutputSocket(DataType datatype, int inputSocketDataTypeDeterminatorIndex) :Socket(datatype)
-{
-	this->inputSocketDataTypeDeterminatorIndex = inputSocketDataTypeDeterminatorIndex;
-}
-
-OutputSocket::OutputSocket(OutputSocket *from): Socket(from->getDataType())
-{
-	this->inputSocketDataTypeDeterminatorIndex = from->getInputSocketDataTypeDeterminatorIndex();	
 }
 
 int OutputSocket::isOutputSocket() const { return true; }
@@ -57,51 +47,11 @@ void OutputSocket::determineResolution(unsigned int resolution[], unsigned int p
 	}
 }
 
-void OutputSocket::determineActualDataType()
-{
-	DataType actualDatatype = this->getNode()->determineActualDataType(this);
-
-	/** @todo: set the channel info needs to be moved after integration with OCIO */
-	this->channelinfo[0].setNumber(0);
-	this->channelinfo[1].setNumber(1);
-	this->channelinfo[2].setNumber(2);
-	this->channelinfo[3].setNumber(3);
-	switch (actualDatatype) {
-	case COM_DT_VALUE:
-		this->channelinfo[0].setType(COM_CT_Value);
-		break;
-	case COM_DT_VECTOR:
-		this->channelinfo[0].setType(COM_CT_X);
-		this->channelinfo[1].setType(COM_CT_Y);
-		this->channelinfo[2].setType(COM_CT_Z);
-		break;
-	case COM_DT_COLOR:
-		this->channelinfo[0].setType(COM_CT_ColorComponent);
-		this->channelinfo[1].setType(COM_CT_ColorComponent);
-		this->channelinfo[2].setType(COM_CT_ColorComponent);
-		this->channelinfo[3].setType(COM_CT_Alpha);
-		break;
-	default:
-		break;
-	}
-
-	this->setActualDataType(actualDatatype);
-	this->fireActualDataType();
-}
-
 void OutputSocket::addConnection(SocketConnection *connection)
 {
 	this->connections.push_back(connection);
 }
 
-void OutputSocket::fireActualDataType()
-{
-	unsigned int index;
-	for (index = 0 ; index < this->connections.size();index ++) {
-		SocketConnection *connection = this->connections[index];
-		connection->getToSocket()->notifyActualInputType(this->getActualDataType());
-	}
-}
 void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 {
 	if (isConnected()) {
@@ -109,7 +59,6 @@ void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 			SocketConnection *connection = this->connections[0];
 			connection->setFromSocket(relinkToSocket);
 			relinkToSocket->addConnection(connection);
-//			relinkToSocket->setActualDataType(this->getActualDataType());
 			this->connections.erase(this->connections.begin());
 		}
 		else {
@@ -119,7 +68,6 @@ void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 				connection->setFromSocket(relinkToSocket);
 				relinkToSocket->addConnection(connection);
 			}
-//			relinkToSocket->setActualDataType(this->getActualDataType());
 			this->connections.clear();
 		}
 	}
@@ -155,10 +103,5 @@ WriteBufferOperation *OutputSocket::findAttachedWriteBufferOperation() const
 		}
 	}
 	return NULL;
-}
-
-ChannelInfo *OutputSocket::getChannelInfo(const int channelnumber)
-{
-	return &this->channelinfo[channelnumber];
 }
 

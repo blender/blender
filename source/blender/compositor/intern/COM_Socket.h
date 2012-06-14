@@ -57,12 +57,6 @@ private:
 	 */
 	DataType datatype;
 	
-	/**
-	 * the actual data type during execution. This can be different than the field datatype, based on the conversion rules of the node
-	 * @section data-conversion
-	 */
-	DataType actualType;
-	
 	bNodeSocket *editorSocket;
 public:
 	Socket(DataType datatype);
@@ -71,25 +65,11 @@ public:
 	void setNode(NodeBase *node);
 	NodeBase *getNode() const;
 	
-	/**
-	 * @brief get the actual data type
-	 *
-	 * @note The actual data type can differ from the data type this socket expects.
-	 * @return actual DataType
-	 */
-	DataType getActualDataType() const;
-	
-	/**
-	 * @brief set the actual data type
-	 * @param actualType the new actual type
-	 */
-	void setActualDataType(DataType actualType);
-	
+
 	const virtual int isConnected() const;
 	int isInputSocket() const;
 	int isOutputSocket() const;
 	virtual void determineResolution(int resolution[], unsigned int preferredResolution[]) {}
-	virtual void determineActualDataType() {}
 
 	void setEditorSocket(bNodeSocket *editorSocket) { this->editorSocket = editorSocket; }
 	bNodeSocket *getbNodeSocket() const { return this->editorSocket; }

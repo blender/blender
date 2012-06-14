@@ -47,6 +47,7 @@ extern "C" {
 		int include_children,
 
 		int use_object_instantiation,
+		int sort_by_name,
 		int second_life);
 
 

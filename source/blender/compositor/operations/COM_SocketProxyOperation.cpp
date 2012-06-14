@@ -22,10 +22,10 @@
 
 #include "COM_SocketProxyOperation.h"
 
-SocketProxyOperation::SocketProxyOperation() : NodeOperation()
+SocketProxyOperation::SocketProxyOperation(DataType type) : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR/*|COM_DT_VECTOR|COM_DT_VALUE*/);
-	this->addOutputSocket(COM_DT_COLOR);
+	this->addInputSocket(type);
+	this->addOutputSocket(type);
 	this->inputOperation = NULL;
 }
 

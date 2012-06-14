@@ -59,6 +59,7 @@ int collada_export(
     int include_children,
 
     int use_object_instantiation,
+	int sort_by_name,
     int second_life)
 {
 	ExportSettings export_settings;
@@ -79,6 +80,7 @@ int collada_export(
 	export_settings.include_children         = include_children != 0;
 	export_settings.second_life              = second_life != 0;
 	export_settings.use_object_instantiation = use_object_instantiation != 0;
+	export_settings.sort_by_name             = sort_by_name != 0;
 	export_settings.filepath                 = (char *)filepath;
 
 	int includeFilter = OB_REL_NONE;
@@ -87,6 +89,9 @@ int collada_export(
 
 	eObjectSet objectSet = (export_settings.selected) ? OB_SET_SELECTED : OB_SET_ALL;
 	export_settings.export_set = BKE_object_relational_superset(sce, objectSet, (eObRelationTypes)includeFilter);
+
+	if (export_settings.sort_by_name)
+		bc_bubble_sort_by_Object_name(export_settings.export_set);
 
 	DocumentExporter exporter(&export_settings);
 	exporter.exportCurrentScene(sce);

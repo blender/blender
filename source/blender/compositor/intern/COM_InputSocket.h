@@ -73,19 +73,6 @@ private:
 	InputSocketResizeMode resizeMode;
 	
 	
-	/**
-	 * @brief convert a data type to a by the socket supported data type.
-	 *
-	 * @param datatype the datatype that needs to be checked
-	 * @section data-conversion
-	 */
-	DataType convertToSupportedDataType(DataType datatype);
-	
-	/**
-	 * @brief called when the ActualDataType is set. notifies other parties
-	 */
-	void fireActualDataTypeSet();
-
 public:
 	InputSocket(DataType datatype);
 	InputSocket(DataType datatype, InputSocketResizeMode resizeMode);
@@ -103,8 +90,6 @@ public:
 	 * @param preferredResolution the preferrable resolution as no resolution could be determined
 	 */
 	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
-	
-	void determineActualDataType();
 	
 	/**
 	 * @brief Notifies the Input of the data type (via a SocketConnection)

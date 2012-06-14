@@ -226,3 +226,31 @@ void bc_remove_mark(Object *ob)
 {
 	ob->id.flag &= ~LIB_DOIT;
 }
+
+// Use bubble sort algorithm for sorting the export set
+void bc_bubble_sort_by_Object_name(LinkNode *export_set)
+{
+	int i, j; // loop indices
+	bool unsorted = true;
+
+	LinkNode *current;
+	int set_size = BLI_linklist_length(export_set);
+	for(i = 0; (i < set_size) && unsorted; i++) {
+		unsorted = false;
+		
+		for (current=export_set; current->next; current = current->next) {
+			Object *a = (Object *)current->link;
+			Object *b = (Object *)current->next->link;
+
+			std::string str_a (a->id.name);
+			std::string str_b (b->id.name);
+
+			if (str_a.compare(str_b) > 0) {
+				current->link       = b;
+				current->next->link = a;
+				unsorted = true;
+			}
+			
+		}
+	}
+}

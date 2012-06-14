@@ -71,4 +71,6 @@ extern void bc_remove_mark(Object *ob);
 extern char *bc_CustomData_get_layer_name(const CustomData *data, int type, int n);
 extern char *bc_CustomData_get_active_layer_name(const CustomData *data, int type);
 
+extern void bc_bubble_sort_by_Object_name(LinkNode *export_set);
+
 #endif

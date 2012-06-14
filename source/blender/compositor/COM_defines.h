@@ -28,8 +28,6 @@
  * @ingroup Model
  */
 typedef enum DataType {
-	/** @brief Unknown data type (or not yet known) */
-	COM_DT_UNKNOWN = 0,
 	/** @brief Value data type */
 	COM_DT_VALUE   = 1,
 	/** @brief Vector data type */

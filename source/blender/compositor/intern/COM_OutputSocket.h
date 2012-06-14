@@ -43,15 +43,7 @@ class WriteBufferOperation;
 class OutputSocket : public Socket {
 private:
 	vector<SocketConnection *> connections;
-	
-	/**
-	 * @brief index of the inputsocket that determines the datatype of this outputsocket
-	 * -1 will not use any inputsocket to determine the datatype, but use the outputsocket
-	 * default datatype.
-	 */
-	int inputSocketDataTypeDeterminatorIndex;
-	
-	ChannelInfo channelinfo[4];
+		
 	void removeFirstConnection();
 public:
 	OutputSocket(DataType datatype);
@@ -72,18 +64,10 @@ public:
 	/**
 	 * @brief determine the actual data type and channel info.
 	 */
-	void determineActualDataType();
 	void relinkConnections(OutputSocket *relinkToSocket) { this->relinkConnections(relinkToSocket, false); };
 	void relinkConnections(OutputSocket *relinkToSocket, bool single);
-	bool isActualDataTypeDeterminedByInputSocket() {
-		return this->inputSocketDataTypeDeterminatorIndex > -1;
-	}
 	const int getNumberOfConnections() { return connections.size(); }
 	
-	/**
-	 * @brief get the index of the inputsocket that determines the datatype of this outputsocket
-	 */
-	int getInputSocketDataTypeDeterminatorIndex() { return this->inputSocketDataTypeDeterminatorIndex; }
 	void clearConnections();
 	
 	/**
@@ -93,12 +77,6 @@ public:
 	WriteBufferOperation *findAttachedWriteBufferOperation() const;
 	ChannelInfo *getChannelInfo(const int channelnumber);
 	
-	/**
-	 * @brief trigger determine actual data type to all connected sockets
-	 * @note will only be triggered just after the actual data type is set.
-	 */
-	void fireActualDataType();
-
 private:
 
 };
