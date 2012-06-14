@@ -2703,11 +2703,6 @@ Game Types (bge.types)
       KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, 
       KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
 
-   .. method:: getConeHeight()
-
-      :return: The height of the cone with which to test.
-      :rtype: float
-
 .. class:: KX_RaySensor(SCA_ISensor)
 
    A ray sensor detects the first object in a given direction.
