@@ -182,30 +182,18 @@ extern void node_ID_title_cb(void *node_v, void *unused_v);
 /* utility functions used by glare, tonemap and lens distortion */
 /* soms macros for color handling */
 typedef float fRGB[4];
-/* clear color */
-#define fRGB_clear(c) { c[0]=c[1]=c[2]=0.f; } (void)0
 /* copy c2 to c1 */
 #define fRGB_copy(c1, c2) { c1[0]=c2[0];  c1[1]=c2[1];  c1[2]=c2[2]; c1[3]=c2[3]; } (void)0
 /* add c2 to c1 */
 #define fRGB_add(c1, c2) { c1[0]+=c2[0];  c1[1]+=c2[1];  c1[2]+=c2[2]; } (void)0
-/* subtract c2 from c1 */
-#define fRGB_sub(c1, c2) { c1[0]-=c2[0];  c1[1]-=c2[1];  c1[2]-=c2[2]; } (void)0
 /* multiply c by float value s */
 #define fRGB_mult(c, s) { c[0]*=s;  c[1]*=s;  c[2]*=s; } (void)0
 /* multiply c2 by s and add to c1 */
 #define fRGB_madd(c1, c2, s) { c1[0]+=c2[0]*s;  c1[1]+=c2[1]*s;  c1[2]+=c2[2]*s; } (void)0
 /* multiply c2 by color c1 */
 #define fRGB_colormult(c, cs) { c[0]*=cs[0];  c[1]*=cs[1];  c[2]*=cs[2]; } (void)0
-/* multiply c2 by color c3 and add to c1 */
-#define fRGB_colormadd(c1, c2, c3) { c1[0]+=c2[0]*c3[0];  c1[1]+=c2[1]*c3[1];  c1[2]+=c2[2]*c3[2]; } (void)0
 /* multiply c2 by color rgb, rgb as separate arguments */
 #define fRGB_rgbmult(c, r, g, b) { c[0]*=(r);  c[1]*=(g);  c[2]*=(b); } (void)0
-/* swap colors c1 & c2 */
-#define fRGB_swap(c1, c2) { float _t=c1[0];  c1[0]=c2[0];  c2[0]=_t;\
-                                  _t=c1[1];  c1[1]=c2[1];  c2[1]=_t;\
-                                  _t=c1[2];  c1[2]=c2[2];  c2[2]=_t;\
-                                  _t=c1[3];  c1[3]=c2[3];  c3[3]=_t;\
-                          } (void)0
 
 void qd_getPixel(CompBuf* src, int x, int y, float* col);
 void qd_setPixel(CompBuf* src, int x, int y, float* col);

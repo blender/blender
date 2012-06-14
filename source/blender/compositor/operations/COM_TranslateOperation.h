@@ -32,7 +32,7 @@ private:
 	SocketReader *inputYOperation;
 	float deltaX;
 	float deltaY;
-	float isDeltaSet;
+	bool isDeltaSet;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
