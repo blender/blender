@@ -63,6 +63,12 @@ class ScaleFixedSizeOperation : public NodeOperation {
 	int newHeight;
 	float relX;
 	float relY;
+
+	/* center is only used for aspect correction */
+	float offsetX;
+	float offsetY;
+	bool is_aspect;
+	bool is_crop;
 public:
 	ScaleFixedSizeOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -73,6 +79,8 @@ public:
 	void deinitExecution();
 	void setNewWidth(int width) { this->newWidth = width; }
 	void setNewHeight(int height) { this->newHeight = height; }
+	void setIsAspect(int is_aspect) { this->is_aspect = is_aspect; }
+	void setIsCrop(int is_crop) { this->is_crop = is_crop; }
 };
 
 #endif
