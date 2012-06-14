@@ -58,21 +58,6 @@ set(SRC
 	internal/ceres/detect_structure.cc
 	internal/ceres/evaluator.cc
 	internal/ceres/file.cc
-	internal/ceres/generated/schur_eliminator_2_2_2.cc
-	internal/ceres/generated/schur_eliminator_2_2_3.cc
-	internal/ceres/generated/schur_eliminator_2_2_4.cc
-	internal/ceres/generated/schur_eliminator_2_2_d.cc
-	internal/ceres/generated/schur_eliminator_2_3_3.cc
-	internal/ceres/generated/schur_eliminator_2_3_4.cc
-	internal/ceres/generated/schur_eliminator_2_3_9.cc
-	internal/ceres/generated/schur_eliminator_2_3_d.cc
-	internal/ceres/generated/schur_eliminator_2_4_3.cc
-	internal/ceres/generated/schur_eliminator_2_4_4.cc
-	internal/ceres/generated/schur_eliminator_2_4_d.cc
-	internal/ceres/generated/schur_eliminator_4_4_2.cc
-	internal/ceres/generated/schur_eliminator_4_4_3.cc
-	internal/ceres/generated/schur_eliminator_4_4_4.cc
-	internal/ceres/generated/schur_eliminator_4_4_d.cc
 	internal/ceres/generated/schur_eliminator_d_d_d.cc
 	internal/ceres/gradient_checking_cost_function.cc
 	internal/ceres/implicit_schur_complement.cc
@@ -191,6 +176,26 @@ set(SRC
 	internal/ceres/visibility.h
 )
 
+#if(FALSE)
+#	list(APPEND SRC
+#		internal/ceres/generated/schur_eliminator_2_2_2.cc
+#		internal/ceres/generated/schur_eliminator_2_2_3.cc
+#		internal/ceres/generated/schur_eliminator_2_2_4.cc
+#		internal/ceres/generated/schur_eliminator_2_2_d.cc
+#		internal/ceres/generated/schur_eliminator_2_3_3.cc
+#		internal/ceres/generated/schur_eliminator_2_3_4.cc
+#		internal/ceres/generated/schur_eliminator_2_3_9.cc
+#		internal/ceres/generated/schur_eliminator_2_3_d.cc
+#		internal/ceres/generated/schur_eliminator_2_4_3.cc
+#		internal/ceres/generated/schur_eliminator_2_4_4.cc
+#		internal/ceres/generated/schur_eliminator_2_4_d.cc
+#		internal/ceres/generated/schur_eliminator_4_4_2.cc
+#		internal/ceres/generated/schur_eliminator_4_4_3.cc
+#		internal/ceres/generated/schur_eliminator_4_4_4.cc
+#		internal/ceres/generated/schur_eliminator_4_4_d.cc
+#	)
+#endif()
+
 if(WIN32)
 	list(APPEND INC
 		../glog/src/windows
@@ -213,6 +218,7 @@ add_definitions(
 	-D"CERES_HASH_NAMESPACE_END=}}"
 	-DCERES_NO_SUITESPARSE
 	-DCERES_DONT_HAVE_PROTOCOL_BUFFERS
+	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 )
 
 blender_add_lib(extern_ceres "${SRC}" "${INC}" "${INC_SYS}")
