@@ -67,8 +67,44 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			newy = cbuf->y * (rd->size / 100.0f);
 		}
 		else if (node->custom1 == CMP_SCALE_RENDERPERCENT) {
-			newx = (rd->xsch * rd->size) / 100;
-			newy = (rd->ysch * rd->size) / 100;
+			/* supports framing options */
+			if (node->custom2 & CMP_SCALE_RENDERSIZE_FRAME_ASPECT) {
+				/* apply aspect from clip */
+				const float w_src = cbuf->x;
+				const float h_src = cbuf->y;
+
+				/* destination aspect is already applied from the camera frame */
+				const float w_dst = (rd->xsch * rd->size) / 100;
+				const float h_dst = (rd->ysch * rd->size) / 100;
+
+				const float asp_src = w_src / h_src;
+				const float asp_dst = w_dst / h_dst;
+
+				if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
+					if ((asp_src > asp_dst) == ((node->custom2 & CMP_SCALE_RENDERSIZE_FRAME_CROP) != 0)) {
+						/* fit X */
+						const float div = asp_src / asp_dst;
+						newx = w_dst * div;
+						newy = h_dst;
+					}
+					else {
+						/* fit Y */
+						const float div = asp_dst / asp_src;
+						newx = w_dst;
+						newy = h_dst * div;
+					}
+				}
+				else {
+					/* same as below - no aspect correction needed  */
+					newx = w_dst;
+					newy = h_dst;
+				}
+			}
+			else {
+				/* stretch */
+				newx = (rd->xsch * rd->size) / 100;
+				newy = (rd->ysch * rd->size) / 100;
+			}
 		}
 		else {  /* CMP_SCALE_ABSOLUTE */
 			newx = MAX2((int)in[1]->vec[0], 1);

@@ -2018,6 +2018,10 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 static void node_composit_buts_scale(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "space", 0, "", ICON_NONE);
+
+	if (RNA_enum_get(ptr, "space") == CMP_SCALE_RENDERPERCENT) {
+		uiItemR(layout, ptr, "frame_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+	}
 }
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)

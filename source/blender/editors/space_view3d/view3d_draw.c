@@ -1632,8 +1632,7 @@ static void view3d_draw_bgpic(Scene *scene, ARegion *ar, View3D *v3d,
 				}
 
 				/* aspect correction */
-				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT)
-				{
+				if (bgpic->flag & V3D_BGPIC_CAMERA_ASPECT) {
 					/* apply aspect from clip */
 					const float w_src = ibuf->x * image_aspect[0];
 					const float h_src = ibuf->y * image_aspect[1];
