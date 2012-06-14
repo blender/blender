@@ -382,7 +382,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 	BLI_init_rcti(&kernelRect, 0, sz, 0, sz);
 	ckrn = new MemoryBuffer(NULL, &kernelRect);
 
-	scale = 0.25f*sqrtf(sz*sz);
+	scale = 0.25f*sqrtf((float)sz*sz);
 
 	for (y=0; y<sz; ++y) {
 		v = 2.f*(y / (float)sz) - 1.f;
