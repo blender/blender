@@ -84,10 +84,16 @@ void SceneExporter::exportHierarchy(Scene *sce)
 void SceneExporter::writeNodes(Object *ob, Scene *sce)
 {
 	// Add associated armature first if available
+	bool armature_exported = false;
 	Object *ob_arm = bc_get_assigned_armature(ob);
-	if (ob_arm != NULL && bc_is_marked(ob_arm)) {
-		bc_remove_mark(ob_arm);
-		writeNodes(ob_arm, sce);
+	if (ob_arm != NULL)
+	{
+		armature_exported = bc_is_in_Export_set(this->export_settings->export_set, ob_arm);
+		if (armature_exported && bc_is_marked(ob_arm)) {
+			bc_remove_mark(ob_arm);
+			writeNodes(ob_arm, sce);
+			armature_exported = true;
+		}
 	}
 
 	COLLADASW::Node colladaNode(mSW);
@@ -97,12 +103,11 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 
 	colladaNode.start();
 
-	bool is_skinned_mesh = arm_exporter->is_skinned_mesh(ob);
 	std::list<Object *> child_objects;
 
 	// list child objects
-	LinkNode *node = this->export_settings->export_set;
-	while (node) {
+	LinkNode *node;
+	for (node=this->export_settings->export_set; node; node=node->next) {
 		// cob - child object
 		Object *cob = (Object *)node->link;
 
@@ -118,10 +123,9 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 					break;
 			}
 		}
-		node = node->next;
 	}
 
-	if (ob->type == OB_MESH && this->export_settings->include_armatures && is_skinned_mesh)
+	if (ob->type == OB_MESH && armature_exported)
 		// for skinned mesh we write obmat in <bind_shape_matrix>
 		TransformWriter::add_node_transform_identity(colladaNode);
 	else
@@ -130,7 +134,7 @@ void SceneExporter::writeNodes(Object *ob, Scene *sce)
 	// <instance_geometry>
 	if (ob->type == OB_MESH) {
 		bool instance_controller_created = false;
-		if (this->export_settings->include_armatures && is_skinned_mesh) {
+		if (armature_exported) {
 			instance_controller_created = arm_exporter->add_instance_controller(ob);
 		}
 		if (!instance_controller_created) {
