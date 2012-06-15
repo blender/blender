@@ -581,7 +581,7 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 						                                      SLIDE_ACTION_POS, width, height);
 				}
 
-				if (sc->flag & SC_SHOW_MARKER_SEARCH) {
+				if (!customdata && (sc->flag & SC_SHOW_MARKER_SEARCH)) {
 					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
 						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, 0,
 						                                      SLIDE_ACTION_OFFSET, width, height);
