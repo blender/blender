@@ -26,16 +26,16 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ViewerNode::ViewerNode(bNode *editorNode): Node(editorNode)
+ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)\
+void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
-	Image *image = (Image*)this->getbNode()->id;
-	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
+	Image *image = (Image *)this->getbNode()->id;
+	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	bNode *editorNode = this->getbNode();
 	if (imageSocket->isConnected()) {
 		ViewerOperation *viewerOperation = new ViewerOperation();

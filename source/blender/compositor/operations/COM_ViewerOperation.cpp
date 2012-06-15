@@ -64,7 +64,7 @@ void ViewerOperation::deinitExecution()
 }
 
 
-void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	float *buffer = this->outputBuffer;
 	unsigned char *bufferDisplay = this->outputBufferDisplay;
@@ -73,36 +73,36 @@ void ViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryB
 	const int y1 = rect->ymin;
 	const int x2 = rect->xmax;
 	const int y2 = rect->ymax;
-	const int offsetadd = (this->getWidth()-(x2-x1))*4;
-	int offset = (y1*this->getWidth() + x1 ) * 4;
+	const int offsetadd = (this->getWidth() - (x2 - x1)) * 4;
+	int offset = (y1 * this->getWidth() + x1) * 4;
 	float alpha[4], srgb[4];
 	int x;
 	int y;
 	bool breaked = false;
 
-	for (y = y1 ; y < y2 && (!breaked) ; y++) {
-		for (x = x1 ; x < x2; x++) {
+	for (y = y1; y < y2 && (!breaked); y++) {
+		for (x = x1; x < x2; x++) {
 			imageInput->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
 			if (alphaInput != NULL) {
 				alphaInput->read(alpha, x, y, COM_PS_NEAREST, memoryBuffers);
-				buffer[offset+3] = alpha[0];
+				buffer[offset + 3] = alpha[0];
 			}
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.
 			if (this->doColorManagement) {
 				if (this->doColorPredivide) {
-					linearrgb_to_srgb_predivide_v4(srgb, buffer+offset);
+					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);
 				}
 				else {
-					linearrgb_to_srgb_v4(srgb, buffer+offset);
+					linearrgb_to_srgb_v4(srgb, buffer + offset);
 				}
 			}
 			else {
-				copy_v4_v4(srgb, buffer+offset);
+				copy_v4_v4(srgb, buffer + offset);
 			}
 
-			F4TOCHAR4(srgb, bufferDisplay+offset);
+			rgba_float_to_uchar(bufferDisplay + offset, srgb);
 
-			offset +=4;
+			offset += 4;
 		}
 		if (isBreaked()) {
 			breaked = true;

@@ -74,13 +74,13 @@ void ViewerBaseOperation::initImage()
 	
 	/* now we combine the input with ibuf */
 	this->outputBuffer = ibuf->rect_float;
-	this->outputBufferDisplay = (unsigned char*)ibuf->rect;
+	this->outputBufferDisplay = (unsigned char *)ibuf->rect;
 	
 	BKE_image_release_ibuf(this->image, this->lock);
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
-	WM_main_add_notifier(NC_WINDOW|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 
 void ViewerBaseOperation::deinitExecution()
