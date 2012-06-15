@@ -34,11 +34,14 @@
 
 #include "collada_utils.h"
 
+extern "C" {
+
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_math.h"
 
@@ -49,13 +52,13 @@
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 
-extern "C" {
 #include "BKE_DerivedMesh.h"
 #include "BLI_linklist.h"
-}
+
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
+}
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
 {
@@ -181,6 +184,7 @@ Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *o
 	return ancestor;
 }
 
+
 bool bc_is_base_node(LinkNode *export_set, Object *ob)
 {
 	Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
@@ -252,4 +256,24 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 			
 		}
 	}
+}
+
+/* Check if a bone is the top most exportable bone in the bone hierarchy. 
+ * When deform_bones_only == false, then only bones with NO parent 
+ * can be root bones. Otherwise the top most deform bones in the hierarchy
+ * are root bones.
+ */
+bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
+	if(deform_bones_only) {
+		Bone *root = NULL;
+		Bone *bone = aBone;
+		while (bone) {
+			if (!(bone->flag & BONE_NO_DEFORM))
+				root = bone;
+			bone = bone->parent;
+		}
+		return aBone==root;
+	}
+	else
+		return !(aBone->parent);
 }

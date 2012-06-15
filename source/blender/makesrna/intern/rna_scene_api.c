@@ -88,16 +88,17 @@ static void rna_SceneRender_get_frame_path(RenderData *rd, int frame, char *name
 static void rna_Scene_collada_export(
     Scene *scene,
     const char *filepath,
-    int selected,
     int apply_modifiers,
-    int include_armatures,
+    int selected,
     int include_children,
+    int include_armatures,
+	int deform_bones_only,
     int use_object_instantiation,
 	int sort_by_name,
     int second_life)
 {
-	collada_export(scene, filepath, selected, apply_modifiers, 
-	               include_armatures, include_children,
+	collada_export(scene, filepath, apply_modifiers, selected,  
+	               include_children, include_armatures, deform_bones_only, 
 	               use_object_instantiation, sort_by_name, second_life);
 }
 
@@ -126,11 +127,12 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
 	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers (in Preview resolution)");
-	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Include armature(s) used by the exported objects");
-	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Include all children even if not selected");
-	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instantiation", "Instantiate multiple Objects from same Data");
+	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
+	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
+	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
+	parm = RNA_def_boolean(func, "deform_bones_only", 0, "Deform Bones only", "Only export deforming bones with armatures");
+	parm = RNA_def_boolean(func, "use_object_instantiation", 1, "Use Object Instances", "Instantiate multiple Objects from same Data");
 	parm = RNA_def_boolean(func, "sort_by_name", 0, "Sort by Object name", "Sort exported data by Object name");
 	parm = RNA_def_boolean(func, "second_life", 0, "Export for Second Life", "Compatibility mode for Second Life");
 	RNA_def_function_ui_description(func, "Export to collada file");

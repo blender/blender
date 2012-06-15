@@ -40,11 +40,12 @@ extern "C" {
 	int collada_export(
 		Scene *sce, 
 		const char *filepath,
-		int selected,
 		int apply_modifiers,
 
-		int include_armatures,
+		int selected,
 		int include_children,
+		int include_armatures,
+		int deform_bones_only,
 
 		int use_object_instantiation,
 		int sort_by_name,

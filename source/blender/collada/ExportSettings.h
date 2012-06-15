@@ -34,10 +34,11 @@ extern "C" {
 struct ExportSettings
 {
  public:
- bool selected;
  bool apply_modifiers;
- bool include_armatures;
+ bool selected;
  bool include_children;
+ bool include_armatures;
+ bool deform_bones_only;
  bool use_object_instantiation;
  bool sort_by_name;
  bool second_life;

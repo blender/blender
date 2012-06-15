@@ -80,6 +80,18 @@ bool ArmatureExporter::is_skinned_mesh(Object *ob)
 	return bc_get_assigned_armature(ob) != NULL;
 }
 
+
+void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
+{
+	if ( bc_is_root_bone(bone, this->export_settings->deform_bones_only) )
+		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
+	else {
+		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+			write_bone_URLs(ins, ob_arm, child);
+		}
+	}
+}
+
 bool ArmatureExporter::add_instance_controller(Object *ob)
 {
 	Object *ob_arm = bc_get_assigned_armature(ob);
@@ -96,8 +108,7 @@ bool ArmatureExporter::add_instance_controller(Object *ob)
 	// write root bone URLs
 	Bone *bone;
 	for (bone = (Bone *)arm->bonebase.first; bone; bone = bone->next) {
-		if (!bone->parent)
-			ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
+		write_bone_URLs(ins, ob_arm, bone);
 	}
 
 	InstanceWriter::add_material_bindings(ins.getBindMaterial(), ob);
@@ -164,67 +175,73 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
                                      SceneExporter *se,
                                      std::list<Object *>& child_objects)
 {
-	std::string node_id = get_joint_id(bone, ob_arm);
-	std::string node_name = std::string(bone->name);
-	std::string node_sid = get_joint_sid(bone, ob_arm);
+	if (!(this->export_settings->deform_bones_only && bone->flag & BONE_NO_DEFORM)) {
+		std::string node_id = get_joint_id(bone, ob_arm);
+		std::string node_name = std::string(bone->name);
+		std::string node_sid = get_joint_sid(bone, ob_arm);
 
-	COLLADASW::Node node(mSW);
+		COLLADASW::Node node(mSW);
 
-	node.setType(COLLADASW::Node::JOINT);
-	node.setNodeId(node_id);
-	node.setNodeName(node_name);
-	node.setNodeSid(node_sid);
+		node.setType(COLLADASW::Node::JOINT);
+		node.setNodeId(node_id);
+		node.setNodeName(node_name);
+		node.setNodeSid(node_sid);
 
-	/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
-	    add_blender_leaf_bone( bone, ob_arm , node );
-	   else{*/
-	node.start();
+		/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
+			add_blender_leaf_bone( bone, ob_arm , node );
+		   else{*/
+		node.start();
 
-	add_bone_transform(ob_arm, bone, node);
+		add_bone_transform(ob_arm, bone, node);
 
-	// Write nodes of childobjects, remove written objects from list
-	std::list<Object *>::iterator i = child_objects.begin();
+		// Write nodes of childobjects, remove written objects from list
+		std::list<Object *>::iterator i = child_objects.begin();
 
-	while (i != child_objects.end()) {
-		if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name))) {
-			float backup_parinv[4][4];
-			copy_m4_m4(backup_parinv, (*i)->parentinv);
+		while (i != child_objects.end()) {
+			if ((*i)->partype == PARBONE && (0 == strcmp((*i)->parsubstr, bone->name))) {
+				float backup_parinv[4][4];
+				copy_m4_m4(backup_parinv, (*i)->parentinv);
 
-			// crude, temporary change to parentinv
-			// so transform gets exported correctly.
+				// crude, temporary change to parentinv
+				// so transform gets exported correctly.
 
-			// Add bone tail- translation... don't know why
-			// bone parenting is against the tail of a bone
-			// and not it's head, seems arbitrary.
-			(*i)->parentinv[3][1] += bone->length;
+				// Add bone tail- translation... don't know why
+				// bone parenting is against the tail of a bone
+				// and not it's head, seems arbitrary.
+				(*i)->parentinv[3][1] += bone->length;
 
-			// SECOND_LIFE_COMPATIBILITY
-			// TODO: when such objects are animated as
-			// single matrix the tweak must be applied
-			// to the result.
-			if (export_settings->second_life) {
-				// tweak objects parentinverse to match compatibility
-				float temp[4][4];
+				// SECOND_LIFE_COMPATIBILITY
+				// TODO: when such objects are animated as
+				// single matrix the tweak must be applied
+				// to the result.
+				if (export_settings->second_life) {
+					// tweak objects parentinverse to match compatibility
+					float temp[4][4];
 
-				copy_m4_m4(temp, bone->arm_mat);
-				temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
+					copy_m4_m4(temp, bone->arm_mat);
+					temp[3][0] = temp[3][1] = temp[3][2] = 0.0f;
 
-				mult_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
+					mult_m4_m4m4((*i)->parentinv, temp, (*i)->parentinv);
+				}
+
+				se->writeNodes(*i, sce);
+
+				copy_m4_m4((*i)->parentinv, backup_parinv);
+				child_objects.erase(i++);
 			}
-
-			se->writeNodes(*i, sce);
-
-			copy_m4_m4((*i)->parentinv, backup_parinv);
-			child_objects.erase(i++);
+			else i++;
 		}
-		else i++;
-	}
 
-	for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
-		add_bone_node(child, ob_arm, sce, se, child_objects);
+		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+			add_bone_node(child, ob_arm, sce, se, child_objects);
+		}
+		node.end();
 	}
-	node.end();
-	//}
+	else {
+		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
+			add_bone_node(child, ob_arm, sce, se, child_objects);
+		}
+	}
 }
 
 #if 0

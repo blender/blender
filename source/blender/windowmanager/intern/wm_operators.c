@@ -2162,13 +2162,15 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filepath[FILE_MAX];
-	int selected, second_life; 
-	int include_armatures;
 	int apply_modifiers;
+	int selected;
 	int include_children;
+	int include_armatures;
+	int deform_bones_only;
 	int use_object_instantiation;
 	int sort_by_name;
-	
+	int second_life; 
+
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
@@ -2178,10 +2180,11 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
 
 	/* Options panel */
-	selected                 = RNA_boolean_get(op->ptr, "selected");
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
-	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
+	selected                 = RNA_boolean_get(op->ptr, "selected");
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
+	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
+	deform_bones_only        = RNA_boolean_get(op->ptr, "deform_bones_only");
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
 	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
@@ -2192,11 +2195,12 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	if (collada_export(
 	        CTX_data_scene(C),
 	        filepath,
-	        selected,
 	        apply_modifiers,
-	        include_armatures,
+	        selected,
 	        include_children,
-	        use_object_instantiation,
+	        include_armatures,
+			deform_bones_only,
+			use_object_instantiation,
 			sort_by_name,
 	        second_life)) {
 		return OPERATOR_FINISHED;
@@ -2225,13 +2229,15 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
+	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+	row = uiLayoutRow(box, 0);
 	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
-	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
-
+	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
 
 	// Collada options:
 	box = uiLayoutBox(layout);
@@ -2271,18 +2277,22 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
+	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
+	                "Apply modifiers (Preview Resolution)");
+
 
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");
 
-	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
-	                "Include armature(s) even if not selected");
-
 	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
-	                "Include all children even if not selected");
+	                "Export all children of selected objects (even if not selected)");
 
-	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers (Preview Resolution)");
+	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
+	                "Export related armatures (even if not selected)");
+
+	RNA_def_boolean(ot->srna, "deform_bones_only", 0, "Deform Bones only",
+	                "Only export deforming bones with armatures");
+
 
 	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
 	                "Instantiate multiple Objects from same Data");

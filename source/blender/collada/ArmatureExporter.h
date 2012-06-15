@@ -120,6 +120,8 @@ private:
 
 	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id,
 									const std::list<int>& vcount, const std::list<int>& joints);
+
+	void write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone);
 };
 
 #endif
