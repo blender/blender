@@ -2830,13 +2830,17 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 		cliprct.ymin += ar->winrct.ymin;
 		cliprct.ymax += ar->winrct.ymin;
 
-		cliprct.xmin = MAX2(cliprct.xmin, ar->winrct.xmin);
-		cliprct.ymin = MAX2(cliprct.ymin, ar->winrct.ymin);
-		cliprct.xmax = MIN2(cliprct.xmax, ar->winrct.xmax);
-		cliprct.ymax = MIN2(cliprct.ymax, ar->winrct.ymax);
+		cliprct.xmin = CLAMPIS(cliprct.xmin, ar->winrct.xmin, ar->winrct.xmax);
+		cliprct.ymin = CLAMPIS(cliprct.ymin, ar->winrct.ymin, ar->winrct.ymax);
+		cliprct.xmax = CLAMPIS(cliprct.xmax, ar->winrct.xmin, ar->winrct.xmax);
+		cliprct.ymax = CLAMPIS(cliprct.ymax, ar->winrct.ymin, ar->winrct.ymax);
 
-		glGetIntegerv(GL_SCISSOR_BOX, scissor);
-		glScissor(cliprct.xmin, cliprct.ymin, cliprct.xmax - cliprct.xmin, cliprct.ymax - cliprct.ymin);
+		if(cliprct.xmax > cliprct.xmin && cliprct.ymax > cliprct.ymin) {
+			glGetIntegerv(GL_SCISSOR_BOX, scissor);
+			glScissor(cliprct.xmin, cliprct.ymin, cliprct.xmax - cliprct.xmin, cliprct.ymax - cliprct.ymin);
+		}
+		else
+			return 0;
 	}
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2847,17 +2851,17 @@ static int view3d_main_area_draw_engine(const bContext *C, ARegion *ar, int draw
 	else
 		fdrawcheckerboard(0, 0, ar->winx, ar->winy);
 
-	if (draw_border) {
-		/* restore scissor as it was before */
-		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
-	}
-
 	/* render result draw */
 	type = rv3d->render_engine->type;
 	type->view_draw(rv3d->render_engine, C);
 
 	if (v3d->flag & V3D_DISPBGPICS)
 		view3d_draw_bgpic(scene, ar, v3d, TRUE, TRUE);
+
+	if (draw_border) {
+		/* restore scissor as it was before */
+		glScissor(scissor[0], scissor[1], scissor[2], scissor[3]);
+	}
 
 	return 1;
 }
