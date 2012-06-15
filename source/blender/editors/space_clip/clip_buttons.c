@@ -165,7 +165,8 @@ void uiTemplateTrack(uiLayout *layout, PointerRNA *ptr, const char *propname)
 
 	block = uiLayoutAbsoluteBlock(layout);
 
-	scopes->track_preview_height = (scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
+	scopes->track_preview_height =
+		(scopes->track_preview_height <= UI_UNIT_Y) ? UI_UNIT_Y : scopes->track_preview_height;
 
 	uiDefBut(block, TRACKPREVIEW, 0, "", rect.xmin, rect.ymin, rect.xmax - rect.xmin,
 	         scopes->track_preview_height, scopes, 0, 0, 0, 0, "");

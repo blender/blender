@@ -1801,7 +1801,8 @@ static int set_origin_exec(bContext *C, wmOperator *op)
 	int selected_count = count_selected_bundles(C);
 
 	if (selected_count == 0) {
-		BKE_report(op->reports, RPT_ERROR, "At least one track with bundle should be selected to define origin position");
+		BKE_report(op->reports, RPT_ERROR,
+		           "At least one track with bundle should be selected to define origin position");
 
 		return OPERATOR_CANCELLED;
 	}

@@ -64,9 +64,10 @@
 #include "clip_intern.h"    // own include
 
 void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack *track, void *userdata,
-                                              void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
-                                              void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
-                                              void (*segment_end)(void *userdata))
+		void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord,
+		              int scene_framenr, float val),
+		void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
+		void (*segment_end)(void *userdata))
 {
 	MovieClip *clip = ED_space_clip(sc);
 	int width, height, coord;
@@ -122,9 +123,10 @@ void clip_graph_tracking_values_iterate_track(SpaceClip *sc, MovieTrackingTrack 
 }
 
 void clip_graph_tracking_values_iterate(SpaceClip *sc, int selected_only, int include_hidden, void *userdata,
-                                        void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker, int coord, int scene_framenr, float val),
-                                        void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
-                                        void (*segment_end)(void *userdata))
+		void (*func)(void *userdata, MovieTrackingTrack *track, MovieTrackingMarker *marker,
+		             int coord, int scene_framenr, float val),
+		void (*segment_start)(void *userdata, MovieTrackingTrack *track, int coord),
+		void (*segment_end)(void *userdata))
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;

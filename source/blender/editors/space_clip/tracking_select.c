@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/tracking_ops.c
+/** \file blender/editors/space_clip/tracking_select.c
  *  \ingroup spclip
  */
 
