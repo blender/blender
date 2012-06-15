@@ -812,6 +812,9 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 
 	if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
 		int i;
+		float pat_min[2], pat_max[2];
+		float dx = 12.0f / width, dy = 12.0f / height;
+		float tilt_ctrl[2];
 
 		if (!outline) {
 			if (track->pat_flag & SELECT)
@@ -825,6 +828,37 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 			draw_marker_slide_square(marker->pattern_corners[i][0], marker->pattern_corners[i][1],
 			                         patdx / 1.5f, patdy / 1.5f, outline, px);
 		}
+
+		/* ** sliders to control overall pattern  ** */
+		add_v2_v2v2(tilt_ctrl, marker->pattern_corners[1], marker->pattern_corners[2]);
+
+		BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
+
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(3, 0xaaaa);
+
+		glBegin(GL_LINE_LOOP);
+			glVertex2f(pat_min[0] - dx, pat_min[1] - dy);
+			glVertex2f(pat_max[0] + dx, pat_min[1] - dy);
+			glVertex2f(pat_max[0] + dx, pat_max[1] + dy);
+			glVertex2f(pat_min[0] - dx, pat_max[1] + dy);
+		glEnd();
+
+		glBegin(GL_LINES);
+			glVertex2f(0.0f, 0.0f);
+			glVertex2fv(tilt_ctrl);
+		glEnd();
+
+		glDisable(GL_LINE_STIPPLE);
+
+		/* marker's offset slider */
+		draw_marker_slide_square(pat_min[0] - dx, pat_max[1] + dy, patdx, patdy, outline, px);
+
+		/* pattern re-sizing triangle */
+		draw_marker_slide_triangle(pat_max[0] + dx, pat_min[1] - dy, patdx, patdy, outline, px);
+
+		/* slider to control pattern tilt */
+		draw_marker_slide_square(tilt_ctrl[0], tilt_ctrl[1], patdx, patdy, outline, px);
 	}
 
 	glPopMatrix();
