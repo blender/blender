@@ -157,6 +157,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 	InputSocket *inputImage = this->getInputSocket(0);
 	InputSocket *inputScreen = this->getInputSocket(1);
 	InputSocket *inputGarbageMatte = this->getInputSocket(2);
+	InputSocket *inputCoreMatte = this->getInputSocket(3);
 	OutputSocket *outputImage = this->getOutputSocket(0);
 	OutputSocket *outputMatte = this->getOutputSocket(1);
 	OutputSocket *outputEdges = this->getOutputSocket(2);
@@ -172,6 +173,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	inputScreen->relinkConnections(keyingOperation->getInputSocket(1), 1, graph);
 	inputGarbageMatte->relinkConnections(keyingOperation->getInputSocket(2), 2, graph);
+	inputCoreMatte->relinkConnections(keyingOperation->getInputSocket(3), 3, graph);
 
 	if (keying_data->blur_pre) {
 		/* chroma preblur operation for input of keying operation  */

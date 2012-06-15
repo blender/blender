@@ -39,6 +39,7 @@ protected:
 	SocketReader *pixelReader;
 	SocketReader *screenReader;
 	SocketReader *garbageReader;
+	SocketReader *coreReader;
 
 	float screenBalance;
 

@@ -57,6 +57,7 @@ KeyingOperation::KeyingOperation(): NodeOperation()
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->screenBalance = 0.5f;
@@ -64,6 +65,7 @@ KeyingOperation::KeyingOperation(): NodeOperation()
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
 	this->garbageReader = NULL;
+	this->coreReader = NULL;
 }
 
 void KeyingOperation::initExecution()
@@ -71,6 +73,7 @@ void KeyingOperation::initExecution()
 	this->pixelReader = this->getInputSocketReader(0);
 	this->screenReader = this->getInputSocketReader(1);
 	this->garbageReader = this->getInputSocketReader(2);
+	this->coreReader = this->getInputSocketReader(3);
 }
 
 void KeyingOperation::deinitExecution()
@@ -78,6 +81,7 @@ void KeyingOperation::deinitExecution()
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
 	this->garbageReader = NULL;
+	this->coreReader = NULL;
 }
 
 void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -85,10 +89,12 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 	float pixelColor[4];
 	float screenColor[4];
 	float garbageValue[4];
+	float coreValue[4];
 
 	this->pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
 	this->screenReader->read(screenColor, x, y, sampler, inputBuffers);
 	this->garbageReader->read(garbageValue, x, y, sampler, inputBuffers);
+	this->coreReader->read(coreValue, x, y, sampler, inputBuffers);
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 
@@ -108,6 +114,8 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 	}
 
 	color[0] *= (1.0f - garbageValue[0]);
+
+	color[0] = MAX2(color[0], coreValue[0]);
 }
 
 bool KeyingOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

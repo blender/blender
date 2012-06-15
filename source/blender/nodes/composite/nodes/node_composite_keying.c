@@ -49,6 +49,7 @@ static bNodeSocketTemplate cmp_node_keying_in[] = {
 	{	SOCK_RGBA,  1, "Image",	        0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_RGBA,  1, "Key Color",     1.0f, 1.0f, 1.0f, 1.0f},
 	{	SOCK_FLOAT, 1, "Garbage Matte", 0.0f, 1.0f, 1.0f, 1.0f},
+	{	SOCK_FLOAT, 1, "Core Matte",    0.0f, 1.0f, 1.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
