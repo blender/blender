@@ -27,11 +27,11 @@
 #include "COM_AntiAliasOperation.h"
 #include "BLI_math.h"
 
-DilateErodeNode::DilateErodeNode(bNode *editorNode): Node(editorNode)
+DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	
 	bNode *editorNode = this->getbNode();
@@ -43,7 +43,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 	
 		if (editorNode->custom3 < 2.0f) {
-			AntiAliasOperation * antiAlias = new AntiAliasOperation();
+			AntiAliasOperation *antiAlias = new AntiAliasOperation();
 			addLink(graph, operation->getOutputSocket(), antiAlias->getInputSocket(0));
 			this->getOutputSocket(0)->relinkConnections(antiAlias->getOutputSocket(0));
 			graph->addOperation(antiAlias);
@@ -55,14 +55,14 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	}
 	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE) {
 		if (editorNode->custom2 > 0) {
-			DilateDistanceOperation * operation = new DilateDistanceOperation();
+			DilateDistanceOperation *operation = new DilateDistanceOperation();
 			operation->setDistance(editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}
 		else {
-			ErodeDistanceOperation * operation = new ErodeDistanceOperation();
+			ErodeDistanceOperation *operation = new ErodeDistanceOperation();
 			operation->setDistance(-editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
@@ -71,14 +71,14 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	}
 	else {
 		if (editorNode->custom2 > 0) {
-			DilateStepOperation * operation = new DilateStepOperation();
+			DilateStepOperation *operation = new DilateStepOperation();
 			operation->setIterations(editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
 		}
 		else {
-			ErodeStepOperation * operation = new ErodeStepOperation();
+			ErodeStepOperation *operation = new ErodeStepOperation();
 			operation->setIterations(-editorNode->custom2);
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));

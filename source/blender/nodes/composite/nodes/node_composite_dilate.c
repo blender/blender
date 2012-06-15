@@ -35,13 +35,13 @@
 
 /* **************** Dilate/Erode ******************** */
 
-static bNodeSocketTemplate cmp_node_dilateerode_in[]= {
-	{	SOCK_FLOAT, 1, N_("Mask"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_dilateerode_in[] = {
+	{   SOCK_FLOAT, 1, N_("Mask"),      0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{   -1, 0, ""   }
 };
-static bNodeSocketTemplate cmp_node_dilateerode_out[]= {
-	{	SOCK_FLOAT, 0, N_("Mask")},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_dilateerode_out[] = {
+	{   SOCK_FLOAT, 0, N_("Mask")},
+	{   -1, 0, ""   }
 };
 
 static void morpho_dilate(CompBuf *cbuf)
@@ -49,30 +49,30 @@ static void morpho_dilate(CompBuf *cbuf)
 	int x, y;
 	float *p, *rectf = cbuf->rect;
 	
-	for (y=0; y < cbuf->y; y++) {
-		for (x=0; x < cbuf->x-1; x++) {
-			p = rectf + cbuf->x*y + x;
+	for (y = 0; y < cbuf->y; y++) {
+		for (x = 0; x < cbuf->x - 1; x++) {
+			p = rectf + cbuf->x * y + x;
 			*p = MAX2(*p, *(p + 1));
 		}
 	}
 
-	for (y=0; y < cbuf->y; y++) {
-		for (x=cbuf->x-1; x >= 1; x--) {
-			p = rectf + cbuf->x*y + x;
+	for (y = 0; y < cbuf->y; y++) {
+		for (x = cbuf->x - 1; x >= 1; x--) {
+			p = rectf + cbuf->x * y + x;
 			*p = MAX2(*p, *(p - 1));
 		}
 	}
 
-	for (x=0; x < cbuf->x; x++) {
-		for (y=0; y < cbuf->y-1; y++) {
-			p = rectf + cbuf->x*y + x;
+	for (x = 0; x < cbuf->x; x++) {
+		for (y = 0; y < cbuf->y - 1; y++) {
+			p = rectf + cbuf->x * y + x;
 			*p = MAX2(*p, *(p + cbuf->x));
 		}
 	}
 
-	for (x=0; x < cbuf->x; x++) {
-		for (y=cbuf->y-1; y >= 1; y--) {
-			p = rectf + cbuf->x*y + x;
+	for (x = 0; x < cbuf->x; x++) {
+		for (y = cbuf->y - 1; y >= 1; y--) {
+			p = rectf + cbuf->x * y + x;
 			*p = MAX2(*p, *(p - cbuf->x));
 		}
 	}
@@ -83,30 +83,30 @@ static void morpho_erode(CompBuf *cbuf)
 	int x, y;
 	float *p, *rectf = cbuf->rect;
 	
-	for (y=0; y < cbuf->y; y++) {
-		for (x=0; x < cbuf->x-1; x++) {
-			p = rectf + cbuf->x*y + x;
+	for (y = 0; y < cbuf->y; y++) {
+		for (x = 0; x < cbuf->x - 1; x++) {
+			p = rectf + cbuf->x * y + x;
 			*p = MIN2(*p, *(p + 1));
 		}
 	}
 
-	for (y=0; y < cbuf->y; y++) {
-		for (x=cbuf->x-1; x >= 1; x--) {
-			p = rectf + cbuf->x*y + x;
+	for (y = 0; y < cbuf->y; y++) {
+		for (x = cbuf->x - 1; x >= 1; x--) {
+			p = rectf + cbuf->x * y + x;
 			*p = MIN2(*p, *(p - 1));
 		}
 	}
 
-	for (x=0; x < cbuf->x; x++) {
-		for (y=0; y < cbuf->y-1; y++) {
-			p = rectf + cbuf->x*y + x;
+	for (x = 0; x < cbuf->x; x++) {
+		for (y = 0; y < cbuf->y - 1; y++) {
+			p = rectf + cbuf->x * y + x;
 			*p = MIN2(*p, *(p + cbuf->x));
 		}
 	}
 
-	for (x=0; x < cbuf->x; x++) {
-		for (y=cbuf->y-1; y >= 1; y--) {
-			p = rectf + cbuf->x*y + x;
+	for (x = 0; x < cbuf->x; x++) {
+		for (y = cbuf->y - 1; y >= 1; y--) {
+			p = rectf + cbuf->x * y + x;
 			*p = MIN2(*p, *(p - cbuf->x));
 		}
 	}
@@ -117,18 +117,18 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 {
 	/* stack order in: mask */
 	/* stack order out: mask */
-	if (out[0]->hasoutput==0) 
+	if (out[0]->hasoutput == 0)
 		return;
 	
 	/* input no image? then only color operation */
-	if (in[0]->data==NULL) {
+	if (in[0]->data == NULL) {
 		out[0]->vec[0] = out[0]->vec[1] = out[0]->vec[2] = 0.0f;
 		out[0]->vec[3] = 0.0f;
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= typecheck_compbuf(in[0]->data, CB_VAL);
-		CompBuf *stackbuf= dupalloc_compbuf(cbuf);
+		CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_VAL);
+		CompBuf *stackbuf = dupalloc_compbuf(cbuf);
 		short i;
 		
 		if (node->custom2 > 0) { // positive, dilate
@@ -140,10 +140,10 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 				morpho_erode(stackbuf);
 		}
 		
-		if (cbuf!=in[0]->data)
+		if (cbuf != in[0]->data)
 			free_compbuf(cbuf);
 		
-		out[0]->data= stackbuf;
+		out[0]->data = stackbuf;
 	}
 }
 
