@@ -2241,21 +2241,18 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	row = uiLayoutRow(box, 0);
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "sort_by_name", 0, IFACE_("Sort by Object name"), ICON_NONE);
+	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "second_life", 0, IFACE_("Export for Second Life"), ICON_NONE);
+	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
 
 }
 
 static void wm_collada_export_draw(bContext *C, wmOperator *op)
 {
-	uiLayout *layout = op->layout;
 	PointerRNA ptr;
 
-	/* image template */
 	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
-	uiCollada_exportSettings(layout, &ptr);
-
+	uiCollada_exportSettings(op->layout, &ptr);
 }
 
 static void WM_OT_collada_export(wmOperatorType *ot)
