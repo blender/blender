@@ -2206,6 +2206,58 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	}
 }
 
+
+void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
+{
+	ID *id = imfptr->id.data;
+
+	uiLayout *box, *row;
+
+	// Export Options:
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, 0);
+	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
+	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
+	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+
+	// Collada options:
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, 0);
+	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "sort_by_name", 0, IFACE_("Sort by Object name"), ICON_NONE);
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "second_life", 0, IFACE_("Export for Second Life"), ICON_NONE);
+
+}
+
+static void wm_collada_export_draw(bContext *C, wmOperator *op)
+{
+	uiLayout *layout = op->layout;
+	PointerRNA ptr;
+
+	/* image template */
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	uiCollada_exportSettings(layout, &ptr);
+
+}
+
 static void WM_OT_collada_export(wmOperatorType *ot)
 {
 	ot->name = "Export COLLADA";
@@ -2217,22 +2269,25 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 
 	ot->flag |= OPTYPE_PRESET;
+
+	ot->ui = wm_collada_export_draw;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
 
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");
 
-	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers (Preview Resolution)");
-
 	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
-	                "Include armature(s) used by the exported objects");
+	                "Include armature(s) even if not selected");
 
 	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
 	                "Include all children even if not selected");
 
-	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
+	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
+	                "Apply modifiers (Preview Resolution)");
+
+	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
 	                "Instantiate multiple Objects from same Data");
 
 	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
@@ -2241,6 +2296,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
 }
+
 
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
