@@ -223,13 +223,13 @@ void ScaleFixedSizeOperation::initExecution()
 				/* fit X */
 				const float div = asp_src / asp_dst;
 				this->relX /= div;
-				this->offsetX = ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
+				this->offsetX += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
 			}
 			else {
 				/* fit Y */
 				const float div = asp_dst / asp_src;
 				this->relY /= div;
-				this->offsetY = ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
+				this->offsetY += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
 			}
 
 			this->is_offset = true;

@@ -57,6 +57,7 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 		CompBuf *stackbuf, *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
 		ImBuf *ibuf;
 		int newx, newy;
+		float ofsx = 0.0f, ofsy = 0.0f;
 
 		if (node->custom1 == CMP_SCALE_RELATIVE) {
 			newx = MAX2((int)(in[1]->vec[0] * cbuf->x), 1);
@@ -67,6 +68,21 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			newy = cbuf->y * (rd->size / 100.0f);
 		}
 		else if (node->custom1 == CMP_SCALE_RENDERPERCENT) {
+
+			if (node->custom3 != 0.0f || node->custom4 != 0.0f) {
+				const float w_dst = (rd->xsch * rd->size) / 100;
+				const float h_dst = (rd->ysch * rd->size) / 100;
+
+				if (w_dst > h_dst) {
+					ofsx = node->custom3 * w_dst;
+					ofsy = node->custom4 * w_dst;
+				}
+				else {
+					ofsx = node->custom3 * h_dst;
+					ofsy = node->custom4 * h_dst;
+				}
+			}
+
 			/* supports framing options */
 			if (node->custom2 & CMP_SCALE_RENDERSIZE_FRAME_ASPECT) {
 				/* apply aspect from clip */
@@ -133,8 +149,8 @@ static void node_composit_exec_scale(void *data, bNode *node, bNodeStack **in, b
 			IMB_freeImBuf(ibuf);
 
 			/* also do the translation vector */
-			stackbuf->xof = (int)(((float)newx / (float)cbuf->x) * (float)cbuf->xof);
-			stackbuf->yof = (int)(((float)newy / (float)cbuf->y) * (float)cbuf->yof);
+			stackbuf->xof = (int)(ofsx + (((float)newx / (float)cbuf->x) * (float)cbuf->xof));
+			stackbuf->yof = (int)(ofsy + (((float)newy / (float)cbuf->y) * (float)cbuf->yof));
 		}
 		else {
 			stackbuf = dupalloc_compbuf(cbuf);
