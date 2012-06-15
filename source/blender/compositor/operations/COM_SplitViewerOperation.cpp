@@ -60,7 +60,7 @@ void SplitViewerOperation::deinitExecution()
 }
 
 
-void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	float *buffer = this->outputBuffer;
 	unsigned char *bufferDisplay = this->outputBufferDisplay;
@@ -70,15 +70,15 @@ void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1*this->getWidth() + x1 ) * 4;
+	int offset = (y1 * this->getWidth() + x1) * 4;
 	int x;
 	int y;
-	int perc = xSplit?this->splitPercentage*getWidth()/100.0f:this->splitPercentage*getHeight()/100.0f;
-	for (y = y1 ; y < y2 ; y++) {
-		for (x = x1 ; x < x2 ; x++) {
+	int perc = xSplit ? this->splitPercentage *getWidth() / 100.0f : this->splitPercentage *getHeight() / 100.0f;
+	for (y = y1; y < y2; y++) {
+		for (x = x1; x < x2; x++) {
 			bool image1;
 			float srgb[4];
-			image1 = xSplit?x>perc:y>perc;
+			image1 = xSplit ? x > perc : y > perc;
 			if (image1) {
 				image1Input->read(&(buffer[offset]), x, y, COM_PS_NEAREST, memoryBuffers);
 			}
@@ -88,21 +88,21 @@ void SplitViewerOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 			/// @todo: linear conversion only when scene color management is selected, also check predivide.
 			if (this->doColorManagement) {
 				if (this->doColorPredivide) {
-					linearrgb_to_srgb_predivide_v4(srgb, buffer+offset);
+					linearrgb_to_srgb_predivide_v4(srgb, buffer + offset);
 				}
 				else {
-					linearrgb_to_srgb_v4(srgb, buffer+offset);
+					linearrgb_to_srgb_v4(srgb, buffer + offset);
 				}
 			}
 			else {
-				copy_v4_v4(srgb, buffer+offset);
+				copy_v4_v4(srgb, buffer + offset);
 			}
 	
-			F4TOCHAR4(srgb, bufferDisplay+offset);
+			rgba_float_to_uchar(bufferDisplay + offset, srgb);
 	
-			offset +=4;
+			offset += 4;
 		}
-		offset += (this->getWidth()-(x2-x1))*4;
+		offset += (this->getWidth() - (x2 - x1)) * 4;
 	}
 	updateImage(rect);
 }

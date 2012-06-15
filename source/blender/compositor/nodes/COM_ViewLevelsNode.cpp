@@ -26,21 +26,21 @@
 #include "COM_CalculateMeanOperation.h"
 #include "COM_CalculateStandardDeviationOperation.h"
 
-ViewLevelsNode::ViewLevelsNode(bNode *editorNode): Node(editorNode)
+ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
 {
 }
-void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	InputSocket * input = this->getInputSocket(0);
+	InputSocket *input = this->getInputSocket(0);
 	bool firstOperationConnected = false;
 	if (input->isConnected()) {
 		OutputSocket *inputSocket = input->getConnection()->getFromSocket();
 		// add preview to inputSocket;
 		
-		OutputSocket * socket = this->getOutputSocket(0);
+		OutputSocket *socket = this->getOutputSocket(0);
 		if (socket->isConnected()) {
 			// calculate mean operation
-			CalculateMeanOperation * operation = new CalculateMeanOperation();
+			CalculateMeanOperation *operation = new CalculateMeanOperation();
 			input->relinkConnections(operation->getInputSocket(0), 0, graph);
 			firstOperationConnected = true;
 			operation->setSetting(this->getbNode()->custom1);
@@ -51,7 +51,7 @@ void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		socket = this->getOutputSocket(1);
 		if (socket->isConnected()) {
 			// calculate standard deviation operation
-			CalculateStandardDeviationOperation * operation = new CalculateStandardDeviationOperation();
+			CalculateStandardDeviationOperation *operation = new CalculateStandardDeviationOperation();
 			if (firstOperationConnected) {
 				addLink(graph, inputSocket, operation->getInputSocket(0));
 			}
