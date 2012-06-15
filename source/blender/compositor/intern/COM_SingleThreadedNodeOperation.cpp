@@ -22,7 +22,7 @@
 
 #include "COM_SingleThreadedNodeOperation.h"
 
-SingleThreadedNodeOperation::SingleThreadedNodeOperation(): NodeOperation()
+SingleThreadedNodeOperation::SingleThreadedNodeOperation() : NodeOperation()
 {
 	this->cachedInstance = NULL;
 	setComplex(true);

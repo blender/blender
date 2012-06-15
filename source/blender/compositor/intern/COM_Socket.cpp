@@ -38,6 +38,6 @@ DataType Socket::getDataType() const
 
 int Socket::isInputSocket() const { return false; }
 int Socket::isOutputSocket() const { return false; }
-const int Socket::isConnected() const {return false;}
-void Socket::setNode(NodeBase *node) {this->node = node;}
-NodeBase *Socket::getNode() const {return this->node;}
+const int Socket::isConnected() const { return false; }
+void Socket::setNode(NodeBase *node) { this->node = node; }
+NodeBase *Socket::getNode() const { return this->node; }

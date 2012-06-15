@@ -42,8 +42,8 @@
 ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
 {
 	context.setbNodeTree(editingtree);
-	bNode* gnode;
-	for (gnode = (bNode*)editingtree->nodes.first ; gnode ; gnode = (bNode*)gnode->next) {
+	bNode *gnode;
+	for (gnode = (bNode *)editingtree->nodes.first; gnode; gnode = (bNode *)gnode->next) {
 		if (gnode->type == NODE_GROUP && gnode->typeinfo->group_edit_get(gnode)) {
 			context.setActivegNode(gnode);
 			break;
@@ -60,19 +60,19 @@ ExecutionSystem::ExecutionSystem(bNodeTree *editingtree, bool rendering)
 	context.setRendering(rendering);
 	context.setHasActiveOpenCLDevices(WorkScheduler::hasGPUDevices() && (editingtree->flag & NTREE_COM_OPENCL));
 
-	Node *mainOutputNode=NULL;
+	Node *mainOutputNode = NULL;
 
 	mainOutputNode = ExecutionSystemHelper::addbNodeTree(*this, 0, editingtree, NULL);
 
 	if (mainOutputNode) {
-		context.setScene((Scene*)mainOutputNode->getbNode()->id);
+		context.setScene((Scene *)mainOutputNode->getbNode()->id);
 		this->convertToOperations();
 		this->groupOperations(); /* group operations in ExecutionGroups */
 		unsigned int index;
 		unsigned int resolution[2];
-		for (index = 0 ; index < this->groups.size(); index ++) {
-			resolution[0]=0;
-			resolution[1]=0;
+		for (index = 0; index < this->groups.size(); index++) {
+			resolution[0] = 0;
+			resolution[1] = 0;
 			ExecutionGroup *executionGroup = groups[index];
 			executionGroup->determineResolution(resolution);
 		}
@@ -111,24 +111,24 @@ ExecutionSystem::~ExecutionSystem()
 void ExecutionSystem::execute()
 {
 	unsigned int order = 0;
-	for (vector<NodeOperation*>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter) {
+	for (vector<NodeOperation *>::iterator iter = this->operations.begin(); iter != operations.end(); ++iter) {
 		NodeBase *node = *iter;
-		NodeOperation *operation = (NodeOperation*) node;
+		NodeOperation *operation = (NodeOperation *) node;
 		if (operation->isReadBufferOperation()) {
-			ReadBufferOperation * readOperation = (ReadBufferOperation*)operation;
+			ReadBufferOperation *readOperation = (ReadBufferOperation *)operation;
 			readOperation->setOffset(order);
-			order ++;
+			order++;
 		}
 	}
 	unsigned int index;
 
-	for (index = 0 ; index < this->operations.size() ; index ++) {
-		NodeOperation * operation = this->operations[index];
+	for (index = 0; index < this->operations.size(); index++) {
+		NodeOperation *operation = this->operations[index];
 		operation->setbNodeTree(this->context.getbNodeTree());
 		operation->initExecution();
 	}
-	for (index = 0 ; index < this->groups.size() ; index ++) {
-		ExecutionGroup * executionGroup = this->groups[index];
+	for (index = 0; index < this->groups.size(); index++) {
+		ExecutionGroup *executionGroup = this->groups[index];
 		executionGroup->setChunksize(context.getChunksize());
 		executionGroup->initExecution();
 	}
@@ -142,12 +142,12 @@ void ExecutionSystem::execute()
 	WorkScheduler::finish();
 	WorkScheduler::stop();
 
-	for (index = 0 ; index < this->operations.size() ; index ++) {
-		NodeOperation * operation = this->operations[index];
+	for (index = 0; index < this->operations.size(); index++) {
+		NodeOperation *operation = this->operations[index];
 		operation->deinitExecution();
 	}
-	for (index = 0 ; index < this->groups.size() ; index ++) {
-		ExecutionGroup * executionGroup = this->groups[index];
+	for (index = 0; index < this->groups.size(); index++) {
+		ExecutionGroup *executionGroup = this->groups[index];
 		executionGroup->deinitExecution();
 	}
 }
@@ -155,10 +155,10 @@ void ExecutionSystem::execute()
 void ExecutionSystem::executeGroups(CompositorPriority priority)
 {
 	unsigned int index;
-	vector<ExecutionGroup*> executionGroups;
+	vector<ExecutionGroup *> executionGroups;
 	this->findOutputExecutionGroup(&executionGroups, priority);
 
-	for (index = 0 ; index < executionGroups.size(); index ++) {
+	for (index = 0; index < executionGroups.size(); index++) {
 		ExecutionGroup *group = executionGroups[index];
 		group->execute(this);
 	}
@@ -175,15 +175,15 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 	// for every input add write and read operation if input is not a read operation
 	// only add read operation to other links when they are attached to buffered operations.
 	unsigned int index;
-	for (index = 0 ; index < operation->getNumberOfInputSockets();index++) {
+	for (index = 0; index < operation->getNumberOfInputSockets(); index++) {
 		InputSocket *inputsocket = operation->getInputSocket(index);
 		if (inputsocket->isConnected()) {
 			SocketConnection *connection = inputsocket->getConnection();
-			NodeOperation *otherEnd = (NodeOperation*)connection->getFromNode();
+			NodeOperation *otherEnd = (NodeOperation *)connection->getFromNode();
 			if (!otherEnd->isReadBufferOperation()) {
 				// check of other end already has write operation
 				OutputSocket *fromsocket = connection->getFromSocket();
-				WriteBufferOperation * writeoperation = fromsocket->findAttachedWriteBufferOperation();
+				WriteBufferOperation *writeoperation = fromsocket->findAttachedWriteBufferOperation();
 				if (writeoperation == NULL) {
 					writeoperation = new WriteBufferOperation();
 					writeoperation->setbNodeTree(this->getContext().getbNodeTree());
@@ -201,11 +201,11 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 		}
 	}
 	/*
-		link the outputsocket to a write operation
-		link the writeoperation to a read operation
-		link the read operation to the next node.
-	*/
-	OutputSocket * outputsocket = operation->getOutputSocket();
+	 * link the outputsocket to a write operation
+	 * link the writeoperation to a read operation
+	 * link the read operation to the next node.
+	 */
+	OutputSocket *outputsocket = operation->getOutputSocket();
 	if (outputsocket->isConnected()) {
 		int index;
 		WriteBufferOperation *writeOperation;
@@ -214,8 +214,8 @@ void ExecutionSystem::addReadWriteBufferOperations(NodeOperation *operation)
 		this->addOperation(writeOperation);
 		ExecutionSystemHelper::addLink(this->getConnections(), outputsocket, writeOperation->getInputSocket(0));
 		writeOperation->readResolutionFromInputSocket();
-		for (index = 0 ; index < outputsocket->getNumberOfConnections()-1;index ++) {
-			SocketConnection * connection = outputsocket->getConnection(index);
+		for (index = 0; index < outputsocket->getNumberOfConnections() - 1; index++) {
+			SocketConnection *connection = outputsocket->getConnection(index);
 			ReadBufferOperation *readoperation = new ReadBufferOperation();
 			readoperation->setMemoryProxy(writeOperation->getMemoryProxy());
 			connection->setFromSocket(readoperation->getOutputSocket());
@@ -230,11 +230,11 @@ void ExecutionSystem::convertToOperations()
 {
 	unsigned int index;
 	for (index = 0; index < this->nodes.size(); index++) {
-		Node *node = (Node*)this->nodes[index];
+		Node *node = (Node *)this->nodes[index];
 		node->convertToOperations(this, &this->context);
 	}
 
-	for (index = 0 ; index < this->connections.size(); index ++) {
+	for (index = 0; index < this->connections.size(); index++) {
 		SocketConnection *connection = this->connections[index];
 		if (connection->isValid()) {
 			if (connection->getFromSocket()->getDataType() != connection->getToSocket()->getDataType()) {
@@ -244,27 +244,27 @@ void ExecutionSystem::convertToOperations()
 	}
 
 	// determine all resolutions of the operations (Width/Height)
-	for (index = 0 ; index < this->operations.size(); index ++) {
+	for (index = 0; index < this->operations.size(); index++) {
 		NodeOperation *operation = this->operations[index];
 		if (operation->isOutputOperation(context.isRendering()) && !operation->isPreviewOperation()) {
-			unsigned int resolution[2] = {0,0};
-			unsigned int preferredResolution[2] = {0,0};
+			unsigned int resolution[2] = {0, 0};
+			unsigned int preferredResolution[2] = {0, 0};
 			operation->determineResolution(resolution, preferredResolution);
 			operation->setResolution(resolution);
 		}
 	}
-	for (index = 0 ; index < this->operations.size(); index ++) {
+	for (index = 0; index < this->operations.size(); index++) {
 		NodeOperation *operation = this->operations[index];
 		if (operation->isOutputOperation(context.isRendering()) && operation->isPreviewOperation()) {
-			unsigned int resolution[2] = {0,0};
-			unsigned int preferredResolution[2] = {0,0};
+			unsigned int resolution[2] = {0, 0};
+			unsigned int preferredResolution[2] = {0, 0};
 			operation->determineResolution(resolution, preferredResolution);
 			operation->setResolution(resolution);
 		}
 	}
 
 	// add convert resolution operations when needed.
-	for (index = 0 ; index < this->connections.size(); index ++) {
+	for (index = 0; index < this->connections.size(); index++) {
 		SocketConnection *connection = this->connections[index];
 		if (connection->isValid()) {
 			if (connection->needsResolutionConversion()) {
@@ -272,13 +272,12 @@ void ExecutionSystem::convertToOperations()
 			}
 		}
 	}
-
 }
 
 void ExecutionSystem::groupOperations()
 {
-	vector<NodeOperation*> outputOperations;
-	NodeOperation * operation;
+	vector<NodeOperation *> outputOperations;
+	NodeOperation *operation;
 	unsigned int index;
 	// surround complex operations with ReadBufferOperation and WriteBufferOperation
 	for (index = 0; index < this->operations.size(); index++) {
@@ -288,7 +287,7 @@ void ExecutionSystem::groupOperations()
 		}
 	}
 	ExecutionSystemHelper::findOutputNodeOperations(&outputOperations, this->getOperations(), this->context.isRendering());
-	for (vector<NodeOperation*>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter) {
+	for (vector<NodeOperation *>::iterator iter = outputOperations.begin(); iter != outputOperations.end(); ++iter) {
 		operation = *iter;
 		ExecutionGroup *group = new ExecutionGroup();
 		group->addOperation(this, operation);
@@ -303,10 +302,10 @@ void ExecutionSystem::addSocketConnection(SocketConnection *connection)
 }
 
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup*> *result, CompositorPriority priority) const
+void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result, CompositorPriority priority) const
 {
 	unsigned int index;
-	for (index = 0 ; index < this->groups.size() ; index ++) {
+	for (index = 0; index < this->groups.size(); index++) {
 		ExecutionGroup *group = this->groups[index];
 		if (group->isOutputExecutionGroup() && group->getRenderPriotrity() == priority) {
 			result->push_back(group);
@@ -314,10 +313,10 @@ void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup*> *result, 
 	}
 }
 
-void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup*> *result) const
+void ExecutionSystem::findOutputExecutionGroup(vector<ExecutionGroup *> *result) const
 {
 	unsigned int index;
-	for (index = 0 ; index < this->groups.size() ; index ++) {
+	for (index = 0; index < this->groups.size(); index++) {
 		ExecutionGroup *group = this->groups[index];
 		if (group->isOutputExecutionGroup()) {
 			result->push_back(group);

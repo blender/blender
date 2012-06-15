@@ -25,22 +25,23 @@
 #include "COM_SocketConnection.h"
 #include "COM_NodeOperation.h"
 
-OutputSocket::OutputSocket(DataType datatype) :Socket(datatype)
+OutputSocket::OutputSocket(DataType datatype) : Socket(datatype)
 {
 }
 
 int OutputSocket::isOutputSocket() const { return true; }
-const int OutputSocket::isConnected() const { return this->connections.size()!=0; }
+const int OutputSocket::isConnected() const { return this->connections.size() != 0; }
 
 void OutputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	NodeBase *node = this->getNode();
 	if (node->isOperation()) {
-		NodeOperation *operation = (NodeOperation*)node;
+		NodeOperation *operation = (NodeOperation *)node;
 		if (operation->isResolutionSet()) {
 			resolution[0] = operation->getWidth();
 			resolution[1] = operation->getHeight();
-		} else {
+		}
+		else {
 			operation->determineResolution(resolution, preferredResolution);
 			operation->setResolution(resolution);
 		}
@@ -63,7 +64,7 @@ void OutputSocket::relinkConnections(OutputSocket *relinkToSocket, bool single)
 		}
 		else {
 			unsigned int index;
-			for (index = 0 ; index < this->connections.size();index ++) {
+			for (index = 0; index < this->connections.size(); index++) {
 				SocketConnection *connection = this->connections[index];
 				connection->setFromSocket(relinkToSocket);
 				relinkToSocket->addConnection(connection);
@@ -92,13 +93,13 @@ void OutputSocket::clearConnections()
 WriteBufferOperation *OutputSocket::findAttachedWriteBufferOperation() const
 {
 	unsigned int index;
-	for (index = 0 ; index < this->connections.size();index++) {
+	for (index = 0; index < this->connections.size(); index++) {
 		SocketConnection *connection = this->connections[index];
 		NodeBase *node = connection->getToNode();
 		if (node->isOperation()) {
-			NodeOperation *operation = (NodeOperation*)node;
+			NodeOperation *operation = (NodeOperation *)node;
 			if (operation->isWriteBufferOperation()) {
-				return (WriteBufferOperation*)operation;
+				return (WriteBufferOperation *)operation;
 			}
 		}
 	}

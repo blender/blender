@@ -41,9 +41,9 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 {
 	unsigned int temp[2];
 	unsigned int temp2[2];
-	vector<InputSocket*> &inputsockets = this->getInputSockets();
+	vector<InputSocket *> &inputsockets = this->getInputSockets();
 	
-	for (unsigned int index = 0 ; index < inputsockets.size();index++) {
+	for (unsigned int index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
 			if (index == this->resolutionInputSocketIndex) {
@@ -54,7 +54,7 @@ void NodeOperation::determineResolution(unsigned int resolution[], unsigned int 
 			}
 		}
 	}
-	for (unsigned int index = 0 ; index < inputsockets.size();index++) {
+	for (unsigned int index = 0; index < inputsockets.size(); index++) {
 		InputSocket *inputSocket = inputsockets[index];
 		if (inputSocket->isConnected()) {
 			if (index != resolutionInputSocketIndex) {
@@ -103,10 +103,10 @@ NodeOperation *NodeOperation::getInputOperation(unsigned int inputSocketIndex)
 	return this->getInputSocket(inputSocketIndex)->getOperation();
 }
 
-void NodeOperation::getConnectedInputSockets(vector<InputSocket*> *sockets)
+void NodeOperation::getConnectedInputSockets(vector<InputSocket *> *sockets)
 {
-	vector<InputSocket*> &inputsockets = this->getInputSockets();
-	for (vector<InputSocket*>::iterator iterator = inputsockets.begin() ; iterator!= inputsockets.end() ; iterator++) {
+	vector<InputSocket *> &inputsockets = this->getInputSockets();
+	for (vector<InputSocket *>::iterator iterator = inputsockets.begin(); iterator != inputsockets.end(); iterator++) {
 		InputSocket *socket = *iterator;
 		if (socket->isConnected()) {
 			sockets->push_back(socket);
@@ -114,7 +114,7 @@ void NodeOperation::getConnectedInputSockets(vector<InputSocket*> *sockets)
 	}
 }
 
-bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output)
+bool NodeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	if (this->isInputNode()) {
 		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
@@ -122,12 +122,12 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOpe
 	}
 	else {
 		unsigned int index;
-		vector<InputSocket*> &inputsockets = this->getInputSockets();
+		vector<InputSocket *> &inputsockets = this->getInputSockets();
 	
-		for (index = 0 ; index < inputsockets.size() ; index++) {
+		for (index = 0; index < inputsockets.size(); index++) {
 			InputSocket *inputsocket = inputsockets[index];
 			if (inputsocket->isConnected()) {
-				NodeOperation *inputoperation = (NodeOperation*)inputsocket->getConnection()->getFromNode();
+				NodeOperation *inputoperation = (NodeOperation *)inputsocket->getConnection()->getFromNode();
 				bool result = inputoperation->determineDependingAreaOfInterest(input, readOperation, output);
 				if (result) {
 					return true;
@@ -138,24 +138,24 @@ bool NodeOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOpe
 	}
 }
 
-cl_mem NodeOperation::COM_clAttachMemoryBufferToKernelParameter(cl_context context, cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader* reader) 
+cl_mem NodeOperation::COM_clAttachMemoryBufferToKernelParameter(cl_context context, cl_kernel kernel, int parameterIndex, int offsetIndex, list<cl_mem> *cleanup, MemoryBuffer **inputMemoryBuffers, SocketReader *reader)
 {
 	cl_int error;
-	MemoryBuffer* result = (MemoryBuffer*)reader->initializeTileData(NULL, inputMemoryBuffers);
+	MemoryBuffer *result = (MemoryBuffer *)reader->initializeTileData(NULL, inputMemoryBuffers);
 
 	const cl_image_format imageFormat = {
 		CL_RGBA,
 		CL_FLOAT
 	};
 
-	cl_mem clBuffer = clCreateImage2D(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR, &imageFormat, result->getWidth(), 
+	cl_mem clBuffer = clCreateImage2D(context, CL_MEM_READ_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, result->getWidth(),
 	                                  result->getHeight(), 0, result->getBuffer(), &error);
 	
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	if (error == CL_SUCCESS) cleanup->push_back(clBuffer);
 
 	error = clSetKernelArg(kernel, parameterIndex, sizeof(cl_mem), &clBuffer);
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	COM_clAttachMemoryBufferOffsetToKernelParameter(kernel, offsetIndex, result);
 	return clBuffer;
@@ -165,11 +165,11 @@ void NodeOperation::COM_clAttachMemoryBufferOffsetToKernelParameter(cl_kernel ke
 {
 	if (offsetIndex != -1) {
 		cl_int error;
-		rcti* rect = memoryBuffer->getRect();
+		rcti *rect = memoryBuffer->getRect();
 		cl_int2 offset = {rect->xmin, rect->ymin};
 
 		error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
-		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	}
 }
 
@@ -180,7 +180,7 @@ void NodeOperation::COM_clAttachSizeToKernelParameter(cl_kernel kernel, int offs
 		cl_int2 offset = {this->getWidth(), this->getHeight()};
 
 		error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
-		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	}
 }
 
@@ -193,10 +193,10 @@ void NodeOperation::COM_clAttachOutputMemoryBufferToKernelParameter(cl_kernel ke
 
 void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer) {
 	cl_int error;
-	const size_t size[] = {outputMemoryBuffer->getWidth(),outputMemoryBuffer->getHeight()};
+	const size_t size[] = {outputMemoryBuffer->getWidth(), outputMemoryBuffer->getHeight()};
 	
 	error = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, size, 0, 0, 0, NULL);
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 }
 
 void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel, MemoryBuffer *outputMemoryBuffer, int offsetIndex) {
@@ -210,17 +210,19 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 	cl_int2 offset;
 	
 	bool breaked = false;
-	for (offsety = 0 ; offsety < height && (!breaked); offsety+=localSize) {
+	for (offsety = 0; offsety < height && (!breaked); offsety += localSize) {
 		offset[1] = offsety;
-		if (offsety+localSize < height) {
+		if (offsety + localSize < height) {
 			size[1] = localSize;
-		} else {
+		}
+		else {
 			size[1] = height - offsety;
 		}
-		for (offsetx = 0 ; offsetx < width && (!breaked) ; offsetx+=localSize) {
-			if (offsetx+localSize < width) {
+		for (offsetx = 0; offsetx < width && (!breaked); offsetx += localSize) {
+			if (offsetx + localSize < width) {
 				size[0] = localSize;
-			} else {
+			}
+			else {
 				size[0] = width - offsetx;
 			}
 			offset[0] = offsetx;
@@ -228,7 +230,7 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 			error = clSetKernelArg(kernel, offsetIndex, sizeof(cl_int2), &offset);
 			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 			error = clEnqueueNDRangeKernel(queue, kernel, 2, NULL, size, 0, 0, 0, NULL);
-			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+			if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 			clFlush(queue);
 			if (isBreaked()) {
 				breaked = false;
@@ -240,9 +242,8 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 cl_kernel NodeOperation::COM_clCreateKernel(cl_program program, const char *kernelname, list<cl_kernel> *clKernelsToCleanUp) 
 {
 	cl_int error;
-	cl_kernel kernel = clCreateKernel(program, kernelname, &error)	;
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	
-	}
+	cl_kernel kernel = clCreateKernel(program, kernelname, &error);
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error)); }
 	else {
 		if (clKernelsToCleanUp) clKernelsToCleanUp->push_back(kernel);
 	}
