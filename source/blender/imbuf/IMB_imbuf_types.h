@@ -76,6 +76,8 @@ typedef struct ImBuf {
 
 	/* pixels */
 	unsigned int *rect;		/* pixel values stored here */
+	unsigned int *rect_view[5];     /* cached view rects which were converted from float buffer */
+	                                /* using different view transforms */
 	float *rect_float;		/* floating point Rect equivalent
 	                         * Linear RGB color space - may need gamma correction to
 	                         * sRGB when generating 8bit representations */

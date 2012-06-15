@@ -40,9 +40,14 @@
 #include "imbuf.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_filter.h"
 #include "IMB_allocimbuf.h"
 
 #include "MEM_guardedalloc.h"
+
+#ifdef WITH_OCIO
+#include <ocio_capi.h>
+#endif
 
 /**************************** Interlace/Deinterlace **************************/
 
@@ -522,6 +527,89 @@ void IMB_buffer_byte_from_byte(uchar *rect_to, const uchar *rect_from,
 	}
 }
 
+/* float to byte pixels, output 4-channel RGBA */
+void IMB_buffer_srgb_byte_from_linear_float(uchar *rect_to, const float *rect_from,
+                                            int channels_from, float dither, int predivide,
+                                            int width, int height, int stride_to, int stride_from)
+{
+	float tmp[4];
+	int x, y;
+	DitherContext *di;
+	float corrected[4];
+
+	BLI_init_srgb_conversion();
+
+	if (dither)
+		di = create_dither_context(width, dither);
+
+	for (y = 0; y < height; y++) {
+		if (channels_from == 1) {
+			/* single channel input */
+			const float *from = rect_from + stride_from * y;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			for (x = 0; x < width; x++, from++, to += 4)
+				to[0] = to[1] = to[2] = to[3] = FTOCHAR(from[0]);
+		}
+		else if (channels_from == 3) {
+			/* RGB input */
+			const float *from = rect_from + stride_from * y * 3;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			/* convert from linear to sRGB */
+			for (x = 0; x < width; x++, from += 3, to += 4) {
+				IMB_ratio_preserving_odt_tonecurve_v3(from, corrected);
+				linearrgb_to_srgb_v3_v3(tmp, corrected);
+				rgb_float_to_uchar(to, tmp);
+				to[3] = 255;
+			}
+		}
+		else if (channels_from == 4) {
+			/* RGBA input */
+			const float *from = rect_from + stride_from * y * 4;
+			uchar *to = rect_to + stride_to * y * 4;
+
+			/* convert from linear to sRGB */
+			unsigned short us[4];
+
+			if (dither && predivide) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					IMB_ratio_preserving_odt_tonecurve_v4(from, corrected);
+					linearrgb_to_srgb_ushort4_predivide(us, corrected);
+					ushort_to_byte_dither_v4(to, us, di);
+				}
+			}
+			else if (dither) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					IMB_ratio_preserving_odt_tonecurve_v4(from, corrected);
+					linearrgb_to_srgb_ushort4(us, corrected);
+					ushort_to_byte_dither_v4(to, us, di);
+				}
+			}
+			else if (predivide) {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					IMB_ratio_preserving_odt_tonecurve_v4(from, corrected);
+					linearrgb_to_srgb_ushort4_predivide(us, corrected);
+					ushort_to_byte_v4(to, us);
+				}
+			}
+			else {
+				for (x = 0; x < width; x++, from += 4, to += 4) {
+					IMB_ratio_preserving_odt_tonecurve_v4(from, corrected);
+					linearrgb_to_srgb_ushort4(us, corrected);
+					ushort_to_byte_v4(to, us);
+				}
+			}
+		}
+
+		if (dither)
+			dither_finish_row(di);
+	}
+
+	if (dither)
+		clear_dither_context(di);
+}
+
 /****************************** ImBuf Conversion *****************************/
 
 void IMB_rect_from_float(ImBuf *ibuf)
@@ -532,6 +620,10 @@ void IMB_rect_from_float(ImBuf *ibuf)
 	/* verify we have a float buffer */
 	if (ibuf->rect_float == NULL)
 		return;
+
+	if (ibuf->userflags & IB_RECT_INVALID) {
+		imb_freerectviewImBuf_all(ibuf);
+	}
 
 	/* create byte rect if it didn't exist yet */
 	if (ibuf->rect == NULL)
@@ -555,6 +647,106 @@ void IMB_rect_from_float(ImBuf *ibuf)
 	                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 	/* ensure user flag is reset */
+	ibuf->userflags &= ~IB_RECT_INVALID;
+}
+
+void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
+{
+	int predivide = (ibuf->flags & IB_cm_predivide);
+
+	/* verify we have a float buffer */
+	if (ibuf->rect_float == NULL)
+		return;
+
+	if (ibuf->userflags & IB_RECT_INVALID) {
+		imb_freerectviewImBuf_all(ibuf);
+	}
+
+	if (view_transform == IMB_VIEW_TRANSFORM_NONE) {
+		int profile_from;
+
+		/* create byte rect if it didn't exist yet */
+		if (ibuf->rect == NULL)
+			imb_addrectImBuf(ibuf);
+
+		/* determine profiles */
+		if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+			profile_from = IB_PROFILE_LINEAR_RGB;
+		}
+		else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE)) {
+			profile_from = IB_PROFILE_SRGB;
+		}
+		else {
+			profile_from = IB_PROFILE_SRGB; /* should never happen */
+			BLI_assert(0);
+		}
+
+		/* do conversion */
+		IMB_buffer_byte_from_float((uchar *)ibuf->rect, ibuf->rect_float,
+		                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
+		                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	}
+	else if (view_transform == IMB_VIEW_TRANSFORM_ACES_ODT_TONECURVE) {
+		unsigned int *rect_view;
+
+		/* create byte rect if it didn't exist yet */
+		if (ibuf->rect_view[view_transform] == NULL)
+			imb_addrectviewImBuf(ibuf, view_transform);
+
+		rect_view = imb_getrectviewImBuf(ibuf, view_transform);
+
+		IMB_buffer_srgb_byte_from_linear_float((uchar *)rect_view, ibuf->rect_float,
+		                                       ibuf->channels, ibuf->dither, predivide,
+		                                       ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+	}
+	else {
+		ConstConfigRcPtr *config = OCIO_getCurrentConfig();
+		ConstProcessorRcPtr *processor;
+		DisplayTransformRcPtr *dt = OCIO_createDisplayTransform();
+		PackedImageDesc *img;
+		float *rect_float;
+
+		OCIO_displayTransformSetInputColorSpaceName(dt, "aces");
+		OCIO_displayTransformSetDisplay(dt, "sRGB");
+
+		if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RAW)
+			OCIO_displayTransformSetView(dt, "Raw");
+		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RRT)
+			OCIO_displayTransformSetView(dt, "RRT");
+		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_LOG)
+			OCIO_displayTransformSetView(dt, "Log");
+
+		rect_float = MEM_dupallocN(ibuf->rect_float);
+		img = OCIO_createPackedImageDesc(rect_float, ibuf->x, ibuf->y, ibuf->channels, sizeof(float),
+		                                 ibuf->channels * sizeof(float), ibuf->channels * sizeof(float)*ibuf->x);
+
+		processor = OCIO_configGetProcessor(config, (ConstTransformRcPtr*)dt);
+		if (processor) {
+			unsigned int *rect_view;
+
+			OCIO_processorApply(processor, img);
+
+			/* create byte rect if it didn't exist yet */
+			if (ibuf->rect_view[view_transform] == NULL)
+				imb_addrectviewImBuf(ibuf, view_transform);
+
+			rect_view = imb_getrectviewImBuf(ibuf, view_transform);
+
+			/* do conversion */
+			IMB_buffer_byte_from_float((uchar *)rect_view, rect_float,
+			                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, predivide,
+									   ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+
+		}
+
+		OCIO_packedImageDescRelease(img);
+		OCIO_displayTransformRelease(dt);
+		OCIO_processorRelease(processor);
+		OCIO_configRelease(config);
+
+		MEM_freeN(rect_float);
+	}
+
 	ibuf->userflags &= ~IB_RECT_INVALID;
 }
 

@@ -107,6 +107,15 @@ class IMAGE_MT_select(Menu):
         layout.operator("uv.select_linked")
 
 
+class IMAGE_PT_view_transform(Panel):
+    bl_label = "View Transform"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+
+        layout.prop(sima, "view_transform")
 class IMAGE_MT_image(Menu):
     bl_label = "Image"
 
@@ -425,6 +434,19 @@ class IMAGE_HT_header(Header):
 
         if show_uvedit or sima.use_image_paint:
             layout.prop(sima, "use_realtime_update", text="", icon_only=True, icon='LOCKED')
+
+
+class IMAGE_PT_view_transform(Panel):
+    bl_space_type = 'IMAGE_EDITOR'
+    bl_region_type = 'UI'
+    bl_label = "View Transform"
+
+    def draw(self, context):
+        layout = self.layout
+
+        sima = context.space_data
+
+        layout.prop(sima, "view_transform", text="")
 
 
 class IMAGE_PT_image_properties(Panel):

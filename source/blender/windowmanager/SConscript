@@ -43,4 +43,10 @@ if env['BF_BUILDINFO']:
 if env['WITH_BF_INTERNATIONAL']:
     defs.append('WITH_INTERNATIONAL')
 
+if env['WITH_BF_OCIO']:
+    defs.append('WITH_OCIO')
+
+if env['WITH_BF_OCIO']:
+    defs.append('WITH_OCIO')
+
 env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), defines=defs, libtype=['core'], priority=[5] )

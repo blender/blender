@@ -142,4 +142,12 @@ if(WIN322)
 	)
 endif()
 
+if(WITH_OPENCOLORIO)
+	add_definitions(-DWITH_OCIO)
+endif()
+
+if(WITH_OPENCOLORIO)
+	add_definitions(-DWITH_OCIO)
+endif()
+
 blender_add_lib_nolist(bf_windowmanager "${SRC}" "${INC}" "${INC_SYS}")

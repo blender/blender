@@ -71,3 +71,7 @@ endif()
 if(WIN32)
 	add_subdirectory(utfconv)
 endif()
+
+if(WITH_OPENCOLORIO)
+	add_subdirectory(opencolorio)
+endif()

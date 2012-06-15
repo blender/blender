@@ -110,6 +110,10 @@
 #include "BKE_depsgraph.h"
 #include "BKE_sound.h"
 
+#ifdef WITH_OCIO
+#include "IMB_colormanagement.h"
+#endif
+
 static void wm_init_reports(bContext *C)
 {
 	BKE_reports_init(CTX_wm_reports(C), RPT_STORE);
@@ -199,6 +203,10 @@ void WM_init(bContext *C, int argc, const char **argv)
 #endif
 
 	BLI_strncpy(G.lib, G.main->name, FILE_MAX);
+
+#ifdef WITH_OCIO
+	IMB_colormanagement_init();
+#endif
 }
 
 void WM_init_splash(bContext *C)
@@ -452,6 +460,10 @@ void WM_exit_ext(bContext *C, const short do_python)
 		getchar();
 	}
 #endif 
+
+#ifdef WITH_OCIO
+	IMB_colormanagement_exit();
+#endif
 }
 
 void WM_exit(bContext *C)

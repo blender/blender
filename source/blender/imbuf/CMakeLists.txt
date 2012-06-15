@@ -180,6 +180,26 @@ if(WITH_IMAGE_HDR)
 	add_definitions(-DWITH_HDR)
 endif()
 
+if(WITH_OPENCOLORIO)
+	list(APPEND SRC
+		intern/colormanagement.c
+	)
+	list(APPEND INC
+		../../../intern/opencolorio
+	)
+	add_definitions(-DWITH_OCIO)
+endif()
+
+if(WITH_OPENCOLORIO)
+	list(APPEND SRC
+		intern/colormanagement.c
+	)
+	list(APPEND INC
+		../../../intern/opencolorio
+	)
+	add_definitions(-DWITH_OCIO)
+endif()
+
 if(WIN32)
 	list(APPEND INC
 		../../../intern/utfconv

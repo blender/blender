@@ -395,6 +395,13 @@ if(UNIX AND NOT APPLE)
 		)
 	endif()
 
+	if(WITH_OPENCOLORIO)
+		install(
+			DIRECTORY ${CMAKE_SOURCE_DIR}/release/datafiles/colormanagement
+			DESTINATION ${TARGETDIR_VER}/datafiles
+		)
+	endif()
+
 	if(WITH_PYTHON)
 		if(WITH_PYTHON_INSTALL)
 			# on some platforms (like openSUSE) Python is linked
@@ -620,6 +627,17 @@ elseif(WIN32)
 			install(
 				FILES
 					${OIIOBIN}/OpenImageIO.dll
+				DESTINATION ${TARGETDIR}
+			)
+		endif()
+	endif()
+
+	if(WITH_OPENCOLORIO)
+		if(NOT MINGW)
+			set_lib_path(OCIOBIN "opencolorio/bin")
+			install(
+				FILES
+					${OCIOBIN}/OpenColorIO.dll
 				DESTINATION ${TARGETDIR}
 			)
 		endif()
@@ -896,6 +914,7 @@ endif()
 		bf_compositor #added for opencl compositor
 		bf_opencl #added for opencl compositor
 		bf_intern_raskter
+		bf_intern_opencolorio
 	)
 
 	if(WITH_LIBMV)

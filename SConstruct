@@ -608,7 +608,15 @@ if env['OURPLATFORM']!='darwin':
                     kernel_build_dir = os.path.join(B.root_build_dir, 'intern/cycles/kernel')
                     cubin_file = os.path.join(kernel_build_dir, "kernel_%s.cubin" % arch)
                     scriptinstall.append(env.Install(dir=dir,source=cubin_file))
-    
+
+    if env['WITH_BF_OCIO']:
+        dir=os.path.join(env['BF_INSTALLDIR'], VERSION, 'datafiles', 'colormanagement')
+        source=os.listdir('release/datafiles/colormanagement')
+        if '.svn' in source: source.remove('.svn')
+        if '_svn' in source: source.remove('_svn')
+        source=['release/datafiles/colormanagement/'+s for s in source]
+        scriptinstall.append(env.Install(dir=dir,source=source))
+
     if env['WITH_BF_INTERNATIONAL']:
         internationalpaths=['release' + os.sep + 'datafiles']
         
@@ -740,6 +748,9 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'win64-vc', 'linuxcross'):
 
     if env['WITH_BF_OIIO'] and env['OURPLATFORM'] != 'win32-mingw':
         dllsources.append('${LCGDIR}/openimageio/bin/OpenImageIO.dll')
+
+    if env['WITH_BF_OCIO'] and env['OURPLATFORM'] != 'win32-mingw':
+        dllsources.append('${LCGDIR}/opencolorio/bin/OpenColorIO.dll')
 
     dllsources.append('#source/icons/blender.exe.manifest')
 

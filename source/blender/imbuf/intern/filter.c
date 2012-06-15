@@ -31,8 +31,12 @@
  *  \ingroup imbuf
  */
 
+#define _GNU_SOURCE         /* See feature_test_macros(7) */
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
+#include "BLI_math.h"
 #include "BLI_utildefines.h"
 
 #include "IMB_imbuf_types.h"
@@ -595,3 +599,194 @@ void IMB_premultiply_alpha(ImBuf *ibuf)
 		IMB_premultiply_rect_float(ibuf->rect_float, ibuf->planes, ibuf->x, ibuf->y);
 }
 
+/* Tonecurve corrections */
+
+// code of rdt_shaper_fwd and ratio_preserving_odt_tonecurve belongs to
+// ACES project (https://github.com/ampas/aces-dev)
+
+// === ODT SPLINE === //
+//
+// Algorithm for applying ODT tone curve in forward direction.
+//
+// 		vers 1.0  Doug Walker  		2012-01-23
+// 		modified by Scott Dyer		2012-02-28
+
+// Input and output are in linear (not log) units.
+static float rdt_shaper_fwd( float x)
+{
+	// B-spline coefficients.
+	// The units are density of the output.
+	const float COEFS0 = -0.008;
+	const float COEFS1 = -0.00616;
+	const float COEFS2 =  0.026;
+	const float COEFS3 =  0.185;
+	const float COEFS4 =  0.521;
+	const float COEFS5 =  0.993;
+	const float COEFS6 =  1.563;
+	const float COEFS7 =  2.218;
+	const float COEFS8 =  2.795;
+	const float COEFS9 =  3.36;
+	const float COEFS10 = 4.0;   // NB: keep this less than or equal to -log10( FLARE)
+	// The locations of these control points in OCES density space are:
+	// -1., -0.79, -0.44, -0.01, 0.48, 1.01, 1.58, 2.18, 2.82, 3.47, 4.15, 4.85
+
+	// The flare term allows the spline to more rapidly approach zero
+	// while keeping the shape of the curve well-behaved in density space.
+	const float FLARE = 1e-4;
+
+	// The last control point is fixed to yield a specific density at the
+	// end of the knot domain.
+	//const float COEFS11 = 2. * ( -log10( FLARE) - 0.001) - COEFS10;
+	// Note: Apparently a CTL bug prevents calling log10() here, so
+	// you'll need to update this manually if you change FLARE.
+	const float COEFS11 = COEFS10 + 2. * ( 4. - COEFS10);
+
+	// The knots are in units of OCES density.
+	const unsigned int KNOT_LEN = 11;
+	const float KNOT_START = -0.9;
+	const float KNOT_END = 4.484256;
+
+	// The KNOT_POW adjusts the spacing to put more knots near the toe (highlights).
+	const float KNOT_POW = 1. / 1.3;
+	const float OFFS = KNOT_START;
+	const float SC = KNOT_END - KNOT_START;
+
+	// KNOT_DENS is density of the spline at the knots.
+	const float KNOT_DENS[ 11] = {
+		( COEFS0 + COEFS1) / 2.,
+		( COEFS1 + COEFS2) / 2.,
+		( COEFS2 + COEFS3) / 2.,
+		( COEFS3 + COEFS4) / 2.,
+		( COEFS4 + COEFS5) / 2.,
+		( COEFS5 + COEFS6) / 2.,
+		( COEFS6 + COEFS7) / 2.,
+		( COEFS7 + COEFS8) / 2.,
+		( COEFS8 + COEFS9) / 2.,
+		( COEFS9 + COEFS10) / 2.,
+		( COEFS10 + COEFS11) / 2.
+	};
+
+	// Parameters controlling linear extrapolation.
+	const float LIGHT_SLOPE = 0.023;
+	const float CROSSOVER = pow(10,-KNOT_END);
+	const float REV_CROSSOVER = pow10( -KNOT_DENS[ KNOT_LEN - 1]) - FLARE;
+	const float DARK_SLOPE = REV_CROSSOVER / CROSSOVER;
+
+	// Textbook monomial to basis-function conversion matrix.
+	/*const*/ float M[ 3][ 3] = {
+		{  0.5, -1.0, 0.5 },
+		{ -1.0,  1.0, 0.5 },
+		{  0.5,  0.0, 0.0 }
+	};
+
+    float y;
+    // Linear extrapolation in linear space for negative & very dark values.
+    if ( x <= CROSSOVER)
+        y = x * DARK_SLOPE;
+    else {
+        float in_dens = -log10( x);
+        float out_dens;
+        float knot_coord = ( in_dens - OFFS) / SC;
+
+        // Linear extrapolation in log space for very light values.
+        if ( knot_coord <= 0.)
+            out_dens = KNOT_DENS[ 0] - ( KNOT_START - in_dens) * LIGHT_SLOPE;
+
+        // For typical OCES values, apply a B-spline curve.
+        else {
+            knot_coord = ( KNOT_LEN - 1) * pow( knot_coord, KNOT_POW);
+			{
+				int j = knot_coord;
+				float t = knot_coord - j;
+
+				// Would like to do this:
+				//float cf[ 3] = { COEFS[ j], COEFS[ j + 1], COEFS[ j + 2]};
+				// or at least:
+				//cf[ 0] = COEFS[ j];
+				//cf[ 1] = COEFS[ j + 1];
+				//cf[ 2] = COEFS[ j + 2];
+				// But apparently CTL bugs prevent it, so we do the following:
+				float cf[ 3];
+				if ( j <= 0) {
+					cf[ 0] = COEFS0;  cf[ 1] = COEFS1;  cf[ 2] = COEFS2;
+				}
+				else if ( j == 1) {
+					cf[ 0] = COEFS1;  cf[ 1] = COEFS2;  cf[ 2] = COEFS3;
+				}
+				else if ( j == 2) {
+					cf[ 0] = COEFS2;  cf[ 1] = COEFS3;  cf[ 2] = COEFS4;
+				}
+				else if ( j == 3) {
+					cf[ 0] = COEFS3;  cf[ 1] = COEFS4;  cf[ 2] = COEFS5;
+				}
+				else if ( j == 4) {
+					cf[ 0] = COEFS4;  cf[ 1] = COEFS5;  cf[ 2] = COEFS6;
+				}
+				else if ( j == 5) {
+					cf[ 0] = COEFS5;  cf[ 1] = COEFS6;  cf[ 2] = COEFS7;
+				}
+				else if ( j == 6) {
+					cf[ 0] = COEFS6;  cf[ 1] = COEFS7;  cf[ 2] = COEFS8;
+				}
+				else if ( j == 7) {
+					cf[ 0] = COEFS7;  cf[ 1] = COEFS8;  cf[ 2] = COEFS9;
+				}
+				else if ( j == 8) {
+					cf[ 0] = COEFS8;  cf[ 1] = COEFS9;  cf[ 2] = COEFS10;
+				}
+				else {
+					cf[ 0] = COEFS9;  cf[ 1] = COEFS10;  cf[ 2] = COEFS11;
+				}
+
+				{
+					float monomials[ 3] = { t * t, t, 1. };
+					float v[3];
+
+					// XXX: check on this! maths could be different here (like row-major vs. column major or so)
+					//out_dens = dot_f3_f3( monomials, mult_f3_f33( cf, M));
+
+					mul_v3_m3v3(v, M, cf);
+					out_dens = dot_v3v3( monomials, v);
+				}
+			}
+        }
+        y = pow10( -out_dens) - FLARE;
+    }
+    return y;
+}
+
+void IMB_ratio_preserving_odt_tonecurve_v3(const float rgbIn[3], float rgbOut[3])
+{
+	//
+	// The "ratio preserving tonecurve" is used to avoid hue/chroma shifts.
+	// It sends a norm through the tonecurve and scales the RGB values based on the output.
+	//
+
+	const float NTH_POWER = 2.0;
+	const float TINY = 1e-12;
+
+	float numerator = ( pow(rgbIn[0],NTH_POWER) + pow(rgbIn[1],NTH_POWER) + pow(rgbIn[2],NTH_POWER) );
+	float denominator = MAX2( TINY,
+							 ( pow(rgbIn[0],NTH_POWER-1) +
+							   pow(rgbIn[1],NTH_POWER-1) +
+							   pow(rgbIn[2],NTH_POWER-1)
+							 )
+						   ); // use of max function to avoid divide by zero
+	float normRGB = numerator / denominator;
+	if (normRGB <= 0.0) normRGB = TINY;
+
+	{
+		float normRGBo = rdt_shaper_fwd( normRGB );
+
+		rgbOut[0] = rgbIn[0] * normRGBo / normRGB;
+		rgbOut[1] = rgbIn[1] * normRGBo / normRGB;
+		rgbOut[2] = rgbIn[2] * normRGBo / normRGB;
+	}
+}
+
+void IMB_ratio_preserving_odt_tonecurve_v4(const float rgbIn[4], float rgbOut[4])
+{
+	IMB_ratio_preserving_odt_tonecurve_v3(rgbIn, rgbOut);
+
+	rgbOut[3] = rgbIn[3];
+}

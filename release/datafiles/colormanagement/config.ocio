@@ -1,0 +1,238 @@
+ocio_profile_version: 1
+
+search_path: luts
+strictparsing: true
+luma: [0.2126, 0.7152, 0.0722]
+
+description: RRT version ut33
+
+roles:
+  color_picking: raw
+  color_timing: adx10
+  compositing_log: adx10
+  data: raw
+  default: raw
+  matte_paint: raw
+  reference: aces
+  scene_linear: aces
+  texture_paint: raw
+
+displays:
+  p3dci:
+    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Log, colorspace: adx10}
+    - !<View> {name: RRT, colorspace: rrt_p3dci}
+  sRGB:
+    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Log, colorspace: adx10}
+    - !<View> {name: RRT, colorspace: rrt_srgb}
+  xyz:
+    - !<View> {name: Raw, colorspace: raw}
+    - !<View> {name: Log, colorspace: adx10}
+    - !<View> {name: RRT, colorspace: rrt_xyz}
+
+active_displays: [sRGB, p3dci, xyz]
+active_views: [RRT, Log, Raw]
+
+colorspaces:
+  - !<ColorSpace>
+    name: aces
+    family: aces
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: lg2
+    allocationvars: [-8.5, 5]
+
+  - !<ColorSpace>
+    name: raw
+    family: raw
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: true
+    allocation: uniform
+    allocationvars: [0, 1]
+
+  - !<ColorSpace>
+    name: adx10
+    family: adx
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      Film Scan, using the 10-bit Academy Density Encoding
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: adx_adx10_to_cdd.spimtx}
+        - !<FileTransform> {src: adx_cdd_to_cid.spimtx}
+        - !<FileTransform> {src: adx_cid_to_rle.spi1d, interpolation: linear}
+        - !<LogTransform> {base: 10, direction: inverse}
+        - !<FileTransform> {src: adx_exp_to_aces.spimtx}
+
+  - !<ColorSpace>
+    name: adx16
+    family: adx
+    equalitygroup: 
+    bitdepth: 16ui
+    description: |
+      Film Scan, using the 16-bit Academy Density Encoding
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: adx_adx16_to_cdd.spimtx}
+        - !<FileTransform> {src: adx_cdd_to_cid.spimtx}
+        - !<FileTransform> {src: adx_cid_to_rle.spi1d, interpolation: linear}
+        - !<LogTransform> {base: 10, direction: inverse}
+        - !<FileTransform> {src: adx_exp_to_aces.spimtx}
+
+  - !<ColorSpace>
+    name: slogf35
+    family: sony
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      Sony 10-bit S-Log, with f35 color primaries
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: slog10.spi1d, interpolation: linear}
+        - !<FileTransform> {src: slogf35_to_aces.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: slogf65_3200
+    family: sony
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      Sony 10-bit S-Log, with f65 color primaries
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: slog10.spi1d, interpolation: linear}
+        - !<FileTransform> {src: slogf65_to_aces_3200.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: slogf65_5500
+    family: sony
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      Sony 10-bit S-Log, with f65 color primaries
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: slog10.spi1d, interpolation: linear}
+        - !<FileTransform> {src: slogf65_to_aces_5500.spimtx, interpolation: linear}
+
+  - !<ColorSpace>
+    name: logc
+    family: arri
+    equalitygroup: 
+    bitdepth: 10ui
+    description: |
+      Arri Alexa LogC, V3, Exposure Index 800
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    to_reference: !<GroupTransform>
+      children:
+        - !<FileTransform> {src: logc800.spi1d, interpolation: linear}
+        - !<FileTransform> {src: logc_to_aces.spimtx}
+
+  - !<ColorSpace>
+    name: log
+    family: log
+    equalitygroup: 
+    bitdepth: 32f
+    description: |
+      A mathematically idealized log space, which spans the dynamic range
+      currently being utilized by the ACES RRT. Note: this does not correspond
+      to scanned plates, adx10 is preferred for that purpose.
+      
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+
+  - !<ColorSpace>
+    name: rrt_srgb
+    family: rrt
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: rrt_rec709
+    family: rrt
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_rec709.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: rrt_p3dci
+    family: rrt
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: rrt_p3d60
+    family: rrt
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_p3d60.spi3d, interpolation: tetrahedral}
+
+  - !<ColorSpace>
+    name: rrt_xyz
+    family: rrt
+    equalitygroup: 
+    bitdepth: 32f
+    isdata: false
+    allocation: uniform
+    allocationvars: [0, 1]
+    from_reference: !<GroupTransform>
+      children:
+        - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
+        - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}

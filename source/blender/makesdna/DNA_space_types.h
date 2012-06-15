@@ -689,6 +689,9 @@ typedef struct SpaceImage {
 	char sticky; /* sticky selection type */
 	char dt_uvstretch;
 	char around;
+
+	/* color transformation  */
+	int view_transform, pad2;
 } SpaceImage;
 
 
@@ -751,6 +754,15 @@ typedef enum eSpaceImage_Flag {
 
 	SI_COLOR_CORRECTION   = (1 << 24),
 } eSpaceImage_Flag;
+
+/* SpaceImage->flag */
+typedef enum eSpaceImage_ViewTransform {
+	SI_VIEW_TRANSFORM_NONE = 0,
+	SI_VIEW_TRANSFORM_ACES_ODT_TONECURVE = 1,
+	SI_VIEW_TRANSFORM_OCIO_RAW = 2,
+	SI_VIEW_TRANSFORM_OCIO_RRT = 3,
+	SI_VIEW_TRANSFORM_OCIO_LOG = 4,
+} eSpaceImage_ViewTransform;
 
 /* Text Editor ============================================ */
 

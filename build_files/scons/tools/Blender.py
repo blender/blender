@@ -200,6 +200,11 @@ def setup_staticlibs(lenv):
         if lenv['WITH_BF_STATICOIIO']:
             statlibs += Split(lenv['BF_OIIO_LIB_STATIC'])
 
+    if lenv['WITH_BF_OCIO']:
+        libincs += Split(lenv['BF_OCIO_LIBPATH'])
+        if lenv['WITH_BF_STATICOCIO']:
+            statlibs += Split(lenv['BF_OCIO_LIB_STATIC'])
+
     if lenv['WITH_BF_BOOST']:
         libincs += Split(lenv['BF_BOOST_LIBPATH'])
         if lenv['WITH_BF_STATICBOOST']:
@@ -247,6 +252,10 @@ def setup_syslibs(lenv):
     if lenv['WITH_BF_OIIO']:
         if not lenv['WITH_BF_STATICOIIO']:
             syslibs += Split(lenv['BF_OIIO_LIB'])
+
+    if lenv['WITH_BF_OCIO']:
+        if not lenv['WITH_BF_STATICOCIO']:
+            syslibs += Split(lenv['BF_OCIO_LIB'])
 
     if lenv['WITH_BF_OPENEXR'] and not lenv['WITH_BF_STATICOPENEXR']:
         syslibs += Split(lenv['BF_OPENEXR_LIB'])

@@ -15,37 +15,25 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+ * The Original Code is Copyright (C) 2012 by Blender Foundation.
  * All rights reserved.
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Xavier Thomas,
+ *                 Lukas Toenne,
+ *                 Sergey Sharybin
  *
  * ***** END GPL LICENSE BLOCK *****
+ *
  */
 
-/**
- * \file IMB_filter.h
- * \ingroup imbuf
- * \brief Function declarations for filter.c
- */
+#ifndef IMB_COLORMANAGEMENT_H
+#define IMB_COLORMANAGEMENT_H
 
-#ifndef __IMB_FILTER_H__
-#define __IMB_FILTER_H__
+#define BCM_CONFIG_FILE "config.ocio"
 
-struct ImBuf;
+void IMB_colormanagement_init(void);
+void IMB_colormanagement_exit(void);
 
-void imb_filterx(struct ImBuf *ibuf);
-
-void IMB_premultiply_rect(unsigned int *rect, char planes, int w, int h);
-void IMB_premultiply_rect_float(float *rect_float, char planes, int w, int h);
-
-void imb_onehalf_no_alloc(struct ImBuf *ibuf2, struct ImBuf *ibuf1);
-
-/* tonecurves corrections */
-void IMB_ratio_preserving_odt_tonecurve_v3(const float rgbIn[3], float rgbOut[3]);
-void IMB_ratio_preserving_odt_tonecurve_v4(const float rgbIn[4], float rgbOut[4]);
-
-#endif
-
+#endif // IMB_COLORMANAGEMENT_H

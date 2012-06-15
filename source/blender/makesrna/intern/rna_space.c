@@ -1871,7 +1871,7 @@ static void rna_def_space_buttons(BlenderRNA *brna)
 		{SB_TEXC_MAT_OR_LAMP, "MATERIAL", ICON_MATERIAL, "Material", "Material"},
 		{0, NULL, 0, NULL, NULL}
 	};                             /*actually populated dynamically trough a function */
-		
+
 	srna = RNA_def_struct(brna, "SpaceProperties", "Space");
 	RNA_def_struct_sdna(srna, "SpaceButs");
 	RNA_def_struct_ui_text(srna, "Properties Space", "Properties space data");
@@ -1915,6 +1915,15 @@ static void rna_def_space_image(BlenderRNA *brna)
 {
 	StructRNA *srna;
 	PropertyRNA *prop;
+
+	static EnumPropertyItem view_transform_items[] = {
+		{SI_VIEW_TRANSFORM_NONE, "NONE", ICON_NONE, "None", ""},
+		{SI_VIEW_TRANSFORM_ACES_ODT_TONECURVE, "ACES_TOMEMAP", ICON_NONE, "ACES ODT Tonecurve", ""},
+		{SI_VIEW_TRANSFORM_OCIO_RAW, "OCIO_RAW", ICON_NONE, "OCIO RAW", ""},
+		{SI_VIEW_TRANSFORM_OCIO_RRT, "OCIO_RRT", ICON_NONE, "OCIO RRT", ""},
+		{SI_VIEW_TRANSFORM_OCIO_LOG, "OCIO_LOG", ICON_NONE, "OCIO LOG", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	srna = RNA_def_struct(brna, "SpaceImageEditor", "Space");
 	RNA_def_struct_sdna(srna, "SpaceImage");
@@ -2019,6 +2028,12 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_boolean_funcs(prop, "rna_SpaceImageEditor_show_uvedit_get", NULL);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Show UV Editor", "Show UV editing related properties");
+
+	prop = RNA_def_property(srna, "view_transform", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "view_transform");
+	RNA_def_property_enum_items(prop, view_transform_items);
+	RNA_def_property_ui_text(prop, "View Transform", "Transformation used on linear to sRGB conversion");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
 
 	rna_def_space_image_uv(brna);
 }

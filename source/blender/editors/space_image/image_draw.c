@@ -76,7 +76,7 @@
 
 #define HEADER_HEIGHT 18
 
-static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
+static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage, int view_transform)
 {
 	/* detect if we need to redo the curve map.
 	 * ibuf->rect is zero for compositor and render results after change 
@@ -85,7 +85,9 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 	 * NOTE: if float buffer changes, we have to manually remove the rect
 	 */
 
-	if (ibuf->rect_float && (ibuf->rect == NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
+	unsigned int *rect = imb_getrectviewImBuf(ibuf, view_transform);
+
+	if (ibuf->rect_float && (rect == NULL || (ibuf->userflags & IB_RECT_INVALID)) ) {
 		if (color_manage) {
 			if (ima && ima->source == IMA_SRC_VIEWER)
 				ibuf->profile = IB_PROFILE_LINEAR_RGB;
@@ -93,7 +95,7 @@ static void image_verify_buffer_float(Image *ima, ImBuf *ibuf, int color_manage)
 		else
 			ibuf->profile = IB_PROFILE_NONE;
 
-		IMB_rect_from_float(ibuf);
+		IMB_rect_from_float_with_view_transform(ibuf, view_transform);
 	}
 }
 
@@ -430,8 +432,10 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 	/* this part is generic image display */
 	if (sima->flag & SI_SHOW_ALPHA) {
-		if (ibuf->rect)
-			sima_draw_alpha_pixels(x, y, ibuf->x, ibuf->y, ibuf->rect);
+		unsigned int *rect = imb_getrectviewImBuf(ibuf, sima->view_transform);
+
+		if (rect)
+			sima_draw_alpha_pixels(x, y, ibuf->x, ibuf->y, rect);
 		else if (ibuf->rect_float && ibuf->channels == 4)
 			sima_draw_alpha_pixelsf(x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
@@ -444,6 +448,8 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 			sima_draw_zbuffloat_pixels(scene, x, y, ibuf->x, ibuf->y, ibuf->rect_float);
 	}
 	else {
+		unsigned int *rect;
+
 		if (sima->flag & SI_USE_ALPHA) {
 			fdrawcheckerboard(x, y, x + ibuf->x * zoomx, y + ibuf->y * zoomy);
 
@@ -453,10 +459,12 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 
 		/* we don't draw floats buffers directly but
 		 * convert them, and optionally apply curves */
-		image_verify_buffer_float(ima, ibuf, color_manage);
+		image_verify_buffer_float(ima, ibuf, color_manage, sima->view_transform);
 
-		if (ibuf->rect)
-			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		rect = imb_getrectviewImBuf(ibuf, sima->view_transform);
+
+		if (rect)
+			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, rect);
 #if 0
 		else
 			glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
@@ -470,14 +478,15 @@ static void draw_image_buffer(SpaceImage *sima, ARegion *ar, Scene *scene, Image
 	glPixelZoom(1.0f, 1.0f);
 }
 
-static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy)
+static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy, int view_transform)
 {
 	unsigned int *rt, *rp, *rectmain;
 	short y, heigth, len;
+	unsigned int *rect = imb_getrectviewImBuf(ibuf, view_transform);
 
 	/* the right offset in rectot */
 
-	rt = ibuf->rect + (starty * ibuf->x + startx);
+	rt = rect + (starty * ibuf->x + startx);
 
 	len = (endx - startx);
 	heigth = (endy - starty);
@@ -508,14 +517,14 @@ static void draw_image_buffer_tiled(SpaceImage *sima, ARegion *ar, Scene *scene,
 		sima->curtile = ima->xrep * ima->yrep - 1;
 	
 	/* create char buffer from float if needed */
-	image_verify_buffer_float(ima, ibuf, color_manage);
+	image_verify_buffer_float(ima, ibuf, color_manage, sima->view_transform);
 
 	/* retrieve part of image buffer */
 	dx = ibuf->x / ima->xrep;
 	dy = ibuf->y / ima->yrep;
 	sx = (sima->curtile % ima->xrep) * dx;
 	sy = (sima->curtile / ima->xrep) * dy;
-	rect = get_part_from_ibuf(ibuf, sx, sy, sx + dx, sy + dy);
+	rect = get_part_from_ibuf(ibuf, sx, sy, sx + dx, sy + dy, sima->view_transform);
 	
 	/* draw repeated */
 	for (sy = 0; sy + dy <= ibuf->y; sy += dy) {
@@ -637,16 +646,19 @@ static unsigned char *get_alpha_clone_image(Scene *scene, int *width, int *heigh
 	ImBuf *ibuf;
 	unsigned int size, alpha;
 	unsigned char *rect, *cp;
+	unsigned int *rect_view;
 
 	if (!brush || !brush->clone.image)
 		return NULL;
 	
 	ibuf = BKE_image_get_ibuf(brush->clone.image, NULL);
+	/* XXX: which transform to use here? */
+	rect_view = imb_getrectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_NONE);
 
-	if (!ibuf || !ibuf->rect)
+	if (!ibuf || !rect_view)
 		return NULL;
 
-	rect = MEM_dupallocN(ibuf->rect);
+	rect = MEM_dupallocN(rect_view);
 	if (!rect)
 		return NULL;
 

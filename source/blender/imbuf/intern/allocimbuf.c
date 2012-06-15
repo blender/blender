@@ -156,6 +156,7 @@ void IMB_freeImBuf(ImBuf *ibuf)
 		}
 		else {
 			imb_freerectImBuf(ibuf);
+			imb_freerectviewImBuf_all(ibuf);
 			imb_freerectfloatImBuf(ibuf);
 			imb_freetilesImBuf(ibuf);
 			IMB_freezbufImBuf(ibuf);
@@ -439,6 +440,8 @@ ImBuf *IMB_dupImBuf(ImBuf *ibuf1)
 	// for now don't duplicate metadata
 	tbuf.metadata = NULL;
 
+	memset(tbuf.rect_view, 0, sizeof(tbuf.rect_view));
+
 	*ibuf2 = tbuf;
 	
 	return(ibuf2);
@@ -471,3 +474,63 @@ static MEM_CacheLimiterC **get_imbuf_cache_limiter(void)
 	return &c;
 }
 #endif
+
+/* question; why also add zbuf? */
+short imb_addrectviewImBuf(ImBuf *ibuf, int view_transform)
+{
+	int size;
+
+	if (view_transform == IMB_VIEW_TRANSFORM_NONE)
+		return imb_addrectImBuf(ibuf);
+
+	if (ibuf == NULL) return FALSE;
+
+	/* don't call imb_freerectImBuf, it frees mipmaps, this call is used only too give float buffers display */
+	if (ibuf->rect_view[view_transform])
+		MEM_freeN(ibuf->rect_view[view_transform]);
+	ibuf->rect_view[view_transform] = NULL;
+
+	size = ibuf->x * ibuf->y;
+	size = size * sizeof(unsigned int);
+
+	if ((ibuf->rect_view[view_transform] = MEM_mapallocN(size, "imb_addrectImBuf"))) {
+		if (ibuf->planes > 32) return (addzbufImBuf(ibuf));
+		else return TRUE;
+	}
+
+	return FALSE;
+}
+
+/* any free rect frees mipmaps to be sure, creation is in render on first request */
+void imb_freerectviewImBuf(ImBuf *ibuf, int view_transform)
+{
+	if (view_transform == IMB_VIEW_TRANSFORM_NONE) {
+		imb_freerectImBuf(ibuf);
+
+		return;
+	}
+
+	if (ibuf == NULL) return;
+
+	if (ibuf->rect_view[view_transform])
+		MEM_freeN(ibuf->rect_view[view_transform]);
+
+	ibuf->rect_view[view_transform] = NULL;
+}
+
+void imb_freerectviewImBuf_all(ImBuf *ibuf)
+{
+	imb_freerectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_ACES_ODT_TONECURVE);
+	imb_freerectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_OCIO_RAW);
+	imb_freerectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_OCIO_RRT);
+	imb_freerectviewImBuf(ibuf, IMB_VIEW_TRANSFORM_OCIO_LOG);
+}
+
+unsigned int *imb_getrectviewImBuf(ImBuf *ibuf, int view_transform)
+{
+	if (view_transform == IMB_VIEW_TRANSFORM_NONE) {
+		return ibuf->rect;
+	}
+
+	return ibuf->rect_view[view_transform];
+}

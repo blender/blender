@@ -58,4 +58,16 @@ if env['WITH_BF_QUICKTIME']:
     incs += ' ../quicktime ' + env['BF_QUICKTIME_INC']
     defs.append('WITH_QUICKTIME')
 
+if env['WITH_BF_OCIO']:
+    defs.append('WITH_OCIO')
+    incs += ' #intern/opencolorio'
+else:
+    sources.remove(os.path.join('intern', 'colormanagement.c'))
+
+if env['WITH_BF_OCIO']:
+    defs.append('WITH_OCIO')
+    incs += ' #intern/opencolorio'
+else:
+    sources.remove(os.path.join('intern', 'colormanagement.c'))
+
 env.BlenderLib ( libname = 'bf_imbuf', sources = sources, includes = Split(incs), defines = defs, libtype=['core','player'], priority = [185,115] )
