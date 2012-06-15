@@ -254,17 +254,21 @@ void CLIP_OT_delete_marker(wmOperatorType *ot)
 #define SLIDE_ACTION_OFFSET 2
 
 typedef struct {
-	int area, action;
+	short area, action;
 	MovieTrackingTrack *track;
 	MovieTrackingMarker *marker;
 
 	int mval[2];
 	int width, height;
 	float *min, *max, *pos, *offset, (*corners)[2];
-	float smin[2], smax[2], spos[2], soff[2], scorners[4][2];
-	float (*smarkers)[2];
+	float spos[2];
 
-	int lock, accurate, scale;
+	short lock, accurate, scale;
+
+	/* data to restore on cancel */
+	float old_search_min[2], old_search_max[2], old_pos[2], old_offset[2];
+	float old_corners[4][2];
+	float (*old_markers)[2];
 } SlideMarkerData;
 
 static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTrack *track,
@@ -284,8 +288,6 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 	if (area == TRACK_AREA_POINT) {
 		data->pos = marker->pos;
 		data->offset = track->offset;
-		copy_v2_v2(data->spos, marker->pos);
-		copy_v2_v2(data->soff, track->offset);
 	}
 	else if (area == TRACK_AREA_PAT) {
 		if (action == SLIDE_ACTION_SIZE) {
@@ -297,34 +299,19 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 			data->pos = marker->pos;
 			data->offset = track->offset;
 
-			copy_v2_v2(data->soff, track->offset);
-
-			data->smarkers = MEM_callocN(sizeof(*data->smarkers) * track->markersnr, "slide marekrs");
+			data->old_markers = MEM_callocN(sizeof(*data->old_markers) * track->markersnr, "slide marekrs");
 			for (a = 0; a < track->markersnr; a++)
-				copy_v2_v2(data->smarkers[a], track->markers[a].pos);
+				copy_v2_v2(data->old_markers[a], track->markers[a].pos);
 		}
 		else if (action == SLIDE_ACTION_POS) {
 			data->corners = marker->pattern_corners;
 			data->pos = marker->pattern_corners[corner];
-
 			copy_v2_v2(data->spos, data->pos);
 		}
 	}
 	else if (area == TRACK_AREA_SEARCH) {
 		data->min = marker->search_min;
 		data->max = marker->search_max;
-	}
-
-	if ((area == TRACK_AREA_SEARCH) ||
-	    (area == TRACK_AREA_PAT && action != SLIDE_ACTION_OFFSET))
-	{
-		if (data->corners) {
-			memcpy(data->scorners, data->corners, sizeof(data->scorners));
-		}
-		else {
-			copy_v2_v2(data->smin, data->min);
-			copy_v2_v2(data->smax, data->max);
-		}
 	}
 
 	data->mval[0] = event->mval[0];
@@ -335,6 +322,13 @@ static SlideMarkerData *create_slide_marker_data(SpaceClip *sc, MovieTrackingTra
 
 	if (action == SLIDE_ACTION_SIZE)
 		data->lock = 1;
+
+	/* backup marker's settings */
+	memcpy(data->old_corners, marker->pattern_corners, sizeof(data->old_corners));
+	copy_v2_v2(data->old_search_min, marker->search_min);
+	copy_v2_v2(data->old_search_max, marker->search_max);
+	copy_v2_v2(data->old_pos, marker->pos);
+	copy_v2_v2(data->old_offset, track->offset);
 
 	return data;
 }
@@ -629,40 +623,27 @@ static int slide_marker_invoke(bContext *C, wmOperator *op, wmEvent *event)
 
 static void cancel_mouse_slide(SlideMarkerData *data)
 {
-	/* cancel sliding */
-	if (data->area == TRACK_AREA_POINT) {
-		if (data->action == SLIDE_ACTION_OFFSET)
-			copy_v2_v2(data->offset, data->soff);
-		else
-			copy_v2_v2(data->pos, data->spos);
-	}
-	else {
-		if ((data->action == SLIDE_ACTION_SIZE) ||
-		    (data->action == SLIDE_ACTION_POS && data->area == TRACK_AREA_PAT))
-		{
-			if (data->corners) {
-				memcpy(data->corners, data->scorners, sizeof(data->scorners));
-			}
-			else {
-				copy_v2_v2(data->min, data->smin);
-				copy_v2_v2(data->max, data->smax);
-			}
-		}
-		else {
-			int a;
+	MovieTrackingTrack *track = data->track;
+	MovieTrackingMarker *marker = data->marker;
 
-			for (a = 0; a < data->track->markersnr; a++)
-				copy_v2_v2(data->track->markers[a].pos, data->smarkers[a]);
+	memcpy(marker->pattern_corners, data->old_corners, sizeof(marker->pattern_corners));
+	copy_v2_v2(marker->search_min, data->old_search_min);
+	copy_v2_v2(marker->search_max, data->old_search_max);
+	copy_v2_v2(marker->pos, data->old_pos);
+	copy_v2_v2(track->offset, data->old_offset);
 
-			copy_v2_v2(data->offset, data->soff);
-		}
+	if (data->old_markers) {
+		int a;
+
+		for (a = 0; a < data->track->markersnr; a++)
+			copy_v2_v2(data->track->markers[a].pos, data->old_markers[a]);
 	}
 }
 
 static void free_slide_data(SlideMarkerData *data)
 {
-	if (data->smarkers)
-		MEM_freeN(data->smarkers);
+	if (data->old_markers)
+		MEM_freeN(data->old_markers);
 
 	MEM_freeN(data);
 }
@@ -709,63 +690,41 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 
 			if (data->area == TRACK_AREA_POINT) {
 				if (data->action == SLIDE_ACTION_OFFSET) {
-					data->offset[0] = data->soff[0] + dx;
-					data->offset[1] = data->soff[1] + dy;
+					data->offset[0] = data->old_offset[0] + dx;
+					data->offset[1] = data->old_offset[1] + dy;
 				}
 				else {
-					data->pos[0] = data->spos[0] + dx;
-					data->pos[1] = data->spos[1] + dy;
+					data->pos[0] = data->old_pos[0] + dx;
+					data->pos[1] = data->old_pos[1] + dy;
 				}
 
 				WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 				DAG_id_tag_update(&sc->clip->id, 0);
 			}
-			else {
+			else if (data->area == TRACK_AREA_PAT) {
 				if (data->action == SLIDE_ACTION_SIZE) {
-					if (data->corners) {
-						data->corners[0][0] = data->scorners[0][0] - dx;
-						data->corners[0][1] = data->scorners[0][1] + dy;
+					data->corners[0][0] = data->old_corners[0][0] - dx;
+					data->corners[0][1] = data->old_corners[0][1] + dy;
 
-						data->corners[1][0] = data->scorners[1][0] + dx;
-						data->corners[1][1] = data->scorners[1][1] + dy;
+					data->corners[1][0] = data->old_corners[1][0] + dx;
+					data->corners[1][1] = data->old_corners[1][1] + dy;
 
-						data->corners[2][0] = data->scorners[2][0] + dx;
-						data->corners[2][1] = data->scorners[2][1] - dy;
+					data->corners[2][0] = data->old_corners[2][0] + dx;
+					data->corners[2][1] = data->old_corners[2][1] - dy;
 
-						data->corners[3][0] = data->scorners[3][0] - dx;
-						data->corners[3][1] = data->scorners[3][1] - dy;
-					}
-					else {
-						data->min[0] = data->smin[0] - dx;
-						data->max[0] = data->smax[0] + dx;
+					data->corners[3][0] = data->old_corners[3][0] - dx;
+					data->corners[3][1] = data->old_corners[3][1] - dy;
 
-						data->min[1] = data->smin[1] + dy;
-						data->max[1] = data->smax[1] - dy;
-					}
-
-					if (data->area == TRACK_AREA_SEARCH)
-						BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
-					else
-						BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
+					BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
 				}
 				else if (data->action == SLIDE_ACTION_OFFSET) {
 					float d[2] = {dx, dy};
+					int a;
 
-					if (data->area == TRACK_AREA_SEARCH) {
-						add_v2_v2v2(data->min, data->smin, d);
-						add_v2_v2v2(data->max, data->smax, d);
-					}
-					else {
-						int a;
+					for (a = 0; a < data->track->markersnr; a++)
+						add_v2_v2v2(data->track->markers[a].pos, data->old_markers[a], d);
 
-						for (a = 0; a < data->track->markersnr; a++)
-							add_v2_v2v2(data->track->markers[a].pos, data->smarkers[a], d);
-
-						sub_v2_v2v2(data->offset, data->soff, d);
-					}
-
-					if (data->area == TRACK_AREA_SEARCH)
-						BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_POS);
+					sub_v2_v2v2(data->offset, data->old_offset, d);
 				}
 				else if (data->action == SLIDE_ACTION_POS) {
 					if (data->scale) {
@@ -775,7 +734,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 							int a;
 
 							for (a = 0; a < 4; a++) {
-								mul_v2_v2fl(data->corners[a], data->scorners[a], scale);
+								mul_v2_v2fl(data->corners[a], data->old_corners[a], scale);
 							}
 						}
 					}
@@ -785,7 +744,7 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 						copy_v2_v2(spos, data->pos);
 
 						/* corners might've been scaled before, restore their original position */
-						memcpy(data->corners, data->scorners, sizeof(data->scorners));
+						memcpy(data->corners, data->old_corners, sizeof(data->old_corners));
 
 						data->pos[0] = data->spos[0] + dx;
 						data->pos[1] = data->spos[1] + dy;
@@ -798,6 +757,25 @@ static int slide_marker_modal(bContext *C, wmOperator *op, wmEvent *event)
 					/* currently only patterns are allowed to have such combination of event and data */
 					BKE_tracking_marker_clamp(data->marker, CLAMP_PAT_DIM);
 				}
+			}
+			else if (data->area == TRACK_AREA_SEARCH) {
+				if (data->action == SLIDE_ACTION_SIZE) {
+					data->min[0] = data->old_search_min[0] - dx;
+					data->max[0] = data->old_search_max[0] + dx;
+
+					data->min[1] = data->old_search_min[1] + dy;
+					data->max[1] = data->old_search_max[1] - dy;
+
+					BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_DIM);
+				}
+				else if (data->area == TRACK_AREA_SEARCH) {
+					float d[2] = {dx, dy};
+
+					add_v2_v2v2(data->min, data->old_search_min, d);
+					add_v2_v2v2(data->max, data->old_search_max, d);
+				}
+
+				BKE_tracking_marker_clamp(data->marker, CLAMP_SEARCH_POS);
 			}
 
 			data->marker->flag &= ~MARKER_TRACKED;
