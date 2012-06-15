@@ -68,9 +68,9 @@ __kernel void dilateKernel(__read_only image2d_t inputImage,  __write_only image
 	int2 inputXy;
 	
 	for (ny = minXY.y, inputXy.y = ny - offsetInput.y ; ny < maxXY.y ; ny ++, inputXy.y++) {
+		const float deltaY = (realCoordinate.y - ny);
 		for (nx = minXY.x, inputXy.x = nx - offsetInput.x; nx < maxXY.x ; nx ++, inputXy.x++) {
 			const float deltaX = (realCoordinate.x - nx);
-			const float deltaY = (realCoordinate.y - ny);
 			const float measuredDistance = deltaX*deltaX+deltaY*deltaY;
 			if (measuredDistance <= distanceSquared) {
 				value = max(value, read_imagef(inputImage, SAMPLER_NEAREST, inputXy).s0);

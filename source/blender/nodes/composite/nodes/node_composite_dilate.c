@@ -52,28 +52,28 @@ static void morpho_dilate(CompBuf *cbuf)
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = 0; x < cbuf->x - 1; x++) {
 			p = rectf + cbuf->x * y + x;
-			*p = MAX2(*p, *(p + 1));
+			*p = maxf(*p, *(p + 1));
 		}
 	}
 
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = cbuf->x - 1; x >= 1; x--) {
 			p = rectf + cbuf->x * y + x;
-			*p = MAX2(*p, *(p - 1));
+			*p = maxf(*p, *(p - 1));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = 0; y < cbuf->y - 1; y++) {
 			p = rectf + cbuf->x * y + x;
-			*p = MAX2(*p, *(p + cbuf->x));
+			*p = maxf(*p, *(p + cbuf->x));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = cbuf->y - 1; y >= 1; y--) {
 			p = rectf + cbuf->x * y + x;
-			*p = MAX2(*p, *(p - cbuf->x));
+			*p = maxf(*p, *(p - cbuf->x));
 		}
 	}
 }
@@ -86,28 +86,28 @@ static void morpho_erode(CompBuf *cbuf)
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = 0; x < cbuf->x - 1; x++) {
 			p = rectf + cbuf->x * y + x;
-			*p = MIN2(*p, *(p + 1));
+			*p = minf(*p, *(p + 1));
 		}
 	}
 
 	for (y = 0; y < cbuf->y; y++) {
 		for (x = cbuf->x - 1; x >= 1; x--) {
 			p = rectf + cbuf->x * y + x;
-			*p = MIN2(*p, *(p - 1));
+			*p = minf(*p, *(p - 1));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = 0; y < cbuf->y - 1; y++) {
 			p = rectf + cbuf->x * y + x;
-			*p = MIN2(*p, *(p + cbuf->x));
+			*p = minf(*p, *(p + cbuf->x));
 		}
 	}
 
 	for (x = 0; x < cbuf->x; x++) {
 		for (y = cbuf->y - 1; y >= 1; y--) {
 			p = rectf + cbuf->x * y + x;
-			*p = MIN2(*p, *(p - cbuf->x));
+			*p = minf(*p, *(p - cbuf->x));
 		}
 	}
 	
@@ -122,8 +122,7 @@ static void node_composit_exec_dilateerode(void *UNUSED(data), bNode *node, bNod
 	
 	/* input no image? then only color operation */
 	if (in[0]->data == NULL) {
-		out[0]->vec[0] = out[0]->vec[1] = out[0]->vec[2] = 0.0f;
-		out[0]->vec[3] = 0.0f;
+		zero_v4(out[0]->vec);
 	}
 	else {
 		/* make output size of input image */

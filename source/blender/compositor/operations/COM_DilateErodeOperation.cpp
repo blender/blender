@@ -82,11 +82,11 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, Mem
 	this->inputProgram->read(inputValue, x, y, inputBuffers, NULL);
 	if (inputValue[0] > sw) {
 		for (int yi = miny; yi < maxy; yi++) {
+			const float dy = yi - y;
 			offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin)) * 4;
 			for (int xi = minx; xi < maxx; xi++) {
 				if (buffer[offset] < sw) {
 					const float dx = xi - x;
-					const float dy = yi - y;
 					const float dis = dx * dx + dy * dy;
 					mindist = min(mindist, dis);
 				}
@@ -97,11 +97,11 @@ void DilateErodeThresholdOperation::executePixel(float *color, int x, int y, Mem
 	}
 	else {
 		for (int yi = miny; yi < maxy; yi++) {
+			const float dy = yi - y;
 			offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin)) * 4;
 			for (int xi = minx; xi < maxx; xi++) {
 				if (buffer[offset] > sw) {
 					const float dx = xi - x;
-					const float dy = yi - y;
 					const float dis = dx * dx + dy * dy;
 					mindist = min(mindist, dis);
 				}
@@ -187,7 +187,7 @@ void *DilateDistanceOperation::initializeTileData(rcti *rect, MemoryBuffer **mem
 void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	const float distance = this->distance;
-	float mindist = distance * distance;
+	const float mindist = distance * distance;
 
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
@@ -202,10 +202,10 @@ void DilateDistanceOperation::executePixel(float *color, int x, int y, MemoryBuf
 	float value = 0.0f;
 
 	for (int yi = miny; yi < maxy; yi++) {
+		const float dy = yi - y;
 		offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin)) * 4;
 		for (int xi = minx; xi < maxx; xi++) {
 			const float dx = xi - x;
-			const float dy = yi - y;
 			const float dis = dx * dx + dy * dy;
 			if (dis <= mindist) {
 				value = max(buffer[offset], value);
@@ -262,7 +262,7 @@ ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation()
 void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	const float distance = this->distance;
-	float mindist = distance * distance;
+	const float mindist = distance * distance;
 
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
@@ -277,10 +277,10 @@ void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuff
 	float value = 1.0f;
 
 	for (int yi = miny; yi < maxy; yi++) {
+		const float dy = yi - y;
 		offset = ((yi - rect->ymin) * bufferWidth + (minx - rect->xmin)) * 4;
 		for (int xi = minx; xi < maxx; xi++) {
 			const float dx = xi - x;
-			const float dy = yi - y;
 			const float dis = dx * dx + dy * dy;
 			if (dis <= mindist) {
 				value = min(buffer[offset], value);
