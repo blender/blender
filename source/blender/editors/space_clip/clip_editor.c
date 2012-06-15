@@ -113,7 +113,7 @@ int ED_space_clip_maskedit_mask_poll(bContext *C)
 		MovieClip *clip = CTX_data_edit_movieclip(C);
 
 		if (clip) {
-			SpaceClip *sc= CTX_wm_space_clip(C);
+			SpaceClip *sc = CTX_wm_space_clip(C);
 
 			return sc->mask != NULL;
 		}
@@ -250,12 +250,12 @@ void ED_space_clip_mask_aspect(SpaceClip *sc, float *aspx, float *aspy)
 #endif
 
 	if (*aspx < *aspy) {
-		*aspy= *aspy / *aspx;
-		*aspx= 1.0f;
+		*aspy = *aspy / *aspx;
+		*aspx = 1.0f;
 	}
 	else {
-		*aspx= *aspx / *aspy;
-		*aspy= 1.0f;
+		*aspx = *aspx / *aspy;
+		*aspy = 1.0f;
 	}
 }
 
@@ -297,12 +297,12 @@ void ED_space_clip_aspect_dimension_aware(SpaceClip *sc, float *aspx, float *asp
 	*aspy *= (float)h;
 
 	if (*aspx < *aspy) {
-		*aspy= *aspy / *aspx;
-		*aspx= 1.0f;
+		*aspy = *aspy / *aspx;
+		*aspx = 1.0f;
 	}
 	else {
-		*aspx= *aspx / *aspy;
-		*aspy= 1.0f;
+		*aspx = *aspx / *aspy;
+		*aspy = 1.0f;
 	}
 }
 
@@ -679,11 +679,11 @@ void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
 {
 	sc->mask = mask;
 
-	if (sc->mask && sc->mask->id.us==0) {
+	if (sc->mask && sc->mask->id.us == 0) {
 		sc->clip->id.us = 1;
 	}
 
 	if (C) {
-		WM_event_add_notifier(C, NC_MASK|NA_SELECTED, mask);
+		WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
 	}
 }

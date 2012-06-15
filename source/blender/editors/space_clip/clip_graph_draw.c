@@ -88,7 +88,8 @@ static void draw_curve_knot(float x, float y, float xscale, float yscale, float 
 }
 
 static void tracking_segment_point_cb(void *UNUSED(userdata), MovieTrackingTrack *UNUSED(track),
-                                      MovieTrackingMarker *UNUSED(marker), int UNUSED(coord), int scene_framenr, float val)
+                                      MovieTrackingMarker *UNUSED(marker), int UNUSED(coord),
+                                      int scene_framenr, float val)
 {
 	glVertex2f(scene_framenr, val);
 }

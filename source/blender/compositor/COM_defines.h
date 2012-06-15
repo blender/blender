@@ -101,6 +101,8 @@ typedef enum OrderOfChunks {
 	COM_TO_RULE_OF_THIRDS = 3
 } OrderOfChunks;
 
+#define COM_ORDER_OF_CHUNKS_DEFAULT COM_TO_CENTER_OUT
+
 #define COM_RULE_OF_THIRDS_DIVIDER 100.0f
 
 #define COM_NUMBER_OF_CHANNELS 4

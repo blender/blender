@@ -40,20 +40,20 @@ extern "C" {
 
 /* pd->forcefield:  Effector Fields types */
 typedef enum PFieldType {
-	PFIELD_NULL = 0,	/* (this is used for general effector weight)							*/
-	PFIELD_FORCE,		/* Force away/towards a point depending on force strength				*/
-	PFIELD_VORTEX,		/* Force around the effector normal										*/
-	PFIELD_MAGNET,		/* Force from the cross product of effector normal and point velocity	*/
-	PFIELD_WIND,		/* Force away and towards a point depending which side of the effector 	*/
-						/*	 normal the point is												*/
-	PFIELD_GUIDE,		/* Force along curve for dynamics, a shaping curve for hair paths		*/
-	PFIELD_TEXTURE,		/* Force based on texture values calculated at point coordinates		*/
-	PFIELD_HARMONIC,	/* Force of a harmonic (damped) oscillator								*/
-	PFIELD_CHARGE,		/* Force away/towards a point depending on point charge					*/
-	PFIELD_LENNARDJ,	/* Force due to a Lennard-Jones potential								*/
-	PFIELD_BOID,		/* Defines predator / goal for boids									*/
-	PFIELD_TURBULENCE,	/* Force defined by BLI_gTurbulence										*/
-	PFIELD_DRAG,		/* Linear & quadratic drag												*/
+	PFIELD_NULL   = 0,	/* (this is used for general effector weight)							*/
+	PFIELD_FORCE  = 1,	/* Force away/towards a point depending on force strength				*/
+	PFIELD_VORTEX = 2,	/* Force around the effector normal										*/
+	PFIELD_MAGNET = 3,	/* Force from the cross product of effector normal and point velocity	*/
+	PFIELD_WIND   = 4,	/* Force away and towards a point depending which side of the effector 	*/
+				/*	 normal the point is												*/
+	PFIELD_GUIDE      = 5,	/* Force along curve for dynamics, a shaping curve for hair paths		*/
+	PFIELD_TEXTURE    = 6,	/* Force based on texture values calculated at point coordinates		*/
+	PFIELD_HARMONIC   = 7,	/* Force of a harmonic (damped) oscillator								*/
+	PFIELD_CHARGE     = 8,	/* Force away/towards a point depending on point charge					*/
+	PFIELD_LENNARDJ   = 9,	/* Force due to a Lennard-Jones potential								*/
+	PFIELD_BOID       = 10,	/* Defines predator / goal for boids									*/
+	PFIELD_TURBULENCE = 11,	/* Force defined by BLI_gTurbulence										*/
+	PFIELD_DRAG       = 12,	/* Linear & quadratic drag												*/
 	NUM_PFIELD_TYPES
 } PFieldType;
 	

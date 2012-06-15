@@ -72,15 +72,15 @@ typedef struct FModifier {
  */
 typedef enum eFModifier_Types {
 	FMODIFIER_TYPE_NULL = 0,
-	FMODIFIER_TYPE_GENERATOR,
-	FMODIFIER_TYPE_FN_GENERATOR,
-	FMODIFIER_TYPE_ENVELOPE,
-	FMODIFIER_TYPE_CYCLES,
-	FMODIFIER_TYPE_NOISE,
-	FMODIFIER_TYPE_FILTER,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
-	FMODIFIER_TYPE_PYTHON,	
-	FMODIFIER_TYPE_LIMITS,
-	FMODIFIER_TYPE_STEPPED,
+	FMODIFIER_TYPE_GENERATOR = 1,
+	FMODIFIER_TYPE_FN_GENERATOR = 2,
+	FMODIFIER_TYPE_ENVELOPE = 3,
+	FMODIFIER_TYPE_CYCLES = 4,
+	FMODIFIER_TYPE_NOISE = 5,
+	FMODIFIER_TYPE_FILTER = 6,		/* unimplemented - for applying: fft, high/low pass filters, etc. */
+	FMODIFIER_TYPE_PYTHON = 7,
+	FMODIFIER_TYPE_LIMITS = 8,
+	FMODIFIER_TYPE_STEPPED = 9,
 	
 	/* NOTE: all new modifiers must be added above this line */
 	FMODIFIER_NUM_TYPES
@@ -120,7 +120,7 @@ typedef struct FMod_Generator {
 /* generator modes */
 typedef enum eFMod_Generator_Modes {
 	FCM_GENERATOR_POLYNOMIAL	= 0,
-	FCM_GENERATOR_POLYNOMIAL_FACTORISED
+	FCM_GENERATOR_POLYNOMIAL_FACTORISED = 1
 } eFMod_Generator_Modes;
 
 
@@ -156,11 +156,11 @@ typedef struct FMod_FunctionGenerator {
 /* 'function' generator types */
 typedef enum eFMod_Generator_Functions {
 	FCM_GENERATOR_FN_SIN	= 0,
-	FCM_GENERATOR_FN_COS,
-	FCM_GENERATOR_FN_TAN,
-	FCM_GENERATOR_FN_SQRT,
-	FCM_GENERATOR_FN_LN,
-	FCM_GENERATOR_FN_SINC
+	FCM_GENERATOR_FN_COS	= 1,
+	FCM_GENERATOR_FN_TAN	= 2,
+	FCM_GENERATOR_FN_SQRT	= 3,
+	FCM_GENERATOR_FN_LN	= 4,
+	FCM_GENERATOR_FN_SINC	= 5
 } eFMod_Generator_Functions;
 
 

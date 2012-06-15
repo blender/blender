@@ -271,7 +271,7 @@ typedef struct MovieTracking {
 /* MovieTrackingCamera->units */
 enum {
 	CAMERA_UNITS_PX = 0,
-	CAMERA_UNITS_MM
+	CAMERA_UNITS_MM = 1
 };
 
 /* MovieTrackingMarker->flag */

@@ -25,7 +25,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/tracking_ops.c
+/** \file blender/editors/space_clip/tracking_select.c
  *  \ingroup spclip
  */
 
@@ -284,7 +284,7 @@ static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	int extend = RNA_boolean_get(op->ptr, "extend");
 
 	if (!extend) {
-		MovieTrackingTrack *track = tracking_marker_check_slide(C, event);
+		MovieTrackingTrack *track = tracking_marker_check_slide(C, event, NULL, NULL, NULL);
 
 		if (track) {
 			SpaceClip *sc = CTX_wm_space_clip(C);

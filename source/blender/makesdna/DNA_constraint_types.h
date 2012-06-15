@@ -104,9 +104,9 @@ typedef enum B_CONSTRAINT_TARGET_FLAG {
 /* bConstraintTarget/bConstraintOb -> type */
 typedef enum B_CONSTRAINT_OB_TYPE {
 	CONSTRAINT_OBTYPE_OBJECT = 1,	/*	string is ""				*/
-	CONSTRAINT_OBTYPE_BONE,			/*	string is bone-name		*/
-	CONSTRAINT_OBTYPE_VERT,			/*	string is vertex-group name 	*/
-	CONSTRAINT_OBTYPE_CV			/* 	string is vertex-group name - is not available until curves get vgroups */
+	CONSTRAINT_OBTYPE_BONE   = 2,	/*	string is bone-name		*/
+	CONSTRAINT_OBTYPE_VERT   = 3,	/*	string is vertex-group name 	*/
+	CONSTRAINT_OBTYPE_CV     = 4	/*	string is vertex-group name - is not available until curves get vgroups */
 } B_CONSTRAINT_OB_TYPE;
 
 
@@ -152,7 +152,7 @@ typedef struct bKinematicConstraint {
 
 typedef enum B_CONSTRAINT_IK_TYPE {
 	CONSTRAINT_IK_COPYPOSE = 0,		/* 'standard' IK constraint: match position and/or orientation of target */
-	CONSTRAINT_IK_DISTANCE			/* maintain distance with target */
+	CONSTRAINT_IK_DISTANCE = 1		/* maintain distance with target */
 } B_CONSTRAINT_IK_TYPE;
 
 
@@ -444,34 +444,34 @@ typedef struct bObjectSolverConstraint {
  */
 typedef enum eBConstraint_Types {
 	CONSTRAINT_TYPE_NULL = 0,			/* Invalid/legacy constraint */
-	CONSTRAINT_TYPE_CHILDOF,			/* Unimplemented non longer :) - during constraints recode, Aligorith */
-	CONSTRAINT_TYPE_TRACKTO,
-	CONSTRAINT_TYPE_KINEMATIC,
-	CONSTRAINT_TYPE_FOLLOWPATH,
-	CONSTRAINT_TYPE_ROTLIMIT,			/* Unimplemented no longer :) - Aligorith */
-	CONSTRAINT_TYPE_LOCLIMIT,			/* Unimplemented no longer :) - Aligorith */
-	CONSTRAINT_TYPE_SIZELIMIT,			/* Unimplemented no longer :) - Aligorith */
-	CONSTRAINT_TYPE_ROTLIKE,	
-	CONSTRAINT_TYPE_LOCLIKE,	
-	CONSTRAINT_TYPE_SIZELIKE,
-	CONSTRAINT_TYPE_PYTHON,				/* Unimplemented no longer :) - Aligorith. Scripts */
-	CONSTRAINT_TYPE_ACTION,
-	CONSTRAINT_TYPE_LOCKTRACK,			/* New Tracking constraint that locks an axis in place - theeth */
-	CONSTRAINT_TYPE_DISTLIMIT,			/* limit distance */
-	CONSTRAINT_TYPE_STRETCHTO, 			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
-	CONSTRAINT_TYPE_MINMAX,  			/* floor constraint */
-	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
-	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
-	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
-	CONSTRAINT_TYPE_SHRINKWRAP,			/* shrinkwrap (loc/rot) constraint */
-	CONSTRAINT_TYPE_DAMPTRACK,			/* New Tracking constraint that minimises twisting */
-	CONSTRAINT_TYPE_SPLINEIK,			/* Spline-IK - Align 'n' bones to a curve */
-	CONSTRAINT_TYPE_TRANSLIKE,			/* Copy transform matrix */
-	CONSTRAINT_TYPE_SAMEVOL,			/* Maintain volume during scaling */
-	CONSTRAINT_TYPE_PIVOT,				/* Pivot Constraint */
-	CONSTRAINT_TYPE_FOLLOWTRACK,		/* Follow Track Constraint */
-	CONSTRAINT_TYPE_CAMERASOLVER,		/* Camera Solver Constraint */
-	CONSTRAINT_TYPE_OBJECTSOLVER,		/* Object Solver Constraint */
+	CONSTRAINT_TYPE_CHILDOF = 1,			/* Unimplemented non longer :) - during constraints recode, Aligorith */
+	CONSTRAINT_TYPE_TRACKTO = 2,
+	CONSTRAINT_TYPE_KINEMATIC = 3,
+	CONSTRAINT_TYPE_FOLLOWPATH = 4,
+	CONSTRAINT_TYPE_ROTLIMIT = 5,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_LOCLIMIT = 6,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_SIZELIMIT = 7,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_ROTLIKE = 8,
+	CONSTRAINT_TYPE_LOCLIKE = 9,
+	CONSTRAINT_TYPE_SIZELIKE = 10,
+	CONSTRAINT_TYPE_PYTHON = 11,				/* Unimplemented no longer :) - Aligorith. Scripts */
+	CONSTRAINT_TYPE_ACTION = 12,
+	CONSTRAINT_TYPE_LOCKTRACK = 13,			/* New Tracking constraint that locks an axis in place - theeth */
+	CONSTRAINT_TYPE_DISTLIMIT = 14,			/* limit distance */
+	CONSTRAINT_TYPE_STRETCHTO = 15,			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
+	CONSTRAINT_TYPE_MINMAX = 16,  			/* floor constraint */
+	CONSTRAINT_TYPE_RIGIDBODYJOINT = 17,		/* rigidbody constraint */
+	CONSTRAINT_TYPE_CLAMPTO = 18, 			/* clampto constraint */
+	CONSTRAINT_TYPE_TRANSFORM = 19,			/* transformation (loc/rot/size -> loc/rot/size) constraint */
+	CONSTRAINT_TYPE_SHRINKWRAP = 20,		/* shrinkwrap (loc/rot) constraint */
+	CONSTRAINT_TYPE_DAMPTRACK = 21,			/* New Tracking constraint that minimises twisting */
+	CONSTRAINT_TYPE_SPLINEIK = 22,			/* Spline-IK - Align 'n' bones to a curve */
+	CONSTRAINT_TYPE_TRANSLIKE = 23,			/* Copy transform matrix */
+	CONSTRAINT_TYPE_SAMEVOL = 24,			/* Maintain volume during scaling */
+	CONSTRAINT_TYPE_PIVOT = 25,			/* Pivot Constraint */
+	CONSTRAINT_TYPE_FOLLOWTRACK = 26,		/* Follow Track Constraint */
+	CONSTRAINT_TYPE_CAMERASOLVER = 27,		/* Camera Solver Constraint */
+	CONSTRAINT_TYPE_OBJECTSOLVER = 28,		/* Object Solver Constraint */
 	
 	/* NOTE: no constraints are allowed to be added after this */
 	NUM_CONSTRAINT_TYPES
@@ -504,13 +504,13 @@ typedef enum eBConstraint_SpaceTypes {
 		/* for objects (relative to parent/without parent influence), 
 		 * for bones (along normals of bone, without parent/restpositions) 
 		 */
-	CONSTRAINT_SPACE_LOCAL, /* = 1 */
+	CONSTRAINT_SPACE_LOCAL = 1,
 		/* for posechannels - pose space  */
-	CONSTRAINT_SPACE_POSE, /* = 2 */
+	CONSTRAINT_SPACE_POSE = 2,
 		 /* for posechannels - local with parent  */
-	CONSTRAINT_SPACE_PARLOCAL, /* = 3 */
+	CONSTRAINT_SPACE_PARLOCAL = 3,
 		/* for files from between 2.43-2.46 (should have been parlocal) */
-	CONSTRAINT_SPACE_INVALID /* = 4. do not exchange for anything! */
+	CONSTRAINT_SPACE_INVALID = 4 /* do not exchange for anything! */
 } eBConstraint_SpaceTypes;
 
 /* bConstraintChannel.flag */
@@ -557,8 +557,8 @@ typedef enum eCopyScale_Flags {
 /* bSameVolumeConstraint.flag */
 typedef enum eSameVolume_Modes {
 	SAMEVOL_X		= 0,
-	SAMEVOL_Y,
-	SAMEVOL_Z
+	SAMEVOL_Y		= 1,
+	SAMEVOL_Z		= 2
 } eSameVolume_Modes;
 
 /* bActionConstraint.flag */
@@ -569,26 +569,26 @@ typedef enum eActionConstraint_Flags {
 
 /* Locked-Axis Values (Locked Track) */
 typedef enum eLockAxis_Modes {
-	LOCK_X	= 0,
-	LOCK_Y,
-	LOCK_Z
+	LOCK_X = 0,
+	LOCK_Y = 1,
+	LOCK_Z = 2
 } eLockAxis_Modes;
 
 /* Up-Axis Values (TrackTo and Locked Track) */
 typedef enum eUpAxis_Modes {
-	UP_X	= 0,
-	UP_Y,
-	UP_Z
+	UP_X = 0,
+	UP_Y = 1,
+	UP_Z = 2
 } eUpAxis_Modes;
 
 /* Tracking axis (TrackTo, Locked Track, Damped Track) and minmax (floor) constraint */
 typedef enum eTrackToAxis_Modes {
 	TRACK_X		= 0,
-	TRACK_Y,
-	TRACK_Z,
-	TRACK_nX,
-	TRACK_nY,
-	TRACK_nZ
+	TRACK_Y		= 1,
+	TRACK_Z		= 2,
+	TRACK_nX	= 3,
+	TRACK_nY	= 4,
+	TRACK_nZ	= 5
 } eTrackToAxis_Modes;
 
 /* FollowPath flags */
@@ -606,24 +606,24 @@ typedef enum eTrackTo_Flags {
 /* Strech To Constraint -> volmode */
 typedef enum eStretchTo_VolMode {
 	VOLUME_XZ	= 0,
-	VOLUME_X,
-	VOLUME_Z,
-	NO_VOLUME
+	VOLUME_X	= 1,
+	VOLUME_Z	= 2,
+	NO_VOLUME	= 3
 } eStretchTo_VolMode;
 
 /* Stretch To Constraint -> plane mode */
 typedef enum eStretchTo_PlaneMode {
 	PLANE_X		= 0,
-	PLANE_Y,
-	PLANE_Z
+	PLANE_Y		= 1,
+	PLANE_Z		= 2
 } eStretchTo_PlaneMode;
 
 /* Clamp-To Constraint ->flag */
 typedef enum eClampTo_Modes {
 	CLAMPTO_AUTO = 0,
-	CLAMPTO_X,
-	CLAMPTO_Y,
-	CLAMPTO_Z
+	CLAMPTO_X    = 1,
+	CLAMPTO_Y    = 2,
+	CLAMPTO_Z    = 3
 } eClampTo_Modes;
 
 /* ClampTo Constraint ->flag2 */
@@ -673,9 +673,9 @@ typedef enum eSplineIK_XZScaleModes {
 	/* no x/z scaling */
 	CONSTRAINT_SPLINEIK_XZS_NONE			= 0,
 	/* bones in the chain should take their x/z scales from the original scaling */
-	CONSTRAINT_SPLINEIK_XZS_ORIGINAL,
+	CONSTRAINT_SPLINEIK_XZS_ORIGINAL		= 1,
 	/* x/z scales are the inverse of the y-scale */
-	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC
+	CONSTRAINT_SPLINEIK_XZS_VOLUMETRIC		= 2
 } eSplineIK_XZScaleModes;
 
 /* MinMax (floor) flags */
@@ -721,9 +721,9 @@ typedef enum eDistLimit_Flag {
 
 	/* bDistLimitConstraint->mode */
 typedef enum eDistLimit_Modes {
-	LIMITDIST_INSIDE = 0,
-	LIMITDIST_OUTSIDE,
-	LIMITDIST_ONSURFACE
+	LIMITDIST_INSIDE    = 0,
+	LIMITDIST_OUTSIDE   = 1,
+	LIMITDIST_ONSURFACE = 2
 } eDistLimit_Modes;
 	
 /* python constraint -> flag */
@@ -753,18 +753,18 @@ typedef enum ePivotConstraint_Axis {
 	PIVOTCON_AXIS_NONE = -1,	
 	
 	/* consider -ve x-axis rotations */
-	PIVOTCON_AXIS_X_NEG,
+	PIVOTCON_AXIS_X_NEG = 0,
 	/* consider -ve y-axis rotations */
-	PIVOTCON_AXIS_Y_NEG,
+	PIVOTCON_AXIS_Y_NEG = 1,
 	/* consider -ve z-axis rotations */
-	PIVOTCON_AXIS_Z_NEG,
+	PIVOTCON_AXIS_Z_NEG = 2,
 	
 	/* consider +ve x-axis rotations */
-	PIVOTCON_AXIS_X,
+	PIVOTCON_AXIS_X = 3,
 	/* consider +ve y-axis rotations */
-	PIVOTCON_AXIS_Y,
+	PIVOTCON_AXIS_Y = 4,
 	/* consider +ve z-axis rotations */
-	PIVOTCON_AXIS_Z
+	PIVOTCON_AXIS_Z = 5
 } ePivotConstraint_Axis;
 
 	/* settings for Pivot Constraint in general */
