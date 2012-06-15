@@ -182,6 +182,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_sRGB.spi3d, interpolation: tetrahedral}
 
@@ -195,6 +196,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_rec709.spi3d, interpolation: tetrahedral}
 
@@ -208,6 +210,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_p3dci.spi3d, interpolation: tetrahedral}
 
@@ -221,6 +224,7 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_p3d60.spi3d, interpolation: tetrahedral}
 
@@ -234,5 +238,6 @@ colorspaces:
     allocationvars: [0, 1]
     from_reference: !<GroupTransform>
       children:
+        - !<FileTransform> {src: rec709_to_aces.spimtx, interpolation: nearest}
         - !<AllocationTransform> {allocation: lg2, vars: [-8.5, 5]}
         - !<FileTransform> {src: rrt_ut33_dcdm.spi3d, interpolation: tetrahedral}
