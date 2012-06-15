@@ -32,18 +32,19 @@ extern "C" {
 	#include "BKE_tracking.h"
 }
 
-Stabilize2dNode::Stabilize2dNode(bNode *editorNode): Node(editorNode)
+Stabilize2dNode::Stabilize2dNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void Stabilize2dNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void Stabilize2dNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *imageInput = this->getInputSocket(0);
 	MovieClip *clip = (MovieClip *)getbNode()->id;
 	
-	ScaleOperation * scaleOperation = new ScaleOperation();
-	RotateOperation * rotateOperation = new RotateOperation();
-	TranslateOperation * translateOperation = new TranslateOperation();
+	ScaleOperation *scaleOperation = new ScaleOperation();
+	RotateOperation *rotateOperation = new RotateOperation();
+	TranslateOperation *translateOperation = new TranslateOperation();
 	MovieClipAttributeOperation *scaleAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *angleAttribute = new MovieClipAttributeOperation();
 	MovieClipAttributeOperation *xAttribute = new MovieClipAttributeOperation();

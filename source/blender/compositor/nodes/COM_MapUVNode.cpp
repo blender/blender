@@ -23,11 +23,12 @@
 #include "COM_MapUVOperation.h"
 #include "COM_ExecutionSystem.h"
 
-MapUVNode::MapUVNode(bNode *editorNode): Node(editorNode)
+MapUVNode::MapUVNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void MapUVNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	MapUVOperation *operation = new MapUVOperation();
 

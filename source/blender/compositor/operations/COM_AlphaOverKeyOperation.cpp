@@ -24,6 +24,7 @@
 
 AlphaOverKeyOperation::AlphaOverKeyOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void AlphaOverKeyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

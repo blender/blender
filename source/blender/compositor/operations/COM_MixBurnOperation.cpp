@@ -24,6 +24,7 @@
 
 MixBurnOperation::MixBurnOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixBurnOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

@@ -29,11 +29,12 @@ extern "C" {
 }
 #include "BLI_utildefines.h"
 
-TimeNode::TimeNode(bNode *editorNode): Node(editorNode)
+TimeNode::TimeNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetValueOperation *operation = new SetValueOperation();
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
@@ -50,10 +51,10 @@ void TimeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		fac = 1.0f;
 	}
 	else if (node->custom1 < node->custom2) {
-		fac = (context->getFramenumber() - node->custom1)/(float)(node->custom2-node->custom1);
+		fac = (context->getFramenumber() - node->custom1) / (float)(node->custom2 - node->custom1);
 	}
 
-	fac = curvemapping_evaluateF((CurveMapping*)node->storage, 0, fac);
+	fac = curvemapping_evaluateF((CurveMapping *)node->storage, 0, fac);
 	operation->setValue(CLAMPIS(fac, 0.0f, 1.0f));
 	graph->addOperation(operation);
 }

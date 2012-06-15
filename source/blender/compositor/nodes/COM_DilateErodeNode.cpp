@@ -29,6 +29,7 @@
 
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

@@ -27,13 +27,14 @@
 #include "BLI_path_util.h"
 #include "BKE_utildefines.h"
 
-OutputFileNode::OutputFileNode(bNode *editorNode): Node(editorNode)
+OutputFileNode::OutputFileNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	NodeImageMultiFile *storage = (NodeImageMultiFile*)this->getbNode()->storage;
+	NodeImageMultiFile *storage = (NodeImageMultiFile *)this->getbNode()->storage;
 	
 	if (!context->isRendering()) {
 		/* XXX TODO as in previous implementation?
@@ -41,14 +42,14 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		 */
 	}
 	
-	if (storage->format.imtype==R_IMF_IMTYPE_MULTILAYER) {
+	if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
 		/* single output operation for the multilayer file */
 		OutputOpenExrMultiLayerOperation *outputOperation = new OutputOpenExrMultiLayerOperation(
-				context->getScene(), context->getbNodeTree(), storage->base_path, storage->format.exr_codec);
+		        context->getScene(), context->getbNodeTree(), storage->base_path, storage->format.exr_codec);
 		
 		int num_inputs = getNumberOfInputSockets();
 		bool hasConnections = false;
-		for (int i=0; i < num_inputs; ++i) {
+		for (int i = 0; i < num_inputs; ++i) {
 			InputSocket *input = getInputSocket(i);
 			if (input->isConnected()) {
 				hasConnections = true;
@@ -63,10 +64,10 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		
 		graph->addOperation(outputOperation);
 	}
-	else {	/* single layer format */
+	else {  /* single layer format */
 		int num_inputs = getNumberOfInputSockets();
 		bool previewAdded = false;
-		for (int i=0; i < num_inputs; ++i) {
+		for (int i = 0; i < num_inputs; ++i) {
 			InputSocket *input = getInputSocket(i);
 			if (input->isConnected()) {
 				NodeImageMultiFileSocket *sockdata = (NodeImageMultiFileSocket *)input->getbNodeSocket()->storage;
@@ -77,7 +78,7 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 				BLI_join_dirfile(path, FILE_MAX, storage->base_path, sockdata->path);
 				
 				OutputSingleLayerOperation *outputOperation = new OutputSingleLayerOperation(
-						context->getScene(), context->getbNodeTree(), input->getDataType(), format, path);
+				        context->getScene(), context->getbNodeTree(), input->getDataType(), format, path);
 				input->relinkConnections(outputOperation->getInputSocket(0));
 				graph->addOperation(outputOperation);
 				if (!previewAdded) {

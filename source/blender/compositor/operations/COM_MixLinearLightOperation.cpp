@@ -24,6 +24,7 @@
 
 MixLinearLightOperation::MixLinearLightOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixLinearLightOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

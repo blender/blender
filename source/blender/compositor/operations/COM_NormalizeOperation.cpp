@@ -110,4 +110,5 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 
 void NormalizeOperation::deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data)
 {
+	/* pass */
 }

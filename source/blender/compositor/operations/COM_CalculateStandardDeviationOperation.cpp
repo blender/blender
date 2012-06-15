@@ -28,6 +28,7 @@
 
 CalculateStandardDeviationOperation::CalculateStandardDeviationOperation(): CalculateMeanOperation()
 {
+	/* pass */
 }
 
 void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)

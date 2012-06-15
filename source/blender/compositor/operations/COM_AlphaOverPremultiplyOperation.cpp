@@ -24,6 +24,7 @@
 
 AlphaOverPremultiplyOperation::AlphaOverPremultiplyOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void AlphaOverPremultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

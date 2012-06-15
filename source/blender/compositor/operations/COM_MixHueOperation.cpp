@@ -28,6 +28,7 @@ extern "C" {
 
 MixHueOperation::MixHueOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixHueOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

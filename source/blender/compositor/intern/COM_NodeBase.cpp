@@ -31,6 +31,7 @@
 
 NodeBase::NodeBase()
 {
+	/* pass */
 }
 
 

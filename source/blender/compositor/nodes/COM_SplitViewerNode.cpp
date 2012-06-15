@@ -28,6 +28,7 @@
 
 SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

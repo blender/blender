@@ -28,6 +28,7 @@ extern "C" {
 
 MixSaturationOperation::MixSaturationOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixSaturationOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

@@ -25,8 +25,10 @@
 #include "COM_ConvertRGBToHSVOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-ColorMatteNode::ColorMatteNode(bNode *editorNode): Node(editorNode)
-{}
+ColorMatteNode::ColorMatteNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -40,7 +42,7 @@ void ColorMatteNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 
 	ColorMatteOperation *operation = new ColorMatteOperation();
 	bNode *editorsnode = getbNode();
-	operation->setSettings((NodeChroma*)editorsnode->storage);
+	operation->setSettings((NodeChroma *)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operationRGBToHSV_Image->getInputSocket(0), 0, graph);
 	inputSocketKey->relinkConnections(operationRGBToHSV_Key->getInputSocket(0), 1, graph);

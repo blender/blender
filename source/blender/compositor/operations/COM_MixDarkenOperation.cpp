@@ -24,6 +24,7 @@
 
 MixDarkenOperation::MixDarkenOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixDarkenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

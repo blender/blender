@@ -69,6 +69,7 @@ void NodeOperation::setResolutionInputSocketIndex(unsigned int index)
 }
 void NodeOperation::initExecution()
 {
+	/* pass */
 }
 
 void NodeOperation::initMutex()
@@ -93,6 +94,7 @@ void NodeOperation::deinitMutex()
 
 void NodeOperation::deinitExecution()
 {
+	/* pass */
 }
 SocketReader *NodeOperation::getInputSocketReader(unsigned int inputSocketIndex)
 {

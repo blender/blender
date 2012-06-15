@@ -27,6 +27,7 @@
 
 OutputSocket::OutputSocket(DataType datatype) : Socket(datatype)
 {
+	/* pass */
 }
 
 int OutputSocket::isOutputSocket() const { return true; }

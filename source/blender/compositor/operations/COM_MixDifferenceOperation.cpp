@@ -25,6 +25,7 @@
 
 MixDifferenceOperation::MixDifferenceOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixDifferenceOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

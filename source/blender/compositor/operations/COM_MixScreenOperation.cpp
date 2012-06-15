@@ -24,6 +24,7 @@
 
 MixScreenOperation::MixScreenOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixScreenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

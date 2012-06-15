@@ -29,6 +29,7 @@
 
 ScaleNode::ScaleNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void ScaleNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

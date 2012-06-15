@@ -257,6 +257,7 @@ void DilateDistanceOperation::executeOpenCL(cl_context context, cl_program progr
 // Erode Distance
 ErodeDistanceOperation::ErodeDistanceOperation() : DilateDistanceOperation() 
 {
+	/* pass */
 }
 
 void ErodeDistanceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
@@ -411,6 +412,7 @@ bool DilateStepOperation::determineDependingAreaOfInterest(rcti *input, ReadBuff
 // Erode step
 ErodeStepOperation::ErodeStepOperation() : DilateStepOperation()
 {
+	/* pass */
 }
 
 void *ErodeStepOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)

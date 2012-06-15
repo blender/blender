@@ -24,8 +24,10 @@
 #include "COM_DistanceMatteOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-DistanceMatteNode::DistanceMatteNode(bNode *editorNode): Node(editorNode)
-{}
+DistanceMatteNode::DistanceMatteNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -36,7 +38,7 @@ void DistanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 
 	DistanceMatteOperation *operation = new DistanceMatteOperation();
 	bNode *editorsnode = getbNode();
-	operation->setSettings((NodeChroma*)editorsnode->storage);
+	operation->setSettings((NodeChroma *)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);
 	inputSocketKey->relinkConnections(operation->getInputSocket(1), 1, graph);

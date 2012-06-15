@@ -31,6 +31,7 @@
 
 BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

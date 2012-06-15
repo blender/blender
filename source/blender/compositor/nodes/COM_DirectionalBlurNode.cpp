@@ -28,6 +28,7 @@
 
 DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void DirectionalBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

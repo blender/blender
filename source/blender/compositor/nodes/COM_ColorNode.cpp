@@ -25,15 +25,16 @@
 #include "COM_SetColorOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ColorNode::ColorNode(bNode *editorNode): Node(editorNode)
+ColorNode::ColorNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void ColorNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ColorNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetColorOperation *operation = new SetColorOperation();
 	bNodeSocket *socket = this->getEditorOutputSocket(0);
-	bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA*)socket->default_value;
+	bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA *)socket->default_value;
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	operation->setChannels(dval->value);
 	graph->addOperation(operation);

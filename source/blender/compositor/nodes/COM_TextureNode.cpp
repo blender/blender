@@ -24,14 +24,15 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_TextureOperation.h"
 
-TextureNode::TextureNode(bNode *editorNode): Node(editorNode)
+TextureNode::TextureNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+void TextureNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
-	Tex *texture = (Tex*)editorNode->id;
+	Tex *texture = (Tex *)editorNode->id;
 	TextureOperation *operation = new TextureOperation();
 	this->getOutputSocket(1)->relinkConnections(operation->getOutputSocket());
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, system);

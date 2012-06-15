@@ -24,6 +24,7 @@
 
 MixBlendOperation::MixBlendOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixBlendOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

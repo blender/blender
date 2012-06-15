@@ -28,6 +28,7 @@
 
 ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

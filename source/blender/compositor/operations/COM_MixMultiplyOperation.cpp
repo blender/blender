@@ -24,6 +24,7 @@
 
 MixMultiplyOperation::MixMultiplyOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixMultiplyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

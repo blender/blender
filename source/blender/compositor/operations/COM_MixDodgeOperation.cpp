@@ -24,6 +24,7 @@
 
 MixDodgeOperation::MixDodgeOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixDodgeOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

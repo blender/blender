@@ -24,6 +24,7 @@
 
 MixSubtractOperation::MixSubtractOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixSubtractOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

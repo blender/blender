@@ -70,6 +70,7 @@ void CropBaseOperation::deinitExecution()
 
 CropOperation::CropOperation() :CropBaseOperation()
 {
+	/* pass */
 }
 
 void CropOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -87,6 +88,7 @@ void CropOperation::executePixel(float *color, float x, float y, PixelSampler sa
 
 CropImageOperation::CropImageOperation() :CropBaseOperation()
 {
+	/* pass */
 }
 
 bool CropImageOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

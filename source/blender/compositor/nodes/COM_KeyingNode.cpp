@@ -41,8 +41,9 @@
 
 #include "COM_SetAlphaOperation.h"
 
-KeyingNode::KeyingNode(bNode *editorNode): Node(editorNode)
+KeyingNode::KeyingNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 OutputSocket *KeyingNode::setupPreBlur(ExecutionSystem *graph, InputSocket *inputImage, int size, OutputSocket **originalImage)
@@ -189,7 +190,7 @@ void KeyingNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 
 	postprocessedMatte = keyingOperation->getOutputSocket();
 
-	if (keying_data->clip_black > 0.0f || keying_data->clip_white< 1.0f) {
+	if (keying_data->clip_black > 0.0f || keying_data->clip_white < 1.0f) {
 		postprocessedMatte = setupClip(graph, postprocessedMatte,
 		                               keying_data->edge_kernel_radius, keying_data->edge_kernel_tolerance,
 		                               keying_data->clip_black, keying_data->clip_white, false);

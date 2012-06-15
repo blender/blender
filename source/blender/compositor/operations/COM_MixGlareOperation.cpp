@@ -24,6 +24,7 @@
 
 MixGlareOperation::MixGlareOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixGlareOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

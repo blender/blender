@@ -24,7 +24,7 @@
 #include "COM_SetAlphaOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void SetAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void SetAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetAlphaOperation *operation = new SetAlphaOperation();
 	

@@ -24,6 +24,7 @@
 
 MixLightenOperation::MixLightenOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixLightenOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])

@@ -24,6 +24,7 @@
 
 MixOverlayOperation::MixOverlayOperation(): MixBaseOperation()
 {
+	/* pass */
 }
 
 void MixOverlayOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
