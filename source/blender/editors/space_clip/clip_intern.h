@@ -131,12 +131,7 @@ void clip_draw_cfra(struct SpaceClip *sc, struct ARegion *ar, struct Scene *scen
 void clip_draw_sfra_efra(struct View2D *v2d, struct Scene *scene);
 
 /* tracking_ops.c */
-void CLIP_OT_select(struct wmOperatorType *ot);
-void CLIP_OT_select_all(struct wmOperatorType *ot);
-void CLIP_OT_select_border(struct wmOperatorType *ot);
-void CLIP_OT_select_lasso(struct wmOperatorType *ot);
-void CLIP_OT_select_circle(struct wmOperatorType *ot);
-void CLIP_OT_select_grouped(struct wmOperatorType *ot);
+struct MovieTrackingTrack *tracking_marker_check_slide(struct bContext *C, struct wmEvent *event);
 
 void CLIP_OT_add_marker(struct wmOperatorType *ot);
 void CLIP_OT_delete_track(struct wmOperatorType *ot);
@@ -181,5 +176,13 @@ void CLIP_OT_tracking_object_remove(struct wmOperatorType *ot);
 
 void CLIP_OT_copy_tracks(struct wmOperatorType *ot);
 void CLIP_OT_paste_tracks(struct wmOperatorType *ot);
+
+/* tracking_select.c */
+void CLIP_OT_select(struct wmOperatorType *ot);
+void CLIP_OT_select_all(struct wmOperatorType *ot);
+void CLIP_OT_select_border(struct wmOperatorType *ot);
+void CLIP_OT_select_lasso(struct wmOperatorType *ot);
+void CLIP_OT_select_circle(struct wmOperatorType *ot);
+void CLIP_OT_select_grouped(struct wmOperatorType *ot);
 
 #endif /* __CLIP_INTERN_H__ */

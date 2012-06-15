@@ -230,14 +230,13 @@ void bc_remove_mark(Object *ob)
 // Use bubble sort algorithm for sorting the export set
 void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 {
-	int i, j; // loop indices
-	bool unsorted = true;
+	bool sorted = false;
+	LinkNode *node;
+	for(node=export_set; node->next && !sorted; node=node->next) {
 
-	LinkNode *current;
-	int set_size = BLI_linklist_length(export_set);
-	for(i = 0; (i < set_size) && unsorted; i++) {
-		unsorted = false;
+		sorted = true;
 		
+		LinkNode *current;
 		for (current=export_set; current->next; current = current->next) {
 			Object *a = (Object *)current->link;
 			Object *b = (Object *)current->next->link;
@@ -248,7 +247,7 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 			if (str_a.compare(str_b) > 0) {
 				current->link       = b;
 				current->next->link = a;
-				unsorted = true;
+				sorted = false;
 			}
 			
 		}

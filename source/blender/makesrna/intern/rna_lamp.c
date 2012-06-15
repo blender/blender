@@ -180,7 +180,7 @@ static void rna_Lamp_use_nodes_update(Main *blain, Scene *scene, PointerRNA *ptr
 }
 
 #else
-
+/* Don't define icons here, so they don't show up in the Lamp UI (properties Editor) - DingTo */
 EnumPropertyItem lamp_type_items[] = {
 	{LA_LOCAL, "POINT", 0, "Point", "Omnidirectional point light source"},
 	{LA_SUN, "SUN", 0, "Sun", "Constant direction parallel ray light source"},

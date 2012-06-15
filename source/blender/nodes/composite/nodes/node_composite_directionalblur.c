@@ -32,23 +32,23 @@
 
 #include "node_composite_util.h"
 
-static bNodeSocketTemplate cmp_node_dblur_in[]= {
-	{	SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.f},
-	{	-1, 0, ""       }
+static bNodeSocketTemplate cmp_node_dblur_in[] = {
+	{   SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.f},
+	{   -1, 0, ""       }
 };
 
-static bNodeSocketTemplate cmp_node_dblur_out[]= {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""       }
+static bNodeSocketTemplate cmp_node_dblur_out[] = {
+	{   SOCK_RGBA, 0, N_("Image")},
+	{   -1, 0, ""       }
 };
 
 static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
-		  float center_x, float center_y, float dist, float angle, float spin, float zoom)
+                      float center_x, float center_y, float dist, float angle, float spin, float zoom)
 {
 	if ((dist != 0.f) || (spin != 0.f) || (zoom != 0.f)) {
-		void (*getpix)(CompBuf*, float, float, float*) = wrap ? qd_getPixelLerpWrap : qd_getPixelLerp;
-		const float a= angle;
-		const float itsc= 1.f / powf(2.f, (float)iterations);
+		void (*getpix)(CompBuf *, float, float, float *) = wrap ? qd_getPixelLerpWrap : qd_getPixelLerp;
+		const float a = angle;
+		const float itsc = 1.f / powf(2.f, (float)iterations);
 		float D;
 		float center_x_pix, center_y_pix;
 		float tx, ty;
@@ -56,36 +56,36 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 		CompBuf *tmp;
 		int i, j;
 		
-		tmp= dupalloc_compbuf(img);
+		tmp = dupalloc_compbuf(img);
 		
-		D= dist * sqrtf(img->x * img->x + img->y * img->y);
-		center_x_pix= center_x * img->x;
-		center_y_pix= center_y * img->y;
+		D = dist * sqrtf(img->x * img->x + img->y * img->y);
+		center_x_pix = center_x * img->x;
+		center_y_pix = center_y * img->y;
 
-		tx=  itsc * D * cosf(a);
-		ty= -itsc * D * sinf(a);
-		sc=  itsc * zoom;
-		rot= itsc * spin;
+		tx =  itsc * D * cosf(a);
+		ty = -itsc *D *sinf(a);
+		sc =  itsc * zoom;
+		rot = itsc * spin;
 
 		/* blur the image */
-		for (i= 0; i < iterations; ++i) {
-			const float cs= cosf(rot), ss= sinf(rot);
-			const float isc= 1.f / (1.f + sc);
+		for (i = 0; i < iterations; ++i) {
+			const float cs = cosf(rot), ss = sinf(rot);
+			const float isc = 1.f / (1.f + sc);
 			unsigned int x, y;
-			float col[4]= {0, 0, 0, 0};
+			float col[4] = {0, 0, 0, 0};
 
-			for (y= 0; y < img->y; ++y) {
-				const float v= isc * (y - center_y_pix) + ty;
+			for (y = 0; y < img->y; ++y) {
+				const float v = isc * (y - center_y_pix) + ty;
 
-				for (x= 0; x < img->x; ++x) {
-					const float  u= isc * (x - center_x_pix) + tx;
-					unsigned int p= (x + y * img->x) * img->type;
+				for (x = 0; x < img->x; ++x) {
+					const float u = isc * (x - center_x_pix) + tx;
+					unsigned int p = (x + y * img->x) * img->type;
 
 					getpix(tmp, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, col);
 
 					/* mix img and transformed tmp */
-					for (j= 0; j < 4; ++j) {
-						img->rect[p + j]= 0.5f * (img->rect[p + j] + col[j]);
+					for (j = 0; j < 4; ++j) {
+						img->rect[p + j] = 0.5f * (img->rect[p + j] + col[j]);
 					}
 				}
 			}
@@ -109,8 +109,8 @@ static CompBuf *dblur(bNode *node, CompBuf *img, int iterations, int wrap,
 
 static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	NodeDBlurData *ndbd= node->storage;
-	CompBuf *new, *img= in[0]->data;
+	NodeDBlurData *ndbd = node->storage;
+	CompBuf *new, *img = in[0]->data;
 	
 	if ((img == NULL) || (out[0]->hasoutput == 0)) return;
 
@@ -119,15 +119,15 @@ static void node_composit_exec_dblur(void *UNUSED(data), bNode *node, bNodeStack
 	else
 		new = dupalloc_compbuf(img);
 	
-	out[0]->data= dblur(node, new, ndbd->iter, ndbd->wrap, ndbd->center_x, ndbd->center_y, ndbd->distance, ndbd->angle, ndbd->spin, ndbd->zoom);
+	out[0]->data = dblur(node, new, ndbd->iter, ndbd->wrap, ndbd->center_x, ndbd->center_y, ndbd->distance, ndbd->angle, ndbd->spin, ndbd->zoom);
 }
 
-static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_dblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
-	NodeDBlurData *ndbd= MEM_callocN(sizeof(NodeDBlurData), "node dblur data");
-	node->storage= ndbd;
-	ndbd->center_x= 0.5;
-	ndbd->center_y= 0.5;
+	NodeDBlurData *ndbd = MEM_callocN(sizeof(NodeDBlurData), "node dblur data");
+	node->storage = ndbd;
+	ndbd->center_x = 0.5;
+	ndbd->center_y = 0.5;
 }
 
 void register_node_type_cmp_dblur(bNodeTreeType *ttype)

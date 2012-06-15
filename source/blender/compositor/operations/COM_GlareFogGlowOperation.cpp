@@ -277,7 +277,7 @@ void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	for (y = 0; y < kernelHeight; y++) {
 		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUMBER_OF_CHANNELS];
 		for (x = 0; x < kernelWidth; x++)
-			fRGB_add(wt, colp[x]);
+			add_v3_v3(wt, colp[x]);
 	}
 	if (wt[0] != 0.f) wt[0] = 1.f / wt[0];
 	if (wt[1] != 0.f) wt[1] = 1.f / wt[1];
@@ -285,7 +285,7 @@ void convolve(float *dst, MemoryBuffer *in1, MemoryBuffer *in2)
 	for (y = 0; y < kernelHeight; y++) {
 		colp = (fRGB *)&kernelBuffer[y * kernelWidth * COM_NUMBER_OF_CHANNELS];
 		for (x = 0; x < kernelWidth; x++)
-			fRGB_colormult(colp[x], wt);
+			mul_v3_v3(colp[x], wt);
 	}
 
 	// copy image data, unpacking interleaved RGBA into separate channels
@@ -395,7 +395,7 @@ void GlareFogGlowOperation::generateGlare(float *data, MemoryBuffer *inputTile, 
 			//w = (1.f-fabs(u))*(1.f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower
 			w = (0.5f + 0.5f * cos((double)u * M_PI)) * (0.5f + 0.5f * cos((double)v * M_PI));
-			fRGB_mult(fcol, w);
+			mul_v3_fl(fcol, w);
 			ckrn->writePixel(x, y, fcol);
 		}
 	}

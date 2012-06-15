@@ -27,7 +27,7 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianXBlurOperation::GaussianXBlurOperation(): BlurBaseOperation()
+GaussianXBlurOperation::GaussianXBlurOperation() : BlurBaseOperation()
 {
 	this->gausstab = NULL;
 	this->rad = 0;
@@ -48,8 +48,8 @@ void GaussianXBlurOperation::initExecution()
 	BlurBaseOperation::initExecution();
 
 	if (this->sizeavailable) {
-		float rad = size*this->data->sizex;
-		if (rad<1)
+		float rad = size * this->data->sizex;
+		if (rad < 1)
 			rad = 1;
 
 		this->rad = rad;
@@ -61,8 +61,8 @@ void GaussianXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 {
 	if (this->gausstab == NULL) {
 		updateSize(memoryBuffers);
-		float rad = size*this->data->sizex;
-		if (rad<1)
+		float rad = size * this->data->sizex;
+		if (rad < 1)
 			rad = 1;
 
 		this->rad = rad;
@@ -78,7 +78,7 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float overallmultiplyer = 0.0f;
-	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
@@ -96,9 +96,9 @@ void GaussianXBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	int index;
 	int step = getStep();
 	int offsetadd = getOffsetAdd();
-	int bufferindex = ((minx - bufferstartx)*4)+((miny-bufferstarty)*4*bufferwidth);
-	for (int nx = minx ; nx < maxx ; nx +=step) {
-		index = (nx-x)+this->rad;
+	int bufferindex = ((minx - bufferstartx) * 4) + ((miny - bufferstarty) * 4 * bufferwidth);
+	for (int nx = minx; nx < maxx; nx += step) {
+		index = (nx - x) + this->rad;
 		const float multiplyer = gausstab[index];
 		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
 		overallmultiplyer += multiplyer;
@@ -123,7 +123,7 @@ bool GaussianXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	sizeInput.xmax = 5;
 	sizeInput.ymax = 5;
 	
-	NodeOperation * operation = this->getInputOperation(1);
+	NodeOperation *operation = this->getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
 	}

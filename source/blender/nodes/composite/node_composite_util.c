@@ -1022,7 +1022,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 	for (y=0; y<in2->y; y++) {
 		colp = (fRGB*)&in2->rect[y*in2->x*in2->type];
 		for (x=0; x<in2->x; x++)
-			fRGB_add(wt, colp[x]);
+			add_v3_v3(wt, colp[x]);
 	}
 	if (wt[0] != 0.f) wt[0] = 1.f/wt[0];
 	if (wt[1] != 0.f) wt[1] = 1.f/wt[1];
@@ -1030,7 +1030,7 @@ void convolve(CompBuf* dst, CompBuf* in1, CompBuf* in2)
 	for (y=0; y<in2->y; y++) {
 		colp = (fRGB*)&in2->rect[y*in2->x*in2->type];
 		for (x=0; x<in2->x; x++)
-			fRGB_colormult(colp[x], wt);
+			mul_v3_v3(colp[x], wt);
 	}
 
 	// copy image data, unpacking interleaved RGBA into separate channels
@@ -1279,14 +1279,14 @@ CompBuf* qd_downScaledCopy(CompBuf* src, int scale)
 					xx = x*scale;
 					mx = xx + scale;
 					if (mx > src->x) mx = src->x;
-					colsum[0] = colsum[1] = colsum[2] = 0.f;
+					zero_v3(colsum);
 					for (sy=yy; sy<my; sy++) {
 						fRGB* scolp = (fRGB*)&src->rect[sy*src->x*src->type];
 						for (sx=xx; sx<mx; sx++)
-							fRGB_add(colsum, scolp[sx]);
+							add_v3_v3(colsum, scolp[sx]);
 					}
-					fRGB_mult(colsum, fscale);
-					fRGB_copy(fcolp[x], colsum);
+					mul_v3_fl(colsum, fscale);
+					copy_v3_v3(fcolp[x], colsum);
 				}
 			}
 		}

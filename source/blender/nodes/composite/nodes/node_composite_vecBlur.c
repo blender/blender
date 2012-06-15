@@ -34,63 +34,63 @@
 
 
 /* **************** VECTOR BLUR ******************** */
-static bNodeSocketTemplate cmp_node_vecblur_in[]= {
-	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, N_("Z"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
-	{	SOCK_VECTOR, 1, N_("Speed"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_vecblur_in[] = {
+	{   SOCK_RGBA, 1, N_("Image"),          1.0f, 1.0f, 1.0f, 1.0f},
+	{   SOCK_FLOAT, 1, N_("Z"),         0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+	{   SOCK_VECTOR, 1, N_("Speed"),            0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_VELOCITY},
+	{   -1, 0, ""   }
 };
-static bNodeSocketTemplate cmp_node_vecblur_out[]= {
-	{	SOCK_RGBA, 0, N_("Image")},
-	{	-1, 0, ""	}
+static bNodeSocketTemplate cmp_node_vecblur_out[] = {
+	{   SOCK_RGBA, 0, N_("Image")},
+	{   -1, 0, ""   }
 };
 
 
 
 static void node_composit_exec_vecblur(void *UNUSED(data), bNode *node, bNodeStack **in, bNodeStack **out)
 {
-	NodeBlurData *nbd= node->storage;
-	CompBuf *new, *img= in[0]->data, *vecbuf= in[2]->data, *zbuf= in[1]->data;
+	NodeBlurData *nbd = node->storage;
+	CompBuf *new, *img = in[0]->data, *vecbuf = in[2]->data, *zbuf = in[1]->data;
 	
-	if (img==NULL || vecbuf==NULL || zbuf==NULL || out[0]->hasoutput==0)
+	if (img == NULL || vecbuf == NULL || zbuf == NULL || out[0]->hasoutput == 0)
 		return;
-	if (vecbuf->x!=img->x || vecbuf->y!=img->y) {
+	if (vecbuf->x != img->x || vecbuf->y != img->y) {
 		printf("ERROR: cannot do different sized vecbuf yet\n");
 		return;
 	}
-	if (vecbuf->type!=CB_VEC4) {
+	if (vecbuf->type != CB_VEC4) {
 		printf("ERROR: input should be vecbuf\n");
 		return;
 	}
-	if (zbuf->type!=CB_VAL) {
+	if (zbuf->type != CB_VAL) {
 		printf("ERROR: input should be zbuf\n");
 		return;
 	}
-	if (zbuf->x!=img->x || zbuf->y!=img->y) {
+	if (zbuf->x != img->x || zbuf->y != img->y) {
 		printf("ERROR: cannot do different sized zbuf yet\n");
 		return;
 	}
 	
 	/* allow the input image to be of another type */
-	img= typecheck_compbuf(in[0]->data, CB_RGBA);
+	img = typecheck_compbuf(in[0]->data, CB_RGBA);
 
-	new= dupalloc_compbuf(img);
+	new = dupalloc_compbuf(img);
 	
 	/* call special zbuffer version */
 	RE_zbuf_accumulate_vecblur(nbd, img->x, img->y, new->rect, img->rect, vecbuf->rect, zbuf->rect);
 	
-	out[0]->data= new;
+	out[0]->data = new;
 	
-	if (img!=in[0]->data)
+	if (img != in[0]->data)
 		free_compbuf(img);
 }
 
-static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode* node, bNodeTemplate *UNUSED(ntemp))
+static void node_composit_init_vecblur(bNodeTree *UNUSED(ntree), bNode *node, bNodeTemplate *UNUSED(ntemp))
 {
-	NodeBlurData *nbd= MEM_callocN(sizeof(NodeBlurData), "node blur data");
-	node->storage= nbd;
-	nbd->samples= 32;
-	nbd->fac= 1.0f;
+	NodeBlurData *nbd = MEM_callocN(sizeof(NodeBlurData), "node blur data");
+	node->storage = nbd;
+	nbd->samples = 32;
+	nbd->fac = 1.0f;
 }
 
 /* custom1: itterations, custom2: maxspeed (0 = nolimit) */

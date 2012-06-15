@@ -138,6 +138,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 
 	const float scx = scaleX[0]; // target absolute scale
 	const float scy = scaleY[0]; // target absolute scale
+
 	const float width = this->getWidth();
 	const float height = this->getHeight();
 	//div
@@ -146,6 +147,7 @@ void ScaleAbsoluteOperation::executePixel(float *color, float x, float y, PixelS
 
 	float nx = this->centerX + (x - this->centerX) / relativeXScale;
 	float ny = this->centerY + (y - this->centerY) / relativeYScale;
+
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
 
@@ -188,6 +190,52 @@ void ScaleFixedSizeOperation::initExecution()
 	this->inputOperation = this->getInputSocketReader(0);
 	this->relX = inputOperation->getWidth() / (float)this->newWidth;
 	this->relY = inputOperation->getHeight() / (float)this->newHeight;
+
+
+	/* *** all the options below are for a fairly special case - camera framing *** */
+	if (this->offsetX != 0.0f || this->offsetY != 0.0f) {
+		this->is_offset = true;
+
+		if (this->newWidth > this->newHeight) {
+			this->offsetX *= this->newWidth;
+			this->offsetY *= this->newWidth;
+		}
+		else {
+			this->offsetX *= this->newHeight;
+			this->offsetY *= this->newHeight;
+		}
+	}
+
+	if (this->is_aspect) {
+		/* apply aspect from clip */
+		const float w_src = inputOperation->getWidth();
+		const float h_src = inputOperation->getHeight();
+
+		/* destination aspect is already applied from the camera frame */
+		const float w_dst = this->newWidth;
+		const float h_dst = this->newHeight;
+
+		const float asp_src = w_src / h_src;
+		const float asp_dst = w_dst / h_dst;
+
+		if (fabsf(asp_src - asp_dst) >= FLT_EPSILON) {
+			if ((asp_src > asp_dst) == (this->is_crop == true)) {
+				/* fit X */
+				const float div = asp_src / asp_dst;
+				this->relX /= div;
+				this->offsetX += ((w_src - (w_src * div)) / (w_src / w_dst)) / 2.0f;
+			}
+			else {
+				/* fit Y */
+				const float div = asp_dst / asp_src;
+				this->relY /= div;
+				this->offsetY += ((h_src - (h_src * div)) / (h_src / h_dst)) / 2.0f;
+			}
+
+			this->is_offset = true;
+		}
+	}
+	/* *** end framing options *** */
 }
 
 void ScaleFixedSizeOperation::deinitExecution()
@@ -202,7 +250,14 @@ void ScaleFixedSizeOperation::executePixel(float *color, float x, float y, Pixel
 	sampler = COM_PS_BICUBIC;
 #endif
 
-	this->inputOperation->read(color, x * relX, y * relY, sampler, inputBuffers);
+	if (this->is_offset) {
+		float nx = ((x - this->offsetX) * relX);
+		float ny = ((y - this->offsetY) * relY);
+		this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
+	}
+	else {
+		this->inputOperation->read(color, x * relX, y * relY, sampler, inputBuffers);
+	}
 }
 
 bool ScaleFixedSizeOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)

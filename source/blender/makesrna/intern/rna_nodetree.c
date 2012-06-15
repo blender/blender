@@ -2077,19 +2077,44 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 static void def_cmp_scale(StructRNA *srna)
 {
 	PropertyRNA *prop;
-	
+
 	static EnumPropertyItem space_items[] = {
-		{0, "RELATIVE",   0, "Relative",   ""},
-		{1, "ABSOLUTE",   0, "Absolute",   ""},
-		{2, "SCENE_SIZE", 0, "Scene Size", ""},
-		{3, "RENDER_SIZE", 0, "Render Size", ""},
+		{CMP_SCALE_RELATIVE, "RELATIVE",   0, "Relative",   ""},
+		{CMP_SCALE_ABSOLUTE, "ABSOLUTE",   0, "Absolute",   ""},
+		{CMP_SCALE_SCENEPERCENT, "SCENE_SIZE", 0, "Scene Size", ""},
+		{CMP_SCALE_RENDERPERCENT, "RENDER_SIZE", 0, "Render Size", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 	
+	/* matching bgpic_camera_frame_items[] */
+	static const EnumPropertyItem space_frame_items[] = {
+		{0, "STRETCH", 0, "Stretch", ""},
+		{CMP_SCALE_RENDERSIZE_FRAME_ASPECT, "FIT", 0, "Fit", ""},
+		{CMP_SCALE_RENDERSIZE_FRAME_ASPECT | CMP_SCALE_RENDERSIZE_FRAME_CROP, "CROP", 0, "Crop", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	prop = RNA_def_property(srna, "space", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "custom1");
 	RNA_def_property_enum_items(prop, space_items);
 	RNA_def_property_ui_text(prop, "Space", "Coordinate space to scale relative to");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	/* expose 2 flags as a enum of 3 items */
+	prop = RNA_def_property(srna, "frame_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "custom2");
+	RNA_def_property_enum_items(prop, space_frame_items);
+	RNA_def_property_ui_text(prop, "Frame Method", "How the image fits in the camera frame");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_ui_text(prop, "X Offset", "Offset image horizontally (factor of image size)");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom4");
+	RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically (factor of image size)");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
@@ -3089,10 +3114,10 @@ static void def_cmp_mask(StructRNA *srna)
 {
 	PropertyRNA *prop;
 
-    prop = RNA_def_property(srna, "smooth_mask", PROP_BOOLEAN, PROP_NONE);
-    RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
-    RNA_def_property_ui_text(prop, "Anti-Alias", "Apply an anti-aliasing filter to the mask");
-    RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+	prop = RNA_def_property(srna, "smooth_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 0);
+	RNA_def_property_ui_text(prop, "Anti-Alias", "Apply an anti-aliasing filter to the mask");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
 	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
 	RNA_def_property_pointer_sdna(prop, NULL, "id");

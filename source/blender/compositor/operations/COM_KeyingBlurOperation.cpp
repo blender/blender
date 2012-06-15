@@ -28,7 +28,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-KeyingBlurOperation::KeyingBlurOperation(): NodeOperation()
+KeyingBlurOperation::KeyingBlurOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -47,7 +47,7 @@ void *KeyingBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 
 void KeyingBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 
 	int bufferWidth = inputBuffer->getWidth();

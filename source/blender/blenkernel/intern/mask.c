@@ -1156,16 +1156,16 @@ static int BKE_mask_evaluate_parent(MaskParent *parent, float ctime, float r_co[
 		if (parent->id) {
 			MovieClip *clip = (MovieClip *) parent->id;
 			MovieTracking *tracking = (MovieTracking *) &clip->tracking;
-			MovieTrackingObject *ob = BKE_tracking_named_object(tracking, parent->parent);
+			MovieTrackingObject *ob = BKE_tracking_object_get_named(tracking, parent->parent);
 
 			if (ob) {
-				MovieTrackingTrack *track = BKE_tracking_named_track(tracking, ob, parent->sub_parent);
+				MovieTrackingTrack *track = BKE_tracking_track_get_named(tracking, ob, parent->sub_parent);
 
 				MovieClipUser user = {0};
 				user.framenr = ctime;
 
 				if (track) {
-					MovieTrackingMarker *marker = BKE_tracking_get_marker(track, ctime);
+					MovieTrackingMarker *marker = BKE_tracking_marker_get(track, ctime);
 					float marker_pos_ofs[2];
 					add_v2_v2v2(marker_pos_ofs, marker->pos, track->offset);
 					BKE_mask_coord_from_movieclip(clip, &user, r_co, marker_pos_ofs);

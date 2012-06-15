@@ -99,10 +99,10 @@ public:
 				in[1] = (y /* - 0.5 * overscan * h */) / aspy / this->pixel_aspect;
 
 				if (inverted) {
-					BKE_tracking_invert_intrinsics(trackingData, in, out);
+					BKE_tracking_undistort_v2(trackingData, in, out);
 				}
 				else {
-					BKE_tracking_apply_intrinsics(trackingData, in, out);
+					BKE_tracking_distort_v2(trackingData, in, out);
 				}
 
 				buffer[offset2] = out[0] * aspx /* + 0.5 * overscan * w */;

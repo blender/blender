@@ -27,8 +27,8 @@
 #include "COM_NodeOperation.h"
 
 /**
-  * Class with implementation of bluring for keying node
-  */
+ * Class with implementation of bluring for keying node
+ */
 class KeyingBlurOperation : public NodeOperation {
 protected:
 	int size;

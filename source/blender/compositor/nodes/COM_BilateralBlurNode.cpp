@@ -26,13 +26,13 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_BilateralBlurOperation.h"
 
-BilateralBlurNode::BilateralBlurNode(bNode *editorNode): Node(editorNode)
+BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void BilateralBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void BilateralBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	NodeBilateralBlurData *data = (NodeBilateralBlurData*)this->getbNode()->storage;
+	NodeBilateralBlurData *data = (NodeBilateralBlurData *)this->getbNode()->storage;
 	BilateralBlurOperation *operation = new BilateralBlurOperation();
 	operation->setQuality(context->getQuality());
 	operation->setData(data);

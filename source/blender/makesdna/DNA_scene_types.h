@@ -34,7 +34,7 @@
 
 #include "DNA_defs.h"
 
-// XXX, temp feature - campbell
+/* XXX, temp feature - campbell */
 #define DURIAN_CAMERA_SWITCH
 
 #ifdef __cplusplus

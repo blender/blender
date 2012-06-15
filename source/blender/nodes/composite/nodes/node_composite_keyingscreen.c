@@ -67,15 +67,15 @@ static void compute_gradient_screen(RenderData *rd, NodeKeyingScreenData *keying
 	float *rect = screenbuf->rect;
 
 	if (keyingscreen_data->tracking_object[0]) {
-		MovieTrackingObject *object = BKE_tracking_named_object(tracking, keyingscreen_data->tracking_object);
+		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, keyingscreen_data->tracking_object);
 
 		if (!object)
 			return;
 
-		tracksbase = BKE_tracking_object_tracks(tracking, object);
+		tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	}
 	else
-		tracksbase = BKE_tracking_get_tracks(tracking);
+		tracksbase = BKE_tracking_get_active_tracks(tracking);
 
 	sites_total = BLI_countlist(tracksbase);
 
@@ -90,7 +90,7 @@ static void compute_gradient_screen(RenderData *rd, NodeKeyingScreenData *keying
 	i = 0;
 	while (track) {
 		VoronoiSite *site = &sites[i];
-		MovieTrackingMarker *marker = BKE_tracking_get_marker(track, rd->cfra);
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, rd->cfra);
 		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 		int j;
 

@@ -13,13 +13,15 @@ src = []
 defs = []
 
 src += env.Glob('internal/ceres/*.cc')
-src += env.Glob('internal/ceres/generated/*.cc')
+src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
+#src += env.Glob('internal/ceres/generated/*.cc')
 
 defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
+defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
 

@@ -1566,12 +1566,12 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	float mat[4][4], imat[4][4];
 	unsigned char col[4], scol[4];
 	int tracknr = *global_track_index;
-	ListBase *tracksbase = BKE_tracking_object_tracks(tracking, tracking_object);
+	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, tracking_object);
 
 	UI_GetThemeColor4ubv(TH_TEXT, col);
 	UI_GetThemeColor4ubv(TH_SELECT, scol);
 
-	BKE_get_tracking_mat(scene, base->object, mat);
+	BKE_tracking_get_camera_object_matrix(scene, base->object, mat);
 
 	glPushMatrix();
 
@@ -1587,7 +1587,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	else {
 		float obmat[4][4];
 
-		BKE_tracking_get_interpolated_camera(tracking, tracking_object, scene->r.cfra, obmat);
+		BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, scene->r.cfra, obmat);
 
 		invert_m4_m4(imat, obmat);
 		glMultMatrixf(imat);
@@ -1685,7 +1685,7 @@ static void draw_viewport_object_reconstruction(Scene *scene, Base *base, View3D
 	if ((dflag & DRAW_PICKING) == 0) {
 		if ((v3d->flag2 & V3D_SHOW_CAMERAPATH) && (tracking_object->flag & TRACKING_OBJECT_CAMERA)) {
 			MovieTrackingReconstruction *reconstruction;
-			reconstruction = BKE_tracking_object_reconstruction(tracking, tracking_object);
+			reconstruction = BKE_tracking_object_get_reconstruction(tracking, tracking_object);
 
 			if (reconstruction->camnr) {
 				MovieReconstructedCamera *camera = reconstruction->cameras;

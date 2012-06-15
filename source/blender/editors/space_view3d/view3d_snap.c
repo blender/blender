@@ -831,12 +831,12 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 
 	copy_m4_m4(cammat, ob->obmat);
 
-	BKE_get_tracking_mat(scene, ob, mat);
+	BKE_tracking_get_camera_object_matrix(scene, ob, mat);
 
 	INIT_MINMAX(min, max);
 
 	for (object = tracking->objects.first; object; object = object->next) {
-		ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+		ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 		MovieTrackingTrack *track = tracksbase->first;
 		float obmat[4][4];
 
@@ -846,7 +846,7 @@ static void bundle_midpoint(Scene *scene, Object *ob, float vec[3])
 		else {
 			float imat[4][4];
 
-			BKE_tracking_get_interpolated_camera(tracking, object, scene->r.cfra, imat);
+			BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, scene->r.cfra, imat);
 			invert_m4(imat);
 
 			mult_m4_m4m4(obmat, cammat, imat);

@@ -85,11 +85,11 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 			s = (u - 0.5f) * sc + 0.5f, t = (v - 0.5f) * sc + 0.5f;
 			tbuf1->read(c, s * gbuf->getWidth(), t * gbuf->getHeight());
 			sm = smoothMask(s, t);
-			fRGB_mult(c, sm);
+			mul_v3_fl(c, sm);
 			s = (u - 0.5f) * isc + 0.5f, t = (v - 0.5f) * isc + 0.5f;
 			tbuf2->read(tc, s * gbuf->getWidth() - 0.5f, t * gbuf->getHeight() - 0.5f);
 			sm = smoothMask(s, t);
-			fRGB_madd(c, tc, sm);
+			madd_v3_v3fl(c, tc, sm);
 
 			gbuf->writePixel(x, y, c);
 		}
@@ -109,9 +109,9 @@ void GlareGhostOperation::generateGlare(float *data, MemoryBuffer *inputTile, No
 					s = (u - 0.5f) * scalef[np] + 0.5f;
 					t = (v - 0.5f) * scalef[np] + 0.5f;
 					gbuf->read(c, s * gbuf->getWidth() - 0.5f, t * gbuf->getHeight() - 0.5f);
-					fRGB_colormult(c, cm[np]);
+					mul_v3_v3(c, cm[np]);
 					sm = smoothMask(s, t) * 0.25f;
-					fRGB_madd(tc, c, sm);
+					madd_v3_v3fl(tc, c, sm);
 				}
 				tbuf1->addPixel(x, y, tc);
 			}
