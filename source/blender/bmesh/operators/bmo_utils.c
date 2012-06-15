@@ -873,6 +873,7 @@ typedef struct SimSel_VertExt {
 	BMVert *v;
 	union {
 		int num_faces; /* adjacent faces */
+		int num_edges; /* adjacent edges */
 		MDeformVert *dvert; /* deform vertex */
 	};
 } SimSel_VertExt;
@@ -928,6 +929,9 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 					v_ext[i].dvert = NULL;
 				}
 				break;
+			case SIMVERT_EDGE:
+				v_ext[i].num_edges = BM_vert_edge_count(v);
+				break;
 		}
 
 		i++;
@@ -968,6 +972,13 @@ void bmo_similarverts_exec(BMesh *bm, BMOperator *op)
 									}
 								}
 							}
+						}
+						break;
+					case SIMVERT_EDGE:
+						/* number of adjacent edges */
+						if (v_ext[i].num_edges == v_ext[indices[idx]].num_edges) {
+							BMO_elem_flag_enable(bm, v, VERT_MARK);
+							cont = FALSE;
 						}
 						break;
 				}
