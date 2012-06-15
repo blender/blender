@@ -41,7 +41,7 @@ void MovieClipAttributeOperation::executePixel(float *outputValue, float x, floa
 		scale = 1.0f;
 		angle = 0.0f;
 		if (clip) {
-			BKE_tracking_stabilization_data(&clip->tracking, framenumber, getWidth(), getHeight(), loc, &scale, &angle);
+			BKE_tracking_stabilization_data_get(&clip->tracking, framenumber, getWidth(), getHeight(), loc, &scale, &angle);
 		}
 		switch (this->attribute) {
 		case MCA_SCALE:

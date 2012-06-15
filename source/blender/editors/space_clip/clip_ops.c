@@ -986,7 +986,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	}
 
 	if (build_undistort_count)
-		distortion = BKE_tracking_distortion_create();
+		distortion = BKE_tracking_distortion_new();
 
 	for (cfra = sfra; cfra <= efra; cfra++) {
 		if (clip->source != MCLIP_SRC_MOVIE)
@@ -1003,7 +1003,7 @@ static void proxy_startjob(void *pjv, short *stop, short *do_update, float *prog
 	}
 
 	if (distortion)
-		BKE_tracking_distortion_destroy(distortion);
+		BKE_tracking_distortion_free(distortion);
 
 	if (*stop)
 		pj->stop = 1;

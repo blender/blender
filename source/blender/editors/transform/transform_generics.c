@@ -641,7 +641,7 @@ static void recalcData_spaceclip(TransInfo *t)
 
 	if (ED_space_clip_show_trackedit(sc)) {
 		MovieClip *clip = ED_space_clip(sc);
-		ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+		ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 		MovieTrackingTrack *track;
 		int framenr = sc->user.framenr;
 
@@ -650,23 +650,23 @@ static void recalcData_spaceclip(TransInfo *t)
 		track = tracksbase->first;
 		while (track) {
 			if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-				MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
+				MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 				if (t->mode == TFM_TRANSLATION) {
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-						BKE_tracking_clamp_marker(marker, CLAMP_PAT_POS);
+						BKE_tracking_marker_clamp(marker, CLAMP_PAT_POS);
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-						BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_POS);
+						BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_POS);
 				}
 				else if (t->mode == TFM_RESIZE) {
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-						BKE_tracking_clamp_marker(marker, CLAMP_PAT_DIM);
+						BKE_tracking_marker_clamp(marker, CLAMP_PAT_DIM);
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_SEARCH))
-						BKE_tracking_clamp_marker(marker, CLAMP_SEARCH_DIM);
+						BKE_tracking_marker_clamp(marker, CLAMP_SEARCH_DIM);
 				}
 				else if (t->mode == TFM_ROTATION) {
 					if (TRACK_AREA_SELECTED(track, TRACK_AREA_PAT))
-						BKE_tracking_clamp_marker(marker, CLAMP_PAT_POS);
+						BKE_tracking_marker_clamp(marker, CLAMP_PAT_POS);
 				}
 			}
 

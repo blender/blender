@@ -128,7 +128,7 @@ void clip_graph_tracking_values_iterate(SpaceClip *sc, int selected_only, int in
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *track;
 
 	for (track = tracksbase->first; track; track = track->next) {
@@ -147,7 +147,7 @@ void clip_graph_tracking_iterate(SpaceClip *sc, int selected_only, int include_h
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_tracks(tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *track;
 
 	for (track = tracksbase->first; track; track = track->next) {
@@ -175,7 +175,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 {
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingStabilization *stab = &tracking->stabilization;
-	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 
 	int has_bundle = FALSE, update_stab = FALSE;
 
@@ -192,7 +192,7 @@ void clip_delete_track(bContext *C, MovieClip *clip, ListBase *tracksbase, Movie
 	if (track->flag & TRACK_HAS_BUNDLE)
 		has_bundle = TRUE;
 
-	BKE_tracking_free_track(track);
+	BKE_tracking_track_free(track);
 	BLI_freelinkN(tracksbase, track);
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
@@ -215,7 +215,7 @@ void clip_delete_marker(bContext *C, MovieClip *clip, ListBase *tracksbase,
 		clip_delete_track(C, clip, tracksbase, track);
 	}
 	else {
-		BKE_tracking_delete_marker(track, marker->framenr);
+		BKE_tracking_marker_delete(track, marker->framenr);
 
 		WM_event_add_notifier(C, NC_MOVIECLIP | NA_EDITED, clip);
 	}

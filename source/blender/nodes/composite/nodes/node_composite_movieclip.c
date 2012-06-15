@@ -121,7 +121,7 @@ static void node_composit_exec_movieclip(void *data, bNode *node, bNodeStack **U
 			if (stab->flag & TRACKING_2D_STABILIZATION) {
 				float loc[2], scale, angle;
 
-				BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,
+				BKE_tracking_stabilization_data_get(&clip->tracking, rd->cfra, stackbuf->x, stackbuf->y,
 							loc, &scale, &angle);
 
 				out[1]->vec[0] = loc[0];

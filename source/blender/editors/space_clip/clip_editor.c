@@ -342,7 +342,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height, ok = FALSE;
-	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 
 	INIT_MINMAX2(min, max);
 
@@ -351,7 +351,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, sc->user.framenr);
 
 			if (marker) {
 				float pos[3];
@@ -439,7 +439,7 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[
 		r_co[0] *= width;
 		r_co[1] *= height * aspy;
 
-		BKE_tracking_invert_intrinsics(&clip->tracking, r_co, r_co);
+		BKE_tracking_undistort_v2(&clip->tracking, r_co, r_co);
 
 		r_co[0] /= width;
 		r_co[1] /= height * aspy;
@@ -474,7 +474,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 		float aspy = 1.0f / tracking->camera.pixel_aspect;
 		float tmp[2] = {*xr * width, *yr * height * aspy};
 
-		BKE_tracking_apply_intrinsics(tracking, tmp, tmp);
+		BKE_tracking_distort_v2(tracking, tmp, tmp);
 
 		*xr = tmp[0] / width;
 		*yr = tmp[1] / (height * aspy);

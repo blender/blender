@@ -148,7 +148,7 @@ static void draw_tracks_curves(View2D *v2d, SpaceClip *sc)
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *act_track = BKE_tracking_active_track(tracking);
+	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
 	int width, height;
 	struct { MovieTrackingTrack *act_track; int sel; float xscale, yscale, hsize; } userdata;
 
@@ -182,7 +182,7 @@ static void draw_frame_curves(SpaceClip *sc)
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_reconstruction(tracking);
+	MovieTrackingReconstruction *reconstruction = BKE_tracking_get_active_reconstruction(tracking);
 	int i, lines = 0, prevfra = 0;
 
 	glColor3f(0.0f, 0.0f, 1.0f);

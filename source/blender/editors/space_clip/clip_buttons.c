@@ -211,7 +211,7 @@ static void marker_update_cb(bContext *C, void *arg_cb, void *UNUSED(arg))
 	if (!cb->compact)
 		return;
 
-	marker = BKE_tracking_ensure_marker(cb->track, cb->framenr);
+	marker = BKE_tracking_marker_ensure(cb->track, cb->framenr);
 
 	marker->flag = cb->marker_flag;
 
@@ -226,7 +226,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 
 	BKE_movieclip_get_size(cb->clip, cb->user, &width, &height);
 
-	marker = BKE_tracking_ensure_marker(cb->track, cb->framenr);
+	marker = BKE_tracking_marker_ensure(cb->track, cb->framenr);
 
 	if (event == B_MARKER_POS) {
 		marker->pos[0] = cb->marker_pos[0] / width;
@@ -258,7 +258,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 			cb->marker->pattern_corners[a][1] *= scale_y;
 		}
 
-		BKE_tracking_clamp_marker(cb->marker, CLAMP_PAT_DIM);
+		BKE_tracking_marker_clamp(cb->marker, CLAMP_PAT_DIM);
 
 		ok = TRUE;
 	}
@@ -274,7 +274,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		sub_v2_v2v2(cb->marker->search_min, delta, side);
 		add_v2_v2v2(cb->marker->search_max, delta, side);
 
-		BKE_tracking_clamp_marker(cb->marker, CLAMP_SEARCH_POS);
+		BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_POS);
 
 		ok = TRUE;
 	}
@@ -295,7 +295,7 @@ static void marker_block_handler(bContext *C, void *arg_cb, int event)
 		cb->marker->search_max[0] += dim[0];
 		cb->marker->search_max[1] += dim[1];
 
-		BKE_tracking_clamp_marker(cb->marker, CLAMP_SEARCH_DIM);
+		BKE_tracking_marker_clamp(cb->marker, CLAMP_SEARCH_DIM);
 
 		ok = TRUE;
 	}
@@ -364,7 +364,7 @@ void uiTemplateMarker(uiLayout *layout, PointerRNA *ptr, const char *propname, P
 	user = userptr->data;
 	track = trackptr->data;
 
-	marker = BKE_tracking_get_marker(track, user->framenr);
+	marker = BKE_tracking_marker_get(track, user->framenr);
 
 	cb = MEM_callocN(sizeof(MarkerUpdateCb), "uiTemplateMarker update_cb");
 	cb->compact = compact;

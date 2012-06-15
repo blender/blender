@@ -436,7 +436,7 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->aspx = clip->aspy = 1.0f;
 
-	BKE_tracking_init_settings(&clip->tracking);
+	BKE_tracking_settings_init(&clip->tracking);
 
 	clip->proxy.build_size_flag = IMB_PROXY_25;
 	clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN |
@@ -548,7 +548,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	if (distortion)
 		undistibuf = BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
-		undistibuf = BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
+		undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
 	if (undistibuf->userflags & IB_RECT_INVALID) {
 		ibuf->userflags &= ~IB_RECT_INVALID;
@@ -678,7 +678,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 			postproc_ibuf = IMB_dupImBuf(ibuf);
 
 		if (disable_red || disable_green || disable_blue || grayscale)
-			BKE_tracking_disable_imbuf_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
+			BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
 	}
 
 	IMB_refImBuf(postproc_ibuf);
@@ -799,7 +799,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 
 	stableibuf = cache->stabilized.ibuf;
 
-	BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+	BKE_tracking_stabilization_data_get(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
 	/* check for stabilization parameters */
 	if (tscale != cache->stabilized.scale ||
@@ -825,7 +825,7 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	if (cache->stabilized.ibuf)
 		IMB_freeImBuf(cache->stabilized.ibuf);
 
-	stableibuf = BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
+	stableibuf = BKE_tracking_stabilize_frame(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
 
 	cache->stabilized.ibuf = stableibuf;
 
@@ -1043,12 +1043,12 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 	scopes->track_locked = TRUE;
 
 	if (clip) {
-		MovieTrackingTrack *act_track = BKE_tracking_active_track(&clip->tracking);
+		MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
 
 		if (act_track) {
 			MovieTrackingTrack *track = act_track;
 			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (marker->flag & MARKER_DISABLED) {
 				scopes->track_disabled = TRUE;
@@ -1073,7 +1073,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[0] *= width;
 						undist_marker.pos[1] *= height * aspy;
 
-						BKE_tracking_invert_intrinsics(&clip->tracking, undist_marker.pos, undist_marker.pos);
+						BKE_tracking_undistort_v2(&clip->tracking, undist_marker.pos, undist_marker.pos);
 
 						undist_marker.pos[0] /= width;
 						undist_marker.pos[1] /= height * aspy;

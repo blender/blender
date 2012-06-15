@@ -150,7 +150,7 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 				
 				if (clip) {
 					if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {
-						MovieTrackingTrack *track = BKE_tracking_active_track(&clip->tracking);
+						MovieTrackingTrack *track = BKE_tracking_track_get_active(&clip->tracking);
 
 						if (!track)
 							return NULL;

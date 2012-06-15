@@ -91,7 +91,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 
 	if (ibuf) {
 		if (stab->flag&TRACKING_2D_STABILIZATION) {
-			BKE_tracking_stabilization_data(&movieClip->tracking, context->getFramenumber(), ibuf->x, ibuf->y, loc, &scale, &angle);
+			BKE_tracking_stabilization_data_get(&movieClip->tracking, context->getFramenumber(), ibuf->x, ibuf->y, loc, &scale, &angle);
 		}
 	}
 	

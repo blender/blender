@@ -1303,11 +1303,11 @@ static void deselect_all_tracks(MovieTracking *tracking)
 
 	object = tracking->objects.first;
 	while (object) {
-		ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+		ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 		MovieTrackingTrack *track = tracksbase->first;
 
 		while (track) {
-			BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+			BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
 
 			track = track->next;
 		}
@@ -1408,18 +1408,18 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 								ListBase *tracksbase;
 								MovieTrackingTrack *track;
 
-								track = BKE_tracking_indexed_track(&clip->tracking, hitresult >> 16, &tracksbase);
+								track = BKE_tracking_track_get_indexed(&clip->tracking, hitresult >> 16, &tracksbase);
 
 								if (TRACK_SELECTED(track) && extend) {
 									changed = 0;
-									BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+									BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
 								}
 								else {
 									int oldsel = TRACK_SELECTED(track) ? 1 : 0;
 									if (!extend)
 										deselect_all_tracks(tracking);
 
-									BKE_tracking_select_track(tracksbase, track, TRACK_AREA_ALL, extend);
+									BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
 
 									if (oldsel != (TRACK_SELECTED(track) ? 1 : 0))
 										changed = 1;

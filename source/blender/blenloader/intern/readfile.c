@@ -7260,7 +7260,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					tracking->settings.object_distance = 1.0f;
 				
 				if (tracking->objects.first == NULL)
-					BKE_tracking_new_object(tracking, "Camera");
+					BKE_tracking_object_add(tracking, "Camera");
 				
 				while (tracking_object) {
 					if (!tracking_object->scale)

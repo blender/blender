@@ -54,7 +54,7 @@ static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack *
 		CompBuf *stackbuf;
 		float loc[2], scale, angle;
 
-		BKE_tracking_stabilization_data(&clip->tracking, rd->cfra, cbuf->x, cbuf->y, loc, &scale, &angle);
+		BKE_tracking_stabilization_data_get(&clip->tracking, rd->cfra, cbuf->x, cbuf->y, loc, &scale, &angle);
 
 		stackbuf = node_composit_transform(cbuf, loc[0], loc[1], angle, scale, node->custom1);
 

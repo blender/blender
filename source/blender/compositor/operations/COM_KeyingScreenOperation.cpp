@@ -87,15 +87,15 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	int height = this->getHeight();
 
 	if (this->trackingObject[0]) {
-		MovieTrackingObject *object = BKE_tracking_named_object(tracking, this->trackingObject);
+		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->trackingObject);
 
 		if (!object)
 			return NULL;
 
-		tracksbase = BKE_tracking_object_tracks(tracking, object);
+		tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	}
 	else
-		tracksbase = BKE_tracking_get_tracks(tracking);
+		tracksbase = BKE_tracking_get_active_tracks(tracking);
 
 	sites_total = BLI_countlist(tracksbase);
 
@@ -115,7 +115,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	i = 0;
 	while (track) {
 		VoronoiSite *site = &sites[i];
-		MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenumber);
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenumber);
 		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 		int j;
 

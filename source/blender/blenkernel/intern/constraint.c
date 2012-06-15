@@ -3917,14 +3917,14 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	tracking = &clip->tracking;
 
 	if (data->object[0])
-		tracking_object = BKE_tracking_named_object(tracking, data->object);
+		tracking_object = BKE_tracking_object_get_named(tracking, data->object);
 	else
-		tracking_object = BKE_tracking_get_camera_object(tracking);
+		tracking_object = BKE_tracking_object_get_camera(tracking);
 
 	if (!tracking_object)
 		return;
 
-	track = BKE_tracking_named_track(tracking, tracking_object, data->track);
+	track = BKE_tracking_track_get_named(tracking, tracking_object, data->track);
 
 	if (!track)
 		return;
@@ -3942,14 +3942,14 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 				copy_m4_m4(mat, camob->obmat);
 
-				BKE_tracking_get_interpolated_camera(tracking, tracking_object, framenr, imat);
+				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, imat);
 				invert_m4(imat);
 
 				mul_serie_m4(cob->matrix, obmat, mat, imat, NULL, NULL, NULL, NULL, NULL);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
-				BKE_get_tracking_mat(cob->scene, camob, mat);
+				BKE_tracking_get_camera_object_matrix(cob->scene, camob, mat);
 
 				mult_m4_m4m4(cob->matrix, obmat, mat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -3981,7 +3981,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			CameraParams params;
 			float pos[2], rmat[4][4];
 
-			marker = BKE_tracking_get_marker(track, framenr);
+			marker = BKE_tracking_marker_get(track, framenr);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -4103,10 +4103,10 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 	if (clip) {
 		float mat[4][4], obmat[4][4];
 		MovieTracking *tracking = &clip->tracking;
-		MovieTrackingObject *object = BKE_tracking_get_camera_object(tracking);
+		MovieTrackingObject *object = BKE_tracking_object_get_camera(tracking);
 		int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
 
-		BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
+		BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
 		copy_m4_m4(obmat, cob->matrix);
 
@@ -4165,7 +4165,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object;
 
-		object = BKE_tracking_named_object(tracking, data->object);
+		object = BKE_tracking_object_get_named(tracking, data->object);
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
@@ -4173,7 +4173,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 			BKE_object_where_is_calc_mat4(scene, camob, cammat);
 
-			BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
+			BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
 			invert_m4_m4(camimat, cammat);
 			mult_m4_m4m4(parmat, cammat, data->invmat);
