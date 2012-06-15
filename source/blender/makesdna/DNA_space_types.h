@@ -167,18 +167,18 @@ typedef struct SpaceButs {
 /* buts->mainb new */
 typedef enum eSpaceButtons_Context {
 	BCONTEXT_RENDER = 0,
-	BCONTEXT_SCENE,
-	BCONTEXT_WORLD,
-	BCONTEXT_OBJECT,
-	BCONTEXT_DATA,
-	BCONTEXT_MATERIAL,
-	BCONTEXT_TEXTURE,
-	BCONTEXT_PARTICLE,
-	BCONTEXT_PHYSICS,
-	BCONTEXT_BONE,
-	BCONTEXT_MODIFIER,
-	BCONTEXT_CONSTRAINT,
-	BCONTEXT_BONE_CONSTRAINT,
+	BCONTEXT_SCENE = 1,
+	BCONTEXT_WORLD = 2,
+	BCONTEXT_OBJECT = 3,
+	BCONTEXT_DATA = 4,
+	BCONTEXT_MATERIAL = 5,
+	BCONTEXT_TEXTURE = 6,
+	BCONTEXT_PARTICLE = 7,
+	BCONTEXT_PHYSICS = 8,
+	BCONTEXT_BONE = 9,
+	BCONTEXT_MODIFIER = 10,
+	BCONTEXT_CONSTRAINT = 11,
+	BCONTEXT_BONE_CONSTRAINT = 12,
 	
 	/* always as last... */
 	BCONTEXT_TOT
@@ -194,17 +194,17 @@ typedef enum eSpaceButtons_Context {
 /* sbuts->texture_context */
 typedef enum eSpaceButtons_Texture_Context {
 	SB_TEXC_MAT_OR_LAMP = 0,
-	SB_TEXC_WORLD,
-	SB_TEXC_BRUSH,
-	SB_TEXC_PARTICLES,
+	SB_TEXC_WORLD = 1,
+	SB_TEXC_BRUSH = 2,
+	SB_TEXC_PARTICLES = 3,
 } eSpaceButtons_Texture_Context;
 
 /* sbuts->align */
 typedef enum eSpaceButtons_Align {
 	BUT_FREE = 0,
-	BUT_HORIZONTAL,
-	BUT_VERTICAL,
-	BUT_AUTO,
+	BUT_HORIZONTAL = 1,
+	BUT_VERTICAL = 2,
+	BUT_AUTO = 3,
 } eSpaceButtons_Align;
 
 /* sbuts->scaflag */		
@@ -256,19 +256,19 @@ typedef enum eSpaceOutliner_Flag {
 /* SpaceOops->outlinevis */
 typedef enum eSpaceOutliner_Mode {
 	SO_ALL_SCENES = 0,
-	SO_CUR_SCENE,
-	SO_VISIBLE,
-	SO_SELECTED,
-	SO_ACTIVE,
-	SO_SAME_TYPE,
-	SO_GROUPS,
-	SO_LIBRARIES,
-	SO_VERSE_SESSION,
-	SO_VERSE_MS,
-	SO_SEQUENCE,
-	SO_DATABLOCKS,
-	SO_USERDEF,
-	SO_KEYMAP,
+	SO_CUR_SCENE = 1,
+	SO_VISIBLE = 2,
+	SO_SELECTED = 3,
+	SO_ACTIVE = 4,
+	SO_SAME_TYPE = 5,
+	SO_GROUPS = 6,
+	SO_LIBRARIES = 7,
+	SO_VERSE_SESSION = 8,
+	SO_VERSE_MS = 9,
+	SO_SEQUENCE = 10,
+	SO_DATABLOCKS = 11,
+	SO_USERDEF = 12,
+	SO_KEYMAP = 13,
 } eSpaceOutliner_Mode;
 
 /* SpaceOops->storeflag */
@@ -351,7 +351,7 @@ typedef enum eGraphEdit_Mode {
 	/* all animation curves (from all over Blender) */
 	SIPO_MODE_ANIMATION = 0,
 	/* drivers only */
-	SIPO_MODE_DRIVERS,
+	SIPO_MODE_DRIVERS = 1,
 } eGraphEdit_Mode;
 
 
@@ -479,10 +479,10 @@ typedef struct SpaceSeq {
 /* sseq->mainb */
 typedef enum eSpaceSeq_RegionType {
 	SEQ_DRAW_SEQUENCE = 0,
-	SEQ_DRAW_IMG_IMBUF,
-	SEQ_DRAW_IMG_WAVEFORM,
-	SEQ_DRAW_IMG_VECTORSCOPE,
-	SEQ_DRAW_IMG_HISTOGRAM,
+	SEQ_DRAW_IMG_IMBUF = 1,
+	SEQ_DRAW_IMG_WAVEFORM = 2,
+	SEQ_DRAW_IMG_VECTORSCOPE = 3,
+	SEQ_DRAW_IMG_HISTOGRAM = 4,
 } eSpaceSeq_RegionType;
 
 /* sseq->flag */
@@ -498,8 +498,8 @@ typedef enum eSpaceSeq_Flag {
 /* sseq->view */
 typedef enum eSpaceSeq_Displays {
 	SEQ_VIEW_SEQUENCE = 1,
-	SEQ_VIEW_PREVIEW,
-	SEQ_VIEW_SEQUENCE_PREVIEW,
+	SEQ_VIEW_PREVIEW = 2,
+	SEQ_VIEW_SEQUENCE_PREVIEW = 3,
 } eSpaceSeq_Dispays;
 
 /* sseq->render_size */
@@ -579,18 +579,18 @@ typedef struct SpaceFile {
 /* FileSelectParams.display */
 enum FileDisplayTypeE {
 	FILE_DEFAULTDISPLAY = 0,
-	FILE_SHORTDISPLAY,
-	FILE_LONGDISPLAY,
-	FILE_IMGDISPLAY
+	FILE_SHORTDISPLAY = 1,
+	FILE_LONGDISPLAY = 2,
+	FILE_IMGDISPLAY = 3
 };
 
 /* FileSelectParams.sort */
 enum FileSortTypeE {
 	FILE_SORT_NONE = 0,
 	FILE_SORT_ALPHA = 1,
-	FILE_SORT_EXTENSION,
-	FILE_SORT_TIME,
-	FILE_SORT_SIZE
+	FILE_SORT_EXTENSION = 2,
+	FILE_SORT_TIME = 3,
+	FILE_SORT_SIZE = 4
 };
 
 /* these values need to be hardcoded in structs, dna does not recognize defines */
@@ -613,7 +613,7 @@ enum FileSortTypeE {
 /* filesel op property -> action */
 typedef enum eFileSel_Action {
 	FILE_OPENFILE = 0,
-	FILE_SAVE,
+	FILE_SAVE = 1,
 } eFileSel_Action;
 
 /* sfile->params->flag and simasel->flag */
@@ -695,15 +695,15 @@ typedef struct SpaceImage {
 /* SpaceImage->dt_uv */
 typedef enum eSpaceImage_UVDT {
 	SI_UVDT_OUTLINE = 0,
-	SI_UVDT_DASH,
-	SI_UVDT_BLACK,
-	SI_UVDT_WHITE,
+	SI_UVDT_DASH = 1,
+	SI_UVDT_BLACK = 2,
+	SI_UVDT_WHITE = 3,
 } eSpaceImage_UVDT;
 
 /* SpaceImage->dt_uvstretch */
 typedef enum eSpaceImage_UVDT_Stretch {
 	SI_UVDT_STRETCH_ANGLE = 0,
-	SI_UVDT_STRETCH_AREA,
+	SI_UVDT_STRETCH_AREA = 1,
 } eSpaceImage_UVDT_Stretch;
 
 /* SpaceImage->sticky
@@ -885,14 +885,14 @@ typedef enum eSpaceNode_Flag {
 /* snode->texfrom */
 typedef enum eSpaceNode_TexFrom {
 	SNODE_TEX_OBJECT   = 0,
-	SNODE_TEX_WORLD,
-	SNODE_TEX_BRUSH,
+	SNODE_TEX_WORLD    = 1,
+	SNODE_TEX_BRUSH    = 2,
 } eSpaceNode_TexFrom;
 
 /* snode->shaderfrom */
 typedef enum eSpaceNode_ShaderFrom {
 	SNODE_SHADER_OBJECT = 0,
-	SNODE_SHADER_WORLD,
+	SNODE_SHADER_WORLD = 1,
 } eSpaceNode_ShaderFrom;
 
 /* Game Logic Editor ===================================== */
@@ -930,9 +930,9 @@ typedef struct ConsoleLine {
 /* ConsoleLine.type */
 typedef enum eConsoleLine_Type {
 	CONSOLE_LINE_OUTPUT = 0,
-	CONSOLE_LINE_INPUT,
-	CONSOLE_LINE_INFO, /* autocomp feedback */
-	CONSOLE_LINE_ERROR
+	CONSOLE_LINE_INPUT = 1,
+	CONSOLE_LINE_INFO = 2, /* autocomp feedback */
+	CONSOLE_LINE_ERROR = 3
 } eConsoleLine_Type;
 
 
@@ -1044,16 +1044,16 @@ typedef enum eSpaceClip_Flag {
 /* SpaceClip->mode */
 typedef enum eSpaceClip_Mode {
 	SC_MODE_TRACKING = 0,
-	SC_MODE_RECONSTRUCTION,
-	SC_MODE_DISTORTION,
-	SC_MODE_MASKEDIT,
+	SC_MODE_RECONSTRUCTION = 1,
+	SC_MODE_DISTORTION = 2,
+	SC_MODE_MASKEDIT = 3,
 } eSpaceClip_Mode;
 
 /* SpaceClip->view */
 typedef enum eSpaceClip_View {
 	SC_VIEW_CLIP = 0,
-	SC_VIEW_GRAPH,
-	SC_VIEW_DOPESHEET,
+	SC_VIEW_GRAPH = 1,
+	SC_VIEW_DOPESHEET = 2,
 } eSpaceClip_View;
 
 /* SpaceClip->gpencil_src */
@@ -1072,27 +1072,27 @@ typedef enum eSpaceClip_GPencil_Source {
 /* space types, moved from DNA_screen_types.h */
 /* Do NOT change order, append on end. types are hardcoded needed */
 typedef enum eSpace_Type {
-	SPACE_EMPTY,
-	SPACE_VIEW3D,
-	SPACE_IPO,
-	SPACE_OUTLINER,
-	SPACE_BUTS,
-	SPACE_FILE,
-	SPACE_IMAGE,		
-	SPACE_INFO,
-	SPACE_SEQ,
-	SPACE_TEXT,
-	SPACE_IMASEL, /* deprecated */
-	SPACE_SOUND, /* Deprecated */
-	SPACE_ACTION,
-	SPACE_NLA,
-	SPACE_SCRIPT, /* Deprecated */
-	SPACE_TIME,
-	SPACE_NODE,
-	SPACE_LOGIC,
-	SPACE_CONSOLE,
-	SPACE_USERPREF,
-	SPACE_CLIP,
+	SPACE_EMPTY    = 0,
+	SPACE_VIEW3D   = 1,
+	SPACE_IPO      = 2,
+	SPACE_OUTLINER = 3,
+	SPACE_BUTS     = 4,
+	SPACE_FILE     = 5,
+	SPACE_IMAGE    = 6,
+	SPACE_INFO     = 7,
+	SPACE_SEQ      = 8,
+	SPACE_TEXT     = 9,
+	SPACE_IMASEL   = 10, /* deprecated */
+	SPACE_SOUND    = 11, /* Deprecated */
+	SPACE_ACTION   = 12,
+	SPACE_NLA      = 13,
+	SPACE_SCRIPT   = 14, /* Deprecated */
+	SPACE_TIME     = 15,
+	SPACE_NODE     = 16,
+	SPACE_LOGIC    = 17,
+	SPACE_CONSOLE  = 18,
+	SPACE_USERPREF = 19,
+	SPACE_CLIP     = 20,
 	
 	SPACEICONMAX = SPACE_CLIP
 } eSpace_Type;

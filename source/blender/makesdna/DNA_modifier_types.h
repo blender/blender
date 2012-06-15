@@ -35,49 +35,49 @@
  * (ONLY ADD NEW ITEMS AT THE END) */
 
 typedef enum ModifierType {
-	eModifierType_None = 0,
-	eModifierType_Subsurf,
-	eModifierType_Lattice,
-	eModifierType_Curve,
-	eModifierType_Build,
-	eModifierType_Mirror,
-	eModifierType_Decimate,
-	eModifierType_Wave,
-	eModifierType_Armature,
-	eModifierType_Hook,
-	eModifierType_Softbody,
-	eModifierType_Boolean,
-	eModifierType_Array,
-	eModifierType_EdgeSplit,
-	eModifierType_Displace,
-	eModifierType_UVProject,
-	eModifierType_Smooth,
-	eModifierType_Cast,
-	eModifierType_MeshDeform,
-	eModifierType_ParticleSystem,
-	eModifierType_ParticleInstance,
-	eModifierType_Explode,
-	eModifierType_Cloth,
-	eModifierType_Collision,
-	eModifierType_Bevel,
-	eModifierType_Shrinkwrap,
-	eModifierType_Fluidsim,
-	eModifierType_Mask,
-	eModifierType_SimpleDeform,
-	eModifierType_Multires,
-	eModifierType_Surface,
-	eModifierType_Smoke,
-	eModifierType_ShapeKey,
-	eModifierType_Solidify,
-	eModifierType_Screw,
-	eModifierType_Warp,
-	eModifierType_WeightVGEdit,
-	eModifierType_WeightVGMix,
-	eModifierType_WeightVGProximity,
-	eModifierType_Ocean,
-	eModifierType_DynamicPaint,
-	eModifierType_Remesh,
-	eModifierType_Skin,
+	eModifierType_None              = 0,
+	eModifierType_Subsurf           = 1,
+	eModifierType_Lattice           = 2,
+	eModifierType_Curve             = 3,
+	eModifierType_Build             = 4,
+	eModifierType_Mirror            = 5,
+	eModifierType_Decimate          = 6,
+	eModifierType_Wave              = 7,
+	eModifierType_Armature          = 8,
+	eModifierType_Hook              = 9,
+	eModifierType_Softbody          = 10,
+	eModifierType_Boolean           = 11,
+	eModifierType_Array             = 12,
+	eModifierType_EdgeSplit         = 13,
+	eModifierType_Displace          = 14,
+	eModifierType_UVProject         = 15,
+	eModifierType_Smooth            = 16,
+	eModifierType_Cast              = 17,
+	eModifierType_MeshDeform        = 18,
+	eModifierType_ParticleSystem    = 19,
+	eModifierType_ParticleInstance  = 20,
+	eModifierType_Explode           = 21,
+	eModifierType_Cloth             = 22,
+	eModifierType_Collision         = 23,
+	eModifierType_Bevel             = 24,
+	eModifierType_Shrinkwrap        = 25,
+	eModifierType_Fluidsim          = 26,
+	eModifierType_Mask              = 27,
+	eModifierType_SimpleDeform      = 28,
+	eModifierType_Multires          = 29,
+	eModifierType_Surface           = 30,
+	eModifierType_Smoke             = 31,
+	eModifierType_ShapeKey          = 32,
+	eModifierType_Solidify          = 33,
+	eModifierType_Screw             = 34,
+	eModifierType_Warp              = 35,
+	eModifierType_WeightVGEdit      = 36,
+	eModifierType_WeightVGMix       = 37,
+	eModifierType_WeightVGProximity = 38,
+	eModifierType_Ocean             = 39,
+	eModifierType_DynamicPaint      = 40,
+	eModifierType_Remesh            = 41,
+	eModifierType_Skin              = 42,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -327,19 +327,19 @@ typedef struct DisplaceModifierData {
 
 /* DisplaceModifierData->direction */
 enum {
-	MOD_DISP_DIR_X,
-	MOD_DISP_DIR_Y,
-	MOD_DISP_DIR_Z,
-	MOD_DISP_DIR_NOR,
-	MOD_DISP_DIR_RGB_XYZ,
+	MOD_DISP_DIR_X = 0,
+	MOD_DISP_DIR_Y = 1,
+	MOD_DISP_DIR_Z = 2,
+	MOD_DISP_DIR_NOR = 3,
+	MOD_DISP_DIR_RGB_XYZ = 4,
 };
 
 /* DisplaceModifierData->texmapping */
 enum {
-	MOD_DISP_MAP_LOCAL,
-	MOD_DISP_MAP_GLOBAL,
-	MOD_DISP_MAP_OBJECT,
-	MOD_DISP_MAP_UV
+	MOD_DISP_MAP_LOCAL = 0,
+	MOD_DISP_MAP_GLOBAL = 1,
+	MOD_DISP_MAP_OBJECT = 2,
+	MOD_DISP_MAP_UV = 3
 };
 
 typedef struct UVProjectModifierData {
@@ -509,9 +509,9 @@ typedef struct SurfaceModifierData {
 } SurfaceModifierData;
 
 typedef enum {
-	eBooleanModifierOp_Intersect,
-	eBooleanModifierOp_Union,
-	eBooleanModifierOp_Difference,
+	eBooleanModifierOp_Intersect = 0,
+	eBooleanModifierOp_Union = 1,
+	eBooleanModifierOp_Difference = 2,
 } BooleanModifierOp;
 typedef struct BooleanModifierData {
 	ModifierData modifier;

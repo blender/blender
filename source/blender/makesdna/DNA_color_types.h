@@ -86,13 +86,13 @@ typedef struct CurveMapping {
 
 /* cumapping->preset */
 typedef enum CurveMappingPreset {
-	CURVE_PRESET_LINE,
-	CURVE_PRESET_SHARP,
-	CURVE_PRESET_SMOOTH,
-	CURVE_PRESET_MAX,
-	CURVE_PRESET_MID9,
-	CURVE_PRESET_ROUND,
-	CURVE_PRESET_ROOT,
+	CURVE_PRESET_LINE   = 0,
+	CURVE_PRESET_SHARP  = 1,
+	CURVE_PRESET_SMOOTH = 2,
+	CURVE_PRESET_MAX    = 3,
+	CURVE_PRESET_MID9   = 4,
+	CURVE_PRESET_ROUND  = 5,
+	CURVE_PRESET_ROOT   = 6,
 } CurveMappingPreset;
 
 /* histogram->mode */

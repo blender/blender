@@ -155,9 +155,9 @@ typedef struct MaskLayer {
 /* SpaceClip->mask_draw_type */
 enum {
 	MASK_DT_OUTLINE = 0,
-	MASK_DT_DASH,
-	MASK_DT_BLACK,
-	MASK_DT_WHITE
+	MASK_DT_DASH    = 1,
+	MASK_DT_BLACK   = 2,
+	MASK_DT_WHITE   = 3
 };
 
 /* masklay->blend */
