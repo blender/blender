@@ -53,8 +53,9 @@ static void node_composit_exec_stabilize2d(void *data, bNode *node, bNodeStack *
 		CompBuf *cbuf = typecheck_compbuf(in[0]->data, CB_RGBA);
 		CompBuf *stackbuf;
 		float loc[2], scale, angle;
+		int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, rd->cfra);
 
-		BKE_tracking_stabilization_data_get(&clip->tracking, rd->cfra, cbuf->x, cbuf->y, loc, &scale, &angle);
+		BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, cbuf->x, cbuf->y, loc, &scale, &angle);
 
 		stackbuf = node_composit_transform(cbuf, loc[0], loc[1], angle, scale, node->custom1);
 

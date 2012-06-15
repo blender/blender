@@ -23,6 +23,7 @@
 #include "COM_MovieClipAttributeOperation.h"
 extern "C" {
 	#include "BKE_tracking.h"
+	#include "BKE_movieclip.h"
 }
 MovieClipAttributeOperation::MovieClipAttributeOperation(): NodeOperation()
 {
@@ -41,7 +42,8 @@ void MovieClipAttributeOperation::executePixel(float *outputValue, float x, floa
 		scale = 1.0f;
 		angle = 0.0f;
 		if (clip) {
-			BKE_tracking_stabilization_data_get(&clip->tracking, framenumber, getWidth(), getHeight(), loc, &scale, &angle);
+			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenumber);
+			BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
 		}
 		switch (this->attribute) {
 		case MCA_SCALE:

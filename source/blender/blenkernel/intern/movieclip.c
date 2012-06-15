@@ -773,6 +773,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	float tloc[2], tscale, tangle;
 	short proxy = IMB_PROXY_NONE;
 	int render_flag = 0;
+	int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenr);
 
 	if (clip->flag & MCLIP_USE_PROXY) {
 		proxy = rendersize_to_proxy(user, clip->flag);
@@ -799,7 +800,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 
 	stableibuf = cache->stabilized.ibuf;
 
-	BKE_tracking_stabilization_data_get(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+	BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
 	/* check for stabilization parameters */
 	if (tscale != cache->stabilized.scale ||
@@ -821,11 +822,12 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	MovieTracking *tracking = &clip->tracking;
 	ImBuf *stableibuf;
 	float tloc[2], tscale, tangle;
+	int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenr);
 
 	if (cache->stabilized.ibuf)
 		IMB_freeImBuf(cache->stabilized.ibuf);
 
-	stableibuf = BKE_tracking_stabilize_frame(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
+	stableibuf = BKE_tracking_stabilize_frame(&clip->tracking, clip_framenr, ibuf, tloc, &tscale, &tangle);
 
 	cache->stabilized.ibuf = stableibuf;
 

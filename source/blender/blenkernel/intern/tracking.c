@@ -3301,6 +3301,7 @@ static ImBuf *stabilization_allocate_ibuf(ImBuf *cacheibuf, ImBuf *srcibuf, int 
 	return cacheibuf;
 }
 
+/* NOTE: frame number should be in clip space, not scene space */
 void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, int width, int height,
                                          float loc[2], float *scale, float *angle)
 {
@@ -3340,6 +3341,7 @@ void BKE_tracking_stabilization_data_get(MovieTracking *tracking, int framenr, i
 	}
 }
 
+/* NOTE: frame number should be in clip space, not scene space */
 ImBuf *BKE_tracking_stabilize_frame(MovieTracking *tracking, int framenr, ImBuf *ibuf,
                                     float loc[2], float *scale, float *angle)
 {

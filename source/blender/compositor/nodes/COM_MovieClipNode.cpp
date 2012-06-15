@@ -91,7 +91,9 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 
 	if (ibuf) {
 		if (stab->flag&TRACKING_2D_STABILIZATION) {
-			BKE_tracking_stabilization_data_get(&movieClip->tracking, context->getFramenumber(), ibuf->x, ibuf->y, loc, &scale, &angle);
+			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip, context->getFramenumber());
+
+			BKE_tracking_stabilization_data_get(&movieClip->tracking, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
 		}
 	}
 	
