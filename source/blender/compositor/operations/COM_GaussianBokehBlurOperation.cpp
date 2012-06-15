@@ -152,7 +152,7 @@ void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, Memory
 void GaussianBokehBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	delete this->gausstab;
+	delete [] this->gausstab;
 	this->gausstab = NULL;
 }
 

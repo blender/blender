@@ -105,7 +105,7 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 void GaussianYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	delete this->gausstab;
+	delete [] this->gausstab;
 	this->gausstab = NULL;
 }
 
