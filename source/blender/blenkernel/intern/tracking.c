@@ -1425,8 +1425,8 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 	}
 #else
 	(void) distortion;
-	(void) width;
-	(void) height;
+	(void) calibration_width;
+	(void) calibration_height;
 	(void) camera;
 	(void) aspy;
 #endif
