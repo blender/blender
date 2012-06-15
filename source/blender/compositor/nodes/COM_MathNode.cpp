@@ -24,61 +24,61 @@
 #include "COM_MathBaseOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void MathNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	MathBaseOperation *operation=NULL;
+	MathBaseOperation *operation = NULL;
 	
 	switch (this->getbNode()->custom1)
 	{
-	case 0: /* Add */
+		case 0: /* Add */
 			operation = new MathAddOperation();
 			break;
-	case 1: /* Subtract */
+		case 1: /* Subtract */
 			operation = new MathSubtractOperation();
 			break;
-	case 2: /* Multiply */
+		case 2: /* Multiply */
 			operation = new MathMultiplyOperation();
 			break;
-	case 3: /* Divide */
+		case 3: /* Divide */
 			operation = new MathDivideOperation();
 			break;
-	case 4: /* Sine */
+		case 4: /* Sine */
 			operation = new MathSineOperation();
 			break;
-	case 5: /* Cosine */
+		case 5: /* Cosine */
 			operation = new MathCosineOperation();
 			break;
-	case 6: /* Tangent */
+		case 6: /* Tangent */
 			operation = new MathTangentOperation();
 			break;
-	case 7: /* Arc-Sine */
+		case 7: /* Arc-Sine */
 			operation = new MathArcSineOperation();
 			break;
-	case 8: /* Arc-Cosine */
+		case 8: /* Arc-Cosine */
 			operation = new MathArcCosineOperation();
 			break;
-	case 9: /* Arc-Tangent */
+		case 9: /* Arc-Tangent */
 			operation = new MathArcTangentOperation();
 			break;
-	case 10: /* Power */
+		case 10: /* Power */
 			operation = new MathPowerOperation();
 			break;
-	case 11: /* Logarithm */
+		case 11: /* Logarithm */
 			operation = new MathLogarithmOperation();
 			break;
-	case 12: /* Minimum */
+		case 12: /* Minimum */
 			operation = new MathMinimumOperation();
 			break;
-	case 13: /* Maximum */
+		case 13: /* Maximum */
 			operation = new MathMaximumOperation();
 			break;
-	case 14: /* Round */
+		case 14: /* Round */
 			operation = new MathRoundOperation();
 			break;
-	case 15: /* Less Than */
+		case 15: /* Less Than */
 			operation = new MathLessThanOperation();
 			break;
-	case 16: /* Greater Than */
+		case 16: /* Greater Than */
 			operation = new MathGreaterThanOperation();
 			break;
 	}

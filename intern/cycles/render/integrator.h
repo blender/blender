@@ -49,12 +49,20 @@ public:
 	float sample_clamp;
 	bool motion_blur;
 
+	int diffuse_samples;
+	int glossy_samples;
+	int transmission_samples;
+	int ao_samples;
+	int mesh_light_samples;
+
+	bool progressive;
+
 	bool need_update;
 
 	Integrator();
 	~Integrator();
 
-	void device_update(Device *device, DeviceScene *dscene);
+	void device_update(Device *device, DeviceScene *dscene, Scene *scene);
 	void device_free(Device *device, DeviceScene *dscene);
 
 	bool modified(const Integrator& integrator);

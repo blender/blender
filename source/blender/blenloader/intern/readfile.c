@@ -5302,6 +5302,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 						 */
 						sima->gpd = newlibadr_us(fd, sc->id.lib, sima->gpd);
 					}
+					else if (sl->spacetype == SPACE_SEQ) {
+						SpaceSeq *sseq = (SpaceSeq *)sl;
+						
+						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+						 * so fingers crossed this works fine!
+						 */
+						sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+					}
 					else if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla= (SpaceNla *)sl;
 						bDopeSheet *ads= snla->ads;
@@ -5372,14 +5380,19 @@ static void lib_link_screen(FileData *fd, Main *main)
 					}
 					else if (sl->spacetype == SPACE_CLIP) {
 						SpaceClip *sclip = (SpaceClip *)sl;
-
+						
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
 						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
-
+						
 						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
 						sclip->scopes.ok = 0;
+					}
+					else if (sl->spacetype == SPACE_LOGIC) {
+						SpaceLogic *slogic = (SpaceLogic *)sl;
+						
+						slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
 					}
 				}
 			}
@@ -5552,6 +5565,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					if (saction->ads.filter_grp)
 						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+						
+					
+					/* force recalc of list of channels, potentially updating the active action 
+					 * while we're at it (as it can only be updated that way) [#28962] 
+					 */
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 				}
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
@@ -5572,6 +5591,14 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					 * so assume that here we're doing for undo only...
 					 */
 					sima->gpd = restore_pointer_by_name(newmain, (ID *)sima->gpd, 1);
+				}
+				else if (sl->spacetype == SPACE_SEQ) {
+					SpaceSeq *sseq = (SpaceSeq *)sl;
+					
+					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+					 * so assume that here we're doing for undo only...
+					 */
+					sseq->gpd = restore_pointer_by_name(newmain, (ID *)sseq->gpd, 1);
 				}
 				else if (sl->spacetype == SPACE_NLA) {
 					SpaceNla *snla = (SpaceNla *)sl;
@@ -5637,11 +5664,16 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 				}
 				else if (sl->spacetype == SPACE_CLIP) {
 					SpaceClip *sclip = (SpaceClip *)sl;
-
+					
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
 					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
-
+					
 					sclip->scopes.ok = 0;
+				}
+				else if (sl->spacetype == SPACE_LOGIC) {
+					SpaceLogic *slogic = (SpaceLogic *)sl;
+					
+					slogic->gpd = restore_pointer_by_name(newmain, (ID *)slogic->gpd, 1);
 				}
 			}
 		}
@@ -5883,7 +5915,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if (sl->spacetype == SPACE_LOGIC) {
 				SpaceLogic *slogic = (SpaceLogic *)sl;
-					
+				
+				/* XXX: this is new stuff, which shouldn't be directly linking to gpd... */
 				if (slogic->gpd) {
 					slogic->gpd = newdataadr(fd, slogic->gpd);
 					direct_link_gpencil(fd, slogic->gpd);
@@ -7416,7 +7449,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					tracking->settings.object_distance = 1.0f;
 				
 				if (tracking->objects.first == NULL)
-					BKE_tracking_new_object(tracking, "Camera");
+					BKE_tracking_object_add(tracking, "Camera");
 				
 				while (tracking_object) {
 					if (!tracking_object->scale)
@@ -8288,7 +8321,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					
 					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
 					 * inserted in the map to be found! */
-
+					
 					/* Update: previously it was checking for id->flag & LIB_PRE_EXISTING, however that does not affect file
 					 * reading. For file reading we may need to insert it into the libmap as well, because you might have
 					 * two files indirectly linking the same datablock, and in that case we need this in the libmap for the
@@ -8697,6 +8730,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	}
 }
 
+#if 0 /* Disabled as it doesn't actually do anything except recurse... */
 static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 {
 	Bone *curBone;
@@ -8705,6 +8739,7 @@ static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 		expand_bones(fd, mainvar, curBone);
 	}
 }
+#endif
 
 static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 {
@@ -8720,15 +8755,19 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 }
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
-{
-	Bone *curBone;
-	
+{	
 	if (arm->adt)
 		expand_animdata(fd, mainvar, arm->adt);
 	
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
-		expand_bones(fd, mainvar, curBone);
+#if 0 /* Disabled as this currently only recurses down the chain doing nothing */
+	{
+		Bone *curBone;
+		
+		for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
+			expand_bones(fd, mainvar, curBone);
+		}
 	}
+#endif
 }
 
 static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
@@ -8945,7 +8984,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 #ifdef DURIAN_CAMERA_SWITCH
 	{
 		TimeMarker *marker;
-
+		
 		for (marker = sce->markers.first; marker; marker = marker->next) {
 			if (marker->camera) {
 				expand_doit(fd, mainvar, marker->camera);

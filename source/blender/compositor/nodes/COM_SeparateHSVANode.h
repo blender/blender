@@ -28,12 +28,12 @@
 #include "COM_SeparateRGBANode.h"
 
 /**
-  * @brief SeparateHSVANode
-  * @ingroup Node
-  */
+ * @brief SeparateHSVANode
+ * @ingroup Node
+ */
 class SeparateHSVANode : public SeparateRGBANode {
 public:
 	SeparateHSVANode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif

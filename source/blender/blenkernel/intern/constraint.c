@@ -822,12 +822,12 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 		if (data->flag == CHILDOF_ALL) {
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, data->invmat);
 			
 			/* now multiply the parent matrix by the owner matrix to get the 
-			 * the effect of this constraint (i.e.  owner is 'parented' to parent)
+			 * the effect of this constraint (i.e. owner is 'parented' to parent)
 			 */
 			mult_m4_m4m4(cob->matrix, parmat, cob->matrix);
 		}
@@ -864,7 +864,7 @@ static void childof_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *tar
 			loc_eulO_size_to_mat4(invmat, loco, eulo, sizo, cob->rotOrder);
 			
 			/* multiply target (parent matrix) by offset (parent inverse) to get 
-			 * the effect of the parent that will be exherted on the owner
+			 * the effect of the parent that will be exerted on the owner
 			 */
 			mult_m4_m4m4(parmat, ct->matrix, invmat);
 			
@@ -1620,7 +1620,7 @@ static void rotlike_new_data(void *cdata)
 
 static void rotlike_id_looper(bConstraint *con, ConstraintIDFunc func, void *userdata)
 {
-	bChildOfConstraint *data = con->data;
+	bRotateLikeConstraint *data = con->data;
 	
 	/* target only */
 	func(con, (ID **)&data->tar, FALSE, userdata);
@@ -2159,7 +2159,15 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			printf("do Action Constraint %s - Ob %s Pchan %s\n", con->name, cob->ob->id.name + 2, (cob->pchan) ? cob->pchan->name : NULL);
 		
 		/* Get the appropriate information from the action */
-		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+		if (cob->type == CONSTRAINT_OBTYPE_OBJECT || (data->flag & ACTCON_BONE_USE_OBJECT_ACTION)) {
+			Object workob;
+			
+			/* evaluate using workob */
+			// FIXME: we don't have any consistent standards on limiting effects on object...
+			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
+			BKE_object_to_mat4(&workob, ct->matrix);
+		}
+		else if (cob->type == CONSTRAINT_OBTYPE_BONE) {
 			Object workob;
 			bPose *pose;
 			bPoseChannel *pchan, *tchan;
@@ -2184,14 +2192,6 @@ static void actcon_get_tarmat(bConstraint *con, bConstraintOb *cob, bConstraintT
 			
 			/* Clean up */
 			BKE_pose_free(pose);
-		}
-		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
-			Object workob;
-			
-			/* evaluate using workob */
-			// FIXME: we don't have any consistent standards on limiting effects on object...
-			what_does_obaction(cob->ob, &workob, NULL, data->act, NULL, t);
-			BKE_object_to_mat4(&workob, ct->matrix);
 		}
 		else {
 			/* behavior undefined... */
@@ -3278,6 +3278,15 @@ static void transform_evaluate(bConstraint *con, bConstraintOb *cob, ListBase *t
 		switch (data->from) {
 			case 2: /* scale */
 				mat4_to_size(dvec, ct->matrix);
+				
+				if (is_negative_m4(ct->matrix)) {
+					/* Bugfix [#27886] 
+					 * We can't be sure which axis/axes are negative, though we know that something is negative.
+					 * Assume we don't care about negativity of separate axes. <--- This is a limitation that
+					 * riggers will have to live with for now.
+					 */
+					negate_v3(dvec);
+				}
 				break;
 			case 1: /* rotation (convert to degrees first) */
 				mat4_to_eulO(dvec, cob->rotOrder, ct->matrix);
@@ -3908,14 +3917,14 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 	tracking = &clip->tracking;
 
 	if (data->object[0])
-		tracking_object = BKE_tracking_named_object(tracking, data->object);
+		tracking_object = BKE_tracking_object_get_named(tracking, data->object);
 	else
-		tracking_object = BKE_tracking_get_camera_object(tracking);
+		tracking_object = BKE_tracking_object_get_camera(tracking);
 
 	if (!tracking_object)
 		return;
 
-	track = BKE_tracking_named_track(tracking, tracking_object, data->track);
+	track = BKE_tracking_track_get_named(tracking, tracking_object, data->track);
 
 	if (!track)
 		return;
@@ -3933,14 +3942,14 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 
 				copy_m4_m4(mat, camob->obmat);
 
-				BKE_tracking_get_interpolated_camera(tracking, tracking_object, framenr, imat);
+				BKE_tracking_camera_get_reconstructed_interpolate(tracking, tracking_object, framenr, imat);
 				invert_m4(imat);
 
 				mul_serie_m4(cob->matrix, obmat, mat, imat, NULL, NULL, NULL, NULL, NULL);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
 			}
 			else {
-				BKE_get_tracking_mat(cob->scene, camob, mat);
+				BKE_tracking_get_camera_object_matrix(cob->scene, camob, mat);
 
 				mult_m4_m4m4(cob->matrix, obmat, mat);
 				translate_m4(cob->matrix, track->bundle_pos[0], track->bundle_pos[1], track->bundle_pos[2]);
@@ -3972,7 +3981,7 @@ static void followtrack_evaluate(bConstraint *con, bConstraintOb *cob, ListBase 
 			CameraParams params;
 			float pos[2], rmat[4][4];
 
-			marker = BKE_tracking_get_marker(track, framenr);
+			marker = BKE_tracking_marker_get(track, framenr);
 
 			add_v2_v2v2(pos, marker->pos, track->offset);
 
@@ -4094,10 +4103,10 @@ static void camerasolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 	if (clip) {
 		float mat[4][4], obmat[4][4];
 		MovieTracking *tracking = &clip->tracking;
-		MovieTrackingObject *object = BKE_tracking_get_camera_object(tracking);
+		MovieTrackingObject *object = BKE_tracking_object_get_camera(tracking);
 		int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, scene->r.cfra);
 
-		BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
+		BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
 		copy_m4_m4(obmat, cob->matrix);
 
@@ -4156,7 +4165,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 		MovieTracking *tracking = &clip->tracking;
 		MovieTrackingObject *object;
 
-		object = BKE_tracking_named_object(tracking, data->object);
+		object = BKE_tracking_object_get_named(tracking, data->object);
 
 		if (object) {
 			float mat[4][4], obmat[4][4], imat[4][4], cammat[4][4], camimat[4][4], parmat[4][4];
@@ -4164,7 +4173,7 @@ static void objectsolver_evaluate(bConstraint *con, bConstraintOb *cob, ListBase
 
 			BKE_object_where_is_calc_mat4(scene, camob, cammat);
 
-			BKE_tracking_get_interpolated_camera(tracking, object, framenr, mat);
+			BKE_tracking_camera_get_reconstructed_interpolate(tracking, object, framenr, mat);
 
 			invert_m4_m4(camimat, cammat);
 			mult_m4_m4m4(parmat, cammat, data->invmat);

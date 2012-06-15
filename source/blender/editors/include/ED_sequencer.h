@@ -27,8 +27,6 @@
 #ifndef __ED_SEQUENCER_H__
 #define __ED_SEQUENCER_H__
 
-#define SEQ_ZOOM_FAC(szoom) ((szoom) > 0.0f) ? (szoom) : ((szoom) == 0.0f) ? (1.0f) : (-1.0f / (szoom))
-
 struct Scene;
 struct Sequence;
 

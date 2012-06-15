@@ -54,12 +54,12 @@ void DirectionalBlurOperation::initExecution()
 	const float itsc = 1.0f / powf(2.0f, (float)iterations);
 	float D;
 
-	D = distance * sqrtf(width*width + height*height);
+	D = distance * sqrtf(width * width + height * height);
 	center_x_pix = center_x * width;
 	center_y_pix = center_y * height;
 
 	tx  =  itsc * D * cosf(a);
-	ty  = -itsc * D * sinf(a);
+	ty  = -itsc *D *sinf(a);
 	sc  =  itsc * zoom;
 	rot =  itsc * spin;
 
@@ -68,8 +68,8 @@ void DirectionalBlurOperation::initExecution()
 void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	const int iterations = pow(2.f, this->data->iter);
-	float col[4] = {0,0,0,0};
-	float col2[4] = {0,0,0,0};
+	float col[4] = {0, 0, 0, 0};
+	float col2[4] = {0, 0, 0, 0};
 	this->inputProgram->read(col2, x, y, COM_PS_NEAREST, inputBuffers);
 	float ltx = tx;
 	float lty = ty;
@@ -85,10 +85,7 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 
 		this->inputProgram->read(col, cs * u + ss * v + center_x_pix, cs * v - ss * u + center_y_pix, COM_PS_NEAREST, inputBuffers);
 
-		col2[0] += col[0];
-		col2[1] += col[1];
-		col2[2] += col[2];
-		col2[3] += col[3];
+		add_v4_v4(col2, col);
 
 		/* double transformations */
 		ltx += tx;
@@ -96,10 +93,8 @@ void DirectionalBlurOperation::executePixel(float *color, int x, int y, MemoryBu
 		lrot += rot;
 		lsc += sc;
 	}
-	color[0] = col2[0]/iterations;
-	color[1] = col2[1]/iterations;
-	color[2] = col2[2]/iterations;
-	color[3] = col2[3]/iterations;
+
+	mul_v4_v4fl(color, col2, 1.0f / iterations);
 }
 
 void DirectionalBlurOperation::deinitExecution()

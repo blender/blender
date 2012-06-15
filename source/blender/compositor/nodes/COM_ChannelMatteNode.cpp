@@ -27,8 +27,10 @@
 #include "COM_ConvertRGBToYUVOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-ChannelMatteNode::ChannelMatteNode(bNode *editorNode): Node(editorNode)
-{}
+ChannelMatteNode::ChannelMatteNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -36,30 +38,30 @@ void ChannelMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCon
 	OutputSocket *outputSocketImage = this->getOutputSocket(0);
 	OutputSocket *outputSocketMatte = this->getOutputSocket(1);
 
-	NodeOperation *convert=NULL;
+	NodeOperation *convert = NULL;
 	bNode *node = this->getbNode();
 
 	/* colorspace */
 	switch (node->custom1) {
-	case CMP_NODE_CHANNEL_MATTE_CS_RGB:
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
-		convert = new ConvertRGBToHSVOperation();
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
-		convert = new ConvertRGBToYUVOperation();
-		break;
-	case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
-		convert = new ConvertRGBToYCCOperation();
-		((ConvertRGBToYCCOperation *)convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
-		break;
-	default:
-		break;
+		case CMP_NODE_CHANNEL_MATTE_CS_RGB:
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_HSV: /*HSV*/
+			convert = new ConvertRGBToHSVOperation();
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_YUV: /*YUV*/
+			convert = new ConvertRGBToYUVOperation();
+			break;
+		case CMP_NODE_CHANNEL_MATTE_CS_YCC: /*YCC*/
+			convert = new ConvertRGBToYCCOperation();
+			((ConvertRGBToYCCOperation *)convert)->setMode(0); /* BLI_YCC_ITU_BT601 */
+			break;
+		default:
+			break;
 	}
 
 	ChannelMatteOperation *operation = new ChannelMatteOperation();
 	/* pass the ui properties to the operation */
-	operation->setSettings((NodeChroma*)node->storage, node->custom2);
+	operation->setSettings((NodeChroma *)node->storage, node->custom2);
 
 	SetAlphaOperation *operationAlpha = new SetAlphaOperation();
 

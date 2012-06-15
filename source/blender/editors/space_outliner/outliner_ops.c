@@ -77,6 +77,7 @@ void outliner_operatortypes(void)
 	WM_operatortype_append(OUTLINER_OT_parent_drop);
 	WM_operatortype_append(OUTLINER_OT_parent_clear);
 	WM_operatortype_append(OUTLINER_OT_scene_drop);
+	WM_operatortype_append(OUTLINER_OT_material_drop);
 }
 
 void outliner_keymap(wmKeyConfig *keyconf)

@@ -311,11 +311,19 @@ typedef struct View3D {
 /* #define V3D_CALC_MANIPULATOR	4 */ /*UNUSED*/
 
 /* BGPic->flag */
-/* may want to use 1 for select ?*/
-#define V3D_BGPIC_EXPANDED		2
-#define V3D_BGPIC_CAMERACLIP	4
-#define V3D_BGPIC_DISABLED		8
-#define V3D_BGPIC_FOREGROUND		16
+/* may want to use 1 for select ? */
+enum {
+	V3D_BGPIC_EXPANDED      = (1 << 1),
+	V3D_BGPIC_CAMERACLIP    = (1 << 2),
+	V3D_BGPIC_DISABLED      = (1 << 3),
+	V3D_BGPIC_FOREGROUND    = (1 << 4),
+
+	/* Camera framing options */
+	V3D_BGPIC_CAMERA_ASPECT = (1 << 5),  /* don't stretch to fit the camera view  */
+	V3D_BGPIC_CAMERA_CROP   = (1 << 6)   /* crop out the image */
+};
+
+#define V3D_BGPIC_EXPANDED (V3D_BGPIC_EXPANDED | V3D_BGPIC_CAMERACLIP)
 
 /* BGPic->source */
 /* may want to use 1 for select ?*/

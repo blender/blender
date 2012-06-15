@@ -222,7 +222,7 @@ static void local_merge(bNodeTree *localtree, bNodeTree *ntree)
 				   copied back to original node */
 				if (lnode->storage) {
 					if (lnode->new_node->storage)
-						BKE_tracking_distortion_destroy(lnode->new_node->storage);
+						BKE_tracking_distortion_free(lnode->new_node->storage);
 
 					lnode->new_node->storage= BKE_tracking_distortion_copy(lnode->storage);
 				}

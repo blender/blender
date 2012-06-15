@@ -26,12 +26,12 @@
 #include "COM_Node.h"
 
 /**
-  * @brief HueSaturationValueCorrectNode
-  * @ingroup Node
-  */
+ * @brief HueSaturationValueCorrectNode
+ * @ingroup Node
+ */
 class HueSaturationValueCorrectNode : public Node {
 public:
 	HueSaturationValueCorrectNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif

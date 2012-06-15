@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief LensDistortionNode
-  * @ingroup Node
-  */
-class LensDistortionNode: public Node {
+ * @brief LensDistortionNode
+ * @ingroup Node
+ */
+class LensDistortionNode : public Node {
 public:
 	LensDistortionNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

@@ -32,12 +32,12 @@
 
 extern "C" {
 	#include "BKE_mask.h"
+	#include "../../../../intern/raskter/raskter.h"
 }
 
-MaskOperation::MaskOperation(): NodeOperation()
+MaskOperation::MaskOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
-	this->addOutputSocket(COM_DT_COLOR);
+	this->addOutputSocket(COM_DT_VALUE);
 	this->mask = NULL;
 	this->maskWidth = 0;
 	this->maskHeight = 0;
@@ -68,19 +68,21 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 	if (!this->mask)
 		return NULL;
 
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (this->rasterizedMask == NULL) {
 		int width = this->getWidth();
 		int height = this->getHeight();
 		float *buffer;
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
-		BKE_mask_rasterize(mask, width, height, buffer, TRUE, TRUE);
+		BKE_mask_rasterize(mask, width, height, buffer, TRUE, this->smooth);
+		if (this->smooth) {
+			PLX_antialias_buffer(buffer, width, height);
+		}
 
 		this->rasterizedMask = buffer;
 	}
-	BLI_mutex_unlock(getMutex());
-
+	unlockMutex();
 	return this->rasterizedMask;
 }
 
@@ -105,20 +107,12 @@ void MaskOperation::determineResolution(unsigned int resolution[], unsigned int 
 void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	if (!data) {
-		color[0] = 0;
-		color[1] = 0;
-		color[2] = 0;
-		color[3] = 1.0f;
+		color[0] = 0.0f;
 	}
 	else {
-		float *buffer = (float*) data;
+		float *buffer = (float *) data;
 		int index = (y * this->getWidth() + x);
 
 		color[0] = buffer[index];
-		color[1] = buffer[index];
-		color[2] = buffer[index];
-		color[3] = 1.0f;
 	}
 }
-
-

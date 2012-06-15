@@ -26,12 +26,12 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
-  * @brief MixNode
-  * @ingroup Node
-  */
+ * @brief MixNode
+ * @ingroup Node
+ */
 class MixNode : public Node {
 public:
 	MixNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif

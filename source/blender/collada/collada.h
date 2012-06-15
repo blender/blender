@@ -44,10 +44,13 @@ extern "C" {
 		int apply_modifiers,
 
 		int include_armatures,
-		int include_bone_children,
+		int include_children,
 
 		int use_object_instantiation,
+		int sort_by_name,
 		int second_life);
+
+
 
 #ifdef __cplusplus
 }

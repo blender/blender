@@ -64,18 +64,18 @@ static void InputSpring(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2],
 		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
 		dx = (float)(mi->center[0] - mi->precision_mval[0]);
 		dy = (float)(mi->center[1] - mi->precision_mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy);
+		ratio = sqrtf(dx * dx + dy * dy);
 
-		dx= (float)(mi->center[0] - mval[0]);
-		dy= (float)(mi->center[1] - mval[1]);
-		precise_ratio = (float)sqrt( dx*dx + dy*dy);
+		dx = (float)(mi->center[0] - mval[0]);
+		dy = (float)(mi->center[1] - mval[1]);
+		precise_ratio = (float)sqrt(dx * dx + dy * dy);
 
 		ratio = (ratio + (precise_ratio - ratio) / 10.0f) / mi->factor;
 	}
 	else {
 		dx = (float)(mi->center[0] - mval[0]);
 		dy = (float)(mi->center[1] - mval[1]);
-		ratio = (float)sqrt( dx*dx + dy*dy) / mi->factor;
+		ratio = sqrtf(dx * dx + dy * dy) / mi->factor;
 	}
 
 	output[0] = ratio;
@@ -98,12 +98,12 @@ static void InputTrackBall(TransInfo *UNUSED(t), MouseInput *mi, const int mval[
 {
 
 	if (mi->precision) {
-		output[0] = ( mi->imval[1] - mi->precision_mval[1] ) + ( mi->precision_mval[1] - mval[1] ) * 0.1f;
-		output[1] = ( mi->precision_mval[0] - mi->imval[0] ) + ( mval[0] - mi->precision_mval[0] ) * 0.1f;
+		output[0] = (mi->imval[1] - mi->precision_mval[1]) + (mi->precision_mval[1] - mval[1]) * 0.1f;
+		output[1] = (mi->precision_mval[0] - mi->imval[0]) + (mval[0] - mi->precision_mval[0]) * 0.1f;
 	}
 	else {
-		output[0] = (float)( mi->imval[1] - mval[1] );
-		output[1] = (float)( mval[0] - mi->imval[0] );
+		output[0] = (float)(mi->imval[1] - mval[1]);
+		output[1] = (float)(mval[0] - mi->imval[0]);
 	}
 
 	output[0] *= mi->factor;
@@ -191,7 +191,7 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 		dx = data[2] - data[0];
 		dy = data[3] - data[1];
 		
-		length = sqrt(dx*dx + dy*dy);
+		length = sqrt(dx * dx + dy * dy);
 		
 		if (mi->precision) {
 			/* deal with Shift key by adding motion / 10 to motion before shift press */
@@ -199,7 +199,7 @@ static void InputCustomRatio(TransInfo *UNUSED(t), MouseInput *mi, const int mva
 			mdx = (mi->precision_mval[0] + (float)(mval[0] - mi->precision_mval[0]) / 10.0f) - data[2];
 			mdy = (mi->precision_mval[1] + (float)(mval[1] - mi->precision_mval[1]) / 10.0f) - data[3];
 
-			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length: 0.0;
+			distance = (length != 0.0) ? (mdx * dx + mdy * dy) / length : 0.0;
 		}
 		else {
 			int mdx, mdy;
@@ -217,11 +217,11 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 {
 	double dx2 = mval[0] - mi->center[0];
 	double dy2 = mval[1] - mi->center[1];
-	double B = sqrt(dx2*dx2+dy2*dy2);
+	double B = sqrt(dx2 * dx2 + dy2 * dy2);
 
 	double dx1 = mi->imval[0] - mi->center[0];
 	double dy1 = mi->imval[1] - mi->center[1];
-	double A = sqrt(dx1*dx1+dy1*dy1);
+	double A = sqrt(dx1 * dx1 + dy1 * dy1);
 
 	double dx3 = mval[0] - mi->imval[0];
 	double dy3 = mval[1] - mi->imval[1];
@@ -237,7 +237,7 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 	float dphi;
 
 	dphi = saacos((float)deler);
-	if ( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+	if ((dx1 * dy2 - dx2 * dy1) > 0.0) dphi = -dphi;
 
 	/* If the angle is zero, because of lack of precision close to the 1.0 value in acos
 	 * approximate the angle with the opposite side of the normalized triangle
@@ -256,12 +256,12 @@ static void InputAngle(TransInfo *UNUSED(t), MouseInput *mi, const int mval[2], 
 		dx = dx1 - dx2;
 		dy = dy1 - dy2;
 
-		dphi = sqrt(dx*dx + dy*dy);
-		if ( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
+		dphi = sqrt(dx * dx + dy * dy);
+		if ((dx1 * dy2 - dx2 * dy1) > 0.0) dphi = -dphi;
 	}
 
 	if (mi->precision) {
-		dphi = dphi/30.0f;
+		dphi = dphi / 30.0f;
 	}
 
 	/* if no delta angle, don't update initial position */
@@ -295,7 +295,7 @@ static void calcSpringFactor(MouseInput *mi)
 	                   ((float)(mi->center[0] - mi->imval[0])) * ((float)(mi->center[0] - mi->imval[0])));
 
 	if (mi->factor == 0.0f) {
-		mi->factor= 1.0f; /* prevent Inf */
+		mi->factor = 1.0f; /* prevent Inf */
 	}
 }
 
@@ -307,68 +307,68 @@ void initMouseInputMode(TransInfo *t, MouseInput *mi, MouseInputMode mode)
 #if 0
 	if (mi->data) {
 		MEM_freeN(mi->data);
-		mi->data= NULL;
+		mi->data = NULL;
 	}
 #endif
 
 	switch (mode) {
-	case INPUT_VECTOR:
-		mi->apply = InputVector;
-		t->helpline = HLP_NONE;
-		break;
-	case INPUT_SPRING:
-		calcSpringFactor(mi);
-		mi->apply = InputSpring;
-		t->helpline = HLP_SPRING;
-		break;
-	case INPUT_SPRING_FLIP:
-		calcSpringFactor(mi);
-		mi->apply = InputSpringFlip;
-		t->helpline = HLP_SPRING;
-		break;
-	case INPUT_ANGLE:
-		mi->data = MEM_callocN(sizeof(double), "angle accumulator");
-		mi->apply = InputAngle;
-		t->helpline = HLP_ANGLE;
-		break;
-	case INPUT_TRACKBALL:
-		/* factor has to become setting or so */
-		mi->factor = 0.01f;
-		mi->apply = InputTrackBall;
-		t->helpline = HLP_TRACKBALL;
-		break;
-	case INPUT_HORIZONTAL_RATIO:
-		mi->factor = (float)(mi->center[0] - mi->imval[0]);
-		mi->apply = InputHorizontalRatio;
-		t->helpline = HLP_HARROW;
-		break;
-	case INPUT_HORIZONTAL_ABSOLUTE:
-		mi->apply = InputHorizontalAbsolute;
-		t->helpline = HLP_HARROW;
-		break;
-	case INPUT_VERTICAL_RATIO:
-		mi->apply = InputVerticalRatio;
-		t->helpline = HLP_VARROW;
-		break;
-	case INPUT_VERTICAL_ABSOLUTE:
-		mi->apply = InputVerticalAbsolute;
-		t->helpline = HLP_VARROW;
-		break;
-	case INPUT_CUSTOM_RATIO:
-		mi->apply = InputCustomRatio;
-		t->helpline = HLP_NONE;
-		break;
-	case INPUT_NONE:
-	default:
-		mi->apply = NULL;
-		break;
+		case INPUT_VECTOR:
+			mi->apply = InputVector;
+			t->helpline = HLP_NONE;
+			break;
+		case INPUT_SPRING:
+			calcSpringFactor(mi);
+			mi->apply = InputSpring;
+			t->helpline = HLP_SPRING;
+			break;
+		case INPUT_SPRING_FLIP:
+			calcSpringFactor(mi);
+			mi->apply = InputSpringFlip;
+			t->helpline = HLP_SPRING;
+			break;
+		case INPUT_ANGLE:
+			mi->data = MEM_callocN(sizeof(double), "angle accumulator");
+			mi->apply = InputAngle;
+			t->helpline = HLP_ANGLE;
+			break;
+		case INPUT_TRACKBALL:
+			/* factor has to become setting or so */
+			mi->factor = 0.01f;
+			mi->apply = InputTrackBall;
+			t->helpline = HLP_TRACKBALL;
+			break;
+		case INPUT_HORIZONTAL_RATIO:
+			mi->factor = (float)(mi->center[0] - mi->imval[0]);
+			mi->apply = InputHorizontalRatio;
+			t->helpline = HLP_HARROW;
+			break;
+		case INPUT_HORIZONTAL_ABSOLUTE:
+			mi->apply = InputHorizontalAbsolute;
+			t->helpline = HLP_HARROW;
+			break;
+		case INPUT_VERTICAL_RATIO:
+			mi->apply = InputVerticalRatio;
+			t->helpline = HLP_VARROW;
+			break;
+		case INPUT_VERTICAL_ABSOLUTE:
+			mi->apply = InputVerticalAbsolute;
+			t->helpline = HLP_VARROW;
+			break;
+		case INPUT_CUSTOM_RATIO:
+			mi->apply = InputCustomRatio;
+			t->helpline = HLP_NONE;
+			break;
+		case INPUT_NONE:
+		default:
+			mi->apply = NULL;
+			break;
 	}
 
 	/* bootstrap mouse input with initial values */
 	applyMouseInput(t, mi, mi->imval, t->values);
 }
 
-void setInputPostFct(MouseInput *mi, void	(*post)(struct TransInfo *, float [3]))
+void setInputPostFct(MouseInput *mi, void (*post)(struct TransInfo *, float[3]))
 {
 	mi->post = post;
 }
@@ -389,21 +389,21 @@ int handleMouseInput(TransInfo *t, MouseInput *mi, wmEvent *event)
 	int redraw = TREDRAW_NOTHING;
 
 	switch (event->type) {
-	case LEFTSHIFTKEY:
-	case RIGHTSHIFTKEY:
-		if (event->val == KM_PRESS) {
-			t->modifiers |= MOD_PRECISION;
-			/* shift is modifier for higher precision transform
-			 * store the mouse position where the normal movement ended */
-			copy_v2_v2_int(mi->precision_mval, event->mval);
-			mi->precision = 1;
-		}
-		else {
-			t->modifiers &= ~MOD_PRECISION;
-			mi->precision = 0;
-		}
-		redraw = TREDRAW_HARD;
-		break;
+		case LEFTSHIFTKEY:
+		case RIGHTSHIFTKEY:
+			if (event->val == KM_PRESS) {
+				t->modifiers |= MOD_PRECISION;
+				/* shift is modifier for higher precision transform
+				 * store the mouse position where the normal movement ended */
+				copy_v2_v2_int(mi->precision_mval, event->mval);
+				mi->precision = 1;
+			}
+			else {
+				t->modifiers &= ~MOD_PRECISION;
+				mi->precision = 0;
+			}
+			redraw = TREDRAW_HARD;
+			break;
 	}
 
 	return redraw;

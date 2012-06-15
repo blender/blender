@@ -26,19 +26,21 @@
 #include "COM_DotproductOperation.h"
 #include "COM_SetVectorOperation.h"
 
-NormalNode::NormalNode(bNode *editorNode): Node(editorNode)
-{}
+NormalNode::NormalNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
-void NormalNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void NormalNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	OutputSocket *outputSocketDotproduct = this->getOutputSocket(1);
 	bNode *editorNode = this->getbNode();
 	
-	SetVectorOperation * operationSet = new SetVectorOperation();
-	bNodeSocket * insock = (bNodeSocket*)editorNode->outputs.first;
-	bNodeSocketValueVector *dval = (bNodeSocketValueVector*)insock->default_value;
+	SetVectorOperation *operationSet = new SetVectorOperation();
+	bNodeSocket *insock = (bNodeSocket *)editorNode->outputs.first;
+	bNodeSocketValueVector *dval = (bNodeSocketValueVector *)insock->default_value;
 	operationSet->setX(dval->value[0]);
 	operationSet->setY(dval->value[1]);
 	operationSet->setZ(dval->value[2]);

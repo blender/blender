@@ -32,22 +32,23 @@
 #include "COM_ChangeHSVOperation.h"
 #include "DNA_node_types.h"
 
-HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode): Node(editorNode)
+HueSaturationValueNode::HueSaturationValueNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void HueSaturationValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *valueSocket = this->getInputSocket(0);
 	InputSocket *colourSocket = this->getInputSocket(1);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
 	bNode *editorsnode = getbNode();
-	NodeHueSat *storage = (NodeHueSat*)editorsnode->storage;
+	NodeHueSat *storage = (NodeHueSat *)editorsnode->storage;
 
-	ConvertRGBToHSVOperation * rgbToHSV = new ConvertRGBToHSVOperation();
-	ConvertHSVToRGBOperation * hsvToRGB = new ConvertHSVToRGBOperation();
+	ConvertRGBToHSVOperation *rgbToHSV = new ConvertRGBToHSVOperation();
+	ConvertHSVToRGBOperation *hsvToRGB = new ConvertHSVToRGBOperation();
 	ChangeHSVOperation *changeHSV = new ChangeHSVOperation();
-	MixBlendOperation * blend = new MixBlendOperation();
+	MixBlendOperation *blend = new MixBlendOperation();
 
 	colourSocket->relinkConnections(rgbToHSV->getInputSocket(0), 0, graph);
 	addLink(graph, rgbToHSV->getOutputSocket(), changeHSV->getInputSocket(0));

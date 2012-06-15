@@ -40,6 +40,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_math_color.h"
+#include "BLI_math_vector.h"
 #include "BLI_utildefines.h"
 
 #include "BKE_context.h"
@@ -69,22 +70,42 @@
 /* ********************************************************** */
 
 typedef struct Eyedropper {
+	short do_color_management;
+
 	PointerRNA ptr;
 	PropertyRNA *prop;
 	int index;
+
+	int   accum_start; /* has mouse been presed */
+	float accum_col[3];
+	int   accum_tot;
 } Eyedropper;
 
 static int eyedropper_init(bContext *C, wmOperator *op)
 {
+	Scene *scene = CTX_data_scene(C);
+	const int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
+
 	Eyedropper *eye;
 	
 	op->customdata = eye = MEM_callocN(sizeof(Eyedropper), "Eyedropper");
 	
 	uiContextActiveProperty(C, &eye->ptr, &eye->prop, &eye->index);
-	
-	return (eye->ptr.data && eye->prop && RNA_property_editable(&eye->ptr, eye->prop));
+
+	if ((eye->ptr.data == NULL) ||
+	    (eye->prop == NULL) ||
+	    (RNA_property_editable(&eye->ptr, eye->prop) == FALSE) ||
+	    (RNA_property_array_length(&eye->ptr, eye->prop) < 3) ||
+	    (RNA_property_type(eye->prop) != PROP_FLOAT))
+	{
+		return FALSE;
+	}
+
+	eye->do_color_management = (color_manage && RNA_property_subtype(eye->prop) == PROP_COLOR);
+
+	return TRUE;
 }
- 
+
 static void eyedropper_exit(bContext *C, wmOperator *op)
 {
 	WM_cursor_restore(CTX_wm_window(C));
@@ -100,29 +121,60 @@ static int eyedropper_cancel(bContext *C, wmOperator *op)
 	return OPERATOR_CANCELLED;
 }
 
-static void eyedropper_sample(bContext *C, Eyedropper *eye, int mx, int my)
-{
-	if (RNA_property_type(eye->prop) == PROP_FLOAT) {
-		Scene *scene = CTX_data_scene(C);
-		const int color_manage = scene->r.color_mgt_flag & R_COLOR_MANAGEMENT;
-		float col[4];
-	
-		RNA_property_float_get_array(&eye->ptr, eye->prop, col);
-		
-		glReadBuffer(GL_FRONT);
-		glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, col);
-		glReadBuffer(GL_BACK);
-	
-		if (RNA_property_array_length(&eye->ptr, eye->prop) < 3) return;
+/* *** eyedropper_color_ helper functions *** */
 
-		/* convert from screen (srgb) space to linear rgb space */
-		if (color_manage && RNA_property_subtype(eye->prop) == PROP_COLOR)
-			srgb_to_linearrgb_v3_v3(col, col);
-		
-		RNA_property_float_set_array(&eye->ptr, eye->prop, col);
-		
-		RNA_property_update(C, &eye->ptr, eye->prop);
+/* simply get the color from the screen */
+static void eyedropper_color_sample_fl(Eyedropper *UNUSED(eye), int mx, int my, float r_col[3])
+{
+	glReadBuffer(GL_FRONT);
+	glReadPixels(mx, my, 1, 1, GL_RGB, GL_FLOAT, r_col);
+	glReadBuffer(GL_BACK);
+}
+
+/* sets the sample color RGB, maintaining A */
+static void eyedropper_color_set(bContext *C, Eyedropper *eye, const float col[3])
+{
+	float col_conv[4];
+
+	/* to maintain alpha */
+	RNA_property_float_get_array(&eye->ptr, eye->prop, col_conv);
+
+	/* convert from screen (srgb) space to linear rgb space */
+	if (eye->do_color_management) {
+		srgb_to_linearrgb_v3_v3(col_conv, col);
 	}
+	else {
+		copy_v3_v3(col_conv, col);
+	}
+
+	RNA_property_float_set_array(&eye->ptr, eye->prop, col_conv);
+
+	RNA_property_update(C, &eye->ptr, eye->prop);
+}
+
+/* set sample from accumulated values */
+static void eyedropper_color_set_accum(bContext *C, Eyedropper *eye)
+{
+	float col[4];
+	mul_v3_v3fl(col, eye->accum_col, 1.0f / (float)eye->accum_tot);
+	eyedropper_color_set(C, eye, col);
+}
+
+/* single point sample & set */
+static void eyedropper_color_sample(bContext *C, Eyedropper *eye, int mx, int my)
+{
+	float col[3];
+	eyedropper_color_sample_fl(eye, mx, my, col);
+	eyedropper_color_set(C, eye, col);
+}
+
+static void eyedropper_color_sample_accum(Eyedropper *eye, int mx, int my)
+{
+	float col[3];
+	eyedropper_color_sample_fl(eye, mx, my, col);
+	/* delay linear conversion */
+	add_v3_v3(eye->accum_col, col);
+	eye->accum_tot++;
 }
 
 /* main modal status check */
@@ -136,9 +188,34 @@ static int eyedropper_modal(bContext *C, wmOperator *op, wmEvent *event)
 			return eyedropper_cancel(C, op);
 		case LEFTMOUSE:
 			if (event->val == KM_RELEASE) {
-				eyedropper_sample(C, eye, event->x, event->y);
+				if (eye->accum_tot == 0) {
+					eyedropper_color_sample(C, eye, event->x, event->y);
+				}
+				else {
+					eyedropper_color_set_accum(C, eye);
+				}
 				eyedropper_exit(C, op);
 				return OPERATOR_FINISHED;
+			}
+			else if (event->val == KM_PRESS) {
+				/* enable accum and make first sample */
+				eye->accum_start = TRUE;
+				eyedropper_color_sample_accum(eye, event->x, event->y);
+			}
+			break;
+		case MOUSEMOVE:
+			if (eye->accum_start) {
+				/* button is pressed so keep sampling */
+				eyedropper_color_sample_accum(eye, event->x, event->y);
+				eyedropper_color_set_accum(C, eye);
+			}
+			break;
+		case SPACEKEY:
+			if (event->val == KM_RELEASE) {
+				eye->accum_tot = 0;
+				zero_v3(eye->accum_col);
+				eyedropper_color_sample_accum(eye, event->x, event->y);
+				eyedropper_color_set_accum(C, eye);
 			}
 			break;
 	}

@@ -26,53 +26,53 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class ConvertColorProfileOperation : public NodeOperation {
 private:
 	/**
-	  * Cached reference to the inputProgram
-	  */
-	SocketReader * inputOperation;
+	 * Cached reference to the inputProgram
+	 */
+	SocketReader *inputOperation;
 	
 	/**
-	  * @brief color profile where to convert from
-	  */
+	 * @brief color profile where to convert from
+	 */
 	int fromProfile;
 	
 	/**
-	  * @brief color profile where to convert to
-	  */
+	 * @brief color profile where to convert to
+	 */
 	int toProfile;
 	
 	/**
-	  * @brief is color predivided
-	  */
+	 * @brief is color predivided
+	 */
 	bool predivided;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	ConvertColorProfileOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setFromColorProfile(int colorProfile) {this->fromProfile = colorProfile;}
-	void setToColorProfile(int colorProfile) {this->toProfile = colorProfile;}
-	void setPredivided(bool predivided) {this->predivided = predivided;}
+	void setFromColorProfile(int colorProfile) { this->fromProfile = colorProfile; }
+	void setToColorProfile(int colorProfile) { this->toProfile = colorProfile; }
+	void setPredivided(bool predivided) { this->predivided = predivided; }
 };
 #endif

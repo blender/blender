@@ -25,7 +25,7 @@
 
 #include "COM_NodeOperation.h"
 
-class FlipOperation: public NodeOperation {
+class FlipOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
 	bool flipX;
@@ -33,12 +33,12 @@ private:
 public:
 	FlipOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	void initExecution();
 	void deinitExecution();
-	void setFlipX(bool flipX) {this->flipX = flipX;}
-	void setFlipY(bool flipY) {this->flipY = flipY;}
+	void setFlipX(bool flipX) { this->flipX = flipX; }
+	void setFlipY(bool flipY) { this->flipY = flipY; }
 };
 
 #endif

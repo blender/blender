@@ -59,6 +59,23 @@
 
 #include "clip_intern.h"	// own include
 
+#if 0
+static int ED_space_clip_dopesheet_poll(bContext *C)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+
+	if (sc && sc->clip) {
+		if (sc->view == SC_VIEW_DOPESHEET) {
+			ARegion *ar = CTX_wm_region(C);
+
+			return ar->regiontype == RGN_TYPE_PREVIEW;
+		}
+	}
+
+	return FALSE;
+}
+#endif
+
 /********************** select channel operator *********************/
 
 static int dopesheet_select_channel_poll(bContext *C)
@@ -76,8 +93,10 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
+	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;
 	MovieTrackingDopesheetChannel *channel;
+	ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 	float location[2];
 	int extend = RNA_boolean_get(op->ptr, "extend");
 	int current_channel_index = 0, channel_index;
@@ -96,6 +115,7 @@ static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 
 			if (track->flag & TRACK_DOPE_SEL) {
 				tracking->act_track = track;
+				BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, TRUE);
 			}
 		}
 		else if (!extend)

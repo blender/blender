@@ -26,12 +26,12 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
-  * @brief SplitViewerNode
-  * @ingroup Node
-  */
+ * @brief SplitViewerNode
+ * @ingroup Node
+ */
 class SplitViewerNode : public Node {
 public:
 	SplitViewerNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif

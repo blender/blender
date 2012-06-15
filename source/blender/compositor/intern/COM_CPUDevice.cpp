@@ -25,11 +25,11 @@
 void CPUDevice::execute(WorkPackage *work)
 {
 	const unsigned int chunkNumber = work->getChunkNumber();
-	ExecutionGroup * executionGroup = work->getExecutionGroup();
+	ExecutionGroup *executionGroup = work->getExecutionGroup();
 	rcti rect;
 
 	executionGroup->determineChunkRect(&rect, chunkNumber);
-	MemoryBuffer ** inputBuffers = executionGroup->getInputBuffersCPU();
+	MemoryBuffer **inputBuffers = executionGroup->getInputBuffersCPU();
 
 	executionGroup->getOutputNodeOperation()->executeRegion(&rect, chunkNumber, inputBuffers);
 

@@ -1140,17 +1140,17 @@ static void pbvh_update_draw_buffers(PBVH *bvh, PBVHNode **nodes, int totnode)
 			switch (bvh->type) {
 				case PBVH_GRIDS:
 					node->draw_buffers =
-						GPU_build_grid_buffers(node->prim_indices,
-											   node->totprim,
-											   bvh->grid_hidden,
-											   bvh->gridkey.grid_size);
+					    GPU_build_grid_buffers(node->prim_indices,
+					                           node->totprim,
+					                           bvh->grid_hidden,
+					                           bvh->gridkey.grid_size);
 					break;
 				case PBVH_FACES:
 					node->draw_buffers =
-						GPU_build_mesh_buffers(node->face_vert_indices,
-											   bvh->faces, bvh->verts,
-											   node->prim_indices,
-											   node->totprim);
+					    GPU_build_mesh_buffers(node->face_vert_indices,
+					                           bvh->faces, bvh->verts,
+					                           node->prim_indices,
+					                           node->totprim);
 					break;
 			}
  
@@ -1478,7 +1478,7 @@ static int ray_aabb_intersect(PBVHNode *node, void *data_v)
 
 void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       const float ray_start[3], const float ray_normal[3],
-					  int original)
+                      int original)
 {
 	RaycastData rcd;
 
@@ -1495,9 +1495,9 @@ void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
 }
 
 static int ray_face_intersection(const float ray_start[3],
-								 const float ray_normal[3],
+                                 const float ray_normal[3],
                                  const float *t0, const float *t1,
-								 const float *t2, const float *t3,
+                                 const float *t2, const float *t3,
                                  float *fdist)
 {
 	float dist;
@@ -1514,9 +1514,9 @@ static int ray_face_intersection(const float ray_start[3],
 }
 
 static int pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
-								   float (*origco)[3],
-								   const float ray_start[3],
-								   const float ray_normal[3], float *dist)
+                                   float (*origco)[3],
+                                   const float ray_start[3],
+                                   const float ray_normal[3], float *dist)
 {
 	const MVert *vert = bvh->verts;
 	const int *faces = node->prim_indices;
@@ -1532,20 +1532,20 @@ static int pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
 		if (origco) {
 			/* intersect with backuped original coordinates */
 			hit |= ray_face_intersection(ray_start, ray_normal,
-										 origco[face_verts[0]],
-										 origco[face_verts[1]],
-										 origco[face_verts[2]],
-										 f->v4 ? origco[face_verts[3]] : NULL,
-										 dist);
+			                             origco[face_verts[0]],
+			                             origco[face_verts[1]],
+			                             origco[face_verts[2]],
+			                             f->v4 ? origco[face_verts[3]] : NULL,
+			                             dist);
 		}
 		else {
 			/* intersect with current coordinates */
 			hit |= ray_face_intersection(ray_start, ray_normal,
-										 vert[f->v1].co,
-										 vert[f->v2].co,
-										 vert[f->v3].co,
-										 f->v4 ? vert[f->v4].co : NULL,
-										 dist);
+			                             vert[f->v1].co,
+			                             vert[f->v2].co,
+			                             vert[f->v3].co,
+			                             f->v4 ? vert[f->v4].co : NULL,
+			                             dist);
 		}
 	}
 
@@ -1553,9 +1553,9 @@ static int pbvh_faces_node_raycast(PBVH *bvh, const PBVHNode *node,
 }
 
 static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
-								   float (*origco)[3],
-								   const float ray_start[3],
-								   const float ray_normal[3], float *dist)
+                                   float (*origco)[3],
+                                   const float ray_start[3],
+                                   const float ray_normal[3], float *dist)
 {
 	int totgrid = node->totprim;
 	int gridsize = bvh->gridkey.grid_size;
@@ -1580,19 +1580,19 @@ static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
 
 				if (origco) {
 					hit |= ray_face_intersection(ray_start, ray_normal,
-												 origco[y * gridsize + x],
-												 origco[y * gridsize + x + 1],
-												 origco[(y + 1) * gridsize + x + 1],
-												 origco[(y + 1) * gridsize + x],
-												 dist);
+					                             origco[y * gridsize + x],
+					                             origco[y * gridsize + x + 1],
+					                             origco[(y + 1) * gridsize + x + 1],
+					                             origco[(y + 1) * gridsize + x],
+					                             dist);
 				}
 				else {
 					hit |= ray_face_intersection(ray_start, ray_normal,
-												 CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
-												 CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
-												 CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
-												 CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
-												 dist);
+					                             CCG_grid_elem_co(&bvh->gridkey, grid, x, y),
+					                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y),
+					                             CCG_grid_elem_co(&bvh->gridkey, grid, x + 1, y + 1),
+					                             CCG_grid_elem_co(&bvh->gridkey, grid, x, y + 1),
+					                             dist);
 				}
 			}
 		}
@@ -1606,7 +1606,7 @@ static int pbvh_grids_node_raycast(PBVH *bvh, PBVHNode *node,
 
 int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
                           const float ray_start[3], const float ray_normal[3],
-						  float *dist)
+                          float *dist)
 {
 	int hit = 0;
 
@@ -1616,11 +1616,11 @@ int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
 	switch (bvh->type) {
 		case PBVH_FACES:
 			hit |= pbvh_faces_node_raycast(bvh, node, origco,
-										   ray_start, ray_normal, dist);
+			                               ray_start, ray_normal, dist);
 			break;
 		case PBVH_GRIDS:
 			hit |= pbvh_grids_node_raycast(bvh, node, origco,
-										   ray_start, ray_normal, dist);
+			                               ray_start, ray_normal, dist);
 			break;
 	}
 

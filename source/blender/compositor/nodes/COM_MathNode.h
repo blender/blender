@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief MathNode
-  * @ingroup Node
-  */
-class MathNode: public Node {
+ * @brief MathNode
+ * @ingroup Node
+ */
+class MathNode : public Node {
 public:
-	MathNode(bNode *editorNode) :Node(editorNode) {}
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	MathNode(bNode *editorNode) : Node(editorNode) {}
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

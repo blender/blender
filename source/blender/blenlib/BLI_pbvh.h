@@ -82,13 +82,13 @@ void BLI_pbvh_search_gather(PBVH *bvh,
  * it's up to the callback to find the primitive within the leaves that is
  * hit first */
 
-void BLI_pbvh_raycast(PBVH * bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
+void BLI_pbvh_raycast(PBVH *bvh, BLI_pbvh_HitOccludedCallback cb, void *data,
                       const float ray_start[3], const float ray_normal[3],
-					  int original);
+                      int original);
 
-int BLI_pbvh_node_raycast(PBVH * bvh, PBVHNode * node, float (*origco)[3],
+int BLI_pbvh_node_raycast(PBVH *bvh, PBVHNode *node, float (*origco)[3],
                           const float ray_start[3], const float ray_normal[3],
-						  float *dist);
+                          float *dist);
 
 /* Drawing */
 
@@ -214,7 +214,7 @@ void pbvh_vertex_iter_init(PBVH *bvh, PBVHNode *node,
 
 #define BLI_pbvh_vertex_iter_begin(bvh, node, vi, mode) \
 	pbvh_vertex_iter_init(bvh, node, &vi, mode); \
-	\
+	 \
 	for (vi.i = 0, vi.g = 0; vi.g < vi.totgrid; vi.g++) { \
 		if (vi.grids) { \
 			vi.width = vi.gridsize; \

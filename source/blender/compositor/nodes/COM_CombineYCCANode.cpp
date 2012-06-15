@@ -22,8 +22,9 @@
 #include "COM_CombineYCCANode.h"
 #include "COM_ConvertYCCToRGBOperation.h"
 
-CombineYCCANode::CombineYCCANode(bNode *editorNode): CombineRGBANode(editorNode)
+CombineYCCANode::CombineYCCANode(bNode *editorNode) : CombineRGBANode(editorNode)
 {
+	/* pass */
 }
 
 void CombineYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

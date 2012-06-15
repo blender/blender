@@ -53,7 +53,7 @@
 RAS_2DFilterManager::RAS_2DFilterManager():
 texturewidth(-1), textureheight(-1),
 canvaswidth(-1), canvasheight(-1),
-numberoffilters(0), need_tex_update(true)
+/* numberoffilters(0), */ /* UNUSED */ need_tex_update(true)
 {
 	isshadersupported = GLEW_ARB_shader_objects &&
 		GLEW_ARB_fragment_shader && GLEW_ARB_multitexture;

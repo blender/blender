@@ -27,7 +27,7 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianYBlurOperation::GaussianYBlurOperation(): BlurBaseOperation()
+GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation()
 {
 	this->gausstab = NULL;
 	this->rad = 0;
@@ -45,8 +45,8 @@ void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 void GaussianYBlurOperation::initExecution()
 {
 	if (this->sizeavailable) {
-		float rad = size*this->data->sizey;
-		if (rad<1)
+		float rad = size * this->data->sizey;
+		if (rad < 1)
 			rad = 1;
 
 		this->rad = rad;
@@ -58,8 +58,8 @@ void GaussianYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 {
 	if (this->gausstab == NULL) {
 		updateSize(memoryBuffers);
-		float rad = size*this->data->sizey;
-		if (rad<1)
+		float rad = size * this->data->sizey;
+		if (rad < 1)
 			rad = 1;
 		
 		this->rad = rad;
@@ -75,7 +75,7 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float overallmultiplyer = 0;
-	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
 	int bufferstartx = inputBuffer->getRect()->xmin;
@@ -91,27 +91,21 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
 	int step = getStep();
-	int index = 0;
-	for (int ny = miny ; ny < maxy ; ny +=step) {
-		int bufferindex = ((minx - bufferstartx)*4)+((ny-bufferstarty)*4*bufferwidth);
-		float multiplyer = gausstab[index++];
-		tempColor[0] += multiplyer * buffer[bufferindex];
-		tempColor[1] += multiplyer * buffer[bufferindex+1];
-		tempColor[2] += multiplyer * buffer[bufferindex+2];
-		tempColor[3] += multiplyer * buffer[bufferindex+3];
+	int index;
+	for (int ny = miny; ny < maxy; ny += step) {
+		index = (ny - y) + this->rad;
+		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
+		const float multiplyer = gausstab[index];
+		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
 		overallmultiplyer += multiplyer;
 	}
-	float divider = 1.0f / overallmultiplyer;
-	color[0] = tempColor[0] * divider;
-	color[1] = tempColor[1] * divider;
-	color[2] = tempColor[2] * divider;
-	color[3] = tempColor[3] * divider;
+	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
 }
 
 void GaussianYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
-	delete this->gausstab;
+	delete [] this->gausstab;
 	this->gausstab = NULL;
 }
 
@@ -124,7 +118,7 @@ bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadB
 	sizeInput.xmax = 5;
 	sizeInput.ymax = 5;
 	
-	NodeOperation * operation = this->getInputOperation(1);
+	NodeOperation *operation = this->getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
 	}

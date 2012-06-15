@@ -25,15 +25,16 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ValueNode::ValueNode(bNode *editorNode): Node(editorNode)
+ValueNode::ValueNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void ValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ValueNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	SetValueOperation *operation = new SetValueOperation();
 	bNodeSocket *socket = this->getEditorOutputSocket(0);
-	bNodeSocketValueFloat *dval = (bNodeSocketValueFloat*)socket->default_value;
+	bNodeSocketValueFloat *dval = (bNodeSocketValueFloat *)socket->default_value;
 	this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 	operation->setValue(dval->value);
 	graph->addOperation(operation);

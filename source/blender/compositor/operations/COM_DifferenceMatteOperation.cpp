@@ -23,7 +23,7 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "BLI_math.h"
 
-DifferenceMatteOperation::DifferenceMatteOperation(): NodeOperation()
+DifferenceMatteOperation::DifferenceMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
@@ -49,8 +49,8 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	float inColor1[4];
 	float inColor2[4];
 
-	const float tolerence=this->settings->t1;
-	const float falloff=this->settings->t2;
+	const float tolerence = this->settings->t1;
+	const float falloff = this->settings->t2;
 	float difference;
 	float alpha;
 
@@ -69,15 +69,15 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 		outputValue[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if (difference < falloff+tolerence) {
-		difference=difference-tolerence;
-		alpha=difference/falloff;
+	else if (difference < falloff + tolerence) {
+		difference = difference - tolerence;
+		alpha = difference / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inColor1[3]) {
-			outputValue[0]=alpha;
+			outputValue[0] = alpha;
 		}
 		else { /* leave as before */
-			outputValue[0]=inColor1[3];
+			outputValue[0] = inColor1[3];
 		}
 	}
 	else {

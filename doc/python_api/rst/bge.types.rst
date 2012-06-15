@@ -2692,7 +2692,7 @@ Game Types (bge.types)
 
       The angle of the cone (in degrees) with which to test.
 
-      :type: float from 0 to 360
+      :type: float
 
    .. attribute:: axis
 
@@ -2702,11 +2702,6 @@ Game Types (bge.types)
 
       KX_RADAR_AXIS_POS_X, KX_RADAR_AXIS_POS_Y, KX_RADAR_AXIS_POS_Z, 
       KX_RADAR_AXIS_NEG_X, KX_RADAR_AXIS_NEG_Y, KX_RADAR_AXIS_NEG_Z
-
-   .. method:: getConeHeight()
-
-      :return: The height of the cone with which to test.
-      :rtype: float
 
 .. class:: KX_RaySensor(SCA_ISensor)
 

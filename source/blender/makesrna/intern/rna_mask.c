@@ -665,6 +665,7 @@ static void rna_def_mask(BlenderRNA *brna)
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_int_funcs(prop, "rna_Mask_layer_active_index_get", "rna_Mask_layer_active_index_set", "rna_Mask_layer_active_index_range");
 	RNA_def_property_ui_text(prop, "Active Shape Index", "Index of active layer in list of all mask's layers");
+	RNA_def_property_update(prop, NC_MASK | ND_DRAW, NULL);
 
 	/* frame range */
 	prop = RNA_def_property(srna, "frame_start", PROP_INT, PROP_TIME);

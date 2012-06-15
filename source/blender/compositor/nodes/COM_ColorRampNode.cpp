@@ -27,10 +27,12 @@
 #include "COM_SeparateChannelOperation.h"
 #include "DNA_texture_types.h"
 
-ColorRampNode::ColorRampNode(bNode *editorNode): Node(editorNode)
-{}
+ColorRampNode::ColorRampNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
-void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *inputSocket = this->getInputSocket(0);
 	OutputSocket *outputSocket = this->getOutputSocket(0);
@@ -46,7 +48,7 @@ void ColorRampNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		operation2->setChannel(3);
 		graph->addOperation(operation2);
 	}
-	operation->setColorBand((ColorBand*)editorNode->storage);
+	operation->setColorBand((ColorBand *)editorNode->storage);
 	inputSocket->relinkConnections(operation->getInputSocket(0), 0, graph);
 	graph->addOperation(operation);
 }

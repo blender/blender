@@ -35,36 +35,40 @@
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
+#include "COM_ViewerBaseOperation.h"
 
-Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree)
+Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_start, bNodeTree *tree, bNode *groupnode)
 {
-	vector<Node*>& nodes = system.getNodes();
-	vector<SocketConnection*>& links = system.getConnections();
+	vector<Node *>& nodes = system.getNodes();
+	vector<SocketConnection *>& links = system.getConnections();
 	Node *mainnode = NULL;
+	const bNode *activeGroupNode = system.getContext().getActivegNode();
+	bool isActiveGroup = activeGroupNode == groupnode;
+	
 	/* add all nodes of the tree to the node list */
-	bNode *node = (bNode*)tree->nodes.first;
+	bNode *node = (bNode *)tree->nodes.first;
 	while (node != NULL) {
-		Node *execnode = addNode(nodes, node);
+		Node *execnode = addNode(nodes, node, isActiveGroup);
 		if (node->type == CMP_NODE_COMPOSITE) {
 			mainnode = execnode;
 		}
-		node = (bNode*)node->next;
+		node = (bNode *)node->next;
 	}
 
-	NodeRange node_range(nodes.begin()+nodes_start, nodes.end());
+	NodeRange node_range(nodes.begin() + nodes_start, nodes.end());
 
 	/* add all nodelinks of the tree to the link list */
-	bNodeLink *nodelink = (bNodeLink*)tree->links.first;
+	bNodeLink *nodelink = (bNodeLink *)tree->links.first;
 	while (nodelink != NULL) {
 		addNodeLink(node_range, links, nodelink);
-		nodelink = (bNodeLink*)nodelink->next;
+		nodelink = (bNodeLink *)nodelink->next;
 	}
 
 	/* Expand group nodes */
-	for (int i=nodes_start; i < nodes.size(); ++i) {
+	for (unsigned int i = nodes_start; i < nodes.size(); ++i) {
 		Node *execnode = nodes[i];
 		if (execnode->isGroupNode()) {
-			GroupNode * groupNode = (GroupNode*)execnode;
+			GroupNode *groupNode = (GroupNode *)execnode;
 			groupNode->ungroup(system);
 		}
 	}
@@ -72,37 +76,38 @@ Node *ExecutionSystemHelper::addbNodeTree(ExecutionSystem &system, int nodes_sta
 	return mainnode;
 }
 
-void ExecutionSystemHelper::addNode(vector<Node*>& nodes, Node *node)
+void ExecutionSystemHelper::addNode(vector<Node *>& nodes, Node *node)
 {
 	nodes.push_back(node);
 }
 
-Node *ExecutionSystemHelper::addNode(vector<Node*>& nodes, bNode *bNode)
+Node *ExecutionSystemHelper::addNode(vector<Node *>& nodes, bNode *bNode, bool inActiveGroup)
 {
 	Converter converter;
-	Node * node;
+	Node *node;
 	node = converter.convert(bNode);
+	node->setIsInActiveGroup(inActiveGroup);
 	if (node != NULL) {
 		addNode(nodes, node);
 		return node;
 	}
 	return NULL;
 }
-void ExecutionSystemHelper::addOperation(vector<NodeOperation*>& operations, NodeOperation *operation)
+void ExecutionSystemHelper::addOperation(vector<NodeOperation *>& operations, NodeOperation *operation)
 {
 	operations.push_back(operation);
 }
 
-void ExecutionSystemHelper::addExecutionGroup(vector<ExecutionGroup*>& executionGroups, ExecutionGroup *executionGroup)
+void ExecutionSystemHelper::addExecutionGroup(vector<ExecutionGroup *>& executionGroups, ExecutionGroup *executionGroup)
 {
 	executionGroups.push_back(executionGroup);
 }
 
-void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation*>* result, vector<NodeOperation*>& operations, bool rendering)
+void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation *> *result, vector<NodeOperation *>& operations, bool rendering)
 {
 	unsigned int index;
 
-	for (index = 0 ; index < operations.size() ; index ++) {
+	for (index = 0; index < operations.size(); index++) {
 		NodeOperation *operation = operations[index];
 		if (operation->isOutputOperation(rendering)) {
 			result->push_back(operation);
@@ -113,18 +118,18 @@ void ExecutionSystemHelper::findOutputNodeOperations(vector<NodeOperation*>* res
 static InputSocket *find_input(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
 {
 	if (bnode != NULL) {
-		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
 			Node *node = *it;
 			if (node->getbNode() == bnode)
 				return node->findInputSocketBybNodeSocket(bsocket);
 		}
 	}
 	else {
-		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
 			Node *node = *it;
 			if (node->isProxyNode()) {
 				InputSocket *proxySocket = node->getInputSocket(0);
-				if (proxySocket->getbNodeSocket()==bsocket)
+				if (proxySocket->getbNodeSocket() == bsocket)
 					return proxySocket;
 			}
 		}
@@ -134,29 +139,29 @@ static InputSocket *find_input(NodeRange &node_range, bNode *bnode, bNodeSocket 
 static OutputSocket *find_output(NodeRange &node_range, bNode *bnode, bNodeSocket *bsocket)
 {
 	if (bnode != NULL) {
-		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
 			Node *node = *it;
 			if (node->getbNode() == bnode)
 				return node->findOutputSocketBybNodeSocket(bsocket);
 		}
 	}
 	else {
-		for (NodeIterator it=node_range.first; it!=node_range.second; ++it) {
+		for (NodeIterator it = node_range.first; it != node_range.second; ++it) {
 			Node *node = *it;
 			if (node->isProxyNode()) {
 				OutputSocket *proxySocket = node->getOutputSocket(0);
-				if (proxySocket->getbNodeSocket()==bsocket)
+				if (proxySocket->getbNodeSocket() == bsocket)
 					return proxySocket;
 			}
 		}
 	}
 	return NULL;
 }
-SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection*>& links, bNodeLink *bNodeLink)
+SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vector<SocketConnection *>& links, bNodeLink *bNodeLink)
 {
 	/// @note: cyclic lines will be ignored. This has been copied from node.c
 	if (bNodeLink->tonode != 0 && bNodeLink->fromnode != 0) {
-		if (!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level!=0xFFF)) { // only add non cyclic lines! so execution will procede
+		if (!(bNodeLink->fromnode->level >= bNodeLink->tonode->level && bNodeLink->tonode->level != 0xFFF)) { // only add non cyclic lines! so execution will procede
 			return NULL;
 		}
 	}
@@ -173,9 +178,9 @@ SocketConnection *ExecutionSystemHelper::addNodeLink(NodeRange &node_range, vect
 	return connection;
 }
 
-SocketConnection *ExecutionSystemHelper::addLink(vector<SocketConnection*>& links, OutputSocket *fromSocket, InputSocket *toSocket)
+SocketConnection *ExecutionSystemHelper::addLink(vector<SocketConnection *>& links, OutputSocket *fromSocket, InputSocket *toSocket)
 {
-	SocketConnection * newconnection = new SocketConnection();
+	SocketConnection *newconnection = new SocketConnection();
 	newconnection->setFromSocket(fromSocket);
 	newconnection->setToSocket(toSocket);
 	fromSocket->addConnection(newconnection);
@@ -194,12 +199,12 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 	printf("-- BEGIN COMPOSITOR DUMP --\r\n");
 	printf("digraph compositorexecution {\r\n");
 	tot = system->getNodes().size();
-	for (int i = 0 ; i < tot ; i ++) {
+	for (int i = 0; i < tot; i++) {
 		node = system->getNodes()[i];
 		printf("// NODE: %s\r\n", node->getbNode()->typeinfo->name);
 	}
 	tot = system->getOperations().size();
-	for (int i = 0 ; i < tot ; i ++) {
+	for (int i = 0; i < tot; i++) {
 		operation = system->getOperations()[i];
 		printf("// OPERATION: %p\r\n", operation);
 		printf("\t\"O_%p\"", operation);
@@ -207,32 +212,35 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 		tot2 = operation->getNumberOfInputSockets();
 		if (tot2 != 0) {
 			printf("{");
-			for (int j = 0 ; j < tot2 ; j ++) {
+			for (int j = 0; j < tot2; j++) {
 				InputSocket *socket = operation->getInputSocket(j);
 				if (j != 0) {
 					printf("|");
 				}
 				printf("<IN_%p>", socket);
-				switch (socket->getActualDataType()) {
-				case COM_DT_VALUE:
-					printf("Value");
-					break;
-				case COM_DT_VECTOR:
-					printf("Vector");
-					break;
-				case COM_DT_COLOR:
-					printf("Color");
-					break;
-				case COM_DT_UNKNOWN:
-					printf("Unknown");
-					break;
+				switch (socket->getDataType()) {
+					case COM_DT_VALUE:
+						printf("Value");
+						break;
+					case COM_DT_VECTOR:
+						printf("Vector");
+						break;
+					case COM_DT_COLOR:
+						printf("Color");
+						break;
 				}
 			}
 			printf("}");
 			printf("|");
 		}
 		if (operation->isViewerOperation()) {
-			printf("Viewer");
+			ViewerBaseOperation *viewer = (ViewerBaseOperation *)operation;
+			if (viewer->isActiveViewerOutput()) {
+				printf("Active viewer");
+			}
+			else {
+				printf("Viewer");
+			}
 		}
 		else if (operation->isOutputOperation(system->getContext().isRendering())) {
 			printf("Output");
@@ -249,29 +257,27 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 		else {
 			printf("O_%p", operation);
 		}
+		printf(" (%d,%d)", operation->getWidth(), operation->getHeight());
 		tot2 = operation->getNumberOfOutputSockets();
 		if (tot2 != 0) {
 			printf("|");
 			printf("{");
-			for (int j = 0 ; j < tot2 ; j ++) {
+			for (int j = 0; j < tot2; j++) {
 				OutputSocket *socket = operation->getOutputSocket(j);
 				if (j != 0) {
 					printf("|");
 				}
 				printf("<OUT_%p>", socket);
-				switch (socket->getActualDataType()) {
-				case COM_DT_VALUE:
-					printf("Value");
-					break;
-				case COM_DT_VECTOR:
-					printf("Vector");
-					break;
-				case COM_DT_COLOR:
-					printf("Color");
-					break;
-				case COM_DT_UNKNOWN:
-					printf("Unknown");
-					break;
+				switch (socket->getDataType()) {
+					case COM_DT_VALUE:
+						printf("Value");
+						break;
+					case COM_DT_VECTOR:
+						printf("Vector");
+						break;
+					case COM_DT_COLOR:
+						printf("Color");
+						break;
 				}
 			}
 			printf("}");
@@ -280,7 +286,7 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 		printf("\r\n");
 	}
 	tot = system->getExecutionGroups().size();
-	for (int i = 0 ; i < tot ; i ++) {
+	for (int i = 0; i < tot; i++) {
 		group = system->getExecutionGroups()[i];
 		printf("// GROUP: %d\r\n", i);
 		printf("subgraph {\r\n");
@@ -289,16 +295,16 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 		printf("}\r\n");
 	}
 	tot = system->getOperations().size();
-	for (int i = 0 ; i < tot ; i ++) {
+	for (int i = 0; i < tot; i++) {
 		operation = system->getOperations()[i];
 		if (operation->isReadBufferOperation()) {
-			ReadBufferOperation * read = (ReadBufferOperation*)operation;
-			WriteBufferOperation * write = read->getMemoryProxy()->getWriteBufferOperation();
+			ReadBufferOperation *read = (ReadBufferOperation *)operation;
+			WriteBufferOperation *write = read->getMemoryProxy()->getWriteBufferOperation();
 			printf("\t\"O_%p\" -> \"O_%p\" [style=dotted]\r\n", write, read);
 		}
 	}
 	tot = system->getConnections().size();
-	for (int i = 0 ; i < tot ; i ++) {
+	for (int i = 0; i < tot; i++) {
 		connection = system->getConnections()[i];
 		printf("// CONNECTION: %p.%p -> %p.%p\r\n", connection->getFromNode(), connection->getFromSocket(), connection->getToNode(), connection->getToSocket());
 		printf("\t\"O_%p\":\"OUT_%p\" -> \"O_%p\":\"IN_%p\"", connection->getFromNode(), connection->getFromSocket(), connection->getToNode(), connection->getToSocket());
@@ -306,19 +312,16 @@ void ExecutionSystemHelper::debugDump(ExecutionSystem *system)
 			printf(" [color=red]");
 		}
 		else {
-			switch (connection->getFromSocket()->getActualDataType()) {
-			case COM_DT_VALUE:
-				printf(" [color=grey]");
-				break;
-			case COM_DT_VECTOR:
-				printf(" [color=blue]");
-				break;
-			case COM_DT_COLOR:
-				printf(" [color=orange]");
-				break;
-			case COM_DT_UNKNOWN:
-				printf(" [color=black]");
-				break;
+			switch (connection->getFromSocket()->getDataType()) {
+				case COM_DT_VALUE:
+					printf(" [color=grey]");
+					break;
+				case COM_DT_VECTOR:
+					printf(" [color=blue]");
+					break;
+				case COM_DT_COLOR:
+					printf(" [color=orange]");
+					break;
 			}
 		}
 		printf("\r\n");

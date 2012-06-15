@@ -33,43 +33,43 @@ typedef enum PixelSampler {
 
 class MemoryBuffer;
 /**
-  * @brief Helper class for reading socket data.
-  * Only use this class for dispatching (un-ary and n-ary) executions.
-  * @ingroup Execution
-  */
+ * @brief Helper class for reading socket data.
+ * Only use this class for dispatching (un-ary and n-ary) executions.
+ * @ingroup Execution
+ */
 class SocketReader {
 private:
 protected:
 	/**
-	  * @brief Holds the width of the output of this operation.
-	  */
+	 * @brief Holds the width of the output of this operation.
+	 */
 	unsigned int width;
 
 	/**
-	  * @brief Holds the height of the output of this operation.
-	  */
+	 * @brief Holds the height of the output of this operation.
+	 */
 	unsigned int height;
 
 
 	/**
-	  * @brief calculate a single pixel
-	  * @note this method is called for non-complex
-	  * @param result is a float[4] array to store the result
-	   * @param x the x-coordinate of the pixel to calculate in image space
-	   * @param y the y-coordinate of the pixel to calculate in image space
-	   * @param inputBuffers chunks that can be read by their ReadBufferOperation.
-	  */
+	 * @brief calculate a single pixel
+	 * @note this method is called for non-complex
+	 * @param result is a float[4] array to store the result
+	 * @param x the x-coordinate of the pixel to calculate in image space
+	 * @param y the y-coordinate of the pixel to calculate in image space
+	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
+	 */
 	virtual void executePixel(float *result, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]) {}
 
 	/**
-	  * @brief calculate a single pixel
-	  * @note this method is called for complex
-	  * @param result is a float[4] array to store the result
-	   * @param x the x-coordinate of the pixel to calculate in image space
-	   * @param y the y-coordinate of the pixel to calculate in image space
-	* @param inputBuffers chunks that can be read by their ReadBufferOperation.
-	* @param chunkData chunk specific data a during execution time.
-	  */
+	 * @brief calculate a single pixel
+	 * @note this method is called for complex
+	 * @param result is a float[4] array to store the result
+	 * @param x the x-coordinate of the pixel to calculate in image space
+	 * @param y the y-coordinate of the pixel to calculate in image space
+	 * @param inputBuffers chunks that can be read by their ReadBufferOperation.
+	 * @param chunkData chunk specific data a during execution time.
+	 */
 	virtual void executePixel(float *result, int x, int y, MemoryBuffer *inputBuffers[], void *chunkData) {
 		executePixel(result, x, y, COM_PS_NEAREST, inputBuffers);
 	}
@@ -97,17 +97,15 @@ public:
 		executePixel(result, x, y, dx, dy, inputBuffers);
 	}
 
-	virtual void *initializeTileData(rcti *rect, MemoryBuffer** memoryBuffers) {
-		return 0;
-	}
-	virtual void deinitializeTileData(rcti *rect, MemoryBuffer** memoryBuffers, void *data) {
+	virtual void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers) { return 0; }
+	virtual void deinitializeTileData(rcti *rect, MemoryBuffer **memoryBuffers, void *data) {
 	}
 	
-	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer** memoryBuffers) {return 0;}
+	virtual MemoryBuffer *getInputMemoryBuffer(MemoryBuffer **memoryBuffers) { return 0; }
 
 
-	inline const unsigned int getWidth() const {return this->width;}
-	inline const unsigned int getHeight() const {return this->height;}
+	inline const unsigned int getWidth() const { return this->width; }
+	inline const unsigned int getHeight() const { return this->height; }
 };
 
 #endif

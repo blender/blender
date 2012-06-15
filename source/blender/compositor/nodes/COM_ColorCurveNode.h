@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief ColorCurveNode
-  * @ingroup Node
-  */
-class ColorCurveNode: public Node {
+ * @brief ColorCurveNode
+ * @ingroup Node
+ */
+class ColorCurveNode : public Node {
 public:
 	ColorCurveNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

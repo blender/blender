@@ -24,14 +24,14 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief MovieClipNode
-  * @ingroup Node
-  */
+ * @brief MovieClipNode
+ * @ingroup Node
+ */
 class MovieClipNode : public Node {
 
 
 public:
 	MovieClipNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 
 };

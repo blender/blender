@@ -184,10 +184,10 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	int totCount, i;
 	
 	/* check if any points  */
-	if ((fcu == NULL) || (fcu->totvert <= 1)) 
+	if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert <= 1))
 		return;
 	
-	/* make a copy of the old BezTriples, and clear IPO curve */
+	/* make a copy of the old BezTriples, and clear F-Curve */
 	old_bezts = fcu->bezt;
 	totCount = fcu->totvert;	
 	fcu->bezt = NULL;
@@ -286,7 +286,11 @@ void smooth_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
-	
+
+	if (fcu->bezt == NULL) {
+		return;
+	}
+
 	/* first loop through - count how many verts are selected */
 	bezt = fcu->bezt;
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
@@ -408,13 +412,13 @@ void sample_fcurve(FCurve *fcu)
 				if (range) {
 					value_cache = MEM_callocN(sizeof(TempFrameValCache) * range, "IcuFrameValCache");
 					
-					/*  sample values   */
+					/* sample values */
 					for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
 						fp->frame = (float)(sfra + n);
 						fp->val = evaluate_fcurve(fcu, fp->frame);
 					}
 					
-					/*  add keyframes with these, tagging as 'breakdowns'   */
+					/* add keyframes with these, tagging as 'breakdowns' */
 					for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
 						nIndex = insert_vert_fcurve(fcu, fp->frame, fp->val, 1);
 						BEZKEYTYPE(fcu->bezt + nIndex) = BEZT_KEYTYPE_BREAKDOWN;

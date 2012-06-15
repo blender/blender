@@ -43,6 +43,7 @@ CCL_NAMESPACE_BEGIN
 #ifdef WITH_OSL
 #define __OSL__
 #endif
+#define __NON_PROGRESSIVE__
 #endif
 
 #ifdef __KERNEL_CUDA__
@@ -110,7 +111,6 @@ CCL_NAMESPACE_BEGIN
 //#define __MOTION__
 #endif
 
-//#define __MULTI_LIGHT__
 //#define __SOBOL_FULL_SCREEN__
 //#define __QBVH__
 
@@ -627,6 +627,15 @@ typedef struct KernelIntegrator {
 
 	/* clamp */
 	float sample_clamp;
+
+	/* non-progressive */
+	int progressive;
+	int diffuse_samples;
+	int glossy_samples;
+	int transmission_samples;
+	int ao_samples;
+	int mesh_light_samples;
+	int pad1, pad2;
 } KernelIntegrator;
 
 typedef struct KernelBVH {

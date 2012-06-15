@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief TimeNode
-  * @ingroup Node
-  */
-class TimeNode: public Node {
+ * @brief TimeNode
+ * @ingroup Node
+ */
+class TimeNode : public Node {
 public:
 	TimeNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

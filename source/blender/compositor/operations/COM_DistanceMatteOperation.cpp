@@ -22,7 +22,7 @@
 #include "COM_DistanceMatteOperation.h"
 #include "BLI_math.h"
 
-DistanceMatteOperation::DistanceMatteOperation(): NodeOperation()
+DistanceMatteOperation::DistanceMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
@@ -49,8 +49,8 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
 	float inKey[4];
 	float inImage[4];
 
-	const float tolerence=this->settings->t1;
-	const float falloff=this->settings->t2;
+	const float tolerence = this->settings->t1;
+	const float falloff = this->settings->t2;
 
 	float distance;
 	float alpha;
@@ -58,9 +58,9 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
 	this->inputKeyProgram->read(inKey, x, y, sampler, inputBuffers);
 	this->inputImageProgram->read(inImage, x, y, sampler, inputBuffers);
 	
-	distance = sqrt(pow((inKey[0]-inImage[0]),2)+
-		pow((inKey[1]-inImage[1]),2)+
-		pow((inKey[2]-inImage[2]),2));
+	distance = sqrt(pow((inKey[0] - inImage[0]), 2) +
+	                pow((inKey[1] - inImage[1]), 2) +
+	                pow((inKey[2] - inImage[2]), 2));
 
 	/* store matte(alpha) value in [0] to go with
 	 * COM_SetAlphaOperation and the Value output
@@ -68,23 +68,23 @@ void DistanceMatteOperation::executePixel(float *outputValue, float x, float y, 
  
 	/*make 100% transparent */
 	if (distance < tolerence) {
-		outputValue[0]=0.f;
+		outputValue[0] = 0.f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if (distance < falloff+tolerence) {
-		distance=distance-tolerence;
-		alpha=distance/falloff;
+	else if (distance < falloff + tolerence) {
+		distance = distance - tolerence;
+		alpha = distance / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inImage[3]) {
-			outputValue[0]=alpha;
+			outputValue[0] = alpha;
 		}
 		else { /* leave as before */
-			outputValue[0]=inImage[3];
+			outputValue[0] = inImage[3];
 		}
 	}
 	else {
-	/* leave as before */
-		outputValue[0]=inImage[3];
+		/* leave as before */
+		outputValue[0] = inImage[3];
 	}
 }
 

@@ -23,7 +23,7 @@
 #include "COM_GammaOperation.h"
 #include "BLI_math.h"
 
-GammaOperation::GammaOperation(): NodeOperation()
+GammaOperation::GammaOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);

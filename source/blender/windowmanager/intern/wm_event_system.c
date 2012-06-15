@@ -2716,7 +2716,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd = customdata;
 
-			/* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
 			
 			if (bd->button == GHOST_kButtonMaskLeft)

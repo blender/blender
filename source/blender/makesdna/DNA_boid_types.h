@@ -36,18 +36,18 @@
 
 typedef enum BoidRuleType {
 	eBoidRuleType_None = 0,
-	eBoidRuleType_Goal,				/* go to goal assigned object or loudest assigned signal source */
-	eBoidRuleType_Avoid,			/* get away from assigned object or loudest assigned signal source */
-	eBoidRuleType_AvoidCollision,	/* manoeuver to avoid collisions with other boids and deflector object in near future */
-	eBoidRuleType_Separate,			/* keep from going through other boids */
-	eBoidRuleType_Flock,			/* move to center of neighbors and match their velocity */
-	eBoidRuleType_FollowLeader,		/* follow a boid or assigned object */
-	eBoidRuleType_AverageSpeed,		/* maintain speed, flight level or wander*/
-	eBoidRuleType_Fight,			/* go to closest enemy and attack when in range */
-	//eBoidRuleType_Protect,		/* go to enemy closest to target and attack when in range */
-	//eBoidRuleType_Hide,			/* find a deflector move to it's other side from closest enemy */
-	//eBoidRuleType_FollowPath,		/* move along a assigned curve or closest curve in a group */
-	//eBoidRuleType_FollowWall,		/* move next to a deflector object's in direction of it's tangent */
+	eBoidRuleType_Goal = 1,			/* go to goal assigned object or loudest assigned signal source */
+	eBoidRuleType_Avoid = 2,		/* get away from assigned object or loudest assigned signal source */
+	eBoidRuleType_AvoidCollision = 3,	/* manoeuver to avoid collisions with other boids and deflector object in near future */
+	eBoidRuleType_Separate = 4,		/* keep from going through other boids */
+	eBoidRuleType_Flock = 5,		/* move to center of neighbors and match their velocity */
+	eBoidRuleType_FollowLeader = 6,		/* follow a boid or assigned object */
+	eBoidRuleType_AverageSpeed = 7,		/* maintain speed, flight level or wander*/
+	eBoidRuleType_Fight = 8,		/* go to closest enemy and attack when in range */
+	//eBoidRuleType_Protect = 9,		/* go to enemy closest to target and attack when in range */
+	//eBoidRuleType_Hide = 10,		/* find a deflector move to it's other side from closest enemy */
+	//eBoidRuleType_FollowPath = 11,	/* move along a assigned curve or closest curve in a group */
+	//eBoidRuleType_FollowWall = 12,	/* move next to a deflector object's in direction of it's tangent */
 	NUM_BOID_RULE_TYPES
 } BoidRuleType;
 
@@ -98,10 +98,10 @@ typedef struct BoidRuleFight {
 
 typedef enum BoidMode {
 	eBoidMode_InAir = 0,
-	eBoidMode_OnLand,
-	eBoidMode_Climbing,
-	eBoidMode_Falling,
-	eBoidMode_Liftoff,
+	eBoidMode_OnLand = 1,
+	eBoidMode_Climbing = 2,
+	eBoidMode_Falling = 3,
+	eBoidMode_Liftoff = 4,
 	NUM_BOID_MODES
 } BoidMode;
 
@@ -114,20 +114,20 @@ typedef struct BoidData {
 // planned for near future
 //typedef enum BoidConditionMode {
 //	eBoidConditionType_Then = 0,
-//	eBoidConditionType_And,
-//	eBoidConditionType_Or,
+//	eBoidConditionType_And = 1,
+//	eBoidConditionType_Or = 2,
 //	NUM_BOID_CONDITION_MODES
 //} BoidConditionMode;
 //typedef enum BoidConditionType {
 //	eBoidConditionType_None = 0,
-//	eBoidConditionType_Signal,
-//	eBoidConditionType_NoSignal,
-//	eBoidConditionType_HealthBelow,
-//	eBoidConditionType_HealthAbove,
-//	eBoidConditionType_See,
-//	eBoidConditionType_NotSee,
-//	eBoidConditionType_StateTime,
-//	eBoidConditionType_Touching,
+//	eBoidConditionType_Signal = 1,
+//	eBoidConditionType_NoSignal = 2,
+//	eBoidConditionType_HealthBelow = 3,
+//	eBoidConditionType_HealthAbove = 4,
+//	eBoidConditionType_See = 5,
+//	eBoidConditionType_NotSee = 6,
+//	eBoidConditionType_StateTime = 7,
+//	eBoidConditionType_Touching = 8,
 //	NUM_BOID_CONDITION_TYPES
 //} BoidConditionType;
 //typedef struct BoidCondition {
@@ -142,8 +142,8 @@ typedef struct BoidData {
 
 typedef enum BoidRulesetType {
 	eBoidRulesetType_Fuzzy = 0,
-	eBoidRulesetType_Random,
-	eBoidRulesetType_Average,
+	eBoidRulesetType_Random = 1,
+	eBoidRulesetType_Average = 2,
 	NUM_BOID_RULESET_TYPES
 } BoidRulesetType;
 #define BOIDSTATE_CURRENT	1

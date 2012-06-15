@@ -591,7 +591,7 @@ void WM_operator_properties_alloc(PointerRNA **ptr, IDProperty **properties, con
 
 void WM_operator_properties_sanitize(PointerRNA *ptr, const short no_context)
 {
-	RNA_STRUCT_BEGIN (ptr, prop)
+	RNA_STRUCT_BEGIN(ptr, prop)
 	{
 		switch (RNA_property_type(prop)) {
 			case PROP_ENUM:
@@ -625,7 +625,7 @@ void WM_operator_properties_reset(wmOperator *op)
 		PropertyRNA *iterprop;
 		iterprop = RNA_struct_iterator_property(op->type->srna);
 
-		RNA_PROP_BEGIN (op->ptr, itemptr, iterprop)
+		RNA_PROP_BEGIN(op->ptr, itemptr, iterprop)
 		{
 			PropertyRNA *prop = itemptr.data;
 
@@ -1809,7 +1809,7 @@ static int wm_link_append_exec(bContext *C, wmOperator *op)
 		BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
 	}
 	else {
-		RNA_BEGIN (op->ptr, itemptr, "files")
+		RNA_BEGIN(op->ptr, itemptr, "files")
 		{
 			RNA_string_get(&itemptr, "name", name);
 			BLO_library_append_named_part_ex(C, mainl, &bh, name, idcode, flag);
@@ -2161,45 +2161,98 @@ static int wm_collada_export_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
-	char filename[FILE_MAX];
-	int selected, second_life, 
-		include_armatures,
-		apply_modifiers, 
-		include_bone_children,
-		use_object_instantiation;
+	char filepath[FILE_MAX];
+	int selected, second_life; 
+	int include_armatures;
+	int apply_modifiers;
+	int include_children;
+	int use_object_instantiation;
+	int sort_by_name;
 	
 	if (!RNA_struct_property_is_set(op->ptr, "filepath")) {
 		BKE_report(op->reports, RPT_ERROR, "No filename given");
 		return OPERATOR_CANCELLED;
 	}
 
-	RNA_string_get(op->ptr, "filepath", filename);
+	RNA_string_get(op->ptr, "filepath", filepath);
+	BLI_ensure_extension(filepath, sizeof(filepath), ".dae");
 
 	/* Options panel */
 	selected                 = RNA_boolean_get(op->ptr, "selected");
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
-	include_bone_children    = RNA_boolean_get(op->ptr, "include_bone_children");
+	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	use_object_instantiation = RNA_boolean_get(op->ptr, "use_object_instantiation");
+	sort_by_name             = RNA_boolean_get(op->ptr, "sort_by_name");
 	second_life              = RNA_boolean_get(op->ptr, "second_life");
 
 	/* get editmode results */
 	ED_object_exit_editmode(C, 0);  /* 0 = does not exit editmode */
 
 	if (collada_export(
-		CTX_data_scene(C),
-		filename,
-		selected,
-		apply_modifiers,
-		include_armatures,
-		include_bone_children,
-		use_object_instantiation,
-		second_life)) {
+	        CTX_data_scene(C),
+	        filepath,
+	        selected,
+	        apply_modifiers,
+	        include_armatures,
+	        include_children,
+	        use_object_instantiation,
+			sort_by_name,
+	        second_life)) {
 		return OPERATOR_FINISHED;
 	}
 	else {
 		return OPERATOR_CANCELLED;
 	}
+}
+
+
+void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
+{
+	ID *id = imfptr->id.data;
+
+	uiLayout *box, *row;
+
+	// Export Options:
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, 0);
+	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
+	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
+	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
+
+
+	// Collada options:
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, 0);
+	uiItemL(row, IFACE_("Collada Options:"), ICON_MODIFIER);
+
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
+
+}
+
+static void wm_collada_export_draw(bContext *C, wmOperator *op)
+{
+	PointerRNA ptr;
+
+	RNA_pointer_create(NULL, op->type->srna, op->properties, &ptr);
+	uiCollada_exportSettings(op->layout, &ptr);
 }
 
 static void WM_OT_collada_export(wmOperatorType *ot)
@@ -2213,27 +2266,34 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	ot->poll = WM_operator_winactive;
 
 	ot->flag |= OPTYPE_PRESET;
+
+	ot->ui = wm_collada_export_draw;
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
+
 
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");
 
+	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
+	                "Include armature(s) even if not selected");
+
+	RNA_def_boolean(ot->srna, "include_children", 0, "Include Children",
+	                "Include all children even if not selected");
+
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
 	                "Apply modifiers (Preview Resolution)");
 
-	RNA_def_boolean(ot->srna, "include_armatures", 0, "Include Armatures",
-	                "Include armature(s) used by the exported objects");
+	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instances",
+	                "Instantiate multiple Objects from same Data");
 
-	RNA_def_boolean(ot->srna, "include_bone_children", 0, "Include Bone Children",
-	                "Include all objects attached to bones of selected Armature(s)");
-
-	RNA_def_boolean(ot->srna, "use_object_instantiation", 1, "Use Object Instantiation",
-		            "Instantiate multiple Objects from same Data");
+	RNA_def_boolean(ot->srna, "sort_by_name", 0, "Sort by Object name",
+	                "Sort exported data by Object name");
 
 	RNA_def_boolean(ot->srna, "second_life", 0, "Export for Second Life",
 	                "Compatibility mode for Second Life");
 }
+
 
 /* function used for WM_OT_save_mainfile too */
 static int wm_collada_import_exec(bContext *C, wmOperator *op)
@@ -2315,7 +2375,7 @@ static void WM_OT_console_toggle(wmOperatorType *ot)
 {
 	/* XXX Have to mark these for xgettext, as under linux they do not exists...
 	 *     And even worth, have to give the context as text, as xgettext doesn't expand macros. :( */
-	ot->name = CTX_N_("Operator"/* BLF_I18NCONTEXT_OPERATOR_DEFAULT */, "Toggle System Console");
+	ot->name = CTX_N_("Operator" /* BLF_I18NCONTEXT_OPERATOR_DEFAULT */, "Toggle System Console");
 	ot->idname = "WM_OT_console_toggle";
 	ot->description = N_("Toggle System Console");
 	
@@ -2869,7 +2929,7 @@ int (*WM_gesture_lasso_path_to_array(bContext *UNUSED(C), wmOperator *op, int *m
 
 static int gesture_lasso_exec(bContext *C, wmOperator *op)
 {
-	RNA_BEGIN (op->ptr, itemptr, "path")
+	RNA_BEGIN(op->ptr, itemptr, "path")
 	{
 		float loc[2];
 		
@@ -3825,7 +3885,8 @@ static void gesture_circle_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_DESELECT, "DESELECT", 0, "DeSelect", ""},
 		{GESTURE_MODAL_NOP, "NOP", 0, "No Operation", ""},
 
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "View3D Gesture Circle");
 
@@ -3873,7 +3934,8 @@ static void gesture_straightline_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_CANCEL,  "CANCEL", 0, "Cancel", ""},
 		{GESTURE_MODAL_SELECT,  "SELECT", 0, "Select", ""},
 		{GESTURE_MODAL_BEGIN,   "BEGIN", 0, "Begin", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 	
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Straight Line");
 	
@@ -3902,7 +3964,8 @@ static void gesture_border_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_SELECT,  "SELECT", 0, "Select", ""},
 		{GESTURE_MODAL_DESELECT, "DESELECT", 0, "DeSelect", ""},
 		{GESTURE_MODAL_BEGIN,   "BEGIN", 0, "Begin", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Border");
 
@@ -3962,7 +4025,8 @@ static void gesture_zoom_border_modal_keymap(wmKeyConfig *keyconf)
 		{GESTURE_MODAL_IN,  "IN", 0, "In", ""},
 		{GESTURE_MODAL_OUT, "OUT", 0, "Out", ""},
 		{GESTURE_MODAL_BEGIN, "BEGIN", 0, "Begin", ""},
-		{0, NULL, 0, NULL, NULL}};
+		{0, NULL, 0, NULL, NULL}
+	};
 
 	wmKeyMap *keymap = WM_modalkeymap_get(keyconf, "Gesture Zoom Border");
 

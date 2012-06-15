@@ -25,8 +25,9 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertRGBToYUVOperation.h"
 
-SeparateYUVANode::SeparateYUVANode(bNode *editorNode): SeparateRGBANode(editorNode)
+SeparateYUVANode::SeparateYUVANode(bNode *editorNode) : SeparateRGBANode(editorNode)
 {
+	/* pass */
 }
 
 void SeparateYUVANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

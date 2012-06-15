@@ -45,36 +45,36 @@ ErrorHandler::~ErrorHandler()
 }
 
 //--------------------------------------------------------------------
-bool ErrorHandler::handleError( const COLLADASaxFWL::IError* error )
+bool ErrorHandler::handleError(const COLLADASaxFWL::IError *error)
 {
 	mError = true;
 	
-	if ( error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER ) {
-		COLLADASaxFWL::SaxParserError* saxParserError = (COLLADASaxFWL::SaxParserError*) error;
+	if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXPARSER) {
+		COLLADASaxFWL::SaxParserError *saxParserError = (COLLADASaxFWL::SaxParserError *) error;
 		const GeneratedSaxParser::ParserError& parserError = saxParserError->getError();
 
 		// Workaround to avoid wrong error
-		if ( parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED) {
-			if ( strcmp(parserError.getElement(), "effect") == 0 ) {
+		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_MIN_OCCURS_UNMATCHED) {
+			if (strcmp(parserError.getElement(), "effect") == 0) {
 				mError = false;
 			}
 		}
-		if ( parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT) {
-			if ( !((strcmp(parserError.getElement(), "extra") == 0) &&
-			       (strcmp(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract") == 0)))
+		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_VALIDATION_SEQUENCE_PREVIOUS_SIBLING_NOT_PRESENT) {
+			if (!((strcmp(parserError.getElement(), "extra") == 0) &&
+			      (strcmp(parserError.getAdditionalText().c_str(), "sibling: fx_profile_abstract") == 0)))
 			{
 				mError = false;
 			}
 		}
 
-		if ( parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_COULD_NOT_OPEN_FILE) {
+		if (parserError.getErrorType() == GeneratedSaxParser::ParserError::ERROR_COULD_NOT_OPEN_FILE) {
 			std::cout << "Couldn't open file" << std::endl;
 		}
 
 		std::cout << "Schema validation error: " << parserError.getErrorMessage() << std::endl;
 	}
-	else if ( error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXFWL ) {
-		COLLADASaxFWL::SaxFWLError* saxFWLError = (COLLADASaxFWL::SaxFWLError*) error;
+	else if (error->getErrorClass() == COLLADASaxFWL::IError::ERROR_SAXFWL) {
+		COLLADASaxFWL::SaxFWLError *saxFWLError = (COLLADASaxFWL::SaxFWLError *) error;
 		std::cout << "Sax FWL Error: " << saxFWLError->getErrorMessage() << std::endl;
 	}
 	else {

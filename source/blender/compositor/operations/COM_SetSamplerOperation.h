@@ -26,25 +26,25 @@
 
 
 /**
-  * this program converts an input colour to an output Sampler.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output Sampler.
+ * it assumes we are in sRGB colour space.
+ */
 class SetSamplerOperation : public NodeOperation {
 private:
 	PixelSampler sampler;
 	SocketReader *reader;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	SetSamplerOperation();
 	
-	void setSampler(PixelSampler sampler) {this->sampler = sampler;}
+	void setSampler(PixelSampler sampler) { this->sampler = sampler; }
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	void initExecution();
 	void deinitExecution();
 };

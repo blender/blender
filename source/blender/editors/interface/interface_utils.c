@@ -130,7 +130,13 @@ uiBut *uiDefAutoButR(uiBlock *block, PointerRNA *ptr, PropertyRNA *prop, int ind
 	return but;
 }
 
-int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr, int (*check_prop)(PointerRNA *, PropertyRNA *), const char label_align)
+/**
+ * \a check_prop callback filters functions to avoid drawing certain properties,
+ * in cases where PROP_HIDDEN flag can't be used for a property.
+ */
+int uiDefAutoButsRNA(uiLayout *layout, PointerRNA *ptr,
+                     int (*check_prop)(PointerRNA *, PropertyRNA *),
+                     const char label_align)
 {
 	uiLayout *split, *col;
 	int flag;

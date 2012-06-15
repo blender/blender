@@ -22,7 +22,7 @@
 
 #include "COM_SetAlphaOperation.h"
 
-SetAlphaOperation::SetAlphaOperation(): NodeOperation()
+SetAlphaOperation::SetAlphaOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);

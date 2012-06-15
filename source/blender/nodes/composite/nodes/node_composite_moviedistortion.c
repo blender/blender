@@ -73,7 +73,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 				BKE_movieclip_get_size(clip, &user, &width, &height);
 
 				if (!node->storage)
-					node->storage = BKE_tracking_distortion_create();
+					node->storage = BKE_tracking_distortion_new();
 
 				if (node->custom1 == 0)
 					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
@@ -116,7 +116,7 @@ static const char *label(bNode *node)
 static void storage_free(bNode *node)
 {
 	if (node->storage)
-		BKE_tracking_distortion_destroy(node->storage);
+		BKE_tracking_distortion_free(node->storage);
 
 	node->storage = NULL;
 }

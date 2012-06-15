@@ -22,7 +22,7 @@
 #include "COM_MapUVOperation.h"
 #include "BLI_math.h"
 
-MapUVOperation::MapUVOperation(): NodeOperation()
+MapUVOperation::MapUVOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VECTOR);
@@ -44,7 +44,7 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 {
 	float inputUV[4];
 	float uv_a[4], uv_b[4];
-	float u,v;
+	float u, v;
 
 	float dx, dy;
 	float uv_l, uv_r;
@@ -52,48 +52,45 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 
 	this->inputUVProgram->read(inputUV, x, y, sampler, inputBuffers);
 	if (inputUV[2] == 0.f) {
-		color[0] = 0.f;
-		color[1] = 0.f;
-		color[2] = 0.f;
-		color[3] = 0.f;
-	 return;
+		zero_v4(color);
+		return;
 	}
 	/* adaptive sampling, red (U) channel */
-	this->inputUVProgram->read(uv_a, x-1, y, COM_PS_NEAREST, inputBuffers);
-	this->inputUVProgram->read(uv_b, x+1, y, COM_PS_NEAREST, inputBuffers);
-	uv_l = uv_a[2]!=0.f? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2]!=0.f? fabsf(inputUV[0] - uv_b[0]) : 0.f;
+	this->inputUVProgram->read(uv_a, x - 1, y, COM_PS_NEAREST, inputBuffers);
+	this->inputUVProgram->read(uv_b, x + 1, y, COM_PS_NEAREST, inputBuffers);
+	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
+	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
 
 	dx = 0.5f * (uv_l + uv_r);
 
 	/* adaptive sampling, green (V) channel */
-	this->inputUVProgram->read(uv_a, x, y-1, COM_PS_NEAREST, inputBuffers);
-	this->inputUVProgram->read(uv_b, x, y+1, COM_PS_NEAREST, inputBuffers);
-	uv_u = uv_a[2]!=0.f? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2]!=0.f? fabsf(inputUV[1] - uv_b[1]) : 0.f;
+	this->inputUVProgram->read(uv_a, x, y - 1, COM_PS_NEAREST, inputBuffers);
+	this->inputUVProgram->read(uv_b, x, y + 1, COM_PS_NEAREST, inputBuffers);
+	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
+	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
 
 	dy = 0.5f * (uv_u + uv_d);
 
 	/* more adaptive sampling, red and green (UV) channels */
-	this->inputUVProgram->read(uv_a, x-1, y-1, COM_PS_NEAREST, inputBuffers);
-	this->inputUVProgram->read(uv_b, x-1, y+1, COM_PS_NEAREST, inputBuffers);
-	uv_l = uv_a[2]!=0.f? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2]!=0.f? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = uv_a[2]!=0.f? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2]!=0.f? fabsf(inputUV[1] - uv_b[1]) : 0.f;
+	this->inputUVProgram->read(uv_a, x - 1, y - 1, COM_PS_NEAREST, inputBuffers);
+	this->inputUVProgram->read(uv_b, x - 1, y + 1, COM_PS_NEAREST, inputBuffers);
+	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
+	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
+	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
+	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
 
-	dx+= 0.25f * (uv_l + uv_r);
-	dy+= 0.25f * (uv_u + uv_d);
+	dx += 0.25f * (uv_l + uv_r);
+	dy += 0.25f * (uv_u + uv_d);
 
-	this->inputUVProgram->read(uv_a, x+1, y-1, COM_PS_NEAREST, inputBuffers);
-	this->inputUVProgram->read(uv_b, x+1, y+1, COM_PS_NEAREST, inputBuffers);
-	uv_l = uv_a[2]!=0.f? fabsf(inputUV[0] - uv_a[0]) : 0.f;
-	uv_r = uv_b[2]!=0.f? fabsf(inputUV[0] - uv_b[0]) : 0.f;
-	uv_u = uv_a[2]!=0.f? fabsf(inputUV[1] - uv_a[1]) : 0.f;
-	uv_d = uv_b[2]!=0.f? fabsf(inputUV[1] - uv_b[1]) : 0.f;
+	this->inputUVProgram->read(uv_a, x + 1, y - 1, COM_PS_NEAREST, inputBuffers);
+	this->inputUVProgram->read(uv_b, x + 1, y + 1, COM_PS_NEAREST, inputBuffers);
+	uv_l = uv_a[2] != 0.f ? fabsf(inputUV[0] - uv_a[0]) : 0.f;
+	uv_r = uv_b[2] != 0.f ? fabsf(inputUV[0] - uv_b[0]) : 0.f;
+	uv_u = uv_a[2] != 0.f ? fabsf(inputUV[1] - uv_a[1]) : 0.f;
+	uv_d = uv_b[2] != 0.f ? fabsf(inputUV[1] - uv_b[1]) : 0.f;
 
-	dx+= 0.25f * (uv_l + uv_r);
-	dy+= 0.25f * (uv_u + uv_d);
+	dx += 0.25f * (uv_l + uv_r);
+	dy += 0.25f * (uv_u + uv_d);
 
 	/* UV to alpha threshold */
 	const float threshold = this->alpha * 0.05f;
@@ -114,10 +111,7 @@ void MapUVOperation::executePixel(float *color, float x, float y, PixelSampler s
 
 	/* "premul" */
 	if (alpha < 1.0f) {
-		color[0]*= alpha;
-		color[1]*= alpha;
-		color[2]*= alpha;
-		color[3]*= alpha;
+		mul_v4_fl(color, alpha);
 	}
 }
 
@@ -131,7 +125,7 @@ bool MapUVOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOpe
 {
 	rcti colorInput;
 	rcti uvInput;
-	NodeOperation *operation=NULL;
+	NodeOperation *operation = NULL;
 
 	/* the uv buffer only needs a 3x3 buffer. The image needs whole buffer */
 

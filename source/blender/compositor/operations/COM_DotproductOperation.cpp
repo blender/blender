@@ -44,12 +44,12 @@ void DotproductOperation::deinitExecution()
 }
 
 /** @todo: current implementation is the inverse of a dotproduct. not 'logically' correct
-  */
-void DotproductOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+ */
+void DotproductOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float input1[4];
 	float input2[4];
 	this->input1Operation->read(input1, x, y, sampler, inputBuffers);
 	this->input2Operation->read(input2, x, y, sampler, inputBuffers);
-	color[0] = -(input1[0]*input2[0]+input1[1]*input2[1]+input1[2]*input2[2]);
+	color[0] = -(input1[0] * input2[0] + input1[1] * input2[1] + input1[2] * input2[2]);
 }

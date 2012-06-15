@@ -26,12 +26,12 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class ChangeHSVOperation : public NodeOperation {
 private:
-	SocketReader * inputOperation;
+	SocketReader *inputOperation;
 
 	float hue;
 	float saturation;
@@ -39,21 +39,21 @@ private:
 
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	ChangeHSVOperation();
 	
 	void initExecution();
 	void deinitExecution();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
-	
-	void setHue(float hue) {this->hue = hue;}
-	void setSaturation(float saturation) {this->saturation = saturation;}
-	void setValue(float value) {this->value = value;}
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+
+	void setHue(float hue) { this->hue = hue; }
+	void setSaturation(float saturation) { this->saturation = saturation; }
+	void setValue(float value) { this->value = value; }
 
 };
 #endif

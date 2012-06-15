@@ -35,10 +35,10 @@ private:
 	bool xSplit;
 public:
 	SplitViewerOperation();
-	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers);
+	void executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers);
 	void initExecution();
 	void deinitExecution();
-	void setSplitPercentage(float splitPercentage) {this->splitPercentage = splitPercentage;}
-	void setXSplit(bool xsplit) {this->xSplit = xsplit;}
+	void setSplitPercentage(float splitPercentage) { this->splitPercentage = splitPercentage; }
+	void setXSplit(bool xsplit) { this->xSplit = xsplit; }
 };
 #endif

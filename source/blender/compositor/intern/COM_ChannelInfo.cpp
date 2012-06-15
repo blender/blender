@@ -25,8 +25,8 @@
 #include <stdio.h>
 
 /**
-  * @brief create new ChannelInfo instance and sets the defaults.
-  */
+ * @brief create new ChannelInfo instance and sets the defaults.
+ */
 ChannelInfo::ChannelInfo()
 {
 	this->number = 0;

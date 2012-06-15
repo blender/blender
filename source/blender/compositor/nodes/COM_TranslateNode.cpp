@@ -27,9 +27,10 @@
 
 TranslateNode::TranslateNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void TranslateNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputXSocket = this->getInputSocket(1);

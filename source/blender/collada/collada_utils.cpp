@@ -32,6 +32,8 @@
 #include "COLLADAFWMeshPrimitive.h"
 #include "COLLADAFWMeshVertexData.h"
 
+#include "collada_utils.h"
+
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
@@ -49,6 +51,7 @@
 
 extern "C" {
 #include "BKE_DerivedMesh.h"
+#include "BLI_linklist.h"
 }
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
@@ -114,7 +117,7 @@ int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space)
 
 	DAG_scene_sort(bmain, sce);
 	DAG_ids_flush_update(bmain, 0);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 
 	return true;
 }
@@ -123,9 +126,9 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 {
 	Object *ob = BKE_object_add_only_object(type, name);
 
-	ob->data= BKE_object_obdata_add_from_type(type);
-	ob->lay= scene->lay;
-	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA|OB_RECALC_TIME;
+	ob->data = BKE_object_obdata_add_from_type(type);
+	ob->lay = scene->lay;
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
 
 	BKE_scene_base_select(scene, BKE_scene_base_add(scene, ob));
 
@@ -151,16 +154,102 @@ Object *bc_get_assigned_armature(Object *ob)
 		ob_arm = ob->parent;
 	}
 	else {
-		ModifierData *mod = (ModifierData*)ob->modifiers.first;
-		while (mod) {
+		ModifierData *mod;
+		for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
 			if (mod->type == eModifierType_Armature) {
-				ob_arm = ((ArmatureModifierData*)mod)->object;
+				ob_arm = ((ArmatureModifierData *)mod)->object;
 			}
-
-			mod = mod->next;
 		}
 	}
 
 	return ob_arm;
 }
 
+// Returns the highest selected ancestor
+// returns NULL if no ancestor is selected
+// IMPORTANT: This function expects that
+// all exported objects have set:
+// ob->id.flag & LIB_DOIT
+Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *ob) 
+{
+	Object *ancestor = ob;
+	while (ob->parent && bc_is_marked(ob->parent))
+	{
+		ob = ob->parent;
+		ancestor = ob;
+	}
+	return ancestor;
+}
+
+bool bc_is_base_node(LinkNode *export_set, Object *ob)
+{
+	Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
+	return (root == ob);
+}
+
+bool bc_is_in_Export_set(LinkNode *export_set, Object *ob)
+{
+	LinkNode *node = export_set;
+	
+	while (node) {
+		Object *element = (Object *)node->link;
+	
+		if (element == ob)
+			return true;
+		
+		node= node->next;
+	}
+	return false;
+}
+
+bool bc_has_object_type(LinkNode *export_set, short obtype)
+{
+	LinkNode *node = export_set;
+	
+	while (node) {
+		Object *ob = (Object *)node->link;
+			
+		if (ob->type == obtype && ob->data) {
+			return true;
+		}
+		node= node->next;
+	}
+	return false;
+}
+
+int bc_is_marked(Object *ob)
+{
+	return ob && (ob->id.flag & LIB_DOIT);
+}
+
+void bc_remove_mark(Object *ob)
+{
+	ob->id.flag &= ~LIB_DOIT;
+}
+
+// Use bubble sort algorithm for sorting the export set
+void bc_bubble_sort_by_Object_name(LinkNode *export_set)
+{
+	bool sorted = false;
+	LinkNode *node;
+	for(node=export_set; node->next && !sorted; node=node->next) {
+
+		sorted = true;
+		
+		LinkNode *current;
+		for (current=export_set; current->next; current = current->next) {
+			Object *a = (Object *)current->link;
+			Object *b = (Object *)current->next->link;
+
+			std::string str_a (a->id.name);
+			std::string str_b (b->id.name);
+
+			if (str_a.compare(str_b) > 0) {
+				current->link       = b;
+				current->next->link = a;
+				sorted = false;
+			}
+			
+		}
+	}
+}

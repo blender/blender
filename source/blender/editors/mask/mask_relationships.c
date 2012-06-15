@@ -113,8 +113,8 @@ static int mask_parent_set_exec(bContext *C, wmOperator *UNUSED(op))
 	if ((NULL == (sc = CTX_wm_space_clip(C))) ||
 	    (NULL == (clip = sc->clip)) ||
 	    (NULL == (track = clip->tracking.act_track)) ||
-	    (NULL == (marker = BKE_tracking_get_marker(track, sc->user.framenr))) ||
-	    (NULL == (tracking = BKE_tracking_active_object(&clip->tracking))))
+	    (NULL == (marker = BKE_tracking_marker_get(track, sc->user.framenr))) ||
+	    (NULL == (tracking = BKE_tracking_object_get_active(&clip->tracking))))
 	{
 		return OPERATOR_CANCELLED;
 	}

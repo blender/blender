@@ -25,7 +25,7 @@
 extern "C" {
 	#include "IMB_imbuf.h"
 }
-ConvertColorProfileOperation::ConvertColorProfileOperation(): NodeOperation()
+ConvertColorProfileOperation::ConvertColorProfileOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);

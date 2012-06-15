@@ -538,12 +538,16 @@ void IMB_rect_from_float(ImBuf *ibuf)
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
-	if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+	if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
 		profile_from = IB_PROFILE_LINEAR_RGB;
-	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE))
+	}
+	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE)) {
 		profile_from = IB_PROFILE_SRGB;
-	else
+	}
+	else {
+		profile_from = IB_PROFILE_SRGB; /* should never happen */
 		BLI_assert(0);
+	}
 
 	/* do conversion */
 	IMB_buffer_byte_from_float((uchar *)ibuf->rect, ibuf->rect_float,
@@ -571,12 +575,16 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
-	if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+	if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
 		profile_from = IB_PROFILE_LINEAR_RGB;
-	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE))
+	}
+	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE)) {
 		profile_from = IB_PROFILE_SRGB;
-	else
+	}
+	else {
+		profile_from = IB_PROFILE_SRGB; /* should never happen */
 		BLI_assert(0);
+	}
 
 	/* do conversion */
 	rect_float = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;

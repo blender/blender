@@ -22,7 +22,7 @@
 
 #include "COM_ConvertColorToBWOperation.h"
 
-ConvertColorToBWOperation::ConvertColorToBWOperation(): NodeOperation()
+ConvertColorToBWOperation::ConvertColorToBWOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -38,7 +38,7 @@ void ConvertColorToBWOperation::executePixel(float *outputValue, float x, float 
 {
 	float inputColor[4];
 	inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
-	outputValue[0] = inputColor[0]*0.35f + inputColor[1]*0.45f + inputColor[2]*0.2f;
+	outputValue[0] = inputColor[0] * 0.35f + inputColor[1] * 0.45f + inputColor[2] * 0.2f;
 }
 
 void ConvertColorToBWOperation::deinitExecution()

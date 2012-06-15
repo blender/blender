@@ -135,10 +135,14 @@ void TrackRegion(const FloatImage &image1,
 // pixels of border around them. (so e.g. a corner of the patch cannot lie
 // directly on the edge of the image). Four corners are always required. All
 // channels are interpolated.
+// When mask is not null it'll be used as a pattern mask. Ot should match
+// the size of image.
+// Warped coordinates of marker's position would be returned in
+// warped_position_x and warped_position_y
 bool SamplePlanarPatch(const FloatImage &image,
                        const double *xs, const double *ys,
                        int num_samples_x, int num_samples_y,
-                       FloatImage *patch,
+                       FloatImage *mask, FloatImage *patch,
                        double *warped_position_x, double *warped_position_y);
 
 }  // namespace libmv

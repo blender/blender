@@ -1,5 +1,6 @@
 #!/bin/sh
 
+if false; then
 if [ "x$1" = "x--i-really-know-what-im-doing" ] ; then
   echo Proceeding as requested by command line ...
 else
@@ -36,7 +37,10 @@ done
 
 rm -rf $tmp
 
-sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | sort -d`
+fi
+
+sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//\t/' | grep -v -E 'schur_eliminator_[0-9]_[0-9]_[0-9d].cc' | sort -d`
+generated_sources=`find ./include ./internal -type f -iname '*.cc' -or -iname '*.cpp' -or -iname '*.c' | sed -r 's/^\.\//#\t\t/' | grep -E 'schur_eliminator_[0-9]_[0-9]_[0-9d].cc' | sort -d`
 headers=`find ./include ./internal -type f -iname '*.h' | sed -r 's/^\.\//\t/' | sort -d`
 
 src_dir=`find ./internal -type f -iname '*.cc' -exec dirname {} \; -or -iname '*.cpp' -exec dirname {} \; -or -iname '*.c' -exec dirname {} \; | sed -r 's/^\.\//\t/' | sort -d | uniq`
@@ -45,6 +49,10 @@ for x in $src_dir $src_third_dir; do
   t=""
 
   if test  `echo "$x" | grep -c glog ` -eq 1; then
+    continue;
+  fi
+
+  if test  `echo "$x" | grep -c generated` -eq 1; then
     continue;
   fi
 
@@ -121,6 +129,12 @@ ${sources}
 ${headers}
 )
 
+#if(FALSE)
+#	list(APPEND SRC
+${generated_sources}
+#	)
+#endif()
+
 if(WIN32)
 	list(APPEND INC
 		../glog/src/windows
@@ -143,6 +157,7 @@ add_definitions(
 	-D"CERES_HASH_NAMESPACE_END=}}"
 	-DCERES_NO_SUITESPARSE
 	-DCERES_DONT_HAVE_PROTOCOL_BUFFERS
+	-DCERES_RESTRICT_SCHUR_SPECIALIZATION
 )
 
 blender_add_lib(extern_ceres "\${SRC}" "\${INC}" "\${INC_SYS}")
@@ -164,12 +179,15 @@ src = []
 defs = []
 
 $src
+src += env.Glob('internal/ceres/generated/schur_eliminator_d_d_d.cc')
+#src += env.Glob('internal/ceres/generated/*.cc')
 
 defs.append('CERES_HAVE_PTHREAD')
 defs.append('CERES_HASH_NAMESPACE_START=namespace std { namespace tr1 {')
 defs.append('CERES_HASH_NAMESPACE_END=}}')
 defs.append('CERES_NO_SUITESPARSE')
 defs.append('CERES_DONT_HAVE_PROTOCOL_BUFFERS')
+defs.append('CERES_RESTRICT_SCHUR_SPECIALIZATION')
 
 incs = '. ../../ ../../../Eigen3 ./include ./internal ../gflags'
 

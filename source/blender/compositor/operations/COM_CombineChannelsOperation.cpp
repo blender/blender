@@ -53,7 +53,7 @@ void CombineChannelsOperation::deinitExecution()
 }
 
 
-void CombineChannelsOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void CombineChannelsOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float input[4];
 	/// @todo: remove if statements

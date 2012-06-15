@@ -15,8 +15,8 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  *
- * Contributor: 
- *		Jeroen Bakker 
+ * Contributor:
+ *		Jeroen Bakker
  *		Monique Dewanchand
  */
 
@@ -28,30 +28,36 @@
 class GlareThresholdOperation : public NodeOperation {
 private:
 	/**
-	  * @brief Cached reference to the inputProgram
-	  */
-	SocketReader * inputProgram;
-	
-	float threshold;
+	 * @brief Cached reference to the inputProgram
+	 */
+	SocketReader *inputProgram;
 
+	/**
+	 * @brief settings of the glare node.
+	 */
+	NodeGlare *settings;
 public:
 	GlareThresholdOperation();
-	
+
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
-	
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
-	
+
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
+
+	void setGlareSettings(NodeGlare *settings) {
+		this->settings = settings;
+	}
 	
-	void setThreshold(float threshold) {this->threshold = threshold;}
+	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
 };
 #endif

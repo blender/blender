@@ -22,7 +22,7 @@
 #include "COM_ColorMatteOperation.h"
 #include "BLI_math.h"
 
-ColorMatteOperation::ColorMatteOperation(): NodeOperation()
+ColorMatteOperation::ColorMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
@@ -64,16 +64,17 @@ void ColorMatteOperation::executePixel(float *outputValue, float x, float y, Pix
 	 */
 
 	if (
-	/* do hue last because it needs to wrap, and does some more checks  */
+	    /* do hue last because it needs to wrap, and does some more checks  */
 
-	/* sat */	(fabsf(inColor[1] - inKey[1]) < sat) &&
-	/* val */	(fabsf(inColor[2] - inKey[2]) < val) &&
+	    /* sat */ (fabsf(inColor[1] - inKey[1]) < sat) &&
+	    /* val */ (fabsf(inColor[2] - inKey[2]) < val) &&
 
-	/* multiply by 2 because it wraps on both sides of the hue,
-	 * otherwise 0.5 would key all hue's */
+	    /* multiply by 2 because it wraps on both sides of the hue,
+	     * otherwise 0.5 would key all hue's */
 
-	/* hue */	((h_wrap = 2.f * fabsf(inColor[0]-inKey[0])) < hue || (2.f - h_wrap) < hue)
-	) {
+	    /* hue */ ((h_wrap = 2.f * fabsf(inColor[0] - inKey[0])) < hue || (2.f - h_wrap) < hue)
+	    )
+	{
 		outputValue[0] = 0.0f; /*make transparent*/
 	}
 

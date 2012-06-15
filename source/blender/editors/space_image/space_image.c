@@ -914,6 +914,9 @@ static void image_scope_area_draw(const bContext *C, ARegion *ar)
 	void *lock;
 	ImBuf *ibuf = ED_space_image_acquire_buffer(sima, &lock);
 	if (ibuf) {
+		if (!sima->scopes.ok) {
+			BKE_histogram_update_sample_line(&sima->sample_line_hist, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		}
 		scopes_update(&sima->scopes, ibuf, scene->r.color_mgt_flag & R_COLOR_MANAGEMENT);
 	}
 	ED_space_image_release_buffer(sima, lock);

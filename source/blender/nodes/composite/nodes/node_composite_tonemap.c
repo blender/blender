@@ -51,16 +51,16 @@ static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 	const float sc = 1.f/(src->x*src->y);
 	*Lav = 0.f;
 	while (p--) {
-		float L = 0.212671f*bc[0][0] + 0.71516f*bc[0][1] + 0.072169f*bc[0][2];
+		float L = rgb_to_luma_y(bc[0]);
 		*Lav += L;
-		fRGB_add(Cav, bc[0]);
+		add_v3_v3(Cav, bc[0]);
 		lsum += (float)log((double)MAX2(L, 0.0) + 1e-5);
 		maxl = (L > maxl) ? L : maxl;
 		minl = (L < minl) ? L : minl;
 		bc++;
 	}
 	*Lav *= sc;
-	fRGB_mult(Cav, sc);
+	mul_v3_fl(Cav, sc);
 	maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5f); avl = lsum*sc;
 	*auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
 	return exp((double)avl);
@@ -86,7 +86,7 @@ static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 			fRGB* sp = (fRGB*)&src->rect[y*src->x*src->type];
 			fRGB* dp = (fRGB*)&dst->rect[y*src->x*src->type];
 			for (x=0; x<src->x; ++x) {
-				const float L = 0.212671f*sp[x][0] + 0.71516f*sp[x][1] + 0.072169f*sp[x][2];
+				const float L = rgb_to_luma_y(sp[x]);
 				float I_l = sp[x][0] + ic*(L - sp[x][0]);
 				float I_g = Cav[0] + ic*(Lav - Cav[0]);
 				float I_a = I_l + ia*(I_g - I_l);
@@ -109,8 +109,8 @@ static void tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 		fRGB* sp = (fRGB*)&src->rect[y*src->x*src->type];
 		fRGB* dp = (fRGB*)&dst->rect[y*src->x*src->type];
 		for (x=0; x<src->x; x++) {
-			fRGB_copy(dp[x], sp[x]);
-			fRGB_mult(dp[x], al);
+			copy_v4_v4(dp[x], sp[x]);
+			mul_v3_fl(dp[x], al);
 			dr = dp[x][0] + ntm->offset;
 			dg = dp[x][1] + ntm->offset;
 			db = dp[x][2] + ntm->offset;

@@ -26,16 +26,17 @@
 #include "COM_ViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ViewerNode::ViewerNode(bNode *editorNode): Node(editorNode)
+ViewerNode::ViewerNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)\
+void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *imageSocket = this->getInputSocket(0);
 	InputSocket *alphaSocket = this->getInputSocket(1);
-	Image *image = (Image*)this->getbNode()->id;
-	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
+	Image *image = (Image *)this->getbNode()->id;
+	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	bNode *editorNode = this->getbNode();
 	if (imageSocket->isConnected()) {
 		ViewerOperation *viewerOperation = new ViewerOperation();
@@ -44,7 +45,7 @@ void ViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *
 		viewerOperation->setbNodeTree(context->getbNodeTree());
 		viewerOperation->setImage(image);
 		viewerOperation->setImageUser(imageUser);
-		viewerOperation->setActive(editorNode->flag & NODE_DO_OUTPUT);
+		viewerOperation->setActive((editorNode->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 		viewerOperation->setChunkOrder((OrderOfChunks)editorNode->custom1);
 		viewerOperation->setCenterX(editorNode->custom3);
 		viewerOperation->setCenterY(editorNode->custom4);

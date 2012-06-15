@@ -2018,6 +2018,14 @@ static void node_composit_buts_file_output_details(uiLayout *layout, bContext *C
 static void node_composit_buts_scale(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
 {
 	uiItemR(layout, ptr, "space", 0, "", ICON_NONE);
+
+	if (RNA_enum_get(ptr, "space") == CMP_SCALE_RENDERPERCENT) {
+		uiLayout *row;
+		uiItemR(layout, ptr, "frame_method", UI_ITEM_R_EXPAND, NULL, ICON_NONE);
+		row = uiLayoutRow(layout, TRUE);
+		uiItemR(row, ptr, "offset_x", 0, "X", ICON_NONE);
+		uiItemR(row, ptr, "offset_y", 0, "Y", ICON_NONE);
+	}
 }
 
 static void node_composit_buts_rotate(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
@@ -2421,6 +2429,41 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
+    uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
+
+}
+
+static void node_composit_buts_keyingscreen(uiLayout *layout, bContext *C, PointerRNA *ptr)
+{
+	bNode *node= ptr->data;
+
+	uiTemplateID(layout, C, ptr, "clip", NULL, NULL, NULL);
+
+	if (node->id) {
+		MovieClip *clip = (MovieClip *) node->id;
+		uiLayout *col;
+		PointerRNA tracking_ptr;
+
+		RNA_pointer_create(&clip->id, &RNA_MovieTracking, &clip->tracking, &tracking_ptr);
+
+		col = uiLayoutColumn(layout, 1);
+		uiItemPointerR(col, ptr, "tracking_object", &tracking_ptr, "objects", "", ICON_OBJECT_DATA);
+	}
+}
+
+static void node_composit_buts_keying(uiLayout *layout, bContext *UNUSED(C), PointerRNA *ptr)
+{
+	/* bNode *node= ptr->data; */ /* UNUSED */
+
+	uiItemR(layout, ptr, "blur_pre", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "screen_balance", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "despill_factor", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "edge_kernel_radius", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "edge_kernel_tolerance", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "clip_black", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "clip_white", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "dilate_distance", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "blur_post", 0, NULL, ICON_NONE);
 }
 
 /* only once called */
@@ -2614,6 +2657,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MASK:
 			ntype->uifunc= node_composit_buts_mask;
+			break;
+		case CMP_NODE_KEYINGSCREEN:
+			ntype->uifunc = node_composit_buts_keyingscreen;
+			break;
+		case CMP_NODE_KEYING:
+			ntype->uifunc = node_composit_buts_keying;
 			break;
 		default:
 			ntype->uifunc = NULL;

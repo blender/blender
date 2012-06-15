@@ -22,8 +22,9 @@
 
 #include "COM_AlphaOverKeyOperation.h"
 
-AlphaOverKeyOperation::AlphaOverKeyOperation(): MixBaseOperation()
+AlphaOverKeyOperation::AlphaOverKeyOperation() : MixBaseOperation()
 {
+	/* pass */
 }
 
 void AlphaOverKeyOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -37,24 +38,18 @@ void AlphaOverKeyOperation::executePixel(float *outputValue, float x, float y, P
 	inputColor2Operation->read(inputOverColor, x, y, sampler, inputBuffers);
 	
 	if (inputOverColor[3] <= 0.0f) {
-		outputValue[0] = inputColor1[0];
-		outputValue[1] = inputColor1[1];
-		outputValue[2] = inputColor1[2];
-		outputValue[3] = inputColor1[3];
+		copy_v4_v4(outputValue, inputColor1);
 	}
 	else if (value[0] == 1.0f && inputOverColor[3] >= 1.0f) {
-		outputValue[0] = inputOverColor[0];
-		outputValue[1] = inputOverColor[1];
-		outputValue[2] = inputOverColor[2];
-		outputValue[3] = inputOverColor[3];
+		copy_v4_v4(outputValue, inputOverColor);
 	}
 	else {
-		float premul = value[0]*inputOverColor[3];
+		float premul = value[0] * inputOverColor[3];
 		float mul = 1.0f - premul;
 	
-		outputValue[0] = (mul*inputColor1[0]) + premul*inputOverColor[0];
-		outputValue[1] = (mul*inputColor1[1]) + premul*inputOverColor[1];
-		outputValue[2] = (mul*inputColor1[2]) + premul*inputOverColor[2];
-		outputValue[3] = (mul*inputColor1[3]) + value[0]*inputOverColor[3];
+		outputValue[0] = (mul * inputColor1[0]) + premul * inputOverColor[0];
+		outputValue[1] = (mul * inputColor1[1]) + premul * inputOverColor[1];
+		outputValue[2] = (mul * inputColor1[2]) + premul * inputOverColor[2];
+		outputValue[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
 	}
 }

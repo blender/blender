@@ -27,7 +27,7 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BlurBaseOperation::BlurBaseOperation(): NodeOperation()
+BlurBaseOperation::BlurBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -37,7 +37,7 @@ BlurBaseOperation::BlurBaseOperation(): NodeOperation()
 	this->data = NULL;
 	this->size = 1.0f;
 	this->deleteData = false;
-	this->sizeavailable=false;
+	this->sizeavailable = false;
 }
 void BlurBaseOperation::initExecution()
 {
@@ -47,18 +47,18 @@ void BlurBaseOperation::initExecution()
 	this->data->image_in_height = this->getHeight();
 	if (this->data->relative) {
 		switch (this->data->aspect) {
-		case CMP_NODE_BLUR_ASPECT_NONE:
-			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_width);
-			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_height);
-			break;
-		case CMP_NODE_BLUR_ASPECT_Y:
-			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_width);
-			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_width);
-			break;
-		case CMP_NODE_BLUR_ASPECT_X:
-			this->data->sizex = (int)(this->data->percentx*0.01f*this->data->image_in_height);
-			this->data->sizey = (int)(this->data->percenty*0.01f*this->data->image_in_height);
-			break;
+			case CMP_NODE_BLUR_ASPECT_NONE:
+				this->data->sizex = (int)(this->data->percentx * 0.01f * this->data->image_in_width);
+				this->data->sizey = (int)(this->data->percenty * 0.01f * this->data->image_in_height);
+				break;
+			case CMP_NODE_BLUR_ASPECT_Y:
+				this->data->sizex = (int)(this->data->percentx * 0.01f * this->data->image_in_width);
+				this->data->sizey = (int)(this->data->percenty * 0.01f * this->data->image_in_width);
+				break;
+			case CMP_NODE_BLUR_ASPECT_X:
+				this->data->sizex = (int)(this->data->percentx * 0.01f * this->data->image_in_height);
+				this->data->sizey = (int)(this->data->percenty * 0.01f * this->data->image_in_height);
+				break;
 		}
 	}
 
@@ -77,14 +77,14 @@ float *BlurBaseOperation::make_gausstab(int rad)
 
 	sum = 0.0f;
 	for (i = -rad; i <= rad; i++) {
-		val = RE_filter_value(this->data->filtertype, (float)i/(float)rad);
+		val = RE_filter_value(this->data->filtertype, (float)i / (float)rad);
 		sum += val;
-		gausstab[i+rad] = val;
+		gausstab[i + rad] = val;
 	}
 
-	sum = 1.0f/sum;
-	for (i=0; i<n; i++)
-		gausstab[i]*= sum;
+	sum = 1.0f / sum;
+	for (i = 0; i < n; i++)
+		gausstab[i] *= sum;
 
 	return gausstab;
 }

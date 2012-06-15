@@ -147,8 +147,10 @@ extern char build_system[];
 #endif
 
 /*	Local Function prototypes */
+#ifndef WITH_PYTHON_MODULE
 static int print_help(int argc, const char **argv, void *data);
 static int print_version(int argc, const char **argv, void *data);
+#endif
 
 /* for the callbacks: */
 
@@ -159,6 +161,8 @@ static int print_version(int argc, const char **argv, void *data);
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 
 
+#ifndef WITH_PYTHON_MODULE
+
 /* set breakpoints here when running in debug mode, useful to catch floating point errors */
 #if defined(__linux__) || defined(_WIN32) || defined(OSX_SSE_FPE)
 static void fpe_handler(int UNUSED(sig))
@@ -167,7 +171,6 @@ static void fpe_handler(int UNUSED(sig))
 }
 #endif
 
-#ifndef WITH_PYTHON_MODULE
 /* handling ctrl-c event in console */
 static void blender_esc(int sig)
 {
@@ -184,7 +187,6 @@ static void blender_esc(int sig)
 		count++;
 	}
 }
-#endif
 
 static int print_version(int UNUSED(argc), const char **UNUSED(argv), void *UNUSED(data))
 {
@@ -974,7 +976,6 @@ static int set_addons(int argc, const char **argv, void *data)
 	}
 }
 
-
 static int load_file(int UNUSED(argc), const char **argv, void *data)
 {
 	bContext *C = data;
@@ -1173,6 +1174,7 @@ static void setupArguments(bContext *C, bArgs *ba, SYS_SystemHandle *syshandle)
 	BLI_argsAdd(ba, 4, "-x", "--use-extension", "<bool>\n\tSet option to add the file extension to the end of the file", set_extension, C);
 
 }
+#endif /* WITH_PYTHON_MODULE */
 
 #ifdef WITH_PYTHON_MODULE
 /* allow python module to call main */
@@ -1193,9 +1195,12 @@ int main(int argc, const char **UNUSED(argv_c)) /* Do not mess with const */
 int main(int argc, const char **argv)
 #endif
 {
-	SYS_SystemHandle syshandle;
 	bContext *C = CTX_create();
+	SYS_SystemHandle syshandle;
+
+#ifndef WITH_PYTHON_MODULE
 	bArgs *ba;
+#endif
 
 #ifdef WIN32
 	wchar_t **argv_16 = CommandLineToArgvW(GetCommandLineW(), &argc);
@@ -1270,10 +1275,12 @@ int main(int argc, const char **argv)
 #endif
 
 	/* first test for background */
+#ifndef WITH_PYTHON_MODULE
 	ba = BLI_argsInit(argc, (const char **)argv); /* skip binary path */
 	setupArguments(C, ba, &syshandle);
 
 	BLI_argsParse(ba, 1, NULL, NULL);
+#endif
 
 #if defined(WITH_PYTHON_MODULE) || defined(WITH_HEADLESS)
 	G.background = 1; /* python module mode ALWAYS runs in background mode (for now) */
@@ -1292,9 +1299,10 @@ int main(int argc, const char **argv)
 	init_def_material();
 
 	if (G.background == 0) {
+#ifndef WITH_PYTHON_MODULE
 		BLI_argsParse(ba, 2, NULL, NULL);
 		BLI_argsParse(ba, 3, NULL, NULL);
-
+#endif
 		WM_init(C, argc, (const char **)argv);
 
 		/* this is properly initialized with user defs, but this is default */
@@ -1306,7 +1314,9 @@ int main(int argc, const char **argv)
 #endif
 	}
 	else {
+#ifndef WITH_PYTHON_MODULE
 		BLI_argsParse(ba, 3, NULL, NULL);
+#endif
 
 		WM_init(C, argc, (const char **)argv);
 
@@ -1334,9 +1344,13 @@ int main(int argc, const char **argv)
 	FRS_set_context(C);
 
 	/* OK we are ready for it */
+#ifndef WITH_PYTHON_MODULE
 	BLI_argsParse(ba, 4, load_file, C);
+#endif
 
+#ifndef WITH_PYTHON_MODULE
 	BLI_argsFree(ba);
+#endif
 
 #ifdef WIN32
 	while (argci) {

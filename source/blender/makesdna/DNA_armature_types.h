@@ -135,16 +135,16 @@ typedef enum eArmature_Flag {
 /* armature->drawtype */
 typedef enum eArmature_Drawtype {
 	ARM_OCTA = 0,
-	ARM_LINE,
-	ARM_B_BONE,
-	ARM_ENVELOPE,
-	ARM_WIRE
+	ARM_LINE = 1,
+	ARM_B_BONE = 2,
+	ARM_ENVELOPE = 3,
+	ARM_WIRE = 4
 } eArmature_Drawtype;
 
 /* armature->gevertdeformer */
 typedef enum eArmature_VertDeformer {
-	ARM_VDEF_BLENDER,
-	ARM_VDEF_BGE_CPU
+	ARM_VDEF_BLENDER = 0,
+	ARM_VDEF_BGE_CPU = 1
 } eArmature_VertDeformer;
 
 /* armature->deformflag */
@@ -170,8 +170,8 @@ typedef enum eArmature_PathFlag {
 // XXX depreceated... old animation system (armature only viz)
 typedef enum eArmature_GhostType {
 	ARM_GHOST_CUR = 0,
-	ARM_GHOST_RANGE,
-	ARM_GHOST_KEYS
+	ARM_GHOST_RANGE = 1,
+	ARM_GHOST_KEYS = 2
 } eArmature_GhostType;
 
 /* bone->flag */

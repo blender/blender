@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief FlipNode
-  * @ingroup Node
-  */
-class FlipNode: public Node {
+ * @brief FlipNode
+ * @ingroup Node
+ */
+class FlipNode : public Node {
 public:
 	FlipNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

@@ -24,7 +24,7 @@
 #include "COM_ConvertKeyToPremulOperation.h"
 #include "COM_ExecutionSystem.h"
 
-void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ConvertAlphaNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	NodeOperation *operation = NULL;
 	bNode *node = this->getbNode();

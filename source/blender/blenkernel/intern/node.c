@@ -802,7 +802,7 @@ void ntreeClearPreview(bNodeTree *ntree)
 /* hack warning! this function is only used for shader previews, and 
  * since it gets called multiple times per pixel for Ztransp we only
  * add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
+void nodeAddToPreview(bNode *node, float col[4], int x, int y, int do_manage)
 {
 	bNodePreview *preview= node->preview;
 	if (preview) {
@@ -1312,6 +1312,17 @@ void nodeClearActiveID(bNodeTree *ntree, short idtype)
 		if (node->id && GS(node->id->name)==idtype)
 			node->flag &= ~NODE_ACTIVE_ID;
 }
+
+void nodeClearActive(bNodeTree *ntree)
+{
+	bNode *node;
+
+	if (ntree==NULL) return;
+
+	for (node= ntree->nodes.first; node; node= node->next)
+		node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_ID);
+}
+
 
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeSetActive(bNodeTree *ntree, bNode *node)
@@ -1889,6 +1900,8 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_color_spill(ttype);
 	register_node_type_cmp_luma_matte(ttype);
 	register_node_type_cmp_doubleedgemask(ttype);
+	register_node_type_cmp_keyingscreen(ttype);
+	register_node_type_cmp_keying(ttype);
 
 	register_node_type_cmp_translate(ttype);
 	register_node_type_cmp_rotate(ttype);

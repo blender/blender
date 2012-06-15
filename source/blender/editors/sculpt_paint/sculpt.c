@@ -212,6 +212,11 @@ typedef struct StrokeCache {
 	float clip_tolerance[3];
 	float initial_mouse[2];
 
+	/* Pre-allocated temporary storage used during smoothing */
+	int num_threads;
+	float (**tmpgrid_co)[3], (**tmprow_co)[3];
+	float **tmpgrid_mask, **tmprow_mask;
+
 	/* Variants */
 	float radius;
 	float radius_squared;
@@ -919,7 +924,7 @@ static void calc_area_normal(Sculpt *sd, Object *ob, float an[3], PBVHNode **nod
 	/* Grab brush requires to test on original data (see r33888 and
 	 * bug #25371) */
 	original = (paint_brush(&sd->paint)->sculpt_tool == SCULPT_TOOL_GRAB ?
-				TRUE : ss->cache->original);
+	            TRUE : ss->cache->original);
 
 	(void)sd; /* unused w/o openmp */
 	
@@ -991,7 +996,7 @@ static void calc_sculpt_normal(Sculpt *sd, Object *ob,
 		case SCULPT_DISP_DIR_VIEW:
 			ED_view3d_global_to_vector(ss->cache->vc->rv3d,
 			                           ss->cache->vc->rv3d->twmat[3],
-			        an);
+			                           an);
 			break;
 
 		case SCULPT_DISP_DIR_X:
@@ -1117,21 +1122,21 @@ static void update_brush_local_mat(Sculpt *sd, Object *ob)
 static int brush_needs_sculpt_normal(const Brush *brush)
 {
 	return ((ELEM(brush->sculpt_tool,
-				  SCULPT_TOOL_GRAB,
-				  SCULPT_TOOL_SNAKE_HOOK) &&
-			 ((brush->normal_weight > 0) ||
-			  (brush->flag & BRUSH_FRONTFACE))) ||
+	              SCULPT_TOOL_GRAB,
+	              SCULPT_TOOL_SNAKE_HOOK) &&
+	         ((brush->normal_weight > 0) ||
+	          (brush->flag & BRUSH_FRONTFACE))) ||
 
-			ELEM7(brush->sculpt_tool,
-				  SCULPT_TOOL_BLOB,
-				  SCULPT_TOOL_CREASE,
-				  SCULPT_TOOL_DRAW,
-				  SCULPT_TOOL_LAYER,
-				  SCULPT_TOOL_NUDGE,
-				  SCULPT_TOOL_ROTATE,
-				  SCULPT_TOOL_THUMB) ||
+	        ELEM7(brush->sculpt_tool,
+	              SCULPT_TOOL_BLOB,
+	              SCULPT_TOOL_CREASE,
+	              SCULPT_TOOL_DRAW,
+	              SCULPT_TOOL_LAYER,
+	              SCULPT_TOOL_NUDGE,
+	              SCULPT_TOOL_ROTATE,
+	              SCULPT_TOOL_THUMB) ||
 
-			(brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
+	        (brush->mtex.brush_map_mode == MTEX_MAP_MODE_AREA));
 }
 
 /* For the smooth brush, uses the neighboring vertices around vert to calculate
@@ -1257,6 +1262,7 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	float (*tmpgrid_co)[3], (*tmprow_co)[3];
 	float *tmpgrid_mask, *tmprow_mask;
 	int v1, v2, v3, v4;
+	int thread_num;
 	int *grid_indices, totgrid, gridsize, i, x, y;
 
 	sculpt_brush_test_init(ss, &test);
@@ -1267,17 +1273,15 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 	                        NULL, &gridsize, &griddata, &gridadj);
 	BLI_pbvh_get_grid_key(ss->pbvh, &key);
 
-	#pragma omp critical
-	{
-		if (smooth_mask) {
-			tmpgrid_mask = MEM_mallocN(sizeof(float) * gridsize * gridsize, "tmpgrid_mask");
-			tmprow_mask = MEM_mallocN(sizeof(float) * gridsize, "tmprow_mask");
-		}
-		else {
-			tmpgrid_co = MEM_mallocN(sizeof(float) * 3 * gridsize * gridsize, "tmpgrid_co");
-			tmprow_co = MEM_mallocN(sizeof(float) * 3 * gridsize, "tmprow_co");
-		}
-	}
+	thread_num = 0;
+#ifdef _OPENMP
+	if (sd->flags & SCULPT_USE_OPENMP)
+		thread_num = omp_get_thread_num();
+#endif
+	tmpgrid_co = ss->cache->tmpgrid_co[thread_num];
+	tmprow_co = ss->cache->tmprow_co[thread_num];
+	tmpgrid_mask = ss->cache->tmpgrid_mask[thread_num];
+	tmprow_mask = ss->cache->tmprow_mask[thread_num];
 
 	for (i = 0; i < totgrid; ++i) {
 		data = griddata[grid_indices[i]];
@@ -1393,18 +1397,6 @@ static void do_multires_smooth_brush(Sculpt *sd, SculptSession *ss, PBVHNode *no
 			}
 		}
 	}
-
-	#pragma omp critical
-	{
-		if (smooth_mask) {
-			MEM_freeN(tmpgrid_mask);
-			MEM_freeN(tmprow_mask);
-		}
-		else {
-			MEM_freeN(tmpgrid_co);
-			MEM_freeN(tmprow_co);
-		}
-	}
 }
 
 static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
@@ -1432,14 +1424,14 @@ static void smooth(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode,
 
 		#pragma omp parallel for schedule(guided) if (sd->flags & SCULPT_USE_OPENMP)
 		for (n = 0; n < totnode; n++) {
-			switch(type) {
+			switch (type) {
 				case PBVH_GRIDS:
 					do_multires_smooth_brush(sd, ss, nodes[n], strength,
-										     smooth_mask);
+					                         smooth_mask);
 					break;
 				case PBVH_FACES:
 					do_mesh_smooth_brush(sd, ss, nodes[n], strength,
-			                             smooth_mask);
+					                     smooth_mask);
 					break;
 			}
 		}
@@ -1532,7 +1524,7 @@ static void do_draw_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode)
 				/* offset vertex */
 				float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                          ss->cache->sculpt_normal_symm, vd.no,
-										  vd.fno, *vd.mask);
+				                          vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], offset, fade);
 
@@ -1588,7 +1580,7 @@ static void do_crease_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 				/* offset vertex */
 				const float fade = tex_strength(ss, brush, vd.co, test.dist,
 				                                ss->cache->sculpt_normal_symm,
-												vd.no, vd.fno, *vd.mask);
+				                                vd.no, vd.fno, *vd.mask);
 				float val1[3];
 				float val2[3];
 
@@ -1726,7 +1718,7 @@ static void do_nudge_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1775,7 +1767,7 @@ static void do_snake_hook_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int to
 			if (sculpt_brush_test(&test, vd.co)) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-														    vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], grab_delta, fade);
 
@@ -1823,7 +1815,7 @@ static void do_thumb_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_v3fl(proxy[vd.i], cono, fade);
 
@@ -1876,7 +1868,7 @@ static void do_rotate_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnod
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, origco[vd.i], test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-														    origno[vd.i], NULL, *vd.mask);
+				                                            origno[vd.i], NULL, *vd.mask);
 
 				mul_v3_m4v3(proxy[vd.i], m, origco[vd.i]);
 				sub_v3_v3(proxy[vd.i], origco[vd.i]);
@@ -1929,7 +1921,7 @@ static void do_layer_brush(Sculpt *sd, Object *ob, PBVHNode **nodes, int totnode
 			if (sculpt_brush_test(&test, origco[vd.i])) {
 				const float fade = bstrength * tex_strength(ss, brush, vd.co, test.dist,
 				                                            ss->cache->sculpt_normal_symm,
-															vd.no, vd.fno, *vd.mask);
+				                                            vd.no, vd.fno, *vd.mask);
 				float *disp = &layer_disp[vd.i];
 				float val[3];
 
@@ -3233,6 +3225,69 @@ static void sculpt_init_mirror_clipping(Object *ob, SculptSession *ss)
 	}
 }
 
+static void sculpt_omp_start(Sculpt *sd, SculptSession *ss)
+{
+	StrokeCache *cache = ss->cache;
+
+#ifdef _OPENMP
+	/* If using OpenMP then create a number of threads two times the
+	 * number of processor cores.
+	 * Justification: Empirically I've found that two threads per
+	 * processor gives higher throughput. */
+	if (sd->flags & SCULPT_USE_OPENMP) {
+		cache->num_threads = 2 * omp_get_num_procs();
+		omp_set_num_threads(cache->num_threads);
+	}
+	else
+#endif
+	{
+		(void)sd;
+		cache->num_threads = 1;
+	}
+
+	if (ss->multires) {
+		int i, gridsize, array_mem_size;
+		BLI_pbvh_node_get_grids(ss->pbvh, NULL, NULL, NULL, NULL,
+								&gridsize, NULL, NULL);
+
+		array_mem_size = cache->num_threads * sizeof(void*);
+
+		cache->tmpgrid_co = MEM_mallocN(array_mem_size, "tmpgrid_co array");
+		cache->tmprow_co = MEM_mallocN(array_mem_size, "tmprow_co array");
+		cache->tmpgrid_mask = MEM_mallocN(array_mem_size, "tmpgrid_mask array");
+		cache->tmprow_mask = MEM_mallocN(array_mem_size, "tmprow_mask array");
+
+		for (i = 0; i < cache->num_threads; i++) {
+			const size_t row_size = sizeof(float) * gridsize;
+			const size_t co_row_size = 3 * row_size;
+
+			cache->tmprow_co[i] = MEM_mallocN(co_row_size, "tmprow_co");
+			cache->tmpgrid_co[i] = MEM_mallocN(co_row_size * gridsize, "tmpgrid_co");
+			cache->tmprow_mask[i] = MEM_mallocN(row_size, "tmprow_mask");
+			cache->tmpgrid_mask[i] = MEM_mallocN(row_size * gridsize, "tmpgrid_mask");
+		}
+	}
+}
+
+static void sculpt_omp_done(SculptSession *ss)
+{
+	if (ss->multires) {
+		int i;
+
+		for (i = 0; i < ss->cache->num_threads; i++) {
+			MEM_freeN(ss->cache->tmpgrid_co[i]);
+			MEM_freeN(ss->cache->tmprow_co[i]);
+			MEM_freeN(ss->cache->tmpgrid_mask[i]);
+			MEM_freeN(ss->cache->tmprow_mask[i]);
+		}
+
+		MEM_freeN(ss->cache->tmpgrid_co);
+		MEM_freeN(ss->cache->tmprow_co);
+		MEM_freeN(ss->cache->tmpgrid_mask);
+		MEM_freeN(ss->cache->tmprow_mask);
+	}
+}
+
 /* Initialize the stroke cache invariants from operator properties */
 static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSession *ss, wmOperator *op, const float mouse[2])
 {
@@ -3346,6 +3401,8 @@ static void sculpt_update_cache_invariants(bContext *C, Sculpt *sd, SculptSessio
 	cache->first_time = 1;
 
 	cache->vertex_rotation = 0;
+
+	sculpt_omp_start(sd, ss);
 }
 
 static void sculpt_update_brush_delta(Sculpt *sd, Object *ob, Brush *brush)
@@ -3585,15 +3642,15 @@ static void sculpt_update_cache_variants(bContext *C, Sculpt *sd, Object *ob,
    one of smooth brush, autosmooth, mask smooth, or shift-key
    smooth) */
 static int sculpt_any_smooth_mode(const Brush *brush,
-								  StrokeCache *cache,
-								  int stroke_mode)
+                                  StrokeCache *cache,
+                                  int stroke_mode)
 {
 	return ((stroke_mode == BRUSH_STROKE_SMOOTH) ||
-			(cache && cache->alt_smooth) ||
-			(brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
-			(brush->autosmooth_factor > 0) ||
-			((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
-			 (brush->mask_tool == BRUSH_MASK_SMOOTH)));
+	        (cache && cache->alt_smooth) ||
+	        (brush->sculpt_tool == SCULPT_TOOL_SMOOTH) ||
+	        (brush->autosmooth_factor > 0) ||
+	        ((brush->sculpt_tool == SCULPT_TOOL_MASK) &&
+	         (brush->mask_tool == BRUSH_MASK_SMOOTH)));
 }
 
 static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
@@ -3605,7 +3662,7 @@ static void sculpt_stroke_modifiers_check(const bContext *C, Object *ob)
 		Brush *brush = paint_brush(&sd->paint);
 
 		sculpt_update_mesh_elements(CTX_data_scene(C), sd, ob,
-									sculpt_any_smooth_mode(brush, ss->cache, 0));
+		                            sculpt_any_smooth_mode(brush, ss->cache, 0));
 	}
 }
 
@@ -3798,19 +3855,6 @@ static int sculpt_stroke_test_start(bContext *C, struct wmOperator *op,
 
 		sculpt_undo_push_begin(sculpt_tool_name(sd));
 
-#ifdef _OPENMP
-		/* If using OpenMP then create a number of threads two times the
-		 * number of processor cores.
-		 * Justification: Empirically I've found that two threads per
-		 * processor gives higher throughput. */
-		if (sd->flags & SCULPT_USE_OPENMP) {
-			int num_procs;
-
-			num_procs = omp_get_num_procs();
-			omp_set_num_threads(2 * num_procs);
-		}
-#endif
-
 		return 1;
 	}
 	else
@@ -3846,6 +3890,8 @@ static void sculpt_stroke_done(const bContext *C, struct PaintStroke *UNUSED(str
 	Object *ob = CTX_data_active_object(C);
 	SculptSession *ss = ob->sculpt;
 	Sculpt *sd = CTX_data_tool_settings(C)->sculpt;
+
+	sculpt_omp_done(ss);
 
 	/* reset values used to draw brush after completing the stroke */
 	sd->draw_anchored = 0;

@@ -62,10 +62,14 @@ class CLIP_HT_header(Header):
                 r = active_object.reconstruction
 
                 if r.is_valid and sc.view == 'CLIP':
-                    layout.label(text="Average solve error: %.4f" %
+                    layout.label(text="Solve error: %.4f" %
                                  (r.average_error))
             elif sc.view == 'GRAPH':
                 layout.prop(sc, "view", text="", expand=True)
+
+                row = layout.row(align=True)
+                row.prop(sc, "show_graph_only_selected", text="")
+                row.prop(sc, "show_graph_hidden", text="")
 
                 row = layout.row(align=True)
 
@@ -82,11 +86,16 @@ class CLIP_HT_header(Header):
                     row.prop(sc, "show_filters", icon='DISCLOSURE_TRI_RIGHT',
                              text="Filters")
             elif sc.view == 'DOPESHEET':
+                dopesheet = tracking.dopesheet
                 layout.prop(sc, "view", text="", expand=True)
 
-                layout.label(text="Sort by:")
-                layout.prop(sc, "dopesheet_sort_method", text="")
-                layout.prop(sc, "invert_dopesheet_sort", text="Invert")
+                row = layout.row(align=True)
+                row.prop(dopesheet, "show_only_selected", text="")
+                row.prop(dopesheet, "show_hidden", text="")
+
+                row = layout.row(align=True)
+                row.prop(dopesheet, "sort_method", text="")
+                row.prop(dopesheet, "use_invert_sort", text="Invert", toggle=True)
         else:
             layout.prop(sc, "view", text="", expand=True)
 
@@ -233,6 +242,7 @@ class CLIP_PT_tools_marker(CLIP_PT_tracking_panel, Panel):
             col.prop(settings, "default_motion_model")
             col.prop(settings, "default_use_brute")
             col.prop(settings, "default_use_normalization")
+            col.prop(settings, "default_use_mask")
             col.prop(settings, "default_correlation_min")
 
             col.separator()
@@ -261,6 +271,7 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
 
         props = row.operator("clip.track_markers", text="", icon='FRAME_PREV')
         props.backwards = True
+        props.sequence = False
         props = row.operator("clip.track_markers", text="",
                              icon='PLAY_REVERSE')
         props.backwards = True
@@ -268,7 +279,9 @@ class CLIP_PT_tools_tracking(CLIP_PT_tracking_panel, Panel):
         props = row.operator("clip.track_markers", text="", icon='PLAY')
         props.backwards = False
         props.sequence = True
-        row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props = row.operator("clip.track_markers", text="", icon='FRAME_NEXT')
+        props.backwards = False
+        props.sequence = False
 
         col = layout.column(align=True)
         props = col.operator("clip.clear_track_path", text="Clear After")
@@ -538,6 +551,10 @@ class CLIP_PT_track(CLIP_PT_tracking_panel, Panel):
         sub = row.row()
         sub.prop(act_track, "use_grayscale_preview", text="B/W", toggle=True)
 
+        row.separator()
+        sub = row.row()
+        sub.prop(act_track, "use_alpha_preview", text="", toggle=True, icon='IMAGE_ALPHA')
+
         layout.separator()
 
         row = layout.row(align=True)
@@ -577,6 +594,7 @@ class CLIP_PT_track_settings(CLIP_PT_tracking_panel, Panel):
             col.prop(active, "motion_model")
             col.prop(active, "use_brute")
             col.prop(active, "use_normalization")
+            col.prop(active, "use_mask")
             col.prop(active, "correlation_min")
 
             col.separator()
@@ -995,6 +1013,7 @@ class CLIP_PT_footage(CLIP_PT_clip_view_panel, Panel):
         col = layout.column()
         col.template_movieclip(sc, "clip", compact=True)
         col.prop(clip, "start_frame")
+        col.prop(clip, "frame_offset")
 
 
 class CLIP_PT_tools_clip(CLIP_PT_clip_view_panel, Panel):
@@ -1250,6 +1269,7 @@ class CLIP_MT_mask(Menu):
         layout.separator()
         layout.operator("mask.cyclic_toggle")
         layout.operator("mask.switch_direction")
+        layout.operator("mask.normals_make_consistent")
         layout.operator("mask.feather_weight_clear")  # TODO, better place?
 
         layout.separator()

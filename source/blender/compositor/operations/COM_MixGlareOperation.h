@@ -1,5 +1,5 @@
 /*
- * Copyright 2011, Blender Foundation.
+ * Copyright 2011, Glareer Foundation.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -20,20 +20,26 @@
  *		Monique Dewanchand
  */
 
-#ifndef _COM_FogGlowOperation_h
-#define _COM_FogGlowOperation_h
-#include "COM_NodeOperation.h"
-#include "DNA_lamp_types.h"
+#ifndef _COM_MixGlareOperation_h
+#define _COM_MixGlareOperation_h
+#include "COM_MixBaseOperation.h"
 
-class FogGlowImageOperation : public NodeOperation {
+
+/**
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
+class MixGlareOperation : public MixBaseOperation {
 public:
-	FogGlowImageOperation();
+	/**
+	 * Default constructor
+	 */
+	MixGlareOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
-	
-	void determineResolution(unsigned int resolution[], unsigned int preferredResolution[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
+
 };
 #endif

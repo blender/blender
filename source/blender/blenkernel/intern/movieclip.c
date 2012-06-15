@@ -159,7 +159,7 @@ static void get_sequence_fname(MovieClip *clip, int framenr, char *name)
 	offset = sequence_guess_offset(clip->name, strlen(head), numlen);
 
 	if (numlen)
-		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame);
+		BLI_stringenc(name, head, tail, numlen, offset + framenr - clip->start_frame + clip->frame_offset);
 	else
 		BLI_strncpy(name, clip->name, sizeof(clip->name));
 
@@ -171,7 +171,7 @@ static void get_proxy_fname(MovieClip *clip, int proxy_render_size, int undistor
 {
 	int size = rendersize_to_number(proxy_render_size);
 	char dir[FILE_MAX], clipdir[FILE_MAX], clipfile[FILE_MAX];
-	int proxynr = framenr - clip->start_frame + 1;
+	int proxynr = framenr - clip->start_frame + 1 + clip->frame_offset;
 
 	BLI_split_dirfile(clip->name, clipdir, clipfile, FILE_MAX, FILE_MAX);
 
@@ -250,7 +250,7 @@ static ImBuf *movieclip_load_movie_file(MovieClip *clip, MovieClipUser *user, in
 		int fra;
 
 		dur = IMB_anim_get_duration(clip->anim, tc);
-		fra = framenr - clip->start_frame;
+		fra = framenr - clip->start_frame + clip->frame_offset;
 
 		if (fra < 0)
 			fra = 0;
@@ -436,7 +436,7 @@ static MovieClip *movieclip_alloc(const char *name)
 
 	clip->aspx = clip->aspy = 1.0f;
 
-	BKE_tracking_init_settings(&clip->tracking);
+	BKE_tracking_settings_init(&clip->tracking);
 
 	clip->proxy.build_size_flag = IMB_PROXY_25;
 	clip->proxy.build_tc_flag = IMB_TC_RECORD_RUN |
@@ -446,6 +446,7 @@ static MovieClip *movieclip_alloc(const char *name)
 	clip->proxy.quality = 90;
 
 	clip->start_frame = 1;
+	clip->frame_offset = 0;
 
 	return clip;
 }
@@ -547,7 +548,7 @@ static ImBuf *get_undistorted_ibuf(MovieClip *clip, struct MovieDistortion *dist
 	if (distortion)
 		undistibuf = BKE_tracking_distortion_exec(distortion, &clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f, 1);
 	else
-		undistibuf = BKE_tracking_undistort(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
+		undistibuf = BKE_tracking_undistort_frame(&clip->tracking, ibuf, ibuf->x, ibuf->y, 0.0f);
 
 	if (undistibuf->userflags & IB_RECT_INVALID) {
 		ibuf->userflags &= ~IB_RECT_INVALID;
@@ -677,7 +678,7 @@ static ImBuf *put_postprocessed_frame_to_cache(MovieClip *clip, MovieClipUser *u
 			postproc_ibuf = IMB_dupImBuf(ibuf);
 
 		if (disable_red || disable_green || disable_blue || grayscale)
-			BKE_tracking_disable_imbuf_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
+			BKE_tracking_disable_channels(postproc_ibuf, disable_red, disable_green, disable_blue, 1);
 	}
 
 	IMB_refImBuf(postproc_ibuf);
@@ -772,6 +773,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 	float tloc[2], tscale, tangle;
 	short proxy = IMB_PROXY_NONE;
 	int render_flag = 0;
+	int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenr);
 
 	if (clip->flag & MCLIP_USE_PROXY) {
 		proxy = rendersize_to_proxy(user, clip->flag);
@@ -798,7 +800,7 @@ static ImBuf *get_stable_cached_frame(MovieClip *clip, MovieClipUser *user, int 
 
 	stableibuf = cache->stabilized.ibuf;
 
-	BKE_tracking_stabilization_data(&clip->tracking, framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
+	BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, stableibuf->x, stableibuf->y, tloc, &tscale, &tangle);
 
 	/* check for stabilization parameters */
 	if (tscale != cache->stabilized.scale ||
@@ -820,11 +822,12 @@ static ImBuf *put_stabilized_frame_to_cache(MovieClip *clip, MovieClipUser *user
 	MovieTracking *tracking = &clip->tracking;
 	ImBuf *stableibuf;
 	float tloc[2], tscale, tangle;
+	int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, framenr);
 
 	if (cache->stabilized.ibuf)
 		IMB_freeImBuf(cache->stabilized.ibuf);
 
-	stableibuf = BKE_tracking_stabilize(&clip->tracking, framenr, ibuf, tloc, &tscale, &tangle);
+	stableibuf = BKE_tracking_stabilize_frame(&clip->tracking, clip_framenr, ibuf, tloc, &tscale, &tangle);
 
 	cache->stabilized.ibuf = stableibuf;
 
@@ -1039,14 +1042,15 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 	scopes->marker = NULL;
 	scopes->track = NULL;
+	scopes->track_locked = TRUE;
 
 	if (clip) {
-		MovieTrackingTrack *act_track = BKE_tracking_active_track(&clip->tracking);
+		MovieTrackingTrack *act_track = BKE_tracking_track_get_active(&clip->tracking);
 
 		if (act_track) {
 			MovieTrackingTrack *track = act_track;
 			int framenr = BKE_movieclip_remap_scene_to_clip_frame(clip, user->framenr);
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
 			if (marker->flag & MARKER_DISABLED) {
 				scopes->track_disabled = TRUE;
@@ -1055,6 +1059,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 				ImBuf *ibuf = BKE_movieclip_get_ibuf(clip, user);
 
 				scopes->track_disabled = FALSE;
+				scopes->marker = marker;
+				scopes->track = track;
 
 				if (ibuf && (ibuf->rect || ibuf->rect_float)) {
 					ImBuf *search_ibuf;
@@ -1069,7 +1075,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 						undist_marker.pos[0] *= width;
 						undist_marker.pos[1] *= height * aspy;
 
-						BKE_tracking_invert_intrinsics(&clip->tracking, undist_marker.pos, undist_marker.pos);
+						BKE_tracking_undistort_v2(&clip->tracking, undist_marker.pos, undist_marker.pos);
 
 						undist_marker.pos[0] /= width;
 						undist_marker.pos[1] /= height * aspy;
@@ -1087,6 +1093,8 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 
 					scopes->frame_width = ibuf->x;
 					scopes->frame_height = ibuf->y;
+
+					scopes->use_track_mask = track->flag & TRACK_PREVIEW_ALPHA;
 				}
 
 				IMB_freeImBuf(ibuf);
@@ -1095,8 +1103,7 @@ void BKE_movieclip_update_scopes(MovieClip *clip, MovieClipUser *user, MovieClip
 			if ((track->flag & TRACK_LOCKED) == 0) {
 				float pat_min[2], pat_max[2];
 
-				scopes->marker = marker;
-				scopes->track = track;
+				scopes->track_locked = FALSE;
 
 				/* XXX: would work fine with non-transformed patterns, but would likely fail
 				 *      with transformed patterns, but that would be easier to debug when

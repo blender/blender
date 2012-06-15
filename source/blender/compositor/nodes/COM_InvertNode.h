@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief InvertNode
-  * @ingroup Node
-  */
-class InvertNode: public Node {
+ * @brief InvertNode
+ * @ingroup Node
+ */
+class InvertNode : public Node {
 public:
 	InvertNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

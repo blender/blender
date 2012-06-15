@@ -28,9 +28,10 @@
 
 RotateNode::RotateNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
 	InputSocket *inputSocket = this->getInputSocket(0);
 	InputSocket *inputDegreeSocket = this->getInputSocket(1);
@@ -39,15 +40,15 @@ void RotateNode::convertToOperations(ExecutionSystem *system, CompositorContext 
 	SetSamplerOperation *sampler = new SetSamplerOperation();
 
 	switch (this->getbNode()->custom1) {
-	case 0:
-		sampler->setSampler(COM_PS_NEAREST);
-		break ;
-	case 1:
-		sampler->setSampler(COM_PS_BILINEAR);
-		break;
-	case 2:
-		sampler->setSampler(COM_PS_BICUBIC);
-		break;
+		case 0:
+			sampler->setSampler(COM_PS_NEAREST);
+			break;
+		case 1:
+			sampler->setSampler(COM_PS_BILINEAR);
+			break;
+		case 2:
+			sampler->setSampler(COM_PS_BICUBIC);
+			break;
 	
 	}
 

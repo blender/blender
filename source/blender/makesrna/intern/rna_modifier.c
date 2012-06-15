@@ -2450,12 +2450,12 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "lock_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "axis", MOD_SIMPLEDEFORM_LOCK_AXIS_X);
-	RNA_def_property_ui_text(prop, "Lock X Axis", "Do not allow tapering along the X axis");
+	RNA_def_property_ui_text(prop, "Lock X Axis", "Do not allow deformation along the X axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lock_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "axis", MOD_SIMPLEDEFORM_LOCK_AXIS_Y);
-	RNA_def_property_ui_text(prop, "Lock Y Axis", "Do not allow tapering along the Y axis");
+	RNA_def_property_ui_text(prop, "Lock Y Axis", "Do not allow deformation along the Y axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -2651,7 +2651,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #if 0
-	prop= RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);
 	RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather than the fixed angle");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -3219,7 +3219,7 @@ static void rna_def_modifier_skin(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "SkinModifier", "Modifier");
+	srna = RNA_def_struct(brna, "SkinModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Skin Modifier", "Generate Skin");
 	RNA_def_struct_sdna(srna, "SkinModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);

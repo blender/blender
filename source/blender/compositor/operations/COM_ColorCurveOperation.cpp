@@ -31,7 +31,7 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 #endif
 
-ColorCurveOperation::ColorCurveOperation(): CurveBaseOperation()
+ColorCurveOperation::ColorCurveOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -60,8 +60,8 @@ void ColorCurveOperation::initExecution()
 
 void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	CurveMapping* cumap = this->curveMapping;
-	CurveMapping* workingCopy = (CurveMapping*)MEM_dupallocN(cumap);
+	CurveMapping *cumap = this->curveMapping;
+	CurveMapping *workingCopy = (CurveMapping *)MEM_dupallocN(cumap);
 	
 	float black[4];
 	float white[4];
@@ -79,9 +79,7 @@ void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSamp
 	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(workingCopy, color, image);
 	else if (*fac <= 0.0f) {
-		color[0] = image[0];
-		color[1] = image[1];
-		color[2] = image[2];
+		copy_v3_v3(color, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;
@@ -106,7 +104,7 @@ void ColorCurveOperation::deinitExecution()
 
 // Constant level curve mapping
 
-ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation(): CurveBaseOperation()
+ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -140,9 +138,7 @@ void ConstantLevelColorCurveOperation::executePixel(float *color, float x, float
 	if (*fac >= 1.0f)
 		curvemapping_evaluate_premulRGBF(this->curveMapping, color, image);
 	else if (*fac <= 0.0f) {
-		color[0] = image[0];
-		color[1] = image[1];
-		color[2] = image[2];
+		copy_v3_v3(color, image);
 	}
 	else {
 		float col[4], mfac = 1.0f - *fac;

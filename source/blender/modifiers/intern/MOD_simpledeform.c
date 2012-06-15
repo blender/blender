@@ -51,8 +51,6 @@
 
 #include "MOD_util.h"
 
-
-
 /* Clamps/Limits the given coordinate to:  limits[0] <= co[axis] <= limits[1]
  * The amount of clamp is saved on dcut */
 static void axis_limit(int axis, const float limits[2], float co[3], float dcut[3])
@@ -65,79 +63,79 @@ static void axis_limit(int axis, const float limits[2], float co[3], float dcut[
 	co[axis] = val;
 }
 
-static void simpleDeform_taper(const float factor, const float dcut[3], float *co)
+static void simpleDeform_taper(const float factor, const float dcut[3], float r_co[3])
 {
-	float x = co[0], y = co[1], z = co[2];
+	float x = r_co[0], y = r_co[1], z = r_co[2];
 	float scale = z * factor;
 
-	co[0] = x + x * scale;
-	co[1] = y + y * scale;
-	co[2] = z;
+	r_co[0] = x + x * scale;
+	r_co[1] = y + y * scale;
+	r_co[2] = z;
 
 	if (dcut) {
-		co[0] += dcut[0];
-		co[1] += dcut[1];
-		co[2] += dcut[2];
+		r_co[0] += dcut[0];
+		r_co[1] += dcut[1];
+		r_co[2] += dcut[2];
 	}
 }
 
-static void simpleDeform_stretch(const float factor, const float dcut[3], float *co)
+static void simpleDeform_stretch(const float factor, const float dcut[3], float r_co[3])
 {
-	float x = co[0], y = co[1], z = co[2];
+	float x = r_co[0], y = r_co[1], z = r_co[2];
 	float scale;
 
 	scale = (z * z * factor - factor + 1.0f);
 
-	co[0] = x * scale;
-	co[1] = y * scale;
-	co[2] = z * (1.0f + factor);
+	r_co[0] = x * scale;
+	r_co[1] = y * scale;
+	r_co[2] = z * (1.0f + factor);
 
 	if (dcut) {
-		co[0] += dcut[0];
-		co[1] += dcut[1];
-		co[2] += dcut[2];
+		r_co[0] += dcut[0];
+		r_co[1] += dcut[1];
+		r_co[2] += dcut[2];
 	}
 }
 
-static void simpleDeform_twist(const float factor, const float *dcut, float *co)
+static void simpleDeform_twist(const float factor, const float *dcut, float r_co[3])
 {
-	float x = co[0], y = co[1], z = co[2];
+	float x = r_co[0], y = r_co[1], z = r_co[2];
 	float theta, sint, cost;
 
 	theta = z * factor;
-	sint  = sin(theta);
-	cost  = cos(theta);
+	sint  = sinf(theta);
+	cost  = cosf(theta);
 
-	co[0] = x * cost - y * sint;
-	co[1] = x * sint + y * cost;
-	co[2] = z;
+	r_co[0] = x * cost - y * sint;
+	r_co[1] = x * sint + y * cost;
+	r_co[2] = z;
 
 	if (dcut) {
-		co[0] += dcut[0];
-		co[1] += dcut[1];
-		co[2] += dcut[2];
+		r_co[0] += dcut[0];
+		r_co[1] += dcut[1];
+		r_co[2] += dcut[2];
 	}
 }
 
-static void simpleDeform_bend(const float factor, const float dcut[3], float *co)
+static void simpleDeform_bend(const float factor, const float dcut[3], float r_co[3])
 {
-	float x = co[0], y = co[1], z = co[2];
+	float x = r_co[0], y = r_co[1], z = r_co[2];
 	float theta, sint, cost;
 
 	theta = x * factor;
-	sint = sin(theta);
-	cost = cos(theta);
+	sint = sinf(theta);
+	cost = cosf(theta);
 
 	if (fabsf(factor) > 1e-7f) {
-		co[0] = -(y - 1.0f / factor) * sint;
-		co[1] =  (y - 1.0f / factor) * cost + 1.0f / factor;
-		co[2] = z;
+		r_co[0] = -(y - 1.0f / factor) * sint;
+		r_co[1] =  (y - 1.0f / factor) * cost + 1.0f / factor;
+		r_co[2] = z;
 	}
 
 	if (dcut) {
-		co[0] += cost * dcut[0];
-		co[1] += sint * dcut[0];
-		co[2] += dcut[2];
+		r_co[0] += cost * dcut[0];
+		r_co[1] += sint * dcut[0];
+		r_co[2] += dcut[2];
 	}
 
 }
@@ -153,7 +151,7 @@ static void SimpleDeformModifier_do(SimpleDeformModifierData *smd, struct Object
 	int limit_axis = 0;
 	float smd_limit[2], smd_factor;
 	SpaceTransform *transf = NULL, tmp_transf;
-	void (*simpleDeform_callback)(const float factor, const float dcut[3], float *co) = NULL;  /* Mode callback */
+	void (*simpleDeform_callback)(const float factor, const float dcut[3], float co[3]) = NULL;  /* Mode callback */
 	int vgroup;
 	MDeformVert *dvert;
 

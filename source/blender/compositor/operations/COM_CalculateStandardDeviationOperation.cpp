@@ -26,72 +26,73 @@
 
 
 
-CalculateStandardDeviationOperation::CalculateStandardDeviationOperation(): CalculateMeanOperation()
+CalculateStandardDeviationOperation::CalculateStandardDeviationOperation() : CalculateMeanOperation()
 {
+	/* pass */
 }
 
-void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+void CalculateStandardDeviationOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	color[0] = this->standardDeviation;
 }
 
 void *CalculateStandardDeviationOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	BLI_mutex_lock(getMutex());
+	lockMutex();
 	if (!this->iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)imageReader->initializeTileData(rect, memoryBuffers);
 		CalculateMeanOperation::calculateMean(tile);
 		this->standardDeviation = 0.0f;
 		float *buffer = tile->getBuffer();
-		int size = tile->getWidth()*tile->getHeight();
+		int size = tile->getWidth() * tile->getHeight();
 		int pixels = 0;
 		float sum;
 		float mean = this->result;
-		for (int i = 0, offset = 0 ; i < size ; i ++, offset +=4) {
-			if (buffer[offset+3] > 0) {
-				pixels ++;
+		for (int i = 0, offset = 0; i < size; i++, offset += 4) {
+			if (buffer[offset + 3] > 0) {
+				pixels++;
 		
 				switch (this->setting)
 				{
-				case 1:
+					case 1:
 					{
-						float value = buffer[offset]*0.35f + buffer[offset+1]*0.45f + buffer[offset+2]*0.2f;
-						sum+=(value-mean)*(value-mean);
+						float value = buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
+						sum += (value - mean) * (value - mean);
 						break;
 					}
-				case 2:
+					case 2:
 					{
 						float value = buffer[offset];
-						sum+=value;
-						sum+=(value-mean)*(value-mean);
+						sum += value;
+						sum += (value - mean) * (value - mean);
 						break;
 					}
-				case 3:
+					case 3:
 					{
-						float value = buffer[offset+1];
-						sum+=value;
-						sum+=(value-mean)*(value-mean);
+						float value = buffer[offset + 1];
+						sum += value;
+						sum += (value - mean) * (value - mean);
 						break;
 					}
-				case 4:
+					case 4:
 					{
-						float value = buffer[offset+2];
-						sum+=value;
-						sum+=(value-mean)*(value-mean);
+						float value = buffer[offset + 2];
+						sum += value;
+						sum += (value - mean) * (value - mean);
 					}
-				case 5:
+					case 5:
 					{
 						float yuv[3];
-						rgb_to_yuv(buffer[offset], buffer[offset+1], buffer[offset+2], &yuv[0], &yuv[1], &yuv[2]);
-						sum+=(yuv[0]-mean)*(yuv[0]-mean);
+						rgb_to_yuv(buffer[offset], buffer[offset + 1], buffer[offset + 2], &yuv[0], &yuv[1], &yuv[2]);
+						sum += (yuv[0] - mean) * (yuv[0] - mean);
 						break;
 					}
 				}
 			}
 		}
-		this->standardDeviation = sqrt(sum / (float)(pixels-1));
+		this->standardDeviation = sqrt(sum / (float)(pixels - 1));
 		this->iscalculated = true;
 	}
-	BLI_mutex_unlock(getMutex());
+	unlockMutex();
 	return NULL;
 }
