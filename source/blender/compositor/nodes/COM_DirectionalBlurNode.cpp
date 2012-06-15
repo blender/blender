@@ -26,13 +26,13 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_DirectionalBlurOperation.h"
 
-DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode): Node(editorNode)
+DirectionalBlurNode::DirectionalBlurNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void DirectionalBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void DirectionalBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	NodeDBlurData *data = (NodeDBlurData*)this->getbNode()->storage;
+	NodeDBlurData *data = (NodeDBlurData *)this->getbNode()->storage;
 	DirectionalBlurOperation *operation = new DirectionalBlurOperation();
 	operation->setQuality(context->getQuality());
 	operation->setData(data);

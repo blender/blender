@@ -29,19 +29,19 @@
 #include "COM_GaussianBokehBlurOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
 
-BlurNode::BlurNode(bNode *editorNode): Node(editorNode)
+BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
 }
 
-void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
-	NodeBlurData * data = (NodeBlurData*)editorNode->storage;
-	InputSocket * inputSizeSocket = this->getInputSocket(1);
+	NodeBlurData *data = (NodeBlurData *)editorNode->storage;
+	InputSocket *inputSizeSocket = this->getInputSocket(1);
 	bool connectedSizeSocket = inputSizeSocket->isConnected();
 
 	const bNodeSocket *sock = this->getInputSocket(1)->getbNodeSocket();
-	const float size = ((const bNodeSocketValueFloat*)sock->default_value)->value;
+	const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
 	
 	CompositorQuality quality = context->getQuality();
 	
