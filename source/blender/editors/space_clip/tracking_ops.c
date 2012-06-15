@@ -483,7 +483,7 @@ static void show_cursor(bContext *C)
 	WM_cursor_set(win, CURSOR_STD);
 }
 
-MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
+MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int *area_r, int *action_r, int *corner_r)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	MovieClip *clip = ED_space_clip(sc);
@@ -492,6 +492,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
 	float co[2];
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	int framenr = ED_space_clip_clip_framenr(sc);
+	int action = -1, area = 0, corner = -1;
 
 	ED_space_clip_size(sc, &width, &height);
 
@@ -507,14 +508,21 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
 			int ok = FALSE;
 
 			if ((marker->flag & MARKER_DISABLED) == 0) {
-				if (mouse_on_offset(sc, track, marker, co, width, height))
+				if (mouse_on_offset(sc, track, marker, co, width, height)) {
+					area = TRACK_AREA_POINT;
+					action = SLIDE_ACTION_POS;
 					ok = TRUE;
+				}
 
 				if (!ok && (sc->flag & SC_SHOW_MARKER_SEARCH)) {
 					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
+						area = TRACK_AREA_SEARCH;
+						action = SLIDE_ACTION_OFFSET;
 						ok = TRUE;
 					}
 					else if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 0, width, height)) {
+						area = TRACK_AREA_SEARCH;
+						action = SLIDE_ACTION_SIZE;
 						ok = TRUE;
 					}
 				}
@@ -523,25 +531,42 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
 					/* XXX: need to be real check if affine tracking is enabled, but for now not
 					 *      sure how to do this, so assume affine tracker is always enabled */
 					if (TRUE) {
-						int corner = get_mouse_pattern_corner(sc, marker, co, width, height);
+						int current_corner = get_mouse_pattern_corner(sc, marker, co, width, height);
 
-						if (corner != -1) {
+						if (current_corner != -1) {
+							area = TRACK_AREA_PAT;
+							action = SLIDE_ACTION_POS;
+							corner = current_corner;
 							ok = TRUE;
 						}
 					}
 					else {
 						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1,  width, height)) {
+							area = TRACK_AREA_PAT;
+							action = SLIDE_ACTION_OFFSET;
 							ok = TRUE;
 						}
 
 						if (!ok && mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 0, width, height)) {
+							area = TRACK_AREA_PAT;
+							action = SLIDE_ACTION_SIZE;
 							ok = TRUE;
 						}
 					}
 				}
 
-				if (ok)
+				if (ok) {
+					if (area_r)
+						*area_r = area;
+
+					if (action_r)
+						*action_r = action;
+
+					if (corner_r)
+						*corner_r = corner;
+
 					return track;
+				}
 			}
 		}
 
@@ -554,13 +579,12 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
 static void *slide_marker_customdata(bContext *C, wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height;
 	float co[2];
 	void *customdata = NULL;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 	int framenr = ED_space_clip_clip_framenr(sc);
+	int area, action, corner;
 
 	ED_space_clip_size(sc, &width, &height);
 
@@ -569,59 +593,11 @@ static void *slide_marker_customdata(bContext *C, wmEvent *event)
 
 	ED_clip_mouse_pos(C, event, co);
 
-	track = tracksbase->first;
-	while (track) {
-		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+	track = tracking_marker_check_slide(C, event, &area, &action, &corner);
+	if (track) {
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
 
-			if ((marker->flag & MARKER_DISABLED) == 0) {
-				if (!customdata) {
-					if (mouse_on_offset(sc, track, marker, co, width, height))
-						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_POINT, 0,
-						                                      SLIDE_ACTION_POS, width, height);
-				}
-
-				if (!customdata && (sc->flag & SC_SHOW_MARKER_SEARCH)) {
-					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
-						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, 0,
-						                                      SLIDE_ACTION_OFFSET, width, height);
-					}
-					else if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 0, width, height)) {
-						customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_SEARCH, 0,
-						                                      SLIDE_ACTION_SIZE, width, height);
-					}
-				}
-
-				if (!customdata && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
-					/* XXX: need to be real check if affine tracking is enabled, but for now not
-					 *      sure how to do this, so assume affine tracker is always enabled */
-					if (TRUE) {
-						int corner = get_mouse_pattern_corner(sc, marker, co, width, height);
-
-						if (corner != -1) {
-							customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, corner,
-							                                      SLIDE_ACTION_POS, width, height);
-						}
-					}
-					else {
-						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1,  width, height)) {
-							customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, 0,
-							                                      SLIDE_ACTION_OFFSET, width, height);
-						}
-
-						if (!customdata && mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 0, width, height)) {
-							customdata = create_slide_marker_data(sc, track, marker, event, TRACK_AREA_PAT, 0,
-							                                      SLIDE_ACTION_SIZE, width, height);
-						}
-					}
-				}
-
-				if (customdata)
-					break;
-			}
-		}
-
-		track = track->next;
+		customdata = create_slide_marker_data(sc, track, marker, event, area, corner, action, width, height);
 	}
 
 	return customdata;
