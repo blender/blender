@@ -831,7 +831,7 @@ static bGPDlayer *track_mask_gpencil_layer_get(MovieTrackingTrack *track)
 }
 
 static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height,
-											   MovieTrackingMarker *marker, bGPDlayer *layer,
+                                               MovieTrackingMarker *marker, bGPDlayer *layer,
                                                float *mask, int mask_width, int mask_height)
 {
 	bGPDframe *frame = layer->frames.first;
@@ -853,7 +853,8 @@ static void track_mask_gpencil_layer_rasterize(int frame_width, int frame_height
 					fp[1] = (stroke_points[i].y - marker->search_min[1]) * frame_height / mask_height;
 				}
 
-				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, mask_width, mask_height, FALSE /* XXX- TODO: make on/off for AA*/);
+				/* TODO: add an option to control wether AA is enabled or not */
+				PLX_raskterize((float (*)[2])mask_points, stroke->totpoints, mask, mask_width, mask_height, FALSE);
 
 				MEM_freeN(mask_points);
 			}
@@ -2866,18 +2867,6 @@ static void reconstruct_update_solve_cb(void *customdata, double progress, const
 	}
 
 	BLI_snprintf(progressdata->stats_message, progressdata->message_size, "Solving camera | %s", message);
-}
-#endif
-
-#if 0
-static int solve_reconstruction_testbreak_cb(void *customdata)
-{
-	ReconstructProgressData *progressdata = customdata;
-
-	if (progressdata->stop && *progressdata->stop)
-		return TRUE;
-
-	return G.afbreek;
 }
 #endif
 

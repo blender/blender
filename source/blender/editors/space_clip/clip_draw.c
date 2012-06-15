@@ -811,6 +811,8 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 	}
 
 	if ((sc->flag & SC_SHOW_MARKER_PATTERN) && ((track->pat_flag & SELECT) == sel || outline)) {
+		int i;
+
 		if (!outline) {
 			if (track->pat_flag & SELECT)
 				glColor3fv(scol);
@@ -818,25 +820,10 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 				glColor3fv(col);
 		}
 
-		/* XXX: need to be real check if affine tracking is enabled, but for now not
-		 *      sure how to do this, so assume affine tracker is always enabled */
-		if (TRUE) {
-			int i;
-
-			/* pattern's corners sliding squares */
-			for (i = 0; i < 4; i++) {
-				draw_marker_slide_square(marker->pattern_corners[i][0], marker->pattern_corners[i][1],
-				                         patdx / 1.5f, patdy / 1.5f, outline, px);
-			}
-		}
-		else {
-			/* pattern offset square */
-			draw_marker_slide_square(marker->pattern_corners[3][0], marker->pattern_corners[3][1],
-			                         patdx, patdy, outline, px);
-
-			/* pattern re-sizing triangle */
-			draw_marker_slide_triangle(marker->pattern_corners[1][0], marker->pattern_corners[1][1],
-			                           patdx, patdy, outline, px);
+		/* pattern's corners sliding squares */
+		for (i = 0; i < 4; i++) {
+			draw_marker_slide_square(marker->pattern_corners[i][0], marker->pattern_corners[i][1],
+			                         patdx / 1.5f, patdy / 1.5f, outline, px);
 		}
 	}
 
