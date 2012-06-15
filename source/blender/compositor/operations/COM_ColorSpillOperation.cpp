@@ -22,9 +22,9 @@
 
 #include "COM_ColorSpillOperation.h"
 #include "BLI_math.h"
-#define avg(a,b) ((a+b)/2)
+#define AVG(a, b) ((a + b) / 2)
 
-ColorSpillOperation::ColorSpillOperation(): NodeOperation()
+ColorSpillOperation::ColorSpillOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_VALUE);
@@ -104,11 +104,11 @@ void ColorSpillOperation::executePixel(float *outputValue, float x, float y, Pix
 }
 float ColorSpillOperation::calculateMapValue(float fac, float *input)
 {
-	return fac * (input[this->spillChannel]-(this->settings->limscale*input[this->settings->limchan]));
+	return fac * (input[this->spillChannel] - (this->settings->limscale * input[this->settings->limchan]));
 }
 
 
 float ColorSpillAverageOperation::calculateMapValue(float fac, float *input)
 {
-	return fac * (input[this->spillChannel]-(this->settings->limscale*avg(input[this->channel2], input[this->channel3])));
+	return fac * (input[this->spillChannel] - (this->settings->limscale * AVG(input[this->channel2], input[this->channel3])));
 }

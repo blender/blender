@@ -21,7 +21,7 @@
 
 #include "COM_NormalizeOperation.h"
 
-NormalizeOperation::NormalizeOperation(): NodeOperation()
+NormalizeOperation::NormalizeOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -35,7 +35,7 @@ void NormalizeOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void NormalizeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+void NormalizeOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	/* using generic two floats struct to store x: min  y: mult */
 	NodeTwoFloats *minmult = (NodeTwoFloats *)data;
@@ -78,7 +78,7 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 {
 	lockMutex();
 	if (this->cachedInstance == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)imageReader->initializeTileData(rect, memoryBuffers);
 		/* using generic two floats struct to store x: min  y: mult */
 		NodeTwoFloats *minmult = new NodeTwoFloats();
 
@@ -86,20 +86,20 @@ void *NormalizeOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBu
 		int p = tile->getWidth() * tile->getHeight();
 		float *bc = buffer;
 
-		float minv = 1.0f+BLENDER_ZMAX;
-		float maxv = -1.0f-BLENDER_ZMAX;
+		float minv = 1.0f + BLENDER_ZMAX;
+		float maxv = -1.0f - BLENDER_ZMAX;
 
 		float value;
 		while (p--) {
-			value=bc[0];
+			value = bc[0];
 			maxv = max(value, maxv);
 			minv = min(value, minv);
-			bc+=4;
+			bc += 4;
 		}
 
 		minmult->x = minv;
 		/* The rare case of flat buffer  would cause a divide by 0 */
-		minmult->y = ((maxv!=minv)? 1.0f/(maxv-minv):0.f);
+		minmult->y = ((maxv != minv) ? 1.0f / (maxv - minv) : 0.f);
 
 		this->cachedInstance = minmult;
 	}

@@ -22,7 +22,7 @@
 
 #include "COM_RenderLayersDepthProg.h"
 
-RenderLayersDepthProg::RenderLayersDepthProg() :RenderLayersBaseProg(SCE_PASS_Z, 1)
+RenderLayersDepthProg::RenderLayersDepthProg() : RenderLayersBaseProg(SCE_PASS_Z, 1)
 {
 	this->addOutputSocket(COM_DT_VALUE);
 }

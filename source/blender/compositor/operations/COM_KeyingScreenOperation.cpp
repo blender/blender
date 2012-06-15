@@ -39,7 +39,7 @@ extern "C" {
 	#include "IMB_imbuf_types.h"
 }
 
-KeyingScreenOperation::KeyingScreenOperation(): NodeOperation()
+KeyingScreenOperation::KeyingScreenOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 	this->movieClip = NULL;
@@ -149,7 +149,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 
 	BLI_voronoi_triangulate(sites, sites_total, &edges, width, height,
 	                        &triangulation->triangulated_points, &triangulation->triangulated_points_total,
-                            &triangulation->triangles, &triangulation->triangles_total);
+	                        &triangulation->triangles, &triangulation->triangles_total);
 
 	MEM_freeN(sites);
 	BLI_freelistN(&edges);
@@ -204,8 +204,8 @@ void KeyingScreenOperation::executePixel(float *color, int x, int y, MemoryBuffe
 		for (i = 0; i < triangulation->triangles_total; i++) {
 			int *triangle = triangulation->triangles[i];
 			VoronoiTriangulationPoint *a = &triangulation->triangulated_points[triangle[0]],
-			                          *b = &triangulation->triangulated_points[triangle[1]],
-			                          *c = &triangulation->triangulated_points[triangle[2]];
+			*b = &triangulation->triangulated_points[triangle[1]],
+			*c = &triangulation->triangulated_points[triangle[2]];
 			float co[2] = {(float) x, (float) y}, w[3];
 
 			if (barycentric_coords_v2(a->co, b->co, c->co, co, w)) {

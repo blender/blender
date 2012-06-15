@@ -22,7 +22,7 @@
 #include "COM_ConvertRGBToYCCOperation.h"
 #include "BLI_math_color.h"
 
-ConvertRGBToYCCOperation::ConvertRGBToYCCOperation(): NodeOperation()
+ConvertRGBToYCCOperation::ConvertRGBToYCCOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -38,16 +38,16 @@ void ConvertRGBToYCCOperation::setMode(int mode)
 {
 	switch (mode)
 	{
-	case 1:
-		this->mode = BLI_YCC_ITU_BT709;
-		break;
-	case 2:
-		this->mode = BLI_YCC_JFIF_0_255;
-		break;
-	case 0:
-	default:
-		this->mode = BLI_YCC_ITU_BT601;
-		break;
+		case 1:
+			this->mode = BLI_YCC_ITU_BT709;
+			break;
+		case 2:
+			this->mode = BLI_YCC_JFIF_0_255;
+			break;
+		case 0:
+		default:
+			this->mode = BLI_YCC_ITU_BT601;
+			break;
 	}
 }
 

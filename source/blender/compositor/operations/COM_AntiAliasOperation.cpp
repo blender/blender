@@ -28,7 +28,7 @@ extern "C" {
 }
 
 
-AntiAliasOperation::AntiAliasOperation(): NodeOperation()
+AntiAliasOperation::AntiAliasOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -42,14 +42,14 @@ void AntiAliasOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+void AntiAliasOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	if (y < 0 || (unsigned int)y >= this->height || x < 0 || (unsigned int)x >= this->width) {
 		color[0] = 0.0f;
 	}
 	else {
-		int offset = y*this->width + x;
-		color[0] = buffer[offset]/255.0f;
+		int offset = y * this->width + x;
+		color[0] = buffer[offset] / 255.0f;
 	}
 	
 }
@@ -84,17 +84,17 @@ bool AntiAliasOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffe
 
 void *AntiAliasOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
-	if (this->buffer) {return buffer;}
+	if (this->buffer) {return buffer; }
 	lockMutex();
 	if (this->buffer == NULL) {
-		MemoryBuffer *tile = (MemoryBuffer*)valueReader->initializeTileData(rect, memoryBuffers);
-		int size = tile->getHeight()*tile->getWidth();
-		float * input = tile->getBuffer();
+		MemoryBuffer *tile = (MemoryBuffer *)valueReader->initializeTileData(rect, memoryBuffers);
+		int size = tile->getHeight() * tile->getWidth();
+		float *input = tile->getBuffer();
 		char *valuebuffer = new char[size];
-		for (int i = 0 ; i < size ; i ++) {
+		for (int i = 0; i < size; i++) {
 			float in = input[i * COM_NUMBER_OF_CHANNELS];
-			if (in < 0.0f) { in = 0.0f;}
-			if (in > 1.0f) {in = 1.0f;}
+			if (in < 0.0f) { in = 0.0f; }
+			if (in > 1.0f) {in = 1.0f; }
 			valuebuffer[i] = in * 255;
 		}
 		antialias_tagbuf(tile->getWidth(), tile->getHeight(), valuebuffer);

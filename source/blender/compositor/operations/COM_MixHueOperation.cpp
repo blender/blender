@@ -26,7 +26,7 @@ extern "C" {
 	#include "BLI_math.h"
 }
 
-MixHueOperation::MixHueOperation(): MixBaseOperation()
+MixHueOperation::MixHueOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -46,16 +46,16 @@ void MixHueOperation::executePixel(float *outputValue, float x, float y, PixelSa
 	}
 	float valuem = 1.0f - value;
 	
-	float colH,colS,colV;
+	float colH, colS, colV;
 	rgb_to_hsv(inputColor2[0], inputColor2[1], inputColor2[2], &colH, &colS, &colV);
-	if (colS!=0.0f) {
-		float rH,rS,rV;
-		float tmpr,tmpg,tmpb;
+	if (colS != 0.0f) {
+		float rH, rS, rV;
+		float tmpr, tmpg, tmpb;
 		rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);
-		hsv_to_rgb(colH , rS, rV, &tmpr, &tmpg, &tmpb);
-		outputValue[0] = valuem*(inputColor1[0]) + value*tmpr;
-		outputValue[1] = valuem*(inputColor1[1]) + value*tmpg;
-		outputValue[2] = valuem*(inputColor1[2]) + value*tmpb;
+		hsv_to_rgb(colH, rS, rV, &tmpr, &tmpg, &tmpb);
+		outputValue[0] = valuem * (inputColor1[0]) + value * tmpr;
+		outputValue[1] = valuem * (inputColor1[1]) + value * tmpg;
+		outputValue[2] = valuem * (inputColor1[2]) + value * tmpb;
 	}
 	outputValue[3] = inputColor1[3];
 }

@@ -52,7 +52,7 @@ void PreviewOperation::initExecution()
 {
 	this->input = getInputSocketReader(0);
 	if (!this->node->preview) {
-		this->node->preview = (bNodePreview*)MEM_callocN(sizeof(bNodePreview), "node preview");
+		this->node->preview = (bNodePreview *)MEM_callocN(sizeof(bNodePreview), "node preview");
 	}
 	else {
 		if (this->getWidth() == (unsigned int)this->node->preview->xsize && this->getHeight() == (unsigned int)this->node->preview->ysize) {
@@ -61,9 +61,9 @@ void PreviewOperation::initExecution()
 	}
 
 	if (this->outputBuffer == NULL) {
-		this->outputBuffer = (unsigned char*)MEM_callocN(sizeof(unsigned char)*4*getWidth()*getHeight(), "PreviewOperation");
+		this->outputBuffer = (unsigned char *)MEM_callocN(sizeof(unsigned char) * 4 * getWidth() * getHeight(), "PreviewOperation");
 		if (this->node->preview->rect) {
-				MEM_freeN(this->node->preview->rect);
+			MEM_freeN(this->node->preview->rect);
 		}
 		this->node->preview->xsize = getWidth();
 		this->node->preview->ysize = getHeight();
@@ -81,11 +81,11 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 {
 	int offset;
 	float color[4];
-	for (int y = rect->ymin ; y < rect->ymax ; y++) {
-		offset = (y * getWidth() + rect->xmin)*4;
-		for (int x = rect->xmin ; x < rect->xmax ; x++) {
-			float rx = floor(x/divider);
-			float ry = floor(y/divider);
+	for (int y = rect->ymin; y < rect->ymax; y++) {
+		offset = (y * getWidth() + rect->xmin) * 4;
+		for (int x = rect->xmin; x < rect->xmax; x++) {
+			float rx = floor(x / divider);
+			float ry = floor(y / divider);
 	
 			color[0] = 0.0f;
 			color[1] = 0.0f;
@@ -93,8 +93,8 @@ void PreviewOperation::executeRegion(rcti *rect, unsigned int tileNumber, Memory
 			color[3] = 1.0f;
 			input->read(color, rx, ry, COM_PS_NEAREST, memoryBuffers);
 			linearrgb_to_srgb_v4(color, color);
-			F4TOCHAR4(color, outputBuffer+offset);
-			offset +=4;
+			F4TOCHAR4(color, outputBuffer + offset);
+			offset += 4;
 		}
 	}
 }
@@ -102,10 +102,10 @@ bool PreviewOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferO
 {
 	rcti newInput;
 
-	newInput.xmin = input->xmin/divider;
-	newInput.xmax = input->xmax/divider;
-	newInput.ymin = input->ymin/divider;
-	newInput.ymax = input->ymax/divider;
+	newInput.xmin = input->xmin / divider;
+	newInput.xmax = input->xmax / divider;
+	newInput.ymin = input->ymin / divider;
+	newInput.ymax = input->ymax / divider;
 
 	return NodeOperation::determineDependingAreaOfInterest(&newInput, readOperation, output);
 }
@@ -116,10 +116,10 @@ void PreviewOperation::determineResolution(unsigned int resolution[], unsigned i
 	int height = resolution[1];
 	this->divider = 0.0f;
 	if (width > height) {
-		divider = COM_PREVIEW_SIZE / (width-1);
+		divider = COM_PREVIEW_SIZE / (width - 1);
 	}
 	else {
-		divider = COM_PREVIEW_SIZE / (height-1);
+		divider = COM_PREVIEW_SIZE / (height - 1);
 	}
 	width = width * divider;
 	height = height * divider;

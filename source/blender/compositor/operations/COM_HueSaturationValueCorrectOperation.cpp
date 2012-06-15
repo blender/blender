@@ -32,7 +32,7 @@ extern "C" {
 }
 #endif
 
-HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation(): CurveBaseOperation()
+HueSaturationValueCorrectOperation::HueSaturationValueCorrectOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -53,7 +53,7 @@ void HueSaturationValueCorrectOperation::executePixel(float *output, float x, fl
 
 	/* adjust hue, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(this->curveMapping, 0, hsv[0]);
-	hsv[0] += f-0.5f;
+	hsv[0] += f - 0.5f;
 
 	/* adjust saturation, scaling returned default 0.5 up to 1 */
 	f = curvemapping_evaluateF(this->curveMapping, 1, hsv[0]);

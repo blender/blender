@@ -22,7 +22,7 @@
 
 #include "COM_MixAddOperation.h"
 
-MixAddOperation::MixAddOperation(): MixBaseOperation()
+MixAddOperation::MixAddOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -42,9 +42,9 @@ void MixAddOperation::executePixel(float *outputValue, float x, float y, PixelSa
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	outputValue[0] = inputColor1[0]+value*inputColor2[0];
-	outputValue[1] = inputColor1[1]+value*inputColor2[1];
-	outputValue[2] = inputColor1[2]+value*inputColor2[2];
+	outputValue[0] = inputColor1[0] + value * inputColor2[0];
+	outputValue[1] = inputColor1[1] + value * inputColor2[1];
+	outputValue[2] = inputColor1[2] + value * inputColor2[2];
 	outputValue[3] = inputColor1[3];
 }
 

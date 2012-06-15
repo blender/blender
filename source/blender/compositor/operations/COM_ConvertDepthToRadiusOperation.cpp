@@ -24,7 +24,7 @@
 #include "BLI_math.h"
 #include "DNA_camera_types.h"
 
-ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation(): NodeOperation()
+ConvertDepthToRadiusOperation::ConvertDepthToRadiusOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -41,7 +41,7 @@ float ConvertDepthToRadiusOperation::determineFocalDistance()
 		return 10.0f;
 	}
 	else {
-		Camera *camera = (Camera*)this->cameraObject->data;
+		Camera *camera = (Camera *)this->cameraObject->data;
 		cam_lens = camera->lens;
 		if (camera->dof_ob) {
 			/* too simple, better to return the distance on the view axis only
@@ -62,12 +62,12 @@ void ConvertDepthToRadiusOperation::initExecution()
 {
 	this->inputOperation = this->getInputSocketReader(0);
 	float focalDistance = determineFocalDistance();
-	if (focalDistance == 0.0f) focalDistance = 1e10f; /* if the dof is 0.0 then set it be be far away */
-	inverseFocalDistance = 1.f/focalDistance;
+	if (focalDistance == 0.0f) focalDistance = 1e10f;  /* if the dof is 0.0 then set it be be far away */
+	inverseFocalDistance = 1.f / focalDistance;
 	this->aspect = (this->getWidth() > this->getHeight()) ? (this->getHeight() / (float)this->getWidth()) : (this->getWidth() / (float)this->getHeight());
-	this->aperture = 0.5f*(this->cam_lens / (this->aspect*32.f)) / this->fStop;
+	this->aperture = 0.5f * (this->cam_lens / (this->aspect * 32.f)) / this->fStop;
 	float minsz = MIN2(getWidth(), getHeight());
-	this->dof_sp = (float)minsz / (16.f / cam_lens);	// <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
+	this->dof_sp = (float)minsz / (16.f / cam_lens);    // <- == aspect * MIN2(img->x, img->y) / tan(0.5f * fov);
 }
 
 void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -77,16 +77,16 @@ void ConvertDepthToRadiusOperation::executePixel(float *outputValue, float x, fl
 	float radius;
 	inputOperation->read(inputValue, x, y, sampler, inputBuffers);
 	z = inputValue[0];
-	if (z!=0.f) {
-		float iZ = (1.f/z);
+	if (z != 0.f) {
+		float iZ = (1.f / z);
 		
 		// bug #6656 part 2b, do not rescale
-		/*
+#if 0
 		bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
 		// scale crad back to original maximum and blend
 		crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
-		*/
-		radius = 0.5f*fabsf(this->aperture*(dof_sp*(inverseFocalDistance - iZ) - 1.f));
+#endif
+		radius = 0.5f * fabsf(this->aperture * (dof_sp * (inverseFocalDistance - iZ) - 1.f));
 		// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
 		if (radius < 0.5f) radius = 0.5f;
 		if (radius > maxRadius) {

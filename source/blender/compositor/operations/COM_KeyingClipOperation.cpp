@@ -28,7 +28,7 @@
 #include "BLI_listbase.h"
 #include "BLI_math.h"
 
-KeyingClipOperation::KeyingClipOperation(): NodeOperation()
+KeyingClipOperation::KeyingClipOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -56,7 +56,7 @@ void KeyingClipOperation::executePixel(float *color, int x, int y, MemoryBuffer 
 	const int delta = this->kernelRadius;
 	const float tolerance = this->kernelTolerance;
 
-	MemoryBuffer *inputBuffer = (MemoryBuffer*)data;
+	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 
 	int bufferWidth = inputBuffer->getWidth();

@@ -23,7 +23,7 @@
 #include "COM_CropOperation.h"
 #include "BLI_math.h"
 
-CropBaseOperation::CropBaseOperation() :NodeOperation()
+CropBaseOperation::CropBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_COLOR);
@@ -33,7 +33,7 @@ CropBaseOperation::CropBaseOperation() :NodeOperation()
 
 void CropBaseOperation::updateArea()
 {
-	SocketReader * inputReference = this->getInputSocketReader(0);
+	SocketReader *inputReference = this->getInputSocketReader(0);
 	float width = inputReference->getWidth();
 	float height = inputReference->getHeight();
 	if (this->relative) {
@@ -68,7 +68,7 @@ void CropBaseOperation::deinitExecution()
 	this->inputOperation = NULL;
 }
 
-CropOperation::CropOperation() :CropBaseOperation()
+CropOperation::CropOperation() : CropBaseOperation()
 {
 	/* pass */
 }
@@ -86,7 +86,7 @@ void CropOperation::executePixel(float *color, float x, float y, PixelSampler sa
 	}
 }
 
-CropImageOperation::CropImageOperation() :CropBaseOperation()
+CropImageOperation::CropImageOperation() : CropBaseOperation()
 {
 	/* pass */
 }

@@ -22,7 +22,7 @@
 
 #include "COM_MixSubtractOperation.h"
 
-MixSubtractOperation::MixSubtractOperation(): MixBaseOperation()
+MixSubtractOperation::MixSubtractOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -40,9 +40,9 @@ void MixSubtractOperation::executePixel(float *outputValue, float x, float y, Pi
 	if (this->useValueAlphaMultiply()) {
 		value *= inputColor2[3];
 	}
-	outputValue[0] = inputColor1[0]-value*(inputColor2[0]);
-	outputValue[1] = inputColor1[1]-value*(inputColor2[1]);
-	outputValue[2] = inputColor1[2]-value*(inputColor2[2]);
+	outputValue[0] = inputColor1[0] - value * (inputColor2[0]);
+	outputValue[1] = inputColor1[1] - value * (inputColor2[1]);
+	outputValue[2] = inputColor1[2] - value * (inputColor2[2]);
 	outputValue[3] = inputColor1[3];
 }
 

@@ -36,7 +36,7 @@ extern "C" {
 	#include "IMB_imbuf_types.h"
 }
 
-BaseImageOperation::BaseImageOperation(): NodeOperation()
+BaseImageOperation::BaseImageOperation() : NodeOperation()
 {
 	this->image = NULL;
 	this->buffer = NULL;
@@ -48,15 +48,15 @@ BaseImageOperation::BaseImageOperation(): NodeOperation()
 	this->depthBuffer = NULL;
 	this->numberOfChannels = 0;
 }
-ImageOperation::ImageOperation(): BaseImageOperation()
+ImageOperation::ImageOperation() : BaseImageOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 }
-ImageAlphaOperation::ImageAlphaOperation(): BaseImageOperation()
+ImageAlphaOperation::ImageAlphaOperation() : BaseImageOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
 }
-ImageDepthOperation::ImageDepthOperation(): BaseImageOperation()
+ImageDepthOperation::ImageDepthOperation() : BaseImageOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
 }
@@ -66,12 +66,12 @@ ImBuf *BaseImageOperation::getImBuf()
 	ImBuf *ibuf;
 	
 	ibuf = BKE_image_get_ibuf(this->image, this->imageUser);
-	if (ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
-			return NULL;
+	if (ibuf == NULL || (ibuf->rect == NULL && ibuf->rect_float == NULL)) {
+		return NULL;
 	}
 	
 	if (ibuf->rect_float == NULL) {
-			IMB_float_from_rect(ibuf);
+		IMB_float_from_rect(ibuf);
 	}
 	return ibuf;
 }
@@ -108,7 +108,7 @@ void BaseImageOperation::determineResolution(unsigned int resolution[], unsigned
 	}
 }
 
-void ImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])\
+void ImageOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	if (this->imageBuffer == NULL || x < 0 || y < 0 || x >= this->getWidth() || y >= this->getHeight() ) {
 		color[0] = 0.0f;
@@ -118,15 +118,15 @@ void ImageOperation::executePixel(float *color, float x, float y, PixelSampler s
 	}
 	else {
 		switch (sampler) {
-		case COM_PS_NEAREST:
-			neareast_interpolation_color(this->buffer, NULL, color, x, y);
-			break;
-		case COM_PS_BILINEAR:
-			bilinear_interpolation_color(this->buffer, NULL, color, x, y);
-			break;
-		case COM_PS_BICUBIC:
-			bicubic_interpolation_color(this->buffer, NULL, color, x, y);
-			break;
+			case COM_PS_NEAREST:
+				neareast_interpolation_color(this->buffer, NULL, color, x, y);
+				break;
+			case COM_PS_BILINEAR:
+				bilinear_interpolation_color(this->buffer, NULL, color, x, y);
+				break;
+			case COM_PS_BICUBIC:
+				bicubic_interpolation_color(this->buffer, NULL, color, x, y);
+				break;
 		}
 	}
 }
@@ -141,15 +141,15 @@ void ImageAlphaOperation::executePixel(float *color, float x, float y, PixelSamp
 	else {
 		tempcolor[3] = 1.0f;
 		switch (sampler) {
-		case COM_PS_NEAREST:
-			neareast_interpolation_color(this->buffer, NULL, tempcolor, x, y);
-			break;
-		case COM_PS_BILINEAR:
-			bilinear_interpolation_color(this->buffer, NULL, tempcolor, x, y);
-			break;
-		case COM_PS_BICUBIC:
-			bicubic_interpolation_color(this->buffer, NULL, tempcolor, x, y);
-			break;
+			case COM_PS_NEAREST:
+				neareast_interpolation_color(this->buffer, NULL, tempcolor, x, y);
+				break;
+			case COM_PS_BILINEAR:
+				bilinear_interpolation_color(this->buffer, NULL, tempcolor, x, y);
+				break;
+			case COM_PS_BICUBIC:
+				bicubic_interpolation_color(this->buffer, NULL, tempcolor, x, y);
+				break;
 		}
 		color[0] = tempcolor[3];
 	}

@@ -23,7 +23,7 @@
 #include "COM_ColorCorrectionOperation.h"
 #include "BLI_math.h"
 
-ColorCorrectionOperation::ColorCorrectionOperation(): NodeOperation()
+ColorCorrectionOperation::ColorCorrectionOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -47,7 +47,7 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	this->inputImage->read(inputImageColor, x, y, sampler, inputBuffers);
 	this->inputMask->read(inputMask, x, y, sampler, inputBuffers);
 	
-	float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2])/3.0f;
+	float level = (inputImageColor[0] + inputImageColor[1] + inputImageColor[2]) / 3.0f;
 	float contrast = this->data->master.contrast;
 	float saturation = this->data->master.saturation;
 	float gamma = this->data->master.gamma;
@@ -83,11 +83,11 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	}
 #undef MARGIN
 #undef MARGIN_DIV
-	contrast *= (levelShadows*this->data->shadows.contrast)+(levelMidtones*this->data->midtones.contrast)+(levelHighlights*this->data->highlights.contrast);
-	saturation *= (levelShadows*this->data->shadows.saturation)+(levelMidtones*this->data->midtones.saturation)+(levelHighlights*this->data->highlights.saturation);
-	gamma *= (levelShadows*this->data->shadows.gamma)+(levelMidtones*this->data->midtones.gamma)+(levelHighlights*this->data->highlights.gamma);
-	gain *= (levelShadows*this->data->shadows.gain)+(levelMidtones*this->data->midtones.gain)+(levelHighlights*this->data->highlights.gain);
-	lift += (levelShadows*this->data->shadows.lift)+(levelMidtones*this->data->midtones.lift)+(levelHighlights*this->data->highlights.lift);
+	contrast *= (levelShadows * this->data->shadows.contrast) + (levelMidtones * this->data->midtones.contrast) + (levelHighlights * this->data->highlights.contrast);
+	saturation *= (levelShadows * this->data->shadows.saturation) + (levelMidtones * this->data->midtones.saturation) + (levelHighlights * this->data->highlights.saturation);
+	gamma *= (levelShadows * this->data->shadows.gamma) + (levelMidtones * this->data->midtones.gamma) + (levelHighlights * this->data->highlights.gamma);
+	gain *= (levelShadows * this->data->shadows.gain) + (levelMidtones * this->data->midtones.gain) + (levelHighlights * this->data->highlights.gain);
+	lift += (levelShadows * this->data->shadows.lift) + (levelMidtones * this->data->midtones.lift) + (levelHighlights * this->data->highlights.lift);
 	
 	float invgamma = 1.0f / gamma;
 	float luma = rgb_to_luma_y(inputImageColor);
@@ -104,15 +104,15 @@ void ColorCorrectionOperation::executePixel(float *output, float x, float y, Pix
 	g = 0.5f + ((g - 0.5f) * contrast);
 	b = 0.5f + ((b - 0.5f) * contrast);
 	
-	r = powf(r*gain+lift, invgamma);
-	g = powf(g*gain+lift, invgamma);
-	b = powf(b*gain+lift, invgamma);
+	r = powf(r * gain + lift, invgamma);
+	g = powf(g * gain + lift, invgamma);
+	b = powf(b * gain + lift, invgamma);
 	
 	
 	// mix with mask
-	r = mvalue*inputImageColor[0] + value * r;
-	g = mvalue*inputImageColor[1] + value * g;
-	b = mvalue*inputImageColor[2] + value * b;
+	r = mvalue * inputImageColor[0] + value * r;
+	g = mvalue * inputImageColor[1] + value * g;
+	b = mvalue * inputImageColor[2] + value * b;
 	
 	if (this->redChannelEnabled) {
 		output[0] = r;

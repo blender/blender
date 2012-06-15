@@ -22,7 +22,7 @@
 #include "COM_ConvertYUVToRGBOperation.h"
 #include "BLI_math_color.h"
 
-ConvertYUVToRGBOperation::ConvertYUVToRGBOperation(): NodeOperation()
+ConvertYUVToRGBOperation::ConvertYUVToRGBOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);

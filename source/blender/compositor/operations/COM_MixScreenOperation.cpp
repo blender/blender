@@ -22,7 +22,7 @@
 
 #include "COM_MixScreenOperation.h"
 
-MixScreenOperation::MixScreenOperation(): MixBaseOperation()
+MixScreenOperation::MixScreenOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -43,9 +43,9 @@ void MixScreenOperation::executePixel(float *outputValue, float x, float y, Pixe
 	}
 	float valuem = 1.0f - value;
 
-	outputValue[0] = 1.0f - (valuem + value*(1.0f-inputColor2[0])) *(1.0f-inputColor1[0]);
-	outputValue[1] = 1.0f - (valuem + value*(1.0f-inputColor2[1])) *(1.0f-inputColor1[1]);
-	outputValue[2] = 1.0f - (valuem + value*(1.0f-inputColor2[2])) *(1.0f-inputColor1[2]);
+	outputValue[0] = 1.0f - (valuem + value * (1.0f - inputColor2[0])) * (1.0f - inputColor1[0]);
+	outputValue[1] = 1.0f - (valuem + value * (1.0f - inputColor2[1])) * (1.0f - inputColor1[1]);
+	outputValue[2] = 1.0f - (valuem + value * (1.0f - inputColor2[2])) * (1.0f - inputColor1[2]);
 	outputValue[3] = inputColor1[3];
 }
 

@@ -32,10 +32,10 @@
 
 extern "C" {
 	#include "BKE_mask.h"
-    #include "../../../../intern/raskter/raskter.h"
+	#include "../../../../intern/raskter/raskter.h"
 }
 
-MaskOperation::MaskOperation(): NodeOperation()
+MaskOperation::MaskOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
 	this->mask = NULL;
@@ -76,9 +76,9 @@ void *MaskOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers
 
 		buffer = (float *)MEM_callocN(sizeof(float) * width * height, "rasterized mask");
 		BKE_mask_rasterize(mask, width, height, buffer, TRUE, this->smooth);
-        if(this->smooth) {
-            PLX_antialias_buffer(buffer, width, height);
-        }
+		if (this->smooth) {
+			PLX_antialias_buffer(buffer, width, height);
+		}
 
 		this->rasterizedMask = buffer;
 	}
@@ -110,7 +110,7 @@ void MaskOperation::executePixel(float *color, int x, int y, MemoryBuffer *input
 		color[0] = 0.0f;
 	}
 	else {
-		float *buffer = (float*) data;
+		float *buffer = (float *) data;
 		int index = (y * this->getWidth() + x);
 
 		color[0] = buffer[index];

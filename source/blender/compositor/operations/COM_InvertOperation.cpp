@@ -22,7 +22,7 @@
 
 #include "COM_InvertOperation.h"
 
-InvertOperation::InvertOperation(): NodeOperation()
+InvertOperation::InvertOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -50,16 +50,16 @@ void InvertOperation::executePixel(float *out, float x, float y, PixelSampler sa
 	const float invertedValue = 1.0f - value;
 	
 	if (color) {
-		out[0] = (1.0f - inputColor[0])*value + inputColor[0]*invertedValue;
-		out[1] = (1.0f - inputColor[1])*value + inputColor[1]*invertedValue;
-		out[2] = (1.0f - inputColor[2])*value + inputColor[2]*invertedValue;
+		out[0] = (1.0f - inputColor[0]) * value + inputColor[0] * invertedValue;
+		out[1] = (1.0f - inputColor[1]) * value + inputColor[1] * invertedValue;
+		out[2] = (1.0f - inputColor[2]) * value + inputColor[2] * invertedValue;
 	}
 	else {
 		copy_v3_v3(out, inputColor);
 	}
 	
 	if (alpha)
-		out[3] = (1.0f - inputColor[3])*value + inputColor[3]*invertedValue;
+		out[3] = (1.0f - inputColor[3]) * value + inputColor[3] * invertedValue;
 	else
 		out[3] = inputColor[3];
 

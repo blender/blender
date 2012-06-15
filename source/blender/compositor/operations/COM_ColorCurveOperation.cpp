@@ -31,7 +31,7 @@ extern "C" {
 #include "MEM_guardedalloc.h"
 #endif
 
-ColorCurveOperation::ColorCurveOperation(): CurveBaseOperation()
+ColorCurveOperation::ColorCurveOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -60,8 +60,8 @@ void ColorCurveOperation::initExecution()
 
 void ColorCurveOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	CurveMapping* cumap = this->curveMapping;
-	CurveMapping* workingCopy = (CurveMapping*)MEM_dupallocN(cumap);
+	CurveMapping *cumap = this->curveMapping;
+	CurveMapping *workingCopy = (CurveMapping *)MEM_dupallocN(cumap);
 	
 	float black[4];
 	float white[4];
@@ -104,7 +104,7 @@ void ColorCurveOperation::deinitExecution()
 
 // Constant level curve mapping
 
-ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation(): CurveBaseOperation()
+ConstantLevelColorCurveOperation::ConstantLevelColorCurveOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);

@@ -23,7 +23,7 @@
 #include "COM_MixDifferenceOperation.h"
 #include "BLI_math.h"
 
-MixDifferenceOperation::MixDifferenceOperation(): MixBaseOperation()
+MixDifferenceOperation::MixDifferenceOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -42,9 +42,9 @@ void MixDifferenceOperation::executePixel(float *outputValue, float x, float y, 
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	outputValue[0] = valuem*inputColor1[0] + value*fabsf(inputColor1[0]-inputColor2[0]);
-	outputValue[1] = valuem*inputColor1[1] + value*fabsf(inputColor1[1]-inputColor2[1]);
-	outputValue[2] = valuem*inputColor1[2] + value*fabsf(inputColor1[2]-inputColor2[2]);
+	outputValue[0] = valuem * inputColor1[0] + value *fabsf(inputColor1[0] - inputColor2[0]);
+	outputValue[1] = valuem * inputColor1[1] + value *fabsf(inputColor1[1] - inputColor2[1]);
+	outputValue[2] = valuem * inputColor1[2] + value *fabsf(inputColor1[2] - inputColor2[2]);
 	outputValue[3] = inputColor1[3];
 }
 

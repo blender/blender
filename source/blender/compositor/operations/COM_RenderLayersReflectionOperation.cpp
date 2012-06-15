@@ -22,7 +22,7 @@
 
 #include "COM_RenderLayersReflectionOperation.h"
 
-RenderLayersReflectionOperation::RenderLayersReflectionOperation() :RenderLayersBaseProg(SCE_PASS_REFLECT, 3)
+RenderLayersReflectionOperation::RenderLayersReflectionOperation() : RenderLayersBaseProg(SCE_PASS_REFLECT, 3)
 {
 	this->addOutputSocket(COM_DT_COLOR);
 }

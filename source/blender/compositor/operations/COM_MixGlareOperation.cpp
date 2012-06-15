@@ -22,7 +22,7 @@
 
 #include "COM_MixGlareOperation.h"
 
-MixGlareOperation::MixGlareOperation(): MixBaseOperation()
+MixGlareOperation::MixGlareOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -38,10 +38,10 @@ void MixGlareOperation::executePixel(float *outputValue, float x, float y, Pixel
 	inputColor1Operation->read(inputColor1, x, y, sampler, inputBuffers);
 	inputColor2Operation->read(inputColor2, x, y, sampler, inputBuffers);
 	value = inputValue[0];
-	float mf = 2.f - 2.f*fabsf(value - 0.5f);
+	float mf = 2.f - 2.f * fabsf(value - 0.5f);
 	
-	outputValue[0] = mf*((inputColor1[0])+value*(inputColor2[0]-inputColor1[0]));
-	outputValue[1] = mf*((inputColor1[1])+value*(inputColor2[1]-inputColor1[1]));
-	outputValue[2] = mf*((inputColor1[2])+value*(inputColor2[2]-inputColor1[2]));
+	outputValue[0] = mf * ((inputColor1[0]) + value * (inputColor2[0] - inputColor1[0]));
+	outputValue[1] = mf * ((inputColor1[1]) + value * (inputColor2[1] - inputColor1[1]));
+	outputValue[2] = mf * ((inputColor1[2]) + value * (inputColor2[2] - inputColor1[2]));
 	outputValue[3] = inputColor1[3];
 }

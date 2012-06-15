@@ -38,7 +38,7 @@ inline float colorbalance_lgg(float in, float lift_lgg, float gamma_inv, float g
 	return powf(srgb_to_linearrgb(x), gamma_inv);
 }
 
-ColorBalanceLGGOperation::ColorBalanceLGGOperation(): NodeOperation()
+ColorBalanceLGGOperation::ColorBalanceLGGOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -66,9 +66,9 @@ void ColorBalanceLGGOperation::executePixel(float *outputColor, float x, float y
 	fac = min(1.0f, fac);
 	const float mfac = 1.0f - fac;
 	
-	outputColor[0] = mfac*inputColor[0] + fac * colorbalance_lgg(inputColor[0], this->lift[0], this->gamma_inv[0], this->gain[0]);
-	outputColor[1] = mfac*inputColor[1] + fac * colorbalance_lgg(inputColor[1], this->lift[1], this->gamma_inv[1], this->gain[1]);
-	outputColor[2] = mfac*inputColor[2] + fac * colorbalance_lgg(inputColor[2], this->lift[2], this->gamma_inv[2], this->gain[2]);
+	outputColor[0] = mfac * inputColor[0] + fac *colorbalance_lgg(inputColor[0], this->lift[0], this->gamma_inv[0], this->gain[0]);
+	outputColor[1] = mfac * inputColor[1] + fac *colorbalance_lgg(inputColor[1], this->lift[1], this->gamma_inv[1], this->gain[1]);
+	outputColor[2] = mfac * inputColor[2] + fac *colorbalance_lgg(inputColor[2], this->lift[2], this->gamma_inv[2], this->gain[2]);
 	outputColor[3] = inputColor[3];
 
 }

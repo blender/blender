@@ -26,7 +26,7 @@ extern "C" {
 	#include "BLI_math.h"
 }
 
-MixValueOperation::MixValueOperation(): MixBaseOperation()
+MixValueOperation::MixValueOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -46,10 +46,10 @@ void MixValueOperation::executePixel(float *outputValue, float x, float y, Pixel
 	}
 	float valuem = 1.0f - value;
 	
-	float rH,rS,rV;
-	float colH,colS,colV;
+	float rH, rS, rV;
+	float colH, colS, colV;
 	rgb_to_hsv(inputColor1[0], inputColor1[1], inputColor1[2], &rH, &rS, &rV);
 	rgb_to_hsv(inputColor2[0], inputColor2[1], inputColor2[2], &colH, &colS, &colV);
-	hsv_to_rgb(rH , rS, (valuem*rV+value*colV), &outputValue[0], &outputValue[1], &outputValue[2]);
+	hsv_to_rgb(rH, rS, (valuem * rV + value * colV), &outputValue[0], &outputValue[1], &outputValue[2]);
 	outputValue[3] = inputColor1[3];
 }

@@ -30,7 +30,7 @@ extern "C" {
 }
 #endif
 
-ColorRampOperation::ColorRampOperation(): NodeOperation()
+ColorRampOperation::ColorRampOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);

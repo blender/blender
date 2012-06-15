@@ -22,7 +22,7 @@
 
 #include "COM_ConvertValueToColourProg.h"
 
-ConvertValueToColourProg::ConvertValueToColourProg(): NodeOperation()
+ConvertValueToColourProg::ConvertValueToColourProg() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_COLOR);

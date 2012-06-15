@@ -29,7 +29,7 @@ extern "C" {
 }
 
 
-vector<DistortionCache*> s_cache;
+vector<DistortionCache *> s_cache;
 
 
 MovieDistortionOperation::MovieDistortionOperation(bool distortion) : NodeOperation()
@@ -52,8 +52,8 @@ void MovieDistortionOperation::initExecution()
 		BKE_movieclip_user_set_frame(&clipUser, this->framenumber);
 		BKE_movieclip_get_size(this->movieClip, &clipUser, &calibration_width, &calibration_height);
 
-		for (unsigned int i = 0 ; i < s_cache.size() ; i ++) {
-			DistortionCache *c = (DistortionCache*)s_cache[i];
+		for (unsigned int i = 0; i < s_cache.size(); i++) {
+			DistortionCache *c = (DistortionCache *)s_cache[i];
 			if (c->isCacheFor(this->movieClip, this->width, this->height,
 			                  calibration_width, calibration_height, this->distortion))
 			{
@@ -78,7 +78,7 @@ void MovieDistortionOperation::deinitExecution()
 }
 
 
-void MovieDistortionOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void MovieDistortionOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	
 	if (this->cache != NULL) {

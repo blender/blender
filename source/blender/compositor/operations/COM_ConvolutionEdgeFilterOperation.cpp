@@ -28,9 +28,9 @@ ConvolutionEdgeFilterOperation::ConvolutionEdgeFilterOperation() : ConvolutionFi
 	/* pass */
 }
 
-void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ConvolutionEdgeFilterOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float in1[4],in2[4], res1[4], res2[4];
+	float in1[4], in2[4], res1[4], res2[4];
 
 	int x1 = x - 1;
 	int x2 = x;
@@ -38,12 +38,12 @@ void ConvolutionEdgeFilterOperation::executePixel(float *color,int x, int y, Mem
 	int y1 = y - 1;
 	int y2 = y;
 	int y3 = y + 1;
-	CLAMP(x1, 0, getWidth()-1);
-	CLAMP(x2, 0, getWidth()-1);
-	CLAMP(x3, 0, getWidth()-1);
-	CLAMP(y1, 0, getHeight()-1);
-	CLAMP(y2, 0, getHeight()-1);
-	CLAMP(y3, 0, getHeight()-1);
+	CLAMP(x1, 0, getWidth() - 1);
+	CLAMP(x2, 0, getWidth() - 1);
+	CLAMP(x3, 0, getWidth() - 1);
+	CLAMP(y1, 0, getHeight() - 1);
+	CLAMP(y2, 0, getHeight() - 1);
+	CLAMP(y3, 0, getHeight() - 1);
 	
 	float value[4];
 	this->inputValueOperation->read(value, x2, y2, inputBuffers, NULL);

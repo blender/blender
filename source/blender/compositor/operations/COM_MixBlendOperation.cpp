@@ -22,7 +22,7 @@
 
 #include "COM_MixBlendOperation.h"
 
-MixBlendOperation::MixBlendOperation(): MixBaseOperation()
+MixBlendOperation::MixBlendOperation() : MixBaseOperation()
 {
 	/* pass */
 }
@@ -43,8 +43,8 @@ void MixBlendOperation::executePixel(float *outputValue, float x, float y, Pixel
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	outputValue[0] = valuem*(inputColor1[0])+value*(inputColor2[0]);
-	outputValue[1] = valuem*(inputColor1[1])+value*(inputColor2[1]);
-	outputValue[2] = valuem*(inputColor1[2])+value*(inputColor2[2]);
+	outputValue[0] = valuem * (inputColor1[0]) + value * (inputColor2[0]);
+	outputValue[1] = valuem * (inputColor1[1]) + value * (inputColor2[1]);
+	outputValue[2] = valuem * (inputColor1[2]) + value * (inputColor2[2]);
 	outputValue[3] = inputColor1[3];
 }

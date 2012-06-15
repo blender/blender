@@ -25,7 +25,7 @@ extern "C" {
 	#include "BKE_tracking.h"
 	#include "BKE_movieclip.h"
 }
-MovieClipAttributeOperation::MovieClipAttributeOperation(): NodeOperation()
+MovieClipAttributeOperation::MovieClipAttributeOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_VALUE);
 	this->valueSet = false;
@@ -46,18 +46,18 @@ void MovieClipAttributeOperation::executePixel(float *outputValue, float x, floa
 			BKE_tracking_stabilization_data_get(&clip->tracking, clip_framenr, getWidth(), getHeight(), loc, &scale, &angle);
 		}
 		switch (this->attribute) {
-		case MCA_SCALE:
-			this->value = scale;
-			break;
-		case MCA_ANGLE:
-			this->value = angle;
-			break;
-		case MCA_X:
-			this->value = loc[0];
-			break;
-		case MCA_Y:
-			this->value = loc[1];
-			break;
+			case MCA_SCALE:
+				this->value = scale;
+				break;
+			case MCA_ANGLE:
+				this->value = angle;
+				break;
+			case MCA_X:
+				this->value = loc[0];
+				break;
+			case MCA_Y:
+				this->value = loc[1];
+				break;
 		}
 		valueSet = true;
 	}

@@ -22,7 +22,7 @@
 
 #include "COM_MixBaseOperation.h"
 
-MixBaseOperation::MixBaseOperation(): NodeOperation()
+MixBaseOperation::MixBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_COLOR);
@@ -55,9 +55,9 @@ void MixBaseOperation::executePixel(float *outputColor, float x, float y, PixelS
 		value *= inputColor2[3];
 	}
 	float valuem = 1.0f - value;
-	outputColor[0] = valuem*(inputColor1[0])+value*(inputColor2[0]);
-	outputColor[1] = valuem*(inputColor1[1])+value*(inputColor2[1]);
-	outputColor[2] = valuem*(inputColor1[2])+value*(inputColor2[2]);
+	outputColor[0] = valuem * (inputColor1[0]) + value * (inputColor2[0]);
+	outputColor[1] = valuem * (inputColor1[1]) + value * (inputColor2[1]);
+	outputColor[2] = valuem * (inputColor1[2]) + value * (inputColor2[2]);
 	outputColor[3] = inputColor1[3];
 }
 
@@ -71,7 +71,7 @@ void MixBaseOperation::deinitExecution()
 void MixBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	InputSocket *socket;
-	unsigned int tempPreferredResolution[] = {0,0};
+	unsigned int tempPreferredResolution[] = {0, 0};
 	unsigned int tempResolution[2];
 	
 	socket = this->getInputSocket(1);
