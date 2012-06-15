@@ -79,8 +79,6 @@
 
 #include "clip_intern.h"    // own include
 
-static float dist_to_crns(float co[2], float pos[2], float crns[4][2]);
-
 /********************** add marker operator *********************/
 
 static void add_marker(SpaceClip *sc, float x, float y)
@@ -485,6 +483,74 @@ static void show_cursor(bContext *C)
 	WM_cursor_set(win, CURSOR_STD);
 }
 
+MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event)
+{
+	SpaceClip *sc = CTX_wm_space_clip(C);
+	MovieClip *clip = ED_space_clip(sc);
+	MovieTrackingTrack *track;
+	int width, height;
+	float co[2];
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
+	int framenr = ED_space_clip_clip_framenr(sc);
+
+	ED_space_clip_size(sc, &width, &height);
+
+	if (width == 0 || height == 0)
+		return NULL;
+
+	ED_clip_mouse_pos(C, event, co);
+
+	track = tracksbase->first;
+	while (track) {
+		if (TRACK_VIEW_SELECTED(sc, track) && (track->flag & TRACK_LOCKED) == 0) {
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
+			int ok = FALSE;
+
+			if ((marker->flag & MARKER_DISABLED) == 0) {
+				if (mouse_on_offset(sc, track, marker, co, width, height))
+					ok = TRUE;
+
+				if (!ok && (sc->flag & SC_SHOW_MARKER_SEARCH)) {
+					if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 1, width, height)) {
+						ok = TRUE;
+					}
+					else if (mouse_on_corner(sc, marker, TRACK_AREA_SEARCH, co, 0, width, height)) {
+						ok = TRUE;
+					}
+				}
+
+				if (!ok && (sc->flag & SC_SHOW_MARKER_PATTERN)) {
+					/* XXX: need to be real check if affine tracking is enabled, but for now not
+					 *      sure how to do this, so assume affine tracker is always enabled */
+					if (TRUE) {
+						int corner = get_mouse_pattern_corner(sc, marker, co, width, height);
+
+						if (corner != -1) {
+							ok = TRUE;
+						}
+					}
+					else {
+						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1,  width, height)) {
+							ok = TRUE;
+						}
+
+						if (!ok && mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 0, width, height)) {
+							ok = TRUE;
+						}
+					}
+				}
+
+				if (ok)
+					return track;
+			}
+		}
+
+		track = track->next;
+	}
+
+	return NULL;
+}
+
 static void *slide_marker_customdata(bContext *C, wmEvent *event)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -808,708 +874,6 @@ void CLIP_OT_slide_marker(wmOperatorType *ot)
 	/* properties */
 	RNA_def_float_vector(ot->srna, "offset", 2, NULL, -FLT_MAX, FLT_MAX,
 	                     "Offset", "Offset in floating point units, 1.0 is the width and height of the image", -FLT_MAX, FLT_MAX);
-}
-
-/********************** mouse select operator *********************/
-
-static int mouse_on_side(float co[2], float x1, float y1, float x2, float y2, float epsx, float epsy)
-{
-	if (x1 > x2)
-
-		SWAP(float, x1, x2);
-
-	if (y1 > y2)
-		SWAP(float, y1, y2);
-
-	return (co[0] >= x1 - epsx && co[0] <= x2 + epsx) && (co[1] >= y1 - epsy && co[1] <= y2 + epsy);
-}
-
-static int mouse_on_rect(float co[2], float pos[2], float min[2], float max[2], float epsx, float epsy)
-{
-	return mouse_on_side(co, pos[0] + min[0], pos[1] + min[1], pos[0] + max[0], pos[1] + min[1], epsx, epsy) ||
-	       mouse_on_side(co, pos[0] + min[0], pos[1] + min[1], pos[0] + min[0], pos[1] + max[1], epsx, epsy) ||
-	       mouse_on_side(co, pos[0] + min[0], pos[1] + max[1], pos[0] + max[0], pos[1] + max[1], epsx, epsy) ||
-	       mouse_on_side(co, pos[0] + max[0], pos[1] + min[1], pos[0] + max[0], pos[1] + max[1], epsx, epsy);
-}
-
-static int mouse_on_crns(float co[2], float pos[2], float crns[4][2], float epsx, float epsy)
-{
-	float dist = dist_to_crns(co, pos, crns);
-
-	return dist < MAX2(epsx, epsy);
-}
-
-static int track_mouse_area(SpaceClip *sc, float co[2], MovieTrackingTrack *track)
-{
-	int framenr = ED_space_clip_clip_framenr(sc);
-	MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-	float pat_min[2], pat_max[2];
-	float epsx, epsy;
-	int width, height;
-
-	ED_space_clip_size(sc, &width, &height);
-
-	BKE_tracking_marker_pattern_minmax(marker, pat_min, pat_max);
-
-	epsx = MIN4(pat_min[0] - marker->search_min[0], marker->search_max[0] - pat_max[0],
-	            fabsf(pat_min[0]), fabsf(pat_max[0])) / 2;
-	epsy = MIN4(pat_min[1] - marker->search_min[1], marker->search_max[1] - pat_max[1],
-	            fabsf(pat_min[1]), fabsf(pat_max[1])) / 2;
-
-	epsx = MAX2(epsx, 2.0f / width);
-	epsy = MAX2(epsy, 2.0f / height);
-
-	if (sc->flag & SC_SHOW_MARKER_SEARCH) {
-		if (mouse_on_rect(co, marker->pos, marker->search_min, marker->search_max, epsx, epsy))
-			return TRACK_AREA_SEARCH;
-	}
-
-	if ((marker->flag & MARKER_DISABLED) == 0) {
-		if (sc->flag & SC_SHOW_MARKER_PATTERN)
-			if (mouse_on_crns(co, marker->pos, marker->pattern_corners, epsx, epsy))
-				return TRACK_AREA_PAT;
-
-		epsx = 12.0f / width;
-		epsy = 12.0f / height;
-
-		if (fabsf(co[0] - marker->pos[0] - track->offset[0]) < epsx &&
-		    fabsf(co[1] - marker->pos[1] - track->offset[1]) <= epsy)
-		{
-			return TRACK_AREA_POINT;
-		}
-	}
-
-	return TRACK_AREA_NONE;
-}
-
-static float dist_to_rect(float co[2], float pos[2], float min[2], float max[2])
-{
-	float d1, d2, d3, d4;
-	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-	float v1[2] = {min[0], min[1]}, v2[2] = {max[0], min[1]};
-	float v3[2] = {max[0], max[1]}, v4[2] = {min[0], max[1]};
-
-	d1 = dist_to_line_segment_v2(p, v1, v2);
-	d2 = dist_to_line_segment_v2(p, v2, v3);
-	d3 = dist_to_line_segment_v2(p, v3, v4);
-	d4 = dist_to_line_segment_v2(p, v4, v1);
-
-	return MIN4(d1, d2, d3, d4);
-}
-
-static float dist_to_crns(float co[2], float pos[2], float crns[4][2])
-{
-	float d1, d2, d3, d4;
-	float p[2] = {co[0] - pos[0], co[1] - pos[1]};
-	float *v1 = crns[0], *v2 = crns[1];
-	float *v3 = crns[2], *v4 = crns[3];
-
-	d1 = dist_to_line_segment_v2(p, v1, v2);
-	d2 = dist_to_line_segment_v2(p, v2, v3);
-	d3 = dist_to_line_segment_v2(p, v3, v4);
-	d4 = dist_to_line_segment_v2(p, v4, v1);
-
-	return MIN4(d1, d2, d3, d4);
-}
-
-static MovieTrackingTrack *find_nearest_track(SpaceClip *sc, ListBase *tracksbase, float co[2])
-{
-	MovieTrackingTrack *track = NULL, *cur;
-	float mindist = 0.0f;
-	int framenr = ED_space_clip_clip_framenr(sc);
-
-	cur = tracksbase->first;
-	while (cur) {
-		MovieTrackingMarker *marker = BKE_tracking_marker_get(cur, framenr);
-
-		if (((cur->flag & TRACK_HIDDEN) == 0) && MARKER_VISIBLE(sc, cur, marker)) {
-			float dist, d1, d2 = FLT_MAX, d3 = FLT_MAX;
-
-			/* distance to marker point */
-			d1 = sqrtf((co[0] - marker->pos[0] - cur->offset[0]) * (co[0] - marker->pos[0] - cur->offset[0]) +
-			           (co[1] - marker->pos[1] - cur->offset[1]) * (co[1] - marker->pos[1] - cur->offset[1]));
-
-			/* distance to pattern boundbox */
-			if (sc->flag & SC_SHOW_MARKER_PATTERN)
-				d2 = dist_to_crns(co, marker->pos, marker->pattern_corners);
-
-			/* distance to search boundbox */
-			if (sc->flag & SC_SHOW_MARKER_SEARCH && TRACK_VIEW_SELECTED(sc, cur))
-				d3 = dist_to_rect(co, marker->pos, marker->search_min, marker->search_max);
-
-			/* choose minimal distance. useful for cases of overlapped markers. */
-			dist = MIN3(d1, d2, d3);
-
-			if (track == NULL || dist < mindist) {
-				track = cur;
-				mindist = dist;
-			}
-		}
-
-		cur = cur->next;
-	}
-
-	return track;
-}
-
-static int mouse_select(bContext *C, float co[2], int extend)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-	MovieTrackingTrack *track = NULL;   /* selected marker */
-
-	track = find_nearest_track(sc, tracksbase, co);
-
-	if (track) {
-		int area = track_mouse_area(sc, co, track);
-
-		if (!extend || !TRACK_VIEW_SELECTED(sc, track))
-			area = TRACK_AREA_ALL;
-
-		if (extend && TRACK_AREA_SELECTED(track, area)) {
-			if (track == act_track)
-				BKE_tracking_track_deselect(track, area);
-			else
-				clip->tracking.act_track = track;
-		}
-		else {
-			if (area == TRACK_AREA_POINT)
-				area = TRACK_AREA_ALL;
-
-			BKE_tracking_track_select(tracksbase, track, area, extend);
-			clip->tracking.act_track = track;
-		}
-	}
-
-	if (!extend) {
-		sc->xlockof = 0.0f;
-		sc->ylockof = 0.0f;
-	}
-
-	BKE_tracking_dopesheet_tag_update(tracking);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-static int select_exec(bContext *C, wmOperator *op)
-{
-	float co[2];
-	int extend;
-
-	RNA_float_get_array(op->ptr, "location", co);
-	extend = RNA_boolean_get(op->ptr, "extend");
-
-	return mouse_select(C, co, extend);
-}
-
-static int select_invoke(bContext *C, wmOperator *op, wmEvent *event)
-{
-	float co[2];
-	int extend = RNA_boolean_get(op->ptr, "extend");
-
-	if (!extend) {
-		SlideMarkerData *slidedata = slide_marker_customdata(C, event);
-
-		if (slidedata) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
-			MovieClip *clip = ED_space_clip(sc);
-
-			clip->tracking.act_track = slidedata->track;
-
-			WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-
-			MEM_freeN(slidedata);
-
-			return OPERATOR_PASS_THROUGH;
-		}
-	}
-
-	ED_clip_mouse_pos(C, event, co);
-	RNA_float_set_array(op->ptr, "location", co);
-
-	return select_exec(C, op);
-}
-
-void CLIP_OT_select(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Select";
-	ot->description = "Select tracking markers";
-	ot->idname = "CLIP_OT_select";
-
-	/* api callbacks */
-	ot->exec = select_exec;
-	ot->invoke = select_invoke;
-	//ot->poll = ED_space_clip_tracking_poll; // so mask view can Ctrl+RMB markers
-	ot->poll = ED_space_clip_view_clip_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0,
-	                "Extend", "Extend selection rather than clearing the existing selection");
-	RNA_def_float_vector(ot->srna, "location", 2, NULL, -FLT_MAX, FLT_MAX,
-	                     "Location", "Mouse location in normalized coordinates, 0.0 to 1.0 is within the image bounds", -100.0f, 100.0f);
-}
-
-/********************** border select operator *********************/
-
-static int border_select_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	rcti rect;
-	rctf rectf;
-	int change = FALSE, mode, extend;
-	int framenr = ED_space_clip_clip_framenr(sc);
-
-	/* get rectangle from operator */
-	rect.xmin = RNA_int_get(op->ptr, "xmin");
-	rect.ymin = RNA_int_get(op->ptr, "ymin");
-	rect.xmax = RNA_int_get(op->ptr, "xmax");
-	rect.ymax = RNA_int_get(op->ptr, "ymax");
-
-	ED_clip_point_stable_pos(C, rect.xmin, rect.ymin, &rectf.xmin, &rectf.ymin);
-	ED_clip_point_stable_pos(C, rect.xmax, rect.ymax, &rectf.xmax, &rectf.ymax);
-
-	mode = RNA_int_get(op->ptr, "gesture_mode");
-	extend = RNA_boolean_get(op->ptr, "extend");
-
-	/* do actual selection */
-	track = tracksbase->first;
-	while (track) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-			if (MARKER_VISIBLE(sc, track, marker)) {
-				if (BLI_in_rctf(&rectf, marker->pos[0], marker->pos[1])) {
-					if (mode == GESTURE_MODAL_SELECT)
-						BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-					else
-						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-				}
-				else if (!extend) {
-					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-				}
-
-				change = TRUE;
-			}
-		}
-
-		track = track->next;
-	}
-
-	if (change) {
-		BKE_tracking_dopesheet_tag_update(tracking);
-
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-
-		return OPERATOR_FINISHED;
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-void CLIP_OT_select_border(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Border Select";
-	ot->description = "Select markers using border selection";
-	ot->idname = "CLIP_OT_select_border";
-
-	/* api callbacks */
-	ot->invoke = WM_border_select_invoke;
-	ot->exec = border_select_exec;
-	ot->modal = WM_border_select_modal;
-	ot->poll = ED_space_clip_tracking_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO;
-
-	/* properties */
-	WM_operator_properties_gesture_border(ot, TRUE);
-}
-
-
-static int do_lasso_select_marker(bContext *C, int mcords[][2], short moves, short select)
-{
-	ARegion *ar = CTX_wm_region(C);
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	rcti rect;
-	int change = FALSE;
-	int framenr = ED_space_clip_clip_framenr(sc);
-
-	/* get rectangle from operator */
-	BLI_lasso_boundbox(&rect, mcords, moves);
-
-	/* do actual selection */
-	track = tracksbase->first;
-	while (track) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-			if (MARKER_VISIBLE(sc, track, marker)) {
-				float screen_co[2];
-
-				/* marker in screen coords */
-				ED_clip_point_stable_pos__reverse(sc, ar, marker->pos, screen_co);
-
-				if (BLI_in_rcti(&rect, screen_co[0], screen_co[1]) &&
-				    BLI_lasso_is_point_inside(mcords, moves, screen_co[0], screen_co[1], V2D_IS_CLIPPED))
-				{
-					if (select)
-						BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-					else
-						BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-				}
-
-				change = TRUE;
-			}
-		}
-
-		track = track->next;
-	}
-
-	if (change) {
-		BKE_tracking_dopesheet_tag_update(tracking);
-
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-	}
-
-	return change;
-}
-
-static int clip_lasso_select_exec(bContext *C, wmOperator *op)
-{
-	int mcords_tot;
-	int (*mcords)[2] = WM_gesture_lasso_path_to_array(C, op, &mcords_tot);
-
-	if (mcords) {
-		short select;
-
-		select = !RNA_boolean_get(op->ptr, "deselect");
-		do_lasso_select_marker(C, mcords, mcords_tot, select);
-
-		MEM_freeN(mcords);
-
-		return OPERATOR_FINISHED;
-	}
-	return OPERATOR_PASS_THROUGH;
-}
-
-void CLIP_OT_select_lasso(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Lasso Select";
-	ot->description = "Select markers using lasso selection";
-	ot->idname = "CLIP_OT_select_lasso";
-
-	/* api callbacks */
-	ot->invoke = WM_gesture_lasso_invoke;
-	ot->modal = WM_gesture_lasso_modal;
-	ot->exec = clip_lasso_select_exec;
-	ot->poll = ED_space_clip_tracking_poll;
-	ot->cancel = WM_gesture_lasso_cancel;
-
-	/* flags */
-	ot->flag = OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_collection_runtime(ot->srna, "path", &RNA_OperatorMousePath, "Path", "");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Deselect rather than select items");
-	RNA_def_boolean(ot->srna, "extend", 1, "Extend", "Extend selection instead of deselecting everything first");
-}
-
-/********************** circle select operator *********************/
-
-static int marker_inside_ellipse(MovieTrackingMarker *marker, float offset[2], float ellipse[2])
-{
-	/* normalized ellipse: ell[0] = scaleX, ell[1] = scaleY */
-	float x, y;
-
-	x = (marker->pos[0] - offset[0]) * ellipse[0];
-	y = (marker->pos[1] - offset[1]) * ellipse[1];
-
-	return x * x + y * y < 1.0f;
-}
-
-static int circle_select_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	ARegion *ar = CTX_wm_region(C);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	int x, y, radius, width, height, mode, change = FALSE;
-	float zoomx, zoomy, offset[2], ellipse[2];
-	int framenr = ED_space_clip_clip_framenr(sc);
-
-	/* get operator properties */
-	x = RNA_int_get(op->ptr, "x");
-	y = RNA_int_get(op->ptr, "y");
-	radius = RNA_int_get(op->ptr, "radius");
-
-	mode = RNA_int_get(op->ptr, "gesture_mode");
-
-	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_size(sc, &width, &height);
-	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
-
-	ellipse[0] = width * zoomx / radius;
-	ellipse[1] = height * zoomy / radius;
-
-	ED_clip_point_stable_pos(C, x, y, &offset[0], &offset[1]);
-
-	/* do selection */
-	track = tracksbase->first;
-	while (track) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenr);
-
-			if (MARKER_VISIBLE(sc, track, marker) && marker_inside_ellipse(marker, offset, ellipse)) {
-				if (mode == GESTURE_MODAL_SELECT)
-					BKE_tracking_track_flag_set(track, TRACK_AREA_ALL, SELECT);
-				else
-					BKE_tracking_track_flag_clear(track, TRACK_AREA_ALL, SELECT);
-
-				change = TRUE;
-			}
-		}
-
-		track = track->next;
-	}
-
-	if (change) {
-		BKE_tracking_dopesheet_tag_update(tracking);
-
-		WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-
-		return OPERATOR_FINISHED;
-	}
-
-	return OPERATOR_CANCELLED;
-}
-
-void CLIP_OT_select_circle(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "Circle Select";
-	ot->description = "Select markers using circle selection";
-	ot->idname = "CLIP_OT_select_circle";
-
-	/* api callbacks */
-	ot->invoke = WM_gesture_circle_invoke;
-	ot->modal = WM_gesture_circle_modal;
-	ot->exec = circle_select_exec;
-	ot->poll = ED_space_clip_tracking_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* properties */
-	RNA_def_int(ot->srna, "x", 0, INT_MIN, INT_MAX, "X", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "y", 0, INT_MIN, INT_MAX, "Y", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "radius", 0, INT_MIN, INT_MAX, "Radius", "", INT_MIN, INT_MAX);
-	RNA_def_int(ot->srna, "gesture_mode", 0, INT_MIN, INT_MAX, "Gesture Mode", "", INT_MIN, INT_MAX);
-}
-
-/********************** select all operator *********************/
-
-static int select_all_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTracking *tracking = &clip->tracking;
-	MovieTrackingTrack *track = NULL;   /* selected track */
-	MovieTrackingMarker *marker;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	int action = RNA_enum_get(op->ptr, "action");
-	int framenr = ED_space_clip_clip_framenr(sc);
-	int has_selection = FALSE;
-
-	if (action == SEL_TOGGLE) {
-		action = SEL_SELECT;
-		track = tracksbase->first;
-		while (track) {
-			if (TRACK_VIEW_SELECTED(sc, track)) {
-				marker = BKE_tracking_marker_get(track, framenr);
-
-				if (MARKER_VISIBLE(sc, track, marker)) {
-					action = SEL_DESELECT;
-					break;
-				}
-			}
-
-			track = track->next;
-		}
-	}
-
-	track = tracksbase->first;
-	while (track) {
-		if ((track->flag & TRACK_HIDDEN) == 0) {
-			marker = BKE_tracking_marker_get(track, framenr);
-
-			if (MARKER_VISIBLE(sc, track, marker)) {
-				switch (action) {
-					case SEL_SELECT:
-						track->flag |= SELECT;
-						track->pat_flag |= SELECT;
-						track->search_flag |= SELECT;
-						break;
-					case SEL_DESELECT:
-						track->flag &= ~SELECT;
-						track->pat_flag &= ~SELECT;
-						track->search_flag &= ~SELECT;
-						break;
-					case SEL_INVERT:
-						track->flag ^= SELECT;
-						track->pat_flag ^= SELECT;
-						track->search_flag ^= SELECT;
-						break;
-				}
-			}
-		}
-
-		if (TRACK_VIEW_SELECTED(sc, track))
-			has_selection = TRUE;
-
-		track = track->next;
-	}
-
-	if (!has_selection)
-		sc->flag &= ~SC_LOCK_SELECTION;
-
-	BKE_tracking_dopesheet_tag_update(tracking);
-
-	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, NULL);
-
-	return OPERATOR_FINISHED;
-}
-
-void CLIP_OT_select_all(wmOperatorType *ot)
-{
-	/* identifiers */
-	ot->name = "(De)select All";
-	ot->description = "Change selection of all tracking markers";
-	ot->idname = "CLIP_OT_select_all";
-
-	/* api callbacks */
-	ot->exec = select_all_exec;
-	ot->poll = ED_space_clip_tracking_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	WM_operator_properties_select_all(ot);
-}
-
-/********************** select grouped operator *********************/
-
-static int select_groped_exec(bContext *C, wmOperator *op)
-{
-	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
-	MovieTrackingTrack *track;
-	MovieTrackingMarker *marker;
-	MovieTracking *tracking = &clip->tracking;
-	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
-	int group = RNA_enum_get(op->ptr, "group");
-	int framenr = ED_space_clip_clip_framenr(sc);
-
-	track = tracksbase->first;
-	while (track) {
-		int ok = FALSE;
-
-		marker = BKE_tracking_marker_get(track, framenr);
-
-		if (group == 0) { /* Keyframed */
-			ok = marker->framenr == framenr && (marker->flag & MARKER_TRACKED) == 0;
-		}
-		else if (group == 1) { /* Estimated */
-			ok = marker->framenr != framenr;
-		}
-		else if (group == 2) { /* tracked */
-			ok = marker->framenr == framenr && (marker->flag & MARKER_TRACKED);
-		}
-		else if (group == 3) { /* locked */
-			ok = track->flag & TRACK_LOCKED;
-		}
-		else if (group == 4) { /* disabled */
-			ok = marker->flag & MARKER_DISABLED;
-		}
-		else if (group == 5) { /* color */
-			MovieTrackingTrack *act_track = BKE_tracking_track_get_active(tracking);
-
-			if (act_track) {
-				ok = (track->flag & TRACK_CUSTOMCOLOR) == (act_track->flag & TRACK_CUSTOMCOLOR);
-
-				if (ok && track->flag & TRACK_CUSTOMCOLOR)
-					ok = equals_v3v3(track->color, act_track->color);
-			}
-		}
-		else if (group == 6) { /* failed */
-			ok = (track->flag & TRACK_HAS_BUNDLE) == 0;
-		}
-
-		if (ok) {
-			track->flag |= SELECT;
-			if (sc->flag & SC_SHOW_MARKER_PATTERN)
-				track->pat_flag |= SELECT;
-			if (sc->flag & SC_SHOW_MARKER_SEARCH)
-				track->search_flag |= SELECT;
-		}
-
-		track = track->next;
-	}
-
-	BKE_tracking_dopesheet_tag_update(tracking);
-
-	WM_event_add_notifier(C, NC_MOVIECLIP | ND_DISPLAY, clip);
-
-	return OPERATOR_FINISHED;
-}
-
-void CLIP_OT_select_grouped(wmOperatorType *ot)
-{
-	static EnumPropertyItem select_group_items[] = {
-		{0, "KEYFRAMED", 0, "Keyframed tracks", "Select all keyframed tracks"},
-		{1, "ESTIMATED", 0, "Estimated tracks", "Select all estimated tracks"},
-		{2, "TRACKED", 0, "Tracked tracks", "Select all tracked tracks"},
-		{3, "LOCKED", 0, "Locked tracks", "Select all locked tracks"},
-		{4, "DISABLED", 0, "Disabled tracks", "Select all disabled tracks"},
-		{5, "COLOR", 0, "Tracks with same color", "Select all tracks with same color as active track"},
-		{6, "FAILED", 0, "Failed Tracks", "Select all tracks which failed to be reconstructed"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	/* identifiers */
-	ot->name = "Select Grouped";
-	ot->description = "Select all tracks from specified group";
-	ot->idname = "CLIP_OT_select_grouped";
-
-	/* api callbacks */
-	ot->exec = select_groped_exec;
-	ot->poll = ED_space_clip_tracking_poll;
-
-	/* flags */
-	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
-	/* proeprties */
-	RNA_def_enum(ot->srna, "group", select_group_items, TRACK_CLEAR_REMAINED, "Action", "Clear action to execute");
 }
 
 /********************** track operator *********************/
