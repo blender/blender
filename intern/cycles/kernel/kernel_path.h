@@ -692,6 +692,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 		/* ambient occlusion */
 		if(kernel_data.integrator.use_ambient_occlusion) {
 			int num_samples = kernel_data.integrator.ao_samples;
+			float num_samples_inv = 1.0f/num_samples;
 			float ao_factor = kernel_data.background.ao_factor/num_samples;
 
 			for(int j = 0; j < num_samples; j++) {
@@ -717,7 +718,7 @@ __device float4 kernel_path_non_progressive(KernelGlobals *kg, RNG *rng, int sam
 
 					if(!shadow_blocked(kg, &state, &light_ray, &ao_shadow)) {
 						float3 ao_bsdf = shader_bsdf_diffuse(kg, &sd)*ao_factor;
-						path_radiance_accum_ao(&L, throughput, ao_bsdf, ao_shadow, state.bounce);
+						path_radiance_accum_ao(&L, throughput*num_samples_inv, ao_bsdf, ao_shadow, state.bounce);
 					}
 				}
 			}
