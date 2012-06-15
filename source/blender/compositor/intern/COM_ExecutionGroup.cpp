@@ -229,7 +229,7 @@ void ExecutionGroup::execute(ExecutionSystem *graph)
 	NodeOperation *operation = this->getOutputNodeOperation();
 	float centerX = 0.5;
 	float centerY = 0.5;
-	int chunkorder = COM_TO_CENTER_OUT;
+	OrderOfChunks chunkorder = COM_ORDER_OF_CHUNKS_DEFAULT;
 
 	if (operation->isViewerOperation()) {
 		ViewerBaseOperation *viewer = (ViewerBaseOperation*)operation;

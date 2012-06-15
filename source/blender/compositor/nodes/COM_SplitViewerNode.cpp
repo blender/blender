@@ -41,6 +41,7 @@ void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		splitViewerOperation->setImage(image);
 		splitViewerOperation->setImageUser(imageUser);
 		splitViewerOperation->setActive((this->getbNode()->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
+		splitViewerOperation->setChunkOrder(COM_ORDER_OF_CHUNKS_DEFAULT);
 		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
 		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
