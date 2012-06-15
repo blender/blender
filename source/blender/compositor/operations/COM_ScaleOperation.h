@@ -69,6 +69,9 @@ class ScaleFixedSizeOperation : public NodeOperation {
 	float offsetY;
 	bool is_aspect;
 	bool is_crop;
+	/* set from other properties on initialization,
+	 * check if we need to apply offset */
+	bool is_offset;
 public:
 	ScaleFixedSizeOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
@@ -79,8 +82,9 @@ public:
 	void deinitExecution();
 	void setNewWidth(int width) { this->newWidth = width; }
 	void setNewHeight(int height) { this->newHeight = height; }
-	void setIsAspect(int is_aspect) { this->is_aspect = is_aspect; }
-	void setIsCrop(int is_crop) { this->is_crop = is_crop; }
+	void setIsAspect(bool is_aspect) { this->is_aspect = is_aspect; }
+	void setIsCrop(bool is_crop) { this->is_crop = is_crop; }
+	void setOffset(float x, float y) { this->offsetX = x; this->offsetY = y; }
 };
 
 #endif

@@ -2106,6 +2106,16 @@ static void def_cmp_scale(StructRNA *srna)
 	RNA_def_property_enum_items(prop, space_frame_items);
 	RNA_def_property_ui_text(prop, "Frame Method", "How the image fits in the camera frame");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "offset_x", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom3");
+	RNA_def_property_ui_text(prop, "X Offset", "Offset image horizontally (factor of image size)");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
+	prop = RNA_def_property(srna, "offset_y", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "custom4");
+	RNA_def_property_ui_text(prop, "Y Offset", "Offset image vertically (factor of image size)");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 }
 
 static void def_cmp_rotate(StructRNA *srna)
