@@ -56,33 +56,39 @@ KeyingOperation::KeyingOperation(): NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
 
 	this->screenBalance = 0.5f;
 
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
+	this->garbageReader = NULL;
 }
 
 void KeyingOperation::initExecution()
 {
 	this->pixelReader = this->getInputSocketReader(0);
 	this->screenReader = this->getInputSocketReader(1);
+	this->garbageReader = this->getInputSocketReader(2);
 }
 
 void KeyingOperation::deinitExecution()
 {
 	this->pixelReader = NULL;
 	this->screenReader = NULL;
+	this->garbageReader = NULL;
 }
 
 void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float pixelColor[4];
 	float screenColor[4];
+	float garbageValue[4];
 
 	this->pixelReader->read(pixelColor, x, y, sampler, inputBuffers);
 	this->screenReader->read(screenColor, x, y, sampler, inputBuffers);
+	this->garbageReader->read(garbageValue, x, y, sampler, inputBuffers);
 
 	int primary_channel = get_pixel_primary_channel(screenColor);
 
@@ -100,6 +106,8 @@ void KeyingOperation::executePixel(float *color, float x, float y, PixelSampler 
 
 		color[0] = distance;
 	}
+
+	color[0] *= (1.0f - garbageValue[0]);
 }
 
 bool KeyingOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
