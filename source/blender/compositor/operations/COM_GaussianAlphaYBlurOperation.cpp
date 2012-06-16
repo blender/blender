@@ -45,6 +45,8 @@ void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer *
 
 void GaussianAlphaYBlurOperation::initExecution()
 {
+	/* BlurBaseOperation::initExecution(); */ /* until we suppoer size input - comment this */
+
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizey;
 		if (rad < 1)

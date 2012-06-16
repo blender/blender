@@ -81,12 +81,14 @@ const bool NodeBase::isInputNode() const
 	return this->inputsockets.size() == 0;
 }
 
-OutputSocket *NodeBase::getOutputSocket(int index)
+OutputSocket *NodeBase::getOutputSocket(unsigned int index)
 {
+	BLI_assert(index < this->outputsockets.size());
 	return this->outputsockets[index];
 }
 
-InputSocket *NodeBase::getInputSocket(int index)
+InputSocket *NodeBase::getInputSocket(unsigned int index)
 {
+	BLI_assert(index < this->inputsockets.size());
 	return this->inputsockets[index];
 }
