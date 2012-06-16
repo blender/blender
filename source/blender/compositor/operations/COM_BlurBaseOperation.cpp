@@ -89,7 +89,8 @@ float *BlurBaseOperation::make_gausstab(int rad)
 	return gausstab;
 }
 
-/* normalized distance from the current (inverted so 1.0 is close and 0.0 is far) */
+/* normalized distance from the current (inverted so 1.0 is close and 0.0 is far)
+ * 'ease' is applied after, looks nicer */
 float *BlurBaseOperation::make_dist_fac_inverse(int rad)
 {
 	float *dist_fac_invert, val;
@@ -101,6 +102,10 @@ float *BlurBaseOperation::make_dist_fac_inverse(int rad)
 
 	for (i = -rad; i <= rad; i++) {
 		val = 1.0f - fabsf(((float)i / (float)rad));
+
+		/* ease - gives less hard lines for dilate/erode feather */
+		val = (3.0f * val * val - 2.0f * val * val * val);
+
 		dist_fac_invert[i + rad] = val;
 	}
 
