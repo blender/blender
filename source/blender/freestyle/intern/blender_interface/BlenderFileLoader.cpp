@@ -33,7 +33,7 @@ NodeGroup* BlenderFileLoader::Load()
 	_z_near= -_re->clipsta;
 	_z_far=  -_re->clipend;
 #if 0
-	cout << "frustrum: l " << _viewplane_left << " r " << _viewplane_right
+	cout << "Frustum: l " << _viewplane_left << " r " << _viewplane_right
 		<< " b " << _viewplane_bottom << " t " << _viewplane_top
 		<< " n " << _z_near << " f " << _z_far << endl;
 #endif
