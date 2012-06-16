@@ -20,9 +20,10 @@
  *		Monique Dewanchand
  */
 
+#include <stdio.h>
+
 #include "COM_MuteNode.h"
 #include "COM_SocketConnection.h"
-#include "stdio.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"

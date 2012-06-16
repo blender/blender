@@ -28,7 +28,7 @@
 
 
 #include "AUD_PyAPI.h"
-#include "structmember.h"
+#include <structmember.h>
 
 #include "AUD_I3DDevice.h"
 #include "AUD_I3DHandle.h"

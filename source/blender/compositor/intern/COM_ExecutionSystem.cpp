@@ -22,16 +22,18 @@
 
 #include "COM_ExecutionSystem.h"
 
+#include <sstream>
+#include <stdio.h>
+
 #include "PIL_time.h"
 #include "BKE_node.h"
+
 #include "COM_Converter.h"
-#include <sstream>
 #include "COM_NodeOperation.h"
 #include "COM_ExecutionGroup.h"
 #include "COM_NodeBase.h"
 #include "COM_WorkScheduler.h"
 #include "COM_ReadBufferOperation.h"
-#include "stdio.h"
 #include "COM_GroupNode.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"

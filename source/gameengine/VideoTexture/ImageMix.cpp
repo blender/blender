@@ -27,7 +27,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 // implementation
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 #include <structmember.h>
 
 #include "ImageMix.h"

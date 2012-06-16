@@ -20,24 +20,25 @@
  *		Monique Dewanchand
  */
 
+#include <algorithm>
+#include <math.h>
+#include <sstream>
+#include <stdlib.h>
+
+#include "BLI_math.h"
+#include "PIL_time.h"
+
 #include "COM_ExecutionGroup.h"
 #include "COM_InputSocket.h"
 #include "COM_SocketConnection.h"
 #include "COM_defines.h"
-#include "math.h"
 #include "COM_ExecutionSystem.h"
-#include <sstream>
 #include "COM_ReadBufferOperation.h"
 #include "COM_WriteBufferOperation.h"
 #include "COM_ReadBufferOperation.h"
 #include "COM_WorkScheduler.h"
 #include "COM_ViewerOperation.h"
-#include <stdlib.h>
-#include "BLI_math.h"
-#include "PIL_time.h"
 #include "COM_ChunkOrder.h"
-#include <algorithm>
-#include "BLI_math.h"
 #include "COM_ExecutionSystemHelper.h"
 
 ExecutionGroup::ExecutionGroup()

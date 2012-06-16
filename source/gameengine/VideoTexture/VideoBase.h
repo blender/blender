@@ -28,7 +28,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #define __VIDEOBASE_H__
 
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 
 #include "ImageBase.h"
 

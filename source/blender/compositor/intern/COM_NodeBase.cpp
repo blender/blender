@@ -20,10 +20,12 @@
  *		Monique Dewanchand
  */
 
-#include "COM_NodeBase.h"
-#include "string.h"
-#include "COM_NodeOperation.h"
+#include <string.h>
+
 #include "BKE_node.h"
+
+#include "COM_NodeBase.h"
+#include "COM_NodeOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SocketConnection.h"

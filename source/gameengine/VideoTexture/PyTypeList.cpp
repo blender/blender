@@ -29,7 +29,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <memory>
 #include <vector>
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 
 /// destructor
 PyTypeList::~PyTypeList()

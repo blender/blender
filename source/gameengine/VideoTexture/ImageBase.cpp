@@ -33,7 +33,7 @@ extern "C" {
 #include <vector>
 #include <string.h>
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 #include <structmember.h>
 
 #include "FilterBase.h"

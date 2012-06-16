@@ -20,12 +20,13 @@
  *		Monique Dewanchand
  */
 
-#include "COM_NodeOperation.h"
 #include <typeinfo>
+#include <stdio.h>
+
+#include "COM_NodeOperation.h"
 #include "COM_InputSocket.h"
 #include "COM_SocketConnection.h"
 #include "COM_defines.h"
-#include "stdio.h"
 
 NodeOperation::NodeOperation()
 {

@@ -21,15 +21,18 @@
  */
 
 #include <list>
+#include <stdio.h>
+
+#include "BKE_global.h"
+
 #include "COM_WorkScheduler.h"
-#include "PIL_time.h"
-#include "BLI_threads.h"
 #include "COM_CPUDevice.h"
 #include "COM_OpenCLDevice.h"
-#include "OCL_opencl.h"
-#include "stdio.h"
 #include "COM_OpenCLKernels.cl.h"
-#include "BKE_global.h"
+#include "OCL_opencl.h"
+
+#include "PIL_time.h"
+#include "BLI_threads.h"
 
 #if COM_CURRENT_THREADING_MODEL == COM_TM_NOTHREAD
 #warning COM_CURRENT_THREADING_MODEL COM_TM_NOTHREAD is activated. Use only for debugging.
