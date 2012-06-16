@@ -24,16 +24,15 @@
  *  \ingroup collada
  */
 
-extern "C" {
-#include "BLI_linklist.h"
-}
-
 #ifndef __EXPORTSETTINGS_H__
 #define __EXPORTSETTINGS_H__
+
+#include "collada.h"
 
 struct ExportSettings {
 public:
 	bool apply_modifiers;
+	BC_export_mesh_type export_mesh_type;
 	bool selected;
 	bool include_children;
 	bool include_armatures;

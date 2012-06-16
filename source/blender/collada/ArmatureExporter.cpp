@@ -345,7 +345,7 @@ void ArmatureExporter::export_controller(Object *ob, Object *ob_arm)
 	Mesh *me;
 
 	if (this->export_settings->apply_modifiers) {
-		me = bc_to_mesh_apply_modifiers(scene, ob);
+		me = bc_to_mesh_apply_modifiers(scene, ob, this->export_settings->export_mesh_type);
 	} 
 	else {
 		me = (Mesh *)ob->data;

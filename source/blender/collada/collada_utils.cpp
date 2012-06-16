@@ -138,11 +138,22 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	return ob;
 }
 
-Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob)
+Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
-	DerivedMesh *dm     = mesh_create_derived_view(scene, ob, mask);
+	DerivedMesh *dm;
+	switch (export_mesh_type) {
+		case BC_MESH_TYPE_VIEW: {
+			dm = mesh_create_derived_view(scene, ob, mask);
+			break;
+		}
+		case BC_MESH_TYPE_RENDER: {
+			dm = mesh_create_derived_render(scene, ob, mask);
+			break;
+		}
+	}
+
 	tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob);
 	dm->release(dm);

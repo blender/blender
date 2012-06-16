@@ -78,7 +78,7 @@ void GeometryExporter::operator()(Object *ob)
 	bool use_instantiation = this->export_settings->use_object_instantiation;
 	Mesh *me;
 	if (this->export_settings->apply_modifiers) {
-		me = bc_to_mesh_apply_modifiers(mScene, ob);
+		me = bc_to_mesh_apply_modifiers(mScene, ob, this->export_settings->export_mesh_type);
 	} 
 	else {
 		me = (Mesh *)ob->data;

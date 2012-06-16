@@ -28,9 +28,9 @@
 /* COLLADABU_ASSERT, may be able to remove later */
 #include "COLLADABUPlatform.h"
 
-#include "ExportSettings.h"
 #include "DocumentExporter.h"
 #include "DocumentImporter.h"
+#include "ExportSettings.h"
 
 extern "C"
 {
@@ -40,6 +40,7 @@ extern "C"
 /* make dummy file */
 #include "BLI_fileops.h"
 #include "BLI_path_util.h"
+#include "BLI_linklist.h"
 
 int collada_import(bContext *C, const char *filepath)
 {
@@ -53,6 +54,7 @@ int collada_export(Scene *sce,
                    const char *filepath,
 
                    int apply_modifiers,
+				   BC_export_mesh_type export_mesh_type,
 
                    int selected,
                    int include_children,
@@ -77,7 +79,7 @@ int collada_export(Scene *sce,
 	export_settings.filepath                 = (char *)filepath;
 
 	export_settings.apply_modifiers          = apply_modifiers != 0;
-
+	export_settings.export_mesh_type        = export_mesh_type;
 	export_settings.selected                 = selected          != 0;
 	export_settings.include_children         = include_children  != 0;
 	export_settings.include_armatures        = include_armatures != 0;

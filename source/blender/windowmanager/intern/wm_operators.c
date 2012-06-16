@@ -2163,6 +2163,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 {
 	char filepath[FILE_MAX];
 	int apply_modifiers;
+	int export_mesh_type;
 	int selected;
 	int include_children;
 	int include_armatures;
@@ -2181,6 +2182,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 	/* Options panel */
 	apply_modifiers          = RNA_boolean_get(op->ptr, "apply_modifiers");
+	export_mesh_type       = RNA_enum_get(op->ptr, "export_mesh_type_selection");
 	selected                 = RNA_boolean_get(op->ptr, "selected");
 	include_children         = RNA_boolean_get(op->ptr, "include_children");
 	include_armatures        = RNA_boolean_get(op->ptr, "include_armatures");
@@ -2196,6 +2198,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	        CTX_data_scene(C),
 	        filepath,
 	        apply_modifiers,
+			export_mesh_type,
 	        selected,
 	        include_children,
 	        include_armatures,
@@ -2213,7 +2216,7 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
-	uiLayout *box, *row;
+	uiLayout *box, *row, *col, *sub, *split;
 
 	// Export Options:
 	box = uiLayoutBox(layout);
@@ -2221,17 +2224,28 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemL(row, IFACE_("Export Data Options:"), ICON_MESH_DATA);
 
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);
+	col = uiLayoutColumn(row, 0);
+	split = uiLayoutSplit(col, 0.5f, 0);
+	uiItemR(split, imfptr, "apply_modifiers", 0, NULL, ICON_NONE);	
+	sub = uiLayoutRow(split, 0);
+	uiItemR(sub, imfptr, "export_mesh_type_selection", UI_ITEM_R_EXPAND, IFACE_("Color"), ICON_NONE);
+	uiLayoutSetEnabled(sub, RNA_boolean_get(imfptr, "apply_modifiers"));
 
 	row = uiLayoutRow(box, 0);
 	uiItemR(row, imfptr, "selected", 0, NULL, ICON_NONE);
 
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "include_children", 0, NULL, ICON_NONE);
+	col = uiLayoutColumn(row, 0);
+	split = uiLayoutSplit(col, 0.1f, 0);
+	sub = uiLayoutRow(split, 0);
+	uiItemR(split, imfptr, "include_children", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "include_armatures", 0, NULL, ICON_NONE);
+	col = uiLayoutColumn(row, 0);
+	split = uiLayoutSplit(col, 0.1f, 0);
+	sub = uiLayoutRow(split, 0);
+	uiItemR(split, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
 	row = uiLayoutRow(box, 0);
@@ -2278,6 +2292,11 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
 	                "Apply modifiers (Preview Resolution)");
 
+	RNA_def_int(ot->srna, "export_mesh_type", 0, INT_MIN, INT_MAX,
+	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
+
+	RNA_def_enum(ot->srna, "export_mesh_type_selection", prop_bc_export_mesh_type,
+                          0, "Resolution", "Modifier resolution for export");
 
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");

@@ -39,6 +39,7 @@
 #include "DNA_scene_types.h"
 #include "BKE_utildefines.h"
 
+
 #ifdef RNA_RUNTIME
 
 #include "BKE_animsys.h"
@@ -89,6 +90,7 @@ static void rna_Scene_collada_export(
     Scene *scene,
     const char *filepath,
     int apply_modifiers,
+	int export_mesh_type,
     int selected,
     int include_children,
     int include_armatures,
@@ -97,7 +99,7 @@ static void rna_Scene_collada_export(
     int sort_by_name,
     int second_life)
 {
-	collada_export(scene, filepath, apply_modifiers, selected,  
+	collada_export(scene, filepath, apply_modifiers, export_mesh_type, selected,  
 	               include_children, include_armatures, deform_bones_only, 
 	               use_object_instantiation, sort_by_name, second_life);
 }
@@ -127,7 +129,9 @@ void RNA_api_scene(StructRNA *srna)
 	parm = RNA_def_string(func, "filepath", "", FILE_MAX, "File Path", "File path to write Collada file");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	RNA_def_property_subtype(parm, PROP_FILEPATH); /* allow non utf8 */
-	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers (in Preview resolution)");
+	parm = RNA_def_boolean(func, "apply_modifiers", 0, "Apply Modifiers", "Apply modifiers");
+	parm = RNA_def_int(func, "export_mesh_type", 0, INT_MIN, INT_MAX,
+	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
 	parm = RNA_def_boolean(func, "selected", 0, "Selection Only", "Export only selected elements");
 	parm = RNA_def_boolean(func, "include_children", 0, "Include Children", "Export all children of selected objects (even if not selected)");
 	parm = RNA_def_boolean(func, "include_armatures", 0, "Include Armatures", "Export related armatures (even if not selected)");
