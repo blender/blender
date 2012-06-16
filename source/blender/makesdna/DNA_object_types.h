@@ -165,7 +165,7 @@ typedef struct Object {
 	
 	unsigned int lay;	/* copy of Base's layer in the scene */
 	
-	int pad6;
+	float sf; /* sf is time-offset */
 
 	short flag;			/* copy of Base */
 	short colbits DNA_DEPRECATED;		/* deprecated */
@@ -180,8 +180,6 @@ typedef struct Object {
 
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime; /* sf is time-offset, ctime is the objects current time (XXX timing needs to be revised) */
-	
 	/* during realtime */
 
 	/* note that inertia is only called inertia for historical reasons
