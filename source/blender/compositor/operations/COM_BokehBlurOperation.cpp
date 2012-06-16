@@ -73,7 +73,7 @@ void BokehBlurOperation::initExecution()
 
 void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float tempColor[4];
+	float color_accum[4];
 	float tempBoundingBox[4];
 	float bokeh[4];
 
@@ -96,7 +96,7 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 		maxy = min(maxy, inputBuffer->getRect()->ymax);
 		maxx = min(maxx, inputBuffer->getRect()->xmax);
 
-		zero_v4(tempColor);
+		zero_v4(color_accum);
 
 		int step = getStep();
 		int offsetadd = getOffsetAdd();
@@ -108,15 +108,15 @@ void BokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *
 				float u = this->bokehMidX - (nx - x) * m;
 				float v = this->bokehMidY - (ny - y) * m;
 				inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
-				madd_v4_v4v4(tempColor, bokeh, &buffer[bufferindex]);
+				madd_v4_v4v4(color_accum, bokeh, &buffer[bufferindex]);
 				add_v4_v4(multiplier_accum, bokeh);
 				bufferindex += offsetadd;
 			}
 		}
-		color[0] = tempColor[0] * (1.0f / multiplier_accum[0]);
-		color[1] = tempColor[1] * (1.0f / multiplier_accum[1]);
-		color[2] = tempColor[2] * (1.0f / multiplier_accum[2]);
-		color[3] = tempColor[3] * (1.0f / multiplier_accum[3]);
+		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 	else {
 		inputProgram->read(color, x, y, COM_PS_NEAREST, inputBuffers);

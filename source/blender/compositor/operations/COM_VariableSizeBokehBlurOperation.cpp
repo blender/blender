@@ -53,15 +53,11 @@ void VariableSizeBokehBlurOperation::initExecution()
 
 void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float tempColor[4];
 	float readColor[4];
 	float bokeh[4];
-	tempColor[0] = 0;
-	tempColor[1] = 0;
-	tempColor[2] = 0;
-	tempColor[3] = 0;
 	float tempSize[4];
 	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	int miny = y - maxBlur;
 	int maxy = y + maxBlur;
@@ -69,11 +65,11 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	int maxx = x + maxBlur;
 	{
 		inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
-		tempColor[0] += readColor[0];
-		tempColor[1] += readColor[1];
-		tempColor[2] += readColor[2];
-		tempColor[3] += readColor[3];
-		add_v4_v4(tempColor, readColor);
+		color_accum[0] += readColor[0];
+		color_accum[1] += readColor[1];
+		color_accum[2] += readColor[2];
+		color_accum[3] += readColor[3];
+		add_v4_v4(color_accum, readColor);
 		add_v3_fl(multiplier_accum, 1.0f);
 		
 		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
@@ -92,17 +88,17 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 						float v = 256 + dy * 256 / size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-						madd_v4_v4v4(tempColor, bokeh, readColor);
+						madd_v4_v4v4(color_accum, bokeh, readColor);
 						add_v4_v4(multiplier_accum, bokeh);
 					}
 				}
 			}
 		}
 
-		color[0] = tempColor[0] * (1.0f / multiplier_accum[0]);
-		color[1] = tempColor[1] * (1.0f / multiplier_accum[1]);
-		color[2] = tempColor[2] * (1.0f / multiplier_accum[2]);
-		color[3] = tempColor[3] * (1.0f / multiplier_accum[3]);
+		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 
 }
