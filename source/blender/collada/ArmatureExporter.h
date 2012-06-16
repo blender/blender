@@ -53,14 +53,14 @@ class SceneExporter;
 // XXX exporter writes wrong data for shared armatures.  A separate
 // controller should be written for each armature-mesh binding how do
 // we make controller ids then?
-class ArmatureExporter: public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
+class ArmatureExporter : public COLLADASW::LibraryControllers, protected TransformWriter, protected InstanceWriter
 {
 public:
 	ArmatureExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings);
 
 	// write bone nodes
-	void add_armature_bones(Object *ob_arm, Scene* sce, SceneExporter* se,
-							std::list<Object*>& child_objects);
+	void add_armature_bones(Object *ob_arm, Scene *sce, SceneExporter *se,
+	                        std::list<Object *>& child_objects);
 
 	bool is_skinned_mesh(Object *ob);
 
@@ -76,7 +76,7 @@ private:
 	const ExportSettings *export_settings;
 
 #if 0
-	std::vector<Object*> written_armatures;
+	std::vector<Object *> written_armatures;
 
 	bool already_written(Object *ob_arm);
 
@@ -89,8 +89,8 @@ private:
 
 	// Scene, SceneExporter and the list of child_objects
 	// are required for writing bone parented objects
-	void add_bone_node(Bone *bone, Object *ob_arm, Scene* sce, SceneExporter* se,
-					   std::list<Object*>& child_objects);
+	void add_bone_node(Bone *bone, Object *ob_arm, Scene *sce, SceneExporter *se,
+	                   std::list<Object *>& child_objects);
 
 	void add_bone_transform(Object *ob_arm, Bone *bone, COLLADASW::Node& node);
 
@@ -100,10 +100,10 @@ private:
 
 	// ob should be of type OB_MESH
 	// both args are required
-	void export_controller(Object* ob, Object *ob_arm);
+	void export_controller(Object *ob, Object *ob_arm);
 
 	void add_joints_element(ListBase *defbase,
-							const std::string& joints_source_id, const std::string& inv_bind_mat_source_id);
+	                        const std::string& joints_source_id, const std::string& inv_bind_mat_source_id);
 
 	void add_bind_shape_mat(Object *ob);
 
@@ -111,15 +111,15 @@ private:
 
 	std::string add_inv_bind_mats_source(Object *ob_arm, ListBase *defbase, const std::string& controller_id);
 
-	Bone *get_bone_from_defgroup(Object *ob_arm, bDeformGroup* def);
+	Bone *get_bone_from_defgroup(Object *ob_arm, bDeformGroup *def);
 
-	bool is_bone_defgroup(Object *ob_arm, bDeformGroup* def);
+	bool is_bone_defgroup(Object *ob_arm, bDeformGroup *def);
 
 	std::string add_weights_source(Mesh *me, const std::string& controller_id,
-								   const std::list<float>& weights);
+	                               const std::list<float>& weights);
 
 	void add_vertex_weights_element(const std::string& weights_source_id, const std::string& joints_source_id,
-									const std::list<int>& vcount, const std::list<int>& joints);
+	                                const std::list<int>& vcount, const std::list<int>& joints);
 
 	void write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone);
 };

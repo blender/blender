@@ -83,7 +83,7 @@ bool ArmatureExporter::is_skinned_mesh(Object *ob)
 
 void ArmatureExporter::write_bone_URLs(COLLADASW::InstanceController &ins, Object *ob_arm, Bone *bone)
 {
-	if ( bc_is_root_bone(bone, this->export_settings->deform_bones_only) )
+	if (bc_is_root_bone(bone, this->export_settings->deform_bones_only))
 		ins.addSkeleton(COLLADABU::URI(COLLADABU::Utils::EMPTY_STRING, get_joint_id(bone, ob_arm)));
 	else {
 		for (Bone *child = (Bone *)bone->childbase.first; child; child = child->next) {
@@ -187,9 +187,12 @@ void ArmatureExporter::add_bone_node(Bone *bone, Object *ob_arm, Scene *sce,
 		node.setNodeName(node_name);
 		node.setNodeSid(node_sid);
 
-		/*if ( bone->childbase.first == NULL || BLI_countlist(&(bone->childbase))>=2)
+#if 0
+		if (bone->childbase.first == NULL || BLI_countlist(&(bone->childbase)) >= 2) {
 			add_blender_leaf_bone( bone, ob_arm , node );
-		   else{*/
+		}
+		else {
+#endif
 		node.start();
 
 		add_bone_transform(ob_arm, bone, node);

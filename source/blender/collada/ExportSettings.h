@@ -31,19 +31,18 @@ extern "C" {
 #ifndef __EXPORTSETTINGS_H__
 #define __EXPORTSETTINGS_H__
 
-struct ExportSettings
-{
- public:
- bool apply_modifiers;
- bool selected;
- bool include_children;
- bool include_armatures;
- bool deform_bones_only;
- bool use_object_instantiation;
- bool sort_by_name;
- bool second_life;
- char *filepath;
- LinkNode *export_set;
+struct ExportSettings {
+public:
+	bool apply_modifiers;
+	bool selected;
+	bool include_children;
+	bool include_armatures;
+	bool deform_bones_only;
+	bool use_object_instantiation;
+	bool sort_by_name;
+	bool second_life;
+	char *filepath;
+	LinkNode *export_set;
 };
 
 #endif

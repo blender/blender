@@ -386,7 +386,7 @@ Object *DocumentImporter::create_instance_node(Object *source_ob, COLLADAFW::Nod
 			Object *new_child = NULL;
 			if (inodes.getCount()) { // \todo loop through instance nodes
 				const COLLADAFW::UniqueId& id = inodes[0]->getInstanciatedObjectId();
-				fprintf(stderr, "Doing %d child nodes\n", node_map.count(id));
+				fprintf(stderr, "Doing %d child nodes\n", (int)node_map.count(id));
 				new_child = create_instance_node(object_map.find(id)->second, node_map[id], child_node, sce, is_library_node);
 			}
 			else {

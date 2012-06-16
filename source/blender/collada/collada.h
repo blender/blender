@@ -33,23 +33,22 @@ struct Scene;
 #ifdef __cplusplus
 extern "C" {
 #endif
-	/*
-	 * both return 1 on success, 0 on error
-	 */
-	int collada_import(bContext *C, const char *filepath);
-	int collada_export(
-		Scene *sce, 
-		const char *filepath,
-		int apply_modifiers,
+/*
+ * both return 1 on success, 0 on error
+ */
+int collada_import(bContext *C, const char *filepath);
+int collada_export(Scene *sce,
+                   const char *filepath,
+                   int apply_modifiers,
 
-		int selected,
-		int include_children,
-		int include_armatures,
-		int deform_bones_only,
+                   int selected,
+                   int include_children,
+                   int include_armatures,
+                   int deform_bones_only,
 
-		int use_object_instantiation,
-		int sort_by_name,
-		int second_life);
+                   int use_object_instantiation,
+                   int sort_by_name,
+                   int second_life);
 
 
 

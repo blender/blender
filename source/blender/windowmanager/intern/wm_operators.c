@@ -2199,9 +2199,9 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 	        selected,
 	        include_children,
 	        include_armatures,
-			deform_bones_only,
-			use_object_instantiation,
-			sort_by_name,
+	        deform_bones_only,
+	        use_object_instantiation,
+	        sort_by_name,
 	        second_life)) {
 		return OPERATOR_FINISHED;
 	}
@@ -2213,8 +2213,6 @@ static int wm_collada_export_exec(bContext *C, wmOperator *op)
 
 void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 {
-	ID *id = imfptr->id.data;
-
 	uiLayout *box, *row;
 
 	// Export Options:
@@ -2253,7 +2251,7 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 
 }
 
-static void wm_collada_export_draw(bContext *C, wmOperator *op)
+static void wm_collada_export_draw(bContext *UNUSED(C), wmOperator *op)
 {
 	PointerRNA ptr;
 

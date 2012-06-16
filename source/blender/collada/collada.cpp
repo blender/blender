@@ -49,20 +49,19 @@ int collada_import(bContext *C, const char *filepath)
 	return 0;
 }
 
-int collada_export(
-	Scene *sce,
-	const char *filepath,
+int collada_export(Scene *sce,
+                   const char *filepath,
 
-	int apply_modifiers,
+                   int apply_modifiers,
 
-	int selected,
-	int include_children,
-	int include_armatures,
-	int deform_bones_only,
+                   int selected,
+                   int include_children,
+                   int include_armatures,
+                   int deform_bones_only,
 
-	int use_object_instantiation,
-	int sort_by_name,
-	int second_life)
+                   int use_object_instantiation,
+                   int sort_by_name,
+                   int second_life)
 {
 	ExportSettings export_settings;
 

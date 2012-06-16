@@ -193,30 +193,19 @@ bool bc_is_base_node(LinkNode *export_set, Object *ob)
 
 bool bc_is_in_Export_set(LinkNode *export_set, Object *ob)
 {
-	LinkNode *node = export_set;
-	
-	while (node) {
-		Object *element = (Object *)node->link;
-	
-		if (element == ob)
-			return true;
-		
-		node= node->next;
-	}
-	return false;
+	return (BLI_linklist_index(export_set, ob) != -1);
 }
 
 bool bc_has_object_type(LinkNode *export_set, short obtype)
 {
-	LinkNode *node = export_set;
+	LinkNode *node;
 	
-	while (node) {
+	for (node = export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
-			
+		/* XXX - why is this checking for ob->data? - we could be looking for empties */
 		if (ob->type == obtype && ob->data) {
 			return true;
 		}
-		node= node->next;
 	}
 	return false;
 }
@@ -236,19 +225,16 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 {
 	bool sorted = false;
 	LinkNode *node;
-	for(node=export_set; node->next && !sorted; node=node->next) {
+	for (node = export_set; node->next && !sorted; node = node->next) {
 
 		sorted = true;
 		
 		LinkNode *current;
-		for (current=export_set; current->next; current = current->next) {
+		for (current = export_set; current->next; current = current->next) {
 			Object *a = (Object *)current->link;
 			Object *b = (Object *)current->next->link;
 
-			std::string str_a (a->id.name);
-			std::string str_b (b->id.name);
-
-			if (str_a.compare(str_b) > 0) {
+			if (strcmp(a->id.name, b->id.name) > 0) {
 				current->link       = b;
 				current->next->link = a;
 				sorted = false;
@@ -264,7 +250,7 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
  * are root bones.
  */
 bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
-	if(deform_bones_only) {
+	if (deform_bones_only) {
 		Bone *root = NULL;
 		Bone *bone = aBone;
 		while (bone) {
@@ -272,7 +258,7 @@ bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
 				root = bone;
 			bone = bone->parent;
 		}
-		return aBone==root;
+		return (aBone == root);
 	}
 	else
 		return !(aBone->parent);

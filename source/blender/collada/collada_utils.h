@@ -51,11 +51,11 @@ extern "C" {
 
 #include "ExportSettings.h"
 
-typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex*> > TexIndexTextureArrayMap;
+typedef std::map<COLLADAFW::TextureMapId, std::vector<MTex *> > TexIndexTextureArrayMap;
 
 extern float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index);
 extern int bc_test_parent_loop(Object *par, Object *ob);
-extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space=true);
+extern int bc_set_parent(Object *ob, Object *par, bContext *C, bool is_parent_space = true);
 extern Object *bc_add_object(Scene *scene, int type, const char *name);
 extern Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob);
 
