@@ -61,7 +61,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	tempColor[2] = 0;
 	tempColor[3] = 0;
 	float tempSize[4];
-	float overallmultiplyer[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	int miny = y - maxBlur;
 	int maxy = y + maxBlur;
@@ -74,7 +74,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 		tempColor[2] += readColor[2];
 		tempColor[3] += readColor[3];
 		add_v4_v4(tempColor, readColor);
-		add_v3_fl(overallmultiplyer, 1.0f);
+		add_v3_fl(multiplier_accum, 1.0f);
 		
 		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
@@ -93,16 +93,16 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
 						madd_v4_v4v4(tempColor, bokeh, readColor);
-						add_v4_v4(overallmultiplyer, bokeh);
+						add_v4_v4(multiplier_accum, bokeh);
 					}
 				}
 			}
 		}
 
-		color[0] = tempColor[0] * (1.0f / overallmultiplyer[0]);
-		color[1] = tempColor[1] * (1.0f / overallmultiplyer[1]);
-		color[2] = tempColor[2] * (1.0f / overallmultiplyer[2]);
-		color[3] = tempColor[3] * (1.0f / overallmultiplyer[3]);
+		color[0] = tempColor[0] * (1.0f / multiplier_accum[0]);
+		color[1] = tempColor[1] * (1.0f / multiplier_accum[1]);
+		color[2] = tempColor[2] * (1.0f / multiplier_accum[2]);
+		color[3] = tempColor[3] * (1.0f / multiplier_accum[3]);
 	}
 
 }

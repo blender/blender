@@ -107,7 +107,7 @@ void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, Memor
 
 	/* gauss */
 	float tempColor = 0.0f;
-	float overallmultiplyer = 0.0f;
+	float multiplier_accum = 0.0f;
 
 	/* dilate */
 	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
@@ -118,33 +118,33 @@ void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, Memor
 
 		const int index = (ny - y) + this->rad;
 		float value = finv_test(buffer[bufferindex], do_invert);
-		float multiplyer;
+		float multiplier;
 
 		/* gauss */
 		{
-			multiplyer = gausstab[index];
-			tempColor += value * multiplyer;
-			overallmultiplyer += multiplyer;
+			multiplier = gausstab[index];
+			tempColor += value * multiplier;
+			multiplier_accum += multiplier;
 		}
 
 		/* dilate - find most extreme color */
 		if (value > value_max) {
 #if 0
-			multiplyer = 1.0f - ((fabsf(y - ny)) / (float)this->rad);
+			multiplier = 1.0f - ((fabsf(y - ny)) / (float)this->rad);
 #else
-			multiplyer = distbuf_inv[index];
+			multiplier = distbuf_inv[index];
 #endif
-			value *= multiplyer;
+			value *= multiplier;
 			if (value > value_max) {
 				value_max = value;
-				distfacinv_max = multiplyer;
+				distfacinv_max = multiplier;
 			}
 		}
 
 	}
 
 	/* blend between the max value and gauss blue - gives nice feather */
-	const float value_gauss = tempColor / overallmultiplyer;
+	const float value_gauss = tempColor / multiplier_accum;
 	const float value_final = (value_max * distfacinv_max) + (value_gauss * (1.0f - distfacinv_max));
 	color[0] = finv_test(value_final, do_invert);
 }

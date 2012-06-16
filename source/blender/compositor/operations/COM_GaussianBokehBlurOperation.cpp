@@ -115,7 +115,7 @@ void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, Memory
 	tempColor[1] = 0;
 	tempColor[2] = 0;
 	tempColor[3] = 0;
-	float overallmultiplyer = 0;
+	float multiplier_accum = 0;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
@@ -138,15 +138,15 @@ void GaussianBokehBlurOperation::executePixel(float *color, int x, int y, Memory
 		index = ((ny - y) + this->rady) * (this->radx * 2 + 1) + (minx - x + this->radx);
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
 		for (int nx = minx; nx < maxx; nx += step) {
-			const float multiplyer = gausstab[index];
-			madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
-			overallmultiplyer += multiplyer;
+			const float multiplier = gausstab[index];
+			madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplier);
+			multiplier_accum += multiplier;
 			index += step;
 			bufferindex += offsetadd;
 		}
 	}
 
-	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
+	mul_v4_v4fl(color, tempColor, 1.0f / multiplier_accum);
 }
 
 void GaussianBokehBlurOperation::deinitExecution()
