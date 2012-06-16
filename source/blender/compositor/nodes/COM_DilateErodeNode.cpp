@@ -25,6 +25,8 @@
 #include "COM_ExecutionSystem.h"
 #include "COM_DilateErodeOperation.h"
 #include "COM_AntiAliasOperation.h"
+#include "COM_GaussianAlphaXBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 #include "BLI_math.h"
 
 DilateErodeNode::DilateErodeNode(bNode *editorNode) : Node(editorNode)
@@ -61,6 +63,53 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
 			graph->addOperation(operation);
+		}
+		else {
+			ErodeDistanceOperation *operation = new ErodeDistanceOperation();
+			operation->setDistance(-editorNode->custom2);
+			this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
+			this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket(0));
+			graph->addOperation(operation);
+		}
+	}
+	else if (editorNode->custom1 == CMP_NODE_DILATEERODE_DISTANCE_FEATHER) {
+		/* this uses a modified gaussian blur function otherwise its far too slow */
+		if (editorNode->custom2 > 0) {
+
+			CompositorQuality quality = context->getQuality();
+
+			/* initialize node data */
+			NodeBlurData *data = (NodeBlurData *)&this->alpha_blur;
+			memset(data, 0, sizeof(*data));
+			data->sizex = data->sizey = editorNode->custom2;
+			data->filtertype = R_FILTER_GAUSS;
+
+			GaussianAlphaXBlurOperation *operationx = new GaussianAlphaXBlurOperation();
+			operationx->setData(data);
+			operationx->setQuality(quality);
+			this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
+			this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
+			graph->addOperation(operationx);
+			GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
+			operationy->setData(data);
+			operationy->setQuality(quality);
+			this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
+			graph->addOperation(operationy);
+			addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
+			addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
+			addPreviewOperation(graph, operationy->getOutputSocket());
+
+			/* TODO? */
+			/* see gaussian blue node for original usage */
+#if 0
+			if (!connectedSizeSocket) {
+				operationx->setSize(size);
+				operationy->setSize(size);
+			}
+#else
+			operationx->setSize(1.0f);
+			operationy->setSize(1.0f);
+#endif
 		}
 		else {
 			ErodeDistanceOperation *operation = new ErodeDistanceOperation();

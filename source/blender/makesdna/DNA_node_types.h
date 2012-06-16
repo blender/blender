@@ -361,6 +361,7 @@ typedef struct bNodeSocketValueRGBA {
 #define CMP_NODE_DILATEERODE_STEP            0
 #define CMP_NODE_DILATEERODE_DISTANCE_THRESH 1
 #define CMP_NODE_DILATEERODE_DISTANCE        2
+#define CMP_NODE_DILATEERODE_DISTANCE_FEATHER 3
 
 typedef struct NodeFrame {
 	short flag;

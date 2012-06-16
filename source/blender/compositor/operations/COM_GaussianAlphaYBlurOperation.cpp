@@ -18,22 +18,23 @@
  * Contributor: 
  *		Jeroen Bakker 
  *		Monique Dewanchand
+ *		Campbell Barton
  */
 
-#include "COM_GaussianYBlurOperation.h"
+#include "COM_GaussianAlphaYBlurOperation.h"
 #include "BLI_math.h"
 
 extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianYBlurOperation::GaussianYBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
+GaussianAlphaYBlurOperation::GaussianAlphaYBlurOperation() : BlurBaseOperation(COM_DT_VALUE)
 {
 	this->gausstab = NULL;
 	this->rad = 0;
 }
 
-void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
+void *GaussianAlphaYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers)
 {
 	if (!this->sizeavailable) {
 		updateGauss(memoryBuffers);
@@ -42,7 +43,7 @@ void *GaussianYBlurOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 	return buffer;
 }
 
-void GaussianYBlurOperation::initExecution()
+void GaussianAlphaYBlurOperation::initExecution()
 {
 	if (this->sizeavailable) {
 		float rad = size * this->data->sizey;
@@ -51,10 +52,11 @@ void GaussianYBlurOperation::initExecution()
 
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);
+		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad);
 	}
 }
 
-void GaussianYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
+void GaussianAlphaYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 {
 	if (this->gausstab == NULL) {
 		updateSize(memoryBuffers);
@@ -65,16 +67,20 @@ void GaussianYBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 		this->rad = rad;
 		this->gausstab = BlurBaseOperation::make_gausstab(rad);
 	}
+
+	if (this->distbuf_inv == NULL) {
+		updateSize(memoryBuffers);
+		float rad = size * this->data->sizex;
+		if (rad < 1)
+			rad = 1;
+
+		this->rad = rad;
+		this->distbuf_inv = BlurBaseOperation::make_dist_fac_inverse(rad);
+	}
 }
 
-void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void GaussianAlphaYBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float tempColor[4];
-	tempColor[0] = 0;
-	tempColor[1] = 0;
-	tempColor[2] = 0;
-	tempColor[3] = 0;
-	float overallmultiplyer = 0;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
@@ -90,26 +96,63 @@ void GaussianYBlurOperation::executePixel(float *color, int x, int y, MemoryBuff
 	maxy = min(maxy, inputBuffer->getRect()->ymax);
 	maxx = min(maxx, inputBuffer->getRect()->xmax);
 
+	/* *** this is the main part which is different to 'GaussianYBlurOperation'  *** */
 	int step = getStep();
-	int index;
+
+	/* gauss */
+	float tempColor = 0.0f;
+	float overallmultiplyer = 0.0f;
+
+	/* dilate */
+	float value_max = buffer[(x * 4) + (y * 4 * bufferwidth)]; /* init with the current color to avoid unneeded lookups */
+	float distfacinv_max = 1.0f; /* 0 to 1 */
+
 	for (int ny = miny; ny < maxy; ny += step) {
-		index = (ny - y) + this->rad;
 		int bufferindex = ((minx - bufferstartx) * 4) + ((ny - bufferstarty) * 4 * bufferwidth);
-		const float multiplyer = gausstab[index];
-		madd_v4_v4fl(tempColor, &buffer[bufferindex], multiplyer);
-		overallmultiplyer += multiplyer;
+
+		const int index = (ny - y) + this->rad;
+		float value = buffer[bufferindex];
+		float multiplyer;
+
+		/* gauss */
+		{
+			multiplyer = gausstab[index];
+			tempColor += value * multiplyer;
+			overallmultiplyer += multiplyer;
+		}
+
+		/* dilate - find most extreme color */
+		if (value > value_max) {
+#if 0
+			multiplyer = 1.0f - ((fabsf(y - ny)) / (float)this->rad);
+#else
+			multiplyer = distbuf_inv[index];
+#endif
+			value *= multiplyer;
+			if (value > value_max) {
+				value_max = value;
+				distfacinv_max = multiplyer;
+			}
+		}
+
 	}
-	mul_v4_v4fl(color, tempColor, 1.0f / overallmultiplyer);
+
+	/* blend between the max value and gauss blue - gives nice feather */
+	const float value_gauss = tempColor / overallmultiplyer;
+	const float value_final = (value_max * distfacinv_max) + (value_gauss * (1.0f - distfacinv_max));
+	color[0] = value_final;
 }
 
-void GaussianYBlurOperation::deinitExecution()
+void GaussianAlphaYBlurOperation::deinitExecution()
 {
 	BlurBaseOperation::deinitExecution();
 	delete [] this->gausstab;
 	this->gausstab = NULL;
+	delete [] this->distbuf_inv;
+	this->distbuf_inv = NULL;
 }
 
-bool GaussianYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
+bool GaussianAlphaYBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
 	rcti sizeInput;

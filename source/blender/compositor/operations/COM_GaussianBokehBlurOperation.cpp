@@ -27,7 +27,7 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation()
+GaussianBokehBlurOperation::GaussianBokehBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->gausstab = NULL;
 }

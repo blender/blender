@@ -27,11 +27,11 @@ extern "C" {
 	#include "RE_pipeline.h"
 }
 
-BlurBaseOperation::BlurBaseOperation() : NodeOperation()
+BlurBaseOperation::BlurBaseOperation(DataType data_type=COM_DT_COLOR) : NodeOperation()
 {
-	this->addInputSocket(COM_DT_COLOR);
+	this->addInputSocket(data_type);
 	this->addInputSocket(COM_DT_VALUE);
-	this->addOutputSocket(COM_DT_COLOR);
+	this->addOutputSocket(data_type);
 	this->setComplex(true);
 	this->inputProgram = NULL;
 	this->data = NULL;
@@ -87,6 +87,24 @@ float *BlurBaseOperation::make_gausstab(int rad)
 		gausstab[i] *= sum;
 
 	return gausstab;
+}
+
+/* normalized distance from the current (inverted so 1.0 is close and 0.0 is far) */
+float *BlurBaseOperation::make_dist_fac_inverse(int rad)
+{
+	float *dist_fac_invert, val;
+	int i, n;
+
+	n = 2 * rad + 1;
+
+	dist_fac_invert = new float[n];
+
+	for (i = -rad; i <= rad; i++) {
+		val = 1.0f - fabsf(((float)i / (float)rad));
+		dist_fac_invert[i + rad] = val;
+	}
+
+	return dist_fac_invert;
 }
 
 void BlurBaseOperation::deinitExecution()

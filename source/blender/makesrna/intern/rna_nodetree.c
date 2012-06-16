@@ -2049,10 +2049,11 @@ static void def_cmp_dilate_erode(StructRNA *srna)
 	PropertyRNA *prop;
 
 	static EnumPropertyItem type_items[] = {
-		{CMP_NODE_DILATEERODE_STEP,            "STEP",      0, "Step",      ""},
+	    {CMP_NODE_DILATEERODE_STEP,            "STEP",      0, "Step",      ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE_THRESH, "THRESHOLD", 0, "Threshold", ""},
 	    {CMP_NODE_DILATEERODE_DISTANCE,        "DISTANCE",  0, "Distance",  ""},
-		{0, NULL, 0, NULL, NULL}
+	    {CMP_NODE_DILATEERODE_DISTANCE_FEATHER,"FEATHER",  0,  "Feather",  ""},
+	    {0, NULL, 0, NULL, NULL}
 	};
 	
 	prop = RNA_def_property(srna, "type", PROP_ENUM, PROP_NONE);

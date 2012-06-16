@@ -26,7 +26,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_utildefines.h"
 
-FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation()
+FastGaussianBlurOperation::FastGaussianBlurOperation() : BlurBaseOperation(COM_DT_COLOR)
 {
 	this->iirgaus = NULL;
 }

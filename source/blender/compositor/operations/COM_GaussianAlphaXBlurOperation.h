@@ -18,45 +18,39 @@
  * Contributor: 
  *		Jeroen Bakker 
  *		Monique Dewanchand
+ *		Campbell Barton
  */
 
-#ifndef _COM_BlurBaseOperation_h
-#define _COM_BlurBaseOperation_h
+#ifndef _COM_GaussianAlphaXBlurOperation_h
+#define _COM_GaussianAlphaXBlurOperation_h
 #include "COM_NodeOperation.h"
-#include "COM_QualityStepHelper.h"
+#include "COM_BlurBaseOperation.h"
 
-class BlurBaseOperation : public NodeOperation, public QualityStepHelper {
+class GaussianAlphaXBlurOperation : public BlurBaseOperation {
 private:
-
-protected:
-	/**
-	 * Cached reference to the inputProgram
-	 */
-	SocketReader *inputProgram;
-	SocketReader *inputSize;
-	NodeBlurData *data;
-	BlurBaseOperation(DataType data_type);
-	float *make_gausstab(int rad);
-	float *make_dist_fac_inverse(int rad);
-	float size;
-	bool deleteData;
-	bool sizeavailable;
-	void updateSize(MemoryBuffer **memoryBuffers);
+	float *gausstab;
+	float *distbuf_inv;
+	int rad;
+	void updateGauss(MemoryBuffer **memoryBuffers);
 public:
+	GaussianAlphaXBlurOperation();
+
 	/**
-	 * Initialize the execution
+	 * @brief the inner loop of this program
 	 */
-	void initExecution();
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	 * Deinitialize the execution
+	 * @brief initialize the execution
+	 */
+	void initExecution();
+
+	/**
+	 * @brief Deinitialize the execution
 	 */
 	void deinitExecution();
 	
-	void setData(NodeBlurData *data) { this->data = data; }
-
-	void deleteDataWhenFinished() { this->deleteData = true; }
-
-	void setSize(float size) { this->size = size; sizeavailable = true; }
+	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
+	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 };
 #endif
