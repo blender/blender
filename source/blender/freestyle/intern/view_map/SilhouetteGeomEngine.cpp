@@ -113,13 +113,15 @@ void SilhouetteGeomEngine::ProjectSilhouette(vector<SVertex*>& ioVertices)
   //  real min=HUGE;
   //  real max=-HUGE;
   vector<SVertex*>::iterator sv, svend;
+  const real depth = _zfar - _znear;
+  const real fac = (depth < 1e-6) ? 1.0 : 1.0 / depth;
   
   for(sv=ioVertices.begin(), svend=ioVertices.end();
       sv!=svend;
       sv++)
     {
       GeomUtils::fromWorldToImage((*sv)->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
-      newPoint[2] = (-newPoint[2]-_znear)/(_zfar-_znear); // normalize Z between 0 and 1
+      newPoint[2] = (-newPoint[2]-_znear) * fac; // normalize Z between 0 and 1
       (*sv)->setPoint2D(newPoint);  
       //cerr << (*sv)->point2d().z() << "  ";
       //      real d=(*sv)->point2d()[2];
@@ -142,8 +144,10 @@ void SilhouetteGeomEngine::ProjectSilhouette(SVertex* ioVertex)
   //  real min=HUGE;
   //  real max=-HUGE;
   vector<SVertex*>::iterator sv, svend;
+  const real depth = _zfar - _znear;
+  const real fac = (depth < 1e-6) ? 1.0 : 1.0 / depth;
   GeomUtils::fromWorldToImage(ioVertex->point3D(), newPoint, _modelViewMatrix, _projectionMatrix, _viewport);
-  newPoint[2] = (-newPoint[2]-_znear)/(_zfar-_znear); // normalize Z between 0 and 1
+  newPoint[2] = (-newPoint[2]-_znear) * fac; // normalize Z between 0 and 1
   ioVertex->setPoint2D(newPoint);  
 }
 
@@ -257,9 +261,11 @@ Vec3r SilhouetteGeomEngine::WorldToImage(const Vec3r& M)
 
 {
 
+  const real depth = _zfar - _znear;
+  const real fac = (depth < 1e-6) ? 1.0 : 1.0 / depth;
   Vec3r newPoint;
   GeomUtils::fromWorldToImage(M, newPoint, _transform, _viewport);
-  newPoint[2] = (-newPoint[2]-_znear)/(_zfar-_znear); // normalize Z between 0 and 1
+  newPoint[2] = (-newPoint[2]-_znear) * fac; // normalize Z between 0 and 1
   return newPoint;
 
 }
