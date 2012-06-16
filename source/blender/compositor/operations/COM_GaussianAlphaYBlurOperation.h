@@ -30,6 +30,7 @@ class GaussianAlphaYBlurOperation : public BlurBaseOperation {
 private:
 	float *gausstab;
 	float *distbuf_inv;
+	bool do_subtract;
 	int rad;
 	void updateGauss(MemoryBuffer **memoryBuffers);
 public:
@@ -52,5 +53,10 @@ public:
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
+
+	/**
+	 * Set subtract for Dilate/Erode functionality
+	 */
+	void setSubtract(bool subtract) { this->do_subtract = subtract; }
 };
 #endif

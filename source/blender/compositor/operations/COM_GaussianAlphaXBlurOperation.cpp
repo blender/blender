@@ -81,8 +81,14 @@ void GaussianAlphaXBlurOperation::updateGauss(MemoryBuffer **memoryBuffers)
 	}
 }
 
+BLI_INLINE float finv_test(const float f, const bool test)
+{
+	return (LIKELY(test == false)) ? f : 1.0f - f;
+}
+
 void GaussianAlphaXBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
+	const bool do_invert = this->do_subtract;
 	MemoryBuffer *inputBuffer = (MemoryBuffer *)data;
 	float *buffer = inputBuffer->getBuffer();
 	int bufferwidth = inputBuffer->getWidth();
@@ -108,12 +114,12 @@ void GaussianAlphaXBlurOperation::executePixel(float *color, int x, int y, Memor
 	float overallmultiplyer = 0.0f;
 
 	/* dilate */
-	float value_max = buffer[(x * 4) + (y * 4 * bufferwidth)]; /* init with the current color to avoid unneeded lookups */
+	float value_max = finv_test(buffer[(x * 4) + (y * 4 * bufferwidth)], do_invert); /* init with the current color to avoid unneeded lookups */
 	float distfacinv_max = 1.0f; /* 0 to 1 */
 
 	for (int nx = minx; nx < maxx; nx += step) {
 		const int index = (nx - x) + this->rad;
-		float value = buffer[bufferindex];
+		float value = finv_test(buffer[bufferindex], do_invert);
 		float multiplyer;
 
 		/* gauss */
@@ -131,7 +137,7 @@ void GaussianAlphaXBlurOperation::executePixel(float *color, int x, int y, Memor
 			multiplyer = distbuf_inv[index];
 #endif
 			value *= multiplyer;
-			if ((value > value_max) == TRUE) {
+			if (value > value_max) {
 				value_max = value;
 				distfacinv_max = multiplyer;
 			}
@@ -143,7 +149,7 @@ void GaussianAlphaXBlurOperation::executePixel(float *color, int x, int y, Memor
 	/* blend between the max value and gauss blue - gives nice feather */
 	const float value_gauss = tempColor / overallmultiplyer;
 	const float value_final = (value_max * distfacinv_max) + (value_gauss * (1.0f - distfacinv_max));
-	color[0] = value_final;
+	color[0] = finv_test(value_final, do_invert);
 }
 
 void GaussianAlphaXBlurOperation::deinitExecution()
@@ -164,7 +170,7 @@ bool GaussianAlphaXBlurOperation::determineDependingAreaOfInterest(rcti *input, 
 	sizeInput.ymin = 0;
 	sizeInput.xmax = 5;
 	sizeInput.ymax = 5;
-	
+
 	NodeOperation *operation = this->getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
