@@ -92,9 +92,9 @@ static void rna_Scene_collada_export(
     int selected,
     int include_children,
     int include_armatures,
-	int deform_bones_only,
+    int deform_bones_only,
     int use_object_instantiation,
-	int sort_by_name,
+    int sort_by_name,
     int second_life)
 {
 	collada_export(scene, filepath, apply_modifiers, selected,  

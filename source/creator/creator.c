@@ -153,8 +153,8 @@ static int print_version(int argc, const char **argv, void *data);
 /* for the callbacks: */
 
 #define BLEND_VERSION_STRING_FMT                                              \
-	"Blender %d.%02d (sub %d)\n",                                             \
-	BLENDER_VERSION/100, BLENDER_VERSION%100, BLENDER_SUBVERSION              \
+    "Blender %d.%02d (sub %d)\n",                                             \
+    BLENDER_VERSION / 100, BLENDER_VERSION % 100, BLENDER_SUBVERSION          \
 
 /* Initialize callbacks for the modules that need them */
 static void setCallbacks(void); 

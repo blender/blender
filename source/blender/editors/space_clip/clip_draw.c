@@ -838,15 +838,15 @@ static void draw_marker_slide_zones(SpaceClip *sc, MovieTrackingTrack *track, Mo
 		glLineStipple(3, 0xaaaa);
 
 		glBegin(GL_LINE_LOOP);
-			glVertex2f(pat_min[0] - dx, pat_min[1] - dy);
-			glVertex2f(pat_max[0] + dx, pat_min[1] - dy);
-			glVertex2f(pat_max[0] + dx, pat_max[1] + dy);
-			glVertex2f(pat_min[0] - dx, pat_max[1] + dy);
+		glVertex2f(pat_min[0] - dx, pat_min[1] - dy);
+		glVertex2f(pat_max[0] + dx, pat_min[1] - dy);
+		glVertex2f(pat_max[0] + dx, pat_max[1] + dy);
+		glVertex2f(pat_min[0] - dx, pat_max[1] + dy);
 		glEnd();
 
 		glBegin(GL_LINES);
-			glVertex2f(0.0f, 0.0f);
-			glVertex2fv(tilt_ctrl);
+		glVertex2f(0.0f, 0.0f);
+		glVertex2fv(tilt_ctrl);
 		glEnd();
 
 		glDisable(GL_LINE_STIPPLE);

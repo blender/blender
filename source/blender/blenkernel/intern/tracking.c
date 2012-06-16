@@ -216,7 +216,7 @@ void BKE_tracking_get_camera_object_matrix(Scene *scene, Object *ob, float mat[4
 }
 
 void BKE_tracking_get_projection_matrix(MovieTracking *tracking, MovieTrackingObject *object,
-                                    int framenr, int winx, int winy, float mat[4][4])
+                                        int framenr, int winx, int winy, float mat[4][4])
 {
 	MovieReconstructedCamera *camera;
 	float lens = tracking->camera.focal * tracking->camera.sensor_width / (float)winx;
@@ -1416,13 +1416,13 @@ void BKE_tracking_distortion_update(MovieDistortion *distortion, MovieTracking *
 		distortion->intrinsics = libmv_CameraIntrinsicsNew(camera->focal,
 		                                                   camera->principal[0], camera->principal[1] * aspy,
 		                                                   camera->k1, camera->k2, camera->k3,
-                                                           calibration_width, calibration_height * aspy);
+		                                                   calibration_width, calibration_height * aspy);
 	}
 	else {
 		libmv_CameraIntrinsicsUpdate(distortion->intrinsics, camera->focal,
 		                             camera->principal[0], camera->principal[1] * aspy,
 		                             camera->k1, camera->k2, camera->k3,
-                                     calibration_width, calibration_height * aspy);
+		                             calibration_width, calibration_height * aspy);
 	}
 #else
 	(void) distortion;
@@ -1559,7 +1559,7 @@ ImBuf *BKE_tracking_undistort_frame(MovieTracking *tracking, ImBuf *ibuf, int ca
 		camera->intrinsics = BKE_tracking_distortion_new();
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, calibration_width,
-                                        calibration_height, overscan, TRUE);
+	                                    calibration_height, overscan, TRUE);
 }
 
 ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking, ImBuf *ibuf, int calibration_width,
@@ -1571,7 +1571,7 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking, ImBuf *ibuf, int cali
 		camera->intrinsics = BKE_tracking_distortion_new();
 
 	return BKE_tracking_distortion_exec(camera->intrinsics, tracking, ibuf, calibration_width,
-                                        calibration_height, overscan, FALSE);
+	                                    calibration_height, overscan, FALSE);
 }
 
 /*********************** Image sampling *************************/
@@ -1579,14 +1579,14 @@ ImBuf *BKE_tracking_distort_frame(MovieTracking *tracking, ImBuf *ibuf, int cali
 static void disable_imbuf_channels(ImBuf *ibuf, MovieTrackingTrack *track, int grayscale)
 {
 	BKE_tracking_disable_channels(ibuf, track->flag & TRACK_DISABLE_RED,
-	                                    track->flag & TRACK_DISABLE_GREEN,
-                                        track->flag & TRACK_DISABLE_BLUE, grayscale);
+	                              track->flag & TRACK_DISABLE_GREEN,
+	                              track->flag & TRACK_DISABLE_BLUE, grayscale);
 }
 
 ImBuf *BKE_tracking_sample_pattern(int frame_width, int frame_height, ImBuf *search_ibuf,
-                                         MovieTrackingTrack *track, MovieTrackingMarker *marker,
-                                         int use_mask, int num_samples_x, int num_samples_y,
-                                         float pos[2])
+                                   MovieTrackingTrack *track, MovieTrackingMarker *marker,
+                                   int use_mask, int num_samples_x, int num_samples_y,
+                                   float pos[2])
 {
 #ifdef WITH_LIBMV
 	ImBuf *pattern_ibuf;
@@ -1662,7 +1662,7 @@ ImBuf *BKE_tracking_get_pattern_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mo
 	search_ibuf = BKE_tracking_get_search_imbuf(ibuf, track, marker, anchored, disable_channels);
 
 	pattern_ibuf = BKE_tracking_sample_pattern(ibuf->x, ibuf->y, search_ibuf, track, marker,
-	                                                 FALSE, num_samples_x, num_samples_y, NULL);
+	                                           FALSE, num_samples_x, num_samples_y, NULL);
 
 	IMB_freeImBuf(search_ibuf);
 
@@ -1712,7 +1712,7 @@ ImBuf *BKE_tracking_get_search_imbuf(ImBuf *ibuf, MovieTrackingTrack *track, Mov
  * out, do a partial grayscale conversion so the display is better.
  */
 void BKE_tracking_disable_channels(ImBuf *ibuf, int disable_red, int disable_green, int disable_blue,
-                                         int grayscale)
+                                   int grayscale)
 {
 	int x, y;
 	float scale;
@@ -2471,9 +2471,9 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 				/* run the tracker! */
 				tracked = libmv_trackRegion(&options,
 				                            track_context->search_area,
-											track_context->search_area_width,
-											track_context->search_area_height,
-											patch_new, width, height,
+				                            track_context->search_area_width,
+				                            track_context->search_area_height,
+				                            patch_new, width, height,
 				                            src_pixel_x, src_pixel_y,
 				                            &result,
 				                            dst_pixel_x, dst_pixel_y);
@@ -2483,7 +2483,7 @@ int BKE_tracking_context_step(MovieTrackingContext *context)
 			#pragma omp critical
 			{
 				tracking_insert_new_marker(context, track, marker, curfra, tracked,
-				                                 frame_width, frame_height, dst_pixel_x, dst_pixel_y);
+				                           frame_width, frame_height, dst_pixel_x, dst_pixel_y);
 			}
 
 			ok = TRUE;
@@ -3059,7 +3059,7 @@ void BKE_tracking_detect_fast(MovieTracking *tracking, ListBase *tracksbase, ImB
 	MEM_freeN(pixels);
 
 	detect_retrieve_libmv_features(tracking, tracksbase, features, framenr,
-	                        ibuf->x, ibuf->y, layer, place_outside_layer);
+	                               ibuf->x, ibuf->y, layer, place_outside_layer);
 
 	libmv_destroyFeatures(features);
 #else
