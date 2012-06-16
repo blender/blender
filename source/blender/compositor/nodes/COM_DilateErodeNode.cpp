@@ -88,7 +88,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			operationx->setData(data);
 			operationx->setQuality(quality);
 			this->getInputSocket(0)->relinkConnections(operationx->getInputSocket(0), 0, graph);
-			this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph);
+			// this->getInputSocket(1)->relinkConnections(operationx->getInputSocket(1), 1, graph); // no size input yet
 			graph->addOperation(operationx);
 			GaussianAlphaYBlurOperation *operationy = new GaussianAlphaYBlurOperation();
 			operationy->setData(data);
@@ -96,7 +96,7 @@ void DilateErodeNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 			this->getOutputSocket(0)->relinkConnections(operationy->getOutputSocket());
 			graph->addOperation(operationy);
 			addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
-			addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
+			// addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1)); // no size input yet
 			addPreviewOperation(graph, operationy->getOutputSocket());
 
 			/* TODO? */

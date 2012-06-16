@@ -158,6 +158,7 @@ void GaussianAlphaXBlurOperation::deinitExecution()
 bool GaussianAlphaXBlurOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
+#if 0 /* until we add size input */
 	rcti sizeInput;
 	sizeInput.xmin = 0;
 	sizeInput.ymin = 0;
@@ -168,7 +169,9 @@ bool GaussianAlphaXBlurOperation::determineDependingAreaOfInterest(rcti *input, 
 	if (operation->determineDependingAreaOfInterest(&sizeInput, readOperation, output)) {
 		return true;
 	}
-	else {
+	else
+#endif
+	{
 		if (this->sizeavailable && this->gausstab != NULL) {
 			newInput.xmax = input->xmax + rad;
 			newInput.xmin = input->xmin - rad;
