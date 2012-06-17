@@ -639,24 +639,39 @@ void file_sfile_to_operator(wmOperator *op, SpaceFile *sfile, char *filepath)
 		int i, numfiles = filelist_numfiles(sfile->files);
 
 		if (prop_files) {
+			int num_files = 0;
 			RNA_property_collection_clear(op->ptr, prop_files);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_FILES)) {
 					struct direntry *file= filelist_file(sfile->files, i);
 					RNA_property_collection_add(op->ptr, prop_files, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
+					num_files++;
 				}
+			}
+			/* make sure the file specified in the filename button is added even if no files selected */
+			if (0 == num_files) {
+				RNA_property_collection_add(op->ptr, prop_files, &itemptr);
+				RNA_string_set(&itemptr, "name", sfile->params->file);
 			}
 		}
 
 		if (prop_dirs) {
+			int num_dirs = 0;
 			RNA_property_collection_clear(op->ptr, prop_dirs);
 			for (i=0; i<numfiles; i++) {
 				if (filelist_is_selected(sfile->files, i, CHECK_DIRS)) {
 					struct direntry *file= filelist_file(sfile->files, i);
 					RNA_property_collection_add(op->ptr, prop_dirs, &itemptr);
 					RNA_string_set(&itemptr, "name", file->relname);
+					num_dirs++;
 				}
+			}
+			
+			/* make sure the directory specified in the button is added even if no directory selected */
+			if (0 == num_dirs) {
+				RNA_property_collection_add(op->ptr, prop_dirs, &itemptr);
+				RNA_string_set(&itemptr, "name", sfile->params->dir);
 			}
 		}
 
@@ -1187,10 +1202,15 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 {
 	SpaceFile *sfile= CTX_wm_space_file(C);
-	
+	char matched_file[FILE_MAX];
 	if (sfile->params) {
-		if (file_select_match(sfile, sfile->params->file)) {
+		matched_file[0] = '\0';
+		if (file_select_match(sfile, sfile->params->file, matched_file)) {
+			int i, numfiles= filelist_numfiles(sfile->files);
 			sfile->params->file[0] = '\0';
+			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
+			BLI_strncpy(sfile->params->file, matched_file, sizeof(sfile->params->file));
+			
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}
 	}		

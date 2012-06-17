@@ -589,22 +589,28 @@ void file_change_dir(bContext *C, int checkdir)
 	}
 }
 
-int file_select_match(struct SpaceFile *sfile, const char *pattern)
+int file_select_match(struct SpaceFile *sfile, const char *pattern, char *matched_file)
 {
 	int match = 0;
-	if (strchr(pattern, '*') || strchr(pattern, '?') || strchr(pattern, '[')) {
-		int i;
-		struct direntry *file;
-		int n = filelist_numfiles(sfile->files);
+	
+	int i;
+	struct direntry *file;
+	int n = filelist_numfiles(sfile->files);
 
-		for (i = 0; i < n; i++) {
-			file = filelist_file(sfile->files, i);
-			if (fnmatch(pattern, file->relname, 0) == 0) {
-				file->selflag |= SELECTED_FILE;
-				match = 1;
+	/* select any file that matches the pattern, this includes exact match 
+	 * if the user selects a single file by entering the filename
+	 */
+	for (i = 0; i < n; i++) {
+		file = filelist_file(sfile->files, i);
+		if (fnmatch(pattern, file->relname, 0) == 0) {
+			file->selflag |= SELECTED_FILE;
+			if (!match) {
+				BLI_strncpy(matched_file, file->relname, FILE_MAX );
 			}
+			match = 1;
 		}
 	}
+
 	return match;
 }
 
