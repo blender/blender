@@ -431,7 +431,7 @@ void draw_volume(ARegion *ar, GPUTexture *tex, float min[3], float max[3], int r
 	}
 
 	tend();
-	// printf ( "Draw Time: %f\n",( float ) tval() );
+	// printf ( "Draw Time: %f\n",(float) tval() );
 
 	if (tex_shadow)
 		GPU_texture_unbind(tex_shadow);

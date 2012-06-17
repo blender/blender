@@ -72,7 +72,7 @@ static void exec(void *data, bNode *node, bNodeStack **UNUSED(in), bNodeStack **
 
 		BKE_mask_rasterize(mask, sx, sy, res, TRUE, node->custom1);
 
-		if(node->custom1){
+		if (node->custom1) {
 			PLX_antialias_buffer(res,sx,sy);
 		}
 		/* pass on output and free */

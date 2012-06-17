@@ -58,12 +58,12 @@ public:
 	MEM_CacheLimiterCClass(MEM_CacheLimiter_Destruct_Func data_destructor_, MEM_CacheLimiter_DataSize_Func data_size)
 		: data_destructor(data_destructor_), cache(data_size) {
 	}
-        ~MEM_CacheLimiterCClass();
+	~MEM_CacheLimiterCClass();
 	
 	handle_t * insert(void * data);
 
 	void destruct(void * data,
-		      list_t::iterator it);
+	              list_t::iterator it);
 
 	cache_t * get_cache() {
 		return &cache;
@@ -79,9 +79,9 @@ private:
 class MEM_CacheLimiterHandleCClass {
 public:
 	MEM_CacheLimiterHandleCClass(void * data_,
-				   MEM_CacheLimiterCClass * parent_)
-		: data(data_), parent(parent_) { }
-        ~MEM_CacheLimiterHandleCClass();
+	                             MEM_CacheLimiterCClass * parent_)
+	    : data(data_), parent(parent_) { }
+	~MEM_CacheLimiterHandleCClass();
 	void set_iter(list_t::iterator it_) {
 		it = it_;
 	}

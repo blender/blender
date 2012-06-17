@@ -2295,8 +2295,8 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	RNA_def_int(ot->srna, "export_mesh_type", 0, INT_MIN, INT_MAX,
 	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
 
-	RNA_def_enum(ot->srna, "export_mesh_type_selection", prop_bc_export_mesh_type,
-                          0, "Resolution", "Modifier resolution for export");
+	RNA_def_enum(ot->srna, "export_mesh_type_selection", prop_bc_export_mesh_type, 0,
+	             "Resolution", "Modifier resolution for export");
 
 	RNA_def_boolean(ot->srna, "selected", 0, "Selection Only",
 	                "Export only selected elements");

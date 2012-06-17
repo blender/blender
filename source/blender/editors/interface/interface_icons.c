@@ -347,7 +347,7 @@ static void vicon_editmode_dehlt_draw(int x, int y, int w, int h, float UNUSED(a
 	glColor4f(0.0f, 0.0f, 0.0f, 1);
 	viconutil_draw_lineloop_smooth(pts, 3);
 
-	glColor3f(.9f, .9f, .9f);
+	glColor3f(0.9f, 0.9f, 0.9f);
 	viconutil_draw_points(pts, 3, 1);
 }
 

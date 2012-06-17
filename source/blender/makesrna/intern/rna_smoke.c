@@ -117,18 +117,18 @@ static int rna_SmokeModifier_density_get_length(PointerRNA *ptr, int length[RNA_
 {
 	SmokeDomainSettings *settings = (SmokeDomainSettings *)ptr->data;
 
-	if (settings->fluid)
-	{
+	if (settings->fluid) {
 		float *density = smoke_get_density(settings->fluid);
 		unsigned int size = settings->res[0] * settings->res[1] * settings->res[2];
 
-		if(density)
+		if (density)
 			length[0] = size;
 		else
 			length[0] = 0;
 	}
-	else
-		length[0] = 0; // No smoke domain created yet
+	else {
+		length[0] = 0; /* No smoke domain created yet */
+	}
 
 	return length[0];
 }

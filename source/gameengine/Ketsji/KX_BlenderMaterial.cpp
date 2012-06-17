@@ -899,8 +899,8 @@ KX_PYMETHODDEF_DOC( KX_BlenderMaterial, getShader , "getShader()")
 			mMaterial->SetSharedMaterial(true);
 			mScene->GetBucketManager()->ReleaseDisplayLists(this);
 			return mShader->GetProxy();
-		}else
-		{
+		}
+		else {
 			// decref all references to the object
 			// then delete it!
 			// We will then go back to fixed functionality

@@ -1472,18 +1472,18 @@ void KX_KetsjiEngine::RenderDebugProperties()
 		for (int j = tc_first; j < tc_numCategories; j++)
 		{
 			debugtxt.Format(m_profileLabels[j]);
-			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-										debugtxt.Ptr(),
-										xcoord,ycoord,
-										m_canvas->GetWidth(), 
-										m_canvas->GetHeight());
+			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+			                            debugtxt.Ptr(),
+			                            xcoord,ycoord,
+			                            m_canvas->GetWidth(),
+			                            m_canvas->GetHeight());
 			double time = m_logger->GetAverage((KX_TimeCategory)j);
 			debugtxt.Format("%.3fms (%2.2f %%)", time*1000.f, time/tottime * 100.f);
-			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED, 
-										debugtxt.Ptr(),
-										xcoord + 60 ,ycoord,
-										m_canvas->GetWidth(), 
-										m_canvas->GetHeight());
+			m_rendertools->RenderText2D(RAS_IRenderTools::RAS_TEXT_PADDED,
+			                            debugtxt.Ptr(),
+			                            xcoord + 60, ycoord,
+			                            m_canvas->GetWidth(),
+			                            m_canvas->GetHeight());
 			ycoord += 14;
 		}
 	}

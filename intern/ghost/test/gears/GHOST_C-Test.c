@@ -526,7 +526,6 @@ int main(int argc, char **argv)
 
 	/* Dispose the system */
 	GHOST_DisposeSystem(shSystem);
-	GHOST_DisposeEventConsumer(consumer);
 	
 	return 0;
 }

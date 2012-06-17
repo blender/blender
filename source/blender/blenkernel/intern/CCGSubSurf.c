@@ -1878,8 +1878,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 			/* r = co * 0.75 + q * 0.25 */
 			VertDataCopy(r, co, ss);
-			VertDataMulN(r, .75f, ss);
-			VertDataMulN(q, .25f, ss);
+			VertDataMulN(r, 0.75f, ss);
+			VertDataMulN(q, 0.25f, ss);
 			VertDataAdd(r, q, ss);
 
 			/* nCo = nCo  + (r - nCo) * avgSharpness */

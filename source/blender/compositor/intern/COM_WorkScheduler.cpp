@@ -231,7 +231,7 @@ void WorkScheduler::initialize()
 			cl_platform_id platform = platforms[indexPlatform];
 			cl_uint numberOfDevices;
 			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, 0, 0, &numberOfDevices);
-			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices + numberOfDevicesReceived * sizeof (cl_device_id), 0);
+			clGetDeviceIDs(platform, CL_DEVICE_TYPE_GPU, numberOfDevices, cldevices + numberOfDevicesReceived * sizeof(cl_device_id), 0);
 			numberOfDevicesReceived += numberOfDevices;
 		}
 		if (totalNumberOfDevices > 0) {

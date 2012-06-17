@@ -105,7 +105,8 @@ KX_Dome::KX_Dome (
 
 				CreateMeshDome180();
 				m_numfaces = 4;
-			}else if (m_angle > 180) {
+			}
+			else if (m_angle > 180) {
 				cubetop.resize(2);
 				cubebottom.resize(2);
 				cubeleft.resize(2);
@@ -140,7 +141,8 @@ KX_Dome::KX_Dome (
 
 				CreateMeshDome180();
 				m_numfaces = 4;
-			}else if (m_angle > 180) {
+			}
+			else if (m_angle > 180) {
 				cubetop.resize(2);
 				cubebottom.resize(2);
 				cubeleft.resize(2);
@@ -595,7 +597,7 @@ void KX_Dome::CreateMeshDome180(void)
 	/* Left face - two triangles */
 	
 	cubeleft[0].verts[0][0] = -M_SQRT2 / 2.0;
-	cubeleft[0].verts[0][1] = .0;
+	cubeleft[0].verts[0][1] = 0.0;
 	cubeleft[0].verts[0][2] = -0.5;
 	cubeleft[0].u[0] = 0.0;
 	cubeleft[0].v[0] = 0.0;
@@ -1547,7 +1549,7 @@ void KX_Dome::CalculateCameraOrientation()
 
 		m_locRot[1] = MT_Matrix3x3( // Bottom
 						c, s, 0.0,
-						0.0 ,0.0, 1.0,
+						0.0, 0.0, 1.0,
 						s, -c, 0.0);
 
 		m_locRot[2] = MT_Matrix3x3( // 45deg - Left

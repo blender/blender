@@ -446,8 +446,8 @@ static void GetRGB(short type,
 				c2 = KX_Mcol2uint_new(mmcol[2]);
 				if (mface->v4)
 					c3 = KX_Mcol2uint_new(mmcol[3]);
-			}else // backup white
-			{
+			}
+			else { // backup white
 				c0 = KX_rgbaint2uint_new(color);
 				c1 = KX_rgbaint2uint_new(color);
 				c2 = KX_rgbaint2uint_new(color);	

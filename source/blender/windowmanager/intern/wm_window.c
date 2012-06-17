@@ -369,7 +369,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
 		/* until screens get drawn, make it nice grey */
-		glClearColor(.55, .55, .55, 0.0);
+		glClearColor(0.55, 0.55, 0.55, 0.0);
 		/* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
 		if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -987,7 +987,7 @@ void wm_window_testbreak(void)
 	/* only check for breaks every 50 milliseconds
 	 * if we get called more often.
 	 */
-	if ((curtime - ltime) > .05) {
+	if ((curtime - ltime) > 0.05) {
 		int hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
 		
 		if (hasevent)

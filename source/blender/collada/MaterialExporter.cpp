@@ -49,7 +49,7 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 bool MaterialsExporter::hasMaterials(Scene *sce)
 {
 	LinkNode *node;
-	for(node=this->export_settings->export_set; node; node = node->next) {
+	for (node=this->export_settings->export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {

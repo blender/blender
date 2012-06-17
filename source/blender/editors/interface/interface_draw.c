@@ -878,7 +878,7 @@ void ui_draw_but_WAVEFORM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol),
 			glPopMatrix();
 
 			/* min max */
-			glColor3f(.5f, .5f, .5f);
+			glColor3f(0.5f, 0.5f, 0.5f);
 			min = yofs + scopes->minmax[0][0] * h;
 			max = yofs + scopes->minmax[0][1] * h;
 			CLAMP(min, rect.ymin, rect.ymax);
@@ -1012,7 +1012,9 @@ void ui_draw_but_VECTORSCOPE(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wco
 	int i, j;
 	float w, h, centerx, centery, diam;
 	float alpha;
-	const float colors[6][3] = {{.75, 0, 0}, {.75, .75, 0}, {0, .75, 0}, {0, .75, .75}, {0, 0, .75}, {.75, 0, .75}};
+	const float colors[6][3] = {
+	    {0.75, 0.0, 0.0},  {0.75, 0.75, 0.0}, {0.0, 0.75, 0.0},
+	    {0.0, 0.75, 0.75}, {0.0, 0.0, 0.75},  {0.75, 0.0, 0.75}};
 	GLint scissor[4];
 	
 	rect.xmin = (float)recti->xmin + 1;
@@ -1375,7 +1377,7 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 		glRectf(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 	}
 		
-	/* grid, every .25 step */
+	/* grid, every 0.25 step */
 	gl_shaded_color((unsigned char *)wcol->inner, -16);
 	ui_draw_but_curve_grid(rect, zoomx, zoomy, offsx, offsy, 0.25f);
 	/* grid, every 1.0 step */

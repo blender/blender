@@ -1216,7 +1216,7 @@ void DoubleEdgeMaskOperation::doDoubleEdgeMask(float *imask, float *omask, float
 		gsz = rsize[2];                          // by the do_*EdgeDetection() function.
 		
 		fsz = gsz + isz + osz;                                   // calculate size of pixel index buffer needed
-		gbuf = (unsigned short *)MEM_callocN(sizeof (unsigned short) * fsz * 2, "DEM"); // allocate edge/gradient pixel index buffer
+		gbuf = (unsigned short *)MEM_callocN(sizeof(unsigned short) * fsz * 2, "DEM"); // allocate edge/gradient pixel index buffer
 		
 		do_createEdgeLocationBuffer(t, rw, lres, res, gbuf, &innerEdgeOffset, &outerEdgeOffset, isz, gsz);
 		do_fillGradientBuffer(rw, res, gbuf, isz, osz, gsz, innerEdgeOffset, outerEdgeOffset);

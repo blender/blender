@@ -1002,7 +1002,7 @@ static void node_draw_frame(const bContext *C, ARegion *ar, SpaceNode *snode, bN
 	glDisable(GL_BLEND);
 
 	/* outline active and selected emphasis */
-	if (node->flag & (NODE_ACTIVE | SELECT) ) {
+	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
 		glEnable(GL_LINE_SMOOTH);
 		
@@ -1105,7 +1105,7 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* XXX only kept for debugging
 	 * selection state is indicated by socket outline below!
 	 */
-	#if 0
+#if 0
 	/* body */
 	uiSetRoundBox(15);
 	UI_ThemeColor4(TH_NODE);
@@ -1116,18 +1116,18 @@ static void node_draw_reroute(const bContext *C, ARegion *ar, SpaceNode *UNUSED(
 	/* outline active and selected emphasis */
 	if (node->flag & (NODE_ACTIVE | SELECT)) {
 		glEnable(GL_BLEND);
-		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_LINE_SMOOTH);
 			/* using different shades of TH_TEXT_HI for the empasis, like triangle */
-			if( node->flag & NODE_ACTIVE )
+			if (node->flag & NODE_ACTIVE)
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, 0, -40);
 			else
 				UI_ThemeColorShadeAlpha(TH_TEXT_HI, -20, -120);
 			uiDrawBox(GL_LINE_LOOP, rct->xmin, rct->ymin, rct->xmax, rct->ymax, size);
 
-		glDisable( GL_LINE_SMOOTH );
+		glDisable(GL_LINE_SMOOTH);
 		glDisable(GL_BLEND);
 	}
-	#endif
+#endif
 
 	/* only draw input socket. as they all are placed on the same position.
 	 * highlight also if node itself is selected, since we don't display the node body separately!
@@ -1194,7 +1194,7 @@ static void node_buts_image_user(uiLayout *layout, bContext *C, PointerRNA *imap
 	uiLayout *col;
 	int source;
 
-	if(!imaptr->data)
+	if (!imaptr->data)
 		return;
 
 	col = uiLayoutColumn(layout, 0);
@@ -2429,7 +2429,7 @@ static void node_composit_buts_viewer_but(uiLayout *layout, bContext *UNUSED(C),
 static void node_composit_buts_mask(uiLayout *layout, bContext *C, PointerRNA *ptr)
 {
 	uiTemplateID(layout, C, ptr, "mask", NULL, NULL, NULL);
-    uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
+	uiItemR(layout, ptr, "smooth_mask", 0, NULL, ICON_NONE);
 
 }
 

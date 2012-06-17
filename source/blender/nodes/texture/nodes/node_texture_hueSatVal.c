@@ -80,7 +80,7 @@ static void colorfn(float *out, TexParams *p, bNode *node, bNodeStack **in, shor
 	float col[4];
 	tex_input_rgba(col, in[4], p, thread);
 	
-	hue += 0.5f; /* [-.5, .5] -> [0, 1] */
+	hue += 0.5f; /* [-0.5, 0.5] -> [0, 1] */
 	
 	do_hue_sat_fac(node, out, hue, sat, val, col, fac);
 	

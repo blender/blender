@@ -435,7 +435,7 @@ Application::Application(GHOST_ISystem *system)
 	m_secondaryWindow = system->createWindow(title2, 340, 64, 320, 200, GHOST_kWindowStateNormal,
 	                                         GHOST_kDrawingContextTypeOpenGL, false, false);
 	if (!m_secondaryWindow) {
-		cout << "could not create secondary window\n";
+		std::cout << "could not create secondary window\n";
 		exit(-1);
 	}
 

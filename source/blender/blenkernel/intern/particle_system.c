@@ -4114,7 +4114,7 @@ static void particles_fluid_step(ParticleSimulationData *sim, int UNUSED(cfra))
 				if (ptype&readMask) {
 					activeParts++;
 	
-					gzread(gzf, &(pa->size), sizeof( float )); 
+					gzread(gzf, &(pa->size), sizeof(float));
 	
 					pa->size /= 10.0f;
 	

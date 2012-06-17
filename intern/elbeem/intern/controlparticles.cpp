@@ -665,11 +665,11 @@ int ControlParticles::initFromBinaryFile(string filename) {
 			int ptype=0;
 			float psize=0.0;
 			ntlVec3Gfx ppos,pvel;
-			gzread(gzf, &ptype, sizeof( ptype )); 
-			gzread(gzf, &psize, sizeof( float )); 
+			gzread(gzf, &ptype, sizeof(ptype));
+			gzread(gzf, &psize, sizeof(float));
 
-			for(int j=0; j<3; j++) { gzread(gzf, &ppos[j], sizeof( float )); }
-			for(int j=0; j<3; j++) { gzread(gzf, &pvel[j], sizeof( float )); }
+			for (int j=0; j<3; j++) { gzread(gzf, &ppos[j], sizeof(float)); }
+			for (int j=0; j<3; j++) { gzread(gzf, &pvel[j], sizeof(float)); }
 
 			ControlParticle p; 
 			p.reset();

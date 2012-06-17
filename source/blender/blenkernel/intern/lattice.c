@@ -212,7 +212,7 @@ Lattice *BKE_lattice_copy(Lattice *lt)
 	
 	if (lt->dvert) {
 		int tot = lt->pntsu * lt->pntsv * lt->pntsw;
-		ltn->dvert = MEM_mallocN(sizeof (MDeformVert) * tot, "Lattice MDeformVert");
+		ltn->dvert = MEM_mallocN(sizeof(MDeformVert) * tot, "Lattice MDeformVert");
 		copy_dverts(ltn->dvert, lt->dvert, tot);
 	}
 
