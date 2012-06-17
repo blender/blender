@@ -176,7 +176,8 @@ void KX_BlenderMaterial::OnConstruction(int layer)
 						 mMaterial->matname<< ", image will not be available");
 		} 
 		// If we're using glsl materials, the textures are handled by bf_gpu, so don't load them twice!
-		else if (!mMaterial->glslmat) {
+		// However, if we're using a custom shader, then we still need to load the textures ourselves.
+		else if (!mMaterial->glslmat || mBlenderShader) {
 			if ( mMaterial->img[i] ) {
 				if ( ! mTextures[i].InitFromImage(i, mMaterial->img[i], (mMaterial->flag[i] &MIPMAP)!=0 ))
 					spit("unable to initialize image("<<i<<") in "<< 
