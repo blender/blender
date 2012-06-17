@@ -37,14 +37,8 @@ extern "C" {
 
 typedef enum BC_export_mesh_type {
 	BC_MESH_TYPE_VIEW,
-	BC_MESH_TYPE_RENDER,
+	BC_MESH_TYPE_RENDER
 } BC_export_mesh_type;
-
-static EnumPropertyItem prop_bc_export_mesh_type[] = {
-	{BC_MESH_TYPE_VIEW, "view", 0, "View", "Apply modifier's view settings"},
-	{BC_MESH_TYPE_RENDER, "render", 0, "Render", "Apply modifier's render settings"},
-	{0, NULL, 0, NULL, NULL}
-};
 
 struct bContext;
 struct Scene;
@@ -56,7 +50,7 @@ int collada_import(bContext *C, const char *filepath);
 int collada_export(Scene *sce,
                    const char *filepath,
                    int apply_modifiers,
-				   BC_export_mesh_type export_mesh_type,
+                   BC_export_mesh_type export_mesh_type,
 
                    int selected,
                    int include_children,

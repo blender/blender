@@ -576,7 +576,7 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 		
-		if(BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
 
@@ -642,7 +642,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 		
-		if(BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
 	
@@ -678,7 +678,7 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 	/* wait for finish condition */
 	pthread_mutex_lock(&queue->mutex);
 
-    while(!BLI_gsqueue_is_empty(queue->queue))
+	while (!BLI_gsqueue_is_empty(queue->queue))
 		pthread_cond_wait(&queue->finish_cond, &queue->mutex);
 
 	pthread_mutex_unlock(&queue->mutex);

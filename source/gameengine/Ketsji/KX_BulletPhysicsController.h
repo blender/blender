@@ -12,7 +12,7 @@
 #include "CcdPhysicsController.h"
 #endif
 
-class KX_BulletPhysicsController : public KX_IPhysicsController ,public CcdPhysicsController
+class KX_BulletPhysicsController : public KX_IPhysicsController, public CcdPhysicsController
 {
 private:
 	int m_savedCollisionFlags;

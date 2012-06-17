@@ -1007,7 +1007,7 @@ int cloth_add_spring(ClothModifierData *clmd, unsigned int indexA, unsigned int 
 	if (cloth) {
 		// TODO: look if this spring is already there
 		
-		spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
 		if (!spring)
 			return 0;
@@ -1079,7 +1079,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	cloth->springs = NULL;
 
-	edgelist = MEM_callocN ( sizeof ( LinkNode * ) * numverts, "cloth_edgelist_alloc" );
+	edgelist = MEM_callocN ( sizeof (LinkNode *) * numverts, "cloth_edgelist_alloc" );
 	
 	if (!edgelist)
 		return 0;
@@ -1096,7 +1096,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 	// structural springs
 	for ( i = 0; i < numedges; i++ ) {
-		spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
 		if ( spring ) {
 			spring->ij = MIN2(medge[i].v1, medge[i].v2);
@@ -1154,7 +1154,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 
 		
 		// if ( mface[i].v4 ) --> Quad face
-		spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+		spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 		
 		if (!spring) {
 			cloth_free_errorsprings(cloth, edgehash, edgelist);
@@ -1192,7 +1192,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 				if (!BLI_edgehash_haskey(edgehash, MIN2(tspring2->ij, index2), MAX2(tspring2->ij, index2)) &&
 				    (index2 != tspring2->ij))
 				{
-					spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+					spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 					
 					if (!spring) {
 						cloth_free_errorsprings(cloth, edgehash, edgelist);
@@ -1229,7 +1229,7 @@ static int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 			tspring2 = search2->link;
 
 			if (tspring->ij == tspring2->kl) {
-				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
+				spring = (ClothSpring *)MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 				
 				if (!spring) {
 					cloth_free_errorsprings(cloth, edgehash, edgelist);

@@ -588,7 +588,7 @@ public:
 
 	/* These static functions are referenced by ALL PyObjectPlus_Proxy types
 	 * they take the C++ reference from the PyObjectPlus_Proxy and call
-	 * its own virtual py_repr, py_base_dealloc ,etc. functions.
+	 * its own virtual py_repr, py_base_dealloc, etc. functions.
 	 */
 
 	static PyObject*		py_base_new(PyTypeObject *type, PyObject *args, PyObject *kwds); /* allows subclassing */

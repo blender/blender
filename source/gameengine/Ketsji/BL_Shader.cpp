@@ -835,12 +835,12 @@ KX_PYMETHODDEF_DOC( BL_Shader, isValid, "isValid()" )
 	return PyLong_FromSsize_t( ( mShader !=0 &&  mOk ) );
 }
 
-KX_PYMETHODDEF_DOC( BL_Shader, getVertexProg ,"getVertexProg( )" )
+KX_PYMETHODDEF_DOC( BL_Shader, getVertexProg, "getVertexProg( )" )
 {
 	return PyUnicode_FromString(vertProg?vertProg:"");
 }
 
-KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg ,"getFragmentProg( )" )
+KX_PYMETHODDEF_DOC( BL_Shader, getFragmentProg, "getFragmentProg( )" )
 {
 	return PyUnicode_FromString(fragProg?fragProg:"");
 }
@@ -941,7 +941,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1f, "setUniform1f(name, fx)" )
 }
 
 
-KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f , "setUniform2f(name, fx, fy)")
+KX_PYMETHODDEF_DOC( BL_Shader, setUniform2f, "setUniform2f(name, fx, fy)")
 {
 	if (mError) {
 		Py_RETURN_NONE;
@@ -1038,7 +1038,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform1i, "setUniform1i(name, ix)" )
 }
 
 
-KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i , "setUniform2i(name, ix, iy)")
+KX_PYMETHODDEF_DOC( BL_Shader, setUniform2i, "setUniform2i(name, ix, iy)")
 {
 	if (mError) {
 		Py_RETURN_NONE;
@@ -1109,7 +1109,7 @@ KX_PYMETHODDEF_DOC( BL_Shader, setUniform4i, "setUniform4i(name, ix,iy,iz, iw) "
 	return NULL;
 }
 
-KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv , "setUniformfv( float (list2 or list3 or list4) )")
+KX_PYMETHODDEF_DOC( BL_Shader, setUniformfv, "setUniformfv( float (list2 or list3 or list4) )")
 {
 	if (mError) {
 		Py_RETURN_NONE;

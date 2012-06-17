@@ -452,7 +452,7 @@ AviError AVI_open_movie(const char *name, AviMovie *movie)
 		return AVI_ERROR_FORMAT;
 	}
 
-	movie->header = (AviMainHeader *) MEM_mallocN(sizeof (AviMainHeader), "movieheader");
+	movie->header = (AviMainHeader *) MEM_mallocN(sizeof(AviMainHeader), "movieheader");
 
 	if (GET_FCC(movie->fp) != FCC("AVI ") ||
 	    GET_FCC(movie->fp) != FCC("LIST") ||
@@ -769,7 +769,7 @@ AviError AVI_open_compress(char *name, AviMovie *movie, int streams, ...)
 	if (movie->fp == NULL)
 		return AVI_ERROR_OPEN;
 
-	movie->offset_table = (int64_t *) MEM_mallocN((1 + streams * 2) * sizeof (int64_t), "offsettable");
+	movie->offset_table = (int64_t *) MEM_mallocN((1 + streams * 2) * sizeof(int64_t), "offsettable");
 	
 	for (i = 0; i < 1 + streams * 2; i++)
 		movie->offset_table[i] = -1L;

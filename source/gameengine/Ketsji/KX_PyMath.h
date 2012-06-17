@@ -104,19 +104,20 @@ bool PyMatTo(PyObject* pymat, T& mat)
 			if (!PyErr_Occurred() && PySequence_Check(pyrow))
 			{
 				unsigned int cols = PySequence_Size(pyrow);
-				if (cols != Size(mat))
+				if (cols != Size(mat)) {
 					noerror = false;
-				else
-				{
-					for(unsigned int col = 0; col < cols; col++)
-					{
+				}
+				else {
+					for (unsigned int col = 0; col < cols; col++) {
 						PyObject *item = PySequence_GetItem(pyrow, col); /* new ref */
 						mat[row][col] = PyFloat_AsDouble(item);
 						Py_DECREF(item);
 					}
 				}
-			} else 
+			}
+			else {
 				noerror = false;
+			}
 			Py_DECREF(pyrow);
 		}
 	} else 

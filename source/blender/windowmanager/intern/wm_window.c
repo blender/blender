@@ -369,7 +369,7 @@ static void wm_window_add_ghostwindow(const char *title, wmWindow *win)
 			win->eventstate = MEM_callocN(sizeof(wmEvent), "window event state");
 		
 		/* until screens get drawn, make it nice grey */
-		glClearColor(.55, .55, .55, 0.0);
+		glClearColor(0.55, 0.55, 0.55, 0.0);
 		/* Crash on OSS ATI: bugs.launchpad.net/ubuntu/+source/mesa/+bug/656100 */
 		if (!GPU_type_matches(GPU_DEVICE_ATI, GPU_OS_UNIX, GPU_DRIVER_OPENSOURCE)) {
 			glClear(GL_COLOR_BUFFER_BIT);
@@ -402,7 +402,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		wm_get_screensize(&wm_init_state.size_x, &wm_init_state.size_y);
 		
 #if defined(__APPLE__) && !defined(GHOST_COCOA)
-//Cocoa provides functions to get correct max window size
+		/* Cocoa provides functions to get correct max window size */
 		{
 			extern void wm_set_apple_prefsize(int, int);    /* wm_apple.c */
 			
@@ -632,9 +632,9 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 }
 
 /* called by ghost, here we handle events for windows themselves or send to event system */
-static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
+static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr C_void_ptr)
 {
-	bContext *C = private;
+	bContext *C = C_void_ptr;
 	wmWindowManager *wm = CTX_wm_manager(C);
 	GHOST_TEventType type = GHOST_GetEventType(evt);
 	int time = GHOST_GetEventTime(evt);
@@ -648,14 +648,14 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		wmWindow *win;
 		
 		if (!ghostwin) {
-			// XXX - should be checked, why are we getting an event here, and
-			//	what is it?
+			/* XXX - should be checked, why are we getting an event here, and */
+			/* what is it? */
 			puts("<!> event has no window");
 			return 1;
 		}
 		else if (!GHOST_ValidWindow(g_system, ghostwin)) {
-			// XXX - should be checked, why are we getting an event here, and
-			//	what is it?
+			/* XXX - should be checked, why are we getting an event here, and */
+			/* what is it? */
 			puts("<!> event has invalid window");			
 			return 1;
 		}
@@ -859,7 +859,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				
 				event = *(win->eventstate);  /* copy last state, like mouse coords */
 				
-				// activate region
+				/* activate region */
 				event.type = MOUSEMOVE;
 				event.prevx = event.x;
 				event.prevy = event.y;
@@ -894,7 +894,7 @@ static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 						
 						WM_event_start_drag(C, icon, WM_DRAG_PATH, stra->strings[a], 0.0);
 						/* void poin should point to string, it makes a copy */
-						break; // only one drop element supported now 
+						break; /* only one drop element supported now */
 					}
 				}
 				
@@ -987,7 +987,7 @@ void wm_window_testbreak(void)
 	/* only check for breaks every 50 milliseconds
 	 * if we get called more often.
 	 */
-	if ((curtime - ltime) > .05) {
+	if ((curtime - ltime) > 0.05) {
 		int hasevent = GHOST_ProcessEvents(g_system, 0); /* 0 is no wait */
 		
 		if (hasevent)

@@ -1669,7 +1669,7 @@ static int viewzoom_exec(bContext *C, wmOperator *op)
 			if (rv3d->camzoom > RV3D_CAMZOOM_MAX) rv3d->camzoom = RV3D_CAMZOOM_MAX;
 		}
 		else if (rv3d->dist > 0.001f * v3d->grid) {
-			view_zoom_mouseloc(ar, .83333f, mx, my);
+			view_zoom_mouseloc(ar, 0.83333f, mx, my);
 		}
 	}
 
@@ -1921,7 +1921,7 @@ static int viewdolly_exec(bContext *C, wmOperator *op)
 		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 1.2f);
 	}
 	else {
-		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, .83333f);
+		view_dolly_mouseloc(ar, rv3d->ofs, mousevec, 0.83333f);
 	}
 
 	if (rv3d->viewlock & RV3D_BOXVIEW)

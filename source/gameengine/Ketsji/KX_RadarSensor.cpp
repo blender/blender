@@ -104,42 +104,42 @@ void KX_RadarSensor::SynchronizeTransform()
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	case SENS_RADAR_Y_AXIS: // +Y Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	case SENS_RADAR_Z_AXIS: // +Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	case SENS_RADAR_NEG_X_AXIS: // -X Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(0,0,1),MT_radians(-90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	case SENS_RADAR_NEG_Y_AXIS: // -Y Axis
 		{
 			//MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(-180));
 			//trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	case SENS_RADAR_NEG_Z_AXIS: // -Z Axis
 		{
 			MT_Quaternion rotquatje(MT_Vector3(1,0,0),MT_radians(90));
 			trans.rotate(rotquatje);
-			trans.translate(MT_Vector3 (0, -m_coneheight/2.0 ,0));
+			trans.translate(MT_Vector3 (0, -m_coneheight/2.0, 0));
 			break;
 		};
 	default:
@@ -154,7 +154,7 @@ void KX_RadarSensor::SynchronizeTransform()
 	m_cone_origin[1] = temp[1];
 	m_cone_origin[2] = temp[2];
 
-	temp = trans(MT_Point3(0, -m_coneheight/2.0 ,0));
+	temp = trans(MT_Point3(0, -m_coneheight/2.0, 0));
 	m_cone_target[0] = temp[0];
 	m_cone_target[1] = temp[1];
 	m_cone_target[2] = temp[2];

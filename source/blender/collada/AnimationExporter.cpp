@@ -1114,7 +1114,7 @@ bool AnimationExporter::hasAnimations(Scene *sce)
 {
 	LinkNode *node;
 
-	for(node=this->export_settings->export_set; node; node=node->next) {
+	for (node=this->export_settings->export_set; node; node=node->next) {
 		Object *ob = (Object *)node->link;
 
 		FCurve *fcu = 0;

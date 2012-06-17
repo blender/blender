@@ -49,10 +49,10 @@ enum {
 typedef struct VoronoiEvent {
 	struct VoronoiEvent *next, *prev;
 
-	int type;		/* type of event (site or circle) */
-	float site[2];	/* site for which event was generated */
+	int type;       /* type of event (site or circle) */
+	float site[2];  /* site for which event was generated */
 
-	struct VoronoiParabola *parabola;	/* parabola for which event was generated */
+	struct VoronoiParabola *parabola;   /* parabola for which event was generated */
 } VoronoiEvent;
 
 typedef struct VoronoiParabola {
@@ -254,9 +254,9 @@ static float voronoi_getXOfEdge(VoronoiProcess *process, VoronoiParabola *par, f
 	b = b1 - b2;
 	c = c1 - c2;
 
-	disc = b*b - 4 * a * c;
-	x1 = (-b + sqrtf(disc)) / (2*a);
-	x2 = (-b - sqrtf(disc)) / (2*a);
+	disc = b * b - 4 * a * c;
+	x1 = (-b + sqrtf(disc)) / (2 * a);
+	x2 = (-b - sqrtf(disc)) / (2 * a);
 
 	if (p[1] < r[1])
 		ry = MAX2(x1, x2);
@@ -268,7 +268,7 @@ static float voronoi_getXOfEdge(VoronoiProcess *process, VoronoiParabola *par, f
 
 static VoronoiParabola *voronoi_getParabolaByX(VoronoiProcess *process, float xx)
 {
-	VoronoiParabola * par = process->root;
+	VoronoiParabola *par = process->root;
 	float x = 0.0f;
 	float ly = process->current_y;
 
@@ -371,7 +371,7 @@ static void voronoi_addParabola(VoronoiProcess *process, float site[2])
 		s[0] = (site[0] + fp[0]) / 2.0f;
 		s[1] = process->height;
 
-		if(site[0] > fp[0])
+		if (site[0] > fp[0])
 			root->edge = voronoiEdge_new(s, fp, site);
 		else
 			root->edge = voronoiEdge_new(s, site, fp);
@@ -506,12 +506,12 @@ void voronoi_finishEdge(VoronoiProcess *process, VoronoiParabola *parabola)
 void voronoi_clampEdgeVertex(int width, int height, float *coord, float *other_coord)
 {
 	const float corners[4][2] = {{0.0f, 0.0f},
-	                             {width - 1, 0.0f},
-	                             {width - 1, height - 1},
-	                             {0.0f, height - 1}};
+								 {width - 1, 0.0f},
+								 {width - 1, height - 1},
+								 {0.0f, height - 1}};
 	int i;
 
-	if (IN_RANGE_INCL(coord[0], 0, width-1) && IN_RANGE_INCL(coord[1], 0, height-1)) {
+	if (IN_RANGE_INCL(coord[0], 0, width - 1) && IN_RANGE_INCL(coord[1], 0, height - 1)) {
 		return;
 	}
 
@@ -609,9 +609,9 @@ static int voronoi_getNextSideCoord(ListBase *edges, float coord[2], int dim, in
 static void voronoi_createBoundaryEdges(ListBase *edges, int width, int height)
 {
 	const float corners[4][2] = {{width - 1, 0.0f},
-	                             {width - 1, height - 1},
-	                             {0.0f, height - 1},
-	                             {0.0f, 0.0f}};
+								 {width - 1, height - 1},
+								 {0.0f, height - 1},
+								 {0.0f, 0.0f}};
 	int i, dim = 0, dir = 1;
 
 	float coord[2] = {0.0f, 0.0f};
@@ -756,7 +756,7 @@ static void voronoi_addTriangle(int v1, int v2, int v3, int (**triangles)[3], in
 		*triangles = MEM_callocN(sizeof(int[3]), "trianglulation triangles");
 	}
 
-	triangle = (int*)&(*triangles)[(*triangles_total)];
+	triangle = (int *)&(*triangles)[(*triangles_total)];
 
 	triangle[0] = v1;
 	triangle[1] = v2;

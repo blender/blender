@@ -737,7 +737,8 @@ void ui_theme_init_default(void)
 	rgba_char_args_set(btheme->tv3d.lastsel_point,  0xff, 0xff, 0xff, 255);
 
 	rgba_char_args_set(btheme->tv3d.bone_solid, 200, 200, 200, 255);
-	rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);               // alpha 80 is not meant editable, used for wire+action draw
+	/* alpha 80 is not meant editable, used for wire+action draw */
+	rgba_char_args_set(btheme->tv3d.bone_pose, 80, 200, 255, 80);
 
 	rgba_char_args_set(btheme->tv3d.bundle_solid, 200, 200, 200, 255);
 	rgba_char_args_set(btheme->tv3d.camera_path, 0x00, 0x00, 0x00, 255);

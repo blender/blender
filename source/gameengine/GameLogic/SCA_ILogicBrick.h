@@ -94,7 +94,7 @@ public:
 	void			    InsertActiveQList(SG_QList& head)
 	{
 		SG_QList::iterator<SCA_ILogicBrick> it(head);
-		for(it.begin(); !it.end() && m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
+		for (it.begin(); !it.end() && m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
 		it.add_back(this);
 	}
 
@@ -119,9 +119,8 @@ public:
 			// this element comes before the first
 			*current = this;
 		}
-		else
-		{
-			for(++it; !it.end() && (*it)->m_gameobj == m_gameobj &&  m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
+		else {
+			for (++it; !it.end() && (*it)->m_gameobj == m_gameobj &&  m_Execute_Priority > (*it)->m_Execute_Priority; ++it);
 		}
 		it.add_back(this);
 	}

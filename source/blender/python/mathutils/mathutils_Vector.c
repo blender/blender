@@ -1874,7 +1874,7 @@ static PyObject *Vector_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 {
 	VectorObject *vecA = NULL, *vecB = NULL;
 	int result = 0;
-	double epsilon = .000001f;
+	double epsilon = 0.000001f;
 	double lenA, lenB;
 
 	if (!VectorObject_Check(objectA) || !VectorObject_Check(objectB)) {

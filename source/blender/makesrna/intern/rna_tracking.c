@@ -780,21 +780,21 @@ static void rna_def_trackingCamera(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "k1", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k1");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "K1", "First coefficient of third order polynomial radial distortion");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
 	prop = RNA_def_property(srna, "k2", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k2");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "K2", "Second coefficient of third order polynomial radial distortion");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
 	prop = RNA_def_property(srna, "k3", PROP_FLOAT, PROP_NONE);
 	RNA_def_property_float_sdna(prop, NULL, "k3");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_ui_range(prop, -10, 10, .1, 3);
+	RNA_def_property_ui_range(prop, -10, 10, 0.1, 3);
 	RNA_def_property_ui_text(prop, "K3", "Third coefficient of third order polynomial radial distortion");
 	RNA_def_property_update(prop, NC_MOVIECLIP | NA_EDITED, "rna_tracking_flushUpdate");
 
