@@ -2248,8 +2248,16 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(split, imfptr, "include_armatures", 0, NULL, ICON_NONE);
 	uiLayoutSetEnabled(row, RNA_boolean_get(imfptr, "selected"));
 
+
+	// Armature options
+	box = uiLayoutBox(layout);
+	row = uiLayoutRow(box, 0);
+	uiItemL(row, IFACE_("Armature Options:"), ICON_ARMATURE_DATA);
+
 	row = uiLayoutRow(box, 0);
 	uiItemR(row, imfptr, "deform_bones_only", 0, NULL, ICON_NONE);
+	row = uiLayoutRow(box, 0);
+	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
 
 	/* Collada options: */
 	box = uiLayoutBox(layout);
@@ -2260,8 +2268,6 @@ void uiCollada_exportSettings(uiLayout *layout, PointerRNA *imfptr)
 	uiItemR(row, imfptr, "use_object_instantiation", 0, NULL, ICON_NONE);
 	row = uiLayoutRow(box, 0);
 	uiItemR(row, imfptr, "sort_by_name", 0, NULL, ICON_NONE);
-	row = uiLayoutRow(box, 0);
-	uiItemR(row, imfptr, "second_life", 0, NULL, ICON_NONE);
 
 }
 
@@ -2296,7 +2302,7 @@ static void WM_OT_collada_export(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_SAVE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 
 	RNA_def_boolean(ot->srna, "apply_modifiers", 0, "Apply Modifiers",
-	                "Apply modifiers (Preview Resolution)");
+	                "Apply modifiers");
 
 	RNA_def_int(ot->srna, "export_mesh_type", 0, INT_MIN, INT_MAX,
 	            "Resolution", "Modifier resolution for export", INT_MIN, INT_MAX);
