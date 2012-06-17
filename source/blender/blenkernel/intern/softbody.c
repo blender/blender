@@ -3514,7 +3514,9 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 {
 	Lattice *lt= ob->data;
 	SoftBody *sb;
-	int totvert, totspring = 0;
+	int totvert, totspring = 0, a;
+	BodyPoint *bp;
+	BPoint *bpnt = lt->def;
 
 	totvert= lt->pntsu*lt->pntsv*lt->pntsw;
 
@@ -3531,18 +3533,17 @@ static void lattice_to_softbody(Scene *scene, Object *ob)
 	/* renew ends with ob->soft with points and edges, also checks & makes ob->soft */
 	renew_softbody(scene, ob, totvert, totspring);
 	sb= ob->soft;	/* can be created in renew_softbody() */
+	bp = sb->bpoint;
 
-	/* weights from bpoints, same code used as for mesh vertices */
-	/* if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) { 2.4x one*/
-	/* new! take the weights from lattice vertex anyhow */
-	if (ob->softflag & OB_SB_GOAL) {
-		BodyPoint *bp= sb->bpoint;
-		BPoint *bpnt= lt->def;
-		/* jow_go_for2_5 */
-		int a;
-
-		for (a=0; a<totvert; a++, bp++, bpnt++) {
-			bp->goal= bpnt->weight;
+	/* same code used as for mesh vertices */
+	for (a = 0; a < totvert; a++, bp++, bpnt++) {
+		if ((ob->softflag & OB_SB_GOAL) && sb->vertgroup) {
+			get_scalar_from_vertexgroup(ob, a, (short) (sb->vertgroup - 1), &bp->goal);
+		}
+		else {
+			if (ob->softflag & OB_SB_GOAL) {
+				bp->goal = sb->defgoal;
+			}
 		}
 	}
 

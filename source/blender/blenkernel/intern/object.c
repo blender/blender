@@ -63,6 +63,7 @@
 #include "BLI_math.h"
 #include "BLI_pbvh.h"
 #include "BLI_utildefines.h"
+#include "BLI_linklist.h"
 
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -115,8 +116,6 @@
 #include "GPU_material.h"
 
 /* Local function protos */
-static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul);
-
 float originmat[3][3];  /* after BKE_object_where_is_calc(), can be used in other functions (bad!) */
 
 void BKE_object_workob_clear(Object *workob)
@@ -835,6 +834,9 @@ Object *BKE_object_add_only_object(int type, const char *name)
 	/* ob->pad3 == Contact Processing Threshold */
 	ob->m_contactProcessingThreshold = 1.0f;
 	ob->obstacleRad = 1.0f;
+	ob->step_height = 0.15f;
+	ob->jump_speed = 10.0f;
+	ob->fall_speed = 55.0f;
 	
 	/* NT fluid sim defaults */
 	ob->fluidsimSettings = NULL;
@@ -1901,109 +1903,6 @@ static void ob_parvert3(Object *ob, Object *par, float mat[][4])
 	}
 }
 
-static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
-{
-	float *fp1, *fp2;
-	float fac1, fac2;
-	int a;
-
-	// include framerate
-	fac1 = (1.0f / (1.0f + fabsf(ob->sf)) );
-	if (fac1 >= 1.0f) return 0;
-	fac2 = 1.0f - fac1;
-
-	fp1 = obmat[0];
-	fp2 = slowmat[0];
-	for (a = 0; a < 16; a++, fp1++, fp2++) {
-		fp1[0] = fac1 * fp1[0] + fac2 * fp2[0];
-	}
-
-	return 1;
-}
-
-void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
-{
-	float slowmat[4][4] = MAT4_UNITY;
-	float stime = ctime;
-	
-	/* new version: correct parent+vertexparent and track+parent */
-	/* this one only calculates direct attached parent and track */
-	/* is faster, but should keep track of timeoffs */
-	
-	if (ob == NULL) return;
-	
-	/* execute drivers only, as animation has already been done */
-	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
-	
-	if (ob->parent) {
-		Object *par = ob->parent;
-		
-		/* hurms, code below conflicts with depgraph... (ton) */
-		/* and even worse, it gives bad effects for NLA stride too (try ctime != par->ctime, with MBlur) */
-		if (stime != par->ctime) {
-			// only for ipo systems? 
-			Object tmp = *par;
-			
-			if (par->proxy_from) ;  // was a copied matrix, no where_is! bad...
-			else BKE_object_where_is_calc_time(scene, par, ctime);
-			
-			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-			
-			*par = tmp;
-		}
-		else
-			solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
-		
-		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
-		 * An old-fashioned hack which probably doesn't really cut it anymore
-		 */
-		if (ob->partype & PARSLOW) {
-			if (!where_is_object_parslow(ob, ob->obmat, slowmat))
-				return;
-		}
-	}
-	else {
-		BKE_object_to_mat4(ob, ob->obmat);
-	}
-
-	/* solve constraints */
-	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
-		bConstraintOb *cob;
-		
-		cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
-		
-		/* constraints need ctime, not stime. Some call BKE_object_where_is_calc_time and bsystem_time */
-		solve_constraints(&ob->constraints, cob, ctime);
-		
-		constraints_clear_evalob(cob);
-	}
-	
-	/* set negative scale flag in object */
-	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
-	else ob->transflag &= ~OB_NEG_SCALE;
-}
-
-/* get object transformation matrix without recalculating dependencies and
- * constraints -- assume dependencies are already solved by depsgraph.
- * no changes to object and it's parent would be done.
- * used for bundles orientation in 3d space relative to parented blender camera */
-void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
-{
-	float slowmat[4][4] = MAT4_UNITY;
-
-	if (ob->parent) {
-		Object *par = ob->parent;
-
-		solve_parenting(scene, ob, par, obmat, slowmat, 1);
-
-		if (ob->partype & PARSLOW)
-			where_is_object_parslow(ob, obmat, slowmat);
-	}
-	else {
-		BKE_object_to_mat4(ob, obmat);
-	}
-}
-
 static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[][4], float slowmat[][4], int simul)
 {
 	float totmat[4][4];
@@ -2025,11 +1924,11 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 					ok = 1;
 				}
 			}
-		
+			
 			if (ok) mul_serie_m4(totmat, par->obmat, tmat,
 				                 NULL, NULL, NULL, NULL, NULL, NULL);
 			else copy_m4_m4(totmat, par->obmat);
-		
+			
 			break;
 		case PARBONE:
 			ob_parbone(ob, par, tmat);
@@ -2049,7 +1948,7 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 			break;
 		case PARVERT3:
 			ob_parvert3(ob, par, tmat);
-		
+			
 			mul_serie_m4(totmat, par->obmat, tmat,
 			             NULL, NULL, NULL, NULL, NULL, NULL);
 			break;
@@ -2080,14 +1979,93 @@ static void solve_parenting(Scene *scene, Object *ob, Object *par, float obmat[]
 			copy_v3_v3(ob->orig, totmat[3]);
 		}
 	}
+}
 
+static int where_is_object_parslow(Object *ob, float obmat[4][4], float slowmat[4][4])
+{
+	float *fp1, *fp2;
+	float fac1, fac2;
+	int a;
+
+	// include framerate
+	fac1 = (1.0f / (1.0f + fabsf(ob->sf)) );
+	if (fac1 >= 1.0f) return 0;
+	fac2 = 1.0f - fac1;
+
+	fp1 = obmat[0];
+	fp2 = slowmat[0];
+	for (a = 0; a < 16; a++, fp1++, fp2++) {
+		fp1[0] = fac1 * fp1[0] + fac2 * fp2[0];
+	}
+
+	return 1;
+}
+
+void BKE_object_where_is_calc_time(Scene *scene, Object *ob, float ctime)
+{
+	if (ob == NULL) return;
+	
+	/* execute drivers only, as animation has already been done */
+	BKE_animsys_evaluate_animdata(scene, &ob->id, ob->adt, ctime, ADT_RECALC_DRIVERS);
+	
+	if (ob->parent) {
+		Object *par = ob->parent;
+		float slowmat[4][4] = MAT4_UNITY;
+		
+		/* calculate parent matrix */
+		solve_parenting(scene, ob, par, ob->obmat, slowmat, 0);
+		
+		/* "slow parent" is definitely not threadsafe, and may also give bad results jumping around 
+		 * An old-fashioned hack which probably doesn't really cut it anymore
+		 */
+		if (ob->partype & PARSLOW) {
+			if (!where_is_object_parslow(ob, ob->obmat, slowmat))
+				return;
+		}
+	}
+	else {
+		BKE_object_to_mat4(ob, ob->obmat);
+	}
+	
+	/* solve constraints */
+	if (ob->constraints.first && !(ob->transflag & OB_NO_CONSTRAINTS)) {
+		bConstraintOb *cob;
+		
+		cob = constraints_make_evalob(scene, ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+		solve_constraints(&ob->constraints, cob, ctime);
+		constraints_clear_evalob(cob);
+	}
+	
+	/* set negative scale flag in object */
+	if (is_negative_m4(ob->obmat)) ob->transflag |= OB_NEG_SCALE;
+	else ob->transflag &= ~OB_NEG_SCALE;
+}
+
+/* get object transformation matrix without recalculating dependencies and
+ * constraints -- assume dependencies are already solved by depsgraph.
+ * no changes to object and it's parent would be done.
+ * used for bundles orientation in 3d space relative to parented blender camera */
+void BKE_object_where_is_calc_mat4(Scene *scene, Object *ob, float obmat[4][4])
+{
+	float slowmat[4][4] = MAT4_UNITY;
+
+	if (ob->parent) {
+		Object *par = ob->parent;
+		
+		solve_parenting(scene, ob, par, obmat, slowmat, 1);
+		
+		if (ob->partype & PARSLOW)
+			where_is_object_parslow(ob, obmat, slowmat);
+	}
+	else {
+		BKE_object_to_mat4(ob, obmat);
+	}
 }
 
 void BKE_object_where_is_calc(struct Scene *scene, Object *ob)
 {
 	BKE_object_where_is_calc_time(scene, ob, (float)scene->r.cfra);
 }
-
 
 void BKE_object_where_is_calc_simul(Scene *scene, Object *ob)
 /* was written for the old game engine (until 2.04) */
@@ -3098,4 +3076,136 @@ MovieClip *BKE_object_movieclip_get(Scene *scene, Object *ob, int use_default)
 	}
 
 	return clip;
+}
+
+
+/*
+ * Find an associated Armature object
+ */
+static Object *obrel_armature_find(Object *ob)
+{
+	Object *ob_arm = NULL;
+
+	if (ob->parent && ob->partype == PARSKEL && ob->parent->type == OB_ARMATURE) {
+		ob_arm = ob->parent;
+	}
+	else {
+		ModifierData *mod;
+		for (mod = (ModifierData *)ob->modifiers.first; mod; mod = mod->next) {
+			if (mod->type == eModifierType_Armature) {
+				ob_arm = ((ArmatureModifierData *)mod)->object;
+			}
+		}
+	}
+
+	return ob_arm;
+}
+
+static int obrel_is_recursive_child(Object *ob, Object *child) {
+	Object *par;
+	for (par = child->parent; par; par = par->parent) {
+		if (par == ob) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
+
+static int obrel_list_test(Object *ob)
+{
+	return ob && !(ob->id.flag & LIB_DOIT);
+}
+
+static void obrel_list_add(LinkNode **links, Object *ob)
+{
+	BLI_linklist_prepend(links, ob);
+	ob->id.flag |= LIB_DOIT;
+}
+
+/*
+ * Iterates over all objects of the given scene.
+ * Depending on the eObjectSet flag:
+ * collect either OB_SET_ALL, OB_SET_VISIBLE or OB_SET_SELECTED objects.
+ * If OB_SET_VISIBLE or OB_SET_SELECTED are collected, 
+ * then also add related objects according to the given includeFilters.
+ */
+struct LinkNode *BKE_object_relational_superset(struct Scene *scene, eObjectSet objectSet, eObRelationTypes includeFilter)
+{
+	LinkNode *links = NULL;
+
+	Base *base;
+
+	/* Remove markers from all objects */
+	for (base = scene->base.first; base; base = base->next) {
+		base->object->id.flag &= ~LIB_DOIT;
+	}
+
+	/* iterate over all selected and visible objects */
+	for (base = scene->base.first; base; base = base->next) {
+		if (objectSet == OB_SET_ALL) {
+			// as we get all anyways just add it
+			Object *ob = base->object;
+			obrel_list_add(&links, ob);
+		}
+		else {
+			if ((objectSet == OB_SET_SELECTED && TESTBASELIB_BGMODE(((View3D *)NULL), scene, base)) ||
+			    (objectSet == OB_SET_VISIBLE  && BASE_EDITABLE_BGMODE(((View3D *)NULL), scene, base)))
+			{
+				Object *ob = base->object;
+
+				if (obrel_list_test(ob))
+					obrel_list_add(&links, ob);
+
+				/* parent relationship */
+				if (includeFilter & (OB_REL_PARENT | OB_REL_PARENT_RECURSIVE)) {
+					Object *parent = ob->parent;
+					if (obrel_list_test(parent)) {
+
+						obrel_list_add(&links, parent);
+
+						/* recursive parent relationship */
+						if (includeFilter & OB_REL_PARENT_RECURSIVE) {
+							parent = parent->parent;
+							while (obrel_list_test(parent)) {
+
+								obrel_list_add(&links, parent);
+								parent = parent->parent;
+							}
+						}
+					}
+				}
+
+				/* child relationship */
+				if (includeFilter & (OB_REL_CHILDREN | OB_REL_CHILDREN_RECURSIVE)) {
+					Base *local_base;
+					for (local_base = scene->base.first; local_base; local_base = local_base->next) {
+						if (BASE_EDITABLE_BGMODE(((View3D *)NULL), scene, local_base)) {
+
+							Object *child = local_base->object;
+							if (obrel_list_test(child)) {
+								if ((includeFilter & OB_REL_CHILDREN_RECURSIVE && obrel_is_recursive_child(ob, child)) ||
+								    (includeFilter & OB_REL_CHILDREN && child->parent && child->parent == ob))
+								{
+									obrel_list_add(&links, child);
+								}
+							}
+						}
+					}
+				}
+
+
+				/* include related armatures */
+				if (includeFilter & OB_REL_MOD_ARMATURE) {
+					Object *arm = obrel_armature_find(ob);
+					if (obrel_list_test(arm)) {
+						obrel_list_add(&links, arm);
+					}
+				}
+
+			}
+		}
+	}
+
+	return links;
 }

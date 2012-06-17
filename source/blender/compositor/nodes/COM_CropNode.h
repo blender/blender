@@ -25,10 +25,10 @@
 
 #include "COM_Node.h"
 
-class CropNode: public Node {
+class CropNode : public Node {
 public:
 	CropNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

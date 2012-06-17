@@ -35,6 +35,7 @@ struct CurveMapping;
 struct CurveMap;
 struct CurveMapPoint;
 struct Scopes;
+struct Histogram;
 struct ImBuf;
 struct rctf;
 
@@ -74,7 +75,7 @@ void                curvemapping_premultiply(struct CurveMapping *cumap, int res
 int                 curvemapping_RGBA_does_something(struct CurveMapping *cumap);
 void                curvemapping_initialize(struct CurveMapping *cumap);
 void                curvemapping_table_RGBA(struct CurveMapping *cumap, float **array, int *size);
-
+void                BKE_histogram_update_sample_line(struct Histogram *hist, struct ImBuf *ibuf, const short use_color_management);
 void                scopes_update(struct Scopes *scopes, struct ImBuf *ibuf, int use_color_management);
 void                scopes_free(struct Scopes *scopes);
 void                scopes_new(struct Scopes *scopes);

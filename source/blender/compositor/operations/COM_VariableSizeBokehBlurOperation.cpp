@@ -53,17 +53,11 @@ void VariableSizeBokehBlurOperation::initExecution()
 
 void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
-	float tempColor[4];
 	float readColor[4];
 	float bokeh[4];
-	tempColor[0] = 0;
-	tempColor[1] = 0;
-	tempColor[2] = 0;
-	tempColor[3] = 0;
 	float tempSize[4];
-	float overallmultiplyerr = 0;
-	float overallmultiplyerg = 0;
-	float overallmultiplyerb = 0;
+	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
 
 	int miny = y - maxBlur;
 	int maxy = y + maxBlur;
@@ -71,43 +65,40 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	int maxx = x + maxBlur;
 	{
 		inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
-		tempColor[0] += readColor[0];
-		tempColor[1] += readColor[1];
-		tempColor[2] += readColor[2];
-		overallmultiplyerr += 1;
-		overallmultiplyerg += 1;
-		overallmultiplyerb += 1;
+		color_accum[0] += readColor[0];
+		color_accum[1] += readColor[1];
+		color_accum[2] += readColor[2];
+		color_accum[3] += readColor[3];
+		add_v4_v4(color_accum, readColor);
+		add_v3_fl(multiplier_accum, 1.0f);
 		
-		for (int ny = miny ; ny < maxy ; ny += QualityStepHelper::getStep()) {
-			for (int nx = minx ; nx < maxx ; nx += QualityStepHelper::getStep()) {
-				if (nx >=0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
+		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
+			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
+				if (nx >= 0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
 					inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
 					float size = tempSize[0];
-					size += this->threshold;
+//					size += this->threshold;
 					float dx = nx - x;
 					float dy = ny - y;
 					if (nx == x && ny == y) {
 						/* pass */
 					}
-					else if (size>=  fabs(dx) && size >= fabs(dy)) {
-						float u = 256 + dx*256/size;
-						float v = 256 + dy*256/size;
+					else if (size >= fabsf(dx) && size >= fabsf(dy)) {
+						float u = 256 + dx * 256 / size;
+						float v = 256 + dy * 256 / size;
 						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
 						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-						tempColor[0] += bokeh[0] * readColor[0];
-						tempColor[1] += bokeh[1] * readColor[1];
-						tempColor[2] += bokeh[2]* readColor[2];
-						overallmultiplyerr += bokeh[0];
-						overallmultiplyerg += bokeh[1];
-						overallmultiplyerb += bokeh[2];
+						madd_v4_v4v4(color_accum, bokeh, readColor);
+						add_v4_v4(multiplier_accum, bokeh);
 					}
 				}
 			}
 		}
-		color[0] = tempColor[0]*(1.0/overallmultiplyerr);
-		color[1] = tempColor[1]*(1.0/overallmultiplyerg);
-		color[2] = tempColor[2]*(1.0/overallmultiplyerb);
-		color[3] = 1.0f;
+
+		color[0] = color_accum[0] * (1.0f / multiplier_accum[0]);
+		color[1] = color_accum[1] * (1.0f / multiplier_accum[1]);
+		color[2] = color_accum[2] * (1.0f / multiplier_accum[2]);
+		color[3] = color_accum[3] * (1.0f / multiplier_accum[3]);
 	}
 
 }
@@ -124,10 +115,10 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	rcti newInput;
 	rcti bokehInput;
 
-	newInput.xmax = input->xmax + maxBlur+2;
-	newInput.xmin = input->xmin - maxBlur+2;
-	newInput.ymax = input->ymax + maxBlur-2;
-	newInput.ymin = input->ymin - maxBlur-2;
+	newInput.xmax = input->xmax + maxBlur + 2;
+	newInput.xmin = input->xmin - maxBlur + 2;
+	newInput.ymax = input->ymax + maxBlur - 2;
+	newInput.ymin = input->ymin - maxBlur - 2;
 	bokehInput.xmax = 512;
 	bokehInput.xmin = 0;
 	bokehInput.ymax = 512;

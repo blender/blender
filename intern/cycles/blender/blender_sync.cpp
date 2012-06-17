@@ -63,7 +63,7 @@ BlenderSync::~BlenderSync()
 bool BlenderSync::sync_recalc()
 {
 	/* sync recalc flags from blender to cycles. actual update is done separate,
-	   so we can do it later on if doing it immediate is not suitable */
+	 * so we can do it later on if doing it immediate is not suitable */
 
 	BL::BlendData::materials_iterator b_mat;
 
@@ -105,10 +105,13 @@ bool BlenderSync::sync_recalc()
 
 	BL::BlendData::worlds_iterator b_world;
 
-	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world)
+	for(b_data.worlds.begin(b_world); b_world != b_data.worlds.end(); ++b_world) {
 		if(world_map == b_world->ptr.data &&
-			(b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
+		   (b_world->is_updated() || (b_world->node_tree() && b_world->node_tree().is_updated())))
+		{
 			world_recalc = true;
+		}
+	}
 
 	bool recalc =
 		shader_map.has_recalc() ||
@@ -135,7 +138,6 @@ void BlenderSync::sync_data(BL::SpaceView3D b_v3d, BL::Object b_override, const 
 
 void BlenderSync::sync_integrator()
 {
-	BL::RenderSettings r = b_scene.render();
 	PointerRNA cscene = RNA_pointer_get(&b_scene.ptr, "cycles");
 
 	experimental = (RNA_enum_get(&cscene, "feature_set") != 0);
@@ -165,6 +167,13 @@ void BlenderSync::sync_integrator()
 #ifdef __MOTION__
 	integrator->motion_blur = (!preview && r.use_motion_blur());
 #endif
+
+	integrator->diffuse_samples = get_int(cscene, "diffuse_samples");
+	integrator->glossy_samples = get_int(cscene, "glossy_samples");
+	integrator->transmission_samples = get_int(cscene, "transmission_samples");
+	integrator->ao_samples = get_int(cscene, "ao_samples");
+	integrator->mesh_light_samples = get_int(cscene, "mesh_light_samples");
+	integrator->progressive = get_boolean(cscene, "progressive");
 
 	if(integrator->modified(previntegrator))
 		integrator->tag_update(scene);
@@ -306,15 +315,27 @@ SessionParams BlenderSync::get_session_params(BL::UserPreferences b_userpref, BL
 
 	/* Background */
 	params.background = background;
-			
+
 	/* samples */
-	if(background) {
-		params.samples = get_int(cscene, "samples");
+	if(get_boolean(cscene, "progressive")) {
+		if(background) {
+			params.samples = get_int(cscene, "samples");
+		}
+		else {
+			params.samples = get_int(cscene, "preview_samples");
+			if(params.samples == 0)
+				params.samples = INT_MAX;
+		}
 	}
 	else {
-		params.samples = get_int(cscene, "preview_samples");
-		if(params.samples == 0)
-			params.samples = INT_MAX;
+		if(background) {
+			params.samples = get_int(cscene, "aa_samples");
+		}
+		else {
+			params.samples = get_int(cscene, "preview_aa_samples");
+			if(params.samples == 0)
+				params.samples = INT_MAX;
+		}
 	}
 
 	/* other parameters */

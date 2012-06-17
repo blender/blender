@@ -54,6 +54,7 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_speaker_types.h"
+#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 
@@ -395,11 +396,8 @@ static short acf_generic_dataexpand_setting_valid(bAnimContext *ac, bAnimListEle
 /* get backdrop color for summary widget */
 static void acf_summary_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
 {
-	// FIXME: hardcoded color - same as the 'action' line in NLA
-	// reddish color
-	r_color[0] = 0.8f;
-	r_color[1] = 0.2f;
-	r_color[2] = 0.0f;
+	/* reddish color - same as the 'action' line in NLA */
+	UI_GetThemeColor3fv(TH_ANIM_ACTIVE, r_color);
 }
 
 /* backdrop for summary widget */
@@ -850,7 +848,7 @@ static int acf_group_setting_flag(bAnimContext *ac, int setting, short *neg)
 			return AGRP_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return AGRP_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -938,7 +936,7 @@ static int acf_fcurve_setting_flag(bAnimContext *UNUSED(ac), int setting, short 
 			return FCURVE_MUTED;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return FCURVE_PROTECTED;
 			
 		case ACHANNEL_SETTING_VISIBLE: /* visiblity - graph editor */
@@ -2483,7 +2481,7 @@ static int acf_gpl_setting_flag(bAnimContext *UNUSED(ac), int setting, short *ne
 			return GP_LAYER_HIDE;
 			
 		case ACHANNEL_SETTING_PROTECT: /* protected */
-			// *neg= 1; - if we change this to edtiability
+			// *neg = 1; - if we change this to edtiability
 			return GP_LAYER_LOCKED;
 			
 		default: /* unsupported */
@@ -2518,6 +2516,172 @@ static bAnimChannelType ACF_GPL =
 	acf_gpl_setting_flag,           /* flag for setting */
 	acf_gpl_setting_ptr             /* pointer for setting */
 };
+
+
+/* Mask Datablock ------------------------------------------- */
+
+/* get backdrop color for mask datablock widget */
+static void acf_mask_color(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), float r_color[3])
+{
+	/* these are ID-blocks, but not exactly standalone... */
+	UI_GetThemeColorShade3fv(TH_DOPESHEET_CHANNELSUBOB, 20, r_color);
+}
+
+// TODO: just get this from RNA?
+static int acf_mask_icon(bAnimListElem *UNUSED(ale))
+{
+	return ICON_GREASEPENCIL; // MASK_TODO - need real icon
+}
+
+/* check if some setting exists for this channel */
+static short acf_mask_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+{
+	switch (setting) {
+		/* only select and expand supported */
+		case ACHANNEL_SETTING_SELECT:
+		case ACHANNEL_SETTING_EXPAND:
+			return 1;
+
+		default:
+			return 0;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_mask_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg = 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return AGRP_SELECTED;
+
+		case ACHANNEL_SETTING_EXPAND: /* expanded */
+			return MASK_ANIMF_EXPAND;
+	}
+
+	/* this shouldn't happen */
+	return 0;
+}
+
+/* get pointer to the setting */
+static void *acf_mask_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+{
+	Mask *mask = (Mask *)ale->data;
+
+	/* all flags are just in mask->flag for now... */
+	return GET_ACF_FLAG_PTR(mask->flag, type);
+}
+
+/* mask datablock type define */
+static bAnimChannelType ACF_MASKDATA =
+{
+	"Mask Datablock",            /* type name */
+
+	acf_mask_color,                  /* backdrop color */
+	acf_group_backdrop,             /* backdrop */
+	acf_generic_indention_0,        /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_generic_idblock_name,       /* name */
+	acf_generic_idfill_nameprop,    /* name prop */
+	acf_mask_icon,                   /* icon */
+
+	acf_mask_setting_valid,          /* has setting */
+	acf_mask_setting_flag,           /* flag for setting */
+	acf_mask_setting_ptr             /* pointer for setting */
+};
+
+/* Mask Layer ------------------------------------------- */
+
+/* name for grease pencil layer entries */
+static void acf_masklay_name(bAnimListElem *ale, char *name)
+{
+	MaskLayer *masklay = (MaskLayer *)ale->data;
+
+	if (masklay && name)
+		BLI_strncpy(name, masklay->name, ANIM_CHAN_NAME_SIZE);
+}
+
+/* name property for grease pencil layer entries */
+static short acf_masklay_name_prop(bAnimListElem *ale, PointerRNA *ptr, PropertyRNA **prop)
+{
+	if (ale->data) {
+		RNA_pointer_create(ale->id, &RNA_MaskLayer, ale->data, ptr);
+		*prop = RNA_struct_name_property(ptr->type);
+
+		return (*prop != NULL);
+	}
+
+	return 0;
+}
+
+/* check if some setting exists for this channel */
+static short acf_masklay_setting_valid(bAnimContext *UNUSED(ac), bAnimListElem *UNUSED(ale), int setting)
+{
+	switch (setting) {
+		/* unsupported */
+		case ACHANNEL_SETTING_EXPAND: /* mask layers are more like F-Curves than groups */
+		case ACHANNEL_SETTING_VISIBLE: /* graph editor only */
+			return 0;
+
+		/* always available */
+		default:
+			return 1;
+	}
+}
+
+/* get the appropriate flag(s) for the setting when it is valid  */
+static int acf_masklay_setting_flag(bAnimContext *UNUSED(ac), int setting, short *neg)
+{
+	/* clear extra return data first */
+	*neg = 0;
+
+	switch (setting) {
+		case ACHANNEL_SETTING_SELECT: /* selected */
+			return MASK_LAYERFLAG_SELECT;
+
+//		case ACHANNEL_SETTING_MUTE: /* muted */
+//			return GP_LAYER_HIDE;
+
+		case ACHANNEL_SETTING_PROTECT: /* protected */
+			// *neg = 1; - if we change this to edtiability
+			return MASK_LAYERFLAG_LOCKED;
+
+		default: /* unsupported */
+			return 0;
+	}
+}
+
+/* get pointer to the setting */
+static void *acf_masklay_setting_ptr(bAnimListElem *ale, int UNUSED(setting), short *type)
+{
+	MaskLayer *masklay = (MaskLayer *)ale->data;
+
+	/* all flags are just in agrp->flag for now... */
+	return GET_ACF_FLAG_PTR(masklay->flag, type);
+}
+
+/* grease pencil layer type define */
+static bAnimChannelType ACF_MASKLAYER =
+{
+	"Mask Layer",                /* type name */
+
+	acf_generic_channel_color,      /* backdrop color */
+	acf_generic_channel_backdrop,   /* backdrop */
+	acf_generic_indention_flexible, /* indent level */
+	acf_generic_group_offset,       /* offset */
+
+	acf_masklay_name,                   /* name */
+	acf_masklay_name_prop,              /* name prop */
+	NULL,                           /* icon */
+
+	acf_masklay_setting_valid,          /* has setting */
+	acf_masklay_setting_flag,           /* flag for setting */
+	acf_masklay_setting_ptr             /* pointer for setting */
+};
+
 
 /* *********************************************** */
 /* Type Registration and General Access */
@@ -2568,6 +2732,9 @@ static void ANIM_init_channel_typeinfo_data(void)
 
 		animchannelTypeInfo[type++] = &ACF_GPD;          /* Grease Pencil Datablock */
 		animchannelTypeInfo[type++] = &ACF_GPL;          /* Grease Pencil Layer */
+
+		animchannelTypeInfo[type++] = &ACF_MASKDATA;     /* Mask Datablock */
+		animchannelTypeInfo[type++] = &ACF_MASKLAYER;    /* Mask Layer */
 
 		// TODO: these types still need to be implemented!!!
 		// probably need a few extra flags for these special cases...
@@ -2699,7 +2866,7 @@ short ANIM_channel_setting_get(bAnimContext *ac, bAnimListElem *ale, int setting
 			else if (smode == ACHANNEL_SETFLAG_ADD) (sval) |= (sflag); \
 			else (sval) &= ~(sflag); \
 		} \
-	}
+	} (void)0
 
 /* Change value of some setting for a channel 
  *	- setting: eAnimChannel_Settings
@@ -3060,7 +3227,7 @@ static void achannel_setting_slider_shapekey_cb(bContext *C, void *key_poin, voi
 		/* find or create new F-Curve */
 		// XXX is the group name for this ok?
 		bAction *act = verify_adt_action((ID *)key, 1);
-		FCurve *fcu = verify_fcurve(act, NULL, rna_path, 0, 1);
+		FCurve *fcu = verify_fcurve(act, NULL, &ptr, rna_path, 0, 1);
 		
 		/* set the special 'replace' flag if on a keyframe */
 		if (fcurve_frame_has_keyframe(fcu, cfra, 0))
@@ -3096,7 +3263,7 @@ static void draw_setting_widget(bAnimContext *ac, bAnimListElem *ale, bAnimChann
 	/* get the base icon for the setting */
 	switch (setting) {
 		case ACHANNEL_SETTING_VISIBLE:  /* visibility eyes */
-			//icon= ((enabled)? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
+			//icon = ((enabled) ? ICON_VISIBLE_IPO_ON : ICON_VISIBLE_IPO_OFF);
 			icon = ICON_VISIBLE_IPO_OFF;
 			
 			if (ale->type == ANIMTYPE_FCURVE)

@@ -45,6 +45,7 @@ extern EnumPropertyItem blend_mode_items[];
 #include "DNA_image_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_sound_types.h"
 
 #include "BLI_path_util.h" /* BLI_split_dirfile */
@@ -52,6 +53,7 @@ extern EnumPropertyItem blend_mode_items[];
 #include "BKE_image.h"
 #include "BKE_library.h" /* id_us_plus */
 #include "BKE_movieclip.h"
+#include "BKE_mask.h"
 
 #include "BKE_report.h"
 #include "BKE_sequencer.h"
@@ -104,10 +106,29 @@ static Sequence *rna_Sequences_new_clip(ID *id, Editing *ed, ReportList *reports
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_MOVIECLIP, clip->name);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MOVIECLIP, clip->name);
 	seq->clip = clip;
 	seq->len =  BKE_movieclip_get_duration(clip);
 	id_us_plus((ID *)clip);
+
+	calc_sequence_disp(scene, seq);
+
+	WM_main_add_notifier(NC_SCENE | ND_SEQUENCER, scene);
+
+	return seq;
+}
+
+static Sequence *rna_Sequences_new_mask(ID *id, Editing *ed, ReportList *reports,
+                                        const char *name, Mask *mask, int channel,
+                                        int start_frame)
+{
+	Scene *scene = (Scene *)id;
+	Sequence *seq;
+
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MASK, mask->id.name);
+	seq->mask = mask;
+	seq->len = BKE_mask_get_duration(mask);
+	id_us_plus((ID *)mask);
 
 	calc_sequence_disp(scene, seq);
 
@@ -123,7 +144,7 @@ static Sequence *rna_Sequences_new_scene(ID *id, Editing *ed, ReportList *report
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SCENE, NULL);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_SCENE, NULL);
 	seq->scene = sce_seq;
 	seq->len = sce_seq->r.efra - sce_seq->r.sfra + 1;
 	seq->scene_sound = sound_scene_add_scene_sound(scene, seq, start_frame, start_frame + seq->len, 0);
@@ -143,7 +164,7 @@ static Sequence *rna_Sequences_new_image(ID *id, Editing *ed, ReportList *report
 	Scene *scene = (Scene *)id;
 	Sequence *seq;
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_IMAGE, file);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_IMAGE, file);
 	seq->len = 1;
 
 	if (seq->strip->stripdata->name[0] == '\0') {
@@ -174,7 +195,7 @@ static Sequence *rna_Sequences_new_movie(ID *id, Editing *ed, ReportList *report
 		return NULL;
 	}
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_MOVIE, file);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_MOVIE, file);
 	seq->anim = an;
 	seq->anim_preseek = IMB_anim_get_preseek(an);
 	seq->len = IMB_anim_get_duration(an, IMB_TC_RECORD_RUN);
@@ -200,7 +221,7 @@ static Sequence *rna_Sequences_new_sound(ID *id, Editing *ed, Main *bmain, Repor
 		return NULL;
 	}
 
-	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_SOUND, sound->name);
+	seq = alloc_generic_sequence(ed, name, start_frame, channel, SEQ_TYPE_SOUND_RAM, sound->name);
 	seq->sound = sound;
 	seq->len = ceil((double)sound_get_length(sound) * FPS);
 
@@ -318,7 +339,6 @@ static StripElem *rna_SequenceElements_push(ID *id, Sequence *seq, const char *f
 
 static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports, int index)
 {
-	int i;
 	Scene *scene = (Scene *)id;
 	StripElem *new_seq, *se;
 
@@ -327,7 +347,12 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 		return;
 	}
 
-	if (seq->len <= index) {
+	/* python style negative indexing */
+	if (index < 0) {
+		index += seq->len;
+	}
+
+	if (seq->len <= index || index < 0) {
 		BKE_report(reports, RPT_ERROR, "SequenceElements.pop: index out of range");
 		return;
 	}
@@ -335,11 +360,12 @@ static void rna_SequenceElements_pop(ID *id, Sequence *seq, ReportList *reports,
 	new_seq = MEM_callocN(sizeof(StripElem) * (seq->len - 1), "SequenceElements_pop");
 	seq->len--;
 
-	for (i = 0, se = seq->strip->stripdata; i < seq->len; i++, se++) {
-		if (i == index)
-			se++;
-		BLI_strncpy(new_seq[i].name, se->name, sizeof(se->name));
-	}
+	se = seq->strip->stripdata;
+	if (index > 0)
+		memcpy(new_seq, se, sizeof(StripElem) * index);
+
+	if (index < seq->len)
+		memcpy(&new_seq[index], &se[index + 1], sizeof(StripElem) * (seq->len - index));
 
 	MEM_freeN(seq->strip->stripdata);
 	seq->strip->stripdata = new_seq;
@@ -394,7 +420,7 @@ void RNA_api_sequence_elements(BlenderRNA *brna, PropertyRNA *cprop)
 	func = RNA_def_function(srna, "pop", "rna_SequenceElements_pop");
 	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
 	RNA_def_function_ui_description(func, "Pop an image off the collection");
-	parm = RNA_def_int(func, "index", 0, 0, INT_MAX, "", "Index of image to remove", 0, INT_MAX);
+	parm = RNA_def_int(func, "index", -1, INT_MIN, INT_MAX, "", "Index of image to remove", INT_MIN, INT_MAX);
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 }
 
@@ -405,22 +431,21 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	FunctionRNA *func;
 
 	static EnumPropertyItem seq_effect_items[] = {
-		{SEQ_CROSS, "CROSS", 0, "Cross", ""},
-		{SEQ_ADD, "ADD", 0, "Add", ""},
-		{SEQ_SUB, "SUBTRACT", 0, "Subtract", ""},
-		{SEQ_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
-		{SEQ_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
-		{SEQ_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
-		{SEQ_MUL, "MULTIPLY", 0, "Multiply", ""},
-		{SEQ_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
-		// {SEQ_PLUGIN, "PLUGIN", 0, "Plugin", ""},
-		{SEQ_WIPE, "WIPE", 0, "Wipe", ""},
-		{SEQ_GLOW, "GLOW", 0, "Glow", ""},
-		{SEQ_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
-		{SEQ_COLOR, "COLOR", 0, "Color", ""},
-		{SEQ_SPEED, "SPEED", 0, "Speed", ""},
-		{SEQ_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
-		{SEQ_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
+		{SEQ_TYPE_CROSS, "CROSS", 0, "Cross", ""},
+		{SEQ_TYPE_ADD, "ADD", 0, "Add", ""},
+		{SEQ_TYPE_SUB, "SUBTRACT", 0, "Subtract", ""},
+		{SEQ_TYPE_ALPHAOVER, "ALPHA_OVER", 0, "Alpha Over", ""},
+		{SEQ_TYPE_ALPHAUNDER, "ALPHA_UNDER", 0, "Alpha Under", ""},
+		{SEQ_TYPE_GAMCROSS, "GAMMA_CROSS", 0, "Gamma Cross", ""},
+		{SEQ_TYPE_MUL, "MULTIPLY", 0, "Multiply", ""},
+		{SEQ_TYPE_OVERDROP, "OVER_DROP", 0, "Over Drop", ""},
+		{SEQ_TYPE_WIPE, "WIPE", 0, "Wipe", ""},
+		{SEQ_TYPE_GLOW, "GLOW", 0, "Glow", ""},
+		{SEQ_TYPE_TRANSFORM, "TRANSFORM", 0, "Transform", ""},
+		{SEQ_TYPE_COLOR, "COLOR", 0, "Color", ""},
+		{SEQ_TYPE_SPEED, "SPEED", 0, "Speed", ""},
+		{SEQ_TYPE_MULTICAM, "MULTICAM", 0, "Multicam Selector", ""},
+		{SEQ_TYPE_ADJUSTMENT, "ADJUSTMENT", 0, "Adjustment Layer", ""},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -435,6 +460,23 @@ void RNA_api_sequences(BlenderRNA *brna, PropertyRNA *cprop)
 	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
 	RNA_def_property_flag(parm, PROP_REQUIRED);
 	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "Movie clip to add");
+	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
+	parm = RNA_def_int(func, "channel", 0, 0, MAXSEQ - 1, "Channel",
+	                   "The channel for the new sequence", 0, MAXSEQ - 1);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_int(func, "start_frame", 0, -MAXFRAME, MAXFRAME, "",
+	                   "The start frame for the new sequence", -MAXFRAME, MAXFRAME);
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	/* return type */
+	parm = RNA_def_pointer(func, "sequence", "Sequence", "", "New Sequence");
+	RNA_def_function_return(func, parm);
+
+	func = RNA_def_function(srna, "new_mask", "rna_Sequences_new_mask");
+	RNA_def_function_flag(func, FUNC_USE_REPORTS | FUNC_USE_SELF_ID);
+	RNA_def_function_ui_description(func, "Add a new movie clip sequence");
+	parm = RNA_def_string(func, "name", "Name", 0, "", "New name for the sequence");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+	parm = RNA_def_pointer(func, "mask", "Mask", "", "Mask to add");
 	RNA_def_property_flag(parm, PROP_REQUIRED | PROP_NEVER_NULL);
 	parm = RNA_def_int(func, "channel", 0, 0, MAXSEQ - 1, "Channel",
 	                   "The channel for the new sequence", 0, MAXSEQ - 1);

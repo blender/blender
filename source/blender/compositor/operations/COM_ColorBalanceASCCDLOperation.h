@@ -24,18 +24,17 @@
 #define _COM_ColorBalanceASCCDLOperation_h
 #include "COM_NodeOperation.h"
 
-
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class ColorBalanceASCCDLOperation : public NodeOperation {
 protected:
 	/**
-	  * Prefetched reference to the inputProgram
-	  */
-	SocketReader * inputValueOperation;
-	SocketReader * inputColorOperation;
+	 * Prefetched reference to the inputProgram
+	 */
+	SocketReader *inputValueOperation;
+	SocketReader *inputColorOperation;
 	
 	float gain[3];
 	float lift[3];
@@ -43,39 +42,27 @@ protected:
 
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	ColorBalanceASCCDLOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setGain(float gain[3]) {
-		this->gain[0] = gain[0];
-		this->gain[1] = gain[1];
-		this->gain[2] = gain[2];
-	}
-	void setLift(float lift[3]) {
-		this->lift[0] = lift[0];
-		this->lift[1] = lift[1];
-		this->lift[2] = lift[2];
-	}
-	void setGamma(float gamma[3]) {
-		this->gamma[0] = gamma[0];
-		this->gamma[1] = gamma[1];
-		this->gamma[2] = gamma[2];
-	}
+	void setGain(float gain[3]) { copy_v3_v3(this->gain, gain); }
+	void setLift(float lift[3]) { copy_v3_v3(this->lift, lift); }
+	void setGamma(float gamma[3]) { copy_v3_v3(this->gamma, gamma); }
 };
 #endif

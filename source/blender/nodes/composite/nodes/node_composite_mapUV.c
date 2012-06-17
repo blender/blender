@@ -35,12 +35,12 @@
 /* **************** Map UV  ******************** */
 
 static bNodeSocketTemplate cmp_node_mapuv_in[]= {
-	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_VECTOR, 1, "UV",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
+	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
+	{	SOCK_VECTOR, 1, N_("UV"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_mapuv_out[]= {
-	{	SOCK_RGBA, 0, "Image"},
+	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
 

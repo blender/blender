@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef PERSISTENT_MANIFOLD_H
-#define PERSISTENT_MANIFOLD_H
+#ifndef BT_PERSISTENT_MANIFOLD_H
+#define BT_PERSISTENT_MANIFOLD_H
 
 
 #include "LinearMath/btVector3.h"
@@ -197,14 +197,10 @@ public:
 #endif
 	}
 
+	
 	bool validContactDistance(const btManifoldPoint& pt) const
 	{
-		if (pt.m_lifeTime >1)
-		{
-			return pt.m_distance1 <= getContactBreakingThreshold();
-		}
-		return pt.m_distance1 <= getContactProcessingThreshold();
-	
+		return pt.m_distance1 <= getContactBreakingThreshold();
 	}
 	/// calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
 	void	refreshContactPoints(  const btTransform& trA,const btTransform& trB);
@@ -229,4 +225,4 @@ public:
 
 
 
-#endif //PERSISTENT_MANIFOLD_H
+#endif //BT_PERSISTENT_MANIFOLD_H

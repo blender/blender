@@ -477,6 +477,15 @@ static void rna_WeightVGModifier_mask_uvlayer_set(PointerRNA *ptr, const char *v
 	}
 }
 
+static void rna_MultiresModifier_type_set(PointerRNA *ptr, int value)
+{
+	Object *ob = (Object *)ptr->id.data;
+	MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
+
+	multires_force_update(ob);
+	mmd->simple = value;
+}
+
 static void rna_MultiresModifier_level_range(PointerRNA *ptr, int *min, int *max, int *softmin, int *softmax)
 {
 	MultiresModifierData *mmd = (MultiresModifierData *)ptr->data;
@@ -739,7 +748,7 @@ static void rna_BevelModifier_angle_limit_set(PointerRNA *ptr, float value)
 
 #else
 
-static void rna_def_property_subdivision_common(StructRNA *srna, const char type[])
+static PropertyRNA *rna_def_property_subdivision_common(StructRNA *srna, const char type[])
 {
 	static EnumPropertyItem prop_subdivision_type_items[] = {
 		{0, "CATMULL_CLARK", 0, "Catmull-Clark", ""},
@@ -752,6 +761,8 @@ static void rna_def_property_subdivision_common(StructRNA *srna, const char type
 	RNA_def_property_enum_items(prop, prop_subdivision_type_items);
 	RNA_def_property_ui_text(prop, "Subdivision Type", "Select type of subdivision algorithm");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
+
+	return prop;
 }
 
 static void rna_def_modifier_subsurf(BlenderRNA *brna)
@@ -901,7 +912,8 @@ static void rna_def_modifier_multires(BlenderRNA *brna)
 	RNA_def_struct_sdna(srna, "MultiresModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_MULTIRES);
 
-	rna_def_property_subdivision_common(srna, "simple");
+	prop = rna_def_property_subdivision_common(srna, "simple");
+	RNA_def_property_enum_funcs(prop, NULL, "rna_MultiresModifier_type_set", NULL);
 
 	prop = RNA_def_property(srna, "levels", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "lvl");
@@ -2438,12 +2450,12 @@ static void rna_def_modifier_simpledeform(BlenderRNA *brna)
 
 	prop = RNA_def_property(srna, "lock_x", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "axis", MOD_SIMPLEDEFORM_LOCK_AXIS_X);
-	RNA_def_property_ui_text(prop, "Lock X Axis", "Do not allow tapering along the X axis");
+	RNA_def_property_ui_text(prop, "Lock X Axis", "Do not allow deformation along the X axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 	prop = RNA_def_property(srna, "lock_y", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "axis", MOD_SIMPLEDEFORM_LOCK_AXIS_Y);
-	RNA_def_property_ui_text(prop, "Lock Y Axis", "Do not allow tapering along the Y axis");
+	RNA_def_property_ui_text(prop, "Lock Y Axis", "Do not allow deformation along the Y axis");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
@@ -2553,8 +2565,11 @@ static void rna_def_modifier_solidify(BlenderRNA *brna)
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_VGROUP_INV);
 	RNA_def_property_ui_text(prop, "Vertex Group Invert", "Invert the vertex group influence");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
-	
-	
+
+	prop = RNA_def_property(srna, "use_flip_normals", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SOLIDIFY_FLIP);
+	RNA_def_property_ui_text(prop, "Flip Normals", "Invert the face direction");
+	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 }
 
 static void rna_def_modifier_screw(BlenderRNA *brna)
@@ -2636,7 +2651,7 @@ static void rna_def_modifier_screw(BlenderRNA *brna)
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
 
 #if 0
-	prop= RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
+	prop = RNA_def_property(srna, "use_angle_object", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", MOD_SCREW_OBJECT_ANGLE);
 	RNA_def_property_ui_text(prop, "Object Angle", "Use the angle between the objects rather than the fixed angle");
 	RNA_def_property_update(prop, 0, "rna_Modifier_update");
@@ -3204,7 +3219,7 @@ static void rna_def_modifier_skin(BlenderRNA *brna)
 	StructRNA *srna;
 	PropertyRNA *prop;
 
-	srna= RNA_def_struct(brna, "SkinModifier", "Modifier");
+	srna = RNA_def_struct(brna, "SkinModifier", "Modifier");
 	RNA_def_struct_ui_text(srna, "Skin Modifier", "Generate Skin");
 	RNA_def_struct_sdna(srna, "SkinModifierData");
 	RNA_def_struct_ui_icon(srna, ICON_MOD_SKIN);

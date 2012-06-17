@@ -47,14 +47,15 @@
 #include "COM_ScaleOperation.h"
 #include "COM_SetValueOperation.h"
 
-RenderLayersNode::RenderLayersNode(bNode *editorNode): Node(editorNode)
+RenderLayersNode::RenderLayersNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputSocketNumber, RenderLayersBaseProg * operation)
+void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputSocketNumber, RenderLayersBaseProg *operation)
 {
 	OutputSocket *outputSocket = this->getOutputSocket(outputSocketNumber);
-	Scene *scene = (Scene*)this->getbNode()->id;
+	Scene *scene = (Scene *)this->getbNode()->id;
 	short layerId = this->getbNode()->custom1;
 
 	if (outputSocket->isConnected()) {
@@ -63,7 +64,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputS
 		outputSocket->relinkConnections(operation->getOutputSocket());
 		system->addOperation(operation);
 		if (outputSocketNumber == 0) { // only do for image socket if connected
-			addPreviewOperation(system, operation->getOutputSocket(), 9);
+			addPreviewOperation(system, operation->getOutputSocket());
 		}
 	}
 	else {
@@ -71,7 +72,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputS
 			system->addOperation(operation);
 			operation->setScene(scene);
 			operation->setLayerId(layerId);
-			addPreviewOperation(system, operation->getOutputSocket(), 9);
+			addPreviewOperation(system, operation->getOutputSocket());
 		}
 		else {
 			delete operation;
@@ -79,7 +80,7 @@ void RenderLayersNode::testSocketConnection(ExecutionSystem *system, int outputS
 	}
 }
 
-void RenderLayersNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void RenderLayersNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	testSocketConnection(graph, 0, new RenderLayersColourProg());
 	testSocketConnection(graph, 1, new RenderLayersAlphaProg());

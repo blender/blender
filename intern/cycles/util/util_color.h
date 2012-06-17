@@ -29,15 +29,15 @@ __device float color_srgb_to_scene_linear(float c)
 	if(c < 0.04045f)
 		return (c < 0.0f)? 0.0f: c * (1.0f/12.92f);
 	else
-		return pow((c + 0.055f)*(1.0f/1.055f), 2.4f);
+		return powf((c + 0.055f) * (1.0f / 1.055f), 2.4f);
 }
 
 __device float color_scene_linear_to_srgb(float c)
 {
 	if(c < 0.0031308f)
 		return (c < 0.0f)? 0.0f: c * 12.92f;
-    else
-		return 1.055f * pow(c, 1.0f/2.4f) - 0.055f;
+	else
+		return 1.055f * powf(c, 1.0f / 2.4f) - 0.055f;
 }
 
 #ifndef __KERNEL_OPENCL__

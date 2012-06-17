@@ -25,8 +25,6 @@
  *  \ingroup spseq
  */
 
-
-
 #include <string.h>
 #include <stdio.h>
 
@@ -36,10 +34,13 @@
 #include "BLI_blenlib.h"
 #include "BLI_utildefines.h"
 
+#include "BLF_translation.h"
+
 #include "BKE_context.h"
 #include "BKE_screen.h"
 
 #include "ED_screen.h"
+#include "ED_gpencil.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -47,6 +48,19 @@
 #include "UI_interface.h"
 
 #include "sequencer_intern.h"
+
+/* **************************** buttons ********************************* */
+
+void sequencer_buttons_register(ARegionType *art)
+{
+	PanelType *pt;
+	
+	pt = MEM_callocN(sizeof(PanelType), "spacetype sequencer panel gpencil");
+	strcpy(pt->idname, "SEQUENCER_PT_gpencil");
+	strcpy(pt->label, N_("Grease Pencil"));
+	pt->draw= gpencil_panel_standard;
+	BLI_addtail(&art->paneltypes, pt);
+}
 
 /* **************** operator to open/close properties view ************* */
 

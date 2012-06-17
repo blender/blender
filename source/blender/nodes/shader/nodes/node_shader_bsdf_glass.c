@@ -30,14 +30,14 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_glass_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Roughness",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "IOR",		1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
+	{	SOCK_RGBA, 1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Roughness"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("IOR"),		1.45f, 0.0f, 0.0f, 0.0f, 1.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_bsdf_glass_out[]= {
-	{	SOCK_SHADER, 0, "BSDF"},
+	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };
 

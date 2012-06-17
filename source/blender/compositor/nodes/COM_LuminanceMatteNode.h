@@ -25,9 +25,9 @@
 #include "COM_Node.h"
 
 /**
-  * @brief LuminanceMatteNode
-  * @ingroup Node
-  */
+ * @brief LuminanceMatteNode
+ * @ingroup Node
+ */
 class LuminanceMatteNode : public Node
 {
 public:

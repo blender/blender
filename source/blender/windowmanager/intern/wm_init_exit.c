@@ -178,7 +178,8 @@ void WM_init(bContext *C, int argc, const char **argv)
 		GPU_extensions_init();
 		GPU_set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		GPU_set_anisotropic(U.anisotropic_filter);
-	
+		GPU_set_gpu_mipmapping(U.use_gpu_mipmap);
+
 		UI_init();
 	}
 	
@@ -372,7 +373,7 @@ void WM_exit_ext(bContext *C, const short do_python)
 		wm_free_reports(C);  /* before free_blender! - since the ListBases get freed there */
 
 	seq_free_clipboard(); /* sequencer.c */
-	BKE_tracking_free_clipboard();
+	BKE_tracking_clipboard_free();
 		
 	free_blender();  /* blender.c, does entire library and spacetypes */
 //	free_matcopybuf();

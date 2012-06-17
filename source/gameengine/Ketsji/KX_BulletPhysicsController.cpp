@@ -20,8 +20,8 @@
 #include "BulletSoftBody/btSoftBody.h"
 
 
-KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool compound)
-: KX_IPhysicsController(dyna,sensor,compound,(PHY_IPhysicsController*)this),
+KX_BulletPhysicsController::KX_BulletPhysicsController (const CcdConstructionInfo& ci, bool dyna, bool sensor, bool character, bool compound)
+: KX_IPhysicsController(dyna,sensor,character,compound,(PHY_IPhysicsController*)this),
 CcdPhysicsController(ci),
 m_savedCollisionFlags(0),
 m_savedCollisionFilterGroup(0),
@@ -472,7 +472,7 @@ SG_Controller*	KX_BulletPhysicsController::GetReplica(class SG_Node* destnode)
 void	KX_BulletPhysicsController::SetSumoTransform(bool nondynaonly)
 {
 
-	if (!m_bDyna && !m_bSensor)
+	if (!m_bDyna && !m_bSensor && !m_bCharacter)
 	{
 		btCollisionObject* object = GetRigidBody();
 		object->setActivationState(ACTIVE_TAG);

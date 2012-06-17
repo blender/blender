@@ -455,7 +455,7 @@ static int shape_key_move_exec(bContext *C, wmOperator *op)
 			ob->shapenr++;
 		}
 
-		SWAP(float, kb_other->pos, kb->pos) /* for absolute shape keys */
+		SWAP(float, kb_other->pos, kb->pos); /* for absolute shape keys */
 	}
 
 	DAG_id_tag_update(&ob->id, OB_RECALC_DATA);

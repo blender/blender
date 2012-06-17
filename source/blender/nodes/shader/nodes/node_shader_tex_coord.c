@@ -32,13 +32,13 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_coord_out[]= {
-	{	SOCK_VECTOR, 0, "Generated",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Normal",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "UV",				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Object",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Camera",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Window",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_VECTOR, 0, "Reflection",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Generated"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Normal"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("UV"),				0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Object"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Camera"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Window"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Reflection"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

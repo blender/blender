@@ -807,6 +807,7 @@ PyDoc_STRVAR(M_Geometry_intersect_point_quad_2d_doc,
 "\n"
 "   Takes 5 vectors (using only the x and y coordinates): one is the point and the next 4 define the quad, \n"
 "   only the x and y are used from the vectors. Returns 1 if the point is within the quad, otherwise 0.\n"
+"   Works only with convex quads without singular edges."
 "\n"
 "   :arg pt: Point\n"
 "   :type pt: :class:`mathutils.Vector`\n"

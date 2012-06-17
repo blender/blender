@@ -193,16 +193,15 @@ shader node_musgrave_texture(
 	float Offset = 0.0,
 	float Intensity = 1.0,
 	float Gain = 1.0,
-	float Size = 0.25,
+	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0)
 {
 	float dimension = max(Dimension, 0.0);
 	float octaves = max(Octaves, 0.0);
 	float lacunarity = max(Lacunarity, 1e-5);
-	float size = nonzero(Size, 1e-5);
 
-	point p = Vector/size;
+	point p = Vector*Scale;
 
 	if(Type == "Multifractal")
 		Fac = Intensity*noise_musgrave_multi_fractal(p, Basis, dimension, lacunarity, octaves);

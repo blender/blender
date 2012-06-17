@@ -1,3 +1,20 @@
+/*
+ * Copyright 2011, Blender Foundation.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
 
 #ifndef KERNEL_TEX
 #define KERNEL_TEX(type, ttype, name)
@@ -34,6 +51,9 @@ KERNEL_TEX(float4, texture_float4, __light_distribution)
 KERNEL_TEX(float4, texture_float4, __light_data)
 KERNEL_TEX(float2, texture_float2, __light_background_marginal_cdf)
 KERNEL_TEX(float2, texture_float2, __light_background_conditional_cdf)
+
+/* particles */
+KERNEL_TEX(float4, texture_float4, __particles)
 
 /* shaders */
 KERNEL_TEX(uint4, texture_uint4, __svm_nodes)

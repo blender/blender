@@ -94,5 +94,27 @@ __device void svm_node_object_info(KernelGlobals *kg, ShaderData *sd, float *sta
 	stack_store_float(stack, out_offset, data);
 }
 
+/* Particle Info */
+
+__device void svm_node_particle_info(KernelGlobals *kg, ShaderData *sd, float *stack, uint type, uint out_offset)
+{
+	float data;
+
+	switch(type) {
+		case NODE_INFO_PAR_AGE: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			data = particle_age(kg, particle_id);
+			stack_store_float(stack, out_offset, data);
+			break;
+		}
+		case NODE_INFO_PAR_LIFETIME: {
+			uint particle_id = object_particle_id(kg, sd->object);
+			data = particle_lifetime(kg, particle_id);
+			stack_store_float(stack, out_offset, data);
+			break;
+		}
+	}
+}
+
 CCL_NAMESPACE_END
 

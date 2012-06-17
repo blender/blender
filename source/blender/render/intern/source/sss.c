@@ -810,12 +810,12 @@ void scatter_tree_build(ScatterTree *tree)
 	sum_radiance(tree, tree->root);
 }
 
-void scatter_tree_sample(ScatterTree *tree, float *co, float *color)
+void scatter_tree_sample(ScatterTree *tree, const float co[3], float color[3])
 {
 	float sco[3];
 
 	copy_v3_v3(sco, co);
-	mul_v3_fl(sco, 1.0f/tree->scale);
+	mul_v3_fl(sco, 1.0f / tree->scale);
 
 	compute_radiance(tree, sco, color);
 }
@@ -1025,7 +1025,7 @@ void free_sss(Render *re)
 	}
 }
 
-int sample_sss(Render *re, Material *mat, float *co, float *color)
+int sample_sss(Render *re, Material *mat, const float co[3], float color[3])
 {
 	if (re->sss_hash) {
 		SSSData *sss= BLI_ghash_lookup(re->sss_hash, mat);

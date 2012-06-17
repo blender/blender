@@ -32,6 +32,7 @@
  *  \ingroup bke
  */
 
+struct bContext;
 struct Brush;
 struct MDisps;
 struct MeshElemMap;
@@ -55,6 +56,7 @@ void free_paint(struct Paint *p);
 void copy_paint(struct Paint *src, struct Paint *tar);
 
 struct Paint *paint_get_active(struct Scene *sce);
+struct Paint *paint_get_active_from_context(const struct bContext *C);
 struct Brush *paint_brush(struct Paint *paint);
 void paint_brush_set(struct Paint *paint, struct Brush *br);
 

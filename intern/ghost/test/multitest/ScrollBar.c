@@ -96,7 +96,8 @@ int scrollbar_is_scrolling(ScrollBar *sb)
 {
 	return sb->scrolling;
 }
-int scrollbar_contains_pt(ScrollBar *sb, int pt[2]) {
+int scrollbar_contains_pt(ScrollBar *sb, int pt[2])
+{
 	return rect_contains_pt(sb->rect, pt);
 }
 

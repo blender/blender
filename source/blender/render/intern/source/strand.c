@@ -400,7 +400,7 @@ void strand_shade_segment(Render *re, StrandShadeCache *cache, StrandSegment *ss
 	interpolate_shade_result(&shr1, &shr2, t, ssamp->shr, addpassflag);
 
 	/* apply alpha along width */
-	if (sseg->buffer->widthfade != 0.0f) {
+	if (sseg->buffer->widthfade != -1.0f) {
 		s = 1.0f - powf(fabsf(s), sseg->buffer->widthfade);
 
 		strand_apply_shaderesult_alpha(ssamp->shr, s);
@@ -569,10 +569,10 @@ static void do_strand_fillac(void *handle, int x, int y, float u, float v, float
 
 #define CHECK_ADD(n) \
 	if (apn->p[n]==strnr && apn->obi[n]==obi && apn->seg[n]==seg) \
-	{ if (!(apn->mask[n] & mask)) { apn->mask[n] |= mask; apn->v[n] += t; apn->u[n] += s; } break; }
+	{ if (!(apn->mask[n] & mask)) { apn->mask[n] |= mask; apn->v[n] += t; apn->u[n] += s; } break; } (void)0
 #define CHECK_ASSIGN(n) \
 	if (apn->p[n]==0) \
-	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; }
+	{apn->obi[n]= obi; apn->p[n]= strnr; apn->z[n]= zverg; apn->mask[n]= mask; apn->v[n]= t; apn->u[n]= s; apn->seg[n]= seg; break; } (void)0
 
 	/* add to pixel list */
 	if (zverg < bufferz && (spart->totapixbuf[offset] < MAX_ZROW)) {

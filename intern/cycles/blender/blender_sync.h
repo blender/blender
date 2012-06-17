@@ -63,7 +63,7 @@ public:
 	static SceneParams get_scene_params(BL::Scene b_scene, bool background);
 	static SessionParams get_session_params(BL::UserPreferences b_userpref, BL::Scene b_scene, bool background);
 	static bool get_session_pause(BL::Scene b_scene, bool background);
-	static BufferParams get_buffer_params(BL::Scene b_scene, BL::RegionView3D b_rv3d, int width, int height);
+	static BufferParams get_buffer_params(BL::Scene b_scene, Camera *cam, int width, int height);
 
 private:
 	/* sync */
@@ -80,17 +80,20 @@ private:
 
 	void sync_nodes(Shader *shader, BL::ShaderNodeTree b_ntree);
 	Mesh *sync_mesh(BL::Object b_ob, bool object_updated);
-	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion);
+	void sync_object(BL::Object b_parent, int b_index, BL::Object b_object, Transform& tfm, uint layer_flag, int motion, int particle_id);
 	void sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm);
 	void sync_background_light();
 	void sync_mesh_motion(BL::Object b_ob, Mesh *mesh, int motion);
 	void sync_camera_motion(BL::Object b_ob, int motion);
+	void sync_particles(Object *ob, BL::Object b_ob);
 
 	/* util */
 	void find_shader(BL::ID id, vector<uint>& used_shaders, int default_shader);
 	bool BKE_object_is_modified(BL::Object b_ob);
 	bool object_is_mesh(BL::Object b_ob);
 	bool object_is_light(BL::Object b_ob);
+	bool object_use_particles(BL::Object b_ob);
+	int object_count_particles(BL::Object b_ob);
 
 	/* variables */
 	BL::BlendData b_data;

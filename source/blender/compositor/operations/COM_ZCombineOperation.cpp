@@ -23,7 +23,7 @@
 #include "COM_ZCombineOperation.h"
 #include "BLI_utildefines.h"
 
-ZCombineOperation::ZCombineOperation(): NodeOperation()
+ZCombineOperation::ZCombineOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -53,7 +53,7 @@ void ZCombineOperation::executePixel(float *color, float x, float y, PixelSample
 
 	this->depth1Reader->read(depth1, x, y, sampler, inputBuffers);
 	this->depth2Reader->read(depth2, x, y, sampler, inputBuffers);
-	if (depth1[0]<depth2[0]) {
+	if (depth1[0] < depth2[0]) {
 		this->image1Reader->read(color, x, y, sampler, inputBuffers);
 	}
 	else {
@@ -69,7 +69,7 @@ void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelS
 
 	this->depth1Reader->read(depth1, x, y, sampler, inputBuffers);
 	this->depth2Reader->read(depth2, x, y, sampler, inputBuffers);
-	if (depth1[0]<depth2[0]) {
+	if (depth1[0] < depth2[0]) {
 		this->image1Reader->read(color1, x, y, sampler, inputBuffers);
 		this->image2Reader->read(color2, x, y, sampler, inputBuffers);
 	}
@@ -78,10 +78,10 @@ void ZCombineAlphaOperation::executePixel(float *color, float x, float y, PixelS
 		this->image2Reader->read(color1, x, y, sampler, inputBuffers);
 	}
 	float fac = color1[3];
-	float ifac = 1.0f-fac;
-	color[0] = color1[0]+ifac*color2[0];
-	color[1] = color1[1]+ifac*color2[1];
-	color[2] = color1[2]+ifac*color2[2];
+	float ifac = 1.0f - fac;
+	color[0] = color1[0] + ifac * color2[0];
+	color[1] = color1[1] + ifac * color2[1];
+	color[2] = color1[2] + ifac * color2[2];
 	color[3] = MAX2(color1[3], color2[3]);
 }
 

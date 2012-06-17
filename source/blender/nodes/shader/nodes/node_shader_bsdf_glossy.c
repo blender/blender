@@ -30,13 +30,13 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_bsdf_glossy_in[]= {
-	{	SOCK_RGBA,  1, "Color",		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Roughness",	0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA,  1, N_("Color"),		0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Roughness"),	0.2f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_bsdf_glossy_out[]= {
-	{	SOCK_SHADER, 0, "BSDF"},
+	{	SOCK_SHADER, 0, N_("BSDF")},
 	{	-1, 0, ""	}
 };
 

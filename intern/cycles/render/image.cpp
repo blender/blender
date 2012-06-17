@@ -66,7 +66,7 @@ static bool is_float_image(const string& filename)
 
 		if(in->open(filename, spec)) {
 			/* check the main format, and channel formats;
-			   if any take up more than one byte, we'll need a float texture slot */
+			 * if any take up more than one byte, we'll need a float texture slot */
 			if(spec.format.basesize() > 1)
 				is_float = true;
 
@@ -171,8 +171,8 @@ void ImageManager::remove_image(const string& filename)
 			assert(images[slot]->users >= 0);
 
 			/* don't remove immediately, rather do it all together later on. one of
-			   the reasons for this is that on shader changes we add and remove nodes
-			   that use them, but we do not want to reload the image all the time. */
+			 * the reasons for this is that on shader changes we add and remove nodes
+			 * that use them, but we do not want to reload the image all the time. */
 			if(images[slot]->users == 0)
 				need_update = true;
 
@@ -189,8 +189,8 @@ void ImageManager::remove_image(const string& filename)
 				assert(float_images[slot]->users >= 0);
 
 				/* don't remove immediately, rather do it all together later on. one of
-				   the reasons for this is that on shader changes we add and remove nodes
-				   that use them, but we do not want to reload the image all the time. */
+				 * the reasons for this is that on shader changes we add and remove nodes
+				 * that use them, but we do not want to reload the image all the time. */
 				if(float_images[slot]->users == 0)
 					need_update = true;
 
@@ -483,7 +483,7 @@ void ImageManager::device_update(Device *device, DeviceScene *dscene, Progress& 
 void ImageManager::device_pack_images(Device *device, DeviceScene *dscene, Progress& progess)
 {
 	/* for OpenCL, we pack all image textures inside a single big texture, and
-	   will do our own interpolation in the kernel */
+	 * will do our own interpolation in the kernel */
 	size_t size = 0;
 
 	for(size_t slot = 0; slot < images.size(); slot++) {

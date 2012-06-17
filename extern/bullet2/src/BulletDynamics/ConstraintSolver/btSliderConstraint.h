@@ -22,8 +22,8 @@ TODO:
  - add conversion for ODE constraint solver
 */
 
-#ifndef SLIDER_CONSTRAINT_H
-#define SLIDER_CONSTRAINT_H
+#ifndef BT_SLIDER_CONSTRAINT_H
+#define BT_SLIDER_CONSTRAINT_H
 
 
 
@@ -236,7 +236,10 @@ public:
 	btScalar getTargetAngMotorVelocity() { return m_targetAngMotorVelocity; }
 	void setMaxAngMotorForce(btScalar maxAngMotorForce) { m_maxAngMotorForce = maxAngMotorForce; }
 	btScalar getMaxAngMotorForce() { return m_maxAngMotorForce; }
-	btScalar getLinearPos() { return m_linPos; }
+
+	btScalar getLinearPos() const { return m_linPos; }
+	btScalar getAngularPos() const { return m_angPos; }
+	
 	
 
 	// access for ODE solver
@@ -326,5 +329,5 @@ SIMD_FORCE_INLINE	const char*	btSliderConstraint::serialize(void* dataBuffer, bt
 
 
 
-#endif //SLIDER_CONSTRAINT_H
+#endif //BT_SLIDER_CONSTRAINT_H
 

@@ -26,23 +26,23 @@
 
 
 /**
-  * this program converts an input colour to an output value.
-  * it assumes we are in sRGB colour space.
-  */
+ * this program converts an input colour to an output value.
+ * it assumes we are in sRGB colour space.
+ */
 class AlphaOverMixedOperation : public MixBaseOperation {
 private:
 	float x;
 public:
 	/**
-	  * Default constructor
-	  */
+	 * Default constructor
+	 */
 	AlphaOverMixedOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 	
-	void setX(float x) {this->x = x;}
+	void setX(float x) { this->x = x; }
 };
 #endif

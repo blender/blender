@@ -26,12 +26,12 @@
 #include "COM_Node.h"
 #include "DNA_node_types.h"
 /**
-  * @brief ViewerNode
-  * @ingroup Node
-  */
+ * @brief ViewerNode
+ * @ingroup Node
+ */
 class ViewerNode : public Node {
 public:
 	ViewerNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 #endif

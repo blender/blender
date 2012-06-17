@@ -417,7 +417,7 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				                   bpath_user_data);                           \
 			}                                                                  \
 		}                                                                      \
-	}                                                                          \
+	} (void)0
 
 
 			{
@@ -493,11 +493,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 		case ID_TE:
 		{
 			Tex *tex = (Tex *)id;
-			if (tex->plugin) {
-				/* FIXME: rewrite_path assumes path length of FILE_MAX, but
-				 * tex->plugin->name is 160. ... is this field even a path? */
-				//rewrite_path(tex->plugin->name, visit_cb, bpath_user_data);
-			}
 			if (tex->type == TEX_VOXELDATA && TEX_VD_IS_SOURCE_PATH(tex->vd->file_format)) {
 				rewrite_path_fixed(tex->vd->source_path, visit_cb, absbase, bpath_user_data);
 			}
@@ -513,11 +508,11 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 				SEQ_BEGIN(scene->ed, seq)
 				{
 					if (SEQ_HAS_PATH(seq)) {
-						if (ELEM(seq->type, SEQ_MOVIE, SEQ_SOUND)) {
+						if (ELEM(seq->type, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM)) {
 							rewrite_path_fixed_dirfile(seq->strip->dir, seq->strip->stripdata->name,
 							                           visit_cb, absbase, bpath_user_data);
 						}
-						else if (seq->type == SEQ_IMAGE) {
+						else if (seq->type == SEQ_TYPE_IMAGE) {
 							/* might want an option not to loop over all strips */
 							StripElem *se = seq->strip->stripdata;
 							int len = MEM_allocN_len(se) / sizeof(*se);
@@ -537,9 +532,6 @@ void BLI_bpath_traverse_id(Main *bmain, ID *id, BPathVisitor visit_cb, const int
 							/* simple case */
 							rewrite_path_fixed(seq->strip->dir, visit_cb, absbase, bpath_user_data);
 						}
-					}
-					else if (seq->plugin) {
-						rewrite_path_fixed(seq->plugin->name, visit_cb, absbase, bpath_user_data);
 					}
 
 				}

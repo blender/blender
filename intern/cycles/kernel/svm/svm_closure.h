@@ -374,7 +374,7 @@ __device void svm_node_mix_closure(ShaderData *sd, float *stack,
 {
 #ifdef __MULTI_CLOSURE__
 	/* fetch weight from blend input, previous mix closures,
-	   and write to stack to be used by closure nodes later */
+	 * and write to stack to be used by closure nodes later */
 	uint weight_offset, in_weight_offset, weight1_offset, weight2_offset;
 	decode_node_uchar4(node.y, &weight_offset, &in_weight_offset, &weight1_offset, &weight2_offset);
 
@@ -387,8 +387,8 @@ __device void svm_node_mix_closure(ShaderData *sd, float *stack,
 		stack_store_float(stack, weight2_offset, in_weight*weight);
 #else
 	/* pick a closure and make the random number uniform over 0..1 again.
-	   closure 1 starts on the next node, for closure 2 the start is at an
-	   offset from the current node, so we jump */
+	 * closure 1 starts on the next node, for closure 2 the start is at an
+	 * offset from the current node, so we jump */
 	uint weight_offset = node.y;
 	uint node_jump = node.z;
 	float weight = stack_load_float(stack, weight_offset);
@@ -410,8 +410,8 @@ __device void svm_node_add_closure(ShaderData *sd, float *stack, uint unused,
 	/* nothing to do, handled in compiler */
 #else
 	/* pick one of the two closures with probability 0.5. sampling quality
-	   is not going to be great, for that we'd need to evaluate the weights
-	   of the two closures being added */
+	 * is not going to be great, for that we'd need to evaluate the weights
+	 * of the two closures being added */
 	float weight = 0.5f;
 
 	if(*randb < weight) {

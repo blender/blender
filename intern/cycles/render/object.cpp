@@ -23,9 +23,9 @@
 #include "scene.h"
 
 #include "util_foreach.h"
-#include "util_hash.h"
 #include "util_map.h"
 #include "util_progress.h"
+#include "util_vector.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -37,8 +37,9 @@ Object::Object()
 	mesh = NULL;
 	tfm = transform_identity();
 	visibility = ~0;
-	instance_id = 0;
+	random_id = 0;
 	pass_id = 0;
+	particle_id = 0;
 	bounds = BoundBox::empty;
 	motion.pre = transform_identity();
 	motion.post = transform_identity();
@@ -88,7 +89,7 @@ void Object::apply_transform()
 	Transform ntfm = transform_transpose(transform_inverse(tfm));
 
 	/* we keep normals pointing in same direction on negative scale, notify
-	   mesh about this in it (re)calculates normals */
+	 * mesh about this in it (re)calculates normals */
 	if(transform_negative_scale(tfm))
 		mesh->transform_negative_scaled = true;
 
@@ -146,7 +147,7 @@ ObjectManager::~ObjectManager()
 void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	float4 *objects = dscene->objects.resize(OBJECT_SIZE*scene->objects.size());
-	uint *object_flag = dscene->object_flag.resize(OBJECT_SIZE*scene->objects.size());
+	uint *object_flag = dscene->object_flag.resize(scene->objects.size());
 	int i = 0;
 	map<Mesh*, float> surface_area_map;
 	Scene::MotionType need_motion = scene->need_motion();
@@ -160,14 +161,12 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 		Transform itfm = transform_inverse(tfm);
 
 		/* compute surface area. for uniform scale we can do avoid the many
-		   transform calls and share computation for instances */
+		 * transform calls and share computation for instances */
 		/* todo: correct for displacement, and move to a better place */
 		float uniform_scale;
 		float surface_area = 0.0f;
 		float pass_id = ob->pass_id;
-		
-		uint ob_hash = hash_int_2d(hash_string(ob->name.c_str()), ob->instance_id);
-		float random_number = (float)ob_hash * (1.0f/(float)0xFFFFFFFF);
+		float random_number = (float)ob->random_id * (1.0f/(float)0xFFFFFFFF);
 		
 		if(transform_uniform_scale(tfm, uniform_scale)) {
 			map<Mesh*, float>::iterator it = surface_area_map.find(mesh);
@@ -203,12 +202,12 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 
 		memcpy(&objects[offset], &tfm, sizeof(float4)*3);
 		memcpy(&objects[offset+3], &itfm, sizeof(float4)*3);
-		objects[offset+6] = make_float4(surface_area, pass_id, random_number, 0.0f);
+		objects[offset+6] = make_float4(surface_area, pass_id, random_number, __int_as_float(ob->particle_id));
 
 		if(need_motion == Scene::MOTION_PASS) {
 			/* motion transformations, is world/object space depending if mesh
-			   comes with deformed position in object space, or if we transform
-			   the shading point in world space */
+			 * comes with deformed position in object space, or if we transform
+			 * the shading point in world space */
 			Transform mtfm_pre = ob->motion.pre;
 			Transform mtfm_post = ob->motion.post;
 
@@ -249,6 +248,38 @@ void ObjectManager::device_update_transforms(Device *device, DeviceScene *dscene
 	device->tex_alloc("__object_flag", dscene->object_flag);
 }
 
+void ObjectManager::device_update_particles(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
+{
+	/* count particles.
+	 * adds one dummy particle at the beginning to avoid invalid lookups,
+	 * in case a shader uses particle info without actual particle data.
+	 */
+	int num_particles = 1;
+	foreach(Object *ob, scene->objects)
+		num_particles += ob->particles.size();
+	
+	float4 *particles = dscene->particles.resize(PARTICLE_SIZE*num_particles);
+	
+	/* dummy particle */
+	particles[0] = make_float4(0.0f, 0.0f, 0.0f, 0.0f);
+	
+	int i = 1;
+	foreach(Object *ob, scene->objects) {
+		foreach(Particle &pa, ob->particles) {
+			/* pack in texture */
+			int offset = i*PARTICLE_SIZE;
+			
+			particles[offset] = make_float4(pa.age, pa.lifetime, 0.0f, 0.0f);
+			
+			i++;
+			
+			if(progress.get_cancel()) return;
+		}
+	}
+	
+	device->tex_alloc("__particles", dscene->particles);
+}
+
 void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *scene, Progress& progress)
 {
 	if(!need_update)
@@ -274,6 +305,11 @@ void ObjectManager::device_update(Device *device, DeviceScene *dscene, Scene *sc
 
 	if(progress.get_cancel()) return;
 
+	progress.set_status("Updating Objects", "Copying Particles to device");
+	device_update_particles(device, dscene, scene, progress);
+	
+	if(progress.get_cancel()) return;
+	
 	need_update = false;
 }
 
@@ -284,6 +320,9 @@ void ObjectManager::device_free(Device *device, DeviceScene *dscene)
 
 	device->tex_free(dscene->object_flag);
 	dscene->object_flag.clear();
+	
+	device->tex_free(dscene->particles);
+	dscene->particles.clear();
 }
 
 void ObjectManager::apply_static_transforms(Scene *scene, Progress& progress)

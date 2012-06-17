@@ -35,11 +35,11 @@
 
 /* **************** VALTORGB ******************** */
 static bNodeSocketTemplate valtorgb_in[]= {
-	{	SOCK_FLOAT, 1, "Fac",			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Fac"),			0.5f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate valtorgb_out[]= {
-	{	SOCK_RGBA, 0, "Color"},
+	{	SOCK_RGBA, 0, N_("Color")},
 	{	-1, 0, ""	}
 };
 
@@ -78,11 +78,11 @@ void register_node_type_tex_valtorgb(bNodeTreeType *ttype)
 
 /* **************** RGBTOBW ******************** */
 static bNodeSocketTemplate rgbtobw_in[]= {
-	{	SOCK_RGBA, 1, "Color",			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Color"),			0.5f, 0.5f, 0.5f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate rgbtobw_out[]= {
-	{	SOCK_FLOAT, 0, "Val",			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Val"),			0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

@@ -40,9 +40,9 @@ static bNodeSocketTemplate sh_node_texture_in[]= {
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate sh_node_texture_out[]= {
-	{	SOCK_FLOAT, 0, "Value"},
-	{	SOCK_RGBA, 0, "Color"},
-	{	SOCK_VECTOR, 0, "Normal"},
+	{	SOCK_FLOAT, 0, N_("Value")},
+	{	SOCK_RGBA, 0, N_("Color")},
+	{	SOCK_VECTOR, 0, N_("Normal")},
 	{	-1, 0, ""	}
 };
 

@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SOFT_RIGID_COLLISION_ALGORITHM_H
-#define SOFT_RIGID_COLLISION_ALGORITHM_H
+#ifndef BT_SOFT_RIGID_COLLISION_ALGORITHM_H
+#define BT_SOFT_RIGID_COLLISION_ALGORITHM_H
 
 #include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
@@ -70,6 +70,6 @@ public:
 
 };
 
-#endif //SOFT_RIGID_COLLISION_ALGORITHM_H
+#endif //BT_SOFT_RIGID_COLLISION_ALGORITHM_H
 
 

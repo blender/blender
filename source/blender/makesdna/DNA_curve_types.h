@@ -315,26 +315,26 @@ typedef struct Curve {
 
 /* h1 h2 (beztriple) */
 typedef enum eBezTriple_Handle {
-	HD_FREE	= 0,
-	HD_AUTO,
-	HD_VECT,
-	HD_ALIGN,
-	HD_AUTO_ANIM 	/* auto-clamped handles for animation */
+	HD_FREE = 0,
+	HD_AUTO = 1,
+	HD_VECT = 2,
+	HD_ALIGN = 3,
+	HD_AUTO_ANIM = 4 	/* auto-clamped handles for animation */
 } eBezTriple_Handle;
 
 /* interpolation modes (used only for BezTriple->ipo) */
 typedef enum eBezTriple_Interpolation {
 	BEZT_IPO_CONST = 0,	/* constant interpolation */
-	BEZT_IPO_LIN,		/* linear interpolation */
-	BEZT_IPO_BEZ		/* bezier interpolation */
+	BEZT_IPO_LIN = 1,	/* linear interpolation */
+	BEZT_IPO_BEZ = 2	/* bezier interpolation */
 } eBezTriple_Interpolation;
 
 /* types of keyframe (used only for BezTriple->hide when BezTriple is used in F-Curves) */
 typedef enum eBezTriple_KeyframeType {
 	BEZT_KEYTYPE_KEYFRAME = 0,	/* default - 'proper' Keyframe */
-	BEZT_KEYTYPE_EXTREME,		/* 'extreme' keyframe */
-	BEZT_KEYTYPE_BREAKDOWN,		/* 'breakdown' keyframe */
-	BEZT_KEYTYPE_JITTER,		/* 'jitter' keyframe (for adding 'filler' secondary motion) */
+	BEZT_KEYTYPE_EXTREME = 1,	/* 'extreme' keyframe */
+	BEZT_KEYTYPE_BREAKDOWN = 2,	/* 'breakdown' keyframe */
+	BEZT_KEYTYPE_JITTER = 3,	/* 'jitter' keyframe (for adding 'filler' secondary motion) */
 } eBezTriple_KeyframeType;
 
 /* checks if the given BezTriple is selected */

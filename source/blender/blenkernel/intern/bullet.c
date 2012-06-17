@@ -45,7 +45,7 @@ BulletSoftBody *bsbNew(void)
 {
 	BulletSoftBody *bsb;
 	
-	bsb= MEM_callocN(sizeof(BulletSoftBody), "bulletsoftbody");
+	bsb = MEM_callocN(sizeof(BulletSoftBody), "bulletsoftbody");
 		
 	bsb->flag = OB_BSB_BENDING_CONSTRAINTS | OB_BSB_SHAPE_MATCHING | OB_BSB_AERO_VPOINT;
 	bsb->linStiff = 0.5f;

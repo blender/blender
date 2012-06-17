@@ -20,13 +20,13 @@ CCL_NAMESPACE_BEGIN
 
 /* Gradient */
 
-__device float svm_gradient(float3 p, NodeBlendType type)
+__device float svm_gradient(float3 p, NodeGradientType type)
 {
 	float x, y, z;
 
-	x= p.x;
-	y= p.y;
-	z= p.z;
+	x = p.x;
+	y = p.y;
+	z = p.z;
 
 	if(type == NODE_BLEND_LINEAR) {
 		return x;
@@ -45,7 +45,7 @@ __device float svm_gradient(float3 p, NodeBlendType type)
 		return (x + y)/2.0f;
 	}
 	else if(type == NODE_BLEND_RADIAL) {
-		return atan2(y, x)/(2.0f*M_PI_F) + 0.5f;
+		return atan2f(y, x) / (2.0f * M_PI_F) + 0.5f;
 	}
 	else {
 		float r = fmaxf(1.0f - sqrtf(x*x + y*y + z*z), 0.0f);
@@ -67,7 +67,7 @@ __device void svm_node_tex_gradient(ShaderData *sd, float *stack, uint4 node)
 
 	float3 co = stack_load_float3(stack, co_offset);
 
-	float f = svm_gradient(co, (NodeBlendType)type);
+	float f = svm_gradient(co, (NodeGradientType)type);
 	f = clamp(f, 0.0f, 1.0f);
 
 	if(stack_valid(fac_offset))

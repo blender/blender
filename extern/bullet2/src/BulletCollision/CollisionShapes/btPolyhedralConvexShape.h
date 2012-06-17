@@ -13,22 +13,36 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BU_SHAPE
-#define BU_SHAPE
+#ifndef BT_POLYHEDRAL_CONVEX_SHAPE_H
+#define BT_POLYHEDRAL_CONVEX_SHAPE_H
 
 #include "LinearMath/btMatrix3x3.h"
 #include "btConvexInternalShape.h"
+class btConvexPolyhedron;
 
 
 ///The btPolyhedralConvexShape is an internal interface class for polyhedral convex shapes.
 class btPolyhedralConvexShape : public btConvexInternalShape
 {
+	
 
 protected:
 	
+	btConvexPolyhedron* m_polyhedron;
+
 public:
 
 	btPolyhedralConvexShape();
+
+	virtual ~btPolyhedralConvexShape();
+
+	///optional method mainly used to generate multiple contact points by clipping polyhedral features (faces/edges)
+	virtual bool	initializePolyhedralFeatures();
+
+	const btConvexPolyhedron*	getConvexPolyhedron() const
+	{
+		return m_polyhedron;
+	}
 
 	//brute force implementations
 
@@ -95,4 +109,4 @@ public:
 
 };
 
-#endif //BU_SHAPE
+#endif //BT_POLYHEDRAL_CONVEX_SHAPE_H

@@ -1565,6 +1565,12 @@ static void rna_def_tool_settings(BlenderRNA  *brna)
 	RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
 	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
 
+	prop = RNA_def_property(srna, "use_proportional_edit_mask", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "proportional_mask", 0);
+	RNA_def_property_ui_text(prop, "Proportional Editing Objects", "Proportional editing mask mode");
+	RNA_def_property_ui_icon(prop, ICON_PROP_OFF, 1);
+	RNA_def_property_update(prop, NC_SCENE | ND_TOOLSETTINGS, NULL); /* header redraw */
+
 	prop = RNA_def_property(srna, "proportional_edit_falloff", PROP_ENUM, PROP_NONE);
 	RNA_def_property_enum_sdna(prop, NULL, "prop_mode");
 	RNA_def_property_enum_items(prop, proportional_falloff_items);
@@ -2575,6 +2581,31 @@ static void rna_def_scene_game_data(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Physics Sub Steps",
 	                         "Number of simulation substep per physic timestep, "
 	                         "higher value give better physics precision");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "deactivation_linear_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "lineardeactthreshold");
+	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
+	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_ui_text(prop, "Deactivation Linear Threshold",
+	                         "Linear velocity that an object must be below before the deactivation timer can start");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "deactivation_angular_threshold", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "angulardeactthreshold");
+	RNA_def_property_ui_range(prop, 0.001, 10000.0, 2, 3);
+	RNA_def_property_range(prop, 0.001, 10000.0);
+	RNA_def_property_ui_text(prop, "Deactivation Angular Threshold",
+	                         "Angular velocity that an object must be below before the deactivation timer can start");
+	RNA_def_property_update(prop, NC_SCENE, NULL);
+
+	prop = RNA_def_property(srna, "deactivation_time", PROP_FLOAT, PROP_NONE);
+	RNA_def_property_float_sdna(prop, NULL, "deactivationtime");
+	RNA_def_property_ui_range(prop, 0.0, 60.0, 1, 1);
+	RNA_def_property_range(prop, 0.0, 60.0);
+	RNA_def_property_ui_text(prop, "Deactivation Time",
+	                         "Amount of time (in seconds) after which objects with a velocity less than the given "
+	                         "threshold will deactivate (0.0 means no deactivation)");
 	RNA_def_property_update(prop, NC_SCENE, NULL);
 
 	/* mode */
@@ -3629,6 +3660,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_compositing", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_DOCOMP);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Compositing",
 	                         "Process the render result through the compositing pipeline, "
 	                         "if compositing nodes are enabled");
@@ -3636,6 +3668,7 @@ static void rna_def_scene_render_data(BlenderRNA *brna)
 	
 	prop = RNA_def_property(srna, "use_sequencer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "scemode", R_DOSEQ);
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_ui_text(prop, "Sequencer",
 	                         "Process the render (and composited) result through the video sequence "
 	                         "editor pipeline, if sequencer strips exist");

@@ -28,13 +28,13 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief OutputFileNode
-  * @ingroup Node
-  */
+ * @brief OutputFileNode
+ * @ingroup Node
+ */
 class OutputFileNode : public Node {
 public:
 	OutputFileNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

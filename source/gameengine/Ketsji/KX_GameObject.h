@@ -712,7 +712,7 @@ public:
 		void						
 	AddMesh(
 		RAS_MeshObject* mesh
-	){ 
+	) {
 		m_meshes.push_back(mesh);
 	}
 

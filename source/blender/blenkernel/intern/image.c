@@ -91,6 +91,14 @@
 
 #include "BLO_sys_types.h" // for intptr_t support
 
+/* for image user iteration */
+#include "DNA_node_types.h"
+#include "DNA_space_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_view3d_types.h"
+
+#include "WM_api.h"
+
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX    0x7FEFEFEF
 
@@ -111,8 +119,8 @@ static void de_interlace_ng(struct ImBuf *ibuf) /* neogeo fields */
 	
 	if (ibuf->rect) {
 		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
+		tbuf1 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
+		tbuf2 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, (int)IB_rect);
 		
 		ibuf->x *= 2;
 		
@@ -139,8 +147,8 @@ static void de_interlace_st(struct ImBuf *ibuf) /* standard fields */
 	
 	if (ibuf->rect) {
 		/* make copies */
-		tbuf1 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect);
-		tbuf2 = IMB_allocImBuf(ibuf->x, (short)(ibuf->y >> 1), (unsigned char)32, IB_rect);
+		tbuf1 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, IB_rect);
+		tbuf2 = IMB_allocImBuf(ibuf->x, (ibuf->y >> 1), (unsigned char)32, IB_rect);
 		
 		ibuf->x *= 2;
 		
@@ -290,7 +298,7 @@ static void image_assign_ibuf(Image *ima, ImBuf *ibuf, int index, int frame)
 		else
 			ibuf->flags &= ~IB_cm_predivide;
 
-		/* this function accepts link==NULL */
+		/* this function accepts (link == NULL) */
 		BLI_insertlinkbefore(&ima->ibufs, link, ibuf);
 
 		/* now we don't want copies? */
@@ -592,10 +600,12 @@ static ImBuf *add_ibuf_size(unsigned int width, unsigned int height, const char 
 	if (floatbuf) {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rectfloat);
 		rect_float = (float *)ibuf->rect_float;
+		ibuf->profile = IB_PROFILE_LINEAR_RGB;
 	}
 	else {
 		ibuf = IMB_allocImBuf(width, height, depth, IB_rect);
 		rect = (unsigned char *)ibuf->rect;
+		ibuf->profile = IB_PROFILE_SRGB;
 	}
 	
 	BLI_strncpy(ibuf->name, name, sizeof(ibuf->name));
@@ -800,7 +810,7 @@ void BKE_image_free_all_textures(void)
 {
 	Tex *tex;
 	Image *ima;
-	/* unsigned int totsize= 0; */
+	/* unsigned int totsize = 0; */
 	
 	for (ima = G.main->image.first; ima; ima = ima->id.next)
 		ima->id.flag &= ~LIB_DOIT;
@@ -1812,6 +1822,65 @@ void BKE_image_assign_ibuf(Image *ima, ImBuf *ibuf)
 	image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 }
 
+void BKE_image_walk_all_users(const Main *mainp, void *customdata,
+                              void callback(Image *ima, ImageUser *iuser, void *customdata))
+{
+	wmWindowManager *wm;
+	wmWindow *win;
+	Tex *tex;
+
+	/* texture users */
+	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
+		if (tex->type == TEX_IMAGE && tex->ima) {
+			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
+				callback(tex->ima, &tex->iuser, customdata);
+			}
+		}
+	}
+
+	/* image window, compo node users */
+	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
+		for (win = wm->windows.first; win; win = win->next) {
+			ScrArea *sa;
+			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
+				if (sa->spacetype == SPACE_VIEW3D) {
+					View3D *v3d = sa->spacedata.first;
+					BGpic *bgpic;
+					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next) {
+						callback(bgpic->ima, &bgpic->iuser, customdata);
+					}
+				}
+				else if (sa->spacetype == SPACE_IMAGE) {
+					SpaceImage *sima = sa->spacedata.first;
+					callback(sima->image, &sima->iuser, customdata);
+				}
+				else if (sa->spacetype == SPACE_NODE) {
+					SpaceNode *snode = sa->spacedata.first;
+					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
+						bNode *node;
+						for (node = snode->nodetree->nodes.first; node; node = node->next) {
+							if (node->id && node->type == CMP_NODE_IMAGE) {
+								Image *ima = (Image *)node->id;
+								ImageUser *iuser = node->storage;
+								callback(ima, iuser, customdata);
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+static void image_tag_frame_recalc(Image *ima, ImageUser *iuser, void *customdata)
+{
+	Image *changed_image = customdata;
+
+	if (ima == changed_image) {
+		iuser->flag |= IMA_NEED_FRAME_RECALC;
+	}
+}
+
 void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 {
 	if (ima == NULL)
@@ -1845,6 +1914,9 @@ void BKE_image_signal(Image *ima, ImageUser *iuser, int signal)
 			ima->ok = 1;
 			if (iuser)
 				iuser->ok = 1;
+
+			BKE_image_walk_all_users(G.main, ima, image_tag_frame_recalc);
+
 			break;
 
 		case IMA_SIGNAL_RELOAD:
@@ -2012,8 +2084,7 @@ static void image_initialize_after_load(Image *ima, ImBuf *ibuf)
 static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 {
 	struct ImBuf *ibuf;
-	unsigned short numlen;
-	char name[FILE_MAX], head[FILE_MAX], tail[FILE_MAX];
+	char name[FILE_MAX];
 	int flag;
 	
 	/* XXX temp stuff? */
@@ -2021,11 +2092,7 @@ static ImBuf *image_load_sequence_file(Image *ima, ImageUser *iuser, int frame)
 		ima->tpageflag |= IMA_TPAGE_REFRESH;
 
 	ima->lastframe = frame;
-	BLI_strncpy(name, ima->name, sizeof(name));
-	BLI_stringdec(name, head, tail, &numlen);
-	BLI_stringenc(name, head, tail, numlen, frame);
-
-	BLI_path_abs(name, ID_BLEND_PATH(G.main, &ima->id));
+	BKE_image_user_file_path(iuser, ima, name);
 	
 	flag = IB_rect | IB_multilayer;
 	if (ima->flag & IMA_DO_PREMUL)
@@ -2137,8 +2204,7 @@ static ImBuf *image_load_movie_file(Image *ima, ImageUser *iuser, int frame)
 	if (ima->anim == NULL) {
 		char str[FILE_MAX];
 		
-		BLI_strncpy(str, ima->name, FILE_MAX);
-		BLI_path_abs(str, ID_BLEND_PATH(G.main, &ima->id));
+		BKE_image_user_file_path(iuser, ima, str);
 
 		/* FIXME: make several stream accessible in image editor, too*/
 		ima->anim = openanim(str, IB_rect, 0);
@@ -2201,8 +2267,8 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			flag |= IB_premul;
 			
 		/* get the right string */
-		BLI_strncpy(str, ima->name, sizeof(str));
-		BLI_path_abs(str, ID_BLEND_PATH(G.main, &ima->id));
+		BKE_image_user_frame_calc(iuser, cfra, 0);
+		BKE_image_user_file_path(iuser, ima, str);
 		
 		/* read ibuf */
 		ibuf = IMB_loadiffname(str, flag);
@@ -2656,15 +2722,42 @@ int BKE_image_user_frame_get(const ImageUser *iuser, int cfra, int fieldnr)
 
 void BKE_image_user_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
 {
-	const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr);
+	if (iuser) {
+		const int framenr = BKE_image_user_frame_get(iuser, cfra, fieldnr);
+		
+		/* allows image users to handle redraws */
+		if (iuser->flag & IMA_ANIM_ALWAYS)
+			if (framenr != iuser->framenr)
+				iuser->flag |= IMA_ANIM_REFRESHED;
+		
+		iuser->framenr = framenr;
+		if (iuser->ok == 0) iuser->ok = 1;
+	}
+}
 
-	/* allows image users to handle redraws */
-	if (iuser->flag & IMA_ANIM_ALWAYS)
-		if (framenr != iuser->framenr)
-			iuser->flag |= IMA_ANIM_REFRESHED;
+void BKE_image_user_check_frame_calc(ImageUser *iuser, int cfra, int fieldnr)
+{
+	if ((iuser->flag & IMA_ANIM_ALWAYS) || (iuser->flag & IMA_NEED_FRAME_RECALC)) {
+		BKE_image_user_frame_calc(iuser, cfra, fieldnr);
 
-	iuser->framenr = framenr;
-	if (iuser->ok == 0) iuser->ok = 1;
+		iuser->flag &= ~IMA_NEED_FRAME_RECALC;
+	}
+}
+
+void BKE_image_user_file_path(ImageUser *iuser, Image *ima, char *filepath)
+{
+	BLI_strncpy(filepath, ima->name, FILE_MAX);
+
+	if (ima->source == IMA_SRC_SEQUENCE) {
+		char head[FILE_MAX], tail[FILE_MAX];
+		unsigned short numlen;
+		int frame = iuser->framenr;
+
+		BLI_stringdec(filepath, head, tail, &numlen);
+		BLI_stringenc(filepath, head, tail, numlen, frame);
+	}
+
+	BLI_path_abs(filepath, ID_BLEND_PATH(G.main, &ima->id));
 }
 
 int BKE_image_has_alpha(struct Image *image)
@@ -2682,4 +2775,3 @@ int BKE_image_has_alpha(struct Image *image)
 	else
 		return 0;
 }
-

@@ -248,19 +248,19 @@ void DiagSplit::split(QuadDice::SubPatch& sub, QuadDice::EdgeFactors& ef, int de
 
 void DiagSplit::split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth)
 {
-	TriangleDice::SubPatch sub;
-	TriangleDice::EdgeFactors ef;
+	TriangleDice::SubPatch sub_split;
+	TriangleDice::EdgeFactors ef_split;
 
-	sub.patch = patch;
-	sub.Pu = make_float2(1.0f, 0.0f);
-	sub.Pv = make_float2(0.0f, 1.0f);
-	sub.Pw = make_float2(0.0f, 0.0f);
+	sub_split.patch = patch;
+	sub_split.Pu = make_float2(1.0f, 0.0f);
+	sub_split.Pv = make_float2(0.0f, 1.0f);
+	sub_split.Pw = make_float2(0.0f, 0.0f);
 
-	ef.tu = T(patch, sub.Pv, sub.Pw);
-	ef.tv = T(patch, sub.Pw, sub.Pu);
-	ef.tw = T(patch, sub.Pu, sub.Pv);
+	ef_split.tu = T(patch, sub_split.Pv, sub_split.Pw);
+	ef_split.tv = T(patch, sub_split.Pw, sub_split.Pu);
+	ef_split.tw = T(patch, sub_split.Pu, sub_split.Pv);
 
-	split(sub, ef);
+	split(sub_split, ef_split);
 
 	TriangleDice dice(mesh, shader, smooth, dicing_rate);
 	dice.camera = camera;
@@ -286,21 +286,21 @@ void DiagSplit::split_triangle(Mesh *mesh, Patch *patch, int shader, bool smooth
 
 void DiagSplit::split_quad(Mesh *mesh, Patch *patch, int shader, bool smooth)
 {
-	QuadDice::SubPatch sub;
-	QuadDice::EdgeFactors ef;
+	QuadDice::SubPatch sub_split;
+	QuadDice::EdgeFactors ef_split;
 
-	sub.patch = patch;
-	sub.P00 = make_float2(0.0f, 0.0f);
-	sub.P10 = make_float2(1.0f, 0.0f);
-	sub.P01 = make_float2(0.0f, 1.0f);
-	sub.P11 = make_float2(1.0f, 1.0f);
+	sub_split.patch = patch;
+	sub_split.P00 = make_float2(0.0f, 0.0f);
+	sub_split.P10 = make_float2(1.0f, 0.0f);
+	sub_split.P01 = make_float2(0.0f, 1.0f);
+	sub_split.P11 = make_float2(1.0f, 1.0f);
 
-	ef.tu0 = T(patch, sub.P00, sub.P10);
-	ef.tu1 = T(patch, sub.P01, sub.P11);
-	ef.tv0 = T(patch, sub.P00, sub.P01);
-	ef.tv1 = T(patch, sub.P10, sub.P11);
+	ef_split.tu0 = T(patch, sub_split.P00, sub_split.P10);
+	ef_split.tu1 = T(patch, sub_split.P01, sub_split.P11);
+	ef_split.tv0 = T(patch, sub_split.P00, sub_split.P01);
+	ef_split.tv1 = T(patch, sub_split.P10, sub_split.P11);
 
-	split(sub, ef);
+	split(sub_split, ef_split);
 
 	QuadDice dice(mesh, shader, smooth, dicing_rate);
 	dice.camera = camera;

@@ -81,9 +81,9 @@ void EdgeDice::stitch_triangles(vector<int>& outer, vector<int>& inner)
 		return; // XXX avoid crashes for Mu or Mv == 1, missing polygons
 
 	/* stitch together two arrays of verts with triangles. at each step,
-	   we compare using the next verts on both sides, to find the split
-	   direction with the smallest diagonal, and use that in order to keep
-	   the triangle shape reasonable. */
+	 * we compare using the next verts on both sides, to find the split
+	 * direction with the smallest diagonal, and use that in order to keep
+	 * the triangle shape reasonable. */
 	for(size_t i = 0, j = 0; i+1 < inner.size() || j+1 < outer.size();) {
 		int v0, v1, v2;
 
@@ -354,8 +354,8 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 	// XXX normals are flipped, why?
 
 	/* grid is constructed starting from the outside edges, and adding
-	   progressively smaller inner triangles that connected to the outer
-	   one, until M = 1 or 2, the we fill up the last part. */
+	 * progressively smaller inner triangles that connected to the outer
+	 * one, until M = 1 or 2, the we fill up the last part. */
 	vector<int> outer_u, outer_v, outer_w;
 	int m;
 
@@ -388,13 +388,13 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 	for(m = M-2; m > 0; m -= 2) {
 		vector<int> inner_u, inner_v, inner_w;
 
-		float t = m/(float)M;
+		const float t0 = m / (float)M;
 		float2 center = make_float2(1.0f/3.0f, 1.0f/3.0f);
 
 		/* 3 corner vertices */
-		float2 p_u = interp(center, make_float2(1.0f, 0.0f), t);
-		float2 p_v = interp(center, make_float2(0.0f, 1.0f), t);
-		float2 p_w = interp(center, make_float2(0.0f, 0.0f), t);
+		float2 p_u = interp(center, make_float2(1.0f, 0.0f), t0);
+		float2 p_v = interp(center, make_float2(0.0f, 1.0f), t0);
+		float2 p_w = interp(center, make_float2(0.0f, 0.0f), t0);
 
 		int corner_u = add_vert(sub, p_u);
 		int corner_v = add_vert(sub, p_v);
@@ -407,11 +407,11 @@ void TriangleDice::add_grid(SubPatch& sub, EdgeFactors& ef, int M)
 
 		for(int i = 1; i < m; i++) {
 			/* add vertices between corners */
-			float t = i/(float)m;
+			const float t1 = i / (float)m;
 
-			inner_u.push_back(add_vert(sub, interp(p_v, p_w, t)));
-			inner_v.push_back(add_vert(sub, interp(p_w, p_u, t)));
-			inner_w.push_back(add_vert(sub, interp(p_u, p_v, t)));
+			inner_u.push_back(add_vert(sub, interp(p_v, p_w, t1)));
+			inner_v.push_back(add_vert(sub, interp(p_w, p_u, t1)));
+			inner_w.push_back(add_vert(sub, interp(p_u, p_v, t1)));
 		}
 
 		inner_u.push_back(corner_w);

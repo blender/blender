@@ -207,6 +207,9 @@ static int rna_Image_gl_load(Image *image, ReportList *reports, int filter, int 
 		error = (int)gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, ibuf->x, ibuf->y, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 
 	if (!error) {
+		/* clean glError buffer */
+		while (glGetError() != GL_NO_ERROR) {}
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, image->tpageflag & IMA_CLAMP_U ? GL_CLAMP : GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, image->tpageflag & IMA_CLAMP_V ? GL_CLAMP : GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, (GLint)filter);
@@ -232,7 +235,7 @@ static int rna_Image_gl_touch(Image *image, ReportList *reports, int filter, int
 	BKE_image_tag_time(image);
 
 	if (*bind == 0)
-		error = rna_Image_gl_load(image, reports, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR);
+		error = rna_Image_gl_load(image, reports, filter, mag);
 
 	return error;
 }

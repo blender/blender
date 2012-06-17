@@ -49,30 +49,31 @@ using namespace OSL;
 
 class DebugClosure : public ClosurePrimitive {
 public:
-    ustring m_tag;
+	ustring m_tag;
 
-    DebugClosure () : ClosurePrimitive (Debug) { }
+	DebugClosure () : ClosurePrimitive(Debug) {}
 
-    bool mergeable (const ClosurePrimitive *other) const {
-        const DebugClosure *comp = (const DebugClosure *)other;
-        return m_tag == comp->m_tag &&
-            ClosurePrimitive::mergeable(other);
-    }
+	bool mergeable(const ClosurePrimitive *other) const {
+		const DebugClosure *comp = (const DebugClosure *)other;
+		return m_tag == comp->m_tag &&
+		       ClosurePrimitive::mergeable(other);
+	}
 
-    size_t memsize () const { return sizeof(*this); }
+	size_t memsize() const { return sizeof(*this); }
 
-    const char *name () const { return "debug"; }
+	const char *name() const { return "debug"; }
 
-    void print_on (std::ostream &out) const {
-        out << name() << " (\"" << m_tag.c_str() << "\")";
-    }
+	void print_on(std::ostream &out) const {
+		out << name() << " (\"" << m_tag.c_str() << "\")";
+	}
 
 };
 
 ClosureParam closure_debug_params[] = {
-    CLOSURE_STRING_PARAM(DebugClosure, m_tag),
-    CLOSURE_STRING_KEYPARAM("label"),
-    CLOSURE_FINISH_PARAM(DebugClosure) };
+	CLOSURE_STRING_PARAM(DebugClosure, m_tag),
+	CLOSURE_STRING_KEYPARAM("label"),
+	CLOSURE_FINISH_PARAM(DebugClosure)
+};
 
 CLOSURE_PREPARE(closure_debug_prepare, DebugClosure)
 

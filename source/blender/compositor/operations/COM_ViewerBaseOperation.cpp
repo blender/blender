@@ -50,8 +50,9 @@ ViewerBaseOperation::ViewerBaseOperation() : NodeOperation()
 
 void ViewerBaseOperation::initExecution()
 {
-	// When initializing the tree during initial load the width and height can be zero.
-	initImage();
+	if (isActiveViewerOutput()) {
+		initImage();
+	}
 }
 
 void ViewerBaseOperation::initImage()
@@ -73,14 +74,13 @@ void ViewerBaseOperation::initImage()
 	
 	/* now we combine the input with ibuf */
 	this->outputBuffer = ibuf->rect_float;
-	this->outputBufferDisplay = (unsigned char*)ibuf->rect;
+	this->outputBufferDisplay = (unsigned char *)ibuf->rect;
 	
 	BKE_image_release_ibuf(this->image, this->lock);
 }
 void ViewerBaseOperation:: updateImage(rcti *rect)
 {
-	/// @todo: introduce new event to update smaller area
-	WM_main_add_notifier(NC_WINDOW|ND_DRAW, NULL);
+	WM_main_add_notifier(NC_WINDOW | ND_DRAW, NULL);
 }
 
 void ViewerBaseOperation::deinitExecution()
@@ -88,12 +88,12 @@ void ViewerBaseOperation::deinitExecution()
 	this->outputBuffer = NULL;
 }
 
-const int ViewerBaseOperation::getRenderPriority() const
+const CompositorPriority ViewerBaseOperation::getRenderPriority() const
 {
 	if (this->isActiveViewerOutput()) {
-		return 8;
+		return COM_PRIORITY_HIGH;
 	}
 	else {
-		return 0;
+		return COM_PRIORITY_LOW;
 	}
 }

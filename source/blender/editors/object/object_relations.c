@@ -424,27 +424,35 @@ EnumPropertyItem prop_clear_parent_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-void ED_object_parent_clear(bContext *C, int type)
+void ED_object_parent_clear(Object *ob, int type)
+{
+
+	if (ob->parent == NULL)
+		return;
+		
+	if (type == 0) {
+		ob->parent = NULL;
+	}
+	else if (type == 1) {
+		ob->parent = NULL;
+		BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
+	}
+	else if (type == 2)
+		unit_m4(ob->parentinv);
+		
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+}
+
+/* note, poll should check for editable scene */
+static int parent_clear_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
+	int type = RNA_enum_get(op->ptr, "type");
 
 	CTX_DATA_BEGIN (C, Object *, ob, selected_editable_objects)
 	{
-		if (ob->parent == NULL)
-			continue;
-		
-		if (type == 0) {
-			ob->parent = NULL;
-		}
-		else if (type == 1) {
-			ob->parent = NULL;
-			BKE_object_apply_mat4(ob, ob->obmat, TRUE, FALSE);
-		}
-		else if (type == 2)
-			unit_m4(ob->parentinv);
-		
-		ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA | OB_RECALC_TIME;
+		ED_object_parent_clear(ob, type);
 	}
 	CTX_DATA_END;
 
@@ -452,13 +460,6 @@ void ED_object_parent_clear(bContext *C, int type)
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 	WM_event_add_notifier(C, NC_OBJECT | ND_PARENT, NULL);
-}
-
-/* note, poll should check for editable scene */
-static int parent_clear_exec(bContext *C, wmOperator *op)
-{
-	ED_object_parent_clear(C, RNA_enum_get(op->ptr, "type"));
-
 	return OPERATOR_FINISHED;
 }
 
@@ -541,7 +542,7 @@ int ED_object_parent_set(ReportList *reports, Main *bmain, Scene *scene, Object 
 			if (partype == PAR_FOLLOW) {
 				/* get or create F-Curve */
 				bAction *act = verify_adt_action(&cu->id, 1);
-				FCurve *fcu = verify_fcurve(act, NULL, "eval_time", 0, 1);
+				FCurve *fcu = verify_fcurve(act, NULL, NULL, "eval_time", 0, 1);
 				
 				/* setup dummy 'generator' modifier here to get 1-1 correspondence still working */
 				if (!fcu->bezt && !fcu->fpt && !fcu->modifiers.first)
@@ -1195,13 +1196,27 @@ static void link_to_scene(Main *UNUSED(bmain), unsigned short UNUSED(nr))
 }
 #endif
 
+Base *ED_object_scene_link(Scene *scene, Object *ob)
+{
+	Base *base;
+
+	if (BKE_scene_base_find(scene, ob)) {
+		return NULL;
+	}
+
+	base = BKE_scene_base_add(scene, ob);
+	id_us_plus(&ob->id);
+
+	return base;
+}
+
 static int make_links_scene_exec(bContext *C, wmOperator *op)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene_to = BLI_findlink(&CTX_data_main(C)->scene, RNA_enum_get(op->ptr, "scene"));
 
 	if (scene_to == NULL) {
-		BKE_report(op->reports, RPT_ERROR, "Scene not found");
+		BKE_report(op->reports, RPT_ERROR, "Couldn't find scene");
 		return OPERATOR_CANCELLED;
 	}
 
@@ -1217,12 +1232,7 @@ static int make_links_scene_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_BEGIN (C, Base *, base, selected_bases)
 	{
-		if (!BKE_scene_base_find(scene_to, base->object)) {
-			Base *nbase = MEM_mallocN(sizeof(Base), "newbase");
-			*nbase = *base;
-			BLI_addhead(&(scene_to->base), nbase);
-			id_us_plus((ID *)base->object);
-		}
+		ED_object_scene_link(scene_to, base->object);
 	}
 	CTX_DATA_END;
 
@@ -1919,6 +1929,7 @@ static int drop_named_material_invoke(bContext *C, wmOperator *op, wmEvent *even
 	
 	DAG_ids_flush_update(bmain, 0);
 	WM_event_add_notifier(C, NC_SPACE | ND_SPACE_VIEW3D, CTX_wm_view3d(C));
+	WM_event_add_notifier(C, NC_MATERIAL | ND_SHADING, ma);
 	
 	return OPERATOR_FINISHED;
 }

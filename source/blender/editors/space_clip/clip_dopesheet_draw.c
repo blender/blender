@@ -25,12 +25,12 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/editors/space_clip/clip_graph_draw.c
+/** \file blender/editors/space_clip/clip_dopesheet_draw.c
  *  \ingroup spclip
  */
 
 #include "DNA_movieclip_types.h"
-#include "DNA_object_types.h"	/* SELECT */
+#include "DNA_object_types.h"   /* SELECT */
 #include "DNA_scene_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -61,7 +61,7 @@
 
 #include "RNA_access.h"
 
-#include "clip_intern.h"	// own include
+#include "clip_intern.h"  /* own include */
 
 static void track_channel_color(MovieTrackingTrack *track, float default_color[3], float color[3])
 {
@@ -83,10 +83,10 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 {
 	/* coordinates for diamond shape */
 	static const float _unit_diamond_shape[4][2] = {
-		{0.0f, 1.0f},	/* top vert */
-		{1.0f, 0.0f},	/* mid-right */
-		{0.0f, -1.0f},	/* bottom vert */
-		{-1.0f, 0.0f}	/* mid-left */
+		{0.0f, 1.0f},   /* top vert */
+		{1.0f, 0.0f},   /* mid-right */
+		{0.0f, -1.0f},  /* bottom vert */
+		{-1.0f, 0.0f}   /* mid-left */
 	};
 	static GLuint displist1 = 0;
 	static GLuint displist2 = 0;
@@ -95,26 +95,26 @@ static void draw_keyframe_shape(float x, float y, float xscale, float yscale, sh
 	/* initialize 2 display lists for diamond shape - one empty, one filled */
 	if (displist1 == 0) {
 		displist1 = glGenLists(1);
-			glNewList(displist1, GL_COMPILE);
+		glNewList(displist1, GL_COMPILE);
 
-			glBegin(GL_LINE_LOOP);
-				glVertex2fv(_unit_diamond_shape[0]);
-				glVertex2fv(_unit_diamond_shape[1]);
-				glVertex2fv(_unit_diamond_shape[2]);
-				glVertex2fv(_unit_diamond_shape[3]);
-			glEnd();
+		glBegin(GL_LINE_LOOP);
+		glVertex2fv(_unit_diamond_shape[0]);
+		glVertex2fv(_unit_diamond_shape[1]);
+		glVertex2fv(_unit_diamond_shape[2]);
+		glVertex2fv(_unit_diamond_shape[3]);
+		glEnd();
 		glEndList();
 	}
 	if (displist2 == 0) {
 		displist2 = glGenLists(1);
-			glNewList(displist2, GL_COMPILE);
+		glNewList(displist2, GL_COMPILE);
 
-			glBegin(GL_QUADS);
-				glVertex2fv(_unit_diamond_shape[0]);
-				glVertex2fv(_unit_diamond_shape[1]);
-				glVertex2fv(_unit_diamond_shape[2]);
-				glVertex2fv(_unit_diamond_shape[3]);
-			glEnd();
+		glBegin(GL_QUADS);
+		glVertex2fv(_unit_diamond_shape[0]);
+		glVertex2fv(_unit_diamond_shape[1]);
+		glVertex2fv(_unit_diamond_shape[2]);
+		glVertex2fv(_unit_diamond_shape[3]);
+		glEnd();
 		glEndList();
 	}
 
@@ -158,6 +158,12 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 		MovieTrackingDopesheetChannel *channel;
 		float y, xscale, yscale;
 		float strip[4], selected_strip[4];
+		float height = (dopesheet->tot_channel * CHANNEL_STEP) + (CHANNEL_HEIGHT * 2);
+
+		/* don't use totrect set, as the width stays the same
+		 * (NOTE: this is ok here, the configuration is pretty straightforward)
+		 */
+		v2d->tot.ymin = (float)(-height);
 
 		y = (float) CHANNEL_FIRST;
 
@@ -200,8 +206,8 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 				/* tracked segments */
 				for (i = 0; i < channel->tot_segment; i++) {
-					int start_frame = channel->segments[2 * i];
-					int end_frame = channel->segments[2 * i + 1];
+					int start_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i]);
+					int end_frame = BKE_movieclip_remap_clip_to_scene_frame(clip, channel->segments[2 * i + 1]);
 
 					if (sel)
 						glColor4fv(selected_strip);
@@ -210,7 +216,7 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 
 					if (start_frame != end_frame) {
 						glRectf(start_frame, (float) y - STRIP_HEIGHT_HALF,
-								end_frame, (float) y + STRIP_HEIGHT_HALF);
+						        end_frame, (float) y + STRIP_HEIGHT_HALF);
 						draw_keyframe_shape(start_frame, y, xscale, yscale, sel, alpha);
 						draw_keyframe_shape(end_frame, y, xscale, yscale, sel, alpha);
 					}
@@ -224,8 +230,11 @@ void clip_draw_dopesheet_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 				while (i < track->markersnr) {
 					MovieTrackingMarker *marker = &track->markers[i];
 
-					if ((marker->flag & (MARKER_DISABLED | MARKER_TRACKED)) == 0)
-						draw_keyframe_shape(marker->framenr, y, xscale, yscale, sel, alpha);
+					if ((marker->flag & (MARKER_DISABLED | MARKER_TRACKED)) == 0) {
+						int framenr = BKE_movieclip_remap_clip_to_scene_frame(clip, marker->framenr);
+
+						draw_keyframe_shape(framenr, y, xscale, yscale, sel, alpha);
+					}
 
 					i++;
 				}
@@ -304,10 +313,10 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 			else
 				UI_ThemeColor(TH_TEXT);
 
-			font_height = BLF_height(fontid, track->name);
+			font_height = BLF_height(fontid, channel->name);
 			BLF_position(fontid, v2d->cur.xmin + CHANNEL_PAD,
-			                     y - font_height / 2.0f, 0.0f);
-			BLF_draw(fontid, track->name, strlen(track->name));
+			             y - font_height / 2.0f, 0.0f);
+			BLF_draw(fontid, channel->name, strlen(channel->name));
 		}
 
 		/* adjust y-position for next one */
@@ -328,21 +337,15 @@ void clip_draw_dopesheet_channels(const bContext *C, ARegion *ar)
 		    IN_RANGE(ymaxc, v2d->cur.ymin, v2d->cur.ymax))
 		{
 			MovieTrackingTrack *track = channel->track;
-			uiBut *but;
+			const int icon = (track->flag & TRACK_LOCKED) ? ICON_LOCKED : ICON_UNLOCKED;
 			PointerRNA ptr;
-			int icon;
 
 			RNA_pointer_create(&clip->id, &RNA_MovieTrackingTrack, track, &ptr);
 
-			if (track->flag & TRACK_LOCKED)
-				icon = ICON_LOCKED;
-			else
-				icon = ICON_UNLOCKED;
-
 			uiBlockSetEmboss(block, UI_EMBOSSN);
-			but = uiDefIconButR(block, ICONTOG, 1, icon,
-				v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
-				UI_UNIT_X, UI_UNIT_Y, &ptr, "lock", 0, 0, 0, 0, 0, NULL);
+			uiDefIconButR(block, ICONTOG, 1, icon,
+			              v2d->cur.xmax - UI_UNIT_X - CHANNEL_PAD, y - UI_UNIT_Y / 2.0f,
+			              UI_UNIT_X, UI_UNIT_Y, &ptr, "lock", 0, 0, 0, 0, 0, NULL);
 			uiBlockSetEmboss(block, UI_EMBOSS);
 		}
 

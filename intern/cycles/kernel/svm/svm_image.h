@@ -92,13 +92,13 @@ __device float4 svm_image_texture(KernelGlobals *kg, int id, float x, float y)
 	float4 r;
 
 	/* not particularly proud of this massive switch, what are the
-	   alternatives?
-	   - use a single big 1D texture, and do our own lookup/filtering
-	   - group by size and use a 3d texture, performance impact
-	   - group into larger texture with some padding for correct lerp
-
-	   also note that cuda has 128 textures limit, we use 100 now, since
-	   we still need some for other storage */
+	 * alternatives?
+	 * - use a single big 1D texture, and do our own lookup/filtering
+	 * - group by size and use a 3d texture, performance impact
+	 * - group into larger texture with some padding for correct lerp
+	 *
+	 * also note that cuda has 128 textures limit, we use 100 now, since
+	 * we still need some for other storage */
 
 	switch(id) {
 		case 0: r = kernel_tex_image_interp(__tex_image_000, x, y); break;

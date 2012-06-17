@@ -86,6 +86,7 @@ set(SRC_DNA_INC
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_world_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_movieclip_types.h
 	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_tracking_types.h
+	${CMAKE_CURRENT_SOURCE_DIR}/makesdna/DNA_mask_types.h
 )
 
 add_subdirectory(editors)
@@ -97,7 +98,6 @@ add_subdirectory(render)
 add_subdirectory(compositor)
 add_subdirectory(blenfont)
 add_subdirectory(blenloader)
-add_subdirectory(blenpluginapi)
 add_subdirectory(ikplugin)
 add_subdirectory(gpu)
 add_subdirectory(opencl)

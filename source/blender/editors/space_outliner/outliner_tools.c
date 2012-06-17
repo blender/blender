@@ -39,6 +39,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
 
@@ -54,10 +55,12 @@
 #include "BKE_main.h"
 #include "BKE_report.h"
 #include "BKE_scene.h"
+#include "BKE_sequencer.h"
 
 #include "ED_armature.h"
 #include "ED_object.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 #include "ED_util.h"
 
 #include "WM_api.h"
@@ -122,13 +125,15 @@ static void set_operation_types(SpaceOops *soops, ListBase *lb,
 	}
 }
 
-static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                             TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(CTX_wm_reports(C), tsep->id, NULL);
 }
 
-static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te,
+                               TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	Material **matar = NULL;
 	int a, totcol = 0;
@@ -162,7 +167,8 @@ static void unlink_material_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEl
 	}
 }
 
-static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te, TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
+static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *te,
+                              TreeStoreElem *tsep, TreeStoreElem *UNUSED(tselem))
 {
 	MTex **mtex = NULL;
 	int a;
@@ -191,7 +197,8 @@ static void unlink_texture_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEle
 	}
 }
 
-static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                            TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	
@@ -206,7 +213,8 @@ static void unlink_group_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 	}
 }
 
-static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                            TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	Scene *parscene = (Scene *)tsep->id;
 	World *wo = (World *)tselem->id;
@@ -217,7 +225,8 @@ static void unlink_world_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeEleme
 }
 
 static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *soops, ListBase *lb, 
-                                          void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
+                                          void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
+                                                               TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -226,7 +235,7 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == 0) {
-				TreeStoreElem *tsep = TREESTORE(te->parent);
+				TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
 				operation_cb(C, scene, te, tsep, tselem);
 			}
 		}
@@ -238,7 +247,8 @@ static void outliner_do_libdata_operation(bContext *C, Scene *scene, SpaceOops *
 
 /* */
 
-static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                             TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -249,7 +259,8 @@ static void object_select_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
 	}
 }
 
-static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *te,
+                               TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -260,7 +271,8 @@ static void object_deselect_cb(bContext *UNUSED(C), Scene *scene, TreeElement *t
 	}
 }
 
-static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te,
+                             TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Base *base = (Base *)te->directdata;
 	
@@ -277,7 +289,8 @@ static void object_delete_cb(bContext *C, Scene *scene, TreeElement *te, TreeSto
 	}
 }
 
-static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                        TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	if (tselem->id->lib && (tselem->id->flag & LIB_EXTERN)) {
 		/* if the ID type has no special local function,
@@ -289,7 +302,8 @@ static void id_local_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(t
 	}
 }
 
-static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -299,7 +313,8 @@ static void id_fake_user_set_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeE
 	}
 }
 
-static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                  TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -309,7 +324,8 @@ static void id_fake_user_clear_cb(bContext *UNUSED(C), Scene *UNUSED(scene), Tre
 	}
 }
 
-static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                 TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -325,7 +341,8 @@ static void singleuser_action_cb(bContext *C, Scene *UNUSED(scene), TreeElement 
 	}
 }
 
-static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te), TreeStoreElem *tsep, TreeStoreElem *tselem)
+static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *UNUSED(te),
+                                TreeStoreElem *tsep, TreeStoreElem *tselem)
 {
 	ID *id = tselem->id;
 	
@@ -342,7 +359,8 @@ static void singleuser_world_cb(bContext *C, Scene *UNUSED(scene), TreeElement *
 	}
 }
 
-static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElement *UNUSED(te),
+                                   TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
 {
 	Group *group = (Group *)tselem->id;
 	GroupObject *gob;
@@ -367,8 +385,21 @@ static void group_linkobs2scene_cb(bContext *UNUSED(C), Scene *scene, TreeElemen
 	}
 }
 
+static void group_instance_cb(bContext *C, Scene *scene, TreeElement *UNUSED(te),
+                              TreeStoreElem *UNUSED(tsep), TreeStoreElem *tselem)
+{
+	Group *group = (Group *)tselem->id;
+
+	Object *ob = ED_object_add_type(C, OB_EMPTY, scene->cursor, NULL, FALSE, scene->layact);
+	rename_id(&ob->id, group->id.name + 2);
+	ob->dup_group = group;
+	ob->transflag |= OB_DUPLIGROUP;
+	id_lib_extern(&group->id);
+}
+
 void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soops, ListBase *lb, 
-                                  void (*operation_cb)(bContext *C, Scene *scene, TreeElement *, TreeStoreElem *, TreeStoreElem *))
+                                  void (*operation_cb)(bContext *C, Scene *scene, TreeElement *,
+                                                       TreeStoreElem *, TreeStoreElem *))
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -396,13 +427,15 @@ void outliner_do_object_operation(bContext *C, Scene *scene_act, SpaceOops *soop
 
 /* ******************************************** */
 
-static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void unlinkact_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                  TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	/* just set action to NULL */
 	BKE_animdata_set_action(NULL, tselem->id, NULL);
 }
 
-static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                     TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	
@@ -410,7 +443,8 @@ static void cleardrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
 	free_fcurves(&iat->adt->drivers);
 }
 
-static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te), TreeStoreElem *tselem)
+static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te),
+                                       TreeStoreElem *tselem, void *UNUSED(arg))
 {
 	IdAdtTemplate *iat = (IdAdtTemplate *)tselem->id;
 	FCurve *fcu;
@@ -426,7 +460,7 @@ static void refreshdrivers_animdata_cb(int UNUSED(event), TreeElement *UNUSED(te
 
 /* --------------------------------- */
 
-static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	bPoseChannel *pchan = (bPoseChannel *)te->directdata;
 	
@@ -442,7 +476,7 @@ static void pchan_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		pchan->bone->flag &= ~BONE_HIDDEN_P;
 }
 
-static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	Bone *bone = (Bone *)te->directdata;
 	
@@ -458,7 +492,7 @@ static void bone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		bone->flag &= ~BONE_HIDDEN_P;
 }
 
-static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
+static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem), void *UNUSED(arg))
 {
 	EditBone *ebone = (EditBone *)te->directdata;
 	
@@ -474,16 +508,23 @@ static void ebone_cb(int event, TreeElement *te, TreeStoreElem *UNUSED(tselem))
 		ebone->flag &= ~BONE_HIDDEN_A;
 }
 
-static void sequence_cb(int event, TreeElement *UNUSED(te), TreeStoreElem *UNUSED(tselem))
+static void sequence_cb(int event, TreeElement *te, TreeStoreElem *tselem, void *scene_ptr)
 {
-//	Sequence *seq= (Sequence*) te->directdata;
+	Sequence *seq = (Sequence *)te->directdata;
 	if (event == 1) {
-// XXX		select_single_seq(seq, 1);
+		Scene *scene = (Scene *)scene_ptr;
+		Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
+		if (BLI_findindex(ed->seqbasep, seq) != -1) {
+			ED_sequencer_select_sequence_single(scene, seq, TRUE);
+		}
 	}
+
+	(void)tselem;
 }
 
-static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb, 
-                                       void (*operation_cb)(int, TreeElement *, TreeStoreElem *))
+static void outliner_do_data_operation(SpaceOops *soops, int type, int event, ListBase *lb,
+                                       void (*operation_cb)(int, TreeElement *, TreeStoreElem *, void *),
+                                       void *arg)
 {
 	TreeElement *te;
 	TreeStoreElem *tselem;
@@ -492,11 +533,11 @@ static void outliner_do_data_operation(SpaceOops *soops, int type, int event, Li
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == type) {
-				operation_cb(event, te, tselem);
+				operation_cb(event, te, tselem, arg);
 			}
 		}
 		if (TSELEM_OPEN(tselem, soops)) {
-			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb);
+			outliner_do_data_operation(soops, type, event, &te->subtree, operation_cb, arg);
 		}
 	}
 }
@@ -607,13 +648,14 @@ void OUTLINER_OT_object_operation(wmOperatorType *ot)
 /* **************************************** */
 
 static EnumPropertyItem prop_group_op_types[] = {
-	{1, "UNLINK", 0, "Unlink", ""},
-	{2, "LOCAL", 0, "Make Local", ""},
-	{3, "LINK", 0, "Link Group Objects to Scene", ""},
-	{4, "TOGVIS", 0, "Toggle Visible", ""},
-	{5, "TOGSEL", 0, "Toggle Selectable", ""},
-	{6, "TOGREN", 0, "Toggle Renderable", ""},
-	{7, "RENAME", 0, "Rename", ""},
+	{0, "UNLINK",   0, "Unlink Group", ""},
+	{1, "LOCAL",    0, "Make Local Group", ""},
+	{2, "LINK",     0, "Link Group Objects to Scene", ""},
+	{3, "INSTANCE", 0, "Instance Groups in Scene", ""},
+	{4, "TOGVIS",   0, "Toggle Visible Group", ""},
+	{5, "TOGSEL",   0, "Toggle Selectable", ""},
+	{6, "TOGREN",   0, "Toggle Renderable", ""},
+	{7, "RENAME",   0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
 };
 
@@ -622,45 +664,36 @@ static int outliner_group_operation_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	SpaceOops *soops = CTX_wm_space_outliner(C);
 	int event;
-	const char *str = NULL;
 	
 	/* check for invalid states */
 	if (soops == NULL)
 		return OPERATOR_CANCELLED;
 	
 	event = RNA_enum_get(op->ptr, "type");
-	
-	if (event == 1) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb);
-		str = "Unlink group";
-	}
-	else if (event == 2) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb);
-		str = "Localized Data";
-	}
-	else if (event == 3) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb);
-		str = "Link Group Objects to Scene";
-	}
-	else if (event == 4) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb);
-		str = "Toggle Visibility";
-	}
-	else if (event == 5) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb);
-		str = "Toggle Selectability";
-	}
-	else if (event == 6) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb);
-		str = "Toggle Renderability";
-	}
-	else if (event == 7) {
-		outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb);
-		str = "Rename";
+
+	switch (event) {
+		case 0: outliner_do_libdata_operation(C, scene, soops, &soops->tree, unlink_group_cb); break;
+		case 1: outliner_do_libdata_operation(C, scene, soops, &soops->tree, id_local_cb); break;
+		case 2: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_linkobs2scene_cb); break;
+		case 3: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_instance_cb); break;
+		case 4: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_visibility_cb); break;
+		case 5: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_selectability_cb); break;
+		case 6: outliner_do_libdata_operation(C, scene, soops, &soops->tree, group_toggle_renderability_cb); break;
+		case 7: outliner_do_libdata_operation(C, scene, soops, &soops->tree, item_rename_cb); break;
+		default:
+			BLI_assert(0);
+			return OPERATOR_CANCELLED;
 	}
 	
+
+	if (event == 3) { /* instance */
+		Main *bmain = CTX_data_main(C);
+
+		/* works without this except if you try render right after, see: 22027 */
+		DAG_scene_sort(bmain, scene);
+	}
 	
-	ED_undo_push(C, str);
+	ED_undo_push(C, prop_group_op_types[event].name);
 	WM_event_add_notifier(C, NC_GROUP, NULL);
 	
 	return OPERATOR_FINISHED;
@@ -703,7 +736,8 @@ static EnumPropertyItem prop_id_op_types[] = {
 	{OUTLINER_IDOP_UNLINK, "UNLINK", 0, "Unlink", ""},
 	{OUTLINER_IDOP_LOCAL, "LOCAL", 0, "Make Local", ""},
 	{OUTLINER_IDOP_SINGLE, "SINGLE", 0, "Make Single User", ""},
-	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User", "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
+	{OUTLINER_IDOP_FAKE_ADD, "ADD_FAKE", 0, "Add Fake User",
+     "Ensure datablock gets saved even if it isn't in use (e.g. for motion and material libraries)"},
 	{OUTLINER_IDOP_FAKE_CLEAR, "CLEAR_FAKE", 0, "Clear Fake User", ""},
 	{OUTLINER_IDOP_RENAME, "RENAME", 0, "Rename", ""},
 	{0, NULL, 0, NULL, NULL}
@@ -866,7 +900,7 @@ static void outliner_do_id_set_operation(SpaceOops *soops, int type, ListBase *l
 		tselem = TREESTORE(te);
 		if (tselem->flag & TSE_SELECTED) {
 			if (tselem->type == type) {
-				TreeStoreElem *tsep = TREESTORE(te->parent);
+				TreeStoreElem *tsep = te->parent ? TREESTORE(te->parent) : NULL;
 				operation_cb(te, tselem, tsep, newid);
 			}
 		}
@@ -918,7 +952,9 @@ static int outliner_action_set_exec(bContext *C, wmOperator *op)
 	else if (act->idroot == 0) {
 		/* hopefully in this case (i.e. library of userless actions), the user knows what they're doing... */
 		BKE_reportf(op->reports, RPT_WARNING,
-		            "Action '%s' does not specify what datablocks it can be used on. Try setting the 'ID Root Type' setting from the Datablocks Editor for this Action to avoid future problems",
+		            "Action '%s' does not specify what datablocks it can be used on. "
+		            "Try setting the 'ID Root Type' setting from the Datablocks Editor "
+		            "for this Action to avoid future problems",
 		            act->id.name + 2);
 	}
 	
@@ -1013,14 +1049,14 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 		
 		case OUTLINER_ANIMOP_CLEAR_ACT:
 			/* clear active action - using standard rules */
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, unlinkact_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, unlinkact_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_NLA_ACTCHANGE, NULL);
 			ED_undo_push(C, "Unlink action");
 			break;
 			
 		case OUTLINER_ANIMOP_REFRESH_DRV:
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, refreshdrivers_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
 			//ED_undo_push(C, "Refresh Drivers"); /* no undo needed - shouldn't have any impact? */
@@ -1028,7 +1064,7 @@ static int outliner_animdata_operation_exec(bContext *C, wmOperator *op)
 			break;
 			
 		case OUTLINER_ANIMOP_CLEAR_DRV:
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, cleardrivers_animdata_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, cleardrivers_animdata_cb, NULL);
 			
 			WM_event_add_notifier(C, NC_ANIMATION | ND_ANIMCHAN, NULL);
 			ED_undo_push(C, "Clear Drivers");
@@ -1097,28 +1133,29 @@ static int outliner_data_operation_exec(bContext *C, wmOperator *op)
 	
 	if (datalevel == TSE_POSE_CHANNEL) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, pchan_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "PoseChannel operation");
 		}
 	}
 	else if (datalevel == TSE_BONE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, bone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "Bone operation");
 		}
 	}
 	else if (datalevel == TSE_EBONE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, ebone_cb, NULL);
 			WM_event_add_notifier(C, NC_OBJECT | ND_POSE, NULL);
 			ED_undo_push(C, "EditBone operation");
 		}
 	}
 	else if (datalevel == TSE_SEQUENCE) {
 		if (event > 0) {
-			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb);
+			Scene *scene = CTX_data_scene(C);
+			outliner_do_data_operation(soops, datalevel, event, &soops->tree, sequence_cb, scene);
 		}
 	}
 	
@@ -1147,7 +1184,8 @@ void OUTLINER_OT_data_operation(wmOperatorType *ot)
 /* ******************** */
 
 
-static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops, TreeElement *te, wmEvent *event, const float mval[2])
+static int do_outliner_operation_event(bContext *C, Scene *scene, ARegion *ar, SpaceOops *soops,
+                                       TreeElement *te, wmEvent *event, const float mval[2])
 {
 	ReportList *reports = CTX_wm_reports(C); // XXX...
 	

@@ -28,11 +28,11 @@
 class ScreenLensDistortionOperation : public NodeOperation {
 private:
 	/**
-	  * Cached reference to the inputProgram
-	  */
+	 * Cached reference to the inputProgram
+	 */
 	SocketReader *inputProgram;
 	
-	NodeLensDist * data;
+	NodeLensDist *data;
 	
 	float dispersion;
 	float distortion;
@@ -46,24 +46,24 @@ public:
 	ScreenLensDistortionOperation();
 	
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	void *initializeTileData(rcti *rect, MemoryBuffer **memoryBuffers);
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
-	void setData(NodeLensDist *data) {this->data = data;}
-	void setDispertion(float dispersion) {this->dispersion = dispersion;}
-	void setDistortion(float distortion) {this->distortion = distortion;}
+	void setData(NodeLensDist *data) { this->data = data; }
+	void setDispertion(float dispersion) { this->dispersion = dispersion; }
+	void setDistortion(float distortion) { this->distortion = distortion; }
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 

@@ -43,8 +43,7 @@
 
 #include "BKE_sound.h"
 
-typedef struct KX_3DSoundSettings
-{
+typedef struct KX_3DSoundSettings {
 	float min_gain;
 	float max_gain;
 	float reference_distance;

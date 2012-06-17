@@ -25,13 +25,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief NormalizeNode
-  * @ingroup Node
-  */
-class NormalizeNode: public Node {
+ * @brief NormalizeNode
+ * @ingroup Node
+ */
+class NormalizeNode : public Node {
 public:
 	NormalizeNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

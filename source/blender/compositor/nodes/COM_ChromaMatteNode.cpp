@@ -25,8 +25,10 @@
 #include "COM_ConvertRGBToYCCOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-ChromaMatteNode::ChromaMatteNode(bNode *editorNode): Node(editorNode)
-{}
+ChromaMatteNode::ChromaMatteNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -42,7 +44,7 @@ void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 
 	ChromaMatteOperation *operation = new ChromaMatteOperation();
 	bNode *editorsnode = getbNode();
-	operation->setSettings((NodeChroma*)editorsnode->storage);
+	operation->setSettings((NodeChroma *)editorsnode->storage);
 
 	inputSocketImage->relinkConnections(operationRGBToYCC_Image->getInputSocket(0), 0, graph);
 	inputSocketKey->relinkConnections(operationRGBToYCC_Key->getInputSocket(0), 0, graph);
@@ -63,7 +65,7 @@ void ChromaMatteNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 	addLink(graph, operation->getOutputSocket(), operationAlpha->getInputSocket(1));
 
 	graph->addOperation(operationAlpha);
-	addPreviewOperation(graph, operationAlpha->getOutputSocket(), 9);
+	addPreviewOperation(graph, operationAlpha->getOutputSocket());
 
 	if (outputSocketImage->isConnected()) {
 		outputSocketImage->relinkConnections(operationAlpha->getOutputSocket());

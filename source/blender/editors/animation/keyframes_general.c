@@ -184,10 +184,10 @@ void clean_fcurve(FCurve *fcu, float thresh)
 	int totCount, i;
 	
 	/* check if any points  */
-	if ((fcu == NULL) || (fcu->totvert <= 1)) 
+	if ((fcu == NULL) || (fcu->bezt == NULL) || (fcu->totvert <= 1))
 		return;
 	
-	/* make a copy of the old BezTriples, and clear IPO curve */
+	/* make a copy of the old BezTriples, and clear F-Curve */
 	old_bezts = fcu->bezt;
 	totCount = fcu->totvert;	
 	fcu->bezt = NULL;
@@ -286,7 +286,11 @@ void smooth_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt;
 	int i, x, totSel = 0;
-	
+
+	if (fcu->bezt == NULL) {
+		return;
+	}
+
 	/* first loop through - count how many verts are selected */
 	bezt = fcu->bezt;
 	for (i = 0; i < fcu->totvert; i++, bezt++) {
@@ -374,16 +378,16 @@ void smooth_fcurve(FCurve *fcu)
 /* ---------------- */
 
 /* little cache for values... */
-typedef struct tempFrameValCache {
+typedef struct TempFrameValCache {
 	float frame, val;
-} tempFrameValCache;
+} TempFrameValCache;
 
 
 /* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
 void sample_fcurve(FCurve *fcu)
 {
 	BezTriple *bezt, *start = NULL, *end = NULL;
-	tempFrameValCache *value_cache, *fp;
+	TempFrameValCache *value_cache, *fp;
 	int sfra, range;
 	int i, n, nIndex;
 
@@ -406,15 +410,15 @@ void sample_fcurve(FCurve *fcu)
 				sfra = (int)(floor(start->vec[1][0]) );
 				
 				if (range) {
-					value_cache = MEM_callocN(sizeof(tempFrameValCache) * range, "IcuFrameValCache");
+					value_cache = MEM_callocN(sizeof(TempFrameValCache) * range, "IcuFrameValCache");
 					
-					/*  sample values   */
+					/* sample values */
 					for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
 						fp->frame = (float)(sfra + n);
 						fp->val = evaluate_fcurve(fcu, fp->frame);
 					}
 					
-					/*  add keyframes with these, tagging as 'breakdowns'   */
+					/* add keyframes with these, tagging as 'breakdowns' */
 					for (n = 1, fp = value_cache; n < range && fp; n++, fp++) {
 						nIndex = insert_vert_fcurve(fcu, fp->frame, fp->val, 1);
 						BEZKEYTYPE(fcu->bezt + nIndex) = BEZT_KEYTYPE_BREAKDOWN;
@@ -671,7 +675,7 @@ static void paste_animedit_keys_fcurve(FCurve *fcu, tAnimCopybufItem *aci, float
 	BezTriple *bezt;
 	int i;
 
-	/* First de-select existing FCuvre */
+	/* First de-select existing FCurve's keyframes */
 	for (i = 0, bezt = fcu->bezt; i < fcu->totvert; i++, bezt++) {
 		bezt->f2 &= ~SELECT;
 	}

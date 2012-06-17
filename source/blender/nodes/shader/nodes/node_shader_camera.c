@@ -34,9 +34,9 @@
 
 /* **************** CAMERA INFO  ******************** */
 static bNodeSocketTemplate sh_node_camera_out[]= {
-	{	SOCK_VECTOR, 0, "View Vector"},
-	{	SOCK_FLOAT, 0, "View Z Depth"},
-	{	SOCK_FLOAT, 0, "View Distance"},
+	{	SOCK_VECTOR, 0, N_("View Vector")},
+	{	SOCK_FLOAT, 0, N_("View Z Depth")},
+	{	SOCK_FLOAT, 0, N_("View Distance")},
 	{	-1, 0, ""	}
 };
 

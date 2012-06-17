@@ -162,14 +162,14 @@ static AdrBit2Path ma_mode_bits[] = {
 static AdrBit2Path *adrcode_bitmaps_to_paths(int blocktype, int adrcode, int *tot)
 {
 	/* Object layers */
-	if ((blocktype == ID_OB) && (adrcode == OB_LAY)) 
+	if ((blocktype == ID_OB) && (adrcode == OB_LAY))
 		RET_ABP(ob_layer_bits)
-		else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
-			RET_ABP(ma_mode_bits)
-			// XXX TODO: add other types...
+	else if ((blocktype == ID_MA) && (adrcode == MA_MODE))
+		RET_ABP(ma_mode_bits)
+	// XXX TODO: add other types...
 	
-			/* Normal curve */
-			return NULL;
+	/* Normal curve */
+	return NULL;
 }
 
 /* *************************************************** */
@@ -1924,14 +1924,14 @@ void do_versions_ipos_to_animato(Main *main)
 				 * (semi-hack (tm) )
 				 */
 				switch (seq->type) {
-					case SEQ_IMAGE:
-					case SEQ_META:
-					case SEQ_SCENE:
-					case SEQ_MOVIE:
-					case SEQ_COLOR:
+					case SEQ_TYPE_IMAGE:
+					case SEQ_TYPE_META:
+					case SEQ_TYPE_SCENE:
+					case SEQ_TYPE_MOVIE:
+					case SEQ_TYPE_COLOR:
 						adrcode = SEQ_FAC_OPACITY;
 						break;
-					case SEQ_SPEED:
+					case SEQ_TYPE_SPEED:
 						adrcode = SEQ_FAC_SPEED;
 						break;
 				}

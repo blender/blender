@@ -55,37 +55,45 @@ namespace KDL {
     {
     }
 
-    Frame Joint::pose(const double& q)const
+    Frame Joint::pose(const double* q)const
     {
 
         switch(type){
         case RotX:
-            return Frame(Rotation::RotX(scale*q+offset));
+			assert(q);
+            return Frame(Rotation::RotX(scale*q[0]+offset));
             break;
         case RotY:
-            return  Frame(Rotation::RotY(scale*q+offset));
+			assert(q);
+            return  Frame(Rotation::RotY(scale*q[0]+offset));
             break;
         case RotZ:
-            return  Frame(Rotation::RotZ(scale*q+offset));
+			assert(q);
+            return  Frame(Rotation::RotZ(scale*q[0]+offset));
             break;
         case TransX:
-            return  Frame(Vector(scale*q+offset,0.0,0.0));
+			assert(q);
+            return  Frame(Vector(scale*q[0]+offset,0.0,0.0));
             break;
         case TransY:
-            return Frame(Vector(0.0,scale*q+offset,0.0));
+			assert(q);
+            return Frame(Vector(0.0,scale*q[0]+offset,0.0));
             break;
         case TransZ:
-            return Frame(Vector(0.0,0.0,scale*q+offset));
+			assert(q);
+            return Frame(Vector(0.0,0.0,scale*q[0]+offset));
             break;
 		case Sphere:
 			// the joint angles represent a rotation vector expressed in the base frame of the joint
 			// (= the frame you get when there is no offset nor rotation)
-			return Frame(Rot(Vector((&q)[0], (&q)[1], (&q)[2])));
+			assert(q);
+			return Frame(Rot(Vector(q[0], q[1], q[2])));
 			break;
 		case Swing:
 			// the joint angles represent a 2D rotation vector in the XZ planee of the base frame of the joint
 			// (= the frame you get when there is no offset nor rotation)
-			return Frame(Rot(Vector((&q)[0], 0.0, (&q)[1])));
+			assert(q);
+			return Frame(Rot(Vector(q[0], 0.0, q[1])));
 			break;
         default:
             return Frame::Identity();

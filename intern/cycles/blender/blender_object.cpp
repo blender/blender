@@ -29,6 +29,7 @@
 #include "blender_util.h"
 
 #include "util_foreach.h"
+#include "util_hash.h"
 
 CCL_NAMESPACE_BEGIN
 
@@ -105,7 +106,9 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 		case BL::Lamp::type_SPOT: {
 			BL::SpotLamp b_spot_lamp(b_lamp);
 			light->size = b_spot_lamp.shadow_soft_size();
-			light->type = LIGHT_POINT;
+			light->type = LIGHT_SPOT;
+			light->spot_angle = b_spot_lamp.spot_size();
+			light->spot_smooth = b_spot_lamp.spot_blend();
 			break;
 		}
 		case BL::Lamp::type_HEMI: {
@@ -151,6 +154,7 @@ void BlenderSync::sync_light(BL::Object b_parent, int b_index, BL::Object b_ob, 
 	/* shadow */
 	PointerRNA clamp = RNA_pointer_get(&b_lamp.ptr, "cycles");
 	light->cast_shadow = get_boolean(clamp, "cast_shadow");
+	light->samples = get_int(clamp, "samples");
 
 	/* tag */
 	light->tag_update(scene);
@@ -175,6 +179,7 @@ void BlenderSync::sync_background_light()
 			{
 				light->type = LIGHT_BACKGROUND;
 				light->map_resolution  = get_int(cworld, "sample_map_resolution");
+				light->samples  = get_int(cworld, "samples");
 				light->shader = scene->default_background;
 
 				light->tag_update(scene);
@@ -189,7 +194,7 @@ void BlenderSync::sync_background_light()
 
 /* Object */
 
-void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag, int motion)
+void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob, Transform& tfm, uint layer_flag, int motion, int particle_id)
 {
 	/* light is handled separately */
 	if(object_is_light(b_ob)) {
@@ -245,25 +250,34 @@ void BlenderSync::sync_object(BL::Object b_parent, int b_index, BL::Object b_ob,
 	/* object sync */
 	if(object_updated || (object->mesh && object->mesh->need_update)) {
 		object->name = b_ob.name().c_str();
-		object->instance_id = b_index;
 		object->pass_id = b_ob.pass_index();
 		object->tfm = tfm;
 		object->motion.pre = tfm;
 		object->motion.post = tfm;
 		object->use_motion = false;
 
+		object->random_id = hash_int_2d(hash_string(object->name.c_str()), b_index);
+
 		/* visibility flags for both parent */
 		object->visibility = object_ray_visibility(b_ob) & PATH_RAY_ALL;
-		if(b_parent.ptr.data != b_ob.ptr.data)
+		if(b_parent.ptr.data != b_ob.ptr.data) {
 			object->visibility &= object_ray_visibility(b_parent);
+			object->random_id ^= hash_int(hash_string(b_parent.name().c_str()));
+		}
 
 		/* camera flag is not actually used, instead is tested
-		   against render layer flags */
+		 * against render layer flags */
 		if(object->visibility & PATH_RAY_CAMERA) {
 			object->visibility |= layer_flag << PATH_RAY_LAYER_SHIFT;
 			object->visibility &= ~PATH_RAY_CAMERA;
 		}
 
+		object->particle_id = particle_id;
+
+		/* particle sync */
+		if (object_use_particles(b_ob))
+			sync_particles(object, b_ob);
+	
 		object->tag_update(scene);
 	}
 }
@@ -286,14 +300,21 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 	/* object loop */
 	BL::Scene::objects_iterator b_ob;
 	BL::Scene b_sce = b_scene;
+	int particle_offset = 0;
 
 	for(; b_sce; b_sce = b_sce.background_set()) {
 		for(b_sce.objects.begin(b_ob); b_ob != b_sce.objects.end(); ++b_ob) {
 			bool hide = (render_layer.use_viewport_visibility)? b_ob->hide(): b_ob->hide_render();
 			uint ob_layer = get_layer(b_ob->layers());
+			hide = hide || !(ob_layer & scene_layer);
 
-			if(!hide && (ob_layer & scene_layer)) {
+			if(!hide) {
+
+				int num_particles = object_count_particles(*b_ob);
+
 				if(b_ob->is_duplicator()) {
+					hide = true;	/* duplicators hidden by default */
+
 					/* dupli objects */
 					object_create_duplilist(*b_ob, b_scene);
 
@@ -305,35 +326,29 @@ void BlenderSync::sync_objects(BL::SpaceView3D b_v3d, int motion)
 						BL::Object b_dup_ob = b_dup->object();
 						bool dup_hide = (b_v3d)? b_dup_ob.hide(): b_dup_ob.hide_render();
 
-						if(!(b_dup->hide() || dup_hide))
-							sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion);
-
-						b_index++;
+						if(!(b_dup->hide() || dup_hide)) {
+							sync_object(*b_ob, b_index, b_dup_ob, tfm, ob_layer, motion, b_dup->particle_index() + particle_offset);
+						}
+						
+						++b_index;
 					}
 
 					object_free_duplilist(*b_ob);
-
-					hide = true;
 				}
 
 				/* check if we should render or hide particle emitter */
 				BL::Object::particle_systems_iterator b_psys;
-				bool render_emitter = false;
-
-				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys) {
-					if(b_psys->settings().use_render_emitter()) {
+				for(b_ob->particle_systems.begin(b_psys); b_psys != b_ob->particle_systems.end(); ++b_psys)
+					if(b_psys->settings().use_render_emitter())
 						hide = false;
-						render_emitter = true;
-					}
-					else if(!render_emitter)
-						hide = true;
-				}
 
 				if(!hide) {
 					/* object itself */
 					Transform tfm = get_transform(b_ob->matrix_world());
-					sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion);
+					sync_object(*b_ob, 0, *b_ob, tfm, ob_layer, motion, 0);
 				}
+
+				particle_offset += num_particles;
 			}
 		}
 	}

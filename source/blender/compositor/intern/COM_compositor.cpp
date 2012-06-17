@@ -51,7 +51,6 @@ void COM_execute(bNodeTree *editingtree, int rendering)
 
 	/* set progress bar to 0% and status to init compositing*/
 	editingtree->progress(editingtree->prh, 0.0);
-	editingtree->stats_draw(editingtree->sdh, (char*)"Compositing");
 
 	/* initialize execution system */
 	ExecutionSystem *system = new ExecutionSystem(editingtree, rendering);

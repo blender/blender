@@ -43,7 +43,7 @@ typedef struct BoxPack {
 	
 	/* Verts this box uses
 	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	struct boxVert *v[4];
+	struct BoxVert *v[4];
 } BoxPack;
 
 void BLI_box_pack_2D(BoxPack *boxarray, const int len, float *tot_width, float *tot_height);

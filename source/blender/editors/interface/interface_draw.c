@@ -43,6 +43,7 @@
 
 #include "BKE_colortools.h"
 #include "BKE_texture.h"
+#include "BKE_tracking.h"
 
 
 #include "IMB_imbuf.h"
@@ -658,37 +659,59 @@ static void draw_scope_end(rctf *rect, GLint *scissor)
 }
 
 static void histogram_draw_one(float r, float g, float b, float alpha,
-                               float x, float y, float w, float h, float *data, int res)
+                               float x, float y, float w, float h, float *data, int res, const short is_line)
 {
 	int i;
 	
-	/* under the curve */
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-	glColor4f(r, g, b, alpha);
-	
-	glShadeModel(GL_FLAT);
-	glBegin(GL_QUAD_STRIP);
-	glVertex2f(x, y);
-	glVertex2f(x, y + (data[0] * h));
-	for (i = 1; i < res; i++) {
-		float x2 = x + i * (w / (float)res);
-		glVertex2f(x2, y + (data[i] * h));
-		glVertex2f(x2, y);
+	if (is_line) {
+
+		glLineWidth(1.5);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glColor4f(r, g, b, alpha);
+
+		/* curve outline */
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glEnable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_STRIP);
+		for (i = 0; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
+
+		glLineWidth(1.0);
 	}
-	glEnd();
-	
-	/* curve outline */
-	glColor4f(0.f, 0.f, 0.f, 0.25f);
-	
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable(GL_LINE_SMOOTH);
-	glBegin(GL_LINE_STRIP);
-	for (i = 0; i < res; i++) {
-		float x2 = x + i * (w / (float)res);
-		glVertex2f(x2, y + (data[i] * h));
+	else {
+		/* under the curve */
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+		glColor4f(r, g, b, alpha);
+
+		glShadeModel(GL_FLAT);
+		glBegin(GL_QUAD_STRIP);
+		glVertex2f(x, y);
+		glVertex2f(x, y + (data[0] * h));
+		for (i = 1; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+			glVertex2f(x2, y);
+		}
+		glEnd();
+
+		/* curve outline */
+		glColor4f(0.f, 0.f, 0.f, 0.25f);
+
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_LINE_SMOOTH);
+		glBegin(GL_LINE_STRIP);
+		for (i = 0; i < res; i++) {
+			float x2 = x + i * (w / (float)res);
+			glVertex2f(x2, y + (data[i] * h));
+		}
+		glEnd();
+		glDisable(GL_LINE_SMOOTH);
 	}
-	glEnd();
-	glDisable(GL_LINE_SMOOTH);
 }
 
 void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
@@ -698,6 +721,7 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 	rctf rect;
 	int i;
 	float w, h;
+	const short is_line = (hist->flag & HISTO_FLAG_LINE) != 0;
 	//float alpha;
 	GLint scissor[4];
 	
@@ -730,15 +754,19 @@ void ui_draw_but_HISTOGRAM(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol)
 		fdrawline(rect.xmin + (i / 4.f) * w, rect.ymin, rect.xmin + (i / 4.f) * w, rect.ymax);
 	}
 	
-	if (hist->mode == HISTO_MODE_LUMA)
-		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res);
+	if (hist->mode == HISTO_MODE_LUMA) {
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_luma, res, is_line);
+	}
+	else if (hist->mode == HISTO_MODE_ALPHA) {
+		histogram_draw_one(1.0, 1.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_a, res, is_line);
+	}
 	else {
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_R)
-			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res);
+			histogram_draw_one(1.0, 0.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_r, res, is_line);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_G)
-			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res);
+			histogram_draw_one(0.0, 1.0, 0.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_g, res, is_line);
 		if (hist->mode == HISTO_MODE_RGB || hist->mode == HISTO_MODE_B)
-			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res);
+			histogram_draw_one(0.0, 0.0, 1.0, 0.75, rect.xmin, rect.ymin, w, h, hist->data_b, res, is_line);
 	}
 	
 	/* outline, scale gripper */
@@ -1480,36 +1508,10 @@ void ui_draw_but_CURVE(ARegion *ar, uiBut *but, uiWidgetColors *wcol, rcti *rect
 	fdrawbox(rect->xmin, rect->ymin, rect->xmax, rect->ymax);
 }
 
-static ImBuf *scale_trackpreview_ibuf(ImBuf *ibuf, float track_pos[2], int width, float height, int margin)
-{
-	ImBuf *scaleibuf;
-	const float scalex = ((float)ibuf->x - 2 * margin) / width;
-	const float scaley = ((float)ibuf->y - 2 * margin) / height;
-	/* NOTE: 1.0f = 0.5f for integer coordinate coorrection (center of pixel vs. left bottom corner of bixel)
-	 *       and 0.5f for centering image in preview (cross is draving at exact center of widget so image
-	 *       should be shifted by half of pixel for correct centering) - sergey */
-	float off_x = (int)track_pos[0] - track_pos[0] + 1.0f;
-	float off_y = (int)track_pos[1] - track_pos[1] + 1.0f;
-	int x, y;
-
-	scaleibuf = IMB_allocImBuf(width, height, 32, IB_rect);
-
-	for (y = 0; y < height; y++) {
-		for (x = 0; x < width; x++) {
-			float src_x = scalex * (x) + margin - off_x;
-			float src_y = scaley * (y) + margin - off_y;
-
-			bicubic_interpolation(ibuf, scaleibuf, src_x, src_y, x, y);
-		}
-	}
-
-	return scaleibuf;
-}
-
 void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wcol), rcti *recti)
 {
 	rctf rect;
-	int ok = 0;
+	int ok = 0, width, height;
 	GLint scissor[4];
 	MovieClipScopes *scopes = (MovieClipScopes *)but->poin;
 
@@ -1517,6 +1519,9 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 	rect.xmax = (float)recti->xmax - 1;
 	rect.ymin = (float)recti->ymin + SCOPE_RESIZE_PAD + 2;
 	rect.ymax = (float)recti->ymax - 1;
+
+	width = rect.xmax - rect.xmin + 1;
+	height = rect.ymax - rect.ymin;
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -1535,40 +1540,60 @@ void ui_draw_but_TRACKPREVIEW(ARegion *ar, uiBut *but, uiWidgetColors *UNUSED(wc
 
 		ok = 1;
 	}
-	else if (scopes->track_preview) {
-		/* additional margin around image */
-		/* NOTE: should be kept in sync with value from BKE_movieclip_update_scopes */
-		const int margin = 3;
-		float zoomx, zoomy, track_pos[2], off_x, off_y;
-		int a, width, height;
+	else if ((scopes->track_search) &&
+	         ((!scopes->track_preview) ||
+	          (scopes->track_preview->x != width || scopes->track_preview->y != height)))
+	{
+		ImBuf *tmpibuf;
+
+		if (scopes->track_preview)
+			IMB_freeImBuf(scopes->track_preview);
+
+		tmpibuf = BKE_tracking_sample_pattern(scopes->frame_width, scopes->frame_height,
+		                                            scopes->track_search, scopes->track,
+		                                            &scopes->undist_marker, scopes->use_track_mask,
+		                                            width, height, scopes->track_pos);
+
+		if (tmpibuf->rect_float)
+			IMB_rect_from_float(tmpibuf);
+
+		// XXX: for debug only
+		// tmpibuf->ftype = PNG;
+		// IMB_saveiff(tmpibuf, "sample.png", IB_rect);
+
+		if (tmpibuf->rect)
+			scopes->track_preview = tmpibuf;
+		else
+			IMB_freeImBuf(tmpibuf);
+	}
+
+	if (!ok && scopes->track_preview) {
+		float track_pos[2];
+		int a;
 		ImBuf *drawibuf;
 
 		glPushMatrix();
 
-		track_pos[0] = scopes->track_pos[0] - margin;
-		track_pos[1] = scopes->track_pos[1] - margin;
+		track_pos[0] = scopes->track_pos[0];
+		track_pos[1] = scopes->track_pos[1];
 
 		/* draw content of pattern area */
 		glScissor(ar->winrct.xmin + rect.xmin, ar->winrct.ymin + rect.ymin, scissor[2], scissor[3]);
 
-		width = rect.xmax - rect.xmin + 1;
-		height = rect.ymax - rect.ymin;
-
 		if (width > 0 && height > 0) {
-			zoomx = (float)width / (scopes->track_preview->x - 2 * margin);
-			zoomy = (float)height / (scopes->track_preview->y - 2 * margin);
+			drawibuf = scopes->track_preview;
 
-			off_x = ((int)track_pos[0] - track_pos[0] + 0.5f) * zoomx;
-			off_y = ((int)track_pos[1] - track_pos[1] + 0.5f) * zoomy;
-
-			drawibuf = scale_trackpreview_ibuf(scopes->track_preview, track_pos, width, height, margin);
+			if (scopes->use_track_mask) {
+				glColor4f(0.0f, 0.0f, 0.0f, 0.3f);
+				uiSetRoundBox(15);
+				uiDrawBox(GL_POLYGON, rect.xmin - 1, rect.ymin, rect.xmax + 1, rect.ymax + 1, 3.0f);
+			}
 
 			glaDrawPixelsSafe(rect.xmin, rect.ymin + 1, drawibuf->x, drawibuf->y,
 			                  drawibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, drawibuf->rect);
-			IMB_freeImBuf(drawibuf);
 
 			/* draw cross for pizel position */
-			glTranslatef(off_x + rect.xmin + track_pos[0] * zoomx, off_y + rect.ymin + track_pos[1] * zoomy, 0.f);
+			glTranslatef(rect.xmin + track_pos[0], rect.ymin + track_pos[1], 0.f);
 			glScissor(ar->winrct.xmin + rect.xmin,
 			          ar->winrct.ymin + rect.ymin,
 			          rect.xmax - rect.xmin,
@@ -1663,12 +1688,12 @@ void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float maxx, fl
 }
 
 
-void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
+void ui_dropshadow(rctf *rct, float radius, float aspect, float alpha, int UNUSED(select))
 {
 	int i;
 	float rad;
 	float a;
-	char alpha = 2;
+	float dalpha = alpha * 2.0f / 255.0f, calpha;
 	
 	glEnable(GL_BLEND);
 	
@@ -1688,10 +1713,11 @@ void ui_dropshadow(rctf *rct, float radius, float aspect, int UNUSED(select))
 		a = i * aspect;
 	}
 
+	calpha = dalpha;
 	for (; i--; a -= aspect) {
 		/* alpha ranges from 2 to 20 or so */
-		glColor4ub(0, 0, 0, alpha);
-		alpha += 2;
+		glColor4f(0.0f, 0.0f, 0.0f, calpha);
+		calpha += dalpha;
 		
 		uiDrawBox(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax - 10.0f + a, rad + a);
 	}

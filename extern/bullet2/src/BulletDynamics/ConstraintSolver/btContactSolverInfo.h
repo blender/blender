@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef CONTACT_SOLVER_INFO
-#define CONTACT_SOLVER_INFO
+#ifndef BT_CONTACT_SOLVER_INFO
+#define BT_CONTACT_SOLVER_INFO
 
 enum	btSolverMode
 {
@@ -84,4 +84,4 @@ struct btContactSolverInfo : public btContactSolverInfoData
 	}
 };
 
-#endif //CONTACT_SOLVER_INFO
+#endif //BT_CONTACT_SOLVER_INFO

@@ -61,7 +61,7 @@
 #endif /* _WIN32 _ */
 
 
-char *get_valid_qtname(char *name);
+char *get_valid_qtname(const char *name);
 
 
 // quicktime movie import functions

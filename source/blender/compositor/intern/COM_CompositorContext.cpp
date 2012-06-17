@@ -29,6 +29,7 @@ CompositorContext::CompositorContext()
 	this->scene = NULL;
 	this->quality = COM_QUALITY_HIGH;
 	this->hasActiveOpenCLDevices = false;
+	this->activegNode = NULL;
 }
 
 const int CompositorContext::getFramenumber() const

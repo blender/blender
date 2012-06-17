@@ -62,8 +62,7 @@ typedef struct bActionActuator {
 	float	layer_weight;	/* How much of the previous layer to use for blending. (<0 = disable, 0 = add mode) */
 } bActionActuator;												
 
-typedef struct Sound3D
-{
+typedef struct Sound3D {
 	float min_gain;
 	float max_gain;
 	float reference_distance;

@@ -676,6 +676,7 @@ static EnumPropertyItem prop_similar_types[] = {
 	{SIMVERT_NORMAL, "NORMAL", 0, "Normal", ""},
 	{SIMVERT_FACE, "FACE", 0, "Amount of Adjacent Faces", ""},
 	{SIMVERT_VGROUP, "VGROUP", 0, "Vertex Groups", ""},
+	{SIMVERT_EDGE, "EDGE", 0, "Amount of connecting edges", ""},
 
 	{SIMEDGE_LENGTH, "LENGTH", 0, "Length", ""},
 	{SIMEDGE_DIR, "DIR", 0, "Direction", ""},
@@ -1889,7 +1890,7 @@ static int edbm_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEvent *
 		}
 		BMW_end(&walker);
 
-		BM_mesh_select_mode_flush(bm);
+		EDBM_selectmode_flush(em);
 	}
 
 	WM_event_add_notifier(C, NC_GEOM | ND_SELECT, obedit);

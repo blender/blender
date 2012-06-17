@@ -26,26 +26,36 @@
 #include "COM_SplitViewerOperation.h"
 #include "COM_ExecutionSystem.h"
 
-SplitViewerNode::SplitViewerNode(bNode *editorNode): Node(editorNode)
+SplitViewerNode::SplitViewerNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void SplitViewerNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *image1Socket = this->getInputSocket(0);
 	InputSocket *image2Socket = this->getInputSocket(1);
-	Image *image = (Image*)this->getbNode()->id;
-	ImageUser * imageUser = (ImageUser*) this->getbNode()->storage;
+	Image *image = (Image *)this->getbNode()->id;
+	ImageUser *imageUser = (ImageUser *) this->getbNode()->storage;
 	if (image1Socket->isConnected() && image2Socket->isConnected()) {
 		SplitViewerOperation *splitViewerOperation = new SplitViewerOperation();
+		splitViewerOperation->setColorManagement(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT);
+		splitViewerOperation->setColorPredivide(context->getScene()->r.color_mgt_flag & R_COLOR_MANAGEMENT_PREDIVIDE);
 		splitViewerOperation->setImage(image);
 		splitViewerOperation->setImageUser(imageUser);
-		splitViewerOperation->setActive(this->getbNode()->flag & NODE_DO_OUTPUT);
+		splitViewerOperation->setActive((this->getbNode()->flag & NODE_DO_OUTPUT) && this->isInActiveGroup());
 		splitViewerOperation->setSplitPercentage(this->getbNode()->custom1);
+
+		/* defaults - the viewer node has these options but not exposed for split view
+		 * we could use the split to define an area of interest on one axis at least */
+		splitViewerOperation->setChunkOrder(COM_ORDER_OF_CHUNKS_DEFAULT);
+		splitViewerOperation->setCenterX(0.5f);
+		splitViewerOperation->setCenterY(0.5f);
+
 		splitViewerOperation->setXSplit(!this->getbNode()->custom2);
 		image1Socket->relinkConnections(splitViewerOperation->getInputSocket(0), 0, graph);
 		image2Socket->relinkConnections(splitViewerOperation->getInputSocket(1), 1, graph);
-		addPreviewOperation(graph, splitViewerOperation->getInputSocket(0), 0);
+		addPreviewOperation(graph, splitViewerOperation->getInputSocket(0));
 		graph->addOperation(splitViewerOperation);
 	}
 }

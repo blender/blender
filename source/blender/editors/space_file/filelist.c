@@ -102,8 +102,7 @@ typedef struct ThumbnailJob {
 	ReportList reports;
 } ThumbnailJob;
 
-typedef struct FileList
-{
+typedef struct FileList {
 	struct direntry *filelist;
 	int *fidx;
 	int numfiles;
@@ -124,8 +123,7 @@ typedef struct FileList
 
 } FileList;
 
-typedef struct FolderList
-{
+typedef struct FolderList {
 	struct FolderList *next, *prev;
 	char *foldername;
 } FolderList;

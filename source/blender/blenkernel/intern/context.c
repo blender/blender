@@ -267,7 +267,7 @@ static int ctx_data_get(bContext *C, const char *member, bContextDataResult *res
 	 * loops requesting data from ourselfs in a context callback */
 
 	/* Ok, this looks evil...
-	 * if (ret) done= -(-ret | -done);
+	 * if (ret) done = -(-ret | -done);
 	 *
 	 * Values in order of importance
 	 * (0, -1, 1) - Where 1 is highest priority
@@ -971,6 +971,11 @@ struct Text *CTX_data_edit_text(const bContext *C)
 struct MovieClip *CTX_data_edit_movieclip(const bContext *C)
 {
 	return ctx_data_pointer_get(C, "edit_movieclip");
+}
+
+struct Mask *CTX_data_edit_mask(const bContext *C)
+{
+	return ctx_data_pointer_get(C, "edit_mask");
 }
 
 struct EditBone *CTX_data_active_bone(const bContext *C)

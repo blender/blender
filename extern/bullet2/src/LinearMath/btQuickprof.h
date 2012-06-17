@@ -12,8 +12,8 @@
 
 
 
-#ifndef QUICK_PROF_H
-#define QUICK_PROF_H
+#ifndef BT_QUICK_PROF_H
+#define BT_QUICK_PROF_H
 
 //To disable built-in profiling, please comment out next line
 //#define BT_NO_PROFILE 1
@@ -82,7 +82,8 @@ public:
 	const char *	Get_Name( void )				{ return Name; }
 	int				Get_Total_Calls( void )		{ return TotalCalls; }
 	float				Get_Total_Time( void )		{ return TotalTime; }
-
+	void*			GetUserPointer() const {return m_userPtr;}
+	void			SetUserPointer(void* ptr) { m_userPtr = ptr;}
 protected:
 
 	const char *	Name;
@@ -94,6 +95,7 @@ protected:
 	CProfileNode *	Parent;
 	CProfileNode *	Child;
 	CProfileNode *	Sibling;
+	void*	m_userPtr;
 };
 
 ///An iterator to navigate through the tree
@@ -115,15 +117,20 @@ public:
 	int				Get_Current_Total_Calls( void )	{ return CurrentChild->Get_Total_Calls(); }
 	float				Get_Current_Total_Time( void )	{ return CurrentChild->Get_Total_Time(); }
 
+	void*	Get_Current_UserPointer( void )			{ return CurrentChild->GetUserPointer(); }
+	void	Set_Current_UserPointer(void* ptr) {CurrentChild->SetUserPointer(ptr);}
 	// Access the current parent
 	const char *	Get_Current_Parent_Name( void )			{ return CurrentParent->Get_Name(); }
 	int				Get_Current_Parent_Total_Calls( void )	{ return CurrentParent->Get_Total_Calls(); }
 	float				Get_Current_Parent_Total_Time( void )	{ return CurrentParent->Get_Total_Time(); }
 
+	
+
 protected:
 
 	CProfileNode *	CurrentParent;
 	CProfileNode *	CurrentChild;
+	
 
 	CProfileIterator( CProfileNode * start );
 	friend	class		CProfileManager;
@@ -191,6 +198,6 @@ public:
 
 
 
-#endif //QUICK_PROF_H
+#endif //BT_QUICK_PROF_H
 
 

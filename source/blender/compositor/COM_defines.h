@@ -24,12 +24,10 @@
 #define _COM_defines_h_
 
 /**
-  * @brief possible data types for SocketConnection
-  * @ingroup Model
-  */
+ * @brief possible data types for SocketConnection
+ * @ingroup Model
+ */
 typedef enum DataType {
-	/** @brief Unknown data type (or not yet known) */
-	COM_DT_UNKNOWN = 0,
 	/** @brief Value data type */
 	COM_DT_VALUE   = 1,
 	/** @brief Vector data type */
@@ -39,45 +37,59 @@ typedef enum DataType {
 } DataType;
 
 /**
-  * @brief Possible quality settings
-  * @see CompositorContext.quality
-  * @ingroup Execution
-  */
+ * @brief Possible quality settings
+ * @see CompositorContext.quality
+ * @ingroup Execution
+ */
 typedef enum CompositorQuality {
 	/** @brief High quality setting */
-	COM_QUALITY_HIGH   = 0 ,
+	COM_QUALITY_HIGH   = 0,
 	/** @brief Medium quality setting */
 	COM_QUALITY_MEDIUM = 1,
 	/** @brief Low quality setting */
 	COM_QUALITY_LOW    = 2
 } CompositorQuality;
 
+/**
+ * @brief Possible priority settings
+ * @ingroup Execution
+ */
+typedef enum CompositorPriority {
+	/** @brief High quality setting */
+	COM_PRIORITY_HIGH   = 2,
+	/** @brief Medium quality setting */
+	COM_PRIORITY_MEDIUM = 1,
+	/** @brief Low quality setting */
+	COM_PRIORITY_LOW    = 0
+} CompositorPriority;
+
 // configurable items
 
 // chunk size determination
 #define COM_PREVIEW_SIZE 140.0f
-#define COM_OPENCL_ENABLED
-#define COM_PREVIEW_ENABLED
+//#define COM_OPENCL_ENABLED
+//#define COM_DEBUG
+
 // workscheduler threading models
 /**
-  * COM_TM_QUEUE is a multithreaded model, which uses the BLI_thread_queue pattern. This is the default option.
-  */
+ * COM_TM_QUEUE is a multithreaded model, which uses the BLI_thread_queue pattern. This is the default option.
+ */
 #define COM_TM_QUEUE 1
 
 /**
-  * COM_TM_NOTHREAD is a single threading model, everything is executed in the caller thread. easy for debugging
-  */
+ * COM_TM_NOTHREAD is a single threading model, everything is executed in the caller thread. easy for debugging
+ */
 #define COM_TM_NOTHREAD 0
 
 /**
-  * COM_CURRENT_THREADING_MODEL can be one of the above, COM_TM_QUEUE is currently default.
-  */
+ * COM_CURRENT_THREADING_MODEL can be one of the above, COM_TM_QUEUE is currently default.
+ */
 #define COM_CURRENT_THREADING_MODEL COM_TM_QUEUE
 // chunk order
 /**
-  * @brief The order of chunks to be scheduled
-  * @ingroup Execution
-  */
+ * @brief The order of chunks to be scheduled
+ * @ingroup Execution
+ */
 typedef enum OrderOfChunks {
 	/** @brief order from a distance to centerX/centerY */
 	COM_TO_CENTER_OUT = 0,
@@ -89,11 +101,10 @@ typedef enum OrderOfChunks {
 	COM_TO_RULE_OF_THIRDS = 3
 } OrderOfChunks;
 
+#define COM_ORDER_OF_CHUNKS_DEFAULT COM_TO_CENTER_OUT
+
 #define COM_RULE_OF_THIRDS_DIVIDER 100.0f
 
 #define COM_NUMBER_OF_CHANNELS 4
-
-#define COM_DEFAULT_RESOLUTION_WIDTH 640
-#define COM_DEFAULT_RESOLUTION_HEIGHT 480
 
 #endif

@@ -392,9 +392,9 @@ static void xml_read_shader_graph(const XMLReadState& state, Shader *shader, pug
 			snode = dist;
 		}
 		else if(string_iequals(node.name(), "wave_texture")) {
-			WaveTextureNode *wood = new WaveTextureNode();
-			xml_read_enum(&wood->type, WaveTextureNode::type_enum, node, "type");
-			snode = wood;
+			WaveTextureNode *wave = new WaveTextureNode();
+			xml_read_enum(&wave->type, WaveTextureNode::type_enum, node, "type");
+			snode = wave;
 		}
 		else if(string_iequals(node.name(), "normal")) {
 			snode = new NormalNode();
@@ -673,7 +673,7 @@ static void xml_read_mesh(const XMLReadState& state, pugi::xml_node node)
 				for(int j = 0; j < nverts[i]-2; j++) {
 					int v0 = verts[index_offset];
 					int v1 = verts[index_offset + j + 1];
-					int v2 = verts[index_offset + j + 2];;
+					int v2 = verts[index_offset + j + 2];
 
 					sdmesh.add_face(v0, v1, v2);
 				}

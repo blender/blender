@@ -33,13 +33,13 @@
 #include "node_composite_util.h"
 
 static bNodeSocketTemplate cmp_node_lensdist_in[]= {
-	{	SOCK_RGBA, 1, "Image",			1.0f, 1.0f, 1.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Distort", 	0.f, 0.f, 0.f, 0.f, -0.999f, 1.f, PROP_NONE},
-	{	SOCK_FLOAT, 1, "Dispersion", 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, PROP_NONE},
+	{	SOCK_RGBA, 1, N_("Image"),			1.0f, 1.0f, 1.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Distort"), 	0.f, 0.f, 0.f, 0.f, -0.999f, 1.f, PROP_NONE},
+	{	SOCK_FLOAT, 1, N_("Dispersion"), 0.f, 0.f, 0.f, 0.f, 0.f, 1.f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 static bNodeSocketTemplate cmp_node_lensdist_out[]= {
-	{	SOCK_RGBA, 0, "Image"},
+	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
 

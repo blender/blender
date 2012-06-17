@@ -223,7 +223,7 @@ static void memory_source(j_decompress_ptr cinfo, unsigned char *buffer, size_t 
 		if (! (*datasrc->fill_input_buffer) (cinfo))                          \
 			{ action; }                                                       \
 		INPUT_RELOAD(cinfo);  \
-	}
+	} (void)0
 
 
 /* Read a byte into variable V.

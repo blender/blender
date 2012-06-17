@@ -361,7 +361,7 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 		case NC_SCREEN:
 			if (wmn->data == ND_GPENCIL) {
 				/* only handle this event in GPencil mode for performance considerations */
-				if (saction->mode == SACTCONT_GPENCIL)	
+				if (saction->mode == SACTCONT_GPENCIL)
 					ED_area_tag_redraw(sa);
 			}
 			break;
@@ -405,6 +405,18 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					break;
 			}
 			break;
+		case NC_MASK:
+			if (saction->mode == SACTCONT_MASK) {
+				switch (wmn->data) {
+					case ND_DATA:
+						ED_area_tag_refresh(sa);
+						break;
+					default: /* just redrawing the view will do */
+						ED_area_tag_redraw(sa);
+						break;
+				}
+			}
+			break;
 		case NC_NODE:
 			if (wmn->action == NA_SELECTED) {
 				/* selection changed, so force refresh to flush (needs flag set to do syncing) */
@@ -422,6 +434,12 @@ static void action_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 					break;
 			}			
+			break;
+		case NC_WINDOW:
+			if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+				/* force redraw/refresh after undo/redo - [#28962] */
+				ED_area_tag_refresh(sa);
+			}
 			break;
 	}
 }
@@ -452,9 +470,21 @@ static void action_refresh(const bContext *C, ScrArea *sa)
 	 * NOTE: the temp flag is used to indicate when this needs to be done, and will be cleared once handled
 	 */
 	if (saction->flag & SACTION_TEMP_NEEDCHANSYNC) {
+		ARegion *ar;
+		
+		/* Perform syncing of channel state incl. selection
+		 * Active action setting also occurs here (as part of anim channel filtering in anim_filter.c)
+		 */
 		ANIM_sync_animchannels_to_data(C);
 		saction->flag &= ~SACTION_TEMP_NEEDCHANSYNC;
+		
+		/* Tag everything for redraw
+		 * - Regions (such as header) need to be manually tagged for redraw too
+		 *   or else they don't update [#28962]
+		 */
 		ED_area_tag_redraw(sa);
+		for (ar = sa->regionbase.first; ar; ar = ar->next)
+			ED_region_tag_redraw(ar);
 	}
 	
 	/* region updates? */

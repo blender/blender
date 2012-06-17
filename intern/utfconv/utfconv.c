@@ -34,7 +34,7 @@ size_t count_utf_8_from_16(const wchar_t *string16)
 		return 0;
 	}
 
-    for (i = 0; (u = string16[i]); i++) {
+	for (i = 0; (u = string16[i]); i++) {
 		if (u < 0x0080) {
 			count += 1;
 		}
@@ -132,7 +132,7 @@ int conv_utf_16_to_8(const wchar_t *in16, char *out8, size_t size8)
 		else if (u < 0xD800 || u >= 0xE000) {
 			if (out8 + 2 >= out8end) break;
 			*out8++ = (0x7 << 5) | (0xF & (u >> 12));
-			*out8++ = (0x1 << 7) | (0x3F & (u >> 6));;
+			*out8++ = (0x1 << 7) | (0x3F & (u >> 6));
 			*out8  = (0x1 << 7) | (0x3F & (u));
 		}
 		else if (u < 0xDC00) {

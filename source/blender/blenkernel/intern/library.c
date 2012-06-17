@@ -66,6 +66,7 @@
 #include "DNA_world_types.h"
 #include "DNA_gpencil_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -108,6 +109,7 @@
 #include "BKE_speaker.h"
 #include "BKE_utildefines.h"
 #include "BKE_movieclip.h"
+#include "BKE_mask.h"
 
 #include "RNA_access.h"
 
@@ -486,6 +488,8 @@ ListBase *which_libbase(Main *mainlib, short type)
 			return &(mainlib->gpencil);
 		case ID_MC:
 			return &(mainlib->movieclip);
+		case ID_MSK:
+			return &(mainlib->mask);
 	}
 	return NULL;
 }
@@ -569,6 +573,7 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[a++] = &(main->library);
 	lb[a++] = &(main->wm);
 	lb[a++] = &(main->movieclip);
+	lb[a++] = &(main->mask);
 	
 	lb[a] = NULL;
 
@@ -645,7 +650,7 @@ static ID *alloc_libblock_notest(short type)
 			id = MEM_callocN(sizeof(Text), "text");
 			break;
 		case ID_SCRIPT:
-			//XXX id= MEM_callocN(sizeof(Script), "script");
+			//XXX id = MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SPK:
 			id = MEM_callocN(sizeof(Speaker), "speaker");
@@ -679,6 +684,9 @@ static ID *alloc_libblock_notest(short type)
 			break;
 		case ID_MC:
 			id = MEM_callocN(sizeof(MovieClip), "Movie Clip");
+			break;
+		case ID_MSK:
+			id = MEM_callocN(sizeof(Mask), "Mask");
 			break;
 	}
 	return id;
@@ -888,6 +896,9 @@ void BKE_libblock_free(ListBase *lb, void *idv)
 		case ID_MC:
 			BKE_movieclip_free((MovieClip *)id);
 			break;
+		case ID_MSK:
+			BKE_mask_free((Mask *)id);
+			break;
 	}
 
 	if (id->properties) {
@@ -1032,7 +1043,7 @@ static void IDnames_to_dyn_pupstring(DynStr *pupds, ListBase *lb, ID *link, shor
 
 
 /* used by headerbuttons.c buttons.c editobject.c editseq.c */
-/* if nr==NULL no MAX_IDPUP, this for non-header browsing */
+/* if (nr == NULL) no MAX_IDPUP, this for non-header browsing */
 void IDnames_to_pupstring(const char **str, const char *title, const char *extraops, ListBase *lb, ID *link, short *nr)
 {
 	DynStr *pupds = BLI_dynstr_new();
@@ -1131,7 +1142,7 @@ static ID *is_dupid(ListBase *lb, ID *id, const char *name)
  * Normally the ID that's being check is already in the ListBase, so ID *id
  * points at the new entry.  The Python Library module needs to know what
  * the name of a datablock will be before it is appended; in this case ID *id
- * id is NULL;
+ * id is NULL
  */
 
 static int check_for_dupid(ListBase *lb, ID *id, char *name)
@@ -1310,7 +1321,7 @@ void clear_id_newpoins(void)
 	}
 }
 
-#define LIBTAG(a)   if (a && a->id.lib) {a->id.flag &= ~LIB_INDIRECT; a->id.flag |= LIB_EXTERN; }
+#define LIBTAG(a)   if (a && a->id.lib) {a->id.flag &= ~LIB_INDIRECT; a->id.flag |= LIB_EXTERN; } (void)0
 
 static void lib_indirect_test_id(ID *id, Library *lib)
 {

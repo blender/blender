@@ -164,7 +164,7 @@ void TaskScheduler::init(int num_threads)
 	thread_scoped_lock lock(mutex);
 
 	/* multiple cycles instances can use this task scheduler, sharing the same
-	   threads, so we keep track of the number of users. */
+	 * threads, so we keep track of the number of users. */
 	if(users == 0) {
 		do_exit = false;
 

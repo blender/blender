@@ -30,7 +30,7 @@ extern "C" {
 }
 #endif
 
-VectorCurveOperation::VectorCurveOperation(): CurveBaseOperation()
+VectorCurveOperation::VectorCurveOperation() : CurveBaseOperation()
 {
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_VECTOR);

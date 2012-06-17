@@ -74,10 +74,13 @@ bool Attribute::same_storage(TypeDesc a, TypeDesc b)
 	
 	if(a == TypeDesc::TypeColor || a == TypeDesc::TypePoint ||
 	   a == TypeDesc::TypeVector || a == TypeDesc::TypeNormal)
+	{
 		if(b == TypeDesc::TypeColor || b == TypeDesc::TypePoint ||
 		   b == TypeDesc::TypeVector || b == TypeDesc::TypeNormal)
+		{
 			return true;
-	
+		}
+	}
 	return false;
 }
 
@@ -286,10 +289,13 @@ bool AttributeRequestSet::modified(const AttributeRequestSet& other)
 		for(size_t j = 0; j < requests.size() && !found; j++)
 			if(requests[i].name == other.requests[j].name &&
 			   requests[i].std == other.requests[j].std)
+			{
 				found = true;
+			}
 
-		if(!found)
+		if(!found) {
 			return true;
+		}
 	}
 
 	return false;

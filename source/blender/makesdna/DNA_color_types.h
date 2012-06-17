@@ -86,32 +86,46 @@ typedef struct CurveMapping {
 
 /* cumapping->preset */
 typedef enum CurveMappingPreset {
-	CURVE_PRESET_LINE,
-	CURVE_PRESET_SHARP,
-	CURVE_PRESET_SMOOTH,
-	CURVE_PRESET_MAX,
-	CURVE_PRESET_MID9,
-	CURVE_PRESET_ROUND,
-	CURVE_PRESET_ROOT,
+	CURVE_PRESET_LINE   = 0,
+	CURVE_PRESET_SHARP  = 1,
+	CURVE_PRESET_SMOOTH = 2,
+	CURVE_PRESET_MAX    = 3,
+	CURVE_PRESET_MID9   = 4,
+	CURVE_PRESET_ROUND  = 5,
+	CURVE_PRESET_ROOT   = 6,
 } CurveMappingPreset;
 
 /* histogram->mode */
-#define HISTO_MODE_LUMA	0
-#define HISTO_MODE_RGB	1
-#define HISTO_MODE_R	2
-#define HISTO_MODE_G	3
-#define HISTO_MODE_B	4
+enum {
+	HISTO_MODE_LUMA   = 0,
+	HISTO_MODE_RGB    = 1,
+	HISTO_MODE_R      = 2,
+	HISTO_MODE_G      = 3,
+	HISTO_MODE_B      = 4,
+	HISTO_MODE_ALPHA  = 5
+};
+
+enum {
+	HISTO_FLAG_LINE        = (1 << 0),
+	HISTO_FLAG_SAMPLELINE  = (1 << 1)
+};
 
 typedef struct Histogram {
 	int channels;
 	int x_resolution;
+	float data_luma[256];
 	float data_r[256];
 	float data_g[256];
 	float data_b[256];
-	float data_luma[256];
+	float data_a[256];
 	float xmax, ymax;
-	int mode;
+	short mode;
+	short flag;
 	int height;
+
+	/* sample line only */
+	/* image coords src -> dst */
+	float co[2][2];
 } Histogram;
 
 struct ImBuf;

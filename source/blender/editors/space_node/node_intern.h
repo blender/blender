@@ -50,8 +50,7 @@ struct bNodeLink;
 struct Main;
 
 /* temp data to pass on to modal */
-typedef struct bNodeLinkDrag
-{
+typedef struct bNodeLinkDrag {
 	struct bNodeLinkDrag *next, *prev;
 	
 	/* List of links dragged by the operator.
@@ -70,11 +69,13 @@ void node_menus_register(void);
 
 /* node_draw.c */
 int node_get_colorid(struct bNode *node);
-void node_socket_circle_draw(struct bNodeTree *ntree, struct bNodeSocket *sock, float size);
+void node_socket_circle_draw(struct bNodeTree *ntree, struct bNodeSocket *sock, float size, int highlight);
 int node_get_resize_cursor(int directions);
-void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius);
+void node_draw_shadow(struct SpaceNode *snode, struct bNode *node, float radius, float alpha);
 void node_draw_default(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree, struct bNode *node);
 void node_update_default(const struct bContext *C, struct bNodeTree *ntree, struct bNode *node);
+int node_select_area_default(struct bNode *node, int x, int y);
+int node_tweak_area_default(struct bNode *node, int x, int y);
 void node_update_nodetree(const struct bContext *C, struct bNodeTree *ntree, float offsetx, float offsety);
 void node_draw_nodetree(const struct bContext *C, struct ARegion *ar, struct SpaceNode *snode, struct bNodeTree *ntree);
 void drawnodespace(const bContext *C, ARegion *ar, View2D *v2d);
@@ -144,9 +145,11 @@ void NODE_OT_link(struct wmOperatorType *ot);
 void NODE_OT_link_make(struct wmOperatorType *ot);
 void NODE_OT_links_cut(struct wmOperatorType *ot);
 void NODE_OT_links_detach(struct wmOperatorType *ot);
+void NODE_OT_add_reroute(struct wmOperatorType *ot);
 
 void NODE_OT_group_make(struct wmOperatorType *ot);
 void NODE_OT_group_ungroup(struct wmOperatorType *ot);
+void NODE_OT_group_separate(struct wmOperatorType *ot);
 void NODE_OT_group_edit(struct wmOperatorType *ot);
 void NODE_OT_group_socket_add(struct wmOperatorType *ot);
 void NODE_OT_group_socket_remove(struct wmOperatorType *ot);

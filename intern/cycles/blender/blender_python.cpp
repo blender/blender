@@ -193,7 +193,8 @@ CCLDeviceInfo *compute_device_list(DeviceType type)
 
 		foreach(DeviceInfo& info, devices) {
 			if(info.type == type ||
-			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type)) {
+			   (info.type == DEVICE_MULTI && info.multi_devices[0].type == type))
+			{
 				CCLDeviceInfo cinfo = {info.id.c_str(), info.description.c_str(), i++};
 				device_list.push_back(cinfo);
 			}
@@ -214,7 +215,7 @@ CCL_NAMESPACE_END
 
 void *CCL_python_module_init()
 {
-	PyObject *mod= PyModule_Create(&ccl::module);
+	PyObject *mod = PyModule_Create(&ccl::module);
 
 #ifdef WITH_OSL
 	PyModule_AddObject(mod, "with_osl", Py_True);

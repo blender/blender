@@ -1509,7 +1509,7 @@ static void addps_sss(void *cb_handle, int obi, int facenr, int x, int y, int z)
 	}
 }
 
-static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRen *obi, VlakRen *vlr, int quad, float x, float y, float z, float *co, float *color, float *area)
+static void shade_sample_sss(ShadeSample *ssamp, Material *mat, ObjectInstanceRen *obi, VlakRen *vlr, int quad, float x, float y, float z, float *co, float color[3], float *area)
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;

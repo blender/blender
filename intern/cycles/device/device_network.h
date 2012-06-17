@@ -126,8 +126,10 @@ typedef struct RPCReceive {
 
 				if(len == data_size) {
 					archive_str = (data.size())? string(&data[0], data.size()): string("");
-					/*istringstream archive_stream(archive_str);
-					boost::archive::text_iarchive archive(archive_stream);*/
+#if 0
+					istringstream archive_stream(archive_str);
+					boost::archive::text_iarchive archive(archive_stream);
+#endif
 					archive_stream = new istringstream(archive_str);
 					archive = new boost::archive::text_iarchive(*archive_stream);
 

@@ -22,7 +22,7 @@
 
 #include "COM_BrightnessOperation.h"
 
-BrightnessOperation::BrightnessOperation(): NodeOperation()
+BrightnessOperation::BrightnessOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VALUE);
@@ -52,10 +52,10 @@ void BrightnessOperation::executePixel(float *color, float x, float y, PixelSamp
 	float delta = contrast / 200.0f;
 	a = 1.0f - delta * 2.0f;
 	/*
-	* The algorithm is by Werner D. Streidt
-	* (http://visca.com/ffactory/archives/5-99/msg00021.html)
-	* Extracted of OpenCV demhist.c
-	*/
+	 * The algorithm is by Werner D. Streidt
+	 * (http://visca.com/ffactory/archives/5-99/msg00021.html)
+	 * Extracted of OpenCV demhist.c
+	 */
 	if (contrast > 0) {
 		a = 1.0f / a;
 		b = a * (brightness - delta);
@@ -65,9 +65,9 @@ void BrightnessOperation::executePixel(float *color, float x, float y, PixelSamp
 		b = a * (brightness + delta);
 	}
 	
-	color[0] = a*inputValue[0]+b;
-	color[1] = a*inputValue[1]+b;
-	color[2] = a*inputValue[2]+b;
+	color[0] = a * inputValue[0] + b;
+	color[1] = a * inputValue[1] + b;
+	color[2] = a * inputValue[2] + b;
 	color[3] = inputValue[3];
 }
 

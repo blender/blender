@@ -550,6 +550,27 @@ void add_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	}
 }
 
+void madd_vn_vn(float *array_tar, const float *array_src, const float f, const int size)
+{
+	float *tar = array_tar + (size - 1);
+	const float *src = array_src + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar--) += *(src--) * f;
+	}
+}
+
+void madd_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const float f, const int size)
+{
+	float *tar = array_tar + (size - 1);
+	const float *src_a = array_src_a + (size - 1);
+	const float *src_b = array_src_b + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar--) = *(src_a--) + (*(src_b--) * f);
+	}
+}
+
 void sub_vn_vn(float *array_tar, const float *array_src, const int size)
 {
 	float *tar = array_tar + (size - 1);
@@ -568,6 +589,27 @@ void sub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_
 	int i = size;
 	while (i--) {
 		*(tar--) = *(src_a--) - *(src_b--);
+	}
+}
+
+void msub_vn_vn(float *array_tar, const float *array_src, const float f, const int size)
+{
+	float *tar = array_tar + (size - 1);
+	const float *src = array_src + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar--) -= *(src--) * f;
+	}
+}
+
+void msub_vn_vnvn(float *array_tar, const float *array_src_a, const float *array_src_b, const float f, const int size)
+{
+	float *tar = array_tar + (size - 1);
+	const float *src_a = array_src_a + (size - 1);
+	const float *src_b = array_src_b + (size - 1);
+	int i = size;
+	while (i--) {
+		*(tar--) = *(src_a--) - (*(src_b--) * f);
 	}
 }
 

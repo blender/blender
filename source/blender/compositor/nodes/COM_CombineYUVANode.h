@@ -26,9 +26,9 @@
 #include "DNA_node_types.h"
 #include "COM_CombineRGBANode.h"
 /**
-  * @brief CombineYUVANode
-  * @ingroup Node
-  */
+ * @brief CombineYUVANode
+ * @ingroup Node
+ */
 class CombineYUVANode : public CombineRGBANode {
 public:
 	CombineYUVANode(bNode *editorNode);

@@ -25,8 +25,8 @@
 #endif
 
 #include <errno.h>
-#include <BLI_fnmatch.h>
 #include <ctype.h>
+#include "BLI_fnmatch.h"
 
 
 /* Comment out all this code if we are using the GNU C Library, and are not

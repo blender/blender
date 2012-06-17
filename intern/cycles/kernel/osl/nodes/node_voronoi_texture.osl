@@ -30,13 +30,12 @@ shader node_voronoi_texture(
 	float Weight4 = 0.0,
 	float Exponent = 2.5,
 	float Intensity = 1.0,
-	float Size = 0.25,
+	float Scale = 5.0,
 	point Vector = P,
 	output float Fac = 0.0,
 	output color Color = color(0.0, 0.0, 0.0))
 {
 	float exponent = max(Exponent, 1e-5);
-	float size = nonzero(Size, 1e-5);
 
 	float aw1 = fabs(Weight1);
 	float aw2 = fabs(Weight2);
@@ -51,7 +50,7 @@ shader node_voronoi_texture(
 	float da[4];
 	point pa[4];
 
-	voronoi(Vector/size, DistanceMetric, exponent, da, pa);
+	voronoi(Vector*Scale, DistanceMetric, exponent, da, pa);
 
 	/* Scalar output */
 	Fac = sc * fabs(Weight1*da[0] + Weight2*da[1] + Weight3*da[2] + Weight4*da[3]);

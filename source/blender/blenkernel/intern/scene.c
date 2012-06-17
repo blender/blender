@@ -63,6 +63,7 @@
 #include "BKE_idprop.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_paint.h"
@@ -516,6 +517,9 @@ Scene *BKE_scene_add(const char *name)
 	sce->gm.maxlogicstep = 5;
 	sce->gm.physubstep = 1;
 	sce->gm.maxphystep = 5;
+	sce->gm.lineardeactthreshold = 0.8f;
+	sce->gm.angulardeactthreshold = 1.0f;
+	sce->gm.deactivationtime = 0.0f;
 
 	sce->gm.flag = GAME_DISPLAY_LISTS;
 	sce->gm.matmode = GAME_MAT_MULTITEX;
@@ -604,10 +608,8 @@ void BKE_scene_set_background(Main *bmain, Scene *scene)
 		base->flag |= flag;
 		
 		/* not too nice... for recovering objects with lost data */
-		//if (ob->pose==NULL) base->flag &= ~OB_POSEMODE;
+		//if (ob->pose == NULL) base->flag &= ~OB_POSEMODE;
 		ob->flag = base->flag;
-		
-		ob->ctime = -1234567.0;  /* force ipo to be calculated later */
 	}
 	/* no full animation update, this to enable render code to work (render code calls own animation updates) */
 }
@@ -1001,6 +1003,9 @@ static void scene_update_tagged_recursive(Main *bmain, Scene *scene, Scene *scen
 
 	/* update sound system animation */
 	sound_update_scene(scene);
+
+	/* update masking curves */
+	BKE_mask_update_scene(bmain, scene, FALSE);
 }
 
 /* this is called in main loop, doing tagged updates before redraw */
@@ -1070,6 +1075,8 @@ void BKE_scene_update_for_newframe(Main *bmain, Scene *sce, unsigned int lay)
 	/* Following 2 functions are recursive
 	 * so don't call within 'scene_update_tagged_recursive' */
 	DAG_scene_update_flags(bmain, sce, lay, TRUE);   // only stuff that moves or needs display still
+
+	BKE_mask_evaluate_all_masks(bmain, ctime, TRUE);
 
 	/* All 'standard' (i.e. without any dependencies) animation is handled here,
 	 * with an 'local' to 'macro' order of evaluation. This should ensure that

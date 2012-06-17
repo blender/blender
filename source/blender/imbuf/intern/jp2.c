@@ -43,6 +43,7 @@
 static char JP2_HEAD[] = {0x0, 0x0, 0x0, 0x0C, 0x6A, 0x50, 0x20, 0x20, 0x0D, 0x0A, 0x87, 0x0A};
 
 /* We only need this because of how the presets are set */
+/* this typedef is copied from 'openjpeg-1.5.0/applications/codec/image_to_j2k.c' */
 typedef struct img_folder {
 	/** The directory path of the folder containing input images*/
 	char *imgdirpath;
@@ -92,27 +93,35 @@ static void info_callback(const char *msg, void *client_data)
 	fprintf(stdout, "[INFO] %s", msg);
 }
 
+#   define PIXEL_LOOPER_BEGIN(_rect)                                          \
+	for (y = h - 1; y != (unsigned int)(-1); y--) {                           \
+		for (i = y * w, i_next = (y + 1) * w;                                 \
+		     i < i_next;                                                      \
+		     i++, _rect += 4)                                                 \
+		{                                                                     \
 
+#   define PIXEL_LOOPER_END \
+	} \
+	} (void)0 \
 
 struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 {
 	struct ImBuf *ibuf = NULL;
 	int use_float = FALSE; /* for precision higher then 8 use float */
+	int use_alpha = FALSE;
 	
 	long signed_offsets[4] = {0, 0, 0, 0};
 	int float_divs[4] = {1, 1, 1, 1};
 
-	int index;
-	
-	int w, h, planes;
+	unsigned int i, i_next, w, h, planes;
+	unsigned int y;
+	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	
 	opj_dparameters_t parameters;   /* decompression parameters */
 	
 	opj_event_mgr_t event_mgr;      /* event manager */
 	opj_image_t *image = NULL;
-	
-	int i;
-	
+
 	opj_dinfo_t *dinfo = NULL;  /* handle to a decompressor */
 	opj_cio_t *cio = NULL;
 
@@ -169,9 +178,11 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 		case 1: /* Greyscale */
 		case 3: /* Color */
 			planes = 24;
+			use_alpha = FALSE;
 			break;
 		default: /* 2 or 4 - Greyscale or Color + alpha */
 			planes = 32; /* greyscale + alpha */
+			use_alpha = TRUE;
 			break;
 	}
 	
@@ -206,64 +217,102 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 		float *rect_float = ibuf->rect_float;
 
 		if (image->numcomps < 3) {
+			r = image->comps[0].data;
+			a = (use_alpha) ? image->comps[1].data : NULL;
+
 			/* greyscale 12bits+ */
-			for (i = 0; i < w * h; i++, rect_float += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect_float[0] = rect_float[1] = rect_float[2] = (float)(image->comps[0].data[index] + signed_offsets[0]) / float_divs[0];
-				
-				if (image->numcomps == 2)
-					rect_float[3] = (image->comps[1].data[index] + signed_offsets[1]) / float_divs[1];
-				else
+			if (use_alpha) {
+				a = image->comps[1].data;
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[3] = (a[i] + signed_offsets[1]) / float_divs[1];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = rect_float[1] = rect_float[2] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
 					rect_float[3] = 1.0f;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		else {
+			r = image->comps[0].data;
+			g = image->comps[1].data;
+			b = image->comps[2].data;
+
 			/* rgb or rgba 12bits+ */
-			for (i = 0; i < w * h; i++, rect_float += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect_float[0] = (float)(image->comps[0].data[index] + signed_offsets[0]) / float_divs[0];
-				rect_float[1] = (float)(image->comps[1].data[index] + signed_offsets[1]) / float_divs[1];
-				rect_float[2] = (float)(image->comps[2].data[index] + signed_offsets[2]) / float_divs[2];
-				
-				if (image->numcomps >= 4)
-					rect_float[3] = (float)(image->comps[3].data[index] + signed_offsets[3]) / float_divs[3];
-				else
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
+					rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
+					rect_float[3] = (float)(a[i] + signed_offsets[3]) / float_divs[3];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_float) {
+					rect_float[0] = (float)(r[i] + signed_offsets[0]) / float_divs[0];
+					rect_float[1] = (float)(g[i] + signed_offsets[1]) / float_divs[1];
+					rect_float[2] = (float)(b[i] + signed_offsets[2]) / float_divs[2];
 					rect_float[3] = 1.0f;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		
 	}
 	else {
-		unsigned char *rect = (unsigned char *)ibuf->rect;
+		unsigned char *rect_uchar = (unsigned char *)ibuf->rect;
 
 		if (image->numcomps < 3) {
+			r = image->comps[0].data;
+			a = (use_alpha) ? image->comps[1].data : NULL;
+
 			/* greyscale */
-			for (i = 0; i < w * h; i++, rect += 4) {
-				index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect[0] = rect[1] = rect[2] = (image->comps[0].data[index] + signed_offsets[0]);
-				
-				if (image->numcomps == 2)
-					rect[3] = image->comps[1].data[index] + signed_offsets[1];
-				else
-					rect[3] = 255;
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = rect_uchar[1] = rect_uchar[2] = (r[i] + signed_offsets[0]);
+					rect_uchar[3] = a[i] + signed_offsets[1];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = rect_uchar[1] = rect_uchar[2] = (r[i] + signed_offsets[0]);
+					rect_uchar[3] = 255;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 		else {
+			r = image->comps[0].data;
+			g = image->comps[1].data;
+			b = image->comps[2].data;
+
 			/* 8bit rgb or rgba */
-			for (i = 0; i < w * h; i++, rect += 4) {
-				int index = w * h - ((i) / (w) + 1) * w + (i) % (w);
-				
-				rect[0] = image->comps[0].data[index] + signed_offsets[0];
-				rect[1] = image->comps[1].data[index] + signed_offsets[1];
-				rect[2] = image->comps[2].data[index] + signed_offsets[2];
-				
-				if (image->numcomps >= 4)
-					rect[3] = image->comps[3].data[index] + signed_offsets[3];
-				else
-					rect[3] = 255;
+			if (use_alpha) {
+				a = image->comps[3].data;
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = r[i] + signed_offsets[0];
+					rect_uchar[1] = g[i] + signed_offsets[1];
+					rect_uchar[2] = b[i] + signed_offsets[2];
+					rect_uchar[3] = a[i] + signed_offsets[3];
+				}
+				PIXEL_LOOPER_END;
+			}
+			else {
+				PIXEL_LOOPER_BEGIN(rect_uchar) {
+					rect_uchar[0] = r[i] + signed_offsets[0];
+					rect_uchar[1] = g[i] + signed_offsets[1];
+					rect_uchar[2] = b[i] + signed_offsets[2];
+					rect_uchar[3] = 255;
+				}
+				PIXEL_LOOPER_END;
 			}
 		}
 	}
@@ -286,13 +335,38 @@ struct ImBuf *imb_jp2_decode(unsigned char *mem, size_t size, int flags)
 //static opj_image_t* rawtoimage(const char *filename, opj_cparameters_t *parameters, raw_cparameters_t *raw_cp) {
 /* prec can be 8, 12, 16 */
 
+/* use inline because the float passed can be a function call that would end up being called many times */
+#if 0
 #define UPSAMPLE_8_TO_12(_val) ((_val << 4) | (_val & ((1 << 4) - 1)))
 #define UPSAMPLE_8_TO_16(_val) ((_val << 8) + _val)
 
 #define DOWNSAMPLE_FLOAT_TO_8BIT(_val)  (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)))
 #define DOWNSAMPLE_FLOAT_TO_12BIT(_val) (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)))
 #define DOWNSAMPLE_FLOAT_TO_16BIT(_val) (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)))
+#else
 
+BLI_INLINE int UPSAMPLE_8_TO_12(const unsigned char _val)
+{
+	return (_val << 4) | (_val & ((1 << 4) - 1));
+}
+BLI_INLINE int UPSAMPLE_8_TO_16(const unsigned char _val)
+{
+	return (_val << 8) + _val;
+}
+
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_8BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 255 : (int)(255.0f * (_val)));
+}
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_12BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 4095 : (int)(4095.0f * (_val)));
+}
+BLI_INLINE int DOWNSAMPLE_FLOAT_TO_16BIT(const float _val)
+{
+	return (_val) <= 0.0f ? 0 : ((_val) >= 1.0f ? 65535 : (int)(65535.0f * (_val)));
+}
+#endif
 
 /*
  * 2048x1080 (2K) at 24 fps or 48 fps, or 4096x2160 (4K) at 24 fps; 3x12 bits per pixel, XYZ color space
@@ -345,7 +419,7 @@ static void cinema_parameters(opj_cparameters_t *parameters)
 	parameters->image_offset_x0 = 0;
 	parameters->image_offset_y0 = 0;
 
-	/*Codeblock size= 32*32*/
+	/*Codeblock size = 32 * 32*/
 	parameters->cblockw_init = 32;	
 	parameters->cblockh_init = 32;
 	parameters->csty |= 0x01;
@@ -457,15 +531,15 @@ static void cinema_setup_encoder(opj_cparameters_t *parameters, opj_image_t *ima
 
 static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 {
-	unsigned char *rect;
+	unsigned char *rect_uchar;
 	float *rect_float;
 	
-	int subsampling_dx = parameters->subsampling_dx;
-	int subsampling_dy = parameters->subsampling_dy;
+	unsigned int subsampling_dx = parameters->subsampling_dx;
+	unsigned int subsampling_dy = parameters->subsampling_dy;
 	
-
-	int i, numcomps, w, h, prec;
-	int x, y, y_row;
+	unsigned int i, i_next, numcomps, w, h, prec;
+	unsigned int y;
+	int *r, *g, *b, *a; /* matching 'opj_image_comp.data' type */
 	OPJ_COLOR_SPACE color_space;
 	opj_image_cmptparm_t cmptparm[4];   /* maximum of 4 components */
 	opj_image_t *image = NULL;
@@ -515,7 +589,7 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	
 	
 	/* initialize image components */
-	memset(&cmptparm[0], 0, 4 * sizeof(opj_image_cmptparm_t));
+	memset(&cmptparm, 0, 4 * sizeof(opj_image_cmptparm_t));
 	for (i = 0; i < numcomps; i++) {
 		cmptparm[i].prec = prec;
 		cmptparm[i].bpp = prec;
@@ -535,78 +609,157 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 	/* set image offset and reference grid */
 	image->x0 = parameters->image_offset_x0;
 	image->y0 = parameters->image_offset_y0;
-	image->x1 = parameters->image_offset_x0 + (w - 1) * subsampling_dx + 1;
-	image->y1 = parameters->image_offset_y0 + (h - 1) * subsampling_dy + 1;
-	
+	image->x1 = image->x0 + (w - 1) * subsampling_dx + 1 + image->x0;
+	image->y1 = image->y0 + (h - 1) * subsampling_dy + 1 + image->y0;
+
 	/* set image data */
-	rect = (unsigned char *) ibuf->rect;
+	rect_uchar = (unsigned char *) ibuf->rect;
 	rect_float = ibuf->rect_float;
 	
-	if (rect_float && rect && prec == 8) {
+	/* set the destination channels */
+	r = image->comps[0].data;
+	g = image->comps[1].data;
+	b = image->comps[2].data;
+	a = (numcomps == 4) ? image->comps[3].data : NULL;
+
+	if (rect_float && rect_uchar && prec == 8) {
 		/* No need to use the floating point buffer, just write the 8 bits from the char buffer */
 		rect_float = NULL;
 	}
 	
-	
 	if (rect_float) {
-		float rgb[3];
-		
 		switch (prec) {
 			case 8: /* Convert blenders float color channels to 8, 12 or 16bit ints */
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_8BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
 			
 			case 12:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_12BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
+
 			case 16:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect_float += 4) {
-						i = y_row + x;
-
-						if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
-							linearrgb_to_srgb_v3_v3(rgb, rect_float);
-						else
-							copy_v3_v3(rgb, rect_float);
-
-						image->comps[0].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[0]);
-						image->comps[1].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[1]);
-						image->comps[2].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rgb[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+				if (numcomps == 4) {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+							a[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+							a[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[3]);
+						}
+						PIXEL_LOOPER_END;
+					}
+				}
+				else {
+					if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[0]));
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[1]));
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(linearrgb_to_srgb(rect_float[2]));
+						}
+						PIXEL_LOOPER_END;
+					}
+					else {
+						PIXEL_LOOPER_BEGIN(rect_float)
+						{
+							r[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[0]);
+							g[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[1]);
+							b[i] = DOWNSAMPLE_FLOAT_TO_16BIT(rect_float[2]);
+						}
+						PIXEL_LOOPER_END;
 					}
 				}
 				break;
@@ -616,46 +769,68 @@ static opj_image_t *ibuftoimage(ImBuf *ibuf, opj_cparameters_t *parameters)
 		/* just use rect*/
 		switch (prec) {
 			case 8:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
-
-						image->comps[0].data[i] = rect[0];
-						image->comps[1].data[i] = rect[1];
-						image->comps[2].data[i] = rect[2];
-						if (numcomps > 3)
-							image->comps[3].data[i] = rect[3];
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = rect_uchar[0];
+						g[i] = rect_uchar[1];
+						b[i] = rect_uchar[2];
+						a[i] = rect_uchar[3];
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = rect_uchar[0];
+						g[i] = rect_uchar[1];
+						b[i] = rect_uchar[2];
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
 			
 			case 12: /* Up Sampling, a bit pointless but best write the bit depth requested */
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
-
-						image->comps[0].data[i] = UPSAMPLE_8_TO_12(rect[0]);
-						image->comps[1].data[i] = UPSAMPLE_8_TO_12(rect[1]);
-						image->comps[2].data[i] = UPSAMPLE_8_TO_12(rect[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = UPSAMPLE_8_TO_12(rect[3]);
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = UPSAMPLE_8_TO_12(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect_uchar[2]);
+						a[i] = UPSAMPLE_8_TO_12(rect_uchar[3]);
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = UPSAMPLE_8_TO_12(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_12(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_12(rect_uchar[2]);
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
-			case 16:
-				for (y = h - 1; y >= 0; y--) {
-					y_row = y * w;
-					for (x = 0; x < w; x++, rect += 4) {
-						i = y_row + x;
 
-						image->comps[0].data[i] = UPSAMPLE_8_TO_16(rect[0]);
-						image->comps[1].data[i] = UPSAMPLE_8_TO_16(rect[1]);
-						image->comps[2].data[i] = UPSAMPLE_8_TO_16(rect[2]);
-						if (numcomps > 3)
-							image->comps[3].data[i] = UPSAMPLE_8_TO_16(rect[3]);
+			case 16:
+				if (numcomps == 4) {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = UPSAMPLE_8_TO_16(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect_uchar[2]);
+						a[i] = UPSAMPLE_8_TO_16(rect_uchar[3]);
 					}
+					PIXEL_LOOPER_END;
+				}
+				else {
+					PIXEL_LOOPER_BEGIN(rect_uchar)
+					{
+						r[i] = UPSAMPLE_8_TO_16(rect_uchar[0]);
+						g[i] = UPSAMPLE_8_TO_16(rect_uchar[1]);
+						b[i] = UPSAMPLE_8_TO_16(rect_uchar[2]);
+					}
+					PIXEL_LOOPER_END;
 				}
 				break;
 		}
@@ -720,7 +895,7 @@ int imb_savejp2(struct ImBuf *ibuf, const char *name, int flags)
 		opj_cinfo_t *cinfo = opj_create_compress(CODEC_JP2);
 
 		/* catch events using our callbacks and give a local context */
-		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);			
+		opj_set_event_mgr((opj_common_ptr)cinfo, &event_mgr, stderr);
 
 		/* setup the encoder parameters using the current image and using user parameters */
 		opj_setup_encoder(cinfo, &parameters, image);

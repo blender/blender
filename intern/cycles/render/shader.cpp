@@ -81,9 +81,9 @@ void Shader::tag_update(Scene *scene)
 		scene->light_manager->need_update = true;
 
 	/* get requested attributes. this could be optimized by pruning unused
-	   nodes here already, but that's the job of the shader manager currently,
-	   and may not be so great for interactive rendering where you temporarily
-	   disconnect a node */
+	 * nodes here already, but that's the job of the shader manager currently,
+	 * and may not be so great for interactive rendering where you temporarily
+	 * disconnect a node */
 	AttributeRequestSet prev_attributes = attributes;
 
 	attributes.clear();
@@ -91,7 +91,7 @@ void Shader::tag_update(Scene *scene)
 		node->attributes(&attributes);
 	
 	/* compare if the attributes changed, mesh manager will check
-	   need_update_attributes, update the relevant meshes and clear it. */
+	 * need_update_attributes, update the relevant meshes and clear it. */
 	if(attributes.modified(prev_attributes)) {
 		need_update_attributes = true;
 		scene->mesh_manager->need_update = true;

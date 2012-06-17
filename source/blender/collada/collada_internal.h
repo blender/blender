@@ -39,6 +39,8 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "BLI_math.h"
+#include "BLI_math.h"
+#include "BLI_linklist.h"
 
 class UnitConverter
 {
@@ -86,7 +88,7 @@ extern std::string translate_id(const std::string &id);
 
 extern std::string id_name(void *id);
 
-extern std::string get_geometry_id(Object *ob);
+extern std::string get_geometry_id(Object *ob, bool use_instantiation);
 
 extern std::string get_light_id(Object *ob);
 
@@ -95,7 +97,5 @@ extern std::string get_joint_id(Bone *bone, Object *ob_arm);
 extern std::string get_camera_id(Object *ob);
 
 extern std::string get_material_id(Material *mat);
-
-extern bool has_object_type(Scene* sce, short obtype);
 
 #endif /* __COLLADA_INTERNAL_H__ */

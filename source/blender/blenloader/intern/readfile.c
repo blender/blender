@@ -95,6 +95,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -138,7 +139,6 @@
 #include "BKE_screen.h"
 #include "BKE_sequencer.h"
 #include "BKE_text.h" // for txt_extended_ascii_as_utf8
-#include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_tracking.h"
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_sound.h"
@@ -1210,7 +1210,6 @@ static void change_idid_adr_fd(FileData *fd, void *old, void *new)
 		if (old==entry->newp && entry->nr==ID_ID) {
 			entry->newp = new;
 			if (new) entry->nr = GS( ((ID *)new)->name );
-			break;
 		}
 	}
 }
@@ -2397,11 +2396,6 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 	
 	link_list(fd, &ntree->nodes);
 	for (node = ntree->nodes.first; node; node = node->next) {
-		if (node->type == NODE_DYNAMIC) {
-			node->custom1 = 0;
-			node->custom1 = BSET(node->custom1, NODE_DYNAMIC_LOADED);
-		}
-		
 		node->typeinfo = NULL;
 		
 		link_list(fd, &node->inputs);
@@ -3169,17 +3163,7 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 {
 	tex->adt = newdataadr(fd, tex->adt);
 	direct_link_animdata(fd, tex->adt);
-	
-	tex->plugin = newdataadr(fd, tex->plugin);
-	if (tex->plugin) {
-		tex->plugin->handle = NULL;
-		open_plugin_tex(tex->plugin);
-		/* initialize data for this instance, if an initialization
-		 * function exists.
-		 */
-		if (tex->plugin->instance_init)
-			tex->plugin->instance_init((void *)tex->plugin->data);
-	}
+
 	tex->coba = newdataadr(fd, tex->coba);
 	tex->env = newdataadr(fd, tex->env);
 	if (tex->env) {
@@ -3700,7 +3684,7 @@ static void lib_link_mesh(FileData *fd, Main *main)
 				Main *gmain = G.main;
 				G.main = main;
 				
-				BKE_mesh_convert_mfaces_to_mpolys(me);
+				BKE_mesh_do_versions_convert_mfaces_to_mpolys(me);
 				
 				G.main = gmain;
 			}
@@ -3994,7 +3978,7 @@ static void direct_link_latt(FileData *fd, Lattice *lt)
 /* ************ READ OBJECT ***************** */
 
 static void lib_link_modifiers__linkModifiers(void *userData, Object *ob,
-											  ID **idpoin)
+                                              ID **idpoin)
 {
 	FileData *fd = userData;
 
@@ -4067,7 +4051,16 @@ static void lib_link_object(FileData *fd, Main *main)
 				warn = 1;
 				
 				if (ob->pose) {
+					/* we can't call #BKE_pose_free() here because of library linking
+					 * freeing will recurse down into every pose constraints ID pointers
+					 * which are not always valid, so for now free directly and suffer
+					 * some leaked memory rather then crashing immediately
+					 * while bad this _is_ an exceptional case - campbell */
+#if 0
 					BKE_pose_free(ob->pose);
+#else
+					MEM_freeN(ob->pose);
+#endif
 					ob->pose= NULL;
 					ob->mode &= ~OB_MODE_POSE;
 				}
@@ -4835,11 +4828,15 @@ static void lib_link_scene(FileData *fd, Main *main)
 					seq->clip = newlibadr(fd, sce->id.lib, seq->clip);
 					seq->clip->id.us++;
 				}
+				if (seq->mask) {
+					seq->mask = newlibadr(fd, sce->id.lib, seq->mask);
+					seq->mask->id.us++;
+				}
 				if (seq->scene_camera) seq->scene_camera = newlibadr(fd, sce->id.lib, seq->scene_camera);
 				if (seq->sound) {
 					seq->scene_sound = NULL;
-					if (seq->type == SEQ_HD_SOUND)
-						seq->type = SEQ_SOUND;
+					if (seq->type == SEQ_TYPE_SOUND_HD)
+						seq->type = SEQ_TYPE_SOUND_RAM;
 					else
 						seq->sound = newlibadr(fd, sce->id.lib, seq->sound);
 					if (seq->sound) {
@@ -4962,13 +4959,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			/* a patch: after introduction of effects with 3 input strips */
 			if (seq->seq3 == NULL) seq->seq3 = seq->seq2;
 			
-			seq->plugin = newdataadr(fd, seq->plugin);
 			seq->effectdata = newdataadr(fd, seq->effectdata);
 			
-			if (seq->type & SEQ_EFFECT)
+			if (seq->type & SEQ_TYPE_EFFECT)
 				seq->flag |= SEQ_EFFECT_NOT_LOADED;
 			
-			if (seq->type == SEQ_SPEED) {
+			if (seq->type == SEQ_TYPE_SPEED) {
 				SpeedControlVars *s = seq->effectdata;
 				s->frameMap = NULL;
 			}
@@ -4977,7 +4973,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			if (seq->strip && seq->strip->done==0) {
 				seq->strip->done = TRUE;
 				
-				if (ELEM4(seq->type, SEQ_IMAGE, SEQ_MOVIE, SEQ_RAM_SOUND, SEQ_HD_SOUND)) {
+				if (ELEM4(seq->type, SEQ_TYPE_IMAGE, SEQ_TYPE_MOVIE, SEQ_TYPE_SOUND_RAM, SEQ_TYPE_SOUND_HD)) {
 					seq->strip->stripdata = newdataadr(fd, seq->strip->stripdata);
 				}
 				else {
@@ -5292,6 +5288,14 @@ static void lib_link_screen(FileData *fd, Main *main)
 						 */
 						sima->gpd = newlibadr_us(fd, sc->id.lib, sima->gpd);
 					}
+					else if (sl->spacetype == SPACE_SEQ) {
+						SpaceSeq *sseq = (SpaceSeq *)sl;
+						
+						/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+						 * so fingers crossed this works fine!
+						 */
+						sseq->gpd = newlibadr_us(fd, sc->id.lib, sseq->gpd);
+					}
 					else if (sl->spacetype == SPACE_NLA) {
 						SpaceNla *snla= (SpaceNla *)sl;
 						bDopeSheet *ads= snla->ads;
@@ -5364,10 +5368,17 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceClip *sclip = (SpaceClip *)sl;
 						
 						sclip->clip = newlibadr_us(fd, sc->id.lib, sclip->clip);
+						sclip->mask = newlibadr_us(fd, sc->id.lib, sclip->mask);
 						
+						sclip->scopes.track_search = NULL;
 						sclip->scopes.track_preview = NULL;
 						sclip->draw_context = NULL;
 						sclip->scopes.ok = 0;
+					}
+					else if (sl->spacetype == SPACE_LOGIC) {
+						SpaceLogic *slogic = (SpaceLogic *)sl;
+						
+						slogic->gpd = newlibadr_us(fd, sc->id.lib, slogic->gpd);
 					}
 				}
 			}
@@ -5540,6 +5551,12 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					
 					if (saction->ads.filter_grp)
 						saction->ads.filter_grp= restore_pointer_by_name(newmain, (ID *)saction->ads.filter_grp, 0);
+						
+					
+					/* force recalc of list of channels, potentially updating the active action 
+					 * while we're at it (as it can only be updated that way) [#28962] 
+					 */
+					saction->flag |= SACTION_TEMP_NEEDCHANSYNC;
 				}
 				else if (sl->spacetype == SPACE_IMAGE) {
 					SpaceImage *sima = (SpaceImage *)sl;
@@ -5560,6 +5577,14 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					 * so assume that here we're doing for undo only...
 					 */
 					sima->gpd = restore_pointer_by_name(newmain, (ID *)sima->gpd, 1);
+				}
+				else if (sl->spacetype == SPACE_SEQ) {
+					SpaceSeq *sseq = (SpaceSeq *)sl;
+					
+					/* NOTE: pre-2.5, this was local data not lib data, but now we need this as lib data
+					 * so assume that here we're doing for undo only...
+					 */
+					sseq->gpd = restore_pointer_by_name(newmain, (ID *)sseq->gpd, 1);
 				}
 				else if (sl->spacetype == SPACE_NLA) {
 					SpaceNla *snla = (SpaceNla *)sl;
@@ -5627,8 +5652,14 @@ void lib_link_screen_restore(Main *newmain, bScreen *curscreen, Scene *curscene)
 					SpaceClip *sclip = (SpaceClip *)sl;
 					
 					sclip->clip = restore_pointer_by_name(newmain, (ID *)sclip->clip, 1);
+					sclip->mask = restore_pointer_by_name(newmain, (ID *)sclip->mask, 1);
 					
 					sclip->scopes.ok = 0;
+				}
+				else if (sl->spacetype == SPACE_LOGIC) {
+					SpaceLogic *slogic = (SpaceLogic *)sl;
+					
+					slogic->gpd = restore_pointer_by_name(newmain, (ID *)slogic->gpd, 1);
 				}
 			}
 		}
@@ -5870,7 +5901,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			}
 			else if (sl->spacetype == SPACE_LOGIC) {
 				SpaceLogic *slogic = (SpaceLogic *)sl;
-					
+				
+				/* XXX: this is new stuff, which shouldn't be directly linking to gpd... */
 				if (slogic->gpd) {
 					slogic->gpd = newdataadr(fd, slogic->gpd);
 					direct_link_gpencil(fd, slogic->gpd);
@@ -6166,19 +6198,119 @@ static void direct_link_movieclip(FileData *fd, MovieClip *clip)
 	}
 }
 
+static void lib_link_movieTracks(FileData *fd, MovieClip *clip, ListBase *tracksbase)
+{
+	MovieTrackingTrack *track;
+
+	for (track = tracksbase->first; track; track = track->next) {
+		track->gpd = newlibadr_us(fd, clip->id.lib, track->gpd);
+	}
+}
+
 static void lib_link_movieclip(FileData *fd, Main *main)
 {
 	MovieClip *clip;
 	
 	for (clip = main->movieclip.first; clip; clip = clip->id.next) {
 		if (clip->id.flag & LIB_NEEDLINK) {
+			MovieTracking *tracking = &clip->tracking;
+			MovieTrackingObject *object;
+
 			if (clip->adt)
 				lib_link_animdata(fd, &clip->id, clip->adt);
 			
 			clip->gpd = newlibadr_us(fd, clip->id.lib, clip->gpd);
 			
+			lib_link_movieTracks(fd, clip, &tracking->tracks);
+
+			for (object = tracking->objects.first; object; object = object->next) {
+				lib_link_movieTracks(fd, clip, &object->tracks);
+			}
+
 			clip->id.flag -= LIB_NEEDLINK;
 		}
+	}
+}
+
+/* ***************** READ MOVIECLIP *************** */
+
+static void direct_link_mask(FileData *fd, Mask *mask)
+{
+	MaskLayer *masklay;
+
+	mask->adt = newdataadr(fd, mask->adt);
+
+	link_list(fd, &mask->masklayers);
+
+	for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+		MaskSpline *spline;
+		MaskLayerShape *masklay_shape;
+
+		link_list(fd, &masklay->splines);
+
+		for (spline = masklay->splines.first; spline; spline = spline->next) {
+			int i;
+
+			spline->points = newdataadr(fd, spline->points);
+
+			for (i = 0; i < spline->tot_point; i++) {
+				MaskSplinePoint *point = &spline->points[i];
+
+				if (point->tot_uw)
+					point->uw = newdataadr(fd, point->uw);
+			}
+		}
+
+		link_list(fd, &masklay->splines_shapes);
+
+		for (masklay_shape = masklay->splines_shapes.first; masklay_shape; masklay_shape = masklay_shape->next) {
+			masklay_shape->data = newdataadr(fd, masklay_shape->data);
+		}
+
+		masklay->act_spline = newdataadr(fd, masklay->act_spline);
+		masklay->act_point = newdataadr(fd, masklay->act_point);
+	}
+}
+
+static void lib_link_mask_parent(FileData *fd, Mask *mask, MaskParent *parent)
+{
+	parent->id = newlibadr_us(fd, mask->id.lib, parent->id);
+}
+
+static void lib_link_mask(FileData *fd, Main *main)
+{
+	Mask *mask;
+
+	mask = main->mask.first;
+	while (mask) {
+		if (mask->id.flag & LIB_NEEDLINK) {
+			MaskLayer *masklay;
+
+			if (mask->adt)
+				lib_link_animdata(fd, &mask->id, mask->adt);
+
+			for (masklay = mask->masklayers.first; masklay; masklay = masklay->next) {
+				MaskSpline *spline;
+
+				spline = masklay->splines.first;
+				while (spline) {
+					int i;
+
+					for (i = 0; i < spline->tot_point; i++) {
+						MaskSplinePoint *point = &spline->points[i];
+
+						lib_link_mask_parent(fd, mask, &point->parent);
+					}
+
+					lib_link_mask_parent(fd, mask, &spline->parent);
+
+					spline = spline->next;
+				}
+			}
+
+			mask->id.flag -= LIB_NEEDLINK;
+		}
+		mask = mask->id.next;
 	}
 }
 
@@ -6386,6 +6518,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_MC:
 			direct_link_movieclip(fd, (MovieClip *)id);
+			break;
+		case ID_MSK:
+			direct_link_mask(fd, (Mask *)id);
 			break;
 	}
 	
@@ -6645,6 +6780,11 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			char basepath[FILE_MAXDIR];
 			char filename[FILE_MAXFILE];
 			
+			/* ugly, need to remove the old inputs list to avoid bad pointer checks when adding new sockets.
+			 * sock->storage is expected to contain path info in ntreeCompositOutputFileAddSocket.
+			 */
+			node->inputs.first = node->inputs.last = NULL;
+			
 			node->storage = nimf;
 			
 			/* split off filename from the old path, to be used as socket sub-path */
@@ -6736,7 +6876,7 @@ static void do_versions_mesh_mloopcol_swap_2_62_1(Mesh *me)
 	}
 }
 
-static void do_versions_nodetree_multi_file_output_path_2_64_0(bNodeTree *ntree)
+static void do_versions_nodetree_multi_file_output_path_2_63_1(bNodeTree *ntree)
 {
 	bNode *node;
 	
@@ -6747,7 +6887,6 @@ static void do_versions_nodetree_multi_file_output_path_2_64_0(bNodeTree *ntree)
 				NodeImageMultiFileSocket *input = sock->storage;
 				/* input file path is stored in dedicated struct now instead socket name */
 				BLI_strncpy(input->path, sock->name, sizeof(input->path));
-				sock->name[0] = '\0';	/* unused */
 			}
 		}
 	}
@@ -6816,6 +6955,22 @@ static void do_versions_nodetree_frame_2_64_6(bNodeTree *ntree)
 		
 		/* initialize custom node color */
 		node->color[0] = node->color[1] = node->color[2] = 0.608f;	/* default theme color */
+	}
+}
+
+static void do_version_ntree_image_user_264(void *UNUSED(data), ID *UNUSED(id), bNodeTree *ntree)
+{
+	bNode *node;
+
+	for (node = ntree->nodes.first; node; node = node->next) {
+		if (ELEM(node->type, SH_NODE_TEX_IMAGE, SH_NODE_TEX_ENVIRONMENT)) {
+			NodeTexImage *tex = node->storage;
+
+			tex->iuser.frames= 1;
+			tex->iuser.sfra= 1;
+			tex->iuser.fie_ima= 2;
+			tex->iuser.ok= 1;
+		}
 	}
 }
 
@@ -6963,12 +7118,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					
 				track = clip->tracking.tracks.first;
 				while (track) {
-					if (track->pyramid_levels == 0)
-						track->pyramid_levels = 2;
-					
 					if (track->minimum_correlation == 0.0f)
 						track->minimum_correlation = 0.75f;
-					
+
 					track = track->next;
 				}
 			}
@@ -6986,10 +7138,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		
 		for (clip= main->movieclip.first; clip; clip= clip->id.next) {
 			MovieTrackingSettings *settings= &clip->tracking.settings;
-			
-			if (settings->default_pyramid_levels == 0) {
-				settings->default_tracker= TRACKER_KLT;
-				settings->default_pyramid_levels = 2;
+
+			if (settings->default_pattern_size == 0.0f) {
+				settings->default_motion_model = TRACK_MOTION_MODEL_TRANSLATION;
 				settings->default_minimum_correlation = 0.75;
 				settings->default_pattern_size = 11;
 				settings->default_search_size = 51;
@@ -7109,7 +7260,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					tracking->settings.object_distance = 1.0f;
 				
 				if (tracking->objects.first == NULL)
-					BKE_tracking_new_object(tracking, "Camera");
+					BKE_tracking_object_add(tracking, "Camera");
 				
 				while (tracking_object) {
 					if (!tracking_object->scale)
@@ -7247,9 +7398,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if (main->versionfile < 263) {
 		/* set fluidsim rate. the version patch for this in 2.62 was wrong, so
-		 * try to correct it, if rate is 0.0 that's likely not intentional */
+		try to correct it, if rate is 0.0 that's likely not intentional */
 		Object *ob;
-		
+
 		for (ob = main->object.first; ob; ob = ob->id.next) {
 			ModifierData *md;
 			for (md = ob->modifiers.first; md; md = md->next) {
@@ -7348,20 +7499,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			for (part = main->particle.first; part; part = part->id.next)
 				part->flag |= PART_ROTATIONS;
 		}
-		{
-			/* file output node paths are now stored in the file info struct instead socket name */
-			Scene *sce;
-			bNodeTree *ntree;
-			
-			for (sce = main->scene.first; sce; sce=sce->id.next)
-				if (sce->nodetree)
-					do_versions_nodetree_multi_file_output_path_2_64_0(sce->nodetree);
-			for (ntree = main->nodetree.first; ntree; ntree=ntree->id.next)
-				do_versions_nodetree_multi_file_output_path_2_64_0(ntree);
-		}
+	}
 
-
-
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 1)) {
+		/* file output node paths are now stored in the file info struct instead socket name */
+		Scene *sce;
+		bNodeTree *ntree;
+		
+		for (sce = main->scene.first; sce; sce=sce->id.next)
+			if (sce->nodetree)
+				do_versions_nodetree_multi_file_output_path_2_63_1(sce->nodetree);
+		for (ntree = main->nodetree.first; ntree; ntree=ntree->id.next)
+			do_versions_nodetree_multi_file_output_path_2_63_1(ntree);
 	}
 
 	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 3)) {
@@ -7518,21 +7667,115 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
-	
-	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
-	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 8))
 	{
-		Scene *scene;
-		// composite redesign
-		for (scene=main->scene.first; scene; scene=scene->id.next) {
-			if (scene->nodetree) {
-				if (scene->nodetree->chunksize == 0) {
-					scene->nodetree->chunksize = 256;
+		/* set new deactivation values for game settings */
+		Scene *sce;
+
+		for (sce = main->scene.first; sce; sce = sce->id.next) {
+			/* Game Settings */
+			sce->gm.lineardeactthreshold = 0.8f;
+			sce->gm.angulardeactthreshold = 1.0f;
+			sce->gm.deactivationtime = 2.0f;
+		}
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 9)) {
+		bNodeTreeType *ntreetype = ntreeGetType(NTREE_SHADER);
+		
+		if (ntreetype && ntreetype->foreach_nodetree)
+			ntreetype->foreach_nodetree(main, NULL, do_version_ntree_image_user_264);
+	}
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 10)) {
+		{
+			Scene *scene;
+			// composite redesign
+			for (scene=main->scene.first; scene; scene=scene->id.next) {
+				if (scene->nodetree) {
+					if (scene->nodetree->chunksize == 0) {
+						scene->nodetree->chunksize = 256;
+					}
 				}
 			}
 		}
+
+		{
+			bScreen *sc;
+
+			for (sc = main->screen.first; sc; sc = sc->id.next) {
+				ScrArea *sa;
+
+				for (sa = sc->areabase.first; sa; sa = sa->next) {
+					SpaceLink *sl;
+
+					for (sl = sa->spacedata.first; sl; sl = sl->next) {
+						if (sl->spacetype == SPACE_CLIP) {
+							SpaceClip *sclip = (SpaceClip *)sl;
+
+							if (sclip->around == 0) {
+								sclip->around = V3D_CENTROID;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		{
+			MovieClip *clip;
+
+			for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+				clip->start_frame = 1;
+			}
+		}
 	}
-	
+
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 11)) {
+		MovieClip *clip;
+
+		for (clip = main->movieclip.first; clip; clip = clip->id.next) {
+			MovieTrackingTrack *track;
+
+			track = clip->tracking.tracks.first;
+			while (track) {
+				int i;
+
+				for (i = 0; i < track->markersnr; i++) {
+					MovieTrackingMarker *marker = &track->markers[i];
+
+					if (is_zero_v2(marker->pattern_corners[0]) && is_zero_v2(marker->pattern_corners[1]) &&
+					    is_zero_v2(marker->pattern_corners[3]) && is_zero_v2(marker->pattern_corners[3]))
+					{
+						marker->pattern_corners[0][0] = track->pat_min[0];
+						marker->pattern_corners[0][1] = track->pat_min[1];
+
+						marker->pattern_corners[1][0] = track->pat_max[0];
+						marker->pattern_corners[1][1] = track->pat_min[1];
+
+						marker->pattern_corners[2][0] = track->pat_max[0];
+						marker->pattern_corners[2][1] = track->pat_max[1];
+
+						marker->pattern_corners[3][0] = track->pat_min[0];
+						marker->pattern_corners[3][1] = track->pat_max[1];
+					}
+
+					if (is_zero_v2(marker->search_min) && is_zero_v2(marker->search_max)) {
+						copy_v2_v2(marker->search_min, track->search_min);
+						copy_v2_v2(marker->search_max, track->search_max);
+					}
+				}
+
+				track = track->next;
+			}
+		}
+	}
+
+	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
+	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
+
 	/* don't forget to set version number in blender.c! */
 }
 
@@ -7575,7 +7818,8 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_brush(fd, main);
 	lib_link_particlesettings(fd, main);
 	lib_link_movieclip(fd, main);
-	
+	lib_link_mask(fd, main);
+
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 	
 	lib_link_library(fd, main);		/* only init users */
@@ -7857,10 +8101,17 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					
 					/* Update: the issue is that in file reading, the oldnewmap is OK, but for existing data, it has to be
 					 * inserted in the map to be found! */
-					if (id->flag & LIB_PRE_EXISTING)
-						oldnewmap_insert(fd->libmap, bhead->old, id, 1);
 					
+					/* Update: previously it was checking for id->flag & LIB_PRE_EXISTING, however that does not affect file
+					 * reading. For file reading we may need to insert it into the libmap as well, because you might have
+					 * two files indirectly linking the same datablock, and in that case we need this in the libmap for the
+					 * fd of both those files.
+					 *
+					 * The crash that this check avoided earlier was because bhead->code wasn't properly passed in, making
+					 * change_idid_adr not detect the mapping was for an ID_ID datablock. */
+					oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 					change_idid_adr_fd(fd, bhead->old, id);
+					
 					// commented because this can print way too much
 					// if (G.debug & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
@@ -7876,7 +8127,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			else {
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				 * happens which invokes same ID... in that case the lookup table needs this entry */
-				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+				oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 				// commented because this can print way too much
 				// if (G.debug & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
@@ -8259,6 +8510,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	}
 }
 
+#if 0 /* Disabled as it doesn't actually do anything except recurse... */
 static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 {
 	Bone *curBone;
@@ -8267,6 +8519,7 @@ static void expand_bones(FileData *fd, Main *mainvar, Bone *bone)
 		expand_bones(fd, mainvar, curBone);
 	}
 }
+#endif
 
 static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 {
@@ -8282,19 +8535,23 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 }
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
-{
-	Bone *curBone;
-	
+{	
 	if (arm->adt)
 		expand_animdata(fd, mainvar, arm->adt);
 	
-	for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
-		expand_bones(fd, mainvar, curBone);
+#if 0 /* Disabled as this currently only recurses down the chain doing nothing */
+	{
+		Bone *curBone;
+		
+		for (curBone = arm->bonebase.first; curBone; curBone=curBone->next) {
+			expand_bones(fd, mainvar, curBone);
+		}
 	}
+#endif
 }
 
 static void expand_object_expandModifiers(void *userData, Object *UNUSED(ob),
-											  ID **idpoin)
+                                          ID **idpoin)
 {
 	struct { FileData *fd; Main *mainvar; } *data= userData;
 	
@@ -8500,7 +8757,7 @@ static void expand_scene(FileData *fd, Main *mainvar, Scene *sce)
 #ifdef DURIAN_CAMERA_SWITCH
 	{
 		TimeMarker *marker;
-
+		
 		for (marker = sce->markers.first; marker; marker = marker->next) {
 			if (marker->camera) {
 				expand_doit(fd, mainvar, marker->camera);
@@ -8761,7 +9018,7 @@ static ID *append_named_part(Main *mainl, FileData *fd, const char *idname, cons
 				else {
 					/* already linked */
 					printf("append: already linked\n");
-					oldnewmap_insert(fd->libmap, bhead->old, id, 1);
+					oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);
 					if (id->flag & LIB_INDIRECT) {
 						id->flag -= LIB_INDIRECT;
 						id->flag |= LIB_EXTERN;
@@ -9002,12 +9259,6 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					
 					fd = blo_openblenderfile(mainptr->curlib->filepath, basefd->reports);
 
-					/* share the mainlist, so all libraries are added immediately in a
-					 * single list. it used to be that all FileData's had their own list,
-					 * but with indirectly linking this meant we didn't catch duplicate
-					 * libraries properly */
-					fd->mainlist = mainlist;
-					
 					/* allow typing in a new lib path */
 					if (G.rt == -666) {
 						while (fd == NULL) {
@@ -9034,6 +9285,12 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 					}
 					
 					if (fd) {
+						/* share the mainlist, so all libraries are added immediately in a
+						 * single list. it used to be that all FileData's had their own list,
+						 * but with indirectly linking this meant we didn't catch duplicate
+						 * libraries properly */
+						fd->mainlist = mainlist;
+
 						fd->reports = basefd->reports;
 						
 						if (fd->libmap)

@@ -429,7 +429,7 @@ void ANIM_editkeyframes_refresh(bAnimContext *ac)
 			if (check(2)) \
 				ok |= KEYFRAME_OK_H2; \
 		} \
-	}	
+	} (void)0
  
 /* ------------------------ */
  
@@ -766,7 +766,7 @@ KeyframeEditFunc ANIM_editkeyframes_mirror(short type)
 			bezt->h1 = HD_FREE;                                               \
 		if (ELEM3(bezt->h2, HD_ALIGN, HD_AUTO, HD_AUTO_ANIM))                 \
 			bezt->h2 = HD_FREE;                                               \
-	}
+	} (void)0
 
 /* Sets the selected bezier handles to type 'auto' */
 static short set_bezier_auto(KeyframeEditData *UNUSED(ked), BezTriple *bezt) 

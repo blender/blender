@@ -25,11 +25,12 @@
 #include "COM_ConvertColorToBWOperation.h"
 #include "COM_ExecutionSystem.h"
 
-ColourToBWNode::ColourToBWNode(bNode *editorNode): Node(editorNode)
+ColourToBWNode::ColourToBWNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void ColourToBWNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ColourToBWNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *colourSocket = this->getInputSocket(0);
 	OutputSocket *valueSocket = this->getOutputSocket(0);

@@ -271,8 +271,8 @@ __device_inline float3 path_radiance_sum(KernelGlobals *kg, PathRadiance *L)
 #ifdef __PASSES__
 	if(L->use_light_pass) {
 		/* this division is a bit ugly, but means we only have to keep track of
-		   only a single throughput further along the path, here we recover just
-		   the indirect parth that is not influenced by any particular BSDF type */
+		 * only a single throughput further along the path, here we recover just
+		 * the indirect parth that is not influenced by any particular BSDF type */
 		L->direct_emission = safe_divide_color(L->direct_emission, L->direct_throughput);
 		L->direct_diffuse += L->indirect_diffuse*L->direct_emission;
 		L->direct_glossy += L->indirect_glossy*L->direct_emission;

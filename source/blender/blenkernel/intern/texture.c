@@ -56,7 +56,6 @@
 
 #include "IMB_imbuf.h"
 
-#include "BKE_plugin_types.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
@@ -71,137 +70,6 @@
 #include "BKE_node.h"
 #include "BKE_animsys.h"
 #include "BKE_colortools.h"
-
-
-/* ------------------------------------------------------------------------- */
-
-/* All support for plugin textures: */
-int test_dlerr(const char *name, const char *symbol)
-{
-	char *err;
-	
-	err = BLI_dynlib_get_error_as_string(NULL);
-	if (err) {
-		printf("var1: %s, var2: %s, var3: %s\n", name, symbol, err);
-		return 1;
-	}
-	
-	return 0;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void open_plugin_tex(PluginTex *pit)
-{
-	int (*version)(void);
-	
-	/* init all the happy variables */
-	pit->doit = NULL;
-	pit->pname = NULL;
-	pit->stnames = NULL;
-	pit->varstr = NULL;
-	pit->result = NULL;
-	pit->cfra = NULL;
-	pit->version = 0;
-	pit->instance_init = NULL;
-	
-	/* clear the error list */
-	BLI_dynlib_get_error_as_string(NULL);
-
-	/* no BLI_dynlib_close! multiple opened plugins... */
-	/* if (pit->handle) BLI_dynlib_close(pit->handle); */
-	/* pit->handle= 0; */
-
-	/* open the needed object */
-	pit->handle = BLI_dynlib_open(pit->name);
-	if (test_dlerr(pit->name, pit->name)) return;
-
-	if (pit->handle != NULL) {
-		/* find the address of the version function */
-		version = (int (*)(void))BLI_dynlib_find_symbol(pit->handle, "plugin_tex_getversion");
-		if (test_dlerr(pit->name, "plugin_tex_getversion")) return;
-		
-		if (version != NULL) {
-			pit->version = version();
-			if (pit->version >= 2 && pit->version <= 6) {
-				int (*info_func)(PluginInfo *);
-				PluginInfo *info = (PluginInfo *) MEM_mallocN(sizeof(PluginInfo), "plugin_info");
-
-				info_func = (int (*)(PluginInfo *))BLI_dynlib_find_symbol(pit->handle, "plugin_getinfo");
-				if (!test_dlerr(pit->name, "plugin_getinfo")) {
-					info->instance_init = NULL;
-
-					info_func(info);
-
-					pit->doit = (int (*)(void))info->tex_doit;
-					pit->callback = (void (*)(unsigned short))info->callback;
-					pit->stypes = info->stypes;
-					pit->vars = info->nvars;
-					pit->pname = info->name;
-					pit->stnames = info->snames;
-					pit->varstr = info->varstr;
-					pit->result = info->result;
-					pit->cfra = info->cfra;
-					pit->instance_init = info->instance_init;
-					if (info->init) info->init();
-				}
-				MEM_freeN(info);
-			}
-			else {
-				printf("Plugin returned unrecognized version number\n");
-				return;
-			}
-		}
-	}
-}
-
-/* ------------------------------------------------------------------------- */
-
-/* very badlevel define to bypass linking with BIF_interface.h */
-#define INT 96
-#define FLO 128
-
-PluginTex *add_plugin_tex(char *str)
-{
-	PluginTex *pit;
-	VarStruct *varstr;
-	int a;
-	
-	pit = MEM_callocN(sizeof(PluginTex), "plugintex");
-	
-	BLI_strncpy(pit->name, str, sizeof(pit->name));
-	open_plugin_tex(pit);
-	
-	if (pit->doit == NULL) {
-		if (pit->handle == NULL) {; } //XXX error("no plugin: %s", str);
-		else {; } //XXX error("in plugin: %s", str);
-		MEM_freeN(pit);
-		return NULL;
-	}
-	
-	varstr = pit->varstr;
-	for (a = 0; a < pit->vars; a++, varstr++) {
-		if ( (varstr->type & FLO) == FLO)
-			pit->data[a] = varstr->def;
-		else if ( (varstr->type & INT) == INT)
-			*((int *)(pit->data + a)) = (int) varstr->def;
-	}
-
-	if (pit->instance_init)
-		pit->instance_init((void *) pit->data);
-
-	return pit;
-}
-
-/* ------------------------------------------------------------------------- */
-
-void free_plugin_tex(PluginTex *pit)
-{
-	if (pit == NULL) return;
-		
-	/* no BLI_dynlib_close: same plugin can be opened multiple times, 1 handle */
-	MEM_freeN(pit);	
-}
 
 /* ****************** Mapping ******************* */
 
@@ -550,8 +418,6 @@ int colorband_element_remove(struct ColorBand *coba, int index)
 
 void BKE_texture_free(Tex *tex)
 {
-	free_plugin_tex(tex->plugin);
-	
 	if (tex->coba) MEM_freeN(tex->coba);
 	if (tex->env) BKE_free_envmap(tex->env);
 	if (tex->pd) BKE_free_pointdensity(tex->pd);
@@ -573,10 +439,6 @@ void BKE_texture_free(Tex *tex)
 
 void default_tex(Tex *tex)
 {
-	PluginTex *pit;
-	VarStruct *varstr;
-	int a;
-
 	tex->type = TEX_CLOUDS;
 	tex->stype = 0;
 	tex->flag = TEX_CHECKER_ODD;
@@ -643,15 +505,6 @@ void default_tex(Tex *tex)
 	if (tex->ot) {
 		tex->ot->output = TEX_OCN_DISPLACEMENT;
 		tex->ot->object = NULL;
-	}
-	pit = tex->plugin;
-	if (pit) {
-		varstr = pit->varstr;
-		if (varstr) {
-			for (a = 0; a < pit->vars; a++, varstr++) {
-				pit->data[a] = varstr->def;
-			}
-		}
 	}
 	
 	tex->iuser.fie_ima = 2;
@@ -833,11 +686,6 @@ Tex *BKE_texture_copy(Tex *tex)
 	if (texn->type == TEX_IMAGE) id_us_plus((ID *)texn->ima);
 	else texn->ima = NULL;
 	
-	if (texn->plugin) {
-		texn->plugin = MEM_dupallocN(texn->plugin);
-		open_plugin_tex(texn->plugin);
-	}
-	
 	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
 	if (texn->env) texn->env = BKE_copy_envmap(texn->env);
 	if (texn->pd) texn->pd = BKE_copy_pointdensity(texn->pd);
@@ -864,11 +712,6 @@ Tex *localize_texture(Tex *tex)
 	BLI_remlink(&G.main->tex, texn);
 	
 	/* image texture: BKE_texture_free also doesn't decrease */
-	
-	if (texn->plugin) {
-		texn->plugin = MEM_dupallocN(texn->plugin);
-		open_plugin_tex(texn->plugin);
-	}
 	
 	if (texn->coba) texn->coba = MEM_dupallocN(texn->coba);
 	if (texn->env) {
@@ -1058,7 +901,7 @@ void autotexname(Tex *tex)
 {
 	Main *bmain = G.main;
 	char texstr[20][15] = {"None", "Clouds", "Wood", "Marble", "Magic", "Blend",
-		                   "Stucci", "Noise", "Image", "Plugin", "EnvMap", "Musgrave",
+		                   "Stucci", "Noise", "Image", "EnvMap", "Musgrave",
 		                   "Voronoi", "DistNoise", "Point Density", "Voxel Data", "Ocean", "", "", ""};
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
@@ -1079,7 +922,6 @@ void autotexname(Tex *tex)
 			}
 			else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
 		}
-		else if (tex->type == TEX_PLUGIN && tex->plugin) new_id(&bmain->tex, (ID *)tex, tex->plugin->pname);
 		else new_id(&bmain->tex, (ID *)tex, texstr[tex->type]);
 	}
 }
@@ -1565,11 +1407,7 @@ void BKE_free_oceantex(struct OceanTex *ot)
 /* ------------------------------------------------------------------------- */
 int BKE_texture_dependsOnTime(const struct Tex *texture)
 {
-	if (texture->plugin) {
-		// assume all plugins depend on time
-		return 1;
-	} 
-	else if (texture->ima &&
+	if (texture->ima &&
 	         ELEM(texture->ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE))
 	{
 		return 1;

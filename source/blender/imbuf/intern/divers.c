@@ -538,12 +538,16 @@ void IMB_rect_from_float(ImBuf *ibuf)
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
-	if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+	if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
 		profile_from = IB_PROFILE_LINEAR_RGB;
-	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE))
+	}
+	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE)) {
 		profile_from = IB_PROFILE_SRGB;
-	else
+	}
+	else {
+		profile_from = IB_PROFILE_SRGB; /* should never happen */
 		BLI_assert(0);
+	}
 
 	/* do conversion */
 	IMB_buffer_byte_from_float((uchar *)ibuf->rect, ibuf->rect_float,
@@ -571,12 +575,16 @@ void IMB_partial_rect_from_float(ImBuf *ibuf, float *buffer, int x, int y, int w
 		imb_addrectImBuf(ibuf);
 
 	/* determine profiles */
-	if (ibuf->profile == IB_PROFILE_LINEAR_RGB)
+	if (ibuf->profile == IB_PROFILE_LINEAR_RGB) {
 		profile_from = IB_PROFILE_LINEAR_RGB;
-	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE))
+	}
+	else if (ELEM(ibuf->profile, IB_PROFILE_SRGB, IB_PROFILE_NONE)) {
 		profile_from = IB_PROFILE_SRGB;
-	else
+	}
+	else {
+		profile_from = IB_PROFILE_SRGB; /* should never happen */
 		BLI_assert(0);
+	}
 
 	/* do conversion */
 	rect_float = ibuf->rect_float + (x + y * ibuf->x) * ibuf->channels;
@@ -764,7 +772,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 		float rgb[3];
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rct += 4) {
 			rgb_uchar_to_float(rgb, rct);
-			rgb_to_hsv(rgb[0], rgb[1], rgb[2], hsv, hsv + 1, hsv + 2);
+			rgb_to_hsv_v(rgb, hsv);
 			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rgb, rgb + 1, rgb + 2);
 			rgb_float_to_uchar(rct, rgb);
 		}
@@ -772,7 +780,7 @@ void IMB_saturation(ImBuf *ibuf, float sat)
 
 	if (rctf) {
 		for (i = ibuf->x * ibuf->y; i > 0; i--, rctf += 4) {
-			rgb_to_hsv(rctf[0], rctf[1], rctf[2], hsv, hsv + 1, hsv + 2);
+			rgb_to_hsv_v(rctf, hsv);
 			hsv_to_rgb(hsv[0], hsv[1] * sat, hsv[2], rctf, rctf + 1, rctf + 2);
 		}
 	}

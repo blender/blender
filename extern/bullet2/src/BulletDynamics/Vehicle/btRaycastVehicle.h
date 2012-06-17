@@ -8,8 +8,8 @@
  * of this software for any purpose.  
  * It is provided "as is" without express or implied warranty.
 */
-#ifndef RAYCASTVEHICLE_H
-#define RAYCASTVEHICLE_H
+#ifndef BT_RAYCASTVEHICLE_H
+#define BT_RAYCASTVEHICLE_H
 
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
@@ -232,5 +232,5 @@ public:
 };
 
 
-#endif //RAYCASTVEHICLE_H
+#endif //BT_RAYCASTVEHICLE_H
 

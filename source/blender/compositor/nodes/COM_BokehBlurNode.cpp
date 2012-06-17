@@ -30,20 +30,21 @@
 #include "COM_VariableSizeBokehBlurOperation.h"
 #include "COM_ConvertDepthToRadiusOperation.h"
 
-BokehBlurNode::BokehBlurNode(bNode *editorNode): Node(editorNode)
+BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	Object *camob = context->getScene()->camera;
 
 	if (this->getInputSocket(2)->isConnected()) {
 		VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
 		ConvertDepthToRadiusOperation *converter = new ConvertDepthToRadiusOperation();
-		converter->setfStop(4.0f);
+		converter->setfStop(this->getbNode()->custom3);
 		converter->setCameraObject(camob);
-		operation->setMaxBlur(16);
+		operation->setMaxBlur((int)this->getbNode()->custom4);
 		operation->setQuality(context->getQuality());
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
@@ -58,7 +59,7 @@ void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 		this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);
 		this->getInputSocket(1)->relinkConnections(operation->getInputSocket(1), 1, graph);
 		this->getInputSocket(3)->relinkConnections(operation->getInputSocket(2), 3, graph);
-		operation->setSize(((bNodeSocketValueFloat*)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
+		operation->setSize(((bNodeSocketValueFloat *)this->getInputSocket(2)->getbNodeSocket()->default_value)->value);
 		operation->setQuality(context->getQuality());
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());

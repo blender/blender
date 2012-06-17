@@ -76,7 +76,7 @@ static void boxsample(ImBuf *ibuf, float minx, float miny, float maxx, float max
 
 
 /* x and y have to be checked for image size */
-static void ibuf_get_color(float *col, struct ImBuf *ibuf, int x, int y)
+static void ibuf_get_color(float col[4], struct ImBuf *ibuf, int x, int y)
 {
 	int ofs = y * ibuf->x + x;
 	
@@ -637,7 +637,7 @@ enum {TXC_XMIR=1, TXC_YMIR, TXC_REPT, TXC_EXTD};
 
 // similar to ibuf_get_color() but clips/wraps coords according to repeat/extend flags
 // returns true if out of range in clipmode
-static int ibuf_get_color_clip(float *col, ImBuf *ibuf, int x, int y, int extflag)
+static int ibuf_get_color_clip(float col[4], ImBuf *ibuf, int x, int y, int extflag)
 {
 	int clip = 0;
 	switch (extflag) {
@@ -695,7 +695,7 @@ static int ibuf_get_color_clip(float *col, ImBuf *ibuf, int x, int y, int extfla
 }
 
 // as above + bilerp
-static int ibuf_get_color_clip_bilerp(float *col, ImBuf *ibuf, float u, float v, int intpol, int extflag)
+static int ibuf_get_color_clip_bilerp(float col[4], ImBuf *ibuf, float u, float v, int intpol, int extflag)
 {
 	if (intpol) {
 		float c00[4], c01[4], c10[4], c11[4];

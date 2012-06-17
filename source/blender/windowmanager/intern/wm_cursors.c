@@ -300,7 +300,7 @@ void WM_timecursor(wmWindow *win, int nr)
  * (3 bytes = 17 bits rounded up to nearest whole byte).  Pad extra bits
  * in mask with 0's.
  *
- * Setting big_bm=NULL disables the large version of the cursor.
+ * Setting big_bm = NULL disables the large version of the cursor.
  *
  * *******************************************************************
  *

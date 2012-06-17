@@ -46,8 +46,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw', 'linuxcross', 'win64-vc', '
 if env['WITH_BF_RAYOPTIMIZATION']:
     optim_cxxflags = []
 
-    if env['OURPLATFORM'] in ('win32-vc', 'win64-vc'):
+    if env['OURPLATFORM'] == 'win32-vc':
         optim_cxxflags.append('/arch:SSE2 -D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
+    elif env['OURPLATFORM'] == 'win64-vc':
+        optim_cxxflags.append('-D_CRT_SECURE_NO_WARNINGS /fp:fast /EHsc'.split())
     else:
         optim_cxxflags.append('-ffast-math -msse -msse2 -msse3 -mfpmath=sse'.split())
     

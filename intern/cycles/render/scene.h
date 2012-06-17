@@ -82,6 +82,9 @@ public:
 	device_vector<float2> light_background_marginal_cdf;
 	device_vector<float2> light_background_conditional_cdf;
 
+	/* particles */
+	device_vector<float4> particles;
+
 	/* shaders */
 	device_vector<uint4> svm_nodes;
 	device_vector<uint> shader_flag;

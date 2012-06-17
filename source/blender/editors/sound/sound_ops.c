@@ -676,7 +676,7 @@ static int sound_poll(bContext *C)
 {
 	Editing *ed = CTX_data_scene(C)->ed;
 
-	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND)
+	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
 		return 0;
 
 	return 1;
@@ -689,7 +689,7 @@ static int sound_pack_exec(bContext *C, wmOperator *op)
 	Editing *ed = CTX_data_scene(C)->ed;
 	bSound *sound;
 
-	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND)
+	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
 		return OPERATOR_CANCELLED;
 
 	sound = ed->act_seq->sound;
@@ -751,7 +751,7 @@ static int sound_unpack_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 	if (RNA_struct_property_is_set(op->ptr, "id"))
 		return sound_unpack_exec(C, op);
 
-	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_SOUND)
+	if (!ed || !ed->act_seq || ed->act_seq->type != SEQ_TYPE_SOUND_RAM)
 		return OPERATOR_CANCELLED;
 
 	sound = ed->act_seq->sound;

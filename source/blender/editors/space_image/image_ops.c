@@ -934,6 +934,52 @@ void IMAGE_OT_open(wmOperatorType *ot)
 	WM_operator_properties_filesel(ot, FOLDERFILE | IMAGEFILE | MOVIEFILE, FILE_SPECIAL, FILE_OPENFILE, WM_FILESEL_FILEPATH | WM_FILESEL_RELPATH, FILE_DEFAULTDISPLAY);
 }
 
+/******************** Match movie length operator ********************/
+static int image_match_len_exec(bContext *C, wmOperator *UNUSED(op))
+{
+	Scene *scene = CTX_data_scene(C);
+	Image *ima = CTX_data_pointer_get_type(C, "edit_image", &RNA_Image).data;
+	ImageUser *iuser = CTX_data_pointer_get_type(C, "edit_image_user", &RNA_ImageUser).data;
+
+	if (!ima || !iuser) {
+		/* Try to get a Texture, or a SpaceImage from context... */
+		SpaceImage *sima = CTX_wm_space_image(C);
+		Tex *tex = CTX_data_pointer_get_type(C, "texture", &RNA_Texture).data;
+		if (tex && tex->type == TEX_IMAGE) {
+			ima = tex->ima;
+			iuser = &tex->iuser;
+		}
+		else if (sima) {
+			ima = sima->image;
+			iuser = &sima->iuser;
+		}
+		
+	}
+
+	if (!ima || !iuser || !ima->anim)
+		return OPERATOR_CANCELLED;
+
+	iuser->frames = IMB_anim_get_duration(ima->anim, IMB_TC_RECORD_RUN);
+	BKE_image_user_frame_calc(iuser, scene->r.cfra, 0);
+
+	return OPERATOR_FINISHED;
+}
+
+/* called by other space types too */
+void IMAGE_OT_match_movie_length(wmOperatorType *ot)
+{
+	/* identifiers */
+	ot->name = "Match Movie Length";
+	ot->description = "Set image's users length to the one of this video";
+	ot->idname = "IMAGE_OT_match_movie_length";
+	
+	/* api callbacks */
+	ot->exec = image_match_len_exec;
+
+	/* flags */
+	ot->flag = OPTYPE_REGISTER /* | OPTYPE_UNDO */; /* Don't think we need undo for that. */
+}
+
 /******************** replace image operator ********************/
 
 static int image_replace_exec(bContext *C, wmOperator *op)
@@ -2064,11 +2110,6 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	Histogram *hist = &sima->sample_line_hist;
 	
 	float x1f, y1f, x2f, y2f;
-	int x1, y1, x2, y2;
-	int i, x, y;
-	float *fp;
-	float rgb[3];
-	unsigned char *cp;
 	
 	if (ibuf == NULL) {
 		ED_space_image_release_buffer(sima, lock);
@@ -2082,46 +2123,13 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 	
 	UI_view2d_region_to_view(&ar->v2d, x_start, y_start, &x1f, &y1f);
 	UI_view2d_region_to_view(&ar->v2d, x_end, y_end, &x2f, &y2f);
-	x1 = 0.5f + x1f * ibuf->x;
-	x2 = 0.5f + x2f * ibuf->x;
-	y1 = 0.5f + y1f * ibuf->y;
-	y2 = 0.5f + y2f * ibuf->y;
-	
-	hist->channels = 3;
-	hist->x_resolution = 256;
-	hist->xmax = 1.0f;
-	hist->ymax = 1.0f;
-	
-	for (i = 0; i < 256; i++) {
-		x = (int)(0.5f + x1 + (float)i * (x2 - x1) / 255.0f);
-		y = (int)(0.5f + y1 + (float)i * (y2 - y1) / 255.0f);
-		
-		if (x < 0 || y < 0 || x >= ibuf->x || y >= ibuf->y) {
-			hist->data_luma[i] = hist->data_r[i] = hist->data_g[i] = hist->data_b[i] = 0.0f;
-		}
-		else {
-			if (ibuf->rect_float) {
-				fp = (ibuf->rect_float + (ibuf->channels) * (y * ibuf->x + x));
 
-				if (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT)
-					linearrgb_to_srgb_v3_v3(rgb, fp);
-				else
-					copy_v3_v3(rgb, fp);
+	hist->co[0][0] = x1f;
+	hist->co[0][1] = y1f;
+	hist->co[1][0] = x2f;
+	hist->co[1][1] = y2f;
 
-				hist->data_r[i] = rgb[0];
-				hist->data_g[i] = rgb[1];
-				hist->data_b[i] = rgb[2];
-				hist->data_luma[i] = rgb_to_luma(rgb);
-			}
-			else if (ibuf->rect) {
-				cp = (unsigned char *)(ibuf->rect + y * ibuf->x + x);
-				hist->data_r[i] = (float)cp[0] / 255.0f;
-				hist->data_g[i] = (float)cp[1] / 255.0f;
-				hist->data_b[i] = (float)cp[2] / 255.0f;
-				hist->data_luma[i] = (float)rgb_to_luma_byte(cp) / 255.0f;
-			}
-		}
-	}
+	BKE_histogram_update_sample_line(hist, ibuf, (scene->r.color_mgt_flag & R_COLOR_MANAGEMENT) != 0);
 	
 	ED_space_image_release_buffer(sima, lock);
 	
@@ -2133,7 +2141,10 @@ static int image_sample_line_exec(bContext *C, wmOperator *op)
 static int image_sample_line_invoke(bContext *C, wmOperator *op, wmEvent *event)
 {
 	SpaceImage *sima = CTX_wm_space_image(C);
-	
+
+	Histogram *hist = &sima->sample_line_hist;
+	hist->flag &= ~HISTO_FLAG_SAMPLELINE;
+
 	if (!ED_space_image_has_buffer(sima))
 		return OPERATOR_CANCELLED;
 	
@@ -2397,56 +2408,15 @@ void IMAGE_OT_cycle_render_slot(wmOperatorType *ot)
 
 /* goes over all ImageUsers, and sets frame numbers if auto-refresh is set */
 
+static void image_update_frame(struct Image *UNUSED(ima), struct ImageUser *iuser, void *customdata)
+{
+	int cfra = *(int*)customdata;
+
+	BKE_image_user_check_frame_calc(iuser, cfra, 0);
+}
+
 void ED_image_update_frame(const Main *mainp, int cfra)
 {
-	wmWindowManager *wm;
-	wmWindow *win;
-	Tex *tex;
-	
-	/* texture users */
-	for (tex = mainp->tex.first; tex; tex = tex->id.next) {
-		if (tex->type == TEX_IMAGE && tex->ima) {
-			if (ELEM(tex->ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
-				if (tex->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_frame_calc(&tex->iuser, cfra, 0);
-			}
-		}
-	}
-	
-	/* image window, compo node users */
-	for (wm = mainp->wm.first; wm; wm = wm->id.next) { /* only 1 wm */
-		for (win = wm->windows.first; win; win = win->next) {
-			ScrArea *sa;
-			for (sa = win->screen->areabase.first; sa; sa = sa->next) {
-				if (sa->spacetype == SPACE_VIEW3D) {
-					View3D *v3d = sa->spacedata.first;
-					BGpic *bgpic;
-					for (bgpic = v3d->bgpicbase.first; bgpic; bgpic = bgpic->next)
-						if (bgpic->iuser.flag & IMA_ANIM_ALWAYS)
-							BKE_image_user_frame_calc(&bgpic->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_IMAGE) {
-					SpaceImage *sima = sa->spacedata.first;
-					if (sima->iuser.flag & IMA_ANIM_ALWAYS)
-						BKE_image_user_frame_calc(&sima->iuser, cfra, 0);
-				}
-				else if (sa->spacetype == SPACE_NODE) {
-					SpaceNode *snode = sa->spacedata.first;
-					if ((snode->treetype == NTREE_COMPOSIT) && (snode->nodetree)) {
-						bNode *node;
-						for (node = snode->nodetree->nodes.first; node; node = node->next) {
-							if (node->id && node->type == CMP_NODE_IMAGE) {
-								Image *ima = (Image *)node->id;
-								ImageUser *iuser = node->storage;
-								if (ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-									if (iuser->flag & IMA_ANIM_ALWAYS)
-										BKE_image_user_frame_calc(iuser, cfra, 0);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+	BKE_image_walk_all_users(mainp, &cfra, image_update_frame);
 }
 

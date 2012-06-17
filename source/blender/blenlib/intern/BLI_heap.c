@@ -63,7 +63,7 @@ struct Heap {
 	{                                                                            \
 		SWAP(int, heap->tree[i]->index, heap->tree[j]->index);                   \
 		SWAP(HeapNode *, heap->tree[i], heap->tree[j]);                          \
-	}
+	} (void)0
 
 /***/
 

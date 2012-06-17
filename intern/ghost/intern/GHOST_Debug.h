@@ -51,8 +51,8 @@
 
 
 #ifdef GHOST_DEBUG
-#  define GHOST_PRINT(x) { std::cout << x; }
-#  define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); }
+#  define GHOST_PRINT(x) { std::cout << x; } (void)0
+#  define GHOST_PRINTF(x, ...) { printf(x, __VA_ARGS__); } (void)0
 #else  // GHOST_DEBUG
 #  define GHOST_PRINT(x)
 #  define GHOST_PRINTF(x, ...)
@@ -67,7 +67,7 @@
 	        GHOST_PRINT(info);                                                \
 	        GHOST_PRINT("\n");                                                \
 	    }                                                                     \
-	}
+	} (void)0
 #else  // GHOST_DEBUG
 #  define GHOST_ASSERT(x, info)
 #endif // GHOST_DEBUG

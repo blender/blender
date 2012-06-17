@@ -226,7 +226,7 @@ public:
 		string kernel_path = path_get("kernel");
 		string md5 = path_files_md5_hash(kernel_path);
 
-		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());;
+		cubin = string_printf("cycles_kernel_sm%d%d_%s.cubin", major, minor, md5.c_str());
 		cubin = path_user_get(path_join("cache", cubin));
 
 		/* if exists already, use it */
@@ -259,7 +259,7 @@ public:
 
 		path_create_directories(cubin);
 
-		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" --use_fast_math "
+		string command = string_printf("\"%s\" -arch=sm_%d%d -m%d --cubin \"%s\" "
 			"-o \"%s\" --ptxas-options=\"-v\" --maxrregcount=%d --opencc-options -OPT:Olimit=0 -I\"%s\" -DNVCC",
 			nvcc.c_str(), major, minor, machine, kernel.c_str(), cubin.c_str(), maxreg, include.c_str());
 
@@ -771,7 +771,7 @@ public:
 			cuda_push_context();
 
 			/* for multi devices, this assumes the ineffecient method that we allocate
-			   all pixels on the device even though we only render to a subset */
+			 * all pixels on the device even though we only render to a subset */
 			size_t offset = sizeof(uint8_t)*4*y*w;
 
 			glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_ARB, pmem.cuPBO);

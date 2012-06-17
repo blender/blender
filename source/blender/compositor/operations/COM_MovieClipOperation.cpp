@@ -31,7 +31,7 @@ extern "C" {
 }
 #include "BKE_image.h"
 
-MovieClipOperation::MovieClipOperation(): NodeOperation()
+MovieClipOperation::MovieClipOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 	this->movieClip = NULL;
@@ -51,9 +51,9 @@ void MovieClipOperation::initExecution()
 		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
 		if (ibuf) {
 			this->movieClipBuffer = ibuf;
-			if (ibuf->rect_float == NULL || ibuf->userflags&IB_RECT_INVALID) {
+			if (ibuf->rect_float == NULL || ibuf->userflags & IB_RECT_INVALID) {
 				IMB_float_from_rect(ibuf);
-				ibuf->userflags&= ~IB_RECT_INVALID;
+				ibuf->userflags &= ~IB_RECT_INVALID;
 			}
 		}
 	}
@@ -70,19 +70,16 @@ void MovieClipOperation::deinitExecution()
 
 void MovieClipOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
-	ImBuf *ibuf;
-
 	resolution[0] = 0;
 	resolution[1] = 0;
 
 	if (this->movieClip) {
-		ibuf = BKE_movieclip_get_ibuf(this->movieClip, this->movieClipUser);
-		if (ibuf) {
-			resolution[0] = ibuf->x;
-			resolution[1] = ibuf->y;
+		int width, height;
 
-			IMB_freeImBuf(ibuf);
-		}
+		BKE_movieclip_get_size(this->movieClip, this->movieClipUser, &width, &height);
+
+		resolution[0] = width;
+		resolution[1] = height;
 	}
 }
 
@@ -96,15 +93,15 @@ void MovieClipOperation::executePixel(float *color, float x, float y, PixelSampl
 	}
 	else {
 		switch (sampler) {
-		case COM_PS_NEAREST:
-			neareast_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
-			break;
-		case COM_PS_BILINEAR:
-			bilinear_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
-			break;
-		case COM_PS_BICUBIC:
-			bicubic_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
-			break;
+			case COM_PS_NEAREST:
+				neareast_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				break;
+			case COM_PS_BILINEAR:
+				bilinear_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				break;
+			case COM_PS_BICUBIC:
+				bicubic_interpolation_color(this->movieClipBuffer, NULL, color, x, y);
+				break;
 		}
 	}
 }

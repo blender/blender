@@ -43,9 +43,9 @@ struct Scene;
 
 /* --------- BezTriple Selection ------------- */
 
-#define BEZ_SEL(bezt)       { (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; }
-#define BEZ_DESEL(bezt)     { (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; }
-#define BEZ_INVSEL(bezt)    { (bezt)->f1 ^=  SELECT; (bezt)->f2 ^=  SELECT; (bezt)->f3 ^=  SELECT; }
+#define BEZ_SEL(bezt)    { (bezt)->f1 |=  SELECT; (bezt)->f2 |=  SELECT; (bezt)->f3 |=  SELECT; } (void)0
+#define BEZ_DESEL(bezt)  { (bezt)->f1 &= ~SELECT; (bezt)->f2 &= ~SELECT; (bezt)->f3 &= ~SELECT; } (void)0
+#define BEZ_INVSEL(bezt) { (bezt)->f1 ^=  SELECT; (bezt)->f2 ^=  SELECT; (bezt)->f3 ^=  SELECT; } (void)0
 
 /* --------- Tool Flags ------------ */
 

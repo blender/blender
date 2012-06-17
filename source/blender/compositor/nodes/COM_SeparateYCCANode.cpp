@@ -25,8 +25,9 @@
 #include "COM_SetValueOperation.h"
 #include "COM_ConvertRGBToYCCOperation.h"
 
-SeparateYCCANode::SeparateYCCANode(bNode *editorNode): SeparateRGBANode(editorNode)
+SeparateYCCANode::SeparateYCCANode(bNode *editorNode) : SeparateRGBANode(editorNode)
 {
+	/* pass */
 }
 
 void SeparateYCCANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

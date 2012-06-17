@@ -604,7 +604,7 @@ static void reflection(float ref[3], float n[3], const float view[3], const floa
 }
 
 #if 0
-static void color_combine(float *result, float fac1, float fac2, float *col1, float *col2)
+static void color_combine(float *result, float fac1, float fac2, float col1[3], float col2[3])
 {
 	float col1t[3], col2t[3];
 	

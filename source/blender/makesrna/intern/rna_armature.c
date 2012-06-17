@@ -131,9 +131,10 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 
 	/* proxy lib exception, store it here so we can restore layers on file
 	 * load, since it would otherwise get lost due to being linked data */
-	for (ob = bmain->object.first; ob; ob = ob->id.next)
+	for (ob = bmain->object.first; ob; ob = ob->id.next) {
 		if (ob->data == arm && ob->pose)
 			ob->pose->proxy_layer = arm->layer;
+	}
 
 	WM_main_add_notifier(NC_GEOM | ND_DATA, arm);
 }
@@ -141,7 +142,35 @@ static void rna_Armature_update_layers(Main *bmain, Scene *UNUSED(scene), Pointe
 static void rna_Armature_redraw_data(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	ID *id = ptr->id.data;
+	
+	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
+}
 
+static void rna_Bone_select_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
+{
+	ID *id = ptr->id.data;
+	
+	/* special updates for cases where rigs try to hook into armature drawing stuff 
+	 * e.g. Mask Modifier - 'Armature' option
+	 */
+	if (id) {
+		if (GS(id->name) == ID_AR) {
+			bArmature *arm = (bArmature *)id;
+			
+			if (arm->flag & ARM_HAS_VIZ_DEPS) {
+				DAG_id_tag_update(id, OB_RECALC_DATA);
+			}
+		}
+		else if (GS(id->name) == ID_OB) {
+			Object *ob = (Object *)id;
+			bArmature *arm = (bArmature *)ob->data;
+			
+			if (arm->flag & ARM_HAS_VIZ_DEPS) {
+				DAG_id_tag_update(id, OB_RECALC_DATA);
+			}
+		}
+	}
+	
 	WM_main_add_notifier(NC_GEOM | ND_DATA, id);
 }
 
@@ -608,8 +637,8 @@ static void rna_def_bone(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "select", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_SELECTED);
 	RNA_def_property_ui_text(prop, "Select", "");
-	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
-	RNA_def_property_update(prop, 0, "rna_Armature_redraw_data");
+	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE); /* XXX: review whether this could be used for interesting effects... */
+	RNA_def_property_update(prop, 0, "rna_Bone_select_update");
 	
 	prop = RNA_def_property(srna, "select_head", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", BONE_ROOTSEL);

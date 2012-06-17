@@ -32,7 +32,7 @@ http://www.gnu.org/copyleft/lesser.txt.
 #include <memory>
 #include <vector>
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 
 // forward declaration
 class PyTypeListItem;

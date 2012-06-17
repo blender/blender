@@ -3784,7 +3784,8 @@ void ED_keymap_uvedit(wmKeyConfig *keyconf)
 	RNA_string_set(kmi->ptr, "data_path", "space_data.uv_editor.pivot_point");
 	RNA_string_set(kmi->ptr, "value", "CURSOR");
 
-	ED_object_generic_keymap(keyconf, keymap, 2);
+	ED_keymap_proportional_cycle(keyconf, keymap);
+	ED_keymap_proportional_editmode(keyconf, keymap, FALSE);
 
 	transform_keymap_for_space(keyconf, keymap, SPACE_IMAGE);
 }

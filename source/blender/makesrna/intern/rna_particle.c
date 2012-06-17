@@ -1754,7 +1754,6 @@ static void rna_def_particle_settings(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "distr");
 	RNA_def_property_clear_flag(prop, PROP_ANIMATABLE);
 	RNA_def_property_enum_items(prop, part_dist_items);
-	RNA_def_property_enum_items(prop, part_draw_as_items);
 	RNA_def_property_enum_funcs(prop, NULL, NULL, "rna_Particle_dist_itemf");
 	RNA_def_property_ui_text(prop, "Distribution", "How to distribute particles on selected element");
 	RNA_def_property_update(prop, 0, "rna_Particle_reset");

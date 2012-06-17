@@ -35,7 +35,6 @@ set(INC_SYS
 )
 
 set(SRC
-	space.c
 	spacetypes.c
 )
 

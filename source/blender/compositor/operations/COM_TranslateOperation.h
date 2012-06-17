@@ -25,23 +25,35 @@
 
 #include "COM_NodeOperation.h"
 
-class TranslateOperation: public NodeOperation {
+class TranslateOperation : public NodeOperation {
 private:
 	SocketReader *inputOperation;
-	SocketReader*inputXOperation;
-	SocketReader*inputYOperation;
+	SocketReader *inputXOperation;
+	SocketReader *inputYOperation;
 	float deltaX;
 	float deltaY;
+	bool isDeltaSet;
 public:
 	TranslateOperation();
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 	void initExecution();
 	void deinitExecution();
 
-	float getDeltaX() {return this->deltaX;}
-	float getDeltaY() {return this->deltaY;}
+	float getDeltaX() { return this->deltaX; }
+	float getDeltaY() { return this->deltaY; }
+	
+	inline void ensureDelta() {
+		if (!isDeltaSet) {
+			float tempDelta[4];
+			this->inputXOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->deltaX = tempDelta[0];
+			this->inputYOperation->read(tempDelta, 0, 0, COM_PS_NEAREST, NULL);
+			this->deltaY = tempDelta[0];
+			this->isDeltaSet = true;
+		}
+	}
 };
 
 #endif

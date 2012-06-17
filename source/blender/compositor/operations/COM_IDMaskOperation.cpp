@@ -22,7 +22,7 @@
 
 #include "COM_IDMaskOperation.h"
 
-IDMaskOperation::IDMaskOperation(): NodeOperation()
+IDMaskOperation::IDMaskOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -38,7 +38,7 @@ void IDMaskOperation::executePixel(float *color, float x, float y, PixelSampler 
 	float inputValue[4];
 	
 	this->inputProgram->read(inputValue, x, y, sampler, inputBuffers);
-	const float a = (inputValue[0] == this->objectIndex)?1.0f:0.0f;
+	const float a = (inputValue[0] == this->objectIndex) ? 1.0f : 0.0f;
 	color[0] = a;
 }
 

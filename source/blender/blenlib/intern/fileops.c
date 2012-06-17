@@ -385,16 +385,16 @@ int BLI_rename(const char *from, const char *to)
 
 enum {
 	/* operation succeeded succeeded */
-	recursiveOp_Callback_OK = 0,
+	RecursiveOp_Callback_OK = 0,
 
 	/* operation requested not to perform recursive digging for current path */
-	recursiveOp_Callback_StopRecurs = 1,
+	RecursiveOp_Callback_StopRecurs = 1,
 
 	/* error occured in callback and recursive walking should stop immediately */
-	recursiveOp_Callback_Error = 2
+	RecursiveOp_Callback_Error = 2
 } recuresiveOp_Callback_Result;
 
-typedef int (*recursiveOp_Callback)(const char *from, const char *to);
+typedef int (*RecursiveOp_Callback)(const char *from, const char *to);
 
 /* appending of filename to dir (ensures for buffer size before appending) */
 static void join_dirfile_alloc(char **dst, size_t *alloc_len, const char *dir, const char *file)
@@ -419,8 +419,8 @@ static char *strip_last_slash(const char *dir)
 	return result;
 }
 
-static int recursive_operation(const char *startfrom, const char *startto, recursiveOp_Callback callback_dir_pre,
-                               recursiveOp_Callback callback_file, recursiveOp_Callback callback_dir_post)
+static int recursive_operation(const char *startfrom, const char *startto, RecursiveOp_Callback callback_dir_pre,
+                               RecursiveOp_Callback callback_file, RecursiveOp_Callback callback_dir_post)
 {
 	struct dirent **dirlist;
 	struct stat st;
@@ -446,7 +446,7 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		if (callback_file) {
 			ret = callback_file(from, to);
 
-			if (ret != recursiveOp_Callback_OK)
+			if (ret != RecursiveOp_Callback_OK)
 				ret = -1;
 		}
 
@@ -472,11 +472,11 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		/* call pre-recursive walking directory callback */
 		ret = callback_dir_pre(from, to);
 
-		if (ret != recursiveOp_Callback_OK) {
+		if (ret != RecursiveOp_Callback_OK) {
 			MEM_freeN(from);
 			if (to) free(to);
 
-			if (ret == recursiveOp_Callback_StopRecurs) {
+			if (ret == RecursiveOp_Callback_StopRecurs) {
 				/* callback requested not to perform recursive walking, not an error */
 				return 0;
 			}
@@ -505,7 +505,7 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		else if (callback_file) {
 			/* call file callback for current path */
 			ret = callback_file(from_path, to_path);
-			if (ret != recursiveOp_Callback_OK)
+			if (ret != RecursiveOp_Callback_OK)
 				ret = -1;
 		}
 
@@ -522,7 +522,7 @@ static int recursive_operation(const char *startfrom, const char *startto, recur
 		if (callback_dir_post) {
 			/* call post-recursive directory callback */
 			ret = callback_dir_post(from, to);
-			if (ret != recursiveOp_Callback_OK)
+			if (ret != RecursiveOp_Callback_OK)
 				ret = -1;
 		}
 	}
@@ -541,10 +541,10 @@ static int delete_callback_post(const char *from, const char *UNUSED(to))
 	if (rmdir(from)) {
 		perror("rmdir");
 
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
-	return recursiveOp_Callback_OK;
+	return RecursiveOp_Callback_OK;
 }
 
 static int delete_single_file(const char *from, const char *UNUSED(to))
@@ -552,10 +552,10 @@ static int delete_single_file(const char *from, const char *UNUSED(to))
 	if (unlink(from)) {
 		perror("unlink");
 
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
-	return recursiveOp_Callback_OK;
+	return RecursiveOp_Callback_OK;
 }
 
 FILE *BLI_fopen(const char *filename, const char *mode)
@@ -628,27 +628,27 @@ static int copy_callback_pre(const char *from, const char *to)
 
 	if (check_the_same(from, to)) {
 		fprintf(stderr, "%s: '%s' is the same as '%s'\n", __func__, from, to);
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	if (lstat(from, &st)) {
 		perror("stat");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	/* create a directory */
 	if (mkdir(to, st.st_mode)) {
 		perror("mkdir");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	/* set proper owner and group on new directory */
 	if (chown(to, st.st_uid, st.st_gid)) {
 		perror("chown");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
-	return recursiveOp_Callback_OK;
+	return RecursiveOp_Callback_OK;
 }
 
 static int copy_single_file(const char *from, const char *to)
@@ -660,12 +660,12 @@ static int copy_single_file(const char *from, const char *to)
 
 	if (check_the_same(from, to)) {
 		fprintf(stderr, "%s: '%s' is the same as '%s'\n", __func__, from, to);
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	if (lstat(from, &st)) {
 		perror("lstat");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	if (S_ISLNK(st.st_mode)) {
@@ -690,7 +690,7 @@ static int copy_single_file(const char *from, const char *to)
 
 			if (need_free) MEM_freeN(link_buffer);
 
-			return recursiveOp_Callback_Error;
+			return RecursiveOp_Callback_Error;
 		}
 
 		link_buffer[link_len] = 0;
@@ -698,13 +698,13 @@ static int copy_single_file(const char *from, const char *to)
 		if (symlink(link_buffer, to)) {
 			perror("symlink");
 			if (need_free) MEM_freeN(link_buffer);
-			return recursiveOp_Callback_Error;
+			return RecursiveOp_Callback_Error;
 		}
 
 		if (need_free)
 			MEM_freeN(link_buffer);
 
-		return recursiveOp_Callback_OK;
+		return RecursiveOp_Callback_OK;
 	}
 	else if (S_ISCHR(st.st_mode) ||
 	         S_ISBLK(st.st_mode) ||
@@ -714,30 +714,30 @@ static int copy_single_file(const char *from, const char *to)
 		/* copy special type of file */
 		if (mknod(to, st.st_mode, st.st_rdev)) {
 			perror("mknod");
-			return recursiveOp_Callback_Error;
+			return RecursiveOp_Callback_Error;
 		}
 
 		if (set_permissions(to, &st))
-			return recursiveOp_Callback_Error;
+			return RecursiveOp_Callback_Error;
 
-		return recursiveOp_Callback_OK;
+		return RecursiveOp_Callback_OK;
 	}
 	else if (!S_ISREG(st.st_mode)) {
 		fprintf(stderr, "Copying of this kind of files isn't supported yet\n");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	from_stream = fopen(from, "rb");
 	if (!from_stream) {
 		perror("fopen");
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	to_stream = fopen(to, "wb");
 	if (!to_stream) {
 		perror("fopen");
 		fclose(from_stream);
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 	}
 
 	while ((len = fread(buf, 1, sizeof(buf), from_stream)) > 0) {
@@ -748,9 +748,9 @@ static int copy_single_file(const char *from, const char *to)
 	fclose(from_stream);
 
 	if (set_permissions(to, &st))
-		return recursiveOp_Callback_Error;
+		return RecursiveOp_Callback_Error;
 
-	return recursiveOp_Callback_OK;
+	return RecursiveOp_Callback_OK;
 }
 
 static int move_callback_pre(const char *from, const char *to)
@@ -760,7 +760,7 @@ static int move_callback_pre(const char *from, const char *to)
 	if (ret)
 		return copy_callback_pre(from, to);
 
-	return recursiveOp_Callback_StopRecurs;
+	return RecursiveOp_Callback_StopRecurs;
 }
 
 static int move_single_file(const char *from, const char *to)
@@ -770,7 +770,7 @@ static int move_single_file(const char *from, const char *to)
 	if (ret)
 		return copy_single_file(from, to);
 
-	return recursiveOp_Callback_OK;
+	return RecursiveOp_Callback_OK;
 }
 
 int BLI_move(const char *file, const char *to)

@@ -15,8 +15,9 @@ subject to the following restrictions:
 
 /* Hinge Constraint by Dirk Gregorius. Limits added by Marcus Hennix at Starbreeze Studios */
 
-#ifndef HINGECONSTRAINT_H
-#define HINGECONSTRAINT_H
+#ifndef BT_HINGECONSTRAINT_H
+#define BT_HINGECONSTRAINT_H
+
 #define _BT_USE_CENTER_LIMIT_ 1
 
 
@@ -377,4 +378,4 @@ SIMD_FORCE_INLINE	const char*	btHingeConstraint::serialize(void* dataBuffer, btS
 	return btHingeConstraintDataName;
 }
 
-#endif //HINGECONSTRAINT_H
+#endif //BT_HINGECONSTRAINT_H

@@ -21,7 +21,9 @@ subject to the following restrictions:
 btScalar					gContactBreakingThreshold = btScalar(0.02);
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
 ContactProcessedCallback	gContactProcessedCallback = 0;
-
+///gContactCalcArea3Points will approximate the convex hull area using 3 points
+///when setting it to false, it will use 4 points to compute the area: it is more accurate but slower
+bool						gContactCalcArea3Points = true;
 
 
 btPersistentManifold::btPersistentManifold()
@@ -84,10 +86,28 @@ void btPersistentManifold::clearUserCache(btManifoldPoint& pt)
 	
 }
 
+static inline btScalar calcArea4Points(const btVector3 &p0,const btVector3 &p1,const btVector3 &p2,const btVector3 &p3)
+{
+	// It calculates possible 3 area constructed from random 4 points and returns the biggest one.
+
+	btVector3 a[3],b[3];
+	a[0] = p0 - p1;
+	a[1] = p0 - p2;
+	a[2] = p0 - p3;
+	b[0] = p2 - p3;
+	b[1] = p1 - p3;
+	b[2] = p1 - p2;
+
+	//todo: Following 3 cross production can be easily optimized by SIMD.
+	btVector3 tmp0 = a[0].cross(b[0]);
+	btVector3 tmp1 = a[1].cross(b[1]);
+	btVector3 tmp2 = a[2].cross(b[2]);
+
+	return btMax(btMax(tmp0.length2(),tmp1.length2()),tmp2.length2());
+}
 
 int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt) 
 {
-
 		//calculate 4 possible cases areas, and take biggest area
 		//also need to keep 'deepest'
 		
@@ -106,6 +126,9 @@ int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt)
 #endif //KEEP_DEEPEST_POINT
 		
 		btScalar res0(btScalar(0.)),res1(btScalar(0.)),res2(btScalar(0.)),res3(btScalar(0.));
+
+	if (gContactCalcArea3Points)
+	{
 		if (maxPenetrationIndex != 0)
 		{
 			btVector3 a0 = pt.m_localPointA-m_pointCache[1].m_localPointA;
@@ -136,10 +159,29 @@ int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt)
 			btVector3 cross = a3.cross(b3);
 			res3 = cross.length2();
 		}
+	} 
+	else
+	{
+		if(maxPenetrationIndex != 0) {
+			res0 = calcArea4Points(pt.m_localPointA,m_pointCache[1].m_localPointA,m_pointCache[2].m_localPointA,m_pointCache[3].m_localPointA);
+		}
 
-		btVector4 maxvec(res0,res1,res2,res3);
-		int biggestarea = maxvec.closestAxis4();
-		return biggestarea;
+		if(maxPenetrationIndex != 1) {
+			res1 = calcArea4Points(pt.m_localPointA,m_pointCache[0].m_localPointA,m_pointCache[2].m_localPointA,m_pointCache[3].m_localPointA);
+		}
+
+		if(maxPenetrationIndex != 2) {
+			res2 = calcArea4Points(pt.m_localPointA,m_pointCache[0].m_localPointA,m_pointCache[1].m_localPointA,m_pointCache[3].m_localPointA);
+		}
+
+		if(maxPenetrationIndex != 3) {
+			res3 = calcArea4Points(pt.m_localPointA,m_pointCache[0].m_localPointA,m_pointCache[1].m_localPointA,m_pointCache[2].m_localPointA);
+		}
+	}
+	btVector4 maxvec(res0,res1,res2,res3);
+	int biggestarea = maxvec.closestAxis4();
+	return biggestarea;
+	
 }
 
 

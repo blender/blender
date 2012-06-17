@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef GENERIC_6DOF_SPRING_CONSTRAINT_H
-#define GENERIC_6DOF_SPRING_CONSTRAINT_H
+#ifndef BT_GENERIC_6DOF_SPRING_CONSTRAINT_H
+#define BT_GENERIC_6DOF_SPRING_CONSTRAINT_H
 
 
 #include "LinearMath/btVector3.h"
@@ -39,9 +39,11 @@ protected:
 	btScalar	m_equilibriumPoint[6];
 	btScalar	m_springStiffness[6];
 	btScalar	m_springDamping[6]; // between 0 and 1 (1 == no damping)
+	void init();
 	void internalUpdateSprings(btConstraintInfo2* info);
 public: 
     btGeneric6DofSpringConstraint(btRigidBody& rbA, btRigidBody& rbB, const btTransform& frameInA, const btTransform& frameInB ,bool useLinearReferenceFrameA);
+    btGeneric6DofSpringConstraint(btRigidBody& rbB, const btTransform& frameInB, bool useLinearReferenceFrameB);
 	void enableSpring(int index, bool onOff);
 	void setStiffness(int index, btScalar stiffness);
 	void setDamping(int index, btScalar damping);
@@ -93,5 +95,5 @@ SIMD_FORCE_INLINE	const char*	btGeneric6DofSpringConstraint::serialize(void* dat
 	return "btGeneric6DofConstraintData";
 }
 
-#endif // GENERIC_6DOF_SPRING_CONSTRAINT_H
+#endif // BT_GENERIC_6DOF_SPRING_CONSTRAINT_H
 

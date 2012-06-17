@@ -23,7 +23,7 @@
 #include "COM_DifferenceMatteOperation.h"
 #include "BLI_math.h"
 
-DifferenceMatteOperation::DifferenceMatteOperation(): NodeOperation()
+DifferenceMatteOperation::DifferenceMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
@@ -49,35 +49,35 @@ void DifferenceMatteOperation::executePixel(float *outputValue, float x, float y
 	float inColor1[4];
 	float inColor2[4];
 
-	const float tolerence=this->settings->t1;
-	const float falloff=this->settings->t2;
+	const float tolerence = this->settings->t1;
+	const float falloff = this->settings->t2;
 	float difference;
 	float alpha;
 
 	this->inputImage1Program->read(inColor1, x, y, sampler, inputBuffers);
 	this->inputImage2Program->read(inColor2, x, y, sampler, inputBuffers);
 
-	difference = (fabs(inColor2[0] - inColor1[0]) +
-	              fabs(inColor2[1] - inColor1[1]) +
-	              fabs(inColor2[2] - inColor1[2]));
+	difference = (fabsf(inColor2[0] - inColor1[0]) +
+	              fabsf(inColor2[1] - inColor1[1]) +
+	              fabsf(inColor2[2] - inColor1[2]));
 
-	/*average together the distances*/
-	difference=difference/3.0;
+	/* average together the distances */
+	difference = difference / 3.0f;
 
 	/*make 100% transparent*/
 	if (difference < tolerence) {
-		outputValue[0]=0.0;
+		outputValue[0] = 0.0f;
 	}
 	/*in the falloff region, make partially transparent */
-	else if (difference < falloff+tolerence) {
-		difference=difference-tolerence;
-		alpha=difference/falloff;
+	else if (difference < falloff + tolerence) {
+		difference = difference - tolerence;
+		alpha = difference / falloff;
 		/*only change if more transparent than before */
 		if (alpha < inColor1[3]) {
-			outputValue[0]=alpha;
+			outputValue[0] = alpha;
 		}
 		else { /* leave as before */
-			outputValue[0]=inColor1[3];
+			outputValue[0] = inColor1[3];
 		}
 	}
 	else {

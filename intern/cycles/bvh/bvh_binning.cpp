@@ -200,7 +200,7 @@ void BVHObjectBinning::split(BVHReference* prims, BVHObjectBinning& left_o, BVHO
 	}
 
 	/* object medium split if we did not make progress, can happen when all
-	   primitives have same centroid */
+	 * primitives have same centroid */
 	lgeom_bounds = BoundBox::empty;
 	rgeom_bounds = BoundBox::empty;
 	lcent_bounds = BoundBox::empty;

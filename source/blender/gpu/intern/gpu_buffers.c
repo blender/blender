@@ -1151,7 +1151,7 @@ void GPU_buffer_unbind(void)
 			glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		}
 	}
-	GLStates &= !(GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_NORMAL_STATE |
+	GLStates &= ~(GPU_BUFFER_VERTEX_STATE | GPU_BUFFER_NORMAL_STATE |
 	              GPU_BUFFER_TEXCOORD_STATE | GPU_BUFFER_COLOR_STATE |
 	              GPU_BUFFER_ELEMENT_STATE);
 
@@ -1191,7 +1191,7 @@ void GPU_color_switch(int mode)
 	else {
 		if (GLStates & GPU_BUFFER_COLOR_STATE)
 			glDisableClientState(GL_COLOR_ARRAY);
-		GLStates &= (!GPU_BUFFER_COLOR_STATE);
+		GLStates &= ~GPU_BUFFER_COLOR_STATE;
 	}
 }
 
@@ -1660,7 +1660,7 @@ static int gpu_count_grid_quads(BLI_bitmap *grid_hidden,
 			glDeleteBuffersARB(1, &(buffer_));                          \
 			(buffer_) = 0;                                              \
 		}                                                               \
-	}
+	} (void)0
 /* end FILL_QUAD_BUFFER */
 
 static GLuint gpu_get_grid_buffer(int gridsize, GLenum *index_type, unsigned *totquad)

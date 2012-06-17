@@ -64,6 +64,7 @@
 #include "BKE_context.h"
 #include "BKE_paint.h"
 #include "BKE_armature.h"
+#include "BKE_depsgraph.h"
 #include "BKE_tessmesh.h"
 #include "BKE_movieclip.h"
 #include "BKE_object.h"
@@ -333,7 +334,7 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 	int sco1[2], sco2[2];
 	bArmature *arm = ob->data;
 	
-	if (ob->type != OB_ARMATURE || ob->pose == NULL) return;
+	if ((ob->type != OB_ARMATURE) || (ob->pose == NULL)) return;
 
 	for (pchan = ob->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if (PBONE_VISIBLE(arm, pchan->bone) && (pchan->bone->flag & BONE_UNSELECTABLE) == 0) {
@@ -347,6 +348,11 @@ static void do_lasso_select_pose(ViewContext *vc, Object *ob, int mcords[][2], s
 				else pchan->bone->flag &= ~BONE_SELECTED;
 			}
 		}
+	}
+	
+	if (arm->flag & ARM_HAS_VIZ_DEPS) {
+		/* mask modifier ('armature' mode), etc. */
+		DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
 	}
 }
 
@@ -1297,11 +1303,11 @@ static void deselect_all_tracks(MovieTracking *tracking)
 
 	object = tracking->objects.first;
 	while (object) {
-		ListBase *tracksbase = BKE_tracking_object_tracks(tracking, object);
+		ListBase *tracksbase = BKE_tracking_object_get_tracks(tracking, object);
 		MovieTrackingTrack *track = tracksbase->first;
 
 		while (track) {
-			BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+			BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
 
 			track = track->next;
 		}
@@ -1402,18 +1408,18 @@ static int mouse_select(bContext *C, const int mval[2], short extend, short dese
 								ListBase *tracksbase;
 								MovieTrackingTrack *track;
 
-								track = BKE_tracking_indexed_track(&clip->tracking, hitresult >> 16, &tracksbase);
+								track = BKE_tracking_track_get_indexed(&clip->tracking, hitresult >> 16, &tracksbase);
 
 								if (TRACK_SELECTED(track) && extend) {
 									changed = 0;
-									BKE_tracking_deselect_track(track, TRACK_AREA_ALL);
+									BKE_tracking_track_deselect(track, TRACK_AREA_ALL);
 								}
 								else {
 									int oldsel = TRACK_SELECTED(track) ? 1 : 0;
 									if (!extend)
 										deselect_all_tracks(tracking);
 
-									BKE_tracking_select_track(tracksbase, track, TRACK_AREA_ALL, extend);
+									BKE_tracking_track_select(tracksbase, track, TRACK_AREA_ALL, extend);
 
 									if (oldsel != (TRACK_SELECTED(track) ? 1 : 0))
 										changed = 1;
@@ -1864,7 +1870,6 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 		for (base = vc->scene->base.first; base && hits; base = base->next) {
 			if (BASE_SELECTABLE(vc->v3d, base)) {
 				while (base->selcol == (*col & 0xFFFF)) {   /* we got an object */
-					
 					if (*col & 0xFFFF0000) {                    /* we got a bone */
 						bone = get_indexed_bone(base->object, *col & ~(BONESEL_ANY));
 						if (bone) {
@@ -1872,16 +1877,13 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 								if ((bone->flag & BONE_UNSELECTABLE) == 0) {
 									bone->flag |= BONE_SELECTED;
 									bone_selected = 1;
-// XXX									select_actionchannel_by_name(base->object->action, bone->name, 1);
 								}
 							}
 							else {
 								bArmature *arm = base->object->data;
 								bone->flag &= ~BONE_SELECTED;
-// XXX									select_actionchannel_by_name(base->object->action, bone->name, 0);
 								if (arm->act_bone == bone)
 									arm->act_bone = NULL;
-								
 							}
 						}
 					}
@@ -1891,7 +1893,7 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 						else
 							ED_base_object_select(base, BA_DESELECT);
 					}
-
+					
 					col += 4; /* next color */
 					hits--;
 					if (hits == 0) break;
@@ -1899,12 +1901,22 @@ static int do_object_pose_box_select(bContext *C, ViewContext *vc, rcti *rect, i
 			}
 			
 			if (bone_selected) {
-				WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, base->object);
+				Object *ob = base->object;
+				
+				if (ob && (ob->type == OB_ARMATURE)) {
+					bArmature *arm = ob->data;
+					
+					WM_event_add_notifier(C, NC_OBJECT | ND_BONE_SELECT, ob);
+					
+					if (arm && (arm->flag & ARM_HAS_VIZ_DEPS)) {
+						/* mask modifier ('armature' mode), etc. */
+						DAG_id_tag_update(&ob->id, OB_RECALC_DATA);
+					}
+				}
 			}
 		}
-
+		
 		WM_event_add_notifier(C, NC_SCENE | ND_OB_SELECT, vc->scene);
-
 	}
 	MEM_freeN(vbuffer);
 
@@ -2152,9 +2164,8 @@ void VIEW3D_OT_select(wmOperatorType *ot)
 	ot->flag = OPTYPE_UNDO;
 	
 	/* properties */
-	RNA_def_boolean(ot->srna, "extend", 0, "Extend", "Extend selection instead of deselecting everything first");
-	RNA_def_boolean(ot->srna, "deselect", 0, "Deselect", "Remove from selection");
-	RNA_def_boolean(ot->srna, "toggle", 0, "Toggle Selection", "Toggles selection");
+	WM_operator_properties_mouse_select(ot);
+
 	RNA_def_boolean(ot->srna, "center", 0, "Center", "Use the object center when selecting, in editmode used to extend object selection");
 	RNA_def_boolean(ot->srna, "enumerate", 0, "Enumerate", "List objects under the mouse (object mode only)");
 	RNA_def_boolean(ot->srna, "object", 0, "Object", "Use object selection (editmode only)");

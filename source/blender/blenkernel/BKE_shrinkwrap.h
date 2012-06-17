@@ -72,8 +72,8 @@ typedef struct SpaceTransform {
 } SpaceTransform;
 
 void space_transform_from_matrixs(struct SpaceTransform *data, float local[4][4], float target[4][4]);
-void space_transform_apply(const struct SpaceTransform *data, float *co);
-void space_transform_invert(const struct SpaceTransform *data, float *co);
+void space_transform_apply(const struct SpaceTransform *data, float co[3]);
+void space_transform_invert(const struct SpaceTransform *data, float co[3]);
 
 #define space_transform_setup(data, local, target) space_transform_from_matrixs(data, (local)->obmat, (target)->obmat)
 

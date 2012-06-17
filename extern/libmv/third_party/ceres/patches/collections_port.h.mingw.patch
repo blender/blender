@@ -1,0 +1,13 @@
+Index: internal/ceres/collections_port.h
+===================================================================
+--- internal/ceres/collections_port.h	(revision 47730)
++++ internal/ceres/collections_port.h	(working copy)
+@@ -53,7 +53,7 @@
+ template<typename K>
+ struct HashSet : tr1::unordered_set<K> {};
+ 
+-#ifdef _WIN32
++#if defined(_WIN32) && !defined(__MINGW64__) && !defined(__MINGW32__)
+ #define GG_LONGLONG(x) x##I64
+ #define GG_ULONGLONG(x) x##UI64
+ #else

@@ -33,7 +33,7 @@ extern "C" {
 #include <vector>
 #include <string.h>
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 #include <structmember.h>
 
 #include "FilterBase.h"
@@ -444,9 +444,9 @@ PyObject * Image_getImage (PyImage * self, char * mode)
 				// get an empty buffer
 				buffer = BGL_MakeBuffer( GL_BYTE, 1, &dimensions, NULL);
 				// and fill it
-				for (i=0, d=(unsigned char*)buffer->buf.asbyte, s=(unsigned char*)image; 
-					 i<pixels; 
-					 ++i, d+=ncolor, s+=4)
+				for (i = 0, d = (unsigned char *)buffer->buf.asbyte, s = (unsigned char *)image;
+				     i < pixels;
+				     i++, d += ncolor, s += 4)
 				{
 					for (c=0; c<ncolor; c++)
 					{

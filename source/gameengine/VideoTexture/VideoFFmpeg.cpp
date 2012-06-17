@@ -588,7 +588,8 @@ void VideoFFmpeg::openCam (char * file, short camIdx)
 	AVInputFormat		*inputFormat;
 	AVFormatParameters	formatParams;
 	AVRational			frameRate;
-	char				*p, filename[28], rateStr[20];
+	char				filename[28], rateStr[20];
+	char                *p;
 
 	do_init_ffmpeg();
 

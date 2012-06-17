@@ -272,7 +272,7 @@ void UI_view2d_region_reinit(View2D *v2d, short type, int winx, int winy)
 				v2d->keepzoom = (V2D_KEEPASPECT | V2D_LIMITZOOM | V2D_KEEPZOOM);
 				v2d->minzoom = 0.5f;
 				v2d->maxzoom = 2.0f;
-				//tot_changed= 1;
+				//tot_changed = 1;
 				
 				v2d->align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
 				v2d->keeptot = V2D_KEEPTOT_BOUNDS;
@@ -428,7 +428,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 		if (winx != v2d->oldwinx) do_x = TRUE;
 		if (winy != v2d->oldwiny) do_y = TRUE;
 		
-		/* curRatio= height / width; */ /* UNUSED */
+		/* curRatio = height / width; */ /* UNUSED */
 		winRatio = winy / winx;
 		
 		/* both sizes change (area/region maximised)  */
@@ -442,7 +442,7 @@ void UI_view2d_curRect_validate_resize(View2D *v2d, int resize)
 			else do_x = TRUE;
 		}
 		do_cur = do_x;
-		/* do_win= do_y; */ /* UNUSED */
+		/* do_win = do_y; */ /* UNUSED */
 		
 		if (do_cur) {
 			if ((v2d->keeptot == V2D_KEEPTOT_STRICT) && (winx != v2d->oldwinx)) {
@@ -806,7 +806,7 @@ void UI_view2d_curRect_reset(View2D *v2d)
 		v2d->cur.xmax = (float)width;
 	}
 	else {
-		/* width is centered around x==0 */
+		/* width is centered around (x == 0) */
 		const float dx = (float)width / 2.0f;
 		
 		v2d->cur.xmin = -dx;
@@ -825,7 +825,7 @@ void UI_view2d_curRect_reset(View2D *v2d)
 		v2d->cur.ymax = (float)height;
 	}
 	else {
-		/* height is centered around y==0 */
+		/* height is centered around (y == 0) */
 		const float dy = (float)height / 2.0f;
 		
 		v2d->cur.ymin = -dy;
@@ -869,7 +869,7 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize
 		v2d->tot.xmax = (float)width;
 	}
 	else {
-		/* width is centered around x==0 */
+		/* width is centered around (x == 0) */
 		const float dx = (float)width / 2.0f;
 		
 		v2d->tot.xmin = -dx;
@@ -888,7 +888,7 @@ void UI_view2d_totRect_set_resize(View2D *v2d, int width, int height, int resize
 		v2d->tot.ymax = (float)height;
 	}
 	else {
-		/* height is centered around y==0 */
+		/* height is centered around (y == 0) */
 		const float dy = (float)height / 2.0f;
 		
 		v2d->tot.ymin = -dy;

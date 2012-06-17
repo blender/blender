@@ -30,8 +30,8 @@
  *  \brief DataToC output of file <Bfont>
  */
 
-int datatoc_Bfont_size= 25181;
-char datatoc_Bfont[25181]= {
+int datatoc_Bfont_size = 25181;
+char datatoc_Bfont[25181] = {
 128, 1, 228, 1, 0, 0, 37, 33, 80, 83, 45, 65, 100, 111, 98, 101,
 70, 111, 110, 116, 45, 49, 46, 48, 58, 32, 66, 102, 111, 110, 116, 32,
 48, 48, 49, 46, 48, 48, 49, 10, 49, 49, 32, 100, 105, 99, 116, 32,

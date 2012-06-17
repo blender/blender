@@ -684,9 +684,16 @@ static short paste_graph_keys(bAnimContext *ac,
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok = 0;
 	
-	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	/* filter data 
+	 * - First time we try to filter more strictly, allowing only selected channels 
+	 *   to allow copying animation between channels
+	 * - Second time, we loosen things up if nothing was found the first time, allowing
+	 *   users to just paste keyframes back into the original curve again [#31670]
+	 */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_CURVE_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
+	
+	if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0)
+		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
 	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
@@ -776,7 +783,8 @@ void GRAPH_OT_paste(wmOperatorType *ot)
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
-
+	
+	/* props */
 	RNA_def_enum(ot->srna, "offset", keyframe_paste_offset_items, KEYFRAME_PASTE_OFFSET_CFRA_START, "Offset", "Paste time offset of keys");
 	RNA_def_enum(ot->srna, "merge", keyframe_paste_merge_items, KEYFRAME_PASTE_MERGE_MIX, "Type", "Method of merging pasted keys and existing");
 }

@@ -46,6 +46,9 @@ struct PHY_ShapeProps {
 	bool       m_do_anisotropic;        // Should I do anisotropic friction? 
 	bool       m_do_fh;                 // Should the object have a linear Fh spring?
 	bool       m_do_rot_fh;             // Should the object have an angular Fh spring?
+	MT_Scalar  m_step_height;			// Max height of climbable steps (Character)
+	MT_Scalar  m_jump_speed;			// Velocity of jumps (Character)
+	MT_Scalar  m_fall_speed;			// Max velocity of falling (Character)
 };
 
 

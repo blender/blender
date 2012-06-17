@@ -33,6 +33,8 @@
 #include <stdio.h>
 #include <errno.h>
 
+#include "DNA_ID.h"
+
 #include "RNA_define.h"
 #include "RNA_access.h"
 #include "RNA_enum_types.h"
@@ -67,6 +69,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_speaker.h"
 #include "BKE_movieclip.h"
+#include "BKE_mask.h"
 
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
@@ -87,6 +90,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_node_types.h"
 #include "DNA_movieclip_types.h"
+#include "DNA_mask_types.h"
 
 #include "ED_screen.h"
 
@@ -539,6 +543,22 @@ void rna_Main_movieclips_remove(Main *bmain, MovieClip *clip)
 	/* XXX python now has invalid pointer? */
 }
 
+Mask *rna_Main_mask_new(Main *UNUSED(bmain), const char *name)
+{
+	Mask *mask;
+
+	mask = BKE_mask_new("Mask");
+
+	return mask;
+}
+
+void rna_Main_masks_remove(Main *bmain, Mask *mask)
+{
+	BKE_mask_unlink(bmain, mask);
+	BKE_libblock_free(&bmain->mask, mask);
+	/* XXX python now has invalid pointer? */
+}
+
 /* tag functions, all the same */
 void rna_Main_cameras_tag(Main *bmain, int value) { tag_main_lb(&bmain->camera, value); }
 void rna_Main_scenes_tag(Main *bmain, int value) { tag_main_lb(&bmain->scene, value); }
@@ -569,6 +589,7 @@ void rna_Main_actions_tag(Main *bmain, int value) { tag_main_lb(&bmain->action, 
 void rna_Main_particles_tag(Main *bmain, int value) { tag_main_lb(&bmain->particle, value); }
 void rna_Main_gpencil_tag(Main *bmain, int value) { tag_main_lb(&bmain->gpencil, value); }
 void rna_Main_movieclips_tag(Main *bmain, int value) { tag_main_lb(&bmain->movieclip, value); }
+void rna_Main_masks_tag(Main *bmain, int value) { tag_main_lb(&bmain->mask, value); }
 
 static int rna_Main_cameras_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_CA); }
 static int rna_Main_scenes_is_updated_get(PointerRNA *ptr) { return DAG_id_type_tagged(ptr->data, ID_SCE); }
@@ -1518,6 +1539,36 @@ void RNA_def_main_movieclips(BlenderRNA *brna, PropertyRNA *cprop)
 	/* return type */
 	parm = RNA_def_pointer(func, "clip", "MovieClip", "", "New movie clip datablock");
 	RNA_def_function_return(func, parm);
+}
+
+void RNA_def_main_masks(BlenderRNA *brna, PropertyRNA *cprop)
+{
+	StructRNA *srna;
+	FunctionRNA *func;
+	PropertyRNA *parm;
+
+	RNA_def_property_srna(cprop, "BlendDataMasks");
+	srna= RNA_def_struct(brna, "BlendDataMasks", NULL);
+	RNA_def_struct_sdna(srna, "Main");
+	RNA_def_struct_ui_text(srna, "Main Masks", "Collection of masks");
+
+	func= RNA_def_function(srna, "tag", "rna_Main_masks_tag");
+	parm= RNA_def_boolean(func, "value", 0, "Value", "");
+	RNA_def_property_flag(parm, PROP_REQUIRED);
+
+	/* new func */
+	func = RNA_def_function(srna, "new", "rna_Main_mask_new");
+	RNA_def_function_ui_description(func, "Add a new mask with a given name to the main database");
+	parm = RNA_def_string_file_path(func, "name", "", MAX_ID_NAME - 2, "Mask", "Name of new mask datablock");
+	/* return type */
+	parm = RNA_def_pointer(func, "mask", "Mask", "", "New mask datablock");
+	RNA_def_function_return(func, parm);
+
+	/* remove func */
+	func= RNA_def_function(srna, "remove", "rna_Main_masks_remove");
+	RNA_def_function_ui_description(func, "Remove a masks from the current blendfile.");
+	parm= RNA_def_pointer(func, "mask", "Mask", "", "Mask to remove");
+	RNA_def_property_flag(parm, PROP_REQUIRED|PROP_NEVER_NULL);
 }
 
 #endif

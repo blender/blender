@@ -78,7 +78,9 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 	float *rect_float_orig = rect_float;
 
 	
-	float h = 0.0, hoffs = 0.0, hue = 0.0, s = 0.9, v = 0.9, r, g, b;
+	float h = 0.0, hoffs = 0.0;
+	float hsv[3] = {0.0f, 0.9f, 0.9f};
+	float rgb[3];
 
 	/* checkers */
 	for (y = 0; y < height; y++) {
@@ -128,20 +130,20 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 1) ||
 				    (fabs((y % checkerwidth) - (checkerwidth / 2)) < 1))
 				{
-					hue = fmodf(fabs(h - hoffs), 1.0f);
-					hsv_to_rgb(hue, s, v, &r, &g, &b);
+					hsv[0] = fmodf(fabs(h - hoffs), 1.0f);
+					hsv_to_rgb_v(hsv, rgb);
 					
 					if (rect) {
-						rect[0] = (char)(r * 255.0f);
-						rect[1] = (char)(g * 255.0f);
-						rect[2] = (char)(b * 255.0f);
+						rect[0] = (char)(rgb[0] * 255.0f);
+						rect[1] = (char)(rgb[1] * 255.0f);
+						rect[2] = (char)(rgb[2] * 255.0f);
 						rect[3] = 255;
 					}
 					
 					if (rect_float) {
-						rect_float[0] = r;
-						rect_float[1] = g;
-						rect_float[2] = b;
+						rect_float[0] = rgb[0];
+						rect_float[1] = rgb[1];
+						rect_float[2] = rgb[2];
 						rect_float[3] = 1.0f;
 					}
 				}
@@ -162,33 +164,33 @@ void BKE_image_buf_fill_checker(unsigned char *rect, float *rect_float, int widt
 static void checker_board_color_fill(unsigned char *rect, float *rect_float, int width, int height)
 {
 	int hue_step, y, x;
-	float hue, val, sat, r, g, b;
+	float hsv[3], rgb[3];
 
-	sat = 1.0;
+	hsv[1] = 1.0;
 
 	hue_step = power_of_2_max_i(width / 8);
 	if (hue_step < 8) hue_step = 8;
 
 	for (y = 0; y < height; y++) {
 
-		val = 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
+		hsv[2] = 0.1 + (y * (0.4 / height)); /* use a number lower then 1.0 else its too bright */
 		for (x = 0; x < width; x++) {
-			hue = (float)((double)(x / hue_step) * 1.0 / width * hue_step);
-			hsv_to_rgb(hue, sat, val, &r, &g, &b);
+			hsv[0] = (float)((double)(x / hue_step) * 1.0 / width * hue_step);
+			hsv_to_rgb_v(hsv, rgb);
 
 			if (rect) {
-				rect[0] = (char)(r * 255.0f);
-				rect[1] = (char)(g * 255.0f);
-				rect[2] = (char)(b * 255.0f);
+				rect[0] = (char)(rgb[0] * 255.0f);
+				rect[1] = (char)(rgb[1] * 255.0f);
+				rect[2] = (char)(rgb[2] * 255.0f);
 				rect[3] = 255;
 				
 				rect += 4;
 			}
 
 			if (rect_float) {
-				rect_float[0] = r;
-				rect_float[1] = g;
-				rect_float[2] = b;
+				rect_float[0] = rgb[0];
+				rect_float[1] = rgb[1];
+				rect_float[2] = rgb[2];
 				rect_float[3] = 1.0f;
 				
 				rect_float += 4;

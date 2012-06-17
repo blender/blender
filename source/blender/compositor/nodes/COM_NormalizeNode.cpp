@@ -23,11 +23,12 @@
 #include "COM_NormalizeOperation.h"
 #include "COM_ExecutionSystem.h"
 
-NormalizeNode::NormalizeNode(bNode *editorNode): Node(editorNode)
+NormalizeNode::NormalizeNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void NormalizeNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void NormalizeNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	NormalizeOperation *operation = new NormalizeOperation();
 

@@ -69,6 +69,9 @@
 
 #include "outliner_intern.h"
 
+/* disable - this is far too slow - campbell */
+// #define USE_GROUP_SELECT
+
 /* ****************************************************** */
 /* Tree Size Functions */
 
@@ -207,6 +210,7 @@ static int group_restrict_flag(Group *gr, int flag)
 	return 1;
 }
 
+#ifdef USE_GROUP_SELECT
 static int group_select_flag(Group *gr)
 {
 	GroupObject *gob;
@@ -217,6 +221,7 @@ static int group_select_flag(Group *gr)
 
 	return 0;
 }
+#endif
 
 void restrictbutton_gr_restrict_flag(void *poin, void *poin2, int flag)
 {	
@@ -300,7 +305,8 @@ static void namebutton_cb(bContext *C, void *tsep, char *oldname)
 				BLI_strncpy(expanded, lib->name, sizeof(expanded));
 				BLI_path_abs(expanded, G.main->name);
 				if (!BLI_exists(expanded)) {
-					BKE_reportf(CTX_wm_reports(C), RPT_ERROR, "Library path '%s' does not exist, correct this before saving", expanded);
+					BKE_reportf(CTX_wm_reports(C), RPT_ERROR,
+					            "Library path '%s' does not exist, correct this before saving", expanded);
 				}
 			}
 		}
@@ -421,16 +427,26 @@ static void outliner_draw_restrictbuts(uiBlock *block, Scene *scene, ARegion *ar
 				gr = (Group *)tselem->id;
 				
 				uiBlockSetEmboss(block, UI_EMBOSSN);
-				
+
+#ifndef USE_GROUP_SELECT
+				restrict_bool = FALSE;
+#endif
+
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_VIEW);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_VIEW_ON : ICON_RESTRICT_VIEW_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_VIEWX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_view, scene, gr);
 
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_SELECT);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_SELECT_ON : ICON_RESTRICT_SELECT_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_SELECTX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_select, scene, gr);
-	
+
+#ifdef USE_GROUP_SELECT
 				restrict_bool = group_restrict_flag(gr, OB_RESTRICT_RENDER);
+#endif
 				bt = uiDefIconBut(block, ICONTOG, 0, restrict_bool ? ICON_RESTRICT_RENDER_ON : ICON_RESTRICT_RENDER_OFF, (int)ar->v2d.cur.xmax - OL_TOG_RESTRICT_RENDERX, (int)te->ys, UI_UNIT_X - 1, UI_UNIT_Y - 1, NULL, 0, 0, 0, 0, "Restrict/Allow renderability");
 				uiButSetFunc(bt, restrictbutton_gr_restrict_render, scene, gr);
 
@@ -570,7 +586,8 @@ static void operator_call_cb(struct bContext *UNUSED(C), void *arg_kmi, void *ar
 		BLI_strncpy(kmi->idname, ot->idname, OP_MAX_TYPENAME);
 }
 
-static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi), const char *str, uiSearchItems *items)
+static void operator_search_cb(const struct bContext *UNUSED(C), void *UNUSED(arg_kmi),
+                               const char *str, uiSearchItems *items)
 {
 	GHashIterator *iter = WM_operatortype_iter();
 
@@ -1038,17 +1055,17 @@ static void tselem_draw_icon(uiBlock *block, int xmax, float x, float y, TreeSto
 			case TSE_LINKED_MAT:
 				UI_icon_draw(x, y, ICON_MATERIAL_DATA); break;
 			case TSE_POSEGRP_BASE:
-				UI_icon_draw(x, y, ICON_VERTEXSEL); break;
+				UI_icon_draw(x, y, ICON_GROUP_BONE); break;
 			case TSE_SEQUENCE:
-				if (te->idcode == SEQ_MOVIE)
+				if (te->idcode == SEQ_TYPE_MOVIE)
 					UI_icon_draw(x, y, ICON_SEQUENCE);
-				else if (te->idcode == SEQ_META)
+				else if (te->idcode == SEQ_TYPE_META)
 					UI_icon_draw(x, y, ICON_DOT);
-				else if (te->idcode == SEQ_SCENE)
+				else if (te->idcode == SEQ_TYPE_SCENE)
 					UI_icon_draw(x, y, ICON_SCENE);
-				else if (te->idcode == SEQ_SOUND)
+				else if (te->idcode == SEQ_TYPE_SOUND_RAM)
 					UI_icon_draw(x, y, ICON_SOUND);
-				else if (te->idcode == SEQ_IMAGE)
+				else if (te->idcode == SEQ_TYPE_IMAGE)
 					UI_icon_draw(x, y, ICON_IMAGE_COL);
 				else
 					UI_icon_draw(x, y, ICON_PARTICLES);
@@ -1192,7 +1209,11 @@ static void outliner_draw_iconrow(bContext *C, uiBlock *block, Scene *scene, Spa
 
 				uiSetRoundBox(UI_CNR_ALL);
 				glColor4ub(255, 255, 255, 100);
-				uiRoundBox((float) *offsx - 0.5f * ufac, (float)ys - 1.0f * ufac, (float)*offsx + UI_UNIT_Y - 3.0f * ufac, (float)ys + UI_UNIT_Y - 3.0f * ufac, UI_UNIT_Y / 2.0f - 2.0f * ufac);
+				uiRoundBox((float) *offsx - 0.5f * ufac,
+				           (float)ys - 1.0f * ufac,
+				           (float)*offsx + UI_UNIT_Y - 3.0f * ufac,
+				           (float)ys + UI_UNIT_Y - 3.0f * ufac,
+				           (float)UI_UNIT_Y / 2.0f - 2.0f * ufac);
 				glEnable(GL_BLEND); /* roundbox disables */
 			}
 			
@@ -1268,8 +1289,8 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 				}
 			}
 			else if (te->idcode == ID_GR) {
+#ifdef USE_GROUP_SELECT
 				Group *gr = (Group *)tselem->id;
-				
 				if (group_select_flag(gr)) {
 					char col[4];
 					UI_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
@@ -1278,6 +1299,7 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 					
 					active = 2;
 				}
+#endif
 			}
 			else if (te->idcode == ID_OB) {
 				Object *ob = (Object *)tselem->id;
@@ -1324,7 +1346,11 @@ static void outliner_draw_tree_element(bContext *C, uiBlock *block, Scene *scene
 		/* active circle */
 		if (active) {
 			uiSetRoundBox(UI_CNR_ALL);
-			uiRoundBox((float)startx + UI_UNIT_Y - 1.5f * ufac, (float)*starty + 2.0f * ufac, (float)startx + 2.0f * UI_UNIT_Y - 4.0f * ufac, (float)*starty + UI_UNIT_Y - 1.0f * ufac, UI_UNIT_Y / 2.0f - 2.0f * ufac);
+			uiRoundBox((float)startx + UI_UNIT_Y - 1.5f * ufac,
+			           (float)*starty + 2.0f * ufac,
+			           (float)startx + 2.0f * UI_UNIT_Y - 4.0f * ufac,
+			           (float)*starty + UI_UNIT_Y - 1.0f * ufac,
+			           UI_UNIT_Y / 2.0f - 2.0f * ufac);
 			glEnable(GL_BLEND); /* roundbox disables it */
 			
 			te->flag |= TE_ACTIVE; // for lookup in display hierarchies
@@ -1549,7 +1575,10 @@ static void outliner_draw_restrictcols(ARegion *ar)
 	
 	/* background underneath */
 	UI_ThemeColor(TH_BACK);
-	glRecti((int)ar->v2d.cur.xmax - OL_TOGW, (int)ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT - 1, (int)ar->v2d.cur.xmax + V2D_SCROLL_WIDTH, (int)ar->v2d.cur.ymax);
+	glRecti((int)ar->v2d.cur.xmax - OL_TOGW,
+	        (int)ar->v2d.cur.ymin - V2D_SCROLL_HEIGHT - 1,
+	        (int)ar->v2d.cur.xmax + V2D_SCROLL_WIDTH,
+	        (int)ar->v2d.cur.ymax);
 	
 	UI_ThemeColorShade(TH_BACK, 6);
 	ystart = (int)ar->v2d.tot.ymax;

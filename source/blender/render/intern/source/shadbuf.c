@@ -1449,7 +1449,7 @@ typedef struct ISBBranch {
 
 typedef struct BSPFace {
 	Boxf box;
-	float *v1, *v2, *v3, *v4;
+	const float *v1, *v2, *v3, *v4;
 	int obi;		/* object for face lookup */
 	int facenr;		/* index to retrieve VlakRen */
 	int type;		/* only for strand now */
@@ -1868,7 +1868,8 @@ static void isb_bsp_recalc_box(ISBBranch *root)
 }
 
 /* callback function for zbuf clip */
-static void isb_bsp_test_strand(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+static void isb_bsp_test_strand(ZSpan *zspan, int obi, int zvlnr,
+                                const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	BSPFace face;
 	
@@ -1902,7 +1903,8 @@ static void isb_bsp_test_strand(ZSpan *zspan, int obi, int zvlnr, float *v1, flo
 }
 
 /* callback function for zbuf clip */
-static void isb_bsp_test_face(ZSpan *zspan, int obi, int zvlnr, float *v1, float *v2, float *v3, float *v4) 
+static void isb_bsp_test_face(ZSpan *zspan, int obi, int zvlnr,
+                              const float *v1, const float *v2, const float *v3, const float *v4)
 {
 	BSPFace face;
 	

@@ -26,14 +26,14 @@
 #include "COM_Node.h"
 
 /**
-  * @brief ColorRampNode
-  * @ingroup Node
-  */
+ * @brief ColorRampNode
+ * @ingroup Node
+ */
 class ColorRampNode : public Node
 {
 public:
 	ColorRampNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif // COM_ColorRampNODE_H

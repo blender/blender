@@ -109,9 +109,12 @@ all:
 	@echo
 	@echo Configuring Blender ...
 
-	if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
-		$(CMAKE_CONFIG); \
-	fi
+	# if test ! -f $(BUILD_DIR)/CMakeCache.txt ; then \
+	# 	$(CMAKE_CONFIG); \
+	# fi
+	
+	# do this always incase of failed initial build, could be smarter here...
+	$(CMAKE_CONFIG)
 
 	@echo
 	@echo Building Blender ...

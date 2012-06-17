@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_sequence_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_view3d_types.h"
 
 #include "WM_api.h"
@@ -120,6 +121,7 @@ EnumPropertyItem viewport_shade_items[] = {
 #ifdef RNA_RUNTIME
 
 #include "DNA_anim_types.h"
+#include "DNA_mask_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 
@@ -1037,6 +1039,13 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 	ED_space_clip_set(NULL, screen, sc, (MovieClip *)value.data);
 }
 
+static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)
+{
+	SpaceClip *sc = (SpaceClip *)(ptr->data);
+
+	ED_space_clip_set_mask(NULL, sc, (Mask *)value.data);
+}
+
 static void rna_SpaceClipEditor_clip_mode_update(Main *UNUSED(bmain), Scene *UNUSED(scene), PointerRNA *ptr)
 {
 	SpaceClip *sc = (SpaceClip *)(ptr->data);
@@ -1059,6 +1068,14 @@ static void rna_SpaceClipEditor_view_type_update(Main *UNUSED(bmain), Scene *UNU
 }
 
 #else
+
+static EnumPropertyItem dt_uv_items[] = {
+	{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
+	{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
+	{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
+	{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
+	{0, NULL, 0, NULL, NULL}
+};
 
 static void rna_def_space(BlenderRNA *brna)
 {
@@ -1088,14 +1105,6 @@ static void rna_def_space_image_uv(BlenderRNA *brna)
 		                "Select UVs that are at the same location and share a mesh vertex"},
 		{SI_STICKY_VERTEX, "SHARED_VERTEX", ICON_STICKY_UVS_VERT, "Shared Vertex",
 		                   "Select UVs that share mesh vertex, irrespective if they are in the same location"},
-		{0, NULL, 0, NULL, NULL}
-	};
-
-	static EnumPropertyItem dt_uv_items[] = {
-		{SI_UVDT_OUTLINE, "OUTLINE", 0, "Outline", "Draw white edges with black outline"},
-		{SI_UVDT_DASH, "DASH", 0, "Dash", "Draw dashed black-white edges"},
-		{SI_UVDT_BLACK, "BLACK", 0, "Black", "Draw black edges"},
-		{SI_UVDT_WHITE, "WHITE", 0, "White", "Draw white edges"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -1288,6 +1297,19 @@ static void rna_def_background_image(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
+	static const EnumPropertyItem bgpic_camera_frame_items[] = {
+		{0, "STRETCH", 0, "Stretch", ""},
+		{V3D_BGPIC_CAMERA_ASPECT, "FIT", 0, "Fit", ""},
+		{V3D_BGPIC_CAMERA_ASPECT | V3D_BGPIC_CAMERA_CROP, "CROP", 0, "Crop", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static const EnumPropertyItem bgpic_draw_depth_items[] = {
+		{0, "BACK", 0, "Back", ""},
+		{V3D_BGPIC_FOREGROUND, "FRONT", 0, "Front", ""},
+		{0, NULL, 0, NULL, NULL}
+	};
+
 	srna = RNA_def_struct(brna, "BackgroundImage", NULL);
 	RNA_def_struct_sdna(srna, "BGpic");
 	RNA_def_struct_ui_text(srna, "Background Image", "Image and settings for display in the 3d View background");
@@ -1371,6 +1393,20 @@ static void rna_def_background_image(BlenderRNA *brna)
 	prop = RNA_def_property(srna, "show_on_foreground", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "flag", V3D_BGPIC_FOREGROUND);
 	RNA_def_property_ui_text(prop, "Show On Foreground", "Show this image in front of objects in viewport");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* expose 1 flag as a enum of 2 items */
+	prop = RNA_def_property(srna, "draw_depth", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, bgpic_draw_depth_items);
+	RNA_def_property_ui_text(prop, "Depth", "Draw under or over everything");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
+
+	/* expose 2 flags as a enum of 3 items */
+	prop = RNA_def_property(srna, "frame_method", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_bitflag_sdna(prop, NULL, "flag");
+	RNA_def_property_enum_items(prop, bgpic_camera_frame_items);
+	RNA_def_property_ui_text(prop, "Frame Method", "How the image fits in the camera frame");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_VIEW3D, NULL);
 }
 
@@ -1960,12 +1996,7 @@ static void rna_def_space_image(BlenderRNA *brna)
 	RNA_def_property_struct_type(prop, "GreasePencil");
 	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_IMAGE, NULL);
-
-	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SI_DISPGP);
-	RNA_def_property_ui_text(prop, "Use Grease Pencil",
-	                         "Display and edit the grease pencil freehand annotations overlay");
-
+	
 	/* update */
 	prop = RNA_def_property(srna, "use_realtime_update", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "lock", 0);
@@ -2041,7 +2072,7 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Display Mode", "View mode to use for displaying sequencer output");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 		
-	/* flag's */
+	/* flags */
 	prop = RNA_def_property(srna, "show_frame_indicator", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_NO_DRAW_CFRANUM);
 	RNA_def_property_ui_text(prop, "Show Frame Number Indicator",
@@ -2068,22 +2099,9 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Safe Margin", "Draw title safe margins in preview");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 	
-	prop = RNA_def_property(srna, "use_grease_pencil", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "flag", SEQ_DRAW_GPENCIL);
-	RNA_def_property_ui_text(prop, "Use Grease Pencil",
-	                         "Display and edit the grease pencil freehand annotations overlay");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-	
 	prop = RNA_def_property(srna, "show_seconds", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "flag", SEQ_DRAWFRAMES);
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
-
-	/* grease pencil */
-	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
-	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
-	RNA_def_property_struct_type(prop, "UnknownType");
-	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 	
 	prop = RNA_def_property(srna, "display_channel", PROP_INT, PROP_NONE);
@@ -2104,6 +2122,14 @@ static void rna_def_space_sequencer(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, proxy_render_size_items);
 	RNA_def_property_ui_text(prop, "Proxy render size",
 	                         "Draw preview using full resolution or different proxy resolutions");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
+	
+	/* grease pencil */
+	prop = RNA_def_property(srna, "grease_pencil", PROP_POINTER, PROP_NONE);
+	RNA_def_property_pointer_sdna(prop, NULL, "gpd");
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_struct_type(prop, "GreasePencil");
+	RNA_def_property_ui_text(prop, "Grease Pencil", "Grease pencil data for this space");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_SEQUENCER, NULL);
 }
 
@@ -2220,6 +2246,7 @@ static void rna_def_space_dopesheet(BlenderRNA *brna)
 		{SACTCONT_ACTION, "ACTION", ICON_OBJECT_DATA, "Action Editor", "Action Editor"},
 		{SACTCONT_SHAPEKEY, "SHAPEKEY", ICON_SHAPEKEY_DATA, "ShapeKey Editor", "ShapeKey Editor"},
 		{SACTCONT_GPENCIL, "GPENCIL", ICON_GREASEPENCIL, "Grease Pencil", "Grease Pencil"},
+		{SACTCONT_MASK, "MASK", ICON_MOD_MASK, "Mask", "Mask Editor"},
 		{0, NULL, 0, NULL, NULL}
 	};
 		
@@ -2974,6 +3001,7 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{SC_MODE_RECONSTRUCTION, "RECONSTRUCTION", ICON_SNAP_FACE, "Reconstruction",
 		                         "Show tracking/reconstruction tools"},
 		{SC_MODE_DISTORTION, "DISTORTION", ICON_GRID, "Distortion", "Show distortion tools"},
+		{SC_MODE_MASKEDIT, "MASKEDIT", ICON_MOD_MASK, "Mask editing", "Show mask editing tools"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -2984,10 +3012,19 @@ static void rna_def_space_clip(BlenderRNA *brna)
 		{0, NULL, 0, NULL, NULL}
 	};
 
-	static EnumPropertyItem dope_sort_items[] = {
-		{SC_DOPE_SORT_NAME, "NAME", 0, "Name", "Sort channels by their names"},
-		{SC_DOPE_SORT_LONGEST, "LONGEST", 0, "Longest", "Sort channels by longest tracked segment"},
-		{SC_DOPE_SORT_TOTAL, "TOTAL", 0, "Total", "Sort channels by overall amount of tracked segments"},
+	static EnumPropertyItem gpencil_source_items[] = {
+		{SC_GPENCIL_SRC_CLIP, "CLIP", 0, "Clip", "Show grease pencil datablock which belongs to movie clip"},
+		{SC_GPENCIL_SRC_TRACK, "TRACK", 0, "Track", "Show grease pencil datablock which belongs to active track"},
+		{0, NULL, 0, NULL, NULL}
+	};
+
+	static EnumPropertyItem pivot_items[] = {
+		{V3D_CENTER, "BOUNDING_BOX_CENTER", ICON_ROTATE, "Bounding Box Center",
+		             "Pivot around bounding box center of selected object(s)"},
+		{V3D_LOCAL, "INDIVIDUAL_ORIGINS", ICON_ROTATECOLLECTION,
+		            "Individual Origins", "Pivot around each object's own origin"},
+		{V3D_CENTROID, "MEDIAN_POINT", ICON_ROTATECENTER, "Median Point",
+		               "Pivot around the median point of selected objects"},
 		{0, NULL, 0, NULL, NULL}
 	};
 
@@ -3010,6 +3047,26 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Movie Clip User",
 	                         "Parameters defining which frame of the movie clip is displayed");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* mask */
+	prop = RNA_def_property(srna, "mask", PROP_POINTER, PROP_NONE);
+	RNA_def_property_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Mask", "Mask displayed and edited in this space");
+	RNA_def_property_pointer_funcs(prop, NULL, "rna_SpaceClipEditor_mask_set", NULL, NULL);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* mask drawing */
+	prop = RNA_def_property(srna, "mask_draw_type", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "mask_draw_type");
+	RNA_def_property_enum_items(prop, dt_uv_items);
+	RNA_def_property_ui_text(prop, "Edge Draw Type", "Draw type for mask splines");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	prop = RNA_def_property(srna, "show_mask_smooth", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "mask_draw_flag", MASK_DRAWFLAG_SMOOTH);
+	RNA_def_property_ui_text(prop, "Draw Smooth Splines", "");
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
 
 	/* mode */
 	prop = RNA_def_property(srna, "mode", PROP_ENUM, PROP_NONE);
@@ -3138,6 +3195,20 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	                         "for the selected tracks");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 
+	/* show_only_selected */
+	prop = RNA_def_property(srna, "show_graph_only_selected", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_SEL_ONLY);
+	RNA_def_property_ui_text(prop, "Only Selected", "Only include channels relating to selected objects and data");
+	RNA_def_property_ui_icon(prop, ICON_RESTRICT_SELECT_OFF, 0);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
+	/* show_hidden */
+	prop = RNA_def_property(srna, "show_graph_hidden", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", SC_SHOW_GRAPH_HIDDEN);
+	RNA_def_property_ui_text(prop, "Display Hidden", "Include channels from objects/bone that aren't visible");
+	RNA_def_property_ui_icon(prop, ICON_GHOST_ENABLED, 0);
+	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
+
 	/* ** channels ** */
 
 	/* show_red_channel */
@@ -3170,19 +3241,18 @@ static void rna_def_space_clip(BlenderRNA *brna)
 	RNA_def_property_ui_text(prop, "Show Seconds", "Show timing in seconds not frames");
 	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
-	/* ** dopesheet ** */
+	/* grease pencil source */
+	prop = RNA_def_property(srna, "grease_pencil_source", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "gpencil_src");
+	RNA_def_property_enum_items(prop, gpencil_source_items);
+	RNA_def_property_ui_text(prop, "Grease Pencil Source", "Where the grease pencil comes from");
+	RNA_def_property_update(prop, NC_MOVIECLIP | ND_DISPLAY, NULL);
 
-	/* dopesheet sort */
-	prop = RNA_def_property(srna, "dopesheet_sort_method", PROP_ENUM, PROP_NONE);
-	RNA_def_property_enum_sdna(prop, NULL, "dope_sort");
-	RNA_def_property_enum_items(prop, dope_sort_items);
-	RNA_def_property_ui_text(prop, "Dopesheet Sort Field", "Method to be used to sort channels in dopesheet view");
-	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
-
-	/* invert_dopesheet_sort */
-	prop = RNA_def_property(srna, "invert_dopesheet_sort", PROP_BOOLEAN, PROP_NONE);
-	RNA_def_property_boolean_sdna(prop, NULL, "dope_flag", SC_DOPE_SORT_INVERSE);
-	RNA_def_property_ui_text(prop, "Invert Dopesheet Sort", "Invert sort order of dopesheet channels");
+	/* pivot point */
+	prop = RNA_def_property(srna, "pivot_point", PROP_ENUM, PROP_NONE);
+	RNA_def_property_enum_sdna(prop, NULL, "around");
+	RNA_def_property_enum_items(prop, pivot_items);
+	RNA_def_property_ui_text(prop, "Pivot Point", "Pivot center for rotation/scaling");
 	RNA_def_property_update(prop, NC_SPACE | ND_SPACE_CLIP, NULL);
 }
 

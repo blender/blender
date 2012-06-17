@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef UNION_FIND_H
-#define UNION_FIND_H
+#ifndef BT_UNION_FIND_H
+#define BT_UNION_FIND_H
 
 #include "LinearMath/btAlignedObjectArray.h"
 
@@ -126,4 +126,4 @@ class btUnionFind
   };
 
 
-#endif //UNION_FIND_H
+#endif //BT_UNION_FIND_H

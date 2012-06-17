@@ -33,8 +33,8 @@ and swing 1 and 2 are along the z and y axes respectively.
 
 
 
-#ifndef CONETWISTCONSTRAINT_H
-#define CONETWISTCONSTRAINT_H
+#ifndef BT_CONETWISTCONSTRAINT_H
+#define BT_CONETWISTCONSTRAINT_H
 
 #include "LinearMath/btVector3.h"
 #include "btJacobianEntry.h"
@@ -343,4 +343,4 @@ SIMD_FORCE_INLINE const char*	btConeTwistConstraint::serialize(void* dataBuffer,
 }
 
 
-#endif //CONETWISTCONSTRAINT_H
+#endif //BT_CONETWISTCONSTRAINT_H

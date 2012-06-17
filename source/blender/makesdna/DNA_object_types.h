@@ -165,7 +165,7 @@ typedef struct Object {
 	
 	unsigned int lay;	/* copy of Base's layer in the scene */
 	
-	int pad6;
+	float sf; /* sf is time-offset */
 
 	short flag;			/* copy of Base */
 	short colbits DNA_DEPRECATED;		/* deprecated */
@@ -180,8 +180,6 @@ typedef struct Object {
 
 	int dupon, dupoff, dupsta, dupend;
 
-	float sf, ctime; /* sf is time-offset, ctime is the objects current time (XXX timing needs to be revised) */
-	
 	/* during realtime */
 
 	/* note that inertia is only called inertia for historical reasons
@@ -201,9 +199,15 @@ typedef struct Object {
 	float rdamping, sizefac;
 	float margin;
 	float max_vel; /* clamp the maximum velocity 0.0 is disabled */
-	float min_vel; /* clamp the maximum velocity 0.0 is disabled */
+	float min_vel; /* clamp the minimum velocity 0.0 is disabled */
 	float m_contactProcessingThreshold;
 	float obstacleRad;
+	
+	/* "Character" physics properties */
+	float step_height;
+	float jump_speed;
+	float fall_speed;
+	char pad1[4];
 
 	short rotmode;		/* rotation mode - uses defines set out in DNA_action_types.h for PoseChannel rotations... */
 
@@ -295,6 +299,15 @@ typedef struct DupliObject {
 
 	short type; /* from Object.transflag */
 	char no_draw, animated;
+
+	/* Lowest-level particle index.
+	 * Note: This is needed for particle info in shaders.
+	 * Otherwise dupli groups in particle systems would override the
+	 * index value from higher dupli levels. Would be nice to have full generic access
+	 * to all dupli levels somehow, but for now this should cover most use-cases.
+	 */
+	int particle_index;
+	int pad;
 } DupliObject;
 
 /* **************** OBJECT ********************* */
@@ -483,6 +496,7 @@ typedef struct DupliObject {
 #define OB_SENSOR		0x80000
 #define OB_NAVMESH		0x100000
 #define OB_HASOBSTACLE	0x200000
+#define OB_CHARACTER		0x400000
 
 /* ob->gameflag2 */
 #define OB_NEVER_DO_ACTIVITY_CULLING	1
@@ -504,6 +518,7 @@ typedef struct DupliObject {
 #define OB_BODY_TYPE_OCCLUDER		5
 #define OB_BODY_TYPE_SENSOR			6
 #define OB_BODY_TYPE_NAVMESH		7
+#define OB_BODY_TYPE_CHARACTER			8
 
 /* ob->scavisflag */
 #define OB_VIS_SENS		1

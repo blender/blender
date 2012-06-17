@@ -104,12 +104,12 @@ static FCurve *rna_Action_fcurve_new(bAction *act, ReportList *reports, const ch
 	}
 
 	/* annoying, check if this exists */
-	if (verify_fcurve(act, group, data_path, index, 0)) {
+	if (verify_fcurve(act, group, NULL, data_path, index, 0)) {
 		BKE_reportf(reports, RPT_ERROR, "F-Curve '%s[%d]' already exists in action '%s'", data_path,
 		            index, act->id.name + 2);
 		return NULL;
 	}
-	return verify_fcurve(act, group, data_path, index, 1);
+	return verify_fcurve(act, group, NULL, data_path, index, 1);
 }
 
 static void rna_Action_fcurve_remove(bAction *act, ReportList *reports, FCurve *fcu)

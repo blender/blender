@@ -613,7 +613,7 @@ static float fcm_cycles_time(FCurve *fcu, FModifier *fcm, float UNUSED(cvalue), 
 		
 		/* check that cyclic is still enabled for the specified time */
 		if (cycles == 0) {
-			/* catch this case so that we don't exit when we have cycles=0
+			/* catch this case so that we don't exit when we have (cycles = 0)
 			 * as this indicates infinite cycles...
 			 */
 		}
@@ -810,7 +810,7 @@ static void fcm_python_copy(FModifier *fcm, FModifier *src)
 static void fcm_python_evaluate(FCurve *UNUSED(fcu), FModifier *UNUSED(fcm), float *UNUSED(cvalue), float UNUSED(evaltime))
 {
 #ifdef WITH_PYTHON
-	//FMod_Python *data= (FMod_Python *)fcm->data;
+	//FMod_Python *data = (FMod_Python *)fcm->data;
 	
 	/* FIXME... need to implement this modifier...
 	 *	It will need it execute a script using the custom properties 

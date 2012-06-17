@@ -24,7 +24,7 @@ http://www.gnu.org/copyleft/lesser.txt.
  *  \ingroup bgevideotex
  */
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 
 #include <RAS_GLExtensionManager.h>
 

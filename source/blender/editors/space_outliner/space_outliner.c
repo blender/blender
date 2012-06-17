@@ -41,6 +41,7 @@
 
 #include "BKE_context.h"
 #include "BKE_screen.h"
+#include "BKE_scene.h"
 
 #include "ED_space_api.h"
 #include "ED_screen.h"
@@ -51,6 +52,9 @@
 #include "BIF_gl.h"
 
 #include "RNA_access.h"
+
+#include "DNA_scene_types.h"
+#include "DNA_object_types.h"
 
 #include "UI_resources.h"
 #include "UI_view2d.h"
@@ -91,7 +95,22 @@ static int outliner_parent_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
 			for (te = soops->tree.first; te; te = te->next) {
 				TreeElement *te_valid;
 				te_valid = outliner_dropzone_parent(C, event, te, fmval);
-				if (te_valid) return 1;
+				if (te_valid) {
+					/* check that parent/child are both in the same scene */
+					Scene *scene = (Scene *)outliner_search_back(soops, te_valid, ID_SCE);
+
+					if (!scene) {
+						/* currently outlier organized in a way, that if there's no parent scene
+						 * element for object it means that all displayed objects belong to
+						 * active scene and parenting them is allowed (sergey)
+						 */
+						return 1;
+					}
+
+					if (scene && BKE_scene_base_find(scene, (Object *)id)) {
+						return 1;
+					}
+				}
 			}
 		}
 	}
@@ -117,7 +136,9 @@ static int outliner_parent_clear_poll(bContext *C, wmDrag *drag, wmEvent *event)
 	if (drag->type == WM_DRAG_ID) {
 		ID *id = (ID *)drag->poin;
 		if (GS(id->name) == ID_OB) {
-			//TODO: Check if no parent?
+			if (((Object *)id)->parent == NULL) {
+				return 0;
+			}
 			/* Ensure location under cursor is valid dropzone */
 			for (te = soops->tree.first; te; te = te->next) {
 				if (outliner_dropzone_parent_clear(C, event, te, fmval)) return 1;
@@ -144,6 +165,64 @@ static void outliner_parent_clear_copy(wmDrag *drag, wmDropBox *drop)
 	RNA_enum_set(drop->ptr, "type", 0);
 }
 
+static int outliner_scene_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te = NULL;
+	float fmval[2];
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	if (drag->type == WM_DRAG_ID) {
+		ID *id = (ID *)drag->poin;
+		if (GS(id->name) == ID_OB) {
+			/* Ensure item under cursor is valid drop target */
+			/* Find object hovered over */
+			for (te = soops->tree.first; te; te = te->next) {
+				if (outliner_dropzone_scene(C, event, te, fmval))
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static void outliner_scene_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id = (ID *)drag->poin;
+
+	RNA_string_set(drop->ptr, "object", id->name + 2);
+}
+
+static int outliner_material_drop_poll(bContext *C, wmDrag *drag, wmEvent *event)
+{
+	ARegion *ar = CTX_wm_region(C);
+	SpaceOops *soops = CTX_wm_space_outliner(C);
+	TreeElement *te = NULL;
+	float fmval[2];
+	UI_view2d_region_to_view(&ar->v2d, event->mval[0], event->mval[1], &fmval[0], &fmval[1]);
+
+	if (drag->type == WM_DRAG_ID) {
+		ID *id = (ID *)drag->poin;
+		if (GS(id->name) == ID_MA) {
+			/* Ensure item under cursor is valid drop target */
+			/* Find object hovered over */
+			for (te = soops->tree.first; te; te = te->next) {
+				if (outliner_dropzone_parent(C, event, te, fmval))
+					return 1;
+			}
+		}
+	}
+	return 0;
+}
+
+static void outliner_material_drop_copy(wmDrag *drag, wmDropBox *drop)
+{
+	ID *id = (ID *)drag->poin;
+
+	RNA_string_set(drop->ptr, "material", id->name + 2);
+}
+
 /* region dropbox definition */
 static void outliner_dropboxes(void)
 {
@@ -151,6 +230,8 @@ static void outliner_dropboxes(void)
 
 	WM_dropbox_add(lb, "OUTLINER_OT_parent_drop", outliner_parent_drop_poll, outliner_parent_drop_copy);
 	WM_dropbox_add(lb, "OUTLINER_OT_parent_clear", outliner_parent_clear_poll, outliner_parent_clear_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_scene_drop", outliner_scene_drop_poll, outliner_scene_drop_copy);
+	WM_dropbox_add(lb, "OUTLINER_OT_material_drop", outliner_material_drop_poll, outliner_material_drop_copy);
 }
 
 static void outliner_main_area_draw(const bContext *C, ARegion *ar)

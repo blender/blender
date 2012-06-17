@@ -1403,9 +1403,11 @@ void bmo_contextual_create_exec(BMesh *bm, BMOperator *op)
 	BM_ITER_MESH (v, &iter, bm, BM_VERTS_OF_MESH) {
 		if (BMO_elem_flag_test(bm, v, ELE_NEW)) {
 			verts[amount] = v;
+			if (amount == 3) {
+				break;
+			}
 			amount++;
 
-			if (amount > 4) break;
 		}
 	}
 

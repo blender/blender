@@ -62,6 +62,11 @@ public:
 		return m_maxElements - m_freeCount;
 	}
 
+	int getMaxCount() const
+	{
+		return m_maxElements;
+	}
+
 	void*	allocate(int size)
 	{
 		// release mode fix

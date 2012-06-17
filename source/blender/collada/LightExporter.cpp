@@ -36,33 +36,33 @@
 #include "collada_internal.h"
 
 template<class Functor>
-void forEachLampObjectInScene(Scene *sce, Functor &f, bool export_selected)
+void forEachLampObjectInExportSet(Scene *sce, Functor &f, LinkNode *export_set)
 {
-	Base *base= (Base*) sce->base.first;
-	while (base) {
-		Object *ob = base->object;
+	LinkNode *node;
+	for (node = export_set; node; node = node->next) {
+		Object *ob = (Object *)node->link;
 
-		if (ob->type == OB_LAMP && ob->data && !(export_selected && !(ob->flag & SELECT))) {
+		if (ob->type == OB_LAMP && ob->data) {
 			f(ob);
 		}
-		base= base->next;
 	}
 }
 
-LightsExporter::LightsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings): COLLADASW::LibraryLights(sw), export_settings(export_settings) {}
+LightsExporter::LightsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryLights(sw), export_settings(export_settings) {
+}
 
 void LightsExporter::exportLights(Scene *sce)
 {
 	openLibrary();
 	
-	forEachLampObjectInScene(sce, *this, this->export_settings->selected);
+	forEachLampObjectInExportSet(sce, *this, this->export_settings->export_set);
 	
 	closeLibrary();
 }
 
 void LightsExporter::operator()(Object *ob)
 {
-	Lamp *la = (Lamp*)ob->data;
+	Lamp *la = (Lamp *)ob->data;
 	std::string la_id(get_light_id(ob));
 	std::string la_name(id_name(la));
 	COLLADASW::Color col(la->r * la->energy, la->g * la->energy, la->b * la->energy);
@@ -72,7 +72,7 @@ void LightsExporter::operator()(Object *ob)
 	
 	constatt = 1.0f;
 	
-	if (la->falloff_type==LA_FALLOFF_INVLINEAR) {
+	if (la->falloff_type == LA_FALLOFF_INVLINEAR) {
 		linatt = 1.0f / d;
 		quadatt = 0.0f;
 	}

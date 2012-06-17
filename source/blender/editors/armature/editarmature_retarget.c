@@ -81,20 +81,17 @@ typedef struct RetargetParam {
 	bContext    *context;
 } RetargetParam;
 
-typedef enum 
-{
+typedef enum  {
 	RETARGET_LENGTH,
 	RETARGET_AGGRESSIVE
 } RetargetMode; 
 
-typedef enum
-{
+typedef enum {
 	METHOD_BRUTE_FORCE = 0,
 	METHOD_MEMOIZE = 1
 } RetargetMethod;
 
-typedef enum
-{
+typedef enum {
 	ARC_FREE = 0,
 	ARC_TAKEN = 1,
 	ARC_USED = 2

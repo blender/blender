@@ -23,7 +23,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-DisplaceSimpleOperation::DisplaceSimpleOperation(): NodeOperation()
+DisplaceSimpleOperation::DisplaceSimpleOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VECTOR);
@@ -51,14 +51,14 @@ void DisplaceSimpleOperation::initExecution()
 
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
-#define DISPLACE_EPSILON	0.01f
+#define DISPLACE_EPSILON    0.01f
 
 void DisplaceSimpleOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
 	float inVector[4];
 	float inScale[4];
 
-	float p_dx, p_dy;	/* main displacement in pixel space */
+	float p_dx, p_dy;   /* main displacement in pixel space */
 	float u, v;
 
 	this->inputScaleXProgram->read(inScale, x, y, sampler, inputBuffers);
@@ -79,8 +79,8 @@ void DisplaceSimpleOperation::executePixel(float *color, float x, float y, Pixel
 	/* clamp nodes to avoid glitches */
 	u = x - p_dx + 0.5f;
 	v = y - p_dy + 0.5f;
-	CLAMP(u, 0.f, this->getWidth()-1.f);
-	CLAMP(v, 0.f, this->getHeight()-1.f);
+	CLAMP(u, 0.f, this->getWidth() - 1.f);
+	CLAMP(v, 0.f, this->getHeight() - 1.f);
 
 	this->inputColorProgram->read(color, u, v, sampler, inputBuffers);
 }
@@ -96,7 +96,7 @@ void DisplaceSimpleOperation::deinitExecution()
 bool DisplaceSimpleOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti colorInput;
-	NodeOperation *operation=NULL;
+	NodeOperation *operation = NULL;
 
 	/* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
 	/* image */

@@ -225,13 +225,13 @@ typedef struct ARegion {
 /* Do NOT change order, append on end. Types are hardcoded needed */
 enum {
 	RGN_TYPE_WINDOW = 0,
-	RGN_TYPE_HEADER,
-	RGN_TYPE_CHANNELS,
-	RGN_TYPE_TEMPORARY,
-	RGN_TYPE_UI,
-	RGN_TYPE_TOOLS,
-	RGN_TYPE_TOOL_PROPS,
-	RGN_TYPE_PREVIEW
+	RGN_TYPE_HEADER = 1,
+	RGN_TYPE_CHANNELS = 2,
+	RGN_TYPE_TEMPORARY = 3,
+	RGN_TYPE_UI = 4,
+	RGN_TYPE_TOOLS = 5,
+	RGN_TYPE_TOOL_PROPS = 6,
+	RGN_TYPE_PREVIEW = 7
 };
 
 /* region alignment */

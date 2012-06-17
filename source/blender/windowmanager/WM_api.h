@@ -209,6 +209,7 @@ void		WM_operator_properties_create_ptr(struct PointerRNA *ptr, struct wmOperato
 void		WM_operator_properties_free(struct PointerRNA *ptr);
 void		WM_operator_properties_filesel(struct wmOperatorType *ot, int filter, short type, short action, short flag, short display);
 void		WM_operator_properties_gesture_border(struct wmOperatorType *ot, int extend);
+void        WM_operator_properties_mouse_select(struct wmOperatorType *ot);
 void		WM_operator_properties_gesture_straightline(struct wmOperatorType *ot, int cursor);
 void		WM_operator_properties_select_all(struct wmOperatorType *ot);
 

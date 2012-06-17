@@ -23,7 +23,7 @@
 #include "COM_ConvertRGBToHSVOperation.h"
 #include "BLI_math_color.h"
 
-ConvertRGBToHSVOperation::ConvertRGBToHSVOperation(): NodeOperation()
+ConvertRGBToHSVOperation::ConvertRGBToHSVOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);

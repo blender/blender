@@ -29,15 +29,18 @@ using namespace std;
 
 Tree::Tree() :
     nrOfJoints(0), nrOfSegments(0) {
-    segments.insert(make_pair("root", TreeElement::Root()));
+	TreeElement root;
+	std::pair<std::string, TreeElement> val("root", root);
+    segments.insert(val);
 }
 
 Tree::Tree(const Tree& in) {
     segments.clear();
     nrOfSegments = 0;
     nrOfJoints = 0;
-
-    segments.insert(make_pair("root", TreeElement::Root()));
+	TreeElement root;
+	std::pair<std::string, TreeElement> val("root", root);
+    segments.insert(val);
     this->addTree(in, "", "root");
 
 }
@@ -46,8 +49,9 @@ Tree& Tree::operator=(const Tree& in) {
     segments.clear();
     nrOfSegments = 0;
     nrOfJoints = 0;
-
-    segments.insert(make_pair("root", TreeElement::Root()));
+	TreeElement root;
+	std::pair<std::string, TreeElement> val("root", root);
+    segments.insert(val);
     this->addTree(in, "", "root");
     return *this;
 }
@@ -60,8 +64,10 @@ bool Tree::addSegment(const Segment& segment, const std::string& segment_name,
         return false;
     pair<SegmentMap::iterator, bool> retval;
     //insert new element
-    retval = segments.insert(make_pair(segment_name, TreeElement(segment,
-            parent, nrOfJoints)));
+	TreeElement elem(segment, parent, nrOfJoints);
+	std::pair<std::string, TreeElement> val(segment_name, elem);
+
+    retval = segments.insert(val);
     //check if insertion succeeded
     if (!retval.second)
         return false;

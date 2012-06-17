@@ -34,12 +34,12 @@
 
 /* **************** MAPPING  ******************** */
 static bNodeSocketTemplate sh_node_mapping_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
+	{	SOCK_VECTOR, 1, N_("Vector"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_NONE},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_mapping_out[]= {
-	{	SOCK_VECTOR, 0, "Vector"},
+	{	SOCK_VECTOR, 0, N_("Vector")},
 	{	-1, 0, ""	}
 };
 

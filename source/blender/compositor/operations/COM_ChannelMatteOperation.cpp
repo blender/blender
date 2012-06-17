@@ -22,7 +22,7 @@
 #include "COM_ChannelMatteOperation.h"
 #include "BLI_math.h"
 
-ChannelMatteOperation::ChannelMatteOperation(): NodeOperation()
+ChannelMatteOperation::ChannelMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addOutputSocket(COM_DT_VALUE);
@@ -39,9 +39,9 @@ void ChannelMatteOperation::initExecution()
 	switch (this->limit_method) {
 		/* SINGLE */
 		case 0: {
-		/* 123 / RGB / HSV / YUV / YCC */
-			const int matte_channel=this->matte_channel-1;
-			const int limit_channel=this->limit_channel-1;
+			/* 123 / RGB / HSV / YUV / YCC */
+			const int matte_channel = this->matte_channel - 1;
+			const int limit_channel = this->limit_channel - 1;
 			this->ids[0] = matte_channel;
 			this->ids[1] = limit_channel;
 			this->ids[2] = limit_channel;
@@ -107,7 +107,7 @@ void ChannelMatteOperation::executePixel(float *outputValue, float x, float y, P
 	else if (alpha < limit_min) {
 		alpha = 0.f;
 	}
-	else {/*blend */
+	else { /*blend */
 		alpha = (alpha - limit_min) / limit_range;
 	}
 

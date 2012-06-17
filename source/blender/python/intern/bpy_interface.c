@@ -421,7 +421,7 @@ static int python_script_exec(bContext *C, const char *fn, struct Text *text,
 
 				fclose(fp);
 
-				pystring = MEM_mallocN(strlen(fn) + 36, "pystring");
+				pystring = MEM_mallocN(strlen(fn) + 37, "pystring");
 				pystring[0] = '\0';
 				sprintf(pystring, "f=open(r'%s');exec(f.read());f.close()", fn);
 				py_result = PyRun_String(pystring, Py_file_input, py_dict, py_dict);
@@ -537,7 +537,12 @@ int BPY_button_exec(bContext *C, const char *expr, double *value, const short ve
 			val = 0.0;
 
 			for (i = 0; i < PyTuple_GET_SIZE(retval); i++) {
-				val += PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+				const double val_item = PyFloat_AsDouble(PyTuple_GET_ITEM(retval, i));
+				if (val_item == -1 && PyErr_Occurred()) {
+					val = -1;
+					break;
+				}
+				val += val_item;
 			}
 		}
 		else {

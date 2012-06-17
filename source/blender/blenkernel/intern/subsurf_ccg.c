@@ -125,7 +125,7 @@ static CCGSubSurf *_getSubSurf(CCGSubSurf *prevSS, int subdivLevels,
 	int useArena = flags & CCG_USE_ARENA;
 	int normalOffset = 0;
 
-	/* subdivLevels==0 is not allowed */
+	/* (subdivLevels == 0) is not allowed */
 	subdivLevels = MAX2(subdivLevels, 1);
 
 	if (prevSS) {

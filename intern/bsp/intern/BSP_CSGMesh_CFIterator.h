@@ -127,10 +127,10 @@ BSP_CSGMeshVertexIt_Construct(
 	
 	BSP_CSGMesh_VertexIt * v_it = new BSP_CSGMesh_VertexIt;
 	v_it->mesh = mesh;
-	if( output->num_elements > 0 )
+	if ( output->num_elements > 0 )
 		v_it->pos = &mesh->VertexSet()[0];
 	output->it = v_it;
-};			
+}
 
 
 /**

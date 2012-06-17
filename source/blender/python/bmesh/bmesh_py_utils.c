@@ -23,7 +23,7 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-/** \file blender/python/bmesh/bmesh_py_api.c
+/** \file blender/python/bmesh/bmesh_py_utils.c
  *  \ingroup pybmesh
  *
  * This file defines the 'bmesh.utils' module.

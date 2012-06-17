@@ -483,7 +483,7 @@ static void ui_template_node_link_menu(bContext *C, uiLayout *layout, void *but_
 	uiBlockSetCurLayout(block, column);
 
 	if (sock->link) {
-		uiItemL(column, "Link", ICON_NONE);
+		uiItemL(column, IFACE_("Link"), ICON_NONE);
 		but= block->buttons.last;
 		but->flag= UI_TEXT_LEFT;
 

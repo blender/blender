@@ -75,7 +75,8 @@ struct bAction *verify_adt_action(struct ID *id, short add);
 /* Get (or add relevant data to be able to do so) F-Curve from the given Action. 
  * This assumes that all the destinations are valid.
  */
-struct FCurve *verify_fcurve(struct bAction *act, const char group[], const char rna_path[], const int array_index, short add);
+struct FCurve *verify_fcurve(struct bAction *act, const char group[], struct PointerRNA *ptr,
+                             const char rna_path[], const int array_index, short add);
 
 /* -------- */
 

@@ -49,7 +49,7 @@
 	{ \
 		if (fcc == 0)       { fcc = mmioFOURCC('N', 'o', 'n', 'e'); } \
 		if (fcc == BI_RLE8) { fcc = mmioFOURCC('R', 'l', 'e', '8'); } \
-	}
+	} (void)0
 
 #endif
 
@@ -120,14 +120,17 @@ int ismovie(const char *UNUSED(filepath))
 }
 
 /* never called, just keep the linker happy */
-static int startmovie(struct anim *UNUSED(anim)) {
+static int startmovie(struct anim *UNUSED(anim))
+{
 	return 1;
 }
-static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position)) {
+static ImBuf *movie_fetchibuf(struct anim *UNUSED(anim), int UNUSED(position))
+{
 	return NULL;
 }
-static void free_anim_movie(struct anim *UNUSED(anim)) {
-	;
+static void free_anim_movie(struct anim *UNUSED(anim))
+{
+	/* pass */
 }
 
 
@@ -1157,9 +1160,9 @@ static void free_anim_redcode(struct anim *anim)
 
 #endif
 
-/* probeer volgende plaatje te lezen */
-/* Geen plaatje, probeer dan volgende animatie te openen */
-/* gelukt, haal dan eerste plaatje van animatie */
+/* Try next picture to read */
+/* No picture, try to open next animation */
+/* Succeed, remove first image from animation */
 
 static ImBuf *anim_getnew(struct anim *anim)
 {

@@ -34,14 +34,14 @@
 
 /* **************** VALUE SQUEEZE ******************** */ 
 static bNodeSocketTemplate sh_node_squeeze_in[]= { 
-	{ SOCK_FLOAT, 1, "Value", 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
-	{ SOCK_FLOAT, 1, "Width", 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
-	{ SOCK_FLOAT, 1, "Center", 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
+	{ SOCK_FLOAT, 1, N_("Value"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
+	{ SOCK_FLOAT, 1, N_("Width"), 1.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
+	{ SOCK_FLOAT, 1, N_("Center"), 0.0f, 0.0f, 0.0f, 0.0f, -100.0f, 100.0f, PROP_NONE}, 
 	{ -1, 0, "" } 
 };
 
 static bNodeSocketTemplate sh_node_squeeze_out[]= { 
-	{ SOCK_FLOAT, 0, "Value"}, 
+	{ SOCK_FLOAT, 0, N_("Value")}, 
 	{ -1, 0, "" } 
 };
 

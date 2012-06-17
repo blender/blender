@@ -682,6 +682,7 @@ class DATA_PT_modifiers(ModifierButtonsPanel, Panel):
         row = row.row()
         row.active = md.use_rim
         row.prop(md, "material_offset_rim", text="Rim")
+        sub.prop(md, "use_flip_normals")
 
     def SUBSURF(self, layout, ob, md):
         layout.row().prop(md, "subdivision_type", expand=True)

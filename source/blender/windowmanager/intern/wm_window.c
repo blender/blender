@@ -577,12 +577,11 @@ int wm_window_fullscreen_toggle_exec(bContext *C, wmOperator *UNUSED(op))
 
 /* ************ events *************** */
 
-typedef enum
-{
-	SHIFT = 's',
-	CONTROL = 'c',
-	ALT = 'a',
-	OS = 'C'
+typedef enum {
+	SHIFT    = 's',
+	CONTROL  = 'c',
+	ALT      = 'a',
+	OS       = 'C'
 } modifierKeyType;
 
 /* check if specified modifier key type is pressed */
@@ -622,7 +621,7 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 	wmWindowManager *wm = CTX_wm_manager(C);
 
 	if (win != wm->windrawable && win->ghostwin) {
-//		win->lmbut= 0;	/* keeps hanging when mousepressed while other window opened */
+//		win->lmbut = 0;	/* keeps hanging when mousepressed while other window opened */
 		
 		wm->windrawable = win;
 		if (G.debug & G_DEBUG_EVENTS) {

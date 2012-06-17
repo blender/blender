@@ -79,6 +79,7 @@ void ED_keymap_metaball(wmKeyConfig *keyconf)
 	kmi = WM_keymap_add_item(keymap, "MBALL_OT_select_all", IKEY, KM_PRESS, KM_CTRL, 0);
 	RNA_enum_set(kmi->ptr, "action", SEL_INVERT);
 
-	ED_object_generic_keymap(keyconf, keymap, 3);
+	ED_keymap_proportional_cycle(keyconf, keymap);
+	ED_keymap_proportional_editmode(keyconf, keymap, TRUE);
 }
 

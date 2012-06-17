@@ -146,7 +146,7 @@ static int intersect_edges(float *points, float a, float b, float c, float d, fl
 	return numpoints;
 }
 
-static int convex(float *p0, float *up, float *a, float *b)
+static int convex(const float p0[3], const float up[3], const float a[3], const float b[3])
 {
 	// Vec3 va = a-p0, vb = b-p0;
 	float va[3], vb[3], tmp[3];

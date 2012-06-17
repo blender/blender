@@ -36,6 +36,7 @@ struct bContext;
 struct bScreen;
 struct ImBuf;
 struct Main;
+struct Mask;
 struct MovieClip;
 struct SpaceClip;
 struct wmEvent;
@@ -46,14 +47,21 @@ int ED_space_clip_poll(struct bContext *C);
 int ED_space_clip_view_clip_poll(struct bContext *C);
 
 int ED_space_clip_tracking_poll(struct bContext *C);
-int ED_space_clip_tracking_size_poll(struct bContext *C);
-int ED_space_clip_tracking_frame_poll(struct bContext *C);
+int ED_space_clip_maskedit_poll(struct bContext *C);
+int ED_space_clip_maskedit_mask_poll(bContext *C);
 
 void ED_space_clip_set(struct bContext *C, struct bScreen *screen, struct SpaceClip *sc, struct MovieClip *clip);
 struct MovieClip *ED_space_clip(struct SpaceClip *sc);
+struct Mask *ED_space_clip_mask(struct SpaceClip *sc);
 void ED_space_clip_size(struct SpaceClip *sc, int *width, int *height);
 void ED_space_clip_zoom(struct SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy);
 void ED_space_clip_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
+void ED_space_clip_aspect_dimension_aware(struct SpaceClip *sc, float *aspx, float *aspy);
+
+int ED_space_clip_clip_framenr(struct SpaceClip *sc);
+
+void ED_space_clip_mask_size(struct SpaceClip *sc, int *width, int *height);
+void ED_space_clip_mask_aspect(struct SpaceClip *sc, float *aspx, float *aspy);
 
 struct ImBuf *ED_space_clip_get_buffer(struct SpaceClip *sc);
 struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2], float *scale, float *angle);
@@ -61,9 +69,9 @@ struct ImBuf *ED_space_clip_get_stable_buffer(struct SpaceClip *sc, float loc[2]
 void ED_clip_update_frame(const struct Main *mainp, int cfra);
 int ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 
-void ED_clip_point_undistorted_pos(SpaceClip * sc, float co[2], float nco[2]);
+void ED_clip_point_undistorted_pos(SpaceClip * sc, const float co[2], float r_co[2]);
 void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
-void ED_clip_point_stable_pos__reverse(SpaceClip * sc, ARegion *ar, float co[2], float nco[2]);
+void ED_clip_point_stable_pos__reverse(SpaceClip * sc, ARegion *ar, const float co[2], float r_co[2]);
 void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
 
 int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
@@ -72,6 +80,8 @@ void ED_space_clip_unload_movieclip_buffer(struct SpaceClip *sc);
 void ED_space_clip_free_texture_buffer(struct SpaceClip *sc);
 
 int ED_space_clip_show_trackedit(struct SpaceClip *sc);
+int ED_space_clip_show_maskedit(struct SpaceClip *sc);
+void ED_space_clip_set_mask(struct bContext *C, struct SpaceClip *sc, struct Mask *mask);
 
 /* clip_ops.c */
 void ED_operatormacros_clip(void);

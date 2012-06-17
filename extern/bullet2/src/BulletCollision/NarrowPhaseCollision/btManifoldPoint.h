@@ -13,14 +13,14 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef MANIFOLD_CONTACT_POINT_H
-#define MANIFOLD_CONTACT_POINT_H
+#ifndef BT_MANIFOLD_CONTACT_POINT_H
+#define BT_MANIFOLD_CONTACT_POINT_H
 
 #include "LinearMath/btVector3.h"
 #include "LinearMath/btTransformUtil.h"
 
 #ifdef PFX_USE_FREE_VECTORMATH
-	#include "physics_effects\base_level\solver\pfx_constraint_row.h"
+	#include "physics_effects/base_level/solver/pfx_constraint_row.h"
 typedef sce::PhysicsEffects::PfxConstraintRow btConstraintRow;
 #else
 	// Don't change following order of parameters
@@ -155,4 +155,4 @@ class btManifoldPoint
 
 	};
 
-#endif //MANIFOLD_CONTACT_POINT_H
+#endif //BT_MANIFOLD_CONTACT_POINT_H

@@ -26,14 +26,14 @@
 #include "COM_Node.h"
 
 /**
-  * @brief NormalNode
-  * @ingroup Node
-  */
+ * @brief NormalNode
+ * @ingroup Node
+ */
 class NormalNode : public Node
 {
 public:
 	NormalNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif // COM_NormalNODE_H

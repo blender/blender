@@ -236,8 +236,8 @@ typedef struct ThemeSpace {
 	char syntaxl[4], syntaxn[4], syntaxb[4]; // syntax for textwindow and nodes
 	char syntaxv[4], syntaxc[4];
 	
-	char movie[4], movieclip[4], image[4], scene[4], audio[4];		// for sequence editor
-	char effect[4], plugin[4], transition[4], meta[4];
+	char movie[4], movieclip[4], mask[4], image[4], scene[4], audio[4];		// for sequence editor
+	char effect[4], hpad0[4], transition[4], meta[4];
 	char editmesh_active[4]; 
 
 	char handle_vertex[4];
@@ -249,7 +249,7 @@ typedef struct ThemeSpace {
 	char bundle_solid[4];
 	char path_before[4], path_after[4];
 	char camera_path[4];
-	char hpad[7];
+	char hpad[3];
 	
 	char preview_back[4];
 	char preview_stitch_face[4];
@@ -263,8 +263,19 @@ typedef struct ThemeSpace {
 	char selected_highlight[4];	/* outliner - selected item */
 
 	char skin_root[4]; /* Skin modifier root color */
-
+	
 	int pad4;
+	
+	/* NLA */
+	char anim_active[4];	 /* Active Action + Summary Channel */
+	char anim_non_active[4]; /* Active Action = NULL */
+	
+	char nla_tweaking[4];   /* NLA 'Tweaking' action/strip */
+	char nla_tweakdupli[4]; /* NLA - warning color for duplicate instances of tweaking strip */
+	
+	char nla_transition[4], nla_transition_sel[4]; /* NLA "Transition" strips */
+	char nla_meta[4], nla_meta_sel[4];             /* NLA "Meta" strips */
+	char nla_sound[4], nla_sound_sel[4];           /* NLA "Sound" strips */
 } ThemeSpace;
 
 
@@ -334,8 +345,6 @@ typedef struct UserDef {
 	char fontdir[768];
 	char renderdir[1024]; /* FILE_MAX length */
 	char textudir[768];
-	char plugtexdir[768];
-	char plugseqdir[768];
 	char pythondir[768];
 	char sounddir[768];
 	char image_editor[1024];	/* 1024 = FILE_MAX */
@@ -403,7 +412,7 @@ typedef struct UserDef {
 	
 	short widget_unit;		/* defaults to 20 for 72 DPI setting */
 	short anisotropic_filter;
-	short use_16bit_textures, pad8;
+	short use_16bit_textures, use_gpu_mipmap;
 
 	float ndof_sensitivity;	/* overall sensitivity of 3D mouse */
 	int ndof_flag;			/* flags for 3D mouse */

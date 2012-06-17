@@ -2085,7 +2085,6 @@ static void vgroup_active_remove_verts(Object *ob, const int allverts, bDeformGr
 		}
 		else {
 			MVert *mv;
-			MDeformVert *dv;
 			int i;
 
 			if (!me->dvert) {

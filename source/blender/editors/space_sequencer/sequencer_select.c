@@ -58,6 +58,7 @@
 
 #include "ED_types.h"
 #include "ED_screen.h"
+#include "ED_sequencer.h"
 
 #include "UI_view2d.h"
 
@@ -161,20 +162,20 @@ void select_surround_from_last(Scene *scene)
 }
 #endif
 
-
-static void UNUSED_FUNCTION(select_single_seq) (Scene * scene, Sequence * seq, int deselect_all) /* BRING BACK */
+void ED_sequencer_select_sequence_single(Scene * scene, Sequence * seq, int deselect_all)
 {
 	Editing *ed = BKE_sequencer_editing_get(scene, FALSE);
 	
 	if (deselect_all)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
+
 	BKE_sequencer_active_set(scene, seq);
 
-	if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
+	if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
 		if (seq->strip)
 			BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
 	}
-	else if (seq->type == SEQ_SOUND) {
+	else if (seq->type == SEQ_TYPE_SOUND_RAM) {
 		if (seq->strip)
 			BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
 	}
@@ -359,7 +360,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 	else if (left_right) {
 		/* use different logic for this */
 		float x;
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 		UI_view2d_region_to_view(v2d, event->mval[0], event->mval[1], &x, NULL);
 
 		SEQP_BEGIN (ed, seq)
@@ -403,18 +404,18 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 		act_orig = ed->act_seq;
 
 		if (extend == 0 && linked_handle == 0)
-			deselect_all_seq(scene);
+			ED_sequencer_deselect_all(scene);
 	
 		if (seq) {
 			BKE_sequencer_active_set(scene, seq);
 	
-			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
+			if ((seq->type == SEQ_TYPE_IMAGE) || (seq->type == SEQ_TYPE_MOVIE)) {
 				if (seq->strip) {
 					BLI_strncpy(ed->act_imagedir, seq->strip->dir, FILE_MAXDIR);
 				}
 			}
 			else
-			if (seq->type == SEQ_SOUND) {
+			if (seq->type == SEQ_TYPE_SOUND_RAM) {
 				if (seq->strip) {
 					BLI_strncpy(ed->act_sounddir, seq->strip->dir, FILE_MAXDIR);
 				}
@@ -442,7 +443,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 			
 			/* On Alt selection, select the strip and bordering handles */
 			if (linked_handle && !ELEM(hand, SEQ_SIDE_LEFT, SEQ_SIDE_RIGHT)) {
-				if (extend == 0) deselect_all_seq(scene);
+				if (extend == 0) ED_sequencer_deselect_all(scene);
 				seq->flag |= SELECT;
 				select_surrounding_handles(scene, seq);
 			}
@@ -458,13 +459,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					switch (sel_side) {
 						case SEQ_SIDE_LEFT:
 							if ((seq->flag & SEQ_LEFTSEL) && (neighbor->flag & SEQ_RIGHTSEL)) {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								select_active_side(ed->seqbasep, SEQ_SIDE_LEFT, seq->machine, seq->startdisp);
 							}
 							else {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								neighbor->flag |= SELECT;
@@ -475,13 +476,13 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 							break;
 						case SEQ_SIDE_RIGHT:
 							if ((seq->flag & SEQ_RIGHTSEL) && (neighbor->flag & SEQ_LEFTSEL)) {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								select_active_side(ed->seqbasep, SEQ_SIDE_RIGHT, seq->machine, seq->startdisp);
 							}
 							else {
-								if (extend == 0) deselect_all_seq(scene);
+								if (extend == 0) ED_sequencer_deselect_all(scene);
 								seq->flag |= SELECT;
 
 								neighbor->flag |= SELECT;
@@ -493,7 +494,7 @@ static int sequencer_select_invoke(bContext *C, wmOperator *op, wmEvent *event)
 					}
 				}
 				else {
-					if (extend == 0) deselect_all_seq(scene);
+					if (extend == 0) ED_sequencer_deselect_all(scene);
 					select_active_side(ed->seqbasep, sel_side, seq->machine, seq->startdisp);
 				}
 			}
@@ -686,7 +687,7 @@ static int sequencer_select_linked_pick_invoke(bContext *C, wmOperator *op, wmEv
 		return OPERATOR_FINISHED;  /* user error as with mesh?? */
 	
 	if (extend == 0)
-		deselect_all_seq(scene);
+		ED_sequencer_deselect_all(scene);
 	
 	mouse_seq->flag |= SELECT;
 	recurs_sel_seq(mouse_seq);
@@ -929,11 +930,11 @@ static EnumPropertyItem sequencer_prop_select_grouped_types[] = {
 	{0, NULL, 0, NULL, NULL}
 };
 
-#define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_SOUND) && !(_seq->type & SEQ_EFFECT))
+#define SEQ_IS_SOUND(_seq) ((_seq->type & SEQ_TYPE_SOUND_RAM) && !(_seq->type & SEQ_TYPE_EFFECT))
 
-#define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_EFFECT)
+#define SEQ_IS_EFFECT(_seq) (_seq->type & SEQ_TYPE_EFFECT)
 
-#define SEQ_USE_DATA(_seq) (ELEM(_seq->type, SEQ_SCENE, SEQ_MOVIECLIP) || SEQ_HAS_PATH(_seq))
+#define SEQ_USE_DATA(_seq) (ELEM3(_seq->type, SEQ_TYPE_SCENE, SEQ_TYPE_MOVIECLIP, SEQ_TYPE_MASK) || SEQ_HAS_PATH(_seq))
 
 static short select_grouped_type(Editing *ed, Sequence *actseq)
 {
@@ -1007,22 +1008,33 @@ static short select_grouped_data(Editing *ed, Sequence *actseq)
 		}
 		SEQ_END;
 	}
-	else if (actseq->type == SEQ_SCENE) {
+	else if (actseq->type == SEQ_TYPE_SCENE) {
 		Scene *sce = actseq->scene;
 		SEQP_BEGIN (ed, seq)
 		{
-			if (seq->type == SEQ_SCENE && seq->scene == sce) {
+			if (seq->type == SEQ_TYPE_SCENE && seq->scene == sce) {
 				seq->flag |= SELECT;
 				changed = TRUE;
 			}
 		}
 		SEQ_END;
 	}
-	else if (actseq->type == SEQ_MOVIECLIP) {
+	else if (actseq->type == SEQ_TYPE_MOVIECLIP) {
 		MovieClip *clip = actseq->clip;
 		SEQP_BEGIN (ed, seq)
 		{
-			if (seq->type == SEQ_MOVIECLIP && seq->clip == clip) {
+			if (seq->type == SEQ_TYPE_MOVIECLIP && seq->clip == clip) {
+				seq->flag |= SELECT;
+				changed = TRUE;
+			}
+		}
+		SEQ_END;
+	}
+	else if (actseq->type == SEQ_TYPE_MASK) {
+		struct Mask *mask = actseq->mask;
+		SEQP_BEGIN (ed, seq)
+		{
+			if (seq->type == SEQ_TYPE_MASK && seq->mask == mask) {
 				seq->flag |= SELECT;
 				changed = TRUE;
 			}
@@ -1037,10 +1049,10 @@ static short select_grouped_effect(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq;
 	short changed = FALSE;
-	short effects[SEQ_EFFECT_MAX + 1];
+	short effects[SEQ_TYPE_EFFECT_MAX + 1];
 	int i;
 
-	for (i = 0; i <= SEQ_EFFECT_MAX; i++)
+	for (i = 0; i <= SEQ_TYPE_EFFECT_MAX; i++)
 		effects[i] = FALSE;
 
 	SEQP_BEGIN (ed, seq)
@@ -1086,7 +1098,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 {
 	Sequence *seq = NULL;
 	short changed = FALSE;
-	short is_audio = ((actseq->type == SEQ_META) || SEQ_IS_SOUND(actseq));
+	short is_audio = ((actseq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(actseq));
 	int startdisp = actseq->startdisp;
 	int enddisp   = actseq->enddisp;
 	int machine   = actseq->machine;
@@ -1108,7 +1120,7 @@ static short select_grouped_effect_link(Editing *ed, Sequence *actseq)
 		/* Ignore all seqs of incompatible types (audio vs video). */
 		if ((seq->flag & SELECT) || (seq->startdisp >= enddisp) || (seq->enddisp < startdisp) ||
 		    (!is_audio && SEQ_IS_SOUND(seq)) ||
-		    (is_audio && !((seq->type == SEQ_META) || SEQ_IS_SOUND(seq))))
+		    (is_audio && !((seq->type == SEQ_TYPE_META) || SEQ_IS_SOUND(seq))))
 		{
 			continue;
 		}

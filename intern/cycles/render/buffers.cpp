@@ -117,8 +117,8 @@ void RenderBuffers::reset(Device *device, BufferParams& params_)
 	uint *init_state = rng_state.resize(params.width, params.height);
 	int x, y, width = params.width, height = params.height;
 	
-	for(x=0; x<width; x++)
-		for(y=0; y<height; y++)
+	for(x = 0; x < width; x++)
+		for(y = 0; y < height; y++)
 			init_state[x + y*width] = hash_int_2d(params.full_x+x, params.full_y+y);
 
 	device->mem_alloc(rng_state, MEM_READ_WRITE);
@@ -311,8 +311,14 @@ void DisplayBuffer::draw_set(int width, int height)
 
 void DisplayBuffer::draw(Device *device)
 {
-	if(draw_width != 0 && draw_height != 0)
+	if(draw_width != 0 && draw_height != 0) {
+		glPushMatrix();
+		glTranslatef(params.full_x, params.full_y, 0.0f);
+
 		device->draw_pixels(rgba, 0, draw_width, draw_height, 0, params.width, params.height, transparent);
+
+		glPopMatrix();
+	}
 }
 
 bool DisplayBuffer::draw_ready()

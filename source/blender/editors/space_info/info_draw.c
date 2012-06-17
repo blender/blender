@@ -63,11 +63,11 @@
 /* complicates things a bit, so leaving in old simple code */
 #define USE_INFO_NEWLINE
 
-static void info_report_color(unsigned char *fg, unsigned char *bg, Report *report, int bool)
+static void info_report_color(unsigned char *fg, unsigned char *bg, Report *report, const short do_tint)
 {
 	if (report->flag & SELECT) {
 		fg[0] = 255; fg[1] = 255; fg[2] = 255;
-		if (bool) {
+		if (do_tint) {
 			bg[0] = 96; bg[1] = 128; bg[2] = 255;
 		}
 		else {
@@ -78,30 +78,30 @@ static void info_report_color(unsigned char *fg, unsigned char *bg, Report *repo
 		fg[0] = 0; fg[1] = 0; fg[2] = 0;
 		
 		if (report->type & RPT_ERROR_ALL) {
-			if (bool) { bg[0] = 220; bg[1] = 0;   bg[2] = 0;   }
-			else      { bg[0] = 214; bg[1] = 0;   bg[2] = 0;   }
+			if (do_tint) { bg[0] = 220; bg[1] = 0;   bg[2] = 0;   }
+			else         { bg[0] = 214; bg[1] = 0;   bg[2] = 0;   }
 		}
 		else if (report->type & RPT_WARNING_ALL) {
-			if (bool) { bg[0] = 220; bg[1] = 128; bg[2] = 96;  }
-			else      { bg[0] = 214; bg[1] = 122; bg[2] = 90;  }
+			if (do_tint) { bg[0] = 220; bg[1] = 128; bg[2] = 96;  }
+			else         { bg[0] = 214; bg[1] = 122; bg[2] = 90;  }
 		}
 #if 0 // XXX: this looks like the selected color, so don't use this
 		else if (report->type & RPT_OPERATOR_ALL) {
-			if (bool) { bg[0] = 96;  bg[1] = 128; bg[2] = 255; }
-			else      { bg[0] = 90;  bg[1] = 122; bg[2] = 249; }
+			if (do_tint) { bg[0] = 96;  bg[1] = 128; bg[2] = 255; }
+			else         { bg[0] = 90;  bg[1] = 122; bg[2] = 249; }
 		}
 #endif
 		else if (report->type & RPT_INFO_ALL) {
-			if (bool) { bg[0] = 0;   bg[1] = 170; bg[2] = 0;   }
-			else      { bg[0] = 0;   bg[1] = 164; bg[2] = 0;   }
+			if (do_tint) { bg[0] = 0;   bg[1] = 170; bg[2] = 0;   }
+			else         { bg[0] = 0;   bg[1] = 164; bg[2] = 0;   }
 		}
 		else if (report->type & RPT_DEBUG_ALL) {
-			if (bool) { bg[0] = 196; bg[1] = 196; bg[2] = 196; }
-			else      { bg[0] = 190; bg[1] = 190; bg[2] = 190; }
+			if (do_tint) { bg[0] = 196; bg[1] = 196; bg[2] = 196; }
+			else         { bg[0] = 190; bg[1] = 190; bg[2] = 190; }
 		}
 		else {
-			if (bool) { bg[0] = 120; bg[1] = 120; bg[2] = 120; }
-			else      { bg[0] = 114; bg[1] = 114; bg[2] = 114; }
+			if (do_tint) { bg[0] = 120; bg[1] = 120; bg[2] = 120; }
+			else         { bg[0] = 114; bg[1] = 114; bg[2] = 114; }
 		}
 	}
 }

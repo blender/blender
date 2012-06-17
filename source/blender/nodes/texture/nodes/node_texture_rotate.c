@@ -36,14 +36,14 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[]= { 
-	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f},
-	{ SOCK_FLOAT, 1, "Turns",   0.0f, 0.0f, 0.0f, 0.0f,  -1.0f, 1.0f, PROP_NONE },
-	{ SOCK_VECTOR, 1, "Axis",   0.0f, 0.0f, 1.0f, 0.0f,  -1.0f, 1.0f, PROP_DIRECTION },
+	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f},
+	{ SOCK_FLOAT, 1, N_("Turns"),   0.0f, 0.0f, 0.0f, 0.0f,  -1.0f, 1.0f, PROP_NONE },
+	{ SOCK_VECTOR, 1, N_("Axis"),   0.0f, 0.0f, 1.0f, 0.0f,  -1.0f, 1.0f, PROP_DIRECTION },
 	{ -1, 0, "" } 
 };
 
 static bNodeSocketTemplate outputs[]= { 
-	{ SOCK_RGBA, 0, "Color"}, 
+	{ SOCK_RGBA, 0, N_("Color")}, 
 	{ -1, 0, "" } 
 };
 

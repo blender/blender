@@ -276,7 +276,8 @@ CProfileNode::CProfileNode( const char * name, CProfileNode * parent ) :
 	RecursionCounter( 0 ),
 	Parent( parent ),
 	Child( NULL ),
-	Sibling( NULL )
+	Sibling( NULL ),
+	m_userPtr(0)
 {
 	Reset();
 }

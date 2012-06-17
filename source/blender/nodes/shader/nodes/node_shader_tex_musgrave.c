@@ -30,19 +30,19 @@
 /* **************** MUSGRAVE ******************** */
 
 static bNodeSocketTemplate sh_node_tex_musgrave_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
-	{	SOCK_FLOAT, 1, "Scale",			5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, "Detail",		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
-	{	SOCK_FLOAT, 1, "Dimension",		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, "Lacunarity",	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, "Offset",		0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
-	{	SOCK_FLOAT, 1, "Gain",			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+	{	SOCK_FLOAT, 1, N_("Scale"),			5.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("Detail"),		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 16.0f},
+	{	SOCK_FLOAT, 1, N_("Dimension"),		2.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("Lacunarity"),	1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("Offset"),		0.0f, 0.0f, 0.0f, 0.0f, -1000.0f, 1000.0f},
+	{	SOCK_FLOAT, 1, N_("Gain"),			1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1000.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_tex_musgrave_out[]= {
-	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, "Fac",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Fac"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

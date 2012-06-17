@@ -34,12 +34,12 @@
 #include "NOD_texture.h"
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_RGBA,   1, "Texture",     0.0f, 0.0f, 0.0f, 1.0f },
-	{ SOCK_VECTOR, 1, "Coordinates", 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
+	{ SOCK_RGBA,   1, N_("Texture"),     0.0f, 0.0f, 0.0f, 1.0f },
+	{ SOCK_VECTOR, 1, N_("Coordinates"), 0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 1.0f, PROP_NONE },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_RGBA,   0, "Texture" },
+	{ SOCK_RGBA,   0, N_("Texture") },
 	{ -1, 0, "" }
 };
 

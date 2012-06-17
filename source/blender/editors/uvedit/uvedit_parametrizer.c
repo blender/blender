@@ -706,7 +706,7 @@ static void p_face_restore_uvs(PFace *f)
 
 /* Construction (use only during construction, relies on u.key being set */
 
-static PVert *p_vert_add(PHandle *handle, PHashKey key, float *co, PEdge *e)
+static PVert *p_vert_add(PHandle *handle, PHashKey key, const float co[3], PEdge *e)
 {
 	PVert *v = (PVert *)BLI_memarena_alloc(handle->arena, sizeof *v);
 	copy_v3_v3(v->co, co);
@@ -719,7 +719,7 @@ static PVert *p_vert_add(PHandle *handle, PHashKey key, float *co, PEdge *e)
 	return v;
 }
 
-static PVert *p_vert_lookup(PHandle *handle, PHashKey key, float *co, PEdge *e)
+static PVert *p_vert_lookup(PHandle *handle, PHashKey key, const float co[3], PEdge *e)
 {
 	PVert *v = (PVert *)phash_lookup(handle->hash_verts, key);
 
@@ -3596,7 +3596,7 @@ typedef struct SmoothNode {
 	int axis, ntri;
 } SmoothNode;
 
-static void p_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *b)
+static void p_barycentric_2d(const float v1[2], const float v2[2], const float v3[2], const float p[2], float b[3])
 {
 	float a[2], c[2], h[2], div;
 
@@ -3624,7 +3624,7 @@ static void p_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *b
 	}
 }
 
-static PBool p_triangle_inside(SmoothTriangle *t, float *co)
+static PBool p_triangle_inside(SmoothTriangle *t, float co[2])
 {
 	float b[3];
 
@@ -3706,7 +3706,7 @@ static void p_node_delete(SmoothNode *node)
 		MEM_freeN(node->tri);
 }
 
-static PBool p_node_intersect(SmoothNode *node, float *co)
+static PBool p_node_intersect(SmoothNode *node, float co[2])
 {
 	int i;
 
@@ -3726,7 +3726,7 @@ static PBool p_node_intersect(SmoothNode *node, float *co)
 
 }
 
-/* smooothing */
+/* smoothing */
 
 static int p_compare_float(const void *a, const void *b)
 {

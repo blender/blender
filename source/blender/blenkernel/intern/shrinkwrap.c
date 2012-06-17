@@ -83,8 +83,6 @@
 
 #endif
 
-typedef void (*Shrinkwrap_ForeachVertexCallback)(DerivedMesh *target, float *co, float *normal);
-
 /* get derived mesh */
 //TODO is anyfunction that does this? returning the derivedFinal without we caring if its in edit mode or not?
 DerivedMesh *object_get_derived_final(Object *ob)
@@ -109,23 +107,23 @@ void space_transform_from_matrixs(SpaceTransform *data, float local[4][4], float
 	invert_m4_m4(data->target2local, data->local2target);
 }
 
-void space_transform_apply(const SpaceTransform *data, float *co)
+void space_transform_apply(const SpaceTransform *data, float co[3])
 {
 	mul_v3_m4v3(co, ((SpaceTransform *)data)->local2target, co);
 }
 
-void space_transform_invert(const SpaceTransform *data, float *co)
+void space_transform_invert(const SpaceTransform *data, float co[3])
 {
 	mul_v3_m4v3(co, ((SpaceTransform *)data)->target2local, co);
 }
 
-static void space_transform_apply_normal(const SpaceTransform *data, float *no)
+static void space_transform_apply_normal(const SpaceTransform *data, float no[3])
 {
 	mul_mat3_m4_v3(((SpaceTransform *)data)->local2target, no);
 	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
 }
 
-static void space_transform_invert_normal(const SpaceTransform *data, float *no)
+static void space_transform_invert_normal(const SpaceTransform *data, float no[3])
 {
 	mul_mat3_m4_v3(((SpaceTransform *)data)->target2local, no);
 	normalize_v3(no); // TODO: could we just determine de scale value from the matrix?
@@ -211,7 +209,7 @@ static void shrinkwrap_calc_nearest_vertex(ShrinkwrapCalcData *calc)
  *	MOD_SHRINKWRAP_CULL_TARGET_FRONTFACE (front faces hits are ignored)
  *	MOD_SHRINKWRAP_CULL_TARGET_BACKFACE (back faces hits are ignored)
  */
-int normal_projection_project_vertex(char options, const float *vert, const float *dir, const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
+int normal_projection_project_vertex(char options, const float vert[3], const float dir[3], const SpaceTransform *transf, BVHTree *tree, BVHTreeRayHit *hit, BVHTree_RayCastCallback callback, void *userdata)
 {
 	float tmp_co[3], tmp_no[3];
 	const float *co, *no;

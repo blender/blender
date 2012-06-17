@@ -30,12 +30,12 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 #include "Common.h"
 
-#include <KX_Scene.h>
-#include <KX_Camera.h>
-#include <DNA_screen_types.h>
-#include <RAS_ICanvas.h>
-#include <RAS_IRasterizer.h>
-#include <RAS_IRenderTools.h>
+#include "KX_Scene.h"
+#include "KX_Camera.h"
+#include "DNA_screen_types.h"
+#include "RAS_ICanvas.h"
+#include "RAS_IRasterizer.h"
+#include "RAS_IRenderTools.h"
 
 #include "ImageViewport.h"
 

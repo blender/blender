@@ -36,22 +36,22 @@ public:
 	BilateralBlurOperation();
 
 	/**
-	  * the inner loop of this program
-	  */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	 * the inner loop of this program
+	 */
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
-	  * Initialize the execution
-	  */
+	 * Initialize the execution
+	 */
 	void initExecution();
 	
 	/**
-	  * Deinitialize the execution
-	  */
+	 * Deinitialize the execution
+	 */
 	void deinitExecution();
 	
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 	
-	void setData(NodeBilateralBlurData *data) {this->data = data;}
+	void setData(NodeBilateralBlurData *data) { this->data = data; }
 };
 #endif

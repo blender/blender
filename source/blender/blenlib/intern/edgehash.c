@@ -56,7 +56,7 @@ static unsigned int _ehash_hashsizes[] = {
 		v0 ^= v1;        \
 		v1 ^= v0;        \
 		v0 ^= v1;        \
-	}
+	} (void)0
 
 /***/
 

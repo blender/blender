@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef SOFT_BODY_HELPERS_H
-#define SOFT_BODY_HELPERS_H
+#ifndef BT_SOFT_BODY_HELPERS_H
+#define BT_SOFT_BODY_HELPERS_H
 
 #include "btSoftBody.h"
 
@@ -140,4 +140,4 @@ struct	btSoftBodyHelpers
 	
 };
 
-#endif //SOFT_BODY_HELPERS_H
+#endif //BT_SOFT_BODY_HELPERS_H

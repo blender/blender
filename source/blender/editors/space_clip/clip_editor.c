@@ -34,10 +34,12 @@
 #include "MEM_guardedalloc.h"
 
 #include "BKE_main.h"
+#include "BKE_mask.h"
 #include "BKE_movieclip.h"
 #include "BKE_context.h"
 #include "BKE_tracking.h"
 
+#include "DNA_mask_types.h"
 #include "DNA_object_types.h"	/* SELECT */
 
 #include "BLI_utildefines.h"
@@ -94,33 +96,26 @@ int ED_space_clip_tracking_poll(bContext *C)
 	return FALSE;
 }
 
-int ED_space_clip_tracking_size_poll(bContext *C)
+int ED_space_clip_maskedit_poll(bContext *C)
 {
-	if (ED_space_clip_tracking_poll(C)) {
-		MovieClip *clip = CTX_data_edit_movieclip(C);
+	SpaceClip *sc = CTX_wm_space_clip(C);
 
-		if (clip) {
-			SpaceClip *sc = CTX_wm_space_clip(C);
-			int width, height;
-
-			BKE_movieclip_get_size(clip, &sc->user, &width, &height);
-
-			return width > 0 && height > 0;
-		}
+	if (sc && sc->clip) {
+		return ED_space_clip_show_maskedit(sc);
 	}
 
 	return FALSE;
 }
 
-int ED_space_clip_tracking_frame_poll(bContext *C)
+int ED_space_clip_maskedit_mask_poll(bContext *C)
 {
-	if (ED_space_clip_tracking_poll(C)) {
+	if (ED_space_clip_maskedit_poll(C)) {
 		MovieClip *clip = CTX_data_edit_movieclip(C);
 
 		if (clip) {
 			SpaceClip *sc = CTX_wm_space_clip(C);
 
-			return BKE_movieclip_has_frame(clip, &sc->user);
+			return sc->mask != NULL;
 		}
 	}
 
@@ -170,6 +165,11 @@ MovieClip *ED_space_clip(SpaceClip *sc)
 	return sc->clip;
 }
 
+Mask *ED_space_clip_mask(SpaceClip *sc)
+{
+	return sc->mask;
+}
+
 ImBuf *ED_space_clip_get_buffer(SpaceClip *sc)
 {
 	if (sc->clip) {
@@ -214,6 +214,51 @@ void ED_space_clip_size(SpaceClip *sc, int *width, int *height)
 	}
 }
 
+void ED_space_clip_mask_size(SpaceClip *sc, int *width, int *height)
+{
+	/* quite the same as ED_space_clip_size, but it also runs aspect correction on output resolution
+	 * this is needed because mask should be rasterized with exactly the same resolution as
+	 * currently displaying frame and it doesn't have access to aspect correction currently
+	 * used for display. (sergey)
+	 */
+
+	if (!sc->mask) {
+		*width = 0;
+		*height = 0;
+	} else {
+		float aspx, aspy;
+
+		ED_space_clip_size(sc, width, height);
+		ED_space_clip_aspect(sc, &aspx, &aspy);
+
+		*width *= aspx;
+		*height *= aspy;
+	}
+}
+
+void ED_space_clip_mask_aspect(SpaceClip *sc, float *aspx, float *aspy)
+{
+	int w, h;
+
+	ED_space_clip_aspect(sc, aspx, aspy);
+	ED_space_clip_size(sc, &w, &h);
+
+	/* now this is not accounted for! */
+#if 0
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+#endif
+
+	if (*aspx < *aspy) {
+		*aspy = *aspy / *aspx;
+		*aspx = 1.0f;
+	}
+	else {
+		*aspx = *aspx / *aspy;
+		*aspy = 1.0f;
+	}
+}
+
 void ED_space_clip_zoom(SpaceClip *sc, ARegion *ar, float *zoomx, float *zoomy)
 {
 	int width, height;
@@ -232,6 +277,33 @@ void ED_space_clip_aspect(SpaceClip *sc, float *aspx, float *aspy)
 		BKE_movieclip_aspect(clip, aspx, aspy);
 	else
 		*aspx = *aspy = 1.0f;
+}
+
+void ED_space_clip_aspect_dimension_aware(SpaceClip *sc, float *aspx, float *aspy)
+{
+	int w, h;
+
+	/* most of tools does not require aspect to be returned with dimensions correction
+	 * due to they're invariant to this stuff, but some transformation tools like rotation
+	 * should be aware of aspect correction caused by different resolution in different
+	 * directions.
+	 * mainly this is sued for transformation stuff
+	 */
+
+	ED_space_clip_aspect(sc, aspx, aspy);
+	ED_space_clip_size(sc, &w, &h);
+
+	*aspx *= (float)w;
+	*aspy *= (float)h;
+
+	if (*aspx < *aspy) {
+		*aspy = *aspy / *aspx;
+		*aspx = 1.0f;
+	}
+	else {
+		*aspx = *aspx / *aspy;
+		*aspy = 1.0f;
+	}
 }
 
 void ED_clip_update_frame(const Main *mainp, int cfra)
@@ -257,12 +329,20 @@ void ED_clip_update_frame(const Main *mainp, int cfra)
 	}
 }
 
+/* return current frame number in clip space */
+int ED_space_clip_clip_framenr(SpaceClip *sc)
+{
+	MovieClip *clip = ED_space_clip(sc);
+
+	return BKE_movieclip_remap_scene_to_clip_frame(clip, sc->user.framenr);
+}
+
 static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 {
 	MovieClip *clip = ED_space_clip(sc);
 	MovieTrackingTrack *track;
 	int width, height, ok = FALSE;
-	ListBase *tracksbase = BKE_tracking_get_tracks(&clip->tracking);
+	ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 
 	INIT_MINMAX2(min, max);
 
@@ -271,7 +351,7 @@ static int selected_boundbox(SpaceClip *sc, float min[2], float max[2])
 	track = tracksbase->first;
 	while (track) {
 		if (TRACK_VIEW_SELECTED(sc, track)) {
-			MovieTrackingMarker *marker = BKE_tracking_get_marker(track, sc->user.framenr);
+			MovieTrackingMarker *marker = BKE_tracking_marker_get(track, sc->user.framenr);
 
 			if (marker) {
 				float pos[3];
@@ -345,9 +425,9 @@ int ED_clip_view_selection(SpaceClip *sc, ARegion *ar, int fit)
 	return TRUE;
 }
 
-void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
+void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[2])
 {
-	copy_v2_v2(nco, co);
+	copy_v2_v2(r_co, co);
 
 	if (sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT) {
 		MovieClip *clip = ED_space_clip(sc);
@@ -356,13 +436,13 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, float co[2], float nco[2])
 
 		ED_space_clip_size(sc, &width, &height);
 
-		nco[0] *= width;
-		nco[1] *= height * aspy;
+		r_co[0] *= width;
+		r_co[1] *= height * aspy;
 
-		BKE_tracking_invert_intrinsics(&clip->tracking, nco, nco);
+		BKE_tracking_undistort_v2(&clip->tracking, r_co, r_co);
 
-		nco[0] /= width;
-		nco[1] /= height * aspy;
+		r_co[0] /= width;
+		r_co[1] /= height * aspy;
 	}
 }
 
@@ -371,7 +451,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	int sx, sy, width, height;
-	float zoomx, zoomy, pos[3] = {0.0f, 0.0f, 0.0f}, imat[4][4];
+	float zoomx, zoomy, pos[3], imat[4][4];
 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 	ED_space_clip_size(sc, &width, &height);
@@ -380,6 +460,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 
 	pos[0] = (x - sx) / zoomx;
 	pos[1] = (y - sy) / zoomy;
+	pos[2] = 0.0f;
 
 	invert_m4_m4(imat, sc->stabmat);
 	mul_v3_m4v3(pos, imat, pos);
@@ -393,7 +474,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
 		float aspy = 1.0f / tracking->camera.pixel_aspect;
 		float tmp[2] = {*xr * width, *yr * height * aspy};
 
-		BKE_tracking_apply_intrinsics(tracking, tmp, tmp);
+		BKE_tracking_distort_v2(tracking, tmp, tmp);
 
 		*xr = tmp[0] / width;
 		*yr = tmp[1] / (height * aspy);
@@ -404,7 +485,7 @@ void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *y
  * \brief the reverse of ED_clip_point_stable_pos(), gets the marker region coords.
  * better name here? view_to_track / track_to_view or so?
  */
-void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], float nco[2])
+void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float co[2], float r_co[2])
 {
 	float zoomx, zoomy;
 	float pos[3];
@@ -416,12 +497,13 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, float co[2], 
 	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
 
 	ED_clip_point_undistorted_pos(sc, co, pos);
+	pos[2] = 0.0f;
 
 	/* untested */
 	mul_v3_m4v3(pos, sc->stabmat, pos);
 
-	nco[0] = (pos[0] * width  * zoomx) + (float)sx;
-	nco[1] = (pos[1] * height * zoomy) + (float)sy;
+	r_co[0] = (pos[0] * width  * zoomx) + (float)sx;
+	r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
 void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])
@@ -439,7 +521,10 @@ typedef struct SpaceClipDrawContext {
 	struct ImBuf *texture_ibuf;	/* image buffer for which texture was created */
 	int image_width, image_height;	/* image width and height for which texture was created */
 	unsigned last_texture;		/* ID of previously used texture, so it'll be restored after clip drawing */
-	int framenr;
+
+	/* fields to check if cache is still valid */
+	int framenr, start_frame, frame_offset;
+	short render_size, render_flag;
 } SpaceClipDrawContext;
 
 int ED_space_clip_texture_buffer_supported(SpaceClip *sc)
@@ -477,6 +562,10 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 	 * so not changed image buffer pointer means unchanged image content */
 	need_rebind |= context->texture_ibuf != ibuf;
 	need_rebind |= context->framenr != sc->user.framenr;
+	need_rebind |= context->render_size != sc->user.render_size;
+	need_rebind |= context->render_flag != sc->user.render_flag;
+	need_rebind |= context->start_frame != clip->start_frame;
+	need_rebind |= context->frame_offset != clip->frame_offset;
 
 	if (need_rebind) {
 		int width = ibuf->x, height = ibuf->y;
@@ -531,6 +620,10 @@ int ED_space_clip_load_movieclip_buffer(SpaceClip *sc, ImBuf *ibuf)
 		context->image_width = ibuf->x;
 		context->image_height = ibuf->y;
 		context->framenr = sc->user.framenr;
+		context->render_size = sc->user.render_size;
+		context->render_flag = sc->user.render_flag;
+		context->start_frame = clip->start_frame;
+		context->frame_offset = clip->frame_offset;
 	}
 	else {
 		/* displaying exactly the same image which was loaded t oa texture,
@@ -562,6 +655,8 @@ void ED_space_clip_free_texture_buffer(SpaceClip *sc)
 	}
 }
 
+/* ******** masking editing related functions ******** */
+
 int ED_space_clip_show_trackedit(SpaceClip *sc)
 {
 	if (sc) {
@@ -569,4 +664,26 @@ int ED_space_clip_show_trackedit(SpaceClip *sc)
 	}
 
 	return FALSE;
+}
+
+int ED_space_clip_show_maskedit(SpaceClip *sc)
+{
+	if (sc) {
+		return sc->mode == SC_MODE_MASKEDIT;
+	}
+
+	return FALSE;
+}
+
+void ED_space_clip_set_mask(bContext *C, SpaceClip *sc, Mask *mask)
+{
+	sc->mask = mask;
+
+	if (sc->mask && sc->mask->id.us == 0) {
+		sc->clip->id.us = 1;
+	}
+
+	if (C) {
+		WM_event_add_notifier(C, NC_MASK | NA_SELECTED, mask);
+	}
 }

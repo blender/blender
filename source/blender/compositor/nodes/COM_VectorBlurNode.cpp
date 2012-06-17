@@ -22,20 +22,17 @@
 
 #include "COM_VectorBlurNode.h"
 #include "DNA_node_types.h"
-#include "COM_FogGlowImageOperation.h"
-#include "COM_BokehBlurOperation.h"
 #include "COM_VectorBlurOperation.h"
-#include "COM_SetValueOperation.h"
-#include "COM_MixBlendOperation.h"
 
-VectorBlurNode::VectorBlurNode(bNode *editorNode): Node(editorNode)
+VectorBlurNode::VectorBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
 	bNode *node = this->getbNode();
-	NodeBlurData *vectorBlurSettings = (NodeBlurData*)node->storage;
+	NodeBlurData *vectorBlurSettings = (NodeBlurData *)node->storage;
 	VectorBlurOperation *operation = new VectorBlurOperation();
 	operation->setVectorBlurSettings(vectorBlurSettings);
 	operation->setQuality(context->getQuality());

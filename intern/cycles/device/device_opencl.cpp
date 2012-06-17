@@ -239,7 +239,7 @@ public:
 		}
 
 		/* we don't check CL_DEVICE_VERSION since for e.g. nvidia sm 1.3 cards this is
-			1.0 even if the language features are there, just limited shared memory */
+		 * 1.0 even if the language features are there, just limited shared memory */
 
 		return true;
 	}
@@ -344,8 +344,8 @@ public:
 	bool compile_kernel(const string& kernel_path, const string& kernel_md5)
 	{
 		/* we compile kernels consisting of many files. unfortunately opencl
-		   kernel caches do not seem to recognize changes in included files.
-		   so we force recompile on changes by adding the md5 hash of all files */
+		 * kernel caches do not seem to recognize changes in included files.
+		 * so we force recompile on changes by adding the md5 hash of all files */
 		string source = "#include \"kernel.cl\" // " + kernel_md5 + "\n";
 		source = path_source_replace_includes(source, kernel_path);
 
@@ -407,7 +407,7 @@ public:
 		string device_md5 = device_md5_hash();
 
 		/* try to use cache binary */
-		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());;
+		string clbin = string_printf("cycles_kernel_%s_%s.clbin", device_md5.c_str(), kernel_md5.c_str());
 		clbin = path_user_get(path_join("cache", clbin));
 
 		if(path_exists(clbin)) {
@@ -679,8 +679,6 @@ public:
 			maintask.split_max_size(tasks, 76800);
 		else
 			tasks.push_back(maintask);
-
-		DeviceTask task;
 
 		foreach(DeviceTask& task, tasks) {
 			if(task.type == DeviceTask::TONEMAP)

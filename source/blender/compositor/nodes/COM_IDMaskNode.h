@@ -26,13 +26,13 @@
 #include "COM_Node.h"
 
 /**
-  * @brief IDMaskNode
-  * @ingroup Node
-  */
-class IDMaskNode: public Node {
+ * @brief IDMaskNode
+ * @ingroup Node
+ */
+class IDMaskNode : public Node {
 public:
 	IDMaskNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };
 
 #endif

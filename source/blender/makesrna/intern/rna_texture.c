@@ -68,7 +68,6 @@ EnumPropertyItem texture_type_items[] = {
 	{TEX_MUSGRAVE, "MUSGRAVE", ICON_TEXTURE, "Musgrave", "Procedural - highly flexible fractal noise texture"},
 	{TEX_NOISE, "NOISE", ICON_TEXTURE, "Noise",
 	            "Procedural - random noise, gives a different result every time, for every frame, for every pixel"},
-	/*{TEX_PLUGIN, "PLUGIN", ICON_PLUGIN, "Plugin", ""},  *//* Nothing yet */
 	{TEX_POINTDENSITY, "POINT_DENSITY", ICON_TEXTURE, "Point Density", ""},
 	{TEX_STUCCI, "STUCCI", ICON_TEXTURE, "Stucci", "Procedural - create a fractal noise texture"},
 	{TEX_VORONOI, "VORONOI", ICON_TEXTURE, "Voronoi", "Procedural - create cell-like patterns based on Worley noise"},

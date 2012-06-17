@@ -28,11 +28,12 @@
 #include "COM_SetValueOperation.h"
 #include "COM_SetSamplerOperation.h"
 
-TransformNode::TransformNode(bNode *editorNode): Node(editorNode)
+TransformNode::TransformNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *imageInput = this->getInputSocket(0);
 	InputSocket *xInput = this->getInputSocket(1);
@@ -40,21 +41,21 @@ void TransformNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	InputSocket *angleInput = this->getInputSocket(3);
 	InputSocket *scaleInput = this->getInputSocket(4);
 	
-	ScaleOperation * scaleOperation = new ScaleOperation();
-	RotateOperation * rotateOperation = new RotateOperation();
-	TranslateOperation * translateOperation = new TranslateOperation();
+	ScaleOperation *scaleOperation = new ScaleOperation();
+	RotateOperation *rotateOperation = new RotateOperation();
+	TranslateOperation *translateOperation = new TranslateOperation();
 	SetSamplerOperation *sampler = new SetSamplerOperation();
 
 	switch (this->getbNode()->custom1) {
-	case 0:
-		sampler->setSampler(COM_PS_NEAREST);
-		break ;
-	case 1:
-		sampler->setSampler(COM_PS_BILINEAR);
-		break;
-	case 2:
-		sampler->setSampler(COM_PS_BICUBIC);
-		break;
+		case 0:
+			sampler->setSampler(COM_PS_NEAREST);
+			break;
+		case 1:
+			sampler->setSampler(COM_PS_BILINEAR);
+			break;
+		case 2:
+			sampler->setSampler(COM_PS_BICUBIC);
+			break;
 	}
 	
 	imageInput->relinkConnections(sampler->getInputSocket(0), 0, graph);

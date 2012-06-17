@@ -104,8 +104,8 @@ typedef struct bSound {
 typedef enum eSound_Type {
 	SOUND_TYPE_INVALID = -1,
 	SOUND_TYPE_FILE = 0,
-	SOUND_TYPE_BUFFER,
-	SOUND_TYPE_LIMITER
+	SOUND_TYPE_BUFFER = 1,
+	SOUND_TYPE_LIMITER = 2
 } eSound_Type;
 #endif
 

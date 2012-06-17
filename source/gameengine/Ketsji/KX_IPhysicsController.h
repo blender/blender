@@ -53,11 +53,12 @@ class KX_IPhysicsController : public SG_Controller
 protected:
 	bool		m_bDyna;
 	bool		m_bSensor;
+	bool		m_bCharacter;
 	bool		m_bCompound;
 	bool		m_suspendDynamics;
 	void*		m_userdata;
 public:
-	KX_IPhysicsController(bool dyna,bool sensor,bool compound, void* userdata);
+	KX_IPhysicsController(bool dyna,bool sensor,bool character,bool compound, void* userdata);
 	virtual ~KX_IPhysicsController();
 
 
@@ -109,12 +110,20 @@ public:
 		m_bSensor = isSensor;
 	}
 
+	void	SetCharacter(bool isCharacter) {
+		m_bCharacter = isCharacter;
+	}
+
 	bool	IsDyna(void) {
 		return m_bDyna;
 	}
 
 	bool	IsSensor(void) {
 		return m_bSensor;
+	}
+
+	bool	IsCharacter(void) {
+		return m_bCharacter;
 	}
 
 	bool	IsCompound(void) {

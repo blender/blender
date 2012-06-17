@@ -25,9 +25,9 @@
 #include "COM_Node.h"
 
 /**
-  * @brief ChromaMatteNode
-  * @ingroup Node
-  */
+ * @brief ChromaMatteNode
+ * @ingroup Node
+ */
 class ChromaMatteNode : public Node
 {
 public:

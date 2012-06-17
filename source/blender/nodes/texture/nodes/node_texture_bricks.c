@@ -36,17 +36,17 @@
 #include <math.h>
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_RGBA,  1, "Bricks 1",    0.596f, 0.282f, 0.0f,  1.0f },
-	{ SOCK_RGBA,  1, "Bricks 2",    0.632f, 0.504f, 0.05f, 1.0f },
-	{ SOCK_RGBA,  1, "Mortar",      0.0f,   0.0f,   0.0f,  1.0f },
-	{ SOCK_FLOAT, 1, "Thickness",   0.02f,  0.0f,   0.0f,  0.0f,  0.0f,    1.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, "Bias",        0.0f,   0.0f,   0.0f,  0.0f, -1.0f,    1.0f, PROP_NONE },
-	{ SOCK_FLOAT, 1, "Brick Width", 0.5f,   0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
-	{ SOCK_FLOAT, 1, "Row Height",  0.25f,  0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
+	{ SOCK_RGBA,  1, N_("Bricks 1"),    0.596f, 0.282f, 0.0f,  1.0f },
+	{ SOCK_RGBA,  1, N_("Bricks 2"),    0.632f, 0.504f, 0.05f, 1.0f },
+	{ SOCK_RGBA,  1, N_("Mortar"),      0.0f,   0.0f,   0.0f,  1.0f },
+	{ SOCK_FLOAT, 1, N_("Thickness"),   0.02f,  0.0f,   0.0f,  0.0f,  0.0f,    1.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Bias"),        0.0f,   0.0f,   0.0f,  0.0f, -1.0f,    1.0f, PROP_NONE },
+	{ SOCK_FLOAT, 1, N_("Brick Width"), 0.5f,   0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
+	{ SOCK_FLOAT, 1, N_("Row Height"),  0.25f,  0.0f,   0.0f,  0.0f,  0.001f, 99.0f, PROP_UNSIGNED },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_RGBA, 0, "Color"},
+	{ SOCK_RGBA, 0, N_("Color")},
 	{ -1, 0, ""	}
 };
 

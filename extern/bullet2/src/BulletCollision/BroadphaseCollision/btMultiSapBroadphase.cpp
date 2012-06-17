@@ -341,7 +341,7 @@ class btMultiSapBroadphasePairSortPredicate
 {
 	public:
 
-		bool operator() ( const btBroadphasePair& a1, const btBroadphasePair& b1 )
+		bool operator() ( const btBroadphasePair& a1, const btBroadphasePair& b1 ) const
 		{
 				btMultiSapBroadphase::btMultiSapProxy* aProxy0 = a1.m_pProxy0 ? (btMultiSapBroadphase::btMultiSapProxy*)a1.m_pProxy0->m_multiSapParentProxy : 0;
 				btMultiSapBroadphase::btMultiSapProxy* aProxy1 = a1.m_pProxy1 ? (btMultiSapBroadphase::btMultiSapProxy*)a1.m_pProxy1->m_multiSapParentProxy : 0;

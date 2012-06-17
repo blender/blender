@@ -91,7 +91,8 @@ bool Scene::setParam(SceneParam paramId, double value)
 bool Scene::addObject(const std::string& name, Object* object, UncontrolledObject* base, const std::string& baseFrame)
 {
 	// finalize the object before adding
-	object->finalize();
+	if (!object->finalize())
+		return false;
     //Check if Object is controlled or uncontrolled.
     if(object->getType()==Object::Controlled){
 		int baseFrameIndex = base->addEndEffector(baseFrame);

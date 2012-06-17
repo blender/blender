@@ -44,6 +44,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -64,6 +65,7 @@
 #include "ED_screen.h"
 #include "ED_transform.h"
 #include "ED_markers.h"
+#include "ED_mask.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -256,6 +258,19 @@ static void get_keyframe_extents(bAnimContext *ac, float *min, float *max, const
 					*max = MAX2(*max, gpf->framenum);
 				}
 			}
+			else if (ale->datatype == ALE_MASKLAY) {
+				MaskLayer *masklay = ale->data;
+				MaskLayerShape *masklay_shape;
+
+				/* find mask layer which is less than or equal to cframe */
+				for (masklay_shape = masklay->splines_shapes.first;
+				     masklay_shape;
+				     masklay_shape = masklay_shape->next)
+				{
+					*min = MIN2(*min, masklay_shape->frame);
+					*max = MAX2(*max, masklay_shape->frame);
+				}
+			}
 			else {
 				FCurve *fcu = (FCurve *)ale->key_data;
 				float tmin, tmax;
@@ -445,9 +460,16 @@ static short paste_action_keys(bAnimContext *ac,
 	ListBase anim_data = {NULL, NULL};
 	int filter, ok = 0;
 	
-	/* filter data */
-	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_SEL | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
-	ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
+	/* filter data 
+	 * - First time we try to filter more strictly, allowing only selected channels 
+	 *   to allow copying animation between channels
+	 * - Second time, we loosen things up if nothing was found the first time, allowing
+	 *   users to just paste keyframes back into the original curve again [#31670]
+	 */
+	filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
+	
+	if (ANIM_animdata_filter(ac, &anim_data, filter | ANIMFILTER_SEL, ac->data, ac->datatype) == 0)
+		ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 	
 	/* paste keyframes */
 	ok = paste_animedit_keys(ac, &anim_data, offset_mode, merge_mode);
@@ -469,9 +491,14 @@ static int actkeys_copy_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 	
 	/* copy keyframes */
-	if (ac.datatype == ANIMCONT_GPENCIL) {
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		// FIXME...
 		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil mode");
+		return OPERATOR_CANCELLED;
+	}
+	else if (ac.datatype == ANIMCONT_MASK) {
+		// FIXME...
+		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for mask mode");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -514,9 +541,9 @@ static int actkeys_paste_exec(bContext *C, wmOperator *op)
 	ac.reports = op->reports;
 	
 	/* paste keyframes */
-	if (ac.datatype == ANIMCONT_GPENCIL) {
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK)) {
 		// FIXME...
-		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil mode");
+		BKE_report(op->reports, RPT_ERROR, "Keyframe pasting is not available for Grease Pencil or Mask mode");
 		return OPERATOR_CANCELLED;
 	}
 	else {
@@ -618,7 +645,7 @@ static int actkeys_insertkey_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_CANCELLED;
 		
 	/* what channels to affect? */
@@ -664,7 +691,7 @@ static void duplicate_action_keys(bAnimContext *ac)
 	int filter;
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -674,8 +701,12 @@ static void duplicate_action_keys(bAnimContext *ac)
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_FCURVE)
 			duplicate_fcurve_keys((FCurve *)ale->key_data);
+		else if (ale->type == ANIMTYPE_GPLAYER)
+			ED_gplayer_frames_duplicate((bGPDlayer *)ale->data);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ED_masklayer_frames_duplicate((MaskLayer *)ale->data);
 		else
-			duplicate_gplayer_frames((bGPDlayer *)ale->data);
+			BLI_assert(0);
 	}
 	
 	/* free filtered list */
@@ -696,7 +727,7 @@ static int actkeys_duplicate_exec(bContext *C, wmOperator *UNUSED(op))
 	duplicate_action_keys(&ac);
 	
 	/* validate keyframes after editing */
-	if (ac.datatype != ANIMCONT_GPENCIL)
+	if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
@@ -737,7 +768,7 @@ static void delete_action_keys(bAnimContext *ac)
 	int filter;
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -745,7 +776,13 @@ static void delete_action_keys(bAnimContext *ac)
 	
 	/* loop through filtered data and delete selected keys */
 	for (ale = anim_data.first; ale; ale = ale->next) {
-		if (ale->type != ANIMTYPE_GPLAYER) {
+		if (ale->type == ANIMTYPE_GPLAYER) {
+			ED_gplayer_frames_delete((bGPDlayer *)ale->data);
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			ED_masklayer_frames_delete((MaskLayer *)ale->data);
+		}
+		else {
 			FCurve *fcu = (FCurve *)ale->key_data;
 			AnimData *adt = ale->adt;
 			
@@ -756,8 +793,6 @@ static void delete_action_keys(bAnimContext *ac)
 			if ((fcu->totvert == 0) && (list_has_suitable_fmodifier(&fcu->modifiers, 0, FMI_TYPE_GENERATE_CURVE) == 0))
 				ANIM_fcurve_delete_from_animdata(ac, adt, fcu);
 		}
-		else
-			delete_gplayer_frames((bGPDlayer *)ale->data);
 	}
 	
 	/* free filtered list */
@@ -778,7 +813,7 @@ static int actkeys_delete_exec(bContext *C, wmOperator *UNUSED(op))
 	delete_action_keys(&ac);
 	
 	/* validate keyframes after editing */
-	if (ac.datatype != ANIMCONT_GPENCIL)
+	if (!ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		ANIM_editkeyframes_refresh(&ac);
 	
 	/* set notifier that keyframes have changed */
@@ -833,7 +868,7 @@ static int actkeys_clean_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get cleaning threshold */
@@ -900,7 +935,7 @@ static int actkeys_sample_exec(bContext *C, wmOperator *UNUSED(op))
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 	
 	/* sample keyframes */
@@ -1007,7 +1042,7 @@ static int actkeys_expo_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
@@ -1078,7 +1113,7 @@ static int actkeys_ipo_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
@@ -1158,7 +1193,7 @@ static int actkeys_handletype_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
@@ -1229,7 +1264,7 @@ static int actkeys_keytype_exec(bContext *C, wmOperator *op)
 	/* get editor data */
 	if (ANIM_animdata_get_context(C, &ac) == 0)
 		return OPERATOR_CANCELLED;
-	if (ac.datatype == ANIMCONT_GPENCIL) 
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get handle setting mode */
@@ -1352,7 +1387,7 @@ static void snap_action_keys(bAnimContext *ac, short mode)
 	KeyframeEditFunc edit_cb;
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -1397,7 +1432,7 @@ static int actkeys_snap_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 		
 	// XXX...
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get snapping mode */
@@ -1475,7 +1510,7 @@ static void mirror_action_keys(bAnimContext *ac, short mode)
 	}
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_FOREDIT /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -1511,7 +1546,7 @@ static int actkeys_mirror_exec(bContext *C, wmOperator *op)
 		return OPERATOR_CANCELLED;
 		
 	// XXX...
-	if (ac.datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac.datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		return OPERATOR_PASS_THROUGH;
 		
 	/* get mirroring mode */

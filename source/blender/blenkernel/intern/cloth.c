@@ -143,6 +143,7 @@ void cloth_init(ClothModifierData *clmd )
 	clmd->coll_parms->collision_list = NULL;
 	clmd->coll_parms->self_loop_count = 1.0;
 	clmd->coll_parms->selfepsilon = 0.75;
+	clmd->coll_parms->vgroup_selfcol = 0;
 
 	/* These defaults are copied from softbody.c's
 	 * softbody_calc_forces() function.
@@ -756,10 +757,12 @@ static void cloth_to_object (Object *ob,  ClothModifierData *clmd, float (*verte
 int cloth_uses_vgroup(ClothModifierData *clmd)
 {
 	return (((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_SCALING ) || 
-		(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )) && 
+		(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) ||
+		(clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF)) && 
 		((clmd->sim_parms->vgroup_mass>0) || 
 		(clmd->sim_parms->vgroup_struct>0)||
-		(clmd->sim_parms->vgroup_bend>0)));
+		(clmd->sim_parms->vgroup_bend>0)  ||
+		(clmd->coll_parms->vgroup_selfcol>0)));
 }
 
 /**
@@ -813,6 +816,13 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm )
 						
 						if ( dvert->dw[j].def_nr == (clmd->sim_parms->vgroup_bend-1)) {
 							verts->bend_stiff = dvert->dw [j].weight;
+						}
+					}
+
+					if (clmd->coll_parms->flags & CLOTH_COLLSETTINGS_FLAG_SELF ) {
+						if ( dvert->dw[j].def_nr == (clmd->coll_parms->vgroup_selfcol-1)) {
+							if( dvert->dw [j].weight > 0.0)
+								verts->flags |= CLOTH_VERT_FLAG_NOSELFCOLL;
 						}
 					}
 					/*

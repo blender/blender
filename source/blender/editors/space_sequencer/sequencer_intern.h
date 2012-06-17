@@ -61,7 +61,6 @@ void seq_rectf(struct Sequence *seq, struct rctf *rectf);
 void boundbox_seq(struct Scene *scene, struct rctf *rect);
 struct Sequence *find_nearest_seq(struct Scene *scene, struct View2D *v2d, int *hand, const int mval[2]);
 struct Sequence *find_neighboring_sequence(struct Scene *scene, struct Sequence *test, int lr, int sel);
-void deselect_all_seq(struct Scene *scene);
 void recurs_sel_seq(struct Sequence *seqm);
 int seq_effect_find_selected(struct Scene *scene, struct Sequence *activeseq, int type, struct Sequence **selseq1, struct Sequence **selseq2, struct Sequence **selseq3, const char **error_str);
 
@@ -139,6 +138,7 @@ void SEQUENCER_OT_select_grouped(struct wmOperatorType *ot);
 void SEQUENCER_OT_scene_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movie_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_movieclip_strip_add(struct wmOperatorType *ot);
+void SEQUENCER_OT_mask_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_sound_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_image_strip_add(struct wmOperatorType *ot);
 void SEQUENCER_OT_effect_strip_add(struct wmOperatorType *ot);
@@ -174,7 +174,7 @@ struct ImBuf *make_zebra_view_from_ibuf(struct ImBuf * ibuf, float perc);
 struct ImBuf *make_histogram_view_from_ibuf(struct ImBuf * ibuf);
 
 /* sequencer_buttons.c */
-
+void sequencer_buttons_register(struct ARegionType *art);
 void SEQUENCER_OT_properties(struct wmOperatorType *ot);
 
 #endif /* __SEQUENCER_INTERN_H__ */

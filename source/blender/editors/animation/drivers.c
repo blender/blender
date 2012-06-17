@@ -521,7 +521,7 @@ void ANIM_OT_driver_button_add(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = add_driver_button_exec; 
-	//op->poll= ??? // TODO: need to have some animatable property to do this
+	//op->poll = ??? // TODO: need to have some animatable property to do this
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -573,7 +573,7 @@ void ANIM_OT_driver_button_remove(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = remove_driver_button_exec; 
-	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -620,7 +620,7 @@ void ANIM_OT_copy_driver_button(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = copy_driver_button_exec; 
-	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;
@@ -664,7 +664,7 @@ void ANIM_OT_paste_driver_button(wmOperatorType *ot)
 	
 	/* callbacks */
 	ot->exec = paste_driver_button_exec; 
-	//op->poll= ??? // TODO: need to have some driver to be able to do this...
+	//op->poll = ??? // TODO: need to have some driver to be able to do this...
 	
 	/* flags */
 	ot->flag = OPTYPE_REGISTER | OPTYPE_UNDO;

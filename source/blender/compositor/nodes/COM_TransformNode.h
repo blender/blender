@@ -24,11 +24,11 @@
 #include "DNA_node_types.h"
 
 /**
-  * @brief TransformNode
-  * @ingroup Node
-  */
+ * @brief TransformNode
+ * @ingroup Node
+ */
 class TransformNode : public Node {
 public:
 	TransformNode(bNode *editorNode);
-	void convertToOperations(ExecutionSystem *graph, CompositorContext * context);
+	void convertToOperations(ExecutionSystem *graph, CompositorContext *context);
 };

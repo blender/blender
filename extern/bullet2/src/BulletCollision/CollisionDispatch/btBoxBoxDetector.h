@@ -16,8 +16,8 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-#ifndef BOX_BOX_DETECTOR_H
-#define BOX_BOX_DETECTOR_H
+#ifndef BT_BOX_BOX_DETECTOR_H
+#define BT_BOX_BOX_DETECTOR_H
 
 
 class btBoxShape;

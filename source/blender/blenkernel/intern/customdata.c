@@ -1193,6 +1193,18 @@ static const char *layerType_getName(int type)
 	return LAYERTYPENAMES[type];
 }
 
+void customData_mask_layers__print(CustomDataMask mask)
+{
+	int i;
+
+	printf("mask=0x%lx:\n", (long unsigned int)mask);
+	for (i = 0; i < CD_NUMTYPES; i++) {
+		if (mask & CD_TYPE_AS_MASK(i)) {
+			printf("  %s\n", layerType_getName(i));
+		}
+	}
+}
+
 /********************* CustomData functions *********************/
 static void customData_update_offsets(CustomData *data);
 
@@ -2204,6 +2216,48 @@ void CustomData_bmesh_update_active_layers(CustomData *fdata, CustomData *pdata,
 
 		act = CustomData_get_stencil_layer(ldata, CD_MLOOPCOL);
 		CustomData_set_layer_stencil(fdata, CD_MCOL, act);
+	}
+}
+
+/* update active indices for active/render/clone/stencil custom data layers
+ * based on indices from fdata layers
+ * used by do_versions in readfile.c when creating pdata and ldata for pre-bmesh
+ * meshes and needed to preserve active/render/clone/stencil flags set in pre-bmesh files
+ */
+void CustomData_bmesh_do_versions_update_active_layers(CustomData *fdata, CustomData *pdata, CustomData *ldata)
+{
+	int act;
+
+	if (CustomData_has_layer(fdata, CD_MTFACE)) {
+		act = CustomData_get_active_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_active(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_active(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_render_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_render(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_render(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_clone_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_clone(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_clone(ldata, CD_MLOOPUV, act);
+
+		act = CustomData_get_stencil_layer(fdata, CD_MTFACE);
+		CustomData_set_layer_stencil(pdata, CD_MTEXPOLY, act);
+		CustomData_set_layer_stencil(ldata, CD_MLOOPUV, act);
+	}
+
+	if (CustomData_has_layer(fdata, CD_MCOL)) {
+		act = CustomData_get_active_layer(fdata, CD_MCOL);
+		CustomData_set_layer_active(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_render_layer(fdata, CD_MCOL);
+		CustomData_set_layer_render(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_clone_layer(fdata, CD_MCOL);
+		CustomData_set_layer_clone(ldata, CD_MLOOPCOL, act);
+
+		act = CustomData_get_stencil_layer(fdata, CD_MCOL);
+		CustomData_set_layer_stencil(ldata, CD_MLOOPCOL, act);
 	}
 }
 

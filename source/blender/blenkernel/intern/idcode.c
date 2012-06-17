@@ -79,6 +79,7 @@ static IDType idtypes[] = {
 	{ ID_WO,        "World",    "worlds",       IDTYPE_FLAGS_ISLINKABLE},
 	{ ID_WM,        "WindowManager", "window_managers", 0},
 	{ ID_MC,        "MovieClip", "movieclips",  IDTYPE_FLAGS_ISLINKABLE},
+	{ ID_MSK,        "Mask",     "masks",       IDTYPE_FLAGS_ISLINKABLE},
 };
 static int nidtypes = sizeof(idtypes) / sizeof(idtypes[0]);
 

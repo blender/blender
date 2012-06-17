@@ -25,7 +25,7 @@ extern "C" {
 #include "BLI_math.h"
 }
 
-MathBaseOperation::MathBaseOperation(): NodeOperation()
+MathBaseOperation::MathBaseOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addInputSocket(COM_DT_VALUE);
@@ -45,6 +45,23 @@ void MathBaseOperation::deinitExecution()
 {
 	this->inputValue1Operation = NULL;
 	this->inputValue2Operation = NULL;
+}
+
+void MathBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
+{
+	InputSocket *socket;
+	unsigned int tempPreferredResolution[] = {0, 0};
+	unsigned int tempResolution[2];
+
+	socket = this->getInputSocket(0);
+	socket->determineResolution(tempResolution, tempPreferredResolution);
+	if ((tempResolution[0] != 0) && (tempResolution[1] != 0)) {
+		this->setResolutionInputSocketIndex(0);
+	}
+	else {
+		this->setResolutionInputSocketIndex(1);
+	}
+	NodeOperation::determineResolution(resolution, preferredResolution);
 }
 
 void MathAddOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -88,7 +105,7 @@ void MathDivideOperation::executePixel(float *outputValue, float x, float y, Pix
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if (inputValue2[0]==0)	/* We don't want to divide by zero. */
+	if (inputValue2[0] == 0) /* We don't want to divide by zero. */
 		outputValue[0] = 0.0;
 	else
 		outputValue[0] = inputValue1[0] / inputValue2[0];
@@ -135,7 +152,7 @@ void MathArcSineOperation::executePixel(float *outputValue, float x, float y, Pi
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if (inputValue1[0] <= 1 && inputValue1[0] >= -1 )
+	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		outputValue[0] = asin(inputValue1[0]);
 	else
 		outputValue[0] = 0.0;
@@ -149,7 +166,7 @@ void MathArcCosineOperation::executePixel(float *outputValue, float x, float y, 
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	if (inputValue1[0] <= 1 && inputValue1[0] >= -1 )
+	if (inputValue1[0] <= 1 && inputValue1[0] >= -1)
 		outputValue[0] = acos(inputValue1[0]);
 	else
 		outputValue[0] = 0.0;
@@ -180,8 +197,8 @@ void MathPowerOperation::executePixel(float *outputValue, float x, float y, Pixe
 	else {
 		float y_mod_1 = fmod(inputValue2[0], 1);
 		/* if input value is not nearly an integer, fall back to zero, nicer than straight rounding */
-		if (y_mod_1 > 0.999 || y_mod_1 < 0.001) {
-			outputValue[0] = pow(inputValue1[0], (float)floor(inputValue2[0] + 0.5));
+		if (y_mod_1 > 0.999f || y_mod_1 < 0.001f) {
+			outputValue[0] = pow(inputValue1[0], floorf(inputValue2[0] + 0.5f));
 		}
 		else {
 			outputValue[0] = 0.0;
@@ -244,7 +261,7 @@ void MathLessThanOperation::executePixel(float *outputValue, float x, float y, P
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	outputValue[0] = inputValue1[0]<inputValue2[0]?1.0f:0.0f;
+	outputValue[0] = inputValue1[0] < inputValue2[0] ? 1.0f : 0.0f;
 }
 
 void MathGreaterThanOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -255,7 +272,7 @@ void MathGreaterThanOperation::executePixel(float *outputValue, float x, float y
 	inputValue1Operation->read(&inputValue1[0], x, y, sampler, inputBuffers);
 	inputValue2Operation->read(&inputValue2[0], x, y, sampler, inputBuffers);
 	
-	outputValue[0] = inputValue1[0]>inputValue2[0]?1.0f:0.0f;
+	outputValue[0] = inputValue1[0] > inputValue2[0] ? 1.0f : 0.0f;
 }
 
 

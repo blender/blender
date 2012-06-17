@@ -42,10 +42,10 @@ void FlipOperation::deinitExecution()
 }
 
 
-void FlipOperation::executePixel(float *color,float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
+void FlipOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	float nx = this->flipX?this->getWidth()-1-x:x;
-	float ny = this->flipY?this->getHeight()-1-y:y;
+	float nx = this->flipX ? this->getWidth() - 1 - x : x;
+	float ny = this->flipY ? this->getHeight() - 1 - y : y;
 	
 	this->inputOperation->read(color, nx, ny, sampler, inputBuffers);
 }
@@ -55,16 +55,16 @@ bool FlipOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOper
 	rcti newInput;
 	
 	if (this->flipX) {
-		newInput.xmax = (this->getWidth()- 1 - input->xmin)+1;
-		newInput.xmin = (this->getWidth()- 1 - input->xmax)-1;
+		newInput.xmax = (this->getWidth() - 1 - input->xmin) + 1;
+		newInput.xmin = (this->getWidth() - 1 - input->xmax) - 1;
 	}
 	else {
 		newInput.xmin = input->xmin;
 		newInput.xmax = input->xmax;
 	}
 	if (this->flipY) {
-		newInput.ymax = (this->getHeight()- 1 - input->ymin)+1;
-		newInput.ymin = (this->getHeight()- 1 - input->ymax)-1;
+		newInput.ymax = (this->getHeight() - 1 - input->ymin) + 1;
+		newInput.ymin = (this->getHeight() - 1 - input->ymax) - 1;
 	}
 	else {
 		newInput.ymin = input->ymin;

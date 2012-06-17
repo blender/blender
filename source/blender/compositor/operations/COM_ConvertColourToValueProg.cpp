@@ -22,7 +22,7 @@
 
 #include "COM_ConvertColourToValueProg.h"
 
-ConvertColourToValueProg::ConvertColourToValueProg(): NodeOperation()
+ConvertColourToValueProg::ConvertColourToValueProg() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -38,7 +38,7 @@ void ConvertColourToValueProg::executePixel(float *outputValue, float x, float y
 {
 	float inputColor[4];
 	inputOperation->read(&inputColor[0], x, y, sampler, inputBuffers);
-	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2])/3.0f;
+	outputValue[0] = (inputColor[0] + inputColor[1] + inputColor[2]) / 3.0f;
 }
 
 void ConvertColourToValueProg::deinitExecution()

@@ -1,4 +1,3 @@
-# -*- mode: cmake; indent-tabs-mode: t; -*-
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -229,19 +228,17 @@ option(WITH_PYTHON_INSTALL_NUMPY "Copy system numpy into the blender install fol
 set(PYTHON_NUMPY_PATH            "" CACHE PATH "Python to python site-packages or dist-packages containing 'numpy' module")
 mark_as_advanced(PYTHON_NUMPY_PATH)
 
-option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
-mark_as_advanced(WITH_MINGW64)
+if(MINGW)
+	option(WITH_MINGW64                   "Use the 64-bit version of MinGW" OFF)
+	mark_as_advanced(WITH_MINGW64)
+endif()
 
 # Cycles
 option(WITH_CYCLES					"Enable cycles Render Engine" ON)
 option(WITH_CYCLES_TEST				"Build cycles test application" OFF)
+option(WITH_CYCLES_OSL				"Build Cycles with OSL support" OFF)
 option(WITH_CYCLES_CUDA_BINARIES	"Build cycles CUDA binaries" OFF)
-if(WIN32 AND NOT CMAKE_CL_64 AND NOT WITH_MINGW64)
-	set(PLATFORM_DEFAULT sm_20 sm_21)
-else()
-	set(PLATFORM_DEFAULT sm_13 sm_20 sm_21)
-endif()
-set(CYCLES_CUDA_BINARIES_ARCH ${PLATFORM_DEFAULT} CACHE STRING "CUDA architectures to build binaries for")
+set(CYCLES_CUDA_BINARIES_ARCH sm_13 sm_20 sm_21 CACHE STRING "CUDA architectures to build binaries for")
 mark_as_advanced(CYCLES_CUDA_BINARIES_ARCH)
 unset(PLATFORM_DEFAULT)
 
@@ -557,7 +554,7 @@ if(UNIX AND NOT APPLE)
 		endif()
 
 		mark_as_advanced(FFMPEG)
-		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
+		set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include/ffmpeg)
 		mark_as_advanced(FFMPEG_LIBRARIES)
 		set(FFMPEG_LIBPATH ${FFMPEG}/lib)
 		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__STDC_CONSTANT_MACROS")
@@ -650,9 +647,16 @@ if(UNIX AND NOT APPLE)
 
 		find_package(OpenImageIO)
 
-		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${TIFF_LIBRARY} ${OPENEXR_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
+		set(OPENIMAGEIO_LIBRARIES ${OPENIMAGEIO_LIBRARIES} ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES} ${BOOST_LIBRARIES})
 		set(OPENIMAGEIO_LIBPATH)  # TODO, remove and reference the absolute path everywhere
 		set(OPENIMAGEIO_DEFINITIONS)
+
+		if(WITH_IMAGE_TIFF)
+			list(APPEND OPENIMAGEIO_LIBRARIES "${TIFF_LIBRARY}")
+		endif()
+		if(WITH_IMAGE_OPENEXR)
+			list(APPEND OPENIMAGEIO_LIBRARIES "${OPENEXR_LIBRARIES}")
+		endif()
 
 		if(NOT OPENIMAGEIO_FOUND)
 			set(WITH_OPENIMAGEIO OFF)
@@ -1105,7 +1109,7 @@ elseif(WIN32)
 
 		if(WITH_CODEC_FFMPEG)
 			set(FFMPEG ${LIBDIR}/ffmpeg)
-			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include ${FFMPEG}/include)
+			set(FFMPEG_INCLUDE_DIRS ${FFMPEG}/include)
 			if(WITH_MINGW64)
 				set(FFMPEG_LIBRARIES avcodec.dll avformat.dll avdevice.dll avutil.dll swscale.dll swresample.dll)
 			else()
@@ -1600,6 +1604,20 @@ if(CMAKE_COMPILER_IS_GNUCC)
 	if(NOT APPLE)
 		ADD_CHECK_C_COMPILER_FLAG(CC_REMOVE_STRICT_FLAGS C_WARN_NO_ERROR_UNUSED_BUT_SET_VARIABLE -Wno-error=unused-but-set-variable)
 	endif()
+
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(C_WARNINGS C_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+
+	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS C_WARN_ALL -Wall)
+	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_AUTOLOGICAL_COMPARE -Wno-tautological-compare)
+	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_UNKNOWN_PRAGMAS -Wno-unknown-pragmas)
+	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_CHAR_SUBSCRIPTS -Wno-char-subscripts)
+	ADD_CHECK_C_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_OVERLOADED_VIRTUAL -Wno-overloaded-virtual)  # we get a lot of these, if its a problem a dev needs to look into it.
+	ADD_CHECK_CXX_COMPILER_FLAG(CXX_WARNINGS CXX_WARN_NO_INVALID_OFFSETOF -Wno-invalid-offsetof)
 
 elseif(CMAKE_C_COMPILER_ID MATCHES "Intel")
 

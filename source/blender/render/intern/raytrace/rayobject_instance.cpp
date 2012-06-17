@@ -62,8 +62,7 @@ static RayObjectAPI instance_api =
 	RE_rayobject_instance_hint_bb	
 };
 
-typedef struct InstanceRayObject
-{
+typedef struct InstanceRayObject {
 	RayObject rayobj;
 	RayObject *target;
 

@@ -35,44 +35,44 @@
 /* **************** MATERIAL ******************** */
 
 static bNodeSocketTemplate sh_node_material_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
+	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Spec"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Refl"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_material_out[]= {
-	{	SOCK_RGBA, 0, "Color"},
-	{	SOCK_FLOAT, 0, "Alpha"},
-	{	SOCK_VECTOR, 0, "Normal"},
+	{	SOCK_RGBA, 0, N_("Color")},
+	{	SOCK_FLOAT, 0, N_("Alpha")},
+	{	SOCK_VECTOR, 0, N_("Normal")},
 	{	-1, 0, ""	}
 };
 
 /* **************** EXTENDED MATERIAL ******************** */
 
 static bNodeSocketTemplate sh_node_material_ext_in[]= {
-	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
-	{	SOCK_RGBA, 1, "Mirror",		0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 1, "Ambient",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, "Emit",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-	{	SOCK_FLOAT, 1, "SpecTra",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, "Ray Mirror",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
-	{	SOCK_FLOAT, 1, "Alpha",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
-	{	SOCK_FLOAT, 1, "Translucency",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_RGBA, 1, N_("Color"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Spec"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Refl"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_VECTOR, 1, N_("Normal"),	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f, PROP_DIRECTION},
+	{	SOCK_RGBA, 1, N_("Mirror"),		0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 1, N_("Ambient"),	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Emit"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+	{	SOCK_FLOAT, 1, N_("SpecTra"),	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Ray Mirror"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_FACTOR},
+	{	SOCK_FLOAT, 1, N_("Alpha"),		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_UNSIGNED},
+	{	SOCK_FLOAT, 1, N_("Translucency"),	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, PROP_FACTOR},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_material_ext_out[]= {
-	{	SOCK_RGBA, 0, "Color"},
-	{	SOCK_FLOAT, 0, "Alpha"},
-	{	SOCK_VECTOR, 0, "Normal"},
-	{	SOCK_RGBA, 0, "Diffuse"},
-	{	SOCK_RGBA, 0, "Spec"},
-	{	SOCK_RGBA, 0, "AO"},
+	{	SOCK_RGBA, 0, N_("Color")},
+	{	SOCK_FLOAT, 0, N_("Alpha")},
+	{	SOCK_VECTOR, 0, N_("Normal")},
+	{	SOCK_RGBA, 0, N_("Diffuse")},
+	{	SOCK_RGBA, 0, N_("Spec")},
+	{	SOCK_RGBA, 0, N_("AO")},
 	{	-1, 0, ""	}
 };
 

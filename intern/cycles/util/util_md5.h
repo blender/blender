@@ -44,13 +44,13 @@ public:
 	bool append_file(const string& filepath);
 	string get_hex();
 
-protected:
+	protected:
 	void process(const uint8_t *data);
 	void finish(uint8_t digest[16]);
 
-    uint32_t count[2]; /* message length in bits, lsw first */
-    uint32_t abcd[4]; /* digest buffer */
-    uint8_t buf[64]; /* accumulate block */
+	uint32_t count[2]; /* message length in bits, lsw first */
+	uint32_t abcd[4]; /* digest buffer */
+	uint8_t buf[64]; /* accumulate block */
 };
 
 CCL_NAMESPACE_END

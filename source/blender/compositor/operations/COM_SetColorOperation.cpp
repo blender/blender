@@ -22,7 +22,7 @@
 
 #include "COM_SetColorOperation.h"
 
-SetColorOperation::SetColorOperation(): NodeOperation()
+SetColorOperation::SetColorOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 }

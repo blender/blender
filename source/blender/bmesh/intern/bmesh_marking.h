@@ -27,8 +27,7 @@
  *  \ingroup bmesh
  */
 
-typedef struct BMEditSelection
-{
+typedef struct BMEditSelection {
 	struct BMEditSelection *next, *prev;
 	BMElem *ele;
 	char htype;
@@ -82,7 +81,7 @@ void    BM_editselection_plane(BMEditSelection *ese,  float r_plane[3]);
 #define BM_select_history_store_notest(bm, ele) _bm_select_history_store_notest(bm, &(ele)->head)
 #define BM_select_history_store(bm, ele)        _bm_select_history_store(bm,        &(ele)->head)
 
-int  _bm_select_history_check(BMesh *bm, const  BMHeader *ele);
+int  _bm_select_history_check(BMesh *bm,  const BMHeader *ele);
 int  _bm_select_history_remove(BMesh *bm,       BMHeader *ele);
 void _bm_select_history_store_notest(BMesh *bm, BMHeader *ele);
 void _bm_select_history_store(BMesh *bm,        BMHeader *ele);

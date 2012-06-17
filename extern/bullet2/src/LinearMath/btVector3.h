@@ -14,8 +14,8 @@ subject to the following restrictions:
 
 
 
-#ifndef SIMD__VECTOR3_H
-#define SIMD__VECTOR3_H
+#ifndef BT_VECTOR3_H
+#define BT_VECTOR3_H
 
 
 #include "btScalar.h"
@@ -763,4 +763,4 @@ SIMD_FORCE_INLINE void	btVector3::deSerialize(const struct	btVector3Data& dataIn
 }
 
 
-#endif //SIMD__VECTOR3_H
+#endif //BT_VECTOR3_H

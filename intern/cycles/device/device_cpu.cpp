@@ -226,7 +226,7 @@ public:
 	void task_add(DeviceTask& task)
 	{
 		/* split task into smaller ones, more than number of threads for uneven
-		   workloads where some parts of the image render slower than others */
+		 * workloads where some parts of the image render slower than others */
 		list<DeviceTask> tasks;
 
 		task.split(tasks, TaskScheduler::num_threads()*10);

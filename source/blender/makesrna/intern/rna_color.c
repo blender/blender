@@ -179,7 +179,7 @@ static char *rna_ColorRampElement_path(PointerRNA *ptr)
 			MEM_freeN(texture_path);                                          \
 		}                                                                     \
 	}                                                                         \
-}
+} (void)0
 
 	/* determine the path from the ID-block to the ramp */
 	/* FIXME: this is a very slow way to do it, but it will have to suffice... */
@@ -570,14 +570,15 @@ static void rna_def_histogram(BlenderRNA *brna)
 	PropertyRNA *prop;
 	
 	static EnumPropertyItem prop_mode_items[] = {
-		{HISTO_MODE_LUMA, "LUMA", ICON_COLOR, "Luma", ""},
-		{HISTO_MODE_RGB, "RGB", ICON_COLOR, "Red Green Blue", ""},
-		{HISTO_MODE_R, "R", ICON_COLOR, "Red", ""},
-		{HISTO_MODE_G, "G", ICON_COLOR, "Green", ""},
-		{HISTO_MODE_B, "B", ICON_COLOR, "Blue", ""},
+		{HISTO_MODE_LUMA, "LUMA", 0, "Luma", "Luma"},
+		{HISTO_MODE_RGB, "RGB", 0, "RGB", "Red Green Blue"},
+		{HISTO_MODE_R, "R", 0, "R", "Red"},
+		{HISTO_MODE_G, "G", 0, "G", "Green"},
+		{HISTO_MODE_B, "B", 0, "B", "Blue"},
+		{HISTO_MODE_ALPHA, "A", 0, "A", "Alpha"},
 		{0, NULL, 0, NULL, NULL}
 	};
-		
+
 	srna = RNA_def_struct(brna, "Histogram", NULL);
 	RNA_def_struct_ui_text(srna, "Histogram", "Statistical view of the levels of color in an image");
 	
@@ -585,7 +586,11 @@ static void rna_def_histogram(BlenderRNA *brna)
 	RNA_def_property_enum_sdna(prop, NULL, "mode");
 	RNA_def_property_enum_items(prop, prop_mode_items);
 	RNA_def_property_ui_text(prop, "Mode", "Channels to display when drawing the histogram");
-	
+
+	prop = RNA_def_property(srna, "show_line", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "flag", HISTO_FLAG_LINE);
+	RNA_def_property_ui_text(prop, "Show Line", "Display lines rather then filled shapes");
+	RNA_def_property_ui_icon(prop, ICON_IPO, 0);
 }
 
 static void rna_def_scopes(BlenderRNA *brna)

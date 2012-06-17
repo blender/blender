@@ -55,13 +55,8 @@ struct ImMetaData;
  * This is the abstraction of an image.  ImBuf is the basic type used for all
  * imbuf operations.
  *
- * REMINDER: if any changes take place, they need to be carried over
- * to source/blender/blenpluginapi/iff.h too, OTHERWISE PLUGINS WON'T
- * WORK CORRECTLY!
- *
  * Also; add new variables to the end to save pain!
  *
- * Also, that iff.h needs to be in the final release "plugins/include" dir, too!
  */
 typedef struct ImBuf {
 	struct ImBuf *next, *prev;	/**< allow lists of ImBufs, for caches or flipbooks */

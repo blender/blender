@@ -350,7 +350,7 @@ static void template_ID(bContext *C, uiLayout *layout, TemplateID *template, Str
 	idptr = RNA_property_pointer_get(&template->ptr, template->prop);
 	id = idptr.data;
 	idfrom = template->ptr.id.data;
-	// lb= template->idlb;
+	// lb = template->idlb;
 
 	block = uiLayoutGetBlock(layout);
 	uiBlockBeginAlign(block);
@@ -579,8 +579,10 @@ void uiTemplateAnyID(uiLayout *layout, PointerRNA *ptr, const char *propname, co
 	row = uiLayoutRow(layout, 1);
 	
 	/* Label - either use the provided text, or will become "ID-Block:" */
-	if (text)
-		uiItemL(row, text, ICON_NONE);
+	if (text) {
+		if (text[0])
+			uiItemL(row, text, ICON_NONE);
+	}
 	else
 		uiItemL(row, "ID-Block:", ICON_NONE);
 	
@@ -2239,6 +2241,20 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 			uiItemL(split, name, ICON_OBJECT_DATA);
 		}
 	}
+	else if (itemptr->type == &RNA_MaskLayer) {
+		split = uiLayoutSplit(sub, 0.5f, 0);
+
+		uiItemL(split, name, icon);
+
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		row = uiLayoutRow(split, 1);
+		// uiItemR(row, itemptr, "alpha", 0, "", ICON_NONE); // enable when used
+		uiItemR(row, itemptr, "hide", 0, "", 0);
+		uiItemR(row, itemptr, "hide_select", 0, "", 0);
+		uiItemR(row, itemptr, "hide_render", 0, "", 0);
+
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
 
 	/* There is a last chance to display custom controls (in addition to the name/label):
 	 * If the given item property group features a string property named as prop_list,
@@ -2299,7 +2315,7 @@ static void list_item_row(bContext *C, uiLayout *layout, PointerRNA *ptr, Pointe
 
 void uiTemplateList(uiLayout *layout, bContext *C, PointerRNA *ptr, const char *propname, PointerRNA *activeptr, const char *activepropname, const char *prop_list, int rows, int maxrows, int listtype)
 {
-	//Scene *scene= CTX_data_scene(C);
+	//Scene *scene = CTX_data_scene(C);
 	PropertyRNA *prop = NULL, *activeprop;
 	PropertyType type, activetype;
 	StructRNA *ptype;

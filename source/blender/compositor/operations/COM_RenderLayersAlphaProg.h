@@ -28,7 +28,7 @@
 class RenderLayersAlphaProg : public RenderLayersBaseProg {
 public:
 	RenderLayersAlphaProg();
-	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[]);
+	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 
 };
 

@@ -43,6 +43,7 @@
 #include "DNA_gpencil_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -55,6 +56,7 @@
 
 #include "ED_anim_api.h"
 #include "ED_gpencil.h"
+#include "ED_mask.h"
 #include "ED_keyframes_draw.h"
 #include "ED_keyframes_edit.h"
 #include "ED_markers.h"
@@ -92,7 +94,7 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	KeyframeEditFunc test_cb, sel_cb;
 	
 	/* determine type-based settings */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -107,7 +109,13 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	if (test) {
 		for (ale = anim_data.first; ale; ale = ale->next) {
 			if (ale->type == ANIMTYPE_GPLAYER) {
-				if (is_gplayer_frame_selected(ale->data)) {
+				if (ED_gplayer_frame_select_check(ale->data)) {
+					sel = SELECT_SUBTRACT;
+					break;
+				}
+			}
+			else if (ale->type == ANIMTYPE_MASKLAYER) {
+				if (ED_masklayer_frame_select_check(ale->data)) {
 					sel = SELECT_SUBTRACT;
 					break;
 				}
@@ -127,7 +135,9 @@ static void deselect_action_keys(bAnimContext *ac, short test, short sel)
 	/* Now set the flags */
 	for (ale = anim_data.first; ale; ale = ale->next) {
 		if (ale->type == ANIMTYPE_GPLAYER)
-			set_gplayer_frame_selection(ale->data, sel);
+			ED_gplayer_frame_select_set(ale->data, sel);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ED_masklayer_frame_select_set(ale->data, sel);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, NULL, sel_cb, NULL); 
 	}
@@ -249,7 +259,9 @@ static void borderselect_action(bAnimContext *ac, rcti rect, short mode, short s
 		{
 			/* loop over data selecting */
 			if (ale->type == ANIMTYPE_GPLAYER)
-				borderselect_gplayer_frames(ale->data, rectf.xmin, rectf.xmax, selectmode);
+				ED_gplayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
+			else if (ale->type == ANIMTYPE_MASKLAYER)
+				ED_masklayer_frames_select_border(ale->data, rectf.xmin, rectf.xmax, selectmode);
 			else
 				ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 		}
@@ -398,7 +410,10 @@ static void markers_selectkeys_between(bAnimContext *ac)
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER) {
-			borderselect_gplayer_frames(ale->data, min, max, SELECT_ADD);
+			ED_gplayer_frames_select_border(ale->data, min, max, SELECT_ADD);
+		}
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			ED_masklayer_frames_select_border(ale->data, min, max, SELECT_ADD);
 		}
 		else {
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
@@ -432,7 +447,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 				ANIM_animdata_filter(ac, &anim_data, filter, ac->data, ac->datatype);
 				
 				for (ale = anim_data.first; ale; ale = ale->next)
-					gplayer_make_cfra_list(ale->data, &ked.list, 1);
+					ED_gplayer_make_cfra_list(ale->data, &ked.list, 1);
 			}
 			else {
 				filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
@@ -467,7 +482,7 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/);
@@ -488,7 +503,9 @@ static void columnselect_action_keys(bAnimContext *ac, short mode)
 			
 			/* select elements with frame number matching cfraelem */
 			if (ale->type == ANIMTYPE_GPLAYER)
-				select_gpencil_frame(ale->data, ce->cfra, SELECT_ADD);
+				ED_gpencil_select_frame(ale->data, ce->cfra, SELECT_ADD);
+			else if (ale->type == ANIMTYPE_MASKLAYER)
+				ED_mask_select_frame(ale->data, ce->cfra, SELECT_ADD);
 			else
 				ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 		}
@@ -755,7 +772,7 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 	}
 	
 	/* filter data */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY*/ | ANIMFILTER_NODUPLIS);
@@ -771,7 +788,9 @@ static void actkeys_select_leftright(bAnimContext *ac, short leftright, short se
 			ANIM_nla_mapping_apply_fcurve(adt, ale->key_data, 1, 1);
 		}
 		else if (ale->type == ANIMTYPE_GPLAYER)	
-			borderselect_gplayer_frames(ale->data, ked.f1, ked.f2, select_mode);
+			ED_gplayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ED_masklayer_frames_select_border(ale->data, ked.f1, ked.f2, select_mode);
 		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
@@ -908,7 +927,9 @@ static void actkeys_mselect_single(bAnimContext *ac, bAnimListElem *ale, short s
 	
 	/* select the nominated keyframe on the given frame */
 	if (ale->type == ANIMTYPE_GPLAYER)
-		select_gpencil_frame(ale->data, selx, select_mode);
+		ED_gpencil_select_frame(ale->data, selx, select_mode);
+	else if (ale->type == ANIMTYPE_MASKLAYER)
+		ED_mask_select_frame(ale->data, selx, select_mode);
 	else
 		ANIM_animchannel_keyframes_loop(&ked, ac->ads, ale, ok_cb, select_cb, NULL);
 }
@@ -933,7 +954,7 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 	/* loop through all of the keys and select additional keyframes
 	 * based on the keys found to be selected above
 	 */
-	if (ac->datatype == ANIMCONT_GPENCIL)
+	if (ELEM(ac->datatype, ANIMCONT_GPENCIL, ANIMCONT_MASK))
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE /*| ANIMFILTER_CURVESONLY */ | ANIMFILTER_NODUPLIS);
 	else
 		filter = (ANIMFILTER_DATA_VISIBLE | ANIMFILTER_LIST_VISIBLE | ANIMFILTER_NODUPLIS);
@@ -950,8 +971,10 @@ static void actkeys_mselect_column(bAnimContext *ac, short select_mode, float se
 		
 		/* select elements with frame number matching cfra */
 		if (ale->type == ANIMTYPE_GPLAYER)
-			select_gpencil_frame(ale->key_data, selx, select_mode);
-		else 
+			ED_gpencil_select_frame(ale->key_data, selx, select_mode);
+		else if (ale->type == ANIMTYPE_MASKLAYER)
+			ED_mask_select_frame(ale->key_data, selx, select_mode);
+		else
 			ANIM_fcurve_keyframes_loop(&ked, ale->key_data, ok_cb, select_cb, NULL);
 	}
 	
@@ -1051,7 +1074,12 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 			bGPDlayer *gpl = (bGPDlayer *)ale->data;
 			gpl_to_keylist(ads, gpl, &anim_keys);
 		}
-		
+		else if (ale->type == ANIMTYPE_MASKLAYER) {
+			// TODO: why don't we just give masklayers key_data too?
+			MaskLayer *masklay = (MaskLayer *)ale->data;
+			mask_to_keylist(ads, masklay, &anim_keys);
+		}
+
 		/* start from keyframe at root of BST, traversing until we find one within the range that was clicked on */
 		for (ak = anim_keys.root; ak; ak = akn) {
 			if (IN_RANGE(ak->cfra, rectf.xmin, rectf.xmax)) {
@@ -1117,6 +1145,18 @@ static void mouse_action_keys(bAnimContext *ac, const int mval[2], short select_
 				bGPDlayer *gpl = ale->data;
 				
 				gpl->flag |= GP_LAYER_SELECT;
+				//gpencil_layer_setactive(gpd, gpl);
+			}
+		}
+		else if (ac->datatype == ANIMCONT_MASK) {
+			/* deselect all other channels first */
+			ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+
+			/* Highlight GPencil Layer */
+			if ((ale && ale->data) && (ale->type == ANIMTYPE_MASKLAYER)) {
+				MaskLayer *masklay = ale->data;
+
+				masklay->flag |= MASK_LAYERFLAG_SELECT;
 				//gpencil_layer_setactive(gpd, gpl);
 			}
 		}

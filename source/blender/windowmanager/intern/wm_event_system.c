@@ -831,7 +831,7 @@ static int wm_operator_invoke(bContext *C, wmOperatorType *ot, wmEvent *event, P
 		return WM_operator_poll(C, ot);
 
 	if (WM_operator_poll(C, ot)) {
-		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports==NULL, theyll be initialized */
+		wmOperator *op = wm_operator_create(wm, ot, properties, reports); /* if reports == NULL, they'll be initialized */
 		const short is_nested_call = (wm->op_undo_depth != 0);
 		
 		/* initialize setting from previous run */
@@ -2716,7 +2716,6 @@ void wm_event_add_ghostevent(wmWindowManager *wm, wmWindow *win, int type, int U
 		case GHOST_kEventButtonUp: {
 			GHOST_TEventButtonData *bd = customdata;
 
-			/* Note!, this starts as 0/1 but later is converted to KM_PRESS/KM_RELEASE by tweak */
 			event.val = (type == GHOST_kEventButtonDown) ? KM_PRESS : KM_RELEASE;
 			
 			if (bd->button == GHOST_kButtonMaskLeft)

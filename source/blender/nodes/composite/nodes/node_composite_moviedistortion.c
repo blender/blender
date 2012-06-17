@@ -38,12 +38,12 @@
 /* **************** Translate  ******************** */
 
 static bNodeSocketTemplate cmp_node_moviedistortion_in[] = {
-	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, N_("Image"),			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate cmp_node_moviedistortion_out[] = {
-	{	SOCK_RGBA, 0, "Image"},
+	{	SOCK_RGBA, 0, N_("Image")},
 	{	-1, 0, ""	}
 };
 
@@ -73,7 +73,7 @@ static void exec(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 				BKE_movieclip_get_size(clip, &user, &width, &height);
 
 				if (!node->storage)
-					node->storage = BKE_tracking_distortion_create();
+					node->storage = BKE_tracking_distortion_new();
 
 				if (node->custom1 == 0)
 					obuf = BKE_tracking_distortion_exec(node->storage, tracking, ibuf, width, height, overscan, 1);
@@ -116,7 +116,7 @@ static const char *label(bNode *node)
 static void storage_free(bNode *node)
 {
 	if (node->storage)
-		BKE_tracking_distortion_destroy(node->storage);
+		BKE_tracking_distortion_free(node->storage);
 
 	node->storage = NULL;
 }

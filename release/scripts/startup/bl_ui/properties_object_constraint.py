@@ -444,6 +444,7 @@ class ConstraintButtonsPanel():
         col = split.column()
         col.label(text="To Action:")
         col.prop(con, "action", text="")
+        col.prop(con, "use_bone_object_action")
 
         split = layout.split()
 

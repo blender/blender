@@ -93,7 +93,7 @@ typedef long long __int64;
  * !!Remember to read/write integer and short aligned!!
  *
  *  While writing a file, the names of a struct is indicated with a type number,
- *  to be found with: type= findstruct_nr(SDNA *, char *)
+ *  to be found with: type = findstruct_nr(SDNA *, char *)
  *  The value of 'type' corresponds with the the index within the structs array
  *
  *  For the moment: the complete DNA file is included in a .blend file. For

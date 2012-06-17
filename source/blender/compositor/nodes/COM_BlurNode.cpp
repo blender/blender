@@ -29,24 +29,23 @@
 #include "COM_GaussianBokehBlurOperation.h"
 #include "COM_FastGaussianBlurOperation.h"
 
-BlurNode::BlurNode(bNode *editorNode): Node(editorNode)
+BlurNode::BlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *editorNode = this->getbNode();
-	NodeBlurData * data = (NodeBlurData*)editorNode->storage;
-#if 0
+	NodeBlurData *data = (NodeBlurData *)editorNode->storage;
+	InputSocket *inputSizeSocket = this->getInputSocket(1);
+	bool connectedSizeSocket = inputSizeSocket->isConnected();
+
 	const bNodeSocket *sock = this->getInputSocket(1)->getbNodeSocket();
-	const float size = ((const bNodeSocketValueFloat*)sock->default_value)->value;
-#endif
+	const float size = ((const bNodeSocketValueFloat *)sock->default_value)->value;
 	
 	CompositorQuality quality = context->getQuality();
 	
-	if (data->filtertype == R_FILTER_MITCH || data->filtertype == R_FILTER_CATROM) {
-		quality = COM_QUALITY_HIGH;
-	}
 	if (data->filtertype == R_FILTER_FAST_GAUSS) {
 		FastGaussianBlurOperation *operationfgb = new FastGaussianBlurOperation();
 		operationfgb->setData(data);
@@ -54,7 +53,7 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		this->getInputSocket(1)->relinkConnections(operationfgb->getInputSocket(1), 1, graph);
 		this->getOutputSocket(0)->relinkConnections(operationfgb->getOutputSocket(0));
 		graph->addOperation(operationfgb);
-		addPreviewOperation(graph, operationfgb->getOutputSocket(), 5);
+		addPreviewOperation(graph, operationfgb->getOutputSocket());
 	}
 	else if (!data->bokeh) {
 		GaussianXBlurOperation *operationx = new GaussianXBlurOperation();
@@ -70,7 +69,12 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		graph->addOperation(operationy);
 		addLink(graph, operationx->getOutputSocket(), operationy->getInputSocket(0));
 		addLink(graph, operationx->getInputSocket(1)->getConnection()->getFromSocket(), operationy->getInputSocket(1));
-		addPreviewOperation(graph, operationy->getOutputSocket(), 5);
+		addPreviewOperation(graph, operationy->getOutputSocket());
+
+		if (!connectedSizeSocket) {
+			operationx->setSize(size);
+			operationy->setSize(size);
+		}
 	}
 	else {
 		GaussianBokehBlurOperation *operation = new GaussianBokehBlurOperation();
@@ -80,6 +84,10 @@ void BlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 		operation->setQuality(quality);
 		graph->addOperation(operation);
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
-		addPreviewOperation(graph, operation->getOutputSocket(), 5);
+		addPreviewOperation(graph, operation->getOutputSocket());
+
+		if (!connectedSizeSocket) {
+			operation->setSize(size);
+		}
 	}
 }

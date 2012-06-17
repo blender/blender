@@ -73,17 +73,17 @@ static vector<float> filter_table(FilterType type, float width)
 	/* compute cumulative distribution function */
 	filter_table_cdf[0] = 0.0f;
 	
-	for(i=0; i<filter_table_size; i++) {
+	for(i = 0; i < filter_table_size; i++) {
 		float x = i*width*0.5f/(filter_table_size-1);
 		float y = filter_func(x, width);
 		filter_table_cdf[i+1] += filter_table_cdf[i] + fabsf(y);
 	}
 
-	for(i=0; i<=filter_table_size; i++)
+	for(i = 0; i <= filter_table_size; i++)
 		filter_table_cdf[i] /= filter_table_cdf[filter_table_size];
 	
 	/* create importance sampling table */
-	for(i=0; i<=half_size; i++) {
+	for(i = 0; i <= half_size; i++) {
 		float x = i/(float)half_size;
 		int index = upper_bound(filter_table_cdf.begin(), filter_table_cdf.end(), x) - filter_table_cdf.begin();
 		float t;

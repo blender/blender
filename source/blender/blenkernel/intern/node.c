@@ -29,13 +29,6 @@
  *  \ingroup bke
  */
 
-
-#if 0 /* pynodes commented for now */
-#  ifdef WITH_PYTHON
-#    include <Python.h>
-#  endif
-#endif
-
 #include "MEM_guardedalloc.h"
 
 #include <stdlib.h>
@@ -135,20 +128,9 @@ void ntreeInitTypes(bNodeTree *ntree)
 	for (node= ntree->nodes.first; node; node= next) {
 		next= node->next;
 		
-		node->typeinfo= node_get_type(ntree, node->type);
-		
-		if (node->type==NODE_DYNAMIC) {
-			/* needed info if the pynode script fails now: */
-			node->storage= ntree;
-			if (node->id!=NULL) { /* not an empty script node */
-				node->custom1 = 0;
-				node->custom1 = BSET(node->custom1, NODE_DYNAMIC_ADDEXIST);
-			}
-//			if (node->typeinfo)
-//				node->typeinfo->initfunc(node);
-		}
+		node->typeinfo = node_get_type(ntree, node->type);
 
-		if (node->typeinfo==NULL) {
+		if (node->typeinfo == NULL) {
 			printf("Error: Node type %s doesn't exist anymore, removed\n", node->name);
 			nodeFreeNode(ntree, node);
 		}
@@ -352,26 +334,6 @@ bNode *nodeAddNode(bNodeTree *ntree, struct bNodeTemplate *ntemp)
 	ntree->update |= NTREE_UPDATE_NODES;
 	
 	return node;
-}
-
-void nodeMakeDynamicType(bNode *node)
-{
-	/* find SH_DYNAMIC_NODE ntype */
-	bNodeType *ntype= ntreeGetType(NTREE_SHADER)->node_types.first;
-	while (ntype) {
-		if (ntype->type==NODE_DYNAMIC)
-			break;
-		ntype= ntype->next;
-	}
-
-	/* make own type struct to fill */
-	if (ntype) {
-		/*node->typeinfo= MEM_dupallocN(ntype);*/
-		bNodeType *newtype= MEM_callocN(sizeof(bNodeType), "dynamic bNodeType");
-		*newtype= *ntype;
-		BLI_strncpy(newtype->name, ntype->name, sizeof(newtype->name));
-		node->typeinfo= newtype;
-	}
 }
 
 /* keep socket listorder identical, for copying links */
@@ -840,7 +802,7 @@ void ntreeClearPreview(bNodeTree *ntree)
 /* hack warning! this function is only used for shader previews, and 
  * since it gets called multiple times per pixel for Ztransp we only
  * add the color once. Preview gets cleared before it starts render though */
-void nodeAddToPreview(bNode *node, float *col, int x, int y, int do_manage)
+void nodeAddToPreview(bNode *node, float col[4], int x, int y, int do_manage)
 {
 	bNodePreview *preview= node->preview;
 	if (preview) {
@@ -1351,6 +1313,17 @@ void nodeClearActiveID(bNodeTree *ntree, short idtype)
 			node->flag &= ~NODE_ACTIVE_ID;
 }
 
+void nodeClearActive(bNodeTree *ntree)
+{
+	bNode *node;
+
+	if (ntree==NULL) return;
+
+	for (node= ntree->nodes.first; node; node= node->next)
+		node->flag &= ~(NODE_ACTIVE | NODE_ACTIVE_ID);
+}
+
+
 /* two active flags, ID nodes have special flag for buttons display */
 void nodeSetActive(bNodeTree *ntree, bNode *node)
 {
@@ -1860,6 +1833,7 @@ void nodeRegisterType(bNodeTreeType *ttype, bNodeType *ntype)
 static void registerCompositNodes(bNodeTreeType *ttype)
 {
 	register_node_type_frame(ttype);
+	register_node_type_reroute(ttype);
 	
 	register_node_type_cmp_group(ttype);
 //	register_node_type_cmp_forloop(ttype);
@@ -1926,6 +1900,8 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_color_spill(ttype);
 	register_node_type_cmp_luma_matte(ttype);
 	register_node_type_cmp_doubleedgemask(ttype);
+	register_node_type_cmp_keyingscreen(ttype);
+	register_node_type_cmp_keying(ttype);
 
 	register_node_type_cmp_translate(ttype);
 	register_node_type_cmp_rotate(ttype);
@@ -1947,11 +1923,14 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_bokehimage(ttype);
 	register_node_type_cmp_bokehblur(ttype);
 	register_node_type_cmp_switch(ttype);
+
+	register_node_type_cmp_mask(ttype);
 }
 
 static void registerShaderNodes(bNodeTreeType *ttype) 
 {
 	register_node_type_frame(ttype);
+	register_node_type_reroute(ttype);
 	
 	register_node_type_sh_group(ttype);
 	//register_node_type_sh_forloop(ttype);
@@ -1976,7 +1955,6 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_math(ttype);
 	register_node_type_sh_vect_math(ttype);
 	register_node_type_sh_squeeze(ttype);
-	//register_node_type_sh_dynamic(ttype);
 	register_node_type_sh_material_ext(ttype);
 	register_node_type_sh_invert(ttype);
 	register_node_type_sh_seprgb(ttype);
@@ -1991,6 +1969,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 	register_node_type_sh_fresnel(ttype);
 	register_node_type_sh_layer_weight(ttype);
 	register_node_type_sh_tex_coord(ttype);
+	register_node_type_sh_particle_info(ttype);
 
 	register_node_type_sh_background(ttype);
 	register_node_type_sh_bsdf_diffuse(ttype);
@@ -2025,6 +2004,7 @@ static void registerShaderNodes(bNodeTreeType *ttype)
 static void registerTextureNodes(bNodeTreeType *ttype)
 {
 	register_node_type_frame(ttype);
+	register_node_type_reroute(ttype);
 	
 	register_node_type_tex_group(ttype);
 //	register_node_type_tex_forloop(ttype);
@@ -2069,30 +2049,12 @@ static void registerTextureNodes(bNodeTreeType *ttype)
 	register_node_type_tex_proc_distnoise(ttype);
 }
 
-static void free_dynamic_typeinfo(bNodeType *ntype)
-{
-	if (ntype->type==NODE_DYNAMIC) {
-		if (ntype->inputs) {
-			MEM_freeN(ntype->inputs);
-		}
-		if (ntype->outputs) {
-			MEM_freeN(ntype->outputs);
-		}
-		if (ntype->name) {
-			MEM_freeN((void *)ntype->name);
-		}
-	}
-}
-
 static void free_typeinfos(ListBase *list)
 {
 	bNodeType *ntype, *next;
 	for (ntype=list->first; ntype; ntype=next) {
 		next = ntype->next;
-		
-		if (ntype->type==NODE_DYNAMIC)
-			free_dynamic_typeinfo(ntype);
-		
+
 		if (ntype->needs_free)
 			MEM_freeN(ntype);
 	}
@@ -2136,4 +2098,3 @@ void clear_scene_in_nodes(Main *bmain, Scene *sce)
 		}
 	}
 }
-

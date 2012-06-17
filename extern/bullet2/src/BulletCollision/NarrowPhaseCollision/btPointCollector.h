@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef POINT_COLLECTOR_H
-#define POINT_COLLECTOR_H
+#ifndef BT_POINT_COLLECTOR_H
+#define BT_POINT_COLLECTOR_H
 
 #include "btDiscreteCollisionDetectorInterface.h"
 
@@ -60,5 +60,5 @@ struct btPointCollector : public btDiscreteCollisionDetectorInterface::Result
 	}
 };
 
-#endif //POINT_COLLECTOR_H
+#endif //BT_POINT_COLLECTOR_H
 

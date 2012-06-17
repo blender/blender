@@ -27,9 +27,10 @@ MovingFrame::~MovingFrame()
 {
 }
 
-void MovingFrame::finalize()
+bool MovingFrame::finalize()
 {
 	updateJacobian();
+	return true;
 }
 
 void MovingFrame::initCache(Cache *_cache)

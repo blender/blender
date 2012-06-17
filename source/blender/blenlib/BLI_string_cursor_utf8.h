@@ -26,7 +26,7 @@
 #ifndef __BLI_STRING_CURSOR_UTF8_H__
 #define __BLI_STRING_CURSOR_UTF8_H__
 
-/** \file BLI_string_utf8.h
+/** \file BLI_string_cursor_utf8.h
  *  \ingroup bli
  */
 

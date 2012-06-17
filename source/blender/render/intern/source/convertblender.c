@@ -130,7 +130,7 @@
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
 
-static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
+static HaloRen *initstar(Render *re, ObjectRen *obr, const float vec[3], float hasize)
 {
 	HaloRen *har;
 	float hoco[4];
@@ -520,8 +520,7 @@ static void calc_tangent_vector(ObjectRen *obr, VertexTangent **vtangents, MemAr
  ************ tangent space generation interface ****************
  ****************************************************************/
 
-typedef struct
-{
+typedef struct {
 	ObjectRen *obr;
 
 } SRenderMeshToTangent;
@@ -1011,8 +1010,7 @@ static Material *give_render_material(Render *re, Object *ob, short nr)
 /* ------------------------------------------------------------------------- */
 /* Particles                                                                 */
 /* ------------------------------------------------------------------------- */
-typedef struct ParticleStrandData
-{
+typedef struct ParticleStrandData {
 	struct MCol *mcol;
 	float *orco, *uvco, *surfnor;
 	float time, adapt_angle, adapt_pix, size;
@@ -1324,7 +1322,8 @@ static void static_particle_wire(ObjectRen *obr, Material *ma, const float vec[3
 
 }
 
-static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd, float *loc, float *loc1,	int seed, float *pa_co)
+static void particle_curve(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, ParticleStrandData *sd,
+                           const float loc[3], const float loc1[3], int seed, float *pa_co)
 {
 	HaloRen *har=0;
 
@@ -1730,7 +1729,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strandbuf->minwidth= ma->strand_min;
 
 			if (ma->strand_widthfade == 0.0f)
-				strandbuf->widthfade= 0.0f;
+				strandbuf->widthfade= -1.0f;
 			else if (ma->strand_widthfade >= 1.0f)
 				strandbuf->widthfade= 2.0f - ma->strand_widthfade;
 			else
@@ -5645,7 +5644,7 @@ void RE_Database_FromScene_Vectors(Render *re, Main *bmain, Scene *sce, unsigned
 						ok= 1;
 				}
 				if (ok==0) {
-					 printf("speed table: missing object %s\n", obi->ob->id.name+2);
+					printf("speed table: missing object %s\n", obi->ob->id.name+2);
 					continue;
 				}
 

@@ -13,8 +13,8 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BVH_TRIANGLE_MESH_SHAPE_H
-#define BVH_TRIANGLE_MESH_SHAPE_H
+#ifndef BT_BVH_TRIANGLE_MESH_SHAPE_H
+#define BT_BVH_TRIANGLE_MESH_SHAPE_H
 
 #include "btTriangleMeshShape.h"
 #include "btOptimizedBvh.h"
@@ -136,4 +136,4 @@ SIMD_FORCE_INLINE	int	btBvhTriangleMeshShape::calculateSerializeBufferSize() con
 
 
 
-#endif //BVH_TRIANGLE_MESH_SHAPE_H
+#endif //BT_BVH_TRIANGLE_MESH_SHAPE_H

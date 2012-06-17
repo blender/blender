@@ -35,7 +35,7 @@ if env['WITH_BF_CYCLES_CUDA_BINARIES']:
 
     # nvcc flags
     nvcc_flags = "-m%s" % (bits)
-    nvcc_flags += " --cubin -use_fast_math --ptxas-options=\"-v\" --maxrregcount=24"
+    nvcc_flags += " --cubin --ptxas-options=\"-v\" --maxrregcount=24"
     nvcc_flags += " --opencc-options -OPT:Olimit=0"
     nvcc_flags += " -DCCL_NAMESPACE_BEGIN= -DCCL_NAMESPACE_END= -DNVCC"
     nvcc_flags += " -I \"%s\" -I \"%s\"" % (util_dir, svm_dir)

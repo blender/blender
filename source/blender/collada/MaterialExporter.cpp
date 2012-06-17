@@ -31,7 +31,8 @@
 #include "COLLADABUUtils.h"
 #include "collada_internal.h"
 
-MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings): COLLADASW::LibraryMaterials(sw), export_settings(export_settings) {}
+MaterialsExporter::MaterialsExporter(COLLADASW::StreamWriter *sw, const ExportSettings *export_settings) : COLLADASW::LibraryMaterials(sw), export_settings(export_settings) {
+}
 
 void MaterialsExporter::exportMaterials(Scene *sce)
 {
@@ -39,29 +40,26 @@ void MaterialsExporter::exportMaterials(Scene *sce)
 		openLibrary();
 
 		MaterialFunctor mf;
-		mf.forEachMaterialInScene<MaterialsExporter>(sce, *this, this->export_settings->selected);
+		mf.forEachMaterialInExportSet<MaterialsExporter>(sce, *this, this->export_settings->export_set);
 
 		closeLibrary();
 	}
 }
 
-
 bool MaterialsExporter::hasMaterials(Scene *sce)
 {
-	Base *base = (Base *)sce->base.first;
-	
-	while (base) {
-		Object *ob= base->object;
+	LinkNode *node;
+	for(node=this->export_settings->export_set; node; node = node->next) {
+		Object *ob = (Object *)node->link;
 		int a;
 		for (a = 0; a < ob->totcol; a++) {
-			Material *ma = give_current_material(ob, a+1);
+			Material *ma = give_current_material(ob, a + 1);
 
 			// no material, but check all of the slots
 			if (!ma) continue;
 
 			return true;
 		}
-		base= base->next;
 	}
 	return false;
 }

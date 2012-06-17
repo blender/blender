@@ -57,14 +57,15 @@ static const char *bc_get_joint_name(T *node)
 // This is used to store data passed in write_controller_data.
 // Arrays from COLLADAFW::SkinControllerData lose ownership, so do this class members
 // so that arrays don't get freed until we free them explicitly.
-SkinInfo::SkinInfo() {}
+SkinInfo::SkinInfo() {
+}
 
 SkinInfo::SkinInfo(const SkinInfo& skin) : weights(skin.weights),
-								 joint_data(skin.joint_data),
-								 unit_converter(skin.unit_converter),
-								 ob_arm(skin.ob_arm),
-								 controller_uid(skin.controller_uid),
-								 parent(skin.parent)
+	joint_data(skin.joint_data),
+	unit_converter(skin.unit_converter),
+	ob_arm(skin.ob_arm),
+	controller_uid(skin.controller_uid),
+	parent(skin.parent)
 {
 	copy_m4_m4(bind_shape_matrix, (float (*)[4])skin.bind_shape_matrix);
 
@@ -73,7 +74,8 @@ SkinInfo::SkinInfo(const SkinInfo& skin) : weights(skin.weights),
 	transfer_int_array_data_const(skin.joint_indices, joint_indices);
 }
 
-SkinInfo::SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL), parent(NULL) {}
+SkinInfo::SkinInfo(UnitConverter *conv) : unit_converter(conv), ob_arm(NULL), parent(NULL) {
+}
 
 // nobody owns the data after this, so it should be freed manually with releaseMemory
 template <class T>
@@ -87,21 +89,21 @@ void SkinInfo::transfer_array_data(T& src, T& dest)
 // when src is const we cannot src.yieldOwnerShip, this is used by copy constructor
 void SkinInfo::transfer_int_array_data_const(const COLLADAFW::IntValuesArray& src, COLLADAFW::IntValuesArray& dest)
 {
-	dest.setData((int*)src.getData(), src.getCount());
+	dest.setData((int *)src.getData(), src.getCount());
 	dest.yieldOwnerShip();
 }
 
 void SkinInfo::transfer_uint_array_data_const(const COLLADAFW::UIntValuesArray& src, COLLADAFW::UIntValuesArray& dest)
 {
-	dest.setData((unsigned int*)src.getData(), src.getCount());
+	dest.setData((unsigned int *)src.getData(), src.getCount());
 	dest.yieldOwnerShip();
 }
 
-void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData* skin)
+void SkinInfo::borrow_skin_controller_data(const COLLADAFW::SkinControllerData *skin)
 {
-	transfer_array_data((COLLADAFW::UIntValuesArray&)skin->getJointsPerVertex(), joints_per_vertex);
-	transfer_array_data((COLLADAFW::UIntValuesArray&)skin->getWeightIndices(), weight_indices);
-	transfer_array_data((COLLADAFW::IntValuesArray&)skin->getJointIndices(), joint_indices);
+	transfer_array_data((COLLADAFW::UIntValuesArray &)skin->getJointsPerVertex(), joints_per_vertex);
+	transfer_array_data((COLLADAFW::UIntValuesArray &)skin->getWeightIndices(), weight_indices);
+	transfer_array_data((COLLADAFW::IntValuesArray &)skin->getJointIndices(), joint_indices);
 	// transfer_array_data(skin->getWeights(), weights);
 
 	// cannot transfer data for FloatOrDoubleArray, copy values manually
@@ -130,7 +132,7 @@ void SkinInfo::add_joint(const COLLADABU::Math::Matrix4& matrix)
 	joint_data.push_back(jd);
 }
 
-void SkinInfo::set_controller(const COLLADAFW::SkinController* co)
+void SkinInfo::set_controller(const COLLADAFW::SkinController *co)
 {
 	controller_uid = co->getUniqueId();
 
@@ -155,7 +157,7 @@ Object *SkinInfo::create_armature(Scene *scene)
 	return ob_arm;
 }
 
-Object* SkinInfo::set_armature(Object *ob_arm)
+Object *SkinInfo::set_armature(Object *ob_arm)
 {
 	if (this->ob_arm)
 		return this->ob_arm;
@@ -211,8 +213,8 @@ bool SkinInfo::uses_joint_or_descendant(COLLADAFW::Node *node)
 	return false;
 }
 
-void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
-				   TransformReader *tm)
+void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& joint_by_uid,
+                             TransformReader *tm)
 {
 	Main *bmain = CTX_data_main(C);
 	Scene *scene = CTX_data_scene(C);
@@ -233,11 +235,11 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	BKE_object_workob_calc_parent(scene, ob, &workob);
 	invert_m4_m4(ob->parentinv, workob.obmat);
 
-	ob->recalc |= OB_RECALC_OB|OB_RECALC_DATA;
+	ob->recalc |= OB_RECALC_OB | OB_RECALC_DATA;
 
 	DAG_scene_sort(bmain, scene);
 	DAG_ids_flush_update(bmain, 0);
-	WM_event_add_notifier(C, NC_OBJECT|ND_TRANSFORM, NULL);
+	WM_event_add_notifier(C, NC_OBJECT | ND_TRANSFORM, NULL);
 #endif
 
 	amd->deformflag = ARM_DEF_VGROUP;
@@ -257,7 +259,7 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 			name = bc_get_joint_name(joint_by_uid[(*it).joint_uid]);
 		}
 
-		ED_vgroup_add_name(ob, (char*)name);
+		ED_vgroup_add_name(ob, (char *)name);
 	}
 
 	// <vcount> - number of joints per vertex - joints_per_vertex
@@ -274,12 +276,12 @@ void SkinInfo::link_armature(bContext *C, Object *ob, std::map<COLLADAFW::Unique
 	for (unsigned int vertex = 0, weight = 0; vertex < joints_per_vertex.getCount(); vertex++) {
 
 		unsigned int limit = weight + joints_per_vertex[vertex];
-		for ( ; weight < limit; weight++) {
+		for (; weight < limit; weight++) {
 			int joint = joint_indices[weight], joint_weight = weight_indices[weight];
 
 			// -1 means "weight towards the bind shape", we just don't assign it to any group
 			if (joint != -1) {
-				bDeformGroup *def = (bDeformGroup*)BLI_findlink(&ob->defbase, joint);
+				bDeformGroup *def = (bDeformGroup *)BLI_findlink(&ob->defbase, joint);
 
 				ED_vgroup_vert_add(ob, def, vertex, weights[joint_weight], WEIGHT_REPLACE);
 			}
@@ -297,16 +299,16 @@ void SkinInfo::set_parent(Object *_parent)
 	parent = _parent;
 }
 
-Object* SkinInfo::get_parent()
+Object *SkinInfo::get_parent()
 {
 	return parent;
 }
 
-void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node*> &root_joints,
-					  std::map<COLLADAFW::UniqueId, COLLADAFW::Node*>& joint_by_uid,
-					  std::vector<COLLADAFW::Node*>& result)
+void SkinInfo::find_root_joints(const std::vector<COLLADAFW::Node *> &root_joints,
+                                std::map<COLLADAFW::UniqueId, COLLADAFW::Node *>& joint_by_uid,
+                                std::vector<COLLADAFW::Node *>& result)
 {
-	std::vector<COLLADAFW::Node*>::const_iterator it;
+	std::vector<COLLADAFW::Node *>::const_iterator it;
 	// for each root_joint
 	for (it = root_joints.begin(); it != root_joints.end(); it++) {
 		COLLADAFW::Node *root = *it;

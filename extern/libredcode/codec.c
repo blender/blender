@@ -7,17 +7,20 @@
 #include <stdio.h>
 #include <string.h>
 
-static void error_callback(const char *msg, void *client_data) {
+static void error_callback(const char *msg, void *client_data)
+{
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[R3D ERR] %s", msg);
 }
 
-static void warning_callback(const char *msg, void *client_data) {
+static void warning_callback(const char *msg, void *client_data)
+{
 	FILE *stream = (FILE*)client_data;
 	fprintf(stream, "[R3D WARN] %s", msg);
 }
 
-static void info_callback(const char *msg, void *client_data) {
+static void info_callback(const char *msg, void *client_data)
+{
 	(void)client_data;
 	fprintf(stdout, "[R3D INFO] %s", msg);
 }

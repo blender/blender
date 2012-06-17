@@ -132,18 +132,14 @@ int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFre
 		if (gh->cmpfp(key, e->key) == 0) {
 			Entry *n = e->next;
 
-			if (keyfreefp)
-				keyfreefp(e->key);
-			if (valfreefp)
-				valfreefp(e->val);
+			if (keyfreefp) keyfreefp(e->key);
+			if (valfreefp) valfreefp(e->val);
 			BLI_mempool_free(gh->entrypool, e);
 
 			/* correct but 'e' isn't used before return */
 			/* e= n; *//*UNUSED*/
-			if (p)
-				p->next = n;
-			else
-				gh->buckets[hash] = n;
+			if (p) p->next = n;
+			else   gh->buckets[hash] = n;
 
 			gh->nentries--;
 			return 1;
@@ -152,6 +148,36 @@ int BLI_ghash_remove(GHash *gh, void *key, GHashKeyFreeFP keyfreefp, GHashValFre
 	}
 
 	return 0;
+}
+
+/* same as above but return the value,
+ * no free value argument since it will be returned */
+void *BLI_ghash_pop(GHash *gh, void *key, GHashKeyFreeFP keyfreefp)
+{
+	unsigned int hash = gh->hashfp(key) % gh->nbuckets;
+	Entry *e;
+	Entry *p = NULL;
+
+	for (e = gh->buckets[hash]; e; e = e->next) {
+		if (gh->cmpfp(key, e->key) == 0) {
+			Entry *n = e->next;
+			void *value = e->val;
+
+			if (keyfreefp) keyfreefp(e->key);
+			BLI_mempool_free(gh->entrypool, e);
+
+			/* correct but 'e' isn't used before return */
+			/* e= n; *//*UNUSED*/
+			if (p) p->next = n;
+			else   gh->buckets[hash] = n;
+
+			gh->nentries--;
+			return value;
+		}
+		p = e;
+	}
+
+	return NULL;
 }
 
 int BLI_ghash_haskey(GHash *gh, void *key)

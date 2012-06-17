@@ -136,6 +136,7 @@ void *BLI_thread_queue_pop(ThreadQueue *queue);
 void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms);
 int BLI_thread_queue_size(ThreadQueue *queue);
 
+void BLI_thread_queue_wait_finish(ThreadQueue *queue);
 void BLI_thread_queue_nowait(ThreadQueue *queue);
 
 #endif

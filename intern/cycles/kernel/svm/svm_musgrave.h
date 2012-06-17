@@ -41,7 +41,7 @@ __device_noinline float noise_musgrave_fBm(float3 p, NodeNoiseBasis basis, float
 		p *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if(rmd != 0.0f)
 		value += rmd * snoise(p) * pwr;
 
@@ -69,7 +69,7 @@ __device_noinline float noise_musgrave_multi_fractal(float3 p, NodeNoiseBasis ba
 		p *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if(rmd != 0.0f)
 		value *= (rmd * pwr * snoise(p) + 1.0f); /* correct? */
 
@@ -102,7 +102,7 @@ __device_noinline float noise_musgrave_hetero_terrain(float3 p, NodeNoiseBasis b
 		p *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if(rmd != 0.0f) {
 		increment = (snoise(p) + offset) * pwr * value;
 		value += rmd * increment;
@@ -141,7 +141,7 @@ __device_noinline float noise_musgrave_hybrid_multi_fractal(float3 p, NodeNoiseB
 		p *= lacunarity;
 	}
 
-	rmd = octaves - floor(octaves);
+	rmd = octaves - floorf(octaves);
 	if(rmd != 0.0f)
 		result += rmd * ((snoise(p) + offset) * pwr);
 

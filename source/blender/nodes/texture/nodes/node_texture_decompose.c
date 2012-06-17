@@ -35,14 +35,14 @@
 #include <math.h>
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_RGBA, 1, "Color", 0.0f, 0.0f, 0.0f, 1.0f },
+	{ SOCK_RGBA, 1, N_("Color"), 0.0f, 0.0f, 0.0f, 1.0f },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_FLOAT, 0, "Red" },
-	{ SOCK_FLOAT, 0, "Green" },
-	{ SOCK_FLOAT, 0, "Blue" },
-	{ SOCK_FLOAT, 0, "Alpha" },
+	{ SOCK_FLOAT, 0, N_("Red") },
+	{ SOCK_FLOAT, 0, N_("Green") },
+	{ SOCK_FLOAT, 0, N_("Blue") },
+	{ SOCK_FLOAT, 0, N_("Alpha") },
 	{ -1, 0, "" }
 };
 

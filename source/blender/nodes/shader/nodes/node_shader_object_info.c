@@ -30,10 +30,10 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_object_info_out[]= {
-	{	SOCK_VECTOR, 0, "Location",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT,  0, "Object Index",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT,  0, "Material Index",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT,  0, "Random",			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, N_("Location"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  0, N_("Object Index"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  0, N_("Material Index"),	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT,  0, N_("Random"),			0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 

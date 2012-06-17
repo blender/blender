@@ -28,9 +28,9 @@ subject to the following restrictions:
 
 
 ///only the 32bit versions for now
-extern unsigned char sBulletDNAstr[];
+extern char sBulletDNAstr[];
 extern int sBulletDNAlen;
-extern unsigned char sBulletDNAstr64[];
+extern char sBulletDNAstr64[];
 extern int sBulletDNAlen64;
 
 SIMD_FORCE_INLINE	int btStrLen(const char* str) 
@@ -213,7 +213,7 @@ protected:
 
 			int *intPtr=0;
 			short *shtPtr=0;
-			char *cp = 0;int dataLen =0;long nr=0;
+			char *cp = 0;int dataLen =0;
 			intPtr = (int*)m_dna;
 
 			/*
@@ -246,15 +246,7 @@ protected:
 				while (*cp)cp++;
 				cp++;
 			}
-			{
-				nr= (long)cp;
-			//	long mask=3;
-				nr= ((nr+3)&~3)-nr;
-				while (nr--)
-				{
-					cp++;
-				}
-			}
+			cp = btAlignPointer(cp,4);
 
 			/*
 				TYPE (4 bytes)
@@ -281,15 +273,7 @@ protected:
 				cp++;
 			}
 
-		{
-				nr= (long)cp;
-			//	long mask=3;
-				nr= ((nr+3)&~3)-nr;
-				while (nr--)
-				{
-					cp++;
-				}
-			}
+			cp = btAlignPointer(cp,4);
 
 
 			/*
@@ -453,8 +437,8 @@ public:
 
 
 			buffer[9] = '2';
-			buffer[10] = '7';
-			buffer[11] = '8';
+			buffer[10] = '8';
+			buffer[11] = '0';
 
 		}
 

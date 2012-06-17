@@ -35,7 +35,7 @@
 #include <math.h>
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_RGBA, 1, "Color", 1.0f, 0.0f, 0.0f, 1.0f },
+	{ SOCK_RGBA, 1, N_("Color"), 1.0f, 0.0f, 0.0f, 1.0f },
 	{ -1, 0, "" }
 };
 static bNodeSocketTemplate outputs[]= {

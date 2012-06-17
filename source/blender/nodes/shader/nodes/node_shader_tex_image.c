@@ -30,13 +30,13 @@
 /* **************** OUTPUT ******************** */
 
 static bNodeSocketTemplate sh_node_tex_image_in[]= {
-	{	SOCK_VECTOR, 1, "Vector",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
+	{	SOCK_VECTOR, 1, N_("Vector"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, PROP_NONE, SOCK_HIDE_VALUE},
 	{	-1, 0, ""	}
 };
 
 static bNodeSocketTemplate sh_node_tex_image_out[]= {
-	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
-	{	SOCK_FLOAT, 0, "Alpha",		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, N_("Color"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_FLOAT, 0, N_("Alpha"),		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -46,6 +46,10 @@ static void node_shader_init_tex_image(bNodeTree *UNUSED(ntree), bNode* node, bN
 	default_tex_mapping(&tex->base.tex_mapping);
 	default_color_mapping(&tex->base.color_mapping);
 	tex->color_space = SHD_COLORSPACE_COLOR;
+	tex->iuser.frames= 1;
+	tex->iuser.sfra= 1;
+	tex->iuser.fie_ima= 2;
+	tex->iuser.ok= 1;
 
 	node->storage = tex;
 }

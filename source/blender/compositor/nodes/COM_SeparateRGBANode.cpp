@@ -28,12 +28,13 @@
 #include "DNA_material_types.h" // the ramp types
 
 
-SeparateRGBANode::SeparateRGBANode(bNode *editorNode): Node(editorNode)
+SeparateRGBANode::SeparateRGBANode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 
-void SeparateRGBANode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void SeparateRGBANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *imageSocket = this->getInputSocket(0);
 	OutputSocket *outputRSocket = this->getOutputSocket(0);

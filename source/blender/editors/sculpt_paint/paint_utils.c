@@ -333,9 +333,9 @@ int imapaint_pick_face(ViewContext *vc, const int mval[2], unsigned int *index, 
 }
 
 /* used for both 3d view and image window */
-void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)    /* frontbuf */
+void paint_sample_color(const bContext *C, ARegion *ar, int x, int y)    /* frontbuf */
 {
-	Brush *br = paint_brush(paint_get_active(scene));
+	Brush *br = paint_brush(paint_get_active_from_context(C));
 	unsigned int col;
 	char *cp;
 
@@ -357,7 +357,7 @@ void paint_sample_color(Scene *scene, ARegion *ar, int x, int y)    /* frontbuf 
 
 static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 {
-	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Brush *br = paint_brush(paint_get_active_from_context(C));
 	BKE_brush_curve_preset(br, RNA_enum_get(op->ptr, "shape"));
 
 	return OPERATOR_FINISHED;
@@ -365,7 +365,7 @@ static int brush_curve_preset_exec(bContext *C, wmOperator *op)
 
 static int brush_curve_preset_poll(bContext *C)
 {
-	Brush *br = paint_brush(paint_get_active(CTX_data_scene(C)));
+	Brush *br = paint_brush(paint_get_active_from_context(C));
 
 	return br && br->curve;
 }

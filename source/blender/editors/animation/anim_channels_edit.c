@@ -43,6 +43,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_key_types.h"
 #include "DNA_gpencil_types.h"
+#include "DNA_mask_types.h"
 
 #include "RNA_access.h"
 #include "RNA_define.h"
@@ -51,6 +52,7 @@
 #include "BKE_fcurve.h"
 #include "BKE_gpencil.h"
 #include "BKE_context.h"
+#include "BKE_mask.h"
 #include "BKE_global.h"
 
 #include "UI_view2d.h"
@@ -258,6 +260,10 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 					if (ale->flag & GP_LAYER_SELECT)
 						sel = ACHANNEL_SETFLAG_CLEAR;
 					break;
+				case ANIMTYPE_MASKLAYER:
+					if (ale->flag & MASK_LAYERFLAG_SELECT)
+						sel = ACHANNEL_SETFLAG_CLEAR;
+					break;
 			}
 		}
 	}
@@ -352,6 +358,14 @@ void ANIM_deselect_anim_channels(bAnimContext *ac, void *data, short datatype, s
 				bGPDlayer *gpl = (bGPDlayer *)ale->data;
 				
 				ACHANNEL_SET_FLAG(gpl, sel, GP_LAYER_SELECT);
+			}
+			break;
+
+			case ANIMTYPE_MASKLAYER:
+			{
+				MaskLayer *masklay = (MaskLayer *)ale->data;
+
+				ACHANNEL_SET_FLAG(masklay, sel, MASK_LAYERFLAG_SELECT);
 			}
 			break;
 		}
@@ -496,7 +510,7 @@ void ANIM_flush_setting_anim_channels(bAnimContext *ac, ListBase *anim_data, bAn
 				break;
 			
 			/* store this level as the 'old' level now */
-			// prevLevel= level; // XXX: prevLevel is unused
+			// prevLevel = level; // XXX: prevLevel is unused
 		}
 	}
 }
@@ -1055,6 +1069,10 @@ static int animchannels_rearrange_exec(bContext *C, wmOperator *op)
 		/* Grease Pencil channels */
 		printf("Grease Pencil not supported for moving yet\n");
 	}
+	else if (ac.datatype == ANIMCONT_MASK) {
+		/* Grease Pencil channels */
+		printf("Mask does not supported for moving yet\n");
+	}
 	else if (ac.datatype == ANIMCONT_ACTION) {
 		/* Directly rearrange action's channels */
 		rearrange_action_channels(&ac, ac.data, mode);
@@ -1203,6 +1221,17 @@ static int animchannels_delete_exec(bContext *C, wmOperator *UNUSED(op))
 				/* try to delete the layer's data and the layer itself */
 				free_gpencil_frames(gpl);
 				BLI_freelinkN(&gpd->layers, gpl);
+			}
+			break;
+
+			case ANIMTYPE_MASKLAYER:
+			{
+				/* Grease Pencil layer */
+				Mask *mask = (Mask *)ale->id;
+				MaskLayer *masklay = (MaskLayer *)ale->data;
+
+				/* try to delete the layer's data and the layer itself */
+				BKE_mask_layer_remove(mask, masklay);
 			}
 			break;
 		}
@@ -2017,7 +2046,7 @@ static int animchannels_rename_invoke(bContext *C, wmOperator *UNUSED(op), wmEve
 	v2d = &ar->v2d;
 	
 	/* figure out which channel user clicked in 
-	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 * Note: although channels technically start at (y = ACHANNEL_FIRST), we need to adjust by half a channel's height
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */
@@ -2287,6 +2316,36 @@ static int mouse_anim_channels(bAnimContext *ac, float UNUSED(x), int channel_in
 			notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
 		}
 		break;
+		case ANIMTYPE_MASKDATABLOCK:
+		{
+			Mask *mask = (Mask *)ale->data;
+
+			/* toggle expand
+			 *	- although the triangle widget already allows this, the whole channel can also be used for this purpose
+			 */
+			mask->flag ^= MASK_ANIMF_EXPAND;
+
+			notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
+		}
+		break;
+		case ANIMTYPE_MASKLAYER:
+		{
+			MaskLayer *masklay = (MaskLayer *)ale->data;
+
+			/* select/deselect */
+			if (selectmode == SELECT_INVERT) {
+				/* invert selection status of this layer only */
+				masklay->flag ^= MASK_LAYERFLAG_SELECT;
+			}
+			else {
+				/* select layer by itself */
+				ANIM_deselect_anim_channels(ac, ac->data, ac->datatype, 0, ACHANNEL_SETFLAG_CLEAR);
+				masklay->flag |= MASK_LAYERFLAG_SELECT;
+			}
+
+			notifierFlags |= (ND_ANIMCHAN | NA_EDITED);
+		}
+		break;
 		default:
 			if (G.debug & G_DEBUG)
 				printf("Error: Invalid channel type in mouse_anim_channels()\n");
@@ -2330,7 +2389,7 @@ static int animchannels_mouseclick_invoke(bContext *C, wmOperator *op, wmEvent *
 		selectmode = SELECT_REPLACE;
 	
 	/* figure out which channel user clicked in 
-	 * Note: although channels technically start at y= ACHANNEL_FIRST, we need to adjust by half a channel's height
+	 * Note: although channels technically start at (y = ACHANNEL_FIRST), we need to adjust by half a channel's height
 	 *		so that the tops of channels get caught ok. Since ACHANNEL_FIRST is really ACHANNEL_HEIGHT, we simply use
 	 *		ACHANNEL_HEIGHT_HALF.
 	 */

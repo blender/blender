@@ -22,7 +22,7 @@
 
 #include "COM_ConvertValueToVectorOperation.h"
 
-ConvertValueToVectorOperation::ConvertValueToVectorOperation(): NodeOperation()
+ConvertValueToVectorOperation::ConvertValueToVectorOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VALUE);
 	this->addOutputSocket(COM_DT_VECTOR);

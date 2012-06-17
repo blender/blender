@@ -54,6 +54,7 @@ extern "C" {
 /******************* Conversion to RGB ********************/
 
 void hsv_to_rgb(float h, float s, float v, float *r, float *g, float *b);
+void hsv_to_rgb_v(const float hsv[3], float r_rgb[3]);
 void hex_to_rgb(char *hexcol, float *r, float *g, float *b);
 void yuv_to_rgb(float y, float u, float v, float *lr, float *lg, float *lb);
 void ycc_to_rgb(float y, float cb, float cr, float *lr, float *lg, float *lb, int colorspace);
@@ -65,14 +66,15 @@ void cpack_to_rgb(unsigned int col, float *r, float *g, float *b);
 void rgb_to_yuv(float r, float g, float b, float *ly, float *lu, float *lv);
 void rgb_to_ycc(float r, float g, float b, float *ly, float *lcb, float *lcr, int colorspace);
 void rgb_to_hsv(float r, float g, float b, float *lh, float *ls, float *lv);
+void rgb_to_hsv_v(const float rgb[3], float r_hsv[3]);
 void rgb_to_hsv_compat(float r, float g, float b, float *lh, float *ls, float *lv);
+void rgb_to_hsv_compat_v(const float rgb[3], float r_hsv[3]);
+void rgb_to_lab(float r, float g, float b, float *ll, float *la, float *lb);
+void rgb_to_xyz(float r, float g, float b, float *x, float *y, float *z);
 unsigned int rgb_to_cpack(float r, float g, float b);
 unsigned int hsv_to_cpack(float h, float s, float v);
 
-float rgb_to_grayscale(const float rgb[3]);
-unsigned char rgb_to_grayscale_byte(const unsigned char rgb[3]);
-float rgb_to_luma(const float rgb[3]);
-unsigned char rgb_to_luma_byte(const unsigned char rgb[3]);
+/* rgb_to_grayscale & rgb_to_luma functions moved to math_color_inline.c */
 
 /**************** Profile Transformations *****************/
 
@@ -108,6 +110,8 @@ void rgb_uchar_to_float(float col_r[3], const unsigned char col_ub[3]);
 void rgba_uchar_to_float(float col_r[4], const unsigned char col_ub[4]);
 void rgb_float_to_uchar(unsigned char col_r[3], const float col_f[3]);
 void rgba_float_to_uchar(unsigned char col_r[4], const float col_f[4]);
+
+void xyz_to_lab(float x, float y, float z, float *l, float *a, float *b);
 
 /***************** lift/gamma/gain / ASC-CDL conversion *****************/
 

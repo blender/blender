@@ -41,14 +41,14 @@ public:
 	DisplaceOperation();
 
 	/**
-	* we need a 2x2 differential filter for Vector Input and full buffer for the image
-	*/	
+	 * we need a 2x2 differential filter for Vector Input and full buffer for the image
+	 */
 	bool determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output);
 
 	/**
 	 * the inner loop of this program
 	 */
-	void executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data);
+	void executePixel(float *color, int x, int y, MemoryBuffer * inputBuffers[], void *data);
 	
 	/**
 	 * Initialize the execution

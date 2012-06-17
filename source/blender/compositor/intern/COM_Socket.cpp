@@ -27,7 +27,6 @@
 Socket::Socket(DataType datatype)
 {
 	this->datatype = datatype;
-	this->actualType = COM_DT_UNKNOWN;
 	this->editorSocket = NULL;
 	this->node = NULL;
 }
@@ -39,12 +38,6 @@ DataType Socket::getDataType() const
 
 int Socket::isInputSocket() const { return false; }
 int Socket::isOutputSocket() const { return false; }
-const int Socket::isConnected() const {return false;}
-void Socket::setNode(NodeBase *node) {this->node = node;}
-NodeBase *Socket::getNode() const {return this->node;}
-
-DataType Socket::getActualDataType() const {return this->actualType;}
-void Socket::setActualDataType(DataType actualType)
-{
-	this->actualType = actualType;
-}
+const int Socket::isConnected() const { return false; }
+void Socket::setNode(NodeBase *node) { this->node = node; }
+NodeBase *Socket::getNode() const { return this->node; }

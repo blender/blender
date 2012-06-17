@@ -90,6 +90,7 @@ short id_type_can_have_animdata(ID *id)
 		case ID_SPK:
 		case ID_SCE:
 		case ID_MC:
+		case ID_MSK:
 		{
 			return 1;
 		}
@@ -744,7 +745,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 	for (id = first; id; id = id->next) { \
 		AnimData *adt = BKE_animdata_from_id(id); \
 		if (adt) func(id, adt, user_data); \
-	}
+	} (void)0
 	
 	/* "embedded" nodetree cases (i.e. scene/material/texture->nodetree) */
 #define ANIMDATA_NODETREE_IDS_CB(first, NtId_Type) \
@@ -756,7 +757,7 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 			if (adt2) func(id, adt2, user_data); \
 		} \
 		if (adt) func(id, adt, user_data); \
-	}
+	} (void)0
 	
 	/* nodes */
 	ANIMDATA_IDS_CB(mainptr->nodetree.first);
@@ -802,10 +803,13 @@ void BKE_animdata_main_cb(Main *mainptr, ID_AnimData_Edit_Callback func, void *u
 
 	/* objects */
 	ANIMDATA_IDS_CB(mainptr->object.first);
+
+	/* masks */
+	ANIMDATA_IDS_CB(mainptr->mask.first);
 	
 	/* worlds */
 	ANIMDATA_IDS_CB(mainptr->world.first);
-	
+
 	/* scenes */
 	ANIMDATA_NODETREE_IDS_CB(mainptr->scene.first, Scene);
 }
@@ -828,7 +832,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 	for (id = first; id; id = id->next) { \
 		AnimData *adt = BKE_animdata_from_id(id); \
 		BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
-	}
+	} (void)0
 	
 	/* another version of this macro for nodetrees */
 #define RENAMEFIX_ANIM_NODETREE_IDS(first, NtId_Type) \
@@ -840,7 +844,7 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 			BKE_animdata_fix_paths_rename((ID *)ntp, adt2, ref_id, prefix, oldName, newName, 0, 0, 1); \
 		} \
 		BKE_animdata_fix_paths_rename(id, adt, ref_id, prefix, oldName, newName, 0, 0, 1); \
-	}
+	} (void)0
 	
 	/* nodes */
 	RENAMEFIX_ANIM_IDS(mainptr->nodetree.first);
@@ -886,6 +890,9 @@ void BKE_all_animdata_fix_paths_rename(ID *ref_id, const char *prefix, const cha
 
 	/* objects */
 	RENAMEFIX_ANIM_IDS(mainptr->object.first); 
+
+	/* masks */
+	RENAMEFIX_ANIM_IDS(mainptr->mask.first);
 	
 	/* worlds */
 	RENAMEFIX_ANIM_IDS(mainptr->world.first);
@@ -1280,9 +1287,11 @@ static void animsys_evaluate_drivers(PointerRNA *ptr, AnimData *adt, float ctime
 		/* check if this driver's curve should be skipped */
 		if ((fcu->flag & (FCURVE_MUTED | FCURVE_DISABLED)) == 0) {
 			/* check if driver itself is tagged for recalculation */
-			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {  // XXX driver recalc flag is not set yet by depsgraph!
-				/* evaluate this using values set already in other places */
-				// NOTE: for 'layering' option later on, we should check if we should remove old value before adding new to only be done when drivers only changed
+			/* XXX driver recalc flag is not set yet by depsgraph! */
+			if ((driver) && !(driver->flag & DRIVER_FLAG_INVALID) /*&& (driver->flag & DRIVER_FLAG_RECALC)*/) {
+				/* evaluate this using values set already in other places
+				 * NOTE: for 'layering' option later on, we should check if we should remove old value before adding
+				 *       new to only be done when drivers only changed */
 				calculate_fcurve(fcu, ctime);
 				ok = animsys_execute_fcurve(ptr, NULL, fcu);
 				
@@ -1577,7 +1586,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 	PropertyRNA *prop;
 	PointerRNA new_ptr;
 	char *path = NULL;
-	/* short free_path=0; */
+	/* short free_path = 0; */
 	
 	/* sanity checks */
 	if (channels == NULL)
@@ -1585,7 +1594,7 @@ static NlaEvalChannel *nlaevalchan_verify(PointerRNA *ptr, ListBase *channels, N
 	
 	/* get RNA pointer+property info from F-Curve for more convenient handling */
 	/* get path, remapped as appropriate to work in its new environment */
-	/* free_path= */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
+	/* free_path = */ /* UNUSED */ animsys_remap_path(strip->remap, fcu->rna_path, &path);
 	
 	/* a valid property must be available, and it must be animatable */
 	if (RNA_path_resolve(ptr, path, &new_ptr, &prop) == 0) {
@@ -2266,7 +2275,8 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 			AnimData *adt = BKE_animdata_from_id(id); \
 			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
-	}
+	} (void)0
+
 	/* another macro for the "embedded" nodetree cases 
 	 *	- this is like EVAL_ANIM_IDS, but this handles the case "embedded nodetrees" 
 	 *	  (i.e. scene/material/texture->nodetree) which we need a special exception
@@ -2284,7 +2294,7 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 			} \
 			BKE_animsys_evaluate_animdata(scene, id, adt, ctime, aflag); \
 		} \
-	}
+	} (void)0
 	
 	/* optimization: 
 	 * when there are no actions, don't go over database and loop over heaps of datablocks, 
@@ -2349,6 +2359,9 @@ void BKE_animsys_evaluate_all_animation(Main *main, Scene *scene, float ctime)
 	 * linked from other (not-visible) scenes will not need their data calculated.
 	 */
 	EVAL_ANIM_IDS(main->object.first, 0); 
+
+	/* masks */
+	EVAL_ANIM_IDS(main->mask.first, ADT_RECALC_ANIM);
 	
 	/* worlds */
 	EVAL_ANIM_NODETREE_IDS(main->world.first, World, ADT_RECALC_ANIM);

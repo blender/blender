@@ -32,6 +32,7 @@ set(INC
 	third_party/ssba
 	third_party/ldl/Include
 	../colamd/Include
+	third_party/ceres/include
 )
 
 set(INC_SYS
@@ -61,6 +62,7 @@ set(SRC
 	libmv/multiview/fundamental.cc
 	libmv/multiview/projection.cc
 	libmv/multiview/triangulation.cc
+	libmv/multiview/homography.cc
 	libmv/numeric/numeric.cc
 	libmv/numeric/poly.cc
 	libmv/simple_pipeline/bundle.cc
@@ -83,6 +85,7 @@ set(SRC
 	libmv/tracking/pyramid_region_tracker.cc
 	libmv/tracking/retrack_region_tracker.cc
 	libmv/tracking/trklt_region_tracker.cc
+	libmv/tracking/track_region.cc
 
 	third_party/fast/fast_10.c
 	third_party/fast/fast_11.c
@@ -250,3 +253,5 @@ add_definitions(
 )
 
 blender_add_lib(extern_libmv "${SRC}" "${INC}" "${INC_SYS}")
+
+add_subdirectory(third_party)

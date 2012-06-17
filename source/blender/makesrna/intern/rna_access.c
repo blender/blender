@@ -642,7 +642,7 @@ int RNA_struct_contains_property(PointerRNA *ptr, PropertyRNA *prop_test)
 
 	RNA_PROP_BEGIN(ptr, itemptr, iterprop)
 	{
-		/* PropertyRNA *prop= itemptr.data; */
+		/* PropertyRNA *prop = itemptr.data; */
 		if (prop_test == (PropertyRNA *)itemptr.data) {
 			found = TRUE;
 			break;
@@ -664,12 +664,12 @@ PropertyRNA *RNA_struct_type_find_property(StructRNA *srna, const char *identifi
 	return BLI_findstring_ptr(&srna->cont.properties, identifier, offsetof(PropertyRNA, identifier));
 }
 
-FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
+FunctionRNA *RNA_struct_find_function(StructRNA *srna, const char *identifier)
 {
 #if 1
 	FunctionRNA *func;
 	StructRNA *type;
-	for (type = ptr->type; type; type = type->base) {
+	for (type = srna; type; type = type->base) {
 		func = (FunctionRNA *)BLI_findstring_ptr(&type->functions, identifier, offsetof(FunctionRNA, identifier));
 		if (func) {
 			return func;
@@ -683,7 +683,7 @@ FunctionRNA *RNA_struct_find_function(PointerRNA *ptr, const char *identifier)
 	PropertyRNA *iterprop;
 	FunctionRNA *func;
 
-	RNA_pointer_create(NULL, &RNA_Struct, ptr->type, &tptr);
+	RNA_pointer_create(NULL, &RNA_Struct, srna, &tptr);
 	iterprop = RNA_struct_find_property(&tptr, "functions");
 
 	func = NULL;
@@ -1519,7 +1519,7 @@ void RNA_property_update_main(Main *bmain, Scene *scene, PointerRNA *ptr, Proper
  *
  * The cache is structured with a dual-layer structure
  * - L1 = PointerRNA used as key; id.data is used (it should always be defined,
- *		 and most updates end up using just that anyways)
+ *        and most updates end up using just that anyways)
  * - L2 = Update functions to be called on those PointerRNA's
  */
 
@@ -2561,7 +2561,7 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 	BLI_assert(RNA_property_type(prop) == PROP_POINTER);
 
-	if ((/*idprop=*/ rna_idproperty_check(&prop, ptr))) {
+	if ((/*idprop = */ rna_idproperty_check(&prop, ptr))) {
 		/* not supported */
 		/* rna_idproperty_touch(idprop); */
 	}
@@ -2579,7 +2579,7 @@ void RNA_property_pointer_set(PointerRNA *ptr, PropertyRNA *prop, PointerRNA ptr
 
 PointerRNA RNA_property_pointer_get_default(PointerRNA *UNUSED(ptr), PropertyRNA *UNUSED(prop))
 {
-	/*PointerPropertyRNA *pprop= (PointerPropertyRNA*)prop; */
+	/*PointerPropertyRNA *pprop = (PointerPropertyRNA*)prop; */
 
 	/* BLI_assert(RNA_property_type(prop) == PROP_POINTER); */
 
@@ -2718,7 +2718,7 @@ int RNA_property_collection_length(PointerRNA *ptr, PropertyRNA *prop)
 void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA *r_ptr)
 {
 	IDProperty *idprop;
-/*	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop; */
+/*	CollectionPropertyRNA *cprop = (CollectionPropertyRNA*)prop; */
 
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -2777,7 +2777,7 @@ void RNA_property_collection_add(PointerRNA *ptr, PropertyRNA *prop, PointerRNA 
 int RNA_property_collection_remove(PointerRNA *ptr, PropertyRNA *prop, int key)
 {
 	IDProperty *idprop;
-/*	CollectionPropertyRNA *cprop= (CollectionPropertyRNA*)prop; */
+/*	CollectionPropertyRNA *cprop = (CollectionPropertyRNA*)prop; */
 
 	BLI_assert(RNA_property_type(prop) == PROP_COLLECTION);
 
@@ -3031,7 +3031,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_DOUBLE: var = (dtype)((double*)raw.array)[a]; break;    \
 		default: var = (dtype)0;                                              \
 	}                                                                         \
-}
+} (void)0
 
 #define RAW_SET(dtype, raw, a, var)                                           \
 {                                                                             \
@@ -3043,7 +3043,7 @@ int RNA_property_collection_raw_array(PointerRNA *ptr, PropertyRNA *prop, Proper
 		case PROP_RAW_DOUBLE: ((double*)raw.array)[a] = (double)var; break;   \
 		default: break;                                                       \
 	}                                                                         \
-}
+} (void)0
 
 int RNA_raw_type_sizeof(RawPropertyType type)
 {
@@ -5132,7 +5132,7 @@ int RNA_function_call_lookup(bContext *C, ReportList *reports, PointerRNA *ptr, 
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func)
 		return RNA_function_call(C, reports, ptr, func, parms);
@@ -5160,7 +5160,7 @@ int RNA_function_call_direct_lookup(bContext *C, ReportList *reports, PointerRNA
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func) {
 		va_list args;
@@ -5535,7 +5535,7 @@ int RNA_function_call_direct_va_lookup(bContext *C, ReportList *reports, Pointer
 {
 	FunctionRNA *func;
 
-	func = RNA_struct_find_function(ptr, identifier);
+	func = RNA_struct_find_function(ptr->type, identifier);
 
 	if (func)
 		return RNA_function_call_direct_va(C, reports, ptr, func, format, args);

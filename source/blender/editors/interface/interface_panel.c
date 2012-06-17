@@ -164,6 +164,19 @@ static int panels_re_align(ScrArea *sa, ARegion *ar, Panel **r_pa)
 
 /****************************** panels ******************************/
 
+static void panels_collapse_all(ScrArea *sa, ARegion *ar)
+{
+	Panel *pa;
+	int flag = ((panel_aligned(sa, ar) == BUT_HORIZONTAL) ? PNL_CLOSEDX : PNL_CLOSEDY);
+
+	for (pa = ar->panels.first; pa; pa = pa->next) {
+		if (pa->type && !(pa->type->flag & PNL_NO_HEADER)) {
+			pa->flag = flag;
+		}
+	}
+}
+
+
 static void ui_panel_copy_offset(Panel *pa, Panel *papar)
 {
 	/* with respect to sizes... papar is parent */
@@ -932,7 +945,7 @@ static void check_panel_overlap(ARegion *ar, Panel *panel)
 {
 	Panel *pa;
 
-	/* also called with panel==NULL for clear */
+	/* also called with (panel == NULL) for clear */
 	
 	for (pa = ar->panels.first; pa; pa = pa->next) {
 		pa->flag &= ~PNL_OVERLAP;
@@ -1024,7 +1037,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 	else if (block->panel->control & UI_PNL_CLOSE) {
 		/* whole of header can be used to collapse panel (except top-right corner) */
 		if (mx <= block->maxx - 8 - PNL_ICON) button = 2;
-		//else if (mx <= block->minx+10+2*PNL_ICON+2) button= 1;
+		//else if (mx <= block->minx + 10 + 2 * PNL_ICON + 2) button = 1;
 	}
 	else if (mx <= block->maxx - PNL_ICON - 12) {
 		button = 1;
@@ -1074,6 +1087,7 @@ static void ui_handle_panel_header(const bContext *C, uiBlock *block, int mx, in
 
 int ui_handler_panel_region(bContext *C, wmEvent *event)
 {
+	ScrArea *sa = CTX_wm_area(C);
 	ARegion *ar = CTX_wm_region(C);
 	uiBlock *block;
 	Panel *pa;
@@ -1141,6 +1155,8 @@ int ui_handler_panel_region(bContext *C, wmEvent *event)
 				}
 				else if (event->type == LEFTMOUSE) {
 					if (inside_header) {
+						if (event->ctrl)
+							panels_collapse_all(sa, ar);
 						ui_handle_panel_header(C, block, mx, my, 0);
 						break;
 					}

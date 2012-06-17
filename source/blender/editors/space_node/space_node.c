@@ -226,11 +226,6 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 					ED_area_tag_refresh(sa);
 			}
 			break;
-		case NC_TEXT:
-			/* pynodes */
-			if (wmn->data==ND_SHADING)
-				ED_area_tag_refresh(sa);
-			break;
 		case NC_SPACE:
 			if (wmn->data==ND_SPACE_NODE)
 				ED_area_tag_refresh(sa);
@@ -248,6 +243,13 @@ static void node_area_listener(ScrArea *sa, wmNotifier *wmn)
 				case ND_ANIMPLAY:
 					ED_area_tag_refresh(sa);
 					break;
+			}
+			break;
+		case NC_MASK:
+			if (wmn->action == NA_EDITED) {
+				if (type==NTREE_COMPOSIT) {
+					ED_area_tag_refresh(sa);
+				}
 			}
 			break;
 
@@ -466,7 +468,7 @@ static void node_region_listener(ARegion *ar, wmNotifier *wmn)
 	}
 }
 
-const char *node_context_dir[] = {"selected_nodes", NULL};
+const char *node_context_dir[] = {"selected_nodes", "active_node", NULL};
 
 static int node_context(const bContext *C, const char *member, bContextDataResult *result)
 {
@@ -490,16 +492,11 @@ static int node_context(const bContext *C, const char *member, bContextDataResul
 		return 1;
 	}
 	else if (CTX_data_equals(member, "active_node")) {
-		bNode *node;
-		
 		if (snode->edittree) {
-			for (node=snode->edittree->nodes.last; node; node=node->prev) {
-				if (node->flag & NODE_ACTIVE) {
-					CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
-					break;
-				}
-			}
+			bNode *node = nodeGetActive(snode->edittree);
+			CTX_data_pointer_set(result, &snode->edittree->id, &RNA_Node, node);
 		}
+
 		CTX_data_type_set(result, CTX_DATA_TYPE_POINTER);
 		return 1;
 	}

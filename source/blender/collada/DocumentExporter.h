@@ -29,6 +29,10 @@
 
 #include "ExportSettings.h"
 
+extern "C" {
+#include "DNA_customdata_types.h"
+}
+
 struct Scene;
 
 class DocumentExporter

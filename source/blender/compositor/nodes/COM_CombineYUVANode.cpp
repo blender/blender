@@ -22,8 +22,9 @@
 #include "COM_CombineYUVANode.h"
 #include "COM_ConvertYUVToRGBOperation.h"
 
-CombineYUVANode::CombineYUVANode(bNode *editorNode): CombineRGBANode(editorNode)
+CombineYUVANode::CombineYUVANode(bNode *editorNode) : CombineRGBANode(editorNode)
 {
+	/* pass */
 }
 
 void CombineYUVANode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

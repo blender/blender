@@ -305,7 +305,7 @@ void init_latt_deform(Object *oblatt, Object *ob)
 	
 	fp = lt->latticedata = MEM_mallocN(sizeof(float) * 3 * lt->pntsu * lt->pntsv * lt->pntsw, "latticedata");
 	
-	/* for example with a particle system: ob==0 */
+	/* for example with a particle system: (ob == NULL) */
 	if (ob == NULL) {
 		/* in deformspace, calc matrix  */
 		invert_m4_m4(lt->latmat, oblatt->obmat);

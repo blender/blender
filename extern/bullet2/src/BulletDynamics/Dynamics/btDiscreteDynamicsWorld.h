@@ -27,6 +27,8 @@ class btTypedConstraint;
 class btActionInterface;
 
 class btIDebugDraw;
+struct InplaceSolverIslandCallback;
+
 #include "LinearMath/btAlignedObjectArray.h"
 
 
@@ -35,6 +37,9 @@ class btIDebugDraw;
 class btDiscreteDynamicsWorld : public btDynamicsWorld
 {
 protected:
+	
+    btAlignedObjectArray<btTypedConstraint*>	m_sortedConstraints;
+	InplaceSolverIslandCallback* 	m_solverIslandCallback;
 
 	btConstraintSolver*	m_constraintSolver;
 

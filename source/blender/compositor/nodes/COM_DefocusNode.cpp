@@ -33,16 +33,17 @@
 #include "COM_SetValueOperation.h"
 #include "COM_GammaCorrectOperation.h"
 
-DefocusNode::DefocusNode(bNode *editorNode): Node(editorNode)
+DefocusNode::DefocusNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *node = this->getbNode();
-	Scene *scene = (Scene*)node->id;
-	Object *camob = (scene)? scene->camera: NULL;
-	NodeDefocus *data = (NodeDefocus*)node->storage;
+	Scene *scene = (Scene *)node->id;
+	Object *camob = (scene) ? scene->camera : NULL;
+	NodeDefocus *data = (NodeDefocus *)node->storage;
 
 	NodeOperation *radiusOperation;
 	if (data->no_zbuf) {
@@ -74,11 +75,11 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	}
 	
 	BokehImageOperation *bokeh = new BokehImageOperation();
-	NodeBokehImage * bokehdata = new NodeBokehImage();
+	NodeBokehImage *bokehdata = new NodeBokehImage();
 	bokehdata->angle = data->rotation;
 	bokehdata->rounding = 0.0f;
 	bokehdata->flaps = data->bktype;
-	if (data->bktype<3) {
+	if (data->bktype < 3) {
 		bokehdata->flaps = 5;
 		bokehdata->rounding = 1.0f;
 	}
@@ -96,8 +97,8 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));
 	addLink(graph, radiusOperation->getOutputSocket(), operation->getInputSocket(2));
 	if (data->gamco) {
-		GammaCorrectOperation * correct = new GammaCorrectOperation();
-		GammaUncorrectOperation * inverse = new GammaUncorrectOperation();
+		GammaCorrectOperation *correct = new GammaCorrectOperation();
+		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
 		this->getInputSocket(0)->relinkConnections(correct->getInputSocket(0), 0, graph);
 		addLink(graph, correct->getOutputSocket(), operation->getInputSocket(0));
 		addLink(graph, operation->getOutputSocket(), inverse->getInputSocket(0));

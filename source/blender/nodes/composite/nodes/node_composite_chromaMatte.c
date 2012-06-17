@@ -34,14 +34,14 @@
 
 /* ******************* Chroma Key ********************************************************** */
 static bNodeSocketTemplate cmp_node_chroma_in[]={
-	{SOCK_RGBA, 1, "Image", 1.0f, 1.0f, 1.0f, 1.0f},
-	{SOCK_RGBA, 1, "Key Color", 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, N_("Image"), 1.0f, 1.0f, 1.0f, 1.0f},
+	{SOCK_RGBA, 1, N_("Key Color"), 1.0f, 1.0f, 1.0f, 1.0f},
 	{-1, 0, ""}
 };
 
 static bNodeSocketTemplate cmp_node_chroma_out[]={
-	{SOCK_RGBA, 0, "Image"},
-	{SOCK_FLOAT, 0, "Matte"},
+	{SOCK_RGBA, 0, N_("Image")},
+	{SOCK_FLOAT, 0, N_("Matte")},
 	{-1, 0, ""}
 };
 

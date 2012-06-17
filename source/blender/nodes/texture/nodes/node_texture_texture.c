@@ -36,13 +36,13 @@
 #include "RE_shader_ext.h"
 
 static bNodeSocketTemplate inputs[]= {
-	{ SOCK_RGBA, 1, "Color1", 1.0f, 1.0f, 1.0f, 1.0f },
-	{ SOCK_RGBA, 1, "Color2", 0.0f, 0.0f, 0.0f, 1.0f },
+	{ SOCK_RGBA, 1, N_("Color1"), 1.0f, 1.0f, 1.0f, 1.0f },
+	{ SOCK_RGBA, 1, N_("Color2"), 0.0f, 0.0f, 0.0f, 1.0f },
 	{ -1, 0, "" }
 };
 
 static bNodeSocketTemplate outputs[]= {
-	{ SOCK_RGBA, 0, "Color" },
+	{ SOCK_RGBA, 0, N_("Color") },
 	{ -1, 0, "" }
 };
 
