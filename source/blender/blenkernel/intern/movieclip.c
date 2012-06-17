@@ -451,6 +451,22 @@ static MovieClip *movieclip_alloc(const char *name)
 	return clip;
 }
 
+static void movieclip_load_get_szie(MovieClip *clip)
+{
+	int width, height;
+	MovieClipUser user = {0};
+
+	user.framenr = 1;
+	BKE_movieclip_get_size(clip, &user, &width, &height);
+
+	if (width && height) {
+		clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
+		clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
+
+		clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
+	}
+}
+
 /* checks if image was already loaded, then returns same image
  * otherwise creates new.
  * does not load ibuf itself
@@ -458,8 +474,7 @@ static MovieClip *movieclip_alloc(const char *name)
 MovieClip *BKE_movieclip_file_add(const char *name)
 {
 	MovieClip *clip;
-	MovieClipUser user = {0};
-	int file, len, width, height;
+	int file, len;
 	const char *libname;
 	char str[FILE_MAX], strtest[FILE_MAX];
 
@@ -502,14 +517,7 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 	else
 		clip->source = MCLIP_SRC_SEQUENCE;
 
-	user.framenr = 1;
-	BKE_movieclip_get_size(clip, &user, &width, &height);
-	if (width && height) {
-		clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
-		clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
-
-		clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
-	}
+	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);
 
@@ -1021,6 +1029,9 @@ void BKE_movieclip_reload(MovieClip *clip)
 		clip->source = MCLIP_SRC_MOVIE;
 	else
 		clip->source = MCLIP_SRC_SEQUENCE;
+
+	clip->lastsize[0] = clip->lastsize[1] = 0;
+	movieclip_load_get_szie(clip);
 
 	movieclip_calc_length(clip);
 }
