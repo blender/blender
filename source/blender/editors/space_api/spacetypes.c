@@ -64,7 +64,7 @@
 #include "ED_clip.h"
 #include "ED_mask.h"
 
-#include "IO_ops.h"
+#include "io_ops.h"
 
 /* only call once on startup, storage is global in BKE kernel listbase */
 void ED_spacetypes_init(void)
