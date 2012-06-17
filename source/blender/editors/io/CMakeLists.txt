@@ -14,13 +14,13 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 #
-# Contributor(s): Jacques Beaurain.
+# Contributor(s): Gaia Clary.
 #
 # ***** END GPL LICENSE BLOCK *****
 
 set(INC
 	../include
-	../io
+	../../blenfont
 	../../blenkernel
 	../../blenlib
 	../../blenloader
@@ -28,15 +28,15 @@ set(INC
 	../../makesdna
 	../../makesrna
 	../../windowmanager
-	../../../../intern/guardedalloc
-)
-
-set(INC_SYS
-
+	../../collada
 )
 
 set(SRC
-	spacetypes.c
+	io_collada.c
+    io_ops.c
+    
+    io_collada.h
+    io_ops.h
 )
 
-blender_add_lib(bf_editor_space_api "${SRC}" "${INC}" "${INC_SYS}")
+blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}")
