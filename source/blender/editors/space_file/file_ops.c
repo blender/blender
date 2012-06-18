@@ -1160,7 +1160,7 @@ static int file_directory_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(ev
 		
 		if (!BLI_exists(sfile->params->dir)) {
 			return WM_operator_confirm_message(C, op, "Create new directory?");
-		} 
+		}
 
 		return file_directory_exec(C, op);
 	}
@@ -1193,8 +1193,7 @@ int file_directory_exec(bContext *C, wmOperator *UNUSED(unused))
 		file_change_dir(C, 1);
 
 		WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_LIST, NULL);
-	}		
-	
+	}
 
 	return OPERATOR_FINISHED;
 }
@@ -1206,14 +1205,14 @@ int file_filename_exec(bContext *C, wmOperator *UNUSED(unused))
 	if (sfile->params) {
 		matched_file[0] = '\0';
 		if (file_select_match(sfile, sfile->params->file, matched_file)) {
-			int i, numfiles= filelist_numfiles(sfile->files);
+			/* int i, numfiles = filelist_numfiles(sfile->files); */ /* XXX UNUSED */
 			sfile->params->file[0] = '\0';
 			/* replace the pattern (or filename that the user typed in, with the first selected file of the match */
 			BLI_strncpy(sfile->params->file, matched_file, sizeof(sfile->params->file));
 			
 			WM_event_add_notifier(C, NC_SPACE|ND_SPACE_FILE_PARAMS, NULL);
 		}
-	}		
+	}
 
 	return OPERATOR_FINISHED;
 }
