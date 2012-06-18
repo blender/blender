@@ -1,0 +1,11 @@
+#!/usr/bin/python
+
+Import ('env')
+
+sources = env.Glob('*.c')
+defs = []
+
+incs = '../include ../../blenfont ../../blenkernel ../../blenlib ../../blenloader ../../bmesh'
+incs += '../../makesdna ../../makesrna ../../windowmanager ../../collada'
+
+env.BlenderLib ( 'bf_editor_io', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[330,210] )

@@ -33,10 +33,10 @@ set(INC
 
 set(SRC
 	io_collada.c
-    io_ops.c
-    
-    io_collada.h
-    io_ops.h
+	io_ops.c
+
+	io_collada.h
+	io_ops.h
 )
 
 if(WITH_OPENCOLLADA)
