@@ -531,13 +531,6 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 		rv->c->flags |= CODEC_FLAG_GLOBAL_HEADER;
 	}
 
-	if (av_set_parameters(rv->of, NULL) < 0) {
-		fprintf(stderr, "Couldn't set output parameters? "
-		        "Proxy not built!\n");
-		av_free(rv->of);
-		return 0;
-	}
-
 	if (avio_open(&rv->of->pb, fname, AVIO_FLAG_WRITE) < 0) {
 		fprintf(stderr, "Couldn't open outputfile! "
 		        "Proxy not built!\n");
@@ -574,7 +567,12 @@ static struct proxy_output_ctx *alloc_proxy_output_ffmpeg(
 		        NULL, NULL, NULL);
 	}
 
-	av_write_header(rv->of);
+	if (avformat_write_header(rv->of, NULL) < 0) {
+		fprintf(stderr, "Couldn't set output parameters? "
+		        "Proxy not built!\n");
+		av_free(rv->of);
+		return 0;
+	}
 
 	return rv;
 }
@@ -737,7 +735,7 @@ static IndexBuildContext *index_ffmpeg_create_context(struct anim *anim, IMB_Tim
 	memset(context->proxy_ctx, 0, sizeof(context->proxy_ctx));
 	memset(context->indexer, 0, sizeof(context->indexer));
 
-	if (av_open_input_file(&context->iFormatCtx, anim->name, NULL, 0, NULL) != 0) {
+	if (avformat_open_input(&context->iFormatCtx, anim->name, NULL, NULL) != 0) {
 		MEM_freeN(context);
 		return NULL;
 	}

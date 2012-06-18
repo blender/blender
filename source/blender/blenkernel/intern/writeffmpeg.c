@@ -42,8 +42,8 @@
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 #include <libavutil/rational.h>
+#include <libavutil/samplefmt.h>
 #include <libswscale/swscale.h>
-#include <libavcodec/opt.h>
 
 #include "MEM_guardedalloc.h"
 
@@ -615,7 +615,7 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 
 	c->sample_rate = rd->ffcodecdata.audio_mixrate;
 	c->bit_rate = ffmpeg_audio_bitrate * 1000;
-	c->sample_fmt = SAMPLE_FMT_S16;
+	c->sample_fmt = AV_SAMPLE_FMT_S16;
 	c->channels = rd->ffcodecdata.audio_channels;
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
@@ -657,11 +657,21 @@ static AVStream *alloc_audio_stream(RenderData *rd, int codec_id, AVFormatContex
 }
 /* essential functions -- start, append, end */
 
+static void ffmpeg_dict_set_int(AVDictionary **dict, const char *key, int value)
+{
+	char buffer[32];
+
+	BLI_snprintf(buffer, sizeof(buffer), "%d", value);
+
+	av_dict_set(dict, key, buffer, 0);
+}
+
 static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, ReportList *reports)
 {
 	/* Handle to the output file */
 	AVFormatContext *of;
 	AVOutputFormat *fmt;
+	AVDictionary *opts = NULL;
 	char name[256];
 	const char **exts;
 
@@ -707,13 +717,14 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 	of->oformat = fmt;
 	of->packet_size = rd->ffcodecdata.mux_packet_size;
 	if (ffmpeg_audio_codec != CODEC_ID_NONE) {
-		of->mux_rate = rd->ffcodecdata.mux_rate;
+		ffmpeg_dict_set_int(&opts, "muxrate", rd->ffcodecdata.mux_rate);
 	}
 	else {
-		of->mux_rate = 0;
+		av_dict_set(&opts, "muxrate", "0", 0);
 	}
 
-	of->preload = (int)(0.5 * AV_TIME_BASE);
+	ffmpeg_dict_set_int(&opts, "preload", (int)(0.5 * AV_TIME_BASE));
+
 	of->max_delay = (int)(0.7 * AV_TIME_BASE);
 
 	fmt->audio_codec = ffmpeg_audio_codec;
@@ -776,6 +787,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 		fmt->audio_codec = CODEC_ID_PCM_S16LE;
 		if (ffmpeg_audio_codec != CODEC_ID_NONE && rd->ffcodecdata.audio_mixrate != 48000 && rd->ffcodecdata.audio_channels != 2) {
 			BKE_report(reports, RPT_ERROR, "FFMPEG only supports 48khz / stereo audio for DV!");
+			av_dict_free(&opts);
 			return 0;
 		}
 	}
@@ -785,6 +797,7 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 		printf("alloc video stream %p\n", video_stream);
 		if (!video_stream) {
 			BKE_report(reports, RPT_ERROR, "Error initializing video stream.");
+			av_dict_free(&opts);
 			return 0;
 		}
 	}
@@ -793,27 +806,26 @@ static int start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty, Report
 		audio_stream = alloc_audio_stream(rd, fmt->audio_codec, of);
 		if (!audio_stream) {
 			BKE_report(reports, RPT_ERROR, "Error initializing audio stream.");
+			av_dict_free(&opts);
 			return 0;
 		}
-	}
-	if (av_set_parameters(of, NULL) < 0) {
-		BKE_report(reports, RPT_ERROR, "Error setting output parameters.");
-		return 0;
 	}
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		if (avio_open(&of->pb, name, AVIO_FLAG_WRITE) < 0) {
 			BKE_report(reports, RPT_ERROR, "Could not open file for writing.");
+			av_dict_free(&opts);
 			return 0;
 		}
 	}
-
-	if (av_write_header(of) < 0) {
+	if (avformat_write_header(of, NULL) < 0) {
 		BKE_report(reports, RPT_ERROR, "Could not initialize streams. Probably unsupported codec combination.");
+			av_dict_free(&opts);
 		return 0;
 	}
 
 	outfile = of;
 	av_dump_format(of, 0, name, 1);
+	av_dict_free(&opts);
 
 	return 1;
 }
