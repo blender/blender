@@ -1627,7 +1627,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	int nextLvl = curLvl + 1;
 	int ptrIdx, cornerIdx, i;
 	int vertDataSize = ss->meshIFC.vertDataSize;
-	void *q = ss->q, *r = ss->r;
+	float *q = ss->q, *r = ss->r;
 
 	#pragma omp parallel for private(ptrIdx) if (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT)
 	for (ptrIdx = 0; ptrIdx < numEffectedF; ptrIdx++) {
@@ -1642,11 +1642,11 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				for (x = 0; x < gridSize - 1; x++) {
 					int fx = 1 + 2 * x;
 					int fy = 1 + 2 * y;
-					void *co0 = FACE_getIFCo(f, curLvl, S, x + 0, y + 0);
-					void *co1 = FACE_getIFCo(f, curLvl, S, x + 1, y + 0);
-					void *co2 = FACE_getIFCo(f, curLvl, S, x + 1, y + 1);
-					void *co3 = FACE_getIFCo(f, curLvl, S, x + 0, y + 1);
-					void *co = FACE_getIFCo(f, nextLvl, S, fx, fy);
+					const float *co0 = FACE_getIFCo(f, curLvl, S, x + 0, y + 0);
+					const float *co1 = FACE_getIFCo(f, curLvl, S, x + 1, y + 0);
+					const float *co2 = FACE_getIFCo(f, curLvl, S, x + 1, y + 1);
+					const float *co3 = FACE_getIFCo(f, curLvl, S, x + 0, y + 1);
+					float *co = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
 					VertDataAvg4(co, co0, co1, co2, co3, ss);
 				}
@@ -1660,11 +1660,11 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		for (S = 0; S < f->numVerts; S++) {
 			for (x = 0; x < gridSize - 1; x++) {
 				int fx = x * 2 + 1;
-				void *co0 = FACE_getIECo(f, curLvl, S, x + 0);
-				void *co1 = FACE_getIECo(f, curLvl, S, x + 1);
-				void *co2 = FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx);
-				void *co3 = FACE_getIFCo(f, nextLvl, S, fx, 1);
-				void *co  = FACE_getIECo(f, nextLvl, S, fx);
+				const float *co0 = FACE_getIECo(f, curLvl, S, x + 0);
+				const float *co1 = FACE_getIECo(f, curLvl, S, x + 1);
+				const float *co2 = FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx);
+				const float *co3 = FACE_getIFCo(f, nextLvl, S, fx, 1);
+				float *co  = FACE_getIECo(f, nextLvl, S, fx);
 				
 				VertDataAvg4(co, co0, co1, co2, co3, ss);
 			}
@@ -1679,11 +1679,11 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				for (y = 0; y < gridSize - 1; y++) {
 					int fx = x * 2;
 					int fy = y * 2 + 1;
-					void *co0 = FACE_getIFCo(f, curLvl, S, x, y + 0);
-					void *co1 = FACE_getIFCo(f, curLvl, S, x, y + 1);
-					void *co2 = FACE_getIFCo(f, nextLvl, S, fx - 1, fy);
-					void *co3 = FACE_getIFCo(f, nextLvl, S, fx + 1, fy);
-					void *co  = FACE_getIFCo(f, nextLvl, S, fx, fy);
+					const float *co0 = FACE_getIFCo(f, curLvl, S, x, y + 0);
+					const float *co1 = FACE_getIFCo(f, curLvl, S, x, y + 1);
+					const float *co2 = FACE_getIFCo(f, nextLvl, S, fx - 1, fy);
+					const float *co3 = FACE_getIFCo(f, nextLvl, S, fx + 1, fy);
+					float *co  = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
 					VertDataAvg4(co, co0, co1, co2, co3, ss);
 				}
@@ -1694,11 +1694,11 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				for (x = 0; x < gridSize - 1; x++) {
 					int fx = x * 2 + 1;
 					int fy = y * 2;
-					void *co0 = FACE_getIFCo(f, curLvl, S, x + 0, y);
-					void *co1 = FACE_getIFCo(f, curLvl, S, x + 1, y);
-					void *co2 = FACE_getIFCo(f, nextLvl, S, fx, fy - 1);
-					void *co3 = FACE_getIFCo(f, nextLvl, S, fx, fy + 1);
-					void *co  = FACE_getIFCo(f, nextLvl, S, fx, fy);
+					const float *co0 = FACE_getIFCo(f, curLvl, S, x + 0, y);
+					const float *co1 = FACE_getIFCo(f, curLvl, S, x + 1, y);
+					const float *co2 = FACE_getIFCo(f, nextLvl, S, fx, fy - 1);
+					const float *co3 = FACE_getIFCo(f, nextLvl, S, fx, fy + 1);
+					float *co  = FACE_getIFCo(f, nextLvl, S, fx, fy);
 
 					VertDataAvg4(co, co0, co1, co2, co3, ss);
 				}
@@ -1718,9 +1718,9 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		if (_edge_isBoundary(e) || sharpness > 1.0f) {
 			for (x = 0; x < edgeSize - 1; x++) {
 				int fx = x * 2 + 1;
-				void *co0 = EDGE_getCo(e, curLvl, x + 0);
-				void *co1 = EDGE_getCo(e, curLvl, x + 1);
-				void *co  = EDGE_getCo(e, nextLvl, fx);
+				const float *co0 = EDGE_getCo(e, curLvl, x + 0);
+				const float *co1 = EDGE_getCo(e, curLvl, x + 1);
+				float *co  = EDGE_getCo(e, nextLvl, fx);
 
 				VertDataCopy(co, co0, ss);
 				VertDataAdd(co, co1, ss);
@@ -1730,9 +1730,9 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		else {
 			for (x = 0; x < edgeSize - 1; x++) {
 				int fx = x * 2 + 1;
-				void *co0 = EDGE_getCo(e, curLvl, x + 0);
-				void *co1 = EDGE_getCo(e, curLvl, x + 1);
-				void *co  = EDGE_getCo(e, nextLvl, fx);
+				const float *co0 = EDGE_getCo(e, curLvl, x + 0);
+				const float *co1 = EDGE_getCo(e, curLvl, x + 1);
+				float *co  = EDGE_getCo(e, nextLvl, fx);
 				int numFaces = 0;
 
 				VertDataCopy(q, co0, ss);
@@ -1766,8 +1766,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 	 */
 	for (ptrIdx = 0; ptrIdx < numEffectedV; ptrIdx++) {
 		CCGVert *v = (CCGVert *) effectedV[ptrIdx];
-		void *co = VERT_getCo(v, curLvl);
-		void *nCo = VERT_getCo(v, nextLvl);
+		const float *co = VERT_getCo(v, curLvl);
+		float *nCo = VERT_getCo(v, nextLvl);
 		int sharpCount = 0, allSharp = 1;
 		float avgSharpness = 0.0;
 		int j, seam = VERT_seam(v), seamEdges = 0;
@@ -1917,8 +1917,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		if (_edge_isBoundary(e) && (!e->numFaces || sharpCount < 2)) {
 			for (x = 1; x < edgeSize - 1; x++) {
 				int fx = x * 2;
-				void *co = EDGE_getCo(e, curLvl, x);
-				void *nCo = EDGE_getCo(e, nextLvl, fx);
+				const float *co = EDGE_getCo(e, curLvl, x);
+				float *nCo = EDGE_getCo(e, nextLvl, fx);
 				VertDataCopy(r, EDGE_getCo(e, curLvl, x - 1), ss);
 				VertDataAdd(r, EDGE_getCo(e, curLvl, x + 1), ss);
 				VertDataMulN(r, 0.5f, ss);
@@ -1931,8 +1931,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 		else {
 			for (x = 1; x < edgeSize - 1; x++) {
 				int fx = x * 2;
-				void *co = EDGE_getCo(e, curLvl, x);
-				void *nCo = EDGE_getCo(e, nextLvl, fx);
+				const float *co = EDGE_getCo(e, curLvl, x);
+				float *nCo = EDGE_getCo(e, nextLvl, fx);
 				int numFaces = 0;
 
 				VertDataZero(q, ss);
@@ -1974,7 +1974,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 
 	#pragma omp parallel private(ptrIdx) if (numEffectedF * edgeSize * edgeSize * 4 >= CCG_OMP_LIMIT)
 	{
-		void *q, *r;
+		float *q, *r;
 
 		#pragma omp critical
 		{
@@ -2018,8 +2018,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 					for (y = 1; y < gridSize - 1; y++) {
 						int fx = x * 2;
 						int fy = y * 2;
-						void *co = FACE_getIFCo(f, curLvl, S, x, y);
-						void *nCo = FACE_getIFCo(f, nextLvl, S, fx, fy);
+						const float *co = FACE_getIFCo(f, curLvl, S, x, y);
+						float *nCo = FACE_getIFCo(f, nextLvl, S, fx, fy);
 						
 						VertDataAvg4(q,
 						             FACE_getIFCo(f, nextLvl, S, fx - 1, fy - 1),
@@ -2049,8 +2049,8 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 				 */
 				for (x = 1; x < gridSize - 1; x++) {
 					int fx = x * 2;
-					void *co = FACE_getIECo(f, curLvl, S, x);
-					void *nCo = FACE_getIECo(f, nextLvl, S, fx);
+					const float *co = FACE_getIECo(f, curLvl, S, x);
+					float *nCo = FACE_getIECo(f, nextLvl, S, fx);
 					
 					VertDataAvg4(q,
 					             FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 1, fx - 1),
@@ -2106,7 +2106,7 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			VertDataCopy(FACE_getIFCo(f, nextLvl, S, cornerIdx, cornerIdx), VERT_getCo(FACE_getVerts(f)[S], nextLvl), ss);
 			VertDataCopy(FACE_getIECo(f, nextLvl, S, cornerIdx), EDGE_getCo(FACE_getEdges(f)[S], nextLvl, cornerIdx), ss);
 			for (x = 1; x < gridSize - 1; x++) {
-				void *co = FACE_getIECo(f, nextLvl, S, x);
+				float *co = FACE_getIECo(f, nextLvl, S, x);
 				VertDataCopy(FACE_getIFCo(f, nextLvl, S, x, 0), co, ss);
 				VertDataCopy(FACE_getIFCo(f, nextLvl, (S + 1) % f->numVerts, 0, x), co, ss);
 			}
