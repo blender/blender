@@ -269,7 +269,7 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 	SculptSession *ss = ob->sculpt;
 	SculptUndoNode *unode;
 	MultiresModifierData *mmd;
-	int update = 0, rebuild = 1;
+	int update = FALSE, rebuild = FALSE;
 
 	sculpt_update_mesh_elements(scene, sd, ob, 0);
 
@@ -297,15 +297,15 @@ static void sculpt_undo_restore(bContext *C, ListBase *lb)
 		switch (unode->type) {
 			case SCULPT_UNDO_COORDS:
 				if (sculpt_undo_restore_coords(C, dm, unode))
-					update = 1;
+					update = TRUE;
 				break;
 			case SCULPT_UNDO_HIDDEN:
 				if (sculpt_undo_restore_hidden(C, dm, unode))
-					rebuild = 1;
+					rebuild = TRUE;
 				break;
 			case SCULPT_UNDO_MASK:
 				if (sculpt_undo_restore_mask(C, dm, unode))
-					update = 1;
+					update = TRUE;
 				break;
 		}
 	}
