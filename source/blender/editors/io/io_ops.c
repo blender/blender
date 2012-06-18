@@ -31,6 +31,9 @@
 
 #include "io_collada.h"
 
+#include "WM_types.h"
+#include "WM_api.h"
+
 void ED_operatortypes_io(void) 
 {
 #ifdef WITH_COLLADA

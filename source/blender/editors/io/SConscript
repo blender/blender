@@ -9,6 +9,6 @@ incs = '../include ../../blenfont ../../blenkernel ../../blenlib ../../blenloade
 incs += '../../makesdna ../../makesrna ../../windowmanager ../../collada'
 
 if env['WITH_BF_COLLADA']:
-    defs += 'WITH_COLLADA'
+    defs += ['WITH_COLLADA']
 
 env.BlenderLib ( 'bf_editor_io', sources, Split(incs), defines=defs, libtype=['core','player'], priority=[330,210] )
