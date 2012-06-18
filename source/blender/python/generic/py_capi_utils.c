@@ -384,10 +384,7 @@ const char *PyC_UnicodeAsByte(PyObject *py_str, PyObject **coerce)
 	else {
 		PyErr_Clear();
 
-		if (py_str == Py_None) {
-			return NULL;
-		}
-		else if (PyBytes_Check(py_str)) {
+		if (PyBytes_Check(py_str)) {
 			return PyBytes_AS_STRING(py_str);
 		}
 		else if ((*coerce = PyUnicode_EncodeFSDefault(py_str))) {
