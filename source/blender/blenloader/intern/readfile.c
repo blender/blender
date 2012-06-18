@@ -7773,6 +7773,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if (main->versionfile < 263 || (main->versionfile == 263 && main->subversionfile < 12)) {
+		Material *ma;
+
+		for (ma = main->mat.first; ma; ma = ma->id.next)
+			if (ma->strand_widthfade == 2.0f)
+				ma->strand_widthfade = 0.0f;
+	}
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in editors/interface/resources.c! */
 
