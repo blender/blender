@@ -509,8 +509,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* copy weight */
 				dw_src = defvert_find_index(*dv_src, index_src);
-				dw_dst = defvert_find_index(*dv_dst, index_dst);
-				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				if(dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				}
 			}
 			break;
 
@@ -534,15 +536,11 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 										 &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
 
 				/* copy weight */
-				/*
-				ideasman42 2012/06/17 21:32:15
-				this is very bad - this function will add a vertex weight if not found, thereby modifying the source which should never happen.
-use defvert_find_index() instead. You will need to do something sane when the vgroup is not found -
-it should not add any vgroups or act as if all vgroups are 0 weight.
-				*/
 				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
-				dw_dst = defvert_find_index(*dv_dst, index_dst);
-				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				if(dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				}
 			}
 
 			/* free memory */
@@ -607,8 +605,10 @@ it should not add any vgroups or act as if all vgroups are 0 weight.
 				}
 
 				/* copy weight */
-				dw_dst = defvert_find_index(*dv_dst, index_dst);
-				vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
+				if(weight > 0) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
+				}
 			}
 
 			/* free memory */
@@ -657,8 +657,10 @@ it should not add any vgroups or act as if all vgroups are 0 weight.
 
 				/* copy weight */
 				dw_src = defvert_find_index(dv_array_src[index_nearest_vertex], index_src);
-				dw_dst = defvert_find_index(*dv_dst, index_dst);
-				vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				if(dw_src && dw_src->weight) {
+					dw_dst = defvert_verify_index(*dv_dst, index_dst);
+					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+				}
 			}
 
 			/* free memory */
