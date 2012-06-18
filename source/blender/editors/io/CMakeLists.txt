@@ -39,4 +39,8 @@ set(SRC
     io_ops.h
 )
 
+if(WITH_OPENCOLLADA)
+	add_definitions(-DWITH_COLLADA)
+endif()
+
 blender_add_lib(bf_editor_io "${SRC}" "${INC}" "${INC_SYS}")

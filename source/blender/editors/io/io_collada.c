@@ -27,7 +27,7 @@
 /** \file blender/editors/io/collada.c
  *  \ingroup collada
  */
-
+#ifdef WITH_COLLADA
 #include "DNA_scene_types.h"
 
 #include "BLF_translation.h"
@@ -278,3 +278,4 @@ void WM_OT_collada_import(wmOperatorType *ot)
 	
 	WM_operator_properties_filesel(ot, FOLDERFILE | COLLADAFILE, FILE_BLENDER, FILE_OPENFILE, WM_FILESEL_FILEPATH, FILE_DEFAULTDISPLAY);
 }
+#endif
