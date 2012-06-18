@@ -41,12 +41,12 @@ struct SpaceFile;
 struct ARegion *file_buttons_region(struct ScrArea *sa);
 
 /* file_draw.c */
-#define TILE_BORDER_X (UI_UNIT_X/4)
-#define TILE_BORDER_Y (UI_UNIT_Y/4)
+#define TILE_BORDER_X (UI_UNIT_X / 4)
+#define TILE_BORDER_Y (UI_UNIT_Y / 4)
 
 /* ui geometry */
-#define IMASEL_BUTTONS_HEIGHT (UI_UNIT_Y*2)
-#define IMASEL_BUTTONS_MARGIN (UI_UNIT_Y/6)
+#define IMASEL_BUTTONS_HEIGHT (UI_UNIT_Y * 2)
+#define IMASEL_BUTTONS_MARGIN (UI_UNIT_Y / 6)
 
 void file_draw_buttons(const bContext *C, ARegion *ar);
 void file_calc_previews(const bContext *C, ARegion *ar);
@@ -98,8 +98,8 @@ void file_operator_to_sfile(struct SpaceFile *sfile, struct wmOperator *op);
 
 
 /* filesel.c */
-float file_shorten_string(char* string, float w, int front);
-float file_string_width(const char* str);
+float file_shorten_string(char *string, float w, int front);
+float file_string_width(const char *str);
 
 float file_font_pointsize(void);
 void file_change_dir(bContext *C, int checkdir);

@@ -63,7 +63,7 @@
 #include "UI_view2d.h"
 
 
-#include "file_intern.h"	// own include
+#include "file_intern.h"    // own include
 #include "fsmenu.h"
 #include "filelist.h"
 
@@ -74,36 +74,36 @@ static SpaceLink *file_new(const bContext *UNUSED(C))
 	ARegion *ar;
 	SpaceFile *sfile;
 	
-	sfile= MEM_callocN(sizeof(SpaceFile), "initfile");
-	sfile->spacetype= SPACE_FILE;
+	sfile = MEM_callocN(sizeof(SpaceFile), "initfile");
+	sfile->spacetype = SPACE_FILE;
 
 	/* header */
-	ar= MEM_callocN(sizeof(ARegion), "header for file");
+	ar = MEM_callocN(sizeof(ARegion), "header for file");
 	BLI_addtail(&sfile->regionbase, ar);
-	ar->regiontype= RGN_TYPE_HEADER;
-	ar->alignment= RGN_ALIGN_TOP;
+	ar->regiontype = RGN_TYPE_HEADER;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* channel list region */
-	ar= MEM_callocN(sizeof(ARegion), "channel area for file");
+	ar = MEM_callocN(sizeof(ARegion), "channel area for file");
 	BLI_addtail(&sfile->regionbase, ar);
-	ar->regiontype= RGN_TYPE_CHANNELS;
-	ar->alignment= RGN_ALIGN_LEFT;	
+	ar->regiontype = RGN_TYPE_CHANNELS;
+	ar->alignment = RGN_ALIGN_LEFT;
 
 	/* ui list region */
-	ar= MEM_callocN(sizeof(ARegion), "ui area for file");
+	ar = MEM_callocN(sizeof(ARegion), "ui area for file");
 	BLI_addtail(&sfile->regionbase, ar);
-	ar->regiontype= RGN_TYPE_UI;
-	ar->alignment= RGN_ALIGN_TOP;
+	ar->regiontype = RGN_TYPE_UI;
+	ar->alignment = RGN_ALIGN_TOP;
 
 	/* main area */
-	ar= MEM_callocN(sizeof(ARegion), "main area for file");
+	ar = MEM_callocN(sizeof(ARegion), "main area for file");
 	BLI_addtail(&sfile->regionbase, ar);
-	ar->regiontype= RGN_TYPE_WINDOW;
+	ar->regiontype = RGN_TYPE_WINDOW;
 	ar->v2d.scroll = (V2D_SCROLL_RIGHT | V2D_SCROLL_BOTTOM);
-	ar->v2d.align = (V2D_ALIGN_NO_NEG_X|V2D_ALIGN_NO_POS_Y);
-	ar->v2d.keepzoom = (V2D_LOCKZOOM_X|V2D_LOCKZOOM_Y|V2D_LIMITZOOM|V2D_KEEPASPECT);
-	ar->v2d.keeptot= V2D_KEEPTOT_STRICT;
-	ar->v2d.minzoom= ar->v2d.maxzoom= 1.0f;
+	ar->v2d.align = (V2D_ALIGN_NO_NEG_X | V2D_ALIGN_NO_POS_Y);
+	ar->v2d.keepzoom = (V2D_LOCKZOOM_X | V2D_LOCKZOOM_Y | V2D_LIMITZOOM | V2D_KEEPASPECT);
+	ar->v2d.keeptot = V2D_KEEPTOT_STRICT;
+	ar->v2d.minzoom = ar->v2d.maxzoom = 1.0f;
 
 	return (SpaceLink *)sfile;
 }
@@ -111,31 +111,31 @@ static SpaceLink *file_new(const bContext *UNUSED(C))
 /* not spacelink itself */
 static void file_free(SpaceLink *sl)
 {	
-	SpaceFile *sfile= (SpaceFile *) sl;
+	SpaceFile *sfile = (SpaceFile *) sl;
 	
 	if (sfile->files) {
 		// XXXXX would need to do thumbnails_stop here, but no context available
 		filelist_freelib(sfile->files);
 		filelist_free(sfile->files);
 		MEM_freeN(sfile->files);
-		sfile->files= NULL;
+		sfile->files = NULL;
 	}
 
 	if (sfile->folders_prev) {
 		folderlist_free(sfile->folders_prev);
 		MEM_freeN(sfile->folders_prev);
-		sfile->folders_prev= NULL;
+		sfile->folders_prev = NULL;
 	}
 
 	if (sfile->folders_next) {
 		folderlist_free(sfile->folders_next);
 		MEM_freeN(sfile->folders_next);
-		sfile->folders_next= NULL;
+		sfile->folders_next = NULL;
 	}
 
 	if (sfile->params) {
 		MEM_freeN(sfile->params);
-		sfile->params= NULL;
+		sfile->params = NULL;
 	}
 
 	if (sfile->layout) {
@@ -148,27 +148,27 @@ static void file_free(SpaceLink *sl)
 /* spacetype; init callback, area size changes, screen set, etc */
 static void file_init(struct wmWindowManager *UNUSED(wm), ScrArea *sa)
 {
-	SpaceFile *sfile= (SpaceFile*)sa->spacedata.first;
+	SpaceFile *sfile = (SpaceFile *)sa->spacedata.first;
 	//printf("file_init\n");
 
 	/* refresh system directory list */
 	fsmenu_refresh_system_category(fsmenu_get());
 
-	if (sfile->layout) sfile->layout->dirty= TRUE;
+	if (sfile->layout) sfile->layout->dirty = TRUE;
 }
 
 
 static SpaceLink *file_duplicate(SpaceLink *sl)
 {
-	SpaceFile *sfileo= (SpaceFile*)sl;
-	SpaceFile *sfilen= MEM_dupallocN(sl);
+	SpaceFile *sfileo = (SpaceFile *)sl;
+	SpaceFile *sfilen = MEM_dupallocN(sl);
 	
 	/* clear or remove stuff from old */
 	sfilen->op = NULL; /* file window doesn't own operators */
 
 	if (sfileo->params) {
 		sfilen->files = filelist_new(sfileo->params->type);
-		sfilen->params= MEM_dupallocN(sfileo->params);
+		sfilen->params = MEM_dupallocN(sfileo->params);
 		filelist_setdir(sfilen->files, sfilen->params->dir);
 	}
 
@@ -179,14 +179,14 @@ static SpaceLink *file_duplicate(SpaceLink *sl)
 		sfilen->folders_next = folderlist_duplicate(sfileo->folders_next);
 	
 	if (sfileo->layout) {
-		sfilen->layout= MEM_dupallocN(sfileo->layout);
+		sfilen->layout = MEM_dupallocN(sfileo->layout);
 	}
 	return (SpaceLink *)sfilen;
 }
 
 static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 {
-	SpaceFile *sfile= CTX_wm_space_file(C);
+	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
 
 	if (!sfile->folders_prev)
@@ -203,7 +203,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	if (filelist_empty(sfile->files)) {
 		thumbnails_stop(sfile->files, C);
 		filelist_readdir(sfile->files);
-		if (params->sort!=FILE_SORT_NONE) {
+		if (params->sort != FILE_SORT_NONE) {
 			filelist_sort(sfile->files, params->sort);
 		}
 		BLI_strncpy(params->dir, filelist_dir(sfile->files), FILE_MAX);
@@ -212,7 +212,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		}
 	}
 	else {
-		if (params->sort!=FILE_SORT_NONE) {
+		if (params->sort != FILE_SORT_NONE) {
 			thumbnails_stop(sfile->files, C);
 			filelist_sort(sfile->files, params->sort);
 			if (params->display == FILE_IMGDISPLAY) {
@@ -237,7 +237,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 	if (params->renamefile[0] != '\0') {
 		int idx = filelist_find(sfile->files, params->renamefile);
 		if (idx >= 0) {
-			struct direntry *file= filelist_file(sfile->files, idx);
+			struct direntry *file = filelist_file(sfile->files, idx);
 			if (file) {
 				file->selflag |= EDITING_FILE;
 			}
@@ -245,7 +245,7 @@ static void file_refresh(const bContext *C, ScrArea *UNUSED(sa))
 		BLI_strncpy(sfile->params->renameedit, sfile->params->renamefile, sizeof(sfile->params->renameedit));
 		params->renamefile[0] = '\0';
 	}
-	if (sfile->layout) sfile->layout->dirty= TRUE;
+	if (sfile->layout) sfile->layout->dirty = TRUE;
 
 }
 
@@ -307,11 +307,11 @@ static void file_main_area_listener(ARegion *ar, wmNotifier *wmn)
 static void file_main_area_draw(const bContext *C, ARegion *ar)
 {
 	/* draw entirely, view changes should be handled here */
-	SpaceFile *sfile= CTX_wm_space_file(C);
+	SpaceFile *sfile = CTX_wm_space_file(C);
 	FileSelectParams *params = ED_fileselect_get_params(sfile);
-	FileLayout *layout=NULL;
+	FileLayout *layout = NULL;
 
-	View2D *v2d= &ar->v2d;
+	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 	float col[3];
 
@@ -355,7 +355,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	
 	/* on first read, find active file */
 	if (params->active_file == -1) {
-		wmEvent *event= CTX_wm_window(C)->eventstate;
+		wmEvent *event = CTX_wm_window(C)->eventstate;
 		file_hilight_set(sfile, ar, event->x, event->y);
 	}
 	
@@ -365,7 +365,7 @@ static void file_main_area_draw(const bContext *C, ARegion *ar)
 	UI_view2d_view_restore(C);
 	
 	/* scrollers */
-	scrollers= UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
+	scrollers = UI_view2d_scrollers_calc(C, v2d, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY, V2D_ARG_DUMMY);
 	UI_view2d_scrollers_draw(C, v2d, scrollers);
 	UI_view2d_scrollers_free(scrollers);
 
@@ -553,58 +553,58 @@ static void file_ui_area_listener(ARegion *ar, wmNotifier *wmn)
 /* only called once, from space/spacetypes.c */
 void ED_spacetype_file(void)
 {
-	SpaceType *st= MEM_callocN(sizeof(SpaceType), "spacetype file");
+	SpaceType *st = MEM_callocN(sizeof(SpaceType), "spacetype file");
 	ARegionType *art;
 	
-	st->spaceid= SPACE_FILE;
+	st->spaceid = SPACE_FILE;
 	strncpy(st->name, "File", BKE_ST_MAXNAME);
 	
-	st->new= file_new;
-	st->free= file_free;
-	st->init= file_init;
-	st->duplicate= file_duplicate;
-	st->refresh= file_refresh;
-	st->listener= file_listener;
-	st->operatortypes= file_operatortypes;
-	st->keymap= file_keymap;
+	st->new = file_new;
+	st->free = file_free;
+	st->init = file_init;
+	st->duplicate = file_duplicate;
+	st->refresh = file_refresh;
+	st->listener = file_listener;
+	st->operatortypes = file_operatortypes;
+	st->keymap = file_keymap;
 	
 	/* regions: main window */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_WINDOW;
-	art->init= file_main_area_init;
-	art->draw= file_main_area_draw;
-	art->listener= file_main_area_listener;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D;
+	art->init = file_main_area_init;
+	art->draw = file_main_area_draw;
+	art->listener = file_main_area_listener;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: header */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_HEADER;
-	art->prefsizey= HEADERY;
-	art->keymapflag= ED_KEYMAP_UI|ED_KEYMAP_VIEW2D|ED_KEYMAP_HEADER;
-	art->init= file_header_area_init;
-	art->draw= file_header_area_draw;
+	art->prefsizey = HEADERY;
+	art->keymapflag = ED_KEYMAP_UI | ED_KEYMAP_VIEW2D | ED_KEYMAP_HEADER;
+	art->init = file_header_area_init;
+	art->draw = file_header_area_draw;
 	// art->listener= file_header_area_listener;
 	BLI_addhead(&st->regiontypes, art);
 	
 	/* regions: ui */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_UI;
-	art->prefsizey= 60;
-	art->keymapflag= ED_KEYMAP_UI;
-	art->listener= file_ui_area_listener;
-	art->init= file_ui_area_init;
-	art->draw= file_ui_area_draw;
+	art->prefsizey = 60;
+	art->keymapflag = ED_KEYMAP_UI;
+	art->listener = file_ui_area_listener;
+	art->init = file_ui_area_init;
+	art->draw = file_ui_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 
 	/* regions: channels (directories) */
-	art= MEM_callocN(sizeof(ARegionType), "spacetype file region");
+	art = MEM_callocN(sizeof(ARegionType), "spacetype file region");
 	art->regionid = RGN_TYPE_CHANNELS;
-	art->prefsizex= 240;
-	art->keymapflag= ED_KEYMAP_UI;
-	art->listener= file_channel_area_listener;
-	art->init= file_channel_area_init;
-	art->draw= file_channel_area_draw;
+	art->prefsizex = 240;
+	art->keymapflag = ED_KEYMAP_UI;
+	art->listener = file_channel_area_listener;
+	art->init = file_channel_area_init;
+	art->draw = file_channel_area_draw;
 	BLI_addhead(&st->regiontypes, art);
 	file_panels_register(art);
 
