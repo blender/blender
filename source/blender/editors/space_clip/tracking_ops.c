@@ -575,6 +575,9 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 						ok = TRUE;
 					}
 					else {
+#if 0
+						/* TODO: disable for now, needs better approaches for visualization */
+
 						if (mouse_on_corner(sc, marker, TRACK_AREA_PAT, co, 1, 12.0f, width, height)) {
 							area = TRACK_AREA_PAT;
 							action = SLIDE_ACTION_OFFSET;
@@ -585,6 +588,7 @@ MovieTrackingTrack *tracking_marker_check_slide(bContext *C, wmEvent *event, int
 							action = SLIDE_ACTION_SIZE;
 							ok = TRUE;
 						}
+#endif
 						if (!ok && mouse_on_tilt(sc, marker, co, width, height)) {
 							area = TRACK_AREA_PAT;
 							action = SLIDE_ACTION_TILT_SIZE;
