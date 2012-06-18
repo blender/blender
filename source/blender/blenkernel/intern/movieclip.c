@@ -463,7 +463,6 @@ static void movieclip_load_get_szie(MovieClip *clip)
 		clip->tracking.camera.principal[0] = ((float)width) / 2.0f;
 		clip->tracking.camera.principal[1] = ((float)height) / 2.0f;
 
-		clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
 	}
 }
 
@@ -518,6 +517,11 @@ MovieClip *BKE_movieclip_file_add(const char *name)
 		clip->source = MCLIP_SRC_SEQUENCE;
 
 	movieclip_load_get_szie(clip);
+	if (clip->lastsize[0]) {
+		int width = clip->lastsize[0];
+
+		clip->tracking.camera.focal = 24.0f * width / clip->tracking.camera.sensor_width;
+	}
 
 	movieclip_calc_length(clip);
 
