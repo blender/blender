@@ -1206,7 +1206,7 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	char name_[128];
 	char *name;
 	char *param;
-	IDProperty *prop;
+	IDProperty *prop = NULL;
 	
 	avcodec_get_context_defaults(&c);
 
@@ -1234,9 +1234,11 @@ int BKE_ffmpeg_property_add_string(RenderData *rd, const char *type, const char 
 	}
 	if (param && o->type != FF_OPT_TYPE_CONST && o->unit) {
 		p = my_av_find_opt(&c, param, o->unit, 0, 0);	
-		prop = BKE_ffmpeg_property_add(rd,
-		                               (char *) type, p - c.av_class->option,
-		                               o - c.av_class->option);
+		if (p) {
+			prop = BKE_ffmpeg_property_add(rd,
+			                               (char *) type, p - c.av_class->option,
+			                               o - c.av_class->option);
+		}
 	}
 	else {
 		prop = BKE_ffmpeg_property_add(rd,
