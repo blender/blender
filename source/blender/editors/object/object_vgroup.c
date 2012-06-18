@@ -396,24 +396,24 @@ typedef enum ReplaceMode {
 } ReplaceMode;
 
 static EnumPropertyItem vertex_group_mode_item[] = {
-	{REPLACE_ACTIVE_VERTEX_GROUP, "REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh."},
-	{REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
-	{0, NULL, 0, NULL, NULL}
+    {REPLACE_ACTIVE_VERTEX_GROUP, "REPLACE_ACTIVE_VERTEX_GROUP", 1, "Active", "Transfer active vertex group from selected to active mesh."},
+    {REPLACE_ALL_VERTEX_GROUPS, "REPLACE_ALL_VERTEX_GROUPS", 1, "All", "Transfer all vertex groups from selected to active mesh."},
+    {0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem method_mode_item[] = {
-	{BY_INDEX, "BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
-	{BY_NEAREST_VERTEX, "BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
-	{BY_NEAREST_FACE, "BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
-	{BY_NEAREST_VERTEX_IN_FACE, "BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face."},
-	{0, NULL, 0, NULL, NULL}
+    {BY_INDEX, "BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
+    {BY_NEAREST_VERTEX, "BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
+    {BY_NEAREST_FACE, "BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
+    {BY_NEAREST_VERTEX_IN_FACE, "BY_NEAREST_VERTEX_IN_FACE", 1, "Nearest vertex in face", "Copy weight from closest vertex in nearest face."},
+    {0, NULL, 0, NULL, NULL}
 };
 
 static EnumPropertyItem replace_mode_item[] = {
-	{REPLACE_ALL_WEIGHTS, "REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
-	{REPLACE_EMPTY_WEIGHTS, "REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
-	{REPLACE_SELECTED_WEIGHTS, "REPLACE_SELECTED_WEIGHTS", 1, "Selected", "Replace selected weights."},
-	{0, NULL, 0, NULL, NULL}
+    {REPLACE_ALL_WEIGHTS, "REPLACE_ALL_WEIGHTS", 1, "All", "Overwrites all weights."},
+    {REPLACE_EMPTY_WEIGHTS, "REPLACE_EMPTY_WEIGHTS", 1, "Empty", "Adds weights to vertices with no weight."},
+    {REPLACE_SELECTED_WEIGHTS, "REPLACE_SELECTED_WEIGHTS", 1, "Selected", "Replace selected weights."},
+    {0, NULL, 0, NULL, NULL}
 };
 
 /*copy weight*/
@@ -436,7 +436,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 }
 
 int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
-							  MethodMode method_mode, ReplaceMode replace_mode)
+                              MethodMode method_mode, ReplaceMode replace_mode)
 {
 	bDeformGroup *dg_dst;
 	Mesh *me_dst, *me_src;
@@ -533,7 +533,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* node tree accelerated search for closest vetex */
 				BLI_bvhtree_find_nearest(tree_mesh_vertices_src.tree, tmp_co,
-										 &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
+				                         &nearest, tree_mesh_vertices_src.nearest_callback, &tree_mesh_vertices_src);
 
 				/* copy weight */
 				dw_src = defvert_find_index(dv_array_src[nearest.index], index_src);
@@ -568,30 +568,30 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* node tree accelerated search for closest face */
 				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
-										 &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 				index_nearest = nearest.index;
 
 				/* project onto face */
 				normal_tri_v3(normal,
-							  mv_src[mface_src[nearest.index].v1].co,
-							  mv_src[mface_src[index_nearest].v2].co,
-							  mv_src[mface_src[index_nearest].v3].co);
+				              mv_src[mface_src[nearest.index].v1].co,
+				              mv_src[mface_src[index_nearest].v2].co,
+				              mv_src[mface_src[index_nearest].v3].co);
 
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
 				/* interpolate weights */
 				if (mface_src[index_nearest].v4) {
 					interp_weights_face_v3(tmp_weight,
-										   mv_src[mface_src[index_nearest].v1].co,
-										   mv_src[mface_src[index_nearest].v2].co,
-										   mv_src[mface_src[index_nearest].v3].co,
-										   mv_src[mface_src[index_nearest].v4].co, tmp_co);
+					                       mv_src[mface_src[index_nearest].v1].co,
+					                       mv_src[mface_src[index_nearest].v2].co,
+					                       mv_src[mface_src[index_nearest].v3].co,
+					                       mv_src[mface_src[index_nearest].v4].co, tmp_co);
 				}
 				else {
 					interp_weights_face_v3(tmp_weight,
-										   mv_src[mface_src[index_nearest].v1].co,
-										   mv_src[mface_src[index_nearest].v2].co,
-										   mv_src[mface_src[index_nearest].v3].co, NULL, tmp_co);
+					                       mv_src[mface_src[index_nearest].v1].co,
+					                       mv_src[mface_src[index_nearest].v2].co,
+					                       mv_src[mface_src[index_nearest].v3].co, NULL, tmp_co);
 				}
 
 				/* get weights */
@@ -605,7 +605,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				}
 
 				/* copy weight */
-				if(weight > 0) {
+				if(weight > 0) {/*todo: handle NULL source properly*/
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
 				}
@@ -636,7 +636,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* node tree accelerated search for closest face */
 				BLI_bvhtree_find_nearest(tree_mesh_faces_src.tree, tmp_co,
-										 &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
+				                         &nearest, tree_mesh_faces_src.nearest_callback, &tree_mesh_faces_src);
 				index_nearest = nearest.index;
 
 				/* get distances */
