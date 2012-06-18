@@ -28,4 +28,9 @@
  *  \ingroup editor/io
  */
 
-extern void ED_operatortypes_io(void);
+#ifndef __IO_OPS_H__
+#define __IO_OPS_H__
+
+void ED_operatortypes_io(void);
+
+#endif

@@ -28,8 +28,12 @@
  *  \ingroup editor/io
  */
 
-#include "WM_types.h"
-#include "WM_api.h"
+#ifndef __IO_COLLADA_H__
+#define __IO_COLLADA_H__
 
-extern void WM_OT_collada_export(wmOperatorType *ot);
-extern void WM_OT_collada_import(wmOperatorType *ot);
+struct wmOperatorType;
+
+void WM_OT_collada_export(struct wmOperatorType *ot);
+void WM_OT_collada_import(struct wmOperatorType *ot);
+
+#endif
