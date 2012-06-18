@@ -37,9 +37,11 @@ void OutputFileNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 	NodeImageMultiFile *storage = (NodeImageMultiFile *)this->getbNode()->storage;
 	
 	if (!context->isRendering()) {
-		/* XXX TODO as in previous implementation?
-		 * add dummy operations and exit, to prevent file writing on each compo update.
+		/* only output files when rendering a sequence -
+		 * otherwise, it overwrites the output files just
+		 * scrubbing through the timeline when the compositor updates.
 		 */
+		return;
 	}
 	
 	if (storage->format.imtype == R_IMF_IMTYPE_MULTILAYER) {
