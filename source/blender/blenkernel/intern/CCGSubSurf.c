@@ -1914,14 +1914,18 @@ static void ccgSubSurf__calcSubdivLevel(CCGSubSurf *ss,
 			avgSharpness = 0;
 		}
 
-		if (_edge_isBoundary(e) && (!e->numFaces || sharpCount < 2)) {
+		if (_edge_isBoundary(e)) {
 			for (x = 1; x < edgeSize - 1; x++) {
 				int fx = x * 2;
 				const float *co = EDGE_getCo(e, curLvl, x);
 				float *nCo = EDGE_getCo(e, nextLvl, fx);
+
+				/* Average previous level's endpoints */
 				VertDataCopy(r, EDGE_getCo(e, curLvl, x - 1), ss);
 				VertDataAdd(r, EDGE_getCo(e, curLvl, x + 1), ss);
 				VertDataMulN(r, 0.5f, ss);
+
+				/* nCo = nCo * 0.75 + r * 0.25 */
 				VertDataCopy(nCo, co, ss);
 				VertDataMulN(nCo, 0.75f, ss);
 				VertDataMulN(r, 0.25f, ss);
