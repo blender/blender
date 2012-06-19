@@ -382,12 +382,12 @@ typedef enum VertexGroupMode {
 	REPLACE_ALL_VERTEX_GROUPS = 2
 } VertexGroupMode;
 
-typedef enum MethodMode {
+typedef enum Method {
 	BY_INDEX = 1,
 	BY_NEAREST_VERTEX = 2,
 	BY_NEAREST_FACE = 3,
 	BY_NEAREST_VERTEX_IN_FACE = 4
-} MethodMode;
+} Method;
 
 typedef enum ReplaceMode {
 	REPLACE_ALL_WEIGHTS = 1,
@@ -401,7 +401,7 @@ static EnumPropertyItem vertex_group_mode_item[] = {
     {0, NULL, 0, NULL, NULL}
 };
 
-static EnumPropertyItem method_mode_item[] = {
+static EnumPropertyItem method_item[] = {
     {BY_INDEX, "BY_INDEX", 1, "Vertex index", "Copy for identical meshes."},
     {BY_NEAREST_VERTEX, "BY_NEAREST_VERTEX", 1, "Nearest vertex", "Copy weight from closest vertex."},
     {BY_NEAREST_FACE, "BY_NEAREST_FACE", 1, "Nearest face", "Barycentric interpolation from nearest face."},
@@ -436,7 +436,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 }
 
 int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
-                              MethodMode method_mode, ReplaceMode replace_mode, wmOperator *op)
+                              Method method, ReplaceMode replace_mode, wmOperator *op)
 {
 	bDeformGroup *dg_dst;
 	Mesh *me_dst, *me_src;
@@ -466,7 +466,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 	/* sanity check */
 	if (!me_src->dvert) {
-		BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Source mesh does not have vertices");
+		BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Source mesh does not have any vertex groups");
 		return 0;
 	}
 
@@ -489,7 +489,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
-	switch (method_mode) {
+	switch (method) {
 
 		case BY_INDEX:
 			/* check if indices are matching, delete and return if not */
@@ -513,6 +513,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
+				/* why?
+				ideasman42 2012/06/19 07:27:34
+				there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
+				*/
 			}
 			break;
 
@@ -540,6 +544,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if(dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
+					/* why?
+					ideasman42 2012/06/19 07:27:34
+					there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
+					*/
 				}
 			}
 
@@ -597,9 +605,18 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				/* get weights from face*/
 				weight = 0;
 				if (&mface_src[index_nearest].v4 != NULL) v = 4;
+				/*
+				ideasman42 2012/06/19 07:27:34
+				comparing v4 with NULL is misleading, since its not a pointer. suggest to use this:
+mf = &mface_src[index_nearest]; fidx = mf->v4 ? 3 : 2; do { unsigned int vidx = (&mf->v1)[fidx]; ... operate on vidx ... } while (fidx--);
+				*/
 				else v = 3;
 				for (j = 0; j < v; j++) {
 					weight += tmp_weight[j] * defvert_find_index(dv_array_src[(&mface_src[index_nearest].v1)[j]], index_src)->weight;
+					/*
+ideasman42 2012/06/19 07:27:34
+defvert_find_index may be a NULL pointer, so getting ->weight from it may crash. better use defvert_find_weight() here which falls back to 0.0 when not found.
+					  */
 				}
 
 				/* copy weight */
@@ -647,6 +664,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
 				else index_nearest_vertex = mface_src[index_nearest].v3;
 				if (&mface_src[index_nearest].v4 != NULL) {
+					  /*
+ideasman42 2012/06/19 07:27:34
+comparing v4 with NULL is misleading... see above.
+					 */
 					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v4].co);
 					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
 						index_nearest_vertex = mface_src[index_nearest].v4;
@@ -659,6 +680,10 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
+				  /*
+ideasman42 2012/06/19 07:27:34 why?
+there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
+				  */
 			}
 
 			/* free memory */
@@ -3065,7 +3090,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	int fail = 0;
 
 	VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "vertex_group_mode");
-	MethodMode method_mode = RNA_enum_get(op->ptr, "method_mode");
+	Method method = RNA_enum_get(op->ptr, "method");
 	ReplaceMode replace_mode = RNA_enum_get(op->ptr, "replace_mode");
 
 	/* Macro to loop through selected objects and perform operation depending on function, option and method */
@@ -3077,13 +3102,13 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 				case REPLACE_ACTIVE_VERTEX_GROUP:
 					if (!ED_vgroup_transfer_weight(
-					        ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_mode, replace_mode, op)) fail++;
+					        ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method, replace_mode, op)) fail++;
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
 						if (!ED_vgroup_transfer_weight(
-						        ob_act, ob_slc, dg_src, scene, method_mode, replace_mode, op)) fail++;
+						        ob_act, ob_slc, dg_src, scene, method, replace_mode, op)) fail++;
 					}
 					break;
 			}
@@ -3118,7 +3143,7 @@ void OBJECT_OT_vertex_group_transfer_weight(wmOperatorType *ot)
 
 	/* properties */
 	ot->prop = RNA_def_enum(ot->srna, "vertex_group_mode", vertex_group_mode_item, 1, "Group", "");
-	ot->prop = RNA_def_enum(ot->srna, "method_mode", method_mode_item, 3, "Method", "");
+	ot->prop = RNA_def_enum(ot->srna, "method", method_item, 3, "Method", "");
 	ot->prop = RNA_def_enum(ot->srna, "replace_mode", replace_mode_item, 1, "Replace", "");
 }
 
