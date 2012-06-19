@@ -447,7 +447,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	MFace *mface_src;
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
-	int dv_tot_src, dv_tot_dst, i, index_dst, index_src, index_nearest, index_nearest_vertex;
+	int dv_tot_src, dv_tot_dst, i, j, v, index_dst, index_src, index_nearest, index_nearest_vertex;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 
 	/* create new and overwrite vertex group on destination without data */
@@ -579,7 +579,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
-				/* interpolate weights */
+				/* interpolate weights over face*/
 				if (mface_src[index_nearest].v4) {
 					interp_weights_face_v3(tmp_weight,
 					                       mv_src[mface_src[index_nearest].v1].co,
@@ -594,18 +594,16 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					                       mv_src[mface_src[index_nearest].v3].co, NULL, tmp_co);
 				}
 
-				/* get weights */
-				/* ideasman42 2012/06/17 21:32:15*/
-				/* you can loop over 3-4 items here, ratrher then inline all 4 calls. paint_vertex.c has examples of this. */
-				weight = tmp_weight[0] * defvert_find_index(dv_array_src[mface_src[index_nearest].v1], index_src)->weight;
-				weight += tmp_weight[1] * defvert_find_index(dv_array_src[mface_src[index_nearest].v2], index_src)->weight;
-				weight += tmp_weight[2] * defvert_find_index(dv_array_src[mface_src[index_nearest].v3], index_src)->weight;
-				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) {
-					weight += tmp_weight[3] * defvert_find_index(dv_array_src[mface_src[index_nearest].v4], index_src)->weight;
+				/* get weights from face*/
+				weight = 0;
+				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) v = 4;
+				else v = 3;
+				for (j = 0; j < v; j++) {
+					weight += tmp_weight[j] * defvert_find_index(dv_array_src[(&mface_src[index_nearest].v1)[j]], index_src)->weight;
 				}
 
 				/* copy weight */
-				if(weight > 0) {/*todo: handle NULL source properly*/
+				if(weight > 0) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, weight, replace_mode);
 				}
