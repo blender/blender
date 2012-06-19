@@ -6787,17 +6787,24 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			
 			node->storage = nimf;
 			
-			/* split off filename from the old path, to be used as socket sub-path */
-			BLI_split_dirfile(old_data->name, basepath, filename, sizeof(basepath), sizeof(filename));
-			
-			BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
-			nimf->format = old_data->im_format;
+			/* looks like storage data can be messed up somehow, stupid check here */
+			if (old_data) {
+				/* split off filename from the old path, to be used as socket sub-path */
+				BLI_split_dirfile(old_data->name, basepath, filename, sizeof(basepath), sizeof(filename));
+				
+				BLI_strncpy(nimf->base_path, basepath, sizeof(nimf->base_path));
+				nimf->format = old_data->im_format;
+			}
+			else {
+				basepath[0] = '\0';
+				BLI_strncpy(filename, old_image->name, sizeof(filename));
+			}
 			
 			/* if z buffer is saved, change the image type to multilayer exr.
 			 * XXX this is slightly messy, Z buffer was ignored before for anything but EXR and IRIS ...
 			 * i'm just assuming here that IRIZ means IRIS with z buffer ...
 			 */
-			if (ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
+			if (old_data && ELEM(old_data->im_format.imtype, R_IMF_IMTYPE_IRIZ, R_IMF_IMTYPE_OPENEXR)) {
 				char sockpath[FILE_MAX];
 				
 				nimf->format.imtype = R_IMF_IMTYPE_MULTILAYER;
@@ -6832,7 +6839,8 @@ static void do_versions_nodetree_multi_file_output_format_2_62_1(Scene *sce, bNo
 			
 			nodeRemoveSocket(ntree, node, old_image);
 			nodeRemoveSocket(ntree, node, old_z);
-			MEM_freeN(old_data);
+			if (old_data)
+				MEM_freeN(old_data);
 		}
 		else if (node->type==CMP_NODE_OUTPUT_MULTI_FILE__DEPRECATED) {
 			NodeImageMultiFile *nimf = node->storage;
