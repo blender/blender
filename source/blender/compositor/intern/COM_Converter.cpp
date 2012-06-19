@@ -110,6 +110,7 @@
 #include "COM_TransformNode.h"
 #include "COM_TranslateNode.h"
 #include "COM_TranslateOperation.h"
+#include "COM_TrackPositionNode.h"
 #include "COM_ValueNode.h"
 #include "COM_VectorBlurNode.h"
 #include "COM_VectorCurveNode.h"
@@ -360,6 +361,9 @@ Node *Converter::convert(bNode *bNode)
 			break;
 		case CMP_NODE_KEYING:
 			node = new KeyingNode(bNode);
+			break;
+		case CMP_NODE_TRACKPOS:
+			node = new TrackPositionNode(bNode);
 			break;
 		/* not inplemented yet */
 		default:

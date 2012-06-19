@@ -1925,6 +1925,7 @@ static void registerCompositNodes(bNodeTreeType *ttype)
 	register_node_type_cmp_switch(ttype);
 
 	register_node_type_cmp_mask(ttype);
+	register_node_type_cmp_trackpos(ttype);
 }
 
 static void registerShaderNodes(bNodeTreeType *ttype) 
