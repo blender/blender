@@ -436,7 +436,7 @@ void vgroup_transfer_weight(MVert *mv_dst, float *weight_dst, float weight_src, 
 }
 
 int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_src, Scene *scene,
-                              MethodMode method_mode, ReplaceMode replace_mode)
+                              MethodMode method_mode, ReplaceMode replace_mode, wmOperator *op)
 {
 	bDeformGroup *dg_dst;
 	Mesh *me_dst, *me_src;
@@ -466,7 +466,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 	/* sanity check */
 	if (!me_src->dvert) {
-		/*todo fix!***********************************************************************************************/
+		BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Source mesh does not have vertices");
 		return 0;
 	}
 
@@ -500,7 +500,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if (dv_array_src) MEM_freeN(dv_array_src);
 				if (dv_array_dst) MEM_freeN(dv_array_dst);
 				dmesh_src->release(dmesh_src);
-				/*todo: fix********************************************************************************************/
+				BKE_reportf(op->reports, RPT_ERROR, "Transfer failed. Indices are not matching");
 				return 0;
 			}
 
@@ -3062,6 +3062,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 	Scene *scene = CTX_data_scene(C);
 	Object *ob_act = CTX_data_active_object(C);
 	bDeformGroup *dg_src;
+	int fail = 0;
 
 	VertexGroupMode vertex_group_mode = RNA_enum_get(op->ptr, "vertex_group_mode");
 	MethodMode method_mode = RNA_enum_get(op->ptr, "method_mode");
@@ -3075,12 +3076,14 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 			switch (vertex_group_mode) {
 
 				case REPLACE_ACTIVE_VERTEX_GROUP:
-					ED_vgroup_transfer_weight(ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_mode, replace_mode);
+					if (!ED_vgroup_transfer_weight(
+					        ob_act, ob_slc, BLI_findlink(&ob_slc->defbase, ob_slc->actdef - 1), scene, method_mode, replace_mode, op)) fail++;
 					break;
 
 				case REPLACE_ALL_VERTEX_GROUPS:
 					for (dg_src = ob_slc->defbase.first; dg_src; dg_src = dg_src->next) {
-						ED_vgroup_transfer_weight(ob_act, ob_slc, dg_src, scene, method_mode, replace_mode);
+						if (!ED_vgroup_transfer_weight(
+						        ob_act, ob_slc, dg_src, scene, method_mode, replace_mode, op)) fail++;
 					}
 					break;
 			}
@@ -3094,6 +3097,7 @@ static int vertex_group_transfer_weight_exec(bContext *C, wmOperator *op)
 
 	CTX_DATA_END;
 
+	if (fail != 0) return OPERATOR_CANCELLED;
 	return OPERATOR_FINISHED;
 }
 
