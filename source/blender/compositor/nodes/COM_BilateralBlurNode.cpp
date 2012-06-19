@@ -28,6 +28,7 @@
 
 BilateralBlurNode::BilateralBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void BilateralBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

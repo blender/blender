@@ -247,7 +247,7 @@ void do_init_ffmpeg(void)
 
 static int isffmpeg(const char *filename)
 {
-	AVFormatContext *pFormatCtx;
+	AVFormatContext *pFormatCtx = NULL;
 	unsigned int i;
 	int videoStream;
 	AVCodec *pCodec;
@@ -268,7 +268,7 @@ static int isffmpeg(const char *filename)
 		return 0;
 	}
 
-	if (av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL) != 0) {
+	if (avformat_open_input(&pFormatCtx, filename, NULL, NULL) != 0) {
 		if (UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
 		return 0;
 	}

@@ -24,7 +24,7 @@
 #include "COM_WriteBufferOperation.h"
 #include "COM_defines.h"
 
-ReadBufferOperation::ReadBufferOperation():NodeOperation()
+ReadBufferOperation::ReadBufferOperation() : NodeOperation()
 {
 	this->addOutputSocket(COM_DT_COLOR);
 	this->offset = 0;
@@ -38,7 +38,7 @@ void *ReadBufferOperation::initializeTileData(rcti *rect, MemoryBuffer **memoryB
 void ReadBufferOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (this->memoryProxy != NULL) {
-		WriteBufferOperation * operation = memoryProxy->getWriteBufferOperation();
+		WriteBufferOperation *operation = memoryProxy->getWriteBufferOperation();
 		operation->determineResolution(resolution, preferredResolution);
 		operation->setResolution(resolution);
 
@@ -67,9 +67,9 @@ void ReadBufferOperation::executePixel(float *color, float x, float y, float dx,
 	}
 }
 
-bool ReadBufferOperation::determineDependingAreaOfInterest(rcti * input, ReadBufferOperation *readOperation, rcti *output)
+bool ReadBufferOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
-	if (this==readOperation) {
+	if (this == readOperation) {
 		BLI_init_rcti(output, input->xmin, input->xmax, input->ymin, input->ymax);
 		return true;
 	}
@@ -78,7 +78,7 @@ bool ReadBufferOperation::determineDependingAreaOfInterest(rcti * input, ReadBuf
 
 void ReadBufferOperation::readResolutionFromWriteBuffer() {
 	if (this->memoryProxy != NULL) {
-		WriteBufferOperation * operation = memoryProxy->getWriteBufferOperation();
+		WriteBufferOperation *operation = memoryProxy->getWriteBufferOperation();
 		this->setWidth(operation->getWidth());
 		this->setHeight(operation->getHeight());
 	}

@@ -41,10 +41,10 @@ extern "C" {
 static int get_datatype_size(DataType datatype)
 {
 	switch (datatype) {
-	case COM_DT_VALUE:	return 1;
-	case COM_DT_VECTOR:	return 3;
-	case COM_DT_COLOR:	return 4;
-	default:			return 0;
+		case COM_DT_VALUE:  return 1;
+		case COM_DT_VECTOR: return 3;
+		case COM_DT_COLOR:  return 4;
+		default:            return 0;
 	}
 }
 
@@ -53,13 +53,13 @@ static float *init_buffer(unsigned int width, unsigned int height, DataType data
 	// When initializing the tree during initial load the width and height can be zero.
 	if (width != 0 && height != 0) {
 		int size = get_datatype_size(datatype);
-		return (float *)MEM_callocN(width*height*size*sizeof(float), "OutputFile buffer");
+		return (float *)MEM_callocN(width * height * size * sizeof(float), "OutputFile buffer");
 	}
 	else
 		return NULL;
 }
 
-static void write_buffer_rect(rcti *rect, MemoryBuffer** memoryBuffers, const bNodeTree *tree, 
+static void write_buffer_rect(rcti *rect, MemoryBuffer **memoryBuffers, const bNodeTree *tree,
                               SocketReader *reader, float *buffer, unsigned int width, DataType datatype)
 {
 	float color[4];
@@ -70,29 +70,29 @@ static void write_buffer_rect(rcti *rect, MemoryBuffer** memoryBuffers, const bN
 	int y1 = rect->ymin;
 	int x2 = rect->xmax;
 	int y2 = rect->ymax;
-	int offset = (y1*width + x1 ) * size;
+	int offset = (y1 * width + x1) * size;
 	int x;
 	int y;
 	bool breaked = false;
 
-	for (y = y1 ; y < y2 && (!breaked); y++) {
-		for (x = x1 ; x < x2 && (!breaked) ; x++) {
+	for (y = y1; y < y2 && (!breaked); y++) {
+		for (x = x1; x < x2 && (!breaked); x++) {
 			reader->read(color, x, y, COM_PS_NEAREST, memoryBuffers);
 			
-			for (i=0; i < size; ++i)
-				buffer[offset+i] = color[i];
+			for (i = 0; i < size; ++i)
+				buffer[offset + i] = color[i];
 			offset += size;
 			
 			if (tree->test_break && tree->test_break(tree->tbh))
 				breaked = true;
 		}
-		offset += (width-(x2-x1)) * size;
+		offset += (width - (x2 - x1)) * size;
 	}
 }
 
 
 OutputSingleLayerOperation::OutputSingleLayerOperation(
-		const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path)
+    const Scene *scene, const bNodeTree *tree, DataType datatype, ImageFormatData *format, const char *path)
 {
 	this->scene = scene;
 	this->tree = tree;
@@ -113,7 +113,7 @@ void OutputSingleLayerOperation::initExecution()
 	this->outputBuffer = init_buffer(this->getWidth(), this->getHeight(), this->datatype);
 }
 
-void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void OutputSingleLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	write_buffer_rect(rect, memoryBuffers, this->tree, imageInput, this->outputBuffer, this->getWidth(), this->datatype);
 }
@@ -123,7 +123,7 @@ void OutputSingleLayerOperation::deinitExecution()
 	if (this->getWidth() * this->getHeight() != 0) {
 		
 		int size = get_datatype_size(this->datatype);
-		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size*8, 0);
+		ImBuf *ibuf = IMB_allocImBuf(this->getWidth(), this->getHeight(), size * 8, 0);
 		Main *bmain = G.main; /* TODO, have this passed along */
 		char filename[FILE_MAX];
 		
@@ -160,7 +160,7 @@ OutputOpenExrLayer::OutputOpenExrLayer(const char *name, DataType datatype)
 }
 
 OutputOpenExrMultiLayerOperation::OutputOpenExrMultiLayerOperation(
-		const Scene *scene, const bNodeTree *tree, const char *path, char exr_codec)
+    const Scene *scene, const bNodeTree *tree, const char *path, char exr_codec)
 {
 	this->scene = scene;
 	this->tree = tree;
@@ -177,15 +177,15 @@ void OutputOpenExrMultiLayerOperation::add_layer(const char *name, DataType data
 
 void OutputOpenExrMultiLayerOperation::initExecution()
 {
-	for (unsigned int i=0; i < layers.size(); ++i) {
+	for (unsigned int i = 0; i < layers.size(); ++i) {
 		layers[i].imageInput = getInputSocketReader(i);
 		layers[i].outputBuffer = init_buffer(this->getWidth(), this->getHeight(), layers[i].datatype);
 	}
 }
 
-void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void OutputOpenExrMultiLayerOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
-	for (unsigned int i=0; i < layers.size(); ++i) {
+	for (unsigned int i = 0; i < layers.size(); ++i) {
 		write_buffer_rect(rect, memoryBuffers, this->tree, layers[i].imageInput, layers[i].outputBuffer, this->getWidth(), layers[i].datatype);
 	}
 }
@@ -203,39 +203,39 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		                  (this->scene->r.scemode & R_EXTENSION), true);
 		BLI_make_existing_file(filename);
 		
-		for (unsigned int i=0; i < layers.size(); ++i) {
+		for (unsigned int i = 0; i < layers.size(); ++i) {
 			char channelname[EXR_TOT_MAXNAME];
-			BLI_strncpy(channelname, layers[i].name, sizeof(channelname)-2);
+			BLI_strncpy(channelname, layers[i].name, sizeof(channelname) - 2);
 			char *channelname_ext = channelname + strlen(channelname);
 			
 			float *buf = layers[i].outputBuffer;
 			
 			/* create channels */
 			switch (layers[i].datatype) {
-			case COM_DT_VALUE:
-				strcpy(channelname_ext, ".V");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 1, width, buf);
-				break;
-			case COM_DT_VECTOR:
-				strcpy(channelname_ext, ".X");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3*width, buf);
-				strcpy(channelname_ext, ".Y");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3*width, buf+1);
-				strcpy(channelname_ext, ".Z");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3*width, buf+2);
-				break;
-			case COM_DT_COLOR:
-				strcpy(channelname_ext, ".R");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4*width, buf);
-				strcpy(channelname_ext, ".G");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4*width, buf+1);
-				strcpy(channelname_ext, ".B");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4*width, buf+2);
-				strcpy(channelname_ext, ".A");
-				IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4*width, buf+3);
-				break;
-			default:
-				break;
+				case COM_DT_VALUE:
+					strcpy(channelname_ext, ".V");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 1, width, buf);
+					break;
+				case COM_DT_VECTOR:
+					strcpy(channelname_ext, ".X");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf);
+					strcpy(channelname_ext, ".Y");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf + 1);
+					strcpy(channelname_ext, ".Z");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 3, 3 * width, buf + 2);
+					break;
+				case COM_DT_COLOR:
+					strcpy(channelname_ext, ".R");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf);
+					strcpy(channelname_ext, ".G");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 1);
+					strcpy(channelname_ext, ".B");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 2);
+					strcpy(channelname_ext, ".A");
+					IMB_exr_add_channel(exrhandle, 0, channelname, 4, 4 * width, buf + 3);
+					break;
+				default:
+					break;
 			}
 			
 		}
@@ -251,7 +251,7 @@ void OutputOpenExrMultiLayerOperation::deinitExecution()
 		}
 		
 		IMB_exr_close(exrhandle);
-		for (unsigned int i=0; i < layers.size(); ++i) {
+		for (unsigned int i = 0; i < layers.size(); ++i) {
 			if (layers[i].outputBuffer) {
 				MEM_freeN(layers[i].outputBuffer);
 				layers[i].outputBuffer = NULL;

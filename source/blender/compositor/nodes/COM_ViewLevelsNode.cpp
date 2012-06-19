@@ -28,7 +28,9 @@
 
 ViewLevelsNode::ViewLevelsNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
+
 void ViewLevelsNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InputSocket *input = this->getInputSocket(0);

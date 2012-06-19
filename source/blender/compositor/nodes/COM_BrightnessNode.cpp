@@ -25,11 +25,12 @@
 #include "COM_BrightnessOperation.h"
 #include "COM_ExecutionSystem.h"
 
-BrightnessNode::BrightnessNode(bNode *editorNode): Node(editorNode)
+BrightnessNode::BrightnessNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void BrightnessNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void BrightnessNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	BrightnessOperation *operation = new BrightnessOperation();
 	this->getInputSocket(0)->relinkConnections(operation->getInputSocket(0), 0, graph);

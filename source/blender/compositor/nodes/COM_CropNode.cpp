@@ -26,12 +26,13 @@
 
 CropNode::CropNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void CropNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	bNode *node = getbNode();
-	NodeTwoXYs *cropSettings = (NodeTwoXYs*)node->storage;
+	NodeTwoXYs *cropSettings = (NodeTwoXYs *)node->storage;
 	bool relative = (bool)node->custom2;
 	bool cropImage = (bool)node->custom1;
 	CropBaseOperation *operation;

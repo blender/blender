@@ -25,8 +25,10 @@
 #include "COM_ConvertRGBToYUVOperation.h"
 #include "COM_SetAlphaOperation.h"
 
-LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode): Node(editorNode)
-{}
+LuminanceMatteNode::LuminanceMatteNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -37,7 +39,7 @@ void LuminanceMatteNode::convertToOperations(ExecutionSystem *graph, CompositorC
 	ConvertRGBToYUVOperation *rgbToYUV = new ConvertRGBToYUVOperation();
 	LuminanceMatteOperation *operationSet = new LuminanceMatteOperation();
 	bNode *editorsnode = getbNode();
-	operationSet->setSettings((NodeChroma*)editorsnode->storage);
+	operationSet->setSettings((NodeChroma *)editorsnode->storage);
 
 	inputSocket->relinkConnections(rgbToYUV->getInputSocket(0), 0, graph);
 	addLink(graph, rgbToYUV->getOutputSocket(), operationSet->getInputSocket(0));

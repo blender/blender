@@ -22,7 +22,7 @@
 #include "COM_ConvertKeyToPremulOperation.h"
 #include "BLI_math.h"
 
-ConvertKeyToPremulOperation::ConvertKeyToPremulOperation(): NodeOperation()
+ConvertKeyToPremulOperation::ConvertKeyToPremulOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addOutputSocket(COM_DT_COLOR);

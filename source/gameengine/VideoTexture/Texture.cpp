@@ -26,22 +26,22 @@ http://www.gnu.org/copyleft/lesser.txt.
 
 // implementation
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 #include <structmember.h>
 
-#include <KX_GameObject.h>
-#include <KX_Light.h>
-#include <RAS_MeshObject.h>
-#include <DNA_mesh_types.h>
-#include <DNA_meshdata_types.h>
-#include <DNA_image_types.h>
-#include <IMB_imbuf_types.h>
-#include <KX_PolygonMaterial.h>
+#include "KX_GameObject.h"
+#include "KX_Light.h"
+#include "RAS_MeshObject.h"
+#include "DNA_mesh_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_image_types.h"
+#include "IMB_imbuf_types.h"
+#include "KX_PolygonMaterial.h"
 
-#include <MEM_guardedalloc.h>
+#include "MEM_guardedalloc.h"
 
-#include <KX_BlenderMaterial.h>
-#include <BL_Texture.h>
+#include "KX_BlenderMaterial.h"
+#include "BL_Texture.h"
 
 #include "KX_KetsjiEngine.h"
 #include "KX_PythonInit.h"

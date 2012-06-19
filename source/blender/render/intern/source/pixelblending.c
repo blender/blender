@@ -78,12 +78,12 @@ void addAlphaOverFloat(float dest[4], const float source[4])
 	/* d = s + (1-alpha_s)d*/
 	float mul;
 
-	mul= 1.0f - source[3];
+	mul = 1.0f - source[3];
 
-	dest[0]= (mul*dest[0]) + source[0];
-	dest[1]= (mul*dest[1]) + source[1];
-	dest[2]= (mul*dest[2]) + source[2];
-	dest[3]= (mul*dest[3]) + source[3];
+	dest[0] = (mul * dest[0]) + source[0];
+	dest[1] = (mul * dest[1]) + source[1];
+	dest[2] = (mul * dest[2]) + source[2];
+	dest[3] = (mul * dest[3]) + source[3];
 
 }
 
@@ -94,12 +94,12 @@ void addAlphaUnderFloat(float dest[4], const float source[4])
 {
 	float mul;
 
-	mul= 1.0f - dest[3];
+	mul = 1.0f - dest[3];
 
-	dest[0]+= (mul*source[0]);
-	dest[1]+= (mul*source[1]);
-	dest[2]+= (mul*source[2]);
-	dest[3]+= (mul*source[3]);
+	dest[0] += (mul * source[0]);
+	dest[1] += (mul * source[1]);
+	dest[2] += (mul * source[2]);
+	dest[3] += (mul * source[3]);
 } 
 
 
@@ -111,36 +111,36 @@ void addalphaAddfacFloat(float dest[4], const float source[4], char addfac)
 
 	/* Addfac is a number between 0 and 1: rescale */
 	/* final target is to diminish the influence of dest when addfac rises */
-	m = 1.0f - ( source[3] * ((255 - addfac) / 255.0f));
+	m = 1.0f - (source[3] * ((255 - addfac) / 255.0f));
 
 	/* blend colors*/
-	c= (m * dest[0]) + source[0];
+	c = (m * dest[0]) + source[0];
 #ifdef RE_FLOAT_COLOR_CLIPPING
 	if (c >= RE_FULL_COLOR_FLOAT) dest[0] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-		dest[0]= c;
+	dest[0] = c;
    
-	c= (m * dest[1]) + source[1];
+	c = (m * dest[1]) + source[1];
 #ifdef RE_FLOAT_COLOR_CLIPPING
 	if (c >= RE_FULL_COLOR_FLOAT) dest[1] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-		dest[1]= c;
+	dest[1] = c;
 
-	c= (m * dest[2]) + source[2];
+	c = (m * dest[2]) + source[2];
 #ifdef RE_FLOAT_COLOR_CLIPPING
 	if (c >= RE_FULL_COLOR_FLOAT) dest[2] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-		dest[2]= c;
+	dest[2] = c;
 
-	c= (m * dest[3]) + source[3];
+	c = (m * dest[3]) + source[3];
 #ifdef RE_ALPHA_CLIPPING
 	if (c >= RE_FULL_COLOR_FLOAT) dest[3] = RE_FULL_COLOR_FLOAT; 
 	else 
 #endif
-	dest[3]= c;
+	dest[3] = c;
 
 }
 
@@ -151,81 +151,81 @@ void addalphaAddfacFloat(float dest[4], const float source[4], char addfac)
 void add_filt_fmask(unsigned int mask, const float col[4], float *rowbuf, int row_w)
 {
 	/* calc the value of mask */
-	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
+	float **fmask1 = R.samples->fmask1, **fmask2 = R.samples->fmask2;
 	float *rb1, *rb2, *rb3;
 	float val, r, g, b, al;
 	unsigned int a, maskand, maskshift;
 	int j;
 	
-	r= col[0];
-	g= col[1];
-	b= col[2];
-	al= col[3];
-	
-	rb2= rowbuf-4;
-	rb3= rb2-4*row_w;
-	rb1= rb2+4*row_w;
-	
-	maskand= (mask & 255);
-	maskshift= (mask >>8);
-	
-	for (j=2; j>=0; j--) {
-		
-		a= j;
-		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			rb1[0]+= val*r;
-			rb1[1]+= val*g;
-			rb1[2]+= val*b;
-			rb1[3]+= val*al;
+	r = col[0];
+	g = col[1];
+	b = col[2];
+	al = col[3];
+
+	rb2 = rowbuf - 4;
+	rb3 = rb2 - 4 * row_w;
+	rb1 = rb2 + 4 * row_w;
+
+	maskand = (mask & 255);
+	maskshift = (mask >> 8);
+
+	for (j = 2; j >= 0; j--) {
+
+		a = j;
+
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			rb1[0] += val * r;
+			rb1[1] += val * g;
+			rb1[2] += val * b;
+			rb1[3] += val * al;
 		}
-		a+=3;
+		a += 3;
 		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			rb2[0]+= val*r;
-			rb2[1]+= val*g;
-			rb2[2]+= val*b;
-			rb2[3]+= val*al;
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			rb2[0] += val * r;
+			rb2[1] += val * g;
+			rb2[2] += val * b;
+			rb2[3] += val * al;
 		}
-		a+=3;
+		a += 3;
 		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			rb3[0]+= val*r;
-			rb3[1]+= val*g;
-			rb3[2]+= val*b;
-			rb3[3]+= val*al;
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			rb3[0] += val * r;
+			rb3[1] += val * g;
+			rb3[2] += val * b;
+			rb3[3] += val * al;
 		}
 		
-		rb1+= 4;
-		rb2+= 4;
-		rb3+= 4;
+		rb1 += 4;
+		rb2 += 4;
+		rb3 += 4;
 	}
 }
 
 
 void mask_array(unsigned int mask, float filt[][3])
 {
-	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
-	unsigned int maskand= (mask & 255);
-	unsigned int maskshift= (mask >>8);
+	float **fmask1 = R.samples->fmask1, **fmask2 = R.samples->fmask2;
+	unsigned int maskand = (mask & 255);
+	unsigned int maskshift = (mask >> 8);
 	int a, j;
 	
-	for (j=2; j>=0; j--) {
+	for (j = 2; j >= 0; j--) {
 		
-		a= j;
+		a = j;
 		
-		filt[2][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		filt[2][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 
-		a+=3;
+		a += 3;
 		
-		filt[1][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		filt[1][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 		
-		a+=3;
+		a += 3;
 		
-		filt[0][2-j]= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
+		filt[0][2 - j] = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
 	}
 }
 
@@ -247,61 +247,61 @@ void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, in
 	float *fpoin[3][3];
 	float val, r, g, b, al, lfilt[3][3];
 	
-	r= col[0];
-	g= col[1];
-	b= col[2];
-	al= col[3];
+	r = col[0];
+	g = col[1];
+	b = col[2];
+	al = col[3];
 	
 	memcpy(lfilt, filt, sizeof(lfilt));
 	
-	fpoin[0][1]= rowbuf-4*row_w;
-	fpoin[1][1]= rowbuf;
-	fpoin[2][1]= rowbuf+4*row_w;
-	
-	fpoin[0][0]= fpoin[0][1] - 4;
-	fpoin[1][0]= fpoin[1][1] - 4;
-	fpoin[2][0]= fpoin[2][1] - 4;
-	
-	fpoin[0][2]= fpoin[0][1] + 4;
-	fpoin[1][2]= fpoin[1][1] + 4;
-	fpoin[2][2]= fpoin[2][1] + 4;
-	
-	if (y==0) {
-		fpoin[0][0]= fpoin[1][0];
-		fpoin[0][1]= fpoin[1][1];
-		fpoin[0][2]= fpoin[1][2];
+	fpoin[0][1] = rowbuf - 4 * row_w;
+	fpoin[1][1] = rowbuf;
+	fpoin[2][1] = rowbuf + 4 * row_w;
+
+	fpoin[0][0] = fpoin[0][1] - 4;
+	fpoin[1][0] = fpoin[1][1] - 4;
+	fpoin[2][0] = fpoin[2][1] - 4;
+
+	fpoin[0][2] = fpoin[0][1] + 4;
+	fpoin[1][2] = fpoin[1][1] + 4;
+	fpoin[2][2] = fpoin[2][1] + 4;
+
+	if (y == 0) {
+		fpoin[0][0] = fpoin[1][0];
+		fpoin[0][1] = fpoin[1][1];
+		fpoin[0][2] = fpoin[1][2];
 		/* filter needs the opposite value yes! */
-		lfilt[0][0]= filt[2][0];
-		lfilt[0][1]= filt[2][1];
-		lfilt[0][2]= filt[2][2];
+		lfilt[0][0] = filt[2][0];
+		lfilt[0][1] = filt[2][1];
+		lfilt[0][2] = filt[2][2];
 	}
-	else if (y==col_h-1) {
-		fpoin[2][0]= fpoin[1][0];
-		fpoin[2][1]= fpoin[1][1];
-		fpoin[2][2]= fpoin[1][2];
-		
-		lfilt[2][0]= filt[0][0];
-		lfilt[2][1]= filt[0][1];
-		lfilt[2][2]= filt[0][2];
+	else if (y == col_h - 1) {
+		fpoin[2][0] = fpoin[1][0];
+		fpoin[2][1] = fpoin[1][1];
+		fpoin[2][2] = fpoin[1][2];
+
+		lfilt[2][0] = filt[0][0];
+		lfilt[2][1] = filt[0][1];
+		lfilt[2][2] = filt[0][2];
 	}
 	
-	if (x==0) {
-		fpoin[2][0]= fpoin[2][1];
-		fpoin[1][0]= fpoin[1][1];
-		fpoin[0][0]= fpoin[0][1];
-		
-		lfilt[2][0]= filt[2][2];
-		lfilt[1][0]= filt[1][2];
-		lfilt[0][0]= filt[0][2];
+	if (x == 0) {
+		fpoin[2][0] = fpoin[2][1];
+		fpoin[1][0] = fpoin[1][1];
+		fpoin[0][0] = fpoin[0][1];
+
+		lfilt[2][0] = filt[2][2];
+		lfilt[1][0] = filt[1][2];
+		lfilt[0][0] = filt[0][2];
 	}
-	else if (x==row_w-1) {
-		fpoin[2][2]= fpoin[2][1];
-		fpoin[1][2]= fpoin[1][1];
-		fpoin[0][2]= fpoin[0][1];
-		
-		lfilt[2][2]= filt[2][0];
-		lfilt[1][2]= filt[1][0];
-		lfilt[0][2]= filt[0][0];
+	else if (x == row_w - 1) {
+		fpoin[2][2] = fpoin[2][1];
+		fpoin[1][2] = fpoin[1][1];
+		fpoin[0][2] = fpoin[0][1];
+
+		lfilt[2][2] = filt[2][0];
+		lfilt[1][2] = filt[1][0];
+		lfilt[0][2] = filt[0][0];
 	}
 	
 	
@@ -332,46 +332,46 @@ void add_filt_fmask_coord(float filt[][3], const float col[4], float *rowbuf, in
 void add_filt_fmask_pixsize(unsigned int mask, float *in, float *rowbuf, int row_w, int pixsize)
 {
 	/* calc the value of mask */
-	float **fmask1= R.samples->fmask1, **fmask2=R.samples->fmask2;
+	float **fmask1 = R.samples->fmask1, **fmask2 = R.samples->fmask2;
 	float *rb1, *rb2, *rb3;
 	float val;
 	unsigned int a, maskand, maskshift;
 	int i, j;
 	
-	rb2= rowbuf-pixsize;
-	rb3= rb2-pixsize*row_w;
-	rb1= rb2+pixsize*row_w;
+	rb2 = rowbuf - pixsize;
+	rb3 = rb2 - pixsize * row_w;
+	rb1 = rb2 + pixsize * row_w;
 	
-	maskand= (mask & 255);
-	maskshift= (mask >>8);
+	maskand = (mask & 255);
+	maskshift = (mask >> 8);
 	
-	for (j=2; j>=0; j--) {
+	for (j = 2; j >= 0; j--) {
 		
-		a= j;
+		a = j;
 		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			for (i= 0; i<pixsize; i++)
-				rb1[i]+= val*in[i];
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			for (i = 0; i < pixsize; i++)
+				rb1[i] += val * in[i];
 		}
-		a+=3;
+		a += 3;
 		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			for (i= 0; i<pixsize; i++)
-				rb2[i]+= val*in[i];
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			for (i = 0; i < pixsize; i++)
+				rb2[i] += val * in[i];
 		}
-		a+=3;
+		a += 3;
 		
-		val= *(fmask1[a] +maskand) + *(fmask2[a] +maskshift);
-		if (val!=0.0f) {
-			for (i= 0; i<pixsize; i++)
-				rb3[i]+= val*in[i];
+		val = *(fmask1[a] + maskand) + *(fmask2[a] + maskshift);
+		if (val != 0.0f) {
+			for (i = 0; i < pixsize; i++)
+				rb3[i] += val * in[i];
 		}
 		
-		rb1+= pixsize;
-		rb2+= pixsize;
-		rb3+= pixsize;
+		rb1 += pixsize;
+		rb2 += pixsize;
+		rb3 += pixsize;
 	}
 }
 
@@ -380,7 +380,7 @@ void addalphaAddFloat(float dest[4], const float source[4])
 {
 
 	/* Makes me wonder whether this is required... */
-	if ( dest[3] < RE_EMPTY_COLOR_FLOAT) {
+	if (dest[3] < RE_EMPTY_COLOR_FLOAT) {
 		dest[0] = source[0];
 		dest[1] = source[1];
 		dest[2] = source[2];
@@ -389,15 +389,12 @@ void addalphaAddFloat(float dest[4], const float source[4])
 	}
 
 	/* no clipping! */
-	dest[0] = dest[0]+source[0];
-	dest[1] = dest[1]+source[1];
-	dest[2] = dest[2]+source[2];
-	dest[3] = dest[3]+source[3];
+	dest[0] = dest[0] + source[0];
+	dest[1] = dest[1] + source[1];
+	dest[2] = dest[2] + source[2];
+	dest[3] = dest[3] + source[3];
 
 }
 
 
 /* ---------------------------------------------------------------------------- */
-
-
-/* eof pixelblending.c */

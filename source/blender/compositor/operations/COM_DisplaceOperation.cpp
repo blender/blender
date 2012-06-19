@@ -23,7 +23,7 @@
 #include "BLI_math.h"
 #include "BLI_utildefines.h"
 
-DisplaceOperation::DisplaceOperation(): NodeOperation()
+DisplaceOperation::DisplaceOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_VECTOR);
@@ -52,14 +52,14 @@ void DisplaceOperation::initExecution()
 
 /* minimum distance (in pixels) a pixel has to be displaced
  * in order to take effect */
-#define DISPLACE_EPSILON	0.01f
+#define DISPLACE_EPSILON    0.01f
 
 void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	float inVector[4];
 	float inScale[4];
 
-	float p_dx, p_dy;	/* main displacement in pixel space */
+	float p_dx, p_dy;   /* main displacement in pixel space */
 	float d_dx, d_dy;
 	float dxt, dyt;
 	float u, v;
@@ -83,17 +83,17 @@ void DisplaceOperation::executePixel(float *color, int x, int y, MemoryBuffer *i
 	v = y - p_dy + 0.5f;
 
 	/* calc derivatives */
-	this->inputVectorProgram->read(inVector, x+1, y, COM_PS_NEAREST, inputBuffers);
+	this->inputVectorProgram->read(inVector, x + 1, y, COM_PS_NEAREST, inputBuffers);
 	d_dx = inVector[0] * xs;
-	this->inputVectorProgram->read(inVector, x, y+1, COM_PS_NEAREST, inputBuffers);
+	this->inputVectorProgram->read(inVector, x, y + 1, COM_PS_NEAREST, inputBuffers);
 	d_dy = inVector[0] * ys;
 
 	/* clamp derivatives to minimum displacement distance in UV space */
 	dxt = p_dx - d_dx;
 	dyt = p_dy - d_dy;
 
-	dxt = signf(dxt)*maxf(fabsf(dxt), DISPLACE_EPSILON)/this->getWidth();
-	dyt = signf(dyt)*maxf(fabsf(dyt), DISPLACE_EPSILON)/this->getHeight();
+	dxt = signf(dxt) * maxf(fabsf(dxt), DISPLACE_EPSILON) / this->getWidth();
+	dyt = signf(dyt) * maxf(fabsf(dyt), DISPLACE_EPSILON) / this->getHeight();
 
 	/* EWA filtering */
 	this->inputColorProgram->read(color, u, v, dxt, dyt, inputBuffers);
@@ -111,7 +111,7 @@ bool DisplaceOperation::determineDependingAreaOfInterest(rcti *input, ReadBuffer
 {
 	rcti colorInput;
 	rcti vectorInput;
-	NodeOperation *operation=NULL;
+	NodeOperation *operation = NULL;
 
 	/* the vector buffer only needs a 2x2 buffer. The image needs whole buffer */
 	/* image */

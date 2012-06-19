@@ -35,8 +35,9 @@ protected:
 	SocketReader *inputProgram;
 	SocketReader *inputSize;
 	NodeBlurData *data;
-	BlurBaseOperation();
+	BlurBaseOperation(DataType data_type);
 	float *make_gausstab(int rad);
+	float *make_dist_fac_inverse(int rad);
 	float size;
 	bool deleteData;
 	bool sizeavailable;

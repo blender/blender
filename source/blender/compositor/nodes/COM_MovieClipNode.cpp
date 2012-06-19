@@ -33,11 +33,12 @@ extern "C" {
 	#include "IMB_imbuf.h"
 }
 
-MovieClipNode::MovieClipNode(bNode *editorNode): Node(editorNode)
+MovieClipNode::MovieClipNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	OutputSocket *outputMovieClip = this->getOutputSocket(0);
 	OutputSocket *offsetXMovieClip = this->getOutputSocket(1);
@@ -46,10 +47,10 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	OutputSocket *angleMovieClip = this->getOutputSocket(4);
 	
 	bNode *editorNode = this->getbNode();
-	MovieClip *movieClip = (MovieClip*)editorNode->id;
-	MovieClipUser *movieClipUser = (MovieClipUser*)editorNode->storage;
+	MovieClip *movieClip = (MovieClip *)editorNode->id;
+	MovieClipUser *movieClipUser = (MovieClipUser *)editorNode->storage;
 	
-	ImBuf * ibuf = NULL;
+	ImBuf *ibuf = NULL;
 	if (movieClip) {
 		ibuf = BKE_movieclip_get_ibuf(movieClip, movieClipUser);
 	}
@@ -90,7 +91,7 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	angle = 0.0f;
 
 	if (ibuf) {
-		if (stab->flag&TRACKING_2D_STABILIZATION) {
+		if (stab->flag & TRACKING_2D_STABILIZATION) {
 			int clip_framenr = BKE_movieclip_remap_scene_to_clip_frame(movieClip, context->getFramenumber());
 
 			BKE_tracking_stabilization_data_get(&movieClip->tracking, clip_framenr, ibuf->x, ibuf->y, loc, &scale, &angle);
@@ -98,25 +99,25 @@ void MovieClipNode::convertToOperations(ExecutionSystem *graph, CompositorContex
 	}
 	
 	if (offsetXMovieClip->isConnected()) {
-		SetValueOperation * operationSetValue = new SetValueOperation();
+		SetValueOperation *operationSetValue = new SetValueOperation();
 		operationSetValue->setValue(loc[0]);
 		offsetXMovieClip->relinkConnections(operationSetValue->getOutputSocket());
 		graph->addOperation(operationSetValue);
 	}
 	if (offsetYMovieClip->isConnected()) {
-		SetValueOperation * operationSetValue = new SetValueOperation();
+		SetValueOperation *operationSetValue = new SetValueOperation();
 		operationSetValue->setValue(loc[1]);
 		offsetYMovieClip->relinkConnections(operationSetValue->getOutputSocket());
 		graph->addOperation(operationSetValue);
 	}
 	if (scaleMovieClip->isConnected()) {
-		SetValueOperation * operationSetValue = new SetValueOperation();
+		SetValueOperation *operationSetValue = new SetValueOperation();
 		operationSetValue->setValue(scale);
 		scaleMovieClip->relinkConnections(operationSetValue->getOutputSocket());
 		graph->addOperation(operationSetValue);
 	}
 	if (angleMovieClip->isConnected()) {
-		SetValueOperation * operationSetValue = new SetValueOperation();
+		SetValueOperation *operationSetValue = new SetValueOperation();
 		operationSetValue->setValue(angle);
 		angleMovieClip->relinkConnections(operationSetValue->getOutputSocket());
 		graph->addOperation(operationSetValue);

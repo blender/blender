@@ -246,7 +246,7 @@ void GPU_set_gpu_mipmapping(int gpu_mipmap){
 	/* only actually enable if it's supported */
 	GTS.gpu_mipmap = gpu_mipmap && GLEW_EXT_framebuffer_object;
 
-	if(old_value != GTS.gpu_mipmap) {
+	if (old_value != GTS.gpu_mipmap) {
 		GPU_free_images();
 	}
 }
@@ -644,7 +644,7 @@ int GPU_verify_image(Image *ima, ImageUser *iuser, int tftile, int compare, int 
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gpu_get_mipmap_filter(1));
 	}
 	else {
-		if(GTS.gpu_mipmap) {
+		if (GTS.gpu_mipmap) {
 			if (use_high_bit_depth)
 				glTexImage2D(GL_TEXTURE_2D, 0,  GL_RGBA16,  rectw, recth, 0, GL_RGBA, GL_FLOAT, frect);
 			else

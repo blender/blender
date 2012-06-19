@@ -20,6 +20,7 @@
 
 set(INC
 	../include
+	../io
 	../../blenkernel
 	../../blenlib
 	../../blenloader

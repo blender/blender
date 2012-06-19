@@ -25,18 +25,18 @@
 #include "COM_SocketConnection.h"
 #include "COM_ExecutionSystem.h"
 
-InputSocket::InputSocket(DataType datatype) :Socket(datatype)
+InputSocket::InputSocket(DataType datatype) : Socket(datatype)
 {
 	this->connection = NULL;
 	this->resizeMode = COM_SC_CENTER;
 }
-InputSocket::InputSocket(DataType datatype, InputSocketResizeMode resizeMode) :Socket(datatype)
+InputSocket::InputSocket(DataType datatype, InputSocketResizeMode resizeMode) : Socket(datatype)
 {
 	this->connection = NULL;
 	this->resizeMode = resizeMode;
 }
 
-InputSocket::InputSocket(InputSocket *from) :Socket(from->getDataType())
+InputSocket::InputSocket(InputSocket *from) : Socket(from->getDataType())
 {
 	this->connection = NULL;
 	this->resizeMode = from->getResizeMode();
@@ -54,7 +54,7 @@ SocketConnection *InputSocket::getConnection()
 	return this->connection;
 }
 
-void InputSocket::determineResolution(unsigned int resolution[],unsigned int preferredResolution[])
+void InputSocket::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (this->isConnected()) {
 		this->connection->getFromSocket()->determineResolution(resolution, preferredResolution);
@@ -78,22 +78,22 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket)
 void InputSocket::relinkConnectionsDuplicate(InputSocket *relinkToSocket, int editorNodeInputSocketIndex, ExecutionSystem *graph)
 {
 	if (!this->isConnected()) {
-		Node *node = (Node*)this->getNode();
+		Node *node = (Node *)this->getNode();
 		switch (this->getDataType()) {
-		case COM_DT_COLOR:
-			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
-		case COM_DT_VECTOR:
-			node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
-		case COM_DT_VALUE:
-			node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
+			case COM_DT_COLOR:
+				node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
+			case COM_DT_VECTOR:
+				node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
+			case COM_DT_VALUE:
+				node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
 		}
 		return;
 	}
-	SocketConnection * newConnection = new SocketConnection();
-	OutputSocket * fromSocket = this->getConnection()->getFromSocket();
+	SocketConnection *newConnection = new SocketConnection();
+	OutputSocket *fromSocket = this->getConnection()->getFromSocket();
 	newConnection->setToSocket(relinkToSocket);
 	newConnection->setFromSocket(fromSocket);
 	relinkToSocket->setConnection(newConnection);
@@ -107,17 +107,17 @@ void InputSocket::relinkConnections(InputSocket *relinkToSocket,  int editorNode
 		relinkConnections(relinkToSocket);
 	}
 	else {
-		Node *node = (Node*)this->getNode();
+		Node *node = (Node *)this->getNode();
 		switch (this->getDataType()) {
-		case COM_DT_COLOR:
-			node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
-		case COM_DT_VECTOR:
-			node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
-		case COM_DT_VALUE:
-			node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
-			break;
+			case COM_DT_COLOR:
+				node->addSetColorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
+			case COM_DT_VECTOR:
+				node->addSetVectorOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
+			case COM_DT_VALUE:
+				node->addSetValueOperation(graph, relinkToSocket, editorNodeInputSocketIndex);
+				break;
 		}
 	}
 }
@@ -140,7 +140,7 @@ SocketReader *InputSocket::getReader()
 NodeOperation *InputSocket::getOperation() const
 {
 	if (isConnected()) {
-		return (NodeOperation*)this->connection->getFromSocket()->getNode();
+		return (NodeOperation *)this->connection->getFromSocket()->getNode();
 	}
 	else {
 		return NULL;
@@ -156,14 +156,14 @@ float *InputSocket::getStaticValues()
 	static float default_null = 0.0f;
 	
 	switch (this->getDataType()) {
-	case COM_DT_VALUE:
-		return &((bNodeSocketValueFloat*)b_socket->default_value)->value;
-	case COM_DT_COLOR:
-		return ((bNodeSocketValueRGBA*)b_socket->default_value)->value;
-	case COM_DT_VECTOR:
-		return ((bNodeSocketValueVector*)b_socket->default_value)->value;
-	default:
-		/* XXX this should never happen, just added to please the compiler */
-		return &default_null;
+		case COM_DT_VALUE:
+			return &((bNodeSocketValueFloat *)b_socket->default_value)->value;
+		case COM_DT_COLOR:
+			return ((bNodeSocketValueRGBA *)b_socket->default_value)->value;
+		case COM_DT_VECTOR:
+			return ((bNodeSocketValueVector *)b_socket->default_value)->value;
+		default:
+			/* XXX this should never happen, just added to please the compiler */
+			return &default_null;
 	}
 }

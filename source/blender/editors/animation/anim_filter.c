@@ -183,7 +183,7 @@ static short actedit_get_context(bAnimContext *ac, SpaceAction *saction)
 			//MovieClip *clip = ac->scene->clip;
 //			struct Mask *mask = seq ? seq->mask : NULL;
 
-			saction->ads.source = (ID *)ac->scene;;
+			saction->ads.source = (ID *)ac->scene;
 
 			ac->datatype = ANIMCONT_MASK;
 			ac->data = &saction->ads;

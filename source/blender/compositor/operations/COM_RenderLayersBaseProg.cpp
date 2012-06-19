@@ -31,7 +31,7 @@ extern "C" {
 	#include "RE_render_ext.h"
 }
 
-RenderLayersBaseProg::RenderLayersBaseProg(int renderpass, int elementsize): NodeOperation()
+RenderLayersBaseProg::RenderLayersBaseProg(int renderpass, int elementsize) : NodeOperation()
 {
 	this->renderpass = renderpass;
 	this->setScene(NULL);
@@ -42,15 +42,15 @@ RenderLayersBaseProg::RenderLayersBaseProg(int renderpass, int elementsize): Nod
 
 void RenderLayersBaseProg::initExecution()
 {
-	Scene * scene = this->getScene();
-	Render *re = (scene)? RE_GetRender(scene->id.name): NULL;
+	Scene *scene = this->getScene();
+	Render *re = (scene) ? RE_GetRender(scene->id.name) : NULL;
 	RenderResult *rr = NULL;
 	
 	if (re)
 		rr = RE_AcquireResultRead(re);
 	
 	if (rr) {
-		SceneRenderLayer *srl = (SceneRenderLayer*)BLI_findlink(&scene->r.layers, getLayerId());
+		SceneRenderLayer *srl = (SceneRenderLayer *)BLI_findlink(&scene->r.layers, getLayerId());
 		if (srl) {
 
 			RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
@@ -81,7 +81,7 @@ void RenderLayersBaseProg::executePixel(float *output, float x, float y, PixelSa
 		output[3] = 0.0f;
 	}
 	else {
-		unsigned int offset = (iy*this->getWidth()+ix) * elementsize;
+		unsigned int offset = (iy * this->getWidth() + ix) * elementsize;
 		if (elementsize == 1) {
 			output[0] = inputBuffer[offset];
 			output[1] = 0.0f;
@@ -90,15 +90,15 @@ void RenderLayersBaseProg::executePixel(float *output, float x, float y, PixelSa
 		}
 		else if (elementsize == 3) {
 			output[0] = inputBuffer[offset];
-			output[1] = inputBuffer[offset+1];
-			output[2] = inputBuffer[offset+2];
+			output[1] = inputBuffer[offset + 1];
+			output[2] = inputBuffer[offset + 2];
 			output[3] = 1.0f;
 		}
 		else {
 			output[0] = inputBuffer[offset];
-			output[1] = inputBuffer[offset+1];
-			output[2] = inputBuffer[offset+2];
-			output[3] = inputBuffer[offset+3];
+			output[1] = inputBuffer[offset + 1];
+			output[2] = inputBuffer[offset + 2];
+			output[3] = inputBuffer[offset + 3];
 		}
 	}
 }
@@ -121,12 +121,12 @@ void RenderLayersBaseProg::determineResolution(unsigned int resolution[], unsign
 		rr = RE_AcquireResultRead(re);
 	
 	if (rr) {
-		SceneRenderLayer *srl	= (SceneRenderLayer*)BLI_findlink(&sce->r.layers, getLayerId());
+		SceneRenderLayer *srl   = (SceneRenderLayer *)BLI_findlink(&sce->r.layers, getLayerId());
 		if (srl) {
 			RenderLayer *rl = RE_GetRenderLayer(rr, srl->name);
 			if (rl && rl->rectf) {
-				resolution[0]=rl->rectx;
-				resolution[1]=rl->recty;
+				resolution[0] = rl->rectx;
+				resolution[1] = rl->recty;
 			}
 		}
 	}

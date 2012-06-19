@@ -25,10 +25,10 @@
 #include "BLI_listbase.h"
 #include "DNA_scene_types.h"
 
-TextureBaseOperation::TextureBaseOperation(): NodeOperation()
+TextureBaseOperation::TextureBaseOperation() : NodeOperation()
 {
-	this->addInputSocket(COM_DT_VECTOR);//offset
-	this->addInputSocket(COM_DT_VECTOR);//size
+	this->addInputSocket(COM_DT_VECTOR); //offset
+	this->addInputSocket(COM_DT_VECTOR); //size
 	this->texture = NULL;
 	this->inputSize = NULL;
 	this->inputOffset = NULL;
@@ -57,8 +57,8 @@ void TextureBaseOperation::deinitExecution()
 void TextureBaseOperation::determineResolution(unsigned int resolution[], unsigned int preferredResolution[])
 {
 	if (preferredResolution[0] == 0 || preferredResolution[1] == 0) {
-		int width = this->scene->r.xsch*this->scene->r.size/100;
-		int height = this->scene->r.ysch*this->scene->r.size/100;
+		int width = this->scene->r.xsch * this->scene->r.size / 100;
+		int height = this->scene->r.ysch * this->scene->r.size / 100;
 		resolution[0] = width;
 		resolution[1] = height;
 	}
@@ -79,22 +79,22 @@ void TextureAlphaOperation::executePixel(float *color, float x, float y, PixelSa
 
 void TextureBaseOperation::executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
 {
-	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
+	TexResult texres = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float textureSize[4];
 	float textureOffset[4];
 	float vec[3];
 	int retval;
-	const float cx = this->getWidth()/2;
-	const float cy = this->getHeight()/2;
-	const float u = (cx-x)/this->getWidth()*2;
-	const float v = (cy-y)/this->getHeight()*2;
+	const float cx = this->getWidth() / 2;
+	const float cy = this->getHeight() / 2;
+	const float u = (cx - x) / this->getWidth() * 2;
+	const float v = (cy - y) / this->getHeight() * 2;
 
 	this->inputSize->read(textureSize, x, y, sampler, inputBuffers);
 	this->inputOffset->read(textureOffset, x, y, sampler, inputBuffers);
 
-	vec[0] = textureSize[0]*(u + textureOffset[0]);
-	vec[1] = textureSize[1]*(v + textureOffset[1]);
-	vec[2] = textureSize[2]*textureOffset[2];
+	vec[0] = textureSize[0] * (u + textureOffset[0]);
+	vec[1] = textureSize[1] * (v + textureOffset[1]);
+	vec[2] = textureSize[2] * textureOffset[2];
 
 	retval = multitex_ext(this->texture, vec, NULL, NULL, 0, &texres);
 

@@ -40,7 +40,7 @@ static int get_pixel_primary_channel(float *pixel)
 	return 2;
 }
 
-KeyingDespillOperation::KeyingDespillOperation(): NodeOperation()
+KeyingDespillOperation::KeyingDespillOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);

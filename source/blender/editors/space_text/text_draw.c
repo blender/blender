@@ -825,7 +825,7 @@ typedef struct DrawCache {
 
 static void text_drawcache_init(SpaceText *st)
 {
-	DrawCache *drawcache = MEM_callocN(sizeof (DrawCache), "text draw cache");
+	DrawCache *drawcache = MEM_callocN(sizeof(DrawCache), "text draw cache");
 
 	drawcache->winx = -1;
 	drawcache->nlines = BLI_countlist(&st->text->lines);

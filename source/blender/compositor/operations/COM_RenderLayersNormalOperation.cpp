@@ -22,7 +22,7 @@
 
 #include "COM_RenderLayersNormalOperation.h"
 
-RenderLayersNormalOperation::RenderLayersNormalOperation() :RenderLayersBaseProg(SCE_PASS_NORMAL, 3)
+RenderLayersNormalOperation::RenderLayersNormalOperation() : RenderLayersBaseProg(SCE_PASS_NORMAL, 3)
 {
 	this->addOutputSocket(COM_DT_VECTOR);
 }

@@ -61,13 +61,13 @@ void ConvolutionFilterOperation::deinitExecution()
 	this->inputOperation = NULL;
 	this->inputValueOperation = NULL;
 	if (this->filter) {
-		delete [] this->filter;
+		delete[] this->filter;
 		this->filter = NULL;
 	}
 }
 
 
-void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryBuffer *inputBuffers[], void *data)
+void ConvolutionFilterOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	float in1[4];
 	float in2[4];
@@ -77,12 +77,12 @@ void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryB
 	int y1 = y - 1;
 	int y2 = y;
 	int y3 = y + 1;
-	CLAMP(x1, 0, getWidth()-1);
-	CLAMP(x2, 0, getWidth()-1);
-	CLAMP(x3, 0, getWidth()-1);
-	CLAMP(y1, 0, getHeight()-1);
-	CLAMP(y2, 0, getHeight()-1);
-	CLAMP(y3, 0, getHeight()-1);
+	CLAMP(x1, 0, getWidth() - 1);
+	CLAMP(x2, 0, getWidth() - 1);
+	CLAMP(x3, 0, getWidth() - 1);
+	CLAMP(y1, 0, getHeight() - 1);
+	CLAMP(y2, 0, getHeight() - 1);
+	CLAMP(y3, 0, getHeight() - 1);
 	float value[4];
 	this->inputValueOperation->read(value, x2, y2, inputBuffers, NULL);
 	const float mval = 1.0f - value[0];
@@ -116,8 +116,8 @@ void ConvolutionFilterOperation::executePixel(float *color,int x, int y, MemoryB
 bool ConvolutionFilterOperation::determineDependingAreaOfInterest(rcti *input, ReadBufferOperation *readOperation, rcti *output)
 {
 	rcti newInput;
-	int addx = (this->filterWidth-1)/2+1;
-	int addy = (this->filterHeight-1)/2+1;
+	int addx = (this->filterWidth - 1) / 2 + 1;
+	int addy = (this->filterHeight - 1) / 2 + 1;
 	newInput.xmax = input->xmax + addx;
 	newInput.xmin = input->xmin - addx;
 	newInput.ymax = input->ymax + addy;

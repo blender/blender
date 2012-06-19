@@ -30,10 +30,10 @@
 
 #include "DNA_material_types.h" // the ramp types
 
-void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)
+void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)
 {
 	if (this->getOutputSocket(0)->isConnected()) {
-		ZCombineOperation * operation = NULL;
+		ZCombineOperation *operation = NULL;
 		if (this->getbNode()->custom1) {
 			operation = new ZCombineAlphaOperation();
 		}
@@ -48,7 +48,7 @@ void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContex
 		this->getOutputSocket(0)->relinkConnections(operation->getOutputSocket());
 		system->addOperation(operation);
 		if (this->getOutputSocket(1)->isConnected()) {
-			MathMinimumOperation * zoperation = new MathMinimumOperation();
+			MathMinimumOperation *zoperation = new MathMinimumOperation();
 			addLink(system, operation->getInputSocket(1)->getConnection()->getFromSocket(), zoperation->getInputSocket(0));
 			addLink(system, operation->getInputSocket(3)->getConnection()->getFromSocket(), zoperation->getInputSocket(1));
 			this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());
@@ -57,7 +57,7 @@ void ZCombineNode::convertToOperations(ExecutionSystem *system, CompositorContex
 	}
 	else {
 		if (this->getOutputSocket(1)->isConnected()) {
-			MathMinimumOperation * zoperation = new MathMinimumOperation();
+			MathMinimumOperation *zoperation = new MathMinimumOperation();
 			this->getInputSocket(1)->relinkConnections(zoperation->getInputSocket(0), 1, system);
 			this->getInputSocket(3)->relinkConnections(zoperation->getInputSocket(1), 3, system);
 			this->getOutputSocket(1)->relinkConnections(zoperation->getOutputSocket());

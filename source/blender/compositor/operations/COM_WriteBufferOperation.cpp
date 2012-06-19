@@ -24,7 +24,7 @@
 #include "COM_defines.h"
 #include <stdio.h>
 
-WriteBufferOperation::WriteBufferOperation() :NodeOperation()
+WriteBufferOperation::WriteBufferOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->memoryProxy = new MemoryProxy();
@@ -56,7 +56,7 @@ void WriteBufferOperation::deinitExecution()
 	this->memoryProxy->free();
 }
 
-void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer** memoryBuffers)
+void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, MemoryBuffer **memoryBuffers)
 {
 	//MemoryBuffer *memoryBuffer = MemoryManager::getMemoryBuffer(this->getMemoryProxy(), tileNumber);
 	MemoryBuffer *memoryBuffer = this->memoryProxy->getBuffer();
@@ -70,11 +70,11 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		int x;
 		int y;
 		bool breaked = false;
-		for (y = y1 ; y < y2 && (!breaked) ; y++) {
-			int offset4 = (y*memoryBuffer->getWidth()+x1)*COM_NUMBER_OF_CHANNELS;
-			for (x = x1 ; x < x2; x++) {
+		for (y = y1; y < y2 && (!breaked); y++) {
+			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+			for (x = x1; x < x2; x++) {
 				input->read(&(buffer[offset4]), x, y, memoryBuffers, data);
-				offset4 +=COM_NUMBER_OF_CHANNELS;
+				offset4 += COM_NUMBER_OF_CHANNELS;
 
 			}
 			if (isBreaked()) {
@@ -96,11 +96,11 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 		int x;
 		int y;
 		bool breaked = false;
-		for (y = y1 ; y < y2 && (!breaked) ; y++) {
-			int offset4 = (y*memoryBuffer->getWidth()+x1)*COM_NUMBER_OF_CHANNELS;
-			for (x = x1 ; x < x2 ; x++) {
+		for (y = y1; y < y2 && (!breaked); y++) {
+			int offset4 = (y * memoryBuffer->getWidth() + x1) * COM_NUMBER_OF_CHANNELS;
+			for (x = x1; x < x2; x++) {
 				input->read(&(buffer[offset4]), x, y, COM_PS_NEAREST, memoryBuffers);
-				offset4 +=COM_NUMBER_OF_CHANNELS;
+				offset4 += COM_NUMBER_OF_CHANNELS;
 			}
 			if (isBreaked()) {
 				breaked = true;
@@ -110,7 +110,7 @@ void WriteBufferOperation::executeRegion(rcti *rect, unsigned int tileNumber, Me
 	memoryBuffer->setCreatedState();
 }
 
-void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer** inputMemoryBuffers, MemoryBuffer* outputBuffer)
+void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program program, cl_command_queue queue, rcti *rect, unsigned int chunkNumber, MemoryBuffer **inputMemoryBuffers, MemoryBuffer *outputBuffer)
 {
 	float *outputFloatBuffer = outputBuffer->getBuffer();
 	cl_int error;
@@ -131,11 +131,11 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 		CL_FLOAT
 	};
 
-	cl_mem clOutputBuffer = clCreateImage2D(context, CL_MEM_WRITE_ONLY|CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	cl_mem clOutputBuffer = clCreateImage2D(context, CL_MEM_WRITE_ONLY | CL_MEM_USE_HOST_PTR, &imageFormat, outputBufferWidth, outputBufferHeight, 0, outputFloatBuffer, &error);
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	// STEP 2
-	list<cl_mem> * clMemToCleanUp = new list<cl_mem>();
+	list<cl_mem> *clMemToCleanUp = new list<cl_mem>();
 	clMemToCleanUp->push_back(clOutputBuffer);
 	list<cl_kernel> *clKernelsToCleanUp = new list<cl_kernel>();
 
@@ -143,40 +143,40 @@ void WriteBufferOperation::executeOpenCLRegion(cl_context context, cl_program pr
 
 	// STEP 3
 
-	size_t origin[3] = {0,0,0};
-	size_t region[3] = {outputBufferWidth,outputBufferHeight,1};
+	size_t origin[3] = {0, 0, 0};
+	size_t region[3] = {outputBufferWidth, outputBufferHeight, 1};
 
 //	clFlush(queue);
 //	clFinish(queue);
 
 	error = clEnqueueBarrier(queue);
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	error = clEnqueueReadImage(queue, clOutputBuffer, CL_TRUE, origin, region, 0, 0, outputFloatBuffer, 0, NULL, NULL);
-	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+	if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 	
 	this->getMemoryProxy()->getBuffer()->copyContentFrom(outputBuffer);
 	
 	// STEP 4
 
 	
-	while (clMemToCleanUp->size()>0) {
+	while (clMemToCleanUp->size() > 0) {
 		cl_mem mem = clMemToCleanUp->front();
 		error = clReleaseMemObject(mem);
-		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 		clMemToCleanUp->pop_front();
 	}
 
-	while (clKernelsToCleanUp->size()>0) {
+	while (clKernelsToCleanUp->size() > 0) {
 		cl_kernel kernel = clKernelsToCleanUp->front();
 		error = clReleaseKernel(kernel);
-		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));	}
+		if (error != CL_SUCCESS) { printf("CLERROR[%d]: %s\n", error, clewErrorString(error));  }
 		clKernelsToCleanUp->pop_front();
 	}
 	delete clKernelsToCleanUp;
 }
 
 void WriteBufferOperation::readResolutionFromInputSocket() {
-	NodeOperation* inputOperation = this->getInputOperation(0);
+	NodeOperation *inputOperation = this->getInputOperation(0);
 	this->setWidth(inputOperation->getWidth());
 	this->setHeight(inputOperation->getHeight());
 }

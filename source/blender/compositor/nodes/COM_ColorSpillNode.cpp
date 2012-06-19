@@ -24,8 +24,10 @@
 #include "BKE_node.h"
 #include "COM_ColorSpillOperation.h"
 
-ColorSpillNode::ColorSpillNode(bNode *editorNode): Node(editorNode)
-{}
+ColorSpillNode::ColorSpillNode(bNode *editorNode) : Node(editorNode)
+{
+	/* pass */
+}
 
 void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
@@ -45,8 +47,8 @@ void ColorSpillNode::convertToOperations(ExecutionSystem *graph, CompositorConte
 		// Average color spill
 		operation = new ColorSpillAverageOperation();
 	}
-	operation->setSettings((NodeColorspill*)editorsnode->storage);
-	operation->setSpillChannel(editorsnode->custom1-1); // Channel for spilling
+	operation->setSettings((NodeColorspill *)editorsnode->storage);
+	operation->setSpillChannel(editorsnode->custom1 - 1); // Channel for spilling
 	
 
 	inputSocketImage->relinkConnections(operation->getInputSocket(0), 0, graph);

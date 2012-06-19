@@ -30,7 +30,7 @@ extern "C" {
 }
 #endif
 
-CurveBaseOperation::CurveBaseOperation(): NodeOperation()
+CurveBaseOperation::CurveBaseOperation() : NodeOperation()
 {
 	this->curveMapping = NULL;
 }

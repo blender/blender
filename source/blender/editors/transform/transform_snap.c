@@ -221,7 +221,7 @@ void drawSnapping(const struct bContext *C, TransInfo *t)
 			setlinestyle(0);
 			cpack(0x0);
 			fdrawline(-0.020 / w, 0, -0.1 / w, 0);
-			fdrawline(0.1 / w, 0, .020 / w, 0);
+			fdrawline(0.1 / w, 0, 0.020 / w, 0);
 			fdrawline(0, -0.020 / h, 0, -0.1 / h);
 			fdrawline(0, 0.1 / h, 0, 0.020 / h);
 			

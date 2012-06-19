@@ -27,12 +27,12 @@ http://www.gnu.org/copyleft/lesser.txt.
 #ifndef __TEXTURE_H__
 #define __TEXTURE_H__
 
-#include <PyObjectPlus.h>
+#include "PyObjectPlus.h"
 #include <structmember.h>
 
-#include <DNA_image_types.h>
-#include <BL_Texture.h>
-#include <KX_BlenderMaterial.h>
+#include "DNA_image_types.h"
+#include "BL_Texture.h"
+#include "KX_BlenderMaterial.h"
 
 #include "ImageBase.h"
 #include "BlendType.h"

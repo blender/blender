@@ -24,44 +24,46 @@
 #include "COM_SocketProxyNode.h"
 #include "COM_ExecutionSystemHelper.h"
 
-GroupNode::GroupNode(bNode *editorNode): Node(editorNode)
+GroupNode::GroupNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void GroupNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
+	/* pass */
 }
 
 void GroupNode::ungroup(ExecutionSystem &system)
 {
-	bNode * bnode = this->getbNode();
-	vector<InputSocket*> &inputsockets = this->getInputSockets();
-	vector<OutputSocket*> &outputsockets = this->getOutputSockets();
+	bNode *bnode = this->getbNode();
+	vector<InputSocket *> &inputsockets = this->getInputSockets();
+	vector<OutputSocket *> &outputsockets = this->getOutputSockets();
 	unsigned int index;
 
 	/* get the node list size _before_ adding proxy nodes, so they are available for linking */
 	int nodes_start = system.getNodes().size();
 
-	for (index = 0 ; index < inputsockets.size();index ++) {
-		InputSocket * inputSocket = inputsockets[index];
+	for (index = 0; index < inputsockets.size(); index++) {
+		InputSocket *inputSocket = inputsockets[index];
 		bNodeSocket *editorInput = inputSocket->getbNodeSocket();
 		if (editorInput->groupsock) {
-			SocketProxyNode * proxy = new SocketProxyNode(bnode, editorInput, editorInput->groupsock);
+			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorInput, editorInput->groupsock);
 			inputSocket->relinkConnections(proxy->getInputSocket(0), index, &system);
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}
 	}
 
-	for (index = 0 ; index < outputsockets.size();index ++) {
-		OutputSocket * outputSocket = outputsockets[index];
+	for (index = 0; index < outputsockets.size(); index++) {
+		OutputSocket *outputSocket = outputsockets[index];
 		bNodeSocket *editorOutput = outputSocket->getbNodeSocket();
 		if (editorOutput->groupsock) {
-			SocketProxyNode * proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput);
+			SocketProxyNode *proxy = new SocketProxyNode(bnode, editorOutput->groupsock, editorOutput);
 			outputSocket->relinkConnections(proxy->getOutputSocket(0));
 			ExecutionSystemHelper::addNode(system.getNodes(), proxy);
 		}
 	}
 
-	bNodeTree *subtree = (bNodeTree*)bnode->id;
+	bNodeTree *subtree = (bNodeTree *)bnode->id;
 	ExecutionSystemHelper::addbNodeTree(system, nodes_start, subtree, bnode);
 }

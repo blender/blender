@@ -31,36 +31,37 @@
 #include "COM_GlareGhostOperation.h"
 #include "COM_GlareFogGlowOperation.h"
 
-GlareNode::GlareNode(bNode *editorNode): Node(editorNode)
+GlareNode::GlareNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext * context)\
-{
+void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *context) \
+	{
 	bNode *node = this->getbNode();
-	NodeGlare *glare = (NodeGlare*)node->storage;
+	NodeGlare *glare = (NodeGlare *)node->storage;
 	
-	GlareBaseOperation * glareoperation = NULL;
+	GlareBaseOperation *glareoperation = NULL;
 	
 	switch (glare->type) {
 	
-	default:
-	case 3:
-		glareoperation = new GlareGhostOperation();
-		break;
-	case 2: // streaks
-		glareoperation = new GlareStreaksOperation();
-		break;
-	case 1: // fog glow
-		glareoperation = new GlareFogGlowOperation();
-		break;
-	case 0: // simple star
-		glareoperation = new GlareSimpleStarOperation();
-		break;
+		default:
+		case 3:
+			glareoperation = new GlareGhostOperation();
+			break;
+		case 2: // streaks
+			glareoperation = new GlareStreaksOperation();
+			break;
+		case 1: // fog glow
+			glareoperation = new GlareFogGlowOperation();
+			break;
+		case 0: // simple star
+			glareoperation = new GlareSimpleStarOperation();
+			break;
 	}
 	GlareThresholdOperation *thresholdOperation = new GlareThresholdOperation();
-	SetValueOperation * mixvalueoperation = new SetValueOperation();
-	MixGlareOperation * mixoperation = new MixGlareOperation();
+	SetValueOperation *mixvalueoperation = new SetValueOperation();
+	MixGlareOperation *mixoperation = new MixGlareOperation();
 	mixoperation->getInputSocket(2)->setResizeMode(COM_SC_FIT);
 
 	this->getInputSocket(0)->relinkConnections(thresholdOperation->getInputSocket(0), 0, system);
@@ -72,7 +73,7 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 
 	thresholdOperation->setGlareSettings(glare);
 	glareoperation->setGlareSettings(glare);
-	mixvalueoperation->setValue(0.5f+glare->mix*0.5f);
+	mixvalueoperation->setValue(0.5f + glare->mix * 0.5f);
 	mixoperation->setResolutionInputSocketIndex(1);
 
 	system->addOperation(glareoperation);
@@ -80,4 +81,4 @@ void GlareNode::convertToOperations(ExecutionSystem *system, CompositorContext *
 	system->addOperation(mixvalueoperation);
 	system->addOperation(mixoperation);
 	
-}
+	}

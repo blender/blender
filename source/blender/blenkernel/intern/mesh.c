@@ -444,7 +444,7 @@ void copy_dverts(MDeformVert *dst, MDeformVert *src, int copycount)
 	for (i = 0; i < copycount; i++) {
 		if (src[i].dw) {
 			dst[i].dw = MEM_callocN(sizeof(MDeformWeight) * src[i].totweight, "copy_deformWeight");
-			memcpy(dst[i].dw, src[i].dw, sizeof (MDeformWeight) * src[i].totweight);
+			memcpy(dst[i].dw, src[i].dw, sizeof(MDeformWeight) * src[i].totweight);
 		}
 	}
 
@@ -957,7 +957,7 @@ static void make_edges_mdata(MVert *UNUSED(allvert), MFace *allface, MLoop *alll
 	}
 	final++;
 
-	(*alledge) = medge = MEM_callocN(sizeof (MEdge) * final, "BKE_mesh_make_edges mdge");
+	(*alledge) = medge = MEM_callocN(sizeof(MEdge) * final, "BKE_mesh_make_edges mdge");
 	(*_totedge) = final;
 
 	for (a = totedge, ed = edsort; a > 1; a--, ed++) {

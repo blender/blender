@@ -29,8 +29,9 @@
  *  \ingroup cmpnodes
  */
 
-
 #include "node_composite_util.h"
+
+#include <limits.h>
 
 /* ************ qdn: Defocus node ****************** */
 static bNodeSocketTemplate cmp_node_defocus_in[]= {
@@ -148,11 +149,13 @@ static float RI_vdC(unsigned int bits, unsigned int r)
 // much faster than anything else, constant time independent of width
 // should extend to multichannel and make this a node, could be useful
 // note: this is an almost exact copy of 'IIR_gauss'
-static void IIR_gauss_single(CompBuf* buf, float sigma)
+static void IIR_gauss_single(CompBuf *buf, float sigma)
 {
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
 	float *X, *Y, *W;
-	int i, x, y, sz;
+	const unsigned int src_width = buf->x;
+	const unsigned int src_height = buf->y;
+	unsigned int i, x, y, sz;
 
 	// single channel only for now
 	if (buf->type != CB_VAL) return;
@@ -180,58 +183,61 @@ static void IIR_gauss_single(CompBuf* buf, float sigma)
 	// it seems to work, not entirely sure if it is actually totally correct,
 	// Besides J.M.Geusebroek's anigauss.c (see http://www.science.uva.nl/~mark),
 	// found one other implementation by Cristoph Lampert,
-	// but neither seem to be quite the same, result seems to be ok sofar anyway.
+	// but neither seem to be quite the same, result seems to be ok so far anyway.
 	// Extra scale factor here to not have to do it in filter,
 	// though maybe this had something to with the precision errors
-	sc = cf[0]/((1.0 + cf[1] - cf[2] + cf[3])*(1.0 - cf[1] - cf[2] - cf[3])*(1.0 + cf[2] + (cf[1] - cf[3])*cf[3]));
-	tsM[0] = sc*(-cf[3]*cf[1] + 1.0 - cf[3]*cf[3] - cf[2]);
-	tsM[1] = sc*((cf[3] + cf[1])*(cf[2] + cf[3]*cf[1]));
-	tsM[2] = sc*(cf[3]*(cf[1] + cf[3]*cf[2]));
-	tsM[3] = sc*(cf[1] + cf[3]*cf[2]);
-	tsM[4] = sc*(-(cf[2] - 1.0)*(cf[2] + cf[3]*cf[1]));
-	tsM[5] = sc*(-(cf[3]*cf[1] + cf[3]*cf[3] + cf[2] - 1.0)*cf[3]);
-	tsM[6] = sc*(cf[3]*cf[1] + cf[2] + cf[1]*cf[1] - cf[2]*cf[2]);
-	tsM[7] = sc*(cf[1]*cf[2] + cf[3]*cf[2]*cf[2] - cf[1]*cf[3]*cf[3] - cf[3]*cf[3]*cf[3] - cf[3]*cf[2] + cf[3]);
-	tsM[8] = sc*(cf[3]*(cf[1] + cf[3]*cf[2]));
+	sc = cf[0] / ((1.0 + cf[1] - cf[2] + cf[3]) * (1.0 - cf[1] - cf[2] - cf[3]) * (1.0 + cf[2] + (cf[1] - cf[3]) * cf[3]));
+	tsM[0] = sc * (-cf[3] * cf[1] + 1.0 - cf[3] * cf[3] - cf[2]);
+	tsM[1] = sc * ((cf[3] + cf[1]) * (cf[2] + cf[3] * cf[1]));
+	tsM[2] = sc * (cf[3] * (cf[1] + cf[3] * cf[2]));
+	tsM[3] = sc * (cf[1] + cf[3] * cf[2]);
+	tsM[4] = sc * (-(cf[2] - 1.0) * (cf[2] + cf[3] * cf[1]));
+	tsM[5] = sc * (-(cf[3] * cf[1] + cf[3] * cf[3] + cf[2] - 1.0) * cf[3]);
+	tsM[6] = sc * (cf[3] * cf[1] + cf[2] + cf[1] * cf[1] - cf[2] * cf[2]);
+	tsM[7] = sc * (cf[1] * cf[2] + cf[3] * cf[2] * cf[2] - cf[1] * cf[3] * cf[3] - cf[3] * cf[3] * cf[3] - cf[3] * cf[2] + cf[3]);
+	tsM[8] = sc * (cf[3] * (cf[1] + cf[3] * cf[2]));
 
-#define YVV(L)\
-{\
-	W[0] = cf[0]*X[0] + cf[1]*X[0] + cf[2]*X[0] + cf[3]*X[0];\
-	W[1] = cf[0]*X[1] + cf[1]*W[0] + cf[2]*X[0] + cf[3]*X[0];\
-	W[2] = cf[0]*X[2] + cf[1]*W[1] + cf[2]*W[0] + cf[3]*X[0];\
-	for (i=3; i<L; i++)\
-		W[i] = cf[0]*X[i] + cf[1]*W[i-1] + cf[2]*W[i-2] + cf[3]*W[i-3];\
-	tsu[0] = W[L-1] - X[L-1];\
-	tsu[1] = W[L-2] - X[L-1];\
-	tsu[2] = W[L-3] - X[L-1];\
-	tsv[0] = tsM[0]*tsu[0] + tsM[1]*tsu[1] + tsM[2]*tsu[2] + X[L-1];\
-	tsv[1] = tsM[3]*tsu[0] + tsM[4]*tsu[1] + tsM[5]*tsu[2] + X[L-1];\
-	tsv[2] = tsM[6]*tsu[0] + tsM[7]*tsu[1] + tsM[8]*tsu[2] + X[L-1];\
-	Y[L-1] = cf[0]*W[L-1] + cf[1]*tsv[0] + cf[2]*tsv[1] + cf[3]*tsv[2];\
-	Y[L-2] = cf[0]*W[L-2] + cf[1]*Y[L-1] + cf[2]*tsv[0] + cf[3]*tsv[1];\
-	Y[L-3] = cf[0]*W[L-3] + cf[1]*Y[L-2] + cf[2]*Y[L-1] + cf[3]*tsv[0];\
-	for (i=L-4; i>=0; i--)\
-		Y[i] = cf[0]*W[i] + cf[1]*Y[i+1] + cf[2]*Y[i+2] + cf[3]*Y[i+3];\
-}
+#define YVV(L)                                                                          \
+{                                                                                       \
+	W[0] = cf[0] * X[0] + cf[1] * X[0] + cf[2] * X[0] + cf[3] * X[0];                   \
+	W[1] = cf[0] * X[1] + cf[1] * W[0] + cf[2] * X[0] + cf[3] * X[0];                   \
+	W[2] = cf[0] * X[2] + cf[1] * W[1] + cf[2] * W[0] + cf[3] * X[0];                   \
+	for (i = 3; i < L; i++) {                                                           \
+		W[i] = cf[0] * X[i] + cf[1] * W[i - 1] + cf[2] * W[i - 2] + cf[3] * W[i - 3];   \
+	}                                                                                   \
+	tsu[0] = W[L - 1] - X[L - 1];                                                       \
+	tsu[1] = W[L - 2] - X[L - 1];                                                       \
+	tsu[2] = W[L - 3] - X[L - 1];                                                       \
+	tsv[0] = tsM[0] * tsu[0] + tsM[1] * tsu[1] + tsM[2] * tsu[2] + X[L - 1];            \
+	tsv[1] = tsM[3] * tsu[0] + tsM[4] * tsu[1] + tsM[5] * tsu[2] + X[L - 1];            \
+	tsv[2] = tsM[6] * tsu[0] + tsM[7] * tsu[1] + tsM[8] * tsu[2] + X[L - 1];            \
+	Y[L - 1] = cf[0] * W[L - 1] + cf[1] * tsv[0] + cf[2] * tsv[1] + cf[3] * tsv[2];     \
+	Y[L - 2] = cf[0] * W[L - 2] + cf[1] * Y[L - 1] + cf[2] * tsv[0] + cf[3] * tsv[1];   \
+	Y[L - 3] = cf[0] * W[L - 3] + cf[1] * Y[L - 2] + cf[2] * Y[L - 1] + cf[3] * tsv[0]; \
+	/* 'i != UINT_MAX' is really 'i >= 0', but necessary for unsigned int wrapping */   \
+	for (i = L - 4; i != UINT_MAX; i--) {                                               \
+		Y[i] = cf[0] * W[i] + cf[1] * Y[i + 1] + cf[2] * Y[i + 2] + cf[3] * Y[i + 3];   \
+	}                                                                                   \
+} (void)0
 
 	// intermediate buffers
-	sz = MAX2(buf->x, buf->y);
-	Y = MEM_callocN(sz*sizeof(float), "IIR_gauss Y buf");
-	W = MEM_callocN(sz*sizeof(float), "IIR_gauss W buf");
+	sz = MAX2(src_width, src_height);
+	Y = MEM_callocN(sz * sizeof(float), "IIR_gauss Y buf");
+	W = MEM_callocN(sz * sizeof(float), "IIR_gauss W buf");
 	// H
-	for (y=0; y<buf->y; y++) {
-		X = &buf->rect[y*buf->x];
-		YVV(buf->x);
-		memcpy(X, Y, sizeof(float)*buf->x);
+	for (y = 0; y < src_height; y++) {
+		X = &buf->rect[y * src_width];
+		YVV(src_width);
+		memcpy(X, Y, sizeof(float) * src_width);
 	}
 	// V
-	X = MEM_callocN(buf->y*sizeof(float), "IIR_gauss X buf");
-	for (x=0; x<buf->x; x++) {
-		for (y=0; y<buf->y; y++)
-			X[y] = buf->rect[x + y*buf->x];
-		YVV(buf->y);
-		for (y=0; y<buf->y; y++)
-			buf->rect[x + y*buf->x] = Y[y];
+	X = MEM_callocN(src_height * sizeof(float), "IIR_gauss X buf");
+	for (x = 0; x < src_width; x++) {
+		for (y = 0; y < src_height; y++)
+			X[y] = buf->rect[x + y * src_width];
+		YVV(src_height);
+		for (y = 0; y < src_height; y++)
+			buf->rect[x + y * src_width] = Y[y];
 	}
 	MEM_freeN(X);
 

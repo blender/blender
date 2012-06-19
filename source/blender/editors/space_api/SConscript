@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../blenloader ../../makesdna'
+incs = '../include ../io ../../blenlib ../../blenkernel ../../blenloader ../../makesdna'
 incs += ' ../../windowmanager ../../python ../../makesrna ../../bmesh'
 incs += ' #/intern/guardedalloc #/extern/glew/include'
 

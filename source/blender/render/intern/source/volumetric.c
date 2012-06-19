@@ -376,7 +376,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 		return normalize * 1.f;
 	}
 	else {      /* schlick */
-		const float k = 1.55f * g - .55f * g * g * g;
+		const float k = 1.55f * g - 0.55f * g * g * g;
 		const float kcostheta = k * dot_v3v3(w, wp);
 		return normalize * (1.f - k * k) / ((1.f - kcostheta) * (1.f - kcostheta));
 	}
@@ -394,7 +394,7 @@ static float vol_get_phasefunc(ShadeInput *UNUSED(shi), float g, const float w[3
 			return normalize * (1.f - g * g) / powf(1.f + g * g - 2.f * g * costheta, 1.5f);
 		case MA_VOL_PH_SCHLICK:
 		{
-			const float k = 1.55f * g - .55f * g * g * g;
+			const float k = 1.55f * g - 0.55f * g * g * g;
 			const float kcostheta = k * costheta;
 			return normalize * (1.f - k * k) / ((1.f - kcostheta) * (1.f - kcostheta));
 		}

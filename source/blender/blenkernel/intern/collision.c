@@ -643,12 +643,12 @@ static void cloth_bvh_objcollisions_nearcheck ( ClothModifierData * clmd, Collis
 {
 	int i;
 	
-	*collisions = ( CollPair* ) MEM_mallocN ( sizeof ( CollPair ) * numresult * 64, "collision array" ); //*4 since cloth_collision_static can return more than 1 collision
+	*collisions = (CollPair *) MEM_mallocN(sizeof(CollPair) * numresult * 64, "collision array" ); //*4 since cloth_collision_static can return more than 1 collision
 	*collisions_index = *collisions;
 
 	for ( i = 0; i < numresult; i++ ) {
 		*collisions_index = cloth_collision ( (ModifierData *)clmd, (ModifierData *)collmd,
-											  overlap+i, *collisions_index, dt );
+		                                      overlap+i, *collisions_index, dt );
 	}
 }
 

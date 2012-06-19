@@ -52,7 +52,7 @@ static float get_pixel_saturation(float pixelColor[4], float screen_balance, int
 	return (pixelColor[primary_channel] - val) * fabsf(1.0f - val);
 }
 
-KeyingOperation::KeyingOperation(): NodeOperation()
+KeyingOperation::KeyingOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR);

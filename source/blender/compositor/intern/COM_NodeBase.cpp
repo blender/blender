@@ -20,10 +20,12 @@
  *		Monique Dewanchand
  */
 
-#include "COM_NodeBase.h"
-#include "string.h"
-#include "COM_NodeOperation.h"
+#include <string.h>
+
 #include "BKE_node.h"
+
+#include "COM_NodeBase.h"
+#include "COM_NodeOperation.h"
 #include "COM_SetValueOperation.h"
 #include "COM_SetColorOperation.h"
 #include "COM_SocketConnection.h"
@@ -31,6 +33,7 @@
 
 NodeBase::NodeBase()
 {
+	/* pass */
 }
 
 
@@ -80,12 +83,14 @@ const bool NodeBase::isInputNode() const
 	return this->inputsockets.size() == 0;
 }
 
-OutputSocket *NodeBase::getOutputSocket(int index)
+OutputSocket *NodeBase::getOutputSocket(unsigned int index)
 {
+	BLI_assert(index < this->outputsockets.size());
 	return this->outputsockets[index];
 }
 
-InputSocket *NodeBase::getInputSocket(int index)
+InputSocket *NodeBase::getInputSocket(unsigned int index)
 {
+	BLI_assert(index < this->inputsockets.size());
 	return this->inputsockets[index];
 }

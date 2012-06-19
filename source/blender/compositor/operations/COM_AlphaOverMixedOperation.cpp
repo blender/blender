@@ -22,7 +22,7 @@
 
 #include "COM_AlphaOverMixedOperation.h"
 
-AlphaOverMixedOperation::AlphaOverMixedOperation(): MixBaseOperation()
+AlphaOverMixedOperation::AlphaOverMixedOperation() : MixBaseOperation()
 {
 	this->x = 0.0f;
 }
@@ -44,14 +44,14 @@ void AlphaOverMixedOperation::executePixel(float outputValue[4], float x, float 
 		copy_v4_v4(outputValue, inputOverColor);
 	}
 	else {
-		float addfac = 1.0f - this->x + inputOverColor[3]*this->x;
-		float premul = value[0]*addfac;
-		float mul = 1.0f - value[0]*inputOverColor[3];
-	
-		outputValue[0] = (mul*inputColor1[0]) + premul*inputOverColor[0];
-		outputValue[1] = (mul*inputColor1[1]) + premul*inputOverColor[1];
-		outputValue[2] = (mul*inputColor1[2]) + premul*inputOverColor[2];
-		outputValue[3] = (mul*inputColor1[3]) + value[0]*inputOverColor[3];
+		float addfac = 1.0f - this->x + inputOverColor[3] * this->x;
+		float premul = value[0] * addfac;
+		float mul = 1.0f - value[0] * inputOverColor[3];
+
+		outputValue[0] = (mul * inputColor1[0]) + premul * inputOverColor[0];
+		outputValue[1] = (mul * inputColor1[1]) + premul * inputOverColor[1];
+		outputValue[2] = (mul * inputColor1[2]) + premul * inputOverColor[2];
+		outputValue[3] = (mul * inputColor1[3]) + value[0] * inputOverColor[3];
 	}
 }
 

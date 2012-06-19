@@ -22,7 +22,7 @@
 
 #include "COM_ConvertVectorToColorOperation.h"
 
-ConvertVectorToColorOperation::ConvertVectorToColorOperation(): NodeOperation()
+ConvertVectorToColorOperation::ConvertVectorToColorOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_VECTOR);
 	this->addOutputSocket(COM_DT_COLOR);

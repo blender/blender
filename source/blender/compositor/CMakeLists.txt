@@ -288,6 +288,10 @@ set(SRC
 	nodes/COM_BokehBlurNode.h
 	nodes/COM_DirectionalBlurNode.cpp
 	nodes/COM_DirectionalBlurNode.h
+	operations/COM_GaussianAlphaXBlurOperation.cpp
+	operations/COM_GaussianAlphaXBlurOperation.h
+	operations/COM_GaussianAlphaYBlurOperation.cpp
+	operations/COM_GaussianAlphaYBlurOperation.h
 	operations/COM_GaussianXBlurOperation.cpp
 	operations/COM_GaussianXBlurOperation.h
 	operations/COM_GaussianYBlurOperation.cpp

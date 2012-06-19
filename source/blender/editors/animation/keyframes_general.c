@@ -156,7 +156,7 @@ void duplicate_fcurve_keys(FCurve *fcu)
 			
 			memcpy(newbezt, fcu->bezt, sizeof(BezTriple) * (i + 1));
 			memcpy(newbezt + i + 1, fcu->bezt + i, sizeof(BezTriple));
-			memcpy(newbezt + i + 2, fcu->bezt + i + 1, sizeof (BezTriple) * (fcu->totvert - (i + 1)));
+			memcpy(newbezt + i + 2, fcu->bezt + i + 1, sizeof(BezTriple) * (fcu->totvert - (i + 1)));
 			fcu->totvert++;
 			
 			/* reassign pointers... (free old, and add new) */

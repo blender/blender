@@ -26,7 +26,7 @@
 
 
 
-CalculateMeanOperation::CalculateMeanOperation(): NodeOperation()
+CalculateMeanOperation::CalculateMeanOperation() : NodeOperation()
 {
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE);
 	this->addOutputSocket(COM_DT_VALUE);
@@ -42,7 +42,7 @@ void CalculateMeanOperation::initExecution()
 	NodeOperation::initMutex();
 }
 
-void CalculateMeanOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void * data)
+void CalculateMeanOperation::executePixel(float *color, int x, int y, MemoryBuffer *inputBuffers[], void *data)
 {
 	color[0] = this->result;
 }
@@ -74,7 +74,7 @@ void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 {
 	lockMutex();
 	if (!this->iscalculated) {
-		MemoryBuffer *tile = (MemoryBuffer*)imageReader->initializeTileData(rect, memoryBuffers);
+		MemoryBuffer *tile = (MemoryBuffer *)imageReader->initializeTileData(rect, memoryBuffers);
 		calculateMean(tile);
 		this->iscalculated = true;
 	}
@@ -82,44 +82,44 @@ void *CalculateMeanOperation::initializeTileData(rcti *rect, MemoryBuffer **memo
 	return NULL;
 }
 
-void CalculateMeanOperation::calculateMean(MemoryBuffer * tile)
+void CalculateMeanOperation::calculateMean(MemoryBuffer *tile)
 {
 	this->result = 0.0f;
 	float *buffer = tile->getBuffer();
-	int size = tile->getWidth()*tile->getHeight();
+	int size = tile->getWidth() * tile->getHeight();
 	int pixels = 0;
 	float sum;
-	for (int i = 0, offset = 0 ; i < size ; i ++, offset +=4) {
-		if (buffer[offset+3] > 0) {
-			pixels ++;
+	for (int i = 0, offset = 0; i < size; i++, offset += 4) {
+		if (buffer[offset + 3] > 0) {
+			pixels++;
 	
 			switch (this->setting)
 			{
-			case 1:
+				case 1:
 				{
-					sum += buffer[offset]*0.35f + buffer[offset+1]*0.45f + buffer[offset+2]*0.2f;
+					sum += buffer[offset] * 0.35f + buffer[offset + 1] * 0.45f + buffer[offset + 2] * 0.2f;
 					break;
 				}
-			case 2:
+				case 2:
 				{
-				sum+= buffer[offset];
+					sum += buffer[offset];
 					break;
 				}
-			case 3:
+				case 3:
 				{
-				sum+= buffer[offset+1];
+					sum += buffer[offset + 1];
 					break;
 				}
-			case 4:
+				case 4:
 				{
-				sum+= buffer[offset+2];
+					sum += buffer[offset + 2];
 					break;
 				}
-			case 5:
+				case 5:
 				{
 					float yuv[3];
-					rgb_to_yuv(buffer[offset], buffer[offset+1], buffer[offset+2], &yuv[0], &yuv[1], &yuv[2]);
-					sum+=yuv[0];
+					rgb_to_yuv(buffer[offset], buffer[offset + 1], buffer[offset + 2], &yuv[0], &yuv[1], &yuv[2]);
+					sum += yuv[0];
 					break;
 				}
 			}

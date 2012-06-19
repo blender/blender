@@ -22,7 +22,7 @@
 #include "COM_ChromaMatteOperation.h"
 #include "BLI_math.h"
 
-ChromaMatteOperation::ChromaMatteOperation(): NodeOperation()
+ChromaMatteOperation::ChromaMatteOperation() : NodeOperation()
 {
 	addInputSocket(COM_DT_COLOR);
 	addInputSocket(COM_DT_COLOR);
@@ -66,36 +66,36 @@ void ChromaMatteOperation::executePixel(float *outputValue, float x, float y, Pi
 
 	/* Algorithm from book "Video Demistified," does not include the spill reduction part */
 	/* find theta, the angle that the color space should be rotated based on key*/
-	theta=atan2(inKey[2], inKey[1]);
+	theta = atan2(inKey[2], inKey[1]);
 
 	/*rotate the cb and cr into x/z space */
-	x_angle=inImage[1]*cosf(theta)+inImage[2]*sinf(theta);
-	z_angle=inImage[2]*cosf(theta)-inImage[1]*sinf(theta);
+	x_angle = inImage[1] * cosf(theta) + inImage[2] * sinf(theta);
+	z_angle = inImage[2] * cosf(theta) - inImage[1] * sinf(theta);
 
 	/*if within the acceptance angle */
 	/* if kfg is <0 then the pixel is outside of the key color */
-	kfg = x_angle-(fabsf(z_angle)/tanf(acceptance/2.f));
+	kfg = x_angle - (fabsf(z_angle) / tanf(acceptance / 2.f));
 
-	if (kfg>0.f) {  /* found a pixel that is within key color */
-		alpha=(1.f-kfg)*(gain);
+	if (kfg > 0.f) {  /* found a pixel that is within key color */
+		alpha = (1.f - kfg) * (gain);
 
-		beta=atan2(z_angle,x_angle);
+		beta = atan2(z_angle, x_angle);
 
 		/* if beta is within the cutoff angle */
-		if (fabsf(beta) < (cutoff/2.f)) {
-			alpha=0.f;
+		if (fabsf(beta) < (cutoff / 2.f)) {
+			alpha = 0.f;
 		}
 
 		/* don't make something that was more transparent less transparent */
-		if (alpha<inImage[3]) {
-			outputValue[0]=alpha;
+		if (alpha < inImage[3]) {
+			outputValue[0] = alpha;
 		}
 		else {
-			outputValue[0]=inImage[3];
+			outputValue[0] = inImage[3];
 		}
 	}
 	else { /*pixel is outside key color */
-		outputValue[0]=inImage[3]; /* make pixel just as transparent as it was before */
+		outputValue[0] = inImage[3]; /* make pixel just as transparent as it was before */
 	}
 }
 

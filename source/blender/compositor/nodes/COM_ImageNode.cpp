@@ -28,25 +28,27 @@
 #include "BKE_node.h"
 #include "BLI_utildefines.h"
 
-ImageNode::ImageNode(bNode *editorNode): Node(editorNode)
+ImageNode::ImageNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
+
 }
 NodeOperation *ImageNode::doMultilayerCheck(ExecutionSystem *system, RenderLayer *rl, Image *image, ImageUser *user, int framenumber, int outputsocketIndex, int pass, DataType datatype)
 {
 	OutputSocket *outputSocket = this->getOutputSocket(outputsocketIndex);
-	MultilayerBaseOperation * operation = NULL;
+	MultilayerBaseOperation *operation = NULL;
 	switch (datatype) {
-	case COM_DT_VALUE:
-		operation = new MultilayerValueOperation(pass);
-		break;
-	case COM_DT_VECTOR:
-		operation = new MultilayerVectorOperation(pass);
-		break;
-	case COM_DT_COLOR:
-		operation = new MultilayerColorOperation(pass);
-		break;
-	default:
-		break;
+		case COM_DT_VALUE:
+			operation = new MultilayerValueOperation(pass);
+			break;
+		case COM_DT_VECTOR:
+			operation = new MultilayerVectorOperation(pass);
+			break;
+		case COM_DT_COLOR:
+			operation = new MultilayerColorOperation(pass);
+			break;
+		default:
+			break;
 	}
 	operation->setImage(image);
 	operation->setRenderLayer(rl);
@@ -57,52 +59,52 @@ NodeOperation *ImageNode::doMultilayerCheck(ExecutionSystem *system, RenderLayer
 	return operation;
 }
 
-void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void ImageNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	/// Image output
 	OutputSocket *outputImage = this->getOutputSocket(0);
 	bNode *editorNode = this->getbNode();
-	Image *image = (Image*)editorNode->id;
-	ImageUser *imageuser = (ImageUser*)editorNode->storage;
+	Image *image = (Image *)editorNode->id;
+	ImageUser *imageuser = (ImageUser *)editorNode->storage;
 	int framenumber = context->getFramenumber();
 	int numberOfOutputs = this->getNumberOfOutputSockets();
 	BKE_image_user_frame_calc(imageuser, context->getFramenumber(), 0);
 
 	/* force a load, we assume iuser index will be set OK anyway */
-	if (image && image->type==IMA_TYPE_MULTILAYER) {
+	if (image && image->type == IMA_TYPE_MULTILAYER) {
 		BKE_image_get_ibuf(image, imageuser);
 		if (image->rr) {
-			RenderLayer *rl = (RenderLayer*)BLI_findlink(&image->rr->layers, imageuser->layer);
+			RenderLayer *rl = (RenderLayer *)BLI_findlink(&image->rr->layers, imageuser->layer);
 			if (rl) {
-				OutputSocket * socket;
+				OutputSocket *socket;
 				int index;
-				for (index = 0 ; index < numberOfOutputs ; index ++) {
+				for (index = 0; index < numberOfOutputs; index++) {
 					socket = this->getOutputSocket(index);
 					if (socket->isConnected() || index == 0) {
 						bNodeSocket *bnodeSocket = socket->getbNodeSocket();
-						NodeImageLayer *storage = (NodeImageLayer*)bnodeSocket->storage;
+						NodeImageLayer *storage = (NodeImageLayer *)bnodeSocket->storage;
 						int passindex = storage->pass_index;
 						
 						RenderPass *rpass = (RenderPass *)BLI_findlink(&rl->passes, passindex);
 						if (rpass) {
-							NodeOperation * operation = NULL;
+							NodeOperation *operation = NULL;
 							imageuser->pass = passindex;
 							switch (rpass->channels) {
-							case 1:
-								operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);
-								break;
-							/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
-							/* XXX any way to detect actual vector images? */
-							case 3:
-								operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_VECTOR);
-								break;
-							case 4:
-								operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
-								break;
-							
-							default:
-							/* XXX add a dummy operation? */
-							break;
+								case 1:
+									operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_VALUE);
+									break;
+								/* using image operations for both 3 and 4 channels (RGB and RGBA respectively) */
+								/* XXX any way to detect actual vector images? */
+								case 3:
+									operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_VECTOR);
+									break;
+								case 4:
+									operation = doMultilayerCheck(graph, rl, image, imageuser, framenumber, index, passindex, COM_DT_COLOR);
+									break;
+
+								default:
+									/* XXX add a dummy operation? */
+									break;
 							}
 							if (index == 0 && operation) {
 								addPreviewOperation(graph, operation->getOutputSocket());

@@ -559,7 +559,6 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 	const char *identifier = NULL;
 	
 	/* validate data */
-	// TODO: this check is probably not needed, but it won't hurt
 	if (ELEM3(NULL, ptr, ptr->data, prop))
 		return 0;
 		
@@ -633,6 +632,9 @@ static short visualkey_can_use(PointerRNA *ptr, PropertyRNA *prop)
 					
 				/* single-transform constraits  */
 				case CONSTRAINT_TYPE_TRACKTO:
+					if (searchtype == VISUALKEY_ROT) return 1;
+					break;
+				case CONSTRAINT_TYPE_DAMPTRACK:
 					if (searchtype == VISUALKEY_ROT) return 1;
 					break;
 				case CONSTRAINT_TYPE_ROTLIMIT:

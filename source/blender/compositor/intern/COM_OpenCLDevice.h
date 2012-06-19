@@ -37,29 +37,29 @@ class OpenCLDevice;
 class OpenCLDevice : public Device {
 private:
 	/**
-	   *@brief opencl context
+	 * @brief opencl context
 	 */
 	cl_context context;
 	
 	/**
-	   *@brief opencl device
+	 * @brief opencl device
 	 */
 	cl_device_id device;
 	
 	/**
-	   *@brief opencl program
+	 * @brief opencl program
 	 */
 	cl_program program;
 	
 	/**
-	   *@brief opencl command queue
+	 * @brief opencl command queue
 	 */
 	cl_command_queue queue;
 public:
 	/**
-	   *@brief constructor with opencl device
-	   *@param context
-	   *@param device
+	 * @brief constructor with opencl device
+	 * @param context
+	 * @param device
 	 */
 	OpenCLDevice(cl_context context, cl_device_id device, cl_program program);
 	

@@ -32,6 +32,7 @@
 
 BokehBlurNode::BokehBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void BokehBlurNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)

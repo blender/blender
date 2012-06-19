@@ -449,9 +449,9 @@ void fsmenu_read_system(struct FSMenu *fsmenu, int read_bookmarks)
 				itemRef = (LSSharedFileListItemRef)CFArrayGetValueAtIndex(pathesArray, i);
 				
 				err = LSSharedFileListItemResolve(itemRef, 
-												  kLSSharedFileListNoUserInteraction |
-												  kLSSharedFileListDoNotMountVolumes,
-												  &cfURL, NULL);
+				                                  kLSSharedFileListNoUserInteraction |
+				                                  kLSSharedFileListDoNotMountVolumes,
+				                                  &cfURL, NULL);
 				if (err != noErr)
 					continue;
 				

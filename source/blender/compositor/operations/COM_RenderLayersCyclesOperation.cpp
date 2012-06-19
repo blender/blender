@@ -22,7 +22,7 @@
 
 #include "COM_RenderLayersCyclesOperation.h"
 
-RenderLayersCyclesOperation::RenderLayersCyclesOperation(int pass) :RenderLayersBaseProg(pass, 3)
+RenderLayersCyclesOperation::RenderLayersCyclesOperation(int pass) : RenderLayersBaseProg(pass, 3)
 {
 	this->addOutputSocket(COM_DT_COLOR);
 }

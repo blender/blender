@@ -26,6 +26,7 @@
 
 VectorBlurNode::VectorBlurNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
 void VectorBlurNode::convertToOperations(ExecutionSystem *system, CompositorContext *context)

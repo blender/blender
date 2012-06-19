@@ -28,7 +28,7 @@
 #include "COM_SetVectorOperation.h"
 #include "COM_SetColorOperation.h"
 
-SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput): Node(editorNode, false)
+SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bNodeSocket *editorOutput) : Node(editorNode, false)
 {
 	DataType dt;
 	
@@ -43,10 +43,10 @@ SocketProxyNode::SocketProxyNode(bNode *editorNode, bNodeSocket *editorInput, bN
 	this->addOutputSocket(dt, editorOutput);
 }
 
-void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
-	OutputSocket * outputsocket = this->getOutputSocket(0);
-	InputSocket * inputsocket = this->getInputSocket(0);
+	OutputSocket *outputsocket = this->getOutputSocket(0);
+	InputSocket *inputsocket = this->getInputSocket(0);
 	if (outputsocket->isConnected()) {
 		if (inputsocket->isConnected()) {
 			SocketProxyOperation *operation = new SocketProxyOperation(this->getOutputSocket()->getDataType());
@@ -57,33 +57,33 @@ void SocketProxyNode::convertToOperations(ExecutionSystem *graph, CompositorCont
 		else {
 			/* If input is not connected, add a constant value operation instead */
 			switch (outputsocket->getDataType()) {
-			case COM_DT_VALUE:
-			{
-				SetValueOperation *operation = new SetValueOperation();
-				bNodeSocketValueFloat *dval = (bNodeSocketValueFloat*)inputsocket->getbNodeSocket()->default_value;
-				operation->setValue(dval->value);
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
-			case COM_DT_COLOR:
-			{
-				SetColorOperation *operation = new SetColorOperation();
-				bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA*)inputsocket->getbNodeSocket()->default_value;
-				operation->setChannels(dval->value);
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
-			case COM_DT_VECTOR:
-			{
-				SetVectorOperation *operation = new SetVectorOperation();
-				bNodeSocketValueVector *dval = (bNodeSocketValueVector*)inputsocket->getbNodeSocket()->default_value;
-				operation->setVector(dval->value);
-				outputsocket->relinkConnections(operation->getOutputSocket(0));
-				graph->addOperation(operation);
-				break;
-			}
+				case COM_DT_VALUE:
+				{
+					SetValueOperation *operation = new SetValueOperation();
+					bNodeSocketValueFloat *dval = (bNodeSocketValueFloat *)inputsocket->getbNodeSocket()->default_value;
+					operation->setValue(dval->value);
+					outputsocket->relinkConnections(operation->getOutputSocket(0));
+					graph->addOperation(operation);
+					break;
+				}
+				case COM_DT_COLOR:
+				{
+					SetColorOperation *operation = new SetColorOperation();
+					bNodeSocketValueRGBA *dval = (bNodeSocketValueRGBA *)inputsocket->getbNodeSocket()->default_value;
+					operation->setChannels(dval->value);
+					outputsocket->relinkConnections(operation->getOutputSocket(0));
+					graph->addOperation(operation);
+					break;
+				}
+				case COM_DT_VECTOR:
+				{
+					SetVectorOperation *operation = new SetVectorOperation();
+					bNodeSocketValueVector *dval = (bNodeSocketValueVector *)inputsocket->getbNodeSocket()->default_value;
+					operation->setVector(dval->value);
+					outputsocket->relinkConnections(operation->getOutputSocket(0));
+					graph->addOperation(operation);
+					break;
+				}
 			}
 		}
 	}

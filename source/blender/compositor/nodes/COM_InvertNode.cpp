@@ -26,11 +26,12 @@
 #include "COM_ExecutionSystem.h"
 #include "BKE_node.h"
 
-InvertNode::InvertNode(bNode *editorNode): Node(editorNode)
+InvertNode::InvertNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void InvertNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void InvertNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	InvertOperation *operation = new InvertOperation();
 	bNode *node = this->getbNode();

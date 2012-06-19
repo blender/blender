@@ -29,11 +29,12 @@ extern "C" {
 	#include "DNA_mask_types.h"
 }
 
-MaskNode::MaskNode(bNode *editorNode): Node(editorNode)
+MaskNode::MaskNode(bNode *editorNode) : Node(editorNode)
 {
+	/* pass */
 }
 
-void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * context)
+void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext *context)
 {
 	const RenderData *data = &context->getScene()->r;
 
@@ -54,7 +55,7 @@ void MaskNode::convertToOperations(ExecutionSystem *graph, CompositorContext * c
 
 	operation->setMask(mask);
 	operation->setFramenumber(context->getFramenumber());
-    operation->setSmooth((bool)editorNode->custom1);
+	operation->setSmooth((bool)editorNode->custom1);
 
 	graph->addOperation(operation);
 }

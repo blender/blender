@@ -278,7 +278,7 @@ static inline void	 swapfunc(char *, char *, int, int);
 #define min(a, b)	(a) < (b) ? a : b
 #define swapcode(TYPE, parmi, parmj, n)		\
 {											\
-	long i = (n) / sizeof (TYPE); 			\
+	long i = (n) / sizeof(TYPE); 			\
 	TYPE *pi = (TYPE *) (parmi); 			\
 	TYPE *pj = (TYPE *) (parmj); 			\
 	do { 									\

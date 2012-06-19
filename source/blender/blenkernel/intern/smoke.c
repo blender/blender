@@ -1856,7 +1856,7 @@ void smokeModifier_do(SmokeModifierData *smd, Scene *scene, Object *ob, DerivedM
 			BKE_ptcache_write(&pid, framenr);
 
 		tend();
-		// printf ( "Frame: %d, Time: %f\n\n", (int)smd->time, ( float ) tval() );
+		// printf ( "Frame: %d, Time: %f\n\n", (int)smd->time, (float) tval() );
 	}
 }
 

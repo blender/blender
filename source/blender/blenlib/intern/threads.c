@@ -44,14 +44,14 @@
 
 /* for checking system threads - BLI_system_thread_count */
 #ifdef WIN32
-#include "windows.h"
-#include <sys/timeb.h>
+#  include <windows.h>
+#  include <sys/timeb.h>
 #elif defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
 #else
-#include <unistd.h> 
-#include <sys/time.h>
+#  include <unistd.h>
+#  include <sys/time.h>
 #endif
 
 #if defined(__APPLE__) && (PARALLEL == 1) && (__GNUC__ == 4) && (__GNUC_MINOR__ == 2)
@@ -576,7 +576,7 @@ void *BLI_thread_queue_pop(ThreadQueue *queue)
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 		
-		if(BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
 
@@ -642,7 +642,7 @@ void *BLI_thread_queue_pop_timeout(ThreadQueue *queue, int ms)
 	if (!BLI_gsqueue_is_empty(queue->queue)) {
 		BLI_gsqueue_pop(queue->queue, &work);
 		
-		if(BLI_gsqueue_is_empty(queue->queue))
+		if (BLI_gsqueue_is_empty(queue->queue))
 			pthread_cond_broadcast(&queue->finish_cond);
 	}
 	
@@ -678,7 +678,7 @@ void BLI_thread_queue_wait_finish(ThreadQueue *queue)
 	/* wait for finish condition */
 	pthread_mutex_lock(&queue->mutex);
 
-    while(!BLI_gsqueue_is_empty(queue->queue))
+	while (!BLI_gsqueue_is_empty(queue->queue))
 		pthread_cond_wait(&queue->finish_cond, &queue->mutex);
 
 	pthread_mutex_unlock(&queue->mutex);

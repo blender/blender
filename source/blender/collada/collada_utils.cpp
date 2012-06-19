@@ -34,11 +34,14 @@
 
 #include "collada_utils.h"
 
+extern "C" {
+
 #include "DNA_modifier_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_armature_types.h"
 
 #include "BLI_math.h"
 
@@ -49,13 +52,13 @@
 #include "BKE_mesh.h"
 #include "BKE_scene.h"
 
-extern "C" {
 #include "BKE_DerivedMesh.h"
 #include "BLI_linklist.h"
-}
+
 
 #include "WM_api.h" // XXX hrm, see if we can do without this
 #include "WM_types.h"
+}
 
 float bc_get_float_value(const COLLADAFW::FloatOrDoubleArray& array, unsigned int index)
 {
@@ -135,11 +138,22 @@ Object *bc_add_object(Scene *scene, int type, const char *name)
 	return ob;
 }
 
-Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob)
+Mesh *bc_to_mesh_apply_modifiers(Scene *scene, Object *ob, BC_export_mesh_type export_mesh_type)
 {
 	Mesh *tmpmesh;
 	CustomDataMask mask = CD_MASK_MESH;
-	DerivedMesh *dm     = mesh_create_derived_view(scene, ob, mask);
+	DerivedMesh *dm;
+	switch (export_mesh_type) {
+		case BC_MESH_TYPE_VIEW: {
+			dm = mesh_create_derived_view(scene, ob, mask);
+			break;
+		}
+		case BC_MESH_TYPE_RENDER: {
+			dm = mesh_create_derived_render(scene, ob, mask);
+			break;
+		}
+	}
+
 	tmpmesh             = BKE_mesh_add("ColladaMesh"); // name is not important here
 	DM_to_mesh(dm, tmpmesh, ob);
 	dm->release(dm);
@@ -181,6 +195,7 @@ Object *bc_get_highest_selected_ancestor_or_self(LinkNode *export_set, Object *o
 	return ancestor;
 }
 
+
 bool bc_is_base_node(LinkNode *export_set, Object *ob)
 {
 	Object *root = bc_get_highest_selected_ancestor_or_self(export_set, ob);
@@ -189,30 +204,19 @@ bool bc_is_base_node(LinkNode *export_set, Object *ob)
 
 bool bc_is_in_Export_set(LinkNode *export_set, Object *ob)
 {
-	LinkNode *node = export_set;
-	
-	while (node) {
-		Object *element = (Object *)node->link;
-	
-		if (element == ob)
-			return true;
-		
-		node= node->next;
-	}
-	return false;
+	return (BLI_linklist_index(export_set, ob) != -1);
 }
 
 bool bc_has_object_type(LinkNode *export_set, short obtype)
 {
-	LinkNode *node = export_set;
+	LinkNode *node;
 	
-	while (node) {
+	for (node = export_set; node; node = node->next) {
 		Object *ob = (Object *)node->link;
-			
+		/* XXX - why is this checking for ob->data? - we could be looking for empties */
 		if (ob->type == obtype && ob->data) {
 			return true;
 		}
-		node= node->next;
 	}
 	return false;
 }
@@ -232,19 +236,16 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 {
 	bool sorted = false;
 	LinkNode *node;
-	for(node=export_set; node->next && !sorted; node=node->next) {
+	for (node = export_set; node->next && !sorted; node = node->next) {
 
 		sorted = true;
 		
 		LinkNode *current;
-		for (current=export_set; current->next; current = current->next) {
+		for (current = export_set; current->next; current = current->next) {
 			Object *a = (Object *)current->link;
 			Object *b = (Object *)current->next->link;
 
-			std::string str_a (a->id.name);
-			std::string str_b (b->id.name);
-
-			if (str_a.compare(str_b) > 0) {
+			if (strcmp(a->id.name, b->id.name) > 0) {
 				current->link       = b;
 				current->next->link = a;
 				sorted = false;
@@ -252,4 +253,24 @@ void bc_bubble_sort_by_Object_name(LinkNode *export_set)
 			
 		}
 	}
+}
+
+/* Check if a bone is the top most exportable bone in the bone hierarchy. 
+ * When deform_bones_only == false, then only bones with NO parent 
+ * can be root bones. Otherwise the top most deform bones in the hierarchy
+ * are root bones.
+ */
+bool bc_is_root_bone(Bone *aBone, bool deform_bones_only) {
+	if (deform_bones_only) {
+		Bone *root = NULL;
+		Bone *bone = aBone;
+		while (bone) {
+			if (!(bone->flag & BONE_NO_DEFORM))
+				root = bone;
+			bone = bone->parent;
+		}
+		return (aBone == root);
+	}
+	else
+		return !(aBone->parent);
 }

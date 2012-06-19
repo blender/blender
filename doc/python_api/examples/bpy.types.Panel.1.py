@@ -2,7 +2,7 @@
 Simple Object Panel
 +++++++++++++++++++
 This panel has a :class:`Panel.poll` and :class:`Panel.draw_header` function,
-even though the contents is basic this closely resemples blenders panels.
+even though the contents is basic this closely resembles blenders panels.
 """
 import bpy
 
