@@ -490,6 +490,14 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	invert_m4_m4(ob_src->imat, ob_src->obmat);
 	mult_m4_m4m4(tmp_mat, ob_src->imat, ob_dst->obmat);
 
+	/* clear weights */
+	if (replace_mode == REPLACE_ALL_WEIGHTS) {
+		for(i = 0, dv_dst = dv_array_dst; i < me_dst->totvert; i++, dv_dst++) {
+			dw_dst = defvert_verify_index(*dv_dst, index_dst);
+			if (dw_dst) (*dw_dst).weight = 0;
+		}
+	}
+
 	switch (method) {
 
 		case BY_INDEX:
@@ -514,10 +522,6 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
-				/* why?
-				ideasman42 2012/06/19 07:27:34
-				there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
-				*/
 			}
 			break;
 
@@ -545,10 +549,6 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if(dw_src && dw_src->weight) {
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
-					/* why?
-					ideasman42 2012/06/19 07:27:34
-					there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
-					*/
 				}
 			}
 
@@ -660,10 +660,6 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 					dw_dst = defvert_verify_index(*dv_dst, index_dst);
 					vgroup_transfer_weight(mv_dst, &dw_dst->weight, dw_src->weight, replace_mode);
 				}
-				  /*
-ideasman42 2012/06/19 07:27:34 why?
-there should be an 'else {' ... here, which checks if 'dv_dst' has any weights and clears them (at least when overwrite is enabled). This will depend on the options selected, but you see the issue I hope.
-				  */
 			}
 
 			/* free memory */
