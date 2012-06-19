@@ -444,10 +444,11 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 	BVHTreeFromMesh tree_mesh_vertices_src, tree_mesh_faces_src = {NULL};
 	MDeformVert **dv_array_src, **dv_array_dst, **dv_src, **dv_dst;
 	MVert *mv_dst, *mv_src;
-	MFace *mface_src;
+	MFace *mface_src, *mf;
 	BVHTreeNearest nearest;
 	MDeformWeight *dw_dst, *dw_src;
-	int dv_tot_src, dv_tot_dst, i, j, v, index_dst, index_src, index_nearest, index_nearest_vertex;
+	int dv_tot_src, dv_tot_dst, i, v_index, index_dst, index_src, index_nearest, index_nearest_vertex;
+	unsigned int f_index;
 	float weight, tmp_weight[4], tmp_co[3], normal[3], tmp_mat[4][4], dist_v1, dist_v2, dist_v3, dist_v4;
 
 	/* create new and overwrite vertex group on destination without data */
@@ -604,20 +605,12 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* get weights from face*/
 				weight = 0;
-				if (&mface_src[index_nearest].v4 != NULL) v = 4;
-				/*
-				ideasman42 2012/06/19 07:27:34
-				comparing v4 with NULL is misleading, since its not a pointer. suggest to use this:
-mf = &mface_src[index_nearest]; fidx = mf->v4 ? 3 : 2; do { unsigned int vidx = (&mf->v1)[fidx]; ... operate on vidx ... } while (fidx--);
-				*/
-				else v = 3;
-				for (j = 0; j < v; j++) {
-					weight += tmp_weight[j] * defvert_find_index(dv_array_src[(&mface_src[index_nearest].v1)[j]], index_src)->weight;
-					/*
-ideasman42 2012/06/19 07:27:34
-defvert_find_index may be a NULL pointer, so getting ->weight from it may crash. better use defvert_find_weight() here which falls back to 0.0 when not found.
-					  */
-				}
+				mf = &mface_src[index_nearest];
+				f_index = mf->v4 ? 3 : 2;
+				do {
+					v_index = (&mf->v1)[f_index];
+					weight += tmp_weight[f_index] * defvert_find_weight(dv_array_src[v_index], index_src);
+				} while (f_index--);
 
 				/* copy weight */
 				if(weight > 0) {
@@ -663,14 +656,12 @@ defvert_find_index may be a NULL pointer, so getting ->weight from it may crash.
 				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v1;
 				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
 				else index_nearest_vertex = mface_src[index_nearest].v3;
-				if (&mface_src[index_nearest].v4 != NULL) {
-					  /*
-ideasman42 2012/06/19 07:27:34
-comparing v4 with NULL is misleading... see above.
-					 */
-					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v4].co);
+				mf = &mface_src[index_nearest];
+				f_index = mf->v4 ? 3 : 2;
+				if (f_index == 3) {
+					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mf->v4].co);
 					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
-						index_nearest_vertex = mface_src[index_nearest].v4;
+						index_nearest_vertex = mf->v4;
 					}
 				}
 
