@@ -2562,15 +2562,9 @@ static void def_cmp_defocus(StructRNA *srna)
 	
 	prop = RNA_def_property(srna, "use_preview", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_sdna(prop, NULL, "preview", 1);
-	RNA_def_property_ui_text(prop, "Preview", "Enable sampling mode, useful for preview when using low samplecounts");
+	RNA_def_property_ui_text(prop, "Preview", "Enable low quality mode, useful for preview");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
-	prop = RNA_def_property(srna, "samples", PROP_INT, PROP_NONE);
-	RNA_def_property_int_sdna(prop, NULL, "samples");
-	RNA_def_property_range(prop, 16, 256);
-	RNA_def_property_ui_text(prop, "Samples", "Number of samples (16=grainy, higher=less noise)");
-	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
-	
+
 	prop = RNA_def_property(srna, "use_zbuffer", PROP_BOOLEAN, PROP_NONE);
 	RNA_def_property_boolean_negative_sdna(prop, NULL, "no_zbuf", 1);
 	RNA_def_property_ui_text(prop, "Use Z-Buffer",

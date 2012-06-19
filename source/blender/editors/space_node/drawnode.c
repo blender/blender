@@ -1574,9 +1574,6 @@ static void node_composit_buts_defocus(uiLayout *layout, bContext *UNUSED(C), Po
 
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "use_preview", 0, NULL, ICON_NONE);
-	sub = uiLayoutColumn(col, 0);
-	uiLayoutSetActive(sub, RNA_boolean_get(ptr, "use_preview"));
-	uiItemR(sub, ptr, "samples", 0, NULL, ICON_NONE);
 	
 	col = uiLayoutColumn(layout, 0);
 	uiItemR(col, ptr, "use_zbuffer", 0, NULL, ICON_NONE);
