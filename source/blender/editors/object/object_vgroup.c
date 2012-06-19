@@ -581,32 +581,21 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				index_nearest = nearest.index;
 
 				/* project onto face */
-				normal_tri_v3(normal,
-				              mv_src[mface_src[nearest.index].v1].co,
-				              mv_src[mface_src[index_nearest].v2].co,
-				              mv_src[mface_src[index_nearest].v3].co);
-
-				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
+				mf = &mface_src[index_nearest];
+				normal_tri_v3(normal, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co);
+				project_v3_plane(tmp_co, normal, mv_src[mf->v1].co);
 
 				/* interpolate weights over face*/
-				if (&mface_src[index_nearest].v4 != NULL) {
-					interp_weights_face_v3(tmp_weight,
-					                       mv_src[mface_src[index_nearest].v1].co,
-					                       mv_src[mface_src[index_nearest].v2].co,
-					                       mv_src[mface_src[index_nearest].v3].co,
-					                       mv_src[mface_src[index_nearest].v4].co, tmp_co);
+				f_index = mf->v4 ? 3 : 2;
+				if (f_index == 3) {
+					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co, mv_src[mf->v4].co, tmp_co);
 				}
 				else {
-					interp_weights_face_v3(tmp_weight,
-					                       mv_src[mface_src[index_nearest].v1].co,
-					                       mv_src[mface_src[index_nearest].v2].co,
-					                       mv_src[mface_src[index_nearest].v3].co, NULL, tmp_co);
+					interp_weights_face_v3(tmp_weight, mv_src[mf->v1].co, mv_src[mf->v2].co, mv_src[mf->v3].co, NULL, tmp_co);
 				}
 
 				/* get weights from face*/
 				weight = 0;
-				mf = &mface_src[index_nearest];
-				f_index = mf->v4 ? 3 : 2;
 				do {
 					v_index = (&mf->v1)[f_index];
 					weight += tmp_weight[f_index] * defvert_find_weight(dv_array_src[v_index], index_src);
@@ -648,16 +637,16 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				index_nearest = nearest.index;
 
 				/* get distances */
-				dist_v1 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v1].co);
-				dist_v2 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v2].co);
-				dist_v3 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v3].co);
+				mf = &mface_src[index_nearest];
+				dist_v1 = len_squared_v3v3(tmp_co, mv_src[mf->v1].co);
+				dist_v2 = len_squared_v3v3(tmp_co, mv_src[mf->v2].co);
+				dist_v3 = len_squared_v3v3(tmp_co, mv_src[mf->v3].co);
 
 				/* get closest vertex */
-				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v1;
-				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
-				else index_nearest_vertex = mface_src[index_nearest].v3;
-				mf = &mface_src[index_nearest];
 				f_index = mf->v4 ? 3 : 2;
+				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mf->v1;
+				else if (dist_v2 < dist_v3) index_nearest_vertex = mf->v2;
+				else index_nearest_vertex = mf->v3;
 				if (f_index == 3) {
 					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mf->v4].co);
 					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
