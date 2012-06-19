@@ -370,7 +370,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		int colbuts = len / (2 * cols);
 		int layer_used = 0;
 
-		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 0));
+		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, FALSE));
 
 		unit = UI_UNIT_X * 0.75;
 		butw = unit;
@@ -409,7 +409,7 @@ static void ui_item_array(uiLayout *layout, uiBlock *block, const char *name, in
 		int totdim, dim_size[3];    /* 3 == RNA_MAX_ARRAY_DIMENSION */
 		int row, col;
 
-		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, 1));
+		uiBlockSetCurLayout(block, uiLayoutAbsolute(layout, TRUE));
 
 		totdim = RNA_property_array_dimension(ptr, prop, dim_size);
 		if (totdim != 2) return;    /* only 2D matrices supported in UI so far */
@@ -532,7 +532,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	PropertySubType subtype;
 	int labelw;
 
-	sub = uiLayoutRow(layout, 0);
+	sub = uiLayoutRow(layout, FALSE);
 	uiBlockSetCurLayout(block, sub);
 
 	if (name[0]) {
@@ -550,7 +550,7 @@ static uiBut *ui_item_with_label(uiLayout *layout, uiBlock *block, const char *n
 	subtype = RNA_property_subtype(prop);
 
 	if (subtype == PROP_FILEPATH || subtype == PROP_DIRPATH) {
-		uiBlockSetCurLayout(block, uiLayoutRow(sub, 1));
+		uiBlockSetCurLayout(block, uiLayoutRow(sub, TRUE));
 		uiDefAutoButR(block, ptr, prop, index, "", icon, x, y, w - UI_UNIT_X, h);
 
 		/* BUTTONS_OT_file_browse calls uiFileBrowseContextProperty */
@@ -798,8 +798,8 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 	if (prop && RNA_property_type(prop) == PROP_ENUM) {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split = uiLayoutSplit(layout, 0, 0);
-		uiLayout *column = uiLayoutColumn(split, 0);
+		uiLayout *split = uiLayoutSplit(layout, 0.0f, FALSE);
+		uiLayout *column = uiLayoutColumn(split, FALSE);
 
 		RNA_property_enum_items_gettexted(block->evil_C, &ptr, prop, &item, &totitem, &free);
 
@@ -825,7 +825,7 @@ void uiItemsFullEnumO(uiLayout *layout, const char *opname, const char *propname
 			else {
 				if (item[i].name) {
 					if (i != 0) {
-						column = uiLayoutColumn(split, 0);
+						column = uiLayoutColumn(split, FALSE);
 						/* inconsistent, but menus with labels do not look good flipped */
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
@@ -1203,8 +1203,8 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 	else {
 		EnumPropertyItem *item;
 		int totitem, i, free;
-		uiLayout *split = uiLayoutSplit(layout, 0, 0);
-		uiLayout *column = uiLayoutColumn(split, 0);
+		uiLayout *split = uiLayoutSplit(layout, 0.0f, FALSE);
+		uiLayout *column = uiLayoutColumn(split, FALSE);
 
 		RNA_property_enum_items_gettexted(block->evil_C, ptr, prop, &item, &totitem, &free);
 
@@ -1215,7 +1215,7 @@ void uiItemsEnumR(uiLayout *layout, struct PointerRNA *ptr, const char *propname
 			else {
 				if (item[i].name) {
 					if (i != 0) {
-						column = uiLayoutColumn(split, 0);
+						column = uiLayoutColumn(split, FALSE);
 						/* inconsistent, but menus with labels do not look good flipped */
 						block->flag |= UI_BLOCK_NO_FLIP;
 					}
@@ -2301,7 +2301,7 @@ uiBlock *uiLayoutAbsoluteBlock(uiLayout *layout)
 	uiBlock *block;
 
 	block = uiLayoutGetBlock(layout);
-	uiLayoutAbsolute(layout, 0);
+	uiLayoutAbsolute(layout, FALSE);
 
 	return block;
 }
@@ -2893,7 +2893,7 @@ void uiLayoutOperatorButs(const bContext *C, uiLayout *layout, wmOperator *op, i
 		uiBut *but;
 		uiLayout *col; /* needed to avoid alignment errors with previous buttons */
 
-		col = uiLayoutColumn(layout, 0);
+		col = uiLayoutColumn(layout, FALSE);
 		block = uiLayoutGetBlock(col);
 		but = uiDefIconTextBut(block, BUT, 0, ICON_FILE_REFRESH, IFACE_("Reset"), 0, 0, 18, 20,
 		                       NULL, 0.0, 0.0, 0.0, 0.0, TIP_("Reset operator defaults"));

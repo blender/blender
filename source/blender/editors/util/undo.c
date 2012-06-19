@@ -493,12 +493,13 @@ static int undo_history_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(even
 		if (totitem > 0) {
 			uiPopupMenu *pup = uiPupMenuBegin(C, RNA_struct_ui_name(op->type->srna), ICON_NONE);
 			uiLayout *layout = uiPupMenuLayout(pup);
-			uiLayout *split = uiLayoutSplit(layout, 0, 0), *column = NULL;
+			uiLayout *split = uiLayoutSplit(layout, 0.0f, FALSE);
+			uiLayout *column = NULL;
 			int i, c;
 			
 			for (c = 0, i = totitem - 1; i >= 0; i--, c++) {
 				if ( (c % 20) == 0)
-					column = uiLayoutColumn(split, 0);
+					column = uiLayoutColumn(split, FALSE);
 				if (item[i].identifier)
 					uiItemIntO(column, item[i].name, item[i].icon, op->type->idname, "item", item[i].value);
 				

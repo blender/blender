@@ -1328,8 +1328,8 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiBlockSetEmboss(block, UI_EMBOSSP);
 	uiLayoutSetOperatorContext(layout, WM_OP_EXEC_REGION_WIN);
 	
-	split = uiLayoutSplit(layout, 0, 0);
-	col = uiLayoutColumn(split, 0);
+	split = uiLayoutSplit(layout, 0.0f, FALSE);
+	col = uiLayoutColumn(split, FALSE);
 	uiItemL(col, "Links", ICON_NONE);
 	uiItemStringO(col, IFACE_("Donations"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/blenderorg/blender-foundation/donation-payment");
 	uiItemStringO(col, IFACE_("Credits"), ICON_URL, "WM_OT_url_open", "url", "http://www.blender.org/development/credits");
@@ -1346,7 +1346,7 @@ static uiBlock *wm_block_create_splash(bContext *C, ARegion *ar, void *UNUSED(ar
 	uiItemStringO(col, IFACE_("Python API Reference"), ICON_URL, "WM_OT_url_open", "url", url);
 	uiItemL(col, "", ICON_NONE);
 
-	col = uiLayoutColumn(split, 0);
+	col = uiLayoutColumn(split, FALSE);
 
 	if (wm_resource_check_prev()) {
 		uiItemO(col, NULL, ICON_NEW, "WM_OT_copy_prev_settings");

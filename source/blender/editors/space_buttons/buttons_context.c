@@ -991,7 +991,7 @@ void buttons_context_draw(const bContext *C, uiLayout *layout)
 	if (!path)
 		return;
 
-	row = uiLayoutRow(layout, 1);
+	row = uiLayoutRow(layout, TRUE);
 	uiLayoutSetAlignment(row, UI_LAYOUT_ALIGN_LEFT);
 
 	block = uiLayoutGetBlock(row);
