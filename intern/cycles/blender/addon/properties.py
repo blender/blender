@@ -336,7 +336,7 @@ class CyclesCameraSettings(bpy.types.PropertyGroup):
         cls.fisheye_fov = FloatProperty(
                 name="Field of View",
                 description="Field of view for the fisheye lens",
-                min=0.1745, soft_max=2*math.pi, max=10.0*math.pi,
+                min=0.1745, soft_max=2 * math.pi, max=10.0 * math.pi,
                 subtype='ANGLE',
                 default=math.pi,
                 )

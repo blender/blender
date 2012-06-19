@@ -406,7 +406,7 @@ class DATA_PT_text_boxes(CurveButtonsPanel, Panel):
             col.prop(box, "x", text="X")
             col.prop(box, "y", text="Y")
 
-            row.operator("font.textbox_remove", text='', icon='X', emboss=False).index = i
+            row.operator("font.textbox_remove", text="", icon='X', emboss=False).index = i
 
 
 class DATA_PT_custom_props_curve(CurveButtonsPanel, PropertyPanel, Panel):

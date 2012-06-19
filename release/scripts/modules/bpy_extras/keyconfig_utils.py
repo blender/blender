@@ -171,7 +171,7 @@ def keyconfig_export(wm, kc, filepath):
     # First add all user_modified keymaps (found in keyconfigs.user.keymaps list),
     # then add all remaining keymaps from the currently active custom keyconfig.
     #
-    # This will create a final list of keymaps that can be used as a 'diff' against
+    # This will create a final list of keymaps that can be used as a "diff" against
     # the default blender keyconfig, recreating the current setup from a fresh blender
     # without needing to export keymaps which haven't been edited.
 

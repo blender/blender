@@ -371,16 +371,16 @@ class INFO_MT_help(Menu):
     def draw(self, context):
         layout = self.layout
 
-        layout.operator("wm.url_open", text="Manual", icon='HELP').url = 'http://wiki.blender.org/index.php/Doc:2.6/Manual'
-        layout.operator("wm.url_open", text="Release Log", icon='URL').url = 'http://www.blender.org/development/release-logs/blender-263/'
+        layout.operator("wm.url_open", text="Manual", icon='HELP').url = "http://wiki.blender.org/index.php/Doc:2.6/Manual"
+        layout.operator("wm.url_open", text="Release Log", icon='URL').url = "http://www.blender.org/development/release-logs/blender-263"
         layout.separator()
 
-        layout.operator("wm.url_open", text="Blender Website", icon='URL').url = 'http://www.blender.org/'
-        layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = 'http://www.blender.org/e-shop'
-        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = 'http://www.blender.org/community/get-involved/'
-        layout.operator("wm.url_open", text="User Community", icon='URL').url = 'http://www.blender.org/community/user-community/'
+        layout.operator("wm.url_open", text="Blender Website", icon='URL').url = "http://www.blender.org"
+        layout.operator("wm.url_open", text="Blender e-Shop", icon='URL').url = "http://www.blender.org/e-shop"
+        layout.operator("wm.url_open", text="Developer Community", icon='URL').url = "http://www.blender.org/community/get-involved"
+        layout.operator("wm.url_open", text="User Community", icon='URL').url = "http://www.blender.org/community/user-community"
         layout.separator()
-        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = 'http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse'
+        layout.operator("wm.url_open", text="Report a Bug", icon='URL').url = "http://projects.blender.org/tracker/?atid=498&group_id=9&func=browse"
         layout.separator()
 
         layout.operator("wm.url_open", text="Python API Reference", icon='URL').url = bpy.types.WM_OT_doc_view._prefix

@@ -61,9 +61,9 @@ fpout.write("const char * clkernelstoh_%s = " % filename)
 
 lines = fpin.readlines()
 for line in lines:
-	fpout.write("\"")
-	fpout.write(line.rstrip())
-	fpout.write("\\n\" \\\n")
+    fpout.write("\"")
+    fpout.write(line.rstrip())
+    fpout.write("\\n\" \\\n")
 fpout.write("\"\\0\";\n")
 
 fpin.close()

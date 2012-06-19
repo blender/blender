@@ -27,7 +27,7 @@ import sys
 
 
 def cutPoint(text, length):
-    "Returns position of the last space found before 'length' chars"
+    """Returns position of the last space found before 'length' chars"""
     l = length
     c = text[l]
     while c != ' ':
@@ -98,7 +98,7 @@ def write_sysinfo(op):
     output.write(lilies)
     ffmpeg = bpy.app.ffmpeg
     if ffmpeg.supported:
-        for lib in ['avcodec', 'avdevice', 'avformat', 'avutil', 'swscale']:
+        for lib in ("avcodec", "avdevice", "avformat", "avutil", "swscale"):
             output.write("%r:%r%r\n" % (lib, " " * (10 - len(lib)),
                          getattr(ffmpeg, lib + "_version_string")))
     else:

@@ -36,14 +36,14 @@ def read_blend_rend_chunk(path):
 
     import struct
 
-    blendfile = open(path, 'rb')
+    blendfile = open(path, "rb")
 
     head = blendfile.read(7)
 
     if head[0:2] == b'\x1f\x8b':  # gzip magic
         import gzip
         blendfile.close()
-        blendfile = gzip.open(path, 'rb')
+        blendfile = gzip.open(path, "rb")
         head = blendfile.read(7)
 
     if head != b'BLENDER':
@@ -80,7 +80,7 @@ def read_blend_rend_chunk(path):
         scene_name = scene_name[:scene_name.index(b'\0')]
 
         try:
-            scene_name = str(scene_name, 'utf8')
+            scene_name = str(scene_name, "utf8")
         except TypeError:
             pass
 

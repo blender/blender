@@ -352,7 +352,7 @@ class SEQUENCER_PT_edit(SequencerButtonsPanel, Panel):
 
     def draw(self, context):
         layout = self.layout
-        
+
         scene = context.scene
         frame_current = scene.frame_current
         strip = act_strip(context)
@@ -474,7 +474,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
         elif strip.type == 'TRANSFORM':
             layout = self.layout
             col = layout.column()
-    
+
             col.prop(strip, "interpolation")
             col.prop(strip, "translation_unit")
             col = layout.column(align=True)
@@ -483,7 +483,7 @@ class SEQUENCER_PT_effect(SequencerButtonsPanel, Panel):
             col.prop(strip, "translate_start_y", text="Y")
 
             layout.separator()
-    
+
             col = layout.column(align=True)
             col.prop(strip, "use_uniform_scale")
             if (strip.use_uniform_scale):
@@ -568,10 +568,10 @@ class SEQUENCER_PT_input(SequencerButtonsPanel, Panel):
             split = layout.split(percentage=0.2)
             split.label(text="Path:")
             split.prop(strip, "filepath", text="")
-            
+
             layout.prop(strip, "mpeg_preseek")
             layout.prop(strip, "stream_index")
-        
+
         layout.prop(strip, "use_translation", text="Image Offset")
         if strip.use_translation:
             col = layout.column(align=True)
@@ -740,13 +740,13 @@ class SEQUENCER_PT_filter(SequencerButtonsPanel, Panel):
             col = layout.column()
             col.label(text="Distortion:")
             col.prop(strip, "undistort")
-            
+
         split = layout.split(percentage=0.65)
 
         col = split.column()
         col.prop(strip, "use_reverse_frames", text="Backwards")
         col.prop(strip, "use_deinterlace")
-        
+
         col = split.column()
         col.label(text="Flip:")
         col.prop(strip, "use_flip_x", text="X")
