@@ -662,7 +662,12 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 		imb_freerectviewImBuf_all(ibuf);
 	}
 
-	if (view_transform == IMB_VIEW_TRANSFORM_NONE) {
+#ifdef WITH_OCIO
+	if (view_transform == IMB_VIEW_TRANSFORM_NONE)
+#else
+	(void)view_transform;
+#endif /* WITH_OCIO */
+	{
 		int profile_from;
 
 		/* create byte rect if it didn't exist yet */
@@ -686,6 +691,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 		                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, profile_from, predivide,
 		                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 	}
+#ifdef WITH_OCIO
 	else if (view_transform == IMB_VIEW_TRANSFORM_ACES_ODT_TONECURVE) {
 		unsigned int *rect_view;
 
@@ -712,7 +718,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 		if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RAW)
 			OCIO_displayTransformSetView(dt, "Raw");
 		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RRT)
-			OCIO_displayTransformSetView(dt, "RRT");
+			OCIO_displayTransformSetView(dt, "RRT");IMB_rect_from_float_with_view_transform
 		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_LOG)
 			OCIO_displayTransformSetView(dt, "Log");
 
@@ -735,7 +741,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 			/* do conversion */
 			IMB_buffer_byte_from_float((uchar *)rect_view, rect_float,
 			                           ibuf->channels, ibuf->dither, IB_PROFILE_SRGB, IB_PROFILE_SRGB, predivide,
-									   ibuf->x, ibuf->y, ibuf->x, ibuf->x);
+			                           ibuf->x, ibuf->y, ibuf->x, ibuf->x);
 
 		}
 
@@ -746,6 +752,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 
 		MEM_freeN(rect_float);
 	}
+#endif /* WITH_OCIO */
 
 	ibuf->userflags &= ~IB_RECT_INVALID;
 }
