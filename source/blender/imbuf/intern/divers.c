@@ -718,7 +718,7 @@ void IMB_rect_from_float_with_view_transform(ImBuf *ibuf, int view_transform)
 		if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RAW)
 			OCIO_displayTransformSetView(dt, "Raw");
 		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_RRT)
-			OCIO_displayTransformSetView(dt, "RRT");IMB_rect_from_float_with_view_transform
+			OCIO_displayTransformSetView(dt, "RRT");
 		else if (view_transform == IMB_VIEW_TRANSFORM_OCIO_LOG)
 			OCIO_displayTransformSetView(dt, "Log");
 
