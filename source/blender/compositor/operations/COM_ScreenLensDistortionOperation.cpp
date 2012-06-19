@@ -47,9 +47,9 @@ void ScreenLensDistortionOperation::initExecution()
 	drg = 4.f * (kg - kr);
 	dgb = 4.f * (kb - kg);
 
-	kr4 = kr * 4;
+	kr4 = kr * 4.f;
 	kg4 = kg * 4.f;
-	kb4 *= kb * 4.f;
+	kb4 = kb * 4.f;
 	cx = 0.5f * (float)getWidth();
 	cy = 0.5f * (float)getHeight();
 
