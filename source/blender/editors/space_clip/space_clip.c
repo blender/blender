@@ -1147,7 +1147,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		glScalef(maxdim * zoomx, maxdim * zoomy, 0);
 		glMultMatrixf(sc->stabmat);
 
-		ED_mask_draw((bContext *)C, sc->mask_draw_flag, sc->mask_draw_type);
+		ED_mask_draw(C, sc->mask_draw_flag, sc->mask_draw_type);
 
 		ED_region_draw_cb_draw(C, ar, REGION_DRAW_POST_VIEW);
 

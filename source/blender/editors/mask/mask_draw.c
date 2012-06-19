@@ -441,10 +441,7 @@ void ED_mask_draw(const bContext *C,
 	if (!mask)
 		return;
 
-	/* TODO: for now, in the future better to make sure all utility functions
-	 *       are using const specifier for non-changing pointers
-	 */
-	ED_mask_size((bContext *)C, &width, &height);
+	ED_mask_size(C, &width, &height);
 
 	draw_masklays(mask, draw_flag, draw_type, width, height);
 }

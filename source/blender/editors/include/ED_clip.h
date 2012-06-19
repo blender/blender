@@ -70,9 +70,9 @@ void ED_clip_update_frame(const struct Main *mainp, int cfra);
 int ED_clip_view_selection(struct SpaceClip *sc, struct ARegion *ar, int fit);
 
 void ED_clip_point_undistorted_pos(SpaceClip * sc, const float co[2], float r_co[2]);
-void ED_clip_point_stable_pos(struct bContext *C, float x, float y, float *xr, float *yr);
-void ED_clip_point_stable_pos__reverse(SpaceClip * sc, ARegion *ar, const float co[2], float r_co[2]);
-void ED_clip_mouse_pos(struct bContext *C, struct wmEvent *event, float co[2]);
+void ED_clip_point_stable_pos(const struct bContext *C, float x, float y, float *xr, float *yr);
+void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float co[2], float r_co[2]);
+void ED_clip_mouse_pos(const struct bContext *C, struct wmEvent *event, float co[2]);
 
 int ED_space_clip_texture_buffer_supported(struct SpaceClip *sc);
 int ED_space_clip_load_movieclip_buffer(struct SpaceClip *sc, struct ImBuf *ibuf);

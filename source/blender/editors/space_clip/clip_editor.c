@@ -446,7 +446,7 @@ void ED_clip_point_undistorted_pos(SpaceClip *sc, const float co[2], float r_co[
 	}
 }
 
-void ED_clip_point_stable_pos(bContext *C, float x, float y, float *xr, float *yr)
+void ED_clip_point_stable_pos(const bContext *C, float x, float y, float *xr, float *yr)
 {
 	ARegion *ar = CTX_wm_region(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
@@ -506,7 +506,7 @@ void ED_clip_point_stable_pos__reverse(SpaceClip *sc, ARegion *ar, const float c
 	r_co[1] = (pos[1] * height * zoomy) + (float)sy;
 }
 
-void ED_clip_mouse_pos(bContext *C, wmEvent *event, float co[2])
+void ED_clip_mouse_pos(const bContext *C, wmEvent *event, float co[2])
 {
 	ED_clip_point_stable_pos(C, event->mval[0], event->mval[1], &co[0], &co[1]);
 }
