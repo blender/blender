@@ -466,7 +466,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 	/* sanity check */
 	if (!me_src->dvert) {
-		/*todo fix!*/
+		/*todo fix!***********************************************************************************************/
 		return 0;
 	}
 
@@ -500,7 +500,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if (dv_array_src) MEM_freeN(dv_array_src);
 				if (dv_array_dst) MEM_freeN(dv_array_dst);
 				dmesh_src->release(dmesh_src);
-				/*todo: fix*/
+				/*todo: fix********************************************************************************************/
 				return 0;
 			}
 
@@ -580,7 +580,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				project_v3_plane(tmp_co, normal, mv_src[mface_src[index_nearest].v1].co);
 
 				/* interpolate weights over face*/
-				if (mface_src[index_nearest].v4) {
+				if (&mface_src[index_nearest].v4 != NULL) {
 					interp_weights_face_v3(tmp_weight,
 					                       mv_src[mface_src[index_nearest].v1].co,
 					                       mv_src[mface_src[index_nearest].v2].co,
@@ -596,7 +596,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 
 				/* get weights from face*/
 				weight = 0;
-				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) v = 4;
+				if (&mface_src[index_nearest].v4 != NULL) v = 4;
 				else v = 3;
 				for (j = 0; j < v; j++) {
 					weight += tmp_weight[j] * defvert_find_index(dv_array_src[(&mface_src[index_nearest].v1)[j]], index_src)->weight;
@@ -646,7 +646,7 @@ int ED_vgroup_transfer_weight(Object *ob_dst, Object *ob_src, bDeformGroup *dg_s
 				if (dist_v1 < dist_v2 && dist_v1 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v1;
 				else if (dist_v2 < dist_v3) index_nearest_vertex = mface_src[index_nearest].v2;
 				else index_nearest_vertex = mface_src[index_nearest].v3;
-				if (mface_src[index_nearest].v4 || mface_src[index_nearest].v4 == 0) {
+				if (&mface_src[index_nearest].v4 != NULL) {
 					dist_v4 = len_squared_v3v3(tmp_co, mv_src[mface_src[index_nearest].v4].co);
 					if (dist_v4 < dist_v1 && dist_v4 < dist_v2 && dist_v4 < dist_v3) {
 						index_nearest_vertex = mface_src[index_nearest].v4;
