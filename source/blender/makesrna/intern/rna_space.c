@@ -1036,7 +1036,7 @@ static void rna_SpaceClipEditor_clip_set(PointerRNA *ptr, PointerRNA value)
 	SpaceClip *sc = (SpaceClip *)(ptr->data);
 	bScreen *screen = (bScreen *)ptr->id.data;
 
-	ED_space_clip_set(NULL, screen, sc, (MovieClip *)value.data);
+	ED_space_clip_set_clip(NULL, screen, sc, (MovieClip *)value.data);
 }
 
 static void rna_SpaceClipEditor_mask_set(PointerRNA *ptr, PointerRNA value)

@@ -85,6 +85,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	int i;
 	int width = this->getWidth();
 	int height = this->getHeight();
+	int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->movieClip, framenumber);
 
 	if (this->trackingObject[0]) {
 		MovieTrackingObject *object = BKE_tracking_object_get_named(tracking, this->trackingObject);
@@ -102,7 +103,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	if (!sites_total)
 		return NULL;
 
-	BKE_movieclip_user_set_frame(&user, framenumber);
+	BKE_movieclip_user_set_frame(&user, clip_frame);
 	ibuf = BKE_movieclip_get_ibuf(movieClip, &user);
 
 	if (!ibuf)
@@ -115,7 +116,7 @@ KeyingScreenOperation::TriangulationData *KeyingScreenOperation::buildVoronoiTri
 	i = 0;
 	while (track) {
 		VoronoiSite *site = &sites[i];
-		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, framenumber);
+		MovieTrackingMarker *marker = BKE_tracking_marker_get(track, clip_frame);
 		ImBuf *pattern_ibuf = BKE_tracking_get_pattern_imbuf(ibuf, track, marker, TRUE, FALSE);
 		int j;
 
@@ -182,8 +183,9 @@ void KeyingScreenOperation::determineResolution(unsigned int resolution[], unsig
 	if (this->movieClip) {
 		MovieClipUser user = {0};
 		int width, height;
+		int clip_frame = BKE_movieclip_remap_scene_to_clip_frame(this->movieClip, framenumber);
 
-		BKE_movieclip_user_set_frame(&user, framenumber);
+		BKE_movieclip_user_set_frame(&user, clip_frame);
 		BKE_movieclip_get_size(this->movieClip, &user, &width, &height);
 
 		resolution[0] = width;

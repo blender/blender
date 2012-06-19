@@ -91,7 +91,7 @@ static int dopesheet_select_channel_poll(bContext *C)
 static int dopesheet_select_channel_exec(bContext *C, wmOperator *op)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	MovieTrackingObject *object = BKE_tracking_object_get_active(tracking);
 	MovieTrackingDopesheet *dopesheet = &tracking->dopesheet;

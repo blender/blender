@@ -146,7 +146,7 @@ bGPdata **gpencil_data_get_pointers(const bContext *C, PointerRNA *ptr)
 			case SPACE_CLIP: /* Nodes Editor */
 			{
 				SpaceClip *sc = (SpaceClip *)CTX_wm_space_data(C);
-				MovieClip *clip = ED_space_clip(sc);
+				MovieClip *clip = ED_space_clip_get_clip(sc);
 				
 				if (clip) {
 					if (sc->gpencil_src == SC_GPENCIL_SRC_TRACK) {

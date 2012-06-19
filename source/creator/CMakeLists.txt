@@ -824,6 +824,7 @@ endif()
 		bf_editor_animation
 		bf_editor_datafiles
 		bf_editor_mask
+		bf_editor_io
 
 		bf_render
 		bf_intern_opennl

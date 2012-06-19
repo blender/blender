@@ -143,23 +143,23 @@ void AUD_FFMPEGReader::init()
 
 	switch(m_codecCtx->sample_fmt)
 	{
-	case SAMPLE_FMT_U8:
+	case AV_SAMPLE_FMT_U8:
 		m_convert = AUD_convert_u8_float;
 		m_specs.format = AUD_FORMAT_U8;
 		break;
-	case SAMPLE_FMT_S16:
+	case AV_SAMPLE_FMT_S16:
 		m_convert = AUD_convert_s16_float;
 		m_specs.format = AUD_FORMAT_S16;
 		break;
-	case SAMPLE_FMT_S32:
+	case AV_SAMPLE_FMT_S32:
 		m_convert = AUD_convert_s32_float;
 		m_specs.format = AUD_FORMAT_S32;
 		break;
-	case SAMPLE_FMT_FLT:
+	case AV_SAMPLE_FMT_FLT:
 		m_convert = AUD_convert_copy<float>;
 		m_specs.format = AUD_FORMAT_FLOAT32;
 		break;
-	case SAMPLE_FMT_DBL:
+	case AV_SAMPLE_FMT_DBL:
 		m_convert = AUD_convert_double_float;
 		m_specs.format = AUD_FORMAT_FLOAT64;
 		break;
@@ -189,7 +189,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(std::string filename) :
 	}
 	catch(AUD_Exception&)
 	{
-		av_close_input_file(m_formatCtx);
+		avformat_close_input(&m_formatCtx);
 		throw;
 	}
 }
@@ -227,7 +227,7 @@ AUD_FFMPEGReader::AUD_FFMPEGReader(AUD_Reference<AUD_Buffer> buffer) :
 	}
 	catch(AUD_Exception&)
 	{
-		av_close_input_stream(m_formatCtx);
+		avformat_close_input(&m_formatCtx);
 		av_free(m_aviocontext);
 		throw;
 	}
@@ -239,7 +239,7 @@ AUD_FFMPEGReader::~AUD_FFMPEGReader()
 
 	if(m_aviocontext)
 	{
-		av_close_input_stream(m_formatCtx);
+		avformat_close_input(&m_formatCtx);
 		av_free(m_aviocontext);
 	}
 	else

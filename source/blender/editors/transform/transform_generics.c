@@ -639,8 +639,8 @@ static void recalcData_spaceclip(TransInfo *t)
 {
 	SpaceClip *sc = t->sa->spacedata.first;
 
-	if (ED_space_clip_show_trackedit(sc)) {
-		MovieClip *clip = ED_space_clip(sc);
+	if (ED_space_clip_check_show_trackedit(sc)) {
+		MovieClip *clip = ED_space_clip_get_clip(sc);
 		ListBase *tracksbase = BKE_tracking_get_active_tracks(&clip->tracking);
 		MovieTrackingTrack *track;
 		int framenr = sc->user.framenr;
@@ -675,8 +675,8 @@ static void recalcData_spaceclip(TransInfo *t)
 
 		DAG_id_tag_update(&clip->id, 0);
 	}
-	else if (ED_space_clip_show_maskedit(sc)) {
-		Mask *mask = ED_space_clip_mask(sc);
+	else if (ED_space_clip_check_show_maskedit(sc)) {
+		Mask *mask = ED_space_clip_get_mask(sc);
 
 		flushTransMasking(t);
 
@@ -1128,9 +1128,9 @@ int initTransInfo(bContext *C, TransInfo *t, wmOperator *op, wmEvent *event)
 		t->view = &ar->v2d;
 		t->around = sclip->around;
 
-		if (ED_space_clip_show_trackedit(sclip))
+		if (ED_space_clip_check_show_trackedit(sclip))
 			t->options |= CTX_MOVIECLIP;
-		else if (ED_space_clip_show_maskedit(sclip))
+		else if (ED_space_clip_check_show_maskedit(sclip))
 			t->options |= CTX_MASK;
 	}
 	else {

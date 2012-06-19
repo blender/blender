@@ -30,6 +30,7 @@ set(INC
 	../blenlib
 	../blenloader
 	../editors/include
+	../editors/io
 	../gpu
 	../imbuf
 	../makesdna

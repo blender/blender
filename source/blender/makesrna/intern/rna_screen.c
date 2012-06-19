@@ -193,6 +193,16 @@ static void rna_def_area(BlenderRNA *brna)
 	RNA_def_property_flag(prop, PROP_CONTEXT_UPDATE);
 	RNA_def_property_update(prop, 0, "rna_Area_type_update");
 
+	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "totrct.xmin");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "X Position", "The window relative vertical location of the area");
+
+	prop = RNA_def_property(srna, "y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "totrct.ymin");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Y Position", "The window relative horizontal location of the area");
+
 	prop = RNA_def_property(srna, "width", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "winx");
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
@@ -229,6 +239,16 @@ static void rna_def_region(BlenderRNA *brna)
 	RNA_def_property_enum_items(prop, region_type_items);
 	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
 	RNA_def_property_ui_text(prop, "Region Type", "Type of this region");
+
+	prop = RNA_def_property(srna, "x", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "winrct.xmin");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "X Position", "The window relative vertical location of the region");
+
+	prop = RNA_def_property(srna, "y", PROP_INT, PROP_NONE);
+	RNA_def_property_int_sdna(prop, NULL, "winrct.ymin");
+	RNA_def_property_clear_flag(prop, PROP_EDITABLE);
+	RNA_def_property_ui_text(prop, "Y Position", "The window relative horizontal location of the region");
 
 	prop = RNA_def_property(srna, "width", PROP_INT, PROP_UNSIGNED);
 	RNA_def_property_int_sdna(prop, NULL, "winx");

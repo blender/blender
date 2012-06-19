@@ -174,6 +174,7 @@ class QuickExplode(Operator):
 
         if self.style == 'BLEND' and len(mesh_objects) != 2:
             self.report({'ERROR'}, "Select two mesh objects")
+            self.style = 'EXPLODE'
             return {'CANCELLED'}
         elif not mesh_objects:
             self.report({'ERROR'}, "Select at least one mesh object")
@@ -241,10 +242,10 @@ class QuickExplode(Operator):
                     if obj == to_obj:
                         tex_slot.alpha_factor = -1.0
                         elem = tex.color_ramp.elements[1]
-                        elem.color = mat.diffuse_color
                     else:
                         elem = tex.color_ramp.elements[0]
-                        elem.color = mat.diffuse_color
+                    # Keep already defined alpha!
+                    elem.color[:3] = mat.diffuse_color
                 else:
                     tex_slot.use_map_color_diffuse = False
 

@@ -91,11 +91,16 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	graph->addOperation(bokeh);
 	
 	VariableSizeBokehBlurOperation *operation = new VariableSizeBokehBlurOperation();
-	operation->setQuality(context->getQuality());
+	if (data->preview) {
+		operation->setQuality(COM_QUALITY_LOW);
+	} else {
+		operation->setQuality(context->getQuality());
+	}
 	operation->setMaxBlur(data->maxblur);
 	operation->setThreshold(data->bthresh);
 	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));
 	addLink(graph, radiusOperation->getOutputSocket(), operation->getInputSocket(2));
+	addLink(graph, radiusOperation->getInputSocket(0)->getConnection()->getFromSocket(), operation->getInputSocket(3));
 	if (data->gamco) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();

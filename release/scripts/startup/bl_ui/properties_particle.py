@@ -841,7 +841,7 @@ class PARTICLE_PT_render(ParticleButtonsPanel, Panel):
                     row = layout.row()
                     row.prop(part, "use_simplify_viewport")
                     sub = row.row()
-                    sub.active = part.viewport == True
+                    sub.active = part.use_simplify_viewport == True
                     sub.prop(part, "simplify_viewport")
 
         elif part.render_type == 'OBJECT':

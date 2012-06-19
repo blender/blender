@@ -208,7 +208,7 @@ void NodeOperation::COM_clEnqueueRange(cl_command_queue queue, cl_kernel kernel,
 	const int height = outputMemoryBuffer->getHeight();
 	int offsetx;
 	int offsety;
-	const int localSize = 32;
+	const int localSize = 128;
 	size_t size[2];
 	cl_int2 offset;
 	
