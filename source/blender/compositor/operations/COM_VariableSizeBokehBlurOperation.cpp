@@ -39,7 +39,7 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 	this->inputBokehProgram = NULL;
 	this->inputSizeProgram = NULL;
 	this->maxBlur = 32.0f;
-	this->threshold = 0.0f;
+	this->threshold = 1.0f;
 }
 
 
@@ -56,6 +56,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
+	float tempSizeCenter[4];
 	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -64,32 +65,30 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	int minx = x - maxBlur;
 	int maxx = x + maxBlur;
 	{
+		inputSizeProgram->read(tempSizeCenter, x, y, COM_PS_NEAREST, inputBuffers);
 		inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
-		color_accum[0] += readColor[0];
-		color_accum[1] += readColor[1];
-		color_accum[2] += readColor[2];
-		color_accum[3] += readColor[3];
 		add_v4_v4(color_accum, readColor);
-		add_v3_fl(multiplier_accum, 1.0f);
+		add_v4_fl(multiplier_accum, 1.0f);
+		float sizeCenter = tempSizeCenter[0];
 		
 		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
 				if (nx >= 0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
 					inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
 					float size = tempSize[0];
-//					size += this->threshold;
-					float dx = nx - x;
-					float dy = ny - y;
-					if (nx == x && ny == y) {
-						/* pass */
-					}
-					else if (size >= fabsf(dx) && size >= fabsf(dy)) {
-						float u = 256 + dx * 256 / size;
-						float v = 256 + dy * 256 / size;
-						inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
-						inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-						madd_v4_v4v4(color_accum, bokeh, readColor);
-						add_v4_v4(multiplier_accum, bokeh);
+					if ((sizeCenter > threshold && size > threshold) || size <= threshold) {
+						float dx = nx - x;
+						float dy = ny - y;
+						if (nx == x && ny == y) {
+						}
+						else if (size >= fabsf(dx) && size >= fabsf(dy)) {
+							float u = 256 + dx * 256 / size;
+							float v = 256 + dy * 256 / size;
+							inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
+							inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
+							madd_v4_v4v4(color_accum, bokeh, readColor);
+							add_v4_v4(multiplier_accum, bokeh);
+						}
 					}
 				}
 			}
