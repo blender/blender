@@ -31,13 +31,15 @@ VariableSizeBokehBlurOperation::VariableSizeBokehBlurOperation() : NodeOperation
 {
 	this->addInputSocket(COM_DT_COLOR);
 	this->addInputSocket(COM_DT_COLOR, COM_SC_NO_RESIZE); // do not resize the bokeh image.
-	this->addInputSocket(COM_DT_VALUE);
+	this->addInputSocket(COM_DT_VALUE); // radius
+	this->addInputSocket(COM_DT_VALUE); // depth
 	this->addOutputSocket(COM_DT_COLOR);
 	this->setComplex(true);
 
 	this->inputProgram = NULL;
 	this->inputBokehProgram = NULL;
 	this->inputSizeProgram = NULL;
+	this->inputDepthProgram = NULL;
 	this->maxBlur = 32.0f;
 	this->threshold = 1.0f;
 }
@@ -48,6 +50,7 @@ void VariableSizeBokehBlurOperation::initExecution()
 	this->inputProgram = getInputSocketReader(0);
 	this->inputBokehProgram = getInputSocketReader(1);
 	this->inputSizeProgram = getInputSocketReader(2);
+	this->inputDepthProgram = getInputSocketReader(3);
 	QualityStepHelper::initExecution(COM_QH_INCREASE);
 }
 
@@ -56,7 +59,7 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	float readColor[4];
 	float bokeh[4];
 	float tempSize[4];
-	float tempSizeCenter[4];
+	float tempDepth[4];
 	float multiplier_accum[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 	float color_accum[4]      = {0.0f, 0.0f, 0.0f, 0.0f};
 
@@ -65,29 +68,34 @@ void VariableSizeBokehBlurOperation::executePixel(float *color, int x, int y, Me
 	int minx = x - maxBlur;
 	int maxx = x + maxBlur;
 	{
-		inputSizeProgram->read(tempSizeCenter, x, y, COM_PS_NEAREST, inputBuffers);
+		inputSizeProgram->read(tempSize, x, y, COM_PS_NEAREST, inputBuffers);
+		inputDepthProgram->read(tempDepth, x, y, COM_PS_NEAREST, inputBuffers);
 		inputProgram->read(readColor, x, y, COM_PS_NEAREST, inputBuffers);
 		add_v4_v4(color_accum, readColor);
 		add_v4_fl(multiplier_accum, 1.0f);
-		float sizeCenter = tempSizeCenter[0];
+		float sizeCenter = tempSize[0];
+		float centerDepth = tempDepth[0]+threshold;
 		
 		for (int ny = miny; ny < maxy; ny += QualityStepHelper::getStep()) {
 			for (int nx = minx; nx < maxx; nx += QualityStepHelper::getStep()) {
 				if (nx >= 0 && nx < this->getWidth() && ny >= 0 && ny < getHeight()) {
+					inputDepthProgram->read(tempDepth, nx, ny, COM_PS_NEAREST, inputBuffers);
 					inputSizeProgram->read(tempSize, nx, ny, COM_PS_NEAREST, inputBuffers);
 					float size = tempSize[0];
-					if ((sizeCenter > threshold && size > threshold) || size <= threshold) {
-						float dx = nx - x;
-						float dy = ny - y;
-						if (nx == x && ny == y) {
-						}
-						else if (size >= fabsf(dx) && size >= fabsf(dy)) {
-							float u = 256 + dx * 256 / size;
-							float v = 256 + dy * 256 / size;
-							inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
-							inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
-							madd_v4_v4v4(color_accum, bokeh, readColor);
-							add_v4_v4(multiplier_accum, bokeh);
+					if (tempDepth[0] < centerDepth) {
+						if ((sizeCenter > threshold && size > threshold) || size <= threshold) {
+							float dx = nx - x;
+							float dy = ny - y;
+							if (nx == x && ny == y) {
+							}
+							else if (size >= fabsf(dx) && size >= fabsf(dy)) {
+								float u = 256 + dx * 256 / size;
+								float v = 256 + dy * 256 / size;
+								inputBokehProgram->read(bokeh, u, v, COM_PS_NEAREST, inputBuffers);
+								inputProgram->read(readColor, nx, ny, COM_PS_NEAREST, inputBuffers);
+								madd_v4_v4v4(color_accum, bokeh, readColor);
+								add_v4_v4(multiplier_accum, bokeh);
+							}
 						}
 					}
 				}
@@ -129,6 +137,10 @@ bool VariableSizeBokehBlurOperation::determineDependingAreaOfInterest(rcti *inpu
 	}
 	operation = getInputOperation(1);
 	if (operation->determineDependingAreaOfInterest(&bokehInput, readOperation, output) ) {
+		return true;
+	}
+	operation = getInputOperation(3);
+	if (operation->determineDependingAreaOfInterest(&newInput, readOperation, output) ) {
 		return true;
 	}
 	operation = getInputOperation(0);

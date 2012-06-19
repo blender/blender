@@ -96,6 +96,7 @@ void DefocusNode::convertToOperations(ExecutionSystem *graph, CompositorContext 
 	operation->setThreshold(data->bthresh);
 	addLink(graph, bokeh->getOutputSocket(), operation->getInputSocket(1));
 	addLink(graph, radiusOperation->getOutputSocket(), operation->getInputSocket(2));
+	addLink(graph, radiusOperation->getInputSocket(0)->getConnection()->getFromSocket(), operation->getInputSocket(3));
 	if (data->gamco) {
 		GammaCorrectOperation *correct = new GammaCorrectOperation();
 		GammaUncorrectOperation *inverse = new GammaUncorrectOperation();
