@@ -2497,6 +2497,8 @@ static void node_composit_buts_trackpos(uiLayout *layout, bContext *C, PointerRN
 		else {
 			uiItemR(layout, ptr, "track_name", 0, "", ICON_ANIM_DATA);
 		}
+
+		uiItemR(layout, ptr, "use_relative", 0, NULL, ICON_NONE);
 	}
 }
 

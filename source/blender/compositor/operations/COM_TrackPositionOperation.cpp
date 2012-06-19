@@ -44,6 +44,7 @@ TrackPositionOperation::TrackPositionOperation() : NodeOperation()
 	this->trackingObject[0] = 0;
 	this->trackName[0] = 0;
 	this->axis = 0;
+	this->relative = false;
 }
 
 void TrackPositionOperation::executePixel(float *outputValue, float x, float y, PixelSampler sampler, MemoryBuffer *inputBuffers[])
@@ -71,6 +72,20 @@ void TrackPositionOperation::executePixel(float *outputValue, float x, float y, 
 	marker = BKE_tracking_marker_get(track, this->framenumber);
 
 	outputValue[0] = marker->pos[this->axis];
+
+	if (this->relative) {
+		int i;
+
+		for (i = 0; i < track->markersnr; i++) {
+			marker = &track->markers[i];
+
+			if ((marker->flag & MARKER_DISABLED) == 0) {
+				outputValue[0] -= marker->pos[this->axis];
+
+				break;
+			}
+		}
+	}
 
 	if (this->axis == 0)
 		outputValue[0] *= width;

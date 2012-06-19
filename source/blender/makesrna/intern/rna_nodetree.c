@@ -3624,6 +3624,11 @@ static void def_cmp_trackpos(StructRNA *srna)
 	RNA_def_property_ui_text(prop, "Movie Clip", "");
 	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
 
+	prop = RNA_def_property(srna, "use_relative", PROP_BOOLEAN, PROP_NONE);
+	RNA_def_property_boolean_sdna(prop, NULL, "custom1", 1);
+	RNA_def_property_ui_text(prop, "Relative", "Return relative position to first track's marker");
+	RNA_def_property_update(prop, NC_NODE | NA_EDITED, "rna_Node_update");
+
 	RNA_def_struct_sdna_from(srna, "NodeTrackPosData", "storage");
 
 	prop = RNA_def_property(srna, "tracking_object", PROP_STRING, PROP_NONE);

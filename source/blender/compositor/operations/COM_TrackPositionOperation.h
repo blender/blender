@@ -44,6 +44,7 @@ protected:
 	char trackingObject[64];
 	char trackName[64];
 	int axis;
+	bool relative;
 
 	/**
 	  * Determine the output resolution. The resolution is retrieved from the Renderer
@@ -58,6 +59,7 @@ public:
 	void setTrackName(char *track) {strncpy(this->trackName, track, sizeof(this->trackName));}
 	void setFramenumber(int framenumber) {this->framenumber = framenumber;}
 	void setAxis(int value) {this->axis = value;}
+	void setRelative(bool value) {this->relative = value;}
 
 	void executePixel(float *color, float x, float y, PixelSampler sampler, MemoryBuffer * inputBuffers[]);
 

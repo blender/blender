@@ -52,12 +52,14 @@ void TrackPositionNode::convertToOperations(ExecutionSystem *graph, CompositorCo
 	operationX->setTrackName(trackpos_data->track_name);
 	operationX->setFramenumber(context->getFramenumber());
 	operationX->setAxis(0);
+	operationX->setRelative(editorNode->custom1);
 
 	operationY->setMovieClip(clip);
 	operationY->setTrackingObject(trackpos_data->tracking_object);
 	operationY->setTrackName(trackpos_data->track_name);
 	operationY->setFramenumber(context->getFramenumber());
 	operationY->setAxis(1);
+	operationY->setRelative(editorNode->custom1);
 
 	outputX->relinkConnections(operationX->getOutputSocket());
 	outputY->relinkConnections(operationY->getOutputSocket());
