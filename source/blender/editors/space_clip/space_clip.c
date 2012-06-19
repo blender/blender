@@ -227,7 +227,7 @@ static void clip_scopes_check_gpencil_change(ScrArea *sa)
 static void clip_stabilization_tag_refresh(ScrArea *sa)
 {
 	SpaceClip *sc = (SpaceClip *) sa->spacedata.first;
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	if (clip) {
 		MovieTrackingStabilization *stab = &clip->tracking.stabilization;
@@ -1010,11 +1010,11 @@ static void clip_refresh(const bContext *C, ScrArea *sa)
 /* sets up the fields of the View2D from zoom and offset */
 static void movieclip_main_area_set_view2d(SpaceClip *sc, ARegion *ar)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	float x1, y1, w, h;
 	int width, height, winx, winy;
 
-	ED_space_clip_size(sc, &width, &height);
+	ED_space_clip_get_clip_size(sc, &width, &height);
 
 	w = width;
 	h = height;
@@ -1079,7 +1079,7 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 	/* draw entirely, view changes should be handled here */
 	SpaceClip *sc = CTX_wm_space_clip(C);
 	Scene *scene = CTX_data_scene(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	/* if tracking is in progress, we should synchronize framenr from clipuser
 	 * so latest tracked frame would be shown */
@@ -1123,9 +1123,9 @@ static void clip_main_area_draw(const bContext *C, ARegion *ar)
 		/* find window pixel coordinates of origin */
 		UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
 
-		ED_space_clip_size(sc, &width, &height);
-		ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
-		ED_space_clip_aspect(sc, &aspx, &aspy);
+		ED_space_clip_get_clip_size(sc, &width, &height);
+		ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+		ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
 
 		/* frame the image */
 		maxdim = maxf(width, height);
@@ -1226,7 +1226,7 @@ static void dopesheet_area_draw(const bContext *C, ARegion *ar)
 {
 	Scene *scene = CTX_data_scene(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	View2D *v2d = &ar->v2d;
 	View2DGrid *grid;
 	View2DScrollers *scrollers;
@@ -1289,7 +1289,7 @@ static void clip_channels_area_init(wmWindowManager *wm, ARegion *ar)
 static void clip_channels_area_draw(const bContext *C, ARegion *ar)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	View2D *v2d = &ar->v2d;
 	View2DScrollers *scrollers;
 

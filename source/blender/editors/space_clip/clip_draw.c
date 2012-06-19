@@ -226,7 +226,7 @@ static void draw_movieclip_cache(SpaceClip *sc, ARegion *ar, MovieClip *clip, Sc
 
 static void draw_movieclip_notes(SpaceClip *sc, ARegion *ar)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	MovieTracking *tracking = &clip->tracking;
 	char str[256] = {0};
 	int block = FALSE;
@@ -255,7 +255,7 @@ static void draw_movieclip_buffer(SpaceClip *sc, ARegion *ar, ImBuf *ibuf,
                                   int width, int height, float zoomx, float zoomy)
 {
 	int x, y;
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	/* find window pixel coordinates of origin */
 	UI_view2d_to_region_no_clip(&ar->v2d, 0.0f, 0.0f, &x, &y);
@@ -344,7 +344,7 @@ static void draw_track_path(SpaceClip *sc, MovieClip *UNUSED(clip), MovieTrackin
 	if (count == 0)
 		return;
 
-	start_frame = framenr = ED_space_clip_clip_framenr(sc);
+	start_frame = framenr = ED_space_clip_get_clip_frame_number(sc);
 
 	marker = BKE_tracking_marker_get(track, framenr);
 	if (marker->framenr != framenr || marker->flag & MARKER_DISABLED)
@@ -924,7 +924,7 @@ static void draw_marker_texts(SpaceClip *sc, MovieTrackingTrack *track, MovieTra
 
 	if (marker->flag & MARKER_DISABLED)
 		strcpy(state, "disabled");
-	else if (marker->framenr != ED_space_clip_clip_framenr(sc))
+	else if (marker->framenr != ED_space_clip_get_clip_frame_number(sc))
 		strcpy(state, "estimated");
 	else if (marker->flag & MARKER_TRACKED)
 		strcpy(state, "tracked");
@@ -972,7 +972,7 @@ static void draw_tracking_tracks(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 	ListBase *tracksbase = BKE_tracking_get_active_tracks(tracking);
 	MovieTrackingTrack *track, *act_track;
 	MovieTrackingMarker *marker;
-	int framenr = ED_space_clip_clip_framenr(sc);
+	int framenr = ED_space_clip_get_clip_frame_number(sc);
 	int undistort = sc->user.render_flag & MCLIP_PROXY_RENDER_UNDISTORT;
 	float *marker_pos = NULL, *fp, *active_pos = NULL, cur_pos[2];
 
@@ -1410,7 +1410,7 @@ static void draw_distortion(SpaceClip *sc, ARegion *ar, MovieClip *clip,
 
 void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 {
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 	ImBuf *ibuf;
 	int width, height;
 	float zoomx, zoomy;
@@ -1419,8 +1419,8 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 	if (!clip)
 		return;
 
-	ED_space_clip_size(sc, &width, &height);
-	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 
 	if (sc->flag & SC_SHOW_STABLE) {
 		float smat[4][4], ismat[4][4];
@@ -1476,7 +1476,7 @@ void clip_draw_main(SpaceClip *sc, ARegion *ar, Scene *scene)
 void clip_draw_grease_pencil(bContext *C, int onlyv2d)
 {
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	if (!clip)
 		return;

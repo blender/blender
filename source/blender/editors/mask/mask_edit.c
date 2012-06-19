@@ -138,7 +138,7 @@ void ED_mask_size(const bContext *C, int *width, int *height)
 	if (sa && sa->spacedata.first) {
 		if (sa->spacetype == SPACE_CLIP) {
 			SpaceClip *sc = sa->spacedata.first;
-			ED_space_clip_mask_size(sc, width, height);
+			ED_space_clip_get_mask_size(sc, width, height);
 			return;
 		}
 		else if (sa->spacetype == SPACE_SEQ) {
@@ -159,7 +159,7 @@ void ED_mask_aspect(const bContext *C, float *aspx, float *aspy)
 	SpaceClip *sc = CTX_wm_space_clip(C);
 
 	if (sc) {
-		ED_space_clip_mask_aspect(sc, aspx, aspy);
+		ED_space_clip_get_mask_aspect(sc, aspx, aspy);
 	}
 	else {
 		/* possible other spaces from which mask editing is available */
@@ -177,9 +177,9 @@ void ED_mask_pixelspace_factor(const bContext *C, float *scalex, float *scaley)
 		int width, height;
 		float zoomx, zoomy, aspx, aspy;
 
-		ED_space_clip_size(sc, &width, &height);
-		ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
-		ED_space_clip_aspect(sc, &aspx, &aspy);
+		ED_space_clip_get_clip_size(sc, &width, &height);
+		ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
+		ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
 
 		*scalex = ((float)width * aspx) * zoomx;
 		*scaley = ((float)height * aspy) * zoomy;

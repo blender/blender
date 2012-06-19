@@ -595,8 +595,8 @@ static int circle_select_exec(bContext *C, wmOperator *op)
 
 	/* TODO - make generic! - this is SpaceClip only! */
 	/* compute ellipse and position in unified coordinates */
-	ED_space_clip_size(sc, &width, &height);
-	ED_space_clip_zoom(sc, ar, &zoomx, &zoomy);
+	ED_space_clip_get_clip_size(sc, &width, &height);
+	ED_space_clip_get_zoom(sc, ar, &zoomx, &zoomy);
 	width = height = MAX2(width, height);
 
 	ellipse[0] = width * zoomx / radius;

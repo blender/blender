@@ -78,7 +78,7 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 
 	if (sc->zoom < 0.1f || sc->zoom > 4.0f) {
 		/* check zoom limits */
-		ED_space_clip_size(sc, &width, &height);
+		ED_space_clip_get_clip_size(sc, &width, &height);
 
 		width *= sc->zoom;
 		height *= sc->zoom;
@@ -92,7 +92,7 @@ static void sclip_zoom_set(SpaceClip *sc, ARegion *ar, float zoom, float locatio
 	}
 
 	if ((U.uiflag & USER_ZOOM_TO_MOUSEPOS) && location) {
-		ED_space_clip_size(sc, &width, &height);
+		ED_space_clip_get_clip_size(sc, &width, &height);
 
 		sc->xof += ((location[0] - 0.5f) * width - sc->xof) * (sc->zoom - oldzoom) / sc->zoom;
 		sc->yof += ((location[1] - 0.5f) * height - sc->yof) * (sc->zoom - oldzoom) / sc->zoom;
@@ -208,7 +208,7 @@ static int open_exec(bContext *C, wmOperator *op)
 		RNA_property_update(C, &pprop->ptr, pprop->prop);
 	}
 	else if (sc) {
-		ED_space_clip_set(C, screen, sc, clip);
+		ED_space_clip_set_clip(C, screen, sc, clip);
 	}
 
 	WM_event_add_notifier(C, NC_MOVIECLIP | NA_ADDED, clip);
@@ -225,7 +225,7 @@ static int open_invoke(bContext *C, wmOperator *op, wmEvent *UNUSED(event))
 	MovieClip *clip = NULL;
 
 	if (sc)
-		clip = ED_space_clip(sc);
+		clip = ED_space_clip_get_clip(sc);
 
 	if (clip) {
 		strncpy(path, clip->name, sizeof(path));
@@ -713,8 +713,8 @@ static int view_all_exec(bContext *C, wmOperator *op)
 	sc = CTX_wm_space_clip(C);
 	ar = CTX_wm_region(C);
 
-	ED_space_clip_size(sc, &w, &h);
-	ED_space_clip_aspect(sc, &aspx, &aspy);
+	ED_space_clip_get_clip_size(sc, &w, &h);
+	ED_space_clip_get_clip_aspect(sc, &aspx, &aspy);
 
 	w = w * aspx;
 	h = h * aspy;
@@ -1031,7 +1031,7 @@ static int clip_rebuild_proxy_exec(bContext *C, wmOperator *UNUSED(op))
 	Scene *scene = CTX_data_scene(C);
 	ScrArea *sa = CTX_wm_area(C);
 	SpaceClip *sc = CTX_wm_space_clip(C);
-	MovieClip *clip = ED_space_clip(sc);
+	MovieClip *clip = ED_space_clip_get_clip(sc);
 
 	if ((clip->flag & MCLIP_USE_PROXY) == 0)
 		return OPERATOR_CANCELLED;
